@@ -26,7 +26,7 @@ include('o_online.php');
 	<div>
 		<a class="advanced-option option-map" href="editSprite.php?id=<?php echo $_GET['id']; ?>&amp;map">
 			<div class="option-bg">
-				<img src="images/tracks/map1.png" alt="Map" />
+				<img src="images/maps/map1.png" alt="Map" />
 				<img src="<?php echo $spriteSrcs['map']; ?>" alt="Perso" />
 			</div>
 			<div class="option-label"><?php echo $language ? "Edit minimap icon":"Modifier l'icone de la mini-map"; ?></div>

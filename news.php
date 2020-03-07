@@ -13,6 +13,8 @@ if (($news = mysql_fetch_array(mysql_query('SELECT title,category,author,content
 		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND (type="news_comment" OR type="answer_newscom") AND link IN (SELECT id FROM `mknewscoms` WHERE news="'. $_GET['id'] .'")');
 		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="news_moderated" AND link="'. $_GET['id'] .'"');
 		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="follower_news" AND link="'. $_GET['id'] .'"');
+		if ($news['status'] == 'accepted')
+			mysql_query('INSERT INTO `mknewsread` SET user='.$id.',date="'.$news['publication_date'].'" ON DUPLICATE KEY UPDATE date=GREATEST(date,VALUES(date))');
 	}
 ?>
 <!DOCTYPE html>

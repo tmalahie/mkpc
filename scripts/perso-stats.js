@@ -62,6 +62,10 @@ function toPerso(sPerso) {
 			return "King boo";
 		if (sPerso == "frere_marto")
 			return "Hammer bro";
+		if (sPerso == "bowser_skelet")
+			return "Dry Bowser";
+		if (sPerso == "flora_piranha")
+			return "Petey Piranha";
 	}
 	else {
 		if (sPerso == "frere_marto")

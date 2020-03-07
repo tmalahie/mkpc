@@ -3,11 +3,11 @@ if (isset($_POST['change']) && isset($_POST['pts'])) {
 	include('escape_all.php');
 	$change = $_POST['change'];
 	$pts = $_POST['pts'];
-	if (($pts>0) && ($pts<4) && (floor($pts)==$pts) && ($change>=0) && ($change<10) && (floor($change)==$change)) {
+	if (($pts>0) && ($pts<4) && (floor($pts)==$pts) && ($change>=0) && ($change<14) && (floor($change)==$change)) {
 		include('initdb.php');
 		include('fetchSaves.php');
 		$avant = 0;
-		for ($i=0;$i<10;$i++)
+		for ($i=0;$i<14;$i++)
 			$avant += $mkSaves[$i];
 		$apres = $avant;
 		if ($pts > $mkSaves[$change]) {
@@ -28,6 +28,12 @@ if (isset($_POST['change']) && isset($_POST['pts'])) {
 			$newPerso = 'roi_boo';
 		if (($avant < 30) && ($apres >= 30))
 			$newPerso = 'frere_marto';
+		if (($avant < 33) && ($apres >= 33))
+			$newPerso = 'bowser_skelet';
+		if (($avant < 39) && ($apres >= 39))
+			$newPerso = 'flora_piranha';
+		if (($avant < 42) && ($apres >= 42))
+			$newPerso = 'link';
 		echo '"'.$newPerso.'"';
 		mysql_close();
 	}

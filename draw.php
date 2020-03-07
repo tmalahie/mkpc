@@ -3,40 +3,11 @@ include('initdb.php');
 include('getId.php');
 include('language.php');
 session_start();
-$bgImages = Array (
-	Array('hills', 'trees'),
-	Array('plains', 'pine'),
-	Array('eciel', 'enuages'),
-	Array('desert', 'roc'),
-	Array('ciel', 'nuages'),
-	Array('nuit', 'boos'),
-	Array('volcans', 'pilliers'),
-	Array('space', 'etoiles'),
-
-	Array('clouds','castle','bush'),
-	Array('palms','boat','waves'),
-	Array('sunset','grass','baobabs'),
-	Array('darkness','bowser','pillars'),
-	Array('fhills','shills','oaks'),
-	Array('spectrum','mansion','dtrees'),
-	Array('earth','dunes','sandcastle'),
-	Array('shield','throne','ark'),
-	Array('factory','airship','rain'),
-	Array('bean','yairship','yclouds'),
-	Array('sun','sand','lighthouse'),
-	Array('sunrise','canyon','valley'),
-	Array('pclouds','cristals','diamonds'),
-	Array('sclouds','garland','gifts'),
-	Array('dclouds','pyramids','mound'),
-	Array('storm','dongeons','towers'),
-	Array('scree','volcanos','willows'),
-	Array('cave','hallow','stalagmites'),
-	Array('hose','duct','grilling'),
-	Array('night','ship','nclouds')
-);
+require_once('circuitEnums.php');
+require_once('isDS.php');
 $musicOptions = $language
-	? Array(null, 'Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', null, 'Mario Circuit', 'Shy Guy Beach', 'Riverside Park', 'Bowser Castle', 'Boo Lake', 'Cheese Land', 'Sky Garden', 'Sunset Wilds', 'Snow Land', 'Ribbon Road', 'Yoshi Desert', 'Lakeside Park', 'Rainbow Road')
-	: Array(null, 'Circuit Mario', 'Plaine Donut', 'Plage Koopa', 'Île Choco', 'Lac Vanille', 'Vallée Fantôme', 'Château de Bowser', 'Route Arc-en-Ciel', null, 'Circuit Mario', 'Plage Maskass', 'Bord du Fleuve', 'Château de Bowser', 'Lac Boo', 'Pays Fromage', 'Jardin Volant', 'Pays Crépuscule', 'Royaume Sorbet', 'Route Ruban', 'Désert Yoshi', 'Bord du Lac', 'Route Arc-en-Ciel');
+	? Array(null, 'Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', null, 'Mario Circuit', 'Shy Guy Beach', 'Riverside Park', 'Bowser Castle', 'Boo Lake', 'Cheese Land', 'Sky Garden', 'Sunset Wilds', 'Snow Land', 'Ribbon Road', 'Yoshi Desert', 'Lakeside Park', 'Rainbow Road', null,'Figure 8 Circuit','Yoshi Falls','Cheep Cheep Beach','Luigi\'s Mansion','Desert Hills','Delfino Square','Waluigi Pinball','Shroom Ridge','DK Pass','Tick-Tock Clock','Airship Fortress','Peach Gardens','Bowser\'s Castle', 'Rainbow Road')
+	: Array(null, 'Circuit Mario', 'Plaine Donut', 'Plage Koopa', 'Île Choco', 'Lac Vanille', 'Vallée Fantôme', 'Château de Bowser', 'Route Arc-en-Ciel', null, 'Circuit Mario', 'Plage Maskass', 'Bord du Fleuve', 'Château de Bowser', 'Lac Boo', 'Pays Fromage', 'Jardin Volant', 'Pays Crépuscule', 'Royaume Sorbet', 'Route Ruban', 'Désert Yoshi', 'Bord du Lac', 'Route Arc-en-Ciel', null, 'Circuit en 8', 'Cascade Yoshi', 'Plage Cheep-Cheep', 'Manoir de Luigi', 'Désert du Soleil', 'Quartier Delfino', 'Flipper Waluigi', 'Corniche Champignon', 'Alpes DK', 'Horloge Tic-Tac', 'Bateau Volant', 'Jardin Peach', 'Château de Bowser', 'Route Arc-en-Ciel');
 if (isset($_GET['i'])) {
 	$circuitId = +$_GET['i'];
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT * FROM circuits WHERE id="'. $circuitId .'"'))) {
@@ -53,8 +24,8 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create circuit':'Créer circuit'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
-		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
+		<link rel="stylesheet" type="text/css" href="styles/draw.css?reload=2" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
 		var bgImgs = <?php echo json_encode($bgImages); ?>;
@@ -64,8 +35,8 @@ if (isset($_GET['i'])) {
 		var isBattle = false;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/editor.js"></script>
-		<script type="text/javascript" src="scripts/draw.js"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
+		<script type="text/javascript" src="scripts/draw.js?reload=2"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
@@ -76,28 +47,43 @@ if (isset($_GET['i'])) {
 		</div>
 		<?php
 		$modes = array(
-			'start' => $language ? 'Start':'Départ',
-			'aipoints' => $language ? 'CPUs route':'Trajet ordis',
-			'walls' => $language ? 'Walls':'Murs',
-			'offroad' => $language ? 'Off-road':'Hors-piste',
-			'holes' => $language ? 'Holes':'Trous',
-			'checkpoints' => 'Checkpoints',
-			'items' => $language ? 'Items':'Objets',
-			'jumps' => $language ? 'Jumps':'Sauts',
-			'boosts' => $language ? 'Boosts':'Accélérateurs',
-			'decor' => $language ? 'Decor':'Décor',
-			'options' => $language ? 'Options':'Divers'
+			($language ? 'Basic options':'Infos de base') => array(
+				'start' => $language ? 'Start':'Départ',
+				'aipoints' => $language ? 'CPUs route':'Trajet ordis',
+				'walls' => $language ? 'Walls':'Murs',
+				'offroad' => $language ? 'Off-road':'Hors-piste',
+				'holes' => $language ? 'Holes':'Trous',
+				'checkpoints' => 'Checkpoints',
+				'items' => $language ? 'Items':'Objets',
+			),
+			($language ? 'Advanced':'Avancé') => array(
+				'jumps' => $language ? 'Jumps':'Sauts',
+				'boosts' => $language ? 'Boosts':'Accélérateurs',
+				'decor' => $language ? 'Decor':'Décor',
+				'cannons' => $language ? 'Cannons':'Canons',
+				'mobiles' => $language ? 'Mobile floor':'Sol mobile',
+				'options' => $language ? 'Options':'Divers'
+			)
 		);
+		if (!IS_DS) {
+			$modeKeys = array_keys($modes);
+			unset($modes[$modeKeys[1]]['cannons']);
+			unset($modes[$modeKeys[1]]['mobiles']);
+		}
 		?>
 		<div id="toolbox">
 			<div id="mode-selection">
 				<button id="mode-decr" class="toolbox-button" onclick="navigateMode(-1)">←</button>
 				<select id="mode" name="mode" onchange="selectMode(this.value)">
 					<?php
-					foreach ($modes as $key=>$name) {
-						?>
+					foreach ($modes as $group=>$modesList) {
+						echo '<optgroup label="'.$group.'">';
+						foreach ($modesList as $key=>$name) {
+							?>
 						<option value="<?php echo $key; ?>"><?php echo $name; ?></option>
-						<?php
+							<?php
+						}
+						echo '</optgroup>';
 					}
 					?>
 				</select>
@@ -187,17 +173,21 @@ if (isset($_GET['i'])) {
 								'boo' => null,
 								'thwomp' => null,
 								'spectre' => null
-							)/*,
+							),
 							array(
 								'crabe' => null,
 								'cheepcheep' => null,
-								'movingtree' => null,
+								'movingtree' => $language ? 'Luigi\'s Mansion - Moving tree' : 'Manoir de Luigi - Arbre mobile',
 								'pokey' => null,
 								'box' => null,
 								'snowman' => null,
 								'goomba' => null,
-								'fireplant' => null,
-								'firebar' => null
+								'fireplant' => $language ? 'Mario Circuit - Fire plant' : 'Circuit Mario - Plante de feu',
+								'piranhaplant' => null,
+								'tortitaupe' => $language ? 'Airship Fortress - Monty Mole' : 'Bateau Volant - Torti Taupe',
+								'topitaupe' => $language ? 'Peach Gardens - Monty Mole' : 'Jardin Peach - Topi Taupe',
+								'firebar' => $language ? 'Bowser Castle - Fire bar' : 'Château de Bowser - Barre de feu',
+								'firesnake' => $language ? 'Desert Hills - fire snake' : 'Désert du soleil - Serpent de feu'
 							),
 							array(
 								'tree' => $language ? 'Figure 8 Circuit - Tree' : 'Circuit en 8 - Arbre',
@@ -209,7 +199,7 @@ if (isset($_GET['i'])) {
 								'fir' => $language ? 'DK Pass - Fir':'Pic DK - Sapin',
 								'mariotree' => $language ? 'Mario Tree - Tree':'Circuit Mario - Arbre',
 								'peachtree' => $language ? 'Peach Gardens - Tree':'Jardin Peach - Arbre'
-							)*/
+							)
 						);
 						foreach ($decors as $i=>$decorNames) {
 							if ($i) echo '<br />';
@@ -217,6 +207,21 @@ if (isset($_GET['i'])) {
 								echo '<button value="'.$decorName.'" class="radio-button radio-button-25 radio-button-decor button-img'.($title ? ' fancy-title':'').'" style="background-image:url(\'images/map_icons/'.$decorName.'.png\')"'.($title ? ' title="'.$title.'"':'').'></button>';
 						}
 						?>
+					</div>
+				</div>
+				<div id="mode-option-cannons">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="cannons-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
+					</div>
+				</div>
+				<div id="mode-option-mobiles">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="mobiles-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
+						&nbsp;<button value="circle" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/circle.png')"></button>
 					</div>
 				</div>
 				<div id="mode-option-options">
@@ -401,86 +406,51 @@ if (isset($_GET['i'])) {
 			</div>
 		</div>
 		<div id="bg-selector" class="fs-popup" onclick="event.stopPropagation()">
-			<table>
-				<tr>
-					<th>SNES</th>
-					<th colspan="2">GBA</th>
-				</tr>
-				<tr>
-					<td class="snesbg">
-					<?php
-					$decors = Array (
-						Array('hills', 'trees'),
-						Array('plains', 'pine'),
-						Array('eciel', 'enuages'),
-						Array('desert', 'roc'),
-						Array('ciel', 'nuages'),
-						Array('nuit', 'boos'),
-						Array('volcans', 'pilliers'),
-						Array('space', 'etoiles'),
-
-						Array('clouds','castle','bush'),
-						Array('palms','boat','waves'),
-						Array('sunset','grass','baobabs'),
-						Array('darkness','bowser','pillars'),
-						Array('fhills','shills','oaks'),
-						Array('spectrum','mansion','dtrees'),
-						Array('earth','dunes','sandcastle'),
-						Array('shield','throne','ark'),
-						Array('factory','airship','rain'),
-						Array('bean','yairship','yclouds'),
-						Array('sun','sand','lighthouse'),
-						Array('sunrise','canyon','valley'),
-						Array('pclouds','cristals','diamonds'),
-						Array('sclouds','garland','gifts'),
-						Array('dclouds','pyramids','mound'),
-						Array('storm','dongeons','towers'),
-						Array('scree','volcanos','willows'),
-						Array('cave','hallow','stalagmites'),
-						Array('hose','duct','grilling'),
-						Array('night','ship','nclouds')
-					);
-					for ($i=0;$i<8;$i++) {
-						$objets = $decors[$i];
-						echo '<span id="bgchoice-'.$i.'" data-value="'.$i.'" onclick="changeBg(this)">
-							<span style="background-image:url(\'images/map_bg/fond_'.$objets[0].'.png\')"></span>
-							<span style="background-image:url(\'images/map_bg/fond_'.$objets[1].'.png\')"></span>
-						</span>';
-					}
+			<div id="bg-selector-tabs">
+			<?php
+			$decors = Array (
+				'SNES' => array_slice($bgImages, 0,8),
+				'GBA' => array_slice($bgImages, 8,20),
+				'DS' => array_slice($bgImages, 28,16)
+			);
+			if (!IS_DS)
+				unset($decors['DS']);
+			$i = 0;
+			foreach ($decors as $name=>$decorGroup) {
+				echo '<a id="bg-selector-tab-'.$i.'" href="javascript:showBgTab('.$i.')">'.$name.'</a>';
+				$i++;
+			}
+			?>
+			</div>
+			<div id="bg-selector-options">
+			<?php
+			$i = 0;
+			$j = 0;
+			foreach ($decors as $name=>$decorGroup) {
+				echo '<div class="bg-selector-optgroup" data-value="'.$i.'" id="bg-selector-optgroup-'.$i.'">';
+				foreach ($decorGroup as $decor) {
 					?>
-					</td>
-					<td class="gbabg" style="border-right:none;padding-right:0px">
+					<div id="bgchoice-<?php echo $j; ?>" data-value="<?php echo $j; ?>" onclick="changeBg(this)">
+						<?php
+						foreach ($decor as $img)
+							echo '<span style="background-image:url(\'images/map_bg/fond_'.$img.'.png\')"></span>';
+						?>
+					</div>
 					<?php
-					for ($i=8;$i<28;$i+=2) {
-						$objets = $decors[$i];
-						echo '<span id="bgchoice-'.$i.'" data-value="'.$i.'" onclick="changeBg(this)">
-							<span style="background-image:url(\'images/map_bg/fond_'.$objets[0].'.png\')"></span>
-							<span style="background-image:url(\'images/map_bg/fond_'.$objets[1].'.png\')"></span>
-							<span style="background-image:url(\'images/map_bg/fond_'.$objets[2].'.png\')"></span>
-						</span>';
-					}
-					?>
-					</td>
-					<td class="gbabg" style="border-left:none;padding-left:0px">
-					<?php
-					for ($i=9;$i<28;$i+=2) {
-						$objets = $decors[$i];
-						echo '<span id="bgchoice-'.$i.'" data-value="'.$i.'" onclick="changeBg(this)">
-							<span style="background-image:url(\'images/map_bg/fond_'.$objets[0].'.png\')"></span>
-							<span style="background-image:url(\'images/map_bg/fond_'.$objets[1].'.png\')"></span>
-							<span style="background-image:url(\'images/map_bg/fond_'.$objets[2].'.png\')"></span>
-						</span>';
-					}
-					?>
-					</td>
-				</tr>
-			</table>
+					$j++;
+				}
+				echo '</div>';
+				$i++;
+			}
+			?>
+			</div>
 		</div>
 		<div id="music-selector" class="fs-popup" onclick="event.stopPropagation()" oncontextmenu="event.stopPropagation()">
 			<table>
 				<tr>
 					<th>SNES</th>
 					<th>GBA</th>
+					<?php if (IS_DS) echo '<th>DS</th>'; ?>
 				</tr>
 				<tr>
 					<td>
@@ -491,16 +461,25 @@ if (isset($_GET['i'])) {
 					</td>
 					<td>
 					<?php
-					$circuits = $language
-					? Array('Mario Circuit', 'Shy Guy Beach', 'Riverside Park', 'Bowser Castle', 'Boo Lake', 'Cheese Land', 'Sky Garden', 'Sunset Wilds', 'Snow Land', 'Ribbon Road', 'Yoshi Desert', 'Lakeside Park', 'Rainbow Road')
-					: Array('Circuit Mario', 'Plage Maskass', 'Bord du Fleuve', 'Château de Bowser', 'Lac Boo', 'Pays Fromage', 'Jardin Volant', 'Pays Crépuscule', 'Royaume Sorbet', 'Route Ruban', 'Désert Yoshi', 'Bord du Lac', 'Route Arc-en-Ciel');
 					for ($i=10;$i<=22;$i++)
 						echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
 					?>
 					</td>
+					<?php
+					if (IS_DS) {
+						?>
+						<td>
+						<?php
+						for ($i=24;$i<=37;$i++)
+							echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
+						?>
+						</td>
+						<?php
+					}
+					?>
 				</tr>
 				<tr>
-					<td colspan="2" class="youtube">
+					<td colspan="<?php echo (IS_DS ? 3:2); ?>" class="youtube">
 						<a id="musicchoice-0" href="javascript:selectMusic(0)">Youtube</a>
 						<div>
 							<?php echo $language ? 'Video URL':'Adresse vidéo'; ?> :
@@ -690,6 +669,46 @@ if (isset($_GET['i'])) {
 							Par défaut, un accélérateur fait 8&times;8 de côté. Vous pouvez modifier cette taille dans le menu de droite."
 						)
 					),
+					'cannons' => array(
+						'title' => $language ? 'Cannons':'Canons',
+						'text' => ($language ?
+							"Cannons are areas that quickly transport you from one point to another on the circuit.
+							To define a cannons, you specify 2 information: cannon area, and replacement area.
+							<ul>
+								<li>Canon area: as for the <a href=\"javascript:selectHelpTab('walls')\">walls</a>,
+								you can define the area by a rectangle or by a polygon.</li>
+								<li>Replacement area: Click where you want the kart to be transported.</li>
+							</ul>"
+							:
+							"Les canons sont des zones qui vous transportent rapidement d'un point à un autre du circuit.
+							Pour définir un canon, vous renseignez 2 informations : la zone du canon, et la zone de replacement.
+							<ul>
+								<li>Zone du canon : comme pour les <a href=\"javascript:selectHelpTab('walls')\">murs</a>,
+								vous pouvez définir la zone par un rectangle ou par un polygone.</li>
+								<li>Zone de replacement : Cliquez là où vous voulez que le kart soit transporté.</li>
+							</ul>"
+						)
+					),
+					'mobiles' => array(
+						'title' => $language ? 'Mobile floor':'Sol mobile',
+						'text' => ($language ?
+						"The &quot;Mobile floor&quot; tool allows to define the areas of the circuit where the kart is driven in one direction: conveyor belt, turntable, water stream...
+						To define a mobile floor, you specify 2 information: the mobile area, and the direction where the kart is being pushed.
+						<ul>
+							<li>Mobile area: there are 3 possible shapes; rectangle, polygon and circle.
+							Rectangle and polygon allow to define a translating area, circle define a rotating area.</li>
+							<li>Pusing direction: once area entered, an arrow appears. Place this arrow in the desired direction and force. The larger the arrow, the stronger the pushing force.</li>
+						</ul>"
+						:
+						"L'outil &quot;sol mobile&quot; permet de définir des zones du circuits où le kart est entraîné dans une direction : tapis roulant, plateau tournant, courants d'eau...
+						Pour définir un sol mobile, vous renseignez 2 informations : la zone mobile, et la direction vers laquelle le kart est poussé.
+						<ul>
+							<li>Zone mobile : il y a 3 formes possibles; rectangle, polygone et cercle.
+							Le rectangle et le polygone permettent de définir une zone en translation, le cercle définit une zone en rotation.</li>
+							<li>Direction de poussée : une fois la zone entrée, une flèche apparait. Placez cette flèche dans la direction et la force souhaitée.
+							Plus la flèche est grande, plus la poussée sera forte.</li>
+						</ul>")
+					),
 					'decor' => array(
 						'title' => $language ? 'Decor':'Décor',
 						'text' => ($language ?
@@ -770,7 +789,7 @@ if (isset($_GET['i'])) {
 								<li>Resize the image: enter the new desired dimensions and click on &quot;Validate&quot;.</li>
 								<li>Rotate / flip the image: click on the desired option and click on &quot;Validate&quot;.</li>
 							</ul>
-							In the second and third case, in addition to the image, the various parameters of the circuit (starting position, walls, etc.) are also modified to adapt to the transformation."
+							In the second and third case, in addition to the image, the various elements of the circuit (starting position, walls, etc.) are also modified to adapt to the transformation."
 							:
 							"Si vous souhaitez modifier, redimensionner ou pivoter l'image du circuit, vous pouvez le faire dans ce menu.
 							<ul>
@@ -778,10 +797,14 @@ if (isset($_GET['i'])) {
 								<li>Redimensionner l'image : entrez les nouvelles dimensions souhaitées et cliquez sur &quot;Valider&quot;.</li>
 								<li>Pivoter/retourner l'image : cliquez sur l'option souhaitée et cliquez sur &quot;Valider&quot;.</li>
 							</ul>
-							Dans le 2<sup>e</sup> et 3<sup>e</sup> cas, en plus de l'image, les différents paramètres du circuit (position de départ, murs, etc) sont également modifiés pour s'adapter à la transformation."
+							Dans le 2<sup>e</sup> et 3<sup>e</sup> cas, en plus de l'image, les différents éléments du circuit (position de départ, murs, etc) sont également modifiés pour s'adapter à la transformation."
 						)
 					)
 				);
+				if (IS_DS) {
+					unset($helpItems['cannons']);
+					unset($helpItems['mobiles']);
+				}
 				foreach ($helpItems as $key=>$item) {
 					echo '<button class="radio-button" value="'.$key.'">'.$item['title'].'</button>';
 				}
@@ -810,7 +833,7 @@ if (isset($_GET['i'])) {
 							When you have finished, don\'t forget to save the data by clicking on &quot;Save&quot;.<br />
 							Then you can access, edit or delete your circuit from the creation mode home.' :
 							'Le circuit a été créé avec succès !<br />
-							Vous devez maintenant entrer les paramètres du circuit : emplacements des murs, des objets,...<br />
+							Vous devez maintenant entrer les éléments du circuit : emplacements des murs, des objets,...<br />
 							En cas de besoin, cliquez sur le lien &quot;Aide&quot; en bas du menu de droite.<br />
 							Lorsque vous avez fini, n\'oubliez pas d\'enregistrer les données en cliquant sur &quot;Sauvegarder&quot;.<br />
 							Vous pouvez ensuite accéder, modifier ou supprimer ce circuit depuis l\'accueil du mode création.';
@@ -848,8 +871,8 @@ else {
 		<?php
 		include('o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
-		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
+		<link rel="stylesheet" type="text/css" href="styles/draw.css?reload=2" />
 		<script type="text/javascript">
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
 		var isBattle = false;
@@ -949,10 +972,10 @@ else {
 					<br />
 					The first step is to provide an image of the circuit seen from above.
 					That image is what will be used to render the circuit in the game.<br />
-					For exemple, here is the image of Mario Circuit 1 : <a href="images/tracks/map1.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Show</a>
+					For exemple, here is the image of Mario Circuit 1 : <a href="images/maps/map1.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Show</a>
 					<br />
 					<div id="map-example">
-						<img src="images/tracks/map1.png" alt="Mario Circuit 1" />
+						<img src="images/maps/map1.png" alt="Mario Circuit 1" />
 					</div>
 					<br />
 					To draw the circuit image, you can use a drawing software like Paint or Photoshop.
@@ -1003,10 +1026,10 @@ else {
 					<br />
 					La première étape consiste à fournir une image du circuit vu de dessus.
 					C'est cette image qui sera utilisée pour afficher le circuit dans le jeu.<br />
-					Par exemple, voici l'image du Circuit Mario 1 : <a href="images/tracks/map1.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Afficher</a>
+					Par exemple, voici l'image du Circuit Mario 1 : <a href="images/maps/map1.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Afficher</a>
 					<br />
 					<div id="map-example">
-						<img src="images/tracks/map1.png" alt="Circuit Mario 1" />
+						<img src="images/maps/map1.png" alt="Circuit Mario 1" />
 					</div>
 					<br />
 					Pour dessiner l'image du circuit, vous pouvez utiliser un logiciel de dessin comme Paint ou Photoshop.
@@ -1092,7 +1115,7 @@ else {
 						<a id="editor-track-action-edit"><?php echo $language ? 'Edit':'Modifier'; ?></a>
 						<a id="editor-track-action-delete" onclick="return confirm('<?php echo ($language ? 'Are you sure you want to delete this circuit?':'Voulez-vous vraiment supprimer ce circuit ?'); ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
 					</div>
-					<img id="editor-track-img" src="images/tracks/map1.png" alt="Circuit" />
+					<img id="editor-track-img" src="images/maps/map1.png" alt="Circuit" />
 				</div>
 			</div>
 			<?php

@@ -16,93 +16,9 @@ foreach ($circuitsData as $c => $circuit) {
 "w" : <?php echo $w; ?>,
 "h" : <?php echo $h; ?>,
 "fond" : ["<?php
-	switch ($circuitMainData->bgimg) {
-	case 0 :
-	$getInfos = Array('hills', 'trees');
-	break;
-	case 1 :
-	$getInfos = Array('plains', 'pine');
-	break;
-	case 2 :
-	$getInfos = Array('eciel', 'enuages');
-	break;
-	case 3 :
-	$getInfos = Array('desert', 'roc');
-	break;
-	case 4 :
-	$getInfos = Array('ciel', 'nuages');
-	break;
-	case 5 :
-	$getInfos = Array('nuit', 'boos');
-	break;
-	case 6 :
-	$getInfos = Array('volcans', 'pilliers');
-	break;
-	case 7 :
-	$getInfos = Array('space', 'etoiles');
-	break;
-	case 8:
-	$getInfos = Array('clouds','castle','bush');
-	break;
-	case 9:
-	$getInfos = Array('palms','boat','waves');
-	break;
-	case 10:
-	$getInfos = Array('sunset','grass','baobabs');
-	break;
-	case 11:
-	$getInfos = Array('darkness','bowser','pillars');
-	break;
-	case 12:
-	$getInfos = Array('fhills','shills','oaks');
-	break;
-	case 13:
-	$getInfos = Array('spectrum','mansion','dtrees');
-	break;
-	case 14:
-	$getInfos = Array('earth','dunes','sandcastle');
-	break;
-	case 15:
-	$getInfos = Array('shield','throne','ark');
-	break;
-	case 16:
-	$getInfos = Array('factory','airship','rain');
-	break;
-	case 17:
-	$getInfos = Array('bean','yairship','yclouds');
-	break;
-	case 18:
-	$getInfos = Array('sun','sand','lighthouse');
-	break;
-	case 19:
-	$getInfos = Array('sunrise','canyon','valley');
-	break;
-	case 20:
-	$getInfos = Array('pclouds','cristals','diamonds');
-	break;
-	case 21:
-	$getInfos = Array('sclouds','garland','gifts');
-	break;
-	case 22:
-	$getInfos = Array('dclouds','pyramids','mound');
-	break;
-	case 23:
-	$getInfos = Array('storm','dongeons','towers');
-	break;
-	case 24:
-	$getInfos = Array('scree','volcanos','willows');
-	break;
-	case 25:
-	$getInfos = Array('cave','hallow','stalagmites');
-	break;
-	case 26:
-	$getInfos = Array('hose','duct','grilling');
-	break;
-	case 27:
-	$getInfos = Array('night','ship','nclouds');
-	break;
-}
-echo implode('","',$getInfos);
+	require_once('circuitEnums.php');
+	$getInfos = $bgImages[$circuitMainData->bgimg];
+	echo implode('","',$getInfos);
 ?>"],
 "tours" : <?php echo $circuitMainData->tours; ?>,
 <?php
@@ -171,7 +87,21 @@ if (!$circuitMainData->music) {
 	echo json_encode($circuitPayload->sauts);
 ?>,
 "accelerateurs" : <?php echo json_encode($circuitPayload->accelerateurs); ?>,
-"decor" : <?php echo json_encode($circuitPayload->decor); ?>
+"decor" : <?php echo json_encode($circuitPayload->decor);
+if (!empty($circuitPayload->cannons)) {
+	?>,
+"cannons" : <?php echo json_encode($circuitPayload->cannons);
+}
+if (!empty($circuitPayload->flows)) {
+	?>,
+"flows" : <?php echo json_encode($circuitPayload->flows);
+}
+if (!empty($circuitPayload->spinners)) {
+	?>,
+"spinners" : <?php echo json_encode($circuitPayload->spinners); ?>
+	<?php
+}
+?>
 	}
 	<?php
 }

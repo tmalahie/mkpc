@@ -4,8 +4,7 @@
 <body>
 <iframe id="existing-iframe-example"
         width="640" height="360"
-        src="https://www.youtube.com/embed/N0pip2zCXpM?enablejsapi=1&allow=autoplay"
-	allow="autoplay"
+        src="https://www.youtube.com/embed/N0pip2zCXpM?enablejsapi=1"
         frameborder="0"
         style="border: solid 4px #37474F"
 ></iframe>
@@ -23,8 +22,7 @@
         events: {
           'onReady': onPlayerReady,
           'onStateChange': onPlayerStateChange
-        },
-	 'autoplay': 1
+        }
     });
   }
   function onPlayerReady(event) {

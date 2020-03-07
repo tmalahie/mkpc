@@ -1,0 +1,74 @@
+<html>
+<head>
+<style type="text/css">
+.hp {
+	position: absolute;
+	background-color: white;
+	opacity: 0.5;
+}
+body {
+	background-repeat: no-repeat;
+}
+#res {
+	position: fixed;
+	bottom: 0;
+	z-index: 100;
+	background-color: #CCC;
+}
+#val {
+	position: fixed;
+	left: 50px;
+	bottom: 50px;
+}
+</style>
+<script type="text/javascript" src="mk/maps.js"></script>
+<script type="text/javascript">
+var map = "map1";
+var oMaps = listMaps();
+var hp = oMaps[map].horspiste;
+var included = [];
+for (var i=0;i<hp.length;i++)
+	included[i] = false;
+window.onload = function() {
+	document.body.style.backgroundImage = "url('images/maps/"+map+".png')";
+	var divs = [];
+	for (var i=0;i<hp.length;i++) {
+		var hpi = hp[i];
+		var div = document.createElement("div");
+		div.className = "hp";
+		div.style.left = hpi[0]+"px";
+		div.style.top = hpi[1]+"px";
+		div.style.width = (hpi[2]-1)+"px";
+		div.style.height = (hpi[3]-1)+"px";
+		div.i = i;
+		divs[i] = div;
+		div.onclick = function() {
+			document.getElementById("val").value = JSON.stringify(hp[this.i]);
+			document.getElementById("val").select();
+		};
+		document.body.appendChild(div);
+		var div0 = document.createElement("div");
+		div0.className = "hp";
+		div0.style.backgroundColor = "red";
+		div0.style.opacity = 1;
+		div0.style.width = "7px";
+		div0.style.height = "7px";
+		if (hpi[3]) {
+			div0.style.left = Math.round(hpi[0]+hpi[2]/2-3)+"px";
+			div0.style.top = Math.round(hpi[1]+15/2-4)+"px";
+		}
+		else {
+			div0.style.top = Math.round(hpi[1]+hpi[2]/2-3)+"px";
+			div0.style.left = Math.round(hpi[0]+15/2-4)+"px";
+		}
+		//document.body.appendChild(div0);
+	}
+};
+</script>
+</head>
+<body>
+	<div id="res">
+	</div>
+	<input type="text" id="val" onfocus="this.select()" />
+</body>
+</html>

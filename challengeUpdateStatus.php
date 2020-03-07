@@ -36,6 +36,7 @@ if (isset($_POST['challenge']) && isset($_POST['status'])) {
 			break;
 		}
 	}
+	mysql_close();
 	echo $newStatus;
 }
 ?>

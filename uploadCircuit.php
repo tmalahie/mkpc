@@ -22,12 +22,14 @@ if (isset($_FILES['image'])) {
 					mysql_query('INSERT INTO `circuits` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3]);
 					$id = mysql_insert_id();
 					move_given_file($_FILES['image']['tmp_name'], 'images/uploads/map'.$id.'.'.$ext);
+					mysql_close();
 					header('Location: draw.php?i='.$id.'&uploaded=1');
 					exit;
 				}
 				else $error = $language ? 'Your image must have a png, gif, or jpg extension.':'Votre image doit être au format png, gif ou jpg.';
 			}
 			else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete courses to free space.':'Vous avez dépassé votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des arènes pour libérer de l\'espace disque.';
+			mysql_close();
 		}
 		else $error = $language ? 'Your image mustn\'t exceed 1 Mo. Compress or reduce it if necessary.':'Votre image ne doit pas dépasser 1 Mo. Compressez-la ou réduisez la taille si nécessaire.';
 	}

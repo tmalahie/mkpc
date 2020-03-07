@@ -201,33 +201,42 @@ function handle_upload($file,$perso=null) {
 				$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 				if (in_array($ext, $extensions)) {
 					list($w,$h) = getimagesize($file['tmp_name']);
-					if (($w == 768) && ($h == 32)) {
-						if (!$perso) {
-							mysql_query('INSERT INTO `mkchars` SET
-								identifiant="'. $identifiants[0] .'",identifiant2="'. $identifiants[1] .'",identifiant3="'. $identifiants[2] .'",identifiant4="'. $identifiants[3] .'"
-							');
-							$id = mysql_insert_id();
+					require_once('isDS.php');
+					if (!IS_DS && (($w != 768) || ($h != 32)))
+						$error = $language ? 'Your image must have the dimensions 768&times;32px.':'Votre image doit avoir les dimensions 768&times;32px.';
+					elseif ($w >= 384 && $w <= 1536) {
+						if ($h >= 16 && $h <= 64) {
+							if ($w%24 == 0) {
+								if (!$perso) {
+									mysql_query('INSERT INTO `mkchars` SET
+										identifiant="'. $identifiants[0] .'",identifiant2="'. $identifiants[1] .'",identifiant3="'. $identifiants[2] .'",identifiant4="'. $identifiants[3] .'"
+									');
+									$id = mysql_insert_id();
+								}
+								else
+									$id = $perso['id'];
+								$filehash = generate_sprite_src($id);
+								$spriteSrcs = get_sprite_srcs($filehash);
+								if ($perso) {
+									$oldSrcs = get_sprite_srcs($perso['sprites']);
+									move_sprite_imgs($oldSrcs,$filehash);
+								}
+								$spriteSrcs['tmp'] = PERSOS_DIR.$filehash.'-tmp.png';
+								move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
+								clone_img_resource($spriteSrcs['tmp'],$spriteSrcs['hd']);
+								unlink($spriteSrcs['tmp']);
+								create_sprite_thumbs($spriteSrcs);
+								if ($perso)
+									update_sprite_src($perso['sprites'],$filehash);
+								else
+									mysql_query('UPDATE `mkchars` SET sprites="'. $filehash .'" WHERE id="'. $id .'"');
+								return array('id' => $id);
+							}
+							else $error = $language ? 'Your image width must be a multiple of 24.':'La largeur de votre image doit être un multiple de 24.';
 						}
-						else
-							$id = $perso['id'];
-						$filehash = generate_sprite_src($id);
-						$spriteSrcs = get_sprite_srcs($filehash);
-						if ($perso) {
-							$oldSrcs = get_sprite_srcs($perso['sprites']);
-							move_sprite_imgs($oldSrcs,$filehash);
-						}
-						$spriteSrcs['tmp'] = PERSOS_DIR.$filehash.'-tmp.png';
-						move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
-						clone_img_resource($spriteSrcs['tmp'],$spriteSrcs['hd']);
-						unlink($spriteSrcs['tmp']);
-						create_sprite_thumbs($spriteSrcs);
-						if ($perso)
-							update_sprite_src($perso['sprites'],$filehash);
-						else
-							mysql_query('UPDATE `mkchars` SET sprites="'. $filehash .'" WHERE id="'. $id .'"');
-						return array('id' => $id);
+						else $error = $language ? 'Your image height must be between 16px and 64px.':'La hauteur de votre image doit être comprise entre 16px et 64px.';
 					}
-					else $error = $language ? 'Your image must have the dimensions 768&times;32px.':'Votre image doit avoir les dimensions 768&times;32px.';
+					else $error = $language ? 'Your image width must be between 384px and 1536px.':'La largeur de votre image doit être comprise entre 384px et 1536px.';
 				}
 				else $error = $language ? 'Your image must have a png, gif, jpg or jpeg extension.':'Votre image doit &ecirc;tre au format png, gif, jpg ou jpeg.';
 			}

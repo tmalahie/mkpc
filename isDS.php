@@ -1,3 +1,3 @@
 <?php
-define('IS_DS', 0);
+define('IS_DS', +!empty($_COOKIE['ds']));
 ?>

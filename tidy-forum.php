@@ -29,6 +29,7 @@ while ($subject = mysql_fetch_array($subjects)) {
 	if ($message = mysql_fetch_array($messages))
 		echo '['. $subject['id'] .',"'.htmlentities(addslashes($subject['titre'])).'","'.preg_replace('#\r?\n#'," ",htmlentities($message['message']).'"],');
 }
+mysql_close();
 ?>];
 var id = 0;
 function showTopic() {

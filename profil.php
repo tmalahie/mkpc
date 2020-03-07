@@ -854,7 +854,7 @@ include('menu.php');
 						<td><?php echo $language ? 'Time':'Temps'; ?></td>
 					</tr>
 				<?php
-				include('circuitNames.php');
+				include_once('circuitNames.php');
 				while ($record = mysql_fetch_array($bestScores)) {
 					?>
 					<tr>

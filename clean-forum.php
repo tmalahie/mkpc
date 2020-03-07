@@ -29,6 +29,7 @@ while ($subject = mysql_fetch_array($subjects)) {
 	if (($message = mysql_fetch_array($messages)) && $message['auteur'] == 3603)
 		echo '['. $subject['id'] .',"'.HTMLspecialchars($subject['titre']).'","'.preg_replace('#\r?\n#'," ",HTMLspecialchars($message['message']).'"],');
 }
+mysql_close();
 ?>];
 var id = 0;
 function showTopic() {

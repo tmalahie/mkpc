@@ -264,3 +264,6 @@ window.onload = function() {
 	</div>
 </body>
 </html>
+<?php
+mysql_close();
+?>

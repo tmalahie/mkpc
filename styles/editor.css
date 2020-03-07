@@ -399,8 +399,24 @@ body.theme-dark {
 	fill: white;
 	fill-opacity: 0.7;
 }
+.editor circle.arc {
+	fill: transparent;
+	stroke: white;
+	stroke-opacity: 0.7;
+}
+.theme-dark .editor circle.arc {
+	fill: transparent;
+	stroke: black;
+}
 .theme-dark .editor rect, .theme-dark .editor circle, .theme-dark .editor polygon, .theme-dark .editor polyline {
 	fill: black;
+}
+.editor line {
+	stroke: white;
+	stroke-opacity: 0.7;
+}
+.theme-dark .editor line {
+	stroke: black;
 }
 .bubble {
 	border: solid 1px black;
@@ -595,35 +611,72 @@ div.hover-toggle:hover {
 	background-color: #669FD9;
 	border-color: #59B;
 }
-#bg-selector table {
-	border-spacing: 0;
+#bg-selector {
+	max-height: 90%;
+	overflow-y: auto;
 }
-#bg-selector td {
-	padding: 10px;
+#bg-selector-tabs {
+	margin-bottom: 8px;
 }
-#bg-selector td, #bg-selector th {
-	border: solid 1px #C0C0C0;
+.bg-selector-optgroup {
+	display: none;
 }
-#bg-selector td > span {
+#bg-selector-tabs > a {
+    border-style: solid;
+    border-width: 0;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    color: navy;
+    padding: 1px 5px;
+    text-decoration: none;
+}
+#bg-selector-tabs > a:first-child {
+	border-left-width: 1px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+#bg-selector-tabs > a:last-child {
+	border-right-width: 1px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+#bg-selector-tabs > a:not(.bg-selector-tab-selected) {
+    border-color: #666;
+    background-color: #CCC;
+    color: gray;
+}
+#bg-selector-tabs > a.bg-selector-tab-selected {
+	border-color: navy;
+    background-color: #BBE;
+}
+.bg-selector-optgroup {
+	width: 555px;
+	text-align: center;
+}
+.bg-selector-optgroup > div {
+	display: inline-block;
+	height: 30px;
 	text-align: left;
-	display: block;
 	border: solid 2px transparent;
 	position: relative;
 	z-index: 10;
 	overflow: hidden;
 }
-#bg-selector .snesbg > span {
-	width: 360px;
-	height: 20px;
+#bg-selector-optgroup-0 > div {
+	width: 540px;
 }
-#bg-selector .gbabg > span {
-	width: 180px;
-	height: 25px;
+#bg-selector-optgroup-1 > div {
+	width: 270px;
 }
-#bg-selector td > span:hover, .bg-selected {
-	border: solid 2px #017cd3 !important;
+#bg-selector-optgroup-2 > div {
+	width: 270px;
 }
-#bg-selector td > span > span {
+.bg-selector-optgroup > div:hover, .bg-selected {
+	border: solid 2px #ff7100 !important;
+	background-color: #835719;
+	opacity: 0.7;
+}
+.bg-selector-optgroup > div > span {
 	background-size: auto 100%;
 	display: inline-block;
 	width: 100%;
@@ -631,15 +684,11 @@ div.hover-toggle:hover {
 	position: absolute;
 	cursor: pointer;
 }
-#bg-selector th {
-	padding: 10px;
-}
-#bg-selector th, #bg-selector td {
-	background-color: #d5d5d7;
-}
 #music-selector {
 	padding-left: 5px;
 	padding-right: 5px;
+	max-height: 90%;
+	overflow-y: auto;
 }
 #music-selector th {
 	padding: 10px;

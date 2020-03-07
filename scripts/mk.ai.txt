@@ -1,0 +1,249 @@
+function ai_(oKart) {
+	var completeBattle = (isBattle && complete);
+	var completeCircuit = (!isBattle && complete);
+	var simpleCircuit = (!isBattle && simplified);
+	var simpleBattle = (isBattle && simplified);
+	var normalBattle = ((course=="BB")&&!isCup);
+	var smartBattle = completeBattle||normalBattle;
+	var smartAI = complete||normalBattle;
+	/*TODO rollback*/ completeCircuit = false;
+	/*TODO rollback*/ if(course!="BB")smartAI = false;
+
+	if ((oMap.sections && oKart.tours > oMap.tours) || (oKart.ballons && !oKart.ballons.length)) {
+		oKart.speedinc = 0;
+		oKart.rotincdir = 0;
+		return;
+	}
+	if (!oKart.aipoints.length) return;
+
+	if (smartBattle) {
+		if (oKart.aipoint == undefined) {
+			var minDist = Infinity;
+			for (var i=0;i<oKart.aipoints.length;i++) {
+				if (i != oKart.lastAI) {
+					var iPt = oKart.aipoints[i];
+					if (iPt[0] == 0) {
+						var diffX = iPt[1]-oKart.x, diffY = iPt[2]-oKart.y;
+						var gDist = Math.sqrt(diffX*diffX + diffY*diffY), aDist = gDist*(Math.abs((Math.atan2(diffX,diffY)-oKart.rotation*Math.PI/180+Math.PI)%(2*Math.PI)-Math.PI));
+						var pDist = gDist*2 + aDist;
+						if (pDist < minDist) {
+							oKart.aipoint = i;
+							minDist = pDist;
+						}
+					}
+				}
+			}
+		}
+		if (oKart.aipoint == undefined)
+			return;
+	}
+
+	var aCurPoint = oKart.aipoints[oKart.aipoint];
+	if (simpleBattle)
+		aCurPoint = [(oKart.aipoint%6)*100+50,Math.floor(oKart.aipoint/6)*100+50];
+
+	var iLocalX = aCurPoint[0] - oKart.x;
+	var iLocalY = aCurPoint[1] - oKart.y;
+	if (smartBattle) {
+		iLocalX = aCurPoint[1] - oKart.x;
+		iLocalY = aCurPoint[2] - oKart.y;
+	}
+
+	iRotatedX = iLocalX * direction(1, oKart.rotation) - iLocalY * direction(0, oKart.rotation);
+	iRotatedY = iLocalX * direction(0, oKart.rotation) + iLocalY * direction(1, oKart.rotation);
+	var iLocalD = iLocalX*iLocalX + iLocalY*iLocalY;
+
+	var fAngle = Math.atan2(iRotatedX,iRotatedY) / Math.PI * 180;
+
+	oKart.speedinc = (oKart.speed >= 0 ? 1 : 0.2);
+
+	if (!isBattle) {
+		if (oKart.speed < 0) {
+			oKart.movesince = 12;
+			if (oKart.retablit) {
+				oKart.retablit = false;
+				if (oKart.movesince) {
+					oKart.movesince--;
+					// TODO rollback if (oKart.movesince < (complete?6:1))
+					if (oKart.movesince < 1)
+						oKart.reflexion = 0;
+				}
+				if (oKart.reflexion) {
+					oKart.reflexion--;
+					if (oKart.reflexion == 0)
+						oKart.decision = -oKart.decision;
+				}
+				else {
+					if (oKart.horizontality) {
+						var xp = direction(0,oKart.rotation), yp = direction(1,oKart.rotation);
+						var xc = oKart.horizontality[0], yc = oKart.horizontality[1];
+						oKart.decision = (xp*xc+yp*yc>0)!=(xp*yc-yp*xc>0) ? 1:-1;
+					}
+					else
+						oKart.decision = -1;
+				}
+				if (!oKart.reflexion)
+					oKart.reflexion = 5;
+			}
+			oKart.rotincdir = oKart.decision;
+		}
+		else {
+			oKart.retablit = true;
+			if (oKart.movesince) {
+				oKart.movesince--;
+				if (!oKart.movesince)
+					oKart.reflexion = 0;
+			}
+			if (Math.abs(fAngle) > 7 + Math.random()*5) {
+				if (smartAI) {
+					var maxAngle = 10;
+					var virage = true;
+					if (fAngle < -maxAngle)
+						oKart.rotation -= maxAngle;
+					else if (fAngle > maxAngle)
+						oKart.rotation += maxAngle;
+					else {
+						oKart.rotation += fAngle;
+						virage = false;
+					}
+					if (virage) {
+						if (!oKart.movesince) {
+							if (oKart.protect || oKart.champi || oKart.z || !ralenti(Math.round(oKart.x), Math.round(oKart.y))) {
+								oKart.speed = 60*Math.pow(maxAngle/Math.abs(fAngle), 2.5);
+								oKart.speedinc = 0;
+							}
+						}
+					}
+				}
+				else {
+					if (Math.abs(fAngle) > 10 && oKart.speed > 5)
+						oKart.speedinc = 0;
+					if (oMap.skin == 24) {
+						var maxAngle = 25+Math.random()*10;
+						if (Math.abs(fAngle) > maxAngle)
+							oKart.speed = Math.min(oKart.speed,5*Math.sqrt(maxAngle/Math.abs(fAngle)));
+					}
+					oKart.rotincdir = fAngle > 0 ? 1 : -1;
+				}
+			}
+			else if (!smartAI)
+				oKart.rotincdir = 0;
+		}
+		if (completeCircuit && iLocalD > 40000 && (fAngle < 7) && (oKart.arme == "champi" || oKart.arme == "megachampi" || oKart.arme == "etoile"))
+			arme(aKarts.indexOf(oKart));
+	}
+	else if (smartBattle || oMap.skin == 27) {
+		if (oKart.speed < 0) {
+			if (!oKart.retablissement) {
+				if (oKart.reflexion) {
+					oKart.reflexion--;
+					if (oKart.reflexion == 0)
+						oKart.decision = -oKart.decision;
+				}
+				else
+					oKart.decision = -1;
+				if (!oKart.reflexion)
+					oKart.reflexion = 5;
+			}
+			oKart.rotincdir = oKart.decision;
+			oKart.retablissement = 7;
+		}
+		if (oKart.retablissement)
+			oKart.retablissement--;
+		else if (Math.abs(fAngle) > 7 + Math.random()*5) {
+			var maxAngle = 10;
+			var virage = true;
+			if (fAngle < -maxAngle)
+				oKart.rotation -= maxAngle;
+			else if (fAngle > maxAngle)
+				oKart.rotation += maxAngle;
+			else {
+				oKart.rotation += fAngle;
+				virage = false;
+			}
+			if (virage) {
+				oKart.speed = 10*maxAngle/Math.abs(fAngle);
+				oKart.speedinc = 0;
+			}
+		}
+	}
+	else {
+		if (Math.abs(fAngle) > 7 + Math.random()*5 || oKart.speed < 0) {
+			if (course == "BB" && oMap.trous) {
+				if (Math.abs(fAngle) > 10 && oKart.speed > 4)
+					oKart.speedinc = 0;
+				var maxAngle = 89.9;
+				if (Math.abs(fAngle) > maxAngle) {
+					oKart.speed = Math.min(oKart.speed,4*Math.pow(maxAngle/Math.abs(fAngle),4));
+					oKart.movesince = 10;
+				}
+				else if (oKart.movesince > 0) {
+					oKart.movesince--;
+					oKart.speed = Math.min(oKart.speed, 1.5);
+				}
+			}
+			if (simpleCircuit) {
+				if (oMap.skin == 24 && oKart.speed > 0) {
+					var maxAngle = 25+Math.random()*10;
+					if (Math.abs(fAngle) > maxAngle)
+						oKart.speed = Math.min(oKart.speed,5*Math.sqrt(maxAngle/Math.abs(fAngle)));
+				}
+			}
+			oKart.rotincdir = fAngle > 0 && oKart.speed > 0 ? 1 : -1;
+		}
+		else
+			oKart.rotincdir = 0;
+	}
+
+	if (oMap.jumpable && (iDificulty > 4)) {
+		if (oKart.z && !oKart.jumped && !oKart.billball && !oKart.figstate && !oKart.figuring && !oKart.tourne && (oKart.heightinc > 0)) {
+			if ((iLocalD > 5000) && (Math.abs(fAngle) < 13))
+				oKart.figstate = 21;
+		}
+	}
+
+	if (smartBattle) {
+		if (iLocalD < 300) {
+			var chemins = new Array();
+			for (var i=0;i<oKart.aipoints.length;i++) {
+				var iPt = oKart.aipoints[i];
+				if (iPt[0] == 1) {
+					if (iPt[1] == oKart.aipoint)
+						chemins.push(iPt[2]);
+					else if (iPt[2] == oKart.aipoint)
+						chemins.push(iPt[1]);
+				}
+			}
+			var origine = oKart.lastAI;
+			oKart.lastAI = oKart.aipoint;
+			if (chemins.length) {
+				do {
+					oKart.aipoint = chemins[Math.floor(Math.random()*chemins.length)];
+				} while ((origine == oKart.aipoint) && (chemins.length > 1));
+			}
+			else
+				oKart.aipoint = undefined;
+		}
+	}
+	else if (simpleBattle) {
+		var nbPos = Math.floor(oKart.x/100)+Math.floor(oKart.y/100)*6;
+		if (nbPos != oKart.lastAI) {
+			if (oMap.skin != 27 || iLocalD < 300 || oKart.speed < 0 || oKart.tombe) {
+				var chemins = oKart.aipoints[nbPos];
+				var origine = oKart.lastAI;
+				oKart.lastAI = nbPos;
+				do {
+					oKart.aipoint = chemins[Math.floor(Math.random()*chemins.length)];
+				} while ((origine == oKart.aipoint) && (chemins.length > 1));
+			}
+		}
+	}
+	else {
+		if (iLocalD < (completeCircuit?300:1600)) {
+			oKart.aipoint++;
+
+			if (oKart.aipoint >= oKart.aipoints.length)
+				oKart.aipoint = 0;
+		}
+	}
+}

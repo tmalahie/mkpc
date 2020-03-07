@@ -86,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	}
 	if (circuitData)
 		restoreData(circuitData);
+	//document.getElementById('mode').value = "mobiles";
 	selectMode(document.getElementById('mode').value);
 });
 var zoomLevel = 1;
@@ -238,7 +239,7 @@ function resizeRectangle(rectangle,data,options) {
 								nData = getRectDataCp(point1,point2);
 							}
 							absolutizeData(nData);
-							setRectangleWidth(rectangle,nData);
+							setRectangleBounds(rectangle,nData);
 							if (options.cp)
 								rectangle.reposition(nData);
 						}
@@ -247,7 +248,11 @@ function resizeRectangle(rectangle,data,options) {
 							$toolbox.classList.remove("hiddenbox");
 							resizeRect(e);
 							storeHistoryData(editorTools[currentMode].data);
-							applyObject(data,nData);
+							var apply;
+							if (options.on_apply)
+								apply = options.on_apply(nData);
+							if (false !== apply)
+								applyObject(data,nData);
 							mask.removeEventListener("mousemove", resizeRect);
 							mask.removeEventListener("mouseup", stopResizeRect);
 							mask.defaultClose();
@@ -287,7 +292,7 @@ function moveRectangle(rectangle,data,options) {
 			nData.x = data.x + diffX;
 			nData.y = data.y + diffY;
 			capRectangle(nData);
-			setRectangleWidth(rectangle,nData);
+			setRectangleBounds(rectangle,nData);
 			if (options.cp)
 				rectangle.reposition(nData);
 		}
@@ -296,7 +301,13 @@ function moveRectangle(rectangle,data,options) {
 			$toolbox.classList.remove("hiddenbox");
 			moveRect(e);
 			storeHistoryData(editorTools[currentMode].data);
-			applyObject(data,nData);
+			if (options.on_end_move)
+				options.on_end_move();
+			var apply;
+			if (options.on_apply)
+				apply = options.on_apply(nData);
+			if (false !== apply)
+				applyObject(data,nData);
 			mask.removeEventListener("mousemove", moveRect);
 			mask.removeEventListener("mouseup", stopMoveRect);
 			mask.defaultClose();
@@ -305,8 +316,92 @@ function moveRectangle(rectangle,data,options) {
 		mask.addEventListener("mouseup", stopMoveRect);
 		mask.close = function(){};
 		$toolbox.classList.add("hiddenbox");
+		if (options.on_start_move)
+			options.on_start_move();
 	};
 	mask.appendChild(fakeRectangle);
+}
+function moveCircle(circle,data,options) {
+	options = options||{};
+	var mask = createMask();
+	mask.classList.add("mask-dark");
+	var screenCoords = getScreenCoords({x:data.x-data.r,y:data.y-data.r,w:data.r*2,h:data.r*2});
+	var fakeRectangle = document.createElement("div");
+	fakeRectangle.style.left = screenCoords.x +"px";
+	fakeRectangle.style.top = screenCoords.y +"px";
+	fakeRectangle.style.width = screenCoords.w +"px";
+	fakeRectangle.style.height = screenCoords.h +"px";
+	fakeRectangle.style.cursor = "move";
+	fakeRectangle.onclick = function(e) {
+		e.stopPropagation();
+		var aX = e.pageX, aY = e.pageY;
+		var nData = deepCopy(data);
+		mask.classList.remove("mask-dark");
+		function moveCirc(e) {
+			var nX = e.pageX, nY = e.pageY;
+			var diffX = Math.round((nX-aX)/zoomLevel);
+			var diffY = Math.round((nY-aY)/zoomLevel);
+			nData.x = data.x + diffX;
+			nData.y = data.y + diffY;
+			capCircle(nData);
+			setCircleBounds(circle,nData);
+		}
+		function stopMoveCirc(e) {
+			e.stopPropagation();
+			$toolbox.classList.remove("hiddenbox");
+			moveCirc(e);
+			storeHistoryData(editorTools[currentMode].data);
+			if (options.on_end_move)
+				options.on_end_move();
+			var apply;
+			if (options.on_apply)
+				apply = options.on_apply(nData);
+			if (false !== apply)
+				applyObject(data,nData);
+			mask.removeEventListener("mousemove", moveCirc);
+			mask.removeEventListener("mouseup", stopMoveCirc);
+			mask.defaultClose();
+		}
+		mask.addEventListener("mousemove", moveCirc);
+		mask.addEventListener("mouseup", stopMoveCirc);
+		mask.close = function(){};
+		$toolbox.classList.add("hiddenbox");
+		if (options.on_start_move)
+			options.on_start_move();
+	};
+	mask.appendChild(fakeRectangle);
+}
+function editCircle(circle,data,options) {
+	options = options||{};
+	var mask = createMask();
+	mask.classList.add("mask-dark");
+	var nData = deepCopy(data);
+	mask.classList.remove("mask-dark");
+	function moveCirc(e) {
+		var center = getEditorCoords({x:e.pageX,y:e.pageY});
+		var diffX = center.x-data.x;
+		var diffY = center.y-data.y;
+		nData.r = Math.round(Math.hypot(diffX,diffY));
+		circle.setAttribute("r", nData.r);
+	}
+	function stopMoveCirc(e) {
+		e.stopPropagation();
+		$toolbox.classList.remove("hiddenbox");
+		moveCirc(e);
+		storeHistoryData(editorTools[currentMode].data);
+		var apply;
+		if (options.on_apply)
+			apply = options.on_apply(nData);
+		if (false !== apply)
+			applyObject(data,nData);
+		mask.removeEventListener("mousemove", moveCirc);
+		mask.removeEventListener("mouseup", stopMoveCirc);
+		mask.defaultClose();
+	}
+	mask.addEventListener("mousemove", moveCirc);
+	mask.addEventListener("mouseup", stopMoveCirc);
+	mask.close = function(){};
+	$toolbox.classList.add("hiddenbox");
 }
 function moveBox(box,data,size) {
 	var mask = createMask();
@@ -382,12 +477,12 @@ function moveNode(node,data,lines) {
 	mask.addEventListener("mouseup", stopMovePoint);
 	$toolbox.classList.add("hiddenbox");
 }
-function editPolygon(polygon,data) {
+function editPolygon(polygon,data,options) {
+	options = options||{};
 	var mask = createMask();
 	mask.classList.add("mask-dark");
 	var fakeSvg = document.createElementNS(SVG, "svg");
 	fakeSvg.setAttribute("class", "editor");
-	var fakeLines = [];
 	for (var i=0;i<data.points.length;i++) {
 		(function(i) {
 			var fakeLine = document.createElementNS(SVG, "line");
@@ -424,7 +519,11 @@ function editPolygon(polygon,data) {
 					$toolbox.classList.remove("hiddenbox");
 					movePoint(e);
 					storeHistoryData(editorTool.data);
-					data.points = nPoints;
+					var apply;
+					if (options.on_apply)
+						apply = options.on_apply(nPoints);
+					if (false !== apply)
+						data.points = nPoints;
 					mask.removeEventListener("mousemove", movePoint);
 					mask.removeEventListener("mouseup", stopMovePoint);
 					mask.defaultClose();
@@ -467,7 +566,11 @@ function editPolygon(polygon,data) {
 					$toolbox.classList.remove("hiddenbox");
 					movePoint(e);
 					storeHistoryData(editorTool.data);
-					data.points = nPoints;
+					var apply;
+					if (options.on_apply)
+						apply = options.on_apply(nPoints);
+					if (false !== apply)
+						data.points = nPoints;
 					mask.removeEventListener("mousemove", movePoint);
 					mask.removeEventListener("mouseup", stopMovePoint);
 					mask.defaultClose();
@@ -490,8 +593,14 @@ function editPolygon(polygon,data) {
 					click: function() {
 						var editorTool = editorTools[currentMode];
 						storeHistoryData(editorTool.data);
-						data.points.splice(i,1);
-						setPolygonPoints(polygon,data.points,true);
+						var nPoints = deepCopy(data.points);
+						nPoints.splice(i,1);
+						var apply;
+						if (options.on_apply)
+							apply = options.on_apply(nPoints);
+						if (false !== apply)
+							data.points = nPoints;
+						setPolygonPoints(polygon,nPoints,true);
 						mask.defaultClose();
 					},
 					disabled: (data.points.length <= 3)
@@ -503,7 +612,8 @@ function editPolygon(polygon,data) {
 	}
 	mask.appendChild(fakeSvg);
 }
-function movePolygon(polygon,data) {
+function movePolygon(polygon,data,options) {
+	options = options||{};
 	var mask = createMask();
 	mask.classList.add("mask-dark");
 	var screenCoords = getScreenCoordsExact(data);
@@ -531,6 +641,8 @@ function movePolygon(polygon,data) {
 		e.stopPropagation();
 		var aX = e.pageX, aY = e.pageY;
 		var nData = deepCopy(rData);
+		nData.w--;
+		nData.h--;
 		var nPoints = deepCopy(data.points);
 		mask.classList.remove("mask-dark");
 		function movePoly(e) {
@@ -553,8 +665,13 @@ function movePolygon(polygon,data) {
 			$toolbox.classList.remove("hiddenbox");
 			movePoly(e);
 			storeHistoryData(editorTools[currentMode].data);
-			for (var i=0;i<data.points.length;i++)
-				data.points[i] = nPoints[i];
+			if (options.on_end_move)
+				options.on_end_move();
+			var apply;
+			if (options.on_apply)
+				apply = options.on_apply(nPoints);
+			if (false !== apply)
+				data.points = nPoints;
 			mask.removeEventListener("mousemove", movePoly);
 			mask.removeEventListener("mouseup", stopMovePoly);
 			mask.defaultClose();
@@ -563,10 +680,70 @@ function movePolygon(polygon,data) {
 		mask.addEventListener("mouseup", stopMovePoly);
 		mask.close = function(){};
 		$toolbox.classList.add("hiddenbox");
+		if (options.on_start_move)
+			options.on_start_move();
 	};
 	mask.appendChild(fakeRectangle);
 }
-function moveArrow(arrow,data) {
+function moveArrow(arrow,origin,dir,options) {
+	options = options||{};
+	var mask = createMask();
+	var point2 = {x:origin.x+dir.x,y:origin.y+dir.y};
+	function moveArr(e) {
+		point2 = getEditorCoordsRounded(getPointerPos(e));
+		arrow.move(null,point2);
+	}
+	function stopMoveArr(e) {
+		e.stopPropagation();
+		$toolbox.classList.remove("hiddenbox");
+		moveArr(e);
+		storeHistoryData(editorTools[currentMode].data);
+		var nDir = {x:point2.x-origin.x,y:point2.y-origin.y};
+		var apply;
+		if (options.on_apply)
+			apply = options.on_apply(nDir);
+		if (false !== apply)
+			applyObject(dir,nDir);
+		mask.removeEventListener("mousemove", moveArr);
+		mask.removeEventListener("mouseup", stopMoveArr);
+		mask.defaultClose();
+	}
+	mask.addEventListener("mousemove", moveArr);
+	mask.addEventListener("mouseup", stopMoveArr);
+	mask.close = function(){};
+	$toolbox.classList.add("hiddenbox");
+}
+function moveCircularArrow(arrow,center,dir,options) {
+	options = options||{};
+	var mask = createMask();
+	var nAngle = dir.dtheta;
+	function moveArr(e) {
+		var point = getEditorCoordsRounded(getPointerPos(e));
+		var newAngle = Math.atan2(point.y-center.y,point.x-center.x);
+		nAngle = newAngle-center.theta0;
+		nAngle -= 2*Math.PI*Math.round(nAngle/(2*Math.PI));
+		arrow.move(null,null,nAngle);
+	}
+	function stopMoveArr(e) {
+		e.stopPropagation();
+		$toolbox.classList.remove("hiddenbox");
+		moveArr(e);
+		storeHistoryData(editorTools[currentMode].data);
+		var apply;
+		if (options.on_apply)
+			apply = options.on_apply(nAngle);
+		if (false !== apply)
+			dir.dtheta = nAngle;
+		mask.removeEventListener("mousemove", moveArr);
+		mask.removeEventListener("mouseup", stopMoveArr);
+		mask.defaultClose();
+	}
+	mask.addEventListener("mousemove", moveArr);
+	mask.addEventListener("mouseup", stopMoveArr);
+	mask.close = function(){};
+	$toolbox.classList.add("hiddenbox");
+}
+function moveArrowNode(arrow,data) {
 	var mask = createMask();
 	var nData = data;
 	function moveArr(e) {
@@ -749,9 +926,9 @@ function outOfBounds(point) {
 }
 function capPoint(point) {
 	if (point.x < 0) point.x = 0;
-	else if (point.x >= imgSize.w) point.x = imgSize.w-1;
+	else if (point.x >= imgSize.w) point.x = imgSize.w;
 	if (point.y < 0) point.y = 0;
-	else if (point.y >= imgSize.h) point.y = imgSize.h-1;
+	else if (point.y >= imgSize.h) point.y = imgSize.h;
 	return point;
 }
 function capPointExact(point) {
@@ -767,6 +944,13 @@ function capRectangle(rectangle) {
 	if (rectangle.y < 0) rectangle.y = 0;
 	else if (rectangle.y > (imgSize.h-rectangle.h)) rectangle.y = imgSize.h-rectangle.h-1;
 	return rectangle;
+}
+function capCircle(circle) {
+	if (circle.x < circle.r) circle.x = circle.r;
+	else if (circle.x >= (imgSize.w-circle.r)) circle.x = imgSize.w-circle.r-1;
+	if (circle.y < 0) circle.y = 0;
+	else if (circle.y > (imgSize.h-circle.r)) circle.y = imgSize.h-circle.r-1;
+	return circle;
 }
 function capBox(box) {
 	return capPoint(box);
@@ -822,9 +1006,7 @@ function getScreenCoordsExact(point) {
 }
 function createCircle(point,append) {
 	var res = document.createElementNS(SVG, "circle");
-	res.setAttribute("cx", point.x);
-	res.setAttribute("cy", point.y);
-	res.setAttribute("r", point.r);
+	setCircleBounds(res,point);
 	if (point.l) {
 		res.setAttribute("class", "stroke");
 		res.setAttribute("stroke-width", point.l);
@@ -832,6 +1014,14 @@ function createCircle(point,append) {
 	if (append !== false)
 		$editor.appendChild(res);
 	return res;
+}
+function setCirclePos(circle,data) {
+	circle.setAttribute("cx", data.x);
+	circle.setAttribute("cy", data.y);
+}
+function setCircleBounds(circle,data) {
+	setCirclePos(circle,data);
+	circle.setAttribute("r", data.r);
 }
 function createRectangle(point,append) {
 	var res = document.createElementNS(SVG, "rect");
@@ -855,10 +1045,7 @@ function createBox(boxSize,append) {
 }
 function createLine(point1,point2,append) {
 	var res = document.createElementNS(SVG, "line");
-	res.setAttribute("x1", point1.x);
-	res.setAttribute("y1", point1.y);
-	res.setAttribute("x2", point2.x);
-	res.setAttribute("y2", point2.y);
+	moveLine(res,point1,point2);
 	if (append !== false)
 		$editor.appendChild(res);
 	return res;
@@ -871,6 +1058,28 @@ function moveLine(line,point1,point2) {
 	if (point2) {
 		line.setAttribute("x2", point2.x);
 		line.setAttribute("y2", point2.y);
+	}
+}
+function createArc(data,append) {
+	var res = document.createElementNS(SVG, "circle");
+	res.setAttribute("class", "arc");
+	res.setAttribute("fill", "transparent");
+	moveArc(res,data);
+	if (append !== false)
+		$editor.appendChild(res);
+	return res;
+}
+function moveArc(arc,data) {
+	if (data.x && data.y) {
+		if (data.x) arc.setAttribute("cx", data.x);
+		if (data.y) arc.setAttribute("cy", data.y);
+		arc.style.transformOrigin = data.x+"px "+ data.y+"px";
+	}
+	if (data.r) {
+		arc.setAttribute("r", data.r);
+		arc.setAttribute("stroke-dashoffset", (2*Math.PI-data.dtheta)*data.r);
+		arc.setAttribute("stroke-dasharray", 2*Math.PI*data.r);
+		arc.style.transform = "rotate("+Math.round(data.theta0*180/Math.PI)+"deg)";
 	}
 }
 function createArrowNode(point, orientation, append) {
@@ -936,6 +1145,168 @@ function createArrowNode(point, orientation, append) {
 			arrow[i].onzoom();
 	};
 	return res;
+}
+function createArrow(point1,point2,append,options) {
+	options = options||{};
+	options.thickness = options.thickness||2;
+	var lines = [null,null];
+	for (var j=1;j>=0;j--) {
+		(function(j) {
+			lines[j] = [createLine(point2,point2,append),createLine(point2,point2,append),createLine(point1,point2,append)].reverse();
+			for (var i=0;i<lines[j].length;i++) {
+				var line = lines[j][i];
+				line.classList.add("bordered");
+				if (j)
+					line.classList.add("dark");
+				addZoomListener(line, function() {
+					this.setAttribute("stroke-width", (options.thickness+j*2)/zoomLevel);
+				});
+			}
+		})(j);
+	}
+	var allLines = lines[0].concat(lines[1]);
+	var arrowTheta = Math.PI/4;
+	var cosTheta = Math.cos(arrowTheta), sinTheta = Math.sin(arrowTheta);
+	function setArrowPoint(line,j,l) {
+		var point3 = deepCopy(point2);
+		var arrowL = 10/zoomLevel;
+		var dir = {x:point2.x-point1.x, y:point2.y-point1.y};
+		var dirL = Math.hypot(dir.x,dir.y);
+		var point4 = deepCopy(point2);
+		if (dirL) {
+			dir.x /= dirL;
+			dir.y /= dirL;
+			var pointDir = {x:dir.x*arrowL*cosTheta - l*dir.y*arrowL*sinTheta,y:l*dir.x*arrowL*sinTheta + dir.y*arrowL*cosTheta}
+			point3.x -= pointDir.x;
+			point3.y -= pointDir.y;
+			if (j) {
+				var extendFactor = 0.15;
+				point4.x += extendFactor*pointDir.x;
+				point4.y += extendFactor*pointDir.y;
+				point3.x -= extendFactor*pointDir.x;
+				point3.y -= extendFactor*pointDir.y;
+			}
+		}
+		moveLine(line,point4,point3);
+	}
+	function moveArrow(p1,p2) {
+		if (p1) point1 = p1;
+		if (p2) point2 = p2;
+		for (var j=0;j<2;j++) {
+			(function(j) {
+				moveLine(lines[j][0],point1,point2);
+				addZoomListener(lines[j][1], function() {
+					setArrowPoint(lines[j][1],j,1);
+					this.setAttribute("stroke-width", (options.thickness+j*2)/zoomLevel);
+				});
+				addZoomListener(lines[j][2], function() {
+					setArrowPoint(lines[j][2],j,-1);
+					this.setAttribute("stroke-width", (options.thickness+j*2)/zoomLevel);
+				});
+			})(j);
+		}
+	}
+	function removeArrow() {
+		for (var i=0;i<allLines.length;i++)
+			$editor.removeChild(allLines[i]);
+	}
+	function hideArrow() {
+		for (var i=0;i<allLines.length;i++)
+			allLines[i].style.display = "none";
+	}
+	function showArrow() {
+		for (var i=0;i<allLines.length;i++)
+			allLines[i].style.display = "";
+	}
+	return {
+		lines: allLines,
+		move: moveArrow,
+		remove: removeArrow,
+		hide: hideArrow,
+		show: showArrow
+	}
+}
+function createCircularArrow(center,angle1,dAngle,append,options) {
+	options = options||{};
+	options.thickness = options.thickness||2;
+	var lines = [null,null];
+	for (var j=1;j>=0;j--) {
+		(function(j) {
+			lines[j] = [createLine(center,center,append),createLine(center,center,append),createArc({x:center.x,y:center.y,r:center.r,theta0:angle1,dtheta:dAngle},append)].reverse();
+			for (var i=0;i<lines[j].length;i++) {
+				var line = lines[j][i];
+				line.classList.add("bordered");
+				if (j)
+					line.classList.add("dark");
+				addZoomListener(line, function() {
+					this.setAttribute("stroke-width", (options.thickness+j*2)/zoomLevel);
+				});
+			}
+		})(j);
+	}
+	var allLines = lines[0].concat(lines[1]);
+	var arrowTheta = Math.PI/4;
+	var cosTheta = Math.cos(arrowTheta), sinTheta = Math.sin(arrowTheta);
+	function setArrowPoint(line,j,l) {
+		var angle2 = angle1 + dAngle;
+		var cosAngle = Math.cos(angle2), sinAngle = Math.sin(angle2);
+		var point2 = {x:center.x+center.r*cosAngle, y:center.y+center.r*sinAngle};
+		var point3 = deepCopy(point2);
+		var arrowL = 10/zoomLevel;
+		var dir = {x:-sinAngle, y:cosAngle};
+		if (dAngle < 0) {
+			dir.x = -dir.x;
+			dir.y = -dir.y;
+		}
+		var pointDir = {x:dir.x*arrowL*cosTheta - l*dir.y*arrowL*sinTheta,y:l*dir.x*arrowL*sinTheta + dir.y*arrowL*cosTheta}
+		point3.x -= pointDir.x;
+		point3.y -= pointDir.y;
+		if (j) {
+			var extendFactor = 0.15;
+			point2.x += extendFactor*pointDir.x;
+			point2.y += extendFactor*pointDir.y;
+			point3.x -= extendFactor*pointDir.x;
+			point3.y -= extendFactor*pointDir.y;
+		}
+		moveLine(line,point2,point3);
+	}
+	function moveArrow(point,a1,dA) {
+		if (point!=null)center=point;
+		if (a1!=null) angle1 = a1;
+		if (dA!=null) dAngle = dA;
+		for (var j=0;j<2;j++) {
+			(function(j) {
+				moveArc(lines[j][0],{x:center.x,y:center.y,r:center.r,theta0:angle1,dtheta:dAngle});
+				addZoomListener(lines[j][1], function() {
+					setArrowPoint(lines[j][1],j,1);
+					this.setAttribute("stroke-width", (options.thickness+j*2)/zoomLevel);
+				});
+				addZoomListener(lines[j][2], function() {
+					setArrowPoint(lines[j][2],j,-1);
+					this.setAttribute("stroke-width", (options.thickness+j*2)/zoomLevel);
+				});
+			})(j);
+		}
+	}
+	function removeArrow() {
+		for (var i=0;i<allLines.length;i++)
+			$editor.removeChild(allLines[i]);
+	}
+	function hideArrow() {
+		for (var i=0;i<allLines.length;i++)
+			allLines[i].style.display = "none";
+	}
+	function showArrow() {
+		for (var i=0;i<allLines.length;i++)
+			allLines[i].style.display = "";
+	}
+	return {
+		lines: allLines,
+		move: moveArrow,
+		remove: removeArrow,
+		hide: hideArrow,
+		show: showArrow
+	}
 }
 function createPolygonNode(point) {
 	var center = createRectangle({x:point.x-0.25,y:point.y-0.25,w:0.5,h:0.5});
@@ -1014,7 +1385,7 @@ function startPolygonBuilder(self,point, options) {
 			self.state.point.classList.remove("dark");
 			setNodePos(self.state.point,{x:-1,y:-1});
 			if (options.on_apply)
-				options.on_apply(polygon,points);
+				options.on_apply(polygon,points,points[0]);
 		}
 	};
 	self.state.nodes[0].center.onmouseover = self.state.nodes[0].circle.onmouseover;
@@ -1081,7 +1452,7 @@ function startRectangleBuilder(self,point,options) {
 }
 function moveRectangleBuilder(self,point) {
 	if (self.state.rectangle)
-		setRectangleWidth(self.state.rectangle,getRectDataOptions(self.state.origin,point,self.state.options));
+		setRectangleBounds(self.state.rectangle,getRectDataOptions(self.state.origin,point,self.state.options));
 	else
 		setPointPos(self.state.point,point);
 }
@@ -1090,13 +1461,40 @@ function appendRectangleBuilder(self,point) {
 	var rectangle = self.state.rectangle;
 	var data = getRectDataOptions(self.state.origin,point,self.state.options);
 	data.type = "rectangle";
-	setRectangleWidth(rectangle,data);
+	setRectangleBounds(rectangle,data);
 	self.state.rectangle = null;
 	self.state.point.style.display = "";
 	setNodePos(self.state.point,{x:-1,y:-1});
 	var options = self.state.options;
 	delete self.state.options;
-	options.on_apply(rectangle,data);
+	options.on_apply(rectangle,data,point);
+}
+function startCircleBuilder(self,point,options) {
+	self.state.origin = point;
+	self.state.circle = createCircle({x:point.x,y:point.y,r:0});
+	self.state.point.style.display = "none";
+	self.state.options = options;
+	storeHistoryData(self.data);
+	$toolbox.classList.add("hiddenbox");
+}
+function moveCircleBuilder(self,point) {
+	if (self.state.circle)
+		setCircleBounds(self.state.circle,getCircleDataOptions(self.state.origin,point,self.state.options));
+	else
+		setPointPos(self.state.point,point);
+}
+function appendCircleBuilder(self,point) {
+	$toolbox.classList.remove("hiddenbox");
+	var circle = self.state.circle;
+	var data = getCircleDataOptions(self.state.origin,point,self.state.options);
+	data.type = "circle";
+	setCircleBounds(circle,data);
+	self.state.circle = null;
+	self.state.point.style.display = "";
+	setNodePos(self.state.point,{x:-1,y:-1});
+	var options = self.state.options;
+	delete self.state.options;
+	options.on_apply(circle,data,point);
 }
 function getRectData(origin,point) {
 	return {
@@ -1120,6 +1518,13 @@ function getRectDataOptions(origin,point,options) {
 	else
 		return getRectData(origin,point);
 }
+function getCircleDataOptions(origin,point,options) {
+	return {
+		x: Math.round((origin.x+point.x)/2),
+		y: Math.round((origin.y+point.y)/2),
+		r: Math.round(Math.hypot(point.x-origin.x,point.y-origin.y)/2)
+	};
+}
 function absolutizeData(data) {
 	var origin = capPoint({x:data.x,y:data.y});
 	var point = capPoint({x:data.x+data.w,y:data.y+data.h});
@@ -1135,12 +1540,50 @@ function applyObject(data, nData) {
 		data.w = nData.w;
 	if ("h" in nData)
 		data.h = nData.h;
+	if ("r" in nData)
+		data.r = nData.r;
 }
-function setRectangleWidth(rectangle,data) {
+function setRectanglePos(rectangle,data) {
 	rectangle.setAttribute("x", data.x);
 	rectangle.setAttribute("y", data.y);
+}
+function setRectangleSize(rectangle,data) {
 	rectangle.setAttribute("width", 1+data.w);
 	rectangle.setAttribute("height", 1+data.h);
+}
+function setRectangleBounds(rectangle,data) {
+	setRectanglePos(rectangle,data);
+	setRectangleSize(rectangle,data);
+}
+function createPolygon(data,append) {
+	var res = document.createElementNS(SVG, "polyline");
+	setPolygonPoints(res,data,true);
+	if (append !== false)
+		$editor.appendChild(res);
+	return res;
+}
+function getPolygonCenter(points) {
+	var res = {x:0,y:0};
+	for (var i=0;i<points.length;i++) {
+		res.x += points[i].x;
+		res.y += points[i].y;
+	}
+	res.x = Math.round(res.x/points.length);
+	res.y = Math.round(res.y/points.length);
+	return res;
+}
+function getPolygonRelativeCenter(points) {
+	var res = getPolygonCenter(points);
+	res.x -= points[0].x;
+	res.y -= points[0].y;
+	return res;
+}
+function movePolygonRelativeCenter(polygon,points,point,center) {
+	for (var i=points.length-1;i>=0;i--) {
+		points[i].x += point.x-center.x-points[0].x;
+		points[i].y += point.y-center.y-points[0].y;
+	}
+	setPolygonPoints(polygon,points,true);
 }
 function setPolygonPoints(polygon,data,closed) {
 	var res = "";
@@ -1434,12 +1877,17 @@ function rotatePoly(data,screenData,orientation) {
 		rotatePoint(data[i],screenData,orientation);
 	return data;
 }
+function rotateCircle(data,screenData,orientation) {
+	return rotatePoint(data,screenData,orientation);
+}
 function rotateShape(data,screenData,orientation) {
 	switch (data.type) {
 	case "rectangle":
 		return rotateRect(data, screenData,orientation);
 	case "polygon":
 		return rotatePoly(data.points, screenData,orientation);
+	case "circle":
+		return rotateCircle(data, screenData,orientation);
 	}
 }
 function rotateBox(data,screenData,orientation) {
@@ -1471,12 +1919,17 @@ function flipPoly(data,screenData,axis) {
 		flipPoint(data[i],screenData,axis);
 	return data;
 }
+function flipCircle(data,screenData,axis) {
+	return flipPoint(data,screenData,axis);
+}
 function flipShape(data,screenData,axis) {
 	switch (data.type) {
 	case "rectangle":
 		return flipRect(data, screenData,axis);
 	case "polygon":
 		return flipPoly(data.points, screenData,axis);
+	case "circle":
+		return flipCircle(data, screenData,axis);
 	}
 }
 function flipBox(data,screenData,axis) {
@@ -1516,19 +1969,33 @@ function dataToPoly(data) {
 		res.push(dataToPoint(data[i]));
 	return res;
 }
+function circleToData(circle) {
+	return [circle.x,circle.y,circle.r];
+}
+function dataToCirc(data) {
+	return {x:data[0],y:data[1],r:data[2]};
+}
 function shapeToData(data) {
 	switch (data.type) {
 	case "rectangle":
 		return rectToData(data);
 	case "polygon":
 		return polyToData(data.points);
+	case "circle":
+		return circleToData(data);
 	}
 }
 function dataToShape(data) {
 	var res;
 	if ("number" === typeof(data[0])) {
-		res = dataToRect(data);
-		res.type = "rectangle";
+		if (data.length < 4) {
+			res = dataToCirc(data);
+			res.type = "circle";
+		}
+		else {
+			res = dataToRect(data);
+			res.type = "rectangle";
+		}
 	}
 	else {
 		res = {
@@ -1561,6 +2028,11 @@ function rescalePoly(data, scale) {
 		iData.y = Math.round(iData.y*scale.y);
 	}
 }
+function rescaleCircle(data, scale) {
+	data.x = Math.round(data.x*scale.x);
+	data.y = Math.round(data.y*scale.y);
+	data.r = Math.round(data.r*Math.sqrt(scale.x*scale.y));
+}
 function rescaleShape(data, scale) {
 	switch (data.type) {
 	case "rectangle":
@@ -1568,6 +2040,9 @@ function rescaleShape(data, scale) {
 		break;
 	case "polygon":
 		rescalePoly(data.points, scale);
+		break;
+	case "circle":
+		rescaleCircle(data, scale);
 	}
 }
 function rescaleBox(data, scale) {
@@ -1887,6 +2362,16 @@ function submitLapsOptions() {
 function closeLapsOptions() {
 	document.getElementById('mask-laps').close();
 }
+function showBgTab(id) {
+	var $bgGroups = document.querySelectorAll(".bg-selector-optgroup");
+	for (var i=0;i<$bgGroups.length;i++)
+		$bgGroups[i].style.display = "";
+	document.getElementById("bg-selector-optgroup-"+id).style.display = "block";
+	var $bgTabs = document.querySelectorAll("#bg-selector-tabs > a");
+	for (var i=0;i<$bgTabs.length;i++)
+		$bgTabs[i].className = "";
+	document.getElementById("bg-selector-tab-"+id).className = "bg-selector-tab-selected";
+}
 function showBgSelector() {
 	var $background = document.getElementById("bg-selector");
 	document.body.removeChild($background);
@@ -1905,7 +2390,9 @@ function showBgSelector() {
 	while (bChoices.length)
 		bChoices[0].className = "";
 	var editorTool = editorTools[currentMode];
-	document.getElementById("bgchoice-"+editorTool.data.bg_img).className = "bg-selected";
+	var $selectedBg = document.getElementById("bgchoice-"+editorTool.data.bg_img);
+	$selectedBg.className = "bg-selected";
+	showBgTab($selectedBg.parentNode.getAttribute("data-value"));
 }
 function changeBg($elt) {
 	var editorTool = editorTools[currentMode];
@@ -2264,3 +2751,1573 @@ function restoreData(payload) {
 		themeChange({value:payload.main.theme});
 	}
 }
+var commonTools = {
+	"walls": {
+		"resume" : function(self) {
+			self.state.point = createRectangle({x:-1,y:-1});
+			self.state.shape = "rectangle";
+			var data = self.data;
+			self.data = [];
+			for (var i=0;i<data.length;i++) {
+				var iData = data[i];
+				self.state.shape = iData.type;
+				switch (iData.type) {
+				case "rectangle":
+					self.click(self,iData,{});
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					break;
+				case "polygon":
+					for (var j=0;j<iData.points.length;j++)
+						self.click(self,iData.points[j],{});
+					self.state.nodes[0].circle.onclick();
+					break;
+				}
+			}
+			replaceNodeType(self);
+			document.getElementById("walls-shape").setValue(self.state.shape);
+		},
+		"click" : function(self,point,extra) {
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				if (self.state.rectangle)
+					appendRectangleBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startRectangleBuilder(self,point, {
+							on_apply: function(rectangle,data) {
+								self.data.push(data);
+								addContextMenuEvent(rectangle,[{
+									text: (language ? "Resize":"Redimensionner"),
+									click: function() {
+										resizeRectangle(rectangle,data);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										moveRectangle(rectangle,data);
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(rectangle);
+										storeHistoryData(self.data);
+										removeFromArray(self.data,data);
+									}
+								}]);
+							}
+						});
+					}
+				}
+				break;
+			case "polygon":
+				if (self.state.polygon)
+					appendPolygonBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startPolygonBuilder(self,point, {
+							on_apply: function(polygon,points) {
+								var data = {type:"polygon",points:points};
+								self.data.push(data);
+								polygon.setAttribute("stroke-width", 1);
+								addContextMenuEvent(polygon, [{
+									text: (language ? "Edit":"Modifier"),
+									click: function() {
+										editPolygon(polygon,data);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										movePolygon(polygon,data);
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(polygon);
+										storeHistoryData(self.data);
+										removeFromArray(self.data,data);
+									}
+								}]);
+							}
+						});
+					}
+				}
+				break;
+			}
+		},
+		"move" : function(self,point,extra) {
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				moveRectangleBuilder(self,point);
+				break;
+			case "polygon":
+				movePolygonBuilder(self,point);
+				break;
+			}
+		},
+		"round_on_pixel" : function(self) {
+			return self.state.shape == "polygon";
+		},
+		"save" : function(self,payload) {
+			payload.collision = [];
+			for (var i=0;i<self.data.length;i++)
+				payload.collision.push(shapeToData(self.data[i]));
+		},
+		"restore" : function(self,payload) {
+			for (var i=0;i<payload.collision.length;i++)
+				self.data.push(dataToShape(payload.collision[i]));
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++)
+				rescaleShape(self.data[i], scale);
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++)
+				rotateShape(self.data[i], imgSize,orientation);
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++)
+				flipShape(self.data[i], imgSize,axis);
+		}
+	},
+	"offroad": {
+		"init" : function(self) {
+			self.data = [];
+			for (var i=0;i<hpTypes.length;i++)
+				self.data.push([]);
+		},
+		"resume" : function(self) {
+			self.state.point = createRectangle({x:-1,y:-1});
+			var offroadType = +document.getElementById("offroad-type").value;
+			var oldData = self.data[offroadType];
+			self.data[offroadType] = [];
+			self.state.type = offroadType;
+			self.state.data = self.data[offroadType];
+			self.state.shape = "rectangle";
+			for (var i=0;i<oldData.length;i++) {
+				var iData = oldData[i];
+				self.state.shape = iData.type;
+				switch (iData.type) {
+				case "rectangle":
+					self.click(self,iData,{});
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					break;
+				case "polygon":
+					for (var j=0;j<iData.points.length;j++)
+						self.click(self,iData.points[j],{});
+					self.state.nodes[0].circle.onclick();
+					break;
+				}
+			}
+			replaceNodeType(self);
+			document.getElementById("offroad-shape").setValue(self.state.shape);
+		},
+		"click" : function(self,point,extra) {
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				if (self.state.rectangle)
+					appendRectangleBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startRectangleBuilder(self,point, {
+							on_apply: function(rectangle,data) {
+								self.state.data.push(data);
+								addContextMenuEvent(rectangle,[{
+									text: (language ? "Resize":"Redimensionner"),
+									click: function() {
+										resizeRectangle(rectangle,data);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										moveRectangle(rectangle,data);
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(rectangle);
+										storeHistoryData(self.data);
+										removeFromArray(self.state.data,data);
+									}
+								}]);
+							}
+						});
+					}
+				}
+				break;
+			case "polygon":
+				if (self.state.polygon)
+					appendPolygonBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startPolygonBuilder(self,point, {
+							on_apply: function(polygon,points) {
+								var data = {type:"polygon",points:points};
+								self.state.data.push(data);
+								polygon.setAttribute("stroke-width", 1);
+								addContextMenuEvent(polygon, [{
+									text: (language ? "Edit":"Modifier"),
+									click: function() {
+										editPolygon(polygon,data);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										movePolygon(polygon,data);
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(polygon);
+										storeHistoryData(self.data);
+										removeFromArray(self.state.data,data);
+									}
+								}]);
+							}
+						});
+					}
+				}
+				break;
+			}
+		},
+		"move" : function(self,point,extra) {
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				moveRectangleBuilder(self,point);
+				break;
+			case "polygon":
+				movePolygonBuilder(self,point);
+				break;
+			}
+		},
+		"round_on_pixel" : function(self) {
+			return self.state.shape == "polygon";
+		},
+		"save" : function(self,payload) {
+			payload.horspistes = {};
+			for (var i=0;i<hpTypes.length;i++) {
+				var iData = self.data[i];
+				if (iData.length) {
+					var iPayload = [];
+					for (var j=0;j<iData.length;j++)
+						iPayload.push(shapeToData(iData[j]));
+					payload.horspistes[hpTypes[i]] = iPayload;
+				}
+			}
+		},
+		"restore" : function(self,payload) {
+			for (var i=0;i<hpTypes.length;i++) {
+				var iPayload = payload.horspistes[hpTypes[i]];
+				var iData = [];
+				if (iPayload) {
+					for (var j=0;j<iPayload.length;j++)
+						iData.push(dataToShape(iPayload[j]));
+				}
+				self.data[i] = iData;
+			}
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<hpTypes.length;i++) {
+				var iData = self.data[i];
+				for (var j=0;j<iData.length;j++)
+					rescaleShape(iData[j], scale);
+			}
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<hpTypes.length;i++) {
+				var iData = self.data[i];
+				for (var j=0;j<iData.length;j++)
+					rotateShape(iData[j], imgSize,orientation);
+			}
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<hpTypes.length;i++) {
+				var iData = self.data[i];
+				for (var j=0;j<iData.length;j++)
+					flipShape(iData[j], imgSize,axis);
+			}
+		}
+	},
+	"holes": {
+		"resume" : function(self) {
+			self.state.point = createRectangle({x:-1,y:-1});
+			self.state.orientation = 2;
+			self.state.shape = "rectangle";
+			var data = self.data;
+			self.data = [];
+			for (var i=0;i<data.length;i++) {
+				var iData = data[i];
+				self.state.shape = iData.type;
+				if (undefined !== iData.orientation)
+					self.state.orientation = iData.orientation;
+				switch (iData.type) {
+				case "rectangle":
+					self.click(self,iData,{});
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					break;
+				case "polygon":
+					for (var j=0;j<iData.points.length;j++)
+						self.click(self,iData.points[j],{});
+					self.state.nodes[0].circle.onclick();
+					break;
+				}
+				if (iData.respawn)
+					self.click(self,iData.respawn,{});
+			}
+			replaceNodeType(self);
+			document.getElementById("holes-shape").setValue(self.state.shape);
+		},
+		"click" : function(self,point,extra) {
+			var respawnNode = self.state.respawnNode;
+			if (respawnNode) {
+				if (extra.oob)
+					return;
+				storeHistoryData(self.data);
+				var data = self.data[self.data.length-1];
+				data.respawn = point;
+				respawnNode.move(point);
+				var lastRotateTime = 0;
+				respawnNode.origin.classList.add("hover-toggle");
+				respawnNode.origin.onclick = function(e) {
+					if (e) e.stopPropagation();
+					var nRotateTime = new Date().getTime();
+					if (nRotateTime > lastRotateTime+2500)
+						storeHistoryData(self.data);
+					lastRotateTime = nRotateTime;
+					data.orientation = (data.orientation+1)%4;
+					self.state.orientation = data.orientation;
+					respawnNode.rotate(data.orientation);
+				};
+				var shape = self.state.currentshape;
+				delete self.state.currentshape;
+				function deleteItem() {
+					$editor.removeChild(shape);
+					$editor.removeChild(respawnNode.origin);
+					var lines = respawnNode.lines;
+					for (var i=0;i<lines.length;i++)
+						$editor.removeChild(lines[i]);
+					storeHistoryData(self.data);
+					removeFromArray(self.data,data);
+				}
+				respawnNode.origin.oncontextmenu = function(e) {
+					return showContextOnElt(e,shape, [{
+						text: (language ? "Rotate":"Pivoter"),
+						click: function() {
+							respawnNode.origin.onclick();
+						}
+					}, {
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							moveArrowNode(respawnNode,data.respawn);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							deleteItem();
+						}
+					}]);
+				};
+				switch (data.type) {
+				case "rectangle":
+					addContextMenuEvent(shape,[{
+						text: (language ? "Resize":"Redimensionner"),
+						click: function() {
+							resizeRectangle(shape,data);
+						}
+					}, {
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							moveRectangle(shape,data);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							deleteItem();
+						}
+					}]);
+					break;
+				case "polygon":
+					addContextMenuEvent(shape, [{
+						text: (language ? "Edit":"Modifier"),
+						click: function() {
+							editPolygon(shape,data);
+						}
+					}, {
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							movePolygon(shape,data);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							deleteItem();
+						}
+					}]);
+					break;
+				}
+				delete self.state.respawnNode;
+			}
+			else {
+				var selectedShape = self.state.shape;
+				switch (selectedShape) {
+				case "rectangle":
+					if (self.state.rectangle)
+						appendRectangleBuilder(self,point);
+					else {
+						if (!extra.oob) {
+							startRectangleBuilder(self,point, {
+								on_apply: function(rectangle,data) {
+									self.state.currentshape = rectangle;
+									data.orientation = self.state.orientation;
+									self.data.push(data);
+									self.state.respawnNode = createArrowNode({x:-10,y:-10},self.state.orientation);
+								}
+							});
+						}
+					}
+					break;
+				case "polygon":
+					if (self.state.polygon)
+						appendPolygonBuilder(self,point);
+					else {
+						if (!extra.oob) {
+							startPolygonBuilder(self,point, {
+								on_apply: function(polygon,points) {
+									self.state.currentshape = polygon;
+									var data = {type:"polygon",points:points};
+									data.orientation = self.state.orientation;
+									self.data.push(data);
+									polygon.setAttribute("stroke-width", 1);
+									self.state.respawnNode = createArrowNode(deepCopy(point),self.state.orientation);
+								}
+							});
+						}
+					}
+					break;
+				}
+			}
+		},
+		"move" : function(self,point,extra) {
+			if (self.state.respawnNode)
+				self.state.respawnNode.move(point);
+			else {
+				var selectedShape = self.state.shape;
+				switch (selectedShape) {
+				case "rectangle":
+					moveRectangleBuilder(self,point);
+					break;
+				case "polygon":
+					movePolygonBuilder(self,point);
+					break;
+				}
+			}
+		},
+		"round_on_pixel" : function(self) {
+			return self.state.respawnNode || (self.state.shape == "polygon");
+		},
+		"save" : function(self,payload) {
+			payload.trous = [[],[],[],[]];
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				var shape = shapeToData(iData);
+				var respawn = nullablePointToData(iData.respawn);
+				payload.trous[iData.orientation||0].push([shape,respawn]);
+			}
+		},
+		"restore" : function(self,payload) {
+			for (var k=0;k<2;k++) {
+				for (var j=0;j<4;j++) {
+					for (var i=0;i<payload.trous[j].length;i++) {
+						var iPayload = payload.trous[j][i];
+						var iData = dataToShape(iPayload[0]);
+						iData.respawn = dataToNullablePoint(iPayload[1]);
+						if (iData.respawn)
+							iData.orientation = j;
+						if (k == !iData.respawn)
+							self.data.push(iData);
+					}
+				}
+			}
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rescaleShape(iData, scale);
+				rescaleNullablePoint(iData.respawn, scale);
+			}
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rotateShape(iData, imgSize,orientation);
+				rotateNullablePoint(iData.respawn, imgSize,orientation);
+				if (undefined !== iData.orientation)
+					iData.orientation = (iData.orientation + 4-orientation/90)%4;
+			}
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				flipShape(iData, imgSize,axis);
+				flipNullablePoint(iData.respawn, imgSize,axis);
+				if ((iData.orientation%2) == (axis.coord=="x" ? 1:0))
+					iData.orientation = (iData.orientation+2)%4;
+			}
+		}
+	},
+	"items": {
+		"resume" : function(self) {
+			self.state.boxSize = {w:8,h:8};
+			self.state.point = createBox(self.state.boxSize);
+			self.state.point.classList.add("noclick");
+			var data = self.data;
+			self.data = [];
+			for (var i=0;i<data.length;i++) {
+				var iData = data[i];
+				self.click(self,iData,{});
+			}
+		},
+		"click" : function(self,point,extra) {
+			if (extra.oob)
+				return;
+			self.move(self,point,extra);
+			storeHistoryData(self.data);
+			self.data.push(point);
+			var box = self.state.point;
+			box.classList.remove("noclick");
+			box.oncontextmenu = function(e) {
+				hideBox(self.state.point,self.state.boxSize);
+				return showContextOnElt(e,box,[{
+					text: (language ? "Move":"Déplacer"),
+					click: function() {
+						moveBox(box,point,self.state.boxSize);
+					}
+				}, {
+					text:(language ? "Delete":"Supprimer"),
+					click:function() {
+						$editor.removeChild(box);
+						storeHistoryData(self.data);
+						removeFromArray(self.data,point);
+					}
+				}]);
+			};
+			self.state.point = createBox(self.state.boxSize);
+			self.state.point.classList.add("noclick");
+		},
+		"move" : function(self,point,extra) {
+			setBoxPos(self.state.point,point,self.state.boxSize);
+		},
+		"save" : function(self,payload) {
+			payload.arme = [];
+			for (var i=0;i<self.data.length;i++)
+				payload.arme.push(pointToData(self.data[i]));
+		},
+		"restore" : function(self,payload) {
+			for (var i=0;i<payload.arme.length;i++)
+				self.data.push(dataToPoint(payload.arme[i]));
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++)
+				rescaleBox(self.data[i], scale);
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++)
+				rotateBox(self.data[i], imgSize,orientation);
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++)
+				flipBox(self.data[i], imgSize,axis);
+		}
+	},
+	"jumps": {
+		"resume" : function(self) {
+			self.state.point = createRectangle({x:-1,y:-1});
+			self.state.point.classList.add("noclick");
+			var data = self.data;
+			self.data = [];
+			for (var i=0;i<data.length;i++) {
+				var iData = data[i];
+				self.click(self,iData,{});
+				self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+			}
+		},
+		"click" : function(self,point,extra) {
+			if (self.state.rectangle)
+				appendRectangleBuilder(self,point);
+			else {
+				if (!extra.oob) {
+					startRectangleBuilder(self,point, {
+						on_apply: function(rectangle,data) {
+							self.data.push(data);
+							addContextMenuEvent(rectangle,[{
+								text: (language ? "Resize":"Redimensionner"),
+								click: function() {
+									resizeRectangle(rectangle,data);
+								}
+							}, {
+								text: (language ? "Move":"Déplacer"),
+								click: function() {
+									moveRectangle(rectangle,data);
+								}
+							}, {
+								text:(language ? "Delete":"Supprimer"),
+								click:function() {
+									$editor.removeChild(rectangle);
+									storeHistoryData(self.data);
+									removeFromArray(self.data,data);
+								}
+							}]);
+						}
+					});
+				}
+			}
+		},
+		"move" : function(self,point,extra) {
+			moveRectangleBuilder(self,point);
+		},
+		"save" : function(self,payload) {
+			payload.sauts = [];
+			for (var i=0;i<self.data.length;i++)
+				payload.sauts.push(rectToData(self.data[i]));
+		},
+		"restore" : function(self,payload) {
+			for (var i=0;i<payload.sauts.length;i++)
+				self.data.push(dataToRect(payload.sauts[i]));
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++)
+				rescaleRect(self.data[i], scale);
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++)
+				rotateRect(self.data[i], imgSize,orientation);
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++)
+				flipRect(self.data[i], imgSize,axis);
+		}
+	},
+	"boosts": {
+		"resume" : function(self) {
+			self.state.boxSize = {w:8,h:8};
+			self.state.point = createBox(self.state.boxSize);
+			self.state.point.classList.add("noclick");
+			var data = self.data;
+			self.data = [];
+			for (var i=0;i<data.length;i++) {
+				var iData = data[i];
+				var boxSize = {w:iData.w,h:iData.h};
+				updateBoxSize(self.state.point,boxSize);
+				self.state.boxSize = boxSize;
+				self.click(self,iData,{});
+			}
+			boostSizeChanged();
+		},
+		"click" : function(self,data,extra) {
+			if (extra.oob)
+				return;
+			self.move(self,data,extra);
+			data.w = self.state.boxSize.w;
+			data.h = self.state.boxSize.h;
+			storeHistoryData(self.data);
+			self.data.push(data);
+			var box = self.state.point;
+			box.classList.remove("noclick");
+			box.oncontextmenu = function(e) {
+				hideBox(self.state.point,self.state.boxSize);
+				return showContextOnElt(e,box,[{
+					text: (language ? "Move":"Déplacer"),
+					click: function() {
+						moveBox(box,data,data);
+					}
+				}, {
+					text:(language ? "Delete":"Supprimer"),
+					click:function() {
+						$editor.removeChild(box);
+						storeHistoryData(self.data);
+						removeFromArray(self.data,data);
+					}
+				}]);
+			};
+			self.state.point = createBox(self.state.boxSize);
+			self.state.point.classList.add("noclick");
+		},
+		"move" : function(self,point,extra) {
+			setBoxPosRound(self.state.point,point,self.state.boxSize);
+		},
+		"save" : function(self,payload) {
+			payload.accelerateurs = [];
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				var iPayload = pointToData(iData);
+				iPayload[0] = Math.round(iPayload[0]-iData.w/2);
+				iPayload[1] = Math.round(iPayload[1]-iData.h/2);
+				if (iData.w != 8 || iData.h != 8) {
+					iPayload[2] = iData.w;
+					iPayload[3] = iData.h;
+				}
+				payload.accelerateurs.push(iPayload);
+			}
+		},
+		"restore" : function(self,payload) {
+			for (var i=0;i<payload.accelerateurs.length;i++) {
+				var iPayload = payload.accelerateurs[i];
+				var iData = dataToPoint(iPayload);
+				if (iPayload[2] && iPayload[3]) {
+					iData.w = iPayload[2];
+					iData.h = iPayload[3];
+				}
+				else {
+					iData.w = 8;
+					iData.h = 8;
+				}
+				iData.x += Math.floor(iData.w/2);
+				iData.y += Math.floor(iData.h/2);
+				self.data.push(iData);
+			}
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++)
+				rescaleBox(self.data[i], scale);
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++)
+				rotateBox(self.data[i], imgSize,orientation);
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++)
+				flipBox(self.data[i], imgSize,axis);
+		}
+	},
+	"decor": {
+		"init" : function(self) {
+			self.data = {};
+		},
+		"resume" : function(self) {
+			self.state.boxSize = {w:8,h:8};
+			self.state.point = createBox(self.state.boxSize);
+			self.state.point.classList.add("noclick");
+			var type = document.getElementById("decor-selector").getValue();
+			var autoSelectType;
+			if (!type) {
+				autoSelectType = true;
+				for (type in self.data)
+					;
+			}
+			else
+				autoSelectType = false;
+			if (type) {
+				var positions = self.data[type];
+				self.data[type] = [];
+				self.state.type = type;
+				if (positions) {
+					for (var i=0;i<positions.length;i++)
+						self.click(self,positions[i],{});
+					if (autoSelectType)
+						document.getElementById("decor-selector").setValue(self.state.type);
+				}
+			}
+		},
+		"click" : function(self,point,extra) {
+			if (extra.oob)
+				return;
+			if (!self.state.type)
+				alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
+			self.move(self,point,extra);
+			storeHistoryData(self.data);
+			self.data[self.state.type].push(point);
+			var box = self.state.point;
+			box.classList.remove("noclick");
+			box.oncontextmenu = function(e) {
+				hideBox(self.state.point,self.state.boxSize);
+				return showContextOnElt(e,box,[{
+					text: (language ? "Move":"Déplacer"),
+					click: function() {
+						moveBox(box,point,self.state.boxSize);
+					}
+				}, {
+					text:(language ? "Delete":"Supprimer"),
+					click:function() {
+						$editor.removeChild(box);
+						storeHistoryData(self.data);
+						removeFromArray(self.data[self.state.type],point);
+					}
+				}]);
+			};
+			self.state.point = createBox(self.state.boxSize);
+			self.state.point.classList.add("noclick");
+		},
+		"move" : function(self,point,extra) {
+			setBoxPos(self.state.point,point,self.state.boxSize);
+		},
+		"save" : function(self,payload) {
+			var selfData = self.data;
+			payload.decor = {};
+			for (var type in selfData) {
+				var decorsData = selfData[type];
+				if (decorsData.length) {
+					payload.decor[type] = [];
+					for (var i=0;i<decorsData.length;i++)
+						payload.decor[type].push(pointToData(decorsData[i]));
+				}
+			}
+		},
+		"restore" : function(self,payload) {
+			var selfData = self.data;
+			for (var type in payload.decor) {
+				selfData[type] = [];
+				var decorsData = payload.decor[type];
+				for (var i=0;i<decorsData.length;i++)
+					selfData[type].push(dataToPoint(decorsData[i]));
+			}
+		},
+		"rescale" : function(self, scale) {
+			var selfData = self.data;
+			for (var type in selfData) {
+				var decorsData = selfData[type];
+				for (var i=0;i<decorsData.length;i++)
+					rescaleBox(decorsData[i], scale);
+			}
+		},
+		"rotate" : function(self, orientation) {
+			var selfData = self.data;
+			for (var type in selfData) {
+				var decorsData = selfData[type];
+				for (var i=0;i<decorsData.length;i++)
+					rotateBox(decorsData[i], imgSize,orientation);
+			}
+		},
+		"flip" : function(self, axis) {
+			var selfData = self.data;
+			for (var type in selfData) {
+				var decorsData = selfData[type];
+				for (var i=0;i<decorsData.length;i++)
+					flipBox(decorsData[i], imgSize,axis);
+			}
+		}
+	},
+	"options": {
+		"init" : function(self) {
+			self.data = {
+				bg_img: 0,
+				music: isBattle ? 9:1,
+				out_color: {r:255,g:255,b:255}
+			};
+		},
+		"resume" : function(self) {
+			applyBgSelector();
+			applyMusicSelector();
+			document.body.classList.add("setting-preview");
+			applyColorSelector();
+		},
+		"click" : function() {
+		},
+		"move": function() {
+		},
+		"exit": function(self) {
+			document.body.classList.remove("setting-preview");
+			document.body.style.backgroundColor = "";
+		},
+		"save" : function(self,payload) {
+			payload.main.bgimg = self.data.bg_img;
+			payload.main.music = self.data.music;
+			if (self.data.youtube)
+				payload.main.youtube = self.data.youtube;
+			payload.main.bgcolor = [self.data.out_color.r,self.data.out_color.g,self.data.out_color.b];
+		},
+		"restore" : function(self,payload) {
+			self.data.bg_img = payload.main.bgimg;
+			self.data.music = payload.main.music;
+			if (payload.main.youtube)
+				self.data.youtube = payload.main.youtube;
+			self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
+		}
+	},
+	"cannons": {
+		"resume" : function(self) {
+			self.state.point = createRectangle({x:-1,y:-1});
+			self.state.shape = "rectangle";
+			var data = self.data;
+			self.data = [];
+			for (var i=0;i<data.length;i++) {
+				var iData = data[i];
+				self.state.shape = iData.type;
+				switch (iData.type) {
+				case "rectangle":
+					self.click(self,iData,{});
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					if (iData.respawn)
+						self.click(self,{x:iData.respawn.x+Math.round(iData.w/2),y:iData.respawn.y+Math.round(iData.h/2)},{});
+					break;
+				case "polygon":
+					for (var j=0;j<iData.points.length;j++)
+						self.click(self,iData.points[j],{});
+					self.state.nodes[0].circle.onclick();
+					if (iData.respawn) {
+						var polygonCenter = getPolygonRelativeCenter(iData.points);
+						self.click(self,{x:iData.respawn.points[0].x+polygonCenter.x,y:iData.respawn.points[0].y+polygonCenter.y},{});
+					}
+					break;
+				}
+			}
+			replaceNodeType(self);
+			document.getElementById("cannons-shape").setValue(self.state.shape);
+		},
+		"click" : function(self,point,extra) {
+			var respawnShape = self.state.respawnShape;
+			if (respawnShape) {
+				if (extra.oob)
+					return;
+				storeHistoryData(self.data);
+				var data = self.data[self.data.length-1];
+				self.move(self,point,extra);
+				data.respawn = self.state.respawnShape.data;
+				var shape = self.state.currentshape;
+				delete self.state.currentshape;
+				function reshapeItem(nData) {
+					switch (data.type) {
+					case "rectangle":
+						data.respawn.x += nData.x-data.x;
+						data.respawn.y += nData.y-data.y;
+						data.respawn.w = nData.w;
+						data.respawn.h = nData.h;
+						setRectangleBounds(respawnShape.shape,data.respawn);
+						break;
+					case "polygon":
+						var nPoints = deepCopy(nData);
+						for (var i=0;i<nData.length;i++) {
+							nPoints[i].x += data.respawn.points[0].x-data.points[0].x;
+							nPoints[i].y += data.respawn.points[0].y-data.points[0].y;
+						}
+						data.respawn.points = nPoints;
+						setPolygonPoints(respawnShape.shape,nPoints);
+						break;
+					}
+					reshapeArrow(nData);
+				}
+				function reshapeArrow(nData) {
+					switch (data.type) {
+					case "rectangle":
+						var newCenter = {x:Math.round(nData.w/2),y:Math.round(nData.h/2)};
+						respawnShape.arrow.move({x:nData.x+newCenter.x,y:nData.y+newCenter.y},{x:data.respawn.x+newCenter.x,y:data.respawn.y+newCenter.y});
+						break;
+					case "polygon":
+						var newCenter = getPolygonRelativeCenter(nData);
+						respawnShape.arrow.move({x:nData[0].x+newCenter.x,y:nData[0].y+newCenter.y},{x:data.respawn.points[0].x+newCenter.x,y:data.respawn.points[0].y+newCenter.y});
+						break;
+					}
+				}
+				function reshapeArrow2(nData) {
+					switch (data.type) {
+					case "rectangle":
+						var newCenter = {x:Math.round(nData.w/2),y:Math.round(nData.h/2)};
+						respawnShape.arrow.move(null,{x:nData.x+newCenter.x,y:nData.y+newCenter.y});
+						break;
+					case "polygon":
+						var newCenter = getPolygonRelativeCenter(nData);
+						respawnShape.arrow.move(null,{x:nData[0].x+newCenter.x,y:nData[0].y+newCenter.y});
+						break;
+					}
+				}
+				function deleteItem() {
+					$editor.removeChild(shape);
+					$editor.removeChild(respawnShape.shape);
+					respawnShape.arrow.remove();
+					storeHistoryData(self.data);
+					removeFromArray(self.data,data);
+				}
+				var moveOptions = {on_apply:reshapeArrow,on_start_move:respawnShape.arrow.hide,on_end_move:respawnShape.arrow.show};
+				var moveOptions2 = {on_apply:reshapeArrow2,on_start_move:respawnShape.arrow.hide,on_end_move:respawnShape.arrow.show};
+				addContextMenuEvent(respawnShape.shape,[{
+					text: (language ? "Move":"Déplacer"),
+					click: function() {
+						switch (data.type) {
+						case "rectangle":
+							moveRectangle(respawnShape.shape,data.respawn,moveOptions2);
+							break;
+						case "polygon":
+							movePolygon(respawnShape.shape,data.respawn,moveOptions2);
+							break;
+						}
+					}
+				}, {
+					text:(language ? "Delete":"Supprimer"),
+					click:function() {
+						deleteItem();
+					}
+				}]);
+				switch (data.type) {
+				case "rectangle":
+					addContextMenuEvent(shape,[{
+						text: (language ? "Resize":"Redimensionner"),
+						click: function() {
+							resizeRectangle(shape,data,{on_apply:reshapeItem});
+						}
+					}, {
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							moveRectangle(shape,data,moveOptions);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							deleteItem();
+						}
+					}]);
+					break;
+				case "polygon":
+					addContextMenuEvent(shape, [{
+						text: (language ? "Edit":"Modifier"),
+						click: function() {
+							editPolygon(shape,data,{on_apply:reshapeItem});
+						}
+					}, {
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							movePolygon(shape,data,moveOptions);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							deleteItem();
+						}
+					}]);
+					break;
+				}
+				delete self.state.respawnShape;
+			}
+			else {
+				var selectedShape = self.state.shape;
+				switch (selectedShape) {
+				case "rectangle":
+					if (self.state.rectangle)
+						appendRectangleBuilder(self,point);
+					else {
+						if (!extra.oob) {
+							startRectangleBuilder(self,point, {
+								on_apply: function(rectangle,data,lastPoint) {
+									self.state.currentshape = rectangle;
+									self.data.push(data);
+									var rectCenter = {x:Math.round(data.w/2),y:Math.round(data.h/2)};
+									self.state.respawnShape = {data:deepCopy(data),shape:createRectangle(point),center:rectCenter,arrow:createArrow({x:data.x+rectCenter.x,y:data.y+rectCenter.y})};
+									setRectangleBounds(self.state.respawnShape.shape,data);
+									self.state.respawnShape.shape.setAttribute("opacity", 0.5);
+									for (var i=self.state.respawnShape.arrow.lines.length-1;i>=0;i--)
+										self.state.respawnShape.arrow.lines[i].classList.add("noclick");
+									if (lastPoint) self.move(self,lastPoint,extra);
+								}
+							});
+						}
+					}
+					break;
+				case "polygon":
+					if (self.state.polygon)
+						appendPolygonBuilder(self,point);
+					else {
+						if (!extra.oob) {
+							startPolygonBuilder(self,point, {
+								on_apply: function(polygon,points,lastPoint) {
+									self.state.currentshape = polygon;
+									var data = {type:"polygon",points:points};
+									self.data.push(data);
+									polygon.setAttribute("stroke-width", 1);
+									var polygonCenter = getPolygonRelativeCenter(points);
+									self.state.respawnShape = {data:deepCopy(data),shape:createPolygon(points),center:polygonCenter,arrow:createArrow({x:point.x+polygonCenter.x,y:point.y+polygonCenter.y})};
+									self.state.respawnShape.shape.setAttribute("opacity", 0.5);
+									for (var i=self.state.respawnShape.arrow.lines.length-1;i>=0;i--)
+										self.state.respawnShape.arrow.lines[i].classList.add("noclick");
+									if (lastPoint) self.move(self,lastPoint,extra);
+								}
+							});
+						}
+					}
+					break;
+				}
+			}
+		},
+		"move" : function(self,point,extra) {
+			var respawnShape = self.state.respawnShape;
+			if (respawnShape) {
+				switch (respawnShape.data.type) {
+				case "rectangle":
+					respawnShape.data.x = point.x-respawnShape.center.x;
+					respawnShape.data.y = point.y-respawnShape.center.y;
+					setRectanglePos(respawnShape.shape,respawnShape.data);
+					break;
+				case "polygon":
+					movePolygonRelativeCenter(respawnShape.shape,respawnShape.data.points,point,respawnShape.center);
+					break;
+				}
+				self.state.respawnShape.arrow.move(null,point);
+			}
+			else {
+				var selectedShape = self.state.shape;
+				switch (selectedShape) {
+				case "rectangle":
+					moveRectangleBuilder(self,point);
+					break;
+				case "polygon":
+					movePolygonBuilder(self,point);
+					break;
+				}
+			}
+		},
+		"round_on_pixel" : function(self) {
+			var seelctedType = self.state.respawnShape ? self.state.respawnShape.data.type : self.state.shape;
+			return (seelctedType == "polygon");
+		},
+		"save" : function(self,payload) {
+			if (self.data.length) {
+				payload.cannons = [];
+				for (var i=0;i<self.data.length;i++) {
+					var iData = self.data[i];
+					var shape = shapeToData(iData);
+					var respawn = [0,0];
+					if (iData.respawn) {
+						switch (iData.respawn.type) {
+						case "rectangle":
+							respawn[0] = iData.respawn.x-iData.x;
+							respawn[1] = iData.respawn.y-iData.y;
+							break;
+						case "polygon":
+							respawn[0] = iData.respawn.points[0].x-iData.points[0].x;
+							respawn[1] = iData.respawn.points[0].y-iData.points[0].y;
+							break;
+						}
+					}
+					payload.cannons.push([shape,respawn]);
+				}
+			}
+		},
+		"restore" : function(self,payload) {
+			if (payload.cannons) {
+				for (var i=0;i<payload.cannons.length;i++) {
+					var iPayload = payload.cannons[i];
+					var iData = dataToShape(iPayload[0]);
+					var respawnDir = iPayload[1];
+					if (respawnDir[0] || respawnDir[1] || (i < payload.cannons.length-1)) {
+						iData.respawn = deepCopy(iData);
+						switch (iData.type) {
+						case "rectangle":
+							iData.respawn.x += respawnDir[0];
+							iData.respawn.y += respawnDir[1];
+							break;
+						case "polygon":
+							for (var i=0;i<iData.respawn.points.length;i++) {
+								iData.respawn.points[i].x += respawnDir[0];
+								iData.respawn.points[i].y += respawnDir[1];
+							}
+							break;
+						}
+					}
+					self.data.push(iData);
+				}
+			}
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rescaleShape(iData, scale);
+				if (iData.respawn) rescaleShape(iData.respawn, scale);
+			}
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rotateShape(iData, imgSize,orientation);
+				if (iData.respawn) rotateShape(iData.respawn, imgSize,orientation);
+			}
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				flipShape(iData, imgSize,axis);
+				if (iData.respawn) flipShape(iData.respawn, imgSize,axis);
+			}
+		}
+	},
+	"mobiles": {
+		"resume" : function(self) {
+			self.state.point = createRectangle({x:-1,y:-1});
+			self.state.shape = "rectangle";
+			var data = self.data;
+			self.data = [];
+			for (var i=0;i<data.length;i++) {
+				var iData = data[i];
+				self.state.shape = iData.type;
+				switch (iData.type) {
+				case "rectangle":
+					self.click(self,iData,{});
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					if (iData.dir)
+						self.click(self,{x:Math.round(iData.x+iData.w/2+iData.dir.x),y:Math.round(iData.y+iData.h/2+iData.dir.y)},{});
+					break;
+				case "polygon":
+					for (var j=0;j<iData.points.length;j++)
+						self.click(self,iData.points[j],{});
+					self.state.nodes[0].circle.onclick();
+					if (iData.dir) {
+						var polygonCenter = getPolygonCenter(iData.points);
+						self.click(self,{x:polygonCenter.x+iData.dir.x,y:polygonCenter.y+iData.dir.y},{});
+					}
+					break;
+				case "circle":
+					self.click(self,{x:iData.x-iData.r,y:iData.y},{});
+					self.click(self,{x:iData.x+iData.r,y:iData.y},{});
+					if (iData.dir) {
+						var angle2 = self.state.dirVect.center.theta0 + iData.dir.dtheta;
+						self.click(self,{x:iData.x+iData.r*Math.cos(angle2), y:iData.y+iData.r*Math.sin(angle2)},{});
+					}
+					break;
+				}
+			}
+			replaceNodeType(self);
+			document.getElementById("mobiles-shape").setValue(self.state.shape);
+		},
+		"click" : function(self,point,extra) {
+			var dirVect = self.state.dirVect;
+			if (dirVect) {
+				if (extra.oob)
+					return;
+				storeHistoryData(self.data);
+				var data = self.data[self.data.length-1];
+				self.move(self,point,extra);
+				if ("circle" !== data.type)
+					data.dir = {x:point.x-dirVect.center.x,y:point.y-dirVect.center.y};
+				else
+					data.dir = {dtheta: dirVect.center.dtheta};
+				var shape = self.state.currentshape;
+				delete self.state.currentshape;
+				function reshapeItem(nData) {
+					reshapeArrow(nData);
+				}
+				function reshapeArrow(nData) {
+					switch (data.type) {
+					case "rectangle":
+						dirVect.center = {x:Math.round(nData.x+nData.w/2),y:Math.round(nData.y+nData.h/2)};
+						break;
+					case "polygon":
+						dirVect.center = getPolygonCenter(nData);
+						break;
+					case "circle":
+						dirVect.center.x = nData.x;
+						dirVect.center.y = nData.y;
+						dirVect.center.r = nData.r*dirVect.center.r0;
+						dirVect.arrow.move(dirVect.center);
+						return;
+					}
+					var newCenter = dirVect.center;
+					dirVect.arrow.move({x:newCenter.x,y:newCenter.y},{x:newCenter.x+data.dir.x,y:newCenter.y+data.dir.y});
+				}
+				function deleteItem() {
+					$editor.removeChild(shape);
+					dirVect.arrow.remove();
+					storeHistoryData(self.data);
+					removeFromArray(self.data,data);
+				}
+				dirVect.arrow.lines[0].oncontextmenu = function(e) {
+					var rect = e.target.getBoundingClientRect();
+					var r = rect.width/2;
+					var x = e.clientX - rect.left - r;
+					var y = e.clientY - rect.top - r;
+					r -= 4;
+					if (x*x + y*y < r*r) {
+						shape.oncontextmenu(e);
+						return false;
+					}
+					return showContextOnElt(e,this,[{
+						text: (language ? "Edit":"Modifier"),
+						click: function() {
+							if ("circle" !== data.type)
+								moveArrow(dirVect.arrow,dirVect.center,data.dir);
+							else
+								moveCircularArrow(dirVect.arrow,dirVect.center,data.dir);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							deleteItem();
+						}
+					}]);
+				};
+				var moveOptions = {on_apply:reshapeArrow,on_start_move:dirVect.arrow.hide,on_end_move:dirVect.arrow.show};
+				switch (data.type) {
+				case "rectangle":
+					addContextMenuEvent(shape,[{
+						text: (language ? "Resize":"Redimensionner"),
+						click: function() {
+							resizeRectangle(shape,data,{on_apply:reshapeItem});
+						}
+					}, {
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							moveRectangle(shape,data,moveOptions);
+						}
+					}, {
+						text: (language ? "Edit ↗":"Modifier ↗"),
+						click: function() {
+							moveArrow(dirVect.arrow,dirVect.center,data.dir);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							deleteItem();
+						}
+					}]);
+					break;
+				case "polygon":
+					addContextMenuEvent(shape, [{
+						text: (language ? "Edit":"Modifier"),
+						click: function() {
+							editPolygon(shape,data,{on_apply:reshapeItem});
+						}
+					}, {
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							movePolygon(shape,data,moveOptions);
+						}
+					}, {
+						text: (language ? "Edit ↗":"Modifier ↗"),
+						click: function() {
+							moveArrow(dirVect.arrow,dirVect.center,data.dir);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							deleteItem();
+						}
+					}]);
+					break;
+				case "circle":
+					addContextMenuEvent(shape, [{
+						text: (language ? "Resize":"Redimensionner"),
+						click: function() {
+							editCircle(shape,data,{on_apply:reshapeItem});
+						}
+					}, {
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							moveCircle(shape,data,moveOptions);
+						}
+					}, {
+						text: (language ? "Edit ↗":"Modifier ↗"),
+						click: function() {
+							moveCircularArrow(dirVect.arrow,dirVect.center,data.dir);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							deleteItem();
+						}
+					}]);
+					break;
+				}
+				delete self.state.dirVect;
+			}
+			else {
+				var selectedShape = self.state.shape;
+				switch (selectedShape) {
+				case "rectangle":
+					if (self.state.rectangle)
+						appendRectangleBuilder(self,point);
+					else {
+						if (!extra.oob) {
+							startRectangleBuilder(self,point, {
+								on_apply: function(rectangle,data,lastPoint) {
+									self.state.currentshape = rectangle;
+									self.data.push(data);
+									var rectCenter = {x:Math.round(data.x+data.w/2),y:Math.round(data.y+data.h/2)};
+									self.state.dirVect = {center:rectCenter,arrow:createArrow(rectCenter,null,true,{thickness:4})};
+									if (lastPoint) self.move(self,lastPoint,extra);
+								}
+							});
+						}
+					}
+					break;
+				case "polygon":
+					if (self.state.polygon)
+						appendPolygonBuilder(self,point);
+					else {
+						if (!extra.oob) {
+							startPolygonBuilder(self,point, {
+								on_apply: function(polygon,points,lastPoint) {
+									self.state.currentshape = polygon;
+									var data = {type:"polygon",points:points};
+									self.data.push(data);
+									polygon.setAttribute("stroke-width", 1);
+									var polygonCenter = getPolygonCenter(points);
+									self.state.dirVect = {center:polygonCenter,arrow:createArrow(polygonCenter,null,true,{thickness:4})};
+									if (lastPoint) self.move(self,lastPoint,extra);
+								}
+							});
+						}
+					}
+					break;
+				case "circle":
+					if (self.state.circle)
+						appendCircleBuilder(self,point);
+					else {
+						if (!extra.oob) {
+							startCircleBuilder(self,point, {
+								on_apply: function(circle,data,lastPoint) {
+									self.state.currentshape = circle;
+									self.data.push(data);
+									var arrowData = {x:data.x,y:data.y,r0:0.8,r:data.r,theta0:-Math.PI/2};
+									arrowData.r *= arrowData.r0;
+									self.state.dirVect = {center:arrowData,arrow:createCircularArrow(arrowData,arrowData.theta0,0,true,{thickness:4})};
+									if (lastPoint) self.move(self,lastPoint,extra);
+								}
+							});
+						}
+					}
+					break;
+				}
+			}
+		},
+		"move" : function(self,point,extra) {
+			var dirVect = self.state.dirVect;
+			if (dirVect) {
+				if ("circle" !== self.data[self.data.length-1].type)
+					self.state.dirVect.arrow.move(null,point);
+				else {
+					var arrowData = dirVect.center;
+					var newAngle = Math.atan2(point.y-arrowData.y,point.x-arrowData.x);
+					var dAngle = newAngle-arrowData.theta0;
+					dAngle -= 2*Math.PI*Math.round(dAngle/(2*Math.PI));
+					arrowData.dtheta = dAngle;
+					self.state.dirVect.arrow.move(null,null,dAngle);
+				}
+			}
+			else {
+				var selectedShape = self.state.shape;
+				switch (selectedShape) {
+				case "rectangle":
+					moveRectangleBuilder(self,point);
+					break;
+				case "polygon":
+					movePolygonBuilder(self,point);
+					break;
+				case "circle":
+					moveCircleBuilder(self,point);
+					break;
+				}
+			}
+		},
+		"round_on_pixel" : function(self) {
+			var selectedType = self.state.dirVect ? self.data[self.data.length-1].type : self.state.shape;
+			return (selectedType == "polygon");
+		},
+		"dirFactor" : 12,
+		"rotFactor" : -36,
+		"rotScale" : 1.5,
+		"save" : function(self,payload) {
+			if (self.data.length) {
+				for (var i=0;i<self.data.length;i++) {
+					var iData = self.data[i];
+					var shape = shapeToData(iData);
+					if ("circle" !== iData.type) {
+						if (!payload.flows) payload.flows = [];
+						var dir = [0,0];
+						if (iData.dir) {
+							dir = pointToData(iData.dir);
+							dir[0] /= self.dirFactor;
+							dir[1] /= self.dirFactor;
+						}
+						payload.flows.push([shape,dir]);
+					}
+					else {
+						if (!payload.spinners) payload.spinners = [];
+						shape.push(0);
+						if (iData.dir)
+							shape[3] = Math.pow(Math.abs(iData.dir.dtheta),self.rotScale)*Math.sign(iData.dir.dtheta)/self.rotFactor;
+						payload.spinners.push(shape);
+					}
+				}
+			}
+		},
+		"restore" : function(self,payload) {
+			var sortedData = {"complete":[],"incomplete":[]};
+			if (payload.flows) {
+				for (var i=0;i<payload.flows.length;i++) {
+					var iPayload = payload.flows[i];
+					var dirVect = iPayload[1];
+					var iData = {type:"flows",data:iPayload,status:(dirVect[0]||dirVect[1])?"complete":"incomplete"};
+					sortedData[iData.status].push(iData);
+				}
+			}
+			if (payload.spinners) {
+				for (var i=0;i<payload.spinners.length;i++) {
+					var iPayload = payload.spinners[i];
+					var iData = {type:"spinners",data:iPayload,status:iPayload[3]?"complete":"incomplete"}
+					sortedData[iData.status].push(iData);
+				}
+			}
+			for (var i=0;i<sortedData["incomplete"].length-1;i++)
+				sortedData["incomplete"].status = "complete";
+			var allData = sortedData["complete"].concat(sortedData["incomplete"]);
+			for (var i=0;i<allData.length;i++) {
+				var aData = allData[i];
+				var iPayload = aData.data;
+				var iData;
+				if ("flows" === aData.type) {
+					iData = dataToShape(iPayload[0]);
+					var dirVect = iPayload[1];
+					if ("complete" === aData.status) {
+						iData.dir = dataToPoint(dirVect);
+						iData.dir.x = Math.round(iData.dir.x*self.dirFactor);
+						iData.dir.y = Math.round(iData.dir.y*self.dirFactor);
+					}
+				}
+				else {
+					iData = dataToCirc(iPayload);
+					iData.type = "circle";
+					if ("complete" === aData.status)
+						iData.dir = {dtheta:Math.pow(Math.abs(iPayload[3]*self.rotFactor),1/self.rotScale)*Math.sign(iPayload[3]*self.rotFactor)};
+				}
+				self.data.push(iData);
+			}
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rescaleShape(iData, scale);
+				if (iData.dir) {
+					if ("circle" !== iData.type) {
+						iData.dir.x = Math.round(iData.dir.x*scale.x);
+						iData.dir.y = Math.round(iData.dir.y*scale.y);
+					}
+				}
+			}
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rotateShape(iData, imgSize,orientation);
+				if (iData.dir) {
+					if ("circle" !== iData.type) {
+						for (var j=0;j<orientation;j+=90) {
+							var nX = -iData.dir.y, nY = iData.dir.x;
+							iData.dir.x = nX;
+							iData.dir.y = nY;
+						}
+					}
+				}
+			}
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				flipShape(iData, imgSize,axis);
+				if (iData.dir) {
+					if ("circle" !== iData.type)
+						iData.dir[axis.coord] = -iData.dir[axis.coord];
+					else
+						iData.dir.dtheta = -iData.dir.dtheta;
+				}
+			}
+		}
+	}
+};

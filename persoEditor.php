@@ -7,6 +7,7 @@ assign_token();
 include('persos.php');
 include('file-quotas.php');
 include('initdb.php');
+require_once('isDS.php');
 if (isset($_FILES['sprites'])) {
 	$upload = handle_upload($_FILES['sprites']);
 	if (isset($upload['id']))
@@ -21,7 +22,7 @@ if (isset($_FILES['sprites'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/perso-editor.css" />
+<link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <?php
 include('o_online.php');
 ?>
@@ -198,8 +199,20 @@ if ($arePersos) {
 		<p class="description">
 			Thus, to create a new perso, &quot;Simply&quot; create an image (via a drawing software) with the different sprites aligned,
 			as in the examples above.<br />
+			<?php
+			if (IS_DS) {
+				?>
+			Make sure you keep the right dimensions for each sprite: 32&times;32px in the example above, or 768&times;32px in total.
+			Your sprites can have a different dimension than 32&times;32, but they must have the same size each (in particular, the image width must be a multiple of 24).
+				<?php
+			}
+			else {
+				?>
 			Make sure you keep the right dimensions:
 			<strong>32&times;32px</strong> for each sprite, or <strong>768&times;32px</strong> in total.
+				<?php
+			}
+			?>
 		</p>
 		<p class="description">
 			When your image is ready, send it in the form below.
@@ -222,8 +235,20 @@ if ($arePersos) {
 		<p class="description">
 			Ainsi, pour créer un nouveau perso, il vous &quot;suffit&quot; de créer une image (via un logiciel de dessin) avec les différents sprites alignés,
 			comme sur les exemples ci-dessus.<br />
+			<?php
+			if (IS_DS) {
+				?>
+			Attention à garder mêmes dimensions pour chaque sprite : 32&times;32px dans les exemples ci-dessus, soit une image de 768px au total.
+			Vos sprites peuvent avoir une dimension différente de 32&times;32, mais il faudra néamoins que tous les sprites aient la même taille (en particulier, la largeur totale doit être un multiple de 24).
+				<?php
+			}
+			else {
+				?>
 			Attention à garder les bonnes dimensions :
 			<strong>32&times;32px</strong> pour chaque sprite, soit une image de <strong>768&times;32px</strong> au total.
+				<?php
+			}
+			?>
 		</p>
 		<p class="description">
 			Lorsque votre image est prête, envoyez-la simplement dans le formulaire ci-dessous.

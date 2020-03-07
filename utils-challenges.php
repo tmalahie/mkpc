@@ -403,15 +403,10 @@ function getCircuitPayload(&$clRace) {
 			break;
 		case 'mkcups':
 			$linkUrl = ($clCircuit['mode'] ? 'map':'circuit') .'.php?cid='. $clCircuit['id'];
-			if ($clCircuit['mode']) {
-				$baseUrl = 'racepreview.php?id=';
+			if ($clCircuit['mode'])
 				$baseCache = 'racepreview';
-			}
-			else {
-				$baseUrl = 'mappreview.php?id=';
+			else
 				$baseCache = 'mappreview';
-			}
-			$lIds = $lCups[$cId];
 			for ($i=0;$i<4;$i++) {
 				$lId = $clCircuit['circuit'.$i];
 				$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type='. $clCircuit['mode'];
@@ -466,6 +461,10 @@ function getCharacterName($sPerso) {
 			$res = "king boo";
 		elseif ($sPerso == "frere_marto")
 			$res = "hammer bro";
+		elseif ($sPerso == "bowser_skelet")
+			$res = "dry bowser";
+		elseif ($sPerso == "flora_piranha")
+			$res = "petey piranha";
 	}
 	else {
 		if ($sPerso == "frere_marto")
