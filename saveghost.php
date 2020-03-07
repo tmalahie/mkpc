@@ -14,13 +14,22 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 			$player = $getByIp['id'];
 		if (isset($_POST['time']) && ($_POST['time'] >= $time))
 			$time = $_POST['time'];
+		if (isset($_POST['times'])) {
+			$timesJson = json_decode($_POST['times']);
+			if (is_array($timesJson) && (3 === count($timesJson)))
+				$times = $_POST['times'];
+		}
+		if (!isset($times)) {
+			$fakeTime = round($time/3);
+			$times = "[$fakeTime,$fakeTime,$fakeTime]";
+		}
 		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkghosts` WHERE circuit="'.$map.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
 			$cID = $getId['id'];
-			mysql_query('UPDATE `mkghosts` SET perso="'. $_POST['perso'] .'", player='. $player .', time="'.$time.'" WHERE id='. $cID);
+			mysql_query('UPDATE `mkghosts` SET perso="'. $_POST['perso'] .'", player='. $player .', time="'.$time.'", lap_times="'.$times.'" WHERE id='. $cID);
 			mysql_query('DELETE FROM `mkghostdata` WHERE ghost='. $cID);
 		}
 		else {
-			mysql_query('INSERT INTO `mkghosts` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3].',player='.$player.',circuit='.$map.',perso="'.$_POST['perso'].'",time="'.$time.'"');
+			mysql_query('INSERT INTO `mkghosts` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3].',player='.$player.',circuit='.$map.',perso="'.$_POST['perso'].'",time="'.$time.'",lap_times="'.$times.'"');
 			$cID = mysql_insert_id();
 		}
 		$sqlBatch = "INSERT INTO `mkghostdata` VALUES";

@@ -930,6 +930,7 @@ function initMap() {
 var time = 0;
 var timer = 0;
 var timerMS;
+var lapTimers = new Array();
 iScreenScale = optionOf("screenscale");
 
 var fMaxRotInc = 6;
@@ -1703,8 +1704,8 @@ function startGame() {
 			oPlayer.time = 0;
 			oPlayer.tours = 1;
 			oPlayer.demitours = cp0;
-			//oPlayer.tours = oMap.tours;
-			//oPlayer.demitours = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
+			oPlayer.tours = oMap.tours;
+			oPlayer.demitours = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
 			oPlayer.billball = 0;
 			oPlayer.place = oPlace;
 		}
@@ -8050,7 +8051,6 @@ function getCpScore(kart) {
 	return res;
 }
 function distanceToFirst(kart) {
-	var cible = aKarts.length-1;
 	var cPlace = 1;
 	for (var k=0;k<aKarts.length;k++) {
 		if (aKarts[k].place == cPlace) {
@@ -9206,32 +9206,41 @@ function move(getId) {
 			var nbjoueurs = aKarts.length;
 			oKart.demitours = getNextCp(oKart);
 			oKart.tours++;
+
+			var lastCp = oMap.checkpoint[0];
+			if (oMap.sections)
+				lastCp = oMap.checkpoint[oMap.checkpoint.length-1];
+			var distToCp, dSpeed;
+			if (lastCp[3]) {
+				var distToCp = (aPosY<lastCp[1]) ? (lastCp[1]-aPosY) : (aPosY-lastCp[1]-15);
+				dSpeed = fMoveY;
+			}
+			else {
+				var distToCp = (aPosX<lastCp[0]) ? (lastCp[0]-aPosX) : (aPosX-lastCp[0]-15);
+				dSpeed = fMoveX;
+			}
+			var dt = distToCp/Math.abs(dSpeed);
+			dt = Math.max(0,Math.min(dt,1));
+			if (isNaN(dt-dt)) dt = 0.5;
+
+			var lapTimer = Math.round((timer+dt-1)*67);
+			if (oKart == oPlayers[0]) {
+				var lapTimerSum = 0;
+				for (var i=0;i<lapTimers.length;i++)
+					lapTimerSum += lapTimers[i];
+				lapTimers.push(lapTimer-lapTimerSum);
+			}
+
 			if (oKart.tours == (oMap.tours+1)) {
-				var lastCp = oMap.checkpoint[0];
-				if (oMap.sections)
-					lastCp = oMap.checkpoint[oMap.checkpoint.length-1];
-				var distToCp, dSpeed;
-				if (lastCp[3]) {
-					var distToCp = (aPosY<lastCp[1]) ? (lastCp[1]-aPosY) : (aPosY-lastCp[1]-15);
-					dSpeed = fMoveY;
-				}
-				else {
-					var distToCp = (aPosX<lastCp[0]) ? (lastCp[0]-aPosX) : (aPosX-lastCp[0]-15);
-					dSpeed = fMoveX;
-				}
-				var dt = distToCp/Math.abs(dSpeed);
-				dt = Math.max(0,Math.min(dt,1));
-				if (isNaN(dt-dt)) dt = 0.5;
-
-				timerMS = Math.round((timer+dt-1)*67);
-				showTimer(timerMS);
-
 				oKart.place = 0;
 				for (var i=0;i<nbjoueurs;i++) {
 					if (aKarts[i].tours > oMap.tours)
 						oKart.place++;
 				}
 				if (kartIsPlayer(oKart) && !finishing) {
+					timerMS = lapTimer;
+					showTimer(timerMS);
+
 					if (course != "CM")
 						document.getElementById("infoPlace"+getId).innerHTML = toPlace(oKart.place);
 					if (oKart.using[0]) {
@@ -9357,7 +9366,7 @@ function move(getId) {
 										oSave.disabled = true;
 										oRetour.disabled = true;
 										aPara1.innerHTML = toLanguage("Saving...", "Enregistrement en cours...") + "<br />";
-										var oRequest = "map="+ oMap.map +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS();
+										var oRequest = "map="+ oMap.map +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers);
 										for (i=0;i<iTrajet.length;i++)
 											oRequest += "&p"+ i +"="+ iTrajet[i].toString().replace(/\,/g, "_");
 										xhr("saveghost.php", oRequest, function(reponse) {

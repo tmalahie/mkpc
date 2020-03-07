@@ -1,4 +1,7 @@
+homemade-git/
 /.project
 initdb.php
 .user.ini
 .htaccess
+.vscode
+sftp-config.json
