@@ -1704,8 +1704,8 @@ function startGame() {
 			oPlayer.time = 0;
 			oPlayer.tours = 1;
 			oPlayer.demitours = cp0;
-			oPlayer.tours = oMap.tours;
-			oPlayer.demitours = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
+			//oPlayer.tours = oMap.tours;
+			//oPlayer.demitours = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
 			oPlayer.billball = 0;
 			oPlayer.place = oPlace;
 		}

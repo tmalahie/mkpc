@@ -5,3 +5,4 @@ initdb.php
 .htaccess
 .vscode
 sftp-config.json
+**.directory
