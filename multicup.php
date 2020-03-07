@@ -1,0 +1,146 @@
+<?php
+include('getId.php');
+include('language.php');
+$mids = array();
+$editting = true;
+include('initdb.php');
+mysql_set_charset('utf8');
+if (isset($_GET['mid'])) {
+	$id = $_GET['mid'];
+	$getCups = mysql_query('SELECT cup FROM `mkmcups_tracks` WHERE mcup="'. $id .'" ORDER BY ordering');
+	while ($getCup = mysql_fetch_array($getCups))
+		$mids[] = $getCup['cup'];
+	if (empty($mids))
+		$editting = false;
+}
+else {
+	if (isset($_GET['nid']))
+		$id = $_GET['nid'];
+	for ($i=0;isset($_GET['mid'.$i]);$i++)
+		$mids[$i] = $_GET['mid'.$i];
+}
+function escapeUtf8($str) {
+	return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlentities($str));
+}
+?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>" >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
+
+<?php
+include('o_online.php');
+?>
+<title><?php echo $language ? 'Create multicup':'Cr&eacute;er multicoupe'; ?></title>
+<link rel="stylesheet" href="styles/cup.css" />
+<script type="text/javascript" src="scripts/creations.js"></script>
+<script type="text/javascript">
+var language = <?php echo $language ? 1:0; ?>;
+var editting = <?php echo $editting ? 'true':'false'; ?>;
+var ckey = "mid";
+<?php
+if (isset($mids))
+	echo 'var cids = '. json_encode($mids) .';';
+?>
+function getSubmitMsg() {
+	if (selectedCircuits.length < 2)
+		return (language ? "You must select at least 2 cups":"Vous devez sélectionner au moins 2 coupes")
+	if (selectedCircuits.length > 18)
+		return (language ? "You can select at most 18 cups":"Vous pouvez sélectionner 18 coupes au maximum")
+	return "";
+}
+</script>
+<script type="text/javascript" src="scripts/cup.js"></script>
+<script type="text/javascript" src="scripts/posticons.js"></script>
+</head>
+<body onload="initGUI()">
+	<div class="container <?php echo $mode ? 'complete':'simplified'; ?>">
+		<div id="global-infos" class="editor-section"><?php
+			if ($language) {
+				?>
+			This editor allows you to merge several cups on the same page.<br />
+			You have created cups of a same series and you want to join them together?<br />
+			You often play online on your circuits and you don't want to be limited to 4 races?<br />
+			This mode is made for you! You can join <strong>up to 18 cups</strong>!<br />
+			Just select the creations of your choice, like in the cups editor.
+				<?php
+			}
+			else {
+				?>
+			Cet éditeur vous permet de rassembler plusieurs coupes sur une même page.<br />
+			Vous avez créé des coupes d'une même série et vous souhaitez les réunir ?<br />
+			Vous jouez souvent en ligne sur vos circuits et vous ne voulez pas être limité à 4 courses ?<br />
+			Ce mode est fait pour vous ! Vous pouvez réunir <strong>jusqu'à 18 coupes</strong> !<br />
+			Sélectionnez simplement les créations de votre choix, comme dans l'éditeur de coupes.
+				<?php
+			}
+			?></div>
+		<h1><?php echo $language ? 'Cups selection':'S&eacute;lection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
+		<?php
+		include('utils-circuits.php');
+		$type = 3-$mode;
+		$aCircuits = array($aCircuits[$type]);
+		$aParams = array(
+			'pids' => $identifiants,
+			'type' => $type,
+			'reverse' => true
+		);
+		$listCups = listCreations(1,null,null,$aCircuits,$aParams);
+		$nbCups = count($listCups);
+		if ($nbCups) {
+			if ($nbCups < 2)
+				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une nouvelle.') .'</em>';
+			?>
+			<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
+				<div id="table-container">
+					<table id="table-circuits">
+					<?php
+					$cupnb = 1;
+					foreach ($listCups as $cup) {
+						?>
+						<tr id="circuit<?php echo $cup['id']; ?>" data-id="<?php echo $cup['id']; ?>" onclick="selectCircuit(this)">
+							<td class="td-preview td-preview-cup" <?php
+							if (isset($cup['icon'])) {
+								$allMapSrcs = $cup['icon'];
+								foreach ($allMapSrcs as $j=>$jMapSrc)
+									$allMapSrcs[$j] = "url('images/creation_icons/$jMapSrc')";
+								echo ' style="background-image:'.implode(',',$allMapSrcs).'"';
+							}
+							else
+								echo ' data-cicon="'.$cup['cicon'].'"';
+							?> onclick="previewImg(event,<?php echo htmlspecialchars(json_encode($cup['srcs'])); ?>)"></td>
+							<td class="td-name"><em><?php echo $cupnb; ?></em><?php echo ($cup['nom'] ? escapeUtf8($cup['nom']):($language ? 'Untitled':'Sans titre')); ?></td>
+							<td class="td-access">&rarr; <a href="<?php echo $cup['href']; ?>" target="_blank" onclick="event.stopPropagation()"><?php echo $language ? 'Access':'Acc&eacute;der'; ?></a></td>
+						</tr>
+						<?php
+						$cupnb++;
+					}
+					?>
+					</table>
+				</div>
+				<p>
+					<span id="cid-ctn"></span>
+					<?php
+					if (isset($id))
+						echo '<input type="hidden" name="nid" value="'.$id.'" />';
+					if (isset($_GET['cl']))
+						echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
+					?>
+					<input type="submit" id="submit-selection" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" />
+				</p>
+			</form>
+			<?php
+		}
+		else
+			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create one.':'Vous n\'avez pas encore partag&eacute; de coupes en mode '. ($mode ? 'complet':'simplifi&eacute;') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en cr&eacute;er une.') .'</em>';
+		?>
+		<div class="editor-navigation">
+			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une multicoupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></a></u>
+			<a href="mariokart.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>
+		</div>
+	</div>
+</body>
+</html>
+<?php
+mysql_close();
+?>

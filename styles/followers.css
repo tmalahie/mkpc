@@ -1,0 +1,55 @@
+
+.following-users {
+	display: block;
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 20px;
+}
+.follower-item {
+	text-align: left;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin: 5px 5px;
+	width: 200px;
+	text-decoration: none;
+	background-color: #FED;
+	padding: 8px 10px;
+	border-radius: 5px;
+	color: #F70;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+	word-break: break-word;
+	-ms-hyphens: auto;
+	-moz-hyphens: auto;
+	-webkit-hyphens: auto;
+	hyphens: auto;
+}
+.follower-item .avatar {
+	font-size: 30px;
+	display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.follower-item .avatar-img:before {
+    content: " ";
+}
+.follower-item:hover {
+	background-color: #FFF3E3;
+}
+.follower-item .nick-ctn {
+	margin-left: 15px;
+	width: 110px;
+	font-size: 0.95em;
+}
+.follower-item .nick-info {
+	color: #FB3;
+	font-size: 0.9em;
+}
+.follower-item:hover .nick-info {
+	color: #FC6;
+}
+.follower-item:hover .avatar {
+	opacity: 0.5;
+}

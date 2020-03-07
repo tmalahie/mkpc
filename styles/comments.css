@@ -1,0 +1,232 @@
+#comments-section {
+	display: none;
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	width: 250px;
+	overflow: hidden;
+	border-left: solid 1px white;
+	border-bottom: solid 1px white;
+	border-bottom-left-radius: 10px;
+	font-weight: normal;
+	padding-bottom: 8px;
+}
+@media screen and (max-width: 600px) {
+	#comments-section {
+		top: 100%;
+		width: 100%;
+		border-top: solid 1px white;
+		border-right: solid 1px white;
+		margin-top: 80px;
+		padding-bottom: 80px;
+	}
+}
+#comments-section h1 {
+	margin: 10px;
+	text-align: center;
+	font-size: 20px;
+	font-weight: bold;
+	font-family: Courier;
+}
+#comments {
+	overflow-y: scroll;
+	font-size: 0.8em;
+	border-top: solid 1px white;
+}
+#comments-none {
+	padding: 5px 10px;
+	color: white;
+	font-size: 0.8em;
+	text-align: center;
+	border-top: solid 1px white;
+}
+#comment-connect {
+	font-size: 1.3em;
+	text-align: center;
+	color: white;
+	border-bottom: solid 1px white;
+	padding: 4px 0px;
+}
+#comment-connect a {
+	color: #9CF;
+}
+#comment-connect a:hover {
+	color: #CEF;
+}
+.comment-header a {
+	color: #FA0;
+	text-decoration: none;
+	font-weight: bold;
+}
+.comment-header a:hover {
+	color: #FD0;
+}
+.comment-container {
+	padding: 10px 10px;
+	border-bottom: solid 1px white;
+}
+.comment-options input {
+	font-weight: normal;
+	border-radius: 5px;
+	font-size: 0.9em;
+	margin-left: 2px;
+	margin-right: 2px;
+}
+.comment-options {
+	text-align: right;
+	margin-top: 5px;
+}
+.comment-options .comment-edit {
+	color: #CF0;
+	background-color: #040;
+}
+.comment-options .comment-edit:hover {
+	background-color: #030;
+}
+.comment-options .comment-send {
+	color: #CF0;
+	background-color: #040;
+	padding-left: 20px;
+	padding-right: 20px;
+	margin-right: 5px;
+}
+.comment-options .comment-send:hover {
+	background-color: #030;
+}
+.comment-options .comment-suppr {
+	color: #F84;
+	background-color: #400;
+}
+.comment-options .comment-suppr:hover {
+	background-color: #300;
+}
+.comment-options .comment-undo {
+	color: #F84;
+	background-color: #400;
+}
+.comment-options .comment-undo:hover {
+	background-color: #300;
+}
+.comment-message {
+	padding: 2px 4px;
+	font-family: Courier;
+	font-size: 14px;
+	font-weight: bold;
+	border-radius: 5px;
+}
+.comment-value {
+	word-wrap: break-word;
+}
+.comment-message textarea {
+	width: 100%;
+	background-color: gray;
+	color: white;
+}
+.comment-message textarea:focus {
+	background-color: #666;
+}
+.comment-message textarea::-webkit-input-placeholder {
+   color: #CCC;
+}
+.comment-message textarea:-moz-placeholder {
+   color: #CCC;  
+}
+.comment-message textarea::-moz-placeholder {
+   color: #CCC;  
+}
+.comment-message textarea:-ms-input-placeholder {  
+   color: #CCC;  
+}
+.comment-container:nth-child(2n) {
+	background-color: #090909;
+}
+.comment-container:nth-child(2n+1) {
+	background-color: black;
+}
+.comment-container:nth-child(2n) .comment-message {
+	background-color: #222;
+	color: #DDD;
+}
+.comment-container:nth-child(2n+1) .comment-message {
+	background-color: #191919;
+	color: #CCC;
+}
+.comment-new .comment-posted, .comment-sent .comment-posting {
+	display: none;
+}
+.comment-posted a {
+	color: #69F;
+}
+.comment-posted a:hover {
+	color: #7BF;
+}
+#comments-infos h2 {
+	text-align: center;
+	margin: 0px;
+	padding: 0px 6px;
+	border-bottom: solid 1px #CCC;
+	font-family: Courier;
+	font-size: 20px;
+	word-wrap: break-word;
+    max-height: 50px;
+    overflow-y: auto;
+}
+#comments-infos table {
+	width: 100%;
+	border-bottom: solid 2px white;
+}
+#comments-infos table td {
+	vertical-align: middle;
+}
+#comments-circuitauthor {
+	font-size: 12px;
+	width: 100px;
+	border-right: solid 1px white;
+}
+#comments-circuitauthor a {
+	color: #9CF;
+}
+#comments-circuitauthor a:hover {
+	color: #CEF;
+}
+#comments-circuitauthor div {
+	text-align: center;
+	width: 100px;
+	overflow: hidden;
+	padding-left: 2px;
+	padding-right: 2px;
+	color: white;
+}
+#comments-circuitstar {
+	text-align: right;
+}
+#comments-circuitnote {
+	text-align: left;
+	font-size: 12px;
+}
+#comments-circuitstar, #comments-circuittime {
+	text-align: right;
+}
+#comments-circuitstar img, #comments-circuittime img {
+	height: 12px;
+	margin-right: 2px;
+}
+#comments-circuitdate {
+	color: white;
+	font-size: 12px;
+}
+#comments-circuitnote, #comments-circuitdate {
+	line-height: 1px;
+}
+#comments-circuitstar {
+	padding-top: 1px;
+}
+#comments-circuitnote {
+	padding-top: 4px;
+}
+#comments-circuittime {
+	padding-bottom: 2px;
+}
+#comments-circuitdate {
+	padding-bottom: 1px;
+}

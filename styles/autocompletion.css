@@ -1,0 +1,18 @@
+.tableSuggestions {
+	border: solid 1px gray;
+	border-spacing: 2px;
+	background-color: #BBB;
+}
+.suggestion, .suggestion_selected {
+	cursor: pointer;
+	text-align: left;
+	overflow: hidden;
+}
+.suggestion {
+	color: black;
+	background-color: white;
+}
+.suggestion_selected {
+	color: white;
+	background-color: #3399FF;
+}

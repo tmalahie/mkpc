@@ -1,0 +1,146 @@
+
+main {
+	text-align: center;
+}
+main select, main input[type="text"], main input[type="number"] {
+	background-color: #FC0;
+	color: black;
+	border: solid 1px #A0300A;
+	padding: 2px;
+}
+main select:hover, main input[type="text"]:hover, main input[type="number"]:hover {
+	background-color: #FFC028;
+}
+main select:active, main input[type="text"]:active, main input[type="number"]:active {
+	background-color: #FF9010;
+}
+main table {
+	text-align: center;
+	position: relative;
+	left: 50%;
+	transform: translateX(-50%);
+	border: double 4px black;
+	background-color: #FFC028;
+	font-weight: bold;
+	color: black;
+}
+main td {
+	border: solid 1px black;
+	margin: 2px;
+	padding: 5px;
+	width: 100px;
+}
+main tr.fonce, main tr.fonce a {
+	color: #820;
+}
+main tr.fonce a:hover {
+	color: #B50;
+}
+main tr.clair {
+	background-color: #FFE30C;
+}
+main tr.clair, main tr.clair a {
+	color: #F60;
+}
+main tr.clair a:hover {
+	color: #FA0;
+}
+main tr a {
+	text-decoration: none;
+}
+main table div {
+	margin-left: 30px;
+	width: 24px;
+	height: 24px;
+	overflow: hidden;
+}
+main table div img {
+	height: 100%;
+	position: relative;
+	left: -144px;
+}
+main table .recorder {
+	white-space: nowrap;
+	margin: 0 5px;
+}
+main table .recorder img {
+	height: 13px;
+	margin-right: 2px;
+}
+#titres {
+	background-color: #F90;
+	font-size: 12px;
+	padding: 2px;
+}
+.pub {
+	display: inline-block;
+	max-width: 100%;
+	overflow: hidden;
+}
+#month-selector {
+	margin-top: 10px;
+}
+#page {
+	text-align: left;
+	background-color: #F90;
+	color: #800;
+}
+#page span {
+	color: #800;
+}
+#page a {
+	color: yellow;
+	text-decoration: none;
+	font-weight: bold;
+}
+#page a:hover {
+	color: #FC0;
+}
+main a {
+	color: #F90;
+}
+main a:hover {
+	color: #FC0;
+}
+.ranking-modes.stripped > * {
+	border-right: solid 1px #820;
+}
+.ranking-modes {
+	display: table;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+.ranking-modes > * {
+	display: table-cell;
+	vertical-align: middle;
+	padding-left: 10px;
+	padding-right: 10px;
+	height: 32px;
+	border-top: solid 1px #820;
+	border-bottom: solid 1px #820;
+}
+.ranking-modes > a {
+	background-color: #FFE30C;
+	color: #F60;
+	text-decoration: none;
+}
+.ranking-modes > a:hover {
+	background-color: #FFD816;
+	color: #C30;
+}
+.ranking-modes > span {
+	background-color: #FFC02C;
+	color: #820;
+	font-weight: bold;
+}
+.ranking-modes > *:first-child {
+	border-left: solid 1px #820;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+.ranking-modes > *:last-child {
+	border-right: solid 1px #820;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}

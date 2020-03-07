@@ -1,0 +1,50 @@
+header div {
+	font-size: 250%;
+}
+nav a {
+	padding: 5px 0px;
+	margin: 5px 0px;
+	width: 20%;
+}
+#menu_left {
+	padding-left: 5px;
+}
+#menu_left span {
+	display: none;
+}
+#menu_right {
+	padding-right: 5px;
+}
+#left_section, #right_section {
+	width: 100%;
+}
+#right_section {
+	margin-top: 15px;
+	padding-top: 35px;
+	border-top: solid 1px black;
+}
+#left_section .pub_section {
+	display: none;
+}
+#right_section .pub_section {
+	position: relative;
+	top: -9px;
+}
+header, nav, main, footer {
+	width: 95%;
+}
+#relief_left, #footer_left {
+	left: -6px;
+}
+#relief_right, #footer_right {
+	right: -6px;
+}
+.fp-thumbnail {
+	-webkit-background-size: 135%;
+	-moz-background-size: 135%;
+	-o-background-size: 135%;
+	background-size: 135%;
+}
+#developer {
+	display: none;
+}

@@ -1,0 +1,25 @@
+.star0, .star1 {
+	width: 15px;
+	height: 15px;
+
+	background-repeat: no-repeat;
+}
+.star0 {
+	background-image: url('../images/ministar0.png');
+	background-position: left;
+}
+.star1 {
+	background-image: url('../images/ministar1.png');
+	background-position: left;
+}
+.startStar, .endStar {
+	background-repeat: no-repeat;
+}
+.startStar {
+	background-image: url('../images/ministar1.png');
+	background-position: left;
+}
+.endStar {
+	background-image: url('../images/ministar0.png');
+	background-position: right;
+}

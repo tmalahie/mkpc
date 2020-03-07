@@ -1,0 +1,98 @@
+<!DOCTYPE html> 
+<html lang="fr"> 
+	<head> 
+		<title>Aide : Le BBCode</title> 
+		<meta charset="utf-8" /> 
+		<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+	</head> 
+	<body>
+		<main>
+			<h1>Aide : Le BBCode</h1>
+			<div class="fMessages">
+			<div class="fMessage">
+			<div class="mContent">
+			<div class="mBody" style="padding-top:10px">
+				&Eacute;crire en <strong>gras</strong>
+				: [b]Votre texte[/b]<br />
+				Donne : <strong>Votre texte</strong><br />
+				<br />
+				&Eacute;crire en <em>italique</em>
+				: [i]Votre texte[/i]<br />
+				Donne : <em>Votre texte</em><br />
+				<br />
+				<u>Souligner</u>
+				: [u]Votre texte[/u]<br />
+				Donne : <u>Votre
+				texte</u><br />
+				<br />
+				<s>Barrer</s> : [s]Votre texte[/s]<br />
+				Donne : <s>Votre texte</s><br />
+				<br />
+				Changer la couleur : [color=red]Votre texte[/color]<br />
+				Donne : <span style="color: red;">Votre texte</span><br />
+				<br />
+				Changer la taille du texte : [size=18]Votre texte[/size]<br />
+				Donne : <span style="font-size: 18pt;">Votre texte</span><br />
+				<br />
+				Changer la police d'&eacute;criture : [font=roman]Votre texte[/font]<br />
+				Donne : <span style="font-family: roman;">Votre texte</span><br />
+				<br />
+				Ins&eacute;rer un <a href="#null" onclick="return false">lien</a>
+				: [url]https://mkpc.malahieude.net[/url]<br />
+				Donne : <a href="https://mkpc.malahieude.net"
+				 target="_blank">https://mkpc.malahieude.net</a><br />
+				OU [url=https://mkpc.malahieude.net]Le meilleur jeu du monde ![/url]<br />
+				Donne : <a class="lien" href="https://mkpc.malahieude.net"
+				 target="_blank">Le meilleur jeu du monde !</a><br />
+				<br />
+				Ins&eacute;rer une image (*) :
+				[img]https://mkpc.malahieude.net/images/sidebar_icon.png[/img]<br />
+				Donne : <img src="images/sidebar_icon.png" alt="Image" /><br />
+				<br />
+				Ins&eacute;rer une vidéo Youtube :
+				[yt]https://www.youtube.com/watch?v=m-O3RwIJBIo[/yt]<br />
+				Donne : <a href="https://www.youtube.com/watch?v=m-O3RwIJBIo" target="_blank"><img src="images/yt.png" alt="Youtube video" /></a><br />
+				<br />
+				Aligner &agrave; gauche:
+				: [left]Votre texte[/left]<br />
+				Donne : <div style="text-align: left;">Votre texte</div><br />
+				<br />
+				Aligner au centre
+				: [center]Votre texte[/center]<br />
+				Donne : <div style="text-align: center;">Votre texte</div><br />
+				<br />
+				Aligner &agrave; droite
+				: [right]Votre texte[/right]<br />
+				Donne : <div style="text-align: right;">Votre
+				texte</div>
+				<br />
+				Citer un message :
+				[quote=Wargor]Message à citer[/quote]<br />
+				Result: <div class="quote1"><div class="quote1author"><a href="profil.php?pseudo=Wargor" target="_blank">Wargor</a> a écrit :</div>Message à citer</div><br />
+				<br />
+				Masquer un message :
+				[spoiler]À la fin, Mario sauve la princesse[/spoiler]<br />
+				Donne: <div class="spoiler1"><div class="spoiler1disp">Spoiler [<a class="spoiler1show" href="#null" onclick="this.parentNode.parentNode.className='spoiler1 spoiler1shown';return false">Afficher</a><a class="spoiler1hide" href="#null" onclick="this.parentNode.parentNode.className='spoiler1';return false">Masquer</a>]</div><div class="spoiler1cont">À la fin, Mario sauve la princesse</div></div><br />
+				<br />
+				Traduire un message :
+				[fr]Message en français[/fr][en]Message in English[/en]<br />
+				Donne: <div class="tr-ctn tr-ctn-fr"><div class="tr-tabs"><div class="tr-tab-fr" onclick="this.parentNode.parentNode.className='tr-ctn tr-ctn-fr'"></div><div class="tr-tab-en" onclick="this.parentNode.parentNode.className='tr-ctn tr-ctn-en'"></div></div><div class="tr-msgs"><div class="tr-msg-fr">Message en français</div><div class="tr-msg-en">Message in English</div></div></div>
+				<br />
+				<hr />
+				<br />
+				(*) Ici, vous devez entrer l'<strong>adresse
+				URL</strong> de l'image. Pour voir l'adresse URL d'une image,
+				faites un clic droit dessus et choisissez
+				&quot;Copier l'adresse de l'image&quot;.<br />
+				Si l'image se trouve sur votre ordinateur, vous devrez passer par un
+				<strong>h&eacute;bergeur d'images</strong> tel que
+				<a href="https://postimage.org/" target="_blank">PostImage</a>.
+				Cliquez sur &quot;Choisissez image&quot; et s&eacute;lectionnez votre fichier.<br />
+				L'URL de l'image est alors dans &quot;Lien direct&quot;.
+			</div>
+			</div>
+			</div>
+			</div>
+		</main>
+	</body> 
+</html>

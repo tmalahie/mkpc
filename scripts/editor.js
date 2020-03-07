@@ -1,0 +1,2266 @@
+var offsetX = 0, offsetY = 0;
+var $editor, $editorCtn, $toolbox;
+var SVG = "http://www.w3.org/2000/svg";
+document.addEventListener("DOMContentLoaded", function() {
+	var $radioSelectors = document.querySelectorAll(".radio-selector");
+	for (var i=0;i<$radioSelectors.length;i++) {
+		var $radioSelector = $radioSelectors[i];
+		$radioSelector.getValue = function() {
+			return this._value;
+		};
+		$radioSelector.setValue = function(value) {
+			var $radioButtons = this.querySelectorAll(".radio-button");
+			for (var j=0;j<$radioButtons.length;j++) {
+				var $radioButton = $radioButtons[j];
+				if ($radioButton.value == value)
+					$radioButton.classList.add("radio-selected");
+				else
+					$radioButton.classList.remove("radio-selected");
+			}
+			this._value = value;
+		};
+		var $radioButtons = $radioSelector.querySelectorAll(".radio-button");
+		for (var j=0;j<$radioButtons.length;j++) {
+			var $radioButton = $radioButtons[j];
+			$radioButton.selector = $radioSelector;
+			$radioButton.onclick = function() {
+				var $selectedButton = this.selector.querySelector(".radio-selected");
+				if ($selectedButton == this) return;
+				if ($selectedButton) $selectedButton.classList.remove("radio-selected");
+				this.classList.add("radio-selected");
+				var changeCallback = this.selector.getAttribute("data-change");
+				this.selector._value = this.value;
+				if (changeCallback && window[changeCallback])
+					window[changeCallback]({target:this,value:this.value});
+			};
+			if ($radioButton.classList.contains("radio-selected"))
+				$radioSelector._value = $radioButton.value;
+		}
+	}
+	var $fancyTitles = document.querySelectorAll(".fancy-title");
+	var $titleElt;
+	for (var i=0;i<$fancyTitles.length;i++) {
+		(function($fancyTitle) {
+			var aTitle = $fancyTitle.title;
+			$fancyTitle.title = "";
+			$fancyTitle.onmouseover = function() {
+				if ($titleElt)
+					document.body.removeChild($titleElt);
+				$titleElt = document.createElement("div");
+				$titleElt.className = "fancy-title-text";
+				$titleElt.innerHTML = aTitle;
+				document.body.appendChild($titleElt);
+				var eltBounds = $fancyTitle.getBoundingClientRect();
+				var titleBounds = $titleElt.getBoundingClientRect();
+				if ($fancyTitle.classList.contains("fancy-title-center"))
+					$titleElt.style.left = Math.round(eltBounds.left+(eltBounds.width-titleBounds.width)/2) +"px";
+				else
+					$titleElt.style.left = Math.round(eltBounds.left+eltBounds.width-titleBounds.width) +"px";
+				$titleElt.style.top = Math.round(eltBounds.top-titleBounds.height-2) +"px";
+			};
+			$fancyTitle.onmouseout = function() {
+				if ($titleElt) {
+					document.body.removeChild($titleElt);
+					$titleElt = undefined;
+				}
+			};
+		})($fancyTitles[i]);
+	}
+	var $circuitCreated = document.getElementById("circuit-created");
+	if ($circuitCreated) {
+		$circuitCreated.close = function() {
+			document.body.removeChild($circuitCreated);
+		};
+	}
+	$editor = document.getElementById("editor");
+	$editorCtn = document.getElementById("editor-ctn");
+	$toolbox = document.getElementById("toolbox");
+	offsetX = $editorCtn.offsetLeft;
+	offsetY = $editorCtn.offsetTop;
+	for (var key in editorTools) {
+		var editorTool = editorTools[key];
+		editorTool.data = [];
+		editorTool.state = {};
+		if (editorTool.init)
+			editorTool.init(editorTool);
+	}
+	if (circuitData)
+		restoreData(circuitData);
+	selectMode(document.getElementById('mode').value);
+});
+var zoomLevel = 1;
+var zoomLevels = [0.25,0.3,0.4,0.5,0.6,0.75,0.9,1,1.1,1.25,1.5,2,3,4,6,8,10,15];
+function zoomMore(focusOnMouse) {
+	var zoomId = zoomLevels.indexOf(zoomLevel);
+	if (zoomId < zoomLevels.length-1)
+		updateZoom(zoomLevels[zoomId+1],focusOnMouse);
+}
+function zoomLess(focusOnMouse) {
+	var zoomId = zoomLevels.indexOf(zoomLevel);
+	if (zoomId > 0)
+		updateZoom(zoomLevels[zoomId-1],focusOnMouse);
+}
+var changes = false;
+var historyData = [], historyUndo = [];
+var MAX_HISTORY_SIZE = 10;
+function undo() {
+	var editorTool = editorTools[currentMode];
+	if (editorTool.onundo)
+		editorTool.onundo();
+	else {
+		$toolbox.classList.remove("hiddenbox");
+		var lastData = historyData.pop();
+		if (lastData) {
+			var nextHistory = historyData;
+			var nextUndo = historyUndo;
+			nextUndo.push(editorTools[currentMode].data);
+			if (nextUndo.length > MAX_HISTORY_SIZE)
+				nextUndo.shift();
+			editorTools[currentMode].data = lastData;
+			selectMode(currentMode);
+			if (nextHistory.length)
+				historyData = nextHistory;
+			historyUndo = nextUndo;
+		}
+		changes = true;
+	}
+}
+function redo() {
+	var editorTool = editorTools[currentMode];
+	if (editorTool.onredo)
+		editorTool.onredo();
+	else {
+		var lastData = historyUndo.pop();
+		if (lastData) {
+			var nextHistory = historyData;
+			var nextUndo = historyUndo;
+			nextHistory.push(editorTools[currentMode].data);
+			if (nextHistory.length > MAX_HISTORY_SIZE)
+				nextHistory.shift();
+			editorTools[currentMode].data = lastData;
+			selectMode(currentMode);
+			if (nextUndo.length)
+				historyUndo = nextUndo;
+			historyData = nextHistory;
+		}
+	}
+}
+if (typeof Array.isArray === 'undefined') {
+	Array.isArray = function(obj) {
+		return Object.prototype.toString.call(obj) === '[object Array]';
+	}
+};
+function deepCopy(obj) {
+	if (Array.isArray(obj)) {
+		var clone = [];
+		for (var i=0;i<obj.length;i++)
+			clone.push(deepCopy(obj[i]));
+		return clone;
+	}
+	else if (("object" === typeof(obj)) && (obj != null)) {
+		var clone = {};
+		for (var i in obj)
+			clone[i] = deepCopy(obj[i]);
+		return clone;
+	}
+	else
+		return obj;
+}
+function storeHistoryData(data) {
+	changes = true;
+	historyData.push(deepCopy(data));
+	if (historyData.length > MAX_HISTORY_SIZE)
+		historyData.shift();
+	historyUndo.length = 0;
+}
+function resizeRectangle(rectangle,data,options) {
+	options = options||{};
+	var mask = createMask();
+	mask.classList.add("mask-dark");
+	var screenCoords = getScreenCoords(data);
+	var bubbleR = 10;
+	var centerX = screenCoords.x + screenCoords.w/2;
+	var centerY = screenCoords.y + screenCoords.h/2;
+	var bubbles = new Array();
+	var l = (data.h!=15);
+	for (var x=-1;x<=1;x++) {
+		for (var y=-1;y<=1;y++) {
+			if (options.cp ? (l?y:x) : (x||y)) {
+				(function(x,y) {
+					var bubble = document.createElement("div");
+					bubble.style.left = Math.round(centerX + (x*screenCoords.w-bubbleR)/2 + (1+x)*(zoomLevel-1)/2) +"px";
+					bubble.style.top = Math.round(centerY + (y*screenCoords.h-bubbleR)/2 + (1+y)*(zoomLevel-1)/2) +"px";
+					bubble.style.width = (bubbleR-2) +"px";
+					bubble.style.height = (bubbleR-2) +"px";
+					bubble.className = "bubble";
+					bubble.style.borderRadius = bubbleR +"px";
+					bubble.style.cursor = "pointer";
+					bubble.className = "bubble hover-toggle";
+					bubble.onclick = function(e) {
+						e.stopPropagation();
+						for (var i=0;i<bubbles.length;i++)
+							bubbles[i].style.display = "none";
+						var aX = e.pageX, aY = e.pageY;
+						var nData = deepCopy(data);
+						mask.classList.remove("mask-dark");
+						function resizeRect(e) {
+							var nX = e.pageX, nY = e.pageY;
+							var diffX = Math.round((nX-aX)/zoomLevel);
+							var diffY = Math.round((nY-aY)/zoomLevel);
+							if (x == -1) {
+								nData.x = data.x + diffX;
+								nData.w = data.w - diffX;
+							}
+							else if (x == 1) {
+								nData.x = data.x;
+								nData.w = data.w + diffX;
+							}
+							if (y == -1) {
+								nData.y = data.y + diffY;
+								nData.h = data.h  - diffY;
+							}
+							else if (y == 1) {
+								nData.y = data.y;
+								nData.h = data.h + diffY;
+							}
+							if (options.cp && x && y) {
+								var point1 = {x:nData.x,y:nData.y}, point2 = {x:nData.x+nData.w,y:nData.y+nData.h};
+								if (x == -1) {
+									var pX = point1.x;
+									point1.x = point2.x;
+									point2.x = pX;
+								}
+								if (y == -1) {
+									var pY = point1.y;
+									point1.y = point2.y;
+									point2.y = pY;
+								}
+								nData = getRectDataCp(point1,point2);
+							}
+							absolutizeData(nData);
+							setRectangleWidth(rectangle,nData);
+							if (options.cp)
+								rectangle.reposition(nData);
+						}
+						function stopResizeRect(e) {
+							e.stopPropagation();
+							$toolbox.classList.remove("hiddenbox");
+							resizeRect(e);
+							storeHistoryData(editorTools[currentMode].data);
+							applyObject(data,nData);
+							mask.removeEventListener("mousemove", resizeRect);
+							mask.removeEventListener("mouseup", stopResizeRect);
+							mask.defaultClose();
+						}
+						mask.addEventListener("mousemove", resizeRect);
+						mask.addEventListener("mouseup", stopResizeRect);
+						mask.close = function(){};
+						$toolbox.classList.add("hiddenbox");
+					};
+					mask.appendChild(bubble);
+					bubbles.push(bubble);
+				})(x,y);
+			}
+		}
+	}
+}
+function moveRectangle(rectangle,data,options) {
+	options = options||{};
+	var mask = createMask();
+	mask.classList.add("mask-dark");
+	var screenCoords = getScreenCoords(data);
+	var fakeRectangle = document.createElement("div");
+	fakeRectangle.style.left = screenCoords.x +"px";
+	fakeRectangle.style.top = screenCoords.y +"px";
+	fakeRectangle.style.width = screenCoords.w +"px";
+	fakeRectangle.style.height = screenCoords.h +"px";
+	fakeRectangle.style.cursor = "move";
+	fakeRectangle.onclick = function(e) {
+		e.stopPropagation();
+		var aX = e.pageX, aY = e.pageY;
+		var nData = deepCopy(data);
+		mask.classList.remove("mask-dark");
+		function moveRect(e) {
+			var nX = e.pageX, nY = e.pageY;
+			var diffX = Math.round((nX-aX)/zoomLevel);
+			var diffY = Math.round((nY-aY)/zoomLevel);
+			nData.x = data.x + diffX;
+			nData.y = data.y + diffY;
+			capRectangle(nData);
+			setRectangleWidth(rectangle,nData);
+			if (options.cp)
+				rectangle.reposition(nData);
+		}
+		function stopMoveRect(e) {
+			e.stopPropagation();
+			$toolbox.classList.remove("hiddenbox");
+			moveRect(e);
+			storeHistoryData(editorTools[currentMode].data);
+			applyObject(data,nData);
+			mask.removeEventListener("mousemove", moveRect);
+			mask.removeEventListener("mouseup", stopMoveRect);
+			mask.defaultClose();
+		}
+		mask.addEventListener("mousemove", moveRect);
+		mask.addEventListener("mouseup", stopMoveRect);
+		mask.close = function(){};
+		$toolbox.classList.add("hiddenbox");
+	};
+	mask.appendChild(fakeRectangle);
+}
+function moveBox(box,data,size) {
+	var mask = createMask();
+	mask.classList.add("mask-dark");
+	var rectData = {x:data.x-size.w/2,y:data.y-size.h/2,w:size.w,h:size.h};
+	var screenCoords = getScreenCoords(rectData);
+	var fakeRectangle = document.createElement("div");
+	fakeRectangle.style.left = screenCoords.x +"px";
+	fakeRectangle.style.top = screenCoords.y +"px";
+	fakeRectangle.style.width = screenCoords.w +"px";
+	fakeRectangle.style.height = screenCoords.h +"px";
+	fakeRectangle.style.cursor = "move";
+	fakeRectangle.onclick = function(e) {
+		e.stopPropagation();
+		var aX = e.pageX, aY = e.pageY;
+		var nData = deepCopy(data);
+		mask.classList.remove("mask-dark");
+		function moveRect(e) {
+			var nX = e.pageX, nY = e.pageY;
+			var diffX = Math.round((nX-aX)/zoomLevel);
+			var diffY = Math.round((nY-aY)/zoomLevel);
+			nData.x = data.x + diffX;
+			nData.y = data.y + diffY;
+			capBox(nData);
+			setBoxPos(box,nData,size);
+		}
+		function stopMoveRect(e) {
+			e.stopPropagation();
+			$toolbox.classList.remove("hiddenbox");
+			moveRect(e);
+			storeHistoryData(editorTools[currentMode].data);
+			applyObject(data,nData);
+			mask.removeEventListener("mousemove", moveRect);
+			mask.removeEventListener("mouseup", stopMoveRect);
+			mask.defaultClose();
+		}
+		mask.addEventListener("mousemove", moveRect);
+		mask.addEventListener("mouseup", stopMoveRect);
+		mask.close = function(){};
+		$toolbox.classList.add("hiddenbox");
+	};
+	mask.appendChild(fakeRectangle);
+}
+function moveNode(node,data,lines) {
+	var mask = createMask();
+	mask.classList.add("mask-dark");
+	function movePoint(e) {
+		var nX = e.pageX, nY = e.pageY;
+		var nPoint = getEditorCoordsRounded({x:nX,y:nY});
+		setPointPos(node.center,nPoint);
+		setCirclePos(node.circle,nPoint);
+		if (lines) {
+			for (var i=0;i<lines[0].length;i++)
+				moveLine(lines[0][i],nPoint,null);
+			for (var i=0;i<lines[1].length;i++)
+				moveLine(lines[1][i],null,nPoint);
+		}
+	}
+	function stopMovePoint(e) {
+		e.stopPropagation();
+		$toolbox.classList.remove("hiddenbox");
+		movePoint(e);
+		var nX = e.pageX, nY = e.pageY;
+		var nPoint = getEditorCoordsRounded({x:nX,y:nY});
+		var editorTool = editorTools[currentMode];
+		storeHistoryData(editorTool.data);
+		applyObject(data,nPoint);
+		mask.removeEventListener("mousemove", movePoint);
+		mask.removeEventListener("mouseup", stopMovePoint);
+		mask.defaultClose();
+	}
+	mask.addEventListener("mousemove", movePoint);
+	mask.addEventListener("mouseup", stopMovePoint);
+	$toolbox.classList.add("hiddenbox");
+}
+function editPolygon(polygon,data) {
+	var mask = createMask();
+	mask.classList.add("mask-dark");
+	var fakeSvg = document.createElementNS(SVG, "svg");
+	fakeSvg.setAttribute("class", "editor");
+	var fakeLines = [];
+	for (var i=0;i<data.points.length;i++) {
+		(function(i) {
+			var fakeLine = document.createElementNS(SVG, "line");
+			fakeLine.classList.add("bordered");
+			fakeLine.classList.add("hover-toggle");
+			fakeLine.style.strokeOpacity = 1;
+			fakeLine.style.cursor = "pointer";
+			fakeLine.setAttribute("stroke-width", 6);
+			var fakePoint1 = getScreenCoords(data.points[i]), fakePoint2 = getScreenCoords(data.points[(i+1)%data.points.length]);
+			fakeLine.setAttribute("x1", fakePoint1.x);
+			fakeLine.setAttribute("y1", fakePoint1.y);
+			fakeLine.setAttribute("x2", fakePoint2.x);
+			fakeLine.setAttribute("y2", fakePoint2.y);
+			fakeLine.onclick = function(e) {
+				fakeSvg.style.display = "none";
+				var editorTool = editorTools[currentMode];
+				editorTool.state.point.classList.add("dark");
+				mask.classList.remove("mask-dark");
+				var aX = e.pageX, aY = e.pageY;
+				var aPoint = getEditorCoordsRounded({x:aX,y:aY});
+				var nPoints = deepCopy(data.points);
+				nPoints.splice(i+1,0, aPoint);
+				setPolygonPoints(polygon,nPoints,true);
+				setNodePos(editorTool.state.point,aPoint);
+				function movePoint(e) {
+					var nX = e.pageX, nY = e.pageY;
+					var nPoint = getEditorCoordsRounded({x:nX,y:nY});
+					applyObject(aPoint,nPoint);
+					setPolygonPoints(polygon,nPoints,true);
+					setNodePos(editorTool.state.point,nPoint);
+				}
+				function stopMovePoint(e) {
+					e.stopPropagation();
+					$toolbox.classList.remove("hiddenbox");
+					movePoint(e);
+					storeHistoryData(editorTool.data);
+					data.points = nPoints;
+					mask.removeEventListener("mousemove", movePoint);
+					mask.removeEventListener("mouseup", stopMovePoint);
+					mask.defaultClose();
+					editorTool.state.point.classList.remove("dark");
+				}
+				mask.addEventListener("mousemove", movePoint);
+				mask.addEventListener("mouseup", stopMovePoint);
+				mask.close = function(){};
+				$toolbox.classList.add("hiddenbox");
+			};
+			fakeSvg.appendChild(fakeLine);
+		})(i);
+	}
+	for (var i=0;i<data.points.length;i++) {
+		(function(i) {
+			var fakeCenter = getScreenCoords({x:data.points[i].x,y:data.points[i].y,r:5,l:1});
+			var fakePoint = createCircle(fakeCenter,false);
+			fakePoint.classList.add("hover-toggle");
+			fakePoint.style.cursor = "pointer";
+			fakePoint.onclick = function(e) {
+				fakeSvg.style.display = "none";
+				var editorTool = editorTools[currentMode];
+				editorTool.state.point.classList.add("dark");
+				mask.classList.remove("mask-dark");
+				var aX = e.pageX, aY = e.pageY;
+				var aPoint = getEditorCoordsRounded({x:aX,y:aY});
+				var nPoints = deepCopy(data.points);
+				nPoints[i] = aPoint;
+				setPolygonPoints(polygon,nPoints,true);
+				setNodePos(editorTool.state.point,aPoint);
+				function movePoint(e) {
+					var nX = e.pageX, nY = e.pageY;
+					var nPoint = getEditorCoordsRounded({x:nX,y:nY});
+					applyObject(aPoint,nPoint);
+					setPolygonPoints(polygon,nPoints,true);
+					setNodePos(editorTool.state.point,nPoint);
+				}
+				function stopMovePoint(e) {
+					e.stopPropagation();
+					$toolbox.classList.remove("hiddenbox");
+					movePoint(e);
+					storeHistoryData(editorTool.data);
+					data.points = nPoints;
+					mask.removeEventListener("mousemove", movePoint);
+					mask.removeEventListener("mouseup", stopMovePoint);
+					mask.defaultClose();
+					editorTool.state.point.classList.remove("dark");
+				}
+				mask.addEventListener("mousemove", movePoint);
+				mask.addEventListener("mouseup", stopMovePoint);
+				mask.close = function(){};
+				$toolbox.classList.add("hiddenbox");
+			};
+			fakePoint.oncontextmenu = function(e) {
+				e.stopPropagation();
+				showContextMenu(e,[{
+					text: (language ? "Move":"Déplacer"),
+					click: function() {
+						fakePoint.onclick(e);
+					}
+				}, {
+					text: (language ? "Delete":"Supprimer"),
+					click: function() {
+						var editorTool = editorTools[currentMode];
+						storeHistoryData(editorTool.data);
+						data.points.splice(i,1);
+						setPolygonPoints(polygon,data.points,true);
+						mask.defaultClose();
+					},
+					disabled: (data.points.length <= 3)
+				}]);
+				return false;
+			};
+			fakeSvg.appendChild(fakePoint);
+		})(i);
+	}
+	mask.appendChild(fakeSvg);
+}
+function movePolygon(polygon,data) {
+	var mask = createMask();
+	mask.classList.add("mask-dark");
+	var screenCoords = getScreenCoordsExact(data);
+	var minX = data.points[0].x, maxX = minX, minY = data.points[0].y, maxY = minY;
+	for (var i=1;i<data.points.length;i++) {
+		var iData = data.points[i];
+		if (iData.x < minX)
+			minX = iData.x;
+		else if (iData.x > maxX)
+			maxX = iData.x;
+		if (iData.y < minY)
+			minY = iData.y;
+		else if (iData.y > maxY)
+			maxY = iData.y;
+	}
+	var rData = {x:minX,y:minY, w:(maxX-minX), h:(maxY-minY)};
+	var screenCoords = getScreenCoords(rData);
+	var fakeRectangle = document.createElement("div");
+	fakeRectangle.style.left = screenCoords.x +"px";
+	fakeRectangle.style.top = screenCoords.y +"px";
+	fakeRectangle.style.width = screenCoords.w +"px";
+	fakeRectangle.style.height = screenCoords.h +"px";
+	fakeRectangle.style.cursor = "move";
+	fakeRectangle.onclick = function(e) {
+		e.stopPropagation();
+		var aX = e.pageX, aY = e.pageY;
+		var nData = deepCopy(rData);
+		var nPoints = deepCopy(data.points);
+		mask.classList.remove("mask-dark");
+		function movePoly(e) {
+			var nX = e.pageX, nY = e.pageY;
+			var diffX = Math.round((nX-aX)/zoomLevel);
+			var diffY = Math.round((nY-aY)/zoomLevel);
+			nData.x = rData.x + diffX;
+			nData.y = rData.y + diffY;
+			capRectangle(nData);
+			diffX = nData.x-rData.x;
+			diffY = nData.y-rData.y;
+			for (var i=0;i<data.points.length;i++) {
+				nPoints[i].x = data.points[i].x + diffX;
+				nPoints[i].y = data.points[i].y + diffY;
+			}
+			setPolygonPoints(polygon,nPoints,true);
+		}
+		function stopMovePoly(e) {
+			e.stopPropagation();
+			$toolbox.classList.remove("hiddenbox");
+			movePoly(e);
+			storeHistoryData(editorTools[currentMode].data);
+			for (var i=0;i<data.points.length;i++)
+				data.points[i] = nPoints[i];
+			mask.removeEventListener("mousemove", movePoly);
+			mask.removeEventListener("mouseup", stopMovePoly);
+			mask.defaultClose();
+		}
+		mask.addEventListener("mousemove", movePoly);
+		mask.addEventListener("mouseup", stopMovePoly);
+		mask.close = function(){};
+		$toolbox.classList.add("hiddenbox");
+	};
+	mask.appendChild(fakeRectangle);
+}
+function moveArrow(arrow,data) {
+	var mask = createMask();
+	var nData = data;
+	function moveArr(e) {
+		nData = getEditorCoordsRounded(getPointerPos(e));
+		arrow.move(nData);
+	}
+	function stopMoveArr(e) {
+		e.stopPropagation();
+		$toolbox.classList.remove("hiddenbox");
+		moveArr(e);
+		storeHistoryData(editorTools[currentMode].data);
+		applyObject(data,nData);
+		mask.removeEventListener("mousemove", moveArr);
+		mask.removeEventListener("mouseup", stopMoveArr);
+		mask.defaultClose();
+	}
+	mask.addEventListener("mousemove", moveArr);
+	mask.addEventListener("mouseup", stopMoveArr);
+	mask.close = function(){};
+	$toolbox.classList.add("hiddenbox");
+}
+function updateBoxSize(box,boxSize) {
+	box.setAttribute("x", +box.getAttribute("x")+Math.round((box.getAttribute("width")-boxSize.w)/2));
+	box.setAttribute("y", +box.getAttribute("y")+Math.round((box.getAttribute("height")-boxSize.h)/2));
+	box.setAttribute("width", boxSize.w);
+	box.setAttribute("height", boxSize.h);
+}
+function updateZoom(nLevel, focusOnMouse) {
+	var lastZoom = zoomLevel;
+	var relPos;
+	if (focusOnMouse) {
+		var windowPos = getEditorCoordsExact(getWindowPos());
+		relPos = {x:mouseCoords.x-windowPos.x,y:mouseCoords.y-windowPos.y};
+	}
+	zoomLevel = nLevel;
+	$editorCtn.style.transform = $editorCtn.style.WebkitTransform = $editorCtn.style.MozTransform = "scale("+ zoomLevel +")";
+	var $zoomEventElts = document.getElementsByClassName("zoom-event");
+	for (var i=0;i<$zoomEventElts.length;i++)
+		$zoomEventElts[i].onzoom();
+	document.getElementById("editor-wrapper").style.width = Math.round(zoomLevel*imgSize.w) +"px";
+	document.getElementById("editor-wrapper").style.height = Math.round(zoomLevel*imgSize.h) +"px";
+	document.getElementById("zoom-value").innerHTML = Math.round(zoomLevel*100);
+	if (focusOnMouse) {
+		var screenPos = getScreenCoordsExact(mouseCoords);
+		var nPos = {x:screenPos.x-relPos.x*lastZoom,y:screenPos.y-relPos.y*lastZoom};
+		window.scrollTo(Math.round(nPos.x),Math.round(nPos.y));
+	}
+}
+function startDirChange(e) {
+	var editorTool = editorTools[currentMode];
+	storeHistoryData(editorTool.data);
+	editorTool.data.orientation = parseInt(e.value);
+	editorTool.data.mirror = (e.value.lastIndexOf("r")!=-1);
+	replaceStartPositions(editorTool);
+}
+function helpChange(e) {
+	var $shownText = document.querySelector(".help-text-shown");
+	if ($shownText)
+		$shownText.classList.remove("help-text-shown");
+	document.getElementById("help-text-"+e.value).classList.add("help-text-shown");
+	document.getElementById("help-img").src = "images/editor/help-"+(isBattle ? "course":"draw")+"/help-"+e.value+".png";
+}
+function shapeChange(e) {
+	var editorTool = editorTools[currentMode];
+	editorTool.state.shape = e.value;
+	replaceNodeType(editorTool);
+}
+function replaceNodeType(editorTool) {
+	if (editorTool.state.point) {
+		var lastPoint = editorTool.state.point;
+		delete editorTool.state.point;
+		switch (editorTool.state.shape) {
+		case "polygon":
+			editorTool.state.point = createCircle({x:-1,y:-1,r:0.5});
+			break;
+		default:
+			editorTool.state.point = createRectangle({x:-1,y:-1});
+			break;
+		}
+		if (editorTool.state.point) {
+			editorTool.state.point.classList.add("noclick");
+			$editor.insertBefore(editorTool.state.point,lastPoint);
+			$editor.removeChild(lastPoint);
+		}
+	}
+}
+function decorChange(e) {
+	var editorTool = editorTools[currentMode];
+	selectMode(currentMode);
+}
+function trajectChange(value) {
+	if (value != -1)
+		selectMode(currentMode);
+	else
+		showTrajectOptions();
+}
+function offroadChange(value) {
+	if (value != -1)
+		selectMode(currentMode);
+	else
+		showOffroadTransfer();
+}
+function themeChange(e) {
+	if (e.value == "dark")
+		document.body.classList.add("theme-dark");
+	else
+		document.body.classList.remove("theme-dark");
+}
+var currentMode = "";
+function selectMode(mode) {
+	var editorTool = editorTools[currentMode];
+	if (editorTool) {
+		editorTool.state = {};
+		editorTool.onundo = null;
+		editorTool.onredo = null;
+		if (editorTool.exit)
+			editorTool.exit();
+		removeAllChildren($editor);
+	}
+	historyData = [];
+	historyUndo = [];
+	var lastOption = document.getElementById("mode-option-"+currentMode);
+	var nextOption = document.getElementById("mode-option-"+mode);
+	currentMode = mode;
+	if (lastOption) lastOption.className = "";
+	if (nextOption) nextOption.className = "mode-option-selected";
+	var editorTool = editorTools[currentMode];
+	if (editorTool.resume) {
+		var aChanges = changes;
+		editorTool.resume(editorTool);
+		changes = aChanges;
+	}
+	var $mode = document.getElementById('mode');
+	var $modeOptions = $mode.getElementsByTagName("option");
+	var modeId = +$mode.selectedIndex;
+	document.getElementById("mode-decr").disabled = !$modeOptions[modeId-1];
+	document.getElementById("mode-incr").disabled = !$modeOptions[modeId+1];
+}
+function navigateMode(inc) {
+	var $mode = document.getElementById('mode');
+	var $modeOptions = $mode.getElementsByTagName("option");
+	var nextMode = +$mode.selectedIndex+inc;
+	if ($modeOptions[nextMode]) {
+		$mode.selectedIndex = nextMode;
+		selectMode($mode.value);
+	}
+}
+var mouseCoords = {x:0,y:0};
+function handleClick(e) {
+	var editorTool = editorTools[currentMode];
+	if (editorTool.click) {
+		var pointerCoords = getPointerPos(e);
+		mouseCoords = getEditorCoordsExact(pointerCoords);
+		var roundedCoords = getRoundedCoords(mouseCoords,editorTool);
+		editorTool.click(editorTool,roundedCoords,{oob:outOfBounds(mouseCoords)});
+	}
+}
+function handleMove(e) {
+	var editorTool = editorTools[currentMode];
+	if (editorTool.move) {
+		var pointerCoords = getPointerPos(e);
+		mouseCoords = getEditorCoordsExact(pointerCoords);
+		var roundedCoords = getRoundedCoords(mouseCoords,editorTool);
+		editorTool.move(editorTool,roundedCoords,{});
+	}
+}
+var imgSize = {w:0,h:0};
+function getWindowPos() {
+	return {x:parseInt(document.documentElement.scrollLeft),y:parseInt(document.documentElement.scrollTop)};
+}
+function getPointerPos(e) {
+	return {x:e.pageX,y:e.pageY};
+}
+function outOfBounds(point) {
+	if (point.x < 0) return true;
+	else if (point.x >= imgSize.w) return true;
+	if (point.y < 0) return true;
+	else if (point.y >= imgSize.h) return true;
+	return false;
+}
+function capPoint(point) {
+	if (point.x < 0) point.x = 0;
+	else if (point.x >= imgSize.w) point.x = imgSize.w-1;
+	if (point.y < 0) point.y = 0;
+	else if (point.y >= imgSize.h) point.y = imgSize.h-1;
+	return point;
+}
+function capPointExact(point) {
+	if (point.x < 0) point.x = 0;
+	else if (point.x >= imgSize.w) point.x = imgSize.w-0.25;
+	if (point.y < 0) point.y = 0;
+	else if (point.y >= imgSize.h) point.y = imgSize.h-0.25;
+	return point;
+}
+function capRectangle(rectangle) {
+	if (rectangle.x < 0) rectangle.x = 0;
+	else if (rectangle.x >= (imgSize.w-rectangle.w)) rectangle.x = imgSize.w-rectangle.w-1;
+	if (rectangle.y < 0) rectangle.y = 0;
+	else if (rectangle.y > (imgSize.h-rectangle.h)) rectangle.y = imgSize.h-rectangle.h-1;
+	return rectangle;
+}
+function capBox(box) {
+	return capPoint(box);
+}
+function getRoundedCoords(point,editorTool) {
+	var res = capPointExact({x:point.x,y:point.y});
+	if (editorTool.round_on_pixel && editorTool.round_on_pixel(editorTool)) {
+		res.x = Math.round(res.x);
+		res.y = Math.round(res.y);
+	}
+	else {
+		res.x = Math.floor(res.x);
+		res.y = Math.floor(res.y);
+	}
+	return res;
+}
+function getEditorCoords(point) {
+	var x = Math.floor((point.x - offsetX)/zoomLevel), y = Math.floor((point.y - offsetY)/zoomLevel);
+	return capPoint({x:x,y:y});
+}
+function getEditorCoordsRounded(point) {
+	var x = Math.round((point.x - offsetX)/zoomLevel), y = Math.round((point.y - offsetY)/zoomLevel);
+	return capPoint({x:x,y:y});
+}
+function getEditorCoordsExact(point) {
+	return {x:(point.x-offsetX)/zoomLevel,y:(point.y-offsetY)/zoomLevel};
+}
+function getScreenCoords(point) {
+	var res = {
+		"x": Math.round(point.x*zoomLevel + offsetX),
+		"y": Math.round(point.y*zoomLevel + offsetY)
+	};
+	if (point.w)
+		res.w = Math.round(point.w*zoomLevel);
+	if (point.h)
+		res.h = Math.round(point.h*zoomLevel);
+	if (point.r)
+		res.r = point.r;
+	if (point.l)
+		res.l = point.l;
+	return res;
+}
+function getScreenCoordsExact(point) {
+	var res = {
+		"x": point.x*zoomLevel + offsetX,
+		"y": point.y*zoomLevel + offsetY
+	};
+	if (point.w)
+		res.w = point.w*zoomLevel;
+	if (point.h)
+		res.h = point.h*zoomLevel;
+	return res;
+}
+function createCircle(point,append) {
+	var res = document.createElementNS(SVG, "circle");
+	res.setAttribute("cx", point.x);
+	res.setAttribute("cy", point.y);
+	res.setAttribute("r", point.r);
+	if (point.l) {
+		res.setAttribute("class", "stroke");
+		res.setAttribute("stroke-width", point.l);
+	}
+	if (append !== false)
+		$editor.appendChild(res);
+	return res;
+}
+function createRectangle(point,append) {
+	var res = document.createElementNS(SVG, "rect");
+	res.setAttribute("x", point.x);
+	res.setAttribute("y", point.y);
+	res.setAttribute("width", point.w||1);
+	res.setAttribute("height", point.h||1);
+	if (append !== false)
+		$editor.appendChild(res);
+	return res;
+}
+function createBox(boxSize,append) {
+	var res = document.createElementNS(SVG, "rect");
+	res.setAttribute("x", (boxSize.x||0)-boxSize.w);
+	res.setAttribute("y", (boxSize.y||0)-boxSize.h);
+	res.setAttribute("width", boxSize.w);
+	res.setAttribute("height", boxSize.h);
+	if (append !== false)
+		$editor.appendChild(res);
+	return res;
+}
+function createLine(point1,point2,append) {
+	var res = document.createElementNS(SVG, "line");
+	res.setAttribute("x1", point1.x);
+	res.setAttribute("y1", point1.y);
+	res.setAttribute("x2", point2.x);
+	res.setAttribute("y2", point2.y);
+	if (append !== false)
+		$editor.appendChild(res);
+	return res;
+}
+function moveLine(line,point1,point2) {
+	if (point1) {
+		line.setAttribute("x1", point1.x);
+		line.setAttribute("y1", point1.y);
+	}
+	if (point2) {
+		line.setAttribute("x2", point2.x);
+		line.setAttribute("y2", point2.y);
+	}
+}
+function createArrowNode(point, orientation, append) {
+	var l = 18;
+	var d = 6;
+	var screenData = {w:0,h:0};
+	function getArrowLines(orientation) {
+		orientation = (4-orientation)%4*90;
+		var arrowPoints = [
+			{x:0,y:0},
+			rotatePoint({x:0,y:l},screenData, orientation),
+			rotatePoint({x:-d,y:l-d},screenData, orientation),
+			rotatePoint({x:d,y:l-d},screenData, orientation)
+		];
+		return [
+			[arrowPoints[0],arrowPoints[1]],
+			[arrowPoints[1],arrowPoints[2]],
+			[arrowPoints[1],arrowPoints[3]]
+		];
+	}
+	var arrowLines = getArrowLines(orientation);
+	var arrow = [];
+	for (var i=0;i<2;i++) {
+		var dark = !i;
+		var stroke = 5-i*2;
+		for (var j=0;j<arrowLines.length;j++) {
+			(function(arrowLine,dark,stroke) {
+				var line = createLine(point,point,append);
+				line.classList.add("bordered");
+				if (dark)
+					line.classList.add("dark");
+				addZoomListener(line, function() {
+					this.setAttribute("x1",point.x+arrowLine[0].x/zoomLevel);
+					this.setAttribute("y1",point.y+arrowLine[0].y/zoomLevel);
+					this.setAttribute("x2",point.x+arrowLine[1].x/zoomLevel);
+					this.setAttribute("y2",point.y+arrowLine[1].y/zoomLevel);
+					this.setAttribute("stroke-width", stroke/zoomLevel);
+				});
+				arrow.push(line);
+			})(arrowLines[j],dark,stroke);
+		}
+	}
+	var origin = createCircle({x:point.x,y:point.y,r:3,l:1},append);
+	addZoomListener(origin, function() {
+		this.setAttribute("r", 4/zoomLevel);
+		this.setAttribute("stroke-width", 1/zoomLevel);
+	});
+	var res = {origin:origin,lines:arrow};
+	res.move = function(point2) {
+		applyObject(point,point2);
+		origin.setAttribute("cx", point.x);
+		origin.setAttribute("cy", point.y);
+		for (var i=0;i<arrow.length;i++)
+			arrow[i].onzoom();
+	};
+	res.rotate = function(orientation) {
+		var nLines = getArrowLines(orientation);
+		for (var i=0;i<nLines.length;i++) {
+			for (var j=0;j<arrowLines[i].length;j++)
+				arrowLines[i][j] = nLines[i][j];
+		}
+		for (var i=0;i<arrow.length;i++)
+			arrow[i].onzoom();
+	};
+	return res;
+}
+function createPolygonNode(point) {
+	var center = createRectangle({x:point.x-0.25,y:point.y-0.25,w:0.5,h:0.5});
+	center.setAttribute("class", "transparent");
+	var r = point.r||4, l = point.l||1;
+	var circle = createCircle({x:point.x,y:point.y,r:r,l:l});
+	addZoomListener(circle, function() {
+		this.setAttribute("r", r/zoomLevel);
+		this.setAttribute("stroke-width", l/zoomLevel);
+	});
+	var res = {center:center,circle:circle};
+	res.move = function(point) {
+		circle.setAttribute("cx", point.x);
+		circle.setAttribute("cy", point.y);
+		center.setAttribute("x", point.x-0.5);
+		center.setAttribute("y", point.y-0.5);
+	};
+	return res;
+}
+function addZoomListener(elt, callback) {
+	elt.classList.add("zoom-event");
+	elt.onzoom = callback;
+	elt.onzoom();
+}
+function startPolygonBuilder(self,point, options) {
+	options = options || {};
+	options.min_points = options.min_points || 3;
+	var polygon = document.createElementNS(SVG, "polyline");
+	polygon.setAttribute("class", "path");
+	addZoomListener(polygon, function() {
+		this.setAttribute("stroke-width", 4/zoomLevel);
+	});
+	$editor.appendChild(polygon);
+	self.state.nodes = [createPolygonNode(point)];
+	self.state.nodes[0].circle.classList.add("hover-toggle");
+	self.state.nodes[0].circle.onmouseover = function(e) {
+		polygon.classList.add("dark");
+	};
+	self.state.nodes[0].circle.onmouseout = function(e) {
+		polygon.classList.remove("dark");
+	};
+	self.state.nodes[0].circle.onclick = function(e) {
+		if (e) e.stopPropagation();
+		var points = self.state.points;
+		if (points.length > options.min_points) {
+			$toolbox.classList.remove("hiddenbox");
+			storeHistoryData(self.data);
+			points.pop();
+			setPolygonPoints(polygon,points,true);
+			if (!options.hollow)
+				polygon.classList.remove("path");
+			this.onmouseout();
+			if (options.keep_nodes) {
+				self.state.nodes[0].circle.onmouseover = undefined;
+				self.state.nodes[0].circle.onmouseout = undefined;
+				self.state.nodes[0].circle.onclick = undefined;
+				self.state.nodes[0].circle.classList.remove("hover-toggle");
+				self.state.nodes[0].center.onmouseover = undefined;
+				self.state.nodes[0].center.onmouseout = undefined;
+				self.state.nodes[0].center.onclick = undefined;
+				self.state.nodes[0].center.classList.remove("hover-toggle");
+			}
+			else {
+				for (var i=0;i<self.state.nodes.length;i++) {
+					$editor.removeChild(self.state.nodes[i].center);
+					$editor.removeChild(self.state.nodes[i].circle);
+				}
+				self.state.nodes = null;
+			}
+			if (!options.custom_undos) {
+				self.onundo = null;
+				self.onredo = null;
+			}
+			self.state.points = null;
+			self.state.polygon = null;
+			self.state.point.classList.remove("dark");
+			setNodePos(self.state.point,{x:-1,y:-1});
+			if (options.on_apply)
+				options.on_apply(polygon,points);
+		}
+	};
+	self.state.nodes[0].center.onmouseover = self.state.nodes[0].circle.onmouseover;
+	self.state.nodes[0].center.onmouseout = self.state.nodes[0].circle.onmouseout;
+	self.state.nodes[0].center.onclick = self.state.nodes[0].circle.onclick;
+	self.state.points = [point,deepCopy(point)];
+	setPolygonPoints(polygon,self.state.points);
+	self.state.point.classList.add("dark");
+	self.state.polygon = polygon;
+	if (!options.custom_undos) {
+		self.onundo = function() {
+			if (self.state.points.length > 2) {
+				self.state.points.pop();
+				self.state.points[self.state.points.length-1] = self.state.points[self.state.points.length-2];
+				$editor.removeChild(self.state.nodes[self.state.nodes.length-1].center);
+				$editor.removeChild(self.state.nodes[self.state.nodes.length-1].circle);
+				self.state.nodes.pop();
+				setPolygonPoints(polygon,self.state.points);
+			}
+			else {
+				$toolbox.classList.remove("hiddenbox");
+				for (var i=0;i<self.state.nodes.length;i++) {
+					$editor.removeChild(self.state.nodes[i].center);
+					$editor.removeChild(self.state.nodes[i].circle);
+				}
+				$editor.removeChild(polygon);
+				self.state.points = null;
+				self.state.polygon = null;
+				self.state.nodes = null;
+				self.onundo = null;
+				self.onredo = null;
+				self.state.point.classList.remove("dark");
+			}
+		};
+		self.onredo = function() {
+		};
+	}
+	if (!options.keep_box)
+		$toolbox.classList.add("hiddenbox");
+}
+function appendPolygonBuilder(self,point) {
+	var points = self.state.points;
+	points[points.length-1] = point;
+	self.state.nodes.push(createPolygonNode(point));
+	points.push(deepCopy(point));
+	setPolygonPoints(self.state.polygon,points);
+}
+function movePolygonBuilder(self,point) {
+	var polygon = self.state.polygon;
+	if (polygon) {
+		var points = self.state.points;
+		points[points.length-1] = point;
+		setPolygonPoints(polygon,points);
+	}
+	setNodePos(self.state.point,point);
+}
+function startRectangleBuilder(self,point,options) {
+	self.state.origin = point;
+	self.state.rectangle = createRectangle(point);
+	self.state.point.style.display = "none";
+	self.state.options = options;
+	storeHistoryData(self.data);
+	$toolbox.classList.add("hiddenbox");
+}
+function moveRectangleBuilder(self,point) {
+	if (self.state.rectangle)
+		setRectangleWidth(self.state.rectangle,getRectDataOptions(self.state.origin,point,self.state.options));
+	else
+		setPointPos(self.state.point,point);
+}
+function appendRectangleBuilder(self,point) {
+	$toolbox.classList.remove("hiddenbox");
+	var rectangle = self.state.rectangle;
+	var data = getRectDataOptions(self.state.origin,point,self.state.options);
+	data.type = "rectangle";
+	setRectangleWidth(rectangle,data);
+	self.state.rectangle = null;
+	self.state.point.style.display = "";
+	setNodePos(self.state.point,{x:-1,y:-1});
+	var options = self.state.options;
+	delete self.state.options;
+	options.on_apply(rectangle,data);
+}
+function getRectData(origin,point) {
+	return {
+		x:Math.min(point.x,origin.x),
+		y:Math.min(point.y,origin.y),
+		w:Math.abs(point.x-origin.x),
+		h:Math.abs(point.y-origin.y)
+	};
+}
+function getRectDataCp(origin,point) {
+	var point2 = deepCopy(point);
+	if (Math.abs(point.x-origin.x) < Math.abs(point.y-origin.y))
+		point2.x = origin.x + (point.x>=origin.x ? 15:-15);
+	else
+		point2.y = origin.y + (point.y>=origin.y ? 15:-15);
+	return getRectData(origin,point2);
+}
+function getRectDataOptions(origin,point,options) {
+	if (options.cp)
+		return getRectDataCp(origin,point);
+	else
+		return getRectData(origin,point);
+}
+function absolutizeData(data) {
+	var origin = capPoint({x:data.x,y:data.y});
+	var point = capPoint({x:data.x+data.w,y:data.y+data.h});
+	var nData = getRectData(origin,point);
+	applyObject(data,nData);
+};
+function applyObject(data, nData) {
+	if ("x" in nData)
+		data.x = nData.x;
+	if ("y" in nData)
+		data.y = nData.y;
+	if ("w" in nData)
+		data.w = nData.w;
+	if ("h" in nData)
+		data.h = nData.h;
+}
+function setRectangleWidth(rectangle,data) {
+	rectangle.setAttribute("x", data.x);
+	rectangle.setAttribute("y", data.y);
+	rectangle.setAttribute("width", 1+data.w);
+	rectangle.setAttribute("height", 1+data.h);
+}
+function setPolygonPoints(polygon,data,closed) {
+	var res = "";
+	for (var i=0;i<data.length;i++)
+		res += (i?",":"") + data[i].x+","+data[i].y;
+	if (closed)
+		res += ","+data[0].x+","+data[0].y;
+	polygon.setAttribute("points", res);
+}
+function createPolyline(self,points) {
+	self.state.lines = [];
+	function addPointInLine(e,i) {
+		var nPoint = getEditorCoordsRounded(getPointerPos(e));
+		self.state.nodes.splice(i+1,0,createPolygonNode(nPoint));
+		var lines = self.state.lines;
+		for (var j=0;j<lines.length;j++)
+			$editor.removeChild(lines[j]);
+		storeHistoryData(self.data);
+		self.state.data.points.splice(i+1,0,nPoint);
+		createPolyline(self,self.state.data.points);
+		self.state.nodes[i+1].circle.onclick();
+	}
+	for (var i=0;i<points.length;i++) {
+		(function(i) {
+			var point1 = points[i], point2 = points[(i+1)%points.length];
+			var line = createLine(point1,point2,false);
+			line.classList.add("bordered");
+			line.classList.add("hover-toggle");
+			line.style.cursor = "pointer";
+			addZoomListener(line, function() {
+				this.setAttribute("stroke-width", 4/zoomLevel);
+			});
+			line.onclick = function(e) {
+				e.stopPropagation();
+				addPointInLine(e,i);
+			};
+			line.oncontextmenu = function(e) {
+				addPointInLine(e,i);
+				return false;
+			};
+			$editor.insertBefore(line, self.state.nodes[0].circle);
+			self.state.lines.push(line);
+		})(i);
+	}
+	for (var i=0;i<self.state.nodes.length;i++) {
+		(function(i) {
+			self.state.nodes[i].circle.classList.add("hover-toggle");
+			self.state.nodes[i].circle.onclick = function(e) {
+				if (e) e.stopPropagation();
+				var mask = createRectangle({x:0,y:0,w:imgSize.w,h:imgSize.h});
+				mask.setAttribute("class", "transparent");
+				self.state.mask = mask;
+				self.state.movingNode = i;
+				if (e) storeHistoryData(self.data);
+				$toolbox.classList.add("hiddenbox");
+			};
+			self.state.nodes[i].circle.oncontextmenu = function(e) {
+				//alert(i);
+				//return false;
+				e.stopPropagation();
+				showContextMenu(e,[{
+					text: (language ? "Move":"Déplacer"),
+					click: function() {
+						self.state.nodes[i].circle.onclick(e);
+					}
+				}, {
+					text: (language ? "Delete":"Supprimer"),
+					click: function() {
+						$editor.removeChild(self.state.nodes[i].center);
+						$editor.removeChild(self.state.nodes[i].circle);
+						self.state.nodes.splice(i,1);
+						var lines = self.state.lines;
+						for (var j=0;j<lines.length;j++)
+							$editor.removeChild(lines[j]);
+						storeHistoryData(self.data);
+						self.state.data.points.splice(i,1);
+						createPolyline(self,self.state.data.points);
+					}
+				}]);
+				return false;
+			};
+		})(i);
+	}
+}
+function setPointPos(point,data) {
+	point.setAttribute("x", data.x);
+	point.setAttribute("y", data.y);
+}
+function setCirclePos(point,data) {
+	point.setAttribute("cx", data.x);
+	point.setAttribute("cy", data.y);
+}
+function setNodePos(point,data) {
+	if (point.tagName == "circle")
+		setCirclePos(point,data);
+	else
+		setPointPos(point,data);
+}
+function setBoxPos(point,data,size) {
+	point.setAttribute("x", data.x-size.w/2);
+	point.setAttribute("y", data.y-size.h/2);
+}
+function setBoxPosRound(point,data,size) {
+	point.setAttribute("x", Math.round(data.x-size.w/2));
+	point.setAttribute("y", Math.round(data.y-size.h/2));
+}
+function hideBox(box,boxSize) {
+	setBoxPos(box,{x:-boxSize.w,y:-boxSize.h},boxSize);
+}
+function handleKeySortcuts(e) {
+	var currentMasks = document.getElementsByClassName("editor-mask");
+	if (currentMasks.length) {
+		switch (e.keyCode) {
+		case 27:
+			var currentMasks = document.getElementsByClassName("editor-mask");
+			if (currentMasks.length)
+				currentMasks[currentMasks.length-1].close();
+			break;
+		case 83:
+			if (e.ctrlKey || e.metaKey)
+				e.preventDefault();
+		}
+	}
+	else {
+		switch (e.keyCode) {
+		case 38:
+			if (e.ctrlKey || e.metaKey) {
+				e.preventDefault();
+				zoomMore(true);
+			}
+			break;
+		case 40:
+			if (e.ctrlKey || e.metaKey) {
+				e.preventDefault();
+				zoomLess(true);
+			}
+			break;
+		case 90:
+			if (e.ctrlKey || e.metaKey) {
+				e.preventDefault();
+				if (e.shiftKey)
+					redo();
+				else
+					undo();
+			}
+			break;
+		case 89:
+			if (e.ctrlKey || e.metaKey) {
+				e.preventDefault();
+				redo();
+			}
+			break;
+		case 83:
+			if (e.ctrlKey || e.metaKey) {
+				e.preventDefault();
+				saveData();
+			}
+		}
+	}
+}
+function handlePageExit() {
+	if (changes)
+		return language ? "Warning : unsaved data will be lost.":"Attention, Les données non sauvegardées seront perdues.";
+}
+function removeAllChildren(elt) {
+	while (elt.lastChild)
+		elt.removeChild(elt.lastChild);
+}
+function showContextMenu(e,elts,onHide) {
+	var oContextmenu = document.getElementById("contextmenu");
+	if (oContextmenu)
+		oContextmenu.close();
+	oContextmenu = createMask();
+	if (onHide) {
+		oContextmenu.close = function() {
+			oContextmenu.defaultClose();
+			onHide();
+		};
+	}
+	oContextmenu.oncontextmenu = function() {
+		oContextmenu.close();
+		return false;
+	};
+	oContextmenu.id = "contextmenu";
+	var oContextItems = document.createElement("div");
+	oContextItems.style.left = (e.pageX+1)+"px";
+	oContextItems.style.top = (e.pageY+1)+"px";
+	oContextItems.onclick = function(e) {
+		e.stopPropagation();
+	}
+	for (var i=0;i<elts.length;i++) {
+		(function(elt) {
+			var oContextItem = document.createElement("div");
+			oContextItem.innerHTML = elt.text;
+			if (elt.disabled) {
+				oContextItem.style.cursor = "default";
+				oContextItem.style.backgroundColor = "#EEE";
+				oContextItem.style.opacity = 0.6;
+			}
+			else {
+				oContextItem.onclick = function() {
+					oContextmenu.close();
+					elt.click();
+				}
+			}
+			oContextItems.appendChild(oContextItem);
+		})(elts[i]);
+	}
+	oContextmenu.appendChild(oContextItems);
+}
+function addContextMenuEvent(elt,elts) {
+	elt.oncontextmenu = function(e) {
+		return showContextOnElt(e,elt,elts);
+	}
+}
+function showContextOnElt(e,elt,elts) {
+	e.stopPropagation();
+	elt.classList.add("highlight");
+	showContextMenu(e,elts,function() {
+		elt.classList.remove("highlight");
+	});
+	return false;
+}
+function createMask() {
+	var res = document.createElement("div");
+	res.className = "editor-mask";
+	res.style.width = document.body.scrollWidth +"px";
+	res.style.height = document.body.scrollHeight +"px";
+	res.defaultClose = function() {
+		document.body.removeChild(res);
+		res.defaultClose = function(){};
+		res.close = res.defaultClose;
+	}
+	res.close = res.defaultClose;
+	res.clickable = true;
+	res.onclick = function() {
+		if (res.clickable)
+			res.close();
+	};
+	res.oncontextmenu = function() {
+		return false;
+	};
+	document.body.appendChild(res);
+	if ("activeElement" in document)
+	    document.activeElement.blur();
+	return res;
+}
+function removeFromArray(arr,elt) {
+	var id = arr.indexOf(elt);
+	if (-1 !== id) {
+		arr.splice(id,1);
+		return true;
+	}
+	return false;
+}
+function rotatePoint(data,screenData,orientation) {
+	var sW = screenData.w, sH = screenData.h;
+	for (var i=0;i<orientation;i+=90) {
+		var nX = sH-data.y, nY = data.x;
+		data.x = nX;
+		data.y = nY;
+		var aW = sW;
+		sW = sH;
+		sH = aW;
+	}
+	return data;
+}
+function rotateNullablePoint(data,screenData,orientation) {
+	if (data)
+		return rotatePoint(data,screenData,orientation);
+}
+function rotateRectangle(data,screenData,orientation) {
+	var sW = screenData.w, sH = screenData.h;
+	for (var i=0;i<orientation;i+=90) {
+		var nX = sH-data.h-data.y, nY = data.x, nW = data.h, nH = data.w;
+		data.x = nX;
+		data.y = nY;
+		data.w = nW;
+		data.h = nH;
+		var aW = sW;
+		sW = sH;
+		sH = aW;
+	}
+	return data;
+}
+function rotateRect(data,screenData,orientation) {
+	return rotateRectangle(data,{w:screenData.w-1,h:screenData.h-1},orientation);
+}
+function rotatePoly(data,screenData,orientation) {
+	for (var i=0;i<data.length;i++)
+		rotatePoint(data[i],screenData,orientation);
+	return data;
+}
+function rotateShape(data,screenData,orientation) {
+	switch (data.type) {
+	case "rectangle":
+		return rotateRect(data, screenData,orientation);
+	case "polygon":
+		return rotatePoly(data.points, screenData,orientation);
+	}
+}
+function rotateBox(data,screenData,orientation) {
+	rotatePoint(data,screenData,orientation);
+	if (data.w && data.h && (orientation%90)) {
+		var w = data.w;
+		data.w = data.h;
+		data.h = w;
+	}
+	return data;
+}
+function flipPoint(data,screenData,axis) {
+	data[axis.coord] = screenData[axis.size]-data[axis.coord];
+	return data;
+}
+function flipNullablePoint(data,screenData,axis) {
+	if (data)
+		return flipPoint(data,screenData,axis);
+}
+function flipRectangle(data,screenData,axis) {
+	data[axis.coord] = screenData[axis.size]-data[axis.size]-data[axis.coord];
+	return data;
+}
+function flipRect(data,screenData,axis) {
+	return flipRectangle(data,{w:screenData.w-1,h:screenData.h-1},axis);
+}
+function flipPoly(data,screenData,axis) {
+	for (var i=0;i<data.length;i++)
+		flipPoint(data[i],screenData,axis);
+	return data;
+}
+function flipShape(data,screenData,axis) {
+	switch (data.type) {
+	case "rectangle":
+		return flipRect(data, screenData,axis);
+	case "polygon":
+		return flipPoly(data.points, screenData,axis);
+	}
+}
+function flipBox(data,screenData,axis) {
+	return flipPoint(data,screenData,axis);
+}
+function pointToData(point) {
+	return [point.x,point.y];
+}
+function dataToPoint(data) {
+	return {x:data[0],y:data[1]};
+}
+function nullablePointToData(point) {
+	if (point)
+		return pointToData(point);
+	return [-1,-1];
+}
+function dataToNullablePoint(data) {
+	if (data[0] == -1 && data[1] == -1)
+		return undefined;
+	return dataToPoint(data);
+}
+function rectToData(rect) {
+	return [rect.x,rect.y,rect.w,rect.h];
+}
+function dataToRect(data) {
+	return {x:data[0],y:data[1],w:data[2],h:data[3]};
+}
+function polyToData(poly) {
+	var res = [];
+	for (var i=0;i<poly.length;i++)
+		res.push(pointToData(poly[i]));
+	return res;
+}
+function dataToPoly(data) {
+	var res = [];
+	for (var i=0;i<data.length;i++)
+		res.push(dataToPoint(data[i]));
+	return res;
+}
+function shapeToData(data) {
+	switch (data.type) {
+	case "rectangle":
+		return rectToData(data);
+	case "polygon":
+		return polyToData(data.points);
+	}
+}
+function dataToShape(data) {
+	var res;
+	if ("number" === typeof(data[0])) {
+		res = dataToRect(data);
+		res.type = "rectangle";
+	}
+	else {
+		res = {
+			type: "polygon",
+			points: dataToPoly(data)
+		};
+	}
+	return res;
+}
+function rescalePoint(data, scale) {
+	data.x = Math.round(data.x*scale.x);
+	data.y = Math.round(data.y*scale.y);
+}
+function rescaleNullablePoint(data, scale) {
+	if (data)
+		rescalePoint(data, scale);
+}
+function rescaleRect(data, scale) {
+	data.w = Math.round((data.x+data.w+1)*scale.x);
+	data.h = Math.round((data.y+data.h+1)*scale.y);
+	data.x = Math.round(data.x*scale.x);
+	data.y = Math.round(data.y*scale.y);
+	data.w -= data.x+1;
+	data.h -= data.y+1;
+}
+function rescalePoly(data, scale) {
+	for (var i=0;i<data.length;i++) {
+		var iData = data[i];
+		iData.x = Math.round(iData.x*scale.x);
+		iData.y = Math.round(iData.y*scale.y);
+	}
+}
+function rescaleShape(data, scale) {
+	switch (data.type) {
+	case "rectangle":
+		rescaleRect(data, scale);
+		break;
+	case "polygon":
+		rescalePoly(data.points, scale);
+	}
+}
+function rescaleBox(data, scale) {
+	rescalePoint(data, scale);
+	if (data.w)
+		data.w = Math.round(data.w*scale.x);
+	if (data.h)
+		data.h = Math.round(data.h*scale.y);
+}
+function replaceStartPositions(self) {
+	var $startPositions = self.state.startPositions;
+	removeAllChildren($startPositions);
+	var orientation = (540-self.data.orientation)%360;
+	var mirror = self.data.mirror ? 1:0;
+	var hitboxW = rotateRectangle(deepCopy(startPositionsSize),startPositionsSize,orientation);
+	var hitbox = createRectangle({x:0,y:0,w:hitboxW.w,h:hitboxW.h},false);
+	startCenterRotated = rotatePoint(deepCopy(startCenter),startPositionsSize,orientation);
+	hitbox.style.fill = "transparent";
+	$startPositions.appendChild(hitbox);
+	var startRelPos = [
+		{x:0,y:0,w:1,h:3},
+		{x:1,y:0,w:10,h:1},
+		{x:11,y:0,w:1,h:3},
+		{x:5,y:5,w:1,h:1,className:"dark"}
+	];
+	for (var i=0;i<8;i++) {
+		var absPos = {x:(i%2!=mirror)?16:0, y:i*12};
+		var circle = createCircle(rotatePoint({x:absPos.x+5.5,y:absPos.y+5.5,r:3,l:1},startPositionsSize,orientation),false);
+		$startPositions.appendChild(circle);
+		for (var j=0;j<startRelPos.length;j++) {
+			var relPos = startRelPos[j];
+			var line = createRectangle(rotateRectangle({x:absPos.x+relPos.x,y:absPos.y+relPos.y,w:relPos.w,h:relPos.h},startPositionsSize,orientation),false);
+			if (relPos.className)
+				line.setAttribute("class", relPos.className);
+			$startPositions.appendChild(line);
+		}
+	}
+	var point = self.data.pos;
+	if (point)
+		setPointPos($startPositions, {x:point.x-startCenterRotated.x,y:point.y-startCenterRotated.y});
+}
+var hpTypes = ["herbe","eau","glace","choco"];
+var startCenterRotated = startCenter;
+var startPositionsSize = {w:28,h:94};
+var startCenter = {x:Math.floor(startPositionsSize.w/2),y:Math.floor(startPositionsSize.h/2)};
+var startShifts = {
+	"180" : {x:-14,y:-48},
+	"270" : {x:-59,y:14},
+	"0" : {x:3,y:59},
+	"90" : {x:48,y:-3}
+};
+function boostSizeChanged() {
+	var editorTool = editorTools[currentMode];
+	var boxSize = {w:+document.getElementById("boost-w").value,h:+document.getElementById("boost-h").value};
+	if (!(boxSize.w > 0)) {
+		boxSize.w = editorTool.state.boxSize.w;
+		document.getElementById("boost-w").value = boxSize.w;
+	}
+	if (!(boxSize.h > 0)) {
+		boxSize.h = editorTool.state.boxSize.h;
+		document.getElementById("boost-h").value = boxSize.h;
+	}
+	updateBoxSize(editorTool.state.point,boxSize);
+	editorTool.state.boxSize = boxSize;
+}
+function initTrajectOptions() {
+	document.getElementById("traject-menu").style.display = "block";
+	document.getElementById("traject-more").style.display = "none";
+	document.getElementById("traject-copy").style.display = "none";
+	document.getElementById("traject-less").style.display = "none";
+}
+function showTrajectOptions() {
+	var $trajectOptions = document.getElementById("traject-options");
+	document.body.removeChild($trajectOptions);
+	var $mask = createMask();
+	$mask.id = "mask-traject";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($trajectOptions);
+	$trajectOptions.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($trajectOptions);
+		$trajectOptions.classList.remove("fs-shown");
+		document.body.appendChild($trajectOptions);
+		this.defaultClose();
+	};
+	var editorTool = editorTools[currentMode];
+	var maxCp = editorTool.data.length;
+	initTrajectOptions();
+	var $links = document.getElementById("traject-menu").getElementsByTagName("a");
+	$links[0].style.display = (maxCp<7) ? "block":"none";
+	$links[1].style.display = (maxCp>1) ? "block":"none";
+	$links[2].style.display = (maxCp>1) ? "block":"none";
+	document.getElementById("traject").selectedIndex = editorTool.state.traject;
+}
+function closeTrajectOptions() {
+	document.getElementById('mask-traject').close();
+}
+function showTrajectAdd() {
+	document.getElementById("traject-menu").style.display = "none";
+	document.getElementById("traject-more").style.display = "block";
+	var $trajectList = document.getElementById("traject-more-list");
+	var editorTool = editorTools[currentMode];
+	var maxCp = editorTool.data.length;
+	$trajectList.innerHTML = "";
+	var $noTraject = document.createElement("option");
+	$noTraject.value = -1;
+	$noTraject.innerHTML = language ? 'Empty route':'Trajet vide';
+	$trajectList.appendChild($noTraject);
+	for (var i=0;i<maxCp;i++) {
+		var $iTraject = document.createElement("option");
+		$iTraject.value = i;
+		$iTraject.innerHTML = (language ? 'Route':'Trajet') +" "+ (i+1);
+		$trajectList.appendChild($iTraject);
+	}
+	$trajectList.selectedIndex = editorTool.state.traject;
+}
+function addTraject() {
+	var $trajectList = document.getElementById("traject-more-list");
+	var trajectVal = +$trajectList.value;
+	var editorTool = editorTools[currentMode];
+	var maxCp = editorTool.data.length;
+	if (trajectVal != -1)
+		editorTool.data.push(deepCopy(editorTool.data[trajectVal]));
+	else
+		editorTool.data.push({points:[],closed:false});
+	var $trajectSelector = document.getElementById("traject");
+	var $trajectOption = document.createElement("option");
+	$trajectOption.value = maxCp;
+	$trajectOption.innerHTML = (language ? 'Route':'Trajet') +' '+ (maxCp+1);
+	$trajectSelector.insertBefore($trajectOption, $trajectSelector.childNodes[maxCp+1]);
+	$trajectSelector.selectedIndex = maxCp;
+	selectMode(currentMode);
+	closeTrajectOptions();
+}
+function showTrajectCopy() {
+	document.getElementById("traject-menu").style.display = "none";
+	document.getElementById("traject-copy").style.display = "block";
+	var $trajectFrom = document.getElementById("copyFrom");
+	var $trajectTo = document.getElementById("copyTo");
+	var editorTool = editorTools[currentMode];
+	var maxCp = editorTool.data.length;
+	$trajectFrom.innerHTML = "";
+	$trajectTo.innerHTML = "";
+	for (var i=0;i<maxCp;i++) {
+		var $iTraject = document.createElement("option");
+		$iTraject.value = i;
+		$iTraject.innerHTML = (language ? 'Route':'Trajet') +' '+ (i+1);
+		$trajectFrom.appendChild($iTraject);
+		var $iTraject = document.createElement("option");
+		$iTraject.value = i;
+		$iTraject.innerHTML = (language ? 'Route':'Trajet') +' '+ (i+1);
+		$trajectTo.appendChild($iTraject);
+	}
+	$trajectFrom.selectedIndex = 0;
+	$trajectTo.selectedIndex = 1;
+}
+function copyTraject() {
+	var $trajectFrom = document.getElementById("copyFrom");
+	var $trajectTo = document.getElementById("copyTo");
+	var m1 = +$trajectFrom.value;
+	var m2 = +$trajectTo.value;
+	if (m1 != m2) {
+		var editorTool = editorTools[currentMode];
+		editorTool.data[m2] = deepCopy(editorTool.data[m1]);
+		selectMode(currentMode);
+	}
+	closeTrajectOptions();
+}
+function showTrajectRemove() {
+	document.getElementById("traject-menu").style.display = "none";
+	document.getElementById("traject-less").style.display = "block";
+	var $trajectList = document.getElementById("traject-less-list");
+	var editorTool = editorTools[currentMode];
+	var maxCp = editorTool.data.length;
+	$trajectList.innerHTML = "";
+	for (var i=0;i<maxCp;i++) {
+		var $iTraject = document.createElement("option");
+		$iTraject.value = i;
+		$iTraject.innerHTML = (language ? 'Route':'Trajet') +" "+ (i+1);
+		$trajectList.appendChild($iTraject);
+	}
+	$trajectList.selectedIndex = editorTool.state.traject;
+}
+function removeTraject() {
+	var $trajectList = document.getElementById("traject-less-list");
+	var trajectVal = +$trajectList.value;
+	var editorTool = editorTools[currentMode];
+	var maxCp = editorTool.data.length;
+	editorTool.data.splice(trajectVal,1);
+	var $trajectSelector = document.getElementById("traject");
+	$trajectSelector.removeChild($trajectSelector.childNodes[maxCp]);
+	if (trajectVal <= editorTool.state.traject) {
+		editorTool.state.traject--;
+		$trajectSelector.selectedIndex = Math.max(0,editorTool.state.traject);
+	}
+	selectMode(currentMode);
+	closeTrajectOptions();
+}
+function showOffroadTransfer() {
+	var $offroadOptions = document.getElementById("offroad-transfer");
+	document.body.removeChild($offroadOptions);
+	var $mask = createMask();
+	$mask.id = "mask-transfer";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($offroadOptions);
+	$offroadOptions.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($offroadOptions);
+		$offroadOptions.classList.remove("fs-shown");
+		document.body.appendChild($offroadOptions);
+		this.defaultClose();
+	};
+	var editorTool = editorTools[currentMode];
+	document.getElementById("offroad-type").selectedIndex = editorTool.state.type;
+}
+function transferOffroad() {
+	var transferFrom = +document.getElementById('transferFrom').value,
+	transferTo = +document.getElementById('transferTo').value;
+	if (transferFrom != transferTo) {
+		var editorTool = editorTools[currentMode];
+		var hpFrom = editorTool.data[transferFrom];
+		var hpTo = editorTool.data[transferTo];
+		for (var i=0;i<hpFrom.length;i++)
+			hpTo.push(deepCopy(hpFrom[i]));
+		hpFrom.length = 0;
+		selectMode(currentMode);
+	}
+	closeTransferOffroad();
+}
+function closeTransferOffroad() {
+	document.getElementById('mask-transfer').close();
+}
+function updateLapsCounter() {
+	var editorTool = editorTools[currentMode];
+	document.getElementById("checkpoints-nblaps").innerHTML = (editorTool.data.type?(language?"Sections:":"Sections :"):(language?"Laps:":"Tours :")) +" "+ editorTool.data.nb;
+}
+function showLapsOptions() {
+	var $choptions = document.getElementById("choptions");
+	document.body.removeChild($choptions);
+	var $mask = createMask();
+	$mask.id = "mask-laps";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($choptions);
+	$choptions.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($choptions);
+		$choptions.classList.remove("fs-shown");
+		document.body.appendChild($choptions);
+		this.defaultClose();
+	};
+	var editorTool = editorTools[currentMode];
+	var lVal = editorTool.data.nb;
+	var pos = editorTool.data.type;
+	if (pos)
+		document.getElementById("choptions-nbsections").selectedIndex = lVal-1;
+	else
+		document.getElementById("choptions-nblaps").selectedIndex = lVal-1;
+	selectChTab(pos);
+	updateSectionSelects(true);
+}
+function selectChTab(pos) {
+	var selectedTabs = document.getElementsByClassName("tab-ch-selected");
+	while (selectedTabs.length)
+		selectedTabs[0].className = "tab-ch";
+	document.getElementsByClassName("tab-ch")[pos].className = "tab-ch tab-ch-selected";
+	var chSettings = document.getElementsByClassName("choptions-settings");
+	for (var i=0;i<chSettings.length;i++)
+		chSettings[i].style.display = (i==pos) ? "block":"none";
+}
+function updateSectionSelects(resetPos) {
+	var nb = document.getElementById("choptions-nbsections").value*1;
+	var sDiv;
+	var editorTool = editorTools[currentMode];
+	var nbCp = editorTool.data.checkpoints.length;
+	document.getElementById("section-error").style.display = nbCp ? "none":"block";
+	var chOptions = editorTool.data.sections;
+	if (!chOptions) chOptions = [];
+	for (var i=2;sDiv=document.getElementById("section-checkpoint-"+i);i++) {
+		sDiv.style.display = (i<=nb) ? "block":"none";
+		if (resetPos) {
+			var sSelect = sDiv.getElementsByTagName("select")[0];
+			sSelect.innerHTML = "";
+			for (var j=1;j<=nbCp;j++) {
+				var sOption = document.createElement("option");
+				sOption.value = j-1;
+				sOption.innerHTML = "Checkpoint "+ j;
+				sSelect.appendChild(sOption);
+			}
+			var sSelectedIndex = chOptions[i-2]*1;
+			if (sSelectedIndex >= 0)
+				sSelect.selectedIndex = Math.min(nbCp-1,sSelectedIndex);
+		}
+	}
+}
+function submitLapsOptions() {
+	var editorTool = editorTools[currentMode];
+	storeHistoryData(editorTool.data);
+	var selectedTab = document.getElementsByClassName("tab-ch-selected")[0];
+	var pos;
+	for (pos=-1;(selectedTab=selectedTab.previousSibling);pos++);
+	editorTool.data.type = pos;
+	if (pos) {
+		var lVal = +document.getElementById("choptions-nbsections").value;
+		editorTool.data.nb = lVal;
+		var oVal = [];
+		for (var i=2;i<=lVal;i++)
+			oVal.push(+document.getElementById("section-checkpoint-"+i).getElementsByTagName("select")[0].value);
+		editorTool.data.sections = oVal;
+	}
+	else {
+		var lVal = +document.getElementById("choptions-nblaps").value;
+		editorTool.data.nb = lVal;
+	}
+	updateLapsCounter();
+	closeLapsOptions();
+}
+function closeLapsOptions() {
+	document.getElementById('mask-laps').close();
+}
+function showBgSelector() {
+	var $background = document.getElementById("bg-selector");
+	document.body.removeChild($background);
+	var $mask = createMask();
+	$mask.id = "mask-bg";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($background);
+	$background.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($background);
+		$background.classList.remove("fs-shown");
+		document.body.appendChild($background);
+		this.defaultClose();
+	};
+	var bChoices = document.getElementsByClassName("bg-selected");
+	while (bChoices.length)
+		bChoices[0].className = "";
+	var editorTool = editorTools[currentMode];
+	document.getElementById("bgchoice-"+editorTool.data.bg_img).className = "bg-selected";
+}
+function changeBg($elt) {
+	var editorTool = editorTools[currentMode];
+	storeHistoryData(editorTool.data);
+	editorTool.data.bg_img = +$elt.getAttribute("data-value");
+	applyBgSelector();
+	var $mask = document.getElementById("mask-bg");
+	$mask.close();
+}
+function applyBgSelector() {
+	var editorTool = editorTools[currentMode];
+	var selectedBg = bgImgs[editorTool.data.bg_img];
+	var selectedBgArr = [];
+	for (var i=0;i<selectedBg.length;i++)
+		selectedBgArr.unshift("url('images/map_bg/fond_"+selectedBg[i]+".png')");
+	document.getElementById("button-bgimg").style.backgroundImage = selectedBgArr.join(",");
+}
+function applyColorSelector() {
+	var editorTool = editorTools[currentMode];
+	var bgColor = editorTool.data.out_color;
+	document.getElementById("button-bgcolor").style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
+	document.body.style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
+}
+function showMusicSelector() {
+	var $music = document.getElementById("music-selector");
+	document.body.removeChild($music);
+	var $mask = createMask();
+	$mask.id = "mask-music";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($music);
+	$music.classList.add("fs-shown");
+	$mask.close = function() {
+		stopMusic();
+		$mask.removeChild($music);
+		$music.classList.remove("fs-shown");
+		document.body.appendChild($music);
+		this.defaultClose();
+	};
+	var mChoices = document.getElementsByClassName("music-selected");
+	while (mChoices.length)
+		mChoices[0].className = "";
+	var editorTool = editorTools[currentMode];
+	musicSelected = editorTool.data.music;
+	document.getElementById("musicchoice-"+musicSelected).className = "music-selected";
+	if (!musicSelected)
+		document.getElementById("youtube-url").value = editorTool.data.youtube;
+}
+function applyMusicSelector() {
+	var editorTool = editorTools[currentMode];
+	if (editorTool.data.music)
+		document.getElementById("button-music").innerHTML = musicOptions[editorTool.data.music];
+	else
+		document.getElementById("button-music").innerHTML = "Youtube";
+}
+var oMusic;
+var musicSelected;
+function selectMusic(m) {
+	if (oMusic) {
+		document.body.removeChild(oMusic);
+		oMusic = null;
+		if (m == musicSelected)
+			return;
+	}
+	musicSelected = m;
+	if (musicSelected) {
+		oMusic = document.createElement("embed");
+		oMusic.src = "musics/maps/map"+ musicSelected +".mp3";
+	}
+	if (musicSelected) {
+		oMusic.setAttribute("loop", true);
+		document.body.appendChild(oMusic);
+	}
+	var mChoices = document.getElementsByClassName("music-selected");
+	while (mChoices.length)
+		mChoices[0].className = "";
+	document.getElementById("musicchoice-"+m).className = "music-selected";
+	if (!musicSelected) {
+		document.getElementById("youtube-url").select();
+		playYt();
+	}
+}
+function youtube_parser(url) {
+	var regExp = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/;
+	var match = url.match(regExp);
+	return (match&&match[1].length==11)? match[1] : false;
+}
+function playYt() {
+	if (oMusic) {
+		document.body.removeChild(oMusic);
+		oMusic = null;
+	}
+	var ytId = youtube_parser(document.getElementById("youtube-url").value);
+	if (ytId) {
+		oMusic = document.createElement("iframe");
+		oMusic.id = "ytplayer";
+		oMusic.src = "https://www.youtube.com/embed/"+ ytId +"?allow=autoplay&autoplay=1";
+		oMusic.setAttribute("allow", "autoplay");
+		document.body.appendChild(oMusic);
+	}
+}
+function submitMusic() {
+	var editorTool = editorTools[currentMode];
+	storeHistoryData(editorTool.data);
+	editorTool.data.music = musicSelected;
+	if (editorTool.data.music)
+		delete editorTool.data.youtube;
+	else
+		editorTool.data.youtube = document.getElementById("youtube-url").value;
+	applyMusicSelector();
+	hideMusicSelector();
+}
+function undoMusic() {
+	hideMusicSelector();
+}
+function hideMusicSelector() {
+	var $mask = document.getElementById("mask-music");
+	$mask.close();
+}
+function stopMusic() {
+	if (oMusic) {
+		document.body.removeChild(oMusic);
+		oMusic = null;
+	}
+}
+function showHelp() {
+	var $help = document.getElementById("help");
+	document.body.removeChild($help);
+	var $mask = createMask();
+	$mask.id = "mask-help";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($help);
+	$help.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($help);
+		$help.classList.remove("fs-shown");
+		document.body.appendChild($help);
+		this.defaultClose();
+	};
+	selectHelpTab(currentMode);
+}
+function selectHelpTab(mode) {
+	document.getElementById("help-buttons").setValue(mode);
+	helpChange({value:mode});
+}
+function closeHelp() {
+	document.getElementById("mask-help").close();
+}
+function showColorSelector() {
+	var $mask = createMask();
+	var editorTool = editorTools[currentMode];
+	var bgColor = editorTool.data.out_color;
+	var picker = new Picker({
+		parent:$mask,
+		popup:false,
+		alpha: false,
+		color: [bgColor.r,bgColor.g,bgColor.b,1],
+		onChange: function(res) {
+			var rgb = res.rgba;
+			document.body.style.backgroundColor = "rgb("+rgb[0]+","+rgb[1]+","+rgb[2]+")";
+		},
+		onDone:function(res) {
+			storeHistoryData(editorTool.data);
+			var bgColor = editorTool.data.out_color;
+			var rgb = res.rgba;
+			bgColor.r = rgb[0];
+			bgColor.g = rgb[1];
+			bgColor.b = rgb[2];
+			$mask.close();
+		},
+		onClose: function() {
+			$mask.close();
+		}
+	});
+	picker.domElement.onmousedown = function(e) {
+		var lastClickEvent = $mask.onclick;
+		$mask.onclick = function() {
+			$mask.onclick = lastClickEvent;
+		};
+	}
+	picker.domElement.oncontextmenu = function(e) {
+		e.stopPropagation();
+	}
+	$mask.close = function(){
+		$mask.defaultClose();
+		applyColorSelector();
+	};
+	picker.openHandler();
+}
+function resetImageOptions() {
+	var $editorImg = document.getElementById("editor-img");
+	$editorImg.style.width = "";
+	$editorImg.style.height = "";
+}
+function showImageOptions() {
+	var $imageOptions = document.getElementById("image-options");
+	document.body.removeChild($imageOptions);
+	var $mask = createMask();
+	$mask.id = "mask-image";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($imageOptions);
+	$imageOptions.classList.add("fs-shown");
+	$mask.close = function() {
+		resetImageOptions();
+		$mask.removeChild($imageOptions);
+		$imageOptions.classList.remove("fs-shown");
+		document.body.appendChild($imageOptions);
+		this.defaultClose();
+	};
+}
+function rotateImg(option) {
+	if (option < 4) {
+		var orientation = option*90;
+		for (var key in editorTools) {
+			var editorTool = editorTools[key];
+			if (editorTool.rotate)
+				editorTool.rotate(editorTool,orientation);
+		}
+		if (option%2) {
+			var w = imgSize.w;
+			imgSize.w = imgSize.h;
+			imgSize.h = w;
+		}
+	}
+	else {
+		var axis = {};
+		if (option == 4) {
+			axis.coord = "x";
+			axis.size = "w";
+		}
+		else {
+			axis.coord = "y";
+			axis.size = "h";
+		}
+		for (var key in editorTools) {
+			var editorTool = editorTools[key];
+			if (editorTool.flip)
+				editorTool.flip(editorTool,axis);
+		}
+	}
+	changes = true;
+}
+function resizeImg(scaleX,scaleY) {
+	var scale = {x:scaleX,y:scaleY};
+	imgSize.w = Math.round(imgSize.w*scale.x);
+	imgSize.h = Math.round(imgSize.h*scale.y);
+	for (var key in editorTools) {
+		var editorTool = editorTools[key];
+		if (editorTool.rescale)
+			editorTool.rescale(editorTool,scale);
+	}
+	changes = true;
+}
+function saveData() {
+	var payload = {main:{theme:document.getElementById("theme-selector").getValue()}};
+	for (var key in editorTools) {
+		var editorTool = editorTools[key];
+		editorTool.save(editorTool,payload);
+	}
+	var $mask = createMask();
+	$mask.classList.add("mask-save");
+	$mask.close = function(){};
+	var $loading = document.createElement("div");
+	$loading.className = "save-popup save-loading";
+	$loading.innerHTML = language ? "Saving...":"Sauvegarde...";
+	$mask.appendChild($loading);
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", isBattle ? "saveCourse.php" : "saveMap.php");
+	xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+	xhr.send(JSON.stringify({id:circuitId,payload:payload}));
+	xhr.onload = function() {
+		if (xhr.responseText == 1) {
+			$mask.removeChild($loading);
+			$mask.close = $mask.defaultClose;
+			changes = false;
+			var $success = document.createElement("div");
+			$success.onclick = function(e) {
+				e.stopPropagation();
+			};
+			$success.className = "save-popup save-status save-success";
+			var $popupMsg = document.createElement("div");
+			$popupMsg.className = "save-msg";
+			if (isBattle)
+				$popupMsg.innerHTML = '<span class="save-icon">✔</span> '+ (language ? "Arena saved":"Arène sauvegardée") +'</span>';
+			else
+				$popupMsg.innerHTML = '<span class="save-icon">✔</span> '+ (language ? "Circuit saved":"Circuit sauvegardé") +'</span>';
+			$success.appendChild($popupMsg);
+			var $popupActions = document.createElement("div");
+			$popupActions.className = "save-actions";
+			var $popupOk = document.createElement("button");
+			$popupOk.innerHTML = "Ok";
+			$popupOk.onclick = function() {
+				$mask.defaultClose();
+			};
+			$popupActions.appendChild($popupOk);
+			var $popupAccess = document.createElement("button");
+			$popupAccess.className = "save-access";
+			if (isBattle)
+				$popupAccess.innerHTML = language ? "Test arena":"Tester arène";
+			else
+				$popupAccess.innerHTML = language ? "Test circuit":"Tester circuit";
+			$popupAccess.onclick = function() {
+				document.location.href = (isBattle?"battle":"map")+".php?i="+circuitId;
+			};
+			$popupActions.appendChild($popupAccess);
+			$success.appendChild($popupActions);
+			$mask.appendChild($success);
+			$popupOk.focus();
+		}
+		else
+			this.onerror();
+	};
+	xhr.onerror = function() {
+		$mask.removeChild($loading);
+		$mask.close = $mask.defaultClose;
+		var $error = document.createElement("div");
+		$error.onclick = function(e) {
+			e.stopPropagation();
+		};
+		$error.className = "save-popup save-status save-failure";
+		var $popupMsg = document.createElement("div");
+		$popupMsg.className = "save-msg";
+		$popupMsg.innerHTML = '<span class="save-icon">×</span> '+ (language ? "Oops, An error occured... Check your connexion":"Oups, une erreur est survenue... Vérifiez votre connexion") +'</span>';
+		$error.appendChild($popupMsg);
+		var $popupActions = document.createElement("div");
+		$popupActions.className = "save-actions";
+		var $popupRetry = document.createElement("button");
+		$popupRetry.innerHTML = language ? "Retry":"Réessayer";
+		$popupRetry.onclick = function() {
+			$mask.defaultClose();
+			saveData();
+		};
+		$popupActions.appendChild($popupRetry);
+		var $popupUndo = document.createElement("button");
+		$popupUndo.innerHTML = language ? "Undo":"Annuler";
+		$popupUndo.onclick = function() {
+			$mask.defaultClose();
+		};
+		$popupActions.appendChild($popupUndo);
+		$error.appendChild($popupActions);
+		$mask.appendChild($error);
+		$popupRetry.focus();
+	};
+}
+function restoreData(payload) {
+	for (var key in editorTools) {
+		var editorTool = editorTools[key];
+		try {
+			editorTool.restore(editorTool,payload);
+		}
+		catch (e) {
+			console.log(e.stack);
+		}
+	}
+	if ("dark" === payload.main.theme) {
+		document.getElementById("theme-selector").setValue(payload.main.theme);
+		themeChange({value:payload.main.theme});
+	}
+}

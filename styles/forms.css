@@ -1,0 +1,48 @@
+
+main table {
+	font-weight: bold;
+	margin-left: auto;
+	margin-right: auto;
+}
+main table tr {
+	border: solid 1px #930;
+	color: #A0300A;
+	background-color: #FFC028;
+}
+main table tr:hover {
+	background-color: #FFE30C;
+	color: #930;
+}
+main table td {
+	padding: 10px;
+	border: solid 1px #840;
+}
+main table input[type="submit"] {
+	font-size: 16px;
+	font-weight: bold;
+	width: 100px;
+	cursor: pointer;
+}
+main table td[colspan="2"] {
+	text-align: center;
+}
+main .signup select {
+	max-width: 200px;
+}
+.ligne {
+	text-align: right;
+}
+#echec, #success {
+	text-align: center;
+	font-weight: bold;
+}
+#echec {
+	color: #E00;
+}
+#success {
+	color: #0A0;
+}
+.forumButtons {
+	margin-left: 0;
+	text-align: center;
+}

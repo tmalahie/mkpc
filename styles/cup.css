@@ -1,0 +1,209 @@
+body {
+	text-align: center;
+	font-size: 1.2em;
+	font-family: Helvetica, arial, sans-serif;
+	margin: 0;
+}
+.container {
+	width: 100%;
+	height: 100%;
+	overflow-y: scroll;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-attachment: fixed;
+	background-image: url('../images/editor/fond_stars.jpg');
+}
+.simplified {
+	color: white;
+	background-color: #030316;
+}
+.complete {
+	background-image: url('../images/editor/fond_circuit_dark.jpg');
+	background-color: #31549A;
+}
+.editor-section {
+	max-width: 600px;
+	padding: 10px;
+	margin: 10px auto;
+	border-radius: 8px;
+}
+.simplified .editor-section {
+	background-color: rgba(76,70,94, 0.5);
+}
+.complete .editor-section {
+	background-color: rgba(156,181,207, 0.85);
+}
+.simplified a {
+	color: #CCF;
+}
+.complete a {
+	color: #049;
+}
+.complete a:hover {
+	color: #05B;
+}
+h1 {
+	color: #b4c4e8;
+	margin-top: 20px;
+	margin-bottom: 5px;
+}
+.simplified #global-infos {
+	color: #CCF;
+}
+.complete #global-infos {
+	color: black;
+}
+#no-circuit {
+	display: block;
+	margin-bottom: 16px;
+	font-size: 1.1rem;
+	padding: 5px;
+}
+.simplified #no-circuit {
+	color: #F86;
+}
+.complete #no-circuit {
+	color: #a33;
+}
+#table-container {
+	width: 700px;
+	max-width: 90%;
+    max-height: 380px;
+	margin-left: auto;
+    margin-right: auto;
+	margin-top: 10px;
+    overflow-y: scroll;
+}
+#table-circuits {
+	width: 100%;
+	background-color: #EEF;
+	color: black;
+    text-align: center;
+    empty-cells: show;
+    border-collapse: collapse;
+}
+#table-circuits .td-access, #table-circuits a {
+	color: #049;
+}
+#table-circuits a:hover {
+	color: #05B;
+}
+#table-circuits .td-access {
+	width: 100px;
+	padding-right: 10px;
+}
+#table-circuits .td-name {
+	position: relative;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+#table-circuits .td-name em {
+	position: absolute;
+	left: 3px;
+	top: 1px;
+	font-size: 0.75em;
+	opacity: 0.4;
+}
+#table-circuits tr {
+	cursor: pointer;
+}
+#table-circuits tr:hover {
+	background-color: #DDF;
+}
+#table-circuits tr.selected {
+	background-color: #BBF;
+}
+#table-circuits td {
+	border: solid 1px black;
+}
+#table-circuits .td-preview {
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	cursor: zoom-in;
+	width: 40px;
+	height: 40px;
+	font-size: 22px;
+	color: white;
+	text-shadow: 2px 0 0 #063, -2px 0 0 #063, 0 2px 0 #063, 0 -2px 0 #063, 1px 1px #063, -1px -1px 0 #063, 1px -1px 0 #063, -1px 1px 0 #063;
+}
+#table-circuits .td-preview.td-preview-cup {
+	background-position: top left, top right, bottom left, bottom right;
+	background-size: 50% 50%;
+	background-size: calc(50% + 1px) calc(50% + 1px);
+}
+#submit-selection {
+	width: 200px;
+	font-size: 1.5em;
+	font-weight: bold;
+}
+#submit-selection {
+    cursor: pointer;
+    border-width: 3px;
+}
+#submit-selection:disabled {
+	cursor: default;
+}
+.complete #submit-selection {
+    background-color: #58c;
+    border-color: #48A;
+    color: white;
+}
+.complete #submit-selection:hover {
+	background-color: #669FD9;
+	border-color: #59B;
+}
+.complete #submit-selection:disabled {
+    background-color: #48b;
+	opacity: 0.5;
+}
+.simplified #submit-selection {
+    background-color: #249;
+    border-color: #57c;
+    color: #abf;
+}
+.simplified #submit-selection:hover {
+	background-color: #26a;
+	border-color: #59B;
+}
+.simplified #submit-selection:disabled {
+    background-color: #35a;
+	opacity: 0.4;
+}
+.editor-navigation a {
+	display: block;
+}
+.editor-navigation {
+	margin: 8px 0 15px 0;
+	padding-left: 0;
+	color: #CCF;
+	display: inline-block;
+    border-radius: 8px;
+}
+.editor-navigation a {
+	display: block;
+	background-color: rgba(255,255,255, 0.8);
+	color: black;
+	padding: 6px 10px;
+	margin-top: 1px;
+	margin-bottom: 1px;
+	text-decoration: none;
+	text-align: left;
+}
+.editor-navigation a:hover {
+	background-color: #999;
+	color: black;
+}
+.editor-navigation a:first-child {
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+}
+.editor-navigation a:last-child {
+	border-bottom-left-radius: 8px;
+	border-bottom-right-radius: 8px;
+}
+.editor-navigation a u {
+	display: inline-block;
+	margin-left: 0.15em;
+}

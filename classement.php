@@ -1,0 +1,605 @@
+<?php
+include('session.php');
+include('language.php');
+include('initdb.php');
+$creation = false;
+$cup = false;
+$mcup = false;
+$type = '';
+if (isset($_GET['circuit'])) {
+	$cID = $_GET['circuit'];
+	$creation = true;
+	$simplified = true;
+	$type = 'mkcircuits';
+}
+elseif (isset($_GET['draw'])) {
+	$cID = $_GET['draw'];
+	$creation = true;
+	$simplified = false;
+	$type = 'circuits';
+}
+elseif (isset($_GET['scup'])) {
+	$cID = $_GET['scup'];
+	$creation = true;
+	$simplified = true;
+	$cup = true;
+	$type = 'mkcircuits';
+}
+elseif (isset($_GET['ccup'])) {
+	$cID = $_GET['ccup'];
+	$creation = true;
+	$simplified = false;
+	$cup = true;
+	$type = 'circuits';
+}
+elseif (isset($_GET['mcup'])) {
+	$cID = $_GET['mcup'];
+	$creation = true;
+	$cup = true;
+	$mcup = true;
+}
+if (isset($_GET['user'])) {
+	$user = mysql_fetch_array(mysql_query('SELECT id,nom FROM mkjoueurs WHERE id="'.$_GET['user'].'"'));
+	if (!$user)
+		unset($user);
+}
+if (!$creation && isset($_GET['map'])) {
+	include('getId.php');
+	mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkrecords` r ON n.link=r.id WHERE n.identifiant='.$identifiants[0].' AND n.identifiant2='.$identifiants[1].' AND n.identifiant3='.$identifiants[2].' AND n.identifiant4='.$identifiants[3].' AND n.type="new_record" AND r.type="" AND r.circuit="'.$_GET['map'].'"');
+}
+if ($creation) {
+	if ($mcup) {
+		$getMCup = mysql_fetch_array(mysql_query('SELECT mode FROM `mkmcups` WHERE id="'. $cID .'"'));
+		$simplified = ($getMCup['mode']==0);
+		$type = $simplified ? 'mkcircuits':'circuits';
+		$getCircuits = mysql_query('SELECT c.id,c.nom FROM mkmcups_tracks t INNER JOIN mkcups p ON p.id=t.cup INNER JOIN `'. $type .'` c ON c.id IN (p.circuit0,p.circuit1,p.circuit2,p.circuit3) WHERE t.mcup="'. $cID .'" ORDER BY t.ordering');
+	}
+	elseif ($cup) {
+		$getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $cID .'"'));
+		$getCircuits = mysql_query('(SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit0'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit1'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit2'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit3'] .'")');
+	}
+	else
+		$getCircuits = mysql_query('SELECT id,nom FROM `'. $type .'` WHERE id="'. $cID .'"');
+}
+$pseudo = isset($_GET['pseudo']) ? $_GET['pseudo']:null;
+?>
+<!DOCTYPE html>
+<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<head>
+<title>Mario Kart PC</title>
+<?php
+include('heads.php');
+?>
+<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
+
+<?php
+include('o_online.php');
+?>
+<style type="text/css">
+main {
+	text-align: center;
+}
+#titres td {
+	width: 100px;
+}
+main td {
+	width: auto;
+}
+main h1, h2 {
+	text-align: center;
+	text-decoration: underline;
+	font-family: Verdana;
+	color: #560000;
+}
+main select:hover, main input[type="text"]:hover {
+	background-color: #F90;
+}
+main select:active, main input[type="text"]:active {
+	background-color: #F60;
+}
+main table {
+	background-color: #FC0;
+}
+main tr.result:nth-child(2n), main tr.result:nth-child(2n) a {
+	color: #820;
+}
+main tr.result:nth-child(2n+1) {
+	background-color: yellow;
+}
+main tr.result:nth-child(2n+1), main tr.result:nth-child(2n+1) a {
+	color: #F60;
+}
+main tr.result:nth-child(2n) a:hover {
+	color: #B50;
+}
+main tr.result:nth-child(2n+1) a:hover {
+	color: #FA0;
+}
+main table div {
+	margin-left: auto;
+	margin-right: auto;
+}
+.pub {
+	margin-top: 5px;
+	margin-bottom: 2px;
+}
+</style>
+</head>
+<body>
+<?php
+include('header.php');
+$page = 'game';
+include('menu.php');
+?>
+<main>
+<h1><?php
+	if (isset($user))
+		echo $language ? 'Best time trial scores of '. $user['nom']:'Meilleurs scores contre-la-montre de '.$user['nom'];
+	else
+		echo $language ? 'Best scores time trial':'Meilleurs scores contre-la-montre';
+?></h1>
+<div><?php echo $language ? 'You can see here all the records of the time trial mode in Mario Kart PC.':'Vous pouvez voir ici tous les records du mode contre-la-montre de Mario Kart PC.'; ?>
+<?php
+if (!$creation) {
+	?>
+	<br /><?php echo $language ? 'The leaderbord is shown circuit by circuit, to see a global ranking, see <a href="classement.global.php">this page</a>.':'Les classements sont affichés circuit par circuit, pour voir un classement global, rendez-vous sur <a href="classement.global.php">cette page</a>.'; ?>
+	<?php
+}
+?>
+<br /><?php echo $language ? 'Note that those records have been reset after MKPC engine update. <a href="classement.old.php?'.$_SERVER['QUERY_STRING'].'">Click here</a> to see the old records.':'Notez que tous les records ont été réinitialisés avec la mise à jour du moteur de MKPC. <a href="classement.old.php?'.$_SERVER['QUERY_STRING'].'">Cliquez ici</a> pour voir les anciens temps.'; ?></div>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- Forum MKPC -->
+<p class="pub"><ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-1340724283777764"
+     data-ad-slot="4919860724"></ins></p>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+<form name="params" action="classement.php" onsubmit="displayResults();return false">
+</form>
+<p id="content"><strong style="font-size:1.4em"><?php echo $language ? 'Loading':'Chargement'; ?>...</strong></p>
+<p>
+	<?php
+	if (isset($user)) {
+		?>
+		<a href="profil.php?id=<?php echo $user['id']; ?>"><?php echo $language ? 'Back to '. $user['nom'] .'\'s profile':'Retour au profil de '.$user['nom']; ?></a><br />
+		<?php
+	}
+	if ($creation) {
+		if ($mcup) {
+			?>
+			<a href="<?php echo $simplified ? 'circuit.php?mid='.$cID : 'map.php?mid='.$cID; ?>"><?php echo $language ? 'Back to the multicup':'Retour à la multicoupe'; ?></a><br />
+			<?php
+		}
+		elseif ($cup) {
+			?>
+			<a href="<?php echo $simplified ? 'circuit.php?cid='.$cID : 'map.php?cid='.$cID; ?>"><?php echo $language ? 'Back to the cup':'Retour à la coupe'; ?></a><br />
+			<?php
+		}
+		else {
+			?>
+			<a href="<?php echo $simplified ? 'circuit.php?id='.$cID : 'map.php?i='.$cID; ?>"><?php echo $language ? 'Back to the circuit':'Retour au circuit'; ?></a><br />
+			<?php
+		}
+	}
+	?>
+	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a>
+</p>
+</main>
+<?php
+include('footer.php');
+?>
+<script type="text/javascript" src="scripts/auto-complete.min.js"></script>
+<script type="text/javascript" src="scripts/autocomplete-dummy.js"></script>
+<script type="text/javascript">
+var NB_RES = 20;
+function Resultat() {
+	this.classement = new Array();
+}
+var autoSelectMap<?php
+	if (isset($_GET['map']))
+		echo ' = '. ($_GET['map']-1);
+?>;
+var circuits = <?php
+function escapeUtf8($str) {
+	return addslashes(preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars(utf8_encode($str))));
+}
+if ($creation) {
+	echo '[';
+	$v = '';
+	while ($getCircuit = mysql_fetch_array($getCircuits)) {
+		echo $v;
+		$v = ',';
+		if (!$getCircuit['nom'])
+			$getCircuit['nom'] = $language ? 'Untitled':'Sans titre';
+		echo '"'.escapeUtf8($getCircuit['nom']).'"';
+		$cIDs[] = $getCircuit['id'];
+	}
+	echo ']';
+}
+else {
+	include_once('circuitNames.php');
+	echo json_encode(array_splice($circuitNames,0,$nbVSCircuits));
+}
+?>;
+var sUser = <?php echo isset($user) ? $user['id']:0 ?>;
+var sPts = <?php echo +isset($_GET['pts']); ?>;
+var classement = new Array();
+for (var i=0;i<circuits.length;i++)
+	classement[i] = new Resultat();
+<?php
+$dateFormat = $language ? '%m/%d':'%d/%m';
+if (isset($user))
+	$getResults = mysql_query('SELECT r.*,c.code,DATE_FORMAT(date, "'. $dateFormat .'") AS infosDate,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.type="'. $type .'" AND best=1 ORDER BY r.time');
+else {
+	if ($creation && empty($cIDs))
+		$cIDs = array(0);
+	$getResults = mysql_query('SELECT r.*,c.code,DATE_FORMAT(date, "'. $dateFormat .'") AS infosDate FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').' AND r.best=1 ORDER BY r.time');
+}
+while ($result = mysql_fetch_array($getResults))
+	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.htmlspecialchars($result['name']).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.$result['infosDate'].'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
+?>
+for (var i=circuits.length-1;i>=0;i--) {
+	if (!classement[i].classement.length || (sUser && noShownData(classement[i].classement))) {
+		circuits.splice(i,1);
+		classement.splice(i,1);
+		if (autoSelectMap == i)
+			autoSelectMap = undefined;
+		else if (autoSelectMap > i)
+			autoSelectMap--;
+	}
+}
+var vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+var isMobile = (vw < 500);
+function noShownData(iClassement) {
+	for (var i=0;i<iClassement.length;i++) {
+		if (iClassement[i][6])
+			return false;
+	}
+	return true;
+}
+function getPlace(id,place) {
+	var iCircuit = classement[id];
+	var record = iCircuit.classement[place][2];
+	while ((place >= 0) && (record == iCircuit.classement[place][2]))
+		place--;
+	return place+2;
+}
+function getScore(place,nPlaces) {
+	if (place == 1)
+		return 10;
+	if (nPlaces == 2)
+		return 0;
+	var x = (place-2)/(nPlaces-2);
+	return Math.round(8*Math.pow(1-x,4/3));
+}
+var PERSOS_DIR = "<?php
+	include('persos.php');
+	echo PERSOS_DIR;
+?>";
+if (!String.prototype.startsWith) {
+	String.prototype.startsWith = function(searchString, position) {
+		position = position || 0;
+    	return this.indexOf(searchString, position) === position;
+	};
+}
+function getSpriteSrc(playerName) {
+	if (playerName.startsWith("cp-"))
+		return PERSOS_DIR + playerName + ".png";
+	return "images/sprites/sprite_" + playerName +".png";
+}
+function spriteLoad() {
+	var w = this.naturalWidth, h = this.naturalHeight;
+	if (w != 768 || h != 32) {
+		var div = this.parentNode;
+		// TODO: this works because 768 = 24*32, but it's a coincidence
+		div.style.width = Math.round(w/h)+"px";
+		this.style.left = -Math.round(6*w/h)+"px";
+	}
+}
+var oParams;
+function addResult(id, i) {
+	var iJoueur = classement[id].classement[i];
+	var oResult = document.createElement("tr");
+	oResult.className = 'result';
+	var oPlace = document.createElement("td");
+	var inPlace = getPlace(id,i);
+	var nPlaces = classement[id].classement.length;
+	var nScore = getScore(inPlace,nPlaces);
+	var sPlace;
+	<?php
+	if ($language) {
+		?>
+	var centaines = inPlace%100;
+	if ((centaines >= 10) && (centaines < 20))
+		sPlace = "th";
+	else {
+		switch (inPlace%10) {
+		case 1 :
+			sPlace = "st";
+			break;
+		case 2 :
+			sPlace = "nd";
+			break;
+		case 3 :
+			sPlace = "rd";
+			break;
+		default :
+			sPlace = "th";
+		}
+	}
+		<?php
+	}
+	else
+		echo 'sPlace = ((inPlace>1) ? "e":"er");';
+	?>
+	oPlace.innerHTML = inPlace +"<sup>"+ sPlace +"</sup>";
+	oResult.appendChild(oPlace);
+	var oPseudo = document.createElement("td");
+	var pseudoTxt;
+	if (iJoueur[4]) {
+		oPseudo.className = "recorder";
+		pseudoTxt = '<img src="images/flags/'+iJoueur[4]+'.png" alt="'+iJoueur[4]+'" onerror="this.style.display=\'none\'" /> '+iJoueur[0];
+	}
+	else
+		pseudoTxt = iJoueur[4]+" "+iJoueur[0];
+	if (iJoueur[3])
+		oPseudo.innerHTML = '<a href="profil.php?id='+iJoueur[3]+'">'+pseudoTxt+'</a>';
+	else
+		oPseudo.innerHTML = pseudoTxt;
+	oResult.appendChild(oPseudo);
+	var oPerso = document.createElement("td");
+	var oPersoDiv = document.createElement("div");
+	var oPersoImg = document.createElement("img");
+	oPersoImg.src = getSpriteSrc(iJoueur[1]);
+	oPersoImg.setAttribute("alt", iJoueur[1]);
+	oPersoImg.onload = spriteLoad;
+	oPersoDiv.appendChild(oPersoImg);
+	oPerso.appendChild(oPersoDiv);
+	oResult.appendChild(oPerso);
+	var oTemps = document.createElement("td");
+	var getTime = iJoueur[2], mls = getTime%1000, sec = Math.floor(getTime/1000), min = Math.floor(sec/60);
+	sec -= min*60;
+	if (sec < 10)
+		sec = "0"+ sec;
+	if (mls < 10)
+		mls = "00"+ mls;
+	else if (mls < 100)
+		mls = "0"+ mls;
+	oTemps.innerHTML = min +":"+ sec +":"+ mls;
+	oResult.appendChild(oTemps);
+	if (!isMobile) {
+		var oDate = document.createElement("td");
+		oDate.style.fontSize = "14px";
+		oDate.innerHTML = iJoueur[5];
+		oResult.appendChild(oDate);
+	}
+	if (sPts) {
+		var oPts = document.createElement("td");
+		oPts.innerHTML = nScore;
+		oResult.appendChild(oPts);
+	}
+	document.getElementById("result"+ id).appendChild(oResult);
+}
+function removeElements(elmt) {
+	var oChilds = elmt.childNodes;
+	while (oChilds.length) {
+		removeElements(oChilds[0]);
+		elmt.removeChild(oChilds[0]);
+	}
+	elmt.innerHTML = "";
+}
+function displayResult(id, n) {
+	var oTableResults = document.getElementById("result"+ id);
+	removeElements(oTableResults);
+	var iResult = classement[id], iPage = iResult.page, iClassement = iResult.classement;
+	var tableHeader = document.createElement("tr");
+	tableHeader.id = "titres";
+	var oPlace = document.createElement("td");
+	oPlace.innerHTML = "<?php echo $language ? 'Rank':'Place'; ?>";
+	oPlace.style.width = "20px";
+	tableHeader.appendChild(oPlace);
+	var oPseudo = document.createElement("td");
+	oPseudo.innerHTML = "<?php echo $language ? 'Nick':'Pseudo'; ?>";
+	tableHeader.appendChild(oPseudo);
+	var oPerso = document.createElement("td");
+	oPerso.innerHTML = "<?php echo $language ? 'Char.':'Perso'; ?>";
+	oPerso.style.width = "20px";
+	tableHeader.appendChild(oPerso);
+	var oTemps = document.createElement("td");
+	oTemps.innerHTML = "<?php echo $language ? 'Time':'Temps'; ?>";
+	tableHeader.appendChild(oTemps);
+	if (!isMobile) {
+		var oDate = document.createElement("td");
+		oDate.style.width = "55px";
+		oDate.innerHTML = "<?php echo $language ? 'Date':'Date'; ?>";
+		tableHeader.appendChild(oDate);
+	}
+	if (sPts) {
+		var oPts = document.createElement("td");
+		oPts.style.width = "10px";
+		oPts.innerHTML = "Pts";
+		tableHeader.appendChild(oPts);
+	}
+	oTableResults.appendChild(tableHeader);
+	if (n != undefined) {
+		for (var i=0;i<n.length;i++)
+			addResult(id, n[i]);
+	}
+	else {
+		var debut = iResult.page*NB_RES, fin = Math.min(debut+NB_RES, iClassement.length);
+		for (var i=debut;i<fin;i++)
+			addResult(id, i);
+		var oTableFooter = document.createElement("tr");
+		var oPages = document.createElement("td");
+		oPages.id = "page";
+		oPages.setAttribute("colspan", 4+!isMobile+sPts);
+		oPages.innerHTML = "Page :";
+		if (document.getElementById("result"+ id).getElementsByTagName("tr").length == 1) {
+			oPages.innerHTML = "<?php echo $language ? 'No record for this circuit yet':'Aucun record sur ce circuit pour l\'instant'; ?>";
+			oPages.style.textAlign = "center";
+			oPages.style.fontStyle = "italic";
+		}
+		else {
+			var nbPages = Math.ceil(iResult.classement.length/NB_RES);
+			for (var i=0;i<nbPages;i++)
+				oPages.innerHTML += (i!=iPage) ? ' <a href="#circuit'+ id +'" onclick="changePage('+ id +", "+ i +');void(0)">'+ (i+1) +'</a>':' <span>'+ (i+1) +'</span>';
+		}
+		oTableFooter.appendChild(oPages);
+		oTableResults.appendChild(oTableFooter);
+	}
+}
+function displayResults() {
+	var oContent = document.getElementById("content");
+	removeElements(oContent);
+	var cRace = oParams.map ? oParams.map.value:-1;
+	var setToAll = (cRace == -1);
+	var sPlayer = oParams.joueur.value.toLowerCase();
+	var noPlayers = sPlayer;
+	for (var i=0;i<circuits.length;i++) {
+		if (setToAll || (cRace == i)) {
+			var n = undefined;
+			if (sPlayer) {
+				n = [];
+				var iClassement = classement[i].classement;
+				for (var j=0;j<iClassement.length;j++) {
+					if (iClassement[j][0].toLowerCase() == sPlayer) {
+						n.push(j);
+						noPlayers = false;
+					}
+				}
+				if (!n.length)
+					continue;
+			}
+			else if (sUser) {
+				n = [];
+				var iClassement = classement[i].classement;
+				for (var j=0;j<iClassement.length;j++) {
+					if (iClassement[j][6]) {
+						n.push(j);
+						noPlayers = false;
+						if (sPts)
+							break;
+					}
+				}
+				if (!n.length)
+					continue;
+			}
+			else
+				classement[i].page = 0;
+			var circuitTitle = document.createElement("h2");
+			circuitTitle.id = "circuit"+ i;
+			circuitTitle.innerHTML = circuits[i];
+			oContent.appendChild(circuitTitle);
+			var tableResult = document.createElement("table");
+			tableResult.id = "result"+ i;
+			oContent.appendChild(tableResult);
+			displayResult(i, n);
+		}
+	}
+	if (noPlayers) {
+		var oNoResults = document.createElement("strong");
+		oNoResults.innerHTML = "Aucun résultat trouvé pour cette recherche.";
+		oContent.appendChild(oNoResults);
+	}
+}
+function changePage(id, nPage) {
+	classement[id].page = nPage;
+	displayResult(id);
+}
+window.onload = function() {
+	oParams = document.forms["params"];
+	
+	var oParamsBlock = document.createElement("div");
+	
+	var oParamsContent = document.createElement("div");
+	<?php
+	if (!$creation || $cup) {
+		?>
+		var tCircuit = document.createElement("span");
+		tCircuit.innerHTML = "<?php echo $language ? 'See':'Voir'; ?> circuit : ";
+		tCircuit.style.fontWeight = "bold";
+		oParamsContent.appendChild(tCircuit);
+		var iCircuit = document.createElement("select");
+		iCircuit.name = "map";
+		var cTous = document.createElement("option");
+		cTous.value = -1;
+		var nbRecords = 0;
+		for (var i=0;i<circuits.length;i++)
+			nbRecords += classement[i].classement.length;
+		if (sUser)
+			cTous.innerHTML = "<?php echo $language ? 'All':'Tous'; ?>";
+		else
+			cTous.innerHTML = "<?php echo $language ? 'All':'Tous'; ?> ("+ nbRecords + " record"+ ((nbRecords>1) ? "s":"") +")";
+		iCircuit.appendChild(cTous);
+		for (var i=0;i<circuits.length;i++) {
+			var cCircuit = document.createElement("option");
+			cCircuit.value = i;
+			var cRecords = classement[i].classement.length;
+			if (sUser)
+				cCircuit.innerHTML = circuits[i];
+			else
+				cCircuit.innerHTML = circuits[i] +" ("+ cRecords +" record"+ ((cRecords>1) ? "s":"") +")";
+			iCircuit.appendChild(cCircuit);
+		}
+		if (autoSelectMap != undefined)
+			iCircuit.value = autoSelectMap;
+		iCircuit.onchange = displayResults;
+		oParamsContent.appendChild(iCircuit);
+		
+		oParamsContent.appendChild(document.createElement("br"));
+		<?php
+	}
+	?>
+	
+	var tJoueur = document.createElement("span");
+	tJoueur.innerHTML = "<?php echo $language ? 'See player':'Voir joueur'; ?> : ";
+	tJoueur.style.fontWeight = "bold";
+	oParamsContent.appendChild(tJoueur);
+	var iJoueur = document.createElement("input");
+	iJoueur.type = "text";
+	iJoueur.id = "joueur";
+	iJoueur.name = "joueur";
+	iJoueur.value = "<?php echo (isset($_GET['joueur']) ? $_GET['joueur']:null); ?>";
+	iJoueur.onchange = displayResults;
+	oParamsContent.appendChild(iJoueur);
+	if (sUser) {
+		tJoueur.style.display = "none";
+		iJoueur.style.display = "none";
+	}
+	
+	oParamsBlock.appendChild(oParamsContent);
+	
+	var oParamsSubmit = document.createElement("div");
+	
+	oParamsBlock.appendChild(oParamsSubmit);
+	oParams.appendChild(oParamsBlock);
+	
+	var joueurs = new Array();
+	var lowerCaseJoueurs = new Array();
+	for (var c=0;c<classement.length;c++) {
+		var iClassement = classement[c].classement;
+		for (var i=0;i<iClassement.length;i++) {
+			var nJoueur = iClassement[i][0];
+			if (lowerCaseJoueurs.indexOf(nJoueur.toLowerCase()) == -1) {
+				joueurs.push(nJoueur);
+				lowerCaseJoueurs.push(nJoueur.toLowerCase());
+			}
+		}
+	}
+	autocompleteDummy("#joueur", joueurs, {
+		onSelect: function(event, term, item) {
+			displayResults();
+		}
+	});
+	
+	displayResults();
+};
+</script>
+</body>
+</html>
+<?php
+mysql_close();
+?>

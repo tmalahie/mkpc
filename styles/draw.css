@@ -1,0 +1,6 @@
+body {
+	background-image: url('../images/editor/fond_circuit_dark.jpg');
+}
+body.theme-dark {
+	background-image: url('../images/editor/fond_circuit.jpg');
+}

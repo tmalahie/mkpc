@@ -1,0 +1,151 @@
+<html>
+<head>
+<style type="text/css">
+body {
+	margin: 0;
+	padding: 0;
+}
+form {
+	position: absolute;
+	left: 350px;
+	top: 200px;
+}
+input {
+	font-size: 30px;
+}
+</style>
+<script type="text/javascript">
+var PIECE;
+var H;
+function updatePieces() {
+	PIECE = parseInt(document.getElementById("p").value);
+	H = parseInt(document.getElementById("h").value);
+	doPiece1();
+	doPiece2();
+	doPiece3();
+	doPiece4();
+}
+window.onload = function() {
+	updatePieces();
+	document.getElementById("p").select();
+	document.forms[0].onsubmit = function() {
+		updatePieces();
+		return false;
+	}
+};
+document.onkeydown = function(e) {
+	if (e.ctrlKey && e.keyCode==83) {
+		e.preventDefault();
+		saveCanvas();
+		return false;
+	}
+}
+function doPiece1() {
+	var canvas = document.getElementById("paint1");
+	var ctx = canvas.getContext("2d");
+	var img = new Image();
+	img.src = "piececircuit"+ PIECE +"_10.png";
+	img.onload = function() {
+	ctx.drawImage(img, 0,0);
+	var img2 = new Image();
+	img2.src = "piececircuit"+ PIECE +"_9.png";
+	img2.onload = function() {
+	var canvas2 = document.createElement("canvas");
+	canvas2.width = 100;
+	canvas2.height = H;
+	var ctx2 = canvas2.getContext("2d");
+	ctx2.drawImage(img2, 0,H-100);
+	ctx.drawImage(canvas2, 0,100-H);
+	};
+	};
+}
+function doPiece2() {
+	var canvas = document.getElementById("paint2");
+	var ctx = canvas.getContext("2d");
+	var img = new Image();
+	img.src = "piececircuit"+ PIECE +"_10.png";
+	img.onload = function() {
+	ctx.drawImage(img, 0,0);
+	var img2 = new Image();
+	img2.src = "piececircuit"+ PIECE +"_8.png";
+	img2.onload = function() {
+	var canvas2 = document.createElement("canvas");
+	canvas2.width = H;
+	canvas2.height = 100;
+	var ctx2 = canvas2.getContext("2d");
+	ctx2.drawImage(img2, H-100,0);
+	ctx.drawImage(canvas2, 100-H,0);
+	};
+	};
+}
+function doPiece3() {
+	var canvas = document.getElementById("paint3");
+	var ctx = canvas.getContext("2d");
+	var img = new Image();
+	img.src = "piececircuit"+ PIECE +"_10.png";
+	img.onload = function() {
+	ctx.drawImage(img, 0,0);
+	var img2 = new Image();
+	img2.src = "piececircuit"+ PIECE +"_9.png";
+	img2.onload = function() {
+	var canvas2 = document.createElement("canvas");
+	canvas2.width = 100;
+	canvas2.height = H;
+	var ctx2 = canvas2.getContext("2d");
+	ctx2.drawImage(img2, 0,0);
+	ctx.drawImage(canvas2, 0,0);
+	};
+	};
+}
+function doPiece4() {
+	var canvas = document.getElementById("paint4");
+	var ctx = canvas.getContext("2d");
+	var img = new Image();
+	img.src = "piececircuit"+ PIECE +"_10.png";
+	img.onload = function() {
+	ctx.drawImage(img, 0,0);
+	var img2 = new Image();
+	img2.src = "piececircuit"+ PIECE +"_8.png";
+	img2.onload = function() {
+	var canvas2 = document.createElement("canvas");
+	canvas2.width = H;
+	canvas2.height = 100;
+	var ctx2 = canvas2.getContext("2d");
+	ctx2.drawImage(img2, 0,0);
+	ctx.drawImage(canvas2, 0,0);
+	};
+	};
+}
+function saveCanvas() {
+	var nbsaved = 0;
+	for (var i=0;i<4;i++) {
+		(function() {
+			var canvas = document.getElementById("paint"+(i+1));
+			var imgData = canvas.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, "");
+			var xmlhttp = new XMLHttpRequest();
+			xmlhttp.onreadystatechange = function() {
+				if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+					if (++nbsaved == 4)
+						alert("Saved");
+				}
+			}
+			xmlhttp.open("POST", "saveImage.php", true);
+			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xmlhttp.send("id="+(12+i)+"&map="+PIECE+"&data="+encodeURIComponent(imgData));
+		})(i);
+	}
+}
+</script>
+</head>
+<body>
+	<canvas id="paint1" wodth="100" height="100"></canvas><br /><br />
+	<canvas id="paint2" wodth="100" height="100"></canvas><br /><br />
+	<canvas id="paint3" wodth="100" height="100"></canvas><br /><br />
+	<canvas id="paint4" wodth="100" height="100"></canvas>
+	<form method="post" action="">
+		<input type="text" name="p" id="p" value="1" size="1" />
+		<input type="text" name="h" id="h" value="40" size="1" />
+		<input type="submit" value="Ok" />
+	</form>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html> 
+<html lang="fr"> 
+	<head> 
+		<title>Help: BbCode</title> 
+		<meta charset="utf-8" /> 
+		<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+	</head> 
+	<body>
+		<main>
+			<h1>Help: BbCode</h1>
+			<div class="fMessages">
+			<div class="fMessage">
+			<div class="mContent">
+			<div class="mBody" style="padding-top:10px">
+				Write in <strong>bold</strong>
+				: [b]Your text[/b]<br />
+				Result: <strong>Your text</strong><br />
+				<br />
+				Write in <em>italique</em>
+				: [i]Your text[/i]<br />
+				Result: <em>Your text</em><br />
+				<br />
+				<u>Souligner</u>
+				: [u]Your text[/u]<br />
+				Result: <u>Your text</u><br />
+				<br />
+				<s>Stroke</s>: [s]Your text[/s]<br />
+				Result: <s>Your text</s><br />
+				<br />
+				Change color: [color=red]Your text[/color]<br />
+				Result: <span style="color: red;">Your text</span><br />
+				<br />
+				Changer text size: [size=18]Your text[/size]<br />
+				Result: <span style="font-size: 18pt;">Your text</span><br />
+				<br />
+				Changer text font: [font=roman]Your text[/font]<br />
+				Result: <span style="font-family: roman;">Your text</span><br />
+				<br />
+				Insert a <a href="#null" onclick="return false">link</a>
+				: [url]https://mkpc.malahieude.net[/url]<br />
+				Result: <a href="https://mkpc.malahieude.net"
+				 target="_blank">https://mkpc.malahieude.net</a><br />
+				OU [url=https://mkpc.malahieude.net]Le meilleur jeu du monde ![/url]<br />
+				Result: <a class="lien" href="https://mkpc.malahieude.net"
+				 target="_blank">Le meilleur jeu du monde !</a><br />
+				<br />
+				Insert an image (*):
+				[img]https://mkpc.malahieude.net/images/sidebar_icon.png[/img]<br />
+				Result: <img src="https://mkpc.malahieude.net/images/sidebar_icon.png" alt="Image" /><br />
+				<br />
+				Insert a Youtube video :
+				[yt]https://www.youtube.com/watch?v=m-O3RwIJBIo[/yt]<br />
+				Result: <a href="https://www.youtube.com/watch?v=m-O3RwIJBIo" target="_blank"><img src="images/yt.png" alt="Youtube video" /></a><br />
+				<br />
+				Align left:
+				: [left]Your text[/left]<br />
+				Result: <div style="text-align: left;">Your text</div><br />
+				<br />
+				Align center
+				: [center]Your text[/center]<br />
+				Result: <div style="text-align: center;">Your text</div><br />
+				<br />
+				Aligner right:
+				[right]Your text[/right]<br />
+				Result: <div style="text-align: right;">Your text</div><br />
+				<br />
+				Quote a message:
+				[quote=Wargor]Message to quote[/quote]<br />
+				Result: <div class="quote1"><div class="quote1author"><a href="profil.php?pseudo=Wargor" target="_blank">Wargor</a> wrote:</div>Message to quote</div><br />
+				<br />
+				Hide a message:
+				[spoiler]In the end, Mario saves the princess[/spoiler]<br />
+				Result: <div class="spoiler1"><div class="spoiler1disp">Spoiler [<a class="spoiler1show" href="#null" onclick="this.parentNode.parentNode.className='spoiler1 spoiler1shown';return false">Show</a><a class="spoiler1hide" href="#null" onclick="this.parentNode.parentNode.className='spoiler1';return false">Hide</a>]</div><div class="spoiler1cont">In the end, Mario saves the princess</div></div><br />
+				<br />
+				Translate a message:
+				[en]Message in English[/en][fr]Message en français[/fr]<br />
+				Result: <div class="tr-ctn tr-ctn-en"><div class="tr-tabs"><div class="tr-tab-en" onclick="this.parentNode.parentNode.className='tr-ctn tr-ctn-en'"></div><div class="tr-tab-fr" onclick="this.parentNode.parentNode.className='tr-ctn tr-ctn-fr'"></div></div><div class="tr-msgs"><div class="tr-msg-en">Message in English</div><div class="tr-msg-fr">Message en français</div></div></div>
+				<br />
+				<hr />
+				<br />
+				(*) Here, you must enter the image <strong>URL adress</strong>.
+				To see the URL adress of an image,
+				right click on it and chose
+				&quot;Copy Image Address&quot;.<br />
+				If the image is on your computer, you must use an
+				<strong>image hosting service</strong> such as
+				<a href="https://postimage.org/" target="_blank">PostImage</a>.
+				Click on &quot;Chose image&quot; and select your file.<br />
+				The image URL is on &quot;Direct Link&quot;.
+			</div>
+			</div>
+			</div>
+			</div>
+		</main>	
+	</body> 
+</html>
