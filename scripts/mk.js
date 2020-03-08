@@ -3396,7 +3396,6 @@ function continuer() {
 			oForm.style.border = "double 4px black";
 			oForm.style.textAlign = "center";
 			oForm.style.width = (iScreenScale*70-10) +"px";
-			oForm.style.height = (iScreenScale*25-10) +"px";
 			oForm.style.zIndex = 20000;
 
 			oForm.onsubmit = function() {
@@ -3428,16 +3427,38 @@ function continuer() {
 							catch (e) {
 								return false;
 							}
-							oInput.disabled = true;
-							oRetour.focus();
-							oValide.parentNode.removeChild(oValide);
-							aPara2.style.fontSize = Math.round(iScreenScale*2.5) + "px";
-							aPara2.style.visibility = "";
+							function showBackUi(success) {
+								oInput.disabled = true;
+								oCheckbox.disabled = true;
+								oValide.parentNode.removeChild(oValide);
+								aPara2.style.fontSize = Math.round(iScreenScale*2.5) + "px";
+								if (success) {
+									aPara2.innerHTML = toLanguage("Congratulations "+ nom +", your score has been saved successfully ! You places ", "F&eacute;licitations "+ nom +", votre score a bien &eacute;t&eacute; enregistr&eacute; ! Vous &ecirc;tes ") + toPlace(enregistre[0]) + toLanguage(" out of "+ enregistre[1] +" in this race !", " sur "+ enregistre[1] +" au classement de ce circuit !");
+									oSave.style.display = "none";
+								}
+								aPara2.style.visibility = "";
+								oRetour.focus();
+							}
 							if (Array.isArray(enregistre)) {
-								aPara2.innerHTML = toLanguage("Congratulations "+ nom +", your score has been saved successfully ! You places ", "F&eacute;licitations "+ nom +", votre score a bien &eacute;t&eacute; enregistr&eacute; ! Vous &ecirc;tes ") + toPlace(enregistre[0]) + toLanguage(" out of "+ enregistre[1] +" in this race !", " sur "+ enregistre[1] +" au classement de ce circuit !");
-								oSave.style.display = "none";
+								if (oCheckbox.checked) {
+									var oRequest = "map="+ oMap.map +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers);
+									for (i=0;i<iTrajet.length;i++)
+										oRequest += "&p"+ i +"="+ iTrajet[i].toString().replace(/\,/g, "_");
+									xhr("saveghost.php", oRequest, function(reponse) {
+										if (reponse == 1) {
+											gRecord = getActualGameTimeMS();
+											showBackUi(true);
+											return true;
+										}
+										else
+											return false;
+									});
+								}
+								else
+									showBackUi(true);
 							}
 							else {
+								showBackUi(false);
 								switch (enregistre) {
 								case 0:
 									aPara2.innerHTML = toLanguage("You did a better score on this race before.<br />Your score has not been registered.", "Vous avez fait un meilleur score sur ce circuit.<br />Votre temps n'a donc pas &eacute;t&eacute; enregistr&eacute;.");
@@ -3453,6 +3474,7 @@ function continuer() {
 									oValide.style.visibility = "";
 									oValide.style.marginRight = (iScreenScale*2) +"px";
 									aPara3.insertBefore(oValide,oRetour);
+									oCheckbox.disabled = false;
 									oInput.disabled = false;
 									oInput.select();
 								}
@@ -3482,6 +3504,24 @@ function continuer() {
 				e.stopPropagation();
 			};
 			aPara1.appendChild(oInput);
+			var aPara12 = aPara1.cloneNode(false);
+			var oCheckLabel = document.createElement("label");
+			oCheckLabel.style.display = "inline-block";
+			var oCheckbox = document.createElement("input");
+			oCheckbox.type = "checkbox";
+			oCheckbox.name = "saveghost";
+			oCheckbox.checked = true;
+			oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ (iScreenScale/6).toFixed(1) +")";
+			oCheckLabel.appendChild(oCheckbox);
+			var oCheckSpan = document.createElement("span");
+			oCheckSpan.style.fontSize = (iScreenScale*2) +"px";
+			oCheckSpan.innerHTML = " "+toLanguage("Save ghost","Enregistrer le fantôme");
+			oCheckLabel.appendChild(oCheckSpan);
+			aPara12.appendChild(oCheckLabel);
+			if ((page != "MK") || (timerMS >= gRecord)) {
+				oCheckbox.checked = false;
+				aPara12.style.display = "none";
+			}
 			var aPara2 = aPara1.cloneNode(false);
 			var oValide = document.createElement("input");
 			oValide.type = "submit";
@@ -3506,9 +3546,12 @@ function continuer() {
 			aPara3.appendChild(oRetour);
 
 			oForm.appendChild(aPara1);
+			oForm.appendChild(aPara12);
 			oForm.appendChild(aPara2);
 			oForm.appendChild(aPara3);
 			document.body.appendChild(oForm);
+
+			oForm.style.height = oForm.scrollHeight +"px";
 
 			oInput.select();
 		}
@@ -9386,7 +9429,7 @@ function move(getId) {
 									oForm.style.zIndex = 20000;
 
 									var aPara1 = document.createElement("p");
-									aPara1.innerHTML = toLanguage("New record !<br />Save the ghost ?", "Nouveau record !<br />Enregistrer le fant&ocirc;me ?");
+									aPara1.innerHTML = toLanguage('Save the time to the <a href="classement.php" target="_blank" style="color: orange">record list</a> ?', 'Enregistrer le temps dans la <a href="'+ rankingsLink(oMap) +'" target="_blank" style="color: orange">liste des records</a> ?');
 									aPara1.style.margin = iScreenScale +"px";
 									var aPara2 = aPara1.cloneNode(false);
 									var oSave = document.createElement("input");
@@ -9400,26 +9443,9 @@ function move(getId) {
 										oRetour.style.fontSize = (iScreenScale*4) +"px"
 									};
 									oSave.onclick = function() {
-										oSave.disabled = true;
-										oRetour.disabled = true;
-										aPara1.innerHTML = toLanguage("Saving...", "Enregistrement en cours...") + "<br />";
-										var oRequest = "map="+ oMap.map +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers);
-										for (i=0;i<iTrajet.length;i++)
-											oRequest += "&p"+ i +"="+ iTrajet[i].toString().replace(/\,/g, "_");
-										xhr("saveghost.php", oRequest, function(reponse) {
-											if (reponse == 1) {
-												gRecord = getActualGameTimeMS();
-												aPara1.innerHTML = toLanguage("Ghost saved successfully...", "Fantôme enregistré avec succès.") + "<br />";
-												setTimeout(function() {
-													oSave.disabled = false;
-													oRetour.disabled = false;
-													askForRegister(true);
-												}, 500);
-												return true;
-											}
-											else
-												return false;
-										});
+										document.body.removeChild(oForm);
+										continuer();
+										document.getElementById("enregistrer").getElementsByTagName("input")[0].onclick();
 									};
 									aPara2.appendChild(oSave);
 									var oRetour = document.createElement("input");
@@ -9432,7 +9458,9 @@ function move(getId) {
 										oSave.style.fontSize = (iScreenScale*4) +"px"
 									};
 									oRetour.onclick = function() {
-										askForRegister(true);
+										document.body.removeChild(oForm);
+										document.getElementById("infos0").style.visibility = "visible";
+										continuer();
 									};
 									aPara2.appendChild(oRetour);
 
@@ -9440,31 +9468,8 @@ function move(getId) {
 									oForm.appendChild(aPara2);
 									document.body.appendChild(oForm);
 									
-									function askForRegister(newScreen) {
-										aPara1.innerHTML = toLanguage('Save the time to the <a href="classement.php" target="_blank" style="color: orange">record list</a> ?', 'Enregistrer le temps dans la <a href="'+ rankingsLink(oMap) +'" target="_blank" style="color: orange">liste des records</a> ?');
-										oSave.onclick = function() {
-											document.body.removeChild(oForm);
-											continuer();
-											document.getElementById("enregistrer").getElementsByTagName("input")[0].onclick();
-										};
-										oRetour.onclick = function() {
-											document.body.removeChild(oForm);
-											document.getElementById("infos0").style.visibility = "visible";
-											continuer();
-										};
-										if (newScreen) {
-											oForm.style.visibility = "hidden";
-											setTimeout(function() {
-												oForm.style.visibility = "visible";
-												oSave.focus();
-											}, 500);
-										}
-										else
-											oSave.focus();
-									}
-									
-									if (page != "MK" || timerMS >= gRecord)
-										askForRegister(false);
+									if (page == "MK" && timerMS >= gRecord)
+										oRetour.focus();
 									else
 										oSave.focus();
 								};
