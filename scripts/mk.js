@@ -436,6 +436,7 @@ var iDificulty = 5, iTeamPlay = selectedTeams;
 var iRecord;
 var iTrajet;
 var jTrajets;
+var iLapTimes;
 var gPersos = new Array();
 var gRecord;
 var gSelectedPerso;
@@ -448,8 +449,9 @@ if (pause) {
 		iTrajet = fInfos.my_route;
 		gPersos = fInfos.perso;
 		jTrajets = fInfos.cpu_route;
-		gRecord = fInfos.record;
-		iRecord = fInfos.my_record;
+		gRecord = fInfos.my_record;
+		iRecord = fInfos.record;
+		iLapTimes = fInfos.lap_times;
 		gSelectedPerso = fInfos.selPerso;
 	}
 }
@@ -927,11 +929,12 @@ function initMap() {
 		oMap.cannons = cannons;
 	}
 }
-var time = 0;
 var timer = 0;
 var timerMS;
 var lapTimers = new Array();
 iScreenScale = optionOf("screenscale");
+
+var oLapTimeDiv;
 
 var fMaxRotInc = 6;
 var fTurboDriftCpt = 80, fTurboDriftCpt2 = 160;
@@ -2320,7 +2323,8 @@ function startGame() {
 										difficulty:iDificulty,
 										perso:gPersos,
 										cpu_route:jTrajets,
-										record:gRecord
+										my_record:gRecord,
+										lap_times:iLapTimes
 									};
 									document.getElementById("infos0").style.visibility = "hidden";
 									document.getElementById("infos0").style.opacity = 0.8;
@@ -2769,7 +2773,6 @@ function startGame() {
 									if (!i)
 										oContainers[0].style.opacity = Math.abs(oKart.tombe-10)/10;
 								}
-								var lastRotation = oKart.rotation;
 								oKart.x = getInfos[0];
 								oKart.y = getInfos[1];
 								oKart.z = getInfos[2];
@@ -2874,6 +2877,7 @@ function startGame() {
 						//if (!(timer%100))
 						//	aKarts[0].changeView = Math.floor(Math.random()*21)*(360/21);
 
+						moveDecor();
 						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;stopDrifting_();stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.visibility="visible";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},67);
 						render();
 					}
@@ -3359,7 +3363,8 @@ function continuer() {
 				difficulty:iDificulty,
 				perso:gPersos,
 				cpu_route:jTrajets,
-				record:gRecord
+				my_record:gRecord,
+				lap_times: iLapTimes
 			};
 			if (gSelectedPerso) {
 				fInfos.player = [gSelectedPerso];
@@ -3528,13 +3533,19 @@ function continuer() {
 					perso:gPersos,
 					selPerso:gSelectedPerso,
 					cpu_route:jTrajets,
-					record:gRecord,
-					my_record:timerMS
+					my_record:gRecord,
+					record:timerMS,
+					lap_times:iLapTimes
 				};
+				if (fInfos.record == undefined)
+					fInfos.record = iRecord;
+				if (fInfos.lap_times == undefined)
+					fInfos.lap_times = lapTimers;
 				document.getElementById("infos"+i).style.visibility = "hidden";
 				document.getElementById("infos"+i).style.opacity = 0.8;
 				document.getElementById("infos"+i).style.color = "#FF9900";
 				document.getElementById("infos"+i).style.fontFamily = "";
+				document.getElementById("drift"+ i).style.display = "none";
 			}
 			if (strPlayer.length == 1)
 				removePlan();
@@ -3562,6 +3573,7 @@ function continuer() {
 				document.getElementById("infos"+i).style.opacity = 0.8;
 				document.getElementById("infos"+i).style.color = "#FF9900";
 				document.getElementById("infos"+i).style.fontFamily = "";
+				document.getElementById("drift"+ i).style.display = "none";
 			}
 			if (strPlayer.length == 1)
 				removePlan();
@@ -8575,6 +8587,18 @@ function move(getId) {
 				document.getElementById("lakitu"+getId).style.display = "block";
 			else
 				document.getElementById("lakitu"+getId).style.display = "none";
+
+			if (oLapTimeDiv) {
+				if (oKart.time < 25) {
+					if (oKart.time < 5) {
+						oContainers[0].removeChild(oLapTimeDiv);
+						oLapTimeDiv = undefined;
+					}
+					else {
+						oLapTimeDiv.style.visibility = ((oKart.time%6)<4) ? "visible":"hidden";
+					}
+				}
+			}
 		}
 	}
 
@@ -9224,7 +9248,7 @@ function move(getId) {
 			if (isNaN(dt-dt)) dt = 0.5;
 
 			var lapTimer = Math.round((timer+dt-1)*67);
-			if (oKart == oPlayers[0]) {
+			if ((oKart == oPlayers[0]) && !oKart.cpu) {
 				var lapTimerSum = 0;
 				for (var i=0;i<lapTimers.length;i++)
 					lapTimerSum += lapTimers[i];
@@ -9320,9 +9344,22 @@ function move(getId) {
 							else {
 								document.getElementById("infos0").style.fontSize = (iScreenScale * 5) +"px";
 								document.getElementById("infos0").style.fontWeight = "bold";
-								document.getElementById("infos0").style.color = "blue";
-								document.getElementById("infos0").style.top = (iScreenScale*10 + 10) +"px";
-								document.getElementById("infos0").innerHTML = '<tr><td style="text-decoration: blink;">'+ document.getElementById("temps0").innerHTML +'</td></tr><tr><td id="continuer"></td></tr>';
+								document.getElementById("infos0").style.color = "white";
+								var sThickness = Math.ceil(iScreenScale/4) +"px";
+								var oShadow = "black";
+								sShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
+								var lapTimesHtml = '';
+								var minTimer = lapTimers[0];
+								for (var i=1;i<lapTimers.length;i++)
+									minTimer = Math.min(minTimer,lapTimers[i]);
+								for (var i=0;i<lapTimers.length;i++) {
+									sThickness = Math.ceil(iScreenScale/8) +"px";
+									oShadow = (lapTimers[i]==minTimer) ? "#e99c00":"black";
+									var lShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
+									lapTimesHtml += '<div style="color:'+((lapTimers[i]==minTimer) ? '#ffe2be':'#DDD')+';text-shadow:'+lShadow+'">'+(i+1)+'. ' + timeStr(lapTimers[i]) +'</div>';
+								}
+								document.getElementById("infos0").style.top = (iScreenScale*7 + 10) +"px";
+								document.getElementById("infos0").innerHTML = '<tr><td style="text-decoration: blink;font-family:Courier New;font-size:'+Math.round(iScreenScale*4)+'px;text-shadow:'+sShadow+'">'+ document.getElementById("temps0").innerHTML +'</td></tr><tr><td id="continuer"></td></tr><tr><td style="padding-top:'+(iScreenScale)+';font-size:'+Math.round(iScreenScale*2.5)+'px">'+lapTimesHtml+'</td></tr>';
 								document.getElementById("infos0").style.visibility = "visible";
 								var oContinue = document.createElement("input");
 								oContinue.type = "button";
@@ -9508,6 +9545,44 @@ function move(getId) {
 					}
 					else if (iSfx)
 						playSoundEffect("musics/events/nextlap.mp3");
+				}
+				if (course == "CM") {
+					if (oLapTimeDiv)
+						oContainers[0].removeChild(oLapTimeDiv);
+					oLapTimeDiv = document.createElement("div");
+					oLapTimeDiv.style.position = "absolute";
+					oLapTimeDiv.style.zIndex = 20000;
+					oLapTimeDiv.style.left = Math.round(iScreenScale*iWidth/2) +"px";
+					oLapTimeDiv.style.top = Math.round(iScreenScale*iHeight/2) +"px";
+					oLapTimeDiv.style.textAlign = "center";
+					oLapTimeDiv.style.transform = oLapTimeDiv.style.WebkitTransform = oLapTimeDiv.style.MozTransform = "translate(-50%, -50%)";
+					var oLapTimeText = document.createElement("div");
+					oLapTimeText.className = "lap-time";
+					oLapTimeText.innerHTML = timeStr(lapTimers[lapTimers.length-1]);
+					oLapTimeText.style.fontSize = (iScreenScale*4) +"px";
+					oLapTimeText.style.fontFamily = "Courier New";
+					oLapTimeText.style.color = "#DDD";
+					var sThickness = Math.ceil(iScreenScale/4) +"px";
+					var oShadow = "black";
+					oLapTimeText.style.textShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
+					oLapTimeDiv.appendChild(oLapTimeText);
+
+					if (iLapTimes) {
+						var timeDiff = 0;
+						for (var i=0;i<lapTimers.length;i++)
+							timeDiff += lapTimers[i]-iLapTimes[i];
+						var oTimeDiffText = document.createElement("div");
+						oTimeDiffText.innerHTML = ((timeDiff>=0) ? "+":"-") +" "+ timeStr(Math.abs(timeDiff));
+						oTimeDiffText.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+						oTimeDiffText.style.fontFamily = "Courier New";
+						oTimeDiffText.style.color = (timeDiff>=0) ? "#FDD":"#DFD";
+						sThickness = Math.ceil(iScreenScale/8) +"px";
+						oShadow = (timeDiff>=0) ? "#C00":"#0A0";
+						oTimeDiffText.style.textShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
+						oLapTimeDiv.appendChild(oTimeDiffText);
+					}
+
+					oContainers[0].appendChild(oLapTimeDiv);
 				}
 			}
 		}
@@ -15248,16 +15323,57 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oPersoImage.appendChild(cDiv);
 	oGhost.appendChild(oPersoImage);
 	
-	var oPersoTime = document.createElement("td");
-	oPersoTime.style.textAlign = "center";
+	var oTimeTd = document.createElement("td");
+	oTimeTd.style.textAlign = "center";
+
+	var oPersoTime = document.createElement("span");
 	oPersoTime.style.fontSize = Math.round(iScreenScale*5.5) + "px";
 	oPersoTime.style.color = "white";
-	oPersoTime.style.paddingLeft = oPersoTime.style.paddingRight = (iScreenScale*2) +"px";
+	oPersoTime.style.marginLeft = (iScreenScale*2) +"px";
+	oTimeTd.appendChild(oPersoTime);
+
+	var oPersoLapTimes = document.createElement("img");
+	oPersoLapTimes.src = "images/about.png";
+	oPersoLapTimes.style.position = "relative";
+	oPersoLapTimes.style.top = -Math.round(iScreenScale*0.5) +"px";
+	oPersoLapTimes.style.width = Math.round(iScreenScale*2.5) +"px";
+	oPersoLapTimes.style.marginLeft = iScreenScale +"px";
+	oPersoLapTimes.style.marginRight = (iScreenScale*2) +"px";
+	if (!oPersoLapTimes.dataset) oPersoLapTimes.dataset = {};
+	oTimeTd.appendChild(oPersoLapTimes);
+
+	var $fancyTitle;
+	oPersoLapTimes.onmouseover = function(e) {
+		if ($fancyTitle) return;
+		$fancyTitle = document.createElement("div");
+		$fancyTitle.className = "ranking_activeplayertitle";
+		$fancyTitle.innerHTML = this.dataset.title;
+		$fancyTitle.style.position = "absolute";
+		$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
+		$fancyTitle.style.borderRadius = iScreenScale+"px";
+		$fancyTitle.style.zIndex = 10;
+		$fancyTitle.style.backgroundColor = "rgba(60,109,165, 0.95)";
+		$fancyTitle.style.color = "white";
+		$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+		$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
+		$fancyTitle.style.visibility = "hidden";
+		document.body.appendChild($fancyTitle);
+		var rect = this.getBoundingClientRect();
+		$fancyTitle.style.left = Math.round(rect.left + (this.scrollWidth-$fancyTitle.scrollWidth)/2)+"px";
+		$fancyTitle.style.top = (rect.top + this.scrollHeight + 5)+"px";
+		$fancyTitle.style.visibility = "visible";
+	};
+	oPersoLapTimes.onmouseout = function(e) {
+		if (!$fancyTitle) return;
+		document.body.removeChild($fancyTitle);
+		$fancyTitle = undefined;
+	};
+
 	if (ghostsData)
 		gRecord = ghostsData[2];
 	else
 		gRecord = undefined;
-	function writeTime(perso,pseudo,time,oImg,oDiv) {
+	function writeTime(perso,pseudo,time,times,oImg,oDiv) {
 		if (!oImg) oImg = oPImg;
 		if (!oDiv) oDiv = oPersoTime;
 		oImg.src = getSpriteSrc(perso);
@@ -15266,6 +15382,12 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		oSpan.title = pseudo;
 		oTable.style.left = Math.round((iScreenScale*iWidth+20 - oTable.offsetWidth)/2) +"px";
 		oTable.style.top = Math.round((iScreenScale*28 - oTable.offsetHeight)/2) +"px";
+		if (oDiv == oPersoTime) {
+			var iconTitle = '<small style="color:#CCF">'+toLanguage("Lap times:", "Temps au tour :")+'</small>';
+			for (var j=0;j<times.length;j++)
+				iconTitle += '<br /><span style="color:#CCF;display:inline-block">'+(j+1)+'.</span> '+timeStr(times[j]);
+			oPersoLapTimes.dataset.title = iconTitle;
+		}
 	}
 	
 	function multiGhosts(gTimes) {
@@ -15330,7 +15452,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			iPersoTime.style.textAlign = "center";
 			iPersoTime.style.fontSize = Math.round(iScreenScale*3.5) + "px";
 			iPersoTime.style.color = "white";
-			writeTime(gTimes[gIDs[inc]][1],gTimes[gIDs[inc]][2],gTimes[gIDs[inc]][3],iPImg,iPersoTime);
+			writeTime(gTimes[gIDs[inc]][1],gTimes[gIDs[inc]][2],gTimes[gIDs[inc]][3],gTimes[gIDs[inc]][4],iPImg,iPersoTime);
 
 			var fGauche = document.createElement("input");
 			fGauche.type = "button";
@@ -15344,7 +15466,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 					gIDs[inc]--;
 					if (gIDs[inc] < 0)
 						gIDs[inc] = gTimes.length-1;
-					writeTime(gTimes[gIDs[inc]][1],gTimes[gIDs[inc]][2],gTimes[gIDs[inc]][3],iPImg,iPersoTime);
+					writeTime(gTimes[gIDs[inc]][1],gTimes[gIDs[inc]][2],gTimes[gIDs[inc]][3],gTimes[gIDs[inc]][4],iPImg,iPersoTime);
 				}
 			})(inc,iPImg,iPersoTime);
 			iScr.appendChild(fGauche);
@@ -15361,7 +15483,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 					gIDs[inc]++;
 					if (gIDs[inc] >= gTimes.length)
 						gIDs[inc] = 0;
-					writeTime(gTimes[gIDs[inc]][1],gTimes[gIDs[inc]][2],gTimes[gIDs[inc]][3],iPImg,iPersoTime);
+					writeTime(gTimes[gIDs[inc]][1],gTimes[gIDs[inc]][2],gTimes[gIDs[inc]][3],gTimes[gIDs[inc]][4],iPImg,iPersoTime);
 				}
 			})(inc,iPImg,iPersoTime);
 			iScr.appendChild(fDroite);
@@ -15428,13 +15550,13 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			fGauche.value = "\u2190";
 			fGauche.style.fontSize = (6*iScreenScale)+"px";
 			fGauche.style.position = "absolute";
-			fGauche.style.left = (12*iScreenScale)+"px";
+			fGauche.style.left = (10*iScreenScale)+"px";
 			fGauche.style.top = Math.round(10.5*iScreenScale)+"px";
 			fGauche.onclick = function() {
 				gID--;
 				if (gID < 0)
 					gID = gTimes.length-1;
-				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3]);
+				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
 			}
 			oScr.appendChild(fGauche);
 			
@@ -15444,20 +15566,20 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			fDroite.value = "\u2192";
 			fDroite.style.fontSize = (6*iScreenScale)+"px";
 			fDroite.style.position = "absolute";
-			fDroite.style.left = (63*iScreenScale)+"px";
+			fDroite.style.left = (65*iScreenScale)+"px";
 			fDroite.style.top = Math.round(10.5*iScreenScale)+"px";
 			fDroite.onclick = function() {
 				gID++;
 				if (gID >= gTimes.length)
 					gID = 0;
-				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3]);
+				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
 			}
 			oScr.appendChild(fDroite);
 			if (ghostsData)
 				oScr.style.visibility = "visible";
 			else
 				oContainers[0].appendChild(oScr);
-			writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3]);
+			writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
 			if (OPFace)
 				OPFace.style.display = "none";
 			document.body.style.cursor = "default";
@@ -15550,11 +15672,13 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			if (replay) {
 				strPlayer[0] = ghostsData[0];
 				iRecord = ghostsData[2];
-				iTrajet = ghostsData[3];
+				iLapTimes = ghostsData[3];
+				iTrajet = ghostsData[4];
 			}
 			else {
 				gPersos = [ghostsData[0]];
-				jTrajets = [ghostsData[3]];
+				iLapTimes = ghostsData[3];
+				jTrajets = [ghostsData[4]];
 			}
 			resetGame(aAvailableMaps[map]);
 		}
@@ -15588,6 +15712,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 					if (replay) {
 						strPlayer[0] = gTimes[gID][1];
 						iRecord = gTimes[gID][3];
+						iLapTimes = gTimes[gID][4];
 						iTrajet = gCourse;
 					}
 					else {
@@ -15599,6 +15724,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 						}
 						else {
 							gPersos = [gTimes[gID][1]];
+							iLapTimes = gTimes[gID][3];
 							jTrajets = [gCourse];
 						}
 					}
@@ -15614,7 +15740,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	var gID = -1;
 	var gIDs;
 	
-	oGhost.appendChild(oPersoTime);
+	oGhost.appendChild(oTimeTd);
 	oTable.appendChild(oGhost);
 	
 	oScr.appendChild(oTable);
@@ -15675,7 +15801,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			selectRaceScreen(map-map%4);
 		}
 		else {
-			writeTime(ghostsData[0],ghostsData[1],ghostsData[2]);
+			writeTime(ghostsData[0],ghostsData[1],ghostsData[2],ghostsData[3]);
 			oScr.removeChild(document.getElementById("fGauche"));
 			oScr.removeChild(document.getElementById("fDroite"));
 			oScr.removeChild(OPFace7);
@@ -15696,12 +15822,9 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		OPFace.style.top = (36*iScreenScale)+"px";
 		OPFace.onclick = otherGhosts;
 		oScr.appendChild(OPFace);
-	}
-	
-	if (ghostsData) {
 		oContainers[0].appendChild(oScr);
 		if (ghostsData)
-			writeTime(ghostsData[0],ghostsData[1],ghostsData[2]);
+			writeTime(ghostsData[0],ghostsData[1],ghostsData[2],ghostsData[3]);
 		document.body.style.cursor = "default";
 		if (otherGhostsData) {
 			gID = otherGhostsData.id;
