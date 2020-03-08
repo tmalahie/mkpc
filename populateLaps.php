@@ -122,7 +122,6 @@ async function main() {
                         oKart.demitours = 0;
                         if (oKart.tours == 4) {
                             ok_ = (k >= (gData.length-29));
-                            alert(ok_);
                             break;
                         }
                         else
