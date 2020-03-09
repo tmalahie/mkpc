@@ -3441,6 +3441,13 @@ function continuer() {
 							}
 							if (Array.isArray(enregistre)) {
 								if (oCheckbox.checked) {
+									oSave.style.display = "none";
+									oValide.style.display = "none";
+									var aSmall = document.createElement("span");
+									aSmall.style.fontSize = Math.round(iScreenScale*2.5) + "px";
+									aSmall.innerHTML = toLanguage("Saving ghost...","Enregistrement du fantôme...");
+									aPara2.appendChild(aSmall);
+									aPara2.style.visibility = "";
 									var oRequest = "map="+ oMap.map +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers);
 									for (i=0;i<iTrajet.length;i++)
 										oRequest += "&p"+ i +"="+ iTrajet[i].toString().replace(/\,/g, "_");
@@ -9399,7 +9406,7 @@ function move(getId) {
 									sThickness = Math.ceil(iScreenScale/8) +"px";
 									oShadow = (lapTimers[i]==minTimer) ? "#e99c00":"black";
 									var lShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
-									lapTimesHtml += '<div style="color:'+((lapTimers[i]==minTimer) ? '#ffe2be':'#DDD')+';text-shadow:'+lShadow+'">'+(i+1)+'. ' + timeStr(lapTimers[i]) +'</div>';
+									lapTimesHtml += '<div style="color:'+((lapTimers[i]==minTimer) ? '#fffdbe':'#DDD')+';text-shadow:'+lShadow+'">'+(i+1)+'. ' + timeStr(lapTimers[i]) +'</div>';
 								}
 								document.getElementById("infos0").style.top = (iScreenScale*7 + 10) +"px";
 								document.getElementById("infos0").innerHTML = '<tr><td style="text-decoration: blink;font-family:Courier New;font-size:'+Math.round(iScreenScale*4)+'px;text-shadow:'+sShadow+'">'+ document.getElementById("temps0").innerHTML +'</td></tr><tr><td id="continuer"></td></tr><tr><td style="padding-top:'+(iScreenScale)+';font-size:'+Math.round(iScreenScale*2.5)+'px">'+lapTimesHtml+'</td></tr>';
@@ -9560,7 +9567,7 @@ function move(getId) {
 					oLapTimeDiv.style.left = Math.round(iScreenScale*iWidth/2) +"px";
 					oLapTimeDiv.style.top = Math.round(iScreenScale*iHeight/2) +"px";
 					oLapTimeDiv.style.textAlign = "center";
-					oLapTimeDiv.style.transform = oLapTimeDiv.style.WebkitTransform = oLapTimeDiv.style.MozTransform = "translate(-50%, -50%)";
+					oLapTimeDiv.style.transform = oLapTimeDiv.style.WebkitTransform = oLapTimeDiv.style.MozTransform = "translate(-50%, -100%)";
 					var oLapTimeText = document.createElement("div");
 					oLapTimeText.className = "lap-time";
 					oLapTimeText.innerHTML = timeStr(lapTimers[lapTimers.length-1]);
@@ -15729,7 +15736,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 						}
 						else {
 							gPersos = [gTimes[gID][1]];
-							iLapTimes = gTimes[gID][3];
+							iLapTimes = gTimes[gID][4];
 							jTrajets = [gCourse];
 						}
 					}
