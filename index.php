@@ -1218,7 +1218,7 @@ mysql_close();
 var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
 </script>
 <script async src="scripts/creations.js"></script>
-<script async src="scripts/posticons.js?reload=1"></script>
+<script async src="scripts/posticons.js"></script>
 
 <script src="scripts/jquery.min.js"></script>
 <script async src="scripts/slider.js"></script>
