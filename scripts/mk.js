@@ -3044,7 +3044,6 @@ function resetScreen() {
 		if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
 			if (iViewY == 0)
 				fLastZ = iPointZ - 1;
-			var oCanvas;
 			aStrips.push(
 				{
 					viewy : iViewY,
@@ -4287,21 +4286,21 @@ function redrawCanvas(i, posX,posY, fRotation) {
 
 	var oScreenContext = oScreens[i].getContext("2d");
 
+	var vLineScale = 1/fLineScale, iViewCanvasYOffset = iViewCanvasHeight-iViewYOffset-1, iWidthScale = iWidth*vLineScale;
+
 	for (var j=0;j<aStrips.length;j++) {
 
 		var oStrip = aStrips[j];
 
-		try {
-			oScreenContext.drawImage(
-				oViewCanvas,
-				iViewCanvasWidth/2 - (oStrip.stripwidth/2),
-				((iViewCanvasHeight-iViewYOffset) - oStrip.mapz)-1,
-				oStrip.stripwidth,
-				oStrip.mapzspan,
+		oScreenContext.drawImage(
+			oViewCanvas,
+			(iViewCanvasWidth-oStrip.stripwidth)/2,
+			iViewCanvasYOffset - oStrip.mapz,
+			oStrip.stripwidth,
+			oStrip.mapzspan,
 
-				0,(iHeight-oStrip.viewy)/fLineScale,iWidth/fLineScale,1
-			);
-		} catch(e) {};
+			0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
+		);
 
 	}
 }
@@ -8938,11 +8937,6 @@ function move(getId) {
 	}
 
 	var rScroller, rHeight, rSize;
-	if (kartIsPlayer(oKart)) {
-		var rScroller = document.getElementById("scroller"+getId).getElementsByTagName("div")[0];
-		var rHeight = rScroller.offsetHeight;
-		rSize = iScreenScale*7;
-	}
 	if (objet(fNewPosX, fNewPosY)) {
 		if (!oKart.destroySound) {
 			oKart.destroySound = playDistSound(oKart, "musics/events/item_destroy.mp3", 80);
@@ -8990,6 +8984,9 @@ function move(getId) {
 			if (shouldPlaySound(oKart))
 				oKart.rouletteSound = playSoundEffect("musics/events/roulette.mp3");
 			if (kartIsPlayer(oKart)) {
+				rScroller = document.getElementById("scroller"+getId).getElementsByTagName("div")[0];
+				rHeight = rScroller.offsetHeight;
+				rSize = iScreenScale*7;
 				document.getElementById("scroller"+getId).getElementsByTagName("div")[0].style.top = -Math.floor(Math.random()*rHeight) +"px";
 				document.getElementById("scroller"+getId).style.visibility="visible";
 				clLocalVars.itemsGot = true;
@@ -8998,6 +8995,11 @@ function move(getId) {
 	}
 	if (oKart.arme && oKart.roulette != 25) {
 		if (kartIsPlayer(oKart)) {
+			if (!rScroller) {
+				rScroller = document.getElementById("scroller"+getId).getElementsByTagName("div")[0];
+				rHeight = rScroller.offsetHeight;
+				rSize = iScreenScale*7;
+			}
 			var nTop = (parseInt(rScroller.style.top) + iScreenScale*3);
 			if (nTop > 0)
 				nTop += rSize-rHeight;
@@ -9017,7 +9019,6 @@ function move(getId) {
 			}
 		}
 	}
-
 
 	collisionDecor = null;
 	if (canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect)) {
@@ -10701,7 +10702,6 @@ function cycle() {
 }
 var decorPos = {};
 function runOneFrame() {
-	var t = new Date().getTime();
 	if (course != "CM") {
 		for (var i=0;i<aKarts.length;i++)
 			colKart(i);
