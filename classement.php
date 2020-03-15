@@ -124,6 +124,10 @@ main table div {
 	margin-top: 5px;
 	margin-bottom: 2px;
 }
+.record-date {
+	position: relative;
+	font-size: 14px;
+}
 </style>
 </head>
 <body>
@@ -195,8 +199,9 @@ include('footer.php');
 <script type="text/javascript" src="scripts/autocomplete-dummy.js"></script>
 <script type="text/javascript">
 var NB_RES = 20;
-function Resultat() {
+function Resultat(circuitId) {
 	this.classement = new Array();
+	this.circuit_id = circuitId;
 }
 var autoSelectMap<?php
 	if (isset($_GET['map']))
@@ -228,15 +233,17 @@ var sUser = <?php echo isset($user) ? $user['id']:0 ?>;
 var sPts = <?php echo +isset($_GET['pts']); ?>;
 var classement = new Array();
 for (var i=0;i<circuits.length;i++)
-	classement[i] = new Resultat();
+	classement[i] = new Resultat(i);
 <?php
+$joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.name=r2.name AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
+$whereBest = isset($_GET['date']) ? ' AND r2.id IS NULL AND r.date<="'.$_GET['date'].'"':' AND r.best=1';
 $dateFormat = $language ? '%m/%d':'%d/%m';
 if (isset($user))
-	$getResults = mysql_query('SELECT r.*,c.code,DATE_FORMAT(date, "'. $dateFormat .'") AS infosDate,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.type="'. $type .'" AND best=1 ORDER BY r.time');
+	$getResults = mysql_query('SELECT r.*,c.code,DATE_FORMAT(r.date, "'. $dateFormat .'") AS infosDate,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
 else {
 	if ($creation && empty($cIDs))
 		$cIDs = array(0);
-	$getResults = mysql_query('SELECT r.*,c.code,DATE_FORMAT(date, "'. $dateFormat .'") AS infosDate FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').' AND r.best=1 ORDER BY r.time');
+	$getResults = mysql_query('SELECT r.*,c.code,DATE_FORMAT(r.date, "'. $dateFormat .'") AS infosDate FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
 }
 while ($result = mysql_fetch_array($getResults))
 	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.htmlspecialchars($result['name']).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.$result['infosDate'].'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
@@ -308,6 +315,7 @@ function addResult(id, i) {
 	var inPlace = getPlace(id,i);
 	var nPlaces = classement[id].classement.length;
 	var nScore = getScore(inPlace,nPlaces);
+	var iCircuit = classement[id].circuit_id;
 	var sPlace;
 	<?php
 	if ($language) {
@@ -372,8 +380,27 @@ function addResult(id, i) {
 	oResult.appendChild(oTemps);
 	if (!isMobile) {
 		var oDate = document.createElement("td");
-		oDate.style.fontSize = "14px";
+		oDate.className = "record-date";
+		<?php
+		if ($creation) {
+			?>
 		oDate.innerHTML = iJoueur[5];
+			<?php
+		}
+		else {
+			?>
+			var aDate = document.createElement("a");
+			aDate.href = "#null";
+			aDate.title = "<?php echo $language ? 'History':'Historique'; ?>";
+			aDate.onclick = function() {
+				window.open('recordHistory.php?pseudo='+encodeURIComponent(iJoueur[0])+'&map='+(iCircuit+1),'gerer','scrollbars=1, resizable=1, width=500, height=400');
+				return false;
+			};
+			aDate.innerHTML = iJoueur[5];
+			oDate.appendChild(aDate);
+			<?php
+		}
+		?>
 		oResult.appendChild(oDate);
 	}
 	if (sPts) {

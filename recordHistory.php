@@ -1,0 +1,119 @@
+<?php
+if (isset($_GET['pseudo']) && isset($_GET['map'])) {
+    include_once('circuitNames.php');
+    $circuitName = $circuitNames[$_GET['map']-1];
+    include('initdb.php');
+    require_once('utils-date.php');
+    include('persos.php');
+    function getSpriteSrc($playerName) {
+        if (substr($playerName, 0,3) == 'cp-')
+            return PERSOS_DIR . $playerName . ".png";
+        return "images/sprites/sprite_" . $playerName . ".png";
+    }
+    ?>
+<!DOCTYPE html>
+<html lang="<?php echo $language ? 'en':'fr'; ?>"> 
+    <head> 
+        <title><?php echo $language ? 'Time trial history of '.htmlspecialchars($_GET['pseudo']):'Historique CLM de '.htmlspecialchars($_GET['pseudo']); ?></title> 
+        <meta charset="utf-8" /> 
+        <link rel="stylesheet" type="text/css" href="styles/classement.css" />
+        <style type="text/css">
+        body {
+            background-color: #55B8FF;
+            background-image: url('../images/fond_mountains.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            margin: auto 0;
+        }
+        main {
+            width: 88%;
+            border-radius: 5px;
+            padding: 10px;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white;
+            background-color: rgba(255,255,255, 0.9);
+            min-height: 95vh;
+        }
+        h1 {
+            margin: 0;
+            color: #560000;
+            text-decoration: underline;
+        }
+        h2 {
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        main table {
+            background-color: #FC0;
+        }
+        main tr.result:nth-child(2n), main tr.result:nth-child(2n) a {
+            color: #820;
+        }
+        main tr.result:nth-child(2n+1) {
+            background-color: yellow;
+        }
+        main tr.result:nth-child(2n+1), main tr.result:nth-child(2n+1) a {
+            color: #F60;
+        }
+        main tr.result:nth-child(2n) a:hover {
+            color: #B50;
+        }
+        main tr.result:nth-child(2n+1) a:hover {
+            color: #FA0;
+        }
+        main table div {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        main table .result td {
+            width: auto;
+        }
+        </style>
+    </head> 
+    <body>
+        <main>
+            <h1><?php echo htmlspecialchars($circuitName) ?></h1>
+            <h2><?php echo $language ? 'Time trial history of '.htmlspecialchars($_GET['pseudo']):'Historique CLM de '.htmlspecialchars($_GET['pseudo']); ?></h2>
+            <?php
+            $getRecords = mysql_query('SELECT date,perso,time FROM mkrecords WHERE type="" AND circuit="'. $_GET['map'] .'" AND name="'. $_GET['pseudo'] .'" ORDER BY date DESC');
+            ?>
+            <table>
+                <tr id="titres">
+                    <td style="width:135px">Date</td>
+                    <td style="width:40px">Perso</td>
+                    <td>Temps</td>
+                </tr>
+                <?php
+                while ($record = mysql_fetch_array($getRecords)) {
+                    ?>
+                    <tr class="result">
+                        <td><?php echo to_local_tz($record['date'], $language ? 'Y-m-d H:i':'d/m/Y H:i'); ?></td>
+                        <td><div><img src="<?php echo getSpriteSrc($record['perso']); ?>" alt="<?php echo $record['perso']; ?>"></div></td>
+                        <td><?php
+                        $getTime = $record['time'];
+                        $sec = floor($getTime/1000);
+                        $mls = round($getTime-$sec*1000);
+                        $min = floor($sec/60);
+                        $sec -= $min*60;
+                        if ($sec < 10)
+                            $sec = '0'.$sec;
+                        if ($mls < 10)
+                            $mls = '00'.$mls;
+                        else if ($mls < 100)
+                            $mls = '0'.$mls;
+                        echo $min.':'.$sec.':'.$mls;
+                        ?></td>
+                    </tr>
+                    <?php
+                }
+                ?>
+            </table>
+        </main>
+    </body> 
+</html>
+    <?php
+}
+?>
