@@ -45,7 +45,7 @@ var NBCIRCUITS = 40;
 mysql_close();
 ?>
 <script type="text/javascript" src="mk/maps.old.js"></script>
-<script type="text/javascript" src="scripts/mk.v38.old.js"></script>
+<script type="text/javascript" src="scripts/mk.v41.old.js"></script>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", MarioKart);
 </script>

@@ -326,7 +326,7 @@ else {
 	listMaps = function() {
 		<?php
 		if ($isBattle)
-			echo 'var a='.($NBCIRCUITS+(IS_DS?1:17)).',n=8;';
+			echo 'var a='.($NBCIRCUITS+1).',n=8;';
 		else
 			echo 'var a=1,n='.$NBCIRCUITS.';';
 		?>
@@ -340,7 +340,7 @@ else {
 }
 ?>
 </script>
-<script type="text/javascript" src="scripts/mk.oldengine.js"></script>
+<script type="text/javascript" src="scripts/mk.v41.old.js"></script>
 <script type="text/javascript">document.addEventListener("DOMContentLoaded", MarioKart);</script>
 </head>
 <body>

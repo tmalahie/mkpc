@@ -64,6 +64,127 @@ function MarioKart() {
         aAvailableMaps.push(circuits);
         var oMap = oMaps[circuits];
         oMap.w || (oMap.w = 512), oMap.h || (oMap.h = 512), oMap.tours || (oMap.tours = 3), oMap.ref = 1 * circuits.replace("map", ""), oMap.aipoints && oMap.aipoints[0] && !Array.isArray(oMap.aipoints[0][0]) && (oMap.aipoints = [oMap.aipoints]), oMap.horspistes || (oMap.horspistes = {}, oMap.horspiste && (oMap.horspistes.herbe = oMap.horspiste, delete oMap.horspiste))
+        if (oMap.decor && oMap.decor.length===undefined) {
+            var type = undefined;
+            for (type in oMap.decor) {
+                oMap.decor = oMap.decor[type];
+                for (var j=0;j<oMap.decor.length;j++) {
+                    var donnee = oMap.decor[j];
+                    switch (type) {
+                        case 'taupe' :
+                            donnee.push(undefined,0,(j%2) ? 9:0);
+                            break;
+                        case 'poisson' :
+                            var pos1 = [3,0];
+                            var pos2 = [-1,1];
+                            donnee.push(undefined,pos1[j%2],pos2[j%2]);
+                            break;
+                        case 'plante' :
+                            donnee.push(undefined,0,(1+j*2)%8);
+                            break;
+                        case 'thwomp' :
+                        case 'spectre' :
+                            var pos1 = [10,0];
+                            var pos2 = [0,10];
+                            donnee.push(undefined,pos1[j%2],pos2[j%2]);
+                    }
+                }
+                oMap.decor.unshift(type);
+                var infosPlus = ['taupe', 'poisson', 'plante', 'thwomp', 'spectre'];
+                if (infosPlus.indexOf(type) !== -1) {
+                    oMap.infoPlus = function(scope) {
+                        var oMap = scope.map, oPlayers = scope.players;
+                        switch (oMap.decor[0]) {
+                        case 'taupe' :
+                            for (var i=1;i<oMap.decor.length;i++) {
+                                oMap.decor[i][4]++;
+                                if (oMap.decor[i][4] >= 0) {
+                                    if (oMap.decor[i][4]) {
+                                        oMap.decor[i][3] += (oMap.decor[i][4] < 4) ? 2 : -1;
+                                        if (oMap.decor[i][4] == 10) {
+                                            oMap.decor[i][4] = -20;
+                                            oMap.decor[i][3] = 10;
+                                            for (var j=0;j<oPlayers.length;j++)
+                                                oMap.decor[i][2][j].img.style.display = "none";
+                                        }
+                                    }
+                                    else {
+                                        for (var j=0;j<oPlayers.length;j++)
+                                            oMap.decor[i][2][j].img.style.display = "block";
+                                        oMap.decor[i][3] = 0;
+                                    }
+                                }
+                            }
+                            break;
+                        case 'poisson' :
+                            if (this.limite == undefined) {
+                                this.limite = new Array();
+                                for (i=1;i<oMap.decor.length;i++)
+                                    this.limite[i] = [0,0];
+                            }
+                            for (var i=1;i<oMap.decor.length;i++) {
+                                oMap.decor[i][3] += oMap.decor[i][4];
+                                if (!oMap.decor[i][3])
+                                    oMap.decor[i][4] = 1;
+                                else if (oMap.decor[i][3] == 3) {
+                                    oMap.decor[i][4] = -1;
+                                    for (j=0;j<2;j++) {
+                                        var dir = Math.floor(Math.random()*9)-4;
+                                        if (Math.abs(this.limite[i][j]+dir) > 10)
+                                            dir = -dir;
+                                        this.limite[i][j] += dir;
+                                        oMap.decor[i][j] += dir;
+                                    }
+                                }
+                            }
+                            break;
+                        case 'plante' :
+                            for (var i=1;i<oMap.decor.length;i++) {
+                                oMap.decor[i][4]++;
+                                if (oMap.decor[i][4] == 4) {
+                                    for (j=0;j<oPlayers.length;j++)
+                                        oMap.decor[i][2][j].setState(1);
+                                }
+                                else if (oMap.decor[i][4] == 8) {
+                                    for (j=0;j<oPlayers.length;j++)
+                                        oMap.decor[i][2][j].setState(0);
+                                    oMap.decor[i][4] = 0;
+                                }
+                            }
+                            break;
+                        case 'thwomp' :
+                        case 'spectre' :
+                            for (var i=1;i<oMap.decor.length;i++) {
+                                if (oMap.decor[i][4] < 0) {
+                                    oMap.decor[i][4]++;
+                                    if (!oMap.decor[i][4]) {
+                                        oMap.decor[i][4] = -1;
+                                        if (oMap.decor[i][3] < 10) oMap.decor[i][3]++;
+                                        else oMap.decor[i][4] = 20;
+                                    }
+                                }
+                                else {
+                                    if (oMap.decor[i][4])
+                                        oMap.decor[i][4]--;
+                                    else {
+                                        oMap.decor[i][3] -= 4;
+                                        if (oMap.decor[i][3] < 0) {
+                                            oMap.decor[i][3] = 0;
+                                            oMap.decor[i][4] = -15;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    };
+                }
+                break;
+            }
+            if (!type)
+                oMap.decor = ["tuyau"];
+            console.log(oMap.decor);
+        }
     }
     var iWidth = 80,
         iHeight = 39,
@@ -3932,7 +4053,7 @@ function MarioKart() {
                     s.style.left = c[0] * iScreenScale + "px", s.style.top = c[1] * iScreenScale + "px", s.style.fontSize = 3 * iScreenScale + "px", s.style.width = 29 * iScreenScale + "px"
                 }
                 s.dataset || (s.dataset = {}), s.dataset.course = r[i], s.onclick = function() {
-                    course = this.dataset.course, "CL" == course ? document.location.href = "online.php?" + (isMCups ? "mid=" + nid : (isSingle ? complete ? "i" : "id" : complete ? "cid" : "sid") + "=" + nid) : (e.style.display = "none", t.innerHTML = "", oContainers[0].removeChild(t), "VS" == course ? selectNbJoueurs() : "CH" == course ? selectChallengesScreen() : selectPlayerScreen(0))
+                    course = this.dataset.course, "CL" == course ? document.location.href = "online.old.php?" + (isMCups ? "mid=" + nid : (isSingle ? complete ? "i" : "id" : complete ? "cid" : "sid") + "=" + nid) : (e.style.display = "none", t.innerHTML = "", oContainers[0].removeChild(t), "VS" == course ? selectNbJoueurs() : "CH" == course ? selectChallengesScreen() : selectPlayerScreen(0))
                 }, t.appendChild(s)
             }(s = document.createElement("input")).type = "button", s.value = toLanguage("Back", "Retour"), s.style.fontSize = 2 * iScreenScale + "px", s.style.position = "absolute", s.style.left = 2 * iScreenScale + "px", s.style.top = 35 * iScreenScale + "px", s.onclick = function() {
                 exitCircuit()
@@ -4003,7 +4124,7 @@ function MarioKart() {
             }, r.appendChild(a)
         }
         t && ((a = document.createElement("input")).type = "button", a.value = toLanguage("Online mode", "Mode en ligne"), a.style.fontSize = 3 * iScreenScale + "px", a.style.position = "absolute", a.style.left = 26 * iScreenScale + "px", a.style.top = 30 * iScreenScale + "px", a.style.paddingTop = Math.round(.5 * iScreenScale) + "px", a.style.paddingBottom = Math.round(.5 * iScreenScale) + "px", a.onclick = function() {
-            document.location.href = "online.php?" + (complete ? "i" : "id") + "=" + nid + "&battle"
+            document.location.href = "online.old.php?" + (complete ? "i" : "id") + "=" + nid + "&battle"
         }, r.appendChild(a));
         oContainers[0].appendChild(r), !myCircuit && !hasChallenges() || nid && !isBattle || ((a = document.createElement("input")).type = "button", a.value = toLanguage("Challenges...", "Défis..."), a.style.fontSize = 2 * iScreenScale + "px", a.style.position = "absolute", a.style.right = 2 * iScreenScale + "px", a.style.top = 35 * iScreenScale + "px", a.onclick = function() {
             r.innerHTML = "", oContainers[0].removeChild(r), selectChallengesScreen()
@@ -4016,7 +4137,7 @@ function MarioKart() {
             n = a.style;
         if (n.width = iWidth * iScreenScale + "px", n.height = iHeight * iScreenScale + "px", n.border = "solid 1px black", n.backgroundColor = "black", a.appendChild(toTitle(toLanguage("Online mode", "Mode en ligne"), 2)), (e = document.createElement("input")).type = "button", e.value = toLanguage("Back", "Retour"), e.style.fontSize = 2 * iScreenScale + "px", e.style.position = "absolute", e.style.left = 2 * iScreenScale + "px", e.style.top = 35 * iScreenScale + "px", e.onclick = function() {
                 a.innerHTML = "", oContainers[0].removeChild(a), selectTypeScreen()
-            }, a.appendChild(e), (e = document.createElement("input")).type = "button", e.value = toLanguage("More options...", "Plus d'options..."), e.style.fontSize = 2 * iScreenScale + "px", e.style.position = "absolute", e.style.left = 60 * iScreenScale + "px", e.style.top = 35 * iScreenScale + "px", e.onclick = function() {
+            }, a.appendChild(e), (e = document.createElement("input")).type = "button", e.style.display = "none", e.value = toLanguage("More options...", "Plus d'options..."), e.style.fontSize = 2 * iScreenScale + "px", e.style.position = "absolute", e.style.left = 60 * iScreenScale + "px", e.style.top = 35 * iScreenScale + "px", e.onclick = function() {
                 a.innerHTML = "", oContainers[0].removeChild(a), privateGameOptions(t, function(e) {
                     e && (isCustomOptions(t = e) || (t = null)), selectOnlineScreen(t)
                 })
@@ -4032,8 +4153,8 @@ function MarioKart() {
 
     function openOnlineMode(t, e) {
         e ? xhr("onlineOptions.php", "options=" + encodeURIComponent(JSON.stringify(e)), function(e) {
-            return !!e && (document.location.href = "online.php?" + (t ? "battle&" : "") + "key=" + e, !0)
-        }) : document.location.href = "online.php" + (t ? "?battle" : "")
+            return !!e && (document.location.href = "online.old.php?" + (t ? "battle&" : "") + "key=" + e, !0)
+        }) : document.location.href = "online.old.php" + (t ? "?battle" : "")
     }
 
     function openChallengeEditor() {
