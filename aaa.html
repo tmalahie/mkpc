@@ -15,17 +15,17 @@
 	}
 	#cursors {
 		position: absolute;
-		left: 150px;
+		left: 300px;
 		top: 10px;
 	}
 	</style>
-	<script type="text/javascript" src="mk/maps.js"></script>
+	<script type="text/javascript" src="mk/maps.php"></script>
 </head>
 
 <body>
 	<div id="ctn">
 		<img id="model" alt="Map" style="display:none" />
-		<canvas width="128" height="52" id="canvas"></canvas>
+		<canvas width="256" height="104" id="canvas"></canvas>
 	</div>
 	<div id="cursors">
 		x0 : <input type="range" name="x0" id="x0" min="-200" max="100" step="1" value="-150" onchange="redrawCanvas()" /><br />
@@ -34,17 +34,17 @@
 		y1 : <input type="range" name="y1" id="y1" min="-50" max="50" step="1" value="5" onchange="redrawCanvas()" />
 	</div>
 	<script>
-	var strMap = "map41";
-	document.getElementById("model").src = "images/selectors/select_"+strMap+".png";
+	var strMap = document.location.hash.substring(1)||"map41";
 	var oMaps = listMaps();
 	var oMap = oMaps[strMap];
+	document.getElementById("model").src = "images/selectors/select_"+strMap+"."+(oMap.ext||"png");
 	var canvas = document.getElementById("canvas");
 	var canvasW = canvas.width;
 	var canvasH = canvas.height;
 	var ctx = canvas.getContext("2d");
 	ctx.fillStyle = "rgb("+ oMap.bgcolor +")";
 	var oMapImg = document.createElement("img");
-	oMapImg.src = "images/maps/"+strMap+"."+(oMap.ext||"png");
+	oMapImg.src = "images/maps/"+strMap+"."+(oMap.extd||"png");
 	function redrawCanvas() {
 		ctx.fillRect(0,0,canvasW,canvasH);
 		var imgW = oMapImg.naturalWidth;
