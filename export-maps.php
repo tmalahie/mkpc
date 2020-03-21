@@ -1,7 +1,12 @@
 <?php
+header("Access-Control-Allow-Origin: *");
 include('initdb.php');
-$baseData = json_decode(file_get_contents('mk/maps.json'), true);
-$getCircuitsData = mysql_query('SELECT * FROM circuits_data WHERE id>=1 AND id<=40');
+$allData = json_decode(file_get_contents('mk/maps.json'), true);
+$baseData = array();
+for ($i=1;$i<=56;$i++)
+	$baseData["map$i"] = $allData["map$i"];
+unset($allData);
+$getCircuitsData = mysql_query('SELECT * FROM circuits_data WHERE id>=1 AND id<=56');
 while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	$id = $circuit['id'];
 	include('getExt.php');
@@ -9,15 +14,23 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	$circuitPayload = json_decode(gzuncompress($circuit['data']));
 	$circuitMainData = $circuitPayload->main;
 	$mapData = &$baseData["map$id"];
-	/*$mapData['ext'] = $ext;
+	$mapData['ext'] = $ext;
 	if ('png' === $mapData['ext'])
 		unset($mapData['ext']);
 	$mapData['bgcolor'] = $circuitMainData->bgcolor;
 	$mapData['w'] = $w;
 	$mapData['h'] = $h;
+	if (512 === $mapData['w'])
+		unset($mapData['w']);
+	if (512 === $mapData['h'])
+		unset($mapData['h']);
 	$mapData['tours'] = $circuitMainData->tours;
+	if (3 === $mapData['tours'])
+		unset($mapData['tours']);
 	$mapData['startposition'] = array(($circuitMainData->startposition[0]+5),($circuitMainData->startposition[1]-6));
 	$mapData['startrotation'] = $circuitMainData->startrotation;
+	if (180 === $mapData['startrotation'])
+		unset($mapData['startrotation']);
 	$mapData['startdirection'] = $circuitMainData->startdirection?0:1;
 	$aipoints = $mapData['aipoints'];
 	$mapData['aipoints'] = $circuitPayload->aipoints;
@@ -33,6 +46,8 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	}
 	unset($collisionData);
 	$mapData['collision'] = $circuitPayload->collision;
+	if (empty($mapData['collision']))
+		unset($mapData['collision']);
 	foreach ($circuitPayload->horspistes as &$hpsData) {
 		foreach ($hpsData as &$hpData) {
 			if (isset($hpData[3]) && is_numeric($hpData[3])) {
@@ -44,49 +59,115 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	}
 	unset($hpsData);
 	$mapData['horspistes'] = $circuitPayload->horspistes;
+	if (empty((array)$mapData['horspistes']))
+		unset($mapData['horspistes']);
+	$allEmpty = true;
 	foreach ($circuitPayload->trous as &$trousData) {
 		foreach ($trousData as &$trouData) {
+			$allEmpty = false;
 			if (isset($trouData[0][3]) && is_numeric($trouData[0][3])) {
 				$trouData[0][2]++;
 				$trouData[0][3]++;
+				$trouData = [$trouData[0][0],$trouData[0][1],$trouData[0][2],$trouData[0][3],$trouData[1][0],$trouData[1][1]];
 			}
 		}
 		unset($trouData);
 	}
 	unset($trousData);
-	$mapData['trous'] = $circuitPayload->trous;*/
+	$mapData['trous'] = $circuitPayload->trous;
+	if ($allEmpty)
+		unset($mapData['trous']);
 	$mapData['checkpoint'] = $circuitPayload->checkpoint;
 	if (empty($mapData['horspistes'])) unset($mapData['horspistes']);
-	/*$mapData['arme'] = $circuitPayload->arme;
+	$mapData['arme'] = $circuitPayload->arme;
 	foreach ($circuitPayload->sauts as &$sautsData) {
 		$sautsData[2]++;
 		$sautsData[3]++;
 	}
 	unset($sautsData);
 	$mapData['sauts'] = $circuitPayload->sauts;
+	if (empty($mapData['sauts']))
+		unset($mapData['sauts']);
 	$mapData['accelerateurs'] = $circuitPayload->accelerateurs;
+	if (empty($mapData['accelerateurs']))
+		unset($mapData['accelerateurs']);
 	foreach ($circuitPayload->decor as $type => $value)
 		$mapData['decor'][$type] = $circuitPayload->decor->{$type};
 	switch ($id) {
-	case 41:
-		foreach ($mapData['sauts'] as &$saut)
-			$saut[4] = 4.2;
-		unset($saut);
+	case 10:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 1;
+		unset($sautsData);
+		break;
+	case 17:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 1;
+		unset($sautsData);
+		break;
+	case 24:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 0.85;
+		unset($sautsData);
+		break;
+	case 28:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 1;
+		unset($sautsData);
+		break;
+	case 30:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 1;
+		unset($sautsData);
+		break;
+	case 36:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 0.85;
+		unset($sautsData);
+		break;
+	case 38:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 2;
+		unset($sautsData);
+		break;
+	case 39:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 0.85;
+		unset($sautsData);
+		$mapData['sauts'][count($mapData['sauts'])-1][4] = 1;
 		break;
 	case 44:
 		$mapData['decor']['movingtree'] = [[308,777,null,0,[[302,762],[314,792]]],[326,985,null,0,[[342,963],[310,1007]]],[521,950,null,0,[[510,971],[548,957],[527,933],[497,937]]],[675,1144,null,0,[[684,1121],[665,1166]]]];
 		break;
 	case 45:
-		$mapData['decor']['firesnake'] = [[679,970,null,0,465],[685,1031,null,0,450],[493,327,null,0,585],[559,390,null,0,600]];
+		$mapData['decor']['firesnake'] = [[854,1070,null,0,385],[875,1077,null,0,370],[1102,1101,null,0,540],[1091,1126,null,0,505]];
+		$mapData['decor']['pokey'] = [[607,961,null,null,[17,0],[0,0.05]],[592,717,null,null,[20,10],[1,-0.04]],[618,649,null,null,[20,10],[1,-0.04]],[619,555,null,null,[17,0],[2,0.05]]];
+		break;
+	case 46:
+		$mapData['sauts'][0][4] = 1;
+		break;
+	case 51:
+		$mapData['sauts'][0][4] = 1.8;
+		$mapData['decor']['goomba'] = [[1398,954,null,0,0],[1390,1040,null,0,0],[1346,1140,null,0,0.8]];
+		$mapData['decor']['fireplant'] = [[884,1220,null,0,0.8],[804,1300,null,0,-0.8]];
+		break;
+	case 52:
+		$mapData['decor']['firebar'] = [[959,528,null,0,[[959,506,0,0],[959,550,0,0]],0,1,0],[989,528,null,0,[[989,506,0,0],[989,550,0,0]],1,1,0]];
+		break;
+	case 53:
+		$mapData['sauts'][0][4] = 2.4;
+		$mapData['sauts'][1][4] = 2.4;
 		break;
 	case 55:
-		$mapData['sauts'] = [[258,254,26,8,2.2],[248,218,8,26,1.6]];
+		$mapData['sauts'][0][4] = 1.9;
+		$mapData['sauts'][1][4] = 1.6;
 		break;
 	case 56:
 		$mapData['startposition'] = [225,642];
 		$mapData['startrotation'] = 45;
+		$mapData['sauts'][0][4] = 2.3;
+		$mapData['sauts'][1][4] = 2.3;
 		break;
-	}*/
+	}
 }
 header('Content-Type: application/json');
 echo json_encode($baseData);
