@@ -34,7 +34,7 @@ $bgImages = Array (
 	Array('yoshisky','cliff','cascade'),
 	Array('lightsky','coconut'),
 	Array('lugubrousky','moon','luigimansion'),
-	Array('desertsky','movingsun','sandhills','pyramid','sandtower'),
+	Array('desertsky','movingsun','sandhills','sandtower'),
 	Array('yoshisky','town'),
 	Array('sparkles','pinball'),
 	Array('mariosky','treehills','ridge'),
