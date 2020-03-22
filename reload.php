@@ -241,9 +241,14 @@ if ($id) {
 					echo ($i ? ',':'') .'['.$joueur['id'].',"'.$joueur['nom'].'",'.$joueur['aPts'].','.$inc.','.$joueur['team'].']';
 					$nPts = $joueur['aPts']+$inc;
 					$i++;
-					if ($finishing && ($nPts != $joueur['aPts'])) {
-						mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='.$nPts.' WHERE id='.$joueur['id']);
-						mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $joueur['id'] .','. $course .','. $i .',NULL)');
+					if ($finishing) {
+						$shouldLog = $isFriendly;
+						if ($nPts != $joueur['aPts']) {
+							mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='.$nPts.' WHERE id='.$joueur['id']);
+							$shouldLog = true;
+						}
+						if ($shouldLog)
+							mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $joueur['id'] .','. $course .','. $i .',NULL)');
 					}
 				}
 				$getTime = mysql_fetch_array(mysql_query('SELECT time FROM `mariokart` WHERE id='.$course));

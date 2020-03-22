@@ -179,9 +179,9 @@ function escapeUtf8($str) {
 	   		echo $language ? 'Online '.($isBattle?'battle':'race'):($isBattle?'Bataille':'Course') .' en ligne';
 	   	}
 	   	elseif ($isBattle)
-	   		echo $language ? 'Online battle Mario Kart PC':'Bataille en ligne Mario Kart PC';
+	   		echo $language ? 'Online battle - Old engine':'Bataille en ligne - Ancien moteur';
 	   	else
-	   		echo $language ? 'Online race Mario Kart PC':'Course en ligne Mario Kart PC';
+	   		echo $language ? 'Online race - Old engine':'Course en ligne - Ancien moteur';
 	   ?></title>
 <?php include('metas.php'); ?>
 <?php
