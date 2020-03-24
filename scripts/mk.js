@@ -132,6 +132,7 @@ resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
 var gameMenu;
+var primaryColor = isds ? "#FEFF3F":"yellow";
 
 var refreshDatas = isOnline, finishing = false;
 var destructions = new Array();
@@ -381,9 +382,6 @@ function playMusicSmoothly(src,delay) {
 		oMusicEmbed.setAttribute("autoplay", true);
 	document.body.appendChild(oMusicEmbed);
 }
-function playMusicRoughly(src) {
-	playMusicSmoothly(src,0);
-}
 
 var objets;
 if (isOnline && isBattle) {
@@ -467,7 +465,7 @@ var oPlanDiv,oPlanDiv2, oPlanCtn,oPlanCtn2, oPlanImg,oPlanImg2;
 
 var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oExpWidth;
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oExpWidth2;
-var oTeamRatio, oCharRatio, oPlanRatio;
+var oCharRatio, oPlanRatio;
 var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanDecor = {}, oPlanAssets = {},
 	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(),
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(),
@@ -3167,7 +3165,7 @@ function classement() {
 		oTeamTable.style.left = (iScreenScale*3 + 10) +"px";
 		oTeamTable.style.top = (iScreenScale*10) +"px";
 		oTeamTable.style.backgroundColor = "blue";
-		oTeamTable.style.color = "yellow";
+		oTeamTable.style.color = primaryColor;
 		oTeamTable.style.opacity = 0.7;
 		oTeamTable.style.textAlign = "center";
 		oTeamTable.style.fontSize = Math.round(iScreenScale*1.5+4) +"pt";
@@ -4678,10 +4676,8 @@ var decorBehaviors = {
 		unbreaking:true,
 		preinit:function(decorsData) {
 			oMap.decor.fireball = new Array();
-			for (var i=0;i<oMap.decor.fireplant.length;i++) {
-				var oPlant = oMap.decor.fireplant[i];
+			for (var i=0;i<oMap.decor.fireplant.length;i++)
 				oMap.decor.fireball.push([-10,-10]);
-			}
 		},
 		init:function(decorData,i) {
 			for (var j=0;j<strPlayer.length;j++) {
@@ -4980,7 +4976,7 @@ var decorBehaviors = {
 			decorData[3] = 3;
 			decorData[4] = 90;
 			if (decorData[5] == undefined)
-				decorData[5] = 1+i*20;
+				decorData[5] = 1+i*25;
 			decorData[6] = [decorData[0],decorData[1],decorData[3]];
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].w = 80;
@@ -5021,7 +5017,7 @@ var decorBehaviors = {
 					decorData[2][j].img.style.opacity = opacity;
 			}
 			else {
-				decorData[1] += 5;
+				decorData[1] += 4;
 				if (decorData[1]-decorData[6][1] > 460)
 					decorData[5] = -1;
 			}
@@ -5248,7 +5244,6 @@ var decorBehaviors = {
 		bonus:true
 	},
 	snowman:{
-		breaking:true,
 		spin: 42
 	},
 	snowball:{
@@ -5256,6 +5251,7 @@ var decorBehaviors = {
 		spin: 42,
 		unbreaking:true,
 		movable:true,
+		dodgable:true,
 		init:function(decorData) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 3;
@@ -8447,7 +8443,7 @@ function resetDatas() {
 							infos0.style.top = iScreenScale * 3 +"px";
 							infos0.style.left = Math.round(iScreenScale*25+10) +"px";
 							infos0.style.backgroundColor = iTeamPlay ? "blue":"#063";
-							infos0.style.color = "yellow";
+							infos0.style.color = primaryColor;
 							var oTrs = new Array();
 							var oTds = new Array();
 							for (i=0;i<rCode[3].length;i++) {
@@ -9376,7 +9372,7 @@ function move(getId) {
 								document.getElementById("infos0").style.top = iScreenScale * 3 +"px";
 								document.getElementById("infos0").style.left = Math.round(iScreenScale*24+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 								document.getElementById("infos0").style.backgroundColor = iTeamPlay ? "blue":"#063";
-								document.getElementById("infos0").style.color = "yellow";
+								document.getElementById("infos0").style.color = primaryColor;
 								document.getElementById("infos0").innerHTML = positions;
 								var oContinue = document.createElement("input");
 								oContinue.type = "button";
@@ -9672,7 +9668,7 @@ function move(getId) {
 				document.getElementById("infos0").style.top = iScreenScale * 3 +"px";
 				document.getElementById("infos0").style.left = Math.round(iScreenScale*24+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 				document.getElementById("infos0").style.backgroundColor = iTeamPlay ? "blue":"#063";
-				document.getElementById("infos0").style.color = "yellow";
+				document.getElementById("infos0").style.color = primaryColor;
 				document.getElementById("infos0").innerHTML = positions;
 				var oContinue = document.createElement("input");
 				oContinue.type = "button";
@@ -11269,13 +11265,25 @@ function selectTypeScreen() {
 	oStyle.backgroundColor = "black";
 
 	var oTitle = new Image();
-	oTitle.src = "images/mariokart.gif";
-	oTitle.style.position = "absolute";
-	oTitle.style.width = (39*iScreenScale)+"px";
-	oTitle.style.height = (10*iScreenScale)+"px";
-	oTitle.style.left = ((iWidth-39)/2*iScreenScale)+"px";
-	oTitle.style.top = iScreenScale+"px";
+	if (isds) {
+		oTitle.src = "images/mariokart.png";
+		oTitle.style.position = "absolute";
+		oTitle.style.width = Math.round(42.5*iScreenScale)+"px";
+		oTitle.style.height = (5*iScreenScale)+"px";
+		oTitle.style.left = Math.round((iWidth-42.5)/2*iScreenScale)+"px";
+		oTitle.style.top = (iScreenScale*2)+"px";
+	}
+	else {
+		oTitle.src = "images/mariokart.gif";
+		oTitle.style.position = "absolute";
+		oTitle.style.width = (39*iScreenScale)+"px";
+		oTitle.style.height = (10*iScreenScale)+"px";
+		oTitle.style.left = ((iWidth-39)/2*iScreenScale)+"px";
+		oTitle.style.top = iScreenScale+"px";
+	}
 	oScr.appendChild(oTitle);
+
+	var oButtonsTop = isds ? 11:13;
 
 	var oStyle = oScr.style;
 
@@ -11292,7 +11300,7 @@ function selectTypeScreen() {
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (10*iScreenScale)+"px";
-		oPInput.style.top = (14*iScreenScale)+"px";
+		oPInput.style.top = (oButtonsTop*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 
 		oPInput.onclick = function() {
@@ -11310,7 +11318,7 @@ function selectTypeScreen() {
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (40*iScreenScale)+"px";
-		oPInput.style.top = (14*iScreenScale)+"px";
+		oPInput.style.top = (oButtonsTop*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
 			course = "CM";
@@ -11328,7 +11336,7 @@ function selectTypeScreen() {
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = "0px";
-		oPInput.style.top = (21*iScreenScale)+"px";
+		oPInput.style.top = ((oButtonsTop+8)*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 
 		oPInput.onclick = function() {
@@ -11346,7 +11354,7 @@ function selectTypeScreen() {
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (50*iScreenScale)+"px";
-		oPInput.style.top = (21*iScreenScale)+"px";
+		oPInput.style.top = ((oButtonsTop+8)*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
 			course = "BB";
@@ -11363,7 +11371,7 @@ function selectTypeScreen() {
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (10*iScreenScale)+"px";
-		oPInput.style.top = (29*iScreenScale)+"px";
+		oPInput.style.top = ((oButtonsTop+16)*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
 			FBRoot.style.display = "none";
@@ -11379,7 +11387,7 @@ function selectTypeScreen() {
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (40*iScreenScale)+"px";
-		oPInput.style.top = (29*iScreenScale)+"px";
+		oPInput.style.top = ((oButtonsTop+16)*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
 			course = "VS";
@@ -11549,11 +11557,11 @@ function selectTypeScreen() {
 	oFrench.style.height = Math.round(8*iScreenScale/3)+"px";
 	
 	var oSelected = language ? oEnglish:oFrench, oButton = language ? oFrench:oEnglish;
-	oSelected.style.border = "solid 1px yellow";
+	oSelected.style.border = "solid 1px "+ primaryColor;
 	oButton.style.border = "solid 1px transparent";
 	oButton.style.cursor = "pointer";
 	oButton.onmouseover = function() {
-		oButton.style.border = "solid 1px yellow";
+		oButton.style.border = "solid 1px "+ primaryColor;
 	}
 	oButton.onmouseout = function() {
 		oButton.style.border = "solid 1px transparent";
@@ -16137,7 +16145,7 @@ function toTitle(text, top) {
 	oTitle.style.left = "0px";
 	oTitle.style.top = Math.round(top*iScreenScale)+"px";
 	oTitle.style.textAlign = "center";
-	oTitle.style.color = "yellow";
+	oTitle.style.color = primaryColor;
 	oTitle.innerHTML = text;
 	oTitle.style.fontFamily = "Tahoma";
 	return oTitle;
