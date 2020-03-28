@@ -11283,8 +11283,6 @@ function selectTypeScreen() {
 	}
 	oScr.appendChild(oTitle);
 
-	var oButtonsTop = isds ? 11:13;
-
 	var oStyle = oScr.style;
 
 	oStyle.width = (iWidth*iScreenScale)+"px";
@@ -11294,6 +11292,8 @@ function selectTypeScreen() {
 	oContainers[0].appendChild(oScr);
 
 	if (page == "MK") {
+		var oButtonsTop = isds ? 11:13;
+
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
 		oPInput.value = "Grand Prix";
@@ -11411,6 +11411,8 @@ function selectTypeScreen() {
 		oScr.appendChild(oPInput);
 	}
 	else {
+		var oButtonsTop = isds ? 12:14;
+
 		var oModes = [toLanguage("VS", "Course VS")];
 		var oModeIds = ["VS"];
 		if (!isSingle) {
@@ -11437,11 +11439,11 @@ function selectTypeScreen() {
 			oCup.style.position = "absolute"
 			if (oModes.length < 5) {
 				oCup.style.left = (3*iScreenScale)+"px";
-				oCup.style.top = Math.round(18*iScreenScale)+"px";
+				oCup.style.top = Math.round((oButtonsTop+4)*iScreenScale)+"px";
 			}
 			else {
 				oCup.style.left = (5*iScreenScale)+"px";
-				oCup.style.top = Math.round(14*iScreenScale)+"px";
+				oCup.style.top = Math.round(oButtonsTop*iScreenScale)+"px";
 			}
 			oCup.className = "pixelated";
 			oScr.appendChild(oCup);
@@ -11453,19 +11455,21 @@ function selectTypeScreen() {
 			oPInput.value = oModes[i];
 			oPInput.style.position = "absolute";
 			if (oModes.length < 4) {
+				if (isds) oTitle.style.top = (iScreenScale*3)+"px";
 				oPInput.style.left = (20*iScreenScale)+"px";
-				oPInput.style.top = Math.round((14+i*6.5)*iScreenScale)+"px";
+				oPInput.style.top = Math.round((oButtonsTop+i*6.5)*iScreenScale)+"px";
 				oPInput.style.width = (38*iScreenScale)+"px";
 				oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
 			}
 			else if (oModes.length == 4) {
+				if (isds) oTitle.style.top = (iScreenScale*4)+"px";
 				oPInput.style.left = ((8+(i%2)*36)*iScreenScale)+"px";
-				oPInput.style.top = ((18+Math.floor(i/2)*8)*iScreenScale)+"px";
+				oPInput.style.top = ((oButtonsTop+4+Math.floor(i/2)*8)*iScreenScale)+"px";
 				oPInput.style.width = (28*iScreenScale)+"px";
 				oPInput.style.fontSize = (3*iScreenScale)+"px";
 			}
 			else {
-				var buttonsPos = [[10,14],[40,14],[25,21],[10,29],[40,29]];
+				var buttonsPos = [[10,oButtonsTop-1],[40,oButtonsTop-1],[25,oButtonsTop+7],[10,oButtonsTop+15],[40,oButtonsTop+15]];
 				var buttonPos = buttonsPos[i];
 				oPInput.style.left = (buttonPos[0]*iScreenScale)+"px";
 				oPInput.style.top = (buttonPos[1]*iScreenScale)+"px";
