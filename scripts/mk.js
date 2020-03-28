@@ -5,6 +5,7 @@ var formulaire;
 var baseCp;
 var nBasePersos, customPersos;
 var selectedDifficulty;
+var updateCtnFullScreen;
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
@@ -157,8 +158,6 @@ var myCircuit = (document.getElementById("changeRace") != null);
 
 
 function setQuality(iValue) {
-	if (bCounting) return;
-
 	iRendering = iValue;
 	resetQuality();
 	
@@ -180,17 +179,150 @@ function resetQuality() {
 	}
 }
 
-function setScreenScale(iValue) {
-	if (bCounting) return;
+function openFullscreen(elem) {
+	if (elem.requestFullscreen) {
+		return elem.requestFullscreen();
+	} else if (elem.mozRequestFullScreen) { /* Firefox */
+		return elem.mozRequestFullScreen();
+	} else if (elem.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+		return elem.webkitRequestFullscreen();
+	} else if (elem.msRequestFullscreen) { /* IE/Edge */
+		return elem.msRequestFullscreen();
+	}
+}
+
+var $mkScreen = document.getElementById("mariokartcontainer");
+if (!$mkScreen.dataset) $mkScreen.dataset = {};
+updateCtnFullScreen = function(isFullScreen) {
+	$mkScreen.dataset.fs = isFullScreen ? 1:"";
+	if (isFullScreen) {
+		var eRatio = Math.min(screen.width/(iWidth*iScreenScale),screen.height/(iHeight*iScreenScale));
+		var eRatioP = Math.round(eRatio*100);
+		var sWidth = $mkScreen.scrollWidth;
+		var sZoom = $mkScreen.style.zoom;
+		$mkScreen.style.zoom = eRatioP +"%";
+		if ((sWidth != $mkScreen.scrollWidth) || (sZoom == $mkScreen.style.zoom) || (eRatioP == 100)) {
+			for (var i=0;i<oContainers.length;i++) {
+				oContainers[i].style.left = Math.round((screen.width/eRatio-iScreenScale*iWidth)/2 + i*(iWidth*iScreenScale+2)) +"px";
+				oContainers[i].style.top = Math.round((screen.height/eRatio-iScreenScale*iHeight)/2) +"px";
+			}
+			updateHudFullScreen();
+		}
+		else  {
+			$mkScreen.style.zoom = "";
+			if (!formulaire || !formulaire.screenscale.disabled) {
+				var eWidth = window.innerWidth-20, eHeight = window.innerHeight-20;
+				var eRatio = Math.round(Math.min(eWidth/iWidth,eHeight/iHeight));
+				$mkScreen.dataset.fakefs = 1;
+				for (var i=0;i<oContainers.length;i++) {
+					oContainers[i].style.left = Math.round((window.innerWidth-eRatio*iWidth)/2 + i*(iWidth*iScreenScale+2)) +"px";
+					oContainers[i].style.top = Math.round((window.innerHeight-eRatio*iHeight)/2) +"px";
+				}
+				updateHudFullScreen();
+				if (!$mkScreen.dataset.lastsc)
+					$mkScreen.dataset.lastsc = iScreenScale;
+				setScreenScale(eRatio, true);
+				if (!window.nsevent) {
+					window.nsevent = function(e) {
+						if (e.keyCode == 27) {
+							e.preventDefault();
+							updateCtnFullScreen(false);
+						}
+					}
+					window.addEventListener("keydown", window.nsevent);
+				}
+			}
+		}
+		$mkScreen.className = "fullscreen";
+	}
+	else {
+		if ($mkScreen.dataset.fakefs && formulaire && formulaire.screenscale.disabled)
+			return;
+		$mkScreen.style.zoom = "";
+		$mkScreen.className = "";
+		if ($mkScreen.dataset.fakefs) {
+			setScreenScale(+$mkScreen.dataset.lastsc, true);
+			$mkScreen.dataset.lastsc = "";
+			$mkScreen.dataset.fakefs = "";
+			if (window.nsevent) {
+				window.removeEventListener("keydown", window.nsevent);
+				delete window.nsevent;
+			}
+		}
+		for (var i=0;i<oContainers.length;i++) {
+			oContainers[i].style.left = (10 + i*(iWidth*iScreenScale+2)) +"px";
+			oContainers[i].style.top = "";
+		}
+		updateHudFullScreen();
+	}
+}
+var hudScreens = new Array();
+function updateHudFullScreen() {
+	for (var i=0;i<hudScreens.length;i++) {
+		hudScreens[i].style.left = oContainers[i].style.left;
+		hudScreens[i].style.top = oContainers[i].style.top;
+	}
+}
+function removeHUD() {
+	for (var i=0;i<hudScreens.length;i++)
+		$mkScreen.removeChild(hudScreens[i]);
+	hudScreens.length = 0;
+}
+
+function setScreenScale(iValue, triggered) {
+	if (iValue === iScreenScale) return;
 
 	var aScreenScale = iScreenScale;
-	iScreenScale = iValue;
+
+	if (iValue == -1) {
+		formulaire.screenscale.value = aScreenScale;
+		var p = openFullscreen($mkScreen);
+		if (p.then && p.catch) {
+			p.then(function() {
+				updateCtnFullScreen(true);
+				document.onfullscreenchange = function() {
+					updateCtnFullScreen(document.fullscreenElement === $mkScreen);
+				}
+			}).catch(function() {
+				updateCtnFullScreen(true);
+			});
+		}
+		else
+			updateCtnFullScreen(true);
+		/*if (p.catch) {
+			p.catch(function() {
+				document.onfullscreenchange();
+				formulaire.screenscale.value = -1;
+				var eWidth = window.innerWidth-20, eHeight = window.innerHeight-20;
+				var eRatio = Math.round(Math.min(eWidth/iWidth,eHeight/iHeight));
+				setScreenScale(eRatio, true);
+				formulaire.screenscale.dataset.value = eRatio;
+				$mkScreen.className = "fullscreen";
+				function resetFS(e) {
+					if (e.keyCode == 27) {
+						if (!formulaire.screenscale.disabled) {
+							formulaire.screenscale.value = aScreenScale;
+							formulaire.screenscale.onchange();
+							$mkScreen.className = "";
+							window.removeEventListener("keydown", resetFS);
+						}
+					}
+				}
+				window.addEventListener("keydown", resetFS);
+			});
+		}*/
+		return;
+	}
+	else {
+		iScreenScale = iValue;
+		if (!triggered) {
+			xhr("changeParam.php", "param=1&value="+ iValue, function(reponse) {
+				return (reponse == 1);
+			});
+		}
+	}
 	if (bRunning)
 		resetScreen();
-		
-	xhr("changeParam.php", "param=1&value="+ iValue, function(reponse) {
-		return (reponse == 1);
-	});
 
 	for (var i=0;i<oContainers.length;i++) {
 		var oScr = oContainers[i].firstChild;
@@ -208,6 +340,7 @@ function setScreenScale(iValue) {
 	}
 
 	reposKeyboard();
+	setSRest();
 }
 
 function reposKeyboard() {
@@ -796,6 +929,8 @@ function loadMap() {
 		}
 	}
 	
+	if (strPlayer.length > 1)
+		updateCtnFullScreen(false);
 	formulaire.screenscale.disabled = true;
 	formulaire.quality.disabled = true;
 	formulaire.music.disabled = true;
@@ -807,48 +942,92 @@ function loadMap() {
 	document.body.style.cursor = "progress";
 	for (var i=0;i<strPlayer.length;i++) {
 		var	iScreenMore = i*(iWidth*iScreenScale+2);
+
+		var hudScreen = document.createElement("div");
+		hudScreen.style.position = "absolute";
+		hudScreen.style.left = oContainers[i].style.left;
+		hudScreen.style.top = oContainers[i].style.top;
+		hudScreen.style.width = iWidth*iScreenScale +"px";
+		hudScreen.style.height = iHeight*iScreenScale +"px";
+
+		var oTemps = document.createElement("div");
+		oTemps.id = "temps"+i;
+		oTemps.style.right = Math.round(iScreenScale/2) +"px";
+		oTemps.style.top = Math.round(iScreenScale/3) +"px";
+		oTemps.style.fontSize = iScreenScale * 2 +"pt";
+		hudScreen.appendChild(oTemps);
+
+		var oCompteur = document.createElement("div");
+		oCompteur.id = "compteur"+i;
+		oCompteur.style.left = Math.round(iScreenScale/3) +"px";
+		oCompteur.style.bottom = Math.round(-iScreenScale/4) +"px";
+		oCompteur.style.fontSize = iScreenScale * 2+"pt";
+		if (!pause || !fInfos.replay)
+			oCompteur.innerHTML = (course != "BB") ? (oMap.sections ? "Section":toLanguage("Lap","Tour")) + ' <span id="tour'+i+'">1</span>/'+ oMap.tours : '&nbsp;<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" />';
+		hudScreen.appendChild(oCompteur);
+
+		var oDrift = document.createElement("div");
+		oDrift.id = "drift"+i;
+		var oDriftImg = document.createElement("img");
+		oDriftImg.alt = ".";
+		oDriftImg.src = "images/drift.png";
+		oDriftImg.className = "driftimg pixelated";
+		oDrift.appendChild(oDriftImg);
+		hudScreen.appendChild(oDrift);
+
+		var oObjet = document.createElement("table");
+		oObjet.id = "objet"+i;
+		oObjet.setAttribute("border", 1);
+		oObjet.setAttribute("cellpadding", 0);
+		oObjet.setAttribute("cellspacing", 0);
+		oObjet.innerHTML = '<tr><td id="roulette'+i+'" valign="middle"></td></tr>';
 		if (!pause || !fInfos.replay) {
-			document.getElementById("compteur"+i).style.left = (15 + iScreenMore) + "px";
-			document.getElementById("compteur"+i).style.top = iScreenScale * 36 + 8 +"px";
-			document.getElementById("compteur"+i).style.fontSize = iScreenScale * 2+"pt";
-			document.getElementById("compteur"+i).innerHTML = (course != "BB") ? (oMap.sections ? "Section":toLanguage("Lap","Tour")) + ' <span id="tour'+i+'">1</span>/'+ oMap.tours : '&nbsp;<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" />';
-			document.getElementById("objet"+i).style.left = (iScreenMore+14) +"px";
-			document.getElementById("objet"+i).style.width = iScreenScale * 9 +"px";
-			document.getElementById("objet"+i).style.height = iScreenScale * 8 +"px";
-			document.getElementById("objet"+i).style.visibility = "visible";
+			oObjet.style.left = Math.round(iScreenScale/3) +"px";
+			oObjet.style.top = Math.round(iScreenScale/3) +"px";
+			oObjet.style.width = iScreenScale * 9 +"px";
+			oObjet.style.height = iScreenScale * 8 +"px";
+			oObjet.style.visibility = "visible";
 		}
-		document.getElementById("temps"+i).style.left = (56*iScreenScale + iScreenMore) +"px";
-		document.getElementById("temps"+i).style.fontSize = iScreenScale * 2 +"pt";
-		var lakitu = document.getElementById("lakitu"+i);
-		if (lakitu) {
-			lakitu.style.width = iScreenScale * 9 +"px";
-			lakitu.style.height = Math.round(iScreenScale*6.6) +"px";
-			lakitu.style.fontSize = Math.round(iScreenScale*2.3) +"px";
-		}
-		getDriftImg(i).style.width = iScreenScale * 8 +"px";
-		document.getElementById("drift"+i).style.left = (iScreenScale * 36 + 12 + iScreenMore) +"px";
-		document.getElementById("drift"+i).style.top = Math.round(iScreenScale*32 + 10) +"px";
-		getDriftImg(i).style.left = "0px";
-		getDriftImg(i).style.top = "0px";
+		hudScreen.appendChild(oObjet);
+
+		var lakitu = document.createElement("div");
+		lakitu.id = "lakitu"+i;
+		lakitu.className = "pixelated";
+		lakitu.innerHTML = "<div></div>";
+		lakitu.style.width = iScreenScale * 9 +"px";
+		lakitu.style.height = Math.round(iScreenScale*6.6) +"px";
+		lakitu.style.fontSize = Math.round(iScreenScale*2.3) +"px";
+		hudScreen.appendChild(lakitu);
+		oDriftImg.style.width = iScreenScale * 8 +"px";
+		oDrift.style.left = (iScreenScale * 36) +"px";
+		oDrift.style.top = Math.round(iScreenScale*32) +"px";
+		oDriftImg.style.left = "0px";
+		oDriftImg.style.top = "0px";
+		var infoPlace = document.createElement("div");
+		infoPlace.id = "infoPlace"+i;
+		infoPlace.style.right = Math.round(iScreenScale/3) +"px";
+		infoPlace.style.bottom = Math.round(-iScreenScale*3) +"px";
+		infoPlace.style.fontSize = iScreenScale * 10 +"pt";
+		hudScreen.appendChild(infoPlace);
 		document.getElementById("infos"+i).style.left = (10+35*iScreenScale + iScreenMore) +"px";
 		document.getElementById("infos"+i).style.top = 10 + 8 * iScreenScale +"px";
 		document.getElementById("infos"+i).style.fontSize = iScreenScale * 10 +"pt";
 		document.getElementById("infos"+i).innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
-		document.getElementById("infoPlace"+i).style.left = (iScreenScale*58+10 + iScreenMore) +"px";
-		document.getElementById("infoPlace"+i).style.top = iScreenScale * 24 + 10 +"px";
-		document.getElementById("infoPlace"+i).style.width = (iScreenScale*22) +"px";
-		document.getElementById("infoPlace"+i).style.fontSize = iScreenScale * 10 +"pt";
-		document.getElementById("scroller"+i).style.width = iScreenScale * 8 +"px";
-		document.getElementById("scroller"+i).style.height = iScreenScale * 7 +"px";
-		document.getElementById("scroller"+i).style.lineHeight = iScreenScale +"px";
-		document.getElementById("scroller"+i).setAttribute("width", iScreenScale * 8 +"px");
-		document.getElementById("scroller"+i).setAttribute("height", iScreenScale * 7 +"px");
-		document.getElementById("scroller"+i).style.top = Math.round(13+iScreenScale*0.2)+"px";
-		document.getElementById("scroller"+i).style.left = Math.round(14+iScreenScale*0.5 + iScreenMore)+"px";
-		document.getElementById("scroller"+i).getElementsByTagName("div")[0].style.left = Math.round(iScreenScale*0.1 + 1) +"px";
-		document.getElementById("mariokartcontainer").style.top = iScreenScale * 31 + 10 +"px";
+		var oScroller = document.getElementById("scroller").cloneNode(true);
+		oScroller.id = "scroller"+i;
+		oScroller.style.width = iScreenScale * 8 +"px";
+		oScroller.style.height = iScreenScale * 7 +"px";
+		oScroller.style.lineHeight = iScreenScale +"px";
+		oScroller.setAttribute("width", iScreenScale * 8 +"px");
+		oScroller.setAttribute("height", iScreenScale * 7 +"px");
+		oScroller.style.top = Math.round(3+iScreenScale*0.2)+"px";
+		oScroller.style.left = Math.round(4+iScreenScale*0.5)+"px";
+		oScroller.getElementsByTagName("div")[0].style.left = Math.round(iScreenScale*0.1 + 1) +"px";
+		hudScreen.appendChild(oScroller);
 
-		var lObjet = iScreenScale * 8 - 3;
+		$mkScreen.appendChild(hudScreen);
+
+		hudScreens[i] = hudScreen;
 	}
 	initMap();
 
@@ -1105,7 +1284,7 @@ function arme(ID, backwards) {
 			}
 			if (iSfx && !finishing && !oKart.cpu)
 				playSoundEffect("musics/events/lightning.mp3");
-			document.getElementById("mariokartcontainer").style.opacity = 0.7;
+			$mkScreen.style.opacity = 0.7;
 			break;
 
 			case "banane" :
@@ -2266,7 +2445,7 @@ function startGame() {
 						for (var i=0;i<strPlayer.length;i++) {
 							oContainers[i].removeChild(oCounts[i][0]);
 							if (stillRacing||i)
-								document.getElementById("infos"+i).style.visibility = "hidden";
+								document.getElementById("infos"+i).style.display = "none";
 						}
 						if (stillRacing) {
 							document.getElementById("infos0").style.top = iScreenScale * 7 + 10 +"px";
@@ -2311,10 +2490,8 @@ function startGame() {
 								document.getElementById("recommencer").onclick = function() {
 									pause = true;
 									removeGameMusics();
-									oContainers[0].innerHTML = "";
-									document.getElementById("compteur0").innerHTML = "";
-									document.getElementById("temps0").innerHTML = "";
-									document.getElementById("objet0").style.visibility = "hidden";
+									removeHUD();
+									$mkScreen.removeChild(oContainers[0]);
 									fInfos = {
 										player:strPlayer,
 										map:oMap.ref,
@@ -2324,12 +2501,7 @@ function startGame() {
 										my_record:gRecord,
 										lap_times:iLapTimes
 									};
-									document.getElementById("infos0").style.visibility = "hidden";
-									document.getElementById("infos0").style.opacity = 0.8;
-									document.getElementById("infos0").style.color = "#FF9900";
-									document.getElementById("infos0").style.fontFamily = "";
-									document.getElementById("lakitu0").style.display = "none";
-									document.getElementById("drift0").style.display = "none";
+									document.getElementById("infos0").style.display = "none";
 									if (strPlayer.length == 1)
 										removePlan();
 									oBgLayers.length = 0;
@@ -2343,20 +2515,13 @@ function startGame() {
 								document.getElementById("changecircuit").onclick = function() {
 									pause = true;
 									removeGameMusics();
-									oContainers[0].innerHTML = "";
-									document.getElementById("compteur0").innerHTML = "";
-									document.getElementById("temps0").innerHTML = "";
-									document.getElementById("objet0").style.visibility = "hidden";
+									removeHUD();
+									$mkScreen.removeChild(oContainers[0]);
 									fInfos = {
 										player:strPlayer,
 										perso:new Array()
 									};
-									document.getElementById("infos0").style.visibility = "hidden";
-									document.getElementById("infos0").style.opacity = 0.8;
-									document.getElementById("infos0").style.color = "#FF9900";
-									document.getElementById("infos0").style.fontFamily = "";
-									document.getElementById("lakitu0").style.display = "none";
-									document.getElementById("drift0").style.display = "none";
+									document.getElementById("infos0").style.display = "none";
 									if (strPlayer.length == 1)
 										removePlan();
 									oBgLayers.length = 0;
@@ -2459,7 +2624,7 @@ function startGame() {
 								if (isOnline) break;
 								if (!pause) {
 									if (!bCounting) {
-										document.getElementById("infos0").style.visibility = "visible";
+										document.getElementById("infos0").style.display = "";
 										pause = true;
 										pauseSounds();
 										var retryButton = document.getElementById("recommencer");
@@ -2566,7 +2731,7 @@ function startGame() {
 								else if (!oPlayers[1].jumped && !oPlayers[1].ctrled && !oPlayers[1].fell && !oPlayers[1].billball && !oPlayers[1].tourne && !oPlayers[1].figuring && !oPlayers[1].figstate && !oPlayers[1].driftinc)
 									stuntKart(oPlayers[1]);
 								return false;
-							case "rear_p2":
+							case "balloon_p2":
 								if (pause) return;
 								if (!oPlayers[1]) return;
 								if (course == "BB") {
@@ -2843,7 +3008,7 @@ function startGame() {
 								if (oKart.driftinc) {
 									if (!i) {
 										if (getFlags[1])
-											document.getElementById("drift"+i).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[i].h-32)*fSpriteScale*0.15 + 10) + "px";
+											document.getElementById("drift"+i).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[i].h-32)*fSpriteScale*0.15) + "px";
 										else
 											stopDrifting_();
 									}
@@ -2876,7 +3041,7 @@ function startGame() {
 						//	aKarts[0].changeView = Math.floor(Math.random()*21)*(360/21);
 
 						moveDecor();
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;stopDrifting_();stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.visibility="visible";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},67);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;stopDrifting_();stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},67);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++)
@@ -2892,7 +3057,7 @@ function startGame() {
 					document.onkeyup = function(e) {
 						var gameAction = gameControls[e.keyCode];
 						if (gameAction == "pause" && !bCounting) {
-							document.getElementById("infos0").style.visibility = (document.getElementById("infos0").style.visibility == "hidden") ? "visible" : "hidden";
+							document.getElementById("infos0").style.display = (document.getElementById("infos0").style.display == "none") ? "" : "none";
 							var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];
 							if (firstButton)
 								firstButton.focus();
@@ -2907,7 +3072,7 @@ function startGame() {
 		}
 		else {
 			for (var i=0;i<strPlayer.length;i++)
-				document.getElementById("infos"+i).style.visibility = "visible";
+				document.getElementById("infos"+i).style.display = "";
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
@@ -2977,17 +3142,31 @@ var fLineScale = 0;
 
 // setup main container
 var oContainers = [document.createElement("div")];
+oContainers[0].className = "game-container";
 oContainers[0].tabindex = 1;
-oContainers[0].style.position = "absolute";
-oContainers[0].style.border = "2px solid black";
-oContainers[0].style.left = "10px";
-oContainers[0].style.overflow = "hidden";
+formulaire = null;
+updateCtnFullScreen($mkScreen.dataset.fs==1);
 
-document.getElementById("mariokartcontainer").appendChild(oContainers[0]);
+(function() {
+	for (var i=0;i<2;i++) {
+		var oInfos = document.getElementById("infos"+i);
+		if (oInfos)
+			$mkScreen.removeChild(oInfos);
+	}
+	var oInfos = document.createElement("table");
+	oInfos.id = "infos0";
+	oInfos.setAttribute("cellspacing", 1);
+	oInfos.setAttribute("cellpadding", 0);
+	oInfos.style.display = "none";
+	$mkScreen.appendChild(oInfos);
+})();
+
+
+$mkScreen.appendChild(oContainers[0]);
 if (pause && fInfos.player[1]) {
 	oContainers[1] = oContainers[0].cloneNode(false);
-	oContainers[1].style.left = (10+iWidth*iScreenScale)+"px";
-	document.getElementById("mariokartcontainer").appendChild(oContainers[1]);
+	oContainers[1].style.left = (12+iWidth*iScreenScale)+"px";
+	$mkScreen.appendChild(oContainers[1]);
 }
 
 // setup screen canvas for render mode 0.
@@ -2999,7 +3178,6 @@ var aStrips = new Array();
 var iCamHeight = 24;
 var iCamDist = 32;
 var iViewHeight = -10;
-var iViewDist = 0;
 var fFocal = 1 / Math.tan(Math.PI*Math.PI / 360);
 
 function resetScreen() {
@@ -3014,7 +3192,6 @@ function resetScreen() {
 		var oCtrChange = oContainers[i];
 		oCtrChange.style.width = (iWidth*iScreenScale)+"px";
 		oCtrChange.style.height = (iHeight*iScreenScale)+"px";
-		oCtrChange.style.left = (10+iWidth*iScreenScale*i)+"px";
 
 		var oScreenCanvas = document.createElement("canvas");
 		oScreenCanvas.style.position = "absolute";
@@ -3065,7 +3242,7 @@ function reprendre(debug) {
 	setTimeout(function(){if(pause){pause=false;cycle()}}, 67);
 	if (debug) {
 		unpauseSounds();
-		document.getElementById("infos0").style.visibility = "hidden";
+		document.getElementById("infos0").style.display = "none";
 	}
 }
 
@@ -3077,23 +3254,12 @@ function quitter() {
 	pause = true;
 	displayCommands("&nbsp;");
 	removeGameMusics();
+	removeHUD();
 	for (var i=0;i<strPlayer.length;i++) {
-		oContainers[i].innerHTML = "";
-		document.getElementById("infos"+i).style.visibility = "hidden";
-		document.getElementById("infoPlace"+i).style.display = "none";
-		document.getElementById("infoPlace"+i).innerHTML = "";
-		document.getElementById("compteur"+i).innerHTML = "";
-		document.getElementById("temps"+i).innerHTML = "";
-		document.getElementById("objet"+i).style.visibility = "hidden";
-		document.getElementById("roulette"+i).innerHTML = "";
-		var lakitu = document.getElementById("lakitu"+i);
-		if (lakitu) lakitu.style.display = "none";
-		document.getElementById("drift"+i).style.display = "none";
-		document.getElementById("infos"+i).style.opacity = 0.8;
-		document.getElementById("infos"+i).style.color = "#FF9900";
-		document.getElementById("scroller"+i).style.visibility="hidden";
+		$mkScreen.removeChild(oContainers[i]);
+		document.getElementById("infos"+i).style.display = "none";
 	}
-	document.getElementById("mariokartcontainer").style.opacity = 1;
+	$mkScreen.style.opacity = 1;
 	if (strPlayer.length == 1)
 		removePlan();
 	document.onmousedown = undefined;
@@ -3135,7 +3301,7 @@ function classement() {
 		}
 	}
 
-	document.getElementById("infos0").style.visibility="hidden";
+	document.getElementById("infos0").style.display="none";
 	var nPlayer = strPlayer.length-1;
 	for (var i=0;i<iPlacement.length;i++) {
 		var iPlayer = iPlacement[i];
@@ -3173,11 +3339,11 @@ function classement() {
 		oTeamTable.style.fontWeight = "bold";
 		oTeamTable.style.fontFamily = "arial";
 		oTeamTable.innerHTML = positions;
-		document.body.appendChild(oTeamTable);
+		$mkScreen.appendChild(oTeamTable);
 	}
 	document.getElementById("octn").onclick = continuer;
 	setTimeout(function() {
-		document.getElementById("infos0").style.visibility = "visible";
+		document.getElementById("infos0").style.display = "";
 		if (oTeamTable)
 			oTeamTable.style.visibility = "visible";
 		var aScroll = document.body.scrollTop;
@@ -3196,7 +3362,7 @@ function continuer() {
 
 	var oTeamTable = document.getElementById("team-table");
 	if (oTeamTable)
-		document.body.removeChild(oTeamTable);
+		$mkScreen.removeChild(oTeamTable);
 
 	var oContinue = document.createElement("input");
 	oContinue.type = "button";
@@ -3218,26 +3384,17 @@ function continuer() {
 			function nextRace() {
 				pause = true;
 				removeGameMusics();
-
+				removeHUD();
 				for (var i=0;i<strPlayer.length;i++) {
-					oContainers[i].innerHTML = "";
-					document.getElementById("infoPlace"+i).style.display = "none";
-					document.getElementById("compteur"+i).innerHTML = "";
-					document.getElementById("temps"+i).innerHTML = "";
-					document.getElementById("objet"+i).style.visibility = "hidden";
-					var lakitu = document.getElementById("lakitu"+i);
-					if (lakitu) lakitu.style.display = "none";
+					$mkScreen.removeChild(oContainers[i]);
 					fInfos = {
 						player:strPlayer,
 						map:oMap.ref+1,
 						difficulty:iDificulty
 					};
-					document.getElementById("infos"+i).style.visibility = "hidden";
-					document.getElementById("infos"+i).style.opacity = 0.8;
-					document.getElementById("infos"+i).style.color = "#FF9900";
-					document.getElementById("infos"+i).style.fontFamily = "";
+					document.getElementById("infos"+i).style.display = "none";
 				}
-				document.getElementById("mariokartcontainer").style.opacity = 1;
+				$mkScreen.style.opacity = 1;
 				if (strPlayer.length == 1)
 					removePlan();
 				oBgLayers.length = 0;
@@ -3255,6 +3412,7 @@ function continuer() {
 		else {
 			oContinue.value = toLanguage("           NEXT           ", "         SUIVANT          ");
 			oContinue.onclick = function () {
+				$mkScreen = document.body;
 				pause = true;
 				var posX = [29,22,36];
 				var posY = [15,17,19];
@@ -3349,11 +3507,8 @@ function continuer() {
 		oContinue.onclick = function() {
 			pause = true;
 			removeGameMusics();
-			oContainers[0].innerHTML = "";
-			document.getElementById("infoPlace0").style.display = "none";
-			document.getElementById("compteur0").innerHTML = "";
-			document.getElementById("temps0").innerHTML = "";
-			document.getElementById("objet0").style.visibility = "hidden";
+			removeHUD();
+			$mkScreen.removeChild(oContainers[0]);
 			fInfos = {
 				player:strPlayer,
 				map:oMap.ref,
@@ -3368,10 +3523,7 @@ function continuer() {
 				fInfos.perso = [strPlayer[0]];
 				fInfos.cpu_route = [iTrajet];
 			}
-			document.getElementById("infos0").style.visibility = "hidden";
-			document.getElementById("infos0").style.opacity = 0.8;
-			document.getElementById("infos0").style.color = "#FF9900";
-			document.getElementById("infos0").style.fontFamily = "";
+			document.getElementById("infos0").style.display = "none";
 			if (strPlayer.length == 1)
 				removePlan();
 			oBgLayers.length = 0;
@@ -3381,7 +3533,7 @@ function continuer() {
 
 		oSave.value = "   "+ toLanguage('SAVE', 'ENREGISTRER') +"   ";
 		oSave.onclick = function() {
-			document.getElementById("infos0").style.visibility = "hidden";
+			document.getElementById("infos0").style.display = "none";
 			var oForm = document.createElement("form");
 			oForm.style.color = "black";
 			oForm.style.position = "absolute";
@@ -3543,8 +3695,8 @@ function continuer() {
 				oValide.style.fontSize = (iScreenScale*4) +"px"
 			};
 			oRetour.onclick = function() {
-				document.body.removeChild(oForm);
-				document.getElementById("infos0").style.visibility = "visible"
+				$mkScreen.removeChild(oForm);
+				document.getElementById("infos0").style.display = ""
 				oContinue.focus();
 			};
 			aPara3.appendChild(oRetour);
@@ -3553,7 +3705,7 @@ function continuer() {
 			oForm.appendChild(aPara12);
 			oForm.appendChild(aPara2);
 			oForm.appendChild(aPara3);
-			document.body.appendChild(oForm);
+			$mkScreen.appendChild(oForm);
 
 			oForm.style.height = oForm.scrollHeight +"px";
 
@@ -3566,12 +3718,9 @@ function continuer() {
 		oReplay.onclick = function() {
 			pause = true;
 			removeGameMusics();
+			removeHUD();
 			for (var i=0;i<strPlayer.length;i++) {
-				oContainers[i].innerHTML = "";
-				document.getElementById("infoPlace"+i).style.display = "none";
-				document.getElementById("compteur"+i).innerHTML = "";
-				document.getElementById("temps"+i).innerHTML = "";
-				document.getElementById("objet"+i).style.visibility = "hidden";
+				$mkScreen.removeChild(oContainers[i]);
 				fInfos = {
 					player:strPlayer,
 					map:oMap.ref,
@@ -3588,11 +3737,7 @@ function continuer() {
 					fInfos.record = iRecord;
 				if (fInfos.lap_times == undefined)
 					fInfos.lap_times = lapTimers;
-				document.getElementById("infos"+i).style.visibility = "hidden";
-				document.getElementById("infos"+i).style.opacity = 0.8;
-				document.getElementById("infos"+i).style.color = "#FF9900";
-				document.getElementById("infos"+i).style.fontFamily = "";
-				document.getElementById("drift"+ i).style.display = "none";
+				document.getElementById("infos"+i).style.display = "none";
 			}
 			if (strPlayer.length == 1)
 				removePlan();
@@ -3606,21 +3751,14 @@ function continuer() {
 		oChangeRace.onclick = function() {
 			pause = true;
 			removeGameMusics();
+			removeHUD();
 			for (var i=0;i<strPlayer.length;i++) {
-				oContainers[i].innerHTML = "";
-				document.getElementById("infoPlace"+i).style.display = "none";
-				document.getElementById("compteur"+i).innerHTML = "";
-				document.getElementById("temps"+i).innerHTML = "";
-				document.getElementById("objet"+i).style.visibility = "hidden";
+				$mkScreen.removeChild(oContainers[i]);
 				fInfos = {
 					player:strPlayer,
 					perso:new Array()
 				};
-				document.getElementById("infos"+i).style.visibility = "hidden";
-				document.getElementById("infos"+i).style.opacity = 0.8;
-				document.getElementById("infos"+i).style.color = "#FF9900";
-				document.getElementById("infos"+i).style.fontFamily = "";
-				document.getElementById("drift"+ i).style.display = "none";
+				document.getElementById("infos"+i).style.display = "none";
 			}
 			if (strPlayer.length == 1)
 				removePlan();
@@ -4976,7 +5114,7 @@ var decorBehaviors = {
 			decorData[3] = 3;
 			decorData[4] = 90;
 			if (decorData[5] == undefined)
-				decorData[5] = 1+i*25;
+				decorData[5] = 1+i*20;
 			decorData[6] = [decorData[0],decorData[1],decorData[3]];
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].w = 80;
@@ -5017,7 +5155,7 @@ var decorBehaviors = {
 					decorData[2][j].img.style.opacity = opacity;
 			}
 			else {
-				decorData[1] += 4;
+				decorData[1] += 5;
 				if (decorData[1]-decorData[6][1] > 460)
 					decorData[5] = -1;
 			}
@@ -5244,6 +5382,7 @@ var decorBehaviors = {
 		bonus:true
 	},
 	snowman:{
+		breaking:true,
 		spin: 42
 	},
 	snowball:{
@@ -5251,7 +5390,6 @@ var decorBehaviors = {
 		spin: 42,
 		unbreaking:true,
 		movable:true,
-		dodgable:true,
 		init:function(decorData) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 3;
@@ -7615,9 +7753,9 @@ function showChallengePartialSuccess(challenge, res) {
 		'</div>';
 	var oOtherPopup = document.getElementsByClassName("challenge-popup");
 	if (oOtherPopup.length)
-		document.body.insertBefore(oDiv, oOtherPopup[0]);
+		$mkScreen.insertBefore(oDiv, oOtherPopup[0]);
 	else
-		document.body.appendChild(oDiv);
+		$mkScreen.appendChild(oDiv);
 	var opacity = 0;
 	function fadeInPopup() {
 		if (opacity < 1) {
@@ -7641,7 +7779,7 @@ window.closeChallengePopup = function(id) {
 				setTimeout(fadeOutPopup,40);
 			}
 			else
-				document.body.removeChild(challengePopup);
+				$mkScreen.removeChild(challengePopup);
 		}
 		fadeOutPopup();
 	}
@@ -7732,9 +7870,9 @@ function showChallengePopup(challenge, res) {
 	}
 	var oOtherPopup = document.getElementsByClassName("challenge-popup");
 	if (oOtherPopup.length)
-		document.body.insertBefore(oDiv, oOtherPopup[0]);
+		$mkScreen.insertBefore(oDiv, oOtherPopup[0]);
 	else
-		document.body.appendChild(oDiv);
+		$mkScreen.appendChild(oDiv);
 	var opacity = 0;
 	function fadeInPopup() {
 		if (opacity < 1) {
@@ -7797,7 +7935,7 @@ window.closeChallengePopup = function(id) {
 				setTimeout(fadeOutPopup,40);
 			}
 			else
-				document.body.removeChild(challengePopup);
+				$mkScreen.removeChild(challengePopup);
 		}
 		fadeOutPopup();
 	}
@@ -8367,14 +8505,14 @@ function resetDatas() {
 													kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
 											}
 										}
-										document.getElementById("mariokartcontainer").style.opacity = 0.7;
+										$mkScreen.style.opacity = 0.7;
 										if (iSfx && !finishing && !oPlayers[0].cpu)
 											playSoundEffect("musics/events/lightning.mp3");
 									}
 									else if (aEclair && !aKarts[j].eclair && (oPlayers[0].size < 1)) {
 										oPlayers[0].size = 1;
 										updateDriftSize(j);
-										document.getElementById("mariokartcontainer").style.opacity = 1;
+										$mkScreen.style.opacity = 1;
 									}
 									updateProtectFlag(aKarts[j]);
 									if (aTombe && !aKarts[j].tombe) {
@@ -8483,7 +8621,7 @@ function resetDatas() {
 							oContinue.style.fontSize = iScreenScale*3 +"pt";
 							var forceClic = true;
 							function updateTable() {
-								infos0.style.visibility = "hidden";
+								infos0.style.display = "none";
 								for (var i=0;i<rCode[3].length;i++)
 									rCode[3][i][2] += rCode[3][i][3];
 								var fin = rCode[3].length-1;
@@ -8512,7 +8650,7 @@ function resetDatas() {
 										oTrs[i].style.backgroundColor = "";
 								}
 								var forceClic2 = true;
-								setTimeout(function(){infos0.style.visibility="visible";if(!isChatting())oContinue.focus()}, 500);
+								setTimeout(function(){infos0.style.display="";if(!isChatting())oContinue.focus()}, 500);
 
 								setTimeout(function(){if(forceClic2)continuer();}, 5000);
 								oContinue.onclick = function() {
@@ -8529,7 +8667,7 @@ function resetDatas() {
 							oTd.appendChild(oContinue);
 							oTr.appendChild(oTd);
 							infos0.appendChild(oTr);
-							infos0.style.visibility = "visible";
+							infos0.style.display = "";
 							if (!isChatting())
 								oContinue.focus();
 							document.onkeydown = undefined;
@@ -8625,8 +8763,8 @@ function move(getId) {
 
 		if (oKart.time) {
 			oKart.time--;
-			document.getElementById("lakitu"+getId).style.left = Math.round(iScreenScale * (20-oKart.time/5) + 10 + getId * (iWidth*iScreenScale+2))+"px";
-			document.getElementById("lakitu"+getId).style.top = Math.round((-(Math.abs(oKart.time - 20)) + 20) * (iScreenScale - 2)) +"px";
+			document.getElementById("lakitu"+getId).style.left = Math.round(iScreenScale * (20-oKart.time/5))+"px";
+			document.getElementById("lakitu"+getId).style.top = Math.round((-(Math.abs(oKart.time - 20)) + 18) * (iScreenScale - 2)) +"px";
 
 			if (oKart.time && !oPlayers[getId].changeView)
 				document.getElementById("lakitu"+getId).style.display = "block";
@@ -8816,7 +8954,7 @@ function move(getId) {
 			}
 		}
 		if (oKart.driftinc)
-			document.getElementById("drift"+ getId).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[getId].h-32)*fSpriteScale*0.15 + 10) + "px";
+			document.getElementById("drift"+ getId).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[getId].h-32)*fSpriteScale*0.15) + "px";
 	}
 	
 	if ((!getId || !isOnline || finishing) && !oKart.loose) {
@@ -9383,7 +9521,7 @@ function move(getId) {
 								oContinue.style.fontSize = iScreenScale*3 +"pt";
 								oContinue.onclick = classement;
 								document.getElementById("continuer").appendChild(oContinue);
-								document.getElementById("infos0").style.visibility = "visible";
+								document.getElementById("infos0").style.display = "";
 								var aScroll = document.body.scrollTop;
 								oContinue.focus();
 								document.body.scrollTop = aScroll;
@@ -9407,7 +9545,7 @@ function move(getId) {
 								}
 								document.getElementById("infos0").style.top = (iScreenScale*7 + 10) +"px";
 								document.getElementById("infos0").innerHTML = '<tr><td style="text-decoration: blink;font-family:Courier New;font-size:'+Math.round(iScreenScale*4)+'px;text-shadow:'+sShadow+'">'+ document.getElementById("temps0").innerHTML +'</td></tr><tr><td id="continuer"></td></tr><tr><td style="padding-top:'+(iScreenScale)+';font-size:'+Math.round(iScreenScale*2.5)+'px">'+lapTimesHtml+'</td></tr>';
-								document.getElementById("infos0").style.visibility = "visible";
+								document.getElementById("infos0").style.display = "";
 								var oContinue = document.createElement("input");
 								oContinue.type = "button";
 								oContinue.id = "octn";
@@ -9416,7 +9554,7 @@ function move(getId) {
 								oContinue.style.height = "100%";
 								oContinue.style.fontSize = iScreenScale*3 +"pt";
 								oContinue.onclick = function() {
-									document.getElementById("infos0").style.visibility = "hidden";
+									document.getElementById("infos0").style.display = "none";
 									
 									var oForm = document.createElement("div");
 									oForm.style.color = "black";
@@ -9447,7 +9585,7 @@ function move(getId) {
 										oRetour.style.fontSize = (iScreenScale*4) +"px"
 									};
 									oSave.onclick = function() {
-										document.body.removeChild(oForm);
+										$mkScreen.removeChild(oForm);
 										continuer();
 										document.getElementById("enregistrer").getElementsByTagName("input")[0].onclick();
 									};
@@ -9462,15 +9600,15 @@ function move(getId) {
 										oSave.style.fontSize = (iScreenScale*4) +"px"
 									};
 									oRetour.onclick = function() {
-										document.body.removeChild(oForm);
-										document.getElementById("infos0").style.visibility = "visible";
+										$mkScreen.removeChild(oForm);
+										document.getElementById("infos0").style.display = "";
 										continuer();
 									};
 									aPara2.appendChild(oRetour);
 
 									oForm.appendChild(aPara1);
 									oForm.appendChild(aPara2);
-									document.body.appendChild(oForm);
+									$mkScreen.appendChild(oForm);
 									
 									if (page == "MK" && timerMS >= gRecord)
 										oRetour.focus();
@@ -9478,7 +9616,7 @@ function move(getId) {
 										oSave.focus();
 								};
 								document.getElementById("continuer").appendChild(oContinue);
-								document.getElementById("infos0").style.visibility = "visible";
+								document.getElementById("infos0").style.display = "";
 								oContinue.focus();
 							}
 							handleEndRace();
@@ -9501,7 +9639,7 @@ function move(getId) {
 							oTr2.appendChild(oTd2);
 							infos0.appendChild(oTr);
 							infos0.appendChild(oTr2);
-							infos0.style.visibility = "visible";
+							infos0.style.display = "";
 							document.getElementById("infoPlace0").style.visibility = "hidden";
 							finishing = true;
 						}
@@ -9679,7 +9817,7 @@ function move(getId) {
 				oContinue.style.fontSize = iScreenScale*3 +"pt";
 				oContinue.onclick = classement;
 				document.getElementById("continuer").appendChild(oContinue);
-				document.getElementById("infos0").style.visibility = "visible";
+				document.getElementById("infos0").style.display = "";
 				var aScroll = document.body.scrollTop;
 				oContinue.focus();
 				document.body.scrollTop = aScroll;
@@ -9850,7 +9988,7 @@ function move(getId) {
 	if (oKart.eclair) {
 		oKart.eclair--;
 		if ((isOnline || (oKart.eclair > 80)) && (oKart.eclair <= 88))
-			document.getElementById("mariokartcontainer").style.opacity = 1;
+			$mkScreen.style.opacity = 1;
 		if (oKart.eclair < 1) {
 			for (var i=0;i<aKarts.length;i++) {
 				var kart = aKarts[i];
@@ -11319,7 +11457,7 @@ function selectTypeScreen() {
 		oPInput.value = toLanguage("Time trial", "Contre-la-montre");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
-		oPInput.style.left = (40*iScreenScale)+"px";
+		oPInput.style.left = (41*iScreenScale)+"px";
 		oPInput.style.top = (oButtonsTop*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
@@ -11337,7 +11475,7 @@ function selectTypeScreen() {
 		oPInput.value = toLanguage("VS", "Course VS");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
-		oPInput.style.left = "0px";
+		oPInput.style.left = iScreenScale +"px";
 		oPInput.style.top = ((oButtonsTop+8)*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 
@@ -11388,7 +11526,7 @@ function selectTypeScreen() {
 		oPInput.value = toLanguage("Online race", "Course en ligne");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
-		oPInput.style.left = (40*iScreenScale)+"px";
+		oPInput.style.left = (41*iScreenScale)+"px";
 		oPInput.style.top = ((oButtonsTop+16)*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
@@ -11406,7 +11544,7 @@ function selectTypeScreen() {
 		oPInput.style.fontSize = (2*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (2*iScreenScale)+"px";
-		oPInput.style.top = (35*iScreenScale)+"px";
+		oPInput.style.top = (35*iScreenScale + 2)+"px";
 		oPInput.onclick = function() {
 			document.location.href = "index.php";
 		}
@@ -11666,17 +11804,11 @@ function selectNbJoueurs() {
 			oContainers[0].removeChild(oScr);
 			if (this.value.charAt(0) == "2") {
 				var oContainer2 = oContainers[0].cloneNode(false);
-				oContainer2.style.left = (10+iWidth*iScreenScale)+"px";
+				oContainer2.style.left = (12+iWidth*iScreenScale)+"px";
 				oContainers.push(oContainer2);
-				var fElements = ["temps", "compteur", "infos", "infoPlace", "lakitu", "drift", "scroller"];
-				for (var i=0;i<fElements.length;i++) {
-					var bElement = document.getElementById(fElements[i]+0);
-					if (bElement) {
-						var fElement = bElement.cloneNode(true);
-						fElement.id = fElements[i]+1;
-						document.body.appendChild(fElement);
-					}
-				}
+				var oInfo1 = document.getElementById("infos0").cloneNode(true);
+				oInfo1.id = "infos1";
+				$mkScreen.appendChild(oInfo1);
 			}
 			selectPlayerScreen(0);
 		};
@@ -13447,7 +13579,7 @@ function selectChallengesScreen() {
 							$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
 							$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
 							$fancyTitle.style.visibility = "hidden";
-							document.body.appendChild($fancyTitle);
+							$mkScreen.appendChild($fancyTitle);
 							var rect = this.getBoundingClientRect();
 							$fancyTitle.style.left = Math.round(rect.left + (this.scrollWidth-$fancyTitle.scrollWidth)/2)+"px";
 							$fancyTitle.style.top = (rect.top + this.scrollHeight + 5)+"px";
@@ -13455,7 +13587,7 @@ function selectChallengesScreen() {
 						};
 						oIcons.onmouseout = function(e) {
 							if (!$fancyTitle) return;
-							document.body.removeChild($fancyTitle);
+							$mkScreen.removeChild($fancyTitle);
 							$fancyTitle = undefined;
 						};
 						oTd.appendChild(oIcons);
@@ -14096,7 +14228,7 @@ function exitCircuit() {
 
 function appendContainers() {
 	for (var i=1;i<oContainers.length;i++)
-		document.getElementById("mariokartcontainer").appendChild(oContainers[i]);
+		$mkScreen.appendChild(oContainers[i]);
 }
 
 function selectRaceScreen(cup) {
@@ -14434,7 +14566,7 @@ function choose(map) {
 							if (cID < 4)
 								setTimeout(function(){clignote(cID+1)}, 100);
 							else
-								setTimeout(function(){document.body.removeChild(oTable);proceedOnlineRaceSelection(rCode)}, 500);
+								setTimeout(function(){$mkScreen.removeChild(oTable);proceedOnlineRaceSelection(rCode)}, 500);
 						}
 						moveCursor();
 						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];
@@ -14454,8 +14586,8 @@ function choose(map) {
 						nSearch.innerHTML = toLanguage("Search for new players", "Rechercher de nouveaux joueurs");
 						nSearch.setAttribute("href", "#null");
 						nSearch.onclick = function() {
-							document.body.removeChild(oTable);
-							document.body.removeChild(oDiv);
+							$mkScreen.removeChild(oTable);
+							$mkScreen.removeChild(oDiv);
 							removeMenuMusic();
 							removeGameMusics();
 							formulaire.screenscale.disabled = false;
@@ -14475,7 +14607,7 @@ function choose(map) {
 						nSearch.setAttribute("href", "index.php");
 						oDiv.appendChild(nSearch);
 						
-						document.body.appendChild(oDiv);
+						$mkScreen.appendChild(oDiv);
 						
 						chatting = false;
 
@@ -14514,7 +14646,7 @@ function choose(map) {
 		xhr("getMap.php", (course=="BB"?"battle":""), refreshTab);
 	}
 	oTable.appendChild(oTBody);
-	document.body.appendChild(oTable);
+	$mkScreen.appendChild(oTable);
 	document.getElementById("waitrace").style.visibility = "hidden";
 
 	updateMenuMusic(1);
@@ -14908,7 +15040,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		nSearch.innerHTML = toLanguage("Search for new players", "Rechercher de nouveaux joueurs");
 		nSearch.setAttribute("href", "#null");
 		nSearch.onclick = function() {
-			document.body.removeChild(oDiv);
+			$mkScreen.removeChild(oDiv);
 			removeMenuMusic();
 			removeGameMusics();
 			formulaire.screenscale.disabled = false;
@@ -14929,7 +15061,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		nSearch.setAttribute("href", "index.php");
 		oDiv.appendChild(nSearch);
 		
-		document.body.appendChild(oDiv);
+		$mkScreen.appendChild(oDiv);
 
 		clearInterval(startMusicHandler);
 	}
@@ -15383,7 +15515,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
 		$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
 		$fancyTitle.style.visibility = "hidden";
-		document.body.appendChild($fancyTitle);
+		$mkScreen.appendChild($fancyTitle);
 		var rect = this.getBoundingClientRect();
 		$fancyTitle.style.left = Math.round(rect.left + (this.scrollWidth-$fancyTitle.scrollWidth)/2)+"px";
 		$fancyTitle.style.top = (rect.top + this.scrollHeight + 5)+"px";
@@ -15391,7 +15523,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	};
 	oPersoLapTimes.onmouseout = function(e) {
 		if (!$fancyTitle) return;
-		document.body.removeChild($fancyTitle);
+		$mkScreen.removeChild($fancyTitle);
 		$fancyTitle = undefined;
 	};
 
@@ -16183,6 +16315,7 @@ function toPerso(sPerso) {
 	return sPerso;
 }
 
+formulaire = document.forms.modes;
 if (pause) {
 	formulaire.screenscale.disabled = false;
 	formulaire.quality.disabled = false;
@@ -16217,8 +16350,9 @@ else {
 		[6, toLanguage("Small","Petite")],
 		[8, toLanguage("Medium","Moyenne")],
 		[10, toLanguage("Large","Large")],
-		[12, toLanguage("Very large","Tr&egrave;s large")]
-	], iScreenScale);
+		[12, toLanguage("Very large","Tr&egrave;s large")],
+		[-1, toLanguage("Full (F11)","Plein (F11)")]
+	], (+$mkScreen.dataset.lastsc)||iScreenScale);
 	addOption("pMusic", toLanguage("Music","Musique"),
 	"vMusic", "music", [
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;e")],
@@ -16256,7 +16390,6 @@ else {
 		window.turnEvents = true;
 	}
 	
-	formulaire = document.forms.modes;
 	formulaire.quality.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setQuality(iValue);
@@ -16272,6 +16405,21 @@ else {
 	formulaire.sfx.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setSfx(iValue);
+	}
+	if (!window.fsevent) {
+		window.fsevent = function(e) {
+			if (e.keyCode == 122) {
+				e.preventDefault();
+				var aScreenScale = iScreenScale;
+				iScreenScale = +formulaire.screenscale.value;
+				formulaire.screenscale.value = -1;
+				formulaire.screenscale.onchange();
+				if (formulaire.screenscale.disabled)
+					iScreenScale = aScreenScale;
+				return false;
+			}
+		}
+		window.addEventListener("keydown", window.fsevent);
 	}
 }
 function isMobile() {

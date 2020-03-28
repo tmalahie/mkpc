@@ -419,11 +419,6 @@ else {
 
 <div id="virtualkeyboard"></div>
 
-<p id="temps0"></p>
-<p id="compteur0"></p>
-<table id="infos0" cellspacing="1" cellpadding="0" style="visibility: hidden">
-<tr><td></td></tr></table>
-
 <form name="modes" method="get" action="#null" onsubmit="return false">
 <div id="options-ctn">
 <table cellpadding="3" cellspacing="0" border="0" id="options">
@@ -570,19 +565,8 @@ if (!isset($cannotChange)) {
 	<?php
 }
 ?>
-<table id="objet0" border="1" cellpadding="0" cellspacing="0">
-<tr>	<td id="roulette0" valign="middle"></td>	</tr>
-</table>
-<table id="objet1" border="1" cellpadding="0" cellspacing="0">
-<tr>	<td id="roulette1" valign="middle"></td>	</tr>
-</table>
 <div id="dMaps"></div>
-<p id="infoPlace0"></p>
-<div id="lakitu0"><div></div></div>
-<div id="drift0">
-	<img alt="." src="images/drift.png" class="driftimg" />
-</div>
-<div id="scroller0" width="100px" height="100px" style="width: 100px; height: 100px; overflow: hidden; position: absolute; visibility: hidden">
+<div id="scroller" width="100px" height="100px" style="width: 100px; height: 100px; overflow: hidden; position: absolute; visibility: hidden">
 	<div style="position: absolute; left: 0; top: 0">
 		<img class="aObjet" alt="." src="images/items/fauxobjet.gif" /><br />&nbsp;<br />
 		<img class="aObjet" alt="." src="images/items/banane.gif" /><br />&nbsp;<br />
