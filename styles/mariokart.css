@@ -104,7 +104,7 @@ button.control-close:active {
 }
  #infos0,#infos1 {
     position: absolute;
-    z-index: 20100;
+    z-index: 20000;
     font-weight: bold;
     font-family: arial;
     opacity: 0.8;

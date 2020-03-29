@@ -289,28 +289,6 @@ function setScreenScale(iValue, triggered) {
 		}
 		else
 			updateCtnFullScreen(true);
-		/*if (p.catch) {
-			p.catch(function() {
-				document.onfullscreenchange();
-				formulaire.screenscale.value = -1;
-				var eWidth = window.innerWidth-20, eHeight = window.innerHeight-20;
-				var eRatio = Math.round(Math.min(eWidth/iWidth,eHeight/iHeight));
-				setScreenScale(eRatio, true);
-				formulaire.screenscale.dataset.value = eRatio;
-				$mkScreen.className = "fullscreen";
-				function resetFS(e) {
-					if (e.keyCode == 27) {
-						if (!formulaire.screenscale.disabled) {
-							formulaire.screenscale.value = aScreenScale;
-							formulaire.screenscale.onchange();
-							$mkScreen.className = "";
-							window.removeEventListener("keydown", resetFS);
-						}
-					}
-				}
-				window.addEventListener("keydown", resetFS);
-			});
-		}*/
 		return;
 	}
 	else {
@@ -16350,8 +16328,8 @@ else {
 		[6, toLanguage("Small","Petite")],
 		[8, toLanguage("Medium","Moyenne")],
 		[10, toLanguage("Large","Large")],
-		[12, toLanguage("Very large","Tr&egrave;s large")],
-		[-1, toLanguage("Full (F11)","Plein (F11)")]
+		[12, toLanguage("Very large","Tr&egrave;s large")]
+		// TODO enable full screen [-1, toLanguage("Full (F11)","Plein (F11)")]
 	], (+$mkScreen.dataset.lastsc)||iScreenScale);
 	addOption("pMusic", toLanguage("Music","Musique"),
 	"vMusic", "music", [
@@ -16406,7 +16384,7 @@ else {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setSfx(iValue);
 	}
-	if (!window.fsevent) {
+	/*if (!window.fsevent) { TODO enable full screen
 		window.fsevent = function(e) {
 			if (e.keyCode == 122) {
 				e.preventDefault();
@@ -16420,7 +16398,7 @@ else {
 			}
 		}
 		window.addEventListener("keydown", window.fsevent);
-	}
+	}*/
 }
 function isMobile() {
 	return navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i);
