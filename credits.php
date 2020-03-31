@@ -41,7 +41,9 @@ include('menu.php');
     <p><?php
     if ($language) {
         ?>
-
+        Mario Kart PC uses a variety of online resources for the game.<br />
+        This page gathers all the sites and people who provided these resources.<br />
+        Many thanks to them!
         <?php
     }
     else {
