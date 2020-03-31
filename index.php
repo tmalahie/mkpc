@@ -288,7 +288,7 @@ if ($id && $myIdentifiants) {
 		</div>
 		<div id="toBegin"><a href="mariokart.php">
 		&#9660;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9660;<br />
-		<img src="images/mariokart_pc.png" alt="Acc&eacute;der au jeu" /><br />
+		<img src="images/<?php echo IS_DS ? 'mkpc_box.jpg':'mariokart_pc.png'; ?>" alt="Acc&eacute;der au jeu" style="width:310px;position: relative;top:2px" /><br />
 		&#9650;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9650;</a></div>
 		<?php
 		if ($language) {
@@ -357,15 +357,9 @@ if ($id && $myIdentifiants) {
 				A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !
 				<ul>
 					<li><a href="https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/">Nihilogic</a> for the <a href="https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/">basic Mario Kart</a></li>
-					<li><a href="http://www.snesmaps.com/">SNESMaps</a> for the <a href="http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html">circuits images</a></li>
+					<li><a href="http://www.snesmaps.com/">SNESMaps</a> for the <a href="http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html">track images</a></li>
 					<li><a href="http://www.vgmusic.com/">VGmusic</a> for the <a href="http://www.vgmusic.com/music/console/nintendo/snes/index-sz.html#Super_Mario_Kart">musics</a></li>
-					<li>Racoon Sam and EdpR for the sprite of Daisy</li>
-                    <li>SWN and BVX for the sprite of Waluigi</li>
-                    <li>Devicho for the sprite of Bowser Jr.</li>
-                    <li>Frario for the sprite of Wario</li>
-                    <li>Clutch for the sprite of Diddy Kong</li>
-                    <li>Flare for the sprite of Birdo</li>
-                    <li>Jex99 for the sprite of Hammer Bro</li>
+					<li>And <a href="credits.php">many more</a>!</li>
 				</ul>
 				<?php
 			}
@@ -375,14 +369,8 @@ if ($id && $myIdentifiants) {
 				<ul>
 					<li><a href="https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/">Nihilogic</a> pour le <a href="https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/">Mario Kart de départ</a></li>
 					<li><a href="http://www.snesmaps.com/">SNESMaps</a> pour les <a href="http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html">images des circuits</a></li>
-					<li><a href="http://www.vgmusic.com/">VGmusic</a> pour les <a href="http://www.vgmusic.com/music/console/nintendo/snes/#Super_Mario_Kart">musiques</a></li>
-					<li>Racoon Sam et EdpR pour le sprite de Daisy</li>
-                    <li>SWN et BVX pour le sprite de Waluigi</li>
-                    <li>Devicho pour le sprite de Bowser Jr.</li>
-                    <li>Frario pour le sprite de Wario</li>
-                    <li>Clutch pour le sprite de Diddy Kong</li>
-                    <li>Flare pour le sprite de Birdo</li>
-                    <li>Jex99 pour le sprite de Frère Marto</li>
+					<li><a href="https://downloads.khinsider.com/">Khinsider</a> pour les <a href="https://downloads.khinsider.com/search?search=mario+kart">musiques</a></li>
+					<li>Et <a href="credits.php">bien d'autres</a> !</li>
 				</ul>
 				<?php
 			}
