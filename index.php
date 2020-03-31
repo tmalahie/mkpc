@@ -359,7 +359,7 @@ if ($id && $myIdentifiants) {
 					<li><a href="https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/">Nihilogic</a> for the <a href="https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/">basic Mario Kart</a></li>
 					<li><a href="http://www.snesmaps.com/">SNESMaps</a> for the <a href="http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html">track images</a></li>
 					<li><a href="http://www.vgmusic.com/">VGmusic</a> for the <a href="http://www.vgmusic.com/music/console/nintendo/snes/index-sz.html#Super_Mario_Kart">musics</a></li>
-					<li>And <a href="credits.php">many more</a>!</li>
+						<?php if (IS_DS) echo '<li>And <a href="credits.php">many more</a>!</li>'; ?>
 				</ul>
 				<?php
 			}
@@ -370,7 +370,7 @@ if ($id && $myIdentifiants) {
 					<li><a href="https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/">Nihilogic</a> pour le <a href="https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/">Mario Kart de départ</a></li>
 					<li><a href="http://www.snesmaps.com/">SNESMaps</a> pour les <a href="http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html">images des circuits</a></li>
 					<li><a href="https://downloads.khinsider.com/">Khinsider</a> pour les <a href="https://downloads.khinsider.com/search?search=mario+kart">musiques</a></li>
-					<li>Et <a href="credits.php">bien d'autres</a> !</li>
+					<?php if (IS_DS) echo '<li>Et <a href="credits.php">bien d\'autres</a> !</li>'; ?>
 				</ul>
 				<?php
 			}
