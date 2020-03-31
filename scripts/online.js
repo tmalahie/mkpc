@@ -1640,7 +1640,7 @@ function b_notify(title,msg) {
 	if (o_active) {
 		if (window.Notification) {
 			var notification = new Notification(title, {
-				icon: 'images/mariokart_pc.png',
+				icon: 'images/mkpc_box.jpg',
 				body: msg
 			});
 			notification.onclick = function() {
