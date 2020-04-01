@@ -202,7 +202,7 @@ if (isset($privateLink)) {
 }
 ?>
 
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />
 <style type="text/css">
 .wait {
 	position: absolute;
@@ -221,7 +221,7 @@ if (isset($privateLink)) {
 <?php
 if (!$isCup) {
 	?>
-<script type="text/javascript" src="mk/maps.php?reload=5"></script>
+<script type="text/javascript" src="mk/maps.php?reload=1"></script>
 	<?php
 }
 ?>
