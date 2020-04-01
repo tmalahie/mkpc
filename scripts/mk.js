@@ -10598,8 +10598,10 @@ function ai(oKart) {
 	}
 	if (oMap.jumpable && (iDificulty > 4)) {
 		if (oKart.z && !oKart.jumped && !oKart.billball && !oKart.figstate && !oKart.figuring && !oKart.tourne && (oKart.heightinc > 0)) {
-			if (speedToAim >= 8)
-				oKart.figstate = 21;
+			if (speedToAim >= 8) {
+				if (!oMap.jumpexc || oMap.jumpexc.indexOf(oKart.aipoint) == -1)
+					oKart.figstate = 21;
+			}
 		}
 	}
 }
