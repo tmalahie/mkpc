@@ -179,6 +179,7 @@ if (isset($_GET['i'])) {
 								'cheepcheep' => null,
 								'movingtree' => $language ? 'Luigi\'s Mansion - Moving tree' : 'Manoir de Luigi - Arbre mobile',
 								'pokey' => null,
+								'firesnake' => $language ? 'Desert Hills - fire snake' : 'Désert du soleil - Serpent de feu',
 								'box' => null,
 								'snowman' => null,
 								'goomba' => null,
@@ -186,8 +187,7 @@ if (isset($_GET['i'])) {
 								'piranhaplant' => null,
 								'tortitaupe' => $language ? 'Airship Fortress - Monty Mole' : 'Bateau Volant - Torti Taupe',
 								'topitaupe' => $language ? 'Peach Gardens - Monty Mole' : 'Jardin Peach - Topi Taupe',
-								'firebar' => $language ? 'Bowser Castle - Fire bar' : 'Château de Bowser - Barre de feu',
-								'firesnake' => $language ? 'Desert Hills - fire snake' : 'Désert du soleil - Serpent de feu'
+								'firebar' => $language ? 'Bowser Castle - Fire bar' : 'Château de Bowser - Barre de feu'
 							),
 							array(
 								'tree' => $language ? 'Figure 8 Circuit - Tree' : 'Circuit en 8 - Arbre',
