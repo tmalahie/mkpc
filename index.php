@@ -515,8 +515,8 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 	</section>
 	<section id="right_section">
 		<?php
+		require_once('utils-date.php');
 		if ($id && IS_DS) {
-			require_once('utils-date.php');
 			$majHourParis = '2020-04-04 18:00:00';
 			$majDay = to_local_tz($majHourParis, 'd');
 			$now = new \Datetime('now', new \DateTimeZone(get_client_tz()));
