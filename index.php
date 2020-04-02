@@ -515,12 +515,20 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 	</section>
 	<section id="right_section">
 		<?php
-		/*if ($id) {
+		if ($id && IS_DS) {
+			require_once('utils-date.php');
+			$majHourParis = '2020-04-04 18:00:00';
+			$majDay = to_local_tz($majHourParis, 'd');
+			$now = new \Datetime('now', new \DateTimeZone(get_client_tz()));
+			$isToday = ($majDay == $now->format('d'));
+			$majHour = to_local_tz($majHourParis, $language ? 'gA':'G\h');
 			if ($language) {
 			?>
 			<div class="subsection">
 				<div id="official_message" style="font-size: 0.9em">
-					Due to a server problem, MKPC temporatilly changes of address. We're trying to fix the issues as fast as possible!
+					A big update is planned for <strong><?php echo ($isToday ? 'today':'tomorrow'); ?> at <?php echo $majHour; ?></strong>!<br />
+					Don't miss the <a href="https://www.youtube.com" target="_blank">video presentation</a>
+					which will be released at the same time as the update. See you soon<span style="font-size:1.3em;line-height:1em;position:relative;top:0.05em">☺</span>
 				</div>
 			</div>
 			<?php
@@ -529,12 +537,14 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 			?>
 			<div class="subsection">
 				<div id="official_message" style="font-size: 0.9em">
-					Suite à un problème serveur, MKPC change temporairement d'adresse. Nous recherchons des solutions et espérons régler ceci le plus rapidement possible.
+					Grosse mise à jour prévue <strong><?php echo ($isToday ? 'aujourd\'hui':'demain'); ?> à <?php echo $majHour; ?></strong>&nbsp;!<br />
+					Ne manquez pas la <a href="https://www.youtube.com" target="_blank">vidéo de présentation</a>
+					qui sera lancée en même temps que la MàJ. À très vite<span style="font-size:1.3em;line-height:1em;position:relative;top:0.05em">☺</span>
 				</div>
 			</div>
 			<?php
 			}
-		}*/
+		}
 		function uc_strlen($str) {
 			return strlen(preg_replace("/%u([0-9a-fA-F]{4})/", ".", $str));
 		}
@@ -580,7 +590,6 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 		?>
 		<div class="subsection">
 		<?php
-		require_once('utils-date.php');
 		date_default_timezone_set(get_client_tz());
 
 		$today = time();
