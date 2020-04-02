@@ -34,6 +34,7 @@ if ($id && $myIdentifiants) {
 	mysql_query('INSERT INTO `mkips` VALUES("'.$id.'","'.$myIdentifiants[0].'","'.$myIdentifiants[1].'","'.$myIdentifiants[2].'","'.$myIdentifiants[3].'")');
 	mysql_query('INSERT INTO `mkbrowsers` VALUES("'.$id.'","'.mysql_real_escape_string($_SERVER['HTTP_USER_AGENT']).'")');
 }
+$slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 ?>
 <main>
 	<section id="left_section">
@@ -41,7 +42,7 @@ if ($id && $myIdentifiants) {
 			<div class="fp-slides-container">
 				<div class="fp-slides">
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" style="background: url('images/slides/diapo1.jpg') top">
+						<div class="fp-thumbnail" style="background: url('<?php echo $slidesPath; ?>/diapo1.jpg?reload=1') top">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -71,24 +72,40 @@ if ($id && $myIdentifiants) {
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="images/slides/diapo2.jpg">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo2.jpg?reload=1">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
 								<h3 class="fp-title"><?php echo $language ? 'Crazy races full of fun!':'Des courses acharnées et pleines de fun !'; ?></h3>
 								<p>
 									<?php
-									if ($language) {
-										?>
-										Try to be the fastest while avoiding the items!<br />
-										Find all the <strong>40 tracks</strong> from the original games <strong>Super Mario Kart</strong> and <strong>Mario Kart Super Circuit</strong>.
-										<?php
+									if (IS_DS) {
+										if ($language) {
+											?>
+											Try to be the fastest while avoiding the items!<br />
+											Find all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
+											<?php
+										}
+										else {
+											?>
+											Tentez d'être le plus rapide tout en évitant les objets !<br />
+											Retrouvez l'intégralité des <strong>56 circuits</strong> repris du jeu original <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> et <strong>Mario Kart DS</strong>.
+											<?php
+										}
 									}
 									else {
-										?>
-										Tentez d'être le plus rapide tout en évitant les objets !<br />
-										Retrouvez l'intégralité des <strong>40 circuits</strong> repris du jeu original <strong>Super Mario Kart</strong> et <strong>Mario Kart Super Circuit</strong>.
-										<?php
+										if ($language) {
+											?>
+											Try to be the fastest while avoiding the items!<br />
+											Find all the <strong>40 tracks</strong> from the original games <strong>Super Mario Kart</strong> and <strong>Mario Kart Super Circuit</strong>.
+											<?php
+										}
+										else {
+											?>
+											Tentez d'être le plus rapide tout en évitant les objets !<br />
+											Retrouvez l'intégralité des <strong>40 circuits</strong> repris du jeu original <strong>Super Mario Kart</strong> et <strong>Mario Kart Super Circuit</strong>.
+											<?php
+										}
 									}
 									?>
 								</p>
@@ -101,7 +118,7 @@ if ($id && $myIdentifiants) {
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="images/slides/diapo3.jpg">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo3.png?reload=1">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -110,14 +127,14 @@ if ($id && $myIdentifiants) {
 									<?php
 									if ($language) {
 										?>
-										Face off the cpu on the <strong>10 grands prix</strong> tournaments and try to win the gold cup!<br />
-										Win enough cups to unlock the <strong>12 secret characters</strong>!
+										Face off the cpu on the <strong><?php echo IS_DS ? 14:10; ?> grands prix</strong> tournaments and try to win the gold cup!<br />
+										Win enough cups to unlock the <strong><?php echo IS_DS ? 15:12; ?> secret characters</strong>!
 										<?php
 									}
 									else {
 										?>
-										Affrontez les ordis sur les <strong>10 grands prix</strong> et tentez de gagner la coupe en or !<br />
-										Remportez suffisament de coupes pour débloquer les <strong>12 persos secrets</strong> !
+										Affrontez les ordis sur les <strong><?php echo IS_DS ? 14:10; ?> grands prix</strong> et tentez de gagner la coupe en or !<br />
+										Remportez suffisament de coupes pour débloquer les <strong><?php echo IS_DS ? 15:12; ?> persos secrets</strong> !
 										<?php
 									}
 									?>
@@ -131,7 +148,7 @@ if ($id && $myIdentifiants) {
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="images/slides/diapo4.png">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo4.png?reload=1">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -161,7 +178,7 @@ if ($id && $myIdentifiants) {
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="images/slides/diapo5.jpg">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo5.jpg?reload=1">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -191,7 +208,7 @@ if ($id && $myIdentifiants) {
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="images/slides/diapo6.jpg">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo6.jpg?reload=1">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -221,7 +238,7 @@ if ($id && $myIdentifiants) {
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="images/slides/diapo7.jpg">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo7.jpg?reload=1">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -251,7 +268,7 @@ if ($id && $myIdentifiants) {
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" style="background-image: url('images/slides/diapo8.png')">
+						<div class="fp-thumbnail" style="background-image: url('<?php echo $slidesPath; ?>/diapo8.png?reload=1')">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
