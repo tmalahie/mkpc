@@ -336,15 +336,30 @@ if ($id && $myIdentifiants) {
 			?>
 			<table id="screenshots" class="demo-gallery">
 				<?php
-				for ($i=1;$i<=9;$i++) {
-					if (!(($i-1)%3))
-						echo '<tr>';
-					echo '<td>';
-					$url_img = 'images/screenshots/ss'. ($language ? 'en':'fr') . $i .'.png';
-					echo '<a href="'. $url_img .'" data-size="640x312" data-med="'. $url_img .'" data-med-size="640x312" class="demo-gallery__photo demo-gallery__img--main"><img src="images/screenshots/ss'. ($language ? 'en':'fr') . $i .'.png" alt="Screenshot '. $i .'" /></a>';
-					echo '</td>';
-					if (!($i%3))
-						echo '</tr>';
+				if (IS_DS) {
+					for ($i=1;$i<=12;$i++) {
+						if (!(($i-1)%3))
+							echo '<tr>';
+						echo '<td>';
+						$url_img = "images/screenshots/ss$i.png";
+						$url_thumb = 'images/screenshots/ss'.$i.'xs.png';
+						echo '<a href="'. $url_img .'" data-size="960x468" data-med="'. $url_img .'" data-med-size="240x117" class="demo-gallery__photo demo-gallery__img--main"><img src="'.$url_thumb.'" alt="Screenshot '. $i .'" /></a>';
+						echo '</td>';
+						if (!($i%3))
+							echo '</tr>';
+					}
+				}
+				else {
+					for ($i=1;$i<=9;$i++) {
+						if (!(($i-1)%3))
+							echo '<tr>';
+						echo '<td>';
+						$url_img = 'images/screenshots/ss'. ($language ? 'en':'fr') . $i .'.png';
+						echo '<a href="'. $url_img .'" data-size="640x312" data-med="'. $url_img .'" data-med-size="640x312" class="demo-gallery__photo demo-gallery__img--main"><img src="images/screenshots/ss'. ($language ? 'en':'fr') . $i .'.png" alt="Screenshot '. $i .'" /></a>';
+						echo '</td>';
+						if (!($i%3))
+							echo '</tr>';
+					}
 				}
 				?>
 			</table>
