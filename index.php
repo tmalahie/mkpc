@@ -516,7 +516,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 	<section id="right_section">
 		<?php
 		require_once('utils-date.php');
-		if ($id) {
+		/*if ($id) {
 			$majHourParis = '2020-04-04 18:00:00';
 			$majDay = to_local_tz($majHourParis, 'd');
 			$now = new \Datetime('now', new \DateTimeZone(get_client_tz()));
@@ -543,7 +543,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 			</div>
 			<?php
 			}
-		}
+		}*/
 		function uc_strlen($str) {
 			return strlen(preg_replace("/%u([0-9a-fA-F]{4})/", ".", $str));
 		}
