@@ -3818,7 +3818,7 @@ function Sprite(strSprite) {
 			var oY = iY-fSpriteHeight*this.z-(fSpriteHeight-fSpriteSize)/2;
 			//var oY = iY-fSpriteHeight*(this.z?window.aaa:0)-(fSpriteHeight-fSpriteSize)/2;
 
-			if (oY > iHeight * iScreenScale || (iY+iZ*iScreenScale) < 9 * iScreenScale) {
+			if (isNaN(oY) || oY > iHeight * iScreenScale || (iY+iZ*iScreenScale) < 9 * iScreenScale) {
 				oCtSprites[i][0].style.display = "none";
 				return;
 			}
