@@ -246,7 +246,7 @@ else {
 	$getResults = mysql_query('SELECT r.*,c.code,DATE_FORMAT(r.date, "'. $dateFormat .'") AS infosDate FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
 }
 while ($result = mysql_fetch_array($getResults))
-	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.htmlspecialchars($result['name']).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.$result['infosDate'].'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
+	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.$result['infosDate'].'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
 ?>
 for (var i=circuits.length-1;i>=0;i--) {
 	if (!classement[i].classement.length || (sUser && noShownData(classement[i].classement))) {
