@@ -621,7 +621,7 @@ function MarioKart() {
                     break;
                 case "billball":
                     u = Math.max(Math.min(Math.round(distanceToFirst(a) / 6), 120), 50);
-                    for (p = 0; p < strPlayer.length; p++) a.sprite[p].img.src = "images/sprites/sprite_billball.png";
+                    for (p = 0; p < strPlayer.length; p++) a.sprite[p].img.src = "images/oldsprites/sprite_billball.png";
                     a.cpu || isOnline || (a.sprite[0].img.onload = function() {
                         bCounting = !1, this.onload = void 0, reprendre(!1)
                     }, bCounting = pause = !0), a.rotinc = 0, a.size = 2.5, a.z = 2, a.protect = !0, a.champi = 0, resetPowerup(a), playIfShould(a, "musics/events/boost.mp3"), stopDrifting(e);
@@ -2024,7 +2024,7 @@ function MarioKart() {
             case 1:
                 t = "explosionR"
         }
-        e[0][a].img.src = "images/sprites/sprite_" + t + ".png";
+        e[0][a].img.src = "images/oldsprites/sprite_" + t + ".png";
         var n = e[0][a].div.getElementsByClassName("sprite-hallow");
         n.length && e[0][a].div.removeChild(n[0])
     }
@@ -2069,7 +2069,7 @@ function MarioKart() {
     }
 
     function balloonSrc(e) {
-        return "images/sprites/sprite_" + (1 == e ? "ballonR" : "ballon") + ".png"
+        return "images/oldsprites/sprite_" + (1 == e ? "ballonR" : "ballon") + ".png"
     }
 
     function detruit(e, t, a) {
@@ -3118,7 +3118,7 @@ function MarioKart() {
                                             aKarts[j].ballons[lg][0].suppr(), aKarts[j].ballons.pop()
                                         }
                                     } else aKarts[j].demitours = (getLastCp(aKarts[j]) + extraParams.demitours) % oMap.checkpoint.length;
-                                    if (40 <= aKarts[j].billball && !aBillBall ? (aKarts[j].sprite[0].img.src = "images/sprites/sprite_billball.png", aKarts[j].aipoint = void 0) : 50 <= aKarts[j].etoile && !aEtoile ? aKarts[j].sprite[0].img.src = getStarSrc(aKarts[j].personnage) : (aEtoile && !aKarts[j].etoile || aBillBall && !aKarts[j].billball) && (aKarts[j].sprite[0].img.src = getSpriteSrc(aKarts[j].personnage)), 90 <= aKarts[j].eclair && !aEclair) {
+                                    if (40 <= aKarts[j].billball && !aBillBall ? (aKarts[j].sprite[0].img.src = "images/oldsprites/sprite_billball.png", aKarts[j].aipoint = void 0) : 50 <= aKarts[j].etoile && !aEtoile ? aKarts[j].sprite[0].img.src = getStarSrc(aKarts[j].personnage) : (aEtoile && !aKarts[j].etoile || aBillBall && !aKarts[j].billball) && (aKarts[j].sprite[0].img.src = getSpriteSrc(aKarts[j].personnage)), 90 <= aKarts[j].eclair && !aEclair) {
                                         for (k = 0; k < aKarts.length; k++) {
                                             var kart = aKarts[k];
                                             friendlyFire(kart, aKarts[j]) || (kart.protect ? kart.megachampi = kart.megachampi < 8 || kart.etoile ? kart.megachampi : 8 : (kart.size = .6, updateDriftSize(k), kart.arme = !1, kart.using[0] && (kart.using[0][kart.using[1]][5] && (kart.using[0][kart.using[1]][5] = 0), kart.using = [!1]), kart.champi = 0, kart.spin(20), kart.roulette = 0, stopDrifting(k), supprArme(k)))
@@ -3920,7 +3920,7 @@ function MarioKart() {
     }
 
     function getSpriteSrc(e) {
-        return isCustomPerso(e) ? PERSOS_DIR + e + ".png" : "images/sprites/sprite_" + e + ".png"
+        return isCustomPerso(e) ? PERSOS_DIR + e + ".png" : "images/oldsprites/sprite_" + e + ".png"
     }
 
     function getMapIcSrc(e) {

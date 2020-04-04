@@ -32,6 +32,11 @@ var lCircuits = language ? ["Mario Circuit 1","Donut Plains 1","Koopa Beach 1","
 var recorder = "<?php echo isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'' ?>";
 var cp = {"mario":[0.6,1,0.6],"luigi":[0.2,1.2,0.2],"peach":[0.2,1,1],"toad":[1,1,0.2],"yoshi":[0.6,1,0.6],"bowser":[1,0.9,1],"donkey-kong":[0.4,1,0.8],"daisy":[0.2,1,1],"waluigi":[0.8,1,0.4],"koopa":[0.4,1,0.8],"wario":[0.2,1.1,0.3],"maskass":[0.8,1,0.3],"birdo":[0.6,0.95,0.7],"roi_boo":[0.4,1,0.8],"frere_marto":[0.4,1.05,0.7],"bowser_jr":[0.9,0.95,0.7],"harmonie":[0.3,0.95,0.8],"diddy-kong":[0.4,1,0.8],"skelerex":[0.6,1,0.6],"funky-kong":[0.4,1,0.8],"toadette":[0.8,1,0.35]};
 var pUnlocked = <?php include('getLocks.php'); ?>;
+<?php
+if (IS_DS) {
+	echo 'pUnlocked.splice(15,3);';
+}
+?>
 var ptsGP = "<?php echo $mkSaves; ?>";
 var isCup = false, isBattle = false, isSingle = false, complete = false, simplified = false;
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
@@ -45,7 +50,7 @@ var NBCIRCUITS = 40;
 mysql_close();
 ?>
 <script type="text/javascript" src="mk/maps.old.js"></script>
-<script type="text/javascript" src="scripts/mk.v41.old.js"></script>
+<script type="text/javascript" src="scripts/mk.v42.oldengine.js"></script>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", MarioKart);
 </script>
