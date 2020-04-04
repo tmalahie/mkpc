@@ -167,6 +167,8 @@ if (isset($_GET['i'])) {
 								'peachtree' => $language ? 'Peach Gardens - Tree':'Jardin Peach - Arbre'
 							)
 						);
+						if (!IS_DS)
+							$decors = array($decors[0]);
 						foreach ($decors as $i=>$decorNames) {
 							if ($i) echo '<br />';
 							foreach ($decorNames as $decorName=>$title)
@@ -577,7 +579,7 @@ if (isset($_GET['i'])) {
 						)
 					)
 				);
-				if (IS_DS) {
+				if (!IS_DS) {
 					unset($helpItems['cannons']);
 					unset($helpItems['mobiles']);
 				}
