@@ -516,7 +516,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 	<section id="right_section">
 		<?php
 		require_once('utils-date.php');
-		if ($id && IS_DS) {
+		if ($id) {
 			$majHourParis = '2020-04-04 18:00:00';
 			$majDay = to_local_tz($majHourParis, 'd');
 			$now = new \Datetime('now', new \DateTimeZone(get_client_tz()));
@@ -526,9 +526,9 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 			?>
 			<div class="subsection">
 				<div id="official_message" style="font-size: 0.9em">
-					A big update is planned for <strong><?php echo ($isToday ? 'today':'tomorrow'); ?> at <?php echo $majHour; ?></strong>!<br />
-					Don't miss the <a href="https://www.youtube.com" target="_blank">video presentation</a>
-					which will be released at the same time as the update. See you soon<span style="font-size:1.3em;line-height:1em;position:relative;top:0.05em">☺</span>
+					<a href="https://youtu.be/k1-v-mG-4fU" target="_blank">Special trailer</a> scheduled for <strong><?php echo ($isToday ? 'today':'tomorrow'); ?> at <?php echo $majHour; ?></strong>!<br />
+					Don't miss the video
+					which will give all the info on the next big update. See you soon <span style="font-size:1.3em;line-height:1em;position:relative;top:0.05em">☺</span>
 				</div>
 			</div>
 			<?php
@@ -537,9 +537,8 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 			?>
 			<div class="subsection">
 				<div id="official_message" style="font-size: 0.9em">
-					Grosse mise à jour prévue <strong><?php echo ($isToday ? 'aujourd\'hui':'demain'); ?> à <?php echo $majHour; ?></strong>&nbsp;!<br />
-					Ne manquez pas la <a href="https://www.youtube.com" target="_blank">vidéo de présentation</a>
-					qui sera lancée en même temps que la MàJ. À très vite<span style="font-size:1.3em;line-height:1em;position:relative;top:0.05em">☺</span>
+					<a href="https://youtu.be/k1-v-mG-4fU" target="_blank">Bande annonce spéciale</a> prévue <strong><?php echo ($isToday ? 'aujourd\'hui':'demain'); ?> à <?php echo $majHour; ?></strong>&nbsp;!<br />
+					Ne manquez pas cette vidéo qui donnera toutes les infos sur la prochaine grosse MàJ. À très vite <span style="font-size:1.3em;line-height:1em;position:relative;top:0.05em">☺</span>
 				</div>
 			</div>
 			<?php
