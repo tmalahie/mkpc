@@ -377,6 +377,10 @@ function removeGameMusics() {
 		oMusicEmbed = undefined;
 	}
 }
+function clearResources() {
+	if (oMapImg && oMapImg.clear)
+		oMapImg.clear();
+}
 function pauseSounds() {
 	if (bMusic || iSfx) {
 		if (!clLocalVars.forcePause) {
@@ -867,7 +871,10 @@ function loadMap() {
 		if (oMap[key]) {
 			function redrawAsset(asset) {
 				var ctx = this.canvas.getContext("2d");
-				ctx.resetTransform();
+				if(ctx.resetTransform)
+					ctx.resetTransform();
+				else
+					ctx.setTransform(1, 0, 0, 1, 0, 0);
 				ctx.clearRect(0,0, this.canvas.width,this.canvas.height);
 				var iW = asset[1][2], iH = asset[1][3];
 				var cW = Math.max(iW,iH);
@@ -1780,10 +1787,7 @@ function startGame() {
 	var rot0 = (oMap.startrotation==undefined)?180:oMap.startrotation;
 	var dir0 = oMap.startdirection||0;
 
-	var startRotation = oMap.startrotation;
-	if (undefined === startRotation)
-		startRotation = 180;
-	startRotation = startRotation*Math.PI/180;
+	var startRotation = rot0*Math.PI/180;
 	var cosStart = Math.cos(startRotation), sinStart = Math.sin(startRotation);
 	var wKarts = 27, hKarts = 130;
 	var nbKartsPerLine = Math.max(2,Math.round((1+Math.sqrt((hKarts+4*(nbKarts-1)*wKarts)/hKarts))/2));
@@ -2053,7 +2057,7 @@ function startGame() {
 				heightinc : 0,
 				stats : realKartStats(cp[gPerso]),
 
-				rotation : 180,
+				rotation : rot0,
 				rotincdir : 0,
 				rotinc : 0,
 
@@ -2469,6 +2473,7 @@ function startGame() {
 									pause = true;
 									removeGameMusics();
 									removeHUD();
+									clearResources();
 									$mkScreen.removeChild(oContainers[0]);
 									fInfos = {
 										player:strPlayer,
@@ -2494,6 +2499,7 @@ function startGame() {
 									pause = true;
 									removeGameMusics();
 									removeHUD();
+									clearResources();
 									$mkScreen.removeChild(oContainers[0]);
 									fInfos = {
 										player:strPlayer,
@@ -3233,6 +3239,7 @@ function quitter() {
 	displayCommands("&nbsp;");
 	removeGameMusics();
 	removeHUD();
+	clearResources();
 	for (var i=0;i<strPlayer.length;i++) {
 		$mkScreen.removeChild(oContainers[i]);
 		document.getElementById("infos"+i).style.display = "none";
@@ -3363,6 +3370,7 @@ function continuer() {
 				pause = true;
 				removeGameMusics();
 				removeHUD();
+				clearResources();
 				for (var i=0;i<strPlayer.length;i++) {
 					$mkScreen.removeChild(oContainers[i]);
 					fInfos = {
@@ -3486,6 +3494,7 @@ function continuer() {
 			pause = true;
 			removeGameMusics();
 			removeHUD();
+			clearResources();
 			$mkScreen.removeChild(oContainers[0]);
 			fInfos = {
 				player:strPlayer,
@@ -3697,6 +3706,7 @@ function continuer() {
 			pause = true;
 			removeGameMusics();
 			removeHUD();
+			clearResources();
 			for (var i=0;i<strPlayer.length;i++) {
 				$mkScreen.removeChild(oContainers[i]);
 				fInfos = {
@@ -3730,6 +3740,7 @@ function continuer() {
 			pause = true;
 			removeGameMusics();
 			removeHUD();
+			clearResources();
 			for (var i=0;i<strPlayer.length;i++) {
 				$mkScreen.removeChild(oContainers[i]);
 				fInfos = {
@@ -3900,7 +3911,8 @@ function BGLayer(strImage, scaleFactor) {
 }
 
 function GIF() {
-    var timerID;                          // timer handle for set time out usage
+	var timerID;                          // timer handle for set time out usage
+	var parseBlockID;
     var st;                               // holds the stream object when loading.
     var interlaceOffsets  = [0, 4, 2, 1]; // used in de-interlacing.
     var interlaceSteps    = [8, 8, 4, 2];
@@ -3996,7 +4008,7 @@ function GIF() {
         gif.bgColourIndex     = st.data[st.pos++];
         st.pos++;                    // ignoring pixel aspect ratio. if not 0, aspectRatio = (pixelAspectRatio + 15) / 64
         if (bitField & 128) { gif.globalColourTable = parseColourTable(gif.globalColourCount) } // global colour flag
-        setTimeout(parseBlock, 0);
+        parseBlockID = setTimeout(parseBlock, 0);
     }
     function parseAppExt() { // get application specific data. Netscape added iterations and terminator. Ignoring that
         st.pos += 1;
@@ -4157,7 +4169,7 @@ function GIF() {
         if (typeof gif.onprogress === "function") {
             gif.onprogress({ bytesRead  : st.pos, totalBytes : st.data.length, frame : gif.frames.length });
         }
-        setTimeout(parseBlock, 0); // parsing frame async so processes can get some time in.
+        parseBlockID = setTimeout(parseBlock, 0); // parsing frame async so processes can get some time in.
     };
     function cancelLoad(callback) { // cancels the loading. This will cancel the load before the next frame is decoded
         if (gif.complete) { return false }
@@ -4249,7 +4261,12 @@ function GIF() {
             gif.image = gif.frames[gif.currentFrame].image;
             timerID = setTimeout(playing, delay);
         }
-    }
+	}
+	function clearFrames() {
+		clearTimeout(timerID);
+		clearTimeout(parseBlockID);
+		gif.frames.length = 0;
+	}
     var gif = {                      // the gif image object
         onload         : null,       // fire on load. Use waitTillDone = true to have load fire at end or false to fire on first frame
         onerror        : null,       // fires on error
@@ -4278,7 +4295,8 @@ function GIF() {
         pause          : pause,      // call to pause
         seek           : seek,       // call to seek to time
         seekFrame      : seekFrame,  // call to seek to frame
-        togglePlay     : togglePlay, // call to toggle play and pause state
+		togglePlay     : togglePlay, // call to toggle play and pause state
+		clear          : clearFrames
     };
     return gif;
 }
