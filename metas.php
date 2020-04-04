@@ -6,6 +6,6 @@
 	'Mario, Kart, PC, jeu, course, jeu gratuit, multijoueur';
 	?>" />
 <meta name="viewport" content="width=device-width, user-scalable=no" />
-<meta name="thumbnail" content="https://mkpc.malahieude.net/images/screenshots/ss<?php echo $language?'en':'fr'; ?>1.png" />
+<meta name="thumbnail" content="https://mkpc.malahieude.net/images/screenshots/ss1.png" />
 <meta property="og:image" content="https://mkpc.malahieude.net/images/mkthumbnail.jpg" />
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
