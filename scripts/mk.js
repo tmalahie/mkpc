@@ -10332,7 +10332,7 @@ function ai(oKart) {
 		return;
 	}
 	if (oKart.tourne) {
-		oKart.speedinc = 1;
+		oKart.speedinc = (!oKart.z&&(oKart.speed>1)) ? 1:0;
 		oKart.rotinc = 0;
 		oKart.rotincdir = 0;
 		return;
