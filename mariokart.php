@@ -68,7 +68,7 @@ var isds = <?php
 <?php
 mysql_close();
 ?>
-<script type="text/javascript" src="mk/maps.php?reload=0"></script>
+<script type="text/javascript" src="mk/maps.php?reload=f"></script>
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", MarioKart);

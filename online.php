@@ -221,7 +221,7 @@ if (isset($privateLink)) {
 <?php
 if (!$isCup) {
 	?>
-<script type="text/javascript" src="mk/maps.php?reload=0"></script>
+<script type="text/javascript" src="mk/maps.php?reload=f"></script>
 	<?php
 }
 ?>
