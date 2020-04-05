@@ -1996,6 +1996,8 @@ function startGame() {
 				decorData[2] = new Sprite(type);
 				if (decorBehavior.init)
 					decorBehavior.init(decorData,i);
+				if (localStorage.ld && decorBehavior.hidable)
+					decorData[2][0].unshow();
 			}
 		}
 	}
@@ -3862,9 +3864,16 @@ function Sprite(strSprite) {
 		this[i].img = oImg;
 		oCtSprites.push([oSpriteCtr, oImg, 0]);
 	}
+	var that = this;
+	this[0].unshow = function() {
+		that[0].suppr();
+		that[0].unshown = true;
+	}
 	this[0].suppr = function() {
-		for (var i=0;i<strPlayer.length;i++)
-			oContainers[i].removeChild(oCtSprites[i][0]);
+		if (!that[0].unshown) {
+			for (var i=0;i<strPlayer.length;i++)
+				oContainers[i].removeChild(oCtSprites[i][0]);
+		}
 	}
 }
 
@@ -4578,6 +4587,7 @@ var decorBehaviors = {
 		}
 	},
 	tree:{
+		hidable:true,
 		hitbox:4,
 		unbreaking:true,
 		init:function(decorData) {
@@ -5189,6 +5199,7 @@ var decorBehaviors = {
 		}
 	},
 	coconut:{
+		hidable:true,
 		hitbox:4,
 		unbreaking:true,
 		init:function(decorData) {
@@ -5201,6 +5212,7 @@ var decorBehaviors = {
 		}
 	},
 	palm:{
+		hidable:true,
 		hitbox:4,
 		unbreaking:true,
 		init:function(decorData) {
@@ -5213,6 +5225,7 @@ var decorBehaviors = {
 		}
 	},
 	mountaintree:{
+		hidable:true,
 		hitbox:4,
 		unbreaking:true,
 		init:function(decorData) {
@@ -5225,6 +5238,7 @@ var decorBehaviors = {
 		}
 	},
 	mariotree:{
+		hidable:true,
 		hitbox:3,
 		unbreaking:true,
 		init:function(decorData) {
@@ -5237,6 +5251,7 @@ var decorBehaviors = {
 		}
 	},
 	fir:{
+		hidable:true,
 		hitbox:4,
 		unbreaking:true,
 		init:function(decorData) {
@@ -5293,6 +5308,7 @@ var decorBehaviors = {
 		}
 	},
 	sinistertree:{
+		hidable:true,
 		hitbox:9,
 		unbreaking:true,
 		init:function(decorData) {
@@ -5350,6 +5366,7 @@ var decorBehaviors = {
 		}
 	},
 	falltree:{
+		hidable:true,
 		hitbox:5,
 		unbreaking:true,
 		init:function(decorData) {
@@ -5362,6 +5379,7 @@ var decorBehaviors = {
 		}
 	},
 	peachtree:{
+		hidable:true,
 		hitbox:5,
 		unbreaking:true,
 		init:function(decorData) {
@@ -5914,6 +5932,7 @@ function render() {
 				for (var type in oMap.decor) {
 					for (var j=0;j<oMap.decor[type].length;j++) {
 						fSprite = oMap.decor[type][j];
+						if (fSprite[2][0].unshown) continue;
 						var fCamX = fSprite[0] - posX;
 						var fCamY = fSprite[1] - posY;
 
@@ -8955,7 +8974,7 @@ function move(getId) {
 	
 	if ((!getId || !isOnline || finishing) && !oKart.loose) {
 		var pExplose = touche_bobomb(fNewPosX, fNewPosY, (oKart.using[0]==bobombs ? oKart.using[1]:-1)) + touche_cbleue(fNewPosX, fNewPosY);
-		if (pExplose && !oKart.tourne && !oKart.protect) {
+		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell) {
 			loseBall(getId);
 			oKart.spin(pExplose);
 			if (oKart.using[0]) {
