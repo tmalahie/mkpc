@@ -1980,6 +1980,8 @@ function startGame() {
 
 		aKarts.push(oEnemy);
 	}
+	var gameSettings = localStorage.getItem("settings");
+	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	if (oMap.decor) {
 		for (var type in oMap.decor) {
 			if (!decorBehaviors[type])
@@ -1996,7 +1998,7 @@ function startGame() {
 				decorData[2] = new Sprite(type);
 				if (decorBehavior.init)
 					decorBehavior.init(decorData,i);
-				if (localStorage.ld && decorBehavior.hidable)
+				if (gameSettings.ld && decorBehavior.hidable)
 					decorData[2][0].unshow();
 			}
 		}
