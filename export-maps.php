@@ -119,6 +119,11 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 			$sautsData[4] = 1;
 		unset($sautsData);
 		break;
+	case 31:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 1;
+		unset($sautsData);
+		break;
 	case 36:
 		foreach ($mapData['sauts'] as &$sautsData)
 			$sautsData[4] = 0.85;
