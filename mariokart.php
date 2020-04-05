@@ -16,7 +16,7 @@ include('initdb.php');
 
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=2" />
 <?php
 require_once('isDS.php');
 if (IS_DS) {
@@ -68,7 +68,7 @@ var isds = <?php
 <?php
 mysql_close();
 ?>
-<script type="text/javascript" src="mk/maps.php?reload=f"></script>
+<script type="text/javascript" src="mk/maps.php?reload=e"></script>
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", MarioKart);
