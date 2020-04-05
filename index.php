@@ -1184,7 +1184,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
 			<a class="right_section_actions action_button action_gotoclm" href="classement.global.php"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
 		</div>
-		<div class="pub_section<?php if ($nbBirthdays) echo ' pub_mobile_only'; ?>">
+		<div class="pub_section">
 			<!-- Pub latérale MKPC -->
 			<ins class="adsbygoogle"
 			     style="display:inline-block;width:300px;height:250px"
