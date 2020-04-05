@@ -52,14 +52,14 @@ if ($creation) {
 		$getMCup = mysql_fetch_array(mysql_query('SELECT mode FROM `mkmcups` WHERE id="'. $cID .'"'));
 		$simplified = ($getMCup['mode']==0);
 		$type = $simplified ? 'mkcircuits':'circuits';
-		$getCircuits = mysql_query('SELECT c.id,c.nom FROM mkmcups_tracks t INNER JOIN mkcups p ON p.id=t.cup INNER JOIN `'. $type .'` c ON c.id IN (p.circuit0,p.circuit1,p.circuit2,p.circuit3) WHERE t.mcup="'. $cID .'" ORDER BY t.ordering');
+		$getCircuits = mysql_query('SELECT c.id,c.nom,p.id AS gid,p.nom AS gname FROM mkmcups_tracks t INNER JOIN mkcups p ON p.id=t.cup INNER JOIN `'. $type .'` c ON c.id IN (p.circuit0,p.circuit1,p.circuit2,p.circuit3) WHERE t.mcup="'. $cID .'" ORDER BY t.ordering');
 	}
 	elseif ($cup) {
 		$getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $cID .'"'));
-		$getCircuits = mysql_query('(SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit0'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit1'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit2'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit3'] .'")');
+		$getCircuits = mysql_query('(SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit0'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit1'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit2'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit3'] .'")');
 	}
 	else
-		$getCircuits = mysql_query('SELECT id,nom FROM `'. $type .'` WHERE id="'. $cID .'"');
+		$getCircuits = mysql_query('SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $cID .'"');
 }
 $pseudo = isset($_GET['pseudo']) ? $_GET['pseudo']:null;
 ?>
@@ -207,28 +207,47 @@ var autoSelectMap<?php
 	if (isset($_GET['map']))
 		echo ' = '. ($_GET['map']-1);
 ?>;
-var circuits = <?php
+var circuitGroups = <?php
 function escapeUtf8($str) {
-	return addslashes(preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars(utf8_encode($str))));
+	return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars(utf8_encode($str)));
+}
+function dict_to_array(&$chunks) {
+	$res = array();
+	foreach ($chunks as $chunck)
+		$res[] = $chunck;
+	return $res;
 }
 if ($creation) {
-	echo '[';
-	$v = '';
+	$groupsById = array();
+	$circuitGroups = array();
 	while ($getCircuit = mysql_fetch_array($getCircuits)) {
-		echo $v;
-		$v = ',';
 		if (!$getCircuit['nom'])
 			$getCircuit['nom'] = $language ? 'Untitled':'Sans titre';
-		echo '"'.escapeUtf8($getCircuit['nom']).'"';
+		$circuitGroups[$getCircuit['gid']][] = escapeUtf8($getCircuit['nom']);
 		$cIDs[] = $getCircuit['id'];
+		$groupsById[$getCircuit['gid']] = escapeUtf8($getCircuit['gname']);
 	}
-	echo ']';
+	echo json_encode(dict_to_array($circuitGroups));
 }
 else {
 	include_once('circuitNames.php');
-	echo json_encode(array_splice($circuitNames,0,$nbVSCircuits));
+	$circuitGroups = array(
+		array_slice($circuitNames,0,20),
+		array_slice($circuitNames,20,20),
+		array_slice($circuitNames,40,16)
+	);
+	echo json_encode($circuitGroups);
 }
 ?>;
+var circuits = [];
+var groups = <?php
+if ($creation)
+	echo json_encode(dict_to_array($groupsById));
+else
+	echo '["SNES","GBA","DS"]';
+?>;
+for (var i=0;i<groups.length;i++)
+	circuits = circuits.concat(circuitGroups[i]);
 var sUser = <?php echo isset($user) ? $user['id']:0 ?>;
 var sPts = <?php echo +isset($_GET['pts']); ?>;
 var classement = new Array();
@@ -248,8 +267,20 @@ else {
 while ($result = mysql_fetch_array($getResults))
 	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.$result['infosDate'].'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
 ?>
+var jGroup = groups.length;
+var iGroup = 0;
 for (var i=circuits.length-1;i>=0;i--) {
+	iGroup--;
+	if (iGroup < 0) {
+		jGroup--;
+		iGroup += circuitGroups[jGroup].length;
+	}
 	if (!classement[i].classement.length || (sUser && noShownData(classement[i].classement))) {
+		circuitGroups[jGroup].splice(iGroup,1);
+		if (!circuitGroups[jGroup].length) {
+			delete circuitGroups[jGroup];
+			groups.splice(jGroup,1);
+		}
 		circuits.splice(i,1);
 		classement.splice(i,1);
 		if (autoSelectMap == i)
@@ -561,15 +592,30 @@ window.onload = function() {
 		else
 			cTous.innerHTML = "<?php echo $language ? 'All':'Tous'; ?> ("+ nbRecords + " record"+ ((nbRecords>1) ? "s":"") +")";
 		iCircuit.appendChild(cTous);
-		for (var i=0;i<circuits.length;i++) {
-			var cCircuit = document.createElement("option");
-			cCircuit.value = i;
-			var cRecords = classement[i].classement.length;
-			if (sUser)
-				cCircuit.innerHTML = circuits[i];
-			else
-				cCircuit.innerHTML = circuits[i] +" ("+ cRecords +" record"+ ((cRecords>1) ? "s":"") +")";
-			iCircuit.appendChild(cCircuit);
+		var inc = 0;
+		for (var j=0;j<groups.length;j++) {
+			var optionGroup;
+			if (groups.length > 1) {
+				optionGroup = document.createElement("optgroup");
+				optionGroup.setAttribute("label", groups[j]);
+			}
+			var circuitGroup = circuitGroups[j];
+			for (var i=0;i<circuitGroup.length;i++) {
+				var cCircuit = document.createElement("option");
+				cCircuit.value = inc;
+				var cRecords = classement[inc].classement.length;
+				if (sUser)
+					cCircuit.innerHTML = circuitGroup[i];
+				else
+					cCircuit.innerHTML = circuitGroup[i] +" ("+ cRecords +" record"+ ((cRecords>1) ? "s":"") +")";
+				if (optionGroup)
+					optionGroup.appendChild(cCircuit);
+				else
+					iCircuit.appendChild(cCircuit);
+				inc++;
+			}
+			if (optionGroup)
+				iCircuit.appendChild(optionGroup);
 		}
 		if (autoSelectMap != undefined)
 			iCircuit.value = autoSelectMap;
