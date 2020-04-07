@@ -661,6 +661,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 			<h1><?php echo $language ? 'Last news':'Dernières news'; ?></h1>
 			<div id="news_section" class="right_subsection">
 				<?php
+				date_default_timezone_set('Europe/Paris');
 				$getNews = mysql_query('SELECT n.id,n.title,n.nbcomments,
 					name'. $language .' AS name,author,
 					category,c.name'. $language .' AS catname,
@@ -691,6 +692,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 					</a>
 					<?php
 				}
+				date_default_timezone_set('UTC');
 				if (!$nbnews)
 					echo '<div style="text-align:center;margin-top:55px">'. ($language ? 'No news yet':'Aucune news pour l\'instant').'</div>';
 				?>
