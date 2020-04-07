@@ -710,7 +710,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 			<?php
 			display_sidebar($language ? 'Track builder':'Éditeur de circuit', 'creations.php');
 			?>
-			<h1><?php echo $language ? 'Last creations':'Dernières créations'; ?></h1>
+			<h1><?php echo $language ? 'Latest creations':'Dernières créations'; ?></h1>
 			<div id="creations_section" class="right_subsection">
 				<table>
 					<?php
