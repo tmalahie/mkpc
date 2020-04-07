@@ -2,6 +2,7 @@
 include('session.php');
 include('language.php');
 include('initdb.php');
+require_once('utils-date.php');
 $creation = false;
 $cup = false;
 $mcup = false;
@@ -256,16 +257,15 @@ for (var i=0;i<circuits.length;i++)
 <?php
 $joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.name=r2.name AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
 $whereBest = isset($_GET['date']) ? ' AND r2.id IS NULL AND r.date<="'.$_GET['date'].'"':' AND r.best=1';
-$dateFormat = $language ? '%m/%d':'%d/%m';
 if (isset($user))
-	$getResults = mysql_query('SELECT r.*,c.code,DATE_FORMAT(r.date, "'. $dateFormat .'") AS infosDate,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
+	$getResults = mysql_query('SELECT r.*,c.code,r.date,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
 else {
 	if ($creation && empty($cIDs))
 		$cIDs = array(0);
-	$getResults = mysql_query('SELECT r.*,c.code,DATE_FORMAT(r.date, "'. $dateFormat .'") AS infosDate FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
+	$getResults = mysql_query('SELECT r.*,c.code,r.date FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
 }
 while ($result = mysql_fetch_array($getResults))
-	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.$result['infosDate'].'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
+	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false)).'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
 ?>
 var jGroup = groups.length;
 var iGroup = 0;
@@ -278,7 +278,7 @@ for (var i=circuits.length-1;i>=0;i--) {
 	if (!classement[i].classement.length || (sUser && noShownData(classement[i].classement))) {
 		circuitGroups[jGroup].splice(iGroup,1);
 		if (!circuitGroups[jGroup].length) {
-			delete circuitGroups[jGroup];
+			circuitGroups.splice(jGroup,1);
 			groups.splice(jGroup,1);
 		}
 		circuits.splice(i,1);

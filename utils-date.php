@@ -26,8 +26,7 @@ function pretty_dates($str, $options=array()) {
 function pretty_dates_short($str, $options=array()) {
 	global $language;
 	$dt = new \DateTime($str, new \DateTimeZone('Europe/Paris'));
-	$ts = $dt->getTimestamp();
-	$new = (time()-$ts < 86400);
+	$new = isset($options['new']) ? $options['new'] : (time()-$dt->getTimestamp() < 86400);
 	if (isset($_COOKIE['tz']))
 		$dt->setTimezone(new \DateTimeZone($_COOKIE['tz']));
 	if (isset($options['shorter'])) {
