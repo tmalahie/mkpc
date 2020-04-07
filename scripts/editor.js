@@ -3906,9 +3906,9 @@ var commonTools = {
 							iData.respawn.y += respawnDir[1];
 							break;
 						case "polygon":
-							for (var i=0;i<iData.respawn.points.length;i++) {
-								iData.respawn.points[i].x += respawnDir[0];
-								iData.respawn.points[i].y += respawnDir[1];
+							for (var j=0;j<iData.respawn.points.length;j++) {
+								iData.respawn.points[j].x += respawnDir[0];
+								iData.respawn.points[j].y += respawnDir[1];
 							}
 							break;
 						}
