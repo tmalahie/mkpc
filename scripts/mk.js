@@ -3036,6 +3036,7 @@ function startGame() {
 						aKarts[i].cpu = true;
 					for (i=0;i<gPersos.length;i++)
 						iTrajets.push(jTrajets[i]);
+					clearInterval(redrawCanvasHandler);
 					revoir();
 					pause = false;
 					setTimeout(function() {
