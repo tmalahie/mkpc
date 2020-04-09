@@ -5484,17 +5484,43 @@ var decorBehaviors = {
 		spin: 42,
 		unbreaking:true,
 		movable:true,
-		init:function(decorData) {
+		setdir:function(decorData,ux,uy,pos) {
+			pos = pos||decorData;
+			var r = oMap.w + oMap.h;
+			decorData[4][0][0] = pos[0] + r*ux;
+			decorData[4][0][1] = pos[1] + r*uy;
+			decorData[4][1][0] = pos[0] - r*ux;
+			decorData[4][1][1] = pos[1] - r*uy;
+		},
+		autojump:function(decorData,nMoveX,nMoveY,nSpeed) {
+			var nMove = Math.hypot(nMoveX,nMoveY);
+			decorData[4][2] = [decorData[0]+nMoveX,decorData[1]+nMoveY];
+			decorData[5]["2"] = {jump:1,loop:[0]};
+			decorData[6][0] = 2;
+			decorData[6][2] = nSpeed;
+			decorData[6][3] = nMove;
+			this.setdir(decorData,nMoveX/nMove,nMoveY/nMove,decorData[4][2]);
+		},
+		init:function(decorData,i) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 1;
 				decorData[2][j].w = 60;
 				decorData[2][j].h = decorData[2][j].w;
 				decorData[2][j].z = 0.33;
-				decorData[3] = 0;
-				decorData[6] = [0,0,5];
 			}
+			decorData[3] = 0;
+			if (!decorData[4]) {
+				decorData[4] = [[],[]];
+				var th = (10000*Math.sin(i+2))%Math.PI;
+				this.setdir(decorData,Math.sin(th),Math.cos(th));
+				if (!decorData[5])
+					decorData[5] = {0:{autoDir:true},1:{autoDir:true,loop:[0]}};
+			}
+			if (!decorData[5])
+				decorData[5] = {};
+			decorData[6] = [0,0,5];
 		},
-		move:function(decorData) {
+		move:function(decorData,i) {
 			var dSpeed = decorData[6][2];
 			while (dSpeed > 0) {
 				var target = decorData[4][decorData[6][0]];
@@ -5533,13 +5559,66 @@ var decorBehaviors = {
 					dSpeed -= diffL;
 				}
 				else {
-					if (customBehaviour && !isNaN(customBehaviour.flipper)) {
-						var flipper = oMap.flippers[customBehaviour.flipper];
-						if (!flipper[3][0])
-							flipper[3][1] = Math.max(0,Math.floor(diffL/dSpeed)-2);
+					var fMoveX = diffX*dSpeed/diffL, fMoveY = diffY*dSpeed/diffL;
+					if (customBehaviour) {
+						if (!isNaN(customBehaviour.flipper)) {
+							var flipper = oMap.flippers[customBehaviour.flipper];
+							if (!flipper[3][0])
+								flipper[3][1] = Math.max(0,Math.floor(diffL/dSpeed)-2);
+						}
+						if (customBehaviour.autoDir) {
+							if (decorData[6][1] < 0) {
+								var nOpacity = Math.max(0,1+decorData[6][1]/10);
+								for (var j=0;j<oPlayers.length;j++)
+									decorData[2][j].img.style.opacity = nOpacity;
+								if (nOpacity)
+									decorData[6][1]--;
+								else {
+									oMap.decor.cannonball[i][2][0].suppr();
+									oMap.decor.cannonball.splice(i,1);
+								}
+								fMoveX = 0;
+								fMoveY = 0;
+							}
+							else {
+								var cannon = inCannon(decorData[0],decorData[1]);
+								if (cannon) {
+									var nSpeed = 17;
+									this.autojump(decorData,cannon[0],cannon[1],nSpeed);
+								}
+								if (!customBehaviour.jump) {
+									decorData[3] = 0;
+									decorData[6][3] = 0;
+								}
+								if (!decorData[3]) {
+									var cannons = oMap.decor.cannonball;
+									oMap.decor.cannonball = [];
+									var pJump = sauts(decorData[0],decorData[1], fMoveX,fMoveY);
+									if (pJump) {
+										var nSpeed = 6+1.5*pJump, nMove = 28*pJump;
+										var nMoveX = diffX*nMove/diffL, nMoveY = diffY*nMove/diffL;
+										this.autojump(decorData,nMoveX,nMoveY,nSpeed);
+									}
+									else if (!canMoveTo(decorData[0],decorData[1],0, fMoveX,fMoveY)) {
+										var horizontality = getHorizontality(decorData[0],decorData[1], fMoveX,fMoveY);
+										var u = Math.hypot(horizontality[0],horizontality[1]);
+										var ux = horizontality[0]/u, uy = horizontality[1]/u;
+										var m_u = fMoveX*ux + fMoveY*uy;
+										var nMoveX = 2*m_u*ux-fMoveX, nMoveY = 2*m_u*uy-fMoveY;
+										var nMoveL = Math.hypot(nMoveX,nMoveY);
+										this.setdir(decorData,nMoveX/nMoveL,nMoveY/nMoveL);
+										fMoveX = 0;
+										fMoveY = 0;
+									}
+									else if (tombe(decorData[0]+fMoveX,decorData[1]+fMoveY))
+										decorData[6][1] = -1;
+									oMap.decor.cannonball = cannons;
+								}
+							}
+						}
 					}
-					decorData[0] += diffX*dSpeed/diffL;
-					decorData[1] += diffY*dSpeed/diffL;
+					decorData[0] += fMoveX;
+					decorData[1] += fMoveY;
 					if (decorData[6][3]) {
 						var l = (diffL-dSpeed)/decorData[6][3];
 						l = Math.max(Math.min(l,1),0);
@@ -5712,6 +5791,16 @@ var decorBehaviors = {
 			}
 			if (decorData[3] == undefined)
 				decorData[3] = (10000*Math.abs(Math.sin(i+1)))%3;
+			if (decorData[4] == undefined) {
+				decorData[4] = [];
+				var r = 40, n = 6;
+				var th0 = (10000*Math.sin(i+2))%Math.PI;
+				var dth = 2*Math.PI/n * Math.sign(Math.sin(1+80*i));
+				for (var j=0;j<n;j++) {
+					var th = th0 + j*dth;
+					decorData[4].push([decorData[0]+r*Math.cos(th),decorData[1]+r*Math.sin(th)]);
+				}
+			}
 			if (decorData[5] == undefined)
 				decorData[5] = 0;
 			if (decorData[6] == undefined)
