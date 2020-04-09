@@ -2,7 +2,7 @@
 include('language.php');
 include('initdb.php');
 $settings = array(
-	'ld' => $language ? 'Don\'t display graphic elements (trees)':'Désactiver l\'affichage des éléments graphiques (arbres)'
+	'ld' => $language ? 'Don\'t display heavy elements (trees, decors)':'Désactiver l\'affichage des éléments lourds (arbres, décors)'
 );
 ?>
 <!DOCTYPE html>
