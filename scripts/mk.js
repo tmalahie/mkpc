@@ -5493,6 +5493,11 @@ var decorBehaviors = {
 			decorData[4][1][1] = pos[1] - r*uy;
 		},
 		autojump:function(decorData,nMoveX,nMoveY,nSpeed) {
+			if (decorData[6][4] && nSpeed < 11) {
+				nMoveX *= 11/nSpeed;
+				nMoveY *= 11/nSpeed;
+				nSpeed = 11;
+			}
 			var nMove = Math.hypot(nMoveX,nMoveY);
 			decorData[4][2] = [decorData[0]+nMoveX,decorData[1]+nMoveY];
 			decorData[5]["2"] = {jump:1,loop:[0]};
@@ -5511,7 +5516,9 @@ var decorBehaviors = {
 			decorData[3] = 0;
 			if (!decorData[4]) {
 				decorData[4] = [[],[]];
-				var th = (10000*Math.sin(i+2))%Math.PI;
+				var decorParams = getDecorParams("cannonball",i);
+				var th = decorParams.dir;
+				if (isNaN(th)) th = ((10000*Math.sin(i+2))%Math.PI);
 				this.setdir(decorData,Math.sin(th),Math.cos(th));
 				if (!decorData[5])
 					decorData[5] = {0:{autoDir:true},1:{autoDir:true,loop:[0]}};
@@ -5522,6 +5529,10 @@ var decorBehaviors = {
 		},
 		move:function(decorData,i) {
 			var dSpeed = decorData[6][2];
+			if (decorData[6][4]) {
+				dSpeed = Math.max(11,dSpeed);
+				decorData[6][4]--;
+			}
 			while (dSpeed > 0) {
 				var target = decorData[4][decorData[6][0]];
 				var targetX = target[0], targetY = target[1];
@@ -5595,7 +5606,7 @@ var decorBehaviors = {
 									oMap.decor.cannonball = [];
 									var pJump = sauts(decorData[0],decorData[1], fMoveX,fMoveY);
 									if (pJump) {
-										var nSpeed = 6+1.5*pJump, nMove = 28*pJump;
+										var nSpeed = 6+1.5*pJump, nMove = 32*pJump;
 										var nMoveX = diffX*nMove/diffL, nMoveY = diffY*nMove/diffL;
 										this.autojump(decorData,nMoveX,nMoveY,nSpeed);
 									}
@@ -5612,6 +5623,8 @@ var decorBehaviors = {
 									}
 									else if (tombe(decorData[0]+fMoveX,decorData[1]+fMoveY))
 										decorData[6][1] = -1;
+									else if (accelere(decorData[0]+fMoveX,decorData[1]+fMoveY))
+										decorData[6][4] = 20;
 									oMap.decor.cannonball = cannons;
 								}
 							}
@@ -5887,6 +5900,12 @@ var decorBehaviors = {
 		}
 	}
 };
+
+function getDecorParams(type,i) {
+	if (oMap.decorparams && oMap.decorparams[type] && oMap.decorparams[type][i])
+		return oMap.decorparams[type][i];
+	return {};
+}
 
 function getApparentRotation(oPlayer, autorotate) {
 	var res = oPlayer.rotation;

@@ -403,7 +403,8 @@ function editCircle(circle,data,options) {
 	mask.close = function(){};
 	$toolbox.classList.add("hiddenbox");
 }
-function moveBox(box,data,size) {
+function moveBox(box,data,size,options) {
+	options = options||{};
 	var mask = createMask();
 	mask.classList.add("mask-dark");
 	var rectData = {x:data.x-size.w/2,y:data.y-size.h/2,w:size.w,h:size.h};
@@ -433,7 +434,13 @@ function moveBox(box,data,size) {
 			$toolbox.classList.remove("hiddenbox");
 			moveRect(e);
 			storeHistoryData(editorTools[currentMode].data);
-			applyObject(data,nData);
+			if (options.on_end_move)
+				options.on_end_move();
+			var apply;
+			if (options.on_apply)
+				apply = options.on_apply(nData);
+			if (false !== apply)
+				applyObject(data,nData);
 			mask.removeEventListener("mousemove", moveRect);
 			mask.removeEventListener("mouseup", stopMoveRect);
 			mask.defaultClose();
@@ -442,6 +449,8 @@ function moveBox(box,data,size) {
 		mask.addEventListener("mouseup", stopMoveRect);
 		mask.close = function(){};
 		$toolbox.classList.add("hiddenbox");
+		if (options.on_start_move)
+			options.on_start_move();
 	};
 	mask.appendChild(fakeRectangle);
 }
@@ -691,7 +700,10 @@ function moveArrow(arrow,origin,dir,options) {
 	var point2 = {x:origin.x+dir.x,y:origin.y+dir.y};
 	function moveArr(e) {
 		point2 = getEditorCoordsRounded(getPointerPos(e));
-		arrow.move(null,point2);
+		if (options.fixed_length)
+			changeArrowDir(arrow,origin,{x:point2.x-origin.x,y:point2.y-origin.y},options.fixed_length);
+		else
+			arrow.move(null,point2);
 	}
 	function stopMoveArr(e) {
 		e.stopPropagation();
@@ -1225,6 +1237,11 @@ function createArrow(point1,point2,append,options) {
 		hide: hideArrow,
 		show: showArrow
 	}
+}
+function changeArrowDir(arrow,origin,dir,length) {
+	var dirL = Math.hypot(dir.x,dir.y);
+	if (dirL)
+		arrow.move(origin,{x:origin.x+dir.x*length/dirL,y:origin.y+dir.y*length/dirL});
 }
 function createCircularArrow(center,angle1,dAngle,append,options) {
 	options = options||{};
@@ -1839,6 +1856,17 @@ function removeFromArray(arr,elt) {
 	}
 	return false;
 }
+function rotateDir(data,orientation) {
+	for (var i=0;i<orientation;i+=90) {
+		var nX = -data.y, nY = data.x;
+		data.x = nX;
+		data.y = nY;
+	}
+}
+function rotateNullableDir(data,orientation) {
+	if (data)
+		return rotateDir(data,orientation);
+}
 function rotatePoint(data,screenData,orientation) {
 	var sW = screenData.w, sH = screenData.h;
 	for (var i=0;i<orientation;i+=90) {
@@ -1898,6 +1926,14 @@ function rotateBox(data,screenData,orientation) {
 		data.h = w;
 	}
 	return data;
+}
+function flipDir(data,axis) {
+	data[axis.coord] = -data[axis.coord];
+	return data;
+}
+function flipNullableDir(data,axis) {
+	if (data)
+		return flipDir(data,axis);
 }
 function flipPoint(data,screenData,axis) {
 	data[axis.coord] = screenData[axis.size]-data[axis.coord];
@@ -2004,6 +2040,13 @@ function dataToShape(data) {
 		};
 	}
 	return res;
+}
+function rescaleDir(data, scale) {
+	rescalePoint(data, scale);
+}
+function rescaleNullableDir(data, scale) {
+	if (data)
+		rescaleDir(data, scale);
 }
 function rescalePoint(data, scale) {
 	data.x = Math.round(data.x*scale.x);
@@ -3510,14 +3553,22 @@ var commonTools = {
 			else
 				autoSelectType = false;
 			if (type) {
-				var positions = self.data[type];
+				var decorsData = self.data[type];
 				self.data[type] = [];
 				self.state.type = type;
-				if (positions) {
-					for (var i=0;i<positions.length;i++)
-						self.click(self,positions[i],{});
+				if (decorsData) {
+					for (var i=0;i<decorsData.length;i++) {
+						var decorData = decorsData[i];
+						self.click(self,decorData.pos,{});
+						switch (type) {
+						case "cannonball":
+							if (decorData.dir)
+								self.click(self,{x:decorData.pos.x+decorData.dir.x,y:decorData.pos.y+decorData.dir.y},{});
+							break;
+						}
+					}
 					if (autoSelectType)
-						document.getElementById("decor-selector").setValue(self.state.type);
+						document.getElementById("decor-selector").setValue(type);
 				}
 			}
 		},
@@ -3528,74 +3579,154 @@ var commonTools = {
 				alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
 			self.move(self,point,extra);
 			storeHistoryData(self.data);
-			self.data[self.state.type].push(point);
-			var box = self.state.point;
-			box.classList.remove("noclick");
-			box.oncontextmenu = function(e) {
-				hideBox(self.state.point,self.state.boxSize);
-				return showContextOnElt(e,box,[{
-					text: (language ? "Move":"Déplacer"),
-					click: function() {
-						moveBox(box,point,self.state.boxSize);
+			var over = true;
+			var typeData = self.data[self.state.type];
+			var decorData;
+			if (self.state.arrow) {
+				decorData = typeData[typeData.length-1];
+				decorData.dir = {x:point.x-decorData.pos.x,y:point.y-decorData.pos.y};
+			}
+			else {
+				decorData = {pos:point};
+				typeData.push(decorData);
+				switch (self.state.type) {
+				case "cannonball":
+					over = false;
+					var arrow = createArrow({x:point.x,y:point.y},{x:point.x,y:point.y});
+					for (var i=0;i<arrow.lines.length;i++)
+						arrow.lines[i].classList.add("noclick");
+					self.state.arrow = arrow;
+					break;
+				}
+			}
+			if (over) {
+				var box = self.state.point;
+				var arrow = self.state.arrow;
+				delete self.state.arrow;
+				var moveOptions = {};
+				if (arrow) {
+					moveOptions.on_apply = function(nData) {
+						changeArrowDir(arrow,{x:nData.x,y:nData.y},decorData.dir,self._arrowLength);
 					}
-				}, {
-					text:(language ? "Delete":"Supprimer"),
-					click:function() {
-						$editor.removeChild(box);
-						storeHistoryData(self.data);
-						removeFromArray(self.data[self.state.type],point);
+					moveOptions.on_start_move = arrow.hide;
+					moveOptions.on_end_move = arrow.show;
+				}
+				box.classList.remove("noclick");
+				box.oncontextmenu = function(e) {
+					hideBox(self.state.point,self.state.boxSize);
+					var menuOptions = [{
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							moveBox(box,decorData.pos,self.state.boxSize,moveOptions);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							$editor.removeChild(box);
+							if (arrow) arrow.remove();
+							storeHistoryData(self.data);
+							removeFromArray(typeData,decorData);
+						}
+					}];
+					if (arrow) {
+						menuOptions.splice(1,0, {
+							text: (language ? "Edit ↗":"Modifier ↗"),
+							click: function() {
+								moveArrow(arrow,decorData.pos,decorData.dir,{fixed_length:self._arrowLength});
+							}
+						});
 					}
-				}]);
-			};
-			self.state.point = createBox(self.state.boxSize);
-			self.state.point.classList.add("noclick");
+					return showContextOnElt(e,box,menuOptions);
+				};
+				self.state.point = createBox(self.state.boxSize);
+				self.state.point.classList.add("noclick");
+			}
 		},
+		"_arrowLength": 25,
 		"move" : function(self,point,extra) {
-			setBoxPos(self.state.point,point,self.state.boxSize);
+			if (self.state.arrow) {
+				var typeData = self.data[self.state.type];
+				var decorPos = typeData[typeData.length-1].pos;
+				var dir = {x:point.x-decorPos.x,y:point.y-decorPos.y};
+				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength);
+			}
+			else
+				setBoxPos(self.state.point,point,self.state.boxSize);
 		},
 		"save" : function(self,payload) {
 			var selfData = self.data;
 			payload.decor = {};
+			payload.decorparams = {};
+			var isDecorData = false;
 			for (var type in selfData) {
 				var decorsData = selfData[type];
 				if (decorsData.length) {
 					payload.decor[type] = [];
-					for (var i=0;i<decorsData.length;i++)
-						payload.decor[type].push(pointToData(decorsData[i]));
+					payload.decorparams[type] = [];
+					for (var i=0;i<decorsData.length;i++) {
+						payload.decor[type].push(pointToData(decorsData[i].pos));
+						switch (type) {
+						case "cannonball":
+							var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
+							payload.decorparams[type].push({dir:isNaN(dir)?0:dir});
+						}
+					}
+					if (payload.decorparams[type].length)
+						isDecorData = true;
+					else
+						delete payload.decorparams[type];
 				}
 			}
+			if (!isDecorData)
+				delete payload.decorparams;
 		},
 		"restore" : function(self,payload) {
 			var selfData = self.data;
 			for (var type in payload.decor) {
 				selfData[type] = [];
-				var decorsData = payload.decor[type];
-				for (var i=0;i<decorsData.length;i++)
-					selfData[type].push(dataToPoint(decorsData[i]));
+				var decorsPayload = payload.decor[type];
+				var decorsParams = payload.decorparams ? payload.decorparams[type]:null;
+				decorsParams = decorsParams||[];
+				for (var i=0;i<decorsPayload.length;i++) {
+					var decorParams = decorsParams[i] || {};
+					var decorData = {pos:dataToPoint(decorsPayload[i])};
+					switch (type) {
+					case "cannonball":
+						var dir = decorParams.dir || 0;
+						decorData.dir = {x:Math.sin(dir),y:Math.cos(dir)};
+					}
+					selfData[type].push(decorData);
+				}
 			}
 		},
 		"rescale" : function(self, scale) {
 			var selfData = self.data;
 			for (var type in selfData) {
 				var decorsData = selfData[type];
-				for (var i=0;i<decorsData.length;i++)
-					rescaleBox(decorsData[i], scale);
+				for (var i=0;i<decorsData.length;i++) {
+					rescaleBox(decorsData[i].pos, scale);
+					rescaleNullableDir(decorsData[i].dir, scale);
+				}
 			}
 		},
 		"rotate" : function(self, orientation) {
 			var selfData = self.data;
 			for (var type in selfData) {
 				var decorsData = selfData[type];
-				for (var i=0;i<decorsData.length;i++)
-					rotateBox(decorsData[i], imgSize,orientation);
+				for (var i=0;i<decorsData.length;i++) {
+					rotateBox(decorsData[i].pos, imgSize,orientation);
+					rotateNullableDir(decorsData[i].dir, orientation);
+				}
 			}
 		},
 		"flip" : function(self, axis) {
 			var selfData = self.data;
 			for (var type in selfData) {
 				var decorsData = selfData[type];
-				for (var i=0;i<decorsData.length;i++)
-					flipBox(decorsData[i], imgSize,axis);
+				for (var i=0;i<decorsData.length;i++) {
+					flipBox(decorsData[i].pos, imgSize,axis);
+					flipNullableDir(decorsData[i].dir, axis);
+				}
 			}
 		}
 	},
@@ -4210,9 +4341,9 @@ var commonTools = {
 			var selectedType = self.state.dirVect ? self.data[self.data.length-1].type : self.state.shape;
 			return (selectedType == "polygon");
 		},
-		"dirFactor" : 12,
-		"rotFactor" : -36,
-		"rotScale" : 1.5,
+		"_dirFactor" : 12,
+		"_rotFactor" : -36,
+		"_rotScale" : 1.5,
 		"save" : function(self,payload) {
 			if (self.data.length) {
 				for (var i=0;i<self.data.length;i++) {
@@ -4223,8 +4354,8 @@ var commonTools = {
 						var dir = [0,0];
 						if (iData.dir) {
 							dir = pointToData(iData.dir);
-							dir[0] /= self.dirFactor;
-							dir[1] /= self.dirFactor;
+							dir[0] /= self._dirFactor;
+							dir[1] /= self._dirFactor;
 						}
 						payload.flows.push([shape,dir]);
 					}
@@ -4232,7 +4363,7 @@ var commonTools = {
 						if (!payload.spinners) payload.spinners = [];
 						shape.push(0);
 						if (iData.dir)
-							shape[3] = Math.pow(Math.abs(iData.dir.dtheta),self.rotScale)*Math.sign(iData.dir.dtheta)/self.rotFactor;
+							shape[3] = Math.pow(Math.abs(iData.dir.dtheta),self._rotScale)*Math.sign(iData.dir.dtheta)/self._rotFactor;
 						payload.spinners.push(shape);
 					}
 				}
@@ -4267,15 +4398,15 @@ var commonTools = {
 					var dirVect = iPayload[1];
 					if ("complete" === aData.status) {
 						iData.dir = dataToPoint(dirVect);
-						iData.dir.x = Math.round(iData.dir.x*self.dirFactor);
-						iData.dir.y = Math.round(iData.dir.y*self.dirFactor);
+						iData.dir.x = Math.round(iData.dir.x*self._dirFactor);
+						iData.dir.y = Math.round(iData.dir.y*self._dirFactor);
 					}
 				}
 				else {
 					iData = dataToCirc(iPayload);
 					iData.type = "circle";
 					if ("complete" === aData.status)
-						iData.dir = {dtheta:Math.pow(Math.abs(iPayload[3]*self.rotFactor),1/self.rotScale)*Math.sign(iPayload[3]*self.rotFactor)};
+						iData.dir = {dtheta:Math.pow(Math.abs(iPayload[3]*self._rotFactor),1/self._rotScale)*Math.sign(iPayload[3]*self._rotFactor)};
 				}
 				self.data.push(iData);
 			}
@@ -4285,10 +4416,8 @@ var commonTools = {
 				var iData = self.data[i];
 				rescaleShape(iData, scale);
 				if (iData.dir) {
-					if ("circle" !== iData.type) {
-						iData.dir.x = Math.round(iData.dir.x*scale.x);
-						iData.dir.y = Math.round(iData.dir.y*scale.y);
-					}
+					if ("circle" !== iData.type)
+						rescaleDir(iData.dir, scale);
 				}
 			}
 		},
@@ -4297,13 +4426,8 @@ var commonTools = {
 				var iData = self.data[i];
 				rotateShape(iData, imgSize,orientation);
 				if (iData.dir) {
-					if ("circle" !== iData.type) {
-						for (var j=0;j<orientation;j+=90) {
-							var nX = -iData.dir.y, nY = iData.dir.x;
-							iData.dir.x = nX;
-							iData.dir.y = nY;
-						}
-					}
+					if ("circle" !== iData.type)
+						rotateDir(iData.dir,orientation);
 				}
 			}
 		},
@@ -4313,7 +4437,7 @@ var commonTools = {
 				flipShape(iData, imgSize,axis);
 				if (iData.dir) {
 					if ("circle" !== iData.type)
-						iData.dir[axis.coord] = -iData.dir[axis.coord];
+						flipDir(iData.dir,axis);
 					else
 						iData.dir.dtheta = -iData.dir.dtheta;
 				}
