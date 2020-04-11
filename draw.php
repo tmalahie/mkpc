@@ -4,7 +4,6 @@ include('getId.php');
 include('language.php');
 session_start();
 require_once('circuitEnums.php');
-require_once('isDS.php');
 $musicOptions = $language
 	? Array(null, 'Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', null, 'Mario Circuit', 'Shy Guy Beach', 'Riverside Park', 'Bowser Castle', 'Boo Lake', 'Cheese Land', 'Sky Garden', 'Sunset Wilds', 'Snow Land', 'Ribbon Road', 'Yoshi Desert', 'Lakeside Park', 'Rainbow Road', null,'Figure 8 Circuit','Yoshi Falls','Cheep Cheep Beach','Luigi\'s Mansion','Desert Hills','Delfino Square','Waluigi Pinball','Shroom Ridge','DK Pass','Tick-Tock Clock','Airship Fortress','Peach Gardens','Bowser\'s Castle', 'Rainbow Road')
 	: Array(null, 'Circuit Mario', 'Plaine Donut', 'Plage Koopa', 'Île Choco', 'Lac Vanille', 'Vallée Fantôme', 'Château de Bowser', 'Route Arc-en-Ciel', null, 'Circuit Mario', 'Plage Maskass', 'Bord du Fleuve', 'Château de Bowser', 'Lac Boo', 'Pays Fromage', 'Jardin Volant', 'Pays Crépuscule', 'Royaume Sorbet', 'Route Ruban', 'Désert Yoshi', 'Bord du Lac', 'Route Arc-en-Ciel', null, 'Circuit en 8', 'Cascade Yoshi', 'Plage Cheep-Cheep', 'Manoir de Luigi', 'Désert du Soleil', 'Quartier Delfino', 'Flipper Waluigi', 'Corniche Champignon', 'Alpes DK', 'Horloge Tic-Tac', 'Bateau Volant', 'Jardin Peach', 'Château de Bowser', 'Route Arc-en-Ciel');
@@ -65,11 +64,6 @@ if (isset($_GET['i'])) {
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
-		if (!IS_DS) {
-			$modeKeys = array_keys($modes);
-			unset($modes[$modeKeys[1]]['cannons']);
-			unset($modes[$modeKeys[1]]['mobiles']);
-		}
 		?>
 		<div id="toolbox">
 			<div id="mode-selection">
@@ -165,8 +159,6 @@ if (isset($_GET['i'])) {
 					<div class="radio-selector" id="decor-selector" data-change="decorChange">
 						<?php
 						require_once('circuitDecors.php');
-						if (!IS_DS)
-							$decors = array($decors[0]);
 						foreach ($decors as $i=>$decorNames) {
 							if ($i) echo '<br />';
 							foreach ($decorNames as $decorName=>$title)
@@ -379,8 +371,6 @@ if (isset($_GET['i'])) {
 				'GBA' => array_slice($bgImages, 8,20),
 				'DS' => array_slice($bgImages, 28,16)
 			);
-			if (!IS_DS)
-				unset($decors['DS']);
 			$i = 0;
 			foreach ($decors as $name=>$decorGroup) {
 				echo '<a id="bg-selector-tab-'.$i.'" href="javascript:showBgTab('.$i.')">'.$name.'</a>';
@@ -416,7 +406,7 @@ if (isset($_GET['i'])) {
 				<tr>
 					<th>SNES</th>
 					<th>GBA</th>
-					<?php if (IS_DS) echo '<th>DS</th>'; ?>
+					<th>DS</th>
 				</tr>
 				<tr>
 					<td>
@@ -431,21 +421,15 @@ if (isset($_GET['i'])) {
 						echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
 					?>
 					</td>
+					<td>
 					<?php
-					if (IS_DS) {
-						?>
-						<td>
-						<?php
-						for ($i=24;$i<=37;$i++)
-							echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
-						?>
-						</td>
-						<?php
-					}
+					for ($i=24;$i<=37;$i++)
+						echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
 					?>
+					</td>
 				</tr>
 				<tr>
-					<td colspan="<?php echo (IS_DS ? 3:2); ?>" class="youtube">
+					<td colspan="3" class="youtube">
 						<a id="musicchoice-0" href="javascript:selectMusic(0)">Youtube</a>
 						<div>
 							<?php echo $language ? 'Video URL':'Adresse vidéo'; ?> :
@@ -767,10 +751,6 @@ if (isset($_GET['i'])) {
 						)
 					)
 				);
-				if (!IS_DS) {
-					unset($helpItems['cannons']);
-					unset($helpItems['mobiles']);
-				}
 				foreach ($helpItems as $key=>$item) {
 					echo '<button class="radio-button" value="'.$key.'">'.$item['title'].'</button>';
 				}

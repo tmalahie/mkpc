@@ -34,7 +34,7 @@ if ($id && $myIdentifiants) {
 	mysql_query('INSERT INTO `mkips` VALUES("'.$id.'","'.$myIdentifiants[0].'","'.$myIdentifiants[1].'","'.$myIdentifiants[2].'","'.$myIdentifiants[3].'")');
 	mysql_query('INSERT INTO `mkbrowsers` VALUES("'.$id.'","'.mysql_real_escape_string($_SERVER['HTTP_USER_AGENT']).'")');
 }
-$slidesPath = IS_DS ? 'images/slides':'images/oldslides';
+$slidesPath = 'images/slides';
 ?>
 <main>
 	<section id="left_section">
@@ -79,33 +79,17 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 								<h3 class="fp-title"><?php echo $language ? 'Crazy races full of fun!':'Des courses acharnées et pleines de fun !'; ?></h3>
 								<p>
 									<?php
-									if (IS_DS) {
-										if ($language) {
-											?>
-											Try to be the fastest while avoiding the items!<br />
-											Find all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
-											<?php
-										}
-										else {
-											?>
-											Tentez d'être le plus rapide tout en évitant les objets !<br />
-											Retrouvez l'intégralité des <strong>56 circuits</strong> repris du jeu original <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> et <strong>Mario Kart DS</strong>.
-											<?php
-										}
+									if ($language) {
+										?>
+										Try to be the fastest while avoiding the items!<br />
+										Find all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
+										<?php
 									}
 									else {
-										if ($language) {
-											?>
-											Try to be the fastest while avoiding the items!<br />
-											Find all the <strong>40 tracks</strong> from the original games <strong>Super Mario Kart</strong> and <strong>Mario Kart Super Circuit</strong>.
-											<?php
-										}
-										else {
-											?>
-											Tentez d'être le plus rapide tout en évitant les objets !<br />
-											Retrouvez l'intégralité des <strong>40 circuits</strong> repris du jeu original <strong>Super Mario Kart</strong> et <strong>Mario Kart Super Circuit</strong>.
-											<?php
-										}
+										?>
+										Tentez d'être le plus rapide tout en évitant les objets !<br />
+										Retrouvez l'intégralité des <strong>56 circuits</strong> repris du jeu original <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> et <strong>Mario Kart DS</strong>.
+										<?php
 									}
 									?>
 								</p>
@@ -127,14 +111,14 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 									<?php
 									if ($language) {
 										?>
-										Face off the cpu on the <strong><?php echo IS_DS ? 14:10; ?> grands prix</strong> tournaments and try to win the gold cup!<br />
-										Win enough cups to unlock the <strong><?php echo IS_DS ? 15:12; ?> secret characters</strong>!
+										Face off the cpu on the <strong>14 grands prix</strong> tournaments and try to win the gold cup!<br />
+										Win enough cups to unlock the <strong>15 secret characters</strong>!
 										<?php
 									}
 									else {
 										?>
-										Affrontez les ordis sur les <strong><?php echo IS_DS ? 14:10; ?> grands prix</strong> et tentez de gagner la coupe en or !<br />
-										Remportez suffisament de coupes pour débloquer les <strong><?php echo IS_DS ? 15:12; ?> persos secrets</strong> !
+										Affrontez les ordis sur les <strong>14 grands prix</strong> et tentez de gagner la coupe en or !<br />
+										Remportez suffisament de coupes pour débloquer les <strong>15 persos secrets</strong> !
 										<?php
 									}
 									?>
@@ -305,7 +289,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 		</div>
 		<div id="toBegin"><a href="mariokart.php">
 		&#9660;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9660;<br />
-		<img src="images/<?php echo IS_DS ? 'mkpc_box.jpg':'mariokart_pc.png'; ?>" alt="Acc&eacute;der au jeu" style="width:310px;position: relative;top:2px" /><br />
+		<img src="images/mkpc_box.jpg" alt="Acc&eacute;der au jeu" style="width:310px;position: relative;top:2px" /><br />
 		&#9650;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9650;</a></div>
 		<?php
 		if ($language) {
@@ -353,30 +337,16 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 			?>
 			<table id="screenshots" class="demo-gallery">
 				<?php
-				if (IS_DS) {
-					for ($i=1;$i<=12;$i++) {
-						if (!(($i-1)%3))
-							echo '<tr>';
-						echo '<td>';
-						$url_img = "images/screenshots/ss$i.png";
-						$url_thumb = 'images/screenshots/ss'.$i.'xs.png';
-						echo '<a href="'. $url_img .'" data-size="960x468" data-med="'. $url_img .'" data-med-size="240x117" class="demo-gallery__photo demo-gallery__img--main"><img src="'.$url_thumb.'" alt="Screenshot '. $i .'" /></a>';
-						echo '</td>';
-						if (!($i%3))
-							echo '</tr>';
-					}
-				}
-				else {
-					for ($i=1;$i<=9;$i++) {
-						if (!(($i-1)%3))
-							echo '<tr>';
-						echo '<td>';
-						$url_img = 'images/screenshots/ss'. ($language ? 'en':'fr') . $i .'.png';
-						echo '<a href="'. $url_img .'" data-size="640x312" data-med="'. $url_img .'" data-med-size="640x312" class="demo-gallery__photo demo-gallery__img--main"><img src="images/screenshots/ss'. ($language ? 'en':'fr') . $i .'.png" alt="Screenshot '. $i .'" /></a>';
-						echo '</td>';
-						if (!($i%3))
-							echo '</tr>';
-					}
+				for ($i=1;$i<=12;$i++) {
+					if (!(($i-1)%3))
+						echo '<tr>';
+					echo '<td>';
+					$url_img = "images/screenshots/ss$i.png";
+					$url_thumb = 'images/screenshots/ss'.$i.'xs.png';
+					echo '<a href="'. $url_img .'" data-size="960x468" data-med="'. $url_img .'" data-med-size="240x117" class="demo-gallery__photo demo-gallery__img--main"><img src="'.$url_thumb.'" alt="Screenshot '. $i .'" /></a>';
+					echo '</td>';
+					if (!($i%3))
+						echo '</tr>';
 				}
 				?>
 			</table>
@@ -391,7 +361,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 					<li><a href="https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/">Nihilogic</a> for the <a href="https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/">basic Mario Kart</a></li>
 					<li><a href="http://www.snesmaps.com/">SNESMaps</a> for the <a href="http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html">track images</a></li>
 					<li><a href="http://www.vgmusic.com/">VGmusic</a> for the <a href="http://www.vgmusic.com/music/console/nintendo/snes/index-sz.html#Super_Mario_Kart">musics</a></li>
-						<?php if (IS_DS) echo '<li>And <a href="credits.php">many more</a>!</li>'; ?>
+					<li>And <a href="credits.php">many more</a>!</li>
 				</ul>
 				<?php
 			}
@@ -402,7 +372,7 @@ $slidesPath = IS_DS ? 'images/slides':'images/oldslides';
 					<li><a href="https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/">Nihilogic</a> pour le <a href="https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/">Mario Kart de départ</a></li>
 					<li><a href="http://www.snesmaps.com/">SNESMaps</a> pour les <a href="http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html">images des circuits</a></li>
 					<li><a href="https://downloads.khinsider.com/">Khinsider</a> pour les <a href="https://downloads.khinsider.com/search?search=mario+kart">musiques</a></li>
-					<?php if (IS_DS) echo '<li>Et <a href="credits.php">bien d\'autres</a> !</li>'; ?>
+					<li>Et <a href="credits.php">bien d\'autres</a> !</li>
 				</ul>
 				<?php
 			}

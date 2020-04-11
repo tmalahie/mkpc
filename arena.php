@@ -122,10 +122,6 @@ var simplified = true;
 var nid = <?php echo isset($nid) ? $nid:'null'; ?>;
 var edittingCircuit = <?php echo isset($edittingCircuit) ? 'true':'false'; ?>;
 var NBCIRCUITS = 0;
-var isds = <?php
-	require_once('isDS.php');
-	echo IS_DS;
-?>;
 function listMaps() {
 	return {<?php
 	include('mk/arena.php');

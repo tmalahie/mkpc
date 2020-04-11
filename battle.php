@@ -69,10 +69,6 @@ var complete = true;
 var simplified = false;
 var nid = <?php echo isset($id) ? $id:'null'; ?>;
 var NBCIRCUITS = 0;
-var isds = <?php
-	require_once('isDS.php');
-	echo IS_DS;
-?>;
 function listMaps() {
 	return {<?php
 	include('mk/battle.php');

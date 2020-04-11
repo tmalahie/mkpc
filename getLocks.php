@@ -49,8 +49,5 @@ if ($total2 >= 3) {
 		}
 	}
 }
-require_once('isDS.php');
-if (!IS_DS)
-	array_splice($unlocked,15,3);
 echo json_encode($unlocked);
 ?>

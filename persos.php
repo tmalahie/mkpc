@@ -201,10 +201,7 @@ function handle_upload($file,$perso=null) {
 				$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 				if (in_array($ext, $extensions)) {
 					list($w,$h) = getimagesize($file['tmp_name']);
-					require_once('isDS.php');
-					if (!IS_DS && (($w != 768) || ($h != 32)))
-						$error = $language ? 'Your image must have the dimensions 768&times;32px.':'Votre image doit avoir les dimensions 768&times;32px.';
-					elseif ($w >= 384 && $w <= 1536) {
+					if ($w >= 384 && $w <= 1536) {
 						if ($h >= 16 && $h <= 64) {
 							if ($w%24 == 0) {
 								if (!$perso) {

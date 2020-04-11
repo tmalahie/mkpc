@@ -17,10 +17,6 @@ include('initdb.php');
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
 <link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=2" />
-<?php
-require_once('isDS.php');
-if (IS_DS) {
-	?>
 <style type="text/css">
 body {
 	color: #FEFF3F;
@@ -33,9 +29,6 @@ input[type="button"], input[type="submit"], button {
     cursor: pointer;
 }
 </style>
-	<?php
-}
-?>
 
 <?php
 include('o_online.php');
@@ -61,9 +54,6 @@ var PERSOS_DIR = "<?php
 	echo PERSOS_DIR;
 ?>";
 var NBCIRCUITS = <?php echo $nbVSCircuits; ?>;
-var isds = <?php
-	echo IS_DS;
-?>;
 </script>
 <?php
 mysql_close();

@@ -4,7 +4,6 @@ include('getId.php');
 include('language.php');
 session_start();
 require_once('circuitEnums.php');
-require_once('isDS.php');
 $musicOptions = Array(
 	9 => ($language ? 'SNES Battle Course':'Arène bataille SNES'),
 	23 => ($language ? 'GBA Battle Course':'Arène bataille GBA')
@@ -66,11 +65,6 @@ if (isset($_GET['i'])) {
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
-		if (!IS_DS) {
-			$modeKeys = array_keys($modes);
-			unset($modes[$modeKeys[1]]['cannons']);
-			unset($modes[$modeKeys[1]]['mobiles']);
-		}
 		?>
 		<div id="toolbox">
 			<div id="mode-selection">
@@ -131,8 +125,6 @@ if (isset($_GET['i'])) {
 					<div class="radio-selector" id="decor-selector" data-change="decorChange">
 						<?php
 						require_once('circuitDecors.php');
-						if (!IS_DS)
-							$decors = array($decors[0]);
 						foreach ($decors as $i=>$decorNames) {
 							if ($i) echo '<br />';
 							foreach ($decorNames as $decorName=>$title)
@@ -207,8 +199,6 @@ if (isset($_GET['i'])) {
 				'GBA' => array_slice($bgImages, 8,20),
 				'DS' => array_slice($bgImages, 28,16)
 			);
-			if (!IS_DS)
-				unset($decors['DS']);
 			$i = 0;
 			foreach ($decors as $name=>$decorGroup) {
 				echo '<a id="bg-selector-tab-'.$i.'" href="javascript:showBgTab('.$i.')">'.$name.'</a>';
@@ -543,10 +533,6 @@ if (isset($_GET['i'])) {
 						)
 					)
 				);
-				if (!IS_DS) {
-					unset($helpItems['cannons']);
-					unset($helpItems['mobiles']);
-				}
 				foreach ($helpItems as $key=>$item) {
 					echo '<button class="radio-button" value="'.$key.'">'.$item['title'].'</button>';
 				}

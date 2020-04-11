@@ -9,23 +9,6 @@ var updateCtnFullScreen;
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
-if (typeof isds === 'undefined') {
-	var isds = 1;
-}
-if (!isds && !isCup && !isBattle) {
-	var bListMaps = listMaps;
-	listMaps = function() {
-		var aMaps = bListMaps();
-		var res = {};
-		for (var i=1;i<=NBCIRCUITS;i++)
-			res["map"+i] = aMaps["map"+i];
-		if (!isOnline) {
-			for (var i=1;i<=8;i++)
-				res["map"+(NBCIRCUITS+i)] = aMaps["map"+(NBCIRCUITS+16+i)];
-		}
-		return res;
-	};
-}
 var isOnline = (page=="OL");
 var isMCups = (isCup && (NBCIRCUITS>4));
 var clRuleVars = {};
@@ -133,7 +116,7 @@ resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
 var gameMenu;
-var primaryColor = isds ? "#FEFF3F":"yellow";
+var primaryColor = "#FEFF3F";
 
 var refreshDatas = isOnline, finishing = false;
 var destructions = new Array();
@@ -11184,16 +11167,11 @@ function getEndingSrc(playerName) {
 function getStarSrc(playerName) {
 	if (isCustomPerso(playerName))
 		return PERSOS_DIR + playerName + "-star.png";
-	return "images/star/star_" + playerName +".png"+(isds?"?reload=1":"");
+	return "images/star/star_" + playerName +".png";
 }
 function getSpriteSrc(playerName) {
 	if (isCustomPerso(playerName))
 		return PERSOS_DIR + playerName + ".png";
-	if (cp[playerName]) {
-		if (isds)
-			return "images/sprites/sprite_" + playerName +".png?reload=1";
-		return "images/oldsprites/sprite_" + playerName +".png";
-	}
 	return "images/sprites/sprite_" + playerName +".png";
 }
 function getMapIcSrc(playerName) {
@@ -11202,9 +11180,7 @@ function getMapIcSrc(playerName) {
 	return "images/map_icons/"+ playerName +".png";
 }
 function getMapSelectorSrc(i) {
-	//return isCup ? (complete ? "trackicon.php?id="+ oMaps[aAvailableMaps[i]].map +"&type=" + (course=="BB" ? 2:1):"trackicon.php?id="+ oMaps[aAvailableMaps[i]].id +"&type=0") : "images/selectors/select_" + aAvailableMaps[i] + ".png";
-	return isCup ? (complete ? "trackicon.php?id="+ oMaps[aAvailableMaps[i]].map +"&type=" + (course=="BB" ? 2:1):"trackicon.php?id="+ oMaps[aAvailableMaps[i]].id +"&type=0") : 
-	isds ? ("images/selectors/select_" + aAvailableMaps[i] + ".png?reload=1"):("images/selectors/select_map" + oMaps[aAvailableMaps[i]].map + ".png");
+	return isCup ? (complete ? "trackicon.php?id="+ oMaps[aAvailableMaps[i]].map +"&type=" + (course=="BB" ? 2:1):"trackicon.php?id="+ oMaps[aAvailableMaps[i]].id +"&type=0") : "images/selectors/select_" + aAvailableMaps[i] + ".png";
 }
 function getMapId(oMap) {
 	var res = isBattle ? nid : (simplified ? oMap.id : oMap.map);
@@ -11531,22 +11507,12 @@ function selectTypeScreen() {
 	oStyle.backgroundColor = "black";
 
 	var oTitle = new Image();
-	if (isds) {
-		oTitle.src = "images/mariokart.png";
-		oTitle.style.position = "absolute";
-		oTitle.style.width = Math.round(42.5*iScreenScale)+"px";
-		oTitle.style.height = (5*iScreenScale)+"px";
-		oTitle.style.left = Math.round((iWidth-42.5)/2*iScreenScale)+"px";
-		oTitle.style.top = (iScreenScale*2)+"px";
-	}
-	else {
-		oTitle.src = "images/mariokart.gif";
-		oTitle.style.position = "absolute";
-		oTitle.style.width = (39*iScreenScale)+"px";
-		oTitle.style.height = (10*iScreenScale)+"px";
-		oTitle.style.left = ((iWidth-39)/2*iScreenScale)+"px";
-		oTitle.style.top = iScreenScale+"px";
-	}
+	oTitle.src = "images/mariokart.png";
+	oTitle.style.position = "absolute";
+	oTitle.style.width = Math.round(42.5*iScreenScale)+"px";
+	oTitle.style.height = (5*iScreenScale)+"px";
+	oTitle.style.left = Math.round((iWidth-42.5)/2*iScreenScale)+"px";
+	oTitle.style.top = (iScreenScale*2)+"px";
 	oScr.appendChild(oTitle);
 
 	var oStyle = oScr.style;
@@ -11558,7 +11524,7 @@ function selectTypeScreen() {
 	oContainers[0].appendChild(oScr);
 
 	if (page == "MK") {
-		var oButtonsTop = isds ? 11:13;
+		var oButtonsTop = 11;
 
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
@@ -11677,7 +11643,7 @@ function selectTypeScreen() {
 		oScr.appendChild(oPInput);
 	}
 	else {
-		var oButtonsTop = isds ? 12:14;
+		var oButtonsTop = 12;
 
 		var oModes = [toLanguage("VS", "Course VS")];
 		var oModeIds = ["VS"];
@@ -11721,14 +11687,14 @@ function selectTypeScreen() {
 			oPInput.value = oModes[i];
 			oPInput.style.position = "absolute";
 			if (oModes.length < 4) {
-				if (isds) oTitle.style.top = (iScreenScale*3)+"px";
+				oTitle.style.top = (iScreenScale*3)+"px";
 				oPInput.style.left = (20*iScreenScale)+"px";
 				oPInput.style.top = Math.round((oButtonsTop+i*6.5)*iScreenScale)+"px";
 				oPInput.style.width = (38*iScreenScale)+"px";
 				oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
 			}
 			else if (oModes.length == 4) {
-				if (isds) oTitle.style.top = (iScreenScale*4)+"px";
+				oTitle.style.top = (iScreenScale*4)+"px";
 				oPInput.style.left = ((8+(i%2)*36)*iScreenScale)+"px";
 				oPInput.style.top = ((oButtonsTop+4+Math.floor(i/2)*8)*iScreenScale)+"px";
 				oPInput.style.width = (28*iScreenScale)+"px";
@@ -12857,14 +12823,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 
 	for (var i=0;i<nBasePersos;i++) {
 		var oDiv = createPersoSelector(i);
-		if (isds) {
-			oDiv.style.left = Math.round((7.2*(i%8)+8) * iScreenScale) +"px";
-			oDiv.style.top = ((10+Math.floor(i/8)*7)*iScreenScale)+"px";
-		}
-		else {
-			oDiv.style.left = (8*(i%7)+9) * iScreenScale +"px";
-			oDiv.style.top = ((10+Math.floor(i/7)*7)*iScreenScale)+"px";
-		}
+		oDiv.style.left = Math.round((7.2*(i%8)+8) * iScreenScale) +"px";
+		oDiv.style.top = ((10+Math.floor(i/8)*7)*iScreenScale)+"px";
 		oScr.appendChild(oDiv);
 	}
 	var pDiv = document.createElement("div");

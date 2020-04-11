@@ -291,10 +291,6 @@ var shareLink = {
 	?>]
 };
 var NBCIRCUITS = <?php echo $isBattle ? 0:$NBCIRCUITS; ?>;
-var isds = <?php
-	require_once('isDS.php');
-	echo IS_DS;
-?>;
 <?php
 if ($isCup) {
 	?>
