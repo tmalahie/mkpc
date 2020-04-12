@@ -210,7 +210,7 @@ echo objet($infos,'o',null).' &nbsp; '.objet($infos,'a',null,'p').' '.objet($inf
 Type : <select name="map" onchange="changeMap(this.value);this.blur()">
 <optgroup label="SNES">
 <?php
-$circuits = $language ? Array('Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', 'Mario Circuit', 'Lakeside Park', 'Cheep-Cheep Island', 'Cheese Land', 'Sky Garden', 'Snow Land', 'Sunset Wilds', 'Boo Lake', 'Ribbon Road', 'Yoshi Desert', 'Bowser Castle', 'Rainbow Road'):Array('Circuit Mario', 'Plaine Donut', 'Plage Koopa', '&Icirc;le Choco', 'Lac Vanille', 'Vall&eacute;e Fant&ocirc;me', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit Mario', 'Bord du Lac', '&Icirc;le Cheep-Cheep', 'Pays Fromage', 'Jardin Volant', 'Royaume Sorbet', 'Pays Cr&eacute;puscule', 'Lac Boo', 'Route Ruban', 'D&eacute;sert Yoshi', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel');
+$circuits = $language ? Array('Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', 'Mario Circuit', 'Lakeside Park', 'Cheep-Cheep Island', 'Cheese Land', 'Sky Garden', 'Snow Land', 'Sunset Wilds', 'Boo Lake', 'Ribbon Road', 'Yoshi Desert', 'Bowser Castle', 'Rainbow Road', 'Figure 8 Circuit'):Array('Circuit Mario', 'Plaine Donut', 'Plage Koopa', '&Icirc;le Choco', 'Lac Vanille', 'Vall&eacute;e Fant&ocirc;me', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit Mario', 'Bord du Lac', '&Icirc;le Cheep-Cheep', 'Pays Fromage', 'Jardin Volant', 'Royaume Sorbet', 'Pays Cr&eacute;puscule', 'Lac Boo', 'Route Ruban', 'D&eacute;sert Yoshi', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit en 8');
 for ($i=1;$i<=8;$i++)
 	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-1)].'</option>';
 ?>
@@ -219,6 +219,12 @@ for ($i=1;$i<=8;$i++)
 <?php
 for ($i=14;$i<=25;$i++)
 	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-6)].'</option>';
+?>
+</optgroup>
+<optgroup label="DS">
+<?php
+for ($i=31;$i<=31;$i++)
+	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-11)].'</option>';
 ?>
 </optgroup>
 </select>

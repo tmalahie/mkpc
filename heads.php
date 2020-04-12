@@ -1,6 +1,6 @@
 <?php
 if (!isset($hthumbnail))
-	$hthumbnail = 'https://mkpc.malahieude.net/images/screenshots/ss'. ($language?'en':'fr') .'1.png';
+	$hthumbnail = 'https://mkpc.malahieude.net/images/screenshots/ss1.png';
 if (isset($hdescription)) {
 	function hControlLength($str,$maxLength) {
 		$pts = '...';

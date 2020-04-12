@@ -111,6 +111,7 @@ else { // Existing track
 		$pNote = $circuit['note'];
 		$pNotes = $circuit['nbnotes'];
 		$creationData = $circuit;
+		$hthumbnail = 'racepreview.php?id='.$id;
 		addCircuitChallenges($challenges, 'circuits', $nid,$circuit['nom'], $clPayloadParams);
 	}
 	else {

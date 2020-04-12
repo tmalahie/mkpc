@@ -89,6 +89,9 @@ $bg = Array();
 			break;
 			case 30 :
 			$bg = Array(248,224,72);
+			break;
+			case 31 :
+			$bg = Array(6,152,0);
 		}
 imagecolorallocate($image, $bg[0], $bg[1], $bg[2]);
 

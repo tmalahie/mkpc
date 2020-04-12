@@ -15,7 +15,8 @@ foreach ($circuitsData as $c => $circuit) {
 		echo ',';
 	$map = $circuit['map'];
 	$snes = ($map <= 8);
-	$roady = $snes ? ($map < 6) : ($map != 21)&&($map<24);
+	$gba = ($map > 8) && ($map <= 25);
+	$roady = $snes ? ($map < 6) : ($gba ? (($map != 21)&&($map<24)) : true);
 	?>
 "map<?php echo ($c+1); ?>" : {
 	<?php
@@ -23,10 +24,8 @@ foreach ($circuitsData as $c => $circuit) {
 		echo '"id" : '.$circuit['id'].',';
 	?>
 	"map" : "?<?php
-	for ($i=0;$i<36;$i++) {
-	if ($circuit["p$i"] != 11)
+	for ($i=0;$i<36;$i++)
 		echo 'p'.$i.'='.$circuit["p$i"].'&';
-	}
 	$elements = Array('a','b','c','d','e','f','g','h','i','j');
 	for ($i=0;$i<10;$i++) {
 		$e = $elements[$i];
@@ -39,9 +38,13 @@ foreach ($circuitsData as $c => $circuit) {
 	"music" : <?php 
 		if ($snes)
 			echo $map;
-		else {
+		elseif ($gba) {
 			$types = array(10,21,11,15,16,18,17,14,19,20,13,22);
 			echo $types[$map-14];
+		}
+		else {
+			$types = array(24);
+			echo $types[$map-31];
 		}
 		?>,
 	"w" : 600,
@@ -108,6 +111,9 @@ foreach ($circuitsData as $c => $circuit) {
 		break;
 		case 25 :
 		$getInfos = Array(0,0,88);
+		break;
+		case 31 :
+		$getInfos = Array(6,152,0);
 	}
 	echo $getInfos[0].','.$getInfos[1].','.$getInfos[2];
 	?>],
@@ -172,6 +178,9 @@ foreach ($circuitsData as $c => $circuit) {
 		break;
 		case 25 :
 		$getInfos = Array('night', 'ship', 'nclouds');
+		break;
+		case 31 :
+		$getInfos = Array('mariosky','hills8','banners8');
 	}
 	echo implode('","',$getInfos);
 	?>"],<?php
@@ -187,7 +196,7 @@ foreach ($circuitsData as $c => $circuit) {
 			if ($v == 11) {
 				if (!in_array($map, $TCircuits))
 					echo "[$x,$y,101,101],";
-				}
+			}
 			else {
 				if ($map == 21) {
 					if ($v==0 || $v==2 || $v==8)
@@ -210,6 +219,16 @@ foreach ($circuitsData as $c => $circuit) {
 					echo "[".($x+22).",$y,5,101],[".($x+74).",$y,5,101],";
 					if ($v==1 || $v==3 || $v==9)
 					echo "[$x,".($y+22).",101,5],[$x,".($y+74).",101,5],";
+				}
+				elseif ($map == 31) {
+					if ($v==0 || $v==2 || $v==5 || $v==6 || $v==8)
+					echo "[$x,$y,16,101],";
+					if ($v==1 || $v==3 || $v==4 || $v==5 || $v==9)
+					echo "[$x,$y,101,16],";
+					if ($v==0 || $v==2 || $v==4 || $v==7 || $v==8)
+					echo "[".($x+85).",$y,16,101],";
+					if ($v==1 || $v==3 || $v==6 || $v==7 || $v==9)
+					echo "[$x,".($y+85).",101,16],";
 				}
 				elseif ($map != 6) {
 					if ($v==0 || $v==2 || $v==5 || $v==6 || $v==8)
@@ -282,6 +301,21 @@ foreach ($circuitsData as $c => $circuit) {
 							echo "[$x,".($y+74).",79,5],[".($x+74).",$y,5,75],[$x,".($y+22).",27,5],[".($x+22).",$y,5,23],";
 						}
 					}
+					elseif ($map == 31) {
+						switch ($v) {
+							case 4 :
+							echo "[$x,".($y+87).",14,14],[[$x,".($y+13)."],[".($x+45).",".($y+20)."],[".($x+68).",".($y+37)."],[".($x+81).",".($y+69)."],[".($x+85).",".($y+100)."],[".($x+100).",".($y+100)."],[".($x+100).",$y],[$x,$y]],";
+							break;
+							case 5 :
+							echo "[[".($x+13).",".($y+100)."],[".($x+20).",".($y+55)."],[".($x+37).",".($y+32)."],[".($x+69).",".($y+19)."],[".($x+100).",".($y+15)."],[".($x+100).",$y],[$x,$y],[$x,".($y+100)."]],";
+							break;
+							case 6 :
+							echo "[[".($x+100).",".($y+87)."],[".($x+55).",".($y+80)."],[".($x+32).",".($y+63)."],[".($x+19).",".($y+31)."],[".($x+15).",$y],[$x,$y],[$x,".($y+100)."],[".($x+100).",".($y+100)."]],";
+							break;
+							case 7 :
+							echo "[[".($x+87).",$y],[".($x+80).",".($y+45)."],[".($x+63).",".($y+68)."],[".($x+31).",".($y+81)."],[$x,".($y+85)."],[$x,".($y+100)."],[".($x+100).",".($y+100)."],[".($x+100).",$y]],";
+						}
+					}
 					else {
 						switch ($v) {
 							case 4 :
@@ -311,6 +345,9 @@ foreach ($circuitsData as $c => $circuit) {
 						break;
 						case 22 :
 						echo "[$x,".($y+88).",13,13],[".($x+88).",".($y+88).",13,13],[".($x+88).",$y,13,13],[$x,$y,13,13],";
+						break;
+						case 31 :
+						echo "[$x,$y,15,15],[".($x+14).",".($y+8).",71,7],[".($x+84).",$y,17,15],[$x,".($y+84).",15,17],[".($x+14).",".($y+84).",71,7],[".($x+84).",".($y+84).",17,17],";
 						break;
 						default :
 						echo "[$x,".($y+96).",5,5],[".($x+96).",".($y+96).",5,5],[".($x+96).",$y,5,5],[$x,$y,5,5],";
@@ -899,9 +936,13 @@ foreach ($circuitsData as $c => $circuit) {
 		case 20:
 			$hp = 'choco';
 			break;
+		case 31:
+			$hp = null;
+			break;
 		default:
 			$hp = 'herbe';
 		}
+		if ($hp) {
 		echo "$hp:[";
 		for ($i=0;$i<36;$i++) {
 			$x = ($i%6)*100;
@@ -1162,6 +1203,7 @@ foreach ($circuitsData as $c => $circuit) {
 			}
 		}
 		echo ']';
+		}
 		?>
 	},
 	<?php
@@ -1387,6 +1429,9 @@ foreach ($circuitsData as $c => $circuit) {
 			break;
 			case 15 :
 			echo 'taupe';
+			break;
+			case 31 :
+			echo 'tree';
 			break;
 			default :
 			echo 'tuyau';
