@@ -12,6 +12,7 @@ if (isset($id)) {
 		
 		$map = $getMain['map'];
 		$snes = ($map < 13);
+		$gba = ($map < 31);
 
 		$image = imagecreate(600,600);
 		$bg = Array();
@@ -117,7 +118,7 @@ if (isset($id)) {
 		for ($i=0;$i<$nbElements;$i++) {
 			$e = $elements[$i];
 			if (($i < 4) && !$snes) {
-				$acc = 'pqrs';
+				$acc = $gba ? 'pqrs':'uvwx';
 				$f = $acc[$i];
 			}
 			else

@@ -92,6 +92,9 @@ $bg = Array();
 			break;
 			case 31 :
 			$bg = Array(6,152,0);
+			break;
+			case 32 :
+			$bg = Array(0,16,148);
 		}
 imagecolorallocate($image, $bg[0], $bg[1], $bg[2]);
 
@@ -103,12 +106,13 @@ for ($i=0;$i<36;$i++) {
 	}
 }
 $snes = ($map < 13);
+$gba = ($map < 31);
 $elements = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j');
 include('escape_all.php');
 for ($i=0;$i<10;$i++) {
 	$e = $elements[$i];
 	if (($i < 4) && !$snes) {
-		$acc = 'pqrs';
+		$acc = $gba ? 'pqrs':'uvwx';
 		$f = $acc[$i];
 	}
 	else

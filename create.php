@@ -42,6 +42,7 @@ else {
 	}
 }
 $snes = ($map <= 8);
+$gba = ($map > 8) && ($map <= 25);
 include('language.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -176,7 +177,7 @@ img {
 	margin-right: 5px;
 }
 </style>
-<script type="text/javascript" src="scripts/create.js"></script>
+<script type="text/javascript" src="scripts/create.js?reload=2"></script>
 </head>
 <body>
 <div id="circuit">
@@ -187,10 +188,12 @@ for ($i=0;$i<36;$i++)
 </div>
 <p id="pPieces" class="editor-section">
 <?php
-function objet($infos,$l,$m,$n=null) {
-	global $snes;
+function objet($infos,$l,$m,$n=null,$d=null) {
+	global $snes,$gba;
 	if (($n == null) || $snes)
 		$n = $l;
+	if (($d != null) && !$snes && !$gba)
+		$n = $d;
 	$retour = '<span id="'.$l.'">';
 	for ($i=0;isset($infos[$l.$i]);$i++) {
 		$getCoords = $infos[$l.$i];
@@ -198,7 +201,7 @@ function objet($infos,$l,$m,$n=null) {
 	}
 	return $retour.'<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="cursor: pointer;" onclick="deplacer(event,this,true);ajouter(this.alt,parseInt(this.id.match(/\d+$/g))+1)" /></span>';
 }
-echo objet($infos,'o',null).' &nbsp; '.objet($infos,'a',null,'p').' '.objet($infos,'b',null,'q').' '.objet($infos,'c',null,'r').' '.objet($infos,'d',null,'s').' &nbsp; '.objet($infos,"t",$map).'<br />
+echo objet($infos,'o',null).' &nbsp; '.objet($infos,'a',null,'p','u').' '.objet($infos,'b',null,'q','v').' '.objet($infos,'c',null,'r','w').' '.objet($infos,'d',null,'s','x').' &nbsp; '.objet($infos,"t",$map).'<br />
 '.objet($infos,'e',null).' '.objet($infos,'f',null).' &nbsp; '.objet($infos,'g',null).' '.objet($infos,'h',null).' &nbsp; '.objet($infos,'i',null).' '.objet($infos,'j',null);
 ?>
 <span id="deleteAllCtn">
@@ -210,7 +213,7 @@ echo objet($infos,'o',null).' &nbsp; '.objet($infos,'a',null,'p').' '.objet($inf
 Type : <select name="map" onchange="changeMap(this.value);this.blur()">
 <optgroup label="SNES">
 <?php
-$circuits = $language ? Array('Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', 'Mario Circuit', 'Lakeside Park', 'Cheep-Cheep Island', 'Cheese Land', 'Sky Garden', 'Snow Land', 'Sunset Wilds', 'Boo Lake', 'Ribbon Road', 'Yoshi Desert', 'Bowser Castle', 'Rainbow Road', 'Figure 8 Circuit'):Array('Circuit Mario', 'Plaine Donut', 'Plage Koopa', '&Icirc;le Choco', 'Lac Vanille', 'Vall&eacute;e Fant&ocirc;me', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit Mario', 'Bord du Lac', '&Icirc;le Cheep-Cheep', 'Pays Fromage', 'Jardin Volant', 'Royaume Sorbet', 'Pays Cr&eacute;puscule', 'Lac Boo', 'Route Ruban', 'D&eacute;sert Yoshi', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit en 8');
+$circuits = $language ? Array('Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', 'Mario Circuit', 'Lakeside Park', 'Cheep-Cheep Island', 'Cheese Land', 'Sky Garden', 'Snow Land', 'Sunset Wilds', 'Boo Lake', 'Ribbon Road', 'Yoshi Desert', 'Bowser Castle', 'Rainbow Road', 'Figure 8 Circuit', 'Yoshi Falls'):Array('Circuit Mario', 'Plaine Donut', 'Plage Koopa', '&Icirc;le Choco', 'Lac Vanille', 'Vall&eacute;e Fant&ocirc;me', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit Mario', 'Bord du Lac', '&Icirc;le Cheep-Cheep', 'Pays Fromage', 'Jardin Volant', 'Royaume Sorbet', 'Pays Cr&eacute;puscule', 'Lac Boo', 'Route Ruban', 'D&eacute;sert Yoshi', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit en 8', 'Cascade Yoshi');
 for ($i=1;$i<=8;$i++)
 	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-1)].'</option>';
 ?>
@@ -223,7 +226,7 @@ for ($i=14;$i<=25;$i++)
 </optgroup>
 <optgroup label="DS">
 <?php
-for ($i=31;$i<=31;$i++)
+for ($i=31;$i<=32;$i++)
 	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-11)].'</option>';
 ?>
 </optgroup>
