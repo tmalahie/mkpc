@@ -2,7 +2,8 @@
 include('language.php');
 include('initdb.php');
 $settings = array(
-	'ld' => $language ? 'Don\'t display heavy elements (trees, decors)':'Désactiver l\'affichage des éléments lourds (arbres, décors)'
+	'ld' => $language ? 'Don\'t display heavy elements (trees, decors)':'Désactiver l\'affichage des éléments lourds (arbres, décors)',
+	'nogif' => $language ? 'Disable animation in gif-format tracks':'Désactiver les animations des circuits au format gif'
 );
 ?>
 <!DOCTYPE html>

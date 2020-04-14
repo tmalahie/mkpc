@@ -2757,7 +2757,7 @@ function saveData() {
 		$error.className = "save-popup save-status save-failure";
 		var $popupMsg = document.createElement("div");
 		$popupMsg.className = "save-msg";
-		$popupMsg.innerHTML = '<span class="save-icon">×</span> '+ (language ? "Oops, An error occured... Check your connexion":"Oups, une erreur est survenue... Vérifiez votre connexion") +'</span>';
+		$popupMsg.innerHTML = '<span class="save-icon">×</span> '+ (language ? "Oops, An error occured... Check your connection":"Oups, une erreur est survenue... Vérifiez votre connexion") +'</span>';
 		$error.appendChild($popupMsg);
 		var $popupActions = document.createElement("div");
 		$popupActions.className = "save-actions";

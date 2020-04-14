@@ -1285,7 +1285,7 @@ foreach ($circuitsData as $c => $circuit) {
 				switch($circuit["p$i"]) {
 					case 4 :
 					if ($yoshi)
-						echo '['.($x+47).','.($y+52).'],';
+						echo '['.($x+26).','.($y+73).'],';
 					elseif ($roady)
 						echo '['.($x+39).','.($y+60).'],';
 					elseif ($bowser)

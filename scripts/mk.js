@@ -831,9 +831,12 @@ function removePlan() {
 	}
 }
 
+var gameSettings;
 function loadMap() {
 	var mapSrc = isCup ? (complete ? "images/uploads/"+ (course=="BB"?"course":"map") + oMap.map +"."+ oMap.ext:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
-	if (mapSrc.match(/\.gif$/g)) {
+	gameSettings = localStorage.getItem("settings");
+	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
+	if (mapSrc.match(/\.gif$/g) && !gameSettings.nogif) {
 		oMapImg = GIF();
 		oMapImg.onloadone = startGame;
 		oMapImg.onloadall = function() {
@@ -1963,8 +1966,6 @@ function startGame() {
 
 		aKarts.push(oEnemy);
 	}
-	var gameSettings = localStorage.getItem("settings");
-	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	if (oMap.decor) {
 		for (var type in oMap.decor) {
 			if (!decorBehaviors[type])
@@ -10811,7 +10812,12 @@ function ai(oKart) {
 				maxSpeed /= 0.9;
 				if (!maxSpeed)
 					maxSpeed = 0.01;
-				oKart.speedinc = Math.max(Math.min(maxSpeed-actualSpeed,1),-1);
+				if ((oMap.skin == 32) && (actualSpeed > 6) && (maxSpeed < (actualSpeed-1))) {
+					oKart.speed = Math.max(maxSpeed,oKart.speed-2);
+					oKart.speedinc = 0;
+				}
+				else
+					oKart.speedinc = Math.max(Math.min(maxSpeed-actualSpeed,1),-1);
 				if (oKart.speedinc < 0)
 					oKart.rotinc = -oKart.rotinc;
 			}
