@@ -177,7 +177,7 @@ img {
 	margin-right: 5px;
 }
 </style>
-<script type="text/javascript" src="scripts/create.js?reload=2"></script>
+<script type="text/javascript" src="scripts/create.js?reload=3"></script>
 </head>
 <body>
 <div id="circuit">
@@ -197,7 +197,7 @@ function objet($infos,$l,$m,$n=null,$d=null) {
 	$retour = '<span id="'.$l.'">';
 	for ($i=0;isset($infos[$l.$i]);$i++) {
 		$getCoords = $infos[$l.$i];
-		$retour .= '<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="position: absolute; left: '.preg_replace("#^(\d+),\d+#", "$1", $getCoords).'px; top: '.preg_replace("#\d+,(\d+)$#", "$1", $getCoords).'px; cursor: pointer;" onclick="deplacer(event, this, false)" />';
+		$retour .= '<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="position: absolute; left: '.preg_replace("#^(\d+),\d+#", "$1", $getCoords).'px; top: '.preg_replace("#\d+,(\d+)$#", "$1", $getCoords).'px; cursor: pointer;" onload="centerPos(this)" onclick="deplacer(event, this, false)" />';
 	}
 	return $retour.'<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="cursor: pointer;" onclick="deplacer(event,this,true);ajouter(this.alt,parseInt(this.id.match(/\d+$/g))+1)" /></span>';
 }

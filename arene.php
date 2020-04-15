@@ -59,7 +59,7 @@ else {
 			$infos[$lettre.$j] = $_GET[$lettre.$j];
 	}
 }
-$snes = ($map <= 8);
+$snes = ($map <= 13);
 include('language.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -183,7 +183,7 @@ img {
 	color: #CCF;
 }
 </style>
-<script type="text/javascript" src="scripts/create.js"></script>
+<script type="text/javascript" src="scripts/create.js?reload=3"></script>
 </head>
 <body>
 <div id="circuit">
@@ -201,7 +201,7 @@ function objet($infos,$l,$m,$n=null) {
 	$retour = '<span id="'.$l.'">';
 	for ($i=0;isset($infos[$l.$i]);$i++) {
 		$getCoords = $infos[$l.$i];
-		$retour .= '<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="position: absolute; left: '.preg_replace("#^(\d+),\d+#", "$1", $getCoords).'px; top: '.preg_replace("#\d+,(\d+)$#", "$1", $getCoords).'px; cursor: pointer;" onclick="deplacer(event, this, false)" />';
+		$retour .= '<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="position: absolute; left: '.preg_replace("#^(\d+),\d+#", "$1", $getCoords).'px; top: '.preg_replace("#\d+,(\d+)$#", "$1", $getCoords).'px; cursor: pointer;" onload="centerPos(this)" onclick="deplacer(event, this, false)" />';
 	}
 	return $retour.'<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="cursor: pointer;" onclick="deplacer(event,this,true);ajouter(this.alt,parseInt(this.id.match(/\d+$/g))+1)" /></span>';
 }

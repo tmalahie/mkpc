@@ -79,19 +79,20 @@ function appliquer() {
 }
 function deplacer(event, E, nouveau) {
 	if (e) return;
+	var centerX = E.scrollWidth/2, centerY = E.scrollHeight/2;
 	E.style.position = "absolute";
-	E.style.left = (Math.round(event.clientX) - 1 + scroll()[0]) +"px";
-	E.style.top = (Math.round(event.clientY) - 1 + scroll()[1]) +"px";
+	E.style.left = Math.round(event.pageX-centerX) +"px";
+	E.style.top = Math.round(event.pageY-centerY) +"px";
 	E.style.zIndex = 20;
 	E.style.cursor = "none";
 	e = E;
 	document.onmousemove = function(evt) {
-		e.style.left = (Math.round(evt.clientX) - 1 + scroll()[0]) +"px";
-		e.style.top = (Math.round(evt.clientY) - 1 + scroll()[1]) +"px";
+		e.style.left = Math.round(evt.pageX-centerX) +"px";
+		e.style.top = Math.round(evt.pageY-centerY) +"px";
 	}
 	E.onclick = function(evt) {
-		var posX = Math.round(evt.clientX) - 1 + scroll()[0];
-		var posY = Math.round(evt.clientY) - 1 + scroll()[1];
+		var posX = Math.round(evt.pageX-centerX);
+		var posY = Math.round(evt.pageY-centerY);
 		var getId = parseInt(this.id.match(/\d+$/g));
 		var getAlt = this.alt;
 		e.style.cursor = "pointer";
@@ -102,7 +103,7 @@ function deplacer(event, E, nouveau) {
 			this.style.left = posX +"px";
 			this.style.top = posY +"px";
 			this.style.zIndex = 19;
-			pieceplus(getAlt+getId, [posX, posY]);
+			pieceplus(getAlt+getId, [posX, posY], [centerX, centerY]);
 			
 			if (nouveau) {
 				var nToAdd = document.getElementById(getAlt+(getId+1));
@@ -141,7 +142,21 @@ function ajouter(src, Id) {
 	nImg.onclick = function(event){deplacer(event, this, true);ajouter(this.alt, parseInt(this.id.match(/\d+$/g))+1)}
 	document.getElementById(src).appendChild(nImg);
 }
-function pieceplus(piece, coordonnees) {
+var letterRegex = /^(\w+)\d+$/;
+function isBox(piece) {
+	var letterMatch = letterRegex.exec(piece);
+	if (letterMatch) {
+		var letter = letterMatch[1];
+		if (["o","t"].indexOf(letter) !== -1)
+			return true;
+	}
+	return false;
+}
+function pieceplus(piece, coordonnees, center) {
+	if (isBox(piece)) {
+		coordonnees[0] += Math.round(center[0]);
+		coordonnees[1] += Math.round(center[1]);
+	}
 	var nPiece = document.forms[0].elements[piece];
 	if (!nPiece) {
 		nPiece = document.createElement("input");
@@ -151,9 +166,6 @@ function pieceplus(piece, coordonnees) {
 	}
 	nPiece.value = coordonnees;
 }
-function scroll() {
-	return [Math.round(document.body.scrollLeft?document.body.scrollLeft:document.documentElement.scrollLeft), Math.round(document.body.scrollTop?document.body.scrollTop:document.documentElement.scrollTop)];
-}
 
 
 function inClick(elmt, nb) {
@@ -161,8 +173,8 @@ function inClick(elmt, nb) {
 	elmt.style.opacity = 1;
 	elmt.style.zIndex = 11;
 	document.getElementById("circuit").onmousemove = function(e) {
-		elmt.style.left = (Math.floor((e.clientX+scroll()[0])/100)*100+25)+"px";
-		elmt.style.top = (Math.floor((e.clientY+scroll()[1])/100)*100+25)+"px";
+		elmt.style.left = (Math.floor((e.pageX)/100)*100+25)+"px";
+		elmt.style.top = (Math.floor((e.pageY)/100)*100+25)+"px";
 	}
 	elmt.onclick = function() {
 		var newPos = (parseInt(elmt.style.left)-25)/100+Math.floor((parseInt(elmt.style.top)-25)/100)*6;
@@ -290,6 +302,25 @@ window.onload = function() {
 			ajouter(E[i],0);
 	}
 }
+function centerPos(E) {
+	if (isBox(E.id)) {
+		var centerX = Math.round(E.scrollWidth/2), centerY = Math.round(E.scrollHeight/2);
+		E.style.left = (parseInt(E.style.left)-centerX) +"px";
+		E.style.top = (parseInt(E.style.top)-centerY) +"px";
+	}
+	E.onload = undefined;
+}
+function recenterPos(E) {
+	var centerX = Math.round(E.scrollWidth/2), centerY = Math.round(E.scrollHeight/2);
+	if (isBox(E.id) && E.style.left && E.style.top) {
+		E.onload = function() {
+			centerX -= Math.round(E.scrollWidth/2), centerY -= Math.round(E.scrollHeight/2);
+			E.style.left = (parseInt(E.style.left)+centerX) +"px";
+			E.style.top = (parseInt(E.style.top)+centerY) +"px";
+			E.onload = undefined;
+		}
+	}
+}
 function changeMap(p) {
 	var cPieces = document.getElementsByClassName("cPiece");
 	var snes = (p <= 13);
@@ -304,8 +335,11 @@ function changeMap(p) {
 		for (var j=0;document.getElementById(accSrc[i]+j);j++)
 			document.getElementById(accSrc[i]+j).src = "images/pieces/piececircuit_"+accEffSrc[i]+".png";
 	}
-	for (i=0;document.getElementById("t"+i);i++)
-		document.getElementById("t"+i).src = "images/pieces/piececircuit_t"+p+".png";
+	var tPiece;
+	for (i=0;tPiece=document.getElementById("t"+i);i++) {
+		recenterPos(tPiece);
+		tPiece.src = "images/pieces/piececircuit_t"+p+".png";
+	}
 	if (document.getElementById("croisement"))
 		document.getElementById("croisement").style.backgroundImage = "url('mapcreate.php?p1=5&p2=4&p6=5&p7=10&p8=7&map="+p+"')";
 }
