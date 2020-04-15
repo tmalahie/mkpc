@@ -142,7 +142,7 @@ function ajouter(src, Id) {
 	nImg.onclick = function(event){deplacer(event, this, true);ajouter(this.alt, parseInt(this.id.match(/\d+$/g))+1)}
 	document.getElementById(src).appendChild(nImg);
 }
-var letterRegex = /^(\w+)\d+$/;
+var letterRegex = /^(\w+?)\d+$/;
 function isBox(piece) {
 	var letterMatch = letterRegex.exec(piece);
 	if (letterMatch) {

@@ -183,7 +183,7 @@ img {
 	color: #CCF;
 }
 </style>
-<script type="text/javascript" src="scripts/create.js?reload=3"></script>
+<script type="text/javascript" src="scripts/create.js?reload=4"></script>
 </head>
 <body>
 <div id="circuit">
