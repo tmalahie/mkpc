@@ -1377,7 +1377,7 @@ function o_refresh() {
 			for (var i=0;i<newPlayers.length;i++) {
 				var memberID = newPlayers[i][0];
 				o_updateactivity(memberID, 15);
-				if ((oIgnores.indexOf(memberID) == -1) && (newPlayers[i][2] == 2)) {
+				/*if ((oIgnores.indexOf(memberID) == -1) && (newPlayers[i][2] == 2)) {
 					var comsgs = document.getElementsByClassName("comsg");
 					for (var j=comsgs.length-1;j>=0;j--) {
 						if (comsgs[j].dataset.connectID == memberID)
@@ -1404,13 +1404,13 @@ function o_refresh() {
 							deleteCross(this);
 						};
 					}
-				}
+				}*/
 				o_updatestatut(memberID);
 			}
 			for (var i=0;i<oldPlayers.length;i++) {
 				var memberID = oldPlayers[i][0];
 				o_stopactivity(memberID);
-				if ((oIgnores.indexOf(memberID) == -1) && (oldPlayers[i][2] == 2)) {
+				/*if ((oIgnores.indexOf(memberID) == -1) && (oldPlayers[i][2] == 2)) {
 					var comsgs = document.getElementsByClassName("comsg");
 					for (var j=comsgs.length-1;j>=0;j--) {
 						if (comsgs[j].dataset.connectID == memberID)
@@ -1422,7 +1422,7 @@ function o_refresh() {
 						o_disappear(o_msg);
 						o_msg.dataset.connectID = memberID;
 					}
-				}
+				}*/
 				o_updatestatut(memberID);
 			}
 			for (var i=0;i<updatedPlayers.length;i++)
