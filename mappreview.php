@@ -127,15 +127,25 @@ if (isset($id)) {
 			$piececircuit = imagecreatefrompng('images/pieces/piececircuit_'.$f.'.png');
 			$w = imagesx($piececircuit);
 			$h = imagesy($piececircuit);
+			if ('o' === $e) {
+				$cw = round($w/2);
+				$ch = round($h/2);
+			}
+			else {
+				$cw = 0;
+				$ch = 0;
+			}
 			while ($getPiece = mysql_fetch_array($getPieces))
-				imagecopymerge($image, $piececircuit, $getPiece['x'],$getPiece['y'], 0, 0, $w,$h, 100);
+				imagecopy($image, $piececircuit, $getPiece['x']-$cw,$getPiece['y']-$ch, 0, 0, $w,$h);
 		}
 		$piececircuit = imagecreatefrompng('images/pieces/piececircuit_t'.$map.'.png');
 		$w = imagesx($piececircuit);
 		$h = imagesy($piececircuit);
+		$cw = round($w/2);
+		$ch = round($h/2);
 		$getPieces = mysql_query('SELECT x,y FROM `mkt` WHERE circuit="'.$id.'"');
 		while ($getPiece = mysql_fetch_array($getPieces))
-			imagecopymerge($image, $piececircuit, $getPiece['x'],$getPiece['y'], 0, 0, $w,$h, 100);
+			imagecopy($image, $piececircuit, $getPiece['x']-$cw,$getPiece['y']-$ch, 0, 0, $w,$h);
 
 		$ext2 = 'png';
 		include('saveImage.php');
