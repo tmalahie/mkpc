@@ -550,7 +550,9 @@
 				</div>
 				<div id="notifs-list">
 				<?php
-				foreach ($notifsData as $notifData) {
+				foreach ($notifsData as $i=>$notifData) {
+					if ($i >= 30)
+						break;
 					$link = preg_replace('#(?:&amp;|\?)src=\w+$#', '', $notifData['link']);
 					?>
 					<a class="notif-container" id="notif-<?php echo $notifData['id']; ?>"  data-id="<?php echo $notifData['id']; ?>" data-ids="<?php echo $notifData['ids']; ?>" href="<?php echo $link; ?>">

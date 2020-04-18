@@ -152,6 +152,7 @@ nav {
 	color: #008;
 	text-decoration: none;
 	height: 60px;
+	overflow:hidden;
 	padding: 2px 5px;
 }
 #notifs-options input {

@@ -20,8 +20,10 @@ function closeNotif(e,elt) {
 	deleteNotif(iLink.dataset.ids.split(","));
 	var notifsList = document.getElementById("notifs-list");
 	notifsList.removeChild(iLink);
-	var nbNotifs = notifsList.getElementsByClassName("notif-container").length;
-	document.getElementById("nb-notifs").innerHTML = "<strong>"+ nbNotifs +"</strong> notification"+ (nbNotifs.length>1 ? "s":"");
+	var nbNotifs = document.getElementById("notifs-nb-alert").innerHTML-1;
+	if (!(nbNotifs>=0))
+		nbNotifs = notifsList.getElementsByClassName("notif-container").length;
+	document.getElementById("nb-notifs").innerHTML = "<strong>"+ nbNotifs +"</strong> notification"+ (nbNotifs>1 ? "s":"");
 	document.getElementById("notifs-nb-alert").innerHTML = nbNotifs;
 	if (!nbNotifs)
 		document.getElementById("notifs-bubble").className = "no-notifs";

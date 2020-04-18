@@ -39,4 +39,4 @@ if ($hthumbnail) {
 <link rel="stylesheet" media="only screen and (min-width: 800px)" href="styles/computer.css" />
 <link rel="stylesheet" href="styles/creations.css" />
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<script src="scripts/main.js"></script>
+<script src="scripts/main.js?reload=1"></script>
