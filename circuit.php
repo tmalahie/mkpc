@@ -1,6 +1,4 @@
 <?php
-$lettres = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'o', 't');
-$nbLettres = count($lettres);
 $cupIDs = Array();
 $infos = Array();
 $isCup = false;
@@ -11,6 +9,7 @@ include('language.php');
 require_once('utils-challenges.php');
 mysql_set_charset('utf8');
 include('creation-challenges.php');
+require_once('circuitPrefix.php');
 if (isset($_GET['mid'])) { // Existing multicup
 	$id = $_GET['mid'];
 	$nid = $id;
@@ -122,8 +121,12 @@ else { // Track being created
 	$infos['name'] = '';
 	for ($i=0;$i<$nbLettres;$i++) {
 		$lettre = $lettres[$i];
-		for ($j=0;isset($_GET[$lettre.$j]);$j++)
-			$infos[$lettre.$j] = $_GET[$lettre.$j];
+		$prefixes = getLetterPrefixes($lettre,$infos['map']);
+		for ($k=0;$k<$prefixes;$k++) {
+			$prefix = getLetterPrefix($lettre,$k);
+			for ($j=0;isset($_GET[$prefix.$j]);$j++)
+				$infos[$prefix.$j] = $_GET[$prefix.$j];
+		}
 	}
 	$edittingCircuit = true;
 }
@@ -177,9 +180,14 @@ if (isset($trackIDs)) {
 					$infos['p'.$piece['id']] = $piece['piece'];
 				for ($j=0;$j<$nbLettres;$j++) {
 					$lettre = $lettres[$j];
-					$getInfos = mysql_query('SELECT x,y FROM `mk'.$lettre.'` WHERE circuit="'.$trackID.'"');
-					for ($k=0;$info=mysql_fetch_array($getInfos);$k++)
-						$infos[$lettre.$k] = $info['x'].','.$info['y'];
+					$getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$trackID.'"');
+					$incs = array();
+					while ($info=mysql_fetch_array($getInfos)) {
+						$prefix = getLetterPrefixD($lettre,$info);
+						if (!isset($incs[$prefix])) $incs[$prefix] = 0;
+						$infos[$prefix.$incs[$prefix]] = $info['x'].','.$info['y'];
+						$incs[$prefix]++;
+					}
 				}
 				$circuitsData[] = $infos;
 				addCircuitChallenges($challenges, 'mkcircuits', $trackID,$infos['name'], $clPayloadParams, !$isCup);
@@ -320,8 +328,12 @@ if ($canChange) {
 				echo '&p'.$i.'='.$infos['p'.$i];
 			for ($i=0;$i<$nbLettres;$i++) {
 				$l = $lettres[$i];
-				for ($j=0;isset($infos[$l.$j]);$j++)
-					echo '&'.$l.$j.'='.$infos[$l.$j];
+				$prefixes = getLetterPrefixes($l,$infos['map']);
+				for ($k=0;$k<$prefixes;$k++) {
+					$prefix = getLetterPrefix($l,$k);
+					for ($j=0;isset($infos[$prefix.$j]);$j++)
+						echo '&'.$prefix.$j.'='.$infos[$prefix.$j];
+				}
 			}
 		}
 		if (isset($nid)) echo '&id='.$nid;
@@ -391,8 +403,12 @@ if ($canChange) {
 							echo '&p'.$i.'='.$infos['p'.$i];
 						for ($i=0;$i<$nbLettres;$i++) {
 							$l = $lettres[$i];
-							for ($j=0;isset($infos[$l.$j]);$j++)
-								echo '&'.$l.$j.'='.$infos[$l.$j];
+							$prefixes = getLetterPrefixes($l,$infos['map']);
+							for ($k=0;$k<$prefixes;$k++) {
+								$prefix = getLetterPrefix($l,$k);
+								for ($j=0;isset($infos[$prefix.$j]);$j++)
+									echo '&'.$prefix.$j.'='.$infos[$prefix.$j];
+							}
 						}
 					}
 					if ($clId) echo '&cl='.$clId;

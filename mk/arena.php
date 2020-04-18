@@ -1,4 +1,5 @@
 <?php
+require_once('circuitEnumsQuick.php');
 $elements = Array('a','b','c','d','e','f','g','h','i','j');
 $getInfos = Array();
 foreach ($circuitsData as $c => $arene) {
@@ -67,65 +68,9 @@ foreach ($circuitsData as $c => $arene) {
 	"w" : 600,
 	"h" : 600,
 	"skin" : <?php echo $map; ?>,
-	"bgcolor" : [<?php
-	switch ($map) {
-		case 9 :
-		$getInfos = Array(0,154,0);
-		break;
-		case 10 :
-		$getInfos = Array(111,130,239);
-		break;
-		case 11 :
-		$getInfos = Array(248,248,248);
-		break;
-		case 12 :
-		$getInfos = Array(0,161,0);
-		break;
-		case 26 :
-		$getInfos = Array(32,160,16);
-		break;
-		case 27 :
-		case 28 :
-		$getInfos = Array(216,16,8);
-		break;
-		case 29 :
-		$getInfos = Array(32,160,16);
-		break;
-		case 30 :
-		$getInfos = Array(248,224,72);
-	}
-	echo $getInfos[0].','.$getInfos[1].','.$getInfos[2];
-	?>],
-	"fond" : ["<?php
-		switch ($map) {
-			case 9 :
-			$getInfos = Array('plains', 'pine');
-			break;
-			case 10 :
-			$getInfos = Array('eciel', 'enuages');
-			break;
-			case 11 :
-			$getInfos = Array('ciel', 'nuages');
-			break;
-			case 12 :
-			$getInfos = Array('hills', 'trees');
-			break;
-			case 26 :
-			$getInfos = Array('fhills', 'shills', 'oaks');
-			break;
-			case 27 :
-			case 28 :
-			$getInfos = Array('shield', 'throne', 'ark');
-			break;
-			case 29 :
-			$getInfos = Array('clouds', 'castle', 'bush');
-			break;
-			case 30 :
-			$getInfos = Array('dclouds', 'pyramids', 'mound');
-		}
-		echo implode('","',$getInfos);
-		?>"],
-	"music" : <?php echo $snes ? 9:23; ?>,
+	"bgcolor" : [<?php echo implode(',',$bgColors[$map]); ?>],
+	"fond" : ["<?php echo implode('","',$bgImages[$map]); ?>"],
+	"music" : <?php echo $musicIds[$map]; ?>,
 	"collision" : [
 	<?php
 	if ($snes) {
@@ -415,24 +360,18 @@ foreach ($circuitsData as $c => $arene) {
 		?>
 	],
 	"decor" : {
-		"<?php
-		switch ($map) {
-			case 27 :
-			case 28 :
-			echo 'thwomp';
-			break;
-			case 30 :
-			echo 'plante';
-			break;
-			default :
-			echo 'tuyau';
-		}
-		?>":[<?php
-			for ($i=0; isset($circuit['t'.$i]); $i++) {
-				if ($i) echo ',';
-				echo '['.$circuit['t'.$i].']';
+		<?php
+		foreach ($decorTypes[$map] as $i=>$decorType) {
+			if ($i) echo ',';
+			echo '"'.$decorTypes[$map][$i].'":[';
+			$prefix = 't'.($i ? $i.'_':'');
+			for ($j=0; isset($circuit[$prefix.$j]); $j++) {
+				if ($j) echo ',';
+				echo '['.$circuit[$prefix.$j].']';
 			}
-			?>]
+			echo ']';
+		}
+		?>
 		}
 	}
 	<?php

@@ -132,8 +132,7 @@ if ($isCup) {
 				exit;
 			}
 		}
-		$lettres = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'o', 't');
-		$nbLettres = count($lettres);
+		require_once('circuitPrefix.php');
 		for ($i=0;$i<$NBCIRCUITS;$i++) {
 			$circuit = &$circuitsData[$i];
 			$pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$circuit['id'].'"');
@@ -141,9 +140,14 @@ if ($isCup) {
 				$circuit['p'.$piece['id']] = $piece['piece'];
 			for ($j=0;$j<$nbLettres;$j++) {
 				$lettre = $lettres[$j];
-				$getInfos = mysql_query('SELECT x,y FROM `mk'.$lettre.'` WHERE circuit="'. $circuit['id'] .'"');
-				for ($k=0;$info=mysql_fetch_array($getInfos);$k++)
-					$circuit[$lettre.$k] = $info['x'].','.$info['y'];
+				$getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$circuit['id'].'"');
+				$incs = array();
+				while ($info=mysql_fetch_array($getInfos)) {
+					$prefix = getLetterPrefixD($lettre,$info);
+					if (!isset($incs[$prefix])) $incs[$prefix] = 0;
+					$circuit[$prefix.$incs[$prefix]] = $info['x'].','.$info['y'];
+					$incs[$prefix]++;
+				}
 			}
 			if ($isBattle) {
 				$getPos = mysql_query('SELECT * FROM `mkr` WHERE circuit="'.$circuit['id'].'"');

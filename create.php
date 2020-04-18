@@ -1,7 +1,6 @@
 <?php
-$lettres = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'o', 't');
-$nbLettres = count($lettres);
 $infos = Array();
+require_once('circuitPrefix.php');
 if (isset($_GET['id'])) {
 	include('initdb.php');
 	$id = $_GET['id'];
@@ -17,9 +16,14 @@ if (isset($_GET['id'])) {
 				${'p'.$piece['id']} = $piece['piece'];
 			for ($i=0;$i<$nbLettres;$i++) {
 				$lettre = $lettres[$i];
-				$getInfos = mysql_query('SELECT x,y FROM `mk'.$lettre.'` WHERE circuit="'.$id.'"');
-				for ($j=0;$info=mysql_fetch_array($getInfos);$j++)
-					$infos[$lettre.$j] = $info['x'].','.$info['y'];
+				$getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$id.'"');
+				$incs = array();
+				while ($info=mysql_fetch_array($getInfos)) {
+					$prefix = getLetterPrefixD($lettre,$info);
+					if (!isset($incs[$prefix])) $incs[$prefix] = 0;
+					$infos[$prefix.$incs[$prefix]] = $info['x'].','.$info['y'];
+					$incs[$prefix]++;
+				}
 			}
 		}
 	}
@@ -37,12 +41,16 @@ else {
 	$laps = (isset($_GET["nl"])) ? $_GET["nl"] : 3;
 	for ($i=0;$i<$nbLettres;$i++) {
 		$lettre = $lettres[$i];
-		for ($j=0;isset($_GET[$lettre.$j]);$j++)
-			$infos[$lettre.$j] = $_GET[$lettre.$j];
+		$prefixes = getLetterPrefixes($lettre,$map);
+		for ($k=0;$k<$prefixes;$k++) {
+			$prefix = getLetterPrefix($lettre,$k);
+			for ($j=0;isset($_GET[$prefix.$j]);$j++)
+				$infos[$prefix.$j] = $_GET[$prefix.$j];
+		}
 	}
 }
-$snes = ($map <= 8);
-$gba = ($map > 8) && ($map <= 25);
+$snes = ($map <= 13);
+$gba = ($map > 8) && ($map <= 30);
 include('language.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -55,129 +63,16 @@ include('language.php');
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create a circuit Mario Kart':'Cr&eacute;er un circuit Mario Kart'; ?></title>
+<link rel="stylesheet" type="text/css" href="styles/create.css" />
 <style type="text/css">
-body {
-	margin-left: 650px;
-	color: white;
-	background-color: #030316;
-	background-image: url('../images/editor/fond_stars.jpg');
-}
-a {
-	color: white;
-}
-#circuit {
-	position: absolute;
-	left: 0px;
-	top: 0px;
-	width: 600px;
-	height: 600px;
-}
-div img {
-	position: absolute;
-	width: 100px;
-}
-img {
-	cursor: pointer;
-}
 #croisement {
-	position: relative;
-	text-align: left;
-	margin: 10px 0 0 20px;
-	width: 300px;
-	height: 200px;
-	overflow: hidden;
-	padding: 0;
-	text-align: center;
-	background-image: url('mapcreate.php?p1=5&p2=4&p6=5&p7=10&p8=7&map=<?php echo $map ?>');
-}
-#croisement img {
-	position: absolute;
-	left: 40px;
-	top: 40px;
-	width: 215px;
-	cursor: default;
-}
-#valider input {
-	font-weight: bold;
-	font-size: 20px;
-	margin-left: 10px;
-	cursor: pointer;
-    background-color: #249;
-    border-color: #57c;
-    color: #abf;
-}
-#valider input:hover {
-	background-color: #26a;
-	border-color: #59B;
-}
-#valider a {
-	font-size: 12pt;
-	font-weight: bold;
-}
-
-#choose {
-	display: none;
-	position: fixed;
-	z-index: 15;
-	margin: 0;
-	padding: 5px;
-	background-color: #36F;
-}
-#barre {
-	display: block;
-	text-align: right;
-	width: 99%;
-	padding: 4px;
-	background-color: #036;
-	font-weight: bold;
-	font-size: 16px;
-	cursor: move;
-}
-#barre:hover {
-	background-color: #339;
-}
-#barre:active {
-	background-color: blue;
-}
-#barre a:hover {
-	color: aqua;
-}
-.cPiece {
-	border: solid 2px #038;
-}
-.editor-section {
-	display: inline-block;
-	padding: 5px 12px;
-	background-color: rgba(76,70,94, 0.5);
-	border-radius: 5px;
-}
-#pPiece img {
-	z-index: 10;
-}
-#deleteAll {
-	margin-left: 0;
-}
-#deleteAllCtn {
-	display: block;
-	margin-top: 8px;
-	margin-bottom: 2px;
-	text-align: center;
-}
-#advice {
-	margin-top: 0;
-	font-size: 18px;
-}
-#advice a {
-	color: #CCF;
-}
-.adv-opt {
-	display: inline-block;
-}
-.adv-opt:first-child {
-	margin-right: 5px;
+	background-image: url('mapcreate.php?p0=11&p1=5&p2=4&p6=5&p7=10&p8=7&map=<?php echo $map ?>');
 }
 </style>
-<script type="text/javascript" src="scripts/create.js?reload=4"></script>
+<script type="text/javascript">
+var decorTypes = <?php echo json_encode($decorTypes); ?>;
+</script>
+<script type="text/javascript" src="scripts/create.js?reload=5"></script>
 </head>
 <body>
 <div id="circuit">
@@ -188,21 +83,7 @@ for ($i=0;$i<36;$i++)
 </div>
 <p id="pPieces" class="editor-section">
 <?php
-function objet($infos,$l,$m,$n=null,$d=null) {
-	global $snes,$gba;
-	if (($n == null) || $snes)
-		$n = $l;
-	if (($d != null) && !$snes && !$gba)
-		$n = $d;
-	$retour = '<span id="'.$l.'">';
-	for ($i=0;isset($infos[$l.$i]);$i++) {
-		$getCoords = $infos[$l.$i];
-		$retour .= '<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="position: absolute; left: '.preg_replace("#^(\d+),\d+#", "$1", $getCoords).'px; top: '.preg_replace("#\d+,(\d+)$#", "$1", $getCoords).'px; cursor: pointer;" onload="centerPos(this)" onclick="deplacer(event, this, false)" />';
-	}
-	return $retour.'<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="cursor: pointer;" onclick="deplacer(event,this,true);ajouter(this.alt,parseInt(this.id.match(/\d+$/g))+1)" /></span>';
-}
-echo objet($infos,'o',null).' &nbsp; '.objet($infos,'a',null,'p','u').' '.objet($infos,'b',null,'q','v').' '.objet($infos,'c',null,'r','w').' '.objet($infos,'d',null,'s','x').' &nbsp; '.objet($infos,"t",$map).'<br />
-'.objet($infos,'e',null).' '.objet($infos,'f',null).' &nbsp; '.objet($infos,'g',null).' '.objet($infos,'h',null).' &nbsp; '.objet($infos,'i',null).' '.objet($infos,'j',null);
+include('circuitObjects.php');
 ?>
 <span id="deleteAllCtn">
 	<input type="button" value="<?php echo $language ? 'Delete all':'Tout supprimer'; ?>" id="deleteAll" onclick="deleteAll('<?php echo $language ? 'Delete all pieces of this circuit ?':'Supprimer toutes les pi\xE8ces de ce circuit ?'; ?>')" />
@@ -213,7 +94,7 @@ echo objet($infos,'o',null).' &nbsp; '.objet($infos,'a',null,'p','u').' '.objet(
 Type : <select name="map" onchange="changeMap(this.value);this.blur()">
 <optgroup label="SNES">
 <?php
-$circuits = $language ? Array('Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', 'Mario Circuit', 'Lakeside Park', 'Cheep-Cheep Island', 'Cheese Land', 'Sky Garden', 'Snow Land', 'Sunset Wilds', 'Boo Lake', 'Ribbon Road', 'Yoshi Desert', 'Bowser Castle', 'Rainbow Road', 'Figure 8 Circuit', 'Yoshi Falls'):Array('Circuit Mario', 'Plaine Donut', 'Plage Koopa', '&Icirc;le Choco', 'Lac Vanille', 'Vall&eacute;e Fant&ocirc;me', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit Mario', 'Bord du Lac', '&Icirc;le Cheep-Cheep', 'Pays Fromage', 'Jardin Volant', 'Royaume Sorbet', 'Pays Cr&eacute;puscule', 'Lac Boo', 'Route Ruban', 'D&eacute;sert Yoshi', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit en 8', 'Cascade Yoshi');
+$circuits = $language ? Array('Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', 'Mario Circuit', 'Lakeside Park', 'Cheep-Cheep Island', 'Cheese Land', 'Sky Garden', 'Snow Land', 'Sunset Wilds', 'Boo Lake', 'Ribbon Road', 'Yoshi Desert', 'Bowser Castle', 'Rainbow Road', 'Figure 8 Circuit', 'Yoshi Falls', 'Cheep-Cheep Beach'):Array('Circuit Mario', 'Plaine Donut', 'Plage Koopa', '&Icirc;le Choco', 'Lac Vanille', 'Vall&eacute;e Fant&ocirc;me', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit Mario', 'Bord du Lac', '&Icirc;le Cheep-Cheep', 'Pays Fromage', 'Jardin Volant', 'Royaume Sorbet', 'Pays Cr&eacute;puscule', 'Lac Boo', 'Route Ruban', 'D&eacute;sert Yoshi', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit en 8', 'Cascade Yoshi', 'Plage Cheep-Cheep');
 for ($i=1;$i<=8;$i++)
 	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-1)].'</option>';
 ?>
@@ -226,7 +107,7 @@ for ($i=14;$i<=25;$i++)
 </optgroup>
 <optgroup label="DS">
 <?php
-for ($i=31;$i<=32;$i++)
+for ($i=31;$i<=33;$i++)
 	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-11)].'</option>';
 ?>
 </optgroup>
@@ -248,8 +129,12 @@ if (isset($id))
 for ($i=0;$i<36;$i++)
 echo '<input type="hidden" name="p'.$i.'" value="'.${"p$i"}.'" />';
 foreach ($lettres as $l) {
-	for ($i=0;isset($infos[$l.$i]);$i++)
-		echo '<input type="hidden" name="'.$l.$i.'" value="'.$infos[$l.$i].'" />';
+	$prefixes = getLetterPrefixes($l,$map);
+	for ($k=0;$k<$prefixes;$k++) {
+		$prefix = getLetterPrefix($l,$k);
+		for ($i=0;isset($infos[$prefix.$i]);$i++)
+			echo '<input type="hidden" name="'.$prefix.$i.'" value="'.$infos[$prefix.$i].'" />';
+	}
 }
 ?>
 </p>

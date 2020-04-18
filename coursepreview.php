@@ -28,7 +28,7 @@ if (isset($id)) {
 			$w = imagesx($objetImg);
 			$h = imagesy($objetImg);
 			foreach ($objets as $objet)
-				imagecopymerge($image, $objetImg, $objet[0],$objet[1], 0,0, $w,$h, 100);
+				imagecopy($image, $objetImg, $objet[0],$objet[1], 0,0, $w,$h);
 			
 			$decors = $circuitData->decor;
 			foreach ($decors as $type=>$decorsData) {

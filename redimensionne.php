@@ -15,7 +15,7 @@ if (isset($_POST['id']) && isset($_POST['x']) && isset($_POST['y']) && ($_POST['
 		$image = Array(imagesx($source), imagesy($source));
 		$dimensions = Array($_POST['x'], $_POST['y']);
 		$destination = imagecreatetruecolor($dimensions[0], $dimensions[1]);
-		imagecopyresampled($destination, $source, 0, 0, 0, 0, $dimensions[0], $dimensions[1], $image[0], $image[1]);
+		imagecopyresized($destination, $source, 0, 0, 0, 0, $dimensions[0], $dimensions[1], $image[0], $image[1]);
 
 		eval('image'.$ext2.'($destination, "images/uploads/$src$id.$ext");');
 

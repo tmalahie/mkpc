@@ -81,14 +81,14 @@ if (isset($_GET['id'])) {
 		$w = imagesx($objetImg);
 		$h = imagesy($objetImg);
 		while ($objet = mysql_fetch_array($objets))
-			imagecopymerge($image, $objetImg, $objet['posX'],$objet['posY'], 0,0, $w,$h, 100);
+			imagecopy($image, $objetImg, $objet['posX'],$objet['posY'], 0,0, $w,$h);
 		
 		$decors = mysql_query('SELECT posX,posY FROM `tuyaux` WHERE ID="'.$id.'"');
 		$decorImg = imagecreatefrompng('images/pieces/piececircuit_t1.png');
 		$w = imagesx($decorImg);
 		$h = imagesy($decorImg);
 		while ($decor = mysql_fetch_array($decors))
-			imagecopymerge($image, $decorImg, $decor['posX'],$decor['posY'], 0, 0, $w,$h, 100);
+			imagecopy($image, $decorImg, $decor['posX'],$decor['posY'], 0, 0, $w,$h);
 
 		eval('image'.$ext2.'($image);');
 	}

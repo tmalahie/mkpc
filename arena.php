@@ -8,6 +8,7 @@ include('language.php');
 require_once('utils-challenges.php');
 mysql_set_charset('utf8');
 include('creation-challenges.php');
+require_once('circuitPrefix.php');
 if (isset($_GET['id'])) {
 	$id = $_GET['id'];
 	$nid = $id;
@@ -26,11 +27,16 @@ if (isset($_GET['id'])) {
 			$infos['s'.$position['id']] = $position['s'];
 			$infos['r'.$position['id']] = $position['r'];
 		}
-		for ($i=0;$i<$nbLettres;$i++) {
-			$lettre = $lettres[$i];
-			$getInfos = mysql_query('SELECT x,y FROM `mk'.$lettre.'` WHERE circuit="'.$id.'"');
-			for ($j=0;$info=mysql_fetch_array($getInfos);$j++)
-				$infos[$lettre.$j] = $info['x'].','.$info['y'];
+		for ($j=0;$j<$nbLettres;$j++) {
+			$lettre = $lettres[$j];
+			$getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$id.'"');
+			$incs = array();
+			while ($info=mysql_fetch_array($getInfos)) {
+				$prefix = getLetterPrefixD($lettre,$info);
+				if (!isset($incs[$prefix])) $incs[$prefix] = 0;
+				$infos[$prefix.$incs[$prefix]] = $info['x'].','.$info['y'];
+				$incs[$prefix]++;
+			}
 		}
 		$infos['map'] = $map;
 		addCircuitChallenges($challenges, 'mkcircuits', $nid,$cName, $clPayloadParams);
@@ -65,12 +71,16 @@ else {
 		$infos["s$i"] = isset($_GET["s$i"]) ? $_GET["s$i"] : 0;
 	}
 	$map = (isset($_GET["map"])) ? $_GET["map"] : 1;
+	$infos['map'] = $map;
 	for ($i=0;$i<$nbLettres;$i++) {
 		$lettre = $lettres[$i];
-		for ($j=0;isset($_GET[$lettre.$j]);$j++)
-			$infos[$lettre.$j] = $_GET[$lettre.$j];
+		$prefixes = getLetterPrefixes($lettre,$infos['map']);
+		for ($k=0;$k<$prefixes;$k++) {
+			$prefix = getLetterPrefix($lettre,$k);
+			for ($j=0;isset($_GET[$prefix.$j]);$j++)
+				$infos[$prefix.$j] = $_GET[$prefix.$j];
+		}
 	}
-	$infos['map'] = $map;
 	$edittingCircuit = true;
 }
 function escapeUtf8($str) {
@@ -139,16 +149,20 @@ if ($canChange) {
 		document.getElementById("cAnnuler").className = "cannotChange";
 		document.getElementById("cEnregistrer").disabled = true;
 		document.getElementById("cEnregistrer").className = "cannotChange";
-		xhr("saveArene.php", "<?php
-		echo 'map='.$map;
+		xhr("saveCreation.php", "<?php
+		echo 'map='.$map.'&battle';
 		for ($i=0;$i<36;$i++)
 			echo '&p'.$i.'='.$infos['p'.$i];
 		for ($i=0;$i<8;$i++)
 			echo '&r'.$i.'='.$infos['r'.$i].'&s'.$i.'='.$infos['s'.$i];
 		for ($i=0;$i<$nbLettres;$i++) {
 			$l = $lettres[$i];
-			for ($j=0;isset($infos[$l.$j]);$j++)
-				echo '&'.$l.$j.'='.$infos[$l.$j];
+			$prefixes = getLetterPrefixes($l,$infos['map']);
+			for ($k=0;$k<$prefixes;$k++) {
+				$prefix = getLetterPrefix($l,$k);
+				for ($j=0;isset($infos[$prefix.$j]);$j++)
+					echo '&'.$prefix.$j.'='.$infos[$prefix.$j];
+			}
 		}
 		if (isset($nid)) echo '&id='.$nid;
 		if ($clId) echo '&cl='.$clId;
@@ -204,8 +218,12 @@ if ($canChange) {
 						echo '&r'.$i.'='.$infos['r'.$i].'&s'.$i.'='.$infos['s'.$i];
 					for ($i=0;$i<$nbLettres;$i++) {
 						$l = $lettres[$i];
-						for ($j=0;isset($infos[$l.$j]);$j++)
-							echo '&'.$l.$j.'='.$infos[$l.$j];
+						$prefixes = getLetterPrefixes($l,$infos['map']);
+						for ($k=0;$k<$prefixes;$k++) {
+							$prefix = getLetterPrefix($l,$k);
+							for ($j=0;isset($infos[$prefix.$j]);$j++)
+								echo '&'.$prefix.$j.'='.$infos[$prefix.$j];
+						}
 					}
 					if ($clId) echo '&cl='.$clId;
 					?>";

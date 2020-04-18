@@ -29,7 +29,7 @@ function clone_img_resource($original_src,$thumb_src) {
 	imagesavealpha($thumb, true);
 	$transparent = imagecolorallocatealpha($thumb, 0,0,0, 127);
 	imagefill($thumb, 0,0, $transparent);
-	imagecopymerge($thumb,$original, 0,0, 0,0, $w,$h, 100);
+	imagecopy($thumb,$original, 0,0, 0,0, $w,$h);
 	imagedestroy($original);
 	imagepng($thumb, $thumb_src);
 	imagedestroy($thumb);
@@ -85,7 +85,7 @@ function imagealphamask(&$img, $r,$g,$b,$a) {
 	imagefill($img, 0,0, $c);
 	imagecopymerge($img,$res, 0,0, 0,0, $w,$h, $a);
 	imagecolortransparent($img, $c);
-	imagecopymerge($res,$img, 0,0, 0,0, $w,$h, 100);
+	imagecopy($res,$img, 0,0, 0,0, $w,$h);
 	imagedestroy($img);
 	return $res;
 }

@@ -1,7 +1,6 @@
 <?php
-$lettres = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'o', 't');
-$nbLettres = count($lettres);
 $infos = Array();
+require_once('circuitPrefix.php');
 if (isset($_GET['id'])) {
 	include('initdb.php');
 	$id = $_GET['id'];
@@ -21,9 +20,14 @@ if (isset($_GET['id'])) {
 			}
 			for ($i=0;$i<$nbLettres;$i++) {
 				$lettre = $lettres[$i];
-				$getInfos = mysql_query('SELECT x,y FROM `mk'.$lettre.'` WHERE circuit="'.$id.'"');
-				for ($j=0;$info=mysql_fetch_array($getInfos);$j++)
-					$infos[$lettre.$j] = $info['x'].','.$info['y'];
+				$getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$id.'"');
+				$incs = array();
+				while ($info=mysql_fetch_array($getInfos)) {
+					$prefix = getLetterPrefixD($lettre,$info);
+					if (!isset($incs[$prefix])) $incs[$prefix] = 0;
+					$infos[$prefix.$incs[$prefix]] = $info['x'].','.$info['y'];
+					$incs[$prefix]++;
+				}
 			}
 		}
 	}
@@ -55,11 +59,16 @@ else {
 	$map = (isset($_GET["map"])) ? $_GET["map"] : 9;
 	for ($i=0;$i<$nbLettres;$i++) {
 		$lettre = $lettres[$i];
-		for ($j=0;isset($_GET[$lettre.$j]);$j++)
-			$infos[$lettre.$j] = $_GET[$lettre.$j];
+		$prefixes = getLetterPrefixes($lettre,$map);
+		for ($k=0;$k<$prefixes;$k++) {
+			$prefix = getLetterPrefix($lettre,$k);
+			for ($j=0;isset($_GET[$prefix.$j]);$j++)
+				$infos[$prefix.$j] = $_GET[$prefix.$j];
+		}
 	}
 }
 $snes = ($map <= 13);
+$gba = ($map > 13) && ($map <= 30);
 include('language.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -71,119 +80,11 @@ include('language.php');
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create a course Mario Kart':'Cr&eacute;er une ar&egrave;ne Mario Kart'; ?></title>
-<style type="text/css">
-body {
-	margin-left: 650px;
-	color: white;
-	background-color: #030316;
-	background-image: url('../images/editor/fond_stars.jpg');
-}
-a {
-	color: white;
-}
-#circuit {
-	position: absolute;
-	left: 0px;
-	top: 0px;
-	width: 600px;
-	height: 600px;
-}
-#circuit img {
-	position: absolute;
-	width: 100px;
-}
-img {
-	cursor: pointer;
-}
-#valider input {
-	font-weight: bold;
-	font-size: 20px;
-	margin-left: 10px;
-	cursor: pointer;
-    background-color: #249;
-    border-color: #57c;
-    color: #abf;
-}
-#valider input:hover {
-	background-color: #26a;
-	border-color: #59B;
-}
-#valider a {
-	font-size: 12pt;
-	font-weight: bold;
-}
-#choose {
-	display: none;
-	position: fixed;
-	z-index: 15;
-	margin: 0;
-	padding: 5px;
-	background-color: #36F;
-}
-#barre {
-	display: block;
-	text-align: right;
-	width: 99%;
-	padding: 4px;
-	background-color: #036;
-	font-weight: bold;
-	font-size: 16px;
-	cursor: move;
-}
-#barre:hover {
-	background-color: #339;
-}
-#barre:active {
-	background-color: blue;
-}
-#barre a:hover {
-	color: aqua;
-}
-.cPiece {
-	border: solid 2px #038;
-}
-.editor-section {
-	display: inline-block;
-	padding: 5px 12px;
-	background-color: rgba(76,70,94, 0.5);
-	border-radius: 5px;
-}
-#pPiece img {
-	z-index: 10;
-}
-#deleteAll {
-	margin-left: 0;
-}
-#deleteAllCtn {
-	display: block;
-	margin-top: 8px;
-	margin-bottom: 2px;
-	text-align: center;
-}
-.startposition {
-	display: block;
-	position: absolute;
-	z-index: 10;
-	font-weight: bold;
-	opacity: 0.5;
-	cursor: pointer;
-}
-.startposition:hover {
-	opacity: 1;
-}
-.startposition img {
-	position: absolute;
-	z-index: -1;
-}
-#advice {
-	margin-top: 0;
-	font-size: 18px;
-}
-#advice a {
-	color: #CCF;
-}
-</style>
-<script type="text/javascript" src="scripts/create.js?reload=4"></script>
+<link rel="stylesheet" type="text/css" href="styles/create.css" />
+<script type="text/javascript">
+var decorTypes = <?php echo json_encode($decorTypes); ?>;
+</script>
+<script type="text/javascript" src="scripts/create.js?reload=5"></script>
 </head>
 <body>
 <div id="circuit">
@@ -194,19 +95,7 @@ for ($i=0;$i<36;$i++)
 </div>
 <p id="pPieces" class="editor-section">
 <?php
-function objet($infos,$l,$m,$n=null) {
-	global $snes;
-	if (($n == null) || $snes)
-		$n = $l;
-	$retour = '<span id="'.$l.'">';
-	for ($i=0;isset($infos[$l.$i]);$i++) {
-		$getCoords = $infos[$l.$i];
-		$retour .= '<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="position: absolute; left: '.preg_replace("#^(\d+),\d+#", "$1", $getCoords).'px; top: '.preg_replace("#\d+,(\d+)$#", "$1", $getCoords).'px; cursor: pointer;" onload="centerPos(this)" onclick="deplacer(event, this, false)" />';
-	}
-	return $retour.'<img src="images/pieces/piececircuit_'.$n.$m.'.png" alt="'.$l.'" id="'.$l.$i.'" style="cursor: pointer;" onclick="deplacer(event,this,true);ajouter(this.alt,parseInt(this.id.match(/\d+$/g))+1)" /></span>';
-}
-echo objet($infos,'o',null).' &nbsp; '.objet($infos,'a',null,'p').' '.objet($infos,'b',null,'q').' '.objet($infos,'c',null,'r').' '.objet($infos,'d',null,'s').' &nbsp; '.objet($infos,"t",$map).'<br />
-'.objet($infos,'e',null).' '.objet($infos,'f',null).' &nbsp; '.objet($infos,'g',null).' '.objet($infos,'h',null).' &nbsp; '.objet($infos,'i',null).' '.objet($infos,'j',null);
+include('circuitObjects.php');
 ?>
 <span id="deleteAllCtn">
 	<input type="button" value="<?php echo $language ? 'Delete all':'Tout supprimer'; ?>" id="deleteAll" onclick="deleteAll('<?php echo $language ? 'Delete all pieces of this circuit ?':'Supprimer toutes les pi\xE8ces de ce circuit ?'; ?>')" />
@@ -249,8 +138,12 @@ for ($i=0;$i<36;$i++)
 echo '<input type="hidden" name="p'.$i.'" value="'.${"p$i"}.'" />';
 $lettres = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'o', 't');
 foreach ($lettres as $l) {
-	for ($i=0;isset($infos[$l.$i]);$i++)
-	echo '<input type="hidden" name="'.$l.$i.'" value="'.$infos[$l.$i].'" />';
+	$prefixes = getLetterPrefixes($l,$map);
+	for ($k=0;$k<$prefixes;$k++) {
+		$prefix = getLetterPrefix($l,$k);
+		for ($i=0;isset($infos[$prefix.$i]);$i++)
+			echo '<input type="hidden" name="'.$prefix.$i.'" value="'.$infos[$prefix.$i].'" />';
+	}
 }
 for ($i=0;$i<8;$i++) {
 	${"s$i"} = (isset($infos["s$i"]) && isset($infos["r$i"])) ? Array($infos["s$i"],$infos["r$i"]) : $positions[$i];

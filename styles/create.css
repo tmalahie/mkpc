@@ -1,0 +1,137 @@
+body {
+	margin-left: 650px;
+	color: white;
+	background-color: #030316;
+	background-image: url('../images/editor/fond_stars.jpg');
+}
+a {
+	color: white;
+}
+#circuit {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 600px;
+	height: 600px;
+}
+#circuit img {
+	position: absolute;
+	width: 100px;
+}
+img {
+	cursor: pointer;
+}
+#croisement {
+	position: relative;
+	text-align: left;
+	margin: 10px 0 0 20px;
+	width: 300px;
+	height: 200px;
+	overflow: hidden;
+	padding: 0;
+	text-align: center;
+}
+#croisement img {
+	position: absolute;
+	left: 40px;
+	top: 40px;
+	width: 215px;
+	cursor: default;
+}
+#valider input {
+	font-weight: bold;
+	font-size: 20px;
+	margin-left: 10px;
+	cursor: pointer;
+    background-color: #249;
+    border-color: #57c;
+    color: #abf;
+}
+#valider input:hover {
+	background-color: #26a;
+	border-color: #59B;
+}
+#valider a {
+	font-size: 12pt;
+	font-weight: bold;
+}
+
+#choose {
+	display: none;
+	position: fixed;
+	z-index: 15;
+	margin: 0;
+	padding: 5px;
+	background-color: #36F;
+}
+#barre {
+	display: block;
+	text-align: right;
+	width: 99%;
+	padding: 4px;
+	background-color: #036;
+	font-weight: bold;
+	font-size: 16px;
+	cursor: move;
+}
+#barre:hover {
+	background-color: #339;
+}
+#barre:active {
+	background-color: blue;
+}
+#barre a:hover {
+	color: aqua;
+}
+.cPiece {
+	border: solid 2px #038;
+}
+.decor {
+	max-width: 13px;
+}
+.editor-section {
+	display: inline-block;
+	padding: 5px 12px;
+	background-color: rgba(76,70,94, 0.5);
+	border-radius: 5px;
+}
+#pPiece img {
+	z-index: 10;
+}
+#deleteAll {
+	margin-left: 0;
+}
+#deleteAllCtn {
+	display: block;
+	margin-top: 8px;
+	margin-bottom: 2px;
+	text-align: center;
+}
+#advice {
+	margin-top: 0;
+	font-size: 18px;
+}
+#advice a {
+	color: #CCF;
+}
+.adv-opt {
+	display: inline-block;
+}
+.adv-opt:first-child {
+	margin-right: 5px;
+}
+.startposition {
+	display: block;
+	position: absolute;
+	z-index: 10;
+	font-weight: bold;
+	opacity: 0.5;
+	cursor: pointer;
+}
+.startposition:hover {
+	opacity: 1;
+}
+.startposition img {
+	position: absolute;
+	z-index: -1;
+}

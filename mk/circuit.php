@@ -1,4 +1,5 @@
 <?php
+require_once('circuitEnumsQuick.php');
 function outOfT($f, $np) {
 	for ($i=0;$i<4;$i++) {
 		$npT = $np[$i];
@@ -35,161 +36,12 @@ foreach ($circuitsData as $c => $circuit) {
 		echo "map=$map";
 	?>",
 	"tours" : <?php echo $circuit['laps']; ?>,
-	"music" : <?php 
-		if ($snes)
-			echo $map;
-		elseif ($gba) {
-			$types = array(10,21,11,15,16,18,17,14,19,20,13,22);
-			echo $types[$map-14];
-		}
-		else {
-			$types = array(24,25);
-			echo $types[$map-31];
-		}
-		?>,
+	"music" : <?php echo $musicIds[$map]; ?>,
 	"w" : 600,
 	"h" : 600,
 	"skin" : <?php echo $map; ?>,
-	"bgcolor" : [<?php
-	switch ($map) {
-		case 1 :
-		$getInfos = Array(0,161,0);
-		break;
-		case 2 :
-		$getInfos = Array(0,152,0);
-		break;
-		case 3 :
-		$getInfos = Array(111,130,239);
-		break;
-		case 4 :
-		$getInfos = Array(95,66,15);
-		break;
-		case 5 :
-		$getInfos = Array(255,255,255);
-		break;
-		case 6 :
-		$getInfos = Array(0,0,0);
-		break;
-		case 7 :
-		$getInfos = Array(185,7,0);
-		break;
-		case 8 :
-		$getInfos = Array(0,0,0);
-		break;
-		case 14 :
-		$getInfos = Array(8,200,0);
-		break;
-		case 15 :
-		$getInfos = Array(60,248,248);
-		break;
-		case 16 :
-		$getInfos = Array(210,192,218);
-		break;
-		case 17 :
-		$getInfos = Array(242,143,0);
-		break;
-		case 18 :
-		$getInfos = Array(236,242,245);
-		break;
-		case 19 :
-		$getInfos = Array(224,248,248);
-		break;
-		case 20 :
-		$getInfos = Array(171,82,8);
-		break;
-		case 21 :
-		$getInfos = Array(0,0,0);
-		break;
-		case 22 :
-		$getInfos = Array(108,169,246);
-		break;
-		case 23 :
-		$getInfos = Array(248,223,73);
-		break;
-		case 24 :
-		$getInfos = Array(208,23,8);
-		break;
-		case 25 :
-		$getInfos = Array(0,0,88);
-		break;
-		case 31 :
-		$getInfos = Array(6,152,0);
-		break;
-		case 32 :
-		$getInfos = Array(0,16,148);
-	}
-	echo $getInfos[0].','.$getInfos[1].','.$getInfos[2];
-	?>],
-	"fond" : ["<?php
-	switch ($map) {
-		case 1 :
-		$getInfos = Array('hills', 'trees');
-		break;
-		case 2 :
-		$getInfos = Array('plains', 'pine');
-		break;
-		case 3 :
-		$getInfos = Array('eciel', 'enuages');
-		break;
-		case 4 :
-		$getInfos = Array('desert', 'roc');
-		break;
-		case 5 :
-		$getInfos = Array('ciel', 'nuages');
-		break;
-		case 6 :
-		$getInfos = Array('nuit', 'boos');
-		break;
-		case 7 :
-		$getInfos = Array('volcans', 'pilliers');
-		break;
-		case 8 :
-		$getInfos = Array('space', 'etoiles');
-		break;
-		case 14 :
-		$getInfos = Array('clouds', 'castle', 'bush');
-		break;
-		case 15 :
-		$getInfos = Array('scree', 'volcanos', 'willows');
-		break;
-		case 16 :
-		$getInfos = Array('sun', 'sand', 'lighthouse');
-		break;
-		case 17 :
-		$getInfos = Array('earth', 'dunes', 'sandcastle');
-		break;
-		case 18 :
-		$getInfos = Array('bean', 'yairship', 'yclouds');
-		break;
-		case 19 :
-		$getInfos = Array('pclouds', 'cristals', 'diamonds');
-		break;
-		case 20 :
-		$getInfos = Array('sunrise', 'canyon', 'valley');
-		break;
-		case 21 :
-		$getInfos = Array('spectrum', 'mansion', 'dtrees');
-		break;
-		case 22 :
-		$getInfos = Array('sclouds', 'garland', 'gifts');
-		break;
-		case 23 :
-		$getInfos = Array('dclouds', 'pyramids', 'mound');
-		break;
-		case 24 :
-		$getInfos = Array('shield', 'throne', 'ark');
-		break;
-		case 25 :
-		$getInfos = Array('night', 'ship', 'nclouds');
-		break;
-		case 31 :
-		$getInfos = Array('mariosky','hills8','banners8');
-		break;
-		case 32 :
-		$getInfos = Array('yoshisky','cliff','cascade');
-	}
-	echo implode('","',$getInfos);
-	?>"],<?php
+	"bgcolor" : [<?php echo implode(',',$bgColors[$map]); ?>],
+	"fond" : ["<?php echo implode('","',$bgImages[$map]); ?>"],<?php
 	$TCircuits = Array(3,6,7,8,15,16,18,21,22,24,25,32);
 	if (!in_array($map, Array(3,7,8,15,16,18,25))) {
 	?>
@@ -1459,51 +1311,18 @@ foreach ($circuitsData as $c => $circuit) {
 		?>
 	],
 	"decor" : {
-		"<?php
-		switch ($map) {
-			case 3 :
-			case 16 :
-			echo 'poisson';
-			break;
-			case 4 :
-			case 17 :
-			case 18 :
-			case 20 :
-			case 23 :
-			echo 'plante';
-			break;
-			case 6 :
-			case 21 :
-			echo 'boo';
-			break;
-			case 7 :
-			case 24 :
-			echo 'thwomp';
-			break;
-			case 8 :
-			case 25 :
-			echo 'spectre';
-			break;
-			case 15 :
-			echo 'taupe';
-			break;
-			case 31 :
-			echo 'tree';
-			break;
-			case 32 :
-			echo 'palm';
-			break;
-			default :
-			echo 'tuyau';
-		}
-		?>":[
 		<?php
-		for ($i=0; isset($circuit['t'.$i]); $i++) {
+		foreach ($decorTypes[$map] as $i=>$decorType) {
 			if ($i) echo ',';
-			echo '['.$circuit['t'.$i].$dataPlus.']';
+			echo '"'.$decorTypes[$map][$i].'":[';
+			$prefix = 't'.($i ? $i.'_':'');
+			for ($j=0; isset($circuit[$prefix.$j]); $j++) {
+				if ($j) echo ',';
+				echo '['.$circuit[$prefix.$j].']';
+			}
+			echo ']';
 		}
 		?>
-		]
 	}
 	<?php
 echo '}';
