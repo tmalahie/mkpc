@@ -52,6 +52,10 @@ foreach ($circuitsData as $c => $arene) {
 	?>,
 	"accelerateurs" : <?php echo json_encode($circuitPayload->accelerateurs); ?>,
 	"decor" : <?php echo json_encode($circuitPayload->decor);
+	if (!empty($circuitPayload->decorparams)) {
+		?>,
+	"decorparams" : <?php echo json_encode($circuitPayload->decorparams);
+	}
 	if (!empty($circuitPayload->cannons)) {
 		?>,
 	"cannons" : <?php echo json_encode($circuitPayload->cannons);

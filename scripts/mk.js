@@ -696,14 +696,16 @@ function setPlanPos() {
 	function setDecorPos(iPlanDecor,iObjWidth,iPlanCtn,iPlanSize) {
 		if (oMap.decor) {
 			for (var type in oMap.decor) {
-				if ((oMap.decor[type].length!=iPlanDecor[type].length) || decorBehaviors[type].movable) {
-					syncObjects(iPlanDecor[type],oMap.decor[type],type, iObjWidth,iPlanCtn);
-					var rotatable = decorBehaviors[type].rotatable;
-					for (var i=0;i<oMap.decor[type].length;i++) {
-						if (rotatable)
-							posImg(iPlanDecor[type][i], oMap.decor[type][i][0],oMap.decor[type][i][1],Math.round(oMap.decor[type][i][4]), iObjWidth,iPlanSize);
-						else
-							setObject(iPlanDecor[type][i],oMap.decor[type][i][0],oMap.decor[type][i][1], iObjWidth,iPlanSize);
+				if (!decorBehaviors[type].hidden) {
+					if ((oMap.decor[type].length!=iPlanDecor[type].length) || decorBehaviors[type].movable) {
+						syncObjects(iPlanDecor[type],oMap.decor[type],type, iObjWidth,iPlanCtn);
+						var rotatable = decorBehaviors[type].rotatable;
+						for (var i=0;i<oMap.decor[type].length;i++) {
+							if (rotatable)
+								posImg(iPlanDecor[type][i], oMap.decor[type][i][0],oMap.decor[type][i][1],Math.round(oMap.decor[type][i][4]), iObjWidth,iPlanSize);
+							else
+								setObject(iPlanDecor[type][i],oMap.decor[type][i][0],oMap.decor[type][i][1], iObjWidth,iPlanSize);
+						}
 					}
 				}
 			}
@@ -4995,6 +4997,7 @@ var decorBehaviors = {
 	fire3star:{
 		unbreaking:true,
 		transparent:true,
+		hidden:true,
 		preinit:function(decorsData) {
 			if (!oMap.decor.fireballs)
 				oMap.decor.fireballs = new Array();
@@ -5002,10 +5005,16 @@ var decorBehaviors = {
 				var decorData = decorsData[i];
 				if (decorData[3] == undefined)
 					decorData[3] = 18;
-				if (decorData[4] == undefined)
-					decorData[4] = (10000*Math.sin(i+1))%Math.PI;
-				if (decorData[5] == undefined)
-					decorData[5] = (i%2 ? 1:-1);
+				if (decorData[4] == undefined) {
+					var decorParams = getDecorParams("fire3star",i);
+					decorData[4] = Math.PI/2+decorParams.dir;
+					if (isNaN(decorData[4])) decorData[4] = ((10000*Math.sin(i+2))%Math.PI);
+					decorData[5] = 0.1;
+				}
+				else {
+					if (decorData[5] == undefined)
+						decorData[5] = (i%2 ? 1:-1)*0.1;
+				}
 				if (decorData[6] == undefined)
 					decorData[6] = (10000*Math.sin(i+1))%Math.PI;
 				var fireGroups = [];
@@ -5050,6 +5059,7 @@ var decorBehaviors = {
 	firering:{
 		unbreaking:true,
 		transparent:true,
+		hidden:true,
 		preinit:function(decorsData) {
 			if (!oMap.decor.fireballs)
 				oMap.decor.fireballs = new Array();
@@ -5057,10 +5067,16 @@ var decorBehaviors = {
 				var decorData = decorsData[i];
 				if (decorData[3] == undefined)
 					decorData[3] = 18;
-				if (decorData[4] == undefined)
-					decorData[4] = (10000*Math.sin(i+1))%Math.PI;
-				if (decorData[5] == undefined)
-					decorData[5] = (i%2 ? 1:-1);
+				if (decorData[4] == undefined) {
+					var decorParams = getDecorParams("firering",i);
+					decorData[4] = Math.PI/2+decorParams.dir;
+					if (isNaN(decorData[4])) decorData[4] = ((10000*Math.sin(i+2))%Math.PI);
+					decorData[5] = 0.1;
+				}
+				else {
+					if (decorData[5] == undefined)
+						decorData[5] = (i%2 ? 1:-1)*0.1;
+				}
 				if (decorData[6] == undefined)
 					decorData[6] = (10000*Math.sin(i+1))%Math.PI;
 				var fireGroup = [];
@@ -10723,30 +10739,32 @@ function ai(oKart) {
 			var gD = Math.hypot(gX-oX, gY-oY);
 			var vX = (gX-oX)*oKart.speed/gD, vY = (gY-oY)*oKart.speed/gD;
 			var minDecor, minT = 1;
-			for (var type in decorPos) {
-				var hitboxSize = decorBehaviors[type].hitbox||5;
-				hitboxSize *= 1.1;
-				for (var i=0;i<decorPos[type].length;i++) {
-					var iDecor = decorPos[type][i];
-					var decorLines = [
-						[iDecor.x-hitboxSize,iDecor.y-hitboxSize,hitboxSize*2,0],
-						[iDecor.x-hitboxSize,iDecor.y-hitboxSize,0,hitboxSize*2],
-						[iDecor.x-hitboxSize,iDecor.y+hitboxSize,hitboxSize*2,0],
-						[iDecor.x+hitboxSize,iDecor.y-hitboxSize,0,hitboxSize*2]
-					];
-					var uX = vX-iDecor.vX, uY = vY-iDecor.vY;
-					for (var j=0;j<decorLines.length;j++) {
-						var decorLine = decorLines[j];
-						var inter = secants(oX,oY,oX+uX*decorT,oY+uY*decorT,decorLine[0],decorLine[1],decorLine[0]+decorLine[2],decorLine[1]+decorLine[3]);
-						if (inter && (inter[0] < minT)) {
-							minDecor = {
-								type: type,
-								i: i,
-								line: decorLine,
-								inter: inter,
-								box: [decorLine[0]+iDecor.vX*decorT*inter[1],decorLine[1]+iDecor.vY*decorT*inter[1],decorLine[2],decorLine[3]]
-							};
-							minT = inter[0];
+			if (!isCup) {
+				for (var type in decorPos) {
+					var hitboxSize = decorBehaviors[type].hitbox||5;
+					hitboxSize *= 1.1;
+					for (var i=0;i<decorPos[type].length;i++) {
+						var iDecor = decorPos[type][i];
+						var decorLines = [
+							[iDecor.x-hitboxSize,iDecor.y-hitboxSize,hitboxSize*2,0],
+							[iDecor.x-hitboxSize,iDecor.y-hitboxSize,0,hitboxSize*2],
+							[iDecor.x-hitboxSize,iDecor.y+hitboxSize,hitboxSize*2,0],
+							[iDecor.x+hitboxSize,iDecor.y-hitboxSize,0,hitboxSize*2]
+						];
+						var uX = vX-iDecor.vX, uY = vY-iDecor.vY;
+						for (var j=0;j<decorLines.length;j++) {
+							var decorLine = decorLines[j];
+							var inter = secants(oX,oY,oX+uX*decorT,oY+uY*decorT,decorLine[0],decorLine[1],decorLine[0]+decorLine[2],decorLine[1]+decorLine[3]);
+							if (inter && (inter[0] < minT)) {
+								minDecor = {
+									type: type,
+									i: i,
+									line: decorLine,
+									inter: inter,
+									box: [decorLine[0]+iDecor.vX*decorT*inter[1],decorLine[1]+iDecor.vY*decorT*inter[1],decorLine[2],decorLine[3]]
+								};
+								minT = inter[0];
+							}
 						}
 					}
 				}

@@ -128,7 +128,7 @@ if (isset($_GET['i'])) {
 						foreach ($decors as $i=>$decorNames) {
 							if ($i) echo '<br />';
 							foreach ($decorNames as $decorName=>$title)
-								echo '<button value="'.$decorName.'" class="radio-button radio-button-25 radio-button-decor button-img'.($title ? ' fancy-title':'').'" style="background-image:url(\'images/map_icons/'.$decorName.'.png\')"'.($title ? ' title="'.$title.'"':'').'></button>';
+								echo '<button value="'.$decorName.'" class="radio-button radio-button-25 radio-button-decor button-img'.($title ? ' fancy-title':'').'" style="background-image:url(\'images/map_icons/'.$decorName.'.png?reload=1\')"'.($title ? ' title="'.$title.'"':'').'></button>';
 						}
 						?>
 					</div>

@@ -701,7 +701,7 @@ function moveArrow(arrow,origin,dir,options) {
 	function moveArr(e) {
 		point2 = getEditorCoordsRounded(getPointerPos(e));
 		if (options.fixed_length)
-			changeArrowDir(arrow,origin,{x:point2.x-origin.x,y:point2.y-origin.y},options.fixed_length);
+			changeArrowDir(arrow,origin,{x:point2.x-origin.x,y:point2.y-origin.y},options.fixed_length,options.from_center);
 		else
 			arrow.move(null,point2);
 	}
@@ -1238,10 +1238,16 @@ function createArrow(point1,point2,append,options) {
 		show: showArrow
 	}
 }
-function changeArrowDir(arrow,origin,dir,length) {
+function changeArrowDir(arrow,origin,dir,length,fromCenter) {
 	var dirL = Math.hypot(dir.x,dir.y);
-	if (dirL)
-		arrow.move(origin,{x:origin.x+dir.x*length/dirL,y:origin.y+dir.y*length/dirL});
+	if (dirL) {
+		if (fromCenter) {
+			dirL *= 2;
+			arrow.move({x:origin.x-dir.x*length/dirL,y:origin.y-dir.y*length/dirL},{x:origin.x+dir.x*length/dirL,y:origin.y+dir.y*length/dirL});
+		}
+		else
+			arrow.move(origin,{x:origin.x+dir.x*length/dirL,y:origin.y+dir.y*length/dirL});
+	}
 }
 function createCircularArrow(center,angle1,dAngle,append,options) {
 	options = options||{};
@@ -3562,6 +3568,8 @@ var commonTools = {
 						self.click(self,decorData.pos,{});
 						switch (type) {
 						case "cannonball":
+						case "firering":
+						case "fire3star":
 							if (decorData.dir)
 								self.click(self,{x:decorData.pos.x+decorData.dir.x,y:decorData.pos.y+decorData.dir.y},{});
 							break;
@@ -3591,6 +3599,8 @@ var commonTools = {
 				typeData.push(decorData);
 				switch (self.state.type) {
 				case "cannonball":
+				case "firering":
+				case "fire3star":
 					over = false;
 					var arrow = createArrow({x:point.x,y:point.y},{x:point.x,y:point.y});
 					for (var i=0;i<arrow.lines.length;i++)
@@ -3606,7 +3616,7 @@ var commonTools = {
 				var moveOptions = {};
 				if (arrow) {
 					moveOptions.on_apply = function(nData) {
-						changeArrowDir(arrow,{x:nData.x,y:nData.y},decorData.dir,self._arrowLength);
+						changeArrowDir(arrow,{x:nData.x,y:nData.y},decorData.dir,self._arrowLength,self._arrowOriginCenter(self.state.type));
 					}
 					moveOptions.on_start_move = arrow.hide;
 					moveOptions.on_end_move = arrow.show;
@@ -3632,7 +3642,7 @@ var commonTools = {
 						menuOptions.splice(1,0, {
 							text: (language ? "Edit ↗":"Modifier ↗"),
 							click: function() {
-								moveArrow(arrow,decorData.pos,decorData.dir,{fixed_length:self._arrowLength});
+								moveArrow(arrow,decorData.pos,decorData.dir,{fixed_length:self._arrowLength,from_center:self._arrowOriginCenter(self.state.type)});
 							}
 						});
 					}
@@ -3643,12 +3653,15 @@ var commonTools = {
 			}
 		},
 		"_arrowLength": 25,
+		"_arrowOriginCenter": function(type) {
+			return (["firering","fire3star"].indexOf(type) !== -1);
+		},
 		"move" : function(self,point,extra) {
 			if (self.state.arrow) {
 				var typeData = self.data[self.state.type];
 				var decorPos = typeData[typeData.length-1].pos;
 				var dir = {x:point.x-decorPos.x,y:point.y-decorPos.y};
-				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength);
+				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength,self._arrowOriginCenter(self.state.type));
 			}
 			else
 				setBoxPos(self.state.point,point,self.state.boxSize);
@@ -3667,6 +3680,8 @@ var commonTools = {
 						payload.decor[type].push(pointToData(decorsData[i].pos));
 						switch (type) {
 						case "cannonball":
+						case "firering":
+						case "fire3star":
 							var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
 							payload.decorparams[type].push({dir:isNaN(dir)?0:dir});
 						}
@@ -3692,6 +3707,8 @@ var commonTools = {
 					var decorData = {pos:dataToPoint(decorsPayload[i])};
 					switch (type) {
 					case "cannonball":
+					case "firering":
+					case "fire3star":
 						var dir = decorParams.dir || 0;
 						decorData.dir = {x:Math.sin(dir),y:Math.cos(dir)};
 					}
