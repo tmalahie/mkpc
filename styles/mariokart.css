@@ -338,10 +338,10 @@ button.control-close:active {
 }
  input[type="button"], input[type="submit"], button {
     background-color: #060610;
-     border: outset 1px #4D4923;
-     color: yellow;
-     font-weight: bold;
-     cursor: pointer;
+    border: outset 1px #4D4923;
+    color: #FEFF3F;
+    font-weight: bold;
+    cursor: pointer;
 }
  input[type="button"]:hover, input[type="submit"]:hover, button:hover {
     background-color: #372F1A;
@@ -367,8 +367,8 @@ button.control-close:active {
 }
  body {
     background-color: black;
-     color: yellow;
-     font-weight: bold;
+	color: #FEFF3F;
+    font-weight: bold;
 }
  select {
     background-color: black;

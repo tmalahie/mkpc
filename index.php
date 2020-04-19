@@ -42,7 +42,7 @@ $slidesPath = 'images/slides';
 			<div class="fp-slides-container">
 				<div class="fp-slides">
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" style="background: url('<?php echo $slidesPath; ?>/diapo1.jpg?reload=1') top">
+						<div class="fp-thumbnail" style="background: url('<?php echo $slidesPath; ?>/diapo1.jpg') top">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -72,7 +72,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo2.jpg?reload=1">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo2.jpg">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -102,7 +102,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo3.png?reload=1">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo3.png">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -132,7 +132,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo4.png?reload=1">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo4.png">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -162,7 +162,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo5.jpg?reload=1">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo5.jpg">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -192,7 +192,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo6.jpg?reload=1">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo6.jpg">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -222,7 +222,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo7.jpg?reload=1">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo7.jpg">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -252,7 +252,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" style="background-image: url('<?php echo $slidesPath; ?>/diapo8.png?reload=1')">
+						<div class="fp-thumbnail" style="background-image: url('<?php echo $slidesPath; ?>/diapo8.png')">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">

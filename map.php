@@ -188,7 +188,7 @@ $sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'i'));
 	   <title><?php if ($cName){echo escapeUtf8($cName);if($cAuteur)echo ' ['. ($language ? 'By':'Par') .' '. escapeUtf8($cAuteur) .']';echo ' - ';} ?>Mario Kart PC</title>
 <?php include('metas.php'); ?>
 
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css" />
 <link rel="stylesheet" media="screen" type="text/css" href="styles/comments.css" />
 
 <?php

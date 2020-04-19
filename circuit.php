@@ -225,7 +225,7 @@ function escapeUtf8($str) {
        <title><?php if ($cName){echo escapeUtf8($cName);if($cPseudo)echo ' ['. ($language ? 'By':'Par') .' '. escapeUtf8($cPseudo) .']';echo ' - ';} ?>Mario Kart PC</title>
 <?php include('metas.php'); ?>
 
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css" />
 <link rel="stylesheet" media="screen" type="text/css" href="styles/comments.css" />
 
 <?php

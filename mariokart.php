@@ -16,19 +16,7 @@ include('initdb.php');
 
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=2" />
-<style type="text/css">
-body {
-	color: #FEFF3F;
-}
-input[type="button"], input[type="submit"], button {
-    background-color: #060610;
-    border: outset 1px #4D4923;
-    color: #FEFF3F;
-    font-weight: bold;
-    cursor: pointer;
-}
-</style>
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css" />
 
 <?php
 include('o_online.php');
@@ -58,7 +46,7 @@ var NBCIRCUITS = <?php echo $nbVSCircuits; ?>;
 <?php
 mysql_close();
 ?>
-<script type="text/javascript" src="mk/maps.php?reload=d"></script>
+<script type="text/javascript" src="mk/maps.php"></script>
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", MarioKart);

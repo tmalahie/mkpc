@@ -33,7 +33,7 @@ if ($arene = mysql_fetch_array(mysql_query('SELECT a.*,(a.nom IS NOT NULL) as sh
        <title><?php if ($cName){echo escapeUtf8($cName);if($arene['auteur'])echo ' ['. ($language ? 'By':'Par') .' '. escapeUtf8($arene['auteur']) .']';echo ' - ';} ?>Mario Kart PC</title>
 <?php include('metas.php'); ?>
 
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css" />
 <link rel="stylesheet" media="screen" type="text/css" href="styles/comments.css" />
 
 <?php
