@@ -85,10 +85,10 @@ $place = ($page-1)*20;
 	?>
 	<tr><td colspan="3" id="page"><strong>Page : </strong> 
 	<?php
-	function pageLink($page, $this) {
+	function pageLink($page, $isCurrent) {
 		$get = $_GET;
 		$get['page'] = $page;
-		echo ($this ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'"">'.$page.'</a>').'&nbsp; ';
+		echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'"">'.$page.'</a>').'&nbsp; ';
 	}
 	$limite = ceil($nb_temps/20);
 	if ($limite >= 10) {

@@ -139,10 +139,10 @@ foreach ($get as $k => $getk)
 		echo '<a href="?'. http_build_query($get) .'">'.$page.'</a>';
 	}
 	else {
-		function pageLink($page, $this) {
+		function pageLink($page, $isCurrent) {
 			global $get;
 			$get['page'] = $page;
-			echo ($this ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'">'.$page.'</a>').'&nbsp; ';
+			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'">'.$page.'</a>').'&nbsp; ';
 		}
 		$limite = ceil($nb_temps/20);
 		if ($limite >= 10) {

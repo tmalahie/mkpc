@@ -13,8 +13,8 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 		$hthumbnail = false;
 		$hdescription = removeBbCode($getFirstMessage['message']);
 	}
-	function pageLink($page, $this) {
-		return ($this ? ' '.$page.'&nbsp;' : '<a href="?topic='. $_GET['topic'] .'&amp;page='.$page.'"> '.$page.'&nbsp;</a>');
+	function pageLink($page, $isCurrent) {
+		return ($isCurrent ? ' '.$page.'&nbsp;' : '<a href="?topic='. $_GET['topic'] .'&amp;page='.$page.'"> '.$page.'&nbsp;</a>');
 	}
 	$messages = mysql_query('SELECT auteur,id,message,date
 		FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id');
