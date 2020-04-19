@@ -536,6 +536,7 @@ var iLapTimes;
 var gPersos = new Array();
 var gRecord;
 var gSelectedPerso;
+var gOverwriteRecord;
 if (pause) {
 	strPlayer = fInfos.player;
 	oMap = oMaps["map"+fInfos.map];
@@ -546,6 +547,8 @@ if (pause) {
 		gPersos = fInfos.perso;
 		jTrajets = fInfos.cpu_route;
 		gRecord = fInfos.my_record;
+		gOverwriteRecord = fInfos.ow_record;
+		if (gOverwriteRecord == 2) gOverwriteRecord = 1;
 		iRecord = fInfos.record;
 		iLapTimes = fInfos.lap_times;
 		gSelectedPerso = fInfos.selPerso;
@@ -2470,6 +2473,7 @@ function startGame() {
 										perso:gPersos,
 										cpu_route:jTrajets,
 										my_record:gRecord,
+										ow_record:gOverwriteRecord,
 										lap_times:iLapTimes
 									};
 									document.getElementById("infos0").style.display = "none";
@@ -3492,12 +3496,22 @@ function continuer() {
 				perso:gPersos,
 				cpu_route:jTrajets,
 				my_record:gRecord,
+				ow_record:gOverwriteRecord,
 				lap_times: iLapTimes
 			};
 			if (gSelectedPerso) {
 				fInfos.player = [gSelectedPerso];
 				fInfos.perso = [strPlayer[0]];
 				fInfos.cpu_route = [iTrajet];
+			}
+			else {
+				if (gOverwriteRecord == 2) {
+					if (lapTimers.length == oMap.tours) {
+						fInfos.cpu_route = [iTrajet];
+						fInfos.perso = strPlayer;
+						fInfos.lap_times = lapTimers;
+					}
+				}
 			}
 			document.getElementById("infos0").style.display = "none";
 			if (strPlayer.length == 1)
@@ -3579,6 +3593,8 @@ function continuer() {
 									xhr("saveghost.php", oRequest, function(reponse) {
 										if (reponse == 1) {
 											gRecord = getActualGameTimeMS();
+											if (gOverwriteRecord)
+												gOverwriteRecord = 2;
 											showBackUi(true);
 											return true;
 										}
@@ -3707,6 +3723,7 @@ function continuer() {
 					selPerso:gSelectedPerso,
 					cpu_route:jTrajets,
 					my_record:gRecord,
+					ow_record:gOverwriteRecord,
 					record:timerMS,
 					lap_times:iLapTimes
 				};
@@ -3732,12 +3749,14 @@ function continuer() {
 			clearResources();
 			for (var i=0;i<strPlayer.length;i++) {
 				$mkScreen.removeChild(oContainers[i]);
-				fInfos = {
-					player:strPlayer,
-					perso:new Array()
-				};
 				document.getElementById("infos"+i).style.display = "none";
 			}
+			fInfos = {
+				player:strPlayer,
+				perso:new Array()
+			};
+			if (gSelectedPerso)
+				fInfos.player = [gSelectedPerso];
 			if (strPlayer.length == 1)
 				removePlan();
 			oBgLayers.length = 0;
@@ -15919,6 +15938,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		if (gID == -1) {
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
+			gOverwriteRecord = 1;
 			if (replay) {
 				strPlayer[0] = ghostsData[0];
 				iRecord = ghostsData[2];
