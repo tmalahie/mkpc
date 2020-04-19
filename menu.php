@@ -40,17 +40,39 @@
 			if (null !== $canSeePrivateTopics)
 				return $canSeePrivateTopics;
 			$canSeePrivateTopics = false;
-			if ($id && ($getRights = mysql_fetch_array(mysql_query('SELECT player FROM `mkrights` WHERE player="'. $id .'" AND privilege IN ("admin","moderator","organizer")'))))
+			if ($id && mysql_fetch_array(mysql_query('SELECT player FROM `mkrights` WHERE player="'. $id .'" AND privilege IN ("admin","moderator","organizer")')))
 				$canSeePrivateTopics = true;
 			return $canSeePrivateTopics;
 		}
 		$myNotifications = mysql_query('SELECT * FROM `mknotifs` WHERE '. $idsSQL .' ORDER BY id DESC');
 		$notifsData = Array();
+		if ($id || $myIdentifiants) {
+			$notifsCacheKey = 'notif:'.($id?$id:0).':'.($myIdentifiants?$myIdentifiants[0]:0);
+			$myNotifsCache = explode(':',apc_fetch($notifsCacheKey));
+		}
+		else {
+			$notifsCacheKey = null;
+			$myNotifsCache = null;
+		}
+		$cacheNotifId = $myNotifsCache ? $myNotifsCache[1]:-1;
+		$useNotifCache = false;
+		$relyOnCacheThreshold = 25;
+		$clearCacheThreshold = 10;
+		function clearNotifCache() {
+			global $notifsCacheKey,$myNotifsCache,$cacheNotifId;
+			if ($myNotifsCache) {
+				apc_delete($notifsCacheKey);
+				$myNotifsCache = null;
+				$cacheNotifId = -1;
+			}
+		}
 		while ($myNotif = mysql_fetch_array($myNotifications)) {
 			$notifData = Array();
 			$toDelete = false;
-			if ($ignoredNotifs[$myNotif['type']])
+			if ($ignoredNotifs[$myNotif['type']]) {
 				$toDelete = true;
+				clearNotifCache();
+			}
 			else {
 				switch ($myNotif['type']) {
 					case 'answer_comment' :
@@ -354,6 +376,15 @@
 					$notifData['list'] = Array($notifData);
 					$notifsData[] = $notifData;
 				}
+				if ($myNotif['id'] <= $cacheNotifId) {
+					if ($myNotif['id'] == $cacheNotifId) {
+						if (count($notifsData) >= $clearCacheThreshold) {
+							$useNotifCache = true;
+							break;
+						}
+					}
+					clearNotifCache();
+				}
 			}
 		}
 		function get_people_names(&$notifData) {
@@ -404,9 +435,9 @@
 		for ($i=0;$i<$nbNotifs;$i++) {
 			$notifData = $notifsData[$i];
 			$n = count($notifData['list']);
-			$notifsData[$i]['ids'] = '';
+			$notifsData[$i]['ids'] = array();
 			for ($j=0;$j<$n;$j++)
-				$notifsData[$i]['ids'] .= ($j ? ',':'').$notifData['list'][$j]['id'];
+				$notifsData[$i]['ids'][] = $notifData['list'][$j]['id'];
 			$names = get_people_names($notifData);
 			$namesJoined = join_people_names($names);
 			switch ($notifData['type']) {
@@ -534,6 +565,25 @@
 				break;
 			}
 		}
+		if ($notifsCacheKey) {
+			if ($useNotifCache) {
+				$nbNotifs = $myNotifsCache[0];
+				foreach ($notifsData as $notifData) {
+					$nbNotifs++;
+					if ($notifData['id'] <= $cacheNotifId)
+						break;
+				}
+			}
+			else {
+				if (count($notifsData) >= $relyOnCacheThreshold) {
+					$newCacheId = $notifsData[$relyOnCacheThreshold-1]['id'];
+					$nbNotifsCache = $nbNotifs-$relyOnCacheThreshold;
+					apc_store($notifsCacheKey, "$nbNotifsCache:$newCacheId", 10000);
+				}
+				else
+					clearNotifCache();
+			}
+		}
 		?>
 		<div id="notifs-bubble" class="<?php echo $nbNotifs ? 'notifs':'no-notifs'; ?>">
 			<div id="notifs-nb-alert">
@@ -551,11 +601,11 @@
 				<div id="notifs-list">
 				<?php
 				foreach ($notifsData as $i=>$notifData) {
-					if ($i >= 30)
+					if ($i >= $relyOnCacheThreshold)
 						break;
 					$link = preg_replace('#(?:&amp;|\?)src=\w+$#', '', $notifData['link']);
 					?>
-					<a class="notif-container" id="notif-<?php echo $notifData['id']; ?>"  data-id="<?php echo $notifData['id']; ?>" data-ids="<?php echo $notifData['ids']; ?>" href="<?php echo $link; ?>">
+					<a class="notif-container" id="notif-<?php echo $notifData['id']; ?>"  data-id="<?php echo $notifData['id']; ?>" data-ids="<?php echo implode(',',$notifData['ids']); ?>" href="<?php echo $link; ?>">
 						<div class="notif-options"><span class="close-notif" onclick="closeNotif(event,this);">&times;</span></div>
 						<div class="notif-value"><?php echo $notifData['content']; ?></div>
 					</a>
