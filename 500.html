@@ -8,13 +8,12 @@
 <meta name="description" content="Jeu de Mario Kart gratuit en ligne" />
 <meta name="keywords" content="Mario, Kart, PC, jeu, course, jeu gratuit, multijoueurs, éditeur de circuits" />
 
-<base href="https://mkpc.malahieude.net/" />
-
 <link rel="stylesheet" href="styles/main.css" />
-<link rel="stylesheet" href="styles/main-mountains.css" />
+<link rel="stylesheet" href="styles/main-mountains2.css" />
 <link rel="stylesheet" media="only screen and (max-width: 800px)" href="styles/mobile.css" />
 <link rel="stylesheet" media="only screen and (min-width: 800px)" href="styles/computer.css" />
 <link rel="stylesheet" href="styles/forum.css" />
+<link rel="stylesheet" href="styles/errors-http.css" />
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 </head>
 <body>
@@ -22,13 +21,13 @@
 	<table>
 		<tr>
 			<td id="header_left">
-				<img src="images/header_lwinter.png" alt="/|" />
+				<img src="images/header_left2.png" alt="/|" />
 			</td>
 			<td id="header_center">
-				<img src="images/header_transparent.png" alt="MARIO KART PC" />
+				<img src="images/header_transparent2.png" alt="MARIO KART PC" />
 			</td>
 			<td id="header_right">
-				<img src="images/header_rwinter.png" alt="|\" />
+				<img src="images/header_right2.png" alt="|\" />
 			</td>
 		</tr>
 	</table>
@@ -61,15 +60,32 @@
 	</div>
 </nav>
 <main>
-	<h1>Erreur 500</h1>
-	<p style="text-align: center">
-		<img src="images/500.jpg" alt="Erreur 500" style="max-width:100%" /><br /><br />
-		Les serveurs hébergeant le site rencontrent actuellement des problèmes empêchant d'afficher la page demandée.
-		<br /><br />
-		Une équipe de Chomps bien dressés travaille activement à la résolution du problème.
-		<br />
-		Désolé pour le désagrément, essayez de vous reconnecter dans quelques minutes.
-	</p>
+	<div class="error-http-msg" id="error-en">
+		<h1>Error 500</h1>
+		<p>
+			<img src="images/500.jpg" alt="Error 500" /><br /><br />
+			The servers hosting the site are encountering problems preventing the requested page to load correctly.
+			<br /><br />
+			A team of highly trained Chomps are working on solving the problem.
+			<br />
+			Sorry for the inconvenience, try to reconnect in a few minutes.
+			<br /><br />
+			If the problem persists, go to the <a href="https://discord.gg/VkeAxaj">Discord server</a> of the game to follow the situation.
+		</p>
+	</div>
+	<div class="error-http-msg" id="error-fr">
+		<h1>Erreur 500</h1>
+		<p>
+			<img src="images/500.jpg" alt="Erreur 500" /><br /><br />
+			Les serveurs hébergeant le site rencontrent actuellement des problèmes empêchant d'afficher la page demandée.
+			<br /><br />
+			Une équipe de Chomps bien dressés travaille activement à la résolution du problème.
+			<br />
+			Désolé pour le désagrément, essayez de vous reconnecter dans quelques minutes.
+			<br /><br />
+			Si le problème persiste, rendez-vous sur le <a href="https://discord.gg/VkeAxaj">Serveur Discord</a> du site pour suivre l'évolution de la situation.
+		</p>
+	</div>
 </main>
 <footer>
 	<div id="relief_bottom">
@@ -79,8 +95,9 @@
 	<div id="footer_bottom">
 		<div id="footer_left"></div>
 		<div id="footer_right"></div>
-		<table id="footer_center"><tr><td>Mario Kart PC © 2010-2019<span id="developer"> | Designed and developed by <a href="http://timothe.malahieude.net">Timothé Malahieude</a> (Wargor)</span></td></tr></table>
+		<table id="footer_center"><tr><td>Mario Kart PC © 2010-2020<span id="developer"> | Designed and developed by <a href="http://timothe.malahieude.net">Timothé Malahieude</a> (Wargor)</span></td></tr></table>
 	</div>
 </footer>
+<script type="text/javascript" src="scripts/errors-http.js"></script>
 </body>
 </html>

@@ -8,13 +8,12 @@
 <meta name="description" content="Jeu de Mario Kart gratuit en ligne" />
 <meta name="keywords" content="Mario, Kart, PC, jeu, course, jeu gratuit, multijoueurs, éditeur de circuits" />
 
-<base href="https://mkpc.malahieude.net/" />
-
 <link rel="stylesheet" href="styles/main.css" />
-<link rel="stylesheet" href="styles/main-mountains.css" />
+<link rel="stylesheet" href="styles/main-mountains2.css" />
 <link rel="stylesheet" media="only screen and (max-width: 800px)" href="styles/mobile.css" />
 <link rel="stylesheet" media="only screen and (min-width: 800px)" href="styles/computer.css" />
 <link rel="stylesheet" href="styles/forum.css" />
+<link rel="stylesheet" href="styles/errors-http.css" />
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 </head>
 <body>
@@ -22,13 +21,13 @@
 	<table>
 		<tr>
 			<td id="header_left">
-				<img src="images/header_lwinter.png" alt="/|" />
+				<img src="images/header_left2.png" alt="/|" />
 			</td>
 			<td id="header_center">
-				<img src="images/header_transparent.png" alt="MARIO KART PC" />
+				<img src="images/header_transparent2.png" alt="MARIO KART PC" />
 			</td>
 			<td id="header_right">
-				<img src="images/header_rwinter.png" alt="|\" />
+				<img src="images/header_right2.png" alt="|\" />
 			</td>
 		</tr>
 	</table>
@@ -61,16 +60,30 @@
 	</div>
 </nav>
 <main>
-	<h1>Erreur 404</h1>
-	<p style="text-align: center">
-		<img src="images/404.jpg" alt="Erreur 404" style="max-width:100%" /><br /><br />
-		Désolé, la page à laquelle vous tentez d'accéder n'existe pas ou plus.<br />
-		Si vous êtes tombé sur cette page suite à un clic sur un lien mort, n'hésitez pas à signaler le problème sur le <a href="forum.php">forum</a> du site.
-	</p>
-	<p class="forumButtons" style="margin: 10px 0 0 23%">
-		<a href="javascript:history.back()">Retour à la page précédente</a><br />
-		<a href="index.php">Retour à l'accueil</a>
-	</p>
+	<div class="error-http-msg" id="error-en">
+		<h1>Error 404</h1>
+		<p style="text-align: center">
+			<img src="images/404.jpg" alt="Error 404" /><br /><br />
+			Sorry, the page you're trying to request doesn't exist anymore, or has never existed.<br />
+			If you arrived on this page by clicking on a dead link, don't hesitate to report it in the <a href="forum.php">forum</a> of the site.
+		</p>
+		<p class="forumButtons">
+			<a href="javascript:history.back()">Back to previous page</a><br />
+			<a href="index.php">Back to home</a>
+		</p>
+	</div>
+	<div class="error-http-msg" id="error-fr">
+		<h1>Erreur 404</h1>
+		<p style="text-align: center">
+			<img src="images/404.jpg" alt="Erreur 404" style="max-width:100%" /><br /><br />
+			Désolé, la page à laquelle vous tentez d'accéder n'existe pas ou plus.<br />
+			Si vous êtes tombé sur cette page suite à un clic sur un lien mort, n'hésitez pas à signaler le problème sur le <a href="forum.php">forum</a> du site.
+		</p>
+		<p class="forumButtons">
+			<a href="javascript:history.back()">Retour à la page précédente</a><br />
+			<a href="index.php">Retour à l'accueil</a>
+		</p>
+	</div>
 </main>
 <footer>
 	<div id="relief_bottom">
@@ -80,8 +93,9 @@
 	<div id="footer_bottom">
 		<div id="footer_left"></div>
 		<div id="footer_right"></div>
-		<table id="footer_center"><tr><td>Mario Kart PC © 2010-2019<span id="developer"> | Designed and developed by <a href="http://timothe.malahieude.net">Timothé Malahieude</a> (Wargor)</span></td></tr></table>
+		<table id="footer_center"><tr><td>Mario Kart PC © 2010-2020<span id="developer"> | Designed and developed by <a href="http://timothe.malahieude.net">Timothé Malahieude</a> (Wargor)</span></td></tr></table>
 	</div>
 </footer>
+<script type="text/javascript" src="scripts/errors-http.js"></script>
 </body>
 </html>
