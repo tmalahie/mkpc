@@ -16747,7 +16747,10 @@ function setChat() {
 	rMessage.type = "text";
 	rMessage.name = "rMessage";
 	rMessage.onkeydown = function(e) {
-		e.stopPropagation();
+		if (e.keyCode == 38)
+			this.blur();
+		else
+			e.stopPropagation();
 	};
 	rMessage.onkeyup = function(e) {
 		e.stopPropagation();
