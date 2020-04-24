@@ -1,6 +1,14 @@
 <?php
 if (empty($_GET['map'])) exit;
 if($_SERVER['HTTP_HOST']!=='local-mkpc.malahieude.info') exit;
+if (isset($_GET['pieces'])) {
+    $map = $_GET['map'];
+    for ($i=0;$i<=11;$i++) {
+        $id = 7000+$i;
+        copy('images/pieces/piececircuit'.$map.'_'.$i.'.png', 'images/uploads/map'.$id.'.png');
+    }
+    exit;
+}
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 /**

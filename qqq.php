@@ -10,12 +10,15 @@ if (isset($_GET['p'])) {
     function printCodeInput($txt) {
         echo '<input type="text" onfocus="this.select()" value="'. htmlspecialchars($txt) .'" style="width:500px" />';
     }
-    function formatCircuitData($json) {
+    function formatCircuitData($json,$suffix=',') {
         $res = json_encode($json);
         $res = preg_replace('#\[(\d+),(\d+)#', '[".($x+$1).",".($y+$2)."', $res);
         $res = preg_replace('#".\((\$\w)\+0\)."#', '$1', $res);
-        $res = preg_replace('#^\[(.+)\]$#', '$1', $res).',';
+        $res = preg_replace('#^\[(.+)\]$#', '$1', $res).$suffix;
         return $res;
+    }
+    function formatCircuitPos($d,$v) {
+        return $d ? '".('.('$'.$v).'+'.$d.')."':('$'.$v);
     }
 ?>
 collision: <?php
@@ -47,15 +50,66 @@ collision: <?php
 	foreach ($circuitPayload->trous as $i=>&$trousData) {
         if (!empty($trousData)) {
             echo 'trous['.$i.']: ';
+            $replace = null;
+            switch ($p) {
+            case 0:
+                $x = 49;
+                $y = 11;
+                break;
+            case 1:
+                $x = 11;
+                $y = 49;
+                break;
+            case 2:
+                $x = 49;
+                $y = 88;
+                break;
+            case 3:
+                $x = 88;
+                $y = 49;
+                break;
+            case 4:
+                $x = 34;
+                $y = 65;
+                break;
+            case 5:
+                $x = 65;
+                $y = 65;
+                break;
+            case 6:
+                $x = 65;
+                $y = 34;
+                break;
+            case 7:
+                $x = 34;
+                $y = 34;
+                break;
+            case 10:
+                $x = 49;
+                $y = 49;
+                break;
+            default:
+                $replace = '$replace';
+            }
+            if (!$replace) {
+                $x = formatCircuitPos($x,'x');
+                $y = formatCircuitPos($y,'y');
+                $replace = $x.','.$y;
+            }
+            $str = '';
             foreach ($trousData as &$trouData) {
                 if (isset($trouData[0][3]) && is_numeric($trouData[0][3])) {
                     $trouData[0][2]++;
                     $trouData[0][3]++;
                     $trouData = array_merge($trouData[0],$trouData[1]);
+                    $str .= '['.$trouData[0].','.$trouData[1].','.formatCircuitPos($trouData[2],'x').','.formatCircuitPos($trouData[3],'y').','.$replace.'],';
+                }
+                else {
+                    $str .= '[['.formatCircuitData($trouData[0],'').'],['.$replace.']],';
                 }
             }
             unset($trouData);
-            printCodeInput(formatCircuitData($trousData));
+            printCodeInput($str);
             echo ',<br />';
         }
 	}
