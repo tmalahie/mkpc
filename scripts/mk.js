@@ -12937,11 +12937,11 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			if (shareLink.player == identifiant) {
 				var oPInput = document.createElement("input");
 				oPInput.type = "button";
-				oPInput.value = toLanguage("Private game options...", "Options de la partie privée...");
+				oPInput.value = toLanguage("Private game options...", "Options partie privée...");
 				oPInput.style.fontSize = (2*iScreenScale)+"px";
 				oPInput.style.position = "absolute";
-				oPInput.style.left = (52*iScreenScale)+"px";
-				oPInput.style.top = (35*iScreenScale)+"px";
+				oPInput.style.left = (56*iScreenScale)+"px";
+				oPInput.style.top = (34*iScreenScale)+"px";
 				oPInput.onclick = function() {
 					oScr.innerHTML = "";
 					oContainers[0].removeChild(oScr);
