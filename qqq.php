@@ -102,7 +102,7 @@ collision: <?php
                     $trouData[0][2]++;
                     $trouData[0][3]++;
                     $trouData = array_merge($trouData[0],$trouData[1]);
-                    $str .= '['.$trouData[0].','.$trouData[1].','.formatCircuitPos($trouData[2],'x').','.formatCircuitPos($trouData[3],'y').','.$replace.'],';
+                    $str .= '['.formatCircuitPos($trouData[0],'x').','.formatCircuitPos($trouData[1],'y').','.$trouData[2].','.$trouData[3].','.$replace.'],';
                 }
                 else {
                     $str .= '[['.formatCircuitData($trouData[0],'').'],['.$replace.']],';

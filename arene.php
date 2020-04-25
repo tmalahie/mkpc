@@ -198,6 +198,6 @@ for($i=0;$i<16;$i++)
 ?>
 </p>
 <a href="create.php"><?php echo $language ? 'Create a VS circuit':'Cr&eacute;er un circuit VS'; ?></a><br />
-<a href="mariokart.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
+<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </body>
 </html>

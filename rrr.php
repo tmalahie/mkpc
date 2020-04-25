@@ -910,6 +910,21 @@ $circuitsData = array (
       't28' => '515,469',
     ),
 );
+if (isset($_GET['d'])) {
+    switch ($_GET['d']) {
+    case 0:
+        $circuitsData[0]['p23'] = 0;
+    break;
+    case 1:
+        $circuitsData[0]['p23'] = 8;
+        $circuitsData[0]['p33'] = 1;
+    break;
+    case 3:
+        $circuitsData[0]['p23'] = 8;
+        $circuitsData[0]['p33'] = 3;
+    break;
+    }
+}
 ob_start();
 echo '{';
 include('mk/circuit.php');
