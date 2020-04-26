@@ -14,6 +14,13 @@ include('heads.php');
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
+<style type="text/css">
+.radio-sm {
+	font-size: 0.8em;
+	position: relative;
+	top: -0.1em;
+}
+</style>
 <script type="text/javascript" src="scripts/topic.js"></script>
 <script type="text/javascript" src="scripts/forum-search.js"></script>
 <?php
@@ -46,7 +53,8 @@ $d1 = isset($_GET['d1']) ? $_GET['d1']:'';
 $m1 = isset($_GET['m1']) ? $_GET['m1']:'';
 $y1 = isset($_GET['y1']) ? $_GET['y1']:'';
 $date1 = $y1 ? zerofill($y1,4).'-'.zerofill($m1?$m1:31,2).'-'.zerofill($d1?$d1:12,2).' 23:59:59':'';
-$oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1);
+$topiconly = isset($_GET['type']) && ('topics' === $_GET['type']);
+$oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1||$topiconly);
 ?>
 <main>
 <h1>Forum Mario Kart PC - <?php echo $language ? 'Advanced search':'Recherche avancée'; ?></h1>
@@ -61,6 +69,15 @@ $oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1);
 </script>
 <form method="get" class="advanced-search" action="forum-search.php#search-results">
 	<table>
+		<tr>
+			<td class="ligne">
+				<label for="author"><?php echo $language ? 'Search for':'Rechercher'; ?></label>
+			</td>
+			<td>
+				<label><input type="radio" name="type" value="topics"<?php echo $topiconly ? ' checked="checked"':''; ?> /> <span class="radio-sm"><?php echo $language ? 'Topics':'Des topics'; ?></span></label>
+				<label><input type="radio" name="type" value="messages"<?php echo $topiconly ? '':' checked="checked"'; ?> /> <span class="radio-sm"><?php echo $language ? 'Messages':'Des messages'; ?></span></label>
+			</td>
+		</tr>
 		<tr>
 			<td class="ligne">
 				<label for="author"><?php echo $language ? 'Category':'Catégorie'; ?></label>
@@ -154,8 +171,10 @@ if ($oneset) {
 		$wheres[] = 'date >= "'. $date0 .'"';
 	if ($date1)
 		$wheres[] = 'date <= "'. $date1 .'"';
+	if ($topiconly)
+		$wheres[] = 'mkmessages.id=1';
 	if ($wheres)
-		$sql .= ' WHERE '. implode($wheres,' AND ');
+		$sql .= ' WHERE '. implode(' AND ',$wheres);
 	$nbres = mysql_numrows(mysql_query($sql));
 	?>
 	<h1><?php echo $language ? 'Results':'Résultats'; ?> (<?php echo $nbres; ?>)</h1>
