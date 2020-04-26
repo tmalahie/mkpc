@@ -15,6 +15,9 @@ include('heads.php');
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
 <style type="text/css">
+.radio-block {
+	display: inline-block;
+}
 .radio-sm {
 	font-size: 0.8em;
 	position: relative;
@@ -74,8 +77,8 @@ $oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1||$to
 				<label for="author"><?php echo $language ? 'Search for':'Rechercher'; ?></label>
 			</td>
 			<td>
-				<label><input type="radio" name="type" value="topics"<?php echo $topiconly ? ' checked="checked"':''; ?> /> <span class="radio-sm"><?php echo $language ? 'Topics':'Des topics'; ?></span></label>
-				<label><input type="radio" name="type" value="messages"<?php echo $topiconly ? '':' checked="checked"'; ?> /> <span class="radio-sm"><?php echo $language ? 'Messages':'Des messages'; ?></span></label>
+				<label class="radio-block"><input type="radio" name="type" value="topics"<?php echo $topiconly ? ' checked="checked"':''; ?> /> <span class="radio-sm"><?php echo $language ? 'Topics':'Des topics'; ?></span></label>
+				<label class="radio-block"><input type="radio" name="type" value="messages"<?php echo $topiconly ? '':' checked="checked"'; ?> /> <span class="radio-sm"><?php echo $language ? 'Messages':'Des messages'; ?></span></label>
 			</td>
 		</tr>
 		<tr>
