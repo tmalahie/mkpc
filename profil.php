@@ -526,7 +526,7 @@ include('menu.php');
 					$oneData = true;
 					?>
 					<div>
-						<strong><?php echo ($language ? 'Organizer':'Animateur'); ?></strong> <?php echo $language ? 'of site events':'du site'; ?>
+						<strong><?php echo ($language ? 'Animator':'Animateur'); ?></strong> <?php echo $language ? 'of the site':'du site'; ?>
 					</div>
 					<?php
 				}
