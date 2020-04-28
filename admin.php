@@ -27,7 +27,7 @@ elseif (hasRight('moderator')) {
 }
 else {
 	$rolePrefix = $language ? 'of ':'d\'';
-	$roleName = $language ? 'organizer':'animateur';
+	$roleName = $language ? 'animator':'animateur';
 }
 ?>
 <!DOCTYPE html>

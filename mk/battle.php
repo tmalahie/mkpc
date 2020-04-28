@@ -66,9 +66,7 @@ foreach ($circuitsData as $c => $arene) {
 	}
 	if (!empty($circuitPayload->spinners)) {
 		?>,
-	"spinners" : <?php echo json_encode($circuitPayload->spinners); ?>
-	}
-	<?php
+	"spinners" : <?php echo json_encode($circuitPayload->spinners);
 	}
 	echo '}';
 }

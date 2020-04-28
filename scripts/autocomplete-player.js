@@ -9,6 +9,15 @@ function autocompletePlayer(selector, options) {
 					suggest(JSON.parse(res));
 				return true;
 			});
+		},
+		onSelect: function() {
+			try {
+				var input = document.querySelector(selector);
+				input.form.submit();
+				input.blur();
+			}
+			catch (e) {
+			}
 		}
 	};
 	if (options) {
@@ -19,16 +28,5 @@ function autocompletePlayer(selector, options) {
 	new autoComplete(params);
 }
 function preventSubmit(event) {
-	var form = event.target.form;
-	form.setAttribute("novalidate", true);
-	var lastEvent = form.onsubmit;
-	form.onsubmit = function() {
-		this.onsubmit = lastEvent;
-		form.removeAttribute("novalidate");
-		return false;
-	};
-	setTimeout(function() {
-		form.onsubmit = lastEvent;
-		form.removeAttribute("novalidate");
-	}, 1);
+	event.preventDefault();
 }
