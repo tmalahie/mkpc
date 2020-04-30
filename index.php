@@ -603,22 +603,19 @@ $slidesPath = 'images/slides';
 			<div id="forum_section" class="right_subsection">
 				<?php
 				require_once('getRights.php');
-				$sql = 'SELECT id,titre, nbmsgs, category, dernier FROM `mktopics` WHERE language='. "language" . (hasRight('manager') ? '':' AND !private') .' ORDER BY dernier DESC LIMIT 10';
+				$sql = 'SELECT t.id,j.nom,t.titre, t.nbmsgs, t.category, t.dernier FROM `mktopics` t LEFT JOIN (SELECT topic,MAX(id) AS maxid FROM mkmessages GROUP BY topic) mm ON t.id=mm.topic LEFT JOIN mkmessages m ON m.topic=mm.topic AND m.id=mm.maxid LEFT JOIN mkjoueurs j ON m.auteur=j.id' . (hasRight('manager') ? '':' WHERE !t.private') .' ORDER BY t.dernier DESC LIMIT 10';
 				if ($language)
 					$sql = 'SELECT * FROM ('. $sql .') t ORDER BY (category=4) DESC, dernier DESC';
 				$topics = mysql_query($sql);
 				while ($topic = mysql_fetch_array($topics)) {
-					if ($auteur = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkmessages` WHERE topic='. $topic['id'] .' ORDER BY id DESC LIMIT 1'))) {
-						$name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id='. $auteur['auteur']));
-						$nbMsgs = $topic['nbmsgs'];
-						?>
-						<a href="topic.php?topic=<?php echo $topic['id']; ?>" title="<?php echo $topic['titre']; ?>">
-							<h2><?php echo htmlspecialchars(controlLength($topic['titre'],40)); ?></h2>
-							<h3><?php echo $language ? 'Last message':'Dernier message'; ?> <?php echo ($name ? ($language ? 'by':'par') .' <strong>'. $name['nom'].'</strong> ':'').pretty_dates_short($topic['dernier'],array('lower'=>true)); ?></h3>
-							<div class="creation_comments" title="<?php echo $nbMsgs. ' message'. (($nbMsgs>1) ? 's':''); ?>"><img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?></div>
-						</a>
-						<?php
-					}
+					$nbMsgs = $topic['nbmsgs'];
+					?>
+					<a href="topic.php?topic=<?php echo $topic['id']; ?>" title="<?php echo $topic['titre']; ?>">
+						<h2><?php echo htmlspecialchars(controlLength($topic['titre'],40)); ?></h2>
+						<h3><?php echo $language ? 'Last message':'Dernier message'; ?> <?php echo ($topic['nom'] ? ($language ? 'by':'par') .' <strong>'. $topic['nom'].'</strong> ':'').pretty_dates_short($topic['dernier'],array('lower'=>true)); ?></h3>
+						<div class="creation_comments" title="<?php echo $nbMsgs. ' message'. (($nbMsgs>1) ? 's':''); ?>"><img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?></div>
+					</a>
+					<?php
 				}
 				?>
 			</div>
