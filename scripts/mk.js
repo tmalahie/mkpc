@@ -11334,17 +11334,21 @@ function privateGameOptions(gameOptions, onProceed) {
 		if (!team)
 			manualTeams = 0;
 		var friendly = this.elements["option-friendly"].checked ? 1:0;
+		var minPlayers = +this.elements["option-minPlayers"].value;
+		var maxPlayers = +this.elements["option-maxPlayers"].value;
 		onProceed({
 			team: team,
 			manualTeams: manualTeams,
-			friendly: friendly
+			friendly: friendly,
+			minPlayers: minPlayers,
+			maxPlayers: maxPlayers
 		});
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
 	};
 
 	var oScroll = document.createElement("div");
-	oScroll.style.height = (20*iScreenScale) +"px";
+	oScroll.style.height = ((isOnline ? 24:20)*iScreenScale) +"px";
 	oScroll.style.overflow = "auto";
 
 	var oTable = document.createElement("table");
@@ -11362,14 +11366,12 @@ function privateGameOptions(gameOptions, onProceed) {
 	oCheckbox.type = "checkbox";
 	if (gameOptions && gameOptions.team)
 		oCheckbox.checked = true;
-	//if (isOnline) {
-		oCheckbox.onchange = function() {
-			if (this.checked)
-				document.getElementById("option-manualTeams-ctn").style.display = "";
-			else
-				document.getElementById("option-manualTeams-ctn").style.display = "none";
-		}
-	//}
+	oCheckbox.onchange = function() {
+		if (this.checked)
+			document.getElementById("option-manualTeams-ctn").style.display = "";
+		else
+			document.getElementById("option-manualTeams-ctn").style.display = "none";
+	}
 	oTd.appendChild(oCheckbox);
 	oTr.appendChild(oTd);
 
@@ -11465,6 +11467,114 @@ function privateGameOptions(gameOptions, onProceed) {
 	oDiv.innerHTML = toLanguage("If enabled, games won't make you win or lose points in the online mode.", "Si activé, les parties ne vous feront pas gagner ou perdre de points dans le mode en ligne.");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	if (!isOnline) oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignItems = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-minPlayers");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("Minimum number of players", "Nombre de joueurs minimum");
+	oH1.style.marginTop = iScreenScale +"px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("Minimum number of players before the game begins.", "Nombre minimum de joueurs pour que la partie commence");
+	oLabel.appendChild(oDiv);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	var oInput = document.createElement("input");
+	oInput.id = "option-minPlayers";
+	oInput.name = "option-minPlayers";
+	oInput.type = "number";
+	oInput.setAttribute("min", 2);
+	oInput.setAttribute("max", 99);
+	oInput.setAttribute("step", 1);
+	oInput.setAttribute("required", true);
+	oInput.style.backgroundColor = "#F6F6F6";
+	oInput.style.width = (iScreenScale*6) +"px";
+	if (gameOptions && gameOptions.minPlayers)
+		oInput.value = gameOptions.minPlayers;
+	else
+		oInput.value = defaultGameOptions.minPlayers;
+	oInput.style.fontSize = (iScreenScale*3) +"px";
+	oInput.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+	tDiv.appendChild(oInput);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	if (!isOnline) oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignItems = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-maxPlayers");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("Maximum number of players", "Nombre de joueurs maximum");
+	oH1.style.marginTop = iScreenScale +"px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("Maximum number of players that can join the game.", "Nombre maximum de joueurs qui peuvent rejoindre la partie");
+	oLabel.appendChild(oDiv);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	var oInput = document.createElement("input");
+	oInput.id = "option-maxPlayers";
+	oInput.name = "option-maxPlayers";
+	oInput.type = "number";
+	oInput.setAttribute("min", 2);
+	oInput.setAttribute("max", 99);
+	oInput.setAttribute("step", 1);
+	oInput.setAttribute("required", true);
+	oInput.style.backgroundColor = "#F6F6F6";
+	oInput.style.width = (iScreenScale*6) +"px";
+	if (gameOptions && gameOptions.maxPlayers)
+		oInput.value = gameOptions.maxPlayers;
+	else
+		oInput.value = defaultGameOptions.maxPlayers;
+	oInput.style.fontSize = (iScreenScale*3) +"px";
+	oInput.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+	tDiv.appendChild(oInput);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
 
@@ -12031,26 +12141,13 @@ function selectOnlineScreen(options) {
 	}
 	oScr.appendChild(oPInput);
 
-	if (options) {
-		var oDiv = document.createElement("div");
-		oDiv.style.position = "absolute";
-		oDiv.style.left = "0px";
-		oDiv.style.width = (iWidth*iScreenScale) +"px";
-		oDiv.style.textAlign = "center";
-		oDiv.style.top = (13*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.style.fontSize = (iScreenScale*2) +"px";
-		oDiv.innerHTML = "\u26A0 " + toLanguage("By choosing specific rules, you might encounter less opponents.", "En choisissant des options spécifiques, vous risquez de trouver moins d'adversaires.");
-		oScr.appendChild(oDiv);
-	}
-
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = language ? "VS mode":"Course VS";
 	oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = ((options ? 18:17)*iScreenScale)+"px";
+	oPInput.style.top = (17*iScreenScale)+"px";
 	oPInput.style.width = (36*iScreenScale)+"px";
 	oPInput.onclick = function() {
 		oScr.innerHTML = "";
@@ -12065,7 +12162,7 @@ function selectOnlineScreen(options) {
 	oPInput.style.fontSize = Math.round(3.5*iScreenScale)+"px";
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (22*iScreenScale)+"px";
-	oPInput.style.top = ((options ? 26:25)*iScreenScale)+"px";
+	oPInput.style.top = (25*iScreenScale)+"px";
 	oPInput.style.width = (36*iScreenScale)+"px";
 	oPInput.onclick = function() {
 		oScr.innerHTML = "";
@@ -12838,7 +12935,12 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 						}
 					}
 					if (isOnline) {
-						if (isCustomOptions(shareLink.options) && !shareLink.accepted && (shareLink.player != identifiant))
+						var shownOptions = {};
+						for (var key in shareLink.options) {
+							if ((key != "minPlayers") && (key != "maxPlayers"))
+								shownOptions[key] = shareLink.options[key];
+						}
+						if (isCustomOptions(shownOptions) && !shareLink.accepted && (shareLink.player != identifiant))
 							acceptRulesScreen();
 						else
 							searchCourse();
@@ -12953,6 +13055,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 								shareLink.options.team = options.team;
 								shareLink.options.manualTeams = options.manualTeams;
 								shareLink.options.friendly = options.friendly;
+								shareLink.options.minPlayers = options.minPlayers;
+								shareLink.options.maxPlayers = options.maxPlayers;
 								selectedTeams = options.team;
 								selectPlayerScreen(0);
 								return true;
@@ -13256,8 +13360,21 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 
 	updateMenuMusic(isOnline ? 0:1);
 }
+var defaultGameOptions = {
+	team: false,
+	manualTeams: false,
+	friendly: false,
+	minPlayers: 2,
+	maxPlayers: 12
+};
 function isCustomOptions(linkOptions) {
-	return linkOptions && (linkOptions.team||linkOptions.manualTeams||linkOptions.friendly);
+	if (linkOptions) {
+		for (var key in defaultGameOptions) {
+			if ((linkOptions[key] !== undefined) && (linkOptions[key] != defaultGameOptions[key]))
+				return true;
+		}
+	}
+	return false;
 }
 function hasChallenges() {
 	for (var type in challenges) {
@@ -13918,6 +14035,20 @@ function searchCourse() {
 	
 	oScr.appendChild(oActivePlayers);
 	
+	var oRequiredPlayers = document.createElement("div");
+	oRequiredPlayers.style.position = "absolute";
+	oRequiredPlayers.style.left = "0px";
+	oRequiredPlayers.style.top = Math.round(iScreenScale*17.5) +"px";
+	oRequiredPlayers.style.width = (iScreenScale*iWidth) +"px";
+	oRequiredPlayers.style.textAlign = "center";
+	oRequiredPlayers.style.fontSize = (iScreenScale*2) +"px";
+	oRequiredPlayers.style.color = "#0B0";
+	oRequiredPlayers.style.display = "none";
+	oRequiredPlayers.style.backgroundColor = "rgba(0,0,0, 0.7)";
+	oRequiredPlayers.innerHTML = toLanguage('<span id="nb-pending-players" style="color:#0E0"></span> currently waiting, <span id="nb-missing-players" style="color:#0E0"></span> left before the game begins...', '<span id="nb-pending-players" style="color:#0E0"></span> actuellement en attente. Plus que <span id="nb-missing-players" style="color:#0E0"></span> pour que la partie commence');
+	
+	oScr.appendChild(oRequiredPlayers);
+	
 	var rCount = 1;
 	var mLoadX = iScreenScale/2;
 
@@ -13953,10 +14084,21 @@ function searchCourse() {
 							if (reponse.nb_players < 2)
 								reponse.nb_players = 2;
 							document.getElementById("nb-active-players").innerHTML = reponse.nb_players +" "+ toLanguage("players","joueurs");
+							oRequiredPlayers.style.display = "none";
 							oActivePlayers.style.display = "block";
 						}
-						else
+						else if (reponse.pending_players) {
+							document.getElementById("nb-pending-players").innerHTML = reponse.pending_players +" "+ toLanguage("player","joueur") + (reponse.pending_players>1 ? "s":"");
+							var missingPlayers = reponse.min_players-reponse.pending_players;
+							if (missingPlayers < 1) missingPlayers = 1;
+							document.getElementById("nb-missing-players").innerHTML = missingPlayers +" "+ toLanguage("player","joueur") + (missingPlayers>1 ? "s":"");
 							oActivePlayers.style.display = "none";
+							oRequiredPlayers.style.display = "block";
+						}
+						else {
+							oActivePlayers.style.display = "none";
+							oRequiredPlayers.style.display = "none";
+						}
 					}
 					else {
 						var isAlert = oAlert.checked;
@@ -14622,7 +14764,7 @@ function choose(map) {
 				if (rCode[1] == -1)
 					setTimeout(waitForChoice, 1000);
 				else {
-					if (choixJoueurs.length > 1) {
+					if (choixJoueurs.length >= rCode[4].minPlayers) {
 						aPlayers = new Array();
 						aIDs = new Array();
 						aPlaces = new Array();
@@ -14706,7 +14848,10 @@ function choose(map) {
 						oDiv.style.left = (iScreenScale*10+10) +"px";
 						oDiv.style.top = (iScreenScale*20+10) +"px";
 						oDiv.style.fontSize = (iScreenScale*2) +"pt";
-						oDiv.innerHTML = toLanguage("Sorry, all your opponents have left the race...", "D&eacute;sol&eacute;, tous vos adversaires ont quitt&eacute; la course...");
+						if (choixJoueurs.length > 1)
+							oDiv.innerHTML = toLanguage("Sorry, there are not enough players to begin the race...", "D&eacute;sol&eacute;, il n'y a pas assez de joueurs pour commencer la course...");
+						else
+							oDiv.innerHTML = toLanguage("Sorry, all your opponents have left the race...", "D&eacute;sol&eacute;, tous vos adversaires ont quitt&eacute; la course...");
 						
 						oDiv.appendChild(document.createElement("br"));
 						
@@ -14723,6 +14868,7 @@ function choose(map) {
 							formulaire.quality.disabled = false;
 							formulaire.music.disabled = false;
 							formulaire.sfx.disabled = false;
+							chatting = false;
 							searchCourse();
 							return false;
 						};
@@ -14738,7 +14884,8 @@ function choose(map) {
 						
 						$mkScreen.appendChild(oDiv);
 						
-						chatting = false;
+						if (choixJoueurs.length <= 1)
+							chatting = false;
 
 						clearInterval(startMusicHandler);
 					}
@@ -15381,8 +15528,9 @@ function iDeco() {
 		location.reload();
 	}
 	oDiv.appendChild(oQuit);
-	oContainers[0].appendChild(oDiv);
+	$mkScreen.appendChild(oDiv);
 	chatting = false;
+	window.onbeforeunload = undefined;
 }
 
 function dRest(type) {

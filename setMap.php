@@ -27,8 +27,8 @@ if ($course && !$getCourse['banned']) {
 		}
 	}
 	$now = round((time()+microtime())*1000);
+	$courseRules = json_decode($getMap['rules']);
 	if ($continuer) {
-		$courseRules = json_decode($getMap['rules']);
 		$map = rand(0, mysql_numrows($joueurs)-1);
 		$time = $now+5000;
 		if (!empty($courseRules->manualTeams))
@@ -51,7 +51,9 @@ if ($course && !$getCourse['banned']) {
 		return $joueursData;
 	}
 	$joueursData = listPlayers();
-	$enoughPlayers = (count($joueursData) >= 2);
+	$nbPlayers = count($joueursData);
+	$minPlayers = isset($courseRules->minPlayers) ? $courseRules->minPlayers : 2;
+	$enoughPlayers = ($nbPlayers >= $minPlayers);
 	if ($continuer && $enoughPlayers) {
 		$isTeam = false;
 		if ($getMap['link']) {
@@ -122,13 +124,15 @@ if ($course && !$getCourse['banned']) {
 	echo '],'.$map.','.($time-$now).','.round($time/67);
 	echo ',{';
 	$courseRules = json_decode($getMap['rules']);
+	$minPlayers = isset($courseRules->minPlayers) ? $courseRules->minPlayers : 2;
+	echo 'minPlayers:'.$minPlayers;
 	if (!empty($courseRules->manualTeams))
-		echo 'manualTeams:1';
+		echo ',manualTeams:1';
 	echo '}';
 	echo ']';
 	if ($continuer && !$enoughPlayers) {
 		mysql_query('UPDATE `mariokart` SET map=-1,time='. time() .' WHERE id='. $course);
-		mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.choix=0,p.connecte=0 WHERE j.course='. $course);
+		mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET '.((count($joueursData)<2) ? 'j.choix=0,':'').'p.connecte=0 WHERE j.course='. $course);
 	}
 }
 else
