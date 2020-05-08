@@ -91,7 +91,6 @@ foreach ($maps as $map) {
 			data=VALUES(data)
 		');
 	//}
-	copy("images/maps/map$inc.png", "images/uploads/map$id.png");
 	$inc++;
 }
 mysql_close();

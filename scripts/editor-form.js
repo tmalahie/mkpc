@@ -51,3 +51,9 @@ document.addEventListener("DOMContentLoaded", function() {
 		})($tabSelectors[i]);
 	}
 });
+function showImportHelp() {
+	alert(language ?
+		"If checked, the image will be hosted on MKPC at the circuit creation, which will avoid problems in case of deletion of the remote image.\nCaution, if you choose this option, your storage quota will be consumed." :
+		"Si activé, l'image sera hébergée sur MKPC dès la création du circuit, ce qui évite les problèmes en cas de suppression de l'image distante.\nAttention, si vous choisissez cette option, votre quota de stockage sera consommé."
+	);
+}

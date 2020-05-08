@@ -1,29 +1,20 @@
 <?php
+require_once('circuitImgUtils.php');
 define('MAX_FILE_SIZE', 25000000);
 function file_total_size($except = array()) {
 	global $identifiants;
-	$extensions = Array('png', 'gif', 'jpg', 'jpeg');
-	$nbExt = count($extensions);
 	$poids = 0;
-	$circuits = mysql_query('SELECT ID FROM `circuits` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3] . ($except['circuit'] ? ' AND ID != '.$except['circuit'] : ''));
+	$circuits = mysql_query('SELECT ID,img_data FROM `circuits` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3] . ($except['circuit'] ? ' AND ID != '.$except['circuit'] : ''));
 	while ($circuit = mysql_fetch_array($circuits)) {
-		$ID = $circuit['ID'];
-		for ($i=0;$i<$nbExt;$i++) {
-			$ext = $extensions[$i];
-			if (file_exists('images/uploads/map'.$ID.'.'.$ext))
-				break;
-		}
-		$poids += filesize('images/uploads/map'.$ID.'.'.$ext);
+		$circuitImg = json_decode($circuit['img_data']);
+		if ($circuitImg->local)
+			$poids += filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
 	}
-	$arenes = mysql_query('SELECT ID FROM `arenes` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3] . ($except['arena'] ? ' AND ID != '.$except['arena'] : ''));
+	$arenes = mysql_query('SELECT ID,img_data FROM `arenes` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3] . ($except['arena'] ? ' AND ID != '.$except['arena'] : ''));
 	while ($arene = mysql_fetch_array($arenes)) {
-		$ID = $arene['ID'];
-		for ($i=0;$i<$nbExt;$i++) {
-			$ext = $extensions[$i];
-			if (file_exists('images/uploads/course'.$ID.'.'.$ext))
-				break;
-		}
-		$poids += filesize('images/uploads/course'.$ID.'.'.$ext);
+		$circuitImg = json_decode($arene['img_data']);
+		if ($circuitImg->local)
+			$poids += filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
 	}
 	$persos = mysql_query('SELECT sprites FROM `mkchars` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3] . ($except['perso'] ? ' AND ID != '.$except['perso'] : ''));
 	while ($perso = mysql_fetch_array($persos))

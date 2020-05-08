@@ -1,20 +1,21 @@
 <?php
+require_once('circuitImgUtils.php');
 foreach ($circuitsData as $c => $circuit) {
 	if ($c)
 		echo ',';
 	$id = $circuit['ID'];
 	$circuitPayload = json_decode(gzuncompress($circuit['data']));
 	$circuitMainData = $circuitPayload->main;
-	include('getExt.php');
-	list($w,$h) = getimagesize('images/uploads/map'.$id.'.'.$ext);
+	$circuitImg = json_decode($circuit['img_data']);
 	?>
 "map<?php echo ($c+1); ?>" : {
 "map" : <?php echo $id; ?>,
-"ext" : "<?php echo $ext; ?>",
+"ext" : "<?php echo $circuitImg->ext; ?>",
+"img" : "<?php echo getCircuitImgUrl($circuitImg); ?>",
 "bgcolor" : [<?php echo implode(',',$circuitMainData->bgcolor) ?>],
 "smartjump": 1,
-"w" : <?php echo $w; ?>,
-"h" : <?php echo $h; ?>,
+"w" : <?php echo $circuitImg->w; ?>,
+"h" : <?php echo $circuitImg->h; ?>,
 "fond" : ["<?php
 	require_once('circuitEnums.php');
 	$getInfos = $bgImages[$circuitMainData->bgimg];

@@ -838,10 +838,10 @@ function removePlan() {
 
 var gameSettings;
 function loadMap() {
-	var mapSrc = isCup ? (complete ? "images/uploads/"+ (course=="BB"?"course":"map") + oMap.map +"."+ oMap.ext:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
+	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
-	if (mapSrc.match(/\.gif$/g) && !gameSettings.nogif) {
+	if ((oMap.ext ? ("gif" === oMap.ext) : mapSrc.match(/\.gif$/g)) && !gameSettings.nogif) {
 		oMapImg = GIF();
 		oMapImg.onloadone = startGame;
 		oMapImg.onloadall = function() {

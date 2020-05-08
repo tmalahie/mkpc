@@ -6,11 +6,13 @@ $baseData = array();
 for ($i=1;$i<=56;$i++)
 	$baseData["map$i"] = $allData["map$i"];
 unset($allData);
-$getCircuitsData = mysql_query('SELECT * FROM circuits_data WHERE id>=1 AND id<=56');
+$getCircuitsData = mysql_query('SELECT c.img_data,d.* FROM circuits c INNER JOIN circuits_data d ON c.id=d.id WHERE d.id>=1 AND d.id<=56');
 while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	$id = $circuit['id'];
 	include('getExt.php');
-	list($w,$h) = getimagesize('images/uploads/map'.$id.'.'.$ext);
+	$circuitImg = json_decode($circuit['img_data']);
+	$w = $circuitImg->w;
+	$h = $circuitImg->h;
 	$circuitPayload = json_decode(gzuncompress($circuit['data']));
 	$circuitMainData = $circuitPayload->main;
 	$mapData = &$baseData["map$id"];

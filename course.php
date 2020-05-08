@@ -4,6 +4,7 @@ include('getId.php');
 include('language.php');
 session_start();
 require_once('circuitEnums.php');
+$isBattle = true;
 $musicOptions = Array(
 	9 => ($language ? 'SNES Battle Course':'Arène bataille SNES'),
 	23 => ($language ? 'GBA Battle Course':'Arène bataille GBA')
@@ -11,13 +12,11 @@ $musicOptions = Array(
 if (isset($_GET['i'])) {
 	$circuitId = +$_GET['i'];
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT * FROM arenes WHERE id="'. $circuitId .'"'))) {
-		$id = $circuitId;
-		$src = 'course';
-		include('getExt.php');
-		$circuit['img'] = 'course'. $circuitId .'.'. $ext; // TODO
 		if ((($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) || (($identifiants[0] == 1390635815) && !$identifiants[1] && !$identifiants[2] && !$identifiants[3])) {
 			if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM arenes_data WHERE id="'. $circuitId .'"')))
 				$circuitData = gzuncompress($getCircuitData['data']);
+				$circuitImg = json_decode($circuit['img_data']);
+				require_once('circuitImgUtils.php');
 			?>
 <!DOCTYPE html> 
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
@@ -42,7 +41,7 @@ if (isset($_GET['i'])) {
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
 			<div id="editor-ctn">
-				<img id="editor-img" src="images/uploads/<?php echo $circuit['img']; ?>" alt="Arene" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
+				<img id="editor-img" src="<?php echo getCircuitImgUrl($circuitImg); ?>" alt="Arene" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
 				<svg id="editor" class="editor" />
 			</div>
 		</div>
@@ -602,6 +601,7 @@ else {
 		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css?reload=2" />
 		<script type="text/javascript">
+		var language = <?php echo $language ? 1:0; ?>;
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
 		var isBattle = true;
 		</script>
@@ -609,77 +609,31 @@ else {
 	</head>
 	<body class="home-body">
 		<?php
-		$getTracks = mysql_query('SELECT a.id,a.nom,d.data FROM arenes a LEFT JOIN arenes_data d ON a.id=d.id WHERE a.identifiant='.$identifiants[0].' AND a.identifiant2='.$identifiants[1].' AND a.identifiant3='.$identifiants[2].' AND a.identifiant4='.$identifiants[3] .' ORDER BY a.id DESC');
+		$getTracks = mysql_query('SELECT a.id,a.nom,d.data,a.img_data FROM arenes a LEFT JOIN arenes_data d ON a.id=d.id WHERE a.identifiant='.$identifiants[0].' AND a.identifiant2='.$identifiants[1].' AND a.identifiant3='.$identifiants[2].' AND a.identifiant4='.$identifiants[3] .' ORDER BY a.id DESC');
 		if (!isset($_GET['help']) && ($nbTracks=mysql_numrows($getTracks))) {
 			if ($language) {
 				?>
-				<form class="editor-section editor-description" method="post" action="uploadArene.php" enctype="multipart/form-data">
+				<form class="editor-section editor-description" method="post" action="uploadCircuit.php?battle" enctype="multipart/form-data">
 					<?php
 					if (isset($_GET['error']))
 						echo '<div class="editor-error">'. stripslashes($_GET['error']) .'</div>';
 					?>
 					Welcome to the arena editor in complete mode.<br />
 					To create a new arena, send your image here:
-					<div class="editor-upload">
-						<div class="editor-upload-tabs">
-							<div class="editor-upload-tab editor-upload-tab-selected">
-								Upload an image
-							</div><div class="editor-upload-tab">
-								Paste image URL
-							</div>
-						</div>
-						<div class="editor-upload-inputs">
-							<div class="editor-upload-input editor-upload-input-selected">
-								<input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="image" />
-							</div>
-							<div class="editor-upload-input">
-								<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" />
-							</div>
-						</div>
-					</div>
-					<div class="editor-submit">
-						<button type="submit">Create arena</button>
-						<a href="?help">Help</a>
-						<div class="editor-restrictions">
-							Your image must be in png, gif or jpg format and must not exceed 1 MB
-						</div>
-					</div>
+					<?php include('circuitForm.php'); ?>
 				</form>
 				<?php
 			}
 			else {
 				?>
-				<form class="editor-section editor-description" method="post" action="uploadArene.php" enctype="multipart/form-data">
+				<form class="editor-section editor-description" method="post" action="uploadCircuit.php?battle" enctype="multipart/form-data">
 					<?php
 					if (isset($_GET['error']))
 						echo '<div class="editor-error">'. stripslashes($_GET['error']) .'</div>';
 					?>
 					Bienvenue dans l'éditeur d'arènes en mode complet.<br />
 					Pour créer une nouvelle arène, envoyez votre image ici :
-					<div class="editor-upload">
-						<div class="editor-upload-tabs">
-							<div class="editor-upload-tab editor-upload-tab-selected">
-								Uploader une image
-							</div><div class="editor-upload-tab">
-								Coller l'URL de l'image
-							</div>
-						</div>
-						<div class="editor-upload-inputs">
-							<div class="editor-upload-input editor-upload-input-selected">
-								<input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="image" />
-							</div>
-							<div class="editor-upload-input">
-								<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" />
-							</div>
-						</div>
-					</div>
-					<div class="editor-submit">
-						<button type="submit">Valider !</button>
-						<a href="?help">Aide</a>
-						<div class="editor-restrictions">
-							Votre image doit être au format png, gif ou jpg et ne doit pas dépasser 1 Mo
-						</div>
-					</div>
+					<?php include('circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -709,35 +663,9 @@ else {
 					To draw the image of the arena, you can use a drawing software like Paint or Photoshop.
 					You can also retrieve an image on the internet (for example on <a href="http://www.mariouniverse.com/maps/" target="_blank">mariouniverse.com/maps</a>).
 				</div>
-				<form class="editor-section editor-description" method="post" action="uploadArene.php" enctype="multipart/form-data">
+				<form class="editor-section editor-description" method="post" action="uploadCircuit.php?battle" enctype="multipart/form-data">
 					Your image is ready? Send it here:
-					<div class="editor-upload">
-						<div class="editor-upload-tabs">
-							<div class="editor-upload-tab editor-upload-tab-selected">
-								Upload an image
-							</div><div class="editor-upload-tab">
-								Paste image URL
-							</div>
-						</div>
-						<div class="editor-upload-inputs">
-							<div class="editor-upload-input editor-upload-input-selected">
-								<input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="image" />
-							</div>
-							<div class="editor-upload-input">
-								<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" />
-							</div>
-						</div>
-					</div>
-					<div class="editor-submit">
-						<button type="submit">Create arena</button>
-						<?php
-						if (isset($_GET['help']))
-							echo '<a href="course.php">Back</a>';
-						?>
-						<div class="editor-restrictions">
-							Your image must be in png, gif or jpg format and must not exceed 1 MB
-						</div>
-					</div>
+					<?php include('circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -766,35 +694,9 @@ else {
 					<br />
 					Lien utile pour démarer : <a href="topic.php?topic=739" target="_blank">Conseils pour créer un circuit/arène</a>
 				</div>
-				<form class="editor-section editor-description" method="post" action="uploadArene.php" enctype="multipart/form-data">
+				<form class="editor-section editor-description" method="post" action="uploadCircuit.php?battle" enctype="multipart/form-data">
 					Votre image est prête ? Envoyez-la ici :
-					<div class="editor-upload">
-						<div class="editor-upload-tabs">
-							<div class="editor-upload-tab editor-upload-tab-selected">
-								Uploader une image
-							</div><div class="editor-upload-tab">
-								Coller l'URL de l'image
-							</div>
-						</div>
-						<div class="editor-upload-inputs">
-							<div class="editor-upload-input editor-upload-input-selected">
-								<input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="image" />
-							</div>
-							<div class="editor-upload-input">
-								<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" />
-							</div>
-						</div>
-					</div>
-					<div class="editor-submit">
-						<button type="submit">Valider !</button>
-						<?php
-						if (isset($_GET['help']))
-							echo '<a href="course.php">Retour</a>';
-						?>
-						<div class="editor-restrictions">
-							Votre image doit être au format png, gif ou jpg et ne doit pas dépasser 1 Mo
-						</div>
-					</div>
+					<?php include('circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -803,13 +705,6 @@ else {
 			?>
 			<div class="editor-section">
 				<?php
-				$idExts = Array();
-				$src = 'course';
-				while ($track = mysql_fetch_array($getTracks)) {
-					$id = $track['id'];
-					include('getExt.php');
-					$idExts[$id] = $i;
-				}
 				$poids = file_total_size();
 				?>
 				<h2><?php echo $language ? 'Your arenas':'Vos arènes'; ?> (<?php echo $nbTracks; ?>)</h2>
@@ -818,17 +713,18 @@ else {
 				?>
 				<div id="editor-tracks-list">
 					<?php
-					mysql_data_seek($getTracks, 0);
+					require_once('circuitImgUtils.php');
 					while ($track = mysql_fetch_array($getTracks)) {
+						$circuitImg = json_decode($track['img_data']);
 						$id = $track['id'];
 						echo '<a href="battle.php?i='.$id.'"
 							data-id="'.$id.'"
 							data-name="'.htmlspecialchars($track['nom']).'"
 							'. ($track['data'] ? '':'data-pending="1"') .'
-							data-src="images/uploads/course'.$id.'.'.$extensions[$idExts[$id]].'"
+							data-src="'.getCircuitImgUrl($circuitImg).'"
 							onclick="previewCircuit(this);return false"><img
 								src="images/creation_icons/coursepreview'. $id .'.png"
-								onerror="var that=this;setTimeout(function(){that.src=\'trackicon.php?type=2&id='. $id .'\';},loadDt);loadDt+=50"
+								onerror="var that=this;setTimeout(function(){that.src=\'trackicon.php?type=2&id='. $id .'\';},loadDt);this.onerror=null;loadDt+=50"
 								alt="Arene '.$id.'"
 							/></a>';
 					}

@@ -7,17 +7,19 @@ if (isset($id)) {
 	$isTemp = isset($temp);
 	if (!$isTemp)
 		include('initdb.php');
-	if (mysql_numrows(mysql_query('SELECT id FROM `arenes` WHERE id="'. $id .'"'))) {
-		$src = 'course';
-		include('getExt.php');
+	if ($getMain = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `arenes` WHERE id="'. $id .'"'))) {
+		require_once('circuitImgUtils.php');
+		$circuitImg = json_decode($getMain['img_data']);
+		$circuitFile = getCircuitLocalFile($circuitImg);
+		$path = $circuitFile['path'];
+		$ext = $circuitImg->ext;
 		$ext2 = str_replace('jpg', 'jpeg', $ext);
 		if (!$isTemp)
 			header('Content-type: image/'.$ext2);
 		
-		$path = 'images/uploads/course'.$id.'.'.$ext;
 		list($w,$h) = getimagesize($path);
-		if ($w*$h >= 20000000)
-			$path = 'images/uploads/overload.'. $ext;
+		if (!$w && !$h || ($w*$h >= 20000000))
+			$path = CIRCUIT_BASE_PATH.'overload.'. $ext;
 		eval('$image = imagecreatefrom'.$ext2.'($path);');
 
 		if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM `arenes_data` WHERE id="'. $id .'"'))) {

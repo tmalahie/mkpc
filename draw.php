@@ -10,12 +10,11 @@ $musicOptions = $language
 if (isset($_GET['i'])) {
 	$circuitId = +$_GET['i'];
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT * FROM circuits WHERE id="'. $circuitId .'"'))) {
-		$id = $circuitId;
-		include('getExt.php');
-		$circuit['img'] = 'map'. $circuitId .'.'. $ext; // TODO
 		if ((($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) || (($identifiants[0] == 1390635815) && !$identifiants[1] && !$identifiants[2] && !$identifiants[3])) {
 			if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM circuits_data WHERE id="'. $circuitId .'"')))
 				$circuitData = gzuncompress($getCircuitData['data']);
+				$circuitImg = json_decode($circuit['img_data']);
+				require_once('circuitImgUtils.php');
 			?>
 <!DOCTYPE html> 
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
@@ -40,7 +39,7 @@ if (isset($_GET['i'])) {
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
 			<div id="editor-ctn">
-				<img id="editor-img" src="images/uploads/<?php echo $circuit['img']; ?>" alt="Circuit" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
+				<img id="editor-img" src="<?php echo getCircuitImgUrl($circuitImg); ?>" alt="Circuit" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
 				<svg id="editor" class="editor" />
 			</div>
 		</div>
@@ -821,13 +820,14 @@ else {
 		<link rel="stylesheet" type="text/css" href="styles/draw.css?reload=2" />
 		<script type="text/javascript">
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
+		var language = <?php echo $language ? 1:0; ?>;
 		var isBattle = false;
 		</script>
-		<script src="scripts/editor-form.js"></script>
+		<script src="scripts/editor-form.js?reload=1"></script>
 	</head>
 	<body class="home-body">
 		<?php
-		$getTracks = mysql_query('SELECT c.id,c.nom,d.data FROM circuits c LEFT JOIN circuits_data d ON c.id=d.id WHERE c.identifiant='.$identifiants[0].' AND c.identifiant2='.$identifiants[1].' AND c.identifiant3='.$identifiants[2].' AND c.identifiant4='.$identifiants[3] .' ORDER BY c.id DESC');
+		$getTracks = mysql_query('SELECT c.id,c.nom,d.data,c.img_data FROM circuits c LEFT JOIN circuits_data d ON c.id=d.id WHERE c.identifiant='.$identifiants[0].' AND c.identifiant2='.$identifiants[1].' AND c.identifiant3='.$identifiants[2].' AND c.identifiant4='.$identifiants[3] .' ORDER BY c.id DESC');
 		if (!isset($_GET['help']) && ($nbTracks=mysql_numrows($getTracks))) {
 			if ($language) {
 				?>
@@ -838,30 +838,7 @@ else {
 					?>
 					Welcome to the track builder in complete mode.<br />
 					To create a new circuit, send your image here:
-					<div class="editor-upload">
-						<div class="editor-upload-tabs">
-							<div class="editor-upload-tab editor-upload-tab-selected">
-								Upload an image
-							</div><div class="editor-upload-tab">
-								Paste image URL
-							</div>
-						</div>
-						<div class="editor-upload-inputs">
-							<div class="editor-upload-input editor-upload-input-selected">
-								<input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="image" />
-							</div>
-							<div class="editor-upload-input">
-								<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" />
-							</div>
-						</div>
-					</div>
-					<div class="editor-submit">
-						<button type="submit">Create track</button>
-						<a href="?help">Help</a>
-						<div class="editor-restrictions">
-							Your image must be in png, gif or jpg format and must not exceed 1 MB
-						</div>
-					</div>
+					<?php include('circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -874,30 +851,7 @@ else {
 					?>
 					Bienvenue dans l'éditeur de circuits en mode complet.<br />
 					Pour créer un nouveau circuit, envoyez votre image ici :
-					<div class="editor-upload">
-						<div class="editor-upload-tabs">
-							<div class="editor-upload-tab editor-upload-tab-selected">
-								Uploader une image
-							</div><div class="editor-upload-tab">
-								Coller l'URL de l'image
-							</div>
-						</div>
-						<div class="editor-upload-inputs">
-							<div class="editor-upload-input editor-upload-input-selected">
-								<input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="image" />
-							</div>
-							<div class="editor-upload-input">
-								<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" />
-							</div>
-						</div>
-					</div>
-					<div class="editor-submit">
-						<button type="submit">Valider !</button>
-						<a href="?help">Aide</a>
-						<div class="editor-restrictions">
-							Votre image doit être au format png, gif ou jpg et ne doit pas dépasser 1 Mo
-						</div>
-					</div>
+					<?php include('circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -929,33 +883,7 @@ else {
 				</div>
 				<form class="editor-section editor-description" method="post" action="uploadCircuit.php" enctype="multipart/form-data">
 					Your image is ready? Send it here:
-					<div class="editor-upload">
-						<div class="editor-upload-tabs">
-							<div class="editor-upload-tab editor-upload-tab-selected">
-								Upload an image
-							</div><div class="editor-upload-tab">
-								Paste image URL
-							</div>
-						</div>
-						<div class="editor-upload-inputs">
-							<div class="editor-upload-input editor-upload-input-selected">
-								<input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="image" />
-							</div>
-							<div class="editor-upload-input">
-								<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" />
-							</div>
-						</div>
-					</div>
-					<div class="editor-submit">
-						<button type="submit"><?php echo $language ? 'Create track':'Valider !'; ?></button>
-						<?php
-						if (isset($_GET['help']))
-							echo '<a href="draw.php">Back</a>';
-						?>
-						<div class="editor-restrictions">
-							Your image must be in png, gif or jpg format and must not exceed 1 MB
-						</div>
-					</div>
+					<?php include('circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -986,33 +914,7 @@ else {
 				</div>
 				<form class="editor-section editor-description" method="post" action="uploadCircuit.php" enctype="multipart/form-data">
 					Votre image est prête ? Envoyez-la ici :
-					<div class="editor-upload">
-						<div class="editor-upload-tabs">
-							<div class="editor-upload-tab editor-upload-tab-selected">
-								Uploader une image
-							</div><div class="editor-upload-tab">
-								Coller l'URL de l'image
-							</div>
-						</div>
-						<div class="editor-upload-inputs">
-							<div class="editor-upload-input editor-upload-input-selected">
-								<input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="image" />
-							</div>
-							<div class="editor-upload-input">
-								<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" />
-							</div>
-						</div>
-					</div>
-					<div class="editor-submit">
-						<button type="submit"><?php echo $language ? 'Send!':'Valider !'; ?></button>
-						<?php
-						if (isset($_GET['help']))
-							echo '<a href="draw.php">Retour</a>';
-						?>
-						<div class="editor-restrictions">
-							Votre image doit être au format png, gif ou jpg et ne doit pas dépasser 1 Mo
-						</div>
-					</div>
+					<?php include('circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -1021,12 +923,6 @@ else {
 			?>
 			<div class="editor-section">
 				<?php
-				$idExts = Array();
-				while ($track = mysql_fetch_array($getTracks)) {
-					$id = $track['id'];
-					include('getExt.php');
-					$idExts[$id] = $i;
-				}
 				$poids = file_total_size();
 				?>
 				<h2><?php echo $language ? 'Your circuits':'Vos circuits'; ?> (<?php echo $nbTracks; ?>)</h2>
@@ -1035,17 +931,18 @@ else {
 				?>
 				<div id="editor-tracks-list">
 					<?php
-					mysql_data_seek($getTracks, 0);
+					require_once('circuitImgUtils.php');
 					while ($track = mysql_fetch_array($getTracks)) {
+						$circuitImg = json_decode($track['img_data']);
 						$id = $track['id'];
 						echo '<a href="map.php?i='.$id.'"
 							data-id="'.$id.'"
 							data-name="'.htmlspecialchars($track['nom']).'"
 							'. ($track['data'] ? '':'data-pending="1"') .'
-							data-src="images/uploads/map'.$id.'.'.$extensions[$idExts[$id]].'"
+							data-src="'.getCircuitImgUrl($circuitImg).'"
 							onclick="previewCircuit(this);return false"><img
 								src="images/creation_icons/racepreview'. $id .'.png"
-								onerror="var that=this;setTimeout(function(){that.src=\'trackicon.php?type=1&id='. $id .'\';},loadDt);loadDt+=50"
+								onerror="var that=this;setTimeout(function(){that.src=\'trackicon.php?type=1&id='. $id .'\';},loadDt);this.onerror=null;loadDt+=50"
 								alt="Circuit '.$id.'"
 							/></a>';
 					}

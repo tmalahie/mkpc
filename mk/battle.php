@@ -1,5 +1,5 @@
 <?php
-$src = 'course';
+require_once('circuitImgUtils.php');
 foreach ($circuitsData as $c => $arene) {
 	$arene = $circuitsData[$c];
 	if ($c)
@@ -7,15 +7,15 @@ foreach ($circuitsData as $c => $arene) {
 	$id = $arene['ID'];
 	$circuitPayload = json_decode(gzuncompress($circuit['data']));
 	$circuitMainData = $circuitPayload->main;
-	include('getExt.php');
-	list($w,$h) = getimagesize('images/uploads/course'.$id.'.'.$ext);
+	$circuitImg = json_decode($arene['img_data']);
 	?>
 "map<?php echo ($c+1); ?>" : {
 	"map" : <?php echo $id; ?>,
-	"ext" : "<?php echo $ext; ?>",
+	"ext" : "<?php echo $circuitImg->ext; ?>",
+	"img" : "<?php echo getCircuitImgUrl($circuitImg); ?>",
 	"bgcolor" : [<?php echo implode(',',$circuitMainData->bgcolor) ?>],
-	"w" : <?php echo $w; ?>,
-	"h" : <?php echo $h; ?>,
+	"w" : <?php echo $circuitImg->w; ?>,
+	"h" : <?php echo $circuitImg->h; ?>,
 	"music" : <?php echo $circuitMainData->music; ?>,
 	<?php
 	if (!$circuitMainData->music) {

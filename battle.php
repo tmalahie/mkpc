@@ -5,8 +5,6 @@ require_once('utils-challenges.php');
 mysql_set_charset('utf8');
 include('creation-challenges.php');
 $id = isset($_GET['i']) ? $_GET['i']:0;
-include('getExt.php');
-$dimensions = getimagesize('images/uploads/course'.$id.'.'.$ext);
 if ($arene = mysql_fetch_array(mysql_query('SELECT a.*,(a.nom IS NOT NULL) as shared,d.data FROM `arenes` a LEFT JOIN `arenes_data` d ON a.id=d.id WHERE a.id="'.$id.'"'))) {
 	$cShared = $arene['shared'];
 	if ($arene['nom'] != null)

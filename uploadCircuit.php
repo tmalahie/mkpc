@@ -1,29 +1,38 @@
 <?php
 include('language.php');
 include('uploadByUrl.php');
+$isBattle = isset($_GET['battle']);
+$table = $isBattle ? 'arenes':'circuits';
 if (isset($_FILES['image'])) {
 	if (!$_FILES['image']['error']) {
 		$poids = $_FILES['image']['size'];
 		if ($poids < 1000000) {
+			$doImport = ($isUploaded || isset($_POST['import']));
 			include('file-quotas.php');
 			include('getId.php');
 			include('initdb.php');
-			$poids += file_total_size();
+			if ($doImport)
+				$poids += file_total_size();
 			$id = 0;
 			if ($poids < MAX_FILE_SIZE) {
-				$fileType = mime_content_type($_FILES['image']['tmp_name']);
-				$extensions = array(
-					'image/png' => 'png',
-					'image/gif' => 'gif',
-					'image/jpeg' => 'jpg'
-				);
-				if (isset($extensions[$fileType])) {
-					$ext = $extensions[$fileType];
-					mysql_query('INSERT INTO `circuits` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3]);
+				require_once('circuitImgUtils.php');
+				$ext = getCircuitExt($_FILES['image']['tmp_name'],null);
+				if ($ext) {
+					mysql_query('INSERT INTO `'.$table.'` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3]);
 					$id = mysql_insert_id();
-					move_given_file($_FILES['image']['tmp_name'], 'images/uploads/map'.$id.'.'.$ext);
+					if ($doImport) {
+						$src = $isBattle ? 'course':'map';
+						$circuitUrl = "$src$id.$ext";
+						$circuitPath = CIRCUIT_BASE_PATH.$circuitUrl;
+						move_given_file($_FILES['image']['tmp_name'], $circuitPath);
+					}
+					else {
+						$circuitUrl = $_POST['url'];
+						$circuitPath = $_FILES['image']['tmp_name'];
+					}
+					mysql_query('UPDATE `'.$table.'` SET img_data="'.getCircuitImgDataRaw($circuitPath,$circuitUrl,$doImport).'" WHERE id='.$id);
 					mysql_close();
-					header('Location: draw.php?i='.$id.'&uploaded=1');
+					header('Location: '.($isBattle ? 'course':'draw').'.php?i='.$id.'&uploaded=1');
 					exit;
 				}
 				else $error = $language ? 'Your image must have a png, gif, or jpg extension.':'Votre image doit être au format png, gif ou jpg.';
