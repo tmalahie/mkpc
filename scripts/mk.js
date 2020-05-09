@@ -5632,6 +5632,7 @@ var decorBehaviors = {
 									var cannons = oMap.decor.cannonball;
 									oMap.decor.cannonball = [];
 									var pJump = sauts(decorData[0],decorData[1], fMoveX,fMoveY);
+									var pAsset;
 									if (pJump) {
 										var nSpeed = 6+1.5*pJump, nMove = 32*pJump;
 										var nMoveX = diffX*nMove/diffL, nMoveY = diffY*nMove/diffL;
@@ -5647,6 +5648,27 @@ var decorBehaviors = {
 										this.setdir(decorData,nMoveX/nMoveL,nMoveY/nMoveL);
 										fMoveX = 0;
 										fMoveY = 0;
+									}
+									else if (pAsset = touche_asset(decorData[0],decorData[1], decorData[0]+fMoveX,decorData[1]+fMoveY)) {
+										switch (pAsset[0]) {
+										case "bumpers":
+											var ux = fMoveX, uy = fMoveY;
+											var bumper = pAsset[1];
+											var nPosX = decorData[0]+ux, nPosY = decorData[1]+uy;
+											var cx = bumper[1][0], cy = bumper[1][1];
+											var rx = (decorData[0]-cx), ry = (decorData[1]-cy);
+											var rr = Math.hypot(rx,ry);
+											var nx = rx/rr, ny = ry/rr;
+											var un = ux*nx + uy*ny;
+											var ax = nPosX-un*nx, ay = nPosY-un*ny;
+											ux = decorData[0]+2*(ax-decorData[0])-nPosX;
+											uy = decorData[1]+2*(ay-decorData[1])-nPosY;
+											var uu = Math.hypot(ux,uy);
+											this.setdir(decorData,ux/uu,uy/uu);
+											fMoveX = 0;
+											fMoveY = 0;
+											break;
+										}
 									}
 									else if (tombe(decorData[0]+fMoveX,decorData[1]+fMoveY))
 										decorData[6][1] = -1;
