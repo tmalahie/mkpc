@@ -54,7 +54,10 @@ if (isset($id)) {
 			$piececircuit = imagecreatefrompng('images/map_icons/'.$decorType.'.png');
 			$w = imagesx($piececircuit);
 			$h = imagesy($piececircuit);
-			$rw = min($w,13);
+			if ('assets/' !== substr($decorType, 0,7))
+				$rw = min($w,13);
+			else
+				$rw = $w;
 			$rh = round($rw*$h/$w);
 			$cw = round($rw/2);
 			$ch = round($rh/2);
