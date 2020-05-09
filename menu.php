@@ -131,8 +131,8 @@
 								$notifData['sender'] = $notifMsg['auteur'];
 								$notifData['title'] = $topicData['titre'];
 								if ($myNotif['type'] == 'answer_forum') {
-									$getFirstMessage = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkmessages` WHERE topic="'. $notifMsg['topic'] .'" AND id=1 LIMIT 1'));
-									$notifData['mine'] = ($getFirstMessage['auteur']==$id);
+									$getFirstMessage_ = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkmessages` WHERE topic="'. $notifMsg['topic'] .'" AND id=1 LIMIT 1'));
+									$notifData['mine'] = ($getFirstMessage_['auteur']==$id);
 									$notifData['link'] = 'topic.php?topic='. $notifMsg['topic'];
 								}
 								else
