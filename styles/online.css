@@ -30,7 +30,7 @@
 	padding: 2px 30px 2px 8px;
 }
 #cotable.noconnect {
-	color: red;
+	color: #789;
 	font-style: italic;
 	font-size: 0.9em;
 }
