@@ -10,7 +10,8 @@ if ((!isset($_FILES['image'])||$_FILES['image']['error']) && isset($_POST['url']
 		file_put_contents($filePath, $fileContent);
 		$_FILES['image'] = array(
 			'size' => filesize($filePath),
-			'tmp_name' => $filePath
+			'tmp_name' => $filePath,
+			'error' => null
 		);
 	}
 }
