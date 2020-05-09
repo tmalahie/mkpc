@@ -700,9 +700,15 @@ function setPlanPos() {
 					if ((oMap.decor[type].length!=iPlanDecor[type].length) || decorBehaviors[type].movable) {
 						syncObjects(iPlanDecor[type],oMap.decor[type],type, iObjWidth,iPlanCtn);
 						var rotatable = decorBehaviors[type].rotatable;
+						var relY;
+						if (rotatable) {
+							var iPlanDecor0 = iPlanDecor[type][0];
+							if (iPlanDecor0 && iPlanDecor0.naturalWidth)
+								relY = Math.round(iObjWidth*(iPlanDecor0.naturalWidth-iPlanDecor0.naturalHeight)/(2*iPlanDecor0.naturalWidth));
+						}
 						for (var i=0;i<oMap.decor[type].length;i++) {
 							if (rotatable)
-								posImg(iPlanDecor[type][i], oMap.decor[type][i][0],oMap.decor[type][i][1],Math.round(oMap.decor[type][i][4]), iObjWidth,iPlanSize);
+								posImgRel(iPlanDecor[type][i], oMap.decor[type][i][0],oMap.decor[type][i][1],Math.round(oMap.decor[type][i][4]), iObjWidth,iPlanSize, 0,relY);
 							else
 								setObject(iPlanDecor[type][i],oMap.decor[type][i][0],oMap.decor[type][i][1], iObjWidth,iPlanSize);
 						}
@@ -3018,7 +3024,9 @@ function startGame() {
 						//if (!(timer%100))
 						//	aKarts[0].changeView = Math.floor(Math.random()*21)*(360/21);
 
+						oPlayers[0].cpu = false;
 						moveDecor();
+						oPlayers[0].cpu = true;
 						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;stopDrifting_();stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},67);
 						render();
 					}
@@ -5668,7 +5676,6 @@ var decorBehaviors = {
 		movable:true,
 		rotatable:true,
 		dodgable:true,
-		path:[[[1123,964],[1308,961],[1360,949],[1404,924],[1432,889],[1443,835],[1433,789],[1400,756],[1350,739],[1291,747],[1248,772],[1207,831],[1184,854],[1151,865],[1057,866],[1008,839],[997,804],[1015,767],[1119,708],[1149,674],[1159,638],[1146,600],[1112,576],[1064,579],[690,818],[639,863],[626,898],[628,927],[643,951],[685,1001],[694,1036],[688,1070],[580,1159],[566,1189],[563,1293],[571,1348],[584,1385],[608,1417],[642,1433],[693,1435],[722,1420],[736,1398],[741,1375],[729,1350],[679,1302],[660,1258],[670,1221],[698,1194],[747,1173],[831,1173],[857,1154],[872,1132],[876,1041],[887,997],[914,972],[955,965]],[[1118,980],[940,982],[908,996],[898,1017],[889,1129],[872,1164],[841,1188],[822,1192],[755,1192],[700,1219],[686,1246],[691,1273],[703,1298],[735,1333],[754,1358],[757,1381],[751,1412],[730,1435],[704,1449],[662,1454],[606,1435],[584,1418],[560,1376],[544,1292],[553,1168],[577,1131],[648,1083],[669,1048],[666,1008],[612,949],[598,911],[609,864],[640,827],[1065,555],[1102,551],[1137,561],[1166,594],[1175,630],[1168,675],[1136,720],[1035,780],[1026,803],[1031,827],[1057,846],[1102,851],[1161,847],[1190,828],[1222,774],[1255,742],[1305,719],[1362,716],[1426,738],[1461,788],[1469,835],[1455,900],[1419,940],[1363,968],[1309,978]]],
 		init:function(decorData) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 22;
@@ -5676,15 +5683,55 @@ var decorBehaviors = {
 				decorData[2][j].h = decorData[2][j].w*56/111;
 				decorData[2][j].z = 0.72;
 			}
-			var aipoints = this.path[decorData[5]];
+			var extraParams = getDecorExtra("truck");
+			if (!extraParams.path)
+				extraParams.path = oMap.aipoints;
+			if (!decorData[6]) {
+				var minDist = Infinity;
+				var initialK = (decorData[5] != undefined);
+				decorData[5] = 0;
+				decorData[6] = 0;
+				for (var k=0;k<extraParams.path.length;k++) {
+					if (initialK && (k != decorData[5]))
+						continue;
+					var aipoints = extraParams.path[k];
+					for (var j=0;j<aipoints.length;j++) {
+						var aipoint = aipoints[j];
+						var dist = (aipoint[0]-decorData[0])*(aipoint[0]-decorData[0]) + (aipoint[1]-decorData[1])*(aipoint[1]-decorData[1]);
+						if (dist < minDist) {
+							minDist = dist;
+							decorData[5] = k;
+							decorData[6] = j;
+						}
+					}
+				}
+			}
+			var aipoints = extraParams.path[decorData[5]];
+			if (aipoints.length < 2) {
+				if (!aipoints.length)
+					aipoints = [oMap.startposition];
+				else
+					aipoints = aipoint.slice(0);
+				aipoints.push([aipoints[0][0]+1,aipoints[0][1]+1]);
+				extraParams.path[decorData[5]] = aipoints;
+			}
 			var aipoint = aipoints[decorData[6]];
+			var jInc = (decorData[6]+1)%aipoints.length;
+			var nAipoint = aipoints[jInc];
+			if ((aipoint[0]-decorData[0])*(nAipoint[0]-aipoint[0]) + (aipoint[1]-decorData[1])*(nAipoint[1]-aipoint[1]) < 0) {
+				decorData[6] = jInc;
+				aipoint = nAipoint;
+			}
 			var aimX = aipoint[0]-decorData[0]; aimY = aipoint[1]-decorData[1];
 			decorData[4] = Math.atan2(aimX,aimY)*180/Math.PI;
 		},
 		move:function(decorData) {
 			var speed = 4;
 			var x = decorData[0], y = decorData[1], aimX, aimY;
-			var aipoints = this.path[decorData[5]];
+			var extraParams = getDecorExtra("truck");
+			if (!extraParams.path)
+				extraParams.path = oMap.aipoints;
+			var aipoints = extraParams.path[decorData[5]];
 			do {
 				var aipoint = aipoints[decorData[6]];
 				aimX = aipoint[0]-x; aimY = aipoint[1]-y;
@@ -5923,6 +5970,11 @@ var decorBehaviors = {
 function getDecorParams(type,i) {
 	if (oMap.decorparams && oMap.decorparams[type] && oMap.decorparams[type][i])
 		return oMap.decorparams[type][i];
+	return {};
+}
+function getDecorExtra(type) {
+	if (oMap.decorparams && oMap.decorparams.extra && oMap.decorparams.extra[type])
+		return oMap.decorparams.extra[type];
 	return {};
 }
 
@@ -9187,6 +9239,10 @@ function move(getId) {
 							oKart.shift = [pushSpeed*ux/uu,pushSpeed*uy/uu,0];
 						else
 							oKart.shift = [-pushSpeed*direction(0,rotation),-pushSpeed*direction(1,rotation),0];
+						if (oKart.cpu) {
+							oKart.bounced = true;
+							oKart.bouncedsince = 0;
+						}
 						break;
 					}
 					if (stopped) {
@@ -10669,7 +10725,19 @@ function ai(oKart) {
 			}
 		}
 		var someCollision = false;
-		if (oKart.collided) {
+		if (oKart.bounced) {
+			if (!oKart.bouncedsince)
+				oKart.rotinc = fMaxRotInCp*Math.random();
+			else
+				oKart.rotinc = 0;
+			oKart.bouncedsince++;
+			if (oKart.bouncedsince == 10) {
+				delete oKart.bouncedsince;
+				delete oKart.bounced;
+			}
+			someCollision = true;
+		}
+		else if (oKart.collided) {
 			delete oKart.recovering;
 			delete oKart.minDecor;
 			if (!oKart.recovertime)

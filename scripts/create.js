@@ -145,13 +145,14 @@ function ajouter(params, Id) {
 		nImg.src = "images/pieces/piececircuit_"+ tSrc +".png";
 	else {
 		var decorType = decorTypes[currentMap()][params.n||0];
-		if (decorType)
-			nImg.src = "images/map_icons/"+decorType+".png";
-		else {
-			nImg.src = "images/map_icons/"+decorTypes[currentMap()][0]+".png";
+		if (!decorType) {
+			decorType = decorTypes[currentMap()][0];
 			nImg.style.display = "none";
 		}
+		nImg.src = "images/map_icons/"+decorType+".png";
 		nImg.className = "decor";
+		if (decorType.startsWith("assets/"))
+			nImg.className += " decor-asset";
 	}
 	var prefix = getSrcPrefix(params);
 	nImg.id = prefix+Id;
@@ -373,6 +374,9 @@ function changeMap(p) {
 			if (decorType) {
 				recenterPos(tPiece);
 				tPiece.src = "images/map_icons/"+decorType+".png";
+				tPiece.className = "decor";
+				if (decorType.startsWith("assets/"))
+					tPiece.className += " decor-asset";
 				tPiece.style.display = "";
 			}
 			else

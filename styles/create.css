@@ -89,6 +89,9 @@ img {
 .decor {
 	max-width: 13px;
 }
+.decor-asset {
+	max-width: none;
+}
 .editor-section {
 	display: inline-block;
 	padding: 5px 12px;

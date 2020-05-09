@@ -13,11 +13,14 @@ function objet($infos,$l,$m,$n=null,$d=null) {
 	if ('t' === $l) {
 		$className = 'decor';
 		if (isset($decorTypes[$m[0]][$m[1]]))
-			$url = 'images/map_icons/'.$decorTypes[$m[0]][$m[1]].'.png';
+			$decorType = $decorTypes[$m[0]][$m[1]];
 		else {
-			$url = 'images/map_icons/'.$decorTypes[$m[0]][0].'.png';
+			$decorType = $decorTypes[$m[0]][0];
 			$styles .= 'display:none;';
 		}
+		$url = 'images/map_icons/'.$decorType.'.png';
+		if (preg_match('#^assets/#', $decorType))
+			$className .= ' decor-asset';
 		if ($m[1]) {
 			$attrs .= 'data-n="'.$m[1].'" ';
 			$prefix .= $m[1].'_';

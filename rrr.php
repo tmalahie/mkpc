@@ -1,12 +1,17 @@
 <?php
 if (empty($_GET['map'])) exit;
 if($_SERVER['HTTP_HOST']!=='local-mkpc.malahieude.info') exit;
+include('initdb.php');
 if (isset($_GET['pieces'])) {
     $map = $_GET['map'];
     for ($i=0;$i<=11;$i++) {
         $id = 7000+$i;
-        copy('images/pieces/piececircuit'.$map.'_'.$i.'.png', 'images/uploads/map'.$id.'.png');
+        $circuitFile = "map$id.png";
+        $circuitPath = "images/uploads/".$circuitFile;
+        copy('images/pieces/piececircuit'.$map.'_'.$i.'.png', $circuitPath);
+        mysql_query('UPDATE circuits SET image_url="'.getCircuitImgDataRaw($circuitPath,$circuitFile,1).'" WHERE id='.$id);
     }
+    mysql_close();
     exit;
 }
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
@@ -937,7 +942,11 @@ require_once('circuitEnums.php');
 $circuitData = $circuitsData->map1;
 $id = 6999;
 $circuitUrl = $circuitData->map;
-file_put_contents('images/uploads/map'.$id.'.png', file_get_contents("http://$_SERVER[HTTP_HOST]/mapcreate.php$circuitUrl"));
+$circuitFile = "map$id.png";
+$circuitPath = "images/uploads/".$circuitFile;
+file_put_contents($circuitPath, file_get_contents("http://$_SERVER[HTTP_HOST]/mapcreate.php$circuitUrl"));
+require_once('circuitImgUtils.php');
+mysql_query('UPDATE circuits SET image_url="'.getCircuitImgDataRaw($circuitPath,$circuitFile,1).'" WHERE id='.$id);
 $data = array();
 $data['main'] = array(
     'startposition' => array($circuitData->startposition[0]-5,$circuitData->startposition[1]+6),
@@ -954,6 +963,7 @@ foreach ($bgImages as $i=>$decor) {
         $data['main']['bgimg'] = $i;
 }
 $data['aipoints'] = array($circuitData->aipoints);
+//$data['aipoints'] = $circuitData->decorparams->extra->truck->path;
 while (count($data['main']['aiclosed']) < count($data['aipoints']))
     $data['main']['aiclosed'][] = 1;
 $collision = $circuitData->collision;
@@ -996,7 +1006,6 @@ if (isset($circuitData->cannons))
     $data['cannons'] = $circuitData->cannons;
 if (isset($circuitData->flows))
     $data['flows'] = $circuitData->flows;
-include('initdb.php');
 mysql_query('
     UPDATE `circuits_data`
     SET data="'.mysql_real_escape_string(gzcompress(json_encode($data))).'"
