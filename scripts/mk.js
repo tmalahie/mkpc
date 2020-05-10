@@ -11438,7 +11438,8 @@ function privateGameOptions(gameOptions, onProceed) {
 	};
 
 	var oScroll = document.createElement("div");
-	oScroll.style.height = ((isOnline ? 24:20)*iScreenScale) +"px";
+	// TODO enable maxplayers option oScroll.style.height = ((isOnline ? 24:20)*iScreenScale) +"px";
+	oScroll.style.height = (20*iScreenScale) +"px";
 	oScroll.style.overflow = "auto";
 
 	var oTable = document.createElement("table");
@@ -11561,7 +11562,8 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTable.appendChild(oTr);
 
 	var oTr = document.createElement("tr");
-	if (!isOnline) oTr.style.display = "none";
+	// TODO enable maxplayers option if (!isOnline) oTr.style.display = "none";
+	oTr.style.display = "none";
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
 
@@ -11615,7 +11617,8 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTable.appendChild(oTr);
 
 	var oTr = document.createElement("tr");
-	if (!isOnline) oTr.style.display = "none";
+	// TODO enable maxplayers option if (!isOnline) oTr.style.display = "none";
+	oTr.style.display = "none";
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
 
@@ -17044,6 +17047,7 @@ function setChat() {
 							oP.appendChild(sMessage);
 							oMessages.appendChild(oP);
 						}
+						setTimeout(refreshChat, 1000);
 					}
 					else
 						chatting = false;
@@ -17051,7 +17055,6 @@ function setChat() {
 				}
 				return false;
 			});
-			setTimeout(refreshChat, 1000);
 		}
 		else
 			document.body.removeChild(oChat);
