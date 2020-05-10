@@ -217,7 +217,7 @@ else
 </div>
 <div class="import-fields">
 	<input type="file" name="image" style="display:inline-block" onchange="document.getElementById('modifier').disabled=!this.value" />
-	<input type="url" name="url" oninput="document.getElementById('modifier').disabled=!this.value" />
+	<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" oninput="document.getElementById('modifier').disabled=!this.value" />
 </div>
 <input type="submit" value="<?php echo $language ? 'Send':'Valider'; ?>" id="modifier" disabled="disabled" /></p>
 </fieldset>
