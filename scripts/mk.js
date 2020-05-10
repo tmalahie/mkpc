@@ -9,6 +9,20 @@ var updateCtnFullScreen;
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
+if (typeof noDS === 'undefined') {
+	var noDS = false;
+}
+if (noDS) {
+	var bListMaps = listMaps;
+	listMaps = function() {
+		NBCIRCUITS = 40;
+		var aMaps = bListMaps();
+		var res = {};
+		for (var i=1;i<=NBCIRCUITS;i++)
+			res["map"+i] = aMaps["map"+i];
+		return res;
+	};
+}
 var isOnline = (page=="OL");
 var isMCups = (isCup && (NBCIRCUITS>4));
 var clRuleVars = {};
@@ -14156,6 +14170,8 @@ function searchCourse() {
 	}
 	else if (isBattle)
 		courseParams += 'battle';
+	else if (noDS)
+		courseParams += "nods";
 	if (shareLink.key)
 		courseParams += (courseParams ? '&':'') + 'key='+ shareLink.key;
 	function rSearchCourse() {

@@ -44,6 +44,13 @@ if ($id) {
 			$isSingle = true;
 		}
 	}
+	elseif (isset($_POST['nods'])) {
+		if (!isset($_POST['key']))
+			$_POST['key'] = 191057616;
+		$nid = 8;
+		$isCup = true;
+		$isMCup = true;
+	}
 	else
 		$nid = 0;
 	$nlink = 0;

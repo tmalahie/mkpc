@@ -161,6 +161,7 @@ if ($isCup) {
 	}
 }
 $simplified = ($isCup && !$complete);
+$noDS = isset($_GET['nods']) && !$isCup && !$isBattle;
 $delNotif = true;
 if (isset($privateLink)) {
 	$delNotif = false;
@@ -273,6 +274,7 @@ var isCup = <?php echo $isCup ? 'true':'false'; ?>;
 var complete = <?php echo $complete ? 'true':'false'; ?>;
 var simplified = <?php echo $simplified ? 'true':'false'; ?>;
 var nid = <?php echo isset($nid) ? $nid:'null'; ?>;
+var noDS = <?php echo $noDS ? 1:0; ?>;
 var shareLink = {
 	key: <?php echo isset($privateLink) ? "'$privateLink'":'null'; ?>,
 	player: <?php echo isset($privateLinkData) ? $privateLinkData['player']:'null'; ?>,
@@ -301,6 +303,8 @@ var shareLink = {
 	}
 	if ($isBattle)
 		$params[] = '"battle"';
+	if ($noDS)
+		$params[] = '"nods"';
 	echo implode(',',$params);
 	?>]
 };
