@@ -2,7 +2,9 @@
 if (isset($_GET['id'])) {
 	include('initdb.php');
 	mysql_set_charset('utf8');
-	$getPoll = mysql_query('SELECT * FROM `mkpolls` WHERE id="'. $_GET['id'] .'"');
+	include('language.php');
+	$lang = $language ? 'en':'fr';
+	$getPoll = mysql_query('SELECT *,title_'.$lang.' AS title,question_'.$lang.' AS question  FROM `mkpolls` WHERE id="'. $_GET['id'] .'"');
 	if ($poll  = mysql_fetch_array($getPoll)) {
 		$getChamps = mysql_query('SELECT * FROM `mkpollres` WHERE poll="'. $_GET['id'] .'"');
 		$type = $poll['type'];
@@ -13,7 +15,6 @@ if (isset($_GET['id'])) {
 			echo "Vous n'&ecirc;tes pas connect&eacute;";
 			exit;
 		}
-		include('language.php');
 		include('initdb.php');
 		$isConnected = (mysql_query('SELECT id FROM `mkjoueurs` WHERE id="'. $id .'"'));
 		if (!($isConnected=mysql_fetch_array($isConnected))) {
@@ -87,7 +88,7 @@ include('menu.php');
 	<?php
 	if (!$over) {
 		if ($_SERVER['REQUEST_METHOD'] === 'POST')
-			echo '<p class="success">Votre vote a été pris en compte. Vous pouvez le changer à tout moment.</p>';
+			echo '<p class="success">'. ($language ? 'Your vote has been taken into account. You can change it at any time.':'Votre vote a été pris en compte. Vous pouvez le changer à tout moment.') .'</p>';
 	?>
 	<h1><?php echo $poll['title']; ?></h1>
 	<p><strong><?php echo $poll['question']; ?></strong></p>
@@ -104,8 +105,8 @@ include('menu.php');
 			?>
 		</p>
 		<p>
-			<input type="submit" value="Voter" class="action_button" />
-			<input type="button" value="Réinitialiser" class="reset_button" onclick="resetForm()" />
+			<input type="submit" value="<?php echo $language ? 'Vote':'Voter'; ?>" class="action_button" />
+			<input type="button" value="<?php echo $language ? 'Reset':'Réinitialiser'; ?>" class="reset_button" onclick="resetForm()" />
 		</p>
 	</form>
 	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
