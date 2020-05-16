@@ -247,7 +247,10 @@ function backCircuitText() {
 	return $language ? "Back to $theCircuit":"Retour $theCircuit";
 }
 function nextPageUrl($page,$extraParams=array()) {
-	$res = array_merge($_GET,$extraParams);
+	$res = $_GET;
+	foreach ($res as $k=>$v)
+		$res[$k] = stripslashes($v);
+	$res = array_merge($res,$extraParams);
 	return $page.'?'.http_build_query($res);
 }
 ?>

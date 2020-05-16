@@ -3,6 +3,7 @@ include('getId.php');
 include('language.php');
 $mids = array();
 $editting = true;
+$optionsJson = isset($_GET['opt']) ? $_GET['opt']:null;
 include('initdb.php');
 mysql_set_charset('utf8');
 if (isset($_GET['mid'])) {
@@ -12,6 +13,10 @@ if (isset($_GET['mid'])) {
 		$mids[] = $getCup['cup'];
 	if (empty($mids))
 		$editting = false;
+	if (null === $optionsJson) {
+		if ($getMCup = mysql_fetch_array(mysql_query('SELECT options FROM `mkmcups` WHERE id="'. $id .'"')))
+			$optionsJson = $getMCup['options'];
+	}
 }
 else {
 	if (isset($_GET['nid']))
@@ -32,7 +37,7 @@ function escapeUtf8($str) {
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create multicup':'Cr&eacute;er multicoupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css" />
+<link rel="stylesheet" href="styles/cup.css?reload=1" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -42,15 +47,8 @@ var ckey = "mid";
 if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
 ?>
-function getSubmitMsg() {
-	if (selectedCircuits.length < 2)
-		return (language ? "You must select at least 2 cups":"Vous devez sélectionner au moins 2 coupes")
-	if (selectedCircuits.length > 18)
-		return (language ? "You can select at most 18 cups":"Vous pouvez sélectionner 18 coupes au maximum")
-	return "";
-}
 </script>
-<script type="text/javascript" src="scripts/cup.js"></script>
+<script type="text/javascript" src="scripts/cup.js?reload=1"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body onload="initGUI()">
@@ -75,23 +73,24 @@ function getSubmitMsg() {
 				<?php
 			}
 			?></div>
-		<h1><?php echo $language ? 'Cups selection':'S&eacute;lection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
-		<?php
-		include('utils-circuits.php');
-		$type = 3-$mode;
-		$aCircuits = array($aCircuits[$type]);
-		$aParams = array(
-			'pids' => $identifiants,
-			'type' => $type,
-			'reverse' => true
-		);
-		$listCups = listCreations(1,null,null,$aCircuits,$aParams);
-		$nbCups = count($listCups);
-		if ($nbCups) {
-			if ($nbCups < 2)
-				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une nouvelle.') .'</em>';
-			?>
-			<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
+		<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
+		<div class="editor-content editor-content-active">
+			<h1><?php echo $language ? 'Cups selection':'S&eacute;lection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
+			<?php
+			include('utils-circuits.php');
+			$type = 3-$mode;
+			$aCircuits = array($aCircuits[$type]);
+			$aParams = array(
+				'pids' => $identifiants,
+				'type' => $type,
+				'reverse' => true
+			);
+			$listCups = listCreations(1,null,null,$aCircuits,$aParams);
+			$nbCups = count($listCups);
+			if ($nbCups) {
+				if ($nbCups < 2)
+					echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une nouvelle.') .'</em>';
+				?>
 				<div id="table-container">
 					<table id="table-circuits">
 					<?php
@@ -126,14 +125,27 @@ function getSubmitMsg() {
 					if (isset($_GET['cl']))
 						echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
 					?>
-					<input type="submit" id="submit-selection" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" />
+					<input type="hidden" id="cup-options" name="opt" value="<?php echo htmlspecialchars($optionsJson) ?>" />
+					<div class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></div>
+					<a class="editor-switch-options" href="javascript:showEditorContent(1)"><?php echo $language ? 'Advanced options':'Options avancées'; ?></a>
 				</p>
-			</form>
+			</div>
+			<div class="editor-content">
+				<h1><?php echo $language ? 'Advanced options':'Options avancées'; ?></h1>
+				<h2><?php echo $language ? 'Multicup appearance:':'Apparence de votre coupe :'; ?> <a id="reset-cup-appearance" href="javascript:resetCupAppearance()">[<?php echo $language ? 'Reset':'Réinitialiser'; ?>]</a></h2>
+				<div id="cup-appearance">
+				</div>
+				<p>
+					<div class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></div>
+					<a class="editor-switch-options" href="javascript:showEditorContent(0)"><?php echo $language ? 'Back':'Retour'; ?></a>
+				</p>
 			<?php
 		}
 		else
 			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create one.':'Vous n\'avez pas encore partag&eacute; de coupes en mode '. ($mode ? 'complet':'simplifi&eacute;') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en cr&eacute;er une.') .'</em>';
 		?>
+		</div>
+		</form>
 		<div class="editor-navigation">
 			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une multicoupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></a></u>
 			<a href="mariokart.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>

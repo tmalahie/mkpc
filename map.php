@@ -53,6 +53,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;isset($_GET['mid'.$i])&&is_numeric($_GET['mid'.$i]);$i++)
 		$cupIDs[$i] = $_GET['mid'.$i];
+	$cOptions = stripslashes($_GET['opt']);
 	$edittingCircuit = true;
 }
 elseif (isset($_GET['mid'])) { // Existing multicup
@@ -65,6 +66,7 @@ elseif (isset($_GET['mid'])) { // Existing multicup
 		$cPseudo = $getMCup['auteur'];
 		$cAuteur = $cPseudo;
 		$cDate = $getMCup['publication_date'];
+		$cOptions = $getMCup['options'];
 		$pNote = $getMCup['note'];
 		$pNotes = $getMCup['nbnotes'];
 		$creationData = $getMCup;
@@ -211,6 +213,7 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 }
 ?>];
 var cupIDs = <?php echo json_encode($cupIDs) ?>;
+var cupOpts = <?php echo $cOptions ? $cOptions:'{}'; ?>;
 <?php
 if (!empty($cupNames)) {
 	echo 'var cupNames = [';
@@ -261,6 +264,8 @@ if ($canChange) {
 				echo 'mode=1';
 				foreach ($cupIDs as $i=>$cupID)
 					echo '&cid'. $i .'='. $cupID;
+				if (!empty($cOptions))
+					echo '&opt='. urlencode($cOptions);
 				echo '&';
 			}
 			if (isset($nid)) echo 'id='.$nid.'&';

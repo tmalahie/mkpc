@@ -12,6 +12,9 @@ if (typeof edittingCircuit === 'undefined') {
 if (typeof noDS === 'undefined') {
 	var noDS = false;
 }
+if (typeof cupOpts === 'undefined') {
+	var cupOpts = {};
+}
 if (noDS) {
 	var bListMaps = listMaps;
 	listMaps = function() {
@@ -7719,8 +7722,7 @@ var challengeRules = {
 		"success": function(scope) {
 			if (oPlayers[0].lost && clLocalVars.gagnant != oPlayers[0])
 				return false;
-			var gagnant = clLocalVars.gagnant;
-			return (gagnant.ballons.length+gagnant.reserve >= scope.value);
+			return (oPlayers[0].ballons.length+oPlayers[0].reserve >= scope.value);
 		}
 	},
 	"balloons_lost": {
@@ -14385,29 +14387,75 @@ function selectMapScreen() {
 			nbcoupes = 2;
 		}
 		var nb_lines = Math.ceil(nbcoupes/cups_per_line);
+		if (cupOpts.lines)
+			nb_lines = cupOpts.lines.length;
 		cups_per_line = Math.ceil(nbcoupes/nb_lines);
-		var cup_width = Math.round(10.5/Math.pow(Math.max(nbcoupes/5,nb_lines,0.5),0.6));
-		var cup_margin_x = 4, cup_margin_y = (4/nb_lines);
+		var max_cups_per_line = cups_per_line;
+		if (cupOpts.lines) {
+			max_cups_per_line = 0;
+			for (var i=0;i<cupOpts.lines.length;i++)
+				max_cups_per_line = Math.max(max_cups_per_line,cupOpts.lines[i]);
+		}
+		var cup_width = Math.min(Math.round(10.5/Math.pow(Math.max(nbcoupes/5,nb_lines,0.5),0.6)),16/nb_lines,60/max_cups_per_line);
+		var cup_margin_x = Math.min(4,20/max_cups_per_line), cup_margin_y = (4/nb_lines);
 		var cup_offset_x = 1, cup_offset_y = 38;
 		if (course == "BB") {
 			cup_width = Math.round(cup_width*1.5);
 			cup_margin_x = Math.round(cup_margin_x*2);
 			cup_offset_y -= 3;
 		}
+		var currentLine = 0, currentRow = 0;
 		for (var i=0;i<nbcoupes;i++) {
-			var cups_in_line = Math.min(cups_per_line, nbcoupes-(i-i%cups_per_line));
+			var cup_i, cup_j, cups_in_line;
+			if (cupOpts.lines) {
+				cups_in_line = cupOpts.lines[currentRow];
+				cup_i = currentLine;
+				cup_j = currentRow;
+				currentLine++;
+				if (currentLine >= cupOpts.lines[currentRow]) {
+					currentLine = 0;
+					currentRow++;
+				}
+			}
+			else {
+				cups_in_line = Math.min(cups_per_line, nbcoupes-(i-i%cups_per_line));
+				cup_i = i%cups_per_line;
+				cup_j = Math.floor(i/cups_per_line);
+			}
 			var oPImg = document.createElement("img");
 			oPImg.className = "pixelated";
-			oPImg.src = "images/cups/"+ coupes[i] +".gif";
 
 			oPImg.style.width = (cup_width * iScreenScale) + "px";
 			oPImg.style.height = (cup_width * iScreenScale) + "px";
 			oPImg.style.cursor = "pointer";
 			oPImg.style.position = "absolute";
-			var cup_x = ((iWidth+cup_margin_x+cup_offset_x)/2+(((i%cups_per_line)-cups_in_line/2)*(cup_width+cup_margin_x)));
-			var cup_y = ((cup_margin_y+cup_offset_y)/2+((Math.floor(i/cups_per_line)-nb_lines/2)*(cup_width+cup_margin_y)));
+			var cup_x = ((iWidth+cup_margin_x+cup_offset_x)/2+((cup_i-cups_in_line/2)*(cup_width+cup_margin_x)));
+			var cup_y = ((cup_margin_y+cup_offset_y)/2+((cup_j-nb_lines/2)*(cup_width+cup_margin_y)));
 			oPImg.style.left = Math.round(cup_x*iScreenScale)+"px";
 			oPImg.style.top = Math.round(cup_y*iScreenScale)+"px";
+			if (cupOpts.icons) {
+				if (typeof cupOpts.icons[i] === "number")
+					oPImg.src = "images/cups/"+ coupes[cupOpts.icons[i]] +".gif";
+				else {
+					(function(cup_x,cup_y) {
+						oPImg.onload = function() {
+							if (this.naturalWidth > this.naturalHeight) {
+								this.style.width = (cup_width * iScreenScale) + "px";
+								this.style.top = Math.round((cup_y + cup_width*(1-this.naturalHeight/this.naturalWidth)/2)*iScreenScale)+"px";
+								this.style.height = "auto";
+							}
+							else {
+								this.style.width = "auto";
+								this.style.height = (cup_width * iScreenScale) + "px";
+								this.style.left = Math.round((cup_x + cup_width*(1-this.naturalWidth/this.naturalHeight)/2)*iScreenScale)+"px";
+							}
+						}
+						oPImg.src = cupOpts.icons[i];
+					})(cup_x,cup_y);
+				}
+			}
+			else
+				oPImg.src = "images/cups/"+ coupes[i] +".gif";
 
 			if (course == "BB")
 				oPImg.alt = i+(NBCIRCUITS/4);

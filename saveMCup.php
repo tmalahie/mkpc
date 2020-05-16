@@ -19,17 +19,18 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	}
 	if ($save) {
 		$nbCups = $i;
+		$optionsJson = isset($_POST['opt']) ? $_POST['opt']:'';
 		setcookie('mkauteur', $_POST['auteur'], 4294967295,'/');
 		if (isset($_POST['id'])) {
 			if (mysql_numrows(mysql_query('SELECT * FROM mkmcups WHERE id="'. $_POST['id'] .'" AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
-				mysql_query('UPDATE `mkmcups` SET nom="'. $_POST['nom'] .'",auteur="'. $_POST['auteur'] .'" WHERE id="'. $_POST['id'] .'"');
+				mysql_query('UPDATE `mkmcups` SET nom="'. $_POST['nom'] .'",auteur="'. $_POST['auteur'] .'",options="'.$optionsJson.'" WHERE id="'. $_POST['id'] .'"');
 				$cupId = $_POST['id'];
 			}
 			else
 				$save = false;
 		}
 		else {
-			mysql_query('INSERT INTO `mkmcups` VALUES(NULL,CURRENT_TIMESTAMP(),'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',-1,0,0,"'. $mode .'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'")');
+			mysql_query('INSERT INTO `mkmcups` VALUES(NULL,CURRENT_TIMESTAMP(),'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',-1,0,0,"'. $mode .'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'","'.$optionsJson.'")');
 			$cupId = mysql_insert_id();
 			include('session.php');
 			if ($id) {

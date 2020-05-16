@@ -39,7 +39,7 @@ function escapeUtf8($str) {
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create cup':'Cr&eacute;er coupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css" />
+<link rel="stylesheet" href="styles/cup.css?reload=1" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -49,11 +49,8 @@ var ckey = "cid";
 if (isset($cids))
 	echo 'var cids = '. json_encode($cids) .';';
 ?>
-function getSubmitMsg() {
-	return (selectedCircuits.length != 4) ? (language ? "You must select 4 circuits":"Vous devez sélectionner 4 circuits"):"";
-}
 </script>
-<script type="text/javascript" src="scripts/cup.js"></script>
+<script type="text/javascript" src="scripts/cup.js?reload=1"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body onload="initGUI()">
@@ -121,7 +118,7 @@ function getSubmitMsg() {
 					if (isset($_GET['cl']))
 						echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
 					?>
-					<input type="submit" id="submit-selection" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" />
+					<div class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" />
 				</p>
 			</form>
 			<?php
