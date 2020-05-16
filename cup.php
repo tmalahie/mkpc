@@ -118,7 +118,7 @@ if (isset($cids))
 					if (isset($_GET['cl']))
 						echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
 					?>
-					<div class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" />
+					<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
 				</p>
 			</form>
 			<?php

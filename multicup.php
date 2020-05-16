@@ -126,7 +126,7 @@ if (isset($mids))
 						echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
 					?>
 					<input type="hidden" id="cup-options" name="opt" value="<?php echo htmlspecialchars($optionsJson) ?>" />
-					<div class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></div>
+					<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
 					<a class="editor-switch-options" href="javascript:showEditorContent(1)"><?php echo $language ? 'Advanced options':'Options avancées'; ?></a>
 				</p>
 			</div>
