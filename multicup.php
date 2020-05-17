@@ -31,13 +31,14 @@ function escapeUtf8($str) {
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>" >
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="viewport" content="width=device-width" />
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
 <?php
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create multicup':'Cr&eacute;er multicoupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css?reload=1" />
+<link rel="stylesheet" href="styles/cup.css?reload=2" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -127,7 +128,7 @@ if (isset($mids))
 					?>
 					<input type="hidden" id="cup-options" name="opt" value="<?php echo htmlspecialchars($optionsJson) ?>" />
 					<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
-					<a class="editor-switch-options" href="javascript:showEditorContent(1)"><?php echo $language ? 'Advanced options':'Options avancées'; ?></a>
+					<a class="editor-switch-options" href="javascript:showEditorContent(1)"><?php echo $language ? 'Advanced&nbsp;options':'Options&nbsp;avancées'; ?></a>
 				</p>
 			</div>
 			<div class="editor-content">
@@ -148,7 +149,7 @@ if (isset($mids))
 		</form>
 		<div class="editor-navigation">
 			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une multicoupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></a></u>
-			<a href="mariokart.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>
+			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>
 		</div>
 	</div>
 </body>

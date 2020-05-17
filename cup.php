@@ -33,13 +33,14 @@ function escapeUtf8($str) {
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>" >
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="viewport" content="width=device-width" />
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
 <?php
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create cup':'Cr&eacute;er coupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css?reload=1" />
+<link rel="stylesheet" href="styles/cup.css?reload=2" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -128,7 +129,7 @@ if (isset($cids))
 		?>
 		<div class="editor-navigation">
 			<a href="<?php echo $mode ? 'simplecup.php':'completecup.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une coupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></u></a>
-			<a href="mariokart.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>
+			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>
 		</div>
 	</div>
 </body>
