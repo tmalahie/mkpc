@@ -864,14 +864,28 @@ function loadMap() {
 	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
-	if ((oMap.ext ? ("gif" === oMap.ext) : mapSrc.match(/\.gif$/g)) && !gameSettings.nogif) {
-		oMapImg = GIF();
-		oMapImg.onloadone = startGame;
-		oMapImg.onloadall = function() {
-			if (oPlanImg) oPlanImg.src = mapSrc;
-			if (oPlanImg2) oPlanImg2.src = mapSrc;
+	if (oMap.ext ? ("gif" === oMap.ext) : mapSrc.match(/\.gif$/g)) {
+		if (gameSettings.nogif) {
+			var oGif = new Image();
+			oGif.onload = function() {
+				oMapImg = document.createElement("canvas");
+				oMapImg.width = oGif.naturalWidth;
+				oMapImg.height = oGif.naturalHeight;
+				var oMapCtx = oMapImg.getContext("2d");
+				oMapCtx.drawImage(oGif, 0,0);
+				startGame();
+			};
+			oGif.src = mapSrc;
 		}
-		oMapImg.load(mapSrc);
+		else {
+			oMapImg = GIF();
+			oMapImg.onloadone = startGame;
+			oMapImg.onloadall = function() {
+				if (oPlanImg) oPlanImg.src = mapSrc;
+				if (oPlanImg2) oPlanImg2.src = mapSrc;
+			}
+			oMapImg.load(mapSrc);
+		}
 	}
 	else {
 		oMapImg = new Image();
@@ -2150,7 +2164,7 @@ function startGame() {
 	}
 	reinitLocalVars();
 
-	if (strPlayer.length == 1) {
+	if ((strPlayer.length == 1) && !gameSettings.nomap) {
 		oPlanWidth = Math.round(iScreenScale*19.4);
 		oPlanWidth2 = (oMap.w>=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.w/oMap.h);
 		var oPlanHeight2 = (oMap.w<=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.h/oMap.w);
@@ -2196,16 +2210,33 @@ function startGame() {
 		oPlanCtn2.style.width = oPlanWidth2 +"px";
 		oPlanCtn2.style.height = oPlanHeight2 +"px";
 
-		oPlanImg = document.createElement("img");
-		oPlanImg.src = oMapImg.src;
+		if (oMapImg.src) {
+			oPlanImg = document.createElement("img");
+			oPlanImg.src = oMapImg.src;
+			oPlanImg.style.width = oPlanSize +"px";
+		}
+		else {
+			var oPlanHeight = Math.round(oPlanSize*oMap.h/oMap.w);
+			oPlanImg = document.createElement("canvas");
+			oPlanImg.width = oPlanSize;
+			oPlanImg.height = oPlanHeight;
+			oPlanImg.getContext("2d").drawImage(oMapImg, 0,0, oPlanSize,oPlanHeight);
+		}
 		oPlanImg.style.position = "absolute";
 		oPlanImg.style.left = "0px";
 		oPlanImg.style.top = "0px";
-		oPlanImg.style.width = oPlanSize +"px";
 		oPlanCtn.appendChild(oPlanImg);
 
-		oPlanImg2 = document.createElement("img");
-		oPlanImg2.src = oMapImg.src;
+		if (oMapImg.src) {
+			oPlanImg2 = document.createElement("img");
+			oPlanImg2.src = oMapImg.src;
+		}
+		else {
+			oPlanImg2 = document.createElement("canvas");
+			oPlanImg2.width = oPlanSize;
+			oPlanImg2.height = oPlanHeight;
+			oPlanImg2.getContext("2d").drawImage(oMapImg, 0,0, oPlanSize,oPlanHeight);
+		}
 		oPlanImg2.style.position = "absolute";
 		oPlanImg2.style.left = "0px";
 		oPlanImg2.style.top = "0px";
@@ -6723,7 +6754,7 @@ function render() {
 			for (var j=0;j<oBgLayers.length;j++)
 				oBgLayers[j].draw(fRotation, i);
 
-			if (strPlayer.length == 1)
+			if ((strPlayer.length == 1) && !gameSettings.nomap)
 				setPlanPos();
 		}
 	}

@@ -3,7 +3,8 @@ include('language.php');
 include('initdb.php');
 $settings = array(
 	'ld' => $language ? 'Don\'t display heavy elements (trees, decors)':'Désactiver l\'affichage des éléments lourds (arbres, décors)',
-	'nogif' => $language ? 'Disable animation in gif-format tracks':'Désactiver les animations des circuits au format gif'
+	'nogif' => $language ? 'Disable animation in gif-format tracks':'Désactiver les animations des circuits au format gif',
+    'nomap' => $language ? 'Disable mini-map display':'Désactiver l\'affichage de la mini-map'
 );
 ?>
 <!DOCTYPE html>
