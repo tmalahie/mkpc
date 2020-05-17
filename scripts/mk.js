@@ -3287,7 +3287,7 @@ function quitter() {
 		return;
 	}
 	pause = true;
-	displayCommands("&nbsp;");
+	displayCommands();
 	removeGameMusics();
 	removeHUD();
 	clearResources();
@@ -13154,7 +13154,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			document.body.removeChild(cTable);
-			displayCommands("&nbsp;");
+			displayCommands();
 			mPseudo = "";
 			mCode = "";
 			connexion();
@@ -13415,7 +13415,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		if (isCustomSel)
 			selectPlayerScreen(0);
 		else {
-			displayCommands("&nbsp;");
+			displayCommands();
 			if (isOnline)
 				quitter();
 			else if (course == "VS" || course == "BB") {
@@ -16497,17 +16497,14 @@ function addOption(pID, pValue, vID, vName, vValue, vDefaut) {
 function optionOf(vName) {
 	return formulaire ? formulaire.elements[vName].value*1 : baseOptions[vName];
 }
-function displayCommands(html, showSettings) {
+function displayCommands(html) {
 	var $commandes = document.getElementById("commandes");
 	if ($commandes) {
-		if (showSettings) {
-			$commandes.innerHTML = html+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit" title="'+toLanguage("Edit controls","Modifier les contrôles")+'" />';
-			document.getElementById("commandes-edit").onclick = function() {
-				editCommands();
-			};
-		}
-		else
-			$commandes.innerHTML = html;
+		var emptyCommands = !html;
+		$commandes.innerHTML = (html||"")+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit"'+ (emptyCommands ? ' class="nocommand"':'') +' title="'+toLanguage("More settings","Plus de paramètres")+'" />';
+		document.getElementById("commandes-edit").onclick = function() {
+			editCommands();
+		};
 	}
 }
 function updateCommandSheet() {
@@ -16523,14 +16520,16 @@ function updateCommandSheet() {
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br /><strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "R")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"),true);
+	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br /><strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "R")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
-function editCommands(reload) {
+function editCommands(reload,currentTab) {
+	currentTab = currentTab || 0;
 	var $controlEditorMask = document.getElementById("control-editor-mask");
 	if ($controlEditorMask) {
 		document.body.removeChild($controlEditorMask);
 		if (!reload) {
-			updateCommandSheet();
+			if (document.querySelector("#commandes strong"))
+				updateCommandSheet();
 			return;
 		}
 	}
@@ -16547,7 +16546,7 @@ function editCommands(reload) {
 	var $controlHeader = document.createElement("div");
 	$controlHeader.className = "control-header";
 	var $controlTitle = document.createElement("div");
-	$controlTitle.innerHTML = toLanguage("Edit controls", "Modifier les contrôles");
+	$controlTitle.innerHTML = toLanguage("Game settings", "Paramètres du jeu");
 	$controlHeader.appendChild($controlTitle);
 	var $controlClose = document.createElement("button");
 	$controlClose.className = "control-close";
@@ -16557,6 +16556,29 @@ function editCommands(reload) {
 	};
 	$controlHeader.appendChild($controlClose);
 	$controlEditor.appendChild($controlHeader);
+	var $controlTabs = document.createElement("div");
+	$controlTabs.className = "control-tabs";
+	var controlTabs = [toLanguage("Edit controls", "Modifier les contrôles"), toLanguage("Advanced settings", "Paramètres avancés")];
+	for (var i=0;i<controlTabs.length;i++) {
+		(function(i) {
+			var $controlTab = document.createElement("div");
+			if (!i) $controlTab.className = "control-tab-active";
+			$controlTab.innerHTML = controlTabs[i];
+			$controlTab.onclick = function() {
+				document.querySelector(".control-tabs .control-tab-active").classList.remove("control-tab-active");
+				this.classList.add("control-tab-active");
+				document.querySelector(".control-window .control-window-active").classList.remove("control-window-active");
+				document.querySelectorAll(".control-window > div")[i].classList.add("control-window-active");
+				currentTab = i;
+			}
+			$controlTabs.appendChild($controlTab);
+		})(i);
+	}
+	$controlEditor.appendChild($controlTabs);
+	var $controlWindows = document.createElement("div");
+	$controlWindows.className = "control-window";
+	var $controlCommands = document.createElement("div");
+	$controlCommands.className = "control-window-active";
 	var commands = [{
 		name: toLanguage("Move forward", "Avancer"),
 		key: "up"
@@ -16633,7 +16655,7 @@ function editCommands(reload) {
 			$controlEditorGrid.appendChild($controlKey);
 		})(commands[i]);
 	}
-	$controlEditor.appendChild($controlEditorGrid);
+	$controlCommands.appendChild($controlEditorGrid);
 	var $controlReset = document.createElement("div");
 	$controlReset.className = "control-reset";
 	var $controlResetBtn = document.createElement("a");
@@ -16644,14 +16666,68 @@ function editCommands(reload) {
 			localStorage.removeItem("controls");
 			if (gameControls)
 				gameControls = getGameControls();
-			editCommands(true);
+			editCommands(true,currentTab);
 		}
 		return false;
 	};
 	$controlReset.appendChild($controlResetBtn);
-	$controlEditor.appendChild($controlReset);
+	$controlCommands.appendChild($controlReset);
+	$controlWindows.appendChild($controlCommands);
+	var $controlSettings = document.createElement("div");
+	$controlSettings.className = "control-settings";
+	var $controlSettingsInfo = document.createElement("div");
+	$controlSettingsInfo.className = "control-settings-info";
+	$controlSettingsInfo.innerHTML = toLanguage("Those settings allow you to disable some graphics elements from the game. Use them if you experience some lag for example.", "Ces paramètres vous permettent de désactiver certains éléments graphiques du jeu. Utilisez-les si vous avez des problèmes de lags par exemple.");
+	$controlSettings.appendChild($controlSettingsInfo);
+	var allSettings = {
+		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
+		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
+		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map')
+	};
+	var currentSettings = localStorage.getItem("settings");
+	currentSettings = currentSettings ? JSON.parse(currentSettings) : {};
+	for (var key in allSettings) {
+		(function(key) {
+			var $controlSetting = document.createElement("label");
+			var $controlCheckbox = document.createElement("input");
+			$controlCheckbox.type = "checkbox";
+			$controlCheckbox.checked = !!currentSettings[key];
+			$controlSetting.appendChild($controlCheckbox);
+			var $controlText = document.createElement("span");
+			$controlText.innerHTML = allSettings[key];
+			$controlSetting.appendChild($controlText);
+			$controlCheckbox.onclick = function() {
+				if (this.checked)
+					currentSettings[key] = 1;
+				else
+					delete currentSettings[key];
+				localStorage.setItem("settings", JSON.stringify(currentSettings));
+			}
+			$controlSettings.appendChild($controlSetting);
+		})(key);
+	}
+	var $controlReset = document.createElement("div");
+	$controlReset.className = "control-reset";
+	var $controlResetBtn = document.createElement("a");
+	$controlResetBtn.href = "#null";
+	$controlResetBtn.innerHTML = toLanguage("Reset settings", "Rétablir les paramètres par défaut");
+	$controlResetBtn.onclick = function() {
+		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
+			localStorage.removeItem("settings");
+			editCommands(true,currentTab);
+		}
+		return false;
+	};
+	$controlReset.appendChild($controlResetBtn);
+	$controlSettings.appendChild($controlReset);
+	$controlWindows.appendChild($controlSettings);
+	$controlEditor.appendChild($controlWindows);
 	$controlEditorMask.appendChild($controlEditor);
 	document.body.appendChild($controlEditorMask);
+	$controlWindows.style.width = $controlWindows.scrollWidth +"px";
+	$controlWindows.style.height = $controlWindows.scrollHeight +"px";
+	if (currentTab)
+		document.querySelectorAll(".control-tabs > div")[currentTab].click();
 }
 function getKeyName(keyCode) {
 	if (!this.keyMatching)
@@ -16816,8 +16892,8 @@ else {
 		[6, toLanguage("Small","Petite")],
 		[8, toLanguage("Medium","Moyenne")],
 		[10, toLanguage("Large","Large")],
-		[12, toLanguage("Very large","Tr&egrave;s large")]
-		// TODO enable full screen [-1, toLanguage("Full (F11)","Plein (F11)")]
+		[12, toLanguage("Very large","Tr&egrave;s large")],
+		[-1, toLanguage("Full (F11)","Plein (F11)")]
 	], (+$mkScreen.dataset.lastsc)||iScreenScale);
 	addOption("pMusic", toLanguage("Music","Musique"),
 	"vMusic", "music", [
@@ -16872,7 +16948,7 @@ else {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setSfx(iValue);
 	}
-	/*if (!window.fsevent) { TODO enable full screen
+	if (!window.fsevent) {
 		window.fsevent = function(e) {
 			if (e.keyCode == 122) {
 				e.preventDefault();
@@ -16886,7 +16962,10 @@ else {
 			}
 		}
 		window.addEventListener("keydown", window.fsevent);
-	}*/
+	}
+
+	course = undefined;
+	displayCommands();
 }
 function isMobile() {
 	return navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i);

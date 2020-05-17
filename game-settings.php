@@ -60,7 +60,7 @@ function processSettings(e) {
         var element = form.elements[i];
         var setting = element.name;
         if (element.checked)
-            gameSettings[setting] = element.checked;
+            gameSettings[setting] = 1;
     }
     localStorage.setItem("settings", JSON.stringify(gameSettings));
     showSuccess();

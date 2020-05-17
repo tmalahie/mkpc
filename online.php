@@ -207,7 +207,7 @@ if (isset($privateLink)) {
 }
 ?>
 
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />
 <style type="text/css">
 .wait {
 	position: absolute;

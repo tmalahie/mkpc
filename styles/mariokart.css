@@ -16,7 +16,7 @@
 }
 #commandes-edit {
     position: absolute;
-    top: 45%;
+    top: 40%;
     left: 90%;
     left: calc(72% + 35px);
     width: 20px;
@@ -24,12 +24,15 @@
     opacity: 0.5;
     cursor: pointer;
 }
+#commandes-edit.nocommand {
+    left: 20px;
+}
 #commandes-edit:hover {
     opacity: 1;
 }
 #control-editor-mask {
     position: fixed;
-    z-index: 20000;
+    z-index: 20001;
     left: 0;
     top: 0;
     width: 100%;
@@ -43,8 +46,37 @@
     background-color: #444;
     font-weight: normal;
 }
-.control-editor-grid {
+.control-tabs {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+}
+.control-tabs > div {
+    flex: 1;
+    background-color: #aaa;
+    border: solid 1px #ccc;
+    color: #333;
+    text-align: center;
+    padding: 2px 5px;
+    opacity: 0.5;
+    cursor: pointer;
+}
+.control-tabs > div.control-tab-active {
+    opacity: 1;
+}
+.control-tabs > div:hover {
+    opacity: 0.9;
+}
+.control-window {
     color: white;
+}
+.control-window > div {
+    display: none;
+}
+.control-window > div.control-window-active {
+    display: block;
+}
+.control-editor-grid {
     display: grid;
     grid-template-columns: auto auto;
 }
@@ -74,6 +106,22 @@
 }
 .control-reset a:hover {
     color: #CAA;
+}
+.control-settings-info {
+    margin: 10px 5px 5px 5px;
+    text-align: center;
+    color: #CCC;
+}
+.control-settings label {
+    display: block;
+    padding: 5px 10px;
+}
+.control-settings label input {
+    position: relative;
+    top: 1px;
+}
+.control-settings .control-reset {
+    margin-top: 10px;
 }
 .control-header {
     background-color: #225;
