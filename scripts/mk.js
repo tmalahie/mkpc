@@ -11485,8 +11485,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	};
 
 	var oScroll = document.createElement("div");
-	// TODO enable maxplayers option oScroll.style.height = ((isOnline ? 24:20)*iScreenScale) +"px";
-	oScroll.style.height = (20*iScreenScale) +"px";
+	oScroll.style.height = ((isOnline ? 24:20)*iScreenScale) +"px";
 	oScroll.style.overflow = "auto";
 
 	var oTable = document.createElement("table");
@@ -11609,8 +11608,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTable.appendChild(oTr);
 
 	var oTr = document.createElement("tr");
-	// TODO enable maxplayers option if (!isOnline) oTr.style.display = "none";
-	oTr.style.display = "none";
+	if (!isOnline) oTr.style.display = "none";
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
 
@@ -11664,8 +11662,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTable.appendChild(oTr);
 
 	var oTr = document.createElement("tr");
-	// TODO enable maxplayers option if (!isOnline) oTr.style.display = "none";
-	oTr.style.display = "none";
+	if (!isOnline) oTr.style.display = "none";
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
 
