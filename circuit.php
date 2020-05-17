@@ -394,6 +394,8 @@ if ($canChange) {
 								echo '&';
 							echo 'mid'. $i .'='. $cupIDs[$i];
 						}
+						if (!empty($cOptions))
+							echo '&opt='. urlencode($cOptions);
 					}
 					elseif ($isCup) {
 						for ($i=0;$i<4;$i++) {
