@@ -58,10 +58,19 @@ function print_forum_msg($message,$mayEdit,$mayQuote=null) {
 		$mayQuote = $mayEdit;
 	echo '<div class="fMessage" data-msg="'. $message['id'] .'">';
 	echo '<div class="mAuteur">';
-	if ($getAuteur = mysql_fetch_array(mysql_query('SELECT j.nom,(r.player IS NOT NULL) AS admin,p.nick_color,j.pts_vs,j.pts_battle,j.deleted FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON j.id=p.id LEFT JOIN `mkrights` r ON j.id=r.player AND r.privilege="admin" WHERE j.id='. $message['auteur']))) {
+	if ($getAuteur = mysql_fetch_array(mysql_query('SELECT j.nom,r.privilege,p.nick_color,j.pts_vs,j.pts_battle,j.deleted FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON j.id=p.id LEFT JOIN `mkrights` r ON j.id=r.player AND r.privilege IN ("admin","moderator","organizer") WHERE j.id='. $message['auteur']))) {
 		$byAuthor = '<strong>'. get_pseudo_bbcolor($getAuteur['nick_color']) .'</strong>';
-		if ($getAuteur['admin'])
+		switch ($getAuteur['privilege']) {
+		case 'admin':
 			$byAuthor .= ' <strong><em>(admin)</em></strong>';
+			break;
+		case 'moderator':
+			$byAuthor .= ' <strong><em>('. ($language ? 'moderator':'modérateur') .')</em></strong>';
+			break;
+		case 'organizer':
+			$byAuthor .= ' <strong><em>('. ($language ? 'animator':'animateur') .')</em></strong>';
+			break;
+		}
 		echo '<div class="mPseudo"><a href="profil.php?id='.$message['auteur'].'" title="'. $getAuteur['nom'] .'">'.$byAuthor.'</a></div>';
 		echo '<a href="profil.php?id='.$message['auteur'].'">';
 		print_avatar($message['auteur'], 100);
