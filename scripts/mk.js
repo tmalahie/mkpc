@@ -16964,8 +16964,11 @@ else {
 		window.addEventListener("keydown", window.fsevent);
 	}
 
-	course = undefined;
-	displayCommands();
+	if (typeof course === 'undefined')
+		course = "";
+	var $commandes = document.getElementById("commandes");
+	if ($commandes && $commandes.innerHTML.length < 10)
+		displayCommands();
 }
 function isMobile() {
 	return navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i);
