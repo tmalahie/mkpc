@@ -138,7 +138,7 @@ if ($isMCup && !isset($trackIDs)) {
 	if (!empty($cupIDs)) {
 		$cupsTracks = array();
 		$cupNamesById = array();
-		$getAllCircuits = mysql_query('SELECT id,nom,circuit0,circuit1,circuit2,circuit3 FROM `mkcups` WHERE id IN ('. implode($cupIDs,',') .') AND mode=0');
+		$getAllCircuits = mysql_query('SELECT id,nom,circuit0,circuit1,circuit2,circuit3 FROM `mkcups` WHERE id IN ('. implode(',',$cupIDs) .') AND mode=0');
 		while ($getCup = mysql_fetch_array($getAllCircuits)) {
 			$cupTracks = array();
 			for ($i=0;$i<4;$i++)
@@ -272,7 +272,7 @@ if ($isCup) {
 		echo 'var ptsGP = "';
 		$ptsGP = array();
 		if (!empty($cupIDs)) {
-			$getScores = mysql_query('SELECT cup,score FROM `mkwins` WHERE cup IN ('. implode($cupIDs,',') .') AND identifiant="'.$identifiants[0].'" AND identifiant2="'.$identifiants[1].'" AND identifiant3="'.$identifiants[2].'" AND identifiant4="'.$identifiants[3].'"');
+			$getScores = mysql_query('SELECT cup,score FROM `mkwins` WHERE cup IN ('. implode(',',$cupIDs) .') AND identifiant="'.$identifiants[0].'" AND identifiant2="'.$identifiants[1].'" AND identifiant3="'.$identifiants[2].'" AND identifiant4="'.$identifiants[3].'"');
 			while ($getScore = mysql_fetch_array($getScores))
 				$ptsGP[$getScore['cup']] = $getScore['score'];
 			foreach ($cupIDs as $i => $cupID)

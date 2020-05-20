@@ -822,7 +822,7 @@ $slidesPath = 'images/slides';
 						else
 							return 'er';
 					}
-					return $res;
+					return $n;
 				}
 				while ($comment = mysql_fetch_array($getComments)) {
 					if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($comment['type']=="mkcircuits") ? ',!type as is_circuit':'') .' FROM `'. $comment['type'] .'` WHERE id='. $comment['circuit'] .' AND nom IS NOT NULL'))) {
@@ -1221,7 +1221,7 @@ var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
 <script async src="scripts/slider.js"></script>
 <script async src="scripts/photoswipe.min.js"></script>
 <script async src="scripts/init-diapos.js"></script>
-<script async src="scripts/sidebars.js?realod=1"></script>
+<script async src="scripts/sidebars.js"></script>
 <script type="text/javascript">
 var last_tz = '<?php echo isset($_COOKIE['tz']) ? addslashes($_COOKIE['tz']):''; ?>';
 </script>

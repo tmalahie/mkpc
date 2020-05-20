@@ -6,6 +6,6 @@
 	<div id="footer_bottom">
 		<div id="footer_left"></div>
 		<div id="footer_right"></div>
-		<table id="footer_center"><tr><td>Mario Kart PC © 2010-<?php echo date('Y'); ?><span id="developer"> | Designed and developed by <a href="https://timothe.malahieude.net">Timothé Malahieude</a> (Wargor)</span></td></tr></table>
+		<table id="footer_center"><tr><td>Mario Kart PC © 2010-<?php echo date('Y'); ?><span id="developer"> | Designed and developed by Wargor</span></td></tr></table>
 	</div>
 </footer>
