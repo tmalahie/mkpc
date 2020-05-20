@@ -62,7 +62,7 @@ if (hasRight('manager')) {
 	elseif (hasRight('moderator'))
 		$roleName = $language ? 'moderator':'modérateur';
 	else
-		$roleName = $language ? 'animator':'animateur';
+		$roleName = $language ? 'event host':'animateur';
 	if ($language) {
 		?>
 		<div class="success">

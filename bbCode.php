@@ -68,7 +68,7 @@ function print_forum_msg($message,$mayEdit,$mayQuote=null) {
 			$byAuthor .= ' <strong><em>('. ($language ? 'moderator':'modérateur') .')</em></strong>';
 			break;
 		case 'organizer':
-			$byAuthor .= ' <strong><em>('. ($language ? 'animator':'animateur') .')</em></strong>';
+			$byAuthor .= ' <strong><em>('. ($language ? 'event&nbsp;host':'animateur') .')</em></strong>';
 			break;
 		}
 		echo '<div class="mPseudo"><a href="profil.php?id='.$message['auteur'].'" title="'. $getAuteur['nom'] .'">'.$byAuthor.'</a></div>';
