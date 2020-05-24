@@ -1022,10 +1022,16 @@ function loadMap() {
 		infoPlace.style.bottom = Math.round(-iScreenScale*3) +"px";
 		infoPlace.style.fontSize = iScreenScale * 10 +"pt";
 		hudScreen.appendChild(infoPlace);
-		document.getElementById("infos"+i).style.left = (10+35*iScreenScale + iScreenMore) +"px";
-		document.getElementById("infos"+i).style.top = 10 + 8 * iScreenScale +"px";
-		document.getElementById("infos"+i).style.fontSize = iScreenScale * 10 +"pt";
-		document.getElementById("infos"+i).innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
+		var oInfos = document.getElementById("infos"+i);
+		if (!oInfos) {
+			oInfos = document.getElementById("infos0").cloneNode(true);
+			oInfos.id = "infos"+i;
+			$mkScreen.appendChild(oInfos);
+		}
+		oInfos.style.left = (10+35*iScreenScale + iScreenMore) +"px";
+		oInfos.style.top = 10 + 8 * iScreenScale +"px";
+		oInfos.style.fontSize = iScreenScale * 10 +"pt";
+		oInfos.innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
 		var oScroller = document.getElementById("scroller").cloneNode(true);
 		oScroller.id = "scroller"+i;
 		oScroller.style.width = iScreenScale * 8 +"px";
@@ -12188,9 +12194,6 @@ function selectNbJoueurs() {
 				var oContainer2 = oContainers[0].cloneNode(false);
 				oContainer2.style.left = (12+iWidth*iScreenScale)+"px";
 				oContainers.push(oContainer2);
-				var oInfo1 = document.getElementById("infos0").cloneNode(true);
-				oInfo1.id = "infos1";
-				$mkScreen.appendChild(oInfo1);
 			}
 			selectPlayerScreen(0);
 		};
