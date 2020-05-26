@@ -20,23 +20,61 @@ include('persos.php');
 <?php
 include('o_online.php');
 ?>
+<style type="text/css">
+.perso-selector {
+	display: inline-block;
+	border-style: solid;
+	border-width: 5px;
+	border-color: transparent;
+}
+.perso-selector:hover {
+	background-color: #90AADD;
+	border-color: #90AADD;
+}
+.perso-selector.perso-selected {
+	background-color: #BDE;
+	border-color: #BDE;
+}
+</style>
 <script type="text/javascript">
-var persoId = -1;
+var persoIds = [];
 var author = "<?php echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;
+function previewPerso(id) {
+	var $myPerso = document.getElementById("myperso-"+id);
+	$myPerso.classList.add("perso-animate");
+	var $myPersoImg = $myPerso.querySelector("img");
+	$myPersoImg.dataset.osrc = $myPersoImg.src;
+	$myPersoImg.src = $myPerso.dataset.sprites;
+}
+function unprevPerso(id) {
+	var $myPerso = document.getElementById("myperso-"+id);
+	$myPerso.classList.remove("perso-animate");
+	var $myPersoImg = $myPerso.querySelector("img");
+	$myPersoImg.src = $myPersoImg.dataset.osrc;
+	$myPersoImg.dataset.osrc = "";
+}
 function selectPerso(id) {
-	if (persoId != -1)
-		document.getElementById("myperso-"+persoId).className = "";
-	if (id == persoId)
-		persoId = -1;
-	else
-		persoId = id;
-	if (persoId != -1) {
-		document.getElementById("myperso-"+persoId).className = "perso-selected";
+	var pid = persoIds.indexOf(id);
+	if (pid != -1) {
+		document.getElementById("myperso-"+id).classList.remove("perso-selected");
+		persoIds.splice(pid,1);
+	}
+	else {
+		document.getElementById("myperso-"+id).classList.add("perso-selected");
+		persoIds.push(id);
+	}
+	var nbPersos = 0;
+	for (var pid in persoIds) {
+		if (lastPersoId != id)
+			lastPersoId = pid;
+		nbPersos++;
+	}
+	if (persoIds.length) {
+		var lastPersoId = persoIds[persoIds.length-1];
 		document.getElementById("perso-options").style.display = "inline-block";
-		var persoData = document.getElementById("myperso-"+persoId).dataset;
+		var persoData = document.getElementById("myperso-"+lastPersoId).dataset;
 		var persoName = persoData.name;
-		currentRating = persoData.rating*1;
 		document.getElementById("perso-options-name").innerHTML = persoName;
 		if (persoData.author)
 			document.getElementById("perso-options-author").innerHTML = (language ? "By":"Par") + " " + persoData.author;
@@ -45,14 +83,16 @@ function selectPerso(id) {
 	}
 	else
 		document.getElementById("perso-options").style.display = "none";
+	document.getElementById("perso-del-nb").innerHTML = persoIds.length;
 }
 function delPerso() {
-	if (confirm(language ? "Delete character?":"Supprimer le perso ?")) {
-		o_xhr("deleteShare.php", "id="+persoId, function(res) {
+	if (confirm(language ? "Confirm deletion of "+ persoIds.length +" characters?":"Confirmer la suppression de "+ persoIds.length +" persos ?")) {
+		o_xhr("deleteShare.php", "ids="+persoIds.join(","), function(res) {
 			if (res == 1) {
-				document.getElementById("myperso-"+persoId).style.display = "none";
+				for (var i=0;i<persoIds.length;i++)
+					document.getElementById("myperso-"+persoIds[i]).style.display = "none";
 				document.getElementById("perso-options").style.display = "none";
-				persoId = -1;
+				persoIds.length = 0;
 				return true;
 			}
 			return false;
@@ -69,24 +109,24 @@ $arePersos = mysql_numrows($getPsersos);
 if ($arePersos) {
 	?>
 	<h1><?php echo $language ? 'Delete character shares':'Supprimer des partages de persos'; ?></h1>
-	<div class="mypersos">
+	<div id="perso-options" style="min-width: 150px">
+		<div id="perso-options-name" style="margin-bottom: 2px"></div>
+		<div id="perso-options-author"></div>
+		<div class="perso-options-delete">
+			<button class="suppr-perso" onclick="javascript:delPerso()"><?php echo $language ? 'Delete [<span id="perso-del-nb">0</span>]':'Supprimer [<span id="perso-del-nb">0</span>]'; ?></button>
+		</div>
+	</div>
 	<div class="mypersos-list">
 	<?php
 	while ($perso = mysql_fetch_array($getPsersos)) {
 		$spriteSrcs = get_sprite_srcs($perso['sprites']);
 		?>
-		<img src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($perso['name']); ?>" id="myperso-<?php echo $perso['id']; ?>" onclick="selectPerso(<?php echo $perso['id']; ?>)" data-name="<?php echo htmlspecialchars($perso['name']); ?>" data-rating="<?php echo htmlspecialchars($perso['rating']); ?>" data-author="<?php echo htmlspecialchars($perso['author']); ?>" />
+		<div id="myperso-<?php echo $perso['id']; ?>" class="perso-selector" onmouseover="previewPerso(<?php echo $perso['id']; ?>)" onmouseout="unprevPerso(<?php echo $perso['id']; ?>)" onclick="selectPerso(<?php echo $perso['id']; ?>)" data-name="<?php echo htmlspecialchars($perso['name']); ?>" data-author="<?php echo htmlspecialchars($perso['author']); ?>" data-sprites="<?php echo $spriteSrcs['hd']; ?>">
+			<img src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($perso['name']); ?>" loading="lazy" />
+		</div>
 		<?php
 	}
 	?>
-	</div>
-	</div>
-	<div id="perso-options" style="min-width: 150px">
-		<div id="perso-options-name" style="margin-bottom: 2px"></div>
-		<div id="perso-options-author"></div>
-		<div class="perso-options-delete">
-			<button class="suppr-perso" onclick="javascript:delPerso()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
-		</div>
 	</div>
 	</div>
 	<?php
