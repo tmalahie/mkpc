@@ -5752,6 +5752,15 @@ var decorBehaviors = {
 		movable:true,
 		rotatable:true,
 		dodgable:true,
+		preinit:function(decorsData) {
+			for (var i=0;i<decorsData.length;i++) {
+				var decorData = decorsData[i];
+				if (decorData[5] == undefined) {
+					var decorParams = getDecorParams("truck",i);
+					decorData[5] = decorParams.traject;
+				}
+			}
+		},
 		init:function(decorData) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 22;
@@ -5765,7 +5774,8 @@ var decorBehaviors = {
 			if (!decorData[6]) {
 				var minDist = Infinity;
 				var initialK = (decorData[5] != undefined);
-				decorData[5] = 0;
+				if (!initialK)
+					decorData[5] = 0;
 				decorData[6] = 0;
 				for (var k=0;k<extraParams.path.length;k++) {
 					if (initialK && (k != decorData[5]))
@@ -5785,10 +5795,8 @@ var decorBehaviors = {
 			var aipoints = extraParams.path[decorData[5]];
 			if (aipoints.length < 2) {
 				if (!aipoints.length)
-					aipoints = [oMap.startposition];
-				else
-					aipoints = aipoint.slice(0);
-				aipoints.push([aipoints[0][0]+1,aipoints[0][1]+1]);
+					aipoints = [[decorData[0],decorData[1]]];
+				aipoints.push([aipoints[0][0]+0.001,aipoints[0][1]+0.001]);
 				extraParams.path[decorData[5]] = aipoints;
 			}
 			var aipoint = aipoints[decorData[6]];

@@ -86,8 +86,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	}
 	if (circuitData)
 		restoreData(circuitData);
-	//document.getElementById('mode').value = "mobiles";
+	//document.getElementById('mode').value = "decor";
 	selectMode(document.getElementById('mode').value);
+	//document.getElementById("decor-selector").setValue("truck");
+	//decorChange();
 });
 var zoomLevel = 1;
 var zoomLevels = [0.25,0.3,0.4,0.5,0.6,0.75,0.9,1,1.1,1.25,1.5,2,3,4,6,8,10,15];
@@ -843,14 +845,26 @@ function replaceNodeType(editorTool) {
 	}
 }
 function decorChange(e) {
-	var editorTool = editorTools[currentMode];
 	selectMode(currentMode);
 }
-function trajectChange(value) {
+function trajectChange(value,key) {
 	if (value != -1)
 		selectMode(currentMode);
 	else
-		showTrajectOptions();
+		showTrajectOptions(key);
+}
+function currentTrajectChange(value) {
+	editorTools[currentMode].state.currentTraject = +value;
+}
+function manageBusTrajects() {
+	document.getElementById("decor-option-truck").classList.remove("decor-option-bus-decors");
+	document.getElementById("decor-option-truck").classList.add("decor-option-bus-trajects");
+	selectMode(currentMode);
+}
+function manageBusDecor() {
+	document.getElementById("decor-option-truck").classList.remove("decor-option-bus-trajects");
+	document.getElementById("decor-option-truck").classList.add("decor-option-bus-decors");
+	selectMode(currentMode);
 }
 function offroadChange(value) {
 	if (value != -1)
@@ -1026,10 +1040,6 @@ function createCircle(point,append) {
 	if (append !== false)
 		$editor.appendChild(res);
 	return res;
-}
-function setCirclePos(circle,data) {
-	circle.setAttribute("cx", data.x);
-	circle.setAttribute("cy", data.y);
 }
 function setCircleBounds(circle,data) {
 	setCirclePos(circle,data);
@@ -1492,6 +1502,90 @@ function appendRectangleBuilder(self,point) {
 	delete self.state.options;
 	options.on_apply(rectangle,data,point);
 }
+function initRouteSelector($traject,nbRoutes) {
+	for (var i=0;i<nbRoutes;i++) {
+		var $trajectOption = document.createElement("option");
+		$trajectOption.value = i;
+		$trajectOption.innerHTML = (language ? "Route":"Trajet")+" "+(i+1);
+		$traject.appendChild($trajectOption);
+	}
+	var $trajectOption = document.createElement("option");
+	$trajectOption.value = -1;
+	$trajectOption.className = "special-option";
+	$trajectOption.innerHTML = (language ? "More...":"Plus...");
+	$traject.appendChild($trajectOption);
+	$traject.selectedIndex = 0;
+}
+function initRouteBuilder(self,data,traject) {
+	self.state.point = createCircle({x:-1,y:-1,r:0.5});
+	self.state.point.classList.add("noclick");
+	self.state.traject = traject;
+	var oldData = data[traject];
+	data[traject] = {points:[],closed:false};
+	self.state.data = data[traject];
+	if (oldData) {
+		for (var i=0;i<oldData.points.length;i++)
+			self.click(self,oldData.points[i],{});
+		if (oldData.closed)
+			self.state.nodes[0].circle.onclick();
+	}
+}
+function appendRouteBuilder(self,point,extra) {
+	var polygon = self.state.polygon;
+	var selfData = self.state.data;
+	var selfPoints = selfData.points;
+	if (polygon) {
+		storeHistoryData(self.data);
+		selfPoints.push(point);
+		appendPolygonBuilder(self,point);
+	}
+	else if (selfData.closed) {
+		var i = self.state.movingNode;
+		if (i !== undefined) {
+			$toolbox.classList.remove("hiddenbox");
+			self.move(self,point,extra);
+			selfData.points[i] = point;
+			$editor.removeChild(self.state.mask);
+			delete self.state.movingNode;
+		}
+	}
+	else {
+		if (!extra.oob) {
+			storeHistoryData(self.data);
+			selfPoints.push(point);
+			startPolygonBuilder(self,point, {
+				min_points: 1,
+				hollow: true,
+				allow_undos: true,
+				custom_undos: true,
+				keep_nodes: true,
+				keep_box: true,
+				on_apply: function(polygon,points) {
+					$editor.removeChild(polygon);
+					self.state.polygon = null;
+					selfData.closed = true;
+					createPolyline(self,points);
+				}
+			});
+		}
+	}
+}
+function moveRouteBuilder(self,point,extra) {
+	if (self.state.data.closed) {
+		var i = self.state.movingNode;
+		if (i !== undefined) {
+			self.state.nodes[i].move(point);
+			var lines = self.state.lines;
+			var line1 = lines[(i+lines.length-1)%lines.length], line2 = lines[i];
+			line1.setAttribute("x2", point.x);
+			line1.setAttribute("y2", point.y);
+			line2.setAttribute("x1", point.x);
+			line2.setAttribute("y1", point.y);
+		}
+	}
+	else
+		movePolygonBuilder(self,point);
+}
 function startCircleBuilder(self,point,options) {
 	self.state.origin = point;
 	self.state.circle = createCircle({x:point.x,y:point.y,r:0});
@@ -1695,9 +1789,9 @@ function setPointPos(point,data) {
 	point.setAttribute("x", data.x);
 	point.setAttribute("y", data.y);
 }
-function setCirclePos(point,data) {
-	point.setAttribute("cx", data.x);
-	point.setAttribute("cy", data.y);
+function setCirclePos(circle,data) {
+	circle.setAttribute("cx", data.x);
+	circle.setAttribute("cy", data.y);
 }
 function setNodePos(point,data) {
 	if (point.tagName == "circle")
@@ -2163,7 +2257,24 @@ function initTrajectOptions() {
 	document.getElementById("traject-copy").style.display = "none";
 	document.getElementById("traject-less").style.display = "none";
 }
-function showTrajectOptions() {
+function getTrajectData(editorTool,key) {
+	var editorTool = editorTools[currentMode];
+	switch (key) {
+		case "aipoints":
+			return editorTool.data;
+		case "bus":
+			return editorTool.data.extra.truck.route;
+	}
+}
+function getTrajectSelector(key) {
+	switch (key) {
+		case "aipoints":
+			return document.getElementById("traject");
+		case "bus":
+			return document.getElementById("decor-bus-traject");
+	}
+}
+function showTrajectOptions(key) {
 	var $trajectOptions = document.getElementById("traject-options");
 	document.body.removeChild($trajectOptions);
 	var $mask = createMask();
@@ -2171,30 +2282,41 @@ function showTrajectOptions() {
 	$mask.classList.add("mask-dark");
 	$mask.appendChild($trajectOptions);
 	$trajectOptions.classList.add("fs-shown");
+	var $trajectSpecific = $trajectOptions.querySelectorAll(".traject-specific");
+	for (var i=0;i<$trajectSpecific.length;i++)
+		$trajectSpecific[i].style.display = "none";
+	$trajectSpecific = $trajectOptions.querySelectorAll(".traject-specific-"+key);
+	for (var i=0;i<$trajectSpecific.length;i++)
+		$trajectSpecific[i].style.display = "block";
 	$mask.close = function() {
 		$mask.removeChild($trajectOptions);
 		$trajectOptions.classList.remove("fs-shown");
 		document.body.appendChild($trajectOptions);
 		this.defaultClose();
 	};
+	$trajectOptions.dataset.key = key;
 	var editorTool = editorTools[currentMode];
-	var maxCp = editorTool.data.length;
+	var trajectData = getTrajectData(editorTool,key);
+	var maxCp = trajectData.length;
 	initTrajectOptions();
-	var $links = document.getElementById("traject-menu").getElementsByTagName("a");
+	var $links = $trajectOptions.querySelectorAll("#traject-menu a");
 	$links[0].style.display = (maxCp<7) ? "block":"none";
 	$links[1].style.display = (maxCp>1) ? "block":"none";
 	$links[2].style.display = (maxCp>1) ? "block":"none";
-	document.getElementById("traject").selectedIndex = editorTool.state.traject;
+	getTrajectSelector(key).selectedIndex = editorTool.state.traject;
 }
 function closeTrajectOptions() {
-	document.getElementById('mask-traject').close();
+	var $mask = document.getElementById('mask-traject');
+	if ($mask)
+		$mask.close();
 }
 function showTrajectAdd() {
+	var key = document.getElementById("traject-options").dataset.key;
 	document.getElementById("traject-menu").style.display = "none";
 	document.getElementById("traject-more").style.display = "block";
 	var $trajectList = document.getElementById("traject-more-list");
 	var editorTool = editorTools[currentMode];
-	var maxCp = editorTool.data.length;
+	var maxCp = getTrajectData(editorTool,key).length;
 	$trajectList.innerHTML = "";
 	var $noTraject = document.createElement("option");
 	$noTraject.value = -1;
@@ -2206,18 +2328,23 @@ function showTrajectAdd() {
 		$iTraject.innerHTML = (language ? 'Route':'Trajet') +" "+ (i+1);
 		$trajectList.appendChild($iTraject);
 	}
-	$trajectList.selectedIndex = editorTool.state.traject;
+	switch (key) {
+	case "aipoints":
+		$trajectList.selectedIndex = editorTool.state.traject+1;
+	}
 }
 function addTraject() {
+	var key = document.getElementById("traject-options").dataset.key;
 	var $trajectList = document.getElementById("traject-more-list");
 	var trajectVal = +$trajectList.value;
 	var editorTool = editorTools[currentMode];
-	var maxCp = editorTool.data.length;
+	var trajectData = getTrajectData(editorTool,key);
+	var maxCp = trajectData.length;
 	if (trajectVal != -1)
-		editorTool.data.push(deepCopy(editorTool.data[trajectVal]));
+		trajectData.push(deepCopy(trajectData[trajectVal]));
 	else
-		editorTool.data.push({points:[],closed:false});
-	var $trajectSelector = document.getElementById("traject");
+		trajectData.push({points:[],closed:false});
+	var $trajectSelector = getTrajectSelector(key);
 	var $trajectOption = document.createElement("option");
 	$trajectOption.value = maxCp;
 	$trajectOption.innerHTML = (language ? 'Route':'Trajet') +' '+ (maxCp+1);
@@ -2227,12 +2354,13 @@ function addTraject() {
 	closeTrajectOptions();
 }
 function showTrajectCopy() {
+	var key = document.getElementById("traject-options").dataset.key;
 	document.getElementById("traject-menu").style.display = "none";
 	document.getElementById("traject-copy").style.display = "block";
 	var $trajectFrom = document.getElementById("copyFrom");
 	var $trajectTo = document.getElementById("copyTo");
 	var editorTool = editorTools[currentMode];
-	var maxCp = editorTool.data.length;
+	var maxCp = getTrajectData(editorTool,key).length;
 	$trajectFrom.innerHTML = "";
 	$trajectTo.innerHTML = "";
 	for (var i=0;i<maxCp;i++) {
@@ -2254,18 +2382,21 @@ function copyTraject() {
 	var m1 = +$trajectFrom.value;
 	var m2 = +$trajectTo.value;
 	if (m1 != m2) {
+		var key = document.getElementById("traject-options").dataset.key;
 		var editorTool = editorTools[currentMode];
-		editorTool.data[m2] = deepCopy(editorTool.data[m1]);
+		var trajectData = getTrajectData(editorTool,key);
+		trajectData[m2] = deepCopy(trajectData[m1]);
 		selectMode(currentMode);
 	}
 	closeTrajectOptions();
 }
 function showTrajectRemove() {
+	var key = document.getElementById("traject-options").dataset.key;
 	document.getElementById("traject-menu").style.display = "none";
 	document.getElementById("traject-less").style.display = "block";
 	var $trajectList = document.getElementById("traject-less-list");
 	var editorTool = editorTools[currentMode];
-	var maxCp = editorTool.data.length;
+	var maxCp = getTrajectData(editorTool,key).length;
 	$trajectList.innerHTML = "";
 	for (var i=0;i<maxCp;i++) {
 		var $iTraject = document.createElement("option");
@@ -2276,12 +2407,27 @@ function showTrajectRemove() {
 	$trajectList.selectedIndex = editorTool.state.traject;
 }
 function removeTraject() {
+	var key = document.getElementById("traject-options").dataset.key;
 	var $trajectList = document.getElementById("traject-less-list");
 	var trajectVal = +$trajectList.value;
 	var editorTool = editorTools[currentMode];
-	var maxCp = editorTool.data.length;
-	editorTool.data.splice(trajectVal,1);
-	var $trajectSelector = document.getElementById("traject");
+	var trajectData = getTrajectData(editorTool,key);
+	var maxCp = trajectData.length;
+	trajectData.splice(trajectVal,1);
+	switch (key) {
+	case "bus":
+		var selfData = editorTool.data.decors.truck;
+		for (var i=0;i<selfData.length;i++) {
+			var decor = selfData[i];
+			if (decor.traject >= trajectVal) {
+				decor.traject--;
+				if (decor.traject < 0)
+					decor.traject = 0;
+			}
+		}
+		break;
+	}
+	var $trajectSelector = getTrajectSelector(key);
 	$trajectSelector.removeChild($trajectSelector.childNodes[maxCp]);
 	if (trajectVal <= editorTool.state.traject) {
 		editorTool.state.traject--;
@@ -2801,6 +2947,55 @@ function restoreData(payload) {
 	}
 }
 var commonTools = {
+	"aipoints": {
+		"init" : function(self) {
+			self.data = [{points:[],closed:false}];
+			initRouteSelector(document.getElementById("traject"),1);
+		},
+		"resume" : function(self) {
+			var traject = +document.getElementById("traject").value;
+			initRouteBuilder(self,self.data,traject);
+		},
+		"click" : function(self,point,extra) {
+			appendRouteBuilder(self,point,extra);
+		},
+		"move" : function(self,point,extra) {
+			moveRouteBuilder(self,point,extra);
+		},
+		"round_on_pixel" : function(self) {
+			return true;
+		},
+		"save" : function(self,payload) {
+			payload.main.aiclosed = [];
+			payload.aipoints = [];
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				payload.main.aiclosed.push(iData.closed ? 1:0);
+				payload.aipoints.push(polyToData(iData.points));
+			}
+		},
+		"restore" : function(self,payload) {
+			currentMode = "aipoints";
+			document.getElementById("traject-options").dataset.key = "aipoints";
+			for (var i=1;i<payload.aipoints.length;i++)
+				addTraject();
+			document.getElementById("traject").selectedIndex = 0;
+			for (var i=0;i<payload.aipoints.length;i++)
+				self.data[i] = {closed:payload.main.aiclosed[i]==1,points:dataToPoly(payload.aipoints[i])};
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++)
+				rescalePoly(self.data[i].points, scale);
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++)
+				rotatePoly(self.data[i].points, imgSize,orientation);
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++)
+				flipPoly(self.data[i].points, imgSize,axis);
+		}
+	},
 	"walls": {
 		"resume" : function(self) {
 			self.state.point = createRectangle({x:-1,y:-1});
@@ -3543,7 +3738,7 @@ var commonTools = {
 	},
 	"decor": {
 		"init" : function(self) {
-			self.data = {};
+			self.data = {decors:{},extra:{}};
 		},
 		"resume" : function(self) {
 			self.state.boxSize = {w:8,h:8};
@@ -3553,18 +3748,87 @@ var commonTools = {
 			var autoSelectType;
 			if (!type) {
 				autoSelectType = true;
-				for (type in self.data)
+				for (type in self.data.decors)
 					;
 			}
 			else
 				autoSelectType = false;
+			var $decorOptionSelected = document.querySelector("#decor-options > .decor-option-selected");
+			if ($decorOptionSelected) $decorOptionSelected.classList.remove("decor-option-selected");
 			if (type) {
-				var decorsData = self.data[type];
-				self.data[type] = [];
 				self.state.type = type;
-				if (decorsData) {
+				switch (type) {
+				case "truck":
+					if (!self.data.extra.truck) {
+						self.data.extra.truck = {
+							"route": [{points:[],closed:false}]
+						};
+						initRouteSelector(document.getElementById("decor-bus-traject"),1);
+					}
+					self.state.selectedTool = 0;
+					if (document.getElementById("decor-option-truck").className === "decor-option-bus-trajects") {
+						self.data.extra.truck.helped = true;
+						self.state.selectedTool = 1;
+					}
+					self.state.helped = self.data.extra.truck.helped;
+					self.state.route = [];
+					var routeData = self.data.extra.truck.route;
+					if (self.state.selectedTool == 0) {
+						self.state.currentTraject = 0;
+						var $currentTrajectSelector = document.getElementById("decor-bus-currenttraject");
+						$currentTrajectSelector.innerHTML = "";
+						for (var i=0;i<routeData.length;i++) {
+							var $currentTrajectOption = document.createElement("option");
+							$currentTrajectOption.value = i;
+							$currentTrajectOption.innerHTML = (i+1);
+							$currentTrajectSelector.appendChild($currentTrajectOption);
+						}
+					}
+					if ((routeData.length == 1) && !routeData[0].length && !self.state.helped) {
+						setTimeout(function() {
+							var oHelp = document.createElement("div");
+							oHelp.className = "help-balloon";
+							var oHelpClose = document.createElement("a");
+							oHelpClose.href = "#null";
+							oHelpClose.innerHTML = "&times;";
+							oHelp.close = function() {
+								document.body.removeChild(oHelp);
+								document.getElementById("mode-option-decor").removeEventListener("click", oHelp.close);
+							};
+							oHelpClose.onclick = function() {
+								oHelp.close();
+								self.state.helped = true;
+								self.data.extra.truck.helped = true;
+								return false;
+							};
+							oHelp.appendChild(oHelpClose);
+							var oHelpMsg = document.createElement("div");
+							oHelpMsg.innerHTML = language ? "You can manage bus routes here":"Vous pouvez gérer les trajets des bus ici";
+							var $manageRouteLink = document.querySelector("#decor-bus-decors");
+							var routeLinkRect = $manageRouteLink.getBoundingClientRect();
+							oHelp.style.left = Math.round(routeLinkRect.left + (routeLinkRect.width-150)/2) +"px";
+							oHelp.style.top = (routeLinkRect.bottom+5) +"px";
+							oHelp.appendChild(oHelpMsg);
+							document.body.appendChild(oHelp);
+							document.getElementById("mode-option-decor").addEventListener("click", oHelp.close);
+						}, 1);
+					}
+					if (self.state.selectedTool == 1) {
+						var traject = +document.getElementById("decor-bus-traject").value;
+						initRouteBuilder(self,routeData,traject);
+					}
+					break;
+				}
+				if (self.state.traject === undefined) {
+					var decorsData = self.data.decors[type]||[];
+					self.data.decors[type] = [];
 					for (var i=0;i<decorsData.length;i++) {
 						var decorData = decorsData[i];
+						switch (type) {
+						case "truck":
+							self.state.currentTraject = decorData.traject;
+							break;
+						}
 						self.click(self,decorData.pos,{});
 						switch (type) {
 						case "cannonball":
@@ -3575,9 +3839,11 @@ var commonTools = {
 							break;
 						}
 					}
-					if (autoSelectType)
-						document.getElementById("decor-selector").setValue(type);
 				}
+				if (autoSelectType)
+					document.getElementById("decor-selector").setValue(type);
+				var $decorOption = document.getElementById("decor-option-"+type);
+				if ($decorOption) $decorOption.classList.add("decor-option-selected");
 			}
 		},
 		"click" : function(self,point,extra) {
@@ -3586,13 +3852,18 @@ var commonTools = {
 			if (!self.state.type)
 				alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
 			self.move(self,point,extra);
-			storeHistoryData(self.data);
+			if (self.state.traject === undefined)
+				storeHistoryData(self.data);
 			var over = true;
-			var typeData = self.data[self.state.type];
+			var typeData = self.data.decors[self.state.type];
 			var decorData;
 			if (self.state.arrow) {
 				decorData = typeData[typeData.length-1];
 				decorData.dir = {x:point.x-decorData.pos.x,y:point.y-decorData.pos.y};
+			}
+			else if (self.state.traject !== undefined) {
+				appendRouteBuilder(self,point,extra);
+				over = false;
 			}
 			else {
 				decorData = {pos:point};
@@ -3607,6 +3878,8 @@ var commonTools = {
 						arrow.lines[i].classList.add("noclick");
 					self.state.arrow = arrow;
 					break;
+				case "truck":
+					decorData.traject = self.state.currentTraject;
 				}
 			}
 			if (over) {
@@ -3646,6 +3919,18 @@ var commonTools = {
 							}
 						});
 					}
+					else if (decorData.traject !== undefined) {
+						menuOptions.splice(1,0, {
+							text: (language ? "Route...":"Trajet..."),
+							click: function() {
+								var newTraject = prompt(language ? "Edit route number:":"Modifier n° trajet :", 1+decorData.traject)-1;
+								if ((newTraject != decorData.traject) && (newTraject >= 0) && (newTraject < self.data.extra.truck.route.length)) {
+									storeHistoryData(self.data);
+									decorData.traject = newTraject;
+								}
+							}
+						});
+					}
 					return showContextOnElt(e,box,menuOptions);
 				};
 				self.state.point = createBox(self.state.boxSize);
@@ -3658,16 +3943,24 @@ var commonTools = {
 		},
 		"move" : function(self,point,extra) {
 			if (self.state.arrow) {
-				var typeData = self.data[self.state.type];
+				var typeData = self.data.decors[self.state.type];
 				var decorPos = typeData[typeData.length-1].pos;
 				var dir = {x:point.x-decorPos.x,y:point.y-decorPos.y};
 				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength,self._arrowOriginCenter(self.state.type));
 			}
+			else if (self.state.traject !== undefined) {
+				moveRouteBuilder(self,point,extra);
+			}
 			else
 				setBoxPos(self.state.point,point,self.state.boxSize);
 		},
+		"round_on_pixel" : function(self) {
+			if (self.state.traject !== undefined)
+				return true;
+			return false;
+		},
 		"save" : function(self,payload) {
-			var selfData = self.data;
+			var selfData = self.data.decors;
 			payload.decor = {};
 			payload.decorparams = {};
 			var isDecorData = false;
@@ -3684,6 +3977,9 @@ var commonTools = {
 						case "fire3star":
 							var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
 							payload.decorparams[type].push({dir:isNaN(dir)?0:dir});
+							break;
+						case "truck":
+							payload.decorparams[type].push({traject:decorsData[i].traject||0});
 						}
 					}
 					if (payload.decorparams[type].length)
@@ -3692,11 +3988,28 @@ var commonTools = {
 						delete payload.decorparams[type];
 				}
 			}
+			if (self.data.extra.truck) {
+				var busData = self.data.extra.truck.route;
+				if ((busData.length != 1) || busData[0].points.length) {
+					isDecorData = true;
+					payload.decorparams.extra = {
+						truck: {
+							path: [],
+							closed: []
+						},
+					};
+					var busPayload = payload.decorparams.extra.truck;
+					for (var i=0;i<busData.length;i++) {
+						busPayload.path.push(polyToData(busData[i].points));
+						busPayload.closed.push(busData[i].closed ? 1:0);
+					}
+				}
+			}
 			if (!isDecorData)
 				delete payload.decorparams;
 		},
 		"restore" : function(self,payload) {
-			var selfData = self.data;
+			var selfData = self.data.decors;
 			for (var type in payload.decor) {
 				selfData[type] = [];
 				var decorsPayload = payload.decor[type];
@@ -3711,13 +4024,26 @@ var commonTools = {
 					case "fire3star":
 						var dir = decorParams.dir || 0;
 						decorData.dir = {x:Math.sin(dir),y:Math.cos(dir)};
+						break;
+					case "truck":
+						decorData.traject = decorParams.traject || 0;
 					}
 					selfData[type].push(decorData);
 				}
 			}
+			if (payload.decorparams && payload.decorparams.extra) {
+				var payloadExtra = payload.decorparams.extra;
+				var selfExtra = self.data.extra;
+				if (payloadExtra.truck) {
+					selfExtra.truck = {route:[]};
+					for (var i=0;i<payloadExtra.truck.path.length;i++)
+						selfExtra.truck.route.push({points:dataToPoly(payloadExtra.truck.path[i]),closed:payloadExtra.truck.closed[i]});
+				}
+				initRouteSelector(document.getElementById("decor-bus-traject"),payloadExtra.truck.path.length);
+			}
 		},
 		"rescale" : function(self, scale) {
-			var selfData = self.data;
+			var selfData = self.data.decors;
 			for (var type in selfData) {
 				var decorsData = selfData[type];
 				for (var i=0;i<decorsData.length;i++) {
@@ -3725,9 +4051,14 @@ var commonTools = {
 					rescaleNullableDir(decorsData[i].dir, scale);
 				}
 			}
+			if (self.data.extra.truck) {
+				var busData = self.data.extra.truck.route;
+				for (var i=0;i<busData.length;i++)
+					rescalePoly(busData[i].points, scale);
+			}
 		},
 		"rotate" : function(self, orientation) {
-			var selfData = self.data;
+			var selfData = self.data.decors;
 			for (var type in selfData) {
 				var decorsData = selfData[type];
 				for (var i=0;i<decorsData.length;i++) {
@@ -3735,9 +4066,14 @@ var commonTools = {
 					rotateNullableDir(decorsData[i].dir, orientation);
 				}
 			}
+			if (self.data.extra.truck) {
+				var busData = self.data.extra.truck.route;
+				for (var i=0;i<busData.length;i++)
+					rotatePoly(busData[i].points, imgSize,orientation);
+			}
 		},
 		"flip" : function(self, axis) {
-			var selfData = self.data;
+			var selfData = self.data.decors;
 			for (var type in selfData) {
 				var decorsData = selfData[type];
 				for (var i=0;i<decorsData.length;i++) {
@@ -3745,6 +4081,16 @@ var commonTools = {
 					flipNullableDir(decorsData[i].dir, axis);
 				}
 			}
+			if (self.data.extra.truck) {
+				var busData = self.data.extra.truck.route;
+				for (var i=0;i<busData.length;i++)
+					flipPoly(busData[i].points, imgSize,axis);
+			}
+		},
+		"exit": function(self) {
+			var $helpBalloons = document.querySelectorAll(".help-balloon");
+			for (var i=0;i<$helpBalloons.length;i++)
+				$helpBalloons[i].close();
 		}
 	},
 	"options": {
@@ -4014,8 +4360,8 @@ var commonTools = {
 			}
 		},
 		"round_on_pixel" : function(self) {
-			var seelctedType = self.state.respawnShape ? self.state.respawnShape.data.type : self.state.shape;
-			return (seelctedType == "polygon");
+			var selectedType = self.state.respawnShape ? self.state.respawnShape.data.type : self.state.shape;
+			return (selectedType == "polygon");
 		},
 		"save" : function(self,payload) {
 			if (self.data.length) {

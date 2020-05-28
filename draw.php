@@ -63,6 +63,7 @@ if (isset($_GET['i'])) {
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
+		include('circuitModes.php');
 		?>
 		<div id="toolbox">
 			<div id="mode-selection">
@@ -97,7 +98,7 @@ if (isset($_GET['i'])) {
 					</div>
 				</div>
 				<div id="mode-option-aipoints">
-					<select name="traject" id="traject" onchange="trajectChange(this.value)">
+					<select name="traject" id="traject" onchange="trajectChange(this.value,'aipoints')">
 					</select>
 				</div>
 				<div id="mode-option-walls">
@@ -154,17 +155,7 @@ if (isset($_GET['i'])) {
 					<input type="text" id="boost-w" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />&times;<input type="text" id="boost-h" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />
 				</div>
 				<div id="mode-option-decor">
-					Type:
-					<div class="radio-selector" id="decor-selector" data-change="decorChange">
-						<?php
-						require_once('circuitDecors.php');
-						foreach ($decors as $i=>$decorNames) {
-							if ($i) echo '<br />';
-							foreach ($decorNames as $decorName=>$title)
-								echo '<button value="'.$decorName.'" class="radio-button radio-button-25 radio-button-decor button-img'.($title ? ' fancy-title':'').'" style="background-image:url(\'images/map_icons/'.$decorName.'.png?reload=1\')"'.($title ? ' title="'.$title.'"':'').'></button>';
-						}
-						?>
-					</div>
+					<?php printModeDecor(); ?>
 				</div>
 				<div id="mode-option-cannons">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
@@ -230,6 +221,7 @@ if (isset($_GET['i'])) {
 			</div>
 			<div class="traject-info">
 				<div id="traject-menu">
+					<div class="traject-specific traject-specific-aipoints">
 					<?php
 					echo $language ? 'This menu allows you to create several routes,
 									  thus add diversity in CPUs behaviour.<br />
@@ -242,6 +234,23 @@ if (isset($_GET['i'])) {
 									  Si vous avez spécifié 2 trajets par exemple,
 									  la moitié des ordis prendront le 1<sup>er</sup> trajet, et l\'autre motié le 2<sup>e</sup>.<br />
 									  Vous pouvez indiquer jusqu\'à 7 trajets.';
+					?>
+					</div>
+					<div class="traject-specific traject-specific-bus">
+					<?php
+					echo $language ? 'This menu allows you to create several routes
+									  for the bus trajects.<br />
+									  For example, if you want some bus to go in one way
+									  and the other ones to go the other way, you\'ll define
+									  2 routes, one for each way.'
+								   : 'Ce menu vous permet de créer plusieurs trajets différents
+									  pour définir les trajets des bus.<br />
+									  Par exemple, si vous voulez que certains bus aillent dans	 
+									  un sens et que d\'autres aillent dans l\'autre sens,
+									  vous allez définir 2 trajets, un pour chaque sens.<br />';
+					?>
+					</div>
+					<?php
 					echo '<div class="traject-manage">';
 					echo '<a href="javascript:showTrajectAdd()">'. ($language ? 'Add a route':'Ajouter un trajet') .'</a>';
 					echo '<a href="javascript:showTrajectCopy()">'. ($language ? 'Copy a route':'Copier un trajet') .'</a>';

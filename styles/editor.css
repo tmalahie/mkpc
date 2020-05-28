@@ -27,8 +27,6 @@ body.theme-dark.setting-preview {
 	margin-right: auto;
 	text-align: center;
 }
-.editor-description {
-}
 .editor-section h2 {
 	margin: 5px auto;
 }
@@ -339,6 +337,44 @@ body.theme-dark {
 }
 #mode-options > .mode-option-selected {
 	display: block;
+}
+#decor-options > * {
+	display: none;
+}
+#decor-options > .decor-option-selected {
+	display: block;
+}
+#decor-bus-decors label {
+	display: block;
+}
+#decor-bus-decors img {
+	height: 1em;
+	position: relative;
+	margin-right: 0.1em;
+	top: 0.15em;
+}
+#decor-bus-decors, #decor-bus-trajects {
+	font-size: 0.75em;
+}
+.decor-option-bus-decors #decor-bus-trajects {
+	display: none;
+}
+.decor-option-bus-trajects #decor-bus-decors {
+	display: none;
+}
+.help-balloon {
+	position: fixed;
+	background-color: #BCF;
+	background-color: rgba(230,255,255, 0.85);
+	color: #058;
+	font-size: 0.9em;
+	max-width: 150px;
+	text-align: center;
+}
+.help-balloon a {
+	float: right;
+	text-decoration: none;
+	padding-right: 5px;
 }
 #toolbox select, #toolbox button {
 	font-size: 1em;

@@ -64,6 +64,7 @@ if (isset($_GET['i'])) {
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
+		include('circuitModes.php');
 		?>
 		<div id="toolbox">
 			<div id="mode-selection">
@@ -120,17 +121,7 @@ if (isset($_GET['i'])) {
 					<input type="text" id="boost-w" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />&times;<input type="text" id="boost-h" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />
 				</div>
 				<div id="mode-option-decor">
-					Type:
-					<div class="radio-selector" id="decor-selector" data-change="decorChange">
-						<?php
-						require_once('circuitDecors.php');
-						foreach ($decors as $i=>$decorNames) {
-							if ($i) echo '<br />';
-							foreach ($decorNames as $decorName=>$title)
-								echo '<button value="'.$decorName.'" class="radio-button radio-button-25 radio-button-decor button-img'.($title ? ' fancy-title':'').'" style="background-image:url(\'images/map_icons/'.$decorName.'.png?reload=1\')"'.($title ? ' title="'.$title.'"':'').'></button>';
-						}
-						?>
-					</div>
+					<?php printModeDecor(); ?>
 				</div>
 				<div id="mode-option-cannons">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
@@ -189,6 +180,104 @@ if (isset($_GET['i'])) {
 				<a href="javascript:showHelp()"><?php echo $language ? 'Help':'Aide'; ?></a>
 				<a href="course.php"><?php echo $language ? 'Back':'Retour'; ?></a>
 			</div>
+		</div>
+		<div id="traject-options" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeTrajectOptions()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div class="traject-info">
+				<div id="traject-menu">
+					<?php
+					echo $language ? 'This menu allows you to create several routes
+									  for the bus trajects.<br />
+									  For example, if you want some bus to go in one way
+									  and the other ones to go the other way, you\'ll define
+									  2 routes, one for each way.'
+								   : 'Ce menu vous permet de créer plusieurs trajets différents
+									  pour définir les trajets des bus.<br />
+									  Par exemple, si vous voulez que certains bus aillent dans	 
+									  un sens et que d\'autres aillent dans l\'autre sens,
+									  vous allez définir 2 trajets, un pour chaque sens.<br />';
+					echo '<div class="traject-manage">';
+					echo '<a href="javascript:showTrajectAdd()">'. ($language ? 'Add a route':'Ajouter un trajet') .'</a>';
+					echo '<a href="javascript:showTrajectCopy()">'. ($language ? 'Copy a route':'Copier un trajet') .'</a>';
+					echo '<a href="javascript:showTrajectRemove()">'. ($language ? 'Delete a route':'Supprimer un trajet') .'</a>';
+					echo '</div>';
+					?>
+				</div>
+				<div id="traject-more">
+					<h1><?php echo $language ? 'Add a route':'Ajouter un trajet'; ?></h1>
+					<div>
+						<?php echo $language ? 'Create route from:':'Créer le trajet à partir de :'; ?>
+						<select id="traject-more-list"></select>
+						<div class="popup-buttons">
+							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="addTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+						</div>
+					</div>
+				</div>
+				<div id="traject-copy">
+					<h1><?php echo $language ? 'Copy a route':'Copier un trajet'; ?></h1>
+					<div>
+						<?php
+						echo $language ? 'This option allows you to replace one of the routes you created by another one.
+										  For example, it could be useful if you created route&nbsp;2 from route&nbsp;1, but then you re-edited route 1.<br />
+										  In that case, you might want to apply changes on route 1 to route 2.'
+									   : 'Cette option vous permet de remplacer un des trajets que vous avez créés par un autre trajet.<br />
+									   	  Cela peut être utile par exemple, si vous avez créé le trajet&nbsp;2 à partir du trajet&nbsp;1, mais que vous avez ensuite remodifié le trajet&nbsp;1.<br />
+									   	  Vous pouvez alors appliquer les modifications du trajet&nbsp;1 sur le trajet&nbsp;2.';
+						echo '<br />';
+						echo '<br />';
+						echo $language ? 'Copy from: ':'Copier de : ';
+						echo '<select id="copyFrom"></select>';
+						echo $language ? ' to: ':' vers : ';
+						echo '<select id="copyTo"></select>';
+						?>
+						<div class="popup-buttons">
+							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="copyTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+						</div>
+					</div>
+				</div>
+				<div id="traject-less">
+					<h1><?php echo $language ? 'Delete a route':'Supprimer un trajet'; ?></h1>
+					<div>
+						<?php echo $language ? 'Delete given route:' : 'Supprimer le trajet suivant :'; ?>
+						<select id="traject-less-list"></select>
+						<div class="popup-buttons">
+							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="removeTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="offroad-transfer" class="fs-popup" onclick="event.stopPropagation()">
+			<?php
+			echo $language ? 'This menu allows you to change the type of an off-road a posteriori.
+							  For example, if you have indicated a &quot;grass&quot; off-road
+							  and you want to change it to &quot;water&quot;, just do it here.'
+						   : 'Ce menu vous permet de modifier le type d\'un hors-piste a posteriori.
+							  Par exemple, si vous avez indiqué un hors-piste de type &quot;herbe&quot;
+							  et que vous souhaitez finalement le modifier en type &quot;eau&quot;, il vous suffit de le demander ici.';
+			echo '<br />';
+			echo '<br />';
+			echo $language ? 'Transfer from: ':'Transférer de : ';
+			echo '<select id="transferFrom">';
+			foreach ($typesOffroad as $i=>$typeOffroad)
+				echo '<option value="'. $i .'">'. $typeOffroad .'</option>';
+			echo '</select>';
+			echo $language ? ' to: ':' vers : ';
+			echo '<select id="transferTo">';
+			foreach ($typesOffroad as $i=>$typeOffroad)
+				echo '<option value="'. $i .'">'. $typeOffroad .'</option>';
+			echo '</select>';
+			echo '<div class="popup-buttons">';
+			echo '<button class="options" onclick="closeTransferOffroad()">'. ($language ? 'Cancel':'Annuler') .'</button>';
+			echo ' ';
+			echo '<button class="options" onclick="transferOffroad()">'. ($language ? 'Submit':'Valider') .'</button>';
+			echo '</div>';
+			?>
 		</div>
 		<div id="bg-selector" class="fs-popup" onclick="event.stopPropagation()">
 			<div id="bg-selector-tabs">

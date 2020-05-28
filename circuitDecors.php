@@ -17,6 +17,7 @@ $decors = array(
         'firesnake' => $language ? 'Desert Hills - fire snake' : 'Désert du soleil - Serpent de feu',
         'box' => null,
         'cannonball' => $language ? 'Waluigi Pinball - Balls':'Flipper Waluigi - Boules',
+        'truck' => $language ? 'Shroom Ridge - Bus':'Corniche Champignon - Bus',
         'snowman' => null,
         'goomba' => null,
         'fireplant' => $language ? 'Mario Circuit - Fire plant' : 'Circuit Mario - Plante de feu',
