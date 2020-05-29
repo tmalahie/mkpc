@@ -855,6 +855,7 @@ function trajectChange(value,key) {
 }
 function currentTrajectChange(value) {
 	editorTools[currentMode].state.currentTraject = +value;
+	document.getElementById("decor-bus-traject").selectedIndex = +value;
 }
 function manageBusTrajects() {
 	document.getElementById("decor-option-truck").classList.remove("decor-option-bus-decors");
@@ -3783,6 +3784,7 @@ var commonTools = {
 							$currentTrajectOption.innerHTML = (i+1);
 							$currentTrajectSelector.appendChild($currentTrajectOption);
 						}
+						$currentTrajectSelector.selectedIndex = document.getElementById("decor-bus-traject").selectedIndex;
 					}
 					if ((routeData.length == 1) && !routeData[0].length && !self.state.helped) {
 						setTimeout(function() {
@@ -3838,6 +3840,11 @@ var commonTools = {
 								self.click(self,{x:decorData.pos.x+decorData.dir.x,y:decorData.pos.y+decorData.dir.y},{});
 							break;
 						}
+					}
+					switch (type) {
+					case "truck":
+						self.state.currentTraject = +document.getElementById("decor-bus-currenttraject").value;
+						break;
 					}
 				}
 				if (autoSelectType)
