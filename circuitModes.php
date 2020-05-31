@@ -1,5 +1,6 @@
 <?php
 function printModeDecor() {
+    global $language;
     ?>
     Type:
     <div class="radio-selector" id="decor-selector" data-change="decorChange">
