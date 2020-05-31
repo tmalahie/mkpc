@@ -24,8 +24,8 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create arena':'Créer arène'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=3" />
-		<link rel="stylesheet" type="text/css" href="styles/course.css?reload=1" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=4" />
+		<link rel="stylesheet" type="text/css" href="styles/course.css?reload=2" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
 		var bgImgs = <?php echo json_encode($bgImages); ?>;
@@ -35,8 +35,8 @@ if (isset($_GET['i'])) {
 		var isBattle = true;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/editor.js?reload=5"></script>
-		<script type="text/javascript" src="scripts/course.js?reload=2"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=6"></script>
+		<script type="text/javascript" src="scripts/course.js?reload=3"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
@@ -687,7 +687,7 @@ else {
 		<?php
 		include('o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=3" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=4" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css?reload=2" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
