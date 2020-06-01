@@ -12,7 +12,7 @@ include('initdb.php');
 	<meta name="viewport" content="width=device-width, user-scalable=no" />
 	<meta name="thumbnail" content="https://mkpc.malahieude.net/images/screenshots/ssfr1.png" />
 	<meta property="og:image" content="https://mkpc.malahieude.net/images/mkthumbnail.jpg" />
-    <title>Mario Kart PC</title>
+    <title>Metagame - Mario Kart PC</title>
 
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 

@@ -64,7 +64,7 @@ while ($perso = mysql_fetch_array($getPersos)) {
 <!DOCTYPE html>
 <html lang="fr"> 
 	<head> 
-		<title>Test stats persos</title> 
+		<title><?php echo $language ? 'Metagame - Edit stats':'Metagame - Modifier les stats'; ?></title> 
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, user-scalable=no" /> 
         <style type="text/css">
