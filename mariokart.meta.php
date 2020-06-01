@@ -32,8 +32,9 @@ include_once('circuitNames.php');
 echo json_encode($circuitNames);
 ?>;
 var recorder = "<?php echo isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'' ?>";
-var pUnlocked = <?php include('getLocks.php'); ?>;
+var pUnlocked = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 var cp = <?php
+	include('fetchSaves.php');
 	$isCommon = isset($_GET['common']);
 	$ids = $isCommon ? '0' : '0,'.$identifiants[0];
 	$getPersos = mysql_query('SELECT * FROM mkteststats WHERE identifiant IN ('.$ids.') ORDER BY id');
