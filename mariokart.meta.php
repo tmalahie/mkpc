@@ -34,7 +34,9 @@ echo json_encode($circuitNames);
 var recorder = "<?php echo isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'' ?>";
 var pUnlocked = <?php include('getLocks.php'); ?>;
 var cp = <?php
-	$getPersos = mysql_query('SELECT * FROM mkteststats WHERE identifiant IN (0,'.$identifiants[0].') ORDER BY id');
+	$isCommon = isset($_GET['common']);
+	$ids = $isCommon ? '0' : '0,'.$identifiants[0];
+	$getPersos = mysql_query('SELECT * FROM mkteststats WHERE identifiant IN ('.$ids.') ORDER BY id');
 	$cp = array();
 	$statKeys = array('acceleration','speed','handling','mass');
 	while ($perso = mysql_fetch_array($getPersos)) {
@@ -77,7 +79,27 @@ document.addEventListener("DOMContentLoaded", MarioKart);
 	<td id="pQuality">&nbsp;</td>
 	<td id="vQuality">
 	</td>
-	<td rowspan="4">&nbsp; &nbsp;<a href="testStats.php" style="color:white"><?php echo $language ? 'Edit stats...':'Modifier les stats...'; ?></a></td>
+	<td rowspan="4" style="text-align:center;padding-left:10px">
+		<?php
+		if ($isCommon) {
+			echo $language ? 'Metagame - Common version':'Metagame - Version commune';
+			echo '<br />';
+			echo '<a href="mariokart.meta.php" style="color:white">'. ($language ? 'Back to personal version':'Retour à la version perso') .'</a>';
+			$canBeAdmin = in_array($identifiants[0], array(1390635815,2963080980));
+			if ($canBeAdmin) {
+				echo '<br />';
+				echo '<a href="metaStats.php?common" style="color:white">'. ($language ? 'Edit stats':'Modifier les stats') .'</a>';
+			}
+		}
+		else {
+			echo $language ? 'Metagame - Personnal version':'Metagame - Version personnelle';
+			echo '<br />';
+			echo '<a href="?common" style="color:white">'. ($language ? 'See common version':'Voir la version commune') .'</a>';
+			$canBeAdmin = in_array($identifiants[0], array(1390635815,2963080980));
+			echo '<br />';
+			echo '<a href="metaStats.php" style="color:white">'. ($language ? 'Edit stats':'Modifier les stats') .'</a>';
+		}
+		?>
 	</tr>
 	<tr><td id="pSize">
 

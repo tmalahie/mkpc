@@ -5,7 +5,7 @@ include('initdb.php');
 include('language.php');
 include('getId.php');
 $canBeAdmin = in_array($identifiants[0], array(1390635815,2963080980));
-$isAdmin = $canBeAdmin && isset($_GET['admin']);
+$isAdmin = $canBeAdmin && isset($_GET['common']);
 if ($isAdmin)
     $identifiants[0] = 0;
 require_once('utils-challenges.php');
@@ -95,6 +95,7 @@ while ($perso = mysql_fetch_array($getPersos)) {
             padding: 0.1em 1em;
             font-weight: bold;
             font-size: 1em;
+            <?php if ($isAdmin) echo 'color: #F60;'; ?>
         }
         </style>
         <script type="text/javascript">
@@ -169,6 +170,12 @@ while ($perso = mysql_fetch_array($getPersos)) {
 	</head>
 	<body onload="selectPerso(document.getElementById('perso').value)" onbeforeunload="return checkSave()" onkeydown="handleKey(event)">
     <form method="post">
+        <h2><?php
+            if ($isAdmin)
+                echo '<span style="color:#C00">'. ($language ? 'Metagame - common stats':'Metagame - stats communes') .'</span>';
+            else
+                echo $language ? 'Metagame - personnal stats':'Metagame - stats persos';
+        ?></h2>
         <?php echo $language ? 'Character:':'Perso :'; ?>
         <select id="perso" name="perso" onchange="selectPerso(this.value)">
             <?php
@@ -200,20 +207,20 @@ while ($perso = mysql_fetch_array($getPersos)) {
     <?php
     if ($canBeAdmin) {
         if ($isAdmin)
-            echo '<a href="testStats.php">'. ($language ? 'Back to personal stats':'Retour aux stats persos') .'</a>';
+            echo '<a href="metaStats.php">'. ($language ? 'Back to personal stats':'Retour aux stats persos') .'</a>';
         else
-            echo '<a href="?admin">'. ($language ? 'Admin global stats':'Admin stats globales') .'</a>';
+            echo '<a href="?common">'. ($language ? 'Admin common stats':'Admin stats communes') .'</a>';
         echo '<br />';
     }
     ?>
-    <a href="mariokart.stats.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
+    <a href="mariokart.meta.php<?php echo $isAdmin ? '?common':''; ?>"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
     <?php
     if (!empty((array)$myStats)) {
         ?>
         <br />
         <br />
         <hr />
-        <h3><?php echo $language ? 'Your changes':'Vos changements'; ?></h3>
+        <h3><?php echo $language ? 'Your changes relative to common version':'Vos changements par rapport à la version commune'; ?></h3>
         <div class="diffs">
         <?php
         function print_diff($perso,$key,$name) {
