@@ -191,7 +191,7 @@ while ($perso = mysql_fetch_array($getPersos)) {
             <input type="range" id="acceleration" min="0" max="32" oninput="handleStat(this.id,this.value)" />
             <span id="acceleration-value"></span><br />
             <label><?php echo $language ? 'Speed:':'Vitesse:'; ?></label>
-            <input type="range" id="speed" min="0" max="32" oninput="handleStat(this.id,this.value)" />
+            <input type="range" id="speed" min="0" max="40" oninput="handleStat(this.id,this.value)" />
             <span id="speed-value"></span><br />
             <label><?php echo $language ? 'Handling:':'Maniabilité:'; ?></label>
             <input type="range" id="handling" min="0" max="32" oninput="handleStat(this.id,this.value)" />
