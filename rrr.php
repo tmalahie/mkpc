@@ -3,13 +3,14 @@ if (empty($_GET['map'])) exit;
 if($_SERVER['HTTP_HOST']!=='local-mkpc.malahieude.info') exit;
 include('initdb.php');
 if (isset($_GET['pieces'])) {
+    require_once('circuitImgUtils.php');
     $map = $_GET['map'];
     for ($i=0;$i<=11;$i++) {
         $id = 7000+$i;
         $circuitFile = "map$id.png";
         $circuitPath = "images/uploads/".$circuitFile;
         copy('images/pieces/piececircuit'.$map.'_'.$i.'.png', $circuitPath);
-        mysql_query('UPDATE circuits SET image_url="'.getCircuitImgDataRaw($circuitPath,$circuitFile,1).'" WHERE id='.$id);
+        mysql_query('UPDATE circuits SET img_data="'.getCircuitImgDataRaw($circuitPath,$circuitFile,1).'" WHERE id='.$id);
     }
     mysql_close();
     exit;
@@ -946,7 +947,7 @@ $circuitFile = "map$id.png";
 $circuitPath = "images/uploads/".$circuitFile;
 file_put_contents($circuitPath, file_get_contents("http://$_SERVER[HTTP_HOST]/mapcreate.php$circuitUrl"));
 require_once('circuitImgUtils.php');
-mysql_query('UPDATE circuits SET image_url="'.getCircuitImgDataRaw($circuitPath,$circuitFile,1).'" WHERE id='.$id);
+mysql_query('UPDATE circuits SET img_data="'.getCircuitImgDataRaw($circuitPath,$circuitFile,1).'" WHERE id='.$id);
 $data = array();
 $data['main'] = array(
     'startposition' => array($circuitData->startposition[0]-5,$circuitData->startposition[1]+6),

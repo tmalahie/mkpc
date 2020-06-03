@@ -893,7 +893,7 @@ function loadMap() {
 		oMapImg.src = mapSrc;
 	}
 	oMap.assets = [];
-	var assetKeys = ["pointers", "flippers","bumpers"];
+	var assetKeys = ["pivots","pointers", "flippers","bumpers"];
 	for (var i=0;i<assetKeys.length;i++) {
 		var key = assetKeys[i];
 		if (oMap[key]) {
@@ -1072,6 +1072,13 @@ function classifyByShape(shapes) {
 function initMap() {
 	if (oMap.collision)
 		oMap.collision = classifyByShape(oMap.collision);
+	if (oMap.pivots) {
+		for (var i=0;i<oMap.pivots.length;i++) {
+			var pivot = oMap.pivots[i][1];
+			var x = pivot[0], y = pivot[1], w = Math.round(pivot[2]/2), h = Math.round(pivot[3]/2);
+			oMap.collision.polygon.push([[x-w,y],[x,y-h],[x+w,y],[x,y+h]]);
+		}
+	}
 	if (oMap.horspistes) {
 		for (var type in oMap.horspistes)
 			oMap.horspistes[type] = classifyByShape(oMap.horspistes[type]);
@@ -2255,7 +2262,7 @@ function startGame() {
 				oPlanDecor2[type] = new Array();
 			}
 		}
-		var assetKeys = ["pointers", "flippers","bumpers"];
+		var assetKeys = ["pivots","pointers", "flippers","bumpers"];
 		for (var i=0;i<assetKeys.length;i++) {
 			var key = assetKeys[i];
 			if (oMap[key]) {
@@ -6019,7 +6026,7 @@ var decorBehaviors = {
 		spin: 42,
 		unbreaking: true,
 		movable: true,
-		init: function(decorData) {
+		init: function(decorData,i) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 1;
 				decorData[2][j].w = 60;
@@ -6027,24 +6034,38 @@ var decorBehaviors = {
 				decorData[2][j].z = 0.1;
 				decorData[2][j].div.style.transformOrigin = decorData[2][j].div.style.WebkitTransformOrigin = decorData[2][j].div.style.MozTransformOrigin = "50% 83%";
 			}
-			decorData[5] = [decorData[0],decorData[1],-1];
+			decorData[5] = [decorData[0],decorData[1],0,-1];
+			if (decorData[4] == undefined) {
+				decorData[4] = ((10000*Math.sin(i+1))%(Math.PI/3));
+				var decorParams = getDecorParams("pendulum",i);
+				var th = decorParams.dir;
+				if (isNaN(th)) {
+					decorData[5][2] = 10000*Math.sin(i+1)%Math.PI;
+					decorData[5][3] = Math.sin(1200*(i+1)+1)>0 ? 1:-1;
+				}
+				else {
+					decorData[5][2] = th;
+					decorData[5][3] = 1;
+				}
+			}
 		},
 		move: function(decorData) {
-			var theta0 = Math.PI/3, theta = decorData[4];
+			var theta0 = Math.PI/3, theta = decorData[4], phi = decorData[5][2];
 			var maxTheta = theta0*0.99;
 			if (Math.abs(theta) > maxTheta) {
 				theta = maxTheta*Math.sign(theta);
-				decorData[5][2] = -decorData[5][2];
+				decorData[5][3] = -decorData[5][3];
 			}
 			var dtheta = Math.sqrt(2*(Math.cos(theta)-Math.cos(theta0)));
-			theta += dtheta/16*decorData[5][2];
+			theta += dtheta/16*decorData[5][3];
 			decorData[4] = theta;
 			var r = 30, l = 6;
-			decorData[1] = decorData[5][1] + r*Math.sin(theta);
+			decorData[0] = decorData[5][0] + r*Math.sin(theta)*Math.sin(phi);
+			decorData[1] = decorData[5][1] + r*Math.sin(theta)*Math.cos(phi);
 			var z = -l*(1-Math.cos(theta));
 			for (var j=0;j<strPlayer.length;j++) {
 				var pTheta = getApparentRotation(oPlayers[j]);
-				var thetaApp = -theta/5*Math.sin(pTheta*Math.PI/180);
+				var thetaApp = -theta/5*Math.sin(pTheta*Math.PI/180-phi);
 				decorData[2][j].div.style.transform = decorData[2][j].div.style.WebkitTransform = decorData[2][j].div.style.MozTransform = "translateY("+z+"%) rotate("+Math.round(thetaApp*180/Math.PI)+"deg)";
 			}
 		}
@@ -9131,25 +9152,30 @@ function move(getId) {
 
 	if (oKart.shift)
 		oKart.rotation += oKart.shift[2]*180/Math.PI;
-	if (!oKart.tourne && oKart.speed && !oKart.billball && !oKart.figstate && !oKart.cannon)
+	if (!oKart.tourne && oKart.speed && !oKart.billball && !oKart.figstate && !oKart.cannon) {
 		oKart.rotation += (oKart.rotinc+(oKart.driftinc||0)*1.5)*((((oKart.speedinc<0)||(oKart.speedinc==0&&oKart.speed<0))?-1:1))*Math.abs(Math.cos(angleDrift(oKart)*Math.PI/180));
-
+		if (oKart.frminv)
+			oKart.frminv--;
+	}
 	else if (oKart.tourne) {
 		oKart.figuring = false;
 		oKart.figstate = 0;
 		oKart.speed = (oKart.speed-Math.max(0,oKart.speedinc+0.1))/1.5;
 		oKart.tourne -= 2;
-		if (course == "BB" && !oKart.tourne) {
-			if (oKart.cpu && oKart.ballons.length == 1) {
-				var f = 1+Math.round(Math.random());
-				for (i=0;(i<f)&&(oKart.reserve);i++) {
-					addNewBalloon(oKart);
-					oKart.reserve--;
+		if (!oKart.tourne) {
+			oKart.frminv = oKart.cpu ? 16 : 10;
+			if (course == "BB") {
+				if (oKart.cpu && oKart.ballons.length == 1) {
+					var f = 1+Math.round(Math.random());
+					for (i=0;(i<f)&&(oKart.reserve);i++) {
+						addNewBalloon(oKart);
+						oKart.reserve--;
+					}
 				}
-			}
-			if (!oKart.ballons.length && !oKart.loose) {
-				for (i=0;i<strPlayer.length;i++)
-					oKart.sprite[i].div.style.opacity = 1;
+				if (!oKart.ballons.length && !oKart.loose) {
+					for (i=0;i<strPlayer.length;i++)
+						oKart.sprite[i].div.style.opacity = 1;
+				}
 			}
 		}
 	}
@@ -9272,7 +9298,7 @@ function move(getId) {
 				}
 			}
 			else if (!oKart.tourne && (oKart.z < 1.2)) {
-				var hittable = !oKart.protect;
+				var hittable = !oKart.protect && !oKart.frminv;
 				var asset = touche_asset(aPosX,aPosY,fNewPosX,fNewPosY);
 				var stopped = true;
 				if (asset) {
@@ -10845,7 +10871,7 @@ function ai(oKart) {
 			if (oKart.horizontality) {
 				var xp = direction(0,oKart.rotation), yp = direction(1,oKart.rotation);
 				var xc = oKart.horizontality[0], yc = oKart.horizontality[1];
-				if (Math.abs(xp*yc-yp*xc) > 0.1)
+				if ((Math.abs(xp*yc-yp*xc) > 0.1) || (oKart.lastAItime > 150))
 					oKart.rotinc = oKart.decision*fMaxRotInCp;
 			}
 			else

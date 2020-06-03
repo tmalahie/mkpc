@@ -3836,6 +3836,7 @@ var commonTools = {
 						case "cannonball":
 						case "firering":
 						case "fire3star":
+						case "pendulum":
 							if (decorData.dir)
 								self.click(self,{x:decorData.pos.x+decorData.dir.x,y:decorData.pos.y+decorData.dir.y},{});
 							break;
@@ -3879,6 +3880,7 @@ var commonTools = {
 				case "cannonball":
 				case "firering":
 				case "fire3star":
+				case "pendulum":
 					over = false;
 					var arrow = createArrow({x:point.x,y:point.y},{x:point.x,y:point.y});
 					for (var i=0;i<arrow.lines.length;i++)
@@ -3946,7 +3948,7 @@ var commonTools = {
 		},
 		"_arrowLength": 25,
 		"_arrowOriginCenter": function(type) {
-			return (["firering","fire3star"].indexOf(type) !== -1);
+			return (["firering","fire3star","pendulum"].indexOf(type) !== -1);
 		},
 		"move" : function(self,point,extra) {
 			if (self.state.arrow) {
@@ -3982,6 +3984,7 @@ var commonTools = {
 						case "cannonball":
 						case "firering":
 						case "fire3star":
+						case "pendulum":
 							var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
 							payload.decorparams[type].push({dir:isNaN(dir)?0:dir});
 							break;
@@ -4029,6 +4032,7 @@ var commonTools = {
 					case "cannonball":
 					case "firering":
 					case "fire3star":
+					case "pendulum":
 						var dir = decorParams.dir || 0;
 						decorData.dir = {x:Math.sin(dir),y:Math.cos(dir)};
 						break;
