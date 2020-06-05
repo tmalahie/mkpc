@@ -74,7 +74,55 @@ var editorTools = {
 				self.data.orientation = (self.data.orientation + 180)%360;
 		}
 	},
-	"aipoints": commonTools["aipoints"],
+	"aipoints": {
+		"init" : function(self) {
+			self.data = [{points:[],closed:false}];
+			initRouteSelector(document.getElementById("traject"),1);
+		},
+		"resume" : function(self) {
+			var traject = +document.getElementById("traject").value;
+			initRouteBuilder(self,self.data,traject);
+		},
+		"click" : function(self,point,extra) {
+			appendRouteBuilder(self,point,extra);
+		},
+		"move" : function(self,point,extra) {
+			moveRouteBuilder(self,point,extra);
+		},
+		"round_on_pixel" : function(self) {
+			return true;
+		},
+		"save" : function(self,payload) {
+			payload.main.aiclosed = [];
+			payload.aipoints = [];
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				payload.main.aiclosed.push(iData.closed ? 1:0);
+				payload.aipoints.push(polyToData(iData.points));
+			}
+		},
+		"restore" : function(self,payload) {
+			currentMode = "aipoints";
+			document.getElementById("traject-options").dataset.key = "aipoints";
+			for (var i=1;i<payload.aipoints.length;i++)
+				addTraject();
+			document.getElementById("traject").selectedIndex = 0;
+			for (var i=0;i<payload.aipoints.length;i++)
+				self.data[i] = {closed:payload.main.aiclosed[i]==1,points:dataToPoly(payload.aipoints[i])};
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++)
+				rescalePoly(self.data[i].points, scale);
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++)
+				rotatePoly(self.data[i].points, imgSize,orientation);
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++)
+				flipPoly(self.data[i].points, imgSize,axis);
+		}
+	},
 	"walls": commonTools["walls"],
 	"offroad": commonTools["offroad"],
 	"holes": commonTools["holes"],
