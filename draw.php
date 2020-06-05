@@ -22,8 +22,8 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create circuit':'Créer circuit'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=4" />
-		<link rel="stylesheet" type="text/css" href="styles/draw.css?reload=2" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
 		var bgImgs = <?php echo json_encode($bgImages); ?>;
@@ -33,8 +33,8 @@ if (isset($_GET['i'])) {
 		var isBattle = false;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/editor.js?reload=6"></script>
-		<script type="text/javascript" src="scripts/draw.js?reload=3"></script>
+		<script type="text/javascript" src="scripts/editor.js"></script>
+		<script type="text/javascript" src="scripts/draw"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
@@ -825,14 +825,14 @@ else {
 		<?php
 		include('o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=4" />
-		<link rel="stylesheet" type="text/css" href="styles/draw.css?reload=2" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
 		var language = <?php echo $language ? 1:0; ?>;
 		var isBattle = false;
 		</script>
-		<script src="scripts/editor-form.js?reload=1"></script>
+		<script src="scripts/editor-form.js"></script>
 	</head>
 	<body class="home-body">
 		<?php

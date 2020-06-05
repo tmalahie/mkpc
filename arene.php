@@ -80,11 +80,11 @@ include('language.php');
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create a course Mario Kart':'Cr&eacute;er une ar&egrave;ne Mario Kart'; ?></title>
-<link rel="stylesheet" type="text/css" href="styles/create.css?reload=1" />
+<link rel="stylesheet" type="text/css" href="styles/create.css" />
 <script type="text/javascript">
 var decorTypes = <?php echo json_encode($decorTypes); ?>;
 </script>
-<script type="text/javascript" src="scripts/create.js?reload=6"></script>
+<script type="text/javascript" src="scripts/create.js"></script>
 </head>
 <body>
 <div id="circuit">
