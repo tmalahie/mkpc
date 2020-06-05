@@ -16,6 +16,7 @@ $decors = array(
         'pokey' => null,
         'firesnake' => $language ? 'Desert Hills - fire snake' : 'Désert du soleil - Serpent de feu',
         'box' => null,
+        'snowball' => null,
         'cannonball' => $language ? 'Waluigi Pinball - Balls':'Flipper Waluigi - Boules',
         'truck' => $language ? 'Shroom Ridge - Bus':'Corniche Champignon - Bus',
         'pendulum' => $language ? 'Tick-Tock Clock - Pendulum':'Horloge Tic-Tac - Pendule',

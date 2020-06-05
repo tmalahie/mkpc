@@ -1890,6 +1890,7 @@ foreach ($circuitsData as $c => $circuit) {
 			<?php
 			$prefix = 't';
 			for ($j=0;isset($circuit[$prefix.$j]); $j++) {
+				if ($j) echo ',';
 				$xy = explode(',',$circuit[$prefix.$j]);
 				$p = floor($xy[1]/100)*6 + floor($xy[0]/100);
 				$theta = null;
@@ -1913,11 +1914,11 @@ foreach ($circuitsData as $c => $circuit) {
 					$theta = M_PI_4;
 					break;
 				}
-				if (sin(10000*($j+2))>0)
-					$theta += M_PI;
-				if ($j) echo ',';
-				if (null !== $theta)
+				if (null !== $theta) {
+					if (sin(10000*($j+2))>0)
+						$theta += M_PI;
 					echo "{dir:$theta}";
+				}
 				else
 					echo "{}";
 			}

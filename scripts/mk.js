@@ -5075,7 +5075,7 @@ var decorBehaviors = {
 				if (decorData[3] == undefined)
 					decorData[3] = 18;
 				if (decorData[4] == undefined) {
-					var decorParams = getDecorParams("fire3star",i);
+					var decorParams = getDecorParams(this,i);
 					decorData[4] = Math.PI/2+decorParams.dir;
 					if (isNaN(decorData[4])) decorData[4] = ((10000*Math.sin(i+2))%Math.PI);
 					decorData[5] = 0.1;
@@ -5137,7 +5137,7 @@ var decorBehaviors = {
 				if (decorData[3] == undefined)
 					decorData[3] = 18;
 				if (decorData[4] == undefined) {
-					var decorParams = getDecorParams("firering",i);
+					var decorParams = getDecorParams(this,i);
 					decorData[4] = Math.PI/2+decorParams.dir;
 					if (isNaN(decorData[4])) decorData[4] = ((10000*Math.sin(i+2))%Math.PI);
 					decorData[5] = 0.1;
@@ -5495,6 +5495,31 @@ var decorBehaviors = {
 		spin: 42,
 		unbreaking:true,
 		movable:true,
+		defaultspeed: 3.5,
+		boostspeed: 8,
+		jumpspeed: function(pJump) {
+			return 4+1*pJump;
+		},
+		jumpheight: 32,
+		boostspeed:8,
+		ondie: function(x) {
+			if (x > -100)
+				return "wait";
+			return "respawn";
+		},
+		preinit:function(decorsData) {
+			if (decorsData.length && (decorsData[0][4] == undefined)) {
+				this.init = decorBehaviors.cannonball.init.bind(this);
+				this.move_ = decorBehaviors.cannonball.move.bind(this);
+				this.move = function(decorData,i) {
+					for (var j=0;j<oPlayers.length;j++)
+						decorData[2][j].setState((decorData[2][j].getState()+1)%3);
+					this.move_(decorData,i);
+				}
+				this.setdir = decorBehaviors.cannonball.setdir.bind(this);
+				this.autojump = decorBehaviors.cannonball.autojump.bind(this);
+			}
+		},
 		init:function(decorData) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 3;
@@ -5572,6 +5597,15 @@ var decorBehaviors = {
 		spin: 42,
 		unbreaking:true,
 		movable:true,
+		defaultspeed: 5,
+		jumpspeed: function(pJump) {
+			return 6+1.5*pJump;
+		},
+		jumpheight: 48,
+		boostspeed:11,
+		ondie: function() {
+			return "suppr";
+		},
 		setdir:function(decorData,ux,uy,pos) {
 			pos = pos||decorData;
 			var r = oMap.w + oMap.h;
@@ -5581,10 +5615,10 @@ var decorBehaviors = {
 			decorData[4][1][1] = pos[1] - r*uy;
 		},
 		autojump:function(decorData,nMoveX,nMoveY,nSpeed) {
-			if (decorData[6][4] && nSpeed < 11) {
-				nMoveX *= 11/nSpeed;
-				nMoveY *= 11/nSpeed;
-				nSpeed = 11;
+			if (decorData[6][4] && nSpeed < this.boostspeed) {
+				nMoveX *= this.boostspeed/nSpeed;
+				nMoveY *= this.boostspeed/nSpeed;
+				nSpeed = this.boostspeed;
 			}
 			var nMove = Math.hypot(nMoveX,nMoveY);
 			decorData[4][2] = [decorData[0]+nMoveX,decorData[1]+nMoveY];
@@ -5604,12 +5638,12 @@ var decorBehaviors = {
 			decorData[3] = 0;
 			if (!decorData[4]) {
 				decorData[4] = [[],[]];
-				var decorParams = getDecorParams("cannonball",i);
+				var decorParams = getDecorParams(this,i);
 				var th = decorParams.dir;
 				if (isNaN(th)) th = ((10000*Math.sin(i+2))%Math.PI);
 				this.setdir(decorData,Math.sin(th),Math.cos(th));
 				if (!decorData[5])
-					decorData[5] = {0:{autoDir:true},1:{autoDir:true,loop:[0]}};
+					decorData[5] = {0:{autoDir:true,pos0:[decorData[0],decorData[1]]},1:{autoDir:true,loop:[0]}};
 			}
 			if (!decorData[5])
 				decorData[5] = {};
@@ -5618,7 +5652,7 @@ var decorBehaviors = {
 		move:function(decorData,i) {
 			var dSpeed = decorData[6][2];
 			if (decorData[6][4]) {
-				dSpeed = Math.max(11,dSpeed);
+				dSpeed = Math.max(this.boostspeed,dSpeed);
 				decorData[6][4]--;
 			}
 			while (dSpeed > 0) {
@@ -5647,7 +5681,7 @@ var decorBehaviors = {
 					if (customBehaviour && customBehaviour.speed)
 						decorData[6][2] = customBehaviour.speed;
 					else
-						decorData[6][2] = 5;
+						decorData[6][2] = this.defaultspeed;
 					if (customBehaviour && customBehaviour.jump) {
 						var nextTarget = decorData[4][decorData[6][0]];
 						decorData[6][3] = Math.hypot(nextTarget[0]-targetX,nextTarget[1]-targetY);
@@ -5673,8 +5707,25 @@ var decorBehaviors = {
 								if (nOpacity)
 									decorData[6][1]--;
 								else {
-									oMap.decor.cannonball[i][2][0].suppr();
-									oMap.decor.cannonball.splice(i,1);
+									switch (this.ondie(decorData[6][1])) {
+									case "wait":
+										decorData[0] = oMap.w*3;
+										decorData[1] = oMap.h*3;
+										decorData[6][1]--;
+										break;
+									case "suppr":
+										oMap.decor[this.type][i][2][0].suppr();
+										oMap.decor[this.type].splice(i,1);
+										break;
+									case "respawn":
+										for (var j=0;j<oPlayers.length;j++)
+											decorData[2][j].img.style.opacity = "";
+										decorData[0] = decorData[5][0].pos0[0];
+										decorData[1] = decorData[5][0].pos0[1];
+										decorData[4] = null;
+										decorData[5] = null;
+										this.init(decorData,i);
+									}
 								}
 								fMoveX = 0;
 								fMoveY = 0;
@@ -5690,12 +5741,12 @@ var decorBehaviors = {
 									decorData[6][3] = 0;
 								}
 								if (!decorData[3]) {
-									var cannons = oMap.decor.cannonball;
-									oMap.decor.cannonball = [];
+									var cannons = oMap.decor[this.type];
+									oMap.decor[this.type] = [];
 									var pJump = sauts(decorData[0],decorData[1], fMoveX,fMoveY);
 									var pAsset;
 									if (pJump) {
-										var nSpeed = 6+1.5*pJump, nMove = 32*pJump;
+										var nSpeed = this.jumpspeed(pJump), nMove = 32*pJump;
 										var nMoveX = diffX*nMove/diffL, nMoveY = diffY*nMove/diffL;
 										this.autojump(decorData,nMoveX,nMoveY,nSpeed);
 									}
@@ -5735,7 +5786,7 @@ var decorBehaviors = {
 										decorData[6][1] = -1;
 									else if (accelere(decorData[0]+fMoveX,decorData[1]+fMoveY))
 										decorData[6][4] = 20;
-									oMap.decor.cannonball = cannons;
+									oMap.decor[this.type] = cannons;
 								}
 							}
 						}
@@ -5745,7 +5796,7 @@ var decorBehaviors = {
 					if (decorData[6][3]) {
 						var l = (diffL-dSpeed)/decorData[6][3];
 						l = Math.max(Math.min(l,1),0);
-						decorData[3] = 48*l*(1-l);
+						decorData[3] = this.jumpheight*l*(1-l);
 					}
 					dSpeed = 0;
 				}
@@ -5763,7 +5814,7 @@ var decorBehaviors = {
 			for (var i=0;i<decorsData.length;i++) {
 				var decorData = decorsData[i];
 				if (decorData[5] == undefined) {
-					var decorParams = getDecorParams("truck",i);
+					var decorParams = getDecorParams(this,i);
 					decorData[5] = decorParams.traject;
 				}
 			}
@@ -5775,7 +5826,7 @@ var decorBehaviors = {
 				decorData[2][j].h = decorData[2][j].w*56/111;
 				decorData[2][j].z = 0.72;
 			}
-			var extraParams = getDecorExtra("truck");
+			var extraParams = getDecorExtra(this);
 			if (!extraParams.path)
 				extraParams.path = oMap.aipoints;
 			if (!decorData[6]) {
@@ -5819,7 +5870,7 @@ var decorBehaviors = {
 		move:function(decorData) {
 			var speed = 4;
 			var x = decorData[0], y = decorData[1], aimX, aimY;
-			var extraParams = getDecorExtra("truck");
+			var extraParams = getDecorExtra(this);
 			if (!extraParams.path)
 				extraParams.path = oMap.aipoints;
 			var aipoints = extraParams.path[decorData[5]];
@@ -6037,7 +6088,7 @@ var decorBehaviors = {
 			decorData[5] = [decorData[0],decorData[1],0,-1];
 			if (decorData[4] == undefined) {
 				decorData[4] = ((10000*Math.sin(i+1))%(Math.PI/3));
-				var decorParams = getDecorParams("pendulum",i);
+				var decorParams = getDecorParams(this,i);
 				var th = decorParams.dir;
 				if (isNaN(th)) {
 					decorData[5][2] = 10000*Math.sin(i+1)%Math.PI;
@@ -6071,13 +6122,17 @@ var decorBehaviors = {
 		}
 	}
 };
+for (var type in decorBehaviors)
+	decorBehaviors[type].type = type;
 
-function getDecorParams(type,i) {
+function getDecorParams(self,i) {
+	var type = self.type;
 	if (oMap.decorparams && oMap.decorparams[type] && oMap.decorparams[type][i])
 		return oMap.decorparams[type][i];
 	return {};
 }
-function getDecorExtra(type) {
+function getDecorExtra(self) {
+	var type = self.type;
 	if (oMap.decorparams && oMap.decorparams.extra && oMap.decorparams.extra[type])
 		return oMap.decorparams.extra[type];
 	return {};
@@ -9465,7 +9520,7 @@ function move(getId) {
 	}
 
 	collisionDecor = null;
-	if (canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect)) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect)) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)

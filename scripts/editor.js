@@ -3834,6 +3834,7 @@ var commonTools = {
 						self.click(self,decorData.pos,{});
 						switch (type) {
 						case "cannonball":
+						case "snowball":
 						case "firering":
 						case "fire3star":
 						case "pendulum":
@@ -3878,6 +3879,7 @@ var commonTools = {
 				typeData.push(decorData);
 				switch (self.state.type) {
 				case "cannonball":
+				case "snowball":
 				case "firering":
 				case "fire3star":
 				case "pendulum":
@@ -3982,6 +3984,7 @@ var commonTools = {
 						payload.decor[type].push(pointToData(decorsData[i].pos));
 						switch (type) {
 						case "cannonball":
+						case "snowball":
 						case "firering":
 						case "fire3star":
 						case "pendulum":
@@ -4030,6 +4033,7 @@ var commonTools = {
 					var decorData = {pos:dataToPoint(decorsPayload[i])};
 					switch (type) {
 					case "cannonball":
+					case "snowball":
 					case "firering":
 					case "fire3star":
 					case "pendulum":
