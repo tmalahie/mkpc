@@ -34,7 +34,11 @@ if (isset($_GET['i'])) {
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
 		<script type="text/javascript" src="scripts/editor.js"></script>
+<<<<<<< HEAD
 		<script type="text/javascript" src="scripts/draw.js"></script>
+=======
+		<script type="text/javascript" src="scripts/draw"></script>
+>>>>>>> Clear cache
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
