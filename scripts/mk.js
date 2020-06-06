@@ -1240,7 +1240,7 @@ function arme(ID, backwards) {
 					pause = true;
 					bCounting = true;
 				}
-				if (shouldPlayMusic(oKart) && !oPlayers[1])
+				if (shouldPlaySound(oKart) && !oPlayers[1])
 					postStartMusic("musics/events/starman.mp3");
 			}
 			if (oKart.speedinc > 0)
@@ -1280,7 +1280,7 @@ function arme(ID, backwards) {
 			oKart.size = 1;
 			updateDriftSize(ID);
 			oKart.protect = true;
-			if (!oKart.megachampi && shouldPlayMusic(oKart) && !oPlayers[1])
+			if (!oKart.megachampi && shouldPlaySound(oKart) && !oPlayers[1])
 				postStartMusic("musics/events/megamushroom.mp3");
 			break;
 
@@ -1652,19 +1652,21 @@ function postResumeMusic(elt, ratio) {
 		return;
 	var cMusicEmbed = oMusicEmbed;
 	fadeOutMusic(cMusicEmbed,1,ratio,true);
-	setTimeout(function() {
-		if ((oMusicEmbed == cMusicEmbed) || !oMusicEmbed) {
-			fadeInMusic(elt,0.2,ratio);
-			unpauseMusic(elt);
-		}
-	}, 500);
+	if (elt) {
+		setTimeout(function() {
+			if ((oMusicEmbed == cMusicEmbed) || !oMusicEmbed) {
+				fadeInMusic(elt,0.2,ratio);
+				unpauseMusic(elt);
+			}
+		}, 500);
+	}
 }
 function stopStarMusic(oKart) {
-	if (shouldPlayMusic(oKart) && !oPlayers[1])
+	if (shouldPlaySound(oKart) && !oPlayers[1])
 		postResumeMusic(mapMusic, 0.9);
 }
 function stopMegaMusic(oKart) {
-	if (shouldPlayMusic(oKart) && !oPlayers[1])
+	if (shouldPlaySound(oKart) && !oPlayers[1])
 		postResumeMusic(mapMusic, 0.92);
 }
 function resetPowerup(oKart) {
