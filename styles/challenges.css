@@ -235,18 +235,21 @@ button.challenge-edit-submit:hover {
 button.challenge-edit-submit:active {
 	border: inset 3px #BDC;
 }
+.main-challenge-actions {
+	margin: 5px auto 0px auto;
+}
 .main-challenge-action {
 	background-color: #CDD;
 	border-color: #ABF;
 	color: #083;
 	border: outset 3px #BDC;
 	border-radius: 5px;
-	display: block;
+	display: inline-block;
 	width: 15em;
 	font-size: 1.2em;
 	font-weight: bold;
 	padding: 6px 0 4px 0;
-	margin: 15px auto 10px auto;
+	margin: 10px 20px 10px auto;
 	text-decoration: none;
 }
 .main-challenge-action:hover {
@@ -254,6 +257,11 @@ button.challenge-edit-submit:active {
 }
 .main-challenge-action:active {
 	border: inset 3px #BDC;
+}
+.other-challenge-action {
+	display: inline-block;
+	color: white;
+	margin-bottom: 5px;
 }
 .challenge-navigation {
 	margin: 8px 0 10px 0;

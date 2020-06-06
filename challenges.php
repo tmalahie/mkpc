@@ -37,7 +37,7 @@ if (isset($_GET['clmsg'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css" />
+<link rel="stylesheet" href="styles/challenges.css?reload=1" />
 <?php
 include('o_online.php');
 ?>
@@ -141,7 +141,9 @@ document.addEventListener("DOMContentLoaded", function() {
 		}
 		?>
 		</div>
-		<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>"><?php echo $language ? 'Create my first challenge':'Créer mon premier défi'; ?> &nbsp; &gt;</a>
+		<div class="main-challenge-actions">
+			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>"><?php echo $language ? 'Create my first challenge':'Créer mon premier défi'; ?> &nbsp; &gt;</a>
+		</div>
 		<?php
 	}
 	else {
@@ -213,7 +215,10 @@ document.addEventListener("DOMContentLoaded", function() {
 		}
 		?>
 		</table>
-		<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>">+ &nbsp;<?php echo $language ? 'Create another challenge':'Créer un autre défi'; ?> &nbsp;</a>
+		<div class="main-challenge-actions">
+			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>">+ &nbsp;<?php echo $language ? 'Create another challenge':'Créer un autre défi'; ?> &nbsp;</a>
+			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>" class="other-challenge-action"><?php echo $language ? 'Manage rewards...':'Gérer les récompenses...'; ?></a>
+		</div>
 		<div class="pub">
 			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 			<!-- Mario Kart PC -->
