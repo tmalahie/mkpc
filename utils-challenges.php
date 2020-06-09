@@ -320,7 +320,7 @@ function listChallenges($clRace, &$params=array()) {
 	global $identifiants;
 	$myCircuit = false;
 	if (isset($identifiants)) {
-		 if (mysql_fetch_array(mysql_query('SELECT id FROM `mkclrace` WHERE id="'. $clRace .'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])))
+		 if ($getClist = mysql_fetch_array(mysql_query('SELECT id,type,circuit FROM `mkclrace` WHERE id="'. $clRace .'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])))
 		 	$myCircuit = true;
 	}
 	if ($myCircuit)
@@ -335,6 +335,41 @@ function listChallenges($clRace, &$params=array()) {
 	$getChallenges = mysql_query('SELECT * FROM mkchallenges WHERE clist="'. $clRace .'" AND '. $statusCheck);
 	while ($challenge = mysql_fetch_array($getChallenges))
 		$res[] = getChallengeDetails($challenge, $params);
+	if ($params['alltracks'] && !empty($getClist)) {
+		$subCls = array();
+		$newParams = $params;
+		unset($newParams['alltracks']);
+		$allSubTracks = array(
+			'mode' => 0,
+			'circuits' => array()
+		);
+		switch ($getClist['type']) {
+		case 'mkmcups':
+			if ($getMode = mysql_fetch_array(mysql_query('SELECT mode FROM mkmcups WHERE id='. $getClist['circuit'])))
+				$allSubTracks['mode'] = $getMode['mode'];
+			$getCls = mysql_query('SELECT DISTINCT cl.id,c.circuit0,c.circuit1,c.circuit2,c.circuit3 FROM mkclrace cl INNER JOIN mkmcups_tracks t ON t.mcup='. $getClist['circuit'] .' AND t.cup=cl.circuit INNER JOIN mkcups c ON c.id=t.cup WHERE cl.type="mkcups" ORDER BY t.ordering');
+			while ($subCl = mysql_fetch_array($getCls)) {
+				$subCls[] = $subCl['id'];
+				for ($i=0;$i<4;$i++)
+					$allSubTracks['circuits'][] = $subCl["circuit$i"];
+			}
+			break;
+		case 'mkcups':
+			if ($getTracks = mysql_fetch_array(mysql_query('SELECT circuit0,circuit1,circuit2,circuit3,mode FROM mkcups WHERE id='. $getClist['circuit']))) {
+				$allSubTracks['mode'] = $getTracks['mode'];
+				for ($i=0;$i<4;$i++)
+					$allSubTracks['circuits'][] = $getTracks["circuit$i"];
+			}
+		}
+		if (!empty($allSubTracks['circuits'])) {
+			$trackIdsString = implode(',',$allSubTracks['circuits']);
+			$getClTracks = mysql_query('SELECT DISTINCT id FROM mkclrace WHERE type="'. ($allSubTracks['mode'] ? 'circuits':'mkcircuits') .'" AND circuit IN ('.$trackIdsString.')');
+			while ($subCl = mysql_fetch_array($getClTracks))
+				$subCls[] = $subCl['id'];
+		}
+		foreach ($subCls as $clRaceId)
+			$res = array_merge($res, listChallenges($clRaceId,$newParams));
+	}
 	return $res;
 }
 require_once('circuitEscape.php');

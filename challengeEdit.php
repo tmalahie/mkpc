@@ -106,7 +106,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css" />
+<link rel="stylesheet" href="styles/challenges.css?reload=1" />
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <?php
 if (!$moderate)
@@ -475,9 +475,9 @@ $(function() {
 					<div id="difficulty-faq">
 					<?php
 					if ($language)
-						echo 'Please read the <a href="javascript:helpDifficulty()">recommandations</a> about difficulty selection';
+						echo 'Please read the <a class="pretty-link" href="javascript:helpDifficulty()">recommandations</a> about difficulty selection';
 					else
-						echo 'Merci de lire les <a href="javascript:helpDifficulty()">recommandations</a> sur le choix de la difficulté';
+						echo 'Merci de lire les <a class="pretty-link" href="javascript:helpDifficulty()">recommandations</a> sur le choix de la difficulté';
 					?>
 					</div>
 				</div>
@@ -503,7 +503,7 @@ $(function() {
 			echo '<p class="challenge-restricted-editor">';
 			echo $language ? 'This challenge has already passed completion validation, so you are restricted to what you can change.' : 'Ce défi a déjà passé la validation de réussite, vous êtes donc restreint dans les modifications.';
 			echo '<br />';
-			echo $language ? 'If you want to reaccess full editor, you can <a href="javascript:undoValidation()" onclick="return confirm(\'Confirm undo? Caution, you\\\'ll have to complete the challenge again\')">undo validation</a>.' : 'Si vous souhaitez réaccéder à l\'édition complète, vous pouvez <a href="javascript:undoValidation()" onclick="return confirm(\'Confirmer l\\\'annulation ? Attention, il vous faudra réussir le défi de nouveau\')">annuler la validation</a>.';
+			echo $language ? 'If you want to reaccess full editor, you can <a class="pretty-link" href="javascript:undoValidation()" onclick="return confirm(\'Confirm undo? Caution, you\\\'ll have to complete the challenge again\')">undo validation</a>.' : 'Si vous souhaitez réaccéder à l\'édition complète, vous pouvez <a class="pretty-link" href="javascript:undoValidation()" onclick="return confirm(\'Confirmer l\\\'annulation ? Attention, il vous faudra réussir le défi de nouveau\')">annuler la validation</a>.';
 			echo '</p>';
 			?>
 			<fieldset class="challenge-metadata">

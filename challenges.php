@@ -142,12 +142,15 @@ document.addEventListener("DOMContentLoaded", function() {
 		?>
 		</div>
 		<div class="main-challenge-actions">
+			<?php
+			if (!empty($clRace) && in_array($clRace['type'], array('mkcups', 'mkmcups')))
+				echo '<a href="'. nextPageUrl('challengeRewards.php') .'" class="other-challenge-action">'. ($language ? 'Manage rewards...':'Gérer les récompenses...') .'</a>';
+			?>
 			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>"><?php echo $language ? 'Create my first challenge':'Créer mon premier défi'; ?> &nbsp; &gt;</a>
 		</div>
 		<?php
 	}
 	else {
-		$challenges = listChallenges($clRace['id']);
 		?>
 		<table class="challenges-table">
 			<tr>

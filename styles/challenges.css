@@ -149,6 +149,9 @@ body a.challenge-action-edit:hover {
 .challenges-td-center {
 	text-align: center;
 }
+.challenges-table-reward ul {
+    padding-left: 15px;
+}
 .challenge-edit-form {
 	max-width: 500px;
 	margin-left: auto;
@@ -203,12 +206,6 @@ body a.challenge-action-edit:hover {
 	margin-top: 0.1em;
 	font-size: 0.6em;
 }
-#difficulty-faq a {
-	color: #05A;
-}
-#difficulty-faq a:hover {
-	color: #17C;
-}
 .challenge-main-extra {
 	margin-top: 6px;
 }
@@ -235,6 +232,17 @@ button.challenge-edit-submit:hover {
 button.challenge-edit-submit:active {
 	border: inset 3px #BDC;
 }
+.challenge-reward select {
+	margin-top: 2px;
+	min-width: 150px;
+	max-width: 425px;
+}
+.challenge-reward select[name="challenges[]"] {
+	font-size: 0.9rem;
+}
+.challenge-reward .challenge-edit-submit {
+	width: 250px;
+}
 .main-challenge-actions {
 	margin: 5px auto 0px auto;
 }
@@ -249,7 +257,7 @@ button.challenge-edit-submit:active {
 	font-size: 1.2em;
 	font-weight: bold;
 	padding: 6px 0 4px 0;
-	margin: 10px 20px 10px auto;
+	margin: 10px 20px;
 	text-decoration: none;
 }
 .main-challenge-action:hover {
@@ -261,7 +269,12 @@ button.challenge-edit-submit:active {
 .other-challenge-action {
 	display: inline-block;
 	color: white;
+	margin-top: 5px;
 	margin-bottom: 5px;
+}
+.challenge-nodata {
+	font-size: 0.8em;
+	color: #830;
 }
 .challenge-navigation {
 	margin: 8px 0 10px 0;
@@ -334,10 +347,10 @@ h1.challenge-main-title {
 	padding: 5px 10px;
 	border-radius: 5px;
 }
-.challenge-restricted-editor a {
+a.pretty-link {
 	color: #05A;
 }
-.challenge-restricted-editor a:hover {
+a.pretty-link:hover {
 	color: #17C;
 }
 .challenge-msg-error {
