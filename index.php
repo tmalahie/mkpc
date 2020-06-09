@@ -603,7 +603,7 @@ $slidesPath = 'images/slides';
 			<div id="forum_section" class="right_subsection">
 				<?php
 				require_once('getRights.php');
-				$sql = 'SELECT t.id,j.nom,t.titre, t.nbmsgs, t.category, t.dernier FROM `mktopics` t LEFT JOIN (SELECT topic,MAX(id) AS maxid FROM mkmessages GROUP BY topic) mm ON t.id=mm.topic LEFT JOIN mkmessages m ON m.topic=mm.topic AND m.id=mm.maxid LEFT JOIN mkjoueurs j ON m.auteur=j.id' . (hasRight('manager') ? '':' WHERE !t.private') .' ORDER BY t.dernier DESC LIMIT 10';
+				$sql = 'SELECT t.id,j.nom,t.titre, t.nbmsgs, t.category, t.dernier FROM `mktopics` t LEFT JOIN (SELECT topic,MAX(id) AS maxid FROM mkmessages GROUP BY topic) mm ON t.id=mm.topic LEFT JOIN mkmessages m ON m.topic=mm.topic AND m.id=mm.maxid LEFT JOIN mkjoueurs j ON m.auteur=j.id' . (hasRight('manager') ? '':' WHERE !t.private') .' ORDER BY t.dernier DESC LIMIT 15';
 				if ($language)
 					$sql = 'SELECT * FROM ('. $sql .') t ORDER BY (category=4) DESC, dernier DESC';
 				$topics = mysql_query($sql);
