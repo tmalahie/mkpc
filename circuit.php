@@ -52,6 +52,7 @@ elseif (isset($_GET['id'])) { // Existing track
 	$id = $_GET['id'];
 	$nid = $id;
 	$trackIDs = array($id);
+	$hthumbnail = 'https://mkpc.malahieude.net/mappreview.php?id='.$id;
 }
 elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) { // Cup being created
 	$isCup = true;
@@ -224,7 +225,7 @@ function escapeUtf8($str) {
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>">
    <head>
-       <title><?php if ($cName){echo escapeUtf8($cName);if($cPseudo)echo ' ['. ($language ? 'By':'Par') .' '. escapeUtf8($cPseudo) .']';echo ' - ';} ?>Mario Kart PC</title>
+       <title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
 <?php include('metas.php'); ?>
 
 <link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />

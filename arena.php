@@ -40,6 +40,7 @@ if (isset($_GET['id'])) {
 		}
 		$infos['map'] = $map;
 		addCircuitChallenges($challenges, 'mkcircuits', $nid,$cName, $clPayloadParams);
+		$hthumbnail = 'https://mkpc.malahieude.net/mappreview.php?id='.$id;
 	}
 	else {
 		mysql_close();
@@ -93,7 +94,7 @@ addClChallenges($challenges, $nid, $clPayloadParams);
 <!DOCTYPE HTML SYSTEM>
 <html>
    <head>
-       <title><?php if ($cName){echo escapeUtf8($cName);if($cPseudo)echo ' ['. ($language ? 'By':'Par') .' '. escapeUtf8($cPseudo) .']';echo ' - ';} ?>Mario Kart PC</title>
+       <title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
 <?php include('metas.php'); ?>
 
 <link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />

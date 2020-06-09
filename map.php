@@ -113,7 +113,7 @@ else { // Existing track
 		$pNote = $circuit['note'];
 		$pNotes = $circuit['nbnotes'];
 		$creationData = $circuit;
-		$hthumbnail = 'racepreview.php?id='.$id;
+		$hthumbnail = 'https://mkpc.malahieude.net/racepreview.php?id='.$id;
 		addCircuitChallenges($challenges, 'circuits', $nid,$circuit['nom'], $clPayloadParams);
 	}
 	else {
@@ -187,7 +187,7 @@ $sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'i'));
 <!DOCTYPE HTML SYSTEM>
 <html>
    <head>
-	   <title><?php if ($cName){echo escapeUtf8($cName);if($cAuteur)echo ' ['. ($language ? 'By':'Par') .' '. escapeUtf8($cAuteur) .']';echo ' - ';} ?>Mario Kart PC</title>
+	   <title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
 <?php include('metas.php'); ?>
 
 <link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />
