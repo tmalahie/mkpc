@@ -14406,9 +14406,9 @@ function chooseRandMap() {
 	else if (isSingle)
 		choose(1);
 	else if (isBattle)
-		choose(NBCIRCUITS+Math.ceil(Math.random()*8));
+		choose(NBCIRCUITS+Math.ceil(Math.random()*8),true);
 	else
-		choose(Math.ceil(Math.random()*NBCIRCUITS));
+		choose(Math.ceil(Math.random()*NBCIRCUITS),true);
 }
 
 function selectMapScreen() {
@@ -15000,7 +15000,7 @@ function selectRaceScreen(cup) {
 }
 
 var startMusicHandler;
-function choose(map) {
+function choose(map,rand) {
 	if (!isOnline) {
 		appendContainers();
 		resetGame("map"+map);
@@ -15036,7 +15036,8 @@ function choose(map) {
 					var oTr = document.createElement("tr");
 					var oTd = document.createElement("td");
 					var isChoix = choixJoueurs[i][2];
-					oTd.innerHTML = isChoix ? lCircuits[isChoix-1] : toLanguage("Not choosen","Non choisi");
+					var isRandom = choixJoueurs[i][3];
+					oTd.innerHTML = isChoix ? (isRandom ? "???":lCircuits[isChoix-1]) : toLanguage("Not choosen","Non choisi");
 					oTr.appendChild(oTd);
 					oTBody.appendChild(oTr);
 				}
@@ -15055,14 +15056,14 @@ function choose(map) {
 								aIDs.push(aID);
 								aPlayers.push(choixJoueurs[i][1]);
 								isCustomPerso(choixJoueurs[i][1]);
-								aPlaces.push(choixJoueurs[i][3]);
-								aPseudos.push(choixJoueurs[i][4]);
-								aTeams.push(choixJoueurs[i][5]);
+								aPlaces.push(choixJoueurs[i][4]);
+								aPseudos.push(choixJoueurs[i][5]);
+								aTeams.push(choixJoueurs[i][6]);
 							}
 							else {
-								aPlaces.unshift(choixJoueurs[i][3]);
-								aPseudos.unshift(choixJoueurs[i][4]);
-								aTeams.unshift(choixJoueurs[i][5]);
+								aPlaces.unshift(choixJoueurs[i][4]);
+								aPseudos.unshift(choixJoueurs[i][5]);
+								aTeams.unshift(choixJoueurs[i][6]);
 							}
 						}
 						selectedTeams = (aTeams.indexOf(-1) == -1);
@@ -15117,6 +15118,8 @@ function choose(map) {
 								setTimeout(function(){clignote(cID+1)}, 100);
 							else
 								setTimeout(function(){$mkScreen.removeChild(oTable);proceedOnlineRaceSelection(rCode)}, 500);
+							if (cID == 1)
+								trs[cCursor].getElementsByTagName("td")[0].innerHTML = lCircuits[choixJoueurs[cCursor][2]-1];
 						}
 						moveCursor();
 						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];
@@ -15196,7 +15199,7 @@ function choose(map) {
 		else
 			resetGame(strMap);
 	}
-	xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(course=="BB"?"&battle":""), refreshTab);
+	xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(course=="BB"?"&battle":"")+(rand?"&rand":""), refreshTab);
 	function waitForChoice() {
 		xhr("getMap.php", (course=="BB"?"battle":""), refreshTab);
 	}
@@ -15630,7 +15633,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 
 	var teams = [[],[]];
 	for (var i=0;i<choixJoueurs.length;i++)
-		teams[choixJoueurs[i][5]].push(choixJoueurs[i]);
+		teams[choixJoueurs[i][6]].push(choixJoueurs[i]);
 
 	var oSubmit = document.createElement("input");
 	oSubmit.type = "button";

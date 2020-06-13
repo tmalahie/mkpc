@@ -169,7 +169,7 @@ if ($id) {
 							$nbPlaces--;
 						}
 					}
-					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.choix=0,p.connecte=0 WHERE j.course='. $course);
+					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.choice_map=0,p.connecte=0 WHERE j.course='. $course);
 					for ($i=0;$i<$nbTables;$i++)
 						mysql_query('DELETE FROM `'.$tables[$i].'` WHERE course='.$course);
 				}

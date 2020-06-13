@@ -160,7 +160,7 @@ if ($id) {
 		!get_remaining_players($course, $getTime)) {
 		// Tous les joueurs de la course actuelle sont AFK, on peut les kicker
 		mysql_query('UPDATE `mariokart` SET map=-1 WHERE id='. $course);
-		mysql_query('UPDATE `mkjoueurs` SET course=0,choix=0 WHERE course='. $course);
+		mysql_query('UPDATE `mkjoueurs` SET course=0,choice_map=0 WHERE course='. $course);
 		mysql_query('DELETE FROM `mkplayers` WHERE course='. $course);
 		mysql_query('DELETE FROM `mkchat` WHERE course='. $course);
 		for ($i=0;$i<$nbTables;$i++)
@@ -201,7 +201,7 @@ if ($id) {
 			if ($ecart < 40) {
 				if ($ecart >= 25) {
 					mysql_query('UPDATE `mariokart` SET time='. ($time+35) .', map=-1,cup='. $nid .',mode='. $nmode .',link='. $nlink .' WHERE id='. $course);
-					mysql_query('UPDATE `mkjoueurs` SET choix=0 WHERE course='.$course);
+					mysql_query('UPDATE `mkjoueurs` SET choice_map=0 WHERE course='.$course);
 					mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE course='.$course.' AND id!="'.$id.'"');
 					mysql_query('DELETE FROM `mkplayers` WHERE course='. $course);
 					mysql_query('DELETE FROM `mkchat` WHERE course='. $course);
@@ -233,7 +233,7 @@ if ($id) {
 			if (($nbJoueurs >= $maxPlayers) && ($nbJoueurs < $linkOptions->rules->maxPlayers)) {
 				if (($nbJoueurs+1) >= $linkOptions->rules->minPlayers) {
 					// Cette course est sur le point de démarrer, on l'assigne !
-					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$courses['id'].',p.course='.$courses['id'].',p.connecte=0,j.choix=0 WHERE j.id="'. $id .'"');
+					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$courses['id'].',p.course='.$courses['id'].',p.connecte=0,j.choice_map=0 WHERE j.id="'. $id .'"');
 					$search = false;
 					$tempsRestant = ($courses['time']-$time);
 					if ($tempsRestant > 35) {
@@ -261,7 +261,7 @@ if ($id) {
 					mysql_query('INSERT INTO `mariokart` VALUES (null, -1, '. ($time+35) .','. $nid .','. $nmode .','. $nlink .')');
 					$pID = mysql_insert_id();
 				}
-				mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$pID.',p.course='.$pID.',p.connecte=0,j.choix=0 WHERE j.id="'. $id .'"');
+				mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$pID.',p.course='.$pID.',p.connecte=0,j.choice_map=0 WHERE j.id="'. $id .'"');
 				sendCourseNotifs();
 				break;
 			case 2 :

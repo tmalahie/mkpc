@@ -12,7 +12,7 @@ if ($id) {
 				if (isset($_POST['cancel'])) {
 					setCourseExtra($course, array('state' => 'cancelled'));
 					mysql_query('UPDATE `mariokart` SET map=-1,time='.time().' WHERE id='. $course);
-					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.choix=0,p.connecte=0 WHERE j.course='. $course);
+					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.choice_map=0,p.connecte=0 WHERE j.course='. $course);
 				}
 				else {
 					if (isset($_POST['noteams']))

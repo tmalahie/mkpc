@@ -5,7 +5,7 @@ if ($course && !$getCourse['banned']) {
 	$isBattle = isset($_POST['battle']);
 	$pts_ = 'pts_'.($isBattle ? 'battle':'vs');
 	if (mysql_numrows(mysql_query('SELECT * FROM `mariokart` WHERE id='.$course.' AND time<='. time())))
-		mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE course='.$course.' AND choix=0');
+		mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE course='.$course.' AND choice_map=0');
 	function getMapData() {
 		global $course;
 		$res = mysql_fetch_array(mysql_query('SELECT m.map,m.time,m.link,o.rules FROM `mariokart` m LEFT JOIN `mkgameoptions` o ON m.link=o.id WHERE m.id='. $course));
@@ -18,9 +18,9 @@ if ($course && !$getCourse['banned']) {
 	$time = $getMap['time'];
 	$continuer = ($map == -1);
 	$allChosen = true;
-	$joueurs = mysql_query('SELECT choix FROM `mkjoueurs` WHERE course='. $course .' ORDER BY id');
+	$joueurs = mysql_query('SELECT choice_map FROM `mkjoueurs` WHERE course='. $course .' ORDER BY id');
 	for ($i=0;$joueur=mysql_fetch_array($joueurs);$i++) {
-		if (!$joueur['choix']) {
+		if (!$joueur['choice_map']) {
 			$continuer = false;
 			$allChosen = false;
 			break;
@@ -44,7 +44,7 @@ if ($course && !$getCourse['banned']) {
 	}
 	function listPlayers() {
 		global $course, $pts_;
-		$joueurs = mysql_query('SELECT j.id,j.'.$pts_.' AS pts,j.joueur,IFNULL(p.place,1) AS place,IFNULL(p.team,-1) AS team,j.choix,j.nom FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id WHERE j.course='. $course .' ORDER BY j.id');
+		$joueurs = mysql_query('SELECT j.id,j.'.$pts_.' AS pts,j.joueur,IFNULL(p.place,1) AS place,IFNULL(p.team,-1) AS team,j.choice_map,j.choice_rand,j.nom FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id WHERE j.course='. $course .' ORDER BY j.id');
 		$joueursData = array();
 		while ($joueur=mysql_fetch_array($joueurs))
 			$joueursData[] = $joueur;
@@ -120,7 +120,7 @@ if ($course && !$getCourse['banned']) {
 	}
 	echo '[[';
 	foreach ($joueursData as $i=>$joueur)
-		echo ($i ? ',':'').'['.$joueur['id'].',"'.$joueur['joueur'].'",'.$joueur['choix'].','.$joueur['place'].',"'.$joueur['nom'].'",'.$joueur['team'].']';
+		echo ($i ? ',':'').'['.$joueur['id'].',"'.$joueur['joueur'].'",'.$joueur['choice_map'].','.$joueur['choice_rand'].','.$joueur['place'].',"'.$joueur['nom'].'",'.$joueur['team'].']';
 	echo '],'.$map.','.($time-$now).','.round($time/67);
 	echo ',{';
 	$courseRules = json_decode($getMap['rules']);
@@ -132,7 +132,7 @@ if ($course && !$getCourse['banned']) {
 	echo ']';
 	if ($continuer && !$enoughPlayers) {
 		mysql_query('UPDATE `mariokart` SET map=-1,time='. time() .' WHERE id='. $course);
-		mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET '.((count($joueursData)<2) ? 'j.choix=0,':'').'p.connecte=0 WHERE j.course='. $course);
+		mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET '.((count($joueursData)<2) ? 'j.choice_map=0,':'').'p.connecte=0 WHERE j.course='. $course);
 	}
 }
 else

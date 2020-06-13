@@ -35,7 +35,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code']) && isset($_POST['confirm'])
 			$countryId = $getCountryId['id'];
 		else
 			$countryId = 0;
-		mysql_query('INSERT INTO `mkjoueurs` VALUES (null, 0, "'.$pseudo.'", "'.password_hash($code,PASSWORD_DEFAULT).'", 0, 0, 5000, 5000, 0, 2, 0,0)');
+		mysql_query('INSERT INTO `mkjoueurs` VALUES (null, 0, "'.$pseudo.'", "'.password_hash($code,PASSWORD_DEFAULT).'", 0, 0, 0, 5000, 5000, 0, 2, 0,0)');
 		$id = mysql_insert_id();
 		if ($id) {
 			$_SESSION['mkid'] = $id;
