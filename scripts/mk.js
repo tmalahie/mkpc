@@ -15426,7 +15426,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 					oPlayerName.style.display = "block";
 					oPlayerName.style.top = "1px";
 					oPlayerName.style.position = "relative";
-					oPlayerName.innerHTML = player[4];
+					oPlayerName.innerHTML = player[5];
 					oPlayerName.style.whiteSpace = "nowrap";
 					oPlayerName.style.textOverflow = "ellipsis";
 					oPlayerName.style.overflow = "hidden";
@@ -15538,13 +15538,13 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 				playersTeams[teams[i][j][0]] = teams[i][j];
 		}
 		for (var i=0;i<choosedTeams.length;i++)
-			playersTeams[choosedTeams[i].id][5] = choosedTeams[i].team;
+			playersTeams[choosedTeams[i].id][6] = choosedTeams[i].team;
 		for (var i=0;i<strPlayer.length;i++)
-			aTeams[i] = playersTeams[identifiant][5];
+			aTeams[i] = playersTeams[identifiant][6];
 		for (var i=0;i<aPlayers.length;i++) {
 			var id = aIDs[i];
 			var inc = i+strPlayer.length;
-			aTeams[inc] = playersTeams[id][5];
+			aTeams[inc] = playersTeams[id][6];
 		}
 		selectedTeams = (aTeams.indexOf(-1) == -1);
 		teams[0].length = 0;
