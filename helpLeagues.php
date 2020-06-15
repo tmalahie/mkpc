@@ -33,7 +33,7 @@ include('language.php');
 				include('avatars.php');
 				$lastScore = 0;
 				$leagueScores = $LEAGUES_SCORES;
-				$leagueScores[] = INF;
+				//$leagueScores[] = INF;
 				foreach ($leagueScores as $score) {
 					if (is_infinite($score))
 						echo 'Score &ge; '. $lastScore;
@@ -45,7 +45,7 @@ include('language.php');
 					echo '<strong style="color:'. get_league_color($lastScore) .'">'. get_league_name($lastScore) .'</strong><br />';
 					$lastScore = $score;
 				}
-				//echo 'Score &ge; '. $lastScore .' : <strong>???</strong>';
+				echo 'Score &ge; '. $lastScore .' : <strong>???</strong>';
 				?>
 			</div>
 			</div>

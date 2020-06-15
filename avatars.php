@@ -111,7 +111,7 @@ function print_flag($id) {
 	if ($flagData)
 		echo '<div class="mCountry"><div class="country-ic" style="background-image:url(\'images/flags/'. $flagData['code'] .'.png\')"></div> '. htmlspecialchars(utf8_encode($flagData['name'])) .'</div>';
 }
-$LEAGUES_SCORES = array(4000,5000,6000,8000,10000,15000,20000,40000);
+$LEAGUES_SCORES = array(4000,5000,6000,8000,10000,15000,20000,40000,100000);
 function get_league_name($pts) {
 	global $language;
 	static $league_names;
@@ -125,7 +125,16 @@ function get_league_name($pts) {
 			$language ? 'Champion':'Champion',
 			$language ? 'Master':'Maître',
 			$language ? 'Legend':'Légende',
-			$language ? 'Titan':'Titan'
+			$language ? 'Titan':'Titan',
+			'<span style="color:#400080">S</span>'.
+			'<span style="color:#993399">u</span>'.
+			'<span style="color:#3366FF">p</span>'.
+			'<span style="color:#0E9D4E">e</span>'.
+			'<span style="color:#55C43D">r</span>'.
+			'<span style="color:#CCEE00;color:rgba(128,128,0,0.5)">s</span>'.
+			'<span style="color:#FF8800">t</span>'.
+			'<span style="color:#E53A35">a</span>'.
+			'<span style="color:#A24E24">r</span>'
 		);
 	}
 	return $league_names[get_league_rank($pts)];
@@ -142,7 +151,8 @@ function get_league_color($pts) {
 			'#3366FF',
 			'#55C43D',
 			'#0E9D4E',
-			'#FF6600'
+			'#FF6600',
+			'#300060'
 		);
 	}
 	return $league_colors[get_league_rank($pts)];
