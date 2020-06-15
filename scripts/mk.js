@@ -9858,7 +9858,7 @@ function move(getId) {
 											var xPts = (aKarts.length-i-1)/(aKarts.length-1);
 											var ptsInc = Math.round(maxPts*(Math.exp(xPts)-1)/(Math.E-1));
 											if (aKarts.length == 12) {
-												// hordcoded scores to fit wii point system
+												// hardcoded scores to fit wii point system
 												ptsInc = [15,12,10,8,7,6,5,4,3,2,1,0][i];
 											}
 											positions += '<tr id="fJ'+i+'" style="background-color: '+ (j<strPlayer.length ? (j ? (isRedTeam?'brown':'navy') : rankingColor(aKarts[j].team)) : (isRedTeam?'red':'transparent')) +'"><td>'+ toPlace(i+1)+' </td><td class="maj" id="j'+i+'">'+ toPerso(joueur) +'</td><td id="pts'+i+'">'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
@@ -11568,12 +11568,16 @@ function privateGameOptions(gameOptions, onProceed) {
 		if (!team)
 			manualTeams = 0;
 		var friendly = this.elements["option-friendly"].checked ? 1:0;
+		var localScore = +this.elements["option-localScore"].checked ? 1:0;
+		if (!friendly)
+			localScore = 0;
 		var minPlayers = +this.elements["option-minPlayers"].value;
 		var maxPlayers = +this.elements["option-maxPlayers"].value;
 		onProceed({
 			team: team,
 			manualTeams: manualTeams,
 			friendly: friendly,
+			localScore: localScore,
 			minPlayers: minPlayers,
 			maxPlayers: maxPlayers
 		});
@@ -11680,6 +11684,12 @@ function privateGameOptions(gameOptions, onProceed) {
 	oCheckbox.type = "checkbox";
 	if (gameOptions && gameOptions.friendly)
 		oCheckbox.checked = true;
+	oCheckbox.onchange = function() {
+		if (this.checked && isOnline)
+			document.getElementById("option-localScore-ctn").style.display = "";
+		else
+			document.getElementById("option-localScore-ctn").style.display = "none";
+	}
 	oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
 	oTd.appendChild(oCheckbox);
 	oTr.appendChild(oTd);
@@ -11701,6 +11711,48 @@ function privateGameOptions(gameOptions, onProceed) {
 	oDiv.innerHTML = toLanguage("If enabled, games won't make you win or lose points in the online mode.", "Si activé, les parties ne vous feront pas gagner ou perdre de points dans le mode en ligne.");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-localScore-ctn";
+	if (!gameOptions || !gameOptions.friendly)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.style.textAlign = "center";
+	oTd.style.width = (iScreenScale*8) +"px";
+	var oCheckbox = document.createElement("input");
+	oCheckbox.style.position = "relative";
+	oCheckbox.style.left = Math.round(iScreenScale*1.5) +"px";
+	oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
+	oCheckbox.id = "option-localScore";
+	oCheckbox.name = "option-localScore";
+	oCheckbox.type = "checkbox";
+	if (gameOptions && gameOptions.friendly && gameOptions.localScore && isOnline)
+		oCheckbox.checked = true;
+	oTd.appendChild(oCheckbox);
+	oTr.appendChild(oTd);
+
+	var oTd = document.createElement("td");
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.style.display = "inline-block";
+	oLabel.setAttribute("for", "option-localScore");
+	var oH1 = document.createElement("h1");
+	oH1.style.marginTop = 0;
+	oH1.style.marginLeft = Math.round(iScreenScale*1.5) +"px";
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.style.marginBottom = "0px";
+	oH1.innerHTML = toLanguage("Local scoring","Classement local");
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.paddingLeft = Math.round(iScreenScale*1.5) +"px";
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("If enabled, an ranking internal to this room will be calculated instead of the classic online mode ranking.", "Si activé, un classement interne à la partie privée sera calculé à la place du classement en ligne classique.");
+	oLabel.appendChild(oDiv);
+	oTd.appendChild(oLabel);
+	oTd.style.paddingBottom = Math.round(iScreenScale*1.5) +"px";
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
 
@@ -13167,8 +13219,14 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 					}
 					if (isOnline) {
 						var shownOptions = {};
+						var autoAcceptedRules = {
+							minPlayers:1,
+							maxPlayers:1,
+							localScore:1,
+							friendly:1,
+						};
 						for (var key in shareLink.options) {
-							if ((key != "minPlayers") && (key != "maxPlayers"))
+							if (!autoAcceptedRules[key])
 								shownOptions[key] = shareLink.options[key];
 						}
 						if (isCustomOptions(shownOptions) && !shareLink.accepted && (shareLink.player != identifiant))
@@ -13257,13 +13315,20 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oScr.appendChild(aDeconnexion);
 		
 		var eClassement = document.createElement("a");
-		eClassement.style.color = "white";
 		eClassement.style.fontSize = (iScreenScale*2) +"px";
 		eClassement.style.position = "absolute";
 		eClassement.style.left = (iScreenScale*41) +"px";
 		eClassement.style.top = (iScreenScale*34) +"px";
 		eClassement.innerHTML = toLanguage("Ranking", "Classement");
-		eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
+		if (shareLink.options && shareLink.options.localScore) {
+			eClassement.title = toLanguage("Private game ranking","Classement partie privée");
+			eClassement.style.color = "#CF8";
+			eClassement.setAttribute("href", "localscores.php"+window.location.search);
+		}
+		else {
+			eClassement.style.color = "white";
+			eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
+		}
 		oScr.appendChild(eClassement);
 
 		if (shareLink.key) {
@@ -13285,6 +13350,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 								if (!shareLink.options) shareLink.options = {};
 								shareLink.options.team = options.team;
 								shareLink.options.manualTeams = options.manualTeams;
+								shareLink.options.localScore = options.localScore;
 								shareLink.options.friendly = options.friendly;
 								shareLink.options.minPlayers = options.minPlayers;
 								shareLink.options.maxPlayers = options.maxPlayers;
@@ -13594,6 +13660,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 var defaultGameOptions = {
 	team: false,
 	manualTeams: false,
+	localScore: false,
 	friendly: false,
 	minPlayers: 2,
 	maxPlayers: 12
@@ -13785,28 +13852,6 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		oDiv.innerHTML = toLanguage("Teams are selected manually by one of the players.", "Les équipes sont sélectionnées manuellement par l'un des joueurs.");
-		oLabel.appendChild(oDiv);
-		oTd.appendChild(oLabel);
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-	}
-
-	if (shareLink.options.friendly) {
-		var oTr = document.createElement("tr");
-		var oTd = document.createElement("td");
-		var oLabel = document.createElement("label");
-		oLabel.setAttribute("for", "option-friendly");
-		oTd.appendChild(oLabel);
-
-		var oH1 = document.createElement("h1");
-		oH1.style.fontSize = (3*iScreenScale) +"px";
-		oH1.innerHTML = toLanguage("Friendly game", "Matchs amicaux");
-		oH1.style.marginBottom = "0px";
-		oLabel.appendChild(oH1);
-		var oDiv = document.createElement("div");
-		oDiv.style.fontSize = (2*iScreenScale) +"px";
-		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("Games won't make you win or lose points in the online mode.", "Les parties ne vous feront pas gagner ou perdre de points dans le mode en ligne.");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);

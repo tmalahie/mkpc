@@ -13,6 +13,10 @@ $rulesList = array(
 		'default' => 0,
 		'accepted' => array(1,1)
 	),
+	'localScore' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
+	),
 	'minPlayers' => array(
 		'default' => DEFAULT_MIN_PLAYERS,
 		'min_value' => 2,

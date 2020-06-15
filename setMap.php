@@ -34,7 +34,8 @@ if ($course && !$getCourse['banned']) {
 		if (!empty($courseRules->manualTeams))
 			$time += 12000;
 		mysql_query('UPDATE `mariokart` SET map='. $map .', time='.$time.' WHERE id='. $course);
-		$joueurs = mysql_query('SELECT j.id,'.$pts_.' AS pts FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id WHERE j.course='. $course .' ORDER BY p.place,j.id');
+		$isLocal = !empty($courseRules->friendly) && !empty($courseRules->localScore);
+		$joueurs = mysql_query('SELECT j.id,'.($isLocal ? 'IFNULL(r.pts,0) AS pts':'j.'.$pts_.' AS pts').' FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id'. ($isLocal ? ' LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND j.id=r.player':'') .' WHERE j.course='. $course .' ORDER BY p.place,j.id');
 		$nConnect = round($time/67);
 		for ($i=1;$joueur=mysql_fetch_array($joueurs);$i++) {
 			$toUpate = 'course='.$course.',aPts='. $joueur['pts'] .',connecte='.$nConnect.',tours=1,ballons=1,reserve=4,place='.$i;
@@ -55,60 +56,56 @@ if ($course && !$getCourse['banned']) {
 	$minPlayers = isset($courseRules->minPlayers) ? $courseRules->minPlayers : 2;
 	$enoughPlayers = ($nbPlayers >= $minPlayers);
 	if ($continuer && $enoughPlayers) {
-		$isTeam = false;
-		if ($getMap['link']) {
-			if (!empty($courseRules->team)) {
-				$isTeam = true;
-				$nbJoueurs = count($joueursData);
-				$maxJoueursInTeam = ceil($nbJoueurs/2);
-				foreach ($joueursData as &$joueur)
-					$joueur['score'] = $joueur['pts'];
-				unset($joueur);
-				$sJoueurs = array();
-				foreach ($joueursData as $i=>$joueur)
-					$sJoueurs[] = $i;
-				function sortPlayerIds($i1,$i2) {
-					global $joueursData, $courseRules;
-					if (!empty($courseRules->manualTeams)) {
-						$t1 = ($joueursData[$i1]['team']!=-1);
-						$t2 = ($joueursData[$i2]['team']!=-1);
-						if ($t1 && !$t2) return -1;
-						if (!$t1 && $t2) return 1;
-					}
-					$s1 = $joueursData[$i1]['score'];
-					$s2 = $joueursData[$i2]['score'];
-					if ($s1 == $s2) return 0;
-					return ($s1 < $s2) ? 1:-1;
-				}
-				usort($sJoueurs,'sortPlayerIds');
-				$teamScores = array(0,0);
-				$teamNbs = array(0,0);
-				$teamId = 0;
-				foreach ($sJoueurs as $i) {
-					$joueur = &$joueursData[$i];
-					if (empty($courseRules->manualTeams) || ($joueur['team']==-1))
-						$joueur['team'] = $teamId;
-					else
-						$teamId = $joueur['team'];
-					$teamScores[$teamId] += $joueur['score'];
-					$teamNbs[$teamId]++;
-					if ($teamNbs[$teamId] >= $maxJoueursInTeam)
-						$teamScores[$teamId] = INF;
-					if ($teamScores[$teamId] >= $teamScores[1-$teamId])
-						$teamId = 1-$teamId;
-					unset($joueur);
-				}
-				if ($teamNbs[$teamId] == 0)
-					$joueursData[$sJoueurs[0]]['team'] = $teamId;
-				foreach ($joueursData as $joueur)
-					mysql_query('UPDATE `mkplayers` SET team="'. $joueur['team'] .'" WHERE id="'. $joueur['id'] .'"');
+		if (!empty($courseRules->team)) {
+			$nbJoueurs = count($joueursData);
+			$maxJoueursInTeam = ceil($nbJoueurs/2);
+			foreach ($joueursData as &$joueur)
+				$joueur['score'] = $joueur['pts'];
+			unset($joueur);
+			$sJoueurs = array();
+			foreach ($joueursData as $i=>$joueur)
+				$sJoueurs[] = $i;
+			function sortPlayerIds($i1,$i2) {
+				global $joueursData, $courseRules;
 				if (!empty($courseRules->manualTeams)) {
-					include('onlineStateUtils.php');
-					setCourseExtra($course, array('state' => 'selecting_teams'));
+					$t1 = ($joueursData[$i1]['team']!=-1);
+					$t2 = ($joueursData[$i2]['team']!=-1);
+					if ($t1 && !$t2) return -1;
+					if (!$t1 && $t2) return 1;
 				}
+				$s1 = $joueursData[$i1]['score'];
+				$s2 = $joueursData[$i2]['score'];
+				if ($s1 == $s2) return 0;
+				return ($s1 < $s2) ? 1:-1;
+			}
+			usort($sJoueurs,'sortPlayerIds');
+			$teamScores = array(0,0);
+			$teamNbs = array(0,0);
+			$teamId = 0;
+			foreach ($sJoueurs as $i) {
+				$joueur = &$joueursData[$i];
+				if (empty($courseRules->manualTeams) || ($joueur['team']==-1))
+					$joueur['team'] = $teamId;
+				else
+					$teamId = $joueur['team'];
+				$teamScores[$teamId] += $joueur['score'];
+				$teamNbs[$teamId]++;
+				if ($teamNbs[$teamId] >= $maxJoueursInTeam)
+					$teamScores[$teamId] = INF;
+				if ($teamScores[$teamId] >= $teamScores[1-$teamId])
+					$teamId = 1-$teamId;
+				unset($joueur);
+			}
+			if ($teamNbs[$teamId] == 0)
+				$joueursData[$sJoueurs[0]]['team'] = $teamId;
+			foreach ($joueursData as $joueur)
+				mysql_query('UPDATE `mkplayers` SET team="'. $joueur['team'] .'" WHERE id="'. $joueur['id'] .'"');
+			if (!empty($courseRules->manualTeams)) {
+				include('onlineStateUtils.php');
+				setCourseExtra($course, array('state' => 'selecting_teams'));
 			}
 		}
-		if (!$isTeam)
+		else
 			mysql_query('UPDATE `mkplayers` SET team=-1 WHERE course='. $course);
 	}
 	if ($enoughPlayers && $allChosen) {

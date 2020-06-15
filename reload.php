@@ -95,12 +95,11 @@ if ($id) {
 			}
 			$joueurs = mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' ORDER BY id');
 			echo '[[';
-			$getCourseOptions = mysql_fetch_array(mysql_query('SELECT g.rules FROM `mkgameoptions` g INNER JOIN `mariokart` m ON m.link=g.id WHERE m.id="'. $course .'"'));
+			$courseOptions = mysql_fetch_array(mysql_query('SELECT g.id,g.rules FROM `mkgameoptions` g INNER JOIN `mariokart` m ON m.link=g.id WHERE m.id="'. $course .'"'));
 			$courseRules = new stdClass();
-			if ($getCourseOptions)
-				$courseRules = json_decode($getCourseOptions['rules']);
+			if ($courseOptions)
+				$courseRules = json_decode($courseOptions['rules']);
 			$isTeam = !empty($courseRules->team);
-			$isFriendly = !empty($courseRules->friendly);
 			$racing = 0;
 			$racingPerTeam = array(0,0);
 			$virgule = false;
@@ -178,10 +177,13 @@ if ($id) {
 					$coeff *= pow(2,$coeff);
 					return $coeff*(($coeff<0)?$score:max(20000-$score,5000))/80;
 				}
+				$isFriendly = !empty($courseRules->friendly);
+				$isLocal = $isFriendly && !empty($courseRules->localScore);
 				$joueurs = mysql_query('SELECT p.id,j.nom,p.aPts,p.team FROM `mkplayers` p INNER JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' ORDER BY p.place');
 				$joueursData = array();
 				while ($joueur=mysql_fetch_array($joueurs))
 					$joueursData[] = $joueur;
+				$nbScores = count($joueursData);
 				if (!$isFriendly) {
 					$total = 0;
 					if ($isTeam) {
@@ -227,10 +229,22 @@ if ($id) {
 				echo ',[';
 				$i = 0;
 				$pts_ = 'pts_'.($isBattle ? 'battle':'vs');
-				foreach ($joueursData as $joueur) {
+				foreach ($joueursData as $i=>$joueur) {
 					$score = $joueur['aPts'];
-					if ($isFriendly)
-						$inc = 0;
+					if ($isFriendly) {
+						if ($isLocal) {
+							$maxPts = round($nbScores*1.25);
+							$xPts = ($nbScores-$i-1)/($nbScores-1);
+							$inc = round($maxPts*(exp($xPts)-1)/(M_E-1));
+							if ($nbScores == 12) {
+								// hardcoded scores to fit wii point system
+								$incs = array(15,12,10,8,7,6,5,4,3,2,1,0);
+								$inc = $incs[$i];
+							}
+						}
+						else
+							$inc = 0;
+					}
 					elseif ($isTeam) {
 						$team = $joueur['team'];
 						$inc = $ptsPerTeam[$team]*$ptsProrata[$i]/$ptsProrataTotal[$team];
@@ -240,12 +254,15 @@ if ($id) {
 					$inc = round($inc);
 					echo ($i ? ',':'') .'['.$joueur['id'].',"'.$joueur['nom'].'",'.$joueur['aPts'].','.$inc.','.$joueur['team'].']';
 					$nPts = $joueur['aPts']+$inc;
-					$i++;
 					if ($finishing) {
 						$shouldLog = $isFriendly;
-						if ($nPts != $joueur['aPts']) {
-							mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='.$nPts.' WHERE id='.$joueur['id']);
-							$shouldLog = true;
+						if (($nPts != $joueur['aPts']) || $isLocal) {
+							if ($isLocal)
+								mysql_query('INSERT INTO `mkgamerank` SET game='. $courseOptions['id'] .',player='. $joueur['id'] .',pts='.$nPts.' ON DUPLICATE KEY UPDATE pts=VALUES(pts)');
+							else {
+								mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='.$nPts.' WHERE id='.$joueur['id'].' AND '.$pts_.'='.$joueur['aPts']);
+								$shouldLog = mysql_affected_rows();
+							}
 						}
 						if ($shouldLog)
 							mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $joueur['id'] .','. $course .','. $i .',NULL)');
