@@ -43,10 +43,10 @@ function rulesEqual($rules1,$rules2) {
 }
 function getRulesAsString($rules) {
 	global $rulesList;
-	$res = array();
+	$res = new stdClass();
 	foreach ($rulesList as $key => $rule) {
 		if (isset($rules->$key) && isRuleValid($rule,$rules->$key) && ($rules->$key != $rule['default']))
-			$res[$key] = $rules->$key;
+			$res->{$key} = $rules->$key;
 	}
 	return json_encode($res);
 }
