@@ -3368,29 +3368,7 @@ function classement() {
 		var teamsRecap = [0,0];
 		for (var i=0;i<aScores.length;i++)
 			teamsRecap[aTeams[i]] += aScores[i];
-		var teamsRank = teamsRecap[0]>teamsRecap[1] || (teamsRecap[0]==teamsRecap[1] && teamsRecap[0]==oPlayers[0].team) ? [0,1]:[1,0];
-		oTeamTable = document.createElement("table");
-		oTeamTable.id = "team-table";
-		var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Team','Équipe') +'</td><td>Pts</td></tr>';
-		for (var i=0;i<teamsRank.length;i++) {
-			var isRedTeam = teamsRank[i];
-			positions += '<tr id="fJ'+i+'" style="background-color:'+ (isRedTeam?'red':'blue') +'"><td>'+ toPlace(i+1) +' </td><td class="maj" id="j'+i+'">'+ (isRedTeam ? toLanguage('Red','Rouge'):toLanguage('Blue','Bleue')) +'</td><td id="pts'+i+'">'+ teamsRecap[isRedTeam] +'</td></tr>';
-		}
-		oTeamTable.style.visibility = "hidden";
-		oTeamTable.style.position = "absolute";
-		oTeamTable.style.zIndex = 20000;
-		oTeamTable.style.left = (iScreenScale*3 + 10) +"px";
-		oTeamTable.style.top = (iScreenScale*10) +"px";
-		oTeamTable.style.backgroundColor = "blue";
-		oTeamTable.style.color = primaryColor;
-		oTeamTable.style.opacity = 0.7;
-		oTeamTable.style.textAlign = "center";
-		oTeamTable.style.fontSize = Math.round(iScreenScale*1.5+4) +"pt";
-		oTeamTable.style.fontFamily = "Courier";
-		oTeamTable.style.fontWeight = "bold";
-		oTeamTable.style.fontFamily = "arial";
-		oTeamTable.innerHTML = positions;
-		$mkScreen.appendChild(oTeamTable);
+		oTeamTable = createTeamTable(teamsRecap);
 	}
 	document.getElementById("octn").onclick = continuer;
 	setTimeout(function() {
@@ -3401,6 +3379,33 @@ function classement() {
 		document.getElementById("octn").focus();
 		document.body.scrollTop = aScroll;
 	}, 500);
+}
+
+function createTeamTable(teamsRecap) {
+	var teamsRank = teamsRecap[0]>teamsRecap[1] || (teamsRecap[0]==teamsRecap[1] && teamsRecap[0]==oPlayers[0].team) ? [0,1]:[1,0];
+	var oTeamTable = document.createElement("table");
+	oTeamTable.id = "team-table";
+	var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Team','Équipe') +'</td><td>Pts</td></tr>';
+	for (var i=0;i<teamsRank.length;i++) {
+		var isRedTeam = teamsRank[i];
+		positions += '<tr id="fJ'+i+'" style="background-color:'+ (isRedTeam?'red':'blue') +'"><td>'+ toPlace(i+1) +' </td><td class="maj" id="j'+i+'">'+ (isRedTeam ? toLanguage('Red','Rouge'):toLanguage('Blue','Bleue')) +'</td><td id="pts'+i+'">'+ teamsRecap[isRedTeam] +'</td></tr>';
+	}
+	oTeamTable.style.visibility = "hidden";
+	oTeamTable.style.position = "absolute";
+	oTeamTable.style.zIndex = 20000;
+	oTeamTable.style.left = (iScreenScale*3 + 10) +"px";
+	oTeamTable.style.top = (iScreenScale*10) +"px";
+	oTeamTable.style.backgroundColor = "blue";
+	oTeamTable.style.color = primaryColor;
+	oTeamTable.style.opacity = 0.7;
+	oTeamTable.style.textAlign = "center";
+	oTeamTable.style.fontSize = Math.round(iScreenScale*1.5+4) +"pt";
+	oTeamTable.style.fontFamily = "Courier";
+	oTeamTable.style.fontWeight = "bold";
+	oTeamTable.style.fontFamily = "arial";
+	oTeamTable.innerHTML = positions;
+	$mkScreen.appendChild(oTeamTable);
+	return oTeamTable;
 }
 
 function continuer() {
@@ -9007,8 +9012,23 @@ function resetDatas() {
 									else
 										oTrs[i].style.backgroundColor = "";
 								}
+
+								var oTeamTable;
+								if (iTeamPlay && shareLink.options && shareLink.options.localScore) {
+									var teamsRecap = [0,0];
+									for (var i=0;i<rCode[3].length;i++)
+										teamsRecap[rCode[3][i][4]] += rCode[3][i][2];
+									oTeamTable = createTeamTable(teamsRecap);
+								}
+
 								var forceClic2 = true;
-								setTimeout(function(){infos0.style.display="";if(!isChatting())oContinue.focus()}, 500);
+								setTimeout(function() {
+									infos0.style.display = "";
+									if (oTeamTable)
+										oTeamTable.style.visibility = "visible";
+									if(!isChatting())
+										oContinue.focus()
+								}, 500);
 
 								setTimeout(function(){if(forceClic2)continuer();}, 5000);
 								oContinue.onclick = function() {
