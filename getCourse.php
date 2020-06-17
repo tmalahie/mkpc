@@ -44,7 +44,7 @@ if ($id) {
 			$isSingle = true;
 		}
 	}
-	elseif (isset($_POST['nods'])) {
+	elseif (isset($_POST['meta'])) {
 		if (!isset($_POST['key']))
 			$_POST['key'] = 191057616;
 		$nid = 8;

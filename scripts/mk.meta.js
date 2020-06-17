@@ -9,22 +9,8 @@ var updateCtnFullScreen;
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
-if (typeof noDS === 'undefined') {
-	var noDS = false;
-}
 if (typeof cupOpts === 'undefined') {
 	var cupOpts = {};
-}
-if (noDS) {
-	var bListMaps = listMaps;
-	listMaps = function() {
-		NBCIRCUITS = 40;
-		var aMaps = bListMaps();
-		var res = {};
-		for (var i=1;i<=NBCIRCUITS;i++)
-			res["map"+i] = aMaps["map"+i];
-		return res;
-	};
 }
 var isOnline = (page=="OL");
 var isMCups = (isCup && (NBCIRCUITS>4));
@@ -1838,7 +1824,8 @@ function startGame() {
 			acceleration: 0.2+Math.pow(normalizedStats[0],2)*0.8,
 			speed: 0.875+normalizedStats[1]*0.25,
 			handling: 0.2+normalizedStats[2]*0.8,
-			mass: 0.5+normalizedStats[3]
+			mass: 0.5+normalizedStats[3],
+			offroad: normalizedStats[4]*24/32
 		}
 	}
 	for (var i=0;i<strPlayer.length;i++) {
@@ -1934,7 +1921,7 @@ function startGame() {
 			speed : 0,
 			speedinc : 0.5,
 			heightinc : 0,
-			stats : realKartStats([0.5,0.5,0.5,cp[joueur][3]]),
+			stats : realKartStats([0.5,0.5,0.5,cp[joueur][3],0.5]),
 
 			rotation : rot0,
 			rotincdir : 0,
@@ -7427,15 +7414,17 @@ function ralenti(iX, iY) {
 	return false;
 }
 function getOffroadProps(oKart,hpType) {
+	var kSpeed = oKart.speed-oKart.speedinc;
+	var kOffroad = oKart.stats.offroad;
 	switch (hpType) {
 		case "herbe" :
-			return {speed:1.9+oKart.speedinc/2};
+			return {speed:1.8+kOffroad,driftable:kSpeed>=3};
 		case "glace" :
-			return {speed:2.8+oKart.speedinc/2,sliding:8};
+			return {speed:2.8+kOffroad/2,sliding:8-kOffroad,driftable:(kSpeed>=2.8)};
 		case "eau" :
-			return {speed:2.7,sliding:5};
+			return {speed:2.6+kOffroad/5,sliding:5,driftable:(kSpeed>=2.7)};
 		case "choco" :
-			return {speed:2.1,sliding:4};
+			return {speed:2+kOffroad/4,sliding:4,driftable:(kSpeed>=2.15)};
 	}
 }
 
@@ -9630,9 +9619,14 @@ function move(getId) {
 					var hpProps = getOffroadProps(oKart,hpType);
 					if (hpProps.sliding)
 						oKart.sliding = hpProps.sliding;
+					if (hpProps.driftable) {
+						if (oKart.turbodrift)
+							oKart.turbodrift = 0;
+					}
+					else
+						stopDrifting(getId);
 					if (oKart.speed > hpProps.speed)
-						oKart.speed = hpProps.speed;
-					stopDrifting(getId);
+						oKart.speed = Math.max(oKart.speed*0.8+hpProps.speed*0.2-1,hpProps.speed);
 				}
 				if (oiling(fNewPosX, fNewPosY) && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && !oKart.protect && !oKart.z) {
 					stopDrifting(getId);
@@ -10445,11 +10439,12 @@ function handleDriftCpt(getId) {
 	}
 }
 function angleDrift(oKart) {
-	if (!kartIsPlayer(oKart))
-		return 0;
-	if (oKart.sliding)
-		return oKart.rotinc*oKart.sliding;
-	return oKart.drift*6;
+	if (kartIsPlayer(oKart)) {
+		if (oKart.sliding)
+			return oKart.rotinc*oKart.sliding+oKart.drift*4;
+		return oKart.drift*6;
+	}
+	return 0;
 }
 function angleShoot(oKart, backwards) {
 	var res = oKart.rotation;
@@ -11314,7 +11309,7 @@ if (!String.prototype.startsWith) {
 function isCustomPerso(playerName) {
 	if (playerName.startsWith("cp-")) {
 		if (!customPersos[playerName]) {
-			cp[playerName] = [0.5,0.5,0.5,0.5];
+			cp[playerName] = [0.5,0.5,0.5,0.5,0.5];
 			var defaultIc = PERSOS_DIR + playerName + "-ld.png";
 			customPersos[playerName] = {
 				"name": language ? "Deleted character":"Perso supprimé",
@@ -12019,7 +12014,7 @@ function selectTypeScreen() {
 			oPInput.onclick = function() {
 				course = this.dataset.course;
 				if (course == "CL")
-					document.location.href = "online.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid);
+					document.location.href = "online.meta.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid);
 				else {
 					FBRoot.style.display = "none";
 					oScr.innerHTML = "";
@@ -12218,7 +12213,7 @@ function selectNbJoueurs() {
 		oPInput.style.paddingTop = Math.round(iScreenScale*0.5) +"px";
 		oPInput.style.paddingBottom = Math.round(iScreenScale*0.5) +"px";
 		oPInput.onclick = function() {
-			document.location.href = "online.php?"+ (complete ? "i":"id") +"="+ nid +"&battle";
+			document.location.href = "online.meta.php?"+ (complete ? "i":"id") +"="+ nid +"&battle";
 		}
 		oScr.appendChild(oPInput);
 	}
@@ -12328,14 +12323,14 @@ function openOnlineMode(isBattle, options) {
 	if (options) {
 		xhr("onlineOptions.php", "options="+encodeURIComponent(JSON.stringify(options)), function(res) {
 			if (res) {
-				document.location.href = "online.php?"+ (isBattle ? "battle&":"")+("key="+ res);
+				document.location.href = "online.meta.php?"+ (isBattle ? "battle&":"")+("key="+ res);
 				return true;
 			}
 			return false;
 		});
 	}
 	else
-		document.location.href = "online.php"+ (isBattle ? "?battle":"");
+		document.location.href = "online.meta.php"+ (isBattle ? "?battle":"");
 }
 function openChallengeEditor() {
 	if (clId && !edittingCircuit)
@@ -12880,7 +12875,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	cTable.style.top = (36*iScreenScale+16)+"px";
 	cTable.style.left = (25*iScreenScale-60)+"px";
 	cTable.style.textAlign = "left";
-	cTable.style.fontSize = 2*iScreenScale+"px";
+	cTable.style.fontSize = Math.round(1.8*iScreenScale)+"px";
 	cTable.style.color = "white";
 	cTable.setAttribute("cellpadding", 2);
 	cTable.setAttribute("cellspacing", 2);
@@ -12897,7 +12892,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	hTr.appendChild(hTd2);
 	cTable.appendChild(hTr);
 	
-	var sCaracteristiques = [toLanguage("Acceleration", "Accélération"), toLanguage("Max speed", "Vitesse max"), toLanguage("Handling", "Maniabilité"), toLanguage("Weight", "Poids")];
+	var sCaracteristiques = [toLanguage("Acceleration", "Accélération"), toLanguage("Max speed", "Vitesse max"), toLanguage("Handling", "Maniabilité"), toLanguage("Weight", "Poids"), toLanguage("Off-road", "Hors-piste")];
 	var dCaracteristiques = new Array();
 	
 	for (var i=0;i<sCaracteristiques.length;i++) {
@@ -12910,7 +12905,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		dCaracteristiques[i] = document.createElement("div");
 		dCaracteristiques[i].style.backgroundColor = "#838057";
 		dCaracteristiques[i].style.border = "solid 1px silver";
-		dCaracteristiques[i].style.height = 2*iScreenScale+"px";
+		dCaracteristiques[i].style.height = Math.round(1.8*iScreenScale)+"px";
 		dCaracteristiques[i].innerHTML = "&nbsp;";
 		oTd2.appendChild(dCaracteristiques[i]);
 		oTr.appendChild(oTd2);
@@ -14211,8 +14206,7 @@ function searchCourse() {
 	}
 	else if (isBattle)
 		courseParams += 'battle';
-	else if (noDS)
-		courseParams += "nods";
+	courseParams += "meta";
 	if (shareLink.key)
 		courseParams += (courseParams ? '&':'') + 'key='+ shareLink.key;
 	function rSearchCourse() {

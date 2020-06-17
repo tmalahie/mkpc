@@ -36,17 +36,17 @@ if (isset($stats)) {
             return '';
         }
         foreach ($statsData as $perso => $statData)
-            mysql_query('INSERT INTO `mkteststats` SET perso="'.mysql_real_escape_string($perso).'",identifiant='.$identifiants[0].toSQLStat($statData,'acceleration').toSQLStat($statData,'speed').toSQLStat($statData,'handling').toSQLStat($statData,'mass').' ON DUPLICATE KEY UPDATE id=id'.toSQLValue($statData,'acceleration').toSQLValue($statData,'speed').toSQLValue($statData,'handling').toSQLValue($statData,'mass'));
-        $statKeys = array('acceleration','speed','handling','mass');
+            mysql_query('INSERT INTO `mkteststats` SET perso="'.mysql_real_escape_string($perso).'",identifiant='.$identifiants[0].toSQLStat($statData,'acceleration').toSQLStat($statData,'speed').toSQLStat($statData,'handling').toSQLStat($statData,'mass').toSQLStat($statData,'offroad').' ON DUPLICATE KEY UPDATE id=id'.toSQLValue($statData,'acceleration').toSQLValue($statData,'speed').toSQLValue($statData,'handling').toSQLValue($statData,'mass').toSQLValue($statData,'offroad'));
+        $statKeys = array('acceleration','speed','handling','mass','offroad');
         if ($isAdmin) {
             foreach ($statKeys as $statKey)
                 mysql_query("UPDATE mkteststats m INNER JOIN mkteststats g ON m.perso=g.perso AND m.$statKey=g.$statKey SET m.$statKey=NULL WHERE m.identifiant!=0 AND g.identifiant=0");
-            mysql_query('DELETE FROM mkteststats WHERE identifiant!=0 AND acceleration IS NULL AND speed IS NULL AND handling IS NULL AND mass IS NULL');
+            mysql_query('DELETE FROM mkteststats WHERE identifiant!=0 AND acceleration IS NULL AND speed IS NULL AND handling IS NULL AND mass IS NULL AND offroad IS NULL');
         }
         else {
             foreach ($statKeys as $statKey)
                 mysql_query("UPDATE mkteststats m INNER JOIN mkteststats g ON m.perso=g.perso AND m.$statKey=g.$statKey SET m.$statKey=NULL WHERE m.identifiant=".$identifiants[0]." AND g.identifiant=0");
-            mysql_query('DELETE FROM mkteststats WHERE identifiant='.$identifiants[0].' AND acceleration IS NULL AND speed IS NULL AND handling IS NULL AND mass IS NULL');
+            mysql_query('DELETE FROM mkteststats WHERE identifiant='.$identifiants[0].' AND acceleration IS NULL AND speed IS NULL AND handling IS NULL AND mass IS NULL AND offroad IS NULL');
         }
     }
 }
@@ -54,7 +54,7 @@ $globalStats = new \stdClass();
 $myStats = new \stdClass();
 $getPersos = mysql_query('SELECT * FROM mkteststats WHERE identifiant IN (0,'.$identifiants[0].') ORDER BY id');
 while ($perso = mysql_fetch_array($getPersos)) {
-    $stats = array($perso['acceleration'],$perso['speed'],$perso['handling'],$perso['mass']);
+    $stats = array($perso['acceleration'],$perso['speed'],$perso['handling'],$perso['mass'],$perso['offroad']);
     if ($perso['identifiant'])
         $myStats->{$perso['perso']} = $stats;
     else
@@ -102,7 +102,7 @@ while ($perso = mysql_fetch_array($getPersos)) {
         var globalStats = <?php echo json_encode($globalStats); ?>;
         var myStats = <?php echo json_encode($myStats); ?>;
         var initialStats = JSON.parse(JSON.stringify(myStats));
-        var statsKeys = ["acceleration","speed","handling","mass"];
+        var statsKeys = ["acceleration","speed","handling","mass","offroad"];
         function selectPerso(perso) {
             for (var i=0;i<statsKeys.length;i++) {
                 var key = statsKeys[i];
@@ -122,7 +122,7 @@ while ($perso = mysql_fetch_array($getPersos)) {
         function handleStat(key,value) {
             var statId = statsKeys.indexOf(key);
             var perso = document.getElementById("perso").value;
-            if (!myStats[perso]) myStats[perso] = [null,null,null,null];
+            if (!myStats[perso]) myStats[perso] = [null,null,null,null,null];
             if (value == globalStats[perso][statId])
                 myStats[perso][statId] = null;
             else
@@ -138,7 +138,7 @@ while ($perso = mysql_fetch_array($getPersos)) {
             for (var perso in myStats) {
                 var myStat = myStats[perso];
                 if (!initialStats[perso])
-                    initialStats[perso] = [null,null,null,null];
+                    initialStats[perso] = [null,null,null,null,null];
                 var change = {};
                 var isChanges = false;
                 for (var i=0;i<statsKeys.length;i++) {
@@ -198,7 +198,10 @@ while ($perso = mysql_fetch_array($getPersos)) {
             <span id="handling-value"></span><br />
             <label><?php echo $language ? 'Weight:':'Poids:'; ?></label>
             <input type="range" id="mass" min="0" max="32" oninput="handleStat(this.id,this.value)" />
-            <span id="mass-value"></span>
+            <span id="mass-value"></span><br />
+            <label><?php echo $language ? 'Off-road:':'Hors-piste:'; ?></label>
+            <input type="range" id="offroad" min="0" max="32" oninput="handleStat(this.id,this.value)" />
+            <span id="offroad-value"></span>
         </div>
         <input type="hidden" name="stats" value="{}" />
         <input type="submit" value="<?php echo $language ? 'Validate (Ctrl+S)':'Valider (Ctrl+S)'; ?>" onclick="saveStats()" />
@@ -241,6 +244,7 @@ while ($perso = mysql_fetch_array($getPersos)) {
             print_diff($perso,1, $language ? 'Speed':'Vitesse');
             print_diff($perso,2, $language ? 'Handling':'Maniabilité');
             print_diff($perso,3, $language ? 'Weight':'Poids');
+            print_diff($perso,4, $language ? 'Off-road':'Hors-piste');
         }
     }
     ?>

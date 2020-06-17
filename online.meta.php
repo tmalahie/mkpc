@@ -186,17 +186,7 @@ function escapeUtf8($str) {
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>">
    <head>
-	   <title><?php
-	   	if ($isCup) {
-	   		if ($getCup['nom'])
-	   			echo escapeUtf8($getCup['nom']) . ' - ';
-	   		echo $language ? 'Online '.($isBattle?'battle':'race'):($isBattle?'Bataille':'Course') .' en ligne';
-	   	}
-	   	elseif ($isBattle)
-	   		echo $language ? 'Online battle Mario Kart PC':'Bataille en ligne Mario Kart PC';
-	   	else
-	   		echo $language ? 'Online race Mario Kart PC':'Course en ligne Mario Kart PC';
-	   ?></title>
+	   <title>Online Metagame - Mario Kart PC</title>
 <?php include('metas.php'); ?>
 <?php
 if (isset($privateLink)) {
@@ -257,8 +247,8 @@ var lCircuits = <?php echo json_encode(array_splice($circuitNames,0,$nbVSCircuit
 	<?php
 }
 ?>
-var cp = <?php include('getPersos.php'); ?>;
-var pUnlocked = <?php include('getLocks.php'); ?>;
+var cp = <?php include('getPersosMeta.php') ?>;
+var pUnlocked = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
 var page = "OL";
 var PERSOS_DIR = "<?php
@@ -301,6 +291,7 @@ var shareLink = {
 	}
 	if ($isBattle)
 		$params[] = '"battle"';
+	$params[] = '"meta"';
 	echo implode(',',$params);
 	?>]
 };
@@ -350,7 +341,8 @@ else {
 }
 ?>
 </script>
-<?php include('mk/main.php') ?>
+<script type="text/javascript" src="mk/maps.php"></script>
+<script type="text/javascript" src="scripts/mk.meta.js?reload=1"></script>
 <script type="text/javascript">document.addEventListener("DOMContentLoaded", MarioKart);</script>
 </head>
 <body>
@@ -368,31 +360,28 @@ else {
 <td id="pQuality">&nbsp;</td>
 <td id="vQuality">
 </td>
-<td rowspan="4" id="commandes">
-<?php
-if ($language) {
-	?>
-<strong>Move</strong> : Arrows<br />
-<strong>Use object</strong> : Spacebar<br />
-<strong><em>OR</em></strong> : Left click<br />
-<strong>Jump/drift</strong> : Ctrl<br />
-<?php if ($isBattle) echo '<strong>Gonfler un ballon</strong> : Maj<br />'; ?>
-<strong>Rear/Front view</strong> : X<br />
-<strong>Quit</strong> : Escape</td>
-	<?php
-}
-else {
-	?>
-<strong>Se diriger</strong> : Fl&egrave;ches directionnelles<br />
-<strong>Utiliser un objet</strong> : Barre d'espace<br />
-<strong><em>OU</em></strong> : Clic gauche<br />
-<strong>Sauter/déraper</strong> : Ctrl<br />
-<?php if ($isBattle) echo '<strong>'. ($language ? 'Inflate a balloon':'Gonfler un ballon') .'</strong> : '. ($language ? 'Shift':'Maj') .'<br />'; ?>
-<strong>Vue arri&egrave;re/avant</strong> : X<br />
-<strong>Quitter</strong> : &Eacute;chap</td>
-	<?php
-}
-?></tr>
+<td rowspan="4" style="text-align:center;padding-left:10px">
+    <?php
+    if ($isCommon) {
+        echo $language ? 'Metagame - Common version':'Metagame - Version commune';
+        echo '<br />';
+        echo '<a href="online.meta.php" style="color:white">'. ($language ? 'Back to personal version':'Retour à la version perso') .'</a>';
+        $canBeAdmin = in_array($identifiants[0], array(1390635815,2963080980));
+        if ($canBeAdmin) {
+            echo '<br />';
+            echo '<a href="metaStats.php?common" style="color:white">'. ($language ? 'Edit stats':'Modifier les stats') .'</a>';
+        }
+    }
+    else {
+        echo $language ? 'Metagame - Personnal version':'Metagame - Version personnelle';
+        echo '<br />';
+        echo '<a href="?common" style="color:white">'. ($language ? 'See common version':'Voir la version commune') .'</a>';
+        $canBeAdmin = in_array($identifiants[0], array(1390635815,2963080980));
+        echo '<br />';
+        echo '<a href="metaStats.php" style="color:white">'. ($language ? 'Edit stats':'Modifier les stats') .'</a>';
+    }
+    ?>
+</tr>
 <tr><td id="pSize">
 </td>
 <td id="vSize">

@@ -33,23 +33,7 @@ echo json_encode($circuitNames);
 ?>;
 var recorder = "<?php echo isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'' ?>";
 var pUnlocked = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
-var cp = <?php
-	include('fetchSaves.php');
-	$isCommon = isset($_GET['common']);
-	$ids = $isCommon ? '0' : '0,'.$identifiants[0];
-	$getPersos = mysql_query('SELECT * FROM mkteststats WHERE identifiant IN ('.$ids.') ORDER BY id');
-	$cp = array();
-	$statKeys = array('acceleration','speed','handling','mass');
-	while ($perso = mysql_fetch_array($getPersos)) {
-		if (!$cp[$perso['perso']])
-			$cp[$perso['perso']] = array(null,null,null,null);
-		foreach ($statKeys as $i => $statKey) {
-			if ($perso[$statKey] !== null)
-				$cp[$perso['perso']][$i] = $perso[$statKey]/24;
-		}
-	}
-	echo json_encode($cp);
-?>;
+var cp = <?php include('getPersosMeta.php') ?>;
 var ptsGP = "<?php echo $mkSaves; ?>";
 var isCup = false, isBattle = false, isSingle = false, complete = false, simplified = false;
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
@@ -63,7 +47,7 @@ var NBCIRCUITS = <?php echo $nbVSCircuits; ?>;
 mysql_close();
 ?>
 <script type="text/javascript" src="mk/maps.php"></script>
-<script type="text/javascript" src="scripts/mk.meta.js"></script>
+<script type="text/javascript" src="scripts/mk.meta.js?reload=1"></script>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", MarioKart);
 </script>
