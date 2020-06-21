@@ -15102,7 +15102,7 @@ function choose(map,rand) {
 					var oTd = document.createElement("td");
 					var isChoix = choixJoueurs[i][2];
 					var isRandom = choixJoueurs[i][3];
-					oTd.innerHTML = isChoix ? (isRandom ? "???":lCircuits[isChoix-1]) : toLanguage("Not choosen","Non choisi");
+					oTd.innerHTML = isChoix ? (isRandom ? "???":lCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
 					oTr.appendChild(oTd);
 					oTBody.appendChild(oTr);
 				}
