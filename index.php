@@ -141,7 +141,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										With the <strong>track builder</strong>, the possibilities are infinite: the only limit is your own imagination<br />
+										With the <strong>track builder</strong>, the possibilities are infinite: the only limit is your own imagination.<br />
 										Try other peoples' creations thanks to the integrated <strong>sharing tool</strong>.
 										<?php
 									}
@@ -171,7 +171,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										Fight the other players with the <strong>online mode</strong>!<br />
+										Fight other players in <strong>online mode</strong>!<br />
 										Win as many races as possible and <strong>climb in the official ranking</strong>!
 										<?php
 									}
@@ -201,7 +201,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										<strong>Finish the race course</strong> as fast as you can!<br />
+										<strong>Finish the race track</strong> as fast as you can!<br />
 										<strong>Compare your scores</strong> with the community, and face other players' ghosts!
 										<?php
 									}
@@ -625,7 +625,7 @@ $slidesPath = 'images/slides';
 		<?php
 		display_sidebar('News', 'listNews.php');
 		?>
-			<h1><?php echo $language ? 'Last news':'Dernières news'; ?></h1>
+			<h1><?php echo $language ? 'Latest news':'Dernières news'; ?></h1>
 			<div id="news_section" class="right_subsection">
 				<?php
 				date_default_timezone_set('Europe/Paris');

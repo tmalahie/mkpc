@@ -595,7 +595,7 @@ function addRace() {
 
 	var oCircuitRate = document.createElement("div");
 	oCircuitRate.className = "circuit-rate";
-	oCircuitRate.title = nbnotes ? (Math.round((note+1)*100)/100) +"/5 sur "+ nbnotes +" note"+ (nbnotes>1 ? "s":"") : "Non noté";
+	oCircuitRate.title = nbnotes ? (Math.round((note+1)*100)/100) +"/5 <?php echo $language ? 'on':'sur'; ?> "+ nbnotes +" <?php echo $language ? 'rating':'note'; ?>"+ (nbnotes>1 ? "s":"") : "<?php echo $language ? 'Unrated':'Non noté'; ?>";
 	for (var i=0;i<=note;i++) {
 		var oEtoile = document.createElement("div");
 		oEtoile.className = "circuit-star";

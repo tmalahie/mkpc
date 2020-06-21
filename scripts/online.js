@@ -257,7 +257,7 @@ function o_refreshtable() {
 							var o_ignore = document.createElement("div");
 							o_ignore.innerHTML = o_language ? "Ignore":"Ignorer";
 							o_ignore.onclick = function(e) {
-								o_confirm("Ignorer "+ memberPseudo +" ?<br />Vous ne pourrez plus envoyer ni recevoir de messages de lui.", function(res) {
+								o_confirm(o_language ? "Ignore "+ memberPseudo +"?<br />You won't be able to send or receive messages from him." : "Ignorer "+ memberPseudo +" ?<br />Vous ne pourrez plus envoyer ni recevoir de messages de lui.", function(res) {
 									if (res) {
 										o_xhr("ignore.php", "member="+ memberID, function(reponse) {
 											if (reponse == 1) {
@@ -1138,7 +1138,7 @@ function o_prompt(msg,hint, onValid) {
 	oButtonCtn.appendChild(oValid);
 	var oCancel = document.createElement("input");
 	oCancel.type = "button";
-	oCancel.value = "Annuler";
+	oCancel.value = o_language ? "Cancel":"Annuler";
 	oCancel.className = "o_dialog_cancel";
 	oCancel.onclick = oMask.onclick = oCross.onclick = function() {
 		document.body.removeChild(oMask);
@@ -1184,7 +1184,7 @@ function o_confirm(msg, onValid) {
 	oButtonCtn.appendChild(oValid);
 	var oCancel = document.createElement("input");
 	oCancel.type = "button";
-	oCancel.value = "Annuler";
+	oCancel.value = o_language ? "Cancel":"Annuler";
 	oCancel.className = "o_dialog_cancel";
 	oCancel.onclick = oMask.onclick = oCross.onclick = function() {
 		document.body.removeChild(oMask);
@@ -1436,7 +1436,7 @@ function o_refresh() {
 			}
 			for (var i=0;i<newDemandes.length;i++) {
 				o_updateactivity(newDemandes[i][0], 10);
-				var o_msgId = displayMsg(o_language ? '<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) propose an online <b>'+(newDemandes[i][3]?"battle":"race")+'</b> with you<br /><input type="button" value="Accept" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Refuse" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />':'<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) propose de vous affronter sur une <b>'+(newDemandes[i][3]?"bataille":"course")+'</b> en ligne<br /><input type="button" value="Accepter" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Refuser" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />', true);
+				var o_msgId = displayMsg(o_language ? '<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) propose an online <b>'+(newDemandes[i][3]?"battle":"race")+'</b> with you<br /><input type="button" value="Accept" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Reject" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />':'<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) propose de vous affronter sur une <b>'+(newDemandes[i][3]?"bataille":"course")+'</b> en ligne<br /><input type="button" value="Accepter" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Refuser" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />', true);
 				if (o_msgId != -1) {
 					var cross = document.getElementById("comsg"+ o_msgId).getElementsByTagName("a")[0];
 					cross.player = newDemandes[i][0];
@@ -1458,7 +1458,7 @@ function o_refresh() {
 			for (var i=0;i<newReponses.length;i++) {
 				var a_active = o_active;
 				o_active = 1;
-				var o_msgId = displayMsg(newReponses[i][2] ? (o_language ? newReponses[i][1] +' <b>accepted</b> your invitation'+ (newReponses[i][3] ? ' with the following messaage: <p class="o_msg"><span>'+ newReponses[i][3] +'</span></p>':'! ') +'<a href="online.php'+(newReponses[i][4]?'?battle':'')+'">Click here</a> to go to the online mode!':newReponses[i][1] +'</b> a <b>accept&eacute;</b> votre demande'+ (newReponses[i][3] ? ' avec le message suivant&nbsp;: <p class="o_msg"><span>'+ newReponses[i][3] +'</span></p>':'&nbsp;! ') +'<a href="online.php'+(newReponses[i][4]?'?battle':'')+'">Cliquez ici</a> pour acc&eacute;der au mode en ligne&nbsp;!'):(o_language ? 'Sorry, '+ newReponses[i][1] +' <b>refused</b> your invitation'+ (newReponses[i][3] ? ' for the following reason: <p class="o_msg"><span>'+ newReponses[i][3] +'</span></p>':'...'):'Dommage, '+ newReponses[i][1] +' a <b>refus&eacute;</b> votre demande'+ (newReponses[i][3] ? ' pour la raison suivante&nbsp;: <p class="o_msg"><span>'+ newReponses[i][3] +'</span></p>':'...')), true);
+				var o_msgId = displayMsg(newReponses[i][2] ? (o_language ? newReponses[i][1] +' <b>accepted</b> your invitation'+ (newReponses[i][3] ? ' with the following messaage: <p class="o_msg"><span>'+ newReponses[i][3] +'</span></p>':'! ') +'<a href="online.php'+(newReponses[i][4]?'?battle':'')+'">Click here</a> to go to the online mode!':newReponses[i][1] +'</b> a <b>accept&eacute;</b> votre demande'+ (newReponses[i][3] ? ' avec le message suivant&nbsp;: <p class="o_msg"><span>'+ newReponses[i][3] +'</span></p>':'&nbsp;! ') +'<a href="online.php'+(newReponses[i][4]?'?battle':'')+'">Cliquez ici</a> pour acc&eacute;der au mode en ligne&nbsp;!'):(o_language ? 'Sorry, '+ newReponses[i][1] +' <b>rejected</b> your invitation'+ (newReponses[i][3] ? ' for the following reason: <p class="o_msg"><span>'+ newReponses[i][3] +'</span></p>':'...'):'Dommage, '+ newReponses[i][1] +' a <b>refus&eacute;</b> votre demande'+ (newReponses[i][3] ? ' pour la raison suivante&nbsp;: <p class="o_msg"><span>'+ newReponses[i][3] +'</span></p>':'...')), true);
 				var cross = document.getElementById("comsg"+ o_msgId).getElementsByTagName("a")[0];
 				o_initdataset(cross);
 				cross.dataset.member = newReponses[i][0];

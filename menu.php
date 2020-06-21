@@ -592,7 +592,7 @@
 			</div>
 			<div class="notifs-container">
 				<div id="no-notif">
-					<?php echo $language ? 'No notification':'Aucune notification'; ?>
+					<?php echo $language ? 'No notifications':'Aucune notification'; ?>
 					<?php if ($id) echo '<a href="notif-settings.php"><img src="images/notif-settings.png" alt="Settings" title="'. ($language ? 'Notification settings':'Paramètres de notifications') .'" /></a>'; ?>
 				</div>
 				<div id="nb-notifs">
