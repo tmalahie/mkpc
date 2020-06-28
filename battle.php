@@ -16,8 +16,9 @@ if ($arene = mysql_fetch_array(mysql_query('SELECT a.*,(a.nom IS NOT NULL) as sh
 	$cDate = $arene['publication_date'];
 	$pNote = $arene['note'];
 	$pNotes = $arene['nbnotes'];
+	require_once('circuitEscape.php');
 	function escapeUtf8($str) {
-		return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlentities($str));
+		return htmlentities(escapeCircuitNames($str));
 	}
 	include('getId.php');
 	addCircuitChallenges($challenges, 'arenes', $id,$arene['nom'], $clPayloadParams);

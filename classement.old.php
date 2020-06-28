@@ -234,8 +234,9 @@ function Resultat() {
 	this.classement = new Array();
 }
 var circuits = <?php
+require_once('circuitEscape.php');
 function escapeUtf8($str) {
-	return addslashes(preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars(utf8_encode($str))));
+	return addslashes(htmlspecialchars(escapeCircuitNames(utf8_encode($str))));
 }
 if ($creation) {
 	echo '[';

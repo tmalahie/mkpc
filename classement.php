@@ -209,8 +209,9 @@ var autoSelectMap<?php
 		echo ' = '. ($_GET['map']-1);
 ?>;
 var circuitGroups = <?php
+require_once('circuitEscape.php');
 function escapeUtf8($str) {
-	return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars(utf8_encode($str)));
+	return addslashes(htmlspecialchars(escapeCircuitNames(utf8_encode($str))));
 }
 function dict_to_array(&$chunks) {
 	$res = array();

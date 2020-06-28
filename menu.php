@@ -433,6 +433,13 @@
 			return $res;
 		}
 		$nbNotifs = count($notifsData);
+		require_once('circuitEscape.php');
+		function decodeAndEscapeCircuitNames($str) {
+			global $language;
+			if ($str)
+				return htmlspecialchars(escapeCircuitNames(utf8_encode($str)));
+			return $language ? 'Untitled':'Sans titre';
+		}
 		for ($i=0;$i<$nbNotifs;$i++) {
 			$notifData = $notifsData[$i];
 			$n = count($notifData['list']);
@@ -456,7 +463,7 @@
 				break;
 			case 'circuit_comment' :
 				$verb = ($language ? 'commented':((count($names)>1) ? 'ont commenté':' a commenté'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' '. $notifData['type_circuit'] .' <strong>'. htmlspecialchars($notifData['title'] ? utf8_encode($notifData['title']):($language ? 'Untitled':'Sans titre')) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' '. $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>.';
 				break;
 			case 'news_comment' :
 				$verb = ($language ? 'commented':((count($names)>1) ? 'ont commenté':' a commenté'));
@@ -482,7 +489,7 @@
 				break;
 			case 'answer_comment' :
 				$verb = ($language ? 'also commented':((count($names)>1) ? 'ont également commenté':'a également commenté'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $notifData['the_circuit'] . $notifData['type_circuit'] .' <strong>'. htmlspecialchars($notifData['title'] ? utf8_encode($notifData['title']):($language ? 'Untitled':'Sans titre')) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $notifData['the_circuit'] . $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>.';
 				break;
 			case 'answer_newscom' :
 				$verb = ($language ? 'also commented':((count($names)>1) ? 'ont également commenté':'a également commenté'));
@@ -496,7 +503,7 @@
 				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published the news':'a publié la news') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
 				break;
 			case 'follower_circuit' :
-				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published ':'a publié ') . $notifData['the_circuit'] .' <strong>'. htmlspecialchars(utf8_encode($notifData['title'])) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published ':'a publié ') . $notifData['the_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>.';
 				break;
 			case 'follower_challenge' :
 				$clData = $notifData['challenge'];
@@ -540,10 +547,10 @@
 					}
 					else
 						$getName = mysql_fetch_array(mysql_query('SELECT nom FROM `mkcups` WHERE id="'. $notifCreation['id'] .'"'));
-					if ($getName && !empty($getName['nom']))
-						$creationName = utf8_encode($getName['nom']);
-					else
-						$creationName = $language ? 'Untitled':'Sans titre';
+					$creationName = null;
+					if ($getName)
+						$creationName = $getName['nom'];
+					$creationName = decodeAndEscapeCircuitNames($getName['nom']);
 					$theCreation = '';
 					if ($notifCreation['single']) {
 						if ($notifData['battle'])
@@ -553,7 +560,7 @@
 					}
 					else
 						$theCreation = $language?'the cup':'la coupe';
-					$additionnal = $language ? (' in '. $theCreation .' <strong>'. htmlspecialchars($creationName) .'</strong>'):(' sur '. $theCreation .' <strong>'. htmlspecialchars($creationName) .'</strong>');
+					$additionnal = $language ? (' in '. $theCreation .' <strong>'. $creationName .'</strong>'):(' sur '. $theCreation .' <strong>'. $creationName .'</strong>');
 				}
 				elseif ($notifData['battle'])
 					$additionnal = $language ? ' in <strong>battle</strong> mode':' en mode <strong>bataille</strong>';

@@ -9,7 +9,7 @@ function updateCircuitNote() {
 		}
 		var r = average(r1,r2), g = average(g1,g2), b = average(b1,b2);
 		commentNote.css("color", "rgb("+ r +","+ g +","+ b +")");
-		commentNote.html(Math.round((circuitNote+1)*100)/100 +"&nbsp;/&nbsp;5&nbsp;"+ (language ? "on":"sur") +"&nbsp;"+ circuitNotes +"&nbsp;"+ (language ? ("view"+ (circuitNotes>1 ? "s":"")) : "avis"));
+		commentNote.html(Math.round((circuitNote+1)*100)/100 +"&nbsp;/&nbsp;5&nbsp;"+ (language ? "on":"sur") +"&nbsp;"+ circuitNotes +"&nbsp;"+ (language ? ("view"+ (circuitNote>1 ? "s":"")) : "avis"));
 	}
 	else {
 		commentNote.css("color", "white");
@@ -25,16 +25,13 @@ function updateCircuitDate() {
 		$("#comments-circuitnote").css("padding-top", "8px");
 	}
 }
-function escapeUtf8(str) {
-	return str.replace(/%u([0-9a-fA-F]{4})/g, "&#x$1;");
-}
 (function() {
 	$("#comments-section").append(
 		'<div id="comments-infos">'+
-			(circuitName ? '<h2>'+ escapeUtf8(circuitName) +'</h2>':'')+
+			(circuitName ? '<h2>'+ circuitName +'</h2>':'')+
 			'<table>'+
 				'<tr><td id="comments-circuitauthor" rowspan="2">'+
-					'<div>'+ (language ? 'By':'Par') +' '+ (circuitUser ? '<a href="profil.php?id='+circuitUser+'">':'') + (circuitAuthor ? escapeUtf8(circuitAuthor).replace(/ /g,'&nbsp;'): (language ? "Anonymous":"Anonyme")) + (circuitUser ? '</a>':'') +'</div>'+
+					'<div>'+ (language ? 'By':'Par') +' '+ (circuitUser ? '<a href="profil.php?id='+circuitUser+'">':'') + (circuitAuthor ? circuitAuthor.replace(/ /g,'&nbsp;'): (language ? "Anonymous":"Anonyme")) + (circuitUser ? '</a>':'') +'</div>'+
 				'</td><td id="comments-circuitstar">'+
 					'<img src="images/cstar'+ (circuitNotes ? 1:0) +'.png" alt="Note" />'+
 				'</td><td id="comments-circuitnote"></td></tr>'+

@@ -155,8 +155,9 @@ if (isset($_GET['id'])) {
 			$res .= '</sup>';
 			return $res;
 		}
+		require_once('circuitEscape.php');
 		function escapeUtf8($str) {
-			return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars($str));
+			return htmlspecialchars(escapeCircuitNames($str));
 		}
 		if (isset($_GET['followed'])) {
 			if ($_GET['followed'])

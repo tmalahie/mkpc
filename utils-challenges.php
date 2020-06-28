@@ -337,6 +337,7 @@ function listChallenges($clRace, &$params=array()) {
 		$res[] = getChallengeDetails($challenge, $params);
 	return $res;
 }
+require_once('circuitEscape.php');
 function getChallengeDetails($challenge, &$params=array()) {
 	$challengeData = json_decode($challenge['data']);
 	$res = array(
@@ -355,8 +356,8 @@ function getChallengeDetails($challenge, &$params=array()) {
 	if (!empty($params['circuit'])) {
 		$res['circuit'] = getCircuitPayload($challenge);
 		if (empty($params['utf8']) && empty($params['circuit.raw'])) {
-			$res['circuit']['name'] = preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars(iconv('windows-1252', 'utf-8', $res['circuit']['name'])));
-			$res['circuit']['author'] = preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars(iconv('windows-1252', 'utf-8', $res['circuit']['author'])));
+			$res['circuit']['name'] = htmlspecialchars(escapeCircuitNames(iconv('windows-1252', 'utf-8', $res['circuit']['name'])));
+			$res['circuit']['author'] = htmlspecialchars(escapeCircuitNames(iconv('windows-1252', 'utf-8', $res['circuit']['author'])));
 		}
 	}
 	if (!empty($params['winners'])) {
@@ -399,6 +400,7 @@ function getCircuitPayload(&$clRace) {
 			break;
 		case 'arenes':
 			$linkUrl = 'battle.php?i='. $clCircuit['ID'];
+			$linkBg = 'trackicon.php?id='. $clCircuit['ID'] .'&type=2';
 			$linksCached[] = 'coursepreview' . $clCircuit['ID'] .'.png';
 			break;
 		case 'mkcups':

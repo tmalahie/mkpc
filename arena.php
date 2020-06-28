@@ -84,8 +84,9 @@ else {
 	}
 	$edittingCircuit = true;
 }
+require_once('circuitEscape.php');
 function escapeUtf8($str) {
-	return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlentities($str));
+	return htmlentities(escapeCircuitNames($str));
 }
 $circuitsData = Array($infos);
 $NBCIRCUITS = 1;

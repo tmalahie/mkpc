@@ -179,8 +179,9 @@ if (isset($_SESSION['mklink'])) {
 		$linkAccepted = true;
 	unset($_SESSION['mklink']);
 }
+require_once('circuitEscape.php');
 function escapeUtf8($str) {
-	return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars($str));
+	return htmlspecialchars(escapeCircuitNames($str));
 }
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">

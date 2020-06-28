@@ -24,8 +24,9 @@ else {
 	for ($i=0;isset($_GET['mid'.$i]);$i++)
 		$mids[$i] = $_GET['mid'.$i];
 }
+require_once('circuitEscape.php');
 function escapeUtf8($str) {
-	return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlentities($str));
+	return htmlentities(escapeCircuitNames($str));
 }
 ?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>" >

@@ -515,12 +515,12 @@ $slidesPath = 'images/slides';
 			}
 		}*/
 		function uc_strlen($str) {
-			return strlen(preg_replace("/%u([0-9a-fA-F]{4})/", ".", $str));
+			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
 		function uc_substr($str, $l) {
-			preg_match_all('/%u[0-9a-fA-F]{4}/', $str, $positions, PREG_OFFSET_CAPTURE);
+			preg_match_all('#(%u[0-9a-fA-F]{4})+#', $str, $positions, PREG_OFFSET_CAPTURE);
 			$positions = $positions[0];
-			$res = mb_substr(preg_replace("/%u([0-9a-fA-F]{4})/", ".", $str), 0,$l);
+			$res = mb_substr(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str), 0,$l);
 			foreach ($positions as $position) {
 				if ($position[1] >= strlen($res))
 					return $res;
@@ -540,8 +540,9 @@ $slidesPath = 'images/slides';
 		function decodeUtf8($str) {
 			return iconv('windows-1252', 'utf-8', $str);
 		}
+		require_once('circuitEscape.php');
 		function escapeUtf8($str) {
-			return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlspecialchars($str));
+			return htmlspecialchars(escapeCircuitNames($str));
 		}
 		function display_sidebar($title,$link=null) {
 			?>

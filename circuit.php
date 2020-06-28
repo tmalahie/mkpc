@@ -218,8 +218,9 @@ if (!$NBCIRCUITS) {
 addClChallenges($challenges, $nid, $clPayloadParams);
 $sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'id'));
 $getInfos = Array();
+require_once('circuitEscape.php');
 function escapeUtf8($str) {
-	return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlentities($str));
+	return htmlentities(escapeCircuitNames($str));
 }
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">

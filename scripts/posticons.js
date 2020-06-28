@@ -1,6 +1,7 @@
 var iconDelayDt = 100;
 function setCircuitImgs(inc,icCircuit) {
 	var imgsData = icCircuit.dataset.cicon;
+	delete icCircuit.dataset.cicon;
 	if (imgsData) {
 		var bgs = [];
 		var imgs = imgsData.split(",");
@@ -13,10 +14,8 @@ function setCircuitImgs(inc,icCircuit) {
 		}
 		return res;
 	}
-	else {
-		icCircuit.parentNode.removeChild(icCircuit);
-		return inc;	
-	}
+	else
+		return inc;
 }
 function setCircuitImg(inc,icCircuit,bgs,j) {
 	var bgsIncomplete = [];
@@ -28,18 +27,12 @@ function setCircuitImg(inc,icCircuit,bgs,j) {
 	setTimeout(function() {
 		icCircuit.style.backgroundImage = bgsIncomplete.join(",");
 	}, iconDelayDt*inc);
-	delete icCircuit.dataset.cicon;
 }
 function loadCircuitImgs() {
 	var icCircuits = document.querySelectorAll("[data-cicon]");
 	var inc = 0;
-	for (var i=0;i<icCircuits.length;i++) {
-		var icCircuit = icCircuits[i];
-		var nInc = setCircuitImgs(inc,icCircuit);
-		if (nInc == inc)
-			continue;
-		inc = nInc;
-	}
+	for (var i=0;i<icCircuits.length;i++)
+		inc = setCircuitImgs(inc,icCircuits[i]);
 }
 if ("loading" !== document.readyState)
 	loadCircuitImgs();

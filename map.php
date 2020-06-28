@@ -173,8 +173,9 @@ if (isset($trackIDs)) {
 }
 else
 	$circuitsData = Array($circuit);
+require_once('circuitEscape.php');
 function escapeUtf8($str) {
-	return preg_replace("/%u([0-9a-fA-F]{4})/", "&#x\\1;", htmlentities($str));
+	return htmlentities(escapeCircuitNames($str));
 }
 $NBCIRCUITS = count($circuitsData);
 if (!$NBCIRCUITS) {
