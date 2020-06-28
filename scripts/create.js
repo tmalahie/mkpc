@@ -74,8 +74,17 @@ function disappear() {
 	document.getElementsByTagName("img")[id].src = "images/pieces/piececircuit"+ currentMap() +"_"+ document.forms[0].elements["p"+id].value +".png";
 }
 function appliquer() {
+	showWarningIfNeeded(c);
 	document.forms[0].elements["p"+id].value = c;
 	fermer();
+}
+function showWarningIfNeeded(c) {
+	if (c == 10) {
+		var $crossWarning = document.getElementById("crossing-warning");
+		if ($crossWarning) $crossWarning.style.display = "block";
+		return true;
+	}
+	return false;
 }
 function deplacer(event, E, nouveau) {
 	if (e) return;
@@ -331,6 +340,10 @@ window.onload = function() {
 			}
 			prefix = E[i]+(+k+1)+"_";
 		}
+	}
+	for (var i=0;i<36;i++) {
+		if (showWarningIfNeeded(document.forms[0].elements["p"+i].value))
+			break;
 	}
 }
 function centerPos(E) {

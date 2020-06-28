@@ -21,6 +21,9 @@ a {
 img {
 	cursor: pointer;
 }
+#crossing-warning {
+	display: none;
+}
 #croisement {
 	position: relative;
 	text-align: left;
