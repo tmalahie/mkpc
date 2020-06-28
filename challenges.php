@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		<div class="main-challenge-actions">
 			<?php
 			if (!empty($clRace) && in_array($clRace['type'], array('mkcups', 'mkmcups')))
-				echo '<a href="'. nextPageUrl('challengeRewards.php') .'" class="other-challenge-action">'. ($language ? 'Manage rewards...':'Gérer les récompenses...') .'</a>';
+				echo '<a href="'. nextPageUrl('challengeRewards.php') .'" class="other-challenge-action">'. ($language ? 'More rewards...':'Plus de récompenses...') .'</a>';
 			?>
 			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>"><?php echo $language ? 'Create my first challenge':'Créer mon premier défi'; ?> &nbsp; &gt;</a>
 		</div>
@@ -220,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		</table>
 		<div class="main-challenge-actions">
 			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>">+ &nbsp;<?php echo $language ? 'Create another challenge':'Créer un autre défi'; ?> &nbsp;</a>
-			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>" class="other-challenge-action"><?php echo $language ? 'Manage rewards...':'Gérer les récompenses...'; ?></a>
+			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>" class="other-challenge-action"><?php echo $language ? 'More rewards...':'Plus de récompenses...'; ?></a>
 		</div>
 		<div class="pub">
 			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>

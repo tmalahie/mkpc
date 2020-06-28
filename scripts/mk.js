@@ -8286,6 +8286,70 @@ function showChallengePopup(challenge, res) {
 			}
 		}
 	}
+	if (res.unlocked) {
+		for (var i=0;i<res.unlocked.length;i++)
+			showChallengeRewardPopup(res.unlocked[i]);
+	}
+}
+function showChallengeRewardPopup(reward) {
+	var lastPopup = document.getElementById("challenge-popup-reward-"+reward.id);
+	if (lastPopup) return;
+	var oDiv = document.createElement("div");
+	oDiv.id = "challenge-popup-reward-"+reward.id;
+	oDiv.className = "challenge-popup";
+	oDiv.style.width = (iScreenScale*56) +"px";
+	oDiv.style.left = (iScreenScale*12) +"px";
+	oDiv.style.top = Math.round(iScreenScale*4.5) +"px";
+	oDiv.style.padding = Math.round(iScreenScale*1.5) +"px";
+	oDiv.style.paddingBottom = (iScreenScale*5) +"px";
+	oDiv.style.border = "inset "+ Math.round(iScreenScale*0.5) +"px #7B0";
+	oDiv.style.fontSize = (iScreenScale*2) +"px";
+	oDiv.style.opacity = 0;
+	var challengeTitle = language ? 'New character unlocked!':'Nouveau perso débloqué !';
+	var challengeCongrats = language ? 'You can now play with <strong>'+ reward.name +'</strong>':'Vous pouvez désormais jouer avec <strong>'+ reward.name +'</strong> !';
+	var challengeImg = document.createElement("img");
+	challengeImg.src = getSpriteSrc(reward.sprites);
+	challengeImg.alt = reward.name;
+	challengeImg.className = "pixelated";
+	challengeImg.style.visibility = "hidden";
+	var challengeClose = language ? 'Close':'Fermer';
+	oDiv.innerHTML = 
+		'<div style="font-size: '+ Math.round(iScreenScale*2) +'px">'+
+			'<img src="images/cups/cup1.png" alt="star" class="pixelated" style="width:'+ Math.round(iScreenScale*2.5) +'px" /> '+
+			'<h1 class="challenge-popup-title" style="margin:'+ Math.round(iScreenScale/2) +'px 0; font-size: '+ Math.round(iScreenScale*3.25) +'px">'+ challengeTitle +'</h1>'+
+		'</div>'+
+		'<div class="challenge-popup-header" style="font-size: '+ Math.round(iScreenScale*2.25) +'px">'+challengeCongrats+'</div>'+
+		'<div class="challenge-popup-reward-ch"></div>' +
+		'<div class="challenge-popup-close" style="font-size:'+(iScreenScale*2)+'px;bottom:'+iScreenScale+'px;right:'+Math.round(iScreenScale*1.25)+'px">'+
+			'<a href="javascript:closeChallengePopup(&quot;reward-'+reward.id+'&quot;);">'+ challengeClose +'</a>'+
+		'</div>';
+	oDiv.getElementsByClassName("challenge-popup-reward-ch")[0].appendChild(challengeImg);
+	challengeImg.onload = function() {
+		var oContainer = this.parentNode;
+		var scaleRatio = iScreenScale/8;
+		var oWidth = Math.round(scaleRatio*this.naturalWidth/24), oHeight = Math.round(scaleRatio*this.naturalHeight);
+		oContainer.style.width = oWidth +"px";
+		oContainer.style.height = oHeight +"px";
+		this.style.width = (oWidth*24) +"px";
+		this.style.height = oHeight +"px";
+		this.style.visibility = "";
+	}
+	var oOtherPopup = document.getElementsByClassName("challenge-popup");
+	if (oOtherPopup.length)
+		$mkScreen.insertBefore(oDiv, oOtherPopup[0]);
+	else
+		$mkScreen.appendChild(oDiv);
+	var opacity = 0;
+	function fadeInPopup() {
+		if (opacity < 1) {
+			oDiv.style.opacity = opacity;
+			opacity += 0.2;
+			setTimeout(fadeInPopup,40);
+		}
+		else
+			oDiv.style.opacity = 1;
+	}
+	fadeInPopup();
 }
 window.closeChallengePopup = function(id) {
 	var challengePopup = document.getElementById("challenge-popup-"+id);

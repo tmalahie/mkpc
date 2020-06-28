@@ -75,7 +75,7 @@ if ($rateChallenges || isset($_GET['winner'])) {
 			$challengeTitle = $language ? 'Challenges completed by '.$username['nom']:'Défis réussis par '.$username['nom'];
 	}
 }
-$lastChallenges = mysql_query('SELECT '.$chSelect.' FROM mkchallenges c '. implode($chJoin, ' ') .' WHERE '. implode($chWhere, ' AND ') .' ORDER BY '. $chOrder);
+$lastChallenges = mysql_query('SELECT '.$chSelect.' FROM mkchallenges c '. implode(' ', $chJoin) .' WHERE '. implode(' AND ', $chWhere) .' ORDER BY '. $chOrder);
 $challenges = array();
 while ($challenge = mysql_fetch_array($lastChallenges))
 	$challenges[] = $challenge;

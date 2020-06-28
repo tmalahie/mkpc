@@ -25,7 +25,7 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
     $clMsg = null;
     if (!empty($challengeIds)) {
         $persoId = $_POST['perso'];
-        if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
+        if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'" AND name!=""'))) {
             if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
                 if ($reward) {
                     $rewardId = +$reward['id'];
@@ -38,6 +38,18 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
                 }
                 foreach ($challengeIds as $challengeId)
                     mysql_query('INSERT INTO `mkclrewardchs` SET reward='. $rewardId .',challenge='. $challengeId);
+                $getRewarded = getRewardedPlayers(array(
+                    'reward' => $rewardId
+                ));
+                $rewardedPlayers = array();
+                foreach ($getRewarded as $rewarded)
+                    $rewardedPlayers[] = $rewarded['player'];
+                if (empty($rewardedPlayers))
+                    $rewardedPlayers = array(0);
+                mysql_query('DELETE FROM `mkclrewarded` WHERE reward='. $rewardId .' AND player NOT IN('. implode(',', $rewardedPlayers) .')');
+                foreach ($getRewarded as $rewarded)
+                    mysql_query('INSERT IGNORE INTO `mkclrewarded` SET reward='. $rewardId .',player='.$rewarded['player']);
+
                 $clMsg = 'reward_created';
             }
         }
@@ -45,7 +57,7 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
 	header('location: '. nextPageUrl('challengeRewards.php', array('rw'=>null,'cl'=>$clRace['clid'],'clmsg'=>$clMsg)));
 	exit;
 }
-$clOptions = array('alltracks' => true);
+$clOptions = array('alltracks' => true, 'status' => array('active'));
 if (!empty($clRace))
     $challenges = listChallenges($clRace['id'], $clOptions);
 else
@@ -73,23 +85,33 @@ include('o_online.php');
 <form method="post" action="" class="challenge-edit-form">
     <fieldset class="challenge-reward">
         <?php echo $language ? 'Unlocked character':'Perso à débloquer'; ?> :<br />
-        <select name="perso" required="required">
+        <input type="text" name="perso" required="required" style="display:none" />
         <?php
         $getEligiblePersos = mysql_query('SELECT * FROM `mkchars` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="" AND author IS NULL ORDER BY id DESC');
         $areEligiblePersos = mysql_numrows($getEligiblePersos);
         if ($areEligiblePersos) {
+            ?>
+            <div class="challenge-character-selector">
+            <?php
             $selectedPerso = isset($reward) ? $reward['charid'] : -1;
+            include('persos.php');
             while ($perso = mysql_fetch_array($getEligiblePersos)) {
-                echo '<option value="'. $perso['id'] .'"'. (($perso['id']==$selectedPerso) ? ' selected="selected"':'') .'>';
-                echo $perso['name'];
-                echo '</option>';
+                $spriteSrcs = get_sprite_srcs($perso['sprites']);
+                ?>
+                <div data-cid="<?php echo $perso['id'] ?>" data-cname="<?php echo $perso['name'] ?>" onclick="selectPerso(this)"><img src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo $perso['name'] ?>" /></div>
+                <?php
             }
+            ?>
+            </div>
+            <div id="challenge-reward-selection"></div>
+            <?php
         }
         ?>
-        </select>
         <?php
-        if (!$areEligiblePersos) {
-            echo '<div class="challenge-nodata">';
+        if ($areEligiblePersos)
+            echo '<div id="challenge-reward-note">'. ($language ? 'Note that unpublished characters only appear in thus list' : 'Notez que seuls les persos non publiés apparaissent dans cette liste') .'</div>';
+        else {
+            echo '<div class="challenge-reward-empty">';
             $getPersos = mysql_query('SELECT * FROM `mkchars` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="" ORDER BY id DESC');
             $arePersos = mysql_numrows($getPersos);
             if ($arePersos)
@@ -98,11 +120,16 @@ include('o_online.php');
                 echo $language ? 'You haven\'t created any character yet. Go to the <a class="pretty-link" href="persoEditor.php">character editor</a> to create one.':'Vous n\'avez créé aucun perso pour l\'instant. Rendez-vous dans l\'<a class="pretty-link" href="persoEditor.php">éditeur de persos</a> pour en créer.';
             echo '</div>';
         }
-        else
-            echo '<br />&nbsp;';
         ?><br />
         <?php echo $language ? 'Challenge(s) to succeed':'Défi(s) à réaliser'; ?> :<br />
-        <select name="challenges[]" required="required" multiple="multiple">
+        <?php
+        if (empty($challenges)) {
+            echo '<div class="challenge-reward-empty">';
+            echo $language ? 'You don\'t have any active challenges yet. Go back to the <a class="pretty-link" href="'. nextPageUrl('challenges.php', array('rw'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])) .'">challenges list</a> to complete your existing challenges or create a new one.':'Vous n\'avez aucun défi actif pour l\'instant. Retournez à la <a class="pretty-link" href="'. nextPageUrl('challenges.php', array('rw'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])) .'">liste des défis</a> pour compléter vos défis existans ou en créer de nouveaux.';
+            echo '</div>';
+        }
+        ?>
+        <select name="challenges[]" required="required" multiple="multiple"<?php if (empty($challenges)) echo ' style="display:none"'; ?>>
             <?php
             $selectedChallenges = array();
             if ($reward) {
@@ -126,6 +153,27 @@ include('o_online.php');
 <div class="challenge-navigation">
     <a href="<?php echo nextPageUrl('challengeRewards.php', array('rw'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])); ?>">&lt; <u><?php echo $language ? 'Back to rewards list':'Retour à la liste des récompenses'; ?></u></a>
 </div>
+<script type="text/javascript">
+var $form = document.querySelector('.challenge-edit-form');
+function selectPerso($elt) {
+    var $selectedPerso = document.querySelector(".challenge-character-selector > div.character-selected");
+    if ($selectedPerso)
+        $selectedPerso.className = "";
+    $elt.className = "character-selected";
+    $form.elements["perso"].value = $elt.dataset.cid;
+    document.getElementById("challenge-reward-selection").innerHTML = $elt.dataset.cname;
+    onFormChange();
+}
+<?php
+if ($reward)
+    echo 'selectPerso(document.querySelector(".challenge-character-selector > div[data-cid=\\"'.$reward['charid'] .'\\"]"));';
+?>
+function onFormChange() {
+    $form.querySelector('.challenge-edit-submit').disabled = !$form.checkValidity()
+}
+$form.addEventListener("change", onFormChange);
+onFormChange();
+</script>
 </body>
 </html>
 <?php

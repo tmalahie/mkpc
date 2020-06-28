@@ -7,7 +7,7 @@ if (isset($_GET['cl']))
     $clRace = getClRace($_GET['cl']);
 include('challenge-cldata.php');
 if (!empty($clRace)) {
-    $getRewards = mysql_query('SELECT r.id,r.charid,c.name FROM mkclrewards r INNER JOIN mkchars c ON r.charid=c.id WHERE clist='. $clRace['id']);
+    $getRewards = mysql_query('SELECT r.id,r.charid,c.name,c.sprites FROM mkclrewards r INNER JOIN mkchars c ON r.charid=c.id WHERE clist='. $clRace['id']);
     $rewards = array();
     while ($reward = mysql_fetch_array($getRewards))
         $rewards[] = $reward;
@@ -34,7 +34,7 @@ include('o_online.php');
 <title><?php echo $language ? 'Challenge rewards':'Défis et récompenses'; ?> - Mario Kart PC</title>
 </head>
 <body>
-<h1 class="challenge-main-title"><?php echo $language ? 'Challenge Awards' : 'Défis et récompenses'; ?></h1>
+<h1 class="challenge-main-title"><?php echo $language ? 'Challenge rewards' : 'Défis et récompenses'; ?></h1>
 <?php
 if (isset($clMsg))
     echo '<div class="challenge-msg-success">'. $clMsg .'</div><br />';
@@ -52,8 +52,11 @@ if (empty($rewards)) {
     }
     else {
         ?>
-        Sur cette page, vous pouvez donner une récompense de type &quot;débloquage de perso&quot; lorsqu'un on ou plusieurs de vos défis est réussi.
-        TODO : remplir cette page, je suis pas inspiré là...
+        Cette section vous permet de donner une récompense à vos défis en plus des points défis :
+        le <strong>déblocage de persos</strong> !<br />
+        Le principe est simple : vous sélectionnez un ou plusieurs défis à réaliser, et un perso à débloquer
+        parmi ceux que vous avez créé dans l'<a class="pretty-link" href="persoEditor.php">éditeur de persos</a>.<br />
+        Votre perso devient ainsi un <em>perso secret</em> dont seuls les membres ayant réussi les défis auront accès !
         <?php
     }
     ?>
@@ -69,10 +72,14 @@ else {
             <th><?php echo $language ? 'Action':'Action'; ?></th>
         </tr>
     <?php
+    include('persos.php');
     foreach ($rewards as $reward) {
+        $spriteSrcs = get_sprite_srcs($reward['sprites']);
         ?>
         <tr>
-            <td class="challenges-td-center"><?php
+            <td class="challenges-td-center" style="padding-top:5px">
+            <img src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo $reward['name']; ?>" />
+            <br /><?php
             echo $reward['name'];
             ?></td>
             <td>
@@ -111,7 +118,7 @@ else {
 }
 ?>
 <div class="main-challenge-actions">
-    <a class="main-challenge-action" href="<?php echo nextPageUrl('challengeReward.php'); ?>">+ &nbsp;<?php echo $language ? 'Create an award':'Créer une récompense'; ?></a>
+    <a class="main-challenge-action" href="<?php echo nextPageUrl('challengeReward.php'); ?>">+ &nbsp;<?php echo $language ? 'Create a reward':'Créer une récompense'; ?></a>
 </div>
 <div class="challenge-navigation">
     <a href="<?php echo nextPageUrl('challenges.php', array('ch'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])); ?>">&lt; <u><?php echo $language ? 'Back to challenges list':'Retour à la liste des défis'; ?></u></a>

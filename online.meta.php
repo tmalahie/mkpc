@@ -197,7 +197,7 @@ if (isset($privateLink)) {
 }
 ?>
 
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css?reload=1" />
+<?php include('c_mariokart.php'); ?>
 <style type="text/css">
 .wait {
 	position: absolute;

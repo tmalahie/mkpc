@@ -1,5 +1,6 @@
 <?php
 include('getId.php');
+include('session.php');
 include('language.php');
 include('persos.php');
 include('initdb.php');
@@ -77,7 +78,7 @@ function sendRate(rate) {
 </head>
 <body>
 <?php
-$getPsersos = mysql_query('SELECT c.*,h.acceleration,h.speed,h.handling,h.mass,h.rating FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND c.author IS NOT NULL WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC');
+$getPsersos = mysql_query('SELECT c.*,h.acceleration,h.speed,h.handling,h.mass,h.rating FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND (c.author IS NOT NULL OR c.id IN (SELECT r.charid FROM mkclrewarded rw INNER JOIN mkclrewards r ON rw.reward=r.id WHERE rw.player='.($id?$id:0).')) WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC');
 $arePersos = mysql_numrows($getPsersos);
 if ($arePersos) {
 	?>

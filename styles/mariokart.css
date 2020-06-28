@@ -494,6 +494,50 @@ button.control-close:active {
  .challenge-popup-close a {
      color: #33F;
 }
+.challenge-popup-reward-ch {
+    margin: 5px auto 0 auto;
+	position: relative;
+	width: 32px;
+	height: 32px;
+	overflow: hidden;
+}
+.challenge-popup-reward-ch img {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	-webkit-animation: movecp 5s steps(21) infinite normal;
+	-moz-animation: movecp 5s steps(21) infinite normal;
+	-o-animation: movecp 5s steps(21) infinite normal;
+	-ms-animation: movecp 5s steps(21) infinite normal;
+	animation: movecp 5s steps(21) infinite normal;
+}
+.challenge-popup-reward-ch img {
+	-webkit-animation-duration: 2s;
+	-moz-animation-duration: 2s;
+	-o-animation-duration: 2s;
+	-ms-animation-duration: 2s;
+	animation-duration: 2s;
+}
+@-webkit-keyframes movecp {
+    from {left:0%;}
+    to   {left:-2100%;}
+}
+@-moz-keyframes movecp {
+    from {left:0px;}
+    to   {left:-2100%;}
+}
+@-o-keyframes movecp {
+    from {left:0px;}
+    to   {left:-2100%;}
+}
+@-ms-keyframes movecp {
+    from {left:0px;}
+    to   {left:-2100%;}
+}
+@keyframes movecp {
+    from {left:0px;}
+    to   {left:-2100%;}
+}
 .challenge-rating {
 	color: #840;
 }

@@ -206,6 +206,34 @@ body a.challenge-action-edit:hover {
 	margin-top: 0.1em;
 	font-size: 0.6em;
 }
+#challenge-reward-note {
+	font-size: 0.7em;
+}
+.challenge-reward-empty {
+	color: #712;
+}
+.challenge-character-selector > div {
+	display: inline-block;
+	margin: 2px;
+	padding: 3px;
+	line-height: 0;
+	cursor: pointer;
+}
+.challenge-character-selector > div:hover {
+	background-color: #BBF;
+}
+.challenge-character-selector > div.character-selected {
+	background-color: #AAF;
+}
+#challenge-reward-selection:not(:empty) {
+	display: inline-block;
+	background-color: #CED;
+	border: solid 1px #798;
+	color: #798;
+	padding: 2px 5px;
+	margin: 5px 0;
+	cursor: default;
+}
 .challenge-main-extra {
 	margin-top: 6px;
 }
@@ -231,6 +259,10 @@ button.challenge-edit-submit:hover {
 }
 button.challenge-edit-submit:active {
 	border: inset 3px #BDC;
+}
+button.challenge-edit-submit:disabled {
+	cursor: default;
+	opacity: 0.5;
 }
 .challenge-reward select {
 	margin-top: 2px;

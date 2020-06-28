@@ -238,6 +238,9 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 .persos-list-more {
 	margin: 10px;
 }
+.persos-list-empty + .persos-list-more {
+	margin-top: 0;
+}
 .persos-sort {
 	padding: 4px 0px;
 	border-bottom: solid 1px #7F90EE;

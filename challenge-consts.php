@@ -10,7 +10,6 @@ function getChallengeDifficulties() {
 	);
 }
 function getChallengeRewards() {
-	global $language;
 	return array(1,2,5,10,20);
 }
 function getChallengeReward($challenge) {

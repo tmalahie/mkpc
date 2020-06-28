@@ -16,7 +16,7 @@ include('initdb.php');
 
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css" />
+<?php include('c_mariokart.php'); ?>
 
 <?php
 include('o_online.php');

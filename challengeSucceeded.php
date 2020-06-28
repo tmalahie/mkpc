@@ -30,6 +30,34 @@ if (isset($_POST['id'])) {
 			mysql_query('UPDATE `mkchallenges` SET status="pending_publication" WHERE id="'. $challengeId .'"');
 			$res['publish'] = true;
 		}
+		if ($id) {
+			require_once('utils-challenges.php');
+			$completedRewards = getRewardedPlayers(array(
+				'challenge' => $challengeId,
+				'player' => $id
+			));
+			if (!empty($completedRewards)) {
+				$currentlyUnlocked = array();
+				$getUnlocked = mysql_query('SELECT r.charid FROM mkclrewarded rp INNER JOIN mkclrewards r ON rp.reward=r.id WHERE rp.player='. $id) or die(mysql_error());
+				while ($unlock = mysql_fetch_array($getUnlocked))
+					$currentlyUnlocked[$unlock['charid']] = true;
+				foreach ($completedRewards as $reward)
+					mysql_query('INSERT IGNORE INTO mkclrewarded  SET reward='. $reward['reward'] .',player='.$id);
+				$rewardIds = array();
+				foreach ($completedRewards as $reward)
+					$rewardIds[] = $reward['reward'];
+				$newUnlocked = mysql_query('SELECT c.id,c.name,c.sprites FROM mkclrewards r INNER JOIN mkchars c ON r.charid=c.id WHERE r.id IN('. implode(',',$rewardIds) .') GROUP BY c.id');
+				while ($unlocked = mysql_fetch_array($newUnlocked)) {
+					if (!$currentlyUnlocked[$unlocked['id']]) {
+						$res['unlocked'][] = array(
+							'id' => $unlocked['id'],
+							'name' => $unlocked['name'],
+							'sprites' => $unlocked['sprites']
+						);
+					}
+				}
+			}
+		}
 	}
 	mysql_close();
 	echo json_encode($res);

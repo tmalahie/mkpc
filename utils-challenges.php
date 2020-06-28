@@ -318,18 +318,22 @@ unset($rulesList);
 unset($rules);
 function listChallenges($clRace, &$params=array()) {
 	global $identifiants;
-	$myCircuit = false;
-	if (isset($identifiants)) {
-		 if ($getClist = mysql_fetch_array(mysql_query('SELECT id,type,circuit FROM `mkclrace` WHERE id="'. $clRace .'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])))
-		 	$myCircuit = true;
-	}
-	if ($myCircuit)
-		$statusCheck = 'status!="deleted"';
+	if (isset($params['status']))
+		$statusCheck = 'status IN ("'. implode('","',$params['status']) .'")';
 	else {
-		if (isset($params['id']) && mysql_fetch_array(mysql_query('SELECT player FROM `mkrights` WHERE player="'.$params['id'].'" AND privilege="clvalidator"')))
-			$statusCheck = 'status IN ("pending_moderation","active")';
-		else
-			$statusCheck = 'status="active"';
+		$myCircuit = false;
+		if (isset($identifiants)) {
+			if ($getClist = mysql_fetch_array(mysql_query('SELECT id,type,circuit FROM `mkclrace` WHERE id="'. $clRace .'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])))
+				$myCircuit = true;
+		}
+		if ($myCircuit)
+			$statusCheck = 'status!="deleted"';
+		else {
+			if (isset($params['id']) && mysql_fetch_array(mysql_query('SELECT player FROM `mkrights` WHERE player="'.$params['id'].'" AND privilege="clvalidator"')))
+				$statusCheck = 'status IN ("pending_moderation","active")';
+			else
+				$statusCheck = 'status="active"';
+		}
 	}
 	$res = array();
 	$getChallenges = mysql_query('SELECT * FROM mkchallenges WHERE clist="'. $clRace .'" AND '. $statusCheck);
@@ -418,6 +422,10 @@ function getCircuitPayload(&$clRace) {
 	if ($clCircuit = mysql_fetch_array(mysql_query('SELECT * FROM `'. $clRace['type'] .'` WHERE id="'. $clRace['circuit'] .'"'))) {
 		$res['name'] = $clCircuit['nom'];
 		$res['author'] = $clCircuit['auteur'];
+		$res['identifiant'] = $clCircuit['identifiant'];
+		$res['identifiant2'] = $clCircuit['identifiant2'];
+		$res['identifiant3'] = $clCircuit['identifiant3'];
+		$res['identifiant4'] = $clCircuit['identifiant4'];
 		$linkBg = '';
 		$linkPreview = array();
 		$linksCached = array();
@@ -654,9 +662,6 @@ function updateChallengeDifficulty($challenge, $newDifficulty) {
 }
 function resetChallengeCompletion($challenge) {
 	$challengeId = $challenge['id'];
-	$challengeRewards = getChallengeRewards();
-	$difficulty = $challenge['difficulty'];
-	$challengeReward = $challengeRewards[$difficulty];
 	mysql_query('DELETE FROM `mkclwin` WHERE challenge="'. $challengeId .'"');
 	mysql_query('UPDATE `mkchallenges` SET status="pending_completion",avgrating=0,nbratings=0 WHERE id="'. $challengeId .'"');
 }
@@ -675,6 +680,43 @@ function activateChallenge($challenge) {
 		while ($follower = mysql_fetch_array($getFollowers))
 			mysql_query('INSERT INTO `mknotifs` SET type="follower_challenge", user="'. $follower['follower'] .'", link="'. $challengeId .'"');
 	}
+}
+/*function getSQLWhereIn($column,$list) {
+	if (empty($list)) return '0';
+	else {
+		foreach ($list as &$elt)
+			$elt = +$elt;
+	}
+	return "$column IN (". implode(',', $list) .")";
+}*/
+function getRewardedPlayers($filters) {
+	$where1 = array('1');
+	$where2 = array('1');
+	if (isset($filters['player']))
+		$where1[] = 'w.player="'.$filters['player'].'"';
+	if (isset($filters['reward']))
+		$where2[] = 'r.reward="'.$filters['reward'].'"';
+	if (isset($filters['challenges'])) {
+		$where1[] = 'w.challenge="'.$filters['challenge'].'"';
+		$where2[] = 'r.challenge="'.$filters['challenge'].'"';
+	}
+	$getPlayers = mysql_query(
+		'SELECT rw.reward,rw.player FROM (
+			SELECT r.reward,w.player,COUNT(*) AS nb FROM mkclrewardchs r
+			INNER JOIN mkclwin w ON r.challenge=w.challenge AND w.creator=0
+			WHERE '. implode(' AND ', $where1) .'
+			GROUP BY r.reward,w.player
+		) rw
+		INNER JOIN (
+			SELECT r.reward,COUNT(*) AS nb FROM mkclrewardchs r
+			WHERE '. implode(' AND ', $where2) .' GROUP BY r.reward
+		) rc
+		ON rw.reward=rc.reward AND rw.nb=rc.nb'
+	);
+	$res = array();
+	while ($player = mysql_fetch_array($getPlayers))
+		$res[] = $player;
+	return $res;
 }
 function isRuleElligible(&$rule,&$course) {
 	return in_array($course, $rule['course']);

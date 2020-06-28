@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ERROR);
 session_start();
-$id = $_SESSION['mkid'];
+$id = isset($_SESSION['mkid']) ? $_SESSION['mkid'] : null;
 if (!$id) {
 	$playerId = null;
 	$playerName = null;

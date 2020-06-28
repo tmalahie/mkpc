@@ -1,5 +1,6 @@
 <?php
 include('language.php');
+include('session.php');
 include('getId.php');
 include('initdb.php');
 include('perso-stats.php');
@@ -29,7 +30,7 @@ function hoverPerso(e,list,id) {
 		document.getElementById("perso-info-author").innerHTML = "";
 	var oPersoRate = document.getElementById("perso-info-rating");
 	oPersoRate.innerHTML = "";
-	if (div.dataset.private)
+	if (div.dataset.private && (list == "my"))
 		document.getElementById("perso-info-nbrates").innerHTML = language ? "Non-shared character":"Perso non partagé";
 	else {
 		var note = div.dataset.rating*1, nbnotes = div.dataset.nbrates*1;
@@ -87,7 +88,7 @@ function houtPerso(list,id) {
 var persoId = -1;
 function selectPerso(list,id) {
 	var div = document.getElementById(list+"persoctn-"+id);
-	if ((list != "all") || div.dataset.mine) {
+	if ((list != "all" && list != "unlocked") || div.dataset.mine) {
 		if (window.opener) {
 			window.opener.selectPerso(id);
 			window.close();
@@ -97,12 +98,15 @@ function selectPerso(list,id) {
 	}
 	else {
 		persoId = id;
-		document.getElementById("perso-stats-mask").style.display = "block";
+		var $persoStats = document.getElementById("perso-stats-mask");
+		$persoStats.dataset.list = list;
+		$persoStats.style.display = "block";
 		restoreStats();
 	}
 }
 function restoreStats() {
-	var div = document.getElementById("allpersoctn-"+persoId);
+	var list = document.getElementById("perso-stats-mask").dataset.list;
+	var div = document.getElementById(list+"persoctn-"+persoId);
 	var persoData = div.dataset;
 	document.getElementById("selectedpersostats").src = "images/sprites/uploads/"+ persoData.sprites + "-ld.png";
 	document.getElementById("stats-template").selectedIndex = 0;
@@ -177,12 +181,20 @@ function confirmStats() {
 	});
 }
 function goToEditor() {
-	window.opener.open("persoEditor.php");
+	window.opener.document.location.href = "persoEditor.php";
 	window.close();
 }
 function goToHistory() {
-	window.opener.open("persoHistory.php");
+	window.opener.document.location.href = "persoHistory.php";
 	window.close();
+}
+function goToLocked() {
+	window.opener.document.location.href = "persoLocked.php";
+	window.close();
+}
+function isPopupBlocked(w) {
+	if(!w || w.closed || typeof w.closed=='undefined') {
+	}
 }
 
 var unsavedData = <?php echo $perso['name'] ? 'false':'true'; ?>;
@@ -204,11 +216,22 @@ var P_UID = 0,
 	P_NBRATES = P_RATING+1,
 	P_PLAYCOUNT = P_NBRATES+1;
 var allPersos = {<?php
-$allPersos = mysql_query('SELECT * FROM `mkchars` WHERE author IS NOT NULL OR (identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="") ORDER BY publication_date DESC, id DESC');
+$unlocked = array();
+$unlockedIds = array();
+if ($id) {
+	$unlockedPersos = mysql_query('SELECT c.id,c.acceleration,c.speed,c.handling,c.mass FROM `mkclrewarded` rw INNER JOIN `mkclrewards` r ON rw.reward=r.id INNER JOIN `mkchars` c ON r.charid=c.id WHERE rw.player='. $id .' ORDER BY rw.id DESC');
+	while ($unlockedPerso = mysql_fetch_array($unlockedPersos)) {
+		$unlocked[] = array(+$unlockedPerso['id'],array(+$unlockedPerso['acceleration'],+$unlockedPerso['speed'],+$unlockedPerso['handling'],+$unlockedPerso['mass']));
+		$unlockedIds[] = $unlockedPerso['id'];
+	}
+}
+$unlockedIdsString = implode(',', $unlockedIds);
+if (!$unlockedIdsString) $unlockedIdsString = '0';
+$allPersos = mysql_query('SELECT * FROM `mkchars` WHERE author IS NOT NULL OR (identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="")'. ($id ? ' OR id IN ('.$unlockedIdsString.')':'') .' ORDER BY publication_date DESC, id DESC') or die(mysql_error());
 $allPersoIds = array();
 $v = '';
 while ($perso = mysql_fetch_array($allPersos)) {
-	$allPersoIds[] = $perso['id'];
+	$allPersoIds[] = +$perso['id'];
 	$mine = (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3]));
 	$spriteSrcs = get_sprite_srcs($perso['sprites']);
 	$persoData = array(
@@ -260,7 +283,7 @@ function updatePersoList(listKey) {
 		oDiv.dataset.list = listKey;
 		oDiv.dataset.sprites = persoData[P_UID];
 		oDiv.dataset.name = persoData[P_NAME];
-		if (listKey != "my")
+		if (listKey != "my" && !persoData[P_PRIVATE])
 			oDiv.dataset.author = persoData[P_AUTHOR];
 		if (persoData[P_MINE])
 			oDiv.dataset.mine = "1";
@@ -326,15 +349,18 @@ var persosLists = {
 	$myPersos = mysql_query('SELECT * FROM `mkchars` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="" ORDER BY id DESC');
 	$my = array();
 	while ($myPerso = mysql_fetch_array($myPersos))
-		$my[] = array($myPerso['id']);
+		$my[] = array(+$myPerso['id']);
 	echo json_encode($my);
 	?>,
 	"hist":<?php
-	$histPersos = mysql_query('SELECT c.id,h.acceleration,h.speed,h.handling,h.mass FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND c.author IS NOT NULL WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC, id DESC');
+	$histPersos = mysql_query('SELECT c.id,h.acceleration,h.speed,h.handling,h.mass FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND (c.author IS NOT NULL OR c.id IN ('.$unlockedIdsString.')) WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC, id DESC');
 	$hist = array();
 	while ($histPerso = mysql_fetch_array($histPersos))
-		$hist[] = array($histPerso['id'],array($histPerso['acceleration'],$histPerso['speed'],$histPerso['handling'],$histPerso['mass']));
+		$hist[] = array(+$histPerso['id'],array(+$histPerso['acceleration'],+$histPerso['speed'],+$histPerso['handling'],+$histPerso['mass']));
 	echo json_encode($hist);
+	?>,
+	"unlocked":<?php
+	echo json_encode($unlocked);
 	?>,
 	"all":[]
 };
@@ -382,7 +408,8 @@ updateCursors = function() {
 	if (persoId == -1)
 		return;
 	onUpdateCursors();
-	var div = document.getElementById("allpersoctn-"+persoId);
+	var list = document.getElementById("perso-stats-mask").dataset.list;
+	var div = document.getElementById(list+"persoctn-"+persoId);
 	var persoData = div.dataset;
 	var originalStats = true;
 	for (var i=0;i<statTypes.length;i++) {
@@ -408,7 +435,9 @@ updateCursors = function() {
 		<?php
 	}
 	else {
+		echo '<div class="persos-list-empty">';
 		echo $language ? 'You haven\'t created characters yet':'Vous n\'avez créé aucun perso pour l\'instant';
+		echo '</div>';
 	}
 	?>
 	<div class="persos-list-more">
@@ -422,7 +451,25 @@ updateCursors = function() {
 	<h3><?php echo $language ? 'History':'Historique'; ?></h3>
 		<div class="persos-list" id="persos-list-hist"></div>
 		<div class="persos-list-more">
-			<span style="color:#E2F222;font-size:1.2em"><?php echo urldecode('%E2%AD%90'); ?></span> <a href="persoHistory.php" target="_blank" onclick="goToHistory();return false"><?php echo $language ? "Rate characters":"Noter les persos"; ?></a>
+			<span style="color:#E2F222"><?php echo urldecode('%E2%AD%90'); ?></span> <a href="persoHistory.php" target="_blank" onclick="goToHistory();return false"><?php echo $language ? "Rate characters":"Noter les persos"; ?></a>
+		</div>
+	</div>
+		<?php
+	}
+	?>
+	<?php
+	if ($id) {
+		?>
+	<div class="persos-list-container">
+	<h3><?php echo $language ? 'Unlocked characters':'Persos débloqués'; ?></h3>
+		<?php
+		if (mysql_numrows($unlockedPersos))
+			echo '<div class="persos-list" id="persos-list-unlocked"></div>';
+		else
+			echo '<div class="persos-list-empty">'. ($language ? 'No unlocked character':'Aucun perso débloqué') .'</div>';
+		?>
+		<div class="persos-list-more">
+			<span style="color:#d29740"><?php echo urldecode('%F0%9F%94%92'); ?></span> <a href="persoLocked.php" target="_blank" onclick="goToLocked();return false"><?php echo $language ? "See unlockable characters":"Voir les persos à débloquer"; ?></a>
 		</div>
 	</div>
 		<?php
@@ -460,7 +507,7 @@ updateCursors = function() {
 		<div id="perso-info-rating"></div>
 		<div id="perso-info-nbrates"></div>
 	</div>
-	<div class="perso-mask" id="perso-stats-mask" onclick="document.getElementById('perso-stats-mask').style.display='none'">
+	<div class="perso-mask" id="perso-stats-mask" data-list="all" onclick="document.getElementById('perso-stats-mask').style.display='none'">
 		<form method="post" name="perso-form" class="perso-form" id="perso-customstats" onclick="event.stopPropagation()" onsubmit="confirmStats();return false">
 			<a class="close-perso-popup" href="javascript:document.getElementById('perso-stats-mask').style.display='none';void(0)">&times;</a>
 			<div class="perso-stats perso-customstats">
