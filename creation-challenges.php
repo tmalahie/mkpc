@@ -8,14 +8,15 @@ $challenges = array(
 	'cup' => array(),
 	'track' => array()
 );
+$clRewards = array();
 $clPayloadParams = array('winners' => true, 'utf8' => true, 'id' => $id);
 $clId = 0;
 if (isset($unsetId)) {
 	unset($id);
 	unset($unsetId);
 }
-function addCircuitChallenges(&$list, $table,$circuitId,$circuitName,&$params,$main=true) {
-	global $clId;
+function addCircuitChallenges($table,$circuitId,$circuitName,&$params,$main=true) {
+	global $clId, $challenges, $clRewards;
 	switch ($table) {
 	case 'mkmcups':
 		$challengeType = 'mcup';
@@ -26,14 +27,16 @@ function addCircuitChallenges(&$list, $table,$circuitId,$circuitName,&$params,$m
 	default:
 		$challengeType = 'track';
 	}
-	if (!isset($list[$challengeType][$circuitId])) {
+	if (!isset($challenges[$challengeType][$circuitId])) {
 		$clCreations = listCircuitChallenges($table,$circuitId,$params);
 		if (isset($clCreations['id'])) {
-			if ($main)
+			if ($main) {
 				$clId = $clCreations['id'];
+				$clRewards = listClRewards($clId);
+			}
 			$cList = $clCreations['list'];
 			if (!empty($cList))
-				$list[$challengeType][$circuitId] = array('id' => $clCreations['id'], 'track' => $circuitId, 'name' => $circuitName, 'main' => $main, 'list' => $cList);
+				$challenges[$challengeType][$circuitId] = array('id' => $clCreations['id'], 'track' => $circuitId, 'name' => $circuitName, 'main' => $main, 'list' => $cList);
 		}
 	}
 }
@@ -46,8 +49,22 @@ function listCircuitChallenges($table, $circuitId,&$params) {
 	}
 	return array('list' => array());
 }
-function addClChallenges(&$list, &$cId,&$params) {
-	global $clId, $isCup, $isMCup;
+function listClRewards($clId) {
+	global $id;
+	$playerId = +$id;
+	$res = array();
+	$getRewards = mysql_query('SELECT r.id,r.charid,w.player FROM mkclrewards r LEFT JOIN mkclrewarded w ON r.id=w.reward AND w.player='. $playerId .' WHERE r.clist ="'.$clId.'"') or die(mysql_error());
+	while ($reward = mysql_fetch_array($getRewards)) {
+		$res[] = array(
+			'id' => $reward['id'],
+			'charid' => $reward['charid'],
+			'unlocked' => $reward['player'] ? 1:0
+		);
+	}
+	return $res;
+}
+function addClChallenges(&$cId,&$params) {
+	global $clId, $isCup, $isMCup, $clRewards;
 	$nCid = isset($cId) ? $cId:-1;
 	if ($isMCup)
 		$cType = 'mcup';
@@ -58,8 +75,9 @@ function addClChallenges(&$list, &$cId,&$params) {
 	if (isset($_GET['cl'])) {
 		$clId = $_GET['cl'];
 		$cList = listChallenges($clId,$params);
+		$clRewards = listClRewards($clId);
 		if (!empty($cList))
-			$list[$cType][$nCid] = array('id' => $clId, 'track' => $cId, 'name' => '', 'main' => true, 'list' => $cList);
+			$list[$cType][$nCid] = array('id' => $clId, 'track' => $cId, 'name' => '', 'main' => true, 'list' => $cList, 'rewards' => $rList);
 	}
 }
 ?>

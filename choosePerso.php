@@ -192,10 +192,6 @@ function goToLocked() {
 	window.opener.document.location.href = "persoLocked.php";
 	window.close();
 }
-function isPopupBlocked(w) {
-	if(!w || w.closed || typeof w.closed=='undefined') {
-	}
-}
 
 var unsavedData = <?php echo $perso['name'] ? 'false':'true'; ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;

@@ -85,6 +85,7 @@ if (typeof selectedTeams === 'undefined') {
 }
 if (typeof challenges === 'undefined') {
 	var challenges = {mcup:[],cup:[],track:[]};
+	var clRewards = [];
 }
 if (typeof cupNames === 'undefined') {
 	var cupNames = [];
@@ -14006,6 +14007,8 @@ function selectChallengesScreen() {
 	oScroll.style.overflowX = "hidden";
 	oScroll.style.overflowY = "auto";
 
+	var mainClId;
+
 	var aChallenge = hasChallenges();
 	if (aChallenge) {
 		if (document.getElementById("comment-connect")) {
@@ -14029,7 +14032,9 @@ function selectChallengesScreen() {
 		for (var type in challenges) {
 			for (var cid in challenges[type]) {
 				var creationChallenges = challenges[type][cid];
-				if (!creationChallenges.main) {
+				if (creationChallenges.main)
+					mainClId = creationChallenges.id;
+				else {
 					var oTr = document.createElement("tr");
 					oTr.style.border = "solid 1px white";
 					var oTd = document.createElement("td");
@@ -14176,7 +14181,7 @@ function selectChallengesScreen() {
 							$fancyTitle = document.createElement("div");
 							$fancyTitle.className = "ranking_activeplayertitle";
 							$fancyTitle.innerHTML = this.dataset.title;
-							$fancyTitle.style.position = "absolute";
+							$fancyTitle.style.position = "fixed";
 							$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
 							$fancyTitle.style.borderRadius = iScreenScale+"px";
 							$fancyTitle.style.zIndex = 10;
@@ -14297,18 +14302,96 @@ function selectChallengesScreen() {
 	}
 	oScr.appendChild(oPInput);
 
-	if (myCircuit && aChallenge) {
-		var oPInput = document.createElement("input");
-		oPInput.type = "button";
-		oPInput.value = toLanguage("Edit challenges...", "Gérer les défis...");
-		oPInput.style.fontSize = (2*iScreenScale)+"px";
-		oPInput.style.position = "absolute";
-		oPInput.style.right = (2*iScreenScale)+"px";
-		oPInput.style.top = (35*iScreenScale)+"px";
-		oPInput.onclick = function() {
-			openChallengeEditor();
+	if (aChallenge) {
+		if (myCircuit) {
+			var oPInput = document.createElement("input");
+			oPInput.type = "button";
+			oPInput.value = toLanguage("Edit challenges...", "Gérer les défis...");
+			oPInput.style.fontSize = (2*iScreenScale)+"px";
+			oPInput.style.position = "absolute";
+			oPInput.style.right = (2*iScreenScale)+"px";
+			oPInput.style.top = (35*iScreenScale)+"px";
+			oPInput.onclick = function() {
+				openChallengeEditor();
+			}
+			oScr.appendChild(oPInput);
 		}
-		oScr.appendChild(oPInput);
+		if (clRewards.length) {
+			var oLink = document.createElement("a");
+			oLink.href = "persoLocked.php?cl="+mainClId;
+			oLink.target = "_blank";
+			oLink.style.color = "white";
+			oLink.style.textDecoration = "none";
+			oLink.onclick = function() {
+				window.open(this.href,'persoLock','scrollbars=1, resizable=1, width=500, height=500');
+				return false;
+			}
+			var oImg = document.createElement("img");
+			oImg.src = "images/challenges/unlocking.png";
+			oImg.alt = toLanguage("Unlocking characters", "Persos à débloquer");
+			oImg.style.height = (2*iScreenScale) +"px";
+			oImg.style.marginRight = Math.round(0.55*iScreenScale)+"px";
+			oImg.style.position = "relative";
+			oImg.style.top = Math.round(0.2*iScreenScale)+"px";
+			oLink.appendChild(oImg);
+			var nbUnlocked = 0;
+			if (myCircuit)
+				oLink.innerHTML += clRewards.length;
+			else {
+				for (var i=0;i<clRewards.length;i++) {
+					if (clRewards[i].unlocked)
+						nbUnlocked++;
+					oLink.innerHTML += nbUnlocked+"/"+clRewards.length;
+				}
+			}
+			oLink.style.fontSize = (2*iScreenScale)+"px";
+			oLink.style.position = "absolute";
+			oLink.style.right = ((myCircuit ? 22:2)*iScreenScale)+"px";
+			oLink.style.top = (35*iScreenScale)+"px";
+			if (!oLink.dataset)
+				oLink.dataset = {};
+			var remainingLocks = clRewards.length-nbUnlocked;
+			var charsS = (remainingLocks>1) ? "s":"";
+			if (remainingLocks <= 0) {
+				oLink.dataset.title = toLanguage("All characters unlocked,<br />congratulations!","Tous les persos ont été<br />débloqués, félicitations !");
+				oLink.style.color = "#0F8";
+				oLink.style.fontWeight = "bold";
+			}
+			else if (nbUnlocked)
+				oLink.dataset.title = toLanguage(remainingLocks, "Plus que " + remainingLocks) + " " + toLanguage("character"+charsS+" left to unlock", "perso"+charsS+" à débloquer");
+			else
+				oLink.dataset.title = remainingLocks + " " + toLanguage("character"+charsS+" to unlock", "perso"+charsS+" à débloquer");
+			var $fancyTitle;
+			oLink.onmouseover = function() {
+				this.style.opacity = 0.7;
+				if ($fancyTitle) return;
+				$fancyTitle = document.createElement("div");
+				$fancyTitle.className = "ranking_activeplayertitle";
+				$fancyTitle.style.textAlign = "center";
+				$fancyTitle.innerHTML = this.dataset.title;
+				$fancyTitle.style.position = "fixed";
+				$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
+				$fancyTitle.style.borderRadius = iScreenScale+"px";
+				$fancyTitle.style.zIndex = 10;
+				$fancyTitle.style.backgroundColor = "rgba(102,153,160, 0.95)";
+				$fancyTitle.style.color = "white";
+				$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+				$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
+				$fancyTitle.style.visibility = "hidden";
+				$mkScreen.appendChild($fancyTitle);
+				var rect = this.getBoundingClientRect();
+				$fancyTitle.style.left = Math.round(rect.left + (this.scrollWidth-$fancyTitle.scrollWidth)/2)+"px";
+				$fancyTitle.style.top = (rect.top - $fancyTitle.scrollHeight - 5)+"px";
+				$fancyTitle.style.visibility = "visible";
+			}
+			oLink.onmouseout = function() {
+				this.style.opacity = "";
+				if (!$fancyTitle) return;
+				$mkScreen.removeChild($fancyTitle);
+				$fancyTitle = undefined;
+			}
+			oScr.appendChild(oLink);
+		}
 	}
 
 	oContainers[0].appendChild(oScr);

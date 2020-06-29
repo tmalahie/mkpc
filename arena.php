@@ -39,7 +39,7 @@ if (isset($_GET['id'])) {
 			}
 		}
 		$infos['map'] = $map;
-		addCircuitChallenges($challenges, 'mkcircuits', $nid,$cName, $clPayloadParams);
+		addCircuitChallenges('mkcircuits', $nid,$cName, $clPayloadParams);
 		$hthumbnail = 'https://mkpc.malahieude.net/mappreview.php?id='.$id;
 	}
 	else {
@@ -56,7 +56,7 @@ else {
 			$cDate = $getMain['publication_date'];
 			$pNote = $getMain['note'];
 			$pNotes = $getMain['nbnotes'];
-			addCircuitChallenges($challenges, 'mkcircuits', $nid,$cName, $clPayloadParams);
+			addCircuitChallenges('mkcircuits', $nid,$cName, $clPayloadParams);
 		}
 		else {
 			mysql_close();
@@ -90,7 +90,7 @@ function escapeUtf8($str) {
 }
 $circuitsData = Array($infos);
 $NBCIRCUITS = 1;
-addClChallenges($challenges, $nid, $clPayloadParams);
+addClChallenges($nid, $clPayloadParams);
 ?>
 <!DOCTYPE HTML SYSTEM>
 <html>
@@ -108,6 +108,7 @@ include('o_online.php');
 var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) ? $_COOKIE['mkplayers']:8); ?>;
 var selectedTeams = <?php echo (isset($_COOKIE['mkteam']) ? $_COOKIE['mkteam']:0); ?>;
 var challenges = <?php echo json_encode($challenges); ?>;
+var clRewards = <?php echo json_encode($clRewards); ?>;
 var clId = <?php echo json_encode($clId); ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
 var lCircuits = [<?php

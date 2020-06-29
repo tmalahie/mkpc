@@ -5,6 +5,8 @@ include('language.php');
 include('persos.php');
 include('initdb.php');
 require_once('utils-challenges.php');
+if (isset($_GET['cl']))
+    $clId = $_GET['cl'];
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -51,7 +53,6 @@ body {
 .reward-item-description > div::-webkit-scrollbar {
 	width: 10px;
 }
- 
 .reward-item-description > div::-webkit-scrollbar-track {
 	-webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
 	border-radius: 5px;
@@ -293,29 +294,34 @@ function hideFancyTitle(e) {
 }
 </script>
 <?php
-include('o_online.php');
+if (!$clId)
+    include('o_online.php');
 ?>
 <title><?php echo $language ? 'Unlockable characters':'Persos à débloquer'; ?></title>
 </head>
 <body>
 <h1><?php echo $language ? 'Unlockable characters':'Persos à débloquer'; ?></h1>
-<div class="reward-explain"><?php
-if ($language) {
-    ?>
-    This page shows the list of unlockable characters created by members.<br />
-    To unlock them, you have to complete the challenges listed below.<br />
-    To learn more about how the challenges work, <a href="challengesList.php">click here</a>.
-    <?php
-}
-else {
-    ?>
-    Cette page affiche la liste des persos à débloquer créés par les membres.<br />
-    Pour les débloquer, vous devrez réaliser les défis affichés ci-dessous.<br />
-    Pour en savoir plus sur le fonctionnement des défis, <a href="challengesList.php">cliquez ici</a>.
-    <?php
-}
-?></div>
 <?php
+if (!$clId) {
+    ?>
+    <div class="reward-explain"><?php
+    if ($language) {
+        ?>
+        This page shows the list of unlockable characters created by members.
+        To unlock them, you have to complete the challenges listed below.
+        To learn more about how the challenges work, <a href="challengesList.php">click here</a>.
+        <?php
+    }
+    else {
+        ?>
+        Cette page affiche la liste des persos à débloquer créés par les membres.
+        Pour les débloquer, vous devrez réaliser les défis affichés ci-dessous.
+        Pour en savoir plus sur le fonctionnement des défis, <a href="challengesList.php">cliquez ici</a>.
+        <?php
+    }
+    ?></div>
+    <?php
+}
 $playerId = +$id;
 $rewardsPerPage = 20;
 $currentPage = isset($_GET['page']) ? $_GET['page']:1;
@@ -331,7 +337,7 @@ $rewardsSQL = array(
 );
 $getRewards = array();
 foreach ($rewardsSQL as $key=>$rewardSQL)
-    $getRewards[$key] = mysql_query('SELECT '.$rewardSQL['columns'].' FROM mkclrewards r LEFT JOIN mkclrewarded w ON w.reward=r.id AND w.player='. $playerId .' INNER JOIN mkclrace l ON l.id=r.clist INNER JOIN mkchars c ON r.charid=c.id ORDER BY r.id DESC'.$rewardSQL['limit']);
+    $getRewards[$key] = mysql_query('SELECT '.$rewardSQL['columns'].' FROM mkclrewards r LEFT JOIN mkclrewarded w ON w.reward=r.id AND w.player='. $playerId .' INNER JOIN mkclrace l ON l.id=r.clist INNER JOIN mkchars c ON r.charid=c.id'. ($clId ? ' WHERE r.clist='.$clId:'') .' ORDER BY r.id DESC'.$rewardSQL['limit']);
 $getRewardsData = $getRewards['data'];
 $getNbRewards = mysql_fetch_array($getRewards['nb']);
 $nbRewards = $getNbRewards['nb'];
@@ -347,6 +353,9 @@ while ($reward = mysql_fetch_array($getRewardsData)) {
     $challenges = mysql_query('SELECT l.*,c.* FROM mkclrewardchs r INNER JOIN mkchallenges c ON r.challenge=c.id INNER JOIN mkclrace l ON l.id=c.clist WHERE r.reward='. $reward['id']);
     ?>
     <div class="rewards-list-item<?php if ($isCompleted) echo ' reward-list-item-success'; ?>">
+        <?php
+        if (!$clId) {
+            ?>
         <div class="reward-item-circuit creation_icon <?php echo ($isCup ? 'creation_cup':'single_creation'); ?>"<?php
             if (isset($circuit['icon'])) {
                 $allMapSrcs = $circuit['icon'];
@@ -360,6 +369,9 @@ while ($reward = mysql_fetch_array($getRewardsData)) {
         if ($isCompleted)
             echo '<div class="reward-item-success">✔</div>';
         ?></div>
+            <?php
+        }
+        ?>
         <div class="reward-item-description"><div>
         <?php
         $challengeParams = array('circuit' => true);
@@ -390,7 +402,7 @@ while ($reward = mysql_fetch_array($getRewardsData)) {
             <img class="reward-item-perso" src="<?php echo $sprites['ld']; ?>" alt="<?php echo htmlspecialchars($reward['name']); ?>" />
             <?php
         }
-        else {
+        else if (!$clId) {
             ?>
             <a class="reward-item-try" href="<?php echo $circuit['href']; ?>"><?php echo $language ? 'Take&nbsp;up':'Relever'; ?></a>
             <?php
@@ -414,11 +426,13 @@ if ($nbPages > 1) {
     ?>
     <div class="reward-pages"><p>
         Page : <?php
+        $get = $_GET;
         for ($i=1;$i<=$nbPages;$i++) {
+            $get['page'] = $i;
             if ($i == $currentPage)
                 echo '<strong>'.$i.'</strong>';
             else
-                echo '<a href="?page='. $i .'">'. $i .'</a>';
+                echo '<a href="?'. http_build_query($get) .'">'. $i .'</a>';
             echo ' ';
         }
         ?>
@@ -426,18 +440,29 @@ if ($nbPages > 1) {
     <?php
 }
 ?>
-<p><a href="mariokart.php"><?php echo $language ? "Back to Mario Kart PC":"Retour à Mario Kart PC"; ?></a></p>
-<div class="perso-bottom">
-    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-    <!-- Mario Kart PC -->
-    <ins class="adsbygoogle"
-            style="display:inline-block;width:468px;height:60px"
-            data-ad-client="ca-pub-1340724283777764"
-            data-ad-slot="6691323567"></ins>
-    <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-</div>
+<?php
+if (!$clId) {
+    ?>
+    <p><a href="mariokart.php"><?php echo $language ? "Back to Mario Kart PC":"Retour à Mario Kart PC"; ?></a></p>
+    <div class="perso-bottom">
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- Mario Kart PC -->
+        <ins class="adsbygoogle"
+                style="display:inline-block;width:468px;height:60px"
+                data-ad-client="ca-pub-1340724283777764"
+                data-ad-slot="6691323567"></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+    <?php
+}
+else {
+    ?>
+    <p><a href="mariokart.php" onclick="window.close();return false"><?php echo $language ? "Back to Mario Kart PC":"Retour à Mario Kart PC"; ?></a></p>
+    <?php
+}
+?>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </body>
 </html>

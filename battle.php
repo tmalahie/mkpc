@@ -21,10 +21,10 @@ if ($arene = mysql_fetch_array(mysql_query('SELECT a.*,(a.nom IS NOT NULL) as sh
 		return htmlentities(escapeCircuitNames($str));
 	}
 	include('getId.php');
-	addCircuitChallenges($challenges, 'arenes', $id,$arene['nom'], $clPayloadParams);
+	addCircuitChallenges('arenes', $id,$arene['nom'], $clPayloadParams);
 	$circuitsData = Array($arene);
 	$NBCIRCUITS = 1;
-	addClChallenges($challenges, $id, $clPayloadParams);
+	addClChallenges($id, $clPayloadParams);
 	$hthumbnail = 'https://mkpc.malahieude.net/coursepreview.php?id='.$id;
 ?>
 <!DOCTYPE HTML SYSTEM>
@@ -43,6 +43,7 @@ include('o_online.php');
 var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) ? $_COOKIE['mkplayers']:8); ?>;
 var selectedTeams = <?php echo (isset($_COOKIE['mkteam']) ? $_COOKIE['mkteam']:0); ?>;
 var challenges = <?php echo json_encode($challenges); ?>;
+var clRewards = <?php echo json_encode($clRewards); ?>;
 var clId = <?php echo json_encode($clId); ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
 var lCircuits = [<?php

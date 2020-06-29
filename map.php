@@ -20,7 +20,7 @@ if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isse
 			$pNotes = $getMain['nbnotes'];
 			$creationData = $getMain;
 			$cShared = true;
-			addCircuitChallenges($challenges, 'mkcups', $nid,$cName, $clPayloadParams);
+			addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
 		}
 	}
 	else {
@@ -46,7 +46,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 			$pNotes = $getMain['nbnotes'];
 			$cDate = $getMain['publication_date'];
 			$creationData = $getMain;
-			addCircuitChallenges($challenges, 'mkmcups', $nid,$cName, $clPayloadParams);
+			addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
 		}
 	}
 	else
@@ -75,7 +75,7 @@ elseif (isset($_GET['mid'])) { // Existing multicup
 		$cupIDs = array();
 		while ($getCup = mysql_fetch_array($getCups))
 			$cupIDs[] = $getCup['cup'];
-		addCircuitChallenges($challenges, 'mkmcups', $nid,$cName, $clPayloadParams);
+		addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
 	}
 }
 elseif (isset($_GET['cid'])) { // Existing cup
@@ -93,7 +93,7 @@ elseif (isset($_GET['cid'])) { // Existing cup
 		for ($i=0;$i<4;$i++)
 			$cupIDs[$i] = $getCup['circuit'. $i];
 		$trackIDs = $cupIDs;
-		addCircuitChallenges($challenges, 'mkcups', $nid,$cName, $clPayloadParams);
+		addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
 	}
 }
 else { // Existing track
@@ -114,7 +114,7 @@ else { // Existing track
 		$pNotes = $circuit['nbnotes'];
 		$creationData = $circuit;
 		$hthumbnail = 'https://mkpc.malahieude.net/racepreview.php?id='.$id;
-		addCircuitChallenges($challenges, 'circuits', $nid,$circuit['nom'], $clPayloadParams);
+		addCircuitChallenges('circuits', $nid,$circuit['nom'], $clPayloadParams);
 	}
 	else {
 		mysql_close();
@@ -134,7 +134,7 @@ if ($isMCup && !isset($trackIDs)) {
 				$cupTracks[] = $getCup['circuit'.$i];
 			$cupsTracks[$getCup['id']] = $cupTracks;
 			$cupNamesById[$getCup['id']] = $getCup['nom'];
-			addCircuitChallenges($challenges, 'mkcups', $getCup['id'],$getCup['nom'], $clPayloadParams, false);
+			addCircuitChallenges('mkcups', $getCup['id'],$getCup['nom'], $clPayloadParams, false);
 		}
 		foreach ($cupIDs as $cupID) {
 			foreach ($cupsTracks[$cupID] as $cupTrack)
@@ -158,7 +158,7 @@ if (isset($trackIDs)) {
 			if (isset($allTracks[$trackID])) {
 				$getMain = $allTracks[$trackID];
 				$circuitsData[] = $getMain;
-				addCircuitChallenges($challenges, 'circuits', $getMain['ID'],$getMain['nom'], $clPayloadParams, !$isCup);
+				addCircuitChallenges('circuits', $getMain['ID'],$getMain['nom'], $clPayloadParams, !$isCup);
 			}
 		}
 	}
@@ -182,7 +182,7 @@ if (!$NBCIRCUITS) {
 	mysql_close();
 	exit;
 }
-addClChallenges($challenges, $nid, $clPayloadParams);
+addClChallenges($nid, $clPayloadParams);
 $sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'i'));
 ?>
 <!DOCTYPE HTML SYSTEM>
@@ -202,6 +202,7 @@ var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) ? $_COOKIE['mkpla
 var selectedTeams = <?php echo (isset($_COOKIE['mkteam']) ? $_COOKIE['mkteam']:0); ?>;
 var selectedDifficulty = <?php echo (isset($_COOKIE['mkdifficulty']) ? $_COOKIE['mkdifficulty']:1); ?>;
 var challenges = <?php echo json_encode($challenges); ?>;
+var clRewards = <?php echo json_encode($clRewards); ?>;
 var clId = <?php echo json_encode($clId); ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
 var recorder = "<?php echo isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'' ?>";
