@@ -7,19 +7,6 @@ if (!$id) {
 	$playerName = null;
 	$playerCode = null;
 	$dbToOpen = null;
-	if (isset($_COOKIE['mkpseudo']) && isset($_COOKIE['mkcode'])) {
-		$playerName = $_COOKIE['mkpseudo'];
-		$playerCode = $_COOKIE['mkcode'];
-		if ($dbToOpen = !@mysql_ping())
-			include('initdb.php');
-		if (($getId=mysql_fetch_array(mysql_query('SELECT id,code FROM `mkjoueurs` WHERE nom="'. mysql_real_escape_string($playerName) .'"')))) {
-			$playerId = $getId['id'];
-			require_once('credentials.php');
-			setcookie('mkp', credentials_encrypt($playerId,$playerCode), 4294967295,'/');
-		}
-		setcookie('mkpseudo', null, 0,'/');
-		setcookie('mkcode', null, 0,'/');
-	}
 	if (isset($_COOKIE['mkp'])) {
 		require_once('credentials.php');
 		$playerCredentials = credentials_decrypt($_COOKIE['mkp']);

@@ -11,8 +11,6 @@ if ($id) {
 				mysql_query('UPDATE `mkjoueurs` SET deleted=1 WHERE id="'.$id.'"');
 				session_destroy();
 				$suppred = true;
-				setcookie('mkpseudo', null, 0,'/');
-				setcookie('mkcode', null, 0,'/');
 				setcookie('mkp', null, 0,'/');
 			}
 			else

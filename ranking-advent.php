@@ -41,7 +41,7 @@ foreach ($get as $k => $getk)
 	(adsbygoogle = window.adsbygoogle || []).push({});
 	</script></p>
 	<form method="post" action="?<?php echo http_build_query($get) ?>">
-	<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$_COOKIE['mkpseudo']); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
+	<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo $joueur; ?>" /> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
 	</form>
 	<?php
 	$records = mysql_query('SELECT j.id,j.nom,c.code,IFNULL(COUNT(*),0) AS nb FROM mkjoueurs j INNER JOIN mkprofiles p ON j.id=p.id LEFT JOIN mkcountries c ON c.id=p.country INNER JOIN mkadvent a ON j.id=a.user'. ($joueur ? ' WHERE j.nom="'.$joueur.'"':'').' GROUP BY j.id ORDER BY nb DESC');
