@@ -38,14 +38,16 @@ if (isset($_POST['id'])) {
 			));
 			if (!empty($completedRewards)) {
 				$currentlyUnlocked = array();
-				$getUnlocked = mysql_query('SELECT r.charid FROM mkclrewarded rp INNER JOIN mkclrewards r ON rp.reward=r.id WHERE rp.player='. $id) or die(mysql_error());
+				$getUnlocked = mysql_query('SELECT r.charid FROM mkclrewarded rp INNER JOIN mkclrewards r ON rp.reward=r.id WHERE rp.player='. $id);
 				while ($unlock = mysql_fetch_array($getUnlocked))
 					$currentlyUnlocked[$unlock['charid']] = true;
 				foreach ($completedRewards as $reward)
 					mysql_query('INSERT IGNORE INTO mkclrewarded  SET reward='. $reward['reward'] .',player='.$id);
 				$rewardIds = array();
-				foreach ($completedRewards as $reward)
+				foreach ($completedRewards as $reward) {
 					$rewardIds[] = $reward['reward'];
+					$res['rewards'][] = array('id' => $reward['reward']);
+				}
 				$newUnlocked = mysql_query('SELECT c.id,c.name,c.sprites FROM mkclrewards r INNER JOIN mkchars c ON r.charid=c.id WHERE r.id IN('. implode(',',$rewardIds) .') GROUP BY c.id');
 				while ($unlocked = mysql_fetch_array($newUnlocked)) {
 					if (!$currentlyUnlocked[$unlocked['id']]) {

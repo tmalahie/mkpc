@@ -44,10 +44,11 @@ if (empty($rewards)) {
     <?php
     if ($language) {
         ?>
-        Welcome to the challenge editor! A challenge is an action to perform in the circuit, than can be tried out by other players.<br />
-        Example of challenge: &quot;Complete the track in less than 30s&quot;, &quot;Finish 1<sup>st</sup> with 100 participants&quot;, &quot;Complete the track without falling&quot;...
-        The editor offers you a variety of combinations, which leaves a lot of freedom for the creation.<br />
-        It's up to you to find the right combo that makes the challenge fun. Happy creating!
+        This section allows you to give an extra reward to your challenges in addition to the challenge points:
+        <strong>character unlocking</strong>!<br />
+        The principle is simple: you select one or more challenges to achieve,
+        and a character to unlock from those you have created in the <a class="pretty-link" href="persoEditor.php">character editor</a>.<br />
+        Your character then becomes a <em>secret character</em> that only members who have successfully completed the challenges will have access to!
         <?php
     }
     else {

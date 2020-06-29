@@ -223,7 +223,7 @@ if ($id) {
 }
 $unlockedIdsString = implode(',', $unlockedIds);
 if (!$unlockedIdsString) $unlockedIdsString = '0';
-$allPersos = mysql_query('SELECT * FROM `mkchars` WHERE author IS NOT NULL OR (identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="")'. ($id ? ' OR id IN ('.$unlockedIdsString.')':'') .' ORDER BY publication_date DESC, id DESC') or die(mysql_error());
+$allPersos = mysql_query('SELECT * FROM `mkchars` WHERE author IS NOT NULL OR (identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="")'. ($id ? ' OR id IN ('.$unlockedIdsString.')':'') .' ORDER BY publication_date DESC, id DESC');
 $allPersoIds = array();
 $v = '';
 while ($perso = mysql_fetch_array($allPersos)) {

@@ -8082,6 +8082,17 @@ function challengeSucceeded(challenge) {
 			return false;
 		}
 		showChallengePopup(challenge,data);
+		if (data.rewards) {
+			for (var i=0;i<data.rewards.length;i++) {
+				var rewardId = data.rewards[i].id;
+				for (var j=0;j<clRewards.length;j++) {
+					if (clRewards[j].id == rewardId) {
+						clRewards[j].unlocked = 1;
+						break;
+					}
+				}
+			}
+		}
 		return true;
 	});
 }

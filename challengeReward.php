@@ -109,7 +109,7 @@ include('o_online.php');
         ?>
         <?php
         if ($areEligiblePersos)
-            echo '<div id="challenge-reward-note">'. ($language ? 'Note that unpublished characters only appear in thus list' : 'Notez que seuls les persos non publiés apparaissent dans cette liste') .'</div>';
+            echo '<div id="challenge-reward-note">'. ($language ? 'Note that only unpublished characters appear in this list' : 'Notez que seuls les persos non publiés apparaissent dans cette liste') .'</div>';
         else {
             echo '<div class="challenge-reward-empty">';
             $getPersos = mysql_query('SELECT * FROM `mkchars` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="" ORDER BY id DESC');

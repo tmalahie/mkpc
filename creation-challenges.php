@@ -50,10 +50,10 @@ function listCircuitChallenges($table, $circuitId,&$params) {
 	return array('list' => array());
 }
 function listClRewards($clId) {
-	global $id;
-	$playerId = +$id;
+	global $clPayloadParams;
+	$playerId = +$clPayloadParams['id'];
 	$res = array();
-	$getRewards = mysql_query('SELECT r.id,r.charid,w.player FROM mkclrewards r LEFT JOIN mkclrewarded w ON r.id=w.reward AND w.player='. $playerId .' WHERE r.clist ="'.$clId.'"') or die(mysql_error());
+	$getRewards = mysql_query('SELECT r.id,r.charid,w.player FROM mkclrewards r LEFT JOIN mkclrewarded w ON r.id=w.reward AND w.player='. $playerId .' WHERE r.clist ="'.$clId.'"');
 	while ($reward = mysql_fetch_array($getRewards)) {
 		$res[] = array(
 			'id' => $reward['id'],
@@ -77,7 +77,7 @@ function addClChallenges(&$cId,&$params) {
 		$cList = listChallenges($clId,$params);
 		$clRewards = listClRewards($clId);
 		if (!empty($cList))
-			$list[$cType][$nCid] = array('id' => $clId, 'track' => $cId, 'name' => '', 'main' => true, 'list' => $cList, 'rewards' => $rList);
+			$cList[$cType][$nCid] = array('id' => $clId, 'track' => $cId, 'name' => '', 'main' => true, 'list' => $cList, 'rewards' => $rList);
 	}
 }
 ?>
