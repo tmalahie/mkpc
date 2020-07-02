@@ -9,10 +9,10 @@ unset($allData);
 $getCircuitsData = mysql_query('SELECT c.img_data,d.* FROM circuits c INNER JOIN circuits_data d ON c.id=d.id WHERE d.id>=1 AND d.id<=56');
 while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	$id = $circuit['id'];
-	include('getExt.php');
 	$circuitImg = json_decode($circuit['img_data']);
 	$w = $circuitImg->w;
 	$h = $circuitImg->h;
+	$ext = $circuitImg->ext;
 	$circuitPayload = json_decode(gzuncompress($circuit['data']));
 	$circuitMainData = $circuitPayload->main;
 	$mapData = &$baseData["map$id"];
@@ -96,6 +96,11 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	foreach ($circuitPayload->decor as $type => $value)
 		$mapData['decor'][$type] = $circuitPayload->decor->{$type};
 	switch ($id) {
+	case 7:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 2;
+		unset($sautsData);
+		break;
 	case 10:
 		foreach ($mapData['sauts'] as &$sautsData)
 			$sautsData[4] = 1;
@@ -151,6 +156,13 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 		break;
 	case 46:
 		$mapData['sauts'][0][4] = 1;
+		break;
+	case 48:
+		$trucks = [[1389,933,null,0,0,0,3],[1000,803,null,0,0,0,16],[822,733,null,0,0,0,24],[682,1076,null,0,0,0,32],[737,1390,null,0,0,0,42],[874,1087,null,0,0,0,52],[690,1239,null,0,0,1,10],[564,1225,null,0,0,1,24],[599,910,null,0,0,1,30],[1033,575,null,0,0,1,33],[1242,756,null,0,0,1,48]];
+		foreach ($trucks as $i=>$truck) {
+			for ($j=2;$j<7;$j++)
+				$mapData['decor']['truck'][$i][$j] = $truck[$j];
+		}
 		break;
 	case 51:
 		$mapData['sauts'][0][4] = 1.8;
