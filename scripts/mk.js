@@ -5212,14 +5212,14 @@ var decorBehaviors = {
 				if (decorsData[i][3] == undefined)
 					decorsData[i][3] = 3;
 				if (decorsData[i][4] == undefined)
-					decorsData[i][4] = 0;
+					decorsData[i][4] = 180;
 			}
 			for (var i=1;i<4;i++) {
 				var decorsData2 = oMap.decor["billball"+i];
 				if (decorsData2) {
 					for (var j=0;j<decorsData2.length;j++) {
 						var decorData = decorsData2[j];
-						decorsData.push([decorData[0],decorData[1],null,null,90*i]);
+						decorsData.push([decorData[0],decorData[1],null,null,180-90*i]);
 					}
 					decorsData2.length = 0;
 				}
@@ -5304,14 +5304,14 @@ var decorBehaviors = {
 					decorData[2][j].img.style.opacity = opacity;
 			}
 			else {
-				var bSpeed = 5, bDir = decorData[4]*Math.PI/180, bDist = 460;
+				var bSpeed = 5, bDir = (180-decorData[4])*Math.PI/180, bDist = 460;
 				decorData[0] += bSpeed*Math.cos(bDir);
 				decorData[1] += bSpeed*Math.sin(bDir);
 				if (((decorData[0]-decorData[6][0])*(decorData[0]-decorData[6][0]) + (decorData[1]-decorData[6][1])*(decorData[1]-decorData[6][1])) > bDist*bDist)
 					decorData[5] = -1;
 			}
 			for (var j=0;j<oPlayers.length;j++) {
-				var fAngle = nearestAngle(getApparentRotation(oPlayers[j])+decorData[4]-90, 180,360);
+				var fAngle = nearestAngle(getApparentRotation(oPlayers[j])+90-decorData[4], 180,360);
 				var x = (fAngle%180)/180;
 				x = this.easeInOut(x);
 				fAngle = 180*Math.floor(fAngle/180) + 180*x;
