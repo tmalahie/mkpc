@@ -1977,6 +1977,23 @@ foreach ($circuitsData as $c => $circuit) {
 	}
 		<?php
 		break;
+	case 42:
+		?>,
+	"decorparams" : {
+		"extra": {
+			"billball": {<?php
+				$nbDecors = 0;
+				for ($i=3;$i<7;$i++) {
+					$prefix = 't'.$i.'_';
+					for ($j=0;isset($circuit[$prefix.$j]);$j++)
+						$nbDecors++;
+				}
+				echo '"nb":'.round($nbDecors*5/4).'';
+			?>}
+		}
+	}
+		<?php
+		break;
 	}
 	?>
 	<?php

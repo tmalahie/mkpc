@@ -5208,31 +5208,64 @@ var decorBehaviors = {
 		rotatable:true,
 		dodgable:true,
 		preinit:function(decorsData) {
+			for (var i=0;i<decorsData.length;i++) {
+				if (decorsData[i][3] == undefined)
+					decorsData[i][3] = 3;
+				if (decorsData[i][4] == undefined)
+					decorsData[i][4] = 0;
+			}
+			for (var i=1;i<4;i++) {
+				var decorsData2 = oMap.decor["billball"+i];
+				if (decorsData2) {
+					for (var j=0;j<decorsData2.length;j++) {
+						var decorData = decorsData2[j];
+						decorsData.push([decorData[0],decorData[1],null,null,90*i]);
+					}
+					decorsData2.length = 0;
+				}
+			}
+			var extraParams = getDecorExtra(this);
+			var nbPos = 0;
+			if (extraParams.nb) {
+				nbPos = decorsData.length;
+				for (var i=nbPos;i<extraParams.nb;i++)
+					decorsData.push(decorsData[i%nbPos].slice(0));
+			}
+			else
+				nbPos = Math.round(decorsData.length*4/5);
 			this.initPos = [];
-			for (var i=0;i<4;i++)
-				this.initPos.push([decorsData[i][0],decorsData[i][1]]);
+			for (var i=0;i<nbPos;i++)
+				this.initPos.push([decorsData[i][0],decorsData[i][1],decorsData[i][3],decorsData[i][4],0]);
 		},
 		init:function(decorData,i) {
 			this.easeInOut = decorBehaviors.truck.easeInOut;
-			if (decorData[3] == undefined)
-				decorData[3] = 2;
-			decorData[3] = 3;
-			decorData[4] = 90;
 			if (decorData[5] == undefined)
 				decorData[5] = 1+i*20;
-			decorData[6] = [decorData[0],decorData[1],decorData[3]];
+			decorData[6] = [decorData[0],decorData[1],decorData[3],decorData[4]];
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].w = 80;
 				decorData[2][j].h = 80;
-				if (decorData[5])
+				if (decorData[5]) {
+					decorData[0] = -10;
+					decorData[1] = -10;
 					decorData[2][j].img.style.display = "none";
+				}
 			}
 		},
-		move:function(decorData) {
+		move:function(decorData,i) {
+			if (!i) {
+				for (var j=0;j<this.initPos.length;j++) {
+					var jPos = this.initPos[j];
+					if (jPos[jPos.length-1])
+						jPos[jPos.length-1]--;
+				}
+			}
 			if (decorData[5] > 0) {
 				decorData[5]--;
 				if (decorData[5] <= 0) {
 					decorData[5] = 0;
+					decorData[0] = decorData[6][0];
+					decorData[1] = decorData[6][1];
 					for (var j=0;j<strPlayer.length;j++)
 						decorData[2][j].img.style.display = "block";
 				}
@@ -5243,13 +5276,24 @@ var decorBehaviors = {
 				if (decorData[5] <= minState) {
 					opacity = 1;
 					decorData[5] = 0;
-					var randPos = Math.round((10000*Math.abs(Math.sin(timer))))%4;
-					if (oPlayers[0].cpu)
-						randPos = Math.floor(Math.random()*4);
-					decorData[0] = this.initPos[randPos][0];
+					var randPos;
+					for (var j=0;j<100;j++) {
+						if (oPlayers[0].cpu)
+							randPos = Math.floor(Math.random()*this.initPos.length);
+						else
+							randPos = Math.round((10000*Math.abs(Math.sin(timer+j))))%this.initPos.length;
+						var jPos = this.initPos[randPos];
+						if (!jPos[jPos.length-1])
+							break;
+					}
+					var nPos = this.initPos[randPos];
+					nPos[nPos.length-1] = 20;
+					for (var j=0;j<4;j++)
+						decorData[6][j] = this.initPos[randPos][j];
+					decorData[0] = decorData[6][0];
 					decorData[1] = decorData[6][1];
 					decorData[3] = decorData[6][2];
-					decorData[6][0] = decorData[0];
+					decorData[4] = decorData[6][3];
 				}
 				else {
 					opacity = 1-decorData[5]/minState;
@@ -5260,18 +5304,20 @@ var decorBehaviors = {
 					decorData[2][j].img.style.opacity = opacity;
 			}
 			else {
-				decorData[1] += 5;
-				if (decorData[1]-decorData[6][1] > 460)
+				var bSpeed = 5, bDir = decorData[4]*Math.PI/180, bDist = 460;
+				decorData[0] += bSpeed*Math.cos(bDir);
+				decorData[1] += bSpeed*Math.sin(bDir);
+				if (((decorData[0]-decorData[6][0])*(decorData[0]-decorData[6][0]) + (decorData[1]-decorData[6][1])*(decorData[1]-decorData[6][1])) > bDist*bDist)
 					decorData[5] = -1;
 			}
-			for (var i=0;i<oPlayers.length;i++) {
-				var fAngle = nearestAngle(getApparentRotation(oPlayers[i]), 180,360);
+			for (var j=0;j<oPlayers.length;j++) {
+				var fAngle = nearestAngle(getApparentRotation(oPlayers[j])+decorData[4]-90, 180,360);
 				var x = (fAngle%180)/180;
 				x = this.easeInOut(x);
 				fAngle = 180*Math.floor(fAngle/180) + 180*x;
 				var iAngleStep = Math.round(fAngle*11 / 180) % 22;
 				if (iAngleStep > 21) iAngleStep -= 22;
-				decorData[2][i].setState(iAngleStep);
+				decorData[2][j].setState(iAngleStep);
 			}
 		}
 	},
