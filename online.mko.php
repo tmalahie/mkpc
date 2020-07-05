@@ -176,7 +176,17 @@ function escapeUtf8($str) {
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>">
    <head>
-	   <title>Online Metagame - Mario Kart PC</title>
+	   <title><?php
+	   	if ($isCup) {
+	   		if ($getCup['nom'])
+	   			echo escapeUtf8($getCup['nom']) . ' - ';
+	   		echo $language ? 'Online '.($isBattle?'battle':'race'):($isBattle?'Bataille':'Course') .' en ligne';
+	   	}
+	   	elseif ($isBattle)
+	   		echo $language ? 'Online battle Mario Kart PC':'Bataille en ligne Mario Kart PC';
+	   	else
+	   		echo $language ? 'Online race Mario Kart PC':'Course en ligne Mario Kart PC';
+	   ?></title>
 <?php include('metas.php'); ?>
 <?php
 if (isset($privateLink)) {
@@ -484,7 +494,10 @@ else {
 }
 ?>
 </script>
-<script type="text/javascript" src="mk/maps.php"></script>
+<?php
+if (!$isCup)
+    echo '<script type="text/javascript" src="mk/maps.php"></script>';
+?>
 <script type="text/javascript" src="scripts/mk.meta.js?reload=2"></script>
 <script type="text/javascript">document.addEventListener("DOMContentLoaded", MarioKart);</script>
 </head>
