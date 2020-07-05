@@ -14220,7 +14220,9 @@ function searchCourse() {
 	}
 	else if (isBattle)
 		courseParams += 'battle';
-	courseParams += "meta";
+	if (typeof customBasePersos === "undefined") {
+		courseParams += "&meta";
+	}
 	if (shareLink.key)
 		courseParams += (courseParams ? '&':'') + 'key='+ shareLink.key;
 	function rSearchCourse() {
