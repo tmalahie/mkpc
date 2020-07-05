@@ -510,11 +510,16 @@ else {
 
 var oBgLayers = new Array();
 var oPlayers = new Array();
+var onlinePage = "online.meta.php";
 if (!pause) {
 	if (baseCp)
 		cp = baseCp;
 	baseCp = {};
 	customPersos = {};
+	if (typeof customBasePersos !== "undefined") {
+		customPersos = customBasePersos;
+		onlinePage = "online.mko.php";
+	}
 	nBasePersos = 0;
 	for (joueurs in cp) {
 		aPlayers.push(joueurs);
@@ -3346,29 +3351,7 @@ function classement() {
 		var teamsRecap = [0,0];
 		for (var i=0;i<aScores.length;i++)
 			teamsRecap[aTeams[i]] += aScores[i];
-		var teamsRank = teamsRecap[0]>teamsRecap[1] || (teamsRecap[0]==teamsRecap[1] && teamsRecap[0]==oPlayers[0].team) ? [0,1]:[1,0];
-		oTeamTable = document.createElement("table");
-		oTeamTable.id = "team-table";
-		var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Team','Équipe') +'</td><td>Pts</td></tr>';
-		for (var i=0;i<teamsRank.length;i++) {
-			var isRedTeam = teamsRank[i];
-			positions += '<tr id="fJ'+i+'" style="background-color:'+ (isRedTeam?'red':'blue') +'"><td>'+ toPlace(i+1) +' </td><td class="maj" id="j'+i+'">'+ (isRedTeam ? toLanguage('Red','Rouge'):toLanguage('Blue','Bleue')) +'</td><td id="pts'+i+'">'+ teamsRecap[isRedTeam] +'</td></tr>';
-		}
-		oTeamTable.style.visibility = "hidden";
-		oTeamTable.style.position = "absolute";
-		oTeamTable.style.zIndex = 20000;
-		oTeamTable.style.left = (iScreenScale*3 + 10) +"px";
-		oTeamTable.style.top = (iScreenScale*10) +"px";
-		oTeamTable.style.backgroundColor = "blue";
-		oTeamTable.style.color = primaryColor;
-		oTeamTable.style.opacity = 0.7;
-		oTeamTable.style.textAlign = "center";
-		oTeamTable.style.fontSize = Math.round(iScreenScale*1.5+4) +"pt";
-		oTeamTable.style.fontFamily = "Courier";
-		oTeamTable.style.fontWeight = "bold";
-		oTeamTable.style.fontFamily = "arial";
-		oTeamTable.innerHTML = positions;
-		$mkScreen.appendChild(oTeamTable);
+		oTeamTable = createTeamTable(teamsRecap);
 	}
 	document.getElementById("octn").onclick = continuer;
 	setTimeout(function() {
@@ -3379,6 +3362,33 @@ function classement() {
 		document.getElementById("octn").focus();
 		document.body.scrollTop = aScroll;
 	}, 500);
+}
+
+function createTeamTable(teamsRecap) {
+	var teamsRank = teamsRecap[0]>teamsRecap[1] || (teamsRecap[0]==teamsRecap[1] && teamsRecap[0]==oPlayers[0].team) ? [0,1]:[1,0];
+	var oTeamTable = document.createElement("table");
+	oTeamTable.id = "team-table";
+	var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Team','Équipe') +'</td><td>Pts</td></tr>';
+	for (var i=0;i<teamsRank.length;i++) {
+		var isRedTeam = teamsRank[i];
+		positions += '<tr id="fJ'+i+'" style="background-color:'+ (isRedTeam?'red':'blue') +'"><td>'+ toPlace(i+1) +' </td><td class="maj" id="j'+i+'">'+ (isRedTeam ? toLanguage('Red','Rouge'):toLanguage('Blue','Bleue')) +'</td><td id="pts'+i+'">'+ teamsRecap[isRedTeam] +'</td></tr>';
+	}
+	oTeamTable.style.visibility = "hidden";
+	oTeamTable.style.position = "absolute";
+	oTeamTable.style.zIndex = 20000;
+	oTeamTable.style.left = (iScreenScale*3 + 10) +"px";
+	oTeamTable.style.top = (iScreenScale*10) +"px";
+	oTeamTable.style.backgroundColor = "blue";
+	oTeamTable.style.color = primaryColor;
+	oTeamTable.style.opacity = 0.7;
+	oTeamTable.style.textAlign = "center";
+	oTeamTable.style.fontSize = Math.round(iScreenScale*1.5+4) +"pt";
+	oTeamTable.style.fontFamily = "Courier";
+	oTeamTable.style.fontWeight = "bold";
+	oTeamTable.style.fontFamily = "arial";
+	oTeamTable.innerHTML = positions;
+	$mkScreen.appendChild(oTeamTable);
+	return oTeamTable;
 }
 
 function continuer() {
@@ -12014,7 +12024,7 @@ function selectTypeScreen() {
 			oPInput.onclick = function() {
 				course = this.dataset.course;
 				if (course == "CL")
-					document.location.href = "online.meta.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid);
+					document.location.href = onlinePage+"?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid);
 				else {
 					FBRoot.style.display = "none";
 					oScr.innerHTML = "";
@@ -12213,7 +12223,7 @@ function selectNbJoueurs() {
 		oPInput.style.paddingTop = Math.round(iScreenScale*0.5) +"px";
 		oPInput.style.paddingBottom = Math.round(iScreenScale*0.5) +"px";
 		oPInput.onclick = function() {
-			document.location.href = "online.meta.php?"+ (complete ? "i":"id") +"="+ nid +"&battle";
+			document.location.href = onlinePage+"?"+ (complete ? "i":"id") +"="+ nid +"&battle";
 		}
 		oScr.appendChild(oPInput);
 	}
@@ -12323,14 +12333,14 @@ function openOnlineMode(isBattle, options) {
 	if (options) {
 		xhr("onlineOptions.php", "options="+encodeURIComponent(JSON.stringify(options)), function(res) {
 			if (res) {
-				document.location.href = "online.meta.php?"+ (isBattle ? "battle&":"")+("key="+ res);
+				document.location.href = onlinePage+"?"+ (isBattle ? "battle&":"")+("key="+ res);
 				return true;
 			}
 			return false;
 		});
 	}
 	else
-		document.location.href = "online.meta.php"+ (isBattle ? "?battle":"");
+		document.location.href = onlinePage+ (isBattle ? "?battle":"");
 }
 function openChallengeEditor() {
 	if (clId && !edittingCircuit)
@@ -13440,6 +13450,10 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		for (var joueurs in baseCp)
 			cp[joueurs] = baseCp[joueurs];
 		customPersos = {};
+		if (typeof customBasePersos !== "undefined") {
+			customPersos = customBasePersos;
+			return;
+		}
 		for (var i=0;i<newPersos.length;i++) {
 			var newPerso = newPersos[i];
 			cp[newPerso["sprites"]] = [newPerso["acceleration"],newPerso["speed"],newPerso["handling"],newPerso["mass"]];
@@ -14947,7 +14961,8 @@ function choose(map) {
 					var oTr = document.createElement("tr");
 					var oTd = document.createElement("td");
 					var isChoix = choixJoueurs[i][2];
-					oTd.innerHTML = isChoix ? lCircuits[isChoix-1] : toLanguage("Not choosen","Non choisi");
+					var isRandom = choixJoueurs[i][3];
+					oTd.innerHTML = isChoix ? (isRandom ? "???":lCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
 					oTr.appendChild(oTd);
 					oTBody.appendChild(oTr);
 				}
@@ -14966,14 +14981,14 @@ function choose(map) {
 								aIDs.push(aID);
 								aPlayers.push(choixJoueurs[i][1]);
 								isCustomPerso(choixJoueurs[i][1]);
-								aPlaces.push(choixJoueurs[i][3]);
-								aPseudos.push(choixJoueurs[i][4]);
-								aTeams.push(choixJoueurs[i][5]);
+								aPlaces.push(choixJoueurs[i][4]);
+								aPseudos.push(choixJoueurs[i][5]);
+								aTeams.push(choixJoueurs[i][6]);
 							}
 							else {
-								aPlaces.unshift(choixJoueurs[i][3]);
-								aPseudos.unshift(choixJoueurs[i][4]);
-								aTeams.unshift(choixJoueurs[i][5]);
+								aPlaces.unshift(choixJoueurs[i][4]);
+								aPseudos.unshift(choixJoueurs[i][5]);
+								aTeams.unshift(choixJoueurs[i][6]);
 							}
 						}
 						selectedTeams = (aTeams.indexOf(-1) == -1);
@@ -15028,6 +15043,8 @@ function choose(map) {
 								setTimeout(function(){clignote(cID+1)}, 100);
 							else
 								setTimeout(function(){$mkScreen.removeChild(oTable);proceedOnlineRaceSelection(rCode)}, 500);
+							if (cID == 1)
+								trs[cCursor].getElementsByTagName("td")[0].innerHTML = lCircuits[choixJoueurs[cCursor][2]-1];
 						}
 						moveCursor();
 						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];
@@ -15334,7 +15351,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 					oPlayerName.style.display = "block";
 					oPlayerName.style.top = "1px";
 					oPlayerName.style.position = "relative";
-					oPlayerName.innerHTML = player[4];
+					oPlayerName.innerHTML = player[5];
 					oPlayerName.style.whiteSpace = "nowrap";
 					oPlayerName.style.textOverflow = "ellipsis";
 					oPlayerName.style.overflow = "hidden";
@@ -15446,13 +15463,13 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 				playersTeams[teams[i][j][0]] = teams[i][j];
 		}
 		for (var i=0;i<choosedTeams.length;i++)
-			playersTeams[choosedTeams[i].id][5] = choosedTeams[i].team;
+			playersTeams[choosedTeams[i].id][6] = choosedTeams[i].team;
 		for (var i=0;i<strPlayer.length;i++)
-			aTeams[i] = playersTeams[identifiant][5];
+			aTeams[i] = playersTeams[identifiant][6];
 		for (var i=0;i<aPlayers.length;i++) {
 			var id = aIDs[i];
 			var inc = i+strPlayer.length;
-			aTeams[inc] = playersTeams[id][5];
+			aTeams[inc] = playersTeams[id][6];
 		}
 		selectedTeams = (aTeams.indexOf(-1) == -1);
 		teams[0].length = 0;
@@ -15541,7 +15558,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 
 	var teams = [[],[]];
 	for (var i=0;i<choixJoueurs.length;i++)
-		teams[choixJoueurs[i][5]].push(choixJoueurs[i]);
+		teams[choixJoueurs[i][6]].push(choixJoueurs[i]);
 
 	var oSubmit = document.createElement("input");
 	oSubmit.type = "button";
@@ -15690,6 +15707,37 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	}
 
 	oContainers[0].appendChild(oScr);
+}
+
+function iDeco() {
+	var oDiv = document.createElement("div");
+	oDiv.style.position = "absolute";
+	oDiv.style.left = (iScreenScale*15) +"px";
+	oDiv.style.top = (iScreenScale*8) +"px";
+	oDiv.style.width = (iScreenScale*50) +"px";
+	oDiv.style.height = (iScreenScale*15) +"px";
+	oDiv.style.fontSize = (iScreenScale*3) +"px";
+	oDiv.style.backgroundColor = "gray";
+	oDiv.style.color = "white";
+	oDiv.style.border = "solid 1px silver";
+	oDiv.style.fontWeight = "bold";
+	oDiv.style.textAlign = "center";
+	oDiv.style.paddingTop = (iScreenScale*5) +"px";
+	oDiv.style.zIndex = 20000;
+	oDiv.innerHTML = toLanguage("You have been disconnected", "Vous avez &eacute;t&eacute; d&eacute;connect&eacute;");
+	for (var i=0;i<2;i++)
+		oDiv.appendChild(document.createElement("br"));
+	var oQuit = document.createElement("input");
+	oQuit.type = "button";
+	oQuit.value = toLanguage("Back", "Retour");
+	oQuit.style.fontSize = (iScreenScale*3) +"px";
+	oQuit.onclick = function() {
+		location.reload();
+	}
+	oDiv.appendChild(oQuit);
+	$mkScreen.appendChild(oDiv);
+	chatting = false;
+	window.onbeforeunload = undefined;
 }
 
 function iDeco() {

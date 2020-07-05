@@ -57,19 +57,9 @@ elseif (isset($_GET['i'])) {
 	$isSingle = true;
 }
 if (isset($_GET['battle']))
-	$isBattle = true;
-if (isset($_GET['key'])) {
-	$privateLink = $_GET['key'];
-	if ($privateLinkData = mysql_fetch_array(mysql_query('SELECT * FROM `mkprivgame` WHERE id="'.$privateLink.'"'))) {
-		if ($id)
-			mysql_query('UPDATE `mkprivgame` SET last_used_date=NULL WHERE id="'.$privateLink.'"');
-	}
-	else {
-		echo 'Private link is invalid or has expired';
-		mysql_close();
-		exit;
-	}
-}
+    $isBattle = true;
+$privateLink = 2949102932;
+$privateLinkData = mysql_fetch_array(mysql_query('SELECT * FROM `mkprivgame` WHERE id="'.$privateLink.'"'));
 if ($isCup)
 	$NBCIRCUITS = ($isSingle?1:4);
 else {
@@ -247,8 +237,161 @@ var lCircuits = <?php echo json_encode(array_splice($circuitNames,0,$nbVSCircuit
 	<?php
 }
 ?>
-var cp = <?php include('getPersosMeta.php') ?>;
+var cp = <?php
+include('fetchSaves.php');
+$ids = '0,1405642010';
+$getPersos = mysql_query('SELECT * FROM mkteststats WHERE identifiant IN ('.$ids.') ORDER BY id');
+$cp = array();
+$statKeys = array('acceleration','speed','handling','mass','offroad');
+$persoMapping = array(
+    'mario' => 'cp-5ed676776221e-4905',
+    'luigi' => 'cp-5ed67acdf19af-4906',
+    'peach' => 'cp-5ed68e4d8b641-4907',
+    'yoshi' => 'cp-5ed68f402df3d-4908',
+    'toad' => 'cp-5ed690ab476e6-4909',
+    'donkey-kong' => 'cp-5ed6923d9eeef-4910',
+    'bowser' => 'cp-5ed693cc2702e-4911',
+    'koopa' => 'cp-5ed694dd3cd01-4912',
+    'skelerex' => 'cp-5edce51dda0e7-4937',
+    'maskass' => 'cp-5edea8866e821-4951',
+    'waluigi' => 'cp-5eeb43e0d75c0-5025',
+    'daisy' => 'cp-5eeb44b293096-5026'
+);
+while ($perso = mysql_fetch_array($getPersos)) {
+    if (isset($persoMapping[$perso['perso']]))
+        $perso['perso'] = $persoMapping[$perso['perso']];
+    if (!$cp[$perso['perso']])
+        $cp[$perso['perso']] = array(null,null,null,null,null);
+    foreach ($statKeys as $i => $statKey) {
+        if ($perso[$statKey] !== null)
+            $cp[$perso['perso']][$i] = $perso[$statKey]/24;
+    }
+}
+echo json_encode($cp);
+?>;
 var pUnlocked = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+var customBasePersos = {
+    "cp-5ed68f402df3d-4908": {
+        "name": "MK2 - Yoshi",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5ed68f402df3d-4908-ld.png",
+        "podium": "images/sprites/uploads/cp-5ed68f402df3d-4908-ld.png",
+        "music": "mario"
+    },
+    "cp-5ed693cc2702e-4911": {
+        "name": "MK2 - Bowser",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5ed693cc2702e-4911-ld.png",
+        "podium": "images/sprites/uploads/cp-5ed693cc2702e-4911-ld.png",
+        "music": "mario"
+    },
+    "cp-5ed690ab476e6-4909": {
+        "name": "MK2 - Toad",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5ed690ab476e6-4909-ld.png",
+        "podium": "images/sprites/uploads/cp-5ed690ab476e6-4909-ld.png",
+        "music": "mario"
+    },
+    "cp-5ed68e4d8b641-4907": {
+        "name": "MK2 - Peach",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5ed68e4d8b641-4907-ld.png",
+        "podium": "images/sprites/uploads/cp-5ed68e4d8b641-4907-ld.png",
+        "music": "mario"
+    },
+    "cp-5ed67acdf19af-4906": {
+        "name": "MK2 - Luigi",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5ed67acdf19af-4906-ld.png",
+        "podium": "images/sprites/uploads/cp-5ed67acdf19af-4906-ld.png",
+        "music": "mario"
+    },
+    "cp-5ed676776221e-4905": {
+        "name": "MK2 - Mario",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5ed676776221e-4905-ld.png",
+        "podium": "images/sprites/uploads/cp-5ed676776221e-4905-ld.png",
+        "music": "mario"
+    },
+    "cp-5ed6923d9eeef-4910": {
+        "name": "MK2 - Donkey Kong",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5ed6923d9eeef-4910-ld.png",
+        "podium": "images/sprites/uploads/cp-5ed6923d9eeef-4910-ld.png",
+        "music": "mario"
+    },
+    "cp-5eeb44b293096-5026": {
+        "name": "MK2 - Daisy",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5eeb44b293096-5026-ld.png",
+        "podium": "images/sprites/uploads/cp-5eeb44b293096-5026-ld.png",
+        "music": "mario"
+    },
+    "cp-5edce51dda0e7-4937": {
+        "name": "MK2 - Skelerex",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5edce51dda0e7-4937-ld.png",
+        "podium": "images/sprites/uploads/cp-5edce51dda0e7-4937-ld.png",
+        "music": "mario"
+    },
+    "cp-5ed694dd3cd01-4912": {
+        "name": "MK2 - Koopa",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5ed694dd3cd01-4912-ld.png",
+        "podium": "images/sprites/uploads/cp-5ed694dd3cd01-4912-ld.png",
+        "music": "mario"
+    },
+    "cp-5eeb43e0d75c0-5025": {
+        "name": "MK2 - Waluigi",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5eeb43e0d75c0-5025-ld.png",
+        "podium": "images/sprites/uploads/cp-5eeb43e0d75c0-5025-ld.png",
+        "music": "mario"
+    },
+    "cp-5edea8866e821-4951": {
+        "name": "MK2 - Maskass",
+        "acceleration": 1,
+        "speed": 0.375,
+        "handling": 1,
+        "mass": 0.25,
+        "map": "images/sprites/uploads/cp-5edea8866e821-4951-ld.png",
+        "podium": "images/sprites/uploads/cp-5edea8866e821-4951-ld.png",
+        "music": "mario"
+    }
+};
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
 var page = "OL";
 var PERSOS_DIR = "<?php
@@ -360,28 +503,32 @@ else {
 <td id="pQuality">&nbsp;</td>
 <td id="vQuality">
 </td>
-<td rowspan="4" style="text-align:center;padding-left:10px">
-    <?php
-    if ($isCommon) {
-        echo $language ? 'Metagame - Common version':'Metagame - Version commune';
-        echo '<br />';
-        echo '<a href="online.meta.php" style="color:white">'. ($language ? 'Back to personal version':'Retour à la version perso') .'</a>';
-        $canBeAdmin = in_array($identifiants[0], array(1390635815,2963080980));
-        if ($canBeAdmin) {
-            echo '<br />';
-            echo '<a href="metaStats.php?common" style="color:white">'. ($language ? 'Edit stats':'Modifier les stats') .'</a>';
-        }
-    }
-    else {
-        echo $language ? 'Metagame - Personnal version':'Metagame - Version personnelle';
-        echo '<br />';
-        echo '<a href="?common" style="color:white">'. ($language ? 'See common version':'Voir la version commune') .'</a>';
-        $canBeAdmin = in_array($identifiants[0], array(1390635815,2963080980));
-        echo '<br />';
-        echo '<a href="metaStats.php" style="color:white">'. ($language ? 'Edit stats':'Modifier les stats') .'</a>';
-    }
-    ?>
-</tr>
+<td rowspan="4" id="commandes">
+<?php
+if ($language) {
+	?>
+<strong>Move</strong> : Arrows<br />
+<strong>Use object</strong> : Spacebar<br />
+<strong><em>OR</em></strong> : Left click<br />
+<strong>Jump/drift</strong> : Ctrl<br />
+<?php if ($isBattle) echo '<strong>Gonfler un ballon</strong> : Maj<br />'; ?>
+<strong>Rear/Front view</strong> : X<br />
+<strong>Quit</strong> : Escape
+	<?php
+}
+else {
+	?>
+<strong>Se diriger</strong> : Fl&egrave;ches directionnelles<br />
+<strong>Utiliser un objet</strong> : Barre d'espace<br />
+<strong><em>OU</em></strong> : Clic gauche<br />
+<strong>Sauter/déraper</strong> : Ctrl<br />
+<?php if ($isBattle) echo '<strong>'. ($language ? 'Inflate a balloon':'Gonfler un ballon') .'</strong> : '. ($language ? 'Shift':'Maj') .'<br />'; ?>
+<strong>Vue arri&egrave;re/avant</strong> : X<br />
+<strong>Quitter</strong> : &Eacute;chap
+	<?php
+}
+?>
+</td></tr>
 <tr><td id="pSize">
 </td>
 <td id="vSize">
