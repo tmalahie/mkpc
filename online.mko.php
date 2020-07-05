@@ -283,125 +283,84 @@ var pUnlocked = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 var customBasePersos = {
     "cp-5ed68f402df3d-4908": {
         "name": "MK2 - Yoshi",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5ed68f402df3d-4908-ld.png",
         "podium": "images/sprites/uploads/cp-5ed68f402df3d-4908-ld.png",
         "music": "mario"
     },
     "cp-5ed693cc2702e-4911": {
         "name": "MK2 - Bowser",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5ed693cc2702e-4911-ld.png",
         "podium": "images/sprites/uploads/cp-5ed693cc2702e-4911-ld.png",
         "music": "mario"
     },
     "cp-5ed690ab476e6-4909": {
         "name": "MK2 - Toad",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5ed690ab476e6-4909-ld.png",
         "podium": "images/sprites/uploads/cp-5ed690ab476e6-4909-ld.png",
         "music": "mario"
     },
     "cp-5ed68e4d8b641-4907": {
         "name": "MK2 - Peach",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5ed68e4d8b641-4907-ld.png",
         "podium": "images/sprites/uploads/cp-5ed68e4d8b641-4907-ld.png",
         "music": "mario"
     },
     "cp-5ed67acdf19af-4906": {
         "name": "MK2 - Luigi",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5ed67acdf19af-4906-ld.png",
         "podium": "images/sprites/uploads/cp-5ed67acdf19af-4906-ld.png",
         "music": "mario"
     },
     "cp-5ed676776221e-4905": {
         "name": "MK2 - Mario",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5ed676776221e-4905-ld.png",
         "podium": "images/sprites/uploads/cp-5ed676776221e-4905-ld.png",
         "music": "mario"
     },
     "cp-5ed6923d9eeef-4910": {
         "name": "MK2 - Donkey Kong",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5ed6923d9eeef-4910-ld.png",
         "podium": "images/sprites/uploads/cp-5ed6923d9eeef-4910-ld.png",
         "music": "mario"
     },
     "cp-5eeb44b293096-5026": {
         "name": "MK2 - Daisy",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5eeb44b293096-5026-ld.png",
         "podium": "images/sprites/uploads/cp-5eeb44b293096-5026-ld.png",
         "music": "mario"
     },
     "cp-5edce51dda0e7-4937": {
         "name": "MK2 - Skelerex",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5edce51dda0e7-4937-ld.png",
         "podium": "images/sprites/uploads/cp-5edce51dda0e7-4937-ld.png",
         "music": "mario"
     },
     "cp-5ed694dd3cd01-4912": {
         "name": "MK2 - Koopa",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5ed694dd3cd01-4912-ld.png",
         "podium": "images/sprites/uploads/cp-5ed694dd3cd01-4912-ld.png",
         "music": "mario"
     },
     "cp-5eeb43e0d75c0-5025": {
         "name": "MK2 - Waluigi",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5eeb43e0d75c0-5025-ld.png",
         "podium": "images/sprites/uploads/cp-5eeb43e0d75c0-5025-ld.png",
         "music": "mario"
     },
     "cp-5edea8866e821-4951": {
         "name": "MK2 - Maskass",
-        "acceleration": 1,
-        "speed": 0.375,
-        "handling": 1,
-        "mass": 0.25,
         "map": "images/sprites/uploads/cp-5edea8866e821-4951-ld.png",
         "podium": "images/sprites/uploads/cp-5edea8866e821-4951-ld.png",
         "music": "mario"
     }
 };
+for (var key in customBasePersos) {
+    customBasePersos[key].acceleration = cp[key][0];
+    customBasePersos[key].speed = cp[key][1];
+    customBasePersos[key].handling = cp[key][2];
+    customBasePersos[key].mass = cp[key][3];
+    customBasePersos[key].offroad = cp[key][4];
+}
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
 var page = "OL";
 var PERSOS_DIR = "<?php
@@ -444,7 +403,6 @@ var shareLink = {
 	}
 	if ($isBattle)
 		$params[] = '"battle"';
-	$params[] = '"meta"';
 	echo implode(',',$params);
 	?>]
 };
