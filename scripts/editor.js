@@ -1252,6 +1252,8 @@ function createArrow(point1,point2,append,options) {
 function changeArrowDir(arrow,origin,dir,length,fromCenter) {
 	var dirL = Math.hypot(dir.x,dir.y);
 	if (dirL) {
+		if (length == null)
+			length = dirL;
 		if (fromCenter) {
 			dirL *= 2;
 			arrow.move({x:origin.x-dir.x*length/dirL,y:origin.y-dir.y*length/dirL},{x:origin.x+dir.x*length/dirL,y:origin.y+dir.y*length/dirL});
@@ -3786,6 +3788,7 @@ var commonTools = {
 						switch (type) {
 						case "cannonball":
 						case "snowball":
+						case "billball":
 						case "firering":
 						case "fire3star":
 						case "pendulum":
@@ -3831,6 +3834,7 @@ var commonTools = {
 				switch (self.state.type) {
 				case "cannonball":
 				case "snowball":
+				case "billball":
 				case "firering":
 				case "fire3star":
 				case "pendulum":
@@ -3851,7 +3855,7 @@ var commonTools = {
 				var moveOptions = {};
 				if (arrow) {
 					moveOptions.on_apply = function(nData) {
-						changeArrowDir(arrow,{x:nData.x,y:nData.y},decorData.dir,self._arrowLength,self._arrowOriginCenter(self.state.type));
+						changeArrowDir(arrow,{x:nData.x,y:nData.y},decorData.dir,self._arrowLength(self.state.type),self._arrowOriginCenter(self.state.type));
 					}
 					moveOptions.on_start_move = arrow.hide;
 					moveOptions.on_end_move = arrow.show;
@@ -3877,7 +3881,7 @@ var commonTools = {
 						menuOptions.splice(1,0, {
 							text: (language ? "Edit ↗":"Modifier ↗"),
 							click: function() {
-								moveArrow(arrow,decorData.pos,decorData.dir,{fixed_length:self._arrowLength,from_center:self._arrowOriginCenter(self.state.type)});
+								moveArrow(arrow,decorData.pos,decorData.dir,{fixed_length:self._arrowLength(self.state.type),from_center:self._arrowOriginCenter(self.state.type)});
 							}
 						});
 					}
@@ -3899,7 +3903,10 @@ var commonTools = {
 				self.state.point.classList.add("noclick");
 			}
 		},
-		"_arrowLength": 25,
+		"_arrowLength": function(type) {
+			if (type === "billball") return null;
+			return 25;
+		},
 		"_arrowOriginCenter": function(type) {
 			return (["firering","fire3star","pendulum"].indexOf(type) !== -1);
 		},
@@ -3908,7 +3915,7 @@ var commonTools = {
 				var typeData = self.data.decors[self.state.type];
 				var decorPos = typeData[typeData.length-1].pos;
 				var dir = {x:point.x-decorPos.x,y:point.y-decorPos.y};
-				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength,self._arrowOriginCenter(self.state.type));
+				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength(self.state.type),self._arrowOriginCenter(self.state.type));
 			}
 			else if (self.state.traject !== undefined) {
 				moveRouteBuilder(self,point,extra);
@@ -3924,8 +3931,8 @@ var commonTools = {
 		"save" : function(self,payload) {
 			var selfData = self.data.decors;
 			payload.decor = {};
-			payload.decorparams = {};
-			var isDecorData = false;
+			payload.decorparams = {extra:{}};
+			var isDecorData = false, isDecorExtra = false;
 			for (var type in selfData) {
 				var decorsData = selfData[type];
 				if (decorsData.length) {
@@ -3936,11 +3943,15 @@ var commonTools = {
 						switch (type) {
 						case "cannonball":
 						case "snowball":
+						case "billball":
 						case "firering":
 						case "fire3star":
 						case "pendulum":
 							var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
-							payload.decorparams[type].push({dir:isNaN(dir)?0:dir});
+							var decorParams = {dir:isNaN(dir)?0:dir};
+							if (type === "billball")
+								decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):460;
+							payload.decorparams[type].push(decorParams);
 							break;
 						case "truck":
 							payload.decorparams[type].push({traject:decorsData[i].traject||0});
@@ -3952,15 +3963,19 @@ var commonTools = {
 						delete payload.decorparams[type];
 				}
 			}
+			if (payload.decorparams.billball) {
+				isDecorExtra = true;
+				payload.decorparams.extra.billball = {
+					nb: Math.round(payload.decorparams.billball.length*5/4)
+				};
+			}
 			if (self.data.extra.truck) {
 				var busData = self.data.extra.truck.route;
 				if ((busData.length != 1) || busData[0].points.length) {
-					isDecorData = true;
-					payload.decorparams.extra = {
-						truck: {
-							path: [],
-							closed: []
-						},
+					isDecorExtra = true;
+					payload.decorparams.extra.truck = {
+						path: [],
+						closed: []
 					};
 					var busPayload = payload.decorparams.extra.truck;
 					for (var i=0;i<busData.length;i++) {
@@ -3969,8 +3984,11 @@ var commonTools = {
 					}
 				}
 			}
-			if (!isDecorData)
-				delete payload.decorparams;
+			if (!isDecorExtra) {
+				delete payload.decorparams.extra;
+				if (!isDecorData)
+					delete payload.decorparams;
+			}
 		},
 		"restore" : function(self,payload) {
 			var selfData = self.data.decors;
@@ -3985,11 +4003,13 @@ var commonTools = {
 					switch (type) {
 					case "cannonball":
 					case "snowball":
+					case "billball":
 					case "firering":
 					case "fire3star":
 					case "pendulum":
 						var dir = decorParams.dir || 0;
-						decorData.dir = {x:Math.sin(dir),y:Math.cos(dir)};
+						var length = decorParams.length || 1;
+						decorData.dir = {x:length*Math.sin(dir),y:length*Math.cos(dir)};
 						break;
 					case "truck":
 						decorData.traject = decorParams.traject || 0;

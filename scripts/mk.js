@@ -3129,7 +3129,9 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		setTimeout(fncCount,1000*1.00);
+		//* gogogo
+		setTimeout(fncCount,1000);
+		//*/setTimeout(fncCount,1);
 	}
 	function showTeam(tnCountdown) {
 		var oTeam = oPlayers[0].team;
@@ -3163,8 +3165,11 @@ function startGame() {
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
-	else
-		setTimeout(fncCount,bMusic?3000*1.00:1500*1.00);
+	else {
+		//* gogogo
+		setTimeout(fncCount,bMusic?3000:1500);
+		//*/setTimeout(fncCount,bMusic?3:1.5);
+	}
 	if (oMapImg.image) {
 		redrawCanvasHandler = setTimeout(function() {
 			redrawCanvasHandler = setInterval(function() {
@@ -5209,10 +5214,15 @@ var decorBehaviors = {
 		dodgable:true,
 		preinit:function(decorsData) {
 			for (var i=0;i<decorsData.length;i++) {
-				if (decorsData[i][3] == undefined)
-					decorsData[i][3] = 3;
-				if (decorsData[i][4] == undefined)
-					decorsData[i][4] = 180;
+				var iExtra = getDecorParams(this,i);
+				var decorData = decorsData[i];
+				if (decorData[3] == undefined)
+					decorData[3] = 3;
+				if (decorData[4] == undefined) {
+					decorData[4] = 90+iExtra.dir*180/Math.PI;
+					if (isNaN(decorData[4]))
+						decorData[4] = 180;
+				}
 			}
 			for (var i=1;i<4;i++) {
 				var decorsData2 = oMap.decor["billball"+i];
@@ -5233,15 +5243,22 @@ var decorBehaviors = {
 			}
 			else
 				nbPos = Math.round(decorsData.length*4/5);
+			for (var i=0;i<decorsData.length;i++) {
+				var iExtra = getDecorParams(this,i);
+				var decorData = decorsData[i];
+				decorData[6] = [decorData[0],decorData[1],decorData[3],decorData[4],iExtra.length||460];
+			}
 			this.initPos = [];
-			for (var i=0;i<nbPos;i++)
-				this.initPos.push([decorsData[i][0],decorsData[i][1],decorsData[i][3],decorsData[i][4],0]);
+			for (var i=0;i<nbPos;i++) {
+				var iPos = decorsData[i][6].slice();
+				iPos.push(0);
+				this.initPos.push(iPos);
+			}
 		},
 		init:function(decorData,i) {
 			this.easeInOut = decorBehaviors.truck.easeInOut;
 			if (decorData[5] == undefined)
 				decorData[5] = 1+i*20;
-			decorData[6] = [decorData[0],decorData[1],decorData[3],decorData[4]];
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].w = 80;
 				decorData[2][j].h = 80;
@@ -5288,7 +5305,7 @@ var decorBehaviors = {
 					}
 					var nPos = this.initPos[randPos];
 					nPos[nPos.length-1] = 20;
-					for (var j=0;j<4;j++)
+					for (var j=0;j<5;j++)
 						decorData[6][j] = this.initPos[randPos][j];
 					decorData[0] = decorData[6][0];
 					decorData[1] = decorData[6][1];
@@ -5304,7 +5321,7 @@ var decorBehaviors = {
 					decorData[2][j].img.style.opacity = opacity;
 			}
 			else {
-				var bSpeed = 5, bDir = (180-decorData[4])*Math.PI/180, bDist = 460;
+				var bSpeed = 5, bDir = (180-decorData[4])*Math.PI/180, bDist = decorData[6][4];
 				decorData[0] += bSpeed*Math.cos(bDir);
 				decorData[1] += bSpeed*Math.sin(bDir);
 				if (((decorData[0]-decorData[6][0])*(decorData[0]-decorData[6][0]) + (decorData[1]-decorData[6][1])*(decorData[1]-decorData[6][1])) > bDist*bDist)

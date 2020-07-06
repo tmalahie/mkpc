@@ -25,6 +25,7 @@ $decors = array(
         'fireplant' => $language ? 'Mario Circuit - Fire plant' : 'Circuit Mario - Plante de feu',
         'piranhaplant' => null,
         'tortitaupe' => $language ? 'Airship Fortress - Monty Mole' : 'Bateau Volant - Torti Taupe',
+        'billball' => $language ? 'Airship Fortress - Bullet Bill' : 'Bateau Volant - Bill Ball',
         'firering' => null,
         'fire3star' => null,
         'topitaupe' => $language ? 'Peach Gardens - Monty Mole' : 'Jardin Peach - Topi Taupe',
