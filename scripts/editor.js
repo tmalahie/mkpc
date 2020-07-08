@@ -1031,6 +1031,12 @@ function getScreenCoordsExact(point) {
 		res.h = point.h*zoomLevel;
 	return res;
 }
+function getDeltaAngle(theta0,origin,point) {
+	var newAngle = Math.atan2(point.y-origin.y,point.x-origin.x);
+	var dAngle = newAngle-theta0;
+	dAngle -= 2*Math.PI*Math.round(dAngle/(2*Math.PI));
+	return dAngle;
+}
 function createCircle(point,append) {
 	var res = document.createElementNS(SVG, "circle");
 	setCircleBounds(res,point);
@@ -1072,6 +1078,34 @@ function createLine(point1,point2,append) {
 	if (append !== false)
 		$editor.appendChild(res);
 	return res;
+}
+function editLine(line,origin,dir,options) {
+	options = options||{};
+	var mask = createMask();
+	var point2 = {x:origin.x+dir.x,y:origin.y+dir.y};
+	function editLine_(e) {
+		point2 = getEditorCoordsRounded(getPointerPos(e));
+		moveLine(line,null,point2);
+	}
+	function stopEditLine(e) {
+		e.stopPropagation();
+		$toolbox.classList.remove("hiddenbox");
+		editLine_(e);
+		storeHistoryData(editorTools[currentMode].data);
+		var nDir = {x:point2.x-origin.x,y:point2.y-origin.y};
+		var apply;
+		if (options.on_apply)
+			apply = options.on_apply(nDir);
+		if (false !== apply)
+			applyObject(dir,nDir);
+		mask.removeEventListener("mousemove", editLine_);
+		mask.removeEventListener("mouseup", stopEditLine);
+		mask.defaultClose();
+	}
+	mask.addEventListener("mousemove", editLine_);
+	mask.addEventListener("mouseup", stopEditLine);
+	mask.close = function(){};
+	$toolbox.classList.add("hiddenbox");
 }
 function moveLine(line,point1,point2) {
 	if (point1) {
@@ -3789,11 +3823,18 @@ var commonTools = {
 						case "cannonball":
 						case "snowball":
 						case "billball":
+						case "assets/pivothand":
 						case "firering":
 						case "fire3star":
 						case "pendulum":
-							if (decorData.dir)
+							if (decorData.dir) {
 								self.click(self,{x:decorData.pos.x+decorData.dir.x,y:decorData.pos.y+decorData.dir.y},{});
+								if (decorData.dtheta) {
+									var angle0 = Math.atan2(decorData.dir.y,decorData.dir.x);
+									var angle1 = angle0 + decorData.dtheta;
+									self.click(self,{x:decorData.pos.x+Math.cos(angle1),y:decorData.pos.y+Math.sin(angle1)},{});
+								}
+							}
 							break;
 						}
 					}
@@ -3812,17 +3853,35 @@ var commonTools = {
 		"click" : function(self,point,extra) {
 			if (extra.oob)
 				return;
-			if (!self.state.type)
+			if (!self.state.type) {
 				alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
+				return;
+			}
 			self.move(self,point,extra);
 			if (self.state.traject === undefined)
 				storeHistoryData(self.data);
 			var over = true;
 			var typeData = self.data.decors[self.state.type];
 			var decorData;
-			if (self.state.arrow) {
+			if (self.state.carrow) {
+				decorData = typeData[typeData.length-1];
+				var theta0 = Math.atan2(decorData.dir.y,decorData.dir.x);
+				var decorPos = decorData.pos;
+				decorData.dtheta = getDeltaAngle(theta0,decorPos,point);
+			}
+			else if (self.state.arrow || self.state.line) {
 				decorData = typeData[typeData.length-1];
 				decorData.dir = {x:point.x-decorData.pos.x,y:point.y-decorData.pos.y};
+				switch (self.state.type) {
+					case "assets/pivothand":
+						over = false;
+						var arrowData = {x:decorData.pos.x,y:decorData.pos.y,r:self._arrowCircularRadius(decorData.dir)};
+						var carrow = createCircularArrow(arrowData,Math.atan2(decorData.dir.y,decorData.dir.x),0,true,{thickness:4});
+						for (var i=0;i<carrow.lines.length;i++)
+							carrow.lines[i].classList.add("noclick");
+						self.state.carrow = carrow;
+						break;
+				}
 			}
 			else if (self.state.traject !== undefined) {
 				appendRouteBuilder(self,point,extra);
@@ -3844,6 +3903,16 @@ var commonTools = {
 						arrow.lines[i].classList.add("noclick");
 					self.state.arrow = arrow;
 					break;
+				case "assets/pivothand":
+					over = false;
+					var line = createLine({x:point.x,y:point.y},{x:point.x,y:point.y});
+					line.classList.add("noclick");
+					var stroke = 3;
+					addZoomListener(line, function() {
+						this.setAttribute("stroke-width", stroke/zoomLevel);
+					});
+					self.state.line = line;
+					break;
 				case "truck":
 					decorData.traject = self.state.currentTraject;
 				}
@@ -3852,6 +3921,10 @@ var commonTools = {
 				var box = self.state.point;
 				var arrow = self.state.arrow;
 				delete self.state.arrow;
+				var line = self.state.line;
+				delete self.state.line;
+				var carrow = self.state.carrow;
+				delete self.state.carrow;
 				var moveOptions = {};
 				if (arrow) {
 					moveOptions.on_apply = function(nData) {
@@ -3859,6 +3932,23 @@ var commonTools = {
 					}
 					moveOptions.on_start_move = arrow.hide;
 					moveOptions.on_end_move = arrow.show;
+				}
+				else if (line) {
+					moveOptions.on_apply = function(nData) {
+						moveLine(line,{x:nData.x,y:nData.y},{x:nData.x+decorData.dir.x,y:nData.y+decorData.dir.y});
+						if (carrow)
+							carrow.move({x:nData.x,y:nData.y,r:self._arrowCircularRadius(decorData.dir)});
+					}
+					moveOptions.on_start_move = function() {
+						line.style.display = "none";
+						if (carrow)
+							carrow.hide();
+					};
+					moveOptions.on_end_move = function() {
+						line.style.display = "";
+						if (carrow)
+							carrow.show();
+					};
 				}
 				box.classList.remove("noclick");
 				box.oncontextmenu = function(e) {
@@ -3873,6 +3963,8 @@ var commonTools = {
 						click:function() {
 							$editor.removeChild(box);
 							if (arrow) arrow.remove();
+							else if (line) $editor.removeChild(line);
+							if (carrow) carrow.remove();
 							storeHistoryData(self.data);
 							removeFromArray(typeData,decorData);
 						}
@@ -3884,6 +3976,32 @@ var commonTools = {
 								moveArrow(arrow,decorData.pos,decorData.dir,{fixed_length:self._arrowLength(self.state.type),from_center:self._arrowOriginCenter(self.state.type)});
 							}
 						});
+					}
+					else if (line) {
+						menuOptions.splice(1,0, {
+							text: (language ? "Edit /":"Modifier /"),
+							click: function() {
+								if (carrow)
+									carrow.hide();
+								editLine(line,decorData.pos,decorData.dir, {
+									on_apply: function(nData) {
+										if (carrow) {
+											carrow.move({x:decorData.pos.x,y:decorData.pos.y,r:self._arrowCircularRadius(nData)},Math.atan2(nData.y,nData.x));
+											carrow.show();
+										}
+									}
+								});
+							}
+						});
+						if (carrow) {
+							menuOptions.splice(2,0, {
+								text: (language ? "Edit ↗":"Modifier ↗"),
+								click: function() {
+									var center = {x:decorData.pos.x,y:decorData.pos.y,theta0:Math.atan2(decorData.dir.y,decorData.dir.x)};
+									moveCircularArrow(carrow,center,decorData);
+								}
+							});
+						}
 					}
 					else if (decorData.traject !== undefined) {
 						menuOptions.splice(1,0, {
@@ -3905,17 +4023,35 @@ var commonTools = {
 		},
 		"_arrowLength": function(type) {
 			if (type === "billball") return null;
+			if (type === "assets/pivothand") return null;
 			return 25;
+		},
+		"_arrowCircularRadius": function(dir) {
+			return Math.hypot(dir.x,dir.y)*0.8;
 		},
 		"_arrowOriginCenter": function(type) {
 			return (["firering","fire3star","pendulum"].indexOf(type) !== -1);
 		},
+		"_dirFactor" : 12,
+		"_rotFactor" : 36,
+		"_rotScale" : 1.5,
 		"move" : function(self,point,extra) {
-			if (self.state.arrow) {
+			if (self.state.carrow) {
+				var typeData = self.data.decors[self.state.type];
+				var decorData = typeData[typeData.length-1];
+				var theta0 = Math.atan2(decorData.dir.y,decorData.dir.x);
+				var decorPos = decorData.pos;
+				var dAngle = getDeltaAngle(theta0,decorPos,point);
+				self.state.carrow.move(null,null,dAngle);
+			}
+			else if (self.state.arrow) {
 				var typeData = self.data.decors[self.state.type];
 				var decorPos = typeData[typeData.length-1].pos;
 				var dir = {x:point.x-decorPos.x,y:point.y-decorPos.y};
 				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength(self.state.type),self._arrowOriginCenter(self.state.type));
+			}
+			else if (self.state.line) {
+				moveLine(self.state.line,null,point);
 			}
 			else if (self.state.traject !== undefined) {
 				moveRouteBuilder(self,point,extra);
@@ -3934,27 +4070,50 @@ var commonTools = {
 			payload.decorparams = {extra:{}};
 			var isDecorData = false, isDecorExtra = false;
 			for (var type in selfData) {
+				var isAsset = (type.substring(0,7) === "assets/");
 				var decorsData = selfData[type];
 				if (decorsData.length) {
-					payload.decor[type] = [];
 					payload.decorparams[type] = [];
-					for (var i=0;i<decorsData.length;i++) {
-						payload.decor[type].push(pointToData(decorsData[i].pos));
+					if (isAsset) {
+						if (!payload.assets)
+							payload.assets = {};
 						switch (type) {
-						case "cannonball":
-						case "snowball":
-						case "billball":
-						case "firering":
-						case "fire3star":
-						case "pendulum":
-							var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
-							var decorParams = {dir:isNaN(dir)?0:dir};
-							if (type === "billball")
-								decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):460;
-							payload.decorparams[type].push(decorParams);
-							break;
-						case "truck":
-							payload.decorparams[type].push({traject:decorsData[i].traject||0});
+						case "assets/pivothand":
+							payload.assets["pointers"] = [];
+						}
+					}
+					else
+						payload.decor[type] = [];
+					for (var i=0;i<decorsData.length;i++) {
+						if (isAsset) {
+							switch (type) {
+							case "assets/pivothand":
+								var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.y,decorsData[i].dir.x) : null;
+								var length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):100;
+								var dtheta = (decorsData[i].dtheta!=null) ? Math.pow(Math.abs(decorsData[i].dtheta),self._rotScale)*Math.sign(decorsData[i].dtheta)/self._rotFactor : 0.015;
+								var assetParams = ["hand",[decorsData[i].pos.x,decorsData[i].pos.y,length,8,0.5,0.5],[0,0.5,dir,dtheta]];
+								payload.assets["pointers"].push(assetParams);
+								break;
+							}
+						}
+						else {
+							payload.decor[type].push(pointToData(decorsData[i].pos));
+							switch (type) {
+							case "cannonball":
+							case "snowball":
+							case "billball":
+							case "firering":
+							case "fire3star":
+							case "pendulum":
+								var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
+								var decorParams = {dir:isNaN(dir)?0:dir};
+								if (type === "billball")
+									decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):460;
+								payload.decorparams[type].push(decorParams);
+								break;
+							case "truck":
+								payload.decorparams[type].push({traject:decorsData[i].traject||0});
+							}
 						}
 					}
 					if (payload.decorparams[type].length)
@@ -4027,6 +4186,27 @@ var commonTools = {
 				}
 				initRouteSelector(document.getElementById("decor-bus-traject"),payloadExtra.truck.path.length);
 			}
+			if (payload.assets) {
+				for (var type in payload.assets) {
+					switch (type) {
+					case "pointers":
+						selfData["assets/pivothand"] = [];
+					}
+					for (var i=0;i<payload.assets[type].length;i++) {
+						var assetPayload = payload.assets[type][i];
+						switch (type) {
+						case "pointers":
+							var assetData = {pos:dataToPoint(assetPayload[1])};
+							var dir = assetPayload[2][2] || 0;
+							var length = assetPayload[1][2] || 1;
+							var dtheta = Math.pow(Math.abs(assetPayload[2][3]*self._rotFactor),1/self._rotScale)*Math.sign(assetPayload[2][3]*self._rotFactor);
+							assetData.dir = {x:length*Math.cos(dir),y:length*Math.sin(dir)};
+							assetData.dtheta = dtheta;
+							selfData["assets/pivothand"].push(assetData);
+						}
+					}
+				}
+			}
 		},
 		"rescale" : function(self, scale) {
 			var selfData = self.data.decors;
@@ -4065,6 +4245,8 @@ var commonTools = {
 				for (var i=0;i<decorsData.length;i++) {
 					flipBox(decorsData[i].pos, imgSize,axis);
 					flipNullableDir(decorsData[i].dir, axis);
+					if (decorsData[i].dtheta)
+						decorsData[i].dtheta = -decorsData[i].dtheta;
 				}
 			}
 			if (self.data.extra.truck) {
@@ -4664,10 +4846,7 @@ var commonTools = {
 					self.state.dirVect.arrow.move(null,point);
 				else {
 					var arrowData = dirVect.center;
-					var newAngle = Math.atan2(point.y-arrowData.y,point.x-arrowData.x);
-					var dAngle = newAngle-arrowData.theta0;
-					dAngle -= 2*Math.PI*Math.round(dAngle/(2*Math.PI));
-					arrowData.dtheta = dAngle;
+					var dAngle = getDeltaAngle(arrowData.theta0,arrowData,point);
 					self.state.dirVect.arrow.move(null,null,dAngle);
 				}
 			}

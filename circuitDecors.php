@@ -20,6 +20,7 @@ $decors = array(
         'cannonball' => $language ? 'Waluigi Pinball - Balls':'Flipper Waluigi - Boules',
         'truck' => $language ? 'Shroom Ridge - Bus':'Corniche Champignon - Bus',
         'pendulum' => $language ? 'Tick-Tock Clock - Pendulum':'Horloge Tic-Tac - Pendule',
+        'assets/pivothand' => $language ? 'Tick-Tock Clock - Hand':'Horloge Tic-Tac - Aiguille',
         'snowman' => null,
         'goomba' => null,
         'fireplant' => $language ? 'Mario Circuit - Fire plant' : 'Circuit Mario - Plante de feu',
