@@ -62,7 +62,7 @@ if (isset($_POST['name'])) {
 			}
 		}
 	}
-	elseif ('deleted' !== $challenge['status']) {
+	elseif (('deleted' !== $challenge['status']) && (!empty($clRace) || !$challenge['clist'])) {
 		mysql_query('UPDATE `mkchallenges` SET name="'. $_POST['name'] .'" WHERE id="'. $challenge['id'] .'"');
 		if (in_array($challenge['status'], array('pending_publication','pending_moderation'))) {
 			if (isset($_POST['difficulty']))
