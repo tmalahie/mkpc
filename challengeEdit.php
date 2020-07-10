@@ -15,7 +15,7 @@ if (isset($_GET['moderate'])) {
 		$moderate = true;
 }
 if (isset($_GET['ch'])) {
-	$challenge = getChallenge($_GET['ch']);
+	$challenge = getChallenge($_GET['ch'], !empty($moderate));
 	if ($challenge)
 		$clRace = getClRace($challenge['clist'], !empty($moderate));
 }
@@ -62,7 +62,7 @@ if (isset($_POST['name'])) {
 			}
 		}
 	}
-	elseif (('deleted' !== $challenge['status']) && (!empty($clRace) || !$challenge['clist'])) {
+	elseif ('deleted' !== $challenge['status']) {
 		mysql_query('UPDATE `mkchallenges` SET name="'. $_POST['name'] .'" WHERE id="'. $challenge['id'] .'"');
 		if (in_array($challenge['status'], array('pending_publication','pending_moderation'))) {
 			if (isset($_POST['difficulty']))

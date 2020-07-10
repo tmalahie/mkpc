@@ -7,12 +7,8 @@ if (isset($_GET['ch'])) {
 	$challenge = getChallenge($_GET['ch']);
 	if ($challenge)
 		$clRace = getClRace($challenge['clist']);
-	else {
-		mysql_close();
-		exit;
-	}
 }
-else {
+if (empty($clRace)) {
 	mysql_close();
 	exit;
 }
@@ -46,7 +42,7 @@ include('o_online.php');
 					<div class="challenge-moderation-success">
 						<?php
 						echo $language ? 'Congratulations, your challenge has been <strong>accepted</strong>!':'Félicitations, votre défi a été <strong>accepté</strong> !';
-						if (!empty($validation->old_difficulty)) {
+						if (isset($validation->old_difficulty)) {
 							echo '<br />';
 							echo '<small>';
 							$difficulties = getChallengeDifficulties();

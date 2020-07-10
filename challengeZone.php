@@ -10,7 +10,7 @@ if (isset($_GET['moderate'])) {
 		$moderate = true;
 }
 if (isset($_GET['ch'])) {
-	$challenge = getChallenge($_GET['ch']);
+	$challenge = getChallenge($_GET['ch'], !empty($moderate));
 	if ($challenge)
 		$clRace = getClRace($challenge['clist'], !empty($moderate));
 }
