@@ -143,8 +143,10 @@ document.addEventListener("DOMContentLoaded", function() {
 		</div>
 		<div class="main-challenge-actions">
 			<?php
+			/* TODO enable unlockable characters
 			if (!empty($clRace) && in_array($clRace['type'], array('mkcups', 'mkmcups')))
 				echo '<a href="'. nextPageUrl('challengeRewards.php') .'" class="other-challenge-action">'. ($language ? 'More rewards...':'Plus de récompenses...') .'</a>';
+			//*/
 			?>
 			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>"><?php echo $language ? 'Create my first challenge':'Créer mon premier défi'; ?> &nbsp; &gt;</a>
 		</div>
@@ -220,7 +222,11 @@ document.addEventListener("DOMContentLoaded", function() {
 		</table>
 		<div class="main-challenge-actions">
 			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>">+ &nbsp;<?php echo $language ? 'Create another challenge':'Créer un autre défi'; ?> &nbsp;</a>
+			<?php
+			/* TODO enable unlockable characters
 			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>" class="other-challenge-action"><?php echo $language ? 'More rewards...':'Plus de récompenses...'; ?></a>
+			//*/
+			?>
 		</div>
 		<div class="pub">
 			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>

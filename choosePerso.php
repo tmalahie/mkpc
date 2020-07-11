@@ -5,6 +5,7 @@ include('getId.php');
 include('initdb.php');
 include('perso-stats.php');
 include('persos.php');
+$id = null; // TODO enable unlockable characters
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
