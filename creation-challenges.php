@@ -64,20 +64,20 @@ function listClRewards($clId) {
 	return $res;
 }
 function addClChallenges(&$cId,&$params) {
-	global $clId, $isCup, $isMCup, $clRewards;
-	$nCid = isset($cId) ? $cId:-1;
-	if ($isMCup)
-		$cType = 'mcup';
-	elseif ($isCup)
-		$cType = 'cup';
-	else
-		$cType = 'track';
+	global $clId, $isCup, $isMCup, $challenges, $clRewards;
 	if (isset($_GET['cl'])) {
+		$nCid = isset($cId) ? $cId:-1;
+		if ($isMCup)
+			$cType = 'mcup';
+		elseif ($isCup)
+			$cType = 'cup';
+		else
+			$cType = 'track';
 		$clId = $_GET['cl'];
 		$cList = listChallenges($clId,$params);
 		$clRewards = listClRewards($clId);
 		if (!empty($cList))
-			$cList[$cType][$nCid] = array('id' => $clId, 'track' => $cId, 'name' => '', 'main' => true, 'list' => $cList, 'rewards' => $rList);
+			$challenges[$cType][$nCid] = array('id' => $clId, 'track' => $cId, 'name' => '', 'main' => true, 'list' => $cList);
 	}
 }
 ?>
