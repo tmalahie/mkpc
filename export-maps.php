@@ -171,6 +171,12 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 		break;
 	case 52:
 		$mapData['decor']['firebar'] = [[959,528,null,0,[[959,506,0,0],[959,550,0,0]],0,1,0],[989,528,null,0,[[989,506,0,0],[989,550,0,0]],1,1,0]];
+		foreach ($mapData['decor']['billball'] as &$decorData) {
+			$decorData[] = null;
+			$decorData[] = null;
+			$decorData[] = 90;
+		}
+		unset($decorData);
 		break;
 	case 53:
 		$mapData['sauts'][0][4] = 2.4;

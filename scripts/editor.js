@@ -4032,8 +4032,7 @@ var commonTools = {
 		"_arrowOriginCenter": function(type) {
 			return (["firering","fire3star","pendulum"].indexOf(type) !== -1);
 		},
-		"_dirFactor" : 12,
-		"_rotFactor" : 36,
+		"_rotFactor" : 15,
 		"_rotScale" : 1.5,
 		"move" : function(self,point,extra) {
 			if (self.state.carrow) {
@@ -4183,8 +4182,8 @@ var commonTools = {
 					selfExtra.truck = {route:[]};
 					for (var i=0;i<payloadExtra.truck.path.length;i++)
 						selfExtra.truck.route.push({points:dataToPoly(payloadExtra.truck.path[i]),closed:payloadExtra.truck.closed[i]});
+					initRouteSelector(document.getElementById("decor-bus-traject"),payloadExtra.truck.path.length);
 				}
-				initRouteSelector(document.getElementById("decor-bus-traject"),payloadExtra.truck.path.length);
 			}
 			if (payload.assets) {
 				for (var type in payload.assets) {
