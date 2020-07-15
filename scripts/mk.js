@@ -540,12 +540,14 @@ if (!pause) {
 	}
 }
 
-var bananes = new Array();
-var fauxobjets = new Array();
-var carapaces = new Array();
-var bobombs = new Array();
-var carapacesRouge = new Array();
-var carapacesBleue = new Array();
+var items = {
+	"banane": new Array(),
+	"fauxobjet": new Array(),
+	"carapace": new Array(),
+	"bobomb": new Array(),
+	"carapace-rouge": new Array(),
+	"carapace-bleue": new Array()
+};
 var strPlayer = new Array();
 var oMap;
 var iDificulty = 5, iTeamPlay = selectedTeams;
@@ -776,18 +778,20 @@ function setPlanPos() {
 	setDecorPos(oPlanDecor, oObjWidth, oPlanCtn, oPlanSize);
 	setDecorPos(oPlanDecor2, oObjWidth2, oPlanCtn2, oPlanSize2);
 
-	syncObjects(oPlanFauxObjets,fauxobjets,"objet", oObjWidth,oPlanCtn);
-	syncObjects(oPlanFauxObjets2,fauxobjets,"objet", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<fauxobjets.length;i++) {
-		setObject(oPlanFauxObjets[i],fauxobjets[i][3],fauxobjets[i][4], oObjWidth,oPlanSize, fauxobjets[i][2],200);
-		setObject(oPlanFauxObjets2[i],fauxobjets[i][3],fauxobjets[i][4], oObjWidth2,oPlanSize2, fauxobjets[i][2],200);
+	syncObjects(oPlanFauxObjets,items["fauxobjet"],"objet", oObjWidth,oPlanCtn);
+	syncObjects(oPlanFauxObjets2,items["fauxobjet"],"objet", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<items["fauxobjet"].length;i++) {
+		var fauxobjet = items["fauxobjet"][i];
+		setObject(oPlanFauxObjets[i],fauxobjet[3],fauxobjet[4], oObjWidth,oPlanSize, fauxobjet[2],200);
+		setObject(oPlanFauxObjets2[i],fauxobjet[3],fauxobjet[4], oObjWidth2,oPlanSize2, fauxobjet[2],200);
 		oPlanFauxObjets[i].style.zIndex = oPlanFauxObjets2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanBananes,bananes,"banane", oObjWidth,oPlanCtn);
-	syncObjects(oPlanBananes2,bananes,"banane", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<bananes.length;i++) {
-		setObject(oPlanBananes[i],bananes[i][3],bananes[i][4], oObjWidth,oPlanSize, bananes[i][2],100);
-		setObject(oPlanBananes2[i],bananes[i][3],bananes[i][4], oObjWidth2,oPlanSize2, bananes[i][2],100);
+	syncObjects(oPlanBananes,items["banane"],"banane", oObjWidth,oPlanCtn);
+	syncObjects(oPlanBananes2,items["banane"],"banane", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<items["banane"].length;i++) {
+		var banane = items["banane"][i];
+		setObject(oPlanBananes[i],banane[3],banane[4], oObjWidth,oPlanSize, banane[2],100);
+		setObject(oPlanBananes2[i],banane[3],banane[4], oObjWidth2,oPlanSize2, banane[2],100);
 		oPlanBananes[i].style.zIndex = oPlanBananes2[i].style.zIndex = 2;
 	}
 
@@ -804,27 +808,29 @@ function setPlanPos() {
 	}
 
 	function setBobombPos(iPlanBobOmbs, iObjWidth,iPlanCtn, iPlanSize, iExpWidth) {
-		syncObjects(iPlanBobOmbs,bobombs,"bob-omb", iObjWidth,iPlanCtn);
-		for (var i=0;i<bobombs.length;i++) {
-			if (bobombs[i][8] <= 0) {
-				posImg(iPlanBobOmbs[i], bobombs[i][3],bobombs[i][4],Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobombs[i][2]);
+		syncObjects(iPlanBobOmbs,items["bobomb"],"bob-omb", iObjWidth,iPlanCtn);
+		for (var i=0;i<items["bobomb"].length;i++) {
+			var bobomb = items["bobomb"][i];
+			if (bobomb[8] <= 0) {
+				posImg(iPlanBobOmbs[i], bobomb[3],bobomb[4],Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobomb[2]);
 				iPlanBobOmbs[i].style.width = iExpWidth +"px";
-				iPlanBobOmbs[i].style.opacity = Math.max(1+bobombs[i][8]/10, 0);
+				iPlanBobOmbs[i].style.opacity = Math.max(1+bobomb[8]/10, 0);
 				iPlanBobOmbs[i].style.background = "";
 			}
 			else
-				setObject(iPlanBobOmbs[i],bobombs[i][3],bobombs[i][4], iObjWidth,iPlanSize, bobombs[i][2],100).style.zIndex = 2;
+				setObject(iPlanBobOmbs[i],bobomb[3],bobomb[4], iObjWidth,iPlanSize, bobomb[2],100).style.zIndex = 2;
 		}
 	}
 	setBobombPos(oPlanBobOmbs, oObjWidth,oPlanCtn, oPlanSize, oExpWidth);
 	setBobombPos(oPlanBobOmbs2, oObjWidth2,oPlanCtn2, oPlanSize2, oExpWidth2);
 
-	syncObjects(oPlanCarapaces,carapaces,"carapace", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapaces2,carapaces,"carapace", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<carapaces.length;i++) {
-		var c1 = setObject(oPlanCarapaces[i],carapaces[i][3],carapaces[i][4], oObjWidth,oPlanSize, carapaces[i][2],200);
-		var c2 = setObject(oPlanCarapaces2[i],carapaces[i][3],carapaces[i][4], oObjWidth2,oPlanSize2, carapaces[i][2],200);
-		var red = (carapaces[i][7] < 0);
+	syncObjects(oPlanCarapaces,items["carapace"],"carapace", oObjWidth,oPlanCtn);
+	syncObjects(oPlanCarapaces2,items["carapace"],"carapace", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<items["carapace"].length;i++) {
+		var carapace = items["carapace"][i];
+		var c1 = setObject(oPlanCarapaces[i],carapace[3],carapace[4], oObjWidth,oPlanSize, carapace[2],200);
+		var c2 = setObject(oPlanCarapaces2[i],carapace[3],carapace[4], oObjWidth2,oPlanSize2, carapace[2],200);
+		var red = (carapace[7] < 0);
 		if (red && !c1.red) {
 			c1.red = 1;
 			c1.src = "images/map_icons/carapace-rouge.png";
@@ -838,26 +844,28 @@ function setPlanPos() {
 		c2.style.zIndex = 2;
 	}
 
-	syncObjects(oPlanCarapacesRouges,carapacesRouge,"carapace-rouge", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapacesRouges2,carapacesRouge,"carapace-rouge", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<carapacesRouge.length;i++) {
-		setObject(oPlanCarapacesRouges[i],carapacesRouge[i][3],carapacesRouge[i][4], oObjWidth,oPlanSize, carapacesRouge[i][2],200);
-		setObject(oPlanCarapacesRouges2[i],carapacesRouge[i][3],carapacesRouge[i][4], oObjWidth2,oPlanSize2, carapacesRouge[i][2],200).style.zIndex = 2;
-		if (carapacesRouge[i][6])
+	syncObjects(oPlanCarapacesRouges,items["carapace-rouge"],"carapace-rouge", oObjWidth,oPlanCtn);
+	syncObjects(oPlanCarapacesRouges2,items["carapace-rouge"],"carapace-rouge", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<items["carapace-rouge"].length;i++) {
+		var carapaceRouge = items["carapace-rouge"][i];
+		setObject(oPlanCarapacesRouges[i],carapaceRouge[3],carapaceRouge[4], oObjWidth,oPlanSize, carapaceRouge[2],200);
+		setObject(oPlanCarapacesRouges2[i],carapaceRouge[3],carapaceRouge[4], oObjWidth2,oPlanSize2, carapaceRouge[2],200).style.zIndex = 2;
+		if (carapaceRouge[6])
 			oPlanCarapacesRouges[i].style.zIndex = 2;
 	}
 
 	function setCarapacesBleuesPos(iPlanCarapacesBleues, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
-		syncObjects(iPlanCarapacesBleues,carapacesBleue,"carapace-bleue",iObjWidth,iPlanCtn);
-		for (var i=0;i<carapacesBleue.length;i++) {
-			if (carapacesBleue[i][6] <= 0) {
-				posImg(iPlanCarapacesBleues[i], carapacesBleue[i][3],carapacesBleue[i][4],Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosionB",carapacesBleue[i][2]);
+		syncObjects(iPlanCarapacesBleues,items["carapace-bleue"],"carapace-bleue",iObjWidth,iPlanCtn);
+		for (var i=0;i<items["carapace-bleue"].length;i++) {
+			var carapaceBleue = items["carapace-bleue"][i];
+			if (carapaceBleue[6] <= 0) {
+				posImg(iPlanCarapacesBleues[i], carapaceBleue[3],carapaceBleue[4],Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosionB",carapaceBleue[2]);
 				iPlanCarapacesBleues[i].style.width = iExpWidth +"px";
-				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapacesBleue[i][6]/10, 0);
+				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceBleue[6]/10, 0);
 				iPlanCarapacesBleues[i].style.background = "";
 			}
 			else
-				setObject(iPlanCarapacesBleues[i],carapacesBleue[i][3],carapacesBleue[i][4], iObjWidth,iPlanSize, carapacesBleue[i][2],200).style.zIndex = 2;
+				setObject(iPlanCarapacesBleues[i],carapaceBleue[3],carapaceBleue[4], iObjWidth,iPlanSize, carapaceBleue[2],200).style.zIndex = 2;
 		}
 	}
 	setCarapacesBleuesPos(oPlanCarapacesBleues, oObjWidth,oPlanSize,oExpWidth,oPlanCtn);
@@ -1207,27 +1215,31 @@ var fTurboDriftCpt = 80, fTurboDriftCpt2 = 160;
 	}
 	oKart.using = [false];
 }*/
+function loadNewItem(kart,collection,item) {
+	addNewItem(kart,collection,item);
+	kart.using.push({type:collection,item:item});
+}
 function addNewItem(kart,collection,item) {
-	collection.push(item);
+	items[collection].push(item);
 	if ((kart == oPlayers[0]) && clLocalVars.myItems)
 		clLocalVars.myItems.push(item);
 	if (item[2] != -1) {
 		var hallowSize;
 		switch (collection) {
-		case bananes:
+		case "banane":
 			hallowSize = 50;
 			break;
-		case carapaces:
-		case carapacesRouge:
+		case "carapace":
+		case "carapace-rouge":
 			hallowSize = 60;
 			break;
-		case fauxobjets:
+		case "fauxobjet":
 			hallowSize = 65;
 			break;
-		case carapacesBleue:
+		case "carapace-bleue":
 			hallowSize = 60;
 			break;
-		case bobombs:
+		case "bobomb":
 			hallowSize = 40;
 			break;
 		default:
@@ -1235,13 +1247,13 @@ function addNewItem(kart,collection,item) {
 		}
 		var hallowLeft = 50-hallowSize, hallowTop = 50-hallowSize;
 		switch (collection) {
-		case bananes:
+		case "banane":
 			hallowTop += 5;
 			break;
-		case bobombs:
+		case "bobomb":
 			hallowTop += 5;
 			break;
-		case fauxobjets:
+		case "fauxobjet":
 			hallowTop -= 5;
 		}
 		for (var i=0;i<oPlayers.length;i++) {
@@ -1266,7 +1278,7 @@ function addNewItem(kart,collection,item) {
 
 function arme(ID, backwards) {
 	var oKart = aKarts[ID];
-	if (!oKart.using[0]) {
+	if (!oKart.using.length) {
 		if (oKart.roulette != 25) return;
 		if (oKart == oPlayers[0])
 			clLocalVars.itemsUsed = true;
@@ -1349,11 +1361,7 @@ function arme(ID, backwards) {
 						kart.size = 0.6;
 						updateDriftSize(i);
 						kart.arme = false;
-						if (kart.using[0]) {
-							if (kart.using[0][kart.using[1]][5])
-								kart.using[0][kart.using[1]][5] = 0;
-							kart.using = [false];
-						}
+						loseUsingItem(kart);
 						kart.champi = 0;
 						kart.spin(20);
 						kart.roulette = 0;
@@ -1370,26 +1378,22 @@ function arme(ID, backwards) {
 			break;
 
 			case "banane" :
-			oKart.using = [bananes, (bananes.length), "banane"];
-			addNewItem(oKart,bananes,[new Sprite("banane"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z]);
+			loadNewItem(oKart,"banane",[new Sprite("banane"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z]);
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "fauxobjet" :
-			oKart.using = [fauxobjets, (fauxobjets.length), "fauxobjet"];
-			addNewItem(oKart,fauxobjets,[new Sprite("objet"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z]);
+			loadNewItem(oKart,"fauxobjet",[new Sprite("objet"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z]);
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapace" :
-			oKart.using = [carapaces, (carapaces.length), "carapace"];
-			addNewItem(oKart,carapaces,[new Sprite("carapace"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z, -1, 10]);
+			loadNewItem(oKart,"carapace",[new Sprite("carapace"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z, -1, 10]);
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapacerouge" :
-			oKart.using = [carapacesRouge, (carapacesRouge.length), "carapacerouge"];
-			addNewItem(oKart,carapacesRouge,[new Sprite("carapace-rouge"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z, -1, -1, -1]);
+			loadNewItem(oKart,"carapace-rouge",[new Sprite("carapace-rouge"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z, -1, -1, -1]);
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -1400,7 +1404,7 @@ function arme(ID, backwards) {
 				if (aKarts[i].place == cPlace) {
 					if (((aKarts[i].tours <= oMap.tours) || (course == "BB")) && !sameTeam(oKart.team,aKarts[i].team)) {
 						cible = aKarts[i].id;
-						i = aKarts.length;
+						break;
 					}
 					else {
 						cPlace++;
@@ -1408,13 +1412,12 @@ function arme(ID, backwards) {
 					}
 				}
 			}
-			addNewItem(oKart,carapacesBleue,[new Sprite("carapace-bleue"), -1, oKart.team, oKart.x,oKart.y, cible, 5]);
+			addNewItem(oKart,"carapace-bleue",[new Sprite("carapace-bleue"), -1, oKart.team, oKart.x,oKart.y, cible, 5]);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "bobomb" :
-			oKart.using = [bobombs, (bobombs.length), "bobomb"];
-			addNewItem(oKart,bobombs,[new Sprite("bob-omb"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z,-1,15,30]);
+			loadNewItem(oKart,"bobomb",[new Sprite("bob-omb"), -1, oKart.team, (oKart.x - 5 * direction(0, oKart.rotation)), (oKart.y - 5 * direction(1, oKart.rotation)), oKart.z,-1,15,30]);
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 		}
@@ -1442,44 +1445,44 @@ function arme(ID, backwards) {
 		var posX = oKart.x;
 		var posY = oKart.y;
 
-		switch(oKart.using[2]) {
+		switch(oKart.using[0].type) {
 			case "banane" :
 			var decalage = 30/(oKart.speed+5);
 			var fPosX = posX - decalage * direction(0, oKart.rotation);
 			var fPosY = posY - decalage * direction(1, oKart.rotation);
 			if (!tombe(fPosX,fPosY))
-			addNewItem(oKart,bananes,[new Sprite("banane"), -1, oKart.team, fPosX, fPosY, 0]);
+			addNewItem(oKart,"banane",[new Sprite("banane"), -1, oKart.team, fPosX, fPosY, 0]);
 			playIfShould(oKart,"musics/events/put.mp3");
 			break;
 
 			case "fauxobjet" :
 			var decalage = 30/(oKart.speed+5);
-			addNewItem(oKart,fauxobjets,[new Sprite("objet"), -1, oKart.team, posX - decalage * direction(0, oKart.rotation),posY - decalage * direction(1, oKart.rotation), 0]);
+			addNewItem(oKart,"fauxobjet",[new Sprite("objet"), -1, oKart.team, posX - decalage * direction(0, oKart.rotation),posY - decalage * direction(1, oKart.rotation), 0]);
 			playIfShould(oKart,"musics/events/put.mp3");
 			break;
 
 			case "carapace" :
 			var oAngleView = angleShoot(oKart, backwards);
 			var shiftDist = backwards?7.5:15;
-			addNewItem(oKart,carapaces,[new Sprite("carapace"), -1, oKart.team, posX + shiftDist * direction(0, oAngleView),posY + shiftDist * direction(1, oAngleView),0,oAngleView,10]);
+			addNewItem(oKart,"carapace",[new Sprite("carapace"), -1, oKart.team, posX + shiftDist * direction(0, oAngleView),posY + shiftDist * direction(1, oAngleView),0,oAngleView,10]);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "carapacerouge" :
 			var oAngleView = angleShoot(oKart, backwards);
 			if (backwards)
-				addNewItem(oKart,carapaces,[new Sprite("carapace-rouge"), -1, oKart.team, posX + 7.5 * direction(0, oAngleView),posY + 7.5 * direction(1, oAngleView),0,oAngleView,-1]);
+				addNewItem(oKart,"carapace",[new Sprite("carapace-rouge"), -1, oKart.team, posX + 7.5 * direction(0, oAngleView),posY + 7.5 * direction(1, oAngleView),0,oAngleView,-1]);
 			else
-				addNewItem(oKart,carapacesRouge,[new Sprite("carapace-rouge"), -1, oKart.team, posX + 15 * direction(0, oAngleView),posY + 15 * direction(1, oAngleView),0,oAngleView,oKart.id,-1]);
+				addNewItem(oKart,"carapace-rouge",[new Sprite("carapace-rouge"), -1, oKart.team, posX + 15 * direction(0, oAngleView),posY + 15 * direction(1, oAngleView),0,oAngleView,oKart.id,-1]);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "bobomb" :
 			var oAngleView = angleShoot(oKart, backwards);
 			if (backwards)
-				addNewItem(oKart,bobombs,[new Sprite("bob-omb"), -1, oKart.team, posX+5*direction(0,oAngleView),posY+5*direction(1,oAngleView),0,oAngleView,2,42]);
+				addNewItem(oKart,"bobomb",[new Sprite("bob-omb"), -1, oKart.team, posX+5*direction(0,oAngleView),posY+5*direction(1,oAngleView),0,oAngleView,2,42]);
 			else
-				addNewItem(oKart,bobombs,[new Sprite("bob-omb"), -1, oKart.team, posX,posY,0,oAngleView,15,30]);
+				addNewItem(oKart,"bobomb",[new Sprite("bob-omb"), -1, oKart.team, posX,posY,0,oAngleView,15,30]);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -1487,7 +1490,7 @@ function arme(ID, backwards) {
 			return;
 		}
 
-		detruit(oKart.using[0], oKart.using[1]);
+		detruit(oKart.using[0].type, oKart.using[0].item);
 	}
 }
 
@@ -1950,7 +1953,7 @@ function startGame() {
 			etoile : 0,
 			megachampi : 0,
 			eclair : 0,
-			using : [false]
+			using : []
 		};
 		if (isOnline)
 			oPlayer.id = identifiant;
@@ -2024,7 +2027,7 @@ function startGame() {
 			etoile : 0,
 			megachampi : 0,
 			eclair : 0,
-			using : [false],
+			using : [],
 
 			cpu : !isOnline,
 			aipoint : 0,
@@ -2239,7 +2242,7 @@ function startGame() {
 				champi : 0,
 				etoile : 0,
 				megachampi : 0,
-				using : [false],
+				using : [],
 
 				cpu : false,
 				aipoint : 0,
@@ -3035,7 +3038,7 @@ function startGame() {
 									document.onkeydown({"keyCode":findKeyCode("balloon")});
 									return false;
 								}
-								if (oPlayers[0].arme || oPlayers[0].using[0]) {
+								if (oPlayers[0].arme || oPlayers[0].using.length) {
 									arme(0);
 									return false;
 								}
@@ -3267,7 +3270,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3304,7 +3307,7 @@ function startGame() {
 			showTeam(tnCountdown);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -3644,7 +3647,7 @@ function continuer() {
 					for (var j=0;j<aKarts.length;j++) {
 						if (aKarts[j].place == i) {
 							placement.push(aKarts[j].personnage);
-							j = aKarts.length;
+							break;
 						}
 					}
 				}
@@ -3655,7 +3658,7 @@ function continuer() {
 					if (i < 3)
 						document.body.innerHTML += '<img alt="." src="'+ getWinnerSrc(placement[i]) +'" style="width: '+ iScreenScale*4 +'px; position: absolute; left: '+ iScreenScale * posX[i] +'px; top: '+ iScreenScale * (posY[i]+(isCustomPerso(placement[i])?6:0)) +'px;'+ (isCustomPerso(placement[i]) ? 'transform:translateY(-100%);-webkit-transform:translateY(-100%);-moz-transform:translateY(-100%);-o-transform:translateY(-100%);-ms-transform:translateY(-100%);':'') +'" />';
 					else if (oPlace)
-						i = placement.length;
+						break;
 				}
 				document.getElementById("position").innerHTML = toPlace(oPlace);
 				if (oPlace <= 3) {
@@ -6607,8 +6610,8 @@ function render() {
 			}
 
 
-			for (var j=0;j<bananes.length;j++){
-				fSprite = bananes[j];
+			for (var j=0;j<items["banane"].length;j++){
+				fSprite = items["banane"][j];
 				var fCamX = fSprite[3] - posX;
 				var fCamY = fSprite[4] - posY;
 
@@ -6634,8 +6637,8 @@ function render() {
 			}
 
 
-			for (var j=0;j<fauxobjets.length;j++) {
-				fSprite = fauxobjets[j];
+			for (var j=0;j<items["fauxobjet"].length;j++) {
+				fSprite = items["fauxobjet"][j];
 				var fCamX = fSprite[3] - posX;
 				var fCamY = fSprite[4] - posY;
 
@@ -6661,8 +6664,8 @@ function render() {
 			}
 
 
-			for (var j=0;j<carapaces.length;j++) {
-				fSprite = carapaces[j];
+			for (var j=0;j<items["carapace"].length;j++) {
+				fSprite = items["carapace"][j];
 
 				var fNewPosX;
 				var fNewPosY;
@@ -6710,8 +6713,8 @@ function render() {
 					var roundX2 = fNewPosX;
 					var roundY2 = fNewPosY;
 
-					if (((fSprite[6] != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1) || touche_banane(roundX2, roundY2) || touche_crouge(roundX1, roundY1) || touche_crouge(roundX2, roundY2) || touche_cverte(roundX1, roundY1, j) || touche_cverte(roundX2, roundY2, j)) {
-						detruit(carapaces,j,true);
+					if (((fSprite[6] != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1) || touche_banane(roundX2, roundY2) || touche_crouge(roundX1, roundY1) || touche_crouge(roundX2, roundY2) || touche_cverte(roundX1, roundY1, [fSprite]) || touche_cverte(roundX2, roundY2, [fSprite])) {
+						detruit("carapace",fSprite,true);
 						j--;
 					}
 
@@ -6728,7 +6731,7 @@ function render() {
 							fSprite[6] = normalizeAngle(fSprite[6]-2*angleToNormal+180, 360);
 						}
 						else {
-							detruit(carapaces,j);
+							detruit("carapace",fSprite);
 							j--;
 						}
 					}
@@ -6736,8 +6739,8 @@ function render() {
 			}
 
 
-			for (var j=0;j<carapacesRouge.length;j++) {
-				fSprite = carapacesRouge[j];
+			for (var j=0;j<items["carapace-rouge"].length;j++) {
+				fSprite = items["carapace-rouge"][j];
 
 				if (!fSprite[0][i].div.style.opacity) {
 
@@ -6774,7 +6777,7 @@ function render() {
 										if (fSprite[3] > oBox[0] - 35 && fSprite[3] < oBox[0] + 35 && fSprite[4] > oBox[1] - 35 && fSprite[4] < oBox[1] + 35) {
 											fSprite[8] = k + 1;
 											if (fSprite[8] == iLocal.length) fSprite[8] = 0;
-											k = iLocal.length;
+											break;
 										}
 									}
 								}
@@ -6799,7 +6802,7 @@ function render() {
 										tCible = pCible;
 									}
 								}
-								if (tCible && tCible.using[0] && (tCible.using[0] != fauxobjets)) {
+								if (tCible && tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
 									var rAngle = Math.atan2(fSprite[4]-fNewPosY,fSprite[3]-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
 									var pi2 = Math.PI*2;
 									while (rAngle < 0)
@@ -6810,19 +6813,19 @@ function render() {
 										rAngle = pi2-rAngle;
 									if (Math.abs(rAngle) > 2) {
 										if (isOnline) {
-											detruit(carapacesRouge,j);
+											detruit("carapace-rouge",fSprite);
 											j--;
 										}
 										else
 											fSprite[0][i].div.style.opacity = 0.8;
 										fNewPosX -= 5 * direction(0,tCible.rotation);
 										fNewPosY -= 5 * direction(1,tCible.rotation);
-										detruit(tCible.using[0],tCible.using[1],true);
+										detruit(tCible.using[0].type,tCible.using[0].item,true);
 										l = 1;
 									}
 									else {
-										tCible.using[0][tCible.using[1]][3] -= 2 * direction(0,tCible.rotation);
-										tCible.using[0][tCible.using[1]][4] -= 2 * direction(1,tCible.rotation);
+										tCible.using[0].item[3] -= 2 * direction(0,tCible.rotation);
+										tCible.using[0].item[4] -= 2 * direction(1,tCible.rotation);
 									}
 								}
 							}
@@ -6833,7 +6836,7 @@ function render() {
 						}
 
 
-						if (i || ((fSprite[7] == -1 || (!tombe(fNewPosX, fNewPosY) && canMoveTo(fSprite[3],fSprite[4],0, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite[3], fSprite[4]) && !touche_crouge(fNewPosX, fNewPosY, j) && !touche_crouge(fSprite[3], fSprite[4], j) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite[3], fSprite[4]))) {
+						if (i || ((fSprite[7] == -1 || (!tombe(fNewPosX, fNewPosY) && canMoveTo(fSprite[3],fSprite[4],0, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite[3], fSprite[4]) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite[3], fSprite[4], [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite[3], fSprite[4]))) {
 							fSprite[3] = fNewPosX;
 							fSprite[4] = fNewPosY;
 							if (l) {
@@ -6863,7 +6866,7 @@ function render() {
 						}
 						else if (!i) {
 							if (isOnline) {
-								detruit(carapacesRouge,j);
+								detruit("carapace-rouge",fSprite);
 								j--;
 							}
 							else
@@ -6877,15 +6880,15 @@ function render() {
 					for (var k=0;k<strPlayer.length;k++)
 						fSprite[0][k].div.style.opacity = setOpac;
 					if (setOpac < 0.01) {
-						detruit(carapacesRouge,j);
+						detruit("carapace-rouge",fSprite);
 						j--;
 					}
 				}
 			}
 
 
-			for (var j=0;j<carapacesBleue.length;j++) {
-				fSprite = carapacesBleue[j];
+			for (var j=0;j<items["carapace-bleue"].length;j++) {
+				fSprite = items["carapace-bleue"][j];
 
 				var fCamX = fSprite[3] - posX;
 				var fCamY = fSprite[4] - posY;
@@ -6916,7 +6919,7 @@ function render() {
 							if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !sameTeam(fSprite[2],aKarts[k].team)) {
 								fSprite[5] = aKarts[k].id;
 								cible = k;
-								k = aKarts.length;
+								break;
 							}
 							else {
 								cPlace++;
@@ -6989,7 +6992,7 @@ function render() {
 							fSprite[0][k].div.style.opacity = Math.max(1+fSprite[6]/10,0);
 						var delLimit = (isOnline&&(fSprite[5]!=oPlayers[0].id)) ? -70:-10;
 						if (fSprite[6] < delLimit) {
-							detruit(carapacesBleue,j);
+							detruit("carapace-bleue",fSprite);
 							size = false;
 							j--;
 						}
@@ -7009,8 +7012,8 @@ function render() {
 			}
 
 
-			for (var j=0;j<bobombs.length;j++) {
-				fSprite = bobombs[j];
+			for (var j=0;j<items["bobomb"].length;j++) {
+				fSprite = items["bobomb"][j];
 
 				var fCamX = fSprite[3] - posX;
 				var fCamY = fSprite[4] - posY;
@@ -7046,7 +7049,7 @@ function render() {
 					}
 					else {
 						if (tombe(Math.round(fSprite[3]), Math.round(fSprite[4]))) {
-							detruit(bobombs, j);
+							detruit("bobomb", fSprite);
 							size = false;
 							j--;
 						}
@@ -7084,7 +7087,7 @@ function render() {
 							for (var k=0;k<oPlayers.length;k++)
 								fSprite[0][k].div.style.opacity = 1+fSprite[8]/10;
 								if (fSprite[8] < -10) {
-									detruit(bobombs,j);
+									detruit("bobomb",fSprite);
 									size = false;
 									j--;
 								}
@@ -7220,46 +7223,52 @@ function balloonSrc(team) {
 	return 'images/sprites/sprite_'+(team==1?'ballonR':'ballon')+'.png';
 }
 
-function detruit(cible, id, sound) {
-	if (cible[id]) {
-		if (isOnline) {
-			var gIndex = [bananes,fauxobjets,carapaces,carapacesRouge,carapacesBleue,bobombs].indexOf(cible);
-			for (var i=0;i<nbNews[gIndex].length;i++) {
-				if (nbNews[gIndex][i] > id)
-					nbNews[gIndex][i]--;
-				else if (nbNews[gIndex][i] == id) {
-					nbNews[gIndex].splice(i, 1);
-					i--;
-				}
+function detruit(key, item, sound) {
+	if (isOnline) {
+		for (var i=0;i<nbNews[key].length;i++) {
+			if (nbNews[key][i] > id)
+				nbNews[key][i]--;
+			else if (nbNews[key][i] == id) {
+				nbNews[key].splice(i, 1);
+				i--;
 			}
-			destructions[gIndex].push(cible[id][1]);
 		}
-		supprime(cible, id, sound);
+		destructions[key].push(items[key][id][1]);
 	}
+	supprime(key, item, sound);
 }
-function supprime(cible, id, sound) {
-	cible[id][0][0].suppr();
-	for (var i=0;i<aKarts.length;i++) {
-		var oUsing = aKarts[i].using;
-		if (oUsing[0] == cible && id <= oUsing[1]) {
-			if (id != oUsing[1]) oUsing[1]--;
-			else {
-				aKarts[i].using = [false];
+function findUsingItemId(kart,item) {
+	var oUsing = kart.using;
+	for (var i=0;i<oUsing.length;i++) {
+		if (oUsing[i].item == item)
+			return i;
+	}
+	return -1;
+}
+function supprime(key, item, sound) {
+	var id = items[key].indexOf(item);
+	if (id != -1) {
+		item[0][0].suppr();
+		for (var i=0;i<aKarts.length;i++) {
+			var j = findUsingItemId(aKarts[i],item);
+			if (j != -1) {
+				aKarts[i].using.splice(j,1);
 				if (sound) {
 					if (playIfShould(aKarts[i],"musics/events/hit.mp3"))
 						sound = false;
 				}
+				break;
 			}
 		}
+		if (typeof(sound) == "object")
+			playDistSound(sound,"musics/events/hit.mp3",80);
+		if (clLocalVars.myItems) {
+			var mhId = clLocalVars.myItems.indexOf(item);
+			if (mhId != -1)
+				clLocalVars.myItems.splice(mhId,1);
+		}
+		items[key].splice(id,1);
 	}
-	if (typeof(sound) == "object")
-		playDistSound(sound,"musics/events/hit.mp3",80);
-	if (clLocalVars.myItems) {
-		var mhId = clLocalVars.myItems.indexOf(cible[id]);
-		if (mhId != -1)
-			clLocalVars.myItems.splice(mhId,1);
-	}
-	cible.splice(id,1);
 }
 
 
@@ -7272,6 +7281,19 @@ function supprArme(i) {
 		document.getElementById("scroller"+i).style.visibility = "hidden";
 		removeIfExists(oKart.rouletteSound);
 	}
+}
+function loseUsingItem(oKart) {
+	if (oKart.using.length) {
+		for (var i=0;i<oKart.using.length;i++) {
+			if (oKart.using[i].item[5])
+				oKart.using[i].item[5] = 0;
+		}
+		oKart.using.length = 0;
+	}
+}
+function deleteUsingItems() {
+	for (var i=oKart.using.length-1;i>=0;i--)
+		detruit(oKart.using[i].type,oKart.using[i].item);
 }
 
 function stopDrifting(i) {
@@ -7409,11 +7431,7 @@ function colKart(getId) {
 							loseBall(iKart);
 							stopDrifting(iKart);
 							qKart.spin(62);
-							if (qKart.using[0]) {
-								if (qKart.using[0][qKart.using[1]][5])
-									qKart.using[0][qKart.using[1]][5] = 0;
-								qKart.using = [false];
-							}
+							loseUsingItem(qKart);
 							supprArme(iKart);
 						}
 					}
@@ -7464,7 +7482,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 									collisionPlayer.turbodrift = 0;
 								if (decorBehavior.bonus) {
 									if (!isOnline || (collisionPlayer == oPlayers[0]))
-										addNewItem(collisionPlayer,bananes,[new Sprite("banane"), -1, collisionPlayer.team, (nX+iI*2.5),(nY+iJ*2.5), 0]);
+										addNewItem(collisionPlayer,"banane",[new Sprite("banane"), -1, collisionPlayer.team, (nX+iI*2.5),(nY+iJ*2.5), 0]);
 								}
 							}
 							if (decorBehavior.transparent)
@@ -9103,12 +9121,13 @@ function incChallengeHits(kart) {
 	challengeCheck("each_hit");
 }
 function touche_banane(iX, iY, iP) {
-	for (var i=0;i<bananes.length;i++) {
-		var oBox = bananes[i];
-		if (i != iP && !oBox[5]) {
+	if (!iP) iP = [];
+	for (var i=0;i<items["banane"].length;i++) {
+		var oBox = items["banane"][i];
+		if ((iP.indexOf(oBox) == -1) && !oBox[5]) {
 			if (iX > oBox[3]-4 && iX < oBox[3]+4 && iY > oBox[4]-4 && iY < oBox[4] + 4) {
 				handleHit(oBox);
-				detruit(bananes,i,isHitSound(oBox));
+				detruit("banane",oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox[2]);
 			}
 		}
@@ -9117,12 +9136,13 @@ function touche_banane(iX, iY, iP) {
 }
 
 function touche_fauxobjet(iX, iY, iP) {
-	for (var i=0;i<fauxobjets.length;i++) {
-		var oBox = fauxobjets[i];
-		if (i != iP && !oBox[5]) {
+	if (!iP) iP = [];
+	for (var i=0;i<items["fauxobjet"].length;i++) {
+		var oBox = items["fauxobjet"][i];
+		if ((iP.indexOf(oBox) == -1) && !oBox[5]) {
 			if (iX > oBox[3]-4 && iX < oBox[3]+4 && iY > oBox[4]-4 && iY < oBox[4] + 4) {
 				handleHit(oBox);
-				detruit(fauxobjets,i,isHitSound(oBox));
+				detruit("fauxobjet",oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox[2]);
 			}
 		}
@@ -9131,12 +9151,13 @@ function touche_fauxobjet(iX, iY, iP) {
 }
 
 function touche_cverte(iX, iY, iP) {
-	for (var i=0;i<carapaces.length;i++) {
-		var oBox = carapaces[i];
-		if (i != iP && !oBox[5]) {
+	if (!iP) iP = [];
+	for (var i=0;i<items["carapace"].length;i++) {
+		var oBox = items["carapace"][i];
+		if ((iP.indexOf(oBox) == -1) && !oBox[5]) {
 			if (iX > oBox[3]-5 && iX < oBox[3]+5 && iY > oBox[4]-5 && iY < oBox[4] + 5) {
 				handleHit(oBox);
-				detruit(carapaces,i,isHitSound(oBox));
+				detruit("carapace",oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox[2]);
 			}
 		}
@@ -9145,13 +9166,14 @@ function touche_cverte(iX, iY, iP) {
 }
 
 function touche_crouge(iX, iY, iP) {
-	for (var i=0;i<carapacesRouge.length;i++) {
-		var oBox = carapacesRouge[i];
+	if (!iP) iP = [];
+	for (var i=0;i<items["carapace-rouge"].length;i++) {
+		var oBox = items["carapace-rouge"][i];
 		if (!oBox[0][0].div.style.opacity) {
-			if (i != iP && !oBox[5]) {
+			if ((iP.indexOf(oBox) == -1) && !oBox[5]) {
 				if (oBox[7] != -1 && iX == oBox[3] && iY == oBox[4]) {
 					if (isOnline)
-						detruit(carapacesRouge,i,isHitSound(oBox));
+						detruit("carapace-rouge",oBox,isHitSound(oBox));
 					else {
 						handleHit(oBox);
 						for (var i=0;i<strPlayer.length;i++)
@@ -9161,7 +9183,7 @@ function touche_crouge(iX, iY, iP) {
 				}
 				else if (oBox[7] == -1 && iX > oBox[3]-5 && iX < oBox[3]+5 && iY > oBox[4]-5 && iY < oBox[4] + 5) {
 					handleHit(oBox);
-					detruit(carapacesRouge,i,isHitSound(oBox));
+					detruit("carapace-rouge",oBox,isHitSound(oBox));
 					return (collisionTeam!=oBox[2]);
 				}
 			}
@@ -9170,9 +9192,10 @@ function touche_crouge(iX, iY, iP) {
 	return false;
 }
 function touche_bobomb(iX, iY, iP) {
-	for (var i=0;i<bobombs.length;i++) {
-		var oBox = bobombs[i];
-		if (!oBox[5] && i != iP) {
+	if (!iP) iP = [];
+	for (var i=0;i<items["bobomb"].length;i++) {
+		var oBox = items["bobomb"][i];
+		if (!oBox[5] && (iP.indexOf(oBox) == -1)) {
 			if (oBox[6] != -1) {
 				var hitboxW = 30;
 				if (oBox[8] >= 38)
@@ -9193,14 +9216,15 @@ function touche_bobomb(iX, iY, iP) {
 				if (iX > oBox[3]-5 && iX < oBox[3]+5 && iY > oBox[4]-5 && iY < oBox[4] + 5) {
 					var oKart;
 					for (j=0;j<aKarts.length;j++) {
-						if (aKarts[j].using[0]==bobombs&&i==aKarts[j].using[1]) {
-							aKarts[j].using=[false];
+						var k = findUsingItemId(aKarts[j],oBox);
+						if (k != -1) {
+							aKarts[j].using.splice(k,1);
 							oKart = aKarts[j];
-							j=aKarts.length;
+							break;
 						}
 					}
-					addNewItem(oKart,bobombs,[new Sprite("bob-omb"), -1, oBox[2], oBox[3], oBox[4], oBox[5],1,0,1]);
-					detruit(bobombs, i);
+					addNewItem(oKart,"bobomb",[new Sprite("bob-omb"), -1, oBox[2], oBox[3], oBox[4], oBox[5],1,0,1]);
+					detruit("bobomb", oBox);
 					i--;
 				}
 			}
@@ -9210,8 +9234,8 @@ function touche_bobomb(iX, iY, iP) {
 }
 
 function touche_cbleue(iX, iY) {
-	for (var i=0;i<carapacesBleue.length;i++) {
-		var oBox = carapacesBleue[i];
+	for (var i=0;i<items["carapace-bleue"].length;i++) {
+		var oBox = items["carapace-bleue"][i];
 		if (oBox[6] < 0 && oBox[6] >= -10) {
 			if (iX > oBox[3]-30 && iX < oBox[3]+30 && iY > oBox[4]-30 && iY < oBox[4]+30) {
 				var res = (collisionTeam!=oBox[2]) ? (oBox[6] < -5 ? 42 : 84):false;
@@ -9503,7 +9527,7 @@ function resetDatas() {
 		if (oMap.tours != 3)
 			uSend += "laps="+oMap.tours+"&";
 	}
-	var iObjets = [bananes, fauxobjets, carapaces, carapacesRouge, carapacesBleue, bobombs];
+	var iObjets = ["banane", "fauxobjet", "carapace", "carapace-rouge", "carapace-bleue", "bobomb"];
 	if (oPlayer.using[0])
 		uSend += "i="+ iObjets.indexOf(oPlayer.using[0]) +"&j="+ oPlayer.using[0][oPlayer.using[1]][1] +"&";
 	var alpha = "abcdef";
@@ -9638,11 +9662,7 @@ function resetDatas() {
 													kart.size = 0.6;
 													updateDriftSize(k);
 													kart.arme = false;
-													if (kart.using[0]) {
-														if (kart.using[0][kart.using[1]][5])
-															kart.using[0][kart.using[1]][5] = 0;
-														kart.using = [false];
-													}
+													loseUsingItem(kart);
 													kart.champi = 0;
 													kart.spin(20);
 													kart.roulette = 0;
@@ -10139,15 +10159,14 @@ function move(getId) {
 	}
 	
 	if ((!getId || !isOnline || finishing) && !oKart.loose) {
-		var pExplose = touche_bobomb(fNewPosX, fNewPosY, (oKart.using[0]==bobombs ? oKart.using[1]:-1)) + touche_cbleue(fNewPosX, fNewPosY);
+		var oKartItems = oKart.using.map(function(o) {
+			return o.item;
+		});
+		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell) {
 			loseBall(getId);
 			oKart.spin(pExplose);
-			if (oKart.using[0]) {
-				if (oKart.using[0][oKart.using[1]][5])
-					oKart.using[0][oKart.using[1]][5] = 0;
-				oKart.using = [false];
-			}
+			loseUsingItem(oKart);
 			stopDrifting(getId);
 			if (pExplose == 84) {
 				oKart.speed = 0;
@@ -10156,21 +10175,17 @@ function move(getId) {
 			}
 		}
 		else if (oKart.z < 5) {
-			if ((touche_fauxobjet(fNewPosX, fNewPosY, (oKart.using[0]==fauxobjets ? oKart.using[1]:-1)) || (touche_cverte(fNewPosX, fNewPosY, (oKart.using[0]==carapaces ? oKart.using[1]:-1)) || touche_cverte(oKart.x, oKart.y, (oKart.using[0]==carapaces ? oKart.using[1]:-1))) || touche_crouge(oKart.x, oKart.y, (oKart.using[0]==carapacesRouge ? oKart.using[1]:-1))) && !oKart.protect) {
+			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems)) || touche_crouge(oKart.x, oKart.y, oKartItems)) && !oKart.protect) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(42);
-				oKart.using = [false];
+				oKart.using.length = 0;
 			}
-			else if (touche_banane(fNewPosX, fNewPosY, (oKart.using[0]==bananes ? oKart.using[1]:-1)) && !oKart.protect) {
+			else if (touche_banane(fNewPosX, fNewPosY, oKartItems) && !oKart.protect) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(20);
-				if (oKart.using[0]) {
-					if (oKart.using[0][oKart.using[1]][5])
-						oKart.using[0][oKart.using[1]][5] = 0;
-					oKart.using = [false];
-				}
+				loseUsingItem(oKart);
 			}
 			else if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
@@ -10268,11 +10283,7 @@ function move(getId) {
 					}
 					if (hittable) {
 						decorHit = true;
-						if (oKart.using[0]) {
-							if (oKart.using[0][oKart.using[1]][5])
-								oKart.using[0][oKart.using[1]][5] = 0;
-							oKart.using = [false];
-						}
+						loseUsingItem(oKart);
 					}
 					if (decorHit) {
 						if (clLocalVars.decorsHit && !oKart.cpu) {
@@ -10438,11 +10449,7 @@ function move(getId) {
 				stopDrifting(getId);
 				oKart.spin(collisionSpin);
 				oKart.speed = 2.5*Math.sign(oKart.speed);
-				if (oKart.using[0]) {
-					if (oKart.using[0][oKart.using[1]][5])
-						oKart.using[0][oKart.using[1]][5] = 0;
-					oKart.using = [false];
-				}
+				loseUsingItem(oKart);
 			}
 		}
 	}
@@ -10545,8 +10552,7 @@ function move(getId) {
 				oKart.fell = true;
 				stopDrifting(getId);
 				supprArme(getId);
-				if (oKart.using)
-					detruit(oKart.using[0],oKart.using[1]);
+				deleteUsingItems(oKart);
 				oKart.champi = 0;
 				if (oKart.cpu)
 					oKart.aipoint = undefined;
@@ -10636,8 +10642,8 @@ function move(getId) {
 		}
 	}
 
-	if (oKart.using[0]) {
-		var oArme = oKart.using[0][oKart.using[1]];
+	if (oKart.using.length) {
+		var oArme = oKart.using[0].item;
 		oArme[3] = (oKart.x - 5 * direction(0, oKart.rotation));
 		oArme[4] = (oKart.y - 5 * direction(1, oKart.rotation));
 		oArme[5] = oKart.z;
@@ -10684,7 +10690,7 @@ function move(getId) {
 
 					if (course != "CM")
 						document.getElementById("infoPlace"+getId).innerHTML = toPlace(oKart.place);
-					if (oKart.using[0]) {
+					while (oKart.using.length) {
 						var aMusic = bMusic, aSfx = iSfx;
 						bMusic = false;
 						iSfx = false;
@@ -11989,8 +11995,8 @@ function ai(oKart) {
 	}
 	if ((oKart.roulette == 25 || oKart.using[0]) && !oKart.tourne && !oKart.cannon) {
 		var useRandomly = false;
-		if (oKart.using[0]) {
-			switch (oKart.using[2]) {
+		if (oKart.using.length) {
+			switch(oKart.using[0].type) {
 			case "carapacerouge":
 				if (course == "BB") {
 					for (var i=0;i<strPlayer.length;i++) {
@@ -14076,7 +14082,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			for (var j=0;j<strPlayer.length;j++) {
 				if (strPlayer[j] == oJoueur) {
 					libre = false;
-					j = strPlayer.length;
+					break;
 				}
 			}
 			oPImg.src = (libre ? getSpriteSrc(oJoueur):getStarSrc(oJoueur));
@@ -14170,7 +14176,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 										if (strPlayer[j] == joueur) {
 											aPlayers.splice(i,1);
 											i--;
-											j = strPlayer.length;
+											break;
 										}
 									}
 								}
