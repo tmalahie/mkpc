@@ -6294,13 +6294,15 @@ function render() {
 						var nbBallons = fSprite.ballons.length;
 						var fTaille = fFocal / (fFocal + fTransY) * fSprite.size;
 						var pTaille = fTaille*(6+(fSprite.sprite[i].h-32)/5);
-						for (k=1;k<=nbBallons;k++)
+						for (k=1;k<=nbBallons;k++) {
 							fSprite.ballons[k-1][i].draw(
 								((iWidth/2) + fViewX +(k-nbBallons/2)*2.5*fTaille) * iScreenScale, 
 								(iHeight - iViewY - pTaille) * iScreenScale,
 								fTaille / 2,
 								pTaille
 							);
+							fSprite.ballons[k-1][i].div.style.zIndex = fSprite.sprite[i].div.style.zIndex;
+						}
 					}
 					if (fSprite.marker && !fSprite.loose && !fSprite.tombe) {
 						fSprite.marker.draw(i, iX,iY, fScale, iZ);
