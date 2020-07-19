@@ -1215,11 +1215,12 @@ var fTurboDriftCpt = 80, fTurboDriftCpt2 = 160;
 	}
 	oKart.using = [false];
 }*/
-function loadNewItem(kart,collection,item) {
-	addNewItem(kart,collection,item);
-	kart.using.push({type:collection,item:item});
+function loadNewItem(kart,item) {
+	addNewItem(kart,item);
+	kart.using.push(item);
 }
-function addNewItem(kart,collection,item) {
+function addNewItem(kart,item) {
+	var collection = item.type;
 	items[collection].push(item);
 	if ((kart == oPlayers[0]) && clLocalVars.myItems)
 		clLocalVars.myItems.push(item);
@@ -1378,22 +1379,22 @@ function arme(ID, backwards) {
 			break;
 
 			case "banane" :
-			loadNewItem(oKart,"banane",{id:-1, sprite:new Sprite("banane"), team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			loadNewItem(oKart, {id:-1, type: "banane", sprite:new Sprite("banane"), team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "fauxobjet" :
-			loadNewItem(oKart,"fauxobjet",{id:-1, sprite:new Sprite("objet"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z});
+			loadNewItem(oKart, {id:-1, type: "fauxobjet", sprite:new Sprite("objet"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapace" :
-			loadNewItem(oKart,"carapace",{id:-1, sprite:new Sprite("carapace"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, lives:10});
+			loadNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, lives:10});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapacerouge" :
-			loadNewItem(oKart,"carapace-rouge",{id:-1, sprite:new Sprite("carapace-rouge"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
+			loadNewItem(oKart, {id:-1, type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -1412,12 +1413,12 @@ function arme(ID, backwards) {
 					}
 				}
 			}
-			addNewItem(oKart,"carapace-bleue",{id:-1, sprite:new Sprite("carapace-bleue"), team:oKart.team, x:oKart.x,y:oKart.y, target:cible, cooldown:5});
+			addNewItem(oKart, {id:-1, type: "carapace-bleue", sprite:new Sprite("carapace-bleue"), team:oKart.team, x:oKart.x,y:oKart.y, target:cible, cooldown:5});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "bobomb" :
-			loadNewItem(oKart,"bobomb",{id:-1, sprite:new Sprite("bob-omb"), team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z,theta:-1,countdown:15,cooldown:30});
+			loadNewItem(oKart, {id:-1, type: "bobomb", sprite:new Sprite("bob-omb"), team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z,theta:-1,countdown:15,cooldown:30});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 		}
@@ -1451,38 +1452,38 @@ function arme(ID, backwards) {
 			var fPosX = posX - decalage * direction(0, oKart.rotation);
 			var fPosY = posY - decalage * direction(1, oKart.rotation);
 			if (!tombe(fPosX,fPosY))
-			addNewItem(oKart,"banane",{id:-1, sprite:new Sprite("banane"), team:oKart.team, x:fPosX, y:fPosY, z:0});
+			addNewItem(oKart, {id:-1, type: "banane", sprite:new Sprite("banane"), team:oKart.team, x:fPosX, y:fPosY, z:0});
 			playIfShould(oKart,"musics/events/put.mp3");
 			break;
 
 			case "fauxobjet" :
 			var decalage = 30/(oKart.speed+5);
-			addNewItem(oKart,"fauxobjet",{id:-1, sprite:new Sprite("objet"), team:oKart.team, x:posX-decalage*direction(0, oKart.rotation), y:posY-decalage*direction(1, oKart.rotation), z:0});
+			addNewItem(oKart, {id:-1, type: "fauxobjet", sprite:new Sprite("objet"), team:oKart.team, x:posX-decalage*direction(0, oKart.rotation), y:posY-decalage*direction(1, oKart.rotation), z:0});
 			playIfShould(oKart,"musics/events/put.mp3");
 			break;
 
 			case "carapace" :
 			var oAngleView = angleShoot(oKart, backwards);
 			var shiftDist = backwards?7.5:15;
-			addNewItem(oKart,"carapace",{id:-1, sprite:new Sprite("carapace"), team:oKart.team, x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,lives:10});
+			addNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,lives:10});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "carapace-rouge" :
 			var oAngleView = angleShoot(oKart, backwards);
 			if (backwards)
-				addNewItem(oKart,"carapace",{id:-1, sprite:new Sprite("carapace-rouge"), team:oKart.team, x:posX+7.5*direction(0,oAngleView),y:posY+7.5*direction(1,oAngleView),z:0,theta:oAngleView,lives:-1});
+				addNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:posX+7.5*direction(0,oAngleView),y:posY+7.5*direction(1,oAngleView),z:0,theta:oAngleView,lives:-1});
 			else
-				addNewItem(oKart,"carapace-rouge",{id:-1, sprite:new Sprite("carapace-rouge"), team:oKart.team, x:posX+15*direction(0, oAngleView), y:posY+15*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1});
+				addNewItem(oKart, {id:-1, type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:posX+15*direction(0, oAngleView), y:posY+15*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "bobomb" :
 			var oAngleView = angleShoot(oKart, backwards);
 			if (backwards)
-				addNewItem(oKart,"bobomb",{id:-1, sprite:new Sprite("bob-omb"), team:oKart.team, x:posX+5*direction(0,oAngleView),y:posY+5*direction(1,oAngleView),z:0,theta:oAngleView,countdown:2,cooldown:42});
+				addNewItem(oKart, {id:-1, type: "bobomb", sprite:new Sprite("bob-omb"), team:oKart.team, x:posX+5*direction(0,oAngleView),y:posY+5*direction(1,oAngleView),z:0,theta:oAngleView,countdown:2,cooldown:42});
 			else
-				addNewItem(oKart,"bobomb",{id:-1, sprite:new Sprite("bob-omb"), team:oKart.team, x:posX,y:posY,z:0,theta:oAngleView,countdown:15,cooldown:30});
+				addNewItem(oKart, {id:-1, type: "bobomb", sprite:new Sprite("bob-omb"), team:oKart.team, x:posX,y:posY,z:0,theta:oAngleView,countdown:15,cooldown:30});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -1490,7 +1491,7 @@ function arme(ID, backwards) {
 			return;
 		}
 
-		detruit(oKart.using[0].type, oKart.using[0].item);
+		detruit(oKart.using[0]);
 	}
 }
 
@@ -6714,7 +6715,7 @@ function render() {
 					var roundY2 = fNewPosY;
 
 					if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1) || touche_banane(roundX2, roundY2) || touche_crouge(roundX1, roundY1) || touche_crouge(roundX2, roundY2) || touche_cverte(roundX1, roundY1, [fSprite]) || touche_cverte(roundX2, roundY2, [fSprite])) {
-						detruit("carapace",fSprite,true);
+						detruit(fSprite,true);
 						j--;
 					}
 
@@ -6731,7 +6732,7 @@ function render() {
 							fSprite.theta = normalizeAngle(fSprite.theta-2*angleToNormal+180, 360);
 						}
 						else {
-							detruit("carapace",fSprite);
+							detruit(fSprite);
 							j--;
 						}
 					}
@@ -6813,19 +6814,19 @@ function render() {
 										rAngle = pi2-rAngle;
 									if (Math.abs(rAngle) > 2) {
 										if (isOnline) {
-											detruit("carapace-rouge",fSprite);
+											detruit(fSprite);
 											j--;
 										}
 										else
 											fSprite.sprite[i].div.style.opacity = 0.8;
 										fNewPosX -= 5 * direction(0,tCible.rotation);
 										fNewPosY -= 5 * direction(1,tCible.rotation);
-										detruit(tCible.using[0].type,tCible.using[0].item,true);
+										detruit(tCible.using[0],true);
 										l = 1;
 									}
 									else {
-										tCible.using[0].item[3] -= 2 * direction(0,tCible.rotation);
-										tCible.using[0].item[4] -= 2 * direction(1,tCible.rotation);
+										tCible.using[0][3] -= 2 * direction(0,tCible.rotation);
+										tCible.using[0][4] -= 2 * direction(1,tCible.rotation);
 									}
 								}
 							}
@@ -6865,7 +6866,7 @@ function render() {
 						}
 						else if (!i) {
 							if (isOnline) {
-								detruit("carapace-rouge",fSprite);
+								detruit(fSprite);
 								j--;
 							}
 							else
@@ -6879,7 +6880,7 @@ function render() {
 					for (var k=0;k<strPlayer.length;k++)
 						fSprite.sprite[k].div.style.opacity = setOpac;
 					if (setOpac < 0.01) {
-						detruit("carapace-rouge",fSprite);
+						detruit(fSprite);
 						j--;
 					}
 				}
@@ -6991,7 +6992,7 @@ function render() {
 							fSprite.sprite[k].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
 						var delLimit = (isOnline&&(fSprite.target!=oPlayers[0].id)) ? -70:-10;
 						if (fSprite.cooldown < delLimit) {
-							detruit("carapace-bleue",fSprite);
+							detruit(fSprite);
 							size = false;
 							j--;
 						}
@@ -7048,7 +7049,7 @@ function render() {
 					}
 					else {
 						if (tombe(Math.round(fSprite.x), Math.round(fSprite.y))) {
-							detruit("bobomb", fSprite);
+							detruit(fSprite);
 							size = false;
 							j--;
 						}
@@ -7086,7 +7087,7 @@ function render() {
 							for (var k=0;k<oPlayers.length;k++)
 								fSprite.sprite[k].div.style.opacity = 1+fSprite.cooldown/10;
 								if (fSprite.cooldown < -10) {
-									detruit("bobomb",fSprite);
+									detruit(fSprite);
 									size = false;
 									j--;
 								}
@@ -7222,7 +7223,8 @@ function balloonSrc(team) {
 	return 'images/sprites/sprite_'+(team==1?'ballonR':'ballon')+'.png';
 }
 
-function detruit(key, item, sound) {
+function detruit(item, sound) {
+	var key = item.type;
 	if (isOnline) {
 		for (var i=0;i<nbNews[key].length;i++) {
 			if (nbNews[key][i] > id)
@@ -7234,22 +7236,15 @@ function detruit(key, item, sound) {
 		}
 		destructions[key].push(items[key][id][1]);
 	}
-	supprime(key, item, sound);
+	supprime(item, sound);
 }
-function findUsingItemId(kart,item) {
-	var oUsing = kart.using;
-	for (var i=0;i<oUsing.length;i++) {
-		if (oUsing[i].item == item)
-			return i;
-	}
-	return -1;
-}
-function supprime(key, item, sound) {
+function supprime(item, sound) {
+	var key = item.type;
 	var id = items[key].indexOf(item);
 	if (id != -1) {
 		item.sprite[0].suppr();
 		for (var i=0;i<aKarts.length;i++) {
-			var j = findUsingItemId(aKarts[i],item);
+			var j = aKarts[i].using.indexOf(item);
 			if (j != -1) {
 				aKarts[i].using.splice(j,1);
 				if (sound) {
@@ -7284,15 +7279,15 @@ function supprArme(i) {
 function loseUsingItem(oKart) {
 	if (oKart.using.length) {
 		for (var i=0;i<oKart.using.length;i++) {
-			if (oKart.using[i].item[5])
-				oKart.using[i].item[5] = 0;
+			if (oKart.using[i][5])
+				oKart.using[i][5] = 0;
 		}
 		oKart.using.length = 0;
 	}
 }
 function deleteUsingItems() {
 	for (var i=oKart.using.length-1;i>=0;i--)
-		detruit(oKart.using[i].type,oKart.using[i].item);
+		detruit(oKart.using[i]);
 }
 
 function stopDrifting(i) {
@@ -7481,7 +7476,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 									collisionPlayer.turbodrift = 0;
 								if (decorBehavior.bonus) {
 									if (!isOnline || (collisionPlayer == oPlayers[0]))
-										addNewItem(collisionPlayer,"banane",{id:-1, sprite:new Sprite("banane"), team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
+										addNewItem(collisionPlayer, {id:-1, type: "banane", sprite:new Sprite("banane"), team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
 								}
 							}
 							if (decorBehavior.transparent)
@@ -9126,7 +9121,7 @@ function touche_banane(iX, iY, iP) {
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 				handleHit(oBox);
-				detruit("banane",oBox,isHitSound(oBox));
+				detruit(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
 			}
 		}
@@ -9141,7 +9136,7 @@ function touche_fauxobjet(iX, iY, iP) {
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 				handleHit(oBox);
-				detruit("fauxobjet",oBox,isHitSound(oBox));
+				detruit(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
 			}
 		}
@@ -9156,7 +9151,7 @@ function touche_cverte(iX, iY, iP) {
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
 				handleHit(oBox);
-				detruit("carapace",oBox,isHitSound(oBox));
+				detruit(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
 			}
 		}
@@ -9172,7 +9167,7 @@ function touche_crouge(iX, iY, iP) {
 			if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 				if (oBox.target != -1 && iX == oBox.x && iY == oBox.y) {
 					if (isOnline)
-						detruit("carapace-rouge",oBox,isHitSound(oBox));
+						detruit(oBox,isHitSound(oBox));
 					else {
 						handleHit(oBox);
 						for (var i=0;i<strPlayer.length;i++)
@@ -9182,7 +9177,7 @@ function touche_crouge(iX, iY, iP) {
 				}
 				else if (oBox.target == -1 && iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
 					handleHit(oBox);
-					detruit("carapace-rouge",oBox,isHitSound(oBox));
+					detruit(oBox,isHitSound(oBox));
 					return (collisionTeam!=oBox.team);
 				}
 			}
@@ -9215,15 +9210,15 @@ function touche_bobomb(iX, iY, iP) {
 				if (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
 					var oKart;
 					for (j=0;j<aKarts.length;j++) {
-						var k = findUsingItemId(aKarts[j],oBox);
+						var k = aKarts[j].using.indexOf(oBox);
 						if (k != -1) {
 							aKarts[j].using.splice(k,1);
 							oKart = aKarts[j];
 							break;
 						}
 					}
-					addNewItem(oKart,"bobomb",{id:-1, sprite:new Sprite("bob-omb"), team:oBox.team, x:oBox.x, y:oBox.y, z:oBox.z,theta:1,countdown:0,cooldown:1});
-					detruit("bobomb", oBox);
+					addNewItem(oKart, {id:-1, type: "bobomb", sprite:new Sprite("bob-omb"), team:oBox.team, x:oBox.x, y:oBox.y, z:oBox.z,theta:1,countdown:0,cooldown:1});
+					detruit(oBox);
 					i--;
 				}
 			}
@@ -10158,9 +10153,7 @@ function move(getId) {
 	}
 	
 	if ((!getId || !isOnline || finishing) && !oKart.loose) {
-		var oKartItems = oKart.using.map(function(o) {
-			return o.item;
-		});
+		var oKartItems = oKart.using;
 		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell) {
 			loseBall(getId);
@@ -10642,7 +10635,7 @@ function move(getId) {
 	}
 
 	if (oKart.using.length) {
-		var oArme = oKart.using[0].item;
+		var oArme = oKart.using[0];
 		oArme.x = (oKart.x - 5 * direction(0, oKart.rotation));
 		oArme.y = (oKart.y - 5 * direction(1, oKart.rotation));
 		oArme.z = oKart.z;
