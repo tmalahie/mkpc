@@ -1021,10 +1021,10 @@ function loadMap() {
 		var oCompteur = document.createElement("div");
 		oCompteur.id = "compteur"+i;
 		oCompteur.style.left = Math.round(iScreenScale/3) +"px";
-		oCompteur.style.bottom = Math.round(-iScreenScale/4) +"px";
+		oCompteur.style.bottom = ((course != "BB") ? Math.round(-iScreenScale/4) : Math.round(iScreenScale/4)) +"px";
 		oCompteur.style.fontSize = iScreenScale * 2+"pt";
 		if (!pause || !fInfos.replay)
-			oCompteur.innerHTML = (course != "BB") ? (oMap.sections ? "Section":toLanguage("Lap","Tour")) + ' <span id="tour'+i+'">1</span>/'+ oMap.tours : '&nbsp;<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" />';
+			oCompteur.innerHTML = (course != "BB") ? (oMap.sections ? "Section":toLanguage("Lap","Tour")) + ' <span id="tour'+i+'">1</span>/'+ oMap.tours : '<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" />';
 		hudScreen.appendChild(oCompteur);
 
 		var oDrift = document.createElement("div");
@@ -2840,7 +2840,7 @@ function startGame() {
 									if ((oPlayers[0].tourne<5) && oPlayers[0].reserve && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
 										oPlayers[0].ballons[oPlayers[0].ballons.length] = createBalloonSprite(oPlayers[0]);
 										oPlayers[0].reserve--;
-										document.getElementById("compteur0").innerHTML = "&nbsp;";
+										document.getElementById("compteur0").innerHTML = "";
 										for (i=0;i<oPlayers[0].reserve;i++)
 											document.getElementById("compteur0").innerHTML += '<img src="'+balloonSrc(oPlayers[0].team)+'" style="width: '+(iScreenScale*2)+'" />';
 										playIfShould(oPlayers[0],"musics/events/balloon.mp3");
@@ -3317,7 +3317,7 @@ function startGame() {
 			redrawCanvasHandler = setInterval(function() {
 				for (var i=0;i<oPlayers.length;i++) {
 					var oPlayer = oPlayers[i];
-					redrawCanvas(i, oPlayer.x,oPlayer.y, oPlayer.rotation);
+					redrawCanvas(i, oPlayer);
 				}
 			}, 100);
 		}, 100);
@@ -4108,6 +4108,33 @@ function Sprite(strSprite) {
 			oCtSprites[i][1].style.left = -(Math.round(fSpriteSize)*oCtSprites[i][2])+"px";
 		}
 
+		this[i].render = function(fCamera, fSprite) {
+			var fSize = (fSprite.size || 1);
+			
+			var fCamX = fSprite.x - fCamera.x;
+			var fCamY = fSprite.y - fCamera.y;
+
+			var fRotRad = fCamera.rotation * Math.PI / 180;
+
+			var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
+			var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
+
+			var iDeltaY = -iCamHeight;
+			var iDeltaX = iCamDist + fTransY;
+
+			var iZ = fSprite.z ? correctCamZ(fSprite.z,iDeltaX) : 0;
+
+			var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight + iZ;
+			var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
+
+			this.div.style.zIndex = Math.round(10000 - fTransY);
+
+			var iX = ((iWidth/2) + fViewX) * iScreenScale,
+				iY = (iHeight - iViewY) * iScreenScale,
+				fScale = fFocal / (fFocal + fTransY) * fSize;
+			this.draw(iX,iY, fScale, iZ);
+		}
+
 		this[i].setState = function(iState) {
 			oCtSprites[this.i][2] = iState;
 		}
@@ -4644,18 +4671,46 @@ function createMarker(oKart) {
 		oDiv.style.left = Math.round(iX)+"px";
 		oDiv.style.top = Math.round(iY - fSpriteSize/2)+"px";
 	};
+	res.render = function(i, fCamera, fSprite) {
+		var fSize = (fSprite.size || 1);
+		
+		var fCamX = fSprite.x - fCamera.x;
+		var fCamY = fSprite.y - fCamera.y;
+
+		var fRotRad = fCamera.rotation * Math.PI / 180;
+
+		var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
+		var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
+
+		var iDeltaY = -iCamHeight;
+		var iDeltaX = iCamDist + fTransY;
+
+		var iZ = correctCamZ(fSprite.z,iDeltaX);
+
+		var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight + iZ;
+		var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
+
+		this.div[i].style.zIndex = Math.round(10000 - fTransY);
+
+		var iX = ((iWidth/2) + fViewX) * iScreenScale,
+			iY = (iHeight - iViewY) * iScreenScale,
+			fScale = fFocal / (fFocal + fTransY) * fSize;
+		
+		this.draw(i, iX,iY, fScale, iZ);
+	}
 	return res;
 }
 
-function redrawCanvas(i, posX,posY, fRotation) {
+function redrawCanvas(i, fCamera) {
 	var oViewContext = oViewCanvas.getContext("2d");
 	oViewContext.fillStyle = "rgb("+ oMap.bgcolor +")";
 	oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
 
 	oViewContext.save();
 	oViewContext.translate(iViewCanvasWidth/2,iViewCanvasHeight-iViewYOffset);
-	oViewContext.rotate((180 + fRotation) * Math.PI / 180);
+	oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
 
+	var posX = fCamera.x, posY = fCamera.y;
 	if (oMapImg.image) {
 		oViewContext.drawImage(
 			oMapImg.image,
@@ -6441,8 +6496,13 @@ function render() {
 			//posX = aKarts[1].x;
 			//posY = aKarts[1].y;
 			//fRotation = aKarts[1].rotation;
+			var fCamera = {
+				x: posX,
+				y: posY,
+				rotation: fRotation
+			};
 
-			redrawCanvas(i, posX,posY, fRotation);
+			redrawCanvas(i, fCamera);
 
 			var iOffsetZ = correctZ(oPlayers[i].z);
 			var iOffsetX = (iWidth/2)*iScreenScale;
@@ -6452,26 +6512,22 @@ function render() {
 
 			for (var j=0;j<aKarts.length;j++) {
 				fSprite = aKarts[j];
-				if (fSprite.cpu || fSprite != oPlayers[i]) {
+				fSprite.sprite[i].render(fCamera, fSprite);
 
-					var fCamX = fSprite.x - posX;
-					var fCamY = fSprite.y - posY;
-					//fCamX = fSprite.aipoints[fSprite.aipoint][0]-posX;
-					//fCamY = fSprite.aipoints[fSprite.aipoint][1]-posY;
-
-					var fRotRad = fRotation * Math.PI / 180;
-
-					var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-					var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-					var iDeltaY = -iCamHeight;
-					var iDeltaX = iCamDist + fTransY;
-
-					var iZ = correctCamZ(fSprite.z,iDeltaX);
-
-					var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight + iZ;
-					var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-
+				if (course == "BB") {
+					var nbBallons = fSprite.ballons.length;
+					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.sprite[i].h-32)/5));
+					var fShift = 2.5;
+					for (k=0;k<nbBallons;k++) {
+						fSprite.ballons[k][i].render(fCamera, {
+							x: fSprite.x-(k+0.5-nbBallons/2)*fShift*direction(1,fRotation),
+							y: fSprite.y+(k+0.5-nbBallons/2)*fShift*direction(0,fRotation),
+							z: fHauteur,
+							size: fTaille
+						});
+					}
+				}
+				if (fSprite != oPlayers[i]) {
 					var fAngle = fRotation - fSprite.rotation;
 					while (fAngle < 0)
 						fAngle += 360;
@@ -6486,30 +6542,8 @@ function render() {
 
 					fSprite.sprite[i].setState(iAngleStep);
 
-					fSprite.sprite[i].div.style.zIndex = Math.round(10000 - fTransY);
-
-					var iX = ((iWidth/2) + fViewX) * iScreenScale,
-						iY = (iHeight - iViewY) * iScreenScale,
-						fScale = fFocal / (fFocal + fTransY) * fSprite.size;
-					fSprite.sprite[i].draw(iX,iY, fScale, iZ);
-					if (course == "BB") {
-						var nbBallons = fSprite.ballons.length;
-						var fTaille = fFocal / (fFocal + fTransY) * fSprite.size;
-						var pTaille = fTaille*(6+(fSprite.sprite[i].h-32)/5);
-						for (k=1;k<=nbBallons;k++) {
-							fSprite.ballons[k-1][i].draw(
-								((iWidth/2) + fViewX +(k-nbBallons/2)*2.5*fTaille) * iScreenScale, 
-								(iHeight - iViewY - pTaille) * iScreenScale,
-								fTaille / 2,
-								pTaille
-							);
-							fSprite.ballons[k-1][i].div.style.zIndex = fSprite.sprite[i].div.style.zIndex;
-						}
-					}
-					if (fSprite.marker && !fSprite.loose && !fSprite.tombe) {
-						fSprite.marker.draw(i, iX,iY, fScale, iZ);
-						fSprite.marker.div[i].style.zIndex = Math.round(10001 - fTransY);
-					}
+					if (fSprite.marker && !fSprite.loose && !fSprite.tombe)
+						fSprite.marker.render(i, fCamera, fSprite);
 				}
 			}
 
@@ -6517,27 +6551,10 @@ function render() {
 			for (var j=0;j<oMap.arme.length;j++) {
 				fSprite = oMap.arme[j];
 				if (isNaN(fSprite[2])) {
-					var fCamX = fSprite[0] - posX;
-					var fCamY = fSprite[1] - posY;
-
-					var fRotRad = fRotation * Math.PI / 180;
-
-					var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-					var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-					var iDeltaY = -iCamHeight;
-					var iDeltaX = iCamDist + fTransY;
-
-					var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight;
-					var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-
-					fSprite[2][i].div.style.zIndex = Math.round(10000 - fTransY);
-
-					fSprite[2][i].draw(
-						((iWidth/2) + fViewX) * iScreenScale, 
-						(iHeight - iViewY) * iScreenScale,
-						fFocal / (fFocal + (fTransY))
-					);
+					fSprite[2][i].render(fCamera, {
+						x: fSprite[0],
+						y: fSprite[1]
+					});
 				}
 				else if (!i) {
 					if (fSprite[2])fSprite[2]--;
@@ -6550,31 +6567,12 @@ function render() {
 					for (var j=0;j<oMap.decor[type].length;j++) {
 						fSprite = oMap.decor[type][j];
 						if (fSprite[2][0].unshown) continue;
-						var fCamX = fSprite[0] - posX;
-						var fCamY = fSprite[1] - posY;
-
-						var fRotRad = fRotation * Math.PI / 180;
-
-						var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-						var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-						var iDeltaY = -iCamHeight;
-						var iDeltaX = iCamDist + fTransY;
-						var fCamZ = correctCamZ(fSprite[3] ? fSprite[3] : 0, iDeltaX);
-
-						var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight + fCamZ;
-						//if (fCamZ && (fCamZ*fTransY) > 180 && iViewY > 0 && iViewY < iHeight)
-						//	iViewY = iHeight - 9;
-						var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-
-						fSprite[2][i].div.style.zIndex = Math.round(10000 - fTransY);
-
-						fSprite[2][i].draw(
-							((iWidth/2) + fViewX) * iScreenScale, 
-							(iHeight - iViewY) * iScreenScale,
-							fFocal / (fFocal + (fTransY)) * 1.2,
-							fCamZ
-						);
+						fSprite[2][i].render(fCamera, {
+							x: fSprite[0],
+							y: fSprite[1],
+							z: fSprite[3],
+							size: 1.2
+						});
 					}
 				}
 			}
@@ -6613,28 +6611,12 @@ function render() {
 
 			for (var j=0;j<items["banane"].length;j++){
 				fSprite = items["banane"][j];
-				var fCamX = fSprite.x - posX;
-				var fCamY = fSprite.y - posY;
-
-				var fRotRad = fRotation * Math.PI / 180;
-
-				var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-				var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-				var iDeltaY = -iCamHeight;
-				var iDeltaX = iCamDist + fTransY;
-				var iZ = correctCamZ(fSprite.z, iDeltaX);
-
-				var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight;
-				var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-
-				fSprite.sprite[i].div.style.zIndex = Math.round(10000 - fTransY);
-
-				fSprite.sprite[i].draw(
-					((iWidth/2) + fViewX) * iScreenScale, 
-					(iHeight - iViewY - iZ) * iScreenScale,
-					fFocal / (fFocal + (fTransY)) / 1.5, iZ
-				);
+				fSprite.sprite[i].render(fCamera, {
+					x: fSprite.x,
+					y: fSprite.y,
+					z: fSprite.z,
+					size: 0.67
+				});
 			}
 
 
@@ -7105,22 +7087,6 @@ function render() {
 						(iHeight - iViewY - spriteZ) * iScreenScale,
 						fFocal / (fFocal + (fTransY)) * size,
 						spriteZ
-					);
-				}
-			}
-
-
-			oPlayers[i].sprite[i].div.style.zIndex = 10000;
-			oPlayers[i].sprite[i].draw(iOffsetX,iOffsetY,oPlayers[i].size,iOffsetZ);
-			if (course == "BB") {
-				var nbBallons = oPlayers[i].ballons.length;
-				var pTaille = (oPlayers[i].sprite[i].h-32)*oPlayers[i].size/5;
-				for (j=0;j<nbBallons;j++) {
-					oPlayers[i].ballons[j][i].draw(
-						(iOffsetX+(2*oPlayers[i].size+(j-nbBallons/2)*2.5*oPlayers[i].size)*iScreenScale), 
-						(iOffsetY-(oPlayers[i].size*6+pTaille)*iScreenScale),
-						oPlayers[i].size / 2,
-						6*oPlayers[i].size+pTaille
 					);
 				}
 			}
@@ -11548,7 +11514,7 @@ function processCode(cheatCode) {
 			var toAdd = parseInt(isBaloon[1]);
 			if (toAdd) {
 				oPlayer.reserve += toAdd;
-				document.getElementById("compteur0").innerHTML = "&nbsp;";
+				document.getElementById("compteur0").innerHTML = "";
 				for (i=0;i<oPlayer.reserve;i++)
 					document.getElementById("compteur0").innerHTML += '<img src="'+balloonSrc(oPlayer.team)+'" style="width: '+(iScreenScale*2)+'" />';
 				return true;
