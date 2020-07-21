@@ -130,6 +130,7 @@ for (circuits in oMaps) {
 
 var iWidth = 80;
 var iHeight = 39;
+var SPF = 67;
 var iRendering = optionOf("quality");
 var iQuality, iSmooth;
 resetQuality();
@@ -3219,14 +3220,14 @@ function startGame() {
 							}
 						}
 						timer++;
-						showTimer(timer*67);
+						showTimer(timer*SPF);
 						//if (!(timer%100))
 						//	aKarts[0].changeView = Math.floor(Math.random()*21)*(360/21);
 
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;stopDrifting_();stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},67);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;stopDrifting_();stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++)
@@ -3432,7 +3433,7 @@ function resetScreen() {
 }
 
 function reprendre(debug) {
-	setTimeout(function(){if(pause){pause=false;cycle()}}, 67);
+	setTimeout(function(){if(pause){pause=false;cycle()}}, SPF);
 	if (debug) {
 		unpauseSounds();
 		document.getElementById("infos0").style.display = "none";
@@ -6560,171 +6561,266 @@ function getApparentRotation(oPlayer, autorotate) {
 	return res;
 }
 
+var lastState;
+function getLastObj(lastObjs,i,currentObj) {
+	return lastObjs[i] || currentObj;
+}
+function interpolateState(x1,x2,tFrame) {
+	return x1*(1-tFrame) + x2*tFrame;
+}
+function interpolateStateAngle(x1,x2,tFrame) {
+	x1 = nearestAngle(x1,x2, 360);
+	return interpolateState(x1,x2,tFrame);
+}
 function render() {
+	var currentState = {
+		karts: [],
+		decor: {},
+		items: {}
+	}
+	for (var i=0;i<aKarts.length;i++) {
+		var oKart = aKarts[i];
+		currentState.karts.push({
+			ref: oKart,
+			x: oKart.x,
+			y: oKart.y,
+			z: oKart.z,
+			rotation: oKart.rotation,
+			size: oKart.size
+		});
+	}
+	if (oMap.decor) {
+		for (var type in oMap.decor) {
+			currentState.decor[type] = [];
+			for (var i=0;i<oMap.decor[type].length;i++) {
+				var decor = oMap.decor[type][i];
+				currentState.decor[type].push({
+					ref: decor,
+					x: decor[0],
+					y: decor[1],
+					z: decor[3],
+				});
+			}
+		}
+	}
+	for (var key in items) {
+		currentState.items[key] = [];
+		for (var i=0;i<items[key].length;i++) {
+			var item = items[key][i];
+			currentState.items[key].push({
+				ref: item,
+				x: item.x,
+				y: item.y,
+				z: item.z,
+				size: item.size
+			});
+		}
+	}
+	if (!lastState) lastState = currentState;
 
-	collisionTest = COL_OBJ;
-	collisionTeam = undefined;
-	clLocalVars.currentKart = undefined;
+	var nbFrames = 4;
 
-	for (var i=0;i<strPlayer.length;i++) {
-		if (oPlayers[i].tombe <= 10) {
+	function renderFrame(frame) {
+		var tFrame = frame/nbFrames;
+		var lastFrame = (tFrame == 1);
+		var frameState = {
+			karts: [],
+			players: [],
+			decor: {},
+			items: {}
+		};
+		for (var i=0;i<currentState.karts.length;i++) {
+			var currentObj = currentState.karts[i];
+			var lastObj = getLastObj(lastState.karts,i,currentObj);
+			frameState.karts.push({
+				ref: currentObj.ref,
+				x: interpolateState(lastObj.x,currentObj.x,tFrame),
+				y: interpolateState(lastObj.y,currentObj.y,tFrame),
+				z: interpolateState(lastObj.z,currentObj.z,tFrame),
+				rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
+				size: interpolateState(lastObj.size,currentObj.size,tFrame)
+			});
+		}
+		for (var i=0;i<oPlayers.length;i++)
+			frameState.players.push(frameState.karts[i]);
+		for (var type in currentState.decor) {
+			frameState.decor[type] = [];
+			for (var i=0;i<currentState.decor[type].length;i++) {
+				var currentObj = currentState.decor[type][i];
+				var lastObj = getLastObj(lastState.decor[type],i,currentObj);
+				frameState.decor[type].push({
+					ref: currentObj.ref,
+					x: interpolateState(lastObj.x,currentObj.x,tFrame),
+					y: interpolateState(lastObj.y,currentObj.y,tFrame),
+					z: interpolateState(lastObj.z,currentObj.z,tFrame),
+				});
+			}
+		}
+		for (var type in currentState.items) {
+			frameState.items[type] = [];
+			for (var i=0;i<currentState.items[type].length;i++) {
+				var currentObj = currentState.items[type][i];
+				var lastObj = getLastObj(lastState.items[type],i,currentObj);
+				frameState.items[type].push({
+					ref: currentObj.ref,
+					x: interpolateState(lastObj.x,currentObj.x,tFrame),
+					y: interpolateState(lastObj.y,currentObj.y,tFrame),
+					z: interpolateState(lastObj.z,currentObj.z,tFrame),
+					size: interpolateState(lastObj.size,currentObj.size,tFrame)
+				});
+			}
+		}
+		for (var i=0;i<frameState.players.length;i++) {
+			if (frameState.players[i].ref.tombe <= 10) {
+				var oPlayer = frameState.players[i];
 
-			var posX = oPlayers[i].x;
-			var posY = oPlayers[i].y;
-			var fRotation = getApparentRotation(oPlayers[i], true);
-			//posX = aKarts[1].x;
-			//posY = aKarts[1].y;
-			//fRotation = aKarts[1].rotation;
-			var fCamera = {
-				x: posX,
-				y: posY,
-				rotation: fRotation
-			};
+				var posX = oPlayer.x;
+				var posY = oPlayer.y;
+				var fRotation = oPlayer.rotation; // TODO getApparentRotation(oPlayers[i], true);
+				//posX = aKarts[1].x;
+				//posY = aKarts[1].y;
+				//fRotation = aKarts[1].rotation;
+				var fCamera = {
+					x: posX,
+					y: posY,
+					rotation: fRotation
+				};
 
-			redrawCanvas(i, fCamera);
+				redrawCanvas(i, fCamera);
 
-			var iOffsetZ = correctZ(oPlayers[i].z);
-			var iOffsetX = (iWidth/2)*iScreenScale;
-			var iOffsetY = (iHeight - iViewYOffset - iOffsetZ)*iScreenScale;
-			var fSprite;
+				var iOffsetZ = correctZ(oPlayer.z);
+				var iOffsetX = (iWidth/2)*iScreenScale;
+				var iOffsetY = (iHeight - iViewYOffset - iOffsetZ)*iScreenScale;
+				var fSprite;
 
 
-			for (var j=0;j<aKarts.length;j++) {
-				fSprite = aKarts[j];
-				fSprite.sprite[i].render(fCamera, fSprite);
+				for (var j=0;j<frameState.karts.length;j++) {
+					fSprite = frameState.karts[j];
+					fSprite.ref.sprite[i].render(fCamera, fSprite);
 
-				if (course == "BB") {
-					var nbBallons = fSprite.ballons.length;
-					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.sprite[i].h-32)/5));
-					var fShift = 2.5;
-					for (k=0;k<nbBallons;k++) {
-						fSprite.ballons[k][i].render(fCamera, {
-							x: fSprite.x-(k+0.5-nbBallons/2)*fShift*direction(1,fRotation),
-							y: fSprite.y+(k+0.5-nbBallons/2)*fShift*direction(0,fRotation),
-							z: fHauteur,
-							size: fTaille
+					if (course == "BB") {
+						var nbBallons = fSprite.ref.ballons.length;
+						var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.sprite[i].h-32)/5));
+						var fShift = 2.5;
+						for (k=0;k<nbBallons;k++) {
+							fSprite.ref.ballons[k][i].render(fCamera, {
+								x: fSprite.x-(k+0.5-nbBallons/2)*fShift*direction(1,fRotation),
+								y: fSprite.y+(k+0.5-nbBallons/2)*fShift*direction(0,fRotation),
+								z: fHauteur,
+								size: fTaille
+							});
+						}
+					}
+					if (fSprite != frameState.players[i]) {
+						var fAngle = fRotation - fSprite.rotation;
+						while (fAngle < 0)
+							fAngle += 360;
+						while (fAngle > 360)
+							fAngle -= 360;
+
+						var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.ref.tourne % 21;
+						if (iAngleStep > 21) iAngleStep -= 22;
+
+						if (fSprite.ref.figstate)
+							iAngleStep = (iAngleStep + 21-fSprite.ref.figstate) % 21;
+
+						fSprite.ref.sprite[i].setState(iAngleStep);
+
+						if (fSprite.ref.marker && !fSprite.ref.loose && !fSprite.ref.tombe)
+							fSprite.ref.marker.render(i, fCamera, fSprite);
+					}
+				}
+
+
+				for (var j=0;j<oMap.arme.length;j++) {
+					fSprite = oMap.arme[j];
+					if (isNaN(fSprite[2])) {
+						fSprite[2][i].render(fCamera, {
+							x: fSprite[0],
+							y: fSprite[1]
+						});
+					}
+					else if (!i && lastFrame) {
+						if (fSprite[2])fSprite[2]--;
+						else fSprite[2] = new Sprite("objet");
+					}
+				}
+
+				if (oMap.coins) {
+					for (var j=0;j<oMap.coins.length;j++) {
+						// TODO handle FPS feature
+						fSprite = oMap.coins[j];
+						fSprite.sprite[i].render(fCamera, {
+							x: fSprite.x,
+							y: fSprite.y
 						});
 					}
 				}
-				if (fSprite != oPlayers[i]) {
-					var fAngle = fRotation - fSprite.rotation;
-					while (fAngle < 0)
-						fAngle += 360;
-					while (fAngle > 360)
-						fAngle -= 360;
 
-					var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
-					if (iAngleStep > 21) iAngleStep -= 22;
-
-					if (fSprite.figstate)
-						iAngleStep = (iAngleStep + 21-fSprite.figstate) % 21;
-
-					fSprite.sprite[i].setState(iAngleStep);
-
-					if (fSprite.marker && !fSprite.loose && !fSprite.tombe)
-						fSprite.marker.render(i, fCamera, fSprite);
-				}
-			}
-
-
-			for (var j=0;j<oMap.arme.length;j++) {
-				fSprite = oMap.arme[j];
-				if (isNaN(fSprite[2])) {
-					fSprite[2][i].render(fCamera, {
-						x: fSprite[0],
-						y: fSprite[1]
-					});
-				}
-				else if (!i) {
-					if (fSprite[2])fSprite[2]--;
-					else fSprite[2] = new Sprite("objet");
-				}
-			}
-
-			if (oMap.decor) {
-				for (var type in oMap.decor) {
-					for (var j=0;j<oMap.decor[type].length;j++) {
-						fSprite = oMap.decor[type][j];
-						if (fSprite[2][0].unshown) continue;
-						fSprite[2][i].render(fCamera, {
-							x: fSprite[0],
-							y: fSprite[1],
-							z: fSprite[3],
+				for (var type in frameState.decor) {
+					for (var j=0;j<frameState.decor[type].length;j++) {
+						fSprite = frameState.decor[type][j];
+						if (fSprite.ref[2][0].unshown) continue;
+						fSprite.ref[2][i].render(fCamera, {
+							x: fSprite.x,
+							y: fSprite.y,
+							z: fSprite.z,
 							size: 1.2
 						});
 					}
 				}
-			}
 
-			if (oMap.coins) {
-				for (var j=0;j<oMap.coins.length;j++) {
-					fSprite = oMap.coins[j];
-					var fCamX = fSprite.x - posX;
-					var fCamY = fSprite.y - posY;
-
-					var fRotRad = fRotation * Math.PI / 180;
-
-					var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-					var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-					var iDeltaY = -iCamHeight;
-					var iDeltaX = iCamDist + fTransY;
-
-					var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight;
-					var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-
-					fSprite.sprite[i].div.style.zIndex = Math.round(10000 - fTransY);
-					var cosTheta = Math.abs(Math.cos(fSprite.theta-fRotRad));
-					//cosTheta = (cosTheta < 0.5) ? 0.1:1;
-					fSprite.sprite[i].w = 24*cosTheta;
-					fSprite.sprite[i].z = (cosTheta-1)*0.5;
-
-					fSprite.sprite[i].draw(
-						((iWidth/2) + fViewX) * iScreenScale, 
-						(iHeight - iViewY) * iScreenScale,
-						fFocal / (fFocal + (fTransY))
-					);
-				}
-			}
-
-			for (var key in items) {
-				for (var j=0;j<items[key].length;j++) {
-					fSprite = items[key][j];
-					var itemBehavior = itemBehaviors[key];
-					if (itemBehavior.render)
-						itemBehavior.render(fSprite,i);
-					fSprite.sprite[i].render(fCamera, fSprite);
-				}
-			}
-
-			for (var j=0;j<aKarts.length;j++) {
-				var oKart = aKarts[j];
-				var oSprite = oKart.sprite[i];
-				if (oKart.figstate > 0 && oKart.figuring) {
-					if (!oSprite.div.hallowed) {
-						oSprite.div.hallowed = true;
-						oSprite.div.style.backgroundImage = "url('images/halo.png')";
-						oSprite.div.style.backgroundRepeat = "no-repeat";
-						oSprite.div.style.backgroundSize = "contain";
-						oSprite.img.style.opacity = 0.7;
+				for (var key in frameState.items) {
+					for (var j=0;j<frameState.items[key].length;j++) {
+						fSprite = frameState.items[key][j];
+						if (lastFrame) {
+							var itemBehavior = itemBehaviors[key];
+							if (itemBehavior.render)
+								itemBehavior.render(fSprite.ref,i);
+						}
+						fSprite.ref.sprite[i].render(fCamera, fSprite);
 					}
 				}
-				else if (oSprite.div.hallowed) {
-					oSprite.div.hallowed = false;
-					oSprite.div.style.backgroundImage = "";
-					oSprite.div.style.backgroundRepeat = "";
-					oSprite.div.style.backgroundSize = "";
-					oSprite.img.style.opacity = 1;
+
+				if (lastFrame) {
+					for (var j=0;j<aKarts.length;j++) {
+						var oKart = aKarts[j];
+						var oSprite = oKart.sprite[i];
+						if (oKart.figstate > 0 && oKart.figuring) {
+							if (!oSprite.div.hallowed) {
+								oSprite.div.hallowed = true;
+								oSprite.div.style.backgroundImage = "url('images/halo.png')";
+								oSprite.div.style.backgroundRepeat = "no-repeat";
+								oSprite.div.style.backgroundSize = "contain";
+								oSprite.img.style.opacity = 0.7;
+							}
+						}
+						else if (oSprite.div.hallowed) {
+							oSprite.div.hallowed = false;
+							oSprite.div.style.backgroundImage = "";
+							oSprite.div.style.backgroundRepeat = "";
+							oSprite.div.style.backgroundSize = "";
+							oSprite.img.style.opacity = 1;
+						}
+					}
 				}
+
+				for (var j=0;j<oBgLayers.length;j++)
+					oBgLayers[j].draw(fRotation, i);
+
+				if ((strPlayer.length == 1) && !gameSettings.nomap)
+					setPlanPos();
 			}
-
-			for (var j=0;j<oBgLayers.length;j++)
-				oBgLayers[j].draw(fRotation, i);
-
-			if ((strPlayer.length == 1) && !gameSettings.nomap)
-				setPlanPos();
 		}
 	}
+	for (var i=0;i<nbFrames;i++) {
+		(function(i) {
+			setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
+		})(i);
+	}
+	setTimeout(function() {
+		lastState = currentState;
+	}, 1+SPF*(nbFrames-1)/nbFrames);
 }
 function makeSpriteExplode(fSprite,src,k) {
 	switch (fSprite[2]) {
@@ -7530,7 +7626,7 @@ function inCannon(iX,iY) {
 function getActualGameTimeMS() {
 	if (timerMS != undefined)
 		return timerMS;
-	return (timer-1)*67;
+	return (timer-1)*SPF;
 }
 function getActualGameTime() {
 	return getActualGameTimeMS()/1000;
@@ -8019,7 +8115,7 @@ var challengeRules = {
 		},
 		"success": function(scope) {
 			if (!clLocalVars.startedAt) return true;
-			var seconds = (clLocalVars.startedAt-1)*67/1000;
+			var seconds = (clLocalVars.startedAt-1)*SPF/1000;
 			return (seconds >= scope.value);
 		}
 	},
@@ -9508,7 +9604,7 @@ function move(getId) {
 	clLocalVars.currentKart = oKart;
 	var oKart = aKarts[getId];
 	if ((getId<strPlayer.length) && !oKart.cpu && !finishing) {
-		showTimer(timer*67);
+		showTimer(timer*SPF);
 		if (!getId)
 			timer++;
 
@@ -10234,7 +10330,7 @@ function move(getId) {
 			dt = Math.max(0,Math.min(dt,1));
 			if (isNaN(dt-dt)) dt = 0.5;
 
-			var lapTimer = Math.round((timer+dt-1)*67);
+			var lapTimer = Math.round((timer+dt-1)*SPF);
 			if ((oKart == oPlayers[0]) && !oKart.cpu) {
 				var lapTimerSum = 0;
 				for (var i=0;i<lapTimers.length;i++)
@@ -11606,6 +11702,10 @@ function ai(oKart) {
 	}
 }
 function moveItems() {
+	collisionTest = COL_OBJ;
+	collisionTeam = undefined;
+	clLocalVars.currentKart = undefined;
+
 	for (var j=0;j<items["carapace"].length;j++) {
 		fSprite = items["carapace"][j];
 
@@ -11988,7 +12088,7 @@ function moveDecor() {
 
 function cycle() {
 	if (!pause) {
-		setTimeout(cycle,67);
+		setTimeout(cycle,SPF);
 		runOneFrame();
 	}
 }
