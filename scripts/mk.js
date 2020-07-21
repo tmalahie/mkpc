@@ -540,14 +540,6 @@ if (!pause) {
 	}
 }
 
-var items = {
-	"banane": new Array(),
-	"fauxobjet": new Array(),
-	"carapace": new Array(),
-	"bobomb": new Array(),
-	"carapace-rouge": new Array(),
-	"carapace-bleue": new Array()
-};
 var strPlayer = new Array();
 var oMap;
 var iDificulty = 5, iTeamPlay = selectedTeams;
@@ -1221,6 +1213,7 @@ function loadNewItem(kart,item) {
 }
 function addNewItem(kart,item) {
 	var collection = item.type;
+	item.size = itemBehaviors[collection].size;
 	items[collection].push(item);
 	if ((kart == oPlayers[0]) && clLocalVars.myItems)
 		clLocalVars.myItems.push(item);
@@ -4758,6 +4751,92 @@ function redrawCanvas(i, fCamera) {
 	}
 }
 
+var itemBehaviors = {
+	"banane": {
+		size: 0.67
+	},
+	"fauxobjet": {
+		size: 1
+	},
+	"carapace": {
+		size: 0.67
+	},
+	"bobomb": {
+		size: 1,
+		render: function(fSprite,i) {
+			if (fSprite.cooldown <= 0) {
+				if (!i && (fSprite.size == 1)) {
+					var fLoad;
+					for (var k=0;k<strPlayer.length;k++) {
+						makeSpriteExplode(fSprite,"explosion",k);
+						if (fSprite.sprite[k].div.style.display == "block")
+							fLoad = k;
+					}
+					if (!isOnline && (fLoad != undefined)) {
+						fSprite.sprite[fLoad].img.onload = function() {
+							bCounting = false;
+							fSprite.sprite[fLoad].img.onload = undefined;
+							fSprite.size = 10;
+							reprendre(false);
+							playDistSound({x:fSprite.x,y:fSprite.y},"musics/events/boom.mp3",200);
+						}
+						bCounting = true;
+						pause = true;
+					}
+					else {
+						fSprite.size = 10;
+						playDistSound({x:fSprite.x,y:fSprite.y},"musics/events/boom.mp3",200);
+					}
+				}
+				fSprite.sprite[i].div.style.opacity = 1+fSprite.cooldown/10;
+			}
+		}
+	},
+	"carapace-rouge": {
+		size: 0.67
+	},
+	"carapace-bleue": {
+		size: 1,
+		render: function(fSprite,i) {
+			if (fSprite.cooldown <= 0) {
+				if (!i && fSprite.size == 1) {
+					var fLoad;
+					for (var k=0;k<strPlayer.length;k++) {
+						makeSpriteExplode(fSprite,"explosionB",k);
+						if (fSprite.sprite[k].div.style.display == "block")
+							fLoad = k;
+					}
+					var cible = -1;
+					for (var k=0;k<aKarts.length;k++) {
+						if (aKarts[k].id == fSprite.target) {
+							cible = k;
+							break;
+						}
+					}
+					if (!isOnline && (fLoad != undefined)) {
+						fSprite.sprite[fLoad].img.onload = function() {
+							bCounting = false;
+							fSprite.sprite[fLoad].img.onload = undefined;
+							fSprite.size = 10;
+							reprendre(false);
+							playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
+						}
+						bCounting = true;
+						pause = true;
+					}
+					else {
+						fSprite.size = 10;
+						playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
+					}
+				}
+				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
+			}
+		}
+	}
+}
+var items = {};
+for (var key in itemBehaviors)
+	items[key] = [];
 var decorBehaviors = {
 	taupe:{
 		spin: 20,
@@ -6608,486 +6687,13 @@ function render() {
 				}
 			}
 
-
-			for (var j=0;j<items["banane"].length;j++){
-				fSprite = items["banane"][j];
-				fSprite.sprite[i].render(fCamera, {
-					x: fSprite.x,
-					y: fSprite.y,
-					z: fSprite.z,
-					size: 0.67
-				});
-			}
-
-
-			for (var j=0;j<items["fauxobjet"].length;j++) {
-				fSprite = items["fauxobjet"][j];
-				var fCamX = fSprite.x - posX;
-				var fCamY = fSprite.y - posY;
-
-				var fRotRad = fRotation * Math.PI / 180;
-
-				var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-				var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-				var iDeltaY = -iCamHeight;
-				var iDeltaX = iCamDist + fTransY;
-				var iZ = correctCamZ(fSprite.z, iDeltaX);
-
-				var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight;
-				var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-
-				fSprite.sprite[i].div.style.zIndex = Math.round(10000 - fTransY);
-
-				fSprite.sprite[i].draw(
-					((iWidth/2) + fViewX) * iScreenScale, 
-					(iHeight - iViewY - iZ) * iScreenScale,
-					fFocal / (fFocal + (fTransY)), iZ
-				);
-			}
-
-
-			for (var j=0;j<items["carapace"].length;j++) {
-				fSprite = items["carapace"][j];
-
-				var fNewPosX;
-				var fNewPosY;
-					
-				var fMoveX = 8 * direction(0, fSprite.theta), fMoveY = 8 * direction(1, fSprite.theta);
-				
-				if (!i && fSprite.theta != -1) {
-					fNewPosX = fSprite.x + fMoveX;
-					fNewPosY = fSprite.y + fMoveY;
-
-					for (var k=0;k<oPlayers.length;k++)
-						fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
-				}
-				else {
-					fNewPosX = fSprite.x;
-					fNewPosY = fSprite.y;
-				}
-
-				var fCamX = fSprite.x - posX;
-				var fCamY = fSprite.y - posY;
-
-				var fRotRad = fRotation * Math.PI / 180;
-
-				var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-				var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-				var iDeltaY = -iCamHeight;
-				var iDeltaX = iCamDist + fTransY;
-				var iZ = correctCamZ(fSprite.z,iDeltaX);
-
-				var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight;
-				var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-
-				fSprite.sprite[i].div.style.zIndex = Math.round(10000 - fTransY);
-
-				fSprite.sprite[i].draw(
-					((iWidth/2) + fViewX) * iScreenScale, 
-					(iHeight - iViewY - iZ) * iScreenScale,
-					fFocal / (fFocal + (fTransY)) / 1.5, iZ
-				);
-
-				if (!i) {
-					var roundX1 = fSprite.x;
-					var roundY1 = fSprite.y;
-					var roundX2 = fNewPosX;
-					var roundY2 = fNewPosY;
-
-					if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1) || touche_banane(roundX2, roundY2) || touche_crouge(roundX1, roundY1) || touche_crouge(roundX2, roundY2) || touche_cverte(roundX1, roundY1, [fSprite]) || touche_cverte(roundX2, roundY2, [fSprite])) {
-						detruit(fSprite,true);
-						j--;
-					}
-
-					else if ((fSprite.owner == -1) || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
-						fSprite.x = fNewPosX;
-						fSprite.y = fNewPosY;
-					}
-					else {
-						fSprite.lives--;
-						if (fSprite.lives > 0) {
-							var horizontality = getHorizontality(fSprite.x,fSprite.y, fMoveX,fMoveY);
-							var normalAngle = Math.atan2(-horizontality[1],horizontality[0])*180/Math.PI;
-							var angleToNormal = normalizeAngle(fSprite.theta-normalAngle, 180);
-							fSprite.theta = normalizeAngle(fSprite.theta-2*angleToNormal+180, 360);
-						}
-						else {
-							detruit(fSprite);
-							j--;
-						}
-					}
-				}
-			}
-
-
-			for (var j=0;j<items["carapace-rouge"].length;j++) {
-				fSprite = items["carapace-rouge"][j];
-
-				if (!fSprite.sprite[i].div.style.opacity) {
-
-					var fNewPosX;
-					var fNewPosY;
-
-					for (var l=0;l<2;l++) {
-						if (!i && fSprite.owner != -1) {
-							var fMoveX;
-							var fMoveY;
-
-							if (!l) {
-								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
-							}
-
-							var iLocal = oMap.aipoints[0];
-							if (fSprite.aipoint != -1) {
-								fMoveX = iLocal[fSprite.aipoint][0] - fSprite.x;
-								fMoveY = iLocal[fSprite.aipoint][1] - fSprite.y;
-								var oBox = iLocal[fSprite.aipoint];
-								if (fSprite.x > oBox[0] - 10 && fSprite.x < oBox[0] + 10 && fSprite.y > oBox[1] - 10 && fSprite.y < oBox[1] + 10) {
-									if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
-									else fSprite.aipoint = 0;
-								}
-								var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/5;
-								fMoveX /= fNewMove;
-								fMoveY /= fNewMove;
-							}
-							else {
-								if (course != "BB") {
-									for (var k=0;k<iLocal.length;k++) {
-										var oBox = iLocal[k];
-										if (fSprite.x > oBox[0] - 35 && fSprite.x < oBox[0] + 35 && fSprite.y > oBox[1] - 35 && fSprite.y < oBox[1] + 35) {
-											fSprite.aipoint = k + 1;
-											if (fSprite.aipoint == iLocal.length) fSprite.aipoint = 0;
-											break;
-										}
-									}
-								}
-								fMoveX = 5 * direction(0, fSprite.theta);
-								fMoveY = 5 * direction(1, fSprite.theta);
-							}
-
-							fNewPosX = fSprite.x + fMoveX;
-							fNewPosY = fSprite.y + fMoveY;
-
-							var tCible;
-							var maxDist = 1000;
-
-							for (var k=0;k<aKarts.length;k++) {
-								var pCible = aKarts[k];
-								if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
-									var fDist = Math.pow(pCible.x-fNewPosX, 2) + Math.pow(pCible.y-fNewPosY, 2);
-									if (fDist < maxDist) {
-										fNewPosX = pCible.x;
-										fNewPosY = pCible.y;
-										maxDist = fDist;
-										tCible = pCible;
-									}
-								}
-								if (tCible && tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
-									var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
-									var pi2 = Math.PI*2;
-									while (rAngle < 0)
-										rAngle += pi2;
-									while (rAngle > pi2)
-										rAngle -= pi2;
-									if (rAngle > Math.PI)
-										rAngle = pi2-rAngle;
-									if (Math.abs(rAngle) > 2) {
-										if (isOnline) {
-											detruit(fSprite);
-											j--;
-										}
-										else
-											fSprite.sprite[i].div.style.opacity = 0.8;
-										fNewPosX -= 5 * direction(0,tCible.rotation);
-										fNewPosY -= 5 * direction(1,tCible.rotation);
-										detruit(tCible.using[0],true);
-										l = 1;
-									}
-									else {
-										tCible.using[0][3] -= 2 * direction(0,tCible.rotation);
-										tCible.using[0][4] -= 2 * direction(1,tCible.rotation);
-									}
-								}
-							}
-						}
-						else {
-							fNewPosX = fSprite.x;
-							fNewPosY = fSprite.y;
-						}
-
-						if (i || ((fSprite.owner == -1 || (!tombe(fNewPosX, fNewPosY) && canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite.x, fSprite.y, [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y))) {
-							fSprite.x = fNewPosX;
-							fSprite.y = fNewPosY;
-							if (l) {
-								var fCamX = fSprite.x - posX;
-								var fCamY = fSprite.y - posY;
-
-								var fRotRad = fRotation * Math.PI / 180;
-
-								var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-								var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-								var iDeltaY = -iCamHeight;
-								var iDeltaX = iCamDist + fTransY;
-								var iZ = correctCamZ(fSprite.z,iDeltaX);
-
-								var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight;
-								var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-
-								fSprite.sprite[i].div.style.zIndex = Math.round(10000 - fTransY);
-
-								fSprite.sprite[i].draw(
-									((iWidth/2) + fViewX) * iScreenScale, 
-									(iHeight - iViewY - iZ) * iScreenScale,
-									fFocal / (fFocal + (fTransY)) / 1.5, iZ
-								);
-							}
-						}
-						else if (!i) {
-							if (isOnline) {
-								detruit(fSprite);
-								j--;
-							}
-							else
-								fSprite.sprite[i].div.style.opacity = 0.8;
-							l = 1;
-						}
-					}
-				}
-				else if (!i) {
-					var setOpac = fSprite.sprite[0].div.style.opacity-0.2;
-					for (var k=0;k<strPlayer.length;k++)
-						fSprite.sprite[k].div.style.opacity = setOpac;
-					if (setOpac < 0.01) {
-						detruit(fSprite);
-						j--;
-					}
-				}
-			}
-
-
-			for (var j=0;j<items["carapace-bleue"].length;j++) {
-				fSprite = items["carapace-bleue"][j];
-
-				var fCamX = fSprite.x - posX;
-				var fCamY = fSprite.y - posY;
-
-				var fRotRad = fRotation * Math.PI / 180;
-
-				var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-				var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-				var iDeltaY = -iCamHeight;
-				var iDeltaX = iCamDist + fTransY;
-
-				var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight;
-				var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-				
-				var cible = -1;
-				for (var k=0;k<aKarts.length;k++) {
-					if (aKarts[k].id == fSprite.target) {
-						cible = k;
-						break;
-					}
-				}
-				if (cible == -1) {
-					cible = aKarts.length-1;
-					var cPlace = 1;
-					for (k=0;k<aKarts.length;k++) {
-						if (aKarts[k].place == cPlace) {
-							if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !sameTeam(fSprite.team,aKarts[k].team)) {
-								fSprite.team = aKarts[k].id;
-								cible = k;
-								break;
-							}
-							else {
-								cPlace++;
-								k = -1;
-							}
-						}
-					}
-				}
-
-				var fMoveX = fSprite.x - aKarts[cible].x;
-				var fMoveY = fSprite.y - aKarts[cible].y;
-
-				var size = 1;
-				if (fSprite.cooldown > 0) {
-					if (!i) {
-						if (Math.abs(fMoveX*fMoveY) > 100) {
-							var fNewMove = Math.sqrt(Math.pow(fMoveX,2) + Math.pow(fMoveY,2))/10;
-							fMoveX /= fNewMove;
-							fMoveY /= fNewMove;
-
-							for (var k=0;k<oPlayers.length;k++)
-								fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
-						}
-						else {
-							fSprite.sprite[i].setState(Math.round(Math.random()));
-							fSprite.cooldown--;
-							if (fSprite.cooldown) {
-								fViewX += fSprite.cooldown - 2.5;
-								iViewY -= Math.abs(5-fSprite.cooldown);
-							}
-							else {
-								var fLoad;
-								for (var k=0;k<strPlayer.length;k++) {
-									makeSpriteExplode(fSprite,"explosionB",k);
-									if (fSprite.sprite[k].div.style.display == "block")
-										fLoad = k;
-								}
-								if (!isOnline && (fLoad != undefined)) {
-									fSprite.sprite[fLoad].img.onload = function() {
-										bCounting = false;
-										fSprite.sprite[fLoad].img.onload = undefined;
-										reprendre(false);
-										playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
-									}
-									bCounting = true;
-									pause = true;
-								}
-								else
-									playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
-								fMoveX *= aKarts[cible].speed/2;
-								fMoveY *= aKarts[cible].speed/2;
-								for (var k=0;k<oPlayers.length;k++)
-									fSprite.sprite[k].setState(0);
-								fSprite.sprite[i].div.style.opacity = 1;
-							}
-						}
-
-						fSprite.x -= fMoveX;
-						fSprite.y -= fMoveY;
-					}
-				}
-				else {
-					if (!bCounting)
-						size = 10;
-					if (!i) {
-						if (isOnline && (fSprite.target == oPlayers[0].id) && (fSprite.cooldown < -10))
-							fSprite.cooldown = 0;
-						fSprite.cooldown--;
-						for (var k=0;k<oPlayers.length;k++)
-							fSprite.sprite[k].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
-						var delLimit = (isOnline&&(fSprite.target!=oPlayers[0].id)) ? -70:-10;
-						if (fSprite.cooldown < delLimit) {
-							detruit(fSprite);
-							size = false;
-							j--;
-						}
-					}
-				}
-
-				if (size) {
-
-					fSprite.sprite[i].div.style.zIndex = Math.round(10000 - fTransY);
-
-					fSprite.sprite[i].draw(
-						((iWidth/2) + fViewX) * iScreenScale, 
-						(iHeight - iViewY - (fSprite.cooldown > 0 ? 15 + aKarts[cible].speed : 0)) * iScreenScale,
-						fFocal / (fFocal + (fTransY)) * size
-					);
-				}
-			}
-
-
-			for (var j=0;j<items["bobomb"].length;j++) {
-				fSprite = items["bobomb"][j];
-
-				var fCamX = fSprite.x - posX;
-				var fCamY = fSprite.y - posY;
-
-				var fRotRad = fRotation * Math.PI / 180;
-
-				var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
-				var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
-
-				var iDeltaY = -iCamHeight;
-				var iDeltaX = iCamDist + fTransY;
-
-				var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight;
-				var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
-
-				var size = 1;
-				var hauteur = 0;
-
-				if (fSprite.theta != -1) {
-					if (fSprite.countdown) {
-						if (!i) {
-							fSprite.countdown--;
-							var fMoveX = 15 * direction(0, fSprite.theta);
-							var fMoveY = 15 * direction(1, fSprite.theta);
-
-							var fNewPosX = fSprite.x + fMoveX;
-							var fNewPosY = fSprite.y + fMoveY;
-
-							fSprite.x = fNewPosX;
-							fSprite.y = fNewPosY;
-						}
-						hauteur = fSprite.countdown;
-					}
-					else {
-						if (tombe(Math.round(fSprite.x), Math.round(fSprite.y))) {
-							detruit(fSprite);
-							size = false;
-							j--;
-						}
-						if (!i) {
-							if (--fSprite.cooldown == 30)
-								fSprite.cooldown -= 12;
-						}
-						if (!fSprite.cooldown) {
-							if (!i) {
-								var fLoad;
-								for (var k=0;k<strPlayer.length;k++) {
-									makeSpriteExplode(fSprite,"explosion",k);
-									if (fSprite.sprite[k].div.style.display == "block")
-										fLoad = k;
-								}
-								if (!isOnline && (fLoad != undefined)) {
-									fSprite.sprite[fLoad].img.onload = function() {
-										bCounting = false;
-										fSprite.sprite[fLoad].img.onload = undefined;
-										reprendre(false);
-										playDistSound({x:fSprite.x,y:fSprite.y},"musics/events/boom.mp3",200);
-									}
-									bCounting = true;
-									pause = true;
-								}
-								else
-									playDistSound({x:fSprite.x,y:fSprite.y},"musics/events/boom.mp3",200);
-								fSprite.sprite[i].div.style.opacity = 1;
-							}
-						}
-						if (fSprite.cooldown <= 0) {
-							if (!bCounting)
-								size = 10;
-							if (!i) {
-							for (var k=0;k<oPlayers.length;k++)
-								fSprite.sprite[k].div.style.opacity = 1+fSprite.cooldown/10;
-								if (fSprite.cooldown < -10) {
-									detruit(fSprite);
-									size = false;
-									j--;
-								}
-							}
-						}
-					}
-				}
-				if (size) {
-					fSprite.sprite[i].div.style.zIndex = Math.round(10000 - fTransY);
-
-					var spriteZ = correctCamZ(fSprite.z + (- Math.abs(hauteur-8) + 8) * 2, iDeltaX);
-
-					fSprite.sprite[i].draw(
-						((iWidth/2) + fViewX) * iScreenScale, 
-						(iHeight - iViewY - spriteZ) * iScreenScale,
-						fFocal / (fFocal + (fTransY)) * size,
-						spriteZ
-					);
+			for (var key in items) {
+				for (var j=0;j<items[key].length;j++) {
+					fSprite = items[key][j];
+					var itemBehavior = itemBehaviors[key];
+					if (itemBehavior.render)
+						itemBehavior.render(fSprite,i);
+					fSprite.sprite[i].render(fCamera, fSprite);
 				}
 			}
 
@@ -11999,6 +11605,280 @@ function ai(oKart) {
 		}
 	}
 }
+function moveItems() {
+	for (var j=0;j<items["carapace"].length;j++) {
+		fSprite = items["carapace"][j];
+
+		var fNewPosX;
+		var fNewPosY;
+			
+		var fMoveX = 8 * direction(0, fSprite.theta), fMoveY = 8 * direction(1, fSprite.theta);
+		
+		if (fSprite.theta != -1) {
+			fNewPosX = fSprite.x + fMoveX;
+			fNewPosY = fSprite.y + fMoveY;
+
+			for (var k=0;k<oPlayers.length;k++)
+				fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+		}
+		else {
+			fNewPosX = fSprite.x;
+			fNewPosY = fSprite.y;
+		}
+
+		var roundX1 = fSprite.x;
+		var roundY1 = fSprite.y;
+		var roundX2 = fNewPosX;
+		var roundY2 = fNewPosY;
+
+		if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1) || touche_banane(roundX2, roundY2) || touche_crouge(roundX1, roundY1) || touche_crouge(roundX2, roundY2) || touche_cverte(roundX1, roundY1, [fSprite]) || touche_cverte(roundX2, roundY2, [fSprite])) {
+			detruit(fSprite,true);
+			j--;
+		}
+
+		else if ((fSprite.owner == -1) || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
+			fSprite.x = fNewPosX;
+			fSprite.y = fNewPosY;
+		}
+		else {
+			fSprite.lives--;
+			if (fSprite.lives > 0) {
+				var horizontality = getHorizontality(fSprite.x,fSprite.y, fMoveX,fMoveY);
+				var normalAngle = Math.atan2(-horizontality[1],horizontality[0])*180/Math.PI;
+				var angleToNormal = normalizeAngle(fSprite.theta-normalAngle, 180);
+				fSprite.theta = normalizeAngle(fSprite.theta-2*angleToNormal+180, 360);
+			}
+			else {
+				detruit(fSprite);
+				j--;
+			}
+		}
+	}
+
+
+	for (var j=0;j<items["carapace-rouge"].length;j++) {
+		fSprite = items["carapace-rouge"][j];
+
+		if (!fSprite.sprite[0].div.style.opacity) {
+
+			var fNewPosX;
+			var fNewPosY;
+
+			for (var l=0;l<2;l++) {
+				if (fSprite.owner != -1) {
+					var fMoveX;
+					var fMoveY;
+
+					if (!l) {
+						for (var k=0;k<oPlayers.length;k++)
+							fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+					}
+
+					var iLocal = oMap.aipoints[0];
+					if (fSprite.aipoint != -1) {
+						fMoveX = iLocal[fSprite.aipoint][0] - fSprite.x;
+						fMoveY = iLocal[fSprite.aipoint][1] - fSprite.y;
+						var oBox = iLocal[fSprite.aipoint];
+						if (fSprite.x > oBox[0] - 10 && fSprite.x < oBox[0] + 10 && fSprite.y > oBox[1] - 10 && fSprite.y < oBox[1] + 10) {
+							if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
+							else fSprite.aipoint = 0;
+						}
+						var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/5;
+						fMoveX /= fNewMove;
+						fMoveY /= fNewMove;
+					}
+					else {
+						if (course != "BB") {
+							for (var k=0;k<iLocal.length;k++) {
+								var oBox = iLocal[k];
+								if (fSprite.x > oBox[0] - 35 && fSprite.x < oBox[0] + 35 && fSprite.y > oBox[1] - 35 && fSprite.y < oBox[1] + 35) {
+									fSprite.aipoint = k + 1;
+									if (fSprite.aipoint == iLocal.length) fSprite.aipoint = 0;
+									break;
+								}
+							}
+						}
+						fMoveX = 5 * direction(0, fSprite.theta);
+						fMoveY = 5 * direction(1, fSprite.theta);
+					}
+
+					fNewPosX = fSprite.x + fMoveX;
+					fNewPosY = fSprite.y + fMoveY;
+
+					var tCible;
+					var maxDist = 1000;
+
+					for (var k=0;k<aKarts.length;k++) {
+						var pCible = aKarts[k];
+						if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
+							var fDist = Math.pow(pCible.x-fNewPosX, 2) + Math.pow(pCible.y-fNewPosY, 2);
+							if (fDist < maxDist) {
+								fNewPosX = pCible.x;
+								fNewPosY = pCible.y;
+								maxDist = fDist;
+								tCible = pCible;
+							}
+						}
+						if (tCible && tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
+							var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
+							var pi2 = Math.PI*2;
+							while (rAngle < 0)
+								rAngle += pi2;
+							while (rAngle > pi2)
+								rAngle -= pi2;
+							if (rAngle > Math.PI)
+								rAngle = pi2-rAngle;
+							if (Math.abs(rAngle) > 2) {
+								if (isOnline) {
+									detruit(fSprite);
+									j--;
+								}
+								fNewPosX -= 5 * direction(0,tCible.rotation);
+								fNewPosY -= 5 * direction(1,tCible.rotation);
+								detruit(tCible.using[0],true);
+								l = 1;
+							}
+							else {
+								tCible.using[0][3] -= 2 * direction(0,tCible.rotation);
+								tCible.using[0][4] -= 2 * direction(1,tCible.rotation);
+							}
+						}
+					}
+				}
+				else {
+					fNewPosX = fSprite.x;
+					fNewPosY = fSprite.y;
+				}
+
+				if ((fSprite.owner == -1 || (!tombe(fNewPosX, fNewPosY) && canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite.x, fSprite.y, [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
+					fSprite.x = fNewPosX;
+					fSprite.y = fNewPosY;
+				}
+				else {
+					if (isOnline) {
+						detruit(fSprite);
+						j--;
+					}
+					l = 1;
+				}
+			}
+		}
+		else {
+			var setOpac = fSprite.sprite[0].div.style.opacity-0.2;
+			for (var k=0;k<strPlayer.length;k++)
+				fSprite.sprite[k].div.style.opacity = setOpac;
+			if (setOpac < 0.01) {
+				detruit(fSprite);
+				j--;
+			}
+		}
+	}
+
+
+	for (var j=0;j<items["carapace-bleue"].length;j++) {
+		fSprite = items["carapace-bleue"][j];
+		
+		var cible = -1;
+		for (var k=0;k<aKarts.length;k++) {
+			if (aKarts[k].id == fSprite.target) {
+				cible = k;
+				break;
+			}
+		}
+		if (cible == -1) {
+			cible = aKarts.length-1;
+			var cPlace = 1;
+			for (k=0;k<aKarts.length;k++) {
+				if (aKarts[k].place == cPlace) {
+					if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !sameTeam(fSprite.team,aKarts[k].team)) {
+						fSprite.team = aKarts[k].id;
+						cible = k;
+						break;
+					}
+					else {
+						cPlace++;
+						k = -1;
+					}
+				}
+			}
+		}
+
+		var fMoveX = fSprite.x - aKarts[cible].x;
+		var fMoveY = fSprite.y - aKarts[cible].y;
+
+		if (fSprite.cooldown > 0) {
+			if (Math.abs(fMoveX*fMoveY) > 100) {
+				var fNewMove = Math.sqrt(Math.pow(fMoveX,2) + Math.pow(fMoveY,2))/10;
+				fMoveX /= fNewMove;
+				fMoveY /= fNewMove;
+
+				for (var k=0;k<oPlayers.length;k++)
+					fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+			}
+			else {
+				for (var k=0;k<oPlayers.length;k++)
+					fSprite.sprite[k].setState(Math.round(Math.random()));
+				fSprite.cooldown--;
+				if (!fSprite.cooldown) {
+					fMoveX *= aKarts[cible].speed/2;
+					fMoveY *= aKarts[cible].speed/2;
+					for (var k=0;k<oPlayers.length;k++)
+						fSprite.sprite[k].setState(0);
+				}
+			}
+
+			fSprite.x -= fMoveX;
+			fSprite.y -= fMoveY;
+			fSprite.z = 15;
+		}
+		else {
+			fSprite.z = 0;
+			if (isOnline && (fSprite.target == oPlayers[0].id) && (fSprite.cooldown < -10))
+				fSprite.cooldown = 0;
+			fSprite.cooldown--;
+			var delLimit = (isOnline&&(fSprite.target!=oPlayers[0].id)) ? -70:-10;
+			if (fSprite.cooldown < delLimit) {
+				detruit(fSprite);
+				j--;
+			}
+		}
+	}
+
+
+	for (var j=0;j<items["bobomb"].length;j++) {
+		fSprite = items["bobomb"][j];
+
+		var hauteur = 0;
+
+		if (fSprite.theta != -1) {
+			if (fSprite.countdown) {
+				fSprite.countdown--;
+				var fMoveX = 15 * direction(0, fSprite.theta);
+				var fMoveY = 15 * direction(1, fSprite.theta);
+
+				var fNewPosX = fSprite.x + fMoveX;
+				var fNewPosY = fSprite.y + fMoveY;
+
+				fSprite.x = fNewPosX;
+				fSprite.y = fNewPosY;
+				hauteur = fSprite.countdown;
+			}
+			else {
+				if (tombe(Math.round(fSprite.x), Math.round(fSprite.y))) {
+					detruit(fSprite);
+					j--;
+				}
+				if (--fSprite.cooldown == 30)
+					fSprite.cooldown -= 12;
+				if (fSprite.cooldown < -10) {
+					detruit(fSprite);
+					j--;
+				}
+			}
+			fSprite.z = (-Math.abs(hauteur-8) + 8) * 2;
+		}
+	}
+}
 function moveDecor() {
 	decorPos = {};
 	for (var type in oMap.decor) {
@@ -12189,6 +12069,7 @@ function runOneFrame() {
 		for (var i=0;i<aKarts.length;i++)
 			places(i);
 	}
+	moveItems();
 	moveDecor();
 	if (!oPlayers[0].cpu) {
 		if (clSelected && !clSelectionFail) {
