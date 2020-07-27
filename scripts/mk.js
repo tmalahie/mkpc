@@ -134,8 +134,10 @@ var SPF = 67;
 var iRendering = optionOf("quality");
 var iQuality, iSmooth;
 resetQuality();
-var bMusic = !!optionOf("music");
-var iSfx = !!optionOf("sfx");
+var iSound = optionOf("sound");
+var bMusic = iSound & 1;
+var iSfx = iSound & 2;
+var iFps = optionOf("fps");
 var gameMenu;
 var primaryColor = "#FEFF3F";
 
@@ -334,16 +336,19 @@ function reposKeyboard() {
 	document.getElementById("virtualkeyboard").style.top = (iScreenScale*40) +"px";
 }
 
-function setMusic(iValue) {
-	bMusic = !!iValue;
+function setSound(iValue) {
+	iSound = iValue;
+	bMusic = iSound & 1;
+	iSfx = iSound & 2;
 	if (gameMenu != -1)
 		updateMenuMusic(gameMenu, true);
 	xhr("changeParam.php", "param=2&value="+ iValue, function(reponse) {
 		return (reponse == 1);
 	});
 }
-function setSfx(iValue) {
-	iSfx = !!iValue;
+
+function setFps(iValue) {
+	iFps = iValue;
 	xhr("changeParam.php", "param=3&value="+ iValue, function(reponse) {
 		return (reponse == 1);
 	});
@@ -987,8 +992,8 @@ function loadMap() {
 		updateCtnFullScreen(false);
 	formulaire.screenscale.disabled = true;
 	formulaire.quality.disabled = true;
-	formulaire.music.disabled = true;
-	formulaire.sfx.disabled = true;
+	formulaire.sound.disabled = true;
+	formulaire.fps.disabled = true;
 
 	iTeamPlay = isTeamPlay();
 
@@ -6546,15 +6551,9 @@ function getDecorActualType(self) {
 	return self.type;
 }
 
-function getApparentRotation(oPlayer, autorotate) {
+function getApparentRotation(oPlayer) {
 	var res = oPlayer.rotation;
 	var changeView = oPlayer.changeView;
-		 
-	if (oPlayer.tours == (oMap.tours+1) && changeView < 180) {
-		changeView += 15;
-		if (autorotate)
-			oPlayer.changeView = changeView;
-	}
  
 	if (changeView)
 		res += (res < 360-changeView ? changeView : changeView-360);
@@ -6563,7 +6562,13 @@ function getApparentRotation(oPlayer, autorotate) {
 
 var lastState;
 function getLastObj(lastObjs,i,currentObj) {
-	return lastObjs[i] || currentObj;
+	if (lastObjs[i] && lastObjs[i].ref === currentObj.ref)
+		return lastObjs[i];
+	for (var j=0;j<lastObjs.length;j++) {
+		if (lastObjs[j].ref === currentObj.ref)
+			return lastObjs[j];
+	}
+	return currentObj;
 }
 function interpolateState(x1,x2,tFrame) {
 	return x1*(1-tFrame) + x2*tFrame;
@@ -6586,6 +6591,7 @@ function render() {
 			y: oKart.y,
 			z: oKart.z,
 			rotation: oKart.rotation,
+			changeView: oKart.changeView||0,
 			size: oKart.size
 		});
 	}
@@ -6618,65 +6624,73 @@ function render() {
 	}
 	if (!lastState) lastState = currentState;
 
-	var nbFrames = 4;
+	var nbFrames = iFps;
 
 	function renderFrame(frame) {
 		var tFrame = frame/nbFrames;
 		var lastFrame = (tFrame == 1);
-		var frameState = {
-			karts: [],
-			players: [],
-			decor: {},
-			items: {}
-		};
-		for (var i=0;i<currentState.karts.length;i++) {
-			var currentObj = currentState.karts[i];
-			var lastObj = getLastObj(lastState.karts,i,currentObj);
-			frameState.karts.push({
-				ref: currentObj.ref,
-				x: interpolateState(lastObj.x,currentObj.x,tFrame),
-				y: interpolateState(lastObj.y,currentObj.y,tFrame),
-				z: interpolateState(lastObj.z,currentObj.z,tFrame),
-				rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
-				size: interpolateState(lastObj.size,currentObj.size,tFrame)
-			});
+		var frameState;
+		if (nbFrames == 1) {
+			frameState = currentState;
+			frameState.players = [];
 		}
-		for (var i=0;i<oPlayers.length;i++)
-			frameState.players.push(frameState.karts[i]);
-		for (var type in currentState.decor) {
-			frameState.decor[type] = [];
-			for (var i=0;i<currentState.decor[type].length;i++) {
-				var currentObj = currentState.decor[type][i];
-				var lastObj = getLastObj(lastState.decor[type],i,currentObj);
-				frameState.decor[type].push({
+		else {
+			frameState = {
+				karts: [],
+				players: [],
+				decor: {},
+				items: {}
+			};
+			for (var i=0;i<currentState.karts.length;i++) {
+				var currentObj = currentState.karts[i];
+				var lastObj = getLastObj(lastState.karts,i,currentObj);
+				frameState.karts.push({
 					ref: currentObj.ref,
 					x: interpolateState(lastObj.x,currentObj.x,tFrame),
 					y: interpolateState(lastObj.y,currentObj.y,tFrame),
 					z: interpolateState(lastObj.z,currentObj.z,tFrame),
-				});
-			}
-		}
-		for (var type in currentState.items) {
-			frameState.items[type] = [];
-			for (var i=0;i<currentState.items[type].length;i++) {
-				var currentObj = currentState.items[type][i];
-				var lastObj = getLastObj(lastState.items[type],i,currentObj);
-				frameState.items[type].push({
-					ref: currentObj.ref,
-					x: interpolateState(lastObj.x,currentObj.x,tFrame),
-					y: interpolateState(lastObj.y,currentObj.y,tFrame),
-					z: interpolateState(lastObj.z,currentObj.z,tFrame),
+					rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
+					changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
 					size: interpolateState(lastObj.size,currentObj.size,tFrame)
 				});
 			}
+			for (var type in currentState.decor) {
+				frameState.decor[type] = [];
+				for (var i=0;i<currentState.decor[type].length;i++) {
+					var currentObj = currentState.decor[type][i];
+					var lastObj = getLastObj(lastState.decor[type],i,currentObj);
+					frameState.decor[type].push({
+						ref: currentObj.ref,
+						x: interpolateState(lastObj.x,currentObj.x,tFrame),
+						y: interpolateState(lastObj.y,currentObj.y,tFrame),
+						z: interpolateState(lastObj.z,currentObj.z,tFrame),
+					});
+				}
+			}
+			for (var type in currentState.items) {
+				frameState.items[type] = [];
+				for (var i=0;i<currentState.items[type].length;i++) {
+					var currentObj = currentState.items[type][i];
+					var lastObj = getLastObj(lastState.items[type],i,currentObj);
+					frameState.items[type].push({
+						ref: currentObj.ref,
+						x: interpolateState(lastObj.x,currentObj.x,tFrame),
+						y: interpolateState(lastObj.y,currentObj.y,tFrame),
+						z: interpolateState(lastObj.z,currentObj.z,tFrame),
+						size: interpolateState(lastObj.size,currentObj.size,tFrame)
+					});
+				}
+			}
 		}
+		for (var i=0;i<oPlayers.length;i++)
+			frameState.players.push(frameState.karts[i]);
 		for (var i=0;i<frameState.players.length;i++) {
 			if (frameState.players[i].ref.tombe <= 10) {
 				var oPlayer = frameState.players[i];
 
 				var posX = oPlayer.x;
 				var posY = oPlayer.y;
-				var fRotation = oPlayer.rotation; // TODO getApparentRotation(oPlayers[i], true);
+				var fRotation = getApparentRotation(oPlayer);
 				//posX = aKarts[1].x;
 				//posY = aKarts[1].y;
 				//fRotation = aKarts[1].rotation;
@@ -6688,11 +6702,7 @@ function render() {
 
 				redrawCanvas(i, fCamera);
 
-				var iOffsetZ = correctZ(oPlayer.z);
-				var iOffsetX = (iWidth/2)*iScreenScale;
-				var iOffsetY = (iHeight - iViewYOffset - iOffsetZ)*iScreenScale;
 				var fSprite;
-
 
 				for (var j=0;j<frameState.karts.length;j++) {
 					fSprite = frameState.karts[j];
@@ -6711,7 +6721,7 @@ function render() {
 							});
 						}
 					}
-					if (fSprite != frameState.players[i]) {
+					if (fSprite.ref != frameState.players[i]) {
 						var fAngle = fRotation - fSprite.rotation;
 						while (fAngle < 0)
 							fAngle += 360;
@@ -6813,14 +6823,18 @@ function render() {
 			}
 		}
 	}
-	for (var i=0;i<nbFrames;i++) {
-		(function(i) {
-			setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
-		})(i);
+	if (nbFrames == 1)
+		renderFrame(1);
+	else {
+		for (var i=0;i<nbFrames;i++) {
+			(function(i) {
+				setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
+			})(i);
+		}
+		setTimeout(function() {
+			lastState = currentState;
+		}, 1+SPF*(nbFrames-1)/nbFrames);
 	}
-	setTimeout(function() {
-		lastState = currentState;
-	}, 1+SPF*(nbFrames-1)/nbFrames);
 }
 function makeSpriteExplode(fSprite,src,k) {
 	switch (fSprite[2]) {
@@ -9603,32 +9617,40 @@ function move(getId) {
 	collisionTeam = (oKart.team==-1) ? undefined:oKart.team;
 	clLocalVars.currentKart = oKart;
 	var oKart = aKarts[getId];
-	if ((getId<strPlayer.length) && !oKart.cpu && !finishing) {
-		showTimer(timer*SPF);
-		if (!getId)
-			timer++;
+	if ((getId<strPlayer.length)) {
+		if (!oKart.cpu && !finishing) {
+			showTimer(timer*SPF);
+			if (!getId)
+				timer++;
 
-		if (oKart.time) {
-			oKart.time--;
-			document.getElementById("lakitu"+getId).style.left = Math.round(iScreenScale * (20-oKart.time/5))+"px";
-			document.getElementById("lakitu"+getId).style.top = Math.round((-(Math.abs(oKart.time - 20)) + 18) * (iScreenScale - 2)) +"px";
+			if (oKart.time) {
+				oKart.time--;
+				document.getElementById("lakitu"+getId).style.left = Math.round(iScreenScale * (20-oKart.time/5))+"px";
+				document.getElementById("lakitu"+getId).style.top = Math.round((-(Math.abs(oKart.time - 20)) + 18) * (iScreenScale - 2)) +"px";
 
-			if (oKart.time && !oPlayers[getId].changeView)
-				document.getElementById("lakitu"+getId).style.display = "block";
-			else
-				document.getElementById("lakitu"+getId).style.display = "none";
+				if (oKart.time && !oPlayers[getId].changeView)
+					document.getElementById("lakitu"+getId).style.display = "block";
+				else
+					document.getElementById("lakitu"+getId).style.display = "none";
 
-			if (oLapTimeDiv) {
-				if (oKart.time < 25) {
-					if (oKart.time < 5) {
-						oContainers[0].removeChild(oLapTimeDiv);
-						oLapTimeDiv = undefined;
-					}
-					else {
-						oLapTimeDiv.style.visibility = ((oKart.time%6)<4) ? "visible":"hidden";
+				if (oLapTimeDiv) {
+					if (oKart.time < 25) {
+						if (oKart.time < 5) {
+							oContainers[0].removeChild(oLapTimeDiv);
+							oLapTimeDiv = undefined;
+						}
+						else {
+							oLapTimeDiv.style.visibility = ((oKart.time%6)<4) ? "visible":"hidden";
+						}
 					}
 				}
 			}
+		}
+		else if (oKart.tours == (oMap.tours+1)) {
+			if (!oKart.changeView)
+				oKart.changeView = 0;
+			if (oKart.changeView < 180)
+				oKart.changeView += 15;
 		}
 	}
 
@@ -16244,8 +16266,8 @@ function choose(map,rand) {
 							removeGameMusics();
 							formulaire.screenscale.disabled = false;
 							formulaire.quality.disabled = false;
-							formulaire.music.disabled = false;
-							formulaire.sfx.disabled = false;
+							formulaire.sound.disabled = false;
+							formulaire.fps.disabled = false;
 							chatting = false;
 							searchCourse();
 							return false;
@@ -16307,8 +16329,8 @@ function choose(map,rand) {
 
 	formulaire.screenscale.disabled = true;
 	formulaire.quality.disabled = true;
-	formulaire.music.disabled = true;
-	formulaire.sfx.disabled = true;
+	formulaire.sound.disabled = true;
+	formulaire.fps.disabled = true;
 
 	if (bMusic) {
 		startMusicHandler = setInterval(function() {
@@ -16699,8 +16721,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			removeGameMusics();
 			formulaire.screenscale.disabled = false;
 			formulaire.quality.disabled = false;
-			formulaire.music.disabled = false;
-			formulaire.sfx.disabled = false;
+			formulaire.sound.disabled = false;
+			formulaire.fps.disabled = false;
 			chatting = false;
 			searchCourse();
 			return false;
@@ -18050,8 +18072,8 @@ formulaire = document.forms.modes;
 if (pause) {
 	formulaire.screenscale.disabled = false;
 	formulaire.quality.disabled = false;
-	formulaire.music.disabled = false;
-	formulaire.sfx.disabled = false;
+	formulaire.sound.disabled = false;
+	formulaire.fps.disabled = false;
 	if (isSingle && !isOnline)
 		choose(1);
 	else if (fInfos.map != undefined)
@@ -18084,16 +18106,19 @@ else {
 		[12, toLanguage("Very large","Tr&egrave;s large")],
 		[-1, toLanguage("Full (F11)","Plein (F11)")]
 	], (+$mkScreen.dataset.lastsc)||iScreenScale);
-	addOption("pMusic", toLanguage("Music","Musique"),
-	"vMusic", "music", [
+	addOption("pSound", toLanguage("Sounds","Sons"),
+	"vSound", "sound", [
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;e")],
-		[1, toLanguage("On","Activ&eacute;e")]
+		[1, toLanguage("Music","Musique")],
+		[2, toLanguage("Sound effects","Bruitages")],
+		[3, toLanguage("All","Tout")]
 	], bMusic);
-	addOption("pSfx", toLanguage("Sound effects","Bruitages"),
-	"vSfx", "sfx", [
-		[0, toLanguage("Off","D&eacute;sactiv&eacute;s")],
-		[1, toLanguage("On","Activ&eacute;s")]
-	], iSfx);
+	addOption("pFps", toLanguage("Frame Rate","FPS"),
+	"vFps", "fps", [
+		[1, "15 FPS","D&eacute;sactiv&eacute;s"],
+		[2, "30 FPS","Activ&eacute;s"],
+		[4, "60 FPS","Activ&eacute;s"]
+	], iFps);
 	selectMainPage();
 	
 	if (!window.turnEvents) {
@@ -18129,13 +18154,13 @@ else {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setScreenScale(iValue);
 	}
-	formulaire.music.onchange = function() {
+	formulaire.sound.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
-		MarioKartControl.setMusic(iValue);
+		MarioKartControl.setSound(iValue);
 	}
-	formulaire.sfx.onchange = function() {
+	formulaire.fps.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
-		MarioKartControl.setSfx(iValue);
+		MarioKartControl.setFps(iValue);
 	}
 	if (!window.fsevent) {
 		window.fsevent = function(e) {
@@ -18487,11 +18512,11 @@ window.MarioKartControl = {
 	setScreenScale : function(iValue) {
 		 setScreenScale(iValue);
 	},
-	setMusic : function(iValue) {
-		setMusic(iValue);
+	setSound : function(iValue) {
+		setSound(iValue);
 	},
-	setSfx : function(iValue) {
-		setSfx(iValue);
+	setFps : function(iValue) {
+		setFps(iValue);
 	}
 };
 
