@@ -338,9 +338,10 @@ function reposKeyboard() {
 
 function setSound(iValue) {
 	iSound = iValue;
+	var aMusic = bMusic;
 	bMusic = iSound & 1;
 	iSfx = iSound & 2;
-	if (gameMenu != -1)
+	if ((bMusic != aMusic) && (gameMenu != -1))
 		updateMenuMusic(gameMenu, true);
 	xhr("changeParam.php", "param=2&value="+ iValue, function(reponse) {
 		return (reponse == 1);
@@ -3121,7 +3122,7 @@ function startGame() {
 								if (oKart.tombe) {
 									oKart.tombe--;
 									if (!oKart.tombe)
-										oKart.sprite[0].img.style.display = "block";
+										resetFall(oKart);
 									if (!i)
 										oContainers[0].style.opacity = Math.abs(oKart.tombe-10)/10;
 								}
@@ -3270,7 +3271,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3307,7 +3308,7 @@ function startGame() {
 			showTeam(tnCountdown);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -6577,6 +6578,9 @@ function interpolateStateAngle(x1,x2,tFrame) {
 	x1 = nearestAngle(x1,x2, 360);
 	return interpolateState(x1,x2,tFrame);
 }
+function interpolateStateRound(x1,x2,tFrame) {
+	return Math.round(interpolateState(x1,x2,tFrame));
+}
 function render() {
 	var currentState = {
 		karts: [],
@@ -6592,7 +6596,12 @@ function render() {
 			z: oKart.z,
 			rotation: oKart.rotation,
 			changeView: oKart.changeView||0,
-			size: oKart.size
+			size: oKart.size,
+			tourne: oKart.tourne,
+			figstate: oKart.figstate||0,
+			time: oKart.time,
+			roulette: oKart.roulette,
+			tombe: oKart.tombe
 		});
 	}
 	if (oMap.decor) {
@@ -6644,6 +6653,14 @@ function render() {
 			for (var i=0;i<currentState.karts.length;i++) {
 				var currentObj = currentState.karts[i];
 				var lastObj = getLastObj(lastState.karts,i,currentObj);
+				if (!currentObj.ref.progressiveView)
+					lastObj.changeView = currentObj.changeView;
+				if (currentObj.tombe && !lastObj.tombe)
+					lastObj.tombe = currentObj.tombe;
+				if (currentObj.figstate && !lastObj.figstate)
+					lastObj.figstate = currentObj.figstate;
+				if (currentObj.tourne && !lastObj.tourne)
+					lastObj.tourne = currentObj.tourne;
 				frameState.karts.push({
 					ref: currentObj.ref,
 					x: interpolateState(lastObj.x,currentObj.x,tFrame),
@@ -6651,7 +6668,12 @@ function render() {
 					z: interpolateState(lastObj.z,currentObj.z,tFrame),
 					rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
 					changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
-					size: interpolateState(lastObj.size,currentObj.size,tFrame)
+					size: interpolateState(lastObj.size,currentObj.size,tFrame),
+					tourne: interpolateStateRound(lastObj.tourne,currentObj.tourne,tFrame),
+					figstate: interpolateStateRound(lastObj.figstate,currentObj.figstate,tFrame),
+					time: interpolateState(lastObj.time,currentObj.time,tFrame),
+					roulette: interpolateState(lastObj.roulette,currentObj.roulette,tFrame),
+					tombe: interpolateState(lastObj.tombe,currentObj.tombe,tFrame)
 				});
 			}
 			for (var type in currentState.decor) {
@@ -6682,158 +6704,196 @@ function render() {
 				}
 			}
 		}
+		if (lastFrame)
+			lastState = currentState;
 		for (var i=0;i<oPlayers.length;i++)
 			frameState.players.push(frameState.karts[i]);
 		for (var i=0;i<frameState.players.length;i++) {
-			if (frameState.players[i].ref.tombe <= 10) {
-				var oPlayer = frameState.players[i];
+			var oPlayer = frameState.players[i];
 
-				var posX = oPlayer.x;
-				var posY = oPlayer.y;
-				var fRotation = getApparentRotation(oPlayer);
-				//posX = aKarts[1].x;
-				//posY = aKarts[1].y;
-				//fRotation = aKarts[1].rotation;
-				var fCamera = {
-					x: posX,
-					y: posY,
-					rotation: fRotation
-				};
-
-				redrawCanvas(i, fCamera);
-
-				var fSprite;
-
-				for (var j=0;j<frameState.karts.length;j++) {
-					fSprite = frameState.karts[j];
-					fSprite.ref.sprite[i].render(fCamera, fSprite);
-
-					if (course == "BB") {
-						var nbBallons = fSprite.ref.ballons.length;
-						var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.sprite[i].h-32)/5));
-						var fShift = 2.5;
-						for (k=0;k<nbBallons;k++) {
-							fSprite.ref.ballons[k][i].render(fCamera, {
-								x: fSprite.x-(k+0.5-nbBallons/2)*fShift*direction(1,fRotation),
-								y: fSprite.y+(k+0.5-nbBallons/2)*fShift*direction(0,fRotation),
-								z: fHauteur,
-								size: fTaille
-							});
-						}
+			var posX = oPlayer.x;
+			var posY = oPlayer.y;
+			var fRotation = getApparentRotation(oPlayer);
+			if (oPlayer.tombe) {
+				if (oPlayer.tombe > 10) {
+					if (oPlayer.tombe == 20 && !lastFrame) {
+						posX = interpolateState(lastState.karts[i].x,oPlayer.ref.aX, tFrame);
+						posY = interpolateState(lastState.karts[i].y,oPlayer.ref.aY, tFrame);
+						oPlayer.x = posX;
+						oPlayer.y = posY;
+						oPlayer.z = 0;
+						oPlayer.rotation = oPlayer.ref.aRotation;
+						oPlayer.ref.sprite[i].img.style.opacity = 1-tFrame;
+						fRotation = getApparentRotation(oPlayer);
 					}
-					if (fSprite.ref != frameState.players[i]) {
-						var fAngle = fRotation - fSprite.rotation;
-						while (fAngle < 0)
-							fAngle += 360;
-						while (fAngle > 360)
-							fAngle -= 360;
-
-						var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.ref.tourne % 21;
-						if (iAngleStep > 21) iAngleStep -= 22;
-
-						if (fSprite.ref.figstate)
-							iAngleStep = (iAngleStep + 21-fSprite.ref.figstate) % 21;
-
-						fSprite.ref.sprite[i].setState(iAngleStep);
-
-						if (fSprite.ref.marker && !fSprite.ref.loose && !fSprite.ref.tombe)
-							fSprite.ref.marker.render(i, fCamera, fSprite);
+					else {
+						posX = oPlayer.ref.aX;
+						posY = oPlayer.ref.aY;
+						fRotation = oPlayer.ref.aRotation;
 					}
 				}
-
-
-				for (var j=0;j<oMap.arme.length;j++) {
-					fSprite = oMap.arme[j];
-					if (isNaN(fSprite[2])) {
-						fSprite[2][i].render(fCamera, {
-							x: fSprite[0],
-							y: fSprite[1]
-						});
-					}
-					else if (!i && lastFrame) {
-						if (fSprite[2])fSprite[2]--;
-						else fSprite[2] = new Sprite("objet");
-					}
-				}
-
-				if (oMap.coins) {
-					for (var j=0;j<oMap.coins.length;j++) {
-						// TODO handle FPS feature
-						fSprite = oMap.coins[j];
-						fSprite.sprite[i].render(fCamera, {
-							x: fSprite.x,
-							y: fSprite.y
-						});
-					}
-				}
-
-				for (var type in frameState.decor) {
-					for (var j=0;j<frameState.decor[type].length;j++) {
-						fSprite = frameState.decor[type][j];
-						if (fSprite.ref[2][0].unshown) continue;
-						fSprite.ref[2][i].render(fCamera, {
-							x: fSprite.x,
-							y: fSprite.y,
-							z: fSprite.z,
-							size: 1.2
-						});
-					}
-				}
-
-				for (var key in frameState.items) {
-					for (var j=0;j<frameState.items[key].length;j++) {
-						fSprite = frameState.items[key][j];
-						if (lastFrame) {
-							var itemBehavior = itemBehaviors[key];
-							if (itemBehavior.render)
-								itemBehavior.render(fSprite.ref,i);
-						}
-						fSprite.ref.sprite[i].render(fCamera, fSprite);
-					}
-				}
-
-				if (lastFrame) {
-					for (var j=0;j<aKarts.length;j++) {
-						var oKart = aKarts[j];
-						var oSprite = oKart.sprite[i];
-						if (oKart.figstate > 0 && oKart.figuring) {
-							if (!oSprite.div.hallowed) {
-								oSprite.div.hallowed = true;
-								oSprite.div.style.backgroundImage = "url('images/halo.png')";
-								oSprite.div.style.backgroundRepeat = "no-repeat";
-								oSprite.div.style.backgroundSize = "contain";
-								oSprite.img.style.opacity = 0.7;
-							}
-						}
-						else if (oSprite.div.hallowed) {
-							oSprite.div.hallowed = false;
-							oSprite.div.style.backgroundImage = "";
-							oSprite.div.style.backgroundRepeat = "";
-							oSprite.div.style.backgroundSize = "";
-							oSprite.img.style.opacity = 1;
-						}
-					}
-				}
-
-				for (var j=0;j<oBgLayers.length;j++)
-					oBgLayers[j].draw(fRotation, i);
-
-				if ((strPlayer.length == 1) && !gameSettings.nomap)
-					setPlanPos();
+				oContainers[i].style.opacity = Math.abs(oPlayer.tombe-10)/10;
 			}
+			//posX = aKarts[1].x;
+			//posY = aKarts[1].y;
+			//fRotation = aKarts[1].rotation;
+			var fCamera = {
+				x: posX,
+				y: posY,
+				rotation: fRotation
+			};
+
+			redrawCanvas(i, fCamera);
+
+			if (oPlayer.time) {
+				document.getElementById("lakitu"+i).style.left = Math.round(iScreenScale * (20-oPlayer.time/5))+"px";
+				document.getElementById("lakitu"+i).style.top = Math.round((-(Math.abs(oPlayer.time - 20)) + 18) * (iScreenScale - 2)) +"px";
+			}
+			if (oPlayer.roulette && oPlayer.roulette < 25) {
+				var rTurner = document.getElementById("scroller"+i).getElementsByTagName("div")[0];
+				var rHeight = +rTurner.dataset.h;
+				var rSize = +rTurner.dataset.s;
+				var nTop = (parseInt(rTurner.style.top) + Math.round(iScreenScale*3/nbFrames));
+				if (nTop > 0)
+					nTop += rSize-rHeight;
+				rTurner.style.top = nTop +"px";
+			}
+
+			var fSprite;
+
+			for (var j=0;j<frameState.karts.length;j++) {
+				fSprite = frameState.karts[j];
+				fSprite.ref.sprite[i].render(fCamera, fSprite);
+
+				if (course == "BB") {
+					var nbBallons = fSprite.ref.ballons.length;
+					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.sprite[i].h-32)/5));
+					var fShift = 2.5;
+					for (k=0;k<nbBallons;k++) {
+						fSprite.ref.ballons[k][i].render(fCamera, {
+							x: fSprite.x-(k+0.5-nbBallons/2)*fShift*direction(1,fRotation),
+							y: fSprite.y+(k+0.5-nbBallons/2)*fShift*direction(0,fRotation),
+							z: fHauteur,
+							size: fTaille
+						});
+					}
+				}
+				var fAngle = fRotation - fSprite.rotation;
+				while (fAngle < 0)
+					fAngle += 360;
+				while (fAngle > 360)
+					fAngle -= 360;
+
+				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
+				if (iAngleStep > 21) iAngleStep -= 22;
+
+				if (!fSprite.changeView) {
+					if (fSprite.figstate)
+						iAngleStep = (iAngleStep + 21-fSprite.figstate) % 21;
+					else if (fSprite.ref.driftinc)
+						iAngleStep = (fSprite.ref.driftinc>0) ? 18:4;
+					else if (fSprite == frameState.players[i]) {
+						if (fSprite.ref.rotincdir && !fSprite.tourne)
+							iAngleStep = (fSprite.ref.rotincdir > 0) ? 23:22;
+						else if (!fSprite.tourne)
+							iAngleStep = 0;
+					}
+				}
+
+				fSprite.ref.sprite[i].setState(iAngleStep);
+
+				if (fSprite != frameState.players[i]) {
+					if (fSprite.ref.marker && !fSprite.ref.loose && !fSprite.ref.tombe)
+						fSprite.ref.marker.render(i, fCamera, fSprite);
+				}
+			}
+
+
+			for (var j=0;j<oMap.arme.length;j++) {
+				fSprite = oMap.arme[j];
+				if (isNaN(fSprite[2])) {
+					fSprite[2][i].render(fCamera, {
+						x: fSprite[0],
+						y: fSprite[1]
+					});
+				}
+				else if (!i && lastFrame) {
+					if (fSprite[2])fSprite[2]--;
+					else fSprite[2] = new Sprite("objet");
+				}
+			}
+
+			if (oMap.coins) {
+				for (var j=0;j<oMap.coins.length;j++) {
+					// TODO handle FPS feature
+					fSprite = oMap.coins[j];
+					fSprite.sprite[i].render(fCamera, {
+						x: fSprite.x,
+						y: fSprite.y
+					});
+				}
+			}
+
+			for (var type in frameState.decor) {
+				for (var j=0;j<frameState.decor[type].length;j++) {
+					fSprite = frameState.decor[type][j];
+					if (fSprite.ref[2][0].unshown) continue;
+					fSprite.ref[2][i].render(fCamera, {
+						x: fSprite.x,
+						y: fSprite.y,
+						z: fSprite.z,
+						size: 1.2
+					});
+				}
+			}
+
+			for (var key in frameState.items) {
+				for (var j=0;j<frameState.items[key].length;j++) {
+					fSprite = frameState.items[key][j];
+					if (lastFrame) {
+						var itemBehavior = itemBehaviors[key];
+						if (itemBehavior.render)
+							itemBehavior.render(fSprite.ref,i);
+					}
+					fSprite.ref.sprite[i].render(fCamera, fSprite);
+				}
+			}
+
+			if (lastFrame) {
+				for (var j=0;j<aKarts.length;j++) {
+					var oKart = aKarts[j];
+					var oSprite = oKart.sprite[i];
+					if (oKart.figstate > 0 && oKart.figuring) {
+						if (!oSprite.div.hallowed) {
+							oSprite.div.hallowed = true;
+							oSprite.div.style.backgroundImage = "url('images/halo.png')";
+							oSprite.div.style.backgroundRepeat = "no-repeat";
+							oSprite.div.style.backgroundSize = "contain";
+							oSprite.img.style.opacity = 0.7;
+						}
+					}
+					else if (oSprite.div.hallowed) {
+						oSprite.div.hallowed = false;
+						oSprite.div.style.backgroundImage = "";
+						oSprite.div.style.backgroundRepeat = "";
+						oSprite.div.style.backgroundSize = "";
+						oSprite.img.style.opacity = 1;
+					}
+				}
+			}
+
+			for (var j=0;j<oBgLayers.length;j++)
+				oBgLayers[j].draw(fRotation, i);
+
+			if ((strPlayer.length == 1) && !gameSettings.nomap)
+				setPlanPos();
 		}
 	}
-	if (nbFrames == 1)
-		renderFrame(1);
-	else {
-		for (var i=0;i<nbFrames;i++) {
-			(function(i) {
-				setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
-			})(i);
-		}
-		setTimeout(function() {
-			lastState = currentState;
-		}, 1+SPF*(nbFrames-1)/nbFrames);
+	renderFrame(1);
+	for (var i=1;i<nbFrames;i++) {
+		(function(i) {
+			setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
+		})(i);
 	}
 }
 function makeSpriteExplode(fSprite,src,k) {
@@ -6967,7 +7027,7 @@ function loseUsingItem(oKart) {
 		oKart.using.length = 0;
 	}
 }
-function deleteUsingItems() {
+function deleteUsingItems(oKart) {
 	for (var i=oKart.using.length-1;i>=0;i--)
 		detruit(oKart.using[i]);
 }
@@ -9586,6 +9646,17 @@ function resetDatas() {
 	refreshDatas = false;
 }
 
+function resetFall(oKart) {
+	delete oKart.aX;
+	delete oKart.aY;
+	delete oKart.aRotation;
+	for (var i=0;i<oPlayers.length;i++) {
+		if (oKart == oPlayers[i])
+			oContainers[i].style.opacity = 1;
+		oKart.sprite[i].img.style.display = "block";
+	}
+}
+
 function loseBall(i) {
 	if (course == "BB") {
 		var lg = aKarts[i].ballons.length-1;
@@ -9625,9 +9696,7 @@ function move(getId) {
 
 			if (oKart.time) {
 				oKart.time--;
-				document.getElementById("lakitu"+getId).style.left = Math.round(iScreenScale * (20-oKart.time/5))+"px";
-				document.getElementById("lakitu"+getId).style.top = Math.round((-(Math.abs(oKart.time - 20)) + 18) * (iScreenScale - 2)) +"px";
-
+				
 				if (oKart.time && !oPlayers[getId].changeView)
 					document.getElementById("lakitu"+getId).style.display = "block";
 				else
@@ -9651,6 +9720,7 @@ function move(getId) {
 				oKart.changeView = 0;
 			if (oKart.changeView < 180)
 				oKart.changeView += 15;
+			oKart.progressiveView = true;
 		}
 	}
 
@@ -9658,9 +9728,21 @@ function move(getId) {
 		oKart.tombe--;
 		updateDriftSize(getId);
 		oKart.size = 1;
-		if (oKart.tombe == 19)
+		if (oKart.tombe == 19) {
+			for (var i=0;i<strPlayer.length;i++) {
+				oKart.sprite[i].img.style.display = "none";
+				oKart.sprite[i].img.style.opacity = "";
+				oKart.sprite[i].div.style.backgroundImage = "";
+				if (course == "BB") {
+					for (var j=0;j<oKart.ballons.length;j++)
+						oKart.ballons[j][i].img.style.display = "none";
+				}
+				if (oKart.marker)
+					oKart.marker.div[i].style.display = "none";
+			}
 			playIfShould(oKart, "musics/events/rescue.mp3");
-		if (oKart.tombe == 2) {
+		}
+		else if (oKart.tombe == 2) {
 			if (course == "BB") {
 				for (var i=0;i<strPlayer.length;i++) {
 					for (var j=0;j<oKart.ballons.length;j++)
@@ -9669,6 +9751,7 @@ function move(getId) {
 			}
 		}
 		else if (!oKart.tombe) {
+			resetFall(oKart);
 			loseBall(getId);
 			if (course == "BB") {
 				if (oKart.cpu && oKart.ballons.length == 1) {
@@ -9683,11 +9766,7 @@ function move(getId) {
 						oKart.sprite[i].div.style.opacity = 1;
 				}
 			}
-			for (var i=0;i<strPlayer.length;i++)
-				oKart.sprite[i].img.style.display = "block";
 		}
-		if (oKart == oPlayers[getId])
-			oContainers[getId].style.opacity = Math.abs(oKart.tombe-10)/10;
 		return;
 	}
 
@@ -9772,23 +9851,6 @@ function move(getId) {
 		if (!clLocalVars.forwards) {
 			if (oKart.speed > 0 && (oKart.speedinc > 0 || oKart.turbodrift))
 				clLocalVars.forwards = true;
-		}
-		var oSprite = oKart.sprite[getId];
-		if (!oKart.changeView) {
-			if (oKart.figstate)
-				oSprite.setState((21-oKart.figstate) % 21);
-			else if (oKart.driftinc)
-				oSprite.setState((oKart.driftinc>0) ? 18:4);
-			else if (oKart.rotincdir && !oKart.tourne)
-				oSprite.setState((oKart.rotincdir > 0) ? 23:22);
-			else
-				oSprite.setState(oKart.tourne % 21);
-		}
-		else if (!oKart.tourne)
-			oSprite.setState(11);
-		else {
-			var fTourne = oKart.tourne % 21;
-			oSprite.setState(fTourne + (fTourne < 11 ? 11 : -11));
 		}
 	}
 
@@ -10033,9 +10095,14 @@ function move(getId) {
 			if (shouldPlaySound(oKart))
 				oKart.rouletteSound = playSoundEffect("musics/events/roulette.mp3");
 			if (kartIsPlayer(oKart)) {
-				rScroller = document.getElementById("scroller"+getId).getElementsByTagName("div")[0];
-				rHeight = rScroller.offsetHeight;
-				rSize = iScreenScale*7;
+				var rScroller = document.getElementById("scroller"+getId);
+				var rTurner = rScroller.getElementsByTagName("div")[0];
+				var rHeight = rTurner.offsetHeight;
+				var rSize = iScreenScale*7;
+				if (!rTurner.dataset)
+					rTurner.dataset = {};
+				rTurner.dataset.h = rHeight;
+				rTurner.dataset.s = rSize;
 				document.getElementById("scroller"+getId).getElementsByTagName("div")[0].style.top = -Math.floor(Math.random()*rHeight) +"px";
 				document.getElementById("scroller"+getId).style.visibility="visible";
 				clLocalVars.itemsGot = true;
@@ -10051,17 +10118,6 @@ function move(getId) {
 		}
 	}
 	if (oKart.arme && oKart.roulette != 25) {
-		if (kartIsPlayer(oKart)) {
-			if (!rScroller) {
-				rScroller = document.getElementById("scroller"+getId).getElementsByTagName("div")[0];
-				rHeight = rScroller.offsetHeight;
-				rSize = iScreenScale*7;
-			}
-			var nTop = (parseInt(rScroller.style.top) + iScreenScale*3);
-			if (nTop > 0)
-				nTop += rSize-rHeight;
-			rScroller.style.top = nTop +"px";
-		}
 		oKart.roulette++;
 		if (oKart.roulette >= 25) {
 			oKart.roulette = 25;
@@ -10224,6 +10280,9 @@ function move(getId) {
 				}
 				else if (isNaN(fTombe[0]))
 					fTombe = oMap.startposition[(oKart.initialPlace-1)%oMap.startposition.length];
+				oKart.aX = oKart.x;
+				oKart.aY = oKart.y;
+				oKart.aRotation = oKart.rotation;
 				oKart.x = fTombe[0];
 				oKart.y = fTombe[1];
 				oKart.rotation = fTombe[2]*90;
@@ -10242,19 +10301,9 @@ function move(getId) {
 				oKart.ctrled = true;
 				oKart.z = 10;
 				oKart.tourne = 0;
-				for (var i=0;i<strPlayer.length;i++) {
-					oKart.sprite[i].img.style.display = "none";
-					oKart.sprite[i].div.style.backgroundImage = "";
-					if (oKart.etoile)
+				if (oKart.etoile) {
+					for (var i=0;i<strPlayer.length;i++)
 						oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
-				}
-				for (var i=0;i<strPlayer.length;i++) {
-					if (course == "BB") {
-						for (var j=0;j<oKart.ballons.length;j++)
-							oKart.ballons[j][i].img.style.display = "none";
-					}
-					if (oKart.marker)
-						oKart.marker.div[i].style.display = "none";
 				}
 				resetPowerup(oKart);
 				if (!oKart.cpu) {
@@ -12146,7 +12195,7 @@ function runOneFrame() {
 				if (oKart.tombe) {
 					oKart.tombe--;
 					if (!oKart.tombe)
-						oKart.sprite[0].img.style.display = "block";
+						resetFall(oKart);
 				}
 				oKart.x = getInfos[0];
 				oKart.y = getInfos[1];
@@ -18112,7 +18161,7 @@ else {
 		[1, toLanguage("Music","Musique")],
 		[2, toLanguage("Sound effects","Bruitages")],
 		[3, toLanguage("All","Tout")]
-	], bMusic);
+	], iSound);
 	addOption("pFps", toLanguage("Frame Rate","FPS"),
 	"vFps", "fps", [
 		[1, "15 FPS","D&eacute;sactiv&eacute;s"],
