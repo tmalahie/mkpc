@@ -11259,22 +11259,38 @@ function ai(oKart) {
 		break;
 	}
 	if ((oKart.roulette == 25 || oKart.using[0]) && !oKart.tourne && !oKart.cannon) {
-		switch (oKart.arme) {
-		case "champi":
-		case "megachampi":
-		case "etoile":
-			if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-				arme(aKarts.indexOf(oKart));
-			break;
-		case "carapacerouge":
-			for (var i=0;i<strPlayer.length;i++) {
-				if (!aKarts[i].loose && Math.pow(aKarts[i].x-oKart.x-15*direction(0,oKart.rotation),2) + Math.pow(aKarts[i].y-oKart.y-15*direction(1,oKart.rotation),2) < 1000) {
-					arme(aKarts.indexOf(oKart));
-					i = strPlayer.length;
+		var useRandomly = false;
+		if (oKart.using[0]) {
+			switch (oKart.using[2]) {
+			case "carapacerouge":
+				if (course == "BB") {
+					for (var i=0;i<strPlayer.length;i++) {
+						if (!aKarts[i].loose && Math.pow(aKarts[i].x-oKart.x-15*direction(0,oKart.rotation),2) + Math.pow(aKarts[i].y-oKart.y-15*direction(1,oKart.rotation),2) < 1000) {
+							arme(aKarts.indexOf(oKart));
+							i = strPlayer.length;
+						}
+					}
 				}
+				else
+					useRandomly = true;
+				break;
+			default:
+				useRandomly = true;
 			}
-			break;
-		default:
+		}
+		else {
+			switch (arme) {
+			case "champi":
+			case "megachampi":
+			case "etoile":
+				if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+					arme(aKarts.indexOf(oKart));
+				break;
+			default:
+				useRandomly = true;
+			}
+		}
+		if (useRandomly) {
 			if (Math.random() > 0.98) {
 				var backwards = (((oKart.place<oPlayers[0].place)||(course=="BB")) && (Math.random() > 0.5));
 				arme(aKarts.indexOf(oKart), backwards);
