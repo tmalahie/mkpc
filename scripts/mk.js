@@ -14172,7 +14172,7 @@ function selectChallengesScreen() {
 						oH1.style.fontSize = (3*iScreenScale) +"px";
 						oH1.style.marginTop = "0px";
 						oH1.style.marginBottom = "0px";
-						oH1.innerHTML = challenge.name;
+						oH1.innerText = challenge.name;
 						oTd.appendChild(oH1);
 					}
 					var oDiv = document.createElement("div");
