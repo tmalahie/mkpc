@@ -54,7 +54,7 @@ foreach ($circuitsData as $c => $circuit) {
 	"skin" : <?php echo $map; ?>,
 	"bgcolor" : [<?php echo implode(',',$bgColors[$map]); ?>],
 	"fond" : ["<?php echo implode('","',$bgImages[$map]); ?>"],<?php
-	$TCircuits = Array(3,6,7,8,15,16,18,21,22,24,25,32,33,35,36,37,38,40,42);
+	$TCircuits = Array(3,6,7,8,15,16,18,21,22,24,25,32,33,35,36,37,38,40,42,44);
 	if (!in_array($map, Array(3,7,8,15,16,18,25,33))) {
 	?>
 	"collision" : [
@@ -69,6 +69,7 @@ foreach ($circuitsData as $c => $circuit) {
 				else {
 					switch ($map) {
 					case 36:
+					case 44:
 						echo "[$x,$y,100,100],";
 					}
 				}
@@ -264,6 +265,24 @@ foreach ($circuitsData as $c => $circuit) {
 						echo "[".($x+72).",$y,28,100],";
 						if (hasBottomWalls($v))
 						echo "[$x,".($y+72).",100,28],";
+					}
+					break;
+				case 44:
+					switch ($v) {
+					case 4:
+					case 5:
+					case 6:
+					case 7:
+						break;
+					default:
+						if (hasLeftWalls($v))
+						echo "[$x,$y,32,100],";
+						if (hasTopWalls($v))
+						echo "[$x,$y,100,32],";
+						if (hasRightWalls($v))
+						echo "[".($x+68).",$y,32,100],";
+						if (hasBottomWalls($v))
+						echo "[$x,".($y+68).",100,32],";
 					}
 					break;
 				default:
@@ -525,6 +544,19 @@ foreach ($circuitsData as $c => $circuit) {
 							break;
 						}
 						break;
+					case 44:
+						switch ($v) {
+							case 4:
+							echo "[[".($x+68).",".($y+100)."],[".($x+68).",".($y+84)."],[".($x+78).",".($y+78)."],[".($x+82).",".($y+72)."],[".($x+82).",".($y+28)."],[".($x+78).",".($y+22)."],[".($x+72).",".($y+18)."],[".($x+28).",".($y+18)."],[".($x+22).",".($y+22)."],[".($x+18).",".($y+28)."],[".($x+18).",".($y+32)."],[$x,".($y+32)."],[$x,$y],[".($x+100).",$y],[".($x+100).",".($y+100)."]],[[$x,".($y+68)."],[".($x+18).",".($y+68)."],[".($x+18).",".($y+72)."],[".($x+22).",".($y+78)."],[".($x+32).",".($y+84)."],[".($x+32).",".($y+100)."],[$x,".($y+100)."]],";
+							break;
+							case 5:
+							echo "[$x,$y,2,98],[$x,".($y+98).",32,2],[".($x+98).",".($y+68).",2,32],[".($x+2).",$y,98,2],[".($x+68).",".($y+98).",30,2],[".($x+98).",".($y+2).",2,30],";
+							break;
+							case 7:
+							echo "[$x,$y,18,32],[".($x+18).",$y,14,18],[".($x+68).",$y,32,18],[".($x+82).",".($y+18).",18,64],[".($x+18).",".($y+82).",82,18],[$x,".($y+68).",18,32],";
+							break;
+						}
+						break;
 					default:
 						switch ($v) {
 							case 4 :
@@ -584,6 +616,9 @@ foreach ($circuitsData as $c => $circuit) {
 						break;
 						case 43 :
 						echo "[[".($x+28).",".($y+6)."],[".($x+6).",".($y+28)."],[$x,".($y+28)."],[$x,$y],[".($x+28).",$y]],[[".($x+72).",$y],[".($x+72).",".($y+6)."],[".($x+94).",".($y+28)."],[".($x+100).",".($y+28)."],[".($x+100).",$y]],[[$x,".($y+72)."],[".($x+6).",".($y+72)."],[".($x+28).",".($y+94)."],[".($x+28).",".($y+100)."],[$x,".($y+100)."]],[[".($x+72).",".($y+100)."],[".($x+72).",".($y+94)."],[".($x+94).",".($y+72)."],[".($x+100).",".($y+72)."],[".($x+100).",".($y+100)."]],";
+						break;
+						case 44 :
+						echo "[$x,$y,18,32],[".($x+18).",$y,14,18],[".($x+68).",$y,32,18],[".($x+82).",".($y+18).",18,14],[".($x+82).",".($y+68).",18,32],[".($x+68).",".($y+82).",14,18],[$x,".($y+82).",32,18],[$x,".($y+68).",18,14],";
 						break;
 						default :
 						echo "[$x,".($y+96).",4,4],[".($x+96).",".($y+96).",4,4],[".($x+96).",$y,4,4],[$x,$y,4,4],";
@@ -903,6 +938,7 @@ foreach ($circuitsData as $c => $circuit) {
 			break;
 			case 36 :
 			case 38 :
+			case 44 :
 				$l1 = 0;
 				$l2 = 0;
 			break;
@@ -925,6 +961,7 @@ foreach ($circuitsData as $c => $circuit) {
 					case 11 :
 					switch ($map) {
 						case 36:
+						case 44:
 						break;
 						default:
 						echo "[$x,$y,100,100,$startposition],";
@@ -1087,6 +1124,9 @@ foreach ($circuitsData as $c => $circuit) {
 						break;
 						case 40 :
 						echo "[[[".($x+75).",$y],[".($x+75).",".($y+5)."],[".($x+95).",".($y+25)."],[".($x+100).",".($y+25)."],[".($x+100).",$y]],[".($x+65).",".($y+34)."]],[[[".($x+17).",$y],[".($x+17).",".($y+41)."],[".($x+59).",".($y+83)."],[".($x+100).",".($y+83)."],[".($x+100).",".($y+100)."],[$x,".($y+100)."],[$x,$y]],[".($x+65).",".($y+34)."]],[".($x+93).",".($y+75).",7,8,".($x+65).",".($y+34)."],[".($x+17).",$y,8,7,".($x+65).",".($y+34)."],";
+						break;
+						case 44 :
+						echo "[[[".($x+18).",$y],[$x,".($y+18)."],[$x,".($y+82)."],[".($x+18).",".($y+100)."],[".($x+83).",".($y+100)."],[".($x+100).",".($y+82)."],[".($x+100).",".($y+68)."],[".($x+80).",".($y+74)."],[".($x+74).",".($y+80)."],[".($x+30).",".($y+80)."],[".($x+20).",".($y+70)."],[".($x+20).",".($y+26)."],[".($x+27).",".($y+19)."],[".($x+32).",$y]],[".($x+49).",".($y+49)."]],[[[".($x+68).",$y],[".($x+74).",".($y+20)."],[".($x+81).",".($y+26)."],[".($x+100).",".($y+32)."],[".($x+100).",".($y+18)."],[".($x+83).",$y]],[".($x+49).",".($y+49)."]],";
 					}
 					break;
 					case 7 :
@@ -1152,6 +1192,7 @@ foreach ($circuitsData as $c => $circuit) {
 					case 36:
 					case 38:
 					case 42:
+					case 44:
 						break;
 					default:
 						echo "[$x,$y,$l1,100,$replace],[".($x+100-$l2).",$y,$l2,100,$replace],";
@@ -1169,6 +1210,7 @@ foreach ($circuitsData as $c => $circuit) {
 					case 36:
 					case 38:
 					case 42:
+					case 44:
 						break;
 					default:
 						echo "[$x,$y,100,$l1,$replace],[$x,".($y+100-$l2).",100,$l2,$replace],";
@@ -1254,6 +1296,7 @@ foreach ($circuitsData as $c => $circuit) {
 					switch ($map) {
 						case 36:
 						case 38:
+						case 44:
 						break;
 						default:
 						echo "[$x,$y,$l1,100,".($x+49).",".($y+11)."],[".($x+100-$l2).",$y,$l2,100,".($x+49).",".($y+11)."],";
@@ -1263,6 +1306,7 @@ foreach ($circuitsData as $c => $circuit) {
 					switch ($map) {
 						case 36:
 						case 38:
+						case 44:
 						break;
 						default:
 						echo "[$x,$y,100,$l1,".($x+11).",".($y+49)."],[$x,".($y+100-$l2).",100,$l2,".($x+11).",".($y+49)."],";
@@ -1272,6 +1316,7 @@ foreach ($circuitsData as $c => $circuit) {
 					switch ($map) {
 						case 36:
 						case 38:
+						case 44:
 						break;
 						default:
 						echo "[$x,$y,$l1,100,".($x+49).",".($y+88)."],[".($x+100-$l2).",$y,$l2,100,".($x+49).",".($y+88)."],";
@@ -1281,6 +1326,7 @@ foreach ($circuitsData as $c => $circuit) {
 					switch ($map) {
 						case 36:
 						case 38:
+						case 44:
 						break;
 						default:
 						echo "[$x,$y,100,$l1,".($x+88).",".($y+49)."],[$x,".($y+100-$l2).",100,$l2,".($x+88).",".($y+49)."],";
@@ -1412,6 +1458,7 @@ foreach ($circuitsData as $c => $circuit) {
 				case 36 :
 				case 38 :
 				case 43 :
+				case 44 :
 				$l = 0;
 				break;
 				case 33 :
@@ -1546,6 +1593,9 @@ foreach ($circuitsData as $c => $circuit) {
 					break;
 					case 41 :
 					echo "[[".($x+73).",".($y+100)."],[".($x+73).",".($y+83)."],[".($x+83).",".($y+73)."],[".($x+100).",".($y+72)."],[".($x+100).",".($y+100)."]],[[".($x+26).",".($y+100)."],[".($x+27).",".($y+59)."],[".($x+36).",".($y+40)."],[".($x+55).",".($y+28)."],[".($x+100).",".($y+27)."],[".($x+100).",$y],[$x,$y],[$x,".($y+100)."]],";
+					break;
+					case 44 :
+					echo "[[".($x+70).",".($y+100)."],[".($x+60).",".($y+61)."],[".($x+65).",".($y+58)."],[".($x+100).",".($y+70)."],[".($x+100).",".($y+100)."]],[[".($x+32).",".($y+100)."],[".($x+30).",".($y+82)."],[".($x+24).",".($y+62)."],[".($x+24).",".($y+44)."],[".($x+36).",".($y+30)."],[".($x+48).",".($y+24)."],[".($x+62).",".($y+24)."],[".($x+76).",".($y+28)."],[".($x+83).",".($y+32)."],[".($x+100).",".($y+32)."],[".($x+100).",$y],[$x,$y],[$x,".($y+100)."]],";
 					break;
 				}
 				break;
@@ -1920,10 +1970,17 @@ foreach ($circuitsData as $c => $circuit) {
 		?>
 	}
 	<?php
+	$groupedDecors = array();
 	foreach ($decorAssets as $typeSrc=>$i) {
 		switch ($typeSrc) {
 		case 'pivothand':
 			$types = array('pointer','pivot');
+			break;
+		case 'flower1':
+		case 'flower2':
+		case 'flower3':
+			$types = array();
+			$groupedDecors['flower'][] = array($typeSrc,$i);
 			break;
 		default:
 			$types = array($typeSrc);
@@ -1950,6 +2007,27 @@ foreach ($circuitsData as $c => $circuit) {
 			}
 			echo ']';
 		}
+	}
+	foreach ($groupedDecors as $type=>$group) {
+		echo ',"'.$type.'s":[';
+		$v = 0;
+		foreach ($group as $item) {
+			$typeSrc = $item[0];
+			$i = $item[1];
+			$prefix = 't'.($i ? $i.'_':'');
+			for ($j=0; isset($circuit[$prefix.$j]); $j++) {
+				if ($v) echo ',';
+				$v = true;
+				$pos = split(',',$circuit[$prefix.$j]);
+				switch ($type) {
+				case 'flower':
+					$w = ($typeSrc === 'flower3') ? 16:15;
+					echo '["'.$typeSrc.'",['.$pos[0].','.$pos[1].','.$w.','.$w.'],[0.5,0.5,0]]';
+					break;
+				}
+			}
+		}
+		echo ']';
 	}
 	?>
 	<?php

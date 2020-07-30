@@ -894,7 +894,7 @@ function loadMap() {
 		oMapImg.src = mapSrc;
 	}
 	oMap.assets = [];
-	var assetKeys = ["pivots","pointers", "flippers","bumpers"];
+	var assetKeys = ["pivots","pointers", "flippers","bumpers","flowers"];
 	for (var i=0;i<assetKeys.length;i++) {
 		var key = assetKeys[i];
 		if (oMap[key]) {
@@ -1083,6 +1083,13 @@ function initMap() {
 	if (oMap.horspistes) {
 		for (var type in oMap.horspistes)
 			oMap.horspistes[type] = classifyByShape(oMap.horspistes[type]);
+	}
+	if (oMap.flowers) {
+		for (var i=0;i<oMap.flowers.length;i++) {
+			var flower = oMap.flowers[i][1];
+			var x = flower[0], y = flower[1], w = Math.round(flower[2]/2), h = Math.round(flower[3]/2);
+			oMap.horspistes.herbe.rectangle.push([x-w,y-w,2*w,2*h]);
+		}
 	}
 	if (oMap.trous) {
 		for (var i=0;i<4;i++) {
@@ -2265,7 +2272,7 @@ function startGame() {
 				oPlanDecor2[type] = new Array();
 			}
 		}
-		var assetKeys = ["pivots","pointers", "flippers","bumpers"];
+		var assetKeys = ["pivots","pointers", "flippers","bumpers","flowers"];
 		for (var i=0;i<assetKeys.length;i++) {
 			var key = assetKeys[i];
 			if (oMap[key]) {
