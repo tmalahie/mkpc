@@ -712,7 +712,7 @@ include('menu.php');
 						<div>
 						<?php
 						if ($challengeDetails['name'])
-							echo '<h2>'. $challengeDetails['name'] .'</h2>';
+							echo '<h2>'. htmlspecialchars($challengeDetails['name']) .'</h2>';
 						echo '<h3>';
 						echo '<strong>'. ($circuit['name'] ? $circuit['name']:($language ? 'Untitled':'Sans titre')) .'</strong> : ';
 						echo $challengeDetails['description']['main'];
