@@ -1,3 +1,15 @@
+@font-face {
+    font-family: 'SMK-Timer';
+    src: url('smk-timer.ttf');
+}
+@font-face {
+    font-family: 'SMK-Rank';
+    src: url('smk-rank.ttf');
+}
+@font-face {
+    font-family: 'SMK-Lap';
+    src: url('smk-lap.ttf');
+}
 #options {
     text-align: right;
     display:inline-table;
@@ -164,8 +176,9 @@ button.control-close:active {
 }
  #compteur0,#compteur1 {
     position: absolute;
-     color: silver;
-     font-weight: bold;
+    color: silver;
+    font-weight: bold;
+    font-family: "SMK-Lap", Arial;
 }
  #objet0,#objet1 {
     border-color: white;
@@ -179,8 +192,8 @@ button.control-close:active {
  #temps0,#temps1 {
     position: absolute;
     top: 12px;
-    color: gray;
-    font-family: courier new;
+    color: white;
+    font-family: "SMK-Timer", Courier New;
 }
  #lakitu0,#lakitu1,#drift0,#drift1 {
     visibility: visible;
@@ -209,9 +222,6 @@ button.control-close:active {
  #drift0,#drift1 {
     z-index: 10001;
 }
- #infoPlace0,#infoPlace1 {
-    text-align: right;
-}
 #challenge-cpts {
     position: absolute;
     color: gray;
@@ -237,11 +247,12 @@ button.control-close:active {
  #infoplace0,#infoplace1 {
     display: none;
      position: absolute;
+     text-align: right;
      z-index: 19999;
-     color: silver;
+     color: #EEE;
      font-weight: bold;
-     font-family: impact;
-     opacity: 0.7
+     font-family: "SMK-Rank", impact;
+     opacity: 0.8;
 }
  .cannotChange {
     cursor: not-allowed !important;

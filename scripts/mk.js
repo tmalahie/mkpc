@@ -1006,18 +1006,21 @@ function loadMap() {
 
 		var oTemps = document.createElement("div");
 		oTemps.id = "temps"+i;
-		oTemps.style.right = Math.round(iScreenScale/2) +"px";
-		oTemps.style.top = Math.round(iScreenScale/3) +"px";
-		oTemps.style.fontSize = iScreenScale * 2 +"pt";
+		oTemps.style.right = Math.round(iScreenScale*0.6+1) +"px";
+		oTemps.style.top = Math.round(iScreenScale*0.4+3) +"px";
+		oTemps.style.fontSize = Math.round(iScreenScale*2.4) +"px";
+		var shadowShift = Math.round(iScreenScale/8) +"px";
+		var shadowShift2 = Math.round(iScreenScale/4) +"px";
+		oTemps.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
 		hudScreen.appendChild(oTemps);
 
 		var oCompteur = document.createElement("div");
 		oCompteur.id = "compteur"+i;
-		oCompteur.style.left = Math.round(iScreenScale/3) +"px";
-		oCompteur.style.bottom = ((course != "BB") ? Math.round(-iScreenScale/4) : Math.round(iScreenScale/4)) +"px";
-		oCompteur.style.fontSize = iScreenScale * 2+"pt";
+		oCompteur.style.left = Math.round(iScreenScale/2) +"px";
+		oCompteur.style.bottom = ((course != "BB") ? Math.round(iScreenScale/4) : Math.round(iScreenScale/4)) +"px";
+		oCompteur.style.fontSize = Math.round(iScreenScale*2.5) +"px";
 		if (!pause || !fInfos.replay)
-			oCompteur.innerHTML = (course != "BB") ? (oMap.sections ? "Section":toLanguage("Lap","Tour")) + ' <span id="tour'+i+'">1</span>/'+ oMap.tours : '<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" />';
+			oCompteur.innerHTML = (course != "BB") ? (oMap.sections ? "SEC":toLanguage("LAP","TOUR")) + ' <span id="tour'+i+'">1</span>/'+ oMap.tours : '<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" />';
 		hudScreen.appendChild(oCompteur);
 
 		var oDrift = document.createElement("div");
@@ -1059,9 +1062,9 @@ function loadMap() {
 		oDriftImg.style.top = "0px";
 		var infoPlace = document.createElement("div");
 		infoPlace.id = "infoPlace"+i;
-		infoPlace.style.right = Math.round(iScreenScale/3) +"px";
-		infoPlace.style.bottom = Math.round(-iScreenScale*3) +"px";
-		infoPlace.style.fontSize = iScreenScale * 10 +"pt";
+		infoPlace.style.right = Math.round(iScreenScale/2) +"px";
+		infoPlace.style.bottom = 0 +"px";
+		infoPlace.style.fontSize = iScreenScale * 8 +"px";
 		hudScreen.appendChild(infoPlace);
 		var oInfos = document.getElementById("infos"+i);
 		if (!oInfos) {
@@ -2195,7 +2198,7 @@ function startGame() {
 			oMap.arme[i][2] = 0;
 
 		for (var i=0;i<oPlayers.length;i++) {
-			document.getElementById("infoPlace"+i).innerHTML = toPlace(oPlayers[i].place);
+			document.getElementById("infoPlace"+i).innerHTML = oPlayers[i].place;
 			document.getElementById("infoPlace"+i).style.display = "block";
 			var oColor = (oPlayers[i].team != -1) ? (oPlayers[i].team ? "#F96":"#69F"):"";
 			document.getElementById("infoPlace"+i).style.color = oColor;
@@ -9111,7 +9114,7 @@ function places(j,force) {
 	if (!oKart.loose)
 		oKart.place = place;
 	if (j<strPlayer.length)
-		document.getElementById("infoPlace"+j).innerHTML = toPlace(place);
+		document.getElementById("infoPlace"+j).innerHTML = place;
 }
 
 function getLastCp(kart) {
@@ -9488,7 +9491,7 @@ function resetDatas() {
 								oTds[i] = new Array();
 								if (pCode[0] == identifiant) {
 									oTr.style.backgroundColor = rankingColor(oPlayers[0].team);
-									document.getElementById("infoPlace0").innerHTML = toPlace(i+1);
+									document.getElementById("infoPlace0").innerHTML = i+1;
 									document.getElementById("infoPlace0").style.visibility = "visible";
 								}
 								else if (pCode[4] == 1)
@@ -9670,7 +9673,7 @@ function loseBall(i) {
 }
 
 function showTimer(timeMS) {
-	var tps = toLanguage("&nbsp;Time", "Temps") +": "+ timeStr(timeMS);
+	var tps = timeStr(timeMS);
 	for (var i=0;i<strPlayer.length;i++)
 		document.getElementById("temps"+i).innerHTML = tps;
 }
@@ -10414,7 +10417,7 @@ function move(getId) {
 					showTimer(timerMS);
 
 					if (course != "CM")
-						document.getElementById("infoPlace"+getId).innerHTML = toPlace(oKart.place);
+						document.getElementById("infoPlace"+getId).innerHTML = oKart.place;
 					while (oKart.using.length) {
 						var aMusic = bMusic, aSfx = iSfx;
 						bMusic = false;
@@ -10619,7 +10622,7 @@ function move(getId) {
 			}
 			else if (!(isOnline ? (getId||finishing):oKart.cpu)) {
 				document.getElementById("tour"+getId).innerHTML = oKart.tours;
-				document.getElementById("lakitu"+getId).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.tours;
+				document.getElementById("lakitu"+getId).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "SEC":toLanguage("LAP","TOUR")) + "<small>&nbsp;</small>" + oKart.tours;
 				oKart.time = 40;
 				if (bMusic || iSfx) {
 					if (oKart.tours == oMap.tours) {
@@ -11189,7 +11192,7 @@ function timeStr(timeMS) {
 	timeMS += "";
 	while (timeMS.length < 3)
 		timeMS = "0"+ timeMS;
-	return timeMins +":"+ timeSecs +":"+ timeMS;
+	return timeMins +"'"+ timeSecs +"&quot;"+ timeMS;
 }
 
 var clLocalVars, clHud, clSelected;
