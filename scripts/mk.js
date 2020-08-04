@@ -134,10 +134,8 @@ var SPF = 67;
 var iRendering = optionOf("quality");
 var iQuality, iSmooth;
 resetQuality();
-var iSound = optionOf("sound");
-var bMusic = iSound & 1;
-var iSfx = iSound & 2;
-var iFps = optionOf("fps");
+var bMusic = !!optionOf("music");
+var iSfx = !!optionOf("sfx");
 var gameMenu;
 var primaryColor = "#FEFF3F";
 
@@ -336,20 +334,16 @@ function reposKeyboard() {
 	document.getElementById("virtualkeyboard").style.top = (iScreenScale*40) +"px";
 }
 
-function setSound(iValue) {
-	iSound = iValue;
-	var aMusic = bMusic;
-	bMusic = iSound & 1;
-	iSfx = iSound & 2;
-	if ((bMusic != aMusic) && (gameMenu != -1))
+function setMusic(iValue) {
+	bMusic = !!iValue;
+	if (gameMenu != -1)
 		updateMenuMusic(gameMenu, true);
 	xhr("changeParam.php", "param=2&value="+ iValue, function(reponse) {
 		return (reponse == 1);
 	});
 }
-
-function setFps(iValue) {
-	iFps = iValue;
+function setSfx(iValue) {
+	iSfx = !!iValue;
 	xhr("changeParam.php", "param=3&value="+ iValue, function(reponse) {
 		return (reponse == 1);
 	});
@@ -993,8 +987,8 @@ function loadMap() {
 		updateCtnFullScreen(false);
 	formulaire.screenscale.disabled = true;
 	formulaire.quality.disabled = true;
-	formulaire.sound.disabled = true;
-	formulaire.fps.disabled = true;
+	formulaire.music.disabled = true;
+	formulaire.sfx.disabled = true;
 
 	iTeamPlay = isTeamPlay();
 
@@ -6633,7 +6627,7 @@ function render() {
 	}
 	if (!lastState) lastState = currentState;
 
-	var nbFrames = iFps;
+	var nbFrames = 1;
 
 	function renderFrame(frame) {
 		var tFrame = frame/nbFrames;
@@ -16315,8 +16309,8 @@ function choose(map,rand) {
 							removeGameMusics();
 							formulaire.screenscale.disabled = false;
 							formulaire.quality.disabled = false;
-							formulaire.sound.disabled = false;
-							formulaire.fps.disabled = false;
+							formulaire.music.disabled = false;
+							formulaire.sfx.disabled = false;
 							chatting = false;
 							searchCourse();
 							return false;
@@ -16378,8 +16372,8 @@ function choose(map,rand) {
 
 	formulaire.screenscale.disabled = true;
 	formulaire.quality.disabled = true;
-	formulaire.sound.disabled = true;
-	formulaire.fps.disabled = true;
+	formulaire.music.disabled = true;
+	formulaire.sfx.disabled = true;
 
 	if (bMusic) {
 		startMusicHandler = setInterval(function() {
@@ -16770,8 +16764,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			removeGameMusics();
 			formulaire.screenscale.disabled = false;
 			formulaire.quality.disabled = false;
-			formulaire.sound.disabled = false;
-			formulaire.fps.disabled = false;
+			formulaire.music.disabled = false;
+			formulaire.sfx.disabled = false;
 			chatting = false;
 			searchCourse();
 			return false;
@@ -18121,8 +18115,8 @@ formulaire = document.forms.modes;
 if (pause) {
 	formulaire.screenscale.disabled = false;
 	formulaire.quality.disabled = false;
-	formulaire.sound.disabled = false;
-	formulaire.fps.disabled = false;
+	formulaire.music.disabled = false;
+	formulaire.sfx.disabled = false;
 	if (isSingle && !isOnline)
 		choose(1);
 	else if (fInfos.map != undefined)
@@ -18155,19 +18149,16 @@ else {
 		[12, toLanguage("Very large","Tr&egrave;s large")],
 		[-1, toLanguage("Full (F11)","Plein (F11)")]
 	], (+$mkScreen.dataset.lastsc)||iScreenScale);
-	addOption("pSound", toLanguage("Sounds","Sons"),
-	"vSound", "sound", [
+	addOption("pMusic", toLanguage("Music","Musique"),
+	"vMusic", "music", [
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;e")],
-		[1, toLanguage("Music","Musique")],
-		[2, toLanguage("Sound effects","Bruitages")],
-		[3, toLanguage("All","Tout")]
-	], iSound);
-	addOption("pFps", toLanguage("Frame Rate","FPS"),
-	"vFps", "fps", [
-		[1, "15 FPS","D&eacute;sactiv&eacute;s"],
-		[2, "30 FPS","Activ&eacute;s"],
-		[4, "60 FPS","Activ&eacute;s"]
-	], iFps);
+		[1, toLanguage("On","Activ&eacute;e")]
+	], bMusic);
+	addOption("pSfx", toLanguage("Sound effects","Bruitages"),
+	"vSfx", "sfx", [
+		[0, toLanguage("Off","D&eacute;sactiv&eacute;s")],
+		[1, toLanguage("On","Activ&eacute;s")]
+	], iSfx);
 	selectMainPage();
 	
 	if (!window.turnEvents) {
@@ -18203,13 +18194,13 @@ else {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setScreenScale(iValue);
 	}
-	formulaire.sound.onchange = function() {
+	formulaire.music.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
-		MarioKartControl.setSound(iValue);
+		MarioKartControl.setMusic(iValue);
 	}
-	formulaire.fps.onchange = function() {
+	formulaire.sfx.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
-		MarioKartControl.setFps(iValue);
+		MarioKartControl.setSfx(iValue);
 	}
 	if (!window.fsevent) {
 		window.fsevent = function(e) {
@@ -18561,11 +18552,11 @@ window.MarioKartControl = {
 	setScreenScale : function(iValue) {
 		 setScreenScale(iValue);
 	},
-	setSound : function(iValue) {
-		setSound(iValue);
+	setMusic : function(iValue) {
+		setMusic(iValue);
 	},
-	setFps : function(iValue) {
-		setFps(iValue);
+	setSfx : function(iValue) {
+		setSfx(iValue);
 	}
 };
 
