@@ -570,24 +570,8 @@ if (!isset($cannotChange)) {
 	</form>
 	<?php
 }
+include('gameInitElts.php');
 ?>
-<div id="dMaps"></div>
-<div id="scroller" width="100px" height="100px" style="width: 100px; height: 100px; overflow: hidden; position: absolute; visibility: hidden">
-	<div style="position: absolute; left: 0; top: 0">
-		<img class="aObjet" alt="." src="images/items/fauxobjet.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/banane.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/carapace.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/bobomb.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/carapacerouge.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/carapacebleue.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/champi.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/megachampi.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/etoile.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/eclair.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/billball.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/fauxobjet.gif" />
-	</div>
-</div>
 <?php
 if ($cShared) {
 	include('circuitUser.php');

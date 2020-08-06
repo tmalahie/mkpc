@@ -1018,9 +1018,23 @@ function loadMap() {
 		oCompteur.id = "compteur"+i;
 		oCompteur.style.left = Math.round(iScreenScale/2) +"px";
 		oCompteur.style.bottom = ((course != "BB") ? Math.round(iScreenScale/4) : Math.round(iScreenScale/4)) +"px";
-		oCompteur.style.fontSize = Math.round(iScreenScale*2.5) +"px";
-		if (!pause || !fInfos.replay)
-			oCompteur.innerHTML = (course != "BB") ? (oMap.sections ? "SEC":toLanguage("LAP","TOUR")) + ' <span id="tour'+i+'">1</span>/'+ oMap.tours : '<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" />';
+		if (!pause || !fInfos.replay) {
+			if (course != "BB") {
+				oCompteur.innerHTML = '<div></div><div class="glow"></div>';
+				var oCompteurDivs = oCompteur.querySelectorAll("div");
+				for (var j=0;j<oCompteurDivs.length;j++) {
+					oCompteurDivs[j].style.height = Math.round(iScreenScale*2) +"px";
+					oCompteurDivs[j].innerHTML = "<div>"+ (oMap.sections ? "SECTION":toLanguage("LAP","TOUR")) + ' <span class="tour">1</span>/'+ oMap.tours +"</div>";
+					if (!j) {
+						var shadowShift = Math.round(iScreenScale/8	) +"px";
+						var shadowShift2 = Math.round(iScreenScale/4) +"px";
+						oCompteurDivs[j].style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
+					}
+				}
+			}
+			else
+				oCompteur.innerHTML = '<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" />';
+		}
 		hudScreen.appendChild(oCompteur);
 
 		var oDrift = document.createElement("div");
@@ -1032,19 +1046,19 @@ function loadMap() {
 		oDrift.appendChild(oDriftImg);
 		hudScreen.appendChild(oDrift);
 
-		var oObjet = document.createElement("table");
+		var oObjet = document.createElement("div");
 		oObjet.id = "objet"+i;
-		oObjet.setAttribute("border", 1);
-		oObjet.setAttribute("cellpadding", 0);
-		oObjet.setAttribute("cellspacing", 0);
-		oObjet.innerHTML = '<tr><td id="roulette'+i+'" valign="middle"></td></tr>';
 		if (!pause || !fInfos.replay) {
-			oObjet.style.left = Math.round(iScreenScale/3) +"px";
-			oObjet.style.top = Math.round(iScreenScale/3) +"px";
-			oObjet.style.width = iScreenScale * 9 +"px";
-			oObjet.style.height = iScreenScale * 8 +"px";
+			oObjet.style.left = Math.round(iScreenScale) +"px";
+			oObjet.style.top = Math.round(iScreenScale) +"px";
+			oObjet.style.width = Math.round(iScreenScale * 26/3) +"px";
+			oObjet.style.height = Math.round(iScreenScale * 18/3) +"px";
 			oObjet.style.visibility = "visible";
 		}
+		var oRoulette = document.createElement("div");
+		oRoulette.id = "roulette"+i;
+		oRoulette.style.height = Math.round(iScreenScale*4) +"px";
+		oObjet.appendChild(oRoulette);
 		hudScreen.appendChild(oObjet);
 
 		var lakitu = document.createElement("div");
@@ -1073,19 +1087,22 @@ function loadMap() {
 			$mkScreen.appendChild(oInfos);
 		}
 		oInfos.style.left = (10+35*iScreenScale + iScreenMore) +"px";
-		oInfos.style.top = 10 + 8 * iScreenScale +"px";
-		oInfos.style.fontSize = iScreenScale * 10 +"pt";
+		oInfos.style.top = (13*iScreenScale) +"px";
+		oInfos.style.fontSize = iScreenScale*10 +"px";
+		oInfos.style.fontFamily = '"SMK-Rank", "SMK-Timer", Arial';
+		var shadowShift = Math.round(iScreenScale/2) +"px";
+		var shadowShift2 = Math.round(iScreenScale/4) +"px";
+		var shadowColor = primaryColor;
+		oInfos.style.textShadow = "-"+shadowShift2+" 0 "+shadowColor+", 0 "+shadowShift2+" "+shadowColor+", "+shadowShift2+" 0 "+shadowColor+", 0 -"+shadowShift2+" "+shadowColor+", -"+shadowShift+" -"+shadowShift+" "+shadowColor+", -"+shadowShift+" "+shadowShift+" "+shadowColor+", "+shadowShift+" -"+shadowShift+" "+shadowColor+", "+shadowShift+" "+shadowShift+" "+shadowColor;
 		oInfos.innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
 		var oScroller = document.getElementById("scroller").cloneNode(true);
 		oScroller.id = "scroller"+i;
-		oScroller.style.width = iScreenScale * 8 +"px";
-		oScroller.style.height = iScreenScale * 7 +"px";
+		var oScrollPadding = 1;
+		oScroller.style.left = Math.round(iScreenScale) +"px";
+		oScroller.style.top = Math.round(iScreenScale + iScreenScale*oScrollPadding) +"px";
+		oScroller.style.width = Math.round(iScreenScale * 26/3) +"px";
+		oScroller.style.height = Math.round(iScreenScale * 18/3 - iScreenScale*2*oScrollPadding) +"px";
 		oScroller.style.lineHeight = iScreenScale +"px";
-		oScroller.setAttribute("width", iScreenScale * 8 +"px");
-		oScroller.setAttribute("height", iScreenScale * 7 +"px");
-		oScroller.style.top = Math.round(3+iScreenScale*0.2)+"px";
-		oScroller.style.left = Math.round(4+iScreenScale*0.5)+"px";
-		oScroller.getElementsByTagName("div")[0].style.left = Math.round(iScreenScale*0.1 + 1) +"px";
 		hudScreen.appendChild(oScroller);
 
 		$mkScreen.appendChild(hudScreen);
@@ -1103,7 +1120,7 @@ function loadMap() {
 
 	initMap();
 
-	var lObjet = iScreenScale * 8 - 3;
+	var lObjet = Math.round(iScreenScale*5);
 	for (var j=0;j<document.getElementsByClassName("aObjet").length;j++)
 		document.getElementsByClassName("aObjet")[j].style.width = lObjet +"px";
 
@@ -1434,7 +1451,7 @@ function arme(ID, backwards) {
 		if (newItem) {
 			oKart.arme = newItem;
 			if (kartIsPlayer(oKart))
-				document.getElementById("roulette"+ID).innerHTML = '<img alt="."class="pixelated" src="images/items/'+newItem+'.gif" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
+				updateObjHud(ID);
 		}
 		else
 			supprArme(ID);
@@ -2251,7 +2268,7 @@ function startGame() {
 			});
 			aKarts[aKarts.length-1].sprite[0].div.style.opacity = 0.5;
 		}
-		document.getElementById("roulette0").innerHTML = '<img alt="."class="pixelated" src="images/items/champiX3.gif" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
+		updateObjHud(0);
 	}
 	gameControls = getGameControls();
 
@@ -2579,8 +2596,9 @@ function startGame() {
 			else {
 				for (var i=0;i<strPlayer.length;i++) {
 					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('&nbsp; &nbsp; GO !', 'PARTEZ !') +'</td></tr>';
-					document.getElementById("infos"+i).style.left = (10+20*iScreenScale + i*(iWidth*iScreenScale+2)) + "px";
-					document.getElementById("infos"+i).style.fontSize = iScreenScale * 8 + "pt";
+					document.getElementById("infos"+i).style.left = (10*iScreenScale + i*(iWidth*iScreenScale+2)) + "px";
+					document.getElementById("infos"+i).style.top = (15*iScreenScale) + "px";
+					document.getElementById("infos"+i).style.fontSize = iScreenScale * 8 + "px";
 					if (oPlayers[i].speed == 1)
 						oPlayers[i].speed = 11;
 					else if (oPlayers[i].speed > 1) {
@@ -2617,6 +2635,8 @@ function startGame() {
 								document.getElementById("infos"+i).style.display = "none";
 						}
 						if (stillRacing) {
+							document.getElementById("infos0").style.fontFamily = "";
+							document.getElementById("infos0").style.textShadow = "";
 							document.getElementById("infos0").style.top = iScreenScale * 7 + 10 +"px";
 							document.getElementById("infos0").style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 							document.getElementById("infos0").style.fontSize = iScreenScale * 4 +"pt";
@@ -6750,7 +6770,7 @@ function render() {
 				var rTurner = document.getElementById("scroller"+i).getElementsByTagName("div")[0];
 				var rHeight = +rTurner.dataset.h;
 				var rSize = +rTurner.dataset.s;
-				var nTop = (parseInt(rTurner.style.top) + Math.round(iScreenScale*3/nbFrames));
+				var nTop = (parseInt(rTurner.style.top) + Math.round(iScreenScale*2/nbFrames));
 				if (nTop > 0)
 					nTop += rSize-rHeight;
 				rTurner.style.top = nTop +"px";
@@ -10119,8 +10139,7 @@ function move(getId) {
 		if (oKart.roulette >= 25) {
 			oKart.roulette = 25;
 			if (kartIsPlayer(oKart)) {
-				document.getElementById("scroller"+getId).style.visibility="hidden";
-				document.getElementById("roulette"+getId).innerHTML = '<img alt="." class="pixelated" src="images/items/'+ oKart.arme +'.gif" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
+				updateObjHud(getId);
 				if (oKart.rouletteSound) {
 					removeIfExists(oKart.rouletteSound);
 					playSoundEffect("musics/events/gotitem.mp3");
@@ -10621,8 +10640,10 @@ function move(getId) {
 					if (oKart.billball>1) oKart.billball = 1;
 			}
 			else if (!(isOnline ? (getId||finishing):oKart.cpu)) {
-				document.getElementById("tour"+getId).innerHTML = oKart.tours;
-				document.getElementById("lakitu"+getId).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "SEC":toLanguage("LAP","TOUR")) + "<small>&nbsp;</small>" + oKart.tours;
+				var oCompteurTours = document.querySelectorAll("#compteur"+getId+" .tour");
+				for (var i=0;i<oCompteurTours.length;i++)
+					oCompteurTours[i].innerHTML = oKart.tours;
+				document.getElementById("lakitu"+getId).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.tours;
 				oKart.time = 40;
 				if (bMusic || iSfx) {
 					if (oKart.tours == oMap.tours) {
@@ -11180,6 +11201,11 @@ function updateDriftSize(getId) {
 function getDriftImg(getId) {
 	return document.getElementById("drift"+ getId).getElementsByClassName("driftimg")[0];
 }
+function updateObjHud(ID) {
+	document.getElementById("scroller"+ID).style.visibility="hidden";
+	var oArme = aKarts[ID].arme;
+	document.getElementById("roulette"+ID).innerHTML = '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.gif" style="width: '+ Math.round(iScreenScale*5) +'px;" />';
+}
 function timeStr(timeMS) {
 	var timeMins = Math.floor(timeMS/60000);
 	timeMS -= timeMins*60000;
@@ -11222,8 +11248,7 @@ function processCode(cheatCode) {
 			return false;
 		oPlayer.arme = wObject;
 		oPlayer.roulette = 25;
-		document.getElementById("scroller0").style.visibility="hidden";
-		document.getElementById("roulette0").innerHTML = '<img alt="." class="pixelated" src="images/items/'+ wObject +'.gif" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
+		updateObjHud(0);
 		return true;
 	}
 	var isTP = /^tp ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(cheatCode);
@@ -11257,7 +11282,9 @@ function processCode(cheatCode) {
 			return false;
 		oPlayer.tours = t;
 		oPlayer.demitours = c;
-		document.getElementById("tour0").innerHTML = oPlayer.tours;
+		var oCompteurTours = document.querySelectorAll("#compteur0 .tour");
+		for (var i=0;i<oCompteurTours.length;i++)
+			oCompteurTours[i].innerHTML = oPlayer.tours;
 		return true;
 	}
 	if (cheatCode == "pos") {

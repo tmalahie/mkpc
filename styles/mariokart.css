@@ -174,25 +174,55 @@ button.control-close:active {
  #scroller0,#scroller1 {
     z-index: 19998;
 }
+#scroller > div, #scroller0 > div, #scroller1 > div {
+    width: 100%;
+    left: 0px;
+    top: 0px;
+    text-align: center;
+}
  #compteur0,#compteur1 {
     position: absolute;
-    color: silver;
+    color: #50D0F8;
     font-weight: bold;
-    font-family: "SMK-Lap", Arial;
+    font-family: "SMK-Timer", Arial;
+}
+#compteur0 > div, #compteur1 > div {
+    position: absolute;
+    bottom: 0;
+    white-space: nowrap;
+}
+#compteur0 .glow, #compteur1 .glow {
+    color: #F8F8F8;
+}
+#compteur0 .glow > div, #compteur1 .glow > div {
+    height: 50%;
+    overflow: hidden;
 }
  #objet0,#objet1 {
-    border-color: white;
-     background-color: black;
-     text-align: center;
-     position: absolute;
-     z-index: 19997;
-     top: 12px;
-     visibility: hidden
+    background-image: url('../images/items/wheel.png');
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+    text-align: center;
+    position: absolute;
+    z-index: 19997;
+    top: 12px;
+    visibility: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+#roulette0,#roulette1 {
+    display: flex;
+    overflow: hidden;
+}
+#roulette0 img,#roulette1 img {
+    align-self: center;
 }
  #temps0,#temps1 {
     position: absolute;
     top: 12px;
-    color: white;
+    color: #F8F8F8;
     font-family: "SMK-Timer", Courier New;
 }
  #lakitu0,#lakitu1,#drift0,#drift1 {
