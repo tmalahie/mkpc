@@ -502,28 +502,101 @@ function playMusicSmoothly(src,delay) {
 	document.body.appendChild(oMusicEmbed);
 }
 
-var objets;
-if (isOnline && isBattle) {
-	objets = [
-		"fauxobjet", "fauxobjet",  "fauxobjet", "fauxobjet", "banane", "banane", "banane", "banane", "banane", "banane", "banane", "carapace", "carapace", "carapace", "carapace",	// 1er
-		"carapace", "carapace", "carapace", "carapace", "carapace", "bobomb", "bobomb", "bobomb", "bobomb", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge",	// 2e
-		"carapace", "bobomb", "bobomb", "banane", "carapace", "carapace", "carapace", "carapace", "carapace", "banane", "banane", "fauxobjet", "carapacerouge", "carapacerouge", "carapacerouge",	// 3e
-		"banane", "banane", "banane", "banane", "banane", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge",	// 4e
-		"carapacebleue", "carapacebleue", "carapacerouge", "megachampi", "megachampi", "megachampi", "megachampi", "etoile", "etoile", "etoile", "etoile", "champi", "champi", "champi", "champi" // 5e
-	];
+var itemDistribution;
+if (isBattle) {
+	itemDistribution = [{
+		fauxobjet: 4,
+		banane: 7,
+		carapace: 4
+	}, {
+		carapace: 5,
+		bobomb: 4,
+		carapacerouge: 6
+	}, {
+		carapace: 1,
+		bobomb: 2,
+		carapace: 6,
+		banane: 2,
+		fauxobjet: 1,
+		carapacerouge: 3
+	}, {
+		carapacebleue: 2,
+		carapacerouge: 1,
+		megachampi: 4,
+		etoile: 4,
+		champi: 4
+	}];
 }
 else {
-	objets = [
-		"fauxobjet", "fauxobjet",  "fauxobjet", "fauxobjet", "banane", "banane", "banane", "banane", "banane", "banane", "banane", "carapace", "carapace", "carapace", "carapace",	// 1er
-		"carapace", "carapace", "carapace", "carapace", "carapace", "bobomb", "bobomb", "bobomb", "bobomb", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge",	// 2e
-		"carapace", "bobomb", "bobomb", "bobomb", "bobomb", "bobomb", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge",	// 3e
-		"bobomb", "bobomb", "bobomb", "bobomb", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge", "carapacerouge",	// 4e
-		"carapacebleue", "carapacebleue", "carapacebleue", "carapacerouge", "carapacerouge", "megachampi", "megachampi", "megachampi", "megachampi", "champi", "champi", "champi", "champi", "champi", "champi",	// 5e
-
-		"carapacebleue", "megachampi", "megachampi", "megachampi", "megachampi", "megachampi", "megachampi", "megachampi", "megachampi", "megachampi", "etoile", "etoile", "etoile", "etoile", "etoile",	// 6e
-		"megachampi", "megachampi", "megachampi", "megachampi", "megachampi", "megachampi", "megachampi", "etoile", "etoile", "etoile", "etoile", "etoile", "etoile", "billball", "billball", // 7e
-		"megachampi", "megachampi", "etoile", "etoile", "etoile", "etoile", "etoile", "billball", "billball", "billball", "billball", "billball", "eclair", "eclair", "eclair" // 8e
-	];
+	itemDistribution = [{
+		"fauxobjet": 4,
+		"banane": 7,
+		"carapace": 4
+	}, {
+		"carapace": 7,
+		"bobomb": 2,
+		"carapacerouge": 6
+	}, {
+		"carapace": 3,
+		"bobomb": 2,
+		"carapacerouge": 9,
+		"carapaceX3": 1
+	}, {
+		"bobomb": 1,
+		"carapacerouge": 11,
+		"carapaceX3": 3
+	}, {
+		"carapacebleue": 3,
+		"carapacerouge": 2,
+		"megachampi": 2,
+		"champi": 4,
+		"carapaceX3": 4
+	}, {
+		"carapacebleue": 3,
+		"carapaceX3": 2,
+		"megachampi": 4,
+		"champi": 6
+	}, {
+		"carapacebleue": 1,
+		"megachampi": 7,
+		"carapacerougeX3": 2,
+		"etoile": 5
+	}, {
+		"carapacerougeX3": 1,
+		"champior": 1,
+		"megachampi": 9,
+		"champi": 4,
+		"etoile": 5
+	}, {
+		"carapacerougeX3": 1,
+		"megachampi": 7,
+		"etoile": 6,
+		"champiX3": 2,
+		"champior": 1,
+		"champi": 4
+	}, {
+		"carapacerougeX3": 1,
+		"champior": 1,
+		"megachampi": 4,
+		"etoile": 3,
+		"billball": 2,
+		"champi": 1,
+		"champiX3": 4
+	}, {
+		"megachampi": 2,
+		"etoile": 3,
+		"billball": 5,
+		"champior": 3,
+		"champiX3": 3,
+		"billball": 2
+	}, {
+		"megachampi": 2,
+		"etoile": 4,
+		"billball": 3,
+		"champior": 3,
+		"champiX3": 1,
+		"eclair": 3
+	}];
 }
 
 var oBgLayers = new Array();
@@ -1407,8 +1480,22 @@ function arme(ID, backwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
+			case "carapaceX3" :
+			for (var i=0;i<3;i++)
+				loadNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner: -1, lives:10});
+			oKart.rotitem = 0;
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
 			case "carapacerouge" :
 			loadNewItem(oKart, {id:-1, type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
+			case "carapacerougeX3" :
+			for (var i=0;i<3;i++)
+				loadNewItem(oKart, {id:-1, type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
+			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -6942,15 +7029,31 @@ function direction(fDir, rotation) {
 	return Math[["sin","cos"][fDir]](rotation * Math.PI / 180)
 }
 function randObj(oKart) {
-	return objets[Math.floor(Math.random()*120/aKarts.length+(oKart.place-1)*120/aKarts.length)];
+	var a = itemDistribution.length*(oKart.place-1)/aKarts.length,
+	b = itemDistribution.length*oKart.place/aKarts.length;
+	var i = Math.floor(a + (b-a)*Math.random());
+	var distribution = itemDistribution[i];
+	var nbObjs = 0;
+	for (var key in distribution)
+		nbObjs += distribution[key];
+	var randId = Math.floor(Math.random()*nbObjs);
+	nbObjs = 0;
+	for (var key in distribution) {
+		nbObjs += distribution[key];
+		if (nbObjs > randId)
+			return key;
+	}
 }
 function possibleObjs(oKart, except) {
-	var a = Math.floor((oKart.place-1)*120/aKarts.length);
-	var b = Math.floor(oKart.place*120/aKarts.length);
+	var a = Math.floor(itemDistribution.length*(oKart.place-1)/aKarts.length),
+	b = Math.ceil(itemDistribution.length*oKart.place/aKarts.length);
 	var res = {};
 	for (var i=a;i<b;i++) {
-		if (!except[objets[i]])
-			res[objets[i]] = true;
+		var distribution = itemDistribution[i];
+		for (var key in distribution) {
+			if (!except[key])
+				res[key] = true;
+		}
 	}
 	return res;
 }
@@ -10390,11 +10493,23 @@ function move(getId) {
 	}
 
 	if (oKart.using.length) {
-		var oArme = oKart.using[0];
-		oArme.x = (oKart.x - 5 * direction(0, oKart.rotation));
-		oArme.y = (oKart.y - 5 * direction(1, oKart.rotation));
-		oArme.z = oKart.z;
+		var rotItem = 0;
+		var l = 5;
+		var dtheta = 360/oKart.using.length;
+		if (oKart.rotitem !== undefined) {
+			rotItem = oKart.rotitem;
+			l = 4.5;
+			oKart.rotitem -= 30;
+		}
+		for (var i=0;i<oKart.using.length;i++) {
+			var oArme = oKart.using[i];
+			oArme.x = (oKart.x - l * direction(0, oKart.rotation+rotItem+i*dtheta));
+			oArme.y = (oKart.y - l * direction(1, oKart.rotation+rotItem+i*dtheta));
+			oArme.z = oKart.z;
+		}
 	}
+	else
+		delete oKart.rotitem;
 	if (course != "BB") {
 		if (checkpoint(oKart, fMoveX,fMoveY)) {
 			var nbjoueurs = aKarts.length;
@@ -11244,7 +11359,14 @@ function processCode(cheatCode) {
 	var isObject = /^give (\w+)$/g.exec(cheatCode);
 	if (isObject) {
 		var wObject = isObject[1];
-		if (objets.indexOf(wObject) == -1)
+		var isExistingObj = false;
+		for (var i=0;i<itemDistribution.length;i++) {
+			if (itemDistribution[i][wObject]) {
+				isExistingObj = true;
+				break;
+			}
+		}
+		if (!isExistingObj)
 			return false;
 		oPlayer.arme = wObject;
 		oPlayer.roulette = 25;
