@@ -1403,7 +1403,7 @@ function arme(ID, backwards) {
 			break;
 
 			case "carapace" :
-			loadNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, lives:10});
+			loadNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner: -1, lives:10});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -3288,7 +3288,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3325,7 +3325,7 @@ function startGame() {
 			showTeam(tnCountdown);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -8924,7 +8924,7 @@ function touche_crouge(iX, iY, iP) {
 		var oBox = items["carapace-rouge"][i];
 		if (!oBox.sprite[0].div.style.opacity) {
 			if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-				if (oBox.target != -1 && iX == oBox.x && iY == oBox.y) {
+				if (oBox.owner != -1 && iX == oBox.x && iY == oBox.y) {
 					if (isOnline)
 						detruit(oBox,isHitSound(oBox));
 					else {
@@ -8934,7 +8934,7 @@ function touche_crouge(iX, iY, iP) {
 					}
 					return (collisionTeam!=oBox.team);
 				}
-				else if (oBox.target == -1 && iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
+				else if (oBox.owner == -1 && iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
 					handleHit(oBox);
 					detruit(oBox,isHitSound(oBox));
 					return (collisionTeam!=oBox.team);
