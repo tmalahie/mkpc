@@ -1306,8 +1306,12 @@ function addNewItem(kart,item) {
 	var collection = item.type;
 	item.size = itemBehaviors[collection].size;
 	items[collection].push(item);
-	if ((kart == oPlayers[0]) && clLocalVars.myItems)
-		clLocalVars.myItems.push(item);
+	if (kart == oPlayers[0]) {
+		if (isOnline)
+			syncItems.push(item);
+		else if (clLocalVars.myItems)
+			clLocalVars.myItems.push(item);
+	}
 	if (item.team != -1) {
 		var hallowSize;
 		switch (collection) {
@@ -1463,35 +1467,35 @@ function arme(ID, backwards) {
 			break;
 
 			case "banane" :
-			loadNewItem(oKart, {id:-1, type: "banane", sprite:new Sprite("banane"), team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			loadNewItem(oKart, {type: "banane", sprite:new Sprite("banane"), team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "fauxobjet" :
-			loadNewItem(oKart, {id:-1, type: "fauxobjet", sprite:new Sprite("objet"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z});
+			loadNewItem(oKart, {type: "fauxobjet", sprite:new Sprite("objet"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapace" :
-			loadNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner: -1, lives:10});
+			loadNewItem(oKart, {type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner: -1, lives:10});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapaceX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner: -1, lives:10});
+				loadNewItem(oKart, {type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner: -1, lives:10});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapacerouge" :
-			loadNewItem(oKart, {id:-1, type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
+			loadNewItem(oKart, {type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapacerougeX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {id:-1, type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
+				loadNewItem(oKart, {type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
@@ -1511,12 +1515,12 @@ function arme(ID, backwards) {
 					}
 				}
 			}
-			addNewItem(oKart, {id:-1, type: "carapace-bleue", sprite:new Sprite("carapace-bleue"), team:oKart.team, x:oKart.x,y:oKart.y, target:cible, cooldown:5});
+			addNewItem(oKart, {type: "carapace-bleue", sprite:new Sprite("carapace-bleue"), team:oKart.team, x:oKart.x,y:oKart.y, target:cible, cooldown:5});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "bobomb" :
-			loadNewItem(oKart, {id:-1, type: "bobomb", sprite:new Sprite("bob-omb"), team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z,theta:-1,countdown:15,cooldown:30});
+			loadNewItem(oKart, {type: "bobomb", sprite:new Sprite("bob-omb"), team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z,theta:-1,countdown:15,cooldown:30});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 		}
@@ -1550,38 +1554,38 @@ function arme(ID, backwards) {
 			var fPosX = posX - decalage * direction(0, oKart.rotation);
 			var fPosY = posY - decalage * direction(1, oKart.rotation);
 			if (!tombe(fPosX,fPosY))
-			addNewItem(oKart, {id:-1, type: "banane", sprite:new Sprite("banane"), team:oKart.team, x:fPosX, y:fPosY, z:0});
+			addNewItem(oKart, {type: "banane", sprite:new Sprite("banane"), team:oKart.team, x:fPosX, y:fPosY, z:0});
 			playIfShould(oKart,"musics/events/put.mp3");
 			break;
 
 			case "fauxobjet" :
 			var decalage = 30/(oKart.speed+5);
-			addNewItem(oKart, {id:-1, type: "fauxobjet", sprite:new Sprite("objet"), team:oKart.team, x:posX-decalage*direction(0, oKart.rotation), y:posY-decalage*direction(1, oKart.rotation), z:0});
+			addNewItem(oKart, {type: "fauxobjet", sprite:new Sprite("objet"), team:oKart.team, x:posX-decalage*direction(0, oKart.rotation), y:posY-decalage*direction(1, oKart.rotation), z:0});
 			playIfShould(oKart,"musics/events/put.mp3");
 			break;
 
 			case "carapace" :
 			var oAngleView = angleShoot(oKart, backwards);
 			var shiftDist = backwards?7.5:15;
-			addNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,lives:10});
+			addNewItem(oKart, {type: "carapace", sprite:new Sprite("carapace"), team:oKart.team, x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,lives:10});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "carapace-rouge" :
 			var oAngleView = angleShoot(oKart, backwards);
 			if (backwards)
-				addNewItem(oKart, {id:-1, type: "carapace", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:posX+7.5*direction(0,oAngleView),y:posY+7.5*direction(1,oAngleView),z:0,theta:oAngleView,lives:-1});
+				addNewItem(oKart, {type: "carapace", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:posX+7.5*direction(0,oAngleView),y:posY+7.5*direction(1,oAngleView),z:0,theta:oAngleView,lives:-1});
 			else
-				addNewItem(oKart, {id:-1, type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:posX+15*direction(0, oAngleView), y:posY+15*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1});
+				addNewItem(oKart, {type: "carapace-rouge", sprite:new Sprite("carapace-rouge"), team:oKart.team, x:posX+15*direction(0, oAngleView), y:posY+15*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "bobomb" :
 			var oAngleView = angleShoot(oKart, backwards);
 			if (backwards)
-				addNewItem(oKart, {id:-1, type: "bobomb", sprite:new Sprite("bob-omb"), team:oKart.team, x:posX+5*direction(0,oAngleView),y:posY+5*direction(1,oAngleView),z:0,theta:oAngleView,countdown:2,cooldown:42});
+				addNewItem(oKart, {type: "bobomb", sprite:new Sprite("bob-omb"), team:oKart.team, x:posX+5*direction(0,oAngleView),y:posY+5*direction(1,oAngleView),z:0,theta:oAngleView,countdown:2,cooldown:42});
 			else
-				addNewItem(oKart, {id:-1, type: "bobomb", sprite:new Sprite("bob-omb"), team:oKart.team, x:posX,y:posY,z:0,theta:oAngleView,countdown:15,cooldown:30});
+				addNewItem(oKart, {type: "bobomb", sprite:new Sprite("bob-omb"), team:oKart.team, x:posX,y:posY,z:0,theta:oAngleView,countdown:15,cooldown:30});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -4861,18 +4865,28 @@ function redrawCanvas(i, fCamera) {
 	}
 }
 
+function floatType(key) {
+	return {key:key,type:"float"};
+}
+function intType(key) {
+	return {key:key,type:"int"};
+}
 var itemBehaviors = {
 	"banane": {
-		size: 0.67
+		size: 0.67,
+		sync: [floatType("x"),floatType("y"),floatType("z")]
 	},
 	"fauxobjet": {
-		size: 1
+		size: 1,
+		sync: [floatType("x"),floatType("y"),floatType("z")]
 	},
 	"carapace": {
-		size: 0.67
+		size: 0.67,
+		sync: [floatType("x"),floatType("y"),floatType("z")]
 	},
 	"bobomb": {
 		size: 1,
+		sync: [floatType("x"),floatType("y"),floatType("z")],
 		render: function(fSprite,i) {
 			if (fSprite.cooldown <= 0) {
 				if (!i && (fSprite.size == 1)) {
@@ -4903,10 +4917,12 @@ var itemBehaviors = {
 		}
 	},
 	"carapace-rouge": {
-		size: 0.67
+		size: 0.67,
+		sync: [floatType("x"),floatType("y"),floatType("z")]
 	},
 	"carapace-bleue": {
 		size: 1,
+		sync: [floatType("x"),floatType("y"),floatType("z")],
 		render: function(fSprite,i) {
 			if (fSprite.cooldown <= 0) {
 				if (!i && fSprite.size == 1) {
@@ -4944,9 +4960,10 @@ var itemBehaviors = {
 		}
 	}
 }
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","carapace-rouge","carapace-bleue"];
 var items = {};
-for (var key in itemBehaviors)
-	items[key] = [];
+for (var i=0;i<itemTypes.length;i++)
+	items[itemTypes[i]] = [];
 var decorBehaviors = {
 	taupe:{
 		spin: 20,
@@ -7084,8 +7101,12 @@ function balloonSrc(team) {
 	return 'images/sprites/sprite_'+(team==1?'ballonR':'ballon')+'.png';
 }
 
+var syncItems = [];
 function detruit(item, sound) {
-	var key = item.type;
+	if (isOnline) {
+		item.deleted = 1;
+		syncItems.push(item);
+	}
 	supprime(item, sound);
 }
 function supprime(item, sound) {
@@ -7326,7 +7347,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 									collisionPlayer.turbodrift = 0;
 								if (decorBehavior.bonus) {
 									if (!isOnline || (collisionPlayer == oPlayers[0]))
-										addNewItem(collisionPlayer, {id:-1, type: "banane", sprite:new Sprite("banane"), team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
+										addNewItem(collisionPlayer, {type: "banane", sprite:new Sprite("banane"), team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
 								}
 							}
 							if (decorBehavior.transparent)
@@ -9067,7 +9088,7 @@ function touche_bobomb(iX, iY, iP) {
 							break;
 						}
 					}
-					addNewItem(oKart, {id:-1, type: "bobomb", sprite:new Sprite("bob-omb"), team:oBox.team, x:oBox.x, y:oBox.y, z:oBox.z,theta:1,countdown:0,cooldown:1});
+					addNewItem(oKart, {type: "bobomb", sprite:new Sprite("bob-omb"), team:oBox.team, x:oBox.x, y:oBox.y, z:oBox.z,theta:1,countdown:0,cooldown:1});
 					detruit(oBox);
 					i--;
 				}
@@ -9350,6 +9371,31 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	return false;
 }
 
+function itemDataToHex(type, data) {
+	switch (type) {
+	case "float":
+		return [].slice.call(new Uint8Array(new Float64Array([data]).buffer,0,8)).map(function(x){return x.toString(16).padStart(2,"0")}).join("");
+	case "int":
+		return [].slice.call(new Uint8Array(new Int32Array([data]).buffer,0,4)).map(function(x){return x.toString(16).padStart(2,"0")}).join("");
+	}
+}
+function hexToItemData(type, hex) {
+	switch (type) {
+	case "float":
+		return new Float64Array(new Uint8Array(hex.match(/../g).map(function(x) {return parseInt(x,16)})).buffer)[0];
+	case "int":
+		return new Int32Array(new Uint8Array(hex.match(/../g).map(function(x) {return parseInt(x,16)})).buffer)[0];
+	}
+}
+function itemDataLength(type) {
+	switch (type) {
+	case "float":
+		return 16;
+	case "int":
+		return 8;
+	}
+}
+
 function resetDatas() {
 	var oPlayer = oPlayers[0];
 	var params = (course != "BB")
@@ -9357,7 +9403,8 @@ function resetDatas() {
 	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","ballons","reserve","champi","etoile","megachampi"];
 	var payload = {
 		player: [],
-		item: []
+		item: [],
+		lastcon: connecte
 	};
 	payload.player.length = params.length;
 	for (var i=0;i<params.length;i++) {
@@ -9377,6 +9424,33 @@ function resetDatas() {
 		}
 		payload.player[i] = value;
 	}
+	var aSyncItems = Array.from(new Set(syncItems));
+	var nSyncItems = [];
+	for (var i=0;i<aSyncItems.length;i++) {
+		var syncItem = aSyncItems[i];
+		var itemData = "";
+		if (syncItem.deleted) {
+			if (!syncItem.id) continue;
+		}
+		else {
+			var itemBehavior = itemBehaviors[syncItem.type];
+			for (var j=0;j<itemBehavior.sync.length;j++) {
+				var syncParams = itemBehavior.sync[j];
+				itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]);
+			}
+		}
+		var itemPayload = {
+			data: itemData
+		};
+		if (syncItem.id)
+			itemPayload.id = syncItem.id;
+		else {
+			itemPayload.type = itemTypes.indexOf(syncItem.type);
+			nSyncItems.push(syncItem);
+		}
+		payload.item.push(itemPayload);
+	}
+	syncItems.length = 0;
 	if (course == "BB")
 		payload.battle = 1;
 	else {
@@ -9391,126 +9465,169 @@ function resetDatas() {
 	}).then(function(rCode) {
 		if (rCode != -1) {
 			refreshDatas = true;
+			var oCodes = rCode[1];
+			var newItems = oCodes[0], updatedItems = oCodes[1];
+			for (var i=0;i<newItems.length;i++) {
+				var newItem = newItems[i];
+				if (nSyncItems[i])
+					nSyncItems[i].id = newItem;
+			}
+			for (var i=0;i<updatedItems.length;i++) {
+				var updatedItem = updatedItems[i];
+				var uId = updatedItem[0];
+				var uType = itemTypes[updatedItem[1]];
+				if (!uType) continue;
+				var uData = updatedItem[2];
+				var uItem = items[uType].find(function(item) {
+					return (item.id == uId);
+				});
+				if (!uItem) {
+					if (uData) {
+						uItem = {
+							id: uId,
+							type: uType,
+							sprite: new Sprite(uType),
+							team: -1
+						};
+						addNewItem(null,uItem);
+					}
+				}
+				else {
+					if (!uData)
+						supprime(uItem, false);
+				}
+				if (uData) {
+					var cur = 0;
+					var itemBehavior = itemBehaviors[uType];
+					for (var j=0;j<itemBehavior.sync.length;j++) {
+						var syncParams = itemBehavior.sync[j];
+						var dl = itemDataLength(syncParams.type);
+						var dc = uData.substr(cur,dl);
+						if (dc.length == dl) {
+							uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
+						}
+						cur += dl;
+					}
+				}
+			}
 			var jCodes = rCode[0];
 			for (var i=0;i<jCodes.length;i++) {
 				var jCode = jCodes[i];
-				if (jCode[0][1] >= connecte) {
-					var pID = jCode[0][0];
-					for (var j=0;j<aKarts.length;j++) {
-						var oKart = aKarts[j];
-						if (oKart.id == pID) {
-							var pCode = jCode[1];
-							var aEtoile = oKart.etoile, aBillBall = oKart.billball, aEclair = oKart.eclair, aTombe = oKart.tombe;
-							for (var k=0;k<params.length;k++) {
-								var param = params[k];
-								var value = pCode[k];
-								switch (param) {
-								case "demitours":
-									//if (course != "BB")
-									//	oKart.demitours = (getLastCp(oKart)+value)%oMap.checkpoint.length;
-									break;
-								case "ballons":
-									if (course == "BB") {
-										while (oKart.ballons.length < value) {
-											if (!oKart.ballons.length) {
-												oKart.sprite[0].div.style.opacity = 1;
-												oKart.sprite[0].img.style.display = "";
-												oPlanCharacters[j].style.display = "block";
-												oPlanCharacters2[j].style.display = "block";
-												oKart.loose = false;
-											}
-											addNewBalloon(oKart);
+				var pID = jCode[0][0];
+				for (var j=0;j<aKarts.length;j++) {
+					var oKart = aKarts[j];
+					if (oKart.id == pID) {
+						var pCode = jCode[1];
+						var aEtoile = oKart.etoile, aBillBall = oKart.billball, aEclair = oKart.eclair, aTombe = oKart.tombe;
+						for (var k=0;k<params.length;k++) {
+							var param = params[k];
+							var value = pCode[k];
+							switch (param) {
+							case "demitours":
+								//if (course != "BB")
+								//	oKart.demitours = (getLastCp(oKart)+value)%oMap.checkpoint.length;
+								break;
+							case "ballons":
+								if (course == "BB") {
+									while (oKart.ballons.length < value) {
+										if (!oKart.ballons.length) {
+											oKart.sprite[0].div.style.opacity = 1;
+											oKart.sprite[0].img.style.display = "";
+											oPlanCharacters[j].style.display = "block";
+											oPlanCharacters2[j].style.display = "block";
+											oKart.loose = false;
 										}
-										while (oKart.ballons.length > value) {
-											var lg = oKart.ballons.length-1;
-											oKart.ballons[lg][0].suppr();
-											oKart.ballons.pop();
-										}
+										addNewBalloon(oKart);
 									}
-									break;
-								default:
-									oKart[params[k]] = value;
-								}
-							}
-							if ((oKart.billball >= 40) && !aBillBall) {
-								oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
-								resetSpriteHeight(oKart.sprite[0]);
-								oKart.aipoint = undefined;
-							}
-							else if ((oKart.etoile >= 50) && !aEtoile)
-								oKart.sprite[0].img.src = getStarSrc(oKart.personnage);
-							else if ((aEtoile && !oKart.etoile) || (aBillBall && !oKart.billball)) {
-								oKart.sprite[0].img.src = getSpriteSrc(oKart.personnage);
-								resumeSpriteSize(oKart.sprite[0]);
-							}
-							if ((oKart.eclair >= 90) && !aEclair) {
-								for (k=0;k<aKarts.length;k++) {
-									var kart = aKarts[k];
-									if (!friendlyFire(kart,oKart)) {
-										if (!kart.protect) {
-											kart.size = 0.6;
-											updateDriftSize(k);
-											kart.arme = false;
-											loseUsingItem(kart);
-											kart.champi = 0;
-											kart.spin(20);
-											kart.roulette = 0;
-											stopDrifting(k);
-											supprArme(k);
-										}
-										else
-											kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
+									while (oKart.ballons.length > value) {
+										var lg = oKart.ballons.length-1;
+										oKart.ballons[lg][0].suppr();
+										oKart.ballons.pop();
 									}
 								}
-								$mkScreen.style.opacity = 0.7;
-								if (iSfx && !finishing && !oPlayers[0].cpu)
-									playSoundEffect("musics/events/lightning.mp3");
+								break;
+							default:
+								oKart[params[k]] = value;
 							}
-							else if (aEclair && !oKart.eclair && (oPlayers[0].size < 1)) {
-								oPlayers[0].size = 1;
-								updateDriftSize(j);
-								$mkScreen.style.opacity = 1;
+						}
+						if ((oKart.billball >= 40) && !aBillBall) {
+							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
+							resetSpriteHeight(oKart.sprite[0]);
+							oKart.aipoint = undefined;
+						}
+						else if ((oKart.etoile >= 50) && !aEtoile)
+							oKart.sprite[0].img.src = getStarSrc(oKart.personnage);
+						else if ((aEtoile && !oKart.etoile) || (aBillBall && !oKart.billball)) {
+							oKart.sprite[0].img.src = getSpriteSrc(oKart.personnage);
+							resumeSpriteSize(oKart.sprite[0]);
+						}
+						if ((oKart.eclair >= 90) && !aEclair) {
+							for (k=0;k<aKarts.length;k++) {
+								var kart = aKarts[k];
+								if (!friendlyFire(kart,oKart)) {
+									if (!kart.protect) {
+										kart.size = 0.6;
+										updateDriftSize(k);
+										kart.arme = false;
+										loseUsingItem(kart);
+										kart.champi = 0;
+										kart.spin(20);
+										kart.roulette = 0;
+										stopDrifting(k);
+										supprArme(k);
+									}
+									else
+										kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
+								}
 							}
-							updateProtectFlag(oKart);
-							if (aTombe && !oKart.tombe) {
-								oKart.sprite[0].img.style.display = "block";
+							$mkScreen.style.opacity = 0.7;
+							if (iSfx && !finishing && !oPlayers[0].cpu)
+								playSoundEffect("musics/events/lightning.mp3");
+						}
+						else if (aEclair && !oKart.eclair && (oPlayers[0].size < 1)) {
+							oPlayers[0].size = 1;
+							updateDriftSize(j);
+							$mkScreen.style.opacity = 1;
+						}
+						updateProtectFlag(oKart);
+						if (aTombe && !oKart.tombe) {
+							oKart.sprite[0].img.style.display = "block";
+							if (course == "BB") {
+								for (var k=0;k<oKart.ballons.length;k++)
+									oKart.ballons[k][0].img.style.display = "block";
+							}
+						}
+						if (!aTombe && oKart.tombe) {
+							oKart.sprite[0].img.style.display = "none";
+							if (oKart.tombe > 2) {
 								if (course == "BB") {
 									for (var k=0;k<oKart.ballons.length;k++)
-										oKart.ballons[k][0].img.style.display = "block";
+										oKart.ballons[k][0].img.style.display = "none";
 								}
+								if (oKart.marker)
+									oKart.marker.div[0].style.display = "none";
 							}
-							if (!aTombe && oKart.tombe) {
-								oKart.sprite[0].img.style.display = "none";
-								if (oKart.tombe > 2) {
-									if (course == "BB") {
-										for (var k=0;k<oKart.ballons.length;k++)
-											oKart.ballons[k][0].img.style.display = "none";
-									}
-									if (oKart.marker)
-										oKart.marker.div[0].style.display = "none";
-								}
-							}
-							if (!oKart.turnSound && oKart.tourne)
-								oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
-							if (oKart.turnSound && !oKart.tourne)
-								oKart.turnSound = undefined;
-							var uID = jCode[0][3];
-							if (uID == -1)
-								oKart.using = [false];
-							else {
-								oKart.using = [false];
-								var iObjet = iObjets[jCode[0][2]];
-								for (k=0;k<iObjet.length;k++) {
-									if (uID == iObjet[k][1]) {
-										oKart.using = [iObjets[jCode[0][2]], k];
-										break;
-									}
-								}
-							}
-							for (k=jCode[0][1];k<rCode[2];k++)
-								move(j);
-							break;
 						}
+						if (!oKart.turnSound && oKart.tourne)
+							oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
+						if (oKart.turnSound && !oKart.tourne)
+							oKart.turnSound = undefined;
+						var uID = jCode[0][3];
+						if (uID == -1)
+							oKart.using = [false];
+						else {
+							oKart.using = [false];
+							var iObjet = iObjets[jCode[0][2]];
+							for (k=0;k<iObjet.length;k++) {
+								if (uID == iObjet[k][1]) {
+									oKart.using = [iObjets[jCode[0][2]], k];
+									break;
+								}
+							}
+						}
+						for (k=jCode[0][1];k<rCode[2];k++)
+							move(j);
+						break;
 					}
 				}
 			}
@@ -9689,8 +9806,13 @@ function resetDatas() {
 			iDeco();
 			pause = true;
 		}
-	}).catch(function() {
-		refreshDatas = true;
+	}).catch(function(e) {
+		console.error(e);
+		if (!refreshDatas) {
+			refreshDatas = true;
+			for (var i=aSyncItems.length-1;i>=0;i--)
+				syncItems.unshift(aSyncItems[i]);
+		}
 	});
 	refreshDatas = false;
 }

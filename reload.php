@@ -24,28 +24,31 @@ if ($id) {
 		include('initdb.php');
 		$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkplayers` WHERE id="'.$id.'"'));
 		$course = $getCourse['course'];
+		$lastconnect = isset($payload['lastcon']) ? $payload['lastcon']:0;
 		if ($course) {
 			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
 			if (isset($payload['tours']) && ($payload['tours'])>$fLaps) $payload['tours'] = $fLaps;
 			$finished = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE id='. $course .' AND map=-1 LIMIT 1'));
 			$timeMs = microtime(true);
 			$time = floor($timeMs);
-			$lConnect = round($timeMs*1000/67);
-			$limConnect = round(($timeMs-35)*1000/67);
+			function timeInFrames($timeMs=null) {
+				if (null === $timeMs) $timeMs = microtime(true);
+				return round($timeMs*1000/67);
+			}
+			$lConnect = timeInFrames($timeMs);
+			$limConnect = timeInFrames(($timeMs-35));
 			if (!$finished) {
-				$deletedItems = $payload['ditems'];
-				$deletedItemIds = array();
-				foreach ($deletedItems as $item)
-					$deletedItemIds[] = +$item;
-				$deletedItemIdsString = implode(',',$deletedItemIds);
-				if ($deletedItemIdsString)
-					mysql_query('DELETE FROM `items` WHERE id IN ('.$deletedItemIdsString.') AND course='.$course);
-				$lastInsertedObjects = array();
-				function getLastOne($table) {
-					global $lastInsertedObjects;
-					if (isset($lastInsertedObjects[$table]))
-						return $lastInsertedObjects[$table];
-					return -1;
+				$newItems = array();
+				if (isset($payload['item'])) {
+					foreach ($payload['item'] as $item) {
+						if (isset($item['id'])) {
+							mysql_query('UPDATE items SET data=UNHEX("'. $item['data'] .'"),updated_at="'. timeInFrames() .'",updated_by="'.$id.'" WHERE id="'. $item['id'] .'" AND data!=""');
+						}
+						else {
+							mysql_query('INSERT INTO items SET course="'. $course .'",type="'. $item['type'] .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'",data=UNHEX("'. $item['data'] .'")');
+							$newItems[] = mysql_insert_id();
+						}
+					}
 				}
 				if (isset($payload['player'])) {
 					$sql = 'UPDATE `mkplayers` SET ';
@@ -74,7 +77,7 @@ if ($id) {
 			while ($joueur=mysql_fetch_array($joueurs)) {
 				if ($joueur['team'] == -1)
 					$isTeam = false;
-				if ($joueur['id'] != $id) {
+				if (($joueur['id'] != $id) && ($joueur['connecte'] >= $lastconnect)) {
 					echo ($virgule ? ',':'').'[['.$joueur['id'].','.$joueur['connecte'].','.$joueur['arme'].','.$joueur['iUse'].'],['.$joueur[$playerMapping[0]];
 					$nbPosts = count($playerMapping);
 					for ($i=1;$i<$nbPosts;$i++)
@@ -91,6 +94,18 @@ if ($id) {
 			if ($isTeam && $isBattle)
 				$racing = ($racingPerTeam[0]>0)+($racingPerTeam[1]>0);
 			echo '],[';
+			echo json_encode($newItems);
+			echo ',';
+			$getUpdatedItems = mysql_query('SELECT id,type,HEX(data) AS data FROM items WHERE course="'. $course .'" AND updated_at>="'. $lastconnect .'" AND updated_by!="'. $id .'"');
+			$updatedItems = array();
+			while ($updatedItem = mysql_fetch_array($getUpdatedItems)) {
+				$updatedItems[] = array(
+					$updatedItem['id'],
+					$updatedItem['type'],
+					$updatedItem['data']
+				);
+			}
+			echo json_encode($updatedItems);
 			echo '],'.$lConnect;
 			$finishing = false;
 			if (($racing < 2) || (!$isBattle&&mysql_numrows(mysql_query('SELECT time FROM `mariokart` WHERE id='. $course .' AND time<='.($time-35))))) {
