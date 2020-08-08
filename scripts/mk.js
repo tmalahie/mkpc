@@ -3376,7 +3376,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3408,14 +3408,14 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -10262,6 +10262,7 @@ function move(getId) {
 					iObj = ghostItems[Math.floor(Math.random()*ghostItems.length)];
 				}
 			}
+			iObj = "banane";
 			oKart.arme = iObj;
 			if (shouldPlaySound(oKart))
 				oKart.rouletteSound = playSoundEffect("musics/events/roulette.mp3");
@@ -16446,6 +16447,7 @@ function choose(map,rand) {
 							else
 								tnCourse += 5000;
 						}
+						rCode[2] = 0; // TODO remove
 						connecte = rCode[3]+1;
 						var cCursor = 0;
 						var cTime = 50;
