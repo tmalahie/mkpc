@@ -77,8 +77,6 @@ if ($id) {
 	$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
 	$course = $getCourse['course'];
 	$cas = 0;
-	$tables = Array('bananes', 'fauxobjets', 'carapaces', 'carapacesRouge', 'carapacesBleue', 'bobombs');
-	$nbTables = count($tables);
 	$switchCourse = false;
 	if (!$course && !$linkOptions->public) {
 		// Course privée, on impose l'ID de course s'il existe déjà
@@ -163,8 +161,7 @@ if ($id) {
 		mysql_query('UPDATE `mkjoueurs` SET course=0,choice_map=0 WHERE course='. $course);
 		mysql_query('DELETE FROM `mkplayers` WHERE course='. $course);
 		mysql_query('DELETE FROM `mkchat` WHERE course='. $course);
-		for ($i=0;$i<$nbTables;$i++)
-			mysql_query('DELETE FROM `'.$tables[$i].'` WHERE course='.$course);
+		mysql_query('DELETE FROM `items` WHERE course='.$course);
 		$cas = 2;
 	}
 	elseif ($getTime && $getTime['map']==-1 && $getTime['cup']==$nid && $getTime['mode']==$nmode && $getTime['link']==$nlink && $getTime['time']>=($time+10)) {

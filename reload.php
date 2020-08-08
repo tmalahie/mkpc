@@ -2,94 +2,62 @@
 session_start();
 $id = $_SESSION['mkid'];
 if ($id) {
-	function areset($posts) {
-		$nbPosts = count($posts);
-		for ($i=0;$i<$nbPosts;$i++) {
-			if (!isset($_POST[$posts[$i]]))
-				return false;
+	$payload = json_decode(file_get_contents('php://input'),true);
+	if ($payload) {
+		$isBattle = isset($payload['battle']);
+		switch ($payload['v']) {
+		default:
+			$paramsMapping = array(
+				'keys' => array(
+					'player' => 'p',
+					'items' => 'i'
+				),
+				'player' => $isBattle
+					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","ballons","reserve","champi","etoile","megachampi")
+					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","tours","demitours","champi","etoile","megachampi","billball","eclair","place")
+			);
 		}
-		return true;
-	}
-	$isBattle = isset($_POST['battle']);
-	$params = $isBattle
-		? Array('x','y','z','speed','speedinc','heightinc','rotation','rotincdir','rotinc','size','tourne','tombe','ballons','reserve','champi','etoile','megachampi')
-		: Array('x','y','z','speed','speedinc','heightinc','rotation','rotincdir','rotinc','size','tourne','tombe','tours','demitours','champi','etoile','megachampi','billball','eclair','place');
-	if (areset($params)) {
+		define('KEY_PLAYER', $paramsMapping['keys']['player']);
+		define('KEY_ITEMS', $paramsMapping['keys']['items']);
+		$playerMapping = $paramsMapping['player'];
+
 		include('initdb.php');
 		$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkplayers` WHERE id="'.$id.'"'));
 		$course = $getCourse['course'];
 		if ($course) {
-			$fLaps = (isset($_POST['laps'])&&is_numeric($_POST['laps'])) ? ($_POST['laps']+1):4;
-			if (isset($_POST['tours']) && ($_POST['tours'])>$fLaps) $_POST['tours'] = $fLaps;
-			$tables = Array('bananes', 'fauxobjets', 'carapaces', 'carapacesRouge', 'carapacesBleue', 'bobombs');
-			$nbTables = count($tables);
-			$finished = mysql_numrows(mysql_query('SELECT * FROM `mariokart` WHERE id='. $course .' AND map=-1'));
-			$time = time();
-			$lConnect = round(($time+microtime())*1000/67);
-			$limConnect = round((($time-35)+microtime())*1000/67);
+			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
+			if (isset($payload['tours']) && ($payload['tours'])>$fLaps) $payload['tours'] = $fLaps;
+			$finished = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE id='. $course .' AND map=-1 LIMIT 1'));
+			$timeMs = microtime(true);
+			$time = floor($timeMs);
+			$lConnect = round($timeMs*1000/67);
+			$limConnect = round(($timeMs-35)*1000/67);
 			if (!$finished) {
-				$alphaB = 'abcdef';
-				for ($i=0;$i<$nbTables;$i++) {
-					for ($j=0;isset($_POST[$alphaB[$i].$j]);$j++)
-						mysql_query('DELETE FROM `'.$tables[$i].'` WHERE id="'.$_POST[$alphaB[$i].$j].'"');
-				}
+				$deletedItems = $payload['ditems'];
+				$deletedItemIds = array();
+				foreach ($deletedItems as $item)
+					$deletedItemIds[] = +$item;
+				$deletedItemIdsString = implode(',',$deletedItemIds);
+				if ($deletedItemIdsString)
+					mysql_query('DELETE FROM `items` WHERE id IN ('.$deletedItemIdsString.') AND course='.$course);
 				$lastInsertedObjects = array();
-				for ($i=0;$i<$nbTables;$i++) {
-					$lettre = $alphaB[$i];
-					$table = $tables[$i];
-					$champs = mysql_query('SELECT * FROM `'. $table.'` LIMIT 1');
-					$nbChamps = mysql_num_fields($champs);
-					$nChamps = $nbChamps-1;
-					for ($j=0;true;$j++) {
-						$continuer = true;
-						for ($k=0;$k<$nChamps;$k++) {
-							if (!isset($_POST[$lettre.$j.'_'.$k])) {
-								$continuer = false;
-								break;
-							}
-						}
-						if ($continuer) {
-							$oID = $_POST[$lettre.$j.'_0'];
-							if ($oID != -1) {
-								$sql = 'UPDATE `'.$table.'` SET ';
-								for ($k=2;$k<$nbChamps;$k++)
-									$sql .= (($k!=2) ? ',':'') . mysql_field_name($champs, $k) .'='. $_POST[$lettre.$j.'_'.($k-1)];
-								mysql_query($sql .' WHERE id='. $oID);
-							}
-							else {
-								$sql = 'INSERT INTO `'.$table.'` (`course`';
-								for ($k=2;$k<$nbChamps;$k++)
-									$sql .= ',`'.mysql_field_name($champs, $k).'`';
-								$sql .= ') VALUES ('. $course;
-								for ($k=2;$k<$nbChamps;$k++)
-									$sql .= ',"'.$_POST[$lettre.$j.'_'.($k-1)].'"';
-								mysql_query($sql .')');
-								$lastInsertedObjects[$table] = mysql_insert_id();
-							}
-						}
-						else
-							break;
-					}
-				}
 				function getLastOne($table) {
 					global $lastInsertedObjects;
 					if (isset($lastInsertedObjects[$table]))
 						return $lastInsertedObjects[$table];
 					return -1;
 				}
-				$sql = 'UPDATE `mkplayers` SET ';
-				$nbPosts = count($params);
-				for ($i=0;$i<$nbPosts;$i++)
-					$sql .= $params[$i] .'="'.$_POST[$params[$i]] .'",';
-				if (isset($_POST['i'])&&isset($_POST['j']))
-					$sql .= 'arme="'.$_POST['i'].'",iUse="'.(($_POST['j']!=-1)?$_POST['j']:getLastOne($tables[$_POST['i']])).'"';
-				else
+				if (isset($payload['player'])) {
+					$sql = 'UPDATE `mkplayers` SET ';
+					foreach ($playerMapping as $i => $key)
+						$sql .= $key .'="'.$payload['player'][$i] .'",';
 					$sql .= 'arme=-1,iUse=-1';
-				$winning = $isBattle ? (($_POST['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND ballons=0'))) : (($_POST['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND tours>='.$fLaps)));
-				if ($winning)
-					$sql .= ',place='.(mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)))+1-$isBattle);
-				$sql .= ',connecte='.$lConnect.' WHERE id="'. $id .'"';
-				mysql_query($sql);
+					$winning = $isBattle ? (($payload['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND ballons=0'))) : (($payload['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND tours>='.$fLaps)));
+					if ($winning)
+						$sql .= ',place='.(mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)))+1-$isBattle);
+					$sql .= ',connecte='.$lConnect.' WHERE id="'. $id .'"';
+					mysql_query($sql);
+				}
 				if ($winning && !$isBattle)
 					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time);
 			}
@@ -107,10 +75,10 @@ if ($id) {
 				if ($joueur['team'] == -1)
 					$isTeam = false;
 				if ($joueur['id'] != $id) {
-					echo ($virgule ? ',':'').'[['.$joueur['id'].','.$joueur['connecte'].','.$joueur['arme'].','.$joueur['iUse'].'],['.$joueur['x'];
-					$nbPosts = count($params);
+					echo ($virgule ? ',':'').'[['.$joueur['id'].','.$joueur['connecte'].','.$joueur['arme'].','.$joueur['iUse'].'],['.$joueur[$playerMapping[0]];
+					$nbPosts = count($playerMapping);
 					for ($i=1;$i<$nbPosts;$i++)
-						echo ','. $joueur[$params[$i]];
+						echo ','. $joueur[$playerMapping[$i]];
 					echo ']]';
 					$virgule = true;
 				}
@@ -123,24 +91,6 @@ if ($id) {
 			if ($isTeam && $isBattle)
 				$racing = ($racingPerTeam[0]>0)+($racingPerTeam[1]>0);
 			echo '],[';
-			for ($i=0;$i<$nbTables;$i++) {
-				echo ($i ? ',':'').'[';
-				$getObj = mysql_query('SELECT * FROM `'.$tables[$i].'` WHERE course='.$course.' ORDER BY id');
-				$nbChamps = mysql_num_fields($getObj);
-				if ($champ = mysql_fetch_array($getObj)) {
-					echo '['.$champ['id'];
-					for ($j=2;$j<$nbChamps;$j++)
-						echo ','. $champ[mysql_field_name($getObj, $j)];
-					echo ']';
-					while ($champ = mysql_fetch_array($getObj)) {
-					echo ',['.$champ['id'];
-						for ($j=2;$j<$nbChamps;$j++)
-							echo ','. $champ[mysql_field_name($getObj, $j)];
-						echo ']';
-					}
-				}
-				echo ']';
-			}
 			echo '],'.$lConnect;
 			$finishing = false;
 			if (($racing < 2) || (!$isBattle&&mysql_numrows(mysql_query('SELECT time FROM `mariokart` WHERE id='. $course .' AND time<='.($time-35))))) {
@@ -169,8 +119,7 @@ if ($id) {
 						}
 					}
 					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.choice_map=0,p.connecte=0 WHERE j.course='. $course);
-					for ($i=0;$i<$nbTables;$i++)
-						mysql_query('DELETE FROM `'.$tables[$i].'` WHERE course='.$course);
+					mysql_query('DELETE FROM `items` WHERE course='.$course);
 				}
 				function getScoreInc($i,$score,$nbScores,$total) {
 					$coeff = (($nbScores-$i-1)/($nbScores-1))-($score/$total);

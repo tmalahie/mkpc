@@ -140,11 +140,7 @@ var gameMenu;
 var primaryColor = "#FEFF3F";
 
 var refreshDatas = isOnline, finishing = false;
-var destructions = new Array();
-var nbNews = new Array();
 var connecte = 1;
-for (i=0;i<6;i++)
-	destructions.push(new Array());
 var aIDs = new Array();
 var tnCourse = 0;
 var identifiant;
@@ -1091,15 +1087,16 @@ function loadMap() {
 		oCompteur.id = "compteur"+i;
 		oCompteur.style.left = Math.round(iScreenScale/2) +"px";
 		oCompteur.style.bottom = ((course != "BB") ? Math.round(iScreenScale/4) : Math.round(iScreenScale/4)) +"px";
+		oCompteur.style.fontSize = Math.round(iScreenScale*2.4) +"px";
 		if (!pause || !fInfos.replay) {
 			if (course != "BB") {
 				oCompteur.innerHTML = '<div></div><div class="glow"></div>';
 				var oCompteurDivs = oCompteur.querySelectorAll("div");
 				for (var j=0;j<oCompteurDivs.length;j++) {
-					oCompteurDivs[j].style.height = Math.round(iScreenScale*2) +"px";
+					oCompteurDivs[j].style.height = Math.round(iScreenScale*2.4) +"px";
 					oCompteurDivs[j].innerHTML = "<div>"+ (oMap.sections ? "SECTION":toLanguage("LAP","TOUR")) + ' <span class="tour">1</span>/'+ oMap.tours +"</div>";
 					if (!j) {
-						var shadowShift = Math.round(iScreenScale/8	) +"px";
+						var shadowShift = Math.round(iScreenScale/8) +"px";
 						var shadowShift2 = Math.round(iScreenScale/4) +"px";
 						oCompteurDivs[j].style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
 					}
@@ -1162,7 +1159,7 @@ function loadMap() {
 		oInfos.style.left = (10+35*iScreenScale + iScreenMore) +"px";
 		oInfos.style.top = (13*iScreenScale) +"px";
 		oInfos.style.fontSize = iScreenScale*10 +"px";
-		oInfos.style.fontFamily = '"SMK-Rank", "SMK-Timer", Arial';
+		oInfos.style.fontFamily = '"SMK-Rank"';
 		var shadowShift = Math.round(iScreenScale/2) +"px";
 		var shadowShift2 = Math.round(iScreenScale/4) +"px";
 		var shadowColor = primaryColor;
@@ -2682,8 +2679,8 @@ function startGame() {
 			}
 			else {
 				for (var i=0;i<strPlayer.length;i++) {
-					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('&nbsp; &nbsp; GO !', 'PARTEZ !') +'</td></tr>';
-					document.getElementById("infos"+i).style.left = (10*iScreenScale + i*(iWidth*iScreenScale+2)) + "px";
+					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('GO !', 'GO !') +'</td></tr>';
+					document.getElementById("infos"+i).style.left = (24*iScreenScale + i*(iWidth*iScreenScale+2)) + "px";
 					document.getElementById("infos"+i).style.top = (15*iScreenScale) + "px";
 					document.getElementById("infos"+i).style.fontSize = iScreenScale * 8 + "px";
 					if (oPlayers[i].speed == 1)
@@ -3375,7 +3372,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3407,12 +3404,14 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
+		//* gogogo
 		setTimeout(fncCount,tnCountdown);
+		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -7087,17 +7086,6 @@ function balloonSrc(team) {
 
 function detruit(item, sound) {
 	var key = item.type;
-	if (isOnline) {
-		for (var i=0;i<nbNews[key].length;i++) {
-			if (nbNews[key][i] > id)
-				nbNews[key][i]--;
-			else if (nbNews[key][i] == id) {
-				nbNews[key].splice(i, 1);
-				i--;
-			}
-		}
-		destructions[key].push(items[key][id][1]);
-	}
 	supprime(item, sound);
 }
 function supprime(item, sound) {
@@ -9367,401 +9355,342 @@ function resetDatas() {
 	var params = (course != "BB")
 	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","tours","demitours","champi","etoile","megachampi","billball","eclair","place"]
 	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","ballons","reserve","champi","etoile","megachampi"];
-	var paramsExcept = ["demitours","ballons"];
-	var eParams = {};
-	for (var i=0;i<paramsExcept.length;i++)
-		eParams[paramsExcept[i]] = true;
-	var uSend = "";
+	var payload = {
+		player: [],
+		item: []
+	};
+	payload.player.length = params.length;
 	for (var i=0;i<params.length;i++) {
-		if (!eParams[params[i]])
-			uSend += params[i]+"="+oPlayer[params[i]]+"&";
+		var param = params[i];
+		var value;
+		switch (param) {
+		case "demitours":
+			if (course != "BB")
+				value = getCpScore(oPlayer);
+			break;
+		case "ballons":
+			if (course == "BB")
+				value = oPlayer.ballons.length;
+			break;
+		default:
+			value = oPlayer[params[i]];
+		}
+		payload.player[i] = value;
 	}
 	if (course == "BB")
-		uSend += "ballons="+oPlayer.ballons.length +"&battle=1&";
+		payload.battle = 1;
 	else {
-		uSend += "demitours="+getCpScore(oPlayer)+"&";
 		if (oMap.tours != 3)
-			uSend += "laps="+oMap.tours+"&";
+			payload.laps = oMap.tours;
 	}
-	var iObjets = ["banane", "fauxobjet", "carapace", "carapace-rouge", "carapace-bleue", "bobomb"];
-	if (oPlayer.using[0])
-		uSend += "i="+ iObjets.indexOf(oPlayer.using[0]) +"&j="+ oPlayer.using[0][oPlayer.using[1]][1] +"&";
-	var alpha = "abcdef";
-	var idObjets = new Array();
-	for (i=0;i<iObjets.length;i++) {
-		idObjets[i] = new Array();
-		for (var j=0;j<iObjets[i].length;j++)
-			idObjets[i][j] = iObjets[i][j][1];
-	}
-	nbNews = new Array();
-	for (i=0;i<iObjets.length;i++) {
-		var iObjet = iObjets[i];
-
-		var lettre = alpha.charAt(i);
-		nbNews[i] = new Array();
-		for (j=0;j<iObjet.length;j++) {
-			var cObjet = iObjet[j];
-			for (var k=1;k<cObjet.length;k++)
-				uSend += lettre+j+"_"+(k-1)+"="+cObjet[k]+"&";
-			if (cObjet[1] == -1)
-				nbNews[i].push(j);
-		}
-	}
-	for (i=0;i<destructions.length;i++) {
-		var lettre = alpha.charAt(i);
-		for (j=0;j<destructions[i].length;j++)
-			uSend += lettre+j+"="+destructions[i][j]+"&";
-		destructions[i] = new Array();
-	}
-	xhr("reload.php", uSend, function(reponse) {
-		refreshDatas = true;
-		if (reponse) {
-			if (reponse != -1) {
-				try {
-					var rCode = eval(reponse);
-					var aCodes = rCode[1];
-					for (i=0;i<aCodes.length;i++) {
-						for (j=0;j<nbNews[i].length;j++)
-							iObjets[i][nbNews[i]][1] = idObjets[i][nbNews[i]] = aCodes[i][aCodes[i].length-nbNews[i].length+j][0];
-					}
-					var strSprites = ["banane", "objet", "carapace", "carapace-rouge", "carapace-bleue", "bob-omb"];
-					for (i=0;i<aCodes.length;i++) {
-						for (j=0;j<aCodes[i].length;j++) {
-							var aID = aCodes[i][j][0];
-							var inArray = true;
-							for (var k=0;k<idObjets[i].length;k++) {
-								if (idObjets[i][k] == aID) {
-									inArray = false;
+	fetch('reload.php', {
+		method: 'post',
+		body: JSON.stringify(payload)
+	}).then(function(response) {
+		return response.json();
+	}).then(function(rCode) {
+		if (rCode != -1) {
+			refreshDatas = true;
+			var jCodes = rCode[0];
+			for (var i=0;i<jCodes.length;i++) {
+				var jCode = jCodes[i];
+				if (jCode[0][1] >= connecte) {
+					var pID = jCode[0][0];
+					for (var j=0;j<aKarts.length;j++) {
+						var oKart = aKarts[j];
+						if (oKart.id == pID) {
+							var pCode = jCode[1];
+							var aEtoile = oKart.etoile, aBillBall = oKart.billball, aEclair = oKart.eclair, aTombe = oKart.tombe;
+							for (var k=0;k<params.length;k++) {
+								var param = params[k];
+								var value = pCode[k];
+								switch (param) {
+								case "demitours":
+									//if (course != "BB")
+									//	oKart.demitours = (getLastCp(oKart)+value)%oMap.checkpoint.length;
 									break;
-								}
-							}
-							if (inArray) {
-								var strSprite = strSprites[i];
-								if ((strSprite == "carapace") && (aCodes[i][j][6] == -1))
-									strSprite = "carapace-rouge";
-								var toAdd = [new Sprite(strSprite),aID];
-								for (k=1;k<aCodes[i][j].length;k++)
-									toAdd.push(aCodes[i][j][k]);
-								addNewItem(null,iObjets[i],toAdd);
-							}
-						}
-					}
-					for (i=0;i<iObjets.length;i++) {
-						for (j=0;j<iObjets[i].length;j++) {
-							var oID = iObjets[i][j][1];
-							if (oID != -1) {
-								var inArray = true;
-								for (k=0;k<aCodes[i].length;k++) {
-									if (aCodes[i][k][0] == oID) {
-										inArray = false;
-										break;
-									}
-								}
-								if (inArray) {
-									supprime(iObjets[i], j);
-									j--;
-								}
-							}
-						}
-					}
-					var jCodes = rCode[0];
-					for (i=0;i<jCodes.length;i++) {
-						var jCode = jCodes[i];
-						if (jCode[0][1] >= connecte) {
-							var pID = jCode[0][0];
-							for (j=0;j<aKarts.length;j++) {
-								if (aKarts[j].id == pID) {
-									var pCode = jCode[1];
-									var aEtoile = aKarts[j].etoile, aBillBall = aKarts[j].billball, aEclair = aKarts[j].eclair, aTombe = aKarts[j].tombe;
-									var extraParams = {};
-									for (k=0;k<params.length;k++) {
-										if (!eParams[params[k]])
-											aKarts[j][params[k]] = pCode[k];
-										else
-											extraParams[params[k]] = pCode[k];
-									}
+								case "ballons":
 									if (course == "BB") {
-										while (aKarts[j].ballons.length < extraParams.ballons) {
-											if (!aKarts[j].ballons.length) {
-												aKarts[j].sprite[0].div.style.opacity = 1;
-												aKarts[j].sprite[0].img.style.display = "";
+										while (oKart.ballons.length < value) {
+											if (!oKart.ballons.length) {
+												oKart.sprite[0].div.style.opacity = 1;
+												oKart.sprite[0].img.style.display = "";
 												oPlanCharacters[j].style.display = "block";
 												oPlanCharacters2[j].style.display = "block";
-												aKarts[j].loose = false;
+												oKart.loose = false;
 											}
-											addNewBalloon(aKarts[j]);
+											addNewBalloon(oKart);
 										}
-										while (aKarts[j].ballons.length > extraParams.ballons) {
-											var lg = aKarts[j].ballons.length-1;
-											aKarts[j].ballons[lg][0].suppr();
-											aKarts[j].ballons.pop();
-										}
-									}
-									else
-										aKarts[j].demitours = (getLastCp(aKarts[j])+extraParams.demitours)%oMap.checkpoint.length;
-									if ((aKarts[j].billball >= 40) && !aBillBall) {
-										aKarts[j].sprite[0].img.src = "images/sprites/sprite_billball.png";
-										resetSpriteHeight(aKarts[j].sprite[0]);
-										aKarts[j].aipoint = undefined;
-									}
-									else if ((aKarts[j].etoile >= 50) && !aEtoile)
-										aKarts[j].sprite[0].img.src = getStarSrc(aKarts[j].personnage);
-									else if ((aEtoile && !aKarts[j].etoile) || (aBillBall && !aKarts[j].billball)) {
-										aKarts[j].sprite[0].img.src = getSpriteSrc(aKarts[j].personnage);
-										resumeSpriteSize(aKarts[j].sprite[0]);
-									}
-									if ((aKarts[j].eclair >= 90) && !aEclair) {
-										for (k=0;k<aKarts.length;k++) {
-											var kart = aKarts[k];
-											if (!friendlyFire(kart,aKarts[j])) {
-												if (!kart.protect) {
-													kart.size = 0.6;
-													updateDriftSize(k);
-													kart.arme = false;
-													loseUsingItem(kart);
-													kart.champi = 0;
-													kart.spin(20);
-													kart.roulette = 0;
-													stopDrifting(k);
-													supprArme(k);
-												}
-												else
-													kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
-											}
-										}
-										$mkScreen.style.opacity = 0.7;
-										if (iSfx && !finishing && !oPlayers[0].cpu)
-											playSoundEffect("musics/events/lightning.mp3");
-									}
-									else if (aEclair && !aKarts[j].eclair && (oPlayers[0].size < 1)) {
-										oPlayers[0].size = 1;
-										updateDriftSize(j);
-										$mkScreen.style.opacity = 1;
-									}
-									updateProtectFlag(aKarts[j]);
-									if (aTombe && !aKarts[j].tombe) {
-										aKarts[j].sprite[0].img.style.display = "block";
-										if (course == "BB") {
-											for (var k=0;k<aKarts[j].ballons.length;k++)
-												aKarts[j].ballons[k][0].img.style.display = "block";
-										}
-									}
-									if (!aTombe && aKarts[j].tombe) {
-										aKarts[j].sprite[0].img.style.display = "none";
-										if (aKarts[j].tombe > 2) {
-											if (course == "BB") {
-												for (var k=0;k<aKarts[j].ballons.length;k++)
-													aKarts[j].ballons[k][0].img.style.display = "none";
-											}
-											if (aKarts[j].marker)
-												aKarts[j].marker.div[0].style.display = "none";
-										}
-									}
-									if (!aKarts[j].turnSound && aKarts[j].tourne)
-										aKarts[j].turnSound = playDistSound(aKarts[j],"musics/events/spin.mp3",(course=="BB")?80:50);
-									if (aKarts[j].turnSound && !aKarts[j].tourne)
-										aKarts[j].turnSound = undefined;
-									var uID = jCode[0][3];
-									if (uID == -1)
-										aKarts[j].using = [false];
-									else {
-										aKarts[j].using = [false];
-										var iObjet = iObjets[jCode[0][2]];
-										for (k=0;k<iObjet.length;k++) {
-											if (uID == iObjet[k][1]) {
-												aKarts[j].using = [iObjets[jCode[0][2]], k];
-												break;
-											}
-										}
-									}
-									for (k=jCode[0][1];k<rCode[2];k++)
-										move(j);
-									break;
-								}
-							}
-						}
-					}
-					connecte = rCode[2];
-					if (rCode[3]) {
-						refreshDatas = false;
-						function displayRankings() {
-							var oPlayer = oPlayers[0];
-							if (course == "BB") {
-								oPlayer.arme = false;
-								oPlayer.speed = 0;
-								supprArme(0);
-							}
-							oPlayer.speedinc = 0;
-							oPlayer.rotinc = 0;
-							oPlayer.rotincdir = 0;
-							oPlayer.sprite[0].setState(0);
-							stopDrifting(0);
-							var infos0 = document.getElementById("infos0");
-							infos0.innerHTML = "";
-							infos0.style.border = "solid 1px black";
-							infos0.style.opacity = 0.7;
-							infos0.style.fontSize = Math.round(iScreenScale*1.5+4) +"pt";
-							infos0.style.fontFamily = "Courier";
-							infos0.style.top = iScreenScale * 3 +"px";
-							infos0.style.left = Math.round(iScreenScale*25+10) +"px";
-							infos0.style.backgroundColor = iTeamPlay ? "blue":"#063";
-							infos0.style.color = primaryColor;
-							var oTrs = new Array();
-							var oTds = new Array();
-							for (i=0;i<rCode[3].length;i++) {
-								var pCode = rCode[3][i];
-								var oTr = document.createElement("tr");
-								oTds[i] = new Array();
-								if (pCode[0] == identifiant) {
-									oTr.style.backgroundColor = rankingColor(oPlayers[0].team);
-									document.getElementById("infoPlace0").innerHTML = i+1;
-									document.getElementById("infoPlace0").style.visibility = "visible";
-								}
-								else if (pCode[4] == 1)
-									oTr.style.backgroundColor = "red";
-								var oTd = document.createElement("td");
-								oTd.innerHTML = toPlace(i+1);
-								oTds[i][0] = document.createElement("td");
-								oTds[i][0].innerHTML = pCode[1];
-								oTds[i][1] = document.createElement("td");
-								oTds[i][1].innerHTML = pCode[2];
-								var oSmall = document.createElement("small");
-								oSmall.innerHTML = ((pCode[3]<0) ? "":"+") + pCode[3];
-								oTr.appendChild(oTd);
-								oTr.appendChild(oTds[i][0]);
-								oTds[i][1].appendChild(oSmall);
-								oTr.appendChild(oTds[i][1]);
-								infos0.appendChild(oTr);
-								oTrs[i] = oTr;
-							}
-							var oTr = document.createElement("tr");
-							var oTd = document.createElement("td");
-							oTd.setAttribute("colspan", 3);
-							var oContinue = document.createElement("input");
-							oContinue.type = "button";
-							oContinue.value = toLanguage("CONTINUE", "CONTINUER");
-							oContinue.style.width = "100%";
-							oContinue.style.height = "100%";
-							oContinue.style.fontSize = iScreenScale*3 +"pt";
-							var forceClic = true;
-							function updateTable() {
-								infos0.style.display = "none";
-								for (var i=0;i<rCode[3].length;i++)
-									rCode[3][i][2] += rCode[3][i][3];
-								var fin = rCode[3].length-1;
-								for (i=0;i<fin;i++) {
-									var max = 0;
-									var mID = 0;
-									for (var j=i;j<rCode[3].length;j++) {
-										if (rCode[3][j][2] >= max) {
-											max = rCode[3][j][2];
-											mID = j;
-										}
-									}
-									var aCode = rCode[3][i];
-									rCode[3][i] = rCode[3][mID];
-									rCode[3][mID] = aCode;
-								}
-								for (i=0;i<oTds.length;i++) {
-									var pCode = rCode[3][i];
-									oTds[i][0].innerHTML = toPerso(pCode[1]);
-									oTds[i][1].innerHTML = pCode[2];
-									if (pCode[0] == identifiant)
-										oTrs[i].style.backgroundColor = rankingColor(oPlayers[0].team);
-									else if (pCode[4] == 1)
-										oTrs[i].style.backgroundColor = "red";
-									else
-										oTrs[i].style.backgroundColor = "";
-								}
-
-								var oTeamTable;
-								if (iTeamPlay && shareLink.options && shareLink.options.localScore) {
-									var teamsRecap = [0,0];
-									for (var i=0;i<rCode[3].length;i++)
-										teamsRecap[rCode[3][i][4]] += rCode[3][i][2];
-									oTeamTable = createTeamTable(teamsRecap);
-								}
-
-								var forceClic2 = true;
-								setTimeout(function() {
-									infos0.style.display = "";
-									if (oTeamTable)
-										oTeamTable.style.visibility = "visible";
-									if(!isChatting())
-										oContinue.focus()
-								}, 500);
-
-								setTimeout(function(){if(forceClic2)continuer();}, 5000);
-								oContinue.onclick = function() {
-									forceClic2 = false;
-									continuer();
-								};
-							}
-							oContinue.onclick = function() {
-								forceClic = false;
-								updateTable();
-							};
-							setTimeout(function(){if(forceClic)updateTable();}, 5000);
-							
-							oTd.appendChild(oContinue);
-							oTr.appendChild(oTd);
-							infos0.appendChild(oTr);
-							infos0.style.display = "";
-							if (!isChatting())
-								oContinue.focus();
-							document.onkeydown = undefined;
-							document.onkeyup = undefined;
-							document.onmousedown = undefined;
-							window.onbeforeunload = undefined;
-							window.removeEventListener("blur", window.releaseOnBlur);
-							window.releaseOnBlur = undefined;
-							supprArme(0);
-							if (bMusic||iSfx)
-								startEndMusic();
-							finishing = true;
-							document.getElementById("racecountdown").innerHTML = rCode[4]-(course=="BB"?6:5);
-							document.getElementById("waitrace").style.visibility = "visible";
-							dRest();
-							document.getElementById("compteur0").innerHTML = "";
-							document.getElementById("roulette0").innerHTML = "";
-							document.getElementById("scroller0").style.visibility = "hidden";
-							var lakitu = document.getElementById("lakitu0");
-							if (lakitu) lakitu.style.display = "none";
-						}
-						if (course == "BB") {
-							var firstID = rCode[3][0][0];
-							var firstTeam = rCode[3][0][4];
-							for (var i=0;i<aKarts.length;i++) {
-								var oKart = aKarts[i];
-								if (iTeamPlay ? (oKart.team!=firstTeam):(oKart.id != firstID)) {
-									if (oKart.ballons.length && !oKart.tourne) {
-										do {
+										while (oKart.ballons.length > value) {
 											var lg = oKart.ballons.length-1;
 											oKart.ballons[lg][0].suppr();
 											oKart.ballons.pop();
-										} while (oKart.ballons.length);
-										oKart.spin(20);
-										if (oKart != oPlayers[0])
-											playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
+										}
+									}
+									break;
+								default:
+									oKart[params[k]] = value;
+								}
+							}
+							if ((oKart.billball >= 40) && !aBillBall) {
+								oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
+								resetSpriteHeight(oKart.sprite[0]);
+								oKart.aipoint = undefined;
+							}
+							else if ((oKart.etoile >= 50) && !aEtoile)
+								oKart.sprite[0].img.src = getStarSrc(oKart.personnage);
+							else if ((aEtoile && !oKart.etoile) || (aBillBall && !oKart.billball)) {
+								oKart.sprite[0].img.src = getSpriteSrc(oKart.personnage);
+								resumeSpriteSize(oKart.sprite[0]);
+							}
+							if ((oKart.eclair >= 90) && !aEclair) {
+								for (k=0;k<aKarts.length;k++) {
+									var kart = aKarts[k];
+									if (!friendlyFire(kart,oKart)) {
+										if (!kart.protect) {
+											kart.size = 0.6;
+											updateDriftSize(k);
+											kart.arme = false;
+											loseUsingItem(kart);
+											kart.champi = 0;
+											kart.spin(20);
+											kart.roulette = 0;
+											stopDrifting(k);
+											supprArme(k);
+										}
+										else
+											kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
+									}
+								}
+								$mkScreen.style.opacity = 0.7;
+								if (iSfx && !finishing && !oPlayers[0].cpu)
+									playSoundEffect("musics/events/lightning.mp3");
+							}
+							else if (aEclair && !oKart.eclair && (oPlayers[0].size < 1)) {
+								oPlayers[0].size = 1;
+								updateDriftSize(j);
+								$mkScreen.style.opacity = 1;
+							}
+							updateProtectFlag(oKart);
+							if (aTombe && !oKart.tombe) {
+								oKart.sprite[0].img.style.display = "block";
+								if (course == "BB") {
+									for (var k=0;k<oKart.ballons.length;k++)
+										oKart.ballons[k][0].img.style.display = "block";
+								}
+							}
+							if (!aTombe && oKart.tombe) {
+								oKart.sprite[0].img.style.display = "none";
+								if (oKart.tombe > 2) {
+									if (course == "BB") {
+										for (var k=0;k<oKart.ballons.length;k++)
+											oKart.ballons[k][0].img.style.display = "none";
+									}
+									if (oKart.marker)
+										oKart.marker.div[0].style.display = "none";
+								}
+							}
+							if (!oKart.turnSound && oKart.tourne)
+								oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
+							if (oKart.turnSound && !oKart.tourne)
+								oKart.turnSound = undefined;
+							var uID = jCode[0][3];
+							if (uID == -1)
+								oKart.using = [false];
+							else {
+								oKart.using = [false];
+								var iObjet = iObjets[jCode[0][2]];
+								for (k=0;k<iObjet.length;k++) {
+									if (uID == iObjet[k][1]) {
+										oKart.using = [iObjets[jCode[0][2]], k];
+										break;
 									}
 								}
 							}
-							setTimeout(displayRankings, 1000);
+							for (k=jCode[0][1];k<rCode[2];k++)
+								move(j);
+							break;
 						}
-						else
-							displayRankings();
 					}
 				}
-				catch (e) {
-					return true;
-				}
 			}
-			else {
-				iDeco();
-				pause = true;
+			connecte = rCode[2];
+			if (rCode[3]) {
+				refreshDatas = false;
+				function displayRankings() {
+					var oPlayer = oPlayers[0];
+					if (course == "BB") {
+						oPlayer.arme = false;
+						oPlayer.speed = 0;
+						supprArme(0);
+					}
+					oPlayer.speedinc = 0;
+					oPlayer.rotinc = 0;
+					oPlayer.rotincdir = 0;
+					oPlayer.sprite[0].setState(0);
+					stopDrifting(0);
+					var infos0 = document.getElementById("infos0");
+					infos0.innerHTML = "";
+					infos0.style.border = "solid 1px black";
+					infos0.style.opacity = 0.7;
+					infos0.style.fontSize = Math.round(iScreenScale*1.5+4) +"pt";
+					infos0.style.fontFamily = "Courier";
+					infos0.style.top = iScreenScale * 3 +"px";
+					infos0.style.left = Math.round(iScreenScale*25+10) +"px";
+					infos0.style.backgroundColor = iTeamPlay ? "blue":"#063";
+					infos0.style.color = primaryColor;
+					var oTrs = new Array();
+					var oTds = new Array();
+					for (i=0;i<rCode[3].length;i++) {
+						var pCode = rCode[3][i];
+						var oTr = document.createElement("tr");
+						oTds[i] = new Array();
+						if (pCode[0] == identifiant) {
+							oTr.style.backgroundColor = rankingColor(oPlayers[0].team);
+							document.getElementById("infoPlace0").innerHTML = i+1;
+							document.getElementById("infoPlace0").style.visibility = "visible";
+						}
+						else if (pCode[4] == 1)
+							oTr.style.backgroundColor = "red";
+						var oTd = document.createElement("td");
+						oTd.innerHTML = toPlace(i+1);
+						oTds[i][0] = document.createElement("td");
+						oTds[i][0].innerHTML = pCode[1];
+						oTds[i][1] = document.createElement("td");
+						oTds[i][1].innerHTML = pCode[2];
+						var oSmall = document.createElement("small");
+						oSmall.innerHTML = ((pCode[3]<0) ? "":"+") + pCode[3];
+						oTr.appendChild(oTd);
+						oTr.appendChild(oTds[i][0]);
+						oTds[i][1].appendChild(oSmall);
+						oTr.appendChild(oTds[i][1]);
+						infos0.appendChild(oTr);
+						oTrs[i] = oTr;
+					}
+					var oTr = document.createElement("tr");
+					var oTd = document.createElement("td");
+					oTd.setAttribute("colspan", 3);
+					var oContinue = document.createElement("input");
+					oContinue.type = "button";
+					oContinue.value = toLanguage("CONTINUE", "CONTINUER");
+					oContinue.style.width = "100%";
+					oContinue.style.height = "100%";
+					oContinue.style.fontSize = iScreenScale*3 +"pt";
+					var forceClic = true;
+					function updateTable() {
+						infos0.style.display = "none";
+						for (var i=0;i<rCode[3].length;i++)
+							rCode[3][i][2] += rCode[3][i][3];
+						var fin = rCode[3].length-1;
+						for (i=0;i<fin;i++) {
+							var max = 0;
+							var mID = 0;
+							for (var j=i;j<rCode[3].length;j++) {
+								if (rCode[3][j][2] >= max) {
+									max = rCode[3][j][2];
+									mID = j;
+								}
+							}
+							var aCode = rCode[3][i];
+							rCode[3][i] = rCode[3][mID];
+							rCode[3][mID] = aCode;
+						}
+						for (i=0;i<oTds.length;i++) {
+							var pCode = rCode[3][i];
+							oTds[i][0].innerHTML = toPerso(pCode[1]);
+							oTds[i][1].innerHTML = pCode[2];
+							if (pCode[0] == identifiant)
+								oTrs[i].style.backgroundColor = rankingColor(oPlayers[0].team);
+							else if (pCode[4] == 1)
+								oTrs[i].style.backgroundColor = "red";
+							else
+								oTrs[i].style.backgroundColor = "";
+						}
+
+						var oTeamTable;
+						if (iTeamPlay && shareLink.options && shareLink.options.localScore) {
+							var teamsRecap = [0,0];
+							for (var i=0;i<rCode[3].length;i++)
+								teamsRecap[rCode[3][i][4]] += rCode[3][i][2];
+							oTeamTable = createTeamTable(teamsRecap);
+						}
+
+						var forceClic2 = true;
+						setTimeout(function() {
+							infos0.style.display = "";
+							if (oTeamTable)
+								oTeamTable.style.visibility = "visible";
+							if(!isChatting())
+								oContinue.focus()
+						}, 500);
+
+						setTimeout(function(){if(forceClic2)continuer();}, 5000);
+						oContinue.onclick = function() {
+							forceClic2 = false;
+							continuer();
+						};
+					}
+					oContinue.onclick = function() {
+						forceClic = false;
+						updateTable();
+					};
+					setTimeout(function(){if(forceClic)updateTable();}, 5000);
+					
+					oTd.appendChild(oContinue);
+					oTr.appendChild(oTd);
+					infos0.appendChild(oTr);
+					infos0.style.display = "";
+					if (!isChatting())
+						oContinue.focus();
+					document.onkeydown = undefined;
+					document.onkeyup = undefined;
+					document.onmousedown = undefined;
+					window.onbeforeunload = undefined;
+					window.removeEventListener("blur", window.releaseOnBlur);
+					window.releaseOnBlur = undefined;
+					supprArme(0);
+					if (bMusic||iSfx)
+						startEndMusic();
+					finishing = true;
+					document.getElementById("racecountdown").innerHTML = rCode[4]-(course=="BB"?6:5);
+					document.getElementById("waitrace").style.visibility = "visible";
+					dRest();
+					document.getElementById("compteur0").innerHTML = "";
+					document.getElementById("roulette0").innerHTML = "";
+					document.getElementById("scroller0").style.visibility = "hidden";
+					var lakitu = document.getElementById("lakitu0");
+					if (lakitu) lakitu.style.display = "none";
+				}
+				if (course == "BB") {
+					var firstID = rCode[3][0][0];
+					var firstTeam = rCode[3][0][4];
+					for (var i=0;i<aKarts.length;i++) {
+						var oKart = aKarts[i];
+						if (iTeamPlay ? (oKart.team!=firstTeam):(oKart.id != firstID)) {
+							if (oKart.ballons.length && !oKart.tourne) {
+								do {
+									var lg = oKart.ballons.length-1;
+									oKart.ballons[lg][0].suppr();
+									oKart.ballons.pop();
+								} while (oKart.ballons.length);
+								oKart.spin(20);
+								if (oKart != oPlayers[0])
+									playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
+							}
+						}
+					}
+					setTimeout(displayRankings, 1000);
+				}
+				else
+					displayRankings();
 			}
 		}
-		return true;
+		else {
+			iDeco();
+			pause = true;
+		}
+	}).catch(function() {
+		refreshDatas = true;
 	});
 	refreshDatas = false;
 }

@@ -6,10 +6,6 @@
     font-family: 'SMK-Rank';
     src: url('smk-rank.ttf');
 }
-@font-face {
-    font-family: 'SMK-Lap';
-    src: url('smk-lap.ttf');
-}
 #options {
     text-align: right;
     display:inline-table;
