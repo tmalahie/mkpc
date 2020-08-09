@@ -4865,6 +4865,9 @@ function redrawCanvas(i, fCamera) {
 	}
 }
 
+function byteType(key) {
+	return {key:key,type:"byte"};
+}
 function floatType(key) {
 	return {key:key,type:"float"};
 }
@@ -4874,19 +4877,19 @@ function intType(key) {
 var itemBehaviors = {
 	"banane": {
 		size: 0.67,
-		sync: [floatType("x"),floatType("y"),floatType("z")]
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")]
 	},
 	"fauxobjet": {
 		size: 1,
-		sync: [floatType("x"),floatType("y"),floatType("z")]
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")]
 	},
 	"carapace": {
 		size: 0.67,
-		sync: [floatType("x"),floatType("y"),floatType("z")]
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")]
 	},
 	"bobomb": {
 		size: 1,
-		sync: [floatType("x"),floatType("y"),floatType("z")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
 		render: function(fSprite,i) {
 			if (fSprite.cooldown <= 0) {
 				if (!i && (fSprite.size == 1)) {
@@ -4918,11 +4921,11 @@ var itemBehaviors = {
 	},
 	"carapace-rouge": {
 		size: 0.67,
-		sync: [floatType("x"),floatType("y"),floatType("z")]
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")]
 	},
 	"carapace-bleue": {
 		size: 1,
-		sync: [floatType("x"),floatType("y"),floatType("z")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
 		render: function(fSprite,i) {
 			if (fSprite.cooldown <= 0) {
 				if (!i && fSprite.size == 1) {
@@ -7150,8 +7153,10 @@ function supprArme(i) {
 function loseUsingItem(oKart) {
 	if (oKart.using.length) {
 		for (var i=0;i<oKart.using.length;i++) {
-			if (oKart.using[i][5])
-				oKart.using[i][5] = 0;
+			if (oKart.using[i].z)
+				oKart.using[i].z = 0;
+			if (isOnline)
+				syncItems.push(oKart.using[i]);
 		}
 		oKart.using.length = 0;
 	}
@@ -9371,28 +9376,46 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	return false;
 }
 
+function int8ToHexString(arr) {
+	return [].slice.call(arr).map(function(x){return x.toString(16).padStart(2,"0")}).join("");
+}
+function hexStringToInt8(hex) {
+	return new Uint8Array(hex.match(/../g).map(function(x) {return parseInt(x,16)})).buffer;
+}
 function itemDataToHex(type, data) {
 	switch (type) {
+	case "double":
+		return int8ToHexString(new Uint8Array(new Float64Array([data]).buffer,0,8));
 	case "float":
-		return [].slice.call(new Uint8Array(new Float64Array([data]).buffer,0,8)).map(function(x){return x.toString(16).padStart(2,"0")}).join("");
+		return int8ToHexString(new Uint8Array(new Float32Array([data]).buffer,0,4));
 	case "int":
-		return [].slice.call(new Uint8Array(new Int32Array([data]).buffer,0,4)).map(function(x){return x.toString(16).padStart(2,"0")}).join("");
+		return int8ToHexString(new Uint8Array(new Int32Array([data]).buffer,0,4));
+	case "byte":
+		return int8ToHexString(new Uint8Array(new Int8Array([data]).buffer,0,1));
 	}
 }
 function hexToItemData(type, hex) {
 	switch (type) {
+	case "double":
+		return new Float64Array(hexStringToInt8(hex))[0];
 	case "float":
-		return new Float64Array(new Uint8Array(hex.match(/../g).map(function(x) {return parseInt(x,16)})).buffer)[0];
+		return new Float32Array(hexStringToInt8(hex))[0];
 	case "int":
-		return new Int32Array(new Uint8Array(hex.match(/../g).map(function(x) {return parseInt(x,16)})).buffer)[0];
+		return new Int32Array(hexStringToInt8(hex))[0];
+	case "byte":
+		return new Int8Array(hexStringToInt8(hex))[0];
 	}
 }
 function itemDataLength(type) {
 	switch (type) {
-	case "float":
+	case "double":
 		return 16;
+	case "float":
+		return 8;
 	case "int":
 		return 8;
+	case "byte":
+		return 2;
 	}
 }
 
@@ -9442,6 +9465,8 @@ function resetDatas() {
 		var itemPayload = {
 			data: itemData
 		};
+		if (oPlayer.using.indexOf(syncItem) !== -1)
+			itemPayload.holder = 1;
 		if (syncItem.id)
 			itemPayload.id = syncItem.id;
 		else {
@@ -9476,25 +9501,28 @@ function resetDatas() {
 				var updatedItem = updatedItems[i];
 				var uId = updatedItem[0];
 				var uType = itemTypes[updatedItem[1]];
+				var uHolder = updatedItem[2];
 				if (!uType) continue;
-				var uData = updatedItem[2];
+				var uData = updatedItem[3];
 				var uItem = items[uType].find(function(item) {
 					return (item.id == uId);
 				});
+				var toAdd = false;
 				if (!uItem) {
 					if (uData) {
 						uItem = {
 							id: uId,
 							type: uType,
-							sprite: new Sprite(uType),
-							team: -1
+							sprite: new Sprite(uType)
 						};
-						addNewItem(null,uItem);
+						toAdd = true;
 					}
 				}
 				else {
-					if (!uData)
+					if (!uData) {
 						supprime(uItem, false);
+						uHolder = 0;
+					}
 				}
 				if (uData) {
 					var cur = 0;
@@ -9507,6 +9535,20 @@ function resetDatas() {
 							uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
 						}
 						cur += dl;
+					}
+					if (toAdd)
+						addNewItem(null,uItem);
+				}
+				for (var j=0;j<aKarts.length;j++) {
+					var oKart = aKarts[j];
+					var oItemId = oKart.using.indexOf(uItem);
+					if (oKart.id == uHolder) {
+						if (oItemId == -1)
+							oKart.using.push(uItem);
+					}
+					else {
+						if (oItemId != -1)
+							oKart.using.splice(oItemId,1);
 					}
 				}
 			}
@@ -9613,18 +9655,6 @@ function resetDatas() {
 						if (oKart.turnSound && !oKart.tourne)
 							oKart.turnSound = undefined;
 						var uID = jCode[0][3];
-						if (uID == -1)
-							oKart.using = [false];
-						else {
-							oKart.using = [false];
-							var iObjet = iObjets[jCode[0][2]];
-							for (k=0;k<iObjet.length;k++) {
-								if (uID == iObjet[k][1]) {
-									oKart.using = [iObjets[jCode[0][2]], k];
-									break;
-								}
-							}
-						}
 						for (k=jCode[0][1];k<rCode[2];k++)
 							move(j);
 						break;
@@ -10094,7 +10124,7 @@ function move(getId) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(42);
-				oKart.using.length = 0;
+				loseUsingItem(oKart);
 			}
 			else if (touche_banane(fNewPosX, fNewPosY, oKartItems) && !oKart.protect) {
 				loseBall(getId);

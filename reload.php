@@ -41,11 +41,12 @@ if ($id) {
 				$newItems = array();
 				if (isset($payload['item'])) {
 					foreach ($payload['item'] as $item) {
+						$holder = isset($item['holder']) ? $id:0;
 						if (isset($item['id'])) {
-							mysql_query('UPDATE items SET data=UNHEX("'. $item['data'] .'"),updated_at="'. timeInFrames() .'",updated_by="'.$id.'" WHERE id="'. $item['id'] .'" AND data!=""');
+							mysql_query('UPDATE items SET data=UNHEX("'. $item['data'] .'"),holder="'. $holder .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'" WHERE id="'. $item['id'] .'" AND data!=""');
 						}
 						else {
-							mysql_query('INSERT INTO items SET course="'. $course .'",type="'. $item['type'] .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'",data=UNHEX("'. $item['data'] .'")');
+							mysql_query('INSERT INTO items SET course="'. $course .'",type="'. $item['type'] .'",holder="'. $holder .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'",data=UNHEX("'. $item['data'] .'")');
 							$newItems[] = mysql_insert_id();
 						}
 					}
@@ -96,12 +97,13 @@ if ($id) {
 			echo '],[';
 			echo json_encode($newItems);
 			echo ',';
-			$getUpdatedItems = mysql_query('SELECT id,type,HEX(data) AS data FROM items WHERE course="'. $course .'" AND updated_at>="'. $lastconnect .'" AND updated_by!="'. $id .'"');
+			$getUpdatedItems = mysql_query('SELECT id,type,holder,HEX(data) AS data FROM items WHERE course="'. $course .'" AND updated_at>="'. $lastconnect .'" AND updated_by!="'. $id .'"');
 			$updatedItems = array();
 			while ($updatedItem = mysql_fetch_array($getUpdatedItems)) {
 				$updatedItems[] = array(
 					$updatedItem['id'],
 					$updatedItem['type'],
+					$updatedItem['holder'],
 					$updatedItem['data']
 				);
 			}
