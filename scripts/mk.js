@@ -1576,7 +1576,7 @@ function arme(ID, backwards) {
 			case "carapace-rouge" :
 			var oAngleView = angleShoot(oKart, backwards);
 			if (backwards)
-				throwItem(oKart, {type: "carapace", x:posX+7.5*direction(0,oAngleView),y:posY+7.5*direction(1,oAngleView),z:0,theta:oAngleView,lives:-1});
+				throwItem(oKart, {x:posX+7.5*direction(0,oAngleView),y:posY+7.5*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2});
 			else
 				throwItem(oKart, {x:posX+15*direction(0, oAngleView), y:posY+15*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
@@ -4264,6 +4264,23 @@ function Sprite(strSprite) {
 				oContainers[i].removeChild(oCtSprites[i][0]);
 		}
 	}
+	this[0].fadeout = function(fadedelay) {
+		if (!that[0].unshown) {
+			var x = 1;
+			var dx = SPF/fadedelay;
+			function removeProgressively() {
+				x -= dx;
+				if (x <= 0) {
+					that[0].suppr();
+					return;
+				}
+				for (var i=0;i<strPlayer.length;i++)
+					oCtSprites[i][0].style.opacity = x;
+				setTimeout(removeProgressively, SPF);
+			}
+			removeProgressively();
+		}
+	}
 }
 
 
@@ -4880,15 +4897,18 @@ function intType(key) {
 var itemBehaviors = {
 	"banane": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")]
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
+		fadedelay: 100
 	},
 	"fauxobjet": {
 		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")]
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
+		fadedelay: 100
 	},
 	"carapace": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),byteType("lives")],
+		fadedelay: 300,
 		move: function(fSprite) {
 			var fNewPosX;
 			var fNewPosY;
@@ -4934,6 +4954,7 @@ var itemBehaviors = {
 	"bobomb": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown"),byteType("cooldown")],
+		fadedelay: 0,
 		move: function(fSprite) {	
 			if (fSprite.theta != -1) {
 				var hauteur = 0;
@@ -4992,36 +5013,36 @@ var itemBehaviors = {
 	"carapace-rouge": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint")],
-		move: function() {
-			if (!fSprite.sprite[0].div.style.opacity) {
-	
-				var fNewPosX;
-				var fNewPosY;
-	
-				for (var l=0;l<2;l++) {
-					if (fSprite.owner != -1) {
-						var fMoveX;
-						var fMoveY;
-	
-						if (!l) {
-							for (var k=0;k<oPlayers.length;k++)
-								fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+		fadedelay: 300,
+		move: function(fSprite) {
+			var fNewPosX;
+			var fNewPosY;
+
+			for (var l=0;l<2;l++) {
+				if (fSprite.owner != -1) {
+					var fMoveX;
+					var fMoveY;
+
+					if (!l) {
+						for (var k=0;k<oPlayers.length;k++)
+							fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+					}
+
+					var iLocal = oMap.aipoints[0];
+					if (fSprite.aipoint >= 0) {
+						fMoveX = iLocal[fSprite.aipoint][0] - fSprite.x;
+						fMoveY = iLocal[fSprite.aipoint][1] - fSprite.y;
+						var oBox = iLocal[fSprite.aipoint];
+						if (fSprite.x > oBox[0] - 10 && fSprite.x < oBox[0] + 10 && fSprite.y > oBox[1] - 10 && fSprite.y < oBox[1] + 10) {
+							if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
+							else fSprite.aipoint = 0;
 						}
-	
-						var iLocal = oMap.aipoints[0];
-						if (fSprite.aipoint != -1) {
-							fMoveX = iLocal[fSprite.aipoint][0] - fSprite.x;
-							fMoveY = iLocal[fSprite.aipoint][1] - fSprite.y;
-							var oBox = iLocal[fSprite.aipoint];
-							if (fSprite.x > oBox[0] - 10 && fSprite.x < oBox[0] + 10 && fSprite.y > oBox[1] - 10 && fSprite.y < oBox[1] + 10) {
-								if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
-								else fSprite.aipoint = 0;
-							}
-							var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/5;
-							fMoveX /= fNewMove;
-							fMoveY /= fNewMove;
-						}
-						else {
+						var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/5;
+						fMoveX /= fNewMove;
+						fMoveY /= fNewMove;
+					}
+					else {
+						if (fSprite.aipoint == -1) {
 							if (course != "BB") {
 								for (var k=0;k<iLocal.length;k++) {
 									var oBox = iLocal[k];
@@ -5032,80 +5053,73 @@ var itemBehaviors = {
 									}
 								}
 							}
-							fMoveX = 5 * direction(0, fSprite.theta);
-							fMoveY = 5 * direction(1, fSprite.theta);
 						}
-	
-						fNewPosX = fSprite.x + fMoveX;
-						fNewPosY = fSprite.y + fMoveY;
-	
-						var tCible;
-						var maxDist = 1000;
-	
-						for (var k=0;k<aKarts.length;k++) {
-							var pCible = aKarts[k];
-							if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
-								var fDist = Math.pow(pCible.x-fNewPosX, 2) + Math.pow(pCible.y-fNewPosY, 2);
-								if (fDist < maxDist) {
-									fNewPosX = pCible.x;
-									fNewPosY = pCible.y;
-									maxDist = fDist;
-									tCible = pCible;
-								}
-							}
-							if (tCible && tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
-								var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
-								var pi2 = Math.PI*2;
-								while (rAngle < 0)
-									rAngle += pi2;
-								while (rAngle > pi2)
-									rAngle -= pi2;
-								if (rAngle > Math.PI)
-									rAngle = pi2-rAngle;
-								if (Math.abs(rAngle) > 2) {
-									if (isOnline)
-										detruit(fSprite);
-									fNewPosX -= 5 * direction(0,tCible.rotation);
-									fNewPosY -= 5 * direction(1,tCible.rotation);
-									detruit(tCible.using[0],true);
-									l = 1;
-								}
-								else {
-									tCible.using[0].x -= 2 * direction(0,tCible.rotation);
-									tCible.using[0].y -= 2 * direction(1,tCible.rotation);
-								}
+						fMoveX = 5 * direction(0, fSprite.theta);
+						fMoveY = 5 * direction(1, fSprite.theta);
+					}
+
+					fNewPosX = fSprite.x + fMoveX;
+					fNewPosY = fSprite.y + fMoveY;
+
+					var tCible;
+					var maxDist = 1000;
+
+					for (var k=0;k<aKarts.length;k++) {
+						var pCible = aKarts[k];
+						if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
+							var fDist = Math.pow(pCible.x-fNewPosX, 2) + Math.pow(pCible.y-fNewPosY, 2);
+							if (fDist < maxDist) {
+								fNewPosX = pCible.x;
+								fNewPosY = pCible.y;
+								maxDist = fDist;
+								tCible = pCible;
 							}
 						}
-					}
-					else {
-						fNewPosX = fSprite.x;
-						fNewPosY = fSprite.y;
-					}
-	
-					if ((fSprite.owner == -1 || (!tombe(fNewPosX, fNewPosY) && canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite.x, fSprite.y, [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
-						fSprite.x = fNewPosX;
-						fSprite.y = fNewPosY;
-					}
-					else {
-						if (isOnline)
-							detruit(fSprite);
-						l = 1;
+						if (tCible && tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
+							var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
+							var pi2 = Math.PI*2;
+							while (rAngle < 0)
+								rAngle += pi2;
+							while (rAngle > pi2)
+								rAngle -= pi2;
+							if (rAngle > Math.PI)
+								rAngle = pi2-rAngle;
+							if (Math.abs(rAngle) > 2) {
+								if (isOnline)
+									detruit(fSprite);
+								fNewPosX -= 5 * direction(0,tCible.rotation);
+								fNewPosY -= 5 * direction(1,tCible.rotation);
+								detruit(tCible.using[0],true);
+								l = 1;
+							}
+							else {
+								tCible.using[0].x -= 2 * direction(0,tCible.rotation);
+								tCible.using[0].y -= 2 * direction(1,tCible.rotation);
+							}
+						}
 					}
 				}
-			}
-			else {
-				var setOpac = fSprite.sprite[0].div.style.opacity-0.2;
-				for (var k=0;k<strPlayer.length;k++)
-					fSprite.sprite[k].div.style.opacity = setOpac;
-				if (setOpac < 0.01)
+				else {
+					fNewPosX = fSprite.x;
+					fNewPosY = fSprite.y;
+				}
+
+				if ((fSprite.owner == -1 || (!tombe(fNewPosX, fNewPosY) && canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite.x, fSprite.y, [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
+					fSprite.x = fNewPosX;
+					fSprite.y = fNewPosY;
+				}
+				else {
 					detruit(fSprite);
+					l = 1;
+				}
 			}
 		}
 	},
 	"carapace-bleue": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown")],
-		move: function() {
+		fadedelay: 0,
+		move: function(fSprite) {
 			var cible = -1;
 			for (var k=0;k<aKarts.length;k++) {
 				if (aKarts[k].id == fSprite.target) {
@@ -7133,7 +7147,7 @@ function render() {
 
 				if (course == "BB") {
 					var nbBallons = fSprite.ref.ballons.length;
-					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.sprite[i].h-32)/5));
+					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.ref.sprite[i].h-32)/5));
 					var fShift = 2.5;
 					for (k=0;k<nbBallons;k++) {
 						fSprite.ref.ballons[k][i].render(fCamera, {
@@ -7359,7 +7373,7 @@ function supprime(item, sound) {
 	var key = item.type;
 	var id = items[key].indexOf(item);
 	if (id != -1) {
-		item.sprite[0].suppr();
+		item.sprite[0].fadeout(itemBehaviors[key].fadedelay);
 		for (var i=0;i<aKarts.length;i++) {
 			var j = aKarts[i].using.indexOf(item);
 			if (j != -1) {
@@ -9285,13 +9299,8 @@ function touche_crouge(iX, iY, iP) {
 		if (!oBox.sprite[0].div.style.opacity) {
 			if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 				if (oBox.owner != -1 && iX == oBox.x && iY == oBox.y) {
-					if (isOnline)
-						detruit(oBox,isHitSound(oBox));
-					else {
-						handleHit(oBox);
-						for (var i=0;i<strPlayer.length;i++)
-							oBox.sprite[i].div.style.opacity = 0.8;
-					}
+					handleHit(oBox);
+					detruit(oBox,isHitSound(oBox));
 					return (collisionTeam!=oBox.team);
 				}
 				else if (oBox.owner == -1 && iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
