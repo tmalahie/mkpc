@@ -36,9 +36,9 @@ if ($id) {
 				return round($timeMs*1000/67);
 			}
 			$lConnect = timeInFrames($timeMs);
-			$limConnect = timeInFrames(($timeMs-35));
+			$limConnect = timeInFrames($timeMs-35);
+			$newItems = array();
 			if (!$finished) {
-				$newItems = array();
 				if (isset($payload['item'])) {
 					foreach ($payload['item'] as $item) {
 						$holder = isset($item['holder']) ? $id:0;
@@ -61,6 +61,10 @@ if ($id) {
 						$sql .= ',place='.(mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)))+1-$isBattle);
 					$sql .= ',connecte='.$lConnect.' WHERE id="'. $id .'"';
 					mysql_query($sql);
+				}
+				if (!rand(0,99)) {
+					// Run a GC some times to remove old deleted items
+					mysql_query('DELETE FROM items WHERE course="'. $course .'" AND data="" AND updated_at<"'.$limConnect.'"');
 				}
 				if ($winning && !$isBattle)
 					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time);
@@ -97,13 +101,14 @@ if ($id) {
 			echo '],[';
 			echo json_encode($newItems);
 			echo ',';
-			$getUpdatedItems = mysql_query('SELECT id,type,holder,HEX(data) AS data FROM items WHERE course="'. $course .'" AND updated_at>="'. $lastconnect .'" AND updated_by!="'. $id .'"');
+			$getUpdatedItems = mysql_query('SELECT id,type,holder,HEX(data) AS data,updated_at FROM items WHERE course="'. $course .'" AND updated_at>="'. $lastconnect .'" AND updated_by!="'. $id .'"');
 			$updatedItems = array();
 			while ($updatedItem = mysql_fetch_array($getUpdatedItems)) {
 				$updatedItems[] = array(
 					$updatedItem['id'],
 					$updatedItem['type'],
 					$updatedItem['holder'],
+					$updatedItem['updated_at'],
 					$updatedItem['data']
 				);
 			}
