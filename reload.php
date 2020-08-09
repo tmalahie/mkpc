@@ -55,11 +55,10 @@ if ($id) {
 					$sql = 'UPDATE `mkplayers` SET ';
 					foreach ($playerMapping as $i => $key)
 						$sql .= $key .'="'.$payload['player'][$i] .'",';
-					$sql .= 'arme=-1,iUse=-1';
 					$winning = $isBattle ? (($payload['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND ballons=0'))) : (($payload['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND tours>='.$fLaps)));
 					if ($winning)
-						$sql .= ',place='.(mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)))+1-$isBattle);
-					$sql .= ',connecte='.$lConnect.' WHERE id="'. $id .'"';
+						$sql .= 'place='.(mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)))+1-$isBattle).',';
+					$sql .= 'connecte='.$lConnect.' WHERE id="'. $id .'"';
 					mysql_query($sql);
 				}
 				if (!rand(0,99)) {
@@ -83,7 +82,7 @@ if ($id) {
 				if ($joueur['team'] == -1)
 					$isTeam = false;
 				if (($joueur['id'] != $id) && ($joueur['connecte'] >= $lastconnect)) {
-					echo ($virgule ? ',':'').'[['.$joueur['id'].','.$joueur['connecte'].','.$joueur['arme'].','.$joueur['iUse'].'],['.$joueur[$playerMapping[0]];
+					echo ($virgule ? ',':'').'[['.$joueur['id'].','.$joueur['connecte'].'],['.$joueur[$playerMapping[0]];
 					$nbPosts = count($playerMapping);
 					for ($i=1;$i<$nbPosts;$i++)
 						echo ','. $joueur[$playerMapping[$i]];

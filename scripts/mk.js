@@ -890,20 +890,8 @@ function setPlanPos() {
 	syncObjects(oPlanCarapaces2,items["carapace"],"carapace", oObjWidth2,oPlanCtn2);
 	for (var i=0;i<items["carapace"].length;i++) {
 		var carapace = items["carapace"][i];
-		var c1 = setObject(oPlanCarapaces[i],carapace.x,carapace.y, oObjWidth,oPlanSize, carapace.team,200);
-		var c2 = setObject(oPlanCarapaces2[i],carapace.x,carapace.y, oObjWidth2,oPlanSize2, carapace.team,200);
-		var red = (carapace.lives < 0);
-		if (red && !c1.red) {
-			c1.red = 1;
-			c1.src = "images/map_icons/carapace-rouge.png";
-			c2.src = "images/map_icons/carapace-rouge.png";
-		}
-		else if (!red && c1.red) {
-			c1.red = undefined;
-			c1.src = "images/map_icons/carapace.png";
-			c2.src = "images/map_icons/carapace.png";
-		}
-		c2.style.zIndex = 2;
+		setObject(oPlanCarapaces[i],carapace.x,carapace.y, oObjWidth,oPlanSize, carapace.team,200);
+		setObject(oPlanCarapaces2[i],carapace.x,carapace.y, oObjWidth2,oPlanSize2, carapace.team,200).style.zIndex = 2;
 	}
 
 	syncObjects(oPlanCarapacesRouges,items["carapace-rouge"],"carapace-rouge", oObjWidth,oPlanCtn);
@@ -1569,14 +1557,19 @@ function arme(ID, backwards) {
 			case "carapace" :
 			var oAngleView = angleShoot(oKart, backwards);
 			var shiftDist = backwards?7.5:15;
+			if (oKart.using.length > 1)
+				shiftDist *= 4/3;
 			throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,lives:10});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
 			case "carapace-rouge" :
 			var oAngleView = angleShoot(oKart, backwards);
+			var shiftDist = 7.5;
+			if (oKart.using.length > 1)
+				shiftDist *= 4/3;
 			if (backwards)
-				throwItem(oKart, {x:posX+7.5*direction(0,oAngleView),y:posY+7.5*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2});
+				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2});
 			else
 				throwItem(oKart, {x:posX+15*direction(0, oAngleView), y:posY+15*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
@@ -9753,6 +9746,7 @@ function resetDatas() {
 				if (nSyncItems[i])
 					nSyncItems[i].id = newItem;
 			}
+			var syncedItems = [];
 			for (var i=0;i<updatedItems.length;i++) {
 				var updatedItem = updatedItems[i];
 				var uId = updatedItem[0];
@@ -9799,22 +9793,29 @@ function resetDatas() {
 					var oKart = aKarts[j];
 					var oItemId = oKart.using.indexOf(uItem);
 					if (oKart.id == uHolder) {
-						if (oItemId == -1)
+						if (oItemId == -1) {
 							oKart.using.push(uItem);
+							if ((oKart.using.length > 1) && !oKart.rotitem)
+								oKart.rotitem = 0;
+						}
 					}
 					else {
 						if (oItemId != -1)
 							oKart.using.splice(oItemId,1);
 					}
 				}
-				if (uData) {
-					var moveFn = itemBehaviors[uType].move;
-					if (moveFn) {
-						for (var k=uConn;k<rCode[2];k++) {
-							moveFn(uItem);
-							if (uItem.deleted)
-								break;
-						}
+				if (uData)
+					syncedItems.push({item:uItem,start:uConn,end:rCode[2]});
+			}
+			for (var i=0;i<syncedItems.length;i++) {
+				var syncedItem = syncedItems[i];
+				var uItem = syncedItem.item;
+				var moveFn = itemBehaviors[uType].move;
+				if (moveFn) {
+					for (var k=syncedItem.start;k<syncedItem.end;k++) {
+						if (uItem.deleted)
+							break;
+						moveFn(uItem);
 					}
 				}
 			}
@@ -9921,7 +9922,7 @@ function resetDatas() {
 						if (oKart.turnSound && !oKart.tourne)
 							oKart.turnSound = undefined;
 						for (var k=jCode[0][1];k<rCode[2];k++)
-							move(j);
+							move(j, true);
 						break;
 					}
 				}
@@ -10147,7 +10148,7 @@ function showTimer(timeMS) {
 		document.getElementById("temps"+i).innerHTML = tps;
 }
 
-function move(getId) {
+function move(getId, triggered) {
 	var oKart = aKarts[getId];
 	collisionTest = COL_KART;
 	collisionPlayer = oKart;
@@ -10847,7 +10848,8 @@ function move(getId) {
 		if (oKart.rotitem !== undefined) {
 			rotItem = oKart.rotitem;
 			l = 4.5;
-			oKart.rotitem -= 30;
+			if (!triggered)
+				oKart.rotitem -= 30;
 		}
 		for (var i=0;i<oKart.using.length;i++) {
 			var oArme = oKart.using[i];
