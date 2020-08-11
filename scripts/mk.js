@@ -2622,9 +2622,9 @@ function startGame() {
 			}
 			else {
 				for (var i=0;i<strPlayer.length;i++) {
-					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('GO !', 'PARTEZ !') +'</td></tr>';
+					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('GO!', 'PARTEZ !') +'</td></tr>';
 					document.getElementById("infos"+i).style.fontSize = iScreenScale * 12 + "px";
-					document.getElementById("infos"+i).style.top = (12*iScreenScale) + "px";
+					document.getElementById("infos"+i).style.top = Math.round(12.5*iScreenScale) + "px";
 					if (oPlayers[i].speed == 1)
 						oPlayers[i].speed = 11;
 					else if (oPlayers[i].speed > 1) {
