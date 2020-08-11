@@ -1144,12 +1144,14 @@ function loadMap() {
 			oInfos.id = "infos"+i;
 			$mkScreen.appendChild(oInfos);
 		}
-		oInfos.style.left = (10+35*iScreenScale + iScreenMore) +"px";
-		oInfos.style.top = (13*iScreenScale) +"px";
-		oInfos.style.fontSize = iScreenScale*10 +"px";
-		oInfos.style.fontFamily = '"SMK-Rank"';
-		var shadowShift = Math.round(iScreenScale/2) +"px";
-		var shadowShift2 = Math.round(iScreenScale/4) +"px";
+		oInfos.style.left = (10+iScreenMore) +"px";
+		oInfos.style.top = (10*iScreenScale) +"px";
+		oInfos.style.width = (iWidth*iScreenScale) +"px";
+		oInfos.style.fontSize = iScreenScale*16 +"px";
+		oInfos.style.fontFamily = '"NSMBU", Impact';
+		oInfos.style.textAlign = "center";
+		var shadowShift = Math.round(iScreenScale/8) +"px";
+		var shadowShift2 = Math.round(iScreenScale/16) +"px";
 		var shadowColor = primaryColor;
 		oInfos.style.textShadow = "-"+shadowShift2+" 0 "+shadowColor+", 0 "+shadowShift2+" "+shadowColor+", "+shadowShift2+" 0 "+shadowColor+", 0 -"+shadowShift2+" "+shadowColor+", -"+shadowShift+" -"+shadowShift+" "+shadowColor+", -"+shadowShift+" "+shadowShift+" "+shadowColor+", "+shadowShift+" -"+shadowShift+" "+shadowColor+", "+shadowShift+" "+shadowShift+" "+shadowColor;
 		oInfos.innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
@@ -2713,10 +2715,9 @@ function startGame() {
 			}
 			else {
 				for (var i=0;i<strPlayer.length;i++) {
-					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('GO !', 'GO !') +'</td></tr>';
-					document.getElementById("infos"+i).style.left = (24*iScreenScale + i*(iWidth*iScreenScale+2)) + "px";
-					document.getElementById("infos"+i).style.top = (15*iScreenScale) + "px";
-					document.getElementById("infos"+i).style.fontSize = iScreenScale * 8 + "px";
+					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('GO !', 'PARTEZ !') +'</td></tr>';
+					document.getElementById("infos"+i).style.fontSize = iScreenScale * 12 + "px";
+					document.getElementById("infos"+i).style.top = (12*iScreenScale) + "px";
 					if (oPlayers[i].speed == 1)
 						oPlayers[i].speed = 11;
 					else if (oPlayers[i].speed > 1) {
@@ -2755,6 +2756,7 @@ function startGame() {
 						if (stillRacing) {
 							document.getElementById("infos0").style.fontFamily = "";
 							document.getElementById("infos0").style.textShadow = "";
+							document.getElementById("infos0").style.width = "";
 							document.getElementById("infos0").style.top = iScreenScale * 7 + 10 +"px";
 							document.getElementById("infos0").style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 							document.getElementById("infos0").style.fontSize = iScreenScale * 4 +"pt";
@@ -3406,7 +3408,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3438,14 +3440,14 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -16522,7 +16524,7 @@ function choose(map,rand) {
 							else
 								tnCourse += 5000;
 						}
-						rCode[2] = 0; // TODO remove
+						//rCode[2] = 0; // TODO remove
 						connecte = rCode[3]+1;
 						var cCursor = 0;
 						var cTime = 50;

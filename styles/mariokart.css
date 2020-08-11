@@ -6,6 +6,10 @@
     font-family: 'SMK-Rank';
     src: url('smk-rank.ttf');
 }
+@font-face {
+    font-family: 'NSMBU';
+    src: url('nsmbu.ttf');
+}
 #options {
     text-align: right;
     display:inline-table;
