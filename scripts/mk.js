@@ -1373,6 +1373,18 @@ function arme(ID, backwards) {
 			playIfShould(oKart,"musics/events/boost.mp3");
 			break;
 
+			case "champior" :
+			itemKey = "champi";
+			if (oKart.champi < 12) {
+				tpsUse = 20;
+				oKart.maxspeed = 11;
+				oKart.speed = 11;
+				playIfShould(oKart,"musics/events/boost.mp3");
+				if (!oKart.champior)
+					oKart.champior = 60;
+			}
+			break;
+
 			case "etoile" :
 			tpsUse = 60;
 			for (var i=0;i<strPlayer.length;i++)
@@ -1525,11 +1537,36 @@ function arme(ID, backwards) {
 			break;
 		case "champiX3":
 			newItem = "champiX2";
+			break;
+		case "champior":
+			newItem = "champior";
 		}
 		if (newItem) {
-			oKart.arme = newItem;
-			if (kartIsPlayer(oKart))
-				updateObjHud(ID);
+			if (oKart.arme !== newItem) {
+				oKart.arme = newItem;
+				if (kartIsPlayer(oKart))
+					updateObjHud(ID);
+			}
+			else {
+				if (kartIsPlayer(oKart)) {
+					if (newItem === "champior") {
+						var $img = document.getElementById("roulette"+ID).getElementsByTagName("img")[0];
+						var t = 0;
+						function rescale() {
+							t++;
+							var tx = (t-3)/3;
+							var scale = 0.8 + 0.2*tx*tx;
+							if (scale >= 1) {
+								$img.style.transform = "";
+								return;
+							}
+							$img.style.transform = "scale("+scale+")";
+							setTimeout(rescale, SPF);
+						}
+						rescale();
+					}
+				}
+			}
 		}
 		else
 			supprArme(ID);
@@ -7136,21 +7173,6 @@ function render() {
 
 			for (var j=0;j<frameState.karts.length;j++) {
 				fSprite = frameState.karts[j];
-				fSprite.ref.sprite[i].render(fCamera, fSprite);
-
-				if (course == "BB") {
-					var nbBallons = fSprite.ref.ballons.length;
-					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.ref.sprite[i].h-32)/5));
-					var fShift = 2.5;
-					for (k=0;k<nbBallons;k++) {
-						fSprite.ref.ballons[k][i].render(fCamera, {
-							x: fSprite.x-(k+0.5-nbBallons/2)*fShift*direction(1,fRotation),
-							y: fSprite.y+(k+0.5-nbBallons/2)*fShift*direction(0,fRotation),
-							z: fHauteur,
-							size: fTaille
-						});
-					}
-				}
 				var fAngle = fRotation - fSprite.rotation;
 				while (fAngle < 0)
 					fAngle += 360;
@@ -7174,6 +7196,21 @@ function render() {
 				}
 
 				fSprite.ref.sprite[i].setState(iAngleStep);
+				fSprite.ref.sprite[i].render(fCamera, fSprite);
+
+				if (course == "BB") {
+					var nbBallons = fSprite.ref.ballons.length;
+					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.ref.sprite[i].h-32)/5));
+					var fShift = 2.5;
+					for (k=0;k<nbBallons;k++) {
+						fSprite.ref.ballons[k][i].render(fCamera, {
+							x: fSprite.x-(k+0.5-nbBallons/2)*fShift*direction(1,fRotation),
+							y: fSprite.y+(k+0.5-nbBallons/2)*fShift*direction(0,fRotation),
+							z: fHauteur,
+							size: fTaille
+						});
+					}
+				}
 
 				if (fSprite != frameState.players[i]) {
 					if (fSprite.ref.marker && !fSprite.ref.loose && !fSprite.ref.tombe)
@@ -11427,6 +11464,13 @@ function move(getId, triggered) {
 			updateProtectFlag(oKart);
 			if (!oKart.cpu)
 				delete oKart.aipoint;
+		}
+	}
+	if (oKart.champior) {
+		oKart.champior--;
+		if (oKart.champior <= 0) {
+			delete oKart.champior;
+			supprArme(getId);
 		}
 	}
 	if (oKart.etoile) {
