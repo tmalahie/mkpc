@@ -4282,7 +4282,7 @@ function BGLayer(strImage, scaleFactor) {
 	var oLayers = new Array();
 
 	var imageDims = new Image();
-	imageDims.src = "images/map_bg/fond_" + strImage + ".png";
+	imageDims.src = "images/map_bg/" + strImage + ".png";
 	if (!iSmooth) imageDims.className = "pixelated";
 	for (var i=0;i<oContainers.length;i++) {
 		oLayers[i] = document.createElement("div");

@@ -397,7 +397,7 @@ if (isset($_GET['i'])) {
 					<div id="bgchoice-<?php echo $j; ?>" data-value="<?php echo $j; ?>" onclick="changeBg(this)">
 						<?php
 						foreach ($decor as $img)
-							echo '<span style="background-image:url(\'images/map_bg/fond_'.$img.'.png\')"></span>';
+							echo '<span style="background-image:url(\'images/map_bg/'.$img.'.png\')"></span>';
 						?>
 					</div>
 					<?php

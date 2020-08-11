@@ -2645,7 +2645,7 @@ function applyBgSelector() {
 	var selectedBg = bgImgs[editorTool.data.bg_img];
 	var selectedBgArr = [];
 	for (var i=0;i<selectedBg.length;i++)
-		selectedBgArr.unshift("url('images/map_bg/fond_"+selectedBg[i]+".png')");
+		selectedBgArr.unshift("url('images/map_bg/"+selectedBg[i]+".png')");
 	document.getElementById("button-bgimg").style.backgroundImage = selectedBgArr.join(",");
 }
 function applyColorSelector() {
