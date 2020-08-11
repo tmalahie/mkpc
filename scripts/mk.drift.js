@@ -1783,7 +1783,7 @@ function startGame() {
 			});
 			aKarts[aKarts.length-1].sprite[0].div.style.opacity = 0.5;
 		}
-		document.getElementById("roulette0").innerHTML = '<img alt="."class="pixelated" src="images/items/champi.gif" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
+		document.getElementById("roulette0").innerHTML = '<img alt="."class="pixelated" src="images/items/champi.png" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
 	}
 	gameControls = getGameControls();
 
@@ -3406,7 +3406,7 @@ function BGLayer(strImage, scaleFactor) {
 	var oLayers = new Array();
 
 	var imageDims = new Image();
-	imageDims.src = "images/map_bg/fond_" + strImage + ".png";
+	imageDims.src = "images/map_bg/" + strImage + ".png";
 	if (!iSmooth) imageDims.className = "pixelated";
 	for (var i=0;i<oContainers.length;i++) {
 		oLayers[i] = document.createElement("div");
@@ -6537,7 +6537,7 @@ function move(getId) {
 			oKart.roulette = 25;
 			if (kartIsPlayer(oKart)) {
 				document.getElementById("scroller"+getId).style.visibility="hidden";
-				document.getElementById("roulette"+getId).innerHTML = '<img alt="." class="pixelated" src="images/items/'+ oKart.arme +'.gif" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
+				document.getElementById("roulette"+getId).innerHTML = '<img alt="." class="pixelated" src="images/items/'+ oKart.arme +'.png" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
 				if (oKart.rouletteSound) {
 					removeIfExists(oKart.rouletteSound);
 					playSoundEffect("musics/events/gotitem.mp3");
@@ -7500,7 +7500,7 @@ function processCode(cheatCode) {
 		oPlayer.arme = wObject;
 		oPlayer.roulette = 25;
 		document.getElementById("scroller0").style.visibility="hidden";
-		document.getElementById("roulette0").innerHTML = '<img alt="." class="pixelated" src="images/items/'+ wObject +'.gif" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
+		document.getElementById("roulette0").innerHTML = '<img alt="." class="pixelated" src="images/items/'+ wObject +'.png" style="width: '+ Math.round(iScreenScale * 8 - 3)+'px;" />';
 		return true;
 	}
 	var isTP = /^tp ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(cheatCode);

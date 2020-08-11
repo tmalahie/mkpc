@@ -10558,8 +10558,6 @@ function move(getId, triggered) {
 					iObj = ghostItems[Math.floor(Math.random()*ghostItems.length)];
 				}
 			}
-			if (oKart == oPlayers[0])
-				iObj = prompt();
 			oKart.arme = iObj;
 			if (shouldPlaySound(oKart))
 				oKart.rouletteSound = playSoundEffect("musics/events/roulette.mp3");
@@ -11669,7 +11667,7 @@ function getDriftImg(getId) {
 function updateObjHud(ID) {
 	document.getElementById("scroller"+ID).style.visibility="hidden";
 	var oArme = aKarts[ID].arme;
-	document.getElementById("roulette"+ID).innerHTML = '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.gif" style="width: '+ Math.round(iScreenScale*5) +'px;" />';
+	document.getElementById("roulette"+ID).innerHTML = '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="width: '+ Math.round(iScreenScale*5) +'px;" />';
 }
 function timeStr(timeMS) {
 	var timeMins = Math.floor(timeMS/60000);

@@ -1071,7 +1071,7 @@ function MarioKart() {
                     place: 1
                 }), aKarts[aKarts.length - 1].sprite[0].div.style.opacity = .5
             }
-            document.getElementById("roulette0").innerHTML = '<img alt="."class="pixelated" src="images/items/champi.gif" style="width: ' + Math.round(8 * iScreenScale - 3) + 'px;" />'
+            document.getElementById("roulette0").innerHTML = '<img alt="."class="pixelated" src="images/items/champi.png" style="width: ' + Math.round(8 * iScreenScale - 3) + 'px;" />'
         }
         if (gameControls = getGameControls(), challengesForCircuit = {
                 end_game: [],
@@ -1746,7 +1746,7 @@ function MarioKart() {
     function BGLayer(e, n) {
         var o = new Array,
             i = new Image;
-        i.src = "images/map_bg/fond_" + e + ".png", iSmooth || (i.className = "pixelated");
+        i.src = "images/map_bg/" + e + ".png", iSmooth || (i.className = "pixelated");
         for (var t = 0; t < oContainers.length; t++) o[t] = document.createElement("div"), o[t].style.height = 10 * iScreenScale + "px", o[t].style.width = iWidth * iScreenScale + "px", o[t].style.position = "absolute",
             function(e) {
                 setTimeout(function() {
@@ -3331,7 +3331,7 @@ function MarioKart() {
                     var x = parseInt(b.style.top) + 3 * iScreenScale;
                     0 < x && (x += s - v), b.style.top = x + "px"
                 }
-                t.roulette++, 25 <= t.roulette && (t.roulette = 25, kartIsPlayer(t) && (document.getElementById("scroller" + e).style.visibility = "hidden", document.getElementById("roulette" + e).innerHTML = '<img alt="." class="pixelated" src="images/items/' + t.arme + '.gif" style="width: ' + Math.round(8 * iScreenScale - 3) + 'px;" />', t.rouletteSound && (removeIfExists(t.rouletteSound), playSoundEffect("musics/events/gotitem.mp3"), t.rouletteSound = void 0)))
+                t.roulette++, 25 <= t.roulette && (t.roulette = 25, kartIsPlayer(t) && (document.getElementById("scroller" + e).style.visibility = "hidden", document.getElementById("roulette" + e).innerHTML = '<img alt="." class="pixelated" src="images/items/' + t.arme + '.png" style="width: ' + Math.round(8 * iScreenScale - 3) + 'px;" />', t.rouletteSound && (removeIfExists(t.rouletteSound), playSoundEffect("musics/events/gotitem.mp3"), t.rouletteSound = void 0)))
             }
             if ("MK" == page && "BB" == course && t.cpu || 1.175 < t.z || canMoveTo(y, h, u, p, t.protect)) t.x = d, t.y = m;
             else {
@@ -3666,7 +3666,7 @@ function MarioKart() {
             a = /^give (\w+)$/g.exec(e);
         if (a) {
             var n = a[1];
-            return -1 != objets.indexOf(n) && (t.arme = n, t.roulette = 25, document.getElementById("scroller0").style.visibility = "hidden", document.getElementById("roulette0").innerHTML = '<img alt="." class="pixelated" src="images/items/' + n + '.gif" style="width: ' + Math.round(8 * iScreenScale - 3) + 'px;" />', !0)
+            return -1 != objets.indexOf(n) && (t.arme = n, t.roulette = 25, document.getElementById("scroller0").style.visibility = "hidden", document.getElementById("roulette0").innerHTML = '<img alt="." class="pixelated" src="images/items/' + n + '.png" style="width: ' + Math.round(8 * iScreenScale - 3) + 'px;" />', !0)
         }
         var o = /^tp ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(e);
         if (o = o || /^tp ([\d\-+\.]+) ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(e)) {

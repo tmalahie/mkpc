@@ -114,18 +114,18 @@ document.addEventListener("DOMContentLoaded", MarioKart);
 </div>
 <div id="scroller0" width="100px" height="100px" style="width: 100px; height: 100px; overflow: hidden; position: absolute; visibility: hidden">
 	<div style="position: absolute; left: 0; top: 0">
-		<img class="aObjet" alt="." src="images/items/fauxobjet.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/banane.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/carapace.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/bobomb.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/carapacerouge.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/carapacebleue.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/champi.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/megachampi.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/etoile.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/eclair.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/billball.gif" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/fauxobjet.gif" />
+		<img class="aObjet" alt="." src="images/items/fauxobjet.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/banane.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/carapace.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/bobomb.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/carapacerouge.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/carapacebleue.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/champi.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/megachampi.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/etoile.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/eclair.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/billball.png" /><br />&nbsp;<br />
+		<img class="aObjet" alt="." src="images/items/fauxobjet.png" />
 	</div>
 </div>
 <div id="maps-list" style="position: absolute; visibility: hidden">
