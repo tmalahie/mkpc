@@ -499,101 +499,6 @@ function playMusicSmoothly(src,delay) {
 }
 
 var itemDistribution;
-if (isBattle) {
-	itemDistribution = [{
-		fauxobjet: 4,
-		banane: 7,
-		carapace: 4
-	}, {
-		carapace: 5,
-		bobomb: 4,
-		carapacerouge: 6
-	}, {
-		carapace: 1,
-		bobomb: 2,
-		carapace: 6,
-		banane: 2,
-		fauxobjet: 1,
-		carapacerouge: 3
-	}, {
-		carapacebleue: 2,
-		carapacerouge: 1,
-		megachampi: 4,
-		etoile: 4,
-		champi: 4
-	}];
-}
-else {
-	itemDistribution = [{
-		"fauxobjet": 4,
-		"banane": 7,
-		"carapace": 4
-	}, {
-		"carapace": 7,
-		"bobomb": 2,
-		"carapacerouge": 6
-	}, {
-		"carapace": 3,
-		"bobomb": 2,
-		"carapacerouge": 9,
-		"carapaceX3": 1
-	}, {
-		"bobomb": 1,
-		"carapacerouge": 11,
-		"carapaceX3": 3
-	}, {
-		"carapacebleue": 3,
-		"carapacerouge": 2,
-		"megachampi": 2,
-		"champi": 4,
-		"carapaceX3": 4
-	}, {
-		"carapacebleue": 3,
-		"carapaceX3": 2,
-		"megachampi": 4,
-		"champi": 6
-	}, {
-		"carapacebleue": 1,
-		"megachampi": 7,
-		"carapacerougeX3": 2,
-		"etoile": 5
-	}, {
-		"carapacerougeX3": 1,
-		"champior": 1,
-		"megachampi": 9,
-		"champi": 4,
-		"etoile": 5
-	}, {
-		"carapacerougeX3": 1,
-		"megachampi": 7,
-		"etoile": 6,
-		"champiX3": 2,
-		"champior": 1,
-		"champi": 4
-	}, {
-		"carapacerougeX3": 1,
-		"champior": 1,
-		"megachampi": 4,
-		"etoile": 3,
-		"billball": 2,
-		"champi": 1,
-		"champiX3": 4
-	}, {
-		"megachampi": 2,
-		"etoile": 3,
-		"billball": 5,
-		"champior": 3,
-		"champiX3": 3,
-		"billball": 2
-	}, {
-		"megachampi": 2,
-		"etoile": 4,
-		"billball": 3,
-		"champior": 3,
-		"champiX3": 1,
-		"eclair": 3
-	}];
-}
 
 var oBgLayers = new Array();
 var oPlayers = new Array();
@@ -1091,7 +996,7 @@ function loadMap() {
 				}
 			}
 			else
-				oCompteur.innerHTML = '<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*2)+'" />';
+				oCompteur.innerHTML = '<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*4)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*4)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*4)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*4)+'" />';
 		}
 		hudScreen.appendChild(oCompteur);
 
@@ -2392,6 +2297,8 @@ function startGame() {
 	}
 	gameControls = getGameControls();
 
+	itemDistribution = getItemDistribution();
+
 	challengesForCircuit = {
 		"end_game": [],
 		"each_frame": [],
@@ -2979,7 +2886,7 @@ function startGame() {
 										oPlayers[0].reserve--;
 										document.getElementById("compteur0").innerHTML = "";
 										for (i=0;i<oPlayers[0].reserve;i++)
-											document.getElementById("compteur0").innerHTML += '<img src="'+balloonSrc(oPlayers[0].team)+'" style="width: '+(iScreenScale*2)+'" />';
+											document.getElementById("compteur0").innerHTML += '<img src="'+balloonSrc(oPlayers[0].team)+'" style="width: '+(iScreenScale*4)+'" />';
 										playIfShould(oPlayers[0],"musics/events/balloon.mp3");
 									}
 								}
@@ -3042,7 +2949,7 @@ function startGame() {
 										oPlayers[1].reserve--;
 										document.getElementById("compteur1").innerHTML = "&nbsp;";
 										for (i=0;i<oPlayers[1].reserve;i++)
-											document.getElementById("compteur1").innerHTML += '<img src="'+balloonSrc(oPlayers[1].team)+'" style="width: '+(iScreenScale*2)+'" />';
+											document.getElementById("compteur1").innerHTML += '<img src="'+balloonSrc(oPlayers[1].team)+'" style="width: '+(iScreenScale*4)+'" />';
 									}
 								}
 								break;
@@ -9250,6 +9157,104 @@ function showClFailedPopup() {
 		playSoundEffect("musics/events/clfail.mp3");
 }
 
+function getItemDistribution() {
+	if (course == "BB") {
+		return [{
+			"fauxobjet": 4,
+			"banane": 7,
+			"carapace": 4
+		}, {
+			"carapace": 5,
+			"bobomb": 4,
+			"carapacerouge": 6
+		}, {
+			"carapace": 1,
+			"bobomb": 2,
+			"carapace": 6,
+			"banane": 2,
+			"fauxobjet": 1,
+			"carapacerouge": 3
+		}, {
+			"carapacebleue": 2,
+			"carapacerouge": 1,
+			"megachampi": 4,
+			"etoile": 4,
+			"champi": 4
+		}];
+	}
+	else {
+		return [{
+			"fauxobjet": 4,
+			"banane": 7,
+			"carapace": 4
+		}, {
+			"carapace": 7,
+			"bobomb": 2,
+			"carapacerouge": 6
+		}, {
+			"carapace": 3,
+			"bobomb": 2,
+			"carapacerouge": 9,
+			"carapaceX3": 1
+		}, {
+			"bobomb": 1,
+			"carapacerouge": 11,
+			"carapaceX3": 3
+		}, {
+			"carapacebleue": 3,
+			"carapacerouge": 2,
+			"megachampi": 2,
+			"champi": 4,
+			"carapaceX3": 4
+		}, {
+			"carapacebleue": 3,
+			"carapaceX3": 2,
+			"megachampi": 4,
+			"champi": 6
+		}, {
+			"carapacebleue": 1,
+			"megachampi": 7,
+			"carapacerougeX3": 2,
+			"etoile": 5
+		}, {
+			"carapacerougeX3": 1,
+			"champior": 1,
+			"megachampi": 9,
+			"champi": 4,
+			"etoile": 5
+		}, {
+			"carapacerougeX3": 1,
+			"megachampi": 7,
+			"etoile": 6,
+			"champiX3": 2,
+			"champior": 1,
+			"champi": 4
+		}, {
+			"carapacerougeX3": 1,
+			"champior": 1,
+			"megachampi": 4,
+			"etoile": 3,
+			"billball": 2,
+			"champi": 1,
+			"champiX3": 4
+		}, {
+			"megachampi": 2,
+			"etoile": 3,
+			"billball": 5,
+			"champior": 3,
+			"champiX3": 3,
+			"billball": 2
+		}, {
+			"megachampi": 2,
+			"etoile": 4,
+			"billball": 3,
+			"champior": 3,
+			"champiX3": 1,
+			"eclair": 3
+		}];
+	}
+}
+
 var COL_KART = 0, COL_OBJ = 1;
 var collisionTest, collisionPlayer, collisionTeam, collisionDecor;
 function isHitSound(oBox) {
@@ -10588,9 +10593,11 @@ function move(getId, triggered) {
 			}
 			else {
 				if (oKart.ballons.length) {
-					do {
-						iObj = objets[Math.floor(Math.random()*75)];
-					} while ((iObj == "billball") || (iObj == "carapacebleue"));
+					iObj = randObj(oKart);
+					if (otherObjects(oKart,["carapacebleue"])) {
+						while (iObj == "carapacebleue")
+							iObj = randObj(oKart);
+					}
 				}
 				else {
 					var ghostItems = ["fauxobjet", "banane", "carapace", "bobomb"];
@@ -11829,7 +11836,7 @@ function processCode(cheatCode) {
 				oPlayer.reserve += toAdd;
 				document.getElementById("compteur0").innerHTML = "";
 				for (i=0;i<oPlayer.reserve;i++)
-					document.getElementById("compteur0").innerHTML += '<img src="'+balloonSrc(oPlayer.team)+'" style="width: '+(iScreenScale*2)+'" />';
+					document.getElementById("compteur0").innerHTML += '<img src="'+balloonSrc(oPlayer.team)+'" style="width: '+(iScreenScale*4)+'" />';
 				return true;
 			}
 		}
