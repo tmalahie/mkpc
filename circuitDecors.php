@@ -31,6 +31,7 @@ $decors = array(
         'fire3star' => null,
         'topitaupe' => $language ? 'Peach Gardens - Monty Mole' : 'Jardin Peach - Topi Taupe',
         'chomp' => null,
+        'movingthwomp' => null,
         'firebar' => $language ? 'Bowser Castle - Fire bar' : 'Château de Bowser - Barre de feu'
     ,//),
     //array(

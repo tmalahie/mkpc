@@ -6000,12 +6000,25 @@ var decorBehaviors = {
 	},
 	movingthwomp:{
 		spin: 20,
-		hitbox:8,
+		hitbox: 8,
+		movable: true,
 		init: function(decorData,i) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 3;
 				decorData[2][j].w = 48;
 				decorData[2][j].h = 64;
+			}
+			if (decorData[4] == undefined) {
+				decorData[4] = [[decorData[0],decorData[1],0,20,20],[decorData[0],decorData[1],20,5,30],[decorData[0],decorData[1],20,30,5],[decorData[0],decorData[1],0,20,20]];
+				var iExtra = getDecorParams(this,i);
+				if (!isNaN(iExtra.dir)) {
+					var dirX = iExtra.length*Math.sin(iExtra.dir);
+					var dirY = iExtra.length*Math.cos(iExtra.dir);
+					for (var i=2;i<4;i++) {
+						decorData[4][i][0] += dirX;
+						decorData[4][i][1] += dirY;
+					}
+				}
 			}
 			if (decorData[5] == undefined)
 				decorData[5] = 0;

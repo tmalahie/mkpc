@@ -3823,6 +3823,7 @@ var commonTools = {
 						case "cannonball":
 						case "snowball":
 						case "billball":
+						case "movingthwomp":
 						case "assets/pivothand":
 						case "firering":
 						case "fire3star":
@@ -3894,6 +3895,7 @@ var commonTools = {
 				case "cannonball":
 				case "snowball":
 				case "billball":
+				case "movingthwomp":
 				case "firering":
 				case "fire3star":
 				case "pendulum":
@@ -4022,9 +4024,14 @@ var commonTools = {
 			}
 		},
 		"_arrowLength": function(type) {
-			if (type === "billball") return null;
-			if (type === "assets/pivothand") return null;
-			return 25;
+			switch (type) {
+			case "billball":
+			case "movingthwomp":
+			case "assets/pivothand":
+				return null;
+			default:
+				return 25;
+			}
 		},
 		"_arrowCircularRadius": function(dir) {
 			return Math.hypot(dir.x,dir.y)*0.8;
@@ -4101,6 +4108,7 @@ var commonTools = {
 							case "cannonball":
 							case "snowball":
 							case "billball":
+							case "movingthwomp":
 							case "firering":
 							case "fire3star":
 							case "pendulum":
@@ -4108,6 +4116,8 @@ var commonTools = {
 								var decorParams = {dir:isNaN(dir)?0:dir};
 								if (type === "billball")
 									decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):460;
+								else if (type === "movingthwomp")
+									decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):0;
 								payload.decorparams[type].push(decorParams);
 								break;
 							case "truck":
@@ -4162,6 +4172,7 @@ var commonTools = {
 					case "cannonball":
 					case "snowball":
 					case "billball":
+					case "movingthwomp":
 					case "firering":
 					case "fire3star":
 					case "pendulum":
