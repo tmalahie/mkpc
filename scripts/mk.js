@@ -1085,7 +1085,7 @@ function loadMap() {
 
 	initMap();
 
-	var lObjet = Math.round(iScreenScale*5);
+	var lObjet = Math.round(iScreenScale*6.5);
 	for (var j=0;j<document.getElementsByClassName("aObjet").length;j++)
 		document.getElementsByClassName("aObjet")[j].style.width = lObjet +"px";
 
@@ -1200,8 +1200,11 @@ function loadNewItem(kart,item) {
 }
 function addNewItem(kart,item) {
 	var collection = item.type;
-	item.sprite = new Sprite(collection);
-	item.size = itemBehaviors[collection].size;
+	var itemBehavior = itemBehaviors[collection];
+	if (itemBehavior.sprite !== false) {
+		item.sprite = new Sprite(collection);
+		item.size = itemBehavior.size;
+	}
 	items[collection].push(item);
 	if (kart == oPlayers[0]) {
 		if (isOnline)
@@ -1253,11 +1256,13 @@ function addNewItem(kart,item) {
 			oDiv.style.borderRadius = hallowSize+"%";
 			oDiv.style.backgroundColor = item.team ? "red":"blue";
 			oDiv.style.opacity = 0.25;
-			var oImg = item.sprite[i].div.firstChild;
-			if (oImg)
-				item.sprite[i].div.insertBefore(oDiv,oImg);
-			else
-				item.sprite[i].div.appendChild(oDiv);
+			if (item.sprite) {
+				var oImg = item.sprite[i].div.firstChild;
+				if (oImg)
+					item.sprite[i].div.insertBefore(oDiv,oImg);
+				else
+					item.sprite[i].div.appendChild(oDiv);
+			}
 		}
 	}
 }
@@ -1350,31 +1355,6 @@ function arme(ID, backwards) {
 				postStartMusic("musics/events/megamushroom.mp3");
 			break;
 
-			case "eclair" :
-			tpsUse = 100;
-			for (i=0;i<aKarts.length;i++) {
-				var kart = aKarts[i];
-				if (!friendlyFire(kart,oKart)) {
-					if (!kart.protect) {
-						kart.size = 0.6;
-						updateDriftSize(i);
-						kart.arme = false;
-						loseUsingItem(kart);
-						kart.champi = 0;
-						kart.spin(20);
-						kart.roulette = 0;
-						stopDrifting(i);
-						supprArme(i);
-					}
-					else
-						kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
-				}
-			}
-			if (iSfx && !finishing && !oKart.cpu)
-				playSoundEffect("musics/events/lightning.mp3");
-			$mkScreen.style.opacity = 0.7;
-			break;
-
 			case "banane" :
 			loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
@@ -1431,6 +1411,10 @@ function arme(ID, backwards) {
 			case "bobomb" :
 			loadNewItem(oKart, {type: "bobomb", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z,theta:-1,countdown:15,cooldown:30});
 			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
+			case "eclair" :
+			addNewItem(oKart, {type:"eclair", owner:oKart.id, countdown:20});
 			break;
 		}
 
@@ -1992,7 +1976,7 @@ function startGame() {
 			champi : 0,
 			etoile : 0,
 			megachampi : 0,
-			eclair : 0,
+			mini : 0,
 			using : []
 		};
 		if (isOnline)
@@ -2066,7 +2050,7 @@ function startGame() {
 			champi : 0,
 			etoile : 0,
 			megachampi : 0,
-			eclair : 0,
+			mini : 0,
 			using : [],
 
 			cpu : !isOnline,
@@ -3315,7 +3299,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3347,14 +3331,14 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -4844,6 +4828,50 @@ var itemBehaviors = {
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
 		fadedelay: 100
 	},
+	"eclair": {
+		size: 1,
+		sync: [byteType("owner"),byteType("countdown")],
+		fadedelay: 0,
+		sprite: false,
+		move: function(fSprite) {
+			if (!fSprite.effected) {
+				fSprite.effected = true;
+				var oKart = aKarts.find(function(oKart) {
+					return oKart.id == fSprite.owner;
+				});
+				if (oKart) {
+					if (iSfx && !finishing && !oKart.cpu)
+						playSoundEffect("musics/events/lightning.mp3");
+					$mkScreen.style.opacity = 0.7;
+					for (var i=0;i<aKarts.length;i++) {
+						var kart = aKarts[i];
+						if (!friendlyFire(kart,oKart)) {
+							if (!kart.protect) {
+								kart.size = 0.6;
+								kart.mini = Math.max(kart.mini, 120-(kart.place-1)*40/(aKarts.length-1));
+								updateDriftSize(i);
+								kart.arme = false;
+								loseUsingItem(kart);
+								kart.champi = 0;
+								kart.spin(20);
+								kart.roulette = 0;
+								stopDrifting(i);
+								supprArme(i);
+							}
+							else
+								kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
+						}
+					}
+				}
+			}
+			fSprite.countdown--;
+			if (fSprite.countdown <= 0)
+				detruit(fSprite);
+		},
+		"del": function(item) {
+			$mkScreen.style.opacity = 1;
+		}
+	},
 	"carapace": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),byteType("lives")],
@@ -5159,7 +5187,7 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","carapace-rouge","carapace-bleue"];
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","carapace-rouge","carapace-bleue","eclair"];
 var items = {};
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
@@ -7174,7 +7202,8 @@ function render() {
 						if (itemBehavior.render)
 							itemBehavior.render(fSprite.ref,i);
 					}
-					fSprite.ref.sprite[i].render(fCamera, fSprite);
+					if (fSprite.ref.sprite)
+						fSprite.ref.sprite[i].render(fCamera, fSprite);
 				}
 			}
 
@@ -7312,7 +7341,11 @@ function supprime(item, sound) {
 	var key = item.type;
 	var id = items[key].indexOf(item);
 	if (id != -1) {
-		item.sprite[0].fadeout(itemBehaviors[key].fadedelay);
+		var itemBehavior = itemBehaviors[key];
+		if (item.sprite)
+			item.sprite[0].fadeout(itemBehavior.fadedelay);
+		if (itemBehavior.del)
+			itemBehavior.del(item);
 		for (var i=0;i<aKarts.length;i++) {
 			var j = aKarts[i].using.indexOf(item);
 			if (j != -1) {
@@ -9914,34 +9947,6 @@ function resetDatas() {
 							oKart.sprite[0].img.src = getSpriteSrc(oKart.personnage);
 							resumeSpriteSize(oKart.sprite[0]);
 						}
-						if ((oKart.eclair >= 90) && !aEclair) {
-							for (k=0;k<aKarts.length;k++) {
-								var kart = aKarts[k];
-								if (!friendlyFire(kart,oKart)) {
-									if (!kart.protect) {
-										kart.size = 0.6;
-										updateDriftSize(k);
-										kart.arme = false;
-										loseUsingItem(kart);
-										kart.champi = 0;
-										kart.spin(20);
-										kart.roulette = 0;
-										stopDrifting(k);
-										supprArme(k);
-									}
-									else
-										kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
-								}
-							}
-							$mkScreen.style.opacity = 0.7;
-							if (iSfx && !finishing && !oPlayers[0].cpu)
-								playSoundEffect("musics/events/lightning.mp3");
-						}
-						else if (aEclair && !oKart.eclair && (oPlayers[0].size < 1)) {
-							oPlayers[0].size = 1;
-							updateDriftSize(j);
-							$mkScreen.style.opacity = 1;
-						}
 						updateProtectFlag(oKart);
 						if (aTombe && !oKart.tombe) {
 							oKart.sprite[0].img.style.display = "block";
@@ -11509,18 +11514,11 @@ function move(getId, triggered) {
 		}
 		updateDriftSize(getId);
 	}
-	if (oKart.eclair) {
-		oKart.eclair--;
-		if ((isOnline || (oKart.eclair > 80)) && (oKart.eclair <= 88))
-			$mkScreen.style.opacity = 1;
-		if (oKart.eclair < 1) {
-			for (var i=0;i<aKarts.length;i++) {
-				var kart = aKarts[i];
-				if (!friendlyFire(kart,oKart) && kart.size < 1 && (!isOnline||kart==oPlayers[0])) {
-					kart.size = 1;
-					updateDriftSize(i);
-				}
-			}
+	if (oKart.mini) {
+		oKart.mini--;
+		if (oKart.mini < 1) {
+			oKart.mini = 0;
+			oKart.size = 1;
 		}
 	}
 	if (oKart.cannon) {
@@ -11720,7 +11718,7 @@ function getDriftImg(getId) {
 function updateObjHud(ID) {
 	document.getElementById("scroller"+ID).style.visibility="hidden";
 	var oArme = aKarts[ID].arme;
-	document.getElementById("roulette"+ID).innerHTML = '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="width: '+ Math.round(iScreenScale*5) +'px;" />';
+	document.getElementById("roulette"+ID).innerHTML = '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="width: '+ Math.round(iScreenScale*6.5) +'px;" />';
 }
 function timeStr(timeMS) {
 	var timeMins = Math.floor(timeMS/60000);
