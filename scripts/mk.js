@@ -1028,7 +1028,7 @@ function loadMap() {
 		}
 		var oRoulette = document.createElement("div");
 		oRoulette.id = "roulette"+i;
-		oRoulette.style.height = Math.round(iScreenScale*4) +"px";
+		oRoulette.style.height = Math.round(iScreenScale*4.5) +"px";
 		oObjet.appendChild(oRoulette);
 		hudScreen.appendChild(oObjet);
 
@@ -1090,7 +1090,7 @@ function loadMap() {
 
 	initMap();
 
-	var lObjet = Math.round(iScreenScale*6.5);
+	var lObjet = Math.round(iScreenScale*6);
 	for (var j=0;j<document.getElementsByClassName("aObjet").length;j++)
 		document.getElementsByClassName("aObjet")[j].style.width = lObjet +"px";
 
@@ -11780,7 +11780,7 @@ function getDriftImg(getId) {
 function updateObjHud(ID) {
 	document.getElementById("scroller"+ID).style.visibility="hidden";
 	var oArme = aKarts[ID].arme;
-	document.getElementById("roulette"+ID).innerHTML = '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="width: '+ Math.round(iScreenScale*6.5) +'px;" />';
+	document.getElementById("roulette"+ID).innerHTML = '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="width: '+ Math.round(iScreenScale*6) +'px;" />';
 }
 function timeStr(timeMS) {
 	var timeMins = Math.floor(timeMS/60000);
