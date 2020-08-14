@@ -562,7 +562,7 @@ var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new 
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(),
 	oPlanEtoiles = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
 var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {},
-	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(),
+	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(),
 	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(),
 	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
 
@@ -760,6 +760,14 @@ function setPlanPos() {
 		setObject(oPlanBananes[i],banane.x,banane.y, oObjWidth,oPlanSize, banane.team,100);
 		setObject(oPlanBananes2[i],banane.x,banane.y, oObjWidth2,oPlanSize2, banane.team,100);
 		oPlanBananes[i].style.zIndex = oPlanBananes2[i].style.zIndex = 2;
+	}
+	syncObjects(oPlanPoisons,items["poison"],"poison", oObjWidth,oPlanCtn);
+	syncObjects(oPlanPoisons2,items["poison"],"poison", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<items["poison"].length;i++) {
+		var poison = items["poison"][i];
+		setObject(oPlanPoisons[i],poison.x,poison.y, oObjWidth,oPlanSize, poison.team,100);
+		setObject(oPlanPoisons2[i],poison.x,poison.y, oObjWidth2,oPlanSize2, poison.team,100);
+		oPlanPoisons[i].style.zIndex = oPlanPoisons2[i].style.zIndex = 2;
 	}
 
 	function getExplosionSrc(src,team) {
@@ -1055,10 +1063,7 @@ function loadMap() {
 		oInfos.style.fontSize = iScreenScale*16 +"px";
 		oInfos.style.fontFamily = '"NSMBU", Impact';
 		oInfos.style.textAlign = "center";
-		var shadowShift = Math.round(iScreenScale/8) +"px";
-		var shadowShift2 = Math.round(iScreenScale/16) +"px";
-		var shadowColor = primaryColor;
-		oInfos.style.textShadow = "-"+shadowShift2+" 0 "+shadowColor+", 0 "+shadowShift2+" "+shadowColor+", "+shadowShift2+" 0 "+shadowColor+", 0 -"+shadowShift2+" "+shadowColor+", -"+shadowShift+" -"+shadowShift+" "+shadowColor+", -"+shadowShift+" "+shadowShift+" "+shadowColor+", "+shadowShift+" -"+shadowShift+" "+shadowColor+", "+shadowShift+" "+shadowShift+" "+shadowColor;
+		oInfos.style.textStroke = oInfos.style.WebkitTextStroke = oInfos.style.MozTextStroke = Math.round(iScreenScale/4) +"px "+ primaryColor;
 		oInfos.innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
 		var oScroller = document.getElementById("scroller").cloneNode(true);
 		oScroller.id = "scroller"+i;
@@ -1218,6 +1223,9 @@ function addNewItem(kart,item) {
 		case "banane":
 			hallowSize = 50;
 			break;
+		case "poison":
+			hallowSize = 60;
+			break;
 		case "carapace":
 		case "carapace-rouge":
 			hallowSize = 60;
@@ -1237,6 +1245,9 @@ function addNewItem(kart,item) {
 		var hallowLeft = 50-hallowSize, hallowTop = 50-hallowSize;
 		switch (collection) {
 		case "banane":
+			hallowTop += 5;
+			break;
+		case "poison":
 			hallowTop += 5;
 			break;
 		case "bobomb":
@@ -1365,6 +1376,11 @@ function arme(ID, backwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
+			case "poison" :
+			loadNewItem(oKart, {type: "poison", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
 			case "carapace" :
 			loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner: -1, lives:10});
 			playIfShould(oKart,"musics/events/item_store.mp3");
@@ -1479,6 +1495,15 @@ function arme(ID, backwards) {
 			case "fauxobjet" :
 			var decalage = 30/(oKart.speed+5);
 			throwItem(oKart, {x:posX-decalage*direction(0, oKart.rotation), y:posY-decalage*direction(1, oKart.rotation), z:0});
+			playIfShould(oKart,"musics/events/put.mp3");
+			break;
+
+			case "poison" :
+			var decalage = 30/(oKart.speed+5);
+			var fPosX = posX - decalage * direction(0, oKart.rotation);
+			var fPosY = posY - decalage * direction(1, oKart.rotation);
+			if (!tombe(fPosX,fPosY))
+			throwItem(oKart, {x:fPosX, y:fPosY, z:0});
 			playIfShould(oKart,"musics/events/put.mp3");
 			break;
 
@@ -2645,13 +2670,15 @@ function startGame() {
 								document.getElementById("infos"+i).style.display = "none";
 						}
 						if (stillRacing) {
-							document.getElementById("infos0").style.fontFamily = "";
-							document.getElementById("infos0").style.textShadow = "";
-							document.getElementById("infos0").style.width = "";
-							document.getElementById("infos0").style.top = iScreenScale * 7 + 10 +"px";
-							document.getElementById("infos0").style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
-							document.getElementById("infos0").style.fontSize = iScreenScale * 4 +"pt";
+							var oInfos = document.getElementById("infos0");
+							oInfos.style.fontFamily = "";
+							oInfos.style.textStroke = oInfos.style.WebkitTextStroke = oInfos.style.MozTextStroke = "";
+							oInfos.style.width = "";
+							oInfos.style.top = iScreenScale * 7 + 10 +"px";
+							oInfos.style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
+							oInfos.style.fontSize = iScreenScale * 4 +"pt";
 							var btnFontSize = (course != "CM") ? (iScreenScale*3):Math.round(iScreenScale*2.5);
+<<<<<<< HEAD
 							document.getElementById("infos0").innerHTML =
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr>'+
 								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
@@ -2663,6 +2690,10 @@ function startGame() {
 								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
 								'<tr><td><input type="button" id="quitter" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
 							document.getElementById("infos0").onkeydown = function(e) {
+=======
+							oInfos.innerHTML = '<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr><tr><td'+ (course != "CM" ? ' style="font-size: '+ iScreenScale * 10 +'px;">&nbsp;' : ' style="font-size: '+ (iScreenScale * 2) +'px">&nbsp;</td></tr><tr><td><input type="button" id="recommencer" value=" &nbsp; '+ toLanguage('RETRY', 'R&Eacute;ESSAYER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr><tr><td style="font-size: '+ (iScreenScale * 2) +'px">&nbsp;</td></tr><tr><td style="font-size: '+ (iScreenScale * 2) +'px"><input type="button" id="changecircuit" value="'+ toLanguage('  CHANGE RACE  ', 'CHANGER CIRCUIT') +'" style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr><tr><td style="font-size: '+ (iScreenScale * 2) +'px">&nbsp;') +'</td></tr><tr><td><input type="button" id="quitter" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
+							oInfos.onkeydown = function(e) {
+>>>>>>> Implement poison item
 								var btnDir;
 								switch (e.keyCode) {
 								case 38:
@@ -3299,7 +3330,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3331,14 +3362,14 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -4828,6 +4859,11 @@ var itemBehaviors = {
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
 		fadedelay: 100
 	},
+	"poison": {
+		size: 0.54,
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
+		fadedelay: 100
+	},
 	"eclair": {
 		size: 1,
 		sync: [byteType("owner"),byteType("countdown")],
@@ -5187,7 +5223,7 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","carapace-rouge","carapace-bleue","eclair"];
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","eclair"];
 var items = {};
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
@@ -9227,11 +9263,13 @@ function getItemDistribution() {
 		}, {
 			"carapace": 3,
 			"bobomb": 2,
-			"carapacerouge": 9,
+			"carapacerouge": 7,
+			"poison": 2,
 			"carapaceX3": 1
 		}, {
 			"bobomb": 1,
-			"carapacerouge": 11,
+			"carapacerouge": 7,
+			"poison": 4,
 			"carapaceX3": 3
 		}, {
 			"carapacebleue": 3,
@@ -9293,8 +9331,8 @@ var collisionTest, collisionPlayer, collisionTeam, collisionDecor;
 function isHitSound(oBox) {
 	if (collisionTest==COL_OBJ)
 		return true;
-	if (collisionTeam==oBox[2])
-		return {x:oBox[3],y:oBox[4]};
+	if (collisionTeam==oBox.team)
+		return {x:oBox.x,y:oBox.y};
 	return false;
 }
 function handleHit(oBox) {
@@ -9321,6 +9359,20 @@ function touche_banane(iX, iY, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["banane"].length;i++) {
 		var oBox = items["banane"][i];
+		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
+			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+				handleHit(oBox);
+				detruit(oBox,isHitSound(oBox));
+				return (collisionTeam!=oBox.team);
+			}
+		}
+	}
+	return false;
+}
+function touche_poison(iX, iY, iP) {
+	if (!iP) iP = [];
+	for (var i=0;i<items["poison"].length;i++) {
+		var oBox = items["poison"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 				handleHit(oBox);
@@ -10447,6 +10499,15 @@ function move(getId, triggered) {
 				oKart.spin(20);
 				loseUsingItem(oKart);
 			}
+			else if (touche_poison(fNewPosX, fNewPosY, oKartItems) && !oKart.protect) {
+				loseBall(getId);
+				stopDrifting(getId);
+				oKart.spin(20);
+				loseUsingItem(oKart);
+				oKart.size = 0.6;
+				oKart.mini = Math.max(oKart.mini, 60);
+				updateDriftSize(getId);
+			}
 			else if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
 				var asset = touche_asset(aPosX,aPosY,fNewPosX,fNewPosY);
@@ -11519,6 +11580,7 @@ function move(getId, triggered) {
 		if (oKart.mini < 1) {
 			oKart.mini = 0;
 			oKart.size = 1;
+			updateDriftSize(aKarts.indexOf(oKart));
 		}
 	}
 	if (oKart.cannon) {
