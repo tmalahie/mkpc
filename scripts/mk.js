@@ -1370,6 +1370,13 @@ function arme(ID, backwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
+			case "bananeX3" :
+			for (var i=0;i<3;i++)
+				loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			oKart.rotitem = 0;
+			playIfShould(oKart,"musics/events/item_store.mp3");
+			break;
+
 			case "fauxobjet" :
 			loadNewItem(oKart, {type: "fauxobjet", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
@@ -9229,17 +9236,20 @@ function getItemDistribution() {
 	if (course == "BB") {
 		return [{
 			"fauxobjet": 4,
-			"banane": 7,
+			"banane": 6,
+			"bananeX3": 1,
 			"carapace": 4
 		}, {
 			"carapace": 5,
-			"bobomb": 4,
-			"carapacerouge": 6
+			"carapacerouge": 5,
+			"bobomb": 2,
+			"bananeX3": 3
 		}, {
 			"carapace": 1,
 			"bobomb": 2,
 			"carapace": 6,
-			"banane": 2,
+			"banane": 1,
+			"bananeX3": 1,
 			"fauxobjet": 1,
 			"carapacerouge": 3
 		}, {
@@ -9253,21 +9263,25 @@ function getItemDistribution() {
 	else {
 		return [{
 			"fauxobjet": 4,
-			"banane": 7,
+			"banane": 6,
+			"bananeX3": 1,
 			"carapace": 4
 		}, {
-			"carapace": 7,
+			"carapace": 6,
 			"bobomb": 2,
-			"carapacerouge": 6
+			"carapacerouge": 6,
+			"bananeX3": 1
 		}, {
 			"carapace": 3,
 			"bobomb": 2,
-			"carapacerouge": 7,
+			"carapacerouge": 5,
+			"bananeX3": 2,
 			"poison": 2,
 			"carapaceX3": 1
 		}, {
 			"bobomb": 1,
-			"carapacerouge": 7,
+			"carapacerouge": 6,
+			"bananeX3": 1,
 			"poison": 4,
 			"carapaceX3": 3
 		}, {
@@ -10954,16 +10968,26 @@ function move(getId, triggered) {
 		var rotItem = 0;
 		var l = 5;
 		var dtheta = 360/oKart.using.length;
+		var isBanana = (oKart.using[0].type === "banane");
 		if (oKart.rotitem !== undefined) {
 			rotItem = oKart.rotitem;
-			l = 4.5;
+			if (isBanana)
+				l = 4;
+			else
+				l = 4.5;
 			if (!triggered)
 				oKart.rotitem -= 30;
 		}
 		for (var i=0;i<oKart.using.length;i++) {
 			var oArme = oKart.using[i];
-			oArme.x = (oKart.x - l * direction(0, oKart.rotation+rotItem+i*dtheta));
-			oArme.y = (oKart.y - l * direction(1, oKart.rotation+rotItem+i*dtheta));
+			if (isBanana) {
+				oArme.x = (oKart.x - l * (1+i*0.35) * direction(0, oKart.rotation));
+				oArme.y = (oKart.y - l * (1+i*0.35) * direction(1, oKart.rotation));
+			}
+			else {
+				oArme.x = (oKart.x - l * direction(0, oKart.rotation+rotItem+i*dtheta));
+				oArme.y = (oKart.y - l * direction(1, oKart.rotation+rotItem+i*dtheta));
+			}
 			oArme.z = oKart.z;
 		}
 	}
