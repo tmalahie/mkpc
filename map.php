@@ -498,16 +498,16 @@ else {
 <td id="vSize">
 &nbsp;
 </td></tr>
-<tr><td id="pMusic">
+<tr><td id="pSound">
 &nbsp;
 </td>
-<td id="vMusic">
+<td id="vSound">
 &nbsp;
 </td></tr>
-<tr><td id="pSfx">
+<tr><td id="pFps">
 &nbsp;
 </td>
-<td id="vSfx">
+<td id="vFps">
 &nbsp;
 </td></tr>
 </table>
