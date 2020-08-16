@@ -894,7 +894,7 @@ function loadMap() {
 		oMapImg.src = mapSrc;
 	}
 	oMap.assets = [];
-	var assetKeys = ["pivots","pointers", "flippers","bumpers","flowers"];
+	var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 	for (var i=0;i<assetKeys.length;i++) {
 		var key = assetKeys[i];
 		if (oMap[key]) {
@@ -2272,7 +2272,7 @@ function startGame() {
 				oPlanDecor2[type] = new Array();
 			}
 		}
-		var assetKeys = ["pivots","pointers", "flippers","bumpers","flowers"];
+		var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 		for (var i=0;i<assetKeys.length;i++) {
 			var key = assetKeys[i];
 			if (oMap[key]) {
@@ -7617,16 +7617,6 @@ function accelere(iX, iY) {
 	}
 	return false;
 }
-function oiling(iX,iY) {
-	if (oMap.oil) {
-		for (var i=0;i<oMap.oil.length;i++) {
-			var oBox = oMap.oil[i];
-			if (iX > oBox[0] && iX < oBox[0] + 8 && iY > oBox[1] && iY < oBox[1] + 8)
-				return true;
-		}
-		return false;
-	}
-}
 
 function flowShift(iX,iY, iP) {
 	if (oMap.flows) {
@@ -8676,6 +8666,18 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 			}
 		}
 	}
+
+	{
+		var key = "oils";
+		if (oMap[key]) {
+			for (var i=0;i<oMap[key].length;i++) {
+				var asset = oMap[key][i];
+				var cX = asset[1][0], cY = asset[1][1], cR = 4;
+				if ((Math.abs(iX-cX) < cR) && (Math.abs(iY-cY) < cR))
+					return [key,asset];
+			}
+		}
+	}
 	return false;
 }
 
@@ -9541,6 +9543,13 @@ function move(getId) {
 				var stopped = true;
 				if (asset) {
 					switch (asset[0]) {
+					case "oils":
+						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne) {
+							stopDrifting(getId);
+							oKart.spin(20);
+						}
+						stopped = false;
+						break;
 					case "pointers":
 						if (hittable)
 							oKart.spin(42);
@@ -9897,10 +9906,6 @@ function move(getId) {
 					if (oKart.speed > hpProps.speed)
 						oKart.speed = hpProps.speed;
 					stopDrifting(getId);
-				}
-				if (oiling(fNewPosX, fNewPosY) && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && !oKart.protect && !oKart.z) {
-					stopDrifting(getId);
-					oKart.spin(20);
 				}
 				if (!oKart.tourne)
 					newShift = flowShift(fNewPosX, fNewPosY, oKart.protect);

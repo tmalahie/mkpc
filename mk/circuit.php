@@ -1982,6 +1982,9 @@ foreach ($circuitsData as $c => $circuit) {
 			$types = array();
 			$groupedDecors['flower'][] = array($typeSrc,$i);
 			break;
+		case 'oil1':
+			$types = array('oil');
+			break;
 		default:
 			$types = array($typeSrc);
 		}
@@ -1994,6 +1997,9 @@ foreach ($circuitsData as $c => $circuit) {
 				switch ($type) {
 				case 'bumper':
 					echo '["bumper",['.$pos[0].','.$pos[1].',24,24],[0.5,0.5,0]]';
+					break;
+				case 'oil':
+					echo '["oil1",['.$pos[0].','.$pos[1].',7,7],[0.5,0.5,0]]';
 					break;
 				case 'pointer':
 					$th = (10000*sin($j+1))%M_PI;

@@ -10,6 +10,8 @@ $decors = array(
         'spectre' => null
     ),
     array(
+        'assets/oil1' => $language ? 'Mario Circuit 1 - Oil':'Circuit Mario 1 - Huile',
+        'assets/oil2' => $language ? 'Luigi Circuit - Puddle':'Circuit Luigi - Flaque',
         'crabe' => null,
         'cheepcheep' => null,
         'movingtree' => $language ? 'Luigi\'s Mansion - Moving tree' : 'Manoir de Luigi - Arbre mobile',

@@ -94,7 +94,7 @@ if (!empty($circuitPayload->decorparams)) {
 "decorparams" : <?php echo json_encode($circuitPayload->decorparams);
 }
 if (!empty($circuitPayload->assets)) {
-	$assetTypes = array('pointers', 'flippers', 'bumpers');
+	$assetTypes = array('pointers', 'flippers', 'bumpers','oils');
 	foreach ($assetTypes as $assetType) {
 		if (!empty($circuitPayload->assets->{$assetType})) {
 			?>,

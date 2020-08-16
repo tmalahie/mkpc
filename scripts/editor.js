@@ -4086,6 +4086,12 @@ var commonTools = {
 						switch (type) {
 						case "assets/pivothand":
 							payload.assets["pointers"] = [];
+							break;
+						case "assets/oil1":
+						case "assets/oil2":
+							if (!payload.assets["oils"])
+								payload.assets["oils"] = [];
+							break;
 						}
 					}
 					else
@@ -4099,6 +4105,12 @@ var commonTools = {
 								var dtheta = (decorsData[i].dtheta!=null) ? Math.pow(Math.abs(decorsData[i].dtheta),self._rotScale)*Math.sign(decorsData[i].dtheta)/self._rotFactor : 0.015;
 								var assetParams = ["hand",[decorsData[i].pos.x,decorsData[i].pos.y,length,8,0.5,0.5],[0,0.5,dir,dtheta]];
 								payload.assets["pointers"].push(assetParams);
+								break;
+							case "assets/oil1":
+							case "assets/oil2":
+								var typeSrc = type.substring(7);
+								var assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,7,7,0.5,0.5],[0,0.5,0.5]];
+								payload.assets["oils"].push(assetParams);
 								break;
 							}
 						}
@@ -4213,6 +4225,12 @@ var commonTools = {
 							assetData.dir = {x:length*Math.cos(dir),y:length*Math.sin(dir)};
 							assetData.dtheta = dtheta;
 							selfData["assets/pivothand"].push(assetData);
+							break;
+						case "oils":
+							var assetKey = "assets/"+assetPayload[0];
+							var assetData = {pos:dataToPoint(assetPayload[1])};
+							if (!selfData[assetKey]) selfData[assetKey] = [];
+							selfData[assetKey].push(assetData);
 						}
 					}
 				}
