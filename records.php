@@ -29,7 +29,6 @@ if (isset($_POST["name"]) && isset($_POST["perso"]) && isset($_POST["time"])) {
 		if (mysql_fetch_array($existingNick))
 			echo 1;
 		else {
-			mysql_query("UPDATE `mkrecords` SET best=0 WHERE type='$type' AND circuit='$map' AND name='$name' AND time > $time");
 			$player = 0;
 			if ($getByName = mysql_fetch_array(mysql_query('SELECT j.id FROM mkjoueurs j INNER JOIN mkprofiles p ON j.id=p.id WHERE j.nom="'.$name.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])))
 				$player = $getByName['id'];
@@ -37,7 +36,8 @@ if (isset($_POST["name"]) && isset($_POST["perso"]) && isset($_POST["time"])) {
 				$player = $id;
 			elseif ($getByIp = mysql_fetch_array(mysql_query('SELECT id FROM mkprofiles WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' ORDER BY nbmessages DESC LIMIT 1')))
 				$player = $getByIp['id'];
-			$isBestScore = mysql_query("SELECT id FROM `mkrecords` WHERE type='$type' AND circuit='$map' AND name='$name' AND best=1");
+			mysql_query('UPDATE `mkrecords` SET best=0 WHERE type="'.$type.'" AND circuit="'.$map.'" AND player="'.$player.'" AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'" AND time > '.$time);
+			$isBestScore = mysql_query('SELECT id FROM `mkrecords` WHERE type="'.$type.'" AND circuit="'.$map.'" AND player="'.$player.'" AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'" AND best=1');
 			if (mysql_fetch_array($isBestScore))
 				echo 0;
 			else {
@@ -49,7 +49,7 @@ if (isset($_POST["name"]) && isset($_POST["perso"]) && isset($_POST["time"])) {
 						SELECT identifiant,identifiant2,identifiant3,identifiant4,time FROM `mkrecords`
 						WHERE circuit='$map' AND type='$type' AND best=1 ORDER BY time LIMIT 6
 					) t GROUP BY identifiant,identifiant2,identifiant3,identifiant4");
-					$getLastRecord = mysql_query('SELECT MIN(time) AS record FROM `mkrecords` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND circuit="'.$map.'" AND name="'.$name.'" AND id!="'. $rId .'"');
+					$getLastRecord = mysql_query('SELECT MIN(time) AS record FROM `mkrecords` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND circuit="'.$map.'" AND player="'.$player.'" AND id!="'. $rId .'"');
 					$lastRecord = mysql_fetch_array($getLastRecord);
 					$lastTime = $lastRecord['record'];
 					if (null === $lastTime)

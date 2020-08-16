@@ -101,6 +101,7 @@ main select:active, main input[type="text"]:active {
 }
 main table {
 	background-color: #FC0;
+	max-width: 600px;
 }
 main tr.result:nth-child(2n), main tr.result:nth-child(2n) a {
 	color: #820;
@@ -256,7 +257,7 @@ var classement = new Array();
 for (var i=0;i<circuits.length;i++)
 	classement[i] = new Resultat(i);
 <?php
-$joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.name=r2.name AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
+$joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.player=r2.player AND r.identifiant=r2.identifiant AND r.identifiant2=r2.identifiant2 AND r.identifiant3=r2.identifiant3 AND r.identifiant4=r2.identifiant4 AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
 $whereBest = isset($_GET['date']) ? ' AND r2.id IS NULL AND r.date<="'.$_GET['date'].'"':' AND r.best=1';
 if (isset($user))
 	$getResults = mysql_query('SELECT r.*,c.code,r.date,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
@@ -421,15 +422,19 @@ function addResult(id, i) {
 		}
 		else {
 			?>
-			var aDate = document.createElement("a");
-			aDate.href = "#null";
-			aDate.title = "<?php echo $language ? 'History':'Historique'; ?>";
-			aDate.onclick = function() {
-				window.open('recordHistory.php?pseudo='+encodeURIComponent(iJoueur[0])+'&map='+(iCircuit+1),'gerer','scrollbars=1, resizable=1, width=500, height=400');
-				return false;
-			};
-			aDate.innerHTML = iJoueur[5];
-			oDate.appendChild(aDate);
+			if (iJoueur[3]) {
+				var aDate = document.createElement("a");
+				aDate.href = "#null";
+				aDate.title = "<?php echo $language ? 'History':'Historique'; ?>";
+				aDate.onclick = function() {
+					window.open('recordHistory.php?player='+iJoueur[3]+'&map='+(iCircuit+1),'gerer','scrollbars=1, resizable=1, width=500, height=400');
+					return false;
+				};
+				aDate.innerHTML = iJoueur[5];
+				oDate.appendChild(aDate);
+			}
+			else
+				oDate.innerHTML = iJoueur[5];
 			<?php
 		}
 		?>

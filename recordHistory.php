@@ -1,5 +1,5 @@
 <?php
-if (isset($_GET['pseudo']) && isset($_GET['map'])) {
+if (!empty($_GET['player']) && isset($_GET['map'])) {
     include_once('circuitNames.php');
     $circuitName = $circuitNames[$_GET['map']-1];
     include('initdb.php');
@@ -10,11 +10,12 @@ if (isset($_GET['pseudo']) && isset($_GET['map'])) {
             return PERSOS_DIR . $playerName . ".png";
         return "images/sprites/sprite_" . $playerName . ".png";
     }
+    $getPlayer = mysql_fetch_array(mysql_query('SELECT nom FROM mkjoueurs WHERE id="'. $_GET['player'] .'"'));
     ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
     <head> 
-        <title><?php echo $language ? 'Time trial history of '.htmlspecialchars($_GET['pseudo']):'Historique CLM de '.htmlspecialchars($_GET['pseudo']); ?></title> 
+        <title><?php echo $language ? 'Time trial history of '.htmlspecialchars($getPlayer['nom']):'Historique CLM de '.htmlspecialchars($getPlayer['nom']); ?></title> 
         <meta charset="utf-8" /> 
         <link rel="stylesheet" type="text/css" href="styles/classement.css" />
         <style type="text/css">
@@ -76,9 +77,9 @@ if (isset($_GET['pseudo']) && isset($_GET['map'])) {
     <body>
         <main>
             <h1><?php echo htmlspecialchars($circuitName) ?></h1>
-            <h2><?php echo $language ? 'Time trial history of '.htmlspecialchars($_GET['pseudo']):'Historique CLM de '.htmlspecialchars($_GET['pseudo']); ?></h2>
+            <h2><?php echo $language ? 'Time trial history of '.htmlspecialchars($getPlayer['nom']):'Historique CLM de '.htmlspecialchars($getPlayer['nom']); ?></h2>
             <?php
-            $getRecords = mysql_query('SELECT date,perso,time FROM mkrecords WHERE type="" AND circuit="'. $_GET['map'] .'" AND name="'. $_GET['pseudo'] .'" ORDER BY date DESC');
+            $getRecords = mysql_query('SELECT date,perso,time FROM mkrecords WHERE type="" AND circuit="'. $_GET['map'] .'" AND player="'. $_GET['player'] .'" ORDER BY date DESC');
             ?>
             <table>
                 <tr id="titres">

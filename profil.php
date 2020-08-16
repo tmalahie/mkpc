@@ -837,7 +837,7 @@ include('menu.php');
 			?>
 			<hr />
 			<?php
-			$bestScores = mysql_query('SELECT r.name,r.perso,r.time,r.circuit,1+COUNT(r2.circuit) AS place FROM `mkrecords` r LEFT JOIN `mkrecords` r2 ON r.type=r2.type AND r.circuit=r2.circuit AND r2.time<r.time AND r2.best=1 WHERE r.player="'.$_GET['id'].'" AND r.type="" AND r.best=1 GROUP BY r.circuit,r.name ORDER BY place LIMIT 3');
+			$bestScores = mysql_query('SELECT r.perso,r.time,r.circuit,1+COUNT(r2.circuit) AS place FROM `mkrecords` r LEFT JOIN `mkrecords` r2 ON r.type=r2.type AND r.circuit=r2.circuit AND r2.time<r.time AND r2.best=1 WHERE r.player="'.$_GET['id'].'" AND r.type="" AND r.best=1 GROUP BY r.circuit ORDER BY place LIMIT 3');
 			if (mysql_numrows($bestScores)) {
 				include('persos.php');
 				function getSpriteSrc($playerName) {
