@@ -338,6 +338,15 @@ body.theme-dark {
 #mode-options > .mode-option-selected {
 	display: block;
 }
+#toolbox #decor-selector-more {
+	cursor: pointer;
+	width: 22px;
+	background-color: #396;
+	background-image: url('../images/editor/plus.png');
+}
+#toolbox #decor-selector-more:focus, #toolbox #decor-selector-more:active {
+	background-color: #5B8;
+}
 #decor-options > * {
 	display: none;
 }

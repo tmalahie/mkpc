@@ -1,6 +1,7 @@
 var offsetX = 0, offsetY = 0;
 var $editor, $editorCtn, $toolbox;
 var SVG = "http://www.w3.org/2000/svg";
+var initFancyTitle;
 document.addEventListener("DOMContentLoaded", function() {
 	var $radioSelectors = document.querySelectorAll(".radio-selector");
 	for (var i=0;i<$radioSelectors.length;i++) {
@@ -20,52 +21,38 @@ document.addEventListener("DOMContentLoaded", function() {
 			this._value = value;
 		};
 		var $radioButtons = $radioSelector.querySelectorAll(".radio-button");
-		for (var j=0;j<$radioButtons.length;j++) {
-			var $radioButton = $radioButtons[j];
-			$radioButton.selector = $radioSelector;
-			$radioButton.onclick = function() {
-				var $selectedButton = this.selector.querySelector(".radio-selected");
-				if ($selectedButton == this) return;
-				if ($selectedButton) $selectedButton.classList.remove("radio-selected");
-				this.classList.add("radio-selected");
-				var changeCallback = this.selector.getAttribute("data-change");
-				this.selector._value = this.value;
-				if (changeCallback && window[changeCallback])
-					window[changeCallback]({target:this,value:this.value});
-			};
-			if ($radioButton.classList.contains("radio-selected"))
-				$radioSelector._value = $radioButton.value;
-		}
+		for (var j=0;j<$radioButtons.length;j++)
+			initRadioButton($radioButtons[j],$radioSelector);
 	}
 	var $fancyTitles = document.querySelectorAll(".fancy-title");
 	var $titleElt;
-	for (var i=0;i<$fancyTitles.length;i++) {
-		(function($fancyTitle) {
-			var aTitle = $fancyTitle.title;
-			$fancyTitle.title = "";
-			$fancyTitle.onmouseover = function() {
-				if ($titleElt)
-					document.body.removeChild($titleElt);
-				$titleElt = document.createElement("div");
-				$titleElt.className = "fancy-title-text";
-				$titleElt.innerHTML = aTitle;
-				document.body.appendChild($titleElt);
-				var eltBounds = $fancyTitle.getBoundingClientRect();
-				var titleBounds = $titleElt.getBoundingClientRect();
-				if ($fancyTitle.classList.contains("fancy-title-center"))
-					$titleElt.style.left = Math.round(eltBounds.left+(eltBounds.width-titleBounds.width)/2) +"px";
-				else
-					$titleElt.style.left = Math.round(eltBounds.left+eltBounds.width-titleBounds.width) +"px";
-				$titleElt.style.top = Math.round(eltBounds.top-titleBounds.height-2) +"px";
-			};
-			$fancyTitle.onmouseout = function() {
-				if ($titleElt) {
-					document.body.removeChild($titleElt);
-					$titleElt = undefined;
-				}
-			};
-		})($fancyTitles[i]);
+	initFancyTitle = function($fancyTitle) {
+		var aTitle = $fancyTitle.title;
+		$fancyTitle.title = "";
+		$fancyTitle.onmouseover = function() {
+			if ($titleElt)
+				document.body.removeChild($titleElt);
+			$titleElt = document.createElement("div");
+			$titleElt.className = "fancy-title-text";
+			$titleElt.innerHTML = aTitle;
+			document.body.appendChild($titleElt);
+			var eltBounds = $fancyTitle.getBoundingClientRect();
+			var titleBounds = $titleElt.getBoundingClientRect();
+			if ($fancyTitle.classList.contains("fancy-title-center"))
+				$titleElt.style.left = Math.round(eltBounds.left+(eltBounds.width-titleBounds.width)/2) +"px";
+			else
+				$titleElt.style.left = Math.round(eltBounds.left+eltBounds.width-titleBounds.width) +"px";
+			$titleElt.style.top = Math.round(eltBounds.top-titleBounds.height-2) +"px";
+		};
+		$fancyTitle.onmouseout = function() {
+			if ($titleElt) {
+				document.body.removeChild($titleElt);
+				$titleElt = undefined;
+			}
+		};
 	}
+	for (var i=0;i<$fancyTitles.length;i++)
+		initFancyTitle($fancyTitles[i]);
 	var $circuitCreated = document.getElementById("circuit-created");
 	if ($circuitCreated) {
 		$circuitCreated.close = function() {
@@ -86,11 +73,26 @@ document.addEventListener("DOMContentLoaded", function() {
 	}
 	if (circuitData)
 		restoreData(circuitData);
-	//document.getElementById('mode').value = "decor";
+	document.getElementById('mode').value = "decor";
 	selectMode(document.getElementById('mode').value);
 	//document.getElementById("decor-selector").setValue("truck");
 	//decorChange();
 });
+function initRadioButton($radioButton,$radioSelector) {
+	$radioButton.selector = $radioSelector;
+	$radioButton.onclick = function() {
+		var $selectedButton = this.selector.querySelector(".radio-selected");
+		if ($selectedButton == this) return;
+		if ($selectedButton) $selectedButton.classList.remove("radio-selected");
+		this.classList.add("radio-selected");
+		var changeCallback = this.selector.getAttribute("data-change");
+		this.selector._value = this.value;
+		if (changeCallback && window[changeCallback])
+			window[changeCallback]({target:this,value:this.value});
+	};
+	if ($radioButton.classList.contains("radio-selected"))
+		$radioSelector._value = $radioButton.value;
+}
 var zoomLevel = 1;
 var zoomLevels = [0.25,0.3,0.4,0.5,0.6,0.75,0.9,1,1.1,1.25,1.5,2,3,4,6,8,10,15];
 function zoomMore(focusOnMouse) {
@@ -2453,13 +2455,17 @@ function removeTraject() {
 	trajectData.splice(trajectVal,1);
 	switch (key) {
 	case "bus":
-		var selfData = editorTool.data.decors.truck;
-		for (var i=0;i<selfData.length;i++) {
-			var decor = selfData[i];
-			if (decor.traject >= trajectVal) {
-				decor.traject--;
-				if (decor.traject < 0)
-					decor.traject = 0;
+		for (var type in editorTool.data.decors) {
+			if (getActualDecorType(type) === "truck") {
+				var selfData = editorTool.data.decors[type];
+				for (var i=0;i<selfData.length;i++) {
+					var decor = selfData[i];
+					if (decor.traject >= trajectVal) {
+						decor.traject--;
+						if (decor.traject < 0)
+							decor.traject = 0;
+					}
+				}
 			}
 		}
 		break;
@@ -2981,6 +2987,39 @@ function restoreData(payload) {
 	if ("dark" === payload.main.theme) {
 		document.getElementById("theme-selector").setValue(payload.main.theme);
 		themeChange({value:payload.main.theme});
+	}
+}
+var customDecors = {};
+function showDecorEditor() {
+	window.open('chooseDecor.php','chose','scrollbars=1, resizable=1, width=500, height=500');
+}
+function getDecorKey(decor) {
+	return "custom-"+decor.id;
+}
+function getActualDecorType(type) {
+	if (customDecors[type])
+		return customDecors[type].type;
+	return type;
+}
+function selectCustomDecor(decor) {
+	var decorKey = getDecorKey(decor);
+	if (customDecors[decorKey]) return;
+	customDecors[decorKey] = decor;
+	var $btnDecor = document.createElement("button");
+	$btnDecor.setAttribute("value", decorKey);
+	$btnDecor.className = "radio-button radio-button-25 radio-button-decor button-img fancy-title";
+	$btnDecor.title = decor.name;
+	$btnDecor.style.backgroundImage = "url('"+ decor.ld +"')";
+	var $btnAdd = document.getElementById("decor-selector-more");
+	$btnAdd.blur();
+	var $decorSelector = document.getElementById("decor-selector");
+	$decorSelector.insertBefore($btnDecor, $btnAdd);
+	initRadioButton($btnDecor, $decorSelector);
+	if ($btnDecor.title)
+		initFancyTitle($btnDecor);
+	if (currentMode === "decor") {
+		$decorSelector.setValue(decorKey);
+		decorChange();
 	}
 }
 var commonTools = {
@@ -3744,8 +3783,9 @@ var commonTools = {
 			var $decorOptionSelected = document.querySelector("#decor-options > .decor-option-selected");
 			if ($decorOptionSelected) $decorOptionSelected.classList.remove("decor-option-selected");
 			if (type) {
+				var actualType = getActualDecorType(type);
 				self.state.type = type;
-				switch (type) {
+				switch (actualType) {
 				case "truck":
 					if (!self.data.extra.truck) {
 						self.data.extra.truck = {
@@ -3813,13 +3853,13 @@ var commonTools = {
 					self.data.decors[type] = [];
 					for (var i=0;i<decorsData.length;i++) {
 						var decorData = decorsData[i];
-						switch (type) {
+						switch (actualType) {
 						case "truck":
 							self.state.currentTraject = decorData.traject;
 							break;
 						}
 						self.click(self,decorData.pos,{});
-						switch (type) {
+						switch (actualType) {
 						case "cannonball":
 						case "snowball":
 						case "billball":
@@ -3839,7 +3879,7 @@ var commonTools = {
 							break;
 						}
 					}
-					switch (type) {
+					switch (actualType) {
 					case "truck":
 						self.state.currentTraject = +document.getElementById("decor-bus-currenttraject").value;
 						break;
@@ -3847,7 +3887,7 @@ var commonTools = {
 				}
 				if (autoSelectType)
 					document.getElementById("decor-selector").setValue(type);
-				var $decorOption = document.getElementById("decor-option-"+type);
+				var $decorOption = document.getElementById("decor-option-"+actualType);
 				if ($decorOption) $decorOption.classList.add("decor-option-selected");
 			}
 		},
@@ -3858,6 +3898,7 @@ var commonTools = {
 				alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
 				return;
 			}
+			var actualType = getActualDecorType(self.state.type);
 			self.move(self,point,extra);
 			if (self.state.traject === undefined)
 				storeHistoryData(self.data);
@@ -3873,7 +3914,7 @@ var commonTools = {
 			else if (self.state.arrow || self.state.line) {
 				decorData = typeData[typeData.length-1];
 				decorData.dir = {x:point.x-decorData.pos.x,y:point.y-decorData.pos.y};
-				switch (self.state.type) {
+				switch (actualType) {
 					case "assets/pivothand":
 						over = false;
 						var arrowData = {x:decorData.pos.x,y:decorData.pos.y,r:self._arrowCircularRadius(decorData.dir)};
@@ -3891,7 +3932,7 @@ var commonTools = {
 			else {
 				decorData = {pos:point};
 				typeData.push(decorData);
-				switch (self.state.type) {
+				switch (actualType) {
 				case "cannonball":
 				case "snowball":
 				case "billball":
@@ -3930,7 +3971,7 @@ var commonTools = {
 				var moveOptions = {};
 				if (arrow) {
 					moveOptions.on_apply = function(nData) {
-						changeArrowDir(arrow,{x:nData.x,y:nData.y},decorData.dir,self._arrowLength(self.state.type),self._arrowOriginCenter(self.state.type));
+						changeArrowDir(arrow,{x:nData.x,y:nData.y},decorData.dir,self._arrowLength(actualType),self._arrowOriginCenter(actualType));
 					}
 					moveOptions.on_start_move = arrow.hide;
 					moveOptions.on_end_move = arrow.show;
@@ -3975,7 +4016,7 @@ var commonTools = {
 						menuOptions.splice(1,0, {
 							text: (language ? "Edit ↗":"Modifier ↗"),
 							click: function() {
-								moveArrow(arrow,decorData.pos,decorData.dir,{fixed_length:self._arrowLength(self.state.type),from_center:self._arrowOriginCenter(self.state.type)});
+								moveArrow(arrow,decorData.pos,decorData.dir,{fixed_length:self._arrowLength(actualType),from_center:self._arrowOriginCenter(actualType)});
 							}
 						});
 					}
@@ -4042,6 +4083,7 @@ var commonTools = {
 		"_rotFactor" : 15,
 		"_rotScale" : 1.5,
 		"move" : function(self,point,extra) {
+			var actualType = getActualDecorType(self.state.type);
 			if (self.state.carrow) {
 				var typeData = self.data.decors[self.state.type];
 				var decorData = typeData[typeData.length-1];
@@ -4054,7 +4096,7 @@ var commonTools = {
 				var typeData = self.data.decors[self.state.type];
 				var decorPos = typeData[typeData.length-1].pos;
 				var dir = {x:point.x-decorPos.x,y:point.y-decorPos.y};
-				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength(self.state.type),self._arrowOriginCenter(self.state.type));
+				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength(actualType),self._arrowOriginCenter(actualType));
 			}
 			else if (self.state.line) {
 				moveLine(self.state.line,null,point);
@@ -4076,14 +4118,15 @@ var commonTools = {
 			payload.decorparams = {extra:{}};
 			var isDecorData = false, isDecorExtra = false;
 			for (var type in selfData) {
-				var isAsset = (type.substring(0,7) === "assets/");
+				var actualType = getActualDecorType(type);
+				var isAsset = (actualType.substring(0,7) === "assets/");
 				var decorsData = selfData[type];
 				if (decorsData.length) {
 					payload.decorparams[type] = [];
 					if (isAsset) {
 						if (!payload.assets)
 							payload.assets = {};
-						switch (type) {
+						switch (actualType) {
 						case "assets/pivothand":
 							payload.assets["pointers"] = [];
 							break;
@@ -4098,7 +4141,7 @@ var commonTools = {
 						payload.decor[type] = [];
 					for (var i=0;i<decorsData.length;i++) {
 						if (isAsset) {
-							switch (type) {
+							switch (actualType) {
 							case "assets/pivothand":
 								var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.y,decorsData[i].dir.x) : null;
 								var length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):100;
@@ -4108,7 +4151,7 @@ var commonTools = {
 								break;
 							case "assets/oil1":
 							case "assets/oil2":
-								var typeSrc = type.substring(7);
+								var typeSrc = actualType.substring(7);
 								var assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,7,7,0.5,0.5],[0,0.5,0.5]];
 								payload.assets["oils"].push(assetParams);
 								break;
@@ -4116,7 +4159,7 @@ var commonTools = {
 						}
 						else {
 							payload.decor[type].push(pointToData(decorsData[i].pos));
-							switch (type) {
+							switch (actualType) {
 							case "cannonball":
 							case "snowball":
 							case "billball":
@@ -4126,9 +4169,9 @@ var commonTools = {
 							case "pendulum":
 								var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
 								var decorParams = {dir:isNaN(dir)?0:dir};
-								if (type === "billball")
+								if (actualType === "billball")
 									decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):460;
-								else if (type === "movingthwomp")
+								else if (actualType === "movingthwomp")
 									decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):0;
 								payload.decorparams[type].push(decorParams);
 								break;
@@ -4173,6 +4216,7 @@ var commonTools = {
 		"restore" : function(self,payload) {
 			var selfData = self.data.decors;
 			for (var type in payload.decor) {
+				var actualType = getActualDecorType(type);
 				selfData[type] = [];
 				var decorsPayload = payload.decor[type];
 				var decorsParams = payload.decorparams ? payload.decorparams[type]:null;
@@ -4180,7 +4224,7 @@ var commonTools = {
 				for (var i=0;i<decorsPayload.length;i++) {
 					var decorParams = decorsParams[i] || {};
 					var decorData = {pos:dataToPoint(decorsPayload[i])};
-					switch (type) {
+					switch (actualType) {
 					case "cannonball":
 					case "snowball":
 					case "billball":
@@ -4210,13 +4254,14 @@ var commonTools = {
 			}
 			if (payload.assets) {
 				for (var type in payload.assets) {
-					switch (type) {
+					var actualType = getActualDecorType(type);
+					switch (actualType) {
 					case "pointers":
 						selfData["assets/pivothand"] = [];
 					}
 					for (var i=0;i<payload.assets[type].length;i++) {
 						var assetPayload = payload.assets[type][i];
-						switch (type) {
+						switch (actualType) {
 						case "pointers":
 							var assetData = {pos:dataToPoint(assetPayload[1])};
 							var dir = assetPayload[2][2] || 0;

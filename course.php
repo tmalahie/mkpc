@@ -663,7 +663,7 @@ if (isset($_GET['i'])) {
 			<?php
 		}
 		?>
-		<iframe id="image-options" class="fs-popup" class="fs-popup" src="changeMap.php?i=<?php echo $circuitId; ?>&amp;arenes=1" onclick="event.stopPropagation()"></iframe>
+		<iframe id="image-options" class="fs-popup" src="changeMap.php?i=<?php echo $circuitId; ?>&amp;arenes=1" onclick="event.stopPropagation()"></iframe>
 	</body>
 </html>
 			<?php

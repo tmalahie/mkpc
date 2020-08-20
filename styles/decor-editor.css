@@ -1,0 +1,48 @@
+body {
+	background-image: url('../images/editor/fond_circuit_dark.jpg');
+	background-color: black;
+	background-size: cover;
+	background-attachment: fixed;
+	background-position: center bottom;
+	background-repeat: no-repeat;
+	font-family: Helvetica, arial, sans-serif;
+	text-align: center;
+}
+.decors-list-container {
+    background-color: rgba(156,181,207, 0.85);
+    max-width: 550px;
+    padding: 10px 20px;
+    margin: 10px auto;
+}
+h1, h2, h3 {
+    margin: 5px auto;
+}
+h2 {
+    margin-top: 10px;
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black, -1px -1px black, -1px 1px black, 1px -1px black, 1px 1px black;
+}
+.decors-list-empty {
+    font-style: italic;
+    margin-bottom: 5px;
+}
+.decors-list {
+    margin-bottom: 4px;
+}
+.decors-list > div {
+    padding: 5px 10px;
+    max-width: 42px;
+    display: inline-flex;
+    flex-direction: column;
+
+    cursor: pointer;
+    text-align: center;
+    overflow: hidden;
+}
+.decors-list > div:hover {
+    background-color: #86a9e6;
+}
+.decors-list > div > img {
+    height: 32px;
+    align-self: center;
+}

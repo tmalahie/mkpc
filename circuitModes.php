@@ -11,7 +11,7 @@ function printModeDecor() {
             foreach ($decorNames as $decorName=>$title)
                 echo '<button value="'.$decorName.'" class="radio-button radio-button-25 radio-button-decor button-img'.($title ? ' fancy-title':'').'" style="background-image:url(\'images/map_icons/'.$decorName.'.png\')"'.($title ? ' title="'.$title.'"':'').'></button>';
         }
-        ?>
+        ?><button id="decor-selector-more" class="radio-button-25 button-img fancy-title" title="<?php echo $language ? 'Custom decor...':'Éditeur de décors...'; ?>" onclick="showDecorEditor()"></button>
     </div>
     <div id="decor-options">
         <div id="decor-option-truck" class="decor-option-bus-decors">
