@@ -18,11 +18,14 @@ function selectDecor(elt) {
     window.opener.selectCustomDecor(elt.dataset);
     window.close();
 }
+function goToEditor() {
+	window.close();
+}
 </script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 </head>
 <body>
-    <h2><?php echo $language ? 'Chose a decor from editor':'Choix d\'un décor à partir de l\'éditeur'; ?></h2>
+    <h2><?php echo $language ? 'Choose a decor from editor':'Choix d\'un décor à partir de l\'éditeur'; ?></h2>
     <div class="decors-list-container">
     <h3><?php echo $language ? 'Your decors':'Vos décors'; ?></h3>
     <?php
@@ -43,7 +46,7 @@ function selectDecor(elt) {
     }
     ?>
     <div class="decors-list-more">
-        <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor();return false"><?php echo $language ? "Go to characters editor":"Accéder à l'éditeur de décors"; ?></a>
+        <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to characters editor":"Accéder à l'éditeur de décors"; ?></a>
     </div>
     </div>
     <div class="decors-list-container">

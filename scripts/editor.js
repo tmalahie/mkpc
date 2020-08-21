@@ -3008,19 +3008,35 @@ function selectCustomDecor(decor) {
 	var $btnDecor = document.createElement("button");
 	$btnDecor.setAttribute("value", decorKey);
 	$btnDecor.className = "radio-button radio-button-25 radio-button-decor button-img fancy-title";
-	$btnDecor.title = decor.name;
-	$btnDecor.style.backgroundImage = "url('"+ decor.ld +"')";
 	var $btnAdd = document.getElementById("decor-selector-more");
 	$btnAdd.blur();
 	var $decorSelector = document.getElementById("decor-selector");
 	$decorSelector.insertBefore($btnDecor, $btnAdd);
 	initRadioButton($btnDecor, $decorSelector);
+	if (decor.ld) {
+		feedCustomDecorData($btnDecor,decor);
+		if (currentMode === "decor") {
+			$decorSelector.setValue(decorKey);
+			decorChange();
+		}
+	}
+	return $btnDecor;
+}
+function feedCustomDecorData($btnDecor,decor) {
+	$btnDecor.title = decor.name;
+	$btnDecor.style.backgroundImage = "url('"+ decor.ld +"')";
 	if ($btnDecor.title)
 		initFancyTitle($btnDecor);
-	if (currentMode === "decor") {
-		$decorSelector.setValue(decorKey);
-		decorChange();
-	}
+}
+function fetchCustomDecorData($btnDecor,decor) {
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "getDecorData.php?id="+decor.id);
+	xhr.onload = function() {
+		var res = JSON.parse(xhr.responseText);
+		if (res)
+			feedCustomDecorData($btnDecor,res);
+	};
+	xhr.send(null);
 }
 var commonTools = {
 	"walls": {
@@ -4122,7 +4138,8 @@ var commonTools = {
 				var isAsset = (actualType.substring(0,7) === "assets/");
 				var decorsData = selfData[type];
 				if (decorsData.length) {
-					payload.decorparams[type] = [];
+					if (!payload.decorparams[actualType])
+						payload.decorparams[actualType] = [];
 					if (isAsset) {
 						if (!payload.assets)
 							payload.assets = {};
@@ -4137,8 +4154,8 @@ var commonTools = {
 							break;
 						}
 					}
-					else
-						payload.decor[type] = [];
+					else if (!payload.decor[actualType])
+						payload.decor[actualType] = [];
 					for (var i=0;i<decorsData.length;i++) {
 						if (isAsset) {
 							switch (actualType) {
@@ -4158,7 +4175,8 @@ var commonTools = {
 							}
 						}
 						else {
-							payload.decor[type].push(pointToData(decorsData[i].pos));
+							var decorParams = null;
+							payload.decor[actualType].push(pointToData(decorsData[i].pos));
 							switch (actualType) {
 							case "cannonball":
 							case "snowball":
@@ -4168,22 +4186,29 @@ var commonTools = {
 							case "fire3star":
 							case "pendulum":
 								var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
-								var decorParams = {dir:isNaN(dir)?0:dir};
+								decorParams = {dir:isNaN(dir)?0:dir};
 								if (actualType === "billball")
 									decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):460;
 								else if (actualType === "movingthwomp")
 									decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):0;
-								payload.decorparams[type].push(decorParams);
 								break;
 							case "truck":
-								payload.decorparams[type].push({traject:decorsData[i].traject||0});
+								decorParams = {traject:decorsData[i].traject||0};
+							}
+							if (customDecors[type]) {
+								if (!decorParams) decorParams = {};
+								decorParams.sprite = +customDecors[type].id;
+							}
+							if (decorParams) {
+								var nbDecors = payload.decor[actualType].length;
+								payload.decorparams[actualType][nbDecors-1] = decorParams;
 							}
 						}
 					}
-					if (payload.decorparams[type].length)
+					if (payload.decorparams[actualType].length)
 						isDecorData = true;
 					else
-						delete payload.decorparams[type];
+						delete payload.decorparams[actualType];
 				}
 			}
 			if (payload.decorparams.billball) {
@@ -4216,13 +4241,20 @@ var commonTools = {
 		"restore" : function(self,payload) {
 			var selfData = self.data.decors;
 			for (var type in payload.decor) {
-				var actualType = getActualDecorType(type);
-				selfData[type] = [];
 				var decorsPayload = payload.decor[type];
 				var decorsParams = payload.decorparams ? payload.decorparams[type]:null;
 				decorsParams = decorsParams||[];
 				for (var i=0;i<decorsPayload.length;i++) {
 					var decorParams = decorsParams[i] || {};
+					var customDecor = decorParams.sprite ? {id:decorParams.sprite,type:type} : null;
+					var actualType = decorParams.sprite ? getDecorKey(customDecor):type;
+					if (!selfData[actualType]) {
+						selfData[actualType] = [];
+						if (customDecor) {
+							var $btnDecor = selectCustomDecor(customDecor);
+							fetchCustomDecorData($btnDecor,customDecor);
+						}
+					}
 					var decorData = {pos:dataToPoint(decorsPayload[i])};
 					switch (actualType) {
 					case "cannonball":
@@ -4239,7 +4271,7 @@ var commonTools = {
 					case "truck":
 						decorData.traject = decorParams.traject || 0;
 					}
-					selfData[type].push(decorData);
+					selfData[actualType].push(decorData);
 				}
 			}
 			if (payload.decorparams && payload.decorparams.extra) {
@@ -4254,7 +4286,7 @@ var commonTools = {
 			}
 			if (payload.assets) {
 				for (var type in payload.assets) {
-					var actualType = getActualDecorType(type);
+					var actualType = type;
 					switch (actualType) {
 					case "pointers":
 						selfData["assets/pivothand"] = [];

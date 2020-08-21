@@ -3,6 +3,7 @@ var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams
 var fInfos;
 var formulaire;
 var baseCp;
+var customDecorData = {};
 var nBasePersos, customPersos;
 var selectedDifficulty;
 var updateCtnFullScreen;
@@ -714,10 +715,24 @@ function setPlanPos() {
 	function setDecorPos(iPlanDecor,iObjWidth,iPlanCtn,iPlanSize) {
 		if (oMap.decor) {
 			for (var type in oMap.decor) {
-				if (!decorBehaviors[type].hidden) {
-					if ((oMap.decor[type].length!=iPlanDecor[type].length) || decorBehaviors[type].movable) {
+				var firstRun = !iPlanDecor[type].length;
+				var decorBehavior = decorBehaviors[type];
+				if (!decorBehavior.hidden) {
+					if ((oMap.decor[type].length!=iPlanDecor[type].length) || decorBehavior.movable) {
 						syncObjects(iPlanDecor[type],oMap.decor[type],type, iObjWidth,iPlanCtn);
-						var rotatable = decorBehaviors[type].rotatable;
+						if (firstRun) {
+							for (var i=0;i<iPlanDecor[type].length;i++) {
+								var decorParams = getDecorParams(decorBehavior,i);
+								if (decorParams.sprite) {
+									(function(iDecor) {
+										getCustomDecorData(decorParams.sprite, function(res) {
+											iDecor.src = res.ld;
+										});
+									})(iPlanDecor[type][i]);
+								}
+							}
+						}
+						var rotatable = decorBehavior.rotatable;
 						var relY;
 						if (rotatable) {
 							var iPlanDecor0 = iPlanDecor[type][0];
@@ -2034,7 +2049,7 @@ function startGame() {
 	if (oMap.decor) {
 		for (var type in oMap.decor) {
 			if (!decorBehaviors[type])
-				decorBehaviors[type] = {};
+				decorBehaviors[type] = {type:type};
 			var decorBehavior = decorBehaviors[type];
 			if (decorBehavior.preinit)
 				decorBehavior.preinit(oMap.decor[type]);
@@ -2049,6 +2064,17 @@ function startGame() {
 					decorBehavior.init(decorData,i);
 				if (gameSettings.ld && decorBehavior.hidable)
 					decorData[2][0].unshow();
+				else {
+					var decorParams = getDecorParams(decorBehavior,i);
+					if (decorParams.sprite) {
+						(function(decorData) {
+							getCustomDecorData(decorParams.sprite, function(res) {
+								for (var j=0;j<oPlayers.length;j++)
+									decorData[2][j].img.src = res.hd;
+							});
+						})(decorData);
+					}
+				}
 			}
 		}
 	}
@@ -11652,6 +11678,36 @@ function getSpriteSrc(playerName) {
 	if (isCustomPerso(playerName))
 		return PERSOS_DIR + playerName + ".png";
 	return "images/sprites/sprite_" + playerName +".png";
+}
+function getCustomDecorData(id,callback) {
+	if (customDecorData[id]) {
+		if (customDecorData[id].data) {
+			callback(customDecorData[id].data);
+			return;
+		}
+	}
+	else {
+		customDecorData[id] = {
+			callbacks: []
+		};
+	}
+	customDecorData[id].callbacks.push(callback);
+	xhr("getDecorData.php?id="+id, null, function(res) {
+		var data;
+		try {
+			data = JSON.parse(res);
+		}
+		catch (e) {
+			delete customDecorData[id];
+			return true;
+		};
+		customDecorData[id].data = data;
+		var customDecorCallbacks = customDecorData[id].callbacks;
+		for (var i=0;i<customDecorCallbacks.length;i++)
+			customDecorData[id].callbacks[i](data);
+		customDecorCallbacks.length = 0;
+		return true;
+	});
 }
 function getMapIcSrc(playerName) {
 	if (isCustomPerso(playerName))
