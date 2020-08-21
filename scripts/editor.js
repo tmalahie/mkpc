@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	}
 	if (circuitData)
 		restoreData(circuitData);
-	document.getElementById('mode').value = "decor";
+	//document.getElementById('mode').value = "decor";
 	selectMode(document.getElementById('mode').value);
 	//document.getElementById("decor-selector").setValue("truck");
 	//decorChange();
