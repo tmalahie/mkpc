@@ -9,6 +9,7 @@ body {
 	text-align: center;
 }
 .decors-list-container {
+    border-radius: 6px;
     background-color: rgba(156,181,207, 0.85);
     max-width: 550px;
     padding: 10px 20px;
@@ -45,4 +46,136 @@ h2 {
 .decors-list > div > img {
     height: 32px;
     align-self: center;
+}
+#decor-actions {
+    font-size: 1.2em;
+	border: solid 1px #BDE;
+	display: none;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 5px;
+    background-color: rgba(156,181,207, 0.85);
+}
+#decor-actions button {
+	font-size: 0.7em;
+	padding: 3px 8px;
+	cursor: pointer;
+	margin: 0 2px;
+}
+#decor-actions-name {
+    font-size: 0.9em;
+	margin-top: 5px;
+	margin-bottom: 10px;
+	font-weight: bold;
+}
+#decor-actions-author {
+	font-size: 0.7em;
+	margin-bottom: 5px;
+}
+#decor-actions .share-decor {
+	background-color: #8AD;
+	color: #6262EF;
+}
+#decor-actions .share-decor:hover {
+	background-color: #9AF;
+	color: #545CB5;
+}
+.decor-actions-stars {
+	padding: 0px 4px;
+}
+.decor-actions-stars img {
+	width: 24px;
+	cursor: pointer;
+}
+#decor-actions-feedback {
+	display: none;
+	font-size: 0.7em;
+	color: #AF0;
+}
+#decor-actions .edit-decor {
+	background-color: #42EF42;
+	color: #409C49;
+}
+#decor-actions .edit-decor:hover {
+	background-color: #52FF52;
+	color: #34953C;
+}
+#decor-actions .suppr-decor {
+	background-color: #FF5252;
+	color: #9C4049;
+}
+#decor-actions .suppr-decor:hover {
+	background-color: #FF6262;
+	color: #95343C;
+}
+.decors-list .decor-selected, .decors-list .decor-selected:hover {
+	background-color: #93b8f9;
+}
+#decor-instructions {
+    margin-bottom: 10px;
+}
+#decor-instructions.instructions-unshown {
+	display: none;
+}
+.mydecors-size {
+	margin-top: 0;
+	margin-bottom: 5px;
+	font-size: 0.65em;
+}
+body {
+    font-size: 1.2em;
+}
+.decor-type-selector button {
+    width: 1.2em;
+    height: 1.2em;
+    background-repeat: no-repeat;
+    background-size: auto 0.8em;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.decor-type-selector #decor-type-selected, .decor-type-selector #decor-type-selected:hover {
+    background-color: #7CF;
+}
+#decor-new-form {
+    text-align: left;
+}
+#decor-new-form input, #decor-new-form button {
+    font-size: 1em;
+}
+#decor-new-form input[type="file"] {
+    border: solid 1px #88B;
+    background-color: #BFBFCF;
+}
+#decor-new-form input[type="text"] {
+    width: 225px;
+}
+#decor-new-form button {
+    cursor: pointer;
+    background-color: #69C;
+    color: white;
+    border-color: #48A;
+}
+#decor-new-form button:hover {
+    background-color: #669FD9;
+    border-color: #59B;
+}
+#decor-new-form button[type="submit"] {
+    margin-top: 0.2em;
+    width: 150px;
+}
+#decor-model {
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+    display: none;
+    align-items: center;
+    background-color: #EEF;
+    padding: 0.25em;
+    max-width: 100%;
+    overflow-x: auto;
+}
+#decor-model-label {
+    margin-right: 0.3em;
+}
+#decor-model-value {
+    line-height: 0;
 }

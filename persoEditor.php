@@ -40,10 +40,14 @@ function selectPerso(id) {
 		document.getElementById("myperso-"+persoId).className = "perso-selected";
 		document.getElementById("perso-options").style.display = "inline-block";
 		var persoName = document.getElementById("myperso-"+persoId).dataset.name;
-		if (persoName)
+		if (persoName) {
 			document.getElementById("perso-options-name").innerHTML = persoName;
-		else
+			document.querySelector(".share-perso").style.display = "";
+		}
+		else {
 			document.getElementById("perso-options-name").innerHTML = "<em>"+ (language ? "Being created":"En cours de création") +"</em>";
+			document.querySelector(".share-perso").style.display = "none";
+		}
 	}
 	else
 		document.getElementById("perso-options").style.display = "none";
