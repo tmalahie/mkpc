@@ -4256,7 +4256,7 @@ var commonTools = {
 						}
 					}
 					var decorData = {pos:dataToPoint(decorsPayload[i])};
-					switch (actualType) {
+					switch (type) {
 					case "cannonball":
 					case "snowball":
 					case "billball":
