@@ -34,7 +34,7 @@ if (isset($_GET['id'])) {
 						header('location: editDecor.php?id='. $upload['id']);
 					break;
 				default :
-					$upload = handle_advanced($_FILES['sprites'],$decor,$type);
+					$upload = handle_decor_advanced($_FILES['sprites'],$decor,$type);
 					if (isset($upload['id']))
 						header('location: decorOptions.php?id='. $upload['id']);
 					break;
@@ -121,18 +121,20 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
             <input type="file" required="required" name="sprites" />
             <button type="submit"><?php echo $language ? 'Send':'Valider'; ?></button>
         </form>
+		<?php
+		if ($type != 'decor' && ($hasTransparency || ($spriteSrc != $spriteSrcs['ld']))) {
+			?>
+			<div id="decor-current-img-preview">
+			<?php echo $language ? 'Current image:':'Image actuelle :'; ?>&nbsp;<img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
+			<?php
+			if ($spriteSrc != $spriteSrcs['ld'])
+				echo '&nbsp;<a href="delDecorSprite.php?id='. $decorId .'&amp;'. $type .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
+			?>
+			</div>
+			<?php
+		}
+		?>
     </div>
-	<?php
-	if ($type != 'decor' && ($hasTransparency || ($spriteSrc != $spriteSrcs['ld']))) {
-		?>
-		<?php echo $language ? 'Current image:':'Image actuelle :'; ?> <img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
-		<?php
-		if ($spriteSrc != $spriteSrcs['ld'])
-			echo '&nbsp;<a href="delDecorSprite.php?id='. $decorId .'&amp;'. $type .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
-		?>
-		<?php
-	}
-	?>
 	<?php
 	if (!$hasTransparency) {
 		?>

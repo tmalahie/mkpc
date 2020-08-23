@@ -726,7 +726,7 @@ function setPlanPos() {
 								if (decorParams.sprite) {
 									(function(iDecor) {
 										getCustomDecorData(decorParams.sprite, function(res) {
-											iDecor.src = res.ld;
+											iDecor.src = res.map;
 										});
 									})(iPlanDecor[type][i]);
 								}

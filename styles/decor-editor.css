@@ -137,8 +137,8 @@ h2 {
 #decor-new-form button[type="submit"] {
     width: 150px;
 }
-#decor-edit-form button[type="submit"] {
-    width: 120px;
+#decor-edit-form input[type="text"] {
+    width: 200px;
 }
 .decor-editor-form input, .decor-editor-form button {
     font-size: 1em;
@@ -202,16 +202,20 @@ h2 {
 	color: #A5444C;
 }
 .advances-options {
-	font-size: 0.9em;
-	display: inline-block;
+    font-size: 0.9em;
+    margin-top: 0.5em;
+    color: #356;
 }
 .advances-options a {
     display: inline-block;
-    font-size: 0.85em;
-    opacity: 0.8;
-	margin-left: 10px;
+    text-decoration: none;
+    opacity: 0.7;
+    margin-left: 6px;
+    position: relative;
+    top: 2px;
 }
 .advances-options a:hover {
+    text-decoration: underline;
     opacity: 1;
 }
 .decor-edit-preview {
@@ -240,6 +244,21 @@ h2 {
     height: 100%;
     min-height: 32px;
 }
+.decor-preview img, .decors-list img {
+    image-rendering: optimizeSpeed;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -o-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: pixelated;
+    image-rendering: optimize-contrast;
+    -ms-interpolation-mode: nearest-neighbor;
+}
+#decor-current-img-preview {
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 #transparency-form-ctn {
     width: auto;
     max-width: 100%;
@@ -252,6 +271,9 @@ h2 {
 	display: none;
 }
 hr {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    width: 80%;
     border-color: #BDE;
 }
 #select-transparency {
@@ -266,4 +288,45 @@ hr {
 	border: solid 1px #BDE;
 	position: relative;
 	top: 6px;
+}
+#advanced-option-ctn {
+    display: inline-block;
+    width: auto;
+}
+.advanced-option {
+	display: inline-block;
+	font-size: 0.7em;
+	margin-left: 10px;
+	margin-right: 10px;
+	padding: 10px 12px;
+	border-radius: 5px;
+}
+.advanced-option:hover {
+	background-color: #93b8f9;
+}
+.advanced-option .option-bg {
+    position: relative;
+    width: 150px;
+	height: 130px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 5px;
+	overflow: hidden;
+}
+.advanced-option.option-map .option-bg {
+	background-color: rgb(111,130,239);
+}
+.advanced-option.option-map .option-bg img:first-child {
+	position: absolute;
+	left: 35px;
+	top: -190px;
+}
+.advanced-option.option-map .option-bg img:last-child {
+	position: absolute;
+	left: 64px;
+	top: 64px;
+	width: 12px;
+}
+.advanced-option .option-label {
+    white-space: nowrap;
 }

@@ -160,7 +160,44 @@ function handle_decor_upload($type,$file,$decor=null) {
 				}
 				else $error = $language ? 'Your image must have a png, gif, jpg or jpeg extension.':'Votre image doit &ecirc;tre au format png, gif, jpg ou jpeg.';
 			}
-			else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete characters or circuits to free space.':'Vous avez d&eacute;pass&eacute; votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des persos ou des circuits pour lib&eacute;rer de l\'espace disque.';
+			else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete characters or circuits to free space.':'Vous avez d&eacute;pass&eacute; votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des décors ou des circuits pour lib&eacute;rer de l\'espace disque.';
+		}
+		else $error = $language ? 'Your image mustn\'t exceed 1 Mo. Compress or reduce it if necessary.':'Votre image ne doit pas d&eacute;passer 1 Mo. Compressez-la ou r&eacute;duisez la taille si n&eacute;cessaire.';
+	}
+	else $error = $language ? 'An error occured during the image transfer. Please try again later.':'Une erreur est survenue lors de l\'envoi de l\'image. R&eacute;essayez ult&egrave;rieurement.';
+	return array('error' => $error);
+}
+function handle_decor_advanced($file,$decor,$type) {
+	global $language, $identifiants;
+	if (!$file['error']) {
+		$poids = $file['size'];
+		if ($poids < 1000000) {
+			$infosfichier = pathinfo($file['name']);
+			$ext = strtolower($infosfichier['extension']);
+			$extensions = Array('png', 'gif', 'jpg', 'jpeg');
+			if (in_array($ext, $extensions)) {
+				$id = $decor['id'];
+				$filehash = generate_decor_sprite_src($id);
+				$spriteSrcs = decor_sprite_srcs($filehash);
+				if ($decor) {
+					$oldSrcs = decor_sprite_srcs($decor['sprites']);
+					move_decor_sprite_imgs($oldSrcs,$filehash);
+				}
+				$spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
+				$spriteSrcs[$type] = DECORS_DIR.$filehash.'-'.$type.'.png';
+				move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
+				switch ($type) {
+				case 'map':
+					$spriteW = 32;
+					$spriteH = 32;
+					break;
+				}
+				resize_img_resource($spriteSrcs['tmp'],$spriteSrcs[$type], $spriteW,$spriteH);
+                unlink($spriteSrcs['tmp']);
+                mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $id .'"');
+				return array('id' => $id);
+			}
+			else $error = $language ? 'Your image must have a png, gif, jpg or jpeg extension.':'Votre image doit &ecirc;tre au format png, gif, jpg ou jpeg.';
 		}
 		else $error = $language ? 'Your image mustn\'t exceed 1 Mo. Compress or reduce it if necessary.':'Votre image ne doit pas d&eacute;passer 1 Mo. Compressez-la ou r&eacute;duisez la taille si n&eacute;cessaire.';
 	}

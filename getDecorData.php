@@ -8,8 +8,9 @@ if (isset($_GET['id'])) {
         echo json_encode(array(
             'id' => $decor['id'],
             'name' => $decor['name'],
+            'hd' => $decorSrcs['hd'],
             'ld' => $decorSrcs['ld'],
-            'hd' => $decorSrcs['hd']
+            'map' => $decorSrcs['map']
         ));
     }
     mysql_close();
