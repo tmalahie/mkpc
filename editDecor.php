@@ -47,11 +47,11 @@ if (isset($_GET['id'])) {
             <div class="decor-preview" style="width:<?php echo $spriteSizes['ld']['w']; ?>px;height:<?php echo $spriteSizes['ld']['h']; ?>px">
                 <img src="<?php echo $decorSrcs['hd'] ?>" alt="<?php echo htmlspecialchars($decor['name']); ?>" />
             </div>
-            <a href="editDecorSprite.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? 'Edit image':'Modifier l\'image'; ?></a>
+            <a href="decorSprite.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? 'Edit image':'Modifier l\'image'; ?></a>
         </div>
         <form method="post" id="decor-edit-form"  class="decor-editor-form" action="editDecor.php?id=<?php echo $_GET['id']; ?>">
             <label for="name"><?php echo $language ? 'Name for your decor (optional):':'Nom pour votre décor (facultatif) :'; ?></label>
-            <input type="text" maxlength="30" required="required" name="name" id="name" placeholder="<?php echo $language ? 'Red pipe':'Tuyau rouge'; ?>" value="<?php echo htmlspecialchars($decor['name']); ?>" />
+            <input type="text" maxlength="30" name="name" id="name" placeholder="<?php echo $language ? 'Red pipe':'Tuyau rouge'; ?>" value="<?php echo htmlspecialchars($decor['name']); ?>" />
             <div class="advances-options">
                 <button type="submit"><?php echo $language ? 'Submit!':'Valider !'; ?></button>
                 <a href="decorOptions.php?id=<?php echo $_GET['id']; ?>">
@@ -82,7 +82,7 @@ if (isset($_GET['id'])) {
             else
                 setInterval(rotateImg,500);
         }
-        if ($img.naturalHeight)
+        if ($img.naturalHeight && $img.complete)
             $img.onload();
     }
     showDecorPreview(document.querySelector(".decor-preview"));

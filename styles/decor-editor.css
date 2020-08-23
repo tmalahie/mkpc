@@ -240,3 +240,30 @@ h2 {
     height: 100%;
     min-height: 32px;
 }
+#transparency-form-ctn {
+    width: auto;
+    max-width: 100%;
+    display: inline-block;
+    overflow: auto;
+    padding-left: 0;
+    padding-right: 0;
+}
+#transparency-form {
+	display: none;
+}
+hr {
+    border-color: #BDE;
+}
+#select-transparency {
+	cursor: crosshair;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+#transparency-color-preview {
+	display: inline-block;
+	width: 60px;
+	height: 25px;
+	border: solid 1px #BDE;
+	position: relative;
+	top: 6px;
+}
