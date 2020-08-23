@@ -45,17 +45,12 @@ function goToEditor() {
         echo '</div>';
     }
     ?>
+    </div>
+    <div class="decors-list-container">
+    <h3><?php echo $language ? 'New decor':'Nouveau décor'; ?></h3>
     <div class="decors-list-more">
         <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to characters editor":"Accéder à l'éditeur de décors"; ?></a>
     </div>
-    </div>
-    <div class="decors-list-container">
-    <h3><?php echo $language ? 'Shared decors':'Décors partagés'; ?></h3>
-    <?php
-    echo '<div class="decors-list-empty">';
-    echo $language ? 'Coming soon':'Prochainement';
-    echo '</div>';
-    ?>
     </div>
     <div class="decors-bottom">
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>

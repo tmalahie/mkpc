@@ -33,7 +33,7 @@ if (isset($_GET['id'])) {
 	}
 	elseif (isset($_POST['name'])) {
 		?>
-		<p id="success"><?php echo $language ? 'Décor renamed to &quot;'. $decor['name'] .'&quot;':'Décor renommé en &quot;'. $decor['name'] .'&quot;'; ?></p>
+		<p id="success"><?php echo $language ? 'Decor renamed to &quot;'. $decor['name'] .'&quot;':'Décor renommé en &quot;'. $decor['name'] .'&quot;'; ?></p>
 		<?php
 	}
 	else {

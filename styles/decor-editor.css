@@ -9,13 +9,6 @@ body {
 	text-align: center;
     font-size: 1.2em;
 }
-.decors-list-container {
-    border-radius: 6px;
-    background-color: rgba(156,181,207, 0.85);
-    max-width: 550px;
-    padding: 10px 20px;
-    margin: 10px auto;
-}
 h1, h2, h3 {
     margin: 5px auto;
 }
@@ -24,9 +17,20 @@ h2 {
     color: white;
     text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black, -1px -1px black, -1px 1px black, 1px -1px black, 1px 1px black;
 }
+.decors-list-container {
+    border-radius: 6px;
+    background-color: rgba(156,181,207, 0.85);
+    max-width: 550px;
+    padding: 10px 20px;
+    margin: 10px auto;
+}
 .decors-list-empty {
     font-style: italic;
     margin-bottom: 5px;
+}
+.decors-list-more {
+    position: relative;
+    top: -0.1em;
 }
 .decors-list {
     margin-bottom: 4px;
@@ -225,7 +229,7 @@ h2 {
 .advances-options {
     font-size: 0.9em;
     margin-top: 0.5em;
-    color: #356;
+    color: #a8d4ff;
 }
 .advances-options a {
     display: inline-block;
