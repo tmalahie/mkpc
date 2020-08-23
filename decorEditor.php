@@ -7,6 +7,13 @@ assign_token();
 include('initdb.php');
 require_once('utils-decors.php');
 include('file-quotas.php');
+if (isset($_POST['type']) && isset($_FILES['sprites'])) {
+	$upload = handle_decor_upload($_POST['type'],$_FILES['sprites']);
+	if (isset($upload['id']))
+		header('location: editDecor.php?id='. $upload['id'] .'&new');
+	if (isset($upload['error']))
+		$error = $upload['error'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -32,14 +39,7 @@ function selectDecor(id) {
 		document.getElementById("mydecor-"+decorId).className = "decor-selected";
 		document.getElementById("decor-actions").style.display = "inline-block";
 		var decorName = document.getElementById("mydecor-"+decorId).dataset.name;
-		if (decorName) {
-			document.getElementById("decor-actions-name").innerHTML = decorName;
-			document.querySelector(".share-decor").style.display = "none"; // TODO show when ready
-		}
-		else {
-			document.getElementById("decor-actions-name").innerHTML = "<em>"+ (language ? "Being created":"En cours de création") +"</em>";
-			document.querySelector(".share-decor").style.display = "none";
-		}
+		document.getElementById("decor-actions-name").innerHTML = decorName;
 	}
 	else
 		document.getElementById("decor-actions").style.display = "none";
@@ -57,16 +57,16 @@ function toggleHelp() {
 function selectDecorType($btn) {
     var $lastSelected = document.getElementById("decor-type-selected");
     if ($lastSelected) $lastSelected.id = "";
-    var $decorModel = document.getElementById("decor-model");
+    var $decorFormNext = document.getElementById("decor-form-next");
     var type = $btn.dataset.type;
     var $form = document.getElementById("decor-new-form");
     if ($lastSelected === $btn) {
-        $decorModel.style.display = "";
+        $decorFormNext.style.display = "";
         $form.elements["type"].value = "";
     }
     else {
         $btn.id = "decor-type-selected";
-        $decorModel.style.display = "inline-flex";
+        $decorFormNext.style.display = "block";
         document.getElementById("decor-model-img").src = "images/sprites/sprite_"+type+".png";
         $form.elements["type"].value = type;
     }
@@ -74,6 +74,10 @@ function selectDecorType($btn) {
 </script>
 </head>
 <body>
+<?php
+if (isset($error))
+    echo '<p id="error">'. $error .'</p>';
+?>
 <h2><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></h2>
     <div class="decors-list-container">
         Bienvenue dans l'éditeur de décors !
@@ -92,16 +96,15 @@ function selectDecorType($btn) {
                 ?><div id="mydecor-<?php echo $decor['id'] ?>" data-id="<?php echo $decor['id'] ?>" data-name="<?php echo htmlspecialchars($decor['name']) ?>" data-ld="<?php echo $decorSrcs['ld'] ?>" data-type="<?php echo $decor['type']; ?>" onclick="selectDecor(<?php echo $decor['id'] ?>)"><img src="<?php echo $decorSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($decor['name']) ?>" /></div><?php
             }
             ?></div>
+            <div id="decor-actions">
+                <div id="decor-actions-name"></div>
+                <button class="edit-decor" onclick="javascript:editDecor()"><?php echo $language ? "Edit":"Modifier"; ?></button>
+                <button class="suppr-decor" onclick="javascript:delDecor()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
+            </div>
         <?php
         $poids = file_total_size();
-        echo '<div class="mydecors-size">'. ($language ? 'You use '.filesize_str($poids).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($poids) .')' : 'Vous utilisez '.filesize_str($poids).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($poids).')') .'</div>';
+        echo '<div class="file-quotas">'. ($language ? 'You use '.filesize_str($poids).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($poids) .')' : 'Vous utilisez '.filesize_str($poids).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($poids).')') .'</div>';
         ?>
-        </div>
-        <div id="decor-actions">
-            <div id="decor-actions-name"></div>
-            <button class="edit-decor" onclick="javascript:editDecor()"><?php echo $language ? "Edit":"Modifier"; ?></button>
-            <button class="suppr-decor" onclick="javascript:delDecor()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
-            <button class="share-decor" onclick="javascript:shareDecor()"><?php echo $language ? "Share":"Partage"; ?>...</button>
         </div>
         <?php
     }
@@ -118,7 +121,7 @@ function selectDecorType($btn) {
         <div id="decor-instructions"<?php if ($areDecors) echo ' class="instructions-unshown"'; ?>>
             Bite bite cigarre dans cul bit cigare dans le cul cigare dans le cul bite cigare dans le cul cul cul cul
         </div>
-        <form method="post" id="decor-new-form" action="decorEditor.php" enctype="multipart/form-data">
+        <form method="post" id="decor-new-form" class="decor-editor-form" action="decorEditor.php" enctype="multipart/form-data">
             <div>Type de décor :
                 <input type="text" name="type" required="required" style="display:none" />
                 <span class="decor-type-selector"><?php
@@ -129,15 +132,28 @@ function selectDecorType($btn) {
                 }
                 ?></span>
             </div>
-            <div id="decor-model">
-                <div id="decor-model-label">Modèle&nbsp;:</div>
-                <div id="decor-model-value"><img id="decor-model-img" src="images/sprites/sprite_tuyau.png" /></div>
+            <div id="decor-form-next">
+                <div id="decor-model">
+                    <div id="decor-model-label">Modèle&nbsp;:</div>
+                    <div id="decor-model-value"><img id="decor-model-img" src="images/sprites/sprite_tuyau.png" /></div>
+                </div>
+                <div>Image : <input type="file" required="required" name="sprites" /></div>
+                <div><button type="submit"><?php echo $language ? 'Send !':'Valider !'; ?></button></div>
             </div>
-            <div>Image : <input type="file" required="required" name="sprites" /></div>
-            <div>Nom pour votre décor : <input type="text" required="required" name="name" /></div>
-            <div><button type="submit"><?php echo $language ? 'Send !':'Valider !'; ?></button></div>
         </form>
     </div>
+    <div class="editor-navigation">
+        <a href="index.php">&lt; <u><?php echo $language ? "Back to Mario Kart PC":"Retour à Mario Kart PC"; ?></u></a>
+    </div>
+    <?php
+    if (isset($_POST['type'])) {
+        ?>
+        <script type="text/javascript">
+        document.querySelector(".decor-type-selector button[data-type='<?php echo htmlspecialchars($_POST['type']); ?>']").click();
+        </script>
+        <?php
+    }
+    ?>
     <div class="decors-bottom">
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <!-- Mario Kart PC -->

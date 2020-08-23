@@ -7,6 +7,7 @@ body {
 	background-repeat: no-repeat;
 	font-family: Helvetica, arial, sans-serif;
 	text-align: center;
+    font-size: 1.2em;
 }
 .decors-list-container {
     border-radius: 6px;
@@ -35,7 +36,6 @@ h2 {
     max-width: 42px;
     display: inline-flex;
     flex-direction: column;
-
     cursor: pointer;
     text-align: center;
     overflow: hidden;
@@ -49,12 +49,12 @@ h2 {
 }
 #decor-actions {
     font-size: 1.2em;
-	border: solid 1px #BDE;
 	display: none;
 	margin-left: auto;
 	margin-right: auto;
+	margin-bottom: 5px;
 	padding: 5px;
-    background-color: rgba(156,181,207, 0.85);
+    background-color: #93b8f9;
 }
 #decor-actions button {
 	font-size: 0.7em;
@@ -63,11 +63,14 @@ h2 {
 	margin: 0 2px;
 }
 #decor-actions-name {
-    font-size: 0.9em;
-	margin-top: 5px;
-	margin-bottom: 10px;
+    color: #337;
+    font-size: 0.8em;
+	margin-bottom: 0.15em;
 	font-weight: bold;
 }
+#decor-actions-name:empty {
+    display: none;
+ }
 #decor-actions-author {
 	font-size: 0.7em;
 	margin-bottom: 5px;
@@ -93,20 +96,20 @@ h2 {
 	color: #AF0;
 }
 #decor-actions .edit-decor {
-	background-color: #42EF42;
-	color: #409C49;
+	background-color: #7E8;
+	color: #0A5;
 }
 #decor-actions .edit-decor:hover {
-	background-color: #52FF52;
-	color: #34953C;
+	background-color: #7F8;
+    color: #0B5;
 }
 #decor-actions .suppr-decor {
-	background-color: #FF5252;
-	color: #9C4049;
+	background-color: #F96;
+	color: #C24;
 }
 #decor-actions .suppr-decor:hover {
-	background-color: #FF6262;
-	color: #95343C;
+	background-color: #FB7;
+	color: #D35;
 }
 .decors-list .decor-selected, .decors-list .decor-selected:hover {
 	background-color: #93b8f9;
@@ -116,14 +119,6 @@ h2 {
 }
 #decor-instructions.instructions-unshown {
 	display: none;
-}
-.mydecors-size {
-	margin-top: 0;
-	margin-bottom: 5px;
-	font-size: 0.65em;
-}
-body {
-    font-size: 1.2em;
 }
 .decor-type-selector button {
     width: 1.2em;
@@ -139,34 +134,39 @@ body {
 #decor-new-form {
     text-align: left;
 }
-#decor-new-form input, #decor-new-form button {
+#decor-new-form button[type="submit"] {
+    width: 150px;
+}
+#decor-edit-form button[type="submit"] {
+    width: 120px;
+}
+.decor-editor-form input, .decor-editor-form button {
     font-size: 1em;
 }
-#decor-new-form input[type="file"] {
+.decor-editor-form input[type="file"] {
     border: solid 1px #88B;
     background-color: #BFBFCF;
 }
-#decor-new-form input[type="text"] {
-    width: 225px;
-}
-#decor-new-form button {
+.decor-editor-form button {
     cursor: pointer;
     background-color: #69C;
     color: white;
     border-color: #48A;
 }
-#decor-new-form button:hover {
+.decor-editor-form button:hover {
     background-color: #669FD9;
     border-color: #59B;
 }
-#decor-new-form button[type="submit"] {
+.decor-editor-form button[type="submit"] {
     margin-top: 0.2em;
-    width: 150px;
+}
+#decor-form-next {
+    display: none;
 }
 #decor-model {
     margin-top: 0.2em;
     margin-bottom: 0.2em;
-    display: none;
+    display: inline-flex;
     align-items: center;
     background-color: #EEF;
     padding: 0.25em;
@@ -178,4 +178,65 @@ body {
 }
 #decor-model-value {
     line-height: 0;
+}
+#error {
+	background-color: #D43;
+	color: #721;
+	font-weight: bold;
+	text-align: center;
+	display: inline-block;
+	padding: 8px 20px;
+}
+#error a {
+	color: #A5444C;
+}
+#success {
+	background-color: #3D4;
+	color: #172;
+	font-weight: bold;
+	text-align: center;
+	display: inline-block;
+	padding: 8px 20px;
+}
+#error a {
+	color: #A5444C;
+}
+.advances-options {
+	font-size: 0.9em;
+	display: inline-block;
+}
+.advances-options a {
+    display: inline-block;
+    font-size: 0.85em;
+    opacity: 0.8;
+	margin-left: 10px;
+}
+.advances-options a:hover {
+    opacity: 1;
+}
+.decor-edit-preview {
+    margin-bottom: 10px;
+}
+.decor-edit-preview a {
+    position: relative;
+    top: -0.2em;
+    font-size: 0.8em;
+}
+.editor-navigation {
+    font-size: 1rem;
+}
+.decor-preview {
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    min-width: 32px;
+    min-height: 32px;
+    overflow: hidden;
+}
+.decor-preview img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    min-height: 32px;
 }
