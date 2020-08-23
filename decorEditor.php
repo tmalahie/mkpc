@@ -80,8 +80,20 @@ if (isset($error))
 ?>
 <h2><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></h2>
     <div class="decors-list-container">
-        Bienvenue dans l'éditeur de décors !
-        Grâce à ce mode, vous pouvez créer vos propes décors et les utiliser dans l'éditeur complet du jeu.
+        <?php
+        if ($language) {
+            ?>
+            Welcome to the decors editor!<br />
+            With this mode, you can create your own decors and use them in the complete mode of the track builder.
+            <?php
+        }
+        else {
+            ?>
+            Bienvenue dans l'éditeur de décors !<br />
+            Grâce à ce mode, vous pouvez créer vos propes décors et les utiliser dans l'éditeur complet du jeu.
+            <?php
+        }
+        ?>
     </div>
     <?php
     $myDecors = mysql_query('SELECT * FROM `mkdecors` WHERE identifiant='.$identifiants[0].' ORDER BY id DESC');
@@ -110,19 +122,67 @@ if (isset($error))
     }
     ?>
     <div class="decors-list-container">
-        <h3><?php
-        echo $language ? 'New decor':'Nouveau décor';
+        <?php
         if ($areDecors) {
             ?>
+            <h3 style="margin-bottom:0.5em">
+                <?php echo $language ? 'New decor':'Nouveau décor'; ?>
             <a class="sprite-help" href="javascript:toggleHelp()">[<?php echo $language ? "Show help":"Afficher l'aide"; ?>]</a>
+            </h3>
             <?php
         }
-        ?></h3>
+        ?>
         <div id="decor-instructions"<?php if ($areDecors) echo ' class="instructions-unshown"'; ?>>
-            Bite bite cigarre dans cul bit cigare dans le cul cigare dans le cul bite cigare dans le cul cul cul cul
+        <?php
+        if ($language) {
+            ?>
+            <div class="description">
+                To create your decor, you need 2 things:
+                <ul>
+                    <li>Choose a decor type, which defines its behavior.
+                    If you select the thwomp <img src="images/map_icons/thwomp.png" alt="Thwomp" /> for example, your decor will behave exactly like the thwomp of MKPC (goes up slowly and falls down quckly).</li>
+                    <li>Create an image (via a drawing software) containing the decor sprite(s) in order to give it the appearance you want. The image must fit the dimensions of the original decor.</li>
+                </ul>
+            </div>
+            <div class="description">
+                For exemple, the Piranha plant is modelled by the following image:<br />
+                <img src="images/sprites/sprite_fireplant.png" alt="Plant Sprite" /><br />
+                If you select this type, you thus must provide an image of size 96&times;40 with the 4 sprites aligned in the same way (24&times;40 for each sprite).<br />
+                For more information about how sprites work, go to the <a href="persoEditor">character editor</a> which functions on the same principle.
+            </div>
+            <?php
+        }
+        else {
+            ?>
+            <div class="description">
+                Pour créer votre décor, vous avez besoin de 2 choses :
+                <ul>
+                    <li>Choisir un type de décor, ce qui définit son comportement.
+                    Si vous sélectionnez le thwomp <img src="images/map_icons/thwomp.png" alt="Thwomp" /> par exemple, votre décor se comportera exactement comme le thwomp de MKPC (monte progressivement et tombe brusquement).</li>
+                    <li>Créer une image (via un logiciel de dessin) contenant le ou les sprites du décor afin de lui donner l'apparence que vous souhaitez. L'image doit respecter les dimensions du décor d'origine.</li>
+                </ul>
+            </div>
+            <div class="description">
+                Par exemple, le plante Piranha est modélisée par l'image suivante :<br />
+                <img src="images/sprites/sprite_fireplant.png" alt="Sprite Plante" /><br />
+                Si vous sélectionnez ce type, vous devrez ainsi fournir une image de taille 96&times;40 avec les 4 sprites alignés de la même façon (24&times;40 pour chaque sprite).<br />
+                Pour plus d'informations sur le fonctionnement des sprites, rendez-vous dans l'<a href="persoEditor">éditeur de persos</a> qui utilise le même principe.
+            </div>
+            <hr />
+            <?php
+        }
+        ?>
         </div>
         <form method="post" id="decor-new-form" class="decor-editor-form" action="decorEditor.php" enctype="multipart/form-data">
-            <div>Type de décor :
+            <?php
+            if (!$areDecors) {
+                ?>
+                <h3><?php echo $language ? 'New decor':'Nouveau décor'; ?></h3>
+                <?php
+            }
+            ?>
+            <div>
+                <?php echo $language ? 'Decor type:':'Type de décor :'; ?>
                 <input type="text" name="type" required="required" style="display:none" />
                 <span class="decor-type-selector"><?php
                 foreach ($CUSTOM_DECOR_TYPES as $type=>$decorType) {
@@ -134,10 +194,10 @@ if (isset($error))
             </div>
             <div id="decor-form-next">
                 <div id="decor-model">
-                    <div id="decor-model-label">Modèle&nbsp;:</div>
+                    <div id="decor-model-label"><?php echo $language ? 'Model:':'Modèle&nbsp;:'; ?></div>
                     <div id="decor-model-value"><img id="decor-model-img" src="images/sprites/sprite_tuyau.png" /></div>
                 </div>
-                <div>Image : <input type="file" required="required" name="sprites" /></div>
+                <div><?php echo $language ? 'Image:':'Image :'; ?> <input type="file" required="required" name="sprites" /></div>
                 <div><button type="submit"><?php echo $language ? 'Send !':'Valider !'; ?></button></div>
             </div>
         </form>

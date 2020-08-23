@@ -116,6 +116,22 @@ h2 {
 }
 #decor-instructions {
     margin-bottom: 10px;
+    font-size: 0.8em;
+    text-align: left;
+}
+#decor-instructions .description {
+    margin: 1em 0;
+}
+#decor-instructions ul {
+    margin-top: 0.5em;
+    padding-left: 1em;
+}
+#decor-instructions hr {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    height: 1px;
+    background-color: #359;
+    border: none;
 }
 #decor-instructions.instructions-unshown {
 	display: none;
@@ -133,6 +149,11 @@ h2 {
 }
 #decor-new-form {
     text-align: left;
+}
+#decor-new-form h3 {
+    text-align: center;
+    position: relative;
+    top: -0.2em;
 }
 #decor-new-form button[type="submit"] {
     width: 150px;
@@ -270,7 +291,7 @@ h2 {
 #transparency-form {
 	display: none;
 }
-hr {
+.decors-list-container + hr {
     margin-top: 20px;
     margin-bottom: 10px;
     width: 80%;
