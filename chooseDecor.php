@@ -29,7 +29,8 @@ function goToEditor() {
     <div class="decors-list-container">
     <h3><?php echo $language ? 'Your decors':'Vos décors'; ?></h3>
     <?php
-    if (mysql_numrows($myDecors)) {
+    $areDecors = mysql_numrows($myDecors);
+    if ($areDecors) {
         ?>
         <div class="decors-list"><?php
         while ($decor = mysql_fetch_array($myDecors)) {
@@ -40,18 +41,29 @@ function goToEditor() {
         <?php
     }
     else {
-        echo '<div class="decors-list-empty">';
+        ?>
+        <div class="decors-list-empty"><?php
         echo $language ? 'You haven\'t created decors yet':'Vous n\'avez créé aucun décor pour l\'instant';
-        echo '</div>';
+        ?></div>
+        <div class="decors-list-more">
+            <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to characters editor":"Accéder à l'éditeur de décors"; ?></a>
+        </div>
+        <?php
     }
     ?>
     </div>
-    <div class="decors-list-container">
-    <h3><?php echo $language ? 'New decor':'Nouveau décor'; ?></h3>
-    <div class="decors-list-more">
-        <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to characters editor":"Accéder à l'éditeur de décors"; ?></a>
-    </div>
-    </div>
+    <?php
+    if ($areDecors) {
+        ?>
+        <div class="decors-list-container">
+        <h3><?php echo $language ? 'New decor':'Nouveau décor'; ?></h3>
+        <div class="decors-list-more">
+            <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to characters editor":"Accéder à l'éditeur de décors"; ?></a>
+        </div>
+        </div>
+        <?php
+    }
+    ?>
     <div class="decors-bottom">
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <!-- Mario Kart PC -->
