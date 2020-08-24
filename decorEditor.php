@@ -147,7 +147,7 @@ if (isset($error))
             <div class="description">
                 For exemple, the Piranha plant is modelled by the following image:<br />
                 <img src="images/sprites/sprite_fireplant.png" alt="Plant Sprite" /><br />
-                If you select this type, you thus must provide an image of size 96&times;40 with the 4 sprites aligned in the same way (24&times;40 for each sprite).<br />
+                If you select this type, you thus must provide an image of size 96&times;40 with the 4 sprites aligned in the same way (so 24&times;40 for each sprite).<br />
                 For more information about how sprites work, go to the <a href="persoEditor">character editor</a> which functions on the same principle.
             </div>
             <?php
@@ -165,7 +165,7 @@ if (isset($error))
             <div class="description">
                 Par exemple, le plante Piranha est modélisée par l'image suivante :<br />
                 <img src="images/sprites/sprite_fireplant.png" alt="Sprite Plante" /><br />
-                Si vous sélectionnez ce type, vous devrez ainsi fournir une image de taille 96&times;40 avec les 4 sprites alignés de la même façon (24&times;40 pour chaque sprite).<br />
+                Si vous sélectionnez ce type, vous devrez ainsi fournir une image de taille 96&times;40 avec les 4 sprites alignés de la même façon (soit 24&times;40 pour chaque sprite).<br />
                 Pour plus d'informations sur le fonctionnement des sprites, rendez-vous dans l'<a href="persoEditor">éditeur de persos</a> qui utilise le même principe.
             </div>
             <hr />
