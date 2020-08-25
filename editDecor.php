@@ -12,7 +12,7 @@ if (isset($_GET['id'])) {
                 $decor['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);
                 mysql_query('UPDATE `mkdecors` SET name="'. $decor['name'] .'" WHERE id="'. $_GET['id'] .'"');
             }
-            $spriteSizes = decor_sprite_sizes($decor['type']);
+            $spriteSizes = decor_sprite_sizes($decor['type'],$decorSrcs['hd']);
 			?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">

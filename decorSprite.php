@@ -52,7 +52,7 @@ if (isset($_GET['id'])) {
 				case 'decor' :
 					add_transparency($newSrcs['hd'],$newSrcs['hd'], $color[0],$color[1],$color[2]);
 					clone_img_resource($newSrcs['hd'],$newSrcs['hd']);
-                    $spriteSizes = decor_sprite_sizes($decor['type']);
+                    $spriteSizes = decor_sprite_sizes($decor['type'],$newSrcs['hd']);
 					create_decor_sprite_thumbs($newSrcs,$spriteSizes);
 					break;
 				default :

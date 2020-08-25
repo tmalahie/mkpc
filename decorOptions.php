@@ -8,6 +8,9 @@ if (isset($_GET['id'])) {
 		if ($decor['identifiant'] == $identifiants[0]) {
 			include('utils-decors.php');
 			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
+            $spriteSizes = decor_sprite_sizes($decor['type'],$spriteSrcs['hd']);
+			$originalSizes = decor_sprite_sizes($decor['type'],default_decor_sprite_src($decor['type']));
+			$sizeRatio = $spriteSizes['hd']['w']/$originalSizes['hd']['w'];
 			?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -46,7 +49,7 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 		<a class="advanced-option option-map" href="decorSprite.php?id=<?php echo $_GET['id']; ?>&amp;map">
 			<div class="option-bg">
 				<img src="images/maps/map3.png" alt="Map" />
-				<img src="<?php echo $spriteSrcs['map']; ?>" alt="Decor" />
+				<img src="<?php echo $spriteSrcs['map']; ?>" alt="Decor" style="width:<?php echo round(12*$sizeRatio); ?>px" />
 			</div>
 			<div class="option-label"><?php echo $language ? "Edit minimap icon":"Modifier l'icone de la mini-map"; ?></div>
 		</a>

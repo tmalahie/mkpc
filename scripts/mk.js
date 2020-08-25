@@ -721,27 +721,34 @@ function setPlanPos() {
 				var customDecor = decorExtra.custom;
 				if (!decorBehavior.hidden) {
 					if ((oMap.decor[type].length!=iPlanDecor[type].length) || decorBehavior.movable) {
-						syncObjects(iPlanDecor[type],oMap.decor[type],type, iObjWidth,iPlanCtn);
+						var tObjWidth = iObjWidth;
+						if (decorBehavior.size_ratio) tObjWidth *= decorBehavior.size_ratio.w;
+						syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
 						if (firstRun && customDecor) {
-							getCustomDecorData(customDecor.id, function(res) {
-								for (var i=0;i<iPlanDecor[type].length;i++) {
-									var iDecor = iPlanDecor[type][i];
-									iDecor.src = res.map;
-								}
-							});
+							(function(type) {
+								getCustomDecorData(customDecor.id, function(res) {
+									tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
+									for (var i=0;i<iPlanDecor[type].length;i++) {
+										var iDecor = iPlanDecor[type][i];
+										iDecor.src = res.map;
+										iDecor.style.width = tObjWidth +"px";
+									}
+									syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
+								});
+							})(type);
 						}
 						var rotatable = decorBehavior.rotatable;
 						var relY;
 						if (rotatable) {
 							var iPlanDecor0 = iPlanDecor[type][0];
 							if (iPlanDecor0 && iPlanDecor0.naturalWidth)
-								relY = Math.round(iObjWidth*(iPlanDecor0.naturalWidth-iPlanDecor0.naturalHeight)/(2*iPlanDecor0.naturalWidth));
+								relY = Math.round(tObjWidth*(iPlanDecor0.naturalWidth-iPlanDecor0.naturalHeight)/(2*iPlanDecor0.naturalWidth));
 						}
 						for (var i=0;i<oMap.decor[type].length;i++) {
 							if (rotatable)
-								posImgRel(iPlanDecor[type][i], oMap.decor[type][i][0],oMap.decor[type][i][1],Math.round(oMap.decor[type][i][4]), iObjWidth,iPlanSize, 0,relY);
+								posImgRel(iPlanDecor[type][i], oMap.decor[type][i][0],oMap.decor[type][i][1],Math.round(oMap.decor[type][i][4]), tObjWidth,iPlanSize, 0,relY);
 							else
-								setObject(iPlanDecor[type][i],oMap.decor[type][i][0],oMap.decor[type][i][1], iObjWidth,iPlanSize);
+								setObject(iPlanDecor[type][i],oMap.decor[type][i][0],oMap.decor[type][i][1], tObjWidth,iPlanSize);
 						}
 					}
 				}
@@ -2054,6 +2061,21 @@ function startGame() {
 			if (customDecor && decorBehaviors[customDecor.type]) {
 				Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
 				decorBehavior.type = type;
+				getCustomDecorData(customDecor.id, function(res) {
+					var sizeRatio = {
+						w: res.size.hd.w/res.original_size.hd.w,
+						h: res.size.hd.h/res.original_size.hd.h
+					}
+					decorBehavior.size_ratio = sizeRatio;
+					if (sizeRatio.w !== 1) {
+						var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
+						decorBehavior.hitbox = hitboxSize*sizeRatio.w;
+					}
+					if (sizeRatio.h !== 1) {
+						var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
+						decorBehavior.hitboxH = hitboxHeight*sizeRatio.h;
+					}
+				});
 			}
 			if (decorBehavior.preinit)
 				decorBehavior.preinit(oMap.decor[type]);
@@ -2074,8 +2096,12 @@ function startGame() {
 					if (customDecor) {
 						(function(decorData) {
 							getCustomDecorData(customDecor.id, function(res) {
-								for (var j=0;j<oPlayers.length;j++)
+								for (var j=0;j<oPlayers.length;j++) {
 									decorData[2][j].img.src = res.hd;
+									decorData[2][j].nbSprites = res.size.nb_sprites;
+									decorData[2][j].w = res.size.ld.w;
+									decorData[2][j].h = res.size.ld.h;
+								}
 							});
 						})(decorData);
 					}
@@ -6244,6 +6270,8 @@ var decorBehaviors = {
 		}
 	}
 };
+var DEFAULT_DECOR_HITBOX = 5;
+var DEFAULT_DECOR_HITBOX_H = 4;
 for (var type in decorBehaviors)
 	decorBehaviors[type].type = type;
 
@@ -7261,8 +7289,8 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 	if (oMap.decor) {
 		for (var type in oMap.decor) {
 			var decorBehavior = decorBehaviors[type];
-			var hitboxSize = decorBehavior.hitbox||5;
-			var hitboxHeight = decorBehavior.hitboxH||4;
+			var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
+			var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
 			for (var i=0;i<oMap.decor[type].length;i++) {
 				var oBox = oMap.decor[type][i];
 				if (nX > oBox[0]-hitboxSize && nX < oBox[0]+hitboxSize && nY > oBox[1]-hitboxSize && nY < oBox[1]+hitboxSize && (Math.abs((oBox[3]?oBox[3]:0)-iZ)<hitboxHeight)) {
@@ -7488,7 +7516,7 @@ function getHorizontality(iX,iY, iI,iJ) {
 		for (var type in oMap.decor) {
 			for (var i=0;i<oMap.decor[type].length;i++) {
 				var oBox = oMap.decor[type][i];
-				var hitboxSize = decorBehaviors[type].hitbox||5;
+				var hitboxSize = decorBehaviors[type].hitbox||DEFAULT_DECOR_HITBOX;
 				var lines = [{
 					"x1" : oBox[0]-hitboxSize,
 					"y1" : oBox[1]-hitboxSize,
@@ -11196,7 +11224,7 @@ function ai(oKart) {
 			var minDecor, minT = 1;
 			if (!isCup) {
 				for (var type in decorPos) {
-					var hitboxSize = decorBehaviors[type].hitbox||5;
+					var hitboxSize = decorBehaviors[type].hitbox||DEFAULT_DECOR_HITBOX;
 					hitboxSize *= 1.1;
 					for (var i=0;i<decorPos[type].length;i++) {
 						var iDecor = decorPos[type][i];
@@ -11689,11 +11717,13 @@ function getSpriteSrc(playerName) {
 	return "images/sprites/sprite_" + playerName +".png";
 }
 function getCustomDecorData(id,callback) {
+	var retreivingData = false;
 	if (customDecorData[id]) {
 		if (customDecorData[id].data) {
 			callback(customDecorData[id].data);
 			return;
 		}
+		retreivingData = true;
 	}
 	else {
 		customDecorData[id] = {
@@ -11701,7 +11731,8 @@ function getCustomDecorData(id,callback) {
 		};
 	}
 	customDecorData[id].callbacks.push(callback);
-	xhr("getDecorData.php?id="+id, null, function(res) {
+	if (retreivingData) return;
+	xhr("getDecorData.php?id="+id+"&full", null, function(res) {
 		var data;
 		try {
 			data = JSON.parse(res);

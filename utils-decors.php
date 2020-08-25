@@ -92,15 +92,9 @@ $CUSTOM_DECOR_TYPES = array(
     'mariotree' => null,
     'peachtree' => null
 );
-function decor_sprite_count($type) {
+function decor_sprite_sizes($type,$src) {
     global $CUSTOM_DECOR_TYPES;
-    if (isset($CUSTOM_DECOR_TYPES[$type]) && isset($CUSTOM_DECOR_TYPES[$type]['nbsprites']))
-        return $CUSTOM_DECOR_TYPES[$type]['nbsprites'];
-    return 1;
-}
-function decor_sprite_sizes($type) {
-    global $CUSTOM_DECOR_TYPES;
-    list($w,$h) = getimagesize(default_decor_sprite_src($type));
+    list($w,$h) = getimagesize($src);
     $res = array(
         'ld' => array(
             'w' => $w,
@@ -109,10 +103,13 @@ function decor_sprite_sizes($type) {
         'hd' => array(
             'w' => $w,
             'h' => $h
-        )
+        ),
+        'nb_sprites' => 1
     );
-    if (isset($CUSTOM_DECOR_TYPES[$type]) && isset($CUSTOM_DECOR_TYPES[$type]['nbsprites']))
-        $res['ld']['w'] = round($w/$CUSTOM_DECOR_TYPES[$type]['nbsprites']);
+    if (isset($CUSTOM_DECOR_TYPES[$type]) && isset($CUSTOM_DECOR_TYPES[$type]['nbsprites'])) {
+        $res['nb_sprites'] = $CUSTOM_DECOR_TYPES[$type]['nbsprites'];
+        $res['ld']['w'] = round($w/$res['nb_sprites']);
+    }
     return $res;
 }
 function generate_decor_sprite_src($id) {
@@ -129,11 +126,10 @@ function handle_decor_upload($type,$file,$decor=null) {
 				$ext = strtolower($infosfichier['extension']);
 				$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 				if (in_array($ext, $extensions)) {
-                    list($w,$h) = getimagesize($file['tmp_name']);
-                    $spriteSizes = decor_sprite_sizes($type);
+                    $spriteSizes = decor_sprite_sizes($type,$file['tmp_name']);
                     $originalW = $spriteSizes['hd']['w'];
-                    $originalH = $spriteSizes['hd']['h'];
-					if (($w == $originalW) && ($h == $originalH)) {
+                    $nbSprites = $spriteSizes['nb_sprites'];
+					if (!($originalW%$nbSprites)) {
                         if (!$decor) {
                             mysql_query('INSERT INTO `mkdecors` SET
                                 type="'. $_POST['type'] .'",identifiant="'. $identifiants[0] .'"
@@ -156,7 +152,7 @@ function handle_decor_upload($type,$file,$decor=null) {
                         mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $id .'"');
                         return array('id' => $id);
                     }
-                    else $error = $language ? 'Your image size must equal the original decor sprite size ('.$originalW.'&times;'.$originalH.')':'Votre image doit avoir la même taille que le sprite du décor d\'origine ('.$originalW.'&times;'.$originalH.').';
+                    else $error = $language ? 'Your image width must be a multiple of '.$nbSprites:'La largeur de votre image doit être un multiple de '. $nbSprites;
 				}
 				else $error = $language ? 'Your image must have a png, gif, jpg or jpeg extension.':'Votre image doit &ecirc;tre au format png, gif, jpg ou jpeg.';
 			}
