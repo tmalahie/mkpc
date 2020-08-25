@@ -717,20 +717,18 @@ function setPlanPos() {
 			for (var type in oMap.decor) {
 				var firstRun = !iPlanDecor[type].length;
 				var decorBehavior = decorBehaviors[type];
+				var decorExtra = getDecorExtra(decorBehavior);
+				var customDecor = decorExtra.custom;
 				if (!decorBehavior.hidden) {
 					if ((oMap.decor[type].length!=iPlanDecor[type].length) || decorBehavior.movable) {
 						syncObjects(iPlanDecor[type],oMap.decor[type],type, iObjWidth,iPlanCtn);
-						if (firstRun) {
-							for (var i=0;i<iPlanDecor[type].length;i++) {
-								var decorParams = getDecorParams(decorBehavior,i);
-								if (decorParams.sprite) {
-									(function(iDecor) {
-										getCustomDecorData(decorParams.sprite, function(res) {
-											iDecor.src = res.map;
-										});
-									})(iPlanDecor[type][i]);
+						if (firstRun && customDecor) {
+							getCustomDecorData(customDecor.id, function(res) {
+								for (var i=0;i<iPlanDecor[type].length;i++) {
+									var iDecor = iPlanDecor[type][i];
+									iDecor.src = res.map;
 								}
-							}
+							});
 						}
 						var rotatable = decorBehavior.rotatable;
 						var relY;
@@ -2051,11 +2049,19 @@ function startGame() {
 			if (!decorBehaviors[type])
 				decorBehaviors[type] = {type:type};
 			var decorBehavior = decorBehaviors[type];
+			var decorExtra = getDecorExtra(decorBehavior);
+			var customDecor = decorExtra.custom;
+			if (customDecor && decorBehaviors[customDecor.type]) {
+				Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
+				decorBehavior.type = type;
+			}
 			if (decorBehavior.preinit)
 				decorBehavior.preinit(oMap.decor[type]);
 		}
 		for (var type in oMap.decor) {
 			var decorBehavior = decorBehaviors[type];
+			var decorExtra = getDecorExtra(decorBehavior);
+			var customDecor = decorExtra.custom;
 			var decorsData = oMap.decor[type];
 			for (var i=0;i<decorsData.length;i++) {
 				var decorData = decorsData[i];
@@ -2065,10 +2071,9 @@ function startGame() {
 				if (gameSettings.ld && decorBehavior.hidable)
 					decorData[2][0].unshow();
 				else {
-					var decorParams = getDecorParams(decorBehavior,i);
-					if (decorParams.sprite) {
+					if (customDecor) {
 						(function(decorData) {
-							getCustomDecorData(decorParams.sprite, function(res) {
+							getCustomDecorData(customDecor.id, function(res) {
 								for (var j=0;j<oPlayers.length;j++)
 									decorData[2][j].img.src = res.hd;
 							});
@@ -5267,7 +5272,7 @@ var decorBehaviors = {
 					decorsData2.length = 0;
 				}
 			}
-			var extraParams = getDecorExtra(this);
+			var extraParams = getDecorExtra(this,true);
 			var nbPos = 0;
 			if (extraParams.nb) {
 				nbPos = decorsData.length;
@@ -5930,7 +5935,7 @@ var decorBehaviors = {
 				decorData[2][j].h = decorData[2][j].w*56/111;
 				decorData[2][j].z = 0.72;
 			}
-			var extraParams = getDecorExtra(this);
+			var extraParams = getDecorExtra(this,true);
 			if (!extraParams.path)
 				extraParams.path = oMap.aipoints;
 			if (!decorData[6]) {
@@ -5974,7 +5979,7 @@ var decorBehaviors = {
 		move:function(decorData) {
 			var speed = 4;
 			var x = decorData[0], y = decorData[1], aimX, aimY;
-			var extraParams = getDecorExtra(this);
+			var extraParams = getDecorExtra(this,true);
 			if (!extraParams.path)
 				extraParams.path = oMap.aipoints;
 			var aipoints = extraParams.path[decorData[5]];
@@ -6248,11 +6253,15 @@ function getDecorParams(self,i) {
 		return oMap.decorparams[type][i];
 	return {};
 }
-function getDecorExtra(self) {
+function getDecorExtra(self,actualType) {
 	var type = self.type;
-	if (oMap.decorparams && oMap.decorparams.extra && oMap.decorparams.extra[type])
-		return oMap.decorparams.extra[type];
-	return {};
+	var res = {};
+	if (oMap.decorparams && oMap.decorparams.extra && oMap.decorparams.extra[type]) {
+		res = oMap.decorparams.extra[type];
+		if (actualType && res.custom)
+			res = getDecorExtra(decorBehaviors[res.custom.type]);
+	}
+	return res;
 }
 
 function getApparentRotation(oPlayer, autorotate) {

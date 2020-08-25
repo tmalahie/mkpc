@@ -4138,8 +4138,7 @@ var commonTools = {
 				var isAsset = (actualType.substring(0,7) === "assets/");
 				var decorsData = selfData[type];
 				if (decorsData.length) {
-					if (!payload.decorparams[actualType])
-						payload.decorparams[actualType] = [];
+					payload.decorparams[type] = [];
 					if (isAsset) {
 						if (!payload.assets)
 							payload.assets = {};
@@ -4154,8 +4153,8 @@ var commonTools = {
 							break;
 						}
 					}
-					else if (!payload.decor[actualType])
-						payload.decor[actualType] = [];
+					else
+						payload.decor[type] = [];
 					for (var i=0;i<decorsData.length;i++) {
 						if (isAsset) {
 							switch (actualType) {
@@ -4175,8 +4174,7 @@ var commonTools = {
 							}
 						}
 						else {
-							var decorParams = null;
-							payload.decor[actualType].push(pointToData(decorsData[i].pos));
+							payload.decor[type].push(pointToData(decorsData[i].pos));
 							switch (actualType) {
 							case "cannonball":
 							case "snowball":
@@ -4186,36 +4184,38 @@ var commonTools = {
 							case "fire3star":
 							case "pendulum":
 								var dir = decorsData[i].dir ? Math.atan2(decorsData[i].dir.x,decorsData[i].dir.y) : null;
-								decorParams = {dir:isNaN(dir)?0:dir};
+								var decorParams = {dir:isNaN(dir)?0:dir};
 								if (actualType === "billball")
 									decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):460;
 								else if (actualType === "movingthwomp")
 									decorParams.length = decorsData[i].dir ? Math.hypot(decorsData[i].dir.x,decorsData[i].dir.y):0;
+								payload.decorparams[type].push(decorParams);
 								break;
 							case "truck":
-								decorParams = {traject:decorsData[i].traject||0};
-							}
-							if (customDecors[type]) {
-								if (!decorParams) decorParams = {};
-								decorParams.sprite = +customDecors[type].id;
-							}
-							if (decorParams) {
-								var nbDecors = payload.decor[actualType].length;
-								payload.decorparams[actualType][nbDecors-1] = decorParams;
+								payload.decorparams[type].push({traject:decorsData[i].traject||0});
 							}
 						}
 					}
-					if (payload.decorparams[actualType].length)
+					if (payload.decorparams[type].length) {
 						isDecorData = true;
+						if (actualType === "billball") {
+							isDecorExtra = true;
+							payload.decorparams.extra[type] = {
+								nb: Math.round(payload.decorparams[type].length*5/4)
+							};
+						}
+					}
 					else
-						delete payload.decorparams[actualType];
+						delete payload.decorparams[type];
+					if (customDecors[type]) {
+						isDecorExtra = true;
+						if (!payload.decorparams.extra[type]) payload.decorparams.extra[type] = {};
+						payload.decorparams.extra[type].custom = {
+							id: customDecors[type].id,
+							type: customDecors[type].type
+						};
+					}
 				}
-			}
-			if (payload.decorparams.billball) {
-				isDecorExtra = true;
-				payload.decorparams.extra.billball = {
-					nb: Math.round(payload.decorparams.billball.length*5/4)
-				};
 			}
 			if (self.data.extra.truck) {
 				var busData = self.data.extra.truck.route;
@@ -4241,22 +4241,23 @@ var commonTools = {
 		"restore" : function(self,payload) {
 			var selfData = self.data.decors;
 			for (var type in payload.decor) {
+				selfData[type] = [];
 				var decorsPayload = payload.decor[type];
 				var decorsParams = payload.decorparams ? payload.decorparams[type]:null;
 				decorsParams = decorsParams||[];
+				var decorsExtra = payload.decorparams && payload.decorparams.extra;
+				decorsExtra = decorsExtra||{};
 				for (var i=0;i<decorsPayload.length;i++) {
 					var decorParams = decorsParams[i] || {};
-					var customDecor = decorParams.sprite ? {id:decorParams.sprite,type:type} : null;
-					var actualType = decorParams.sprite ? getDecorKey(customDecor):type;
-					if (!selfData[actualType]) {
-						selfData[actualType] = [];
-						if (customDecor) {
-							var $btnDecor = selectCustomDecor(customDecor);
-							fetchCustomDecorData($btnDecor,customDecor);
-						}
-					}
+					var decorExtra = decorsExtra[type] || {};
+					var customDecor = decorExtra.custom;
+					var actualType = customDecor ? customDecor.type:type;
 					var decorData = {pos:dataToPoint(decorsPayload[i])};
-					switch (type) {
+					if (customDecor) {
+						var $btnDecor = selectCustomDecor(customDecor);
+						fetchCustomDecorData($btnDecor,customDecor);
+					}
+					switch (actualType) {
 					case "cannonball":
 					case "snowball":
 					case "billball":
@@ -4271,7 +4272,7 @@ var commonTools = {
 					case "truck":
 						decorData.traject = decorParams.traject || 0;
 					}
-					selfData[actualType].push(decorData);
+					selfData[type].push(decorData);
 				}
 			}
 			if (payload.decorparams && payload.decorparams.extra) {
@@ -4286,14 +4287,13 @@ var commonTools = {
 			}
 			if (payload.assets) {
 				for (var type in payload.assets) {
-					var actualType = type;
-					switch (actualType) {
+					switch (type) {
 					case "pointers":
 						selfData["assets/pivothand"] = [];
 					}
 					for (var i=0;i<payload.assets[type].length;i++) {
 						var assetPayload = payload.assets[type][i];
-						switch (actualType) {
+						switch (type) {
 						case "pointers":
 							var assetData = {pos:dataToPoint(assetPayload[1])};
 							var dir = assetPayload[2][2] || 0;
