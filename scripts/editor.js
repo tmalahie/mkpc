@@ -4255,7 +4255,7 @@ var commonTools = {
 					var decorData = {pos:dataToPoint(decorsPayload[i])};
 					if (customDecor) {
 						var $btnDecor = selectCustomDecor(customDecor);
-						fetchCustomDecorData($btnDecor,customDecor);
+						if ($btnDecor) fetchCustomDecorData($btnDecor,customDecor);
 					}
 					switch (actualType) {
 					case "cannonball":

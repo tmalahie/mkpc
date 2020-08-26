@@ -258,8 +258,6 @@ h2 {
     position: relative;
     margin-left: auto;
     margin-right: auto;
-    min-width: 32px;
-    min-height: 32px;
     overflow: hidden;
 }
 .decor-preview img {
@@ -267,7 +265,6 @@ h2 {
     left: 0;
     top: 0;
     height: 100%;
-    min-height: 32px;
 }
 .decor-preview img, .decors-list img {
     image-rendering: optimizeSpeed;

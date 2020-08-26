@@ -3,7 +3,7 @@ include('language.php');
 include('getId.php');
 include('initdb.php');
 require_once('utils-decors.php');
-$myDecors = mysql_query('SELECT * FROM mkdecors WHERE identifiant="'. $identifiants[0] .'"');
+$myDecors = mysql_query('SELECT * FROM mkdecors WHERE identifiant="'. $identifiants[0] .'" ORDER BY id DESC');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">

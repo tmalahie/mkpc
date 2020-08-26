@@ -13,6 +13,15 @@ if (isset($_GET['id'])) {
                 mysql_query('UPDATE `mkdecors` SET name="'. $decor['name'] .'" WHERE id="'. $_GET['id'] .'"');
             }
             $spriteSizes = decor_sprite_sizes($decor['type'],$decorSrcs['hd']);
+            $imgW = $spriteSizes['ld']['w'];
+            $imgH = $spriteSizes['ld']['h'];
+            $mW = 32;
+            $imgL = $imgH;
+            if ($imgL < $mW) {
+                $rescale = round($mW/$imgL);
+                $imgW *= $rescale;
+                $imgH *= $rescale;
+            }
 			?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -44,7 +53,7 @@ if (isset($_GET['id'])) {
 	?>
     <div class="decors-list-container">
         <div class="decor-edit-preview">
-            <div class="decor-preview" style="width:<?php echo $spriteSizes['ld']['w']; ?>px;height:<?php echo $spriteSizes['ld']['h']; ?>px">
+            <div class="decor-preview" style="width:<?php echo $imgW; ?>px;height:<?php echo $imgH; ?>px">
                 <img src="<?php echo $decorSrcs['hd'] ?>" alt="<?php echo htmlspecialchars($decor['name']); ?>" />
             </div>
             <a href="decorSprite.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? 'Edit image':'Modifier l\'image'; ?></a>
@@ -77,9 +86,7 @@ if (isset($_GET['id'])) {
             $img.onload = undefined;
             contentWidth = $div.offsetWidth;
             totalWidth = $img.offsetWidth;
-            if (contentWidth >= totalWidth)
-                $img.style.left = Math.round((contentWidth-totalWidth)/2) +"px";
-            else
+            if (contentWidth < totalWidth)
                 setInterval(rotateImg,500);
         }
         if ($img.naturalHeight && $img.complete)

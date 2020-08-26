@@ -2058,9 +2058,11 @@ function startGame() {
 			var decorBehavior = decorBehaviors[type];
 			var decorExtra = getDecorExtra(decorBehavior);
 			var customDecor = decorExtra.custom;
-			if (customDecor && decorBehaviors[customDecor.type]) {
-				Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
-				decorBehavior.type = type;
+			if (customDecor) {
+				if (decorBehaviors[customDecor.type]) {
+					Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
+					decorBehavior.type = type;
+				}
 				(function(decorBehavior) {
 					getCustomDecorData(customDecor, function(res) {
 						var sizeRatio = {
@@ -2104,8 +2106,9 @@ function startGame() {
 										decorData[2][j].nbSprites = res.size.nb_sprites;
 									decorData[2][j].w = Math.round(decorData[2][j].w*decorBehavior.size_ratio.w);
 									decorData[2][j].h = Math.round(decorData[2][j].h*decorBehavior.size_ratio.h);
-									if (decorData[2][j].z)
-										decorData[2][j].z *= decorBehavior.size_ratio.w/decorBehavior.size_ratio.h;
+									var z = (decorBehavior.size_ratio.w-decorBehavior.size_ratio.h)/(decorBehavior.size_ratio.w+decorBehavior.size_ratio.h);
+									z *= decorData[2][j].w/(2*decorData[2][j].h);
+									decorData[2][j].z += z;
 								}
 							});
 						})(decorData,decorBehavior);
