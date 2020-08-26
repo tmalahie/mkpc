@@ -725,7 +725,7 @@ function setPlanPos() {
 						if (decorBehavior.size_ratio) tObjWidth *= decorBehavior.size_ratio.w;
 						syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
 						if (firstRun && customDecor) {
-							(function(type) {
+							(function(type,decorBehavior) {
 								getCustomDecorData(customDecor.id, function(res) {
 									tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
 									for (var i=0;i<iPlanDecor[type].length;i++) {
@@ -735,7 +735,7 @@ function setPlanPos() {
 									}
 									syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
 								});
-							})(type);
+							})(type,decorBehavior);
 						}
 						var rotatable = decorBehavior.rotatable;
 						var relY;
@@ -2061,21 +2061,23 @@ function startGame() {
 			if (customDecor && decorBehaviors[customDecor.type]) {
 				Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
 				decorBehavior.type = type;
-				getCustomDecorData(customDecor.id, function(res) {
-					var sizeRatio = {
-						w: res.size.hd.w/res.original_size.hd.w,
-						h: res.size.hd.h/res.original_size.hd.h
-					}
-					decorBehavior.size_ratio = sizeRatio;
-					if (sizeRatio.w !== 1) {
-						var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
-						decorBehavior.hitbox = hitboxSize*sizeRatio.w;
-					}
-					if (sizeRatio.h !== 1) {
-						var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
-						decorBehavior.hitboxH = hitboxHeight*sizeRatio.h;
-					}
-				});
+				(function(decorBehavior) {
+					getCustomDecorData(customDecor.id, function(res) {
+						var sizeRatio = {
+							w: res.size.hd.w/res.original_size.hd.w,
+							h: res.size.hd.h/res.original_size.hd.h
+						}
+						decorBehavior.size_ratio = sizeRatio;
+						if (sizeRatio.w !== 1) {
+							var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
+							decorBehavior.hitbox = hitboxSize*sizeRatio.w;
+						}
+						if (sizeRatio.h !== 1) {
+							var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
+							decorBehavior.hitboxH = hitboxHeight*sizeRatio.h;
+						}
+					});
+				})(decorBehavior);
 			}
 			if (decorBehavior.preinit)
 				decorBehavior.preinit(oMap.decor[type]);
@@ -2094,16 +2096,18 @@ function startGame() {
 					decorData[2][0].unshow();
 				else {
 					if (customDecor) {
-						(function(decorData) {
+						(function(decorData,decorBehavior) {
 							getCustomDecorData(customDecor.id, function(res) {
 								for (var j=0;j<oPlayers.length;j++) {
 									decorData[2][j].img.src = res.hd;
 									decorData[2][j].nbSprites = res.size.nb_sprites;
-									decorData[2][j].w = res.size.ld.w;
-									decorData[2][j].h = res.size.ld.h;
+									decorData[2][j].w = Math.round(decorData[2][j].w*decorBehavior.size_ratio.w);
+									decorData[2][j].h = Math.round(decorData[2][j].h*decorBehavior.size_ratio.h);
+									if (decorData[2][j].z)
+										decorData[2][j].z *= decorBehavior.size_ratio.w/decorBehavior.size_ratio.h;
 								}
 							});
-						})(decorData);
+						})(decorData,decorBehavior);
 					}
 				}
 			}
