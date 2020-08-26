@@ -726,7 +726,7 @@ function setPlanPos() {
 						syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
 						if (firstRun && customDecor) {
 							(function(type,decorBehavior) {
-								getCustomDecorData(customDecor.id, function(res) {
+								getCustomDecorData(customDecor, function(res) {
 									tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
 									for (var i=0;i<iPlanDecor[type].length;i++) {
 										var iDecor = iPlanDecor[type][i];
@@ -2062,7 +2062,7 @@ function startGame() {
 				Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
 				decorBehavior.type = type;
 				(function(decorBehavior) {
-					getCustomDecorData(customDecor.id, function(res) {
+					getCustomDecorData(customDecor, function(res) {
 						var sizeRatio = {
 							w: res.size.hd.w/res.original_size.hd.w,
 							h: res.size.hd.h/res.original_size.hd.h
@@ -2097,10 +2097,11 @@ function startGame() {
 				else {
 					if (customDecor) {
 						(function(decorData,decorBehavior) {
-							getCustomDecorData(customDecor.id, function(res) {
+							getCustomDecorData(customDecor, function(res) {
 								for (var j=0;j<oPlayers.length;j++) {
 									decorData[2][j].img.src = res.hd;
-									decorData[2][j].nbSprites = res.size.nb_sprites;
+									if (res.size.nb_sprites)
+										decorData[2][j].nbSprites = res.size.nb_sprites;
 									decorData[2][j].w = Math.round(decorData[2][j].w*decorBehavior.size_ratio.w);
 									decorData[2][j].h = Math.round(decorData[2][j].h*decorBehavior.size_ratio.h);
 									if (decorData[2][j].z)
@@ -11720,10 +11721,11 @@ function getSpriteSrc(playerName) {
 		return PERSOS_DIR + playerName + ".png";
 	return "images/sprites/sprite_" + playerName +".png";
 }
-function getCustomDecorData(id,callback) {
+function getCustomDecorData(customData,callback) {
+	var id = customData.id, type = customData.type;
 	var retreivingData = false;
 	if (customDecorData[id]) {
-		if (customDecorData[id].data) {
+		if (customDecorData[id].data !== undefined) {
 			callback(customDecorData[id].data);
 			return;
 		}
@@ -11742,8 +11744,13 @@ function getCustomDecorData(id,callback) {
 			data = JSON.parse(res);
 		}
 		catch (e) {
-			delete customDecorData[id];
-			return true;
+			data = {
+				"id":id,
+				"hd":"images/sprites/sprite_"+type+".png",
+				"map":"images/map_icons/"+type+".png",
+				"size":{"hd":{"w":32,"h":32}},
+				"original_size":{"hd":{"w":32,"h":32}}
+			};
 		};
 		customDecorData[id].data = data;
 		var customDecorCallbacks = customDecorData[id].callbacks;
