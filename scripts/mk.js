@@ -2084,16 +2084,25 @@ function startGame() {
 			if (decorBehavior.preinit)
 				decorBehavior.preinit(oMap.decor[type]);
 		}
+		var decorIncs = {};
 		for (var type in oMap.decor) {
 			var decorBehavior = decorBehaviors[type];
 			var decorExtra = getDecorExtra(decorBehavior);
 			var customDecor = decorExtra.custom;
+			var actualType = customDecor ? customDecor.type:type;
+
+			var inc = 0;
+			if (decorIncs[actualType])
+				inc = decorIncs[actualType];
+			else
+				decorIncs[actualType] = 0;
+			
 			var decorsData = oMap.decor[type];
 			for (var i=0;i<decorsData.length;i++) {
 				var decorData = decorsData[i];
 				decorData[2] = new Sprite(type);
 				if (decorBehavior.init)
-					decorBehavior.init(decorData,i);
+					decorBehavior.init(decorData,i,i+inc);
 				if (gameSettings.ld && decorBehavior.hidable)
 					decorData[2][0].unshow();
 				else {
@@ -2115,6 +2124,7 @@ function startGame() {
 					}
 				}
 			}
+			decorIncs[actualType] += decorsData.length;
 		}
 	}
 	function spinKart(nb) {
@@ -4611,10 +4621,10 @@ function redrawCanvas(i, posX,posY, fRotation) {
 var decorBehaviors = {
 	taupe:{
 		spin: 20,
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			if (decorData.length > 3) return;
 			decorData[3] = 0;
-			decorData[4] = (i%2) ? 9:0;
+			decorData[4] = (iG%2) ? 9:0;
 		},
 		move:function(decorData) {
 			decorData[4]++;
@@ -4646,12 +4656,12 @@ var decorBehaviors = {
 			for (var i=0;i<decorsData.length;i++)
 				this.scope.limite[i] = [0,0];
 		},
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			if (decorData.length > 3) return;
 			var pos1 = [3,0];
 			var pos2 = [-1,1];
-			decorData[3] = pos1[i%2];
-			decorData[4] = pos2[i%2];
+			decorData[3] = pos1[iG%2];
+			decorData[4] = pos2[iG%2];
 		},
 		move:function(decorData,i) {
 			decorData[3] += decorData[4];
@@ -4680,8 +4690,8 @@ var decorBehaviors = {
 			this.move_ = decorBehaviors.poisson.move.bind(this);
 			this.preinit(decorsData);
 		},
-		move: function(decorData,i) {
-			this.move_(decorData,i);
+		move: function(decorData,i,iG) {
+			this.move_(decorData,i,iG);
 			if (decorData[3]%3 == 0) {
 				for (var j=0;j<oPlayers.length;j++)
 					decorData[2][j].setState(decorData[3] ? 1:0);
@@ -4690,10 +4700,10 @@ var decorBehaviors = {
 	},
 	plante:{
 		spin: 20,
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			if (decorData.length > 3) return;
 			decorData[3] = undefined;
-			decorData[4] = (1+i*2)%8;
+			decorData[4] = (1+iG*2)%8;
 		},
 		move:function(decorData) {
 			decorData[4]++;
@@ -4710,12 +4720,12 @@ var decorBehaviors = {
 	},
 	thwomp:{
 		spin: 20,
-		init: function(decorData,i) {
+		init: function(decorData,i,iG) {
 			if (decorData.length > 3) return;
 			var pos1 = [20,0];
 			var pos2 = [0,10];
-			decorData[3] = pos1[i%2];
-			decorData[4] = pos2[i%2];
+			decorData[3] = pos1[iG%2];
+			decorData[4] = pos2[iG%2];
 		},
 		move: function(decorData) {
 			if (decorData[4] < 0) {
@@ -4741,8 +4751,8 @@ var decorBehaviors = {
 	},
 	spectre:{
 		spin: 20,
-		init:function(decorData,i) {
-			decorBehaviors.thwomp.init(decorData,i);
+		init:function(decorData,i,iG) {
+			decorBehaviors.thwomp.init(decorData,i,iG);
 		},
 		move:function(decorData) {
 			decorBehaviors.thwomp.move(decorData);
@@ -4765,17 +4775,17 @@ var decorBehaviors = {
 		spin: 20,
 		movable:true,
 		transparent:true,
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 3;
 				decorData[2][j].h = 30;
 				decorData[2][j].w = decorData[2][j].h*16/17;
 			}
 			if (decorData[4] == undefined)
-				decorData[4] = (10000*Math.sin(i+1))%Math.PI;
+				decorData[4] = (10000*Math.sin(iG+1))%Math.PI;
 			var initPos = decorData[5];
 			if (initPos == undefined)
-				initPos = (i*137)%400;
+				initPos = (iG*137)%400;
 			decorData[5] = 0;
 			while (decorData[5] != initPos)
 				this.move(decorData);
@@ -4829,8 +4839,8 @@ var decorBehaviors = {
 			this.init_ = decorBehaviors.crabe.init.bind(this);
 			this.move = decorBehaviors.crabe.move.bind(this);
 		},
-		init:function(decorData,i) {
-			this.init_(decorData,i);
+		init:function(decorData,i,iG) {
+			this.init_(decorData,i,iG);
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 2;
 				decorData[2][j].w = 32;
@@ -4859,14 +4869,14 @@ var decorBehaviors = {
 		dodgable:true,
 		hitbox:6,
 		hitboxH:7,
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 3;
 				decorData[2][j].img.style.display = "none";
 			}
 			decorData[3] = 10;
 			if (!decorData[4])
-				decorData[4] = (1+50*i)%280;
+				decorData[4] = (1+50*iG)%280;
 			if (!decorData[5])
 				decorData[5] = 0;
 			if (!decorData[6])
@@ -4877,8 +4887,8 @@ var decorBehaviors = {
 			decorData[0] = -10;
 			decorData[1] = -10;
 		},
-		move:function(decorData,i) {
-			var rSeed = timer+i;
+		move:function(decorData,i,iG) {
+			var rSeed = timer+iG;
 			if (oPlayers[0].cpu)
 				rSeed = 10000*Math.random();
 			switch (decorData[5]) {
@@ -4916,7 +4926,7 @@ var decorBehaviors = {
 			case 2:
 				var x = (18-decorData[4])/18;
 				if (x >= 0) {
-					var e = (i%2)?1:-1;
+					var e = (iG%2)?1:-1;
 					decorData[0] = decorData[9][0] - 4*x*e*Math.cos(4*x) + x*Math.sin(rSeed);
 					decorData[1] = decorData[9][1] - 4*x*e*Math.sin(4*x) + x*Math.sin(rSeed+1);
 					decorData[3] = Math.max(1.2*Math.sin(4*x) + x*0.3*Math.sin(rSeed+1), 0);
@@ -4990,7 +5000,7 @@ var decorBehaviors = {
 			for (var i=0;i<oMap.decor.fireplant.length;i++)
 				oMap.decor.fireball.push([-10,-10]);
 		},
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 4;
 				decorData[2][j].w = 54;
@@ -4998,9 +5008,9 @@ var decorBehaviors = {
 				decorData[2][j].z = 0.16;
 			}
 			if (decorData[4] == undefined)
-				decorData[4] = (10000*Math.sin(i+1))%(2*Math.PI);
+				decorData[4] = (10000*Math.sin(iG+1))%(2*Math.PI);
 			if (decorData[5] == undefined)
-				decorData[5] = i*17%65;
+				decorData[5] = iG*17%65;
 			decorData[6] = decorData[4];
 			decorData[7] = 0;
 		},
@@ -5076,8 +5086,8 @@ var decorBehaviors = {
 			this.init_ = decorBehaviors.plante.init.bind(this);
 			this.move = decorBehaviors.plante.move.bind(this);
 		},
-		init:function(decorData,i) {
-			this.init_(decorData,i);
+		init:function(decorData,i,iG) {
+			this.init_(decorData,i,iG);
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 2;
 				decorData[2][j].w = 32;
@@ -5091,7 +5101,7 @@ var decorBehaviors = {
 		transparent:true,
 		unbreaking:true,
 		movable:true,
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].w = 32;
 				decorData[2][j].h = 192;
@@ -5100,11 +5110,11 @@ var decorBehaviors = {
 			if (decorData[4] == undefined)
 				decorData[4] = [[decorData[0],decorData[1],0,40],[decorData[0],decorData[1],20,40]];
 			if (decorData[5] == undefined)
-				decorData[5] = Math.round(10000*Math.abs(Math.sin(i+3)))%decorData[4].length;
+				decorData[5] = Math.round(10000*Math.abs(Math.sin(iG+3)))%decorData[4].length;
 			if (decorData[6] == undefined)
-				decorData[6] = 2*Math.round(10000*Math.abs(Math.sin(i+2))%1)-1;
+				decorData[6] = 2*Math.round(10000*Math.abs(Math.sin(iG+2))%1)-1;
 			if (decorData[7] == undefined)
-				decorData[7] = Math.round(10000*Math.abs(Math.sin(i+1)))%40;
+				decorData[7] = Math.round(10000*Math.abs(Math.sin(iG+1)))%40;
 		},
 		move: function(decorData,i) {
 			if (decorData[7])
@@ -5192,8 +5202,8 @@ var decorBehaviors = {
 				decorData[7] = fireGroups;
 			}
 		},
-		init: function(decorData,i) {
-			this.move(decorData,i);
+		init: function(decorData,i,iG) {
+			this.move(decorData,i,iG);
 		},
 		move: function(decorData,i) {
 			var x = decorData[0], y = decorData[1], z = decorData[3], phi = decorData[4], omega = decorData[5], theta = decorData[6];
@@ -5247,8 +5257,8 @@ var decorBehaviors = {
 				decorData[7] = fireGroup;
 			}
 		},
-		init: function(decorData,i) {
-			this.move(decorData,i);
+		init: function(decorData,i,iG) {
+			this.move(decorData,i,iG);
 		},
 		move: function(decorData,i) {
 			var x = decorData[0], y = decorData[1], z = decorData[3], phi = decorData[4], omega = decorData[5], theta = decorData[6];
@@ -5421,8 +5431,8 @@ var decorBehaviors = {
 			this.init_ = decorBehaviors.taupe.init.bind(this);
 			this.move = decorBehaviors.taupe.move.bind(this);
 		},
-		init:function(decorData,i) {
-			this.init_(decorData,i);
+		init:function(decorData,i,iG) {
+			this.init_(decorData,i,iG);
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 1;
 				decorData[2][j].w = 24;
@@ -5506,7 +5516,7 @@ var decorBehaviors = {
 		hitbox:11.5,
 		movable:true,
 		unbreaking:true,
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 1;
 				decorData[2][j].w = 85;
@@ -5514,7 +5524,7 @@ var decorBehaviors = {
 				decorData[2][j].z = 0.12;
 				decorData[3] = 0;
 				if (!decorData[4]) {
-					var sg = (i%2) ? 1:-1;
+					var sg = (iG%2) ? 1:-1;
 					decorData[4] = [
 						[decorData[0]+25*sg,decorData[1]],
 						[decorData[0],decorData[1]-25*sg],
@@ -5523,7 +5533,7 @@ var decorBehaviors = {
 					];
 				}
 				if (decorData[5] == undefined)
-					decorData[5] = i%decorData[4].length;
+					decorData[5] = iG%decorData[4].length;
 				if (decorData[6] == undefined)
 					decorData[6] = 0;
 			}
@@ -5563,7 +5573,7 @@ var decorBehaviors = {
 		spin: 42,
 		movable:true,
 		dodgable:true,
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 5;
 				decorData[2][j].h = 82;
@@ -5576,9 +5586,9 @@ var decorBehaviors = {
 			if (decorData[4].length == 2)
 				decorData[4].unshift(decorData[0],decorData[1]);
 			if (decorData[5] == undefined)
-				decorData[5] = [(10000*Math.sin(i+1))%Math.PI,Math.sign(Math.sin(1+100*i))*0.025];
+				decorData[5] = [(10000*Math.sin(iG+1))%Math.PI,Math.sign(Math.sin(1+100*iG))*0.025];
 			if (decorData[6] == undefined)
-				decorData[6] = Math.floor(10000*Math.pow(Math.sin(i+1),2))%16;
+				decorData[6] = Math.floor(10000*Math.pow(Math.sin(iG+1),2))%16;
 			this.repos(decorData);
 		},
 		repos:function(decorData) {
@@ -5660,14 +5670,25 @@ var decorBehaviors = {
 			if (decorsData.length && (decorsData[0][4] == undefined)) {
 				this.init = decorBehaviors.cannonball.init.bind(this);
 				this.move_ = decorBehaviors.cannonball.move.bind(this);
-				this.move = function(decorData,i) {
+				this.move = function(decorData,i,iG) {
 					for (var j=0;j<oPlayers.length;j++)
 						decorData[2][j].setState((decorData[2][j].getState()+1)%3);
-					this.move_(decorData,i);
+					this.move_(decorData,i,iG);
 				}
 				this.setdir = decorBehaviors.cannonball.setdir.bind(this);
 				this.autojump = decorBehaviors.cannonball.autojump.bind(this);
 			}
+		},
+		init:function(decorData) {
+			for (var j=0;j<strPlayer.length;j++) {
+				decorData[2][j].nbSprites = 3;
+				decorData[2][j].w = 56;
+				decorData[2][j].h = 56;
+				decorData[2][j].z = 0.28;
+			}
+			decorData[3] = 0;
+			decorData[4].unshift([decorData[0],decorData[1]]);
+			decorData[5] = [1,0];
 		},
 		move:function(decorData) {
 			var dSpeed0 = 3.5, dSpeed = dSpeed0;
@@ -5767,7 +5788,7 @@ var decorBehaviors = {
 			decorData[6][3] = nMove;
 			this.setdir(decorData,nMoveX/nMove,nMoveY/nMove,decorData[4][2]);
 		},
-		init:function(decorData,i) {
+		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				if (!decorData[2][j].nbSprites) {
 					decorData[2][j].nbSprites = 1;
@@ -5781,7 +5802,7 @@ var decorBehaviors = {
 				decorData[4] = [[],[]];
 				var decorParams = getDecorParams(this,i);
 				var th = decorParams.dir;
-				if (isNaN(th)) th = ((10000*Math.sin(i+2))%Math.PI);
+				if (isNaN(th)) th = ((10000*Math.sin(iG+2))%Math.PI);
 				this.setdir(decorData,Math.sin(th),Math.cos(th));
 				if (!decorData[5])
 					decorData[5] = {0:{autoDir:true,pos0:[decorData[0],decorData[1]]},1:{autoDir:true,loop:[0]}};
@@ -5790,7 +5811,7 @@ var decorBehaviors = {
 				decorData[5] = {};
 			decorData[6] = [0,0,5];
 		},
-		move:function(decorData,i) {
+		move:function(decorData,i,iG) {
 			var dSpeed = decorData[6][2];
 			if (decorData[6][4]) {
 				dSpeed = Math.max(this.boostspeed,dSpeed);
@@ -5865,7 +5886,7 @@ var decorBehaviors = {
 										decorData[1] = decorData[5][0].pos0[1];
 										decorData[4] = null;
 										decorData[5] = null;
-										this.init(decorData,i);
+										this.init(decorData,i,iG);
 									}
 								}
 								fMoveX = 0;
@@ -6157,7 +6178,7 @@ var decorBehaviors = {
 		spin: 42,
 		unbreaking:true,
 		movable:true,
-		init: function(decorData,i) {
+		init: function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 8;
 				decorData[2][j].w = 92;
@@ -6165,12 +6186,12 @@ var decorBehaviors = {
 				decorData[2][j].z = 0.33;
 			}
 			if (decorData[3] == undefined)
-				decorData[3] = (10000*Math.abs(Math.sin(i+1)))%3;
+				decorData[3] = (10000*Math.abs(Math.sin(iG+1)))%3;
 			if (decorData[4] == undefined) {
 				decorData[4] = [];
 				var r = 40, n = 6;
-				var th0 = (10000*Math.sin(i+2))%Math.PI;
-				var dth = 2*Math.PI/n * Math.sign(Math.sin(1+80*i));
+				var th0 = (10000*Math.sin(iG+2))%Math.PI;
+				var dth = 2*Math.PI/n * Math.sign(Math.sin(1+80*iG));
 				for (var j=0;j<n;j++) {
 					var th = th0 + j*dth;
 					decorData[4].push([decorData[0]+r*Math.cos(th),decorData[1]+r*Math.sin(th)]);
@@ -6179,7 +6200,7 @@ var decorBehaviors = {
 			if (decorData[5] == undefined)
 				decorData[5] = 0;
 			if (decorData[6] == undefined)
-				decorData[6] = (i%2) ? 1:-1;
+				decorData[6] = (iG%2) ? 1:-1;
 		},
 		move:function(decorData,i) {
 			decorData[3] += decorData[6];
@@ -6231,7 +6252,7 @@ var decorBehaviors = {
 		spin: 42,
 		unbreaking: true,
 		movable: true,
-		init: function(decorData,i) {
+		init: function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 1;
 				decorData[2][j].w = 60;
@@ -6241,12 +6262,12 @@ var decorBehaviors = {
 			}
 			decorData[5] = [decorData[0],decorData[1],0,-1];
 			if (decorData[4] == undefined) {
-				decorData[4] = ((10000*Math.sin(i+1))%(Math.PI/3));
+				decorData[4] = ((10000*Math.sin(iG+1))%(Math.PI/3));
 				var decorParams = getDecorParams(this,i);
 				var th = decorParams.dir;
 				if (isNaN(th)) {
-					decorData[5][2] = 10000*Math.sin(i+1)%Math.PI;
-					decorData[5][3] = Math.sin(1200*(i+1)+1)>0 ? 1:-1;
+					decorData[5][2] = 10000*Math.sin(iG+1)%Math.PI;
+					decorData[5][3] = Math.sin(1200*(iG+1)+1)>0 ? 1:-1;
 				}
 				else {
 					decorData[5][2] = th;
@@ -6296,6 +6317,13 @@ function getDecorExtra(self,actualType) {
 			res = getDecorExtra(decorBehaviors[res.custom.type]);
 	}
 	return res;
+}
+
+function getDecorActualType(self) {
+	var extra = getDecorExtra(decorBehaviors[self.type]);
+	if (extra.custom)
+		return extra.custom.type;
+	return self.type;
 }
 
 function getApparentRotation(oPlayer, autorotate) {
@@ -11410,11 +11438,22 @@ function moveDecor() {
 				decorPos[type].push({aX:decor[i][0],aY:decor[i][1],x:decor[i][0],y:decor[i][1],vX:0,vY:0});
 		}
 	}
+	var decorIncs = {};
 	for (var type in oMap.decor) {
 		var decor = oMap.decor[type];
-		if (decorBehaviors[type].move) {
+		var decorBehavior = decorBehaviors[type];
+		if (decorBehavior.move) {
+			var actualType = getDecorActualType(decorBehavior);
+			var inc = 0;
+			if (decorIncs[actualType])
+				inc = decorIncs[actualType];
+			else
+				decorIncs[actualType] = 0;
+			
 			for (var i=0;i<decor.length;i++)
-				decorBehaviors[type].move(decor[i],i);
+				decorBehavior.move(decor[i],i,i+inc);
+			
+			decorIncs[actualType] += decor.length;
 		}
 	}
 	for (var type in decorPos) {
