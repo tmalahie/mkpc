@@ -4980,8 +4980,13 @@ var decorBehaviors = {
 	fireplant:{
 		hitbox:7,
 		unbreaking:true,
-		preinit:function(decorsData) {
-			oMap.decor.fireball = new Array();
+		preinit:function() {
+			if (oMap.decor.fireball)
+				this.fireball0 = oMap.decor.fireball.length;
+			else {
+				this.fireball0 = 0;
+				oMap.decor.fireball = new Array();
+			}
 			for (var i=0;i<oMap.decor.fireplant.length;i++)
 				oMap.decor.fireball.push([-10,-10]);
 		},
@@ -5009,7 +5014,7 @@ var decorBehaviors = {
 					decorData[2][j].setState(decorData[2][j].getState()+1);
 			}
 			else if (decorData[5] == -7) {
-				var oFireball = oMap.decor.fireball[i];
+				var oFireball = oMap.decor.fireball[this.fireball0+i];
 				oFireball[0] = decorData[0];
 				oFireball[1] = decorData[1];
 				for (var j=0;j<strPlayer.length;j++) {
