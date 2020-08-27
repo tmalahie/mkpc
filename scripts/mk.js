@@ -5645,6 +5645,7 @@ var decorBehaviors = {
 		},
 		jumpheight: 32,
 		boostspeed:8,
+		spritesize: 56,
 		ondie: function(x) {
 			if (x > -100)
 				return "wait";
@@ -5661,17 +5662,6 @@ var decorBehaviors = {
 				}
 				this.setdir = decorBehaviors.cannonball.setdir.bind(this);
 				this.autojump = decorBehaviors.cannonball.autojump.bind(this);
-			}
-		},
-		init:function(decorData) {
-			for (var j=0;j<strPlayer.length;j++) {
-				decorData[2][j].nbSprites = 3;
-				decorData[2][j].w = 56;
-				decorData[2][j].h = 56;
-				decorData[2][j].z = 0.28;
-				decorData[3] = 0;
-				decorData[4].unshift([decorData[0],decorData[1]]);
-				decorData[5] = [1,0];
 			}
 		},
 		move:function(decorData) {
@@ -5746,6 +5736,7 @@ var decorBehaviors = {
 		},
 		jumpheight: 48,
 		boostspeed:11,
+		spritesize: 60,
 		ondie: function() {
 			return "suppr";
 		},
@@ -5773,10 +5764,12 @@ var decorBehaviors = {
 		},
 		init:function(decorData,i) {
 			for (var j=0;j<strPlayer.length;j++) {
-				decorData[2][j].nbSprites = 1;
-				decorData[2][j].w = 60;
-				decorData[2][j].h = decorData[2][j].w;
-				decorData[2][j].z = 0.33;
+				if (!decorData[2][j].nbSprites) {
+					decorData[2][j].nbSprites = 1;
+					decorData[2][j].w = this.spritesize;
+					decorData[2][j].h = this.spritesize;
+					decorData[2][j].z = 0.33;
+				}
 			}
 			decorData[3] = 0;
 			if (!decorData[4]) {
