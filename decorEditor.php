@@ -141,13 +141,14 @@ if (isset($error))
                 <ul>
                     <li>Choose a decor type, which defines its behavior.
                     If you select the thwomp <img src="images/map_icons/thwomp.png" alt="Thwomp" /> for example, your decor will behave exactly like the thwomp of MKPC (goes up slowly and falls down quckly).</li>
-                    <li>Create an image (via a drawing software) containing the decor sprite(s) in order to give it the appearance you want. The image must fit the dimensions of the original decor.</li>
+                    <li>Create an image (via a drawing software) containing the decor sprite(s) in order to give it the appearance you want.</li>
                 </ul>
             </div>
             <div class="description">
                 For exemple, the Piranha plant is modelled by the following image:<br />
                 <img src="images/sprites/sprite_fireplant.png" alt="Plant Sprite" /><br />
-                If you select this type, you thus must provide an image of size 96&times;40 with the 4 sprites aligned in the same way (so 24&times;40 for each sprite).<br />
+                Thus, if you select this type, you must provide an image with the 4 sprites aligned in the same way.<br />
+                You don't have to keep the same dimensions as the original sprite, but all your sprites should be the same size (in particular, in the example above, your image width must be a multiple of 4).<br />
                 For more information about how sprites work, go to the <a href="persoEditor">character editor</a> which functions on the same principle.
             </div>
             <?php
@@ -159,13 +160,14 @@ if (isset($error))
                 <ul>
                     <li>Choisir un type de décor, ce qui définit son comportement.
                     Si vous sélectionnez le thwomp <img src="images/map_icons/thwomp.png" alt="Thwomp" /> par exemple, votre décor se comportera exactement comme le thwomp de MKPC (monte progressivement et tombe brusquement).</li>
-                    <li>Créer une image (via un logiciel de dessin) contenant le ou les sprites du décor afin de lui donner l'apparence que vous souhaitez. L'image doit respecter les dimensions du décor d'origine.</li>
+                    <li>Créer une image (via un logiciel de dessin) contenant le ou les sprites du décor afin de lui donner l'apparence que vous souhaitez.</li>
                 </ul>
             </div>
             <div class="description">
                 Par exemple, le plante Piranha est modélisée par l'image suivante :<br />
                 <img src="images/sprites/sprite_fireplant.png" alt="Sprite Plante" /><br />
-                Si vous sélectionnez ce type, vous devrez ainsi fournir une image de taille 96&times;40 avec les 4 sprites alignés de la même façon (soit 24&times;40 pour chaque sprite).<br />
+                Si vous sélectionnez ce type, vous devrez ainsi fournir une image avec les 4 sprites alignés de la même façon.<br />
+                Vous n'êtes pas obligé de garder les mêmes dimensions que le sprite d'origine, mais tous vos sprites doivent avoir la même taille (en particulier, dans l'exemple ci-dessus, la largeur de votre image doit être un multiple de 4).<br />
                 Pour plus d'informations sur le fonctionnement des sprites, rendez-vous dans l'<a href="persoEditor">éditeur de persos</a> qui utilise le même principe.
             </div>
             <hr />
