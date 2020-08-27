@@ -2072,11 +2072,13 @@ function startGame() {
 						decorBehavior.size_ratio = sizeRatio;
 						if (sizeRatio.w !== 1) {
 							var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
-							decorBehavior.hitbox = hitboxSize*sizeRatio.w;
+							var hitboxConst = 1;
+							decorBehavior.hitbox = hitboxConst + (hitboxSize-hitboxConst)*sizeRatio.w;
 						}
 						if (sizeRatio.h !== 1) {
 							var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
-							decorBehavior.hitboxH = hitboxHeight*sizeRatio.h;
+							var hitboxConst = 0.8;
+							decorBehavior.hitboxH = hitboxConst + (hitboxHeight-hitboxConst)*sizeRatio.h;
 						}
 					});
 				})(decorBehavior);
