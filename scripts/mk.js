@@ -9643,19 +9643,26 @@ function move(getId) {
 					case "oils":
 						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne) {
 							stopDrifting(getId);
+							loseBall(getId);
 							oKart.spin(20);
 						}
 						stopped = false;
 						break;
 					case "pointers":
-						if (hittable)
+						if (hittable) {
+							stopDrifting(getId);
+							loseBall(getId);
 							oKart.spin(42);
+						}
 						else
 							stopped = false;
 						break;
 					case "flippers":
-						if (hittable)
+						if (hittable) {
+							stopDrifting(getId);
+							loseBall(getId);
 							oKart.spin(42);
+						}
 						oKart.speed *= -1;
 						var pushSpeed = 8;
 						switch (asset[1][3][0]) {
