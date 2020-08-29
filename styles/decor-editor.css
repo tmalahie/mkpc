@@ -352,3 +352,8 @@ h2 {
 .advanced-option .option-label {
     white-space: nowrap;
 }
+.decors-bottom {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	height: 60px;
+}
