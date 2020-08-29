@@ -33,8 +33,23 @@ if (isset($id)) {
 				imagecopy($image, $objetImg, $objet[0],$objet[1], 0,0, $w,$h);
 			
 			$decors = $circuitData->decor;
+			$decorParams = isset($circuitData->decorparams) ? $circuitData->decorparams:new \stdClass();
+			$decorExtra = isset($decorParams->extra) ? $decorParams->extra:new \stdClass();
+			require_once('utils-decors.php');
 			foreach ($decors as $type=>$decorsData) {
-				$decorImg = imagecreatefrompng('images/map_icons/'.$type.'.png');
+				if (isset($decorExtra->{$type}) && isset($decorExtra->{$type}->custom)) {
+					$customDecor = $decorExtra->{$type}->custom;
+					$decorId = +$customDecor->id;
+					$actualType = $customDecor->type;
+					if ($customData = mysql_fetch_array(mysql_query('SELECT sprites FROM mkdecors WHERE id='. $decorId))) {
+						$decorSrcs = decor_sprite_srcs($customData['sprites']);
+						$decorImg = imagecreatefrompng($decorSrcs['map']);
+					}
+				}
+				else
+					$actualType = $type;
+				if (!isset($decorImg))
+					$decorImg = imagecreatefrompng('images/map_icons/'.$actualType.'.png');
 				$w = imagesx($decorImg);
 				$h = imagesy($decorImg);
 				if ($w) {
@@ -44,6 +59,7 @@ if (isset($id)) {
 					foreach ($decorsData as $decorData)
 						imagecopyresampled($image, $decorImg, $decorData[0]-round($rW/2),$decorData[1]-round($rH/2), 0,0, $rW,$rH, $w,$h);
 				}
+				unset($decorImg);
 			}
 		}
 
