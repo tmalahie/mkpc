@@ -425,9 +425,9 @@ $slidesPath = 'images/slides';
 			<p>
 				<?php
 				if ($language)
-					echo 'You want to become partner of Mario Kart PC ? Contact me by email at <a href="mailto:t.malahieude@gmail.com?subject=Mario%20Kart%20PC%20partnership">t.malahieude@gmail.com</a>.';
+					echo 'You want to become partner of Mario Kart PC ? Contact me via PM on MKPC or Discord.';
 				else
-					echo 'Vous souhaitez devenir partenaire de Mario Kart PC ? Contactez-moi par e-mail à <a href="mailto:t.malahieude@gmail.com?subject=Partenariat%20Mario%20Kart%20PC">t.malahieude@gmail.com</a>.';
+					echo 'Vous souhaitez devenir partenaire de Mario Kart PC ? Contactez-moi par MP sur MKPC ou Discord.';
 				?>
 			</p>
 		</div>
@@ -437,6 +437,7 @@ $slidesPath = 'images/slides';
 			if ($language) {
 				?>
 				<ul>
+					<li><a href="https://discord.gg/VkeAxaj">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.</li>
 					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Official Youtube Channel</a> : find out videos about the game and informations about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="topic.php?topic=3392">official topic</a>.</li>
 					<li><a href="https://twitter.com/MarioKartPC">Twitter Page</a> and <a href="https://www.facebook.com/groups/126497814060671/">Facebook Group</a> of the game: follow then to be informed of the latest news concerning the site!</li>
 					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on the <a href="topic.php?topic=343">this topic</a>!</li>
@@ -446,6 +447,7 @@ $slidesPath = 'images/slides';
 			else {
 				?>
 				<ul>
+					<li><a href="https://discord.gg/VkeAxaj">Serveur Discord</a> du site : rejoignez-le pour discuter avec la communauté et être informé des mises à jours et événements.</li>
 					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Chaîne Youtube Officielle</a> : retrouvez des vidéos sur le jeu et des informations sur le site et ses évenements. La chaîne est alimentée par les membres, si vous voulez participez, parlez-en sur <a href="topic.php?topic=3392">le topic officiel</a>.</li>
 					<li><a href="https://twitter.com/MarioKartPC">Page Twitter</a> et <a href="https://www.facebook.com/groups/126497814060671/">Groupe Facebook</a> du jeu : suivez-les pour être au courant des dernières actualités du site !</li>
 					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">Wiki MKPC</a> : retrouvez toutes les informations sur le jeu et son histoire. Ce site est maintenu par les membres, si vous voulez contribuer, parlez-en sur <a href="topic.php?topic=343">ce topic</a> !</li>

@@ -705,6 +705,7 @@ a.forum-auteur:hover {
 	background-color: #FFE30C;
 	border: solid 1px white;
 	margin: 2px;
+	max-width: calc(100vw - 200px);
 }
 .advanced-search input:not([type="submit"]):hover, .advanced-search select:hover, .advanced-search textarea:hover {
 	background-color: yellow;
