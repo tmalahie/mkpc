@@ -4999,7 +4999,7 @@ var decorBehaviors = {
 				this.fireball0 = 0;
 				oMap.decor.fireball = new Array();
 			}
-			for (var i=0;i<oMap.decor.fireplant.length;i++)
+			for (var i=0;i<oMap.decor[this.type].length;i++)
 				oMap.decor.fireball.push([-10,-10]);
 		},
 		init:function(decorData,i,iG) {
