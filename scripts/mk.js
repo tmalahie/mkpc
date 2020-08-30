@@ -4607,16 +4607,18 @@ function redrawCanvas(i, posX,posY, fRotation) {
 
 		var oStrip = aStrips[j];
 
-		oScreenContext.drawImage(
-			oViewCanvas,
-			(iViewCanvasWidth-oStrip.stripwidth)/2,
-			iViewCanvasYOffset - oStrip.mapz,
-			oStrip.stripwidth,
-			oStrip.mapzspan,
+		try {
+			oScreenContext.drawImage(
+				oViewCanvas,
+				(iViewCanvasWidth-oStrip.stripwidth)/2,
+				iViewCanvasYOffset - oStrip.mapz,
+				oStrip.stripwidth,
+				oStrip.mapzspan,
 
-			0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
-		);
-
+				0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
+			);
+		}
+		catch (e) {}
 	}
 }
 
