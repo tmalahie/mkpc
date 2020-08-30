@@ -149,7 +149,7 @@ if (isset($error))
                 <img src="images/sprites/sprite_fireplant.png" alt="Plant Sprite" /><br />
                 Thus, if you select this type, you must provide an image with the 4 sprites aligned in the same way.<br />
                 You don't have to keep the same dimensions as the original sprite, but all your sprites should be the same size (in particular, in the example above, your image width must be a multiple of 4).<br />
-                For more information about how sprites work, go to the <a href="persoEditor">character editor</a> which functions on the same principle.
+                For more information about how sprites work, go to the <a href="persoEditor.php">character editor</a> which functions on the same principle.
             </div>
             <?php
         }
@@ -168,7 +168,7 @@ if (isset($error))
                 <img src="images/sprites/sprite_fireplant.png" alt="Sprite Plante" /><br />
                 Si vous sélectionnez ce type, vous devrez ainsi fournir une image avec les 4 sprites alignés de la même façon.<br />
                 Vous n'êtes pas obligé de garder les mêmes dimensions que le sprite d'origine, mais tous vos sprites doivent avoir la même taille (en particulier, dans l'exemple ci-dessus, la largeur de votre image doit être un multiple de 4).<br />
-                Pour plus d'informations sur le fonctionnement des sprites, rendez-vous dans l'<a href="persoEditor">éditeur de persos</a> qui utilise le même principe.
+                Pour plus d'informations sur le fonctionnement des sprites, rendez-vous dans l'<a href="persoEditor.php">éditeur de persos</a> qui utilise le même principe.
             </div>
             <hr />
             <?php
