@@ -11,7 +11,7 @@ $myDecors = mysql_query('SELECT * FROM mkdecors WHERE identifiant="'. $identifia
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
 <link rel="stylesheet" href="styles/decor-editor.css" />
 <script type="text/javascript">
 function selectDecor(elt) {
