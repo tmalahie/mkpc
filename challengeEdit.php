@@ -176,7 +176,18 @@ function selectMainRule() {
 			'<input type="hidden" name="goal[value]" value="[]" />'+
 			'<button type="button" onclick="openZoneEditor()">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
 			'<div style="font-size:16px"><label>'+ (language ? 'Description: ':'Description : ') +
-			'<input type="text" name="goal[description]" style="font-size:12px;width:350px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? 'example: &quot;Find the secret passage&quot;, &quot;Reach the central zone&quot;':'exemple : &quot;Trouver le passage secret&quot;, &quot;Atteindre la zone centrale&quot;') +'" required="required" maxlength="100" />'+
+			'<input type="text" name="goal[description]" style="font-size:12px;width:350px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? 'example: &quot;Find the secret passage&quot;, &quot;Reach the central zone&quot;':'Ex : &quot;Trouver le passage secret&quot;, &quot;Atteindre la zone centrale&quot;') +'" required="required" maxlength="100" />'+
+			'</label></div>'
+		);
+		break;
+	case 'reach_zones':
+		$extra.html(
+			'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+			'<input type="hidden" name="goal[value]" value="{}" />'+
+			'<input type="hidden" name="goal[ordered]" value="0" />'+
+			'<button type="button" onclick="openZoneEditor(\'zones\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
+			'<div style="font-size:16px"><label>'+ (language ? 'Description: ':'Description : ') +
+			'<input type="text" name="goal[description]" style="font-size:12px;width:350px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? 'example: &quot;Pass through 8 rings&quot;, &quot;Roll over the 4 pillars&quot;':'Ex : &quot;Traverser les 8 anneaux&quot;, &quot;Rouler sur les 4 pilliers&quot;') +'" required="required" maxlength="100" />'+
 			'</label></div>'
 		);
 		break;
@@ -365,13 +376,27 @@ function undoValidation() {
 }
 function loadZoneData() {
 	var data = document.forms[0].elements["goal[value]"].value;
-	return JSON.parse(data);
+	var meta = {};
+	var metaKeys = ["ordered"];
+	for (var i=0;i<metaKeys.length;i++) {
+		var $elt = document.forms[0].elements["goal["+metaKeys[i]+"]"];
+		if ($elt)
+			meta[metaKeys[i]] = $elt.value;
+	}
+	return {
+		data: JSON.parse(data),
+		meta: meta
+	}
 }
-function storeZoneData(data) {
+function storeZoneData(data,meta) {
 	document.forms[0].elements["goal[value]"].value = JSON.stringify(data);
+	for (var key in meta) {
+		var $elt = document.forms[0].elements["goal["+key+"]"];
+		if ($elt) $elt.value = meta[key];
+	}
 }
-function openZoneEditor() {
-	window.open(document.location.href.replace("challengeEdit.php","challengeZone.php"),'chose','scrollbars=1, resizable=1, width=800, height=600');
+function openZoneEditor(type) {
+	window.open(document.location.href.replace("challengeEdit.php","challengeZone.php")+(type?("&type="+type):""),'chose','scrollbars=1, resizable=1, width=800, height=600');
 }
 function helpDifficulty() {
 	window.open('<?php echo $language ? 'helpDifficulty':'aideDifficulty'; ?>.html','gerer','scrollbars=1, resizable=1, width=500, height=500');
@@ -381,7 +406,7 @@ $(function() {
 		var mainForm = document.forms[0];
 		var mainRule = chRules.main;
 		$("#challenge-main-rule").val(mainRule.type).change();
-		var acceptedKeys = ["value","description","pts"];
+		var acceptedKeys = ["value","description","ordered","pts"];
 		for (var i=0;i<acceptedKeys.length;i++) {
 			var key = acceptedKeys[i];
 			if (mainRule[key]) {

@@ -79,6 +79,19 @@ $clRulesByType = array(
 			},
 			'course' => array('vs','battle')
 		),
+		'reach_zones' => array(
+			'description_mockup' => $language ? 'Reach N zones...':'Atteindre N zones...',
+			'description_lambda' => function($language,&$scope) {
+				return $scope->description;
+			},
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			},
+			'course' => array('vs','battle')
+		),
 		'gold_cup' => array(
 			'description' => $language ? 'Get the gold cup':'Obtenir la coupe d\'or',
 			'course' => array('cup'),
