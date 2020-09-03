@@ -881,6 +881,7 @@ function removePlan() {
 }
 
 var gameSettings;
+var oChallengeCpts;
 function loadMap() {
 	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
@@ -1069,6 +1070,14 @@ function loadMap() {
 
 		hudScreens[i] = hudScreen;
 	}
+
+	oChallengeCpts = document.createElement("div");
+	oChallengeCpts.id = "challenge-cpts";
+	oChallengeCpts.style.right = Math.round(iScreenScale/2) +"px";
+	oChallengeCpts.style.top = Math.round(iScreenScale*3.2) +"px";
+	oChallengeCpts.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+	hudScreen.appendChild(oChallengeCpts);
+
 	initMap();
 
 	var lObjet = iScreenScale * 8 - 3;
@@ -7816,6 +7825,23 @@ function getActualGameTime() {
 	return getActualGameTimeMS()/1000;
 }
 var lambdaReturnsTrue = function(scope){return true};
+function addchallengeHud(key, options) {
+	if (clHud[key]) return;
+	var oChallengeCpt = document.createElement("div");
+	oChallengeCpt.innerHTML = "<span>"+ options.title +":</span> <span>"+ options.value +"</span>"+ (options.out_of ? "/<span>"+options.out_of+"</span>" : "");
+	var oChallengeNodes = oChallengeCpt.getElementsByTagName("span");
+	oChallengeCpts.appendChild(oChallengeCpt);
+	clHud[key] = {
+		"$cpt": oChallengeCpt,
+		"$label": oChallengeNodes[0],
+		"$value": oChallengeNodes[1],
+		"$outOf": oChallengeNodes[2]
+	}
+}
+function updatechallengeHud(key, value) {
+	if (clHud[key])
+		clHud[key].$value.innerText = value;
+}
 var challengeRules = {
 	"finish_circuit": {
 		"verify": "end_game",
@@ -7849,8 +7875,16 @@ var challengeRules = {
 			clLocalVars.myItems = [];
 			clLocalVars.nbHits = 0;
 		},
+		"initGui": function(scope) {
+			addchallengeHud("hits", {
+				title: toLanguage("Hits","Coups"),
+				value: clLocalVars.nbHits,
+				out_of: scope.value
+			});
+		},
 		"success": function(scope) {
-			return (clLocalVars.nbHits >= scope.value);
+			if (clLocalVars.nbHits >= scope.value)
+				return true;
 		}
 	},
 	"eliminate": {
@@ -7861,8 +7895,16 @@ var challengeRules = {
 			clLocalVars.nbKills = 0;
 			clLocalVars.nbHits = 0;
 		},
+		"initGui": function(scope) {
+			addchallengeHud("kills", {
+				title: toLanguage("Eliminations","Éliminations"),
+				value: clLocalVars.nbKills,
+				out_of: scope.value
+			});
+		},
 		"success": function(scope) {
-			return (clLocalVars.nbKills >= scope.value);
+			if (clLocalVars.nbKills >= scope.value)
+				return true;
 		}
 	},
 	"survive": {
@@ -8061,6 +8103,15 @@ var challengeRules = {
 		"initRuleVars": function() {
 			return {falls: 0};
 		},
+		"initGui": function(scope, ruleVars) {
+			if (ruleVars) {
+				addchallengeHud("falls", {
+					title: toLanguage("Falls","Chutes"),
+					value: clLocalVars.falls+ruleVars.falls,
+					out_of: scope.value
+				});
+			}
+		},
 		"success": function(scope, ruleVars) {
 			if (ruleVars)
 				return ((clLocalVars.falls+ruleVars.falls) <= scope.value);
@@ -8174,6 +8225,7 @@ function reinitLocalVars() {
 		lostBalloons: 0,
 		cheated: false
 	};
+	clHud = {};
 	for (var verifType in challengesForCircuit) {
 		var challengesForType = challengesForCircuit[verifType];
 		for (var i=0;i<challengesForType.length;i++) {
@@ -8184,6 +8236,10 @@ function reinitLocalVars() {
 				var rule = chRules[j];
 				if (challengeRules[rule.type].initLocalVars)
 					challengeRules[rule.type].initLocalVars(rule);
+				if ((clSelected === challenge) && challengeRules[rule.type].initGui) {
+					var ruleVars = clRuleVars[challenge.id] ? clRuleVars[challenge.id][rule.type] : undefined;
+					challengeRules[rule.type].initGui(rule, ruleVars);
+				}
 			}
 		}
 	}
@@ -8591,10 +8647,12 @@ function handleHit2(oKart,kart) {
 }
 function incChallengeHits(kart) {
 	clLocalVars.nbHits++;
+	updatechallengeHud("hits", clLocalVars.nbHits);
 	if ((course == "BB") && (kart.ballons.length == 1)) {
 		if (clLocalVars.killed && clLocalVars.killed.indexOf(kart) == -1) {
 			clLocalVars.killed.push(kart);
 			clLocalVars.nbKills++;
+			updatechallengeHud("kills", clLocalVars.nbKills);
 		}
 	}
 	challengeCheck("each_hit");
@@ -10002,8 +10060,14 @@ function move(getId) {
 						oKart.marker.div[i].style.display = "none";
 				}
 				resetPowerup(oKart);
-				if (!oKart.cpu)
+				if (!oKart.cpu) {
 					clLocalVars.falls++;
+					if (clSelected) {
+						var ruleVars = clRuleVars[clSelected.id].falls;
+						if (ruleVars)
+							updatechallengeHud("falls", clLocalVars.falls+ruleVars.falls);
+					}
+				}
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
 			else {
@@ -10869,7 +10933,8 @@ function timeStr(timeMS) {
 	return timeMins +":"+ timeSecs +":"+ timeMS;
 }
 
-var clLocalVars;
+var clLocalVars, clHud, clSelected;
+clSelected = challenges["track"]["845"]["list"][0];
 
 function openCheats() {
 	var cheatCode = prompt("MKPC Console command");
@@ -14490,6 +14555,7 @@ function selectChallengesScreen() {
 						oInput.onclick = function() {
 							oScr.innerHTML = "";
 							oContainers[0].removeChild(oScr);
+							clSelected = challenge;
 							xhr("challengeTry.php", "challenge="+this.dataset.id, function(res) {
 								if (!res)
 									return false;

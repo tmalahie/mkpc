@@ -178,9 +178,9 @@ button.control-close:active {
 }
  #temps0,#temps1 {
     position: absolute;
-     top: 12px;
-     color: gray;
-     font-family: courier new
+    top: 12px;
+    color: gray;
+    font-family: courier new;
 }
  #lakitu0,#lakitu1,#drift0,#drift1 {
     visibility: visible;
@@ -211,6 +211,24 @@ button.control-close:active {
 }
  #infoPlace0,#infoPlace1 {
     text-align: right;
+}
+#challenge-cpts {
+    position: absolute;
+    color: gray;
+    font-family: monospace;
+    text-shadow: 0.1em 0 0 #eee, -0.1em 0 0 #eee, 0 0.1em 0 #eee, 0 -0.1em 0 #eee, 1px 1px #eee, -1px -1px 0 #eee, 1px -1px 0 #eee, -1px 1px 0 #eee;
+    text-align: right;
+    display: grid;
+    grid-template-columns: auto auto;
+}
+#challenge-cpts > div {
+    margin-left: 1em;
+    text-align: left;
+}
+#challenge-cpts > div > span:first-child {
+    color: black;
+}
+#challenge-cpts > div > span:last-child {
 }
  .driftimg {
     position: relative;
