@@ -39,6 +39,9 @@ switch ($type) {
 	case 'zones':
 		$submitTitle = $language ? 'Validate zones':'Valider les zones';
 	break;
+	case 'coins':
+		$submitTitle = $language ? 'Validate coins':'Valider les pièces';
+	break;
 	default:
 		$submitTitle = $language ? 'Validate zone':'Valider la zone';
 }
@@ -113,13 +116,21 @@ body {
 #editor-svg rect, #editor-svg polyline, #editor-svg polygon {
 	opacity: 0.6;
 }
-#editor-svg circle, .theme-dark #editor-svg circle.first:hover {
-	fill: black;
-	stroke: white;
+#editor-svg circle.vertex {
 	stroke-width: 2;
 	r: 4;
 }
-.theme-dark #editor-svg circle, #editor-svg circle.first:hover {
+#editor-svg circle {
+	fill: white;
+}
+.theme-dark #editor-svg circle {
+	fill: black;
+}
+#editor-svg circle.vertex, .theme-dark #editor-svg circle.vertex.first:hover {
+	fill: black;
+	stroke: white;
+}
+.theme-dark #editor-svg circle.vertex, #editor-svg circle.vertex.first:hover {
 	fill: white;
 	stroke: black;
 }
@@ -163,6 +174,7 @@ body {
 </style>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
+var editorType = "<?php echo htmlspecialchars($type); ?>";
 function getRelativePos(e,parent) {
 	var rect = parent.getBoundingClientRect();
 	return {
@@ -191,6 +203,10 @@ function selectOrdered($btn,isOrdered) {
 		document.body.classList.remove("ordered-shape");
 }
 var shapeType = "rectangle";
+switch (editorType) {
+case "coins":
+	shapeType = "point";
+}
 function selectShape($btn,type) {
 	selectButton($btn);
 	shapeType = type;
@@ -224,8 +240,11 @@ function resetOrders() {
 		$texts[i].innerHTML = (i+1);
 }
 function getShapeType(oBox) {
-	if ("number" === typeof(oBox[0]))
+	if ("number" === typeof(oBox[0])) {
+		if (oBox.length === 2)
+			return "point";
 		return "rectangle";
+	}
 	return "polygon";
 }
 function showOrderHelp() {
@@ -273,31 +292,26 @@ document.addEventListener("DOMContentLoaded", function() {
 				document.onmousemove = aMouseMove;
 			});
 		}
-		iRect.onmousedown = function(e) {
-			if (e.button == 2) {
-				var lShape = iOrder.nextSibling;
-				$svg.removeChild(iOrder);
-				$svg.removeChild(aRect);
-				resetOrders();
-				if (lShape) {
-					pushUndo(function() {
-						$svg.insertBefore(aRect,lShape);
-						$svg.insertBefore(iOrder,lShape);
-						resetOrders();
-					});
-				}
-				else {
-					pushUndo(function() {
-						$svg.appendChild(aRect);
-						$svg.appendChild(iOrder);
-						resetOrders();
-					});
-				}
-				document.oncontextmenu = function() {
-					document.oncontextmenu = null;
-					return false;
-				}
+		iRect.oncontextmenu = function(e) {
+			var lShape = iOrder.nextSibling;
+			$svg.removeChild(iOrder);
+			$svg.removeChild(aRect);
+			resetOrders();
+			if (lShape) {
+				pushUndo(function() {
+					$svg.insertBefore(aRect,lShape);
+					$svg.insertBefore(iOrder,lShape);
+					resetOrders();
+				});
 			}
+			else {
+				pushUndo(function() {
+					$svg.appendChild(aRect);
+					$svg.appendChild(iOrder);
+					resetOrders();
+				});
+			}
+			return false;
 		};
 		if (!triggered) {
 			document.onmousemove = undefined;
@@ -345,35 +359,67 @@ document.addEventListener("DOMContentLoaded", function() {
 				document.onmousemove = aMouseMove;
 			});
 		}
-		iPoly.onmousedown = function(e) {
-			if (e.button == 2) {
-				var lShape = iOrder.nextSibling;
-				$svg.removeChild(iOrder);
-				$svg.removeChild(aPoly);
-				resetOrders();
-				if (lShape) {
-					pushUndo(function() {
-						$svg.insertBefore(aPoly,lShape);
-						$svg.insertBefore(iOrder,lShape);
-						resetOrders();
-					});
-				}
-				else {
-					pushUndo(function() {
-						$svg.appendChild(aPoly);
-						$svg.appendChild(iOrder);
-						resetOrders();
-					});
-				}
-				document.oncontextmenu = function() {
-					document.oncontextmenu = null;
-					return false;
-				}
+		iPoly.oncontextmenu = function(e) {
+			var lShape = iOrder.nextSibling;
+			$svg.removeChild(iOrder);
+			$svg.removeChild(aPoly);
+			resetOrders();
+			if (lShape) {
+				pushUndo(function() {
+					$svg.insertBefore(aPoly,lShape);
+					$svg.insertBefore(iOrder,lShape);
+					resetOrders();
+				});
 			}
+			else {
+				pushUndo(function() {
+					$svg.appendChild(aPoly);
+					$svg.appendChild(iOrder);
+					resetOrders();
+				});
+			}
+			return false;
 		};
 		if (!triggered) {
 			document.onmousemove = undefined;
 			oPoly = null;
+		}
+	}
+	function applyPoint(x,y, iCircle) {
+		var triggered = !iCircle;
+		if (triggered)
+			iCircle = document.createElementNS(SVG, "circle");
+		iCircle.setAttribute("r", 4);
+		iCircle.setAttribute("cx", x);
+		iCircle.setAttribute("cy", y);
+		iCircle.setAttribute("class", "shape");
+		if (!iCircle.dataset) iCircle.dataset = {};
+		iCircle.dataset.data = JSON.stringify([x,y]);
+		$svg.appendChild(iCircle);
+
+		if (!triggered) {
+			pushUndo(function() {
+				$svg.removeChild(iCircle);
+			});
+		}
+		iCircle.oncontextmenu = function(e) {
+			var lShape = iCircle.nextSibling;
+			$svg.removeChild(iCircle);
+			if (lShape) {
+				pushUndo(function() {
+					$svg.insertBefore(iCircle,lShape);
+				});
+			}
+			else {
+				pushUndo(function() {
+					$svg.appendChild(iCircle);
+				});
+			}
+			return false;
+		};
+		if (!triggered) {
+			document.onmousemove = undefined;
+			oRect = null;
 		}
 	}
 	editor.onclick = function(e) {
@@ -389,6 +435,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			var oLines = oPoly.lines;
 			setPolyPoints(oLines, aPts);
 			var oPoint = document.createElementNS(SVG, "circle");
+			oPoint.setAttribute("class", "vertex");
 			oPoint.setAttribute("cx", x);
 			oPoint.setAttribute("cy", y);
 			oPoly.pts.push(oPoint);
@@ -423,13 +470,17 @@ document.addEventListener("DOMContentLoaded", function() {
 					document.onmousemove = undefined;
 				});
 				break;
+			case "point":
+				var oCircle = document.createElementNS(SVG, "circle");
+				applyPoint(x,y, oCircle);
+				break;
 			case "polygon":
 				aPts = [[x,y],[x,y]];
 				var oLines = document.createElementNS(SVG, "polyline");
 				setPolyPoints(oLines, aPts);
 				$svg.appendChild(oLines);
 				var oPoint = document.createElementNS(SVG, "circle");
-				oPoint.setAttribute("class", "first");
+				oPoint.setAttribute("class", "vertex first");
 				oPoint.setAttribute("cx", x);
 				oPoint.setAttribute("cy", y);
 				oPoint.onclick = function(e) {
@@ -486,6 +537,9 @@ document.addEventListener("DOMContentLoaded", function() {
 		case "rectangle":
 			applyRect(iData[0],iData[1],iData[2],iData[3]);
 			break;
+		case "point":
+			applyPoint(iData[0],iData[1]);
+			break;
 		case "polygon":
 			applyPoly(iData);
 		}
@@ -523,6 +577,20 @@ window.onload = function() {
 				<?php
 			}
 			break;
+		case 'coins':
+			if ($language) {
+				?>
+				Indicate coin locations by clicking where you want on the circuit image.
+				To delete a coin, right click on it.<br />
+				<?php
+			}
+			else {
+				?>
+				Indiquez les emplacements des pièces en cliquant où vous voulez sur l'image du circuit.<br />
+				Pour supprimer une pièce, faites un clic droit dessus.<br />
+				<?php
+			}
+			break;
 		default:
 			if ($language) {
 				?>
@@ -553,11 +621,21 @@ window.onload = function() {
 				<input type="button" style="background-color:white" class="selected" onclick="selectTheme(this,false)" />
 				<input type="button" style="background-color:black" onclick="selectTheme(this,true)" />
 			</div>
-			<div id="zone-editor-shape">
-				<span><?php echo $language ? 'Shape:':'Forme :'; ?></span>
-				<input type="button" style="background-image:url('images/editor/rectangle.png')" class="selected" onclick="selectShape(this,'rectangle')" />
-				<input type="button" style="background-image:url('images/editor/polygon.png')" onclick="selectShape(this,'polygon')" />
-			</div>
+			<?php
+			switch ($type) {
+			case 'coins':
+				break;
+			default;
+				?>
+				<div id="zone-editor-shape">
+					<span><?php echo $language ? 'Shape:':'Forme :'; ?></span>
+					<input type="button" style="background-image:url('images/editor/rectangle.png')" class="selected" onclick="selectShape(this,'rectangle')" />
+					<input type="button" style="background-image:url('images/editor/polygon.png')" onclick="selectShape(this,'polygon')" />
+				</div>
+				<?php
+			break;
+			}
+			?>
 			<?php
 			switch ($type) {
 			case 'zones':

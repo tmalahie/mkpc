@@ -182,13 +182,25 @@ function selectMainRule() {
 		break;
 	case 'reach_zones':
 		$extra.html(
-			'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
-			'<input type="hidden" name="goal[value]" value="{}" />'+
+			'<div style="margin:10px 0"><label>'+ (language ? 'Locations: ':'Emplacements : ') +
+			'<input type="hidden" name="goal[value]" value="[]" />'+
 			'<input type="hidden" name="goal[ordered]" value="0" />'+
 			'<button type="button" onclick="openZoneEditor(\'zones\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
 			'<div style="font-size:16px"><label>'+ (language ? 'Description: ':'Description : ') +
 			'<input type="text" name="goal[description]" style="font-size:12px;width:350px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? 'example: &quot;Pass through 8 rings&quot;, &quot;Roll over the 4 pillars&quot;':'Ex : &quot;Traverser les 8 anneaux&quot;, &quot;Rouler sur les 4 pilliers&quot;') +'" required="required" maxlength="100" />'+
 			'</label></div>'
+		);
+		break;
+	case 'collect_coins':
+		$extra.html(
+			'<div style="margin:10px 0"><label>'+ (language ? 'Coins location: ':'Position des pièces : ') +
+			'<input type="hidden" name="goal[value]" value="[]" />'+
+			'<button type="button" onclick="openZoneEditor(\'coins\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
+			'<div>'+ (language ? 'Number of coins to collect:':'Nombre de pièces à récupérer :') + '<br />'+
+			'<label><input type="radio" name="goal_coins_all" onclick="selectAllCoins(1)" checked="checked" value="1" />'+ (language ? "All":"Toutes") + '</label> &nbsp; '+
+			'<label><input type="radio" name="goal_coins_all" onclick="selectAllCoins(0)" value="0" /> '+
+			'<input type="number" style="width:40px" name="goal[nb]" onfocus="selectNbCoins()" placeholder="25" autocomplete="off" /></label>' +
+			'</div>'
 		);
 		break;
 	}
@@ -398,6 +410,15 @@ function storeZoneData(data,meta) {
 function openZoneEditor(type) {
 	window.open(document.location.href.replace("challengeEdit.php","challengeZone.php")+(type?("&type="+type):""),'chose','scrollbars=1, resizable=1, width=800, height=600');
 }
+function selectAllCoins(value) {
+	if (value == 1)
+		document.forms[0].elements["goal[nb]"].value = "";
+	else
+		document.forms[0].elements["goal[nb]"].focus();
+}
+function selectNbCoins() {
+	document.forms[0].elements["goal_coins_all"].value = 0;
+}
 function helpDifficulty() {
 	window.open('<?php echo $language ? 'helpDifficulty':'aideDifficulty'; ?>.html','gerer','scrollbars=1, resizable=1, width=500, height=500');
 }
@@ -427,6 +448,13 @@ $(function() {
 					var formElt = mainForm.elements["scope["+constraint.type+"][value]"];
 					if (formElt) formElt.value = constraint.value;
 				}
+			}
+		}
+		switch (mainRule.type) {
+		case "collect_coins":
+			if (mainRule.nb) {
+				selectNbCoins();
+				mainForm.elements["goal[nb]"].value = mainRule.nb;
 			}
 		}
 		if (document.activeElement)

@@ -94,6 +94,28 @@ $clRulesByType = array(
 			},
 			'course' => array('vs','battle')
 		),
+		'collect_coins' => array(
+			'description_mockup' => $language ? 'Collect coins...':'Collecter des pièces...',
+			'description_lambda' => function($language,&$scope) {
+				if (isset($scope->nb)) {
+					$nb = $scope->nb;
+					$s = ($nb >= 2) ? 's':'';
+					return $language ? "Collect $nb coin$s":"Collecter $nb pièce$s";
+				}
+				return $language ? 'Collect all coins':'Collecter toutes les pièces';
+			},
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+				if (empty($scope['nb']))
+					unset($scope['nb']);
+				else
+					$scope['nb'] = +$scope['nb'];
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			},
+			'course' => array('vs','battle')
+		),
 		'gold_cup' => array(
 			'description' => $language ? 'Get the gold cup':'Obtenir la coupe d\'or',
 			'course' => array('cup'),
