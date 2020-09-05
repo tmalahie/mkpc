@@ -7915,15 +7915,60 @@ var challengeRules = {
 	},
 	"reach_zone": {
 		"verify": "each_frame",
+		"initLocalVars": function(scope) {
+			if (!scope.zones) scope.zones = classifyByShape(scope.value);
+		},
 		"success": function(scope) {
-			var zones = scope.value;
+			var zones = scope.zones;
 			var posX = oPlayers[0].x;
 			var posY = oPlayers[0].y;
-			for (var i=0;i<zones.length;i++) {
-				var iZone = zones[i];
-				if ((posX >= iZone[0]) && (posY >= iZone[1]) && (posX < (iZone[0]+iZone[2])) && (posY < (iZone[1]+iZone[3])))
+			var oRectangles = zones.rectangle;
+			for (var i=0;i<oRectangles.length;i++) {
+				if (pointInRectangle(posX,posY, oRectangles[i]))
 					return true;
 			}
+			var oPolygons = zones.polygon;
+			for (var i=0;i<oPolygons.length;i++) {
+				if (pointInPolygon(posX,posY, oPolygons[i]))
+					return true;
+			}
+		}
+	},
+	"reach_zones": {
+		"verify": "each_frame",
+		"initLocalVars": function(scope) {
+			if (!scope.zones) scope.zones = classifyByShape(scope.value);
+			clLocalVars.reached = [];
+			clLocalVars.reached.length = scope.value.length;
+			for (var i=0;i<clLocalVars.reached.length;i++)
+				clLocalVars.reached[i] = false;
+		},
+		"success": function(scope) {
+			var zones = scope.zones;
+			var posX = oPlayers[0].x;
+			var posY = oPlayers[0].y;
+			var oRectangles = zones.rectangle;
+			var reachedZones = [];
+			for (var i=0;i<oRectangles.length;i++) {
+				if (pointInRectangle(posX,posY, oRectangles[i]))
+					reachedZones.push(scope.value.indexOf(oRectangles[i]));
+			}
+			var oPolygons = zones.polygon;
+			for (var i=0;i<oPolygons.length;i++) {
+				if (pointInPolygon(posX,posY, oPolygons[i]))
+					reachedZones.push(scope.value.indexOf(oPolygons[i]));
+			}
+			reachedZones.sort();
+			for (var i=0;i<reachedZones.length;i++) {
+				var reachedZone = reachedZones[i];
+				if (scope.ordered) {
+					if (reachedZone && !clLocalVars.reached[reachedZone-1])
+						break;
+				}
+				clLocalVars.reached[reachedZone] = true;
+			}
+			if (clLocalVars.reached.indexOf(false) === -1)
+				return true;
 		}
 	},
 	"gold_cup": {
@@ -10934,7 +10979,7 @@ function timeStr(timeMS) {
 }
 
 var clLocalVars, clHud, clSelected;
-clSelected = challenges["track"]["845"]["list"][0];
+clSelected = challenges["track"]["7037"]["list"][4];
 
 function openCheats() {
 	var cheatCode = prompt("MKPC Console command");

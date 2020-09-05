@@ -86,6 +86,8 @@ $clRulesByType = array(
 			},
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
+				if (isset($scope['ordered']))
+					$scope['ordered'] = +$scope['ordered'];
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
