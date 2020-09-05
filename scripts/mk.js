@@ -7942,33 +7942,45 @@ var challengeRules = {
 			clLocalVars.reached.length = scope.value.length;
 			for (var i=0;i<clLocalVars.reached.length;i++)
 				clLocalVars.reached[i] = false;
+			clLocalVars.nbPass = 0;
+		},
+		"initGui": function(scope) {
+			addchallengeHud("zones", {
+				title: toLanguage("Zones","Zones"),
+				value: clLocalVars.nbPass,
+				out_of: scope.value.length
+			});
 		},
 		"success": function(scope) {
 			var zones = scope.zones;
+			var allZones = scope.value;
 			var posX = oPlayers[0].x;
 			var posY = oPlayers[0].y;
 			var oRectangles = zones.rectangle;
 			var reachedZones = [];
 			for (var i=0;i<oRectangles.length;i++) {
 				if (pointInRectangle(posX,posY, oRectangles[i]))
-					reachedZones.push(scope.value.indexOf(oRectangles[i]));
+					reachedZones.push(allZones.indexOf(oRectangles[i]));
 			}
 			var oPolygons = zones.polygon;
 			for (var i=0;i<oPolygons.length;i++) {
 				if (pointInPolygon(posX,posY, oPolygons[i]))
-					reachedZones.push(scope.value.indexOf(oPolygons[i]));
+					reachedZones.push(allZones.indexOf(oPolygons[i]));
 			}
 			reachedZones.sort();
 			for (var i=0;i<reachedZones.length;i++) {
 				var reachedZone = reachedZones[i];
+				if (clLocalVars.reached[reachedZone]) continue;
 				if (scope.ordered) {
 					if (reachedZone && !clLocalVars.reached[reachedZone-1])
 						break;
 				}
 				clLocalVars.reached[reachedZone] = true;
+				clLocalVars.nbPass++;
+				updatechallengeHud("zones", clLocalVars.nbPass);
+				if (clLocalVars.nbPass >= allZones.length)
+					return true;
 			}
-			if (clLocalVars.reached.indexOf(false) === -1)
-				return true;
 		}
 	},
 	"gold_cup": {
