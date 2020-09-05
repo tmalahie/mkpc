@@ -2238,6 +2238,7 @@ function startGame() {
 		"each_frame": [],
 		"each_hit": [],
 		"each_kill": [],
+		"each_coin": [],
 		"end_gp": []
 	};
 	if (!clGlobalVars) {
@@ -6507,6 +6508,37 @@ function render() {
 				}
 			}
 
+			if (oMap.coins) {
+				for (var j=0;j<oMap.coins.length;j++) {
+					fSprite = oMap.coins[j];
+					var fCamX = fSprite.x - posX;
+					var fCamY = fSprite.y - posY;
+
+					var fRotRad = fRotation * Math.PI / 180;
+
+					var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
+					var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
+
+					var iDeltaY = -iCamHeight;
+					var iDeltaX = iCamDist + fTransY;
+
+					var iViewY = ((iDeltaY / iDeltaX) * iCamDist + iCamHeight) - iViewHeight;
+					var fViewX = -(fTransX / (fTransY + iCamDist)) * iCamDist;
+
+					fSprite.sprite[i].div.style.zIndex = Math.round(10000 - fTransY);
+					var cosTheta = Math.abs(Math.cos(fSprite.theta-fRotRad));
+					//cosTheta = (cosTheta < 0.5) ? 0.1:1;
+					fSprite.sprite[i].w = 24*cosTheta;
+					fSprite.sprite[i].z = (cosTheta-1)*0.5;
+
+					fSprite.sprite[i].draw(
+						((iWidth/2) + fViewX) * iScreenScale, 
+						(iHeight - iViewY) * iScreenScale,
+						fFocal / (fFocal + (fTransY))
+					);
+				}
+			}
+
 
 			for (var j=0;j<bananes.length;j++){
 				fSprite = bananes[j];
@@ -7667,6 +7699,20 @@ function objet(iX, iY) {
 	return false;
 }
 
+function touche_piece(iX, iY) {
+	if (oMap.coins) {
+		for (var i=0;i<oMap.coins.length;i++) {
+			var oBox = oMap.coins[i];
+			if (iX > oBox.x - 7 && iX < oBox.x + 7 && iY > oBox.y - 7 && iY < oBox.y + 7) {
+				oBox.sprite[0].suppr();
+				oMap.coins.splice(i,1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 function sauts(iX, iY, iI, iJ) {
 	if (!oMap.sauts)
 		return false;
@@ -7875,7 +7921,7 @@ var challengeRules = {
 			clLocalVars.myItems = [];
 			clLocalVars.nbHits = 0;
 		},
-		"initGui": function(scope) {
+		"initSelected": function(scope) {
 			addchallengeHud("hits", {
 				title: toLanguage("Hits","Coups"),
 				value: clLocalVars.nbHits,
@@ -7895,7 +7941,7 @@ var challengeRules = {
 			clLocalVars.nbKills = 0;
 			clLocalVars.nbHits = 0;
 		},
-		"initGui": function(scope) {
+		"initSelected": function(scope) {
 			addchallengeHud("kills", {
 				title: toLanguage("Eliminations","Éliminations"),
 				value: clLocalVars.nbKills,
@@ -7944,7 +7990,7 @@ var challengeRules = {
 				clLocalVars.reached[i] = false;
 			clLocalVars.nbPass = 0;
 		},
-		"initGui": function(scope) {
+		"initSelected": function(scope) {
 			addchallengeHud("zones", {
 				title: toLanguage("Zones","Zones"),
 				value: clLocalVars.nbPass,
@@ -7981,6 +8027,43 @@ var challengeRules = {
 				if (clLocalVars.nbPass >= allZones.length)
 					return true;
 			}
+		}
+	},
+	"collect_coins": {
+		"verify": "each_coin",
+		"initLocalVars": function(scope) {
+			clLocalVars.nbCoins = 0;
+			if (!scope.nb)
+				scope.nb = scope.value.length;
+		},
+		"initSelected": function(scope) {
+			if (!oMap.coins) {
+				oMap.coins = [];
+				for (var i=0;i<scope.value.length;i++) {
+					var oCoin = scope.value[i];
+					var mCoin = {
+						x: oCoin[0],
+						y: oCoin[1],
+						theta: 2*Math.PI*Math.random(),
+						sprite: new Sprite("coin")
+					};
+					for (var j=0;j<oPlayers.length;j++) {
+						mCoin.sprite[j].img.style.width = "100%";
+						mCoin.sprite[j].w = 24;
+						mCoin.sprite[j].h = 24;
+					}
+					oMap.coins.push(mCoin);
+				}
+			}
+			addchallengeHud("coins", {
+				title: toLanguage("Coins","Pièces"),
+				value: clLocalVars.nbCoins,
+				out_of: scope.nb
+			});
+		},
+		"success": function(scope) {
+			if (clLocalVars.nbCoins >= scope.nb)
+				return true;
 		}
 	},
 	"gold_cup": {
@@ -8160,7 +8243,7 @@ var challengeRules = {
 		"initRuleVars": function() {
 			return {falls: 0};
 		},
-		"initGui": function(scope, ruleVars) {
+		"initSelected": function(scope, ruleVars) {
 			if (ruleVars) {
 				addchallengeHud("falls", {
 					title: toLanguage("Falls","Chutes"),
@@ -8293,9 +8376,9 @@ function reinitLocalVars() {
 				var rule = chRules[j];
 				if (challengeRules[rule.type].initLocalVars)
 					challengeRules[rule.type].initLocalVars(rule);
-				if ((clSelected === challenge) && challengeRules[rule.type].initGui) {
+				if ((clSelected === challenge) && challengeRules[rule.type].initSelected) {
 					var ruleVars = clRuleVars[challenge.id] ? clRuleVars[challenge.id][rule.type] : undefined;
-					challengeRules[rule.type].initGui(rule, ruleVars);
+					challengeRules[rule.type].initSelected(rule, ruleVars);
 				}
 			}
 		}
@@ -9846,6 +9929,11 @@ function move(getId) {
 						}
 					}
 				}
+			}
+			if (!oKart.cpu && touche_piece(oKart.x,oKart.y)) {
+				clLocalVars.nbCoins++;
+				updatechallengeHud("coins", clLocalVars.nbCoins);
+				challengeCheck("each_coin");
 			}
 		}
 	}
@@ -11589,6 +11677,7 @@ function moveDecor() {
 			decorIncs[actualType] += decor.length;
 		}
 	}
+	var tau = 2*Math.PI;
 	for (var type in decorPos) {
 		var decor = oMap.decor[type];
 		for (var i=0;i<decor.length;i++) {
@@ -11602,7 +11691,7 @@ function moveDecor() {
 		for (var i=0;i<oMap.pointers.length;i++) {
 			var pointer = oMap.pointers[i];
 			pointer[2][2] += pointer[2][3];
-			pointer[2][2] %= (2*Math.PI);
+			pointer[2][2] %= tau;
 			pointer[0].redraw(pointer);
 		}
 	}
@@ -11650,11 +11739,19 @@ function moveDecor() {
 					bumper[3] = [distanceToCenter,angleToCenter];
 				}
 				bumper[3][1] += bumper[2][5];
-				bumper[3][1] %= 2*Math.PI;
+				bumper[3][1] %= tau;
 				bumper[1][0] = bumper[2][3] + bumper[3][0]*Math.cos(bumper[3][1]);
 				bumper[1][1] = bumper[2][4] + bumper[3][0]*Math.sin(bumper[3][1]);
 				bumper[0].redraw(bumper);
 			}
+		}
+	}
+	if (oMap.coins) {
+		for (var i=0;i<oMap.coins.length;i++) {
+			var oCoin = oMap.coins[i];
+			oCoin.theta += 0.25;
+			if (oCoin.theta >= tau)
+				oCoin.theta -= tau;
 		}
 	}
 }
