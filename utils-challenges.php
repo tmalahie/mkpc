@@ -313,7 +313,7 @@ $clRulesByType = array(
 					}
 					$itemsToAvoidString .= $item;
 				}
-				return $language ? 'without touching any '. $itemsToAvoidString:'sans toucher aucun '. $itemsToAvoidString;
+				return $language ? 'without touching any '. $itemsToAvoidString:'sans toucher '. (in_array($itemsToAvoidString[0],array('a','e','i','o','u')) ? "d'":"de ") . $itemsToAvoidString;
 			},
 			'course' => array('vs', 'battle')
 		),

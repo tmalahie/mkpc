@@ -106,7 +106,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 		case 'arenes':
 			if ($getCircuitsData = mysql_fetch_array(mysql_query('SELECT data FROM `'. $clTable .'_data` WHERE id="'. $clRace['circuit'] .'"'))) {
 				$circuitData = json_decode(gzuncompress($getCircuitsData['data']));
-				$circuitDecors = array_keys($circuitData->decor);
+				$circuitDecors = array_keys((array)$circuitData->decor);
 				if (isset($circuitData->assets)) {
 					foreach ($circuitData->assets as $key => $data) {
 						switch ($key) {
