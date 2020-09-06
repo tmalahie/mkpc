@@ -98,6 +98,82 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 		}
 		$i++;
 	}
+	$decorOptions = array();
+	if (!empty($clRace) && $clRace['type']) {
+		$clTable = $clRace['type'];
+		switch ($clTable) {
+		case 'circuits':
+		case 'arenes':
+			if ($getCircuitsData = mysql_fetch_array(mysql_query('SELECT data FROM `'. $clTable .'_data` WHERE id="'. $clRace['circuit'] .'"'))) {
+				$circuitData = json_decode(gzuncompress($getCircuitsData['data']));
+				$circuitDecors = array_keys($circuitData->decor);
+				if (isset($circuitData->assets)) {
+					foreach ($circuitData->assets as $key => $data) {
+						switch ($key) {
+						case 'pointers':
+							$circuitDecors[] = 'assets/pivothand';
+							break;
+						default:
+							$decorTypes = array();
+							foreach ($data as $d) {
+								if (!isset($decorTypes[$d[0]])) {
+									$decorTypes[$d[0]] = 1;
+									$circuitDecors[] = 'assets/'.$d[0];
+								}
+							}
+						}
+					}
+				}
+				$decorParams = isset($circuitData->decorparams) ? $circuitData->decorparams:new \stdClass();
+				$decorExtra = isset($decorParams->extra) ? $decorParams->extra:new \stdClass();
+				foreach ($circuitDecors as $type) {
+					$decorOption = array(
+						'value' => $type
+					);
+					if (isset($decorExtra->{$type}) && isset($decorExtra->{$type}->custom)) {
+						$customDecor = $decorExtra->{$type}->custom;
+						$decorId = +$customDecor->id;
+						$actualType = $customDecor->type;
+						if ($customData = mysql_fetch_array(mysql_query('SELECT name,sprites FROM mkdecors WHERE id='. $decorId))) {
+							require_once('utils-decors.php');
+							$decorSrcs = decor_sprite_srcs($customData['sprites']);
+							$decorOption['icon'] = $decorSrcs['map'];
+							$decorOption['custom'] = 1;
+							$decorOption['label'] = $customData['name'];
+						}
+					}
+					$decorOptions[] = $decorOption;
+				}
+			}
+
+			break;
+		case 'mkcircuits':
+			$circuitMap = $clCircuit['map'];
+			require_once('circuitEnumsQuick.php');
+			$decorTypes = $decorTypes[$circuitMap];
+			foreach ($decorTypes as $type) {
+				$decorOptions[] = array(
+					'value' => $type
+				);
+			}
+			break;
+		}
+	}
+	elseif (isset($_GET['page'])) {
+		switch ($_GET['page']) {
+		case 'circuit':
+		case 'arena':
+			$circuitMap = $_GET['map'];
+			require_once('circuitEnumsQuick.php');
+			$decorTypes = $decorTypes[$circuitMap];
+			foreach ($decorTypes as $type) {
+				$decorOptions[] = array(
+					'value' => $type
+				);
+			}
+			break;
+		}
+	}
 }
 ?>
 <!DOCTYPE html>
@@ -124,6 +200,7 @@ if (isset($chRules))
 	echo 'var chRules = '. json_encode($chRules) .';';
 ?>
 var persoOptions = <?php echo json_encode($persoOptions) ?>;
+var decorOptions = <?php echo json_encode($decorOptions) ?>;
 var selectedConstraints = {};
 function selectMainRule() {
 	var ruleValue = $("#challenge-main-rule").val();
@@ -269,6 +346,20 @@ function addContraintRule(clClass) {
 			break;
 		case 'character':
 			addConstraintSelector($form,ruleId, language?'Character:':'Perso :', persoOptions);
+			break;
+		case 'avoid_decors':
+			$form.html(
+				'<div>'+ (language?'Decor(s):':'Décor(s) :') +' '+
+				'<input type="text" style="display:none" name="avoid_decors_fake1" required="required" >'+
+				'<div class="challenge-contraint-btn-options"></div>'+
+				'<div class="challenge-contraint-decor-names"></div>'
+			);
+			var $extraSelector = $form.find(".challenge-contraint-btn-options");
+			for (var i=0;i<decorOptions.length;i++) {
+				var decorOption = decorOptions[i];
+				var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
+				$extraSelector.append('<button type="button" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
+			}
 			break;
 		case 'balloons':
 			addConstraintNb($form,ruleId, language?'Nb balloons:':'Nb ballons :',{attrs:{min:0},css:{width:'30px'}});
@@ -419,6 +510,38 @@ function selectAllCoins(value) {
 function selectNbCoins() {
 	document.forms[0].elements["goal_coins_all"].value = 0;
 }
+function toggleDecor(btn, label) {
+	if (btn.dataset.selected)
+		delete btn.dataset.selected;
+	else
+		btn.dataset.selected = "1";
+	
+	var decorOption = decorOptions.find(function(decorOption) {
+		return (decorOption.value === btn.dataset.value);
+	});
+	var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
+	var decorId = "avoid_decor_name_"+ decorOption.value.replace(/\//g, "-");
+	$decorNameCtn = $(".challenge-contraint-decor-names");
+	if (btn.dataset.selected) {
+		var $decorNameSelector = $('<div id="'+ decorId +'">'+
+			'<img src="'+ decorIcon +'" alt="'+ decorOption.value +'" /> '+
+			(language ? 'Decor name:':'Nom du décor :') + ' <input type="text" name="scope[avoid_decors][value]['+ decorOption.value +'][name]" />'+
+		'</div>');
+		if (!label) label = decorOption.label;
+		if (!label) label = "";
+		var $decorNameInput = $decorNameSelector.find("input");
+		$decorNameInput.val(label);
+		$decorNameCtn.append($decorNameSelector);
+		if (decorOption.custom)
+			$decorNameInput.attr("required", true)
+		else
+			$decorNameSelector.hide();
+	}
+	else
+		$("#"+decorId).remove();
+	$("input[name='avoid_decors_fake1']").val($decorNameCtn.children().length ? "1":"");
+	btn.blur();
+}
 function helpDifficulty() {
 	window.open('<?php echo $language ? 'helpDifficulty':'aideDifficulty'; ?>.html','gerer','scrollbars=1, resizable=1, width=500, height=500');
 }
@@ -447,6 +570,16 @@ $(function() {
 				if (constraint.value != undefined) {
 					var formElt = mainForm.elements["scope["+constraint.type+"][value]"];
 					if (formElt) formElt.value = constraint.value;
+					switch (constraint.type) {
+					case "avoid_decors":
+						for (var key in constraint.value) {
+							var decorData = constraint.value[key];
+							var btn = mainForm.querySelector(".challenge-contraint-btn-options button[data-value='"+ key +"']");
+							if (btn)
+								toggleDecor(btn, decorData.name);
+						}
+						break;
+					}
 				}
 			}
 		}

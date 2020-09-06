@@ -170,6 +170,29 @@ body a.challenge-action-edit:hover {
 .challenge-edit-form button:hover {
 	background-color: #AAF;
 }
+.challenge-contraint-btn-options {
+	display: inline;
+}
+.challenge-contraint-btn-options button {
+	width: 1.2em;
+	height: 1.2em;
+    background-size: auto 0.8em;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.challenge-contraint-btn-options button[data-selected] {
+	background-color: #EFF;
+	border-color: #CDE;
+}
+.challenge-contraint-decor-names {
+	font-size: 0.8em;
+}
+.challenge-contraint-decor-names input {
+	width: 100px;
+}
+.challenge-contraint-decor-names img {
+	height: 0.8em;
+}
 .challenge-edit-form input[type="text"], .challenge-edit-form input[type="number"] {
 	background-color: #EEF3FF;
 	border-radius: 4px;
