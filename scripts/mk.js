@@ -2507,6 +2507,7 @@ function startGame() {
 	var oCounts = new Array();
 	for (var i=0;i<strPlayer.length;i++) {
 		oCounts[i] = [document.createElement("div"), new Image()];
+		oCounts[i][0].id = "oCounts"+i;
 		oCounts[i][0].style.position = "absolute";
 		oCounts[i][0].style.width = (12*iScreenScale)+"px";
 		oCounts[i][0].style.height = (12*iScreenScale)+"px";
@@ -2820,35 +2821,6 @@ function startGame() {
 								if (!isOnline && (course != "GP") && (course != "CM"))
 									openCheats();
 								break;
-							case "fastfwd":
-								if (clLocalVars.delayedStart && !clLocalVars.cheated && !pause) {
-									if (!clLocalVars.startedAt) {
-										var tUntil = clLocalVars.delayedStart*1000/67;
-										if (timer < tUntil) {
-											function fastCycle() {
-												if (pause) {
-													if (timer < tUntil) {
-														setTimeout(fastCycle,1);
-														runOneFrame();
-													}
-													else {
-														delete clLocalVars.fastForward;
-														reprendre = resume;
-														reprendre(false);
-													}
-												}
-											}
-											pause = true;
-											clLocalVars.fastForward = true;
-											var resume = reprendre;
-											reprendre = function(){};
-											fastCycle();
-										}
-									}
-									else
-										alert(language ? "You have already started, it's too late...":"Vous avez déjà démarré, il est trop tard...");
-								}
-								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
 								oPlayers[1].speedinc = oPlayers[1].stats.acceleration*oPlayers[1].size;
@@ -2954,11 +2926,7 @@ function startGame() {
 								}
 								break;
 							case "rear":
-								if (!bCounting) {
-									var nView = 180 - oPlayers[0].changeView;
-									oPlayers[0].changeView = nView;
-									oPlayers[0].sprite[0].setState(11);
-								}
+								showRearView(0);
 								break;
 							case "item_p2":
 							case "item_back_p2":
@@ -3009,11 +2977,7 @@ function startGame() {
 								break;
 							case "rear_p2":
 								if (!oPlayers[1]) return;
-								if (!bCounting) {
-									var nView = 180 - oPlayers[1].changeView;
-									oPlayers[1].changeView = nView;
-									oPlayers[1].sprite[0].setState(11);
-								}
+								showRearView(1);
 						}
 					}
 					window.releaseOnBlur = function() {
@@ -3051,6 +3015,29 @@ function startGame() {
 					if (course == "CM")
 						iTrajet = new Array();
 					clearInterval(redrawCanvasHandler);
+					if (clLocalVars.delayedStart) {
+						oPlayers[0].speed = 0;
+						oPlayers[0].speedinc = 0;
+						var tUntil = clLocalVars.delayedStart*1000/67;
+						function fastCycle() {
+							if (pause) {
+								if (timer < tUntil) {
+									setTimeout(fastCycle,1);
+									runOneFrame();
+								}
+								else {
+									delete clLocalVars.fastForward;
+									reprendre = resume;
+									reprendre(false);
+								}
+							}
+						}
+						pause = true;
+						clLocalVars.fastForward = true;
+						var resume = reprendre;
+						reprendre = function(){};
+						fastCycle();
+					}
 					cycle();
 					bRunning = true;
 				}
@@ -3291,6 +3278,8 @@ function startGame() {
 			}, 100);
 		}, 100);
 	}
+	if (clLocalVars.backwardsStart)
+		showRearView(0);
 	if (!isOnline)
 		document.body.style.cursor = "default";
 }
@@ -7243,6 +7232,18 @@ function stopDrifting(i) {
 	}
 }
 
+function showRearView(getId) {
+	var oPlayer = oPlayers[getId];
+	var nView = 180 - oPlayer.changeView;
+	oPlayer.changeView = nView;
+	oPlayer.sprite[0].setState(11);
+	if (bCounting) {
+		var oCount = document.getElementById("oCounts"+getId);
+		if (oCount)
+			oCount.style.visibility = oPlayer.changeView ? "hidden":"visible";
+	}
+}
+
 function resetSpriteHeight(sprite) {
 	sprite.lastW = sprite.w;
 	sprite.lastH = sprite.h;
@@ -8284,6 +8285,9 @@ var challengeRules = {
 		}
 	},
 	"backwards": {
+		"initSelected": function(scope) {
+			clLocalVars.backwardsStart = true;
+		},
 		"success": function(scope) {
 			return !clLocalVars.forwards;
 		}
@@ -8294,9 +8298,8 @@ var challengeRules = {
 		}
 	},
 	"time_delay": {
-		"initLocalVars": function(scope) {
-			if (!clLocalVars.delayedStart || (clLocalVars.delayedStart > scope.value))
-				clLocalVars.delayedStart = scope.value;
+		"initSelected": function(scope) {
+			clLocalVars.delayedStart = scope.value;
 		},
 		"success": function(scope) {
 			if (!clLocalVars.startedAt) return true;
@@ -9755,8 +9758,10 @@ function move(getId) {
 	if (kartIsPlayer(oKart)) {
 		if (!clLocalVars.startedAt && oKart.speed > 1)
 			clLocalVars.startedAt = timer;
-		if (!clLocalVars.forwards && oKart.speed > 0 && oKart.speedinc > 0)
-			clLocalVars.forwards = true;
+		if (!clLocalVars.forwards) {
+			if (oKart.speed > 0 && (oKart.speedinc > 0 || oKart.turbodrift))
+				clLocalVars.forwards = true;
+		}
 		var oSprite = oKart.sprite[getId];
 		if (!oKart.changeView) {
 			if (oKart.figstate)
@@ -17577,8 +17582,7 @@ function getCommands() {
 		rear:[88],
 		pause:[80],
 		quit:[27],
-		cheat:[120,33,57,105],
-		fastfwd:[118,36,55,103]
+		cheat:[120,33,57,105]
 	};
 	if (strPlayer.length > 1) {
 		defaultControls["up_p2"] = [69];

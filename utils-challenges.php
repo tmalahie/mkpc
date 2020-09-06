@@ -290,7 +290,7 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle', 'cup', 'mcup')
 		),
 		'time_delay' => array(
-			'description' => $language ? 'by starting with $value​s delay (key 7 to fast-forward)':'en partant avec $value​s de retard (touche 7 pour avance rapide)',
+			'description' => $language ? 'by starting with $value​s delay':'en partant avec $value​s de retard',
 			'description_mockup' => $language ? 'by starting with x seconds delay':'en partant avec x secondes de retard',
 			'parser' => function(&$scope) {
 				$scope['value'] = +$scope['value'];
