@@ -2610,7 +2610,16 @@ function startGame() {
 							document.getElementById("infos0").style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 							document.getElementById("infos0").style.fontSize = iScreenScale * 4 +"pt";
 							var btnFontSize = (course != "CM") ? (iScreenScale*3):Math.round(iScreenScale*2.5);
-							document.getElementById("infos0").innerHTML = '<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr><tr><td'+ (course != "CM" ? ' style="font-size: '+ iScreenScale * 10 +'px;">&nbsp;' : ' style="font-size: '+ (iScreenScale * 2) +'px">&nbsp;</td></tr><tr><td><input type="button" id="recommencer" value=" &nbsp; '+ toLanguage('RETRY', 'R&Eacute;ESSAYER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr><tr><td style="font-size: '+ (iScreenScale * 2) +'px">&nbsp;</td></tr><tr><td style="font-size: '+ (iScreenScale * 2) +'px"><input type="button" id="changecircuit" value="'+ toLanguage('  CHANGE RACE  ', 'CHANGER CIRCUIT') +'" style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr><tr><td style="font-size: '+ (iScreenScale * 2) +'px">&nbsp;') +'</td></tr><tr><td><input type="button" id="quitter" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
+							document.getElementById("infos0").innerHTML =
+								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr>'+
+								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
+								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RETRY  ', 'RÉESSAYER') +' &nbsp; " id="recommencer" /></td></tr>'+
+								((course != "CM") ? '':
+									'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
+									'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value="'+ toLanguage('  CHANGE RACE  ', 'CHANGER CIRCUIT') +'" id="changecircuit" /></td></tr>'
+								)+
+								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
+								'<tr><td><input type="button" id="quitter" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
 							document.getElementById("infos0").onkeydown = function(e) {
 								var btnDir;
 								switch (e.keyCode) {
@@ -2644,34 +2653,51 @@ function startGame() {
 								}
 							};
 							document.getElementById("reprendre").onclick = reprendre;
-							if (course == "CM") {
-								document.getElementById("recommencer").onclick = function() {
-									pause = true;
-									removeGameMusics();
-									removeHUD();
-									clearResources();
-									$mkScreen.removeChild(oContainers[0]);
-									fInfos = {
-										player:strPlayer,
-										map:oMap.ref,
-										difficulty:iDificulty,
-										perso:gPersos,
-										cpu_route:jTrajets,
-										my_record:gRecord,
-										ow_record:gOverwriteRecord,
-										lap_times:iLapTimes
-									};
-									document.getElementById("infos0").style.display = "none";
-									if (strPlayer.length == 1)
-										removePlan();
-									oBgLayers.length = 0;
-									document.onmousedown = undefined;
-									document.onkeydown = undefined;
-									document.onkeyup = undefined;
-									window.removeEventListener("blur", window.releaseOnBlur);
-									window.releaseOnBlur = undefined;
-									setTimeout(MarioKart, 500);
+							document.getElementById("recommencer").onclick = function() {
+								pause = true;
+								removeGameMusics();
+								removeHUD();
+								clearResources();
+								$mkScreen.removeChild(oContainers[0]);
+								fInfos = {
+									player:strPlayer,
+									map:oMap.ref,
+									difficulty:iDificulty
 								};
+								if (course == "CM") {
+									fInfos.perso = gPersos;
+									fInfos.cpu_route = jTrajets;
+									fInfos.my_record = gRecord;
+									fInfos.ow_record = gOverwriteRecord;
+									fInfos.lap_times = iLapTimes;
+								}
+								document.getElementById("infos0").style.display = "none";
+								if (strPlayer.length == 1)
+									removePlan();
+								oBgLayers.length = 0;
+								var firstGame = true;
+								for (var i=0;i<aScores.length;i++) {
+									if (aScores[i]) {
+										firstGame = false;
+										aScores[i] = 0;
+									}
+								}
+								if (!firstGame) {
+									if (course == "GP")
+										fInfos.map -= (oMap.ref+3)%4;
+									else
+										delete fInfos.map;
+								}
+								clRuleVars = {};
+								clGlobalVars = undefined;
+								document.onmousedown = undefined;
+								document.onkeydown = undefined;
+								document.onkeyup = undefined;
+								window.removeEventListener("blur", window.releaseOnBlur);
+								window.releaseOnBlur = undefined;
+								setTimeout(MarioKart, 500);
+							};
+							if (course == "CM") {
 								document.getElementById("changecircuit").onclick = function() {
 									pause = true;
 									removeGameMusics();
@@ -2789,7 +2815,7 @@ function startGame() {
 										pause = true;
 										pauseSounds();
 										var retryButton = document.getElementById("recommencer");
-										if (retryButton)
+										if (retryButton && ((course == "CM") || clSelected))
 											retryButton.focus();
 										else {
 											var resumeButton = document.getElementById("reprendre");
@@ -3537,9 +3563,7 @@ function continuer() {
 			if (isSingle && !isOnline)
 				oContinue.value = "        "+ toLanguage('  REPLAY', 'REJOUER') +"        ";
 			else {
-				if ((course == "GP") && (oMap == oMaps[3]))
-					oContinue.value = toLanguage("           NEXT           ", "         SUIVANT          ");
-				else if (course == "BB")
+				if (course == "BB")
 					oContinue.value = toLanguage("      NEXT BATTLE	   ", "BATAILLE SUIVANTE");
 				else
 					oContinue.value = toLanguage("       NEXT RACE	   ", "COURSE SUIVANTE");
@@ -3551,13 +3575,14 @@ function continuer() {
 				clearResources();
 				for (var i=0;i<strPlayer.length;i++) {
 					$mkScreen.removeChild(oContainers[i]);
-					fInfos = {
-						player:strPlayer,
-						map:oMap.ref+1,
-						difficulty:iDificulty
-					};
 					document.getElementById("infos"+i).style.display = "none";
 				}
+				fInfos = {
+					player:strPlayer,
+					difficulty:iDificulty
+				};
+				if (course == "GP")
+					fInfos.map = oMap.ref+1;
 				$mkScreen.style.opacity = 1;
 				if (strPlayer.length == 1)
 					removePlan();
@@ -17772,6 +17797,8 @@ if (pause) {
 	formulaire.sfx.disabled = false;
 	if (isSingle && !isOnline)
 		choose(1);
+	else if (fInfos.map != undefined)
+		loadMap(fInfos.map);
 	else if (course == "VS")
 		selectMapScreen();
 	else if (course == "BB") {
@@ -17780,8 +17807,6 @@ if (pause) {
 		else
 			selectMapScreen();
 	}
-	else if (fInfos.map != undefined)
-		loadMap(fInfos.map);
 	else if (fInfos.player)
 		selectMapScreen();
 }
