@@ -511,13 +511,19 @@ include('menu.php');
 				<div class="challengePages"><p>
 					Page : <?php
 					$get = $_GET;
-					for ($i=1;$i<=$nbPages;$i++) {
-						$get['page'] = $i;
-						if ($i == $currentPage)
-							echo $i;
-						else
-							echo '<a href="?'. http_build_query($get) .'">'. $i .'</a>';
-						echo ' &nbsp; ';
+					require_once('utils-paging.php');
+					$allPages = makePaging($currentPage,$nbPages,4);
+					foreach ($allPages as $i=>$block) {
+						if ($i)
+							echo '...&nbsp; &nbsp;';
+						foreach ($block as $p) {
+							$get['page'] = $p;
+							if ($p == $currentPage)
+								echo $p;
+							else
+								echo '<a href="?'. http_build_query($get) .'">'. $p .'</a>';
+							echo ' &nbsp; ';
+						}
 					}
 					?>
 				</p></div>

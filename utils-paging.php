@@ -1,6 +1,5 @@
 <?php
-function makePaging($cPage,$nbPages) {
-    $intervalle = 3;
+function makePaging($cPage,$nbPages,$intervalle=3) {
 	if ($nbPages <= ($intervalle*2+2)) {
         $block = array();
 		for ($i=1;$i<=$nbPages;$i++)
