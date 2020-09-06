@@ -2251,6 +2251,7 @@ function startGame() {
 		"each_frame": [],
 		"each_hit": [],
 		"each_kill": [],
+		"each_item": [],
 		"each_coin": [],
 		"end_gp": []
 	};
@@ -7704,13 +7705,15 @@ function nearestAngle(angle1,angle2, modulo) {
 	return angle1 + modulo*Math.round((angle2-angle1)/modulo);
 }
 
+var touchedObject; // TODO make this a local var
 function objet(iX, iY) {
 	for (var i=0;i<oMap.arme.length;i++) {
 		var oBox = oMap.arme[i];
 		if (iX > oBox[0] - 7 && iX < oBox[0] + 7 && iY > oBox[1] - 7 && iY < oBox[1] + 7 && isNaN(oBox[2])) {
-			for (var i=0;i<strPlayer.length;i++)
-				oBox[2][i].div.style.display = "none";
+			for (var j=0;j<strPlayer.length;j++)
+				oBox[2][j].div.style.display = "none";
 			oBox[2] = 20;
+			touchedObject = i;
 			return true;
 		}
 	}
@@ -8045,6 +8048,25 @@ var challengeRules = {
 				if (clLocalVars.nbPass >= allZones.length)
 					return true;
 			}
+		}
+	},
+	"hit_items": {
+		"verify": "each_item",
+		"initLocalVars": function(scope) {
+			clLocalVars.nbItems = 0;
+			clLocalVars.itemsHit = [];
+			clLocalVars.itemsHit.length = oMap.arme.length;
+		},
+		"initSelected": function(scope) {
+			addchallengeHud("items", {
+				title: toLanguage("Items","Objets"),
+				value: clLocalVars.nbItems,
+				out_of: oMap.arme.length
+			});
+		},
+		"success": function(scope) {
+			if (clLocalVars.nbItems >= oMap.arme.length)
+				return true;
 		}
 	},
 	"collect_coins": {
@@ -10067,6 +10089,14 @@ function move(getId) {
 				document.getElementById("scroller"+getId).getElementsByTagName("div")[0].style.top = -Math.floor(Math.random()*rHeight) +"px";
 				document.getElementById("scroller"+getId).style.visibility="visible";
 				clLocalVars.itemsGot = true;
+			}
+		}
+		if (clLocalVars.itemsHit && !oKart.cpu) {
+			if (!clLocalVars.itemsHit[touchedObject]) {
+				clLocalVars.itemsHit[touchedObject] = true;
+				clLocalVars.nbItems++;
+				updatechallengeHud("items", clLocalVars.nbItems);
+				challengeCheck("each_item");
 			}
 		}
 	}

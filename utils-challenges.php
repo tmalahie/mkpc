@@ -94,6 +94,10 @@ $clRulesByType = array(
 			},
 			'course' => array('vs','battle')
 		),
+		'hit_items' => array(
+			'description' => $language ? 'Hit all item boxes':'Toucher toutes les boites à objet',
+			'course' => array('vs','battle')
+		),
 		'collect_coins' => array(
 			'description_mockup' => $language ? 'Collect coins...':'Collecter des pièces...',
 			'description_lambda' => function($language,&$scope) {
