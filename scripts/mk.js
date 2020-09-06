@@ -583,14 +583,14 @@ function resetGame(strMap) {
 
 var oPlanDiv,oPlanDiv2, oPlanCtn,oPlanCtn2, oPlanImg,oPlanImg2;
 
-var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oExpWidth;
-var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oExpWidth2;
+var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oExpWidth;
+var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2;
 var oCharRatio, oPlanRatio;
-var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanDecor = {}, oPlanAssets = {},
+var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanDecor = {}, oPlanAssets = {},
 	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(),
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(),
 	oPlanEtoiles = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
-var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {},
+var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {},
 	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(),
 	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(),
 	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
@@ -711,6 +711,18 @@ function setPlanPos() {
 	}
 	setObjPos(oPlanObjects);
 	setObjPos(oPlanObjects2);
+
+	function setCoinPos(iPlanCoins,iObjWidth,iPlanCtn,iPlanSize) {
+		if (iPlanCoins.length != oMap.coins.length) {
+			syncObjects(iPlanCoins,oMap.coins,"coin", iObjWidth,iPlanCtn);
+			for (var i=0;i<iPlanCoins.length;i++)
+				posImg(iPlanCoins[i], oMap.coins[i].x,oMap.coins[i].y,Math.round(oPlayer.rotation), iObjWidth, iPlanSize);
+		}
+	}
+	if (oMap.coins) {
+		setCoinPos(oPlanCoins,oCoinWidth,oPlanCtn,oPlanSize);
+		setCoinPos(oPlanCoins2,oCoinWidth2,oPlanCtn2,oPlanSize2);
+	}
 
 	function setDecorPos(iPlanDecor,iObjWidth,iPlanCtn,iPlanSize) {
 		if (oMap.decor) {
@@ -1076,6 +1088,7 @@ function loadMap() {
 	oChallengeCpts.style.right = Math.round(iScreenScale/2) +"px";
 	oChallengeCpts.style.top = Math.round(iScreenScale*3.2) +"px";
 	oChallengeCpts.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+	oChallengeCpts.style.visibility = "hidden";
 	hudScreen.appendChild(oChallengeCpts);
 
 	initMap();
@@ -2378,12 +2391,14 @@ function startGame() {
 		oBBWidth = iScreenScale*2;
 		oStarWidth2 = Math.round(iScreenScale*1.5);
 		oObjWidth = Math.round(iScreenScale*1.5);
+		oCoinWidth = Math.round(iScreenScale*1.2);
 		oExpWidth = iScreenScale*7;
 
 		oCharWidth2 = Math.round(oCharRatio*oCharWidth);
 		oTeamWidth2 = Math.round(oCharRatio*oTeamWidth);
 		oBBWidth2 = Math.round(oCharRatio*oBBWidth);
 		oObjWidth2 = Math.round(oPlanRatio*oObjWidth);
+		oCoinWidth2 = Math.round(oPlanRatio*oCoinWidth);
 		oExpWidth2 = Math.round(oPlanRatio*oExpWidth);
 		if (iTeamPlay) {
 			for (var i=0;i<aTeams.length;i++) {
@@ -2468,6 +2483,7 @@ function startGame() {
 			oPlanCtn2.appendChild(oObject2);
 			oPlanObjects2.push(oObject2);
 		}
+
 		oPlanDiv.appendChild(oPlanCtn);
 		document.body.appendChild(oPlanDiv);
 		oPlanDiv2.appendChild(oPlanCtn2);
@@ -2560,6 +2576,7 @@ function startGame() {
 						oPlayers[i].speedinc = 0;
 					}
 				}
+				oChallengeCpts.style.visibility = "visible";
 				if (!isOnline && course == "BB") {
 					for (var i=strPlayer.length;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
@@ -7703,7 +7720,7 @@ function touche_piece(iX, iY) {
 	if (oMap.coins) {
 		for (var i=0;i<oMap.coins.length;i++) {
 			var oBox = oMap.coins[i];
-			if (iX > oBox.x - 7 && iX < oBox.x + 7 && iY > oBox.y - 7 && iY < oBox.y + 7) {
+			if (iX > oBox.x - 5 && iX < oBox.x + 5 && iY > oBox.y - 5 && iY < oBox.y + 5) {
 				oBox.sprite[0].suppr();
 				oMap.coins.splice(i,1);
 				return true;
@@ -9930,10 +9947,13 @@ function move(getId) {
 					}
 				}
 			}
-			if (!oKart.cpu && touche_piece(oKart.x,oKart.y)) {
-				clLocalVars.nbCoins++;
-				updatechallengeHud("coins", clLocalVars.nbCoins);
-				challengeCheck("each_coin");
+			if (!oKart.cpu) {
+				while (touche_piece(oKart.x,oKart.y)) {
+					clLocalVars.nbCoins++;
+					updatechallengeHud("coins", clLocalVars.nbCoins);
+					challengeCheck("each_coin");
+					playIfShould(oKart,"musics/events/coin.mp3");
+				}
 			}
 		}
 	}
