@@ -8283,6 +8283,11 @@ var challengeRules = {
 			return !clLocalVars.stunted;
 		}
 	},
+	"backwards": {
+		"success": function(scope) {
+			return !clLocalVars.forwards;
+		}
+	},
 	"time": {
 		"success": function(scope) {
 			return (getActualGameTime() <= scope.value);
@@ -9750,6 +9755,8 @@ function move(getId) {
 	if (kartIsPlayer(oKart)) {
 		if (!clLocalVars.startedAt && oKart.speed > 1)
 			clLocalVars.startedAt = timer;
+		if (!clLocalVars.forwards && oKart.speed > 0 && oKart.speedinc > 0)
+			clLocalVars.forwards = true;
 		var oSprite = oKart.sprite[getId];
 		if (!oKart.changeView) {
 			if (oKart.figstate)
