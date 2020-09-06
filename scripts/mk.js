@@ -8252,6 +8252,19 @@ var challengeRules = {
 			return !clLocalVars.itemsUsed;
 		}
 	},
+	"avoid_decors": {
+		"initLocalVars": function(scope) {
+			if (!clLocalVars.decorsHit)
+				clLocalVars.decorsHit = {};
+		},
+		"success": function(scope) {
+			for (var key in scope.value) {
+				if (clLocalVars.decorsHit[key])
+					return false;
+			}
+			return true;
+		}
+	},
 	"character": {
 		"success": function(scope) {
 			return (oPlayers[0].personnage == scope.value);
@@ -8998,6 +9011,21 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 				var asset = oMap[key][i];
 				var cX = asset[1][0], cY = asset[1][1], cR = 4;
 				if ((Math.abs(iX-cX) < cR) && (Math.abs(iY-cY) < cR))
+					return [key,asset];
+			}
+		}
+	}
+
+
+	{
+		var key = "flowers";
+		if (oMap[key]) {
+			for (var i=0;i<oMap[key].length;i++) {
+				var asset = oMap[key][i];
+				var flower = asset[1];
+				var x = flower[0], y = flower[1], w = Math.round(flower[2]/2), h = Math.round(flower[3]/2);
+				var oRect = [x-w,y-w,2*w,2*h];
+				if (pointInRectangle(iX,iY, oRect))
 					return [key,asset];
 			}
 		}
@@ -9869,7 +9897,9 @@ function move(getId) {
 				var hittable = !oKart.protect && !oKart.frminv;
 				var asset = touche_asset(aPosX,aPosY,fNewPosX,fNewPosY);
 				var stopped = true;
+				var decorHit = false;
 				if (asset) {
+					var decorType = asset[1][0].src;
 					switch (asset[0]) {
 					case "oils":
 						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne) {
@@ -9880,6 +9910,7 @@ function move(getId) {
 						stopped = false;
 						break;
 					case "pointers":
+						decorType = 'assets/pivothand';
 						if (hittable) {
 							stopDrifting(getId);
 							loseBall(getId);
@@ -9935,8 +9966,14 @@ function move(getId) {
 							oKart.bouncedsince = 0;
 						}
 						break;
+					case "flowers":
+						stopped = false;
+						hittable = false;
+						decorHit = true;
+						break;
 					}
 					if (stopped) {
+						decorHit = true;
 						stopDrifting(getId);
 						fNewPosX = aPosX;
 						fNewPosY = aPosY;
@@ -9951,10 +9988,16 @@ function move(getId) {
 						}
 					}
 					if (hittable) {
+						decorHit = true;
 						if (oKart.using[0]) {
 							if (oKart.using[0][oKart.using[1]][5])
 								oKart.using[0][oKart.using[1]][5] = 0;
 							oKart.using = [false];
+						}
+					}
+					if (decorHit) {
+						if (clLocalVars.decorsHit && !oKart.cpu) {
+							clLocalVars.decorsHit[decorType] = true;
 						}
 					}
 				}
@@ -10098,6 +10141,8 @@ function move(getId) {
 			oKart.speed = Math.hypot(oKart.x-aPosX,oKart.y-aPosY);
 	}
 	if (collisionDecor) {
+		if (clLocalVars.decorsHit && !oKart.cpu)
+			clLocalVars.decorsHit[collisionDecor] = true;
 		var collisionSpin = decorBehaviors[collisionDecor].spin;
 		if (collisionSpin && !oKart.tourne && !oKart.protect) {
 			var minSpeed = decorBehaviors[collisionDecor].minSpeedToSpin||2.5;
@@ -11111,7 +11156,7 @@ function timeStr(timeMS) {
 }
 
 var clLocalVars, clHud, clSelected;
-clSelected = challenges["track"]["7037"]["list"][4];
+//clSelected = challenges["track"]["7037"]["list"][4];
 
 function openCheats() {
 	var cheatCode = prompt("MKPC Console command");
