@@ -19,7 +19,6 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	$messages = mysql_query('SELECT auteur,id,message,date
 		FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id');
 	$nbMsgs = 20;
-	$pagesDiv = '<div class="topicPages"><p>Page :&nbsp;';
 	if (isset($_GET['page']))
 		$cPage = $_GET['page'];
 	elseif (isset($_GET['message']))
@@ -27,32 +26,14 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	else
 		$cPage = 1;
 	$nbPages = ceil(mysql_numrows($messages)/$nbMsgs);
-	$intervalle = 3;
-	if ($nbPages <= ($intervalle*2+2)) {
-		for ($i=1;$i<=$nbPages;$i++)
-			$pagesDiv .= pageLink($i, ($cPage==$i));
-	}
-	else {
-		$debut = $cPage-$intervalle;
-		if ($debut <= 1)
-			$debut = 1;
-		else {
-			$pagesDiv .= pageLink(1, false);
-			if ($debut != 2)
-				$pagesDiv .= ' ...&nbsp;';
-		}
-		$fin = $debut + $intervalle*2;
-		if ($fin > $nbPages) {
-			$fin = $nbPages;
-			$debut = $fin-$intervalle*2;
-		}
-		for ($i=$debut;$i<=$fin;$i++)
-			$pagesDiv .= pageLink($i, $i==$cPage);
-		if ($fin < $nbPages) {
-			if ($fin != ($nbPages-1))
-				$pagesDiv .= ' ...&nbsp; ';
-			$pagesDiv .= pageLink($nbPages, false);
-		}
+	require_once('utils-paging.php');
+	$allPages = makePaging($cPage,$nbPages);
+	$pagesDiv = '<div class="topicPages"><p>Page :&nbsp;';
+	foreach ($allPages as $i=>$block) {
+		if ($i)
+			$pagesDiv .= ' ...&nbsp; ';
+		foreach ($block as $p)
+			$pagesDiv .= pageLink($p, $p==$cPage);
 	}
 	$pagesDiv .= '</p></div>';
 	$fin = $cPage*$nbMsgs;

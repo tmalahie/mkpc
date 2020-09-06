@@ -212,32 +212,13 @@ foreach ($get as $k => $getk)
 			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'">'.$page.'</a>').'&nbsp; ';
 		}
 		$limite = ceil($nb_temps/20);
-		if ($limite >= 10) {
-			$intervalle = 3;
-			$debut = $page-$intervalle;
-			if ($debut <= 1)
-				$debut = 1;
-			else {
-				pageLink(1, false);
-				if ($debut != 2)
-					echo '...&nbsp; ';
-			}
-			$fin = $debut + $intervalle*2;
-			if ($fin > $limite) {
-				$fin = $limite;
-				$debut = $fin-$intervalle*2;
-			}
-			for ($i=$debut;$i<=$fin;$i++)
-				pageLink($i, $i==$page);
-			if ($fin < $limite) {
-				if ($fin != ($limite-1))
-					echo '...&nbsp; ';
-				pageLink($limite, false);
-			}
-		}
-		else {
-			for ($i=1;$i<=$limite;$i++)
-				pageLink($i, $i==$page);
+		require_once('utils-paging.php');
+		$allPages = makePaging($page,$limite);
+		foreach ($allPages as $i=>$block) {
+			if ($i)
+				echo '...&nbsp; ';
+			foreach ($block as $p)
+				pageLink($p, $p==$page);
 		}
 	}
 	?>
