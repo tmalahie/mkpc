@@ -44,7 +44,7 @@ if (isset($_POST['circuit']) &&  isset($_POST['type'])) {
 			echo '}';
 			include('getId.php');
 			if (($getCircuit['identifiant'] == $identifiants[0]) && ($getCircuit['identifiant2'] == $identifiants[1]) && ($getCircuit['identifiant3'] == $identifiants[2]) && ($getCircuit['identifiant4'] == $identifiants[3]))
-				mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkcomments` m ON m.id=n.link WHERE n.type="circuit_comment" AND m.type="'. $type .'" AND m.circuit="'. $circuit .'"');
+				mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkcomments` m ON m.id=n.link WHERE n.identifiant='.$identifiants[0].' AND n.identifiant2='.$identifiants[1].' AND n.identifiant3='.$identifiants[2].' AND n.identifiant4='.$identifiants[3].' AND n.type="circuit_comment" AND m.type="'. $type .'" AND m.circuit="'. $circuit .'"');
 			if ($id) {
 				mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkcomments` m ON m.id=n.link WHERE n.user="'. $id .'" AND n.type="answer_comment" AND m.type="'. $type .'" AND m.circuit="'. $circuit .'"');
 				$notifTypes = array(
