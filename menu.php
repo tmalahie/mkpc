@@ -586,7 +586,7 @@
 				if (count($notifsData) >= $relyOnCacheThreshold) {
 					$newCacheId = $notifsData[$relyOnCacheThreshold-1]['id'];
 					$nbNotifsCache = $nbNotifs-$relyOnCacheThreshold;
-					apc_store($notifsCacheKey, "$nbNotifsCache:$newCacheId", 60000);
+					apc_store($notifsCacheKey, "$nbNotifsCache:$newCacheId", min(round(60000+$nbNotifsCache*100),500000));
 				}
 				else
 					clearNotifCache();
