@@ -579,6 +579,40 @@ button.control-close:active {
 .challenge-publish a {
 	color: #069;
 }
+.clselected-popup {
+    position: absolute;
+    background-color: rgba(216,240,255,0.9);
+    color: #003356;
+    padding: 2px 5px;
+    border: dashed #074 0.15em;
+    border-radius: 0.3em;
+}
+.clselected-close {
+    text-align: right;
+    line-height: 0.5em;
+    margin-top: 0.3em;
+}
+.clselected-close a {
+    color: #1C702B;
+    text-decoration: none;
+}
+.clselected-ctn {
+    display: flex;
+    align-items: center;
+}
+.clselected-ctn > div:first-child {
+    font-size: 2em;
+    margin-right: 0.2em;
+    color: #289667;
+}
+.clselected-ctn > div:last-child {
+    text-align: justify;
+    max-width: 15em;
+    margin-right: 1em;
+}
+.clselected-ctn strong {
+    color: #06C;
+}
 #mariokartcontainer.fullscreen {
     position: fixed;
     left: 0;

@@ -38,6 +38,8 @@ if (isset($_POST['challenge']) || isset($_GET['challenge'])) {
 				if ($circuitData = getCircuitPayload($clRace))
 					$redirectUrl = $circuitData['href'];
 			}
+			if (!isset($alreadySucceeded))
+				$_SESSION['clselected'] = $challengeId;
 		}
 	}
 	mysql_close();

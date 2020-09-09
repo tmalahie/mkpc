@@ -7,6 +7,7 @@ var customDecorData = {};
 var nBasePersos, customPersos;
 var selectedDifficulty;
 var updateCtnFullScreen;
+var isFirstLoad = true;
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
@@ -8875,6 +8876,38 @@ window.publishChallenge = function(id) {
 		}
 	}
 }
+function showClSelectedPopup() {
+	var $popup = document.createElement("div");
+	$popup.style.fontSize = (2*iScreenScale) +"px";
+	$popup.className = "clselected-popup";
+	$popup.style.left = (27*iScreenScale) +"px";
+	$popup.style.top = (iHeight*iScreenScale) +"px";
+	$popup.innerHTML = 
+		'<div class="clselected-close">'+
+			'<a href="#null">&times;</a>'+
+		'</div>'+
+		'<div class="clselected-ctn">'+
+			'<div>\u2714</div>'+
+			'<div><strong>'+ toLanguage('Challenge selected :','Défi sélectionné:') +'</strong> '+ (clSelected.name || clSelected.description.main) +'</div>'+
+		'</div>'+
+	'</div>';
+	$popup.querySelector(".clselected-close a").onclick = function() {
+		document.body.removeChild($popup);
+		return false;
+	}
+	document.body.appendChild($popup);
+	var opacity = 1;
+	function fadeOutPopup() {
+		if (opacity > 0) {
+			$popup.style.opacity = opacity;
+			opacity -= 0.04;
+			setTimeout(fadeOutPopup,40);
+		}
+		else
+			document.body.removeChild($popup);
+	}
+	setTimeout(fadeOutPopup, 1500);
+}
 
 var COL_KART = 0, COL_OBJ = 1;
 var collisionTest, collisionPlayer, collisionTeam, collisionDecor;
@@ -11234,7 +11267,7 @@ function timeStr(timeMS) {
 }
 
 var clLocalVars, clHud, clSelected;
-//clSelected = challenges["track"]["7037"]["list"][4];
+//clSelected = challenges["track"]["7037"]["list"][3];
 
 function openCheats() {
 	var cheatCode = prompt("MKPC Console command");
@@ -14888,6 +14921,7 @@ function selectChallengesScreen() {
 											persoSelector.parentNode.onclick();
 										}
 									}
+									showClSelectedPopup();
 									return true;
 								});
 							};
@@ -17917,6 +17951,33 @@ else {
 	var $commandes = document.getElementById("commandes");
 	if ($commandes && $commandes.innerHTML.length < 10)
 		displayCommands();
+	
+	if (isFirstLoad) {
+		isFirstLoad = false;
+		if (isCup) {
+			xhr("getClSelected.php", null, function(challengeId) {
+				if (challengeId) {
+					for (var type in challenges) {
+						for (var cid in challenges[type]) {
+							var creationChallenges = challenges[type][cid];
+							var challengesList = creationChallenges.list;
+							for (var i=0;i<challengesList.length;i++) {
+								var challenge = challengesList[i];
+								if (challenge.id == challengeId) {
+									if (!clSelected && !challenge.succeeded) {
+										clSelected = challenge;
+										showClSelectedPopup();
+									}
+									return true;
+								}
+							}
+						}
+					}
+				}
+				return true;
+			});
+		}
+	}
 }
 function isMobile() {
 	return navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i);
