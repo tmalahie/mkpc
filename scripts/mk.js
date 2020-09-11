@@ -8841,6 +8841,10 @@ function focusOnChallengeClose() {
 		var resumeButton = document.getElementById("reprendre");
 		if (resumeButton)
 			resumeButton.focus();
+		else {
+			var oCtn = document.getElementById("octn");
+			if (oCtn) oCtn.focus();
+		}
 	}
 }
 window.closeChallengePopup = function(id) {

@@ -278,14 +278,14 @@ function showFancyTitle(e) {
     if ($elt.dataset.players) {
         $fancyTitle.className = "";
         $fancyTitle.innerHTML = "<?php echo $language ? 'Unlocked by:' : 'Débloqué par :'; ?>" +
-        $elt.dataset.players.split(",").map(function(p) { return "<div><small>✔</small> "+ p +"</div>"; }).join("");
+        $elt.dataset.players.split(",").map(function(p) { return "<div><small>✔</small>&nbsp;"+ p +"</div>"; }).join("");
     }
     else {
         $fancyTitle.className = "empty";
         $fancyTitle.innerHTML = "<?php echo $language ? 'Unlocked by nobody<br />Be the 1st one!' : 'Débloqué par personne<br />Soyez le 1er !'; ?>";
     }
     var rect = $elt.getBoundingClientRect();
-    $fancyTitle.style.left = rect.left +"px";
+    $fancyTitle.style.left = (rect.left-20) +"px";
     $fancyTitle.style.top = (rect.bottom+5) +"px";
 }
 function hideFancyTitle(e) {
@@ -377,7 +377,8 @@ while ($reward = mysql_fetch_array($getRewardsData)) {
         $challengeParams = array('circuit' => true);
         while ($challenge = mysql_fetch_array($challenges)) {
             $challengeData = getChallengeDetails($challenge, $challengeParams);
-            echo '<strong>'.$challengeData['circuit']['name'] .'</strong>: ';
+            $circuitName = $challengeData['circuit']['name'];
+            echo '<strong>'. ($circuitName ? $circuitName : ($language ? 'Untitled':'Sans titre')) .'</strong>: ';
             echo $challengeData['description']['main'].'<br />';
         }
         ?>
