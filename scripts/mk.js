@@ -557,7 +557,7 @@ var oPlanDiv,oPlanDiv2, oPlanCtn,oPlanCtn2, oPlanImg,oPlanImg2;
 var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oExpWidth;
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2;
 var oCharRatio, oPlanRatio;
-var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanDecor = {}, oPlanAssets = {},
+var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {},
 	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(),
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(),
 	oPlanEtoiles = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
@@ -2684,8 +2684,7 @@ function startGame() {
 							oInfos.style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 							oInfos.style.fontSize = iScreenScale * 4 +"pt";
 							var btnFontSize = (course != "CM") ? (iScreenScale*3):Math.round(iScreenScale*2.5);
-<<<<<<< HEAD
-							document.getElementById("infos0").innerHTML =
+							oInfos.innerHTML =
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr>'+
 								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RETRY  ', 'RÉESSAYER') +' &nbsp; " id="recommencer" /></td></tr>'+
@@ -2695,11 +2694,7 @@ function startGame() {
 								)+
 								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
 								'<tr><td><input type="button" id="quitter" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
-							document.getElementById("infos0").onkeydown = function(e) {
-=======
-							oInfos.innerHTML = '<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr><tr><td'+ (course != "CM" ? ' style="font-size: '+ iScreenScale * 10 +'px;">&nbsp;' : ' style="font-size: '+ (iScreenScale * 2) +'px">&nbsp;</td></tr><tr><td><input type="button" id="recommencer" value=" &nbsp; '+ toLanguage('RETRY', 'R&Eacute;ESSAYER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr><tr><td style="font-size: '+ (iScreenScale * 2) +'px">&nbsp;</td></tr><tr><td style="font-size: '+ (iScreenScale * 2) +'px"><input type="button" id="changecircuit" value="'+ toLanguage('  CHANGE RACE  ', 'CHANGER CIRCUIT') +'" style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr><tr><td style="font-size: '+ (iScreenScale * 2) +'px">&nbsp;') +'</td></tr><tr><td><input type="button" id="quitter" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
 							oInfos.onkeydown = function(e) {
->>>>>>> Implement poison item
 								var btnDir;
 								switch (e.keyCode) {
 								case 38:
@@ -7183,8 +7178,8 @@ function render() {
 					var fShift = 2.5;
 					for (k=0;k<nbBallons;k++) {
 						fSprite.ref.ballons[k][i].render(fCamera, {
-							x: fSprite.x-(k+0.5-nbBallons/2)*fShift*direction(1,fRotation),
-							y: fSprite.y+(k+0.5-nbBallons/2)*fShift*direction(0,fRotation),
+							x: fSprite.x-(k+0.8-nbBallons/2)*fShift*direction(1,fRotation),
+							y: fSprite.y+(k+0.8-nbBallons/2)*fShift*direction(0,fRotation),
 							z: fHauteur,
 							size: fTaille
 						});
