@@ -602,6 +602,8 @@ button.control-close:active {
 }
 .clselected-ctn > div:first-child {
     font-size: 2em;
+    line-height: 1em;
+    margin-left: 0.1em;
     margin-right: 0.2em;
     color: #289667;
 }

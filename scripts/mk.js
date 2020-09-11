@@ -13049,6 +13049,11 @@ function selectMainPage() {
 }
 
 function selectNbJoueurs() {
+	if (clSelected) {
+		selectPlayerScreen(0);
+		return;
+	}
+
 	var oScr = document.createElement("div");
 	var oStyle = oScr.style;
 
@@ -14344,6 +14349,14 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oPInput.style.color = "#F90";
 	oScr.appendChild(oPInput);
 
+	if (clSelected && clSelected.autoset && clSelected.autoset.selectedPerso) {
+		var persoSelector = document.getElementById("perso-selector-"+clSelected.autoset.selectedPerso);
+		if (persoSelector && persoSelector.parentNode && persoSelector.parentNode.onclick) {
+			persoSelector.parentNode.onclick();
+			return;
+		}
+	}
+
 	function addMyPersos(newPersos) {
 		var lastCp = cp;
 		cp = {};
@@ -14383,8 +14396,6 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		addMyPersos(myPersosCache);
 	else {
 		xhr("myPersos.php", null, function(res) {
-			if (oScr.dataset && oScr.dataset.bypass)
-				return true;
 			var newPersos = [];
 			try {
 				newPersos = eval(res);
@@ -14895,8 +14906,8 @@ function selectChallengesScreen() {
 									catch (e) {
 										return false;
 									}
+									clSelected.autoset = res;
 									course = "";
-									delete window.selectedPerso;
 									for (var k in res)
 										window[k] = res[k];
 									if (course)
@@ -14907,16 +14918,7 @@ function selectChallengesScreen() {
 										if (nbPselector && nbPselector.onclick)
 											nbPselector.onclick();
 									}
-									if (window.selectedPerso) {
-										var persoSelector = document.getElementById("perso-selector-"+window.selectedPerso);
-										if (persoSelector && persoSelector.parentNode && persoSelector.parentNode.onclick) {
-											var oScr = oContainers[0].childNodes[0];
-											if (!oScr.dataset)
-												oScr.dataset = {};
-											oScr.dataset.bypass = true;
-											persoSelector.parentNode.onclick();
-										}
-									}
+									delete window.selectedPerso;
 									showClSelectedPopup();
 									return true;
 								});
