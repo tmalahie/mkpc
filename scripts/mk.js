@@ -7934,10 +7934,10 @@ function getActualGameTime() {
 	return getActualGameTimeMS()/1000;
 }
 var lambdaReturnsTrue = function(scope){return true};
-function addchallengeHud(key, options) {
+function addChallengeHud(key, options) {
 	if (clHud[key]) return;
 	var oChallengeCpt = document.createElement("div");
-	oChallengeCpt.innerHTML = "<span>"+ options.title +":</span> <span>"+ options.value +"</span>"+ (options.out_of ? "/<span>"+options.out_of+"</span>" : "");
+	oChallengeCpt.innerHTML = "<span>"+ options.title +":</span> <span>"+ options.value +"</span>"+ ((options.out_of!=null) ? "/<span>"+options.out_of+"</span>" : "");
 	var oChallengeNodes = oChallengeCpt.getElementsByTagName("span");
 	oChallengeCpts.appendChild(oChallengeCpt);
 	clHud[key] = {
@@ -7947,7 +7947,7 @@ function addchallengeHud(key, options) {
 		"$outOf": oChallengeNodes[2]
 	}
 }
-function updatechallengeHud(key, value) {
+function updateChallengeHud(key, value) {
 	if (clHud[key])
 		clHud[key].$value.innerText = value;
 }
@@ -7985,8 +7985,8 @@ var challengeRules = {
 			clLocalVars.nbHits = 0;
 		},
 		"initSelected": function(scope) {
-			addchallengeHud("hits", {
-				title: toLanguage("Hits","Coups"),
+			addChallengeHud("hits", {
+				title: toLanguage("Hits","Touchés"),
 				value: clLocalVars.nbHits,
 				out_of: scope.value
 			});
@@ -8005,8 +8005,8 @@ var challengeRules = {
 			clLocalVars.nbHits = 0;
 		},
 		"initSelected": function(scope) {
-			addchallengeHud("kills", {
-				title: toLanguage("Eliminations","Éliminations"),
+			addChallengeHud("kills", {
+				title: toLanguage("Defeated","Eliminés"),
 				value: clLocalVars.nbKills,
 				out_of: scope.value
 			});
@@ -8054,7 +8054,7 @@ var challengeRules = {
 			clLocalVars.nbPass = 0;
 		},
 		"initSelected": function(scope) {
-			addchallengeHud("zones", {
+			addChallengeHud("zones", {
 				title: toLanguage("Zones","Zones"),
 				value: clLocalVars.nbPass,
 				out_of: scope.value.length
@@ -8086,7 +8086,7 @@ var challengeRules = {
 				}
 				clLocalVars.reached[reachedZone] = true;
 				clLocalVars.nbPass++;
-				updatechallengeHud("zones", clLocalVars.nbPass);
+				updateChallengeHud("zones", clLocalVars.nbPass);
 				if (clLocalVars.nbPass >= allZones.length)
 					return true;
 			}
@@ -8100,7 +8100,7 @@ var challengeRules = {
 			clLocalVars.itemsHit.length = oMap.arme.length;
 		},
 		"initSelected": function(scope) {
-			addchallengeHud("items", {
+			addChallengeHud("items", {
 				title: toLanguage("Items","Objets"),
 				value: clLocalVars.nbItems,
 				out_of: oMap.arme.length
@@ -8137,7 +8137,7 @@ var challengeRules = {
 					oMap.coins.push(mCoin);
 				}
 			}
-			addchallengeHud("coins", {
+			addChallengeHud("coins", {
 				title: toLanguage("Coins","Pièces"),
 				value: clLocalVars.nbCoins,
 				out_of: scope.nb
@@ -8295,6 +8295,13 @@ var challengeRules = {
 		}
 	},
 	"balloons_lost": {
+		"initSelected": function(scope, ruleVars) {
+			addChallengeHud("balloons", {
+				title: toLanguage("Balloons","Ballons"),
+				value: clLocalVars.lostBalloons,
+				out_of: scope.value
+			});
+		},
 		"success": function(scope) {
 			if (oPlayers[0].loose && clLocalVars.gagnant != oPlayers[0])
 				return false;
@@ -8340,7 +8347,7 @@ var challengeRules = {
 		},
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars) {
-				addchallengeHud("falls", {
+				addChallengeHud("falls", {
 					title: toLanguage("Falls","Chutes"),
 					value: clLocalVars.falls+ruleVars.falls,
 					out_of: scope.value
@@ -8924,12 +8931,12 @@ function handleHit2(oKart,kart) {
 }
 function incChallengeHits(kart) {
 	clLocalVars.nbHits++;
-	updatechallengeHud("hits", clLocalVars.nbHits);
+	updateChallengeHud("hits", clLocalVars.nbHits);
 	if ((course == "BB") && (kart.ballons.length == 1)) {
 		if (clLocalVars.killed && clLocalVars.killed.indexOf(kart) == -1) {
 			clLocalVars.killed.push(kart);
 			clLocalVars.nbKills++;
-			updatechallengeHud("kills", clLocalVars.nbKills);
+			updateChallengeHud("kills", clLocalVars.nbKills);
 		}
 	}
 	challengeCheck("each_hit");
@@ -9725,8 +9732,10 @@ function loseBall(i) {
 		if (!aKarts[i].tourne && aKarts[i].ballons[lg]) {
 			aKarts[i].ballons[lg][0].suppr();
 			aKarts[i].ballons.pop();
-			if (!aKarts[i].cpu)
+			if (!aKarts[i].cpu) {
 				clLocalVars.lostBalloons++;
+				updateChallengeHud("balloons", clLocalVars.lostBalloons);
+			}
 			if (isOnline && !i && !aKarts[i].ballons.length) {
 				supprArme(i);
 				document.getElementById("infoPlace0").style.visibility = "hidden";
@@ -10104,7 +10113,7 @@ function move(getId) {
 			if (!oKart.cpu) {
 				while (touche_piece(oKart.x,oKart.y)) {
 					clLocalVars.nbCoins++;
-					updatechallengeHud("coins", clLocalVars.nbCoins);
+					updateChallengeHud("coins", clLocalVars.nbCoins);
 					challengeCheck("each_coin");
 					playIfShould(oKart,"musics/events/coin.mp3");
 				}
@@ -10172,7 +10181,7 @@ function move(getId) {
 			if (!clLocalVars.itemsHit[touchedObject]) {
 				clLocalVars.itemsHit[touchedObject] = true;
 				clLocalVars.nbItems++;
-				updatechallengeHud("items", clLocalVars.nbItems);
+				updateChallengeHud("items", clLocalVars.nbItems);
 				challengeCheck("each_item");
 			}
 		}
@@ -10394,7 +10403,7 @@ function move(getId) {
 					if (clSelected) {
 						var ruleVars = clRuleVars[clSelected.id].falls;
 						if (ruleVars)
-							updatechallengeHud("falls", clLocalVars.falls+ruleVars.falls);
+							updateChallengeHud("falls", clLocalVars.falls+ruleVars.falls);
 					}
 				}
 				playIfShould(oKart, "musics/events/fall.mp3");
@@ -13048,8 +13057,8 @@ function selectMainPage() {
 	}
 }
 
-function selectNbJoueurs() {
-	if (clSelected) {
+function selectNbJoueurs(force) {
+	if (clSelected && !force) {
 		selectPlayerScreen(0);
 		return;
 	}
@@ -14339,7 +14348,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			else if (course == "VS" || course == "BB") {
 				for (var i=1;i<oContainers.length;i++)
 					oContainers.splice(i,1);
-				selectNbJoueurs();
+				selectNbJoueurs(true);
 			}
 			else
 				selectTypeScreen();
@@ -14912,12 +14921,8 @@ function selectChallengesScreen() {
 										window[k] = res[k];
 									if (course)
 										selectPlayerScreen(0);
-									else {
+									else
 										selectMainPage();
-										var nbPselector = document.getElementById("select-nbj-1");
-										if (nbPselector && nbPselector.onclick)
-											nbPselector.onclick();
-									}
 									delete window.selectedPerso;
 									showClSelectedPopup();
 									return true;

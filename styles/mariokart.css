@@ -220,6 +220,7 @@ button.control-close:active {
     text-align: right;
     display: grid;
     grid-template-columns: auto auto;
+    direction: rtl;
 }
 #challenge-cpts > div {
     margin-left: 1em;
