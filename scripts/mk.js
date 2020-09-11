@@ -8621,22 +8621,6 @@ function showChallengePartialSuccess(challenge, res) {
 	}
 	fadeInPopup();
 }
-window.closeChallengePopup = function(id) {
-	var challengePopup = document.getElementById("challenge-popup-"+id);
-	if (challengePopup) {
-		var opacity = 1;
-		function fadeOutPopup() {
-			if (opacity > 0) {
-				challengePopup.style.opacity = opacity;
-				opacity -= 0.2;
-				setTimeout(fadeOutPopup,40);
-			}
-			else
-				$mkScreen.removeChild(challengePopup);
-		}
-		fadeOutPopup();
-	}
-}
 function showChallengePopup(challenge, res) {
 	var lastPopup = document.getElementById("challenge-popup-"+challenge.id);
 	if (lastPopup) return;
@@ -8740,7 +8724,6 @@ function showChallengePopup(challenge, res) {
 	if (!pause && document.onkeydown) {
 		clLocalVars.forcePause = true;
 		document.onkeydown({keyCode:findKeyCode("pause")});
-		if (document.activeElement) document.activeElement.blur();
 		delete clLocalVars.forcePause;
 	}
 	if (bMusic || iSfx) {
@@ -8781,6 +8764,7 @@ function showChallengePopup(challenge, res) {
 		for (var i=0;i<res.unlocked.length;i++)
 			showChallengeRewardPopup(res.unlocked[i]);
 	}
+	focusOnChallengeClose();
 }
 function showChallengeRewardPopup(reward) {
 	var lastPopup = document.getElementById("challenge-popup-reward-"+reward.id);
@@ -8842,6 +8826,16 @@ function showChallengeRewardPopup(reward) {
 	}
 	fadeInPopup();
 }
+function focusOnChallengeClose() {
+	var $closeBtns = document.querySelectorAll(".challenge-popup .challenge-popup-close a");
+	if ($closeBtns.length)
+		$closeBtns[$closeBtns.length-1].focus();
+	else {
+		var resumeButton = document.getElementById("reprendre");
+		if (resumeButton)
+			resumeButton.focus();
+	}
+}
 window.closeChallengePopup = function(id) {
 	var challengePopup = document.getElementById("challenge-popup-"+id);
 	if (challengePopup) {
@@ -8854,8 +8848,10 @@ window.closeChallengePopup = function(id) {
 				opacity -= 0.2;
 				setTimeout(fadeOutPopup,40);
 			}
-			else
+			else {
 				$mkScreen.removeChild(challengePopup);
+				focusOnChallengeClose();
+			}
 		}
 		fadeOutPopup();
 	}
