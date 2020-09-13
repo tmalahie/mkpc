@@ -163,7 +163,13 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 		switch ($_GET['page']) {
 		case 'circuit':
 		case 'arena':
-			$circuitMap = $_GET['map'];
+			$circuitMap = 1;
+			if (isset($_GET['map']))
+				$circuitMap = $_GET['map'];
+			elseif (isset($_GET['id'])) {
+				if ($getMap = mysql_fetch_array(mysql_query('SELECT map FROM `mkcircuits` WHERE id="'. $_GET['id'] .'"')))
+					$circuitMap = $getMap['map'];
+			}
 			require_once('circuitEnumsQuick.php');
 			$decorTypes = $decorTypes[$circuitMap];
 			foreach ($decorTypes as $type) {
