@@ -7209,8 +7209,11 @@ function render() {
 
 			if (oMap.coins) {
 				for (var j=0;j<oMap.coins.length;j++) {
-					// TODO handle FPS feature
 					fSprite = oMap.coins[j];
+					var fRotRad = fCamera.rotation * Math.PI / 180;
+					var cosTheta = Math.abs(Math.cos(fSprite.theta-fRotRad));
+					fSprite.sprite[i].w = 24*cosTheta;
+					fSprite.sprite[i].z = (cosTheta-1)*0.5;
 					fSprite.sprite[i].render(fCamera, {
 						x: fSprite.x,
 						y: fSprite.y
