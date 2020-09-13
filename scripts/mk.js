@@ -2288,6 +2288,8 @@ function startGame() {
 		if (!challengesUsed[cid])
 			delete clRuleVars[cid];
 	}
+	if (clSelected && !challengesUsed[clSelected.id])
+		clSelected = undefined;
 	reinitLocalVars();
 
 	if ((strPlayer.length == 1) && !gameSettings.nomap) {
@@ -8501,7 +8503,8 @@ function challengeCheck(verifType, events) {
 	var challengesForType = challengesForCircuit[verifType];
 	for (var i=0;i<challengesForType.length;i++) {
 		var challenge = challengesForType[i];
-		var status = challengeRulesSatisfied(challenge);
+		var chRules = listChallengeRules(challenge.data);
+		var status = challengeRulesSatisfied(challenge,chRules);
 		if (true === status) {
 			challengeSucceeded(challenge);
 			challengesForType.splice(i,1);
@@ -8529,8 +8532,17 @@ function challengeHandleEvents(challenge, events) {
 		}
 	}
 }
-function challengeRulesSatisfied(challenge) {
-	var chRules = listChallengeRules(challenge.data);
+var clSelectionFail = false;
+function challengeHandleFail() {
+	if (clSelectionFail) return;
+	if (clSelected.succeeded) return;
+	clSelectionFail = true;
+	clHud = {};
+	oChallengeCpts.innerHTML = "";
+	if (timer > 1)
+		showClFailedPopup();
+}
+function challengeRulesSatisfied(challenge, chRules) {
 	var allOk = true;
 	for (var i=0;i<chRules.length;i++) {
 		var status = challengeRuleSatisfied(challenge,chRules[i]);
@@ -8896,8 +8908,7 @@ function showClSelectedPopup() {
 		'<div class="clselected-ctn">'+
 			'<div>\u2714</div>'+
 			'<div><strong>'+ toLanguage('Challenge selected :','Défi sélectionné:') +'</strong> '+ (clSelected.name || clSelected.description.main) +'</div>'+
-		'</div>'+
-	'</div>';
+		'</div>';
 	$popup.querySelector(".clselected-close a").onclick = function() {
 		document.body.removeChild($popup);
 		return false;
@@ -8914,6 +8925,23 @@ function showClSelectedPopup() {
 			document.body.removeChild($popup);
 	}
 	setTimeout(fadeOutPopup, 1500);
+}
+function showClFailedPopup() {
+	var $popup = document.createElement("div");
+	$popup.style.position = "absolute";
+	$popup.style.color = "#C00";
+	$popup.style.right = Math.round(iScreenScale/2) +"px";
+	$popup.style.top = Math.round(iScreenScale*2.5) +"px";
+	$popup.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+	$popup.style.display = "flex";
+	$popup.style.alignItems = "center";
+	$popup.style.fontFamily = "Courier New";
+	$popup.innerHTML = '<strong style="color:#800;font-size:1.8em">&times;</strong>&nbsp;' + (language ? 'Challenge failed...':'Défi échoué...');
+	var hudScreen = oChallengeCpts.parentNode;
+	hudScreen.appendChild($popup);
+	setTimeout(function() {
+		hudScreen.removeChild($popup);
+	}, 1500);
 }
 
 var COL_KART = 0, COL_OBJ = 1;
@@ -11284,8 +11312,11 @@ function openCheats() {
 		return false;
 	if (!processCode(cheatCode))
 		alert("Invalid command");
-	else;
+	else {
 		clLocalVars.cheated = true;
+		if (clSelected)
+			challengeHandleFail();
+	}
 }
 function processCode(cheatCode) {
 	if (cheatCode.charAt(0) != "/")
@@ -12037,8 +12068,13 @@ function runOneFrame() {
 			places(i);
 	}
 	moveDecor();
-	if (!oPlayers[0].cpu)
+	if (!oPlayers[0].cpu) {
+		if (clSelected && !clSelectionFail) {
+			if (false === challengeRulesSatisfied(clSelected, clSelected.data.constraints))
+				challengeHandleFail();
+		}
 		challengeCheck("each_frame");
+	}
 	if (refreshDatas)
 		resetDatas();
 	render();
@@ -13115,6 +13151,7 @@ function selectNbJoueurs(force) {
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			if (this.value.charAt(0) == "2") {
+				clSelected = null;
 				var oContainer2 = oContainers[0].cloneNode(false);
 				oContainer2.style.left = (12+iWidth*iScreenScale)+"px";
 				oContainers.push(oContainer2);
@@ -13752,6 +13789,8 @@ function selectTypeCreate() {
 var myPersosCache;
 function selectPlayerScreen(IdJ,newP,nbSels) {
 	var isCustomSel = (nbSels !== undefined);
+	var force = (IdJ === -1);
+	if (force) IdJ = 0;
 	if (!IdJ) {
 		strPlayer = [];
 		aPlayers = [];
@@ -14362,7 +14401,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oPInput.style.color = "#F90";
 	oScr.appendChild(oPInput);
 
-	if (clSelected && clSelected.autoset && clSelected.autoset.selectedPerso) {
+	if (clSelected && clSelected.autoset && clSelected.autoset.selectedPerso && !force) {
 		var persoSelector = document.getElementById("perso-selector-"+clSelected.autoset.selectedPerso);
 		if (persoSelector && persoSelector.parentNode && persoSelector.parentNode.onclick) {
 			persoSelector.parentNode.onclick();
@@ -14499,7 +14538,7 @@ function selectTeamScreen(IdJ) {
 	oPInput.onclick = function() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
-		selectPlayerScreen(0);
+		selectPlayerScreen(-1);
 	}
 	oScr.appendChild(oPInput);
 
@@ -14549,7 +14588,7 @@ function selectGamersScreen() {
 	if (!isOnline && isTeamPlay())
 		selectTeamScreen(0);
 	else
-		selectPlayerScreen(0);
+		selectPlayerScreen(-1);
 }
 
 function acceptRulesScreen() {
