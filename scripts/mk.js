@@ -739,6 +739,10 @@ function setPlanPos() {
 						if (decorBehavior.size_ratio) tObjWidth *= decorBehavior.size_ratio.w;
 						syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
 						if (firstRun && customDecor) {
+							for (var i=0;i<iPlanDecor[type].length;i++) {
+								var iDecor = iPlanDecor[type][i];
+								iDecor.src = "images/map_icons/empty.png";
+							}
 							(function(type,decorBehavior) {
 								getCustomDecorData(customDecor, function(res) {
 									tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
@@ -2134,6 +2138,8 @@ function startGame() {
 				else {
 					if (customDecor) {
 						(function(decorData,decorBehavior) {
+							for (var j=0;j<oPlayers.length;j++)
+								decorData[2][j].img.src = "images/map_icons/empty.png";
 							getCustomDecorData(customDecor, function(res) {
 								for (var j=0;j<oPlayers.length;j++) {
 									decorData[2][j].img.src = res.hd;
