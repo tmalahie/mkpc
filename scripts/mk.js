@@ -3041,6 +3041,7 @@ function startGame() {
 					clearInterval(redrawCanvasHandler);
 					if (clLocalVars.delayedStart) {
 						oPlayers[0].speed = 0;
+						var aSpeedInc = oPlayers[0].speedinc;
 						oPlayers[0].speedinc = 0;
 						var tUntil = clLocalVars.delayedStart*1000/67;
 						function fastCycle() {
@@ -3051,6 +3052,7 @@ function startGame() {
 								}
 								else {
 									delete clLocalVars.fastForward;
+									oPlayers[0].speedinc = aSpeedInc;
 									reprendre = resume;
 									reprendre(false);
 								}
