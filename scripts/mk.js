@@ -8941,6 +8941,8 @@ function showClFailedPopup() {
 	$popup.innerHTML = '<strong style="color:#800;font-size:1.8em">&times;</strong>&nbsp;' + (language ? 'Challenge failed...':'Défi échoué...');
 	var hudScreen = oChallengeCpts.parentNode;
 	hudScreen.appendChild($popup);
+	if (iSfx && !finishing && !oPlayers[0].cpu)
+		playSoundEffect("musics/events/clfail.mp3");
 	setTimeout(function() {
 		hudScreen.removeChild($popup);
 	}, 1500);
@@ -15947,8 +15949,10 @@ function selectRaceScreen(cup) {
 			}, document.getElementById("racecountdown").innerHTML*1000);
 		}
 
-		if (divSelected)
+		if (divSelected) {
 			divSelected.click();
+			return;
+		}
 	}
 	else {
 		if (course == "GP") {
@@ -15966,6 +15970,7 @@ function selectRaceScreen(cup) {
 		strMap = "map"+ cup;
 		appendContainers();
 		resetGame(strMap);
+		return;
 	}
 
 	updateMenuMusic(1);
@@ -18037,7 +18042,7 @@ else {
 	
 	if (isFirstLoad) {
 		isFirstLoad = false;
-		if (isCup) {
+		if (hasChallenges()) {
 			xhr("getClSelected.php", null, function(challengeId) {
 				if (challengeId) {
 					for (var type in challenges) {
