@@ -14944,11 +14944,13 @@ function selectChallengesScreen() {
 						oInput.value = toLanguage("Take up", "Relever");
 						oInput.style.width = (iScreenScale*11) +"px";
 						oInput.style.fontSize = Math.round(iScreenScale*2.4) +"px";
-						(function(challenge) {
+						(function(challenge,trackId,trackType) {
 							oInput.onclick = function() {
 								oScr.innerHTML = "";
 								oContainers[0].removeChild(oScr);
 								clSelected = challenge;
+								clSelected.trackId = trackId;
+								clSelected.trackType = trackType;
 								xhr("challengeTry.php", "challenge="+challenge.id, function(res) {
 									if (!res)
 										return false;
@@ -14971,7 +14973,7 @@ function selectChallengesScreen() {
 									return true;
 								});
 							};
-						})(challenge);
+						})(challenge,cid,type);
 						oTd.appendChild(oInput);
 					}
 					oTr.appendChild(oTd);
@@ -15346,10 +15348,34 @@ function chooseRandMap() {
 		choose(Math.ceil(Math.random()*NBCIRCUITS),true);
 }
 
-function selectMapScreen() {
+function selectMapScreen(force) {
 	if ((isCup&&!isMCups) || (isBattle&&isCup))
 		selectRaceScreen(0);
 	else {
+		if (clSelected && !force) {
+			switch (clSelected.trackType) {
+			case "cup":
+				var cupId = cupIDs.indexOf(clSelected.trackId);
+				if (cupId !== -1) {
+					selectRaceScreen(cupId*4);
+					return;
+				}
+				break;
+			case "track":
+				var oMapId = aAvailableMaps.find(function(circuitId) {
+					var m = oMaps[circuitId];
+					var mId = (page === "CI") ? m.id:m.map;
+					return (mId == clSelected.trackId);
+				});
+				if (oMapId) {
+					var oMap = oMaps[oMapId];
+					var cupId = Math.floor((oMap.ref-1)/4);
+					selectRaceScreen(cupId*4);
+					return;
+				}
+				break;
+			}
+		}
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
 		
@@ -15765,10 +15791,10 @@ function selectRaceScreen(cup) {
 						}
 					}
 					else
-						selectMapScreen();
+						selectMapScreen(true);
 				}
 				else if (!isCup)
-					selectMapScreen();
+					selectMapScreen(true);
 				else if (!pause) selectGamersScreen();
 				else {removeMenuMusic(false);quitter();}
 			}
@@ -15777,6 +15803,8 @@ function selectRaceScreen(cup) {
 			
 		var mScreenScale = iScreenScale;
 
+		var trackSelected = clSelected && (clSelected.trackType === "track") ? clSelected.trackId : null;
+		var divSelected;
 		var lCup = isSingle ? cup+1:cup+4;
 		for (var i=cup;i<lCup;i++) {
 			var mDiv = document.createElement("div");
@@ -15868,6 +15896,10 @@ function selectRaceScreen(cup) {
 				else
 					choose(this.ref);
 			}
+			var oMap = oMaps[mDiv.map];
+			var mId = (page === "CI") ? oMap.id : oMap.map;
+			if (mId == trackSelected)
+				divSelected = mDiv;
 			oScr.appendChild(mDiv);
 		}
 
@@ -15912,6 +15944,9 @@ function selectRaceScreen(cup) {
 				}
 			}, document.getElementById("racecountdown").innerHTML*1000);
 		}
+
+		if (divSelected)
+			divSelected.click();
 	}
 	else {
 		if (course == "GP") {
@@ -18012,6 +18047,8 @@ else {
 								if (challenge.id == challengeId) {
 									if (!clSelected && !challenge.succeeded) {
 										clSelected = challenge;
+										clSelected.trackType = type;
+										clSelected.trackId = cid;
 										showClSelectedPopup();
 									}
 									return true;
