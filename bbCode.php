@@ -21,9 +21,9 @@ function bbcode($msg) {
 	$msg = preg_replace('#\[i\](.*)\[/i\]#isU', '<em>$1</em>', $msg);
 	$msg = preg_replace('#\[u\](.*)\[/u\]#isU', '<u>$1</u>', $msg);
 	$msg = preg_replace('#\[s\](.*)\[/s\]#isU', '<s>$1</s>', $msg);
-	$msg = preg_replace('#\[url\]([^\[]*)\[/url\]#isU', '<a href="$1" target="_blank">$1</a>', $msg);
-	$msg = preg_replace('#\[img\]([^\[]*)\[/img\]#isU', '<img src="$1" alt="$1" />', $msg);
-	$msg = preg_replace('#\[url=([^\]]+)\](.*)\[/url\]#isU', '<a href="$1" class="type1" target="_blank">$2</a>', $msg);
+	$msg = preg_replace('#\[url\](http[^\[]*)\[/url\]#isU', '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>', $msg);
+	$msg = preg_replace('#\[img\](http[^\[]*)\[/img\]#isU', '<img src="$1" alt="$1" />', $msg);
+	$msg = preg_replace('#\[url=(http[^\]]+)\](.*)\[/url\]#isU', '<a href="$1" class="type1" target="_blank" rel="noopener noreferrer">$2</a>', $msg);
 	$msg = preg_replace('#\[color=([^\]]+)\](.*)\[/color\]#isU', '<span style="color: $1">$2</span>', $msg);
 	$msg = preg_replace('#\[font=([a-zA-Z ]+)\](.*)\[/font\]#isU', '<span style="font-family: $1">$2</span>', $msg);
 	$msg = preg_replace('#\[size=([0-9]{1,2})\](.*)\[/size\]#isU', '<span style="font-size: $1pt;">$2</span>', $msg);

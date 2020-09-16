@@ -13,7 +13,7 @@ if ($id && isset($_POST['message'])) {
 			$message = str_replace("\r", null, $message);
 			$message = str_replace("\t", "    ", $message);
 			$message = preg_replace('#[a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}#', '<a href="mailto:$0">$0</a>', $message);
-			$message = preg_replace('#((https?|ftp|gopher|telnet|ms-help)://[\w\d:\#@%/;$()~_?\+\-=\\\.&]*)#', '<a href="$0" target="_blank">$0</a>', $message);
+			$message = preg_replace('#((https?|ftp|gopher|telnet|ms-help)://[\w\d:\#@%/;$()~_?\+\-=\\\.&]*)#', '<a href="$0" target="_blank" rel="noopener noreferrer">$0</a>', $message);
 			$smileys = Array(':)', ':d', ';)', ':o', ':p', ':s', ':(', '8)', ':$', ':}', '|)', '*[');
 			$styles = split(",", $donnees["style"]);
 			$taille = isset($_POST["taille"]) ? $_POST["taille"] : 10;

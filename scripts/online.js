@@ -455,7 +455,7 @@ function o_invitesb() {
 }
 
 function o_inserttags(msg) {
-	msg = msg.replace(/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&;\/\/=]*))/g, '<a href="$1" target="_blank">$1</a>');
+	msg = msg.replace(/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&;\/\/=]*))/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
 	msg = msg.replace(/([a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4})/gi, '<a href="mailto:$1">$1</a>');
 	var smileyNames = ['mdr','lol','rire','love','bisou','fete','hb','anniv','coucou','hey','banane','facepalm','tusors','paf','dodo','youpi','tching','magic','fou','super','paratroopa','toad','yoshi','magicien','aie','miam','crepe','guitare','noel','ordi','merci','welcome','help','cool','boulet','snif','raah','genial','bravo','hap','up'];
 	for (var i=0;i<smileyNames.length;i++) {

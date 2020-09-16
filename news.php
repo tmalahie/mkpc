@@ -192,7 +192,7 @@ while ($comment = mysql_fetch_array($getComments)) {
 					$msg = str_replace($smileys[$i], '<img src="images/smileys/smiley'.$i.'.png" alt="Smiley" />', $msg);
 				for ($i=0;$i<$nbSmileys2;$i++)
 					$msg = str_replace(':'.$i.':', '<img src="images/smileys/smiley'.$i.'.gif" alt="'. $smileyNames[$i] .'" />', $msg);
-				$msg = preg_replace('#(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~\#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~\#?&\/\/=]*))#', '<a href="$1" target="_blank">$1</a>', $msg);
+				$msg = preg_replace('#(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~\#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~\#?&\/\/=]*))#', '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>', $msg);
 				$msg = preg_replace('#([a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4})#i', '<a href="mailto:$1">$1</a>', $msg);
 				echo $msg;
 				?></span>

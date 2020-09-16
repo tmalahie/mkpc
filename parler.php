@@ -8,7 +8,7 @@ if ($id && isset($_POST['msg'])) {
 			$course = $getCourse['course'];
 			if ($course) {
 				$msg = HTMLentities($_POST['msg']);
-				$msg = preg_replace('#((https?|ftp|gopher|telnet|ms-help)://[\w\d:\#@%/;$()~_?\+\-=\\\.&]*)#', '<a href="$0" class="chatLink" target="_blank">$0</a>', $msg);
+				$msg = preg_replace('#((https?|ftp|gopher|telnet|ms-help)://[\w\d:\#@%/;$()~_?\+\-=\\\.&]*)#', '<a href="$0" class="chatLink" target="_blank" rel="noopener noreferrer">$0</a>', $msg);
 				mysql_query("INSERT INTO `mkchat` VALUES(null, $course, $id, '$msg')");
 			}
 		}
