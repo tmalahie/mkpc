@@ -168,8 +168,10 @@ if ($oneset) {
 		$wheres[] = 'titre LIKE "'. toSQLSearch($title) .'"';
 	if ($author)
 		$wheres[] = 'nom="'. $author .'"';
-	if ($message)
-		$wheres[] = 'message LIKE "'. toSQLSearch($message) .'"';
+	if ($message) {
+		//$message = '+'.implode(' +', preg_split("/[\s,]+/", $message));
+		$wheres[] = 'MATCH(message) AGAINST ("\"'. mysql_real_escape_string(str_replace('"','',$message)) .'\"" IN BOOLEAN mode)';
+	}
 	if ($date0)
 		$wheres[] = 'date >= "'. $date0 .'"';
 	if ($date1)
