@@ -304,7 +304,7 @@ $slidesPath = 'images/slides';
 			<?php
 			if ($language) {
 				?>
-				<p>You might know Mario Kart, the funniest racing game series of all time!
+				<p>You might know Mario Kart, the most fun racing game series of all time!
 				Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.</p>
 				<p>Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle mode, Time Trials, and more!<br />
 				There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more!
