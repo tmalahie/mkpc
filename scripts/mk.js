@@ -10200,7 +10200,7 @@ function move(getId) {
 				if (oKart.ballons.length) {
 					do {
 						iObj = objets[Math.floor(Math.random()*75)];
-					} while ((iObj == "billball") || ((iObj == "carapacebleue") && ((oKart.place == 1) || (timer < 500))));
+					} while ((iObj == "billball") || (iObj == "carapacebleue"));
 				}
 				else {
 					var ghostItems = ["fauxobjet", "banane", "carapace", "bobomb"];
