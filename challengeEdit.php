@@ -382,6 +382,9 @@ function addContraintRule(clClass) {
 		case 'super_turbo':
 			addConstraintNb($form,ruleId, language?'Super Turbos:':'Super Turbos :',{attrs:{min:0},css:{width:'40px'}});
 			break;
+		case 'stunts':
+			addConstraintNb($form,ruleId, language?'Stunts:':'Figures :',{attrs:{min:0},css:{width:'40px'}});
+			break;
 		case 'with_pts':
 			addConstraintNb($form,ruleId, language?'Nb points:':'Nb points :',{attrs:{min:0},css:{width:'40px'}});
 			break;

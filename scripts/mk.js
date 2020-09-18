@@ -2938,15 +2938,13 @@ function startGame() {
 									if (oPlayers[0].driftcpt >= fTurboDriftCpt) {
 										oPlayers[0].turbodrift = 15;
 										clLocalVars.miniTurbo++;
-										updateChallengeHud("miniTurbo", clLocalVars.miniTurbo);
-										var ruleVars = clRuleVars[clSelected.id].mini_turbo;
-										if (ruleVars)
+										var ruleVars;
+										if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].mini_turbo))
 											updateChallengeHud("miniTurbo", clLocalVars.miniTurbo+ruleVars.miniTurbo);
 										if (oPlayers[0].driftcpt >= fTurboDriftCpt2) {
 											oPlayers[0].turbodrift += 15;
 											clLocalVars.superTurbo++;
-											ruleVars = clRuleVars[clSelected.id].super_turbo;
-											if (ruleVars)
+											if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].super_turbo))
 												updateChallengeHud("superTurbo", clLocalVars.superTurbo+ruleVars.superTurbo);
 										}
 										oPlayers[0].turbodrift0 = oPlayers[0].turbodrift;
@@ -8477,6 +8475,30 @@ var challengeRules = {
 				ruleVars.superTurbo += clLocalVars.superTurbo;
 		}
 	},
+	"stunts": {
+		"initRuleVars": function() {
+			return {stunts: 0};
+		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars) {
+				addChallengeHud("stunts", {
+					title: toLanguage("Stunts","Figures"),
+					value: clLocalVars.stunts+ruleVars.stunts,
+					out_of: scope.value
+				});
+			}
+		},
+		"success": function(scope, ruleVars) {
+			if (ruleVars) {
+				if ((ruleVars.stunts+clLocalVars.stunts) >= scope.value)
+					return true;
+			}
+		},
+		"next_circuit": function(ruleVars) {
+			if (ruleVars)
+				ruleVars.stunts += clLocalVars.stunts;
+		}
+	},
 	"position": {
 		"success": function(scope) {
 			return (oPlayers[0].place == scope.value);
@@ -8559,6 +8581,7 @@ function reinitLocalVars() {
 		falls: 0,
 		miniTurbo: 0,
 		superTurbo: 0,
+		stunts: 0,
 		lostBalloons: 0,
 		cheated: false
 	};
@@ -10003,8 +10026,15 @@ function move(getId) {
 		oKart.figstate -= 1 + Math.round((11-Math.abs(11-oKart.figstate))*0.5);
 		if (oKart.figstate < 0)
 			oKart.figstate = 0;
-		if (oKart.figstate < 8)
+		if (!oKart.figuring && oKart.figstate < 8) {
 			oKart.figuring = true;
+			if (oKart == oPlayers[0]) {
+				clLocalVars.stunts++;
+				var ruleVars;
+				if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].stunts))
+					updateChallengeHud("stunts", ruleVars.stunts+clLocalVars.stunts);
+			}
+		}
 	}
 	if (oKart.rotation < 0)
 		oKart.rotation += 360;
@@ -10520,11 +10550,9 @@ function move(getId) {
 				resetPowerup(oKart);
 				if (!oKart.cpu) {
 					clLocalVars.falls++;
-					if (clSelected) {
-						var ruleVars = clRuleVars[clSelected.id].falls;
-						if (ruleVars)
-							updateChallengeHud("falls", clLocalVars.falls+ruleVars.falls);
-					}
+					var ruleVars;
+					if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].falls))
+						updateChallengeHud("falls", clLocalVars.falls+ruleVars.falls);
 				}
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
