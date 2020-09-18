@@ -378,6 +378,22 @@ $clRulesByType = array(
 			},
 			'course' => array('vs')
 		),
+		'mini_turbo' => array(
+			'description' => $language ? 'by performing $value​ Mini Turbo drift$s':'en réalisant $value​ dérapage$s Turbo',
+			'description_mockup' => $language ? 'by performing N Turbo drifts':'en faisant N dérapages Turbo',
+			'parser' => function(&$scope) {
+				$scope['value'] = +$scope['value'];
+			},
+			'course' => array('vs','battle', 'cup', 'mcup')
+		),
+		'super_turbo' => array(
+			'description' => $language ? 'by performing $value​ Super Mini-Turbo$s':'en réalisant $value​ Super Mini-Turbo$s',
+			'description_mockup' => $language ? 'by performing N Super Mini-Turbo':'en faisant N Super Mini-Turbo',
+			'parser' => function(&$scope) {
+				$scope['value'] = +$scope['value'];
+			},
+			'course' => array('vs','battle', 'cup', 'mcup')
+		),
 		'position' => array(
 			'description_mockup' => $language ? 'in n-th place':'en n-eme position',
 			'description_lambda' => function($language,&$scope) {

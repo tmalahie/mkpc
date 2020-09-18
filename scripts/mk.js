@@ -2937,8 +2937,18 @@ function startGame() {
 									oPlayers[0].driftinc = 0;
 									if (oPlayers[0].driftcpt >= fTurboDriftCpt) {
 										oPlayers[0].turbodrift = 15;
-										if (oPlayers[0].driftcpt >= fTurboDriftCpt2)
+										clLocalVars.miniTurbo++;
+										updateChallengeHud("miniTurbo", clLocalVars.miniTurbo);
+										var ruleVars = clRuleVars[clSelected.id].mini_turbo;
+										if (ruleVars)
+											updateChallengeHud("miniTurbo", clLocalVars.miniTurbo+ruleVars.miniTurbo);
+										if (oPlayers[0].driftcpt >= fTurboDriftCpt2) {
 											oPlayers[0].turbodrift += 15;
+											clLocalVars.superTurbo++;
+											ruleVars = clRuleVars[clSelected.id].super_turbo;
+											if (ruleVars)
+												updateChallengeHud("superTurbo", clLocalVars.superTurbo+ruleVars.superTurbo);
+										}
 										oPlayers[0].turbodrift0 = oPlayers[0].turbodrift;
 										getDriftImg(0).src = "images/drift.png";
 									}
@@ -8248,6 +8258,15 @@ var challengeRules = {
 			if (clGlobalVars.nbcircuits) return {};
 			return {nbcircuits: 1, initialscore: 0};
 		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars) {
+				addChallengeHud("races", {
+					title: toLanguage("Race","Course"),
+					value: ruleVars.nbcircuits,
+					out_of: scope.value
+				});
+			}
+		},
 		"success": function(scope, ruleVars) {
 			if ((ruleVars.nbcircuits == scope.value) && (aScores[0] >= scope.pts))
 				return true;
@@ -8261,6 +8280,15 @@ var challengeRules = {
 		"initRuleVars": function() {
 			if (clGlobalVars.nbcircuits) return {};
 			return {nbcircuits: 1};
+		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars) {
+				addChallengeHud("races", {
+					title: toLanguage("Race","Course"),
+					value: ruleVars.nbcircuits,
+					out_of: scope.value
+				});
+			}
 		},
 		"success": function(scope, ruleVars) {
 			if ((ruleVars.nbcircuits == scope.value) && (aScores[0] == scope.pts))
@@ -8401,6 +8429,54 @@ var challengeRules = {
 			return (seconds >= scope.value);
 		}
 	},
+	"mini_turbo": {
+		"initRuleVars": function() {
+			return {miniTurbo: 0};
+		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars) {
+				addChallengeHud("miniTurbo", {
+					title: "Mini Turbos",
+					value: clLocalVars.miniTurbo+ruleVars.miniTurbo,
+					out_of: scope.value
+				});
+			}
+		},
+		"success": function(scope, ruleVars) {
+			if (ruleVars) {
+				if ((ruleVars.miniTurbo+clLocalVars.miniTurbo) >= scope.value)
+					return true;
+			}
+		},
+		"next_circuit": function(ruleVars) {
+			if (ruleVars)
+				ruleVars.miniTurbo += clLocalVars.miniTurbo;
+		}
+	},
+	"super_turbo": {
+		"initRuleVars": function() {
+			return {superTurbo: 0};
+		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars) {
+				addChallengeHud("superTurbo", {
+					title: "Super Turbos",
+					value: clLocalVars.superTurbo+ruleVars.superTurbo,
+					out_of: scope.value
+				});
+			}
+		},
+		"success": function(scope, ruleVars) {
+			if (ruleVars) {
+				if ((ruleVars.superTurbo+clLocalVars.superTurbo) >= scope.value)
+					return true;
+			}
+		},
+		"next_circuit": function(ruleVars) {
+			if (ruleVars)
+				ruleVars.superTurbo += clLocalVars.superTurbo;
+		}
+	},
 	"position": {
 		"success": function(scope) {
 			return (oPlayers[0].place == scope.value);
@@ -8481,6 +8557,8 @@ function reinitLocalVars() {
 		itemsGot: false,
 		itemsUsed: false,
 		falls: 0,
+		miniTurbo: 0,
+		superTurbo: 0,
 		lostBalloons: 0,
 		cheated: false
 	};

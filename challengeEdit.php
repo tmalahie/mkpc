@@ -376,6 +376,12 @@ function addContraintRule(clClass) {
 		case 'falls':
 			addConstraintNb($form,ruleId, language?'Max falls:':'Max chutes :',{attrs:{min:0},css:{width:'40px'}});
 			break;
+		case 'mini_turbo':
+			addConstraintNb($form,ruleId, language?'Mini Turbos:':'Mini Turbos :',{attrs:{min:0},css:{width:'40px'}});
+			break;
+		case 'super_turbo':
+			addConstraintNb($form,ruleId, language?'Super Turbos:':'Super Turbos :',{attrs:{min:0},css:{width:'40px'}});
+			break;
 		case 'with_pts':
 			addConstraintNb($form,ruleId, language?'Nb points:':'Nb points :',{attrs:{min:0},css:{width:'40px'}});
 			break;
