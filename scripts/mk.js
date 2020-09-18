@@ -8242,6 +8242,15 @@ var challengeRules = {
 		"initRuleVars": function() {
 			return {nbcircuits: 1};
 		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars && ruleVars.nbcircuits) {
+				addChallengeHud("races", {
+					title: toLanguage("Race","Course"),
+					value: ruleVars.nbcircuits,
+					out_of: scope.value
+				});
+			}
+		},
 		"success": function(scope, ruleVars) {
 			if (oPlayers[0].place != 1) return false;
 			if (ruleVars.nbcircuits >= scope.value) return true;
@@ -8257,7 +8266,7 @@ var challengeRules = {
 			return {nbcircuits: 1, initialscore: 0};
 		},
 		"initSelected": function(scope, ruleVars) {
-			if (ruleVars) {
+			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
 					title: toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
@@ -8280,7 +8289,7 @@ var challengeRules = {
 			return {nbcircuits: 1};
 		},
 		"initSelected": function(scope, ruleVars) {
-			if (ruleVars) {
+			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
 					title: toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,

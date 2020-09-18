@@ -144,7 +144,7 @@ $clRulesByType = array(
 		),
 		'pts_greater' => array(
 			'description_mockup' => $language ? 'Make at least x points in N races':'Faire au moins x points sur N courses',
-			'description' => $language ? 'Make at least $pts points in N race$s':'Faire au moins $pts points sur $value course$s',
+			'description' => $language ? 'Make at least $pts points in $value race$s':'Faire au moins $pts points sur $value course$s',
 			'parser' => function(&$scope) {
 				$scope['value'] = +$scope['value'];
 			},
@@ -379,7 +379,7 @@ $clRulesByType = array(
 			'course' => array('vs')
 		),
 		'mini_turbo' => array(
-			'description' => $language ? 'by performing $value​ Mini Turbo drift$s':'en réalisant $value​ dérapage$s Turbo',
+			'description' => $language ? 'by performing $value​ Mini-Turbo$s':'en réalisant $value​ dérapage$s Turbo',
 			'description_mockup' => $language ? 'by performing N Turbo drifts':'en réalisant N dérapages Turbo',
 			'parser' => function(&$scope) {
 				$scope['value'] = +$scope['value'];
