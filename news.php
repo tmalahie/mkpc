@@ -47,6 +47,7 @@ include('heads.php');
 ?>
 <meta property="og:type" content="article" />
 <meta property="og:title" content="<?php echo htmlspecialchars($news['title']) ?>" />
+<meta name="og:description" content="<?php echo htmlspecialchars($hdescription); ?>" />
 <link rel="stylesheet" type="text/css" href="styles/news.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <script type="text/javascript" src="scripts/topic.js"></script>
