@@ -80,7 +80,7 @@ $clRulesByType = array(
 			'course' => array('vs','battle')
 		),
 		'reach_zones' => array(
-			'description_mockup' => $language ? 'Pass N zones...':'Passer N zones...',
+			'description_mockup' => $language ? 'Go through N zones...':'Passer par N zones...',
 			'description_lambda' => function($language,&$scope) {
 				return $scope->description;
 			},

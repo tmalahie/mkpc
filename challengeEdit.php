@@ -100,11 +100,40 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 	}
 	$decorOptions = array();
 	if (!empty($clRace) && $clRace['type']) {
-		$clTable = $clRace['type'];
-		switch ($clTable) {
+		$decorTable = $clRace['type'];
+		$decorCircuit = $clRace['circuit'];
+	}
+	elseif (isset($_GET['page'])) {
+		switch ($_GET['page']) {
+		case 'circuit':
+		case 'arena':
+			$decorTable = 'mkcircuits';
+			if (isset($_GET['map']))
+				$decorMap = $_GET['map'];
+			elseif (isset($_GET['id']))
+				$decorCircuit = $_GET['id'];
+			else
+				$decorMap = 1;
+			break;
+		case 'map':
+			if (isset($_GET['i'])) {
+				$decorTable = 'circuits';
+				$decorCircuit = $_GET['i'];
+			}
+			break;
+		case 'battle':
+			if (isset($_GET['i'])) {
+				$decorTable = 'arenes';
+				$decorCircuit = $_GET['i'];
+			}
+			break;
+		}
+	}
+	if (isset($decorTable)) {
+		switch ($decorTable) {
 		case 'circuits':
 		case 'arenes':
-			if ($getCircuitsData = mysql_fetch_array(mysql_query('SELECT data FROM `'. $clTable .'_data` WHERE id="'. $clRace['circuit'] .'"'))) {
+			if ($getCircuitsData = mysql_fetch_array(mysql_query('SELECT data FROM `'. $decorTable .'_data` WHERE id="'. $decorCircuit .'"'))) {
 				$circuitData = json_decode(gzuncompress($getCircuitsData['data']));
 				$circuitDecors = array_keys((array)$circuitData->decor);
 				if (isset($circuitData->assets)) {
@@ -148,30 +177,12 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 
 			break;
 		case 'mkcircuits':
-			$circuitMap = $clCircuit['map'];
-			require_once('circuitEnumsQuick.php');
-			$decorTypes = $decorTypes[$circuitMap];
-			foreach ($decorTypes as $type) {
-				$decorOptions[] = array(
-					'value' => $type
-				);
-			}
-			break;
-		}
-	}
-	elseif (isset($_GET['page'])) {
-		switch ($_GET['page']) {
-		case 'circuit':
-		case 'arena':
-			$circuitMap = 1;
-			if (isset($_GET['map']))
-				$circuitMap = $_GET['map'];
-			elseif (isset($_GET['id'])) {
-				if ($getMap = mysql_fetch_array(mysql_query('SELECT map FROM `mkcircuits` WHERE id="'. $_GET['id'] .'"')))
-					$circuitMap = $getMap['map'];
+			if (!isset($decorMap)) {
+				if ($getMap = mysql_fetch_array(mysql_query('SELECT map FROM `mkcircuits` WHERE id="'. $decorCircuit .'"')))
+					$decorMap = $getMap['map'];
 			}
 			require_once('circuitEnumsQuick.php');
-			$decorTypes = $decorTypes[$circuitMap];
+			$decorTypes = $decorTypes[$decorMap];
 			foreach ($decorTypes as $type) {
 				$decorOptions[] = array(
 					'value' => $type
@@ -188,7 +199,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css?reload=1" />
+<link rel="stylesheet" href="styles/challenges.css?reload=2" />
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <?php
 if (!$moderate)

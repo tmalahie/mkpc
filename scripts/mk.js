@@ -8037,7 +8037,8 @@ var challengeRules = {
 	"survive": {
 		"verify": "each_frame",
 		"success": function(scope) {
-			return (getActualGameTime() >= scope.value);
+			if (getActualGameTime() >= scope.value)
+				return true;
 		}
 	},
 	"reach_zone": {
@@ -8510,7 +8511,8 @@ var challengeRules = {
 	},
 	"position": {
 		"success": function(scope) {
-			return (oPlayers[0].place == scope.value);
+			if (oPlayers[0].place == scope.value)
+				return true;
 		}
 	},
 	"with_pts": {
@@ -8757,6 +8759,7 @@ function showChallengePartialSuccess(challenge, res) {
 			oDiv.style.opacity = 1;
 	}
 	fadeInPopup();
+	focusOnChallengeClose();
 }
 function showChallengePopup(challenge, res) {
 	var lastPopup = document.getElementById("challenge-popup-"+challenge.id);
@@ -9059,9 +9062,6 @@ function showClFailedPopup() {
 	hudScreen.appendChild($popup);
 	if (iSfx && !finishing && !oPlayers[0].cpu)
 		playSoundEffect("musics/events/clfail.mp3");
-	setTimeout(function() {
-		hudScreen.removeChild($popup);
-	}, 1500);
 }
 
 var COL_KART = 0, COL_OBJ = 1;
@@ -15191,8 +15191,8 @@ function selectChallengesScreen() {
 				for (var i=0;i<clRewards.length;i++) {
 					if (clRewards[i].unlocked)
 						nbUnlocked++;
-					oLink.innerHTML += nbUnlocked+"/"+clRewards.length;
 				}
+				oLink.innerHTML += nbUnlocked+"/"+clRewards.length;
 			}
 			oLink.style.fontSize = (2*iScreenScale)+"px";
 			oLink.style.position = "absolute";
