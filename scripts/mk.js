@@ -8105,6 +8105,8 @@ var challengeRules = {
 				}
 				clLocalVars.reached[reachedZone] = true;
 				clLocalVars.nbPass++;
+				if (iSfx)
+					playSoundEffect("musics/events/clpass.mp3");
 				updateChallengeHud("zones", clLocalVars.nbPass);
 				if (clLocalVars.nbPass >= allZones.length)
 					return true;
