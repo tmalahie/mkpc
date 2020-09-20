@@ -15476,8 +15476,14 @@ function chooseRandMap() {
 }
 
 function selectMapScreen(force) {
-	if ((isCup&&!isMCups) || (isBattle&&isCup))
+	if (isOnline) {
+		setSRest();
+		document.getElementById("waitrace").style.visibility = "visible";
+	}
+	if ((isCup&&!isMCups) || (isBattle&&isCup)) {
 		selectRaceScreen(0);
+		return;
+	}
 	else {
 		if (clSelected && !force) {
 			switch (clSelected.trackType) {
@@ -15810,10 +15816,6 @@ function selectMapScreen(force) {
 				}
 			}, document.getElementById("racecountdown").innerHTML*1000);
 		}
-	}
-	if (isOnline) {
-		setSRest();
-		document.getElementById("waitrace").style.visibility = "visible";
 	}
 
 	updateMenuMusic(1);
