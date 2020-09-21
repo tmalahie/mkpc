@@ -8548,7 +8548,7 @@ function addCreationChallenges(type,cid) {
 		var challengesList = creationChallenges.list;
 		for (var i=0;i<challengesList.length;i++) {
 			var challenge = challengesList[i];
-			if (challenge.succeeded)
+			if (challenge.succeeded && (challenge !== clSelected))
 				continue;
 			var challengeData = challenge.data;
 			var challengeVerifType = challengeRules[challengeData.goal.type].verify;
@@ -8682,7 +8682,8 @@ function challengeRuleSatisfied(challenge,rule) {
 	return challengeRules[rule.type].success(rule,ruleVars);
 }
 function challengeSucceeded(challenge) {
-	if (challenge.succeeded) return;
+	if (challenge.succeeded && (challenge !== clSelected)) return;
+	var wasSucceeded = challenge.succeeded;
 	challenge.succeeded = true;
 	if (clSelected == challenge) {
 		clSelected = undefined;
@@ -8691,6 +8692,10 @@ function challengeSucceeded(challenge) {
 	if ("pending_completion" === challenge.status)
 		challenge.status = "pending_publication";
 	delete clRuleVars[challenge.id];
+	if (wasSucceeded) {
+		showChallengePopup(challenge, {});
+		return;
+	}
 	xhr("challengeSucceeded.php", "id="+challenge.id, function(res) {
 		if (!res)
 			return false;
@@ -15065,7 +15070,50 @@ function selectChallengesScreen() {
 						oTd.appendChild(oIcons);
 					}
 
-					if (!challenge.succeeded) {
+					function selectChallenge(challenge,trackId,trackType) {
+						oScr.innerHTML = "";
+						oContainers[0].removeChild(oScr);
+						clSelected = challenge;
+						clSelected.trackId = trackId;
+						clSelected.trackType = trackType;
+						xhr("challengeTry.php", "challenge="+challenge.id, function(res) {
+							if (!res)
+								return false;
+							try {
+								res = JSON.parse(res);
+							}
+							catch (e) {
+								return false;
+							}
+							clSelected.autoset = res;
+							course = "";
+							for (var k in res)
+								window[k] = res[k];
+							if (course)
+								selectPlayerScreen(0);
+							else
+								selectMainPage();
+							delete window.selectedPerso;
+							showClSelectedPopup();
+							return true;
+						});
+					}
+
+					if (challenge.succeeded) {
+						var oLink = document.createElement("a");
+						oLink.href = "#null";
+						oLink.innerHTML = toLanguage("Replay","Rejouer");
+						oLink.style.color = "white";
+						oLink.style.fontSize = Math.round(iScreenScale*1.7) +"px";
+						(function(challenge,trackId,trackType) {
+							oLink.onclick = function() {
+								selectChallenge(challenge,trackId,trackType);
+								return false;
+							};
+						})(challenge,cid,type);
+						oTd.appendChild(oLink);
+					}
+					else {
 						var oInput = document.createElement("input");
 						oInput.type = "button";
 						oInput.value = toLanguage("Take up", "Relever");
@@ -15073,32 +15121,7 @@ function selectChallengesScreen() {
 						oInput.style.fontSize = Math.round(iScreenScale*2.4) +"px";
 						(function(challenge,trackId,trackType) {
 							oInput.onclick = function() {
-								oScr.innerHTML = "";
-								oContainers[0].removeChild(oScr);
-								clSelected = challenge;
-								clSelected.trackId = trackId;
-								clSelected.trackType = trackType;
-								xhr("challengeTry.php", "challenge="+challenge.id, function(res) {
-									if (!res)
-										return false;
-									try {
-										res = JSON.parse(res);
-									}
-									catch (e) {
-										return false;
-									}
-									clSelected.autoset = res;
-									course = "";
-									for (var k in res)
-										window[k] = res[k];
-									if (course)
-										selectPlayerScreen(0);
-									else
-										selectMainPage();
-									delete window.selectedPerso;
-									showClSelectedPopup();
-									return true;
-								});
+								selectChallenge(challenge,trackId,trackType);
 							};
 						})(challenge,cid,type);
 						oTd.appendChild(oInput);

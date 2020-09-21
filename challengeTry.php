@@ -18,7 +18,7 @@ if (isset($_POST['challenge']) || isset($_GET['challenge'])) {
 			else
 				mysql_query('INSERT INTO `mkcltry` SET player='.$id.',challenge="'.$challengeId.'"');
 		}
-		if (!isset($alreadySucceeded)) {
+		if (!isset($alreadySucceeded) || !isset($redirect)) {
 			$challengeData = json_decode($challenge['data']);
 			$challengeRules = mergeChallengeRules($challengeData);
 			foreach ($challengeRules as $challengeRule) {
