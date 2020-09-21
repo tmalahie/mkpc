@@ -827,6 +827,16 @@ function activateChallenge($challenge) {
 			mysql_query('INSERT INTO `mknotifs` SET type="follower_challenge", user="'. $follower['follower'] .'", link="'. $challengeId .'"');
 	}
 }
+function challengeAutoSet(&$res,$challenge) {
+	global $clRules;
+	$challengeData = json_decode($challenge['data']);
+	$challengeRules = mergeChallengeRules($challengeData);
+	foreach ($challengeRules as $challengeRule) {
+		$clRule = $clRules[$challengeRule->type];
+		if (isset($clRule['autoset']))
+			$clRule['autoset']($res,$challengeRule);
+	}
+}
 /*function getSQLWhereIn($column,$list) {
 	if (empty($list)) return '0';
 	else {

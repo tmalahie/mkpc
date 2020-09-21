@@ -18,15 +18,8 @@ if (isset($_POST['challenge']) || isset($_GET['challenge'])) {
 			else
 				mysql_query('INSERT INTO `mkcltry` SET player='.$id.',challenge="'.$challengeId.'"');
 		}
-		if (!isset($alreadySucceeded) || !isset($redirect)) {
-			$challengeData = json_decode($challenge['data']);
-			$challengeRules = mergeChallengeRules($challengeData);
-			foreach ($challengeRules as $challengeRule) {
-				$clRule = $clRules[$challengeRule->type];
-				if (isset($clRule['autoset']))
-					$clRule['autoset']($res,$challengeRule);
-			}
-		}
+		if (!isset($alreadySucceeded) || !isset($redirect))
+			challengeAutoSet($res,$challenge);
 		if (isset($redirect)) {
 			if (isset($res['selectedPlayers']))
 				setcookie('mkplayers', $res['selectedPlayers'], 4294967295,'/');

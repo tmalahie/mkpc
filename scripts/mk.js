@@ -18191,19 +18191,40 @@ else {
 	if (isFirstLoad) {
 		isFirstLoad = false;
 		if (hasChallenges()) {
-			xhr("getClSelected.php", null, function(challengeId) {
-				if (challengeId) {
+			xhr("getClSelected.php", null, function(res) {
+				if (!res)
+					return true;
+				try {
+					res = JSON.parse(res);
+				}
+				catch (e) {
+					return true;
+				}
+				if (res.id) {
 					for (var type in challenges) {
 						for (var cid in challenges[type]) {
 							var creationChallenges = challenges[type][cid];
 							var challengesList = creationChallenges.list;
 							for (var i=0;i<challengesList.length;i++) {
 								var challenge = challengesList[i];
-								if (challenge.id == challengeId) {
+								if (challenge.id == res.id) {
 									if (!clSelected && !challenge.succeeded) {
 										clSelected = challenge;
 										clSelected.trackType = type;
 										clSelected.trackId = cid;
+										clSelected.autoset = res.autoset;
+										if (!course && clSelected.autoset.course) {
+											var oScr = oContainers[0].childNodes[0];
+											if (oScr) {
+												oScr.innerHTML = "";
+												oContainers[0].removeChild(oScr);
+												var FBRoot = document.getElementById("fb-root");
+												if (FBRoot)
+													FBRoot.style.display = "none";
+												course = clSelected.autoset.course;
+												selectPlayerScreen(0);
+											}
+										}
 										showClSelectedPopup();
 									}
 									return true;
