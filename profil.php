@@ -40,6 +40,7 @@ if (isset($_GET['id'])) {
 			$getProfile['identifiant'] = -1;
 		require_once('getRights.php');
 		$userRights = getUserRights($_GET['id']);
+		$isModerator = hasRight('moderator');
 		if ($id == $_GET['id']) {
 			if (isset($_FILES['avatar'])) {
 				if (!$_FILES['avatar']['error']) {
@@ -216,11 +217,12 @@ include('menu.php');
 			$dateByNick = array();
 			$oldNicks = array();
 			$nickDate = time();
+			$maxDT = $isModerator ? 300 : 86400;
 			while ($nick = mysql_fetch_array($getLastNicks)) {
 				$newDate = strtotime($nick['date']);
 				$dt = $nickDate-$newDate;
 				$nickDate = $newDate;
-				if ($dt < 86400)
+				if ($dt < $maxDT)
 					array_pop($oldNicks);
 				$nickName = $nick['oldnick'];
 				$oldNicks[] = $nickName;
@@ -255,7 +257,7 @@ include('menu.php');
 				<?php print_avatar($_GET['id'],AVATAR_M); ?>
 				<?php
 				$avatarSrc = get_avatar_img($_GET['id']);
-				if ($me || hasRight('moderator')) {
+				if ($me || $isModerator) {
 					if ($me) {
 						echo '<form method="post" enctype="multipart/form-data" action="profil.php?id='. $id .'" class="avatar-edit'. ($avatarSrc ? ' preview-avatar':'') .'"'. ($avatarSrc ? ' onclick="apercu(\''. AVATAR_DIR.$avatarSrc['hd'] .'\')"':'') .'>';
 						echo '<label for="editAvatar" class="edit" onclick="event.stopPropagation()">

@@ -11,8 +11,7 @@ function editNick($userId,$old,$new,&$message) {
         if ($old !== $new) {
             mysql_query('UPDATE `mkjoueurs` SET nom="'. $new .'" WHERE id='. $userId);
             mysql_query('UPDATE `mkprofiles` SET nick_color="'. $new .'" WHERE id='. $userId);
-            mysql_query('DELETE FROM `mknewnicks` WHERE oldnick="'. $old .'" AND id="'. $userId .'"');
-            mysql_query('INSERT INTO `mknewnicks` VALUES("'. $old .'",'. $userId .',NULL)');
+            mysql_query('INSERT IGNORE INTO `mknewnicks` VALUES("'. $old .'",'. $userId .',NULL)');
         }
         return true;
     }
