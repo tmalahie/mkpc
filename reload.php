@@ -232,7 +232,7 @@ if ($id) {
 								mysql_query('INSERT INTO `mkgamerank` SET game='. $courseOptions['id'] .',player='. $joueur['id'] .',pts='.$nPts.' ON DUPLICATE KEY UPDATE pts=VALUES(pts)');
 							else {
 								$q = mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='.$nPts.' WHERE id='.$joueur['id'].' AND '.$pts_.'='.$joueur['aPts']);
-								$shouldLog = mysql_affected_rows($q);
+								$shouldLog = mysql_affected_rows();
 							}
 						}
 						if ($shouldLog)

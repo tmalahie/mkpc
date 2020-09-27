@@ -9,7 +9,7 @@ if ($id) {
 		if (!$key)
 			continue;
 		$q = mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'.$key.'",player="'.$id.'"');
-	} while (!mysql_affected_rows($q));
+	} while (!mysql_affected_rows());
 	include('updateGameOptions.php');
 	echo $key;
 }

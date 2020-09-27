@@ -9,7 +9,7 @@ if (isset($_POST['id'])) {
 			$q = mysql_query('INSERT IGNORE INTO `mkclwin` SET challenge="'. $challengeId .'",player="'. $id .'"');
 		if ('active' === $challenge['status']) {
 			if ($id) {
-				if (mysql_affected_rows($q)) {
+				if (mysql_affected_rows()) {
 					require_once('challenge-consts.php');
 					$reward = getChallengeReward($challenge);
 					$res['pts'] = $reward;

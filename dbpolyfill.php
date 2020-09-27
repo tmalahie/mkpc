@@ -37,7 +37,8 @@ else {
     function mysql_numrows($q) {
         return $q ? $q->rowCount() : 0;
     }
-    function mysql_affected_rows($q) {
+    function mysql_affected_rows() {
+        global $q;
         return $q ? $q->rowCount() : 0;
     }
     function mysql_insert_id() {
