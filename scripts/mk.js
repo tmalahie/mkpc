@@ -1400,13 +1400,13 @@ function arme(ID, backwards) {
 			break;
 
 			case "carapacerouge" :
-			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
+			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, target:-1});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapacerougeX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1});
+				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, target:-1});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
@@ -1531,9 +1531,9 @@ function arme(ID, backwards) {
 			if (oKart.using.length > 1)
 				shiftDist *= 4/3;
 			if (backwards)
-				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2});
+				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,target:-1});
 			else
-				throwItem(oKart, {x:posX+15*direction(0, oAngleView), y:posY+15*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1});
+				throwItem(oKart, {x:posX+15*direction(0, oAngleView), y:posY+15*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,target:-1});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -3366,7 +3366,7 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		//* gogogo
+		//*
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
@@ -5022,7 +5022,7 @@ var itemBehaviors = {
 	},
 	"carapace-rouge": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),intType("target")],
 		fadedelay: 300,
 		move: function(fSprite) {
 			var fNewPosX;
@@ -5030,82 +5030,117 @@ var itemBehaviors = {
 
 			for (var l=0;l<2;l++) {
 				if (fSprite.owner != -1) {
-					var fMoveX;
-					var fMoveY;
 
 					if (!l) {
 						for (var k=0;k<oPlayers.length;k++)
 							fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
 					}
 
-					var iLocal = oMap.aipoints[0];
-					if (fSprite.aipoint >= 0) {
-						fMoveX = iLocal[fSprite.aipoint][0] - fSprite.x;
-						fMoveY = iLocal[fSprite.aipoint][1] - fSprite.y;
-						var oBox = iLocal[fSprite.aipoint];
-						if (fSprite.x > oBox[0] - 10 && fSprite.x < oBox[0] + 10 && fSprite.y > oBox[1] - 10 && fSprite.y < oBox[1] + 10) {
-							if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
-							else fSprite.aipoint = 0;
+					if (fSprite.target >= 0) {
+						var tCible = aKarts.find(function(oKart) {
+							return oKart.id == fSprite.target;
+						});
+						var fDist = Math.pow(tCible.x-fSprite.x, 2) + Math.pow(tCible.y-fSprite.y, 2);
+						if (fDist < 500) {
+							fNewPosX = tCible.x;
+							fNewPosY = tCible.y;
+							if (tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
+								var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
+								var pi2 = Math.PI*2;
+								while (rAngle < 0)
+									rAngle += pi2;
+								while (rAngle > pi2)
+									rAngle -= pi2;
+								if (rAngle > Math.PI)
+									rAngle = pi2-rAngle;
+								if (Math.abs(rAngle) > 2) {
+									if (isOnline)
+										detruit(fSprite);
+									fNewPosX -= 5 * direction(0,tCible.rotation);
+									fNewPosY -= 5 * direction(1,tCible.rotation);
+									detruit(tCible.using[0],true);
+								}
+								else {
+									tCible.using[0].x -= 2 * direction(0,tCible.rotation);
+									tCible.using[0].y -= 2 * direction(1,tCible.rotation);
+								}
+							}
+							l = 1;
 						}
-						var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/5;
-						fMoveX /= fNewMove;
-						fMoveY /= fNewMove;
+						else {
+							fDist = Math.sqrt(fDist);
+							var fMoveX = (tCible.x-fSprite.x)*5/fDist;
+							var fMoveY = (tCible.y-fSprite.y)*5/fDist;
+							fNewPosX = fSprite.x + fMoveX;
+							fNewPosY = fSprite.y + fMoveY;
+						}
 					}
 					else {
-						if (fSprite.aipoint == -1) {
-							if (course != "BB") {
-								for (var k=0;k<iLocal.length;k++) {
-									var oBox = iLocal[k];
-									if (fSprite.x > oBox[0] - 35 && fSprite.x < oBox[0] + 35 && fSprite.y > oBox[1] - 35 && fSprite.y < oBox[1] + 35) {
-										fSprite.aipoint = k + 1;
-										if (fSprite.aipoint == iLocal.length) fSprite.aipoint = 0;
-										break;
+						var fMoveX, fMoveY;
+						if (fSprite.aipoint >= 0) {
+							var iLocal = oMap.aipoints[fSprite.aimap];
+							var oBox = iLocal[fSprite.aipoint];
+							fMoveX = oBox[0] - fSprite.x;
+							fMoveY = oBox[1] - fSprite.y;
+							var fDist2 = fMoveX*fMoveX + fMoveY*fMoveY;
+							if (fDist2 < 100) {
+								if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
+								else fSprite.aipoint = 0;
+							}
+							var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/5;
+							fMoveX /= fNewMove;
+							fMoveY /= fNewMove;
+						}
+						else {
+							if (fSprite.aipoint == -1) {
+								if (course != "BB") {
+									var minDist = 1250;
+									for (var j=0;j<oMap.aipoints.length;j++) {
+										var iLocal = oMap.aipoints[j];
+										for (var k=0;k<iLocal.length;k++) {
+											var oBox = iLocal[k];
+											var fDist2 = (oBox[0]-fSprite.x)*(oBox[0]-fSprite.x) + (oBox[1]-fSprite.y)*(oBox[1]-fSprite.y);
+											if (fDist2 < minDist) {
+												fSprite.aimap = j;
+												fSprite.aipoint = k + 1;
+												if (fSprite.aipoint == iLocal.length)
+													fSprite.aipoint = 0;
+												minDist = fDist2;
+											}
+										}
+									}
+								}
+							}
+							fMoveX = 5 * direction(0, fSprite.theta);
+							fMoveY = 5 * direction(1, fSprite.theta);
+						}
+
+						fNewPosX = fSprite.x + fMoveX;
+						fNewPosY = fSprite.y + fMoveY;
+
+						var maxDist = 4000;
+						var tCible;
+	
+						for (var k=0;k<aKarts.length;k++) {
+							var pCible = aKarts[k];
+							if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
+								var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
+								var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
+								if (fDist < maxDist) {
+									var dAngle = fMoveX*fDirX + fMoveY*fDirY;
+									dAngle /= Math.sqrt(fDist*(fMoveX*fMoveX + fMoveY*fMoveY));
+									if (dAngle > 0.4) {
+										maxDist = fDist;
+										tCible = pCible;
 									}
 								}
 							}
 						}
-						fMoveX = 5 * direction(0, fSprite.theta);
-						fMoveY = 5 * direction(1, fSprite.theta);
-					}
-
-					fNewPosX = fSprite.x + fMoveX;
-					fNewPosY = fSprite.y + fMoveY;
-
-					var tCible;
-					var maxDist = 1000;
-
-					for (var k=0;k<aKarts.length;k++) {
-						var pCible = aKarts[k];
-						if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
-							var fDist = Math.pow(pCible.x-fNewPosX, 2) + Math.pow(pCible.y-fNewPosY, 2);
-							if (fDist < maxDist) {
-								fNewPosX = pCible.x;
-								fNewPosY = pCible.y;
-								maxDist = fDist;
-								tCible = pCible;
-							}
-						}
-						if (tCible && tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
-							var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
-							var pi2 = Math.PI*2;
-							while (rAngle < 0)
-								rAngle += pi2;
-							while (rAngle > pi2)
-								rAngle -= pi2;
-							if (rAngle > Math.PI)
-								rAngle = pi2-rAngle;
-							if (Math.abs(rAngle) > 2) {
-								if (isOnline)
-									detruit(fSprite);
-								fNewPosX -= 5 * direction(0,tCible.rotation);
-								fNewPosY -= 5 * direction(1,tCible.rotation);
-								detruit(tCible.using[0],true);
-								l = 1;
-							}
-							else {
-								tCible.using[0].x -= 2 * direction(0,tCible.rotation);
-								tCible.using[0].y -= 2 * direction(1,tCible.rotation);
-							}
+						if (tCible) {
+							fSprite.target = tCible.id;
+							var oPlayer = oPlayers[0];
+							if (isOnline && ((tCible == oPlayer) || (fSprite.owner == oPlayer.id)))
+								syncItems.push(fSprite);
 						}
 					}
 				}
@@ -5114,6 +5149,7 @@ var itemBehaviors = {
 					fNewPosY = fSprite.y;
 				}
 
+				var fMoveX = fNewPosX-fSprite.x, fMoveY = fNewPosY-fSprite.y;
 				if ((fSprite.owner == -1 || (!tombe(fNewPosX, fNewPosY) && canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite.x, fSprite.y, [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
@@ -12430,7 +12466,7 @@ function moveItems() {
 		var moveFn = itemBehaviors[key].move;
 		if (moveFn) {
 			for (var i=items[key].length-1;i>=0;i--)
-				moveFn(items[key][i]);
+				moveFn(items[key][i]); // TODO fix when 2 items are deleted simultaneously
 		}
 	}
 }
