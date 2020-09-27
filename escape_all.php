@@ -5,7 +5,7 @@ if (!isset($alreadyEscaped)) {
 	function mres($s) {
 		if (is_array($s))
 			return $s;
-		if (!@mysql_ping())
+		if (!isset($dbh))
 			return addslashes($s);
 		return mysql_real_escape_string($s);
 	}

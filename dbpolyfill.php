@@ -1,5 +1,7 @@
 <?php
-if (!function_exists('mysql_connect')) {
+if (function_exists('mysql_connect'))
+    $dbh = 1;
+else {
     function mysql_connect($host, $user, $password) {
         global $dbconn;
         $dbconn = array(

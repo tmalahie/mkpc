@@ -15,7 +15,7 @@ if (!$id) {
 	}
 	if ($playerId) {
 		if (null === $playerName) {
-			if ($dbToOpen = !@mysql_ping())
+			if (!isset($dbh))
 				include('initdb.php');
 		}
 		if (($getCode=mysql_fetch_array(mysql_query('SELECT code FROM `mkjoueurs` WHERE id='. $playerId .' AND deleted=0'))) && password_verify($playerCode,$getCode['code'])) {
