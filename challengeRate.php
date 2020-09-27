@@ -10,8 +10,8 @@ if (isset($_POST['challenge']) && isset($_POST['rating'])) {
 				include('challengeMyRate.php');
 				$myRate = getMyRating($challenge);
 				if ($myRate) {
-					mysql_query('UPDATE `mkclwin` SET rating='. $rating .' WHERE challenge='.$challenge['id'].' AND player='. $myRate['player']);
-					if (mysql_affected_rows()) {
+					$q = mysql_query('UPDATE `mkclwin` SET rating='. $rating .' WHERE challenge='.$challenge['id'].' AND player='. $myRate['player']);
+					if (mysql_affected_rows($q)) {
 						if ($getChallengeStats = mysql_fetch_array(mysql_query('SELECT IFNULL(AVG(rating),0) AS avgrating, COUNT(*) AS nbratings FROM mkclwin WHERE challenge='. $challenge['id'] .' AND rating>0')))
 							mysql_query('UPDATE mkchallenges SET avgrating='.$getChallengeStats['avgrating'].',nbratings='.$getChallengeStats['nbratings'].' WHERE id='.$challenge['id']);
 					}

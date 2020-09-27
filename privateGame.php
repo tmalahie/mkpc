@@ -8,8 +8,8 @@ if ($id) {
 		$key = rand();
 		if (!$key)
 			continue;
-		mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'.$key.'",player="'.$id.'"');
-	} while (!mysql_affected_rows());
+		$q = mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'.$key.'",player="'.$id.'"');
+	} while (!mysql_affected_rows($q));
 	include('updateGameOptions.php');
 	echo $key;
 }

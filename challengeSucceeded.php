@@ -6,10 +6,10 @@ if (isset($_POST['id'])) {
 	$challengeId = $_POST['id'];
 	if ($challenge = mysql_fetch_array(mysql_query('SELECT id,clist,difficulty,status FROM `mkchallenges` WHERE id="'. $challengeId .'" AND status!="deleted"'))) {
 		if ($id)
-			mysql_query('INSERT IGNORE INTO `mkclwin` SET challenge="'. $challengeId .'",player="'. $id .'"');
+			$q = mysql_query('INSERT IGNORE INTO `mkclwin` SET challenge="'. $challengeId .'",player="'. $id .'"');
 		if ('active' === $challenge['status']) {
 			if ($id) {
-				if (mysql_affected_rows()) {
+				if (mysql_affected_rows($q)) {
 					require_once('challenge-consts.php');
 					$reward = getChallengeReward($challenge);
 					$res['pts'] = $reward;

@@ -260,8 +260,8 @@ if ($id) {
 							if ($isLocal)
 								mysql_query('INSERT INTO `mkgamerank` SET game='. $courseOptions['id'] .',player='. $joueur['id'] .',pts='.$nPts.' ON DUPLICATE KEY UPDATE pts=VALUES(pts)');
 							else {
-								mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='.$nPts.' WHERE id='.$joueur['id'].' AND '.$pts_.'='.$joueur['aPts']);
-								$shouldLog = mysql_affected_rows();
+								$q = mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='.$nPts.' WHERE id='.$joueur['id'].' AND '.$pts_.'='.$joueur['aPts']);
+								$shouldLog = mysql_affected_rows($q);
 							}
 						}
 						if ($shouldLog)
