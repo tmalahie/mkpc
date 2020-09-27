@@ -840,7 +840,6 @@ window.onload = function() {
 <div id="messages">
 <?php
 $smileys = Array(':)', ':D', ';)', ':o', ':p', ':s', ':(', '8)', ':$', ':}', '|)', '*[');
-mysql_data_seek($messages,0);
 while ($donnees = mysql_fetch_array($messages)) {
 	$styles = Array();
 	list($styles[0], $styles[1], $styles[2]) = split(",", $donnees["style"]);

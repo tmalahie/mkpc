@@ -42,4 +42,19 @@ if (!function_exists('mysql_connect')) {
     function mysql_affected_rows($q) {
         return $q ? $q->rowCount() : 0;
     }
+    function mysql_insert_id() {
+        global $dbh;
+        return $dbh->lastInsertId();
+    }
+    function mysql_error() {
+        global $dbh;
+        $res = $dbh->errorInfo();
+        return $res ? $res[2] : null;
+    }
+    function mysql_num_fields($q) {
+        return 0; // TODO see if this function is useful
+    }
+    function mysql_field_name($q) {
+        return 'id'; // TODO see if this function is useful
+    }
 }

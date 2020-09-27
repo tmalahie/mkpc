@@ -28,7 +28,8 @@ if (isset($_GET['id'])) {
 				if (($type == 'radio')?($_POST['vote']==$champ['id']):isset($_POST['vote'.$champ['id']]))
 					mysql_query('INSERT INTO `mkvotes` VALUES("'. $id .'",'.$champ['id'].')');
 			}
-			mysql_data_seek($getChamps,0);
+			mysql_set_charset('utf8');
+			$getChamps = mysql_query('SELECT * FROM `mkpollres` WHERE poll="'. $_GET['id'] .'"');
 		}
 		$getSelected = mysql_query('SELECT * FROM `mkvotes` WHERE user="'. $id .'" AND answer IN (SELECT id FROM `mkpollres` WHERE poll="'. $_GET['id'] .'")');
 		$selected = array();
