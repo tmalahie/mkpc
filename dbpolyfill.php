@@ -27,10 +27,6 @@ else {
         global $dbh;
         unset($dbh);
     }
-    function mysql_ping() {
-        global $dbh;
-        return ($dbh !== null);
-    }
     function mysql_fetch_array($q) {
         return $q ? $q->fetch() : null;
     }
@@ -52,11 +48,5 @@ else {
         global $dbh;
         $res = $dbh->errorInfo();
         return $res ? $res[2] : null;
-    }
-    function mysql_num_fields($q) {
-        return 0; // TODO see if this function is useful
-    }
-    function mysql_field_name($q) {
-        return 'id'; // TODO see if this function is useful
     }
 }
