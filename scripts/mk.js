@@ -1388,13 +1388,13 @@ function arme(ID, backwards) {
 			break;
 
 			case "carapace" :
-			loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner: -1, lives:10});
+			loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapaceX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner: -1, lives:10});
+				loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
@@ -1514,11 +1514,14 @@ function arme(ID, backwards) {
 			break;
 
 			case "carapace" :
+			var uDir = dirShoot(oKart, backwards, 3.2);
 			var oAngleView = angleShoot(oKart, backwards);
-			var shiftDist = backwards?7.5:15;
+			var uX = uDir[0], uY = uDir[1], uL = Math.hypot(uX,uY);
+			if (!uL) uL = 1;
+			var shiftDist = backwards?7.5:(6+uL);
 			if (oKart.using.length > 1)
-				shiftDist *= 4/3;
-			throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,lives:10});
+				shiftDist += 5;
+			throwItem(oKart, {x:posX+shiftDist*uX/uL,y:posY+shiftDist*uY/uL,z:0,vx:uX,vy:uY,owner:oKart.id,lives:10});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -4911,15 +4914,15 @@ var itemBehaviors = {
 	},
 	"carapace": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),byteType("lives")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
 		fadedelay: 300,
 		move: function(fSprite) {
 			var fNewPosX;
 			var fNewPosY;
 				
-			var fMoveX = 8 * direction(0, fSprite.theta), fMoveY = 8 * direction(1, fSprite.theta);
+			var fMoveX = fSprite.vx, fMoveY = fSprite.vy;
 			
-			if (fSprite.theta != -1) {
+			if (fMoveX || fMoveY) {
 				fNewPosX = fSprite.x + fMoveX;
 				fNewPosY = fSprite.y + fMoveY;
 	
@@ -4941,14 +4944,17 @@ var itemBehaviors = {
 			else if ((fSprite.owner == -1) || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
 				fSprite.x = fNewPosX;
 				fSprite.y = fNewPosY;
+				tendsToSpeed(fSprite, 8, 0.1);
 			}
 			else {
 				fSprite.lives--;
 				if (fSprite.lives > 0) {
 					var horizontality = getHorizontality(fSprite.x,fSprite.y, fMoveX,fMoveY);
-					var normalAngle = Math.atan2(-horizontality[1],horizontality[0])*180/Math.PI;
-					var angleToNormal = normalizeAngle(fSprite.theta-normalAngle, 180);
-					fSprite.theta = normalizeAngle(fSprite.theta-2*angleToNormal+180, 360);
+					var u = Math.hypot(horizontality[0],horizontality[1]);
+					var ux = horizontality[0]/u, uy = horizontality[1]/u;
+					var m_u = fMoveX*ux + fMoveY*uy;
+					fSprite.vx = 2*m_u*ux-fSprite.vx;
+					fSprite.vy = 2*m_u*uy-fSprite.vy;
 				}
 				else
 					detruit(fSprite);
@@ -11776,6 +11782,21 @@ function angleShoot(oKart, backwards) {
 	var res = oKart.rotation;
 	if (backwards) res += 180;
 	return res;
+}
+function dirShoot(oKart, backwards, iStrength) {
+	var relSpeed = backwards ? [0,0] : kartInstantSpeed(oKart);
+	var oAngleView = angleShoot(oKart, backwards);
+	relSpeed[0] += iStrength*direction(0, oAngleView);
+	relSpeed[1] += iStrength*direction(1, oAngleView);
+	return relSpeed;
+}
+function tendsToSpeed(fSprite, lSpeed, tRes) {
+	var cSpeed = Math.hypot(fSprite.vx,fSprite.vy);
+	if (cSpeed) {
+		var nSpeed = cSpeed*(1-tRes) + lSpeed*tRes;
+		fSprite.vx *= nSpeed/cSpeed;
+		fSprite.vy *= nSpeed/cSpeed;
+	}
 }
 function kartInstantSpeed(oKart) {
 	var effRotation = oKart.rotation-angleDrift(oKart);
