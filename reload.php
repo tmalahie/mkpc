@@ -5,6 +5,7 @@ if ($id) {
 	$payload = json_decode(file_get_contents('php://input'),true);
 	if ($payload) {
 		$isBattle = isset($payload['battle']);
+		if (!isset($payload['v'])) $payload['v'] = 0;
 		switch ($payload['v']) {
 		default:
 			$paramsMapping = array(
@@ -14,7 +15,7 @@ if ($id) {
 				),
 				'player' => $isBattle
 					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","ballons","reserve","champi","etoile","megachampi")
-					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","tours","demitours","champi","etoile","megachampi","billball","eclair","place")
+					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","tours","demitours","champi","etoile","megachampi","billball","place")
 			);
 		}
 		define('KEY_PLAYER', $paramsMapping['keys']['player']);

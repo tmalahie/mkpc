@@ -9811,7 +9811,7 @@ function itemDataLength(type) {
 function resetDatas() {
 	var oPlayer = oPlayers[0];
 	var params = (course != "BB")
-	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","tours","demitours","champi","etoile","megachampi","billball","eclair","place"]
+	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","tours","demitours","champi","etoile","megachampi","billball","place"]
 	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","ballons","reserve","champi","etoile","megachampi"];
 	var payload = {
 		player: [],
@@ -9967,7 +9967,7 @@ function resetDatas() {
 					var oKart = aKarts[j];
 					if (oKart.id == pID) {
 						var pCode = jCode[1];
-						var aEtoile = oKart.etoile, aBillBall = oKart.billball, aEclair = oKart.eclair, aTombe = oKart.tombe;
+						var aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
 							var value = pCode[k];
