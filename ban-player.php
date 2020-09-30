@@ -6,11 +6,6 @@ if (!$id) {
 }
 include('language.php');
 include('initdb.php');
-if (!$id) {
-	echo "Vous n'&ecirc;tes pas connect&eacute;";
-	mysql_close();
-	exit;
-}
 require_once('getRights.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";

@@ -100,9 +100,15 @@ include('menu.php');
 		if (hasRight('moderator')) {
 			?>
 		<li>
+			<a class="action-ctn" href="nick-history.php">
+				<div class="action-title"><?php echo $language ? "See <strong>nick change history</strong>":"Voir l'historique des <strong>changements de pseudo</strong>"; ?></div>
+				<div class="action-desc"><?php echo $language ? "To monitor people who would abuse of this option.":"Pour surveiller les membres qui abuseraient de cette option."; ?></div>
+			</a>
+		</li>
+		<li>
 			<a class="action-ctn" href="edit-pseudo.php">
 				<div class="action-title"><?php echo $language ? "Edit member <strong>nick</strong>":"Changer le <strong>pseudo</strong> d'un membre"; ?></div>
-				<div class="action-desc"><?php echo $language ? "To do if he explicitly asked (in the topic in question for example)":"À faire s'il l'a explicitement demandé (dans le topic en question par exemple)"; ?></div>
+				<div class="action-desc"><?php echo $language ? "Can be useful if a member has a troll nick for example":"Peut servir si un membre a un pseudo troll par exemple"; ?></div>
 			</a>
 		</li>
 			<?php
