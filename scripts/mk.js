@@ -8693,7 +8693,9 @@ function challengeSucceeded(challenge) {
 		challenge.status = "pending_publication";
 	delete clRuleVars[challenge.id];
 	if (wasSucceeded) {
-		showChallengePopup(challenge, {});
+		setTimeout(function() {
+			showChallengePopup(challenge, {});
+		}, 1);
 		return;
 	}
 	xhr("challengeSucceeded.php", "id="+challenge.id, function(res) {
