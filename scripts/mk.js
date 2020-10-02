@@ -9407,10 +9407,13 @@ function distanceToFirst(kart) {
 	if (k == -1)
 		return 0;
 	var oKart = aKarts[k];
-	var tours = kart.tours;
-	var checkpoint = kart.demitours;
+	return distanceToKart(kart,oKart);
+}
+function distanceToKart(kart,oKart) {
 	var res = 0;
 	var posX = kart.x, posY = kart.y;
+	var tours = kart.tours;
+	var checkpoint = kart.demitours;
 	if (oMap.sections)
 		tours = oKart.tours;
 	while ((tours < oKart.tours) || ((tours == oKart.tours) && (checkpoint < oKart.demitours))) {
@@ -11068,9 +11071,29 @@ function move(getId) {
 			oKart.maxspeed = 5.7;
 		else {
 			var rSpeed = iDificulty, influence = 1;
-			var nCpus = oPlayers.length+1-aKarts.length;
-			if (nCpus)
-				influence = Math.pow(0.96, 6*((strPlayer.length-getId)/nCpus-0.5));
+			var nCpus = aKarts.length-1-oPlayers.length;
+			if (nCpus > 0) {
+				var apparentId = getId-oPlayers.length;
+				var firstCpu = aKarts[oPlayers.length];
+				if (firstCpu.place < oKart.place) {
+					var distToFirst = oKart.distToFirstCache;
+					if (distToFirst) {
+						oKart.distToFirstTtl--;
+						if (oKart.distToFirstTtl <= 0)
+							oKart.distToFirstCache = 0;
+					}
+					else {
+						distToFirst = distanceToKart(oKart,firstCpu);
+						oKart.distToFirstCache = distToFirst;
+						oKart.distToFirstTtl = 15+Math.floor(15*Math.random());
+					}
+					var d = 1/(1+distToFirst/(42*nCpus));
+					apparentId = d*(1+apparentId) - 1;
+				}
+				else
+					oKart.distToFirstCache = 0;
+				influence = Math.pow(0.96, 6*(apparentId/nCpus-0.5));
+			}
 			rSpeed *= influence*iDificulty/5;
 			var rRatio = 1.25;
 			if ((iDificulty > 4.75) && (aKarts.length > 8))
