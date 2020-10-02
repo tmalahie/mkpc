@@ -101,6 +101,12 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 			$sautsData[4] = 2;
 		unset($sautsData);
 		break;
+	case 8:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 1;
+		unset($sautsData);
+		$mapData['decor']['thwomp'] = [[77,391,null,10,0],[89,391,null,10,10],[101,391,null,10,20],[283,125,null,0,0],[343,493,null,0,0]];
+		break;
 	case 10:
 		foreach ($mapData['sauts'] as &$sautsData)
 			$sautsData[4] = 1;
