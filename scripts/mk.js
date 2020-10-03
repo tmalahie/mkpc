@@ -11070,12 +11070,13 @@ function move(getId) {
 		if (course == "BB")
 			oKart.maxspeed = 5.7;
 		else {
+			var oPlayerPlace = oPlayers[0].place;
 			var rSpeed = iDificulty, influence = 1;
 			var nCpus = aKarts.length-1-oPlayers.length;
 			if (nCpus > 0) {
 				var apparentId = getId-oPlayers.length;
 				var firstCpu = aKarts[oPlayers.length];
-				if (firstCpu.place < oKart.place) {
+				if ((firstCpu.place < oKart.place) && (firstCpu.place < oPlayerPlace)) {
 					var distToFirst = oKart.distToFirstCache;
 					if (distToFirst) {
 						oKart.distToFirstTtl--;
@@ -11100,7 +11101,7 @@ function move(getId) {
 				rRatio *= Math.log(1+100*aKarts.length/8)/5.5;
 			if (oKart.maxspeed > rSpeed*rRatio) oKart.maxspeed = rSpeed*rRatio;
 			else if (oKart.maxspeed < rSpeed) oKart.maxspeed = rSpeed;
-			if (oKart.place <= oPlayers[0].place)
+			if (oKart.place <= oPlayerPlace)
 				oKart.maxspeed -= (oKart.maxspeed*influence-rSpeed*oKart.size)/100;
 			else
 				oKart.maxspeed += (rSpeed*rRatio*1.12*oKart.size-oKart.maxspeed*influence)/100;
