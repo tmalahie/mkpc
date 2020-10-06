@@ -3002,6 +3002,10 @@ function getActualDecorType(type) {
 	return type;
 }
 function selectCustomDecor(decor) {
+	var decorCopy = {};
+	for (var key in decor)
+		decorCopy[key] = decor[key];
+	decor = decorCopy;
 	var decorKey = getDecorKey(decor);
 	if (customDecors[decorKey]) return;
 	customDecors[decorKey] = decor;
