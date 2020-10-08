@@ -10985,8 +10985,12 @@ function move(getId, triggered) {
 				oKart.ctrled = true;
 				oKart.z = 10;
 				oKart.tourne = 0;
-				if (oKart.etoile) {
-					for (var i=0;i<strPlayer.length;i++)
+				for (var i=0;i<oPlayers.length;i++) {
+					if (i != getId) {
+						oKart.sprite[i].img.style.display = "none";
+						oKart.sprite[i].div.style.backgroundImage = "";
+					}
+					if (oKart.etoile)
 						oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
 				}
 				resetPowerup(oKart);
