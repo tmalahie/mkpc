@@ -2230,6 +2230,7 @@ function startGame() {
 			else
 				playDistSound(this,"musics/events/spin.mp3",(course=="BB")?80:50);
 		}
+		this.frminv = 10;
 		this.tourne = nb;
 	}
 	function fallKart() {
@@ -3526,7 +3527,8 @@ function quitter() {
 	clearResources();
 	for (var i=0;i<strPlayer.length;i++) {
 		$mkScreen.removeChild(oContainers[i]);
-		document.getElementById("infos"+i).style.display = "none";
+		var oInfos = document.getElementById("infos"+i);
+		if (oInfos) oInfos.style.display = "none";
 	}
 	$mkScreen.style.opacity = 1;
 	if (strPlayer.length == 1)
@@ -7605,7 +7607,7 @@ function colKart(getId) {
 				if (!protect1 && !protect2) {
 					if (isChampiCol) {
 						var qKart = oKart.champi ? kart:oKart;
-						if (!qKart.loose && !qKart.cannon) {
+						if (!qKart.loose && !qKart.cannon && !qKart.frminv) {
 							var pKart = oKart.champi ? oKart:kart;
 							var iKart = aKarts.indexOf(qKart);
 							handleHit2(pKart,qKart);
@@ -7658,7 +7660,7 @@ function colKart(getId) {
 				else if (protect1 != protect2) {
 					if (d2 < hitboxSize/2) {
 						var qKart = (protect1<protect2) ? oKart:kart;
-						if (!qKart.loose && !qKart.cannon) {
+						if (!qKart.loose && !qKart.cannon && !qKart.frminv) {
 							var pKart = (protect1<protect2) ? kart:oKart;
 							var iKart = aKarts.indexOf(qKart);
 							handleHit2(pKart,qKart);
@@ -10473,18 +10475,12 @@ function move(getId, triggered) {
 
 	if (oKart.shift)
 		oKart.rotation += oKart.shift[2]*180/Math.PI;
-	if (!oKart.tourne && oKart.speed && !oKart.billball && !oKart.figstate && !oKart.cannon) {
-		oKart.rotation += (oKart.rotinc+(oKart.driftinc||0)*1.5)*((((oKart.speedinc<0)||(oKart.speedinc==0&&oKart.speed<0))?-1:1))*Math.abs(Math.cos(angleDrift(oKart)*Math.PI/180));
-		if (oKart.frminv)
-			oKart.frminv--;
-	}
-	else if (oKart.tourne) {
+	if (oKart.tourne) {
 		oKart.figuring = false;
 		oKart.figstate = 0;
 		oKart.speed = (oKart.speed-Math.max(0,oKart.speedinc+0.1))/1.5;
 		oKart.tourne -= 2;
 		if (!oKart.tourne) {
-			oKart.frminv = oKart.cpu ? 16 : 10;
 			if (course == "BB") {
 				if (oKart.cpu && oKart.ballons.length == 1) {
 					var f = 1+Math.round(Math.random());
@@ -10500,19 +10496,25 @@ function move(getId, triggered) {
 			}
 		}
 	}
-	else if (oKart.figstate) {
-		oKart.figstate -= 1 + Math.round((11-Math.abs(11-oKart.figstate))*0.5);
-		if (oKart.figstate < 0)
-			oKart.figstate = 0;
-		if (!oKart.figuring && oKart.figstate < 8) {
-			oKart.figuring = true;
-			if (oKart == oPlayers[0]) {
-				clLocalVars.stunts++;
-				var ruleVars;
-				if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].stunts))
-					updateChallengeHud("stunts", ruleVars.stunts+clLocalVars.stunts);
+	else {
+		if (oKart.figstate) {
+			oKart.figstate -= 1 + Math.round((11-Math.abs(11-oKart.figstate))*0.5);
+			if (oKart.figstate < 0)
+				oKart.figstate = 0;
+			if (!oKart.figuring && oKart.figstate < 8) {
+				oKart.figuring = true;
+				if (oKart == oPlayers[0]) {
+					clLocalVars.stunts++;
+					var ruleVars;
+					if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].stunts))
+						updateChallengeHud("stunts", ruleVars.stunts+clLocalVars.stunts);
+				}
 			}
 		}
+		else if (oKart.speed && !oKart.billball && !oKart.cannon)
+			oKart.rotation += (oKart.rotinc+(oKart.driftinc||0)*1.5)*((((oKart.speedinc<0)||(oKart.speedinc==0&&oKart.speed<0))?-1:1))*Math.abs(Math.cos(angleDrift(oKart)*Math.PI/180));
+		if (oKart.frminv)
+			oKart.frminv--;
 	}
 	if (oKart.rotation < 0)
 		oKart.rotation += 360;
@@ -10580,6 +10582,11 @@ function move(getId, triggered) {
 	
 	if ((!getId || !isOnline || finishing) && !oKart.loose) {
 		var oKartItems = oKart.using;
+		if (oKart.tourne) {
+			oKartItems = [];
+			for (var i=0;i<aKarts.length;i++)
+				oKartItems = oKartItems.concat(aKarts[i].using);
+		}
 		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell) {
 			loseBall(getId);
@@ -10593,19 +10600,19 @@ function move(getId, triggered) {
 			}
 		}
 		else if (oKart.z < 5) {
-			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems)) || touche_crouge(oKart.x, oKart.y, oKartItems)) && !oKart.protect) {
+			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems)) || touche_crouge(oKart.x, oKart.y, oKartItems)) && !oKart.protect && !oKart.frminv) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(42);
 				loseUsingItem(oKart);
 			}
-			else if (touche_banane(fNewPosX, fNewPosY, oKartItems) && !oKart.protect) {
+			else if (touche_banane(fNewPosX, fNewPosY, oKartItems) && !oKart.protect && !oKart.frminv) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(20);
 				loseUsingItem(oKart);
 			}
-			else if (touche_poison(fNewPosX, fNewPosY, oKartItems) && !oKart.protect) {
+			else if (touche_poison(fNewPosX, fNewPosY, oKartItems) && !oKart.protect && !oKart.frminv) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(20);
@@ -10636,6 +10643,8 @@ function move(getId, triggered) {
 							stopDrifting(getId);
 							loseBall(getId);
 							oKart.spin(42);
+							if (oKart.cpu)
+								oKart.frminv = 16;
 						}
 						else
 							stopped = false;
@@ -10864,12 +10873,13 @@ function move(getId, triggered) {
 		if (clLocalVars.decorsHit && !oKart.cpu)
 			clLocalVars.decorsHit[collisionDecor] = true;
 		var collisionSpin = decorBehaviors[collisionDecor].spin;
-		if (collisionSpin && !oKart.tourne && !oKart.protect) {
+		if (collisionSpin && !oKart.tourne && !oKart.protect && !oKart.frminv) {
 			var minSpeed = decorBehaviors[collisionDecor].minSpeedToSpin||2.5;
 			if (Math.abs(oKart.speed) > minSpeed) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(collisionSpin);
+				oKart.frminv = 24;
 				oKart.speed = 2.5*Math.sign(oKart.speed);
 				loseUsingItem(oKart);
 			}
@@ -10982,11 +10992,12 @@ function move(getId, triggered) {
 				if (oKart.cpu)
 					oKart.aipoint = undefined;
 				oKart.tombe = 20;
+				oKart.frminv = 10;
 				oKart.ctrled = true;
 				oKart.z = 10;
 				oKart.tourne = 0;
 				for (var i=0;i<oPlayers.length;i++) {
-					if (i != getId) {
+					if ((i != getId) || (1/*nbFrames*/ == 1)) {
 						oKart.sprite[i].img.style.display = "none";
 						oKart.sprite[i].div.style.backgroundImage = "";
 					}
