@@ -10478,7 +10478,8 @@ function move(getId, triggered) {
 	if (oKart.tourne) {
 		oKart.figuring = false;
 		oKart.figstate = 0;
-		oKart.speed = (oKart.speed-Math.max(0,oKart.speedinc+0.1))/1.5;
+		if (!oKart.z)
+			oKart.speed = (oKart.speed-Math.max(0,oKart.speedinc+0.1))/1.5;
 		oKart.tourne -= 2;
 		if (!oKart.tourne) {
 			if (course == "BB") {
