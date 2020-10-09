@@ -1531,12 +1531,16 @@ function arme(ID, backwards) {
 			case "carapace-rouge" :
 			var oAngleView = angleShoot(oKart, backwards);
 			var shiftDist = 7.5;
+			if (!backwards) {
+				shiftDist *= 1.5;
+				shiftDist += oKart.speed;
+			}
 			if (oKart.using.length > 1)
 				shiftDist *= 4/3;
 			if (backwards)
 				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,target:-1});
 			else
-				throwItem(oKart, {x:posX+15*direction(0, oAngleView), y:posY+15*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,target:-1});
+				throwItem(oKart, {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,target:-1});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
