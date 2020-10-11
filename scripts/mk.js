@@ -4157,7 +4157,7 @@ function Sprite(strSprite) {
 
 			var fSpriteSize = (this.w * fSpriteScale * fScale);
 			var fSpriteHeight = (this.h * fSpriteScale * fScale);
-			var oY = iY-fSpriteHeight*this.z-(fSpriteHeight-fSpriteSize)/2;
+			var oY = iY-fSpriteHeight*(this.z+0.5);
 			//var oY = iY-fSpriteHeight*(this.z?window.aaa:0)-(fSpriteHeight-fSpriteSize)/2;
 
 			if (isNaN(oY) || oY > iHeight * iScreenScale || (iY+iZ*iScreenScale) < 9 * iScreenScale) {
@@ -4168,7 +4168,7 @@ function Sprite(strSprite) {
 			oCtSprites[i][0].style.display = "block";
 
 			oCtSprites[i][0].style.left = Math.round(iX - fSpriteSize/2)+"px";
-			oCtSprites[i][0].style.top = Math.round(oY - fSpriteHeight/2)+"px";
+			oCtSprites[i][0].style.top = Math.round(oY)+"px";
 
 			if (this.h != this.w)
 				oCtSprites[i][1].style.width = (Math.round(fSpriteSize)*this.nbSprites)+"px";
