@@ -1004,7 +1004,7 @@ function loadMap() {
 				}
 			}
 			else
-				oCompteur.innerHTML = '<img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*4)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*4)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*4)+'" /><img src="'+balloonSrc(aTeams[i])+'" style="width: '+(iScreenScale*4)+'" />';
+				updateBalloonHud(oCompteur,{reserve:4,team:aTeams[i]});
 		}
 		hudScreen.appendChild(oCompteur);
 
@@ -2911,9 +2911,7 @@ function startGame() {
 									if ((oPlayers[0].tourne<5) && oPlayers[0].reserve && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
 										oPlayers[0].ballons[oPlayers[0].ballons.length] = createBalloonSprite(oPlayers[0]);
 										oPlayers[0].reserve--;
-										document.getElementById("compteur0").innerHTML = "";
-										for (i=0;i<oPlayers[0].reserve;i++)
-											document.getElementById("compteur0").innerHTML += '<img src="'+balloonSrc(oPlayers[0].team)+'" style="width: '+(iScreenScale*4)+'" />';
+										updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
 										playIfShould(oPlayers[0],"musics/events/balloon.mp3");
 									}
 								}
@@ -2974,9 +2972,7 @@ function startGame() {
 									if ((oPlayers[0].tourne<5) && oPlayers[1].reserve && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
 										oPlayers[1].ballons[oPlayers[1].ballons.length] = createBalloonSprite(oPlayers[1]);
 										oPlayers[1].reserve--;
-										document.getElementById("compteur1").innerHTML = "&nbsp;";
-										for (i=0;i<oPlayers[1].reserve;i++)
-											document.getElementById("compteur1").innerHTML += '<img src="'+balloonSrc(oPlayers[1].team)+'" style="width: '+(iScreenScale*4)+'" />';
+										updateBalloonHud(document.getElementById("compteur1"),oPlayers[1]);
 									}
 								}
 								break;
@@ -7287,8 +7283,8 @@ function render() {
 					var fShift = 2.5;
 					for (k=0;k<nbBallons;k++) {
 						fSprite.ref.ballons[k][i].render(fCamera, {
-							x: fSprite.x-(k+0.8-nbBallons/2)*fShift*direction(1,fRotation),
-							y: fSprite.y+(k+0.8-nbBallons/2)*fShift*direction(0,fRotation),
+							x: fSprite.x-(k+0.75-nbBallons/2)*fShift*direction(1,fRotation),
+							y: fSprite.y+(k+0.75-nbBallons/2)*fShift*direction(0,fRotation),
 							z: fHauteur,
 							size: fTaille
 						});
@@ -7476,6 +7472,12 @@ function createBalloonSprite(oKart,team) {
 }
 function balloonSrc(team) {
 	return 'images/sprites/sprite_'+(team==1?'ballonR':'ballon')+'.png';
+}
+function updateBalloonHud(oCompteur,oPlayer) {
+	var oSrc = balloonSrc(oPlayer.team);
+	oCompteur.innerHTML = "";
+	for (var i=0;i<oPlayer.reserve;i++)
+		oCompteur.innerHTML += '<img src="'+oSrc+'" style="width:'+(iScreenScale*3)+'px;margin:0 '+Math.round(iScreenScale*0.5)+'px 0 '+Math.round(iScreenScale*0.2)+'px" />';
 }
 
 var syncItems = [];
@@ -12019,9 +12021,7 @@ function processCode(cheatCode) {
 			var toAdd = parseInt(isBaloon[1]);
 			if (toAdd) {
 				oPlayer.reserve += toAdd;
-				document.getElementById("compteur0").innerHTML = "";
-				for (i=0;i<oPlayer.reserve;i++)
-					document.getElementById("compteur0").innerHTML += '<img src="'+balloonSrc(oPlayer.team)+'" style="width: '+(iScreenScale*4)+'" />';
+				updateBalloonHud(document.getElementById("compteur0"),oPlayer);
 				return true;
 			}
 		}
