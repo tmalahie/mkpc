@@ -10129,6 +10129,7 @@ function resetDatas() {
 						}
 						if (!aTombe && oKart.tombe) {
 							oKart.sprite[0].img.style.display = "none";
+							oKart.frminv = 10;
 							if (oKart.tombe > 2) {
 								if (course == "BB") {
 									for (var k=0;k<oKart.ballons.length;k++)
@@ -10138,8 +10139,10 @@ function resetDatas() {
 									oKart.marker.div[0].style.display = "none";
 							}
 						}
-						if (!oKart.turnSound && oKart.tourne)
+						if (!oKart.turnSound && oKart.tourne) {
 							oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
+							if (!oKart.frminv) oKart.frminv = 10;
+						}
 						if (oKart.turnSound && !oKart.tourne)
 							oKart.turnSound = undefined;
 						for (var k=jCode[0][1];k<rCode[2];k++)
