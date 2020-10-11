@@ -150,7 +150,7 @@ if ($id) {
 						}
 					}
 					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.choice_map=0,p.connecte=0 WHERE j.course='. $course);
-					mysql_query('DELETE FROM `items` WHERE course='.$course);
+					mysql_query('DELETE FROM `items` WHERE course='.$course.' AND (data!="" OR updated_at<"'.$lConnect.'")');
 				}
 				function getScoreInc($i,$score,$nbScores,$total) {
 					$coeff = (($nbScores-$i-1)/($nbScores-1))-($score/$total);
