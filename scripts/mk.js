@@ -10083,8 +10083,7 @@ function resetDatas() {
 							var value = pCode[k];
 							switch (param) {
 							case "demitours":
-								//if (course != "BB")
-								//	oKart.demitours = (getLastCp(oKart)+value)%oMap.checkpoint.length;
+								oKart.demitours = (getLastCp(oKart)+value)%oMap.checkpoint.length;
 								break;
 							case "ballons":
 								if (course == "BB") {
