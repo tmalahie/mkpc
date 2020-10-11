@@ -1331,7 +1331,7 @@ function arme(ID, backwards) {
 			break;
 
 			case "billball" :
-			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/6), 120), 50);
+			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/8), 120), 45);
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = "images/sprites/sprite_billball.png";
 				resetSpriteHeight(oKart.sprite[i]);
@@ -11596,7 +11596,7 @@ function move(getId, triggered) {
 	if (oKart.billball) {
 		oKart.z = 2;
 		oKart.heightinc = 0;
-		oKart.speed = 9;
+		oKart.speed = 11;
 
 		var iLocalX, iLocalY;
 		if (oKart.aipoint != undefined) {
@@ -11643,10 +11643,10 @@ function move(getId, triggered) {
 		if (Math.abs(fAngle) > 10) {
 			if (Math.abs(fAngle) > 60) {
 				oKart.speed = 1;
-				fAngle = (fAngle > 0) ? 20:-20;
+				fAngle = (fAngle > 0) ? 30:-30;
 			}
 			else
-				fAngle = (fAngle > 0) ? 10:-10;
+				fAngle = (fAngle > 0) ? 15:-15;
 		}
 
 		oKart.rotation += fAngle;
