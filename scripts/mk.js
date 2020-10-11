@@ -5180,7 +5180,7 @@ var itemBehaviors = {
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown")],
 		fadedelay: 0,
 		cooldown0: 15,
-		cooldown1: 3,
+		cooldown1: 2,
 		move: function(fSprite) {
 			var cible = -1;
 			if (fSprite.target != -1) {
@@ -5199,8 +5199,9 @@ var itemBehaviors = {
 				if (fSprite.cooldown > 0) {
 					var itemBehavior = itemBehaviors["carapace-bleue"];
 					if (fSprite.cooldown == itemBehavior.cooldown0) {
-						if (Math.abs(fMoveX*fMoveY) > 100) {
-							var fNewMove = Math.sqrt(Math.pow(fMoveX,2) + Math.pow(fMoveY,2))/10;
+						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
+						if (fMove2 > 100) {
+							var fNewMove = Math.sqrt(fMove2)/10;
 							fMoveX /= fNewMove;
 							fMoveY /= fNewMove;
 			
@@ -5215,9 +5216,11 @@ var itemBehaviors = {
 						if (r < 0) r = 0;
 						var rX0 = 8, rX = rX0*r, rZ0 = 8, rZ = rZ0*r;
 						var theta = 2*Math.PI*r;
+						var pTheta = aKarts[cible].rotation*Math.PI/180;
 						var z0 = (15 + rZ0);
 						fSprite.z = z0 - rZ*Math.cos(theta);
-						fMoveX += rX*Math.sin(theta);
+						fMoveX -= rX*Math.sin(theta)*Math.cos(pTheta);
+						fMoveY += rX*Math.sin(theta)*Math.sin(pTheta);
 						for (var k=0;k<oPlayers.length;k++)
 							fSprite.sprite[k].setState(Math.round(Math.random()));
 						fSprite.cooldown--;
