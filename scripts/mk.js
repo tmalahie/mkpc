@@ -9344,22 +9344,20 @@ function getItemDistribution() {
 	if (course == "BB") {
 		return [{
 			"fauxobjet": 4,
-			"banane": 6,
-			"bananeX3": 1,
+			"banane": 7,
 			"carapace": 4
 		}, {
 			"carapace": 5,
 			"carapacerouge": 5,
 			"bobomb": 2,
-			"bananeX3": 3
+			"banane": 3
 		}, {
 			"carapace": 1,
 			"bobomb": 2,
 			"carapace": 6,
 			"banane": 1,
-			"bananeX3": 1,
 			"fauxobjet": 1,
-			"carapacerouge": 3
+			"carapacerouge": 4
 		}, {
 			"carapacebleue": 2,
 			"carapacerouge": 1,
@@ -9371,77 +9369,39 @@ function getItemDistribution() {
 	else {
 		return [{
 			"fauxobjet": 4,
-			"banane": 6,
-			"bananeX3": 1,
+			"banane": 7,
 			"carapace": 4
 		}, {
 			"carapace": 6,
-			"bobomb": 2,
-			"carapacerouge": 6,
-			"bananeX3": 1
-		}, {
-			"carapace": 3,
-			"bobomb": 2,
-			"carapacerouge": 5,
-			"bananeX3": 2,
-			"poison": 2,
-			"carapaceX3": 1
-		}, {
 			"bobomb": 1,
-			"carapacerouge": 6,
-			"bananeX3": 1,
-			"poison": 4,
-			"carapaceX3": 3
+			"carapacerouge": 8
+		}, {
+			"carapace": 4,
+			"bobomb": 2,
+			"carapacerouge": 9
+		}, {
+			"carapacebleue": 1,
+			"bobomb": 1,
+			"carapace": 3,
+			"carapacerouge": 8,
+			"champi": 2
 		}, {
 			"carapacebleue": 3,
 			"carapacerouge": 2,
-			"megachampi": 2,
-			"champi": 4,
-			"carapaceX3": 4
-		}, {
-			"carapacebleue": 3,
-			"carapaceX3": 2,
 			"megachampi": 4,
 			"champi": 6
 		}, {
 			"carapacebleue": 1,
-			"megachampi": 7,
-			"carapacerougeX3": 2,
-			"etoile": 5
-		}, {
-			"carapacerougeX3": 1,
-			"champior": 1,
 			"megachampi": 9,
-			"champi": 4,
 			"etoile": 5
 		}, {
-			"carapacerougeX3": 1,
 			"megachampi": 7,
 			"etoile": 6,
-			"champiX3": 2,
-			"champior": 1,
-			"champi": 4
-		}, {
-			"carapacerougeX3": 1,
-			"champior": 1,
-			"megachampi": 4,
-			"etoile": 3,
-			"billball": 2,
-			"champi": 1,
-			"champiX3": 4
-		}, {
-			"megachampi": 2,
-			"etoile": 3,
-			"billball": 5,
-			"champior": 3,
-			"champiX3": 3,
 			"billball": 2
 		}, {
 			"megachampi": 2,
-			"etoile": 4,
-			"billball": 3,
-			"champior": 3,
-			"champiX3": 1,
+			"etoile": 5,
+			"billball": 5,
 			"eclair": 3
 		}];
 	}

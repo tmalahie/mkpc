@@ -11,7 +11,6 @@
 		<img class="aObjet" alt="." src="images/items/megachampi.png" /><br />&nbsp;<br />
 		<img class="aObjet" alt="." src="images/items/etoile.png" /><br />&nbsp;<br />
 		<img class="aObjet" alt="." src="images/items/eclair.png" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/billball.png" /><br />&nbsp;<br />
-		<img class="aObjet" alt="." src="images/items/champior.png" /><br />
+		<img class="aObjet" alt="." src="images/items/billball.png" /><br />
 	</div>
 </div>
