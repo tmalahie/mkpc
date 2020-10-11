@@ -12538,8 +12538,11 @@ function moveItems() {
 	for (var key in itemBehaviors) {
 		var moveFn = itemBehaviors[key].move;
 		if (moveFn) {
-			for (var i=items[key].length-1;i>=0;i--)
-				moveFn(items[key][i]); // TODO fix when 2 items are deleted simultaneously
+			var kItems = items[key];
+			for (var i=kItems.length-1;i>=0;i--) {
+				if (kItems[i])
+					moveFn(kItems[i]);
+			}
 		}
 	}
 }
