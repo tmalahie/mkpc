@@ -5030,7 +5030,7 @@ var itemBehaviors = {
 		},
 		drop: function(fSprite, oKart) {
 			fSprite.theta = oKart.rotation+180;
-			fSprite.cooldown = 42;
+			fSprite.cooldown = 60;
 			fSprite.countdown = 1;
 		}
 	},
