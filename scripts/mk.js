@@ -5027,6 +5027,11 @@ var itemBehaviors = {
 				}
 				fSprite.sprite[i].div.style.opacity = 1+fSprite.cooldown/10;
 			}
+		},
+		drop: function(fSprite, oKart) {
+			fSprite.theta = oKart.rotation+180;
+			fSprite.cooldown = 42;
+			fSprite.countdown = 1;
 		}
 	},
 	"carapace-rouge": {
@@ -7523,10 +7528,14 @@ function supprArme(i) {
 function loseUsingItem(oKart) {
 	if (oKart.using.length) {
 		for (var i=0;i<oKart.using.length;i++) {
-			if (oKart.using[i].z)
-				oKart.using[i].z = 0;
+			var oItem = oKart.using[i];
+			if (oItem.z)
+				oItem.z = 0;
+			var itemBehavior = itemBehaviors[oItem.type];
+			if (itemBehavior.drop)
+				itemBehavior.drop(oItem,oKart);
 			if (isOnline)
-				syncItems.push(oKart.using[i]);
+				syncItems.push(oItem);
 		}
 		oKart.using.length = 0;
 	}
