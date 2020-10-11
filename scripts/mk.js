@@ -9921,8 +9921,8 @@ function itemDataLength(type) {
 function resetDatas() {
 	var oPlayer = oPlayers[0];
 	var params = (course != "BB")
-	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","tours","demitours","champi","etoile","megachampi","billball","place"]
-	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","ballons","reserve","champi","etoile","megachampi"];
+	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","tours","demitours","champi","etoile","megachampi","billball","place"]
+	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","ballons","reserve","champi","etoile","megachampi"];
 	var payload = {
 		player: [],
 		item: [],

@@ -14,8 +14,8 @@ if ($id) {
 					'items' => 'i'
 				),
 				'player' => $isBattle
-					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","ballons","reserve","champi","etoile","megachampi")
-					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","tours","demitours","champi","etoile","megachampi","billball","place")
+					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","ballons","reserve","champi","etoile","megachampi")
+					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","tours","demitours","champi","etoile","megachampi","billball","place")
 			);
 		}
 		define('KEY_PLAYER', $paramsMapping['keys']['player']);
@@ -85,8 +85,17 @@ if ($id) {
 				if (($joueur['id'] != $id) && ($joueur['connecte'] >= $lastconnect)) {
 					echo ($virgule ? ',':'').'[['.$joueur['id'].','.$joueur['connecte'].'],['.$joueur[$playerMapping[0]];
 					$nbPosts = count($playerMapping);
-					for ($i=1;$i<$nbPosts;$i++)
-						echo ','. $joueur[$playerMapping[$i]];
+					for ($i=1;$i<$nbPosts;$i++) {
+						echo ',';
+						$val = $joueur[$playerMapping[$i]];
+						switch ($playerMapping[$i]) {
+						case 'arme':
+							echo '"'.$val.'"';
+							break;
+						default:
+							echo $val;
+						}
+					}
 					echo ']]';
 					$virgule = true;
 				}
