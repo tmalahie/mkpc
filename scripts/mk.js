@@ -5189,13 +5189,13 @@ var itemBehaviors = {
 				}
 			}
 			if (fSprite.aipoint == -1) {
-				var fMoveX = fSprite.x - aKarts[cible].x;
-				var fMoveY = fSprite.y - aKarts[cible].y;
-		
 				if (fSprite.cooldown > 0) {
+					var oKart = aKarts[cible];
+					var fMoveX = fSprite.x - oKart.x;
+					var fMoveY = fSprite.y - oKart.y;
+					var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
 					var itemBehavior = itemBehaviors["carapace-bleue"];
 					if (fSprite.cooldown == itemBehavior.cooldown0) {
-						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
 						if (fMove2 > 100) {
 							var fNewMove = Math.sqrt(fMove2)/10;
 							fMoveX /= fNewMove;
@@ -5208,11 +5208,23 @@ var itemBehaviors = {
 							fSprite.cooldown--;
 					}
 					else {
+						if (fSprite.cooldown < 5) {
+							var maxSpeed2 = 36;
+							if ((oKart.champi > 0) && (oKart.champi < (oKart.champior ? 12:16)))
+								maxSpeed2 = 200;
+							else if (oKart.turbodrift)
+								maxSpeed2 = 64;
+							if (fMove2 > maxSpeed2) {
+								var fNewMove = Math.sqrt(fMove2/maxSpeed2);
+								fMoveX /= fNewMove;
+								fMoveY /= fNewMove;
+							}
+						}
 						var r = (fSprite.cooldown-itemBehavior.cooldown1)/(itemBehavior.cooldown0-itemBehavior.cooldown1);
 						if (r < 0) r = 0;
 						var rX0 = 8, rX = rX0*r, rZ0 = 8, rZ = rZ0*r;
 						var theta = 2*Math.PI*r;
-						var pTheta = aKarts[cible].rotation*Math.PI/180;
+						var pTheta = oKart.rotation*Math.PI/180;
 						var z0 = (15 + rZ0);
 						fSprite.z = z0 - rZ*Math.cos(theta);
 						fMoveX -= rX*Math.sin(theta)*Math.cos(pTheta);
