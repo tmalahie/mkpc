@@ -5210,8 +5210,10 @@ var itemBehaviors = {
 					else {
 						if (fSprite.cooldown < 5) {
 							var maxSpeed2 = 36;
-							if ((oKart.champi > 0) && (oKart.champi < (oKart.champior ? 12:16)))
-								maxSpeed2 = 200;
+							if (oKart.champi > 0) {
+								if (oKart.champi < (oKart.champior ? 12:16))
+									maxSpeed2 = 200;
+							}
 							else if (oKart.turbodrift)
 								maxSpeed2 = 64;
 							if (fMove2 > maxSpeed2) {
