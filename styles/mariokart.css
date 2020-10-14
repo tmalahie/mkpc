@@ -182,6 +182,7 @@ button.control-close:active {
 }
  #compteur0,#compteur1 {
     position: absolute;
+    z-index: 19999;
     color: #50D0F8;
     font-weight: bold;
     font-family: "SMK-Timer", Arial;

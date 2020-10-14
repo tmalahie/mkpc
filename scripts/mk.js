@@ -10741,6 +10741,12 @@ function move(getId, triggered) {
 							iObj = randObj(oKart);
 					}
 				}
+				else if (oKart.place == 1) {
+					if (otherObjects(oKart, ["carapacebleue"])) {
+						while (iObj == "carapacebleue")
+							iObj = randObj(oKart);
+					}
+				}
 				else {
 					for (var i=0;i<aKarts.length;i++) {
 						if (aKarts[i].arme == "carapacebleue") {
