@@ -554,8 +554,8 @@ function resetGame(strMap) {
 
 var oPlanDiv,oPlanDiv2, oPlanCtn,oPlanCtn2, oPlanImg,oPlanImg2;
 
-var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oExpWidth;
-var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2;
+var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oExpWidth, oExpBWidth;
+var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2, oExpBWidth2;
 var oCharRatio, oPlanRatio;
 var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {},
 	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(),
@@ -831,8 +831,8 @@ function setPlanPos() {
 				setObject(iPlanCarapacesBleues[i],carapaceBleue.x,carapaceBleue.y, iObjWidth,iPlanSize, carapaceBleue.team,200).style.zIndex = 2;
 		}
 	}
-	setCarapacesBleuesPos(oPlanCarapacesBleues, oObjWidth,oPlanSize,oExpWidth,oPlanCtn);
-	setCarapacesBleuesPos(oPlanCarapacesBleues2, oObjWidth2,oPlanSize2,oExpWidth2,oPlanCtn2);
+	setCarapacesBleuesPos(oPlanCarapacesBleues, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
+	setCarapacesBleuesPos(oPlanCarapacesBleues2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
 
 	var oStars = new Array(), oBillBalls = new Array();
 	for (var i=0;i<aKarts.length;i++) {
@@ -2474,7 +2474,8 @@ function startGame() {
 		oStarWidth2 = Math.round(iScreenScale*1.5);
 		oObjWidth = Math.round(iScreenScale*1.5);
 		oCoinWidth = Math.round(iScreenScale*1.2);
-		oExpWidth = iScreenScale*7;
+		oExpWidth = Math.round(iScreenScale*4.2);
+		oExpBWidth = Math.round(iScreenScale*5.6);
 
 		oCharWidth2 = Math.round(oCharRatio*oCharWidth);
 		oTeamWidth2 = Math.round(oCharRatio*oTeamWidth);
@@ -2482,6 +2483,7 @@ function startGame() {
 		oObjWidth2 = Math.round(oPlanRatio*oObjWidth);
 		oCoinWidth2 = Math.round(oPlanRatio*oCoinWidth);
 		oExpWidth2 = Math.round(oPlanRatio*oExpWidth);
+		oExpBWidth2 = Math.round(oPlanRatio*oExpBWidth);
 		if (iTeamPlay) {
 			for (var i=0;i<aTeams.length;i++) {
 				var oTeam = document.createElement("div");
@@ -5009,7 +5011,7 @@ var itemBehaviors = {
 						fSprite.sprite[fLoad].img.onload = function() {
 							bCounting = false;
 							fSprite.sprite[fLoad].img.onload = undefined;
-							fSprite.size = 10;
+							fSprite.size = 6;
 							reprendre(false);
 							playDistSound({x:fSprite.x,y:fSprite.y},"musics/events/boom.mp3",200);
 						}
@@ -5017,7 +5019,7 @@ var itemBehaviors = {
 						pause = true;
 					}
 					else {
-						fSprite.size = 10;
+						fSprite.size = 6;
 						playDistSound({x:fSprite.x,y:fSprite.y},"musics/events/boom.mp3",200);
 					}
 				}
@@ -5209,9 +5211,9 @@ var itemBehaviors = {
 					}
 					else {
 						if (fSprite.cooldown < 5) {
-							var maxSpeed2 = 36;
+							var maxSpeed2 = 32;
 							if (oKart.champi > 0) {
-								if (oKart.champi < (oKart.champior ? 12:16))
+								if (oKart.champi < (oKart.champior ? 8:16))
 									maxSpeed2 = 200;
 							}
 							else if (oKart.turbodrift)
@@ -5326,7 +5328,7 @@ var itemBehaviors = {
 						fSprite.sprite[fLoad].img.onload = function() {
 							bCounting = false;
 							fSprite.sprite[fLoad].img.onload = undefined;
-							fSprite.size = 10;
+							fSprite.size = 8;
 							reprendre(false);
 							playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
 						}
@@ -5334,7 +5336,7 @@ var itemBehaviors = {
 						pause = true;
 					}
 					else {
-						fSprite.size = 10;
+						fSprite.size = 8;
 						playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
 					}
 				}
@@ -9541,12 +9543,12 @@ function touche_bobomb(iX, iY, iP) {
 		var oBox = items["bobomb"][i];
 		if (!oBox.z && (iP.indexOf(oBox) == -1)) {
 			if (oBox.theta != -1) {
-				var hitboxW = 30;
+				var hitboxW = 18;
 				if (oBox.cooldown >= 38)
 					hitboxW = 0;
 				else if (oBox.cooldown >= 30)
 					hitboxW = 5;
-				if (!oBox.countdown && iX > oBox.x-hitboxW && iX < oBox.x+hitboxW && iY > oBox.y-hitboxW && iY < oBox.y+hitboxW) {
+				if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY)) < (hitboxW*hitboxW)) {
 					if (oBox.cooldown <= 0) {
 						var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
 						if (res) handleHit(oBox);
@@ -9578,8 +9580,9 @@ function touche_bobomb(iX, iY, iP) {
 function touche_cbleue(iX, iY) {
 	for (var i=0;i<items["carapace-bleue"].length;i++) {
 		var oBox = items["carapace-bleue"][i];
-		if (oBox.cooldown < 0 && oBox.cooldown >= -10) {
-			if (iX > oBox.x-30 && iX < oBox.x+30 && iY > oBox.y-30 && iY < oBox.y+30) {
+		if (oBox.cooldown <= 0 && oBox.cooldown >= -10) {
+			var hitboxW = 24;
+			if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY) < (hitboxW*hitboxW))) {
 				var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
 				if (res) handleHit(oBox);
 				return res;
