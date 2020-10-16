@@ -1331,7 +1331,7 @@ function arme(ID, backwards) {
 			break;
 
 			case "billball" :
-			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/8), 120), 45);
+			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/9), 120), 40);
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = "images/sprites/sprite_billball.png";
 				resetSpriteHeight(oKart.sprite[i]);
