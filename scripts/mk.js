@@ -5065,12 +5065,14 @@ var itemBehaviors = {
 									rAngle -= pi2;
 								if (rAngle > Math.PI)
 									rAngle = pi2-rAngle;
-								if (Math.abs(rAngle) > 2) {
-									if (isOnline)
-										detruit(fSprite);
-									fNewPosX -= 5 * direction(0,tCible.rotation);
-									fNewPosY -= 5 * direction(1,tCible.rotation);
+								if (Math.abs(rAngle) > 2.5) {
+									fNewPosX = tCible.using[0].x;
+									fNewPosY = tCible.using[0].y;
+									fSprite.x = fNewPosX;
+									fSprite.y = fNewPosY;
+									detruit(fSprite);
 									detruit(tCible.using[0],true);
+									return;
 								}
 								else {
 									tCible.using[0].x -= 2 * direction(0,tCible.rotation);
@@ -5168,7 +5170,7 @@ var itemBehaviors = {
 				}
 				else {
 					detruit(fSprite);
-					l = 1;
+					return;
 				}
 			}
 		}
@@ -7509,8 +7511,18 @@ function supprime(item, sound) {
 	var id = items[key].indexOf(item);
 	if (id != -1) {
 		var itemBehavior = itemBehaviors[key];
-		if (item.sprite)
+		if (item.sprite) {
+			for (var i=0;i<oPlayers.length;i++) {
+				var oPlayer = oPlayers[i];
+				var fCamera = {
+					x: oPlayer.x,
+					y: oPlayer.y,
+					rotation: getApparentRotation(oPlayer)
+				};
+				item.sprite[i].render(fCamera, item);
+			}
 			item.sprite[0].fadeout(itemBehavior.fadedelay);
+		}
 		if (itemBehavior.del)
 			itemBehavior.del(item);
 		for (var i=0;i<aKarts.length;i++) {
