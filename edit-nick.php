@@ -38,7 +38,7 @@ function confirmNick() {
     if (confirmed)
         return true;
     var nick = document.getElementById("newpseudo").value;
-    o_confirm(o_language ? "Do you confirm the nick <strong>"+ nick +"</strong>? Warning, you want be able to rechange it for 24h." : "Confirmer le pseudo <strong>"+ nick +"</strong> ? Attention, vous ne pourrez pas le rechanger avant 24h.", function(valided) {
+    o_confirm(o_language ? "Do you confirm the nick <strong>"+ nick +"</strong>? Warning, you won't be able to rechange it for 24h." : "Confirmer le pseudo <strong>"+ nick +"</strong> ? Attention, vous ne pourrez pas le rechanger avant 24h.", function(valided) {
         if (valided) {
             confirmed = true;
             document.forms[0].submit();
