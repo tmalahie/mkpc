@@ -1347,6 +1347,7 @@ function arme(ID, backwards) {
 			}
 			oKart.rotinc = 0;
 			oKart.size = 2.5;
+			oKart.mini = 0;
 			oKart.z = 2;
 			oKart.protect = true;
 			oKart.champi = 0;
@@ -1359,6 +1360,7 @@ function arme(ID, backwards) {
 			case "megachampi" :
 			tpsUse = 50;
 			oKart.size = 1;
+			oKart.mini = 0;
 			updateDriftSize(ID);
 			oKart.protect = true;
 			if (!oKart.megachampi && shouldPlaySound(oKart) && !oPlayers[1])
@@ -4894,8 +4896,9 @@ var itemBehaviors = {
 						var kart = aKarts[i];
 						if (!friendlyFire(kart,oKart)) {
 							if (!kart.protect) {
-								kart.size = 0.6;
-								kart.mini = Math.max(kart.mini, 120-(kart.place-1)*40/(aKarts.length-1));
+								if (!isOnline || !i)
+									kart.size = 0.6;
+								kart.mini = Math.round(Math.max(kart.mini, 120-(kart.place-1)*40/(aKarts.length-1)));
 								updateDriftSize(i);
 								kart.arme = false;
 								loseUsingItem(kart);
@@ -5177,7 +5180,7 @@ var itemBehaviors = {
 	},
 	"carapace-bleue": {
 		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap")],
 		fadedelay: 0,
 		cooldown0: 15,
 		cooldown1: 2,
@@ -5258,53 +5261,56 @@ var itemBehaviors = {
 				}
 			}
 			else {
-				var aipoints = oMap.aipoints[fSprite.aimap];
-				var dSpeed = 12;
-				var aX = fSprite.x, aY = fSprite.y;
-				while (dSpeed > 0) {
-					var target = aipoints[fSprite.aipoint];
-					var dist = Math.hypot(target[0]-fSprite.x, target[1]-fSprite.y);
-					if (dist > dSpeed) {
-						fSprite.x += (target[0]-fSprite.x)*dSpeed/dist;
-						fSprite.y += (target[1]-fSprite.y)*dSpeed/dist;
-						dSpeed = 0;
-					}
-					else {
-						dSpeed -= dist;
-						fSprite.x = target[0];
-						fSprite.y = target[1];
-						fSprite.aipoint++;
-						if (fSprite.aipoint === aipoints.length)
-							fSprite.aipoint = 0;
+				var isBB = (course == "BB");
+				if (!isBB) {
+					var aipoints = oMap.aipoints[fSprite.aimap];
+					var dSpeed = 12;
+					var aX = fSprite.x, aY = fSprite.y;
+					while (dSpeed > 0) {
+						var target = aipoints[fSprite.aipoint];
+						var dist = Math.hypot(target[0]-fSprite.x, target[1]-fSprite.y);
+						if (dist > dSpeed) {
+							fSprite.x += (target[0]-fSprite.x)*dSpeed/dist;
+							fSprite.y += (target[1]-fSprite.y)*dSpeed/dist;
+							dSpeed = 0;
+						}
+						else {
+							dSpeed -= dist;
+							fSprite.x = target[0];
+							fSprite.y = target[1];
+							fSprite.aipoint++;
+							if (fSprite.aipoint === aipoints.length)
+								fSprite.aipoint = 0;
+						}
 					}
 				}
 				if (cible == -1) {
 					cible = aKarts.length-1;
-					var cPlace = 1;
-					for (k=0;k<aKarts.length;k++) {
-						if (aKarts[k].place == cPlace) {
-							if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !sameTeam(fSprite.team,aKarts[k].team)) {
-								cible = k;
+					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
+						for (var k=0;k<aKarts.length;k++) {
+							if (aKarts[k].place == cPlace) {
+								if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !sameTeam(fSprite.team,aKarts[k].team)) {
+									cible = k;
+									cPlace = aKarts.length;
+								}
 								break;
-							}
-							else {
-								cPlace++;
-								k = -1;
 							}
 						}
 					}
 				}
 				var oKart = aKarts[cible];
 				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
-				if (fDist2 < 20000) {
-					if ((fSprite.target == -1) && (!isOnline || !k)) {
+				if ((fDist2 < 20000) || isBB) {
+					if ((fSprite.target == -1) && (!isOnline || !cible) || isBB) {
 						fSprite.target = oKart.id;
 						if (isOnline)
 							syncItems.push(fSprite);
 					}
-					var aDist2 = (oKart.x-aX)*(oKart.x-aX) + (oKart.y-aY)*(oKart.y-aY);
-					if ((fDist2 < 5000) || (fDist2 > aDist2))
-						fSprite.aipoint = -1;
+					if (fSprite.target != -1) {
+						var aDist2 = (oKart.x-aX)*(oKart.x-aX) + (oKart.y-aY)*(oKart.y-aY);
+						if ((fDist2 < 5000) || (fDist2 > aDist2) || isBB)
+							fSprite.aipoint = -1;
+					}
 				}
 				for (var k=0;k<oPlayers.length;k++)
 					fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
@@ -10102,7 +10108,7 @@ function resetDatas() {
 								oKart[params[k]] = value;
 							}
 						}
-						if ((oKart.billball >= 40) && !aBillBall) {
+						if ((oKart.billball >= 25) && !aBillBall) {
 							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
 							resetSpriteHeight(oKart.sprite[0]);
 							oKart.aipoint = undefined;
@@ -10413,6 +10419,7 @@ function move(getId, triggered) {
 		oKart.tombe--;
 		updateDriftSize(getId);
 		oKart.size = 1;
+		oKart.mini = 0;
 		if (oKart.tombe == 19) {
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.style.display = "none";
@@ -10604,6 +10611,7 @@ function move(getId, triggered) {
 			loseUsingItem(oKart);
 			stopDrifting(getId);
 			if (pExplose == 84) {
+				oKart.champi = 0;
 				oKart.speed = 0;
 				oKart.heightinc = 3;
 				supprArme(getId)
@@ -10801,6 +10809,23 @@ function move(getId, triggered) {
 					iObj = ghostItems[Math.floor(Math.random()*ghostItems.length)];
 				}
 			}
+			/*if (oKart === oPlayers[0]) { // Uncomment to test all objs
+				if (!window.aaa) {
+					window.aaa = [];
+					for (var i=0;i<itemDistribution.length;i++) {
+						for (var key in itemDistribution[i]) {
+							if (window.aaa.indexOf(key) == -1)
+								window.aaa.push(key);
+						}
+					}
+					Array.from(new Set(itemDistribution));
+					window.bbb = 0;
+				}
+				iObj = window.aaa[window.bbb];
+				window.bbb++;
+				if (window.bbb >= window.aaa.length)
+					window.bbb = 0;
+			}*/
 			oKart.arme = iObj;
 			if (shouldPlaySound(oKart))
 				oKart.rouletteSound = playSoundEffect("musics/events/roulette.mp3");
@@ -11679,6 +11704,7 @@ function move(getId, triggered) {
 				resumeSpriteSize(oKart.sprite[i]);
 			}
 			oKart.size = 1;
+			oKart.mini = 0;
 			oKart.z = 0;
 			updateDriftSize(getId);
 			oKart.jumped = false;
@@ -11726,7 +11752,8 @@ function move(getId, triggered) {
 		oKart.mini--;
 		if (oKart.mini < 1) {
 			oKart.mini = 0;
-			oKart.size = 1;
+			if (!isOnline || !getId)
+				oKart.size = 1;
 			updateDriftSize(aKarts.indexOf(oKart));
 		}
 	}
@@ -12038,14 +12065,17 @@ function processCode(cheatCode) {
 	}
 	else if (cheatCode == "xs") {
 		oPlayer.size = 0.6;
+		oPlayer.mini = 0;
 		return true;
 	}
 	else if (cheatCode == "md") {
 		oPlayer.size = 1;
+		oPlayer.mini = 0;
 		return true;
 	}
 	else if (cheatCode == "xl") {
 		oPlayer.size = Math.pow(1.05,8);
+		oPlayer.mini = 0;
 		return true;
 	}
 	if (course == "BB") {
