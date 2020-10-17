@@ -32,6 +32,21 @@ include('heads.php');
     width: 10em;
 }
 </style>
+<script type="text/javascript">
+var confirmed = false;
+function confirmNick() {
+    if (confirmed)
+        return true;
+    var nick = document.getElementById("newpseudo").value;
+    o_confirm(o_language ? "Do you confirm the nick <strong>"+ nick +"</strong>? Warning, you want be able to rechange it for 24h." : "Confirmer le pseudo <strong>"+ nick +"</strong> ? Attention, vous ne pourrez pas le rechanger avant 24h.", function(valided) {
+        if (valided) {
+            confirmed = true;
+            document.forms[0].submit();
+        }
+    });
+    return false;
+}
+</script>
 
 <?php
 include('o_online.php');
@@ -48,7 +63,13 @@ if (isset($_POST['newpseudo'])) {
     $new = $_POST['newpseudo'];
 	if (!$getPseudo['banned']) {
         include('utils-nicks.php');
-        $success = editNick($id,$getPseudo['nom'],$new,$message);
+        $nextNickChange = 0;
+        if ($lastNickChange = mysql_fetch_array(mysql_query('SELECT date FROM mknewnicks WHERE id="'. $id .'" ORDER BY date DESC LIMIT 1')))
+            $nextNickChange = strtotime($lastNickChange['date'])+86400;
+        if ($nextNickChange > time())
+            $message = $language ? 'You have changed your nick recently, therefore you are not allowed to rechange it for now. Please come back later.':'Vous avez changé votre pseudo récemment, vous ne pouvez donc pas le rechanger pour l\'instant. Revenez plus tard.';
+        else
+            $success = editNick($id,$getPseudo['nom'],$new,$message);
 	}
 	else
         $message = $language ? 'You have been banned, you cannot edit your nick.':'Vous avez été banni, vous ne pouvez pas modifier votre pseudo.';
@@ -76,7 +97,7 @@ else
         <?php
     }
     ?>
-	<form method="post" action="edit-nick.php">
+	<form method="post" action="edit-nick.php" onsubmit="return confirmNick()">
         <p>
             <input type="text" name="newpseudo" id="newpseudo" value="<?php if (isset($new)) echo htmlspecialchars($new); else echo $old; ?>" maxlength="30" required="required" />
             <input type="submit" value="Ok" class="action_button" />
@@ -85,14 +106,16 @@ else
     <?php
     if ($language) {
         ?>
-        <div class="warning-msg">N.B: Please don't abuse of this function (like for impersonating or trolling purposes)<br />
-        or you will be sanctionned by the moderation team.</div>
+        <div class="warning-msg">
+            <strong>Warning, to avoid abuses, nick changes are limited to 1 per day.</strong>
+        </div>
         <?php
     }
     else {
         ?>
-        <div class="warning-msg">Note: merci de ne pas abuser de cette fonction (usurpation d'identité, troll...)
-            ou vous serez sanctionné par l'équipe de modération.</div>
+        <div class="warning-msg">
+            <strong>Attention, pour éviter les abus, les changements de pseudos sont limités à 1 par jour.</strong>
+        </div>
         <?php
     }
     ?>
