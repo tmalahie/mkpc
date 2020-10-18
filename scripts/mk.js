@@ -7244,7 +7244,8 @@ function render() {
 					else {
 						posX = oPlayer.ref.aX;
 						posY = oPlayer.ref.aY;
-						fRotation = oPlayer.ref.aRotation;
+						oPlayer.rotation = oPlayer.ref.aRotation;
+						fRotation = getApparentRotation(oPlayer);
 					}
 				}
 				oContainers[i].style.opacity = Math.abs(oPlayer.tombe-10)/10;
@@ -7522,12 +7523,14 @@ function supprime(item, sound) {
 		if (item.sprite) {
 			for (var i=0;i<oPlayers.length;i++) {
 				var oPlayer = oPlayers[i];
-				var fCamera = {
-					x: oPlayer.x,
-					y: oPlayer.y,
-					rotation: getApparentRotation(oPlayer)
-				};
-				item.sprite[i].render(fCamera, item);
+				if (!oPlayer.tombe) {
+					var fCamera = {
+						x: oPlayer.x,
+						y: oPlayer.y,
+						rotation: getApparentRotation(oPlayer)
+					};
+					item.sprite[i].render(fCamera, item);
+				}
 			}
 			item.sprite[0].fadeout(itemBehavior.fadedelay);
 		}
@@ -11028,9 +11031,6 @@ function move(getId, triggered) {
 				oKart.figuring = false;
 				oKart.figstate = 0;
 				oKart.fell = true;
-				stopDrifting(getId);
-				supprArme(getId);
-				deleteUsingItems(oKart);
 				oKart.champi = 0;
 				if (oKart.cpu)
 					oKart.aipoint = undefined;
@@ -11039,6 +11039,9 @@ function move(getId, triggered) {
 				oKart.ctrled = true;
 				oKart.z = 10;
 				oKart.tourne = 0;
+				stopDrifting(getId);
+				supprArme(getId);
+				deleteUsingItems(oKart);
 				for (var i=0;i<oPlayers.length;i++) {
 					if ((i != getId) || (1/*nbFrames*/ == 1)) {
 						oKart.sprite[i].img.style.display = "none";
