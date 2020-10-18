@@ -2927,7 +2927,7 @@ function startGame() {
 									quitter();
 								break;
 							case "cheat":
-								//if (!isOnline && (course != "GP") && (course != "CM"))
+								if (!isOnline && (course != "GP") && (course != "CM"))
 									openCheats();
 								break;
 							case "up_p2":
