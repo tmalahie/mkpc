@@ -2549,7 +2549,7 @@ function startGame() {
 
 		for (var i=0;i<oMap.arme.length;i++) {
 			fSprite = oMap.arme[i];
-			fSprite[2] = new Sprite("objet");
+			fSprite[2] = new Sprite("item");
 
 			var oObject = document.createElement("img");
 			oObject.src = "images/map_icons/objet.png";
@@ -7334,7 +7334,7 @@ function render() {
 				}
 				else if (!i && lastFrame) {
 					if (fSprite[2])fSprite[2]--;
-					else fSprite[2] = new Sprite("objet");
+					else fSprite[2] = new Sprite("item");
 				}
 			}
 
