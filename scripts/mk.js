@@ -2770,7 +2770,7 @@ function startGame() {
 								if (resetScores()) {
 									if (course == "GP")
 										fInfos.map -= (oMap.ref+3)%4;
-									else
+									else if (course != "CM")
 										delete fInfos.map;
 								}
 								document.onmousedown = undefined;
