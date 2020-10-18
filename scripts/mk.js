@@ -1063,6 +1063,8 @@ function loadMap() {
 		oInfos.style.fontFamily = '"NSMBU", Impact';
 		oInfos.style.textAlign = "center";
 		oInfos.style.textStroke = oInfos.style.WebkitTextStroke = oInfos.style.MozTextStroke = Math.round(iScreenScale/4) +"px "+ primaryColor;
+		oInfos.style.visibility = "hidden";
+		oInfos.style.display = "";
 		oInfos.innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
 		var oScroller = document.getElementById("scroller").cloneNode(true);
 		oScroller.id = "scroller"+i;
@@ -3336,7 +3338,7 @@ function startGame() {
 		}
 		else {
 			for (var i=0;i<strPlayer.length;i++)
-				document.getElementById("infos"+i).style.display = "";
+				document.getElementById("infos"+i).style.visibility = "";
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
