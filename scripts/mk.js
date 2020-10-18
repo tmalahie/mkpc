@@ -3199,6 +3199,9 @@ function startGame() {
 									if (!i)
 										oContainers[0].style.opacity = Math.abs(oKart.tombe-10)/10;
 								}
+								var aX = oKart.x;
+								var aY = oKart.y;
+								var aRotation = oKart.rotation;
 								oKart.x = getInfos[0];
 								oKart.y = getInfos[1];
 								oKart.z = getInfos[2];
@@ -3254,6 +3257,9 @@ function startGame() {
 									}
 									if (getFlags[0]) {
 										oKart.tombe = 20;
+										oKart.aX = aX;
+										oKart.aY = aY;
+										oKart.aRotation = aRotation;
 										oKart.sprite[0].img.style.display = "none";
 										stopStunt();
 									}
@@ -12737,12 +12743,18 @@ function runOneFrame() {
 					if (!oKart.tombe)
 						resetFall(oKart);
 				}
+				var aX = oKart.x;
+				var aY = oKart.y;
+				var aRotation = oKart.rotation;
 				oKart.x = getInfos[0];
 				oKart.y = getInfos[1];
 				oKart.z = getInfos[2];
 				oKart.rotation = getInfos[3];
 				if (getInfos[4] && (getInfos[4][0] == "1")) {
 					oKart.tombe = 20;
+					oKart.aX = aX;
+					oKart.aY = aY;
+					oKart.aRotation = aRotation;
 					oKart.sprite[0].img.style.display = "none";
 				}
 				continue;
