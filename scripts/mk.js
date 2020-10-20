@@ -1083,9 +1083,9 @@ function loadMap() {
 
 	oChallengeCpts = document.createElement("div");
 	oChallengeCpts.id = "challenge-cpts";
-	oChallengeCpts.style.right = Math.round(iScreenScale/2) +"px";
+	oChallengeCpts.style.right = Math.round(iScreenScale*0.85) +"px";
 	oChallengeCpts.style.top = Math.round(iScreenScale*3.2) +"px";
-	oChallengeCpts.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+	oChallengeCpts.style.fontSize = Math.round(iScreenScale*1.9) +"px";
 	oChallengeCpts.style.visibility = "hidden";
 	hudScreen.appendChild(oChallengeCpts);
 

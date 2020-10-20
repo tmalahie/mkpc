@@ -10,6 +10,10 @@
     font-family: 'NSMBU';
     src: url('nsmbu.ttf');
 }
+@font-face {
+    font-family: 'MuseoModerno';
+    src: url('museomoderno-bold.ttf');
+}
 #options {
     text-align: right;
     display:inline-table;
@@ -255,20 +259,21 @@ button.control-close:active {
 }
 #challenge-cpts {
     position: absolute;
-    color: gray;
-    font-family: monospace;
-    text-shadow: 0.1em 0 0 #eee, -0.1em 0 0 #eee, 0 0.1em 0 #eee, 0 -0.1em 0 #eee, 1px 1px #eee, -1px -1px 0 #eee, 1px -1px 0 #eee, -1px 1px 0 #eee;
+    color: #EEE;
+    font-family: "MuseoModerno", monospace;
+    text-shadow: 0.12em 0 0 black, -0.12em 0 0 black, 0 0.12em 0 black, 0 -0.12em 0 black, 1px 1px black, -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black;
     text-align: right;
     display: grid;
     grid-template-columns: auto auto;
     direction: rtl;
+    line-height: 1.25em;
 }
 #challenge-cpts > div {
     margin-left: 1em;
     text-align: left;
 }
 #challenge-cpts > div > span:first-child {
-    color: black;
+    color: white;
 }
 #challenge-cpts > div > span:last-child {
 }
