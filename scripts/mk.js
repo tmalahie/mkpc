@@ -9418,17 +9418,19 @@ function getItemDistribution() {
 	}
 	else {
 		return [{
-			"fauxobjet": 4,
+			"fauxobjet": 5,
 			"banane": 7,
-			"carapace": 4
+			"carapace": 3
 		}, {
-			"carapace": 6,
+			"fauxobjet": 1,
+			"carapace": 5,
 			"bobomb": 1,
 			"carapacerouge": 8
 		}, {
+			"fauxobjet": 1,
 			"carapace": 4,
 			"bobomb": 2,
-			"carapacerouge": 9
+			"carapacerouge": 8
 		}, {
 			"carapacebleue": 1,
 			"bobomb": 1,
