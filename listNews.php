@@ -11,7 +11,7 @@ require_once('getRights.php');
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/news.css" />
+<link rel="stylesheet" type="text/css" href="styles/news.css?reload=1" />
 <?php
 include('o_online.php');
 ?>
@@ -33,6 +33,15 @@ include('menu.php');
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
+<form method="get" action="listNews.php" class="news-search">
+	<p>
+		<label for="search-content">
+			<?php echo $language ? 'Search':'Recherche'; ?>:
+		</label>
+		<input type="text" id="search-content" placeholder="<?php echo $language ? 'News title':'Titre de la news'; ?>" name="search" value="<?php echo isset($_GET['search']) ? $_GET['search']:''; ?>" />
+		<input type="submit" value="Ok" class="action_button" />
+	</p>
+</form>
 <p class="newsButtons">
 <?php
 if ($id)
@@ -54,16 +63,22 @@ if ($id)
 </tr>
 <?php
 require_once('utils-date.php');
-$news = mysql_query('SELECT n.id,n.title,
+$RES_PER_PAGE = 50;
+$page = isset($_GET['page'])&&is_numeric($_GET['page']) ? $_GET['page']:1;
+$sqlSelect = 'n.id,n.title,
 	n.nbcomments,n.author,j.nom,
 	name'. $language .' AS name,
-	category,c.name'. $language .' AS catname,c.color,n.publication_date
-	FROM `mknews` n
+	category,c.name'. $language .' AS catname,c.color,n.publication_date';
+$sqlFrom = '`mknews` n
 	INNER JOIN `mkcats` c ON n.category=c.id
 	LEFT JOIN `mkjoueurs` j ON n.author=j.id
-	WHERE status="accepted"
-	ORDER BY n.publication_date DESC
-');
+	WHERE status="accepted"';
+if (!empty($_GET['search']))
+	$sqlFrom .= ' AND title LIKE "%'. $_GET['search'] .'%"';
+$sqlOrder = 'ORDER BY n.publication_date DESC LIMIT '.(($page-1)*$RES_PER_PAGE).','.$RES_PER_PAGE;
+$news = mysql_query('SELECT '. $sqlSelect .' FROM '. $sqlFrom .' '. $sqlOrder);
+$getNbNews = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM '. $sqlFrom));
+$nbNews = $getNbNews['nb'];
 for ($i=0;$pieceOfNews=mysql_fetch_array($news);$i++) {
 	echo '<tr class="'. (($i%2) ? 'fonce':'clair') .'"><td style="color:'. $pieceOfNews['color'] .'">';
 		echo $pieceOfNews['catname'];
@@ -77,11 +92,36 @@ for ($i=0;$pieceOfNews=mysql_fetch_array($news);$i++) {
 	echo pretty_dates($pieceOfNews['publication_date']);
 	echo '</td></tr>';
 }
-if (!$i)
-	echo '<tr class="clair"><td colspan="3">'. ($language ? 'No news yet':'Aucune news pour l\'instant. Soyez le premier à en écrire une !') .'</td></tr>';
+if (!$i) {
+	echo '<tr class="clair">';
+	echo '<td colspan="3">'. ($language ? 'No result found for this search':'Aucun résultat trouvé pour cette recherche') .'</td>';
+	echo '<td class="news-nopo"></td>';
+	echo '<td class="news-nomo"></td>';
+	echo '</tr>';
+}
 ?>
 </table>
 <?php
+$nbPages = ceil($nbNews/$RES_PER_PAGE);
+if ($nbPages > 1) {
+	?>
+	<div class="newsPages"><p>
+		Page : <?php
+		$get = $_GET;
+		foreach ($get as $k => $getk)
+			$get[$k] = stripslashes($get[$k]);
+		for ($i=1;$i<=$nbPages;$i++) {
+			$get['page'] = $i;
+			if ($i == $page)
+				echo $i;
+			else
+				echo '<a href="?'. http_build_query($get) .'">'. $i .'</a>';
+			echo ' &nbsp; ';
+		}
+		?>
+	</p></div>
+	<?php
+}
 if ($id) {
 	$getPendingNews = mysql_query('SELECT n.id,n.title,
 		name'. $language .' AS name,

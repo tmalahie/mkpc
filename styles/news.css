@@ -294,6 +294,27 @@ main a:hover {
 .listNews .clair .news-reject-details:hover, .listNews .fonce .news-reject-details:hover {
 	color: #19F;
 }
+.listNews + .newsPages {
+	width: 98%;
+}
+.newsPages {
+	margin-left: auto;
+	margin-right: auto;
+	background-color: #8DCFFF;
+}
+.newsPages p {
+	padding: 2px 5px;
+	border: double 4px #039;
+	font-weight: bold;
+	color: #0A30A0;
+}
+.newsPages a {
+	color: #17F;
+	text-decoration: none;
+}
+.newsPages a:hover {
+	color: #2AF;
+}
 .mDate {
 	text-transform: lowercase;
 }
@@ -417,6 +438,46 @@ main a:hover {
 	}
 	.listNews-author, .listNews-writer {
 		width: 80px;
+	}
+}
+.news-search .action_button {
+	background-color: #66C;
+}
+.news-search .action_button:hover {
+	background-color: #44A;
+}
+@media (min-width: 800px) {
+	.news-search {
+		text-align: center;
+	}
+	.news-search * {
+		font-size: 1.5vw;
+	}
+	.news-search label {
+		width: 15%;
+	}
+	.news-search input[type="text"] {
+		width: 75%;
+	}
+	.news-search input[type="submit"] {
+		width: 10%;
+	}
+}
+@media (max-width: 799px) {
+	.news-search {
+		text-align: center;
+	}
+	.news-search * {
+		font-size: 4vw;
+	}
+	.news-search label {
+		width: 35%;
+	}
+	.news-search input[type="text"] {
+		width: 50%;
+	}
+	.news-search input[type="submit"] {
+		width: 15%;
 	}
 }
 .news-publisher {
