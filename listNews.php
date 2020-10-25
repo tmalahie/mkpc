@@ -38,7 +38,7 @@ include('menu.php');
 		<label for="search-content">
 			<?php echo $language ? 'Search':'Recherche'; ?>:
 		</label>
-		<input type="text" id="search-content" placeholder="<?php echo $language ? 'News title':'Titre de la news'; ?>" name="search" value="<?php echo isset($_GET['search']) ? $_GET['search']:''; ?>" />
+		<input type="text" id="search-content" placeholder="<?php echo $language ? 'News title':'Titre de la news'; ?>" name="search" value="<?php echo isset($_GET['search']) ? htmlspecialchars(stripslashes($_GET['search'])):''; ?>" />
 		<input type="submit" value="Ok" class="action_button" />
 	</p>
 </form>
