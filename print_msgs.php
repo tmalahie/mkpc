@@ -16,10 +16,10 @@ if ($donnees = mysql_fetch_array($messages)) {
 	function escape($str) {
 		return str_replace('"', '\\"', str_replace('\\', '\\\\', $str));
 	}
-	$styles = split(",", $donnees["style"]);
+	$styles = explode(",", $donnees["style"]);
 	echo '["'.escape($donnees['id']).'","'.escape($donnees['pseudo']).'","'. escape($donnees['message']) .'",'. (in_array('gras', $styles) ? 'true':'false') .','.(in_array('souligne', $styles) ? 'true':'false').','.(in_array('italique', $styles) ? 'true':'false').','. $donnees["r"].','.$donnees["g"].','.$donnees["b"] .','.$donnees["taille"].',"'.$donnees["police"].'"]';
 	while ($donnees = mysql_fetch_array($messages)) {
-		$styles = split(",", $donnees["style"]);
+		$styles = explode(",", $donnees["style"]);
 		echo ',["'.escape($donnees['id']).'","'.escape($donnees['pseudo']).'","'. escape($donnees['message']) .'",'. (in_array('gras', $styles) ? 'true':'false') .','.(in_array('souligne', $styles) ? 'true':'false').','.(in_array('italique', $styles) ? 'true':'false').','. $donnees["r"].','.$donnees["g"].','.$donnees["b"] .','.$donnees["taille"].',"'.$donnees["police"].'"]';
 	}
 }

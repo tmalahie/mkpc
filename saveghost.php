@@ -34,7 +34,7 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 		}
 		$sqlBatch = "INSERT INTO `mkghostdata` VALUES";
 		for ($i=0;$i<$n;$i++) {
-			$infos = split('_', $_POST['p'.$i]);
+			$infos = explode('_', $_POST['p'.$i]);
 			if ($i)
 				$sqlBatch .= ',';
 			$sqlBatch .= "($cID,$i,'".$infos[0]."','".$infos[1]."','".$infos[2]."','".$infos[3]."',b'".($infos[4]?$infos[4]:0)."')";

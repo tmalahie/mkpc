@@ -2085,7 +2085,7 @@ foreach ($circuitsData as $c => $circuit) {
 			$prefix = 't'.($i ? $i.'_':'');
 			for ($j=0; isset($circuit[$prefix.$j]); $j++) {
 				if ($j) echo ',';
-				$pos = split(',',$circuit[$prefix.$j]);
+				$pos = explode(',',$circuit[$prefix.$j]);
 				switch ($type) {
 				case 'bumper':
 					echo '["bumper",['.$pos[0].','.$pos[1].',24,24],[0.5,0.5,0]]';
@@ -2116,7 +2116,7 @@ foreach ($circuitsData as $c => $circuit) {
 			for ($j=0; isset($circuit[$prefix.$j]); $j++) {
 				if ($v) echo ',';
 				$v = true;
-				$pos = split(',',$circuit[$prefix.$j]);
+				$pos = explode(',',$circuit[$prefix.$j]);
 				switch ($type) {
 				case 'flower':
 					$w = ($typeSrc === 'flower3') ? 16:15;

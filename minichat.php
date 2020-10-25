@@ -842,7 +842,7 @@ window.onload = function() {
 $smileys = Array(':)', ':D', ';)', ':o', ':p', ':s', ':(', '8)', ':$', ':}', '|)', '*[');
 while ($donnees = mysql_fetch_array($messages)) {
 	$styles = Array();
-	list($styles[0], $styles[1], $styles[2]) = split(",", $donnees["style"]);
+	list($styles[0], $styles[1], $styles[2]) = explode(",", $donnees["style"]);
 	echo '<p>'. ($admin ? '<a class="delete-msg" href="javascript:deleteMsg('. $donnees["id"] .')">Supprimer</a>':'') .'<span class="dit">'.$donnees["pseudo"].' dit :</span><br /><span style="'. (in_array('gras', $styles) ? 'font-weight: bold;':null) . (in_array('souligne', $styles) ? 'text-decoration: underline;':null) . (in_array('italique', $styles) ? 'font-style: italic;':null) .'color: rgb('. $donnees["r"].','.$donnees["g"].','.$donnees["b"] .');font-size: '.$donnees["taille"].'pt;font-family: '.$donnees["police"].'">'.$donnees['message'].'</span></p>';
 }
 mysql_close();
