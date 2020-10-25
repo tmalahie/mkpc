@@ -96,17 +96,21 @@ if (isset($draftSaved)) {
 	$draft = mysql_fetch_array($getDraft);
 	if (!$draft)
 		$draft = array();
-	if (!$language) {
 		$getPendingNews = mysql_query('SELECT title FROM `mknews` WHERE status="pending" AND author!="'. $id .'" ORDER BY id DESC');
 		if (mysql_numrows($getPendingNews)) {
 		?>
 		<div id="advice-pending-news" class="info advice-pending-hidden">
-			Conseil : avant de commencer, vérifiez qu'une news sur le même sujet n'est pas en cours de validation.
+			<?php
+			if ($language)
+				echo "Tip: before beginning, check that a news on the same subject is not pending validation.";
+			else
+				echo "Conseil : avant de commencer, vérifiez qu'une news sur le même sujet n'est pas en cours de validation.";
+			?>
 			<span class="advice-pending-show">
-				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-shown';void(0)">Voir</a>]
+				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-shown';void(0)"><?php echo $language ? 'Show':'Voir'; ?></a>]
 			</span>
 			<span class="advice-pending-hide">
-				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-hidden';void(0)">Masquer</a>]
+				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-hidden';void(0)"><?php echo $language ? 'Hide':'Masquer'; ?></a>]
 			</span>
 			<ul class="pending-news-list"><?php
 			while ($news = mysql_fetch_array($getPendingNews))
@@ -115,7 +119,6 @@ if (isset($draftSaved)) {
 		</div>
 		<?php
 		}
-	}
 	?>
 <form method="post" action="addNews.php" onsubmit="if(!this.title.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a content':'Veuillez entrer un contenu'; ?>');return false}this.querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled=true">
 <table id="nMessage">
