@@ -211,13 +211,19 @@ if ($oneset) {
 				$get = $_GET;
 				foreach ($get as $k => $getk)
 					$get[$k] = stripslashes($get[$k]);
-				for ($i=1;$i<=$nbPages;$i++) {
-					$get['page'] = $i;
-					if ($i == $page)
-						echo $i;
-					else
-						echo '<a href="?'. http_build_query($get) .'#search-results">'. $i .'</a>';
-					echo ' &nbsp; ';
+				require_once('utils-paging.php');
+				$allPages = makePaging($page,$nbPages);
+				foreach ($allPages as $i=>$block) {
+					if ($i)
+						echo '...&nbsp; &nbsp;';
+					foreach ($block as $p) {
+						$get['page'] = $p;
+						if ($p == $page)
+							echo $p;
+						else
+							echo '<a href="?'. http_build_query($get) .'#search-results">'. $p .'</a>';
+						echo ' &nbsp; ';
+					}
 				}
 				?>
 			</p></div>
