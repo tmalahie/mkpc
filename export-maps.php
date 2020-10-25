@@ -87,6 +87,8 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 		$sautsData[3]++;
 	}
 	unset($sautsData);
+	if ($mapData['fond'] == array('eciel','enuages'))
+		$mapData['fond'] = array('ciel','enuages');
 	$mapData['sauts'] = $circuitPayload->sauts;
 	if (empty($mapData['sauts']))
 		unset($mapData['sauts']);
