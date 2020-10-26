@@ -4,6 +4,15 @@ if (isset($_POST["name"]) && isset($_POST["perso"]) && isset($_POST["time"])) {
 	include('initdb.php');
 	include('getId.php');
 	include('session.php');
+	if ($id) {
+		$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
+		$isBanned = mysql_fetch_array($getBanned);
+		if ($isBanned && $isBanned['banned']) {
+			echo -1;
+			mysql_close();
+			exit;
+		}
+	}
 	if (isset($_POST['circuit'])) {
 		$type = '';
 		$map = $_POST["circuit"];

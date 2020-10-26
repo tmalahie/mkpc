@@ -5,6 +5,15 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 		include('initdb.php');
 		include('getId.php');
 		include('session.php');
+		if ($id) {
+			$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
+			$isBanned = mysql_fetch_array($getBanned);
+			if ($isBanned && $isBanned['banned']) {
+				echo 1;
+				mysql_close();
+				exit;
+			}
+		}
 		$map = $_POST['map'];
 		$time = $n*67;
 		$player = 0;
