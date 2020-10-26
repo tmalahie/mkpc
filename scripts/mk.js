@@ -4922,12 +4922,21 @@ var itemBehaviors = {
 					}
 				}
 			}
-			fSprite.countdown--;
-			if (fSprite.countdown <= 0)
-				detruit(fSprite);
+			if (!isOnline || fSprite.id) {
+				fSprite.countdown--;
+				if (fSprite.countdown <= 0) {
+					if (!isOnline || fSprite.countdown < -50)
+						detruit(fSprite);
+					else if (!fSprite.disabled) {
+						fSprite.disabled = true;
+						$mkScreen.style.opacity = 1;
+					}
+				}
+			}
 		},
 		"del": function(item) {
-			$mkScreen.style.opacity = 1;
+			if (!item.disabled)
+				$mkScreen.style.opacity = 1;
 		}
 	},
 	"carapace": {
