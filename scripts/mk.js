@@ -11190,8 +11190,8 @@ function move(getId, triggered) {
 		for (var i=0;i<oKart.using.length;i++) {
 			var oArme = oKart.using[i];
 			if (isBanana) {
-				oArme.x = (oKart.x - l * (1+i*0.35) * direction(0, oKart.rotation));
-				oArme.y = (oKart.y - l * (1+i*0.35) * direction(1, oKart.rotation));
+				oArme.x = (oKart.x - l * (0.7+(oKart.using.length-i)*0.35) * direction(0, oKart.rotation));
+				oArme.y = (oKart.y - l * (0.7+(oKart.using.length-i)*0.35) * direction(1, oKart.rotation));
 			}
 			else {
 				oArme.x = (oKart.x - l * direction(0, oKart.rotation+rotItem+i*dtheta));
