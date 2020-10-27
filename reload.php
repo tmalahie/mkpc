@@ -28,7 +28,17 @@ if ($id) {
 		$lastconnect = isset($payload['lastcon']) ? $payload['lastcon']:0;
 		if ($course) {
 			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
-			if (isset($payload['tours']) && ($payload['tours'])>$fLaps) $payload['tours'] = $fLaps;
+			$playerPayload = array();
+			foreach ($playerMapping as $key)
+				$playerPayload[$key] = null;
+			if (isset($payload['player'])) {
+				if (!$isBattle) {
+					$iTours = array_search('tours', $playerMapping);
+					if (isset($payload['player'][$iTours]) && ($payload['player'][$iTours])>$fLaps) $payload['player'][$iTours] = $fLaps;
+				}
+				foreach ($playerMapping as $i => $key)
+					$playerPayload[$key] = isset($payload['player'][$i]) ? $payload['player'][$i]:null;
+			}
 			$finished = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE id='. $course .' AND map=-1 LIMIT 1'));
 			$timeMs = microtime(true);
 			$time = floor($timeMs);
@@ -56,7 +66,7 @@ if ($id) {
 					$sql = 'UPDATE `mkplayers` SET ';
 					foreach ($playerMapping as $i => $key)
 						$sql .= $key .'="'.$payload['player'][$i] .'",';
-					$winning = $isBattle ? (($payload['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND ballons=0'))) : (($payload['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND tours>='.$fLaps)));
+					$winning = $isBattle ? (($playerPayload['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND ballons=0'))) : (($playerPayload['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND tours>='.$fLaps)));
 					if ($winning)
 						$sql .= 'place='.(mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)))+1-$isBattle).',';
 					$sql .= 'connecte='.$lConnect.' WHERE id="'. $id .'"';
