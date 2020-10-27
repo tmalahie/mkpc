@@ -4887,7 +4887,7 @@ var itemBehaviors = {
 	},
 	"eclair": {
 		size: 1,
-		sync: [byteType("owner"),byteType("countdown")],
+		sync: [shortType("owner"),byteType("countdown")],
 		fadedelay: 0,
 		sprite: false,
 		move: function(fSprite) {
