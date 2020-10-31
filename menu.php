@@ -49,7 +49,7 @@
 		require_once('apc.php');
 		if ($id || $myIdentifiants) {
 			$notifsCacheKey = 'notif:'.($id?$id:0).':'.($myIdentifiants?$myIdentifiants[0]:0);
-			$myNotifsCache = explode(':',apc_fetch($notifsCacheKey));
+			$myNotifsCache = explode(':',apcu_fetch($notifsCacheKey));
 		}
 		else {
 			$notifsCacheKey = null;
@@ -62,7 +62,7 @@
 		function clearNotifCache() {
 			global $notifsCacheKey,$myNotifsCache,$cacheNotifId;
 			if ($myNotifsCache) {
-				apc_delete($notifsCacheKey);
+				apcu_delete($notifsCacheKey);
 				$myNotifsCache = null;
 				$cacheNotifId = -1;
 			}
@@ -586,7 +586,7 @@
 				if (count($notifsData) >= $relyOnCacheThreshold) {
 					$newCacheId = $notifsData[$relyOnCacheThreshold-1]['id'];
 					$nbNotifsCache = $nbNotifs-$relyOnCacheThreshold;
-					apc_store($notifsCacheKey, "$nbNotifsCache:$newCacheId", min(round(60000+$nbNotifsCache*100),500000));
+					apcu_store($notifsCacheKey, "$nbNotifsCache:$newCacheId", min(round(60000+$nbNotifsCache*100),500000));
 				}
 				else
 					clearNotifCache();

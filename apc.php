@@ -1,15 +1,15 @@
 <?php
-if (!function_exists('apc_fetch')) {
+if (!function_exists('apcu_fetch')) {
     $apcStore = array();
-    function apc_fetch($key) {
+    function apcu_fetch($key) {
         global $apcStore;
         return isset($apcStore[$key]) ? $apcStore[$key]:null;
     }
-    function apc_store($key,$value,$ttl=0) {
+    function apcu_store($key,$value,$ttl=0) {
         global $apcStore;
         $apcStore[$key] = $value;
     }
-    function apc_delete($key) {
+    function apcu_delete($key) {
         global $apcStore;
         unset($apcStore[$key]);
     }
