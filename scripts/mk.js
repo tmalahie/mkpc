@@ -2043,6 +2043,8 @@ function startGame() {
 			oPlayer.demitours = cp0;
 			//oPlayer.tours = oMap.tours;
 			//oPlayer.demitours = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
+			//oPlayer.arme = "bloops";
+			//oPlayer.roulette = 24;
 			oPlayer.billball = 0;
 			oPlayer.place = oPlace;
 		}
@@ -5150,7 +5152,7 @@ var itemBehaviors = {
 			if (fSprite.countstate >= 12) {
 				for (var i=0;i<aKarts.length;i++) {
 					var oKart = aKarts[i];
-					if (!oKart.unbloop && (oKart.protect || oKart.champi))
+					if (!oKart.unbloop && (oKart.protect || oKart.champi || oKart.tombe))
 						oKart.unbloop = ((fSprite.countstate == 12) && oKart.protect) ? 5:1;
 					if (oKart.unbloop) {
 						if (oKart.unbloop <= 5) {
