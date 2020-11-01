@@ -1443,7 +1443,7 @@ function arme(ID, backwards) {
 			break;
 
 			case "eclair" :
-			addNewItem(oKart, {type:"eclair", owner:oKart.id, countdown:20});
+			addNewItem(oKart, {type:"eclair", owner:oKart.id});
 			break;
 
 			case "bloops" :
@@ -4891,12 +4891,12 @@ var itemBehaviors = {
 	},
 	"eclair": {
 		size: 1,
-		sync: [intType("owner"),byteType("countdown")],
+		sync: [intType("owner")],
 		fadedelay: 0,
 		sprite: false,
 		move: function(fSprite) {
-			if (!fSprite.effected) {
-				fSprite.effected = true;
+			if (fSprite.countdown === undefined) {
+				fSprite.countdown = 20;
 				var oKart = aKarts.find(function(oKart) {
 					return oKart.id == fSprite.owner;
 				});
