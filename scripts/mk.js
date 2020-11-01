@@ -4894,6 +4894,7 @@ var itemBehaviors = {
 		sync: [intType("owner")],
 		fadedelay: 0,
 		sprite: false,
+		onlineResync: false,
 		move: function(fSprite) {
 			if (fSprite.countdown === undefined) {
 				fSprite.countdown = 20;
@@ -4949,6 +4950,7 @@ var itemBehaviors = {
 		fadedelay: 0,
 		sprite: false,
 		countdowns: [5,5,15,3,2,3,3,2,2,13,7,5,5,100,15],
+		onlineResync: false,
 		move: function(fSprite) {
 			if (!fSprite.sprites) {
 				if (items.bloops.length > 1) {
@@ -10403,7 +10405,7 @@ function resetDatas() {
 				var syncedItem = syncedItems[i];
 				var uItem = syncedItem.item;
 				var moveFn = itemBehaviors[uType].move;
-				if (moveFn) {
+				if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
 					for (var k=syncedItem.start;k<syncedItem.end;k++) {
 						if (uItem.deleted)
 							break;
