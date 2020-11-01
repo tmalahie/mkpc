@@ -226,6 +226,7 @@ button.control-close:active {
 }
  #temps0,#temps1 {
     position: absolute;
+    z-index: 19999;
     top: 12px;
     color: #F8F8F8;
     font-family: "SMK-Timer", Courier New;
