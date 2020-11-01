@@ -5149,7 +5149,7 @@ var itemBehaviors = {
 				for (var i=0;i<aKarts.length;i++) {
 					var oKart = aKarts[i];
 					if (!oKart.unbloop && (oKart.protect || oKart.champi))
-						oKart.unbloop = (fSprite.countstate == 12) ? 6:1;
+						oKart.unbloop = ((fSprite.countstate == 12) && oKart.protect) ? 5:1;
 					if (oKart.unbloop) {
 						if (oKart.unbloop <= 5) {
 							var uTime = oKart.unbloop/5;
@@ -9708,11 +9708,6 @@ function getItemDistribution() {
 		}];
 	}
 	else {
-		return [{
-			"carapacebleue": 100,
-			"bloops": 100,
-			"banane": 1
-		}];
 		return [{
 			"fauxobjet": 4,
 			"banane": 6,
