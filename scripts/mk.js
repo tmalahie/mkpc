@@ -7758,7 +7758,7 @@ function getItemDistributionRange(oKart) {
 	return [a*itemDistribution.length,b*itemDistribution.length];
 }
 function getItemAvgRange(x1,x2) {
-	return Math.min(1, Math.pow(x1,0.7)*Math.pow(x2,0.3));
+	return Math.min(0.99999, Math.pow(x1,0.7)*Math.pow(x2,0.3));
 }
 function randObj(oKart) {
 	var distrib = getItemDistributionRange(oKart);
