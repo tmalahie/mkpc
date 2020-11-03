@@ -7745,9 +7745,24 @@ function correctCamZ(z,iDeltaX) {
 function direction(fDir, rotation) {
 	return Math[["sin","cos"][fDir]](rotation * Math.PI / 180)
 }
+function getItemDistributionRange(oKart) {
+	var a = (oKart.place-1)/aKarts.length, b = oKart.place/aKarts.length;
+	if (course != "BB") {
+		var distToFirst = distanceToFirst(oKart);
+		var x = Math.pow(distToFirst/600,0.75);
+		var d = 0.07;
+		var a2 = x, b2 = x+d;
+		a = getItemAvgRange(a2,a);
+		b = getItemAvgRange(b2,b);
+	}
+	return [a*itemDistribution.length,b*itemDistribution.length];
+}
+function getItemAvgRange(x1,x2) {
+	return Math.min(1, Math.pow(x1,0.7)*Math.pow(x2,0.3));
+}
 function randObj(oKart) {
-	var a = itemDistribution.length*(oKart.place-1)/aKarts.length,
-	b = itemDistribution.length*oKart.place/aKarts.length;
+	var distrib = getItemDistributionRange(oKart);
+	var a = distrib[0], b = distrib[1];
 	var i = Math.floor(a + (b-a)*Math.random());
 	var distribution = itemDistribution[i];
 	var nbObjs = 0;
@@ -7762,8 +7777,9 @@ function randObj(oKart) {
 	}
 }
 function possibleObjs(oKart, except) {
-	var a = Math.floor(itemDistribution.length*(oKart.place-1)/aKarts.length),
-	b = Math.ceil(itemDistribution.length*oKart.place/aKarts.length);
+	var distrib = getItemDistributionRange(oKart);
+	var d = 0.005; // Safety belt to avoid infinite loops
+	var a = Math.floor(distrib[0]+d), b = Math.ceil(distrib[1]-d);
 	var res = {};
 	for (var i=a;i<b;i++) {
 		var distribution = itemDistribution[i];
@@ -9753,19 +9769,18 @@ function getItemDistribution() {
 			"etoile": 5
 		}, {
 			"carapacerougeX3": 1,
-			"champior": 1,
 			"megachampi": 7,
 			"bloops": 2,
-			"champi": 4,
+			"champi": 5,
 			"etoile": 5
 		}, {
 			"carapacerougeX3": 1,
 			"megachampi": 6,
 			"etoile": 6,
 			"bloops": 1,
-			"champiX3": 2,
+			"champiX3": 1,
 			"champior": 1,
-			"champi": 4
+			"champi": 5
 		}, {
 			"carapacerougeX3": 1,
 			"champior": 1,
@@ -9782,11 +9797,10 @@ function getItemDistribution() {
 			"champiX3": 3,
 			"billball": 2
 		}, {
-			"megachampi": 2,
-			"etoile": 4,
-			"billball": 3,
-			"champior": 3,
-			"champiX3": 1,
+			"etoile": 1,
+			"billball": 4,
+			"champior": 4,
+			"champiX3": 2,
 			"eclair": 3
 		}];
 	}
@@ -11123,6 +11137,8 @@ function move(getId, triggered) {
 					forbiddenItems["carapacebleue"] = 1;
 					forbiddenItems["eclair"] = 1;
 					forbiddenItems["bloops"] = 1;
+					forbiddenItems["carapaceX3"] = 1;
+					forbiddenItems["carapacerougeX3"] = 1;
 				}
 				else {
 					if (oKart.place == 1)
@@ -12840,14 +12856,14 @@ function ai(oKart) {
 			distToAim = Math.hypot(aimX-oKart.x,aimY-oKart.y);
 			var dirToAim = Math.atan2(aimX-lastAi[0],aimY-lastAi[1])-oKart.rotation;
 			speedToAim = distToAim*maxOmega/(Math.abs(Math.sin(dirToAim))+diffThetaAbs*Math.PI/180/2);
-			if (oKart.bloops && oKart.bloops.effective(oKart))
-				speedToAim = Math.min(speedToAim,3);
 			if (diffThetaAbs > fMaxRotInCp) {
 				if (h < hMargin) {
 					var marginSpeed = aiMarginLimitSpeed(oKart.x,oKart.y,direction(0,oKart.rotation),direction(1,oKart.rotation),currentAi[0],currentAi[1],u,v,hMargin*2,maxOmega);
 					if (marginSpeed < speedToAim) speedToAim = marginSpeed;
 				}
 				var maxSpeed = speedToAim;
+				if (oKart.bloops && oKart.bloops.effective(oKart))
+					maxSpeed = Math.min(maxSpeed,3);
 				maxSpeed /= 0.9;
 				if (!maxSpeed)
 					maxSpeed = 0.01;
@@ -12886,12 +12902,27 @@ function ai(oKart) {
 			}
 		}
 		else {
-			switch (arme) {
-			case "champi":
+			switch (oKart.arme) {
 			case "megachampi":
 			case "etoile":
 				if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
 					arme(aKarts.indexOf(oKart));
+				break;
+			case "champi":
+			case "champiX2":
+			case "champiX3":
+				if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+					arme(aKarts.indexOf(oKart));
+				break;
+			case "champior":
+				if (oKart.champior) {
+					if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
+						arme(aKarts.indexOf(oKart));
+				}
+				else {
+					if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+						arme(aKarts.indexOf(oKart));
+				}
 				break;
 			default:
 				useRandomly = true;
