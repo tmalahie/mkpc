@@ -1538,13 +1538,19 @@ function arme(ID, backwards) {
 
 			case "carapace-rouge" :
 			var oAngleView = angleShoot(oKart, backwards);
-			var shiftDist = 7.5;
-			if (!backwards) {
-				shiftDist *= 1.5;
-				shiftDist += oKart.speed;
+			var shiftDist = 3.75;
+			if (backwards) {
+				if (oKart.speed < 0)
+					shiftDist -= oKart.speed;
+				if (oKart.using.length > 1)
+					shiftDist *= 2;
 			}
-			if (oKart.using.length > 1)
-				shiftDist *= 4/3;
+			else {
+				shiftDist *= 3;
+				shiftDist += oKart.speed;
+				if (oKart.using.length > 1)
+					shiftDist *= 4/3;
+			}
 			if (backwards)
 				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,target:-1});
 			else
@@ -4916,7 +4922,7 @@ var itemBehaviors = {
 								kart.mini = Math.round(Math.max(kart.mini, 120-(kart.place-1)*40/(aKarts.length-1)));
 								updateDriftSize(i);
 								kart.arme = false;
-								loseUsingItem(kart);
+								loseUsingItems(kart);
 								kart.champi = 0;
 								kart.spin(20);
 								kart.roulette = 0;
@@ -7883,7 +7889,7 @@ function supprArme(i) {
 		removeIfExists(oKart.rouletteSound);
 	}
 }
-function loseUsingItem(oKart) {
+function loseUsingItems(oKart) {
 	if (oKart.using.length) {
 		for (var i=0;i<oKart.using.length;i++) {
 			var oItem = oKart.using[i];
@@ -7897,6 +7903,10 @@ function loseUsingItem(oKart) {
 		}
 		oKart.using.length = 0;
 	}
+}
+function loseUsingItem(oKart) {
+	if (oKart.rotitem === undefined)
+		loseUsingItems(oKart);
 }
 function deleteUsingItems(oKart) {
 	for (var i=oKart.using.length-1;i>=0;i--)
@@ -8038,7 +8048,7 @@ function colKart(getId) {
 							loseBall(iKart);
 							stopDrifting(iKart);
 							qKart.spin(62);
-							loseUsingItem(qKart);
+							loseUsingItems(qKart);
 							supprArme(iKart);
 						}
 					}
@@ -10968,7 +10978,7 @@ function move(getId, triggered) {
 		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell) {
 			loseBall(getId);
 			oKart.spin(pExplose);
-			loseUsingItem(oKart);
+			loseUsingItems(oKart);
 			stopDrifting(getId);
 			if (pExplose == 84) {
 				oKart.champi = 0;
@@ -10994,7 +11004,7 @@ function move(getId, triggered) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(20);
-				loseUsingItem(oKart);
+				loseUsingItems(oKart);
 				oKart.size = 0.6;
 				oKart.mini = Math.max(oKart.mini, 60);
 				updateDriftSize(getId);
@@ -11140,19 +11150,22 @@ function move(getId, triggered) {
 					forbiddenItems["carapaceX3"] = 1;
 					forbiddenItems["carapacerougeX3"] = 1;
 				}
-				else {
-					if (oKart.place == 1)
-						forbiddenItems["carapacebleue"] = 1;
-					
-					for (var i=0;i<aKarts.length;i++) {
-						if (["carapacebleue","bloops"].indexOf(aKarts[i].arme) !== -1)
-							forbiddenItems[aKarts[i].arme] = 1;
-					}
-					if (items["carapace-bleue"].length)
-						forbiddenItems["carapacebleue"] = 1;
-					if (items.bloops.length)
-						forbiddenItems["bloops"] = 1;
+				if (oKart.place == 1)
+					forbiddenItems["carapacebleue"] = 1;
+				
+				var preventDuplicateItems = {
+					carapacebleue: 1,
+					bloops: 1,
+					bananeX3: 1
+				};
+				for (var i=0;i<aKarts.length;i++) {
+					if (preventDuplicateItems[aKarts[i].arme])
+						forbiddenItems[aKarts[i].arme] = 1;
 				}
+				if (items["carapace-bleue"].length)
+					forbiddenItems["carapacebleue"] = 1;
+				if (items.bloops.length)
+					forbiddenItems["bloops"] = 1;
 				if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
 					do {
 						iObj = randObj(oKart);
@@ -11280,7 +11293,7 @@ function move(getId, triggered) {
 				oKart.spin(collisionSpin);
 				oKart.frminv = 24;
 				oKart.speed = 2.5*Math.sign(oKart.speed);
-				loseUsingItem(oKart);
+				loseUsingItems(oKart);
 			}
 		}
 	}
