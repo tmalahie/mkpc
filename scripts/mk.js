@@ -2926,7 +2926,7 @@ function startGame() {
 							case "balloon" :
 								if (pause) return;
 								if (course == "BB") {
-									if ((oPlayers[0].tourne<5) && oPlayers[0].reserve && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
+									if ((oPlayers[0].tourne<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
 										oPlayers[0].ballons[oPlayers[0].ballons.length] = createBalloonSprite(oPlayers[0]);
 										oPlayers[0].reserve--;
 										updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
@@ -2987,7 +2987,7 @@ function startGame() {
 								if (pause) return;
 								if (!oPlayers[1]) return;
 								if (course == "BB") {
-									if ((oPlayers[0].tourne<5) && oPlayers[1].reserve && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
+									if ((oPlayers[0].tourne<5) && oPlayers[1].reserve && oPlayers[1].ballons.length && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
 										oPlayers[1].ballons[oPlayers[1].ballons.length] = createBalloonSprite(oPlayers[1]);
 										oPlayers[1].reserve--;
 										updateBalloonHud(document.getElementById("compteur1"),oPlayers[1]);
@@ -7617,8 +7617,8 @@ function render() {
 					var fShift = 2.5;
 					for (k=0;k<nbBallons;k++) {
 						fSprite.ref.ballons[k][i].render(fCamera, {
-							x: fSprite.x-(k+0.75-nbBallons/2)*fShift*direction(1,fRotation),
-							y: fSprite.y+(k+0.75-nbBallons/2)*fShift*direction(0,fRotation),
+							x: fSprite.x-(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(1,fRotation),
+							y: fSprite.y+(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(0,fRotation),
 							z: fHauteur,
 							size: fTaille
 						});
@@ -9732,9 +9732,12 @@ function getItemDistribution() {
 		}, {
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
-			"megachampi": 4,
-			"etoile": 4,
-			"champi": 4
+			"megachampi": 3,
+			"etoile": 3,
+			"champi": 3,
+			"champior": 1,
+			"champiX3": 1,
+			"bloops": 1
 		}];
 	}
 	else {
