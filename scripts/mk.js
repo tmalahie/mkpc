@@ -7761,6 +7761,17 @@ function getItemDistributionRange(oKart) {
 		a = getItemAvgRange(a2,a);
 		b = getItemAvgRange(b2,b);
 	}
+	else {
+		var maxBalloons = 0;
+		for (var i=0;i<aKarts.length;i++)
+			maxBalloons = Math.max(maxBalloons, aKarts[i].ballons.length+aKarts[i].reserve);
+		var myBalloons = oKart.ballons.length+oKart.reserve;
+		var x = (maxBalloons-myBalloons)/2.5;
+		var d = 0.07;
+		var a2 = x, b2 = x+d;
+		a = getItemAvgRange(a2,a);
+		b = getItemAvgRange(b2,b);
+	}
 	return [a*itemDistribution.length,b*itemDistribution.length];
 }
 function getItemAvgRange(x1,x2) {
@@ -9725,23 +9736,23 @@ function getItemDistribution() {
 	if (course == "BB") {
 		return [{
 			"fauxobjet": 4,
-			"banane": 6,
+			"banane": 5,
 			"bananeX3": 1,
+			"carapacerouge": 1,
 			"carapace": 4
 		}, {
-			"carapace": 5,
-			"carapacerouge": 5,
+			"carapace": 4,
+			"carapacerouge": 7,
 			"bobomb": 2,
-			"bananeX3": 3
+			"bananeX3": 2
 		}, {
 			"carapace": 1,
 			"bobomb": 2,
 			"carapace": 4,
 			"carapaceX3": 2,
 			"banane": 1,
-			"bananeX3": 1,
 			"fauxobjet": 1,
-			"carapacerouge": 3
+			"carapacerouge": 4
 		}, {
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
