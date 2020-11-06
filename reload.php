@@ -120,7 +120,7 @@ if ($id) {
 			echo '],[';
 			echo json_encode($newItems);
 			echo ',';
-			$getUpdatedItems = mysql_query('SELECT id,type,holder,HEX(data) AS data,updated_at FROM items WHERE course="'. $course .'" AND updated_at>="'. $lastconnect .'" AND updated_by!="'. $id .'"');
+			$getUpdatedItems = mysql_query('SELECT id,type,holder,HEX(data) AS data,updated_at FROM items WHERE course="'. $course .'" AND updated_at>="'. $lastconnect .'" AND updated_by!="'. $id .'" ORDER BY id');
 			$updatedItems = array();
 			while ($updatedItem = mysql_fetch_array($getUpdatedItems)) {
 				$updatedItems[] = array(

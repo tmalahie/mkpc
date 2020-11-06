@@ -7830,6 +7830,7 @@ function updateBalloonHud(oCompteur,oPlayer) {
 var syncItems = [];
 function detruit(item, sound) {
 	if (isOnline) {
+		item = getItemToDestroy(item);
 		item.deleted = 1;
 		syncItems.push(item);
 	}
@@ -7876,6 +7877,18 @@ function supprime(item, sound) {
 		}
 		items[key].splice(id,1);
 	}
+}
+function getItemToDestroy(item) {
+	for (var i=0;i<aKarts.length;i++) {
+		var j = aKarts[i].using.indexOf(item);
+		if (j != -1) {
+			var res = aKarts[i].using[0];
+			if (res.type === item.type)
+				return res;
+			return item;
+		}
+	}
+	return item;
 }
 
 
