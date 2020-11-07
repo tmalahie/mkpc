@@ -10285,22 +10285,14 @@ function getCpScore(kart) {
 	return res;
 }
 function distanceToFirst(kart) {
-	var cPlace = 1;
+	var cPlace = Infinity;
+	var oKart;
 	for (var k=0;k<aKarts.length;k++) {
-		if (aKarts[k].place == cPlace) {
-			if (aKarts[k].tours <= oMap.tours) {
-				cible = k;
-				break;
-			}
-			else {
-				cPlace++;
-				k = -1;
-			}
+		if (aKarts[k].place < cPlace) {
+			oKart = aKarts[k];
+			cPlace = oKart.place;
 		}
 	}
-	if (k == -1)
-		return 0;
-	var oKart = aKarts[k];
 	return distanceToKart(kart,oKart);
 }
 function distanceToKart(kart,oKart) {
