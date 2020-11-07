@@ -1305,12 +1305,12 @@ function arme(ID, backwards) {
 				oKart.speed = 11;
 				playIfShould(oKart,"musics/events/boost.mp3");
 				if (!oKart.champior)
-					oKart.champior = 60;
+					oKart.champior = 70;
 			}
 			break;
 
 			case "etoile" :
-			tpsUse = 60;
+			tpsUse = 80;
 			for (var i=0;i<strPlayer.length;i++)
 				oKart.sprite[i].img.src = getStarSrc(oKart.personnage);
 			if (!oKart.cpu && !oKart.etoile) {
@@ -1360,7 +1360,7 @@ function arme(ID, backwards) {
 			break;
 
 			case "megachampi" :
-			tpsUse = 50;
+			tpsUse = 80;
 			oKart.size = 1;
 			oKart.mini = 0;
 			updateDriftSize(ID);
@@ -7780,6 +7780,28 @@ function getItemAvgRange(x1,x2) {
 function randObj(oKart) {
 	var distrib = getItemDistributionRange(oKart);
 	var a = distrib[0], b = distrib[1];
+	/*if (oKart == oPlayers[0]) { // Uncomment to test item distribution
+		var pdf = {};
+		var a_ = Math.floor(a), b_ = Math.ceil(b);
+		for (var i=a_;i<b_;i++) {
+			var x = 1;
+			if (i == a_)
+				x -= (a-a_);
+			if (i == b_-1)
+				x -= (b_-b);
+			var distribution = itemDistribution[i];
+			for (var key in distribution) {
+				if (!pdf[key]) pdf[key] = 0;
+				pdf[key] += x*distribution[key];
+			}
+		}
+		var totalProb = 0;
+		for (var key in pdf)
+			totalProb += pdf[key];
+		for (var key in pdf)
+			pdf[key] = Math.round(pdf[key]*100/totalProb);
+		alert(JSON.stringify(pdf,null,2));
+	}*/
 	var i = Math.floor(a + (b-a)*Math.random());
 	var distribution = itemDistribution[i];
 	var nbObjs = 0;
@@ -9790,20 +9812,21 @@ function getItemDistribution() {
 			"carapaceX3": 3
 		}, {
 			"carapacebleue": 3,
-			"carapacerouge": 2,
-			"megachampi": 2,
+			"carapacerouge": 3,
+			"megachampi": 1,
 			"champi": 4,
 			"carapaceX3": 4
 		}, {
-			"carapacebleue": 3,
+			"carapacebleue": 4,
 			"carapaceX3": 2,
-			"megachampi": 4,
+			"megachampi": 3,
 			"champi": 6
 		}, {
 			"carapacebleue": 1,
-			"megachampi": 7,
+			"megachampi": 4,
 			"carapacerougeX3": 2,
-			"etoile": 5
+			"etoile": 3,
+			"champi": 5
 		}, {
 			"carapacerougeX3": 1,
 			"megachampi": 7,
@@ -9819,10 +9842,9 @@ function getItemDistribution() {
 			"champior": 1,
 			"champi": 5
 		}, {
-			"carapacerougeX3": 1,
 			"champior": 1,
 			"megachampi": 4,
-			"etoile": 3,
+			"etoile": 4,
 			"billball": 2,
 			"champi": 1,
 			"champiX3": 4
@@ -12138,7 +12160,7 @@ function move(getId, triggered) {
 	}
 	if (oKart.megachampi) {
 		oKart.megachampi--;
-		if (oKart.megachampi > 41)
+		if (oKart.megachampi > 71)
 			oKart.size *= 1.05;
 		else if (oKart.megachampi < 8) {
 			oKart.size /= 1.05;
