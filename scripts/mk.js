@@ -1552,8 +1552,8 @@ function arme(ID, backwards) {
 			var oAngleView = angleShoot(oKart, backwards);
 			var shiftDist = 3.75;
 			if (backwards) {
-				if (oKart.speed < 0)
-					shiftDist -= oKart.speed;
+				if (oKart.speed < 2)
+					shiftDist += 1;
 				if (oKart.using.length > 1)
 					shiftDist *= 2;
 			}
