@@ -558,11 +558,11 @@ var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oEx
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2, oExpBWidth2;
 var oCharRatio, oPlanRatio;
 var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {},
-	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(),
+	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(),
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(),
 	oPlanEtoiles = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
 var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {},
-	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(),
+	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(),
 	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(),
 	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
 
@@ -768,6 +768,14 @@ function setPlanPos() {
 		setObject(oPlanPoisons[i],poison.x,poison.y, oObjWidth,oPlanSize, poison.team,100);
 		setObject(oPlanPoisons2[i],poison.x,poison.y, oObjWidth2,oPlanSize2, poison.team,100);
 		oPlanPoisons[i].style.zIndex = oPlanPoisons2[i].style.zIndex = 2;
+	}
+	syncObjects(oPlanChampis,items["champi"],"champi", oObjWidth,oPlanCtn);
+	syncObjects(oPlanChampis2,items["champi"],"champi", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<items["champi"].length;i++) {
+		var champi = items["champi"][i];
+		setObject(oPlanChampis[i],champi.x,champi.y, oObjWidth,oPlanSize, -1,100);
+		setObject(oPlanChampis2[i],champi.x,champi.y, oObjWidth2,oPlanSize2, -1,100);
+		oPlanChampis[i].style.zIndex = oPlanChampis2[i].style.zIndex = 2;
 	}
 
 	function getExplosionSrc(src,team) {
@@ -1221,6 +1229,8 @@ function addNewItem(kart,item) {
 	if (item.team != -1) {
 		var hallowSize;
 		switch (collection) {
+		case "champi":
+			break;
 		case "banane":
 			hallowSize = 50;
 			break;
@@ -1243,37 +1253,39 @@ function addNewItem(kart,item) {
 		default:
 			hallowSize = 60;
 		}
-		var hallowLeft = 50-hallowSize, hallowTop = 50-hallowSize;
-		switch (collection) {
-		case "banane":
-			hallowTop += 5;
-			break;
-		case "poison":
-			hallowTop += 5;
-			break;
-		case "bobomb":
-			hallowTop += 5;
-			break;
-		case "fauxobjet":
-			hallowTop -= 5;
-		}
-		for (var i=0;i<oPlayers.length;i++) {
-			var oDiv = document.createElement("div");
-			oDiv.className = "sprite-hallow";
-			oDiv.style.position = "absolute";
-			oDiv.style.left = hallowLeft+"%";
-			oDiv.style.top = hallowTop+"%";
-			oDiv.style.width = (hallowSize*2)+"%";
-			oDiv.style.height = (hallowSize*2)+"%";
-			oDiv.style.borderRadius = hallowSize+"%";
-			oDiv.style.backgroundColor = item.team ? "red":"blue";
-			oDiv.style.opacity = 0.25;
-			if (item.sprite) {
-				var oImg = item.sprite[i].div.firstChild;
-				if (oImg)
-					item.sprite[i].div.insertBefore(oDiv,oImg);
-				else
-					item.sprite[i].div.appendChild(oDiv);
+		if (hallowSize) {
+			var hallowLeft = 50-hallowSize, hallowTop = 50-hallowSize;
+			switch (collection) {
+			case "banane":
+				hallowTop += 5;
+				break;
+			case "poison":
+				hallowTop += 5;
+				break;
+			case "bobomb":
+				hallowTop += 5;
+				break;
+			case "fauxobjet":
+				hallowTop -= 5;
+			}
+			for (var i=0;i<oPlayers.length;i++) {
+				var oDiv = document.createElement("div");
+				oDiv.className = "sprite-hallow";
+				oDiv.style.position = "absolute";
+				oDiv.style.left = hallowLeft+"%";
+				oDiv.style.top = hallowTop+"%";
+				oDiv.style.width = (hallowSize*2)+"%";
+				oDiv.style.height = (hallowSize*2)+"%";
+				oDiv.style.borderRadius = hallowSize+"%";
+				oDiv.style.backgroundColor = item.team ? "red":"blue";
+				oDiv.style.opacity = 0.25;
+				if (item.sprite) {
+					var oImg = item.sprite[i].div.firstChild;
+					if (oImg)
+						item.sprite[i].div.insertBefore(oDiv,oImg);
+					else
+						item.sprite[i].div.appendChild(oDiv);
+				}
 			}
 		}
 	}
@@ -4251,9 +4263,32 @@ function Sprite(strSprite) {
 				oContainers[i].removeChild(oCtSprites[i][0]);
 		}
 	}
+	this[0].fadein = function(fadedelay) {
+		if (!that[0].unshown) {
+			var x = 0;
+			var dx = SPF/fadedelay;
+			function showProgressively() {
+				if (x >= 1)
+					x = "";
+				for (var i=0;i<strPlayer.length;i++)
+					oCtSprites[i][0].style.opacity = x;
+				if (x === "") {
+					delete that[0].fadeinhandler;
+					return;
+				}
+				x += dx;
+				that[0].fadeinhandler = setTimeout(showProgressively, SPF);
+			}
+			showProgressively();
+		}
+	}
 	this[0].fadeout = function(fadedelay) {
 		if (!that[0].unshown) {
 			var x = 1;
+			if (that[0].fadeinhandler) {
+				clearTimeout(that[0].fadeinhandler);
+				x = 0;
+			}
 			var dx = SPF/fadedelay;
 			function removeProgressively() {
 				x -= dx;
@@ -4897,6 +4932,11 @@ var itemBehaviors = {
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
 		fadedelay: 100
 	},
+	"champi": {
+		size: 0.54,
+		sync: [floatType("x"),floatType("y"),floatType("z")],
+		fadedelay: 100
+	},
 	"eclair": {
 		size: 1,
 		sync: [intType("owner")],
@@ -4921,13 +4961,11 @@ var itemBehaviors = {
 									kart.size = 0.6;
 								kart.mini = Math.round(Math.max(kart.mini, 120-(kart.place-1)*40/(aKarts.length-1)));
 								updateDriftSize(i);
-								kart.arme = false;
 								loseUsingItems(kart);
 								kart.champi = 0;
 								kart.spin(20);
-								kart.roulette = 0;
 								stopDrifting(i);
-								supprArme(i);
+								dropCurrentItem(kart);
 							}
 							else
 								kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
@@ -5662,7 +5700,7 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","eclair","bloops"];
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","eclair","bloops","champi"];
 var items = {};
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
@@ -7954,6 +7992,48 @@ function loseUsingItem(oKart) {
 	if (oKart.rotitem === undefined)
 		loseUsingItems(oKart);
 }
+function dropCurrentItem(oKart) {
+	var sArme = oKart.arme;
+	if (!sArme) return;
+	var sRoulette = oKart.roulette;
+	supprArme(aKarts.indexOf(oKart));
+	if (sRoulette < 25) return;
+	if (isOnline && !kartIsPlayer(oKart)) return;
+	var itemCount = 1;
+	var sArmeCountRegex = sArme.match(/^(.+)X(\d+)$/);
+	if (sArmeCountRegex) {
+		sArme = sArmeCountRegex[1];
+		itemCount = +sArmeCountRegex[2];
+	}
+	var itemType;
+	switch (sArme) {
+	case "champi":
+	case "banane":
+	case "carapace":
+	case "poison":
+		itemType = sArme;
+		break;
+	case "carapacerouge":
+		itemType = "carapace-rouge";
+		break;
+	}
+	if (itemType) {
+		for (var i=0;i<itemCount;i++) {
+			var rAngle = oKart.rotation*Math.PI/180 + (Math.random()-0.5)*0.9*Math.PI, rDist = 9 + Math.random()*6;
+			var item = {type: itemType, team:oKart.team, x:oKart.x - rDist*Math.sin(rAngle), y:oKart.y - rDist*Math.cos(rAngle), z:0};
+			switch (sArme) {
+			case "carapace":
+				item.vx = 0; item.vy = 0; item.owner = -1; item.lives = 10;
+				break;
+			case "carapacerouge":
+				item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.target = -1;
+				break;
+			}
+			addNewItem(oKart, item);
+			item.sprite[0].fadein(200);
+		}
+	}
+}
 function deleteUsingItems(oKart) {
 	for (var i=oKart.using.length-1;i>=0;i--)
 		detruit(oKart.using[i]);
@@ -8095,7 +8175,7 @@ function colKart(getId) {
 							stopDrifting(iKart);
 							qKart.spin(62);
 							loseUsingItems(qKart);
-							supprArme(iKart);
+							dropCurrentItem(qKart);
 						}
 					}
 				}
@@ -8145,7 +8225,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 									collisionPlayer.turbodrift = 0;
 								if (decorBehavior.bonus) {
 									if (!isOnline || (collisionPlayer == oPlayers[0]))
-										addNewItem(collisionPlayer, {type: "banane", team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
+										addNewItem(collisionPlayer, {type: (Math.random()<0.5) ? "banane":"champi", team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
 								}
 							}
 							if (decorBehavior.transparent)
@@ -9922,6 +10002,16 @@ function touche_poison(iX, iY, iP) {
 	}
 	return false;
 }
+function touche_champi(iX, iY) {
+	for (var i=0;i<items["champi"].length;i++) {
+		var oBox = items["champi"][i];
+		if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+			detruit(oBox);
+			return true;
+		}
+	}
+	return false;
+}
 
 function touche_fauxobjet(iX, iY, iP) {
 	if (!iP) iP = [];
@@ -9957,18 +10047,16 @@ function touche_crouge(iX, iY, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["carapace-rouge"].length;i++) {
 		var oBox = items["carapace-rouge"][i];
-		if (!oBox.sprite[0].div.style.opacity) {
-			if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-				if (oBox.owner != -1 && iX == oBox.x && iY == oBox.y) {
-					handleHit(oBox);
-					detruit(oBox,isHitSound(oBox));
-					return (collisionTeam!=oBox.team);
-				}
-				else if (oBox.owner == -1 && iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
-					handleHit(oBox);
-					detruit(oBox,isHitSound(oBox));
-					return (collisionTeam!=oBox.team);
-				}
+		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
+			if (oBox.owner != -1 && iX == oBox.x && iY == oBox.y) {
+				handleHit(oBox);
+				detruit(oBox,isHitSound(oBox));
+				return (collisionTeam!=oBox.team);
+			}
+			else if (oBox.owner == -1 && iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
+				handleHit(oBox);
+				detruit(oBox,isHitSound(oBox));
+				return (collisionTeam!=oBox.team);
 			}
 		}
 	}
@@ -11029,11 +11117,11 @@ function move(getId, triggered) {
 			oKart.spin(pExplose);
 			loseUsingItems(oKart);
 			stopDrifting(getId);
-			if (pExplose == 84) {
+			if (pExplose >= 84) {
 				oKart.champi = 0;
 				oKart.speed = 0;
 				oKart.heightinc = 3;
-				supprArme(getId)
+				dropCurrentItem(oKart);
 			}
 		}
 		else if (oKart.z < 5) {
@@ -11057,6 +11145,12 @@ function move(getId, triggered) {
 				oKart.size = 0.6;
 				oKart.mini = Math.max(oKart.mini, 60);
 				updateDriftSize(getId);
+			}
+			else if (touche_champi(fNewPosX, fNewPosY) && !oKart.tourne) {
+				oKart.champi = 20;
+				oKart.maxspeed = 11;
+				oKart.speed = 11;
+				playIfShould(oKart,"musics/events/boost.mp3");
 			}
 			else if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
