@@ -4938,7 +4938,7 @@ var itemBehaviors = {
 			if (!isOnline || fSprite.id) {
 				fSprite.countdown--;
 				if (fSprite.countdown <= 0) {
-					if (!isOnline || fSprite.countdown < -50)
+					if (fSprite.countdown < -50)
 						detruit(fSprite);
 					else if (!fSprite.disabled) {
 						fSprite.disabled = true;
@@ -11182,6 +11182,7 @@ function move(getId, triggered) {
 				
 				var preventDuplicateItems = {
 					carapacebleue: 1,
+					eclair: 1,
 					bloops: 1,
 					bananeX3: 1
 				};
@@ -11191,6 +11192,8 @@ function move(getId, triggered) {
 				}
 				if (items["carapace-bleue"].length)
 					forbiddenItems["carapacebleue"] = 1;
+				if (items.eclair.length)
+					forbiddenItems["eclair"] = 1;
 				if (items.bloops.length)
 					forbiddenItems["bloops"] = 1;
 				if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
