@@ -9893,8 +9893,7 @@ function getItemDistribution() {
 		}, {
 			"carapacebleue": 3,
 			"carapacerouge": 3,
-			"megachampi": 1,
-			"champi": 4,
+			"champi": 5,
 			"carapaceX3": 4
 		}, {
 			"carapacebleue": 4,
