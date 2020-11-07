@@ -11112,7 +11112,7 @@ function move(getId, triggered) {
 				oKart.champi = 0;
 				oKart.speed = 0;
 				oKart.heightinc = 3;
-				dropCurrentItem(oKart);
+				supprArme(aKarts.indexOf(oKart));
 			}
 		}
 		else if (oKart.z < 5) {
