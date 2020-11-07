@@ -98,6 +98,11 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	foreach ($circuitPayload->decor as $type => $value)
 		$mapData['decor'][$type] = $circuitPayload->decor->{$type};
 	switch ($id) {
+	case 3:
+		foreach ($mapData['sauts'] as &$sautsData)
+			$sautsData[4] = 2;
+		unset($sautsData);
+		break;
 	case 7:
 		foreach ($mapData['sauts'] as &$sautsData)
 			$sautsData[4] = 2;
