@@ -5485,37 +5485,43 @@ var itemBehaviors = {
 										}
 									}
 								}
+								fMoveX = 5 * direction(0, fSprite.theta);
+								fMoveY = 5 * direction(1, fSprite.theta);
 							}
-							fMoveX = 5 * direction(0, fSprite.theta);
-							fMoveY = 5 * direction(1, fSprite.theta);
+							else {
+								fMoveX = 4 * direction(0, fSprite.theta);
+								fMoveY = 4 * direction(1, fSprite.theta);
+							}
 						}
 
 						fNewPosX = fSprite.x + fMoveX;
 						fNewPosY = fSprite.y + fMoveY;
 
-						var maxDist = 4000;
-						var tCible;
-	
-						for (var k=0;k<aKarts.length;k++) {
-							var pCible = aKarts[k];
-							if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
-								var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
-								var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
-								if (fDist < maxDist) {
-									var dAngle = fMoveX*fDirX + fMoveY*fDirY;
-									dAngle /= Math.sqrt(fDist*(fMoveX*fMoveX + fMoveY*fMoveY));
-									if (dAngle > 0.4) {
-										maxDist = fDist;
-										tCible = pCible;
+						if (fSprite.aipoint != -2) {
+							var maxDist = 4000;
+							var tCible;
+		
+							for (var k=0;k<aKarts.length;k++) {
+								var pCible = aKarts[k];
+								if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
+									var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
+									var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
+									if (fDist < maxDist) {
+										var dAngle = fMoveX*fDirX + fMoveY*fDirY;
+										dAngle /= Math.sqrt(fDist*(fMoveX*fMoveX + fMoveY*fMoveY));
+										if (dAngle > 0.4) {
+											maxDist = fDist;
+											tCible = pCible;
+										}
 									}
 								}
 							}
-						}
-						if (tCible) {
-							fSprite.target = tCible.id;
-							var oPlayer = oPlayers[0];
-							if (isOnline && ((tCible == oPlayer) || (fSprite.owner == oPlayer.id)))
-								syncItems.push(fSprite);
+							if (tCible) {
+								fSprite.target = tCible.id;
+								var oPlayer = oPlayers[0];
+								if (isOnline && ((tCible == oPlayer) || (fSprite.owner == oPlayer.id)))
+									syncItems.push(fSprite);
+							}
 						}
 					}
 				}
