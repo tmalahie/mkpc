@@ -7803,9 +7803,17 @@ function direction(fDir, rotation) {
 function getItemDistributionRange(oKart) {
 	var a = (oKart.place-1)/aKarts.length, b = oKart.place/aKarts.length;
 	if (course != "BB") {
-		var distToFirst = distanceToFirst(oKart);
-		var x = Math.pow(distToFirst/600,0.75);
-		var d = 0.07;
+		var x, d;
+		if (oKart.place == 1) {
+			var distToSecond = -distanceToSecond(oKart);
+			x = 0;
+			d = 0.18*Math.exp(distToSecond/150);
+		}
+		else {
+			var distToFirst = distanceToFirst(oKart);
+			x = Math.pow(distToFirst/600,0.75);
+			d = 0.07;
+		}
 		var a2 = x, b2 = x+d;
 		a = getItemAvgRange(a2,a);
 		b = getItemAvgRange(b2,b);
@@ -9880,14 +9888,13 @@ function getItemDistribution() {
 	else {
 		return [{
 			"fauxobjet": 4,
-			"banane": 6,
-			"bananeX3": 1,
+			"banane": 7,
 			"carapace": 4
 		}, {
-			"carapace": 6,
+			"carapace": 5,
 			"bobomb": 2,
 			"carapacerouge": 6,
-			"bananeX3": 1
+			"bananeX3": 2
 		}, {
 			"carapace": 3,
 			"bobomb": 2,
@@ -10304,6 +10311,17 @@ function distanceToFirst(kart) {
 		}
 	}
 	return distanceToKart(kart,oKart);
+}
+function distanceToSecond(kart) {
+	var cPlace = Infinity;
+	var oKart;
+	for (var k=0;k<aKarts.length;k++) {
+		if ((aKarts[k] != kart) && (aKarts[k].place < cPlace)) {
+			oKart = aKarts[k];
+			cPlace = oKart.place;
+		}
+	}
+	return distanceToKart(oKart,kart);
 }
 function distanceToKart(kart,oKart) {
 	var res = 0;
