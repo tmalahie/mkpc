@@ -1434,14 +1434,25 @@ function arme(ID, backwards) {
 				for (var j=0;j<aipoints.length;j++) {
 					var aipoint = aipoints[j];
 					var lastAipoint = aipoints[(j?j:aipoints.length)-1];
-					var dist2 = (aipoint[0]-oKart.x)*(aipoint[0]-oKart.x) + (aipoint[1]-oKart.y)*(aipoint[1]-oKart.y);
+					var dist = Math.hypot(aipoint[0]-oKart.x,aipoint[1]-oKart.y);
 					var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
 					if (!isFront)
-						dist2 += (oMap.w+oMap.h)*(oMap.w+oMap.h);
-					if (dist2 < minDist) {
+						dist += oMap.w+oMap.h;
+					var demitour = oKart.demitours+1;
+					if (demitour >= oMap.checkpoint.length)
+						demitour = 0;
+					var nextCp = oMap.checkpoint[demitour];
+					if (nextCp) {
+						var cpX = nextCp[0] + (nextCp[3] ? Math.round(nextCp[2]/2) : 8);
+						var cpY = nextCp[1] + (nextCp[3] ? 8 : Math.round(nextCp[2]/2));
+						var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
+						if (ddist)
+							dist -= 150*((cpX-oKart.x)*(aipoint[0]-lastAipoint[0]) + (cpY-oKart.y)*(aipoint[1]-lastAipoint[1]))/ddist;
+					}
+					if (dist < minDist) {
 						minAiMap = i;
 						minAiPt = j;
-						minDist = dist2;
+						minDist = dist;
 					}
 				}
 			}
