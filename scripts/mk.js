@@ -1332,7 +1332,7 @@ function arme(ID, backwards) {
 						this.onload = undefined;
 						reprendre(false);
 					}
-					pause = true;
+					interruptGame();
 					bCounting = true;
 				}
 				if (shouldPlaySound(oKart) && !oPlayers[1])
@@ -1356,7 +1356,7 @@ function arme(ID, backwards) {
 					this.onload = undefined;
 					reprendre(false);
 				}
-				pause = true;
+				interruptGame();
 				bCounting = true;
 			}
 			oKart.rotinc = 0;
@@ -2780,7 +2780,7 @@ function startGame() {
 							};
 							document.getElementById("reprendre").onclick = reprendre;
 							document.getElementById("recommencer").onclick = function() {
-								pause = true;
+								interruptGame();
 								removeGameMusics();
 								removeHUD();
 								clearResources();
@@ -2817,7 +2817,7 @@ function startGame() {
 							};
 							if (course == "CM") {
 								document.getElementById("changecircuit").onclick = function() {
-									pause = true;
+									interruptGame();
 									removeGameMusics();
 									removeHUD();
 									clearResources();
@@ -2931,7 +2931,7 @@ function startGame() {
 								if (!pause) {
 									if (!bCounting) {
 										document.getElementById("infos0").style.display = "";
-										pause = true;
+										interruptGame();
 										pauseSounds();
 										var retryButton = document.getElementById("recommencer");
 										if (retryButton && ((course == "CM") || clSelected))
@@ -3190,7 +3190,8 @@ function startGame() {
 						reprendre = function(){};
 						fastCycle();
 					}
-					cycle();
+					else
+						cycle();
 					bRunning = true;
 				}
 				else {
@@ -3554,8 +3555,16 @@ function resetScreen() {
 	oViewCanvas.height=iViewCanvasHeight;
 }
 
+function interruptGame() {
+	pause = true;
+	clearInterval(cycleHandler);
+	cycleHandler = null;
+}
 function reprendre(debug) {
-	setTimeout(function(){if(pause){pause=false;cycle()}}, SPF);
+	if(pause) {
+		pause = false;
+		cycle();
+	}
 	if (debug) {
 		unpauseSounds();
 		document.getElementById("infos0").style.display = "none";
@@ -3567,7 +3576,7 @@ function quitter() {
 		document.location.href = isMCups ? ((complete ? 'map':'circuit') + '.php?mid=' + nid):(isCup ? (complete ? (isBattle ? 'battle':'map')+'.php?'+(isSingle ? 'i':'cid')+'='+nid:(isBattle ? 'arena':'circuit')+'.php?'+(isSingle ? 'id':'cid')+'='+nid):"index.php");
 		return;
 	}
-	pause = true;
+	interruptGame();
 	displayCommands();
 	removeGameMusics();
 	removeHUD();
@@ -3721,7 +3730,7 @@ function continuer() {
 					oContinue.value = toLanguage("       NEXT RACE	   ", "COURSE SUIVANTE");
 			}
 			function nextRace() {
-				pause = true;
+				interruptGame();
 				removeGameMusics();
 				removeHUD();
 				clearResources();
@@ -3755,7 +3764,7 @@ function continuer() {
 			oContinue.value = toLanguage("           NEXT           ", "         SUIVANT          ");
 			oContinue.onclick = function () {
 				$mkScreen = document.body;
-				pause = true;
+				interruptGame();
 				var posX = [29,22,36];
 				var posY = [15,17,19];
 				document.body.innerHTML = toLanguage('You are', 'Vous &ecirc;tes') +' <span id="position"></span> !<br /><a href="javascript:location.reload()" style="color: white;">'+ toLanguage('Back', 'Retour') +'</a><img alt="." src="images/podium.gif" style="position: absolute; left: '+ iScreenScale * 20 +'px; top: '+ iScreenScale * 20 +'px; width: '+ iScreenScale * 24 +'px;" />';
@@ -3847,7 +3856,7 @@ function continuer() {
 		else
 			oContinue.value = toLanguage('          RETRY          ', '     RÉESSAYER     ');
 		oContinue.onclick = function() {
-			pause = true;
+			interruptGame();
 			removeGameMusics();
 			removeHUD();
 			clearResources();
@@ -4072,7 +4081,7 @@ function continuer() {
 
 		oReplay.value = toLanguage("REPLAY", "REVOIR");
 		oReplay.onclick = function() {
-			pause = true;
+			interruptGame();
 			removeGameMusics();
 			removeHUD();
 			clearResources();
@@ -4108,7 +4117,7 @@ function continuer() {
 
 		oChangeRace.value = toLanguage("     CHANGE RACE     ", "   CHANGER CIRCUIT   ");
 		oChangeRace.onclick = function() {
-			pause = true;
+			interruptGame();
 			removeGameMusics();
 			removeHUD();
 			clearResources();
@@ -5377,7 +5386,7 @@ var itemBehaviors = {
 							playDistSound({x:fSprite.x,y:fSprite.y},"musics/events/boom.mp3",200);
 						}
 						bCounting = true;
-						pause = true;
+						interruptGame();
 					}
 					else {
 						fSprite.size = 6;
@@ -5705,7 +5714,7 @@ var itemBehaviors = {
 							playDistSound(aKarts[cible],"musics/events/boom.mp3",200);
 						}
 						bCounting = true;
-						pause = true;
+						interruptGame();
 					}
 					else {
 						fSprite.size = 8;
@@ -10857,7 +10866,7 @@ function resetDatas() {
 		}
 		else {
 			iDeco();
-			pause = true;
+			interruptGame();
 		}
 	}).catch(function(e) {
 		console.error(e);
@@ -13252,10 +13261,11 @@ function moveDecor() {
 	}
 }
 
+var cycleHandler;
 function cycle() {
-	if (!pause) {
-		setTimeout(cycle,SPF);
+	if (!cycleHandler) {
 		runOneFrame();
+		cycleHandler = setInterval(runOneFrame,SPF);
 	}
 }
 var decorPos = {};
@@ -13361,7 +13371,8 @@ document.onkeydown = function(e) {
 	switch (gameAction) {
 		case "up":
 			oPlayers[0].speedinc = 1;
-			if (document.getElementById("decompte0").innerHTML > 1)
+			var $decompte = document.getElementById("decompte0");
+			if ($decompte.innerHTML > 1)
 				updateEngineSound(carEngine2);
 			return false;
 		case "left":
@@ -18648,6 +18659,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 
 	function seeGhost(replay) {
 		if (replay) {
+			alert(0);
 			pause = true;
 			fInfos.replay = true;
 			gSelectedPerso = strPlayer[0];
