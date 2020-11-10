@@ -883,6 +883,14 @@ function loadMap() {
 	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
+
+	if (gameSettings.rtime) {
+		cycle = function() {
+			cycleHandler = setTimeout(cycle,SPF);
+			runOneFrame();
+		};
+	}
+
 	if (oMap.ext ? ("gif" === oMap.ext) : mapSrc.match(/\.gif$/g)) {
 		if (gameSettings.nogif) {
 			var oGif = new Image();
@@ -13263,10 +13271,8 @@ function moveDecor() {
 
 var cycleHandler;
 function cycle() {
-	if (!cycleHandler) {
-		runOneFrame();
-		cycleHandler = setInterval(runOneFrame,SPF);
-	}
+	runOneFrame();
+	cycleHandler = setInterval(runOneFrame,SPF);
 }
 var decorPos = {};
 function runOneFrame() {
