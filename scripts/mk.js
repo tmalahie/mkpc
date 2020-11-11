@@ -18665,7 +18665,6 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 
 	function seeGhost(replay) {
 		if (replay) {
-			alert(0);
 			pause = true;
 			fInfos.replay = true;
 			gSelectedPerso = strPlayer[0];
