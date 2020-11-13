@@ -1569,15 +1569,13 @@ function arme(ID, backwards) {
 
 			case "carapace-rouge" :
 			var oAngleView = angleShoot(oKart, backwards);
-			var shiftDist = 3.75;
+			var shiftDist = 7.5;
 			if (backwards) {
-				if (oKart.speed < 2)
-					shiftDist += 1;
 				if (oKart.using.length > 1)
-					shiftDist *= 2;
+					shiftDist *= 1.5;
 			}
 			else {
-				shiftDist *= 3;
+				shiftDist *= 1.5;
 				shiftDist += oKart.speed;
 				if (oKart.using.length > 1)
 					shiftDist *= 4/3;
@@ -5506,8 +5504,8 @@ var itemBehaviors = {
 								fMoveY = 5 * direction(1, fSprite.theta);
 							}
 							else {
-								fMoveX = 4 * direction(0, fSprite.theta);
-								fMoveY = 4 * direction(1, fSprite.theta);
+								fMoveX = 2.5 * direction(0, fSprite.theta);
+								fMoveY = 2.5 * direction(1, fSprite.theta);
 							}
 						}
 
@@ -10088,12 +10086,8 @@ function touche_crouge(iX, iY, iP) {
 	for (var i=0;i<items["carapace-rouge"].length;i++) {
 		var oBox = items["carapace-rouge"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (oBox.owner != -1 && iX == oBox.x && iY == oBox.y) {
-				handleHit(oBox);
-				detruit(oBox,isHitSound(oBox));
-				return (collisionTeam!=oBox.team);
-			}
-			else if (oBox.owner == -1 && iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
+			var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
+			if (isHitbox ? (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) : (iX == oBox.x && iY == oBox.y)) {
 				handleHit(oBox);
 				detruit(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
