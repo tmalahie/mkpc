@@ -7898,6 +7898,10 @@ function possibleObjs(oKart, except) {
 	var d = 0.005; // Safety belt to avoid infinite loops
 	var a = Math.floor(distrib[0]+d), b = Math.ceil(distrib[1]-d);
 	var res = {};
+	if (a >= itemDistribution.length) {
+		a = itemDistribution.length-1;
+		b = itemDistribution.length;
+	}
 	for (var i=a;i<b;i++) {
 		var distribution = itemDistribution[i];
 		for (var key in distribution) {
@@ -9974,9 +9978,9 @@ function getItemDistribution() {
 			"champiX3": 3,
 			"billball": 2
 		}, {
-			"etoile": 1,
-			"billball": 4,
-			"champior": 4,
+			"etoile": 2,
+			"billball": 3,
+			"champior": 5,
 			"champiX3": 2,
 			"eclair": 3
 		}];
@@ -11345,7 +11349,7 @@ function move(getId, triggered) {
 				}
 				if (items["carapace-bleue"].length)
 					forbiddenItems["carapacebleue"] = 1;
-				if (items.eclair.length)
+				if ((oKart.place < aKarts.length) || items.eclair.length)
 					forbiddenItems["eclair"] = 1;
 				if (items.bloops.length)
 					forbiddenItems["bloops"] = 1;
