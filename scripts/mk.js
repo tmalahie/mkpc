@@ -18099,13 +18099,21 @@ function iDeco() {
 	window.onbeforeunload = undefined;
 }
 
+var dRestHandlers = {};
 function dRest(type) {
 	if (!type) type = "race";
 	if (isOnline) {
 		var tRest = document.getElementById(type+"countdown").innerHTML - 1;
 		document.getElementById(type+"countdown").innerHTML = tRest;
-		if (tRest && (document.getElementById("wait"+type).style.visibility == "visible"))
-			setTimeout(function(){dRest(type)}, 1000);
+		if (tRest && (document.getElementById("wait"+type).style.visibility == "visible")) {
+			if (!dRestHandlers[type])
+				dRestHandlers[type] = setInterval(function(){dRest(type)}, 1000);
+			return;
+		}
+	}
+	if (dRestHandlers[type]) {
+		clearTimeout(dRestHandlers[type]);
+		delete dRestHandlers[type];
 	}
 }
 function setSRest(type) {
