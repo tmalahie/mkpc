@@ -5038,7 +5038,7 @@ var itemBehaviors = {
 				fSprite.sprites = new Array(oPlayers.length);
 				for (var i=0;i<aKarts.length;i++) {
 					var kart = aKarts[i];
-					if ((kart === oKart) || (!friendlyFire(kart,oKart) && !kart.protect && (kart.place <= oKart.place))) {
+					if ((kart === oKart) || (!friendlyFire(kart,oKart) && !kart.protect)) {
 						if (i < oPlayers.length) {
 							var oSprites = {
 								"bloops": {
@@ -9925,77 +9925,78 @@ function getItemDistribution() {
 			return metaDistribution;
 		}
 		return [{
-			"fauxobjet": 4,
-			"banane": 7,
-			"carapace": 4
-		}, {
-			"carapace": 5,
-			"bobomb": 2,
-			"carapacerouge": 6,
-			"bananeX3": 2
-		}, {
-			"carapace": 3,
-			"bobomb": 2,
-			"carapacerouge": 5,
+			"fauxobjet": 10,
+			"banane": 6,
+			"carapace": 6,
 			"bananeX3": 2,
-			"poison": 2,
-			"carapaceX3": 1
+			"carapacerouge": 2
 		}, {
-			"bobomb": 1,
-			"carapacerouge": 6,
-			"bananeX3": 1,
+			"carapace": 8,
+			"bananeX3": 8,
+			"carapaceX3": 6,
+			"carapacerouge": 5,
+			"champi": 3
+		}, {
+			"carapaceX3": 7,
+			"carapacerouge": 7,
+			"poison": 5,
+			"champi": 5,
+			"bobomb": 3,
+			"bloops": 3
+		}, {
+			"champi": 6,
 			"poison": 4,
-			"carapaceX3": 3
+			"carapaceX3": 6,
+			"carapacerouge": 5,
+			"bobomb": 3,
+			"bloops": 2
 		}, {
-			"carapacebleue": 3,
-			"carapacerouge": 3,
+			"champi": 8,
+			"carapacerouge": 6,
+			"bobomb": 3,
+			"champiX3": 2
+		}, {
+			"bobomb": 4,
 			"champi": 5,
-			"carapaceX3": 4
-		}, {
-			"carapacebleue": 4,
-			"carapaceX3": 2,
-			"megachampi": 3,
-			"champi": 6
-		}, {
-			"carapacebleue": 1,
-			"megachampi": 4,
-			"carapacerougeX3": 2,
-			"etoile": 3,
-			"champi": 5
-		}, {
-			"carapacerougeX3": 1,
-			"megachampi": 7,
-			"bloops": 2,
-			"champi": 5,
-			"etoile": 5
-		}, {
-			"carapacerougeX3": 1,
-			"megachampi": 6,
-			"etoile": 6,
-			"bloops": 1,
-			"champiX3": 1,
-			"champior": 1,
-			"champi": 5
-		}, {
-			"champior": 1,
-			"megachampi": 4,
-			"etoile": 4,
-			"billball": 2,
-			"champi": 1,
-			"champiX3": 4
-		}, {
-			"megachampi": 2,
-			"etoile": 3,
-			"billball": 5,
-			"champior": 3,
+			"carapacerouge": 4,
 			"champiX3": 3,
-			"billball": 2
+			"carapacerougeX3": 3
 		}, {
-			"etoile": 2,
+			"champi": 8,
+			"carapacerougeX3": 7,
+			"champiX3": 6,
+			"megachampi": 3
+		}, {
+			"champiX3": 8,
+			"carapacerougeX3": 8,
+			"megachampi": 6,
+			"etoile": 4,
+			"champior": 2,
+			"carapacebleue": 5
+		}, {
+			"megachampi": 7,
+			"champiX3": 6,
+			"etoile": 5,
+			"champior": 3,
+			"carapacebleue": 5
+		}, {
+			"megachampi": 8,
+			"champiX3": 6,
+			"etoile": 6,
 			"billball": 3,
-			"champior": 5,
-			"champiX3": 2,
-			"eclair": 3
+			"champior": 3,
+			"carapacebleue": 5
+		}, {
+			"etoile": 6,
+			"megachampi": 6,
+			"billball": 5,
+			"champior": 4,
+			"eclair": 5
+		}, {
+			"billball": 4,
+			"etoile": 3,
+			"eclair": 6,
+			"champior": 5
 		}];
 	}
 }
