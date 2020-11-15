@@ -7832,10 +7832,10 @@ function getItemDistributionRange(oKart) {
 		}
 		else {
 			var distToFirst = distanceToFirst(oKart);
-			x = Math.pow(distToFirst/600,0.75);
+			x = Math.pow(distToFirst/metaItemRange,0.75);
 			d = 0.07;
 		}
-		var a2 = x, b2 = x+d;
+		var a2 = Math.min(1,x), b2 = Math.min(1,x+d);
 		a = getItemAvgRange(a2,a);
 		b = getItemAvgRange(b2,b);
 	}
@@ -7853,7 +7853,7 @@ function getItemDistributionRange(oKart) {
 	return [a*itemDistribution.length,b*itemDistribution.length];
 }
 function getItemAvgRange(x1,x2) {
-	return Math.min(0.99999, Math.pow(x1,0.7)*Math.pow(x2,0.3));
+	return Math.min(0.99999, Math.pow(x1,1-metaItemPosition)*Math.pow(x2,metaItemPosition));
 }
 function randObj(oKart) {
 	var distrib = getItemDistributionRange(oKart);
@@ -9878,6 +9878,16 @@ function showClFailedPopup() {
 		playSoundEffect("musics/events/clfail.mp3");
 }
 
+var isMetaItem = 0;
+var metaDistribution, metaItemPosition = 0.5, metaItemRange = 1000;
+if (window.metaItemSettings) {
+	if (metaItemSettings.distribution)
+		metaDistribution = metaItemSettings.distribution;
+	if (metaItemSettings.position !== undefined)
+		metaItemPosition = metaItemSettings.position;
+	if (metaItemSettings.range)
+		metaItemRange = metaItemSettings.range;
+}
 function getItemDistribution() {
 	if (course == "BB") {
 		return [{
@@ -9911,6 +9921,9 @@ function getItemDistribution() {
 		}];
 	}
 	else {
+		if (metaDistribution) {
+			return metaDistribution;
+		}
 		return [{
 			"fauxobjet": 4,
 			"banane": 7,

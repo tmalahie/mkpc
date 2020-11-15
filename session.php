@@ -15,8 +15,10 @@ if (!$id) {
 	}
 	if ($playerId) {
 		if (null === $playerName) {
-			if (!isset($dbh))
+			if (!isset($dbh)) {
+				$dbToOpen = 1;
 				include('initdb.php');
+			}
 		}
 		if (($getCode=mysql_fetch_array(mysql_query('SELECT code FROM `mkjoueurs` WHERE id='. $playerId .' AND deleted=0'))) && password_verify($playerCode,$getCode['code'])) {
 			$id = $playerId;
