@@ -156,3 +156,10 @@ jQuery(document).ready(function() {
 		});
 	});
  });
+ jQuery(window).on('resize', function(){
+	var w = jQuery(".fp-slider").width();
+	jQuery(".fp-slides-items").width(w).each(function(i,elt){elt.cycleW=w});
+	jQuery(".fp-slides").width(w);
+	jQuery(".fp-thumbnail").width(w);
+	jQuery(".fp-nav").width(w);
+});
