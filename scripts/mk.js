@@ -526,8 +526,10 @@ var gPersos = new Array();
 var gRecord;
 var gSelectedPerso;
 var gOverwriteRecord;
+var selectedItemDistrib;
 if (pause) {
 	strPlayer = fInfos.player;
+	selectedItemDistrib = fInfos.distribution;
 	oMap = oMaps["map"+fInfos.map];
 	clSelected = fInfos.cl;
 	if (course != "CM")
@@ -2368,7 +2370,9 @@ function startGame() {
 	}
 	gameControls = getGameControls();
 
-	itemDistribution = getItemDistribution();
+	itemDistribution = selectedItemDistrib;
+	if (!itemDistribution)
+		itemDistribution = itemDistributions[getItemMode()][0].value;
 
 	challengesForCircuit = {
 		"end_game": [],
@@ -2793,6 +2797,7 @@ function startGame() {
 								$mkScreen.removeChild(oContainers[0]);
 								fInfos = {
 									player:strPlayer,
+									distribution:itemDistribution,
 									map:oMap.ref,
 									difficulty:iDificulty,
 									cl:clSelected
@@ -2830,6 +2835,7 @@ function startGame() {
 									$mkScreen.removeChild(oContainers[0]);
 									fInfos = {
 										player:strPlayer,
+										distribution:itemDistribution,
 										perso:new Array(),
 										cl:clSelected
 									};
@@ -3746,6 +3752,7 @@ function continuer() {
 				}
 				fInfos = {
 					player:strPlayer,
+					distribution:itemDistribution,
 					difficulty:iDificulty,
 					cl:clSelected
 				};
@@ -3869,6 +3876,7 @@ function continuer() {
 			$mkScreen.removeChild(oContainers[0]);
 			fInfos = {
 				player:strPlayer,
+				distribution:itemDistribution,
 				map:oMap.ref,
 				difficulty:iDificulty,
 				perso:gPersos,
@@ -4095,6 +4103,7 @@ function continuer() {
 				$mkScreen.removeChild(oContainers[i]);
 				fInfos = {
 					player:strPlayer,
+					distribution:itemDistribution,
 					map:oMap.ref,
 					my_route:iTrajet,
 					replay:true,
@@ -4133,6 +4142,7 @@ function continuer() {
 			}
 			fInfos = {
 				player:strPlayer,
+				distribution:itemDistribution,
 				perso:new Array(),
 				cl:clSelected
 			};
@@ -9888,9 +9898,10 @@ if (window.metaItemSettings) {
 	if (metaItemSettings.range)
 		metaItemRange = metaItemSettings.range;
 }
-function getItemDistribution() {
-	if (course == "BB") {
-		return [{
+var itemDistributions = {
+	"BB": [{
+		name: toLanguage("Balanced", "Classique"),
+		value: [{
 			"fauxobjet": 4,
 			"banane": 5,
 			"bananeX3": 1,
@@ -9918,13 +9929,11 @@ function getItemDistribution() {
 			"champior": 1,
 			"champiX3": 1,
 			"bloops": 1
-		}];
-	}
-	else {
-		if (metaDistribution) {
-			return metaDistribution;
-		}
-		return [{
+		}]
+	}],
+	"VS": [{
+		name: toLanguage("Standard", "Classique"),
+		value: [{
 			"fauxobjet": 10,
 			"banane": 6,
 			"carapace": 6,
@@ -9997,8 +10006,215 @@ function getItemDistribution() {
 			"etoile": 3,
 			"eclair": 6,
 			"champior": 5
-		}];
+		}]
+	}, {
+		name: toLanguage("Aggressive mode", "Mode explosif"),
+		"value": [{
+			"fauxobjet": 5,
+			"banane": 2,
+			"carapace": 10,
+			"bananeX3": 1,
+			"carapacerouge": 3
+		}, {
+			"carapace": 10,
+			"bananeX3": 4,
+			"carapacerouge": 15,
+			"carapaceX3": 8,
+			"champi": 1
+		}, {
+			"carapacerouge": 10,
+			"carapaceX3": 10,
+			"champi": 2,
+			"poison": 5,
+			"bobomb": 10,
+			"bloops": 3
+		}, {
+			"carapacerouge": 10,
+			"carapaceX3": 12,
+			"champi": 3,
+			"poison": 4,
+			"bobomb": 8,
+			"bloops": 2
+		}, {
+			"carapacerouge": 12,
+			"champi": 4,
+			"bobomb": 8
+		}, {
+			"carapacerouge": 8,
+			"champi": 5,
+			"bobomb": 6,
+			"champiX3": 1,
+			"carapacerougeX3": 6
+		}, {
+			"champi": 4,
+			"champiX3": 3,
+			"carapacerougeX3": 10,
+			"megachampi": 3
+		}, {
+			"champiX3": 4,
+			"carapacerougeX3": 10,
+			"megachampi": 6,
+			"etoile": 4,
+			"carapacebleue": 12
+		}, {
+			"champiX3": 3,
+			"megachampi": 7,
+			"etoile": 5,
+			"champior": 1,
+			"carapacebleue": 10
+		}, {
+			"champiX3": 3,
+			"megachampi": 8,
+			"etoile": 6,
+			"champior": 1,
+			"carapacebleue": 10,
+			"billball": 5
+		}, {
+			"megachampi": 6,
+			"etoile": 6,
+			"champior": 1,
+			"billball": 5,
+			"eclair": 8
+		}, {
+			"etoile": 3,
+			"champior": 2,
+			"billball": 6,
+			"eclair": 8
+		}]
+	}, {
+		name:  toLanguage("Shells", "Carapaces"),
+		value: [{
+			"carapace": 6
+		}, {
+			"carapace": 8,
+			"carapacerouge": 8
+		}, {
+			"carapace": 6,
+			"carapacerouge": 5
+		}, {
+			"carapace": 6,
+			"carapacerouge": 7
+		}, {
+			"carapace": 4,
+			"carapacerouge": 5
+		}, {
+			"carapace": 4,
+			"carapacerouge": 6,
+			"carapaceX3": 2,
+			"carapacerougeX3": 2
+		}, {
+			"carapace": 2,
+			"carapacerouge": 4,
+			"carapaceX3": 2,
+			"carapacerougeX3": 2,
+			"carapacebleue": 4
+		}, {
+			"carapace": 2,
+			"carapacerouge": 2,
+			"carapaceX3": 4,
+			"carapacerougeX3": 4,
+			"carapacebleue": 6
+		}, {
+			"carapacerouge": 2,
+			"carapaceX3": 4,
+			"carapacerougeX3": 4,
+			"carapacebleue": 6
+		}, {
+			"carapaceX3": 6,
+			"carapacerougeX3": 6,
+			"carapacebleue": 4
+		}, {
+			"carapaceX3": 6,
+			"carapacerougeX3": 6
+		}, {
+			"carapaceX3": 8,
+			"carapacerougeX3": 8
+		}]
+	}, {
+		name: toLanguage("Bob-ombs", "Bob-ombs"),
+		value: [{
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}, {
+			"bobomb": 1
+		}]
+	}, {
+		name: toLanguage("Mushrooms", "Champis"),
+		value: [{
+			"champi": 1
+		}, {
+			"champi": 1,
+			"poison": 1
+		}, {
+			"champi": 4,
+			"poison": 1,
+			"megachampi": 1
+		}, {
+			"champi": 3,
+			"poison": 1,
+			"megachampi": 1
+		}, {
+			"champi": 3,
+			"poison": 1,
+			"champiX3": 1,
+			"megachampi": 2
+		}, {
+			"champi": 2,
+			"champiX3": 1,
+			"megachampi": 2
+		}, {
+			"champi": 1,
+			"champiX3": 2,
+			"megachampi": 3
+		}, {
+			"champiX3": 2,
+			"megachampi": 2,
+			"champior": 1
+		}, {
+			"champiX3": 1,
+			"megachampi": 1,
+			"champior": 1
+		}, {
+			"champiX3": 1,
+			"champior": 1
+		}, {
+			"champiX3": 1,
+			"champior": 2
+		}, {
+			"champior": 1
+		}]
+	}]
+};
+var customItemDistrib = localStorage.getItem("itemsets");
+if (customItemDistrib)
+	customItemDistrib = JSON.parse(customItemDistrib);
+else {
+	customItemDistrib = {
+		"VS": [],
+		"BB": []
 	}
+}
+function getItemMode() {
+	return (course=="BB") ? "BB":"VS";
 }
 
 var COL_KART = 0, COL_OBJ = 1;
@@ -15102,6 +15318,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			aPlayers.push(joueurs);
 		updateCommandSheet();
 	}
+	var itemMode = getItemMode();
+	var modeItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
 	if (!fInfos)
 		fInfos = {};
 
@@ -15129,18 +15347,21 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oTitle.style.color = "#F90";
 	}
 	else {
-		oTitle = toTitle(toLanguage("Choose a player", "Choisissez un joueur"), 0);
+		oTitle = toTitle(toLanguage("Choose a player", "Choisissez un joueur"), -1);
 	}
 	oScr.appendChild(oTitle);
 	
 	var cTable = document.createElement("table");
 	cTable.style.display = "none";
 	cTable.style.position = "absolute";
+	cTable.style.zIndex = 2;
 	cTable.style.top = (36*iScreenScale+16)+"px";
 	cTable.style.left = (25*iScreenScale-60)+"px";
 	cTable.style.textAlign = "left";
 	cTable.style.fontSize = 2*iScreenScale+"px";
 	cTable.style.color = "white";
+	cTable.style.backgroundColor = "black";
+	cTable.style.backgroundColor = "rgba(0,0,0, 0.8)";
 	cTable.setAttribute("cellpadding", 2);
 	cTable.setAttribute("cellspacing", 2);
 	document.body.appendChild(cTable);
@@ -15282,6 +15503,12 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				oContainers[0].removeChild(oScr);
 				document.body.removeChild(cTable);
 				addMyPersos = function(){};
+				if (oItemSelect) {
+					selectedItemDistrib = modeItemDistributions[oItemSelect.value].value;
+					localStorage.setItem("itemset."+itemMode, +oItemSelect.value);
+				}
+				else
+					selectedItemDistrib = modeItemDistributions[0].value;
 				if (cImg.j == (isCustomSel ? nbSels:oContainers.length)) {
 					if (isOnline)
 						aPlayers = [strPlayer[0]];
@@ -15375,7 +15602,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	for (var i=0;i<nBasePersos;i++) {
 		var oDiv = createPersoSelector(i);
 		oDiv.style.left = Math.round((7.2*(i%8)+8) * iScreenScale) +"px";
-		oDiv.style.top = ((10+Math.floor(i/8)*7)*iScreenScale)+"px";
+		oDiv.style.top = ((10+Math.floor(i/8)*7)*iScreenScale - 8)+"px";
 		oScr.appendChild(oDiv);
 	}
 	var pDiv = document.createElement("div");
@@ -15384,7 +15611,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	pDiv.style.width = (5 * iScreenScale) + "px";
 	pDiv.style.height = (5 * iScreenScale) + "px";
 	pDiv.style.left = (67 * iScreenScale) +"px";
-	pDiv.style.top = (24 * iScreenScale)+"px";
+	pDiv.style.top = (24 * iScreenScale - 8)+"px";
 	pDiv.style.borderTop = "double 4px black"; 
 	pDiv.style.borderLeft = "double 4px #F8F8F8"; 
 	pDiv.style.borderRight = "double 4px #F8F8F8"; 
@@ -15503,7 +15730,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		var oForm = document.createElement("form");
 		oForm.onsubmit = function(){return false};
 		oForm.style.position = "absolute";
-		oForm.style.top = (32*iScreenScale-5) +"px";
+		oForm.style.top = (31*iScreenScale-5) +"px";
 		oForm.style.left = (18*iScreenScale) +"px";
 		oForm.style.fontSize = (2*iScreenScale) +"px";
 		oForm.style.zIndex = 2;
@@ -15622,7 +15849,96 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			return false;
 		};
 		oForm.appendChild(oChoosePerso);
+		oForm.appendChild(document.createElement("br"));
+		oForm.appendChild(document.createTextNode(toLanguage("Items", "Objets ")+ ": "));
+		var oItemSelect = document.createElement("select");
+		oItemSelect.name = "item";
+		oItemSelect.style.width = (iScreenScale*16) +"px";
+		oItemSelect.style.fontSize = iScreenScale*2 +"px";
+		for (var i=0;i<modeItemDistributions.length;i++) {
+			var oItemOption = document.createElement("option");
+			oItemOption.value = i;
+			oItemOption.innerHTML = modeItemDistributions[i].name;
+			oItemSelect.appendChild(oItemOption);
+		}
+		var oItemOption = document.createElement("option");
+		oItemOption.value = -1;
+		oItemOption.innerHTML = toLanguage("Custom...", "Personnalisé...");
+		oItemSelect.appendChild(oItemOption);
+		oItemSelect.currentValue = oItemSelect.value;
+		oItemSelect.onchange = function() {
+			if (this.value == -1) {
+				this.value = this.currentValue;
+				selectedItemDistrib = modeItemDistributions[this.currentValue].value;
+				selectItemScreen(oScr, function(newDistribution) {
+					customItemDistrib[itemMode].push(newDistribution);
+					localStorage.setItem("itemsets", JSON.stringify(customItemDistrib));
+					localStorage.setItem("itemset."+itemMode, modeItemDistributions.length);
+					oScr.innerHTML = "";
+					oContainers[0].removeChild(oScr);
+					selectPlayerScreen(IdJ,newP,nbSels);
+				});
+			}
+			else {
+				this.currentValue = this.value;
+				selectedItemDistrib = modeItemDistributions[this.value].value;
+				oItemCustomActions.style.display = (this.value >= itemDistributions[itemMode].length) ? "inline-block" : "none";
+			}
+		}
+		oForm.appendChild(oItemSelect);
+
+		var oItemCustomActions = document.createElement("div");
+		oItemCustomActions.style.display = "none";
+		oItemCustomActions.style.marginLeft = (iScreenScale*1) +"px";
+
+		var oItemCustomEdit = document.createElement("input");
+		oItemCustomEdit.type = "button";
+		oItemCustomEdit.style.backgroundColor = "rgb(51, 160, 51)";
+		oItemCustomEdit.style.color = "white";
+		oItemCustomEdit.style.width = (iScreenScale*3) +"px";
+		oItemCustomEdit.value = "\u270E";
+		oItemCustomEdit.onclick = function() {
+			selectItemScreen(oScr, function(newDistribution) {
+				customItemDistrib[itemMode][oItemSelect.value-itemDistributions[itemMode].length] = newDistribution;
+				localStorage.setItem("itemsets", JSON.stringify(customItemDistrib));
+				localStorage.setItem("itemset."+itemMode, +oItemSelect.value);
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+				selectPlayerScreen(IdJ,newP,nbSels);
+			}, modeItemDistributions[oItemSelect.value]);
+		};
+		oItemCustomActions.appendChild(oItemCustomEdit);
+
+		var oItemCustomDel = document.createElement("input");
+		oItemCustomDel.type = "button";
+		oItemCustomDel.style.marginLeft = Math.round(iScreenScale*0.5) +"px";
+		oItemCustomDel.style.backgroundColor = "rgb(204, 51, 51)";
+		oItemCustomDel.style.color = "white";
+		oItemCustomDel.style.width = (iScreenScale*3) +"px";
+		oItemCustomDel.value = "\xD7";
+		oItemCustomDel.onclick = function() {
+			var itemSetName = modeItemDistributions[oItemSelect.value].name;
+			if (confirm(toLanguage('Delete item set "'+ itemSetName +'"?', 'Supprimer le set "'+ itemSetName +'" ?'))) {
+				customItemDistrib[itemMode].splice(oItemSelect.value-itemDistributions[itemMode].length, 1);
+				localStorage.setItem("itemsets", JSON.stringify(customItemDistrib));
+				localStorage.setItem("itemset."+itemMode, 0);
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+				selectPlayerScreen(IdJ,newP,nbSels);
+			}
+		}
+		oItemCustomActions.appendChild(oItemCustomDel);
+		
+		oForm.appendChild(oItemCustomActions);
+
+		var selectedItemSetId = localStorage.getItem("itemset."+itemMode);
+		if (selectedItemSetId) {
+			oItemSelect.selectedIndex = selectedItemSetId;
+			oItemSelect.onchange();
+		}
+		
 		oScr.appendChild(oForm);
+
 		if (isCustomSel) {
 			oForm.style.display = "none";
 			var oStepCtn = document.createElement("div");
@@ -15740,7 +16056,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				return;
 			}
 			oDiv.style.left = 67*iScreenScale +"px";
-			oDiv.style.top = ((10+i*7)*iScreenScale)+"px";
+			oDiv.style.top = ((10+i*7)*iScreenScale - 8)+"px";
 			oScr.insertBefore(oDiv,pDiv);
 		}
 		oScr.style.visibility = "visible";
@@ -15779,6 +16095,156 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	};
 
 	updateMenuMusic(isOnline ? 0:1);
+}
+function selectItemScreen(oScr, callback, options) {
+	options = options || {};
+	var oScr2 = document.createElement("div");
+	oScr2.style.position = "absolute";
+	oScr2.style.width = (iWidth*iScreenScale) +"px";
+	oScr2.style.height = (iHeight*iScreenScale) +"px";
+	oScr2.style.left = "0px";
+	oScr2.style.top = "0px";
+	oScr2.style.zIndex = 2;
+	oScr2.style.backgroundColor = "#000";
+
+	var oBorder = "solid 1px yellow";
+
+	var oTableItems = document.createElement("table");
+	oTableItems.style.color = "white";
+	oTableItems.style.textAlign = "center";
+	oTableItems.style.position = "absolute";
+	oTableItems.style.left = (iScreenScale*4) +"px";
+	var itemMode = getItemMode();
+	var itemDistribution0 = itemDistributions[itemMode][0].value;
+	var possibleItems = {};
+	for (var i=0;i<itemDistribution0.length;i++) {
+		for (var item in itemDistribution0[i])
+			possibleItems[item] = 1;
+	}
+	possibleItems = Object.keys(possibleItems);
+	var oTr = document.createElement("tr");
+	oTr.appendChild(document.createElement("td"));
+	for (var i=0;i<possibleItems.length;i++) {
+		var oTd = document.createElement("td");
+		oTd.style.padding = "0px";
+		var oImg = document.createElement("img");
+		oImg.src = "images/items/"+possibleItems[i]+".png";
+		oImg.alt = possibleItems[i];
+		oImg.style.width = (iScreenScale*2) +"px";
+		oTd.appendChild(oImg);
+		oTr.appendChild(oTd);
+	}
+	oTableItems.appendChild(oTr);
+	for (var i=0;i<selectedItemDistrib.length;i++) {
+		var oTr = document.createElement("tr");
+		var oTd = document.createElement("td");
+		oTd.style.padding = "0px";
+		oTd.style.paddingRight = (iScreenScale) +"px";
+		oTd.innerHTML = "#"+(i+1);
+		oTr.appendChild(oTd);
+		var jDistribution = selectedItemDistrib[i];
+		for (var j=0;j<possibleItems.length;j++) {
+			var itemName = possibleItems[j];
+			var oTd = document.createElement("td");
+			oTd.style.padding = "0px";
+			var oInput = document.createElement("input");
+			oInput.type = "number";
+			oInput.value = jDistribution[itemName] || "";
+			oInput.style.width = Math.round(iScreenScale*3.5) +"px";
+			oInput.className = "noarrow";
+			oInput.style.backgroundColor = "black";
+			oInput.style.color = "white";
+			oInput.style.textAlign = "center";
+			oInput.style.border = "solid 1px white";
+			oInput.setAttribute("min", 0);
+			oInput.setAttribute("max", 99);
+			oInput.setAttribute("step", 1);
+			oInput.setAttribute("form", "iten-distribution-form");
+			oTd.style.padding = "0px";
+			oTd.appendChild(oInput);
+			oTr.appendChild(oTd);
+		}
+		oTableItems.appendChild(oTr);
+	}
+	oScr2.appendChild(oTableItems);
+
+	var oPInput = document.createElement("input");
+	oPInput.type = "button";
+	oPInput.value = toLanguage("Back", "Retour");
+	oPInput.style.position = "absolute";
+	oPInput.style.left = (2*iScreenScale)+"px";
+	oPInput.style.top = (36*iScreenScale)+"px";
+	oPInput.onclick = function() {
+		oScr.removeChild(oScr2);
+	}
+	oScr2.appendChild(oPInput);
+
+	var oSetName = document.createElement("form");
+	oSetName.style.position = "absolute";
+	oSetName.id = "iten-distribution-form";
+	oSetName.style.right = (5*iScreenScale)+"px";
+	oSetName.style.top = (36*iScreenScale)+"px";
+	oSetName.innerHTML = toLanguage("Set name: &nbsp;","Nom du set : &nbsp;");
+	oSetName.onsubmit = function() {
+		var inc = 0;
+		var newDistribution = {
+			"name": oNInput.value,
+			"value": []
+		};
+		var oInputs = oTableItems.getElementsByTagName("input");
+		for (var i=0;i<selectedItemDistrib.length;i++) {
+			var iDistrib = {};
+			var isOneItem = false;
+			for (var j=0;j<possibleItems.length;j++) {
+				var oInput = oInputs[inc];
+				if (oInput.value > 0) {
+					iDistrib[possibleItems[j]] = +oInput.value;
+					isOneItem = true;
+				}
+				inc++;
+			}
+			if (!isOneItem) {
+				alert(toLanguage("You must enter at least 1 item for rank #" + (i+1), "Vous devez spécifier au moins 1 objet pour la position #" + (i+1)));
+				return false;
+			}
+			newDistribution.value.push(iDistrib);
+		}
+		oScr.removeChild(oScr2);
+		try {
+			callback(newDistribution);
+		}
+		catch (e) {
+			console.error(e);
+		}
+		return false;
+	}
+	var oNInput = document.createElement("input");
+	oNInput.style.width = (iScreenScale*15) +"px";
+	oNInput.style.backgroundColor = "black";
+	oNInput.style.color = "white";
+	oNInput.style.border = "solid 1px white";
+	oNInput.type = "text";
+	oNInput.setAttribute("required", true);
+	if (options.name)
+		oNInput.value = options.name;
+	else {
+		var distribNames = {};
+		var modeItemDistrib = customItemDistrib[itemMode];
+		for (var i=0;i<modeItemDistrib.length;i++)
+			distribNames[modeItemDistrib[i].name] = 1;
+		var d;
+		for (d=1;distribNames["Distribution "+d];d++);
+		oNInput.value = "Distribution "+ d;
+	}
+	oSetName.appendChild(oNInput);
+	var oVInput = document.createElement("input");
+	oVInput.type = "submit";
+	oVInput.value = toLanguage("Validate!","Valider !");
+	oVInput.style.marginLeft = iScreenScale +"px";
+	oSetName.appendChild(oVInput);
+	oScr2.appendChild(oSetName);
+
+	oScr.appendChild(oScr2);
 }
 var defaultGameOptions = {
 	team: false,

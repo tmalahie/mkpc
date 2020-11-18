@@ -679,3 +679,11 @@ button.control-close:active {
     top: 10px;
     overflow: hidden;
 }
+.noarrow::-webkit-outer-spin-button,
+.noarrow::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.noarrow {
+  -moz-appearance: textfield;
+}
