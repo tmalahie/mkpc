@@ -628,7 +628,7 @@ function getCircuitPayload(&$clRace) {
 }
 function getChallenge($chId, $isModerator=false) {
 	global $identifiants;
-	return mysql_fetch_array(mysql_query('SELECT c.* FROM `mkchallenges` c'. ($isModerator ? '':' LEFT JOIN `mkclrace` l ON l.id=c.clist WHERE c.id="'. $chId .'" AND (l.id IS NULL OR (l.identifiant='.$identifiants[0].' AND l.identifiant2='.$identifiants[1].' AND l.identifiant3='.$identifiants[2].' AND l.identifiant4='.$identifiants[3].'))')));
+	return mysql_fetch_array(mysql_query('SELECT c.* FROM `mkchallenges` c'. ($isModerator ? ' WHERE c.id="'. $chId .'"':' LEFT JOIN `mkclrace` l ON l.id=c.clist WHERE c.id="'. $chId .'" AND (l.id IS NULL OR (l.identifiant='.$identifiants[0].' AND l.identifiant2='.$identifiants[1].' AND l.identifiant3='.$identifiants[2].' AND l.identifiant4='.$identifiants[3].'))')));
 }
 function getClRace($clId, $isModerator=false) {
 	global $identifiants;
