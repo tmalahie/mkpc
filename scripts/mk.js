@@ -2308,9 +2308,17 @@ function startGame() {
 		}
 	}
 
+	itemDistribution = selectedItemDistrib;
+	if (!itemDistribution)
+		itemDistribution = itemDistributions[getItemMode()][0].value;
+
 	if (course != "CM") {
-		for (var i=0;i<oMap.arme.length;i++)
-			oMap.arme[i][2] = 0;
+		if (itemDistribution.length) {
+			for (var i=0;i<oMap.arme.length;i++)
+				oMap.arme[i][2] = 0;
+		}
+		else
+			oMap.arme = [];
 
 		for (var i=0;i<oPlayers.length;i++) {
 			document.getElementById("infoPlace"+i).innerHTML = oPlayers[i].place;
@@ -2369,10 +2377,6 @@ function startGame() {
 		updateObjHud(0);
 	}
 	gameControls = getGameControls();
-
-	itemDistribution = selectedItemDistrib;
-	if (!itemDistribution)
-		itemDistribution = itemDistributions[getItemMode()][0].value;
 
 	challengesForCircuit = {
 		"end_game": [],
@@ -10004,6 +10008,9 @@ var itemDistributions = {
 			"champior": 1,
 			"champiX3": 1
 		}]
+	}, {
+		name: toLanguage("None", "Aucun"),
+		value: []
 	}],
 	"VS": [{
 		name: toLanguage("Standard", "Classique"),
@@ -10276,6 +10283,9 @@ var itemDistributions = {
 		}, {
 			"champior": 1
 		}]
+	}, {
+		name: toLanguage("None", "Aucun"),
+		value: []
 	}]
 };
 var customItemDistrib = localStorage.getItem("itemsets");
@@ -16200,6 +16210,9 @@ function selectItemScreen(oScr, callback, options) {
 		for (var item in itemDistribution0[i])
 			possibleItems[item] = 1;
 	}
+	var currentDistribution = selectedItemDistrib;
+	if (!currentDistribution.length)
+		currentDistribution = itemDistribution0;
 	possibleItems = Object.keys(possibleItems);
 	var oTr = document.createElement("tr");
 	oTr.appendChild(document.createElement("td"));
@@ -16214,14 +16227,14 @@ function selectItemScreen(oScr, callback, options) {
 		oTr.appendChild(oTd);
 	}
 	oTableItems.appendChild(oTr);
-	for (var i=0;i<selectedItemDistrib.length;i++) {
+	for (var i=0;i<currentDistribution.length;i++) {
 		var oTr = document.createElement("tr");
 		var oTd = document.createElement("td");
 		oTd.style.padding = "0px";
 		oTd.style.paddingRight = (iScreenScale) +"px";
 		oTd.innerHTML = "#"+(i+1);
 		oTr.appendChild(oTd);
-		var jDistribution = selectedItemDistrib[i];
+		var jDistribution = currentDistribution[i];
 		for (var j=0;j<possibleItems.length;j++) {
 			var itemName = possibleItems[j];
 			var oTd = document.createElement("td");
@@ -16271,7 +16284,7 @@ function selectItemScreen(oScr, callback, options) {
 			"value": []
 		};
 		var oInputs = oTableItems.getElementsByTagName("input");
-		for (var i=0;i<selectedItemDistrib.length;i++) {
+		for (var i=0;i<currentDistribution.length;i++) {
 			var iDistrib = {};
 			var isOneItem = false;
 			for (var j=0;j<possibleItems.length;j++) {
