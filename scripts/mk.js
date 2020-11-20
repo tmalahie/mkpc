@@ -9993,7 +9993,8 @@ var itemDistributions = {
 	}, {
 		name: toLanguage("Mushrooms", "Champis"),
 		value: [{
-			"champi": 1
+			"champi": 1,
+			"poison": 1
 		}, {
 			"megachampi": 1,
 			"champi": 3,
@@ -10008,9 +10009,6 @@ var itemDistributions = {
 			"champior": 1,
 			"champiX3": 1
 		}]
-	}, {
-		name: toLanguage("None", "Aucun"),
-		value: []
 	}],
 	"VS": [{
 		name: toLanguage("Standard", "Classique"),
@@ -13989,13 +13987,15 @@ function privateGameOptions(gameOptions, onProceed) {
 			localScore = 0;
 		var minPlayers = +this.elements["option-minPlayers"].value;
 		var maxPlayers = +this.elements["option-maxPlayers"].value;
+		var itemDistrib = JSON.parse(this.elements["option-itemDistrib"].value);
 		onProceed({
 			team: team,
 			manualTeams: manualTeams,
 			friendly: friendly,
 			localScore: localScore,
 			minPlayers: minPlayers,
-			maxPlayers: maxPlayers
+			maxPlayers: maxPlayers,
+			itemDistrib: itemDistrib
 		});
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
@@ -14275,6 +14275,104 @@ function privateGameOptions(gameOptions, onProceed) {
 	oInput.style.fontSize = (iScreenScale*3) +"px";
 	oInput.style.marginTop = Math.round(iScreenScale*1.5) +"px";
 	tDiv.appendChild(oInput);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+	
+	var oTr = document.createElement("tr");
+	if (!isOnline) oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignItems = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-itemDistrib");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("Item distribution", "Distribution des objets");
+	oH1.style.marginTop = iScreenScale +"px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("", "");
+	oLabel.appendChild(oDiv);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	var oSelect = document.createElement("select");
+	oSelect.id = "option-itemDistrib";
+	oSelect.name = "option-itemDistrib";
+	oSelect.style.backgroundColor = "black";
+	oSelect.style.width = (iScreenScale*24) +"px";
+	oSelect.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	oSelect.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+
+	var itemMode = getItemMode();
+	for (var i=0;i<itemDistributions[itemMode].length;i++) {
+		var oOption = document.createElement("option");
+		oOption.value = i;
+		oOption.innerHTML = itemDistributions[itemMode][i].name;
+		oSelect.appendChild(oOption);
+	}
+	for (var i=0;i<customItemDistrib[itemMode].length;i++) {
+		var oOption = document.createElement("option");
+		oOption.value = JSON.stringify(customItemDistrib[itemMode][i].value);
+		oOption.innerHTML = customItemDistrib[itemMode][i].name;
+		oSelect.appendChild(oOption);
+	}
+	if (gameOptions && gameOptions.itemDistrib) {
+		var oValue = JSON.stringify(gameOptions.itemDistrib);
+		oSelect.value = oValue;
+		if (oSelect.value !== oValue) {
+			var oOption = document.createElement("option");
+			oOption.value = oValue;
+			oOption.innerHTML = toLanguage("Custom", "Personnalisé");
+			oSelect.insertBefore(oOption, oSelect.firstChild);
+			oSelect.selectedIndex = 0;
+		}
+	}
+	var oOption = document.createElement("option");
+	oOption.value = -1;
+	oOption.innerHTML = toLanguage("Custom...", "Personnalisé...");
+	oSelect.appendChild(oOption);
+	oSelect.currentValue = oSelect.value;
+	oSelect.onchange = function() {
+		if (this.value == -1) {
+			this.value = this.currentValue;
+			if (isNaN(this.currentValue))
+				selectedItemDistrib = JSON.parse(this.currentValue);
+			else
+				selectedItemDistrib = itemDistributions[itemMode][this.currentValue];
+			var that = this;
+			selectItemScreen(oScr, function(newDistribution) {
+				var firstOption = that.querySelector("option");
+				if (!isNaN(firstOption.value)) {
+					firstOption = document.createElement("option");
+					firstOption.innerHTML = toLanguage("Custom", "Personnalisé");
+					that.insertBefore(firstOption, that.firstChild);
+				}
+				firstOption.value = JSON.stringify(newDistribution.value);
+				that.selectedIndex = 0;
+				that.currentValue = that.value;
+			}, {untitled: true});
+		}
+		else
+			this.currentValue = this.value;
+	}
+	tDiv.appendChild(oSelect);
 	cDiv.appendChild(tDiv);
 	oTd.appendChild(cDiv);
 	oTr.appendChild(oTd);
@@ -15783,6 +15881,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 								shareLink.options.friendly = options.friendly;
 								shareLink.options.minPlayers = options.minPlayers;
 								shareLink.options.maxPlayers = options.maxPlayers;
+								shareLink.options.itemDistrib = options.itemDistrib;
 								selectedTeams = options.team;
 								selectPlayerScreen(0);
 								return true;
@@ -15983,7 +16082,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oItemCustomEdit.type = "button";
 			oItemCustomEdit.style.backgroundColor = "rgb(51, 160, 51)";
 			oItemCustomEdit.style.color = "white";
-			oItemCustomEdit.style.width = (iScreenScale*3) +"px";
+			oItemCustomEdit.style.fontSize = (iScreenScale*2) +"px";
 			oItemCustomEdit.value = "\u270E";
 			oItemCustomEdit.onclick = function() {
 				selectItemScreen(oScr, function(newDistribution) {
@@ -16002,8 +16101,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oItemCustomDel.style.marginLeft = Math.round(iScreenScale*0.5) +"px";
 			oItemCustomDel.style.backgroundColor = "rgb(204, 51, 51)";
 			oItemCustomDel.style.color = "white";
-			oItemCustomDel.style.width = (iScreenScale*3) +"px";
 			oItemCustomDel.value = "\xD7";
+			oItemCustomDel.style.fontSize = (iScreenScale*2) +"px";
 			oItemCustomDel.onclick = function() {
 				var itemSetName = modeItemDistributions[oItemSelect.value].name;
 				if (confirm(toLanguage('Delete item set "'+ itemSetName +'"?', 'Supprimer le set "'+ itemSetName +'" ?'))) {
@@ -16189,8 +16288,8 @@ function selectItemScreen(oScr, callback, options) {
 	options = options || {};
 	var oScr2 = document.createElement("div");
 	oScr2.style.position = "absolute";
-	oScr2.style.width = (iWidth*iScreenScale) +"px";
-	oScr2.style.height = (iHeight*iScreenScale) +"px";
+	oScr2.style.width = "100%";
+	oScr2.style.height = "100%";
 	oScr2.style.left = "0px";
 	oScr2.style.top = "0px";
 	oScr2.style.zIndex = 2;
@@ -16202,7 +16301,9 @@ function selectItemScreen(oScr, callback, options) {
 	oTableItems.style.color = "white";
 	oTableItems.style.textAlign = "center";
 	oTableItems.style.position = "absolute";
-	oTableItems.style.left = (iScreenScale*4) +"px";
+	oTableItems.style.left = (iScreenScale*5) +"px";
+	oTableItems.setAttribute("cellpadding", 0);
+	oTableItems.setAttribute("cellspacing", 0);
 	var itemMode = getItemMode();
 	var itemDistribution0 = itemDistributions[itemMode][0].value;
 	var possibleItems = {};
@@ -16218,7 +16319,7 @@ function selectItemScreen(oScr, callback, options) {
 	oTr.appendChild(document.createElement("td"));
 	for (var i=0;i<possibleItems.length;i++) {
 		var oTd = document.createElement("td");
-		oTd.style.padding = "0px";
+		oTd.style.paddingBottom = Math.round(iScreenScale/2) +"px";
 		var oImg = document.createElement("img");
 		oImg.src = "images/items/"+possibleItems[i]+".png";
 		oImg.alt = possibleItems[i];
@@ -16230,8 +16331,8 @@ function selectItemScreen(oScr, callback, options) {
 	for (var i=0;i<currentDistribution.length;i++) {
 		var oTr = document.createElement("tr");
 		var oTd = document.createElement("td");
-		oTd.style.padding = "0px";
 		oTd.style.paddingRight = (iScreenScale) +"px";
+		oTd.style.fontSize = (iScreenScale*2) +"px";
 		oTd.innerHTML = "#"+(i+1);
 		oTr.appendChild(oTd);
 		var jDistribution = currentDistribution[i];
@@ -16248,10 +16349,12 @@ function selectItemScreen(oScr, callback, options) {
 			oInput.style.color = "white";
 			oInput.style.textAlign = "center";
 			oInput.style.border = "solid 1px white";
+			oInput.style.fontSize = Math.round(iScreenScale*1.8) +"px";
 			oInput.setAttribute("min", 0);
 			oInput.setAttribute("max", 99);
 			oInput.setAttribute("step", 1);
 			oInput.setAttribute("form", "iten-distribution-form");
+			oInput.disabled = options.readOnly;
 			oTd.style.padding = "0px";
 			oTd.appendChild(oInput);
 			oTr.appendChild(oTd);
@@ -16266,6 +16369,7 @@ function selectItemScreen(oScr, callback, options) {
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (2*iScreenScale)+"px";
 	oPInput.style.top = (36*iScreenScale)+"px";
+	oPInput.style.fontSize = (2*iScreenScale)+"px";
 	oPInput.onclick = function() {
 		oScr.removeChild(oScr2);
 	}
@@ -16275,8 +16379,10 @@ function selectItemScreen(oScr, callback, options) {
 	oSetName.style.position = "absolute";
 	oSetName.id = "iten-distribution-form";
 	oSetName.style.right = (5*iScreenScale)+"px";
-	oSetName.style.top = (36*iScreenScale)+"px";
-	oSetName.innerHTML = toLanguage("Set name: &nbsp;","Nom du set : &nbsp;");
+	oSetName.style.top = (35*iScreenScale+4)+"px";
+	oSetName.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	if (!options.untitled)
+		oSetName.innerHTML = toLanguage("Set name:&nbsp;","Nom du set :&nbsp;");
 	oSetName.onsubmit = function() {
 		var inc = 0;
 		var newDistribution = {
@@ -16317,6 +16423,7 @@ function selectItemScreen(oScr, callback, options) {
 	oNInput.style.border = "solid 1px white";
 	oNInput.type = "text";
 	oNInput.setAttribute("required", true);
+	oNInput.style.fontSize = (iScreenScale*2) +"px";
 	if (options.name)
 		oNInput.value = options.name;
 	else {
@@ -16328,13 +16435,19 @@ function selectItemScreen(oScr, callback, options) {
 		for (d=1;distribNames["Distribution "+d];d++);
 		oNInput.value = "Distribution "+ d;
 	}
+	if (options.untitled)
+		oNInput.style.display = "none";
 	oSetName.appendChild(oNInput);
 	var oVInput = document.createElement("input");
 	oVInput.type = "submit";
+	oVInput.style.fontSize = (iScreenScale*2) +"px";
 	oVInput.value = toLanguage("Validate!","Valider !");
 	oVInput.style.marginLeft = iScreenScale +"px";
 	oSetName.appendChild(oVInput);
 	oScr2.appendChild(oSetName);
+
+	if (options.readOnly)
+		oSetName.style.display = "none";
 
 	oScr.appendChild(oScr2);
 }
@@ -16344,7 +16457,8 @@ var defaultGameOptions = {
 	localScore: false,
 	friendly: false,
 	minPlayers: 2,
-	maxPlayers: 12
+	maxPlayers: 12,
+	itemDistrib: 0
 };
 function isCustomOptions(linkOptions) {
 	if (linkOptions) {
@@ -16533,6 +16647,47 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		oDiv.innerHTML = toLanguage("Teams are selected manually by one of the players.", "Les équipes sont sélectionnées manuellement par l'un des joueurs.");
+		oLabel.appendChild(oDiv);
+		oTd.appendChild(oLabel);
+		oTr.appendChild(oTd);
+		oTable.appendChild(oTr);
+	}
+
+	if (shareLink.options.itemDistrib) {
+		var oTr = document.createElement("tr");
+		var oTd = document.createElement("td");
+		var oLabel = document.createElement("label");
+		oLabel.setAttribute("for", "option-friendly");
+		oTd.appendChild(oLabel);
+
+		var oH1 = document.createElement("h1");
+		oH1.style.fontSize = (3*iScreenScale) +"px";
+		oH1.innerHTML = toLanguage("Item distribution", "Distribution des objets");
+		oH1.style.marginBottom = "0px";
+		oLabel.appendChild(oH1);
+		var oDiv = document.createElement("div");
+		oDiv.style.fontSize = (2*iScreenScale) +"px";
+		oDiv.style.color = "white";
+		if (isNaN(shareLink.options.itemDistrib)) {
+			oDiv.innerHTML = toLanguage('Custom distribution <a href="#null">[Show]</a>', 'Distribution personnalisée <a href="#null">[Voir]</a>');
+			var oLink = oDiv.querySelector("a");
+			oLink.style.color = "#CCF";
+			oLink.onclick = function() {
+				selectedItemDistrib = shareLink.options.itemDistrib;
+				selectItemScreen(oScr, function() {}, {
+					readOnly: true
+				});
+				return false;
+			}
+		}
+		else {
+			var itemMode = getItemMode();
+			var itemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib];
+			if (itemDistrib.value.length)
+				oDiv.innerHTML = itemDistrib.name;
+			else
+				oDiv.innerHTML = toLanguage("No item", "Aucun objet");
+		}
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
@@ -17925,6 +18080,14 @@ function choose(map,rand) {
 						selectedTeams = (aTeams.indexOf(-1) == -1);
 						if (!selectedTeams)
 							aTeams.length = 0;
+						if (shareLink.options.itemDistrib) {
+							if (isNaN(shareLink.options.itemDistrib))
+								selectedItemDistrib = shareLink.options.itemDistrib;
+							else {
+								var itemMode = getItemMode();
+								selectedItemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib].value;
+							}
+						}
 						tnCourse = new Date().getTime()+rCode[2];
 						if (isSingle)
 							rCode[2] = 0;

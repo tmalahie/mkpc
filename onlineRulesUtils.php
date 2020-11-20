@@ -26,6 +26,9 @@ $rulesList = array(
 		'default' => DEFAULT_MAX_PLAYERS,
 		'min_value' => 2,
 		'max_value' => 99
+	),
+	'itemDistrib' => array(
+		'default' => 0
 	)
 );
 function rulesEqual($rules1,$rules2) {
