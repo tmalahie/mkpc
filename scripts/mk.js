@@ -15516,6 +15516,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
 
+	var shrinkAll = (!isOnline && ((course == "VS") || (course == "BB")) && !clSelected);
+
 	var oTitle;
 	if (isCustomSel) {
 		var oMsg;
@@ -15525,13 +15527,15 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oMsg = toLanguage("Choose player", "Choisissez joueur");
 		else
 			oMsg = toLanguage("Choose player ", "Choisissez joueur ") + (IdJ+1);
-		oTitle = toTitle(oMsg, 0);
+		oTitle = toTitle(oMsg, shrinkAll ? -2:-1);
 		oTitle.style.color = "#F90";
 	}
 	else {
-		oTitle = toTitle(toLanguage("Choose a player", "Choisissez un joueur"), -1);
+		oTitle = toTitle(toLanguage("Choose a player", "Choisissez un joueur"), shrinkAll ? -2:-1);
 	}
 	oScr.appendChild(oTitle);
+
+	var baseY = shrinkAll ? 8:10;
 	
 	var cTable = document.createElement("table");
 	cTable.style.display = "none";
@@ -15785,7 +15789,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	for (var i=0;i<nBasePersos;i++) {
 		var oDiv = createPersoSelector(i);
 		oDiv.style.left = Math.round((7.2*(i%8)+8) * iScreenScale) +"px";
-		oDiv.style.top = ((10+Math.floor(i/8)*7)*iScreenScale - 8)+"px";
+		oDiv.style.top = ((baseY+Math.floor(i/8)*7)*iScreenScale - 8)+"px";
 		oScr.appendChild(oDiv);
 	}
 	var pDiv = document.createElement("div");
@@ -15794,7 +15798,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	pDiv.style.width = (5 * iScreenScale) + "px";
 	pDiv.style.height = (5 * iScreenScale) + "px";
 	pDiv.style.left = (67 * iScreenScale) +"px";
-	pDiv.style.top = (24 * iScreenScale - 8)+"px";
+	pDiv.style.top = ((baseY+14) * iScreenScale - 8)+"px";
 	pDiv.style.borderTop = "double 4px black"; 
 	pDiv.style.borderLeft = "double 4px #F8F8F8"; 
 	pDiv.style.borderRight = "double 4px #F8F8F8"; 
@@ -15914,7 +15918,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		var oForm = document.createElement("form");
 		oForm.onsubmit = function(){return false};
 		oForm.style.position = "absolute";
-		oForm.style.top = (31*iScreenScale-5) +"px";
+		oForm.style.top = ((baseY+21)*iScreenScale-5) +"px";
 		oForm.style.left = (18*iScreenScale) +"px";
 		oForm.style.fontSize = (2*iScreenScale) +"px";
 		oForm.style.zIndex = 2;
@@ -15946,26 +15950,25 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		}
 		else
 			iDificulty = 4.5;
-		if ((course == "VS") || (course == "BB")) {
-			oForm.appendChild(document.createTextNode(toLanguage("Teams: ", "Équipes : ")));
-			var oSelect = document.createElement("select");
-			oSelect.name = "difficulty";
-			oSelect.style.width = (iScreenScale*15+15) +"px";
-			oSelect.style.fontSize = iScreenScale*2 +"px";
-			oSelect.onchange = function() {
-				fInfos.teams = this.selectedIndex;
-			};
-			var iTeams = [toLanguage("No teams", "Chacun pour soi"), toLanguage("Team Game", "Match par équipes")];
-			for (var i=0;i<iTeams.length;i++) {
-				var oOption = document.createElement("option");
-				oOption.value = i;
-				oOption.innerHTML = iTeams[i];
-				if (selectedTeams == i)
-					oOption.selected = "selected";
-				oSelect.appendChild(oOption);
-			}
-			oForm.appendChild(oSelect);
+		oForm.appendChild(document.createTextNode(toLanguage("Teams: ", "Équipes : ")));
+		var oSelect = document.createElement("select");
+		oSelect.name = "difficulty";
+		oSelect.style.width = (iScreenScale*15+15) +"px";
+		oSelect.style.fontSize = iScreenScale*2 +"px";
+		oSelect.onchange = function() {
+			fInfos.teams = this.selectedIndex;
+		};
+		var iTeams = [toLanguage("No teams", "Chacun pour soi"), toLanguage("Team Game", "Match par équipes")];
+		for (var i=0;i<iTeams.length;i++) {
+			var oOption = document.createElement("option");
+			oOption.value = i;
+			oOption.innerHTML = iTeams[i];
+			if (selectedTeams == i)
+				oOption.selected = "selected";
+			oSelect.appendChild(oOption);
 		}
+		oForm.appendChild(oSelect);
+		
 		oForm.appendChild(document.createElement("br"));
 		oForm.appendChild(document.createTextNode(toLanguage("Number of participants", "Nombre de participants ")+ ": "));
 		var oSelect = document.createElement("select");
@@ -16134,7 +16137,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oStepCtn.style.left = "0px";
 			oStepCtn.style.width = (iWidth*iScreenScale) +"px";
 			oStepCtn.style.textAlign = "center";
-			oStepCtn.style.top = (32*iScreenScale) +"px";
+			oStepCtn.style.top = ((baseY+22)*iScreenScale) +"px";
 			var oStepBack = document.createElement("input");
 			oStepBack.type = "button";
 			oStepBack.style.fontSize = (3*iScreenScale) + "px";
@@ -16244,7 +16247,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				return;
 			}
 			oDiv.style.left = 67*iScreenScale +"px";
-			oDiv.style.top = ((10+i*7)*iScreenScale - 8)+"px";
+			oDiv.style.top = ((baseY+i*7)*iScreenScale - 8)+"px";
 			oScr.insertBefore(oDiv,pDiv);
 		}
 		oScr.style.visibility = "visible";
@@ -16350,6 +16353,7 @@ function selectItemScreen(oScr, callback, options) {
 			oInput.style.textAlign = "center";
 			oInput.style.border = "solid 1px white";
 			oInput.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+			oInput.style.maxHeight = Math.round(iScreenScale*2.5+1) +"px";
 			oInput.setAttribute("min", 0);
 			oInput.setAttribute("max", 99);
 			oInput.setAttribute("step", 1);
