@@ -16026,9 +16026,11 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oChoosePerso.style.marginLeft = (iScreenScale*2) +"px";
 		oChoosePerso.style.color = "white";
 		oChoosePerso.onclick = function() {
-			selectedDifficulty = iDificulty;
+			iDificulty = selectedDifficulty;
 			selectedPlayers = fInfos.nbPlayers;
 			selectedTeams = fInfos.teams;
+			if (oItemSelect)
+				localStorage.setItem("itemset."+itemMode, +oItemSelect.value);
 			clearTimeout(rotateHandler);
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
