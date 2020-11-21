@@ -16386,21 +16386,10 @@ function selectItemScreen(oScr, callback, options) {
 	}
 	oScr2.appendChild(oPInput);
 
-	var oSetName = document.createElement("form");
-	oSetName.style.position = "absolute";
-	oSetName.id = "iten-distribution-form";
-	oSetName.style.right = (5*iScreenScale)+"px";
-	oSetName.style.top = (35*iScreenScale+4)+"px";
-	oSetName.style.fontSize = Math.round(iScreenScale*2.5) +"px";
-	if (!options.untitled)
-		oSetName.innerHTML = toLanguage("Set name:&nbsp;","Nom du set :&nbsp;");
-	oSetName.onsubmit = function() {
-		var inc = 0;
-		var newDistribution = {
-			"name": oNInput.value,
-			"value": []
-		};
+	function getDistributionValue(checkValidity) {
+		var res = [];
 		var oInputs = oTableItems.getElementsByTagName("input");
+		var inc = 0;
 		for (var i=0;i<currentDistribution.length;i++) {
 			var iDistrib = {};
 			var isOneItem = false;
@@ -16412,12 +16401,30 @@ function selectItemScreen(oScr, callback, options) {
 				}
 				inc++;
 			}
-			if (!isOneItem) {
+			if (checkValidity && !isOneItem) {
 				alert(toLanguage("You must enter at least 1 item for rank #" + (i+1), "Vous devez spécifier au moins 1 objet pour la position #" + (i+1)));
-				return false;
+				return null;
 			}
-			newDistribution.value.push(iDistrib);
+			res.push(iDistrib);
 		}
+		return res;
+	}
+
+	var oSetName = document.createElement("form");
+	oSetName.style.position = "absolute";
+	oSetName.id = "iten-distribution-form";
+	oSetName.style.right = (5*iScreenScale)+"px";
+	oSetName.style.top = (35*iScreenScale+4)+"px";
+	oSetName.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	if (!options.untitled)
+		oSetName.innerHTML = toLanguage("Set name:&nbsp;","Nom du set :&nbsp;");
+	oSetName.onsubmit = function() {
+		var newDistribution = {
+			"name": oNInput.value,
+			"value": getDistributionValue(true)
+		};
+		if (!newDistribution.value)
+			return false;
 		oScr.removeChild(oScr2);
 		try {
 			callback(newDistribution);
@@ -16455,6 +16462,35 @@ function selectItemScreen(oScr, callback, options) {
 	oVInput.value = toLanguage("Validate!","Valider !");
 	oVInput.style.marginLeft = iScreenScale +"px";
 	oSetName.appendChild(oVInput);
+
+	var oLink = document.createElement("a");
+	oLink.href = "#null";
+	oLink.style.color = "#CCF";
+	oLink.innerHTML = toLanguage("Export/Import...", "Exporter/importer");
+	oLink.style.fontSize = Math.round(iScreenScale*1.4) +"px";
+	oLink.style.marginLeft = (2*iScreenScale)+"px";
+	oLink.style.position = "relative";
+	oLink.style.top = -Math.round(iScreenScale/2)+"px";
+	oLink.onclick = function(e) {
+		e.preventDefault();
+		var currentDistrib = JSON.stringify(getDistributionValue());
+		var importedDistrib = prompt(toLanguage("Export: copy this text to share this distribution with other players.\nImport: paste a new text to import other's distribution.", "Exporter : copiez ce texte pour partager cette distribution avec d'autres joueurs.\nImporter : collez un nouveau texte pour importer la distribution d'un autre."), currentDistrib);
+		if (importedDistrib && importedDistrib !== currentDistrib) {
+			importedDistrib = JSON.parse(importedDistrib);
+			var oInputs = oTableItems.getElementsByTagName("input");
+			var inc = 0;
+			for (var i=0;i<importedDistrib.length;i++) {
+				var jDistribution = importedDistrib[i];
+				for (var j=0;j<possibleItems.length;j++) {
+					var itemName = possibleItems[j];
+					oInputs[inc].value = jDistribution[itemName] || "";
+					inc++;
+				}
+			}
+		}
+	}
+	oSetName.appendChild(oLink);
+	
 	oScr2.appendChild(oSetName);
 
 	if (options.readOnly)
