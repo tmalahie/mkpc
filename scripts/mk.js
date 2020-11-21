@@ -15532,12 +15532,13 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oMsg = toLanguage("Choose player", "Choisissez joueur");
 		else
 			oMsg = toLanguage("Choose player ", "Choisissez joueur ") + (IdJ+1);
-		oTitle = toTitle(oMsg, shrinkAll ? -2:-1);
+		oTitle = toTitle(oMsg, -1);
 		oTitle.style.color = "#F90";
 	}
-	else {
-		oTitle = toTitle(toLanguage("Choose a player", "Choisissez un joueur"), shrinkAll ? -2:-1);
-	}
+	else
+		oTitle = toTitle(toLanguage("Choose a player", "Choisissez un joueur"), -1);
+	if (shrinkAll)
+		oTitle.style.fontSize = Math.round(7.5*iScreenScale)+"px";
 	oScr.appendChild(oTitle);
 
 	var baseY = shrinkAll ? 8:10;
