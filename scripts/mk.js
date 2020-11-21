@@ -1439,30 +1439,32 @@ function arme(ID, backwards) {
 
 			case "carapacebleue" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
-			for (var i=0;i<oMap.aipoints.length;i++) {
-				var aipoints = oMap.aipoints[i];
-				for (var j=0;j<aipoints.length;j++) {
-					var aipoint = aipoints[j];
-					var lastAipoint = aipoints[(j?j:aipoints.length)-1];
-					var dist = Math.hypot(aipoint[0]-oKart.x,aipoint[1]-oKart.y);
-					var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
-					if (!isFront)
-						dist += oMap.w+oMap.h;
-					var demitour = oKart.demitours+1;
-					if (demitour >= oMap.checkpoint.length)
-						demitour = 0;
-					var nextCp = oMap.checkpoint[demitour];
-					if (nextCp) {
-						var cpX = nextCp[0] + (nextCp[3] ? Math.round(nextCp[2]/2) : 8);
-						var cpY = nextCp[1] + (nextCp[3] ? 8 : Math.round(nextCp[2]/2));
-						var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
-						if (ddist)
-							dist -= 150*((cpX-oKart.x)*(aipoint[0]-lastAipoint[0]) + (cpY-oKart.y)*(aipoint[1]-lastAipoint[1]))/ddist;
-					}
-					if (dist < minDist) {
-						minAiMap = i;
-						minAiPt = j;
-						minDist = dist;
+			if (course != "BB") {
+				for (var i=0;i<oMap.aipoints.length;i++) {
+					var aipoints = oMap.aipoints[i];
+					for (var j=0;j<aipoints.length;j++) {
+						var aipoint = aipoints[j];
+						var lastAipoint = aipoints[(j?j:aipoints.length)-1];
+						var dist = Math.hypot(aipoint[0]-oKart.x,aipoint[1]-oKart.y);
+						var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
+						if (!isFront)
+							dist += oMap.w+oMap.h;
+						var demitour = oKart.demitours+1;
+						if (demitour >= oMap.checkpoint.length)
+							demitour = 0;
+						var nextCp = oMap.checkpoint[demitour];
+						if (nextCp) {
+							var cpX = nextCp[0] + (nextCp[3] ? Math.round(nextCp[2]/2) : 8);
+							var cpY = nextCp[1] + (nextCp[3] ? 8 : Math.round(nextCp[2]/2));
+							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
+							if (ddist)
+								dist -= 150*((cpX-oKart.x)*(aipoint[0]-lastAipoint[0]) + (cpY-oKart.y)*(aipoint[1]-lastAipoint[1]))/ddist;
+						}
+						if (dist < minDist) {
+							minAiMap = i;
+							minAiPt = j;
+							minDist = dist;
+						}
 					}
 				}
 			}
@@ -9927,6 +9929,7 @@ var itemDistributions = {
 			"fauxobjet": 1,
 			"carapacerouge": 4
 		}, {
+			"carapacebleue": 0,
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
 			"megachampi": 3,
@@ -9939,46 +9942,48 @@ var itemDistributions = {
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
 		value: [{
-            "fauxobjet": 1,
-            "banane": 3,
-            "carapacerouge": 3,
-            "carapace": 5
-        }, {
-            "bananeX3": 1,
-            "carapacerouge": 12,
-            "carapace": 6,
-            "bobomb": 4
-        }, {
-            "carapacerouge": 8,
-            "carapace": 5,
-            "bobomb": 4,
-            "carapaceX3": 3
-        }, {
-            "carapacerouge": 7,
-            "carapacerougeX3": 4,
-            "megachampi": 5,
-            "etoile": 5,
-            "champi": 1,
-            "champior": 1,
-            "champiX3": 1,
-            "bloops": 1
-        }]
+			"fauxobjet": 1,
+			"banane": 3,
+			"carapacerouge": 3,
+			"carapace": 5
+		}, {
+			"bananeX3": 1,
+			"carapacerouge": 12,
+			"carapace": 6,
+			"bobomb": 4
+		}, {
+			"carapacerouge": 8,
+			"carapace": 5,
+			"bobomb": 4,
+			"carapaceX3": 3
+		}, {
+			"carapacerouge": 7,
+			"carapacebleue": 4,
+			"carapacerougeX3": 3,
+			"megachampi": 5,
+			"etoile": 5,
+			"champi": 1,
+			"champior": 1,
+			"champiX3": 1,
+			"bloops": 1
+		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
 		value: [{
-            "carapacerouge": 1,
-            "carapace": 4
-        }, {
-            "carapacerouge": 7,
-            "carapace": 4
-        }, {
-            "carapacerouge": 4,
-            "carapace": 4,
-            "carapaceX3": 2
-        }, {
-            "carapacerouge": 2,
-            "carapacerougeX3": 1
-        }]
+			"carapacerouge": 1,
+			"carapace": 4
+		}, {
+			"carapacerouge": 7,
+			"carapace": 4
+		}, {
+			"carapacerouge": 4,
+			"carapace": 4,
+			"carapaceX3": 2
+		}, {
+			"carapacerouge": 6,
+			"carapacebleue": 1,
+			"carapacerougeX3": 3
+		}]
 	}, {
 		name: toLanguage("Bob-ombs", "Bob-ombs"),
 		value: [{
