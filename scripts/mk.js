@@ -18128,7 +18128,7 @@ function choose(map,rand) {
 						selectedTeams = (aTeams.indexOf(-1) == -1);
 						if (!selectedTeams)
 							aTeams.length = 0;
-						if (shareLink.options.itemDistrib) {
+						if (shareLink.options && shareLink.options.itemDistrib) {
 							if (isNaN(shareLink.options.itemDistrib))
 								selectedItemDistrib = shareLink.options.itemDistrib;
 							else {
