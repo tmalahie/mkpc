@@ -9406,6 +9406,22 @@ function reinitChallengeVars() {
 	}
 	reinitLocalVars();
 }
+function isSameDistrib(d1,d2) {
+	if (d1.length !== d2.length)
+		return false;
+	for (var i=0;i<d1.length;i++) {
+		var d1i = d1[i], d2i = d2[i];
+		for (var key in d1i) {
+			if (d1i[key] !== d2i[key])
+				return false;
+		}
+		for (var key in d2i) {
+			if (d1i[key] !== d2i[key])
+				return false;
+		}
+	}
+	return true;
+}
 function reinitLocalVars() {
 	clLocalVars = {
 		drifted: false,
@@ -9419,8 +9435,18 @@ function reinitLocalVars() {
 		lostBalloons: 0,
 		cheated: false
 	};
-	if (itemDistribution && itemDistribution !== itemDistributions[getItemMode()][0].value)
-		clLocalVars.cheated = true;
+	if (itemDistribution) {
+		var modeItemDistributions = itemDistributions[getItemMode()];
+		var isDefaultDistrib = false;
+		for (var i=0;i<2;i++) {
+			if (isSameDistrib(itemDistribution, modeItemDistributions[i].value)) {
+				isDefaultDistrib = true;
+				break;
+			}
+		}
+		if (!isDefaultDistrib)
+			clLocalVars.cheated = true;
+	}
 	clHud = {};
 	for (var verifType in challengesForCircuit) {
 		var challengesForType = challengesForCircuit[verifType];
