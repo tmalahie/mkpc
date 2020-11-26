@@ -8,6 +8,11 @@ if (isset($_GET['moderate'])) {
 	if (hasRight('clvalidator'))
 		$moderate = true;
 }
+elseif (isset($_GET['remoderate'])) {
+	require_once('getRights.php');
+	if (hasRight('clvalidator'))
+		$remoderate = true;
+}
 $rateChallenges = isset($_GET['rate']);
 $chSelect = 'c.*,l.type,l.circuit';
 $chJoin = array();
@@ -20,10 +25,18 @@ if (isset($moderate)) {
 	$challengeTitle = $language ? 'Challenges pending moderation':'Défis en attente de validation';
 }
 else {
-	$chWhere[] = 'c.status="active"';
+	if (isset($remoderate)) {
+		$chWhere[] = '(c.status="active" OR (c.status="pending_completion" AND validation!=""))';
+	}
+	else {
+		$chWhere[] = 'c.status="active"';
+	}
 	if (empty($_GET['ordering']) || ('rating' !== $_GET['ordering'])) {
 		$chOrder = 'c.date DESC';
-		$challengeTitle = $language ? 'Last published challenges':'Derniers défis publiés';
+		if (isset($remoderate))
+			$challengeTitle = $language ? 'Undo a challenge validation':'Annuler la validation d\'un défi';
+		else
+			$challengeTitle = $language ? 'Last published challenges':'Derniers défis publiés';
 	}
 	else {
 		$chOrder = 'c.avgrating DESC, c.nbratings DESC, c.date DESC';
@@ -74,7 +87,7 @@ $challengeParams = array(
 	'rating' => true,
 	'circuit' => true
 );
-if (!isset($moderate) && $id) {
+if (!isset($moderate) && !isset($remoderate) && $id) {
 	$challengeParams['winners'] = true;
 	$challengeParams['id'] = $id;
 }
@@ -160,6 +173,14 @@ function rejectChallenge(id) {
 		}
 	);
 }
+function remoderateChallenge(id) {
+	o_confirm(o_language ? "Put this challenge back to the &quot;pending moderation&quot; list?" : "Repasser ce défi dans la liste des défis à modérer ?", function(valided) {
+        if (valided) {
+			var data = {"challenge":id};
+			challengeModerate(data, "challengeRemoderate.php");
+        }
+    });
+}
 function previewRating(id,rating) {
 	var $challenge = document.getElementById("challenges-item-"+id);
 	var $challengeRating = $challenge.getElementsByClassName("challenges-item-rating");
@@ -199,13 +220,14 @@ function rateChallenge(id,rating) {
 		return false;
 	});
 }
-function challengeModerate(data) {
+function challengeModerate(data, url) {
+	if (!url) url = "challengeModerate.php";
 	var rawdata = "";
 	for (var key in data) {
 		if (rawdata) rawdata += "&";
 		rawdata += key+"="+encodeURIComponent(data[key]);
 	}
-	o_xhr("challengeModerate.php", rawdata, function(res) {
+	o_xhr(url, rawdata, function(res) {
 		return (res == 1);
 	});
 	var id = data.challenge;
@@ -299,7 +321,19 @@ include('menu.php');
 				<?php
 			}
 		}
-		if (!$moderate && !$rateChallenges) {
+		elseif (isset($remoderate)) {
+			if ($language) {
+				?>
+				A challenge you accepted or rejected by mistake? A difficulty to change? You're in the right place!
+				<?php
+			}
+			else {
+				?>
+				Un défi que vous avez accepté ou refusé par erreur ? Une difficulté à changer ? C'est ici que ça se passe !
+				<?php
+			}
+		}
+		elseif (!$rateChallenges) {
 			?>
 			<div class="challenges-list-sublinks">
 				<img src="images/cups/cup2.png" alt="Cup" /> <a href="challengeRanking.php"><?php echo $language ? 'Challenges leaderboard':'Classement des défis'; ?></a> &nbsp;
@@ -361,7 +395,7 @@ include('menu.php');
 					if ($rateChallenges)
 						echo ' challenges-list-item-rate';
 					else {
-						if (isset($moderate))
+						if (isset($moderate) || isset($remoderate))
 							echo ' challenges-list-item-moderate';
 						if (isset($challenge['succeeded']))
 							echo ' challenges-list-item-success';
@@ -395,7 +429,7 @@ include('menu.php');
 						?>
 						</div>
 					</div>
-					<div class="challenges-item-action"<?php if ($rateChallenges||isset($moderate)) echo ' onclick="return false"'; ?>>
+					<div class="challenges-item-action"<?php if ($rateChallenges||isset($moderate)||isset($remoderate)) echo ' onclick="return false"'; ?>>
 						<?php
 						if ($rateChallenges) {
 							$note = $challenge['rating']['avg'];
@@ -446,6 +480,25 @@ include('menu.php');
 							<button class="challenges-item-accept" onclick="acceptChallenge(<?php echo $challenge['id']; ?>)">&check;</button>
 							<button class="challenges-item-reject" onclick="rejectChallenge(<?php echo $challenge['id']; ?>)">&times;</button>
 						</div>
+							<?php
+						}
+						elseif (isset($remoderate)) {
+							?>
+							<div class="challenge-item-remoderate">
+							<?php
+							if ($challenge['status'] === 'active') {
+								echo '<span class="challenges-item-accepted">';
+								echo $language ? 'Accepted':'Accepté';
+								echo '</span>';
+							}
+							else {
+								echo '<span class="challenges-item-rejected">';
+								echo $language ? 'Rejected':'Refusé';
+								echo '</span>';
+							}
+							?><br />
+							<span class="challenge-item-link" onclick="remoderateChallenge(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Undo':'Annuler'; ?></span>
+							</div>
 							<?php
 						}
 						else {
@@ -525,6 +578,16 @@ include('menu.php');
 			if ($rateChallenges) {
 				?>
 				<a href="challengesList.php"><?php echo $language ? 'Back to challenges list':'Retour à la liste des défis'; ?></a><br />
+				<?php
+			}
+			if (isset($moderate)) {
+				?>
+				<a href="challengesList.php?remoderate"><?php echo $language ? 'Undo a challenge validation mistake':'Annuler une erreur de validation'; ?></a><br />
+				<?php
+			}
+			elseif (isset($remoderate)) {
+				?>
+				<a href="challengesList.php?moderate"><?php echo $language ? 'Back to moderation list':'Retour aux défis à valider'; ?></a><br />
 				<?php
 			}
 			?>

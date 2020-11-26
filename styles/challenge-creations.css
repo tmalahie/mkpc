@@ -352,6 +352,18 @@
 	margin-bottom: 1px;
 	margin-top: 1px;
 }
+.challenge-item-remoderate {
+	font-size: 0.8em;
+}
+.challenges-item-accepted, .challenges-item-rejected {
+	font-weight: bold;
+}
+.challenges-item-accepted {
+	color: #083;
+}
+.challenges-item-rejected {
+	color: #800;
+}
 .challengePages {
 	width: 700px;
 	max-width: 100%;
