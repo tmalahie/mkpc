@@ -103,7 +103,7 @@ $nbPages = ceil($nbChallenges/$challengesPerPage);
 include('heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/creations.css" />
-<link rel="stylesheet" type="text/css" href="styles/challenge-creations.css" />
+<link rel="stylesheet" type="text/css" href="styles/challenge-creations.css?reload=1" />
 
 <?php
 include('o_online.php');

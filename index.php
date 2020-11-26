@@ -782,11 +782,6 @@ $slidesPath = 'images/slides';
 					$s = ($getPendingChallenges['nb']>=2) ? 's':'';
 					echo '<p class="nb-pending-news"><a href="challengesList.php?moderate">'. $getPendingChallenges['nb'] .' '. ($language ? 'pending':"défi$s") .'</a> '. ($language ? "challenge$s":'en attente de validation') .'</p>';
 				}
-				/*$getRecheckingChallenges = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkclrecheck r INNER JOIN mkchallenges c ON r.id=c.id WHERE c.status="active"'));
-				if ($getRecheckingChallenges['nb']) {
-					$s = ($getRecheckingChallenges['nb']>=2) ? 's':'';
-					echo '<p class="nb-pending-news" style="position:relative;top:-8px"><a href="challengesList.php?moderate=2">'. $getRecheckingChallenges['nb'] .' '. ($language ? "challenge$s":"défi$s") .'</a> '. ($language ? 'to revalidate':'à revalider') .'</p>';
-				}*/
 			}
 			?>
 			<a class="right_section_actions action_button" href="challengesList.php"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
