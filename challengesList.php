@@ -8,8 +8,6 @@ if (isset($_GET['moderate'])) {
 	if (hasRight('clvalidator'))
 		$moderate = true;
 }
-if (isset($_GET['recheck']))
-	$recheck = true;
 $rateChallenges = isset($_GET['rate']);
 $chSelect = 'c.*,l.type,l.circuit';
 $chJoin = array();
@@ -22,8 +20,7 @@ if (isset($moderate)) {
 	$challengeTitle = $language ? 'Challenges pending moderation':'Défis en attente de validation';
 }
 else {
-	if (!isset($recheck))
-		$chWhere[] = 'c.status="active"';
+	$chWhere[] = 'c.status="active"';
 	if (empty($_GET['ordering']) || ('rating' !== $_GET['ordering'])) {
 		$chOrder = 'c.date DESC';
 		$challengeTitle = $language ? 'Last published challenges':'Derniers défis publiés';
@@ -51,16 +48,6 @@ if (isset($_GET['author'])) {
 		if ($username = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $_GET['author'] .'"')))
 			$challengeTitle = $language ? 'Challenges list of '.$username['nom']:'Liste des défis de '.$username['nom'];
 	}
-}
-elseif (isset($recheck)) {
-	include('getId.php');
-	$chWhere[] = 'l.identifiant='.$identifiants[0];
-	$chWhere[] = 'l.identifiant2='.$identifiants[1];
-	$chWhere[] = 'l.identifiant3='.$identifiants[2];
-	$chWhere[] = 'l.identifiant4='.$identifiants[3];
-	$chJoin[] = 'INNER JOIN mkclrecheck r ON r.id=c.id';
-	$chWhere[] = 'c.status="pending_completion"';
-	$challengeTitle = $language ? 'Your challenges to revalidate':'Vos défis à revalider';
 }
 if ($rateChallenges || isset($_GET['winner'])) {
 	$winner = $rateChallenges ? $id : $_GET['winner'];
@@ -312,7 +299,7 @@ include('menu.php');
 				<?php
 			}
 		}
-		if (!$moderate && !$rateChallenges && !$recheck) {
+		if (!$moderate && !$rateChallenges) {
 			?>
 			<div class="challenges-list-sublinks">
 				<img src="images/cups/cup2.png" alt="Cup" /> <a href="challengeRanking.php"><?php echo $language ? 'Challenges leaderboard':'Classement des défis'; ?></a> &nbsp;
