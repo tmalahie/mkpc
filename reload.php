@@ -217,7 +217,6 @@ if ($id) {
 					}
 				}
 				echo ',[';
-				$i = 0;
 				$pts_ = 'pts_'.($isBattle ? 'battle':'vs');
 				foreach ($joueursData as $i=>$joueur) {
 					$score = $joueur['aPts'];
@@ -255,7 +254,7 @@ if ($id) {
 							}
 						}
 						if ($shouldLog)
-							mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $joueur['id'] .','. $course .','. $i .',NULL)');
+							mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $joueur['id'] .','. $course .','. ($i+1) .',NULL)');
 					}
 				}
 				$getTime = mysql_fetch_array(mysql_query('SELECT time FROM `mariokart` WHERE id='.$course));
