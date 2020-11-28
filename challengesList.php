@@ -487,14 +487,22 @@ include('menu.php');
 							<div class="challenge-item-remoderate">
 							<?php
 							if ($challenge['status'] === 'active') {
-								echo '<span class="challenges-item-accepted">';
-								echo $language ? 'Accepted':'Accepté';
-								echo '</span>';
+								?>
+								<span class="challenges-item-difficulty challenges-item-difficulty-<?php echo $challenge['difficulty']['level']; ?>" >
+									<img src="images/challenges/difficulty<?php echo $challenge['difficulty']['level']; ?>.png" alt="<?php echo $challenge['difficulty']['name']; ?>" />
+									<?php echo $challenge['difficulty']['name']; ?>
+								</span><br />
+								<span class="challenges-item-accepted">
+									<?php echo $language ? 'Accepted':'Accepté'; ?>
+								</span>
+								<?php
 							}
 							else {
-								echo '<span class="challenges-item-rejected">';
-								echo $language ? 'Rejected':'Refusé';
-								echo '</span>';
+								?>
+								<span class="challenges-item-rejected">
+									<?php echo $language ? 'Rejected':'Refusé'; ?>
+								</span>
+								<?php
 							}
 							?><br />
 							<span class="challenge-item-link" onclick="remoderateChallenge(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Undo':'Annuler'; ?></span>
