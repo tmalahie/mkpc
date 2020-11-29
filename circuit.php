@@ -441,57 +441,22 @@ if ($canChange) {
 	<?php
 }
 else {
-$getNote = mysql_query('SELECT note FROM `'. ($isMCup ? 'ratings':($isCup ? 'mkavis':'mknotes')) .'` WHERE circuit="'. $id .'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]);
-if ($note = mysql_fetch_array($getNote))
-	$cNote = $note['note'];
-else
-	$cNote = -1;
-?>
-var cNote = <?php echo $cNote; ?>, aNote = cNote;
-function previewMark(note) {
-	for (i=0;i<=note;i++)
-
-		document.getElementById("star"+ i).src = "images/star1.png";
-	for (i=note+1;i<5;i++)
-		document.getElementById("star"+ i).src = "images/star0.png";
-}
-function updateMark() {
-	previewMark(cNote);
-}
-function setMark(nNote) {
-	cNote = (cNote != nNote) ? nNote:-1;
-	if (cNote != aNote) {
-		document.getElementById("submitMark").disabled = false;
-		document.getElementById("submitMark").className = "";
-	}
-	else {
-		document.getElementById("submitMark").disabled = true;
-		document.getElementById("submitMark").className = "cannotChange";
-	}
-	previewMark(cNote);
-}
-function sendMark() {
-	document.getElementById("markMsg").innerHTML = "<?php echo $language ? 'Sending...':'Envoi en cours...'; ?>";
-	document.getElementById("submitMark").disabled = true;
-	document.getElementById("submitMark").className = "cannotChange";
-	xhr("sendMark.php", "id=<?php echo $id ?>&note="+cNote<?php
+	require_once('utils-ratings.php');
+	$cNote = getMyRating($isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits'), $id);
+	?>
+	var cNote = <?php echo $cNote ?>;
+	var ratingParams = "id=<?php
+		echo $id;
 		if ($isMCup)
-			echo ' +"&mc=1"';
+			echo '&mc=1';
 		elseif ($isCup)
-			echo ' +"&cup=1"';
-		?>, function(reponse) {
-		if (reponse == 1) {
-			aNote = cNote;
-			document.getElementById("markMsg").innerHTML = (aNote!=-1) ? "<?php echo $language ? 'Thanks for your vote':'Merci de votre vote'; ?>":"<?php echo $language ? 'Vote removed successfully':'Vote supprim&eacute; avec succ&egrave;s'; ?>";
-			return true;
-		}
-		return false;
-	});
-}
-<?php
+			echo '&cup=1';
+	?>";
+	<?php
 }
 ?>
 </script>
+<script type="text/javascript" src="scripts/ratings.js"></script>
 <script src="scripts/jquery.min.js"></script>
 <script type="text/javascript">$(document).ready(MarioKart);</script>
 </head>
@@ -533,22 +498,8 @@ elseif ($canChange) {
 		<?php
 	}
 }
-else {
-	?>
-	<p id="markMsg"><?php echo $language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':'circuit'))):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':'ce circuit'))) ?> !</p>
-	<?php
-	function addStar($i, $a, $apreciation) {
-		echo '&nbsp;<img id="star'.$i.'" class="star" src="images/star'.$a.'.png" onclick="setMark('.$i.')" onmouseover="previewMark('.$i.')" onmouseout="updateMark()" title="'.htmlentities($apreciation).'" /> ';
-	}
-	$apreciations = $language ? Array('Very bad', 'Bad', 'Average', 'Good', 'Excellent'):Array('Très mauvais', 'Mauvais', 'Moyen', 'Bon', 'Excellent');
-	for ($i=0;$i<=$cNote;$i++)
-		addStar($i, 1, $apreciations[$i]);
-	for ($i=$cNote+1;$i<5;$i++)
-		addStar($i, 0, $apreciations[$i]);
-		?><br />
-		<input type="button" id="submitMark" value="<?php echo $language ? 'Submit':'Valider'; ?>" disabled="disabled" class="cannotChange" onclick="sendMark();" /></td>
-		<?php
-}
+else
+	printRatingView($language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':'circuit')).'!'):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':'ce circuit'))).' !');
 ?></td></tr>
 <tr><td id="pSize">
 </td>
@@ -640,7 +591,7 @@ if (isset($id)) {
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cPseudo,$isCup?$circuitsData[0]['id']:$nid,'mkcircuits'); ?>;
 	</script>
-	<script type="text/javascript" src="scripts/comments.js"></script>
+	<script type="text/javascript" src="scripts/comments.js?reload=1"></script>
 	<?php
 }
 ?>

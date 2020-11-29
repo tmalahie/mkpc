@@ -649,10 +649,10 @@ include('menu.php');
 							}
 							$note = $circuit['note'];
 							$nbNotes = $circuit['nbnotes'];
-							$noteTitle = $nbNotes ? (round(($note+1)*100)/100).'/5 '. ($language ? 'on':'sur') .' '. $nbNotes .' vote'. ($nbNotes>1 ? 's':'') : ($language ? 'Unrated':'Non noté');
+							$noteTitle = $nbNotes ? (round($note*100)/100).'/5 '. ($language ? 'on':'sur') .' '. $nbNotes .' vote'. ($nbNotes>1 ? 's':'') : ($language ? 'Unrated':'Non noté');
 							echo '<div class="circuit-rate" title="'. $noteTitle .'">';
 							$lNote = floor($note);
-							for ($j=0;$j<=$note;$j++) {
+							for ($j=1;$j<=$note;$j++) {
 								echo '<div class="circuit-star">';
 								echo '<img src="images/ministar1.png" alt="star0" />';
 								echo '</div>';
@@ -665,7 +665,7 @@ include('menu.php');
 								echo '</div>';
 								$lNote++;
 							}
-							for ($j=$lNote+1;$j<5;$j++) {
+							for ($j=$lNote;$j<5;$j++) {
 								echo '<div class="circuit-star">';
 								echo '<img src="images/ministar0.png" alt="star0" />';
 								echo '</div>';

@@ -713,7 +713,7 @@ $slidesPath = 'images/slides';
 							$publishedSince = max($publishedSince,0);
 							$recency = 8-log($publishedSince/2000)/$logb;
 							$recency = min(max($recency,3),8);
-							$note = $line['note'];
+							$note = $line['note']-1;
 							$nbnotes = max($line['nbnotes'],1);
 							if ($note == -1) {
 								if ($recency == 8)

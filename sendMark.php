@@ -1,70 +1,59 @@
 <?php
-if (isset($_POST['id']) && isset($_POST['note'])) {
-	$isCup = false;
-	if (isset($_POST['mc'])) {
+if (isset($_POST['note'])) $_POST['rating'] = $_POST['note']+1;
+if (isset($_POST['id']) && isset($_POST['rating'])) {
+	if (isset($_POST['mc']))
 		$table = 'mkmcups';
-		$table2 = 'ratings';
-		$isCup = true;
-	}
-	elseif (isset($_POST['cup'])) {
+	elseif (isset($_POST['cup']))
 		$table = 'mkcups';
-		$table2 = 'mkavis';
-		$isCup = true;
-	}
 	elseif (isset($_POST['complete'])) {
-		if ($_POST['complete'] == 1) {
+		if ($_POST['complete'] == 1)
 			$table = 'circuits';
-			$table2 = 'notes';
-		}
-		else {
+		else
 			$table = 'arenes';
-			$table2 = 'marks';
-		}
 	}
-	else {
+	else
 		$table = 'mkcircuits';
-		$table2 = 'mknotes';
-	}
 	include('getId.php');
 	include('initdb.php');
-	$id = $_POST['id'];
-	$note = $_POST['note'];
+	include('session.php');
+	$circuitId = +$_POST['id'];
+	$rating = +$_POST['rating'];
 	include('ip_banned.php');
-	if (isBanned()) {
+	if (!$id || isBanned()) {
 		mysql_close();
 		exit;
 	}
-	$newMark = (($note >= 0) && ($note < 5));
-	if (!mysql_numrows(mysql_query('SELECT * FROM `'.$table.'` WHERE id="'.$id.'" AND identifiant='. $identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
-		if ($getNote = mysql_fetch_array(mysql_query('SELECT note FROM `'.$table.'` WHERE id="'.$id.'"'))) {
-			$getOldMark = mysql_query('SELECT note FROM `'.$table2.'` WHERE circuit="'. $id .'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]);
+	$newMark = (($rating >= 1) && ($rating <= 5));
+	if ($getIdentifier = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'.$table.'` WHERE id="'.$circuitId.'"'))) {
+		if ($getIdentifier && ($getIdentifier['identifiant'] != $identifiants[0])) {
+			$getOldMark = mysql_query('SELECT rating FROM `mkratings` WHERE type="'.$table.'" AND circuit="'. $circuitId .'" AND identifiant='.$identifiants[0]);
 			if ($oldMark = mysql_fetch_array($getOldMark)) {
 				if ($newMark)
-					mysql_query('UPDATE `'.$table2.'` SET note='. $note .' WHERE circuit="'.$id.'" AND identifiant='. $identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]);
+					mysql_query('UPDATE `mkratings` SET rating='. $rating .' WHERE type="'.$table.'" AND circuit="'.$circuitId.'" AND identifiant='. $identifiants[0]);
 				else
-					mysql_query('DELETE FROM `'.$table2.'` WHERE circuit="'.$id.'" AND identifiant='. $identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]);
+					mysql_query('DELETE FROM `mkratings` WHERE type="'.$table.'" AND circuit="'.$circuitId.'" AND identifiant='. $identifiants[0]);
 			}
 			else if ($newMark)
-				mysql_query('INSERT INTO `'.$table2.'` VALUES("'.$id.'",'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].','.$note.')');
+				mysql_query('INSERT INTO `mkratings` SET type="'.$table.'",circuit="'.$circuitId.'",identifiant="'.$identifiants[0].'",player="'.$id.'",rating='.$rating);
 			else {
 				mysql_close();
 				exit;
 			}
-			$getNotes = mysql_query('SELECT note FROM `'.$table2.'` WHERE circuit="'.$id.'"');
+			$getNotes = mysql_query("SELECT rating FROM `mkratings` WHERE type='$table' AND circuit='$circuitId'");
 			$total = 0;
 			$nbNotes = 0;
-			while ($notes = mysql_fetch_array($getNotes)) {
-				$total += $notes['note'];
+			while ($ratings = mysql_fetch_array($getNotes)) {
+				$total += $ratings['rating'];
 				$nbNotes++;
 			}
 			if ($nbNotes)
 				$nNote = ($total/$nbNotes);
 			else
 				$nNote = -1;
-			mysql_query('UPDATE `'.$table.'` SET note='.$nNote.',nbnotes='.$nbNotes.' WHERE id="'.$id.'"');
-			echo '1';
+			mysql_query('UPDATE `'.$table.'` SET note='.$nNote.',nbnotes='.$nbNotes.' WHERE id="'.$circuitId.'"');
 		}
 	}
+	echo '1';
 	mysql_close();
 }
 ?>

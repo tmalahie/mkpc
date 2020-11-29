@@ -595,8 +595,8 @@ function addRace() {
 
 	var oCircuitRate = document.createElement("div");
 	oCircuitRate.className = "circuit-rate";
-	oCircuitRate.title = nbnotes ? (Math.round((note+1)*100)/100) +"/5 <?php echo $language ? 'on':'sur'; ?> "+ nbnotes +" <?php echo $language ? 'rating':'note'; ?>"+ (nbnotes>1 ? "s":"") : "<?php echo $language ? 'Unrated':'Non noté'; ?>";
-	for (var i=0;i<=note;i++) {
+	oCircuitRate.title = nbnotes ? (Math.round(note*100)/100) +"/5 <?php echo $language ? 'on':'sur'; ?> "+ nbnotes +" <?php echo $language ? 'rating':'note'; ?>"+ (nbnotes>1 ? "s":"") : "<?php echo $language ? 'Unrated':'Non noté'; ?>";
+	for (var i=1;i<=note;i++) {
 		var oEtoile = document.createElement("div");
 		oEtoile.className = "circuit-star";
 		var eImg = document.createElement("img");
@@ -624,7 +624,7 @@ function addRace() {
 		oCircuitRate.appendChild(oEtoile);
 		note++;
 	}
-	for (var i=note+1;i<5;i++) {
+	for (var i=note;i<5;i++) {
 		var oEtoile = document.createElement("div");
 		oEtoile.className = "circuit-star";
 		var eImg = document.createElement("img");

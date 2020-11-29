@@ -2,7 +2,7 @@
 	$isCup = (strpos($circuit['cicon'], ',') !== false);
 	$note = $circuit['note'];
 	$nbNotes = $circuit['nbnotes'];
-	$noteTitle = $nbNotes ? (round(($note+1)*100)/100).'/5 '. ($language ? 'on':'sur') .' '. $nbNotes .' vote'. ($nbNotes>1 ? 's':'') : ($language ? 'Unrated':'Non noté');
+	$noteTitle = $nbNotes ? (round($note*100)/100).'/5 '. ($language ? 'on':'sur') .' '. $nbNotes .' vote'. ($nbNotes>1 ? 's':'') : ($language ? 'Unrated':'Non noté');
 	$circuitTime = pretty_dates_short($circuit['publication_date'], array('lower' => true, 'shorter' => true));
 	$circuitFullDate = pretty_dates($circuit['publication_date'], array('lower' => true));
 ?>
@@ -24,7 +24,7 @@
 			<table title="<?php echo $noteTitle; ?>">
 				<tr>
 					<?php
-					for ($i=0;$i<=$note;$i++)
+					for ($i=1;$i<=$note;$i++)
 						echo '<td class="star1"></td>';
 					$rest = $note-floor($note);
 					if ($rest) {
@@ -33,7 +33,7 @@
 						echo '<td class="endStar" style="width: '. (15-$w1) .'px;"></td>';
 						$note++;
 					}
-					for ($i=$note+1;$i<5;$i++)
+					for ($i=$note;$i<5;$i++)
 						echo '<td class="star0"></td>';
 					?>
 					<td><h3><?php echo getAuteur($circuit); ?></h3></td>
