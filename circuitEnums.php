@@ -45,5 +45,10 @@ $bgImages = Array (
 	Array('wariosky','tribune','wariobanner'),
 	Array('mariosky','treehills','fence','flowers','garden'),
 	Array('bowsersky','mounts','moat','tower'),
-	Array('nightsky','shootingstars')
+	Array('nightsky','shootingstars'),
+
+	Array('ds'),
+	Array('twilightsky','twilighthouse'),
+	Array('piesky','pie'),
+	Array('palmsky')
 );

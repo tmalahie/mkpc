@@ -11862,7 +11862,7 @@ function move(getId, triggered) {
 		else {
 			var hpType;
 			var fTombe;
-			if ((!isOnline || !getId) && (page!="MK" || course!="BB" || !oKart.cpu))
+			if ((!isOnline || !getId) && (page!="MK" || course!="BB" || !oKart.cpu || (oMap.map>=65)))
 				fTombe = tombe(oKart.x, oKart.y, oMap.checkpoint&&oKart.demitours ? oMap.checkpoint[(oKart.demitours+1!=oMap.checkpoint.length) ? oKart.demitours+1 : 0][3] : 0);
 			if (fTombe) {
 				if (fTombe == true) {
@@ -13428,7 +13428,7 @@ function ai(oKart) {
 		var useRandomly = false;
 		if (oKart.using.length) {
 			switch(oKart.using[0].type) {
-			case "carapacerouge":
+			case "carapace-rouge":
 				if (course == "BB") {
 					for (var i=0;i<strPlayer.length;i++) {
 						if (!aKarts[i].loose && Math.pow(aKarts[i].x-oKart.x-15*direction(0,oKart.rotation),2) + Math.pow(aKarts[i].y-oKart.y-15*direction(1,oKart.rotation),2) < 1000) {
@@ -17582,8 +17582,8 @@ function selectMapScreen(force) {
 		var nbcoupes = NBCIRCUITS/4;
 		var cups_per_line = 6;
 		if (course == "BB") {
-			coupes = ["snes","gba"];
-			nbcoupes = 2;
+			coupes = ["snes","gba","ds"];
+			nbcoupes = 3;
 		}
 		var nb_lines = Math.ceil(nbcoupes/cups_per_line);
 		if (cupOpts.lines)
@@ -17704,7 +17704,7 @@ function selectMapScreen(force) {
 			}
 
 			if (course == "BB") {
-				var labels = [toLanguage("SNES Stages", "Arènes SNES"), toLanguage("GBA Stages", "Arènes GBA")];
+				var labels = [toLanguage("SNES Stages", "Arènes SNES"), toLanguage("GBA Stages", "Arènes GBA"), toLanguage("DS Stages", "Arènes DS")];
 				var oLabel = document.createElement("div");
 				oLabel.style.position = "absolute"
 				oLabel.style.left = Math.round((cup_x-cup_margin_x/2)*iScreenScale)+"px";

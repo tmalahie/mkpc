@@ -285,7 +285,7 @@ if (isset($_GET['i'])) {
 			$decors = Array (
 				'SNES' => array_slice($bgImages, 0,8),
 				'GBA' => array_slice($bgImages, 8,20),
-				'DS' => array_slice($bgImages, 28,16)
+				'DS' => array_slice($bgImages, 28,20)
 			);
 			$i = 0;
 			foreach ($decors as $name=>$decorGroup) {
