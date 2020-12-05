@@ -5909,6 +5909,10 @@ var decorBehaviors = {
 		spin: 20,
 		movable:true,
 		transparent:true,
+		preinit:function(decorsData) {
+			if (course == "BB")
+				this.dodgable = true;
+		},
 		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 3;
@@ -9938,14 +9942,13 @@ var itemDistributions = {
 		value: [{
 			"fauxobjet": 4,
 			"banane": 5,
-			"bananeX3": 1,
 			"carapacerouge": 1,
 			"carapace": 4
 		}, {
 			"carapace": 4,
 			"carapacerouge": 7,
 			"bobomb": 2,
-			"bananeX3": 2
+			"bananeX3": 1
 		}, {
 			"carapace": 1,
 			"bobomb": 2,
@@ -13426,16 +13429,40 @@ function ai(oKart) {
 	}
 	if ((oKart.roulette == 25 || oKart.using[0]) && !oKart.tourne && !oKart.cannon) {
 		var useRandomly = false;
+		function isPlayerTargetable(minDist,maxDist,minAngle,maxAngle, reverse) {
+			var minDist2 = minDist*minDist, maxDist2 = maxDist*maxDist;
+			for (var i=0;i<strPlayer.length;i++) {
+				var iKart = aKarts[i];
+				if (!iKart.loose && !iKart.protect) {
+					var dDist2 = (iKart.x-oKart.x)*(iKart.x-oKart.x) + (iKart.y-oKart.y)*(iKart.y-oKart.y);
+					if ((dDist2 >= minDist2) && (dDist2 < maxDist2)) {
+						var iAngle = Math.atan2(iKart.x-oKart.x, iKart.y-oKart.y)*180/Math.PI;
+						if (reverse)
+							iAngle += 180;
+						var dAngle = Math.abs(nearestAngle(iAngle-oKart.rotation, 0,360));
+						if ((dAngle >= minAngle) && (dAngle < maxAngle))
+							return true;
+					}
+				}
+			}
+			return false;
+		}
 		if (oKart.using.length) {
 			switch(oKart.using[0].type) {
 			case "carapace-rouge":
-				if (course == "BB") {
-					for (var i=0;i<strPlayer.length;i++) {
-						if (!aKarts[i].loose && Math.pow(aKarts[i].x-oKart.x-15*direction(0,oKart.rotation),2) + Math.pow(aKarts[i].y-oKart.y-15*direction(1,oKart.rotation),2) < 1000) {
-							arme(aKarts.indexOf(oKart));
-							i = strPlayer.length;
-						}
-					}
+				if ((course == "BB") && (oKart.using.length < 2)) {
+					if (isPlayerTargetable(15,100, 0,30))
+						arme(aKarts.indexOf(oKart));
+				}
+				else
+					useRandomly = true;
+				break;
+			case "carapace":
+				if ((course == "BB") && (oKart.using.length < 2)) {
+					if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,150, 0,15))
+						arme(aKarts.indexOf(oKart));
+					if (isPlayerTargetable(0,20, 0,30, true) || isPlayerTargetable(0,80, 0,15, true))
+						arme(aKarts.indexOf(oKart), true);
 				}
 				else
 					useRandomly = true;
