@@ -9980,15 +9980,7 @@ function showClFailedPopup() {
 }
 
 var isMetaItem = 0;
-var metaDistribution, metaItemPosition = 0.5, metaItemRange = 1000;
-if (window.metaItemSettings) {
-	if (metaItemSettings.distribution)
-		metaDistribution = metaItemSettings.distribution;
-	if (metaItemSettings.position !== undefined)
-		metaItemPosition = metaItemSettings.position;
-	if (metaItemSettings.range)
-		metaItemRange = metaItemSettings.range;
-}
+var metaItemPosition = 0.5, metaItemRange = 1000;
 var itemDistributions = {
 	"BB": [{
 		name: toLanguage("Standard", "Classique"),
