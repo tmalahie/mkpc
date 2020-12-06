@@ -488,34 +488,31 @@ $slidesPath = 'images/slides';
 	<section id="right_section">
 		<?php
 		require_once('utils-date.php');
-		/*if ($id) {
-			$majHourParis = '2020-04-04 18:00:00';
-			$majDay = to_local_tz($majHourParis, 'd');
-			$now = new \Datetime('now', new \DateTimeZone(get_client_tz()));
-			$isToday = ($majDay == $now->format('d'));
-			$majHour = to_local_tz($majHourParis, $language ? 'gA':'G\h');
-			if ($language) {
-			?>
-			<div class="subsection">
-				<div id="official_message" style="font-size: 0.9em">
-					<a href="https://youtu.be/k1-v-mG-4fU" target="_blank">Special trailer</a> scheduled for <strong><?php echo ($isToday ? 'today':'tomorrow'); ?> at <?php echo $majHour; ?></strong>!<br />
-					Don't miss the video
-					which will give all the info on the next big update. See you soon <span style="font-size:1.3em;line-height:1em;position:relative;top:0.05em">☺</span>
+		if ($id) {
+			$today = time();
+			if (($today > 1607310000) && ($today < 1607914800)) {
+				if ($language) {
+				?>
+				<div class="subsection">
+					<div id="official_message" style="font-size: 0.9em; text-align: left">
+						A <a href="https://forms.gle/NRoYzQ74CYT3h68X9" target="_blank">satisfaction survey</a> on the administration and events of Mario Kart PC is available.<br />
+						It will be closed next Monday, so don't wait to give your opinion!
+					</div>
 				</div>
-			</div>
-			<?php
-			}
-			else {
-			?>
-			<div class="subsection">
-				<div id="official_message" style="font-size: 0.9em">
-					<a href="https://youtu.be/k1-v-mG-4fU" target="_blank">Bande annonce spéciale</a> prévue <strong><?php echo ($isToday ? 'aujourd\'hui':'demain'); ?> à <?php echo $majHour; ?></strong>&nbsp;!<br />
-					Ne manquez pas cette vidéo qui donnera toutes les infos sur la prochaine grosse MàJ. À très vite <span style="font-size:1.3em;line-height:1em;position:relative;top:0.05em">☺</span>
+				<?php
+				}
+				else {
+				?>
+				<div class="subsection">
+					<div id="official_message" style="font-size: 0.9em; text-align: left">
+						Un <a href="https://forms.gle/NRoYzQ74CYT3h68X9" target="_blank">sondage de satisfaction</a> sur l'administration et les événements de Mario Kart PC est disponible.<br />
+						Il sera fermé Lundi prochain, alors n'attendez pas pour nous donner votre avis !
+					</div>
 				</div>
-			</div>
-			<?php
+				<?php
+				}
 			}
-		}*/
+		}
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
