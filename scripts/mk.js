@@ -17527,12 +17527,12 @@ function chooseRandMap() {
 		if (course != "BB")
 			choose(Math.ceil(Math.random()*NBCIRCUITS));
 		else
-			choose(NBCIRCUITS + Math.ceil(Math.random()*8));
+			choose(NBCIRCUITS + Math.ceil(Math.random()*12));
 	}
 	else if (isSingle)
 		choose(1);
 	else if (isBattle)
-		choose(NBCIRCUITS+Math.ceil(Math.random()*8),true);
+		choose(NBCIRCUITS+Math.ceil(Math.random()*12),true);
 	else
 		choose(Math.ceil(Math.random()*NBCIRCUITS),true);
 }

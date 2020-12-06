@@ -337,7 +337,7 @@ else {
 	listMaps = function() {
 		<?php
 		if ($isBattle)
-			echo 'var a='.($NBCIRCUITS+1).',n=8;';
+			echo 'var a='.($NBCIRCUITS+1).',n=12;';
 		else
 			echo 'var a=1,n='.$NBCIRCUITS.';';
 		?>
