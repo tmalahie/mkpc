@@ -8589,6 +8589,47 @@ function normalizeAngle(angle, modulo) {
 function nearestAngle(angle1,angle2, modulo) {
 	return angle1 + modulo*Math.round((angle2-angle1)/modulo);
 }
+function getNearestHoleDist(iX,iY, stopAt) {
+	var res = stopAt || Infinity;
+	if (!oMap.trous)
+		return res;
+	for (var j=0;j<4;j++) {
+		var oRectangles = oMap.trous[j].rectangle;
+		for (var i=0;i<oRectangles.length;i++) {
+			var oHole = oRectangles[i][0];
+			res = getHoleSegmentDist(res, iX,iY, oHole[0],oHole[1], oHole[2],0);
+			res = getHoleSegmentDist(res, iX,iY, oHole[0],oHole[1], 0,oHole[3]);
+			res = getHoleSegmentDist(res, iX,iY, oHole[0],oHole[1]+oHole[3], oHole[2],0);
+			res = getHoleSegmentDist(res, iX,iY, oHole[0]+oHole[2],oHole[1], 0,oHole[3]);
+			if (res < stopAt)
+				return res;
+		}
+		var oPolygons = oMap.trous[j].polygon;
+		for (var i=0;i<oPolygons.length;i++) {
+			var oHole = oPolygons[i][0];
+			for (var k=0;k<oHole.length;k++) {
+				var knc = (k+1)%oHole.length;
+				res = getHoleSegmentDist(res, iX,iY, oHole[k][0],oHole[k][1], oHole[knc][0],oHole[knc][1]);
+			}
+			if (res < stopAt)
+				return res;
+		}
+	}
+	return res;
+}
+function getHoleSegmentDist(currentRes, x,y, x1,y1, u1,v1) {
+	var l = projete(x,y, x1,y1,x1+u1,y1+v1);
+	if (l < 0) l = 0;
+	if (l > 1) l = 1;
+	var x0 = x1 + l*u1, y0 = y1 + l*v1;
+	var u = x0-x, v = y0-y;
+	var res = u*u + v*v;
+	if (res > currentRes)
+		return currentRes;
+	if (canMoveTo(x,y, u,v))
+		return res;
+	return currentRes;
+}
 
 var touchedObject; // TODO make this a local var
 function objet(iX, iY) {
@@ -10054,8 +10095,7 @@ var itemDistributions = {
 			"carapacerouge": 2
 		}, {
 			"carapace": 8,
-			"bananeX3": 8,
-			"carapaceX3": 6,
+			"bananeX3": 4,
 			"carapacerouge": 5,
 			"champi": 3
 		}, {
@@ -10132,7 +10172,7 @@ var itemDistributions = {
 			"carapace": 10,
 			"bananeX3": 4,
 			"carapacerouge": 15,
-			"carapaceX3": 8,
+			"carapaceX3": 4,
 			"champi": 1
 		}, {
 			"carapacerouge": 10,
@@ -13401,7 +13441,19 @@ function ai(oKart) {
 				diffThetaAbs *= Math.pow(diffThetaAbs/10,1.5);
 			distToAim = Math.hypot(aimX-oKart.x,aimY-oKart.y);
 			var dirToAim = Math.atan2(aimX-lastAi[0],aimY-lastAi[1])-oKart.rotation;
-			speedToAim = distToAim*maxOmega/(Math.abs(Math.sin(dirToAim))+diffThetaAbs*Math.PI/180/2);
+			var rAngle = (Math.abs(Math.sin(dirToAim))+diffThetaAbs*Math.PI/180/2)/maxOmega;
+			var speedToAim = distToAim/rAngle;
+			if (course == "BB") {
+				var rAngle0 = Math.max(5,rAngle/1.57);
+				if (rAngle > rAngle0) {
+					var maxHoleDist = 40, maxHoleDist2 = maxHoleDist*maxHoleDist;
+					var nearestHoleDist = getNearestHoleDist(oKart.x,oKart.y, maxHoleDist2);
+					if (nearestHoleDist < maxHoleDist2)
+						speedToAim = distToAim/Math.pow(rAngle0*Math.tan(rAngle/rAngle0),1.5);
+					else
+						speedToAim = distToAim/Math.pow(rAngle,1.2);
+				}
+			}
 			if (diffThetaAbs > fMaxRotInCp) {
 				if (h < hMargin) {
 					var marginSpeed = aiMarginLimitSpeed(oKart.x,oKart.y,direction(0,oKart.rotation),direction(1,oKart.rotation),currentAi[0],currentAi[1],u,v,hMargin*2,maxOmega);
