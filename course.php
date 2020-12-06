@@ -6,8 +6,12 @@ session_start();
 require_once('circuitEnums.php');
 $isBattle = true;
 $musicOptions = Array(
-	9 => ($language ? 'SNES Battle Course':'Arène bataille SNES'),
-	23 => ($language ? 'GBA Battle Course':'Arène bataille GBA')
+	9 => ($language ? '<small>SNES</small> Battle Course':'<small>SNES</small> Arène bataille'),
+	23 => ($language ? '<small>GBA</small> Battle Course':'<small>GBA</small> Arène bataille'),
+	38 => 'Nintendo DS',
+	39 => ($language ? 'Twilight House':'Maison de l\'Aube'),
+	40 => ($language ? 'Palm Shore':'Feuille de Palmier'),
+	41 => ($language ? 'Tart Top':'Tarte Sucrée')
 );
 if (isset($_GET['i'])) {
 	$circuitId = +$_GET['i'];
@@ -320,21 +324,32 @@ if (isset($_GET['i'])) {
 		<div id="music-selector" class="fs-popup" onclick="event.stopPropagation()" oncontextmenu="event.stopPropagation()">
 			<table>
 				<tr>
+					<th>SNES</th>
+					<th>GBA</th>
+					<th>DS</th>
+				</tr>
+				<tr>
 					<td>
 					<?php
-					$i = 9;
-					echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
+					for ($i=9;$i<=9;$i++)
+						echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
 					?>
 					</td>
 					<td>
 					<?php
-					$i = 23;
-					echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
+					for ($i=23;$i<=23;$i++)
+						echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
+					?>
+					</td>
+					<td>
+					<?php
+					for ($i=38;$i<=41;$i++)
+						echo '<a id="musicchoice-'.$i.'" href="javascript:selectMusic('.$i.')">'.$musicOptions[$i].'</a>';
 					?>
 					</td>
 				</tr>
 				<tr>
-					<td colspan="2" class="youtube">
+					<td colspan="3" class="youtube">
 						<a id="musicchoice-0" href="javascript:selectMusic(0)">Youtube</a>
 						<div>
 							<?php echo $language ? 'Video URL':'Adresse vidéo'; ?> :
