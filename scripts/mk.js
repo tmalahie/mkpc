@@ -7084,7 +7084,7 @@ var decorBehaviors = {
 									}
 									else if (tombe(decorData[0]+fMoveX,decorData[1]+fMoveY))
 										decorData[6][1] = -1;
-									else if (accelere(decorData[0]+fMoveX,decorData[1]+fMoveY))
+									else if (accelere(decorData[0],decorData[1], fMoveX,fMoveY))
 										decorData[6][4] = 20;
 									oMap.decor[this.type] = cannons;
 								}
@@ -8711,12 +8711,24 @@ function getOffroadProps(oKart,hpType) {
 	}
 }
 
-function accelere(iX, iY) {
+function accelere(iX, iY, iI, iJ) {
 	if (!oMap.accelerateurs) return false;
+	var nX = iX+iI, nY = iY+iJ;
+	var aPos = [iX, iY], aMove = [iI, iJ];
+	var dir = [(iI>0), (iJ>0)];
 	for (var i=0;i<oMap.accelerateurs.length;i++) {
 		var oBox = oMap.accelerateurs[i];
-		if (pointInRectangle(iX,iY, oBox))
+		if (pointInRectangle(nX,nY, oBox))
 			return true;
+		for (var j=0;j<2;j++) {
+			var l = dir[j];
+			if ((l ? ((aPos[j] <= oBox[j])&&((aPos[j]+aMove[j]) >= oBox[j])):((aPos[j] >= (oBox[j]+oBox[j+2]))&&((aPos[j]+aMove[j]) <= (oBox[j]+oBox[j+2]))))) {
+				var dim = 1-j;
+				var croiseJ = aPos[dim] + ((l?oBox[j]:oBox[j]+oBox[j+2])-aPos[j])*aMove[dim]/aMove[j];
+				if ((croiseJ >= oBox[dim]) && (croiseJ <= (oBox[dim]+oBox[dim+2])))
+					return true;
+			}
+		}
 	}
 	return false;
 }
@@ -12728,7 +12740,7 @@ function move(getId, triggered) {
 		}
 	}
 
-	if (!oKart.z && accelere(fNewPosX, fNewPosY)) {
+	if (!oKart.z && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
 		oKart.champi = 20;
 		oKart.maxspeed = 11;
 		oKart.speed = 11;
