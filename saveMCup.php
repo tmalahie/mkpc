@@ -30,7 +30,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 				$save = false;
 		}
 		else {
-			mysql_query('INSERT INTO `mkmcups` VALUES(NULL,CURRENT_TIMESTAMP(),'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',-1,0,0,"'. $mode .'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'","'.$optionsJson.'")');
+			mysql_query('INSERT INTO `mkmcups` VALUES(NULL,CURRENT_TIMESTAMP(),'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,"'. $mode .'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'","'.$optionsJson.'")');
 			$cupId = mysql_insert_id();
 			include('session.php');
 			if ($id) {

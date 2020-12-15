@@ -42,15 +42,32 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 			$getNotes = mysql_query("SELECT rating FROM `mkratings` WHERE type='$table' AND circuit='$circuitId'");
 			$total = 0;
 			$nbNotes = 0;
+			$nbByRating = array();
+			$K = 5;
+			for ($i=1;$i<=$K;$i++)
+				$nbByRating[$i] = 0;
 			while ($ratings = mysql_fetch_array($getNotes)) {
 				$total += $ratings['rating'];
+				$nbByRating[$ratings['rating']]++;
 				$nbNotes++;
 			}
-			if ($nbNotes)
+			if ($nbNotes) {
 				$nNote = ($total/$nbNotes);
-			else
-				$nNote = -1;
-			mysql_query('UPDATE `'.$table.'` SET note='.$nNote.',nbnotes='.$nbNotes.' WHERE id="'.$circuitId.'"');
+				$za_2 = 1.65;
+				$sigma1 = 0;
+				$sigma2 = 0;
+				for ($i=1;$i<=$K;$i++) {
+					$sigma1 += ($i*$i)*($nbByRating[$i]+1)/($nbNotes+$K);
+					$sigma2 += $i*($nbByRating[$i]+1)/($nbNotes+$K);
+				}
+				$pScore = $sigma2 - $za_2*sqrt(($sigma1-$sigma2*$sigma2)/($nbNotes+$K+1));
+			}
+			else {
+				$nNote = 0;
+				$pScore = 0;
+			}
+
+			mysql_query('UPDATE `'.$table.'` SET note='.$nNote.',nbnotes='.$nbNotes.',pscore='.$pScore.' WHERE id="'.$circuitId.'"');
 		}
 	}
 	echo '1';

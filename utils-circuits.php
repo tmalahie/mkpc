@@ -49,7 +49,7 @@ function toSQLSort($sql, $params) {
 		$sort = "IFNULL(publication_date,'2001-01-01') $desc, id $desc";
 		break;
 	case 1 :
-		$sort = "note $desc, nbnotes $desc, id $desc";
+		$sort = "pscore $desc, id $desc";
 		break;
 	case 2 :
 		$sort = "nbcomments $desc, id $desc";
@@ -71,9 +71,7 @@ function sortCmp0(&$res1,&$res2) {
 	return $res2['id']-$res1['id'];
 }
 function sortCmp1(&$res1,&$res2) {
-	$res = floatCmp($res2['note'],$res1['note']);
-	if ($res) return $res;
-	$res = $res2['nbnotes']-$res1['nbnotes'];
+	$res = floatCmp($res2['pscore'],$res1['pscore']);
 	if ($res) return $res;
 	$res = $res1['category']-$res2['category'];
 	if ($res) return $res;

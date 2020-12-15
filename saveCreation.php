@@ -45,7 +45,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 					$circuitId = -1;
 			}
 			else {
-				mysql_query('INSERT INTO `mkcircuits` VALUES (null, CURRENT_TIMESTAMP(), '.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',-1,0,0,'.$isBattle.',"'.$map.'","'.$laps.'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'")');
+				mysql_query('INSERT INTO `mkcircuits` VALUES (null, CURRENT_TIMESTAMP(), '.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,'.$isBattle.',"'.$map.'","'.$laps.'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'")');
 				$circuitId = mysql_insert_id();
 				include('session.php');
 				if ($id) {
