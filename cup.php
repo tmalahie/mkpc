@@ -80,8 +80,7 @@ if (isset($cids))
 		$aCircuits = array($aCircuits[$type]);
 		$aParams = array(
 			'pids' => $identifiants,
-			'type' => $type,
-			'reverse' => true
+			'type' => $type
 		);
 		$listCircuits = listCreations(1,null,null,$aCircuits,$aParams);
 		$nbCircuits = count($listCircuits);

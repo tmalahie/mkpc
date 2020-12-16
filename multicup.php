@@ -84,8 +84,7 @@ if (isset($mids))
 			$aCircuits = array($aCircuits[$type]);
 			$aParams = array(
 				'pids' => $identifiants,
-				'type' => $type,
-				'reverse' => true
+				'type' => $type
 			);
 			$listCups = listCreations(1,null,null,$aCircuits,$aParams);
 			$nbCups = count($listCups);

@@ -169,7 +169,6 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 		$nbsToLoadEnd = getTracksToLoad($page,$nbByType,$weightsByType,$params['max_circuits']);
 		$type = $params['type'];
 		$tri = $params['tri'];
-		$singleType = ($type !== '');
 		foreach ($aCircuits as $i=>$aCircuit) {
 			$aList = nextRaces($aCircuit,$nbsToLoadBegin[$i],$nbsToLoadEnd[$i],$params);
 			$creationsList['tracks'] = array_merge($creationsList['tracks'], $aList);
