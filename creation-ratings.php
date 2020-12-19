@@ -13,62 +13,6 @@ if (!hasRight('moderator')) {
 	exit;
 }
 include('getId.php');
-if (isset($_GET['del'])) {
-    if ($rating = mysql_fetch_array(mysql_query('SELECT type,circuit,identifiant FROM mkratings WHERE id="'. $_GET['del'] .'"'))) {
-        if ($circuit = mysql_fetch_array(mysql_query('SELECT nom,identifiant FROM `'. $rating['type'] .'` WHERE id='. $rating['circuit']))) {
-            if ($circuit['identifiant'] != $identifiants[0]) {
-                mysql_query('DELETE FROM mkratings WHERE id="'. $_GET['del'] .'"');
-                require_once('utils-ratings.php');
-                recomputeRating($rating['type'], $rating['circuit']);
-                mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "DRating '. $rating['type'] .' '. $rating['circuit'] .' '. $rating['identifiant'] .'")');
-            }
-        }
-    }
-}
-if (isset($_GET['url'])) {
-    $urlComponents = parse_url($_GET['url']);
-    $queryComponents = array();
-    if (isset($urlComponents['query']))
-        parse_str($urlComponents['query'], $queryComponents);
-    switch ($urlComponents['path']) {
-    case '/arena.php':
-        $circuitType = 'mkcircuits';
-        $circuitId = isset($queryComponents['id']) ? +$queryComponents['id'] : 0;
-        break;
-    case '/circuit.php':
-        if (isset($queryComponents['mid'])) {
-            $circuitType = 'mkmcups';
-            $circuitId = +$queryComponents['mid'];
-        }
-        elseif (isset($queryComponents['sid'])) {
-            $circuitType = 'mkcups';
-            $circuitId = +$queryComponents['sid'];
-        }
-        else {
-            $circuitType = 'mkcircuits';
-            $circuitId = isset($queryComponents['id']) ? +$queryComponents['id'] : 0;
-        }
-        break;
-    case '/map.php':
-        if (isset($queryComponents['mid'])) {
-            $circuitType = 'mkmcups';
-            $circuitId = +$queryComponents['mid'];
-        }
-        elseif (isset($queryComponents['cid'])) {
-            $circuitType = 'mkcups';
-            $circuitId = +$queryComponents['cid'];
-        }
-        else {
-            $circuitType = 'circuits';
-            $circuitId = isset($queryComponents['i']) ? +$queryComponents['i'] : 0;
-        }
-        break;
-    case '/battle.php':
-        $circuitType = 'arenes';
-        $circuitId = isset($queryComponents['i']) ? +$queryComponents['i'] : 0;
-        break;
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -114,8 +58,64 @@ include('o_online.php');
 <body>
 <?php
 include('header.php');
-$page = 'forum';
+$page = 'game';
 include('menu.php');
+if (isset($_GET['del'])) {
+    if ($rating = mysql_fetch_array(mysql_query('SELECT type,circuit,identifiant FROM mkratings WHERE id="'. $_GET['del'] .'"'))) {
+        if ($circuit = mysql_fetch_array(mysql_query('SELECT nom,identifiant FROM `'. $rating['type'] .'` WHERE id='. $rating['circuit']))) {
+            if ($circuit['identifiant'] != $identifiants[0]) {
+                mysql_query('DELETE FROM mkratings WHERE id="'. $_GET['del'] .'"');
+                require_once('utils-ratings.php');
+                recomputeRating($rating['type'], $rating['circuit']);
+                mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "DRating '. $rating['type'] .' '. $rating['circuit'] .' '. $rating['identifiant'] .'")');
+            }
+        }
+    }
+}
+if (isset($_GET['url'])) {
+    $urlComponents = parse_url($_GET['url']);
+    $queryComponents = array();
+    if (isset($urlComponents['query']))
+        parse_str($urlComponents['query'], $queryComponents);
+    switch ($urlComponents['path']) {
+    case '/arena.php':
+        $circuitType = 'mkcircuits';
+        $circuitId = isset($queryComponents['id']) ? +$queryComponents['id'] : 0;
+        break;
+    case '/circuit.php':
+        if (isset($queryComponents['mid'])) {
+            $circuitType = 'mkmcups';
+            $circuitId = +$queryComponents['mid'];
+        }
+        elseif (isset($queryComponents['cid'])) {
+            $circuitType = 'mkcups';
+            $circuitId = +$queryComponents['cid'];
+        }
+        else {
+            $circuitType = 'mkcircuits';
+            $circuitId = isset($queryComponents['id']) ? +$queryComponents['id'] : 0;
+        }
+        break;
+    case '/map.php':
+        if (isset($queryComponents['mid'])) {
+            $circuitType = 'mkmcups';
+            $circuitId = +$queryComponents['mid'];
+        }
+        elseif (isset($queryComponents['cid'])) {
+            $circuitType = 'mkcups';
+            $circuitId = +$queryComponents['cid'];
+        }
+        else {
+            $circuitType = 'circuits';
+            $circuitId = isset($queryComponents['i']) ? +$queryComponents['i'] : 0;
+        }
+        break;
+    case '/battle.php':
+        $circuitType = 'arenes';
+        $circuitId = isset($queryComponents['i']) ? +$queryComponents['i'] : 0;
+        break;
+    }
+}
 ?>
 <main>
 	<h1><?php echo $language ? 'Manage circuit ratings':'Gérer les notes des circuits'; ?></h1>
@@ -167,6 +167,11 @@ include('menu.php');
                             '. ($myCircuit ? '': '<td><a class="action_button" href="?url='. urlencode($_GET['url']) .'&del='. $rating['id'] .'" onclick="return confirmDelete()">'. ($language ? 'Delete':'Supprimer') .'</a></td>') .'
                         </tr>';
                         $i++;
+                    }
+                    if (!$i) {
+                        echo '<tr class="fonce">
+                            <td colspan="'. ($myCircuit ? 3:4) .'"><em>'. ($language ? 'No rating for this circuit':'Aucune note sur ce circuit') .'</em></td>
+                        </tr>';
                     }
                     ?>
                 </table>

@@ -34,7 +34,7 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 			$getOldMark = mysql_query('SELECT id FROM `mkratings` WHERE type="'.$table.'" AND circuit="'. $circuitId .'" AND identifiant='.$identifiants[0]);
 			if ($oldMark = mysql_fetch_array($getOldMark)) {
 				if ($newMark)
-					mysql_query('UPDATE `mkratings` SET rating='. $rating .' WHERE id='. $oldMark['id']);
+					mysql_query('UPDATE `mkratings` SET rating='. $rating .',player="'.$id.'" WHERE id='. $oldMark['id']);
 				else
 					mysql_query('DELETE FROM `mkratings` WHERE id='. $oldMark['id']);
 			}
