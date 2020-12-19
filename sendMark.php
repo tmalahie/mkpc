@@ -13,25 +13,30 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 	}
 	else
 		$table = 'mkcircuits';
+	function exitAndFlush() {
+		mysql_close();
+		echo '1';
+		exit;
+	}
 	include('getId.php');
 	include('initdb.php');
 	include('session.php');
 	$circuitId = +$_POST['id'];
 	$rating = +$_POST['rating'];
 	include('ip_banned.php');
-	if (!$id || isBanned()) {
-		mysql_close();
-		exit;
-	}
+	if (!$id || isBanned()) exitAndFlush();
+	$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
+	if (($banned=mysql_fetch_array($getBanned)) && $banned['banned'])
+		exitAndFlush();
 	$newMark = (($rating >= 1) && ($rating <= 5));
 	if ($getIdentifier = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'.$table.'` WHERE id="'.$circuitId.'"'))) {
 		if ($getIdentifier && ($getIdentifier['identifiant'] != $identifiants[0])) {
-			$getOldMark = mysql_query('SELECT rating FROM `mkratings` WHERE type="'.$table.'" AND circuit="'. $circuitId .'" AND identifiant='.$identifiants[0]);
+			$getOldMark = mysql_query('SELECT id FROM `mkratings` WHERE type="'.$table.'" AND circuit="'. $circuitId .'" AND identifiant='.$identifiants[0]);
 			if ($oldMark = mysql_fetch_array($getOldMark)) {
 				if ($newMark)
-					mysql_query('UPDATE `mkratings` SET rating='. $rating .' WHERE type="'.$table.'" AND circuit="'.$circuitId.'" AND identifiant='. $identifiants[0]);
+					mysql_query('UPDATE `mkratings` SET rating='. $rating .' WHERE id='. $oldMark['id']);
 				else
-					mysql_query('DELETE FROM `mkratings` WHERE type="'.$table.'" AND circuit="'.$circuitId.'" AND identifiant='. $identifiants[0]);
+					mysql_query('DELETE FROM `mkratings` WHERE id='. $oldMark['id']);
 			}
 			else if ($newMark)
 				mysql_query('INSERT INTO `mkratings` SET type="'.$table.'",circuit="'.$circuitId.'",identifiant="'.$identifiants[0].'",player="'.$id.'",rating='.$rating);
@@ -39,35 +44,8 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 				mysql_close();
 				exit;
 			}
-			$getNotes = mysql_query("SELECT rating FROM `mkratings` WHERE type='$table' AND circuit='$circuitId'");
-			$total = 0;
-			$nbNotes = 0;
-			$nbByRating = array();
-			$K = 5;
-			for ($i=1;$i<=$K;$i++)
-				$nbByRating[$i] = 0;
-			while ($ratings = mysql_fetch_array($getNotes)) {
-				$total += $ratings['rating'];
-				$nbByRating[$ratings['rating']]++;
-				$nbNotes++;
-			}
-			if ($nbNotes) {
-				$nNote = ($total/$nbNotes);
-				$za_2 = 1.65;
-				$sigma1 = 0;
-				$sigma2 = 0;
-				for ($i=1;$i<=$K;$i++) {
-					$sigma1 += ($i*$i)*($nbByRating[$i]+1)/($nbNotes+$K);
-					$sigma2 += $i*($nbByRating[$i]+1)/($nbNotes+$K);
-				}
-				$pScore = $sigma2 - $za_2*sqrt(($sigma1-$sigma2*$sigma2)/($nbNotes+$K+1));
-			}
-			else {
-				$nNote = 0;
-				$pScore = 0;
-			}
-
-			mysql_query('UPDATE `'.$table.'` SET note='.$nNote.',nbnotes='.$nbNotes.',pscore='.$pScore.' WHERE id="'.$circuitId.'"');
+			require_once('utils-ratings.php');
+			recomputeRating($table,$circuitId);
 		}
 	}
 	echo '1';

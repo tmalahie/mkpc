@@ -161,6 +161,12 @@ include('menu.php');
 			</a>
 		</li>
 		<li>
+			<a class="action-ctn" href="creation-ratings.php">
+				<div class="action-title"><?php echo $language ? "Manage <strong>ratings</strong> on tracks":"Gérer les <strong>notes</strong> sur un circuit"; ?></div>
+				<div class="action-desc"><?php echo $language ? "To monitor and eradicate 1-star trolls...":"Pour surveiller et éradiquer les 1-star trolls..."; ?></div>
+			</a>
+		</li>
+		<li>
 			<a class="action-ctn" href="adminPersos.php">
 				<div class="action-title"><?php echo $language ? "Delete a <strong>character</strong>":"Supprimer un <strong>perso</strong>"; ?></div>
 				<div class="action-desc"><?php echo $language ? "In case of plagiarism or if eventual cheating (invisible character...)":"En cas de plagiat ou de risque de triche (perso invisible...)"; ?></div>
