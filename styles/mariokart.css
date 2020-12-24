@@ -485,6 +485,14 @@ button.control-close:active {
 	color: #FEFF3F;
     font-weight: bold;
 }
+#mariokartcontainer {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
  select {
     background-color: black;
      color: white;
