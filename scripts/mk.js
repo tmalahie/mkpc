@@ -559,11 +559,11 @@ var oPlanDiv,oPlanDiv2, oPlanCtn,oPlanCtn2, oPlanImg,oPlanImg2;
 var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oExpWidth, oExpBWidth;
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2, oExpBWidth2;
 var oCharRatio, oPlanRatio;
-var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {},
+var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {}, oPlanSea,
 	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(),
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(),
 	oPlanEtoiles = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
-var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {},
+var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {}, oPlanSea2,
 	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(),
 	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(),
 	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
@@ -636,6 +636,16 @@ function setPlanPos() {
 	}
 	setAssetPos(oPlanAssets,oPlanCtn,oPlanSize);
 	setAssetPos(oPlanAssets2,oPlanCtn2,oPlanSize2);
+
+	function setSeaPos(iPlanSea,iPlanSize) {
+		var oViewContext = iPlanSea.getContext("2d");
+		oViewContext.clearRect(0, 0, iPlanSea.width, iPlanSea.height);
+		oMap.sea.render(oViewContext,[0,0],iPlanSize/oMap.w);
+	}
+	if (oMap.sea) {
+		setSeaPos(oPlanSea,oPlanSize);
+		setSeaPos(oPlanSea2,oPlanSize2);
+	}
 
 	function setKartsPos(iPlanCharacters, iCharWidth, iMapW) {
 		for (var i=0;i<aKarts.length;i++) {
@@ -1196,6 +1206,127 @@ function initMap() {
 			cannons[getShapeType(cannon[0])].push(cannon);
 		}
 		oMap.cannons = cannons;
+	}
+	if (oMap.sea) {
+		var oWaves = oMap.sea.waves;
+		oMap.sea.projections = [];
+		for (var i=0;i<oWaves.length;i++) {
+			var oWave1 = oWaves[i][0], oWave2 = oWaves[i][1];
+			var oProjections = [];
+			var lastInc = 0;
+			for (var j=0;j<oWave2.length;j++) {
+				var ptX = oWave2[j][0], ptY = oWave2[j][1];
+				var l;
+				var minX, minY, minInc, minDist = Infinity;
+				for (var k=0;k<oWave1.length;k++) {
+					var inc = k, inc2 = (k+1)%oWave1.length;
+					l = projete(ptX,ptY, oWave1[inc][0],oWave1[inc][1],oWave1[inc2][0],oWave1[inc2][1]);
+					if (l > 1) l = 1;
+					if (l < 0) l = 0;
+					var hX = oWave1[inc][0] + l*(oWave1[inc2][0] - oWave1[inc][0]), hY = oWave1[inc][1] + l*(oWave1[inc2][1]-oWave1[inc][1]);
+					var d = (hX-ptX)*(hX-ptX) + (hY-ptY)*(hY-ptY);
+					if (d < minDist) {
+						minDist = d;
+						minX = hX;
+						minY = hY;
+						minInc = inc;
+					}
+				}
+				if (minInc < lastInc)
+					minInc += oWave1.length;
+				for (var k=lastInc;k<minInc;k++) {
+					var inc2 = (k+1)%oWave1.length;
+					oProjections.push([ptX,ptY,oWave1[inc2][0],oWave1[inc2][1]]);
+				}
+				lastInc = minInc%oWave1.length;
+				oProjections.push([ptX,ptY,minX,minY]);
+			}
+			oMap.sea.projections.push(oProjections);
+		}
+		function getWavePtProjected(oProjection, l) {
+			return [oProjection[2] + (oProjection[0]-oProjection[2])*l, oProjection[3] + (oProjection[1]-oProjection[3])*l];
+		}
+		oMap.sea.progress = 0;
+		oMap.sea.offroad0 = oMap.horspistes.eau.polygon;
+		oMap.sea.drawPolygon = function(oViewContext, oPolygon, center,scale) {
+			oViewContext.beginPath();
+			for (var j=0;j<oPolygon.length;j++) {
+				var pt = oPolygon[j];
+				var proj = [(pt[0]-center[0])*scale, (pt[1]-center[1])*scale];
+				if (j)
+					oViewContext.lineTo(proj[0],proj[1]);
+				else
+					oViewContext.moveTo(proj[0],proj[1]);
+			}
+			oViewContext.closePath();
+			oViewContext.fill();
+			oViewContext.stroke();
+		}
+		oMap.sea.render = function(oViewContext, center,scale) {
+			var waveProgress = this.progress;
+			var oWaves = this.waves;
+			var waterL = waveProgress*0.99;
+			var waveL = waveProgress-0.25*(1-waveProgress/2);
+			var foamL = waveProgress-0.04*(1-waveProgress/3);
+			oViewContext.lineWidth = 1;
+			if (waveL > 0) {
+				oViewContext.fillStyle = oViewContext.strokeStyle = this.colors.water;
+				for (var i=0;i<oWaves.length;i++) {
+					var oPolygon = this.polygon(i,0,waterL);
+					this.drawPolygon(oViewContext, oPolygon, center,scale);
+				}
+			}
+			else
+				waveL = 0;
+			if (foamL > 0) {
+				oViewContext.fillStyle = oViewContext.strokeStyle = this.colors.wave;
+				for (var i=0;i<oWaves.length;i++) {
+					var oPolygon = this.polygon(i,waveL,waterL);
+					this.drawPolygon(oViewContext, oPolygon, center,scale);
+				}
+			}
+			else
+				foamL = 0;
+			if (waveProgress > 0.005) {
+				oViewContext.fillStyle = oViewContext.strokeStyle = this.colors.foam;
+				for (var i=0;i<oWaves.length;i++) {
+					var oPolygon = this.polygon(i,foamL,waveProgress*1.04);
+					this.drawPolygon(oViewContext, oPolygon, center,scale);
+				}
+			}
+		}
+		oMap.sea.polygon = function(i, l1,l2) {
+			var oWave = this.waves[i][0];
+			var res = [], pt0;
+			var oProjections = this.projections[i];
+			if (l1) {
+				pt0 = getWavePtProjected(oProjections[0], l1);
+				res.push(pt0);
+				for (var k=0;k<oProjections.length;k++) {
+					var ptK = getWavePtProjected(oProjections[k], l1);
+					res.push(ptK);
+				}
+				res.push(pt0);
+			}
+			else {
+				pt0 = oWave[0];
+				res.push(pt0);
+				for (var k=1;k<oWave.length;k++) {
+					var ptK = oWave[k];
+					res.push(ptK);
+				}
+				res.push(pt0);
+			}
+			var kLast = oProjections.length-1;
+			pt0 = getWavePtProjected(oProjections[kLast], l2);
+			res.push(pt0);
+			for (var k=kLast-1;k>=0;k--) {
+				var ptK = getWavePtProjected(oProjections[k], l2);
+				res.push(ptK);
+			}
+			res.push(pt0);
+			return res;
+		}
 	}
 }
 var timer = 0;
@@ -2508,6 +2639,24 @@ function startGame() {
 				oPlanDecor[type] = new Array();
 				oPlanDecor2[type] = new Array();
 			}
+		}
+
+		if (oMap.sea) {
+			oPlanSea = document.createElement("canvas");
+			oPlanSea.style.position = "absolute";
+			oPlanSea.style.left = "0px";
+			oPlanSea.style.top = "0px";
+			oPlanSea.setAttribute("width", oPlanSize +"px");
+			oPlanSea.setAttribute("height", oPlanSize +"px");
+			oPlanCtn.appendChild(oPlanSea);
+			
+			oPlanSea2 = document.createElement("canvas");
+			oPlanSea2.style.position = "absolute";
+			oPlanSea2.style.left = "0px";
+			oPlanSea2.style.top = "0px";
+			oPlanSea2.setAttribute("width", oPlanWidth2 +"px");
+			oPlanSea2.setAttribute("height", oPlanWidth2 +"px");
+			oPlanCtn2.appendChild(oPlanSea2);
 		}
 		var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 		for (var i=0;i<assetKeys.length;i++) {
@@ -4918,6 +5067,8 @@ function redrawCanvas(i, fCamera) {
 			asset.x-posX,asset.y-posY
 		);
 	}
+	if (oMap.sea)
+		oMap.sea.render(oViewContext,[posX,posY],1);
 
 	oViewContext.restore();
 
@@ -13680,6 +13831,28 @@ function moveDecor() {
 				bumper[1][0] = bumper[2][3] + bumper[3][0]*Math.cos(bumper[3][1]);
 				bumper[1][1] = bumper[2][4] + bumper[3][0]*Math.sin(bumper[3][1]);
 				bumper[0].redraw(bumper);
+			}
+		}
+	}
+	if (oMap.sea) {
+		var oSea = oMap.sea;
+		var lastProgress = oSea.progress;
+		var tLow = 50, tHigh = 50, tTransition = 24, tTransition2 = tTransition, tTotal = tLow+tHigh+tTransition+tTransition2;
+		var ti = timer%tTotal;
+		if (ti < tLow)
+			oSea.progress = 0;
+		else if (ti < (tLow+tTransition))
+			oSea.progress = 0.5+Math.sin(Math.PI*((ti-tLow)/tTransition-0.5))*0.5;
+		else if (ti < (tLow+tHigh+tTransition))
+			oSea.progress = 1;
+		else
+			oSea.progress = 0.5-Math.sin(Math.PI*((ti-tLow-tHigh-tTransition)/tTransition2-0.5))*0.5;
+		if (oSea.progress !== lastProgress) {
+			oMap.horspistes.eau = {rectangle:[],polygon:oSea.offroad0.slice()};
+			if (oSea.progress) {
+				var waterL = oSea.progress*0.99;
+				for (var i=0;i<oSea.waves.length;i++)
+					oMap.horspistes.eau.polygon.push(oSea.polygon(i, 0,waterL));
 			}
 		}
 	}
