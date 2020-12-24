@@ -311,9 +311,6 @@ function setScreenScale(iValue, triggered) {
 			oScr.style.height = (iHeight*iScreenScale)+"px";
 			oScr.style.transformOrigin = oScr.style.WebkitTransformOrigin = oScr.style.MozTransformOrigin = "top left";
 			oScr.style.transform = oScr.style.WebkitTransform = oScr.style.MozTransform = "scale("+ (iScreenScale/oScr.aScreenScale) +")";
-			var FBRoot = document.getElementById("fb-root");
-			if (FBRoot)
-				FBRoot.style.display = "none";
 		}
 	}
 
@@ -14734,9 +14731,7 @@ function privateLink(options) {
 	oContainers[0].appendChild(oScr);
 }
 
-function selectTypeScreen() {
-	var FBRoot;
-	
+function selectTypeScreen() {	
 	var oScr = document.createElement("div");
 
 	var oStyle = oScr.style;
@@ -14777,7 +14772,6 @@ function selectTypeScreen() {
 
 		oPInput.onclick = function() {
 			course = "GP";
-			FBRoot.style.display = "none";
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			selectPlayerScreen(0);
@@ -14794,7 +14788,6 @@ function selectTypeScreen() {
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
 			course = "CM";
-			FBRoot.style.display = "none";
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			selectPlayerScreen(0);
@@ -14813,7 +14806,6 @@ function selectTypeScreen() {
 
 		oPInput.onclick = function() {
 			course = "VS";
-			FBRoot.style.display = "none";
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			selectNbJoueurs();
@@ -14830,7 +14822,6 @@ function selectTypeScreen() {
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
 			course = "BB";
-			FBRoot.style.display = "none";
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			selectNbJoueurs();
@@ -14846,7 +14837,6 @@ function selectTypeScreen() {
 		oPInput.style.top = ((oButtonsTop+16)*iScreenScale)+"px";
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
-			FBRoot.style.display = "none";
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			selectTypeCreate();
@@ -14863,7 +14853,6 @@ function selectTypeScreen() {
 		oPInput.style.width = (29*iScreenScale)+"px";
 		oPInput.onclick = function() {
 			course = "VS";
-			FBRoot.style.display = "none";
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			selectOnlineScreen();
@@ -14957,7 +14946,6 @@ function selectTypeScreen() {
 				if (course == "CL")
 					document.location.href = "online.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid);
 				else {
-					FBRoot.style.display = "none";
 					oScr.innerHTML = "";
 
 					oContainers[0].removeChild(oScr);
@@ -14983,35 +14971,6 @@ function selectTypeScreen() {
 			exitCircuit();
 		}
 		oScr.appendChild(oPInput);
-	}
-
-	FBRoot = document.getElementById("fb-root");
-	var FBToLoad = !FBRoot;
-	if (FBToLoad) {
-		FBRoot = document.createElement("div");
-		FBRoot.id = "fb-root";
-		FBRoot.style.position = "absolute";
-	}
-	else
-		FBRoot.style.display = "";
-	FBRoot.style.left = (16*iScreenScale - 12)+"px";
-	FBRoot.style.top = (36*iScreenScale + 2)+"px";
-	FBRoot.style.transform = FBRoot.style.WebkitTransform = FBRoot.style.MozTransform = "scale("+ (iScreenScale/7) +")";
-	if (FBToLoad) {
-		var FBshare = document.createElement("div");
-		FBshare.className = "fb-share-button";
-		FBshare.dataset.href = document.location.href;
-		FBshare.dataset.layout = "button";
-		FBRoot.appendChild(FBshare);
-		document.body.appendChild(FBRoot);
-		
-		(function(d, s, id) {
-		  var js, fjs = d.getElementsByTagName(s)[0];
-		  if (d.getElementById(id)) return;
-		  js = d.createElement(s); js.id = id;
-		  js.src = "//connect.facebook.net/"+ (language ? "en_EN":"fr_FR") +"/sdk.js#xfbml=1&version=v2.4";
-		  fjs.parentNode.insertBefore(js, fjs);
-		}(document, 'script', 'facebook-jssdk'));
 	}
 
 	var oEnglish = document.createElement("img");
@@ -20452,9 +20411,6 @@ else {
 											if (oScr) {
 												oScr.innerHTML = "";
 												oContainers[0].removeChild(oScr);
-												var FBRoot = document.getElementById("fb-root");
-												if (FBRoot)
-													FBRoot.style.display = "none";
 												course = clSelected.autoset.course;
 												selectPlayerScreen(0);
 											}
