@@ -1,4 +1,6 @@
-var aNote = cNote;
+if (typeof cNote !== 'undefined') {
+    var aNote = cNote;
+}
 function previewMark(note) {
     for (i=1;i<=note;i++)
         document.getElementById("star"+ i).src = "images/star1.png";
