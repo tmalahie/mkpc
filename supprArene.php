@@ -15,7 +15,7 @@ if (isset($_POST['id'])) {
 		for ($i=0;$i<$nbLettres;$i++)
 			mysql_query('DELETE FROM `mk'.$lettres[$i].'` WHERE circuit="'.$cID.'"');
 		if (hasRight('moderator'))
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "SArene '. $cID .'")');
+			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "SArene '. $cID .'")');
 	}
 	echo 1;
 	mysql_close();

@@ -9,7 +9,7 @@ if (isset($_POST['id'])) {
 		mysql_query('DELETE FROM `mkmcups` WHERE id="'.$cID.'"');
 		mysql_query('DELETE FROM `mkmcups_tracks` WHERE mcup="'.$cID.'"');
 		if (hasRight('moderator'))
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "MCup '. $cID .'")');
+			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "MCup '. $cID .'")');
 	}
 	echo 1;
 	mysql_close();

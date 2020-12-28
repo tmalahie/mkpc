@@ -7,7 +7,7 @@ if (isset($_GET['id']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `m
 	mysql_query('UPDATE `mknews` SET status="accepted",publication_date=NULL WHERE id="'. $_GET['id'] .'"');
 	if ($news['author'] != $id) {
 		mysql_query('INSERT INTO `mknotifs` SET type="news_moderated", user="'. $news['author'] .'", link="'. $news['id'] .'"');
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "ANews '. $_GET['id'] .'")');
+		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "ANews '. $_GET['id'] .'")');
 	}
 	$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $news['author'] .'"');
 	while ($follower = mysql_fetch_array($getFollowers))

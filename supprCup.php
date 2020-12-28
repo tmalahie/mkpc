@@ -12,7 +12,7 @@ if (isset($_POST['id'])) {
 		mysql_query('UPDATE `mkclrace` l LEFT JOIN `mkchallenges` h ON h.clist=l.id AND h.status="pending_moderation" LEFT JOIN `mkcups` c ON l.circuit=c.id SET l.type="",l.circuit=NULL,h.status="pending_publication" WHERE l.type="mkcups" AND c.id IS NULL');
 		mysql_query('UPDATE `mkclrace` l LEFT JOIN `mkchallenges` h ON h.clist=l.id AND h.status="pending_moderation" LEFT JOIN `mkmcups` c ON l.circuit=c.id SET l.type="",l.circuit=NULL,h.status="pending_publication" WHERE l.type="mkmcups" AND c.id IS NULL');
 		if (hasRight('moderator'))
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "Cup '. $cID .'")');
+			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Cup '. $cID .'")');
 	}
 	echo 1;
 	mysql_close();

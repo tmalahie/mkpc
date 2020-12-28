@@ -15,7 +15,7 @@ if (isset($_GET['id'])) {
 				mysql_query('DELETE FROM `mknewscoms` WHERE id="'. $_GET['id'] .'"');
 				mysql_query('UPDATE `mknews` SET nbcomments=nbcomments-1 WHERE id="'. $comment['news'] .'"');
 				if ($comment['author']!=$id)
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "DNewscom '. $_GET['id'] .'")');
+					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "DNewscom '. $_GET['id'] .'")');
 				mysql_close();
 				header('location: news.php?id='.$comment['news'].'#news-comment-ctn-0');
 			}

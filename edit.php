@@ -52,7 +52,7 @@ include('menu.php');
 			if (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
 				mysql_query('UPDATE `mkmessages` SET message="'. $_POST['message'] .'" WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'].'"');
 				if ($lastMessage['auteur'] != $id)
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "Edit '. $_GET['topic'] .' '. $_GET['id'] .'")');
+					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Edit '. $_GET['topic'] .' '. $_GET['id'] .'")');
 				preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
 				preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', $lastMessage['message'], $mentions0);
 				function array_rmvalue(&$arr,&$val) {

@@ -48,7 +48,7 @@ if (isset($_GET['id']) && isset($_GET['topic']) && ($_GET['id'] > 1)) {
 			$q = mysql_query('DELETE FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'] .'"'. (hasRight('moderator') ? '':' AND auteur="'. $id .'"'));
 			if (mysql_affected_rows()) {
 				if (hasRight('moderator'))
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "Suppr '. $_GET['topic'] .' '. $_GET['id'] .'")');
+					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Suppr '. $_GET['topic'] .' '. $_GET['id'] .'")');
 				$getLastMessage = mysql_fetch_array(mysql_query('SELECT date FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id DESC limit 1'));
 				mysql_query('UPDATE `mktopics` SET dernier="'.$getLastMessage['date'].'",nbmsgs=nbmsgs-1 WHERE id="'. $_GET['topic'] .'"');
 				$getCat = mysql_fetch_array(mysql_query('SELECT category FROM `mktopics` WHERE id="'. $_GET['topic'] .'"'));

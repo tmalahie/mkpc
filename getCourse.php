@@ -192,7 +192,7 @@ if ($id) {
 	}
 	elseif (!mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='. $course .' AND id!="'.$id.'" AND connecte>='. $lConnect))) {
 		// Dead code, normalement
-		//mysql_query('INSERT INTO mklogs VALUES(NULL,1,"Error 404")');
+		//mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL,1,"Error 404")');
 		if (isset($_SESSION['date'])) {
 			$ecart = $time-$_SESSION['date'];
 			if ($ecart < 40) {

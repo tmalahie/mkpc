@@ -35,7 +35,7 @@ if (isset($tableToLock) && isset($_GET['value']) && in_array($_GET['value'], arr
 		if ($allowed) {
 			mysql_query('UPDATE `'.$tableToLock.'` SET locked="'. $_GET['value'] .'" WHERE id="'. $idToLock .'"');
 			if ($moderator)
-				mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "'. $logAction .' '. $idToLock .'")');
+				mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logAction .' '. $idToLock .'")');
 		}
 	}
 	header('location: '.$url);

@@ -67,7 +67,7 @@ if (isset($_GET['del'])) {
                 mysql_query('DELETE FROM mkratings WHERE id="'. $_GET['del'] .'"');
                 require_once('utils-ratings.php');
                 recomputeRating($rating['type'], $rating['circuit']);
-                mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "DRating '. $rating['type'] .' '. $rating['circuit'] .' '. $rating['identifiant'] .'")');
+                mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "DRating '. $rating['type'] .' '. $rating['circuit'] .' '. $rating['identifiant'] .'")');
             }
         }
     }

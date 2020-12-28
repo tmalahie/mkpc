@@ -22,7 +22,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `circuits`
 	$circuitImg = json_decode($circuit['img_data']);
 	deleteCircuitFile($circuitImg);
 	if (hasRight('moderator'))
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "CCircuit '. $cID .'")');
+		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CCircuit '. $cID .'")');
 }
 mysql_close();
 header('Location: draw.php');

@@ -22,6 +22,6 @@ if (!isset($_GET['user']) && !isset($_GET['award'])) {
 	exit;
 }
 $award = mysql_fetch_array(mysql_query('DELETE FROM mkawarded WHERE user="'. $_GET['user'] .'" AND award="'. $_GET['award'] .'"'));
-mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "SAwarded '. $_GET['user'] .' '. $_GET['award'] .'")');
+mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "SAwarded '. $_GET['user'] .' '. $_GET['award'] .'")');
 header('location: awards.php?awarded-deleted');
 ?>

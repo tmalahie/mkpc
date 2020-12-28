@@ -9,7 +9,7 @@ if (isset($_POST['ids']) && preg_match('#^\d+(,\d+)*$#', $_POST['ids'])) {
 		mysql_query('UPDATE `mkpersosel` SET perso1=perso2,perso2=-1 WHERE perso1 IN ('. $persoIds .')');
 		mysql_query('DELETE FROM `mkchisto` WHERE id IN ('. $persoIds .')');
 		mysql_query('UPDATE `mkchars` SET author=NULL WHERE id IN ('. $persoIds .')');
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "SPerso '. $persoIds .'")');
+		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "SPerso '. $persoIds .'")');
 	}
 	mysql_close();
 	echo 1;

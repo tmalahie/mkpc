@@ -41,7 +41,7 @@ include('smileys.php');
 <?php
 	mysql_query('DELETE FROM `mknews` WHERE id="'. $_GET['id'] .'"');
 	if ($news['author'] != $id)
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "SNews '. $_GET['id'] .'")');
+		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "SNews '. $_GET['id'] .'")');
 	echo $language ? '<p id="successSent">News deleted successfully<br />
 	<a href="listNews.php">Click here</a> to return to the news list.</p>' :
 	'<p id="successSent">News supprimée avec succès<br />

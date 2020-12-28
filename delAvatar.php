@@ -19,7 +19,7 @@ if ($id) {
 		unlink(AVATAR_DIR.$oldAvatar['hd']);
 		clear_avatar_cache($id);
 		if (isset($_GET['id']))
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $aId .', "SPicture '. $id .'")');
+			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $aId .', "SPicture '. $id .'")');
 	}
 	mysql_close();
 	header('location: profil.php?id='.$id);

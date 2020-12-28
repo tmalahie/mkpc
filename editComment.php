@@ -11,7 +11,7 @@ if (isset($_POST['id_msg']) && isset($_POST['message'])) {
 				if (($getMsg['auteur'] == $id) || hasRight('moderator')) {
 					mysql_query('UPDATE `mkcomments` SET message="'. $_POST['message'] .'" WHERE id="'. $_POST['id_msg'] .'"');
 					if ($getMsg['auteur'] != $id)
-						mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "EComment '. $_POST['id_msg'] .'")');
+						mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "EComment '. $_POST['id_msg'] .'")');
 					echo 1;
 				}
 			}

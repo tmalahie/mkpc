@@ -47,7 +47,7 @@ if (isset($_GET['topic'])) {
 			if ($firstMessage = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id LIMIT 1'))) {
 				if (($firstMessage['auteur'] == $id) || hasRight('moderator')) {
 					if ($firstMessage['auteur'] != $id)
-						mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "Suppr '. $_GET['topic'] .'")');
+						mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Suppr '. $_GET['topic'] .'")');
 					$allMsgs = mysql_query('SELECT auteur,COUNT(auteur) AS nb FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" GROUP BY auteur');
 					while ($msg = mysql_fetch_array($allMsgs))
 						mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages-'.$msg['nb'].' WHERE id="'.$msg['auteur'].'"');

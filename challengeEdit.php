@@ -42,7 +42,7 @@ if (isset($_POST['name'])) {
 			if (isset($challenge) && !empty($clRace)) {
 				mysql_query('UPDATE `mkchallenges` SET name="'. $_POST['name'] .'",difficulty="'. $_POST['difficulty'] .'",data="'. mysql_real_escape_string($dataJson) .'",validation="" WHERE id="'. $challenge['id'] .'"');
 				if ($moderate)
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "EChallenge '. $challenge['id'] .'")');
+					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "EChallenge '. $challenge['id'] .'")');
 				$clMsg = 'challenge_edited';
 			}
 			else {

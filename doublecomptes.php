@@ -43,14 +43,14 @@ $ban = isset($_POST['joueur']) ? $_POST['joueur']:null;
 if ($ban) {
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $ban .'"'))) {
 		mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id='. $getId['id']);
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "Ban '. $getId['id'] .'")');
+		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Ban '. $getId['id'] .'")');
 	}
 }
 $unban = isset($_GET['unban']) ? $_GET['unban']:null;
 if ($unban) {
 	mysql_query('UPDATE `mkjoueurs` SET banned=0 WHERE id="'. $unban .'"');
 	mysql_query('DELETE FROM `ip_bans` WHERE player="'. $unban .'"');
-	mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "Unban '. $unban .'")');
+	mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Unban '. $unban .'")');
 }
 ?>
 <main>

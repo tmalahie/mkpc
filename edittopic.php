@@ -54,7 +54,7 @@ include('menu.php');
 					mysql_query('UPDATE `mktopics` SET titre="'. $_POST['titre'] .'",private='.$private.',category="'. $categoryID .'" WHERE id="'. $_GET['topic'] .'"');
 					mysql_query('UPDATE `mkmessages` SET message="'. $_POST['message'] .'" WHERE id=1 AND topic="'. $_GET['topic'] .'"');
 					if ($getMsg['auteur'] != $id)
-						mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "Edit '. $_GET['topic'] .'")');
+						mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Edit '. $_GET['topic'] .'")');
 					preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
 					preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', $lastMessage['message'], $mentions0);
 					function array_rmvalue(&$arr,&$val) {

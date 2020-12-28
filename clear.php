@@ -17,7 +17,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `arenes` W
 	$circuitImg = json_decode($circuit['img_data']);
 	deleteCircuitFile($circuitImg);
 	if (hasRight('moderator'))
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "CArene '. $cID .'")');
+		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CArene '. $cID .'")');
 }
 mysql_close();
 header('Location: course.php');

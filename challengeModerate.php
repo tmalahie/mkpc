@@ -29,7 +29,7 @@ if (isset($_POST['challenge']) && isset($_POST['accept'])) {
 					$validationData['msg'] = stripslashes($_POST['msg']);
 				$validation = mysql_real_escape_string(json_encode($validationData));
 				mysql_query('UPDATE `mkchallenges` SET status="'. $newStatus .'", difficulty="'. $newDifficulty .'",validation="'.$validation.'" WHERE id="'. $challengeId .'"');
-				mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "'. $logKey .' '. $challengeId .'")');
+				mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logKey .' '. $challengeId .'")');
 
 				$getWins = mysql_query('SELECT player FROM `mkclwin` WHERE challenge="'. $challengeId .'"');
 				require_once('challenge-consts.php');

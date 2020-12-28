@@ -33,7 +33,7 @@ if (isset($_POST['challenge'])) {
             if ($validStatus) {
                 if ($clRace)
                     mysql_query('DELETE FROM `mknotifs` WHERE type="challenge_moderated" AND identifiant="'. $clRace['identifiant'] .'" AND identifiant2="'. $clRace['identifiant2'] .'" AND identifiant3="'. $clRace['identifiant3'] .'" AND identifiant4="'. $clRace['identifiant4'] .'" AND link="'. $challengeId .'"');
-                mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "'. $logKey .' '. $challengeId .'")');
+                mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logKey .' '. $challengeId .'")');
             }
         }
     }

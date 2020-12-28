@@ -10,7 +10,7 @@ if (isset($_POST['id_msg'])) {
 				$getComments = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkcomments` WHERE circuit="'. $getMsg['circuit'] .'" AND type="'. $getMsg['type'] .'"'));
 				mysql_query('UPDATE `'.$getMsg['type'].'` SET nbcomments="'. $getComments['nb'] .'" WHERE id="'. $getMsg['circuit'] .'"');
 				if ($getMsg['auteur'] != $id)
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "SComment '. $_POST['id_msg'] .'")');
+					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "SComment '. $_POST['id_msg'] .'")');
 				echo 1;
 			}
 		}

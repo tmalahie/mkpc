@@ -52,7 +52,7 @@ if (isset($_POST['joueur']) && isset($_POST['pts']) && is_numeric($_POST['pts'])
 	if ($getId = mysql_fetch_array(mysql_query('SELECT j.id,j.'.$pts_.' AS pts FROM `mkjoueurs` j WHERE j.nom="'. $ban .'"'))) {
 		$newScore = max($getId['pts']+$_POST['pts'],1);
 		mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='. $newScore .' WHERE id='. $getId['id']);
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "'.($isBattle ? 'B':'').'pts '. ($newScore-$getId['pts']) .' '. $getId['id'] .'")');
+		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'.($isBattle ? 'B':'').'pts '. ($newScore-$getId['pts']) .' '. $getId['id'] .'")');
 		$ptsPlus = true;
 	}
 }

@@ -31,14 +31,14 @@ else
 if (isset($_POST['name']) && isset($_POST['link'])) {
 	if ($editting) {
 		mysql_query('UPDATE mkawards SET link="'. $_POST['link'] .'",name="'. $_POST['name'] .'" WHERE id="'. $_GET['id'] .'"');
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "EAward '. $_GET['id'] .'")');
+		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "EAward '. $_GET['id'] .'")');
 		header('location: awards.php?award-edited');
 	}
 	else {
 		$newOrdering = mysql_fetch_array(mysql_query('SELECT 1+MAX(ordering) AS ordering FROM mkawards'));
 		if (!$newOrdering['ordering']) $newOrdering['ordering'] = 0;
 		mysql_query('INSERT INTO mkawards VALUES(NULL,'.$newOrdering['ordering'].',"'. $_POST['link'] .'","'. $_POST['name'] .'")');
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "CAward '. mysql_insert_id() .'")');
+		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CAward '. mysql_insert_id() .'")');
 		header('location: awards.php?award-created');
 	}
 }

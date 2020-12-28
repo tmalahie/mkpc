@@ -33,12 +33,12 @@ if (isset($_POST['nom']) && isset($_POST['award']) && isset($_POST['value'])) {
 	if ($getMember && $getAward) {
 		if ($editting) {
 			mysql_query('UPDATE mkawarded SET user="'. $getMember['id'] .'",award="'. $getAward['id'] .'",value="'. $_POST['value'] .'" WHERE user="'. $_GET['user'] .'" AND award="'. $_GET['award'] .'"');
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "EAwarded '. $getMember['id'] .' '. $getAward['id'] .'")');
+			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "EAwarded '. $getMember['id'] .' '. $getAward['id'] .'")');
 			header('location: awards.php?awarded-edited');
 		}
 		else {
 			mysql_query('INSERT INTO mkawarded VALUES('.$getMember['id'].',"'. $getAward['id'] .'","'. $_POST['value'] .'")');
-			mysql_query('INSERT INTO `mklogs` VALUES(NULL, '. $id .', "CAwarded '. $getMember['id'] .' '. $getAward['id'] .'")');
+			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CAwarded '. $getMember['id'] .' '. $getAward['id'] .'")');
 			header('location: awards.php?awarded-created');
 		}
 	}
