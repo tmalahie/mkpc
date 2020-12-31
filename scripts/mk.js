@@ -1243,7 +1243,7 @@ function initMap() {
 		function getWavePtProjected(oProjection, l) {
 			return [oProjection[2] + (oProjection[0]-oProjection[2])*l, oProjection[3] + (oProjection[1]-oProjection[3])*l];
 		}
-		oMap.sea.progress = 0;
+		oMap.sea.progress = 0.9999;
 		oMap.sea.offroad0 = oMap.horspistes.eau.polygon;
 		oMap.sea.drawPolygon = function(oViewContext, oPolygon, center,scale) {
 			oViewContext.beginPath();
@@ -13834,16 +13834,16 @@ function moveDecor() {
 	if (oMap.sea) {
 		var oSea = oMap.sea;
 		var lastProgress = oSea.progress;
-		var tLow = 50, tHigh = 50, tTransition = 24, tTransition2 = tTransition, tTotal = tLow+tHigh+tTransition+tTransition2;
-		var ti = timer%tTotal;
+		var tLow = 120, tHigh = tLow, tTransition = 30, tTransition2 = tTransition, tTotal = tLow+tHigh+tTransition+tTransition2;
+		var ti = (timer+tLow/2)%tTotal;
 		if (ti < tLow)
-			oSea.progress = 0;
-		else if (ti < (tLow+tTransition))
-			oSea.progress = 0.5+Math.sin(Math.PI*((ti-tLow)/tTransition-0.5))*0.5;
-		else if (ti < (tLow+tHigh+tTransition))
 			oSea.progress = 1;
+		else if (ti < (tLow+tTransition))
+			oSea.progress = 0.5-Math.sin(Math.PI*((ti-tLow)/tTransition-0.5))*0.5;
+		else if (ti < (tLow+tHigh+tTransition))
+			oSea.progress = 0;
 		else
-			oSea.progress = 0.5-Math.sin(Math.PI*((ti-tLow-tHigh-tTransition)/tTransition2-0.5))*0.5;
+			oSea.progress = 0.5+Math.sin(Math.PI*((ti-tLow-tHigh-tTransition)/tTransition2-0.5))*0.5;
 		if (oSea.progress !== lastProgress) {
 			oMap.horspistes.eau = {rectangle:[],polygon:oSea.offroad0.slice()};
 			if (oSea.progress) {
