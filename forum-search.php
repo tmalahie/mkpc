@@ -14,6 +14,7 @@ include('heads.php');
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
+<link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 <style type="text/css">
 .radio-block {
 	display: inline-block;
@@ -74,7 +75,7 @@ $oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1||$to
 	<table>
 		<tr>
 			<td class="ligne">
-				<label for="author"><?php echo $language ? 'Search for':'Rechercher'; ?></label>
+				<label><?php echo $language ? 'Search for':'Rechercher'; ?></label>
 			</td>
 			<td>
 				<label class="radio-block"><input type="radio" name="type" value="topics"<?php echo $topiconly ? ' checked="checked"':''; ?> /> <span class="radio-sm"><?php echo $language ? 'Topics':'Des topics'; ?></span></label>
@@ -83,10 +84,10 @@ $oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1||$to
 		</tr>
 		<tr>
 			<td class="ligne">
-				<label for="author"><?php echo $language ? 'Category':'Catégorie'; ?></label>
+				<label for="category"><?php echo $language ? 'Category':'Catégorie'; ?></label>
 			</td>
 			<td>
-				<select name="category">
+				<select name="category"  id="category">
 					<option value=""><?php echo $language ? 'All categories':'Toutes les catégories'; ?></option>
 					<?php
 					include('category_fields.php');
@@ -127,7 +128,7 @@ $oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1||$to
 			</td>
 			<td class="search-right">
 				<?php echo $language ? 'Between':'Entre'; ?>
-				<input type="number" name="d0" class="search-xs-2" min="1" max="31" value="<?php echo htmlspecialchars($d0); ?>" /> /
+				<input type="number" name="d0" id="d0" class="search-xs-2" min="1" max="31" value="<?php echo htmlspecialchars($d0); ?>" /> /
 				<input type="number" name="m0" class="search-xs-2" min="1" max="12" value="<?php echo htmlspecialchars($m0); ?>" /> /
 				<input type="number" name="y0" class="search-xs-4" min="1000" max="9999" value="<?php echo htmlspecialchars($y0); ?>" /><br />
 				<?php echo $language ? 'And':'Et'; ?>
@@ -242,6 +243,17 @@ if ($oneset) {
 </main>
 <?php
 include('footer.php');
+?>
+<script type="text/javascript" src="scripts/auto-complete.min.js"></script>
+<script type="text/javascript" src="scripts/autocomplete-player.js"></script>
+<script type="text/javascript">
+autocompletePlayer('#author', {
+	onSelect: function(event, term, item) {
+		preventSubmit(event);
+	}
+});
+</script>
+<?php
 mysql_close();
 ?>
 </body>
