@@ -37,22 +37,64 @@ if ($course && !$getCourse['banned']) {
 		$isLocal = !empty($courseRules->friendly) && !empty($courseRules->localScore);
 		$joueurs = mysql_query('SELECT j.id,'.($isLocal ? 'IFNULL(r.pts,0) AS pts':'j.'.$pts_.' AS pts').' FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id'. ($isLocal ? ' LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND j.id=r.player':'') .' WHERE j.course='. $course .' ORDER BY p.place,j.id');
 		$nConnect = round($time/67);
-		for ($i=1;$joueur=mysql_fetch_array($joueurs);$i++) {
-			$toUpate = 'course='.$course.',aPts='. $joueur['pts'] .',connecte='.$nConnect.',tours=1,ballons=1,reserve=4,place='.$i;
+		for ($i=0;$joueur=mysql_fetch_array($joueurs);$i++) {
+			$toUpate = 'course='.$course.',aPts='. $joueur['pts'] .',connecte='.$nConnect.',tours=1,ballons=1,reserve=4,place='.($i+1);
 			mysql_query('INSERT INTO `mkplayers` SET id='. $joueur['id'].','.$toUpate.' ON DUPLICATE KEY UPDATE '.$toUpate);
 		}
 		mysql_query('DELETE p FROM `mkplayers` p INNER JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' AND j.course!='.$course);
+		if (isset($courseRules->cpuCount) && ($i > 1) && ($i < $courseRules->cpuCount)) {
+			$existingCpus = mysql_query('SELECT p.id FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' AND j.id IS NULL ORDER BY p.id');
+			$cpuIds = array();
+			while ($existingCpu = mysql_fetch_array($existingCpus)) {
+				$cpuIds[] = $existingCpu['id'];
+				$i++;
+				if ($i >= $courseRules->cpuCount)
+					break;
+			}
+			if ($i < $courseRules->cpuCount) {
+				$initialId = 2000000000;
+				$minAvailableId = mysql_fetch_array(mysql_query('SELECT IFNULL(MAX(p.id)+1,'.$initialId.') AS id FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE j.id IS NULL'));
+				$cpuId = $minAvailableId['id'];
+				do {
+					$toUpate = 'course='.$course.',aPts=5000,connecte='.$nConnect.',tours=1,ballons=1,reserve=4,place='.($i+1);
+					$maxiter = 10;
+					while (!mysql_query('INSERT INTO `mkplayers` SET id='.$cpuId.','.$toUpate)) {
+						$cpuId++;
+						$maxiter--;
+						if (!$maxiter) {
+							$cpuId = 0;
+							break;
+						}
+					}
+					$cpuIds[] = $cpuId;
+					$cpuId++;
+					$i++;
+				} while ($i < $courseRules->cpuCount);
+			}
+			$cpuIdsString = implode(',', $cpuIds);
+			mysql_query('UPDATE `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id SET p.course=(CASE WHEN p.id IN ('. $cpuIdsString .') THEN '. $course .' ELSE 0 END) WHERE p.id IN ('. $cpuIdsString .') OR (p.course='.$course.' AND j.id IS NULL)');
+		}
 	}
 	function listPlayers() {
 		global $course, $pts_;
-		$joueurs = mysql_query('SELECT j.id,j.'.$pts_.' AS pts,j.joueur,IFNULL(p.place,1) AS place,IFNULL(p.team,-1) AS team,j.choice_map,j.choice_rand,j.nom FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id WHERE j.course='. $course .' ORDER BY j.id');
+		$joueurs = mysql_query(
+			'(SELECT j.id,j.'.$pts_.' AS pts,j.joueur,IFNULL(p.place,1) AS place,IFNULL(p.team,-1) AS team,j.choice_map,j.choice_rand,j.nom,0 AS cpu FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id WHERE j.course='. $course .')
+			UNION
+			(SELECT p.id,5000 AS pts,NULL AS joueur,IFNULL(p.place,1) AS place,IFNULL(p.team,-1) AS team,1 AS choice_map,1 AS choice_rand,NULL AS nom,1 AS cpu FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='. $course .' AND j.id IS NULL)
+			ORDER BY id'
+		);
 		$joueursData = array();
 		while ($joueur=mysql_fetch_array($joueurs))
 			$joueursData[] = $joueur;
 		return $joueursData;
 	}
 	$joueursData = listPlayers();
-	$nbPlayers = count($joueursData);
+	$nbPlayers = 0;
+	foreach ($joueursData as &$joueur) {
+		if (!$joueur['cpu'])
+			$nbPlayers++;
+	}
+	unset($joueur);
 	$minPlayers = isset($courseRules->minPlayers) ? $courseRules->minPlayers : 2;
 	$enoughPlayers = ($nbPlayers >= $minPlayers);
 	if ($continuer && $enoughPlayers) {
@@ -116,8 +158,13 @@ if ($course && !$getCourse['banned']) {
 		$now = round((time()+microtime())*1000);
 	}
 	echo '[[';
-	foreach ($joueursData as $i=>$joueur)
+	foreach ($joueursData as $i=>$joueur) {
+		if ($joueur['cpu']) {
+			$joueur['joueur'] = 'mario';
+			$joueur['nom'] = 'CPU';
+		}
 		echo ($i ? ',':'').'['.$joueur['id'].',"'.$joueur['joueur'].'",'.$joueur['choice_map'].','.$joueur['choice_rand'].','.$joueur['place'].',"'.$joueur['nom'].'",'.$joueur['team'].']';
+	}
 	echo '],'.$map.','.($time-$now).','.round($time/67);
 	echo ',{';
 	$courseRules = json_decode($getMap['rules']);
@@ -130,6 +177,7 @@ if ($course && !$getCourse['banned']) {
 	if ($continuer && !$enoughPlayers) {
 		mysql_query('UPDATE `mariokart` SET map=-1,time='. time() .' WHERE id='. $course);
 		mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET '.((count($joueursData)<2) ? 'j.choice_map=0,':'').'p.connecte=0 WHERE j.course='. $course);
+		mysql_query('DELETE p FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='. $course .' AND j.id IS NULL');
 	}
 }
 else
