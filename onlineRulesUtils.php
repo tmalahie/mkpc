@@ -29,6 +29,17 @@ $rulesList = array(
 	),
 	'itemDistrib' => array(
 		'default' => 0
+	),
+	'cpu' => array(
+		'default' => 0
+	),
+	'cpuCount' => array(
+		'default' => DEFAULT_CPU_COUNT,
+		'min_value' => 2,
+		'max_value' => 8
+	),
+	'cpuLevel' => array(
+		'default' => 0
 	)
 );
 function rulesEqual($rules1,$rules2) {

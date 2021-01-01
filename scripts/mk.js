@@ -14288,6 +14288,13 @@ function privateGameOptions(gameOptions, onProceed) {
 		var minPlayers = +this.elements["option-minPlayers"].value;
 		var maxPlayers = +this.elements["option-maxPlayers"].value;
 		var itemDistrib = JSON.parse(this.elements["option-itemDistrib"].value);
+		var cpu = this.elements["option-cpu"].checked ? 1:0;
+		var cpuCount = +this.elements["option-cpuCount"].value;
+		var cpuLevel = +this.elements["option-cpuLevel"].value;
+		if (!cpu) {
+			cpuCount = defaultGameOptions.cpuCount;
+			cpuLevel = defaultGameOptions.cpuLevel;
+		}
 		onProceed({
 			team: team,
 			manualTeams: manualTeams,
@@ -14295,7 +14302,10 @@ function privateGameOptions(gameOptions, onProceed) {
 			localScore: localScore,
 			minPlayers: minPlayers,
 			maxPlayers: maxPlayers,
-			itemDistrib: itemDistrib
+			itemDistrib: itemDistrib,
+			cpu: cpu,
+			cpuCount: cpuCount,
+			cpuLevel: cpuLevel
 		});
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
@@ -14672,6 +14682,173 @@ function privateGameOptions(gameOptions, onProceed) {
 		else
 			this.currentValue = this.value;
 	}
+	tDiv.appendChild(oSelect);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	if (!isOnline) oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.style.textAlign = "center";
+	oTd.style.width = (iScreenScale*8) +"px";
+	var oCheckbox = document.createElement("input");
+	oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
+	oCheckbox.id = "option-cpu";
+	oCheckbox.name = "option-cpu";
+	oCheckbox.type = "checkbox";
+	if (gameOptions && gameOptions.cpu)
+		oCheckbox.checked = true;
+	oCheckbox.onchange = function() {
+		if (this.checked) {
+			var aScroll = oScroll.scrollHeight;
+			document.getElementById("option-cpuCount-ctn").style.display = "";
+			document.getElementById("option-cpuLevel-ctn").style.display = "";
+			setTimeout(function() {
+				document.getElementById("option-cpuCount").select();
+				oScroll.scrollTop += oScroll.scrollHeight-aScroll;
+			}, 1);
+		}
+		else {
+			document.getElementById("option-cpuCount-ctn").style.display = "none";
+			document.getElementById("option-cpuLevel-ctn").style.display = "none";
+		}
+	}
+	oTd.appendChild(oCheckbox);
+	oTr.appendChild(oTd);
+
+	var oTd = document.createElement("td");
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-cpu");
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.style.marginBottom = "0px";
+	oH1.innerHTML = toLanguage("Add CPUs","Ajouter des ordis");
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("If enabled, bots will be added to the gmae if there is not enough players", "Si activé, des bots seront ajoutés à la partie s'il n'y a pas assez de joueurs");
+	oLabel.appendChild(oDiv);
+	oTd.appendChild(oLabel);
+	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-cpuCount-ctn";
+	if (!gameOptions || !gameOptions.cpu)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignItems = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-cpuCount");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.marginLeft = Math.round(iScreenScale*1.5) +"px";
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("Total number of participants", "Nombre total de participants");
+	oH1.style.marginTop = iScreenScale +"px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.paddingLeft = Math.round(iScreenScale*1.5) +"px";
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("If there isn't enough players, bots will be added to match the specified number of participants", "S'il n'y a pas assez de joueurs, des bots seront ajoutés pour matcher le nombre de participants spécifié");
+	oLabel.appendChild(oDiv);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	tDiv.style.marginRight = (iScreenScale*3) +"px";
+	var oInput = document.createElement("input");
+	oInput.id = "option-cpuCount";
+	oInput.name = "option-cpuCount";
+	oInput.type = "number";
+	oInput.setAttribute("min", 2);
+	oInput.setAttribute("max", 8);
+	oInput.setAttribute("step", 1);
+	oInput.setAttribute("required", true);
+	oInput.style.backgroundColor = "#F6F6F6";
+	oInput.style.width = (iScreenScale*6) +"px";
+	if (gameOptions && gameOptions.cpuCount)
+		oInput.value = gameOptions.cpuCount;
+	else
+		oInput.value = defaultGameOptions.cpuCount;
+	oInput.style.fontSize = (iScreenScale*3) +"px";
+	oInput.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+	tDiv.appendChild(oInput);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-cpuLevel-ctn";
+	if (!gameOptions || !gameOptions.cpu)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignItems = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-cpuLevel");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("CPU difficulty", "Difficulté des ordis");
+	oH1.style.marginLeft = Math.round(iScreenScale*1.5) +"px";
+	oH1.style.marginTop = iScreenScale +"px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("", "");
+	oLabel.appendChild(oDiv);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	var oSelect = document.createElement("select");
+	oSelect.id = "option-cpuLevel";
+	oSelect.name = "option-cpuLevel";
+	oSelect.style.backgroundColor = "black";
+	oSelect.style.width = (iScreenScale*14) +"px";
+	oSelect.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	oSelect.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+
+	var iDifficulties = [toLanguage("Difficult", "Difficile"), toLanguage("Medium", "Moyen"), toLanguage("Easy", "Facile")];
+	for (var i=0;i<iDifficulties.length;i++) {
+		var oOption = document.createElement("option");
+		oOption.value = i;
+		oOption.innerHTML = iDifficulties[i];
+		oSelect.appendChild(oOption);
+	}
+	if (gameOptions && gameOptions.cpuLevel)
+		oSelect.selectedIndex = gameOptions.cpuLevel;
+
 	tDiv.appendChild(oSelect);
 	cDiv.appendChild(tDiv);
 	oTd.appendChild(cDiv);
@@ -16018,6 +16195,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 							maxPlayers:1,
 							localScore:1,
 							friendly:1,
+							cpu:1,
+							cpuLevel:1
 						};
 						for (var key in shareLink.options) {
 							if (!autoAcceptedRules[key])
@@ -16149,6 +16328,9 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 								shareLink.options.minPlayers = options.minPlayers;
 								shareLink.options.maxPlayers = options.maxPlayers;
 								shareLink.options.itemDistrib = options.itemDistrib;
+								shareLink.options.cpu = options.cpu;
+								shareLink.options.cpuCount = options.cpuCount;
+								shareLink.options.cpuLevel = options.cpuLevel;
 								selectedTeams = options.team;
 								selectPlayerScreen(0);
 								return true;
@@ -16763,7 +16945,10 @@ var defaultGameOptions = {
 	friendly: false,
 	minPlayers: 2,
 	maxPlayers: 12,
-	itemDistrib: 0
+	itemDistrib: 0,
+	cpu: false,
+	cpuCount: 2,
+	cpuLevel: 0
 };
 function isCustomOptions(linkOptions) {
 	if (linkOptions) {
@@ -16940,7 +17125,6 @@ function acceptRulesScreen() {
 		var oTr = document.createElement("tr");
 		var oTd = document.createElement("td");
 		var oLabel = document.createElement("label");
-		oLabel.setAttribute("for", "option-friendly");
 		oTd.appendChild(oLabel);
 
 		var oH1 = document.createElement("h1");
@@ -16962,7 +17146,6 @@ function acceptRulesScreen() {
 		var oTr = document.createElement("tr");
 		var oTd = document.createElement("td");
 		var oLabel = document.createElement("label");
-		oLabel.setAttribute("for", "option-friendly");
 		oTd.appendChild(oLabel);
 
 		var oH1 = document.createElement("h1");
@@ -16993,6 +17176,27 @@ function acceptRulesScreen() {
 			else
 				oDiv.innerHTML = toLanguage("No item", "Aucun objet");
 		}
+		oLabel.appendChild(oDiv);
+		oTd.appendChild(oLabel);
+		oTr.appendChild(oTd);
+		oTable.appendChild(oTr);
+	}
+
+	if (shareLink.options.cpuCount) {
+		var oTr = document.createElement("tr");
+		var oTd = document.createElement("td");
+		var oLabel = document.createElement("label");
+		oTd.appendChild(oLabel);
+
+		var oH1 = document.createElement("h1");
+		oH1.style.fontSize = (3*iScreenScale) +"px";
+		oH1.innerHTML = toLanguage("Possible addition of bots", "Ajout possible de bots");
+		oH1.style.marginBottom = "0px";
+		oLabel.appendChild(oH1);
+		var oDiv = document.createElement("div");
+		oDiv.style.fontSize = (2*iScreenScale) +"px";
+		oDiv.style.color = "white";
+		oDiv.innerHTML = toLanguage("If there are not enough players, some bots will be added to the game so that there are at least <strong>"+ shareLink.options.cpuCount +"</strong> participants.", "S'il n'y a pas assez de joueurs, des bots seront ajoutés à la partie pour qu'il y ait au minimum <strong>3</strong> participants");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
