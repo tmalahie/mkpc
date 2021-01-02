@@ -172,12 +172,12 @@ include('menu.php');
 				<div class="action-desc"><?php echo $language ? "If the content of the track is inappropriate or in case of plagiarism":"Si le contenu d'un circuit est inapproprié ou en cas de plagiat"; ?></div>
 			</a>
 		</li>
-		<?php /*<li>
+		<?php <li>
 			<a class="action-ctn" href="creation-ratings.php">
 				<div class="action-title"><?php echo $language ? "Manage <strong>ratings</strong> on tracks":"Gérer les <strong>notes</strong> sur un circuit"; ?></div>
 				<div class="action-desc"><?php echo $language ? "To monitor and eradicate 1-star trolls...":"Pour surveiller et éradiquer les 1-star trolls..."; ?></div>
 			</a>
-		</li>*/ ?>
+		</li> ?>
 		<li>
 			<a class="action-ctn" href="adminPersos.php">
 				<div class="action-title"><?php echo $language ? "Delete a <strong>character</strong>":"Supprimer un <strong>perso</strong>"; ?></div>
