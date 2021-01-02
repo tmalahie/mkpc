@@ -49,6 +49,6 @@ $bgImages = Array (
 
 	Array('ds'),
 	Array('twilightsky','twilighthouse'),
-	Array('piesky','pie'),
-	Array('palmsky')
+	Array('palmsky'),
+	Array('piesky','pie')
 );
