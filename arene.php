@@ -69,6 +69,7 @@ else {
 }
 $snes = ($map <= 13);
 $gba = ($map > 13) && ($map <= 30);
+$ds = ($map > 46);
 include('language.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -126,6 +127,18 @@ $bValues = array(
 );
 for ($i=26;$i<=30;$i++)
 	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$bValues[$i-26].'</option>';
+?>
+</optgroup>
+<optgroup label="DS">
+<?php
+$bValues = array(
+	'Nintendo DS',
+	$language ? 'Twilight House':'Maison de l\'Aube',
+	$language ? 'Palm Shore':'Feuille de Palmier',
+	$language ? 'Tart Top':'Tarte Sucrée'
+);
+for ($i=49;$i<=49;$i++)
+	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$bValues[$i-47].'</option>';
 ?>
 </optgroup>
 </select>

@@ -2,6 +2,7 @@
 if($_SERVER['HTTP_HOST']!=='local-mkpc.malahieude.info') exit;
 if (isset($_GET['p'])) {
     $p = +$_GET['p'];
+    $isBattle = isset($_GET['battle']);
     $id = 7000+$p;
     include('initdb.php');
     if ($circuit = mysql_fetch_array(mysql_query('SELECT c.*,d.data FROM `circuits` c LEFT JOIN `circuits_data` d ON c.id=d.id WHERE c.id='.$id))) {
@@ -51,45 +52,51 @@ collision: <?php
         if (!empty($trousData)) {
             echo 'trous['.$i.']: ';
             $replace = null;
-            switch ($p) {
-            case 0:
-                $x = 49;
-                $y = 11;
-                break;
-            case 1:
-                $x = 11;
-                $y = 49;
-                break;
-            case 2:
-                $x = 49;
-                $y = 88;
-                break;
-            case 3:
-                $x = 88;
-                $y = 49;
-                break;
-            case 4:
-                $x = 34;
-                $y = 65;
-                break;
-            case 5:
-                $x = 65;
-                $y = 65;
-                break;
-            case 6:
-                $x = 65;
-                $y = 34;
-                break;
-            case 7:
-                $x = 34;
-                $y = 34;
-                break;
-            case 10:
+            if ($isBattle) {
                 $x = 49;
                 $y = 49;
-                break;
-            default:
-                $replace = '$replace';
+            }
+            else {
+                switch ($p) {
+                case 0:
+                    $x = 49;
+                    $y = 11;
+                    break;
+                case 1:
+                    $x = 11;
+                    $y = 49;
+                    break;
+                case 2:
+                    $x = 49;
+                    $y = 88;
+                    break;
+                case 3:
+                    $x = 88;
+                    $y = 49;
+                    break;
+                case 4:
+                    $x = 34;
+                    $y = 65;
+                    break;
+                case 5:
+                    $x = 65;
+                    $y = 65;
+                    break;
+                case 6:
+                    $x = 65;
+                    $y = 34;
+                    break;
+                case 7:
+                    $x = 34;
+                    $y = 34;
+                    break;
+                case 10:
+                    $x = 49;
+                    $y = 49;
+                    break;
+                default:
+                    $replace = '$replace';
+                }
             }
             if (!$replace) {
                 $x = formatCircuitPos($x,'x');
