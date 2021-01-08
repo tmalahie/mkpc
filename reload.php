@@ -18,9 +18,9 @@ if ($id) {
 					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","tours","demitours","champi","etoile","megachampi","billball","place")
 			);
 		}
-		define('KEY_PLAYER', $paramsMapping['keys']['player']);
-		define('KEY_ITEMS', $paramsMapping['keys']['items']);
 		$playerMapping = $paramsMapping['player'];
+		$cpuMapping = $paramsMapping['player'];
+		$cpuMapping[] = 'aipoint';
 
 		include('initdb.php');
 		$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkplayers` WHERE id="'.$id.'"'));
@@ -28,17 +28,38 @@ if ($id) {
 		$lastconnect = isset($payload['lastcon']) ? $payload['lastcon']:0;
 		if ($course) {
 			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
-			$playerPayload = array();
-			foreach ($playerMapping as $key)
-				$playerPayload[$key] = null;
+			$playerPayloads = array();
 			if (isset($payload['player'])) {
-				if (!$isBattle) {
-					$iTours = array_search('tours', $playerMapping);
-					if (isset($payload['player'][$iTours]) && ($payload['player'][$iTours])>$fLaps) $payload['player'][$iTours] = $fLaps;
-				}
-				foreach ($playerMapping as $i => $key)
-					$playerPayload[$key] = isset($payload['player'][$i]) ? $payload['player'][$i]:null;
+				$playerPayloads[] = array(
+					'param' => $payload['player'],
+					'mapping' => $playerMapping,
+					'id' => $id,
+					'value' => array()
+				);
 			}
+			if (isset($payload['cpu'])) {
+				foreach ($payload['cpu'] as $cpuId => $cpuPayload) {
+					$playerPayloads[] = array(
+						'param' => $cpuPayload,
+						'mapping' => $cpuMapping,
+						'id' => $cpuId,
+						'value' => array()
+					);
+				}
+			}
+			foreach ($playerPayloads as &$playerPayload) {
+				$payloadData = array();
+				$payloadParam = $playerPayload['param'];
+				$payloadMapping = $playerPayload['mapping'];
+				foreach ($payloadMapping as $key)
+					$payloadData[$key] = null;
+				foreach ($payloadMapping as $i => $key)
+					$payloadData[$key] = isset($payloadParam[$i]) ? $payloadParam[$i]:null;
+				if (!$isBattle)
+					if ($payloadData['tours'] > $fLaps) $payloadData['tours'] = $fLaps;
+				$playerPayload['data'] = $payloadData;
+			}
+			unset($playerPayload);
 			$finished = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE id='. $course .' AND map=-1 LIMIT 1'));
 			$timeMs = microtime(true);
 			$time = floor($timeMs);
@@ -62,14 +83,21 @@ if ($id) {
 						}
 					}
 				}
-				if (isset($payload['player'])) {
+				$winning = false;
+				foreach ($playerPayloads as &$playerPayload) {
+					$payloadData = $playerPayload['data'];
 					$sql = 'UPDATE `mkplayers` SET ';
-					foreach ($playerMapping as $i => $key)
-						$sql .= $key .'="'.$payload['player'][$i] .'",';
-					$winning = $isBattle ? (($playerPayload['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND ballons=0'))) : (($playerPayload['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND tours>='.$fLaps)));
-					if ($winning)
+					foreach ($payloadData as $key => $value) {
+						if (null !== $value)
+							$sql .= $key .'="'.$value .'",';
+					}
+					$pWinning = $isBattle ? (($payloadData['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND ballons=0'))) : (($payloadData['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND tours>='.$fLaps)));
+					if ($pWinning) {
+						if ($playerPayload['id'] == $id)
+							$winning = $pWinning;
 						$sql .= 'place='.(mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)))+1-$isBattle).',';
-					$sql .= 'connecte='.$lConnect.' WHERE id="'. $id .'"';
+					}
+					$sql .= 'connecte='.$lConnect.' WHERE id="'. $playerPayload['id'] .'"';
 					mysql_query($sql);
 				}
 				if (!rand(0,99)) {
@@ -87,18 +115,20 @@ if ($id) {
 				$courseRules = json_decode($courseOptions['rules']);
 			$isTeam = !empty($courseRules->team);
 			$racing = 0;
+			$racingHumans = 0;
 			$racingPerTeam = array(0,0);
 			$virgule = false;
 			while ($joueur=mysql_fetch_array($joueurs)) {
+				$payloadMapping = $joueur['controller'] ? $cpuMapping : $playerMapping;
 				if ($joueur['team'] == -1)
 					$isTeam = false;
-				if (($joueur['id'] != $id) && ($joueur['connecte'] >= $lastconnect)) {
-					echo ($virgule ? ',':'').'[['.$joueur['id'].','.$joueur['connecte'].'],['.$joueur[$playerMapping[0]];
-					$nbPosts = count($playerMapping);
+				if (($joueur['id'] != $id) && ($joueur['controller'] != $id) && ($joueur['connecte'] >= $lastconnect)) {
+					echo ($virgule ? ',':'').'[['.$joueur['id'].','.$joueur['connecte'].'],['.$joueur[$payloadMapping[0]];
+					$nbPosts = count($payloadMapping);
 					for ($i=1;$i<$nbPosts;$i++) {
 						echo ',';
-						$val = $joueur[$playerMapping[$i]];
-						switch ($playerMapping[$i]) {
+						$val = $joueur[$payloadMapping[$i]];
+						switch ($payloadMapping[$i]) {
 						case 'arme':
 							echo '"'.$val.'"';
 							break;
@@ -113,6 +143,8 @@ if ($id) {
 					if ($isTeam && $isBattle)
 						$racingPerTeam[$joueur['team']]++;
 					$racing++;
+					if (!$joueur['controller'])
+						$racingHumans++;
 				}
 			}
 			if ($isTeam && $isBattle)
@@ -134,7 +166,7 @@ if ($id) {
 			echo json_encode($updatedItems);
 			echo '],'.$lConnect;
 			$finishing = false;
-			if (($racing < 2) || (!$isBattle&&mysql_numrows(mysql_query('SELECT time FROM `mariokart` WHERE id='. $course .' AND time<='.($time-35))))) {
+			if (($racing < 2) || !$racingHumans || (!$isBattle&&mysql_numrows(mysql_query('SELECT time FROM `mariokart` WHERE id='. $course .' AND time<='.($time-35))))) {
 				$finishing = !$finished;
 				if ($finishing) {
 					mysql_query('UPDATE `mariokart` SET map=-1,time='.($time+35).' WHERE id='. $course);
@@ -159,7 +191,8 @@ if ($id) {
 							$nbPlaces--;
 						}
 					}
-					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.choice_map=0,p.connecte=0 WHERE j.course='. $course);
+					mysql_query('UPDATE `mkplayers` SET connecte=0 WHERE course='. $course);
+					mysql_query('UPDATE `mkjoueurs` SET choice_map=0 WHERE course='. $course);
 					mysql_query('DELETE FROM `items` WHERE course='.$course.' AND (data!="" OR updated_at<"'.$lConnect.'")');
 				}
 				function getScoreInc($i,$score,$nbScores,$total) {
@@ -169,18 +202,22 @@ if ($id) {
 				}
 				$isFriendly = !empty($courseRules->friendly);
 				$isLocal = $isFriendly && !empty($courseRules->localScore);
-				$joueurs = mysql_query('SELECT p.id,j.nom,p.aPts,p.team FROM `mkplayers` p INNER JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' ORDER BY p.place');
-				$joueursData = array();
-				while ($joueur=mysql_fetch_array($joueurs))
-					$joueursData[] = $joueur;
-				$nbScores = count($joueursData);
+				$joueurs = mysql_query('SELECT p.id,j.nom,p.aPts,p.team,p.controller AS cpu FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' ORDER BY p.place');
+				$playersData = array();
+				$allPlayersData = array();
+				while ($joueur=mysql_fetch_array($joueurs)) {
+					$allPlayersData[] = $joueur;
+					if (!$joueur['cpu'] || $isLocal)
+						$playersData[] = $joueur;
+				}
+				$nbScores = count($playersData);
 				if (!$isFriendly) {
 					$total = 0;
 					if ($isTeam) {
 						$totalPerTeam = array(0,0);
 						$xpPerTeam = array(1,1);
 						$nbScoresPerTeam = array(0,0);
-						foreach ($joueursData as $joueur) {
+						foreach ($playersData as $joueur) {
 							$team = $joueur['team'];
 							$totalPerTeam[$team] += $joueur['aPts'];
 							$xpPerTeam[$team] *= $joueur['aPts'];
@@ -192,13 +229,13 @@ if ($id) {
 							pow($xpPerTeam[1],1/$nbScoresPerTeam[1])
 						);
 						$ptsPerTeam = array(0,0);
-						foreach ($joueursData as $i=>$joueur) {
+						foreach ($playersData as $i=>$joueur) {
 							$team = $joueur['team'];
 							$ptsPerTeam[$team] += getScoreInc($i,$avgPerTeam[$team],$nbScores,$total);
 						}
 						$ptsProrata = array();
 						$ptsProrataTotal = array(0,0);
-						foreach ($joueursData as $i=>$joueur) {
+						foreach ($playersData as $i=>$joueur) {
 							$team = $joueur['team'];
 							$ranking = ($ptsPerTeam[$team] > 0) ? 0:1;
 							$iProrata = getScoreInc($ranking,$joueur['aPts'],2,$joueur['aPts']+$avgPerTeam[1-$team]);
@@ -212,46 +249,64 @@ if ($id) {
 					}
 					else {
 						$total = 0;
-						foreach ($joueursData as $joueur)
+						foreach ($playersData as $joueur)
 							$total += $joueur['aPts'];
 					}
 				}
 				echo ',[';
 				$pts_ = 'pts_'.($isBattle ? 'battle':'vs');
-				foreach ($joueursData as $i=>$joueur) {
-					$score = $joueur['aPts'];
-					if ($isFriendly) {
-						if ($isLocal) {
-							$maxPts = round($nbScores*1.25);
-							$xPts = ($nbScores-$i-1)/($nbScores-1);
-							$inc = round($maxPts*(exp($xPts)-1)/(M_E-1));
-							if ($nbScores == 12) {
-								// hardcoded scores to fit wii point system
-								$incs = array(15,12,10,8,7,6,5,4,3,2,1,0);
-								$inc = $incs[$i];
+				$i = 0;
+				$cpuIds = array();
+				foreach ($allPlayersData as $joueur) {
+					if ($joueur['cpu'])
+						$cpuIds[] = +$joueur['id'];
+				}
+				sort($cpuIds);
+				$cpuRankById = array_flip($cpuIds);
+				foreach ($allPlayersData as $v=>$joueur) {
+					if ($joueur['cpu'])
+						$playerName = 'CPU ' . ($cpuRankById[$joueur['id']]+1);
+					if (!$joueur['cpu'] || $isLocal) {
+						$playerName = $joueur['nom'];
+						$score = $joueur['aPts'];
+						if ($isFriendly) {
+							if ($isLocal) {
+								$maxPts = round($nbScores*1.25);
+								$xPts = ($nbScores-$i-1)/($nbScores-1);
+								$inc = round($maxPts*(exp($xPts)-1)/(M_E-1));
+								if ($nbScores == 12) {
+									// hardcoded scores to fit wii point system
+									$incs = array(15,12,10,8,7,6,5,4,3,2,1,0);
+									$inc = $incs[$i];
+								}
 							}
+							else
+								$inc = 0;
+						}
+						elseif ($isTeam) {
+							$team = $joueur['team'];
+							$inc = $ptsPerTeam[$team]*$ptsProrata[$i]/$ptsProrataTotal[$team];
 						}
 						else
-							$inc = 0;
-					}
-					elseif ($isTeam) {
-						$team = $joueur['team'];
-						$inc = $ptsPerTeam[$team]*$ptsProrata[$i]/$ptsProrataTotal[$team];
+							$inc = getScoreInc($i,$score,$nbScores,$total);
+						$inc = round($inc);
+						$i++;
 					}
 					else
-						$inc = getScoreInc($i,$score,$nbScores,$total);
-					$inc = round($inc);
-					echo ($i ? ',':'') .'['.$joueur['id'].',"'.$joueur['nom'].'",'.$joueur['aPts'].','.$inc.','.$joueur['team'].']';
+						$inc = 0;
+					echo ($v ? ',':'') .'['.$joueur['id'].',"'.$playerName.'",'.$joueur['aPts'].','.$inc.','.$joueur['team'].']';
 					$nPts = $joueur['aPts']+$inc;
 					if ($finishing) {
 						$shouldLog = $isFriendly;
 						if (($nPts != $joueur['aPts']) || $isLocal) {
 							if ($isLocal)
 								mysql_query('INSERT INTO `mkgamerank` SET game='. $courseOptions['id'] .',player='. $joueur['id'] .',pts='.$nPts.' ON DUPLICATE KEY UPDATE pts=VALUES(pts)');
-							else {
+							elseif (!$joueur['cpu']) {
 								$q = mysql_query('UPDATE `mkjoueurs` SET '.$pts_.'='.$nPts.' WHERE id='.$joueur['id'].' AND '.$pts_.'='.$joueur['aPts']);
 								$shouldLog = mysql_affected_rows();
 							}
+							else
+								$shouldLog = false;
 						}
 						if ($shouldLog)
 							mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $joueur['id'] .','. $course .','. ($i+1) .',NULL)');

@@ -36,7 +36,7 @@ $rulesList = array(
 	'cpuCount' => array(
 		'default' => DEFAULT_CPU_COUNT,
 		'min_value' => 2,
-		'max_value' => 8
+		'max_value' => 12
 	),
 	'cpuLevel' => array(
 		'default' => 0

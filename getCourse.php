@@ -117,7 +117,7 @@ if ($id) {
 		$getPlayers = mysql_query(
 			'SELECT COUNT(DISTINCT p.id) AS nb FROM mkplayers p
 			INNER JOIN mariokart m ON p.course=m.id
-			WHERE p.connecte>='.floor(($time-35)*1000/67).'
+			WHERE p.connecte>='.floor(($time-35)*1000/67).' AND p.controller=0
 			AND m.cup="'. $nid .'" AND m.mode='. $nmode .' AND m.link='. $nlink
 		);
 		if ($nbPlayers = mysql_fetch_array($getPlayers))

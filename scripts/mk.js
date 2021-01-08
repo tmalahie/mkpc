@@ -1,5 +1,5 @@
 var pause, chatting = false;
-var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array();
+var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array();
 var fInfos;
 var formulaire;
 var baseCp;
@@ -2271,14 +2271,19 @@ function startGame() {
 			mini : 0,
 			using : [],
 
-			cpu : !isOnline,
+			cpu : true,
 			aipoint : 0,
 			lastAItime : 0,
 			aipoints : oMap.aipoints[0],
 			maxspeed : 5.7
 		};
-		if (isOnline)
+		if (isOnline) {
 			oEnemy.id = aIDs[i];
+			if (aControllers[i])
+				oEnemy.controller = aControllers[i];
+			else
+				oEnemy.cpu = false;
+		}
 		else
 			oEnemy.aipoints = oMap.aipoints[inc%oMap.aipoints.length]||[];
 
@@ -2889,14 +2894,16 @@ function startGame() {
 							if (stillRacing||i)
 								document.getElementById("infos"+i).style.display = "none";
 						}
-						if (stillRacing) {
-							var oInfos = document.getElementById("infos0");
+						var oInfos = document.getElementById("infos0");
+						if (oInfos) {
 							oInfos.style.fontFamily = "";
 							oInfos.style.textStroke = oInfos.style.WebkitTextStroke = oInfos.style.MozTextStroke = "";
 							oInfos.style.width = "";
 							oInfos.style.top = iScreenScale * 7 + 10 +"px";
 							oInfos.style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 							oInfos.style.fontSize = iScreenScale * 4 +"pt";
+						}
+						if (stillRacing) {
 							var btnFontSize = (course != "CM") ? (iScreenScale*3):Math.round(iScreenScale*2.5);
 							oInfos.innerHTML =
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr>'+
@@ -3550,7 +3557,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3582,14 +3589,14 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		//*
+		/*
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -11022,31 +11029,54 @@ function itemDataLength(type) {
 
 function resetDatas() {
 	var oPlayer = oPlayers[0];
-	var params = (course != "BB")
+	var playerMapping = (course != "BB")
 	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","tours","demitours","champi","etoile","megachampi","billball","place"]
 	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","ballons","reserve","champi","etoile","megachampi"];
+	var cpuMapping = playerMapping.concat("aipoint");
 	var payload = {
 		player: [],
 		item: [],
 		lastcon: connecte
 	};
-	payload.player.length = params.length;
-	for (var i=0;i<params.length;i++) {
-		var param = params[i];
-		var value;
-		switch (param) {
-		case "demitours":
-			if (course != "BB")
-				value = getCpScore(oPlayer);
-			break;
-		case "ballons":
-			if (course == "BB")
-				value = oPlayer.ballons.length;
-			break;
-		default:
-			value = oPlayer[params[i]];
+	var payloadsToSync = [{
+		params: payload.player,
+		mapping: playerMapping,
+		kart: oPlayer
+	}];
+	for (var i=0;i<aKarts.length;i++) {
+		var oKart = aKarts[i];
+		if (oKart.controller == identifiant) {
+			if (!payload.cpu) payload.cpu = {};
+			payload.cpu[oKart.id] = [];
+			payloadsToSync.push({
+				params: payload.cpu[oKart.id],
+				mapping: cpuMapping,
+				kart: oKart
+			});
 		}
-		payload.player[i] = value;
+	}
+	for (var j=0;j<payloadsToSync.length;j++) {
+		var payloadToSync = payloadsToSync[j];
+		var oParams = payloadToSync.params, oKart = payloadToSync.kart;
+		var params = payloadToSync.mapping;
+		oParams.length = params.length;
+		for (var i=0;i<params.length;i++) {
+			var param = params[i];
+			var value;
+			switch (param) {
+			case "demitours":
+				if (course != "BB")
+					value = getCpScore(oKart);
+				break;
+			case "ballons":
+				if (course == "BB")
+					value = oKart.ballons.length;
+				break;
+			default:
+				value = oKart[params[i]];
+			}
+			oParams[i] = value;
+		}
 	}
 	var aSyncItems = Array.from(new Set(syncItems));
 	var nSyncItems = [];
@@ -11180,6 +11210,8 @@ function resetDatas() {
 					if (oKart.id == pID) {
 						var pCode = jCode[1];
 						var aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe;
+						var aIpoint = oKart.aipoint;
+						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
 							var value = pCode[k];
@@ -11699,7 +11731,7 @@ function move(getId, triggered) {
 			document.getElementById("drift"+ getId).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[getId].h-32)*fSpriteScale*0.15) + "px";
 	}
 	
-	if ((!getId || !isOnline || finishing) && !oKart.loose) {
+	if ((!getId || !isOnline || oKart.controller == identifiant || finishing) && !oKart.loose) {
 		var oKartItems = oKart.using;
 		if (oKart.tourne) {
 			oKartItems = [];
@@ -12073,7 +12105,7 @@ function move(getId, triggered) {
 		else {
 			var hpType;
 			var fTombe;
-			if ((!isOnline || !getId) && (page!="MK" || course!="BB" || !oKart.cpu || (oMap.map>=65)))
+			if ((!isOnline || !getId || oKart.controller == identifiant) && (page!="MK" || course!="BB" || !oKart.cpu || (oMap.map>=65)))
 				fTombe = tombe(oKart.x, oKart.y, oMap.checkpoint&&oKart.demitours ? oMap.checkpoint[(oKart.demitours+1!=oMap.checkpoint.length) ? oKart.demitours+1 : 0][3] : 0);
 			if (fTombe) {
 				if (fTombe == true) {
@@ -12864,7 +12896,7 @@ function move(getId, triggered) {
 		oKart.mini--;
 		if (oKart.mini < 1) {
 			oKart.mini = 0;
-			if (!isOnline || !getId)
+			if (!isOnline || !getId || oKart.controller == identifiant)
 				oKart.size = 1;
 			updateDriftSize(aKarts.indexOf(oKart));
 		}
@@ -13667,55 +13699,57 @@ function ai(oKart) {
 			}
 			return false;
 		}
-		if (oKart.using.length) {
-			switch(oKart.using[0].type) {
-			case "carapace-rouge":
-				if ((course == "BB") && (oKart.using.length < 2)) {
-					if (isPlayerTargetable(15,100, 0,30))
-						arme(aKarts.indexOf(oKart));
-				}
-				else
+		if (!isOnline || oKart.controller == identifiant) {
+			if (oKart.using.length) {
+				switch(oKart.using[0].type) {
+				case "carapace-rouge":
+					if ((course == "BB") && (oKart.using.length < 2)) {
+						if (isPlayerTargetable(15,100, 0,30))
+							arme(aKarts.indexOf(oKart));
+					}
+					else
+						useRandomly = true;
+					break;
+				case "carapace":
+					if ((course == "BB") && (oKart.using.length < 2)) {
+						if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,150, 0,15))
+							arme(aKarts.indexOf(oKart));
+						if (isPlayerTargetable(0,20, 0,30, true) || isPlayerTargetable(0,80, 0,15, true))
+							arme(aKarts.indexOf(oKart), true);
+					}
+					else
+						useRandomly = true;
+					break;
+				default:
 					useRandomly = true;
-				break;
-			case "carapace":
-				if ((course == "BB") && (oKart.using.length < 2)) {
-					if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,150, 0,15))
-						arme(aKarts.indexOf(oKart));
-					if (isPlayerTargetable(0,20, 0,30, true) || isPlayerTargetable(0,80, 0,15, true))
-						arme(aKarts.indexOf(oKart), true);
 				}
-				else
-					useRandomly = true;
-				break;
-			default:
-				useRandomly = true;
 			}
-		}
-		else {
-			switch (oKart.arme) {
-			case "megachampi":
-			case "etoile":
-				if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-					arme(aKarts.indexOf(oKart));
-				break;
-			case "champi":
-			case "champiX2":
-			case "champiX3":
-				if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-					arme(aKarts.indexOf(oKart));
-				break;
-			case "champior":
-				if (oKart.champior) {
-					if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
-						arme(aKarts.indexOf(oKart));
-				}
-				else {
+			else {
+				switch (oKart.arme) {
+				case "megachampi":
+				case "etoile":
 					if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
 						arme(aKarts.indexOf(oKart));
+					break;
+				case "champi":
+				case "champiX2":
+				case "champiX3":
+					if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+						arme(aKarts.indexOf(oKart));
+					break;
+				case "champior":
+					if (oKart.champior) {
+						if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
+							arme(aKarts.indexOf(oKart));
+					}
+					else {
+						if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+							arme(aKarts.indexOf(oKart));
+					}
+					break;
+				default:
+					useRandomly = true;
 				}
-				break;
-			default:
-				useRandomly = true;
 			}
 		}
 		if (useRandomly) {
@@ -14779,7 +14813,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oInput.name = "option-cpuCount";
 	oInput.type = "number";
 	oInput.setAttribute("min", 2);
-	oInput.setAttribute("max", 8);
+	oInput.setAttribute("max", 12);
 	oInput.setAttribute("step", 1);
 	oInput.setAttribute("required", true);
 	oInput.style.backgroundColor = "#F6F6F6";
@@ -17196,7 +17230,7 @@ function acceptRulesScreen() {
 		var oDiv = document.createElement("div");
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("If there are not enough players, some bots will be added to the game so that there are at least <strong>"+ shareLink.options.cpuCount +"</strong> participants.", "S'il n'y a pas assez de joueurs, des bots seront ajoutés à la partie pour qu'il y ait au minimum <strong>3</strong> participants");
+		oDiv.innerHTML = toLanguage("If there are not enough players, some bots will be added to the game so that there are at least <strong>"+ shareLink.options.cpuCount +"</strong> participants.", "S'il n'y a pas assez de joueurs, des bots seront ajoutés à la partie pour qu'il y ait au minimum <strong>"+ shareLink.options.cpuCount +"</strong> participants");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
@@ -18552,23 +18586,33 @@ function choose(map,rand) {
 				var trs = oTBody.getElementsByTagName("tr");
 				while (trs.length)
 					oTBody.removeChild(trs[0]);
+				var nbChoices = 0;
 				for (i=0;i<choixJoueurs.length;i++) {
-					var oTr = document.createElement("tr");
-					var oTd = document.createElement("td");
-					var isChoix = choixJoueurs[i][2];
-					var isRandom = choixJoueurs[i][3];
-					oTd.innerHTML = isChoix ? (isRandom ? "???":lCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
-					oTr.appendChild(oTd);
-					oTBody.appendChild(oTr);
+					if (!choixJoueurs[i][7]) {
+						var oTr = document.createElement("tr");
+						var oTd = document.createElement("td");
+						var isChoix = choixJoueurs[i][2];
+						var isRandom = choixJoueurs[i][3];
+						oTd.innerHTML = isChoix ? (isRandom ? "???":lCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
+						oTr.appendChild(oTd);
+						oTBody.appendChild(oTr);
+						nbChoices++;
+					}
 				}
 				if (rCode[1] == -1)
 					setTimeout(waitForChoice, 1000);
 				else {
-					if (choixJoueurs.length >= rCode[4].minPlayers) {
+					if ((choixJoueurs.length >= rCode[4].minPlayers) && (nbChoices > 1)) {
 						aPlayers = new Array();
 						aIDs = new Array();
 						aPlaces = new Array();
 						aPseudos = new Array();
+						aControllers = new Array();
+						if (shareLink.options && shareLink.options.cpu) {
+							var cpuLevel = shareLink.options.cpuLevel || 0;
+							cpuLevel = 2-cpuLevel;
+							iDificulty = 4+cpuLevel*0.5;
+						}
 						aTeams = new Array();
 						for (i=0;i<choixJoueurs.length;i++) {
 							var aID = choixJoueurs[i][0];
@@ -18579,6 +18623,7 @@ function choose(map,rand) {
 								aPlaces.push(choixJoueurs[i][4]);
 								aPseudos.push(choixJoueurs[i][5]);
 								aTeams.push(choixJoueurs[i][6]);
+								aControllers.push(choixJoueurs[i][7]);
 							}
 							else {
 								aPlaces.unshift(choixJoueurs[i][4]);
@@ -18610,7 +18655,7 @@ function choose(map,rand) {
 							else
 								tnCourse += 5000;
 						}
-						//rCode[2] = 0; // TODO remove
+						rCode[2] = 0; // TODO remove
 						connecte = rCode[3]+1;
 						var cCursor = 0;
 						var cTime = 50;
@@ -18618,7 +18663,7 @@ function choose(map,rand) {
 							var isInFuckingLoop = true;
 							if (cCursor == rCode[1]) {
 								var pTime = 0, iTime = cTime;
-								for (var i=0;i<choixJoueurs.length;i++) {
+								for (var i=0;i<nbChoices;i++) {
 									iTime = Math.round(iTime*1.05);
 									pTime += iTime;
 								}
@@ -18629,7 +18674,7 @@ function choose(map,rand) {
 								trs[cCursor].style.backgroundColor = "";
 								trs[cCursor].style.color = "";
 								cCursor++;
-								if (cCursor == choixJoueurs.length)
+								if (cCursor == nbChoices)
 									cCursor = 0;
 								trs[cCursor].style.backgroundColor = "#F80";
 								trs[cCursor].style.color = "white";
@@ -18659,7 +18704,7 @@ function choose(map,rand) {
 						oDiv.style.left = (iScreenScale*10+10) +"px";
 						oDiv.style.top = (iScreenScale*20+10) +"px";
 						oDiv.style.fontSize = (iScreenScale*2) +"pt";
-						if (choixJoueurs.length > 1)
+						if (nbChoices > 1)
 							oDiv.innerHTML = toLanguage("Sorry, there are not enough players to begin the race...", "D&eacute;sol&eacute;, il n'y a pas assez de joueurs pour commencer la course...");
 						else
 							oDiv.innerHTML = toLanguage("Sorry, all your opponents have left the race...", "D&eacute;sol&eacute;, tous vos adversaires ont quitt&eacute; la course...");
