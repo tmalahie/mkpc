@@ -12723,12 +12723,32 @@ function move(getId, triggered) {
 		if (course == "BB")
 			oKart.maxspeed = 5.7;
 		else {
-			var oPlayerPlace = oPlayers[0].place;
+			var oPlayerPlace = oPlayers[0].place, nbPlayers = oPlayers.length;
+			var nCpus = aKarts.length-1-nbPlayers;
+			var apparentId = getId-nbPlayers;
+			var firstCpu = aKarts[nbPlayers];
+			if (isOnline) {
+				nbPlayers = 0;
+				nCpus = -1;
+				apparentId = 0;
+				firstCpu = null;
+				for (var i=0;i<aKarts.length;i++) {
+					if (aKarts[i].controller) {
+						if (i < getId)
+							apparentId++;
+						if (!firstCpu)
+							firstCpu = aKarts[i];
+						nCpus++;
+					}
+					else {
+						nbPlayers++;
+						if (aKarts[i].place < oPlayerPlace)
+							oPlayerPlace = aKarts[i].place;
+					}
+				}
+			}
 			var rSpeed = iDificulty, influence = 1;
-			var nCpus = aKarts.length-1-oPlayers.length;
 			if (nCpus > 0) {
-				var apparentId = getId-oPlayers.length;
-				var firstCpu = aKarts[oPlayers.length];
 				if ((firstCpu.place < oKart.place) && (firstCpu.place < oPlayerPlace)) {
 					var distToFirst = oKart.distToFirstCache;
 					if (distToFirst) {
