@@ -1359,7 +1359,7 @@ function addNewItem(kart,item) {
 	}
 	items[collection].push(item);
 	if (isOnline) {
-		if (kart.id == identifiant || kart.controller == identifiant)
+		if (kart && (kart.id == identifiant || kart.controller == identifiant))
 			syncItems.push(item);
 	}
 	else {
@@ -5707,7 +5707,7 @@ var itemBehaviors = {
 							if (tCible) {
 								fSprite.target = tCible.id;
 								var oPlayer = oPlayers[0];
-								if (isOnline && ((tCible == oPlayer) || (fSprite.owner == oPlayer.id)))
+								if (isOnline && ((tCible.id == identifiant) || (tCible.controller == identifiant) || isControlledByPlayer(fSprite.owner)))
 									syncItems.push(fSprite);
 							}
 						}
@@ -5804,10 +5804,10 @@ var itemBehaviors = {
 				}
 				else {
 					fSprite.z = 0;
-					if (isOnline && (fSprite.target == oPlayers[0].id) && (fSprite.cooldown < -10))
+					if (isOnline && isControlledByPlayer(fSprite.target) && (fSprite.cooldown < -10))
 						fSprite.cooldown = 0;
 					fSprite.cooldown--;
-					var delLimit = (isOnline&&(fSprite.target!=oPlayers[0].id)) ? -70:-10;
+					var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -70:-10;
 					if (fSprite.cooldown < delLimit)
 						detruit(fSprite);
 				}
@@ -5853,7 +5853,7 @@ var itemBehaviors = {
 				var oKart = aKarts[cible];
 				var fDist2 = (oKart.x-fSprite.x)*(oKart.x-fSprite.x) + (oKart.y-fSprite.y)*(oKart.y-fSprite.y);
 				if ((fDist2 < 20000) || isBB) {
-					if ((fSprite.target == -1) && (!isOnline || !cible) || isBB) {
+					if ((fSprite.target == -1) && (!isOnline || oKart.id == identifiant || oKart.controller == identifiant) || isBB) {
 						fSprite.target = oKart.id;
 						if (isOnline)
 							syncItems.push(fSprite);
@@ -12998,6 +12998,12 @@ function kartIsPlayer(oKart) {
 	if (!isOnline)
 		return !oKart.cpu;
 	return (oKart == oPlayers[0]);
+}
+function isControlledByPlayer(id) {
+	var oKart = aKarts.find(function(kart) {
+		return kart.id == id;
+	});
+	return oKart && ((oKart.id == identifiant) || (oKart.controller == identifiant));
 }
 
 function handleDriftCpt(getId) {

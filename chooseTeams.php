@@ -18,7 +18,7 @@ if ($id) {
 					if (isset($_POST['noteams']))
 						mysql_query('UPDATE `mkplayers` SET team=-1 WHERE course="'.$course.'"');
 					else {
-						$getPlayers = mysql_query('SELECT id FROM `mkjoueurs` WHERE course="'.$course.'"');
+						$getPlayers = mysql_query('SELECT id FROM `mkplayers` WHERE course="'.$course.'"');
 						while ($player = mysql_fetch_array($getPlayers)) {
 							$pId = $player['id'];
 							if (isset($_POST["j$pId"])) {

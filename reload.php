@@ -267,8 +267,9 @@ if ($id) {
 				foreach ($allPlayersData as $v=>$joueur) {
 					if ($joueur['cpu'])
 						$playerName = 'CPU ' . ($cpuRankById[$joueur['id']]+1);
-					if (!$joueur['cpu'] || $isLocal) {
+					else
 						$playerName = $joueur['nom'];
+					if (!$joueur['cpu'] || $isLocal) {
 						$score = $joueur['aPts'];
 						if ($isFriendly) {
 							if ($isLocal) {

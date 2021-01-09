@@ -81,8 +81,17 @@ include('menu.php');
     </div>
     <br />
 	<?php
-    $records = mysql_query('SELECT j.id,j.nom,r.pts,c.code FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country INNER JOIN `mkgamerank` r ON r.game="'. $_GET['key'] .'" AND r.player=j.id ORDER BY r.pts DESC,j.id');
-    if (mysql_numrows($records)) {
+    $getRecords = mysql_query('SELECT r.player AS id,(j.id IS NULL) AS cpu,j.nom,r.pts,c.code FROM `mkgamerank` r LEFT JOIN `mkjoueurs` j ON r.player=j.id LEFT JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE r.game="'. $_GET['key'] .'" ORDER BY r.pts DESC,j.id');
+    $records = array();
+    $cpuIds = array();
+	while ($record=mysql_fetch_array($getRecords)) {
+        $records[] = $record;
+        if ($record['cpu'])
+            $cpuIds[] = +$record['id'];
+    }
+    sort($cpuIds);
+    $cpuRankById = array_flip($cpuIds);
+    if (!empty($records)) {
         ?>
 	<table>
 	<tr id="titres">
@@ -91,12 +100,11 @@ include('menu.php');
 	<td>Score</td>
 	</tr>
     <?php
-    $i = 0;
-	while ($record=mysql_fetch_array($records)) {
-        $i++;
-        $place = $i;
+	foreach ($records as $i=>$record) {
+        $place = $i+1;
+        $playerName = $record['cpu'] ? 'CPU '.($cpuRankById[$record['id']]+1) : $record['nom'];
 		?>
-	<tr class="<?php echo (($i%2) ? 'clair':'fonce') ?>">
+	<tr class="<?php echo (($i%2) ? 'fonce':'clair') ?>">
 	<td><?php
 		echo $place .'<sup>';
 		if ($language) {
@@ -123,11 +131,16 @@ include('menu.php');
 			echo 'e'. ($place>1 ? null:'r');
 		echo '</sup>';
 	?></td>
-	<td><a href="profil.php?id=<?php echo $record['id']; ?>" class="recorder"><?php
+	<td>
+    <?php
+    if (!$record['cpu'])
+        echo '<a href="profil.php?id='. $record['id'] .'" class="recorder">';
 	if ($record['code'])
 		echo '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" onerror="this.style.display=\'none\'" /> ';
-		echo $record['nom'];
-	?></a></td>
+    echo $playerName;
+    if (!$record['cpu'])
+        echo '</a>';
+	?></td>
 	<td><?php echo $record['pts'] ?></td>
 	</tr>
 		<?php
