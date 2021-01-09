@@ -1358,10 +1358,12 @@ function addNewItem(kart,item) {
 		item.size = itemBehavior.size;
 	}
 	items[collection].push(item);
-	if (kart == oPlayers[0]) {
-		if (isOnline)
+	if (isOnline) {
+		if (kart.id == identifiant || kart.controller == identifiant)
 			syncItems.push(item);
-		else if (clLocalVars.myItems)
+	}
+	else {
+		if (kart == oPlayers[0] && clLocalVars.myItems)
 			clLocalVars.myItems.push(item);
 	}
 	if (item.team != -1) {
@@ -5154,7 +5156,7 @@ var itemBehaviors = {
 						var kart = aKarts[i];
 						if (!friendlyFire(kart,oKart)) {
 							if (!kart.protect) {
-								if (!isOnline || !i)
+								if (!isOnline || !i || kart.controller == identifiant)
 									kart.size = 0.6;
 								kart.mini = Math.round(Math.max(kart.mini, 120-(kart.place-1)*40/(aKarts.length-1)));
 								updateDriftSize(i);
@@ -8217,7 +8219,7 @@ function dropCurrentItem(oKart) {
 	var sRoulette = oKart.roulette;
 	supprArme(aKarts.indexOf(oKart));
 	if (sRoulette < 25) return;
-	if (isOnline && !kartIsPlayer(oKart)) return;
+	if (isOnline && (oKart.id != identifiant) && (oKart.controller != identifiant)) return;
 	var itemCount = 1;
 	var sArmeCountRegex = sArme.match(/^(.+)X(\d+)$/);
 	if (sArmeCountRegex) {
@@ -11096,8 +11098,13 @@ function resetDatas() {
 		var itemPayload = {
 			data: itemData
 		};
-		if (oPlayer.using.indexOf(syncItem) !== -1)
-			itemPayload.holder = 1;
+		for (var j=0;j<payloadsToSync.length;j++) {
+			var oKart = payloadsToSync[j].kart;
+			if (oKart.using.indexOf(syncItem) !== -1) {
+				itemPayload.holder = oKart.id;
+				break;
+			}
+		}
 		if (syncItem.id)
 			itemPayload.id = syncItem.id;
 		else {

@@ -73,7 +73,8 @@ if ($id) {
 			if (!$finished) {
 				if (isset($payload['item'])) {
 					foreach ($payload['item'] as $item) {
-						$holder = isset($item['holder']) ? $id:0;
+						$holder = isset($item['holder']) ? $item['holder']:0;
+						if ($holder == 1) $holder = $id; // TODO remove (bkwd cptblty)
 						if (isset($item['id'])) {
 							mysql_query('UPDATE items SET data=UNHEX("'. $item['data'] .'"),holder="'. $holder .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'" WHERE id="'. $item['id'] .'" AND data!=""');
 						}
@@ -91,7 +92,7 @@ if ($id) {
 						if (null !== $value)
 							$sql .= $key .'="'.$value .'",';
 					}
-					$pWinning = $isBattle ? (($payloadData['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND ballons=0'))) : (($payloadData['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$id.' AND tours>='.$fLaps)));
+					$pWinning = $isBattle ? (($payloadData['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$playerPayload['id'].' AND ballons=0'))) : (($payloadData['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$playerPayload['id'].' AND tours>='.$fLaps)));
 					if ($pWinning) {
 						if ($playerPayload['id'] == $id)
 							$winning = $pWinning;
