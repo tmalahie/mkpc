@@ -38,9 +38,10 @@ if ($course && !$getCourse['banned']) {
 		$joueurs = mysql_query('SELECT j.id,'.($isLocal ? 'IFNULL(r.pts,0) AS pts':'j.'.$pts_.' AS pts').' FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id'. ($isLocal ? ' LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND j.id=r.player':'') .' WHERE j.course='. $course .' ORDER BY p.place,j.id');
 		$nConnect = round($time/67);
 		$playerIds = array();
+		$toUpdate0 = 'connecte='.$nConnect.',tours=1,ballons=1,reserve=4';
 		for ($i=0;$joueur=mysql_fetch_array($joueurs);$i++) {
 			$playerIds[] = $joueur['id'];
-			$toUpate = 'course='.$course.',controller=0,aPts='. $joueur['pts'] .',connecte='.$nConnect.',tours=1,ballons=1,reserve=4,place='.($i+1);
+			$toUpate = 'course='.$course.',controller=0,aPts='. $joueur['pts'] .','.$toUpdate0.',place='.($i+1);
 			mysql_query('INSERT INTO `mkplayers` SET id='. $joueur['id'].','.$toUpate.' ON DUPLICATE KEY UPDATE '.$toUpate);
 		}
 		$nbPlayers = $i;
@@ -49,7 +50,9 @@ if ($course && !$getCourse['banned']) {
 			$existingCpus = mysql_query('SELECT p.id FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' AND j.id IS NULL ORDER BY p.id');
 			$cpuIds = array();
 			while ($existingCpu = mysql_fetch_array($existingCpus)) {
+				$toUpate = 'controller='.$playerIds[($i-$nbPlayers)%$nbPlayers].','.$toUpdate0.',place='.($i+1);
 				$cpuIds[] = $existingCpu['id'];
+				mysql_query('UPDATE `mkplayers` SET '. $toUpate .' WHERE id='.$existingCpu['id']);
 				$i++;
 				if ($i >= $courseRules->cpuCount)
 					break;
@@ -59,7 +62,7 @@ if ($course && !$getCourse['banned']) {
 				$minAvailableId = mysql_fetch_array(mysql_query('SELECT IFNULL(MAX(p.id)+1,'.$initialId.') AS id FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE j.id IS NULL'));
 				$cpuId = $minAvailableId['id'];
 				do {
-					$toUpate = 'course='.$course.',controller='.$playerIds[($i-$nbPlayers)%$nbPlayers].',aPts='.($isLocal ? 0:5000).',connecte='.$nConnect.',tours=1,ballons=1,reserve=4,place='.($i+1);
+					$toUpate = 'course='.$course.',controller='.$playerIds[($i-$nbPlayers)%$nbPlayers].',aPts='.($isLocal ? 0:5000).','.$toUpdate0.',place='.($i+1);
 					$maxiter = 10;
 					while (!mysql_query('INSERT INTO `mkplayers` SET id='.$cpuId.','.$toUpate)) {
 						$cpuId++;
