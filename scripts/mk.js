@@ -648,7 +648,7 @@ function setPlanPos() {
 		for (var i=0;i<aKarts.length;i++) {
 			var updatePos = true;
 			if (aKarts[i].loose) {
-				if (isOnline || (aKarts[i] == oPlayer))
+				if ((isOnline && !finishing) || (aKarts[i] == oPlayer))
 					iPlanCharacters[i].style.opacity = 0.25;
 				else {
 					iPlanCharacters[i].style.display = "none";
@@ -2870,13 +2870,15 @@ function startGame() {
 					}
 				}
 				oChallengeCpts.style.visibility = "visible";
-				if (!isOnline && course == "BB") {
-					for (var i=strPlayer.length;i<aKarts.length;i++) {
+				if (course == "BB") {
+					for (var i=0;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
-						var f = 1+Math.round(Math.random());
-						for (j=0;j<f;j++) {
-							addNewBalloon(oKart);
-							oKart.reserve--;
+						if (oKart.cpu) {
+							var f = 1+Math.round(Math.random());
+							for (j=0;j<f;j++) {
+								addNewBalloon(oKart);
+								oKart.reserve--;
+							}
 						}
 					}
 				}
@@ -3559,7 +3561,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3591,14 +3593,14 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		/*
+		//*
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -11456,6 +11458,8 @@ function resetDatas() {
 									playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
 							}
 						}
+						else if (oKart != oPlayers[0])
+							oKart.loose = true;
 					}
 					setTimeout(displayRankings, 1000);
 				}
@@ -11588,10 +11592,12 @@ function move(getId, triggered) {
 			loseBall(getId);
 			if (course == "BB") {
 				if (oKart.cpu && oKart.ballons.length == 1) {
-					var f = 1+Math.round(Math.random());
-					for (i=0;(i<f)&&(oKart.reserve);i++) {
-						addNewBalloon(oKart);
-						oKart.reserve--;
+					if (!isOnline || oKart.controller == identifiant) {
+						var f = 1+Math.round(Math.random());
+						for (i=0;(i<f)&&(oKart.reserve);i++) {
+							addNewBalloon(oKart);
+							oKart.reserve--;
+						}
 					}
 				}
 				if (!oKart.ballons.length && !oKart.loose) {
@@ -11641,10 +11647,12 @@ function move(getId, triggered) {
 		if (!oKart.tourne) {
 			if (course == "BB") {
 				if (oKart.cpu && oKart.ballons.length == 1) {
-					var f = 1+Math.round(Math.random());
-					for (i=0;(i<f)&&(oKart.reserve);i++) {
-						addNewBalloon(oKart);
-						oKart.reserve--;
+					if (!isOnline || oKart.controller == identifiant) {
+						var f = 1+Math.round(Math.random());
+						for (i=0;(i<f)&&(oKart.reserve);i++) {
+							addNewBalloon(oKart);
+							oKart.reserve--;
+						}
 					}
 				}
 				if (!oKart.ballons.length && !oKart.loose) {
@@ -13315,7 +13323,7 @@ function ai(oKart) {
 		return;
 	if (oKart.tombe)
 		return;
-	if ((oMap.sections && oKart.tours > oMap.tours) || (oKart.ballons && !oKart.ballons.length)) {
+	if ((oMap.sections && oKart.tours > oMap.tours) || (oKart.ballons && !oKart.ballons.length && !oKart.loose)) {
 		oKart.speedinc = 0;
 		oKart.rotinc = 0;
 		oKart.rotincdir = 0;
@@ -13716,9 +13724,10 @@ function ai(oKart) {
 		var useRandomly = false;
 		function isPlayerTargetable(minDist,maxDist,minAngle,maxAngle, reverse) {
 			var minDist2 = minDist*minDist, maxDist2 = maxDist*maxDist;
-			for (var i=0;i<strPlayer.length;i++) {
+			var nbPlayers = isOnline ? aKarts.length : strPlayer.length;
+			for (var i=0;i<nbPlayers;i++) {
 				var iKart = aKarts[i];
-				if (!iKart.loose && !iKart.protect) {
+				if (!iKart.loose && !iKart.protect && !iKart.cpu) {
 					var dDist2 = (iKart.x-oKart.x)*(iKart.x-oKart.x) + (iKart.y-oKart.y)*(iKart.y-oKart.y);
 					if ((dDist2 >= minDist2) && (dDist2 < maxDist2)) {
 						var iAngle = Math.atan2(iKart.x-oKart.x, iKart.y-oKart.y)*180/Math.PI;
@@ -14008,7 +14017,7 @@ function runOneFrame() {
 				oKart.arme = false;
 			}
 		}
-		if (!oKart.loose || isOnline) {
+		if (!oKart.loose || (isOnline && !finishing)) {
 			if (oKart.cpu)
 				ai(oKart);
 			move(i);
@@ -14771,7 +14780,8 @@ function privateGameOptions(gameOptions, onProceed) {
 		if (this.checked) {
 			var aScroll = oScroll.scrollHeight;
 			document.getElementById("option-cpuCount-ctn").style.display = "";
-			document.getElementById("option-cpuLevel-ctn").style.display = "";
+			if (!isBattle)
+				document.getElementById("option-cpuLevel-ctn").style.display = "";
 			setTimeout(function() {
 				document.getElementById("option-cpuCount").select();
 				oScroll.scrollTop += oScroll.scrollHeight-aScroll;
@@ -14865,7 +14875,7 @@ function privateGameOptions(gameOptions, onProceed) {
 
 	var oTr = document.createElement("tr");
 	oTr.id = "option-cpuLevel-ctn";
-	if (!gameOptions || !gameOptions.cpu)
+	if (!gameOptions || !gameOptions.cpu || isBattle)
 		oTr.style.display = "none";
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
@@ -18688,7 +18698,7 @@ function choose(map,rand) {
 							else
 								tnCourse += 5000;
 						}
-						rCode[2] = 0; // TODO remove
+						//rCode[2] = 0; // TODO remove
 						connecte = rCode[3]+1;
 						var cCursor = 0;
 						var cTime = 50;
