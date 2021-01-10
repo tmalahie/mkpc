@@ -18862,6 +18862,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	oTableCtn.style.left = iScreenScale +"px";
 	oTableCtn.style.top = (iScreenScale*10) +"px";
 	oTableCtn.style.width = ((iWidth-2)*iScreenScale) +"px";
+	oTableCtn.style.height = (iScreenScale*(iHeight-10)) +"px";
+	oTableCtn.style.overflowY = "auto";
 	oTableCtn.style.textAlign = "center";
 
 	var teamsTable = document.createElement("table");
