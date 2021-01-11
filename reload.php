@@ -88,15 +88,19 @@ if ($id) {
 				foreach ($playerPayloads as &$playerPayload) {
 					$payloadData = $playerPayload['data'];
 					$sql = 'UPDATE `mkplayers` SET ';
+					$pWon = mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$playerPayload['id'].' AND '. ($isBattle ? 'ballons=0':'tours>='.$fLaps)));
+					$pWinning = !$pWon && ($isBattle ? ($payloadData['ballons']==0) : ($payloadData['tours']==$fLaps));
+					if ($pWon)
+						unset($payloadData['place']);
 					foreach ($payloadData as $key => $value) {
 						if (null !== $value)
 							$sql .= $key .'="'.$value .'",';
 					}
-					$pWinning = $isBattle ? (($payloadData['ballons']==0) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$playerPayload['id'].' AND ballons=0'))) : (($payloadData['tours']==$fLaps) && !mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$playerPayload['id'].' AND tours>='.$fLaps)));
 					if ($pWinning) {
 						if ($playerPayload['id'] == $id)
 							$winning = $pWinning;
-						$sql .= 'place='.(mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)))+1-$isBattle).',';
+						$getPlace = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS place FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)));
+						$sql .= 'place='.($getPlace['place']+1-$isBattle).',';
 					}
 					$sql .= 'connecte='.$lConnect.' WHERE id="'. $playerPayload['id'] .'"';
 					mysql_query($sql);
