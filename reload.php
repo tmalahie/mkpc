@@ -225,14 +225,16 @@ if ($id) {
 							$nbScoresPerTeam[$team]++;
 							$total += $joueur['aPts'];
 						}
-						$avgPerTeam = array(
-							pow($xpPerTeam[0],1/$nbScoresPerTeam[0]),
-							pow($xpPerTeam[1],1/$nbScoresPerTeam[1])
-						);
 						$ptsPerTeam = array(0,0);
-						foreach ($playersData as $i=>$joueur) {
-							$team = $joueur['team'];
-							$ptsPerTeam[$team] += getScoreInc($i,$avgPerTeam[$team],$nbScores,$total);
+						if ($nbScoresPerTeam[0] && $nbScoresPerTeam[1]) {
+							$avgPerTeam = array(
+								pow($xpPerTeam[0],1/$nbScoresPerTeam[0]),
+								pow($xpPerTeam[1],1/$nbScoresPerTeam[1])
+							);
+							foreach ($playersData as $i=>$joueur) {
+								$team = $joueur['team'];
+								$ptsPerTeam[$team] += getScoreInc($i,$avgPerTeam[$team],$nbScores,$total);
+							}
 						}
 						$ptsProrata = array();
 						$ptsProrataTotal = array(0,0);
