@@ -5528,7 +5528,7 @@ var itemBehaviors = {
 					hauteur = fSprite.countdown;
 				}
 				else {
-					if (tombe(Math.round(fSprite.x), Math.round(fSprite.y)))
+					if (tombe(fSprite.x, fSprite.y))
 						detruit(fSprite);
 					if (--fSprite.cooldown == 30)
 						fSprite.cooldown -= 12;
@@ -8909,7 +8909,54 @@ function flowShift(iX,iY, iP) {
 	return [0,0,0];
 }
 function tombe(iX, iY, iC) {
-	if (iX > oMap.w || iY > oMap.h || iX < 0 || iY < 0) {
+	var outsideMap;
+	if (iX > oMap.w) {
+		iX = oMap.w-0.5;
+		outsideMap = true;
+	}
+	else if (iX <= 0) {
+		iX = 0.5;
+		outsideMap = true;
+	}
+	if (iY > oMap.h) {
+		iY = oMap.h-0.5;
+		outsideMap = true;
+	}
+	else if (iY <= 0) {
+		iY = 0.5;
+		outsideMap = true;
+	}
+
+	var fTrou;
+	if (oMap.trous) {
+		for (var j=0;j<4;j++) {
+			var oRectangles = oMap.trous[j].rectangle;
+			for (var i=0;i<oRectangles.length;i++) {
+				var oHole = oRectangles[i];
+				if (pointInRectangle(iX,iY, oHole[0])) {
+					if (iC == undefined)
+						return true;
+					fTrou = [oHole[1][0],oHole[1][1],j];
+					if (j%2 - iC)
+						return fTrou;
+				}
+			}
+			var oPolygons = oMap.trous[j].polygon;
+			for (var i=0;i<oPolygons.length;i++) {
+				var oHole = oPolygons[i];
+				if (pointInPolygon(iX,iY, oHole[0])) {
+					if (iC == undefined)
+						return true;
+					fTrou = [oHole[1][0],oHole[1][1],j];
+					if (j%2 - iC)
+						return fTrou;
+				}
+			}
+		}
+	}
+	if (fTrou)
+		return fTrou;
+	if (outsideMap) {
 		var rotation;
 		if (oMap.startposition[2] != undefined)
 			rotation = oMap.startposition[2];
@@ -8919,38 +8966,7 @@ function tombe(iX, iY, iC) {
 			rotation = 2;
 		return (course=="BB") ? true:[oMap.startposition[0],oMap.startposition[1], rotation];
 	}
-
-	if (!oMap.trous) return false;
-
-	var fTrou;
-	for (var j=0;j<4;j++) {
-		var oRectangles = oMap.trous[j].rectangle;
-		for (var i=0;i<oRectangles.length;i++) {
-			var oHole = oRectangles[i];
-			if (pointInRectangle(iX,iY, oHole[0])) {
-				if (iC == undefined)
-					return true;
-				fTrou = [oHole[1][0],oHole[1][1],j];
-				if (j%2 - iC)
-					return fTrou;
-			}
-		}
-		var oPolygons = oMap.trous[j].polygon;
-		for (var i=0;i<oPolygons.length;i++) {
-			var oHole = oPolygons[i];
-			if (pointInPolygon(iX,iY, oHole[0])) {
-				if (iC == undefined)
-					return true;
-				fTrou = [oHole[1][0],oHole[1][1],j];
-				if (j%2 - iC)
-					return fTrou;
-			}
-		}
-	}
-	if (!fTrou)
-		return false;
-	else
-		return fTrou;
+	return false;
 }
 function inCannon(iX,iY) {
 	if (!oMap.cannons) return false;
