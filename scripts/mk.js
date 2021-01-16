@@ -11217,6 +11217,14 @@ function resetDatas() {
 				for (var j=0;j<aKarts.length;j++) {
 					var oKart = aKarts[j];
 					if (oKart.id == pID) {
+						if (jCode[2]) {
+							var variablePayload = jCode[2];
+							if (variablePayload.controller) {
+								oKart.controller = variablePayload.controller;
+								if (oKart.controller == identifiant)
+									break;
+							}
+						}
 						var pCode = jCode[1];
 						var aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe;
 						var aIpoint = oKart.aipoint;

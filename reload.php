@@ -30,19 +30,17 @@ if ($id) {
 			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
 			$playerPayloads = array();
 			if (isset($payload['player'])) {
-				$playerPayloads[] = array(
+				$playerPayloads[$id] = array(
 					'param' => $payload['player'],
 					'mapping' => $playerMapping,
-					'id' => $id,
 					'value' => array()
 				);
 			}
 			if (isset($payload['cpu'])) {
 				foreach ($payload['cpu'] as $cpuId => $cpuPayload) {
-					$playerPayloads[] = array(
+					$playerPayloads[$cpuId] = array(
 						'param' => $cpuPayload,
 						'mapping' => $cpuMapping,
-						'id' => $cpuId,
 						'value' => array()
 					);
 				}
@@ -68,6 +66,7 @@ if ($id) {
 				return round($timeMs*1000/67);
 			}
 			$lConnect = timeInFrames($timeMs);
+			$limIdle = timeInFrames($timeMs-15);
 			$limConnect = timeInFrames($timeMs-35);
 			$newItems = array();
 			if (!$finished) {
@@ -85,10 +84,10 @@ if ($id) {
 					}
 				}
 				$winning = false;
-				foreach ($playerPayloads as &$playerPayload) {
+				foreach ($playerPayloads as $playerId=>&$playerPayload) {
 					$payloadData = $playerPayload['data'];
 					$sql = 'UPDATE `mkplayers` SET ';
-					$pWon = mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$playerPayload['id'].' AND '. ($isBattle ? 'ballons=0':'tours>='.$fLaps)));
+					$pWon = mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE id='.$playerId.' AND '. ($isBattle ? 'ballons=0':'tours>='.$fLaps)));
 					$pWinning = !$pWon && ($isBattle ? ($payloadData['ballons']==0) : ($payloadData['tours']==$fLaps));
 					if ($pWon)
 						unset($payloadData['place']);
@@ -97,17 +96,18 @@ if ($id) {
 							$sql .= $key .'="'.$value .'",';
 					}
 					if ($pWinning) {
-						if ($playerPayload['id'] == $id)
+						if ($playerId == $id)
 							$winning = $pWinning;
 						$getPlace = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS place FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)));
 						$sql .= 'place='.($getPlace['place']+1-$isBattle).',';
 					}
-					$sql .= 'connecte='.$lConnect.' WHERE id="'. $playerPayload['id'] .'"';
+					$sql .= 'connecte='.$lConnect.' WHERE id="'. $playerId .'"'. (($playerId != $id) ? " AND controller=$id" : '');
 					mysql_query($sql);
 				}
+				unset($playerPayload);
 				if (!rand(0,99)) {
 					// Run a GC some times to remove old deleted items
-					mysql_query('DELETE FROM items WHERE course="'. $course .'" AND data="" AND updated_at<"'.$limConnect.'"');
+					mysql_query('DELETE FROM items WHERE course="'. $course .'" AND data="" AND updated_at<"'.$limIdle.'"');
 				}
 				if ($winning && !$isBattle)
 					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time);
@@ -124,10 +124,25 @@ if ($id) {
 			$racingPerTeam = array(0,0);
 			$virgule = false;
 			while ($joueur=mysql_fetch_array($joueurs)) {
-				$payloadMapping = $joueur['controller'] ? $cpuMapping : $playerMapping;
 				if ($joueur['team'] == -1)
 					$isTeam = false;
-				if (($joueur['id'] != $id) && ($joueur['controller'] != $id) && ($joueur['connecte'] >= $lastconnect)) {
+				if ($joueur['connecte'] && ($joueur['connecte'] < $limIdle) && $joueur['controller'] && ($joueur['controller'] != $id) && !rand(0,10)) {
+					$q = mysql_query('UPDATE mkplayers SET controller='.$id.',connecte='.$lastconnect.' WHERE id='.$joueur['id'].' AND controller='.$joueur['controller']);
+					if (mysql_affected_rows()) {
+						$joueur['controller'] = $id;
+						$joueur['connecte'] = $lastconnect;
+					}
+				}
+				$isControlledByMe = isset($playerPayloads[$joueur['id']]) && (($joueur['id'] == $id) || ($joueur['controller'] == $id));
+				if (!$isControlledByMe && ($joueur['connecte'] >= $lastconnect)) {
+					$variablePayload = null;
+					if ($joueur['controller']) {
+						$payloadMapping = $cpuMapping;
+						if (($joueur['controller'] == $id) || isset($playerPayloads[$joueur['id']]))
+							$variablePayload['controller'] = $joueur['controller'];
+					}
+					else
+						$payloadMapping = $playerMapping;
 					echo ($virgule ? ',':'').'[['.$joueur['id'].','.$joueur['connecte'].'],['.$joueur[$payloadMapping[0]];
 					$nbPosts = count($payloadMapping);
 					for ($i=1;$i<$nbPosts;$i++) {
@@ -141,7 +156,12 @@ if ($id) {
 							echo $val;
 						}
 					}
-					echo ']]';
+					echo ']';
+					if ($variablePayload) {
+						echo ',';
+						echo json_encode($variablePayload);
+					}
+					echo ']';
 					$virgule = true;
 				}
 				if ($isBattle ? (($joueur['ballons'] > 0) && ($joueur['connecte'] > $limConnect)) : ($joueur['tours'] < $fLaps)) {
