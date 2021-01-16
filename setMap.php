@@ -67,10 +67,8 @@ if ($course && !$getCourse['banned']) {
 					while (!mysql_query('INSERT INTO `mkplayers` SET id='.$cpuId.','.$toUpate)) {
 						$cpuId++;
 						$maxiter--;
-						if (!$maxiter) {
-							$cpuId = 0;
-							break;
-						}
+						if (!$maxiter)
+							break 2;
 					}
 					$cpuIds[] = $cpuId;
 					$cpuId++;
@@ -78,9 +76,11 @@ if ($course && !$getCourse['banned']) {
 				} while ($i < $courseRules->cpuCount);
 			}
 			$cpuIdsString = implode(',', $cpuIds);
-			mysql_query('UPDATE `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id SET p.course=(CASE WHEN p.id IN ('. $cpuIdsString .') THEN '. $course .' ELSE 0 END) WHERE p.id IN ('. $cpuIdsString .') OR (p.course='.$course.' AND j.id IS NULL)');
-			if ($isLocal)
-				mysql_query('UPDATE `mkplayers` p LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND p.id=r.player SET p.aPts=IFNULL(r.pts,0) WHERE p.course='.$course.' AND p.controller!=0');
+			if ($cpuIdsString) {
+				mysql_query('UPDATE `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id SET p.course=(CASE WHEN p.id IN ('. $cpuIdsString .') THEN '. $course .' ELSE 0 END) WHERE p.id IN ('. $cpuIdsString .') OR (p.course='.$course.' AND j.id IS NULL)');
+				if ($isLocal)
+					mysql_query('UPDATE `mkplayers` p LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND p.id=r.player SET p.aPts=IFNULL(r.pts,0) WHERE p.course='.$course.' AND p.controller!=0');
+			}
 		}
 		else
 			mysql_query('DELETE FROM `mkplayers` WHERE course='. $course .' AND controller!=0');
