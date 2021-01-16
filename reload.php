@@ -337,7 +337,7 @@ if ($id) {
 								$shouldLog = false;
 						}
 						if ($shouldLog)
-							mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $joueur['id'] .','. $course .','. ($i+1) .',NULL)');
+							mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $joueur['id'] .','. $course .','. $i .',NULL)');
 					}
 				}
 				$getTime = mysql_fetch_array(mysql_query('SELECT time FROM `mariokart` WHERE id='.$course));
