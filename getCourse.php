@@ -89,7 +89,7 @@ if ($id) {
 	function switchCourseIfNeeded() {
 		global $switchCourse,$course,$id;
 		if ($switchCourse) {
-			mysql_query('UPDATE `mkjoueurs` SET course='.$course.' WHERE id='.$id);
+			mysql_query('UPDATE `mkjoueurs` SET course='.$course.',choice_map=0 WHERE id='.$id);
 			mysql_query('UPDATE `mkplayers` SET course='.$course.' WHERE id='.$id);
 		}
 		unset($_SESSION['date']);
