@@ -41,8 +41,8 @@ if ($course && !$getCourse['banned']) {
 		$toUpdate0 = 'connecte='.$nConnect.',tours=1,ballons=1,reserve=4';
 		for ($i=0;$joueur=mysql_fetch_array($joueurs);$i++) {
 			$playerIds[] = $joueur['id'];
-			$toUpate = 'course='.$course.',controller=0,aPts='. $joueur['pts'] .','.$toUpdate0.',place='.($i+1);
-			mysql_query('INSERT INTO `mkplayers` SET id='. $joueur['id'].','.$toUpate.' ON DUPLICATE KEY UPDATE '.$toUpate);
+			$toUpate = 'course='.$course.',controller=0,aPts='. $joueur['pts'] .','.$toUpdate0;
+			mysql_query('INSERT INTO `mkplayers` SET id='. $joueur['id'].','.$toUpate.',place=0 ON DUPLICATE KEY UPDATE '.$toUpate);
 		}
 		$nbPlayers = $i;
 		mysql_query('DELETE p FROM `mkplayers` p INNER JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' AND j.course!='.$course);
@@ -50,7 +50,7 @@ if ($course && !$getCourse['banned']) {
 			$existingCpus = mysql_query('SELECT p.id FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' AND j.id IS NULL ORDER BY p.id');
 			$cpuIds = array();
 			while ($existingCpu = mysql_fetch_array($existingCpus)) {
-				$toUpate = 'controller='.$playerIds[($i-$nbPlayers)%$nbPlayers].','.$toUpdate0.',place='.($i+1);
+				$toUpate = 'controller='.$playerIds[($i-$nbPlayers)%$nbPlayers].','.$toUpdate0;
 				$cpuIds[] = $existingCpu['id'];
 				mysql_query('UPDATE `mkplayers` SET '. $toUpate .' WHERE id='.$existingCpu['id']);
 				$i++;
@@ -81,15 +81,15 @@ if ($course && !$getCourse['banned']) {
 			mysql_query('UPDATE `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id SET p.course=(CASE WHEN p.id IN ('. $cpuIdsString .') THEN '. $course .' ELSE 0 END) WHERE p.id IN ('. $cpuIdsString .') OR (p.course='.$course.' AND j.id IS NULL)');
 			if ($isLocal)
 				mysql_query('UPDATE `mkplayers` p LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND p.id=r.player SET p.aPts=IFNULL(r.pts,0) WHERE p.course='.$course.' AND p.controller!=0');
-			mysql_query('SET @place=0');
-			mysql_query(
-				'UPDATE mkplayers p INNER JOIN
-				(SELECT id,(@place:=@place+1) AS nplace FROM mkplayers WHERE course='.$course.' ORDER BY place,id) t
-				ON t.id=p.id SET p.place=t.nplace'
-			);
 		}
 		else
 			mysql_query('DELETE FROM `mkplayers` WHERE course='. $course .' AND controller!=0');
+		mysql_query('SET @place=0');
+		mysql_query(
+			'UPDATE mkplayers p INNER JOIN
+			(SELECT id,(@place:=@place+1) AS nplace FROM mkplayers WHERE course='.$course.' ORDER BY place,id) t
+			ON t.id=p.id SET p.place=t.nplace'
+		);
 	}
 	function listPlayers() {
 		global $course, $pts_;
