@@ -325,7 +325,7 @@ if ($id) {
 					echo ($v ? ',':'') .'['.$joueur['id'].',"'.$playerName.'",'.$joueur['aPts'].','.$inc.','.$joueur['team'].']';
 					$nPts = $joueur['aPts']+$inc;
 					if ($finishing) {
-						$shouldLog = $isFriendly;
+						$shouldLog = $isFriendly && !$joueur['cpu'];
 						if (($nPts != $joueur['aPts']) || $isLocal) {
 							if ($isLocal)
 								mysql_query('INSERT INTO `mkgamerank` SET game='. $courseOptions['id'] .',player='. $joueur['id'] .',pts='.$nPts.' ON DUPLICATE KEY UPDATE pts=VALUES(pts)');
