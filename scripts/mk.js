@@ -14696,11 +14696,6 @@ function privateGameOptions(gameOptions, onProceed) {
 	oH1.style.marginTop = iScreenScale +"px";
 	oH1.style.marginBottom = "0px";
 	oLabel.appendChild(oH1);
-	var oDiv = document.createElement("div");
-	oDiv.style.fontSize = (2*iScreenScale) +"px";
-	oDiv.style.color = "white";
-	oDiv.innerHTML = toLanguage("", "");
-	oLabel.appendChild(oDiv);
 	tDiv.appendChild(oLabel);
 	cDiv.appendChild(tDiv);
 
@@ -14786,18 +14781,23 @@ function privateGameOptions(gameOptions, onProceed) {
 		oCheckbox.checked = true;
 	oCheckbox.onchange = function() {
 		if (this.checked) {
-			var aScroll = oScroll.scrollHeight;
 			document.getElementById("option-cpuCount-ctn").style.display = "";
 			if (!isBattle)
 				document.getElementById("option-cpuLevel-ctn").style.display = "";
+			document.getElementById("option-cpuNames-ctn").style.display = "";
+			document.getElementById("option-cpuChars-ctn").style.display = "";
+			var $cpuCount = document.getElementById("option-cpuCount");
+			$cpuCount.value = Math.max($cpuCount.value,3);
 			setTimeout(function() {
-				document.getElementById("option-cpuCount").select();
-				oScroll.scrollTop += oScroll.scrollHeight-aScroll;
+				$cpuCount.select();
+				oScroll.scrollTop += iScreenScale*13;
 			}, 1);
 		}
 		else {
 			document.getElementById("option-cpuCount-ctn").style.display = "none";
 			document.getElementById("option-cpuLevel-ctn").style.display = "none";
+			document.getElementById("option-cpuNames-ctn").style.display = "none";
+			document.getElementById("option-cpuChars-ctn").style.display = "none";
 		}
 	}
 	oTd.appendChild(oCheckbox);
@@ -14815,7 +14815,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	var oDiv = document.createElement("div");
 	oDiv.style.fontSize = (2*iScreenScale) +"px";
 	oDiv.style.color = "white";
-	oDiv.innerHTML = toLanguage("If enabled, bots will be added to the gmae if there is not enough players", "Si activé, des bots seront ajoutés à la partie s'il n'y a pas assez de joueurs");
+	oDiv.innerHTML = toLanguage("If enabled, bots will be added to the game if there is not enough players", "Si activé, des bots seront ajoutés à la partie s'il n'y a pas assez de joueurs");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
@@ -14906,11 +14906,6 @@ function privateGameOptions(gameOptions, onProceed) {
 	oH1.style.marginTop = iScreenScale +"px";
 	oH1.style.marginBottom = "0px";
 	oLabel.appendChild(oH1);
-	var oDiv = document.createElement("div");
-	oDiv.style.fontSize = (2*iScreenScale) +"px";
-	oDiv.style.color = "white";
-	oDiv.innerHTML = toLanguage("", "");
-	oLabel.appendChild(oDiv);
 	tDiv.appendChild(oLabel);
 	cDiv.appendChild(tDiv);
 
@@ -14935,6 +14930,126 @@ function privateGameOptions(gameOptions, onProceed) {
 		oSelect.selectedIndex = gameOptions.cpuLevel;
 
 	tDiv.appendChild(oSelect);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-cpuChars-ctn";
+	if (!gameOptions || !gameOptions.cpu || isBattle)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignItems = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-cpuChars");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("CPU names", "Noms des ordis");
+	oH1.style.marginLeft = Math.round(iScreenScale*1.5) +"px";
+	oH1.style.marginTop = iScreenScale +"px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	var oButton = document.createElement("input");
+	oButton.type = "button";
+	oButton.id = "option-cpuChars";
+	oButton.name = "option-cpuChars";
+	oButton.value = toLanguage("Set...", "Spécifier...");
+	oButton.style.backgroundColor = "black";
+	oButton.style.width = (iScreenScale*14) +"px";
+	oButton.style.padding = Math.round(iScreenScale*0.2) +"px " + Math.round(iScreenScale*1) + "px";
+	oButton.style.fontSize = Math.round(iScreenScale*2) +"px";
+	oButton.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+	oButton.onclick = function() {
+		var cpuCount = +this.form.elements["option-cpuCount"].value;
+		if (cpuCount > 2) {
+			var that = this;
+			var initialValue = this.dataset.value ? JSON.parse(this.dataset.value) : [];
+			selectCpuNamesScreen(oScr, function(value) {
+				that.dataset.value = JSON.stringify(value);
+			}, {
+				names: initialValue,
+				count: cpuCount-2,
+			});
+		}
+	}
+
+	tDiv.appendChild(oButton);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-cpuNames-ctn";
+	if (!gameOptions || !gameOptions.cpu || isBattle)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignItems = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-cpuNames");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("CPU characters", "Persos des ordis");
+	oH1.style.marginLeft = Math.round(iScreenScale*1.5) +"px";
+	oH1.style.marginTop = iScreenScale +"px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	var oButton = document.createElement("input");
+	oButton.type = "button";
+	oButton.id = "option-cpuNames";
+	oButton.name = "option-cpuNames";
+	oButton.value = toLanguage("Set...", "Spécifier...");
+	oButton.style.backgroundColor = "black";
+	oButton.style.width = (iScreenScale*14) +"px";
+	oButton.style.padding = Math.round(iScreenScale*0.2) +"px " + Math.round(iScreenScale*1) + "px";
+	oButton.style.fontSize = Math.round(iScreenScale*2) +"px";
+	oButton.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+	oButton.loadCpuChars = function(data) {
+		if (data)
+			this.dataset.value = JSON.stringify(data);
+		oScr.style.visibility = "";
+	}
+	oButton.onclick = function() {
+		var cpuCount = +this.form.elements["option-cpuCount"].value;
+		if (cpuCount > 2) {
+			this.dataset.cpuChars = 1;
+			oScr.style.visibility = "hidden";
+			selectPlayerScreen(2,false,cpuCount);
+		}
+	}
+
+	tDiv.appendChild(oButton);
 	cDiv.appendChild(tDiv);
 	oTd.appendChild(cDiv);
 	oTr.appendChild(oTd);
@@ -16045,7 +16160,9 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	var oTitle;
 	if (isCustomSel) {
 		var oMsg;
-		if (IdJ >= oContainers.length)
+		if (isOnline)
+			oMsg = toLanguage("Choose CPU", "Choisissez ordi") + " "+ (IdJ-1);
+		else if (IdJ >= oContainers.length)
 			oMsg = toLanguage("Choose CPU", "Choisissez ordi") + " "+ (IdJ+1-oContainers.length);
 		else if (oContainers.length == 1)
 			oMsg = toLanguage("Choose player", "Choisissez joueur");
@@ -16222,8 +16339,16 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				else
 					selectedItemDistrib = modeItemDistributions[0].value;
 				if (cImg.j == (isCustomSel ? nbSels:oContainers.length)) {
-					if (isOnline)
+					if (isOnline) {
+						if (isCustomSel) {
+							var bChars = document.querySelector("[data-cpu-chars]");
+							strPlayer.splice(0,2);
+							bChars.loadCpuChars(strPlayer);
+							strPlayer.length = 0;
+							return;
+						}
 						aPlayers = [strPlayer[0]];
+					}
 					else if (course == "CM")
 						aPlayers = [];
 					else {
@@ -16349,99 +16474,103 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	oContainers[0].appendChild(oScr);
 	
 	if (isOnline) {
-		var aDeconnexion = document.createElement("a");
-		aDeconnexion.style.color = "white";
-		aDeconnexion.style.fontSize = (iScreenScale*2) +"px";
-		aDeconnexion.style.position = "absolute";
-		aDeconnexion.style.left = (iScreenScale*24) +"px";
-		aDeconnexion.style.top = (iScreenScale*34) +"px";
-		aDeconnexion.innerHTML = toLanguage("Deconnection", "Déconnexion");
-		aDeconnexion.href = "#null";
-		aDeconnexion.onclick = function() {
-			oScr.innerHTML = "";
-			oContainers[0].removeChild(oScr);
-			document.body.removeChild(cTable);
-			displayCommands();
-			mPseudo = "";
-			mCode = "";
-			connexion();
-			xhr('deco.php', null, function() {
-				return true;
-			});
-			return false;
-		};
-		oScr.appendChild(aDeconnexion);
-		
-		var eClassement = document.createElement("a");
-		eClassement.style.fontSize = (iScreenScale*2) +"px";
-		eClassement.style.position = "absolute";
-		eClassement.style.left = (iScreenScale*41) +"px";
-		eClassement.style.top = (iScreenScale*34) +"px";
-		eClassement.innerHTML = toLanguage("Ranking", "Classement");
-		if (shareLink.options && shareLink.options.localScore) {
-			eClassement.title = toLanguage("Private game ranking","Classement partie privée");
-			eClassement.style.color = "#CF8";
-			eClassement.setAttribute("href", "localscores.php"+window.location.search);
+		if (isCustomSel) {
 		}
 		else {
-			eClassement.style.color = "white";
-			eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
-		}
-		oScr.appendChild(eClassement);
+			var aDeconnexion = document.createElement("a");
+			aDeconnexion.style.color = "white";
+			aDeconnexion.style.fontSize = (iScreenScale*2) +"px";
+			aDeconnexion.style.position = "absolute";
+			aDeconnexion.style.left = (iScreenScale*24) +"px";
+			aDeconnexion.style.top = (iScreenScale*34) +"px";
+			aDeconnexion.innerHTML = toLanguage("Deconnection", "Déconnexion");
+			aDeconnexion.href = "#null";
+			aDeconnexion.onclick = function() {
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+				document.body.removeChild(cTable);
+				displayCommands();
+				mPseudo = "";
+				mCode = "";
+				connexion();
+				xhr('deco.php', null, function() {
+					return true;
+				});
+				return false;
+			};
+			oScr.appendChild(aDeconnexion);
+			
+			var eClassement = document.createElement("a");
+			eClassement.style.fontSize = (iScreenScale*2) +"px";
+			eClassement.style.position = "absolute";
+			eClassement.style.left = (iScreenScale*41) +"px";
+			eClassement.style.top = (iScreenScale*34) +"px";
+			eClassement.innerHTML = toLanguage("Ranking", "Classement");
+			if (shareLink.options && shareLink.options.localScore) {
+				eClassement.title = toLanguage("Private game ranking","Classement partie privée");
+				eClassement.style.color = "#CF8";
+				eClassement.setAttribute("href", "localscores.php"+window.location.search);
+			}
+			else {
+				eClassement.style.color = "white";
+				eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
+			}
+			oScr.appendChild(eClassement);
 
-		if (shareLink.key) {
-			if (shareLink.player == identifiant) {
+			if (shareLink.key) {
+				if (shareLink.player == identifiant) {
+					var oPInput = document.createElement("input");
+					oPInput.type = "button";
+					oPInput.value = toLanguage("Private game options...", "Options partie privée...");
+					oPInput.style.fontSize = (2*iScreenScale)+"px";
+					oPInput.style.position = "absolute";
+					oPInput.style.left = (56*iScreenScale)+"px";
+					oPInput.style.top = (34*iScreenScale)+"px";
+					oPInput.onclick = function() {
+						oScr.innerHTML = "";
+						oContainers[0].removeChild(oScr);
+						privateGameOptions(shareLink.options, function(options) {
+							if (options && (isCustomOptions(options)||isCustomOptions(shareLink.options))) {
+								xhr("privateGameOptions.php", "key="+shareLink.key+"&options="+encodeURIComponent(JSON.stringify(options)), function(res) {
+									if (res != 1) return false;
+									if (!shareLink.options) shareLink.options = {};
+									shareLink.options.team = options.team;
+									shareLink.options.manualTeams = options.manualTeams;
+									shareLink.options.localScore = options.localScore;
+									shareLink.options.friendly = options.friendly;
+									shareLink.options.minPlayers = options.minPlayers;
+									shareLink.options.maxPlayers = options.maxPlayers;
+									shareLink.options.itemDistrib = options.itemDistrib;
+									shareLink.options.cpu = options.cpu;
+									shareLink.options.cpuCount = options.cpuCount;
+									shareLink.options.cpuLevel = options.cpuLevel;
+									selectedTeams = options.team;
+									selectPlayerScreen(0);
+									return true;
+								});
+							}
+							else
+								selectPlayerScreen(0);
+						});
+					}
+					oScr.appendChild(oPInput);
+				}
+			}
+			else {
 				var oPInput = document.createElement("input");
 				oPInput.type = "button";
-				oPInput.value = toLanguage("Private game options...", "Options partie privée...");
+				oPInput.value = toLanguage("Private game...", "Partie privée...");
 				oPInput.style.fontSize = (2*iScreenScale)+"px";
 				oPInput.style.position = "absolute";
-				oPInput.style.left = (56*iScreenScale)+"px";
+				oPInput.style.left = (62*iScreenScale)+"px";
 				oPInput.style.top = (34*iScreenScale)+"px";
 				oPInput.onclick = function() {
 					oScr.innerHTML = "";
 					oContainers[0].removeChild(oScr);
-					privateGameOptions(shareLink.options, function(options) {
-						if (options && (isCustomOptions(options)||isCustomOptions(shareLink.options))) {
-							xhr("privateGameOptions.php", "key="+shareLink.key+"&options="+encodeURIComponent(JSON.stringify(options)), function(res) {
-								if (res != 1) return false;
-								if (!shareLink.options) shareLink.options = {};
-								shareLink.options.team = options.team;
-								shareLink.options.manualTeams = options.manualTeams;
-								shareLink.options.localScore = options.localScore;
-								shareLink.options.friendly = options.friendly;
-								shareLink.options.minPlayers = options.minPlayers;
-								shareLink.options.maxPlayers = options.maxPlayers;
-								shareLink.options.itemDistrib = options.itemDistrib;
-								shareLink.options.cpu = options.cpu;
-								shareLink.options.cpuCount = options.cpuCount;
-								shareLink.options.cpuLevel = options.cpuLevel;
-								selectedTeams = options.team;
-								selectPlayerScreen(0);
-								return true;
-							});
-						}
-						else
-							selectPlayerScreen(0);
-					});
+					privateGame();
 				}
 				oScr.appendChild(oPInput);
 			}
-		}
-		else {
-			var oPInput = document.createElement("input");
-			oPInput.type = "button";
-			oPInput.value = toLanguage("Private game...", "Partie privée...");
-			oPInput.style.fontSize = (2*iScreenScale)+"px";
-			oPInput.style.position = "absolute";
-			oPInput.style.left = (62*iScreenScale)+"px";
-			oPInput.style.top = (34*iScreenScale)+"px";
-			oPInput.onclick = function() {
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
-				privateGame();
-			}
-			oScr.appendChild(oPInput);
 		}
 	}
 	if (!isOnline && (course == "VS" || course == "BB")) {
@@ -16662,41 +16791,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		
 		oScr.appendChild(oForm);
 
-		if (isCustomSel) {
+		if (isCustomSel)
 			oForm.style.display = "none";
-			var oStepCtn = document.createElement("div");
-			oStepCtn.style.position = "absolute";
-			oStepCtn.style.left = "0px";
-			oStepCtn.style.width = (iWidth*iScreenScale) +"px";
-			oStepCtn.style.textAlign = "center";
-			oStepCtn.style.top = ((baseY+22)*iScreenScale) +"px";
-			var oStepBack = document.createElement("input");
-			oStepBack.type = "button";
-			oStepBack.style.fontSize = (3*iScreenScale) + "px";
-			if (IdJ) {
-				oStepBack.value = "\u25C4";
-				oStepBack.style.marginRight = (3*iScreenScale) + "px";
-			}
-			else {
-				oStepBack.style.width = "0px";
-				oStepBack.value = "\xA0";
-				oStepBack.style.visibility = "hidden";
-			}
-			oStepBack.onclick = function() {
-				clearTimeout(rotateHandler);
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
-				strPlayer.pop();
-				selectPlayerScreen(IdJ-1,false,fInfos.nbPlayers);
-			};
-			oStepCtn.appendChild(oStepBack);
-			var oStepValue = document.createElement("span");
-			oStepValue.style.fontSize = (3*iScreenScale) + "px";
-			oStepValue.innerHTML = toLanguage("Character", "Perso") +" "+ (IdJ+1) +"/"+ nbSels;
-			oStepCtn.appendChild(oStepValue);
-			oStepBack.style.color = oStepValue.style.color = "#F90";
-			oScr.appendChild(oStepCtn);
-		}
 	}
 	else if (course == "CM" && isSingle) {
 		var oClassement = document.createElement("input");
@@ -16710,6 +16806,46 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oClassement.style.width = (20*iScreenScale)+"px";
 		oClassement.onclick = openRankings;
 		oScr.appendChild(oClassement);
+	}
+
+	if (isCustomSel) {
+		var oStepCtn = document.createElement("div");
+		oStepCtn.style.position = "absolute";
+		oStepCtn.style.left = "0px";
+		oStepCtn.style.width = (iWidth*iScreenScale) +"px";
+		oStepCtn.style.textAlign = "center";
+		oStepCtn.style.top = ((baseY+22)*iScreenScale) +"px";
+		var oStepBack = document.createElement("input");
+		oStepBack.type = "button";
+		oStepBack.style.fontSize = (3*iScreenScale) + "px";
+		var progress = IdJ, lastProgress = nbSels;
+		if (isOnline) {
+			progress -= 2;
+			lastProgress -= 2;
+		}
+		if (progress) {
+			oStepBack.value = "\u25C4";
+			oStepBack.style.marginRight = (3*iScreenScale) + "px";
+		}
+		else {
+			oStepBack.style.width = "0px";
+			oStepBack.value = "\xA0";
+			oStepBack.style.visibility = "hidden";
+		}
+		oStepBack.onclick = function() {
+			clearTimeout(rotateHandler);
+			oScr.innerHTML = "";
+			oContainers[0].removeChild(oScr);
+			strPlayer.pop();
+			selectPlayerScreen(IdJ-1,false,nbSels);
+		};
+		oStepCtn.appendChild(oStepBack);
+		var oStepValue = document.createElement("span");
+		oStepValue.style.fontSize = (3*iScreenScale) + "px";
+		oStepValue.innerHTML = toLanguage("Character", "Perso") +" "+ (progress+1) +"/"+ lastProgress;
+		oStepCtn.appendChild(oStepValue);
+		oStepBack.style.color = oStepValue.style.color = "#F90";
+		oScr.appendChild(oStepCtn);
 	}
 	
 	var oPInput = document.createElement("input");
@@ -16725,8 +16861,15 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
 		document.body.removeChild(cTable);
-		if (isCustomSel)
-			selectPlayerScreen(0);
+		if (isCustomSel) {
+			if (isOnline) {
+				strPlayer.length = 0;
+				var bChars = document.querySelector("[data-cpu-chars]");
+				bChars.loadCpuChars(null);
+			}
+			else
+				selectPlayerScreen(0);
+		}
 		else {
 			displayCommands();
 			if (isOnline)
@@ -16829,8 +16972,6 @@ function selectItemScreen(oScr, callback, options) {
 	oScr2.style.top = "0px";
 	oScr2.style.zIndex = 2;
 	oScr2.style.backgroundColor = "#000";
-
-	var oBorder = "solid 1px yellow";
 
 	var oTableItems = document.createElement("table");
 	oTableItems.style.color = "white";
@@ -17022,6 +17163,93 @@ function selectItemScreen(oScr, callback, options) {
 		oSetName.style.display = "none";
 
 	oScr.appendChild(oScr2);
+}
+function selectCpuNamesScreen(oScr, callback, options) {
+	options = options || {};
+	var oScr2 = document.createElement("div");
+	oScr2.style.position = "absolute";
+	oScr2.style.width = "100%";
+	oScr2.style.height = "100%";
+	oScr2.style.left = "0px";
+	oScr2.style.top = "0px";
+	oScr2.style.zIndex = 2;
+	oScr2.style.backgroundColor = "#000";
+
+	var oScroll = document.createElement("form");
+	oScroll.style.height = (35*iScreenScale) +"px";
+	oScroll.style.overflowX = "hidden";
+	oScroll.style.overflowY = "auto";
+	oScroll.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	oScroll.style.textAlign = "center";
+	oScroll.onsubmit = function() {
+		oScr.removeChild(oScr2);
+		var nameElts = this.elements["cpu[]"];
+		if (!nameElts.length) nameElts = [nameElts];
+		var names = [];
+		for (var i=0;i<nameElts.length;i++)
+			names.push(nameElts[i].value);
+		callback(names);
+		return false;
+	}
+
+	var oDiv = document.createElement("div");
+	oDiv.style.display = "table";
+	oDiv.style.marginTop = Math.round(iScreenScale*0.5) +"px";
+	oDiv.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
+	oDiv.style.marginLeft = oDiv.style.marginRight = "auto";
+	oDiv.style.borderSpacing = iScreenScale +"px";
+
+	for (var i=0;i<options.count;i++) {
+		var oLabel = document.createElement("label");
+		oLabel.style.display = "table-row";
+		var oDiv1 = document.createElement("div");
+		oDiv1.innerHTML = toLanguage("CPU "+ (i+1) +" name", "Nom ordi "+ (i+1));
+		oDiv1.style.display = "table-cell";
+		oDiv1.style.verticalAlign = "middle";
+		oDiv1.style.textAlign = "right";
+		oLabel.appendChild(oDiv1);
+		var oDiv2 = document.createElement("div");
+		oDiv2.style.display = "table-cell";
+		oDiv2.style.verticalAlign = "middle";
+		var oInput1 = document.createElement("input");
+		oInput1.style.fontSize = (iScreenScale*2) +"px";
+		oInput1.name = "cpu[]";
+		oInput1.type = "text";
+		oInput1.setAttribute("size", 10);
+		if (options.names[i] != null)
+			oInput1.value = options.names[i];
+		else
+			oInput1.value = "CPU " + (i+1);
+		oInput1.setAttribute("required", "required");
+		oDiv2.appendChild(oInput1);
+		oLabel.appendChild(oDiv2);
+		oDiv.appendChild(oLabel);
+	}
+	oScroll.appendChild(oDiv);
+
+	var oSubmit = document.createElement("input");
+	oSubmit.type = "submit";
+	oSubmit.style.fontSize = (3*iScreenScale)+"px";
+	oSubmit.value = toLanguage("Validate", "Valider");
+	oScroll.appendChild(oSubmit);
+
+	oScr2.appendChild(oScroll);
+
+	var oPInput = document.createElement("input");
+	oPInput.type = "button";
+	oPInput.value = toLanguage("Back", "Retour");
+	oPInput.style.fontSize = (2*iScreenScale)+"px";
+	oPInput.style.position = "absolute";
+	oPInput.style.left = (2*iScreenScale)+"px";
+	oPInput.style.top = (35*iScreenScale)+"px";
+	oPInput.onclick = function() {
+		oScr.removeChild(oScr2);
+	}
+	oScr2.appendChild(oPInput);
+
+	oScr.appendChild(oScr2);
+
+	oScroll.querySelector('[name="cpu[]"]').select();
 }
 var defaultGameOptions = {
 	team: false,
