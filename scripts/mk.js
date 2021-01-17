@@ -12128,7 +12128,7 @@ function move(getId, triggered) {
 		else {
 			var hpType;
 			var fTombe;
-			if ((!isOnline || !getId || oKart.controller == identifiant) && (page!="MK" || course!="BB" || !oKart.cpu || (oMap.map>=65)))
+			if (!isOnline || !getId || oKart.controller == identifiant)
 				fTombe = tombe(oKart.x, oKart.y, oMap.checkpoint&&oKart.demitours ? oMap.checkpoint[(oKart.demitours+1!=oMap.checkpoint.length) ? oKart.demitours+1 : 0][3] : 0);
 			if (fTombe) {
 				if (fTombe == true) {
