@@ -40,6 +40,22 @@ $rulesList = array(
 	),
 	'cpuLevel' => array(
 		'default' => 0
+	),
+	'cpuNames' => array(
+		'default' => null,
+		'sanitize' => function($cpuNames) {
+			foreach ($cpuNames as $i=>$cpuName)
+				$cpuNames[$i] = strip_tags($cpuName);
+			return $cpuNames;
+		}
+	),
+	'cpuChars' => array(
+		'default' => null,
+		'sanitize' => function($cpuChars) {
+			foreach ($cpuChars as $i=>$cpuChar)
+				$cpuChars[$i] = preg_replace('#[^\w\-]#', '', $cpuChar);
+			return $cpuChars;
+		}
 	)
 );
 function rulesEqual($rules1,$rules2) {
@@ -64,7 +80,7 @@ function getRulesAsString($rules) {
 	$res = new stdClass();
 	foreach ($rulesList as $key => $rule) {
 		if (isset($rules->$key) && isRuleValid($rule,$rules->$key) && ($rules->$key != $rule['default']))
-			$res->{$key} = $rules->$key;
+			$res->{$key} = sanitizeRule($rule,$rules->$key);
 	}
 	return json_encode($res);
 }
@@ -82,5 +98,10 @@ function isRuleValid($rule,$value) {
 			return false;
 	}
 	return true;
+}
+function sanitizeRule($rule,$value) {
+	if (isset($rule['sanitize']))
+		return $rule['sanitize']($value);
+	return $value;
 }
 ?>

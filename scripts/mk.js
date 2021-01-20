@@ -14375,9 +14375,15 @@ function privateGameOptions(gameOptions, onProceed) {
 		var cpu = this.elements["option-cpu"].checked ? 1:0;
 		var cpuCount = +this.elements["option-cpuCount"].value;
 		var cpuLevel = +this.elements["option-cpuLevel"].value;
+		var cpuNames = this.elements["option-cpuNames"].dataset.value;
+		if (cpuNames) cpuNames = JSON.parse(cpuNames);
+		var cpuChars = this.elements["option-cpuChars"].dataset.value;
+		if (cpuChars) cpuChars = JSON.parse(cpuChars);
 		if (!cpu) {
 			cpuCount = defaultGameOptions.cpuCount;
 			cpuLevel = defaultGameOptions.cpuLevel;
+			cpuNames = defaultGameOptions.cpuNames;
+			cpuChars = defaultGameOptions.cpuChars;
 		}
 		onProceed({
 			team: team,
@@ -14389,7 +14395,9 @@ function privateGameOptions(gameOptions, onProceed) {
 			itemDistrib: itemDistrib,
 			cpu: cpu,
 			cpuCount: cpuCount,
-			cpuLevel: cpuLevel
+			cpuLevel: cpuLevel,
+			cpuNames: cpuNames,
+			cpuChars: cpuChars
 		});
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
@@ -14936,7 +14944,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTable.appendChild(oTr);
 
 	var oTr = document.createElement("tr");
-	oTr.id = "option-cpuChars-ctn";
+	oTr.id = "option-cpuNames-ctn";
 	if (!gameOptions || !gameOptions.cpu || isBattle)
 		oTr.style.display = "none";
 	var oTd = document.createElement("td");
@@ -14951,7 +14959,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	tDiv.style.paddingRight = (iScreenScale*3) +"px";
 	var oLabel = document.createElement("label");
 	oLabel.style.cursor = "pointer";
-	oLabel.setAttribute("for", "option-cpuChars");
+	oLabel.setAttribute("for", "option-cpuNames");
 
 	var oH1 = document.createElement("h1");
 	oH1.style.fontSize = (3*iScreenScale) +"px";
@@ -14967,14 +14975,16 @@ function privateGameOptions(gameOptions, onProceed) {
 	tDiv.style.display = "inline-block";
 	var oButton = document.createElement("input");
 	oButton.type = "button";
-	oButton.id = "option-cpuChars";
-	oButton.name = "option-cpuChars";
+	oButton.id = "option-cpuNames";
+	oButton.name = "option-cpuNames";
 	oButton.value = toLanguage("Set...", "Spécifier...");
 	oButton.style.backgroundColor = "black";
 	oButton.style.width = (iScreenScale*14) +"px";
 	oButton.style.padding = Math.round(iScreenScale*0.2) +"px " + Math.round(iScreenScale*1) + "px";
 	oButton.style.fontSize = Math.round(iScreenScale*2) +"px";
 	oButton.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+	if (gameOptions && gameOptions.cpuNames)
+		oButton.dataset.value = JSON.stringify(gameOptions.cpuNames);
 	oButton.onclick = function() {
 		var cpuCount = +this.form.elements["option-cpuCount"].value;
 		if (cpuCount > 2) {
@@ -14996,7 +15006,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTable.appendChild(oTr);
 
 	var oTr = document.createElement("tr");
-	oTr.id = "option-cpuNames-ctn";
+	oTr.id = "option-cpuChars-ctn";
 	if (!gameOptions || !gameOptions.cpu || isBattle)
 		oTr.style.display = "none";
 	var oTd = document.createElement("td");
@@ -15011,7 +15021,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	tDiv.style.paddingRight = (iScreenScale*3) +"px";
 	var oLabel = document.createElement("label");
 	oLabel.style.cursor = "pointer";
-	oLabel.setAttribute("for", "option-cpuNames");
+	oLabel.setAttribute("for", "option-cpuChars");
 
 	var oH1 = document.createElement("h1");
 	oH1.style.fontSize = (3*iScreenScale) +"px";
@@ -15027,14 +15037,16 @@ function privateGameOptions(gameOptions, onProceed) {
 	tDiv.style.display = "inline-block";
 	var oButton = document.createElement("input");
 	oButton.type = "button";
-	oButton.id = "option-cpuNames";
-	oButton.name = "option-cpuNames";
+	oButton.id = "option-cpuChars";
+	oButton.name = "option-cpuChars";
 	oButton.value = toLanguage("Set...", "Spécifier...");
 	oButton.style.backgroundColor = "black";
 	oButton.style.width = (iScreenScale*14) +"px";
 	oButton.style.padding = Math.round(iScreenScale*0.2) +"px " + Math.round(iScreenScale*1) + "px";
 	oButton.style.fontSize = Math.round(iScreenScale*2) +"px";
 	oButton.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+	if (gameOptions && gameOptions.cpuChars)
+		oButton.dataset.value = JSON.stringify(gameOptions.cpuChars);
 	oButton.loadCpuChars = function(data) {
 		if (data)
 			this.dataset.value = JSON.stringify(data);
@@ -16406,7 +16418,9 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 							localScore:1,
 							friendly:1,
 							cpu:1,
-							cpuLevel:1
+							cpuLevel:1,
+							cpuNames:1,
+							cpuChars:1
 						};
 						for (var key in shareLink.options) {
 							if (!autoAcceptedRules[key])
@@ -16544,6 +16558,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 									shareLink.options.cpu = options.cpu;
 									shareLink.options.cpuCount = options.cpuCount;
 									shareLink.options.cpuLevel = options.cpuLevel;
+									shareLink.options.cpuNames = options.cpuNames;
+									shareLink.options.cpuChars = options.cpuChars;
 									selectedTeams = options.team;
 									selectPlayerScreen(0);
 									return true;
@@ -17216,6 +17232,7 @@ function selectCpuNamesScreen(oScr, callback, options) {
 		oInput1.name = "cpu[]";
 		oInput1.type = "text";
 		oInput1.setAttribute("size", 10);
+		oInput1.setAttribute("maxlength", 30);
 		if (options.names[i] != null)
 			oInput1.value = options.names[i];
 		else
@@ -17261,7 +17278,9 @@ var defaultGameOptions = {
 	itemDistrib: 0,
 	cpu: false,
 	cpuCount: 2,
-	cpuLevel: 0
+	cpuLevel: 0,
+	cpuNames: null,
+	cpuChars: null
 };
 function isCustomOptions(linkOptions) {
 	if (linkOptions) {
