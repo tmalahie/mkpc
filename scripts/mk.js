@@ -18939,7 +18939,8 @@ function choose(map,rand) {
 								selectedItemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib].value;
 							}
 						}
-						tnCourse = new Date().getTime()+rCode[2];
+						var tNow = new Date().getTime();
+						tnCourse = tNow+rCode[2];
 						if (isSingle)
 							rCode[2] = 0;
 						else {
@@ -18953,6 +18954,7 @@ function choose(map,rand) {
 								tnCourse += 5000;
 						}
 						//rCode[2] = 0; // TODO remove
+						var tThen = tNow+rCode[2];
 						connecte = rCode[3]+1;
 						var cCursor = 0;
 						var cTime = 50;
@@ -18964,7 +18966,7 @@ function choose(map,rand) {
 									iTime = Math.round(iTime*1.05);
 									pTime += iTime;
 								}
-								if (pTime >= rCode[2])
+								if (pTime >= (tThen-new Date().getTime()))
 									isInFuckingLoop = false;
 							}
 							if (isInFuckingLoop) {
@@ -18976,7 +18978,6 @@ function choose(map,rand) {
 								trs[cCursor].style.backgroundColor = "#F80";
 								trs[cCursor].style.color = "white";
 								cTime = Math.round(cTime*1.05);
-								rCode[2] -= cTime;
 								setTimeout(moveCursor, cTime);
 							}
 							else
