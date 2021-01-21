@@ -9738,7 +9738,6 @@ function challengeHandleEvents(challenge, events) {
 var clSelectionFail = false;
 function challengeHandleFail() {
 	if (clSelectionFail) return;
-	if (clSelected.succeeded) return;
 	clSelectionFail = true;
 	clHud = {};
 	oChallengeCpts.innerHTML = "";
