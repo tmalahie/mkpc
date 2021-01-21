@@ -173,11 +173,13 @@ if ($course && !$getCourse['banned']) {
 		$map = $getMap['map'];
 		$now = round((time()+microtime())*1000);
 	}
+	$courseRules = json_decode($getMap['rules']);
 	echo '[[';
 	$cpuInc = 0;
 	foreach ($joueursData as $i=>$joueur) {
 		if ($joueur['controller']) {
 			if (!isset($persosList)) {
+				include('onlineRulesUtils.php');
 				ob_start();
 				include('getPersos.php');
 				$persosList = json_decode(ob_get_clean(), true);
@@ -187,15 +189,14 @@ if ($course && !$getCourse['banned']) {
 				srand($now);
 				$nbPersos = count($persosList);
 			}
-			$joueur['joueur'] = $persosList[$cpuInc%$nbPersos];
+			$joueur['joueur'] = empty($courseRules->cpuChars[$cpuInc]) ? $persosList[$cpuInc%$nbPersos] : $courseRules->cpuChars[$cpuInc];
+			$joueur['nom'] = getCpuName($cpuInc, $courseRules);
 			$cpuInc++;
-			$joueur['nom'] = "CPU $cpuInc";
 		}
-		echo ($i ? ',':'').'['.$joueur['id'].',"'.$joueur['joueur'].'",'.$joueur['choice_map'].','.$joueur['choice_rand'].','.$joueur['place'].',"'.$joueur['nom'].'",'.$joueur['team'].','.$joueur['controller'].']';
+		echo ($i ? ',':'').'['.$joueur['id'].',"'.$joueur['joueur'].'",'.$joueur['choice_map'].','.$joueur['choice_rand'].','.$joueur['place'].','.json_encode($joueur['nom']).','.$joueur['team'].','.$joueur['controller'].']';
 	}
 	echo '],'.$map.','.($time-$now).','.round($time/67);
 	echo ',{';
-	$courseRules = json_decode($getMap['rules']);
 	$minPlayers = isset($courseRules->minPlayers) ? $courseRules->minPlayers : 2;
 	echo 'minPlayers:'.$minPlayers;
 	if (!empty($courseRules->manualTeams))

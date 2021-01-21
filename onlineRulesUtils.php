@@ -104,4 +104,9 @@ function sanitizeRule($rule,$value) {
 		return $rule['sanitize']($value);
 	return $value;
 }
+function getCpuName($i, $rules) {
+	if (empty($rules->cpuNames[$i]))
+		return 'CPU '. ($i+1);
+	return $rules->cpuNames[$i];
+}
 ?>

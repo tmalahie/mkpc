@@ -3,6 +3,10 @@ if (!isset($_GET['key'])) exit;
 include('language.php');
 include('session.php');
 include('initdb.php');
+include('onlineRulesUtils.php');
+$courseOptions = mysql_fetch_array(mysql_query('SELECT rules FROM `mkgameoptions` g WHERE id="'. $_GET['key'] .'"'));
+if (!$courseOptions) exit;
+$courseRules = json_decode($courseOptions['rules']);
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -102,7 +106,7 @@ include('menu.php');
     <?php
 	foreach ($records as $i=>$record) {
         $place = $i+1;
-        $playerName = $record['cpu'] ? 'CPU '.($cpuRankById[$record['id']]+1) : $record['nom'];
+        $playerName = $record['cpu'] ? getCpuName($cpuRankById[$record['id']], $courseRules) : $record['nom'];
 		?>
 	<tr class="<?php echo (($i%2) ? 'fonce':'clair') ?>">
 	<td><?php

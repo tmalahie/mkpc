@@ -290,9 +290,10 @@ if ($id) {
 				}
 				sort($cpuIds);
 				$cpuRankById = array_flip($cpuIds);
+				include('onlineRulesUtils.php');
 				foreach ($allPlayersData as $v=>$joueur) {
 					if ($joueur['cpu'])
-						$playerName = 'CPU ' . ($cpuRankById[$joueur['id']]+1);
+						$playerName = getCpuName($cpuRankById[$joueur['id']], $courseRules);
 					else
 						$playerName = $joueur['nom'];
 					if (!$joueur['cpu'] || $isLocal) {
@@ -322,7 +323,7 @@ if ($id) {
 					}
 					else
 						$inc = 0;
-					echo ($v ? ',':'') .'['.$joueur['id'].',"'.$playerName.'",'.$joueur['aPts'].','.$inc.','.$joueur['team'].']';
+					echo ($v ? ',':'') .'['.$joueur['id'].','.json_encode($playerName).','.$joueur['aPts'].','.$inc.','.$joueur['team'].']';
 					$nPts = $joueur['aPts']+$inc;
 					if ($finishing) {
 						$shouldLog = $isFriendly && !$joueur['cpu'];
