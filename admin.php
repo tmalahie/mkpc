@@ -139,18 +139,12 @@ include('menu.php');
 				<div class="action-desc"><?php echo $language ? "If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)":"Si un &quot;nouveau&quot; membre vous parait louche... (outil pas 100% fiable)"; ?></div>
 			</a>
 		</li>
-		<?php
-		if (hasRight('admin')) {
-			?>
-			<li>
-				<a class="action-ctn" href="edit-country.php">
-					<div class="action-title"><?php echo $language ? "Edit member <strong>country</strong>":"Changer le <strong>pays</strong> d'un membre"; ?></div>
-					<div class="action-desc"><?php echo $language ? "Can be useful if a troll member has put a fake country for example":"Peut servir si un membre troll a renseigné un faux pays par exemple"; ?></div>
-				</a>
-			</li>
-			<?php
-		}
-		?>
+		<li>
+			<a class="action-ctn" href="edit-country.php">
+				<div class="action-title"><?php echo $language ? "Edit member <strong>country</strong>":"Changer le <strong>pays</strong> d'un membre"; ?></div>
+				<div class="action-desc"><?php echo $language ? "Can be useful if a troll member has put a fake country for example":"Peut servir si un membre troll a renseigné un faux pays par exemple"; ?></div>
+			</a>
+		</li>
 		<li>
 			<a class="action-ctn" href="ban-player.php">
 				<div class="action-title"><?php echo $language ? "<strong>Ban</strong> a member":"<strong>Bannir</strong> un membre"; ?></div>

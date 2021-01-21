@@ -7,8 +7,8 @@ if (!$id) {
 include('language.php');
 include('initdb.php');
 require_once('getRights.php');
-if (!hasRight('admin')) {
-	echo "Vous n'&ecirc;tes pas administrateur";
+if (!hasRight('moderator')) {
+	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
 	exit;
 }
