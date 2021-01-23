@@ -85,7 +85,7 @@ include('menu.php');
     </div>
     <br />
 	<?php
-    $getRecords = mysql_query('SELECT r.player AS id,(j.id IS NULL) AS cpu,j.nom,r.pts,c.code FROM `mkgamerank` r LEFT JOIN `mkjoueurs` j ON r.player=j.id LEFT JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE r.game="'. $_GET['key'] .'" ORDER BY r.pts DESC,j.id');
+    $getRecords = mysql_query('SELECT r.player AS id,(j.id IS NULL) AS cpu,j.nom,r.pts,c.code FROM `mkgamerank` r LEFT JOIN `mkjoueurs` j ON r.player=j.id LEFT JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE r.game="'. $_GET['key'] .'" ORDER BY r.pts DESC,r.player');
     $records = array();
     $cpuIds = array();
 	while ($record=mysql_fetch_array($getRecords)) {
