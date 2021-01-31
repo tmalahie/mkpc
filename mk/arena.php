@@ -464,149 +464,206 @@ foreach ($circuitsData as $c => $arene) {
 			echo ']';
 		}
 		echo '],';
-		echo '"sea":{"colors":{"water":"#A9EDE6","wave":"#CAFDFE","foam":"#fff"},"waves":[';
+		echo '"sea":{"colors":{"water":"#A9EDE680","wave":"#CAFDFE80","foam":"#fff8"},"waves":';
 		/*
 		0 1
 		2 3
 		*/
 		$graph = array(
-			array(
-				array(
-					'nodes' => array(
-						1 => 1
-					),
-					'waves' => array(
-						[[0,21],[25,25],[51,21],[76,25],[100,21]],
-						[[0,6],[100,6]]
+			array( // 0
+				'0.left' => array(
+					'1.right',
+					array(
+						[[0,6],[100,6]],
+						[[0,21],[25,25],[51,21],[76,25],[100,21]]
 					)
-				), array(
-					'nodes' => array(
-						-1 => -1
-					),
-					'waves' => 0
-				), array(
-					'nodes' => array(
-						1 => 6,
-						-6 => -1
-					),
-					'waves' => array(
-						[[0,79],[15,85],[21,100]],
-						[[0,94],[6,100]]
+				),
+				'2.left' => array(
+					'2.bottom',
+					array(
+						[[0,94],[6,100]],
+						[[0,79],[15,85],[21,100]]
 					)
-				), array(
-					'nodes' => array(
-						-1 => 6,
-						-6 => 1
-					),
-					'waves' => array(
-						[[100,79],[85,84],[79,100]],
-						[[100,94],[94,100]]
+				),
+				'3.right' => array(
+					'3.bottom',
+					array(
+						[[100,94],[94,100]],
+						[[100,79],[85,84],[79,100]]
 					)
 				)
-			), array(
-				array(
-					'nodes' => array(
-						6 => 6
-					),
-					'waves' => array(
-						[[21,0],[25,25],[21,50],[25,75],[21,100]],
-						[[5,0],[5,100]]
+			), array( // 1
+				'0.top' => array(
+					'2.bottom',
+					array(
+						[[5,0],[5,100]],
+						[[21,0],[25,25],[21,50],[25,75],[21,100]]
 					)
-				), array(
-					'nodes' => array(
-						-1 => -6,
-						6 => 1
-					),
-					'waves' => array(
-						[[79,0],[85,15],[100,21]],
-						[[94,0],[100,6]]
+				),
+				'1.right' => array(
+					'1.top',
+					array(
+						[[100,6],[94,0]],
+						[[100,21],[85,15],[79,0]]
 					)
-				), array(
-					'nodes' => array(
-						-6 => -6
-					),
-					'waves' => 0
-				), array(
-					'nodes' => array(
-						-1 => 6,
-						-6 => 1
-					),
-					'waves' => array(
-						[[100,79],[85,85],[79,100]],
-						[[100,94],[94,100]]
+				),
+				'3.right' => array(
+					'3.bottom',
+					array(
+						[[100,94],[94,100]],
+						[[100,79],[85,85],[79,100]]
 					)
 				)
-			), array(
-				array(
-					'nodes' => array(
-						1 => -6,
-						6 => -1
-					),
-					'waves' => array(
-						[[0,21],[15,15],[21,0]],
-						[[0,5],[5,0]]
+			), array( // 2
+				'0.left' => array(
+					'0.top',
+					array(
+						[[0,6],[6,0]],
+						[[0,21],[15,15],[21,0]]
 					)
-				), array(
-					'nodes' => array(
-						-1 => -6,
-						6 => 1
-					),
-					'waves' => array(
-						[[79,0],[83,15],[100,21]],
-						[[95,0],[100,5]]
+				),
+				'1.right' => array(
+					'1.top',
+					array(
+						[[100,5],[95,0]],
+						[[100,21],[83,15],[79,0]]
 					)
-				), array(
-					'nodes' => array(
-						6 => 6
-					),
-					'waves' => array(
-						[[0,79],[25,75],[50,79],[75,75],[100,79]],
-						[[0,95],[100,95]]
+				),
+				'2.left' => array(
+					'3.right',
+					array(
+						[[0,95],[100,95]],
+						[[0,79],[25,75],[50,79],[75,75],[100,79]]
 					)
-				), array(
-					'nodes' => array(
-						-6 => -6
-					),
-					'waves' => 2
 				)
-			), array(
-				array(
-					'nodes' => array(
-						1 => -6,
-						6 => -1
-					),
-					'waves' => array(
-						[[21,0],[17,15],[0,21]],
-						[[5,0],[0,5]]
+			), array( // 3
+				'0.left' => array(
+					'0.top',
+					array(
+						[[0,5],[5,0]],
+						[[0,21],[17,15],[21,0]]
 					)
-				), array(
-					'nodes' => array(
-						6 => 6
-					),
-					'waves' => array(
-						[[0,79],[15,85],[21,100]],
-						[[0,94],[6,100]]
+				),
+				'1.top' => array(
+					'3.bottom',
+					array(
+						[[95,0],[95,100]],
+						[[79,0],[75,25],[79,50],[75,75],[79,100]]
 					)
-				), array(
-					'nodes' => array(
-						1 => 6,
-						-6 => -1
-					),
-					'waves' => array(
-						[[79,0],[75,25],[79,50],[75,75],[79,100]],
-						[[95,0],[95,100]]
+				),
+				'2.left' => array(
+					'2.bottom',
+					array(
+						[[0,94],[6,100]],
+						[[0,79],[15,85],[21,100]]
 					)
-				), array(
-					'nodes' => array(
-						-6 => -6
-					),
-					'waves' => 1
 				)
 			)
 		);
-		for ($i=0;$i<36;$i++) {
+		$orientedGraph = array();
+		foreach ($graph as $i => $graphPieces) {
+			$orientedGraph[$i] = array();
+			foreach ($graphPieces as $in => $out) {
+				$orientedGraph[$i][$in] = $out;
+				$waves = $out[1];
+				foreach ($waves as &$wave)
+					$wave = array_reverse($wave);
+				$orientedGraph[$i][$out[0]] = array($in,$waves);
+			}
 		}
-		echo ']},';
+		$graph = $orientedGraph;
+		function createSeaFromGraph(&$state) {
+			global $graph, $arene;
+			foreach ($state['graph'] as $i_ => &$stateGraph) {
+				foreach ($stateGraph as $in => &$data) {
+					$i = $i_;
+					if (null === $data['waves']) {
+						$j = count($state['sea']);
+						$newSea = array(array(),array());
+						do {
+							$graphData = $graph[$arene["p$i"]][$in];
+							$out = $graphData[0];
+							$state['graph'][$i][$in]['waves'] = $j;
+							$state['graph'][$i][$out]['waves'] = $j;
+							$x = ($i%6)*100;
+							$y = floor($i/6)*100;
+							foreach ($graphData[1] as $k=>$wave) {
+								foreach ($wave as &$pt) {
+									$pt[0] += $x;
+									$pt[1] += $y;
+								}
+								unset($pt);
+								$newSea[$k] = array_merge($newSea[$k],$wave);
+							}
+							$dir = explode(".",$out);
+							$newDir = $dir;
+							$newI = $i;
+							switch ($dir[1]) {
+							case 'top':
+								$newI -= 6;
+								$newDir[0] += 2;
+								$newDir[1] = 'bottom';
+								break;
+							case 'bottom':
+								$newI += 6;
+								$newDir[0] -= 2;
+								$newDir[1] = 'top';
+								break;
+							case 'left':
+								$newI--;
+								$newDir[0]++;
+								$newDir[1] = 'right';
+								break;
+							case 'right':
+								$newI++;
+								$newDir[0]--;
+								$newDir[1] = 'left';
+								break;
+							}
+							$in = implode(".",$newDir);
+							if (isset($state['graph'][$newI][$in])) {
+								$i = $newI;
+								foreach ($graphData[1] as $k=>$wave)
+									array_pop($newSea[$k]);
+							}
+							else {
+								$newDir = $dir;
+								switch ($dir[1]) {
+								case 'top':
+								case 'bottom':
+									$newDir[0] += ($newDir[0]%2) ? -1:1;
+									break;
+								case 'left':
+								case 'right':
+									$newDir[0] += ($newDir[0]>=2) ? -2:2;
+								}
+								$in = implode(".",$newDir);
+							}
+						} while (null === $state['graph'][$i][$in]['waves']);
+						$state['sea'][] = $newSea;
+					}
+					unset($j);
+				}
+				unset($data);
+			}
+			unset($stateGraph);
+		}
+		$state = array(
+			'graph' => array(),
+			'sea' => array()
+		);
+		for ($i=0;$i<36;$i++) {
+			foreach ($graph[$arene["p$i"]] as $in => $out) {
+				$state['graph'][$i][$in] = array(
+					'waves' => null
+				);
+			}
+		}
+		createSeaFromGraph($state);
+		//$state['sea'] = array($state['sea'][0]);
+		//$state['sea'] = array_slice($state['sea'], 7,1);
+		echo json_encode($state['sea']);
+		echo '},';
 		break;
 	}
 	?>

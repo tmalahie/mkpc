@@ -1211,11 +1211,17 @@ function initMap() {
 			var oWave1 = oWaves[i][0], oWave2 = oWaves[i][1];
 			var oProjections = [];
 			var lastInc = 0;
+			var maxSkip = 1+Math.ceil(oWave1.length/2);
 			for (var j=0;j<oWave2.length;j++) {
 				var ptX = oWave2[j][0], ptY = oWave2[j][1];
 				var l;
 				var minX, minY, minInc, minDist = Infinity;
 				for (var k=0;k<oWave1.length;k++) {
+					if ((k+oWave1.length-lastInc)%oWave1.length >= maxSkip) {
+						if (k > lastInc) break;
+						k = lastInc-1;
+						continue;
+					}
 					var inc = k, inc2 = (k+1)%oWave1.length;
 					l = projete(ptX,ptY, oWave1[inc][0],oWave1[inc][1],oWave1[inc2][0],oWave1[inc2][1]);
 					if (l > 1) l = 1;
@@ -1260,6 +1266,19 @@ function initMap() {
 			oViewContext.stroke();
 		}
 		oMap.sea.render = function(oViewContext, center,scale) {
+			/*oViewContext.fillStyle = oViewContext.strokeStyle = "red"; // Uncomment to preview polygons
+			for (var k=0;k<oMap.sea.waves.length;k++) {
+				var oPolygon = [];
+				for (var i=0;i<oMap.sea.waves[k].length;i++) {
+					for (var j=0;j<oMap.sea.waves[k][i].length;j++) {
+						var oPt = oMap.sea.waves[k][i][i ? oMap.sea.waves[k][i].length-j-1 : j];
+						oPolygon.push(oPt);
+					}
+					oPolygon.push(oMap.sea.waves[k][i][i ? oMap.sea.waves[k][i].length-1:0]);
+				}
+				this.drawPolygon(oViewContext, oPolygon, center,scale);
+			}
+			return;*/
 			var waveProgress = this.progress;
 			var oWaves = this.waves;
 			var waterL = waveProgress*0.99;
