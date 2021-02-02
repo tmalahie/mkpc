@@ -137,7 +137,12 @@ $bValues = array(
 	$language ? 'Palm Shore':'Feuille de Palmier',
 	$language ? 'Tart Top':'Tarte Sucrée'
 );
-for ($i=49;$i<=49;$i++)
+$bValues = array(
+	'Palm Shore #1',
+	'Palm Shore #2',
+	'Palm Shore #3'
+);
+for ($i=47;$i<=49;$i++)
 	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$bValues[$i-47].'</option>';
 ?>
 </optgroup>

@@ -1211,7 +1211,7 @@ function initMap() {
 			var oWave1 = oWaves[i][0], oWave2 = oWaves[i][1];
 			var oProjections = [];
 			var lastInc = 0;
-			var maxSkip = 1+Math.ceil(oWave1.length/2);
+			var maxSkip = 2+Math.ceil(2*oWave2.length/oWaves.length);
 			for (var j=0;j<oWave2.length;j++) {
 				var ptX = oWave2[j][0], ptY = oWave2[j][1];
 				var l;
