@@ -15,7 +15,7 @@ if (isset($_GET['pseudo'])) {
 			} while (mysql_numrows(mysql_query('SELECT * FROM mkpassrecovery WHERE code="'. $code .'"')));
 			mysql_query('INSERT INTO `mkpassrecovery` VALUES("'. $code .'",'.$getId['id'].',DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 DAY))');
 
-			$link = 'https://mkpc.malahieude.net/new-password.php?code='. $code;
+			$link = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']. '/new-password.php?code='. $code;
 			$title = $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
 			$msg = $language ? 'Hello '.$pseudo.'
 			You are receiving this email because you have applied for password recovery on the Mario Kart PC site.
