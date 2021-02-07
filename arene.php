@@ -134,15 +134,11 @@ for ($i=26;$i<=30;$i++)
 $bValues = array(
 	'Nintendo DS',
 	$language ? 'Twilight House':'Maison de l\'Aube',
-	$language ? 'Palm Shore':'Feuille de Palmier',
+	$language ? 'Palm Shore - Connected':'Feuille de Palmier - Connecté',
+	$language ? 'Palm Shore - Separate':'Feuille de Palmier - Séparé',
 	$language ? 'Tart Top':'Tarte Sucrée'
 );
-$bValues = array(
-	'Palm Shore #1',
-	'Palm Shore #2',
-	'Palm Shore #3'
-);
-for ($i=47;$i<=49;$i++)
+for ($i=47;$i<=51;$i++)
 	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$bValues[$i-47].'</option>';
 ?>
 </optgroup>

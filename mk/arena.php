@@ -293,9 +293,8 @@ foreach ($circuitsData as $c => $arene) {
 			echo ',[]';
 		echo '],';
 		break;
-	case 47:
-	case 48:
 	case 49:
+	case 50:
 		echo '"horspistes" : {"eau":[';
 		for ($i=0;$i<36;$i++) {
 			$x = ($i%6)*100;
@@ -327,12 +326,12 @@ foreach ($circuitsData as $c => $arene) {
 				break;
 			case 8:
 				echo "[$x,$y,100,11],[$x,".($y+89).",100,11],";
-				if ($map == 47)
+				if ($map == 50)
 					echo "[[67,11],[50,15],[33,11]],[[33,89],[50,86],[67,89]],";
 				break;
 			case 9:
 				echo "[$x,$y,11,100],[".($x+89).",$y,11,100],";
-				if (($map == 47) || ($map == 48))
+				if ($map == 50)
 					echo "[[11,33],[15,50],[11,67]],[[89,67],[86,50],[89,33]],";
 				break;
 			case 11:
@@ -718,7 +717,7 @@ foreach ($circuitsData as $c => $arene) {
 				)
 			)
 		);
-		if ($map == 47) {
+		if ($map == 50) {
 			$graph[8] = array(
 				'0.left' => array(
 					'2.left',
@@ -736,7 +735,7 @@ foreach ($circuitsData as $c => $arene) {
 				)
 			);
 		}
-		if (($map == 47) || ($map == 48)) {
+		if ($map == 50) {
 			$graph[9] = array(
 				'0.top' => array(
 					'1.top',
