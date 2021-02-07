@@ -742,6 +742,14 @@ $slidesPath = 'images/slides';
 					$tracksList = listCreations(1,$nbByType,null,$aCircuits);
 					$tracksList = sortLines($tracksList);
 					$tracksList = array_slice($tracksList,0,14);
+					$aParams = array(
+						'type' => 4,
+						'id' => 35858,
+						'max_circuits' => 1
+					);
+					$topCircuits = listCreations(1,array(1),array(1),array($aCircuits[$aParams['type']]),$aParams);
+					foreach ($topCircuits as $topCircuit)
+						showLine($topCircuit);
 					foreach ($tracksList as $line)
 						showLine($line);
 					?>

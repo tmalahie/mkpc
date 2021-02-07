@@ -30,6 +30,8 @@ function toSQLSearch($search) {
 	return $search;
 }
 function toSQLFilter($sql, $params) {
+	if (!empty($params['id']))
+		$sql .= ' AND id='. (+$params['id']);
 	if (!empty($params['nom']))
 		$sql .= ' AND nom LIKE "'. toSQLSearch($params['nom']) .'"';
 	if (!empty($params['auteur']))
