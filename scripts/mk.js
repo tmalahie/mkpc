@@ -9300,7 +9300,6 @@ var challengeRules = {
 	},
 	"finish_circuits_first": {
 		"verify": "end_game",
-		"reset_on_fail": true,
 		"initRuleVars": function() {
 			return {nbcircuits: 1};
 		},
