@@ -9025,26 +9025,31 @@ function updateChallengeHud(key, value) {
 var challengeRules = {
 	"finish_circuit": {
 		"verify": "end_game",
+		"reset_on_fail": true,
 		"success": lambdaReturnsTrue
 	},
 	"finish_circuit_first": {
 		"verify": "end_game",
+		"reset_on_fail": true,
 		"success": function(scope) {
 			return (oPlayers[0].place == 1);
 		}
 	},
 	"finish_circuit_time": {
 		"verify": "end_game",
+		"reset_on_fail": true,
 		"success": function(scope) {
 			return (getActualGameTime() <= scope.value);
 		}
 	},
 	"finish_arena": {
 		"verify": "end_game",
+		"reset_on_fail": true,
 		"success": lambdaReturnsTrue
 	},
 	"finish_arena_first": {
 		"verify": "end_game",
+		"reset_on_fail": true,
 		"success": function(scope) {
 			return (oPlayers[0].place == 1);
 		}
@@ -9295,6 +9300,7 @@ var challengeRules = {
 	},
 	"finish_circuits_first": {
 		"verify": "end_game",
+		"reset_on_fail": true,
 		"initRuleVars": function() {
 			return {nbcircuits: 1};
 		},
@@ -9713,7 +9719,7 @@ function challengeCheck(verifType, events) {
 			challengesForType.splice(i,1);
 			i--;
 		}
-		else if (false === status)
+		else if ((false === status) || challengeRules[chRules[0].type].reset_on_fail)
 			delete clRuleVars[challenge.id];
 		else
 			challengeHandleEvents(challenge, events);
