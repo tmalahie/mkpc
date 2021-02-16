@@ -65,12 +65,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	elseif ($birthdate && (($age < 2) || ($age > 150)))
 		$error = ($language ? 'Please enter a valid birth date':'Veuillez entrer une date de naissance valide');
 	if (!isset($error)) {
-		if ($getCountryId = mysql_fetch_array(mysql_query('SELECT id FROM mkcountries WHERE code="'. $country .'"')))
-			$countryId = $getCountryId['id'];
-		else
-			$countryId = 0;
-		mysql_query('UPDATE `mkprofiles` SET email="'. $email .'",country="'.$countryId.'",description="'. $description .'",birthdate='. ($birthdate ? '"'.$birthdate.'"':'NULL') .' WHERE id="'.$id.'"');
-		$success = $language ? 'Profile updated successfully':'Profil mis à jour avec succès';
+		$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
+		$isBanned = mysql_fetch_array($getBanned);
+		if ($isBanned && $isBanned['banned'])
+			$error = $language ? 'You have been banned, you cannot edit your profile.':'Vous avez été banni, vous ne pouvez pas modifier votre profil.';
+		else {
+			if ($getCountryId = mysql_fetch_array(mysql_query('SELECT id FROM mkcountries WHERE code="'. $country .'"')))
+				$countryId = $getCountryId['id'];
+			else
+				$countryId = 0;
+			mysql_query('UPDATE `mkprofiles` SET email="'. $email .'",country="'.$countryId.'",description="'. $description .'",birthdate='. ($birthdate ? '"'.$birthdate.'"':'NULL') .' WHERE id="'.$id.'"');
+			$success = $language ? 'Profile updated successfully':'Profil mis à jour avec succès';
+		}
 	}
 }
 else {
