@@ -12273,6 +12273,10 @@ function move(getId, triggered) {
 					if ((i != getId) || (1/*nbFrames*/ == 1)) {
 						oKart.sprite[i].img.style.display = "none";
 						oKart.sprite[i].div.style.backgroundImage = "";
+						if (course == "BB") {
+							for (var k=0;k<oKart.ballons.length;k++)
+								oKart.ballons[k][0].img.style.display = "none";
+						}
 					}
 					if (oKart.etoile)
 						oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
