@@ -13440,7 +13440,18 @@ function ai(oKart) {
 				nextAi = [lastAi[0] + (currentAi[0]-lastAi[0])*2, lastAi[1] + (currentAi[1]-lastAi[1])*2];
 				var nbPos = Math.floor(oKart.x/100)+Math.floor(oKart.y/100)*6;
 				if (nbPos != oKart.lastAI) {
-					if (oMap.skin != 27 || ((currentAi[0]-oKart.x)*(currentAi[0]-oKart.x) + (currentAi[1]-oKart.y)*(currentAi[1]-oKart.y)) < 1500 || oKart.speed < 0 || oKart.tombe) {
+					var shouldChangeAi = true;
+					if (oKart.speed >= 0 && !oKart.tombe) {
+						var distToAi2 = ((currentAi[0]-oKart.x)*(currentAi[0]-oKart.x) + (currentAi[1]-oKart.y)*(currentAi[1]-oKart.y));
+						switch (oMap.skin) {
+						case 27:
+							shouldChangeAi = (distToAi2 < 1500);
+							break;
+						case 48:
+							shouldChangeAi = (distToAi2 < 900);
+						}
+					}
+					if (shouldChangeAi) {
 						var chemins = oKart.aipoints[nbPos];
 						if (!chemins || !chemins.length) {
 							chemins = [];

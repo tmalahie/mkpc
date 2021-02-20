@@ -55,6 +55,7 @@ collision: <?php
             if ($isBattle) {
                 $x = 49;
                 $y = 49;
+                $replace = '$u,$v';
             }
             else {
                 switch ($p) {
