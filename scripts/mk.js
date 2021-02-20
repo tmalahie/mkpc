@@ -4122,7 +4122,7 @@ function continuer() {
 								oValide.parentNode.removeChild(oValide);
 								aPara2.style.fontSize = Math.round(iScreenScale*2.5) + "px";
 								if (success) {
-									aPara2.innerHTML = toLanguage("Congratulations "+ nom +", your score has been saved successfully ! You places ", "F&eacute;licitations "+ nom +", votre score a bien &eacute;t&eacute; enregistr&eacute; ! Vous &ecirc;tes ") + toPlace(enregistre[0]) + toLanguage(" out of "+ enregistre[1] +" in this race !", " sur "+ enregistre[1] +" au classement de ce circuit !");
+									aPara2.innerHTML = toLanguage("Congratulations "+ nom +", your score has been saved successfully ! You placed ", "F&eacute;licitations "+ nom +", votre score a bien &eacute;t&eacute; enregistr&eacute; ! Vous &ecirc;tes ") + toPlace(enregistre[0]) + toLanguage(" out of "+ enregistre[1] +" in this race !", " sur "+ enregistre[1] +" au classement de ce circuit !");
 									oSave.style.display = "none";
 								}
 								aPara2.style.visibility = "";
@@ -20492,7 +20492,8 @@ function updateCommandSheet() {
 	var gameCommands = getCommands();
 	var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
 	function aTouches(T1, T2) {
-		return (oContainers.length == 1) ? T1 : "J1 : "+ T1 +"; J2 : "+ T2 +"";
+		var P = language ? "P":"J";
+		return (oContainers.length == 1) ? T1 : P+"1 : "+ T1 +"; "+P+"2 : "+ T2 +"";
 	}
 	function aKeyName(keyKey) {
 		var keyCodes = gameCommands[keyKey];
@@ -20658,7 +20659,7 @@ function editCommands(reload,currentTab) {
 	$controlSettings.className = "control-settings";
 	var $controlSettingsInfo = document.createElement("div");
 	$controlSettingsInfo.className = "control-settings-info";
-	$controlSettingsInfo.innerHTML = toLanguage("Those settings allow you to disable some graphics elements from the game. Use them if you experience some lag for example.", "Ces paramètres vous permettent de désactiver certains éléments graphiques du jeu. Utilisez-les si vous avez des problèmes de lags par exemple.");
+	$controlSettingsInfo.innerHTML = toLanguage("These settings allow you to disable some graphic elements from the game. Use them if you experience some lag for example.", "Ces paramètres vous permettent de désactiver certains éléments graphiques du jeu. Utilisez-les si vous avez des problèmes de lags par exemple.");
 	$controlSettings.appendChild($controlSettingsInfo);
 	var allSettings = {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),

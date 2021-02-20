@@ -235,12 +235,12 @@ while ($comment = mysql_fetch_array($getComments)) {
 elseif ($news['status'] == 'pending') {
 	?>
 	<p class="info" id="news-status">
-		Cette news est en attente de validation.<br />
+		<?php echo $language ? 'This news is awaiting validation':'Cette news est en attente de validation'; ?><br />
 		<?php
 		if (hasRight('publisher')) {
 			?>
-			<a href="acceptNews.php?id=<?php echo $_GET['id']; ?>" class="news-moderate news-accept">Accepter</a>
-			<a href="javascript:rejectNews(<?php echo $_GET['id']; ?>)" class="news-moderate news-reject">Refuser</a>
+			<a href="acceptNews.php?id=<?php echo $_GET['id']; ?>" class="news-moderate news-accept"><?php echo $language ? 'Accept':'Accepter'; ?></a>
+			<a href="javascript:rejectNews(<?php echo $_GET['id']; ?>)" class="news-moderate news-reject"><?php echo $language ? 'Reject':'Refuser'; ?></a>
 			<?php
 		}
 		?>

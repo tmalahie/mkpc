@@ -293,11 +293,12 @@ include('menu.php');
 				<?php
 				$followedUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb, '.($id?'SUM(follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` WHERE followed="'. $_GET['id'] .'"'));
 				$s = plural($followedUsers['nb']);
+				$view = $language ? 'View' : 'Voir';
 				echo '<img src="images/followers.png" alt="Followers" />';
 				echo '<strong>'. $followedUsers['nb'] . ' '. ($language ? 'follower'.$s : 'abonné'.$s) .'</strong>';
 				if ($me) {
 					if ($followedUsers['nb'])
-						echo ' <a class="all-follows" href="listFollowers.php">[Voir]</a>';
+						echo ' <a class="all-follows" href="listFollowers.php">['.$view.']</a>';
 				}
 				elseif ($id) {
 					$isFollower = $followedUsers['userisfollower'];
@@ -313,7 +314,7 @@ include('menu.php');
 				echo '<strong>'. $followingUsers['nb'] . ' '. ($language ? 'following'.$s : 'abonnement'.$s) .'</strong>';
 				if ($me) {
 					if ($followingUsers['nb'])
-						echo ' <a class="all-follows" href="listFollowed.php">[Voir]</a>';
+						echo ' <a class="all-follows" href="listFollowed.php">['.$view.']</a>';
 				}
 				?>
 				</div>
