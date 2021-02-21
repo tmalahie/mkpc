@@ -1286,30 +1286,35 @@ function initMap() {
 			var foamL = waveProgress-0.04*(1-waveProgress/3);
 			oViewContext.lineWidth = 1;
 			if (waveL > 0) {
-				oViewContext.fillStyle = oViewContext.strokeStyle = this.colors.water;
 				for (var i=0;i<oWaves.length;i++) {
 					var oPolygon = this.polygon(i,0,waterL);
+					oViewContext.fillStyle = oViewContext.strokeStyle = this.color(i,"water");
 					this.drawPolygon(oViewContext, oPolygon, center,scale);
 				}
 			}
 			else
 				waveL = 0;
 			if (foamL > 0) {
-				oViewContext.fillStyle = oViewContext.strokeStyle = this.colors.wave;
 				for (var i=0;i<oWaves.length;i++) {
 					var oPolygon = this.polygon(i,waveL,waterL);
+					oViewContext.fillStyle = oViewContext.strokeStyle = this.color(i,"wave");
 					this.drawPolygon(oViewContext, oPolygon, center,scale);
 				}
 			}
 			else
 				foamL = 0;
 			if (waveProgress > 0.005) {
-				oViewContext.fillStyle = oViewContext.strokeStyle = this.colors.foam;
 				for (var i=0;i<oWaves.length;i++) {
 					var oPolygon = this.polygon(i,foamL,waveProgress*1.04);
+					oViewContext.fillStyle = oViewContext.strokeStyle = this.color(i,"foam");
 					this.drawPolygon(oViewContext, oPolygon, center,scale);
 				}
 			}
+		}
+		oMap.sea.color = function(i,type) {
+			if (this["colors."+i])
+				return this["colors."+i][type];
+			return this.colors[type];
 		}
 		oMap.sea.polygon = function(i, l1,l2) {
 			var oWave = this.waves[i][0];

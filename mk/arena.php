@@ -830,8 +830,6 @@ foreach ($circuitsData as $c => $arene) {
 					)
 				)
 			);
-		}
-		if ($map == 50) {
 			$graph[9] = array(
 				'0.top' => array(
 					'1.top',
@@ -848,6 +846,50 @@ foreach ($circuitsData as $c => $arene) {
 					)
 				)
 			);
+			$graph[11] = array(
+				'0.left' => array(
+					'0.top',
+					array(
+						[[0,10],[7,7],[10,0]],
+						[[0,22],[9,23],[18,28],[28,18],[23,9],[22,0]]
+					)
+				),
+				'1.top' => array(
+					'1.right',
+					array(
+						[[90,0],[93,7],[100,10]],
+						[[79,0],[77,9],[70,20],[80,30],[91,23],[100,20]]
+					)
+				),
+				'2.left' => array(
+					'2.bottom',
+					array(
+						[[0,90],[7,93],[10,100]],
+						[[0,78],[9,77],[18,72],[28,82],[23,91],[22,100]]
+					)
+				),
+				'3.right' => array(
+					'3.bottom',
+					array(
+						[[100,90],[93,93],[90,100]],
+						[[100,78],[91,77],[82,72],[72,82],[77,91],[78,100]]
+					)
+				),
+				'0.center' => array(
+					'0.center',
+					array(
+						[[49.6,50],[49.7,49.7],[50,49.6],[50.3,49.7],[50.4,50],[50.3,50.3],[50,50.4],[49.7,50.3]],
+						[[24,50],[23,39],[18,28],[28,18],[41,25],[50,27],[59,25],[70,20],[80,30],[75,41],[73,50],[75,59],[82,72],[72,82],[61,77],[50,76],[39,77],[28,82],[18,72],[23,61]]
+					),
+					array(
+						'colors' => array(
+							'water' => '#A9EDE6',
+							'wave' => '#A9EDE6',
+							'foam' => "#CAFDFE"
+						)
+					)
+				)
+			);
 		}
 		$orientedGraph = array();
 		foreach ($graph as $i => $graphPieces) {
@@ -858,6 +900,8 @@ foreach ($circuitsData as $c => $arene) {
 				foreach ($waves as &$wave)
 					$wave = array_reverse($wave);
 				$orientedGraph[$i][$out[0]] = array($in,$waves);
+				if (isset($out[2]))
+					$orientedGraph[$i][$out[0]][] = $out[2];
 			}
 		}
 		$graph = $orientedGraph;
@@ -899,12 +943,16 @@ foreach ($circuitsData as $c => $arene) {
 								$newDir[1] = 'top';
 								break;
 							case 'left':
+								if (!($newI%6))
+									$newI = 0;
 								$newI--;
 								$newDir[0]++;
 								$newDir[1] = 'right';
 								break;
 							case 'right':
 								$newI++;
+								if (!($newI%6))
+									$newI = -1;
 								$newDir[0]--;
 								$newDir[1] = 'left';
 								break;
@@ -930,8 +978,12 @@ foreach ($circuitsData as $c => $arene) {
 							}
 						} while (null === $state['graph'][$i][$in]['waves']);
 						$state['sea'][] = $newSea;
+						if (isset($graphData[2])) {
+							if (isset($graphData[2]['colors'])) {
+								$state['colors'][$j] = $graphData[2]['colors'];
+							}
+						}
 					}
-					unset($j);
 				}
 				unset($data);
 			}
@@ -939,7 +991,8 @@ foreach ($circuitsData as $c => $arene) {
 		}
 		$state = array(
 			'graph' => array(),
-			'sea' => array()
+			'sea' => array(),
+			'colors' => array()
 		);
 		for ($i=0;$i<36;$i++) {
 			foreach ($graph[$arene["p$i"]] as $in => $out) {
@@ -952,6 +1005,10 @@ foreach ($circuitsData as $c => $arene) {
 		//$state['sea'] = array($state['sea'][0]);
 		//$state['sea'] = array_slice($state['sea'], 7,1);
 		echo json_encode($state['sea']);
+		foreach ($state['colors'] as $i=>$colors) {
+			if ($colors)
+				echo ',"colors.'.$i.'":'.json_encode($colors);
+		}
 		echo '},';
 		break;
 	}
