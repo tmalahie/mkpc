@@ -14263,7 +14263,7 @@ function getMapSelectorSrc(i) {
 }
 function getMapId(oMap) {
 	var res = isBattle ? nid : (simplified ? oMap.id : oMap.map);
-	if (res === undefined) res = -1;
+	if (res == undefined) res = -1;
 	return res;
 }
 
