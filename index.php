@@ -291,14 +291,6 @@ $slidesPath = 'images/slides';
 		&#9660;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9660;<br />
 		<img src="images/mkpc_box.jpg" alt="Acc&eacute;der au jeu" style="width:310px;position: relative;top:2px" /><br />
 		&#9650;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9650;</a></div>
-		<?php
-		if ($language) {
-			?>
-			<p><em>Note that this game is translated by a 17-year-old French student.<br />
-			There may be some mistakes. If you see one, please inform me on this <a href="topic.php?topic=1">forum topic</a>.</em></p>
-			<?php
-		}
-		?>
 		<h1><img src="images/about.png" alt="about" /> <?php echo $language ? 'What\'s Mario Kart PC?':'Mario Kart PC, c\'est quoi ?'; ?></h1>
 		<div>
 			<?php
@@ -450,8 +442,15 @@ $slidesPath = 'images/slides';
 					<li><a href="https://discord.gg/VkeAxaj">Serveur Discord</a> du site : rejoignez-le pour discuter avec la communauté et être informé des mises à jours et événements.</li>
 					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Chaîne Youtube Officielle</a> : retrouvez des vidéos sur le jeu et des informations sur le site et ses évenements. La chaîne est alimentée par les membres, si vous voulez participez, parlez-en sur <a href="topic.php?topic=3392">le topic officiel</a>.</li>
 					<li><a href="https://twitter.com/MarioKartPC">Page Twitter</a> et <a href="https://www.facebook.com/groups/126497814060671/">Groupe Facebook</a> du jeu : suivez-les pour être au courant des dernières actualités du site !</li>
-					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">Wiki MKPC</a> : retrouvez toutes les informations sur le jeu et son histoire. Ce site est maintenu par les membres, si vous voulez contribuer, parlez-en sur <a href="topic.php?topic=343">ce topic</a> !</li>
+					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">Wiki MKPC</a> : retrouvez toutes les informations sur le jeu et son histoire. Ce site est maintenu par les membres, si vous voulez contribuer, parlez-en sur <a href="topic.php?topic=343">ce topic</a>&nbsp;!</li>
 				</ul>
+				<?php
+			}
+			?>
+			<?php
+			if ($language) {
+				?>
+				<p><em>This site is mostly maintained by French members, if you see some translation errors in the game or the site, don't hesitate to report them on this <a href="topic.php?topic=1">forum topic</a>.</em></p>
 				<?php
 			}
 			?>
