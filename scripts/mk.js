@@ -14383,6 +14383,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		if (cpuNames) cpuNames = JSON.parse(cpuNames);
 		var cpuChars = this.elements["option-cpuChars"].dataset.value;
 		if (cpuChars) cpuChars = JSON.parse(cpuChars);
+		var timeTrial = this.elements["option-timeTrial"].checked ? 1:0;
 		if (!cpu) {
 			cpuCount = defaultGameOptions.cpuCount;
 			cpuLevel = defaultGameOptions.cpuLevel;
@@ -14401,7 +14402,8 @@ function privateGameOptions(gameOptions, onProceed) {
 			cpuCount: cpuCount,
 			cpuLevel: cpuLevel,
 			cpuNames: cpuNames,
-			cpuChars: cpuChars
+			cpuChars: cpuChars,
+			timeTrial: timeTrial
 		});
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
@@ -14800,9 +14802,10 @@ function privateGameOptions(gameOptions, onProceed) {
 			document.getElementById("option-cpuChars-ctn").style.display = "";
 			var $cpuCount = document.getElementById("option-cpuCount");
 			$cpuCount.value = Math.max($cpuCount.value,3);
+			var oTr = this.parentNode.parentNode;
 			setTimeout(function() {
 				$cpuCount.select();
-				oScroll.scrollTop += iScreenScale*13;
+				oScroll.scrollTop = oTr.offsetTop;
 			}, 1);
 		}
 		else {
@@ -14949,7 +14952,7 @@ function privateGameOptions(gameOptions, onProceed) {
 
 	var oTr = document.createElement("tr");
 	oTr.id = "option-cpuNames-ctn";
-	if (!gameOptions || !gameOptions.cpu || isBattle)
+	if (!gameOptions || !gameOptions.cpu)
 		oTr.style.display = "none";
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
@@ -15011,7 +15014,7 @@ function privateGameOptions(gameOptions, onProceed) {
 
 	var oTr = document.createElement("tr");
 	oTr.id = "option-cpuChars-ctn";
-	if (!gameOptions || !gameOptions.cpu || isBattle)
+	if (!gameOptions || !gameOptions.cpu)
 		oTr.style.display = "none";
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
@@ -15068,6 +15071,41 @@ function privateGameOptions(gameOptions, onProceed) {
 	tDiv.appendChild(oButton);
 	cDiv.appendChild(tDiv);
 	oTd.appendChild(cDiv);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	if (!isOnline || isBattle)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.style.textAlign = "center";
+	oTd.style.width = (iScreenScale*8) +"px";
+	var oCheckbox = document.createElement("input");
+	oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
+	oCheckbox.id = "option-timeTrial";
+	oCheckbox.name = "option-timeTrial";
+	oCheckbox.type = "checkbox";
+	if (gameOptions && gameOptions.timeTrial)
+		oCheckbox.checked = true;
+	oTd.appendChild(oCheckbox);
+	oTr.appendChild(oTd);
+
+	var oTd = document.createElement("td");
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-timeTrial");
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.style.marginBottom = "0px";
+	oH1.innerHTML = toLanguage("Time Trial mode","Mode Contre-la-montre");
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("If enabled, the game is played like a time trial: no item boxes, no collisions with other players (they are ghosts), and you start with 3 shrooms.", "Si activé, la partie se déroule comme en CLM : pas de boîtes à objets, pas de collisions avec les autres joueurs (ce sont des fantômes), et vous commencez avec 3 champis.");
+	oLabel.appendChild(oDiv);
+	oTd.appendChild(oLabel);
+	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
 
@@ -17284,7 +17322,8 @@ var defaultGameOptions = {
 	cpuCount: 2,
 	cpuLevel: 0,
 	cpuNames: null,
-	cpuChars: null
+	cpuChars: null,
+	timeTrial: false
 };
 function isCustomOptions(linkOptions) {
 	if (linkOptions) {
@@ -17533,6 +17572,27 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		oDiv.innerHTML = toLanguage("If there are not enough players, some bots will be added to the game so that there are at least <strong>"+ shareLink.options.cpuCount +"</strong> participants.", "S'il n'y a pas assez de joueurs, des bots seront ajoutés à la partie pour qu'il y ait au minimum <strong>"+ shareLink.options.cpuCount +"</strong> participants");
+		oLabel.appendChild(oDiv);
+		oTd.appendChild(oLabel);
+		oTr.appendChild(oTd);
+		oTable.appendChild(oTr);
+	}
+
+	if (shareLink.options.timeTrial) {
+		var oTr = document.createElement("tr");
+		var oTd = document.createElement("td");
+		var oLabel = document.createElement("label");
+		oTd.appendChild(oLabel);
+
+		var oH1 = document.createElement("h1");
+		oH1.style.fontSize = (3*iScreenScale) +"px";
+		oH1.innerHTML = toLanguage("Time trial mode", "Mode Contre-le-montre");
+		oH1.style.marginBottom = "0px";
+		oLabel.appendChild(oH1);
+		var oDiv = document.createElement("div");
+		oDiv.style.fontSize = (2*iScreenScale) +"px";
+		oDiv.style.color = "white";
+		oDiv.innerHTML = toLanguage("Games are played like in time trial: no item boxes, no collisions with other players (they are ghosts), and you start with 3 shrooms.", "Les parties se déroulent comme en CLM : pas de boîtes à objets, pas de collisions avec les autres joueurs (ce sont des fantômes), et vous commencez avec 3 champis.");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);

@@ -56,7 +56,11 @@ $rulesList = array(
 				$cpuChars[$i] = preg_replace('#[^\w\-]#', '', $cpuChar);
 			return $cpuChars;
 		}
-	)
+	),
+	'timeTrial' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
+	),
 );
 function rulesEqual($rules1,$rules2) {
 	global $rulesList;
