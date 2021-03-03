@@ -2449,14 +2449,68 @@ function startGame() {
 	if (!itemDistribution)
 		itemDistribution = itemDistributions[getItemMode()][0].value;
 
-	if (course != "CM") {
+	if (!timeTrialMode()) {
 		if (itemDistribution.length) {
 			for (var i=0;i<oMap.arme.length;i++)
 				oMap.arme[i][2] = 0;
 		}
 		else
 			oMap.arme = [];
+	}
+	else {
+		oMap.arme = [];
+		for (var i=0;i<aKarts.length;i++)
+			aKarts[i].arme = "champiX3";
+		aKarts[0].roulette = 25;
+		if (course == "CM") {
+			for (var i=0;i<gPersos.length;i++) {
+				var gPerso = gPersos[i];
+				aKarts.push({
+					speed : (depart<2) ? 0 : 5.7,
+					speedinc : 0.5,
+					heightinc : 0,
+					stats : realKartStats(cp[gPerso]),
 
+					rotation : rot0,
+					rotincdir : 0,
+					rotinc : 0,
+
+					x : aKarts[0].x,
+					y : aKarts[0].y,
+					z : 0,
+
+					size : 1,
+					personnage : gPerso,
+					sprite : new Sprite(gPerso),
+
+					tourne : 0,
+					tombe : 0,
+					protect : false,
+
+					roulette : 0,
+					arme : false,
+
+					champi : 0,
+					etoile : 0,
+					megachampi : 0,
+					using : [],
+
+					cpu : false,
+					aipoint : 0,
+					aipoints : oMap.aipoints[0],
+					maxspeed : 5.7,
+
+					place : 1
+				});
+			}
+		}
+		for (var i=oPlayers.length;i<aKarts.length;i++) {
+			for (var j=0;j<oPlayers.length;j++)
+				aKarts[i].sprite[j].div.style.opacity = 0.5;
+		}
+		updateObjHud(0);
+	}
+	if (course != "CM") {
 		for (var i=0;i<oPlayers.length;i++) {
 			document.getElementById("infoPlace"+i).innerHTML = oPlayers[i].place;
 			document.getElementById("infoPlace"+i).style.display = "block";
@@ -2465,53 +2519,6 @@ function startGame() {
 			if (course != "BB")
 				document.getElementById("compteur"+i).style.color = oColor;
 		}
-	}
-	else {
-		oMap.arme = [];
-		aKarts[0].arme = "champiX3";
-		aKarts[0].roulette = 25;
-		for (var i=0;i<gPersos.length;i++) {
-			var gPerso = gPersos[i];
-			aKarts.push({
-				speed : (depart<2) ? 0 : 5.7,
-				speedinc : 0.5,
-				heightinc : 0,
-				stats : realKartStats(cp[gPerso]),
-
-				rotation : rot0,
-				rotincdir : 0,
-				rotinc : 0,
-
-				x : aKarts[0].x,
-				y : aKarts[0].y,
-				z : 0,
-
-				size : 1,
-				personnage : gPerso,
-				sprite : new Sprite(gPerso),
-
-				tourne : 0,
-				tombe : 0,
-				protect : false,
-
-				roulette : 0,
-				arme : false,
-
-				champi : 0,
-				etoile : 0,
-				megachampi : 0,
-				using : [],
-
-				cpu : false,
-				aipoint : 0,
-				aipoints : oMap.aipoints[0],
-				maxspeed : 5.7,
-
-				place : 1
-			});
-			aKarts[aKarts.length-1].sprite[0].div.style.opacity = 0.5;
-		}
-		updateObjHud(0);
 	}
 	gameControls = getGameControls();
 
@@ -2734,7 +2741,7 @@ function startGame() {
 			oCharacter2.className = "pixelated";
 			oPlanCharacters2.push(oCharacter2);
 		}
-		if ((course == "CM") && (oPlanCharacters.length > 1)) {
+		if (timeTrialMode() && (oPlanCharacters.length > 1)) {
 			for (var i=0;i<oPlanCharacters.length;i++) {
 				if (i) oPlanCharacters[i].style.opacity = 0.5;
 				oPlanCtn.appendChild(oPlanCharacters[i]);
@@ -13045,6 +13052,13 @@ function isControlledByPlayer(id) {
 	});
 	return oKart && ((oKart.id == identifiant) || (oKart.controller == identifiant));
 }
+function timeTrialMode() {
+	if (course == "CM")
+		return true;
+	if (isOnline && shareLink.options && shareLink.options.timeTrial)
+		return true;
+	return false;
+}
 
 function handleDriftCpt(getId) {
 	var oKart = aKarts[getId];
@@ -13974,7 +13988,7 @@ function cycle() {
 }
 var decorPos = {};
 function runOneFrame() {
-	if (course != "CM") {
+	if (!timeTrialMode()) {
 		for (var i=0;i<aKarts.length;i++)
 			colKart(i);
 	}
