@@ -1,6 +1,6 @@
 <?php
 include('auth.php');
-mysql_query('INSERT INTO mkips (SELECT id AS player,identifiant AS ip1,identifiant2 AS ip2, identifiant3 AS ip3, identifiant4 AS ip4 FROM mkprofiles WHERE identifiant IS NOT NULL AND NOT exists (SELECT * FROM mkips WHERE player=id AND ip1=identifiant AND ip2=identifiant2 AND ip3=identifiant3 AND ip4=identifiant4))');
+mysql_query('INSERT IGNORE INTO mkips (SELECT id AS player,identifiant AS ip1,identifiant2 AS ip2, identifiant3 AS ip3, identifiant4 AS ip4 FROM mkprofiles WHERE identifiant IS NOT NULL AND NOT exists (SELECT * FROM mkips WHERE player=id AND ip1=identifiant AND ip2=identifiant2 AND ip3=identifiant3 AND ip4=identifiant4))');
 ?>
 <!DOCTYPE html>
 <html>

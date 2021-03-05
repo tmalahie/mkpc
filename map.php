@@ -127,7 +127,7 @@ if ($isMCup && !isset($trackIDs)) {
 	if (!empty($cupIDs)) {
 		$cupsTracks = array();
 		$cupNamesById = array();
-		$getAllCircuits = mysql_query('SELECT id,nom,circuit0,circuit1,circuit2,circuit3 FROM `mkcups` WHERE id IN ('. implode($cupIDs,',') .') AND mode=1');
+		$getAllCircuits = mysql_query('SELECT id,nom,circuit0,circuit1,circuit2,circuit3 FROM `mkcups` WHERE id IN ('. implode(',',$cupIDs) .') AND mode=1');
 		while ($getCup = mysql_fetch_array($getAllCircuits)) {
 			$cupTracks = array();
 			for ($i=0;$i<4;$i++)

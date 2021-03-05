@@ -1,5 +1,6 @@
 <?php
 if (!empty($_GET['player']) && isset($_GET['map'])) {
+    include('language.php');
     include_once('circuitNames.php');
     $circuitName = $circuitNames[$_GET['map']-1];
     include('initdb.php');

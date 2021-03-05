@@ -37,8 +37,10 @@ function objet($infos,$l,$m,$n=null,$d=null) {
 }
 echo objet($infos,'o',null).' &nbsp; '.objet($infos,'a',null,'p','u').' '.objet($infos,'b',null,'q','v').' '.objet($infos,'c',null,'r','w').' '.objet($infos,'d',null,'s','x').' &nbsp; ';
 $maxDecors = 0;
-foreach ($decorTypes as $i=>$decorType)
-	$maxDecors = max($maxDecors,count($decorTypes[$i]));
+foreach ($decorTypes as $i=>$decorType) {
+	if ($decorTypes[$i])
+		$maxDecors = max($maxDecors,count($decorTypes[$i]));
+}
 for ($i=0;$i<$maxDecors;$i++)
 	echo ' '.objet($infos,"t",array($map,$i));
 echo '<br />

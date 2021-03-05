@@ -5,7 +5,7 @@ if ($isCup) {
 		echo 'var ptsGP = "';
 		$ptsGP = array();
 		if (!empty($cupIDs)) {
-			$getScores = mysql_query('SELECT cup,score FROM `mkwins` WHERE cup IN ('. implode($cupIDs,',') .') AND identifiant="'.$identifiants[0].'" AND identifiant2="'.$identifiants[1].'" AND identifiant3="'.$identifiants[2].'" AND identifiant4="'.$identifiants[3].'"');
+			$getScores = mysql_query('SELECT cup,score FROM `mkwins` WHERE cup IN ('. implode(',',$cupIDs) .') AND identifiant="'.$identifiants[0].'" AND identifiant2="'.$identifiants[1].'" AND identifiant3="'.$identifiants[2].'" AND identifiant4="'.$identifiants[3].'"');
 			while ($getScore = mysql_fetch_array($getScores))
 				$ptsGP[$getScore['cup']] = $getScore['score'];
 			foreach ($cupIDs as $i => $cupID)
