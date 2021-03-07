@@ -2791,7 +2791,7 @@ function startGame() {
 		setPlanPos();
 	}
 
-	setTimeout(firstRender, 500);
+	setTimeout(render, 500);
 
 	if (bMusic) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
@@ -14084,11 +14084,6 @@ function runOneFrame() {
 	if (refreshDatas)
 		resetDatas();
 	render();
-}
-function firstRender() {
-	render();
-	for (var i=0;i<oPlayers.length;i++)
-		oPlayers[i].sprite[i].div.style.zIndex++;
 }
 
 var gameControls = {};
