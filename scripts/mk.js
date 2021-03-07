@@ -2151,6 +2151,7 @@ function startGame() {
 			mass: 0.5+normalizedStats[3]
 		}
 	}
+	var isTT = timeTrialMode();
 	for (var i=0;i<strPlayer.length;i++) {
 		var oPlace = aPlaces[i];
 		var oPlayer = {
@@ -2206,7 +2207,7 @@ function startGame() {
 		else
 			oPlayer.team = -1;
 		if (course != "BB") {
-			posKart(oPlayer, oPlace);
+			posKart(oPlayer, isTT ? 1:oPlace);
 			oPlayer.time = 0;
 			oPlayer.tours = 1;
 			oPlayer.demitours = cp0;
@@ -2298,7 +2299,7 @@ function startGame() {
 		if ((oEnemy.team != -1) || oEnemy.nick)
 			oEnemy.marker = createMarker(oEnemy);
 		if (course != "BB") {
-			posKart(oEnemy, oPlace);
+			posKart(oEnemy, isTT ? 1:oPlace);
 			oEnemy.tours = 1;
 			oEnemy.demitours = cp0;
 			//oEnemy.tours = oMap.tours;
@@ -2449,7 +2450,7 @@ function startGame() {
 	if (!itemDistribution)
 		itemDistribution = itemDistributions[getItemMode()][0].value;
 
-	if (!timeTrialMode()) {
+	if (!isTT) {
 		if (itemDistribution.length) {
 			for (var i=0;i<oMap.arme.length;i++)
 				oMap.arme[i][2] = 0;
@@ -2790,7 +2791,7 @@ function startGame() {
 		setPlanPos();
 	}
 
-	setTimeout(render, 500);
+	setTimeout(firstRender, 500);
 
 	if (bMusic) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
@@ -12607,7 +12608,7 @@ function move(getId, triggered) {
 					else if (iSfx)
 						playSoundEffect("musics/events/nextlap.mp3");
 				}
-				if (course == "CM") {
+				if (timeTrialMode()) {
 					if (oLapTimeDiv)
 						oContainers[0].removeChild(oLapTimeDiv);
 					oLapTimeDiv = document.createElement("div");
@@ -14083,6 +14084,11 @@ function runOneFrame() {
 	if (refreshDatas)
 		resetDatas();
 	render();
+}
+function firstRender() {
+	render();
+	for (var i=0;i<oPlayers.length;i++)
+		oPlayers[i].sprite[i].div.style.zIndex++;
 }
 
 var gameControls = {};
