@@ -11764,8 +11764,10 @@ function move(getId, triggered) {
 		if (oKart.driftinc)
 			document.getElementById("drift"+ getId).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[getId].h-32)*fSpriteScale*0.15) + "px";
 	}
+
+	var localKart = (!isOnline || !getId || oKart.controller == identifiant);
 	
-	if ((!getId || !isOnline || oKart.controller == identifiant || finishing) && !oKart.loose) {
+	if (localKart && !oKart.loose) {
 		var oKartItems = oKart.using;
 		if (oKart.tourne) {
 			oKartItems = [];
@@ -12092,7 +12094,7 @@ function move(getId, triggered) {
 		if (clLocalVars.decorsHit && !oKart.cpu)
 			clLocalVars.decorsHit[collisionDecor] = true;
 		var collisionSpin = decorBehaviors[collisionDecor].spin;
-		if (collisionSpin && !oKart.tourne && !oKart.protect && !oKart.frminv) {
+		if (collisionSpin && !oKart.tourne && !oKart.protect && !oKart.frminv && localKart) {
 			var minSpeed = decorBehaviors[collisionDecor].minSpeedToSpin||2.5;
 			if (Math.abs(oKart.speed) > minSpeed) {
 				loseBall(getId);
@@ -12139,7 +12141,7 @@ function move(getId, triggered) {
 		else {
 			var hpType;
 			var fTombe;
-			if (!isOnline || !getId || oKart.controller == identifiant)
+			if (localKart)
 				fTombe = tombe(oKart.x, oKart.y, oMap.checkpoint&&oKart.demitours ? oMap.checkpoint[(oKart.demitours+1!=oMap.checkpoint.length) ? oKart.demitours+1 : 0][3] : 0);
 			if (fTombe) {
 				if (fTombe == true) {
@@ -12950,7 +12952,7 @@ function move(getId, triggered) {
 		oKart.mini--;
 		if (oKart.mini < 1) {
 			oKart.mini = 0;
-			if (!isOnline || !getId || oKart.controller == identifiant)
+			if (localKart)
 				oKart.size = 1;
 			updateDriftSize(aKarts.indexOf(oKart));
 		}
