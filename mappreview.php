@@ -15,7 +15,10 @@ if (isset($id)) {
 		$snes = ($map < 13);
 		$gba = ($map < 31);
 
-		$image = imagecreate(600,600);
+		if (in_array($map, array(48)))
+			$image = imagecreatetruecolor(600,600);
+		else
+			$image = imagecreate(600,600);
 		$bg = $bgColors[$map];
 		imagecolorallocate($image, $bg[0], $bg[1], $bg[2]);
 

@@ -2,8 +2,11 @@
 header ("Content-type: image/png");
 require_once('circuitEnumsQuick.php');
 
-$image = imagecreate(600,600);
 $map = (isset($_GET["map"])) ? $_GET["map"] : 1;
+if (in_array($map, array(48)))
+	$image = imagecreatetruecolor(600,600);
+else
+	$image = imagecreate(600,600);
 $bg = $bgColors[$map];
 imagecolorallocate($image, $bg[0], $bg[1], $bg[2]);
 
