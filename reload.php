@@ -58,7 +58,14 @@ if ($id) {
 				$playerPayload['data'] = $payloadData;
 			}
 			unset($playerPayload);
-			$finished = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE id='. $course .' AND map=-1 LIMIT 1'));
+			$mkState = mysql_fetch_array(mysql_query('SELECT time,map FROM `mariokart` WHERE id='. $course));
+			if (!$mkState) {
+				$mkState = array(
+					'map' => 0,
+					'time' => $time
+				);
+			}
+			$finished = ($mkState['map']==-1);
 			$timeMs = microtime(true);
 			$time = floor($timeMs);
 			function timeInFrames($timeMs=null) {
@@ -73,7 +80,6 @@ if ($id) {
 				if (isset($payload['item'])) {
 					foreach ($payload['item'] as $item) {
 						$holder = isset($item['holder']) ? $item['holder']:0;
-						if ($holder == 1) $holder = $id; // TODO remove (bkwd cptblty)
 						if (isset($item['id'])) {
 							mysql_query('UPDATE items SET data=UNHEX("'. $item['data'] .'"),holder="'. $holder .'",updated_at="'. timeInFrames() .'",updated_by="'.$id.'" WHERE id="'. $item['id'] .'" AND data!=""');
 						}
@@ -109,8 +115,10 @@ if ($id) {
 					// Run a GC some times to remove old deleted items
 					mysql_query('DELETE FROM items WHERE course="'. $course .'" AND data="" AND updated_at<"'.$limIdle.'"');
 				}
-				if ($winning && !$isBattle)
+				if ($winning && !$isBattle) {
+					$mkState['time'] = $time;
 					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time);
+				}
 			}
 			$joueurs = mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' ORDER BY id');
 			echo '[[';
@@ -191,10 +199,11 @@ if ($id) {
 			echo json_encode($updatedItems);
 			echo '],'.$lConnect;
 			$finishing = false;
-			if (($racing < 2) || !$racingHumans || (!$isBattle&&mysql_numrows(mysql_query('SELECT time FROM `mariokart` WHERE id='. $course .' AND time<='.($time-35))))) {
+			if (($racing < 2) || !$racingHumans || (!$isBattle&&($mkState['time'] <= ($time-35)))) {
 				$finishing = !$finished;
 				if ($finishing) {
-					mysql_query('UPDATE `mariokart` SET map=-1,time='.($time+35).' WHERE id='. $course);
+					$mkState['time'] = $time+35;
+					mysql_query('UPDATE `mariokart` SET map=-1,time='.$mkState['time'].' WHERE id='. $course);
 					$finished = true;
 				}
 			}
@@ -341,8 +350,7 @@ if ($id) {
 							mysql_query('INSERT INTO `mkmatches` VALUES(NULL, '. $joueur['id'] .','. $course .','. $i .',NULL)');
 					}
 				}
-				$getTime = mysql_fetch_array(mysql_query('SELECT time FROM `mariokart` WHERE id='.$course));
-				echo '],'.($getTime['time']-$time);
+				echo '],'.($mkState['time']-$time);
 			}
 			echo ']';
 		}
