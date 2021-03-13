@@ -16637,6 +16637,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 									shareLink.options.cpuLevel = options.cpuLevel;
 									shareLink.options.cpuNames = options.cpuNames;
 									shareLink.options.cpuChars = options.cpuChars;
+									shareLink.options.timeTrial = options.timeTrial;
 									selectedTeams = options.team;
 									selectPlayerScreen(0);
 									return true;
