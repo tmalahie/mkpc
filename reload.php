@@ -21,6 +21,7 @@ if ($id) {
 		$playerMapping = $paramsMapping['player'];
 		$cpuMapping = $paramsMapping['player'];
 		$cpuMapping[] = 'aipoint';
+		$extraParamsMapping = array("finaltime");
 
 		include('initdb.php');
 		$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkplayers` WHERE id="'.$id.'"'));
@@ -99,13 +100,20 @@ if ($id) {
 						unset($payloadData['place']);
 					foreach ($payloadData as $key => $value) {
 						if (null !== $value)
-							$sql .= $key .'="'.$value .'",';
+							$sql .= $key .'='.$dbh->quote($value) .',';
+					}
+					if (isset($payload['extra'][$playerId])) {
+						foreach ($payload['extra'][$playerId] as $key => $value) {
+							if (in_array($key,$extraParamsMapping))
+								$sql .= $key .'='.$dbh->quote($value) .',';
+						}
 					}
 					if ($pWinning) {
 						if ($playerId == $id)
 							$winning = $pWinning;
 						$getPlace = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS place FROM `mkplayers` WHERE course='.$course.' AND '. ($isBattle ? 'ballons!=0':'tours>='.$fLaps)));
 						$sql .= 'place='.($getPlace['place']+1-$isBattle).',';
+						$sql .= 'finalts='.$time.',';
 					}
 					$sql .= 'connecte='.$lConnect.' WHERE id="'. $playerId .'"'. (($playerId != $id) ? " AND controller=$id" : '');
 					mysql_query($sql);
@@ -115,7 +123,7 @@ if ($id) {
 					// Run a GC some times to remove old deleted items
 					mysql_query('DELETE FROM items WHERE course="'. $course .'" AND data="" AND updated_at<"'.$limIdle.'"');
 				}
-				if ($winning && !$isBattle) {
+				if ($winning && !$isBattle && ($mkState['time'] > $time)) {
 					$mkState['time'] = $time;
 					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time);
 				}
@@ -127,6 +135,7 @@ if ($id) {
 			if ($courseOptions)
 				$courseRules = json_decode($courseOptions['rules']);
 			$isTeam = !empty($courseRules->team);
+			$isTt = !empty($courseRules->timeTrial);
 			$racing = 0;
 			$racingHumans = 0;
 			$racingPerTeam = array(0,0);
@@ -179,6 +188,8 @@ if ($id) {
 					if (!$joueur['controller'])
 						$racingHumans++;
 				}
+				elseif ($isTt && ($joueur['finalts'] >= ($time-2)))
+					$racing++;
 			}
 			if ($isTeam && $isBattle)
 				$racing = ($racingPerTeam[0]>0)+($racingPerTeam[1]>0);
@@ -219,7 +230,7 @@ if ($id) {
 						}
 					}
 					else {
-						$joueurs = mysql_query('SELECT id FROM `mkplayers` WHERE course='.$course.' AND tours<'.$fLaps.' ORDER BY tours,demitours,place DESC,connecte');
+						$joueurs = mysql_query('SELECT id FROM `mkplayers` WHERE course='.$course.($isTt ? '':" AND tours<$fLaps").' ORDER BY '.($isTt ? '(finaltime>0),finaltime DESC,':'').'tours,demitours,place DESC,connecte');
 						while ($joueur = mysql_fetch_array($joueurs)) {
 							mysql_query('UPDATE `mkplayers` SET place='.$nbPlaces.' WHERE id='. $joueur['id']);
 							$nbPlaces--;
@@ -236,7 +247,7 @@ if ($id) {
 				}
 				$isFriendly = !empty($courseRules->friendly);
 				$isLocal = $isFriendly && !empty($courseRules->localScore);
-				$joueurs = mysql_query('SELECT p.id,j.nom,p.aPts,p.team,p.controller AS cpu FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' ORDER BY p.place');
+				$joueurs = mysql_query('SELECT p.id,j.nom,p.aPts,p.team,p.controller AS cpu,p.finaltime FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' ORDER BY p.place');
 				$playersData = array();
 				$allPlayersData = array();
 				while ($joueur=mysql_fetch_array($joueurs)) {
@@ -332,7 +343,7 @@ if ($id) {
 					}
 					else
 						$inc = 0;
-					echo ($v ? ',':'') .'['.$joueur['id'].','.json_encode($playerName).','.$joueur['aPts'].','.$inc.','.$joueur['team'].']';
+					echo ($v ? ',':'') .'['.$joueur['id'].','.json_encode($playerName).','.$joueur['aPts'].','.$inc.','.$joueur['team'].','.$joueur['finaltime'].']';
 					$nPts = $joueur['aPts']+$inc;
 					if ($finishing) {
 						$shouldLog = $isFriendly && !$joueur['cpu'];

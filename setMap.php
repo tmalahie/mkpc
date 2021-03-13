@@ -38,7 +38,7 @@ if ($course && !$getCourse['banned']) {
 		$joueurs = mysql_query('SELECT j.id,'.($isLocal ? 'IFNULL(r.pts,0) AS pts':'j.'.$pts_.' AS pts').' FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id'. ($isLocal ? ' LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND j.id=r.player':'') .' WHERE j.course='. $course .' ORDER BY p.place,j.id');
 		$nConnect = round($time/67);
 		$playerIds = array();
-		$toUpdate0 = 'connecte='.$nConnect.',tours=1,ballons=1,reserve=4';
+		$toUpdate0 = 'connecte='.$nConnect.',tours=1,ballons=1,reserve=4,finaltime=0,finalts=0';
 		for ($i=0;$joueur=mysql_fetch_array($joueurs);$i++) {
 			$playerIds[] = $joueur['id'];
 			$toUpate = 'course='.$course.',controller=0,aPts='. $joueur['pts'] .','.$toUpdate0;

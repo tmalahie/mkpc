@@ -11048,9 +11048,11 @@ function resetDatas() {
 	var playerMapping = (course != "BB")
 	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","tours","demitours","champi","etoile","megachampi","billball","place"]
 	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","ballons","reserve","champi","etoile","megachampi"];
+	var playerMappingExtra = (course != "BB") ? ["finaltime"]:[];
 	var cpuMapping = playerMapping.concat("aipoint");
 	var payload = {
 		player: [],
+		extra: {},
 		item: [],
 		lastcon: connecte
 	};
@@ -11093,7 +11095,16 @@ function resetDatas() {
 			}
 			oParams[i] = value;
 		}
+		var oExtra = {};
+		for (var i=0;i<playerMappingExtra.length;i++) {
+			if (oKart[playerMappingExtra[i]])
+				oExtra[playerMappingExtra[i]] = oKart[playerMappingExtra[i]];
+		}
+		if (Object.keys(oExtra).length)
+			payload.extra[oKart.id] = oExtra;
 	}
+	if (!Object.keys(payload.extra).length)
+		delete payload.extra;
 	var aSyncItems = Array.from(new Set(syncItems));
 	var nSyncItems = [];
 	for (var i=0;i<aSyncItems.length;i++) {
@@ -11355,7 +11366,10 @@ function resetDatas() {
 						var oTd = document.createElement("td");
 						oTd.innerHTML = toPlace(i+1);
 						oTds[i][0] = document.createElement("td");
-						oTds[i][0].innerHTML = pCode[1];
+						if (shareLink.options && shareLink.options.timeTrial && pCode[5])
+							oTds[i][0].innerHTML = '<span style="font-size: '+ Math.round(iScreenScale*1+3) +'pt">'+ pCode[1] +'</span><br /><span style="font-size: '+ Math.round(iScreenScale*0.75+2) +'pt">'+timeStr(pCode[5])+'</span>';
+						else
+							oTds[i][0].innerHTML = pCode[1];
 						oTds[i][1] = document.createElement("td");
 						oTds[i][1].innerHTML = pCode[2];
 						var oSmall = document.createElement("small");
@@ -11578,6 +11592,8 @@ function move(getId, triggered) {
 				oKart.changeView += 15;
 			oKart.progressiveView = true;
 		}
+		if (finishing)
+			timer++;
 	}
 
 	if (oKart.tombe) {
@@ -12359,6 +12375,8 @@ function move(getId, triggered) {
 					if (aKarts[i].tours > oMap.tours)
 						oKart.place++;
 				}
+				if (!oKart.finaltime)
+					oKart.finaltime = lapTimer;
 				if (kartIsPlayer(oKart) && !finishing) {
 					timerMS = lapTimer;
 					showTimer(timerMS);

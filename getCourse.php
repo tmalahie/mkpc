@@ -157,7 +157,7 @@ if ($id) {
 	elseif (($getTime=mysql_fetch_array(mysql_query('SELECT time,map,cup,mode,link FROM `mariokart` WHERE id='. $course))) &&
 		!get_remaining_players($course, $getTime)) {
 		// Tous les joueurs de la course actuelle sont AFK, on peut les kicker
-		mysql_query('UPDATE `mariokart` SET map=-1 WHERE id='. $course);
+		mysql_query('UPDATE `mariokart` SET map=-1,time='.$time.' WHERE id='. $course);
 		mysql_query('UPDATE `mkjoueurs` SET course=0,choice_map=0 WHERE course='. $course);
 		mysql_query('DELETE FROM `mkplayers` WHERE course='. $course);
 		mysql_query('DELETE FROM `mkchat` WHERE course='. $course);
