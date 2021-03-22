@@ -9,7 +9,7 @@ function getUserRights($playerId) {
 			$res['moderator'] = true;
 			$res['organizer'] = true;
 		}
-		if (isset($res['moderator']) || $res['organizer'])
+		if (isset($res['moderator']) || isset($res['organizer']))
 			$res['manager'] = true;
 	}
 	return $res;

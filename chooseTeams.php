@@ -27,7 +27,7 @@ if ($id) {
 							}
 						}
 					}
-					$now = round((time()+microtime())*1000);
+					$now = round(microtime(true)*1000);
 					$time = $now+7000;
 					if (!isset($_POST['single']))
 						$time = 'GREATEST(time-6000,'.$time.')';

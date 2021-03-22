@@ -72,8 +72,9 @@ if ($id) {
 		$linkOptions->rules->maxPlayers = DEFAULT_MAX_PLAYERS;
 	$nmode = $isCup ? ($isMCup?8:($complete?1:0)+($isSingle?2:0)+($isBattle?4:0)):($isBattle ? 1:0);
 	$cupSQL = ' AND cup="'. $nid .'" AND mode='. $nmode .' AND link='. $nlink;
-	$time = time();
-	$lConnect = round(($time+microtime()-30)*1000/67);
+	$timeMs = microtime(true);
+	$time = floor($timeMs);
+	$lConnect = round(($timeMs-30)*1000/67);
 	$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
 	$course = $getCourse['course'];
 	$cas = 0;

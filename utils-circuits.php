@@ -67,26 +67,26 @@ function toSQLSort($sql, $params) {
 function floatCmp($a,$b) {
     return ($a > $b) - ($a < $b);
 }
-function sortCmp0(&$res1,&$res2) {
+function sortCmp0($res1,$res2) {
 	$res = strtotime($res2['publication_date'])-strtotime($res1['publication_date']);
 	if ($res) return $res;
 	return $res2['id']-$res1['id'];
 }
-function sortCmp1(&$res1,&$res2) {
+function sortCmp1($res1,$res2) {
 	$res = floatCmp($res2['pscore'],$res1['pscore']);
 	if ($res) return $res;
 	$res = $res1['category']-$res2['category'];
 	if ($res) return $res;
 	return $res2['id']-$res1['id'];
 }
-function sortCmp2(&$res1,&$res2) {
+function sortCmp2($res1,$res2) {
 	$res = $res2['nbcomments']-$res1['nbcomments'];
 	if ($res) return $res;
 	$res = $res1['category']-$res2['category'];
 	if ($res) return $res;
 	return $res2['id']-$res1['id'];
 }
-function sortCmp3(&$res1,&$res2) {
+function sortCmp3($res1,$res2) {
 	if (!$res1['nom'] && $res2['nom']) return 1;
 	if (!$res2['nom'] && $res1['nom']) return -1;
 	$res = strcasecmp($res1['nom'],$res2['nom']);
@@ -95,13 +95,13 @@ function sortCmp3(&$res1,&$res2) {
 	if ($res) return $res;
 	return $res2['id']-$res1['id'];
 }
-function sortCmp4(&$res1,&$res2) {
+function sortCmp4($res1,$res2) {
 	return 2*rand(0,1)-1;
 }
 function nextRaces($sql,$begin,$end,$params) {
 	return listRaces(toSQLSort($sql,$params) .' LIMIT '. $begin.','.($end-$begin));
 }
-function scoreCmp(&$res1,&$res2) {
+function scoreCmp($res1,$res2) {
 	return floatCmp($res1['score'],$res2['score']);
 }
 function getTracksToLoad($page,$nbByType,$weightsByType,$maxCircuits) {

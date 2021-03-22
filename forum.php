@@ -9,7 +9,6 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 			$warningDeleted = true;
 		}
 		else {
-			session_start();
 			$id = $getId['id'];
 			$_SESSION['mkid'] = $id;
 			require_once('credentials.php');

@@ -101,6 +101,5 @@ function print_forum_msg($message,$mayEdit,$mayQuote=null) {
 		echo '<div class="mBody">'. bbcode($message['message']) .'</div>';
 		echo '</div>';
 	echo '</div>';
-	$clair = !$clair;
 }
 ?>

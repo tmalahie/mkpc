@@ -25,13 +25,13 @@ function get_avatar_color($pseudo) {
 	return $AVATAR_COLORS[crc32($pseudo) % AVATAR_NCOLORS];
 }
 function print_avatar($id, $w,$unit=null) {
-	global $deletionsCache;
+	global $deletionsCache, $language;
 	$avatarSrc = get_avatar_img($id);
 	if (!$unit)
 		$unit = 'px';
 	if ($avatarSrc == null) {
 		$css = $w ? 'width:'.$w.$unit.';height:'.$w.$unit.';font-size:'.round($w*0.6).$unit.';' : '';
-		$deleted = $deletionsCache['i'.$id];
+		$deleted = isset($deletionsCache['i'.$id]);
 		$pseudo = get_pseudo_text($id);
 		?>
 		<div class="avatar avatar-blank" style="<?php echo $css; ?>background-color:<?php echo get_avatar_color($deleted ? null : $pseudo); ?><?php if ($deleted) echo ';cursor:default;color:rgba(255,255,255,0.6)' ?>"<?php if ($deleted) echo 'title="'. ($language ? 'Deleted accound':'Compte supprimé') .'" onclick="return false"' ?>>

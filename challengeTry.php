@@ -1,6 +1,7 @@
 <?php
 $res = array();
 if (isset($_POST['challenge']) || isset($_GET['challenge'])) {
+	include('language.php');
 	include('session.php');
 	include('initdb.php');
 	require_once('utils-challenges.php');

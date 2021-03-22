@@ -10,9 +10,8 @@ if ($id) {
 		if ($getExtra = getCourseExtra($course)) {
 			if ($getExtra->state == 'selecting_teams') {
 				if ($getTime = mysql_fetch_array(mysql_query('SELECT time FROM `mariokart` WHERE id='. $course))) {
-					$now = round((time()+microtime())*1000);
+					$now = round(microtime(true)*1000);
 					if ($getTime['time'] <= $now) {
-						$now = round((time()+microtime())*1000);
 						$time = $now+7000;
 						mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='. $course);
 						setCourseExtra($course, array('state' => 'teams_selected'));

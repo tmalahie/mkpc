@@ -8,7 +8,7 @@ if ($getExtra = getCourseExtra($course)) {
 		while ($player = mysql_fetch_array($getPlayers))
 			$res['teams'][] = array('id' => +$player['id'], 'team' => +$player['team']);
 		if ($getTime = mysql_fetch_array(mysql_query('SELECT time FROM `mariokart` WHERE id='. $course))) {
-			$now = round((time()+microtime())*1000);
+			$now = round(microtime(true)*1000);
 			$res['time'] = $getTime['time']-$now;
 		}
 	}

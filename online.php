@@ -17,6 +17,8 @@ if (isset($_COOKIE['mkp'])) {
 	}
 	$myCode = $myCredentials[1];
 }
+else
+	$myCode = null;
 if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'.$id.'" AND banned')))) {
 	include('getId.php');
 	if ($getBan['banned'] == 1)
@@ -55,6 +57,9 @@ elseif (isset($_GET['i'])) {
 	$nid = $_GET['i'];
 	$complete = true;
 	$isSingle = true;
+}
+else {
+	$complete = false;
 }
 if (isset($_GET['battle']))
 	$isBattle = true;

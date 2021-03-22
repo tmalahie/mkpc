@@ -26,7 +26,7 @@ if ($course && !$getCourse['banned']) {
 			break;
 		}
 	}
-	$now = round((time()+microtime())*1000);
+	$now = round(microtime(true)*1000);
 	$courseRules = json_decode($getMap['rules']);
 	if ($continuer) {
 		$map = rand(0, mysql_numrows($joueurs)-1);
@@ -168,7 +168,7 @@ if ($course && !$getCourse['banned']) {
 		$joueursData = listPlayers();
 		$getMap = getMapData();
 		$map = $getMap['map'];
-		$now = round((time()+microtime())*1000);
+		$now = round(microtime(true)*1000);
 	}
 	$courseRules = json_decode($getMap['rules']);
 	echo '[[';

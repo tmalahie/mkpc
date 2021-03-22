@@ -49,7 +49,8 @@
 		require_once('apc.php');
 		if ($id || $myIdentifiants) {
 			$notifsCacheKey = 'notif:'.($id?$id:0).':'.($myIdentifiants?$myIdentifiants[0]:0);
-			$myNotifsCache = explode(':',apcu_fetch($notifsCacheKey));
+			$notifsCacheValueRaw = apcu_fetch($notifsCacheKey);
+			$myNotifsCache = $notifsCacheValueRaw ? explode(':',$notifsCacheValueRaw) : null;
 		}
 		else {
 			$notifsCacheKey = null;
