@@ -10776,8 +10776,11 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 			for (var i=0;i<oMap[key].length;i++) {
 				var asset = oMap[key][i];
 				var cX = asset[1][0], cY = asset[1][1], cR = asset[1][2]/2;
-				if ((iX-cX)*(iX-cX) + (iY-cY)*(iY-cY) < (cR*cR))
+				if ((iX-cX)*(iX-cX) + (iY-cY)*(iY-cY) < (cR*cR)) {
+					if ((aPosX-cX)*(aPosX-cX) + (aPosY-cY)*(aPosY-cY) < (cR*cR/4))
+						continue;
 					return [key,asset];
+				}
 			}
 		}
 	}
