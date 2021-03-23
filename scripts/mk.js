@@ -9145,7 +9145,7 @@ var challengeRules = {
 				out_of: scope.value.length
 			});
 		},
-		"success": function(scope) {
+		"success": function(scope,ruleVars,challenge) {
 			var zones = scope.zones;
 			var allZones = scope.value;
 			var posX = oPlayers[0].x;
@@ -9171,8 +9171,10 @@ var challengeRules = {
 				}
 				clLocalVars.reached[reachedZone] = true;
 				clLocalVars.nbPass++;
-				if (iSfx)
-					playSoundEffect("musics/events/clpass.mp3");
+				if (iSfx) {
+					if (challenge === clSelected)
+						playSoundEffect("musics/events/clpass.mp3");
+				}
 				updateChallengeHud("zones", clLocalVars.nbPass);
 				if (clLocalVars.nbPass >= allZones.length)
 					return true;
@@ -9772,7 +9774,7 @@ function challengeRulesSatisfied(challenge, chRules) {
 }
 function challengeRuleSatisfied(challenge,rule) {
 	var ruleVars = clRuleVars[challenge.id] ? clRuleVars[challenge.id][rule.type] : undefined;
-	return challengeRules[rule.type].success(rule,ruleVars);
+	return challengeRules[rule.type].success(rule,ruleVars,challenge);
 }
 function challengeSucceeded(challenge) {
 	if (challenge.succeeded && (challenge !== clSelected)) return;

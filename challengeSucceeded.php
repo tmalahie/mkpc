@@ -1,5 +1,6 @@
 <?php
 if (isset($_POST['id'])) {
+	include('language.php');
 	include('session.php');
 	$res = array();
 	include('initdb.php');

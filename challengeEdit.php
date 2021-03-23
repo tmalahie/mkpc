@@ -24,7 +24,7 @@ elseif (isset($_GET['cl']))
 include('challenge-cldata.php');
 if (isset($_POST['name'])) {
 	$clMsg = null;
-	if (empty($challenge) || ('pending_completion' === $challenge['status']) || $moderate) {
+	if (empty($challenge) || ('pending_completion' === $challenge['status']) || !empty($moderate)) {
 		if (isset($_POST['goal']) && isset($_POST['difficulty'])) {
 			$data = array();
 			$data['goal'] = $_POST['goal'];
@@ -41,7 +41,7 @@ if (isset($_POST['name'])) {
 			$dataJson = json_encode($data);
 			if (isset($challenge) && !empty($clRace)) {
 				mysql_query('UPDATE `mkchallenges` SET name="'. $_POST['name'] .'",difficulty="'. $_POST['difficulty'] .'",data="'. mysql_real_escape_string($dataJson) .'",validation="" WHERE id="'. $challenge['id'] .'"');
-				if ($moderate)
+				if (!empty($moderate))
 					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "EChallenge '. $challenge['id'] .'")');
 				$clMsg = 'challenge_edited';
 			}
@@ -71,13 +71,13 @@ if (isset($_POST['name'])) {
 		$clMsg = 'challenge_updated';
 	}
 	mysql_close();
-	if ($moderate)
+	if (!empty($moderate))
 		header('location: '. $_SERVER['REQUEST_URI'].'&clmsg='.$clMsg);
 	else
 		header('location: '. nextPageUrl('challenges.php', array('ch'=>null,'cl'=>$clRace['clid'],'clmsg'=>$clMsg)));
 	exit;
 }
-elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || $moderate) {
+elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || !empty($moderate)) {
 	$clRulesPayload = rulesPayloadByType($clCourse);
 	if (isset($challenge))
 		$chRules = getChallengeRulesByType($challenge);
@@ -202,22 +202,22 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <link rel="stylesheet" href="styles/challenges.css?reload=2" />
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <?php
-if (!$moderate)
+if (empty($moderate))
 	include('o_online.php');
 ?>
 
 <title><?php echo $language ? 'Challenge editor':'Éditeur de défis'; ?> - Mario Kart PC</title>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
-var clRules = <?php echo json_encode($clRulesPayload) ?>;
+var clRules = <?php echo isset($clRulesPayload) ? json_encode($clRulesPayload) : 'null'; ?>;
 <?php
 if (isset($challenge))
 	echo 'var challengeId = '. $challenge['id'] .';';
 if (isset($chRules))
 	echo 'var chRules = '. json_encode($chRules) .';';
 ?>
-var persoOptions = <?php echo json_encode($persoOptions) ?>;
-var decorOptions = <?php echo json_encode($decorOptions) ?>;
+var persoOptions = <?php echo isset($persoOptions) ? json_encode($persoOptions) : 'null'; ?>;
+var decorOptions = <?php echo isset($decorOptions) ? json_encode($decorOptions) : 'null'; ?>;
 var selectedConstraints = {};
 function selectMainRule() {
 	var ruleValue = $("#challenge-main-rule").val();
@@ -669,7 +669,7 @@ $(function() {
 					<label><?php echo $language ? 'Challenge name (optionnal):':'Nom du défi (facultatif) :'; ?>
 					<input type="text" name="name" value="<?php if (isset($challenge)) echo htmlspecialchars($challenge['name']); ?>" /></label>
 					<?php
-					if ($moderate)
+					if (!empty($moderate))
 						echo '<input type="hidden" name="moderate" value="1" />';
 					?>
 				</div>
@@ -753,7 +753,7 @@ $(function() {
 		</script>
 	</div>
 	<?php
-	if (!$moderate) {
+	if (empty($moderate)) {
 		?>
 	<div class="challenge-navigation">
 		<a href="<?php echo nextPageUrl('challenges.php', array('ch'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])); ?>">&lt; <u><?php echo $language ? 'Back to challenges list':'Retour à la liste des défis'; ?></u></a>
