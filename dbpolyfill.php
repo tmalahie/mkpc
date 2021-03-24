@@ -21,7 +21,13 @@ else {
     }
     function mysql_query($q) {
         global $dbh;
-        return $dbh->query($q);
+        try {
+            return $dbh->query($q);
+        }
+        catch (PDOException $e) {
+            trigger_error("An exception occurred while executing '$q':\n" . $e->getMessage(), E_USER_WARNING);
+            return false;
+        }
     }
     function mysql_close() {
         global $dbh;
