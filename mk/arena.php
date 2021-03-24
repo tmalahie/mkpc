@@ -351,6 +351,89 @@ foreach ($circuitsData as $c => $arene) {
 			echo ',[]';
 		echo '],';
 		break;
+	case 47:
+		echo '"trous" : [';
+		for ($j=0;$j<4;$j++) {
+			if ($j)
+				echo ',';
+			echo '[';
+			for ($i=0;$i<36;$i++) {
+				$x = ($i%6)*100;
+				$y = floor($i/6)*100;
+				$u = $x+50;
+				$v = $y+50;
+				$replace = "$u,$v";
+				switch ($arene["p$i"]) {
+				case 0:
+					if ($j == 0)
+						echo "[$x,$y,100,20,$replace],[$x,".($y+80).",20,20,$replace],[".($x+80).",".($y+80).",20,20,$replace],";
+					break;
+				case 1:
+					if ($j == 1)
+						echo "[$x,$y,20,100,$replace],[".($x+80).",$y,20,20,$replace],[".($x+80).",".($y+80).",20,20,$replace],";
+					break;
+				case 2:
+					if ($j == 2)
+						echo "[$x,".($y+80).",100,20,$replace],[$x,$y,20,20,$replace],[".($x+80).",$y,20,20,$replace],";
+					break;
+				case 3:
+					if ($j == 3)
+						echo "[".($x+80).",$y,20,100,$replace],[$x,$y,20,20,$replace],[$x,".($y+80).",20,20,$replace],";
+					break;
+				case 4:
+					if ($j == 3)
+						echo "[$x,".($y+80).",20,20,$replace],[$x,$y,100,20,$replace],[".($x+80).",".($y+20).",20,80,$replace],";
+					break;
+				case 5:
+					if ($j == 0)
+						echo "[".($x+80).",".($y+80).",20,20,$replace],[$x,$y,20,100,$replace],[".($x+20).",$y,80,20,$replace],";
+					break;
+				case 6:
+					if ($j == 1)
+						echo "[".($x+80).",$y,20,20,$replace],[$x,".($y+80).",100,20,$replace],[$x,$y,20,80,$replace],";
+					break;
+				case 7:
+					if ($j == 2)
+						echo "[$x,$y,20,20,$replace],[".($x+80).",$y,20,100,$replace],[$x,".($y+80).",80,20,$replace],";
+					break;
+				case 8:
+					if ($j == 1)
+						echo "[$x,$y,100,20,$replace],[$x,".($y+80).",100,20,$replace],";
+					break;
+				case 9:
+					if ($j == 2)
+						echo "[$x,$y,20,100,$replace],[".($x+80).",$y,20,100,$replace],";
+					break;
+				case 10:
+					if ($j == 0)
+						echo "[$x,$y,100,100,NaN,NaN],";
+					break;
+				case 11:
+					if ($j == 2)
+						echo "[$x,$y,20,10,$replace],[$x,".($y+10).",10,10,$replace],[".($x+80).",$y,20,10,$replace],[".($x+90).",".($y+10).",10,10,$replace],[$x,".($y+80).",10,20,$replace],[".($x+10).",".($y+90).",10,10,$replace],[".($x+80).",".($y+90).",20,10,$replace],[".($x+90).",".($y+80).",10,10,$replace],";
+					break;
+				case 12:
+					if ($j == 0)
+						echo "[$x,$y,100,10,$replace],[$x,".($y+10).",10,90,$replace],[".($x+90).",".($y+10).",10,90,$replace],[".($x+10).",".($y+90).",10,10,$replace],[".($x+80).",".($y+90).",10,10,$replace],";
+					break;
+				case 13:
+					if ($j == 1)
+						echo "[$x,$y,10,100,$replace],[".($x+10).",".($y+90).",90,10,$replace],[".($x+10).",$y,90,10,$replace],[".($x+90).",".($y+80).",10,10,$replace],[".($x+90).",".($y+10).",10,10,$replace],";
+					break;
+				case 14:
+					if ($j == 2)
+						echo "[$x,".($y+90).",100,10,$replace],[".($x+90).",$y,10,90,$replace],[$x,$y,10,90,$replace],[".($x+80).",$y,10,10,$replace],[".($x+10).",$y,10,10,$replace],";
+					break;
+				case 15:
+					if ($j == 0)
+						echo "[".($x+90).",$y,10,100,$replace],[$x,$y,90,10,$replace],[$x,".($y+90).",90,10,$replace],[$x,".($y+10).",10,10,$replace],[$x,".($y+80).",10,10,$replace],";
+					break;
+				}
+			}
+			echo ']';
+		}
+		echo '],';
+		break;
 	case 48:
 		echo '"trous" : [';
 		for ($j=0;$j<4;$j++) {
