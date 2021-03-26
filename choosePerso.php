@@ -193,14 +193,15 @@ function goToLocked() {
 	window.close();
 }
 
-var unsavedData = <?php echo $perso['name'] ? 'false':'true'; ?>;
+var unsavedData = <?php echo !empty($perso['name']) ? 'false':'true'; ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
 var statTypes = ["<?php echo implode('","',array_keys($statsRange)); ?>"];
 var statsGradient = <?php echo $statsGradient; ?>;
 var statsRange = <?php echo json_encode($statsRange); ?>;
 var cp = <?php echo json_encode($defaultPersosStats); ?>;
 var pUnlocked = <?php include('getLocks.php'); ?>;
-var P_UID = 0,
+var P_ID = 0,
+	P_UID = P_ID+1,
 	P_NAME = P_UID+1,
 	P_AUTHOR = P_NAME+1,
 	P_MINE = P_AUTHOR+1,
@@ -211,64 +212,15 @@ var P_UID = 0,
 	P_RATING = P_PODIUM+1,
 	P_NBRATES = P_RATING+1,
 	P_PLAYCOUNT = P_NBRATES+1;
-var allPersos = {<?php
-$unlocked = array();
-$unlockedIds = array();
-if ($id) {
-	$unlockedPersos = mysql_query('SELECT c.id,c.acceleration,c.speed,c.handling,c.mass FROM `mkclrewarded` rw INNER JOIN `mkclrewards` r ON rw.reward=r.id INNER JOIN `mkchars` c ON r.charid=c.id WHERE rw.player='. $id .' ORDER BY rw.id DESC');
-	while ($unlockedPerso = mysql_fetch_array($unlockedPersos)) {
-		$unlocked[] = array(+$unlockedPerso['id'],array(+$unlockedPerso['acceleration'],+$unlockedPerso['speed'],+$unlockedPerso['handling'],+$unlockedPerso['mass']));
-		$unlockedIds[] = $unlockedPerso['id'];
-	}
-}
-$unlockedIdsString = implode(',', $unlockedIds);
-if (!$unlockedIdsString) $unlockedIdsString = '0';
-$allPersos = mysql_query('SELECT * FROM `mkchars` WHERE author IS NOT NULL OR (identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="")'. ($id ? ' OR id IN ('.$unlockedIdsString.')':'') .' ORDER BY publication_date DESC, id DESC');
-$allPersoIds = array();
-$v = '';
-while ($perso = mysql_fetch_array($allPersos)) {
-	$allPersoIds[] = +$perso['id'];
-	$mine = (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3]));
-	$spriteSrcs = get_sprite_srcs($perso['sprites']);
-	$persoData = array(
-		$perso['sprites'],
-		$perso['name'],
-		$perso['author'],
-		$mine,
-		(null===$perso['author']),
-		array($perso['acceleration'],$perso['speed'],$perso['handling'],$perso['mass']),
-		$spriteSrcs['map'],
-		$spriteSrcs['podium'],
-		$perso['avgrating'],
-		$perso['nbratings'],
-		$perso['playcount']
-	);
-	echo $v.'"'.$perso['id'].'":';
-	$v = ',';
-	echo json_encode($persoData);
-}
-?>};
-var allPersoIds = <?php echo json_encode($allPersoIds); ?>;
-function getAllPersos(sortFn) {
-	var res = [];
-	for (var i=0;i<allPersoIds.length;i++) {
-		var id = allPersoIds[i];
-		if (!allPersos[id][P_PRIVATE])
-			res.push([id]);
-	}
-	if (sortFn)
-		res.sort(sortFn);
-	return res;
-}
-function updatePersoList(listKey) {
+function updatePersoList(listKey, from) {
 	var persosList = persosLists[listKey];
 	var listDiv = document.getElementById("persos-list-"+listKey);
-	if (listDiv)
+	if (listDiv && !from)
 		listDiv.innerHTML = "";
-	for (var i=0;i<persosList.length;i++) {
-		var persoId = persosList[i][0];
+	for (var i=from||0;i<persosList.length;i++) {
+		var persoData = persosList[i][0];
 		var persoStats = persosList[i][1];
-		var persoData = allPersos[persoId];
+		var persoId = persoData[P_ID];
 		if (!persoStats)
 			persoStats = persoData[P_STATS];
 		var oDiv = document.createElement("div");
@@ -305,27 +257,13 @@ function updatePersoList(listKey) {
 		listDiv.appendChild(oDiv);
 	}
 }
-function topRated(c1,c2) {
-	var diff = (allPersos[c2[0]][P_RATING]-allPersos[c1[0]][P_RATING]);
-	if (diff)
-		return diff;
-	diff = (allPersos[c2[0]][P_NBRATES]-allPersos[c1[0]][P_NBRATES]);
-	if (diff)
-		return diff;
-	return c2[0]-c1[0];
-}
-function mostPlayed(c1,c2) {
-	var diff = (allPersos[c2[0]][P_PLAYCOUNT]-allPersos[c1[0]][P_PLAYCOUNT]);
-	if (diff)
-		return diff;
-	return c2[0]-c1[0];
-}
-function sortPersos(elt,sortFn) {
+function sortPersos(elt,sort) {
 	document.getElementById("persos-currentsort").id = "";
 	elt.id = "persos-currentsort";
-	persosLists["all"] = getAllPersos(sortFn);
+	persosLists["all"] = [];
 	updatePersoList("all");
-	filterSearch(true);
+	allPersoSort = sort;
+	filterSearch();
 }
 function toggleSearch() {
 	var searchForm = document.getElementById("persos-list-search");
@@ -340,19 +278,32 @@ function toggleSearch() {
 		searchForm.elements["perso-name"].focus();
 	}
 }
+<?php
+$unlocked = array();
+$unlockedIds = array();
+if ($id) {
+	$unlockedPersos = mysql_query('SELECT c.* FROM `mkclrewarded` rw INNER JOIN `mkclrewards` r ON rw.reward=r.id INNER JOIN `mkchars` c ON r.charid=c.id WHERE rw.player='. $id .' ORDER BY rw.id DESC');
+	while ($unlockedPerso = mysql_fetch_array($unlockedPersos)) {
+		$unlocked[] = array(get_perso_payload($unlockedPerso),array(+$unlockedPerso['acceleration'],+$unlockedPerso['speed'],+$unlockedPerso['handling'],+$unlockedPerso['mass']));
+		$unlockedIds[] = $unlockedPerso['id'];
+	}
+}
+$unlockedIdsString = implode(',', $unlockedIds);
+if (!$unlockedIdsString) $unlockedIdsString = '0';
+?>
 var persosLists = {
 	"my":<?php
 	$myPersos = mysql_query('SELECT * FROM `mkchars` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="" ORDER BY id DESC');
 	$my = array();
 	while ($myPerso = mysql_fetch_array($myPersos))
-		$my[] = array(+$myPerso['id']);
+		$my[] = array(get_perso_payload($myPerso));
 	echo json_encode($my);
 	?>,
 	"hist":<?php
-	$histPersos = mysql_query('SELECT c.id,h.acceleration,h.speed,h.handling,h.mass FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND (c.author IS NOT NULL OR c.id IN ('.$unlockedIdsString.')) WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC, id DESC');
+	$histPersos = mysql_query('SELECT c.*,h.acceleration,h.speed,h.handling,h.mass FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND (c.author IS NOT NULL OR c.id IN ('.$unlockedIdsString.')) WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC, id DESC LIMIT 100');
 	$hist = array();
 	while ($histPerso = mysql_fetch_array($histPersos))
-		$hist[] = array(+$histPerso['id'],array(+$histPerso['acceleration'],+$histPerso['speed'],+$histPerso['handling'],+$histPerso['mass']));
+		$hist[] = array(get_perso_payload($histPerso),array(+$histPerso['acceleration'],+$histPerso['speed'],+$histPerso['handling'],+$histPerso['mass']));
 	echo json_encode($hist);
 	?>,
 	"unlocked":<?php
@@ -369,32 +320,70 @@ function persoHover(e) {
 function persoHout(e) {
 	houtPerso(this.dataset.list,this.dataset.id);
 }
-function lemmatize(s) {
-	return s.toLowerCase();
+function filterSearch() {
+	allPersoPage = 0;
+	if (allPersoSearching)
+		allPersoPostRefresh = true;
+	else {
+		document.getElementById("persos-list-all").scrollTop = 0;
+		refreshPersoList();
+	}
 }
-function matchesSearch(needle,haystack) {
-	return lemmatize(haystack).indexOf(lemmatize(needle)) != -1;
-}
-function filterSearch(lazy) {
-	var searchForm = document.forms["persos-list-search"];
-	var nameSearch = searchForm.elements["perso-name"].value;
-	var authorSearch = searchForm.elements["perso-author"].value;
-	if (!lazy || nameSearch || authorSearch) {
-		for (var i=0;i<persosLists["all"].length;i++) {
-			var persoId = persosLists["all"][i][0];
-			var persoData = allPersos[persoId];
-			var persoDiv = document.getElementById("allpersoctn-"+persoId);
-			if (matchesSearch(nameSearch,persoData[P_NAME]) && matchesSearch(authorSearch,persoData[P_AUTHOR]))
-				persoDiv.style.display = "";
-			else
-				persoDiv.style.display = "none";
+function handleListScroll(elt) {
+	if (allPersoNext && !allPersoSearching) {
+		if (elt.scrollTop >= (elt.scrollHeight - elt.offsetHeight)) {
+			allPersoPage++;
+			refreshPersoList();
 		}
 	}
 }
+var allPersoPage = 0;
+var allPersoHandler = 0;
+var allPersoNext = true;
+var allPersoSort = "latest";
+var allPersoSearching = false;
+var allPersoPostRefresh = false;
+function refreshPersoList() {
+	var searchForm = document.forms["persos-list-search"];
+	var nameSearch = searchForm.elements["perso-name"].value;
+	var authorSearch = searchForm.elements["perso-author"].value;
+	var apiParams = "page="+allPersoPage+"&sort="+allPersoSort;
+	if (nameSearch)
+		apiParams += "&name="+encodeURIComponent(nameSearch);
+	if (authorSearch)
+		apiParams += "&author="+encodeURIComponent(authorSearch);
+	allPersoSearching = true;
+	allPersoPostRefresh = false;
+	var currentHandler = ++allPersoHandler;
+	xhr("getPersosList.php", apiParams, function(res) {
+		if (currentHandler !== allPersoHandler)
+			return true;
+		var data;
+		try {
+			data = JSON.parse(res);
+		}
+		catch (e) {
+			return false;
+		}
+		var lastCount;
+		if (allPersoPage) {
+			lastCount = persosLists["all"].length;
+			persosLists["all"] = persosLists["all"].concat(data.list);
+		}
+		else
+			persosLists["all"] = data.list;
+		updatePersoList("all",lastCount);
+		allPersoSearching = false;
+		allPersoNext = data.next;
+		if (allPersoPostRefresh)
+			refreshPersoList();
+		return true;
+	});
+}
 document.addEventListener("DOMContentLoaded", function() {
-	persosLists["all"] = getAllPersos();
 	for (var listKey in persosLists)
 		updatePersoList(listKey);
+	refreshPersoList();
 });
 </script>
 <script type="text/javascript" src="scripts/perso-stats.js"></script>
@@ -474,28 +463,19 @@ updateCursors = function() {
 	<div class="persos-list-container">
 	<h3><?php echo $language ? 'All shared characters':'Tous les persos partagés'; ?></h3>
 	<div class="persos-sort">
-		<a href="#null" onclick="sortPersos(this);return false" id="persos-currentsort"><?php echo $language ? 'Latest':'Les&nbsp;plus&nbsp;récents'; ?></a>
-		<a href="#null" onclick="sortPersos(this,topRated);return false"><?php echo $language ? 'Top&nbsp;rated':'Les&nbsp;mieux&nbsp;notés'; ?></a>
-		<a href="#null" onclick="sortPersos(this,mostPlayed);return false"><?php echo $language ? 'Most&nbsp;played':'Les&nbsp;plus&nbsp;joués'; ?></a>
+		<a href="#null" onclick="sortPersos(this,'latest');return false" id="persos-currentsort"><?php echo $language ? 'Latest':'Les&nbsp;plus&nbsp;récents'; ?></a>
+		<a href="#null" onclick="sortPersos(this,'rating');return false"><?php echo $language ? 'Top&nbsp;rated':'Les&nbsp;mieux&nbsp;notés'; ?></a>
+		<a href="#null" onclick="sortPersos(this,'playcount');return false"><?php echo $language ? 'Most&nbsp;played':'Les&nbsp;plus&nbsp;joués'; ?></a>
 	</div>
-	<?php
-	if (mysql_numrows($allPersos)) {
-		?>
-		<div class="persos-list" id="persos-list-all"></div>
-		<div class="persos-list-more">
-			<span style="color:#DBE;font-size:0.8em;display:inline-block;-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);-o-transform: rotate(45deg);transform: rotate(45deg);">&#9906;</span>
-			<a href="#null" onclick="toggleSearch();return false"><?php echo $language ? "Search characters":"Rechercher un perso"; ?></a>
-		</div>
-		<form id="persos-list-search" name="persos-list-search">
-			<div><?php echo $language ? 'Name:':'Nom :'; ?> <input type="text" name="perso-name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" oninput="filterSearch()" /></div>
-			<div><?php echo $language ? 'Author:':'Auteur :'; ?> <input type="text" name="perso-author" placeholder="Wargor" oninput="filterSearch()" /></div>
-		</form>
-		<?php
-	}
-	else {
-		echo $language ? 'No result found for your search':'Aucun résultat trouvé pour votre recherche';
-	}
-	?>
+	<div class="persos-list" id="persos-list-all" onscroll="handleListScroll(this)"></div>
+	<div class="persos-list-more">
+		<span style="color:#DBE;font-size:0.8em;display:inline-block;-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);-o-transform: rotate(45deg);transform: rotate(45deg);">&#9906;</span>
+		<a href="#null" onclick="toggleSearch();return false"><?php echo $language ? "Search characters":"Rechercher un perso"; ?></a>
+	</div>
+	<form id="persos-list-search" name="persos-list-search">
+		<div><?php echo $language ? 'Name:':'Nom :'; ?> <input type="text" name="perso-name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" oninput="filterSearch()" /></div>
+		<div><?php echo $language ? 'Author:':'Auteur :'; ?> <input type="text" name="perso-author" placeholder="Wargor" oninput="filterSearch()" /></div>
+	</form>
 	</div>
 	<div id="perso-info">
 		<div id="perso-info-name"></div>

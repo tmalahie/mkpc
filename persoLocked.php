@@ -277,7 +277,7 @@ function showFancyTitle(e) {
     }
     if ($elt.dataset.players) {
         $fancyTitle.className = "";
-        $fancyTitle.innerHTML = "<?php echo $language ? 'Unlocked by:' : 'Débloqué par :'; ?>" +
+        $fancyTitle.<?php ?>innerHTML = "<?php echo $language ? 'Unlocked by:' : 'Débloqué par :'; ?>" +
         $elt.dataset.players.split(",").map(function(p) { return "<div><small>✔</small>&nbsp;"+ p +"</div>"; }).join("");
     }
     else {
@@ -294,7 +294,7 @@ function hideFancyTitle(e) {
 }
 </script>
 <?php
-if (!$clId)
+if (empty($clId))
     include('o_online.php');
 ?>
 <title><?php echo $language ? 'Unlockable characters':'Persos à débloquer'; ?></title>
@@ -302,7 +302,7 @@ if (!$clId)
 <body>
 <h1><?php echo $language ? 'Unlockable characters':'Persos à débloquer'; ?></h1>
 <?php
-if (!$clId) {
+if (empty($clId)) {
     ?>
     <div class="reward-explain"><?php
     if ($language) {
@@ -332,12 +332,13 @@ $rewardsSQL = array(
         'limit' => ' LIMIT '.$currentCursor.','. $rewardsPerPage
     ),
     'nb' => array(
-        'columns' => 'COUNT(*) AS nb'
+        'columns' => 'COUNT(*) AS nb',
+        'limit' => ''
     )
 );
 $getRewards = array();
 foreach ($rewardsSQL as $key=>$rewardSQL)
-    $getRewards[$key] = mysql_query('SELECT '.$rewardSQL['columns'].' FROM mkclrewards r LEFT JOIN mkclrewarded w ON w.reward=r.id AND w.player='. $playerId .' INNER JOIN mkclrace l ON l.id=r.clist INNER JOIN mkchars c ON r.charid=c.id'. ($clId ? ' WHERE r.clist='.$clId:'') .' ORDER BY r.id DESC'.$rewardSQL['limit']);
+    $getRewards[$key] = mysql_query('SELECT '.$rewardSQL['columns'].' FROM mkclrewards r LEFT JOIN mkclrewarded w ON w.reward=r.id AND w.player='. $playerId .' INNER JOIN mkclrace l ON l.id=r.clist INNER JOIN mkchars c ON r.charid=c.id'. (empty($clId) ? '':' WHERE r.clist='.$clId) .' ORDER BY r.id DESC'.$rewardSQL['limit']);
 $getRewardsData = $getRewards['data'];
 $getNbRewards = mysql_fetch_array($getRewards['nb']);
 $nbRewards = $getNbRewards['nb'];
@@ -354,7 +355,7 @@ while ($reward = mysql_fetch_array($getRewardsData)) {
     ?>
     <div class="rewards-list-item<?php if ($isCompleted) echo ' reward-list-item-success'; ?>">
         <?php
-        if (!$clId) {
+        if (empty($clId)) {
             ?>
         <div class="reward-item-circuit creation_icon <?php echo ($isCup ? 'creation_cup':'single_creation'); ?>"<?php
             if (isset($circuit['icon'])) {
@@ -403,7 +404,7 @@ while ($reward = mysql_fetch_array($getRewardsData)) {
             <img class="reward-item-perso" src="<?php echo $sprites['ld']; ?>" alt="<?php echo htmlspecialchars($reward['name']); ?>" />
             <?php
         }
-        else if (!$clId) {
+        else if (empty($clId)) {
             ?>
             <a class="reward-item-try" href="<?php echo $circuit['href']; ?>"><?php echo $language ? 'Take&nbsp;up':'Relever'; ?></a>
             <?php
@@ -442,7 +443,7 @@ if ($nbPages > 1) {
 }
 ?>
 <?php
-if (!$clId) {
+if (empty($clId)) {
     ?>
     <p><a href="mariokart.php"><?php echo $language ? "Back to Mario Kart PC":"Retour à Mario Kart PC"; ?></a></p>
     <div class="perso-bottom">

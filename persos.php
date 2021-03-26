@@ -156,4 +156,23 @@ function handle_advanced($file,$perso,$type) {
 	else $error = $language ? 'An error occured during the image transfer. Please try again later.':'Une erreur est survenue lors de l\'envoi de l\'image. R&eacute;essayez ult&egrave;rieurement.';
 	return array('error' => $error);
 }
+function get_perso_payload($perso) {
+	global $identifiants;
+	$mine = (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3]));
+	$spriteSrcs = get_sprite_srcs($perso['sprites']);
+	return array(
+		$perso['id'],
+		$perso['sprites'],
+		$perso['name'],
+		$perso['author'],
+		$mine,
+		(null===$perso['author']),
+		array($perso['acceleration'],$perso['speed'],$perso['handling'],$perso['mass']),
+		$spriteSrcs['map'],
+		$spriteSrcs['podium'],
+		$perso['avgrating'],
+		$perso['nbratings'],
+		$perso['playcount']
+	);
+}
 ?>
