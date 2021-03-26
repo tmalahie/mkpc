@@ -277,7 +277,7 @@ function showFancyTitle(e) {
     }
     if ($elt.dataset.players) {
         $fancyTitle.className = "";
-        $fancyTitle.<?php ?>innerHTML = "<?php echo $language ? 'Unlocked by:' : 'Débloqué par :'; ?>" +
+        $fancyTitle.innerHTML = "<?php echo $language ? 'Unlocked by:' : 'Débloqué par :'; ?>" +
         $elt.dataset.players.split(",").map(function(p) { return "<div><small>✔</small>&nbsp;"+ p +"</div>"; }).join("");
     }
     else {
