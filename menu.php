@@ -71,7 +71,7 @@
 		while ($myNotif = mysql_fetch_array($myNotifications)) {
 			$notifData = Array();
 			$toDelete = false;
-			if ($ignoredNotifs[$myNotif['type']]) {
+			if (!empty($ignoredNotifs[$myNotif['type']])) {
 				$toDelete = true;
 				clearNotifCache();
 			}
