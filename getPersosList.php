@@ -7,7 +7,7 @@ if (isset($_POST['page']) && isset($_POST['sort'])) {
     $resPerPage = 100;
     switch ($_POST['sort']) {
     case 'rating':
-        $order = 'avgrating DESC, id DESC';
+        $order = 'avgrating DESC, nbratings DESC, id DESC';
         break;
     case 'playcount':
         $order = 'playcount DESC, id DESC';
