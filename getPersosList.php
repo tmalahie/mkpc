@@ -2,6 +2,13 @@
 include('getId.php');
 include('initdb.php');
 include('persos.php');
+function toSQLSearch($search) {
+    $search = str_replace('"', '""', $search);
+    $search = str_replace('\\', '\\\\\\\\', $search);
+    $search = str_replace('%', '\\%', $search);
+    $search = '%'. $search .'%';
+    return $search;
+}
 if (isset($_POST['page']) && isset($_POST['sort'])) {
     $page = +$_POST['page'];
     $resPerPage = 100;
@@ -17,9 +24,9 @@ if (isset($_POST['page']) && isset($_POST['sort'])) {
     }
     $where = 'author IS NOT NULL';
     if (isset($_POST['name']))
-        $where .= ' AND name LIKE "%'. $_POST['name'] .'%"';
+        $where .= ' AND name LIKE "'. toSQLSearch($_POST['name']) .'"';
     if (isset($_POST['author']))
-        $where .= ' AND author LIKE "%'. $_POST['author'] .'%"';
+        $where .= ' AND author LIKE "'. toSQLSearch($_POST['author']) .'"';
     $allPersos = mysql_query('SELECT * FROM `mkchars` WHERE '.$where.' ORDER BY '.$order.' LIMIT '. ($page*$resPerPage) .','.$resPerPage);
     $res = array();
     while ($perso = mysql_fetch_array($allPersos))
