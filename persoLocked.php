@@ -348,6 +348,8 @@ $nbPages = ceil($nbRewards/$rewardsPerPage);
 <?php
 while ($reward = mysql_fetch_array($getRewardsData)) {
     $circuit = getCircuitPayload($reward);
+    if (empty($circuit))
+	continue;
     $myCicuit = ($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3]);
     $isCompleted = ($reward['player'] || $myCicuit);
     $isCup = (strpos($circuit['cicon'], ',') !== false);
