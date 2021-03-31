@@ -1345,6 +1345,7 @@ function throwItem(oKart,newItem,k) {
 			syncItems.push(lastItem);
 		oKart.using.shift();
 	}
+	return lastItem;
 }
 function loadNewItem(kart,item) {
 	addNewItem(kart,item);
@@ -1666,27 +1667,19 @@ function arme(ID, backwards) {
 
 		switch(oKart.using[0].type) {
 			case "banane" :
-			var decalage = 30/(oKart.speed+5);
-			var fPosX = posX - decalage * direction(0, oKart.rotation);
-			var fPosY = posY - decalage * direction(1, oKart.rotation);
-			if (!tombe(fPosX,fPosY))
-			throwItem(oKart, {x:fPosX, y:fPosY, z:0});
-			playIfShould(oKart,"musics/events/put.mp3");
-			break;
-
 			case "fauxobjet" :
-			var decalage = 30/(oKart.speed+5);
-			throwItem(oKart, {x:posX-decalage*direction(0, oKart.rotation), y:posY-decalage*direction(1, oKart.rotation), z:0});
-			playIfShould(oKart,"musics/events/put.mp3");
-			break;
-
 			case "poison" :
-			var decalage = 30/(oKart.speed+5);
-			var fPosX = posX - decalage * direction(0, oKart.rotation);
-			var fPosY = posY - decalage * direction(1, oKart.rotation);
-			if (!tombe(fPosX,fPosY))
-			throwItem(oKart, {x:fPosX, y:fPosY, z:0});
-			playIfShould(oKart,"musics/events/put.mp3");
+			if (backwards) {
+				throwItem(oKart, {x:posX,y:posY,z:0.01,theta:oKart.rotation,countdown:15});
+				playDistSound(oKart,"musics/events/throw.mp3",50);
+			}
+			else {
+				var decalage = 30/(oKart.speed+5);
+				var item = throwItem(oKart, {x:posX-decalage*direction(0,oKart.rotation), y:posY-decalage*direction(1,oKart.rotation), z:0});
+				playIfShould(oKart,"musics/events/put.mp3");
+				if (tombe(item.x,item.y))
+					detruit(item);
+			}
 			break;
 
 			case "carapace" :
@@ -5128,18 +5121,30 @@ function intType(key) {
 var itemBehaviors = {
 	"banane": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
-		fadedelay: 100
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
+		fadedelay: 100,
+		move: function(fSprite) {
+			if (fSprite.countdown)
+				handleSpriteLaunch(fSprite, 12,0.2);
+		}
 	},
 	"fauxobjet": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
-		fadedelay: 100
+		fadedelay: 100,
+		move: function(fSprite) {
+			if (fSprite.countdown)
+				handleSpriteLaunch(fSprite, 12,0.2);
+		}
 	},
 	"poison": {
 		size: 0.54,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
-		fadedelay: 100
+		fadedelay: 100,
+		move: function(fSprite) {
+			if (fSprite.countdown)
+				handleSpriteLaunch(fSprite, 12,0.2);
+		}
 	},
 	"champi": {
 		size: 0.54,
@@ -5533,20 +5538,10 @@ var itemBehaviors = {
 		fadedelay: 0,
 		move: function(fSprite) {	
 			if (fSprite.theta != -1) {
-				var hauteur = 0;
-				if (fSprite.countdown) {
-					fSprite.countdown--;
-					var fMoveX = 15 * direction(0, fSprite.theta);
-					var fMoveY = 15 * direction(1, fSprite.theta);
-	
-					var fNewPosX = fSprite.x + fMoveX;
-					var fNewPosY = fSprite.y + fMoveY;
-	
-					fSprite.x = fNewPosX;
-					fSprite.y = fNewPosY;
-					hauteur = fSprite.countdown;
-				}
+				if (fSprite.countdown)
+					handleSpriteLaunch(fSprite, 15,0.2);
 				else {
+					fSprite.z = 0;
 					if (tombe(fSprite.x, fSprite.y))
 						detruit(fSprite);
 					if (--fSprite.cooldown == 30)
@@ -5554,7 +5549,6 @@ var itemBehaviors = {
 					if (fSprite.cooldown < -10)
 						detruit(fSprite);
 				}
-				fSprite.z = (-Math.abs(hauteur-8) + 8) * 2;
 			}
 		},
 		render: function(fSprite,i) {
@@ -7607,6 +7601,21 @@ var DEFAULT_DECOR_HITBOX_H = 4;
 for (var type in decorBehaviors)
 	decorBehaviors[type].type = type;
 
+function handleSpriteLaunch(fSprite, fSpeed,fHeight) {
+	fSprite.countdown--;
+	var fMoveX = fSpeed * direction(0, fSprite.theta);
+	var fMoveY = fSpeed * direction(1, fSprite.theta);
+
+	var fNewPosX = fSprite.x + fMoveX;
+	var fNewPosY = fSprite.y + fMoveY;
+
+	fSprite.x = fNewPosX;
+	fSprite.y = fNewPosY;
+	fSprite.z = correctZInv((-Math.pow(fSprite.countdown-8,2) + 64) * fHeight);
+
+	if (!fSprite.countdown && tombe(fNewPosX,fNewPosY))
+		detruit(fSprite);
+}
 function getDecorParams(self,i) {
 	var type = self.type;
 	if (oMap.decorparams && oMap.decorparams[type] && oMap.decorparams[type][i])
@@ -11122,7 +11131,7 @@ function resetDatas() {
 			var itemBehavior = itemBehaviors[syncItem.type];
 			for (var j=0;j<itemBehavior.sync.length;j++) {
 				var syncParams = itemBehavior.sync[j];
-				itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]);
+				itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
 			}
 		}
 		var itemPayload = {
