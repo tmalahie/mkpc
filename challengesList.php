@@ -389,6 +389,8 @@ include('menu.php');
 			<?php
 			foreach ($challenges as $challenge) {
 				$circuit = $challenge['circuit'];
+				if (empty($circuit))
+					continue;
 				$isCup = (strpos($circuit['cicon'], ',') !== false);
 				?>
 				<a class="challenges-list-item<?php

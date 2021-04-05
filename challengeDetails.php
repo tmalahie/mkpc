@@ -86,7 +86,7 @@ include('o_online.php');
 		<?php
 		echo '<h2>'. ($language ? 'Challenge details':'Détails du défi') .'</h2>';
 		echo $challengeDetails['description']['main'];
-		if ($challengeDetails['description']['extra'])
+		if (isset($challengeDetails['description']['extra']))
 			echo '<div><small>'. $challengeDetails['description']['extra'] .'</small></div>';
 		if ($challengeDetails['name'])
 			echo '<div>'. ($language ? 'Name:':'Nom :') .' '. htmlspecialchars($challengeDetails['name']) .'</div>';

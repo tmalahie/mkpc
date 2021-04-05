@@ -485,7 +485,7 @@ function listChallenges($clRace, &$params=array()) {
 	$getChallenges = mysql_query('SELECT * FROM mkchallenges WHERE clist="'. $clRace .'" AND '. $statusCheck);
 	while ($challenge = mysql_fetch_array($getChallenges))
 		$res[] = getChallengeDetails($challenge, $params);
-	if ($params['alltracks'] && !empty($getClist)) {
+	if (!empty($params['alltracks']) && !empty($getClist)) {
 		$subCls = array();
 		$newParams = $params;
 		unset($newParams['alltracks']);
@@ -540,7 +540,7 @@ function getChallengeDetails($challenge, &$params=array()) {
 		$res['rating'] = array('avg' => $challenge['avgrating'], 'nb' => $challenge['nbratings']);
 	if (!empty($params['circuit'])) {
 		$res['circuit'] = getCircuitPayload($challenge);
-		if (empty($params['utf8']) && empty($params['circuit.raw'])) {
+		if (empty($params['utf8']) && empty($params['circuit.raw']) && !empty($res['circuit'])) {
 			$res['circuit']['name'] = htmlspecialchars(escapeCircuitNames(iconv('windows-1252', 'utf-8', $res['circuit']['name'])));
 			$res['circuit']['author'] = htmlspecialchars(escapeCircuitNames(iconv('windows-1252', 'utf-8', $res['circuit']['author'])));
 		}
