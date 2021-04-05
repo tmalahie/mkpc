@@ -14498,7 +14498,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	var oDiv = document.createElement("div");
 	oDiv.style.fontSize = (2*iScreenScale) +"px";
 	oDiv.style.color = "white";
-	oDiv.innerHTML = toLanguage("If enabled, 2 teams are selected in each game. You object: defeat the opposing team.", "Si activé, 2 équipes sont sélectionnées à chaque partie. Votre objectif : vaincre l'équipe adverse.");
+	oDiv.innerHTML = toLanguage("If enabled, 2 teams are selected in each game. Your objective: defeat the opposing team.", "Si activé, 2 équipes sont sélectionnées à chaque partie. Votre objectif : vaincre l'équipe adverse.");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
