@@ -1,14 +1,13 @@
 <?php
 if (isset($_POST['tz'])) {
 	function isValidTimezoneId($tzid){
-		$valid = array();
-		$tza = timezone_abbreviations_list();
-		foreach ($tza as $zone) {
-			foreach ($zone as $item)
-				$valid[$item['timezone_id']] = true;
+		try {
+			new DateTimeZone($tzid);
 		}
-		unset($valid['']);
-		return isset($valid[$tzid]);
+		catch (Exception $e) {
+			return false;
+		}
+		return true;
 	}
 	if (isValidTimezoneId($_POST['tz']))
 		setcookie('tz', $_POST['tz'], 4294967295,'/');
