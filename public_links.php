@@ -2,7 +2,7 @@
 $getPublicLinks = mysql_query('SELECT id,rules FROM `mkgameoptions` WHERE public');
 $publicLinkIds = array(0);
 $publicLinksData = array(
-	array(
+	(object)array(
 		'team' => 0,
 		'friendly' => 0
 	)
