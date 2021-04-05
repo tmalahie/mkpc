@@ -2,6 +2,7 @@
 if (isset($_POST['challenge']) && isset($_POST['status'])) {
 	include('getId.php');
 	include('initdb.php');
+	include('language.php');
 	require_once('utils-challenges.php');
 	$challenge = getChallenge($_POST['challenge']);
 	$newStatus = 'unknown';
@@ -27,8 +28,16 @@ if (isset($_POST['challenge']) && isset($_POST['status'])) {
 						$newStatus = 'active';
 						activateChallenge($challenge);
 					}
-					else
-						mysql_query('UPDATE `mkchallenges` SET status="pending_moderation",date=NULL WHERE id="'. $challengeId .'"');
+					else {
+						if (isset($_POST['require_confirmation'])) {
+							$getOneChallenge = mysql_query('SELECT c.id FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id WHERE l.identifiant='.$identifiants[0].' AND l.identifiant2='.$identifiants[1].' AND l.identifiant3='.$identifiants[2].' AND l.identifiant4='.$identifiants[3].' AND c.status IN ("active","deleted") LIMIT 1');
+							$challenge = mysql_fetch_array($getOneChallenge);
+							if (!$challenge)
+								$newStatus = 'confirmation_required';
+						}
+						if ('pending_moderation' === $newStatus)
+							mysql_query('UPDATE `mkchallenges` SET status="pending_moderation",date=NULL WHERE id="'. $challengeId .'"');
+					}
 				}
 			}
 			else

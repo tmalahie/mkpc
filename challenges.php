@@ -16,7 +16,7 @@ if (isset($_GET['clmsg'])) {
 		$clMsg = $language ? 'Your challenge has been created! In order to check it\'s possible, you now have to succeed it yourself before being allowed to publish it.':'Votre défi a été créé ! Afin de vérifier que celui-ci est faisable, vous devez le réussir vous-même avant de pouvoir le publier.';
 		break;
 	case 'challenge_published':
-		$clMsg = $language ? 'Your publish request has been taken into account. In order to avoid abuses, it has to be validated by a moderator first.':'Votre demande de publication a été prise en compte. Pour éviter les abus, le défi doit d\'abord être validé par un modérateur avant d\'être actif.';
+		$clMsg = $language ? 'Your publication request has been taken into account. The challenge will be verified by the validation team, you will be notified once it\'s validated.':'Votre demande de publication a été prise en compte. Le défi va être vérifié par l\'équipe de validation, vous serez notifié une fois celui-ci validé.';
 		break;
 	case 'challenge_actived':
 		$clMsg = $language ? 'The challenge has been published.':'Le défi a été publié';
@@ -43,13 +43,14 @@ include('o_online.php');
 ?>
 <script type="text/javascript">
 var publishingChallenge;
+var language = <?php echo $language ? 1:0; ?>;
 function showClMsg(newMsg) {
 	document.location.href = document.location.href.replace(/&clmsg=\w+/g, '')+"&clmsg="+newMsg;
 }
-function publishChallenge(id) {
+function publishChallenge(id, skip_confirm) {
 	if (publishingChallenge) return;
 	publishingChallenge = true;
-	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_moderation", function(res) {
+	o_xhr("challengeUpdateStatus.php", "challenge="+id+"&status=pending_moderation" + (skip_confirm ? "":"&require_confirmation"), function(res) {
 		if (res) {
 			if (res == "pending_moderation")
 				showClMsg("challenge_published");
@@ -57,6 +58,25 @@ function publishChallenge(id) {
 				showClMsg("circuit_required");
 			else if (res == "active")
 				showClMsg("challenge_actived");
+			else if (res == "confirmation_required") {
+				publishingChallenge = false;
+				o_language = language;
+				o_confirm(language ?
+					"Your challenge will be sent to the validation team.<br />" +
+					"Please check that it matches the <a href=\"javascript:challengeReco()\" class=\"pretty-link\">recommendations</a> before confirming.<br />" +
+					"In perticular, pointless or too easy challenges will be immediately rejected."
+					:
+					"Votre défi va être envoyé à l'équipe de validation.<br />" +
+					"Veuillez vérifier qu'il suit les <a href=\"javascript:challengeReco()\" class=\"pretty-link\">recommandations</a> avant de confirmer.<br />" +
+					"En particulier, les défis sans intérêt ou trop faciles seront immédiatement rejetés."
+				, function(ok) {
+					if (ok)
+						publishChallenge(id, true);
+				});
+				var $dialog = document.querySelector(".o_dialog_box");
+				$dialog.style.width = "500px";
+				$dialog.style.maxWidth = "90%";
+			}
 			else
 				document.location.reload();
 			return true;
@@ -77,6 +97,9 @@ function unpublishChallenge(id) {
 		}
 		return false;
 	});
+}
+function challengeReco() {
+	window.open('challengeReco.php','gerer','scrollbars=1, resizable=1, width=500, height=500');
 }
 document.addEventListener("DOMContentLoaded", function() {
 	var prettyTitles = document.getElementsByClassName("pretty-title");
