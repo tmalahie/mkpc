@@ -20612,7 +20612,8 @@ function updateCommandSheet() {
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br /><strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "R")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
+	var txtShift = "1px";
+	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><span style="position:relative;top:'+txtShift+'"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'</span><br /><span style="position:relative;top:-'+txtShift+'"><strong>'+ toLanguage("The other way", "Dans l'autre sens") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'</span><br /><strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "R")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
 function editCommands(reload,currentTab) {
 	currentTab = currentTab || 0;
@@ -20687,7 +20688,7 @@ function editCommands(reload,currentTab) {
 		name: toLanguage("Use item", "Utiliser un objet"),
 		key: "item"
 	}, {
-		name: toLanguage("Item backwards", "Objet en arrière"),
+		name: toLanguage("The other way", "Dans l'autre sens"),
 		key: "item_back"
 	}, {
 		name: toLanguage("Jump/drift", "Sauter/déraper"),
