@@ -56,15 +56,20 @@ else
 	</blockquote>
 	</form>
 	<?php
-	$records = mysql_query('SELECT j.id,j.nom,j.'.$pts_.' AS pts,c.code FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE '. ($joueur ? 'j.nom="'.$joueur.'"':'(j.'.$pts_.'!=5000) AND j.deleted=0') .' ORDER BY j.'.$pts_.' DESC,j.id');
+	$RES_PER_PAGE = 20;
+	$offset = ($page-1)*$RES_PER_PAGE;
+	$where = $joueur ? 'j.nom="'.$joueur.'"':'(j.'.$pts_.'!=5000) AND j.deleted=0';
+	$records = mysql_query('SELECT j.id,j.nom,j.'.$pts_.' AS pts,c.code FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE '. $where .' ORDER BY j.'.$pts_.' DESC,j.id LIMIT '. $offset .','.$RES_PER_PAGE);
 	if ($joueur) {
 		if ($record = mysql_fetch_array($records))
 			$nb_temps = $records ? 1:0;
 		else
 			$joueur = null;
 	}
-	else
-		$nb_temps = mysql_numrows($records);
+	else {
+		$countPlayers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkjoueurs` j WHERE '. $where));
+		$nb_temps = $countPlayers['nb'];
+	}
 	if ($nb_temps) {
 	?>
 	<table>
@@ -80,9 +85,9 @@ else
 			$page = 0;
 		}
 		else
-			$place = ($page-1)*20;
+			$place = $offset;
 		$i = 0;
-		$fin = $place+20;
+		$fin = $place+$RES_PER_PAGE;
 		if ($joueur) {
 		?>
 	<tr class="clair">
@@ -99,9 +104,8 @@ else
 		else {
 			while ($record=mysql_fetch_array($records)) {
 				$i++;
-				if ($i > $place) {
-					$place++;
-					?>
+				$place++;
+				?>
 	<tr class="<?php echo (($i%2) ? 'clair':'fonce') ?>">
 	<td><?php
 		echo $place .'<sup>';
@@ -136,17 +140,14 @@ else
 	?></a></td>
 	<td><?php echo $record['pts'] ?></td>
 	</tr>
-					<?php
-					if ($i == $fin)
-						break;
-				}
+				<?php
 			}
 		}
 	?>
 	<tr><td colspan="4" id="page"><strong>Page : </strong> 
 	<?php
 	if ($joueur) {
-		$page = ceil($place/20);
+		$page = ceil($place/$RES_PER_PAGE);
 		echo '<a href="?'. ($isBattle ? 'battle&amp;':'') .'page='.$page.'">'.$page.'</a>';
 	}
 	else {
@@ -154,7 +155,7 @@ else
 			global $isBattle;
 			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. ($isBattle ? 'battle&amp;':'') .'page='.$page.'">'.$page.'</a>').'&nbsp; ';
 		}
-		$limite = ceil($nb_temps/20);
+		$limite = ceil($nb_temps/$RES_PER_PAGE);
 		require_once('utils-paging.php');
 		$allPages = makePaging($page,$limite);
 		foreach ($allPages as $i=>$block) {
