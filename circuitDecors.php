@@ -20,6 +20,7 @@ $decors = array(
         'box' => null,
         'snowball' => null,
         'cannonball' => $language ? 'Waluigi Pinball - Balls':'Flipper Waluigi - Boules',
+        'assets/bumper' => $language ? 'Waluigi Pinball - Bumpers':'Flipper Waluigi - Bumpers',
         'truck' => $language ? 'Shroom Ridge - Bus':'Corniche Champignon - Bus',
         'pendulum' => $language ? 'Tick-Tock Clock - Pendulum':'Horloge Tic-Tac - Pendule',
         'assets/pivothand' => $language ? 'Tick-Tock Clock - Hand':'Horloge Tic-Tac - Aiguille',

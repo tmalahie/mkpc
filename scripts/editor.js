@@ -3897,6 +3897,10 @@ var commonTools = {
 								}
 							}
 							break;
+						case "assets/bumper":
+							if (decorData.r)
+								self.click(self,{x:decorData.pos.x+decorData.r,y:decorData.pos.y},{});
+							break;
 						}
 					}
 					switch (actualType) {
@@ -3945,6 +3949,10 @@ var commonTools = {
 						break;
 				}
 			}
+			else if (self.state.circle) {
+				decorData = typeData[typeData.length-1];
+				decorData.r = Math.hypot(point.x-decorData.pos.x, point.y-decorData.pos.y);
+			}
 			else if (self.state.traject !== undefined) {
 				appendRouteBuilder(self,point,extra);
 				over = false;
@@ -3966,6 +3974,11 @@ var commonTools = {
 						arrow.lines[i].classList.add("noclick");
 					self.state.arrow = arrow;
 					break;
+				case "assets/bumper":
+					over = false;
+					var circle = createCircle({x:point.x,y:point.y,r:0});
+					self.state.circle = circle;
+					break;
 				case "assets/pivothand":
 					over = false;
 					var line = createLine({x:point.x,y:point.y},{x:point.x,y:point.y});
@@ -3984,6 +3997,8 @@ var commonTools = {
 				var box = self.state.point;
 				var arrow = self.state.arrow;
 				delete self.state.arrow;
+				var circle = self.state.circle;
+				delete self.state.circle;
 				var line = self.state.line;
 				delete self.state.line;
 				var carrow = self.state.carrow;
@@ -3995,6 +4010,17 @@ var commonTools = {
 					}
 					moveOptions.on_start_move = arrow.hide;
 					moveOptions.on_end_move = arrow.show;
+				}
+				else if (circle) {
+					moveOptions.on_apply = function(nData) {
+						setCirclePos(circle,nData);
+					};
+					moveOptions.on_start_move = function() {
+						circle.style.display = "none";
+					};
+					moveOptions.on_end_move = function() {
+						circle.style.display = "";
+					};
 				}
 				else if (line) {
 					moveOptions.on_apply = function(nData) {
@@ -4028,6 +4054,7 @@ var commonTools = {
 							if (arrow) arrow.remove();
 							else if (line) $editor.removeChild(line);
 							if (carrow) carrow.remove();
+							if (circle) $editor.removeChild(circle);
 							storeHistoryData(self.data);
 							removeFromArray(typeData,decorData);
 						}
@@ -4037,6 +4064,18 @@ var commonTools = {
 							text: (language ? "Edit ↗":"Modifier ↗"),
 							click: function() {
 								moveArrow(arrow,decorData.pos,decorData.dir,{fixed_length:self._arrowLength(actualType),from_center:self._arrowOriginCenter(actualType)});
+							}
+						});
+					}
+					else if (circle) {
+						menuOptions.splice(1,0, {
+							text: (language ? "Resize":"Redimensionner"),
+							click: function() {
+								editCircle(circle,decorData.pos,{
+									on_apply: function(nData) {
+										decorData.r = nData.r;
+									}
+								});
 							}
 						});
 					}
@@ -4080,6 +4119,8 @@ var commonTools = {
 					}
 					return showContextOnElt(e,box,menuOptions);
 				};
+				if (circle)
+					circle.oncontextmenu = box.oncontextmenu;
 				self.state.point = createBox(self.state.boxSize);
 				self.state.point.classList.add("noclick");
 			}
@@ -4118,6 +4159,12 @@ var commonTools = {
 				var dir = {x:point.x-decorPos.x,y:point.y-decorPos.y};
 				changeArrowDir(self.state.arrow,decorPos,dir,self._arrowLength(actualType),self._arrowOriginCenter(actualType));
 			}
+			else if (self.state.circle) {
+				var typeData = self.data.decors[self.state.type];
+				var decorPos = typeData[typeData.length-1].pos;
+				var r = Math.hypot(point.x-decorPos.x,point.y-decorPos.y);
+				self.state.circle.setAttribute("r", r);
+			}
 			else if (self.state.line) {
 				moveLine(self.state.line,null,point);
 			}
@@ -4150,6 +4197,9 @@ var commonTools = {
 						case "assets/pivothand":
 							payload.assets["pointers"] = [];
 							break;
+						case "assets/bumper":
+							payload.assets["bumpers"] = [];
+							break;
 						case "assets/oil1":
 						case "assets/oil2":
 							if (!payload.assets["oils"])
@@ -4174,6 +4224,11 @@ var commonTools = {
 								var typeSrc = actualType.substring(7);
 								var assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,7,7,0.5,0.5],[0,0.5,0.5]];
 								payload.assets["oils"].push(assetParams);
+								break;
+							case "assets/bumper":
+								var typeSrc = actualType.substring(7);
+								var assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,Math.round(decorsData[i].r*2),Math.round(decorsData[i].r*2)],[0.5,0.5,0]];
+								payload.assets["bumpers"].push(assetParams);
 								break;
 							}
 						}
@@ -4312,6 +4367,12 @@ var commonTools = {
 							var assetData = {pos:dataToPoint(assetPayload[1])};
 							if (!selfData[assetKey]) selfData[assetKey] = [];
 							selfData[assetKey].push(assetData);
+							break;
+						case "bumpers":
+							var assetKey = "assets/"+assetPayload[0];
+							var assetData = {pos:dataToPoint(assetPayload[1]),r:assetPayload[1][2]/2};
+							if (!selfData[assetKey]) selfData[assetKey] = [];
+							selfData[assetKey].push(assetData);
 						}
 					}
 				}
@@ -4324,6 +4385,8 @@ var commonTools = {
 				for (var i=0;i<decorsData.length;i++) {
 					rescaleBox(decorsData[i].pos, scale);
 					rescaleNullableDir(decorsData[i].dir, scale);
+					if (decorsData[i].r)
+						decorsData[i].r *= Math.sqrt(scale.x*scale.y);
 				}
 			}
 			if (self.data.extra.truck) {
