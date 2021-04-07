@@ -293,7 +293,7 @@ $clRulesByType = array(
 					'assets/flower1' => $language ? 'flower':'fleur',
 					'assets/flower2' => $language ? 'flower':'fleur',
 					'assets/flower3' => $language ? 'flower':'fleur',
-					'assets/bumper' => 'bumber'
+					'assets/bumper' => 'bumper'
 				);
 				$itemsToAvoid = array();
 				foreach ($scope->value as $key=>$decor) {
