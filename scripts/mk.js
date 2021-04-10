@@ -13857,7 +13857,18 @@ function ai(oKart) {
 		}
 		if (useRandomly) {
 			if (Math.random() > 0.98) {
-				var backwards = (((oKart.place<oPlayers[0].place)||(course=="BB")) && (Math.random() > 0.5));
+				var behind = true;
+				if (oKart.using.length) {
+					switch(oKart.using[0].type) {
+					case "banane":
+					case "fauxobjet":
+					case "poison":
+						behind = false;
+						break;
+					}
+				}
+				var backwards = (((behind?oKart.place<oPlayers[0].place:oKart.place>oPlayers[0].place)||(course=="BB")) && (Math.random() > 0.5));
+				backwards = true;
 				arme(aKarts.indexOf(oKart), backwards);
 			}
 		}
