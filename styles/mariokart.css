@@ -451,22 +451,22 @@ button.control-close:active {
  p {
     margin: 0;
 }
- input[type="button"], input[type="submit"], button {
+ input[type="button"], input[type="submit"], button, .fakebtn {
     background-color: #060610;
     border: outset 1px #4D4923;
     color: #FEFF3F;
     font-weight: bold;
     cursor: pointer;
 }
- input[type="button"]:hover, input[type="submit"]:hover, button:hover {
+ input[type="button"]:hover, input[type="submit"]:hover, button:hover, .fakebtn:hover {
     background-color: #372F1A;
      border: outset 1px #A9A118;
      color: #E9E85D;
 }
- input[type="button"]:active, input[type="submit"]:active, button:active {
+ input[type="button"]:active, input[type="submit"]:active, button:active, .fakebtn:active {
     border: inset 1px #FF6600;
 }
- input[type="button"]:focus, input[type="submit"]:focus, button:focus {
+ input[type="button"]:focus, input[type="submit"]:focus, button:focus, .fakebtn:focus {
     background-color: #55461e;
 }
  .maj {
