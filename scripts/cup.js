@@ -15,7 +15,7 @@ function getSubmitMsg() {
 		}
 		return "";
 	}
-	return (selectedCircuits.length != 4) ? (language ? "You must select 4 circuits":"Vous devez sélectionner 4 circuits"):"";
+	return (selectedCircuits.length != 4) ? (language ? ("You must select 4 "+(isBattle ? "arenas":"circuits")):("Vous devez sélectionner 4 "+(isBattle ? "arènes":"circuits"))):"";
 }
 function selectCircuit(tr, isAuto) {
 	var id = tr.dataset.id;

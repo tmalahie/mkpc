@@ -108,7 +108,6 @@ else { // Track being created
 			$pNotes = $getMain['nbnotes'];
 			$cDate = $getMain['publication_date'];
 			addCircuitChallenges('mkcircuits', $nid,$cName, $clPayloadParams);
-			$edittingCircuit = true;
 		}
 		else {
 			mysql_close();
@@ -384,7 +383,7 @@ if ($canChange) {
 		document.getElementById("sConfirmer").className = "cannotChange";
 		xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':'supprCreation')); ?>.php", "id=<?php echo $id; ?>", function(reponse) {
 			if (reponse == 1) {
-				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The circuit has been successfully removed from the list.':'Le circuit a &eacute;t&eacute; retir&eacute; de la liste avec succ&egrave;s.'; ?>';
+				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? ($isCup ? 'The cup':'The circuit').' has been successfully removed from the list.':($isCup ? 'La coupe':'Le circuit').' a &eacute;t&eacute; retir&eacute;'. ($isCup ? 'e':'') .' de la liste avec succ&egrave;s.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
 				var cCont = document.createElement("input");
 				cCont.type = "button";
@@ -557,11 +556,11 @@ if (isset($message)) {
 ?>
 <div id="confirmSuppr">
 <p id="supprInfos"><?php echo $language ?
-	'Delete this circuit sharing ?<br />
-	The circuit will be only removed from the list :<br />
+	'Delete this '. ($isCup ? ($isMCup ? 'multicup':'cup'):'circuit') .' sharing ?<br />
+	'.($isCup ? ($isMCup ? 'The multicup':'The cup'):'The circuit').' will be only removed from the list:<br />
 	data will be recoverable.' :
-	'Supprimer le partage de ce circuit ?<br />
-	Le circuit sera simplement retir&eacute; de la liste :<br />
+	'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):'ce circuit') .' ?<br />
+	'.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):'Le circuit').' sera simplement retir&eacute;'.($isCup?'e':'').' de la liste :<br />
 	les donn&eacute;es seront r&eacute;cup&eacute;rables.';
 ?></p>
 <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>

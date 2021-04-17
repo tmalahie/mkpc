@@ -15886,18 +15886,21 @@ function selectTrackCreate(i) {
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
 
-	oScr.appendChild(toTitle(toLanguage("Track builder", "Éditeur de circuit")));
+	oScr.appendChild(toTitle(
+		i ? toLanguage("Complete track builder", "Éditeur complet")
+		  : toLanguage("Quick track builder", "Éditeur simplifié")
+	));
 
 	var oModes = [{
 		name: toLanguage("Circuit", "Circuit"),
 		url: i ? "draw.php" : "create.php",
 		thumbnail: "help/build-circuit.png"
 	}, {
-		name: toLanguage("Cup - Circuit", "Coupe - Circuit"),
+		name: toLanguage("Cup - Circuits", "Coupe - Circuits"),
 		url: i ? "completecup.php" : "simplecup.php",
 		thumbnail: "help/build-cup-circuit.png"
 	}, {
-		name: toLanguage("Multicup - Circuit", "Multicoupe - Circuit"),
+		name: toLanguage("Multicup - Circuits", "Multicoupe - Circuits"),
 		url: i ? "completecups.php" : "simplecups.php",
 		thumbnail: "help/build-multicup-circuit.png"
 	}, {
@@ -15905,11 +15908,11 @@ function selectTrackCreate(i) {
 		url: i ? "course.php" : "arene.php",
 		thumbnail: "help/build-arena.png"
 	}, {
-		name: toLanguage("Cup - Arena", "Coupe - Arène"),
+		name: toLanguage("Cup - Arenas", "Coupe - Arènes"),
 		url: i ? "completecup.php?battle" : "simplecup.php?battle",
 		thumbnail: "help/build-cup-arena.png"
 	}, {
-		name: toLanguage("Multicup - Arena", "Multicoupe - Arène"),
+		name: toLanguage("Multicup - Arenas", "Multicoupe - Arènes"),
 		url: i ? "completecups.php?battle" : "simplecups.php?battle",
 		thumbnail: "help/build-multicup-arena.png"
 	}];
@@ -15924,6 +15927,9 @@ function selectTrackCreate(i) {
 	oModesDiv.style.columnGap = (iScreenScale*2) +"px";
 	oModesDiv.style.fontSize = (iScreenScale*2) +"px";
 	oModesDiv.style.textAlign = "center";
+	oModesDiv.style.backgroundColor = "#000C";
+	oModesDiv.style.paddingBottom = "1px";
+	oModesDiv.style.zIndex = 1;
 	for (var i=0;i<oModes.length;i++) {
 		var oMode = oModes[i];
 		var oDiv = document.createElement("a");
@@ -17215,14 +17221,7 @@ function selectTeamScreen(IdJ) {
 	updateMenuMusic(1);
 }
 function selectTrackScreen() {
-	if (course != "BB")
-		selectMapScreen();
-	else {
-		if (page == "MK")
-			selectMapScreen();
-		else
-			selectRaceScreen(0);
-	}
+	selectMapScreen();
 }
 function selectGamersScreen() {	
 	if (!isOnline && isTeamPlay())
@@ -18093,7 +18092,7 @@ function selectMapScreen(force) {
 		setSRest();
 		document.getElementById("waitrace").style.visibility = "visible";
 	}
-	if ((isCup&&!isMCups) || (isBattle&&isCup)) {
+	if ((isCup&&!isMCups)) {
 		selectRaceScreen(0);
 		return;
 	}

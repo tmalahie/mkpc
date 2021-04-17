@@ -38,13 +38,14 @@ function escapeUtf8($str) {
 <?php
 include('o_online.php');
 ?>
-<title><?php echo $language ? 'Create multicup':'Cr&eacute;er multicoupe'; ?></title>
+<title><?php echo $language ? 'Create multicup':'Créer multicoupe'; ?></title>
 <link rel="stylesheet" href="styles/cup.css" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
 var editting = <?php echo $editting ? 'true':'false'; ?>;
 var ckey = "mid";
+var isBattle = <?php echo $isBattle ? 1:0; ?>;
 <?php
 if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
@@ -77,7 +78,7 @@ if (isset($mids))
 			?></div>
 		<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
 		<div class="editor-content editor-content-active">
-			<h1><?php echo $language ? 'Cups selection':'S&eacute;lection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
+			<h1><?php echo $language ? 'Cups selection':'Sélection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
 			<?php
 			include('utils-circuits.php');
 			$type = 3-$mode;
@@ -110,7 +111,7 @@ if (isset($mids))
 								echo ' data-cicon="'.$cup['cicon'].'"';
 							?> onclick="previewImg(event,<?php echo htmlspecialchars(json_encode($cup['srcs'])); ?>)"></td>
 							<td class="td-name"><em><?php echo $cupnb; ?></em><?php echo ($cup['nom'] ? escapeUtf8($cup['nom']):($language ? 'Untitled':'Sans titre')); ?></td>
-							<td class="td-access">&rarr; <a href="<?php echo $cup['href']; ?>" target="_blank" onclick="event.stopPropagation()"><?php echo $language ? 'Access':'Acc&eacute;der'; ?></a></td>
+							<td class="td-access">&rarr; <a href="<?php echo $cup['href']; ?>" target="_blank" onclick="event.stopPropagation()"><?php echo $language ? 'Access':'Accéder'; ?></a></td>
 						</tr>
 						<?php
 						$cupnb++;
@@ -143,13 +144,13 @@ if (isset($mids))
 			<?php
 		}
 		else
-			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create one.':'Vous n\'avez pas encore partag&eacute; de coupes en mode '. ($mode ? 'complet':'simplifi&eacute;') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en cr&eacute;er une.') .'</em>';
+			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create one.':'Vous n\'avez pas encore partagé de coupes en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une.') .'</em>';
 		?>
 		</div>
 		</form>
 		<div class="editor-navigation">
-			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une multicoupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></a></u>
-			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>
+			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
+			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</div>
 </body>

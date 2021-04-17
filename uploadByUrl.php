@@ -2,7 +2,7 @@
 $isUploaded = true;
 if ((!isset($_FILES['image'])||$_FILES['image']['error']) && isset($_POST['url'])) {
 	$isUploaded = false;
-	$fileContent = file_get_contents($_POST['url']);
+	$fileContent = @file_get_contents($_POST['url']);
 	if ($fileContent) {
 		$file = tmpfile();
 		$fileStream = stream_get_meta_data($file);

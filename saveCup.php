@@ -9,13 +9,32 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		exit;
 	}
 	$save = true;
-	$table = ($mode ? 'circuits':'mkcircuits');
+	$andWhere = '';
+	switch ($mode) {
+	case 0:
+		$table = 'mkcircuits';
+		$andWhere = ' AND !type';
+		break;
+	case 1:
+		$table = 'circuits';
+		break;
+	case 2:
+		$table = 'mkcircuits';
+		$andWhere = ' AND type';
+		break;
+	case 3:
+		$table = 'arenes';
+		break;
+	default:
+		mysql_close();
+		exit;
+	}
 	for ($i=0;$i<4;$i++) {
 		if (!isset($_POST['cid'.$i])) {
 			$save = false;
 			break;
 		}
-		if (!mysql_numrows(mysql_query('SELECT * FROM `'. $table .'` WHERE id='. $_POST['cid'. $i] .' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'. ($mode ? '':' AND !type')))) {
+		if (!mysql_numrows(mysql_query('SELECT * FROM `'. $table .'` WHERE id='. $_POST['cid'. $i] .' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'. $andWhere))) {
 			$save = false;
 			break;
 		}
