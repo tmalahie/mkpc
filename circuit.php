@@ -54,7 +54,6 @@ elseif (isset($_GET['cid'])) { // Existing cup
 	}
 }
 elseif (isset($_GET['id'])) { // Existing track
-	include('escape_all.php');
 	$id = intval($_GET['id']);
 	$nid = $id;
 	$trackIDs = array($id);
@@ -63,7 +62,6 @@ elseif (isset($_GET['id'])) { // Existing track
 elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) { // Cup being created
 	$isCup = true;
 	if (isset($_GET['nid'])) { // Cup being edited
-		include('escape_all.php');
 		$nid = intval($_GET['nid']);
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcups` WHERE id="'. $nid .'" AND mode=0 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
 			$cName = $getMain['nom'];
@@ -85,7 +83,6 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	$isCup = true;
 	$isMCup = true;
 	if (isset($_GET['nid'])) { // Multicups being edited
-		include('escape_all.php');
 		$nid = intval($_GET['nid']);
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkmcups` WHERE id="'. $nid .'" AND mode=0'))) {
 			$cName = $getMain['nom'];
@@ -117,7 +114,6 @@ else { // Track being created
 			$pNotes = $getMain['nbnotes'];
 			$cDate = $getMain['publication_date'];
 			addCircuitChallenges('mkcircuits', $nid,$cName, $clPayloadParams);
-			$edittingCircuit = true;
 		}
 		else {
 			mysql_close();
@@ -422,7 +418,7 @@ if ($canChange) {
 			if ($collab) echo '&collab='.$collab['key'];
 		?>", function(reponse) {
 			if (reponse == 1) {
-				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The circuit has been successfully removed from the list.':'Le circuit a &eacute;t&eacute; retir&eacute; de la liste avec succ&egrave;s.'; ?>';
+				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? ($isCup ? 'The cup':'The circuit').' has been successfully removed from the list.':($isCup ? 'La coupe':'Le circuit').' a &eacute;t&eacute; retir&eacute;'. ($isCup ? 'e':'') .' de la liste avec succ&egrave;s.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
 				var cCont = document.createElement("input");
 				cCont.type = "button";
@@ -615,11 +611,11 @@ if (isset($message)) {
 ?>
 <div id="confirmSuppr">
 <p id="supprInfos"><?php echo $language ?
-	'Stop sharing this circuit?<br />
-	The circuit will be only removed from the list :<br />
+	'Stop sharing this '. ($isCup ? ($isMCup ? 'multicup':'cup'):'circuit') .'?<br />
+	'.($isCup ? ($isMCup ? 'The multicup':'The cup'):'The circuit').' will be only removed from the list:<br />
 	data will be recoverable.' :
-	'Supprimer le partage de ce circuit ?<br />
-	Le circuit sera simplement retir&eacute; de la liste :<br />
+	'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):'ce circuit') .' ?<br />
+	'.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):'Le circuit').' sera simplement retiré'.($isCup?'e':'').' de la liste :<br />
 	les donn&eacute;es seront r&eacute;cup&eacute;rables.';
 ?></p>
 <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>

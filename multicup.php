@@ -52,7 +52,7 @@ function escapeUtf8($str) {
 <?php
 include('o_online.php');
 ?>
-<title><?php echo $language ? 'Create multicup':'Cr&eacute;er multicoupe'; ?></title>
+<title><?php echo $language ? 'Create multicup':'Créer multicoupe'; ?></title>
 <link rel="stylesheet" href="styles/cup.css?reload=1" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
@@ -61,6 +61,7 @@ var editting = <?php echo $editting ? 'true':'false'; ?>;
 var ckey = "mid";
 var complete = <?php echo $mode; ?>;
 var readOnly = <?php echo $readOnly ? 1:0; ?>;
+var isBattle = <?php echo $isBattle ? 1:0; ?>;
 <?php
 if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
@@ -88,7 +89,7 @@ include('handleCupOptions.php');
 				?>
 			This editor allows you to merge several cups on the same page.<br />
 			You have created cups of a same series and you want to join them together?<br />
-			You often play online on your circuits and you don't want to be limited to 4 races?<br />
+			You often play online on your <?php echo $isBattle ? 'arenas' : 'circuits'; ?> and you don't want to be limited to 4 <?php echo $isBattle ? 'battles' : 'races'; ?>?<br />
 			This mode is made for you! You can join <strong>up to 40 cups</strong>!<br />
 			Just select the creations of your choice, like in the cups editor.
 				<?php
@@ -97,15 +98,15 @@ include('handleCupOptions.php');
 				?>
 			Cet éditeur vous permet de rassembler plusieurs coupes sur une même page.<br />
 			Vous avez créé des coupes d'une même série et vous souhaitez les réunir ?<br />
-			Vous jouez souvent en ligne sur vos circuits et vous ne voulez pas être limité à 4 courses ?<br />
+			Vous jouez souvent en ligne sur vos <?php echo $isBattle ? 'arènes' : 'circuits'; ?> et vous ne voulez pas être limité à 4 <?php echo $isBattle ? 'batailles' : 'courses'; ?> ?<br />
 			Ce mode est fait pour vous ! Vous pouvez réunir <strong>jusqu'à 40 coupes</strong> !<br />
 			Sélectionnez simplement les créations de votre choix, comme dans l'éditeur de coupes.
 				<?php
 			}
 			?></div>
-		<form method="get" onsubmit="return handleFormSubmit(event)" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
+		<form method="get" onsubmit="return handleFormSubmit(event)" action="<?php echo $isBattle ? ($mode ? 'battle.php':'arena.php') : ($mode ? 'map.php':'circuit.php'); ?>">
 		<div class="editor-content editor-content-active">
-			<h1><?php echo $language ? 'Cups selection':'S&eacute;lection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
+			<h1><?php echo $language ? 'Cups selection':'Sélection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
 			<?php
 			include('utils-circuits.php');
 			include('utils-cups.php');
@@ -131,7 +132,7 @@ include('handleCupOptions.php');
 			}
 			$nbCups = count($listCups);
 			if (!$nbCups)
-				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create one.':'Vous n\'avez pas encore partag&eacute; de coupes en mode '. ($mode ? 'complet':'simplifi&eacute;') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en cr&eacute;er une.') .'</em>';
+				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create one.':'Vous n\'avez pas encore partagé de coupes en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une.') .'</em>';
 			elseif ($nbCups < 2)
 				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une nouvelle.') .'</em>';
 			?>
@@ -211,8 +212,8 @@ include('handleCupOptions.php');
 		printCollabImportPopup('cup', $mode);
 		?>
 		<div class="editor-navigation">
-			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une multicoupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></a></u>
-			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>
+			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
+			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</div>
 </body>

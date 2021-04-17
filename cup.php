@@ -6,9 +6,11 @@ $editting = true;
 $readOnly = false;
 include('initdb.php');
 require_once('collabUtils.php');
+$isBattle = isset($_GET['battle']);
 if (isset($_GET['cid'])) {
 	$id = intval($_GET['cid']);
-	if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $id .'" AND mode="'. $mode .'"'))) {
+	$cupMode = $isBattle*2 + $mode;
+	if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $id .'" AND mode="'. $cupMode .'"'))) {
 		if (($getCup['identifiant'] == $identifiants[0]) && ($getCup['identifiant2'] == $identifiants[1]) && ($getCup['identifiant3'] == $identifiants[2]) && ($getCup['identifiant4'] == $identifiants[3])) {
 			$hasReadGrants = true;
 			$hasWriteGrants = true;
@@ -55,8 +57,8 @@ function escapeUtf8($str) {
 <?php
 include('o_online.php');
 ?>
-<title><?php echo $language ? 'Create cup':'Cr&eacute;er coupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css?reload=1" />
+<title><?php echo $language ? 'Create cup':'Créer coupe'; ?></title>
+<link rel="stylesheet" href="styles/cup.css" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -64,6 +66,7 @@ var editting = <?php echo $editting ? 'true':'false'; ?>;
 var ckey = "cid";
 var complete = <?php echo $mode; ?>;
 var readOnly = <?php echo $readOnly ? 1:0; ?>;
+var isBattle = <?php echo $isBattle ? 1:0; ?>;
 <?php
 if (isset($cids))
 	echo 'var cids = '. json_encode($cids) .';';
@@ -75,6 +78,7 @@ if (isset($cids))
 <body<?php if ($readOnly) echo ' class="readonly"'; ?>>
 	<div class="container <?php echo $mode ? 'complete':'simplified'; ?>">
 		<div id="global-infos" class="editor-section"><?php
+		if ($isBattle) {
 			if ($language) {
 				?>
 			Create a &quot;Grand Prix&quot; cup from the circuits you shared !<br />
@@ -84,17 +88,42 @@ if (isset($cids))
 			}
 			else {
 				?>
-			Cr&eacute;ez une coupe &quot;Grand Prix&quot; &agrave; partir des circuits que vous avez partag&eacute;s !<br />
-			Pour cr&eacute;er la coupe, c'est tr&egrave;s simple : s&eacute;lectionnez 4 circuits dans l'ordre de votre choix et validez.<br />
-			Votre coupe est cr&eacute;e !
+			Créez une &quot;coupe bataille&quot; afin de regrouper les arènes que vous avez partagées !<br />
+			Pour créer la coupe, c'est très simple : sélectionnez 4 arènes dans l'ordre de votre choix et validez.<br />
+			Votre coupe est crée !
 				<?php
 			}
-			?></div>
-		<h1><?php echo $language ? 'Circuits selection':'S&eacute;lection des circuits'; ?> (<span id="nb-selected">0</span>/4) :</h1>
+		}
+		else {
+			if ($language) {
+				?>
+			Create a &quot;Grand Prix&quot; cup from the circuits you shared!<br />
+			To make the cup, it's quite easy: select 4 circuits in any order and validate.<br />
+			Your cup will be created!
+				<?php
+			}
+			else {
+				?>
+			Create a &quot;Battle cup&quot; to gather the arenas you shared!<br />
+			To make the cup, it's quite easy: select 4 circuits in any order and validate.<br />
+			Your cup will be created!
+				<?php
+			}
+		}
+		?></div>
+		<h1><?php
+			if ($isBattle)
+				echo $language ? 'Arena selection':'Sélection des arènes';
+			else
+				echo $language ? 'Circuits selection':'Sélection des circuits';
+		?> (<span id="nb-selected">0</span>/4) :</h1>
 		<?php
 		include('utils-circuits.php');
 		include('utils-cups.php');
-		$type = 5-$mode;
+		if ($isBattle)
+			$type = 7-$mode;
+		else
+			$type = 5-$mode;
 		$aCircuits = array($aCircuits[$type]);
 		$aParams = array(
 			'pids' => $identifiants,
@@ -116,9 +145,9 @@ if (isset($cids))
 		}
 		$nbCircuits = count($listCircuits);
 		if (!$nbCircuits)
-			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared circuits in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create one.':'Vous n\'avez pas encore partag&eacute; de circuits en mode '. ($mode ? 'complet':'simplifi&eacute;') .'.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en cr&eacute;er un.') .'</em>';
+			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared any '. ($isBattle ? "arenas":"circuits") .' in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create one.':'Vous n\'avez pas encore partagé '. ($isBattle ? "d'arènes":"de circuits") .' en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en créer un.') .'</em>';
 		elseif ($nbCircuits < 4)
-			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t created enough circuits to make a cup<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create other ones.':'Vous n\'avez pas encore cr&eacute;&eacute; assez de circuits pour faire une coupe.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en cr&eacute;er de nouveaux.') .'</em>';
+			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t created enough '. ($isBattle ? "arenas":"circuits") .' to make a cup<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create other ones.':'Vous n\'avez pas encore créé assez '. ($isBattle ? "d'arènes":"de circuits") .' pour faire une coupe.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en créer de nouveaux.') .'</em>';
 		?>
 		<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
 			<div id="table-container">
@@ -156,8 +185,9 @@ if (isset($cids))
 		printCollabImportPopup('circuit', $mode);
 		?>
 		<div class="editor-navigation">
-			<a href="<?php echo $mode ? 'simplecup.php':'completecup.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une coupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></u></a>
-			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>
+			<a href="<?php echo ($mode ? 'completecup.php':'simplecup.php').($isBattle ? '':'?battle'); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup of '. ($isBattle ? 'circuits':'arenas')):('Créer une coupe '. ($isBattle ? 'de circuits':'d\'arènes')); ?></u></a>
+			<a href="<?php echo ($mode ? 'simplecup.php':'completecup.php').($isBattle ? '?battle':''); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup in '. ($mode ? 'simplified':'complete') .' mode'):('Créer une coupe en mode '. ($mode ? 'simplifié':'complet')); ?></u></a>
+			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</div>
 </body>
