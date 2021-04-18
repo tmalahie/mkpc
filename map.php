@@ -43,7 +43,6 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	$isCup = true;
 	$isMCup = true;
 	if (isset($_GET['nid'])) { // Multicups being edited
-		include('escape_all.php');
 		$nid = intval($_GET['nid']);
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $nid .'" AND mode=1'))) {
 			$cName = $getMain['nom'];
@@ -108,30 +107,10 @@ elseif (isset($_GET['cid'])) { // Existing cup
 else { // Existing track
 	$isCup = false;
 	$isMCup = false;
-	$id = isset($_GET['i']) ? intval($_GET['i']) : 0;
+	$id = isset($_GET['i']) ? $_GET['i']:0;
 	$nid = $id;
-	if ($circuit = mysql_fetch_array(mysql_query('SELECT c.*,d.data,(nom IS NOT NULL) as shared FROM `circuits` c LEFT JOIN `circuits_data` d ON c.id=d.id WHERE c.id="'.$id.'"'))) {
-		$cShared = $circuit['shared'];
-		if ($cShared) {
-			$cName = $circuit['nom'];
-			$cPseudo = $circuit['auteur'];
-		}
-		else {
-			$cName = null;
-			$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
-		}
-		$cAuteur = $circuit['auteur'];
-		$cDate = $circuit['publication_date'];
-		$pNote = $circuit['note'];
-		$pNotes = $circuit['nbnotes'];
-		$creationData = $circuit;
-		$hthumbnail = 'https://mkpc.malahieude.net/racepreview.php?id='.$id;
-		addCircuitChallenges('circuits', $nid,$circuit['nom'], $clPayloadParams);
-	}
-	else {
-		mysql_close();
-		exit;
-	}
+	$trackIDs = array($id);
+	$hthumbnail = 'https://mkpc.malahieude.net/racepreview.php?id='.$id;
 }
 $cupNames = array();
 if ($isMCup && !isset($trackIDs)) {
@@ -179,11 +158,16 @@ if (isset($trackIDs)) {
 	}
 	if (!$isCup && isset($circuitsData[0])) {
 		$infos = $circuitsData[0];
-		$cName = $infos['name'];
-		$cPseudo = $infos['auteur'];
+		$cName = $infos['nom'];
+		$cAuteur = $infos['auteur'];
+		$cDate = $infos['publication_date'];
 		$pNote = $infos['note'];
 		$pNotes = $infos['nbnotes'];
-		$cDate = $infos['publication_date'];
+		$cShared = (null !== $cName);
+		if ($cShared)
+			$cPseudo = $cAuteur;
+		else
+			$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	}
 }
 elseif (isset($circuit))
@@ -370,7 +354,7 @@ if ($canChange) {
 			if ($collab) echo '&collab='.$collab['key'];
 		?>", function(reponse) {
 			if (reponse == 1) {
-				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The circuit has been successfully removed from the list.':'Le circuit a &eacute;t&eacute; retir&eacute; de la liste avec succ&egrave;s.'; ?>';
+				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The '. ($isCup ? 'cup':'circuit') .' has been successfully removed from the list.':($isCup ? 'La coupe':'Le circuit') .' a &eacute;t&eacute; retir&eacute; de la liste avec succ&egrave;s.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
 				var cCont = document.createElement("input");
 				cCont.type = "button";
@@ -500,7 +484,7 @@ elseif ($canChange) {
 		echo $language ? 'Edit sharing':'Modifier partage';
 	else
 		echo $language ? 'Share '.$typeStr:'Partager '.$typeStr;
-	?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
+	?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
 		if ($cShared) {
 			?>
 	<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
@@ -543,10 +527,6 @@ else
 </script></div>
 </form>
 <?php
-/*if ($cShared) {
-	$message = $language ? 'New : a comment section for the circuit creations !':'Nouveau : une section commentaires pour les cr&eacute;ations de circuits !';
-	$infoMsg = true;
-}*/
 if (!isset($message) && isset($nid)) {
 	if (!$isCup) {
 		if ($cupOfCircuit = mysql_fetch_array(mysql_query('SELECT id FROM `mkcups` WHERE (circuit0="'. $nid .'" OR circuit1="'. $nid .'" OR circuit2="'. $nid .'" OR circuit3="'. $nid .'") AND mode=1 LIMIT 1'))) {
@@ -584,7 +564,7 @@ if (!isset($cannotChange)) {
 	<form id="cSave" method="post" action="" onsubmit="saveRace();return false">
 	<table id="cTable">
 	<tr><td style="text-align: right"><label for="cPseudo"><?php echo $language ? 'Enter your nick':'Indiquez votre pseudo'; ?> :</label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
-	<tr><td style="text-align: right"><label for="cName"><?php echo $language ? 'Circuit name':'Nom du circuit'; ?> :</label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName) ?>" /></td></tr>
+	<tr><td style="text-align: right"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):'Circuit').' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):'du circuit'); ?> :</label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName) ?>" /></td></tr>
 	<tr><td colspan="2" id="cSubmit"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="cAnnuler" onclick="document.getElementById('cSave').style.display='none'" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Share':'Partager'; ?>" id="cEnregistrer" /></td></tr>
 	</table>
 	</form>
@@ -597,13 +577,14 @@ if ($cShared) {
 	include('circuitUser.php');
 	require_once('reactions.php');
 	printReactionUI();
+	$circuitTable = $isMCup ? 'mkmcups' : ($isCup?'mkcups':'circuits');
 	?>
 	<div id="comments-section"></div>
 	<script type="text/javascript">
-	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $creationType; ?>",
+	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $circuitTable; ?>",
 	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
 	circuitDate = "<?php echo formatDate($cDate); ?>";
-	var circuitUser = <?php echo findCircuitUser($cAuteur,$isCup?$circuitsData[0]['ID']:$nid,'circuits'); ?>;
+	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$circuitTable); ?>;
 	</script>
 	<script type="text/javascript" src="scripts/comments.js"></script>
 	<script type="text/javascript" src="scripts/topic.js"></script>

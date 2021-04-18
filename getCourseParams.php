@@ -20,7 +20,7 @@ elseif (isset($_POST['cid']) && is_numeric($_POST['cid'])) {
 }
 elseif (isset($_POST['sid']) && is_numeric($_POST['sid'])) {
     $nid = $_POST['sid'];
-    if (mysql_numrows(mysql_query('SELECT * FROM mkcups WHERE id='. $nid .' AND mode=0'))) {
+    if (mysql_numrows(mysql_query('SELECT * FROM mkcups WHERE id='. $nid .' AND mode IN (0,2)'))) {
         $isCup = true;
         $complete = false;
     }
