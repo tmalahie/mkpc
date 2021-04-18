@@ -5,7 +5,7 @@ foreach ($circuitsData as $c => $arene) {
 	if ($c)
 		echo ',';
 	$id = $arene['ID'];
-	$circuitPayload = json_decode(gzuncompress($circuit['data']));
+	$circuitPayload = json_decode(gzuncompress($arene['data']));
 	$circuitMainData = $circuitPayload->main;
 	$circuitImg = json_decode($arene['img_data']);
 	?>

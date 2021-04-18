@@ -87,7 +87,8 @@ if ($isCup) {
 	$trackIDs = array();
 	if ($isMCup) {
 		$getMCup = mysql_fetch_array(mysql_query('SELECT nom,mode FROM `mkmcups` WHERE id="'. $nid .'"'));
-		$complete = ($getMCup['mode'] == 1);
+		$complete = ($getMCup['mode']%2 == 1);
+		$isBattle = ($getMCup['mode'] >= 2);
 		$getTracks = mysql_query('SELECT c.* FROM `mkmcups_tracks` t INNER JOIN `mkcups` c ON t.cup=c.id WHERE t.mcup="'. $nid .'" ORDER BY t.ordering');
 		$getCup = array('nom' => $getMCup['nom']);
 		while ($getTrack = mysql_fetch_array($getTracks)) {
@@ -102,7 +103,9 @@ if ($isCup) {
 		$trackIDs[] = $nid;
 	}
 	else {
-		$getCup = mysql_fetch_array(mysql_query('SELECT nom,circuit0,circuit1,circuit2,circuit3 FROM `mkcups` WHERE id="'. $nid .'"'));
+		$getCup = mysql_fetch_array(mysql_query('SELECT nom,mode,circuit0,circuit1,circuit2,circuit3 FROM `mkcups` WHERE id="'. $nid .'"'));
+		$complete = ($getCup['mode']%2 == 1);
+		$isBattle = ($getCup['mode'] >= 2);
 		$cupIDs[] = $nid;
 		for ($i=0;$i<4;$i++)
 			$trackIDs[] = $getCup['circuit'.$i];

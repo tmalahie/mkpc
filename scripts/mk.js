@@ -15496,7 +15496,7 @@ function selectTypeScreen() {
 			oPInput.onclick = function() {
 				course = this.dataset.course;
 				if (course == "CL")
-					document.location.href = "online.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid);
+					document.location.href = onlineModeLink();
 				else {
 					oScr.innerHTML = "";
 
@@ -15671,7 +15671,7 @@ function selectNbJoueurs(force) {
 		oPInput.style.paddingTop = Math.round(iScreenScale*0.5) +"px";
 		oPInput.style.paddingBottom = Math.round(iScreenScale*0.5) +"px";
 		oPInput.onclick = function() {
-			document.location.href = "online.php?"+ (complete ? "i":"id") +"="+ nid +"&battle";
+			document.location.href = onlineModeLink();
 		}
 		oScr.appendChild(oPInput);
 	}
@@ -15777,6 +15777,9 @@ function selectOnlineScreen(options) {
 	updateMenuMusic(0);
 }
 
+function onlineModeLink() {
+	return "online.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid);
+}
 function openOnlineMode(isBattle, options) {
 	if (options) {
 		xhr("onlineOptions.php", "options="+encodeURIComponent(JSON.stringify(options)), function(res) {
@@ -18081,8 +18084,12 @@ function chooseRandMap() {
 	}
 	else if (isSingle)
 		choose(1);
-	else if (isBattle)
-		choose(NBCIRCUITS+Math.ceil(Math.random()*12),true);
+	else if (isBattle) {
+		if (isCup)
+			choose(Math.ceil(Math.random()*aAvailableMaps.length),true);
+		else
+			choose(NBCIRCUITS+Math.ceil(Math.random()*12),true);
+	}
 	else
 		choose(Math.ceil(Math.random()*NBCIRCUITS),true);
 }
@@ -18583,7 +18590,7 @@ function selectRaceScreen(cup) {
 				mLink.style.padding = "4px";
 				mLink.style.borderRadius = "50%";
 				var iMap = oMaps[aAvailableMaps[i]];
-				mLink.href = (page=="MA") ? "?i="+iMap.map : "?id="+iMap.id;
+				mLink.href = complete ? "?i="+iMap.map : "?id="+iMap.id;
 				mLink.title = toLanguage("Link to this circuit", "Lien vers ce circuit");
 				mLink.onclick = function(e) {
 					e.stopPropagation();

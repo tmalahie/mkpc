@@ -1,6 +1,5 @@
 <?php
 require_once('circuitEnumsQuick.php');
-$elements = Array('a','b','c','d','e','f','g','h','i','j');
 $getInfos = Array();
 foreach ($circuitsData as $c => $arene) {
 	if ($c)
@@ -58,6 +57,7 @@ foreach ($circuitsData as $c => $arene) {
 	"map" : "?<?php
 	for ($i=0;$i<36;$i++)
 		echo 'p'.$i.'='.$arene["p$i"].'&';
+	$elements = Array('a','b','c','d','e','f','g','h','i','j');
 	for ($i=0;$i<10;$i++) {
 		$e = $elements[$i];
 		for ($j=0; isset($arene[$e.$j]); $j++)

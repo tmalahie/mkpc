@@ -19,6 +19,7 @@ if (isset($_GET['mid'])) { // Existing multicup
 		$cName = $getMCup['nom'];
 		$infos['name'] = $cName;
 		$cPseudo = $getMCup['auteur'];
+		$cAuteur = $cPseudo;
 		$pNote = $getMCup['note'];
 		$pNotes = $getMCup['nbnotes'];
 		$cDate = $getMCup['publication_date'];
@@ -38,6 +39,7 @@ elseif (isset($_GET['cid'])) { // Existing cup
 		$cName = $getCup['nom'];
 		$infos['name'] = $cName;
 		$cPseudo = $getCup['auteur'];
+		$cAuteur = $cPseudo;
 		$pNote = $getCup['note'];
 		$pNotes = $getCup['nbnotes'];
 		$cDate = $getCup['publication_date'];
@@ -53,6 +55,7 @@ elseif (isset($_GET['id'])) { // Existing track
 	$nid = $id;
 	$trackIDs = array($id);
 	$hthumbnail = 'https://mkpc.malahieude.net/mappreview.php?id='.$id;
+	$cShared = true;
 }
 elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) { // Cup being created
 	$isCup = true;
@@ -62,6 +65,7 @@ elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && 
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcups` WHERE id="'. $nid .'" AND mode=0 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
+			$cAuteur = $cPseudo;
 			$pNote = $getMain['note'];
 			$pNotes = $getMain['nbnotes'];
 			$cDate = $getMain['publication_date'];
@@ -84,6 +88,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkmcups` WHERE id="'. $nid .'" AND mode=0 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
+			$cAuteur = $cPseudo;
 			$pNote = $getMain['note'];
 			$pNotes = $getMain['nbnotes'];
 			$cDate = $getMain['publication_date'];
@@ -104,6 +109,7 @@ else { // Track being created
 			$infos['id'] = $nid;
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
+			$cAuteur = $cPseudo;
 			$pNote = $getMain['note'];
 			$pNotes = $getMain['nbnotes'];
 			$cDate = $getMain['publication_date'];
@@ -200,6 +206,7 @@ if (isset($trackIDs)) {
 		$infos = $circuitsData[0];
 		$cName = $infos['name'];
 		$cPseudo = $infos['auteur'];
+		$cAuteur = $cPseudo;
 		$pNote = $infos['note'];
 		$pNotes = $infos['nbnotes'];
 		$cDate = $infos['publication_date'];
@@ -267,31 +274,7 @@ var cp = <?php include('getPersos.php'); ?>;
 var pUnlocked = <?php include('getLocks.php'); ?>;
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
 var page = "CI";
-<?php
-if ($isCup) {
-	if ($isMCup) {
-		echo 'var cupScore = 0;';
-		echo 'var ptsGP = "';
-		$ptsGP = array();
-		if (!empty($cupIDs)) {
-			$getScores = mysql_query('SELECT cup,score FROM `mkwins` WHERE cup IN ('. implode(',',$cupIDs) .') AND identifiant="'.$identifiants[0].'" AND identifiant2="'.$identifiants[1].'" AND identifiant3="'.$identifiants[2].'" AND identifiant4="'.$identifiants[3].'"');
-			while ($getScore = mysql_fetch_array($getScores))
-				$ptsGP[$getScore['cup']] = $getScore['score'];
-			foreach ($cupIDs as $i => $cupID)
-				echo (isset($ptsGP[$cupID]) ? $ptsGP[$cupID]:0);
-		}
-		echo '";';
-	}
-	else {
-		$cupScore = 0;
-		if ($nid) {
-			if ($getScore = mysql_fetch_array(mysql_query('SELECT score FROM `mkwins` WHERE cup="'. $nid .'" AND identifiant="'.$identifiants[0].'" AND identifiant2="'.$identifiants[1].'" AND identifiant3="'.$identifiants[2].'" AND identifiant4="'.$identifiants[3].'"')))
-				$cupScore = $getScore['score'];
-		}
-		echo 'var cupScore = '. $cupScore .';';
-	}
-}
-?>
+<?php include('getCupScore.php'); ?>
 var PERSOS_DIR = "<?php
 	include('persos.php');
 	echo PERSOS_DIR;
@@ -490,7 +473,7 @@ elseif ($canChange) {
 <input type="button" id="changeRace" onclick="document.location.href='<?php echo ($isCup ? ($isMCup ? 'simplecups.php':'simplecup.php'):'create.php') ?>'+document.location.search" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" />
 <br /><br />
 
-<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php echo ($language ? 'Share '.$typeStr:'Partager '.$typeStr); ?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
+<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php echo ($language ? 'Share '.$typeStr:'Partager '.$typeStr); ?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
 	if (isset($_GET[$sid])) {
 		?>
 <br /><br /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
@@ -582,13 +565,14 @@ include('gameInitElts.php');
 <?php
 if (isset($id)) {
 	include('circuitUser.php');
+	$circuitTable = $isMCup ? 'mkmcups' : ($isCup?'mkcups':'mkcircuits');
 	?>
 	<div id="comments-section"></div>
 	<script type="text/javascript">
-	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $isMCup ? 'mkmcups' : ($isCup?'mkcups':'mkcircuits'); ?>",
-	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cPseudo)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
+	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $circuitTable; ?>",
+	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
 	circuitDate = "<?php echo formatDate($cDate); ?>";
-	var circuitUser = <?php echo findCircuitUser($cPseudo,$isCup?$circuitsData[0]['id']:$nid,'mkcircuits'); ?>;
+	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$circuitTable); ?>;
 	</script>
 	<script type="text/javascript" src="scripts/comments.js"></script>
 	<?php
