@@ -127,6 +127,8 @@ for (circuits in oMaps) {
 		}
 	}
 }
+if (isCup && (aAvailableMaps.length > 4))
+	isMCups = true;
 
 var iWidth = 80;
 var iHeight = 39;
@@ -18215,12 +18217,15 @@ function selectMapScreen(force) {
 		}
 
 		var coupes = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
-		var nbcoupes = NBCIRCUITS/4;
+		var nbcoupes;
 		var cups_per_line = 6;
 		if (course == "BB") {
-			coupes = ["snes","gba","ds"];
-			nbcoupes = 3;
+			nbcoupes = (aAvailableMaps.length-NBCIRCUITS)/4;
+			if (!isCup)
+				coupes = ["snes","gba","ds"];
 		}
+		else
+			nbcoupes = NBCIRCUITS/4;
 		var nb_lines = Math.ceil(nbcoupes/cups_per_line);
 		if (cupOpts.lines)
 			nb_lines = cupOpts.lines.length;
@@ -18234,7 +18239,7 @@ function selectMapScreen(force) {
 		var cup_width = Math.min(Math.round(10.5/Math.pow(Math.max(nbcoupes/5,nb_lines,0.5),0.6)),16/nb_lines,60/max_cups_per_line);
 		var cup_margin_x = Math.min(4,20/max_cups_per_line), cup_margin_y = (4/nb_lines);
 		var cup_offset_x = 1, cup_offset_y = 38;
-		if (course == "BB") {
+		if (!isCup && (course == "BB")) {
 			cup_width = Math.round(cup_width*1.5);
 			cup_margin_x = Math.round(cup_margin_x*2);
 			cup_offset_y -= 3;
@@ -18339,7 +18344,7 @@ function selectMapScreen(force) {
 				selectRaceScreen(this.alt*4);
 			}
 
-			if (course == "BB") {
+			if (!isCup && (course == "BB")) {
 				var labels = [toLanguage("SNES Stages", "Arènes SNES"), toLanguage("GBA Stages", "Arènes GBA"), toLanguage("DS Stages", "Arènes DS")];
 				var oLabel = document.createElement("div");
 				oLabel.style.position = "absolute"
@@ -18541,7 +18546,7 @@ function selectRaceScreen(cup) {
 					else
 						selectMapScreen(true);
 				}
-				else if (!isCup)
+				else if (!isCup || isMCups)
 					selectMapScreen(true);
 				else if (!pause) selectGamersScreen();
 				else {removeMenuMusic(false);quitter();}
@@ -18591,7 +18596,7 @@ function selectRaceScreen(cup) {
 				mLink.style.borderRadius = "50%";
 				var iMap = oMaps[aAvailableMaps[i]];
 				mLink.href = complete ? "?i="+iMap.map : "?id="+iMap.id;
-				mLink.title = toLanguage("Link to this circuit", "Lien vers ce circuit");
+				mLink.title = toLanguage("Link to this " + (isBattle ? "arena":"circuit"), "Lien vers " + (isBattle ? "cette arène":"ce circuit"));
 				mLink.onclick = function(e) {
 					e.stopPropagation();
 				}
@@ -20713,15 +20718,7 @@ if (pause) {
 		choose(1);
 	else if (fInfos.map != undefined)
 		loadMap(fInfos.map);
-	else if (course == "VS")
-		selectMapScreen();
-	else if (course == "BB") {
-		if (isCup)
-			selectRaceScreen(NBCIRCUITS);
-		else
-			selectMapScreen();
-	}
-	else if (fInfos.player)
+	else
 		selectMapScreen();
 }
 else {

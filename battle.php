@@ -218,7 +218,7 @@ var PERSOS_DIR = "<?php
 	echo PERSOS_DIR;
 ?>";
 var cShared = <?php echo $cShared ? 'true':'false'; ?>;
-var isBattle = false;
+var isBattle = true;
 var isCup = true;
 var isSingle = <?php echo $isCup ? 'false':'true'; ?>;
 var complete = true;
@@ -309,7 +309,28 @@ if ($canChange) {
 				cCont.type = "button";
 				cCont.value = language ? "Continue" : "Continuer";
 				cCont.onclick = function() {
-					document.location.href = "?i=<?php echo $id ?>";
+					document.location.href = "?<?php
+					if ($isMCup) {
+						foreach ($cupIDs as $i => $cupID) {
+							if ($i)
+								echo '&';
+							echo 'mid'. $i .'='. $cupIDs[$i];
+						}
+						if (!empty($cOptions))
+							echo '&opt='. urlencode($cOptions);
+						if ($clId) echo '&cl='.$clId;
+					}
+					elseif ($isCup) {
+						for ($i=0;$i<4;$i++) {
+							if ($i)
+								echo '&';
+							echo 'cid'. $i .'='. $cupIDs[$i];
+						}
+						if ($clId) echo '&cl='.$clId;
+					}
+					else
+						echo 'i='.$nid;
+					?>";
 				};
 				document.getElementById("supprButtons").appendChild(cCont);
 				return true;

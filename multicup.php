@@ -5,9 +5,11 @@ $mids = array();
 $editting = true;
 $optionsJson = isset($_GET['opt']) ? $_GET['opt']:null;
 include('initdb.php');
+$isBattle = isset($_GET['battle']);
 mysql_set_charset('utf8');
 if (isset($_GET['mid'])) {
 	$id = $_GET['mid'];
+	$cupMode = $isBattle*2 + $mode;
 	$getCups = mysql_query('SELECT cup FROM `mkmcups_tracks` WHERE mcup="'. $id .'" ORDER BY ordering');
 	while ($getCup = mysql_fetch_array($getCups))
 		$mids[] = $getCup['cup'];
@@ -76,12 +78,15 @@ if (isset($mids))
 				<?php
 			}
 			?></div>
-		<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
+		<form method="get" action="<?php echo $isBattle ? ($mode ? 'battle.php':'arena.php') : ($mode ? 'map.php':'circuit.php'); ?>">
 		<div class="editor-content editor-content-active">
 			<h1><?php echo $language ? 'Cups selection':'Sélection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
 			<?php
 			include('utils-circuits.php');
-			$type = 3-$mode;
+			if ($isBattle)
+				$type = 9-$mode;
+			else
+				$type = 3-$mode;
 			$aCircuits = array($aCircuits[$type]);
 			$aParams = array(
 				'pids' => $identifiants,
@@ -91,7 +96,7 @@ if (isset($mids))
 			$nbCups = count($listCups);
 			if ($nbCups) {
 				if ($nbCups < 2)
-					echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une nouvelle.') .'</em>';
+					echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">ici</a> pour en créer une nouvelle.') .'</em>';
 				?>
 				<div id="table-container">
 					<table id="table-circuits">
@@ -149,7 +154,8 @@ if (isset($mids))
 		</div>
 		</form>
 		<div class="editor-navigation">
-			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
+			<a href="<?php echo ($mode ? 'completecups.php':'simplecups.php').($isBattle ? '':'?battle'); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup of '. ($isBattle ? 'circuits':'arenas')):('Créer une multicoupe '. ($isBattle ? 'de circuits':'d\'arènes')); ?></a></u>
+			<a href="<?php echo ($mode ? 'simplecups.php':'completecups.php').($isBattle ? '?battle':''); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
 			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</div>
