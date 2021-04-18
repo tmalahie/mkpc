@@ -423,8 +423,8 @@ include('menu.php');
 		<select name="type" onchange="this.form.submit()">
 		<?php
 		$types = $language
-		 ? Array('Complete mode  - multicups',	'Quick mode - multicups',		'Complete mode - cups',	'Quick mode - cups',		'Complete mode - circuits',	'Quick mode - circuits',	'Complete mode - arenas','Quick mode - arenas')
-		 : Array('Mode complet  - multicoupes',	'Mode simplifié - multicoupes',	'Mode complet - coupes',	'Mode simplifié - coupes',	'Mode complet - circuits',	'Mode simplifié - circuits','Mode complet - arènes','Mode simplifié - arènes');
+		 ? Array('Complete mode  - multicups',	'Quick mode - multicups',		'Complete mode - cups',	'Quick mode - cups',		'Complete mode - circuits',	'Quick mode - circuits',	'Complete mode - arenas','Quick mode - arenas',	'Complete mode - battle cups','Quick mode - battle cups',	'Complete mode - battle multicups','Quick mode - battle multicups')
+		 : Array('Mode complet  - multicoupes',	'Mode simplifié - multicoupes',	'Mode complet - coupes',	'Mode simplifié - coupes',	'Mode complet - circuits',	'Mode simplifié - circuits','Mode complet - arènes','Mode simplifié - arènes','Mode complet - coupes bataille','Mode simplifié - coupes bataille','Mode complet - multicoupes bataille','Mode simplifié - multicoupes bataille');
 		echo '<option value=""'. (($type === '') ? ' selected="selected"':'') .'">'. ($language ? 'All creations':'Toutes les créations') . ($singleType ? '':' ('. $nbCreations .')') .'</option>';
 		foreach ($types as $i=>$iType)
 			echo '<option value="'. $i .'"'. ((strval($i) === $type) ? ' selected="selected"':'') .'>'. $iType . ($singleType ? '':' ('.$nbByType[$i].')') .'</option>';

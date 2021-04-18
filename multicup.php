@@ -6,10 +6,12 @@ $editting = true;
 $cOptions = isset($_GET['opt']) ? $_GET['opt']:null;
 include('initdb.php');
 require_once('collabUtils.php');
+$isBattle = isset($_GET['battle']);
 $readOnly = false;
 if (isset($_GET['mid'])) {
 	$id = intval($_GET['mid']);
-	$getMCup = mysql_fetch_array(mysql_query('SELECT options,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $id .'"'));
+	$cupMode = $isBattle*2 + $mode;
+	$getMCup = mysql_fetch_array(mysql_query('SELECT options,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $id .'" AND mode="'. $cupMode .'"'));
 	if (($getMCup['identifiant'] == $identifiants[0]) && ($getMCup['identifiant2'] == $identifiants[1]) && ($getMCup['identifiant3'] == $identifiants[2]) && ($getMCup['identifiant4'] == $identifiants[3])) {
 		$hasReadGrants = true;
 		$hasWriteGrants = true;
@@ -110,7 +112,10 @@ include('handleCupOptions.php');
 			<?php
 			include('utils-circuits.php');
 			include('utils-cups.php');
-			$type = 3-$mode;
+			if ($isBattle)
+				$type = 9-$mode;
+			else
+				$type = 3-$mode;
 			$aCircuits = array($aCircuits[$type]);
 			$aParams = array(
 				'pids' => $identifiants,
@@ -132,9 +137,9 @@ include('handleCupOptions.php');
 			}
 			$nbCups = count($listCups);
 			if (!$nbCups)
-				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create one.':'Vous n\'avez pas encore partagé de coupes en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une.') .'</em>';
+				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">here</a> to create one.':'Vous n\'avez pas encore partagé de coupes en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">ici</a> pour en créer une.') .'</em>';
 			elseif ($nbCups < 2)
-				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une nouvelle.') .'</em>';
+				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">ici</a> pour en créer une nouvelle.') .'</em>';
 			?>
 			<div id="table-container">
 				<table id="table-circuits">
@@ -212,7 +217,8 @@ include('handleCupOptions.php');
 		printCollabImportPopup('cup', $mode);
 		?>
 		<div class="editor-navigation">
-			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
+			<a href="<?php echo ($mode ? 'completecups.php':'simplecups.php').($isBattle ? '':'?battle'); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup of '. ($isBattle ? 'circuits':'arenas')):('Créer une multicoupe '. ($isBattle ? 'de circuits':'d\'arènes')); ?></a></u>
+			<a href="<?php echo ($mode ? 'simplecups.php':'completecups.php').($isBattle ? '?battle':''); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
 			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</div>

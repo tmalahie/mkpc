@@ -226,7 +226,7 @@ var PERSOS_DIR = "<?php
 	echo PERSOS_DIR;
 ?>";
 var cShared = <?php echo $cShared ? 'true':'false'; ?>;
-var isBattle = false;
+var isBattle = true;
 var isCup = true;
 var isSingle = <?php echo $isCup ? 'false':'true'; ?>;
 var complete = true;

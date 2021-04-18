@@ -8,7 +8,11 @@ $cCircuits = 'SELECT *,ID AS id,4 AS category FROM circuits WHERE nom IS NOT NUL
 $sCircuits = 'SELECT *,5 AS category FROM mkcircuits WHERE !type';
 $cArenes = 'SELECT *,ID AS id,6 AS category FROM arenes WHERE nom IS NOT NULL';
 $sArenes = 'SELECT *,7 AS category FROM mkcircuits WHERE type';
-$aCircuits = array($cMCups,$sMCups,$cCups,$sCups,$cCircuits,$sCircuits,$cArenes,$sArenes);
+$caCups = 'SELECT *,8 AS category FROM mkcups WHERE mode=3';
+$saCups = 'SELECT *,9 AS category FROM mkcups WHERE mode=2';
+$caMCups = 'SELECT *,10 AS category FROM mkmcups WHERE mode=3';
+$saMCups = 'SELECT *,11 AS category FROM mkmcups WHERE mode=2';
+$aCircuits = array($cMCups,$sMCups,$cCups,$sCups,$cCircuits,$sCircuits,$cArenes,$sArenes,$caCups,$saCups,$caMCups,$saMCups);
 function listRaces($sql) {
 	$liste = Array();
 	$i = 0;
@@ -176,9 +180,9 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 			$creationsList['tracks'] = array_merge($creationsList['tracks'], $aList);
 			if (isset($aList[0])) {
 				$aType = $aList[0]['category'];
-				if ($aType < 2)
+				if (in_array($aType, array(0,1,10,11)))
 					$creationsList['mcups'] = array_merge($creationsList['mcups'], $aList);
-				elseif ($aType < 4)
+				elseif (in_array($aType, array(2,3,8,9)))
 					$creationsList['cups'] = array_merge($creationsList['cups'], $aList);
 			}
 		}
@@ -251,8 +255,21 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 		case 6 :
 			$linkUrl = 'battle.php?i='. $cId;
 			break;
-		default :
+		case 7 :
 			$linkUrl = 'arena.php?id='. $cId;
+			break;
+		case 8 :
+			$linkUrl = 'battle.php?cid='. $cId;
+			break;
+		case 9 :
+			$linkUrl = 'arena.php?cid='. $cId;
+			break;
+		case 10 :
+			$linkUrl = 'battle.php?mid='. $cId;
+			break;
+		case 11 :
+			$linkUrl = 'arena.php?mid='. $cId;
+			break;
 	}
 	switch ($cType) {
 	case 0 :
@@ -299,6 +316,35 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 		$linkBg = 'trackicon.php?id='. $cId .'&type=0';
 		$linkPreview[] = 'mappreview.php?id='. $cId;
 		$linksCached[] = 'mappreview' . $cId .'.png';
+		break;
+	case 8 :
+	case 9 :
+		if ($cType == 8) {
+			$baseUrl = 'coursepreview.php?id=';
+			$baseCache = 'coursepreview';
+		}
+		else {
+			$baseUrl = 'mappreview.php?id=';
+			$baseCache = 'mappreview';
+		}
+		$lIds = $lCups[$cId];
+		foreach ($lIds as $i=>$lId) {
+			$lId = $lIds[$i];
+			$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type='. (15-$cType);
+			$linkPreview[] = $baseUrl . $lId;
+			$linksCached[] = $baseCache . $lId .'.png';
+		}
+		break;
+	case 10 :
+	case 11 :
+		if ($cType == 10)
+			$baseUrl = 'coursepreview.php?id=';
+		else
+			$baseUrl = 'mappreview.php?id=';
+		$linkBg .= 'trackicon.php?id='. $cId .'&type=4';
+		$linksCached[] = 'mcuppreview'. $cId .'.png';
+		foreach ($mCups[$cId] as $lId)
+			$linkPreview[] = $baseUrl . $lId;
 		break;
 	}
 	$allCached = true;
