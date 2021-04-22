@@ -48,19 +48,13 @@ function toSQLSort($sql, $params) {
 	$asc = isset($params['reverse']) ? 'DESC':'ASC';
 	switch ($params['tri']) {
 	case 0 :
-		$sort = "IFNULL(publication_date,'2001-01-01') $desc, id $desc";
+		$sort = "publication_date $desc, id $desc";
 		break;
 	case 1 :
 		$sort = "pscore $desc, id $desc";
 		break;
 	case 2 :
 		$sort = "nbcomments $desc, id $desc";
-		break;
-	case 3 :
-		$sort = "(nom='') $asc, nom $asc, id $desc";
-		break;
-	case 4 :
-		$sort = "RAND()";
 	}
 	return toSQLFilter($sql, $params) .' ORDER BY '. $sort;
 }
