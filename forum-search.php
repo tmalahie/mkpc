@@ -161,25 +161,25 @@ if ($oneset) {
 	$wheres = array();
 	//$wheres[] = 'language='. $language;
 	if (is_numeric($category))
-		$wheres[] = 'category='. $category;
+		$wheres[] = 't.category='. $category;
 	if ($title)
-		$wheres[] = 'titre LIKE "'. toSQLSearch($title) .'"';
+		$wheres[] = 't.titre LIKE "'. toSQLSearch($title) .'"';
 	if ($author) {
 		if ($getAuthorId = mysql_fetch_array(mysql_query('SELECT id FROM mkjoueurs WHERE nom="'. $author .'"')))
-			$wheres[] = 'auteur="'. $getAuthorId['id'] .'"';
+			$wheres[] = 'm.auteur="'. $getAuthorId['id'] .'"';
 		else
-			$wheres[] = 'auteur=0';
+			$wheres[] = 'm.auteur=0';
 	}
 	if ($message) {
 		//$message = '+'.implode(' +', preg_split("/[\s,]+/", $message));
-		$wheres[] = 'MATCH(message) AGAINST ("\"'. mysql_real_escape_string(str_replace('"','',$message)) .'\"" IN BOOLEAN mode)';
+		$wheres[] = 'MATCH(m.message) AGAINST ("\"'. mysql_real_escape_string(str_replace('"','',$message)) .'\"" IN BOOLEAN mode)';
 	}
 	if ($date0)
-		$wheres[] = 'date >= "'. $date0 .'"';
+		$wheres[] = 'm.date >= "'. $date0 .'"';
 	if ($date1)
-		$wheres[] = 'date <= "'. $date1 .'"';
+		$wheres[] = 'm.date <= "'. $date1 .'"';
 	if ($topiconly)
-		$wheres[] = 'mkmessages.id=1';
+		$wheres[] = 'm.id=1';
 	$where = implode(' AND ',$wheres);
 	$maxRes = ($page+7)*$RES_PER_PAGE;
 	$getNbRes = mysql_fetch_array(mysql_query("SELECT COUNT(*) AS nb FROM (SELECT m.id FROM $from WHERE $where LIMIT $maxRes) t"));
