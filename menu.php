@@ -399,7 +399,7 @@
 					foreach ($list as $iNotif) {
 						$idsSql .= $o;
 						$o = ' OR ';
-						$idsSql .= 'id="'. $iNotif['sender'] .'"';
+						$idsSql .= 'id="'. (isset($iNotif['sender']) ? $iNotif['sender']:'') .'"';
 					}
 					$getUsers = mysql_query('SELECT nom FROM `mkjoueurs` WHERE '. $idsSql);
 					while ($user = mysql_fetch_array($getUsers))
