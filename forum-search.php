@@ -188,7 +188,7 @@ if ($oneset) {
 	?>
 	<h2><?php echo $language ? 'Results':'Résultats'; ?> <?php
 	if ($nbres) {
-		echo ($page-1)*$RES_PER_PAGE;
+		echo min(($page-1)*$RES_PER_PAGE+1,$nbres);
 		echo '-';
 		echo min($page*$RES_PER_PAGE,$nbres);
 		echo $language ? ' out of ' : ' sur ';
@@ -222,7 +222,7 @@ if ($oneset) {
 		}
 		if (!$oneResult) {
 			echo '<h4>';
-			echo $language ? 'No result in this page. It generally occurs when topics are deleted or private. Please check the following page' : 'Aucun résultat sur cette page. Cela se produit généralement lorsque les sujets sont supprimés ou privés. Essayez la page suivante';
+			echo $language ? 'No result in this page. It generally occurs when messages are deleted or made private. Please check the next or previous page' : 'Aucun résultat sur cette page. Cela se produit généralement lorsque les messages sont supprimés ou rendus privés. Essayez la page suivante ou précédente';
 			echo '</h4>';
 		}
 		?>
