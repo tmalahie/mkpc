@@ -157,18 +157,19 @@ if ($oneset) {
 	include('avatars.php');
 	require_once('getRights.php');
 	include('bbCode.php');
-	$sql = 'SELECT mkmessages.id,nom,titre,topic,message,auteur,date
-			FROM `mkmessages` INNER JOIN `mktopics` ON mktopics.id=mkmessages.topic LEFT JOIN `mkjoueurs` ON mkjoueurs.id=mkmessages.auteur';
+	$from = '`mkmessages` m INNER JOIN `mktopics` t ON t.id=m.topic';
 	$wheres = array();
 	//$wheres[] = 'language='. $language;
-	if (!hasRight('manager'))
-		$wheres[] = 'private=0';
 	if (is_numeric($category))
 		$wheres[] = 'category='. $category;
 	if ($title)
 		$wheres[] = 'titre LIKE "'. toSQLSearch($title) .'"';
-	if ($author)
-		$wheres[] = 'nom="'. $author .'"';
+	if ($author) {
+		if ($getAuthorId = mysql_fetch_array(mysql_query('SELECT id FROM mkjoueurs WHERE nom="'. $author .'"')))
+			$wheres[] = 'auteur="'. $getAuthorId['id'] .'"';
+		else
+			$wheres[] = 'auteur=0';
+	}
 	if ($message) {
 		//$message = '+'.implode(' +', preg_split("/[\s,]+/", $message));
 		$wheres[] = 'MATCH(message) AGAINST ("\"'. mysql_real_escape_string(str_replace('"','',$message)) .'\"" IN BOOLEAN mode)';
@@ -179,20 +180,38 @@ if ($oneset) {
 		$wheres[] = 'date <= "'. $date1 .'"';
 	if ($topiconly)
 		$wheres[] = 'mkmessages.id=1';
-	if ($wheres)
-		$sql .= ' WHERE '. implode(' AND ',$wheres);
-	$nbres = mysql_numrows(mysql_query($sql));
+	$where = implode(' AND ',$wheres);
+	$maxRes = ($page+7)*$RES_PER_PAGE;
+	$getNbRes = mysql_fetch_array(mysql_query("SELECT COUNT(*) AS nb FROM (SELECT m.id FROM $from WHERE $where LIMIT $maxRes) t"));
+	$nbres = $getNbRes['nb'];
+	$isMax = ($nbres == $maxRes);
 	?>
-	<h1><?php echo $language ? 'Results':'Résultats'; ?> (<?php echo $nbres; ?>)</h1>
+	<h2><?php echo $language ? 'Results':'Résultats'; ?> <?php
+	if ($nbres) {
+		echo ($page-1)*$RES_PER_PAGE;
+		echo '-';
+		echo min($page*$RES_PER_PAGE,$nbres);
+		echo $language ? ' out of ' : ' sur ';
+		echo $nbres.($isMax ? '+':'');
+	}
+	else
+		echo '(0)';
+	?></h2>
 	<?php
 	if ($nbres) {
-		$sql .= ' ORDER BY dernier DESC, topic DESC, date DESC LIMIT '.(($page-1)*$RES_PER_PAGE).','.$RES_PER_PAGE;
+		$sql = "SELECT m.id,t.titre,m.topic,m.message,m.auteur,t.private,m.date FROM $from WHERE $where";
+		$sql .= ' ORDER BY t.dernier DESC, m.topic DESC, m.date DESC LIMIT '.(($page-1)*$RES_PER_PAGE).','.$RES_PER_PAGE;
 		$search = mysql_query($sql);
 		?>
 		<div class="fMessages">
 		<?php
 		$topicName = '';
+		$isManager = hasRight('manager');
+		$oneResult = false;
 		while ($result = mysql_fetch_array($search)) {
+			if ($result['private'] && !$isManager)
+				continue;
+			$oneResult = true;
 			if ($result['titre'] != $topicName) {
 				$topicName = $result['titre'];
 				echo '</div>';
@@ -200,6 +219,11 @@ if ($oneset) {
 				echo '<div class="fMessages" data-topic="'.$result['topic'].'">';
 			}
 			print_forum_msg($result,false);
+		}
+		if (!$oneResult) {
+			echo '<h4>';
+			echo $language ? 'No result in this page. It generally occurs when topics are deleted or private. Please check the following page' : 'Aucun résultat sur cette page. Cela se produit généralement lorsque les sujets sont supprimés ou privés. Essayez la page suivante';
+			echo '</h4>';
 		}
 		?>
 		</div>
@@ -226,6 +250,8 @@ if ($oneset) {
 						echo ' &nbsp; ';
 					}
 				}
+				if ($isMax)
+					echo '...';
 				?>
 			</p></div>
 			<?php
