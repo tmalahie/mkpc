@@ -69,7 +69,7 @@ for ($i=0;isset($_POST['c'.$i])&&isset($_POST['m'.$i]);$i++) {
 	$colon = ',';
 }
 echo '},[';
-$unseenSQL = 'SELECT c.id,c.sender,c.message,j.nom FROM `mkchats` c INNER JOIN(SELECT MAX(id) AS maxID, sender FROM `mkchats` WHERE receiver="'. $id .'" GROUP BY sender) m ON c.id=m.maxID INNER JOIN `mkjoueurs` j ON c.sender=j.id WHERE c.receiver="'. $id .'" AND c.seen=0';
+$unseenSQL = 'SELECT c.id,c.sender,c.message,j.nom FROM `mkchats` c INNER JOIN(SELECT MAX(id) AS maxID, sender FROM `mkchats` WHERE receiver="'. $id .'" AND seen=0 GROUP BY sender) m ON c.id=m.maxID INNER JOIN `mkjoueurs` j ON c.sender=j.id WHERE c.receiver="'. $id .'" AND c.seen=0';
 for ($i=0;isset($_POST['c'.$i])&&isset($_POST['m'.$i]);$i++)
 	$unseenSQL .= ' AND c.sender!="'. $_POST['c'.$i] .'"';
 $unseenMsgs = mysql_query($unseenSQL);
