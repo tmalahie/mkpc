@@ -184,7 +184,10 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 	return $creationsList['tracks'];
 }
 function countRows($sql,&$params) {
-	return mysql_numrows(mysql_query(toSQLSort($sql,$params)));
+	$query = toSQLSort($sql,$params);
+	$countQuery = preg_replace('#^SELECT.+? FROM #', 'SELECT COUNT(*) AS nb FROM ', $query);
+	$count = mysql_fetch_array(mysql_query($countQuery));
+	return $count['nb'];
 }
 function escape($str) {
 	return str_replace('</script>', '<\/script>', str_replace('%u', '\\u', str_replace('"', '\\"', str_replace('\\', '\\\\', utf8_encode($str)))));
