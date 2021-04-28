@@ -3,6 +3,7 @@ homemade-git/
 initdb.php
 initId.php
 initKey.php
+docker/mysql/setup.sql
 .user.ini
 .htaccess
 .vscode
