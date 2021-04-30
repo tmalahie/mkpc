@@ -2382,7 +2382,7 @@ function startGame() {
 				})(decorBehavior);
 			}
 			if (decorBehavior.preinit)
-				decorBehavior.preinit(oMap.decor[type]);
+				decorBehavior.preinit(oMap.decor[type],decorBehavior);
 		}
 		var decorIncs = {};
 		for (var type in oMap.decor) {
@@ -5970,12 +5970,12 @@ var decorBehaviors = {
 	poisson:{
 		spin: 20,
 		movable:true,
-		preinit:function(decorsData) {
-			this.scope = {
+		preinit:function(decorsData,$this) {
+			$this.scope = {
 				limite: new Array()
 			};
 			for (var i=0;i<decorsData.length;i++)
-				this.scope.limite[i] = [0,0];
+				$this.scope.limite[i] = [0,0];
 		},
 		init:function(decorData,i,iG) {
 			if (decorData.length > 3) return;
@@ -5984,16 +5984,16 @@ var decorBehaviors = {
 			decorData[3] = pos1[iG%2];
 			decorData[4] = pos2[iG%2];
 		},
-		move:function(decorData,i) {
+		move:function(decorData,i,iG,scope) {
 			decorData[3] += decorData[4];
 			if (decorData[3]) {
 				if (decorData[3] == 3) {
 					decorData[4] = -1;
 					for (var j=0;j<2;j++) {
 						var o = Math.floor(9*Math.random())-4;
-						if (Math.abs(this.scope.limite[i][j]+o) > 10)
+						if (Math.abs(scope.limite[i][j]+o) > 10)
 							o = -o;
-						this.scope.limite[i][j] += o;
+						scope.limite[i][j] += o;
 						decorData[j] += o;
 					}
 				}
@@ -6005,14 +6005,14 @@ var decorBehaviors = {
 	cheepcheep:{
 		spin: 20,
 		movable:true,
-		preinit:function(decorsData) {
+		preinit:function(decorsData,$this) {
 			this.preinit = decorBehaviors.poisson.preinit.bind(this);
 			this.init = decorBehaviors.poisson.init.bind(this);
 			this.move_ = decorBehaviors.poisson.move.bind(this);
-			this.preinit(decorsData);
+			this.preinit(decorsData,$this);
 		},
-		move: function(decorData,i,iG) {
-			this.move_(decorData,i,iG);
+		move: function(decorData,i,iG,$this) {
+			this.move_(decorData,i,iG,$this);
 			if (decorData[3]%3 == 0) {
 				for (var j=0;j<oPlayers.length;j++)
 					decorData[2][j].setState(decorData[3] ? 1:0);
@@ -10812,8 +10812,12 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 				var asset = oMap[key][i];
 				var cX = asset[1][0], cY = asset[1][1], cR = asset[1][2]/2;
 				if ((iX-cX)*(iX-cX) + (iY-cY)*(iY-cY) < (cR*cR)) {
-					if ((aPosX-cX)*(aPosX-cX) + (aPosY-cY)*(aPosY-cY) < (cR*cR/4))
-						continue;
+					if (!asset[2][5]) {
+						var aR = (aPosX-cX)*(aPosX-cX) + (aPosY-cY)*(aPosY-cY);
+						var iR = (iX-cX)*(iX-cX) + (iY-cY)*(iY-cY);
+						if (aR <= iR)
+							continue;
+					}
 					return [key,asset];
 				}
 			}
@@ -11941,7 +11945,7 @@ function move(getId, triggered) {
 						if (uu)
 							oKart.shift = [pushSpeed*ux/uu,pushSpeed*uy/uu,0];
 						else
-							oKart.shift = [-pushSpeed*direction(0,rotation),-pushSpeed*direction(1,rotation),0];
+							oKart.shift = [-pushSpeed*direction(0,oKart.rotation),-pushSpeed*direction(1,oKart.rotation),0];
 						if (oKart.cpu) {
 							oKart.bounced = true;
 							oKart.bouncedsince = 0;
@@ -13962,7 +13966,7 @@ function moveDecor() {
 				decorIncs[actualType] = 0;
 			
 			for (var i=0;i<decor.length;i++)
-				decorBehavior.move(decor[i],i,i+inc);
+				decorBehavior.move(decor[i],i,i+inc,decorBehavior.scope);
 			
 			decorIncs[actualType] += decor.length;
 		}

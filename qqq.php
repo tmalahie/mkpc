@@ -18,6 +18,29 @@ if (isset($_GET['p'])) {
         $res = preg_replace('#^\[(.+)\]$#', '$1', $res).$suffix;
         return $res;
     }
+    function formatFlowData($json,$suffix=',',$l=null) {
+        $njson = $json;
+        if (null !== $l) {
+            foreach ($json as $i=>&$data) {
+                $l0 = hypot($data[1][0],$data[1][1]);
+                $data[1][0] *= $l/$l0;
+                $data[1][1] *= $l/$l0;
+            }
+            unset($data);
+        }
+        foreach ($json as $i=>&$data) {
+            $data[1][0] = round($data[1][0],2);
+            $data[1][1] = round($data[1][1],2);
+        }
+        unset($data);
+        foreach ($json as $i=>$ignored)
+            $njson[$i][1] = '__'.$i.'__';
+        $res = formatCircuitData($njson,'');
+        $res = preg_replace_callback('#"__(\d+)__"#', function ($matches) use($json) {
+            return json_encode($json[$matches[1]][1]);
+        }, $res).$suffix;
+        return $res;
+    }
     function formatCircuitPos($d,$v) {
         return $d ? '".('.('$'.$v).'+'.$d.')."':('$'.$v);
     }
@@ -122,6 +145,19 @@ collision: <?php
         }
 	}
 	unset($trousData);
+    if (!empty($circuitPayload->flows)) {
+        echo 'flows: ';
+		foreach ($circuitPayload->flows as &$flowData) {
+			if (isset($flowData[3]) && is_numeric($flowData[3])) {
+				$flowData[2]++;
+				$flowData[3]++;
+			}
+		}
+        unset($flowData);
+        printCodeInput(formatFlowData($circuitPayload->flows,',',7));
+        echo ',<br />';
+	}
+	unset($hpsData);
 ?>
 <?php
     }
