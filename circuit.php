@@ -591,7 +591,7 @@ if (isset($id)) {
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cPseudo,$isCup?$circuitsData[0]['id']:$nid,'mkcircuits'); ?>;
 	</script>
-	<script type="text/javascript" src="scripts/comments.js?reload=1"></script>
+	<script type="text/javascript" src="scripts/comments.js"></script>
 	<?php
 }
 ?>

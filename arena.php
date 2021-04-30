@@ -382,7 +382,7 @@ if (isset($nid)) {
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cPseudo,$nid,'mkcircuits'); ?>
 	</script>
-	<script type="text/javascript" src="scripts/comments.js?reload=1"></script>
+	<script type="text/javascript" src="scripts/comments.js"></script>
 	<?php
 }
 ?>

@@ -343,7 +343,7 @@ else {
 ?>
 </script>
 <script type="text/javascript" src="mk/maps.php"></script>
-<script type="text/javascript" src="scripts/mk.meta.js?reload=2"></script>
+<script type="text/javascript" src="scripts/mk.meta.js"></script>
 <script type="text/javascript">document.addEventListener("DOMContentLoaded", MarioKart);</script>
 </head>
 <body>

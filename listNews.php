@@ -11,7 +11,7 @@ require_once('getRights.php');
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/news.css?reload=1" />
+<link rel="stylesheet" type="text/css" href="styles/news.css" />
 <?php
 include('o_online.php');
 ?>
