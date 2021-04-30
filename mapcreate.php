@@ -10,9 +10,12 @@ else
 $bg = $bgColors[$map];
 imagecolorallocate($image, $bg[0], $bg[1], $bg[2]);
 
+$pieceprefix = 'piececircuit'.$map.'_';
+if (in_array($map, array(49,50)))
+	$pieceprefix .= '_';
 for ($i=0;$i<36;$i++) {
 	if (isset($_GET['p'.$i])) {
-		$piececircuit = imagecreatefrompng('images/pieces/piececircuit'.$map.'_'.$_GET['p'.$i].'.png');
+		$piececircuit = imagecreatefrompng('images/pieces/'.$pieceprefix.$_GET['p'.$i].'.png');
 		imagecopy($image, $piececircuit, ($i%6)*100, floor($i/6)*100, 0, 0, 100, 100);
 	}
 }
