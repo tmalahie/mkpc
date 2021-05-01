@@ -579,13 +579,13 @@ function setPlanPos() {
 	var oPlayer = oPlayers[0];
 	var fRotation = Math.round(oPlayer.rotation-180);
 	var fCosR = direction(1,fRotation), fSinR = direction(0,fRotation);
-	function createObject(src, eltW, iPlanCtn) {
+	function createObject(src, eltW, iPlanCtn, before) {
 		var res = document.createElement("img");
 		res.src = "images/map_icons/"+ src +".png";
 		res.style.position = "absolute";
 		res.style.width = eltW+"px";
 		res.className = "pixelated";
-		iPlanCtn.appendChild(res);
+		iPlanCtn.insertBefore(res, before||null);
 		return res;
 	}
 	function setObject(elt, eltX,eltY, eltW,mapW, iTeam,hallowSize) {
@@ -610,14 +610,14 @@ function setPlanPos() {
 	var fRelX = oPlayer.x/oPlanRealSize, fRelY = oPlayer.y/oPlanRealSize;
 	oPlanCtn.style.transform = oPlanCtn.style.WebkitTransform = oPlanCtn.style.MozTransform = "translate("+ -Math.round(oPlanSize*(fRelX*fCosR - fRelY*fSinR) - oPlanWidth/2) +"px, "+ -Math.round(oPlanSize*(fRelX*fSinR + fRelY*fCosR) - oPlanWidth/2) +"px) rotate("+ fRotation +"deg)";
 
-	function setAssetPos(iPlanAssets,iPlanCtn,iPlanSize) {
+	function setAssetPos(iPlanAssets,iPlanCtn,iPlanSize,iPlanObjects) {
 		for (var type in iPlanAssets) {
 			if (oMap[type]) {
 				if (iPlanAssets[type].length < oMap[type].length) {
 					for (var i=iPlanAssets[type].length;i<oMap[type].length;i++) {
 						var pointer = oMap[type][i];
 						var iAssetWidth = pointer[1][2]*iPlanSize/oMap.w, iAssetHeight = pointer[1][3]*iPlanSize/oMap.w;
-						var img = createObject(pointer[0].src, iAssetWidth,iPlanCtn);
+						var img = createObject(pointer[0].src, iAssetWidth,iPlanCtn, iPlanObjects[0]);
 						img.style.height = iAssetHeight+"px";
 						img.style.transformOrigin = img.style.WebkitTransformOrigin = img.style.MozTransformOrigin = Math.round(pointer[2][0]*100)+"% "+Math.round(pointer[2][1]*100)+"%";
 						iPlanAssets[type].push(img);
@@ -631,8 +631,8 @@ function setPlanPos() {
 			}
 		}
 	}
-	setAssetPos(oPlanAssets,oPlanCtn,oPlanSize);
-	setAssetPos(oPlanAssets2,oPlanCtn2,oPlanSize2);
+	setAssetPos(oPlanAssets,oPlanCtn,oPlanSize,oPlanObjects);
+	setAssetPos(oPlanAssets2,oPlanCtn2,oPlanSize2,oPlanObjects2);
 
 	function setSeaPos(iPlanSea,iPlanSize) {
 		var oViewContext = iPlanSea.getContext("2d");

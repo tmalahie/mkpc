@@ -92,7 +92,7 @@ function deplacer(event, E, nouveau) {
 	E.style.position = "absolute";
 	E.style.left = Math.round(event.pageX-centerX) +"px";
 	E.style.top = Math.round(event.pageY-centerY) +"px";
-	E.style.zIndex = 20;
+	E.style.zIndex = 21;
 	E.style.cursor = "none";
 	e = E;
 	document.onmousemove = function(evt) {
@@ -111,7 +111,7 @@ function deplacer(event, E, nouveau) {
 			this.onclick = function(evt) {deplacer(evt, this, false)};
 			this.style.left = posX +"px";
 			this.style.top = posY +"px";
-			this.style.zIndex = 19;
+			this.style.zIndex = (prefix==="o") ? 20:19;
 			pieceplus(prefix+getId, [posX, posY], [centerX, centerY]);
 			
 			if (nouveau) {
