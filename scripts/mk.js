@@ -1457,6 +1457,7 @@ function addNewItem(kart,item) {
 }
 
 function arme(ID, backwards, forwards) {
+	forwards = false;
 	var oKart = aKarts[ID];
 	if (!oKart.using.length) {
 		if (oKart.roulette != 25) return;
@@ -3227,9 +3228,8 @@ function startGame() {
 						switch (gameAction) {
 							case "item":
 							case "item_back":
-							case "item_fwd":
 								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause)
-									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
+									arme(0, ("item_back" === gameAction));
 								break;
 							case "up":
 								oPlayers[0].speedinc = 0;
@@ -3281,9 +3281,8 @@ function startGame() {
 								break;
 							case "item_p2":
 							case "item_back_p2":
-							case "item_fwd_p2":
 								if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause)
-									arme(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
+									arme(1, ("item_back_p2" === gameAction));
 								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
@@ -20668,7 +20667,7 @@ function updateCommandSheet() {
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br /><strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), "R") +'</span><br /><strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "R")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
+	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br /><strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "R")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
 function editCommands(reload,currentTab) {
 	currentTab = currentTab || 0;
@@ -20745,9 +20744,6 @@ function editCommands(reload,currentTab) {
 	}, {
 		name: toLanguage("Item backwards", "Objet en arrière"),
 		key: "item_back"
-	}, {
-		name: toLanguage("Item forwards", "Objet en avant"),
-		key: "item_fwd"
 	}, {
 		name: toLanguage("Jump/drift", "Sauter/déraper"),
 		key: "jump"
@@ -20895,7 +20891,6 @@ function getCommands() {
 		right:[39],
 		item:[32],
 		item_back:[67],
-		item_fwd:[86],
 		jump:[17,18],
 		balloon:[16],
 		rear:[88],
@@ -20910,7 +20905,6 @@ function getCommands() {
 		defaultControls["right_p2"] = [70];
 		defaultControls["item_p2"] = [toLanguage(65,81)];
 		defaultControls["item_back_p2"] = [toLanguage(87,65)];
-		defaultControls["item_fwd_p2"] = [82];
 		defaultControls["jump_p2"] = [71];
 		defaultControls["balloon_p2"] = [82];
 		defaultControls["rear_p2"] = [toLanguage(87,90)];
