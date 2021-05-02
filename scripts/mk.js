@@ -12267,6 +12267,7 @@ function move(getId, triggered) {
 				oKart.figstate = 0;
 				oKart.fell = true;
 				oKart.champi = 0;
+				delete oKart.champior;
 				if (oKart.cpu)
 					oKart.aipoint = undefined;
 				oKart.tombe = 20;
