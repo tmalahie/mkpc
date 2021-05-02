@@ -37,7 +37,7 @@ include('o_online.php');
 ?>
 </head>
 <body<?php
-if (!$draftSaved) {
+if (!isset($draftSaved)) {
 	?> onbeforeunload="if(document.forms[0].message.value&amp;&amp;!document.forms[0].querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled)return '<?php echo addslashes($language ? 'Warning, the message you\'re writing won\'t be saved':'Attention, le message que vous êtes en train d\'écrire ne sera pas sauvegardé'); ?>'"<?php
 }
 ?>>
@@ -123,7 +123,7 @@ if (isset($draftSaved)) {
 <form method="post" action="addNews.php" onsubmit="if(!this.title.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a content':'Veuillez entrer un contenu'; ?>');return false}this.querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel"><label for="title"><?php echo $language ? 'Title':'Titre'; ?> :</label></td>
-<td class="mInput"><input type="text" id="title" name="title" onchange="document.getElementById('mTitle').innerHTML=htmlspecialchars(this.value)" value="<?php echo htmlspecialchars($draft['title']); ?>" /></td></tr>
+<td class="mInput"><input type="text" id="title" name="title" onchange="document.getElementById('mTitle').innerHTML=htmlspecialchars(this.value)" value="<?php if ($draft) echo htmlspecialchars($draft['title']); ?>" /></td></tr>
 <tr><td class="mLabel"><label for="category"><?php echo $language ? 'Category':'Catégorie'; ?> :</label></td>
 <td class="mInput">
 	<select id="category" name="category" onchange="document.getElementById('mCategory').innerHTML=this.options[this.selectedIndex].text">
@@ -132,10 +132,11 @@ if (isset($draftSaved)) {
 		$categories = mysql_query('SELECT id,name'. $language .' AS name,color FROM `mkcats`');
 		$currentCategory = null;
 		while ($category = mysql_fetch_array($categories)) {
-			echo '<option value="'. $category['id'] .'"'. (($category['id']==$draft['category']) ? ' selected="selected"':'') .' style="color:'. $category['color'] .'">'. $category['name'] .'</option>';
+			$isCurrentCat = $draft && ($category['id']==$draft['category']);
+			echo '<option value="'. $category['id'] .'"'. ($isCurrentCat ? ' selected="selected"':'') .' style="color:'. $category['color'] .'">'. $category['name'] .'</option>';
 			if (!$currentCategory)
 				$currentCategory = $category;
-			elseif ($category['id'] == $draft['category'])
+			elseif ($isCurrentCat)
 				$currentCategory = $category;
 		}
 		?>
@@ -152,13 +153,14 @@ for ($i=0;$i<$nbSmileys;$i++)
 ?>
 <a href="javascript:moresmileys()" id="more-smileys"><?php echo $language ? 'More smileys':'Plus de smileys'; ?></a></p>
 </td><td class="mInput"><textarea name="message" id="message" rows="10"><?php
-	echo htmlspecialchars($draft['message']);
+	if ($draft)
+		echo htmlspecialchars($draft['message']);
 ?></textarea></td></tr>
 <?php
-if (!empty($draft)) {
+if ($draft) {
 	?>
 <tr><td colspan="2" class="mLabel">
-	<input type="submit" class="mUndraft" name="undraft" value="<?php echo $language ? 'Delete draft':'Supprimer le brouillon'; ?>" onclick="return confirm('<?php echo $language ? 'Are you sure?':'Êtes-vous sûr ?'; ?>')" />
+	<input type="submit" class="mUndraft" name="undraft" value="<?php echo $language ? 'Delete draft':'Supprimer le brouillon'; ?>" onclick="return confirm('<?php echo $language ? 'Delete the draft?':'Supprimer le brouillon ?'; ?>')" />
 </td></tr>
 	<?php
 }
