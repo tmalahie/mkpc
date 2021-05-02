@@ -1,6 +1,6 @@
 <?php
 if (!isset($mkSalt)) {
-	$mkSalt = 'aaaaaa';
+	include('initId.php');
 	function base64($nb) {
 		static $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
 		$res = '';
