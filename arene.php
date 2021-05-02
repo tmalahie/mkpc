@@ -85,7 +85,7 @@ include('o_online.php');
 <script type="text/javascript">
 var decorTypes = <?php echo json_encode($decorTypes); ?>;
 </script>
-<script type="text/javascript" src="scripts/create.js"></script>
+<script type="text/javascript" src="scripts/create.js?reload=1"></script>
 </head>
 <body>
 <div id="circuit">
