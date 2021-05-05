@@ -1,6 +1,9 @@
 <?php
 if (!isset($mkSalt)) {
-	include('initId.php');
+	if (file_exists('test/initId.php'))
+	    require('test/initId.php');
+	else
+		require('initId.php');
 	function base64($nb) {
 		static $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
 		$res = '';
