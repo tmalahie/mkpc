@@ -1,9 +1,7 @@
 version: '3'
 services:
     web:
-        build:
-            context: .
-            dockerfile: ./docker/php/Dockerfile
+        image: web-php
         depends_on:
             - db
         volumes: 
@@ -15,9 +13,7 @@ services:
         ports:
             - "8080:80"
     db:
-        build:
-            context: .
-            dockerfile: ./docker/mysql/Dockerfile
+        image: web-db
         restart: 'always'
         ports:
             - "3307:3306"
