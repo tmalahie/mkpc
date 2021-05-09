@@ -243,7 +243,7 @@ var challenges = <?php echo json_encode($challenges); ?>;
 var clRewards = <?php echo json_encode($clRewards); ?>;
 var clId = <?php echo json_encode($clId); ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
-var recorder = "<?php echo isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'' ?>";
+var recorder = <?php echo json_encode(isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'') ?>;
 var lCircuits = [<?php
 for ($i=0;$i<$NBCIRCUITS;$i++) {
 	if ($i)

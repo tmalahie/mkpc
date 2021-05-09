@@ -31,7 +31,7 @@ var lCircuits = <?php
 include_once('circuitNames.php');
 echo json_encode($circuitNames);
 ?>;
-var recorder = "<?php echo isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'' ?>";
+var recorder = <?php echo json_encode(isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'') ?>;
 var cp = <?php include('getPersos.php'); ?>;
 var pUnlocked = <?php include('getLocks.php'); ?>;
 var ptsGP = "<?php echo $mkSaves; ?>";
