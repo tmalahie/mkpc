@@ -1,4 +1,4 @@
-<header>
+<header role="banner">
 	<table>
 		<tr>
 			<td id="header_left">
@@ -8,9 +8,9 @@
 			<td id="header_center">
 				<?php
 				//if ($id)
-				//	echo '<a href="news.php?id=14473"><img src="images/header_es.png" alt="MARIO KART PC" /></a>';
+				//	echo '<a href="news.php?id=14473"><img src="images/header_es.png" alt="Mario Kart PC" /></a>';
 				//else
-					echo '<img src="images/header_transparent2.png" alt="MARIO KART PC" />';
+					echo '<img src="images/header_transparent2.png" alt="Mario Kart PC" />';
 				?>
 			</td>
 			<td id="header_right">

@@ -258,12 +258,12 @@ header, nav, main, footer {
 a img {
 	border: none;
 }
-#left_section h1 {
+#left_section h2 {
 	margin-left: 10px;
 	font-family: Verdana;
 	color: #560000;
 }
-#left_section h1 img {
+#left_section h2 img {
 	height: 20px;
 }
 #left_section, #right_section {
@@ -668,7 +668,7 @@ a img {
 	background-size: 50% 50%;
 	background-size: calc(50% + 1px) calc(50% + 1px);
 }
-#right_section h1 {
+#right_section .subsection > h2 {
 	font-size: 120%;
 	text-align: center;
 	text-decoration: underline;
@@ -1065,7 +1065,7 @@ footer a {
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
 }
-#rankings_section h1 {
+#right_section #rankings_section h2 {
 	margin-top: 10px;
 	margin-bottom: 4px;
 }

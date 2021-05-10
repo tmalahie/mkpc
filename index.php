@@ -291,7 +291,7 @@ $slidesPath = 'images/slides';
 		&#9660;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9660;<br />
 		<img src="images/mkpc_box.jpg" alt="Acc&eacute;der au jeu" style="width:310px;position: relative;top:2px" /><br />
 		&#9650;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9650;</a></div>
-		<h1><img src="images/about.png" alt="about" /> <?php echo $language ? 'What\'s Mario Kart PC?':'Mario Kart PC, c\'est quoi ?'; ?></h1>
+		<h2><img src="images/about.png" alt="" /> <?php echo $language ? 'What\'s Mario Kart PC?':'Mario Kart PC, c\'est quoi ?'; ?></h2>
 		<div>
 			<?php
 			if ($language) {
@@ -319,7 +319,7 @@ $slidesPath = 'images/slides';
 			}
 			?>
 		</div>
-		<h1><img src="images/camera.png" alt="camera" /> <?php echo $language ? 'Some screenshots':'Quelques screenshots'; ?></h1>
+		<h2><img src="images/camera.png" alt="" /> <?php echo $language ? 'Some screenshots':'Quelques screenshots'; ?></h2>
 		<div>
 			<?php
 			if ($language)
@@ -343,7 +343,7 @@ $slidesPath = 'images/slides';
 				?>
 			</table>
 		</div>
-		<h1><img src="images/thanks.png" alt="Special thanks" /> <?php echo $language ? 'Special thanks':'Remerciements'; ?></h1>
+		<h2><img src="images/thanks.png" alt="" /> <?php echo $language ? 'Special thanks':'Remerciements'; ?></h2>
 		<div>
 			<?php
 			if ($language) {
@@ -382,7 +382,7 @@ $slidesPath = 'images/slides';
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
 		</div>
-		<h1><img src="images/partners.png" alt="Partners" /> <?php echo $language ? 'Partners':'Partenaires'; ?></h1>
+		<h2><img src="images/partners.png" alt="" /> <?php echo $language ? 'Partners':'Partenaires'; ?></h2>
 		<div>
 			<?php
 			if ($language) {
@@ -423,7 +423,7 @@ $slidesPath = 'images/slides';
 				?>
 			</p>
 		</div>
-		<h1><img src="images/follow.png" alt="Follow" /> <?php echo $language ? 'Follow us':'Nous suivre'; ?></h1>
+		<h2><img src="images/follow.png" alt="" /> <?php echo $language ? 'Follow us':'Nous suivre'; ?></h2>
 		<div>
 			<?php
 			if ($language) {
@@ -466,7 +466,7 @@ $slidesPath = 'images/slides';
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
 		</div>
-		<h1><img src="images/gamepad.png" alt="Gamepad" /> <?php echo $language ? 'Go to the game':'Accéder au jeu'; ?></h1>
+		<h2><img src="images/gamepad.png" alt="" /> <?php echo $language ? 'Go to the game':'Accéder au jeu'; ?></h2>
 		<div>
 			<?php
 			if ($language) {
@@ -598,7 +598,7 @@ $slidesPath = 'images/slides';
 		date_default_timezone_set('UTC');
 		display_sidebar('Forum', 'forum.php');
 		?>
-			<h1><?php echo $language ? 'Last topics':'Derniers topics'; ?></h1>
+			<h2><?php echo $language ? 'Last topics':'Derniers topics'; ?></h2>
 			<div id="forum_section" class="right_subsection">
 				<?php
 				require_once('getRights.php');
@@ -640,7 +640,7 @@ $slidesPath = 'images/slides';
 		<?php
 		display_sidebar('News', 'listNews.php');
 		?>
-			<h1><?php echo $language ? 'Latest news':'Dernières news'; ?></h1>
+			<h2><?php echo $language ? 'Latest news':'Dernières news'; ?></h2>
 			<div id="news_section" class="right_subsection">
 				<?php
 				date_default_timezone_set('Europe/Paris');
@@ -692,7 +692,7 @@ $slidesPath = 'images/slides';
 			<?php
 			display_sidebar($language ? 'Track builder':'Éditeur de circuit', 'creations.php');
 			?>
-			<h1><?php echo $language ? 'Latest creations':'Dernières créations'; ?></h1>
+			<h2><?php echo $language ? 'Latest creations':'Dernières créations'; ?></h2>
 			<div id="creations_section" class="right_subsection">
 				<table>
 					<?php
@@ -763,7 +763,7 @@ $slidesPath = 'images/slides';
 				</table>
 			</div>
 			<a class="right_section_actions action_button" href="creations.php"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
-			<h1><?php echo $language ? 'Last challenges':'Derniers défis'; ?></h1>
+			<h2><?php echo $language ? 'Last challenges':'Derniers défis'; ?></h2>
 			<div id="challenges_section" class="right_subsection">
 				<?php
 				require_once('utils-challenges.php');
@@ -798,7 +798,7 @@ $slidesPath = 'images/slides';
 			?>
 			<a class="right_section_actions action_button" href="challengesList.php"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
 			<div id="challenge_ranking"><a href="challengeRanking.php"><?php echo $language ? 'Challenge points - Leaderboard':'Classement des points défis'; ?></a></div>
-			<h1><?php echo $language ? 'Recent activity':'Activité récente'; ?></h1>
+			<h2><?php echo $language ? 'Recent activity':'Activité récente'; ?></h2>
 			<div id="comments_section" class="right_subsection">
 				<?php
 				//$getComments = mysql_query('SELECT c.circuit,c.type,c.message,c.temps,c.nom,c.date FROM ((SELECT mkcomments.circuit,mkcomments.type COLLATE latin1_general_ci AS type,mkcomments.message COLLATE latin1_general_ci AS message,mkcomments.date,mkjoueurs.nom COLLATE latin1_general_ci AS nom,NULL as temps FROM `mkcomments` INNER JOIN `mkjoueurs` ON mkcomments.auteur=mkjoueurs.id) UNION ALL (SELECT circuit,type,NULL as message,date,nom,temps FROM `mkrecords`) ORDER BY date DESC) as c GROUP BY c.type,c.circuit ORDER BY c.date DESC LIMIT 14');
@@ -971,7 +971,7 @@ $slidesPath = 'images/slides';
 				$activePlayersByLink[$game] = $playersWithLink;
 			}
 			?>
-			<h1>Top 10</h1>
+			<h2>Top 10</h2>
 			<div class="ranking_tabs">
 				<?php
 				function print_badge($game) {

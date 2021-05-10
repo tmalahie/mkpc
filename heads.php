@@ -33,7 +33,7 @@ if ($hthumbnail) {
 	<?php
 }
 ?>
-<link rel="stylesheet" href="styles/main.css" />
+<link rel="stylesheet" href="styles/main.css?reload=3" />
 <link rel="stylesheet" href="styles/main-mountains2.css" />
 <link rel="stylesheet" media="only screen and (max-width: 800px)" href="styles/mobile.css" />
 <link rel="stylesheet" media="only screen and (min-width: 800px)" href="styles/computer.css" />
