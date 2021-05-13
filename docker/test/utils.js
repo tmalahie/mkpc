@@ -61,3 +61,5 @@ exports.getAllLinksByText = async ($elt, text, options={}) => {
     });
 }
 exports.getLinkByText = toSingleResult(exports.getAllLinksByText);
+
+exports.sleep = t => new Promise(resolve => setTimeout(resolve, t));

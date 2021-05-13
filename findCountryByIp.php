@@ -12,7 +12,7 @@ if ($countryCode) {
 	if (!empty($countryCode['country']))
 		echo '{"countryCode":"'.$countryCode['country'].'"}';
 	else
-		echo '{)';
+		echo '{}';
 }
 else {
 	$res = file_get_contents("http://ip-api.com/json/$ip?fields=countryCode");

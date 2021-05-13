@@ -16,13 +16,16 @@ function spriteLoad(img) {
 	}
 }
 document.addEventListener("DOMContentLoaded", function() {
-	var profileCircuits = document.querySelectorAll(".profile-circuits td");
-	for (var i=0;i<profileCircuits.length;i++) {
-		var profileCircuit = profileCircuits[i];
-		if (profileCircuit.className)
-			profileCircuit.style.width = profileCircuit.style.height = profileCircuit.scrollWidth +"px";
-		else
-			break;
+	var profileCircuits = document.querySelector(".profile-circuits");
+	if (profileCircuits) {
+		var profileCircuitsTd = profileCircuits.querySelectorAll("td");
+		for (var i=0;i<profileCircuitsTd.length;i++) {
+			var profileCircuit = profileCircuitsTd[i];
+			if (profileCircuit.className)
+				profileCircuit.style.width = profileCircuit.style.height = profileCircuit.scrollWidth +"px";
+			else
+				break;
+		}
+		profileCircuits.style.width = "auto";
 	}
-	document.querySelectorAll(".profile-circuits")[0].style.width = "auto";
 });

@@ -1,16 +1,5 @@
-const puppeteer = require('puppeteer');
-const { getByText, getByLabelText, getByValue, getLinkByText } = require("./utils.js");
-
-const BASE_HREF = "http://localhost:8080";
-let browser, page;
-
-beforeAll(async () => {
-    browser = await puppeteer.launch();
-    page = await browser.newPage();
-    await page.setExtraHTTPHeaders({
-        'Accept-Language': 'en'
-    });
-});
+const { getByText, getByLabelText, getByValue, getLinkByText, sleep } = require("./utils.js");
+const { BASE_HREF } = require("./common.js");
 
 test('Should go to the forum', async () => {
     await page.goto(BASE_HREF);
@@ -30,9 +19,10 @@ test('Should go to the register page', async () => {
     expect(url).toBe(BASE_HREF+"/signup.php");
 });
 
+const testNick = "Wargor"+(new Date().getTime()%100000000);
 test('Should register', async () => {
     const $nick = await getByLabelText(page, "Choose a nick", {exact: false});
-    await $nick.evaluate(nick => nick.value = "Wargor");
+    await $nick.evaluate((nick,testNick) => nick.value = testNick, testNick);
     const $password = await getByLabelText(page, "Choose a password", {exact: false});
     await $password.evaluate(password => password.value = "aaaa");
     const $confirm = await getByLabelText(page, "Re-enter password", {exact: false});
@@ -64,7 +54,7 @@ test('Should go to my profile', async () => {
 });
 
 test('Should have correct information', async () => {
-    await getByText(page, "Wargor's profile");
+    await getByText(page, testNick+"'s profile");
     const $back = await getLinkByText(page, "Back to the forum");
     await $back.click();
 
@@ -85,7 +75,7 @@ test('Should relog in', async () => {
     const passwordsAttempts = ["aaaaaa", "aaaa"];
     for (const passwordsAttempt of passwordsAttempts) {
         const $login = await getByLabelText(page, "Login", {exact: false});
-        await $login.evaluate(login => login.value = "Wargor");
+        await $login.evaluate((login,testNick) => login.value = testNick, testNick);
         const $password = await getByLabelText(page, "Password", {exact: false});
         await $password.evaluate((password,passwordsAttempt) => password.value = passwordsAttempt, passwordsAttempt);
 
@@ -97,9 +87,4 @@ test('Should relog in', async () => {
     }
 
     await getLinkByText(page, "My profile");
-});
-
-afterAll(async () => {
-    await page.close();
-    await browser.close();
 });
