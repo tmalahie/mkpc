@@ -1,12 +1,12 @@
 const fs = require('fs').promises;
 const path = require('path');
-const { sleep } = require("./utils.js");
 require("expect-puppeteer");
 beforeAll(async () => {
-    await page.setExtraHTTPHeaders({
-        'Accept-Language': 'en'
-    });
     if (!testId) {
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'en'
+        });
+        page.on('pageerror', ({ message }) => console.error(message))
         const directory = "test-screenshots";
         const files = await fs.readdir(directory);
         for (const file of files) {
