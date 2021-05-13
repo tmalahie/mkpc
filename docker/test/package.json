@@ -3,7 +3,7 @@
     "test": "jest"
   },
   "jest": {
-    "testTimeout": 10000,
+    "testTimeout": 5000,
     "preset": "jest-puppeteer"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-async function getSingleResult(results, args) {
+async function getSingleResult(results, args=[]) {
     if (!results.length)
         throw Error('No result matches the specified selector: "'+ args[1] +'"');
     if (results.length > 1) {
@@ -11,6 +11,7 @@ async function getSingleResult(results, args) {
 function toSingleResult(fn) {
     return (...args) => fn(...args).then((res) => getSingleResult(res, args));
 }
+exports.getSingleResult = getSingleResult;
 
 exports.getAllByText = async ($elt, text, options={}) => {
     const tag = options.tag || "*";
@@ -50,7 +51,10 @@ exports.getByLabelText = toSingleResult(exports.getAllByLabelText);
 
 exports.getAllByValue = async ($elt, text, options={}) => {
     const tag = options.tag || "*";
-    return $elt.$x('.//'+ tag +'[@value = "'+ text +'"]');
+    if (options.exact !== false)
+        return $elt.$x('.//'+ tag +'[@value = "'+ text +'"]');
+    else
+        return $elt.$x('.//'+ tag +'[contains(@value, "'+ text +'")]');
 }
 exports.getByValue = toSingleResult(exports.getAllByValue);
 
@@ -61,5 +65,17 @@ exports.getAllLinksByText = async ($elt, text, options={}) => {
     });
 }
 exports.getLinkByText = toSingleResult(exports.getAllLinksByText);
+
+exports.waitForScopedSelector = async (scopeElement, selector) => {
+    const testScopeId = Math.random();
+    await scopeElement.evaluate((elt,testScopeId) => elt.dataset.__testscope__ = testScopeId, testScopeId);
+    return page.waitForFunction(({selector, testScopeId}) => document.querySelector("[data-__testscope__='"+ testScopeId +"'] "+ selector), {}, {selector, testScopeId});
+}
+exports.waitForScopedXPath = async (scopeElement, xPath) => {
+    // TODO untested function
+    const testScopeId = Math.random();
+    await scopeElement.evaluate((elt,testScopeId) => elt.dataset.__testscope__ = testScopeId, testScopeId);
+    return page.waitForFunction(({xPath, testScopeId}) => document.evaluate("//[data-__testscope__='"+ testScopeId +"']/"+ xPath), {}, {xPath, testScopeId});
+}
 
 exports.sleep = t => new Promise(resolve => setTimeout(resolve, t));
