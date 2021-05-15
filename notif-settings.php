@@ -7,6 +7,7 @@ if ($id) {
 	$notifs = array(
 		'forum_mention' => $language ? 'Mention on a forum message':'Mention dans un message sur le forum',
 		'forum_quote' => $language ? 'Quote on a forum message':'Citation dans un message sur le forum',
+		'new_reaction' => $language ? 'Reaction on a message':'Réaction à un message',
 		'circuit_comment' => $language ? 'Answer on one of your circuits':'Commentaire sur un de vos circuits',
 		'answer_comment' => $language ? 'Comment answer on circuit':'Réponse à un commentaire sur un circuit',
 		'news_comment' => $language ? 'Comment on a news':'Commentaire sur une de vos news',
