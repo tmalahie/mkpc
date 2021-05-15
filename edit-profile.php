@@ -16,10 +16,10 @@ if ($getProfile = mysql_fetch_array(mysql_query('SELECT YEAR(birthdate) AS y0,MO
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=1" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
-<script type="text/javascript" src="scripts/topic.js"></script>
+<script type="text/javascript" src="scripts/topic.js?reload=1"></script>
 <?php
 include('o_online.php');
 ?>

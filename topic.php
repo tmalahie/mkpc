@@ -5,24 +5,26 @@ include('session.php');
 include('initdb.php');
 require_once('getRights.php');
 $isModerator = hasRight('moderator');
-$topic = mysql_fetch_array(mysql_query('SELECT titre,category,private,locked FROM `mktopics` WHERE id="'. $_GET['topic'] .'"'. (hasRight('manager') ? '':' AND !private')));
-$titreTopic = $topic['titre'];
-if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id=1 LIMIT 1'))) {
+$topicId = +$_GET['topic'];
+$topic = mysql_fetch_array(mysql_query('SELECT titre,category,private,locked FROM `mktopics` WHERE id="'. $topicId .'"'. (hasRight('manager') ? '':' AND !private')));
+$titreTopic = isset($topic['titre']) ? $topic['titre'] : '';
+if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `mkmessages` WHERE topic="'. $topicId .'" AND id=1 LIMIT 1'))) {
 	if ($topic) {
 		include('utils-description.php');
 		$hthumbnail = false;
 		$hdescription = removeBbCode($getFirstMessage['message']);
 	}
 	function pageLink($page, $isCurrent) {
-		return ($isCurrent ? ' '.$page.'&nbsp;' : '<a href="?topic='. $_GET['topic'] .'&amp;page='.$page.'"> '.$page.'&nbsp;</a>');
+		global $topicId;
+		return ($isCurrent ? ' '.$page.'&nbsp;' : '<a href="?topic='. $topicId .'&amp;page='.$page.'"> '.$page.'&nbsp;</a>');
 	}
 	$messages = mysql_query('SELECT auteur,id,message,date
-		FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id');
+		FROM `mkmessages` WHERE topic="'. $topicId .'" ORDER BY id');
 	$nbMsgs = 20;
 	if (isset($_GET['page']))
 		$cPage = $_GET['page'];
 	elseif (isset($_GET['message']))
-		$cPage = ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id<="'. $_GET['message'] .'"'))/$nbMsgs);
+		$cPage = ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $topicId .'" AND id<="'. $_GET['message'] .'"'))/$nbMsgs);
 	else
 		$cPage = 1;
 	$nbPages = ceil(mysql_numrows($messages)/$nbMsgs);
@@ -41,10 +43,8 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	$pageMessages = array();
 	for ($i=0;$message=mysql_fetch_array($messages);$i++) {
 		if ($i >= $debut) {
-			if ($i < $fin) {
-				$message['message'] = $message['message'];
+			if ($i < $fin)
 				$pageMessages[] = $message;
-			}
 			else
 				break;
 		}
@@ -53,18 +53,31 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	$minId = $pageMessages[0]['id'];
 	$maxId = end($pageMessages)['id'];
 
+	require_once('reactions.php');
+	$reactionLinks = array();
+	foreach ($pageMessages as $message)
+		$reactionLinks[] = $topicId.','.$message['id'];
+	$messageReactions = getReactionsByLink('topic', $reactionLinks);
+	foreach ($pageMessages as &$message)
+		$message['reactions'] = $messageReactions[$topicId.','.$message['id']];
+	unset($message);
+
 	include('category_fields.php');
-	$categoryID = $topic['category'];
+	$categoryID = isset($topic['category']) ? $topic['category']:'';
 	$category = mysql_fetch_array(mysql_query('SELECT '. $categoryFields .' FROM `mkcategories` WHERE id="'. $categoryID .'"'));
 	include('tokens.php');
 	assign_token();
-	$isFollower = mysql_numrows(mysql_query('SELECT * FROM mkfollowers WHERE user="'. $id .'" AND topic="'. $_GET['topic'] .'"'));
-	$getFollowers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkfollowers WHERE topic="'. $_GET['topic'] .'" AND user!="'. $getFirstMessage['auteur'] .'"'));
+	$isFollower = mysql_numrows(mysql_query('SELECT * FROM mkfollowers WHERE user="'. $id .'" AND topic="'. $topicId .'"'));
+	$getFollowers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkfollowers WHERE topic="'. $topicId .'" AND user!="'. $getFirstMessage['auteur'] .'"'));
 	if ($isFollower)
-		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="answer_forum" AND link LIKE "'. $_GET['topic'] .',%"');
-	mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="follower_topic" AND link="'. $_GET['topic'] .'"');
-	mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="new_followtopic" AND link LIKE "'. $_GET['topic'] .',%"');
-	$topicNotifs = mysql_query('SELECT id,link FROM `mknotifs` WHERE user="'. $id .'" AND (type="forum_mention" OR type="forum_quote") AND link LIKE "'. $_GET['topic'] .',%"');
+		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="answer_forum" AND link LIKE "'. $topicId .',%"');
+	mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="follower_topic" AND link="'. $topicId .'"');
+	mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="new_followtopic" AND link LIKE "'. $topicId .',%"');
+	$topicNotifs = mysql_query(
+		'(SELECT id,link FROM `mknotifs` WHERE user="'. $id .'" AND type IN ("forum_mention","forum_quote") AND link LIKE "'. $topicId .',%")' .
+		' UNION ' .
+		'(SELECT n.id,r.link FROM `mkreactions` r INNER JOIN `mknotifs` n ON n.type="new_reaction" AND r.id=n.link WHERE r.type="topic" AND r.link LIKE "'. $topicId .',%" AND n.user="'. $id .'")'
+	);
 	while ($topicNotif=mysql_fetch_array($topicNotifs)) {
 		$linkData = explode(',', $topicNotif['link']);
 		$msgId = $linkData[1];
@@ -80,9 +93,9 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=1" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
-<script type="text/javascript" src="scripts/topic.js"></script>
+<script type="text/javascript" src="scripts/topic.js?reload=1"></script>
 <?php
 include('o_online.php');
 ?>
@@ -121,7 +134,7 @@ if ($topic['locked'])
 				if (!$topic['locked']) {
 					?>
 				<div class="buttonGroup">
-					<a href="repondre.php?topic=<?php echo $_GET['topic']; ?>" class="action_button"><?php echo $language ? 'Reply':'Répondre'; ?></a>
+					<a href="repondre.php?topic=<?php echo $topicId; ?>" class="action_button"><?php echo $language ? 'Reply':'Répondre'; ?></a>
 				</div>
 					<?php
 				}
@@ -129,7 +142,7 @@ if ($topic['locked'])
 				<div class="buttonGroup">
 					<label class="topic_follower" title="<?php echo $language ? 'Receive a notification when a new message is posted':'Recevoir une notification quand un nouveau message est posté'; ?>">
 						<span class="topic_follow">
-							<input type="checkbox" class="follow_topic_checkbox" name="follow_topic"<?php echo $isFollower ? ' checked="checked"':''; ?> onchange="followTopic(<?php echo urlencode($_GET['topic']); ?>, this.checked, <?php echo ($getFirstMessage['auteur']==$id)?'true':'false'; ?>)" />
+							<input type="checkbox" class="follow_topic_checkbox" name="follow_topic"<?php echo $isFollower ? ' checked="checked"':''; ?> onchange="followTopic(<?php echo $topicId; ?>, this.checked, <?php echo ($getFirstMessage['auteur']==$id)?'true':'false'; ?>)" />
 							<?php echo $language ? 'Follow the topic' : 'Suivre le topic'; ?>
 						</span>
 						<span class="nb_followers"><?php echo $getFollowers['nb']; ?></span>
@@ -152,11 +165,36 @@ if ($topic['locked'])
 					$lockunlock = ($language ? ($newLockValue?'Lock':'Unlock'):($newLockValue?'Locker':'Unlocker'));
 					?>
 				<div class="buttonGroup">
-					<a href="lock.php?topic=<?php echo $_GET['topic']; ?>&amp;value=<?php echo $newLockValue; ?>" class="action_button lock_topic" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' topic':' le topic'); ?></a>
+					<a href="lock.php?topic=<?php echo $topicId; ?>&amp;value=<?php echo $newLockValue; ?>" class="action_button lock_topic" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' topic':' le topic'); ?></a>
 				</div>
 					<?php
 				}
 				?>
+			</div>
+			<div id="message-reactions" onclick="closeReactions()">
+				<div class="message-reactions-dialog" onclick="event.stopPropagation()">
+				<?php
+				echo '<div class="message-reactions-title">';
+					echo '<h3>'. ($language ? 'Add reaction...':'Ajouter une réaction...') .'</h3>';
+					echo '<a href="#null" onclick="closeReactions();return false" title="'. ($language ? 'Close':'Fermer') .'">&times;</a>';
+				echo '</div>';
+				echo '<div class="message-reactions-cat">';
+				foreach ($reactions as $list) {
+					echo '<div>';
+					foreach ($list as $reaction) {
+						echo '<a href="#null" onclick="addReaction(\''.$reaction.'\');return false">';
+						echo '<img src="images/forum/reactions/'. $reaction .'.png" alt="'. $reaction .'" title="'. $reaction .'" />';
+						echo '</a>';
+					}
+					echo '</div>';
+				}
+				echo '</div>';
+				?>
+				</div>
+			</div>
+			<div id="message-reactions-details">
+				<img src="images/forum/reactions/smile.png" alt="smile" />
+				<div></div>
 			</div>
 			<?php
 		}
@@ -177,7 +215,7 @@ if ($topic['locked'])
 			if (!$topic['locked']) {
 				?>
 			<div class="buttonGroup">
-				<a href="repondre.php?topic=<?php echo $_GET['topic']; ?>" class="action_button"><?php echo $language ? 'Reply':'Répondre'; ?></a>
+				<a href="repondre.php?topic=<?php echo $topicId; ?>" class="action_button"><?php echo $language ? 'Reply':'Répondre'; ?></a>
 			</div>
 				<?php
 			}
@@ -185,7 +223,7 @@ if ($topic['locked'])
 			<div class="buttonGroup">
 				<label class="topic_follower" title="<?php echo $language ? 'Receive a notification when a new message is posted':'Recevoir une notification quand un nouveau message est posté'; ?>">
 					<span class="topic_follow">
-						<input type="checkbox" class="follow_topic_checkbox" name="follow_topic"<?php echo $isFollower ? ' checked="checked"':''; ?> onchange="followTopic(<?php echo urlencode($_GET['topic']); ?>, this.checked, <?php echo ($getFirstMessage['auteur']==$id)?'true':'false'; ?>)" /> <?php echo $language ? 'Follow the topic' : 'Suivre le topic'; ?>
+						<input type="checkbox" class="follow_topic_checkbox" name="follow_topic"<?php echo $isFollower ? ' checked="checked"':''; ?> onchange="followTopic(<?php echo $topicId; ?>, this.checked, <?php echo ($getFirstMessage['auteur']==$id)?'true':'false'; ?>)" /> <?php echo $language ? 'Follow the topic' : 'Suivre le topic'; ?>
 					</span>
 					<span class="nb_followers"><?php echo $getFollowers['nb']; ?></span>
 				</label>
@@ -194,7 +232,7 @@ if ($topic['locked'])
 			if (null !== $newLockValue) {
 				?>
 			<div class="buttonGroup">
-				<a href="lock.php?topic=<?php echo $_GET['topic']; ?>&amp;value=<?php echo $newLockValue; ?>" class="action_button lock_topic" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' topic':' le topic'); ?></a>
+				<a href="lock.php?topic=<?php echo $topicId; ?>&amp;value=<?php echo $newLockValue; ?>" class="action_button lock_topic" onclick="return confirm(this.innerHTML+' ?')"><?php echo $lockunlock . ($language ? ' topic':' le topic'); ?></a>
 			</div>
 				<?php
 			}
@@ -217,9 +255,7 @@ if ($topic['locked'])
 include('footer.php');
 ?>
 <script type="text/javascript">
-function confirmSuppr() {
-	return confirm("<?php echo $language ? 'Are you sure you want to delete this message ?':'Voulez-vous vraiment supprimer ce message ?'; ?>");
-}
+var language = <?php echo $language ? 1:0; ?>;
 </script>
 </body>
 </html>

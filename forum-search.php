@@ -11,7 +11,7 @@ include('initdb.php');
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=1" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
@@ -25,7 +25,7 @@ include('heads.php');
 	top: -0.1em;
 }
 </style>
-<script type="text/javascript" src="scripts/topic.js"></script>
+<script type="text/javascript" src="scripts/topic.js?reload=1"></script>
 <script type="text/javascript" src="scripts/forum-search.js"></script>
 <?php
 include('o_online.php');

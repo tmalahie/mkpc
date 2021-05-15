@@ -179,11 +179,11 @@ if (isset($_GET['id'])) {
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=1" />
 <link rel="stylesheet" type="text/css" href="styles/challenge-creations.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 
-<script type="text/javascript" src="scripts/topic.js"></script>
+<script type="text/javascript" src="scripts/topic.js?reload=1"></script>
 <script type="text/javascript" src="scripts/profile.js"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 

@@ -11,7 +11,7 @@ if (isset($_GET['topic'])) {
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=1" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 
 <?php

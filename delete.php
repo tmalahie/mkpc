@@ -44,21 +44,24 @@ if (isset($_GET['id']) && isset($_GET['topic']) && ($_GET['id'] > 1)) {
 		}
 		else {
 			require_once('getRights.php');
-			$msg = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'] .'"'));
-			$q = mysql_query('DELETE FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'] .'"'. (hasRight('moderator') ? '':' AND auteur="'. $id .'"'));
+			$topicId = +$_GET['topic'];
+			$msgId = +$_GET['id'];
+			$msg = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id="'. $msgId .'" AND topic="'. $topicId .'"'));
+			$q = mysql_query('DELETE FROM `mkmessages` WHERE id="'. $msgId .'" AND topic="'. $topicId .'"'. (hasRight('moderator') ? '':' AND auteur="'. $id .'"'));
 			if (mysql_affected_rows()) {
 				if (hasRight('moderator'))
-					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Suppr '. $_GET['topic'] .' '. $_GET['id'] .'")');
-				$getLastMessage = mysql_fetch_array(mysql_query('SELECT date FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id DESC limit 1'));
-				mysql_query('UPDATE `mktopics` SET dernier="'.$getLastMessage['date'].'",nbmsgs=nbmsgs-1 WHERE id="'. $_GET['topic'] .'"');
-				$getCat = mysql_fetch_array(mysql_query('SELECT category FROM `mktopics` WHERE id="'. $_GET['topic'] .'"'));
+					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Suppr '. $topicId .' '. $msgId .'")');
+				$getLastMessage = mysql_fetch_array(mysql_query('SELECT date FROM `mkmessages` WHERE topic="'. $topicId .'" ORDER BY id DESC limit 1'));
+				mysql_query('UPDATE `mktopics` SET dernier="'.$getLastMessage['date'].'",nbmsgs=nbmsgs-1 WHERE id="'. $topicId .'"');
+				$getCat = mysql_fetch_array(mysql_query('SELECT category FROM `mktopics` WHERE id="'. $topicId .'"'));
 				mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages-1 WHERE id="'.$msg['auteur'].'"');
+				mysql_query('DELETE FROM `mkreactions` WHERE type="topic" AND link="'. $topicId .','. $msgId .'"');
 				echo $language ? '<p id="successSent">Message deleted successfully<br />
-				<a href="topic.php?topic='. $_GET['topic'] .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id<'. $_GET['id']))/20) .'">Click here</a> to go to the topic.<br />
+				<a href="topic.php?topic='. $topicId .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $topicId .'" AND id<'. $msgId))/20) .'">Click here</a> to go to the topic.<br />
 				<a href="category.php?category='. $getCat['category'] .'">Click here</a> to return to the category.<br />
 				<a href="forum.php">Click here</a> to return to the forum.</p>':
 				'<p id="successSent">Message supprim&eacute; avec succ&egrave;s<br />
-				<a href="topic.php?topic='. $_GET['topic'] .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id<'. $_GET['id']))/20) .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
+				<a href="topic.php?topic='. $topicId .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $topicId .'" AND id<'. $msgId))/20) .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
 				<a href="category.php?category='. $getCat['category'] .'">Cliquez ici</a> pour retourner à la catégorie.<br />
 				<a href="forum.php">Cliquez ici</a> pour retourner au forum.</p>';
 			}

@@ -54,6 +54,7 @@ function print_league($pts,$ic) {
 }
 function print_forum_msg($message,$mayEdit,$mayQuote=null) {
 	global $id, $language;
+	$topicId = isset($_GET['topic']) ? +$_GET['topic']:0;
 	if (null===$mayQuote)
 		$mayQuote = $mayEdit;
 	echo '<div class="fMessage" data-msg="'. $message['id'] .'">';
@@ -94,11 +95,16 @@ function print_forum_msg($message,$mayEdit,$mayQuote=null) {
 			. (isset($message['infosDate']) ? $message['infosDate']:'')
 			. '</div>';
 			echo '<div class="mOptions">'
-			. ($mayEdit ? (($message['id']!=1) ? '<a href="edit.php?id='. $message['id'] .'&amp;topic='. $_GET['topic'] .'" class="mEdit">'. ($language ? 'Edit':'Modifier') .'</a> &nbsp; <a href="delete.php?id='. $message['id'] .'&amp;topic='. $_GET['topic'] .'&amp;token='. $_SESSION['csrf'] .'" onclick="return confirmSuppr()" class="mDelete">'. ($language ? 'Delete':'Supprimer') .'</a>' : '<a href="edittopic.php?topic='. $_GET['topic'] .'" class="mEdit">'. ($language ? 'Edit':'Modifier') .'</a> &nbsp; <a href="supprtopic.php?topic='. $_GET['topic'] .'&amp;token='. $_SESSION['csrf'] .'" class="mDelete" onclick="return confirm(\''. ($language ? 'Warning, this will delete the topic. Continue ?':'Attention, cela supprimera le topic. Continuer ?') .'\')">'. ($language ? 'Delete':'Supprimer') .'</a>'):null)
-			. ($id&&$mayQuote ? '<a href="repondre.php?topic='. $_GET['topic'] .'&amp;quote='. $message['id'] .'" class="mQuote">'. ($language ? 'Quote':'Citer') .'</a>':'')
+			. ($mayEdit ? (($message['id']!=1) ? '<a href="edit.php?id='. $message['id'] .'&amp;topic='. $topicId .'" class="mEdit" title="'. ($language ? 'Edit':'Modifier') .'"><img src="images/forum/edit.png" alt="'. ($language ? 'Edit':'Modifier') .'" /></a><a href="delete.php?id='. $message['id'] .'&amp;topic='. $topicId .'&amp;token='. $_SESSION['csrf'] .'" onclick="return confirmSuppr()" class="mDelete" title="'. ($language ? 'Delete':'Supprimer') .'"><img src="images/forum/delete.png" alt="'. ($language ? 'Delete':'Supprimer') .'" /></a>' : '<a href="edittopic.php?topic='. $topicId .'" class="mEdit" title="'. ($language ? 'Edit':'Modifier') .'"><img src="images/forum/edit.png" alt="'. ($language ? 'Edit':'Modifier') .'" /></a><a href="supprtopic.php?topic='. $topicId .'&amp;token='. $_SESSION['csrf'] .'" class="mDelete" title="'. ($language ? 'Delete':'Supprimer') .'" onclick="return confirm(\''. ($language ? 'Warning, this will delete the topic. Continue ?':'Attention, cela supprimera le topic. Continuer ?') .'\')"><img src="images/forum/delete.png" alt="'. ($language ? 'Delete':'Supprimer') .'" /></a>'):null)
+			. ($id&&$mayQuote ? '<a href="repondre.php?topic='. $topicId .'&amp;quote='. $message['id'] .'" class="mQuote" title="'. ($language ? 'Quote':'Citer') .'"><img src="images/forum/quote.png" alt="'. ($language ? 'Quote':'Citer') .'" /></a>':'')
+			. ($id&&$mayQuote ? '<a href="#null" onclick="openReactions(\''.$topicId.','. $message['id'] .'\',this);return false" class="mReact" title="'. ($language ? 'Add reaction':'Ajouter une réaction') .'"><img src="images/forum/react.png" alt="'. ($language ? 'React':'Réagir') .'" /></a>':'')
 			. '</div>';
 		echo '</div>';
 		echo '<div class="mBody">'. bbcode($message['message']) .'</div>';
+		echo '<div class="mReactions">';
+		if (isset($message['reactions']))
+			printReactions('topic',$topicId.','.$message['id'], $message['reactions']);
+		echo '</div>';
 		echo '</div>';
 	echo '</div>';
 }

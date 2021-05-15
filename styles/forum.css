@@ -242,10 +242,6 @@ blockquote .action_button {
 	width: 95%;
 }
 @media screen and (min-width: 600px) {
-	.mAuteur, .mContent {
-		display: table-cell;
-		vertical-align: top;
-	}
 	.mAuteur, .mPseudo {
 		width: 170px;
 	}
@@ -257,6 +253,9 @@ blockquote .action_button {
 	}
 }
 @media screen and (max-width: 599px) {
+	.fMessage {
+		flex-direction: column;
+	}
 	.mAuteur {
 		display: flex;
 		align-items: center;
@@ -276,11 +275,8 @@ blockquote .action_button {
 	.mPseudo {
 		max-width: 150px;
 	}
-	.fMessage .mHeader {
-		height: 40px;
-	}
-	.fMessage .mHeader.mCanEdit {
-		height: 48px;
+	.mHeader {
+		padding-bottom: 2px;
 	}
 	.fMessage:nth-child(2n) .mHeader {
 		border-bottom: double 4px #E5AC16;
@@ -289,10 +285,14 @@ blockquote .action_button {
 		border-bottom: double 4px #EFCC0A;
 	}
 	.fMessage .mBody {
-		margin: 20px 5px;
+		margin: 5px;
 	}
 }
 @media screen and (min-width: 600px) {
+	.mOptions {
+		padding-top: 3px;
+		min-height: 30px;
+	}
 	.fMessage .mBody {
 		margin-top: 5px;
 	}
@@ -404,7 +404,8 @@ a.forum-auteur:hover {
 	}
 }
 .mBody {
-	max-height: 400px;
+	flex: 1;
+	max-height: 380px;
 	overflow-y: auto;
 	padding-right: 5px;
 	padding-bottom: 5px;
@@ -477,7 +478,7 @@ a.forum-auteur:hover {
 	margin-bottom: 5px;
 	margin-left: auto;
 	margin-right: auto;
-	display: table;
+	display: flex;
 }
 .subjects {
 	text-align: left;
@@ -525,36 +526,40 @@ a.forum-auteur:hover {
 	color: black;
 }
 .mHeader {
-	position: relative;
 	width: 100%;
-	height: 20px;
-	display: inline-block;
+	display: flex;
+	align-items: center;
 }
 .mDate {
-	position: absolute;
-	left: 5px;
-	top: 5px;
 	font-size: 12px;
 	font-weight: bold;
-	padding-right: 150px;
+	flex: 1;
+	padding-right: 5px;
 }
-.mOptions {
-	position: absolute;
-	right: 5px;
-	top: 2px;
-	text-align: right;
+.mOptions > a {
+	display: inline-block;
+	padding: 2px;
+	opacity: 0.7;
 }
-.mEdit {
-	color: #090;
+.mOptions > a:hover {
+	opacity: 1;
+	background-color: rgba(220,204,78, 0.6);
 }
-.mEdit:hover {
-	color: #060;
+.mOptions img {
+	height: 24px;
+	vertical-align: middle;
 }
 .mDelete {
-	color: red;
+	margin-left: 2px;
 }
-.mDelete:hover {
-	color: maroon;
+.mQuote {
+	margin-left: 2px;
+}
+.mReact {
+	margin-left: 0px;
+}
+.mOptions {
+	padding-right: 5px;
 }
 .fMessage:nth-child(2n) {
 	background-color: #FFC028;
@@ -568,7 +573,68 @@ a.forum-auteur:hover {
 	empty-cells: show;
 }
 .mContent {
+	flex: 1;
 	padding-left: 10px;
+	display: flex;
+	flex-direction: column;
+}
+.mContent.mHiddenContent > * {
+	width: auto;
+	display: none;
+}
+.mReactions {
+	margin: 3px 5px 3px -5px;
+	display: flex;
+	flex-wrap: wrap;
+}
+.mReactions > div {
+	display: inline-flex;
+	margin: 2px;
+	padding: 0 5px;
+	border-radius: 4px;
+	height: 26px;
+	align-items: center;
+	font-size: 12px;
+	user-select: none;
+}
+.mReactions > div:not([data-disabled]) {
+	cursor: pointer;
+}
+.fMessage:nth-child(2n) .mReactions > div {
+	background-color: #dba61d;
+}
+.fMessage:nth-child(2n+1) .mReactions > div {
+	background-color: #e5ad1b;
+}
+.fMessage .mReactions > div:not([data-disabled]):hover {
+	background-color: #c49b2e;
+}
+.fMessage .mReactions > div[data-checked] {
+	background-color: #a1cb15;
+	border: solid 1px #396;
+}
+.fMessage .mReactions > div[data-checked]:hover {
+	background-color: #afdc17;
+	border: solid 1px #5b8;
+}
+.fMessage .mReactions > div.mReactionAdd {
+	background: none;
+	opacity: 0.7;
+}
+.fMessage .mReactions > div.mReactionAdd:hover {
+	opacity: 0.8;
+	background-color: #e0b84e;
+}
+.mReactions > div img {
+	width: 18px;
+	max-height: 20px;
+	object-fit: contain;
+}
+.mReactions > div span {
+	display: inline-block;
+	margin-left: 3px;
+	position: relative;
+	top: 1px;
 }
 .mBody img, .mBody iframe {
 	max-width: 100%;
@@ -592,42 +658,122 @@ a.forum-auteur:hover {
 	margin-left: auto;
 	margin-right: auto;
 }
+#message-reactions {
+	display: none;
+	position: fixed;
+	z-index: 1;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+}
+#message-reactions-details {
+	display: flex;
+	visibility: hidden;
+	opacity: 0;
+	position: fixed;
+	z-index: 1;
+	background-color: rgba(196, 155, 46, 0.8);
+	color: white;
+	align-items: center;
+	border-radius: 5px;
+}
+#message-reactions-details.show {
+	visibility: visible;
+	opacity: 1;
+	transition: opacity 0.2s ease-in;
+}
+#message-reactions-details > img {
+	width: 48px;
+	max-height: 60px;
+	margin: 5px;
+}
+#message-reactions-details > div {
+	padding: 5px;
+	width: 150px;
+	font-size: 0.8em;
+	max-width: 90vw;
+	max-width: calc(100vw - 80px);
+}
+.message-reactions-dialog {
+	position: absolute;
+	width: 400px;
+	max-width: 90vw;
+	background-color: #feb;
+	background-color: rgba(255,240,192,0.9);
+    border: solid 1px #820;
+}
+.message-reactions-title {
+	position: relative;
+}
+.message-reactions-title h3 {
+	flex: 1;
+	margin: 3px 0 5px 5px;
+	color: #820;
+}
+.message-reactions-title a {
+	position: absolute;
+	right: 1px;
+	top: 1px;
+	display: block;
+	font-weight: bold;
+	text-decoration: none;
+	margin-right: 2px;
+    display: inline-block;
+    padding: 0 4px;
+    background-color: #C00;
+    text-decoration: none;
+    color: white;
+    border-radius: 5px;
+    font-size: 20px;
+	line-height: 20px;
+}
+.message-reactions-title a:hover {
+    background-color: #E00;
+	color: white;
+}
+.message-reactions-cat > div {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 10px 0;
+	padding-left: 5px;
+}
+.message-reactions-cat > div:first-child {
+	margin-top: 0;
+}
+.message-reactions-cat > div:last-child {
+	margin-bottom: 5px;
+}
+.message-reactions-cat a {
+	height: 30px;
+	display: inline-flex;
+	margin: 0;
+	padding: 2px 4px;
+	border-radius: 5px;
+}
+.message-reactions-cat a:hover {
+	background-color: #e5c298;
+}
+.message-reactions-cat img {
+	width: 24px;
+	object-fit: contain;
+}
 @media screen and (max-width: 799px) {
 	#nMessage {
 		width: 100%;
-	}
-	.mDelete {
-		float: right;
-	}
-	.mQuote {
-		float: right;
-		clear: right;
-	}
-}
-@media screen and (min-width: 600px) and (max-width: 799px) {
-	.fMessage:nth-child(2n) .mQuote {
-		background-color: #FFC028;
-	}
-	.fMessage:nth-child(2n+1) .mQuote {
-		background-color: #FFE30C;
-	}
-	.mQuote {
-		opacity: 0;
-	}
-	.fMessage:hover .mQuote {
-		opacity: 0.8;
 	}
 }
 @media screen and (min-width: 800px) {
 	#nMessage {
 		width: 500px;
 	}
-	.mQuote {
-		color: #F50;
-		margin-left: 8px;
-		padding-left: 2px;
-		padding-bottom: 1px;
-		width: auto;
+}
+@media screen and (min-width: 1200px) {
+	.mOptions {
+		visibility: hidden;
+	}
+	.fMessage:hover .mOptions {
+		visibility: visible;
 	}
 }
 #nMessage td {

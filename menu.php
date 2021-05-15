@@ -126,7 +126,20 @@
 					case 'answer_forum' :
 					case 'forum_mention' :
 					case 'forum_quote' :
-						$linkData = explode(',', $myNotif['link']);
+					case 'new_reaction' :
+						if ($myNotif['type'] == 'new_reaction') {
+							if ($notifReaction = mysql_fetch_array(mysql_query('SELECT type,member,link FROM `mkreactions` WHERE id="'. $myNotif['link'] .'"'))) {
+								if ($notifReaction['type'] !== 'topic')
+									break;
+								$linkData = explode(',', $notifReaction['link']);
+							}
+							else {
+								$toDelete = true;
+								break;
+							}
+						}
+						else
+							$linkData = explode(',', $myNotif['link']);
 						if ($notifMsg = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $linkData[0] .'" AND id="'. $linkData[1] .'"'))) {
 							if (($topicData = mysql_fetch_array(mysql_query('SELECT titre,private FROM `mktopics` WHERE id="'. $notifMsg['topic'] .'"'))) && canSeeTopic($topicData)) {
 								$notifData['sender'] = $notifMsg['auteur'];
@@ -136,8 +149,11 @@
 									$notifData['mine'] = ($getFirstMessage_['auteur']==$id);
 									$notifData['link'] = 'topic.php?topic='. $notifMsg['topic'];
 								}
-								else
+								else {
+									if ($myNotif['type'] == 'new_reaction')
+										$notifData['sender'] = $notifReaction['member'];
 									$notifData['link'] = 'topic.php?topic='. $notifMsg['topic'] .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $linkData[0] .'" AND id<='. $linkData[1]))/20);
+								}
 							}
 							else
 								$toDelete = true;
@@ -460,6 +476,10 @@
 				break;
 			case 'forum_quote' :
 				$verb = ($language ? 'quoted you':((count($names)>1) ? 'vous ont cité':'vous a cité'));
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'in the topic':'sur le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				break;
+			case 'new_reaction' :
+				$verb = ($language ? 'reacted on your message':((count($names)>1) ? 'ont réagi à votre message':'a réagi à votre message'));
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'in the topic':'sur le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
 				break;
 			case 'circuit_comment' :
