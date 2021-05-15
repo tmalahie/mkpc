@@ -104,7 +104,7 @@ function printReactions($type, $link, $reactions) {
         if (!empty($reactionsGrouped)) {
             foreach ($reactionsGrouped as $name => $reaction) {
                 echo '<div data-name="'. $name .'" data-list="'. htmlspecialchars(implode(',',$reaction['list'])) .'"'. ($reaction['checked'] ? ' data-checked="1"':'') . ($id ? ' onclick="sendReaction(\''.$link.'\',this)"':' data-disabled="1"') .' onmouseover="showReactionDetails(this)" onmouseout="hideReactionDetails(this)">';
-                    echo '<img src="images/forum/reactions/'.$name .'.png" alt="Add reaction" />';
+                    echo '<img src="images/forum/reactions/'.$name .'.png" alt="'. $name .'" oncontextmenu="return false" />';
                     echo '<span>'.count($reaction['list']).'</span>';
                 echo '</div>';
             }

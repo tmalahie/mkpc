@@ -286,15 +286,13 @@ blockquote .action_button {
 	}
 	.fMessage .mBody {
 		margin: 5px;
+		margin-top: 20px;
 	}
 }
 @media screen and (min-width: 600px) {
 	.mOptions {
 		padding-top: 3px;
 		min-height: 30px;
-	}
-	.fMessage .mBody {
-		margin-top: 5px;
 	}
 }
 a.forum-auteur {

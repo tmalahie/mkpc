@@ -192,12 +192,14 @@ if ($topic['locked'])
 				?>
 				</div>
 			</div>
-			<div id="message-reactions-details">
-				<img src="images/forum/reactions/smile.png" alt="smile" />
-				<div></div>
-			</div>
 			<?php
 		}
+		?>
+		<div id="message-reactions-details">
+			<img src="images/forum/reactions/smile.png" alt="smile" />
+			<div></div>
+		</div>
+		<?php
 		echo $pagesDiv;
 		include('bbCode.php');
 		include('avatars.php');
