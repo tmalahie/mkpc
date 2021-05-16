@@ -286,7 +286,7 @@ blockquote .action_button {
 	}
 	.fMessage .mBody {
 		margin: 5px;
-		margin-top: 20px;
+		margin-top: 15px;
 	}
 }
 @media screen and (min-width: 600px) {
