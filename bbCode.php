@@ -105,7 +105,7 @@ function print_forum_msg($message,$mayEdit,$mayQuote=null,$mayReact=null) {
 		echo '<div class="mBody">'. bbcode($message['message']) .'</div>';
 		echo '<div class="mReactions">';
 		if (isset($message['reactions']))
-			printReactions('topic', $message['topic'].','.$message['id'], $message['reactions'], $mayReact);
+			printReactions('topic', $message['topic'].','.$message['id'], $message['reactions'], $id&&$mayReact);
 		echo '</div>';
 		echo '</div>';
 	echo '</div>';
