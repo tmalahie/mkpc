@@ -14,7 +14,7 @@ $reactions = array(
         'blush',
         'innocent',
         'see_no_evil',
-        'dragon',
+        'dragon_face',
         'pensive',
         'thinking',
         'scream',
