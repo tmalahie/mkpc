@@ -199,6 +199,9 @@ if ($oneset) {
 	?></h2>
 	<?php
 	if ($nbres) {
+		require_once('reactions.php');
+		printReactionUI();
+		
 		$sql = "SELECT m.id,t.titre,m.topic,m.message,m.auteur,t.private,m.date FROM $from WHERE $where";
 		$sql .= ' ORDER BY t.dernier DESC, m.topic DESC, m.date DESC LIMIT '.(($page-1)*$RES_PER_PAGE).','.$RES_PER_PAGE;
 		$search = mysql_query($sql);
@@ -207,23 +210,29 @@ if ($oneset) {
 		<?php
 		$topicName = '';
 		$isManager = hasRight('manager');
-		$oneResult = false;
+		$searchResults = array();
 		while ($result = mysql_fetch_array($search)) {
 			if ($result['private'] && !$isManager)
 				continue;
-			$oneResult = true;
-			if ($result['titre'] != $topicName) {
-				$topicName = $result['titre'];
-				echo '</div>';
-				echo '<h2><a href="topic.php?topic='.$result['topic'].'">'.htmlspecialchars($topicName).'</a></h2>';
-				echo '<div class="fMessages" data-topic="'.$result['topic'].'">';
-			}
-			print_forum_msg($result,false);
+			$searchResults[] = $result;
 		}
-		if (!$oneResult) {
+		if (empty($searchResults)) {
 			echo '<h4>';
 			echo $language ? 'No result in this page. It generally occurs when messages are deleted or made private. Please check the next or previous page' : 'Aucun résultat sur cette page. Cela se produit généralement lorsque les messages sont supprimés ou rendus privés. Essayez la page suivante ou précédente';
 			echo '</h4>';
+		}
+		else {
+			populateReactionsData($searchResults);
+
+			foreach ($searchResults as $result) {
+				if ($result['titre'] != $topicName) {
+					$topicName = $result['titre'];
+					echo '</div>';
+					echo '<h2><a href="topic.php?topic='.$result['topic'].'">'.htmlspecialchars($topicName).'</a></h2>';
+					echo '<div class="fMessages" data-topic="'.$result['topic'].'">';
+				}
+				print_forum_msg($result,false);
+			}
 		}
 		?>
 		</div>

@@ -43,8 +43,10 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	$pageMessages = array();
 	for ($i=0;$message=mysql_fetch_array($messages);$i++) {
 		if ($i >= $debut) {
-			if ($i < $fin)
+			if ($i < $fin) {
+				$message['topic'] = $topicId;
 				$pageMessages[] = $message;
+			}
 			else
 				break;
 		}
@@ -54,13 +56,7 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	$maxId = end($pageMessages)['id'];
 
 	require_once('reactions.php');
-	$reactionLinks = array();
-	foreach ($pageMessages as $message)
-		$reactionLinks[] = $topicId.','.$message['id'];
-	$messageReactions = getReactionsByLink('topic', $reactionLinks);
-	foreach ($pageMessages as &$message)
-		$message['reactions'] = $messageReactions[$topicId.','.$message['id']];
-	unset($message);
+	populateReactionsData($pageMessages);
 
 	include('category_fields.php');
 	$categoryID = isset($topic['category']) ? $topic['category']:'';
@@ -171,41 +167,17 @@ if ($topic['locked'])
 				}
 				?>
 			</div>
-			<div id="message-reactions" onclick="closeReactions()">
-				<div class="message-reactions-dialog" onclick="event.stopPropagation()">
-				<?php
-				echo '<div class="message-reactions-title">';
-					echo '<h3>'. ($language ? 'Add reaction...':'Ajouter une réaction...') .'</h3>';
-					echo '<a href="#null" onclick="closeReactions();return false" title="'. ($language ? 'Close':'Fermer') .'">&times;</a>';
-				echo '</div>';
-				echo '<div class="message-reactions-cat">';
-				foreach ($reactions as $list) {
-					echo '<div>';
-					foreach ($list as $reaction) {
-						echo '<a href="#null" onclick="addReaction(\''.$reaction.'\');return false">';
-						echo '<img src="images/forum/reactions/'. $reaction .'.png" alt="'. $reaction .'" title="'. $reaction .'" />';
-						echo '</a>';
-					}
-					echo '</div>';
-				}
-				echo '</div>';
-				?>
-				</div>
-			</div>
 			<?php
 		}
 		?>
-		<div id="message-reactions-details">
-			<img src="images/forum/reactions/smile.png" alt="smile" />
-			<div></div>
-		</div>
 		<?php
+		printReactionUI();
 		echo $pagesDiv;
 		include('bbCode.php');
 		include('avatars.php');
 		echo '<div id="fMessages">';
 		foreach ($pageMessages as $message)
-			print_forum_msg($message,($message['auteur']==$id || $isModerator),!$topic['locked']);
+			print_forum_msg($message,($message['auteur']==$id || $isModerator),!$topic['locked'],true);
 		echo '</div>';
 		echo $pagesDiv;
 		?>
@@ -256,8 +228,5 @@ if ($topic['locked'])
 <?php
 include('footer.php');
 ?>
-<script type="text/javascript">
-var language = <?php echo $language ? 1:0; ?>;
-</script>
 </body>
 </html>

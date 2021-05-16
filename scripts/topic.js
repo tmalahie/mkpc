@@ -44,7 +44,7 @@ function followTopic(id, follow, userIsPoster) {
 		followerCheckboxs[i].checked = follow;
 }
 function confirmSuppr() {
-	return confirm(language ? 'Are you sure you want to delete this message ?':'Voulez-vous vraiment supprimer ce message ?');
+	return confirm(o_language ? 'Are you sure you want to delete this message ?':'Voulez-vous vraiment supprimer ce message ?');
 }
 function openReactions(link, $elt) {
 	var $reactions = document.getElementById("message-reactions");
@@ -83,14 +83,14 @@ function showReactionDetails($elt) {
 			if (i < (names.length-1))
 				namesString += ", ";
 			else
-				namesString += language ? " and " : " et ";
+				namesString += o_language ? " and " : " et ";
 		}
 		namesString += "<strong>"+names[i]+"</strong>";
 	}
 	var $details = document.getElementById("message-reactions-details");
 	var $detailsImg = $details.querySelector("img");
 	var $detailsDiv = $details.querySelector("div");
-	$detailsDiv.innerHTML = namesString + " " + (language ? "reacted with":(names.length>=2 ? "ont réagi avec":"a réagi avec")) + " :"+reaction+":";
+	$detailsDiv.innerHTML = namesString + " " + (o_language ? "reacted with":(names.length>=2 ? "ont réagi avec":"a réagi avec")) + " :"+reaction+":";
 	$detailsDiv.style.width = (names.join(", ").length > 50) ? "360px":"";
 	$detailsImg.src = "images/forum/reactions/"+reaction+".png";
 	$detailsImg.alt = reaction;

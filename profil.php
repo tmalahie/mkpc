@@ -589,15 +589,21 @@ include('menu.php');
 		</div>
 		<div class="profile-feed">
 			<?php
-			$lastMessages = mysql_query(
+			$getLastMessages = mysql_query(
 				'SELECT mkmessages.id,titre,auteur,topic,message,date
 				FROM `mkmessages` INNER JOIN `mktopics` ON mkmessages.topic=mktopics.id WHERE auteur="'. $_GET['id'] .'"'. (hasRight('manager') ? '':' AND !private') .' ORDER BY date DESC LIMIT 3'
 			);
-			if (mysql_numrows($lastMessages)) {
+			$lastMessages = array();
+			while ($message = mysql_fetch_array($getLastMessages))
+				$lastMessages[] = $message;
+			if (!empty($lastMessages)) {
 				?>
 				<h2><?php echo $language ? 'Last messages on the forum':'Derniers messages sur le forum'; ?>&nbsp;:</h2>
 				<?php
-				while ($message = mysql_fetch_array($lastMessages)) {
+				require_once('reactions.php');
+				printReactionUI();
+				populateReactionsData($lastMessages);
+				foreach ($lastMessages as $message) {
 					$message['infosDate'] = ' '. ($language ? 'in':'dans') . ' <a href="topic.php?topic='. $message['topic'] .'&message='. $message['id'] .'" title="'. $topicInfos['titre'] .'">'. controlLength($message['titre'], 35) .'</a>';
 					$message['message'] = $message['message'];
 					print_forum_msg($message,false);

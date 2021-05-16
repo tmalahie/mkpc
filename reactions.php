@@ -84,8 +84,18 @@ function getReactions($type, $link) {
     $res = getReactionsByLink($type, array($link));
     return $res[$link];
 }
-function printReactions($type, $link, $reactions) {
+function populateReactionsData(&$messages) {
+	$reactionLinks = array();
+	foreach ($messages as $message)
+		$reactionLinks[] = $message['topic'].','.$message['id'];
+	$messageReactions = getReactionsByLink('topic', $reactionLinks);
+	foreach ($messages as &$message)
+		$message['reactions'] = $messageReactions[$message['topic'].','.$message['id']];
+}
+function printReactions($type, $link, $reactions, $mayReact=null) {
     global $id;
+    if (null === $mayReact)
+        $mayReact = !!$id;
     $reactionsGrouped = array();
     foreach ($reactions as $reaction) {
         $name = $reaction['reaction'];
@@ -103,12 +113,12 @@ function printReactions($type, $link, $reactions) {
     case 'topic':
         if (!empty($reactionsGrouped)) {
             foreach ($reactionsGrouped as $name => $reaction) {
-                echo '<div data-name="'. $name .'" data-list="'. htmlspecialchars(implode(',',$reaction['list'])) .'"'. ($reaction['checked'] ? ' data-checked="1"':'') . ($id ? ' onclick="sendReaction(\''.$link.'\',this)"':' data-disabled="1"') .' onmouseover="showReactionDetails(this)" onmouseout="hideReactionDetails(this)">';
+                echo '<div data-name="'. $name .'" data-list="'. htmlspecialchars(implode(',',$reaction['list'])) .'"'. ($reaction['checked'] ? ' data-checked="1"':'') . ($mayReact ? ' onclick="sendReaction(\''.$link.'\',this)"':' data-disabled="1"') .' onmouseover="showReactionDetails(this)" onmouseout="hideReactionDetails(this)">';
                     echo '<img src="images/forum/reactions/'.$name .'.png" alt="'. $name .'" oncontextmenu="return false" />';
                     echo '<span>'.count($reaction['list']).'</span>';
                 echo '</div>';
             }
-            if ($id) {
+            if ($mayReact) {
                 echo '<div class="mReactionAdd" onclick="openReactions(\''.$link.'\',this)">';
                     echo '<img src="images/forum/react.png" alt="React" />';
                 echo '</div>';
@@ -116,4 +126,38 @@ function printReactions($type, $link, $reactions) {
         }
         break;
     }
+}
+function printReactionUI() {
+    global $id, $language, $reactions;
+    if ($id) {
+        ?>
+        <div id="message-reactions" onclick="closeReactions()">
+			<div class="message-reactions-dialog" onclick="event.stopPropagation()">
+			<?php
+			echo '<div class="message-reactions-title">';
+				echo '<h3>'. ($language ? 'Add reaction...':'Ajouter une réaction...') .'</h3>';
+				echo '<a href="#null" onclick="closeReactions();return false" title="'. ($language ? 'Close':'Fermer') .'">&times;</a>';
+			echo '</div>';
+			echo '<div class="message-reactions-cat">';
+			foreach ($reactions as $list) {
+				echo '<div>';
+				foreach ($list as $reaction) {
+					echo '<a href="#null" onclick="addReaction(\''.$reaction.'\');return false">';
+					echo '<img src="images/forum/reactions/'. $reaction .'.png" alt="'. $reaction .'" title=":'. $reaction .':" />';
+					echo '</a>';
+				}
+				echo '</div>';
+			}
+			echo '</div>';
+			?>
+            </div>
+		</div>
+        <?php
+    }
+    ?>
+    <div id="message-reactions-details">
+        <img src="images/forum/reactions/smile.png" alt="smile" />
+        <div></div>
+    </div>
+    <?php
 }
