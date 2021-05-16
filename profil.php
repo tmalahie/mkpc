@@ -604,7 +604,7 @@ include('menu.php');
 				<?php
 				require_once('reactions.php');
 				printReactionUI();
-				populateReactionsData($lastMessages);
+				populateReactionsData('topic', $lastMessages);
 				foreach ($lastMessages as $message)
 					print_forum_msg($message,false);
 				?>

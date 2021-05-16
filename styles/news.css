@@ -522,9 +522,6 @@ form.news-comment-editting .news-noedit {
 .news-avatar a {
 	text-decoration: none;
 }
-.news-avatar .avatar-img {
-	/*background-color: rgba(178,192,230, 0.25);*/
-}
 .news-commenter {
 	font-weight: bold;
 	text-decoration: none;
@@ -544,7 +541,7 @@ form.news-comment-editting .news-noedit {
 	display: inline-block;
 	vertical-align: top;
 	width: calc(100% - 51px);
-	padding: 5px 10px 5px 0px;
+	padding: 4px 10px 3px 0px;
 }
 .news-lock {
     background-color: #C66;
@@ -572,7 +569,6 @@ form.news-comment-editting .news-comment {
 .news-comment .news-edit textarea {
 	width: 100%;
 	height: 50px;
-	margin-bottom: 2px;
 }
 form:not(.news-comment-editting) .news-comment-info {
 	margin-top: 4px;
@@ -581,43 +577,66 @@ form:not(.news-comment-editting) .news-comment-info {
 	font-size: 0.9em;
 	color: #9191CA;
 }
-.news-comment-options {
-	position: absolute;
-	right: 5px;
-	bottom: 5px;
-}
-form:not(.news-comment-editting) .news-comment-options {
+form:not(.news-comment-editting) .news-comment-options.news-noedit {
 	visibility: hidden;
 }
-form:not(.news-comment-editting):hover .news-comment-options {
+form:not(.news-comment-editting):hover .news-comment-options.news-noedit {
 	visibility: visible;
 }
+.news-comment-info {
+	display: flex;
+}
+.news-comment-date {
+	flex: 1;
+}
+.news-comment-post {
+	display: flex;
+}
+.news-sendcomment {
+	margin-right: 4px;
+}
 .news-comment-options button {
-	font-size: 0.75em;
+	font-size: 12px;
 	padding: 2px 12px;
 	cursor: pointer;
 	color: white;
 	border-radius: 5px;
 	border: none;
 }
-.news-editcomment, .news-sendcomment {
+.news-comment-options img[role="button"] {
+	opacity: 0.8;
+	cursor: pointer;
+	height: 18px;
+}
+.news-comment-options img[role="button"]:hover {
+	opacity: 1;
+}
+.news-comment-ctn:nth-child(2n) .news-comment-options.news-noedit {
+	background-color: rgba(221,221,255, 0.9);
+}
+.news-comment-ctn:nth-child(2n+1) .news-comment-options.news-noedit {
+	background-color: rgba(238,238,255, 0.9);
+}
+.news-comment-options.news-noedit {
+	position: absolute;
+	right: 4px;
+	top: 4px;
+	padding-left: 2px;
+}
+.news-sendcomment {
 	background-color: #0C6;
 }
-.news-editcomment:hover, .news-sendcomment:hover {
+.news-sendcomment:hover {
 	background-color: #0A4;
 }
-.news-delcomment, .news-undocomment {
-	background-color: #D5525A;
-}
-.news-delcomment:hover, .news-undocomment:hover {
-	background-color: #CF2C32;
+.news-undocomment {
+	vertical-align: middle;
 }
 .news-commenttopost {
 	opacity: 0.6;
 	text-align: center;
-	position: relative;
-	top: 8px;
 	font-size: 0.8em;
+	margin: 8px -25px 10px 0;
 }
 .news-commenttopost a {
 	text-decoration: none;
@@ -628,6 +647,164 @@ form:not(.news-comment-editting):hover .news-comment-options {
 	padding: 10px;
 	color: #9191CA;
 	text-align: center;
+}
+#message-reactions {
+	display: none;
+	position: fixed;
+	z-index: 1;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+}
+#message-reactions-details {
+	display: flex;
+	visibility: hidden;
+	opacity: 0;
+	position: fixed;
+	z-index: 1;
+	background-color: rgba(85, 136, 187, 0.9);
+	color: white;
+	align-items: center;
+	border-radius: 5px;
+}
+#message-reactions-details.show {
+	visibility: visible;
+	opacity: 1;
+	transition: opacity 0.2s ease-in;
+}
+#message-reactions-details > img {
+	width: 48px;
+	max-height: 60px;
+	margin: 5px;
+}
+#message-reactions-details > div {
+	padding: 5px;
+	width: 150px;
+	font-size: 0.8em;
+	max-width: 90vw;
+	max-width: calc(100vw - 80px);
+}
+.message-reactions-dialog {
+	position: absolute;
+	width: 400px;
+	max-width: 90vw;
+	background-color: rgba(201,213,248, 0.9);
+    border: solid 1px #028;
+}
+.message-reactions-title {
+	position: relative;
+}
+.message-reactions-title h3 {
+	flex: 1;
+	margin: 3px 0 5px 5px;
+	color: #028;
+}
+.message-reactions-title a {
+	position: absolute;
+	right: 1px;
+	top: 1px;
+	display: block;
+	font-weight: bold;
+	text-decoration: none;
+	margin-right: 2px;
+    display: inline-block;
+    padding: 0 4px;
+    background-color: #C00;
+    text-decoration: none;
+    color: white;
+    border-radius: 5px;
+    font-size: 20px;
+	line-height: 20px;
+}
+.message-reactions-title a:hover {
+    background-color: #E00;
+	color: white;
+}
+.message-reactions-cat > div {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 10px 0;
+	padding-left: 5px;
+}
+.message-reactions-cat > div:first-child {
+	margin-top: 0;
+}
+.message-reactions-cat > div:last-child {
+	margin-bottom: 5px;
+}
+.message-reactions-cat a {
+	height: 30px;
+	display: inline-flex;
+	margin: 0;
+	padding: 2px 4px;
+	border-radius: 5px;
+}
+.message-reactions-cat a:hover {
+	background-color: #b2b4dc;
+}
+.message-reactions-cat img {
+	width: 24px;
+	object-fit: contain;
+}
+.news-comment-reactions {
+	margin: 3px 5px 0px -5px;
+	display: flex;
+	flex-wrap: wrap;
+}
+.news-comment-reactions > div {
+	display: inline-flex;
+	margin: 2px;
+	padding: 0 5px;
+	border-radius: 4px;
+	height: 23px;
+	align-items: center;
+	font-size: 11px;
+	user-select: none;
+}
+.news-comment-reactions > div:not([data-disabled]) {
+	cursor: pointer;
+}
+.news-comment-ctn:nth-child(2n) .news-comment-reactions > div {
+	background-color: #b1bfe8;
+}
+.news-comment-ctn:nth-child(2n) .news-comment-reactions > div:not([data-disabled]):hover {
+	background-color: #aab8e2;
+}
+.news-comment-ctn:nth-child(2n+1) .news-comment-reactions > div {
+	background-color: #c9d5f8;
+}
+.news-comment-ctn:nth-child(2n+1) .news-comment-reactions > div:not([data-disabled]):hover {
+	background-color: #bdc9f1;
+}
+.news-comment-ctn:nth-child(2n) .news-comment-reactions > div[data-checked] {
+	background-color: #9faeda;
+}
+.news-comment-ctn:nth-child(2n+1) .news-comment-reactions > div[data-checked] {
+	background-color: #b1bfe8;
+}
+.news-comment-reactions > div[data-checked] {
+	border: solid 1px #47a;
+}
+.news-comment-reactions > div[data-checked]:hover {
+	border: solid 1px #58b;
+}
+.news-comment-ctn .news-comment-reactions > div.mReactionAdd {
+	background: none;
+	opacity: 0.7;
+}
+.news-comment-ctn .news-comment-reactions > div:not([data-disabled]).mReactionAdd:hover {
+	opacity: 0.8;
+	background-color: #ccd4ea;
+}
+.news-comment-reactions > div img {
+	width: 14px;
+	max-height: 16px;
+	object-fit: contain;
+}
+.news-comment-reactions > div span {
+	display: inline-block;
+	margin-left: 3px;
 }
 #nMessage input.mDraft {
 	background-color: #00C8EE;

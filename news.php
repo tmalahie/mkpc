@@ -13,6 +13,8 @@ if (($news = mysql_fetch_array(mysql_query('SELECT title,category,author,content
 		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND (type="news_comment" OR type="answer_newscom") AND link IN (SELECT id FROM `mknewscoms` WHERE news="'. $_GET['id'] .'")');
 		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="news_moderated" AND link="'. $_GET['id'] .'"');
 		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="follower_news" AND link="'. $_GET['id'] .'"');
+		mysql_query('DELETE n FROM `mkreactions` r INNER JOIN `mknotifs` n ON n.type="new_reaction" AND n.link=r.id WHERE r.type="news" AND r.link="'. $_GET['id'] .'" AND n.user="'. $id .'"');
+		mysql_query('DELETE n FROM `mknewscoms` c INNER JOIN `mkreactions` r ON r.type="newscom" AND r.link=c.id INNER JOIN `mknotifs` n ON n.type="new_reaction" AND n.link=r.id WHERE c.news="'. $_GET['id'] .'" AND c.author="'. $id .'" AND n.user="'. $id .'"');
 		if ($news['status'] == 'accepted')
 			mysql_query('INSERT INTO `mknewsread` SET user='.$id.',date="'.$news['publication_date'].'" ON DUPLICATE KEY UPDATE date=GREATEST(date,VALUES(date))');
 	}
@@ -48,9 +50,9 @@ include('heads.php');
 <meta property="og:type" content="article" />
 <meta property="og:title" content="<?php echo htmlspecialchars($news['title']) ?>" />
 <meta name="og:description" content="<?php echo htmlspecialchars($hdescription); ?>" />
-<link rel="stylesheet" type="text/css" href="styles/news.css" />
+<link rel="stylesheet" type="text/css" href="styles/news.css?reload=1" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
-<script type="text/javascript" src="scripts/topic.js"></script>
+<script type="text/javascript" src="scripts/topic.js?reload=1"></script>
 <?php
 include('o_online.php');
 ?>
@@ -103,6 +105,8 @@ echo bbcode($news['content']);
 </script>
 <?php
 if ($news['status'] == 'accepted') {
+	require_once('reactions.php');
+	printReactionUI();
 	if (hasRight('moderator') || ($news['author']==$id && $news['locked']!=1)) {
 		switch ($news['locked']) {
 		case 0:
@@ -122,7 +126,11 @@ if ($news['status'] == 'accepted') {
 <div class="news-comments">
 <?php
 $getComments = mysql_query('SELECT c.id,c.author,c.message,c.date,j.nom FROM `mknewscoms` c LEFT JOIN `mkjoueurs` j ON c.author=j.id WHERE news="'. $_GET['id'] .'" ORDER BY c.id DESC');
-$nbComments = mysql_numrows($getComments);
+$comments = array();
+while ($comment = mysql_fetch_array($getComments))
+	$comments[] = $comment;
+populateReactionsData('newscom', $comments);
+$nbComments = count($comments);
 include('avatars.php');
 echo '<div class="news-nbcomments">'. ($language ? 'Comments':'Commentaires') .' ('. $nbComments .')</div>';
 if (!$nbComments)
@@ -149,23 +157,23 @@ if (!$nbComments)
 				echo '<div class="news-commenttopost">'. ($language ? '<a href="forum.php">Log-in</a> to post a comment' : '<a href="forum.php">Connectez-vous</a> pour poster un commentaire') .'</div>';
 			?>
 		</div>
-		<div class="news-comment-info">&nbsp;</div>
-		<div class="news-comment-options">
-			<?php
-			if ($id && !$news['locked']) {
-				?>
-				<div class="news-edit">
+		<?php
+		if ($id && !$news['locked']) {
+			?>
+			<div class="news-comment-info">
+				<div class="news-comment-date">&nbsp;</div>
+				<div class="news-comment-post news-comment-options news-edit">
 					<button type="submit" class="news-sendcomment"><?php echo $language ? 'Send':'Envoyer'; ?></button>
 				</div>
-				<?php
-			}
-			?>
-		</div>
+			</div>
+			<?php
+		}
+		?>
 	</div>
 </form>
 <?php
 include('smileys.php');
-while ($comment = mysql_fetch_array($getComments)) {
+foreach ($comments as $comment) {
 	$canEdit = (($comment['author']==$id)&&!$news['locked']) || hasRight('moderator');
 	?>
 	<form method="post" action="editNewscom.php?id=<?php echo $comment['id']; ?>" id="news-comment-ctn-<?php echo $comment['id']; ?>" class="news-comment-ctn">
@@ -176,7 +184,7 @@ while ($comment = mysql_fetch_array($getComments)) {
 			if ($comment['nom'])
 				echo '</a>';
 		?></div>
-		<div class="news-comment">
+		<div class="news-comment" data-id="<?php echo $comment['id']; ?>">
 			<div class="news-noedit">
 				<?php
 				if ($comment['nom']) {
@@ -201,25 +209,33 @@ while ($comment = mysql_fetch_array($getComments)) {
 			<?php
 			if ($canEdit) {
 				?>
-				<div class="news-edit">
+				<div class="news-comment-options news-edit">
 					<textarea name="comment" required="required"><?php echo htmlspecialchars($comment['message']); ?></textarea>
 				</div>
 				<?php
 			}
 			?>
-			<div class="news-comment-info"><?php echo pretty_dates($comment['date']); ?></div>
+			<div class="news-comment-info">
+				<div class="news-comment-date"><?php echo pretty_dates($comment['date']); ?></div>
+				<div class="news-comment-post news-comment-options news-edit">
+					<button type="submit" class="news-sendcomment"><?php echo $language ? 'Send':'Valider'; ?></button>
+					<img src="images/forum/delete.png" alt="<?php echo $language ? 'Undo':'Annuler'; ?>" title="<?php echo $language ? 'Undo':'Annuler'; ?>" role="button" class="news-undocomment" onclick="undoEditComment(<?php echo $comment['id']; ?>)" />
+				</div>
+			</div>
+			<div class="news-comment-reactions"><?php printReactions('newscom', $comment['id'], $comment['reactions']); ?></div>
 			<?php
-			if ($canEdit) {
+			if ($id) {
 				?>
-				<div class="news-comment-options">
-					<div class="news-noedit">
-						<button type="button" class="news-editcomment" onclick="editComment(<?php echo $comment['id']; ?>)"><?php echo $language ? 'Edit':'Modifier'; ?></button>
-						<button type="button" class="news-delcomment" onclick="delComment(<?php echo $comment['id']; ?>)"><?php echo $language ? 'Delete':'Supprimer'; ?></button>
-					</div>
-					<div class="news-edit">
-						<button type="submit" class="news-sendcomment"><?php echo $language ? 'Send':'Valider'; ?></button>
-						<button type="button" class="news-undocomment" onclick="undoEditComment(<?php echo $comment['id']; ?>)"><?php echo $language ? 'Undo':'Annuler'; ?></button>
-					</div>
+				<div class="news-comment-options news-noedit">
+					<?php
+					if ($canEdit) {
+						?>
+						<img src="images/forum/edit.png" alt="<?php echo $language ? 'Edit':'Modifier'; ?>" title="<?php echo $language ? 'Edit':'Modifier'; ?>" role="button" onclick="editComment(<?php echo $comment['id']; ?>)" />
+						<img src="images/forum/delete.png" alt="<?php echo $language ? 'Delete':'Supprimer'; ?>" title="<?php echo $language ? 'Delete':'Supprimer'; ?>" role="button" onclick="delComment(<?php echo $comment['id']; ?>)" />
+						<?php
+					}
+					?>
+					<img src="images/forum/react.png" alt="<?php echo $language ? 'React':'Réagir'; ?>" title="<?php echo $language ? 'Add reaction':'Ajouter une réaction'; ?>" role="button" onclick="openReactions('newscom','<?php echo $comment['id']; ?>',this)" />
 				</div>
 				<?php
 			}

@@ -84,13 +84,27 @@ function getReactions($type, $link) {
     $res = getReactionsByLink($type, array($link));
     return $res[$link];
 }
-function populateReactionsData(&$messages) {
+function populateReactionsData($type, &$messages) {
 	$reactionLinks = array();
-	foreach ($messages as $message)
-		$reactionLinks[] = $message['topic'].','.$message['id'];
-	$messageReactions = getReactionsByLink('topic', $reactionLinks);
-	foreach ($messages as &$message)
-		$message['reactions'] = $messageReactions[$message['topic'].','.$message['id']];
+    switch ($type) {
+    case 'topic':
+        foreach ($messages as $message)
+            $reactionLinks[] = $message['topic'].','.$message['id'];
+        break;
+    default:
+        foreach ($messages as $message)
+            $reactionLinks[] = $message['id'];
+    }
+	$messageReactions = getReactionsByLink($type, $reactionLinks);
+    switch ($type) {
+    case 'topic':
+        foreach ($messages as &$message)
+            $message['reactions'] = $messageReactions[$message['topic'].','.$message['id']];
+        break;
+    default:
+        foreach ($messages as &$message)
+            $message['reactions'] = $messageReactions[$message['id']];
+    }
 }
 function printReactions($type, $link, $reactions, $mayReact=null) {
     global $id;
@@ -109,22 +123,18 @@ function printReactions($type, $link, $reactions, $mayReact=null) {
             $reactionsGrouped[$name]['checked'] = true;
         $reactionsGrouped[$name]['list'][] = $reaction['nom'];
     }
-    switch ($type) {
-    case 'topic':
-        if (!empty($reactionsGrouped)) {
-            foreach ($reactionsGrouped as $name => $reaction) {
-                echo '<div data-name="'. $name .'" data-list="'. htmlspecialchars(implode(',',$reaction['list'])) .'"'. ($reaction['checked'] ? ' data-checked="1"':'') . ($mayReact ? ' onclick="sendReaction(\''.$link.'\',this)"':' data-disabled="1"') .' onmouseover="showReactionDetails(this)" onmouseout="hideReactionDetails(this)">';
-                    echo '<img src="images/forum/reactions/'.$name .'.png" alt="'. $name .'" oncontextmenu="return false" />';
-                    echo '<span>'.count($reaction['list']).'</span>';
-                echo '</div>';
-            }
-            if ($mayReact) {
-                echo '<div class="mReactionAdd" onclick="openReactions(\''.$link.'\',this)">';
-                    echo '<img src="images/forum/react.png" alt="React" />';
-                echo '</div>';
-            }
+    if (!empty($reactionsGrouped)) {
+        foreach ($reactionsGrouped as $name => $reaction) {
+            echo '<div data-name="'. $name .'" data-list="'. htmlspecialchars(implode(',',$reaction['list'])) .'"'. ($reaction['checked'] ? ' data-checked="1"':'') . ($mayReact ? ' onclick="sendReaction(\''.$type.'\',\''.$link.'\',this)"':' data-disabled="1"') .' onmouseover="showReactionDetails(this)" onmouseout="hideReactionDetails(this)">';
+                echo '<img src="images/forum/reactions/'.$name .'.png" alt="'. $name .'" oncontextmenu="return false" />';
+                echo '<span>'.count($reaction['list']).'</span>';
+            echo '</div>';
         }
-        break;
+        if ($mayReact) {
+            echo '<div class="mReactionAdd" onclick="openReactions(\''.$type.'\',\''.$link.'\',this)">';
+                echo '<img src="images/forum/react.png" alt="React" />';
+            echo '</div>';
+        }
     }
 }
 function printReactionUI() {

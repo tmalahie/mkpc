@@ -18,6 +18,20 @@ if (isset($_POST['type']) && isset($_POST['link']) && isset($_POST['reaction']))
 			exit;
 		}
 		if (isReactionValid($_POST['reaction'])) {
+			function insertReactionAndNotify($author) {
+				global $id,$type,$link;
+				if (isset($_POST['delete'])) {
+					mysql_query('DELETE FROM `mkreactions` WHERE type="'. $type .'" AND link="'. $link .'" AND member="'. $id .'" AND reaction="'. $_POST['reaction'] .'"');
+				}
+				else {
+					mysql_query('INSERT IGNORE INTO `mkreactions` SET type="'. $type .'",link="'. $link .'",member="'. $id .'",reaction="'. $_POST['reaction'] .'"');
+					$reactionId = mysql_insert_id();
+					if ($reactionId) {
+						if ($author != $id)
+							mysql_query('INSERT INTO `mknotifs` SET type="new_reaction", user="'. $author .'", link="'. $reactionId .'"');
+					}
+				}
+			}
 			switch ($type) {
 			case 'topic' :
 				$msgIdParts = explode(',', $link);
@@ -26,19 +40,16 @@ if (isset($_POST['type']) && isset($_POST['link']) && isset($_POST['reaction']))
 					$msgId = +$msgIdParts[1];
 					if ($message = mysql_fetch_array(mysql_query('SELECT auteur FROM mkmessages WHERE topic="'. $topicId .'" AND id="'. $msgId .'"'))) {
 						$link = "$topicId,$msgId";
-						if (isset($_POST['delete'])) {
-							mysql_query('DELETE FROM `mkreactions` WHERE type="'. $type .'" AND link="'. $link .'" AND member="'. $id .'" AND reaction="'. $_POST['reaction'] .'"');
-						}
-						else {
-							mysql_query('INSERT IGNORE INTO `mkreactions` SET type="'. $type .'",link="'. $link .'",member="'. $id .'",reaction="'. $_POST['reaction'] .'"');
-							$reactionId = mysql_insert_id();
-							if ($reactionId) {
-								if ($message['auteur'] != $id)
-									mysql_query('INSERT INTO `mknotifs` SET type="new_reaction", user="'. $message['auteur'] .'", link="'. $reactionId .'"');
-							}
-						}
+						insertReactionAndNotify($message['auteur']);
 					}
 				}
+				break;
+			case 'newscom' :
+				$link = +$link;
+				if ($message = mysql_fetch_array(mysql_query('SELECT author FROM mknewscoms WHERE id="'. $link .'"'))) {
+					insertReactionAndNotify($message['author']);
+				}
+				break;
 			}
 		}
 		printReactions($type,$link, getReactions($type,$link));

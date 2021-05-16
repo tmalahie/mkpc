@@ -56,7 +56,7 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	$maxId = end($pageMessages)['id'];
 
 	require_once('reactions.php');
-	populateReactionsData($pageMessages);
+	populateReactionsData('topic', $pageMessages);
 
 	include('category_fields.php');
 	$categoryID = isset($topic['category']) ? $topic['category']:'';

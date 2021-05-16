@@ -71,6 +71,22 @@
 		while ($myNotif = mysql_fetch_array($myNotifications)) {
 			$notifData = Array();
 			$toDelete = false;
+			switch ($myNotif['type']) {
+			case 'new_reaction':
+				if ($notifReaction = mysql_fetch_array(mysql_query('SELECT type,member,link FROM `mkreactions` WHERE id="'. $myNotif['link'] .'"'))) {
+					$notifData['reaction'] = $notifReaction;
+					$myNotif['link'] = $notifData['reaction']['link'];
+					switch ($notifReaction['type']) {
+					case 'topic':
+						$myNotif['type'] = 'reaction_topic';
+						break;
+					case 'newscom':
+						$myNotif['type'] = 'reaction_newscom';
+						break;
+					}
+				}
+				break;
+			}
 			if (!empty($ignoredNotifs[$myNotif['type']])) {
 				$toDelete = true;
 				clearNotifCache();
@@ -126,20 +142,8 @@
 					case 'answer_forum' :
 					case 'forum_mention' :
 					case 'forum_quote' :
-					case 'new_reaction' :
-						if ($myNotif['type'] == 'new_reaction') {
-							if ($notifReaction = mysql_fetch_array(mysql_query('SELECT type,member,link FROM `mkreactions` WHERE id="'. $myNotif['link'] .'"'))) {
-								if ($notifReaction['type'] !== 'topic')
-									break;
-								$linkData = explode(',', $notifReaction['link']);
-							}
-							else {
-								$toDelete = true;
-								break;
-							}
-						}
-						else
-							$linkData = explode(',', $myNotif['link']);
+					case 'reaction_topic' :
+						$linkData = explode(',', $myNotif['link']);
 						if ($notifMsg = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $linkData[0] .'" AND id="'. $linkData[1] .'"'))) {
 							if (($topicData = mysql_fetch_array(mysql_query('SELECT titre,private FROM `mktopics` WHERE id="'. $notifMsg['topic'] .'"'))) && canSeeTopic($topicData)) {
 								$notifData['sender'] = $notifMsg['auteur'];
@@ -150,8 +154,8 @@
 									$notifData['link'] = 'topic.php?topic='. $notifMsg['topic'];
 								}
 								else {
-									if ($myNotif['type'] == 'new_reaction')
-										$notifData['sender'] = $notifReaction['member'];
+									if (isset($notifData['reaction']))
+										$notifData['sender'] = $notifData['reaction']['member'];
 									$notifData['link'] = 'topic.php?topic='. $notifMsg['topic'] .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $linkData[0] .'" AND id<='. $linkData[1]))/20);
 								}
 							}
@@ -259,6 +263,7 @@
 						break;
 					case 'news_comment' :
 					case 'answer_newscom' :
+					case 'reaction_newscom' :
 						if ($notifMsg = mysql_fetch_array(mysql_query('SELECT c.author,news,title FROM `mknewscoms` c INNER JOIN `mknews` n ON c.news=n.id WHERE c.id="'. $myNotif['link'] .'"'))) {
 							$notifData['sender'] = $notifMsg['author'];
 							$notifData['link'] = 'news.php?id='. $notifMsg['news'] .'#news-comment-ctn-0';
@@ -361,6 +366,10 @@
 						}
 						else
 							$toDelete = true;
+						break;
+					case 'new_reaction':
+						$toDelete = true;
+						break;
 				}
 			}
 			if ($toDelete)
@@ -468,27 +477,27 @@
 			switch ($notifData['type']) {
 			case 'answer_forum' :
 				$verb = ($language ? 'answered':((count($names)>1) ? 'ont répondu':'a répondu'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($notifData['mine'] ? ($language ? 'to your topic':'à votre topic') : ($language ? 'to the topic':'au topic')) .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($notifData['mine'] ? ($language ? 'to your topic':'à votre topic') : ($language ? 'to the topic':'au topic')) .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'forum_mention' :
 				$verb = ($language ? 'mention':((count($names)>1) ? 'ont mentionné':'a mentionné'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your name in the topic':'votre pseudo dans le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your name in the topic':'votre pseudo dans le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'forum_quote' :
 				$verb = ($language ? 'quoted you':((count($names)>1) ? 'vous ont cité':'vous a cité'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'in the topic':'sur le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'in the topic':'sur le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
-			case 'new_reaction' :
-				$verb = ($language ? 'reacted on your message':((count($names)>1) ? 'ont réagi à votre message':'a réagi à votre message'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'in the topic':'sur le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+			case 'reaction_topic' :
+				$verb = ($language ? 'reacted':((count($names)>1) ? 'ont réagi':'a réagi'));
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'to your message in the topic':'à votre message sur le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'circuit_comment' :
 				$verb = ($language ? 'commented':((count($names)>1) ? 'ont commenté':' a commenté'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' '. $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' '. $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>';
 				break;
 			case 'news_comment' :
 				$verb = ($language ? 'commented':((count($names)>1) ? 'ont commenté':' a commenté'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' news <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' news <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'news_moderated' :
 				$newsTitle = htmlspecialchars($notifData['title']);
@@ -510,21 +519,26 @@
 				break;
 			case 'answer_comment' :
 				$verb = ($language ? 'also commented':((count($names)>1) ? 'ont également commenté':'a également commenté'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $notifData['the_circuit'] . $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $notifData['the_circuit'] . $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>';
 				break;
 			case 'answer_newscom' :
 				$verb = ($language ? 'also commented':((count($names)>1) ? 'ont également commenté':'a également commenté'));
 				$thenews = ($language ? 'the news':'la news');
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $thenews .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $thenews .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
+				break;
+			case 'reaction_newscom' :
+				$verb = ($language ? 'reacted':((count($names)>1) ? 'ont réagi':'a réagi'));
+				$thenews = ($language ? 'to your comment in the news':'à votre commentaire sur la news');
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $thenews .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'follower_topic' :
-				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published the topic':'a publié le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published the topic':'a publié le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'follower_news' :
-				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published the news':'a publié la news') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published the news':'a publié la news') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'follower_circuit' :
-				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published ':'a publié ') . $notifData['the_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published ':'a publié ') . $notifData['the_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>';
 				break;
 			case 'follower_challenge' :
 				$clData = $notifData['challenge'];
@@ -536,17 +550,17 @@
 					if (strlen($clName) >= 70)
 						$clName = substr($clName, 0,67).'...';
 				}
-				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published the challenge ':'a publié le défi') .' <strong>'. $clName .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published the challenge ':'a publié le défi') .' <strong>'. $clName .'</strong>';
 				break;
 			case 'follower_perso' :
-				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published the character':'a publié le perso') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. ($language ? 'published the character':'a publié le perso') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'new_followuser' :
 				$verb = ($language ? ((count($names)>1) ? 'follow you on MKPC':'now follows you on MKPC'):((count($names)>1) ? 'vous suivent sur MKPC':'vous suit sur MKPC'));
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb;
 				break;
 			case 'new_followtopic' :
-				$verb = ($language ? ((count($names)>1) ? 'follow your topic':'follows your topic'):((count($names)>1) ? 'suivent votre topic':'suit votre topic')) .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>.';
+				$verb = ($language ? ((count($names)>1) ? 'follow your topic':'follows your topic'):((count($names)>1) ? 'suivent votre topic':'suit votre topic')) .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb;
 				break;
 			case 'currently_online' :
@@ -590,7 +604,7 @@
 			case 'new_record':
 				include_once('circuitNames.php');
 				$verb = ($language ? 'broke':((count($names)>1) ? 'ont battu':' a battu'));
-				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your record on the circuit':'votre record sur le circuit') .' <strong>'. $circuitNames[$notifData['record']['circuit']-1] .'</strong>.';
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your record on the circuit':'votre record sur le circuit') .' <strong>'. $circuitNames[$notifData['record']['circuit']-1] .'</strong>';
 				break;
 			}
 		}

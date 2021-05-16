@@ -46,26 +46,38 @@ function followTopic(id, follow, userIsPoster) {
 function confirmSuppr() {
 	return confirm(o_language ? 'Are you sure you want to delete this message ?':'Voulez-vous vraiment supprimer ce message ?');
 }
-function openReactions(link, $elt) {
+function openReactions(type,link, $elt) {
 	var $reactions = document.getElementById("message-reactions");
+	$reactions.dataset.type = type;
 	$reactions.dataset.link = link;
 	var $reactionsDialog = $reactions.querySelector(".message-reactions-dialog");
 	$reactions.style.display = "block";
 	var eltPos = $elt.getBoundingClientRect();
 	var dialogPos = $reactionsDialog.getBoundingClientRect();
-	$reactionsDialog.style.left = Math.max(eltPos.x+eltPos.width-dialogPos.width, 0) +"px";
-	$reactionsDialog.style.top = Math.max(eltPos.y-dialogPos.height, 5) +"px";
+	$reactionsDialog.style.left = Math.max(eltPos.x+eltPos.width-dialogPos.width, 2) +"px";
+	$reactionsDialog.style.top = Math.max(eltPos.y-dialogPos.height-1, 5) +"px";
 }
-function sendReaction(link, $elt) {
+function sendReaction(type,link, $elt) {
 	$elt.onclick = undefined;
-	addReaction($elt.dataset.name, link, $elt.dataset.checked);
+	addReaction($elt.dataset.name, type, link, $elt.dataset.checked);
 }
-function addReaction(key, link, rm) {
+function addReaction(key, type, link, rm) {
 	var $reactions = document.getElementById("message-reactions");
 	link = link || $reactions.dataset.link;
-	o_xhr("sendReaction.php", "type=topic&link="+link+"&reaction="+key+(rm ? "&delete":""), function(responseHTML) {
-		var msgId = link.split(",")[1];
-		document.querySelector(".fMessage[data-msg='"+msgId+"'] .mReactions").innerHTML = responseHTML;
+	type = type || $reactions.dataset.type;
+	o_xhr("sendReaction.php", "type="+type+"&link="+link+"&reaction="+key+(rm ? "&delete":""), function(responseHTML) {
+		var $mReactions;
+		switch (type) {
+		case "topic":
+			var msgId = link.split(",")[1];
+			$mReactions = document.querySelector(".fMessage[data-msg='"+msgId+"'] .mReactions");
+			break;
+		case "newscom":
+			$mReactions = document.querySelector(".news-comment[data-id='"+link+"'] .news-comment-reactions");
+			break;
+		}
+		if ($mReactions)
+			$mReactions.innerHTML = responseHTML;
 		hideReactionDetails();
 		return true;
 	});

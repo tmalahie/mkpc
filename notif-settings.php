@@ -7,11 +7,12 @@ if ($id) {
 	$notifs = array(
 		'forum_mention' => $language ? 'Mention on a forum message':'Mention dans un message sur le forum',
 		'forum_quote' => $language ? 'Quote on a forum message':'Citation dans un message sur le forum',
-		'new_reaction' => $language ? 'Reaction on a message':'Réaction à un message',
+		'reaction_topic' => $language ? 'Reaction to a forum message':'Réaction à un message sur le forum',
 		'circuit_comment' => $language ? 'Answer on one of your circuits':'Commentaire sur un de vos circuits',
 		'answer_comment' => $language ? 'Comment answer on circuit':'Réponse à un commentaire sur un circuit',
 		'news_comment' => $language ? 'Comment on a news':'Commentaire sur une de vos news',
 		'answer_newscom' => $language ? 'Answer to a comment on a news':'Réponse à un commentaire sur une news',
+		'reaction_newscom' => $language ? 'Reaction to a comment on a news':'Réaction à un commentaire sur une news',
 		'follower_topic' => $language ? 'Topic published by a member you follow':'Topic publié par un membre que vous suivez',
 		'follower_circuit' => $language ? 'Circuit published by a member you follow':'Circuit publié par un membre que vous suivez',
 		'follower_challenge' => $language ? 'Challenge published by a member you follow':'Défi publié par un membre que vous suivez',

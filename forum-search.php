@@ -201,7 +201,7 @@ if ($oneset) {
 	if ($nbres) {
 		require_once('reactions.php');
 		printReactionUI();
-		
+
 		$sql = "SELECT m.id,t.titre,m.topic,m.message,m.auteur,t.private,m.date FROM $from WHERE $where";
 		$sql .= ' ORDER BY t.dernier DESC, m.topic DESC, m.date DESC LIMIT '.(($page-1)*$RES_PER_PAGE).','.$RES_PER_PAGE;
 		$search = mysql_query($sql);
@@ -222,7 +222,7 @@ if ($oneset) {
 			echo '</h4>';
 		}
 		else {
-			populateReactionsData($searchResults);
+			populateReactionsData('topic', $searchResults);
 
 			foreach ($searchResults as $result) {
 				if ($result['titre'] != $topicName) {
