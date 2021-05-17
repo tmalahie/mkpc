@@ -72,6 +72,9 @@ function addReaction(key, type, link, rm) {
 			var msgId = link.split(",")[1];
 			$mReactions = document.querySelector(".fMessage[data-msg='"+msgId+"'] .mReactions");
 			break;
+		case "news":
+			$mReactions = document.querySelector(".news-reactions");
+			break;
 		case "newscom":
 			$mReactions = document.querySelector(".news-comment[data-id='"+link+"'] .news-comment-reactions");
 			break;

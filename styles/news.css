@@ -224,7 +224,7 @@ main a:hover {
 	bottom: 5px;
 }
 .news-content {
-	padding: 1em 1em;
+	padding: 1em 1em 0.5em 1em;
 	color: #002;
 	text-align: justify;
 	word-wrap: break-word;
@@ -747,6 +747,77 @@ form:not(.news-comment-editting):hover .news-comment-options.news-noedit {
 	width: 24px;
 	object-fit: contain;
 }
+.news-reactions {
+	display: flex;
+	flex-wrap: wrap;
+}
+.news-reactions:empty {
+	height: 0.5em;
+}
+.news-reactions > div {
+	display: inline-flex;
+	margin: 4px 4px 1px 0;
+	padding: 0 5px;
+	border-radius: 4px;
+	height: 26px;
+	align-items: center;
+	font-size: 12px;
+	user-select: none;
+}
+.news-reactions > div:not([data-disabled]) {
+	cursor: pointer;
+}
+.news-reactions > div {
+	background-color: #c9d5f8;
+}
+.news-reactions > div:not([data-disabled]):hover {
+	background-color: #bdc9f1;
+}
+.news-reactions > div[data-checked] {
+	background-color: #b1bfe8;
+}
+.news-reactions > div.mReactionAdd {
+	background: none;
+	opacity: 0.7;
+}
+.news-reactions > div.mReactionAdd:hover {
+	opacity: 0.8;
+	background-color: #ccd4ea;
+}
+
+.news-comment-ctn:nth-child(2n) .news-reactions > div {
+	background-color: #b1bfe8;
+}
+.news-comment-ctn:nth-child(2n) .news-reactions > div:not([data-disabled]):hover {
+	background-color: #aab8e2;
+}
+.news-comment-ctn:nth-child(2n+1) .news-reactions > div {
+	background-color: #c9d5f8;
+}
+.news-comment-ctn:nth-child(2n+1) .news-reactions > div:not([data-disabled]):hover {
+	background-color: #bdc9f1;
+}
+.news-comment-ctn:nth-child(2n) .news-reactions > div[data-checked] {
+	background-color: #9faeda;
+}
+.news-comment-ctn:nth-child(2n+1) .news-reactions > div[data-checked] {
+	background-color: #b1bfe8;
+}
+.news-reactions > div[data-checked] {
+	border: solid 1px #47a;
+}
+.news-reactions > div[data-checked]:hover {
+	border: solid 1px #58b;
+}
+.news-reactions > div img {
+	width: 18px;
+	max-height: 20px;
+	object-fit: contain;
+}
+.news-reactions > div span {
+	display: inline-block;
+	margin-left: 3px;
+}
 .news-comment-reactions {
 	margin: 3px 5px 0px -5px;
 	display: flex;
@@ -764,6 +835,15 @@ form:not(.news-comment-editting):hover .news-comment-options.news-noedit {
 }
 .news-comment-reactions > div:not([data-disabled]) {
 	cursor: pointer;
+}
+.news-comment-reactions > div img {
+	width: 14px;
+	max-height: 16px;
+	object-fit: contain;
+}
+.news-comment-reactions > div span {
+	display: inline-block;
+	margin-left: 3px;
 }
 .news-comment-ctn:nth-child(2n) .news-comment-reactions > div {
 	background-color: #b1bfe8;
@@ -793,18 +873,9 @@ form:not(.news-comment-editting):hover .news-comment-options.news-noedit {
 	background: none;
 	opacity: 0.7;
 }
-.news-comment-ctn .news-comment-reactions > div:not([data-disabled]).mReactionAdd:hover {
+.news-comment-ctn .news-comment-reactions > div.mReactionAdd:hover {
 	opacity: 0.8;
 	background-color: #ccd4ea;
-}
-.news-comment-reactions > div img {
-	width: 14px;
-	max-height: 16px;
-	object-fit: contain;
-}
-.news-comment-reactions > div span {
-	display: inline-block;
-	margin-left: 3px;
 }
 #nMessage input.mDraft {
 	background-color: #00C8EE;

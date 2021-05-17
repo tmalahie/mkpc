@@ -44,6 +44,12 @@ if (isset($_POST['type']) && isset($_POST['link']) && isset($_POST['reaction']))
 					}
 				}
 				break;
+			case 'news' :
+				$link = +$link;
+				if ($message = mysql_fetch_array(mysql_query('SELECT author FROM mknews WHERE id="'. $link .'"'))) {
+					insertReactionAndNotify($message['author']);
+				}
+				break;
 			case 'newscom' :
 				$link = +$link;
 				if ($message = mysql_fetch_array(mysql_query('SELECT author FROM mknewscoms WHERE id="'. $link .'"'))) {

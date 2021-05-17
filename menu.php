@@ -80,6 +80,9 @@
 					case 'topic':
 						$myNotif['type'] = 'reaction_topic';
 						break;
+					case 'news':
+						$myNotif['type'] = 'reaction_news';
+						break;
 					case 'newscom':
 						$myNotif['type'] = 'reaction_newscom';
 						break;
@@ -265,7 +268,10 @@
 					case 'answer_newscom' :
 					case 'reaction_newscom' :
 						if ($notifMsg = mysql_fetch_array(mysql_query('SELECT c.author,news,title FROM `mknewscoms` c INNER JOIN `mknews` n ON c.news=n.id WHERE c.id="'. $myNotif['link'] .'"'))) {
-							$notifData['sender'] = $notifMsg['author'];
+							if (isset($notifData['reaction']))
+								$notifData['sender'] = $notifData['reaction']['member'];
+							else
+								$notifData['sender'] = $notifMsg['author'];
 							$notifData['link'] = 'news.php?id='. $notifMsg['news'] .'#news-comment-ctn-0';
 							$notifData['title'] = $notifMsg['title'];
 						}
@@ -273,10 +279,12 @@
 							$toDelete = true;
 						break;
 					case 'news_moderated' :
+					case 'reaction_news' :
 						if ($newsData = mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $myNotif['link'] .'" AND status!="pending"'))) {
+							if (isset($notifData['reaction']))
+								$notifData['sender'] = $notifData['reaction']['member'];
 							$notifData['link'] = 'news.php?id='. $newsData['id'];
 							$notifData['title'] = $newsData['title'];
-							$notifData['status'] = $newsData['status'];
 						}
 						else
 							$toDelete = true;
@@ -503,6 +511,11 @@
 				$newsTitle = htmlspecialchars($notifData['title']);
 				$moderated = ($notifData['status']=='accepted') ? ($language?'accepted':'acceptée') : ($language?'rejected':'refusée');
 				$notifsData[$i]['content'] = ($language ? "Your news <strong>$newsTitle</strong> has been $moderated":"Votre news <strong>$newsTitle</strong> a été $moderated");
+				break;
+			case 'reaction_news' :
+				$verb = ($language ? 'reacted':((count($names)>1) ? 'ont réagi':'a réagi'));
+				$thenews = ($language ? 'to your news':'à votre news');
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $thenews .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'challenge_moderated' :
 				$clData = $notifData['challenge'];

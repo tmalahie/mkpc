@@ -123,18 +123,17 @@ function printReactions($type, $link, $reactions, $mayReact=null) {
             $reactionsGrouped[$name]['checked'] = true;
         $reactionsGrouped[$name]['list'][] = $reaction['nom'];
     }
-    if (!empty($reactionsGrouped)) {
-        foreach ($reactionsGrouped as $name => $reaction) {
-            echo '<div data-name="'. $name .'" data-list="'. htmlspecialchars(implode(',',$reaction['list'])) .'"'. ($reaction['checked'] ? ' data-checked="1"':'') . ($mayReact ? ' onclick="sendReaction(\''.$type.'\',\''.$link.'\',this)"':' data-disabled="1"') .' onmouseover="showReactionDetails(this)" onmouseout="hideReactionDetails(this)">';
-                echo '<img src="images/forum/reactions/'.$name .'.png" alt="'. $name .'" oncontextmenu="return false" />';
-                echo '<span>'.count($reaction['list']).'</span>';
-            echo '</div>';
-        }
-        if ($mayReact) {
-            echo '<div class="mReactionAdd" onclick="openReactions(\''.$type.'\',\''.$link.'\',this)">';
-                echo '<img src="images/forum/react.png" alt="React" />';
-            echo '</div>';
-        }
+    foreach ($reactionsGrouped as $name => $reaction) {
+        echo '<div data-name="'. $name .'" data-list="'. htmlspecialchars(implode(',',$reaction['list'])) .'"'. ($reaction['checked'] ? ' data-checked="1"':'') . ($mayReact ? ' onclick="sendReaction(\''.$type.'\',\''.$link.'\',this)"':' data-disabled="1"') .' onmouseover="showReactionDetails(this)" onmouseout="hideReactionDetails(this)">';
+            echo '<img src="images/forum/reactions/'.$name .'.png" alt="'. $name .'" oncontextmenu="return false" />';
+            echo '<span>'.count($reaction['list']).'</span>';
+        echo '</div>';
+    }
+    $mayReactIfEmpty = ($type === 'news');
+    if ($mayReact && (!empty($reactionsGrouped) || $mayReactIfEmpty)) {
+        echo '<div class="mReactionAdd" onclick="openReactions(\''.$type.'\',\''.$link.'\',this)">';
+            echo '<img src="images/forum/react.png" alt="React" />';
+        echo '</div>';
     }
 }
 function printReactionUI() {
