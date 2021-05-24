@@ -162,8 +162,9 @@ a:hover .avatar {
 .profile-feed .mAuteur {
 	display: none;
 }
-.profile-feed .mHeader {
-	min-height: 30px;
+.profile-feed .mDate {
+	margin-top: 5px;
+	margin-bottom: 5px;
 }
 .profile-feed h3 {
 	margin: 10px 0;
