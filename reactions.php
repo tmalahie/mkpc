@@ -17,6 +17,7 @@ $reactions = array(
         'dragon_face',
         'pensive',
         'thinking',
+        'surprised',
         'scream',
         'cry',
         'sad'
