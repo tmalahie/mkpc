@@ -675,9 +675,9 @@
 			</div>
 		</div>
 	</div>
-	<div id="menu_center">
-		<a href="index.php"<?php if ($page=='home') echo ' id="thispage"'; ?>><?php echo $language ? 'Home':'Accueil'; ?></a>
-		<a href="mariokart.php"<?php if ($page=='game') echo ' id="thispage"'; ?>><?php echo $language ? 'Play game':'Le jeu'; ?></a>
-		<a href="forum.php"<?php if ($page=='forum') echo ' id="thispage"'; ?>>Forum</a>
+	<div id="menu_center" role="menubar">
+		<a href="index.php"<?php if ($page=='home') echo ' id="thispage"'; ?> role="menuitem"><?php echo $language ? 'Home':'Accueil'; ?></a>
+		<a href="mariokart.php"<?php if ($page=='game') echo ' id="thispage"'; ?> role="menuitem"><?php echo $language ? 'Play game':'Le jeu'; ?></a>
+		<a href="forum.php"<?php if ($page=='forum') echo ' id="thispage"'; ?> role="menuitem">Forum</a>
 	</div>
 </nav>
