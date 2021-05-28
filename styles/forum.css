@@ -675,6 +675,7 @@ a.forum-auteur:hover {
 	color: white;
 	align-items: center;
 	border-radius: 5px;
+	word-wrap: break-word;
 }
 #message-reactions-details.show {
 	visibility: visible;

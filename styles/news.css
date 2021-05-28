@@ -667,6 +667,7 @@ form:not(.news-comment-editting):hover .news-comment-options.news-noedit {
 	color: white;
 	align-items: center;
 	border-radius: 5px;
+	word-wrap: break-word;
 }
 #message-reactions-details.show {
 	visibility: visible;
