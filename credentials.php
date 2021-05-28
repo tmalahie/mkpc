@@ -1,5 +1,5 @@
 <?php
-$mkCredentialsKey = 'aaaaaa';
+include('initKey.php');
 function credentials_raw_encrypt($plaintext) {
     global $mkCredentialsKey;
     $method = "AES-256-CBC";

@@ -2,6 +2,7 @@ homemade-git/
 /.project
 initdb.php
 initId.php
+initKey.php
 .user.ini
 .htaccess
 .vscode
