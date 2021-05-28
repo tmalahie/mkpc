@@ -43,7 +43,7 @@ $reactions = array(
         'cross'
     ),
     'mkpc' => array(
-        'holy_fuck',
+        'xd',
         'gamba',
         'genius',
         'koopa',
