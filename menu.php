@@ -86,6 +86,9 @@
 					case 'newscom':
 						$myNotif['type'] = 'reaction_newscom';
 						break;
+					case 'trackcom':
+						$myNotif['type'] = 'reaction_trackcom';
+						break;
 					}
 				}
 				break;
@@ -98,6 +101,7 @@
 				switch ($myNotif['type']) {
 					case 'answer_comment' :
 					case 'circuit_comment' :
+					case 'reaction_trackcom' :
 						if ($comment = mysql_fetch_array(mysql_query('SELECT auteur,type,circuit FROM `mkcomments` WHERE id="'. $myNotif['link'] .'"'))) {
 							$notifData['sender'] = $comment['auteur'];
 							if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($comment['type']=='mkcircuits') ? ',!type AS is_circuit':'') .' FROM `'. $comment['type'] .'` WHERE id="'. $comment['circuit'] .'"'))) {
@@ -502,6 +506,10 @@
 			case 'circuit_comment' :
 				$verb = ($language ? 'commented':((count($names)>1) ? 'ont commenté':' a commenté'));
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' '. $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>';
+				break;
+			case 'reaction_trackcom' :
+				$verb = ($language ? 'commented':((count($names)>1) ? 'ont réagi':' a réagi'));
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'to your comment on':'à votre commentaire sur') .' '. $notifData['the_circuit'] . $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>';
 				break;
 			case 'news_comment' :
 				$verb = ($language ? 'commented':((count($names)>1) ? 'ont commenté':' a commenté'));

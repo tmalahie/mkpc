@@ -15,7 +15,7 @@ if (isset($_COOKIE['mkp'])) {
 		if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. mysql_real_escape_string($myCredentials[0]) .'"')))
 			$myPseudo = $getPseudo['nom'];
 	}
-	$myCode = $myCredentials[1];
+	$myCode = isset($myCredentials[1]) ? $myCredentials[1] : null;
 }
 else
 	$myCode = null;

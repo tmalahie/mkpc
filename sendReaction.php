@@ -56,6 +56,12 @@ if (isset($_POST['type']) && isset($_POST['link']) && isset($_POST['reaction']))
 					insertReactionAndNotify($message['author']);
 				}
 				break;
+			case 'trackcom' :
+				$link = intval($link);
+				if ($message = mysql_fetch_array(mysql_query('SELECT auteur FROM mkcomments WHERE id="'. $link .'"'))) {
+					insertReactionAndNotify($message['auteur']);
+				}
+				break;
 			}
 		}
 		printReactions($type,$link, getReactions($type,$link));

@@ -4,6 +4,10 @@ function updateForumWidth() {
 	if (window.innerWidth == topicWidth) return;
 	topicWidth = window.innerWidth;
 	var messages = document.getElementsByClassName("mBody");
+	if (!messages.length) {
+		window.removeEventListener("resize", postUpdateForumWidth);
+		return;
+	}
 	var htmls = [];
 	for (var i=0;i<messages.length;i++) {
 		var message = messages[i];
@@ -77,6 +81,9 @@ function addReaction(key, type, link, rm) {
 			break;
 		case "newscom":
 			$mReactions = document.querySelector(".news-comment[data-id='"+link+"'] .news-comment-reactions");
+			break;
+		case "trackcom":
+			$mReactions = document.querySelector(".comment-container[data-id='"+link+"'] .comment-reactions");
 			break;
 		}
 		if ($mReactions)

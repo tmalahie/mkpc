@@ -70,11 +70,20 @@
 	border-radius: 5px;
 	font-size: 0.9em;
 	margin-left: 2px;
-	margin-right: 2px;
 }
 .comment-options {
 	text-align: right;
-	margin-top: 5px;
+	margin-top: 3px;
+}
+.comment-options img {
+	height: 18px;
+	cursor: pointer;
+	margin-left: 4px;
+	margin-right: 1px;
+	opacity: 0.85;
+}
+.comment-options img:hover {
+	opacity: 1;
 }
 .comment-options .comment-edit {
 	color: #CF0;
@@ -83,12 +92,18 @@
 .comment-options .comment-edit:hover {
 	background-color: #030;
 }
+.comment-posting {
+	display: flex;
+	justify-content: flex-end;
+}
 .comment-options .comment-send {
 	color: #CF0;
 	background-color: #040;
-	padding-left: 20px;
-	padding-right: 20px;
-	margin-right: 5px;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin-top: 1px;
+	padding-top: 2px;
+	padding-bottom: 2px;
 }
 .comment-options .comment-send:hover {
 	background-color: #030;
@@ -229,4 +244,166 @@
 }
 #comments-circuitdate {
 	padding-bottom: 1px;
+}
+
+#message-reactions {
+	display: none;
+	position: fixed;
+	z-index: 1;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+}
+#message-reactions-details {
+	display: flex;
+	visibility: hidden;
+	opacity: 0;
+	position: fixed;
+	z-index: 1;
+	background-color: #18191C;
+	background-color: rgba(48,50,64, 0.8);
+	color: white;
+	align-items: center;
+	border-radius: 5px;
+	word-wrap: break-word;
+}
+#message-reactions-details.show {
+	visibility: visible;
+	opacity: 1;
+	transition: opacity 0.2s ease-in;
+}
+#message-reactions-details > img {
+	width: 48px;
+	max-height: 60px;
+	margin: 5px;
+}
+#message-reactions-details > div {
+	padding: 5px;
+	width: 150px;
+	font-size: 0.8em;
+	max-width: 90vw;
+	max-width: calc(100vw - 80px);
+}
+.message-reactions-dialog {
+	position: absolute;
+	width: 400px;
+	max-width: 90vw;
+	background-color: #556;
+	background-color: rgba(76,76,86, 0.9);
+    border: solid 1px #BBC;
+}
+.message-reactions-title {
+	position: relative;
+}
+.message-reactions-title h3 {
+	flex: 1;
+	margin: 3px 0 5px 5px;
+	color: #BBC;
+}
+.message-reactions-title a {
+	position: absolute;
+	right: 1px;
+	top: 1px;
+	display: block;
+	font-weight: bold;
+	text-decoration: none;
+	margin-right: 2px;
+    display: inline-block;
+    padding: 0 4px;
+    background-color: #C00;
+    text-decoration: none;
+    color: white;
+    border-radius: 5px;
+    font-size: 20px;
+	line-height: 20px;
+}
+.message-reactions-title a:hover {
+    background-color: #E00;
+	color: white;
+}
+.message-reactions-cat > div {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 10px 0;
+	padding-left: 5px;
+}
+.message-reactions-cat > div:first-child {
+	margin-top: 0;
+}
+.message-reactions-cat > div:last-child {
+	margin-bottom: 5px;
+}
+.message-reactions-cat a {
+	height: 30px;
+	display: inline-flex;
+	margin: 0;
+	padding: 2px 4px;
+	border-radius: 5px;
+}
+.message-reactions-cat a:hover {
+	background-color: #7474ab;
+}
+.message-reactions-cat img {
+	width: 24px;
+	object-fit: contain;
+}
+.comment-reactions {
+	margin: 2px 0 -2px 0px;
+	display: flex;
+	flex-wrap: wrap;
+}
+.comment-reactions:empty {
+	margin-bottom: 0;
+}
+.comment-reactions > div {
+	display: inline-flex;
+	margin: 2px;
+	padding: 0 5px;
+	border-radius: 4px;
+	height: 19px;
+	align-items: center;
+	font-size: 12px;
+	user-select: none;
+}
+.comment-reactions > div:not([data-disabled]) {
+	cursor: pointer;
+}
+.comment-reactions > div {
+	background-color: #2F3136;
+	border: solid 1px transparent;
+}
+.comment-reactions > div:not([data-disabled]):hover {
+	background-color: #36393F;
+	border-color: #5E6165;
+}
+.comment-reactions > div[data-checked] {
+	background-color: #3B405A;
+	border-color: #5865F2;
+}
+.comment-reactions > div[data-checked]:hover {
+	background-color: #383C50;
+	border-color: #4F59C2;
+}
+.comment-reactions > div.mReactionAdd {
+	background: none;
+	opacity: 0.8;
+	padding: 0;
+}
+.comment-reactions > div.mReactionAdd:hover {
+	background: none;
+	border-color: transparent;
+	opacity: 1;
+}
+.comment-reactions > div img {
+	width: 14px;
+	max-height: 16px;
+	object-fit: contain;
+}
+.comment-reactions > div span {
+	display: inline-block;
+	margin-left: 2px;
+	color: #CCC;
+	position: relative;
+	top: 1px;
 }

@@ -189,12 +189,12 @@ $sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'i'));
 <html>
    <head>
 	   <title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
-<?php include('metas.php'); ?>
-
-<?php include('c_mariokart.php'); ?>
-<link rel="stylesheet" media="screen" type="text/css" href="styles/comments.css" />
-
 <?php
+include('metas.php');
+
+include('c_mariokart.php');
+include('c_comments.php');
+
 include('o_online.php');
 ?>
 <script type="text/javascript">
@@ -527,6 +527,8 @@ include('gameInitElts.php');
 <?php
 if ($cShared) {
 	include('circuitUser.php');
+	require_once('reactions.php');
+	printReactionUI();
 	?>
 	<div id="comments-section"></div>
 	<script type="text/javascript">
@@ -535,7 +537,8 @@ if ($cShared) {
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cAuteur,$isCup?$circuitsData[0]['ID']:$nid,'circuits'); ?>;
 	</script>
-	<script type="text/javascript" src="scripts/comments.js"></script>
+	<script type="text/javascript" src="scripts/comments.js?reload=1"></script>
+	<script type="text/javascript" src="scripts/topic.js"></script>
 	<?php
 }
 ?>

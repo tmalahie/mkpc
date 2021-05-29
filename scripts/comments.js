@@ -56,14 +56,16 @@ function updateCircuitDate() {
 					'<textarea placeholder="'+ (language ? 'Your message':'Votre message') +'..." class="comment-textarea comment-posting"></textarea>'+
 					'<span class="comment-value comment-posted"></span>'+
 				'</div>'+
+				'<div class="comment-reactions comment-posted"></div>'+
 				'<div class="comment-options">'+
 					'<div class="comment-posting">'+
 						'<input type="button" class="comment-send" value="'+ (language ? 'Send':'Envoyer') +'" />'+
-						'<input type="button" class="comment-undo" value="'+ (language ? 'Undo':'Annuler') +'" />'+
+						'<img src="images/forum/delete.png" class="comment-undo" alt="'+ (language ? 'Undo':'Annuler') +'" title="'+ (language ? 'Undo':'Annuler') +'" />'+
 					'</div>'+
 					'<div class="comment-posted">'+
-						'<input type="button" class="comment-edit" value="'+ (language ? 'Edit':'Modifier') +'" />'+
-						'<input type="button" class="comment-suppr" value="'+ (language ? 'Delete':'Supprimer') +'" />'+
+						'<img src="images/forum/edit.png" class="comment-edit comment-alter" alt="'+ (language ? 'Edit':'Modifier') +'" title="'+ (language ? 'Edit':'Modifier') +'" />'+
+						'<img src="images/forum/delete.png" class="comment-suppr comment-alter" alt="'+ (language ? 'Delete':'Supprimer') +'" title="'+ (language ? 'Delete':'Supprimer') +'" />'+
+						'<img src="images/forum/react.png" class="comment-react" alt="'+ (language ? 'React':'Réagir') +'" title="'+ (language ? 'Add reaction':'Ajouter une réaction') +'" />'+
 					'</div>'+
 				'</div>'+
 			'</div>'
@@ -108,8 +110,10 @@ function updateCircuitDate() {
 				commentMessage.prop("disabled", false);
 				commentCtn.find(".comment-undo").show();
 				setSentEvents(commentCtn);
+				setReactEvents(commentCtn);
 				setEditEvents(commentCtn);
 				commentCtn.data("id",res);
+				commentCtn.attr("data-id", res);
 				commentCtn.find(".comment-value").html(nl2br(commentCtn.find(".comment-textarea").val()));
 				setPostTime(commentCtn, new Date(),myCommentName,myCommentID);
 				setSendClass(commentCtn);
@@ -124,12 +128,12 @@ function updateCircuitDate() {
 	}
 	function setSentEvents(commentCtn) {
 		var editButton = commentCtn.find(".comment-edit");
-		var delButton = commentCtn.find(".comment-suppr");
 		editButton.click(function() {
 			commentCtn.find(".comment-textarea").val(br2nl(commentCtn.find(".comment-value").html()));
 			setNewClass(commentCtn);
 			commentCtn.find(".comment-textarea").select();
 		});
+		var delButton = commentCtn.find(".comment-suppr");
 		delButton.click(function() {
 			if (confirm(language ? "Are you sure you want to delete this comment ?":"Voulez-vous vraiment supprimer ce commentaire ?")) {
 				$.post("supprComment.php", {"id_msg":commentCtn.data("id")}).success(function() {
@@ -139,6 +143,12 @@ function updateCircuitDate() {
 					alert(language ? "An error occured when deleting the comment. Please try again":"Une erreur est survenue lors de la suppression du commentaire. Veuillez réessayer.");
 				});
 			}
+		});
+	}
+	function setReactEvents(commentCtn) {
+		var reactButton = commentCtn.find(".comment-react");
+		reactButton.click(function() {
+			openReactions('trackcom',commentCtn.data("id"),this);
 		});
 	}
 	function setEditEvents(commentCtn) {
@@ -205,10 +215,17 @@ function updateCircuitDate() {
 			var postedComment = createComment("sent");
 			setPostTime(postedComment, new Date(commentData.date*1000),commentData.auteur,commentData.auteurID);
 			postedComment.find(".comment-value").html(nl2br(commentData.message));
+			postedComment.find(".comment-reactions").html(commentData.reactions);
+			postedComment.attr("data-id", commentData.id);
 			if ((commentData.auteurID == myCommentID) || myCommentAdmin) {
 				postedComment.data("id",commentData.id);
 				setSentEvents(postedComment);
+				setReactEvents(postedComment);
 				setEditEvents(postedComment);
+			}
+			else if (myCommentID) {
+				postedComment.find(".comment-options .comment-alter").hide();
+				setReactEvents(postedComment);
 			}
 			else
 				postedComment.find(".comment-options .comment-posted").hide();
