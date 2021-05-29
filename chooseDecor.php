@@ -46,7 +46,7 @@ function goToEditor() {
         echo $language ? 'You haven\'t created decors yet':'Vous n\'avez créé aucun décor pour l\'instant';
         ?></div>
         <div class="decors-list-more">
-            <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to characters editor":"Accéder à l'éditeur de décors"; ?></a>
+            <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to decors editor":"Accéder à l'éditeur de décors"; ?></a>
         </div>
         <?php
     }
@@ -58,7 +58,7 @@ function goToEditor() {
         <div class="decors-list-container">
         <h3><?php echo $language ? 'New decor':'Nouveau décor'; ?></h3>
         <div class="decors-list-more">
-            <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to characters editor":"Accéder à l'éditeur de décors"; ?></a>
+            <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to decors editor":"Accéder à l'éditeur de décors"; ?></a>
         </div>
         </div>
         <?php

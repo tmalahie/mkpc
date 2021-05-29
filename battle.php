@@ -96,7 +96,7 @@ if ($canChange) {
 				cP.style.textAlign = "center";
 				cP.innerHTML = '<?php
 					if ($shared)
-						echo $language ? 'The sharing of your course have been updated.':'Le partage de votre ar&egrave;ne a &eacute;t&eacute; mis &agrave; jour.';
+						echo $language ? 'The sharing of your course has been updated.':'Le partage de votre ar&egrave;ne a &eacute;t&eacute; mis &agrave; jour.';
 					else
 						echo $language ? 'Your course has just been added to the <a href="creations.php" target="_blank">list</a> !':'Votre ar&egrave;ne vient d\\\'&ecirc;tre ajout&eacute; &agrave; la <a href="creations.php" target="_blank">liste</a> !';
 				?><br /><br />';
