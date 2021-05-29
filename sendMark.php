@@ -21,8 +21,8 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 	include('getId.php');
 	include('initdb.php');
 	include('session.php');
-	$circuitId = +$_POST['id'];
-	$rating = +$_POST['rating'];
+	$circuitId = intval($_POST['id']);
+	$rating = intval($_POST['rating']);
 	include('ip_banned.php');
 	if (!$id || isBanned()) exitAndFlush();
 	$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');

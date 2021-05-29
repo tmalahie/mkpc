@@ -44,7 +44,7 @@ if (isset($_GET['topic'])) {
 			echo '<p style="text-align: center">'. ($language ? 'Invalid token, please try again' : 'Token invalide, veuillez réessayer') .'</p>';
 		}
 		else {
-			$topicId = +$_GET['topic'];
+			$topicId = intval($_GET['topic']);
 			if ($firstMessage = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkmessages` WHERE topic="'. $topicId .'" ORDER BY id LIMIT 1'))) {
 				if (($firstMessage['auteur'] == $id) || hasRight('moderator')) {
 					if ($firstMessage['auteur'] != $id)

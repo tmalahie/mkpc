@@ -51,7 +51,7 @@ function listCircuitChallenges($table, $circuitId,&$params) {
 }
 function listClRewards($clId) {
 	global $clPayloadParams;
-	$playerId = +$clPayloadParams['id'];
+	$playerId = intval($clPayloadParams['id']);
 	$res = array();
 	$getRewards = mysql_query('SELECT r.id,r.charid,w.player FROM mkclrewards r LEFT JOIN mkclrewarded w ON r.id=w.reward AND w.player='. $playerId .' WHERE r.clist ="'.$clId.'"');
 	while ($reward = mysql_fetch_array($getRewards)) {

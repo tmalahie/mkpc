@@ -54,7 +54,7 @@ function print_league($pts,$ic) {
 }
 function print_forum_msg($message,$mayEdit,$mayQuote=null,$mayReact=null) {
 	global $id, $language;
-	$topicId = isset($_GET['topic']) ? +$_GET['topic']:0;
+	$topicId = isset($_GET['topic']) ? intval($_GET['topic']):0;
 	if (null===$mayQuote)
 		$mayQuote = $mayEdit;
 	if (null===$mayReact)

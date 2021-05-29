@@ -39,7 +39,7 @@ if (isset($id)) {
 			foreach ($decors as $type=>$decorsData) {
 				if (isset($decorExtra->{$type}) && isset($decorExtra->{$type}->custom)) {
 					$customDecor = $decorExtra->{$type}->custom;
-					$decorId = +$customDecor->id;
+					$decorId = intval($customDecor->id);
 					$actualType = $customDecor->type;
 					if ($customData = mysql_fetch_array(mysql_query('SELECT sprites FROM mkdecors WHERE id='. $decorId))) {
 						$decorSrcs = decor_sprite_srcs($customData['sprites']);

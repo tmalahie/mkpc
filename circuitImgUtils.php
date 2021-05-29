@@ -30,7 +30,7 @@ function getCircuitImgData(&$path,&$url,$local) {
         'w' => $w,
         'h' => $h,
         'ext' => getCircuitExt($path),
-        'local' => +$local
+        'local' => intval($local)
     );
 }
 function getCircuitImgDataRaw(&$path,&$url,$local) {

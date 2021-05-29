@@ -91,7 +91,7 @@ include('menu.php');
 	while ($record=mysql_fetch_array($getRecords)) {
         $records[] = $record;
         if ($record['cpu'])
-            $cpuIds[] = +$record['id'];
+            $cpuIds[] = intval($record['id']);
     }
     sort($cpuIds);
     $cpuRankById = array_flip($cpuIds);

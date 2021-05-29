@@ -10,7 +10,7 @@ function toSQLSearch($search) {
     return $search;
 }
 if (isset($_POST['page']) && isset($_POST['sort'])) {
-    $page = +$_POST['page'];
+    $page = intval($_POST['page']);
     $resPerPage = 100;
     switch ($_POST['sort']) {
     case 'rating':

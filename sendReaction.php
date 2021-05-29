@@ -36,8 +36,8 @@ if (isset($_POST['type']) && isset($_POST['link']) && isset($_POST['reaction']))
 			case 'topic' :
 				$msgIdParts = explode(',', $link);
 				if (count($msgIdParts) === 2) {
-					$topicId = +$msgIdParts[0];
-					$msgId = +$msgIdParts[1];
+					$topicId = intval($msgIdParts[0]);
+					$msgId = intval($msgIdParts[1]);
 					if ($message = mysql_fetch_array(mysql_query('SELECT auteur FROM mkmessages WHERE topic="'. $topicId .'" AND id="'. $msgId .'"'))) {
 						$link = "$topicId,$msgId";
 						insertReactionAndNotify($message['auteur']);
@@ -45,13 +45,13 @@ if (isset($_POST['type']) && isset($_POST['link']) && isset($_POST['reaction']))
 				}
 				break;
 			case 'news' :
-				$link = +$link;
+				$link = intval($link);
 				if ($message = mysql_fetch_array(mysql_query('SELECT author FROM mknews WHERE id="'. $link .'"'))) {
 					insertReactionAndNotify($message['author']);
 				}
 				break;
 			case 'newscom' :
-				$link = +$link;
+				$link = intval($link);
 				if ($message = mysql_fetch_array(mysql_query('SELECT author FROM mknewscoms WHERE id="'. $link .'"'))) {
 					insertReactionAndNotify($message['author']);
 				}

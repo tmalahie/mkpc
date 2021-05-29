@@ -5,7 +5,7 @@ include('session.php');
 include('initdb.php');
 require_once('getRights.php');
 $isModerator = hasRight('moderator');
-$topicId = +$_GET['topic'];
+$topicId = intval($_GET['topic']);
 $topic = mysql_fetch_array(mysql_query('SELECT titre,category,private,locked FROM `mktopics` WHERE id="'. $topicId .'"'. (hasRight('manager') ? '':' AND !private')));
 $titreTopic = isset($topic['titre']) ? $topic['titre'] : '';
 if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `mkmessages` WHERE topic="'. $topicId .'" AND id=1 LIMIT 1'))) {

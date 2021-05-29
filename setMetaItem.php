@@ -4,7 +4,7 @@ include('initdb.php');
 if (!isset($_GET['id'])) exit;
 if ($distrib) {
     $newSettings = array(
-        'range' => +$_POST['range'],
+        'range' => intval($_POST['range']),
         'position' => $_POST['position']/100,
         'distribution' => json_decode($distrib)
     );

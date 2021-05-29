@@ -28,7 +28,7 @@ include('o_online.php');
 }
 </style>
 <script type="text/javascript">
-var language = <?php echo +$language; ?>;
+var language = <?php echo intval($language); ?>;
 function initSettings() {
     var gameSettings = localStorage.getItem("settings");
     if (gameSettings) {

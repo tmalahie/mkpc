@@ -122,7 +122,7 @@ if ($id) {
 			AND m.cup="'. $nid .'" AND m.mode='. $nmode .' AND m.link='. $nlink
 		);
 		if ($nbPlayers = mysql_fetch_array($getPlayers))
-			return +$nbPlayers['nb'];
+			return intval($nbPlayers['nb']);
 		return 0;
 	}
 	function get_highest_players() {
@@ -138,7 +138,7 @@ if ($id) {
 			ORDER BY nb DESC LIMIT 1'
 		);
 		if ($nbPlayers = mysql_fetch_array($getPlayers))
-			return +$nbPlayers['nb'];
+			return intval($nbPlayers['nb']);
 		return 0;
 	}
 	function get_remaining_players($course, &$getTime, $shouldBeActive=true) {

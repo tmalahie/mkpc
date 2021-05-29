@@ -322,7 +322,7 @@ if (empty($clId)) {
     ?></div>
     <?php
 }
-$playerId = +$id;
+$playerId = intval($id);
 $rewardsPerPage = 20;
 $currentPage = isset($_GET['page']) ? $_GET['page']:1;
 $currentCursor = ($currentPage-1)*$rewardsPerPage;

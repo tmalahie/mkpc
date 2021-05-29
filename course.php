@@ -14,7 +14,7 @@ $musicOptions = Array(
 	41 => ($language ? 'Tart Top':'Tarte Sucrée')
 );
 if (isset($_GET['i'])) {
-	$circuitId = +$_GET['i'];
+	$circuitId = intval($_GET['i']);
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT * FROM arenes WHERE id="'. $circuitId .'"'))) {
 		if ((($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) || (($identifiants[0] == 1390635815) && !$identifiants[1] && !$identifiants[2] && !$identifiants[3])) {
 			if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM arenes_data WHERE id="'. $circuitId .'"')))

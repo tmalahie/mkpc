@@ -14,7 +14,7 @@ include('challenge-cldata.php');
 if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
     $challengeIds = array();
     foreach ($_POST['challenges'] as $challengeId)
-        $challengeIds[] = +$challengeId;
+        $challengeIds[] = intval($challengeId);
     if (!empty($challengeIds)) {
         $challengeIdsString = implode(',', $challengeIds);
         $challengeIds = array();
@@ -28,7 +28,7 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
         if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'" AND name!=""'))) {
             if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
                 if ($reward) {
-                    $rewardId = +$reward['id'];
+                    $rewardId = intval($reward['id']);
                     mysql_query('UPDATE mkclrewards SET charid="'. $persoId .'" WHERE id='.$rewardId);
                     mysql_query('DELETE FROM mkclrewardchs WHERE reward='. $rewardId);
                 }

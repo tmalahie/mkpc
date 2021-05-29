@@ -22,7 +22,7 @@ if (isset($stats)) {
                 if ($nb === null)
                     $res .= 'NULL';
                 else
-                    $res .= +$nb;
+                    $res .= intval($nb);
                 return $res;
             }
             return '';

@@ -44,8 +44,8 @@ if (isset($_GET['id']) && isset($_GET['topic']) && ($_GET['id'] > 1)) {
 		}
 		else {
 			require_once('getRights.php');
-			$topicId = +$_GET['topic'];
-			$msgId = +$_GET['id'];
+			$topicId = intval($_GET['topic']);
+			$msgId = intval($_GET['id']);
 			$msg = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id="'. $msgId .'" AND topic="'. $topicId .'"'));
 			$q = mysql_query('DELETE FROM `mkmessages` WHERE id="'. $msgId .'" AND topic="'. $topicId .'"'. (hasRight('moderator') ? '':' AND auteur="'. $id .'"'));
 			if (mysql_affected_rows()) {

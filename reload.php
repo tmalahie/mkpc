@@ -306,7 +306,7 @@ if ($id) {
 				$cpuIds = array();
 				foreach ($allPlayersData as $joueur) {
 					if ($joueur['cpu'])
-						$cpuIds[] = +$joueur['id'];
+						$cpuIds[] = intval($joueur['id']);
 				}
 				sort($cpuIds);
 				$cpuRankById = array_flip($cpuIds);

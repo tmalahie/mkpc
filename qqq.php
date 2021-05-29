@@ -1,7 +1,7 @@
 <?php
 if($_SERVER['HTTP_HOST']!=='local-mkpc.malahieude.info') exit;
 if (isset($_GET['p'])) {
-    $p = +$_GET['p'];
+    $p = intval($_GET['p']);
     $isBattle = isset($_GET['battle']);
     $id = 7000+$p;
     include('initdb.php');

@@ -40,7 +40,7 @@ $clRulesByType = array(
 			'description' => $language ? 'Hit $value opponent$s':'Toucher $value personne$s',
 			'description_mockup' => $language ? 'Hit N opponents':'Toucher N personnes',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('battle')
 		),
@@ -48,7 +48,7 @@ $clRulesByType = array(
 			'description' => $language ? 'Eliminate $value opponent$s by yourself':'Éliminer $value adversaire$s par vous-même',
 			'description_mockup' => $language ? 'Eliminate N opponents by yourself':'Éliminer N adversaires par vous-même',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('battle')
 		),
@@ -87,7 +87,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
 				if (isset($scope['ordered']))
-					$scope['ordered'] = +$scope['ordered'];
+					$scope['ordered'] = intval($scope['ordered']);
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
@@ -113,7 +113,7 @@ $clRulesByType = array(
 				if (empty($scope['nb']))
 					unset($scope['nb']);
 				else
-					$scope['nb'] = +$scope['nb'];
+					$scope['nb'] = intval($scope['nb']);
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
@@ -138,7 +138,7 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'Finish 1st N times in a row':'Finir 1er N fois d\'affilée',
 			'description' => $language ? 'Finish 1st $value time$s in a row':'Finir 1er $value fois d\'affilée',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('vs', 'battle', 'cup', 'mcup')
 		),
@@ -146,7 +146,7 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'Make at least x points in N races':'Faire au moins x points sur N courses',
 			'description' => $language ? 'Make at least $pts points in $value race$s':'Faire au moins $pts points sur $value course$s',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('cup', 'mcup')
 		),
@@ -154,7 +154,7 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'Make exactly x points in N races':'Faire exactement x points sur N courses',
 			'description' => $language ? 'Make exactly $pts points in N race$s':'Faire exactement $pts points sur $value course$s',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('cup', 'mcup')
 		)
@@ -167,7 +167,7 @@ $clRulesByType = array(
 				'options' => $language ? array('VS','Time Trial') : array('Course VS','Contre-la-montre')
 			),
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'autoset' => function(&$res, $scope) {
 				$courseValues = array('VS','CM');
@@ -182,7 +182,7 @@ $clRulesByType = array(
 				'options' => $language ? array('Grand Prix','VS') : array('Grand Prix','Course VS')
 			),
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'autoset' => function(&$res, $scope) {
 				$courseValues = array('GP','VS');
@@ -228,7 +228,7 @@ $clRulesByType = array(
 				return null;
 			},
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('battle')
 		),
@@ -344,7 +344,7 @@ $clRulesByType = array(
 				return null;
 			},
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('vs', 'battle', 'cup')
 		),
@@ -374,7 +374,7 @@ $clRulesByType = array(
 			'description' => $language ? 'by starting with $value​s delay':'en partant avec $value​s de retard',
 			'description_mockup' => $language ? 'by starting with x seconds delay':'en partant avec x secondes de retard',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('vs')
 		),
@@ -382,7 +382,7 @@ $clRulesByType = array(
 			'description' => $language ? 'by performing $value​ Mini-Turbo$s':'en réalisant $value​ dérapage$s Turbo',
 			'description_mockup' => $language ? 'by performing N Turbo drifts':'en réalisant N dérapages Turbo',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('vs','battle', 'cup', 'mcup')
 		),
@@ -390,7 +390,7 @@ $clRulesByType = array(
 			'description' => $language ? 'by performing $value​ Super Mini-Turbo$s':'en réalisant $value​ Super Mini-Turbo$s',
 			'description_mockup' => $language ? 'by performing N Super Mini-Turbo':'en réalisant N Super Mini-Turbo',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('vs','battle', 'cup', 'mcup')
 		),
@@ -398,7 +398,7 @@ $clRulesByType = array(
 			'description' => $language ? 'by performing $value​ stunt$s':'en réalisant $value​ figure$s',
 			'description_mockup' => $language ? 'by performing N stunts':'en réalisant N figures',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('vs','battle', 'cup', 'mcup')
 		),
@@ -408,7 +408,7 @@ $clRulesByType = array(
 				return $language ? 'in '. getPositionName($scope->value) .' place' : 'en '. getPositionName($scope->value) .' position';
 			},
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('vs')
 		),
@@ -416,7 +416,7 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'with x points or more':'avec x points ou plus',
 			'description' => $language ? 'with $value point$s or more':'avec $value point$s ou plus',
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('cup', 'mcup')
 		),
@@ -431,7 +431,7 @@ $clRulesByType = array(
 				'options' => $language ? array('difficult','medium','easy') : array('difficile','moyen','facile')
 			),
 			'parser' => function(&$scope) {
-				$scope['value'] = +$scope['value'];
+				$scope['value'] = intval($scope['value']);
 			},
 			'course' => array('vs', 'cup', 'mcup'),
 			'additional_lambda' => function(&$scope) {
@@ -841,7 +841,7 @@ function challengeAutoSet(&$res,$challenge) {
 	if (empty($list)) return '0';
 	else {
 		foreach ($list as &$elt)
-			$elt = +$elt;
+			$elt = intval($elt);
 	}
 	return "$column IN (". implode(',', $list) .")";
 }*/

@@ -10,7 +10,7 @@ if (!$id) {
 	if (isset($_COOKIE['mkp'])) {
 		require_once('credentials.php');
 		$playerCredentials = credentials_decrypt($_COOKIE['mkp']);
-		$playerId = +$playerCredentials[0];
+		$playerId = intval($playerCredentials[0]);
 		$playerCode = $playerCredentials[1];
 	}
 	if ($playerId) {

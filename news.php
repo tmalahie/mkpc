@@ -4,7 +4,7 @@ include('session.php');
 include('initdb.php');
 require_once('getRights.php');
 if (($news = mysql_fetch_array(mysql_query('SELECT title,category,author,content,status,reject_reason,locked,publication_date FROM `mknews` WHERE id="'. $_GET['id'] .'"'))) && (($news['status']=='accepted')||($news['author']==$id)||hasRight('publisher'))) {
-	$newsId = +$_GET['id'];
+	$newsId = intval($_GET['id']);
 	$categoryID = $news['category'];
 	$category = mysql_fetch_array(mysql_query('SELECT name'. $language .' AS name,color FROM `mkcats` WHERE id="'. $categoryID .'"'));
 	$author = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $news['author'] .'"'));

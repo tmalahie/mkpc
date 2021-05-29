@@ -161,7 +161,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 					);
 					if (isset($decorExtra->{$type}) && isset($decorExtra->{$type}->custom)) {
 						$customDecor = $decorExtra->{$type}->custom;
-						$decorId = +$customDecor->id;
+						$decorId = intval($customDecor->id);
 						$actualType = $customDecor->type;
 						if ($customData = mysql_fetch_array(mysql_query('SELECT name,sprites FROM mkdecors WHERE id='. $decorId))) {
 							require_once('utils-decors.php');

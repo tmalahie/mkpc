@@ -2,7 +2,7 @@
 if (isset($_POST['page'])) {
 	include('initdb.php');
 	include('utils-circuits.php');
-	$page = +$_POST['page'];
+	$page = intval($_POST['page']);
 	$tri = isset($_POST['tri']) ? $_POST['tri']:0;
 	$nom = isset($_POST['nom']) ? stripslashes($_POST['nom']):'';
 	$auteur = isset($_POST['auteur']) ? stripslashes($_POST['auteur']):'';
