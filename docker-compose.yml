@@ -7,6 +7,10 @@ services:
             - db
         volumes:
             - .:/var/www/html
+            - ./docker/php/images/avatars:/var/www/html/images/avatars
+            - ./docker/php/images/uploads:/var/www/html/images/uploads
+            - ./docker/php/images/sprites/uploads:/var/www/html/images/sprites/uploads
+            - ./docker/php/images/creation_icons:/var/www/html/images/creation_icons
             - ./docker/php/config:/var/www/html/config
         ports:
             - "8080:80"
