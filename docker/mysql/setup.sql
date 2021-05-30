@@ -1200,7 +1200,7 @@ CREATE TABLE `mkreactions` (
   `reaction` varchar(30) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `type` (`type`,`link`,`member`,`reaction`)
-) ENGINE=InnoDB AUTO_INCREMENT=388 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=389 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
