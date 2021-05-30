@@ -6,8 +6,8 @@ if [ "$1" != '--force' ]; then
 		exit 0
 	fi
 fi
-mysql -h 127.0.0.1 -P 8306 -u root -proot mkpc < mysql/setup.sql
-rm images/avatars/*
-rm images/uploads/*
-rm images/creation_icons/*
-rm images/sprites/uploads/*
+mysql -h 127.0.0.1 -P 8306 -u root -proot mkpc < docker/mysql/setup.sql
+rm -f images/avatars/*
+rm -f images/uploads/*
+rm -f images/creation_icons/*
+rm -f images/sprites/uploads/*
