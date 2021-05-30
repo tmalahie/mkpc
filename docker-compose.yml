@@ -7,7 +7,7 @@ services:
             - db
         volumes:
             - .:/var/www/html
-            - ./docker/php/test:/var/www/html/test
+            - ./docker/php/config:/var/www/html/config
         ports:
             - "8080:80"
     db:

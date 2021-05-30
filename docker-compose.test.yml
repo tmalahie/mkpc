@@ -10,9 +10,9 @@ services:
             - /var/www/html/images/uploads/
             - /var/www/html/images/sprites/uploads/
             - /var/www/html/images/creation_icons/
-            - ./docker/php/test:/var/www/html/test
+            - ./docker/php/config:/var/www/html/config
         ports:
-            - "8080:80"
+            - "8081:80"
     db:
         image: mkpc-db-test
         restart: 'always'
