@@ -12,3 +12,8 @@ rm -f docker/php/images/uploads/map*
 rm -f docker/php/images/uploads/course*
 rm -f images/php/creation_icons/*
 rm -f images/php/sprites/uploads/*
+chmod 777 docker/php/images/avatars
+chmod 777 docker/php/images/uploads
+chmod 777 docker/php/images/creation_icons
+chmod 777 docker/php/images/sprites/uploads
+chmod 777 .
