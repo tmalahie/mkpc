@@ -1,0 +1,20 @@
+version: '3'
+services:
+    web:
+        image: mkpc-php-test
+        depends_on:
+            - db
+        volumes: 
+            - .:/var/www/html
+            - /var/www/html/images/avatars/
+            - /var/www/html/images/uploads/
+            - /var/www/html/images/sprites/uploads/
+            - /var/www/html/images/creation_icons/
+            - ./docker/php/test:/var/www/html/test
+        ports:
+            - "8080:80"
+    db:
+        image: mkpc-db-test
+        restart: 'always'
+        ports:
+            - "8307:3306"

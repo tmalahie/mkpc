@@ -1,0 +1,31 @@
+version: '3'
+services:
+    web:
+        build:
+            context: ./docker/php
+        depends_on:
+            - db
+        volumes:
+            - .:/var/www/html
+            - ./docker/php/test:/var/www/html/test
+        ports:
+            - "8080:80"
+    db:
+        image: mariadb:latest
+        restart: always
+        environment:
+            MYSQL_DATABASE: 'mkpc'
+            # So you don't have to use root, but you can if you like
+            MYSQL_USER: 'mkpc_user'
+            # You can use whatever password you like
+            MYSQL_PASSWORD: 'mkpc_pwd'
+            # Password for root access
+            MYSQL_ROOT_PASSWORD: 'root'
+        ports:
+            - '8306:3306'
+        expose:
+            - '3306'
+        volumes:
+            - mkpc-db:/var/lib/mysql
+volumes:
+    mkpc-db:

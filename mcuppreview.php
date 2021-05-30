@@ -23,8 +23,11 @@ if (isset($id)) {
 			$baseUrl = 'trackicon.php?type=0&id=';
 		else
 			$baseUrl = 'trackicon.php?type=1&id=';
-		if ($_SERVER['HTTP_HOST'] === 'localhost')
+		$domain = $_SERVER['HTTP_HOST'];
+		if ($_SERVER['SERVER_NAME'] === 'localhost') {
+			$domain = $_SERVER['SERVER_NAME'];
 			$relDir = substr(__DIR__, strlen($_SERVER['DOCUMENT_ROOT']));
+		}
 		else
 			$relDir = '';
 		$resW = 120;
@@ -53,7 +56,7 @@ if (isset($id)) {
 			$x = $trackPos%$tracksSide;
 			$y = floor($trackPos/$tracksSide);
 
-			$trackUrl = 'http://'.$_SERVER['HTTP_HOST'].$relDir.'/'.$baseUrl.$trackID;
+			$trackUrl = 'http://'.$domain.$relDir.'/'.$baseUrl.$trackID;
 			$img = imagecreatefrompng($trackUrl);
 			$img = imagecropcenter($img, $imgcW,$imgcW);
 			imagecopy($image,$img,floor($x*$imgW),floor($y*$imgW),0,0,$imgW,$imgW);
