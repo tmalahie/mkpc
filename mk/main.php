@@ -1,6 +1,6 @@
 <?php
 if (($_SERVER['HTTP_HOST'] !== 'mkpc.malahieude.net') || isset($_GET['metakey']))
-	echo '<script type="text/javascript" src="scripts/mk.js"></script>';
+	echo '<script type="text/javascript" src="scripts/mk.js?reload=9"></script>';
 else
 	echo '<script type="text/javascript" src="scripts/mk.v8b.js"></script>';
 ?>
