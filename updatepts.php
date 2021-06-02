@@ -76,7 +76,7 @@ if (isset($_POST['joueur']) && isset($_POST['pts']) && is_numeric($_POST['pts'])
 		?>
 	</div>
 	<?php
-	if ($ptsPlus)
+	if (isset($ptsPlus))
 		echo '<p><strong>'. $_POST['joueur'] .'</strong> vient de '. (($_POST['pts']>0)?'gagner':'perdre') .' '. abs($_POST['pts']) .' pts. Son nouveau score est de <strong>'. $newScore .'</strong> pts.</p>';
 	?>
 	<?php
