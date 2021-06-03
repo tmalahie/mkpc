@@ -1,6 +1,6 @@
 <?php
 require_once('touch.php');
-$MAX_FILES = 10000;
+$MAX_FILES = 20000;
 $CACHE_FOLDER = 'images/creation_icons/';
 function thumbnail($original_src,$cache_src, $maxw, $maxh) {
     list($width, $height) = getimagesize($original_src);
