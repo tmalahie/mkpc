@@ -5156,7 +5156,7 @@ var itemBehaviors = {
 	},
 	"fauxobjet": {
 		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
 		move: function(fSprite) {
 			if (fSprite.countdown)
@@ -5165,7 +5165,7 @@ var itemBehaviors = {
 	},
 	"poison": {
 		size: 0.54,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
 		move: function(fSprite) {
 			if (fSprite.countdown)
@@ -5207,8 +5207,12 @@ var itemBehaviors = {
 								stopDrifting(i);
 								dropCurrentItem(kart);
 							}
-							else
-								kart.megachampi = (kart.megachampi<8 || kart.etoile ? kart.megachampi : 8);
+							else {
+								if (kart.megachampi && !kart.etoile) {
+									kart.megachampi = Math.min(kart.megachampi, 8);
+									kart.size = Math.pow(1.05, kart.megachampi);
+								}
+							}
 						}
 					}
 				}
@@ -13025,6 +13029,7 @@ function move(getId, triggered) {
 			updateDriftSize(aKarts.indexOf(oKart));
 		}
 	}
+	oKart.maxspeed = Math.min(oKart.maxspeed, 15/oKart.size);
 	if (oKart.cannon) {
 		oKart.speed = (oKart.speed*3+20)/4;
 		if (oKart.billball)
