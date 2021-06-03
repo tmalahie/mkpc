@@ -1,6 +1,6 @@
 <?php
 require_once('touch.php');
-$MAX_FILES = 2000;
+$MAX_FILES = 10000;
 $CACHE_FOLDER = 'images/creation_icons/';
 function thumbnail($original_src,$cache_src, $maxw, $maxh) {
     list($width, $height) = getimagesize($original_src);
@@ -58,22 +58,24 @@ function setCacheFile($original_src,$cache_src, $minW,$minH, $thumbnailize=true)
     		thumbnail($original_src,$absolutePath, $minW,$minH);
         else
             copy($original_src,$absolutePath);
-		$dh  = opendir($CACHE_FOLDER);
-		$oldestTime = 2147483647;
-		$n = 0;
-		while (false !== ($filename = readdir($dh))) {
-		    if (($filename != '.') && ($filename != '..')) {
-		    	$cTime = filectime($CACHE_FOLDER.$filename);
-		    	if ($cTime < $oldestTime) {
-		    		$oldestTime = $cTime;
-		    		$oldestFile = $filename;
-		    	}
-		    	$n++;
-		    }
-		}
-        closedir($dh);
-		if ($n > $MAX_FILES)
-			unlink($CACHE_FOLDER.$oldestFile);
+        if (!rand(0,1000)) { // Clear cache once in a while
+            $files = array_diff(scandir($CACHE_FOLDER), array('.', '..'));
+            $n = count($files);
+            if ($n > $MAX_FILES) {
+                $fileTimes = array_map(function($file) use($CACHE_FOLDER) {
+                    return filectime($CACHE_FOLDER.$file);
+                }, $files);
+                array_multisort(
+                    $fileTimes,
+                    SORT_NUMERIC,
+                    SORT_ASC,
+                    $files
+                );
+                $toRemove = $n-$MAX_FILES;
+                for ($i=0;$i<$toRemove;$i++)
+                    unlink($CACHE_FOLDER.$files[$i]);
+            }
+        }
 	}
 	return $absolutePath;
 }
