@@ -215,7 +215,7 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 }
 ?>];
 var cupIDs = <?php echo json_encode($cupIDs) ?>;
-var cupOpts = <?php echo $cOptions ? $cOptions:'{}'; ?>;
+var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 <?php
 if (!empty($cupNames)) {
 	echo 'var cupNames = [';
