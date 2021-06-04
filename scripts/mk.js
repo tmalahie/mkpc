@@ -8,6 +8,7 @@ var nBasePersos, customPersos;
 var selectedDifficulty;
 var updateCtnFullScreen;
 var isFirstLoad = true;
+var selectedCc = localStorage.getItem("cc") || "150";
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
@@ -514,7 +515,7 @@ if (!pause) {
 
 var strPlayer = new Array();
 var oMap;
-var iDificulty = 5, iTeamPlay = selectedTeams;
+var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass;
 var iRecord;
 var iTrajet;
 var jTrajets;
@@ -527,6 +528,7 @@ var selectedItemDistrib;
 if (pause) {
 	strPlayer = fInfos.player;
 	selectedItemDistrib = fInfos.distribution;
+	fSelectedClass = fInfos.cc;
 	oMap = oMaps["map"+fInfos.map];
 	clSelected = fInfos.cl;
 	if (course != "CM")
@@ -2986,6 +2988,7 @@ function startGame() {
 								fInfos = {
 									player:strPlayer,
 									distribution:itemDistribution,
+									cc:fSelectedClass,
 									map:oMap.ref,
 									difficulty:iDificulty,
 									cl:clSelected
@@ -3024,6 +3027,7 @@ function startGame() {
 									fInfos = {
 										player:strPlayer,
 										distribution:itemDistribution,
+										cc:fSelectedClass,
 										perso:new Array(),
 										cl:clSelected
 									};
@@ -3085,7 +3089,7 @@ function startGame() {
 							e.preventDefault();
 						switch (gameAction) {
 							case "up":
-								oPlayers[0].speedinc = oPlayers[0].stats.acceleration*oPlayers[0].size;
+								oPlayers[0].speedinc = oPlayers[0].stats.acceleration*oPlayers[0].size*fSelectedClass;
 								if (oPlayers[0].etoile) oPlayers[0].speedinc *= 5;
 								break;
 							case "left":
@@ -3167,7 +3171,7 @@ function startGame() {
 								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
-								oPlayers[1].speedinc = oPlayers[1].stats.acceleration*oPlayers[1].size;
+								oPlayers[1].speedinc = oPlayers[1].stats.acceleration*oPlayers[1].size*fSelectedClass;
 								if (oPlayers[1].etoile) oPlayers[1].speedinc *= 5;
 								break;
 							case "left_p2":
@@ -3943,6 +3947,7 @@ function continuer() {
 				fInfos = {
 					player:strPlayer,
 					distribution:itemDistribution,
+					cc:fSelectedClass,
 					difficulty:iDificulty,
 					cl:clSelected
 				};
@@ -4067,6 +4072,7 @@ function continuer() {
 			fInfos = {
 				player:strPlayer,
 				distribution:itemDistribution,
+				cc:fSelectedClass,
 				map:oMap.ref,
 				difficulty:iDificulty,
 				perso:gPersos,
@@ -4294,6 +4300,7 @@ function continuer() {
 				fInfos = {
 					player:strPlayer,
 					distribution:itemDistribution,
+					cc:fSelectedClass,
 					map:oMap.ref,
 					my_route:iTrajet,
 					replay:true,
@@ -4333,6 +4340,7 @@ function continuer() {
 			fInfos = {
 				player:strPlayer,
 				distribution:itemDistribution,
+				cc:fSelectedClass,
 				perso:new Array(),
 				cl:clSelected
 			};
@@ -11780,7 +11788,7 @@ function move(getId, triggered) {
 		}
 	}
 
-	var fMaxKartSpeed = oKart.maxspeed * oKart.size;
+	var fMaxKartSpeed = oKart.maxspeed * oKart.size * fSelectedClass;
 
 	if (oKart.speed > fMaxKartSpeed)
 		oKart.speed = fMaxKartSpeed;
@@ -12876,9 +12884,9 @@ function move(getId, triggered) {
 			if (oKart.maxspeed > rSpeed*rRatio) oKart.maxspeed = rSpeed*rRatio;
 			else if (oKart.maxspeed < rSpeed) oKart.maxspeed = rSpeed;
 			if (oKart.place <= oPlayerPlace)
-				oKart.maxspeed -= (oKart.maxspeed*influence-rSpeed*oKart.size)/100;
+				oKart.maxspeed -= (oKart.maxspeed*influence-rSpeed*oKart.size*fSelectedClass)/100;
 			else
-				oKart.maxspeed += (rSpeed*rRatio*1.12*oKart.size-oKart.maxspeed*influence)/100;
+				oKart.maxspeed += (rSpeed*rRatio*1.12*oKart.size*fSelectedClass-oKart.maxspeed*influence)/100;
 		}
 	}
 	else
@@ -13001,7 +13009,7 @@ function move(getId, triggered) {
 				oKart.sprite[i].img.src = (oKart.etoile % 2 ? getStarSrc(oKart.personnage) : getSpriteSrc(oKart.personnage));
 			if (!oKart.etoile) {
 				updateProtectFlag(oKart);
-				var maxSpeedInc = oKart.cpu ? 1 : oKart.stats.acceleration*oKart.size;
+				var maxSpeedInc = oKart.cpu ? 1 : oKart.stats.acceleration*oKart.size*fSelectedClass;
 				oKart.speedinc = Math.min(oKart.speedinc, maxSpeedInc);
 				stopStarMusic(oKart);
 			}
@@ -13034,7 +13042,7 @@ function move(getId, triggered) {
 		oKart.speed = (oKart.speed*3+20)/4;
 		if (oKart.billball)
 			oKart.speed = 20;
-		oKart.maxspeed = oKart.speed/oKart.size;
+		oKart.maxspeed = oKart.speed/(oKart.size*fSelectedClass);
 		if (!oKart.speedinc)
 			oKart.speedinc = 0.01;
 		oKart.z = (oKart.z*3+4)/4;
@@ -16392,7 +16400,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 
 	var rotateHandler;
 	var jScreenScale = iScreenScale;
-	var oItemSelect;
+	var oItemSelect, oClassSelect;
 	function tourner(kart) {
 		var size = Math.round(jScreenScale*5*(kart.naturalWidth/768));
 		var rotation = parseFloat(kart.style.left);
@@ -16503,6 +16511,14 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				}
 				else
 					selectedItemDistrib = modeItemDistributions[0].value;
+				if (oClassSelect) {
+					selectedCc = oClassSelect.value;
+					fSelectedClass = getRelSpeedFromCc(+selectedCc);
+					localStorage.setItem("cc", selectedCc);
+				}
+				else {
+					fSelectedClass = 1;
+				}
 				if (cImg.j == (isCustomSel ? nbSels:oContainers.length)) {
 					if (isOnline) {
 						if (isCustomSel) {
@@ -16804,7 +16820,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oSelect.name = "nbj";
 		oSelect.style.width = (iScreenScale*3+20) +"px";
 		oSelect.style.fontSize = iScreenScale*2 +"px";
-		function setCustomValue(oSelect, customNb) {
+		function setCustomValue(oSelect, customNb, customText) {
+			if (customText === undefined) customText = customNb;
 			var oOptions = oSelect.getElementsByTagName("option");
 			for (var i=0;i<oOptions.length;i++) {
 				var oValue = +oOptions[i].value;
@@ -16815,7 +16832,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				else if ((oValue == -1) || (oValue > customNb)) {
 					var oOption = document.createElement("option");
 					oOption.value = customNb;
-					oOption.innerHTML = customNb;
+					oOption.innerHTML = customText;
 					oSelect.insertBefore(oOption, oOptions[i]);
 					oSelect.selectedIndex = i;
 					break;
@@ -16836,7 +16853,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		setCustomValue(oSelect,fInfos.nbPlayers);
 		oSelect.onchange = function() {
 			if (this.value == -1) {
-				var customNb = parseInt(prompt(toLanguage("Enter number", "Nombre de joueurs :")));
+				var customNb = parseInt(prompt(toLanguage("Number of players:", "Nombre de joueurs :")));
 				if (!isNaN(customNb) && (customNb > 1))
 					setCustomValue(this,Math.min(customNb,999));
 				else {
@@ -16882,6 +16899,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				oItemOption.innerHTML = modeItemDistributions[i].name;
 				oItemSelect.appendChild(oItemOption);
 			}
+			oItemSelect.style.marginRight = "10px";
 			var oItemOption = document.createElement("option");
 			oItemOption.value = -1;
 			oItemOption.innerHTML = toLanguage("Custom...", "Personnalisé...");
@@ -16957,6 +16975,56 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				oItemSelect.selectedIndex = selectedItemSetId;
 				oItemSelect.onchange();
 			}
+
+			var oKartClass = document.createElement("div");
+			oKartClass.style.display = "none";
+			oKartClass.style.marginLeft = (iScreenScale*1) +"px";
+			
+			oForm.appendChild(oKartClass);
+
+			oForm.appendChild(document.createTextNode(toLanguage("Class", "Cylindrée ")+ ": "));
+
+			oClassSelect = document.createElement("select");
+			oClassSelect.name = "class";
+			oClassSelect.style.width = (iScreenScale*8) +"px";
+			oClassSelect.style.fontSize = iScreenScale*2 +"px";
+			var oClasses = [50,100,150,200];
+			var isSelectedCc = false;
+			for (var i=0;i<oClasses.length;i++) {
+				var oClass = oClasses[i];
+				var oClassOption = document.createElement("option");
+				oClassOption.value = oClass;
+				oClassOption.innerHTML = oClass+"cc";
+				if (selectedCc == oClass) {
+					oClassOption.setAttribute("selected", true);
+					isSelectedCc = true;
+				}
+				oClassSelect.appendChild(oClassOption);
+			}
+			var oClassOption = document.createElement("option");
+			oClassOption.value = -1;
+			oClassOption.innerHTML = toLanguage("More...", "Plus...");
+			oClassSelect.appendChild(oClassOption);
+			oClassSelect.currentValue = oClassSelect.value;
+			oClassSelect.onchange = function() {
+				if (this.value == -1) {
+					var customNb = parseInt(prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue));
+					if (!isNaN(customNb) && (customNb > 0)) {
+						customNb = Math.min(customNb,999);
+						setCustomValue(this,customNb,customNb+"cc");
+					}
+					else {
+						if (!isNaN(customNb))
+							alert(toLanguage("Invalid value", "Valeur invalide"));
+						this.value = this.currentValue;
+						return;
+					}
+				}
+				this.currentValue = this.value;
+			};
+			if (!isSelectedCc)
+				setCustomValue(oClassSelect, selectedCc, selectedCc+"cc");
+			oForm.appendChild(oClassSelect);
 		}
 		
 		oScr.appendChild(oForm);
@@ -17459,6 +17527,21 @@ function isTeamPlay() {
 			return selectedTeams;
 	}
 	return 0;
+}
+function getRelSpeedFromCc(cc) {
+	var interpolations = [
+		[0,0],
+		[50,0.7],
+		[100,0.85],
+		[150,1],
+		[200,1.5],
+		[1000,10]
+	]
+	for (var i=0;i<interpolations.length;i++) {
+		if (cc < interpolations[i][0])
+			return (interpolations[i-1][1] + (interpolations[i][1]-interpolations[i-1][1]) * (cc - interpolations[i-1][0]) / (interpolations[i][0]-interpolations[i-1][0]));
+	}
+	return interpolations[interpolations.length-1][1];
 }
 
 function selectTeamScreen(IdJ) {
