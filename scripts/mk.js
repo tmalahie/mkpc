@@ -3089,7 +3089,7 @@ function startGame() {
 							e.preventDefault();
 						switch (gameAction) {
 							case "up":
-								oPlayers[0].speedinc = oPlayers[0].stats.acceleration*oPlayers[0].size*fSelectedClass;
+								oPlayers[0].speedinc = oPlayers[0].stats.acceleration*oPlayers[0].size;
 								if (oPlayers[0].etoile) oPlayers[0].speedinc *= 5;
 								break;
 							case "left":
@@ -3171,7 +3171,7 @@ function startGame() {
 								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
-								oPlayers[1].speedinc = oPlayers[1].stats.acceleration*oPlayers[1].size*fSelectedClass;
+								oPlayers[1].speedinc = oPlayers[1].stats.acceleration*oPlayers[1].size;
 								if (oPlayers[1].etoile) oPlayers[1].speedinc *= 5;
 								break;
 							case "left_p2":
@@ -12197,7 +12197,7 @@ function move(getId, triggered) {
 		var newShift;
 		var pJump = sauts(aPosX, aPosY, fMoveX, fMoveY);
 		if (pJump && !oKart.tourne) {
-			oKart.heightinc = pJump * 1.5;
+			oKart.heightinc = pJump * 1.5 * Math.pow(cappedRelSpeed(oKart), -0.7);
 			oKart.speed = 11;
 			oKart.figuring = false;
 			oKart.figstate = 0;
@@ -12315,6 +12315,7 @@ function move(getId, triggered) {
 			else {
 				if (!oKart.protect && !oKart.champi && !oKart.figuring && oKart.speed > 1.5 && !(oKart.turbodrift>oKart.turbodrift0*0.8) && (hpType=ralenti(fNewPosX, fNewPosY))) {
 					var hpProps = getOffroadProps(oKart,hpType);
+					hpProps.speed *= cappedRelSpeed();
 					if (hpProps.sliding)
 						oKart.sliding = hpProps.sliding;
 					if (oKart.speed > hpProps.speed)
@@ -12912,7 +12913,7 @@ function move(getId, triggered) {
 	if (oKart.billball) {
 		oKart.z = 2;
 		oKart.heightinc = 0;
-		oKart.speed = 11;
+		oKart.speed = 11*cappedRelSpeed();
 
 		var iLocalX, iLocalY;
 		if (oKart.aipoint != undefined) {
@@ -12956,7 +12957,7 @@ function move(getId, triggered) {
 		var iRotatedY = iLocalX * direction(0, oKart.rotation) + iLocalY * direction(1, oKart.rotation);
 
 		var fAngle = Math.atan2(iRotatedX,iRotatedY) / Math.PI * 180;
-		if (Math.abs(fAngle) > 10) {
+		if (Math.abs(fAngle) > Math.max(10,10/cappedRelSpeed())) {
 			if (Math.abs(fAngle) > 60) {
 				oKart.speed = 1;
 				fAngle = (fAngle > 0) ? 30:-30;
@@ -13039,7 +13040,8 @@ function move(getId, triggered) {
 	}
 	oKart.maxspeed = Math.min(oKart.maxspeed, 15/oKart.size);
 	if (oKart.cannon) {
-		oKart.speed = (oKart.speed*3+20)/4;
+		var transitionFactor = 3*Math.pow(cappedRelSpeed(oKart),-2);
+		oKart.speed = (oKart.speed*transitionFactor+20)/(transitionFactor+1);
 		if (oKart.billball)
 			oKart.speed = 20;
 		oKart.maxspeed = oKart.speed/(oKart.size*fSelectedClass);
@@ -13784,8 +13786,9 @@ function ai(oKart) {
 						actualSpeed = Math.min(actualSpeed,Math.hypot(fMoveDir[0],fMoveDir[1]));
 					else {
 						actualTheta = Math.atan2(fMoveDir[0],fMoveDir[1])*180/Math.PI;
-						if (actualShift[0]*actualShift[0] + actualShift[1]*actualShift[1] >= 10)
-							actualTheta += (actualTheta-oKart.rotation)*0.15;
+						var relSpeed2 = Math.pow(cappedRelSpeed(oKart),-2);
+						if (actualShift[0]*actualShift[0] + actualShift[1]*actualShift[1] >= 10*relSpeed2)
+							actualTheta += (actualTheta-oKart.rotation)*0.15*relSpeed2;
 					}
 					if (isNaN(actualTheta)) actualTheta = oKart.rotation;
 				}
@@ -17542,6 +17545,10 @@ function getRelSpeedFromCc(cc) {
 			return (interpolations[i-1][1] + (interpolations[i][1]-interpolations[i-1][1]) * (cc - interpolations[i-1][0]) / (interpolations[i][0]-interpolations[i-1][0]));
 	}
 	return interpolations[interpolations.length-1][1];
+}
+function cappedRelSpeed(oKart) {
+	var fSize = oKart ? oKart.size : 1;
+	return Math.min(Math.max(fSelectedClass*fSize, 0.37), 2.7);
 }
 
 function selectTeamScreen(IdJ) {
