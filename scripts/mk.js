@@ -1472,7 +1472,7 @@ function arme(ID, backwards, forwards) {
 			itemKey = "champi";
 			tpsUse = 20;
 			oKart.maxspeed = 11;
-			oKart.speed = 11;
+			oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 			playIfShould(oKart,"musics/events/boost.mp3");
 			break;
 
@@ -1481,7 +1481,7 @@ function arme(ID, backwards, forwards) {
 			if (oKart.champi < 12) {
 				tpsUse = 20;
 				oKart.maxspeed = 11;
-				oKart.speed = 11;
+				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
 				if (!oKart.champior)
 					oKart.champior = 70;
@@ -5817,6 +5817,7 @@ var itemBehaviors = {
 							}
 							else if (oKart.turbodrift)
 								maxSpeed2 = 64;
+							maxSpeed2 *= Math.pow(cappedRelSpeed(),4);
 							if (fMove2 > maxSpeed2) {
 								var fNewMove = Math.sqrt(fMove2/maxSpeed2);
 								fMoveX /= fNewMove;
@@ -11885,7 +11886,7 @@ function move(getId, triggered) {
 			else if (touche_champi(fNewPosX, fNewPosY) && !oKart.tourne) {
 				oKart.champi = 20;
 				oKart.maxspeed = 11;
-				oKart.speed = 11;
+				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
 			}
 			else if (!oKart.tourne && (oKart.z < 1.2)) {
@@ -13070,7 +13071,7 @@ function move(getId, triggered) {
 	if (!oKart.z && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
 		oKart.champi = 20;
 		oKart.maxspeed = 11;
-		oKart.speed = 11;
+		oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 		if (!oKart.boostSound) {
 			oKart.boostSound = playIfShould(oKart, "musics/events/boost.mp3");
 			if (oKart.boostSound) {
