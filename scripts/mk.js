@@ -11009,10 +11009,10 @@ function checkpoint(kart, fMoveX,fMoveY) {
 		if (!inRect && fast) {
 			var j = oBox[3];
 			var l = dir[j];
-			if ((l ? ((aPos[j] <= oBox[j])&&((aPos[j]+aMove[j]) >= oBox[j])):((aPos[j] >= (oBox[j]+oBox[j+2]))&&((aPos[j]+aMove[j]) <= (oBox[j]+oBox[j+2]))))) {
+			if ((l ? ((aPos[j] <= oRect[j])&&((aPos[j]+aMove[j]) >= oRect[j])):((aPos[j] >= (oRect[j]+oRect[j+2]))&&((aPos[j]+aMove[j]) <= (oRect[j]+oRect[j+2]))))) {
 				var dim = 1-j;
-				var croiseJ = aPos[dim] + ((l?oBox[j]:oBox[j]+oBox[j+2])-aPos[j])*aMove[dim]/aMove[j];
-				if ((croiseJ >= oBox[dim]) && (croiseJ <= (oBox[dim]+oBox[dim+2])))
+				var croiseJ = aPos[dim] + ((l?oRect[j]:oRect[j]+oRect[j+2])-aPos[j])*aMove[dim]/aMove[j];
+				if ((croiseJ >= oRect[dim]) && (croiseJ <= (oRect[dim]+oRect[dim+2])))
 					inRect = true;
 			}
 		}
