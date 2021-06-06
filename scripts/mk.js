@@ -7231,7 +7231,7 @@ var decorBehaviors = {
 								fMoveY = 0;
 							}
 							else {
-								var cannon = inCannon(decorData[0],decorData[1]);
+								var cannon = inCannon(decorData[0],decorData[1], fMoveX,fMoveY);
 								if (cannon) {
 									var nSpeed = 17;
 									this.autojump(decorData,cannon[0],cannon[1],nSpeed);
@@ -8480,6 +8480,29 @@ function pointInPolygon(x,y, vs) {
 	return inside;
 }
 
+function pointCrossRectangle(iX,iY,iI,iJ, oBox) {	
+	var aPos = [iX,iY], aMove = [iI,iJ];
+	var dir = [(iI>0), (iJ>0)];
+	for (var j=0;j<2;j++) {
+		var l = dir[j];
+		if ((l ? ((aPos[j] <= oBox[j])&&((aPos[j]+aMove[j]) >= oBox[j])):((aPos[j] >= (oBox[j]+oBox[j+2]))&&((aPos[j]+aMove[j]) <= (oBox[j]+oBox[j+2]))))) {
+			var dim = 1-j;
+			var croiseJ = aPos[dim] + ((l?oBox[j]:oBox[j]+oBox[j+2])-aPos[j])*aMove[dim]/aMove[j];
+			if ((croiseJ >= oBox[dim]) && (croiseJ <= (oBox[dim]+oBox[dim+2])))
+				return true;
+		}
+	}
+	return false;
+}
+function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
+	for (var j=0;j<oPoints.length;j++) {
+		var oPoint1 = oPoints[j], oPoint2 = oPoints[(j+1)%oPoints.length];
+		if (secants(iX,iY,nX,nY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]))
+			return true;
+	}
+	return false;
+}
+
 function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 
 	var nX = iX+iI, nY = iY+iJ;
@@ -8554,29 +8577,14 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 			if (nX >= oMap.w || nY >= oMap.h || nX < 0 || nY < 0) return false;
 		}
 	}
-	
-	var aPos = [iX, iY], aMove = [iI, iJ];
-	var dir = [(iI>0), (iJ>0)];
 
 	for (var i=0;i<oRectangles.length;i++) {
-		var oBox = oRectangles[i];
-		for (var j=0;j<2;j++) {
-			var l = dir[j];
-			if ((l ? ((aPos[j] <= oBox[j])&&((aPos[j]+aMove[j]) >= oBox[j])):((aPos[j] >= (oBox[j]+oBox[j+2]))&&((aPos[j]+aMove[j]) <= (oBox[j]+oBox[j+2]))))) {
-				var dim = 1-j;
-				var croiseJ = aPos[dim] + ((l?oBox[j]:oBox[j]+oBox[j+2])-aPos[j])*aMove[dim]/aMove[j];
-				if ((croiseJ >= oBox[dim]) && (croiseJ <= (oBox[dim]+oBox[dim+2])))
-					return false;
-			}
-		}
+		if (pointCrossRectangle(iX,iY,iI,iJ, oRectangles[i]))
+			return false;
 	}
 	for (var i=0;i<oPolygons.length;i++) {
-		var oPoints = oPolygons[i];
-		for (var j=0;j<oPoints.length;j++) {
-			var oPoint1 = oPoints[j], oPoint2 = oPoints[(j+1)%oPoints.length];
-			if (secants(iX,iY,nX,nY, oPoint1[0],oPoint1[1],oPoint2[0],oPoint2[1]))
-				return false;
-		}
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
+			return false;
 	}
 	return true;
 }
@@ -8884,15 +8892,8 @@ function sauts(iX, iY, iI, iJ) {
 		var oBox = oMap.sauts[i];
 		if (pointInRectangle(iX,iY, oBox))
 			return oBox[4];
-		for (var j=0;j<2;j++) {
-			var l = dir[j];
-			if ((l ? ((aPos[j] <= oBox[j])&&((aPos[j]+aMove[j]) >= oBox[j])):((aPos[j] >= (oBox[j]+oBox[j+2]))&&((aPos[j]+aMove[j]) <= (oBox[j]+oBox[j+2]))))) {
-				var dim = 1-j;
-				var croiseJ = aPos[dim] + ((l?oBox[j]:oBox[j]+oBox[j+2])-aPos[j])*aMove[dim]/aMove[j];
-				if ((croiseJ >= oBox[dim]) && (croiseJ <= (oBox[dim]+oBox[dim+2])))
-					return oBox[4];
-			}
-		}
+		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
+			return oBox[4];
 	}
 	return false;
 }
@@ -8929,21 +8930,12 @@ function getOffroadProps(oKart,hpType) {
 function accelere(iX, iY, iI, iJ) {
 	if (!oMap.accelerateurs) return false;
 	var nX = iX+iI, nY = iY+iJ;
-	var aPos = [iX, iY], aMove = [iI, iJ];
-	var dir = [(iI>0), (iJ>0)];
 	for (var i=0;i<oMap.accelerateurs.length;i++) {
 		var oBox = oMap.accelerateurs[i];
 		if (pointInRectangle(nX,nY, oBox))
 			return true;
-		for (var j=0;j<2;j++) {
-			var l = dir[j];
-			if ((l ? ((aPos[j] <= oBox[j])&&((aPos[j]+aMove[j]) >= oBox[j])):((aPos[j] >= (oBox[j]+oBox[j+2]))&&((aPos[j]+aMove[j]) <= (oBox[j]+oBox[j+2]))))) {
-				var dim = 1-j;
-				var croiseJ = aPos[dim] + ((l?oBox[j]:oBox[j]+oBox[j+2])-aPos[j])*aMove[dim]/aMove[j];
-				if ((croiseJ >= oBox[dim]) && (croiseJ <= (oBox[dim]+oBox[dim+2])))
-					return true;
-			}
-		}
+		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
+			return true;
 	}
 	return false;
 }
@@ -9035,8 +9027,9 @@ function tombe(iX, iY, iC) {
 	}
 	return false;
 }
-function inCannon(iX,iY) {
+function inCannon(aX,aY, fMoveX,fMoveY) {
 	if (!oMap.cannons) return false;
+	var iX = aX+fMoveX, iY = aY+fMoveY;
 	var oRectangles = oMap.cannons.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
 		var cannon = oRectangles[i];
@@ -9047,6 +9040,17 @@ function inCannon(iX,iY) {
 	for (var i=0;i<oPolygons.length;i++) {
 		var cannon = oPolygons[i];
 		if (pointInPolygon(iX,iY, cannon[0]))
+			return cannon[1];
+	}
+
+	for (var i=0;i<oRectangles.length;i++) {
+		var cannon = oRectangles[i];
+		if (pointCrossRectangle(aX,aY,fMoveX,fMoveY, cannon[0]))
+			return cannon[1];
+	}
+	for (var i=0;i<oPolygons.length;i++) {
+		var cannon = oPolygons[i];
+		if (pointCrossPolygon(aX,aY,iX,iY, cannon[0]))
 			return cannon[1];
 	}
 	return false;
@@ -12352,7 +12356,7 @@ function move(getId, triggered) {
 			delete oKart.shift;
 	}
 	if (!oKart.cannon) {
-		var cannon = inCannon(oKart.x,oKart.y);
+		var cannon = inCannon(aPosX,aPosY, fMoveX,fMoveY);
 		if (cannon && (cannon[0]||cannon[1])) {
 			stopDrifting(getId);
 			oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
@@ -12903,7 +12907,7 @@ function move(getId, triggered) {
 		}
 		if (oKart.speed > -nSpeed) {
 			oKart.maxspeed = nSpeed;
-			oKart.speed = Math.max(nSpeed, oKart.speed);
+			oKart.speed = Math.max(nSpeed*cappedRelSpeed(oKart), oKart.speed);
 		}
 		oKart.turbodrift--;
 	}
@@ -14848,6 +14852,27 @@ function privateGameOptions(gameOptions, onProceed) {
 	oSelect.style.fontSize = Math.round(iScreenScale*2.5) +"px";
 	oSelect.style.marginTop = Math.round(iScreenScale*1.5) +"px";
 
+	function setCustomValue(oSelect, customValue) {
+		var oNewOption = document.createElement("option");
+		oNewOption.value = customValue;
+		oNewOption.innerHTML = customValue+"cc";
+		var oOptions = oSelect.getElementsByTagName("option");
+		for (var i=0;i<oOptions.length;i++) {
+			var oOption = oOptions[i];
+			if (oOption.value > customValue) {
+				oSelect.insertBefore(oNewOption, oOption);
+				break;
+			}
+			else if (oOption.value == oNewOption.value) {
+				oNewOption = oOption;
+				break;
+			}
+		}
+		if (!oNewOption.parentNode)
+			oSelect.insertBefore(oNewOption, oOptions[oOptions.length-1]);
+		oSelect.value = customValue;
+	}
+
 	var oClasses = [50,100,150,200];
 	var isSelectedCc = false;
 	var gameCc = 150;
@@ -14868,30 +14893,15 @@ function privateGameOptions(gameOptions, onProceed) {
 	oOption.value = -1;
 	oOption.innerHTML = toLanguage("More...", "Plus...");
 	oSelect.appendChild(oOption);
+	if (!isSelectedCc)
+		setCustomValue(oSelect, gameCc);
 	oSelect.currentValue = oSelect.value;
 	oSelect.onchange = function() {
 		if (this.value == -1) {
 			var customValue = parseInt(prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue));
 			if (customValue > 0) {
 				customValue = Math.min(customValue, 999);
-				var oNewOption = document.createElement("option");
-				oNewOption.value = customValue;
-				oNewOption.innerHTML = customValue+"cc";
-				var oOptions = this.getElementsByTagName("option");
-				for (var i=0;i<oOptions.length;i++) {
-					var oOption = oOptions[i];
-					if (oOption.value > customValue) {
-						this.insertBefore(oNewOption, oOption);
-						break;
-					}
-					else if (oOption.value == oNewOption.value) {
-						oNewOption = oOption;
-						break;
-					}
-				}
-				if (!oNewOption.parentNode)
-					this.insertBefore(oNewOption, oOptions[oOptions.length-1]);
-				this.value = customValue;
+				setCustomValue(this, customValue);
 			}
 			else
 				this.value = this.currentValue;
