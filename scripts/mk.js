@@ -14498,6 +14498,7 @@ function privateGameOptions(gameOptions, onProceed) {
 			localScore = 0;
 		var minPlayers = +this.elements["option-minPlayers"].value;
 		var maxPlayers = +this.elements["option-maxPlayers"].value;
+		var cc = +this.elements["option-cc"].value;
 		var itemDistrib = JSON.parse(this.elements["option-itemDistrib"].value);
 		var cpu = this.elements["option-cpu"].checked ? 1:0;
 		var cpuCount = +this.elements["option-cpuCount"].value;
@@ -14520,6 +14521,7 @@ function privateGameOptions(gameOptions, onProceed) {
 			localScore: localScore,
 			minPlayers: minPlayers,
 			maxPlayers: maxPlayers,
+			cc: cc,
 			itemDistrib: itemDistrib,
 			cpu: cpu,
 			cpuCount: cpuCount,
@@ -14811,6 +14813,97 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
 	
+	var oTr = document.createElement("tr");
+	if (!isOnline) oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignItems = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-cc");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("Class", "Cylindrée");
+	oH1.style.marginTop = iScreenScale +"px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	var oSelect = document.createElement("select");
+	oSelect.id = "option-cc";
+	oSelect.name = "option-cc";
+	oSelect.style.backgroundColor = "black";
+	oSelect.style.width = (iScreenScale*12) +"px";
+	oSelect.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	oSelect.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+
+	var oClasses = [50,100,150,200];
+	var isSelectedCc = false;
+	var gameCc = 150;
+	if (gameOptions && gameOptions.cc)
+		gameCc = gameOptions.cc;
+	for (var i=0;i<oClasses.length;i++) {
+		var oClass = oClasses[i];
+		var oOption = document.createElement("option");
+		oOption.value = oClass;
+		oOption.innerHTML = oClass+"cc";
+		if (gameCc == oClass) {
+			oOption.setAttribute("selected", true);
+			isSelectedCc = true;
+		}
+		oSelect.appendChild(oOption);
+	}
+	var oOption = document.createElement("option");
+	oOption.value = -1;
+	oOption.innerHTML = toLanguage("More...", "Plus...");
+	oSelect.appendChild(oOption);
+	oSelect.currentValue = oSelect.value;
+	oSelect.onchange = function() {
+		if (this.value == -1) {
+			var customValue = parseInt(prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue));
+			if (customValue > 0) {
+				customValue = Math.min(customValue, 999);
+				var oNewOption = document.createElement("option");
+				oNewOption.value = customValue;
+				oNewOption.innerHTML = customValue+"cc";
+				var oOptions = this.getElementsByTagName("option");
+				for (var i=0;i<oOptions.length;i++) {
+					var oOption = oOptions[i];
+					if (oOption.value > customValue) {
+						this.insertBefore(oNewOption, oOption);
+						break;
+					}
+					else if (oOption.value == oNewOption.value) {
+						oNewOption = oOption;
+						break;
+					}
+				}
+				if (!oNewOption.parentNode)
+					this.insertBefore(oNewOption, oOptions[oOptions.length-1]);
+				this.value = customValue;
+			}
+			else
+				this.value = this.currentValue;
+		}
+		this.currentValue = this.value;
+	}
+	tDiv.appendChild(oSelect);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
 	var oTr = document.createElement("tr");
 	if (!isOnline) oTr.style.display = "none";
 	var oTd = document.createElement("td");
@@ -16727,6 +16820,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 									shareLink.options.friendly = options.friendly;
 									shareLink.options.minPlayers = options.minPlayers;
 									shareLink.options.maxPlayers = options.maxPlayers;
+									shareLink.options.cc = options.cc;
 									shareLink.options.itemDistrib = options.itemDistrib;
 									shareLink.options.cpu = options.cpu;
 									shareLink.options.cpuCount = options.cpuCount;
@@ -16891,6 +16985,51 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 
 		if (!clSelected) {
 			oForm.appendChild(document.createElement("br"));
+			oForm.appendChild(document.createTextNode(toLanguage("Class", "Cylindrée ")+ ": "));
+
+			oClassSelect = document.createElement("select");
+			oClassSelect.name = "class";
+			oClassSelect.style.width = (iScreenScale*8) +"px";
+			oClassSelect.style.fontSize = iScreenScale*2 +"px";
+			var oClasses = [50,100,150,200];
+			var isSelectedCc = false;
+			for (var i=0;i<oClasses.length;i++) {
+				var oClass = oClasses[i];
+				var oClassOption = document.createElement("option");
+				oClassOption.value = oClass;
+				oClassOption.innerHTML = oClass+"cc";
+				if (selectedCc == oClass) {
+					oClassOption.setAttribute("selected", true);
+					isSelectedCc = true;
+				}
+				oClassSelect.appendChild(oClassOption);
+			}
+			oClassSelect.style.marginRight = "10px";
+			var oClassOption = document.createElement("option");
+			oClassOption.value = -1;
+			oClassOption.innerHTML = toLanguage("More...", "Plus...");
+			oClassSelect.appendChild(oClassOption);
+			oClassSelect.currentValue = oClassSelect.value;
+			oClassSelect.onchange = function() {
+				if (this.value == -1) {
+					var customNb = parseInt(prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue));
+					if (!isNaN(customNb) && (customNb > 0)) {
+						customNb = Math.min(customNb,999);
+						setCustomValue(this,customNb,customNb+"cc");
+					}
+					else {
+						if (!isNaN(customNb))
+							alert(toLanguage("Invalid value", "Valeur invalide"));
+						this.value = this.currentValue;
+						return;
+					}
+				}
+				this.currentValue = this.value;
+			};
+			if (!isSelectedCc)
+				setCustomValue(oClassSelect, selectedCc, selectedCc+"cc");
+			oForm.appendChild(oClassSelect);
+
 			oForm.appendChild(document.createTextNode(toLanguage("Items", "Objets ")+ ": "));
 
 			oItemSelect = document.createElement("select");
@@ -16903,7 +17042,6 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				oItemOption.innerHTML = modeItemDistributions[i].name;
 				oItemSelect.appendChild(oItemOption);
 			}
-			oItemSelect.style.marginRight = "10px";
 			var oItemOption = document.createElement("option");
 			oItemOption.value = -1;
 			oItemOption.innerHTML = toLanguage("Custom...", "Personnalisé...");
@@ -16979,56 +17117,6 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				oItemSelect.selectedIndex = selectedItemSetId;
 				oItemSelect.onchange();
 			}
-
-			var oKartClass = document.createElement("div");
-			oKartClass.style.display = "none";
-			oKartClass.style.marginLeft = (iScreenScale*1) +"px";
-			
-			oForm.appendChild(oKartClass);
-
-			oForm.appendChild(document.createTextNode(toLanguage("Class", "Cylindrée ")+ ": "));
-
-			oClassSelect = document.createElement("select");
-			oClassSelect.name = "class";
-			oClassSelect.style.width = (iScreenScale*8) +"px";
-			oClassSelect.style.fontSize = iScreenScale*2 +"px";
-			var oClasses = [50,100,150,200];
-			var isSelectedCc = false;
-			for (var i=0;i<oClasses.length;i++) {
-				var oClass = oClasses[i];
-				var oClassOption = document.createElement("option");
-				oClassOption.value = oClass;
-				oClassOption.innerHTML = oClass+"cc";
-				if (selectedCc == oClass) {
-					oClassOption.setAttribute("selected", true);
-					isSelectedCc = true;
-				}
-				oClassSelect.appendChild(oClassOption);
-			}
-			var oClassOption = document.createElement("option");
-			oClassOption.value = -1;
-			oClassOption.innerHTML = toLanguage("More...", "Plus...");
-			oClassSelect.appendChild(oClassOption);
-			oClassSelect.currentValue = oClassSelect.value;
-			oClassSelect.onchange = function() {
-				if (this.value == -1) {
-					var customNb = parseInt(prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue));
-					if (!isNaN(customNb) && (customNb > 0)) {
-						customNb = Math.min(customNb,999);
-						setCustomValue(this,customNb,customNb+"cc");
-					}
-					else {
-						if (!isNaN(customNb))
-							alert(toLanguage("Invalid value", "Valeur invalide"));
-						this.value = this.currentValue;
-						return;
-					}
-				}
-				this.currentValue = this.value;
-			};
-			if (!isSelectedCc)
-				setCustomValue(oClassSelect, selectedCc, selectedCc+"cc");
-			oForm.appendChild(oClassSelect);
 		}
 		
 		oScr.appendChild(oForm);
@@ -17501,6 +17589,7 @@ var defaultGameOptions = {
 	friendly: false,
 	minPlayers: 2,
 	maxPlayers: 12,
+	cc: 150,
 	itemDistrib: 0,
 	cpu: false,
 	cpuCount: 2,
@@ -17714,6 +17803,27 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		oDiv.innerHTML = toLanguage("Teams are selected manually by one of the players.", "Les équipes sont sélectionnées manuellement par l'un des joueurs.");
+		oLabel.appendChild(oDiv);
+		oTd.appendChild(oLabel);
+		oTr.appendChild(oTd);
+		oTable.appendChild(oTr);
+	}
+
+	if (shareLink.options.cc) {
+		var oTr = document.createElement("tr");
+		var oTd = document.createElement("td");
+		var oLabel = document.createElement("label");
+		oTd.appendChild(oLabel);
+
+		var oH1 = document.createElement("h1");
+		oH1.style.fontSize = (3*iScreenScale) +"px";
+		oH1.innerHTML = toLanguage("Class", "Cylindrée");
+		oH1.style.marginBottom = "0px";
+		oLabel.appendChild(oH1);
+		var oDiv = document.createElement("div");
+		oDiv.style.fontSize = (2*iScreenScale) +"px";
+		oDiv.style.color = "white";
+		oDiv.innerHTML = shareLink.options.cc +"cc";
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
@@ -19206,6 +19316,9 @@ function choose(map,rand) {
 								var itemMode = getItemMode();
 								selectedItemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib].value;
 							}
+						}
+						if (shareLink.options && shareLink.options.cc) {
+							fSelectedClass = getRelSpeedFromCc(+shareLink.options.cc);
 						}
 						var tNow = new Date().getTime();
 						tnCourse = tNow+rCode[2];

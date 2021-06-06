@@ -27,6 +27,11 @@ $rulesList = array(
 		'min_value' => 2,
 		'max_value' => 99
 	),
+	'cc' => array(
+		'default' => 150,
+		'min_value' => 1,
+		'max_value' => 999
+	),
 	'itemDistrib' => array(
 		'default' => 0
 	),
