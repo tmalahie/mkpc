@@ -802,7 +802,7 @@ $slidesPath = 'images/slides';
 			<div id="comments_section" class="right_subsection">
 				<?php
 				//$getComments = mysql_query('SELECT c.circuit,c.type,c.message,c.temps,c.nom,c.date FROM ((SELECT mkcomments.circuit,mkcomments.type COLLATE latin1_general_ci AS type,mkcomments.message COLLATE latin1_general_ci AS message,mkcomments.date,mkjoueurs.nom COLLATE latin1_general_ci AS nom,NULL as temps FROM `mkcomments` INNER JOIN `mkjoueurs` ON mkcomments.auteur=mkjoueurs.id) UNION ALL (SELECT circuit,type,NULL as message,date,nom,temps FROM `mkrecords`) ORDER BY date DESC) as c GROUP BY c.type,c.circuit ORDER BY c.date DESC LIMIT 14');
-				$getComments = mysql_query('SELECT circuit,type,message,time,name,date,recency FROM ((SELECT mkcomments.circuit,mkcomments.type,mkcomments.message,mkcomments.date,mkjoueurs.nom AS name,NULL as time, (UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(date))*1 AS recency FROM `mkcomments` INNER JOIN `mkjoueurs` ON mkcomments.auteur=mkjoueurs.id ORDER BY mkcomments.id DESC LIMIT 30) UNION ALL (SELECT circuit,type,NULL as message,date,name,time,(UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(date))*2 AS recency FROM `mkrecords` WHERE type!="" AND best=1 ORDER BY id DESC LIMIT 30) ORDER BY recency) as c GROUP BY c.type,c.circuit ORDER BY recency LIMIT 14');
+				$getComments = mysql_query('SELECT class,circuit,type,message,time,name,date,recency FROM ((SELECT NULL AS class,mkcomments.circuit,mkcomments.type,mkcomments.message,mkcomments.date,mkjoueurs.nom AS name,NULL as time, (UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(date))*1 AS recency FROM `mkcomments` INNER JOIN `mkjoueurs` ON mkcomments.auteur=mkjoueurs.id ORDER BY mkcomments.id DESC LIMIT 30) UNION ALL (SELECT class,circuit,type,NULL as message,date,name,time,(UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(date))*2 AS recency FROM `mkrecords` WHERE type!="" AND best=1 ORDER BY id DESC LIMIT 30) ORDER BY recency) as c GROUP BY c.type,c.circuit ORDER BY recency LIMIT 14');
 				function zerofill($nb,$l) {
 					$nb .= '';
 					while (strlen($nb) < $l)
@@ -862,7 +862,7 @@ $slidesPath = 'images/slides';
 							$ms = $timeMS%1000;
 							$secs = floor($timeMS/1000)%60;
 							$mins = floor($timeMS/60000);
-							$records = mysql_query('SELECT time FROM `mkrecords` WHERE circuit="'. $comment['circuit'] .'" AND type="'. $comment['type'] .'" AND best=1');
+							$records = mysql_query('SELECT time FROM `mkrecords` WHERE class="'. $comment['class'] .'" AND circuit="'. $comment['circuit'] .'" AND type="'. $comment['type'] .'" AND best=1');
 							$place = 1;
 							$nbRecords = 0;
 							while ($record = mysql_fetch_array($records)) {

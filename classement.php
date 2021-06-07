@@ -7,6 +7,7 @@ $creation = false;
 $cup = false;
 $mcup = false;
 $type = '';
+$cc = isset($_GET['class']) ? $_GET['class'] : 150;
 if (isset($_GET['circuit'])) {
 	$cID = $_GET['circuit'];
 	$creation = true;
@@ -46,7 +47,7 @@ if (isset($_GET['user'])) {
 }
 if (!$creation && isset($_GET['map'])) {
 	include('getId.php');
-	mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkrecords` r ON n.link=r.id WHERE n.identifiant='.$identifiants[0].' AND n.identifiant2='.$identifiants[1].' AND n.identifiant3='.$identifiants[2].' AND n.identifiant4='.$identifiants[3].' AND n.type="new_record" AND r.type="" AND r.circuit="'.$_GET['map'].'"');
+	mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkrecords` r ON n.link=r.id WHERE n.identifiant='.$identifiants[0].' AND n.identifiant2='.$identifiants[1].' AND n.identifiant3='.$identifiants[2].' AND n.identifiant4='.$identifiants[3].' AND n.type="new_record" AND r.class="'.$cc.'" AND r.type="" AND r.circuit="'.$_GET['map'].'"');
 }
 if ($creation) {
 	if ($mcup) {
@@ -257,14 +258,14 @@ var classement = new Array();
 for (var i=0;i<circuits.length;i++)
 	classement[i] = new Resultat(i);
 <?php
-$joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.player=r2.player AND r.identifiant=r2.identifiant AND r.identifiant2=r2.identifiant2 AND r.identifiant3=r2.identifiant3 AND r.identifiant4=r2.identifiant4 AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
+$joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.player=r2.player AND r.identifiant=r2.identifiant AND r.identifiant2=r2.identifiant2 AND r.identifiant3=r2.identifiant3 AND r.identifiant4=r2.identifiant4 AND r.class=r2.class AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
 $whereBest = isset($_GET['date']) ? ' AND r2.id IS NULL AND r.date<="'.$_GET['date'].'"':' AND r.best=1';
 if (isset($user))
-	$getResults = mysql_query('SELECT r.*,c.code,r.date,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
+	$getResults = mysql_query('SELECT r.*,c.code,r.date,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'. $cc .'" AND r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
 else {
 	if ($creation && empty($cIDs))
 		$cIDs = array(0);
-	$getResults = mysql_query('SELECT r.*,c.code,r.date FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
+	$getResults = mysql_query('SELECT r.*,c.code,r.date FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
 }
 while ($result = mysql_fetch_array($getResults))
 	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false)).'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';

@@ -14,7 +14,13 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 				exit;
 			}
 		}
-		$map = $_POST['map'];
+		$map = intval($_POST['map']);
+		$cc = isset($_POST['cc']) ? $_POST['cc'] : 150;
+		if (!in_array($cc,array(150,200))) {
+			echo 1;
+			mysql_close();
+			exit;
+		}
 		$time = $n*67;
 		$player = 0;
 		if ($id)
@@ -32,13 +38,13 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 			$fakeTime = round($time/3);
 			$times = "[$fakeTime,$fakeTime,$fakeTime]";
 		}
-		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkghosts` WHERE circuit="'.$map.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
+		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkghosts` WHERE class="'.$cc.'" AND circuit="'.$map.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
 			$cID = $getId['id'];
 			mysql_query('UPDATE `mkghosts` SET perso="'. $_POST['perso'] .'", player='. $player .', time="'.$time.'", lap_times="'.$times.'" WHERE id='. $cID);
 			mysql_query('DELETE FROM `mkghostdata` WHERE ghost='. $cID);
 		}
 		else {
-			mysql_query('INSERT INTO `mkghosts` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3].',player='.$player.',circuit='.$map.',perso="'.$_POST['perso'].'",time="'.$time.'",lap_times="'.$times.'"');
+			mysql_query('INSERT INTO `mkghosts` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3].',player='.$player.',class='.$cc.',circuit='.$map.',perso="'.$_POST['perso'].'",time="'.$time.'",lap_times="'.$times.'"');
 			$cID = mysql_insert_id();
 		}
 		$sqlBatch = "INSERT INTO `mkghostdata` VALUES";

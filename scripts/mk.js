@@ -3592,7 +3592,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3631,7 +3631,7 @@ function startGame() {
 			showTeam(tnCountdown);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -12188,6 +12188,29 @@ function move(getId, triggered) {
 	if (!oKart.speedinc)
 		oKart.speed *= oKart.sliding ? 0.95:0.9;
 
+	if (!oKart.cannon) {
+		var cannon = inCannon(aPosX,aPosY, fMoveX,fMoveY);
+		if (cannon && (cannon[0]||cannon[1])) {
+			stopDrifting(getId);
+			oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
+			if (!oKart.z)
+				oKart.z = 0.001;
+			oKart.protect = true;
+			oKart.jumped = true;
+			if (oKart.tourne)
+				oKart.tourne = 2;
+			delete oKart.shift;
+			if (!oKart.boostSound) {
+				oKart.boostSound = playIfShould(oKart, "musics/events/boost.mp3");
+				if (oKart.boostSound) {
+					oKart.boostSound.onended = function() {
+						oKart.boostSound = undefined;
+						document.body.removeChild(this);
+					}
+				}
+			}
+		}
+	}
 	oKart.sliding = undefined;
 	if (!oKart.z) {
 		if (!oKart.heightinc) {
@@ -12354,27 +12377,6 @@ function move(getId, triggered) {
 		}
 		else
 			delete oKart.shift;
-	}
-	if (!oKart.cannon) {
-		var cannon = inCannon(aPosX,aPosY, fMoveX,fMoveY);
-		if (cannon && (cannon[0]||cannon[1])) {
-			stopDrifting(getId);
-			oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
-			oKart.protect = true;
-			oKart.jumped = true;
-			if (oKart.tourne)
-				oKart.tourne = 2;
-			delete oKart.shift;
-			if (!oKart.boostSound) {
-				oKart.boostSound = playIfShould(oKart, "musics/events/boost.mp3");
-				if (oKart.boostSound) {
-					oKart.boostSound.onended = function() {
-						oKart.boostSound = undefined;
-						document.body.removeChild(this);
-					}
-				}
-			}
-		}
 	}
 
 	if (oKart.using.length) {
@@ -16998,7 +17000,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oForm.appendChild(document.createTextNode(toLanguage("Class", "Cylindrée ")+ ": "));
 
 			oClassSelect = document.createElement("select");
-			oClassSelect.name = "class";
+			oClassSelect.name = "cc";
 			oClassSelect.style.width = (iScreenScale*8) +"px";
 			oClassSelect.style.fontSize = iScreenScale*2 +"px";
 			var oClasses = [50,100,150,200];
@@ -17134,18 +17136,48 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		if (isCustomSel)
 			oForm.style.display = "none";
 	}
-	else if (course == "CM" && isSingle) {
-		var oClassement = document.createElement("input");
-		oClassement.type = "button";
-		oClassement.value = toLanguage("Rankings", "Classement");
-		oClassement.style.position = "absolute";
-		oClassement.style.fontSize = (3*iScreenScale)+"px";
-		oClassement.style.position = "absolute";
-		oClassement.style.left = (30*iScreenScale-10)+"px";
-		oClassement.style.top = (32*iScreenScale)+"px";
-		oClassement.style.width = (20*iScreenScale)+"px";
-		oClassement.onclick = openRankings;
-		oScr.appendChild(oClassement);
+	else if (course == "CM") {
+		var oDiv = document.createElement("div");
+		oDiv.style.position = "absolute";
+		oDiv.style.left = (10*iScreenScale-10)+"px";
+		oDiv.style.top = (32*iScreenScale)+"px";
+		oDiv.style.width = (60*iScreenScale)+"px";
+		oDiv.style.fontSize = (iScreenScale*3) +"px";
+		oDiv.style.textAlign = "center";
+		var oLabel = document.createElement("label");
+		oLabel.innerHTML = toLanguage("Class: ", "Cylindrée : ");
+		oClassSelect = document.createElement("select");
+		oClassSelect.name = "cc";
+		oClassSelect.style.width = (iScreenScale*12) +"px";
+		oClassSelect.style.fontSize = (iScreenScale*3) +"px";
+		var oClasses = [150,200];
+		for (var i=0;i<oClasses.length;i++) {
+			var oClass = oClasses[i];
+			var oClassOption = document.createElement("option");
+			oClassOption.value = oClass;
+			oClassOption.innerHTML = oClass+"cc";
+			if (selectedCc == oClass)
+				oClassOption.setAttribute("selected", true);
+			oClassSelect.appendChild(oClassOption);
+		}
+		oLabel.appendChild(oClassSelect);
+		oDiv.appendChild(oLabel);
+		oScr.appendChild(oDiv);
+
+		isSingle = true;
+		if (isSingle) {
+			var oClassement = document.createElement("input");
+			oClassement.type = "button";
+			oClassement.value = toLanguage("Rankings", "Classement");
+			oClassement.style.position = "absolute";
+			oClassement.style.left = (57*iScreenScale)+"px";
+			oClassement.style.top = Math.round(32.25*iScreenScale)+"px";
+			oClassement.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+			oClassement.style.position = "absolute";
+			oClassement.style.width = (18*iScreenScale)+"px";
+			oClassement.onclick = openRankings;
+			oScr.appendChild(oClassement);
+		}
 	}
 
 	if (isCustomSel) {

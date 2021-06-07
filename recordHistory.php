@@ -11,6 +11,7 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
             return PERSOS_DIR . $playerName . ".png";
         return "images/sprites/sprite_" . $playerName . ".png";
     }
+    $cc = isset($_GET['class']) ? $_GET['class'] : 150;
     $getPlayer = mysql_fetch_array(mysql_query('SELECT nom FROM mkjoueurs WHERE id="'. $_GET['player'] .'"'));
     ?>
 <!DOCTYPE html>
@@ -80,7 +81,7 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
             <h1><?php echo htmlspecialchars($circuitName) ?></h1>
             <h2><?php echo $language ? 'Time trial history of '.htmlspecialchars($getPlayer['nom']):'Historique CLM de '.htmlspecialchars($getPlayer['nom']); ?></h2>
             <?php
-            $getRecords = mysql_query('SELECT date,perso,time FROM mkrecords WHERE type="" AND circuit="'. $_GET['map'] .'" AND player="'. $_GET['player'] .'" ORDER BY date DESC');
+            $getRecords = mysql_query('SELECT date,perso,time FROM mkrecords WHERE class="'.$cc.'" AND type="" AND circuit="'. $_GET['map'] .'" AND player="'. $_GET['player'] .'" ORDER BY date DESC');
             ?>
             <table>
                 <tr id="titres">
