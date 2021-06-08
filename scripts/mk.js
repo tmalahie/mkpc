@@ -5403,13 +5403,21 @@ var itemBehaviors = {
 							}
 							for (var j=0;j<iSprite.ink.length;j++) {
 								var oInk = iSprite.ink[j];
-								var oImg = document.createElement("img");
-								oImg.src = "images/sprites/sprite_ink.png";
-								oImg.style.position = "absolute";
-								oImg.style.transform = oImg.style.WebkitTransform = oImg.style.MozTransform = "rotate("+Math.round(oInk.theta)+"deg)";
-								oImg.className = "pixelated";
+								var oImg;
+								if (gameSettings.ld) {
+									oImg = document.createElement("div");
+									oImg.style.backgroundColor = "black";
+									oImg.style.opacity = 0.8;
+								}
+								else {
+									oImg = document.createElement("img");
+									oImg.src = "images/sprites/sprite_ink.png";
+									oImg.className = "pixelated";
+									oImg.style.transform = oImg.style.WebkitTransform = oImg.style.MozTransform = "rotate("+Math.round(oInk.theta)+"deg)";
+									oImg.style.opacity = 0.95;
+								}
 								oImg.style.zIndex = 19000;
-								oImg.style.opacity = 0.95;
+								oImg.style.position = "absolute";
 								oContainers[i].appendChild(oImg);
 								oInk.elt = oImg;
 							}
@@ -21094,7 +21102,7 @@ function editCommands(reload,currentTab) {
 	$controlSettingsInfo.innerHTML = toLanguage("These settings allow you to disable some graphic elements from the game. Use them if you experience some lag for example.", "Ces paramètres vous permettent de désactiver certains éléments graphiques du jeu. Utilisez-les si vous avez des problèmes de lags par exemple.");
 	$controlSettings.appendChild($controlSettingsInfo);
 	var allSettings = {
-		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
+		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors, bloops)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
 		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map')
 	};
