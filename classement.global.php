@@ -165,12 +165,11 @@ else
 	<?php
 	if ($joueur) {
 		$page = ceil($place/20);
-		echo '<a href="?'. ($isBattle ? 'battle&amp;':'') .'page='.$page.'">'.$page.'</a>';
+		echo '<a href="?page='.$page.'">'.$page.'</a>';
 	}
 	else {
 		function pageLink($page, $isCurrent) {
-			global $isBattle;
-			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. ($isBattle ? 'battle&amp;':'') .'page='.$page.'">'.$page.'</a>').'&nbsp; ';
+			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?page='.$page.'">'.$page.'</a>').'&nbsp; ';
 		}
 		$limite = ceil($nb_temps/20);
 		require_once('utils-paging.php');

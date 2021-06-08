@@ -7,7 +7,7 @@ $creation = false;
 $cup = false;
 $mcup = false;
 $type = '';
-$cc = isset($_GET['class']) ? $_GET['class'] : 150;
+$cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
 if (isset($_GET['circuit'])) {
 	$cID = $_GET['circuit'];
 	$creation = true;
@@ -131,6 +131,18 @@ main table div {
 	position: relative;
 	font-size: 14px;
 }
+.ranking-modes-ctn {
+	text-align: center;
+	margin-bottom: 10px;
+}
+.ranking-modes-ctn > div {
+	display: inline-flex;
+	align-items: center;
+}
+.ranking-modes-ctn > div > span {
+	font-weight: bold;
+	margin-right: 6px;
+}
 </style>
 </head>
 <body>
@@ -164,6 +176,29 @@ if (!$creation) {
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
+<div class="ranking-modes-ctn">
+<div>
+<span><?php echo $language ? 'Class:':'Cylindrée :'; ?></span>
+<div class="ranking-modes">
+	<?php
+	if ($cc == 150) {
+		$get = $_GET;
+		$get['cc'] = 200;
+		?>
+		<span>150cc</span><a href="classement.php?<?php echo http_build_query($get); ?>">200cc</a>
+		<?php
+	}
+	else {
+		$get = $_GET;
+		unset($get['cc']);
+		?>
+		<a href="classement.php?<?php echo http_build_query($get); ?>">150cc</a><span>200cc</span>
+		<?php
+	}
+	?>
+</div>
+</div>
+</div>
 <form name="params" action="classement.php" onsubmit="displayResults();return false">
 </form>
 <p id="content"><strong style="font-size:1.4em"><?php echo $language ? 'Loading':'Chargement'; ?>...</strong></p>
@@ -206,6 +241,7 @@ function Resultat(circuitId) {
 	this.classement = new Array();
 	this.circuit_id = circuitId;
 }
+var iCc = <?php echo intval($cc); ?>;
 var autoSelectMap<?php
 	if (isset($_GET['map']))
 		echo ' = '. ($_GET['map']-1);
@@ -428,7 +464,7 @@ function addResult(id, i) {
 				aDate.href = "#null";
 				aDate.title = "<?php echo $language ? 'History':'Historique'; ?>";
 				aDate.onclick = function() {
-					window.open('recordHistory.php?player='+iJoueur[3]+'&map='+(iCircuit+1),'gerer','scrollbars=1, resizable=1, width=500, height=400');
+					window.open('recordHistory.php?player='+iJoueur[3]+'&map='+(iCircuit+1)+'&cc='+iCc,'gerer','scrollbars=1, resizable=1, width=500, height=400');
 					return false;
 				};
 				aDate.innerHTML = iJoueur[5];

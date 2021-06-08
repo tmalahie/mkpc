@@ -846,7 +846,7 @@ include('menu.php');
 			?>
 			<hr />
 			<?php
-			$bestScores = mysql_query('SELECT r.perso,r.time,r.circuit,1+COUNT(r2.circuit) AS place FROM `mkrecords` r LEFT JOIN `mkrecords` r2 ON r.class=r2.class AND r.type=r2.type AND r.circuit=r2.circuit AND r2.time<r.time AND r2.best=1 WHERE r.player="'.$_GET['id'].'" AND r.type="" AND r.best=1 GROUP BY r.circuit ORDER BY place LIMIT 3');
+			$bestScores = mysql_query('SELECT r.perso,r.time,r.class,r.circuit,1+COUNT(r2.circuit) AS place FROM `mkrecords` r LEFT JOIN `mkrecords` r2 ON r.class=r2.class AND r.type=r2.type AND r.circuit=r2.circuit AND r2.time<r.time AND r2.best=1 WHERE r.player="'.$_GET['id'].'" AND r.type="" AND r.best=1 GROUP BY r.class,r.circuit ORDER BY place LIMIT 3');
 			if (mysql_numrows($bestScores)) {
 				include('persos.php');
 				function getSpriteSrc($playerName) {
@@ -859,6 +859,7 @@ include('menu.php');
 				<table class="clm-records">
 					<tr>
 						<td><?php echo $language ? 'Rank':'Place'; ?></td>
+						<td><?php echo $language ? 'Class':'Cylindrée'; ?></td>
 						<td>Circuit</td>
 						<td><?php echo $language ? 'Character':'Personnage'; ?></td>
 						<td><?php echo $language ? 'Time':'Temps'; ?></td>
@@ -869,6 +870,7 @@ include('menu.php');
 					?>
 					<tr>
 						<td><?php echo toPlace($record['place']); ?></td>
+						<td><?php echo $record['class']; ?>cc</td>
 						<td><?php
 							echo $circuitNames[$record['circuit']-1];
 						?></td>

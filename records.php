@@ -77,21 +77,21 @@ if (isset($_POST["name"]) && isset($_POST["perso"]) && isset($_POST["time"])) {
 					}
 				}
 				if (!$type) {
-					mysql_query('SET @i=0, @c=0, @d=0, @t=0');
+					mysql_query('SET @i=0, @m=0, @c=0, @d=0, @t=0');
 					mysql_query('START TRANSACTION');
 					mysql_query('DELETE FROM mkttranking');
 					mysql_query(
 						"INSERT INTO mkttranking
 						SELECT player,SUM(CASE WHEN rank=1 THEN 10 ELSE CASE WHEN nb=2 THEN 0 ELSE ROUND(8*pow(1-(rank-2)/(nb-2),4/3)) END END) AS score FROM
-						(SELECT MIN(r.rank) AS rank,c.nb,c.circuit,r.player FROM (
-						SELECT (@d:=(CASE WHEN circuit=@c AND time=@t THEN @d+1 ELSE 0 END)) AS _,
-							(@i:=(CASE WHEN circuit=@c THEN @i+1 ELSE 1 END))-@d AS rank,
-							(@c:=circuit) AS circuit,player,
+						(SELECT MIN(r.rank) AS rank,c.nb,r.class,r.circuit,r.player FROM (
+						SELECT (@d:=(CASE WHEN class=@m AND circuit=@c AND time=@t THEN @d+1 ELSE 0 END)) AS _,
+							(@i:=(CASE WHEN class=@m AND circuit=@c THEN @i+1 ELSE 1 END))-@d AS rank,
+							(@m:=class) AS class,(@c:=circuit) AS circuit,player,
 							(@t:=time) AS time FROM mkrecords
-							WHERE type='$type' AND best=1 ORDER BY circuit,time
+							WHERE type='$type' AND best=1 ORDER BY class,circuit,time
 						) r INNER JOIN (
-							SELECT circuit,COUNT(*) AS nb FROM mkrecords AND type='$type' AND best=1 GROUP BY circuit
-						) c ON r.circuit=c.circuit
+							SELECT class,circuit,COUNT(*) AS nb FROM mkrecords WHERE type='$type' AND best=1 GROUP BY class,circuit
+						) c ON r.circuit=c.circuit AND r.class=c.class
 						GROUP BY r.player,r.circuit,r.class HAVING(r.player!=0)) t
 						GROUP BY player HAVING(score>0) ORDER BY score DESC"
 					);

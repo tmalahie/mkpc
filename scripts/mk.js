@@ -3592,7 +3592,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3631,7 +3631,7 @@ function startGame() {
 			showTeam(tnCountdown);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -4127,7 +4127,7 @@ function continuer() {
 					document.body.style.cursor = "progress";
 					oValide.style.visibility = "hidden";
 					aPara2.style.visibility = "hidden";
-					var params = "name="+nom+"&perso="+strPlayer[0]+"&time="+getActualGameTimeMS();
+					var params = "name="+nom+"&perso="+strPlayer[0]+"&time="+getActualGameTimeMS()+"&cc="+getActualCc();
 					switch (page) {
 					case "MK":
 						params += "&circuit="+oMap.map;
@@ -4170,7 +4170,7 @@ function continuer() {
 									aSmall.innerHTML = toLanguage("Saving ghost...","Enregistrement du fantôme...");
 									aPara2.appendChild(aSmall);
 									aPara2.style.visibility = "";
-									var oRequest = "map="+ oMap.map +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers);
+									var oRequest = "map="+ oMap.map +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers)+"&cc="+getActualCc();
 									for (i=0;i<iTrajet.length;i++)
 										oRequest += "&p"+ i +"="+ iTrajet[i].toString().replace(/\,/g, "_");
 									xhr("saveghost.php", oRequest, function(reponse) {
@@ -12571,7 +12571,7 @@ function move(getId, triggered) {
 									oForm.style.zIndex = 20000;
 
 									var aPara1 = document.createElement("p");
-									aPara1.innerHTML = toLanguage('Save the time to the <a href="classement.php" target="_blank" style="color: orange">record list</a> ?', 'Enregistrer le temps dans la <a href="'+ rankingsLink(oMap) +'" target="_blank" style="color: orange">liste des records</a> ?');
+									aPara1.innerHTML = toLanguage('Save the time to the <a href="'+ rankingsLink(oMap) +'" target="_blank" style="color: orange">record list</a> ?', 'Enregistrer le temps dans la <a href="'+ rankingsLink(oMap) +'" target="_blank" style="color: orange">liste des records</a> ?');
 									aPara1.style.margin = iScreenScale +"px";
 									var aPara2 = aPara1.cloneNode(false);
 									var oSave = document.createElement("input");
@@ -17164,7 +17164,6 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oDiv.appendChild(oLabel);
 		oScr.appendChild(oDiv);
 
-		isSingle = true;
 		if (isSingle) {
 			var oClassement = document.createElement("input");
 			oClassement.type = "button";
@@ -17175,7 +17174,10 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oClassement.style.fontSize = Math.round(2.5*iScreenScale)+"px";
 			oClassement.style.position = "absolute";
 			oClassement.style.width = (18*iScreenScale)+"px";
-			oClassement.onclick = openRankings;
+			oClassement.onclick = function() {
+				fSelectedClass = getRelSpeedFromCc(+oClassSelect.value);
+				openRankings();
+			};
 			oScr.appendChild(oClassement);
 		}
 	}
@@ -17663,20 +17665,27 @@ function isTeamPlay() {
 	}
 	return 0;
 }
+var ccInterpolations = [
+	[0,0],
+	[50,0.7],
+	[100,0.85],
+	[150,1],
+	[200,1.5],
+	[1000,10]
+];
 function getRelSpeedFromCc(cc) {
-	var interpolations = [
-		[0,0],
-		[50,0.7],
-		[100,0.85],
-		[150,1],
-		[200,1.5],
-		[1000,10]
-	]
-	for (var i=0;i<interpolations.length;i++) {
-		if (cc < interpolations[i][0])
-			return (interpolations[i-1][1] + (interpolations[i][1]-interpolations[i-1][1]) * (cc - interpolations[i-1][0]) / (interpolations[i][0]-interpolations[i-1][0]));
+	for (var i=0;i<ccInterpolations.length;i++) {
+		if (cc < ccInterpolations[i][0])
+			return (ccInterpolations[i-1][1] + (ccInterpolations[i][1]-ccInterpolations[i-1][1]) * (cc - ccInterpolations[i-1][0]) / (ccInterpolations[i][0]-ccInterpolations[i-1][0]));
 	}
-	return interpolations[interpolations.length-1][1];
+	return ccInterpolations[ccInterpolations.length-1][1];
+}
+function getActualCc() {
+	for (var i=0;i<ccInterpolations.length;i++) {
+		if (fSelectedClass < ccInterpolations[i][1])
+			return Math.round((ccInterpolations[i-1][0] + (ccInterpolations[i][0]-ccInterpolations[i-1][0]) * (fSelectedClass - ccInterpolations[i-1][1]) / (ccInterpolations[i][1]-ccInterpolations[i-1][1])));
+	}
+	return ccInterpolations[ccInterpolations.length-1][0];
 }
 function cappedRelSpeed(oKart) {
 	var fSize = oKart ? oKart.size : 1;
@@ -19001,28 +19010,30 @@ function setMapSrc(oPImg,cup,i,src) {
 }
 
 function rankingsLink(oMap) {
+	var cc = getActualCc();
 	switch (page) {
 	case "MK":
-		return "classement.php?map="+ oMap.map;
+		return "classement.php?map="+ oMap.map +"&cc="+ cc;
 	case "CI":
-		return "classement.php?circuit="+ oMap.id;
+		return "classement.php?circuit="+ oMap.id +"&cc="+ cc;
 	case "MA":
-		return "classement.php?draw="+ oMap.map;
+		return "classement.php?draw="+ oMap.map +"&cc="+ cc;
 	}
 }
 function openRankings() {
+	var cc = getActualCc();
 	if (isMCups)
-		open("classement.php?mcup="+ nid);
+		open("classement.php?mcup="+ nid +"&cc="+ cc);
 	else {
 		switch (page) {
 		case "MK":
-			open("classement.php");
+			open("classement.php?cc="+ cc);
 			break;
 		case "CI":
-			open("classement.php"+ (isSingle ? "?circuit="+nid : "?scup="+nid));
+			open("classement.php"+ (isSingle ? "?circuit="+nid : "?scup="+nid) +"&cc="+ cc);
 			break;
 		case "MA":
-			open("classement.php"+ (isSingle ? "?draw="+nid : "?ccup="+nid));
+			open("classement.php"+ (isSingle ? "?draw="+nid : "?ccup="+nid) +"&cc="+ cc);
 		}
 	}
 }
@@ -19175,7 +19186,7 @@ function selectRaceScreen(cup) {
 						document.body.style.cursor = "progress";
 						var tMap = this.map;
 						var iMap = tMap.replace(/^[a-zA-Z]+([0-9]+)$/, "$1");
-						xhr("ghostsave.php", "map="+ iMap, function(reponse) {
+						xhr("ghostsave.php", "map="+ iMap +"&cc="+ getActualCc(), function(reponse) {
 							var ghostSaves;
 							try {
 								ghostSaves = eval(reponse);
@@ -20667,7 +20678,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		document.body.style.cursor = "progress";
 		if (ghostsData)
 			oScr.style.visibility = "hidden";
-		xhr("otherghosts.php", "map="+ (map+1), function(reponse) {
+		xhr("otherghosts.php", "map="+ (map+1) +"&cc="+ getActualCc(), function(reponse) {
 			if (reponse) {
 				try {
 					gTimes = eval(reponse);

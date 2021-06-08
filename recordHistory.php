@@ -11,7 +11,7 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
             return PERSOS_DIR . $playerName . ".png";
         return "images/sprites/sprite_" . $playerName . ".png";
     }
-    $cc = isset($_GET['class']) ? $_GET['class'] : 150;
+    $cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
     $getPlayer = mysql_fetch_array(mysql_query('SELECT nom FROM mkjoueurs WHERE id="'. $_GET['player'] .'"'));
     ?>
 <!DOCTYPE html>
