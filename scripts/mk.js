@@ -9778,6 +9778,8 @@ function challengeCheck(verifType, events) {
 		return;
 	if (strPlayer.length > 1)
 		return;
+	if (fSelectedClass != 1)
+		return;
 	var challengesForType = challengesForCircuit[verifType];
 	for (var i=0;i<challengesForType.length;i++) {
 		var challenge = challengesForType[i];
