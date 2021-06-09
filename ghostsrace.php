@@ -11,6 +11,8 @@ if ($nids && ($nids<=10)) {
 	require_once('utils-tt.php');
 	$getTemps = mysql_query('SELECT ghost,'.GHOST_MYSQL_FIELDS.' FROM `mkghostdata` WHERE ghost IN ('. implode(',',$ids) .') ORDER BY ghost,frame');
 	$ghostsData = array();
+	foreach ($ids as $id)
+		$ghostsData[$id] = array();
 	echo '[';
 	while ($time = mysql_fetch_array($getTemps))
 		$ghostsData[$time['ghost']][] = $time;
