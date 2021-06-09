@@ -2444,15 +2444,20 @@ function startGame() {
 	function fallKart() {
 		return tombe(this.x+this.speed*direction(0,this.rotation),this.y+this.speed*direction(1,this.rotation));
 	}
+	function actualKartSpeed() {
+		return this.speed*this.size*fSelectedClass;
+	}
 	function exitKart() {
 		var fNewPosX = this.x + this.speed * direction(0, this.rotation);
 		var fNewPosY = this.y + this.speed * direction(1, this.rotation);
 		return ralenti(fNewPosX,fNewPosY);
 	}
 	for (var i=0;i<aKarts.length;i++) {
-		aKarts[i].spin = spinKart;
-		aKarts[i].falling = fallKart;
-		aKarts[i].exiting = exitKart;
+		var oKart = aKarts[i];
+		oKart.spin = spinKart;
+		oKart.falling = fallKart;
+		oKart.exiting = exitKart;
+		oKart.actualSpeed = actualKartSpeed;
 		for (var j=0;j<strPlayer.length;j++) {
 			(function(sprite) {
 				sprite.nbSprites = 24;
@@ -2461,7 +2466,7 @@ function startGame() {
 					sprite.h = this.naturalHeight;
 					delete this.onload;
 				}
-			})(aKarts[i].sprite[j]);
+			})(oKart.sprite[j]);
 		}
 	}
 
@@ -5536,8 +5541,10 @@ var itemBehaviors = {
 		move: function(fSprite) {
 			var fNewPosX;
 			var fNewPosY;
-				
-			var fMoveX = fSprite.vx, fMoveY = fSprite.vy;
+
+			var relSpeed = cappedRelSpeed();
+			
+			var fMoveX = fSprite.vx*relSpeed, fMoveY = fSprite.vy*relSpeed;
 			
 			if (fMoveX || fMoveY) {
 				fNewPosX = fSprite.x + fMoveX;
@@ -5639,7 +5646,9 @@ var itemBehaviors = {
 			var fNewPosX;
 			var fNewPosY;
 
-			for (var l=0;l<2;l++) {
+			var steps = 4;
+			for (var l=0;l<steps;l++) {
+				var dSpeed = 10*cappedRelSpeed()/steps;
 				if (fSprite.owner != -1) {
 
 					if (!l) {
@@ -5678,12 +5687,12 @@ var itemBehaviors = {
 									tCible.using[0].y -= 2 * direction(1,tCible.rotation);
 								}
 							}
-							l = 1;
+							l = steps;
 						}
 						else {
 							fDist = Math.sqrt(fDist);
-							var fMoveX = (tCible.x-fSprite.x)*5/fDist;
-							var fMoveY = (tCible.y-fSprite.y)*5/fDist;
+							var fMoveX = (tCible.x-fSprite.x)*dSpeed/fDist;
+							var fMoveY = (tCible.y-fSprite.y)*dSpeed/fDist;
 							fNewPosX = fSprite.x + fMoveX;
 							fNewPosY = fSprite.y + fMoveY;
 						}
@@ -5700,7 +5709,7 @@ var itemBehaviors = {
 								if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
 								else fSprite.aipoint = 0;
 							}
-							var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/5;
+							var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/dSpeed;
 							fMoveX /= fNewMove;
 							fMoveY /= fNewMove;
 						}
@@ -5723,12 +5732,12 @@ var itemBehaviors = {
 										}
 									}
 								}
-								fMoveX = 5 * direction(0, fSprite.theta);
-								fMoveY = 5 * direction(1, fSprite.theta);
+								fMoveX = dSpeed * direction(0, fSprite.theta);
+								fMoveY = dSpeed * direction(1, fSprite.theta);
 							}
 							else {
-								fMoveX = 2.5 * direction(0, fSprite.theta);
-								fMoveY = 2.5 * direction(1, fSprite.theta);
+								fMoveX = dSpeed/2 * direction(0, fSprite.theta);
+								fMoveY = dSpeed/2 * direction(1, fSprite.theta);
 							}
 						}
 
@@ -5797,6 +5806,8 @@ var itemBehaviors = {
 					}
 				}
 			}
+			var relSpeed = cappedRelSpeed();
+			var relSpeed2 = relSpeed*relSpeed;
 			if (fSprite.aipoint == -1) {
 				if (fSprite.cooldown > 0) {
 					var oKart = aKarts[cible];
@@ -5805,8 +5816,9 @@ var itemBehaviors = {
 					var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
 					var itemBehavior = itemBehaviors["carapace-bleue"];
 					if (fSprite.cooldown == itemBehavior.cooldown0) {
-						if (fMove2 > 100) {
-							var fNewMove = Math.sqrt(fMove2)/10;
+						var dSpeed = 10*relSpeed;
+						if (fMove2 > dSpeed*dSpeed) {
+							var fNewMove = Math.sqrt(fMove2)/dSpeed;
 							fMoveX /= fNewMove;
 							fMoveY /= fNewMove;
 			
@@ -5825,7 +5837,7 @@ var itemBehaviors = {
 							}
 							else if (oKart.turbodrift)
 								maxSpeed2 = 64;
-							maxSpeed2 *= Math.pow(cappedRelSpeed(),4);
+							maxSpeed2 *= relSpeed2*relSpeed2;
 							if (fMove2 > maxSpeed2) {
 								var fNewMove = Math.sqrt(fMove2/maxSpeed2);
 								fMoveX /= fNewMove;
@@ -5867,7 +5879,7 @@ var itemBehaviors = {
 				var isBB = (course == "BB");
 				if (!isBB) {
 					var aipoints = oMap.aipoints[fSprite.aimap];
-					var dSpeed = 12;
+					var dSpeed = 12*relSpeed;
 					var aX = fSprite.x, aY = fSprite.y;
 					while (dSpeed > 0) {
 						var target = aipoints[fSprite.aipoint];
@@ -7650,6 +7662,7 @@ for (var type in decorBehaviors)
 
 function handleSpriteLaunch(fSprite, fSpeed,fHeight) {
 	fSprite.countdown--;
+	fSpeed += (cappedRelSpeed()-1)*5;
 	var fMoveX = fSpeed * direction(0, fSprite.theta);
 	var fMoveY = fSpeed * direction(1, fSprite.theta);
 
@@ -10726,6 +10739,24 @@ function touche_cverte(iX, iY, iP) {
 	return false;
 }
 
+function touche_cverte_future(iX, iY, iP) {
+	if (!iP) iP = [];
+	var relSpeed = cappedRelSpeed()/2;
+	for (var i=0;i<items["carapace"].length;i++) {
+		var oBox = items["carapace"][i];
+		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
+			var fMoveX = oBox.vx*relSpeed, fMoveY = oBox.vy*relSpeed;
+			var fNewPosX = oBox.x + fMoveX, fNewPosY = oBox.y + fMoveY;
+			if (iX > fNewPosX-5 && iX < fNewPosX+5 && iY > fNewPosY-5 && iY < fNewPosY+5) {
+				handleHit(oBox);
+				detruit(oBox,isHitSound(oBox));
+				return (collisionTeam!=oBox.team);
+			}
+		}
+	}
+	return false;
+}
+
 function touche_crouge(iX, iY, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["carapace-rouge"].length;i++) {
@@ -11876,19 +11907,21 @@ function move(getId, triggered) {
 			}
 		}
 		else if (oKart.z < 5) {
-			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems)) || touche_crouge(oKart.x, oKart.y, oKartItems)) && !oKart.protect && !oKart.frminv) {
+			var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
+			fMidPosX = fNewPosX; fMidPosY = fNewPosY;
+			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (fSelectedClass>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(42);
 				loseUsingItem(oKart);
 			}
-			else if (touche_banane(fNewPosX, fNewPosY, oKartItems) && !oKart.protect && !oKart.frminv) {
+			else if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(20);
 				loseUsingItem(oKart);
 			}
-			else if (touche_poison(fNewPosX, fNewPosY, oKartItems) && !oKart.protect && !oKart.frminv) {
+			else if ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv) {
 				loseBall(getId);
 				stopDrifting(getId);
 				oKart.spin(20);
@@ -11897,7 +11930,7 @@ function move(getId, triggered) {
 				oKart.mini = Math.max(oKart.mini, 60);
 				updateDriftSize(getId);
 			}
-			else if (touche_champi(fNewPosX, fNewPosY) && !oKart.tourne) {
+			else if ((touche_champi(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && touche_champi(fMidPosX, fMidPosY))) && !oKart.tourne) {
 				oKart.champi = 20;
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
