@@ -12268,7 +12268,10 @@ function move(getId, triggered) {
 		var newShift;
 		var pJump = sauts(aPosX, aPosY, fMoveX, fMoveY);
 		if (pJump && !oKart.tourne) {
-			oKart.heightinc = pJump * 1.5 * Math.pow(cappedRelSpeed(oKart), -0.7);
+			var height0 = pJump * 1.5;
+			oKart.heightinc = height0 * Math.pow(cappedRelSpeed(oKart), -0.7);
+			if ((fSelectedClass > 1) && (0.7*oKart.heightinc*oKart.heightinc < 1.175))
+				oKart.z = Math.max(oKart.z, height0*height0 - oKart.heightinc*oKart.heightinc);
 			oKart.speed = 11;
 			oKart.figuring = false;
 			oKart.figstate = 0;
@@ -13088,7 +13091,6 @@ function move(getId, triggered) {
 			updateDriftSize(aKarts.indexOf(oKart));
 		}
 	}
-	oKart.maxspeed = Math.min(oKart.maxspeed, 15/oKart.size);
 	if (oKart.cannon) {
 		var transitionFactor = 3*Math.pow(cappedRelSpeed(oKart),-2);
 		oKart.speed = (oKart.speed*transitionFactor+20)/(transitionFactor+1);
