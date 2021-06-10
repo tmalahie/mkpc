@@ -14153,7 +14153,7 @@ function runOneFrame() {
 	for (var i=0;i<aKarts.length;i++) {
 		var oKart = aKarts[i];
 		if (oKart.pushVector) {
-			var maxPush = 6;
+			var maxPush = 6*cappedRelSpeed();
 			var modPush2 = oKart.pushVector[0]*oKart.pushVector[0] + oKart.pushVector[1]*oKart.pushVector[1];
 			if (modPush2 > maxPush*maxPush) {
 				var modPush = Math.sqrt(modPush2);
