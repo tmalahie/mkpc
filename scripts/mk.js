@@ -7251,7 +7251,7 @@ var decorBehaviors = {
 								fMoveY = 0;
 							}
 							else {
-								var cannon = inCannon(decorData[0],decorData[1], fMoveX,fMoveY);
+								var cannon = inCannon(decorData[0],decorData[1], decorData[0]+fMoveX,decorData[1]+fMoveY);
 								if (cannon) {
 									var nSpeed = 17;
 									this.autojump(decorData,cannon[0],cannon[1],nSpeed);
@@ -9048,9 +9048,8 @@ function tombe(iX, iY, iC) {
 	}
 	return false;
 }
-function inCannon(aX,aY, fMoveX,fMoveY) {
+function inCannon(aX,aY, iX,iY) {
 	if (!oMap.cannons) return false;
-	var iX = aX+fMoveX, iY = aY+fMoveY;
 	var oRectangles = oMap.cannons.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
 		var cannon = oRectangles[i];
@@ -9064,6 +9063,7 @@ function inCannon(aX,aY, fMoveX,fMoveY) {
 			return cannon[1];
 	}
 
+	var fMoveX = iX-aX, fMoveY = iY-aY;
 	for (var i=0;i<oRectangles.length;i++) {
 		var cannon = oRectangles[i];
 		if (pointCrossRectangle(aX,aY,fMoveX,fMoveY, cannon[0]))
@@ -12232,7 +12232,7 @@ function move(getId, triggered) {
 		oKart.speed *= oKart.sliding ? 0.95:0.9;
 
 	if (!oKart.cannon) {
-		var cannon = inCannon(aPosX,aPosY, fMoveX,fMoveY);
+		var cannon = inCannon(aPosX,aPosY, oKart.x,oKart.y);
 		if (cannon && (cannon[0]||cannon[1])) {
 			stopDrifting(getId);
 			oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
@@ -19386,6 +19386,10 @@ function choose(map,rand) {
 							cpuLevel = 2-cpuLevel;
 							iDificulty = 4+cpuLevel*0.5;
 						}
+						if (rCode[4].cc)
+							fSelectedClass = getRelSpeedFromCc(rCode[4].cc);
+						else
+							fSelectedClass = 1;
 						aTeams = new Array();
 						for (i=0;i<choixJoueurs.length;i++) {
 							var aID = choixJoueurs[i][0];

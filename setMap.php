@@ -198,6 +198,8 @@ if ($course && !$getCourse['banned']) {
 	echo 'minPlayers:'.$minPlayers;
 	if (!empty($courseRules->manualTeams))
 		echo ',manualTeams:1';
+	if (!empty($courseRules->cc))
+		echo ',cc:'.$courseRules->cc;
 	echo '}';
 	echo ']';
 	if ($continuer && !$enoughPlayers) {
