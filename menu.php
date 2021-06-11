@@ -371,7 +371,7 @@
 						break;
 					case 'new_record' :
 						if ($rData = mysql_fetch_array(mysql_query('SELECT r.* FROM `mkrecords` r LEFT JOIN mkrecords r2 ON r2.identifiant='.$identifiants[0].' AND r2.identifiant2='.$identifiants[1].' AND r2.identifiant3='.$identifiants[2].' AND r2.identifiant4='.$identifiants[3].' AND r2.class=r.class AND r2.type=r.type AND r2.circuit=r.circuit AND r2.time<r.time WHERE r.id="'. $myNotif['link'] .'" AND r2.id IS NULL'))) {
-							$notifData['link'] = 'classement.php?map='. $rData['circuit'];
+							$notifData['link'] = 'classement.php?map='. $rData['circuit'] .'&cc='. $rData['class'];
 							$notifData['record'] = $rData;
 							$notifData['sender'] = htmlspecialchars($rData['name']);
 							$notifData['raw_names'] = true;
