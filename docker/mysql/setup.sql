@@ -176,7 +176,7 @@ CREATE TABLE `items` (
   `data` varbinary(252) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `course` (`course`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+) ENGINE=MEMORY AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -190,7 +190,7 @@ CREATE TABLE `mariokart` (
   PRIMARY KEY (`id`),
   KEY `time` (`time`),
   KEY `map` (`map`,`time`)
-) ENGINE=MEMORY DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
+) ENGINE=MEMORY AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -482,7 +482,7 @@ CREATE TABLE `mkclrewarded` (
   `reward` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `player` (`player`,`reward`)
-) ENGINE=InnoDB AUTO_INCREMENT=443 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=453 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -501,7 +501,7 @@ CREATE TABLE `mkcltry` (
   `challenge` int(11) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38625 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=38628 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -516,7 +516,7 @@ CREATE TABLE `mkclwin` (
   UNIQUE KEY `challenge` (`challenge`,`player`),
   KEY `player` (`player`),
   KEY `date` (`date`)
-) ENGINE=InnoDB AUTO_INCREMENT=13533 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=13538 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -713,14 +713,15 @@ CREATE TABLE `mkghosts` (
   `identifiant3` int(10) unsigned NOT NULL,
   `identifiant4` int(10) unsigned NOT NULL,
   `player` int(11) NOT NULL,
+  `class` tinyint(3) unsigned NOT NULL DEFAULT 150,
   `circuit` int(11) NOT NULL,
   `perso` varchar(255) NOT NULL,
   `time` int(11) NOT NULL,
   `lap_times` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`circuit`),
+  UNIQUE KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`class`,`circuit`) USING BTREE,
   KEY `perso` (`perso`(191))
-) ENGINE=InnoDB AUTO_INCREMENT=2494 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=2499 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -848,7 +849,7 @@ CREATE TABLE `mkmatches` (
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `date` (`date`)
-) ENGINE=MyISAM AUTO_INCREMENT=3524 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=3538 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1002,7 +1003,7 @@ CREATE TABLE `mknotifs` (
   PRIMARY KEY (`id`),
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`type`),
   KEY `user` (`user`,`type`)
-) ENGINE=MyISAM AUTO_INCREMENT=548174 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=548195 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1214,16 +1215,17 @@ CREATE TABLE `mkrecords` (
   `identifiant4` int(10) unsigned NOT NULL,
   `player` int(11) NOT NULL,
   `perso` varchar(255) NOT NULL,
+  `class` tinyint(3) unsigned NOT NULL DEFAULT 150,
   `type` enum('circuits','mkcircuits','') NOT NULL,
   `circuit` int(11) NOT NULL,
   `time` int(11) NOT NULL,
   `best` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `perso` (`perso`(191)),
-  KEY `type` (`type`,`circuit`),
-  KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`type`,`circuit`) USING BTREE,
-  KEY `player` (`player`,`type`,`circuit`)
-) ENGINE=InnoDB AUTO_INCREMENT=20552 DEFAULT CHARSET=utf8mb4;
+  KEY `type` (`class`,`type`,`circuit`) USING BTREE,
+  KEY `player` (`player`,`class`,`type`,`circuit`) USING BTREE,
+  KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`class`,`type`,`circuit`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=20560 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1307,9 +1309,10 @@ CREATE TABLE `mktopics` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkttranking` (
   `player` int(11) NOT NULL,
+  `class` tinyint(3) unsigned NOT NULL DEFAULT 150,
   `score` int(11) NOT NULL,
-  PRIMARY KEY (`player`),
-  KEY `score` (`score`)
+  PRIMARY KEY (`player`,`class`) USING BTREE,
+  KEY `score` (`class`,`score`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

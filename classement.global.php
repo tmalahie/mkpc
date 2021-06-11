@@ -19,6 +19,18 @@ include('heads.php');
 .details:hover {
     opacity: 0.7;
 }
+.ranking-modes-ctn {
+	text-align: center;
+	margin-bottom: 10px;
+}
+.ranking-modes-ctn > div {
+	display: inline-flex;
+	align-items: center;
+}
+.ranking-modes-ctn > div > span {
+	font-weight: bold;
+	margin-right: 6px;
+}
 </style>
 
 <?php
@@ -32,6 +44,7 @@ $page = 'game';
 include('menu.php');
 $page = isset($_GET['page']) ? $_GET['page']:1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
+$cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))
 	$myPseudo = $getPseudo['nom'];
 else
@@ -65,13 +78,32 @@ else
 	<script>
 	(adsbygoogle = window.adsbygoogle || []).push({});
 	</script></div>
-	<form method="post" action="classement.global.php">
+	<div class="ranking-modes-ctn">
+	<div>
+	<span><?php echo $language ? 'Class:':'Cylindrée :'; ?></span>
+	<div class="ranking-modes">
+		<?php
+		if ($cc == 150) {
+			?>
+			<span>150cc</span><a href="classement.global.php?cc=200">200cc</a>
+			<?php
+		}
+		else {
+			?>
+			<a href="classement.global.php?cc=150">150cc</a><span>200cc</span>
+			<?php
+		}
+		?>
+	</div>
+	</div>
+	</div>
+	<form method="post" action="classement.global.php?cc=<?php echo $cc; ?>">
 	<blockquote>
 	<p><label for="joueur"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>
 	<?php
-	$records = mysql_query('SELECT t.player,j.nom,t.score,c.code FROM `mkttranking` t INNER JOIN `mkjoueurs` j ON t.player=j.id INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE '. ($joueur ? 'j.nom="'.$joueur.'"':'j.deleted=0') .' ORDER BY t.score DESC,t.player');
+	$records = mysql_query('SELECT t.player,j.nom,t.score,c.code FROM `mkttranking` t INNER JOIN `mkjoueurs` j ON t.player=j.id INNER JOIN `mkprofiles` p ON p.id=j.id LEFT JOIN `mkcountries` c ON c.id=p.country WHERE class="'. $cc .'" AND '. ($joueur ? 'j.nom="'.$joueur.'"':'j.deleted=0') .' ORDER BY t.score DESC,t.player');
 	if ($joueur) {
 		if ($record = mysql_fetch_array($records))
 			$nb_temps = $records ? 1:0;
@@ -91,7 +123,7 @@ else
 	</tr>
 	<?php
 		if ($joueur) {
-			$getPlaces = mysql_query('SELECT t.player FROM `mkttranking` t INNER JOIN `mkjoueurs` j ON t.player=j.id WHERE (t.score>'.$record['score'].' OR (t.score='.$record['score'].' AND t.player<'.$record['player'].')) AND j.deleted=0');
+			$getPlaces = mysql_query('SELECT t.player FROM `mkttranking` t INNER JOIN `mkjoueurs` j ON t.player=j.id WHERE class="'. $cc .'" AND (t.score>'.$record['score'].' OR (t.score='.$record['score'].' AND t.player<'.$record['player'].')) AND j.deleted=0');
 			$place = 1+mysql_numrows($getPlaces);
 			$page = 0;
 		}
@@ -109,7 +141,7 @@ else
 		echo $joueur;
 	?></a></td>
 	<td style="width:auto"><?php echo $record['score'] ?></td>
-	<td style="width:auto" title="<?php echo $language ? 'See records':'Voir les temps'; ?>"><a href="classement.php?user=<?php echo $record['player']; ?>&amp;pts"><img src="images/details.png" class="details" alt="Preview" /></a></td>
+	<td style="width:auto" title="<?php echo $language ? 'See records':'Voir les temps'; ?>"><a href="classement.php?user=<?php echo $record['player']; ?>&amp;cc=<?php echo $cc; ?>&amp;pts"><img src="images/details.png" class="details" alt="Preview" /></a></td>
 	</tr>
 		<?php
 		}
@@ -152,7 +184,7 @@ else
 		echo $record['nom'];
 	?></a></td>
 	<td><?php echo $record['score'] ?></td>
-	<td style="width:auto" title="<?php echo $language ? 'See records':'Voir les temps'; ?>"><a href="classement.php?user=<?php echo $record['player']; ?>&amp;pts"><img src="images/details.png" class="details" alt="Preview" /></a></td>
+	<td style="width:auto" title="<?php echo $language ? 'See records':'Voir les temps'; ?>"><a href="classement.php?user=<?php echo $record['player']; ?>&amp;cc=<?php echo $cc; ?>&amp;pts"><img src="images/details.png" class="details" alt="Preview" /></a></td>
 	</tr>
 					<?php
 					if ($i == $fin)
@@ -165,11 +197,12 @@ else
 	<?php
 	if ($joueur) {
 		$page = ceil($place/20);
-		echo '<a href="?page='.$page.'">'.$page.'</a>';
+		echo '<a href="?cc='.$cc.'&amp;page='.$page.'">'.$page.'</a>';
 	}
 	else {
 		function pageLink($page, $isCurrent) {
-			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?page='.$page.'">'.$page.'</a>').'&nbsp; ';
+			global $cc;
+			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?cc='.$cc.'&amp;page='.$page.'">'.$page.'</a>').'&nbsp; ';
 		}
 		$limite = ceil($nb_temps/20);
 		require_once('utils-paging.php');
@@ -190,7 +223,7 @@ else
 	?>
 	</table>
 	<p>
-        <a href="classement.php?pts"><?php echo $language ? 'Ranking circuit by circuit':'Classement circuit par circuit'; ?></a><br />
+        <a href="classement.php?cc=<?php echo $cc; ?>"><?php echo $language ? 'Ranking circuit by circuit':'Classement circuit par circuit'; ?></a><br />
         <a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a>
     </p>
 </main>

@@ -1114,7 +1114,7 @@ $slidesPath = 'images/slides';
 				</a><a class="ranking_tab tab_battle" href="javascript:dispRankTab(1)">
 					<?php echo $language ? 'Battle':'Bataille'; ?>
 					<?php print_badge(1); ?>
-				</a><a class="ranking_tab tab_clm" href="javascript:dispRankTab(2)">
+				</a><a class="ranking_tab tab_clm tab_clm150" href="javascript:dispRankTab(currenttabcc)">
 					<?php echo $language ? 'Time Trial':'CLM'; ?>
 				</a>
 			</div>
@@ -1124,13 +1124,17 @@ $slidesPath = 'images/slides';
 			print_active_players(1,'battle');
 			?>
 			</div>
+			<div id="clm_cc">
+			<a class="clm_cc_150" href="javascript:dispRankTab(2)">150cc</a> <span>|</span>
+			<a class="clm_cc_200" href="javascript:dispRankTab(3)">200cc</a>
+			</div>
 			<div id="top10" class="right_subsection">
 				<?php
-				$modeIds = array('vs','battle','clm');
-				for ($i=0;$i<3;$i++) {
+				$modeIds = array('vs','battle','clm150','clm200');
+				for ($i=0;$i<4;$i++) {
 					$modeId = $modeIds[$i];
 					$isBattle = ($i===1);
-					$isClm = ($i===2);
+					$isClm = ($i>=2);
 					$pts_ = 'pts_'.$modeId;
 					?>
 					<table id="top_<?php echo $modeId; ?>">
@@ -1140,8 +1144,10 @@ $slidesPath = 'images/slides';
 							<th>Score</th>
 						</tr>
 						<?php
-						if ($isClm)
-						$players = mysql_query('SELECT t.player AS id,j.nom,t.score AS pts FROM `mkttranking` t INNER JOIN `mkjoueurs` j ON t.player=j.id WHERE j.deleted=0 ORDER BY t.score DESC LIMIT 10');
+						if ($isClm) {
+							$cc = ($i===3) ? 200 : 150;
+							$players = mysql_query('SELECT t.player AS id,j.nom,t.score AS pts FROM `mkttranking` t INNER JOIN `mkjoueurs` j ON t.player=j.id WHERE t.class="'.$cc.'" AND j.deleted=0 ORDER BY t.score DESC LIMIT 10');
+						}
 						else
 							$players = mysql_query('SELECT id,nom,'.$pts_.' AS pts FROM `mkjoueurs` WHERE deleted=0 ORDER BY '.$pts_.' DESC LIMIT 10');
 						$place = 0;
@@ -1161,7 +1167,8 @@ $slidesPath = 'images/slides';
 			</div>
 			<a class="right_section_actions action_button action_gotovs" href="bestscores.php"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
 			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
-			<a class="right_section_actions action_button action_gotoclm" href="classement.global.php"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
+			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
+			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
 		</div>
 		<div class="pub_section">
 			<!-- Pub latérale MKPC -->
@@ -1231,7 +1238,7 @@ var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
 <script async src="scripts/slider.js"></script>
 <script async src="scripts/photoswipe.min.js"></script>
 <script async src="scripts/init-diapos.js"></script>
-<script async src="scripts/sidebars.js"></script>
+<script async src="scripts/sidebars.js?reload=1"></script>
 <script type="text/javascript">
 var last_tz = '<?php echo isset($_COOKIE['tz']) ? addslashes($_COOKIE['tz']):''; ?>';
 </script>

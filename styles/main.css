@@ -936,10 +936,16 @@ footer a {
 }
 #rankings_section:not(.rank_vs) #top_vs,
 #rankings_section:not(.rank_battle) #top_battle,
-#rankings_section:not(.rank_clm) #top_clm,
+#rankings_section:not(.rank_clm150) #top_clm150,
+#rankings_section:not(.rank_clm200) #top_clm200,
 #rankings_section:not(.rank_vs) .action_gotovs,
 #rankings_section:not(.rank_battle) .action_gotobattle,
-#rankings_section:not(.rank_clm) .action_gotoclm {
+#rankings_section:not(.rank_clm150) .action_gotoclm150,
+#rankings_section:not(.rank_clm200) .action_gotoclm200,
+#rankings_section:not(.rank_clm150):not(.rank_clm200) #clm_cc {
+	display: none;
+}
+#rankings_section:not(.rank_clm200) .action_gotoclm200 {
 	display: none;
 }
 .ranking_tabs {
@@ -1037,19 +1043,19 @@ footer a {
 #rankings_section.rank_battle .tab_battle .ranking_badge {
 	display: none;
 }
-#rankings_section:not(.rank_vs) #ranking_current_vs, #rankings_section:not(.rank_battle) #ranking_current_battle, #rankings_section:not(.rank_clm) #ranking_current_clm {
+#rankings_section:not(.rank_vs) #ranking_current_vs, #rankings_section:not(.rank_battle) #ranking_current_battle, #rankings_section:not(.rank_clm150):not(.rank_clm200) #ranking_current_clm {
 	display: none;
 }
-#rankings_section:not(.rank_battle) .tab_battle, #rankings_section:not(.rank_vs) .tab_vs, #rankings_section:not(.rank_clm) .tab_clm {
+#rankings_section:not(.rank_battle) .tab_battle, #rankings_section:not(.rank_vs) .tab_vs, #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm {
 	background-color: #FED;
 	color: #C00;
 	text-decoration: none;
 }
-#rankings_section:not(.rank_battle) .tab_battle:hover, #rankings_section:not(.rank_vs) .tab_vs:hover, #rankings_section:not(.rank_clm) .tab_clm:hover {
+#rankings_section:not(.rank_battle) .tab_battle:hover, #rankings_section:not(.rank_vs) .tab_vs:hover, #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm:hover {
 	background-color: #FFE7D5;
 	color: #C00;
 }
-#rankings_section.rank_battle .tab_battle, #rankings_section.rank_vs .tab_vs, #rankings_section.rank_clm .tab_clm {
+#rankings_section.rank_battle .tab_battle, #rankings_section.rank_vs .tab_vs, #rankings_section.rank_clm150 .tab_clm, #rankings_section.rank_clm200 .tab_clm {
 	background-color: #FDC;
 	color: #C00;
 	font-weight: bold;
@@ -1068,4 +1074,25 @@ footer a {
 #right_section #rankings_section h2 {
 	margin-top: 10px;
 	margin-bottom: 4px;
+}
+#clm_cc {
+	text-align: center;
+	position: relative;
+	top: -3px;
+}
+#clm_cc a {
+	color: #F60;
+}
+#clm_cc a:hover {
+	color: #FB0;
+}
+#clm_cc span {
+	color: #C99;
+}
+#rankings_section.rank_clm150 #clm_cc a.clm_cc_150,
+#rankings_section.rank_clm200 #clm_cc a.clm_cc_200 {
+	cursor: default;
+	color: #820;
+	font-weight: bold;
+	text-decoration: none;
 }

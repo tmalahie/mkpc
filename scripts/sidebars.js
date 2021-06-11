@@ -39,8 +39,11 @@ jQuery(function() {
 		});
 	});
 });
-var onlineModeIds = ["vs","battle","clm"];
+var onlineModeIds = ["vs","battle","clm150","clm200"];
+var currenttabcc = 2;
 function dispRankTab(mode) {
+	if (mode >= 2)
+		currenttabcc = mode;
 	var onlineModeId = onlineModeIds[mode];
 	document.getElementById("rankings_section").className = "subsection rank_" + onlineModeId;
 	jQuery(".ranking_tab.tab_"+onlineModeId+" .ranking_badge").hide(); // TODO works only because 2 tabs
