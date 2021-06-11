@@ -19419,9 +19419,6 @@ function choose(map,rand) {
 								selectedItemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib].value;
 							}
 						}
-						if (shareLink.options && shareLink.options.cc) {
-							fSelectedClass = getRelSpeedFromCc(+shareLink.options.cc);
-						}
 						var tNow = new Date().getTime();
 						tnCourse = tNow+rCode[2];
 						if (isSingle)
