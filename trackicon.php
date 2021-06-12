@@ -18,7 +18,7 @@ if (isset($_GET['id']) && isset($_GET['type'])) {
 		    unlink($tempName);
 		    return $res;
 		}
-		//header('content-type: image/png');
+		header('content-type: image/png');
 		include('initdb.php');
 		$filepath = cache($isrc,$id);
 		mysql_close();
