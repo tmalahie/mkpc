@@ -204,6 +204,11 @@ $clRulesByType = array(
 				return ($scope->value == 8);
 			}
 		),
+		'cc' => array(
+			'description' => $language ? 'in $value​cc class':'en mode $value​cc',
+			'description_mockup' => $language ? 'Class (cc)':'Cylindrée (cc)',
+			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
 		'no_teams' => array(
 			'description' => $language ? 'no teams':'sans équipes',
 			'course' => array('vs', 'battle', 'cup', 'mcup'),

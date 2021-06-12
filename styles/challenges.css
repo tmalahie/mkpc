@@ -430,7 +430,7 @@ a.pretty-link:hover {
 	cursor: help;
 }
 .challenge-title-fancy {
-	position: absolute;
+	position: fixed;
 	padding: 4px 8px;
 	border-radius: 5px;
 	z-index: 10px;

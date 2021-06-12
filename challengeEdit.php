@@ -352,6 +352,19 @@ function addContraintRule(clClass) {
 		case 'time_delay':
 			addConstraintNb($form,ruleId, language?'Delay (sec):':'Retard (sec) :',{attrs:{min:0},css:{width:'40px'}});
 			break;
+		case 'cc':
+			$form.html(
+				'<label>'+ (language?'Class:':'Cylindrée :') +' '+
+				'<input type="text" class="challenge-contraint-value" name="scope[cc][value]" pattern="[1-9]\\d*" maxlength="3" list="scope_cc_list" required="required" style="width:60px" /> cc'+
+				'</label>'+
+				'<datalist id="scope_cc_list">'+
+					'<option value="50">'+
+					'<option value="100">'+
+					'<option value="150">'+
+					'<option value="200">'+
+				'</datalist>'
+			);
+			break;
 		case 'position':
 			addConstraintNb($form,ruleId, language?'Place:':'Place :',{attrs:{min:1},css:{width:'40px'}});
 			break;

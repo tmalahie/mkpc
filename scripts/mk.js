@@ -9113,7 +9113,7 @@ var challengeRules = {
 		"verify": "end_game",
 		"reset_on_fail": true,
 		"success": function(scope) {
-			return (oPlayers[0].place == 1);
+			return (course != "CM") && (oPlayers[0].place == 1);
 		}
 	},
 	"finish_circuit_time": {
@@ -9476,6 +9476,21 @@ var challengeRules = {
 			return (aKarts.length == scope.value);
 		}
 	},
+	"cc": {
+		"initRuleVars": function(challenge, scope) {
+			return {relSpeed: getRelSpeedFromCc(+scope.value)};
+		},
+		"success": function(scope, ruleVars) {
+			if (ruleVars)
+				return ruleVars.relSpeed === fSelectedClass;
+			else if (!window.loggedRuleVar) {
+				window.loggedRuleVar = 1;
+				xhr("log.php", "msg="+ encodeURIComponent("Bug dans ruleVars"), function(reponse) {
+					return true;
+				});
+			}
+		}
+	},
 	"balloons": {
 		"success": function(scope) {
 			if (oPlayers[0].lost && clLocalVars.gagnant != oPlayers[0])
@@ -9695,8 +9710,18 @@ function addCreationChallenges(type,cid) {
 			var challengeVerifType = challengeRules[challengeData.goal.type].verify;
 			challengesForCircuit[challengeVerifType].push(challenge);
 			var chRules = listChallengeRules(challengeData);
-			for (var j=0;j<chRules.length;j++)
-				initChallengeRule(challenge, chRules[j]);
+			var isCcConstraint = false;
+			for (var j=0;j<chRules.length;j++) {
+				var chRule = chRules[j];
+				if (chRule.type === "cc")
+					isCcConstraint = true;
+				initChallengeRule(challenge, chRule);
+			}
+			if (!isCcConstraint) {
+				var chRule = {type: "cc", value: 150};
+				challengeData.constraints.push(chRule);
+				initChallengeRule(challenge, chRule);
+			}
 		}
 	}
 }
@@ -9710,7 +9735,7 @@ function initChallengeRule(challenge, rule) {
 		if (!clRuleVars[challenge.id])
 			clRuleVars[challenge.id] = {};
 		if (!clRuleVars[challenge.id][rule.type])
-			clRuleVars[challenge.id][rule.type] = challengeRules[rule.type].initRuleVars(challenge);
+			clRuleVars[challenge.id][rule.type] = challengeRules[rule.type].initRuleVars(challenge,rule);
 	}
 }
 function reinitChallengeVars() {
@@ -9791,8 +9816,6 @@ function challengeCheck(verifType, events) {
 		return;
 	if (strPlayer.length > 1)
 		return;
-	if (fSelectedClass != 1)
-		return;
 	var challengesForType = challengesForCircuit[verifType];
 	for (var i=0;i<challengesForType.length;i++) {
 		var challenge = challengesForType[i];
@@ -9803,8 +9826,11 @@ function challengeCheck(verifType, events) {
 			challengesForType.splice(i,1);
 			i--;
 		}
-		else if ((false === status) || challengeRules[chRules[0].type].reset_on_fail)
+		else if ((false === status) || challengeRules[chRules[0].type].reset_on_fail) {
 			delete clRuleVars[challenge.id];
+			challengesForType.splice(i,1);
+			i--;
+		}
 		else
 			challengeHandleEvents(challenge, events);
 	}
@@ -16668,7 +16694,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				if (oClassSelect) {
 					selectedCc = oClassSelect.value;
 					fSelectedClass = getRelSpeedFromCc(+selectedCc);
-					localStorage.setItem("cc", selectedCc);
+					if (oClassSelect.type !== "hidden")
+						localStorage.setItem("cc", selectedCc);
 				}
 				else {
 					fSelectedClass = 1;
@@ -17175,6 +17202,14 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				oItemSelect.onchange();
 			}
 		}
+		else {
+			var ccConstraint = getCcConstraint(clSelected);
+			if (ccConstraint) {
+				oClassSelect = document.createElement("input");
+				oClassSelect.type = "hidden";
+				oClassSelect.value = ccConstraint;
+			}
+		}
 		
 		oScr.appendChild(oForm);
 
@@ -17209,6 +17244,14 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oLabel.appendChild(oClassSelect);
 			oDiv.appendChild(oLabel);
 			oScr.appendChild(oDiv);
+		}
+		else {
+			var ccConstraint = getCcConstraint(clSelected);
+			if (ccConstraint == 150 || ccConstraint == 200) {
+				oClassSelect = document.createElement("input");
+				oClassSelect.type = "hidden";
+				oClassSelect.value = ccConstraint;
+			}
 		}
 
 		if (isSingle) {
@@ -17726,6 +17769,13 @@ function getRelSpeedFromCc(cc) {
 			return (ccInterpolations[i-1][1] + (ccInterpolations[i][1]-ccInterpolations[i-1][1]) * (cc - ccInterpolations[i-1][0]) / (ccInterpolations[i][0]-ccInterpolations[i-1][0]));
 	}
 	return ccInterpolations[ccInterpolations.length-1][1];
+}
+function getCcConstraint(cl) {
+	var clConstraints = cl.data.constraints;
+	for (var i=0;i<clConstraints.length;i++) {
+		if (clConstraints[i].type === "cc")
+			return clConstraints[i].value;
+	}
 }
 function getActualCc() {
 	for (var i=0;i<ccInterpolations.length;i++) {
