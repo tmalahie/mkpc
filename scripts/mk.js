@@ -17182,32 +17182,34 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oForm.style.display = "none";
 	}
 	else if (course == "CM") {
-		var oDiv = document.createElement("div");
-		oDiv.style.position = "absolute";
-		oDiv.style.left = (10*iScreenScale-10)+"px";
-		oDiv.style.top = (32*iScreenScale)+"px";
-		oDiv.style.width = (60*iScreenScale)+"px";
-		oDiv.style.fontSize = (iScreenScale*3) +"px";
-		oDiv.style.textAlign = "center";
-		var oLabel = document.createElement("label");
-		oLabel.innerHTML = toLanguage("Class: ", "Cylindrée : ");
-		oClassSelect = document.createElement("select");
-		oClassSelect.name = "cc";
-		oClassSelect.style.width = (iScreenScale*12) +"px";
-		oClassSelect.style.fontSize = (iScreenScale*3) +"px";
-		var oClasses = [150,200];
-		for (var i=0;i<oClasses.length;i++) {
-			var oClass = oClasses[i];
-			var oClassOption = document.createElement("option");
-			oClassOption.value = oClass;
-			oClassOption.innerHTML = oClass+"cc";
-			if (selectedCc == oClass)
-				oClassOption.setAttribute("selected", true);
-			oClassSelect.appendChild(oClassOption);
+		if (!clSelected) {
+			var oDiv = document.createElement("div");
+			oDiv.style.position = "absolute";
+			oDiv.style.left = (10*iScreenScale-10)+"px";
+			oDiv.style.top = (32*iScreenScale)+"px";
+			oDiv.style.width = (60*iScreenScale)+"px";
+			oDiv.style.fontSize = (iScreenScale*3) +"px";
+			oDiv.style.textAlign = "center";
+			var oLabel = document.createElement("label");
+			oLabel.innerHTML = toLanguage("Class: ", "Cylindrée : ");
+			oClassSelect = document.createElement("select");
+			oClassSelect.name = "cc";
+			oClassSelect.style.width = (iScreenScale*12) +"px";
+			oClassSelect.style.fontSize = (iScreenScale*3) +"px";
+			var oClasses = [150,200];
+			for (var i=0;i<oClasses.length;i++) {
+				var oClass = oClasses[i];
+				var oClassOption = document.createElement("option");
+				oClassOption.value = oClass;
+				oClassOption.innerHTML = oClass+"cc";
+				if (selectedCc == oClass)
+					oClassOption.setAttribute("selected", true);
+				oClassSelect.appendChild(oClassOption);
+			}
+			oLabel.appendChild(oClassSelect);
+			oDiv.appendChild(oLabel);
+			oScr.appendChild(oDiv);
 		}
-		oLabel.appendChild(oClassSelect);
-		oDiv.appendChild(oLabel);
-		oScr.appendChild(oDiv);
 
 		if (isSingle) {
 			var oClassement = document.createElement("input");
