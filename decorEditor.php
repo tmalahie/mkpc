@@ -141,7 +141,7 @@ if (isset($error))
                 <ul>
                     <li>Choose a decor type, which defines its behavior.
                     If you select the thwomp <img src="images/map_icons/thwomp.png" alt="Thwomp" /> for example, your decor will behave exactly like the thwomp of MKPC (goes up slowly and falls down quckly).</li>
-                    <li>Create an image (via a drawing software) containing the decor sprite(s) in order to give it the appearance you want.</li>
+                    <li>Create an image (via a drawing software) containing the decor sprite(s) in order to give it the appearance you want. You can also take decors shared by other members on this <a href="topic.php?topic=6457" target="_blank">forum topic</a>.</li>
                 </ul>
             </div>
             <div class="description">
@@ -160,7 +160,7 @@ if (isset($error))
                 <ul>
                     <li>Choisir un type de décor, ce qui définit son comportement.
                     Si vous sélectionnez le thwomp <img src="images/map_icons/thwomp.png" alt="Thwomp" /> par exemple, votre décor se comportera exactement comme le thwomp de MKPC (monte progressivement et tombe brusquement).</li>
-                    <li>Créer une image (via un logiciel de dessin) contenant le ou les sprites du décor afin de lui donner l'apparence que vous souhaitez.</li>
+                    <li>Créer une image (via un logiciel de dessin) contenant le ou les sprites du décor afin de lui donner l'apparence que vous souhaitez. Vous pouvez aussi récupérer des décors partagés par les autres membres sur <a href="topic.php?topic=6457" target="_blank">ce topic</a>.</li>
                 </ul>
             </div>
             <div class="description">
