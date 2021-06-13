@@ -515,7 +515,7 @@ if ($id) {
                             Welcome to the MKWC bet page!
                             Here you can vote for the teams that you think will win the 2021
                             <a href="https://mariokartworldcup.000webhostapp.com/world_cup.html" target="_blank">Mario Kart world cup</a>.
-                            Just select the team for each tournament! (Texte à retravailler, je te laisserai voir ça <img src="images/smileys/smiley4.png" alt=":p" />)<br />
+                            Just select your team for each tournament!<br />(Texte à retravailler, je te laisserai voir ça <img src="images/smileys/smiley4.png" alt=":p" />)<br />
                         </div>
                         <div class="mDescriptionConsoles">
                             <a href="?console=mkw">
