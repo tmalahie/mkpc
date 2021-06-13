@@ -131,7 +131,7 @@ case 'mk8':
             ),
             'Group V' => array(
                 'aus' => 'Australia',
-                'bol' => 'Brazil',
+                'bra' => 'Brazil',
                 'sko' => 'South Korea',
                 'cri' => 'Costa Rica',
                 'rip' => 'Rio de la Plata'
@@ -570,14 +570,6 @@ if ($id) {
                                     Mario Kart Wii
                                 </div>
                             </a>
-                            <a href="?console=mkt">
-                                <div class="mDescriptionConsoleHeader">
-                                    <img src="images/mkwc/header-mkt.png" alt="Mario Kart Tour" />
-                                </div>
-                                <div class="mDescriptionConsoleLabel">
-                                    Mario Kart Tour
-                                </div>
-                            </a>
                             <a href="?console=mk8">
                                 <div class="mDescriptionConsoleHeader mDescriptionConsoleHeader-2">
                                     <img src="images/mkwc/header-mk8.png" alt="Mario Kart 8" />
@@ -586,6 +578,14 @@ if ($id) {
                                 <div class="mDescriptionConsoleLabel">
                                     <small>Mario Kart 8&nbsp;/</small>
                                     <small>Mario Kart 8 Deluxe</small>
+                                </div>
+                            </a>
+                            <a href="?console=mkt">
+                                <div class="mDescriptionConsoleHeader">
+                                    <img src="images/mkwc/header-mkt.png" alt="Mario Kart Tour" />
+                                </div>
+                                <div class="mDescriptionConsoleLabel">
+                                    Mario Kart Tour
                                 </div>
                             </a>
                         </div>
