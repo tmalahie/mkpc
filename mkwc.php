@@ -175,7 +175,7 @@ if ($id) {
 <html lang="fr">
 
 <head>
-    <title>Bet for your MKWC team! - Forum MKPC</title>
+    <title>Bet for your MKWC team! - MKPC</title>
     <?php
     include('heads.php');
     ?>
