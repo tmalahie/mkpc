@@ -8,30 +8,8 @@ switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
     $teams = array(
-        'Play-ins' => array(
-            'A' => array(
-                'uss' => 'United States South',
-                'aus' => 'Australia',
-                'ita' => 'Italy'
-            ),
-            'B' => array(
-                'usn' => 'United States North',
-                'lta' => 'Latin America',
-                'den' => 'Denmark'
-            ),
-            'C' => array(
-                'eng' => 'England',
-                'nor' => 'Norway',
-                'can' => 'Canada'
-            ),
-            'D' => array(
-                'jap' => 'Japan',
-                'ger' => 'Germany',
-                'fra' => 'France'
-            )
-        ),
-        'Group Stage' => array(
-            'I' => array(
+        'Play-In Stage' => array(
+            'Group I' => array(
                 'spa' => 'Spain',
                 'sco' => 'Scotland',
                 'gre' => 'Greece',
@@ -39,12 +17,38 @@ case 'mkw':
                 'fin' => 'Finland',
                 'afr' => 'Africa'
             ),
-            'II' => array(
+            'Group II' => array(
                 'ire' => 'Ireland',
                 'net' => 'Netherlands',
                 'asi' => 'Asia',
                 'eue' => 'Eastern Europe',
                 'swi' => 'Switzerland'
+            )
+        ),
+        'Group Stage' => array(
+            'Group A' => array(
+                'uss' => 'United States South',
+                'aus' => 'Australia',
+                'ita' => 'Italy',
+                'pa1' => 'Play-in'
+            ),
+            'Group B' => array(
+                'usn' => 'United States North',
+                'lta' => 'Latin America',
+                'den' => 'Denmark',
+                'pb1' => 'Play-in'
+            ),
+            'Group C' => array(
+                'eng' => 'England',
+                'nor' => 'Norway',
+                'can' => 'Canada',
+                'pc1' => 'Play-in'
+            ),
+            'Group D' => array(
+                'jap' => 'Japan',
+                'ger' => 'Germany',
+                'fra' => 'France',
+                'pd1' => 'Play-in'
             )
         )
     );
@@ -52,43 +56,56 @@ case 'mkw':
 case 'mkt':
     $consoleName = 'Mario Kart Tour';
     $teams = array(
-        'Play-ins' => array(
-            'A' => array(
-                'uss' => 'United States South',
-                'aus' => 'Australia',
-                'ita' => 'Italy'
+        'Play-In Stage' => array(
+            'Group VII' => array(
+                'cri' => 'Costa Rica',
+                'hon' => 'Honduras',
+                'pan' => 'Panama',
+                'gua' => 'Guatemala'
             ),
-            'B' => array(
-                'usn' => 'United States North',
-                'lta' => 'Latin America',
-                'den' => 'Denmark'
+            'Group VIII' => array(
+                'ecu' => 'Ecuador',
+                'ita' => 'Italy',
+                'hok' => 'Hong Kong',
+                'aus' => 'Australia'
             ),
-            'C' => array(
-                'eng' => 'England',
-                'nor' => 'Norway',
-                'can' => 'Canada'
-            ),
-            'D' => array(
-                'jap' => 'Japan',
+            'Group IX' => array(
+                'spa' => 'Spain',
+                'bol' => 'Bolivia',
                 'ger' => 'Germany',
-                'fra' => 'France'
+                'sal' => 'El Salvador'
+            ),
+            'Group X' => array(
+                'bra' => 'Brazil',
+                'swi' => 'Switzerland',
+                'nic' => 'Nicaragua',
+                'ven' => 'Venezuela'
             )
         ),
         'Group Stage' => array(
-            'I' => array(
-                'spa' => 'Spain',
-                'sco' => 'Scotland',
-                'gre' => 'Greece',
-                'lua' => 'Luso Alliance',
-                'fin' => 'Finland',
-                'afr' => 'Africa'
+            'Group J' => array(
+                'jap' => 'Japan',
+                'per' => 'Peru',
+                'pj1' => 'Play-In',
+                'pj2' => 'Play-In'
             ),
-            'II' => array(
-                'ire' => 'Ireland',
-                'net' => 'Netherlands',
-                'asi' => 'Asia',
-                'eue' => 'Eastern Europe',
-                'swi' => 'Switzerland'
+            'Group K' => array(
+                'mex' => 'Mexico',
+                'chi' => 'Chile',
+                'pk1' => 'Play-In',
+                'pk2' => 'Play-in'
+            ),
+            'Group L' => array(
+                'fra' => 'France',
+                'col' => 'Colombia',
+                'pl1' => 'Play-In',
+                'pl2' => 'Play-in'
+            ),
+            'Group M' => array(
+                'usa' => 'United States',
+                'ukg' => 'United Kingdom',
+                'pm1' => 'Play-In',
+                'pm2' => 'Play-in'
             )
         )
     );
@@ -96,43 +113,66 @@ case 'mkt':
 case 'mk8':
     $consoleName = 'Mario Kart 8';
     $teams = array(
-        'Play-ins' => array(
-            'A' => array(
-                'uss' => 'United States South',
+        'Play-In Stage' => array(
+            'Group III' => array(
+                'ita' => 'Italy',
+                'col' => 'Colombia',
+                'ire' => 'Ireland',
+                'nrd' => 'Nordic',
+                'ecu' => 'Ecuador'
+            ),
+            'Group IV' => array(
+                'swi' => 'Switzerland',
+                'cta' => 'Centroamerica',
+                'hkt' => 'Hong Kong & Taiwan',
+                'per' => 'Peru',
+                'lux' => 'Luxembourg',
+                'sco' => 'Scotland'
+            ),
+            'Group V' => array(
                 'aus' => 'Australia',
-                'ita' => 'Italy'
+                'bol' => 'Brazil',
+                'sko' => 'South Korea',
+                'cri' => 'Costa Rica',
+                'rip' => 'Rio de la Plata'
             ),
-            'B' => array(
-                'usn' => 'United States North',
-                'lta' => 'Latin America',
-                'den' => 'Denmark'
-            ),
-            'C' => array(
-                'eng' => 'England',
-                'nor' => 'Norway',
-                'can' => 'Canada'
-            ),
-            'D' => array(
-                'jap' => 'Japan',
-                'ger' => 'Germany',
-                'fra' => 'France'
+            'Group VI' => array(
+                'aut' => 'Austria',
+                'hon' => 'Honduras',
+                'eue' => 'Eastern Europe',
+                'gua' => 'Guatemala',
+                'bol' => 'Bolivia',
+                'wal' => 'Wales'
             )
         ),
         'Group Stage' => array(
-            'I' => array(
-                'spa' => 'Spain',
-                'sco' => 'Scotland',
-                'gre' => 'Greece',
-                'lua' => 'Luso Alliance',
-                'fin' => 'Finland',
-                'afr' => 'Africa'
+            'Group E' => array(
+                'jap' => 'Japan',
+                'ger' => 'Germany',
+                'chn' => 'China',
+                'pe1' => 'Play-In',
+                'pe2' => 'Play-In'
             ),
-            'II' => array(
-                'ire' => 'Ireland',
+            'Group F' => array(
+                'fra' => 'France',
+                'mex' => 'Mexico',
+                'bel' => 'Belgium',
+                'pf1' => 'Play-In',
+                'pf2' => 'Play-in'
+            ),
+            'Group G' => array(
+                'usa' => 'United States',
+                'can' => 'Canada',
                 'net' => 'Netherlands',
-                'asi' => 'Asia',
-                'eue' => 'Eastern Europe',
-                'swi' => 'Switzerland'
+                'pg1' => 'Play-In',
+                'pg2' => 'Play-in'
+            ),
+            'Group M' => array(
+                'eng' => 'England',
+                'spa' => 'Spain',
+                'chi' => 'Chile',
+                'ph1' => 'Play-In',
+                'ph2' => 'Play-in'
             )
         )
     );
@@ -333,7 +373,8 @@ if ($id) {
         }
         .mTeamsTh {
             background-color: #e4e4e4;
-            font-size: 1.5em;
+            font-size: 1.3em;
+            padding: 0.1em 0;
             font-weight: bold;
             border-bottom: solid 1px #268;
         }
@@ -490,10 +531,13 @@ if ($id) {
                                             echo '<div class="mTeamsTh">'. $name12[$j] .'</div>';
                                             echo '<div class="mTeamsTf">';
                                             foreach ($group as $code => $country) {
+                                                $src = $code;
+                                                if (preg_match('#p\w\d#', $code))
+                                                    $src = 'pin';
                                                 echo '<label>';
                                                     echo '<input type="radio" name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
-                                                    echo '<img src="images/mkwc/flags/'.$code.'.png" alt="'. $code .'" />';
-                                                    echo ' '. $country;
+                                                    echo '<img src="images/mkwc/flags/'.$src.'.png" alt="'. $code .'" />';
+                                                    echo ' '. htmlspecialchars($country);
                                                 echo '</label>';
                                             }
                                             echo '</div>';
