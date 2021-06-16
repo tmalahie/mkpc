@@ -30,25 +30,25 @@ case 'mkw':
                 'uss' => 'United States South',
                 'aus' => 'Australia',
                 'ita' => 'Italy',
-                'pa1' => 'Play-in'
+                'pin' => 'Play-In'
             ),
             'Group B' => array(
                 'usn' => 'United States North',
                 'lta' => 'Latin America',
                 'den' => 'Denmark',
-                'pb1' => 'Play-in'
+                'pin' => 'Play-In'
             ),
             'Group C' => array(
                 'eng' => 'England',
                 'nor' => 'Norway',
                 'can' => 'Canada',
-                'pc1' => 'Play-in'
+                'pin' => 'Play-In'
             ),
             'Group D' => array(
                 'jap' => 'Japan',
                 'ger' => 'Germany',
                 'fra' => 'France',
-                'pd1' => 'Play-in'
+                'pin' => 'Play-In'
             )
         )
     );
@@ -86,32 +86,32 @@ case 'mkt':
             'Group J' => array(
                 'jap' => 'Japan',
                 'per' => 'Peru',
-                'pj1' => 'Play-In',
-                'pj2' => 'Play-In'
+                'pin' => 'Play-In',
+                'pin' => 'Play-In'
             ),
             'Group K' => array(
                 'mex' => 'Mexico',
                 'chi' => 'Chile',
-                'pk1' => 'Play-In',
-                'pk2' => 'Play-in'
+                'pin' => 'Play-In',
+                'pin' => 'Play-In'
             ),
             'Group L' => array(
                 'fra' => 'France',
                 'col' => 'Colombia',
-                'pl1' => 'Play-In',
-                'pl2' => 'Play-in'
+                'pin' => 'Play-In',
+                'pin' => 'Play-In'
             ),
             'Group M' => array(
                 'usa' => 'United States',
                 'ukg' => 'United Kingdom',
-                'pm1' => 'Play-In',
-                'pm2' => 'Play-in'
+                'pin' => 'Play-In',
+                'pin' => 'Play-In'
             )
         )
     );
     break;
-case 'mk8':
-    $consoleName = 'Mario Kart 8';
+case 'mk8d':
+    $consoleName = 'Mario Kart 8 Deluxe';
     $teams = array(
         'Play-In Stage' => array(
             'Group III' => array(
@@ -150,29 +150,29 @@ case 'mk8':
                 'jap' => 'Japan',
                 'ger' => 'Germany',
                 'chn' => 'China',
-                'pe1' => 'Play-In',
-                'pe2' => 'Play-In'
+                'pin' => 'Play-In',
+                'pin' => 'Play-In'
             ),
             'Group F' => array(
                 'fra' => 'France',
                 'mex' => 'Mexico',
                 'bel' => 'Belgium',
-                'pf1' => 'Play-In',
-                'pf2' => 'Play-in'
+                'pin' => 'Play-In',
+                'pin' => 'Play-In'
             ),
             'Group G' => array(
                 'usa' => 'United States',
                 'can' => 'Canada',
                 'net' => 'Netherlands',
-                'pg1' => 'Play-In',
-                'pg2' => 'Play-in'
+                'pin' => 'Play-In',
+                'pin' => 'Play-In'
             ),
             'Group M' => array(
                 'eng' => 'England',
                 'spa' => 'Spain',
                 'chi' => 'Chile',
-                'ph1' => 'Play-In',
-                'ph2' => 'Play-in'
+                'pin' => 'Play-In',
+                'pin' => 'Play-In'
             )
         )
     );
@@ -180,25 +180,26 @@ case 'mk8':
 default:
     $console = null;
 }
-if ($console && isset($_POST['vote'])) {
-    $vote = $_POST['vote'];
-    $isVoteValid = '';
+if (isset($teams)) {
+    $teamsDict = array();
     foreach ($teams as $groups) {
         foreach ($groups as $group) {
             foreach ($group as $code => $country) {
-                if ($vote === $code) {
-                    $isVoteValid = true;
-                    break 3;
-                }
+                if ($code !== 'pin')
+                    $teamsDict[$code] = $country;
             }
         }
     }
-    if ($isVoteValid) {
+
+}
+if ($console && isset($_POST['vote'])) {
+    $vote = $_POST['vote'];
+    if (isset($teamsDict[$vote])) {
         if ($id) {
             $success = $language ? 'Your vote has been saved' : 'Votre vote a été enregistré';
             $success .= '<br />';
             $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
-            mysql_query('INSERT INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'" ON DUPLICATE KEY UPDATE vote=VALUES(vote)');
+            mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
         else {
             $error = $language ? 'You must be logged in to vote' : 'Vous devez être connecté pour pouvoir voter';
@@ -231,6 +232,9 @@ if ($id) {
         .mBody h2 {
             text-align: center;
             margin: 0.2em auto;
+        }
+        .mBody h2 strong {
+            color: #f83;
         }
 
         .mDescriptionMain {
@@ -411,6 +415,11 @@ if ($id) {
             background-color: #dfc;
             border-color: #0a0;
         }
+        .mVotesList {
+            color: #f83;
+            font-size: 1.2em;
+            text-align: center;
+        }
         .vote-success {
             background-color: #dfc;
             color: #041;
@@ -439,6 +448,10 @@ if ($id) {
         }
     </style>
     <script type="text/javascript">
+    var teamsDict = <?php echo json_encode($teamsDict); ?>;
+    function showOtherVotes() {
+        alert("TODO");
+    }
     function handleTeamSelect() {
         var $submit = document.querySelector(".mTeamsVote button");
         if (!$submit.style.display) {
@@ -447,6 +460,16 @@ if ($id) {
                 $submit.focus();
             }, 200);
         }
+    }
+    function handleSubmit(e) {
+        e.preventDefault();
+        var $form = e.target;
+        var $input = $form.elements["vote"];
+        o_confirm(o_language ? "Confirm your vote for <strong>" + teamsDict[$input.value] +"</strong> ?<br />Warning, you won't be allowed to change it later":"Confirmer le vote de <strong>" + teamsDict[$input.value] +"</strong> ?<br />Attention, vous ne pourrez pas le changer", function(valided) {
+            if (valided) {
+                $form.submit();
+            }
+        });
     }
     </script>
     <?php
@@ -506,9 +529,21 @@ if ($id) {
                                 ?>
                             </div>
                             <h2>
-                                <?php echo $language ? 'Select your team within the list below' : 'Sélectionnez votre équipe dans la liste'; ?>
+                                <?php
+                                if ($myVote)
+                                    echo '<img src="images/mkwc/flags/'.$myVote.'.png" alt="'. $myVote .'" /> ' . ($language ? 'You have selected <strong>'. $teamsDict[$myVote] .'</strong> team' : 'Vous avez sélectionné l\'équipe de <strong>'. $teamsDict[$myVote] .'</strong>');
+                                else
+                                    echo $language ? 'Select your team within the list below' : 'Sélectionnez votre équipe dans la liste';
+                                ?>
                             </h2>
-                            <form method="post" class="mTeamsTable">
+                            <?php
+                            if ($myVote) {
+                                ?>
+                                <div class="mVotesList">+ <a href="javascript:showOtherVotes()"><?php echo $language ? 'See other members\' votes' : 'Voir les votes des autres membres'; ?></a></div>
+                                <?php
+                            }
+                            ?>
+                            <form method="post" class="mTeamsTable" onsubmit="handleSubmit(event)">
                                 <?php
                                 foreach ($teams as $title => $groups) {
                                     $groupNames = array_keys($groups);
@@ -531,12 +566,9 @@ if ($id) {
                                             echo '<div class="mTeamsTh">'. $name12[$j] .'</div>';
                                             echo '<div class="mTeamsTf">';
                                             foreach ($group as $code => $country) {
-                                                $src = $code;
-                                                if (preg_match('#p\w\d#', $code))
-                                                    $src = 'pin';
                                                 echo '<label>';
-                                                    echo '<input type="radio" name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
-                                                    echo '<img src="images/mkwc/flags/'.$src.'.png" alt="'. $code .'" />';
+                                                    echo '<input type="radio"'. (($myVote || $code === 'pin') ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
+                                                    echo '<img src="images/mkwc/flags/'.$code.'.png" alt="'. $code .'" />';
                                                     echo ' '. htmlspecialchars($country);
                                                 echo '</label>';
                                             }
@@ -547,9 +579,15 @@ if ($id) {
                                     }
                                 }
                                 ?>
-                                <div class="mTeamsVote">
-                                    <button<?php if ($myVote) echo ' style="display:inline-block"'; ?>><?php echo $language ? 'Validate my vote' : 'Valider mon vote'; ?></button>
-                                </div>
+                                <?php
+                                if (!$myVote) {
+                                    ?>
+                                    <div class="mTeamsVote">
+                                        <button><?php echo $language ? 'Validate my vote' : 'Valider mon vote'; ?></button>
+                                    </div>
+                                    <?php
+                                }
+                                ?>
                             </form>
                             <?php
                         }
@@ -570,10 +608,9 @@ if ($id) {
                                     Mario Kart Wii
                                 </div>
                             </a>
-                            <a href="?console=mk8">
-                                <div class="mDescriptionConsoleHeader mDescriptionConsoleHeader-2">
-                                    <img src="images/mkwc/header-mk8.png" alt="Mario Kart 8" />
-                                    <img src="images/mkwc/header-mk8d.png" alt="Mario Kart 8 Deluxe" />
+                            <a href="?console=mk8d">
+                                <div class="mDescriptionConsoleHeader">
+                                    <img src="images/mkwc/header-mk8d.png" alt="Mario Kart 8" />
                                 </div>
                                 <div class="mDescriptionConsoleLabel">
                                     <small>Mario Kart 8&nbsp;/</small>
