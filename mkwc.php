@@ -4,51 +4,55 @@ include('language.php');
 include('session.php');
 include('initdb.php');
 $console = isset($_GET['console']) ? $_GET['console'] : null;
+$playInStage = $language ? 'Play-In Stage':'Phase de qualifications';
+$groupStage = $language ? 'Group Stage':'Phase de groupes';
+$playIn = $language ? 'Play-In':'Qualifications';
+$group = $language ? 'Group':'Groupe';
 switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
     $teams = array(
-        'Play-In Stage' => array(
-            'Group I' => array(
-                'spa' => 'Spain',
-                'sco' => 'Scotland',
-                'gre' => 'Greece',
-                'lua' => 'Luso Alliance',
-                'fin' => 'Finland',
-                'afr' => 'Africa'
+        $playInStage => array(
+            "$group I" => array(
+                'spa'=> $language ? 'Spain':'Espagne',
+                'sco'=> $language ? 'Scotland':'Écosse',
+                'gre'=> $language ? 'Greece':'Grèce',
+                'lua'=> $language ? 'Luso Alliance':'Luso Alliance',
+                'fin'=> $language ? 'Finland':'Finlande',
+                'afr'=> $language ? 'Africa':'Afrique'
             ),
-            'Group II' => array(
-                'ire' => 'Ireland',
-                'net' => 'Netherlands',
-                'asi' => 'Asia',
-                'eue' => 'Eastern Europe',
-                'swi' => 'Switzerland'
+            "$group II" => array(
+                'ire'=> $language ? 'Ireland':'Irelande',
+                'net'=> $language ? 'Netherlands':'Pays-Bas',
+                'asi'=> $language ? 'Asia':'Asie',
+                'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
+                'swi'=> $language ? 'Switzerland':'Suisse'
             )
         ),
-        'Group Stage' => array(
-            'Group A' => array(
-                'uss' => 'United States South',
-                'aus' => 'Australia',
-                'ita' => 'Italy',
-                'pin' => 'Play-In'
+        $groupStage => array(
+            "$group A" => array(
+                'uss'=> $language ? 'United States South':'États-Unis du Sud',
+                'aus'=> $language ? 'Australia':'Australie',
+                'ita'=> $language ? 'Italy':'Italie',
+                'pin' => $playIn
             ),
-            'Group B' => array(
-                'usn' => 'United States North',
-                'lta' => 'Latin America',
-                'den' => 'Denmark',
-                'pin' => 'Play-In'
+            "$group B" => array(
+                'usn'=> $language ? 'United States North':'États-Unis du Nord',
+                'lta'=> $language ? 'Latin America':'Amerique Latine',
+                'den'=> $language ? 'Denmark':'Danemark',
+                'pin' => $playIn
             ),
-            'Group C' => array(
-                'eng' => 'England',
-                'nor' => 'Norway',
-                'can' => 'Canada',
-                'pin' => 'Play-In'
+            "$group C" => array(
+                'eng'=> $language ? 'England':'Angleterre',
+                'nor'=> $language ? 'Norway':'Norvège',
+                'can'=> $language ? 'Canada':'Canada',
+                'pin' => $playIn
             ),
-            'Group D' => array(
-                'jap' => 'Japan',
-                'ger' => 'Germany',
-                'fra' => 'France',
-                'pin' => 'Play-In'
+            "$group D" => array(
+                'jap'=> $language ? 'Japan':'Japon',
+                'ger'=> $language ? 'Germany':'Allemagne',
+                'fra'=> $language ? 'France':'France',
+                'pin' => $playIn
             )
         )
     );
@@ -56,56 +60,56 @@ case 'mkw':
 case 'mkt':
     $consoleName = 'Mario Kart Tour';
     $teams = array(
-        'Play-In Stage' => array(
-            'Group VII' => array(
-                'cri' => 'Costa Rica',
-                'hon' => 'Honduras',
-                'pan' => 'Panama',
-                'gua' => 'Guatemala'
+        $playInStage => array(
+            "$group VII" => array(
+                'cri'=> $language ? 'Costa Rica':'Costa Rica',
+                'hon'=> $language ? 'Honduras':'Honduras',
+                'pan'=> $language ? 'Panama':'Panama',
+                'gua'=> $language ? 'Guatemala':'Guatemala'
             ),
-            'Group VIII' => array(
-                'ecu' => 'Ecuador',
-                'ita' => 'Italy',
-                'hok' => 'Hong Kong',
-                'aus' => 'Australia'
+            "$group VIII" => array(
+                'ecu'=> $language ? 'Ecuador':'Équateur',
+                'ita'=> $language ? 'Italy':'Italie',
+                'hok'=> $language ? 'Hong Kong':'Hong Kong',
+                'aus'=> $language ? 'Australia':'Australia'
             ),
-            'Group IX' => array(
-                'spa' => 'Spain',
-                'bol' => 'Bolivia',
-                'ger' => 'Germany',
-                'sal' => 'El Salvador'
+            "$group IX" => array(
+                'spa'=> $language ? 'Spain':'Espane',
+                'bol'=> $language ? 'Bolivia':'Bolivie',
+                'ger'=> $language ? 'Germany':'Allemagne',
+                'sal'=> $language ? 'El Salvador':'Salvador'
             ),
-            'Group X' => array(
-                'bra' => 'Brazil',
-                'swi' => 'Switzerland',
-                'nic' => 'Nicaragua',
-                'ven' => 'Venezuela'
+            "$group X" => array(
+                'bra'=> $language ? 'Brazil':'Brésil',
+                'swi'=> $language ? 'Switzerland':'Suisse',
+                'nic'=> $language ? 'Nicaragua':'Nicaragua',
+                'ven'=> $language ? 'Venezuela':'Venezuela'
             )
         ),
-        'Group Stage' => array(
-            'Group J' => array(
-                'jap' => 'Japan',
-                'per' => 'Peru',
-                'pin' => 'Play-In',
-                'pin' => 'Play-In'
+        $groupStage => array(
+            "$group J" => array(
+                'jap'=> $language ? 'Japan':'Japon',
+                'per'=> $language ? 'Peru':'Perou',
+                'pin' => $playIn,
+                'pin' => $playIn
             ),
-            'Group K' => array(
-                'mex' => 'Mexico',
-                'chi' => 'Chile',
-                'pin' => 'Play-In',
-                'pin' => 'Play-In'
+            "$group K" => array(
+                'mex'=> $language ? 'Mexico':'Mexique',
+                'chi'=> $language ? 'Chile':'Chili',
+                'pin' => $playIn,
+                'pin' => $playIn
             ),
-            'Group L' => array(
-                'fra' => 'France',
-                'col' => 'Colombia',
-                'pin' => 'Play-In',
-                'pin' => 'Play-In'
+            "$group L" => array(
+                'fra'=> $language ? 'France':'France',
+                'col'=> $language ? 'Colombia':'Colombie',
+                'pin' => $playIn,
+                'pin' => $playIn
             ),
-            'Group M' => array(
-                'usa' => 'United States',
-                'ukg' => 'United Kingdom',
-                'pin' => 'Play-In',
-                'pin' => 'Play-In'
+            "$group M" => array(
+                'usa'=> $language ? 'United States':'États-Unis',
+                'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
+                'pin' => $playIn,
+                'pin' => $playIn
             )
         )
     );
@@ -113,66 +117,66 @@ case 'mkt':
 case 'mk8d':
     $consoleName = 'Mario Kart 8 Deluxe';
     $teams = array(
-        'Play-In Stage' => array(
-            'Group III' => array(
-                'ita' => 'Italy',
-                'col' => 'Colombia',
-                'ire' => 'Ireland',
-                'nrd' => 'Nordic',
-                'ecu' => 'Ecuador'
+        $playInStage => array(
+            "$group III" => array(
+                'ita'=> $language ? 'Italy':'Italie',
+                'col'=> $language ? 'Colombia':'Colombie',
+                'ire'=> $language ? 'Ireland':'Irelande',
+                'nrd'=> $language ? 'Nordic':'Nordiques',
+                'ecu'=> $language ? 'Ecuador':'Équateur'
             ),
-            'Group IV' => array(
-                'swi' => 'Switzerland',
-                'cta' => 'Centroamerica',
-                'hkt' => 'Hong Kong & Taiwan',
-                'per' => 'Peru',
-                'lux' => 'Luxembourg',
-                'sco' => 'Scotland'
+            "$group IV" => array(
+                'swi'=> $language ? 'Switzerland':'Suisse',
+                'cta'=> $language ? 'Centroamerica':'Amérique centrale',
+                'hkt'=> $language ? 'Hong Kong & Taiwan':'Hong Kong & Taiwan',
+                'per'=> $language ? 'Peru':'Perou',
+                'lux'=> $language ? 'Luxembourg':'Luxembourg',
+                'sco'=> $language ? 'Scotland':'Écosse'
             ),
-            'Group V' => array(
-                'aus' => 'Australia',
-                'bra' => 'Brazil',
-                'sko' => 'South Korea',
-                'cri' => 'Costa Rica',
-                'rip' => 'Rio de la Plata'
+            "$group V" => array(
+                'aus'=> $language ? 'Australia':'Australie',
+                'bra'=> $language ? 'Brazil':'Brésil',
+                'sko'=> $language ? 'South Korea':'Corée du Sud',
+                'cri'=> $language ? 'Costa Rica':'Costa Rica',
+                'rip'=> $language ? 'Rio de la Plata':'Rio de la Plata'
             ),
-            'Group VI' => array(
-                'aut' => 'Austria',
-                'hon' => 'Honduras',
-                'eue' => 'Eastern Europe',
-                'gua' => 'Guatemala',
-                'bol' => 'Bolivia',
-                'wal' => 'Wales'
+            "$group VI" => array(
+                'aut'=> $language ? 'Austria':'Autriche',
+                'hon'=> $language ? 'Honduras':'Honduras',
+                'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
+                'gua'=> $language ? 'Guatemala':'Guatemala',
+                'bol'=> $language ? 'Bolivia':'Bolivie',
+                'wal'=> $language ? 'Wales':'Pays de Galles'
             )
         ),
-        'Group Stage' => array(
-            'Group E' => array(
-                'jap' => 'Japan',
-                'ger' => 'Germany',
-                'chn' => 'China',
-                'pin' => 'Play-In',
-                'pin' => 'Play-In'
+        $groupStage => array(
+            "$group E" => array(
+                'jap'=> $language ? 'Japan':'Japon',
+                'ger'=> $language ? 'Germany':'Allemagne',
+                'chn'=> $language ? 'China':'Chine',
+                'pin' => $playIn,
+                'pin' => $playIn
             ),
-            'Group F' => array(
-                'fra' => 'France',
-                'mex' => 'Mexico',
-                'bel' => 'Belgium',
-                'pin' => 'Play-In',
-                'pin' => 'Play-In'
+            "$group F" => array(
+                'fra'=> $language ? 'France':'France',
+                'mex'=> $language ? 'Mexico':'Mexique',
+                'bel'=> $language ? 'Belgium':'Belgique',
+                'pin' => $playIn,
+                'pin' => $playIn
             ),
-            'Group G' => array(
-                'usa' => 'United States',
-                'can' => 'Canada',
-                'net' => 'Netherlands',
-                'pin' => 'Play-In',
-                'pin' => 'Play-In'
+            "$group G" => array(
+                'usa'=> $language ? 'United States':'États-Unis',
+                'can'=> $language ? 'Canada':'Canada',
+                'net'=> $language ? 'Netherlands':'Pays-Bas',
+                'pin' => $playIn,
+                'pin' => $playIn
             ),
-            'Group M' => array(
-                'eng' => 'England',
-                'spa' => 'Spain',
-                'chi' => 'Chile',
-                'pin' => 'Play-In',
-                'pin' => 'Play-In'
+            "$group M" => array(
+                'eng'=> $language ? 'England':'Angleterre',
+                'spa'=> $language ? 'Spain':'Espagne',
+                'chi'=> $language ? 'Chile':'Chili',
+                'pin' => $playIn,
+                'pin' => $playIn
             )
         )
     );
@@ -547,7 +551,7 @@ if ($id) {
     include('menu.php');
     ?>
     <main>
-        <h1>Bet for your MKWC teams!</h1>
+        <h1><?php echo $language ? 'MKWC - Place your bets!' : 'MKWC - faites vos paris !'; ?></h1>
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <!-- Forum MKPC -->
         <p class="pub"><ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-1340724283777764" data-ad-slot="4919860724"></ins></p>
