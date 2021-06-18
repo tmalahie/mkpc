@@ -198,6 +198,8 @@ if ($console && isset($_POST['vote'])) {
         if ($id) {
             $success = $language ? 'Your vote has been saved' : 'Votre vote a été enregistré';
             $success .= '<br />';
+            $success .= '<a href="#mVotesTitle" onclick="showOtherVotes()">'. ($language ? 'See other members\' votes':'Voir les votes des autres membres') .'</a>';
+            $success .= '<br />';
             $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
@@ -420,6 +422,59 @@ if ($id) {
             font-size: 1.2em;
             text-align: center;
         }
+        #mVotesList {
+            display: none;
+            margin-top: 0.5em;
+        }
+        #mVotesList.mVotesListShow {
+            display: block;
+        }
+        #mVotesList > div {
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0.2em;
+            margin-bottom: 0.2em;
+        }
+        .mVotesName {
+            display: flex;
+            align-items: center;
+            width: 9em;
+            text-overflow: ellipsis;
+        }
+        .mVotesName > img {
+            margin-right: 0.4em;
+            height: 1em;
+        }
+        .mVotesName > span {
+            display: inline-block;
+            text-align: left;
+            white-space: nowrap;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mVotesBar {
+            margin-left: 0.4em;
+            margin-right: 0.3em;
+            border-radius: 5px;
+            border: solid 1px #820;
+            height: 1em;
+            overflow: hidden;
+        }
+        .mVotesBar > div {
+            display: inline-block;
+            margin-left: auto;
+            margin-right: auto;
+            height: 100%;
+        }
+        .mVotesBar > div:first-child {
+            background-color: #f1b341;
+        }
+        .mVotesBar > div:last-child {
+            background-color: #ffe76f;
+        }
         .vote-success {
             background-color: #dfc;
             color: #041;
@@ -449,8 +504,16 @@ if ($id) {
     </style>
     <script type="text/javascript">
     var teamsDict = <?php echo json_encode($teamsDict); ?>;
+    function toggleOtherVotes() {
+        var $mVotesList = document.getElementById("mVotesList");
+        if ($mVotesList.classList.contains("mVotesListShow"))
+            $mVotesList.classList.remove("mVotesListShow");
+        else
+            $mVotesList.classList.add("mVotesListShow");
+    }
     function showOtherVotes() {
-        alert("TODO");
+        var $mVotesList = document.getElementById("mVotesList");
+        $mVotesList.classList.add("mVotesListShow");
     }
     function handleTeamSelect() {
         var $submit = document.querySelector(".mTeamsVote button");
@@ -528,7 +591,7 @@ if ($id) {
                                 }
                                 ?>
                             </div>
-                            <h2>
+                            <h2 id="mVotesTitle">
                                 <?php
                                 if ($myVote)
                                     echo '<img src="images/mkwc/flags/'.$myVote.'.png" alt="'. $myVote .'" /> ' . ($language ? 'You have selected <strong>'. $teamsDict[$myVote] .'</strong> team' : 'Vous avez sélectionné l\'équipe de <strong>'. $teamsDict[$myVote] .'</strong>');
@@ -539,7 +602,32 @@ if ($id) {
                             <?php
                             if ($myVote) {
                                 ?>
-                                <div class="mVotesList">+ <a href="javascript:showOtherVotes()"><?php echo $language ? 'See other members\' votes' : 'Voir les votes des autres membres'; ?></a></div>
+                                <div class="mVotesList">+ <a href="javascript:toggleOtherVotes()"><?php echo $language ? 'See other members\' votes' : 'Voir les votes des autres membres'; ?></a></div>
+                                <div id="mVotesList">
+                                <?php
+                                $getVotesByTeam = mysql_query('SELECT vote,COUNT(*) AS nb FROM mkwcbets WHERE console="'. $console .'" GROUP BY vote ORDER BY nb DESC');
+                                $votesByTeam = array();
+                                $totalVotes = 0;
+                                while ($teamVote = mysql_fetch_array($getVotesByTeam)) {
+                                    $votesByTeam[] = $teamVote;
+                                    $totalVotes += $teamVote['nb'];
+                                }
+                                foreach ($votesByTeam as $teamVote) {
+                                    echo '<div>';
+                                    echo '<div class="mVotesName">';
+                                    echo '<img src="images/mkwc/flags/'.$teamVote['vote'].'.png" alt="'. $teamVote['vote'] .'" /> ';
+                                    echo '<span>'. $teamsDict[$teamVote['vote']] .'</span>';
+                                    echo '</div>';
+                                    echo '<div class="mVotesBar">';
+                                    $w = 7;
+                                    echo '<div style="width:'. (round($w*$teamVote['nb']/$totalVotes)) .'em"></div>';
+                                    echo '<div style="width:'. ($w-round($w*$teamVote['nb']/$totalVotes)) .'em"></div>';
+                                    echo '</div>';
+                                    echo '<div class="mVotesCount">'. $teamVote['nb'].' ('.(round(100*$teamVote['nb']/$totalVotes)).'%)</div>';
+                                    echo '</div>';
+                                }
+                                ?>
+                                </div>
                                 <?php
                             }
                             ?>
@@ -613,8 +701,7 @@ if ($id) {
                                     <img src="images/mkwc/header-mk8d.png" alt="Mario Kart 8" />
                                 </div>
                                 <div class="mDescriptionConsoleLabel">
-                                    <small>Mario Kart 8&nbsp;/</small>
-                                    <small>Mario Kart 8 Deluxe</small>
+                                    Mario Kart 8 Deluxe
                                 </div>
                             </a>
                             <a href="?console=mkt">
