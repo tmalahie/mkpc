@@ -4,8 +4,8 @@ include('language.php');
 include('session.php');
 include('initdb.php');
 $console = isset($_GET['console']) ? $_GET['console'] : null;
-$playInStage = $language ? 'Play-In Stage':'Phase de qualifications';
-$groupStage = $language ? 'Group Stage':'Phase de groupes';
+$playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
+$groupStage = $language ? 'Group Stage':'Phase de Groupe';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
 switch ($console) {
@@ -14,45 +14,60 @@ case 'mkw':
     $teams = array(
         $playInStage => array(
             "$group I" => array(
-                'spa'=> $language ? 'Spain':'Espagne',
-                'sco'=> $language ? 'Scotland':'Écosse',
-                'gre'=> $language ? 'Greece':'Grèce',
-                'lua'=> $language ? 'Luso Alliance':'Luso Alliance',
-                'fin'=> $language ? 'Finland':'Finlande',
-                'afr'=> $language ? 'Africa':'Afrique'
+                'header' => $language ? "Luso Alliance: Brazil + Portugal + other lusophonic countries.\nAfrica: all of Africa.":"Luso Alliance: Brésil + Portugal + autres pays lusophones.\nAfrique: toute l'Afrique.",
+                'list' => array(
+                    'spa'=> $language ? 'Spain':'Espagne',
+                    'sco'=> $language ? 'Scotland':'Écosse',
+                    'gre'=> $language ? 'Greece':'Grèce',
+                    'lua'=> $language ? 'Luso Alliance':'Luso Alliance',
+                    'fin'=> $language ? 'Finland':'Finlande',
+                    'afr'=> $language ? 'Africa':'Afrique'
+                )
             ),
             "$group II" => array(
-                'ire'=> $language ? 'Ireland':'Irelande',
-                'net'=> $language ? 'Netherlands':'Pays-Bas',
-                'asi'=> $language ? 'Asia':'Asie',
-                'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
-                'swi'=> $language ? 'Switzerland':'Suisse'
+                'header' => $language ? "Asia: all of Asia, outside of Japan.\nEastern Europe: all of eastern Europe, outside of Greece.":"Asie: toute l'Asie, sauf le Japon.\nEurope de l'Est: toute l'Europe de l'est, sauf la Grèce.",
+                'list' => array(
+                    'ire'=> $language ? 'Ireland':'Irelande',
+                    'net'=> $language ? 'Netherlands':'Pays-Bas',
+                    'asi'=> $language ? 'Asia':'Asie',
+                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
+                    'swi'=> $language ? 'Switzerland':'Suisse'
+                )
             )
         ),
         $groupStage => array(
             "$group A" => array(
-                'uss'=> $language ? 'United States South':'États-Unis du Sud',
-                'aus'=> $language ? 'Australia':'Australie',
-                'ita'=> $language ? 'Italy':'Italie',
-                'pin' => $playIn
+                'list' => array(
+                    'uss'=> $language ? 'United States South':'États-Unis du Sud',
+                    'aus'=> $language ? 'Australia':'Australie',
+                    'ita'=> $language ? 'Italy':'Italie',
+                    'pin' => $playIn
+                )
             ),
             "$group B" => array(
-                'usn'=> $language ? 'United States North':'États-Unis du Nord',
-                'lta'=> $language ? 'Latin America':'Amerique Latine',
-                'den'=> $language ? 'Denmark':'Danemark',
-                'pin' => $playIn
+                'header' => $language ? "Latin America: all of Latin America":"Amérique Latine: toute l'Amérique Latine",
+                'list' => array(
+                    'usn'=> $language ? 'United States North':'États-Unis du Nord',
+                    'lta'=> $language ? 'Latin America':'Amerique Latine',
+                    'den'=> $language ? 'Denmark':'Danemark',
+                    'pin' => $playIn
+                )
             ),
             "$group C" => array(
-                'eng'=> $language ? 'England':'Angleterre',
-                'nor'=> $language ? 'Norway':'Norvège',
-                'can'=> $language ? 'Canada':'Canada',
-                'pin' => $playIn
+                'list' => array(
+                    'eng'=> $language ? 'England':'Angleterre',
+                    'nor'=> $language ? 'Norway':'Norvège',
+                    'can'=> $language ? 'Canada':'Canada',
+                    'pin' => $playIn
+                )
             ),
             "$group D" => array(
-                'jap'=> $language ? 'Japan':'Japon',
-                'ger'=> $language ? 'Germany':'Allemagne',
-                'fra'=> $language ? 'France':'France',
-                'pin' => $playIn
+                'list' => array(
+                    'jap'=> $language ? 'Japan':'Japon',
+                    'ger'=> $language ? 'Germany':'Allemagne',
+                    'fra'=> $language ? 'France':'France',
+                    'pin' => $playIn
+                )
             )
         )
     );
@@ -62,54 +77,70 @@ case 'mkt':
     $teams = array(
         $playInStage => array(
             "$group VII" => array(
-                'cri'=> $language ? 'Costa Rica':'Costa Rica',
-                'hon'=> $language ? 'Honduras':'Honduras',
-                'pan'=> $language ? 'Panama':'Panama',
-                'gua'=> $language ? 'Guatemala':'Guatemala'
+                'list' => array(
+                    'cri'=> $language ? 'Costa Rica':'Costa Rica',
+                    'hon'=> $language ? 'Honduras':'Honduras',
+                    'pan'=> $language ? 'Panama':'Panama',
+                    'gua'=> $language ? 'Guatemala':'Guatemala'
+                )
             ),
             "$group VIII" => array(
-                'ecu'=> $language ? 'Ecuador':'Équateur',
-                'ita'=> $language ? 'Italy':'Italie',
-                'hok'=> $language ? 'Hong Kong':'Hong Kong',
-                'aus'=> $language ? 'Australia':'Australia'
+                'list' => array(
+                    'ecu'=> $language ? 'Ecuador':'Équateur',
+                    'ita'=> $language ? 'Italy':'Italie',
+                    'hok'=> $language ? 'Hong Kong':'Hong Kong',
+                    'aus'=> $language ? 'Australia':'Australia'
+                )
             ),
             "$group IX" => array(
-                'spa'=> $language ? 'Spain':'Espane',
-                'bol'=> $language ? 'Bolivia':'Bolivie',
-                'ger'=> $language ? 'Germany':'Allemagne',
-                'sal'=> $language ? 'El Salvador':'Salvador'
+                'list' => array(
+                    'spa'=> $language ? 'Spain':'Espane',
+                    'bol'=> $language ? 'Bolivia':'Bolivie',
+                    'ger'=> $language ? 'Germany':'Allemagne',
+                    'sal'=> $language ? 'El Salvador':'Salvador'
+                )
             ),
             "$group X" => array(
-                'bra'=> $language ? 'Brazil':'Brésil',
-                'swi'=> $language ? 'Switzerland':'Suisse',
-                'nic'=> $language ? 'Nicaragua':'Nicaragua',
-                'ven'=> $language ? 'Venezuela':'Venezuela'
+                'list' => array(
+                    'bra'=> $language ? 'Brazil':'Brésil',
+                    'swi'=> $language ? 'Switzerland':'Suisse',
+                    'nic'=> $language ? 'Nicaragua':'Nicaragua',
+                    'ven'=> $language ? 'Venezuela':'Venezuela'
+                )
             )
         ),
         $groupStage => array(
             "$group J" => array(
-                'jap'=> $language ? 'Japan':'Japon',
-                'per'=> $language ? 'Peru':'Perou',
-                'pin' => $playIn,
-                'pin' => $playIn
+                'list' => array(
+                    'jap'=> $language ? 'Japan':'Japon',
+                    'per'=> $language ? 'Peru':'Perou',
+                    'pin' => $playIn,
+                    'pin' => $playIn
+                )
             ),
             "$group K" => array(
-                'mex'=> $language ? 'Mexico':'Mexique',
-                'chi'=> $language ? 'Chile':'Chili',
-                'pin' => $playIn,
-                'pin' => $playIn
+                'list' => array(
+                    'mex'=> $language ? 'Mexico':'Mexique',
+                    'chi'=> $language ? 'Chile':'Chili',
+                    'pin' => $playIn,
+                    'pin' => $playIn
+                )
             ),
             "$group L" => array(
-                'fra'=> $language ? 'France':'France',
-                'col'=> $language ? 'Colombia':'Colombie',
-                'pin' => $playIn,
-                'pin' => $playIn
+                'list' => array(
+                    'fra'=> $language ? 'France':'France',
+                    'col'=> $language ? 'Colombia':'Colombie',
+                    'pin' => $playIn,
+                    'pin' => $playIn
+                )
             ),
             "$group M" => array(
-                'usa'=> $language ? 'United States':'États-Unis',
-                'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
-                'pin' => $playIn,
-                'pin' => $playIn
+                'list' => array(
+                    'usa'=> $language ? 'United States':'États-Unis',
+                    'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
+                    'pin' => $playIn,
+                    'pin' => $playIn
+                )
             )
         )
     );
@@ -119,64 +150,84 @@ case 'mk8d':
     $teams = array(
         $playInStage => array(
             "$group III" => array(
-                'ita'=> $language ? 'Italy':'Italie',
-                'col'=> $language ? 'Colombia':'Colombie',
-                'ire'=> $language ? 'Ireland':'Irelande',
-                'nrd'=> $language ? 'Nordic':'Nordiques',
-                'ecu'=> $language ? 'Ecuador':'Équateur'
+                'header' => $language ? "Nordic: Greenland, Iceland, Denmark, Norway, Sweden, Finland and nordic possessions.":"Nordique: Groenland, Islande, Danemark, Norvège, Suède, Finlande et territoires nordiques.",
+                'list' => array(
+                    'ita'=> $language ? 'Italy':'Italie',
+                    'col'=> $language ? 'Colombia':'Colombie',
+                    'ire'=> $language ? 'Ireland':'Irelande',
+                    'nrd'=> $language ? 'Nordic':'Nordique',
+                    'ecu'=> $language ? 'Ecuador':'Équateur'
+                )
             ),
             "$group IV" => array(
-                'swi'=> $language ? 'Switzerland':'Suisse',
-                'cta'=> $language ? 'Centroamerica':'Amérique centrale',
-                'hkt'=> $language ? 'Hong Kong & Taiwan':'Hong Kong & Taiwan',
-                'per'=> $language ? 'Peru':'Perou',
-                'lux'=> $language ? 'Luxembourg':'Luxembourg',
-                'sco'=> $language ? 'Scotland':'Écosse'
+                'header' => $language ? "Centroamerica: Belize, Salvador, Nicaragua and Panama.\nHong Kong & Taïwan: Hong Kong & Taiwan.":"Amérique Centrale: Belize, Salvador, Nicaragua et Panama.\nHong Kong & Taïwan: Hong Kong & Taïwan.",
+                'list' => array(
+                    'swi'=> $language ? 'Switzerland':'Suisse',
+                    'cta'=> $language ? 'Centroamerica':'Amérique centrale',
+                    'hkt'=> $language ? 'Hong Kong & Taiwan':'Hong Kong & Taiwan',
+                    'per'=> $language ? 'Peru':'Perou',
+                    'lux'=> $language ? 'Luxembourg':'Luxembourg',
+                    'sco'=> $language ? 'Scotland':'Écosse'
+                )
             ),
             "$group V" => array(
-                'aus'=> $language ? 'Australia':'Australie',
-                'bra'=> $language ? 'Brazil':'Brésil',
-                'sko'=> $language ? 'South Korea':'Corée du Sud',
-                'cri'=> $language ? 'Costa Rica':'Costa Rica',
-                'rip'=> $language ? 'Rio de la Plata':'Rio de la Plata'
+                'header' => $language ? "Rio de la Plata: Argentina & Uruguay.":"Rio de la Plata: Argentine & Uruguay.",
+                'list' => array(
+                    'aus'=> $language ? 'Australia':'Australie',
+                    'bra'=> $language ? 'Brazil':'Brésil',
+                    'sko'=> $language ? 'South Korea':'Corée du Sud',
+                    'cri'=> $language ? 'Costa Rica':'Costa Rica',
+                    'rip'=> $language ? 'Rio de la Plata':'Rio de la Plata'
+                )
             ),
             "$group VI" => array(
-                'aut'=> $language ? 'Austria':'Autriche',
-                'hon'=> $language ? 'Honduras':'Honduras',
-                'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
-                'gua'=> $language ? 'Guatemala':'Guatemala',
-                'bol'=> $language ? 'Bolivia':'Bolivie',
-                'wal'=> $language ? 'Wales':'Pays de Galles'
+                'header' => $language ? "Eastern Europe: all of eastern Europe.":"Europe de l'Est: toute l'Europe de l'est.",
+                'list' => array(
+                    'aut'=> $language ? 'Austria':'Autriche',
+                    'hon'=> $language ? 'Honduras':'Honduras',
+                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
+                    'gua'=> $language ? 'Guatemala':'Guatemala',
+                    'bol'=> $language ? 'Bolivia':'Bolivie',
+                    'wal'=> $language ? 'Wales':'Pays de Galles'
+                )
             )
         ),
         $groupStage => array(
             "$group E" => array(
-                'jap'=> $language ? 'Japan':'Japon',
-                'ger'=> $language ? 'Germany':'Allemagne',
-                'chn'=> $language ? 'China':'Chine',
-                'pin' => $playIn,
-                'pin' => $playIn
+                'list' => array(
+                    'jap'=> $language ? 'Japan':'Japon',
+                    'ger'=> $language ? 'Germany':'Allemagne',
+                    'chn'=> $language ? 'China':'Chine',
+                    'pin' => $playIn,
+                    'pin' => $playIn
+                )
             ),
             "$group F" => array(
-                'fra'=> $language ? 'France':'France',
-                'mex'=> $language ? 'Mexico':'Mexique',
-                'bel'=> $language ? 'Belgium':'Belgique',
-                'pin' => $playIn,
-                'pin' => $playIn
+                'list' => array(
+                    'fra'=> $language ? 'France':'France',
+                    'mex'=> $language ? 'Mexico':'Mexique',
+                    'bel'=> $language ? 'Belgium':'Belgique',
+                    'pin' => $playIn,
+                    'pin' => $playIn
+                )
             ),
             "$group G" => array(
-                'usa'=> $language ? 'United States':'États-Unis',
-                'can'=> $language ? 'Canada':'Canada',
-                'net'=> $language ? 'Netherlands':'Pays-Bas',
-                'pin' => $playIn,
-                'pin' => $playIn
+                'list' => array(
+                    'usa'=> $language ? 'United States':'États-Unis',
+                    'can'=> $language ? 'Canada':'Canada',
+                    'net'=> $language ? 'Netherlands':'Pays-Bas',
+                    'pin' => $playIn,
+                    'pin' => $playIn
+                )
             ),
             "$group M" => array(
-                'eng'=> $language ? 'England':'Angleterre',
-                'spa'=> $language ? 'Spain':'Espagne',
-                'chi'=> $language ? 'Chile':'Chili',
-                'pin' => $playIn,
-                'pin' => $playIn
+                'list' => array(
+                    'eng'=> $language ? 'England':'Angleterre',
+                    'spa'=> $language ? 'Spain':'Espagne',
+                    'chi'=> $language ? 'Chile':'Chili',
+                    'pin' => $playIn,
+                    'pin' => $playIn
+                )
             )
         )
     );
@@ -188,9 +239,9 @@ if (isset($teams)) {
     $teamsDict = array();
     foreach ($teams as $groups) {
         foreach ($groups as $group) {
-            foreach ($group as $code => $country) {
+            foreach ($group['list'] as $code => $country) {
                 if ($code !== 'pin')
-                    $teamsDict[$code] = $country;
+                    $teamsDict[$code] = htmlspecialchars($country);
             }
         }
     }
@@ -200,9 +251,9 @@ if ($console && isset($_POST['vote'])) {
     $vote = $_POST['vote'];
     if (isset($teamsDict[$vote])) {
         if ($id) {
-            $success = $language ? 'Your vote has been saved' : 'Votre vote a été enregistré';
+            $success = $language ? 'Your bet has been saved' : 'Votre pari a été enregistré';
             $success .= '<br />';
-            $success .= '<a href="#mVotesTitle" onclick="showOtherVotes()">'. ($language ? 'See other members\' votes':'Voir les votes des autres membres') .'</a>';
+            $success .= '<a href="#mVotesTitle" onclick="showOtherVotes()">'. ($language ? 'See other members\' bets':'Voir les paris des autres membres') .'</a>';
             $success .= '<br />';
             $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
@@ -354,6 +405,15 @@ if ($id) {
             font-size: 1.8em;
             margin-top: 0.5em;
         }
+        .mTeamsHd {
+            max-width: 470px;
+            margin: 0.5em auto 0 auto;
+            border: solid 1px rgba(142,99,15, 0.4);
+            padding: 4px 6px;
+            background-color: #FFE30C;
+            background-color: rgba(220,204,78, 0.6);
+            color: #820;
+        }
         .mTeamsTr {
             display: flex;
             flex-wrap: wrap;
@@ -460,12 +520,19 @@ if ($id) {
             text-overflow: ellipsis;
         }
         .mVotesBar {
+            display: flex;
             margin-left: 0.4em;
             margin-right: 0.3em;
             border-radius: 5px;
             border: solid 1px #820;
+            width: 7em;
             height: 1em;
             overflow: hidden;
+        }
+        @media screen and (max-width: 599px) {
+            .mVotesBar {
+                width: 5em;
+            }
         }
         .mVotesBar > div {
             display: inline-block;
@@ -532,7 +599,7 @@ if ($id) {
         e.preventDefault();
         var $form = e.target;
         var $input = $form.elements["vote"];
-        o_confirm(o_language ? "Confirm your vote for <strong>" + teamsDict[$input.value] +"</strong> ?<br />Warning, you won't be allowed to change it later":"Confirmer le vote de <strong>" + teamsDict[$input.value] +"</strong> ?<br />Attention, vous ne pourrez pas le changer", function(valided) {
+        o_confirm(o_language ? "Confirm your bet for <strong>" + teamsDict[$input.value] +"</strong> ?<br />Warning, you won't be allowed to change it later":"Confirmer le pari de <strong>" + teamsDict[$input.value] +"</strong> ?<br />Attention, vous ne pourrez pas le changer", function(valided) {
             if (valided) {
                 $form.submit();
             }
@@ -547,7 +614,7 @@ if ($id) {
 <body>
     <?php
     include('header.php');
-    $page = 'forum';
+    $page = 'home';
     include('menu.php');
     ?>
     <main>
@@ -606,7 +673,7 @@ if ($id) {
                             <?php
                             if ($myVote) {
                                 ?>
-                                <div class="mVotesList">+ <a href="javascript:toggleOtherVotes()"><?php echo $language ? 'See other members\' votes' : 'Voir les votes des autres membres'; ?></a></div>
+                                <div class="mVotesList">+ <a href="javascript:toggleOtherVotes()"><?php echo $language ? 'See other members\' bets' : 'Voir les paris des autres membres'; ?></a></div>
                                 <div id="mVotesList">
                                 <?php
                                 $getVotesByTeam = mysql_query('SELECT vote,COUNT(*) AS nb FROM mkwcbets WHERE console="'. $console .'" GROUP BY vote ORDER BY nb DESC');
@@ -623,9 +690,9 @@ if ($id) {
                                     echo '<span>'. $teamsDict[$teamVote['vote']] .'</span>';
                                     echo '</div>';
                                     echo '<div class="mVotesBar">';
-                                    $w = 7;
-                                    echo '<div style="width:'. (round($w*$teamVote['nb']/$totalVotes)) .'em"></div>';
-                                    echo '<div style="width:'. ($w-round($w*$teamVote['nb']/$totalVotes)) .'em"></div>';
+                                    $w = 100;
+                                    echo '<div style="flex:'. (round($w*$teamVote['nb']/$totalVotes)) .'"></div>';
+                                    echo '<div style="flex:'. ($w-round($w*$teamVote['nb']/$totalVotes)) .'"></div>';
                                     echo '</div>';
                                     echo '<div class="mVotesCount">'. $teamVote['nb'].' ('.(round(100*$teamVote['nb']/$totalVotes)).'%)</div>';
                                     echo '</div>';
@@ -650,14 +717,24 @@ if ($id) {
                                                 echo $title;
                                             echo '</div>';
                                         }
-                                        echo '<div class="mTeamsTr">';
                                         $group12 = array($group1,$group2);
                                         $name12 = array($name1,$name2);
+                                        $groupHeader = array();
+                                        foreach ($group12 as $j=>$group) {
+                                            if (isset($group['header']))
+                                                $groupHeader[] = nl2br(htmlspecialchars($group['header']));
+                                        }
+                                        if (!empty($groupHeader)) {
+                                            echo '<div class="mTeamsHd">';
+                                            echo implode('<br />', $groupHeader);
+                                            echo '</div>';
+                                        }
+                                        echo '<div class="mTeamsTr">';
                                         foreach ($group12 as $j=>$group) {
                                             echo '<div class="mTeamsTd">';
                                             echo '<div class="mTeamsTh">'. $name12[$j] .'</div>';
                                             echo '<div class="mTeamsTf">';
-                                            foreach ($group as $code => $country) {
+                                            foreach ($group['list'] as $code => $country) {
                                                 echo '<label>';
                                                     echo '<input type="radio"'. (($myVote || $code === 'pin') ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
                                                     echo '<img src="images/mkwc/flags/'.$code.'.png" alt="'. $code .'" />';
@@ -675,7 +752,7 @@ if ($id) {
                                 if (!$myVote) {
                                     ?>
                                     <div class="mTeamsVote">
-                                        <button><?php echo $language ? 'Validate my vote' : 'Valider mon vote'; ?></button>
+                                        <button><?php echo $language ? 'Validate my bet' : 'Valider mon pari'; ?></button>
                                     </div>
                                     <?php
                                 }
