@@ -273,7 +273,7 @@ if ($id) {
 <html lang="fr">
 
 <head>
-    <title>Bet for your MKWC team! - MKPC</title>
+    <title><?php echo $language ? 'MKWC - Place your bets!' : 'MKWC - faites vos paris !'; ?></title>
     <?php
     include('heads.php');
     ?>
