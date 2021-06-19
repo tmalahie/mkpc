@@ -599,7 +599,7 @@ if ($id) {
         e.preventDefault();
         var $form = e.target;
         var $input = $form.elements["vote"];
-        o_confirm(o_language ? "Confirm your bet for <strong>" + teamsDict[$input.value] +"</strong> ?<br />Warning, you won't be allowed to change it later":"Confirmer le pari de <strong>" + teamsDict[$input.value] +"</strong> ?<br />Attention, vous ne pourrez pas le changer", function(valided) {
+        o_confirm(o_language ? "Confirm your bet for <strong>" + teamsDict[$input.value] +"</strong> ?<br />Warning, you won't be allowed to change it later":"Confirmer la sélection de <strong>" + teamsDict[$input.value] +"</strong> ?<br />Attention, vous ne pourrez pas le changer", function(valided) {
             if (valided) {
                 $form.submit();
             }
