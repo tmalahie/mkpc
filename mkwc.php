@@ -41,7 +41,7 @@ case 'mkw':
                     'uss'=> $language ? 'United States South':'États-Unis du Sud',
                     'aus'=> $language ? 'Australia':'Australie',
                     'ita'=> $language ? 'Italy':'Italie',
-                    'pin' => $playIn
+                    'pin0' => $playIn
                 )
             ),
             "$group B" => array(
@@ -50,7 +50,7 @@ case 'mkw':
                     'usn'=> $language ? 'United States North':'États-Unis du Nord',
                     'lta'=> $language ? 'Latin America':'Amerique Latine',
                     'den'=> $language ? 'Denmark':'Danemark',
-                    'pin' => $playIn
+                    'pin0' => $playIn
                 )
             ),
             "$group C" => array(
@@ -58,7 +58,7 @@ case 'mkw':
                     'eng'=> $language ? 'England':'Angleterre',
                     'nor'=> $language ? 'Norway':'Norvège',
                     'can'=> $language ? 'Canada':'Canada',
-                    'pin' => $playIn
+                    'pin0' => $playIn
                 )
             ),
             "$group D" => array(
@@ -66,7 +66,7 @@ case 'mkw':
                     'jap'=> $language ? 'Japan':'Japon',
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'fra'=> $language ? 'France':'France',
-                    'pin' => $playIn
+                    'pin0' => $playIn
                 )
             )
         )
@@ -114,32 +114,32 @@ case 'mkt':
                 'list' => array(
                     'jap'=> $language ? 'Japan':'Japon',
                     'per'=> $language ? 'Peru':'Perou',
-                    'pin' => $playIn,
-                    'pin' => $playIn
+                    'pin0' => $playIn,
+                    'pin1' => $playIn
                 )
             ),
             "$group K" => array(
                 'list' => array(
                     'mex'=> $language ? 'Mexico':'Mexique',
                     'chi'=> $language ? 'Chile':'Chili',
-                    'pin' => $playIn,
-                    'pin' => $playIn
+                    'pin0' => $playIn,
+                    'pin1' => $playIn
                 )
             ),
             "$group L" => array(
                 'list' => array(
                     'fra'=> $language ? 'France':'France',
                     'col'=> $language ? 'Colombia':'Colombie',
-                    'pin' => $playIn,
-                    'pin' => $playIn
+                    'pin0' => $playIn,
+                    'pin1' => $playIn
                 )
             ),
             "$group M" => array(
                 'list' => array(
                     'usa'=> $language ? 'United States':'États-Unis',
                     'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
-                    'pin' => $playIn,
-                    'pin' => $playIn
+                    'pin0' => $playIn,
+                    'pin1' => $playIn
                 )
             )
         )
@@ -198,8 +198,8 @@ case 'mk8d':
                     'jap'=> $language ? 'Japan':'Japon',
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'chn'=> $language ? 'China':'Chine',
-                    'pin' => $playIn,
-                    'pin' => $playIn
+                    'pin0' => $playIn,
+                    'pin1' => $playIn
                 )
             ),
             "$group F" => array(
@@ -207,8 +207,8 @@ case 'mk8d':
                     'fra'=> $language ? 'France':'France',
                     'mex'=> $language ? 'Mexico':'Mexique',
                     'bel'=> $language ? 'Belgium':'Belgique',
-                    'pin' => $playIn,
-                    'pin' => $playIn
+                    'pin0' => $playIn,
+                    'pin1' => $playIn
                 )
             ),
             "$group G" => array(
@@ -216,8 +216,8 @@ case 'mk8d':
                     'usa'=> $language ? 'United States':'États-Unis',
                     'can'=> $language ? 'Canada':'Canada',
                     'net'=> $language ? 'Netherlands':'Pays-Bas',
-                    'pin' => $playIn,
-                    'pin' => $playIn
+                    'pin0' => $playIn,
+                    'pin1' => $playIn
                 )
             ),
             "$group M" => array(
@@ -225,8 +225,8 @@ case 'mk8d':
                     'eng'=> $language ? 'England':'Angleterre',
                     'spa'=> $language ? 'Spain':'Espagne',
                     'chi'=> $language ? 'Chile':'Chili',
-                    'pin' => $playIn,
-                    'pin' => $playIn
+                    'pin0' => $playIn,
+                    'pin1' => $playIn
                 )
             )
         )
@@ -235,12 +235,15 @@ case 'mk8d':
 default:
     $console = null;
 }
+function isNormalTeam($code) {
+    return !preg_match('#^pin\d+$#', $code);
+}
 if (isset($teams)) {
     $teamsDict = array();
     foreach ($teams as $groups) {
         foreach ($groups as $group) {
             foreach ($group['list'] as $code => $country) {
-                if ($code !== 'pin')
+                if (isNormalTeam($code))
                     $teamsDict[$code] = htmlspecialchars($country);
             }
         }
@@ -735,9 +738,13 @@ if ($id) {
                                             echo '<div class="mTeamsTh">'. $name12[$j] .'</div>';
                                             echo '<div class="mTeamsTf">';
                                             foreach ($group['list'] as $code => $country) {
+                                                $src = $code;
+                                                $isNormalTeam = isNormalTeam($code);
+                                                if (!$isNormalTeam)
+                                                    $src = 'pin';
                                                 echo '<label>';
-                                                    echo '<input type="radio"'. (($myVote || $code === 'pin') ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
-                                                    echo '<img src="images/mkwc/flags/'.$code.'.png" alt="'. $code .'" />';
+                                                    echo '<input type="radio"'. (($myVote || !$isNormalTeam) ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
+                                                    echo '<img src="images/mkwc/flags/'.$src.'.png" alt="'. $src .'" />';
                                                     echo ' '. htmlspecialchars($country);
                                                 echo '</label>';
                                             }
