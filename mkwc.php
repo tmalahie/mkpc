@@ -682,7 +682,7 @@ if ($id) {
                             <?php
                             if ($language) {
                                 ?>
-                                Welcome to the 2021 Mario Kart World Cup's bet page!!!<br />
+                                Welcome to the 2021 Mario Kart World Cup's predictor page!!!<br />
                                 Here, you can predict a total of 3 teams (1 for each game), to win the World Cup.<br />
                                 In case of a correct prediction, you will earn an unique role on the forum!!!
                                 <img src="images/forum/reactions/laugh.png" alt="laugh" />
