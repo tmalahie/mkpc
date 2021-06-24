@@ -4,7 +4,6 @@ include('language.php');
 include('session.php');
 include('initdb.php');
 $console = isset($_GET['console']) ? $_GET['console'] : null;
-$playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
@@ -12,45 +11,22 @@ switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
     $teams = array(
-        $playInStage => array(
-            "$group I" => array(
-                'header' => $language ? "Luso Alliance: Brazil + Portugal + other lusophonic countries.\nAfrica: all of Africa.":"Luso Alliance: Brésil + Portugal + autres pays lusophones.\nAfrique: toute l'Afrique.",
-                'list' => array(
-                    'spa'=> $language ? 'Spain':'Espagne',
-                    'sco'=> $language ? 'Scotland':'Écosse',
-                    'gre'=> $language ? 'Greece':'Grèce',
-                    'lua'=> $language ? 'Luso Alliance':'Luso Alliance',
-                    'fin'=> $language ? 'Finland':'Finlande',
-                    'afr'=> $language ? 'Africa':'Afrique'
-                )
-            ),
-            "$group II" => array(
-                'header' => $language ? "Asia: all of Asia, outside of Japan.\nEastern Europe: all of eastern Europe, outside of Greece.":"Asie: toute l'Asie, sauf le Japon.\nEurope de l'Est: toute l'Europe de l'est, sauf la Grèce.",
-                'list' => array(
-                    'ire'=> $language ? 'Ireland':'Irelande',
-                    'net'=> $language ? 'Netherlands':'Pays-Bas',
-                    'asi'=> $language ? 'Asia':'Asie',
-                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
-                    'swi'=> $language ? 'Switzerland':'Suisse'
-                )
-            )
-        ),
         $groupStage => array(
             "$group A" => array(
+                'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mkwii/2021.html',
                 'list' => array(
                     'uss'=> $language ? 'United States South':'États-Unis du Sud',
                     'aus'=> $language ? 'Australia':'Australie',
                     'ita'=> $language ? 'Italy':'Italie',
-                    'pin0' => $playIn
+                    'asi'=> $language ? 'Asia':'Asie'
                 )
             ),
             "$group B" => array(
-                'header' => $language ? "Latin America: all of Latin America":"Amérique Latine: toute l'Amérique Latine",
                 'list' => array(
                     'usn'=> $language ? 'United States North':'États-Unis du Nord',
                     'lta'=> $language ? 'Latin America':'Amerique Latine',
                     'den'=> $language ? 'Denmark':'Danemark',
-                    'pin0' => $playIn
+                    'ire'=> $language ? 'Ireland':'Irelande'
                 )
             ),
             "$group C" => array(
@@ -58,7 +34,7 @@ case 'mkw':
                     'eng'=> $language ? 'England':'Angleterre',
                     'nor'=> $language ? 'Norway':'Norvège',
                     'can'=> $language ? 'Canada':'Canada',
-                    'pin0' => $playIn
+                    'sco'=> $language ? 'Scotland':'Écosse'
                 )
             ),
             "$group D" => array(
@@ -66,7 +42,7 @@ case 'mkw':
                     'jap'=> $language ? 'Japan':'Japon',
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'fra'=> $language ? 'France':'France',
-                    'pin0' => $playIn
+                    'gre'=> $language ? 'Greece':'Grèce'
                 )
             )
         )
@@ -75,71 +51,38 @@ case 'mkw':
 case 'mkt':
     $consoleName = 'Mario Kart Tour';
     $teams = array(
-        $playInStage => array(
-            "$group VII" => array(
-                'list' => array(
-                    'cri'=> $language ? 'Costa Rica':'Costa Rica',
-                    'hon'=> $language ? 'Honduras':'Honduras',
-                    'pan'=> $language ? 'Panama':'Panama',
-                    'gua'=> $language ? 'Guatemala':'Guatemala'
-                )
-            ),
-            "$group VIII" => array(
-                'list' => array(
-                    'ecu'=> $language ? 'Ecuador':'Équateur',
-                    'ita'=> $language ? 'Italy':'Italie',
-                    'hok'=> $language ? 'Hong Kong':'Hong Kong',
-                    'aus'=> $language ? 'Australia':'Australia'
-                )
-            ),
-            "$group IX" => array(
-                'list' => array(
-                    'spa'=> $language ? 'Spain':'Espane',
-                    'bol'=> $language ? 'Bolivia':'Bolivie',
-                    'ger'=> $language ? 'Germany':'Allemagne',
-                    'sal'=> $language ? 'El Salvador':'Salvador'
-                )
-            ),
-            "$group X" => array(
-                'list' => array(
-                    'bra'=> $language ? 'Brazil':'Brésil',
-                    'swi'=> $language ? 'Switzerland':'Suisse',
-                    'nic'=> $language ? 'Nicaragua':'Nicaragua',
-                    'ven'=> $language ? 'Venezuela':'Venezuela'
-                )
-            )
-        ),
         $groupStage => array(
             "$group J" => array(
+                'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mkt/2021.html',
                 'list' => array(
                     'jap'=> $language ? 'Japan':'Japon',
                     'per'=> $language ? 'Peru':'Perou',
-                    'pin0' => $playIn,
-                    'pin1' => $playIn
+                    'swi'=> $language ? 'Switzerland':'Suisse',
+                    'gua'=> $language ? 'Guatemala':'Guatemala'
                 )
             ),
             "$group K" => array(
                 'list' => array(
                     'mex'=> $language ? 'Mexico':'Mexique',
                     'chi'=> $language ? 'Chile':'Chili',
-                    'pin0' => $playIn,
-                    'pin1' => $playIn
+                    'hok'=> $language ? 'Hong Kong':'Hong Kong',
+                    'spa'=> $language ? 'Spain':'Espagne'
                 )
             ),
             "$group L" => array(
                 'list' => array(
                     'fra'=> $language ? 'France':'France',
                     'col'=> $language ? 'Colombia':'Colombie',
-                    'pin0' => $playIn,
-                    'pin1' => $playIn
+                    'cri'=> $language ? 'Costa Rica':'Costa Rica',
+                    'bra'=> $language ? 'Brazil':'Brésil'
                 )
             ),
             "$group M" => array(
                 'list' => array(
                     'usa'=> $language ? 'United States':'États-Unis',
                     'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
-                    'pin0' => $playIn,
-                    'pin1' => $playIn
+                    'sal'=> $language ? 'El Salvador':'Salvador',
+                    'ecu'=> $language ? 'Ecuador':'Équateur'
                 )
             )
         )
@@ -148,58 +91,15 @@ case 'mkt':
 case 'mk8d':
     $consoleName = 'Mario Kart 8 Deluxe';
     $teams = array(
-        $playInStage => array(
-            "$group III" => array(
-                'header' => $language ? "Nordic: Greenland, Iceland, Denmark, Norway, Sweden, Finland and nordic possessions.":"Nordique: Groenland, Islande, Danemark, Norvège, Suède, Finlande et territoires nordiques.",
-                'list' => array(
-                    'ita'=> $language ? 'Italy':'Italie',
-                    'col'=> $language ? 'Colombia':'Colombie',
-                    'ire'=> $language ? 'Ireland':'Irelande',
-                    'nrd'=> $language ? 'Nordic':'Nordique',
-                    'ecu'=> $language ? 'Ecuador':'Équateur'
-                )
-            ),
-            "$group IV" => array(
-                'header' => $language ? "Centroamerica: Belize, Salvador, Nicaragua and Panama.\nHong Kong & Taïwan: Hong Kong & Taiwan.":"Amérique Centrale: Belize, Salvador, Nicaragua et Panama.\nHong Kong & Taïwan: Hong Kong & Taïwan.",
-                'list' => array(
-                    'swi'=> $language ? 'Switzerland':'Suisse',
-                    'cta'=> $language ? 'Centroamerica':'Amérique centrale',
-                    'hkt'=> $language ? 'Hong Kong & Taiwan':'Hong Kong & Taiwan',
-                    'per'=> $language ? 'Peru':'Perou',
-                    'lux'=> $language ? 'Luxembourg':'Luxembourg',
-                    'sco'=> $language ? 'Scotland':'Écosse'
-                )
-            ),
-            "$group V" => array(
-                'header' => $language ? "Rio de la Plata: Argentina & Uruguay.":"Rio de la Plata: Argentine & Uruguay.",
-                'list' => array(
-                    'aus'=> $language ? 'Australia':'Australie',
-                    'bra'=> $language ? 'Brazil':'Brésil',
-                    'sko'=> $language ? 'South Korea':'Corée du Sud',
-                    'cri'=> $language ? 'Costa Rica':'Costa Rica',
-                    'rip'=> $language ? 'Rio de la Plata':'Rio de la Plata'
-                )
-            ),
-            "$group VI" => array(
-                'header' => $language ? "Eastern Europe: all of eastern Europe.":"Europe de l'Est: toute l'Europe de l'est.",
-                'list' => array(
-                    'aut'=> $language ? 'Austria':'Autriche',
-                    'hon'=> $language ? 'Honduras':'Honduras',
-                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
-                    'gua'=> $language ? 'Guatemala':'Guatemala',
-                    'bol'=> $language ? 'Bolivia':'Bolivie',
-                    'wal'=> $language ? 'Wales':'Pays de Galles'
-                )
-            )
-        ),
         $groupStage => array(
             "$group E" => array(
+                'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mk8d/2021.html',
                 'list' => array(
                     'jap'=> $language ? 'Japan':'Japon',
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'chn'=> $language ? 'China':'Chine',
-                    'pin0' => $playIn,
-                    'pin1' => $playIn
+                    'aus'=> $language ? 'Australia':'Australie',
+                    'swi'=> $language ? 'Switzerland':'Suisse'
                 )
             ),
             "$group F" => array(
@@ -207,8 +107,8 @@ case 'mk8d':
                     'fra'=> $language ? 'France':'France',
                     'mex'=> $language ? 'Mexico':'Mexique',
                     'bel'=> $language ? 'Belgium':'Belgique',
-                    'pin0' => $playIn,
-                    'pin1' => $playIn
+                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
+                    'ita'=> $language ? 'Italy':'Italie'
                 )
             ),
             "$group G" => array(
@@ -216,8 +116,8 @@ case 'mk8d':
                     'usa'=> $language ? 'United States':'États-Unis',
                     'can'=> $language ? 'Canada':'Canada',
                     'net'=> $language ? 'Netherlands':'Pays-Bas',
-                    'pin0' => $playIn,
-                    'pin1' => $playIn
+                    'nrd'=> $language ? 'Nordic':'Nordique',
+                    'aut'=> $language ? 'Austria':'Autriche'
                 )
             ),
             "$group M" => array(
@@ -225,8 +125,8 @@ case 'mk8d':
                     'eng'=> $language ? 'England':'Angleterre',
                     'spa'=> $language ? 'Spain':'Espagne',
                     'chi'=> $language ? 'Chile':'Chili',
-                    'pin0' => $playIn,
-                    'pin1' => $playIn
+                    'cta'=> $language ? 'Centroamerica':'Amérique centrale',
+                    'bra'=> $language ? 'Brazil':'Brésil'
                 )
             )
         )
@@ -720,17 +620,17 @@ if ($id) {
                                         $name2 = $groupNames[$i+1];
                                         $group1 = $groups[$name1];
                                         $group2 = $groups[$name2];
-                                        if (!$i) {
+                                        /*if (!$i) {
                                             echo '<div class="mTeamsCaption">';
                                                 echo $title;
                                             echo '</div>';
-                                        }
+                                        }*/
                                         $group12 = array($group1,$group2);
                                         $name12 = array($name1,$name2);
                                         $groupHeader = array();
                                         foreach ($group12 as $j=>$group) {
-                                            if (isset($group['header']))
-                                                $groupHeader[] = nl2br(htmlspecialchars($group['header']));
+                                            if (isset($group['url']))
+                                                $groupHeader[] = ($language ? 'For more information, <a href="'.$group['url'].'" target="_blank">go here</a>.' : 'Pour plus d\'informations, <a href="'.$group['url'].'" target="_blank">cliquez ici</a>.');
                                         }
                                         if (!empty($groupHeader)) {
                                             echo '<div class="mTeamsHd">';
