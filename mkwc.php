@@ -13,6 +13,7 @@ case 'mkw':
     $teams = array(
         $groupStage => array(
             "$group A" => array(
+                'header' => $language ? "Asia: all of Asia, outside of Japan.\nLatin America: all of Latin America, outside of Brazil." : "Asie: toute l'Asie, sauf le Japon.\nAmérique Latine: toute l'Amérique Latine, sauf le Brésil.",
                 'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mkwii/2021.html',
                 'list' => array(
                     'uss'=> $language ? 'United States South':'États-Unis du Sud',
@@ -26,7 +27,7 @@ case 'mkw':
                     'usn'=> $language ? 'United States North':'États-Unis du Nord',
                     'lta'=> $language ? 'Latin America':'Amerique Latine',
                     'den'=> $language ? 'Denmark':'Danemark',
-                    'ire'=> $language ? 'Ireland':'Irelande'
+                    'ire'=> $language ? 'Ireland':'Irlande'
                 )
             ),
             "$group C" => array(
@@ -93,6 +94,7 @@ case 'mk8d':
     $teams = array(
         $groupStage => array(
             "$group E" => array(
+                'header' => $language ? "Eastern Europe: all of Eastern Europe.\nNordic: all of nordic countries and territories.\nCentroamerica: Belize, El Salvador, Nicaragua and Panama." : "Europe de l'Est: toute l'Europe de l'Est.\nNordique: l'ensemble des pays et territoires nordiques.\nAmérique Centrale: Belize, Salvador, Nicaragua et Panama.",
                 'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mk8d/2021.html',
                 'list' => array(
                     'jap'=> $language ? 'Japan':'Japon',
@@ -629,8 +631,10 @@ if ($id) {
                                         $name12 = array($name1,$name2);
                                         $groupHeader = array();
                                         foreach ($group12 as $j=>$group) {
+                                            if (isset($group['header']))
+                                                $groupHeader[] = nl2br($group['header']);
                                             if (isset($group['url']))
-                                                $groupHeader[] = ($language ? 'For more information, <a href="'.$group['url'].'" target="_blank">go here</a>.' : 'Pour plus d\'informations, <a href="'.$group['url'].'" target="_blank">cliquez ici</a>.');
+                                                $groupHeader[] = ($language ? 'For more information, <a href="'.$group['url'].'" target="_blank">go here</a>' : 'Pour plus d\'informations, <a href="'.$group['url'].'" target="_blank">cliquez ici</a>');
                                         }
                                         if (!empty($groupHeader)) {
                                             echo '<div class="mTeamsHd">';
