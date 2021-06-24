@@ -301,6 +301,11 @@ if ($id) {
             font-size: 1.3em;
             text-align: justify;
         }
+        .mDescriptionMain img {
+            height: 1.1em;
+            position: relative;
+            top: 0.1em;
+        }
 
         .mDescriptionHeader {
             max-width: 600px;
@@ -770,10 +775,24 @@ if ($id) {
                         else {
                             ?>
                         <div class="mDescriptionMain">
-                            Welcome to the MKWC bet page!
-                            Here you can vote for the teams that you think will win the 2021
-                            <a href="https://mariokartworldcup.000webhostapp.com/world_cup.html" target="_blank">Mario Kart world cup</a>.
-                            Just select your team for each tournament!<br />(Texte à retravailler, je te laisserai voir ça <img src="images/smileys/smiley4.png" alt=":p" />)<br />
+                            <?php
+                            if ($language) {
+                                ?>
+                                Welcome to the 2021 Mario Kart World Cup's bet page!!!<br />
+                                Here, you can predict a total of 3 teams (1 for each game), to win the World Cup.<br />
+                                In case of a correct prediction, you will earn an unique role on the forum!!!
+                                <img src="images/forum/reactions/laugh.png" alt="laugh" />
+                                <?php
+                            }
+                            else {
+                                ?>
+                                Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart 2021 !!!<br />
+                                Ici, vous pourrez-voter pour un total de 3 équipes (1 par jeu) que vous aller pronostiquer comme vainqueur de la Coupe Du Monde!<br />
+                                En cas de pronostic correct, vous gagnerez un rôle inédit sur le forum !!!
+                                <img src="images/forum/reactions/laugh.png" alt="laugh" />
+                                <?php
+                            }
+                            ?>
                         </div>
                         <div class="mDescriptionConsoles">
                             <a href="?console=mkw">
