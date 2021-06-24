@@ -176,7 +176,7 @@ if ($id) {
 <html lang="fr">
 
 <head>
-    <title><?php echo $language ? 'MKWC - Place your bets!' : 'MKWC - faites vos paris !'; ?></title>
+    <title><?php echo $language ? 'MKWC - Place your bets!' : 'MKWC - Faites vos paris !'; ?></title>
     <?php
     include('heads.php');
     ?>
@@ -526,7 +526,7 @@ if ($id) {
     include('menu.php');
     ?>
     <main>
-        <h1><?php echo $language ? 'MKWC - Place your bets!' : 'MKWC - faites vos paris !'; ?></h1>
+        <h1><?php echo $language ? 'MKWC - Place your bets!' : 'MKWC - Faites vos paris !'; ?></h1>
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <!-- Forum MKPC -->
         <p class="pub"><ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-1340724283777764" data-ad-slot="4919860724"></ins></p>
