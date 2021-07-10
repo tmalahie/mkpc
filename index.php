@@ -487,7 +487,7 @@ $slidesPath = 'images/slides';
 	<section id="right_section">
 		<?php
 		require_once('utils-date.php');
-		if ($id) {
+		/*if ($id) {
 			$today = time();
 			//if (($today > 1607310000) && ($today < 1607914800)) {
 				if ($language) {
@@ -513,7 +513,7 @@ $slidesPath = 'images/slides';
 				<?php
 				}
 			//}
-		}
+		}*/
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}

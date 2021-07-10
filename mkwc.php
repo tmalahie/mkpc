@@ -1,4 +1,6 @@
 <?php
+include('404.html');
+exit;
 include('getId.php');
 include('language.php');
 include('session.php');
@@ -122,7 +124,7 @@ case 'mk8d':
                     'aut'=> $language ? 'Austria':'Autriche'
                 )
             ),
-            "$group M" => array(
+            "$group H" => array(
                 'list' => array(
                     'eng'=> $language ? 'England':'Angleterre',
                     'spa'=> $language ? 'Spain':'Espagne',
