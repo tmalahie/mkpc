@@ -13145,7 +13145,7 @@ function move(getId, triggered) {
 		}
 	}
 
-	if (!oKart.z && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
+	if (!oKart.z && (!oKart.heightinc || fSelectedClass<=1) && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
 		oKart.champi = 20;
 		oKart.maxspeed = 11;
 		oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
