@@ -4052,7 +4052,7 @@ function continuer() {
 
 				reinitChallengeVars();
 				clLocalVars.endGP = true;
-				challengeCheck("end_gp", ["finish_gp"]);
+				challengeCheck("end_gp");
 			}
 		}
 	}
@@ -9328,57 +9328,40 @@ var challengeRules = {
 		"initRuleVars": function(challenge) {
 			return {challenge: challenge, nbcircuits: 0};
 		},
-		success: function(scope, ruleVars) {
-			if (clLocalVars.endGP && (ruleVars.nbcircuits == 4)) {
-				if (oPlayers[0].place == 1) {
-					var succeededCups = sessionStorage.getItem("cl"+ruleVars.challenge.id+".gold_cups");
-					if (!succeededCups) succeededCups = '{}';
-					succeededCups = JSON.parse(succeededCups);
-					if (!ruleVars.challenge.data.constraints.length) {
-						for (var i=0;i<ptsGP.length;i++) {
-							if (ptsGP.charAt(i) == 3)
-								succeededCups[cupIDs[i]] = true;
-						}
-					}
-					var iCup = cupIDs[oMap.ref/4-1];
-					succeededCups[iCup] = true;
-					var won = true;
-					for (var i=0;i<cupIDs.length;i++) {
-						var cupID = cupIDs[i];
-						if (!succeededCups[cupID]) {
-							won = false;
-							break;
-						}
-					}
-					if (won) {
-						sessionStorage.removeItem("cl"+ruleVars.challenge.id+".gold_cups");
-						return true;
-					}
+		"success": function(scope, ruleVars) {
+			if (clLocalVars.endGP && (ruleVars.nbcircuits == 4))
+				return (oPlayers[0].place == 1);
+		},
+		"post_success": function(scope, ruleVars) {
+			var succeededCups = getSessionStorage("cl"+ruleVars.challenge.id+".gold_cups");
+			if (!succeededCups) succeededCups = '{}';
+			succeededCups = JSON.parse(succeededCups);
+			if (ruleVars.challenge.data.constraints.every(c => (c.type === "cc"))) {
+				for (var i=0;i<ptsGP.length;i++) {
+					if (ptsGP.charAt(i) == 3)
+						succeededCups[cupIDs[i]] = true;
 				}
-				else
-					return false;
 			}
+			var iCup = cupIDs[oMap.ref/4-1];
+			succeededCups[iCup] = true;
+			var won = true;
+			for (var i=0;i<cupIDs.length;i++) {
+				var cupID = cupIDs[i];
+				if (!succeededCups[cupID]) {
+					won = false;
+					break;
+				}
+			}
+			if (won) {
+				deleteSessionStorage("cl"+ruleVars.challenge.id+".gold_cups");
+				return true;
+			}
+			setSessionStorage("cl"+ruleVars.challenge.id+".gold_cups", JSON.stringify(succeededCups));
+			showChallengePartialSuccess(ruleVars.challenge, {nb:Object.keys(succeededCups).length,total:cupIDs.length});
+			return false;
 		},
 		"next_circuit": function(ruleVars) {
 			ruleVars.nbcircuits++;
-		},
-		finish_gp: function(ruleVars) {
-			if (ruleVars.nbcircuits == 4) {
-				var succeededCups = sessionStorage.getItem("cl"+ruleVars.challenge.id+".gold_cups");
-				if (!succeededCups) succeededCups = '{}';
-				succeededCups = JSON.parse(succeededCups);
-				var iCup = cupIDs[oMap.ref/4-1];
-				succeededCups[iCup] = true;
-				sessionStorage.setItem("cl"+ruleVars.challenge.id+".gold_cups", JSON.stringify(succeededCups));
-				var simpleChallenge = !ruleVars.challenge.data.constraints.length;
-				if (simpleChallenge) {
-					for (var i=0;i<ptsGP.length;i++) {
-						if (ptsGP.charAt(i) == 3)
-							succeededCups[cupIDs[i]] = true;
-					}
-				}
-				showChallengePartialSuccess(ruleVars.challenge, {nb:Object.keys(succeededCups).length,total:cupIDs.length,warning:!simpleChallenge});
-			}
 		}
 	},
 	"finish_circuits_first": {
@@ -9483,12 +9466,6 @@ var challengeRules = {
 		"success": function(scope, ruleVars) {
 			if (ruleVars)
 				return ruleVars.relSpeed === fSelectedClass;
-			else if (!window.loggedRuleVar) {
-				window.loggedRuleVar = 1;
-				xhr("log.php", "msg="+ encodeURIComponent("Bug dans ruleVars"), function(reponse) {
-					return true;
-				});
-			}
 		}
 	},
 	"balloons": {
@@ -9821,6 +9798,15 @@ function challengeCheck(verifType, events) {
 		var challenge = challengesForType[i];
 		var chRules = listChallengeRules(challenge.data);
 		var status = challengeRulesSatisfied(challenge,chRules);
+		if (status) {
+			var challengeGoal = challenge.data.goal;
+			var postSuccess = challengeRules[challengeGoal.type].post_success;
+			if (postSuccess) {
+				var ruleVars = clRuleVars[challenge.id] ? clRuleVars[challenge.id][challengeGoal.type] : undefined;
+				if (!postSuccess(challengeGoal,ruleVars,challenge))
+					return false;
+			}
+		}
 		if (true === status) {
 			challengeSucceeded(challenge);
 			challengesForType.splice(i,1);
@@ -9935,7 +9921,6 @@ function showChallengePartialSuccess(challenge, res) {
 	var challengeTitle = language ? 'Challenge being completed':'Défi en cours de réussite';
 	var challengeCongrats = challenge.description.main;
 	var challengeAward = language ? 'Cups completed: '+ res.nb +'/'+ res.total:'Coupes réussies: '+ res.nb +'/'+ res.total;
-	var challengeDisclaimer = language ? 'Caution, progress will be lost when you close the browser':'Attention, toute progression sera perdue à la fermeture du navigateur.';
 	var challengeClose = language ? 'Close':'Fermer';
 	oDiv.innerHTML = 
 		'<div style="font-size: '+ Math.round(iScreenScale*2) +'px">'+
@@ -9944,7 +9929,6 @@ function showChallengePartialSuccess(challenge, res) {
 		'</div>'+
 		'<div class="challenge-popup-header" style="font-size: '+ Math.round(iScreenScale*2.25) +'px">'+challengeCongrats+'</div>'+
 		'<div class="challenge-popup-award" style="margin:'+iScreenScale+'px 0">'+challengeAward+'</div>' +
-		(res.warning ? '<div class="challenge-popup-disclaimer" style="margin:'+iScreenScale+'px 0">'+challengeDisclaimer+'</div>':'') +
 		'<div class="challenge-popup-close" style="font-size:'+(iScreenScale*2)+'px;bottom:'+iScreenScale+'px;right:'+Math.round(iScreenScale*1.25)+'px">'+
 			'<a href="javascript:closeChallengePopup('+challenge.id+');">'+ challengeClose +'</a>'+
 		'</div>';
@@ -10268,6 +10252,95 @@ function showClFailedPopup() {
 	if (iSfx && !finishing && !oPlayers[0].cpu)
 		playSoundEffect("musics/events/clfail.mp3");
 }
+
+function getSessionStorage(key) {
+	return sessionStorage.getItem(key);
+}
+function setSessionStorage(key, value) {
+	sessionStorage.setItem(key, value);
+	addUpdatingKey(key);
+	xhr("sessionStorage.php", "key="+encodeURIComponent(key)+"&value="+encodeURIComponent(value), function(res) {
+		if (res == 1) {
+			deleteUpdatingKey(key, value);
+			return true;
+		}
+		return false;
+	});
+}
+function deleteSessionStorage(key) {
+	sessionStorage.removeItem(key);
+	addUpdatingKey(key);
+	xhr("sessionStorage.php", "key="+encodeURIComponent(key)+"&delete", function(res) {
+		if (res == 1) {
+			deleteUpdatingKey(key, null);
+			return true;
+		}
+		return false;
+	});
+}
+function initSessionStorage() {
+	var updatingKeys = sessionStorage.getItem("updatingKeys");
+	if (updatingKeys) {
+		updatingKeys = JSON.parse(updatingKeys);
+		for (let updatingKey in updatingKeys) {
+			let value = sessionStorage.getItem(updatingKey);
+			let params;
+			if (value != null)
+				params = "key="+encodeURIComponent(updatingKey)+"&value="+encodeURIComponent(value);
+			else
+				params = "key="+encodeURIComponent(updatingKey)+"&delete";
+			xhr("sessionStorage.php", params, function(res) {
+				if (res == 1) {
+					deleteUpdatingKey(updatingKey, value);
+					return true;
+				}
+				return false;
+			});
+		}
+	}
+	else {
+		xhr("sessionStorage.php", "", function(res) {
+			var resJson;
+			try {
+				resJson = JSON.parse(res);
+			}
+			catch (e) {
+				return false;
+			}
+			if (!resJson)
+				return false;
+			var updatingKeys = sessionStorage.getItem("updatingKeys");
+			if (!updatingKeys) {
+				sessionStorage.setItem("updatingKeys", "{}");	
+				updatingKeys = {};
+			}
+			for (var key in resJson) {
+				if (!updatingKeys[key])
+					sessionStorage.setItem(key, resJson[key]);
+			}
+			return true;
+		});
+	}
+}
+function addUpdatingKey(key) {
+	var updatingKeys = JSON.parse(sessionStorage.getItem("updatingKeys")) || {};
+	updatingKeys[key] = 1;
+	sessionStorage.setItem("updatingKeys", JSON.stringify(updatingKeys));
+}
+function deleteUpdatingKey(key, value) {
+	var updatingKeys = JSON.parse(sessionStorage.getItem("updatingKeys")) || {};
+	if (sessionStorage.getItem(key) === value)
+		delete updatingKeys[key];
+	else
+		updatingKeys[key] = 1;
+	sessionStorage.setItem("updatingKeys", JSON.stringify(updatingKeys));
+}
+/*window.storageApi = {
+	getSessionStorage,
+	setSessionStorage,
+	deleteSessionStorage,
+	initSessionStorage
+}*/
 
 var isMetaItem = 0;
 var metaItemPosition = 0.5, metaItemRange = 1000;
@@ -21486,6 +21559,7 @@ else {
 	if (isFirstLoad) {
 		isFirstLoad = false;
 		if (hasChallenges()) {
+			initSessionStorage();
 			xhr("getClSelected.php", null, function(res) {
 				if (!res)
 					return true;
