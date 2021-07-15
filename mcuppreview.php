@@ -23,6 +23,7 @@ if (isset($id)) {
 			$baseUrl = 'trackicon.php?type=0&id=';
 		else
 			$baseUrl = 'trackicon.php?type=1&id=';
+		$protocol = 'http'. (isset($_SERVER['HTTPS']) ? 's' : '');
 		$domain = $_SERVER['HTTP_HOST'];
 		if ($_SERVER['SERVER_NAME'] === 'localhost') {
 			$domain = $_SERVER['SERVER_NAME'];
@@ -56,7 +57,7 @@ if (isset($id)) {
 			$x = $trackPos%$tracksSide;
 			$y = floor($trackPos/$tracksSide);
 
-			$trackUrl = 'http://'.$domain.$relDir.'/'.$baseUrl.$trackID;
+			$trackUrl = $protocol.'://'.$domain.$relDir.'/'.$baseUrl.$trackID;
 			$img = imagecreatefrompng($trackUrl);
 			$img = imagecropcenter($img, $imgcW,$imgcW);
 			imagecopy($image,$img,floor($x*$imgW),floor($y*$imgW),0,0,$imgW,$imgW);
