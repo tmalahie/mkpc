@@ -300,8 +300,10 @@ function updateCupPersosGUI() {
 			};
 			oDiv.appendChild(oCross);
 			var oImg = document.createElement("img");
-			if (oPerso.id)
+			if (oPerso.id) {
 				oImg.src = "images/sprites/uploads/"+oPerso.sprites+".png";
+				oDiv.title = oPerso.name;
+			}
 			else
 				oImg.src = "images/sprites/sprite_"+oPerso.sprites+".png";
 			oImg.alt = oPerso.sprites;

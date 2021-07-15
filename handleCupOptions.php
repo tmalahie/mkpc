@@ -28,7 +28,7 @@ if (!empty($cOptions)) {
                 $spriteSrcs = get_sprite_srcs($data['sprites']);
                 $customPersosById[$data['id']] = array (
                     'id' => +$data['id'],
-                    'name' => $data['name'],
+                    'name' => iconv('utf-8', 'windows-1252', $data['name']),
                     'shared' => +($data['author'] !== null),
                     'sprites' => $data['sprites'],
                     'acceleration' => +$data['acceleration'],
