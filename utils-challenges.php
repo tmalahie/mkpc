@@ -134,6 +134,14 @@ $clRulesByType = array(
 				$res['course'] = 'GP';
 			}
 		),
+		'gold_cups_n' => array(
+			'description_mockup' => $language ? 'Get N gold cups':'Obtenir N coupes d\'or',
+			'description' => $language ? 'Get $value gold cup$s':'Obtenir $value coupe$s d\'or',
+			'course' => array('mcup'),
+			'autoset' => function(&$res, $scope) {
+				$res['course'] = 'GP';
+			}
+		),
 		'finish_circuits_first' => array(
 			'description_mockup' => $language ? 'Finish 1st N times in a row':'Finir 1er N fois d\'affilée',
 			'description' => $language ? 'Finish 1st $value time$s in a row':'Finir 1er $value fois d\'affilée',

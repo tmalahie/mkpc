@@ -4020,17 +4020,18 @@ function continuer() {
 				for (var i=1;i<=aKarts.length;i++) {
 					for (var j=0;j<aKarts.length;j++) {
 						if (aKarts[j].place == i) {
-							placement.push(aKarts[j].personnage);
+							placement.push(aKarts[j]);
 							break;
 						}
 					}
 				}
 				document.body.style.fontSize = iScreenScale * 2 +"pt";
 				for (var i=0;i<placement.length;i++) {
-					if (placement[i] == strPlayer)
+					if (placement[i] == oPlayers[0])
 						oPlace = i+1;
+					var persoKey = placement[i].personnage;
 					if (i < 3)
-						document.body.innerHTML += '<img alt="." src="'+ getWinnerSrc(placement[i]) +'" style="width: '+ iScreenScale*4 +'px; position: absolute; left: '+ iScreenScale * posX[i] +'px; top: '+ iScreenScale * (posY[i]+(isCustomPerso(placement[i])?6:0)) +'px;'+ (isCustomPerso(placement[i]) ? 'transform:translateY(-100%);-webkit-transform:translateY(-100%);-moz-transform:translateY(-100%);-o-transform:translateY(-100%);-ms-transform:translateY(-100%);':'') +'" />';
+						document.body.innerHTML += '<img alt="." src="'+ getWinnerSrc(persoKey) +'" style="width: '+ iScreenScale*4 +'px; position: absolute; left: '+ iScreenScale * posX[i] +'px; top: '+ iScreenScale * (posY[i]+(isCustomPerso(persoKey)?6:0)) +'px;'+ (isCustomPerso(persoKey) ? 'transform:translateY(-100%);-webkit-transform:translateY(-100%);-moz-transform:translateY(-100%);-o-transform:translateY(-100%);-ms-transform:translateY(-100%);':'') +'" />';
 					else if (oPlace)
 						break;
 				}
@@ -9392,6 +9393,45 @@ var challengeRules = {
 			}
 			setSessionStorage("cl"+ruleVars.challenge.id+".gold_cups", JSON.stringify(succeededCups));
 			showChallengePartialSuccess(ruleVars.challenge, {nb:Object.keys(succeededCups).length,total:cupIDs.length});
+			return false;
+		},
+		"next_circuit": function(ruleVars) {
+			ruleVars.nbcircuits++;
+		}
+	},
+	"gold_cups_n": {
+		"verify": "end_gp",
+		"initRuleVars": function(challenge) {
+			return {challenge: challenge, nbcircuits: 0};
+		},
+		"success": function(scope, ruleVars) {
+			if (clLocalVars.endGP && (ruleVars.nbcircuits == 4))
+				return (oPlayers[0].place == 1);
+		},
+		"post_success": function(scope, ruleVars) {
+			var succeededCups = getSessionStorage("cl"+ruleVars.challenge.id+".gold_cups");
+			if (!succeededCups) succeededCups = '{}';
+			succeededCups = JSON.parse(succeededCups);
+			if (ruleVars.challenge.data.constraints.every(c => (c.type === "cc"))) {
+				for (var i=0;i<ptsGP.length;i++) {
+					if (ptsGP.charAt(i) == 3)
+						succeededCups[cupIDs[i]] = true;
+				}
+			}
+			var iCup = cupIDs[oMap.ref/4-1];
+			succeededCups[iCup] = true;
+			var nbWon = 0;
+			for (var i=0;i<cupIDs.length;i++) {
+				var cupID = cupIDs[i];
+				if (succeededCups[cupID])
+					nbWon++;
+			}
+			if (nbWon >= scope.value) {
+				deleteSessionStorage("cl"+ruleVars.challenge.id+".gold_cups");
+				return true;
+			}
+			setSessionStorage("cl"+ruleVars.challenge.id+".gold_cups", JSON.stringify(succeededCups));
+			showChallengePartialSuccess(ruleVars.challenge, {nb:Object.keys(succeededCups).length,total:scope.value});
 			return false;
 		},
 		"next_circuit": function(ruleVars) {
@@ -16835,9 +16875,10 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 								}
 							}
 							aPlayers.sort(function(){return 0.5-Math.random()});
-							if (aPlayers.length < fInfos.nbPlayers) {
+							var nbPlayers = (course!="GP") ? fInfos.nbPlayers : 8;
+							if (aPlayers.length < nbPlayers) {
 								var aLength = aPlayers.length;
-								aPlayers.length = aPlayers.length*Math.ceil(fInfos.nbPlayers/aPlayers.length);
+								aPlayers.length = aPlayers.length*Math.ceil(nbPlayers/aPlayers.length);
 								for (var i=aLength;i<aPlayers.length;i++)
 									aPlayers[i] = aPlayers[i%aLength];
 							}
@@ -16853,7 +16894,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 									}
 								}
 							}
-							var oSuppr = (course!="GP") ? aPlayers.length-fInfos.nbPlayers+strPlayer.length:aPlayers.length-7;
+							var oSuppr = aPlayers.length-nbPlayers+strPlayer.length;
 							aPlayers.splice(0,oSuppr);
 						}
 						aPlaces = [];

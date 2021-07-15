@@ -51,7 +51,7 @@ if (isset($_POST['id'])) {
 				}
 				$newUnlocked = mysql_query('SELECT c.id,c.name,c.sprites FROM mkclrewards r INNER JOIN mkchars c ON r.charid=c.id WHERE r.id IN('. implode(',',$rewardIds) .') GROUP BY c.id');
 				while ($unlocked = mysql_fetch_array($newUnlocked)) {
-					if (!$currentlyUnlocked[$unlocked['id']]) {
+					if (!isset($currentlyUnlocked[$unlocked['id']])) {
 						$res['unlocked'][] = array(
 							'id' => $unlocked['id'],
 							'name' => $unlocked['name'],

@@ -247,6 +247,13 @@ function selectMainRule() {
 			'</label>'
 		);
 		break;
+	case 'gold_cups_n':
+		$extra.html(
+			'<label>'+
+			'<input type="number" style="width:30px" name="goal[value]" required="required" autocomplete="off" /> '+ (language ? 'cups':'coupes')+
+			'</label>'
+		);
+		break;
 	case 'finish_circuits_first':
 		$extra.html(
 			'<label>'+
