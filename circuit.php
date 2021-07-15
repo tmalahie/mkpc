@@ -310,6 +310,7 @@ function listMaps() {
 	include('mk/circuit.php');
 	?>};
 }
+<?php include('handleCupOptions.php'); ?>
 </script>
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
