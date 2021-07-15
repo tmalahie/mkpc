@@ -7,7 +7,7 @@ if (isset($_GET['id'])) {
 		if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
 			include('language.php');
 			include('perso-stats.php');
-			include('persos.php');
+			require_once('persos.php');
 			if (isset($_POST['name']) && isset($_POST['speed']) && isset($_POST['acceleration']) && isset($_POST['handling']) && isset($_POST['mass'])) {
 				$_POST['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);
 				if (!$_POST['name'])

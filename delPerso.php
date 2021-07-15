@@ -12,7 +12,7 @@ if (isset($_GET['id'])) {
 		include('getId.php');
 		if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
 			mysql_query('DELETE FROM `mkchars` WHERE id="'. $persoId .'"');
-			include('persos.php');
+			require_once('persos.php');
 			$spriteSrcs = get_sprite_srcs($perso['sprites']);
 			delete_sprite_imgs($spriteSrcs);
 			header('location: persoEditor.php');

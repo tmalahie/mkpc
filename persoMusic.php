@@ -22,7 +22,7 @@ if (isset($_GET['id'])) {
 					header('location: persoOptions.php?id='. $persoId);
 				}
 			}
-			include('persos.php');
+			require_once('persos.php');
 			$persoMusic = get_perso_music($perso);
 			ob_start();
 			include('getPersos.php');

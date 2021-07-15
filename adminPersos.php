@@ -8,7 +8,7 @@ if (!hasRight('moderator')) {
 	exit;
 }
 include('language.php');
-include('persos.php');
+require_once('persos.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">

@@ -253,7 +253,7 @@ var pUnlocked = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
 var page = "OL";
 var PERSOS_DIR = "<?php
-	include('persos.php');
+	require_once('persos.php');
 	echo PERSOS_DIR;
 ?>";
 var mId = <?php echo $id ? $id:'null'; ?>;

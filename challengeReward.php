@@ -27,7 +27,7 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
         $persoId = $_POST['perso'];
         if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'" AND name!=""'))) {
             if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
-                if ($reward) {
+                if (isset($reward)) {
                     $rewardId = intval($reward['id']);
                     mysql_query('UPDATE mkclrewards SET charid="'. $persoId .'" WHERE id='.$rewardId);
                     mysql_query('DELETE FROM mkclrewardchs WHERE reward='. $rewardId);
@@ -94,7 +94,7 @@ include('o_online.php');
             <div class="challenge-character-selector">
             <?php
             $selectedPerso = isset($reward) ? $reward['charid'] : -1;
-            include('persos.php');
+            require_once('persos.php');
             while ($perso = mysql_fetch_array($getEligiblePersos)) {
                 $spriteSrcs = get_sprite_srcs($perso['sprites']);
                 ?>
@@ -132,7 +132,7 @@ include('o_online.php');
         <select name="challenges[]" required="required" multiple="multiple"<?php if (empty($challenges)) echo ' style="display:none"'; ?>>
             <?php
             $selectedChallenges = array();
-            if ($reward) {
+            if (isset($reward)) {
                 $getChallenges = mysql_query('SELECT challenge FROM mkclrewardchs WHERE reward="'. $reward['id'] .'"');
                 while ($challenge = mysql_fetch_array($getChallenges))
                     $selectedChallenges[$challenge['challenge']] = 1;
@@ -165,7 +165,7 @@ function selectPerso($elt) {
     onFormChange();
 }
 <?php
-if ($reward)
+if (isset($reward))
     echo 'selectPerso(document.querySelector(".challenge-character-selector > div[data-cid=\\"'.$reward['charid'] .'\\"]"));';
 ?>
 function onFormChange() {

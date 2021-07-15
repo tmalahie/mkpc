@@ -848,7 +848,7 @@ include('menu.php');
 			<?php
 			$bestScores = mysql_query('SELECT r.perso,r.time,r.class,r.circuit,1+COUNT(r2.circuit) AS place FROM `mkrecords` r LEFT JOIN `mkrecords` r2 ON r.class=r2.class AND r.type=r2.type AND r.circuit=r2.circuit AND r2.time<r.time AND r2.best=1 WHERE r.player="'.$_GET['id'].'" AND r.type="" AND r.best=1 GROUP BY r.class,r.circuit ORDER BY place LIMIT 3');
 			if (mysql_numrows($bestScores)) {
-				include('persos.php');
+				require_once('persos.php');
 				function getSpriteSrc($playerName) {
 					if (substr($playerName, 0,3) == 'cp-')
 						return PERSOS_DIR . $playerName . ".png";

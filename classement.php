@@ -353,7 +353,7 @@ function getScore(place,nPlaces) {
 	return Math.round(8*Math.pow(1-x,4/3));
 }
 var PERSOS_DIR = "<?php
-	include('persos.php');
+	require_once('persos.php');
 	echo PERSOS_DIR;
 ?>";
 if (!String.prototype.startsWith) {

@@ -298,7 +298,7 @@ function getPlace(id,place) {
 	return place+2;
 }
 var PERSOS_DIR = "<?php
-	include('persos.php');
+	require_once('persos.php');
 	echo PERSOS_DIR;
 ?>";
 if (!String.prototype.startsWith) {

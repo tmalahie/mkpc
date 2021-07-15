@@ -3,7 +3,7 @@ include('getId.php');
 include('language.php');
 $mids = array();
 $editting = true;
-$optionsJson = isset($_GET['opt']) ? $_GET['opt']:null;
+$cOptions = isset($_GET['opt']) ? $_GET['opt']:null;
 include('initdb.php');
 mysql_set_charset('utf8');
 if (isset($_GET['mid'])) {
@@ -13,9 +13,9 @@ if (isset($_GET['mid'])) {
 		$mids[] = $getCup['cup'];
 	if (empty($mids))
 		$editting = false;
-	if (null === $optionsJson) {
+	if (null === $cOptions) {
 		if ($getMCup = mysql_fetch_array(mysql_query('SELECT options FROM `mkmcups` WHERE id="'. $id .'"')))
-			$optionsJson = $getMCup['options'];
+			$cOptions = $getMCup['options'];
 	}
 }
 else {
@@ -39,7 +39,7 @@ function escapeUtf8($str) {
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create multicup':'Cr&eacute;er multicoupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css" />
+<link rel="stylesheet" href="styles/cup.css?reload=1" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -49,8 +49,12 @@ var ckey = "mid";
 if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
 ?>
+var cp = <?php include('getPersos.php'); ?>;
+<?php
+include('handleCupOptions.php');
+?>
 </script>
-<script type="text/javascript" src="scripts/cup.js"></script>
+<script type="text/javascript" src="scripts/cup.js?reload=1"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body onload="initGUI()">
@@ -126,15 +130,35 @@ if (isset($mids))
 					if (isset($_GET['cl']))
 						echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
 					?>
-					<input type="hidden" id="cup-options" name="opt" value="<?php echo htmlspecialchars($optionsJson) ?>" />
+					<input type="hidden" id="cup-options" name="opt" value="<?php echo htmlspecialchars($cOptions) ?>" />
 					<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
 					<a class="editor-switch-options" href="javascript:showEditorContent(1)"><?php echo $language ? 'Advanced&nbsp;options':'Options&nbsp;avancées'; ?></a>
 				</p>
 			</div>
 			<div class="editor-content">
 				<h1><?php echo $language ? 'Advanced options':'Options avancées'; ?></h1>
-				<h2><?php echo $language ? 'Multicup appearance:':'Apparence de votre coupe :'; ?> <a id="reset-cup-appearance" href="javascript:resetCupAppearance()">[<?php echo $language ? 'Reset':'Réinitialiser'; ?>]</a></h2>
-				<div id="cup-appearance">
+				<div id="option-tabs">
+					<div class="option-tab-selected" onclick="selectOptionTab(0)">
+						<?php echo $language ? 'Multicup appearance':'Apparence de votre coupe'; ?>
+					</div><div onclick="selectOptionTab(1)">
+						<?php echo $language ? 'Character roster':'Liste des persos'; ?>
+					</div>
+				</div>
+				<div id="option-containers">
+					<div class="option-container-selected">
+						<h2><?php echo $language ? 'Multicup appearance:':'Apparence de votre coupe :'; ?> <a id="reset-cup-appearance" href="javascript:resetCupAppearance()">[<?php echo $language ? 'Reset':'Réinitialiser'; ?>]</a></h2>
+						<div id="cup-appearance"></div>
+					</div>
+					<div>
+						<h2><?php echo $language ? 'Character roster:':'Liste des persos :'; ?> <a id="reset-character-roster" href="javascript:resetCharacterRoster()">[<?php echo $language ? 'Reset':'Réinitialiser'; ?>]</a></h2>
+						<div id="character-roster"></div>
+						<div class="character-roster-extra">
+							<label>
+								<input type="checkbox" id="customchars" checked="checked" onclick="resetCupOptions()" /> <?php echo ($language ? 'Allow custom characters' : 'Autoriser les persos custom'); ?>
+							</label>
+							<a href="javascript:showCustomCharToggleHelp()">[?]</a>
+						</div>
+					</div>
 				</div>
 				<p>
 					<div class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></div>

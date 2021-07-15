@@ -59,7 +59,7 @@ var pUnlocked = <?php include('getLocks.php'); ?>;
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
 var page = "BA";
 var PERSOS_DIR = "<?php
-	include('persos.php');
+	require_once('persos.php');
 	echo PERSOS_DIR;
 ?>";
 var cShared = <?php echo $cShared ? 'true':'false'; ?>;

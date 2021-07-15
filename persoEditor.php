@@ -4,7 +4,7 @@ include('language.php');
 session_start();
 include('tokens.php');
 assign_token();
-include('persos.php');
+require_once('persos.php');
 include('file-quotas.php');
 include('initdb.php');
 if (isset($_FILES['sprites'])) {

@@ -13,6 +13,10 @@ function getSubmitMsg() {
 			if (actualLines[i] > 8)
 				return (language ? "Please define at most 8 cups per line":"Veuillez définir au plus 8 coupes par ligne");
 		}
+		if (persoList) {
+			if (!persoList.length)
+				return (language ? "Please define at least 1 character":"Veuillez définir au moins 1 perso");
+		}
 		return "";
 	}
 	return (selectedCircuits.length != 4) ? (language ? "You must select 4 circuits":"Vous devez sélectionner 4 circuits"):"";
@@ -55,6 +59,10 @@ function initGUI() {
 					if (cupOptions) {
 						if (cupOptions.icons) cupIcons = cupOptions.icons;
 						if (cupOptions.lines) cupLines = cupOptions.lines;
+						if (typeof characterRoster !== "undefined")
+							persoList = characterRoster;
+						if (cupOptions.customchars === 0)
+							document.getElementById("customchars").checked = false;
 					}
 				}
 				catch (e) {
@@ -88,8 +96,10 @@ function initGUI() {
 	}
 }
 function showEditorContent(id) {
-	if (id == 1)
+	if (id == 1) {
 		updateCupImgGUI();
+		updateCupPersosGUI();
+	}
 	document.querySelector(".editor-content.editor-content-active").classList.remove("editor-content-active");
 	document.querySelectorAll(".editor-content")[id].classList.add("editor-content-active");
 }
@@ -125,6 +135,7 @@ function previewImg(e,src) {
 }
 var cupIcons = [];
 var cupLines = [];
+var persoList;
 var actualIcons, actualLines;
 var allCups = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
 function resetCupOptions() {
@@ -177,6 +188,15 @@ function resetCupOptions() {
 			cupOptions.icons = actualIcons;
 		if (cupLines.length)
 			cupOptions.lines = actualLines;
+		if (persoList) {
+			cupOptions.persos = persoList.map(function(data) {
+				if (data.id)
+					return data.id;
+				return data.sprites;
+			});
+		}
+		if (!document.getElementById("customchars").checked)
+			cupOptions.customchars = 0;
 		var cupOptionsJSON = JSON.stringify(cupOptions);
 		if (cupOptionsJSON === "{}")
 			cupOptionsJSON = "";
@@ -188,6 +208,12 @@ function resetCupAppearance() {
 		cupLines = [];
 		cupIcons = [];
 		updateCupImgGUI();
+	}
+}
+function resetCharacterRoster() {
+	if (confirm(language ? "Reset character roster to default?":"Rétablir la liste des persos par défaut ?")) {
+		persoList = undefined;
+		updateCupPersosGUI();
 	}
 }
 function updateCupImgGUI() {
@@ -247,6 +273,58 @@ function updateCupImgGUI() {
 	}
 	document.getElementById("reset-cup-appearance").style.display = ((cupLines.length || cupIcons.length)) ? "":"none";
 	updateSubmitMsg();
+}
+function updateCupPersosGUI() {
+	resetCupOptions();
+	var pList = getPersosList();
+	var nbPersos = Object.keys(cp).length;
+	var $characterRoster = document.getElementById("character-roster");
+	$characterRoster.innerHTML = "";
+	nbPersos = Math.min(nbPersos, pList.length+1);
+	for (let i=0;i<nbPersos;i++) {
+		var oPerso = pList[i];
+		var oDiv = document.createElement("div");
+		oDiv.className = "character-tile";
+		var oDiv2 = document.createElement("div");
+		if (oPerso) {
+			var oCross = document.createElement("a");
+			oCross.href = "#null";
+			oCross.innerHTML = "&times";
+			oCross.onclick = function(e) {
+				e.stopPropagation();
+				var pList = getPersosList();
+				pList.splice(i, 1);
+				persoList = pList;
+				updateCupPersosGUI();
+				return false;
+			};
+			oDiv.appendChild(oCross);
+			var oImg = document.createElement("img");
+			if (oPerso.id)
+				oImg.src = "images/sprites/uploads/"+oPerso.sprites+".png";
+			else
+				oImg.src = "images/sprites/sprite_"+oPerso.sprites+".png";
+			oImg.alt = oPerso.sprites;
+			oDiv2.appendChild(oImg);
+		}
+		else
+			oDiv2.innerHTML = "<span>+</span>";
+		oDiv.appendChild(oDiv2);
+		oDiv.onclick = function() {
+			selectPersoImg(i);
+		};
+		$characterRoster.appendChild(oDiv);
+	}
+	document.getElementById("reset-character-roster").style.display = persoList ? "":"none";
+	updateSubmitMsg();
+}
+function getPersosList() {
+	if (persoList)
+		return persoList;
+	var res = [];
+	for (var perso in cp)
+		res.push({sprites:perso});
+	return res;
 }
 function selectCupImg(cup) {
 	var $mask = document.createElement("div");
@@ -321,26 +399,54 @@ function selectLineCursor($editingCursor,e) {
 		else
 			$editingCursor.className = "cup-appearance-cursor";
 	}, 500);
-	function closeMask() {
-		document.removeEventListener("keydown", hideOnEscape);
-		document.body.removeChild($mask);
-		$editingCursor.className = "cup-appearance-cursor";
-		clearInterval(blinkToggle);
-	}
+	var items = [{
+		label: language ? "Cancel" : "Annuler",
+		select: function(){}
+	}];
 	function addNewLine() {
 		cupLines = actualLines;
 		cupLines[line] -= row;
 		cupLines.splice(line, 0, row);
 		cupLines[line] = row;
-		closeMask();
 		updateCupImgGUI();
 	}
 	function rmNewLine() {
 		cupLines = actualLines;
 		cupLines[line-1] += cupLines[line];
 		cupLines.splice(line, 1);
-		closeMask();
 		updateCupImgGUI();
+	}
+	if (eol) {
+		items.push({
+			label: language ? "<strong>Remove line</strong>" : "<strong>Supprimer ligne</strong>",
+			select: rmNewLine
+		});
+	}
+	else {
+		items.push({
+			label: language ? "<strong>New line here</strong>" : "<strong>Nouvelle ligne ici</strong>",
+			select: addNewLine
+		});
+	}
+	createContextMenu({
+		event: e,
+		items: items,
+		onclose: function() {
+			$editingCursor.className = "cup-appearance-cursor";
+			clearInterval(blinkToggle);
+		}
+	});
+}
+function createContextMenu(options) {
+	var e = options.event;
+	var items = options.items;
+	var $mask = document.createElement("div");
+	$mask.className = "editor-mask";
+	function closeMask() {
+		document.removeEventListener("keydown", hideOnEscape);
+		document.body.removeChild($mask);
+		if (options.onclose)
+			options.onclose();
 	}
 	function hideOnEscape(e) {
 		switch (e.keyCode) {
@@ -350,41 +456,23 @@ function selectLineCursor($editingCursor,e) {
 		}
 	}
 	document.body.appendChild($mask);
-	var oContextMenu = document.createElement("div");
-	oContextMenu.style.position = "absoulte";
-	oContextMenu.className = "editor-mask-contextmenu";
-	var oContextMenuItem = document.createElement("div");
-	oContextMenuItem.innerHTML = language ? "Cancel" : "Annuler";
-	oContextMenuItem.onclick = function() {
-		closeMask();
-	}
-	oContextMenuItem.oncontextmenu = function() {
-		closeMask();
-		return false;
-	}
-	oContextMenu.appendChild(oContextMenuItem);
-	var oContextMenuItem = document.createElement("div");
-	if (eol) {
-		oContextMenuItem.innerHTML = language ? "<strong>Remove line</strong>" : "<strong>Supprimer ligne</strong>";
+	for (let item of items) {
+		var oContextMenu = document.createElement("div");
+		oContextMenu.style.position = "absoulte";
+		oContextMenu.className = "editor-mask-contextmenu";
+		var oContextMenuItem = document.createElement("div");
+		oContextMenuItem.innerHTML = item.label;
 		oContextMenuItem.onclick = function() {
-			rmNewLine();
+			item.select();
+			closeMask();
 		}
 		oContextMenuItem.oncontextmenu = function() {
-			rmNewLine();
+			item.select();
+			closeMask();
 			return false;
 		}
+		oContextMenu.appendChild(oContextMenuItem);
 	}
-	else {
-		oContextMenuItem.innerHTML = language ? "<strong>New line here</strong>" : "<strong>Nouvelle ligne ici</strong>";
-		oContextMenuItem.onclick = function() {
-			addNewLine();
-		}
-		oContextMenuItem.oncontextmenu = function() {
-			addNewLine();
-			return false;
-		}
-	}
-	oContextMenu.appendChild(oContextMenuItem);
 	oContextMenu.onclick = function(e) {
 		e.stopPropagation();
 	};
@@ -396,4 +484,128 @@ function selectLineCursor($editingCursor,e) {
 	oContextMenu.style.visibility = "";
 	document.addEventListener("keydown", hideOnEscape);
 	$mask.onclick = closeMask;
+}
+var customCharacters;
+function selectPersoImg(pos) {
+	var $mask = document.createElement("div");
+	$mask.className = "editor-mask editor-mask-dark";
+	document.body.appendChild($mask);
+	function closeMask() {
+		document.removeEventListener("keydown", hideOnEscape);
+		document.body.removeChild($mask);
+		var $editingImg = document.querySelector(".editing-cup-img");
+		if ($editingImg) $editingImg.className = "";
+	}
+	function hideOnEscape(e) {
+		switch (e.keyCode) {
+		case 27:
+			closeMask();
+		}
+	}
+	document.addEventListener("keydown", hideOnEscape);
+	$mask.onclick = closeMask;
+	var oPersoSelector = document.createElement("div");
+	oPersoSelector.className = "editor-mask-content";
+	oPersoSelector.innerHTML = '<h3>'+ (language ? "Character selection..." : "Sélection du perso...") +'</h3>'
+							+ '<div class="perso-selection-standard"></div>'
+								+ '<h4>'+ (language ? "Basic characters":"Persos de base") +'</h4>'
+								+ '<div class="perso-selection-choices" id="perso-selection-standard-choices"></div>'
+							+ '<div id="perso-selection-custom" style="display:none">'
+								+ '<h4>'+ (language ? "Custom characters":"Persos custom") +'</h4>'
+								+ '<div class="perso-selection-custom-explain">'+ (language
+									? "Select here a character from the character editor. If the character hasn't been shared, he will appear as locked for other members."
+									: "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres"
+								) +'</div>'
+								+ '<div id="perso-info">'
+									+'<div>'
+										+'<div id="perso-info-name">Mario</div>'
+										+'<div class="perso-info-share" id="perso-info-shared">✓ Perso partagé</div>'
+										+'<div class="perso-info-share" id="perso-info-unshared">🔒 Perso non partagé</div>'
+									+'</div>'
+								+ '</div>'
+								+ '<div class="perso-selection-choices" id="perso-selection-custom-choices"></div>'
+							+ '</div>';
+	oPersoSelector.onclick = function(e) {
+		e.stopPropagation();
+	}
+	$mask.appendChild(oPersoSelector);
+	var $persoSelectionChoices = document.getElementById("perso-selection-standard-choices");
+	function appendPersoChoice($div, src, data) {
+		var oDiv = document.createElement("div");
+		var oDiv2 = document.createElement("div");
+		var oImg = document.createElement("img");
+		oImg.src = src;
+		oImg.onclick = function() {
+			var perso = data.sprites;
+			var pList = getPersosList();
+			var persoCurrentElt = perso && pList.find(function(p) { return p && p.sprites === perso });
+			var persoPos = persoCurrentElt ? pList.indexOf(persoCurrentElt) : -1;
+			var currentPerso = pList[pos];
+			if ((persoPos !== -1) && !currentPerso) {
+				pos = pList.length - 1;
+				currentPerso = pList[pos];
+			}
+			pList[pos] = data;
+			if (persoPos !== -1)
+				pList[persoPos] = currentPerso;
+			persoList = pList;
+			closeMask();
+			updateCupPersosGUI();
+		};
+		oDiv2.appendChild(oImg);
+		oDiv.appendChild(oDiv2);
+		$div.appendChild(oDiv);
+		return oDiv;
+	}
+	for (var perso in cp) {
+		appendPersoChoice($persoSelectionChoices, "images/sprites/sprite_"+ perso +".png", {
+			sprites : perso
+		});
+	}
+	function appendCustomCharacters() {
+		var $persoSelectionChoices = document.getElementById("perso-selection-custom-choices");
+		for (var i=0;i<customCharacters.length;i++) {
+			let customCharacter = customCharacters[i];
+			var oDiv = appendPersoChoice($persoSelectionChoices, customCharacter.ld, customCharacter);
+			oDiv.onmouseover = function() {
+				oPersoSelector.querySelector("#perso-info-name").innerText = customCharacter.name;
+				if (customCharacter.shared) {
+					oPersoSelector.querySelector("#perso-info-shared").style.display = "block";
+					oPersoSelector.querySelector("#perso-info-unshared").style.display = "none";
+				}
+				else {
+					oPersoSelector.querySelector("#perso-info-shared").style.display = "none";
+					oPersoSelector.querySelector("#perso-info-unshared").style.display = "block";
+				}
+				oPersoSelector.querySelector("#perso-info").style.display = "block";
+			};
+			oDiv.onmouseout = function() {
+				oPersoSelector.querySelector("#perso-info").style.display = "";
+			};
+		}
+		document.getElementById("perso-selection-custom").style.display = "";
+	}
+	if (customCharacters)
+		appendCustomCharacters();
+	else {
+		o_xhr("myPlayablePersos.php", "", function(res) {
+			try {
+				customCharacters = JSON.parse(res);
+			}
+			catch (e) {
+				return false;
+			}
+			appendCustomCharacters();
+			return true;
+		});
+	}
+}
+function showCustomCharToggleHelp() {
+	alert(language ? "If unchecked, you don't give access to the character editor in the character selector screen. Only the characters in the list above can be selected." : "Si décoché, vous ne donnez pas accès à l'éditeur de persos dans l'écran de sélection du perso. Seuls les persos de la liste ci-dessus pourront être sélectionnés.");
+}
+function selectOptionTab(id) {
+	document.querySelector(".option-tab-selected").classList.remove("option-tab-selected");
+	document.querySelectorAll("#option-tabs > div")[id].classList.add("option-tab-selected");
+	document.querySelector(".option-container-selected").classList.remove("option-container-selected");
+	document.querySelectorAll("#option-containers > div")[id].classList.add("option-container-selected");
 }

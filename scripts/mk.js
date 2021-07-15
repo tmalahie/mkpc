@@ -2,7 +2,7 @@ var pause, chatting = false;
 var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array();
 var fInfos;
 var formulaire;
-var baseCp;
+var baseCp, baseCp0, pUnlockMap;
 var customDecorData = {};
 var nBasePersos, customPersos;
 var selectedDifficulty;
@@ -496,15 +496,49 @@ function playMusicSmoothly(src,delay) {
 	document.body.appendChild(oMusicEmbed);
 }
 
+function baseCustomPersos() {
+	var res = {};
+	if (typeof characterRoster !== "undefined") {
+		for (var i=0;i<characterRoster.length;i++) {
+			var perso = characterRoster[i];
+			if (!baseCp0[perso.sprites])
+				res[perso.sprites] = perso;
+		}
+	}
+	return res;
+}
+
 var itemDistribution;
 
 var oBgLayers = new Array();
 var oPlayers = new Array();
 if (!pause) {
+	if (!baseCp0) {
+		baseCp0 = {};
+		pUnlockMap = {};
+		var i = 0;
+		for (joueurs in cp) {
+			baseCp0[joueurs] = cp[joueurs];
+			pUnlockMap[joueurs] = pUnlocked[i];
+			i++;
+		}
+		if (typeof characterRoster !== "undefined") {
+			cp = {};
+			for (var i=0;i<characterRoster.length;i++) {
+				var perso = characterRoster[i];
+				if (baseCp0[perso.sprites])
+					cp[perso.sprites] = baseCp0[perso.sprites];
+				else {
+					cp[perso.sprites] = [perso.acceleration,perso.speed,perso.handling,perso.mass];
+					pUnlockMap[perso.sprites] = perso.unlocked;
+				}
+			}
+		}
+	}
 	if (baseCp)
 		cp = baseCp;
 	baseCp = {};
-	customPersos = {};
+	customPersos = baseCustomPersos();
 	nBasePersos = 0;
 	for (joueurs in cp) {
 		aPlayers.push(joueurs);
@@ -14473,7 +14507,7 @@ function getWinnerSrc(playerName) {
 function getEndingSrc(playerName) {
 	if (isCustomPerso(playerName))
 		playerName = customPersos[playerName].music;
-	if (baseCp[playerName])
+	if (baseCp0[playerName])
 		return "musics/endings/ending_"+playerName+".mp3";
 	return playerName;
 }
@@ -16604,6 +16638,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	oScr.appendChild(oTitle);
 
 	var baseY = shrinkAll ? 8:10;
+	var customCharsEnabled = (cupOpts.customchars !== 0);
 	
 	var cTable = document.createElement("table");
 	cTable.style.display = "none";
@@ -16670,7 +16705,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		}, 100);
 	}
 
-	function createPersoSelector(i) {
+	function createPersoSelector(oJoueur) {
 		var oDiv = document.createElement("div");
 		oDiv.style.backgroundColor = "#78D0F8";
 		oDiv.style.position = "absolute";
@@ -16692,9 +16727,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oPImg.style.height = (5 * jScreenScale) +"px";
 		oPImg.style.position = "absolute";
 		oPImg.className = "pixelated";
-		if (pUnlocked[i]) {
+		if (pUnlockMap[oJoueur]) {
 			var libre = true;
-			var oJoueur = aPlayers[i];
 			for (var j=0;j<strPlayer.length;j++) {
 				if (strPlayer[j] == oJoueur) {
 					libre = false;
@@ -16702,8 +16736,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				}
 			}
 			oPImg.src = (libre ? getSpriteSrc(oJoueur):getStarSrc(oJoueur));
-			oPImg.alt = aPlayers[i];
-			oPImg.nb = i;
+			oPImg.alt = oJoueur;
 			oPImg.style.left = -(30 * jScreenScale) +"px";
 			oPImg.style.cursor = "pointer";
 			oPImg.id = "perso-selector-"+oJoueur;
@@ -16796,7 +16829,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 						else {
 							var i = 0;
 							for (joueurs in cp) {
-								if (pUnlocked[i]) {
+								if (pUnlockMap[joueurs]) {
 									aPlayers.push(joueurs);
 									i++;
 								}
@@ -16875,38 +16908,61 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		return oDiv;
 	}
 
+	var minPersoX = 8, maxPersoX = 58.4;
+	if (!customCharsEnabled) {
+		var shiftX = 5;
+		minPersoX += shiftX;
+		maxPersoX += shiftX;
+	}
+	var minPersoY = baseY, maxPersoY = baseY + 14;
+	var midPersoX = (minPersoX + maxPersoX) / 2;
+	var midPersoY = (minPersoY + maxPersoY) / 2;
+	var nbPersosPerLine = 8;
+	var nbLines = Math.ceil(nBasePersos/nbPersosPerLine);
+	nbPersosPerLine = Math.ceil(nBasePersos/nbLines);
+	var tilePersoX = Math.min(9,(maxPersoX-minPersoX)/(nbPersosPerLine-1));
+	var tilePersoY = Math.min(8,(maxPersoY-minPersoY)/(nbLines-1));
+	tilePersoX = Math.min(tilePersoX,tilePersoY*1.2);
 	for (var i=0;i<nBasePersos;i++) {
-		var oDiv = createPersoSelector(i);
-		oDiv.style.left = Math.round((7.2*(i%8)+8) * iScreenScale) +"px";
-		oDiv.style.top = ((baseY+Math.floor(i/8)*7)*iScreenScale - 8)+"px";
+		var x = i%nbPersosPerLine, y = Math.floor(i/nbPersosPerLine);
+		if (y < (nbLines-1))
+			x -= (nbPersosPerLine-1)/2;
+		else
+			x -= ((nBasePersos-1)%nbPersosPerLine)/2;
+		y -= (nbLines-1)/2;
+		var oDiv = createPersoSelector(aPlayers[i]);
+		oDiv.style.left = Math.round((midPersoX + x*tilePersoX) * iScreenScale) +"px";
+		oDiv.style.top = Math.round((midPersoY + y*tilePersoY) * iScreenScale - 8) +"px";
 		oScr.appendChild(oDiv);
 	}
-	var pDiv = document.createElement("div");
-	pDiv.style.backgroundColor = "#78D0F8";
-	pDiv.style.position = "absolute";
-	pDiv.style.width = (5 * iScreenScale) + "px";
-	pDiv.style.height = (5 * iScreenScale) + "px";
-	pDiv.style.left = (67 * iScreenScale) +"px";
-	pDiv.style.top = ((baseY+14) * iScreenScale - 8)+"px";
-	pDiv.style.borderTop = "double 4px black"; 
-	pDiv.style.borderLeft = "double 4px #F8F8F8"; 
-	pDiv.style.borderRight = "double 4px #F8F8F8"; 
-	pDiv.style.borderBottom = "solid 5px #00B800"; 
-	pDiv.style.overflow = "hidden";
+	if (customCharsEnabled) {
+		var pDiv = document.createElement("div");
+		pDiv.style.backgroundColor = "#78D0F8";
+		pDiv.style.position = "absolute";
+		pDiv.style.width = (5 * iScreenScale) + "px";
+		pDiv.style.height = (5 * iScreenScale) + "px";
+		pDiv.style.left = (67 * iScreenScale) +"px";
+		pDiv.style.top = ((baseY+14) * iScreenScale - 8)+"px";
+		pDiv.style.borderTop = "double 4px black"; 
+		pDiv.style.borderLeft = "double 4px #F8F8F8"; 
+		pDiv.style.borderRight = "double 4px #F8F8F8"; 
+		pDiv.style.borderBottom = "solid 5px #00B800"; 
+		pDiv.style.overflow = "hidden";
 
-	var pPImg = new Image();
-	pPImg.style.height = (5 * iScreenScale) +"px";
-	pPImg.style.position = "absolute";
-	pPImg.src = "images/kart_persos.png";
-	pPImg.style.cursor = "pointer";
-	pPImg.title = language ? "Character editor" : "Éditeur de personnages";
-	pPImg.className = "pixelated";
-	pPImg.onclick = function() {
-		window.open('choosePerso.php','chose','scrollbars=1, resizable=1, width=500, height=500');
+		var pPImg = new Image();
+		pPImg.style.height = (5 * iScreenScale) +"px";
+		pPImg.style.position = "absolute";
+		pPImg.src = "images/kart_persos.png";
+		pPImg.style.cursor = "pointer";
+		pPImg.title = language ? "Character editor" : "Éditeur de personnages";
+		pPImg.className = "pixelated";
+		pPImg.onclick = function() {
+			window.open('choosePerso.php','chose','scrollbars=1, resizable=1, width=500, height=500');
+		}
+
+		pDiv.appendChild(pPImg);
+		oScr.appendChild(pDiv);
 	}
-
-	pDiv.appendChild(pPImg);
-	oScr.appendChild(pDiv);
 
 	oContainers[0].appendChild(oScr);
 	
@@ -17437,11 +17493,17 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		cp = {};
 		for (var joueurs in baseCp)
 			cp[joueurs] = baseCp[joueurs];
-		customPersos = {};
+		customPersos = baseCustomPersos();
 		for (var i=0;i<newPersos.length;i++) {
 			var newPerso = newPersos[i];
-			cp[newPerso["sprites"]] = [newPerso["acceleration"],newPerso["speed"],newPerso["handling"],newPerso["mass"]];
-			customPersos[newPerso["sprites"]] = newPerso;
+			var persoKey = newPerso["sprites"];
+			if (!cp[persoKey])
+				cp[persoKey] = [];
+			cp[persoKey][0] = newPerso["acceleration"];
+			cp[persoKey][1] = newPerso["speed"];
+			cp[persoKey][2] = newPerso["handling"];
+			cp[persoKey][3] = newPerso["mass"];
+			customPersos[persoKey] = newPerso;
 		}
 		aPlayers = [];
 		for (joueurs in cp)
@@ -17451,9 +17513,9 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				cp[joueurs] = lastCp[joueurs];
 		}
 		for (var i=0;i<newPersos.length;i++) {
-			var inc = nBasePersos+i;
-			pUnlocked[inc] = 1;
-			var oDiv = createPersoSelector(inc);
+			var persoKey = newPersos[i].sprites;
+			pUnlockMap[persoKey] = 1;
+			var oDiv = createPersoSelector(persoKey);
 			if (newP && !i && oDiv.firstChild.onclick) {
 				oDiv.firstChild.onclick();
 				return;
@@ -17467,24 +17529,26 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 
 	if (newP)
 		myPersosCache = undefined;
-	if (myPersosCache)
-		addMyPersos(myPersosCache);
-	else {
-		xhr("myPersos.php", null, function(res) {
-			var newPersos = [];
-			try {
-				newPersos = eval(res);
-			}
-			catch (e) {
-			}
-			if (!newPersos.length) {
-				oScr.style.visibility = "visible";
+	if (customCharsEnabled) {
+		if (myPersosCache)
+			addMyPersos(myPersosCache);
+		else {
+			xhr("myPersos.php", null, function(res) {
+				var newPersos = [];
+				try {
+					newPersos = eval(res);
+				}
+				catch (e) {
+				}
+				if (!newPersos.length) {
+					oScr.style.visibility = "visible";
+					return true;
+				}
+				addMyPersos(newPersos);
+				myPersosCache = newPersos;
 				return true;
-			}
-			addMyPersos(newPersos);
-			myPersosCache = newPersos;
-			return true;
-		});
+			});
+		}
 	}
 
 	selectPerso = function(persoId) {

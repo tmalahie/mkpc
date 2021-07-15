@@ -4,7 +4,7 @@ include('session.php');
 include('getId.php');
 include('initdb.php');
 include('perso-stats.php');
-include('persos.php');
+require_once('persos.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">

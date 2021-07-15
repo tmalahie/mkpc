@@ -39,7 +39,7 @@ if (!$circuitMainData->music) {
 ?>
 "startposition" : [<?php echo ($circuitMainData->startposition[0]+5).','.($circuitMainData->startposition[1]-6); ?>],
 "startrotation" : <?php echo $circuitMainData->startrotation; ?>,
-"startdirection" : <?php echo $circuitMainData->startdirection?0:1; ?>,
+"startdirection" : <?php echo empty($circuitMainData->startdirection)?1:0; ?>,
 "aipoints" : <?php echo json_encode($circuitPayload->aipoints); ?>,
 "collision" : <?php
 	foreach ($circuitPayload->collision as &$collisionData) {

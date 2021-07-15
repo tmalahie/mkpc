@@ -5,7 +5,7 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
     $circuitName = $circuitNames[$_GET['map']-1];
     include('initdb.php');
     require_once('utils-date.php');
-    include('persos.php');
+    require_once('persos.php');
     function getSpriteSrc($playerName) {
         if (substr($playerName, 0,3) == 'cp-')
             return PERSOS_DIR . $playerName . ".png";

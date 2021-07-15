@@ -6,7 +6,7 @@ if (isset($_GET['id'])) {
 		include('language.php');
 		include('getId.php');
 		if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
-			include('persos.php');
+			require_once('persos.php');
 			$spriteSrcs = get_sprite_srcs($perso['sprites']);
 			?>
 <!DOCTYPE html>

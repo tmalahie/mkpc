@@ -294,7 +294,7 @@ if ($isCup) {
 }
 ?>
 var PERSOS_DIR = "<?php
-	include('persos.php');
+	require_once('persos.php');
 	echo PERSOS_DIR;
 ?>";
 var isBattle = false;

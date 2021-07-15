@@ -73,7 +73,7 @@ else {
             <th><?php echo $language ? 'Action':'Action'; ?></th>
         </tr>
     <?php
-    include('persos.php');
+    require_once('persos.php');
     foreach ($rewards as $reward) {
         $spriteSrcs = get_sprite_srcs($reward['sprites']);
         ?>

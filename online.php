@@ -86,7 +86,8 @@ if ($isCup) {
 	$cupIDs = array();
 	$trackIDs = array();
 	if ($isMCup) {
-		$getMCup = mysql_fetch_array(mysql_query('SELECT nom,mode FROM `mkmcups` WHERE id="'. $nid .'"'));
+		$getMCup = mysql_fetch_array(mysql_query('SELECT nom,mode,options FROM `mkmcups` WHERE id="'. $nid .'"'));
+		$cOptions = $getMCup['options'];
 		$complete = ($getMCup['mode'] == 1);
 		$getTracks = mysql_query('SELECT c.* FROM `mkmcups_tracks` t INNER JOIN `mkcups` c ON t.cup=c.id WHERE t.mcup="'. $nid .'" ORDER BY t.ordering');
 		$getCup = array('nom' => $getMCup['nom']);
@@ -250,6 +251,7 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 }
 ?>];
 var cupIDs = <?php echo json_encode($cupIDs) ?>;
+var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 	<?php
 }
 elseif ($isBattle) {
@@ -268,7 +270,7 @@ var pUnlocked = <?php include('getLocks.php'); ?>;
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
 var page = "OL";
 var PERSOS_DIR = "<?php
-	include('persos.php');
+	require_once('persos.php');
 	echo PERSOS_DIR;
 ?>";
 var mId = <?php echo $id ? $id:'null'; ?>;
@@ -354,6 +356,7 @@ else {
 	}
 	<?php
 }
+include('handleCupOptions.php');
 ?>
 </script>
 <?php include('mk/main.php') ?>
@@ -375,30 +378,7 @@ else {
 <td id="vQuality">
 </td>
 <td rowspan="4" id="commandes">
-<?php
-if ($language) {
-	?>
-<strong>Move</strong> : Arrows<br />
-<strong>Use object</strong> : Spacebar<br />
-<strong><em>OR</em></strong> : Left click<br />
-<strong>Jump/drift</strong> : Ctrl<br />
-<?php if ($isBattle) echo '<strong>Gonfler un ballon</strong> : Maj<br />'; ?>
-<strong>Rear/Front view</strong> : X<br />
-<strong>Quit</strong> : Escape</td>
-	<?php
-}
-else {
-	?>
-<strong>Se diriger</strong> : Fl&egrave;ches directionnelles<br />
-<strong>Utiliser un objet</strong> : Barre d'espace<br />
-<strong><em>OU</em></strong> : Clic gauche<br />
-<strong>Sauter/déraper</strong> : Ctrl<br />
-<?php if ($isBattle) echo '<strong>'. ($language ? 'Inflate a balloon':'Gonfler un ballon') .'</strong> : '. ($language ? 'Shift':'Maj') .'<br />'; ?>
-<strong>Vue arri&egrave;re/avant</strong> : X<br />
-<strong>Quitter</strong> : &Eacute;chap</td>
-	<?php
-}
-?></tr>
+</td></tr>
 <tr><td id="pSize">
 </td>
 <td id="vSize">

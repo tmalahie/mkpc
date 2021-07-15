@@ -10,8 +10,8 @@ if ($getPsersos) {
 	function getPerso($id) {
 		global $identifiants;
 		return mysql_fetch_array(
-			mysql_query('
-				SELECT c.*,
+			mysql_query(
+				'SELECT c.*,
 				IFNULL(h.acceleration,c.acceleration) AS acceleration,IFNULL(h.speed,c.speed) AS speed,IFNULL(h.handling,c.handling) AS handling,IFNULL(h.mass,c.mass) AS mass
 				FROM `mkchars` c
 				LEFT JOIN `mkchisto` h
@@ -49,7 +49,7 @@ if ($getPsersos) {
 			'music' => get_perso_music($data)
 		);
 	}
-	include('persos.php');
+	require_once('persos.php');
 	$res = array();
 	if ($perso1 != -1)
 		$res[] = toJSON($getPerso1);

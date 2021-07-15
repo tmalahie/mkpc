@@ -54,19 +54,19 @@ h2 {
 	margin-bottom: 8px;
 	font-size: 1.2em;
 }
-#reset-cup-appearance {
+#option-containers h2 a {
 	color: #77B;
 	font-size: 0.8em;
 	position: relative;
 	top: -0.1em;
 }
-#reset-cup-appearance:hover {
+#option-containers h2 a:hover {
 	color: #AAD;
 }
-.complete #reset-cup-appearance {
+.complete #option-containers h2 a {
 	color: #9AD;
 }
-.complete #reset-cup-appearance:hover {
+.complete #option-containers h2 a:hover {
 	color: #89B;
 }
 .simplified #global-infos {
@@ -244,6 +244,46 @@ h2 {
 .editor-content:not(.editor-content-active) {
 	display: none;
 }
+#option-tabs {
+	border: solid 1px black;
+	border-radius: 5px;
+	display: inline-block;
+	overflow: hidden;
+}
+#option-tabs > div {
+	cursor: pointer;
+	background-color: #999;
+	color: #444;
+	display: inline-block;
+	padding: 0.2em 0.5em;
+	font-size: 0.8em;
+}
+#option-tabs > div:hover {
+	background-color: rgba(255,255,255, 0.8);
+}
+#option-tabs > div.option-tab-selected {
+	background-color: white;
+	cursor: default;
+	color: black;
+}
+#option-containers > div {
+	display: none;
+}
+#option-containers > div.option-container-selected {
+	display: block;
+}
+.character-roster-extra {
+	color: white;
+	font-size: 1rem;
+	margin-top: 0.2em;
+}
+.character-roster-extra a {
+	color: #c5d0eb;
+	text-decoration: none;
+}
+.character-roster-extra a:hover {
+	color: #9AD;
+}
 #cup-appearance img {
 	width: 50px;
 	height: 50px;
@@ -282,6 +322,132 @@ h2 {
 	background-color: rgb(96, 96, 169);
 	background-color: rgba(153,153,204, 0.8);
 }
+#character-roster {
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 320px;
+	text-align: left;
+}
+.character-tile {
+	position: relative;
+	display: inline-block;
+	cursor: pointer;
+	margin: 2px 2px;
+}
+.character-tile:hover {
+	background-color: rgba(153,153,204, 0.6);
+}
+.character-tile > a {
+	display: none;
+	position: absolute;
+	z-index: 1;
+	right: -2px;
+	top: -2px;
+	text-decoration: none;
+	font-size: 0.8em;
+    line-height: 0.5em;
+    width: 0.6em;
+    height: 0.6em;
+    padding: 0.1em;
+    border-radius: 0.4em;
+	color: #dcc;
+	background-color: #633;
+}
+.character-tile:hover > a {
+	display: block;
+}
+.character-tile > a:hover {
+	color: #fff;
+    background-color: #300;
+}
+.character-tile > div {
+	position: relative;
+	margin: 2px 2px;
+	width: 32px;
+	height: 32px;
+	overflow: hidden;
+}
+.character-tile > div > img {
+	position: absolute;
+	width: 768px;
+	top: 50%;
+	-webkit-transform: translateY(-50%);
+	-moz-transform: translateY(-50%);
+	-o-transform: translateY(-50%);
+	-ms-transform: translateY(-50%);
+	transform: translateY(-50%);
+	left: -192px;
+}
+.character-tile > div > span {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	-moz-transform: translate(-50%, -50%);
+	-o-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+	font-size: 1.5em;
+	line-height: 1.5em;
+	color: #CCF;
+}
+#perso-info {
+	position: relative;
+	display: none;
+}
+#perso-info > div {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	bottom: 1px;
+	background-color: white;
+	background-color: rgba(255,255,255, 0.9);
+	padding: 0.1em 0.5em;
+}
+.perso-info-share {
+	font-size: 0.8em;
+	display: none;
+}
+#perso-info-shared {
+	color: green;
+}
+#perso-info-unshared {
+	color: #a25f13;
+}
+.perso-selection-choices > div {
+	display: inline-block;
+	cursor: pointer;
+	margin: 2px 2px;
+}
+.perso-selection-choices > div:hover {
+	background-color: rgb(136, 153, 204);
+}
+.perso-selection-choices > div > div {
+	position: relative;
+	margin: 2px 2px;
+	width: 32px;
+	height: 32px;
+	overflow: hidden;
+}
+.perso-selection-choices > div > div > img {
+	position: absolute;
+	left: 0;
+	top: 0;
+	height: 32px;
+}
+#perso-selection-standard-choices > div > div > img {
+	width: 768px;
+}
+#perso-selection-custom-choices > div > div > img {
+	width: 32px;
+}
+#perso-selection-custom-choices {
+	max-height: 108px;
+	overflow-y: auto;
+}
+.perso-selection-custom-explain {
+	font-size: 0.7em;
+}
 .editor-mask {
 	position: fixed;
 	left: 0;
@@ -310,6 +476,10 @@ h2 {
 	opacity: 1;
 }
 .editor-mask-content h3 {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.editor-mask-content h4 {
 	margin-top: 2px;
 	margin-bottom: 2px;
 }

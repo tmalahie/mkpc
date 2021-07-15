@@ -37,7 +37,7 @@ var ptsGP = "<?php echo $mkSaves; ?>";
 var isCup = false, isBattle = false, isSingle = false, complete = false, simplified = false;
 var baseOptions = <?php include('getCourseOptions.php'); ?>;
 var PERSOS_DIR = "<?php
-	include('persos.php');
+	require_once('persos.php');
 	echo PERSOS_DIR;
 ?>";
 var NBCIRCUITS = 40;

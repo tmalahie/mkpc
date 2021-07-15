@@ -2,7 +2,7 @@
 include('getId.php');
 include('session.php');
 include('language.php');
-include('persos.php');
+require_once('persos.php');
 include('initdb.php');
 require_once('utils-challenges.php');
 if (isset($_GET['cl']))
