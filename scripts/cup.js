@@ -585,7 +585,8 @@ function selectPersoImg(pos) {
 				oPersoSelector.querySelector("#perso-info").style.display = "";
 			};
 		}
-		document.getElementById("perso-selection-custom").style.display = "";
+		if (customCharacters.length)
+			document.getElementById("perso-selection-custom").style.display = "";
 	}
 	if (customCharacters)
 		appendCustomCharacters();
