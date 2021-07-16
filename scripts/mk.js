@@ -14759,7 +14759,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	};
 
 	var oScroll = document.createElement("div");
-	oScroll.style.height = ((isOnline ? 24:20)*iScreenScale) +"px";
+	oScroll.style.height = Math.round(21*iScreenScale + 18) +"px";
 	oScroll.style.overflow = "auto";
 
 	var oTable = document.createElement("table");
@@ -15038,7 +15038,6 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTable.appendChild(oTr);
 	
 	var oTr = document.createElement("tr");
-	if (!isOnline) oTr.style.display = "none";
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
 
@@ -15094,6 +15093,8 @@ function privateGameOptions(gameOptions, onProceed) {
 	}
 
 	var oClasses = [50,100,150,200];
+	if (!isOnline)
+		oClasses = [150,200];
 	var isSelectedCc = false;
 	var gameCc = 150;
 	if (gameOptions && gameOptions.cc)
@@ -15109,24 +15110,26 @@ function privateGameOptions(gameOptions, onProceed) {
 		}
 		oSelect.appendChild(oOption);
 	}
-	var oOption = document.createElement("option");
-	oOption.value = -1;
-	oOption.innerHTML = toLanguage("More...", "Plus...");
-	oSelect.appendChild(oOption);
-	if (!isSelectedCc)
-		setCustomValue(oSelect, gameCc);
-	oSelect.currentValue = oSelect.value;
-	oSelect.onchange = function() {
-		if (this.value == -1) {
-			var customValue = parseInt(prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue));
-			if (customValue > 0) {
-				customValue = Math.min(customValue, 999);
-				setCustomValue(this, customValue);
+	if (isOnline) {
+		var oOption = document.createElement("option");
+		oOption.value = -1;
+		oOption.innerHTML = toLanguage("More...", "Plus...");
+		oSelect.appendChild(oOption);
+		if (!isSelectedCc)
+			setCustomValue(oSelect, gameCc);
+		oSelect.currentValue = oSelect.value;
+		oSelect.onchange = function() {
+			if (this.value == -1) {
+				var customValue = parseInt(prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue));
+				if (customValue > 0) {
+					customValue = Math.min(customValue, 999);
+					setCustomValue(this, customValue);
+				}
+				else
+					this.value = this.currentValue;
 			}
-			else
-				this.value = this.currentValue;
+			this.currentValue = this.value;
 		}
-		this.currentValue = this.value;
 	}
 	tDiv.appendChild(oSelect);
 	cDiv.appendChild(tDiv);

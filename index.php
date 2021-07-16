@@ -920,7 +920,7 @@ $slidesPath = 'images/slides';
 					$playingUser['pk'] = $playingUser['link'].':'.$playingUser['mode'].':'.$playingUser['cup'];
 					$playingUser['pts'] = $playingUser['pts_'.($playingUser['game'] ? 'battle':'vs')];
 					$course = $playingUser['course'];
-					if (!$activeCourses[$course]) {
+					if (!isset($activeCourses[$course])) {
 						$activeCourses[$course] = array(
 							'active' => false,
 							'players' => array()
@@ -1006,14 +1006,15 @@ $slidesPath = 'images/slides';
 					global $language, $publicLinksData;
 					$link = $params['link'];
 					$modeNames = array(
+						'cc' => '${value}cc',
 						'team' => ($language ? 'Team':'équipe'),
 						'friendly' => ($language ? 'Friendly':'amical')
 					);
 					$publicLinkData = $publicLinksData[$link];
 					$enabledModes = array();
 					foreach ($modeNames as $option => $value) {
-						if ($publicLinkData->$option)
-							$enabledModes[$option] = $value;
+						if (isset($publicLinkData->$option))
+							$enabledModes[$option] = str_replace('${value}', $publicLinkData->$option, $value);
 					}
 					if (empty($enabledModes))
 						return $language ? 'Normal':'normal';
