@@ -1241,7 +1241,7 @@ var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
 <script async src="scripts/slider.js"></script>
 <script async src="scripts/photoswipe.min.js"></script>
 <script async src="scripts/init-diapos.js"></script>
-<script async src="scripts/sidebars.js?reload=1"></script>
+<script async src="scripts/sidebars.js"></script>
 <script type="text/javascript">
 var last_tz = '<?php echo isset($_COOKIE['tz']) ? addslashes($_COOKIE['tz']):''; ?>';
 </script>
