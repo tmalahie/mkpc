@@ -110,7 +110,7 @@ if ($course && !$getCourse['banned']) {
 	unset($joueur);
 	$minPlayers = isset($courseRules->minPlayers) ? $courseRules->minPlayers : 2;
 	$nbJoueurs = count($joueursData);
-	$enoughPlayers = ($nbJoueurs >= $minPlayers) && ($nbPlayers >= 2);
+	$enoughPlayers = ($nbPlayers >= $minPlayers);
 	if ($continuer && $enoughPlayers) {
 		if (!empty($courseRules->team)) {
 			$maxJoueursInTeam = ceil($nbJoueurs/2);

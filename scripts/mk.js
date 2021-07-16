@@ -19608,7 +19608,7 @@ function choose(map,rand) {
 				if (rCode[1] == -1)
 					setTimeout(waitForChoice, 1000);
 				else {
-					if ((choixJoueurs.length >= rCode[4].minPlayers) && (nbChoices > 1)) {
+					if (nbChoices >= rCode[4].minPlayers) {
 						aPlayers = new Array();
 						aIDs = new Array();
 						aPlaces = new Array();
