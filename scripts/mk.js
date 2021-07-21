@@ -3909,7 +3909,7 @@ function createTeamTable(teamsRecap) {
 	var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Team','Équipe') +'</td><td>Pts</td></tr>';
 	for (var i=0;i<teamsRank.length;i++) {
 		var isRedTeam = teamsRank[i];
-		positions += '<tr id="fJ'+i+'" style="background-color:'+ (isRedTeam?'red':'blue') +'"><td>'+ toPlace(i+1) +' </td><td class="maj" id="j'+i+'">'+ (isRedTeam ? toLanguage('Red','Rouge'):toLanguage('Blue','Bleue')) +'</td><td id="pts'+i+'">'+ teamsRecap[isRedTeam] +'</td></tr>';
+		positions += '<tr id="fJ'+i+'" style="background-color:'+ (isRedTeam?'red':'blue') +'"><td>'+ toPlace(i+1) +' </td><td id="j'+i+'">'+ (isRedTeam ? toLanguage('Red','Rouge'):toLanguage('Blue','Bleue')) +'</td><td id="pts'+i+'">'+ teamsRecap[isRedTeam] +'</td></tr>';
 	}
 	oTeamTable.style.visibility = "hidden";
 	oTeamTable.style.position = "absolute";
@@ -12713,7 +12713,7 @@ function move(getId, triggered) {
 												// hardcoded scores to fit wii point system
 												ptsInc = [15,12,10,8,7,6,5,4,3,2,1,0][i];
 											}
-											positions += '<tr id="fJ'+i+'" style="background-color: '+ (j<strPlayer.length ? (j ? (isRedTeam?'brown':'navy') : rankingColor(aKarts[j].team)) : (isRedTeam?'red':'transparent')) +'"><td>'+ toPlace(i+1)+' </td><td class="maj" id="j'+i+'">'+ toPerso(joueur) +'</td><td id="pts'+i+'">'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
+											positions += '<tr id="fJ'+i+'" style="background-color: '+ (j<strPlayer.length ? (j ? (isRedTeam?'brown':'navy') : rankingColor(aKarts[j].team)) : (isRedTeam?'red':'transparent')) +'"><td>'+ toPlace(i+1)+' </td><td id="j'+i+'">'+ toPerso(joueur) +'</td><td id="pts'+i+'">'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
 											aScores[j] += ptsInc;
 											j = nbjoueurs;
 										}
@@ -13008,7 +13008,7 @@ function move(getId, triggered) {
 					var ptsInc = (aKarts[i] == gagnant);
 					var joueur = aKarts[i].personnage;
 					var actualPlace = ptsInc?0:iPlace;
-					var positionsHtml = '<tr id="fJ'+actualPlace+'" style="background-color:'+ (i<strPlayer.length ? (i ? (isRedTeam?'brown':'navy') : (rankingColor(aKarts[i].team))) : (isRedTeam?'red':'transparent')) +'"><td>'+ toPlace(actualPlace+1) +' </td><td class="maj" id="j'+actualPlace+'">'+ toPerso(joueur) +'</td><td id="pts'+actualPlace+'">'+ aScores[i] + (!ptsInc ? "" : "<small>+1</small>")+'</td></tr>';
+					var positionsHtml = '<tr id="fJ'+actualPlace+'" style="background-color:'+ (i<strPlayer.length ? (i ? (isRedTeam?'brown':'navy') : (rankingColor(aKarts[i].team))) : (isRedTeam?'red':'transparent')) +'"><td>'+ toPlace(actualPlace+1) +' </td><td id="j'+actualPlace+'">'+ toPerso(joueur) +'</td><td id="pts'+actualPlace+'">'+ aScores[i] + (!ptsInc ? "" : "<small>+1</small>")+'</td></tr>';
 					if (ptsInc)
 						positions_ = positionsHtml+positions_;
 					else {
@@ -16703,7 +16703,6 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 	hTd1.innerHTML = "&nbsp;";
 	hTr.appendChild(hTd1);
 	var hTd2 = document.createElement("td");
-	hTd2.className = "maj";
 	hTd2.innerHTML = "&nbsp;";
 	hTd2.style.fontWeight = "bold";
 	hTr.appendChild(hTd2);
@@ -21524,31 +21523,38 @@ function toTitle(text, top) {
 	oTitle.style.fontFamily = "Tahoma";
 	return oTitle;
 }
+function ucwords(str) {
+	return str.replace(/(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g, function(s){
+		return s.toUpperCase();
+	});
+}
 function toPerso(sPerso) {
 	if (isCustomPerso(sPerso))
 		return customPersos[sPerso].name;
+	var res = sPerso;
 	if (language) {
 		if (sPerso == "maskass")
-			return "shy guy";
-		if (sPerso == "skelerex")
-			return "dry bones";
-		if (sPerso == "harmonie")
-			return "rosalina";
-		if (sPerso == "roi_boo")
-			return "king boo";
-		if (sPerso == "frere_marto")
-			return "hammer bro";
-		if (sPerso == "bowser_skelet")
-			return "dry bowser";
-		if (sPerso == "flora_piranha")
-			return "petey piranha";
+			res = "shy guy";
+		else if (sPerso == "skelerex")
+			res = "dry bones";
+		else if (sPerso == "harmonie")
+			res = "rosalina";
+		else if (sPerso == "roi_boo")
+			res = "king boo";
+		else if (sPerso == "frere_marto")
+			res = "hammer bro";
+		else if (sPerso == "bowser_skelet")
+			res = "dry bowser";
+		else if (sPerso == "flora_piranha")
+			res = "petey piranha";
 	}
 	else {
 		if (sPerso == "frere_marto")
-			return "frère marto";
+			res = "frère marto";
 	}
-	sPerso = sPerso.replace(/_/g, " ");
-	return sPerso;
+	res = res.replace(/_/g, " ");
+	res = ucwords(res);
+	return res;
 }
 
 formulaire = document.forms.modes;

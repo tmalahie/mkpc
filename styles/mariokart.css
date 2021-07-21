@@ -18,13 +18,13 @@
     text-align: right;
     display:inline-table;
 }
- #options strong {
+#options strong {
     text-decoration: underline;
 }
- #options td {
+#options td {
     padding: 4px;
 }
- #commandes {
+#commandes {
     position: relative;
     text-align: center;
     font-size: 9pt;
@@ -166,7 +166,7 @@ button.control-close:active {
     background-color: #A00;
     border-color: #902;
 }
- #infos0,#infos1 {
+#infos0,#infos1 {
     position: absolute;
     z-index: 20001;
     font-weight: bold;
@@ -175,7 +175,7 @@ button.control-close:active {
     color: #FF9900;
     text-align: center;
 }
- #scroller0,#scroller1 {
+#scroller0,#scroller1 {
     z-index: 19998;
 }
 #scroller > div, #scroller0 > div, #scroller1 > div {
@@ -184,7 +184,7 @@ button.control-close:active {
     top: 0px;
     text-align: center;
 }
- #compteur0,#compteur1 {
+#compteur0,#compteur1 {
     position: absolute;
     z-index: 19999;
     color: #50D0F8;
@@ -203,7 +203,7 @@ button.control-close:active {
     height: 50%;
     overflow: hidden;
 }
- #objet0,#objet1 {
+#objet0,#objet1 {
     background-image: url('../images/items/wheel.png');
     background-size: 100% 100%;
     image-rendering: pixelated;
@@ -224,19 +224,19 @@ button.control-close:active {
 #roulette0 img,#roulette1 img {
     align-self: center;
 }
- #temps0,#temps1 {
+#temps0,#temps1 {
     position: absolute;
     z-index: 19999;
     top: 12px;
     color: #F8F8F8;
     font-family: "SMK-Timer", Courier New;
 }
- #lakitu0,#lakitu1,#drift0,#drift1 {
+#lakitu0,#lakitu1,#drift0,#drift1 {
     visibility: visible;
      display: none;
      position: absolute;
 }
- #lakitu0,#lakitu1 {
+#lakitu0,#lakitu1 {
     z-index: 19996;
     background-image:url('../images/lakitutour.png');
     background-repeat:no-repeat;
@@ -244,7 +244,7 @@ button.control-close:active {
      background-position: center;
      text-align: center;
 }
- #lakitu0 div,#lakitu1 div {
+#lakitu0 div,#lakitu1 div {
     font-weight: normal;
      padding-top: 5%;
      padding-bottom: 5%;
@@ -252,10 +252,10 @@ button.control-close:active {
      font-family: Courier New;
      color: #EEE;
 }
- #lakitu0 div small,#lakitu1 div small {
+#lakitu0 div small,#lakitu1 div small {
     font-size:0.5em;
 }
- #drift0,#drift1 {
+#drift0,#drift1 {
     z-index: 10001;
 }
 #challenge-cpts {
@@ -278,10 +278,10 @@ button.control-close:active {
 }
 #challenge-cpts > div > span:last-child {
 }
- .driftimg {
+.driftimg {
     position: relative;
 }
- #infoplace0,#infoplace1 {
+#infoplace0,#infoplace1 {
     display: none;
      position: absolute;
      text-align: right;
@@ -291,21 +291,21 @@ button.control-close:active {
      font-family: "SMK-Rank", impact;
      opacity: 0.8;
 }
- .cannotChange {
+.cannotChange {
     cursor: not-allowed !important;
      border: inset 1px maroon !important;
      color: maroon !important;
      background-color: black !important
 }
- .star {
+.star {
     width: 25px;
      cursor: pointer
 }
- #markMsg {
+#markMsg {
     width: 200px;
      font-weight: bold
 }
- form[name="modes"] {
+form[name="modes"] {
     position: absolute;
      left: 10px;
      bottom: 0px;
@@ -314,17 +314,17 @@ button.control-close:active {
      align-items: center;
      flex-wrap: wrap;
 }
- #options-ctn {
+#options-ctn {
     display: inline-block
 }
- #options-ctn select{
+#options-ctn select{
     min-width:75px;
 }
- #options-ctn select:disabled {
+#options-ctn select:disabled {
     opacity:0.5;
      color:gray;
 }
- #vPub {
+#vPub {
     display: inline-block;
     margin-top:10px;
     margin-bottom:10px;
@@ -334,15 +334,15 @@ button.control-close:active {
         margin-left: 20px;
     }
 }
- #maps-list img {
+#maps-list img {
     height:1px;
 }
- .gamemusic{
+.gamemusic{
     position: absolute;
     left:-1000px;
     top:-1000px;
 }
- #virtualkeyboard {
+#virtualkeyboard {
     position: absolute;
      left: 50px;
      top: 20px;
@@ -350,12 +350,12 @@ button.control-close:active {
      display: none;
      text-align: center
 }
- #virtualkeyboard button {
+#virtualkeyboard button {
     font-size: 30px;
      margin: 10px;
      padding: 2px 10px;
 }
- #alerte {
+#alerte {
     position: absolute;
     left:10%;
     bottom:20%;
@@ -364,35 +364,35 @@ button.control-close:active {
     border: double 3px red;
     padding: 0 5px 5px 5px;
 }
- #alerte.alerte-info {
+#alerte.alerte-info {
     background-color:#51CC7A;
     color:#060;
     border: double 3px green;
 }
- #closeAlert {
+#closeAlert {
     text-align: right
 }
- #closeAlert a {
+#closeAlert a {
     color: #F62;
     text-decoration: none;
      font-weight: bold;
 }
- #closeAlert a:hover {
+#closeAlert a:hover {
     color: #F90;
 }
- .alerte-info #closeAlert a {
+.alerte-info #closeAlert a {
     color: #1C702B;
 }
- .alerte-info #closeAlert a:hover {
+.alerte-info #closeAlert a:hover {
     color: #283;
 }
- .alerte-info a {
+.alerte-info a {
     color: #006C51;
 }
- .alerte-info a:hover {
+.alerte-info a:hover {
     color: #086;
 }
- #confirmSuppr {
+#confirmSuppr {
     position: absolute;
     left:10%;
     bottom:20%;
@@ -401,13 +401,13 @@ button.control-close:active {
     border: double 3px #FC0;
     padding: 0 5px 5px 2px;
 }
- #confirmSuppr p {
+#confirmSuppr p {
     text-align: center
 }
- #supprButtons {
+#supprButtons {
     padding:5px;
 }
- #cSave {
+#cSave {
     position: absolute;
      left:10%;
     bottom:20%;
@@ -415,72 +415,69 @@ button.control-close:active {
     background-color:#420;
     border: solid 1px #FC0
 }
- #cSave table td {
+#cSave table td {
     font-size: 20px;
     border: solid 1px #FC0;
      margin: 2px;
      padding: 2px;
 }
- #cSave a {
+#cSave a {
     color: white
 }
- #cPseudo, #cName {
+#cPseudo, #cName {
     background-color: #FF9
 }
- #cPseudo:focus, #cName:focus {
+#cPseudo:focus, #cName:focus {
     background-color: #FF6
 }
- #cSave #cSubmit {
+#cSave #cSubmit {
     text-align: center
 }
- #cSave #cSubmit input {
+#cSave #cSubmit input {
     font-size: 15px;
     padding: 0 25px
 }
- @media screen and (min-width: 600px) {
+@media screen and (min-width: 600px) {
     #shareParams {
         padding: 0 25px !important;
     }
 }
- #shareParams {
+#shareParams {
     text-align: center
 }
- .chatLink {
+.chatLink {
     color: white
 }
- p {
+p {
     margin: 0;
 }
- input[type="button"], input[type="submit"], button {
+input[type="button"], input[type="submit"], button {
     background-color: #060610;
     border: outset 1px #4D4923;
     color: #FEFF3F;
     font-weight: bold;
     cursor: pointer;
 }
- input[type="button"]:hover, input[type="submit"]:hover, button:hover {
+input[type="button"]:hover, input[type="submit"]:hover, button:hover {
     background-color: #372F1A;
      border: outset 1px #A9A118;
      color: #E9E85D;
 }
- input[type="button"]:active, input[type="submit"]:active, button:active {
+input[type="button"]:active, input[type="submit"]:active, button:active {
     border: inset 1px #FF6600;
 }
- input[type="button"]:focus, input[type="submit"]:focus, button:focus {
+input[type="button"]:focus, input[type="submit"]:focus, button:focus {
     background-color: #55461e;
 }
- .maj {
-    text-transform: capitalize
-}
- #dMaps {
+#dMaps {
     display: none;
      position: absolute;
      top: 400px;
 }
- .rgt {
+.rgt {
     text-align: right;
 }
- body {
+body {
     background-color: black;
 	color: #FEFF3F;
     font-weight: bold;
@@ -493,20 +490,20 @@ button.control-close:active {
 	-ms-user-select: none;
 	user-select: none;
 }
- select {
+select {
     background-color: black;
      color: white;
      font-weight: bold;
      width: 100%;
      text-align: left;
 }
- #presentation {
+#presentation {
     position: absolute;
      left:0;
      top:0;
      visibility: hidden
 }
- .mapname {
+.mapname {
     position: absolute;
      left: 0;
      font-family: Courier;
@@ -514,7 +511,7 @@ button.control-close:active {
      word-wrap: break-word;
      text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
 }
- .aObjet, .pixelated {
+.aObjet, .pixelated {
     image-rendering: optimizeSpeed;
      image-rendering: -moz-crisp-edges;
      image-rendering: -o-crisp-edges;
@@ -523,7 +520,7 @@ button.control-close:active {
      image-rendering: optimize-contrast;
      -ms-interpolation-mode: nearest-neighbor;
 }
- .challenge-popup {
+.challenge-popup {
      position: absolute;
      z-index: 20200;
      background-color: rgba(230,255,230,0.9);
@@ -534,18 +531,18 @@ button.control-close:active {
 .challenge-popup.challenge-popup-partial {
      background-color: rgba(216,240,255,0.9);
 }
- .challenge-popup-title {
+.challenge-popup-title {
      display: inline-block;
 }
- .challenge-popup-title h1 {
+.challenge-popup-title h1 {
      font-family: Verdana;
      color: #C80;
      text-decoration: underline;
 }
- .challenge-popup-title img {
+.challenge-popup-title img {
      opacity: 0.8;
 }
- .challenge-popup-header {
+.challenge-popup-header {
      color: #005600;
 }
 .challenge-popup-partial .challenge-popup-header {
@@ -554,19 +551,19 @@ button.control-close:active {
 .challenge-popup-partial .challenge-popup-award {
      color: #074;
 }
- .challenge-popup-disclaimer {
+.challenge-popup-disclaimer {
      color: #06C;
- }
- .challenge-popup-share {
+}
+.challenge-popup-share {
      position: absolute;
 }
- .challenge-popup-award strong {
+.challenge-popup-award strong {
      color: #038;
 }
- .challenge-popup-close {
+.challenge-popup-close {
      position: absolute;
 }
- .challenge-popup-close a {
+.challenge-popup-close a {
      color: #33F;
 }
 .challenge-popup-reward-ch {

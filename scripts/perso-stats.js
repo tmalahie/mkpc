@@ -50,6 +50,11 @@ function updateCursors() {
 		document.getElementById("perso-submit").disabled = false;
 	}
 }
+function ucwords(str) {
+	return str.replace(/(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g, function(s){
+		return s.toUpperCase();
+	});
+}
 function toPerso(sPerso) {
 	if (language) {
 		if (sPerso == "maskass")
@@ -90,7 +95,7 @@ window.onload = function() {
 				statTemplate.dataset = {};
 			for (var i=0;i<statTypes.length;i++)
 				statTemplate.dataset[statTypes[i]] = cp[player][i];
-			statTemplate.innerHTML = toPerso(player);
+			statTemplate.innerHTML = ucwords(toPerso(player));
 			statsTemplate.appendChild(statTemplate);
 		}
 		inc++;

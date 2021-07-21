@@ -469,9 +469,6 @@ hr {
 	border-top: solid 1px #7AE;
 	color: #5F5;
 }
-#stats-template, #stats-template option {
-	text-transform: capitalize;
-}
 .statswrong #statsinfo, .statswrong .perso-stats {
 	color: #D00;
 }
@@ -694,7 +691,6 @@ h1, h2 {
 #perso-info-name {
 	margin-top: 4px;
 	font-weight: bold;
-	text-transform: capitalize;
 }
 #perso-info-author {
 	font-size: 0.7em;
