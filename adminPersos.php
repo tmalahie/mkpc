@@ -35,6 +35,12 @@ include('o_online.php');
 	background-color: #BDE;
 	border-color: #BDE;
 }
+#perso-options {
+	margin-bottom: 10px;
+}
+#persos-list-search {
+	display: block;
+}
 </style>
 <script type="text/javascript">
 var persoIds = [];
@@ -89,14 +95,34 @@ function delPerso() {
 	if (confirm(language ? "Confirm deletion of "+ persoIds.length +" characters?":"Confirmer la suppression de "+ persoIds.length +" persos ?")) {
 		o_xhr("deleteShare.php", "ids="+persoIds.join(","), function(res) {
 			if (res == 1) {
+				var persoList = document.querySelector(".mypersos-list");
 				for (var i=0;i<persoIds.length;i++)
-					document.getElementById("myperso-"+persoIds[i]).style.display = "none";
+					persoList.removeChild(document.getElementById("myperso-"+persoIds[i]));
 				document.getElementById("perso-options").style.display = "none";
 				persoIds.length = 0;
 				return true;
 			}
 			return false;
 		});
+	}
+}
+function lemmatize(s) {
+	return s.toLowerCase();
+}
+function matchesSearch(needle,haystack) {
+	return lemmatize(haystack).indexOf(lemmatize(needle)) != -1;
+}
+function filterSearch() {
+	var searchForm = document.forms["persos-list-search"];
+	var nameSearch = searchForm.elements["perso-name"].value;
+	var authorSearch = searchForm.elements["perso-author"].value;
+	var persosDiv = document.querySelectorAll(".mypersos-list > div");
+	for (var i=0;i<persosDiv.length;i++) {
+		var persoDiv = persosDiv[i];
+		if (matchesSearch(nameSearch,persoDiv.dataset.name) && matchesSearch(authorSearch,persoDiv.dataset.author))
+				persoDiv.style.display = "";
+			else
+				persoDiv.style.display = "none";
 	}
 }
 </script>
@@ -116,6 +142,10 @@ if ($arePersos) {
 			<button class="suppr-perso" onclick="javascript:delPerso()"><?php echo $language ? 'Delete [<span id="perso-del-nb">0</span>]':'Supprimer [<span id="perso-del-nb">0</span>]'; ?></button>
 		</div>
 	</div>
+	<form id="persos-list-search" name="persos-list-search">
+		<div><?php echo $language ? 'Name:':'Nom :'; ?> <input type="text" name="perso-name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" oninput="filterSearch()" /></div>
+		<div><?php echo $language ? 'Author:':'Auteur :'; ?> <input type="text" name="perso-author" placeholder="Wargor" oninput="filterSearch()" /></div>
+	</form>
 	<div class="mypersos-list">
 	<?php
 	while ($perso = mysql_fetch_array($getPsersos)) {
