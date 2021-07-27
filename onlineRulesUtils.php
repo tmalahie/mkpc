@@ -66,6 +66,10 @@ $rulesList = array(
 		'default' => 0,
 		'accepted' => array(1,1)
 	),
+	'noBumps' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
+	)
 );
 function rulesEqual($rules1,$rules2) {
 	global $rulesList;

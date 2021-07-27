@@ -13362,6 +13362,13 @@ function isControlledByPlayer(id) {
 	});
 	return oKart && ((oKart.id == identifiant) || (oKart.controller == identifiant));
 }
+function isColKartEnabled() {
+	if (course == "CM")
+		return false;
+	if (isOnline && shareLink.options && (shareLink.options.timeTrial || shareLink.options.noBumps))
+		return false;
+	return true;
+}
 function timeTrialMode() {
 	if (course == "CM")
 		return true;
@@ -14321,7 +14328,7 @@ function cycle() {
 }
 var decorPos = {};
 function runOneFrame() {
-	if (!timeTrialMode()) {
+	if (isColKartEnabled()) {
 		for (var i=0;i<aKarts.length;i++)
 			colKart(i);
 	}
@@ -14732,6 +14739,11 @@ function privateGameOptions(gameOptions, onProceed) {
 		var cpuChars = this.elements["option-cpuChars"].dataset.value;
 		if (cpuChars) cpuChars = JSON.parse(cpuChars);
 		var timeTrial = this.elements["option-timeTrial"].checked ? 1:0;
+		var noBumps = this.elements["option-noBumps"].checked ? 1:0;
+		if (!team)
+			manualTeams = 0;
+		if (timeTrial)
+			noBumps = 0;
 		if (!cpu) {
 			cpuCount = defaultGameOptions.cpuCount;
 			cpuLevel = defaultGameOptions.cpuLevel;
@@ -14752,7 +14764,8 @@ function privateGameOptions(gameOptions, onProceed) {
 			cpuLevel: cpuLevel,
 			cpuNames: cpuNames,
 			cpuChars: cpuChars,
-			timeTrial: timeTrial
+			timeTrial: timeTrial,
+			noBumps: noBumps
 		});
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
@@ -15524,8 +15537,6 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTable.appendChild(oTr);
 
 	var oTr = document.createElement("tr");
-	if (!isOnline || isBattle)
-		oTr.style.display = "none";
 	var oTd = document.createElement("td");
 	oTd.style.textAlign = "center";
 	oTd.style.width = (iScreenScale*8) +"px";
@@ -15536,6 +15547,18 @@ function privateGameOptions(gameOptions, onProceed) {
 	oCheckbox.type = "checkbox";
 	if (gameOptions && gameOptions.timeTrial)
 		oCheckbox.checked = true;
+	if (!isOnline || isBattle)
+		oTr.style.display = "none";
+	else {
+		oCheckbox.onclick = function() {
+			document.getElementById("option-noBumps-ctn").style.display = this.checked ? "none":"";
+		};
+		(function(cb) {
+			setTimeout(function() {
+				cb.onclick();
+			}, 1);
+		})(oCheckbox);
+	}
 	oTd.appendChild(oCheckbox);
 	oTr.appendChild(oTd);
 
@@ -15552,6 +15575,44 @@ function privateGameOptions(gameOptions, onProceed) {
 	oDiv.style.fontSize = (2*iScreenScale) +"px";
 	oDiv.style.color = "white";
 	oDiv.innerHTML = toLanguage("If enabled, the game is played like a time trial: no item boxes, no collisions with other players (they are ghosts), and you start with 3 shrooms.", "Si activé, la partie se déroule comme en CLM : pas de boîtes à objets, pas de collisions avec les autres joueurs (ce sont des fantômes), et vous commencez avec 3 champis.");
+	oLabel.appendChild(oDiv);
+	oTd.appendChild(oLabel);
+	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	oScroll.appendChild(oTable);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-noBumps-ctn";
+	if (!isOnline)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.style.textAlign = "center";
+	oTd.style.width = (iScreenScale*8) +"px";
+	var oCheckbox = document.createElement("input");
+	oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
+	oCheckbox.id = "option-noBumps";
+	oCheckbox.name = "option-noBumps";
+	oCheckbox.type = "checkbox";
+	if (gameOptions && gameOptions.noBumps)
+		oCheckbox.checked = true;
+	oTd.appendChild(oCheckbox);
+	oTr.appendChild(oTd);
+
+	var oTd = document.createElement("td");
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-noBumps");
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.style.marginBottom = "0px";
+	oH1.innerHTML = toLanguage("Disable kart bumps", "Désactiver la collisions entre karts");
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("If checked, karts are not impacted when they hit each other (bumps)", "Si coché, les karts ne sont pas impactés lorsqu'ils se rentrent dedans (bumps)");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
@@ -17084,6 +17145,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 									shareLink.options.cpuNames = options.cpuNames;
 									shareLink.options.cpuChars = options.cpuChars;
 									shareLink.options.timeTrial = options.timeTrial;
+									shareLink.options.noBumps = options.noBumps;
 									selectedTeams = options.team;
 									selectPlayerScreen(0);
 									return true;
@@ -17910,7 +17972,8 @@ var defaultGameOptions = {
 	cpuLevel: 0,
 	cpuNames: null,
 	cpuChars: null,
-	timeTrial: false
+	timeTrial: false,
+	noBumps: false
 };
 function isCustomOptions(linkOptions) {
 	if (linkOptions) {
@@ -18234,6 +18297,27 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		oDiv.innerHTML = toLanguage("Games are played like in time trial: no item boxes, no collisions with other players (they are ghosts), and you start with 3 shrooms.", "Les parties se déroulent comme en CLM : pas de boîtes à objets, pas de collisions avec les autres joueurs (ce sont des fantômes), et vous commencez avec 3 champis.");
+		oLabel.appendChild(oDiv);
+		oTd.appendChild(oLabel);
+		oTr.appendChild(oTd);
+		oTable.appendChild(oTr);
+	}
+
+	if (shareLink.options.noBumps) {
+		var oTr = document.createElement("tr");
+		var oTd = document.createElement("td");
+		var oLabel = document.createElement("label");
+		oTd.appendChild(oLabel);
+
+		var oH1 = document.createElement("h1");
+		oH1.style.fontSize = (3*iScreenScale) +"px";
+		oH1.innerHTML = toLanguage("No collisions between karts", "Pas de collisions entre les karts");
+		oH1.style.marginBottom = "0px";
+		oLabel.appendChild(oH1);
+		var oDiv = document.createElement("div");
+		oDiv.style.fontSize = (2*iScreenScale) +"px";
+		oDiv.style.color = "white";
+		oDiv.innerHTML = toLanguage("Karts are not impacted when they hit each other", "Les karts ne sont pas impactés lorsqu'ils se rentrent dedans");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
