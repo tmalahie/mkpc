@@ -9,6 +9,7 @@ $cupIDs = Array();
 include('getId.php');
 if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) { // Cup being created
 	$isCup = true;
+	$isMCup = false;
 	if (isset($_GET['nid'])) { // Cup being edited
 		$nid = $_GET['nid'];
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcups` WHERE id="'. $nid .'" AND mode=1'))) {
@@ -81,6 +82,7 @@ elseif (isset($_GET['mid'])) { // Existing multicup
 elseif (isset($_GET['cid'])) { // Existing cup
 	$nid = $_GET['cid'];
 	$isCup = true;
+	$isMCup = false;
 	if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $nid .'" AND mode=1'))) {
 		$cName = $getCup['nom'];
 		$cPseudo = $getCup['auteur'];
@@ -98,6 +100,7 @@ elseif (isset($_GET['cid'])) { // Existing cup
 }
 else { // Existing track
 	$isCup = false;
+	$isMCup = false;
 	$id = isset($_GET['i']) ? $_GET['i']:0;
 	$nid = $id;
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT c.*,d.data,(nom IS NOT NULL) as shared FROM `circuits` c LEFT JOIN `circuits_data` d ON c.id=d.id WHERE c.id="'.$id.'"'))) {
