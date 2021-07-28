@@ -930,9 +930,23 @@ function loadMap() {
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 
 	if (gameSettings.rtime) {
-		cycle = function() {
-			cycleHandler = setTimeout(cycle,SPF);
+		var lastFrameTime;
+		var frameTimeDelay;
+		function regularCycle() {
+			var currentFrameTime = new Date().getTime();
+			frameTimeDelay += currentFrameTime-lastFrameTime - SPF;
+			if (frameTimeDelay < 0)
+				frameTimeDelay = 0;
+			else if (frameTimeDelay > SPF)
+				frameTimeDelay = SPF;
+			lastFrameTime = currentFrameTime;
+			cycleHandler = setTimeout(regularCycle, SPF-frameTimeDelay);
 			runOneFrame();
+		}
+		cycle = function() {
+			frameTimeDelay = SPF;
+			lastFrameTime = new Date().getTime();
+			regularCycle();
 		};
 	}
 
