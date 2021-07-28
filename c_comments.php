@@ -1,1 +1,1 @@
-<link rel="stylesheet" media="screen" type="text/css" href="styles/comments.css" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/comments.css?reload=4" />

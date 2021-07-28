@@ -28,6 +28,10 @@ function updateCircuitDate() {
 (function() {
 	$("#comments-section").append(
 		'<div id="comments-infos">'+
+			'<div id="comments-closectn">'+
+				'<a id="comments-close" href="#null">&times;</a>'+
+				'<a id="comments-open" href="#null">□</a>'+
+			'</div>'+
 			(circuitName ? '<h2>'+ circuitName +'</h2>':'')+
 			'<table>'+
 				'<tr><td id="comments-circuitauthor" rowspan="2">'+
@@ -43,6 +47,14 @@ function updateCircuitDate() {
 	);
 	updateCircuitNote();
 	updateCircuitDate();
+	$("#comments-close").click(function() {
+		$("#comments-section").addClass("comments-closed");
+		return false;
+	});
+	$("#comments-open").click(function() {
+		$("#comments-section").removeClass("comments-closed");
+		return false;
+	});
 	$("#comments-section").append('<h1>'+ (language ? 'Comments':'Commentaires') +' (<span id="comments-nb"></span>)</h1>');
 	$("#comments-section").append('<div id="comments-none">'+ (language ? 'No comments yet. Be the first one to give your opinion !':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !</div>'));
 	var comments = $('<div id="comments"></div>');

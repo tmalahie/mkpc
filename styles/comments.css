@@ -11,6 +11,63 @@
 	font-weight: normal;
 	padding-bottom: 8px;
 }
+#comments-infos {
+	position: relative;
+}
+#comments-closectn {
+	position: absolute;
+	right: 1px;
+	top: 1px;
+	visibility: hidden;
+}
+#comments-closectn a {
+    font-weight: bold;
+    display: none;
+    padding: 1px 2px 0 2px;
+    text-decoration: none;
+    color: white;
+    font-size: 16px;
+    line-height: 12px;
+}
+#comments-infos:hover #comments-closectn {
+	visibility: visible;
+}
+#comments-closectn a:hover {
+    color: white;
+}
+#comments-close {
+    background-color: #C00;
+}
+#comments-close:hover {
+    background-color: #E00;
+}
+#comments-open {
+    background-color: #080;
+}
+#comments-open:hover {
+    background-color: #0A0;
+}
+#comments-section:not(.comments-closed) #comments-close {
+    display: block;
+}
+#comments-section.comments-closed #comments-open {
+    display: block;
+}
+#comments-section.comments-closed {
+	border: none;
+}
+#comments-section.comments-closed > * {
+	visibility: hidden;
+}
+#comments-section.comments-closed > #comments-infos {
+	visibility: visible;
+}
+#comments-section.comments-closed > #comments-infos > * {
+	visibility: hidden;
+}
+#comments-section.comments-closed > #comments-infos > #comments-closectn {
+	visibility: visible;
+}
 @media screen and (max-width: 600px) {
 	#comments-section {
 		top: 100%;
@@ -19,6 +76,9 @@
 		border-right: solid 1px white;
 		margin-top: 80px;
 		padding-bottom: 80px;
+	}
+	#comments-section.comments-closed {
+		border-top: solid 1px white;
 	}
 }
 #comments-section h1 {
@@ -305,11 +365,9 @@
 	position: absolute;
 	right: 1px;
 	top: 1px;
-	display: block;
 	font-weight: bold;
-	text-decoration: none;
 	margin-right: 2px;
-    display: inline-block;
+    display: block;
     padding: 0 4px;
     background-color: #C00;
     text-decoration: none;
