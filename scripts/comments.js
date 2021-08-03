@@ -30,7 +30,7 @@ function updateCircuitDate() {
 		'<div id="comments-infos">'+
 			'<div id="comments-closectn">'+
 				'<a id="comments-close" href="#null">&times;</a>'+
-				'<a id="comments-open" href="#null">□</a>'+
+				'<a id="comments-open" href="#null">\u25A1</a>'+
 			'</div>'+
 			(circuitName ? '<h2>'+ circuitName +'</h2>':'')+
 			'<table>'+

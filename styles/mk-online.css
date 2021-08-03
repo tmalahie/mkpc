@@ -110,6 +110,7 @@
 }
 .online-chat-blockdialog-members > div[data-blocked="1"] {
     color: red;
+    text-decoration: line-through;
 }
 .online-chat-blockdialog-members > div:hover {
     background-color: #777;
@@ -124,6 +125,7 @@
 }
 .online-chat-answer {
     display: flex;
+    margin: 4px 3px;
 }
 .online-chat-answer input[type="text"] {
     background-color: #FE7;
