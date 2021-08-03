@@ -21845,38 +21845,18 @@ function setChat() {
 	chatting = true;
 	var oChat = document.createElement("div");
 	oChat.className = "online-chat";
-	oChat.style.position = "absolute";
-	oChat.style.zIndex = 3;
-	oChat.style.backgroundColor = "black";
-	oChat.style.right = "10px";
-	oChat.style.top = "5%";
-	oChat.style.width = "350px";
-	oChat.style.height = "90%";
-	oChat.style.border = "double 4px silver";
 	
 	var oConnectes = document.createElement("p");
-	oConnectes.style.paddingBottom = "2px";
-	oConnectes.style.borderBottom = "solid 1px silver";
+	oConnectes.className = "online-chat-connecteds";
 	var iConnectes = document.createElement("span");
-	iConnectes.innerHTML = toLanguage("Online opponent(s) : ", "Adversaire(s) en ligne : ");
+	iConnectes.innerHTML = toLanguage("Online opponent(s): ", "Adversaire(s) en ligne : ");
 	oConnectes.appendChild(iConnectes);
 	var jConnectes = document.createElement("span");
 	jConnectes.style.color = "white";
 	oConnectes.appendChild(jConnectes);
 	var bConnectes = document.createElement("a");
 	bConnectes.href = "#null";
-	bConnectes.style.textDecoration = "none";
 	bConnectes.title = language ? "Ignore player" : "Ignorer un joueur";
-	bConnectes.style.marginLeft = "10px";
-	bConnectes.style.opacity = 0.7;
-	oConnectes.onmouseover = function() {
-		bConnectes.style.opacity = 1;
-	};
-	oConnectes.onmouseout = function() {
-		bConnectes.style.opacity = 0.7;
-	};
-	bConnectes.style.position = "relative";
-	bConnectes.style.top = "2px";
 	bConnectes.onmouseover = function() {
 		biConnectes.src = "images/ic_block_h.png";
 	};
@@ -21895,6 +21875,7 @@ function setChat() {
 	bConnectes.onclick = function() {
 		if (removeBlockDialog()) return false;
 		oBlockDialog = document.createElement("div");
+		oBlockDialog.className = "online-chat-blockdialog";
 		oBlockDialog.style.position = "absolute";
 		oBlockDialog.style.left = "85px";
 		oBlockDialog.style.top = "8%";
@@ -21903,13 +21884,7 @@ function setChat() {
 		oBlockDialog.style.backgroundColor = "#222";
 
 		var oBlockTitle = document.createElement("h1");
-		oBlockTitle.style.fontSize = "1.1em";
-		oBlockTitle.style.marginTop = "24px";
-		oBlockTitle.style.marginBottom = "2px";
-		oBlockTitle.style.textAlign = "center";
 		oBlockTitle.innerHTML = language ? "Ignore member":"Ignorer un membre";
-		oBlockTitle.style.color = "white";
-		oBlockTitle.style.textDecoration = "underline";
 		oBlockDialog.appendChild(oBlockTitle);
 
 		var oBlockClose = document.createElement("input");
@@ -21917,14 +21892,11 @@ function setChat() {
 		oBlockClose.onclick = function() {
 			removeBlockDialog();
 		};
-		oBlockClose.style.position = "absolute";
-		oBlockClose.style.right = "5px";
-		oBlockClose.style.top = "5px";
 		oBlockClose.value = "\xD7";
 		oBlockDialog.appendChild(oBlockClose);
 
 		var oBlockMembers = document.createElement("div");
-		oBlockMembers.style.margin = "3px 4px";
+		oBlockMembers.className = "online-chat-blockdialog-members";
 		xhr("listCoursePlayers.php", "", function(reponse) {
 			if (reponse) {
 				try {
@@ -21932,18 +21904,6 @@ function setChat() {
 				}
 				catch(e) {
 					return false;
-				}
-				function stylishMember(oBlockMember) {
-					if (oBlockMember.dataset.blocked) {
-						oBlockMember.style.color = "red";
-						oBlockMember.style.textDecoration = "line-through";
-						oBlockMember.style.opacity = 0.8;
-					}
-					else {
-						oBlockMember.style.color = "#F90";
-						oBlockMember.style.textDecoration = "";
-						oBlockMember.style.opacity = 1;
-					}
 				}
 				for (var i=0;i<rCode.length;i++) {
 					var memberId = rCode[i][0];
@@ -21955,28 +21915,12 @@ function setChat() {
 					oBlockMember.dataset.id = memberId;
 					oBlockMember.dataset.blocked = memberBlocked ? "1":"";
 					oBlockMember.innerHTML = memberPseudo;
-					oBlockMember.style.padding = "2px 5px";
-					oBlockMember.style.cursor = "pointer";
-					oBlockMember.style.margin = "1px";
-					oBlockMember.style.backgroundColor = "#666";
-					oBlockMember.style.color = oBlockMember.dataset.blocked ? "red":"#F90";
-					oBlockMember.onmouseover = function() {
-						this.style.backgroundColor = "#777";
-						this.style.color = "#FC0";
-					};
-					oBlockMember.onmouseout = function() {
-						this.style.backgroundColor = "#666";
-						this.style.color = this.dataset.blocked ? "red":"#F90";
-					};
-					stylishMember(oBlockMember);
 					oBlockMember.onclick = function() {
 						this.dataset.blocked = this.dataset.blocked ? "":"1";
 						var that = this;
 						xhr(this.dataset.blocked ? "ignore.php":"unignore.php", "member="+ this.dataset.id, function(reponse) {
-							if (reponse == 1) {
-								stylishMember(that);
+							if (reponse == 1)
 								return true;
-							}
 							return false;
 						});
 					}
@@ -21994,21 +21938,33 @@ function setChat() {
 	var biConnectes = document.createElement("img");
 	biConnectes.alt = "Block";
 	biConnectes.src = "images/ic_block.png";
-	biConnectes.style.height = "16px";
 	bConnectes.appendChild(biConnectes);
 	oConnectes.appendChild(bConnectes);
+
+	var oCloseChatCtn = document.createElement("div");
+	oCloseChatCtn.className = "online-chat-closectn";
+	var oCloseChat = document.createElement("button");
+	oCloseChat.className = "online-chat-close";
+	oCloseChat.innerHTML = "&times";
+	oCloseChat.onclick = function() {
+		oChat.classList.add("online-chat-closed");
+	};
+	oCloseChatCtn.appendChild(oCloseChat);
+	var oOpenChat = document.createElement("button");
+	oOpenChat.className = "online-chat-open";
+	oOpenChat.innerHTML = "\u25A1";
+	oOpenChat.onclick = function() {
+		oChat.classList.remove("online-chat-closed");
+	};
+	oCloseChatCtn.appendChild(oOpenChat);
+	oChat.appendChild(oCloseChatCtn);
 	
 	var oMessages = document.createElement("div");
-	oMessages.style.paddingTop = "2px";
+	oMessages.className = "online-chat-messages";
 	
 	var oRepondre = document.createElement("form");
-	oRepondre.style.position = "absolute";
-	oRepondre.style.bottom = "0";
-	oRepondre.style.left = "10px";
-	var rP = document.createElement("p");
-	rP.style.textAlign = "center";
+	oRepondre.className = "online-chat-answer";
 	var rMessage = document.createElement("input");
-	rMessage.setAttribute("size", 35);
 	rMessage.type = "text";
 	rMessage.name = "rMessage";
 	rMessage.onkeydown = function(e) {
@@ -22020,12 +21976,11 @@ function setChat() {
 	rMessage.onkeyup = function(e) {
 		e.stopPropagation();
 	};
-	rMessage.style.backgroundColor = "#FE7";
 	var rEnvoi = document.createElement("input");
 	rEnvoi.type = "submit";
 	rEnvoi.value = toLanguage("Send", "Envoyer");
-	rP.appendChild(rMessage);
-	rP.appendChild(rEnvoi);
+	oRepondre.appendChild(rMessage);
+	oRepondre.appendChild(rEnvoi);
 	oRepondre.onsubmit = function() {
 		if (rMessage.value) {
 			xhr("parler.php", "msg="+encodeURIComponent(rMessage.value).replace(/\+/g, "%2B"), function(reponse){return (reponse=="1")});
@@ -22033,7 +21988,6 @@ function setChat() {
 		}
 		return false;
 	}
-	oRepondre.appendChild(rP);
 	
 	oChat.appendChild(oConnectes);
 	oChat.appendChild(oMessages);

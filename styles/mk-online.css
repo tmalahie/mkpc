@@ -1,0 +1,148 @@
+.wait {
+	position: absolute;
+	text-align: center;
+	color: #DDD;
+	z-index: 20001;
+	visibility: hidden;
+}
+.online-chat {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    background-color: black;
+    width: 350px;
+    height: 90%;
+    border: double 4px silver;
+}
+.online-chat-connecteds {
+    border: solid 1px silver;
+}
+.online-chat-connecteds > a {
+    text-decoration: none;
+    margin-left: 10px;
+    opacity: 0.7;
+    position: relative;
+    top: 2px;
+}
+.online-chat-connecteds:hover > a {
+    opacity: 1;
+}
+.online-chat-connecteds > a > img {
+    height: 16px;
+}
+.online-chat-closectn {
+    position: absolute;
+    right: -2px;
+    top: -2px;
+    visibility: hidden;
+}
+.online-chat:hover .online-chat-closectn {
+    visibility: visible;
+}
+.online-chat-closectn > button {
+    font-weight: bold;
+    display: none;
+    padding: 1px 2px;
+    text-decoration: none;
+    color: white;
+    font-size: 16px;
+    line-height: 12px;
+    font-family: monospace;
+}
+.online-chat:not(.online-chat-closed) .online-chat-close, .online-chat.online-chat-closed .online-chat-open {
+    display: block;
+}
+.online-chat-close {
+    background-color: #C00;
+}
+.online-chat-close:hover {
+    background-color: #E00;
+}
+.online-chat-open {
+    background-color: #080;
+}
+.online-chat-open:hover {
+    background-color: #0A0;
+}
+@media (min-width: 850px) {
+	.online-chat {
+        right: 10px;
+        top: 5%;
+    }
+}
+@media (max-width: 849px) {
+	.online-chat {
+        left: 0px;
+        top: 100%;
+        width: 98%;
+	}
+}
+.online-chat-blockdialog {
+    position: absolute;
+    left: 85px;
+    top: 8%;
+    width: 200px;
+    border: double 4px silver;
+    background-color: #222;
+}
+.online-chat-blockdialog > h1 {
+    font-size: 1.1em;
+    margin-top: 24px;
+    margin-bottom: 2px;
+    text-align: center;
+    color: white;
+    text-decoration: underline;
+}
+.online-chat-blockdialog > input {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+}
+.online-chat-blockdialog-members {
+    margin: 3px 4px;
+}
+.online-chat-blockdialog-members > div {
+    padding: 2px 5px;
+    cursor: pointer;
+    margin: 1px;
+    background-color: #666;
+    color: #F90;
+}
+.online-chat-blockdialog-members > div[data-blocked="1"] {
+    color: red;
+}
+.online-chat-blockdialog-members > div:hover {
+    background-color: #777;
+    color: #FC0;
+}
+.online-chat-messages {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    flex: 1;
+    word-wrap: break-word;
+    overflow-y: auto;
+}
+.online-chat-answer {
+    display: flex;
+}
+.online-chat-answer input[type="text"] {
+    background-color: #FE7;
+    flex: 1;
+}
+.online-chat.online-chat-closed {
+    border: none;
+}
+.online-chat-closed > *:not(.online-chat-closectn) {
+    display: none;
+}
+@media (max-width: 849px) {
+    .online-chat.online-chat-closed {
+        width: 99%;
+        border-top: solid 1px silver;
+    }
+}
+@media (min-width: 850px) {
+    .online-chat.online-chat-closed {
+        right: 5px;
+    }
+}

@@ -214,20 +214,7 @@ if (isset($privateLink)) {
 ?>
 
 <?php include('c_mariokart.php'); ?>
-<style type="text/css">
-.wait {
-	position: absolute;
-	text-align: center;
-	color: #DDD;
-	z-index: 20001;
-	visibility: hidden;
-}
-@media (max-width: 850px) {
-	.online-chat {
-		display: none;
-	}
-}
-</style>
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css" />
 
 <?php
 if (!$isCup) {
