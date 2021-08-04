@@ -166,7 +166,7 @@ if (isset($_GET['id'])) {
 			else
 				$success = $language ? 'You have stopped following '. $getInfos['nom']:'Vous ne suivez plus '. $getInfos['nom'];
 		}
-		elseif ($unignored) {
+		elseif (isset($unignored)) {
 			$success = $language ? 'You have stopped ignoring '. $getInfos['nom'] .'. <a href="?id='. urlencode($_GET['id']) .'&amp;ignore=1">Reignore</a>':'Vous avez désignoré '. $getInfos['nom'] .'. <a href="?id='. urlencode($_GET['id']) .'&amp;ignore=1">Réignorer</a>';
 			$successCenter = true;
 		}
@@ -595,7 +595,7 @@ include('menu.php');
 			);
 			$lastMessages = array();
 			while ($message = mysql_fetch_array($getLastMessages)) {
-				$message['infosDate'] = ' '. ($language ? 'in':'dans') . ' <a href="topic.php?topic='. $message['topic'] .'&message='. $message['id'] .'" title="'. $topicInfos['titre'] .'">'. controlLength($message['titre'], 35) .'</a>';
+				$message['infosDate'] = ' '. ($language ? 'in':'dans') . ' <a href="topic.php?topic='. $message['topic'] .'&message='. $message['id'] .'" title="'. $message['titre'] .'">'. controlLength($message['titre'], 35) .'</a>';
 				$lastMessages[] = $message;
 			}
 			if (!empty($lastMessages)) {
@@ -680,9 +680,6 @@ include('menu.php');
 							echo '<div class="circuit-nbcomments" title="'. $circuit['nbcomments'] .' '. ($language ? 'comment':'commentaire') . plural($circuit['nbcomments']) .'">';
 							echo '<img src="images/comments.png" alt="comments" /> '. $circuit['nbcomments'];
 							echo '</div>';
-							$toPreview = array();
-							foreach ($imgs as $img)
-								$toPreview[] = "'". $img ."'";
 							echo '<div class="circuit-preview" title="'. ($language ? 'Preview':'Aperçu') .'" onclick="apercu('. htmlspecialchars(json_encode($circuit['srcs'])) .');return false">';
 							echo '<img src="images/preview.png" alt="preview" />';
 							echo '</div>';
@@ -702,6 +699,7 @@ include('menu.php');
 				echo '<h2><em>'. ($language ? 'No created circuit':'Aucun circuit créé') .'</em></h2>';
 
 			function print_challenge($challenge, &$challengeParams) {
+				global $language;
 				$challengeDetails = getChallengeDetails($challenge, $challengeParams);
 				$circuit = $challengeDetails['circuit'];
 				$isCup = (strpos($circuit['cicon'], ',') !== false);
