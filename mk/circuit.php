@@ -1539,14 +1539,6 @@ foreach ($circuitsData as $c => $circuit) {
 				case 23 :
 				$l = 26;
 				break;
-				case 32 :
-				case 36 :
-				case 38 :
-				case 43 :
-				case 44 :
-				case 45 :
-				$l = 0;
-				break;
 				case 33 :
 				$l = 19;
 				break;
@@ -1558,6 +1550,9 @@ foreach ($circuitsData as $c => $circuit) {
 				break;
 				case 41 :
 				$l = 23;
+				break;
+				default:
+				$l = 0;
 			}
 			switch ($circuit["p$i"]) {
 				case 4 :
