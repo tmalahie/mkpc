@@ -8,6 +8,7 @@ $cup = false;
 $mcup = false;
 $type = '';
 $cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
+$manage = isset($_GET['manage']);
 if (isset($_GET['circuit'])) {
 	$cID = $_GET['circuit'];
 	$creation = true;
@@ -40,7 +41,7 @@ elseif (isset($_GET['mcup'])) {
 	$cup = true;
 	$mcup = true;
 }
-if (isset($_GET['user'])) {
+if (!$manage && isset($_GET['user'])) {
 	$user = mysql_fetch_array(mysql_query('SELECT id,nom FROM mkjoueurs WHERE id="'.$_GET['user'].'"'));
 	if (!$user)
 		unset($user);
@@ -48,6 +49,10 @@ if (isset($_GET['user'])) {
 if (!$creation && isset($_GET['map'])) {
 	include('getId.php');
 	mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkrecords` r ON n.link=r.id WHERE n.identifiant='.$identifiants[0].' AND n.identifiant2='.$identifiants[1].' AND n.identifiant3='.$identifiants[2].' AND n.identifiant4='.$identifiants[3].' AND n.type="new_record" AND r.class="'.$cc.'" AND r.type="" AND r.circuit="'.$_GET['map'].'"');
+}
+if ($manage) {
+	include('getId.php');
+	$pIDs = $identifiants;
 }
 if ($creation) {
 	if ($mcup) {
@@ -143,6 +148,55 @@ main table div {
 	font-weight: bold;
 	margin-right: 6px;
 }
+#title {
+	position: relative;
+	width: 100%;
+}
+#title h1 {
+	display: inline-block;
+}
+#title a {
+	position: absolute;
+	right: 5px;
+	top: 0;
+	border: outset 2px #9c9;
+}
+#title a:active {
+	border-style: inset;
+}
+@media screen and (max-width: 599px) {
+	#title a {
+		top: -3px;
+		right: 0;
+		padding: 2px 5px;
+		font-size: 0.8em;
+	}
+}
+.editor-mask {
+	position: fixed;
+	z-index: 10;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+}
+.editor-mask-contextmenu {
+	position: absolute;
+	background-color: #FFB;
+	text-align: left;
+}
+.editor-mask-contextmenu div {
+	border: solid 1px #663;
+	color: #742;
+	font-size: 0.8em;
+	padding: 0.1em 0.3em;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.editor-mask-contextmenu div:hover {
+	background-color: #FD9;
+	color: #963;
+}
 </style>
 </head>
 <body>
@@ -152,21 +206,47 @@ $page = 'game';
 include('menu.php');
 ?>
 <main>
+<div id="title">
 <h1><?php
-	if (isset($user))
+	if ($manage)
+		echo $language ? 'Manage my time trials records' : 'Gérer mes records en contre-la-montre';
+	elseif (isset($user))
 		echo $language ? 'Best time trial scores of '. $user['nom']:'Meilleurs scores contre-la-montre de '.$user['nom'];
 	else
 		echo $language ? 'Best scores time trial':'Meilleurs scores contre-la-montre';
 ?></h1>
-<div><?php echo $language ? 'You can see here all the records of the time trial mode in Mario Kart PC.':'Vous pouvez voir ici tous les records du mode contre-la-montre de Mario Kart PC.'; ?>
+<a class="action_button" href="?<?php
+	$get = $_GET;
+	if ($manage)
+		unset($get['manage']);
+	else
+		$get['manage'] = 1;
+	echo http_build_query($get);
+?>"><?php
+if ($manage)
+	echo $language ? '&lt; Back to list':'&lt; Retour à la liste';
+else
+	echo $language ? 'Manage my records':'Gérer mes records';
+?></a>
+</div>
+<div><?php
+if ($manage)
+	echo $language ? 'Delete or rename here your time trial records':'Renommez ou supprimez ici vos records en contre-la-montre';
+else
+	echo $language ? 'You can see here all the records of the time trial mode in Mario Kart PC.':'Vous pouvez voir ici tous les records du mode contre-la-montre de Mario Kart PC.';
+?>
 <?php
-if (!$creation) {
-	?>
-	<br /><?php echo $language ? 'The leaderbord is shown circuit by circuit, to see a global ranking, see <a href="classement.global.php">this page</a>.':'Les classements sont affichés circuit par circuit, pour voir un classement global, rendez-vous sur <a href="classement.global.php">cette page</a>.'; ?>
-	<?php
+if (!$manage) {
+	if (!$creation) {
+		?>
+		<br /><?php echo $language ? 'The leaderbord is shown circuit by circuit, to see a global ranking, see <a href="classement.global.php">this page</a>.':'Les classements sont affichés circuit par circuit, pour voir un classement global, rendez-vous sur <a href="classement.global.php">cette page</a>.'; ?>
+		<?php
+	}
+	echo '<br />';
+	echo $language ? 'Note that those records have been reset after MKPC engine update. <a href="classement.old.php?'.$_SERVER['QUERY_STRING'].'">Click here</a> to see the old records.':'Notez que tous les records ont été réinitialisés avec la mise à jour du moteur de MKPC. <a href="classement.old.php?'.$_SERVER['QUERY_STRING'].'">Cliquez ici</a> pour voir les anciens temps.';
 }
 ?>
-<br /><?php echo $language ? 'Note that those records have been reset after MKPC engine update. <a href="classement.old.php?'.$_SERVER['QUERY_STRING'].'">Click here</a> to see the old records.':'Notez que tous les records ont été réinitialisés avec la mise à jour du moteur de MKPC. <a href="classement.old.php?'.$_SERVER['QUERY_STRING'].'">Cliquez ici</a> pour voir les anciens temps.'; ?></div>
+</div>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
 <p class="pub"><ins class="adsbygoogle"
@@ -289,7 +369,10 @@ else
 for (var i=0;i<groups.length;i++)
 	circuits = circuits.concat(circuitGroups[i]);
 var sUser = <?php echo isset($user) ? $user['id']:0 ?>;
+var sManage = <?php echo $manage ? 1:0 ?>;
+var sFilteredData = (sUser || sManage);
 var sPts = <?php echo +isset($_GET['pts']); ?>;
+var language = <?php echo $language ? 1:0; ?>;
 var classement = new Array();
 for (var i=0;i<circuits.length;i++)
 	classement[i] = new Resultat(i);
@@ -301,10 +384,10 @@ if (isset($user))
 else {
 	if ($creation && empty($cIDs))
 		$cIDs = array(0);
-	$getResults = mysql_query('SELECT r.*,c.code,r.date FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
+	$getResults = mysql_query('SELECT r.*,c.code,r.date'.(empty($pIDs)?'':',(r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'") AS shown').' FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
 }
 while ($result = mysql_fetch_array($getResults))
-	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false)).'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
+	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false)).'"'.(isset($result['shown']) ? ','.$result['shown']:'').''.($manage ? ','.$result['id']:'').']);';
 ?>
 var jGroup = groups.length;
 var iGroup = 0;
@@ -314,7 +397,7 @@ for (var i=circuits.length-1;i>=0;i--) {
 		jGroup--;
 		iGroup += circuitGroups[jGroup].length;
 	}
-	if (!classement[i].classement.length || (sUser && noShownData(classement[i].classement))) {
+	if (!classement[i].classement.length || (sFilteredData && noShownData(classement[i].classement))) {
 		circuitGroups[jGroup].splice(iGroup,1);
 		if (!circuitGroups[jGroup].length) {
 			circuitGroups.splice(jGroup,1);
@@ -416,17 +499,20 @@ function addResult(id, i) {
 	oPlace.innerHTML = inPlace +"<sup>"+ sPlace +"</sup>";
 	oResult.appendChild(oPlace);
 	var oPseudo = document.createElement("td");
-	var pseudoTxt;
-	if (iJoueur[4]) {
-		oPseudo.className = "recorder";
-		pseudoTxt = '<img src="images/flags/'+iJoueur[4]+'.png" alt="'+iJoueur[4]+'" onerror="this.style.display=\'none\'" /> '+iJoueur[0];
+	function setNickHtml() {
+		var pseudoTxt;
+		if (iJoueur[4]) {
+			oPseudo.className = "recorder";
+			pseudoTxt = '<img src="images/flags/'+iJoueur[4]+'.png" alt="'+iJoueur[4]+'" onerror="this.style.display=\'none\'" /> '+iJoueur[0];
+		}
+		else
+			pseudoTxt = " "+iJoueur[0];
+		if (iJoueur[3])
+			oPseudo.innerHTML = '<a href="profil.php?id='+iJoueur[3]+'">'+pseudoTxt+'</a>';
+		else
+			oPseudo.innerHTML = pseudoTxt;
 	}
-	else
-		pseudoTxt = iJoueur[4]+" "+iJoueur[0];
-	if (iJoueur[3])
-		oPseudo.innerHTML = '<a href="profil.php?id='+iJoueur[3]+'">'+pseudoTxt+'</a>';
-	else
-		oPseudo.innerHTML = pseudoTxt;
+	setNickHtml();
 	oResult.appendChild(oPseudo);
 	var oPerso = document.createElement("td");
 	var oPersoDiv = document.createElement("div");
@@ -462,7 +548,7 @@ function addResult(id, i) {
 			if (iJoueur[3]) {
 				var aDate = document.createElement("a");
 				aDate.href = "#null";
-				aDate.title = "<?php echo $language ? 'History':'Historique'; ?>";
+				aDate.title = language ? "History":"Historique";
 				aDate.onclick = function() {
 					window.open('recordHistory.php?player='+iJoueur[3]+'&map='+(iCircuit+1)+'&cc='+iCc,'gerer','scrollbars=1, resizable=1, width=500, height=400');
 					return false;
@@ -482,7 +568,111 @@ function addResult(id, i) {
 		oPts.innerHTML = nScore;
 		oResult.appendChild(oPts);
 	}
+	if (sManage) {
+		var oManage = document.createElement("td");
+		var oManageLink = document.createElement("a");
+		oManageLink.href = "#null";
+		oManageLink.innerHTML = "⋮";
+		oManageLink.onclick = function(e) {
+			e.preventDefault();
+			var items = [{
+				label: language ? "Change nick" : "Modifier pseudo",
+				select: function() {
+					var newName = prompt(language ? "Enter new nick:":"Entrer le nouveau pseudo :", iJoueur[0]);
+					if (newName && newName !== iJoueur[0]) {
+						o_xhr("editRecord.php", "id="+iJoueur[7]+"&name="+encodeURIComponent(newName), function(res) {
+							if (res == 1) {
+								iJoueur[0] = newName;
+								setNickHtml();
+								return true;
+							}
+							if (res == -1) {
+								alert(language ? "This nick already exists, please choose another one":"Ce pseudo existe déjà, veuillez en choisir un autre");
+								return true;
+							}
+							if (res < 0) {
+								alert(language ? "An unknown error occurred, please try again later":"Une erreur est survenue, veuillez réessayer ultérieurement");
+								return true;
+							}
+							return false;
+						});
+					}
+				}
+			}, {
+				label: language ? "Delete" : "Supprimer",
+				select: function(){
+					if (confirm(language ? "Remove this record? This operation cannot be undone" : "Supprimer ce record ? Cette opération est irréversible")) {
+						o_xhr("deleteRecord.php", "id="+iJoueur[7], function(res) {
+							if (res == 1) {
+								document.getElementById("result"+ id).removeChild(oResult);
+								return true;
+							}
+							if (res < 0) {
+								alert(language ? "An unknown error occurred, please try again later":"Une erreur est survenue, veuillez réessayer ultérieurement");
+								return true;
+							}
+							return false;
+						});
+					}
+				}
+			}];
+			createContextMenu({
+				event: e,
+				items: items
+			});
+			return false;
+		}
+		oManage.appendChild(oManageLink);
+		oResult.appendChild(oManage);
+	}
 	document.getElementById("result"+ id).appendChild(oResult);
+}
+function createContextMenu(options) {
+	var e = options.event;
+	var items = options.items;
+	var $mask = document.createElement("div");
+	$mask.className = "editor-mask";
+	function closeMask() {
+		document.removeEventListener("keydown", hideOnEscape);
+		document.body.removeChild($mask);
+		if (options.onclose)
+			options.onclose();
+	}
+	function hideOnEscape(e) {
+		switch (e.keyCode) {
+		case 27:
+			closeMask();
+			break;
+		}
+	}
+	document.body.appendChild($mask);
+	var oContextMenu = document.createElement("div");
+	for (let item of items) {
+		oContextMenu.style.position = "absoulte";
+		oContextMenu.className = "editor-mask-contextmenu";
+		var oContextMenuItem = document.createElement("div");
+		oContextMenuItem.innerHTML = item.label;
+		oContextMenuItem.onclick = function() {
+			item.select();
+			closeMask();
+		}
+		oContextMenuItem.oncontextmenu = function() {
+			item.select();
+			closeMask();
+			return false;
+		}
+		oContextMenu.appendChild(oContextMenuItem);
+	}
+	oContextMenu.onclick = function(e) {
+		e.stopPropagation();
+	};
+	oContextMenu.style.visibility = "hidden";
+	$mask.appendChild(oContextMenu);
+	oContextMenu.style.left = Math.min(e.clientX, (window.innerWidth||screen.width)-oContextMenu.scrollWidth-20) +"px";
+	oContextMenu.style.top = e.clientY +"px";
+	oContextMenu.style.visibility = "";
+	document.addEventListener("keydown", hideOnEscape);
+	$mask.onclick = closeMask;
 }
 function removeElements(elmt) {
 	var oChilds = elmt.childNodes;
@@ -499,29 +689,35 @@ function displayResult(id, n) {
 	var tableHeader = document.createElement("tr");
 	tableHeader.id = "titres";
 	var oPlace = document.createElement("td");
-	oPlace.innerHTML = "<?php echo $language ? 'Rank':'Place'; ?>";
+	oPlace.innerHTML = language ? "Rank":"Place";
 	oPlace.style.width = "20px";
 	tableHeader.appendChild(oPlace);
 	var oPseudo = document.createElement("td");
-	oPseudo.innerHTML = "<?php echo $language ? 'Nick':'Pseudo'; ?>";
+	oPseudo.innerHTML = language ? "Nick":"Pseudo";
 	tableHeader.appendChild(oPseudo);
 	var oPerso = document.createElement("td");
-	oPerso.innerHTML = "<?php echo $language ? 'Char.':'Perso'; ?>";
+	oPerso.innerHTML = language ? "Char.":"Perso";
 	oPerso.style.width = "20px";
 	tableHeader.appendChild(oPerso);
 	var oTemps = document.createElement("td");
-	oTemps.innerHTML = "<?php echo $language ? 'Time':'Temps'; ?>";
+	oTemps.innerHTML = language ? "Time":"Temps";
 	tableHeader.appendChild(oTemps);
 	if (!isMobile) {
 		var oDate = document.createElement("td");
 		oDate.style.width = "55px";
-		oDate.innerHTML = "<?php echo $language ? 'Date':'Date'; ?>";
+		oDate.innerHTML = language ? "Date":"Date";
 		tableHeader.appendChild(oDate);
 	}
 	if (sPts) {
 		var oPts = document.createElement("td");
 		oPts.style.width = "10px";
 		oPts.innerHTML = "Pts";
+		tableHeader.appendChild(oPts);
+	}
+	if (sManage) {
+		var oPts = document.createElement("td");
+		oPts.style.width = "10px";
+		oPts.innerHTML = "Action";
 		tableHeader.appendChild(oPts);
 	}
 	oTableResults.appendChild(tableHeader);
@@ -539,7 +735,7 @@ function displayResult(id, n) {
 		oPages.setAttribute("colspan", 4+!isMobile+sPts);
 		oPages.innerHTML = "Page :";
 		if (document.getElementById("result"+ id).getElementsByTagName("tr").length == 1) {
-			oPages.innerHTML = "<?php echo $language ? 'No record for this circuit yet':'Aucun record sur ce circuit pour l\'instant'; ?>";
+			oPages.innerHTML = language ? "No record for this circuit yet":"Aucun record sur ce circuit pour l'instant";
 			oPages.style.textAlign = "center";
 			oPages.style.fontStyle = "italic";
 		}
@@ -574,7 +770,7 @@ function displayResults() {
 				if (!n.length)
 					continue;
 			}
-			else if (sUser) {
+			else if (sFilteredData) {
 				n = [];
 				var iClassement = classement[i].classement;
 				for (var j=0;j<iClassement.length;j++) {
@@ -620,7 +816,7 @@ window.onload = function() {
 	if (!$creation || $cup) {
 		?>
 		var tCircuit = document.createElement("span");
-		tCircuit.innerHTML = "<?php echo $language ? 'See':'Voir'; ?> circuit : ";
+		tCircuit.innerHTML = language ? 'See circuit: ':'Voir circuit : ';
 		tCircuit.style.fontWeight = "bold";
 		oParamsContent.appendChild(tCircuit);
 		var iCircuit = document.createElement("select");
@@ -630,10 +826,10 @@ window.onload = function() {
 		var nbRecords = 0;
 		for (var i=0;i<circuits.length;i++)
 			nbRecords += classement[i].classement.length;
-		if (sUser)
-			cTous.innerHTML = "<?php echo $language ? 'All':'Tous'; ?>";
+		if (sFilteredData)
+			cTous.innerHTML = language ? "All":"Tous";
 		else
-			cTous.innerHTML = "<?php echo $language ? 'All':'Tous'; ?> ("+ nbRecords + " record"+ ((nbRecords>1) ? "s":"") +")";
+			cTous.innerHTML = (language ? "All":"Tous") +" ("+ nbRecords + " record"+ ((nbRecords>1) ? "s":"") +")";
 		iCircuit.appendChild(cTous);
 		var inc = 0;
 		for (var j=0;j<groups.length;j++) {
@@ -647,7 +843,7 @@ window.onload = function() {
 				var cCircuit = document.createElement("option");
 				cCircuit.value = inc;
 				var cRecords = classement[inc].classement.length;
-				if (sUser)
+				if (sFilteredData)
 					cCircuit.innerHTML = circuitGroup[i];
 				else
 					cCircuit.innerHTML = circuitGroup[i] +" ("+ cRecords +" record"+ ((cRecords>1) ? "s":"") +")";
@@ -671,7 +867,7 @@ window.onload = function() {
 	?>
 	
 	var tJoueur = document.createElement("span");
-	tJoueur.innerHTML = "<?php echo $language ? 'See player':'Voir joueur'; ?> : ";
+	tJoueur.innerHTML = language ? "See player:":"Voir joueur :";
 	tJoueur.style.fontWeight = "bold";
 	oParamsContent.appendChild(tJoueur);
 	var iJoueur = document.createElement("input");
@@ -681,7 +877,7 @@ window.onload = function() {
 	iJoueur.value = "<?php echo (isset($_GET['joueur']) ? $_GET['joueur']:null); ?>";
 	iJoueur.onchange = displayResults;
 	oParamsContent.appendChild(iJoueur);
-	if (sUser) {
+	if (sFilteredData) {
 		tJoueur.style.display = "none";
 		iJoueur.style.display = "none";
 	}

@@ -17094,7 +17094,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			aDeconnexion.style.position = "absolute";
 			aDeconnexion.style.left = (iScreenScale*24) +"px";
 			aDeconnexion.style.top = (iScreenScale*34) +"px";
-			aDeconnexion.innerHTML = toLanguage("Deconnection", "Déconnexion");
+			aDeconnexion.innerHTML = toLanguage("Log out", "Déconnexion");
 			aDeconnexion.href = "#null";
 			aDeconnexion.onclick = function() {
 				oScr.innerHTML = "";
@@ -17116,7 +17116,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			eClassement.style.position = "absolute";
 			eClassement.style.left = (iScreenScale*41) +"px";
 			eClassement.style.top = (iScreenScale*34) +"px";
-			eClassement.innerHTML = toLanguage("Ranking", "Classement");
+			eClassement.innerHTML = toLanguage("Rankings", "Classement");
 			if (shareLink.options && shareLink.options.localScore) {
 				eClassement.title = toLanguage("Private game ranking","Classement partie privée");
 				eClassement.style.color = "#CF8";
@@ -19349,7 +19349,7 @@ function selectMapScreen(force) {
 		else if (course == "CM") {
 			var oPInput = document.createElement("input");
 			oPInput.type = "button";
-			oPInput.value = toLanguage("Ranking", "Classement");
+			oPInput.value = toLanguage("Rankings", "Classement");
 			oPInput.style.fontSize = (3*iScreenScale)+"px";
 			oPInput.style.position = "absolute";
 			oPInput.style.left = (33*iScreenScale-10)+"px";
@@ -19395,22 +19395,23 @@ function rankingsLink(oMap) {
 		return "classement.php?draw="+ oMap.map +"&cc="+ cc;
 	}
 }
-function openRankings() {
+function globalRankingsLink() {
 	var cc = getActualCc();
 	if (isMCups)
-		open("classement.php?mcup="+ nid +"&cc="+ cc);
+		return "classement.php?mcup="+ nid +"&cc="+ cc;
 	else {
 		switch (page) {
 		case "MK":
-			open("classement.php?cc="+ cc);
-			break;
+			return "classement.php?cc="+ cc;
 		case "CI":
-			open("classement.php"+ (isSingle ? "?circuit="+nid : "?scup="+nid) +"&cc="+ cc);
-			break;
+			return "classement.php"+ (isSingle ? "?circuit="+nid : "?scup="+nid) +"&cc="+ cc;
 		case "MA":
-			open("classement.php"+ (isSingle ? "?draw="+nid : "?ccup="+nid) +"&cc="+ cc);
+			return "classement.php"+ (isSingle ? "?draw="+nid : "?ccup="+nid) +"&cc="+ cc;
 		}
 	}
+}
+function openRankings() {
+	open(globalRankingsLink());
 }
 function exitCircuit() {
 	var changeRace = document.getElementById("changeRace");
@@ -20652,7 +20653,7 @@ function connexion() {
 	eClassement.style.position = "absolute";
 	eClassement.style.left = (iScreenScale*45) +"px";
 	eClassement.style.top = (iScreenScale*35) +"px";
-	eClassement.innerHTML = toLanguage("Ranking", "Classement");
+	eClassement.innerHTML = toLanguage("Rankings", "Classement");
 	eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
 	oScr.appendChild(eClassement);
 	

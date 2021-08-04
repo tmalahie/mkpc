@@ -458,8 +458,8 @@ function createContextMenu(options) {
 		}
 	}
 	document.body.appendChild($mask);
+	var oContextMenu = document.createElement("div");
 	for (let item of items) {
-		var oContextMenu = document.createElement("div");
 		oContextMenu.style.position = "absoulte";
 		oContextMenu.className = "editor-mask-contextmenu";
 		var oContextMenuItem = document.createElement("div");
@@ -478,7 +478,6 @@ function createContextMenu(options) {
 	oContextMenu.onclick = function(e) {
 		e.stopPropagation();
 	};
-	oContextMenu.appendChild(oContextMenuItem);
 	oContextMenu.style.visibility = "hidden";
 	$mask.appendChild(oContextMenu);
 	oContextMenu.style.left = Math.min(e.clientX, (window.innerWidth||screen.width)-oContextMenu.scrollWidth) +"px";
