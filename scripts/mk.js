@@ -9,6 +9,7 @@ var selectedDifficulty;
 var updateCtnFullScreen;
 var isFirstLoad = true;
 var selectedCc = localStorage.getItem("cc") || "150";
+var selectedNbTeams = localStorage.getItem("nbTeams") || "2";
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
@@ -611,6 +612,14 @@ function posImgRel(elt, eltX,eltY,eltR, eltW, mapW, relX,relY) {
 	elt.style.transform = elt.style.WebkitTransform = elt.style.MozTransform = "translate("+ (Math.round(relX)-Math.round(mapW*fRelX + eltW/2)) +"px, "+ (Math.round(relY)-Math.round(mapW*fRelY + eltW/2)) +"px) rotate("+ Math.round(180-eltR) +"deg)";
 	return elt;
 }
+var oTeamColors = {
+	primary: ["blue","red","green","yellow"],
+	secondary: ["#ccf", "#fcc", "#cfc", "#993"],
+	light: ["#69f", "#f96", "#9f6", "#ff7"],
+	dark: ["navy","brown","#030","#330"],
+	contrast: ["#fba", "#abf", "#bfa", "#eea"],
+	name: [toLanguage("Blue","Bleue"),toLanguage("Red","Rouge"),toLanguage("Green","Verte"),toLanguage("Yellow","Jaune")]
+}
 function setPlanPos() {
 	var oPlayer = oPlayers[0];
 	var fRotation = Math.round(oPlayer.rotation-180);
@@ -627,7 +636,7 @@ function setPlanPos() {
 	function setObject(elt, eltX,eltY, eltW,mapW, iTeam,hallowSize) {
 		posImg(elt, eltX,eltY,oPlayer.rotation, eltW,mapW);
 		if ((iTeam >= 0) && (elt.team != iTeam)) {
-			var iColor = iTeam ? "red":"blue";
+			var iColor = oTeamColors.primary[iTeam];
 			elt.team = iTeam;
 			elt.style.background = "radial-gradient(ellipse at center, "+ iColor +" 0%,transparent "+hallowSize+"%)";
 		}
@@ -824,14 +833,8 @@ function setPlanPos() {
 	}
 
 	function getExplosionSrc(src,team) {
-		switch (team) {
-		case 0:
-			src = "explosionB";
-			break;
-		case 1:
-			src = "explosionR";
-			break;
-		}
+		if (team != -1)
+			src += team;
 		return "images/map_icons/"+src+".png";
 	}
 
@@ -1492,7 +1495,7 @@ function addNewItem(kart,item) {
 				oDiv.style.width = (hallowSize*2)+"%";
 				oDiv.style.height = (hallowSize*2)+"%";
 				oDiv.style.borderRadius = hallowSize+"%";
-				oDiv.style.backgroundColor = item.team ? "red":"blue";
+				oDiv.style.backgroundColor = oTeamColors.primary[item.team];
 				oDiv.style.opacity = 0.25;
 				if (item.sprite) {
 					var oImg = item.sprite[i].div.firstChild;
@@ -2587,7 +2590,7 @@ function startGame() {
 		for (var i=0;i<oPlayers.length;i++) {
 			document.getElementById("infoPlace"+i).innerHTML = oPlayers[i].place;
 			document.getElementById("infoPlace"+i).style.display = "block";
-			var oColor = (oPlayers[i].team != -1) ? (oPlayers[i].team ? "#F96":"#69F"):"";
+			var oColor = (oPlayers[i].team != -1) ? oTeamColors.light[oPlayers[i].team]:"";
 			document.getElementById("infoPlace"+i).style.color = oColor;
 			if (course != "BB")
 				document.getElementById("compteur"+i).style.color = oColor;
@@ -2781,7 +2784,7 @@ function startGame() {
 				oTeam.style.height = oTeamWidth +"px";
 				oTeam.style.borderRadius = Math.round(oTeamWidth/2) +"px";
 				oTeam.style.opacity = 0.5;
-				oTeam.style.backgroundColor = aTeams[i] ? "red":"blue";
+				oTeam.style.backgroundColor = oTeamColors.primary[aTeams[i]];
 				oPlanTeams.push(oTeam);
 				oPlanCtn.appendChild(oTeam);
 
@@ -2792,7 +2795,7 @@ function startGame() {
 				oTeam2.style.height = oTeamWidth2 +"px";
 				oTeam2.style.borderRadius = Math.round(oTeamWidth2/2) +"px";
 				oTeam2.style.opacity = 0.5;
-				oTeam2.style.backgroundColor = aTeams[i] ? "red":"blue";
+				oTeam2.style.backgroundColor = oTeamColors.primary[aTeams[i]];
 				oPlanTeams2.push(oTeam2);
 				oPlanCtn2.appendChild(oTeam2);
 			}
@@ -3892,15 +3895,16 @@ function classement() {
 	for (var i=0;i<iPlacement.length;i++) {
 		var iPlayer = iPlacement[i];
 		var tPlayer = aKarts[iPlayer].personnage;
-		var isRedTeam = (aKarts[iPlayer].team==1) ? 1:0;
-		document.getElementById("fJ"+i).style.backgroundColor = (iPlayer != 0) ? ((iPlayer != nPlayer) ? (isRedTeam?"red":"") : (isRedTeam?"brown":"navy")) : (rankingColor(aKarts[iPlayer].team));
+		var oTeam = aKarts[iPlayer].team;
+		if (oTeam == -1) oTeam = 0;
+		document.getElementById("fJ"+i).style.backgroundColor = (iPlayer != 0) ? ((iPlayer != nPlayer) ? (oTeamColors.primary[oTeam]) : oTeamColors.dark[oTeam]) : (rankingColor(aKarts[iPlayer].team));
 		document.getElementById("fJ"+i).style.opacity = (tPlayer != strPlayer) ? "" : 0.8;
 		document.getElementById("j"+i).innerHTML = toPerso(tPlayer);
 		document.getElementById("pts"+i).innerHTML = aScores[iPlayer];
 	}
 	var oTeamTable;
 	if (iTeamPlay) {
-		var teamsRecap = [0,0];
+		var teamsRecap = new Array(selectedNbTeams).fill(0);
 		for (var i=0;i<aScores.length;i++)
 			teamsRecap[aTeams[i]] += aScores[i];
 		oTeamTable = createTeamTable(teamsRecap);
@@ -3917,13 +3921,18 @@ function classement() {
 }
 
 function createTeamTable(teamsRecap) {
-	var teamsRank = teamsRecap[0]>teamsRecap[1] || (teamsRecap[0]==teamsRecap[1] && teamsRecap[0]==oPlayers[0].team) ? [0,1]:[1,0];
+	var teamsRank = [];
+	for (var i=0;i<teamsRecap.length;i++)
+		teamsRank.push(i);
+	teamsRank.sort(function(i1,i2) {
+		return teamsRecap[i2] - teamsRecap[i1];
+	});
 	var oTeamTable = document.createElement("table");
 	oTeamTable.id = "team-table";
 	var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Team','Équipe') +'</td><td>Pts</td></tr>';
 	for (var i=0;i<teamsRank.length;i++) {
-		var isRedTeam = teamsRank[i];
-		positions += '<tr id="fJ'+i+'" style="background-color:'+ (isRedTeam?'red':'blue') +'"><td>'+ toPlace(i+1) +' </td><td id="j'+i+'">'+ (isRedTeam ? toLanguage('Red','Rouge'):toLanguage('Blue','Bleue')) +'</td><td id="pts'+i+'">'+ teamsRecap[isRedTeam] +'</td></tr>';
+		var teamRank = teamsRank[i];
+		positions += '<tr id="fJ'+i+'" style="background-color:'+ oTeamColors.primary[teamRank] +'; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603"><td>'+ toPlace(i+1) +' </td><td id="j'+i+'">'+ oTeamColors.name[teamRank] +'</td><td id="pts'+i+'">'+ teamsRecap[teamRank] +'</td></tr>';
 	}
 	oTeamTable.style.visibility = "hidden";
 	oTeamTable.style.position = "absolute";
@@ -4423,14 +4432,10 @@ function continuer() {
 }
 
 function rankingColor(team) {
-	switch (team) {
-	case 0:
-		return "#69F";
-	case 1:
-		return "#F96";
-	default:
+	var res = oTeamColors.light[team];
+	if (!res)
 		return "#990";
-	}
+	return res;
 }
 
 
@@ -5037,7 +5042,7 @@ function createMarker(oKart) {
 		oDiv.style.position = "absolute";
 		oDiv.style.opacity = 0.7;
 
-		var oColor = (oKart.team==-1) ? "#EEE":((oKart.team==1) ? "red":"blue");
+		var oColor = (oKart.team==-1) ? "#EEE" : oTeamColors.primary[oKart.team];
 
 		var lineWidth = iScreenScale*12, lineHeight = iScreenScale*3, lineAlpha = Math.PI/4, lineThick = Math.round(iScreenScale/4);
 		var cosAlpha = Math.cos(lineAlpha), sinAlpha = Math.sin(lineAlpha);
@@ -5065,7 +5070,7 @@ function createMarker(oKart) {
 		var oName = document.createElement("div");
 		oName.style.color = (oKart.team==-1) ? "#555":oColor;
 		oName.style.whiteSpace = "nowrap";
-		var oShadow = (oKart.team==-1) ? "#EEE":((oKart.team==1) ? "#fcc":"#ccf");
+		var oShadow = (oKart.team==-1) ? "#EEE":oTeamColors.secondary[oKart.team];
 		var sThickness = Math.ceil(iScreenScale/4) +"px";
 		oName.style.textShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
 		if (oKart.nick)
@@ -8099,14 +8104,8 @@ function render() {
 	}
 }
 function makeSpriteExplode(fSprite,src,k) {
-	switch (fSprite[2]) {
-	case 0:
-		src = "explosionB";
-		break;
-	case 1:
-		src = "explosionR";
-		break;
-	}
+	if (fSprite.team != -1)
+		src += fSprite.team;
 	fSprite.sprite[k].img.src = "images/sprites/sprite_"+src+".png";
 	var oDivs = fSprite.sprite[k].div.getElementsByClassName("sprite-hallow");
 	if (oDivs.length)
@@ -8235,10 +8234,10 @@ function addNewBalloon(oKart,team) {
 }
 function createBalloonSprite(oKart,team) {
 	if (team === undefined) team = oKart.team;
-	return new Sprite((team==1) ? "ballonR":"ballon");
+	return new Sprite("ballon" + ((team!=-1) ? team:""));
 }
 function balloonSrc(team) {
-	return 'images/sprites/sprite_'+(team==1?'ballonR':'ballon')+'.png';
+	return 'images/sprites/sprite_'+(team==-1?'ballon':('ballon'+team))+'.png';
 }
 function updateBalloonHud(oCompteur,oPlayer) {
 	var oSrc = balloonSrc(oPlayer.team);
@@ -11652,6 +11651,8 @@ function resetDatas() {
 						}
 						else if (pCode[4] == 1)
 							oTr.style.backgroundColor = "red";
+						if (iTeamPlay)
+							oTr.style.textShadow = "-1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 						var oTd = document.createElement("td");
 						oTd.innerHTML = toPlace(i+1);
 						oTds[i][0] = document.createElement("td");
@@ -11712,7 +11713,7 @@ function resetDatas() {
 
 						var oTeamTable;
 						if (iTeamPlay && shareLink.options && shareLink.options.localScore) {
-							var teamsRecap = [0,0];
+							var teamsRecap = new Array(selectedNbTeams).fill(0);
 							for (var i=0;i<rCode[3].length;i++)
 								teamsRecap[rCode[3][i][4]] += rCode[3][i][2];
 							oTeamTable = createTeamTable(teamsRecap);
@@ -12716,18 +12717,22 @@ function move(getId, triggered) {
 									aPlaces[i] = aKarts[i].place;
 								var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Player','Joueur') +'</td><td>Pts</td></tr>';
 								var maxPts = Math.round(aKarts.length*1.25);
+								var styleMore = "";
+								if (iTeamPlay)
+									styleMore = "; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 								for (var i=0;i<nbjoueurs;i++) {
 									for (var j=0;j<nbjoueurs;j++) {
 										var joueur = aKarts[j].personnage;
 										if (aKarts[j].place == i+1) {
-											var isRedTeam = (aKarts[j].team==1) ? 1:0;
+											var oTeam = aKarts[j].team;
+											if (oTeam === -1) oTeam = 0;
 											var xPts = (aKarts.length-i-1)/(aKarts.length-1);
 											var ptsInc = Math.round(maxPts*(Math.exp(xPts)-1)/(Math.E-1));
 											if (aKarts.length == 12) {
 												// hardcoded scores to fit wii point system
 												ptsInc = [15,12,10,8,7,6,5,4,3,2,1,0][i];
 											}
-											positions += '<tr id="fJ'+i+'" style="background-color: '+ (j<strPlayer.length ? (j ? (isRedTeam?'brown':'navy') : rankingColor(aKarts[j].team)) : (isRedTeam?'red':'transparent')) +'"><td>'+ toPlace(i+1)+' </td><td id="j'+i+'">'+ toPerso(joueur) +'</td><td id="pts'+i+'">'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
+											positions += '<tr id="fJ'+i+'" style="background-color: '+ (j<strPlayer.length ? (j ? oTeamColors.dark[oTeam] : rankingColor(aKarts[j].team)) : oTeamColors.primary[oTeam]) + styleMore +'"><td>'+ toPlace(i+1)+' </td><td id="j'+i+'">'+ toPerso(joueur) +'</td><td id="pts'+i+'">'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
 											aScores[j] += ptsInc;
 											j = nbjoueurs;
 										}
@@ -12973,23 +12978,30 @@ function move(getId, triggered) {
 		if (!isOnline) {
 			var gagnant;
 			if (oPlayers[0].loose && (!oPlayers[1] || oPlayers[1].loose)) {
-				do {
+				for (var j=0;j<10000;j++) {
 					gagnant = aKarts[Math.floor(Math.random()*(aKarts.length-strPlayer.length))+strPlayer.length];
-				} while(gagnant.loose);
+					if (!gagnant.loose)
+						break;
+				}
 				for (i=strPlayer.length;i<aKarts.length;i++)
 					aKarts[i].loose = true;
 			}
 			else {
 				if (iTeamPlay) {
-					var EnVie = [false,false];
+					var EnVie = new Array(selectedNbTeams).fill(false);
+					var nEnVie = 0;
 					for (i=0;i<aKarts.length;i++) {
 						if (!aKarts[i].loose) {
 							if (!aKarts[i].cpu)
 								gagnant = aKarts[i];
-							EnVie[aKarts[i].team] = true;
+							var oTeam = aKarts[i].team;
+							if (!EnVie[oTeam]) {
+								EnVie[oTeam] = true;
+								nEnVie++;
+							}
 						}
 					}
-					if (EnVie[0] && EnVie[1])
+					if (nEnVie > 1)
 						gagnant = undefined;
 				}
 				else {
@@ -13017,12 +13029,16 @@ function move(getId, triggered) {
 				var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Player','Joueur') +'</td><td>Pts</td></tr>';
 				var positions_ = "";
 				var iPlace = 1;
+				var styleMore = "";
+				if (iTeamPlay)
+					styleMore = "; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 				for (var i=0;i<aKarts.length;i++) {
-					var isRedTeam = (aKarts[i].team==1) ? 1:0;
+					var oTeam = aKarts[i].team;
+					if (oTeam === -1) oTeam = 0;
 					var ptsInc = (aKarts[i] == gagnant);
 					var joueur = aKarts[i].personnage;
 					var actualPlace = ptsInc?0:iPlace;
-					var positionsHtml = '<tr id="fJ'+actualPlace+'" style="background-color:'+ (i<strPlayer.length ? (i ? (isRedTeam?'brown':'navy') : (rankingColor(aKarts[i].team))) : (isRedTeam?'red':'transparent')) +'"><td>'+ toPlace(actualPlace+1) +' </td><td id="j'+actualPlace+'">'+ toPerso(joueur) +'</td><td id="pts'+actualPlace+'">'+ aScores[i] + (!ptsInc ? "" : "<small>+1</small>")+'</td></tr>';
+					var positionsHtml = '<tr id="fJ'+actualPlace+'" style="background-color:'+ (i<strPlayer.length ? (i ? oTeamColors.dark[oTeam] : (rankingColor(aKarts[i].team))) : oTeamColors.primary[oTeam]) + styleMore +'"><td>'+ toPlace(actualPlace+1) +' </td><td id="j'+actualPlace+'">'+ toPerso(joueur) +'</td><td id="pts'+actualPlace+'">'+ aScores[i] + (!ptsInc ? "" : "<small>+1</small>")+'</td></tr>';
 					if (ptsInc)
 						positions_ = positionsHtml+positions_;
 					else {
@@ -17201,6 +17217,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			iDificulty = selectedDifficulty;
 			fInfos.nbPlayers = selectedPlayers;
 			fInfos.teams = selectedTeams;
+			fInfos.nbteams = +selectedNbTeams;
 		}
 		if (course == "VS") {
 			oForm.appendChild(document.createTextNode(toLanguage("Difficulty: ", "Difficulté : ")));
@@ -18080,15 +18097,21 @@ function selectTeamScreen(IdJ) {
 	}
 	oScr.appendChild(oPInput);
 
-	for (i=0;i<2;i++) {
+	var teamColors = [toLanguage("Blue team","Équipe bleue"),toLanguage("Red team","Équipe rouge"),toLanguage("Green team","Équipe verte"),toLanguage("Yellow team","Équipe jaune")]
+	var nbRows = 2;
+	var nbCols = Math.ceil(fInfos.nbteams/nbRows);
+	for (i=0;i<fInfos.nbteams;i++) {
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = i ? toLanguage("Red team","Équipe rouge"):toLanguage("Blue team","Équipe bleue");
+		oPInput.value = teamColors[i];
 		oPInput.i = i;
 		oPInput.style.fontSize = (4*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
-		oPInput.style.left = (25*iScreenScale)+"px";
-		oPInput.style.top = ((16+i*9)*iScreenScale)+"px";
+		var x = i%nbCols;
+		var y = Math.floor(i/nbCols);
+		var iNbCols = Math.min(i+nbCols-i%nbCols,fInfos.nbteams) - (i-i%nbCols);
+		oPInput.style.left = ((25 + (x-(iNbCols-1)/2)*32)*iScreenScale)+"px";
+		oPInput.style.top = ((12+y*8)*iScreenScale)+"px";
 		oPInput.style.width = (30*iScreenScale)+"px";
 
 		oPInput.onclick = function() {
@@ -18096,11 +18119,25 @@ function selectTeamScreen(IdJ) {
 			oContainers[0].removeChild(oScr);
 			var i = +this.i;
 			aTeams.push(i);
+			selectedNbTeams = fInfos.nbteams;
+			localStorage.setItem("nbTeams", selectedNbTeams);
 			if (aTeams.length >= strPlayer.length) {
-				for (var k=0;k<strPlayer.length;k++)
-					aTeams.push(1-aTeams[k]);
-				for (var k=strPlayer.length;k<aPlayers.length;k++)
-					aTeams.push((k+i+aPlayers.length)%2);
+				var nbByTeam = new Array(selectedNbTeams).fill(0);
+				for (var i=0;i<strPlayer.length;i++)
+					nbByTeam[aTeams[i]]++;
+				while (true) {
+					var oMin = Math.min(...nbByTeam);
+					var oMax = Math.max(...nbByTeam);
+					if (oMin === oMax)
+						break;
+					var oMinId = nbByTeam.indexOf(oMin);
+					aTeams.push(oMinId);
+					nbByTeam[oMinId]++;
+				}
+				var aLength = aTeams.length;
+				aTeams.length = strPlayer.length+aPlayers.length;
+				for (var k=aLength;k<aTeams.length;k++)
+					aTeams[k] = (k+i+aPlayers.length)%selectedNbTeams;
 				selectTrackScreen();
 			}
 			else
@@ -18108,6 +18145,33 @@ function selectTeamScreen(IdJ) {
 		};
 		oScr.appendChild(oPInput);
 	}
+
+	var oDiv = document.createElement("div");
+	oDiv.style.position = "absolute";
+	oDiv.style.left = (iScreenScale*5) +"px";
+	oDiv.style.top = (iScreenScale*30) +"px";
+	oDiv.style.width = (iScreenScale*70) +"px";
+	oDiv.style.textAlign = "center";
+	oDiv.style.fontSize = (iScreenScale*3) +"px";
+	oDiv.innerHTML = toLanguage("Number of teams: ", "Nombre d'équipes : ");
+	var oSelectNb = document.createElement("select");
+	oSelectNb.style.width = (iScreenScale*5) +"px";
+	oSelectNb.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	for (var i=2;i<=4;i++) {
+		var oOption = document.createElement("option");
+		oOption.value = i;
+		oOption.innerHTML = i;
+		oSelectNb.appendChild(oOption);
+	}
+	oSelectNb.value = fInfos.nbteams;
+	oSelectNb.onchange = function() {
+		fInfos.nbteams = +this.value;
+		oScr.innerHTML = "";
+		oContainers[0].removeChild(oScr);
+		selectTeamScreen(0);
+	}
+	oDiv.appendChild(oSelectNb);
+	oScr.appendChild(oDiv);
 	oContainers[0].appendChild(oScr);
 
 	updateMenuMusic(1);
@@ -20097,8 +20161,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 				var player = teams[j][i];
 				if (player) {
 					if (selectedTeams) {
-						oTd.style.backgroundColor = j ? "#fba":"#abf";
-						oTd.style.color = j ? "red":"blue";
+						oTd.style.backgroundColor = oTeamColors.contrast[j];
+						oTd.style.color = oTeamColors.primary[j];
 					}
 					else {
 						oTd.style.backgroundColor = "#ccc";
@@ -20195,8 +20259,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 				oTd.style.left = Math.round(iScreenScale*20*t/T*(j?-1:1)) +"px";
 				var T_2 = T/2;
 				if ((aT < T_2) && (t >= T_2)) {
-					oTd.style.backgroundColor = j ? "#abf":"#fba";
-					oTd.style.color = j ? "blue":"red";
+					oTd.style.backgroundColor = oTeamColors.contrast[j];
+					oTd.style.color = oTeamColors.primary[j];
 				}
 				var oTrs = teamsTable.getElementsByTagName("tr");
 				for (var j_=0;j_<2;j_++) {
