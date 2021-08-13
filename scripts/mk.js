@@ -5455,39 +5455,53 @@ var itemBehaviors = {
 									y: y0 + 0.5*r0*centeredRandom(ys),
 									theta: 360*Math.random(),
 									w: r0*(1 + centeredRandom(0.5)*0.1),
-									h: r0*(1 + centeredRandom(0.5)*0.1)
+									h: r0*(1 + centeredRandom(0.5)*0.1),
+									margin: 1.25
 								};
 								oInk.y -= 1075/(oInk.w*oInk.h);
 								iSprite.ink.push(oInk);
 							}
 							for (var j=0;j<iSprite.ink.length;j++) {
-								var oInk = iSprite.ink[j];
-								var oImg;
-								if (gameSettings.ld) {
-									oImg = document.createElement("div");
-									oImg.style.backgroundColor = "black";
-									oImg.style.opacity = 0.8;
-								}
-								else {
-									oImg = document.createElement("img");
-									oImg.src = "images/sprites/sprite_ink.png";
-									oImg.className = "pixelated";
-									oImg.style.transform = oImg.style.WebkitTransform = oImg.style.MozTransform = "rotate("+Math.round(oInk.theta)+"deg)";
+                                (function(oInk) {
+                                    var oImg, oImg2;
+									oImg = document.createElement("canvas");
 									oImg.style.opacity = 0.95;
-								}
-								oImg.style.zIndex = 19000;
-								oImg.style.position = "absolute";
-								oContainers[i].appendChild(oImg);
-								oInk.elt = oImg;
+									var oImg2 = document.createElement("img");
+									oImg2.src = "images/sprites/sprite_ink.png";
+									oImg2.className = "pixelated";
+									if (!oImg2.dataset) this.dataset = {};
+									oImg.draw = function(jTime) {
+										oImg2.dataset.jTime = jTime;
+										if (!oImg2.dataset.loaded)
+											return;
+										var oCtx = oImg.getContext("2d");
+										oCtx.setTransform(1, 0, 0, 1, 0, 0);
+										oCtx.clearRect(0,0, oImg.width,oImg.height);
+										var oR = jTime/oInk.margin;
+										oCtx.translate(oImg.width/2,oImg.height/2);
+										oCtx.rotate(oInk.theta*Math.PI/180);
+										oCtx.translate(oImg.width*(1-oR)/2,oImg.height*(1-oR)/2);
+										oCtx.drawImage(oImg2, -oImg.width/2,-oImg.height/2, oImg.width*oR,oImg.height*oR);
+									};
+									oImg2.onload = function() {
+										this.dataset.loaded = 1;
+										if (this.dataset.jTime)
+											this.draw(+this.dataset.jTime);
+									}
+                                    oImg.style.zIndex = 19000;
+                                    oImg.style.position = "absolute";
+									oImg.style.left = Math.round((oInk.x-(oInk.w+oInk.margin-1)/2)*iScreenScale) +"px";
+									oImg.style.top = Math.round((oInk.y-(oInk.h+oInk.margin-1)/2)*iScreenScale) +"px";
+									oImg.width = Math.round(oInk.w*iScreenScale*oInk.margin);
+									oImg.height = Math.round(oInk.h*iScreenScale*oInk.margin);
+                                    oContainers[i].appendChild(oImg);
+                                    oInk.elt = oImg;
+                                })(iSprite.ink[j]);
 							}
 						}
 						for (var j=0;j<iSprite.ink.length;j++) {
 							var oInk = iSprite.ink[j];
-							var oImg = oInk.elt;
-							oImg.style.left = Math.round((oInk.x-oInk.w*jTime/2)*iScreenScale) +"px";
-							oImg.style.top = Math.round((oInk.y-oInk.h*jTime/2)*iScreenScale) +"px";
-							oImg.style.width = Math.round(oInk.w*jTime*iScreenScale) +"px";
-							oImg.style.height = Math.round(oInk.h*jTime*iScreenScale) +"px";
+							oInk.elt.draw(jTime);
 						}
 						break;
 					case 13:
@@ -5579,7 +5593,7 @@ var itemBehaviors = {
 				}
 			}
 			for (var i=0;i<aKarts.length;i++) {
-				if (aKarts[i].bloops === fSprite) {
+				if (Math.random() > 0.98) {
 					for (var j=0;j<oPlayers.length;j++)
 						aKarts[i].sprite[j].img.style.filter = "";
 					delete aKarts[i].bloops;
