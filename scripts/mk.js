@@ -20080,6 +20080,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	oTableCtn.style.top = (iScreenScale*10) +"px";
 	oTableCtn.style.width = ((iWidth-2)*iScreenScale) +"px";
 	oTableCtn.style.height = (iScreenScale*(iHeight-10)) +"px";
+	oTableCtn.style.overflowX = "hidden";
 	oTableCtn.style.overflowY = "auto";
 	oTableCtn.style.textAlign = "center";
 
@@ -20243,7 +20244,9 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 
 	function updateTeamsTable(editable) {
 		teamsTable.innerHTML = "";
-		var nbRows = Math.max(teams[0].length,teams[1].length);
+		var nbRows = teams.reduce(function(acc, team) {
+			return Math.max(acc, team.length);
+		}, 0);
 		for (var i=0;i<nbRows;i++) {
 			var oTr = document.createElement("tr");
 			for (var j=0;j<selectedNbTeams;j++) {
@@ -20366,7 +20369,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 				}
 				var oTrs = teamsTable.getElementsByTagName("tr");
 				for (var j_=0;j_<selectedNbTeams;j_++) {
-					if (j_ !== j && j !== jnc)
+					if (j_ !== j && j_ !== jnc)
 						continue;
 					var down = (j_==j);
 					for (var i_=down?i+1:i;i_<oTrs.length;i_++) {
