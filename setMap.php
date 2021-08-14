@@ -113,7 +113,6 @@ if ($course && !$getCourse['banned']) {
 	$enoughPlayers = ($nbPlayers >= $minPlayers);
 	if ($continuer && $enoughPlayers) {
 		if (!empty($courseRules->team)) {
-			$maxJoueursInTeam = ceil($nbJoueurs/2);
 			foreach ($joueursData as &$joueur)
 				$joueur['score'] = $joueur['pts'];
 			unset($joueur);
@@ -134,8 +133,13 @@ if ($course && !$getCourse['banned']) {
 				return ($s1 < $s2) ? 1:-1;
 			}
 			usort($sJoueurs,'sortPlayerIds');
-			$teamScores = array(0,0);
-			$teamNbs = array(0,0);
+			require_once('onlineConsts.php');
+			$nbTeams = isset($courseRules->nbTeams) ? $courseRules->nbTeams : DEFAULT_TEAM_COUNT;
+			if ($nbTeams > $nbJoueurs)
+				$nbTeams = $nbJoueurs;
+			$maxJoueursInTeam = ceil($nbJoueurs/$nbTeams);
+			$teamScores = array_fill(0,$nbTeams,0);
+			$teamNbs = array_fill(0,$nbTeams,0);
 			$teamId = 0;
 			foreach ($sJoueurs as $i) {
 				$joueur = &$joueursData[$i];
@@ -147,12 +151,23 @@ if ($course && !$getCourse['banned']) {
 				$teamNbs[$teamId]++;
 				if ($teamNbs[$teamId] >= $maxJoueursInTeam)
 					$teamScores[$teamId] = INF;
-				if ($teamScores[$teamId] >= $teamScores[1-$teamId])
-					$teamId = 1-$teamId;
+				$teamId = array_search(min($teamScores),$teamScores);
 				unset($joueur);
 			}
-			if ($teamNbs[$teamId] == 0)
-				$joueursData[$sJoueurs[0]]['team'] = $teamId;
+			for ($i=0;$i<$nbTeams;$i++) {
+				if ($teamNbs[$i] == 0) {
+					$teamId = array_search(max($teamNbs),$teamNbs);
+					foreach ($joueursData as &$joueur) {
+						if ($joueur['team'] == $teamId) {
+							$joueur['team'] = $i;
+							$teamNbs[$teamId]--;
+							$teamNbs[$i]++;
+							break;
+						}
+					}
+					unset($joueur);
+				}
+			}
 			foreach ($joueursData as $joueur)
 				mysql_query('UPDATE `mkplayers` SET team="'. $joueur['team'] .'" WHERE id="'. $joueur['id'] .'"');
 			if (!empty($courseRules->manualTeams)) {

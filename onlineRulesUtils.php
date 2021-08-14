@@ -10,7 +10,7 @@ $rulesList = array(
 		'accepted' => array(1,1)
 	),
 	'nbTeams' => array(
-		'default' => 2,
+		'default' => DEFAULT_TEAM_COUNT,
 		'min_value' => 2,
 		'max_value' => 4
 	),
