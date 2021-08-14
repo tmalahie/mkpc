@@ -198,6 +198,8 @@ if ($course && !$getCourse['banned']) {
 	echo 'minPlayers:'.$minPlayers;
 	if (!empty($courseRules->manualTeams))
 		echo ',manualTeams:1';
+	if (isset($courseRules->nbTeams))
+		echo ',nbTeams:'.$courseRules->nbTeams;
 	if (!empty($courseRules->cc))
 		echo ',cc:'.$courseRules->cc;
 	echo '}';

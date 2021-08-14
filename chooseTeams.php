@@ -22,7 +22,7 @@ if ($id) {
 						while ($player = mysql_fetch_array($getPlayers)) {
 							$pId = $player['id'];
 							if (isset($_POST["j$pId"])) {
-								$team = $_POST["j$pId"] ? 1:0;
+								$team = $_POST["j$pId"];
 								mysql_query('UPDATE `mkplayers` SET team='.$team.' WHERE id='.$pId);
 							}
 						}

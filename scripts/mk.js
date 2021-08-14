@@ -613,11 +613,11 @@ function posImgRel(elt, eltX,eltY,eltR, eltW, mapW, relX,relY) {
 	return elt;
 }
 var oTeamColors = {
-	primary: ["blue","red","green","yellow"],
-	secondary: ["#ccf", "#fcc", "#cfc", "#993"],
+	primary: ["blue","red","green","#db1"],
+	secondary: ["#ccf", "#fcc", "#cfc", "#ff8"],
 	light: ["#69f", "#f96", "#9f6", "#ff7"],
 	dark: ["navy","brown","#030","#330"],
-	contrast: ["#fba", "#abf", "#bfa", "#eea"],
+	contrast: ["#abf", "#fba", "#bfa", "#eea"],
 	name: [toLanguage("Blue","Bleue"),toLanguage("Red","Rouge"),toLanguage("Green","Verte"),toLanguage("Yellow","Jaune")]
 }
 function setPlanPos() {
@@ -11667,8 +11667,8 @@ function resetDatas() {
 							document.getElementById("infoPlace0").innerHTML = i+1;
 							document.getElementById("infoPlace0").style.visibility = "visible";
 						}
-						else if (pCode[4] == 1)
-							oTr.style.backgroundColor = "red";
+						else
+							oTr.style.backgroundColor = rankingColor(1);
 						if (iTeamPlay)
 							oTr.style.textShadow = "-1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 						var oTd = document.createElement("td");
@@ -18333,7 +18333,8 @@ function acceptRulesScreen() {
 		var oDiv = document.createElement("div");
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("2 teams are selected in each game. You object: defeat the opposing team.", "2 équipes sont sélectionnées à chaque partie. Votre objectif : vaincre l'équipe adverse.");
+		var nbTeams = shareLink.options.nbTeams || defaultGameOptions.nbTeams;
+		oDiv.innerHTML = toLanguage(nbTeams + " teams are selected in each game. You object: defeat the opposing team"+ (nbTeams>2 ? "s":"") +".", nbTeams + " équipes sont sélectionnées à chaque partie. Votre objectif : vaincre "+ (nbTeams>2 ? "les équipes adverses":"l'équipe adverse") + ".");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
@@ -20024,6 +20025,9 @@ function choose(map,rand) {
 	function proceedOnlineRaceSelection(rCode) {
 		var options = rCode[4];
 		var strMap = aAvailableMaps[choixJoueurs[rCode[1]][2]-1];
+		selectedNbTeams = options.nbTeams || defaultGameOptions.nbTeams;
+		if (selectedNbTeams > choixJoueurs.length)
+			selectedNbTeams = choixJoueurs.length;
 		if (options.manualTeams)
 			selectOnlineTeams(strMap,choixJoueurs,playerIsSelecter());
 		else
@@ -20082,7 +20086,10 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	var teamsTable = document.createElement("table");
 	teamsTable.style.marginLeft = "auto";
 	teamsTable.style.marginRight = "auto";
-	teamsTable.style.fontSize = Math.round(iScreenScale*2.4) +"px";
+	if (selectedNbTeams > 2)
+		teamsTable.style.fontSize = (iScreenScale*2) +"px";
+	else
+		teamsTable.style.fontSize = Math.round(iScreenScale*2.4) +"px";
 
 	var oMoreOptions = document.createElement("div");
 	oMoreOptions.style.zIndex = 50002;
@@ -20239,7 +20246,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		var nbRows = Math.max(teams[0].length,teams[1].length);
 		for (var i=0;i<nbRows;i++) {
 			var oTr = document.createElement("tr");
-			for (var j=0;j<2;j++) {
+			for (var j=0;j<selectedNbTeams;j++) {
 				var oTd = document.createElement("td");
 				var player = teams[j][i];
 				if (player) {
@@ -20250,6 +20257,14 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 					else {
 						oTd.style.backgroundColor = "#ccc";
 						oTd.style.color = "#222";
+					}
+					if (selectedNbTeams > 2) {
+						oTd.style.paddingLeft = Math.round(iScreenScale*2.5) +"px";
+						oTd.style.paddingRight = Math.round(iScreenScale*2.5) +"px";
+					}
+					else {
+						oTd.style.paddingLeft = (iScreenScale*3) +"px";
+						oTd.style.paddingRight = (iScreenScale*3) +"px";
 					}
 					oTd.style.position = "relative";
 					oTd.style.textAlign = "center";
@@ -20262,39 +20277,39 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 					oPlayerName.style.whiteSpace = "nowrap";
 					oPlayerName.style.textOverflow = "ellipsis";
 					oPlayerName.style.overflow = "hidden";
-					oPlayerName.style.width = (iScreenScale*16) +"px";
+					if (selectedNbTeams > 2)
+						oPlayerName.style.width = Math.round(iScreenScale*13.5) +"px";
+					else
+						oPlayerName.style.width = (iScreenScale*16) +"px";
 					oTd.appendChild(oPlayerName);
 					if (editable) {
-						var oArrow = document.createElement("span");
-						oArrow.innerHTML = j ? "\u25C0":"\u25B6";
-						oArrow.style.position = "absolute";
-						if (j) {
-							oArrow.style.left = "0px";
-							oTd.style.paddingLeft = (iScreenScale*3) +"px";
-							oTd.style.paddingRight = iScreenScale +"px";
+						for (var k=0;k<2;k++) {
+							var oArrow = document.createElement("span");
+							oArrow.innerHTML = k ? "\u25C0":"\u25B6";
+							oArrow.style.position = "absolute";
+							if (k)
+								oArrow.style.left = "0px";
+							else
+								oArrow.style.right = "0px";
+							oArrow.style.top = "48%";
+							oArrow.style.color = "#F80";
+							oArrow.style.padding = Math.round(iScreenScale/2) +"px";
+							oArrow.style.transform = oArrow.style.WebkitTransform = oArrow.style.MozTransform = "translateY(-50%)";
+							oArrow.style.cursor = "pointer";
+							oArrow.style.opacity = 0.9;
+							oArrow.onmouseover = function() {
+								this.style.opacity = 0.45;
+							}
+							oArrow.onmouseout = function() {
+								this.style.opacity = 0.9;
+							}
+							if (!oArrow.dataset) oArrow.dataset = {};
+							oArrow.dataset.i = i;
+							oArrow.dataset.j = j;
+							oArrow.dataset.k = k;
+							oArrow.onclick = moveTeamPlayer;
+							oTd.appendChild(oArrow);
 						}
-						else {
-							oArrow.style.right = "0px";
-							oTd.style.paddingRight = (iScreenScale*3) +"px";
-							oTd.style.paddingLeft = iScreenScale +"px";
-						}
-						oArrow.style.top = "48%";
-						oArrow.style.color = "#F80";
-						oArrow.style.padding = Math.round(iScreenScale/2) +"px";
-						oArrow.style.transform = oArrow.style.WebkitTransform = oArrow.style.MozTransform = "translateY(-50%)";
-						oArrow.style.cursor = "pointer";
-						oArrow.style.opacity = 0.9;
-						oArrow.onmouseover = function() {
-							this.style.opacity = 0.45;
-						}
-						oArrow.onmouseout = function() {
-							this.style.opacity = 0.9;
-						}
-						if (!oArrow.dataset) oArrow.dataset = {};
-						oArrow.dataset.i = i;
-						oArrow.dataset.j = j;
-						oArrow.onclick = moveTeamPlayer;
-						oTd.appendChild(oArrow);
 					}
 				}
 				else {
@@ -20305,7 +20320,10 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			}
 			teamsTable.appendChild(oTr);
 		}
-		if (teams[0].length && teams[1].length) {
+		var nbTeams = teams.reduce(function(acc, team) {
+			return acc + (team.length ? 1:0);
+		}, 0);
+		if (nbTeams >= selectedNbTeams) {
 			oSubmit.style.opacity = 1;
 			oSubmit.disabled = false;
 			oSubmit.style.cursor = "";
@@ -20325,10 +20343,11 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		oMask.style.height = (iScreenScale*iWidth) +"px";
 		oMask.style.zIndex = 50000;
 		oScr.appendChild(oMask);
-		var i = +this.dataset.i, j = +this.dataset.j;
+		var i = +this.dataset.i, j = +this.dataset.j, k = +this.dataset.k ? -1:1;
 		var player = teams[j][i];
 		teams[j].splice(i,1);
-		teams[1-j].splice(Math.min(i,teams[1-j].length),0,player);
+		var jnc = (j+k+selectedNbTeams) % selectedNbTeams;
+		teams[jnc].splice(Math.min(i,teams[jnc].length),0,player);
 		var oTd = this.parentNode;
 		oTd.style.backgroundColor = "#ccc";
 		function smoothTeamMove(t,T,dt) {
@@ -20339,14 +20358,16 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 				updateTeamsTable(true);
 			}
 			else {
-				oTd.style.left = Math.round(iScreenScale*20*t/T*(j?-1:1)) +"px";
+				oTd.style.left = Math.round(iScreenScale*20*t/T*k) +"px";
 				var T_2 = T/2;
 				if ((aT < T_2) && (t >= T_2)) {
-					oTd.style.backgroundColor = oTeamColors.contrast[j];
-					oTd.style.color = oTeamColors.primary[j];
+					oTd.style.backgroundColor = oTeamColors.contrast[jnc];
+					oTd.style.color = oTeamColors.primary[jnc];
 				}
 				var oTrs = teamsTable.getElementsByTagName("tr");
-				for (var j_=0;j_<2;j_++) {
+				for (var j_=0;j_<selectedNbTeams;j_++) {
+					if (j_ !== j && j !== jnc)
+						continue;
 					var down = (j_==j);
 					for (var i_=down?i+1:i;i_<oTrs.length;i_++) {
 						var oTds = oTrs[i_].getElementsByTagName("td");
@@ -20365,7 +20386,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 
 		var choosedTeams = res.teams;
 		var playersTeams = {};
-		for (var i=0;i<2;i++) {
+		for (var i=0;i<selectedNbTeams;i++) {
 			for (var j=0;j<teams[i].length;j++)
 				playersTeams[teams[i][j][0]] = teams[i][j];
 		}
@@ -20379,15 +20400,15 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			aTeams[inc] = playersTeams[id][6];
 		}
 		selectedTeams = (aTeams.indexOf(-1) == -1);
-		teams[0].length = 0;
-		teams[1].length = 0;
+		for (var i=0;i<selectedNbTeams;i++)
+			teams[i].length = 0;
 		if (selectedTeams) {
 			for (var i=0;i<choosedTeams.length;i++)
 				teams[choosedTeams[i].team].push(playersTeams[choosedTeams[i].id]);
 		}
 		else {
 			for (var i=0;i<choosedTeams.length;i++)
-				teams[i%2].push(playersTeams[choosedTeams[i].id]);
+				teams[i%selectedNbTeams].push(playersTeams[choosedTeams[i].id]);
 		}
 
 		updateTeamsTable(false);
@@ -20463,7 +20484,9 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		document.getElementById("waitteam").style.visibility = "hidden";
 	}
 
-	var teams = [[],[]];
+	var teams = new Array(selectedNbTeams);
+	for (var i=0;i<selectedNbTeams;i++)
+		teams[i] = [];
 	for (var i=0;i<choixJoueurs.length;i++)
 		teams[choixJoueurs[i][6]].push(choixJoueurs[i]);
 
@@ -20476,7 +20499,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		clearTimeout(forceTeamHandler);
 		var teamsPayload = "";
 		var inc = 0;
-		for (var i=0;i<2;i++) {
+		for (var i=0;i<selectedNbTeams;i++) {
 			for (var j=0;j<teams[i].length;j++) {
 				if (inc) teamsPayload += "&";
 				teamsPayload += "j"+(teams[i][j][0])+"="+i;
