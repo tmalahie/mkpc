@@ -9,6 +9,11 @@ $rulesList = array(
 		'default' => 0,
 		'accepted' => array(1,1)
 	),
+	'nbTeams' => array(
+		'default' => 2,
+		'min_value' => 2,
+		'max_value' => 4
+	),
 	'friendly' => array(
 		'default' => 0,
 		'accepted' => array(1,1)

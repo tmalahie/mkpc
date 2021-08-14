@@ -14769,8 +14769,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		e.preventDefault();
 		var team = this.elements["option-teams"].checked ? 1:0;
 		var manualTeams = this.elements["option-manualTeams"].checked ? 1:0;
-		if (!team)
-			manualTeams = 0;
+		var nbTeams = +this.elements["option-nbTeams"].value;
 		var friendly = this.elements["option-friendly"].checked ? 1:0;
 		var localScore = +this.elements["option-localScore"].checked ? 1:0;
 		if (!friendly)
@@ -14801,6 +14800,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		onProceed({
 			team: team,
 			manualTeams: manualTeams,
+			nbTeams: nbTeams,
 			friendly: friendly,
 			localScore: localScore,
 			minPlayers: minPlayers,
@@ -14839,10 +14839,15 @@ function privateGameOptions(gameOptions, onProceed) {
 	if (gameOptions && gameOptions.team)
 		oCheckbox.checked = true;
 	oCheckbox.onchange = function() {
-		if (this.checked)
+		if (this.checked) {
 			document.getElementById("option-manualTeams-ctn").style.display = "";
-		else
+			if (isOnline)
+				document.getElementById("option-nbTeams-ctn").style.display = "";
+		}
+		else {
 			document.getElementById("option-manualTeams-ctn").style.display = "none";
+			document.getElementById("option-nbTeams-ctn").style.display = "none";
+		}
 	}
 	oTd.appendChild(oCheckbox);
 	oTr.appendChild(oTd);
@@ -14904,7 +14909,64 @@ function privateGameOptions(gameOptions, onProceed) {
 	oDiv.innerHTML = toLanguage("If enabled, teams are selected manually at each game.", "Si activé, les équipes sont sélectionnées manuellement à chaque partie. Sinon, les équipes sont formées automatiquement en fonction du niveau de chaque joueur.");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
+	oTr.appendChild(oTd);
+	if (!isOnline) {
+		var oTds = oTr.getElementsByTagName("td");
+		for (var i=0;i<oTds.length;i++)
+			oTds[i].style.paddingBottom = Math.round(iScreenScale*2) +"px";
+	}
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-nbTeams-ctn";
+	if (!gameOptions || !gameOptions.team || !isOnline)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+	oTd.style.paddingLeft = iScreenScale +"px";
 	oTd.style.paddingBottom = Math.round(iScreenScale*1.5) +"px";
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignItems = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-nbTeams");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("Number of teams", "Nombre d'équipes");
+	oH1.style.marginTop = "0px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	var oInput = document.createElement("input");
+	oInput.id = "option-nbTeams";
+	oInput.name = "option-nbTeams";
+	oInput.type = "number";
+	oInput.setAttribute("min", 2);
+	oInput.setAttribute("max", 4);
+	oInput.setAttribute("step", 1);
+	oInput.setAttribute("required", true);
+	oInput.style.backgroundColor = "#F6F6F6";
+	oInput.style.width = (iScreenScale*6) +"px";
+	if (gameOptions && gameOptions.nbTeams)
+		oInput.value = gameOptions.nbTeams;
+	else
+		oInput.value = defaultGameOptions.nbTeams;
+	oInput.style.fontSize = (iScreenScale*3) +"px";
+	oInput.style.marginTop = Math.round(iScreenScale*0.5) +"px";
+	tDiv.appendChild(oInput);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
 
@@ -17021,6 +17083,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 					if (isOnline) {
 						var shownOptions = {};
 						var autoAcceptedRules = {
+							nbTeams:1,
 							minPlayers:1,
 							maxPlayers:1,
 							localScore:1,
@@ -17181,6 +17244,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 									if (!shareLink.options) shareLink.options = {};
 									shareLink.options.team = options.team;
 									shareLink.options.manualTeams = options.manualTeams;
+									shareLink.options.nbTeams = options.nbTeams;
 									shareLink.options.localScore = options.localScore;
 									shareLink.options.friendly = options.friendly;
 									shareLink.options.minPlayers = options.minPlayers;
@@ -18010,6 +18074,7 @@ function selectCpuNamesScreen(oScr, callback, options) {
 var defaultGameOptions = {
 	team: false,
 	manualTeams: false,
+	nbTeams: 2,
 	localScore: false,
 	friendly: false,
 	minPlayers: 2,
