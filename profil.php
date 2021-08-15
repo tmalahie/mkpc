@@ -534,7 +534,7 @@ include('menu.php');
 					</div>
 					<?php
 				}
-				if ($userRights['publisher']) {
+				if (isset($userRights['publisher'])) {
 					$oneData = true;
 					?>
 					<div>
@@ -542,7 +542,7 @@ include('menu.php');
 					</div>
 					<?php
 				}
-				if ($userRights['clvalidator']) {
+				if (isset($userRights['clvalidator'])) {
 					$oneData = true;
 					?>
 					<div>

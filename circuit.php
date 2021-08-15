@@ -383,7 +383,7 @@ if ($canChange) {
 		document.getElementById("sAnnuler").className = "cannotChange";
 		document.getElementById("sConfirmer").disabled = true;
 		document.getElementById("sConfirmer").className = "cannotChange";
-		xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':'supprCreation')); ?>.php", "id=<?php echo $id; ?>", function(reponse) {
+		xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':'supprCreation')); ?>.php", "id=<?php echo $nid; ?>", function(reponse) {
 			if (reponse == 1) {
 				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The circuit has been successfully removed from the list.':'Le circuit a &eacute;t&eacute; retir&eacute; de la liste avec succ&egrave;s.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
