@@ -832,9 +832,11 @@ function setPlanPos() {
 		oPlanChampis[i].style.zIndex = oPlanChampis2[i].style.zIndex = 2;
 	}
 
-	function getExplosionSrc(src,team) {
+	function getExplosionSrc(src,team,defaultTeam) {
 		if (team != -1)
 			src += team;
+		else
+			src += defaultTeam;
 		return "images/map_icons/"+src+".png";
 	}
 
@@ -843,7 +845,7 @@ function setPlanPos() {
 		for (var i=0;i<items["bobomb"].length;i++) {
 			var bobomb = items["bobomb"][i];
 			if (bobomb.cooldown <= 0) {
-				posImg(iPlanBobOmbs[i], bobomb.x,bobomb.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobomb.team);
+				posImg(iPlanBobOmbs[i], bobomb.x,bobomb.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobomb.team,"");
 				iPlanBobOmbs[i].style.width = iExpWidth +"px";
 				iPlanBobOmbs[i].style.opacity = Math.max(1+bobomb.cooldown/10, 0);
 				iPlanBobOmbs[i].style.background = "";
@@ -878,7 +880,7 @@ function setPlanPos() {
 		for (var i=0;i<items["carapace-bleue"].length;i++) {
 			var carapaceBleue = items["carapace-bleue"][i];
 			if (carapaceBleue.cooldown <= 0) {
-				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosionB",carapaceBleue.team);
+				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceBleue.team,"0");
 				iPlanCarapacesBleues[i].style.width = iExpWidth +"px";
 				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceBleue.cooldown/10, 0);
 				iPlanCarapacesBleues[i].style.background = "";
@@ -5681,7 +5683,7 @@ var itemBehaviors = {
 				if (!i && (fSprite.size == 1)) {
 					var fLoad;
 					for (var k=0;k<strPlayer.length;k++) {
-						makeSpriteExplode(fSprite,"explosion",k);
+						makeSpriteExplode(fSprite,"",k);
 						if (fSprite.sprite[k].div.style.display == "block")
 							fLoad = k;
 					}
@@ -6005,10 +6007,10 @@ var itemBehaviors = {
 		},
 		render: function(fSprite,i) {
 			if (fSprite.cooldown <= 0) {
-				if (!i && fSprite.size == 1) {
+				if (!i && (fSprite.size == 1)) {
 					var fLoad;
 					for (var k=0;k<strPlayer.length;k++) {
-						makeSpriteExplode(fSprite,"explosionB",k);
+						makeSpriteExplode(fSprite,"0",k);
 						if (fSprite.sprite[k].div.style.display == "block")
 							fLoad = k;
 					}
@@ -8121,9 +8123,12 @@ function render() {
 		})(i);
 	}
 }
-function makeSpriteExplode(fSprite,src,k) {
+function makeSpriteExplode(fSprite,defaultTeam,k) {
+	var src = "explosion";
 	if (fSprite.team != -1)
 		src += fSprite.team;
+	else
+		src += defaultTeam;
 	fSprite.sprite[k].img.src = "images/sprites/sprite_"+src+".png";
 	var oDivs = fSprite.sprite[k].div.getElementsByClassName("sprite-hallow");
 	if (oDivs.length)
