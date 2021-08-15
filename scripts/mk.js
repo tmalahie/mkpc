@@ -3929,10 +3929,10 @@ function createTeamTable(teamsRecap) {
 	});
 	var oTeamTable = document.createElement("table");
 	oTeamTable.id = "team-table";
-	var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Team','Équipe') +'</td><td>Pts</td></tr>';
+	var positions = '<tr style="font-size: '+ iScreenScale * 1.8 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Team','Équipe') +'</td><td>Pts</td></tr>';
 	for (var i=0;i<teamsRank.length;i++) {
 		var teamRank = teamsRank[i];
-		positions += '<tr id="fJ'+i+'" style="background-color:'+ oTeamColors.primary[teamRank] +'; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603"><td>'+ toPlace(i+1) +' </td><td id="j'+i+'">'+ oTeamColors.name[teamRank] +'</td><td id="pts'+i+'">'+ teamsRecap[teamRank] +'</td></tr>';
+		positions += '<tr id="fJ'+i+'" style="background-color:'+ oTeamColors.primary[teamRank] +'; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603"><td>'+ toPlace(i+1) +' </td><td id="j'+i+'" style="padding: 0 '+ Math.round(iScreenScale/2) +'px">'+ oTeamColors.name[teamRank] +'</td><td id="pts'+i+'" style="padding: 0 '+ Math.round(iScreenScale/2) +'px">'+ teamsRecap[teamRank] +'</td></tr>';
 	}
 	oTeamTable.style.visibility = "hidden";
 	oTeamTable.style.position = "absolute";
@@ -3943,7 +3943,7 @@ function createTeamTable(teamsRecap) {
 	oTeamTable.style.color = primaryColor;
 	oTeamTable.style.opacity = 0.7;
 	oTeamTable.style.textAlign = "center";
-	oTeamTable.style.fontSize = Math.round(iScreenScale*1.5+4) +"pt";
+	oTeamTable.style.fontSize = Math.round(iScreenScale*1.5+2) +"pt";
 	oTeamTable.style.fontFamily = "Courier";
 	oTeamTable.style.fontWeight = "bold";
 	oTeamTable.style.fontFamily = "arial";
@@ -11674,8 +11674,6 @@ function resetDatas() {
 						}
 						else if (pCode[4] != -1)
 							oTr.style.backgroundColor = oTeamColors.primary[pCode[4]];
-						if (iTeamPlay)
-							oTr.style.textShadow = "-1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 						var oTd = document.createElement("td");
 						oTd.innerHTML = toPlace(i+1);
 						oTds[i][0] = document.createElement("td");
@@ -11691,6 +11689,11 @@ function resetDatas() {
 						oTr.appendChild(oTds[i][0]);
 						oTds[i][1].appendChild(oSmall);
 						oTr.appendChild(oTds[i][1]);
+						if (iTeamPlay) {
+							oTr.style.textShadow = "-1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
+							for (var j=0;j<oTds[i].length;j++)
+								oTds[i][j].style.padding = '0 '+ Math.round(iScreenScale/2) +'px';
+						}
 						infos0.appendChild(oTr);
 						oTrs[i] = oTr;
 					}
@@ -12741,8 +12744,11 @@ function move(getId, triggered) {
 								var positions = '<tr style="font-size: '+ iScreenScale * 2 +'px; background-color: white; color: black;"><td>Places</td><td>'+ toLanguage('Player','Joueur') +'</td><td>Pts</td></tr>';
 								var maxPts = Math.round(aKarts.length*1.25);
 								var styleMore = "";
-								if (iTeamPlay)
+								var styleMore2 = "";
+								if (iTeamPlay) {
 									styleMore = "; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
+									styleMore2 = ' style="padding: 0 '+ Math.round(iScreenScale/2) +'px"';
+								}
 								for (var i=0;i<nbjoueurs;i++) {
 									for (var j=0;j<nbjoueurs;j++) {
 										var joueur = aKarts[j].personnage;
@@ -12755,7 +12761,7 @@ function move(getId, triggered) {
 												// hardcoded scores to fit wii point system
 												ptsInc = [15,12,10,8,7,6,5,4,3,2,1,0][i];
 											}
-											positions += '<tr id="fJ'+i+'" style="background-color: '+ rankingColor(j) + styleMore +'"><td>'+ toPlace(i+1)+' </td><td id="j'+i+'">'+ toPerso(joueur) +'</td><td id="pts'+i+'">'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
+											positions += '<tr id="fJ'+i+'" style="background-color: '+ rankingColor(j) + styleMore +'"><td>'+ toPlace(i+1)+' </td><td id="j'+i+'"'+ styleMore2 +'>'+ toPerso(joueur) +'</td><td id="pts'+i+'"'+ styleMore2 +'>'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
 											aScores[j] += ptsInc;
 											j = nbjoueurs;
 										}
@@ -13053,15 +13059,18 @@ function move(getId, triggered) {
 				var positions_ = "";
 				var iPlace = 1;
 				var styleMore = "";
-				if (iTeamPlay)
+				var styleMore2 = "";
+				if (iTeamPlay) {
 					styleMore = "; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
+					styleMore2 = ' style="padding: 0 '+ Math.round(iScreenScale/2) +'px"';
+				}
 				for (var i=0;i<aKarts.length;i++) {
 					var oTeam = aKarts[i].team;
 					if (oTeam === -1) oTeam = 0;
 					var ptsInc = (aKarts[i] == gagnant);
 					var joueur = aKarts[i].personnage;
 					var actualPlace = ptsInc?0:iPlace;
-					var positionsHtml = '<tr id="fJ'+actualPlace+'" style="background-color:'+ rankingColor(i) + styleMore +'"><td>'+ toPlace(actualPlace+1) +' </td><td id="j'+actualPlace+'">'+ toPerso(joueur) +'</td><td id="pts'+actualPlace+'">'+ aScores[i] + (!ptsInc ? "" : "<small>+1</small>")+'</td></tr>';
+					var positionsHtml = '<tr id="fJ'+actualPlace+'" style="background-color:'+ rankingColor(i) + styleMore +'"><td>'+ toPlace(actualPlace+1) +' </td><td id="j'+actualPlace+'"'+styleMore2+'>'+ toPerso(joueur) +'</td><td id="pts'+actualPlace+'"'+styleMore2+'>'+ aScores[i] + (!ptsInc ? "" : "<small>+1</small>")+'</td></tr>';
 					if (ptsInc)
 						positions_ = positionsHtml+positions_;
 					else {
