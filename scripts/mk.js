@@ -11672,8 +11672,8 @@ function resetDatas() {
 							document.getElementById("infoPlace0").innerHTML = i+1;
 							document.getElementById("infoPlace0").style.visibility = "visible";
 						}
-						else
-							oTr.style.backgroundColor = rankingColor(1);
+						else if (pCode[4] != -1)
+							oTr.style.backgroundColor = oTeamColors.primary[pCode[4]];
 						if (iTeamPlay)
 							oTr.style.textShadow = "-1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 						var oTd = document.createElement("td");
@@ -11728,8 +11728,8 @@ function resetDatas() {
 							oTds[i][1].innerHTML = pCode[2];
 							if (pCode[0] == identifiant)
 								oTrs[i].style.backgroundColor = rankingColor(0);
-							else if (pCode[4] == 1)
-								oTrs[i].style.backgroundColor = "red";
+							else if (pCode[4] != -1)
+								oTrs[i].style.backgroundColor = oTeamColors.primary[pCode[4]];
 							else
 								oTrs[i].style.backgroundColor = "";
 						}
