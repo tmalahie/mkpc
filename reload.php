@@ -134,11 +134,15 @@ if ($id) {
 			$courseRules = new stdClass();
 			if ($courseOptions)
 				$courseRules = json_decode($courseOptions['rules']);
+			require_once('onlineConsts.php');
 			$isTeam = !empty($courseRules->team);
 			$isTt = !empty($courseRules->timeTrial);
+			$nbTeams = isset($courseRules->nbTeams) ? $courseRules->nbTeams : DEFAULT_TEAM_COUNT;
+			if ($nbTeams > 2)
+				$nbTeams = min($nbTeams, mysql_numrows($joueurs));
 			$racing = 0;
 			$racingHumans = 0;
-			$racingPerTeam = array(0,0);
+			$racingPerTeam = array_fill(0,$nbTeams,0);
 			$virgule = false;
 			while ($joueur=mysql_fetch_array($joueurs)) {
 				if ($joueur['team'] == -1)
@@ -191,8 +195,11 @@ if ($id) {
 				elseif ($isTt && ($joueur['finalts'] >= ($time-2)))
 					$racing++;
 			}
-			if ($isTeam && $isBattle)
-				$racing = ($racingPerTeam[0]>0)+($racingPerTeam[1]>0);
+			if ($isTeam && $isBattle) {
+				$racing = 0;
+				foreach ($racingPerTeam as $iRacing)
+					$racing += ($iRacing>0);
+			}
 			echo '],[';
 			echo json_encode($newItems);
 			echo ',';
@@ -259,9 +266,9 @@ if ($id) {
 				if (!$isFriendly) {
 					$total = 0;
 					if ($isTeam) {
-						$totalPerTeam = array(0,0);
-						$xpPerTeam = array(1,1);
-						$nbScoresPerTeam = array(0,0);
+						$totalPerTeam = array_fill(0,$nbTeams,0);
+						$xpPerTeam = array_fill(0,$nbTeams,1);
+						$nbScoresPerTeam = array_fill(0,$nbTeams,0);
 						foreach ($playersData as $joueur) {
 							$team = $joueur['team'];
 							$totalPerTeam[$team] += $joueur['aPts'];
@@ -269,23 +276,24 @@ if ($id) {
 							$nbScoresPerTeam[$team]++;
 							$total += $joueur['aPts'];
 						}
-						$ptsPerTeam = array(0,0);
-						if ($nbScoresPerTeam[0] && $nbScoresPerTeam[1]) {
-							$avgPerTeam = array(
-								pow($xpPerTeam[0],1/$nbScoresPerTeam[0]),
-								pow($xpPerTeam[1],1/$nbScoresPerTeam[1])
-							);
+						$ptsPerTeam = array_fill(0,$nbTeams,0);
+						if (min($nbScoresPerTeam)) {
+							$avgPerTeam = array();
+							foreach ($xpPerTeam as $i=>$xp)
+								$avgPerTeam[$i] = pow($xp,1/$nbScoresPerTeam[$i]);
 							foreach ($playersData as $i=>$joueur) {
 								$team = $joueur['team'];
 								$ptsPerTeam[$team] += getScoreInc($i,$avgPerTeam[$team],$nbScores,$total);
 							}
 						}
 						$ptsProrata = array();
-						$ptsProrataTotal = array(0,0);
+						$ptsProrataTotal = array_fill(0,$nbTeams,0);
+						$totalAvgTeams = array_sum($avgPerTeam);
 						foreach ($playersData as $i=>$joueur) {
 							$team = $joueur['team'];
 							$ranking = ($ptsPerTeam[$team] > 0) ? 0:1;
-							$iProrata = getScoreInc($ranking,$joueur['aPts'],2,$joueur['aPts']+$avgPerTeam[1-$team]);
+							$totalOtherTeams = $totalAvgTeams - $avgPerTeam[$team];
+							$iProrata = getScoreInc($ranking,$joueur['aPts'],$nbTeams,$joueur['aPts']+$totalOtherTeams);
 							if ($ranking)
 								$iProrata = min($iProrata,-1);
 							else
