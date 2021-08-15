@@ -3920,6 +3920,19 @@ function classement() {
 	}, 500);
 }
 
+function handleRankingStyle() {
+	for (var i=0;true;i++) {
+		var oTd = document.getElementById("j"+i);
+		if (!oTd)
+			break;
+		oTd.style.overflow = "hidden";
+		oTd.style.textOverflow = "ellipsis";
+		oTd.style.maxWidth = (iScreenScale*20) + "px";
+		oTd.style.whiteSpace = "nowrap";
+		document.getElementById("j"+i);
+	}
+}
+
 function createTeamTable(teamsRecap) {
 	var teamsRank = [];
 	for (var i=0;i<teamsRecap.length;i++)
@@ -11681,6 +11694,7 @@ function resetDatas() {
 							oTds[i][0].innerHTML = '<span style="font-size: '+ Math.round(iScreenScale*1+3) +'pt">'+ pCode[1] +'</span><br /><span style="font-size: '+ Math.round(iScreenScale*0.75+2) +'pt">'+timeStr(pCode[5])+'</span>';
 						else
 							oTds[i][0].innerHTML = pCode[1];
+						oTds[i][0].id = "j"+i;
 						oTds[i][1] = document.createElement("td");
 						oTds[i][1].innerHTML = pCode[2];
 						var oSmall = document.createElement("small");
@@ -11697,6 +11711,7 @@ function resetDatas() {
 						infos0.appendChild(oTr);
 						oTrs[i] = oTr;
 					}
+					handleRankingStyle();
 					var oTr = document.createElement("tr");
 					var oTd = document.createElement("td");
 					oTd.setAttribute("colspan", 3);
@@ -12779,6 +12794,7 @@ function move(getId, triggered) {
 								document.getElementById("infos0").style.backgroundColor = iTeamPlay ? "blue":"#063";
 								document.getElementById("infos0").style.color = primaryColor;
 								document.getElementById("infos0").innerHTML = positions;
+								handleRankingStyle();
 								var oContinue = document.createElement("input");
 								oContinue.type = "button";
 								oContinue.id = "octn";
@@ -13091,6 +13107,7 @@ function move(getId, triggered) {
 				document.getElementById("infos0").style.backgroundColor = iTeamPlay ? "blue":"#063";
 				document.getElementById("infos0").style.color = primaryColor;
 				document.getElementById("infos0").innerHTML = positions;
+				handleRankingStyle();
 				var oContinue = document.createElement("input");
 				oContinue.type = "button";
 				oContinue.id = "octn";
