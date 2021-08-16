@@ -18213,6 +18213,7 @@ function selectTeamScreen(IdJ) {
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
 		oPInput.value = teamColors[i];
+		oPInput.style.color = oTeamColors.light[i];
 		oPInput.i = i;
 		oPInput.style.fontSize = (4*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
