@@ -10093,7 +10093,7 @@ function showChallengePopup(challenge, res) {
 	var challengeTitle = language ? 'Challenge completed!':'Défi réussi !';
 	var challengeCongrats = challenge.description.main;
 	var challengeAward = language ? 'You receive a reward of <strong>'+gain+' pt'+(gain>=2?'s':'')+'</strong>.':'Vous recevez <strong>'+gain+' pt'+(gain>=2?'s':'')+'</strong> en récompense.';
-	var challengeAward2 = language ? 'Your challenge points goes from <strong>'+res.pts_before+'</strong> to <strong>'+res.pts_after+'</strong>!':'Vos points défis passent de <strong>'+res.pts_before+'</strong> à <strong>'+res.pts_after+'</strong> !';
+	var challengeAward2 = language ? 'Your challenge points go from <strong>'+res.pts_before+'</strong> to <strong>'+res.pts_after+'</strong>!':'Vos points défis passent de <strong>'+res.pts_before+'</strong> à <strong>'+res.pts_after+'</strong> !';
 	var challengeClose = language ? 'Close':'Fermer';
 	oDiv.innerHTML = 
 		'<div style="font-size: '+ Math.round(iScreenScale*2) +'px">'+
@@ -16872,7 +16872,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 		oTitle.style.color = "#F90";
 	}
 	else
-		oTitle = toTitle(toLanguage("Choose a player", "Choisissez un joueur"), -1);
+		oTitle = toTitle(toLanguage("Select a player", "Choisissez un joueur"), -1);
 	if (shrinkAll)
 		oTitle.style.fontSize = Math.round(7.5*iScreenScale)+"px";
 	oScr.appendChild(oTitle);
