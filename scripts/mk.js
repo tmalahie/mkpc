@@ -8496,6 +8496,8 @@ function colKart(getId) {
 			var d2 = nearestPoint[0]*nearestPoint[0] + nearestPoint[1]*nearestPoint[1];
 			if (d2 <= hitboxSize) {
 				if (!protect1 && !protect2) {
+					if (isOnline && shareLink.options && shareLink.options.noBumps)
+						continue;
 					if (isChampiCol) {
 						var qKart = oKart.champi ? kart:oKart;
 						if (!qKart.loose && !qKart.cannon && !qKart.frminv) {
@@ -13441,13 +13443,6 @@ function isControlledByPlayer(id) {
 	});
 	return oKart && ((oKart.id == identifiant) || (oKart.controller == identifiant));
 }
-function isColKartEnabled() {
-	if (course == "CM")
-		return false;
-	if (isOnline && shareLink.options && (shareLink.options.timeTrial || shareLink.options.noBumps))
-		return false;
-	return true;
-}
 function timeTrialMode() {
 	if (course == "CM")
 		return true;
@@ -14407,7 +14402,7 @@ function cycle() {
 }
 var decorPos = {};
 function runOneFrame() {
-	if (isColKartEnabled()) {
+	if (!timeTrialMode()) {
 		for (var i=0;i<aKarts.length;i++)
 			colKart(i);
 	}
