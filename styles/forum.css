@@ -1002,6 +1002,14 @@ a.forum-auteur:hover {
 .advanced-search {
 	text-align: center;
 }
+input.noarrow::-webkit-outer-spin-button,
+input.noarrow::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number].noarrow {
+  -moz-appearance: textfield;
+}
 .search-xs-2 {
 	width: 2.5em;
 }

@@ -117,13 +117,26 @@ else {
 			</td>
 		</tr>
 		<tr>
-			<td class="ligne">
+			<td class="ligne birthdate">
 				<label for="birthdate"><?php echo $language ? 'Birth date':'Date de naissance'; ?></label>
 			</td>
 			<td>
-				<input type="number" name="d0" class="search-xs-2" min="1" max="31" value="<?php echo htmlspecialchars($d0); ?>" /> /
-				<input type="number" name="m0" class="search-xs-2" min="1" max="12" value="<?php echo htmlspecialchars($m0); ?>" /> /
-				<input type="number" name="y0" class="search-xs-4" min="1000" max="9999" value="<?php echo htmlspecialchars($y0); ?>" /><br />
+				<?php
+				if ($language) {
+					?>
+					<input type="number" name="y0" id="birthdate" class="search-xs-4 noarrow" placeholder="YYYY" min="1000" max="9999" value="<?php echo htmlspecialchars($y0); ?>" /> /
+					<input type="number" name="m0" class="search-xs-2 noarrow" placeholder="MM" min="1" max="12" value="<?php echo htmlspecialchars($m0); ?>" /> /
+					<input type="number" name="d0" class="search-xs-2 noarrow" placeholder="DD" min="1" max="31" value="<?php echo htmlspecialchars($d0); ?>" /><br />
+					<?php
+				}
+				else {
+					?>
+					<input type="number" name="d0" id="birthdate" class="search-xs-2 noarrow" placeholder="JJ" min="1" max="31" value="<?php echo htmlspecialchars($d0); ?>" /> /
+					<input type="number" name="m0" class="search-xs-2 noarrow" placeholder="MM" min="1" max="12" value="<?php echo htmlspecialchars($m0); ?>" /> /
+					<input type="number" name="y0" class="search-xs-4 noarrow" placeholder="AAAA" min="1000" max="9999" value="<?php echo htmlspecialchars($y0); ?>" /><br />
+					<?php
+				}
+				?>
 			</td>
 		</tr>
 		<tr>
