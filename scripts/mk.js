@@ -14867,7 +14867,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oCheckbox.onchange = function() {
 		if (this.checked) {
 			document.getElementById("option-manualTeams-ctn").style.display = "";
-			if (isOnline)
+			if (false) // TODO remove to enable multiteams isOnline)
 				document.getElementById("option-nbTeams-ctn").style.display = "";
 		}
 		else {
@@ -14936,7 +14936,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTr.appendChild(oTd);
-	if (!isOnline) {
+	if (true) { // TODO remove to enable multiteams if (!isOnline) {
 		var oTds = oTr.getElementsByTagName("td");
 		for (var i=0;i<oTds.length;i++)
 			oTds[i].style.paddingBottom = Math.round(iScreenScale*2) +"px";
@@ -18222,6 +18222,7 @@ function selectTeamScreen(IdJ) {
 		var iNbCols = Math.min(i+nbCols-i%nbCols,fInfos.nbteams) - (i-i%nbCols);
 		oPInput.style.left = ((25 + (x-(iNbCols-1)/2)*32)*iScreenScale)+"px";
 		oPInput.style.top = ((12+y*8)*iScreenScale)+"px";
+		oPInput.style.top = ((16+y*9)*iScreenScale)+"px"; // TODO remove to enable multiteams
 		oPInput.style.width = (30*iScreenScale)+"px";
 
 		oPInput.onclick = function() {
@@ -18257,6 +18258,7 @@ function selectTeamScreen(IdJ) {
 	}
 
 	var oDiv = document.createElement("div");
+	oDiv.style.display = "none"; // TODO remove to enable multiteams
 	oDiv.style.position = "absolute";
 	oDiv.style.left = (iScreenScale*5) +"px";
 	oDiv.style.top = (iScreenScale*30) +"px";
