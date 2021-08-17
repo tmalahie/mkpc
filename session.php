@@ -1,6 +1,5 @@
 <?php
-error_reporting(E_ERROR);
-session_start();
+@session_start();
 $id = isset($_SESSION['mkid']) ? $_SESSION['mkid'] : null;
 if (!$id) {
 	$playerId = null;
