@@ -73,8 +73,8 @@ else {
 		<?php
 		if ($language) {
 			?>
-			This account has been deleted. The connexion to it has been disabled.<br />
-			If you want to go back and restore it, you can still do it by clicking <a href="<?php echo $restoreAccount; ?>">here</a>.
+			This account has been deleted. The connection to it has been disabled.<br />
+			If you want to undo and restore it, you can still do it by clicking <a href="<?php echo $restoreAccount; ?>">here</a>.
 			<?php
 		}
 		else {

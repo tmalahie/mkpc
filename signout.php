@@ -1,8 +1,6 @@
 <?php
 include('language.php');
 include('session.php');
-session_start();
-$id = $_SESSION['mkid'];
 include('initdb.php');
 if ($id) {
 	if (isset($_POST['code'])) {
