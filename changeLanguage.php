@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['nLanguage']))
 	setcookie('language', $_GET['nLanguage'], 4294967295,'/');
-if ($_SERVER['HTTP_REFERER'])
+if (!empty($_SERVER['HTTP_REFERER']))
 	header('Location: '. $_SERVER['HTTP_REFERER']);
 else {
 	if (isset($_GET['page'])) {

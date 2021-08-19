@@ -2,8 +2,6 @@
 include('getId.php');
 include('language.php');
 include('session.php');
-session_start();
-$id = $_SESSION['mkid'];
 $inscrit = false;
 include('initdb.php');
 if (isset($_POST['pseudo']) && isset($_POST['code']) && isset($_POST['confirm']) && isset($_POST['email']) && isset($_POST['country'])) {
