@@ -1,6 +1,6 @@
 <?php
 $isUploaded = true;
-if ((!isset($_FILES['image'])||$_FILES['image']['error']) && isset($_POST['url'])) {
+if ((!isset($_FILES['image'])||$_FILES['image']['error']) && !empty($_POST['url'])) {
 	$isUploaded = false;
 	$fileContent = @file_get_contents($_POST['url']);
 	if ($fileContent) {
