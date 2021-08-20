@@ -1,9 +1,9 @@
 <?php
 session_start();
-$id = $_SESSION['mkid'];
-$isBattle = isset($_POST['battle']);
 echo '[';
-if ($id) {
+if (!empty($_SESSION['mkid'])) {
+	$id = $_SESSION['mkid'];
+	$isBattle = isset($_POST['battle']);
 	include('initdb.php');
 	$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
 	$course = $getCourse['course'];

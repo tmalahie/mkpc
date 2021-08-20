@@ -1,7 +1,7 @@
 <?php
 session_start();
-$id = $_SESSION['mkid'];
-if ($id && isset($_POST['msg'])) {
+if (!empty($_SESSION['mkid']) && isset($_POST['msg'])) {
+	$id = $_SESSION['mkid'];
 	include('initdb.php');
 	if ($getCourse = mysql_fetch_array(mysql_query('SELECT course,banned FROM `mkjoueurs` WHERE id="'.$id.'"'))) {
 		if (!$getCourse['banned']) {

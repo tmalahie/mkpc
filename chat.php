@@ -1,7 +1,7 @@
 <?php
 session_start();
-$id = $_SESSION['mkid'];
-if ($id) {
+if (!empty($_SESSION['mkid'])) {
+	$id = $_SESSION['mkid'];
 	include('initdb.php');
 	$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
 	$course = $getCourse['course'];

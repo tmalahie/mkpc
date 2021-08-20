@@ -109,8 +109,10 @@ else { // Existing track
 			$cName = $circuit['nom'];
 			$cPseudo = $circuit['auteur'];
 		}
-		else
+		else {
+			$cName = null;
 			$cPseudo = $_COOKIE['mkauteur'];
+		}
 		$cAuteur = $circuit['auteur'];
 		$cDate = $circuit['publication_date'];
 		$pNote = $circuit['note'];

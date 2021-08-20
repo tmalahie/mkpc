@@ -1,9 +1,9 @@
 <?php
 include('initdb.php');
 session_start();
-$id = $_SESSION['mkid'];
 $res = array();
-if ($id) {
+if (!empty($_SESSION['mkid'])) {
+	$id = $_SESSION['mkid'];
 	if ($getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id='.$id))) {
 		$course = $getCourse['course'];
 		include('onlineStateUtils.php');
