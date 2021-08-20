@@ -471,7 +471,7 @@ $slidesPath = 'images/slides';
 			<?php
 			if ($language) {
 				?>
-				To start playing, it's very simple, just click on &quot;the game&quot; in the menu above. Or more simply, click here:<br />
+				To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:<br />
 				<a href="mariokart.php" class="action_button button_game">Start playing now &gt;</a>
 				<?php
 			}
