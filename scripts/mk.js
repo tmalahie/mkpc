@@ -20915,7 +20915,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oPImg.className = "pixelated";
 	
 	if (ghostsData)
-		oPImg.alt = ghostsData[0];
+		oPImg.alt = ghostsData[1];
 	oPImg.nb = i;
 	oPImg.style.left = -(30 * iScreenScale) +"px";
 	oPImg.style.top = "0px";
@@ -20982,7 +20982,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	};
 
 	if (ghostsData)
-		gRecord = ghostsData[2];
+		gRecord = ghostsData[3];
 	else
 		gRecord = undefined;
 	function writeTime(perso,pseudo,time,times,oImg,oDiv) {
@@ -21018,8 +21018,9 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			gIDs[inc] = i;
 
 			var iScr = document.createElement("div");
+			iScr.className = "igScr";
 			iScr.style.position = "absolute";
-			if (i == (b-1))
+			if (i >= (a+6))
 				iScr.style.left = (iScreenScale*20) +"px";
 			else
 				iScr.style.left = ((inc%2)*iScreenScale*40) +"px";
@@ -21052,7 +21053,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			iPImg.className = "pixelated";
 			
 			if (ghostsData)
-				iPImg.alt = ghostsData[0];
+				iPImg.alt = ghostsData[1];
 			iPImg.nb = i;
 			iPImg.style.left = -(18 * iScreenScale) +"px";
 			iPImg.style.top = "0px";
@@ -21071,8 +21072,8 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			fGauche.value = "\u2190";
 			fGauche.style.fontSize = (4*iScreenScale)+"px";
 			fGauche.style.position = "absolute";
-			fGauche.style.left = iScreenScale+"px";
-			fGauche.style.top = Math.round(0.5*iScreenScale)+"px";
+			fGauche.style.left = Math.round(iScreenScale*1.5)+"px";
+			fGauche.style.top = Math.round(0.25*iScreenScale)+"px";
 			(function(inc,iPImg,iPersoTime) {
 				fGauche.onclick = function() {
 					gIDs[inc]--;
@@ -21089,7 +21090,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			fDroite.style.fontSize = (4*iScreenScale)+"px";
 			fDroite.style.position = "absolute";
 			fDroite.style.left = (32.5*iScreenScale)+"px";
-			fDroite.style.top = Math.round(0.5*iScreenScale)+"px";
+			fDroite.style.top = Math.round(0.25*iScreenScale)+"px";
 			(function(inc,iPImg,iPersoTime) {
 				fDroite.onclick = function() {
 					gIDs[inc]++;
@@ -21108,6 +21109,44 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			inc++;
 		}
 
+		var oDelete = document.createElement("div");
+		oDelete.style.position = "absolute";
+		oDelete.style.right = (7*iScreenScale) +"px";
+		oDelete.style.top = (-iScreenScale) +"px";
+		oDelete.style.width = (iScreenScale*2) +"px";
+		oDelete.style.height = (iScreenScale*2) +"px";
+		oDelete.style.display = "flex";
+		oDelete.style.alignItems = "center";
+		oDelete.style.justifyContent = "center";
+		oDelete.style.fontSize = (iScreenScale*2) +"px";
+		oDelete.innerHTML = "&times;";
+		oDelete.style.backgroundColor = "black";
+		oDelete.style.color = "white";
+		oDelete.style.border = "solid 1px white";
+		oDelete.style.borderRadius = "50%";
+		oDelete.style.cursor = "pointer";
+		oDelete.onmouseover = function() {
+			this.style.backgroundColor = "#333";
+		};
+		oDelete.onmouseout = function() {
+			this.style.backgroundColor = "black";
+		};
+		oDelete.onclick = function() {
+			if (confirm(toLanguage("Remove ghost from list?", "Retirer de la liste ?"))) {
+				var igScrs = oScr.querySelectorAll(".igScr");
+				oScr.removeChild(igScrs[igScrs.length-1]);
+				posDeleteButton();
+				gIDs.pop();
+				setMultiFaceValue();
+			}
+		}
+		function posDeleteButton() {
+			var igScrs = oScr.querySelectorAll(".igScr");
+			if (igScrs.length > 1)
+				igScrs[igScrs.length-1].appendChild(oDelete);
+		}
+		posDeleteButton();
+
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
 		oPInput.value = toLanguage("Back", "Retour");
@@ -21124,16 +21163,32 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = toLanguage("Let's go", "Commencer");
-		oPInput.style.fontSize = (3*iScreenScale)+"px";
+		function setMultiFaceValue() {
+			oPInput.value = toLanguage("Face with " + gIDs.length + " ghost" + (gIDs.length>1 ? "s":""), "Affronter " + gIDs.length + " fantôme" + (gIDs.length>1 ? "s":""));
+		}
+		setMultiFaceValue();
+		oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
-		oPInput.style.left = (52*iScreenScale-10)+"px";
-		oPInput.style.top = (34*iScreenScale)+"px";
+		oPInput.style.right = (5*iScreenScale-10)+"px";
+		oPInput.style.top = (35*iScreenScale)+"px";
 		
 		oPInput.onclick = function() {
 			seeGhost(false);
 		};
 		oScr.appendChild(oPInput);
+
+		var oPInput2 = document.createElement("input");
+		oPInput2.type = "button";
+		oPInput2.value = toLanguage("See race", "Voir la course");
+		oPInput2.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+		oPInput2.style.position = "absolute";
+		oPInput2.style.right = (33*iScreenScale-10)+"px";
+		oPInput2.style.top = (35*iScreenScale)+"px";
+		
+		oPInput2.onclick = function() {
+			seeGhost(true);
+		};
+		oScr.appendChild(oPInput2);
 	}
 	function showGhosts() {
 		if (gTimes.length) {
@@ -21150,8 +21205,10 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			if (gID == -1) {
 				if (ghostsData) {
 					gID = gTimes.length-1;
-					while (gID && (gTimes[gID][3] >= ghostsData[2]))
+					while (gID && (gTimes[gID][3] >= ghostsData[3]))
 						gID--;
+					if (!gID && gTimes.length > 1 && (gTimes[gID][0] === ghostsData[0]))
+						gID++;
 				}
 				else
 					gID = 0;
@@ -21165,9 +21222,15 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			fGauche.style.left = (10*iScreenScale)+"px";
 			fGauche.style.top = Math.round(10.5*iScreenScale)+"px";
 			fGauche.onclick = function() {
-				gID--;
-				if (gID < 0)
-					gID = gTimes.length-1;
+				for (var i=0;i<2;i++) {
+					gID--;
+					if (gID < 0)
+						gID = gTimes.length-1;
+					if (!ghostsData)
+						break;
+					if (gTimes[gID][0] !== ghostsData[0])
+						break;
+				}
 				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
 			}
 			oScr.appendChild(fGauche);
@@ -21181,10 +21244,16 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			fDroite.style.left = (65*iScreenScale)+"px";
 			fDroite.style.top = Math.round(10.5*iScreenScale)+"px";
 			fDroite.onclick = function() {
-				gID++;
-				if (gID >= gTimes.length)
-					gID = 0;
-				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
+				for (var i=0;i<2;i++) {
+					gID++;
+					if (gID >= gTimes.length)
+						gID = 0;
+					writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
+					if (!ghostsData)
+						break;
+					if (gTimes[gID][0] !== ghostsData[0])
+						break;
+				}
 			}
 			oScr.appendChild(fDroite);
 			if (ghostsData)
@@ -21231,11 +21300,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		}
 		else {
 			if (ghostsData) {
-				try {
-					alert(language ? 'No other record for this circuit yet':'Aucun autre record pour ce circuit');
-				}
-				catch (e) {
-				}
+				alert(language ? 'No other record for this circuit yet':'Aucun autre record pour ce circuit');
 				oScr.style.visibility = "visible";
 				gID = -1;
 				document.body.style.cursor = "default";
@@ -21283,15 +21348,15 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			oContainers[0].removeChild(oScr);
 			gOverwriteRecord = 1;
 			if (replay) {
-				strPlayer[0] = ghostsData[0];
-				iRecord = ghostsData[2];
-				iLapTimes = ghostsData[3];
-				iTrajet = ghostsData[4];
+				strPlayer[0] = ghostsData[1];
+				iRecord = ghostsData[3];
+				iLapTimes = ghostsData[4];
+				iTrajet = ghostsData[5];
 			}
 			else {
-				gPersos = [ghostsData[0]];
-				iLapTimes = ghostsData[3];
-				jTrajets = [ghostsData[4]];
+				gPersos = [ghostsData[1]];
+				iLapTimes = ghostsData[4];
+				jTrajets = [ghostsData[5]];
 			}
 			resetGame(aAvailableMaps[map]);
 		}
@@ -21322,18 +21387,26 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 					catch (e) {
 						return false;
 					}
-					if (replay) {
-						strPlayer[0] = gTimes[gID][1];
-						iRecord = gTimes[gID][3];
-						iLapTimes = gTimes[gID][4];
-						iTrajet = gCourse;
+					if (gIDs) {
+						if (replay) {
+							strPlayer[0] = gTimes[gIDs[0]][1];
+							iRecord = gTimes[gIDs[0]][3];
+							iLapTimes = gTimes[gIDs[0]][4];
+							iTrajet = gCourse[0];
+							gIDs.shift();
+							gCourse.shift();
+						}
+						gPersos = [];
+						for (var i=0;i<gIDs.length;i++)
+							gPersos.push(gTimes[gIDs[i]][1]);
+						jTrajets = gCourse;
 					}
 					else {
-						if (gIDs) {
-							gPersos = [];
-							for (var i=0;i<gIDs.length;i++)
-								gPersos.push(gTimes[gIDs[i]][1]);
-							jTrajets = gCourse;
+						if (replay) {
+							strPlayer[0] = gTimes[gID][1];
+							iRecord = gTimes[gID][3];
+							iLapTimes = gTimes[gID][4];
+							iTrajet = gCourse;
 						}
 						else {
 							gPersos = [gTimes[gID][1]];
@@ -21414,7 +21487,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			selectRaceScreen(map-map%4);
 		}
 		else {
-			writeTime(ghostsData[0],ghostsData[1],ghostsData[2],ghostsData[3]);
+			writeTime(ghostsData[1],ghostsData[2],ghostsData[3],ghostsData[4]);
 			oScr.removeChild(document.getElementById("fGauche"));
 			oScr.removeChild(document.getElementById("fDroite"));
 			oScr.removeChild(OPFace7);
@@ -21437,7 +21510,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		oScr.appendChild(OPFace);
 		oContainers[0].appendChild(oScr);
 		if (ghostsData)
-			writeTime(ghostsData[0],ghostsData[1],ghostsData[2],ghostsData[3]);
+			writeTime(ghostsData[1],ghostsData[2],ghostsData[3],ghostsData[4]);
 		document.body.style.cursor = "default";
 		if (otherGhostsData) {
 			gID = otherGhostsData.id;

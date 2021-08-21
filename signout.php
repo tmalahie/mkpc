@@ -45,7 +45,7 @@ include('menu.php');
 if ($id) {
 	if (isset($suppred)) {
 		?>
-		<p id="success"><?php echo $language ? 'Your account have been removed successfully':'Votre compte a &eacute;t&eacute; supprim&eacute;'; ?>.</p>
+		<p id="success"><?php echo $language ? 'Your account has been removed successfully':'Votre compte a &eacute;t&eacute; supprim&eacute;'; ?>.</p>
 		<p class="forumButtons"><a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 		<?php
 	}
