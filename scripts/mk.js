@@ -2584,7 +2584,7 @@ function startGame() {
 		}
 		for (var i=oPlayers.length;i<aKarts.length;i++) {
 			for (var j=0;j<oPlayers.length;j++)
-				aKarts[i].sprite[j].div.style.opacity = 0.5;
+				aKarts[i].sprite[j].div.style.opacity = (iTrajet === jTrajets[i-1]) ? 0:0.5;
 		}
 		updateObjHud(0);
 	}
@@ -2821,11 +2821,11 @@ function startGame() {
 		}
 		if (timeTrialMode() && (oPlanCharacters.length > 1)) {
 			for (var i=0;i<oPlanCharacters.length;i++) {
-				if (i) oPlanCharacters[i].style.opacity = 0.5;
+				if (i) oPlanCharacters[i].style.opacity = (iTrajet === jTrajets[i-1]) ? 0:0.5;
 				oPlanCtn.appendChild(oPlanCharacters[i]);
 			}
 			for (var i=0;i<oPlanCharacters2.length;i++) {
-				if (i) oPlanCharacters2[i].style.opacity = 0.5;
+				if (i) oPlanCharacters2[i].style.opacity = (iTrajet === jTrajets[i-1]) ? 0:0.5;
 				oPlanCtn2.appendChild(oPlanCharacters2[i]);
 			}
 		}
@@ -4160,8 +4160,10 @@ function continuer() {
 			};
 			if (gSelectedPerso) {
 				fInfos.player = [gSelectedPerso];
-				fInfos.perso = [strPlayer[0]];
-				fInfos.cpu_route = [iTrajet];
+				if (!jTrajets) {
+					fInfos.perso = [strPlayer[0]];
+					fInfos.cpu_route = [iTrajet];
+				}
 			}
 			else {
 				if (gOverwriteRecord == 2) {
@@ -21393,8 +21395,6 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 							iRecord = gTimes[gIDs[0]][3];
 							iLapTimes = gTimes[gIDs[0]][4];
 							iTrajet = gCourse[0];
-							gIDs.shift();
-							gCourse.shift();
 						}
 						gPersos = [];
 						for (var i=0;i<gIDs.length;i++)
