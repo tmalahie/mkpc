@@ -1083,8 +1083,11 @@ function loadMap() {
 					}
 				}
 			}
-			else
-				updateBalloonHud(oCompteur,{reserve:4,team:aTeams[i]});
+			else {
+				var oTeam = aTeams[i];
+				if (oTeam == null) oTeam = -1;
+				updateBalloonHud(oCompteur,{reserve:4,team:oTeam});
+			}
 		}
 		hudScreen.appendChild(oCompteur);
 
@@ -19058,7 +19061,7 @@ function searchCourse() {
 	oActivePlayers.style.color = "#0B0";
 	oActivePlayers.style.display = "none";
 	oActivePlayers.style.backgroundColor = "rgba(0,0,0, 0.7)";
-	oActivePlayers.innerHTML = toLanguage('<span id="nb-active-players" style="color:#0E0"></span> currently online. You\'ll join them as soon as they finish their '+ (isBattle ? 'battle':'race'), '<span id="nb-active-players" style="color:#0E0"></span> actuellement en ligne. Vous les rejoindrez une fois leur partie terminée');
+	oActivePlayers.innerHTML = toLanguage('<span id="nb-active-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> currently online. You\'ll join them as soon as they finish their '+ (isBattle ? 'battle':'race'), '<span id="nb-active-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> actuellement en ligne. Vous les rejoindrez une fois leur partie terminée');
 	
 	oScr.appendChild(oActivePlayers);
 	
@@ -19072,7 +19075,7 @@ function searchCourse() {
 	oRequiredPlayers.style.color = "#0B0";
 	oRequiredPlayers.style.display = "none";
 	oRequiredPlayers.style.backgroundColor = "rgba(0,0,0, 0.7)";
-	oRequiredPlayers.innerHTML = toLanguage('<span id="nb-pending-players" style="color:#0E0"></span> currently waiting, <span id="nb-missing-players" style="color:#0E0"></span> left before the game begins...', '<span id="nb-pending-players" style="color:#0E0"></span> actuellement en attente. Plus que <span id="nb-missing-players" style="color:#0E0"></span> pour que la partie commence');
+	oRequiredPlayers.innerHTML = toLanguage('<span id="nb-pending-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> currently waiting, <span id="nb-missing-players" style="color:#0E0"></span> left before the game begins...', '<span id="nb-pending-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> actuellement en attente. Plus que <span id="nb-missing-players" style="color:#0E0"></span> pour que la partie commence');
 	
 	oScr.appendChild(oRequiredPlayers);
 	
@@ -19165,6 +19168,67 @@ function searchCourse() {
 		setTimeout(rSearchCourse, 100);
 	}
 	rSearchCourse();
+
+	function addPlayerDetails($elt, paramKey) {
+		var $fancyTitle;
+		var fancyInterval;
+		$elt.onmouseover = function() {
+			if ($fancyTitle) return;
+			$elt.style.opacity = 0.9;
+			$fancyTitle = document.createElement("div");
+			$fancyTitle.className = "ranking_activeplayertitle";
+			$fancyTitle.innerHTML = "...";
+			$fancyTitle.style.position = "fixed";
+			$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
+			$fancyTitle.style.borderRadius = iScreenScale+"px";
+			$fancyTitle.style.zIndex = 10;
+			$fancyTitle.style.backgroundColor = "rgba(51,160,51, 0.95)";
+			$fancyTitle.style.color = "white";
+			$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+			$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
+			$fancyTitle.style.visibility = "hidden";
+			$mkScreen.appendChild($fancyTitle);
+			var rect = $elt.getBoundingClientRect();
+			$fancyTitle.style.left = (rect.left + iScreenScale)+"px";
+			$fancyTitle.style.top = (rect.bottom + iScreenScale)+"px";
+			$fancyTitle.style.visibility = "visible";
+
+			clearInterval(fancyInterval);
+			fancyInterval = setInterval(function() {
+				if (!$fancyTitle) return;
+				if (document.body.contains($elt)) return;
+				$mkScreen.removeChild($fancyTitle);
+				clearInterval(fancyInterval);
+				$fancyTitle = undefined;
+			}, 1000);
+
+			xhr("getCourseDetails.php", courseParams, function(reponse) {
+				if (!$fancyTitle)
+					return true;
+				var reponseJson = JSON.parse(reponse);
+				var oPlayerNames = reponseJson[paramKey].map(function(player) {
+					return player.name
+				});
+				if (oPlayerNames.length) {
+					var oPlayerNamesString = oPlayerNames.join("<br />");
+					$fancyTitle.innerHTML = oPlayerNamesString;
+					$fancyTitle.style.left = Math.max(iScreenScale,Math.round(rect.left + (rect.width-$fancyTitle.scrollWidth)/2))+"px";
+				}
+				else
+					$fancyTitle.style.visibility = "hidden";
+				return true;
+			});
+		};
+		$elt.onmouseout = function() {
+			if (!$fancyTitle) return;
+			$elt.style.opacity = "";
+			$mkScreen.removeChild($fancyTitle);
+			clearInterval(fancyInterval);
+			$fancyTitle = undefined;
+		};
+	}
+	addPlayerDetails(oActivePlayers.querySelector("#nb-active-players"), "active_players");
+	addPlayerDetails(oRequiredPlayers.querySelector("#nb-pending-players"), "pending_players");
 
 	if (!shareLink.key) {
 		xhr("sendCourseNotifs.php", null, function(reponse) {
