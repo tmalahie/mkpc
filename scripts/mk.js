@@ -21138,7 +21138,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			fGauche.value = "\u2190";
 			fGauche.style.fontSize = (4*iScreenScale)+"px";
 			fGauche.style.position = "absolute";
-			fGauche.style.left = Math.round(iScreenScale*1.5)+"px";
+			fGauche.style.left = Math.round(iScreenScale*2.5 - 8)+"px";
 			fGauche.style.top = Math.round(0.25*iScreenScale)+"px";
 			(function(inc,iPImg,iPersoTime) {
 				fGauche.onclick = function() {
