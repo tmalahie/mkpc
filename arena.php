@@ -9,6 +9,14 @@ require_once('utils-challenges.php');
 mysql_set_charset('utf8');
 include('creation-challenges.php');
 require_once('circuitPrefix.php');
+$cName = null;
+$cPseudo = null;
+$cAuteur = null;
+$cDate = null;
+$cShared = false;
+$pNote = 0;
+$pNotes = 0;
+$map = 1;
 if (isset($_GET['id'])) {
 	$id = $_GET['id'];
 	$nid = $id;
@@ -38,6 +46,7 @@ if (isset($_GET['id'])) {
 				$incs[$prefix]++;
 			}
 		}
+		$infos['nom'] = $cName;
 		$infos['map'] = $map;
 		addCircuitChallenges('mkcircuits', $nid,$cName, $clPayloadParams);
 		$hthumbnail = 'https://mkpc.malahieude.net/mappreview.php?id='.$id;
@@ -64,7 +73,7 @@ else {
 		}
 	}
 	else
-		$cPseudo = $_COOKIE['mkauteur'];
+		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;$i<36;$i++)
 		$infos["p$i"] = (isset($_GET["p$i"])) ? $_GET["p$i"] : 11;
 	for ($i=0;$i<8;$i++) {
@@ -116,6 +125,8 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 	if ($i)
 		echo ',';
 	$circuit = $circuitsData[$i];
+	if (!$circuit)
+		continue;
 	echo '"'. ($circuit['nom'] ? addSlashes(escapeUtf8($circuit['nom'])) : "&nbsp;") .'"';
 }
 ?>];

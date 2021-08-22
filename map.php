@@ -7,6 +7,13 @@ include('creation-challenges.php');
 $cAuteur = null;
 $cupIDs = Array();
 include('getId.php');
+$cName = null;
+$cPseudo = null;
+$cAuteur = null;
+$cDate = null;
+$cShared = false;
+$pNote = 0;
+$pNotes = 0;
 if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) { // Cup being created
 	$isCup = true;
 	$isMCup = false;
@@ -111,7 +118,7 @@ else { // Existing track
 		}
 		else {
 			$cName = null;
-			$cPseudo = $_COOKIE['mkauteur'];
+			$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 		}
 		$cAuteur = $circuit['auteur'];
 		$cDate = $circuit['publication_date'];

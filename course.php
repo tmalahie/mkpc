@@ -364,7 +364,7 @@ if (isset($_GET['i'])) {
 		</div>
 		<div id="help" class="fs-popup" onclick="event.stopPropagation()">
 			<div class="close-ctn">
-				<span class="title"><?php echo $languge ? 'Help':'Aide'; ?></span>
+				<span class="title"><?php echo $language ? 'Help':'Aide'; ?></span>
 				<a href="javascript:closeHelp()" class="close">&nbsp; &times; &nbsp;</a>
 			</div>
 			<div id="help-buttons" class="radio-selector" data-change="helpChange">

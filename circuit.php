@@ -10,6 +10,13 @@ require_once('utils-challenges.php');
 mysql_set_charset('utf8');
 include('creation-challenges.php');
 require_once('circuitPrefix.php');
+$cName = null;
+$cPseudo = null;
+$cAuteur = null;
+$cDate = null;
+$cShared = false;
+$pNote = 0;
+$pNotes = 0;
 if (isset($_GET['mid'])) { // Existing multicup
 	$id = $_GET['mid'];
 	$nid = $id;

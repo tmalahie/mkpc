@@ -834,6 +834,7 @@ foreach ($circuitsData as $c => $circuit) {
 					$bloqued = true;
 					break;
 				}
+				$s = null;
 				switch($circuit["p$i"]) {
 					case 4 :
 					$s = ($direction == -6) ? 3 : 0;

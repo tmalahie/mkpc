@@ -9,10 +9,12 @@ if ($arene = mysql_fetch_array(mysql_query('SELECT a.*,(a.nom IS NOT NULL) as sh
 	$cShared = $arene['shared'];
 	if ($arene['nom'] != null)
 		$cName = $arene['nom'];
+	else
+		$cName = '';
 	if ($arene['auteur'] != null)
 		$cPseudo = $arene['auteur'];
 	else
-		$cPseudo = $_COOKIE['mkauteur'];
+		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	$cDate = $arene['publication_date'];
 	$pNote = $arene['note'];
 	$pNotes = $arene['nbnotes'];

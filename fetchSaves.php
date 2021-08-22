@@ -4,7 +4,7 @@ if (!isset($identifiants))
 if ($getMkSave = mysql_fetch_array(mysql_query('SELECT scores FROM `mksaves` WHERE identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"')))
 	$mkSaves = $getMkSave['scores'];
 else {
-	$mkSaves = '0000000000';
+	$mkSaves = '00000000000000';
 	mysql_query('INSERT INTO `mksaves` VALUES("'. $identifiants[0] .'","'. $identifiants[1] .'","'. $identifiants[2] .'","'. $identifiants[3] .'","'. mysql_real_escape_string($mkSaves) .'")');
 }
 $total1 = 0;
