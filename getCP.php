@@ -13,7 +13,7 @@ if (isset($_POST['perso'])) {
 			'mass' => +$perso['mass'],
 			'map' => $spriteSrcs['map'],
 			'podium' => $spriteSrcs['podium'],
-			'music' => get_perso_music($data)
+			'music' => get_perso_music($perso)
 		);
 		echo json_encode($res);
 	}
