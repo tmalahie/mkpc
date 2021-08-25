@@ -14996,6 +14996,159 @@ function privateGameOptions(gameOptions, onProceed) {
 	oInput.style.fontSize = (iScreenScale*3) +"px";
 	oInput.style.marginTop = Math.round(iScreenScale*0.5) +"px";
 	tDiv.appendChild(oInput);
+
+	var oTInput = document.createElement("input");
+	oTInput.type = "hidden";
+	oTInput.id = "option-teamParams";
+	oTInput.name = "option-teamParams";
+	tDiv.appendChild(oTInput);
+
+	var oLink = document.createElement("a");
+	oLink.innerHTML = toLanguage("Set teams color &amp; name...", "Couleur &amp; nom des équipes...");
+	oLink.style.fontSize = (iScreenScale*2) +"px";
+	oLink.style.marginLeft = Math.round(iScreenScale*2.5) +"px";
+	oLink.style.color = "white";
+	oLink.style.position = "relative";
+	oLink.style.top = Math.round(-iScreenScale/2) +"px";
+	oLink.href = "#null";
+	oLink.onclick = function() {
+		var nbTeams = +document.getElementById("option-nbTeams").value;
+
+		var oScr2 = document.createElement("form");
+		oScr2.style.position = "absolute";
+		oScr2.style.width = "100%";
+		oScr2.style.height = "100%";
+		oScr2.style.left = "0px";
+		oScr2.style.top = "0px";
+		oScr2.style.zIndex = 2;
+		oScr2.style.backgroundColor = "#000";
+		oScr2.onsubmit = function() {
+			var teamsParam = [];
+			for (var i=0;i<nbTeams;i++) {
+				var teamParam = {
+					color: +this.elements["color"+i].value,
+					name: this.elements["name"+i].value
+				};
+				if (teamParam.name === oTeamColors.name[teamParam.color])
+					delete teamParam.name;
+				teamsParam.push(teamParam);
+			}
+			document.getElementById("option-teamParams").value = JSON.stringify(teamsParam);
+			oScr.removeChild(oScr2);
+			return false;
+		}
+
+		oScr2.appendChild(toTitle(toLanguage("Team options", "Option des équipes"), 0));
+
+		var oTeamTableCtn = document.createElement("div");
+		oTeamTableCtn.style.position = "absolute";
+		oTeamTableCtn.style.width = "100%";
+		oTeamTableCtn.style.top = (iScreenScale*8) +"px";
+		oTeamTableCtn.style.textAlign = "center";
+
+		var oTeamTable = document.createElement("div");
+		oTeamTable.style.display = "inline-grid";
+		oTeamTable.style.fontSize = (iScreenScale*3) +"px";
+		oTeamTable.style.gridTemplateColumns = (iScreenScale*12)+"px "+(iScreenScale*12)+"px "+(iScreenScale*18)+"px";
+		oTeamTable.style.gridColumnGap = (iScreenScale*3)+"px";
+		oTeamTable.style.gridRowGap = Math.round(iScreenScale*(3-nbTeams*0.5))+"px";
+		oTeamTable.style.marginTop = (iScreenScale*2) +"px";
+
+		var oDivH = document.createElement("div");
+		oTeamTable.appendChild(oDivH);
+
+		var oDivH = document.createElement("div");
+		oDivH.style.color = "white";
+		oDivH.innerHTML = toLanguage("Color", "Couleur");
+		oTeamTable.appendChild(oDivH);
+
+		var oDivH = document.createElement("div");
+		oDivH.style.color = "white";
+		oDivH.innerHTML = toLanguage("Name", "Nom");
+		oTeamTable.appendChild(oDivH);
+
+		for (var i=0;i<nbTeams;i++) {
+			(function() {
+				var oDiv = document.createElement("div");
+				oDiv.innerHTML = toLanguage("Team "+ (i+1), "Équipe "+ (i+1));
+				oTeamTable.appendChild(oDiv);
+
+				var oSelect = document.createElement("select");
+				oSelect.name = "color"+i;
+				for (var j=0;j<oTeamColors.name.length;j++) {
+					var oOption = document.createElement("option");
+					oOption.value = j;
+					oOption.innerHTML = oTeamColors.name[j];
+					if (i === j)
+						oOption.selected = true;
+					oSelect.appendChild(oOption);
+				}
+				oSelect.currentValue = oSelect.value;
+				oSelect.onchange = function() {
+					if (oInput.value === oTeamColors.name[oSelect.currentValue])
+						oInput.value = oTeamColors.name[oSelect.value];
+					oSelect.currentValue = oSelect.value;
+					var allTeamsDifferent = true;
+					for (var i=0;i<nbTeams;i++) {
+						var oSelect2 = oScr2.elements["color"+i];
+						if ((oSelect2 !== oSelect) && (oSelect2.value === oSelect.value)) {
+							allTeamsDifferent = false;
+							break;
+						}
+					}
+					if (allTeamsDifferent) {
+						oVInput.disabled = false;
+						oVInput.style.opacity = 1;
+						oVInput.style.cursor = "";
+					}
+					else {
+						oVInput.disabled = true;
+						oVInput.style.opacity = 0.4;
+						oVInput.style.cursor = "not-allowed";
+					}
+				};
+				oSelect.style.fontSize = (iScreenScale*2) +"px";
+				oTeamTable.appendChild(oSelect);
+				
+				var oInput = document.createElement("input");
+				oInput.name = "name"+i;
+				oInput.type = "text";
+				oInput.value = oTeamColors.name[oSelect.value];
+				oInput.style.fontSize = (iScreenScale*2) +"px";
+				oInput.required = true;
+				oTeamTable.appendChild(oInput);
+			})(i);
+		}
+		oTeamTableCtn.appendChild(oTeamTable);
+		oScr2.appendChild(oTeamTableCtn);
+
+		var oPInput = document.createElement("input");
+		oPInput.type = "button";
+		oPInput.value = toLanguage("Back", "Retour");
+		oPInput.style.fontSize = (2*iScreenScale)+"px";
+		oPInput.style.position = "absolute";
+		oPInput.style.left = (2*iScreenScale)+"px";
+		oPInput.style.top = (35*iScreenScale)+"px";
+		oPInput.onclick = function() {
+			oScr.removeChild(oScr2);
+		}
+		oScr2.appendChild(oPInput);
+
+		var oVInput = document.createElement("input");
+		oVInput.style.position = "absolute";
+		oVInput.style.right = (6*iScreenScale)+"px";
+		oVInput.style.top = (34*iScreenScale+4)+"px";
+		oVInput.type = "submit";
+		oVInput.style.fontSize = (iScreenScale*3) +"px";
+		oVInput.value = toLanguage("Validate!","Valider !");
+		oVInput.style.marginLeft = iScreenScale +"px";
+		oScr2.appendChild(oVInput);
+
+		oScr.appendChild(oScr2);
+		return false;
+	}
+	tDiv.appendChild(oLink);
+
 	cDiv.appendChild(tDiv);
 	oTd.appendChild(cDiv);
 	oTr.appendChild(oTd);
