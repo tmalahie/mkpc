@@ -40,6 +40,9 @@ $rulesList = array(
 	'itemDistrib' => array(
 		'default' => 0
 	),
+	'teamOpts' => array(
+		'default' => 0
+	),
 	'cpu' => array(
 		'default' => 0
 	),

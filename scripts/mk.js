@@ -14801,6 +14801,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		var team = this.elements["option-teams"].checked ? 1:0;
 		var manualTeams = this.elements["option-manualTeams"].checked ? 1:0;
 		var nbTeams = +this.elements["option-nbTeams"].value;
+		var teamOpts = JSON.parse(this.elements["option-teamOpts"].value);
 		var friendly = this.elements["option-friendly"].checked ? 1:0;
 		var localScore = +this.elements["option-localScore"].checked ? 1:0;
 		if (!friendly)
@@ -14832,6 +14833,7 @@ function privateGameOptions(gameOptions, onProceed) {
 			team: team,
 			manualTeams: manualTeams,
 			nbTeams: nbTeams,
+			teamOpts: teamOpts,
 			friendly: friendly,
 			localScore: localScore,
 			minPlayers: minPlayers,
@@ -14995,12 +14997,41 @@ function privateGameOptions(gameOptions, onProceed) {
 		oInput.value = defaultGameOptions.nbTeams;
 	oInput.style.fontSize = (iScreenScale*3) +"px";
 	oInput.style.marginTop = Math.round(iScreenScale*0.5) +"px";
+	oInput.onchange = function() {
+		var nbTeams = parseInt(this.value);
+		if (nbTeams < this.getAttribute("min")) {
+			nbTeams = this.getAttribute("min");
+			this.value = nbTeams;
+		}
+		else if (nbTeams > this.getAttribute("max")) {
+			nbTeams = this.getAttribute("max");
+			this.value = nbTeams;
+		}
+		var teamOpts = JSON.parse(document.getElementById("option-teamOpts").value);
+		if (teamOpts) {
+			teamOpts.length = nbTeams;
+			var availableColors = [];
+			for (var i=0;i<teamOpts.length;i++)
+				availableColors.push(i);
+			for (var i=0;i<teamOpts.length;i++) {
+				if (teamOpts[i])
+					availableColors.splice(availableColors.indexOf(teamOpts[i].color),1);
+				else
+					teamOpts[i] = {color:availableColors.shift()};
+			}
+		}
+		document.getElementById("option-teamOpts").value = JSON.stringify(teamOpts);
+	}
 	tDiv.appendChild(oInput);
 
 	var oTInput = document.createElement("input");
 	oTInput.type = "hidden";
-	oTInput.id = "option-teamParams";
-	oTInput.name = "option-teamParams";
+	oTInput.id = "option-teamOpts";
+	oTInput.name = "option-teamOpts";
+	if (gameOptions && gameOptions.teamOpts)
+		oTInput.value = JSON.stringify(gameOptions.teamOpts);
+	else
+		oTInput.value = JSON.stringify(defaultGameOptions.teamOpts);
 	tDiv.appendChild(oTInput);
 
 	var oLink = document.createElement("a");
@@ -15012,7 +15043,8 @@ function privateGameOptions(gameOptions, onProceed) {
 	oLink.style.top = Math.round(-iScreenScale/2) +"px";
 	oLink.href = "#null";
 	oLink.onclick = function() {
-		var nbTeams = +document.getElementById("option-nbTeams").value;
+		var nbTeams = parseInt(document.getElementById("option-nbTeams").value);
+		var teamOpts = JSON.parse(document.getElementById("option-teamOpts").value);
 
 		var oScr2 = document.createElement("form");
 		oScr2.style.position = "absolute";
@@ -15023,17 +15055,24 @@ function privateGameOptions(gameOptions, onProceed) {
 		oScr2.style.zIndex = 2;
 		oScr2.style.backgroundColor = "#000";
 		oScr2.onsubmit = function() {
-			var teamsParam = [];
+			var teamOpts = [];
+			var isDefault = true;
 			for (var i=0;i<nbTeams;i++) {
-				var teamParam = {
+				var teamOpt = {
 					color: +this.elements["color"+i].value,
 					name: this.elements["name"+i].value
 				};
-				if (teamParam.name === oTeamColors.name[teamParam.color])
-					delete teamParam.name;
-				teamsParam.push(teamParam);
+				if (teamOpt.color !== i)
+					isDefault = false;
+				if (teamOpt.name === oTeamColors.name[teamOpt.color])
+					delete teamOpt.name;
+				else
+					isDefault = false;
+				teamOpts.push(teamOpt);
 			}
-			document.getElementById("option-teamParams").value = JSON.stringify(teamsParam);
+			if (isDefault)
+				teamOpts = 0;
+			document.getElementById("option-teamOpts").value = JSON.stringify(teamOpts);
 			oScr.removeChild(oScr2);
 			return false;
 		}
@@ -15043,7 +15082,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		var oTeamTableCtn = document.createElement("div");
 		oTeamTableCtn.style.position = "absolute";
 		oTeamTableCtn.style.width = "100%";
-		oTeamTableCtn.style.top = (iScreenScale*8) +"px";
+		oTeamTableCtn.style.top = (iScreenScale*(12-nbTeams)) +"px";
 		oTeamTableCtn.style.textAlign = "center";
 
 		var oTeamTable = document.createElement("div");
@@ -15068,10 +15107,14 @@ function privateGameOptions(gameOptions, onProceed) {
 		oTeamTable.appendChild(oDivH);
 
 		for (var i=0;i<nbTeams;i++) {
-			(function() {
+			(function(i) {
 				var oDiv = document.createElement("div");
 				oDiv.innerHTML = toLanguage("Team "+ (i+1), "Équipe "+ (i+1));
 				oTeamTable.appendChild(oDiv);
+
+				var teamOpt = teamOpts[i];
+				if (!teamOpt)
+					teamOpt = {color:i};
 
 				var oSelect = document.createElement("select");
 				oSelect.name = "color"+i;
@@ -15079,7 +15122,8 @@ function privateGameOptions(gameOptions, onProceed) {
 					var oOption = document.createElement("option");
 					oOption.value = j;
 					oOption.innerHTML = oTeamColors.name[j];
-					if (i === j)
+					oOption.style.color = oTeamColors.light[j];
+					if (teamOpt.color === j)
 						oOption.selected = true;
 					oSelect.appendChild(oOption);
 				}
@@ -15113,7 +15157,7 @@ function privateGameOptions(gameOptions, onProceed) {
 				var oInput = document.createElement("input");
 				oInput.name = "name"+i;
 				oInput.type = "text";
-				oInput.value = oTeamColors.name[oSelect.value];
+				oInput.value = teamOpt.name || oTeamColors.name[oSelect.value];
 				oInput.style.fontSize = (iScreenScale*2) +"px";
 				oInput.required = true;
 				oTeamTable.appendChild(oInput);
@@ -15140,7 +15184,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		oVInput.style.top = (34*iScreenScale+4)+"px";
 		oVInput.type = "submit";
 		oVInput.style.fontSize = (iScreenScale*3) +"px";
-		oVInput.value = toLanguage("Validate!","Valider !");
+		oVInput.value = toLanguage("Validate","Valider");
 		oVInput.style.marginLeft = iScreenScale +"px";
 		oScr2.appendChild(oVInput);
 
@@ -17429,6 +17473,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 									shareLink.options.team = options.team;
 									shareLink.options.manualTeams = options.manualTeams;
 									shareLink.options.nbTeams = options.nbTeams;
+									shareLink.options.teamOpts = options.teamOpts;
 									shareLink.options.localScore = options.localScore;
 									shareLink.options.friendly = options.friendly;
 									shareLink.options.minPlayers = options.minPlayers;
@@ -18259,6 +18304,7 @@ var defaultGameOptions = {
 	team: false,
 	manualTeams: false,
 	nbTeams: 2,
+	teamOpts: 0,
 	localScore: false,
 	friendly: false,
 	minPlayers: 2,
