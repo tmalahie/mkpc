@@ -32,7 +32,7 @@ if ($course && !$getCourse['banned']) {
 		$map = rand(0, mysql_numrows($joueurs)-1);
 		$time = $now+5000;
 		if (!empty($courseRules->manualTeams))
-			$time += 12000;
+			$time += 22000;
 		mysql_query('UPDATE `mariokart` SET map='. $map .', time='.$time.' WHERE id='. $course);
 		$isLocal = !empty($courseRules->friendly) && !empty($courseRules->localScore);
 		$joueurs = mysql_query('SELECT j.id,'.($isLocal ? 'IFNULL(r.pts,0) AS pts':'j.'.$pts_.' AS pts').' FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id'. ($isLocal ? ' LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND j.id=r.player':'') .' WHERE j.course='. $course .' ORDER BY p.place,j.id');
@@ -215,6 +215,8 @@ if ($course && !$getCourse['banned']) {
 		echo ',manualTeams:1';
 	if (isset($courseRules->nbTeams))
 		echo ',nbTeams:'.$courseRules->nbTeams;
+	if (!empty($courseRules->teamOpts))
+		echo ',teamOpts:'.json_encode($courseRules->teamOpts);
 	if (!empty($courseRules->cc))
 		echo ',cc:'.$courseRules->cc;
 	echo '}';

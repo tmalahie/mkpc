@@ -20223,7 +20223,7 @@ function choose(map,rand) {
 								if (playerIsSelecter())
 									rCode[2] = 0;
 								else
-									rCode[2] -= 12000;
+									rCode[2] -= 22000;
 							}
 							else
 								tnCourse += 5000;
