@@ -10,6 +10,7 @@ var updateCtnFullScreen;
 var isFirstLoad = true;
 var selectedCc = localStorage.getItem("cc") || "150";
 var selectedNbTeams = localStorage.getItem("nbTeams") || "2";
+var selectedFriendlyFire = !!localStorage.getItem("friendlyFire");
 var selectedTeamOpts = 0;
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
@@ -8268,7 +8269,7 @@ function otherObjects(oKart, blackList) {
 }
 
 function friendlyFire(kart,oKart) {
-	return (kart == oKart || (iTeamPlay && (kart.team==oKart.team)));
+	return (kart == oKart || (iTeamPlay && !selectedFriendlyFire && (kart.team==oKart.team)));
 }
 function sameTeam(team1,team2) {
 	if (team1 == -1)
@@ -11899,7 +11900,7 @@ function move(getId, triggered) {
 	var oKart = aKarts[getId];
 	collisionTest = COL_KART;
 	collisionPlayer = oKart;
-	collisionTeam = (oKart.team==-1) ? undefined:oKart.team;
+	collisionTeam = (oKart.team==-1 || selectedFriendlyFire) ? undefined:oKart.team;
 	clLocalVars.currentKart = oKart;
 	var oKart = aKarts[getId];
 	if ((getId<strPlayer.length)) {
@@ -17535,6 +17536,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			fInfos.nbPlayers = selectedPlayers;
 			fInfos.teams = selectedTeams;
 			fInfos.nbteams = +selectedNbTeams;
+			fInfos.frienlyFire = !!selectedFriendlyFire;
 		}
 		if (course == "VS") {
 			oForm.appendChild(document.createTextNode(toLanguage("Difficulty: ", "Difficulté : ")));
@@ -18458,7 +18460,12 @@ function selectTeamScreen(IdJ) {
 			var i = +this.i;
 			aTeams.push(i);
 			selectedNbTeams = fInfos.nbteams;
+			selectedFriendlyFire = fInfos.frienlyFire;
 			localStorage.setItem("nbTeams", selectedNbTeams);
+			if (selectedFriendlyFire)
+				localStorage.setItem("friendlyFire", selectedFriendlyFire);
+			else
+				localStorage.removeItem("friendlyFire");
 			if (aTeams.length >= strPlayer.length) {
 				var nbByTeam = new Array(selectedNbTeams).fill(0);
 				for (var i=0;i<strPlayer.length;i++)
@@ -18484,17 +18491,17 @@ function selectTeamScreen(IdJ) {
 		oScr.appendChild(oPInput);
 	}
 
-	var oDiv = document.createElement("div");
+	var oDiv = document.createElement("label");
 	oDiv.style.position = "absolute";
 	oDiv.style.left = (iScreenScale*5) +"px";
-	oDiv.style.top = (iScreenScale*30) +"px";
+	oDiv.style.top = (iScreenScale*29) +"px";
 	oDiv.style.width = (iScreenScale*70) +"px";
 	oDiv.style.textAlign = "center";
-	oDiv.style.fontSize = (iScreenScale*3) +"px";
+	oDiv.style.fontSize = Math.round(iScreenScale*2.2) +"px";
 	oDiv.innerHTML = toLanguage("Number of teams: ", "Nombre d'équipes : ");
 	var oSelectNb = document.createElement("select");
 	oSelectNb.style.width = (iScreenScale*5) +"px";
-	oSelectNb.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	oSelectNb.style.fontSize = Math.round(iScreenScale*2.2) +"px";
 	for (var i=2;i<=4;i++) {
 		var oOption = document.createElement("option");
 		oOption.value = i;
@@ -18509,6 +18516,44 @@ function selectTeamScreen(IdJ) {
 		selectTeamScreen(0);
 	}
 	oDiv.appendChild(oSelectNb);
+	oScr.appendChild(oDiv);
+
+	var oDiv = document.createElement("label");
+	oDiv.style.position = "absolute";
+	oDiv.style.left = (iScreenScale*5) +"px";
+	oDiv.style.top = Math.round(iScreenScale*32.5) +"px";
+	oDiv.style.width = (iScreenScale*70) +"px";
+	oDiv.style.textAlign = "center";
+	oDiv.style.fontSize = Math.round(iScreenScale*2.2) +"px";
+
+	var oCheckbox = document.createElement("input");
+	oCheckbox.type = "checkbox";
+	oCheckbox.checked = fInfos.frienlyFire;
+	oCheckbox.onchange = function() {
+		fInfos.frienlyFire = this.checked;
+	}
+	oCheckbox.style.width = Math.round(iScreenScale*2.2) +"px";
+	oCheckbox.style.height = Math.round(iScreenScale*2.2) +"px";
+	oCheckbox.style.position = "relative";
+	oCheckbox.style.top = Math.round(iScreenScale*0.35) +"px";
+	oCheckbox.style.marginRight = iScreenScale +"px";
+	oDiv.appendChild(oCheckbox);
+
+	var oSpan = document.createElement("span");
+	oSpan.innerHTML = toLanguage("Friendly fire ", "Friendly fire ");
+	oDiv.appendChild(oSpan);
+
+	var oLink = document.createElement("a");
+	oLink.href = "#null";
+	oLink.style.textDecoration = "none";
+	oLink.style.color = "white";
+	oLink.innerHTML = "[?]";
+	oLink.onclick = function() {
+		alert(toLanguage("If enabled, your items can cause hit the players of your team", "Si activé, vos objets peuvent toucher les joueurs de votre équipe"));
+		return false;
+	}
+	oDiv.appendChild(oLink);
+
 	oScr.appendChild(oDiv);
 	oContainers[0].appendChild(oScr);
 
