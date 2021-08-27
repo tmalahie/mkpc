@@ -286,6 +286,8 @@ if (!empty($_SESSION['mkid'])) {
 								$ptsPerTeam[$team] += getScoreInc($i,$avgPerTeam[$team],$nbScores,$total);
 							}
 						}
+						else
+							$avgPerTeam = array_fill(0,$nbTeams,0);
 						$ptsProrata = array();
 						$ptsProrataTotal = array_fill(0,$nbTeams,0);
 						$totalAvgTeams = array_sum($avgPerTeam);

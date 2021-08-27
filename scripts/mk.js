@@ -14807,6 +14807,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		e.preventDefault();
 		var team = this.elements["option-teams"].checked ? 1:0;
 		var manualTeams = this.elements["option-manualTeams"].checked ? 1:0;
+		var friendlyFire = this.elements["option-friendlyFire"].checked ? 1:0;
 		var nbTeams = +this.elements["option-nbTeams"].value;
 		var teamOpts = JSON.parse(this.elements["option-teamOpts"].value);
 		var friendly = this.elements["option-friendly"].checked ? 1:0;
@@ -14826,8 +14827,11 @@ function privateGameOptions(gameOptions, onProceed) {
 		if (cpuChars) cpuChars = JSON.parse(cpuChars);
 		var timeTrial = this.elements["option-timeTrial"].checked ? 1:0;
 		var noBumps = this.elements["option-noBumps"].checked ? 1:0;
-		if (!team)
+		if (!team) {
 			manualTeams = 0;
+			teamOpts = 0;
+			friendlyFire = 0;
+		}
 		if (timeTrial)
 			noBumps = 0;
 		if (!cpu) {
@@ -14839,6 +14843,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		onProceed({
 			team: team,
 			manualTeams: manualTeams,
+			friendlyFire: friendlyFire,
 			nbTeams: nbTeams,
 			teamOpts: teamOpts,
 			friendly: friendly,
@@ -14881,12 +14886,15 @@ function privateGameOptions(gameOptions, onProceed) {
 	oCheckbox.onchange = function() {
 		if (this.checked) {
 			document.getElementById("option-manualTeams-ctn").style.display = "";
-			if (isOnline)
+			if (isOnline) {
 				document.getElementById("option-nbTeams-ctn").style.display = "";
+				document.getElementById("option-friendlyFire-ctn").style.display = "";
+			}
 		}
 		else {
 			document.getElementById("option-manualTeams-ctn").style.display = "none";
 			document.getElementById("option-nbTeams-ctn").style.display = "none";
+			document.getElementById("option-friendlyFire-ctn").style.display = "none";
 		}
 	}
 	oTd.appendChild(oCheckbox);
@@ -14964,7 +14972,8 @@ function privateGameOptions(gameOptions, onProceed) {
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
 	oTd.style.paddingLeft = iScreenScale +"px";
-	oTd.style.paddingBottom = Math.round(iScreenScale*1.5) +"px";
+	oTd.style.paddingTop = Math.round(iScreenScale*0.5) +"px";
+	oTd.style.paddingBottom = iScreenScale +"px";
 
 	var cDiv = document.createElement("div");
 	cDiv.style.display = "flex";
@@ -15203,6 +15212,50 @@ function privateGameOptions(gameOptions, onProceed) {
 	cDiv.appendChild(tDiv);
 	oTd.appendChild(cDiv);
 	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-friendlyFire-ctn";
+	if (!gameOptions || !gameOptions.team)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.style.textAlign = "center";
+	oTd.style.width = (iScreenScale*8) +"px";
+	var oCheckbox = document.createElement("input");
+	oCheckbox.style.position = "relative";
+	oCheckbox.style.left = Math.round(iScreenScale*1.5) +"px";
+	oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
+	oCheckbox.id = "option-friendlyFire";
+	oCheckbox.name = "option-friendlyFire";
+	oCheckbox.type = "checkbox";
+	if (gameOptions && gameOptions.team && gameOptions.friendlyFire)
+		oCheckbox.checked = true;
+	oTd.appendChild(oCheckbox);
+	oTr.appendChild(oTd);
+
+	var oTd = document.createElement("td");
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.style.display = "inline-block";
+	oLabel.setAttribute("for", "option-friendlyFire");
+	var oH1 = document.createElement("h1");
+	oH1.style.marginTop = 0;
+	oH1.style.marginLeft = Math.round(iScreenScale*1.5) +"px";
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.style.marginBottom = "0px";
+	oH1.innerHTML = toLanguage("Friendly fire","Friendly fire");
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.paddingLeft = Math.round(iScreenScale*1.5) +"px";
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("If enabled, your items can cause hit the players of your team", "Si activé, vos objets peuvent toucher les joueurs de votre équipe");
+	oLabel.appendChild(oDiv);
+	oTd.appendChild(oLabel);
+	oTr.appendChild(oTd);
+	var oTds = oTr.getElementsByTagName("td");
+	for (var i=0;i<oTds.length;i++)
+		oTds[i].style.paddingBottom = Math.round(iScreenScale*2) +"px";
 	oTable.appendChild(oTr);
 
 	var oTr = document.createElement("tr");
@@ -17479,6 +17532,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 									if (!shareLink.options) shareLink.options = {};
 									shareLink.options.team = options.team;
 									shareLink.options.manualTeams = options.manualTeams;
+									shareLink.options.friendlyFire = options.friendlyFire;
 									shareLink.options.nbTeams = options.nbTeams;
 									shareLink.options.teamOpts = options.teamOpts;
 									shareLink.options.localScore = options.localScore;
@@ -17536,7 +17590,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			fInfos.nbPlayers = selectedPlayers;
 			fInfos.teams = selectedTeams;
 			fInfos.nbteams = +selectedNbTeams;
-			fInfos.frienlyFire = !!selectedFriendlyFire;
+			fInfos.friendlyFire = !!selectedFriendlyFire;
 		}
 		if (course == "VS") {
 			oForm.appendChild(document.createTextNode(toLanguage("Difficulty: ", "Difficulté : ")));
@@ -18311,6 +18365,7 @@ function selectCpuNamesScreen(oScr, callback, options) {
 var defaultGameOptions = {
 	team: false,
 	manualTeams: false,
+	friendlyFire: false,
 	nbTeams: 2,
 	teamOpts: 0,
 	localScore: false,
@@ -18460,7 +18515,7 @@ function selectTeamScreen(IdJ) {
 			var i = +this.i;
 			aTeams.push(i);
 			selectedNbTeams = fInfos.nbteams;
-			selectedFriendlyFire = fInfos.frienlyFire;
+			selectedFriendlyFire = fInfos.friendlyFire;
 			localStorage.setItem("nbTeams", selectedNbTeams);
 			if (selectedFriendlyFire)
 				localStorage.setItem("friendlyFire", selectedFriendlyFire);
@@ -18528,9 +18583,9 @@ function selectTeamScreen(IdJ) {
 
 	var oCheckbox = document.createElement("input");
 	oCheckbox.type = "checkbox";
-	oCheckbox.checked = fInfos.frienlyFire;
+	oCheckbox.checked = fInfos.friendlyFire;
 	oCheckbox.onchange = function() {
-		fInfos.frienlyFire = this.checked;
+		fInfos.friendlyFire = this.checked;
 	}
 	oCheckbox.style.width = Math.round(iScreenScale*2.2) +"px";
 	oCheckbox.style.height = Math.round(iScreenScale*2.2) +"px";
@@ -18656,6 +18711,27 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		oDiv.innerHTML = toLanguage("Teams are selected manually by one of the players.", "Les équipes sont sélectionnées manuellement par l'un des joueurs.");
+		oLabel.appendChild(oDiv);
+		oTd.appendChild(oLabel);
+		oTr.appendChild(oTd);
+		oTable.appendChild(oTr);
+	}
+
+	if (shareLink.options.friendlyFire) {
+		var oTr = document.createElement("tr");
+		var oTd = document.createElement("td");
+		var oLabel = document.createElement("label");
+		oTd.appendChild(oLabel);
+
+		var oH1 = document.createElement("h1");
+		oH1.style.fontSize = (3*iScreenScale) +"px";
+		oH1.innerHTML = toLanguage("Friendly fire", "Friendly fire");
+		oH1.style.marginBottom = "0px";
+		oLabel.appendChild(oH1);
+		var oDiv = document.createElement("div");
+		oDiv.style.fontSize = (2*iScreenScale) +"px";
+		oDiv.style.color = "white";
+		oDiv.innerHTML = toLanguage("Your items can cause hit the players of your team", "Vos objets peuvent toucher les joueurs de votre équipe");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
@@ -20388,6 +20464,7 @@ function choose(map,rand) {
 		var strMap = aAvailableMaps[choixJoueurs[rCode[1]][2]-1];
 		selectedNbTeams = options.nbTeams || defaultGameOptions.nbTeams;
 		selectedTeamOpts = options.teamOpts || defaultGameOptions.teamOpts;
+		selectedFriendlyFire = !!options.friendlyFire;
 		if (selectedNbTeams > choixJoueurs.length) {
 			selectedNbTeams = choixJoueurs.length;
 			if (selectedTeamOpts)

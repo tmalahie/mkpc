@@ -9,6 +9,10 @@ $rulesList = array(
 		'default' => 0,
 		'accepted' => array(1,1)
 	),
+	'friendlyFire' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
+	),
 	'nbTeams' => array(
 		'default' => DEFAULT_TEAM_COUNT,
 		'min_value' => 2,
