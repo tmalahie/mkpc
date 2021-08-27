@@ -20925,7 +20925,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		oDiv.style.top = (iScreenScale*12) + "px";
 		oDiv.style.fontSize = Math.round(iScreenScale*2.5) + "px";
 		oDiv.style.color = "#DFC";
-		oDiv.innerHTML = language ? "Teams are being selected... Please don't exit game":"Les équipes sont cours de sélection... Ne pas quitter la partie.";
+		oDiv.innerHTML = language ? " &nbsp; Teams are being selected... Please don't leave the game":"Les équipes sont cours de sélection... Ne pas quitter la partie.";
 		oScr.appendChild(oDiv);
 
 		var ratio = 41;
@@ -22443,6 +22443,10 @@ function onButtonPress(e) {
 	
 function setChat() {
 	chatting = true;
+	var oChats = document.getElementsByClassName("online-chat");
+	while (oChats.length)
+		document.body.removeChild(oChats[0]);
+	
 	var oChat = document.createElement("div");
 	oChat.className = "online-chat";
 	
