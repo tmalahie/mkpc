@@ -30,7 +30,7 @@ if (!empty($_SESSION['mkid'])) {
 					$now = round(microtime(true)*1000);
 					$time = $now+7000;
 					if (!isset($_POST['single']))
-						$time = 'GREATEST(time-6000,'.$time.')';
+						$time = 'GREATEST(time-16000,'.$time.')';
 					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='. $course);
 					setCourseExtra($course, array('state' => 'teams_selected'));
 				}
