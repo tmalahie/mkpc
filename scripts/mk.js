@@ -615,13 +615,13 @@ function posImgRel(elt, eltX,eltY,eltR, eltW, mapW, relX,relY) {
 	return elt;
 }
 var oTeamColors = {
-	primary: ["blue","red","green","#db1"],
-	secondary: ["#ccf", "#fcc", "#cfc", "#ff8"],
-	light: ["#69f", "#f96", "#9f6", "#ff7"],
-	dark: ["navy","brown","#030","#330"],
-	contrast: ["#abf", "#fba", "#bfa", "#eea"],
-	name: [toLanguage("Blue","Bleue"),toLanguage("Red","Rouge"),toLanguage("Green","Verte"),toLanguage("Yellow","Jaune")],
-	name2: [toLanguage("blue","bleu"),toLanguage("red","rouge"),toLanguage("green","vert"),toLanguage("yellow","jaune")]
+	primary: ["blue","red","green","#db1","#f80","magenta"],
+	secondary: ["#ccf", "#fcc", "#cfc", "#ff8", "#fc8", "#f9f"],
+	light: ["#69f", "#f96", "#9f6", "#ff7", "#fa4", "#f8f"],
+	dark: ["navy","brown","#030","#330","#630","#303"],
+	contrast: ["#abf", "#fba", "#bfa", "#eea", "#fd9", "#ebe"],
+	name: [toLanguage("Blue","Bleue"),toLanguage("Red","Rouge"),toLanguage("Green","Verte"),toLanguage("Yellow","Jaune"),toLanguage("Orange","Orange"),toLanguage("Magenta","Magenta")],
+	name2: [toLanguage("blue","bleu"),toLanguage("red","rouge"),toLanguage("green","vert"),toLanguage("yellow","jaune"),toLanguage("orange","orange"),toLanguage("magenta","magenta")]
 }
 var cTeamColors = oTeamColors;
 function setPlanPos() {
@@ -15002,7 +15002,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oInput.name = "option-nbTeams";
 	oInput.type = "number";
 	oInput.setAttribute("min", 2);
-	oInput.setAttribute("max", 4);
+	oInput.setAttribute("max", 6);
 	oInput.setAttribute("step", 1);
 	oInput.setAttribute("required", true);
 	oInput.style.backgroundColor = "#F6F6F6";
@@ -15098,7 +15098,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		var oTeamTableCtn = document.createElement("div");
 		oTeamTableCtn.style.position = "absolute";
 		oTeamTableCtn.style.width = "100%";
-		oTeamTableCtn.style.top = (iScreenScale*(12-nbTeams)) +"px";
+		oTeamTableCtn.style.top = (iScreenScale*(13-nbTeams)) +"px";
 		oTeamTableCtn.style.textAlign = "center";
 
 		var oTeamTable = document.createElement("div");
@@ -18491,22 +18491,25 @@ function selectTeamScreen(IdJ) {
 	}
 	oScr.appendChild(oPInput);
 
-	var teamColors = [toLanguage("Blue team","Équipe bleue"),toLanguage("Red team","Équipe rouge"),toLanguage("Green team","Équipe verte"),toLanguage("Yellow team","Équipe jaune")]
-	var nbRows = 2;
+	var teamColors = oTeamColors.name.map(function(name) {
+		return toLanguage(name + " team", "Équipe " + name.toLowerCase());
+	});
+	var nbRows = Math.max(2, Math.round(fInfos.nbteams/2));
 	var nbCols = Math.ceil(fInfos.nbteams/nbRows);
 	for (i=0;i<fInfos.nbteams;i++) {
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
 		oPInput.value = teamColors[i];
 		oPInput.style.color = oTeamColors.light[i];
+
 		oPInput.i = i;
-		oPInput.style.fontSize = (4*iScreenScale)+"px";
+		oPInput.style.fontSize = ((nbRows<=2 ? 4:3)*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		var x = i%nbCols;
 		var y = Math.floor(i/nbCols);
 		var iNbCols = Math.min(i+nbCols-i%nbCols,fInfos.nbteams) - (i-i%nbCols);
 		oPInput.style.left = ((25 + (x-(iNbCols-1)/2)*32)*iScreenScale)+"px";
-		oPInput.style.top = ((12+y*8)*iScreenScale)+"px";
+		oPInput.style.top = (((nbRows<=2 ? 12+y*8 : 11+y*6))*iScreenScale)+"px";
 		oPInput.style.width = (30*iScreenScale)+"px";
 
 		oPInput.onclick = function() {
@@ -18557,7 +18560,7 @@ function selectTeamScreen(IdJ) {
 	var oSelectNb = document.createElement("select");
 	oSelectNb.style.width = (iScreenScale*5) +"px";
 	oSelectNb.style.fontSize = Math.round(iScreenScale*2.2) +"px";
-	for (var i=2;i<=4;i++) {
+	for (var i=2;i<=teamColors.length;i++) {
 		var oOption = document.createElement("option");
 		oOption.value = i;
 		oOption.innerHTML = i;
@@ -20523,16 +20526,31 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		oTitle.style.fontSize = Math.round(7*iScreenScale)+"px";
 	oScr.appendChild(oTitle);
 
+	var oTableCtn = document.createElement("div");
+	oTableCtn.style.display = "none";
+	oTableCtn.style.position = "absolute";
+	oTableCtn.style.zIndex = 50000;
+	oTableCtn.style.left = iScreenScale +"px";
+	oTableCtn.style.top = (iScreenScale*10) +"px";
+	oTableCtn.style.width = ((iWidth-2)*iScreenScale) +"px";
+	oTableCtn.style.height = (iScreenScale*(iHeight-10)) +"px";
+	oTableCtn.style.overflow = "auto";
+	oTableCtn.style.textAlign = "center";
+
 	if (showTeamNames) {	
+		oTableCtn.style.top = (iScreenScale*7.5) +"px";
+		oTableCtn.style.paddingTop = (iScreenScale*2.5) +"px";
+
 		var oDiv = document.createElement("div");
 		oDiv.style.position = "absolute";
 		oDiv.style.left = iScreenScale +"px";
-		oDiv.style.top = Math.round(iScreenScale*7.5) +"px";
+		oDiv.style.top = "0px";
 		oDiv.style.width = ((iWidth-2)*iScreenScale) +"px";
 		oDiv.style.textAlign = "center";
 		oDiv.style.fontSize = (iScreenScale*2) +"px";
+		oDiv.style.whiteSpace = "nowrap";
 		oDiv.style.color = "white";
-		for (var i=0;i<cTeamColors.name.length;i++)	{
+		for (var i=0;i<selectedNbTeams;i++)	{
 			var iDiv = document.createElement("div");
 			if (selectedNbTeams > 2)
 				iDiv.style.width = Math.round(iScreenScale*18.5) +"px";
@@ -20546,20 +20564,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			iDiv.innerHTML = cTeamColors.name[i];
 			oDiv.appendChild(iDiv);
 		}
-		oScr.appendChild(oDiv);
+		oTableCtn.appendChild(oDiv);
 	}
-
-	var oTableCtn = document.createElement("div");
-	oTableCtn.style.display = "none";
-	oTableCtn.style.position = "absolute";
-	oTableCtn.style.zIndex = 50000;
-	oTableCtn.style.left = iScreenScale +"px";
-	oTableCtn.style.top = (iScreenScale*10) +"px";
-	oTableCtn.style.width = ((iWidth-2)*iScreenScale) +"px";
-	oTableCtn.style.height = (iScreenScale*(iHeight-10)) +"px";
-	oTableCtn.style.overflowX = "hidden";
-	oTableCtn.style.overflowY = "auto";
-	oTableCtn.style.textAlign = "center";
 
 	var teamsTable = document.createElement("table");
 	teamsTable.style.marginLeft = "auto";
@@ -20793,8 +20799,9 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 					}
 				}
 				else {
-					oTd.innerHTML = "&nbsp;";
-					oTd.style.width = (iScreenScale*20) +"px";
+					var oDiv = document.createElement("div");
+					oDiv.style.width = (iScreenScale*20) +"px";
+					oTd.appendChild(oDiv);
 				}
 				oTr.appendChild(oTd);
 			}

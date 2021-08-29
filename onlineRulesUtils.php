@@ -16,7 +16,7 @@ $rulesList = array(
 	'nbTeams' => array(
 		'default' => DEFAULT_TEAM_COUNT,
 		'min_value' => 2,
-		'max_value' => 4
+		'max_value' => 6
 	),
 	'friendly' => array(
 		'default' => 0,
