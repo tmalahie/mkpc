@@ -12,4 +12,10 @@ function setCourseExtra($course,$extra) {
 		ON DUPLICATE KEY UPDATE extra="'. $extraJson .'"'
 	);
 }
-?>
+function getTeamSelectionTime($nbPlayers) {
+	return $nbPlayers*5000 + 2000;
+}
+function getTeamPreviewTime($nbPlayers) {
+	return 1000 + 250*$nbPlayers;
+	//return 500 + 375*$nbPlayers;
+}

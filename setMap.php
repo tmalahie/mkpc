@@ -29,10 +29,16 @@ if ($course && !$getCourse['banned']) {
 	$now = round(microtime(true)*1000);
 	$courseRules = json_decode($getMap['rules']);
 	if ($continuer) {
-		$map = rand(0, mysql_numrows($joueurs)-1);
+		$nbPlayers = mysql_numrows($joueurs);
+		$map = rand(0, $nbPlayers-1);
 		$time = $now+5000;
-		if (!empty($courseRules->manualTeams))
-			$time += 22000;
+		if (!empty($courseRules->manualTeams)) {
+			require_once('onlineStateUtils.php');
+			$nbJoueurs = $nbPlayers;
+			if (isset($courseRules->cpuCount) && ($nbPlayers < $courseRules->cpuCount))
+				$nbJoueurs = $courseRules->cpuCount;
+			$time += getTeamSelectionTime($nbJoueurs);
+		}
 		mysql_query('UPDATE `mariokart` SET map='. $map .', time='.$time.' WHERE id='. $course);
 		$isLocal = !empty($courseRules->friendly) && !empty($courseRules->localScore);
 		$joueurs = mysql_query('SELECT j.id,'.($isLocal ? 'IFNULL(r.pts,0) AS pts':'j.'.$pts_.' AS pts').' FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id'. ($isLocal ? ' LEFT JOIN `mkgamerank` r ON r.game='.$getMap['link'].' AND j.id=r.player':'') .' WHERE j.course='. $course .' ORDER BY p.place,j.id');
@@ -171,7 +177,7 @@ if ($course && !$getCourse['banned']) {
 			foreach ($joueursData as $joueur)
 				mysql_query('UPDATE `mkplayers` SET team="'. $joueur['team'] .'" WHERE id="'. $joueur['id'] .'"');
 			if (!empty($courseRules->manualTeams)) {
-				include('onlineStateUtils.php');
+				require_once('onlineStateUtils.php');
 				setCourseExtra($course, array('state' => 'selecting_teams'));
 			}
 		}
@@ -211,8 +217,13 @@ if ($course && !$getCourse['banned']) {
 	echo ',{';
 	$minPlayers = isset($courseRules->minPlayers) ? $courseRules->minPlayers : 2;
 	echo 'minPlayers:'.$minPlayers;
-	if (!empty($courseRules->manualTeams))
+	if (!empty($courseRules->manualTeams)) {
+		require_once('onlineStateUtils.php');
+		$nbJoueurs = count($joueursData);
+		$selectionTime = getTeamSelectionTime($nbJoueurs);
 		echo ',manualTeams:1';
+		echo ',selectionTime:'.$selectionTime;
+	}
 	if (!empty($courseRules->friendlyFire))
 		echo ',friendlyFire:1';
 	if (isset($courseRules->nbTeams))

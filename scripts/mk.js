@@ -20347,7 +20347,7 @@ function choose(map,rand) {
 								if (playerIsSelecter())
 									rCode[2] = 0;
 								else
-									rCode[2] -= 22000;
+									rCode[2] -= rCode[4].selectionTime;
 							}
 							else
 								tnCourse += 5000;
@@ -20918,7 +20918,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			resetGame(strMap);
-		}, Math.min(2000,tnCountdown-1000));
+		}, Math.min(res.previewTime,tnCountdown-1000));
 	}
 	function onTeamsCanceled() {
 		oContainers[0].removeChild(oScr);

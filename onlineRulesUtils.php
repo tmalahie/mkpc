@@ -134,4 +134,3 @@ function getCpuName($i, $rules) {
 		return 'CPU '. ($i+1);
 	return $rules->cpuNames[$i];
 }
-?>
