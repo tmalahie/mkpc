@@ -1,5 +1,6 @@
 <?php
 $idsSQL = '';
+if (!isset($id)) $id = null;
 if ($id)
 	$idsSQL .= 'user="'. $id .'"';
 else
