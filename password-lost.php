@@ -3,6 +3,7 @@ include('language.php');
 include('initdb.php');
 $howEmail = false;
 $showMissNick = false;
+$showEmail = false;
 if (isset($_GET['pseudo'])) {
 	$showEmail = true;
 	$pseudo = $_GET['pseudo'];
@@ -12,34 +13,75 @@ if (isset($_GET['pseudo'])) {
 			$email = $getEmail['email'];
 			do {
 				$code = bin2hex(openssl_random_pseudo_bytes(16));
-			} while (mysql_numrows(mysql_query('SELECT * FROM mkpassrecovery WHERE code="'. $code .'"')));
+			} while (mysql_numrows(mysql_query('SELECT * FROM mkpassrecovery WHERE token="'. $code .'"')));
 			mysql_query('INSERT INTO `mkpassrecovery` VALUES("'. $code .'",'.$getId['id'].',DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 DAY))');
 
 			$link = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']. '/new-password.php?code='. $code;
 			$title = $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
 			$msg = $language ? 'Hello '.$pseudo.'
-			You are receiving this email because you have applied for password recovery on the Mario Kart PC site.
+You are receiving this email because you have applied for password recovery on the Mario Kart PC site.
 
-			Here is a link that will allow you to generate a new password:
-			<a href="'.$link.'">'. $link .'</a>
+Here is a link that will allow you to generate a new password:
+<a href="'.$link.'">'. $link .'</a>
 
-			See you soon on Mario Kart PC :)':'Bonjour '.$pseudo.'
-			Vous recevez cet email car vous avez fait une demande de récupération de mot de passe sur le site Mario Kart PC.
+See you soon on Mario Kart PC :)':'Bonjour '.$pseudo.'
+Vous recevez cet email car vous avez fait une demande de récupération de mot de passe sur le site Mario Kart PC.
 
-			Voici un lien qui va vous permettre de générer un nouveau mot de passe:
-			<a href="'.$link.'">'. $link .'</a>
+Voici un lien qui va vous permettre de générer un nouveau mot de passe:
+<a href="'.$link.'">'. $link .'</a>
 
-			À bientôt sur Mario Kart PC :)';
+À bientôt sur Mario Kart PC :)';
 
-			include('SimpleMail.php');
-			$mail = new SimpleMail();
-			$mail->setTo($email, $pseudo)
-				 ->setSubject($title)
-				 ->setFrom('mkpc@malahieude.net', 'Mario Kart PC')
-				 ->addGenericHeader('X-Mailer', 'PHP/' . phpversion())
-				 ->addGenericHeader('Content-Type', 'text/html; charset="utf-8"')
-				 ->setMessage(nl2br($msg));
-			$mail->send();
+			$msgTxt = strip_tags($msg);
+
+			curl_init();
+
+			$url = 'https://api.mailjet.com/v3.1/send';
+			// Create a new cURL resource
+			$ch = curl_init($url);
+
+			include('config/mail.php');
+			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+			curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
+
+			// Setup request to send json via POST
+			$data = array(
+				"Messages" => array(
+					array(
+						"From" => array(
+						  "Email" => "t.malahieude@gmail.com",
+						  "Name" => "MKPC"
+						),
+						"To" => array(
+							array(
+								"Email" => $email,
+								"Name" => $pseudo
+							)
+						),
+						"Subject" => $title,
+						"TextPart" => $msgTxt,
+						"HTMLPart" => nl2br($msg)
+					)
+				)
+			);
+			$payload = json_encode($data);
+
+			// Attach encoded JSON string to the POST fields
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+
+			// Set the content type to application/json
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+				'Content-Type:application/json'
+			));
+
+			// Return response instead of outputting
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+			// Execute the POST request
+			$result = curl_exec($ch);
+
+			// Close cURL resource
+			curl_close($ch);
 		}
 		else
 			$error = $language ? 'Sorry, this account doesn\'t have any associated email':'Désolé, L\'adresse email n\'est pas renseignée sur ce compte';
