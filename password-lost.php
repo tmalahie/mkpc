@@ -49,7 +49,7 @@ Voici un lien qui va vous permettre de générer un nouveau mot de passe:
 				"Messages" => array(
 					array(
 						"From" => array(
-						  "Email" => "t.malahieude@gmail.com",
+						  "Email" => "mkpc@malahieude.net",
 						  "Name" => "MKPC"
 						),
 						"To" => array(
