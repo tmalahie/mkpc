@@ -3333,6 +3333,7 @@ var commonTools = {
 		}
 	},
 	"holes": {
+		"_shape_selector_id": "holes-shape",
 		"resume" : function(self) {
 			self.state.point = createRectangle({x:-1,y:-1});
 			self.state.orientation = 2;
@@ -3359,7 +3360,7 @@ var commonTools = {
 					self.click(self,iData.respawn,{});
 			}
 			replaceNodeType(self);
-			document.getElementById("holes-shape").setValue(self.state.shape);
+			document.getElementById(self._shape_selector_id).setValue(self.state.shape);
 		},
 		"click" : function(self,point,extra) {
 			var respawnNode = self.state.respawnNode;
@@ -4773,6 +4774,34 @@ var commonTools = {
 			}
 		}
 	},
+	"teleports": {
+		"_shape_selector_id": "teleports-shape",
+		"save" : function(self,payload) {
+			if (!self.data.length)
+				return;
+			payload.teleports = [];
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				var shape = shapeToData(iData);
+				var respawn = nullablePointToData(iData.respawn);
+				if (respawn)
+					respawn.push(iData.orientation);
+				payload.teleports.push([shape,respawn]);
+			}
+		},
+		"restore" : function(self,payload) {
+			if (payload.teleports) {
+				for (var i=0;i<payload.teleports.length;i++) {
+					var iPayload = payload.teleports[i];
+					var iData = dataToShape(iPayload[0]);
+					iData.respawn = dataToNullablePoint(iPayload[1]);
+					if (iData.respawn)
+						iData.orientation = iPayload[1][2];
+					self.data.push(iData);
+				}
+			}
+		}
+	},
 	"mobiles": {
 		"resume" : function(self) {
 			self.state.point = createRectangle({x:-1,y:-1});
@@ -5145,3 +5174,11 @@ var commonTools = {
 		}
 	}
 };
+for (var key in commonTools["holes"]) {
+	if (!commonTools["teleports"][key]) {
+		var v = commonTools["holes"][key];
+		if (typeof v === "function")
+			v = v.bind(commonTools["teleports"])
+		commonTools["teleports"][key] = v;
+	}
+}

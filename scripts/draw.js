@@ -310,6 +310,7 @@ var editorTools = {
 	"boosts": commonTools["boosts"],
 	"decor": commonTools["decor"],
 	"cannons": commonTools["cannons"],
+	"teleports": commonTools["teleports"],
 	"mobiles": commonTools["mobiles"],
 	"options": commonTools["options"]
 };

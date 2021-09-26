@@ -1266,6 +1266,14 @@ function initMap() {
 		}
 		oMap.cannons = cannons;
 	}
+	if (oMap.teleports) {
+		var teleports = {rectangle:[],polygon:[]};
+		for (var i=0;i<oMap.teleports.length;i++) {
+			var teleport = oMap.teleports[i];
+			teleports[getShapeType(teleport[0])].push(teleport);
+		}
+		oMap.teleports = teleports;
+	}
 	if (oMap.sea) {
 		var oWaves = oMap.sea.waves;
 		oMap.sea.projections = [];
@@ -7848,7 +7856,8 @@ function render() {
 			figstate: oKart.figstate||0,
 			time: oKart.time,
 			roulette: oKart.roulette,
-			tombe: oKart.tombe
+			tombe: oKart.tombe,
+			teleport: oKart.teleport
 		});
 	}
 	if (oMap.decor) {
@@ -7920,7 +7929,8 @@ function render() {
 					figstate: interpolateStateRound(lastObj.figstate,currentObj.figstate,tFrame),
 					time: interpolateState(lastObj.time,currentObj.time,tFrame),
 					roulette: interpolateState(lastObj.roulette,currentObj.roulette,tFrame),
-					tombe: interpolateState(lastObj.tombe,currentObj.tombe,tFrame)
+					tombe: interpolateState(lastObj.tombe,currentObj.tombe,tFrame),
+					teleport: interpolateState(lastObj.teleport,currentObj.teleport,tFrame)
 				});
 			}
 			for (var type in currentState.decor) {
@@ -7981,6 +7991,15 @@ function render() {
 					}
 				}
 				oContainers[i].style.opacity = Math.abs(oPlayer.tombe-10)/10;
+			}
+			else if (oPlayer.teleport) {
+				if (oPlayer.teleport > 3) {
+					posX = oPlayer.ref.aX;
+					posY = oPlayer.ref.aY;
+					oPlayer.rotation = oPlayer.ref.aRotation;
+					fRotation = getApparentRotation(oPlayer);
+				}
+				oContainers[i].style.opacity = Math.abs(oPlayer.teleport-3)/3;
 			}
 			//posX = aKarts[1].x;
 			//posY = aKarts[1].y;
@@ -9173,6 +9192,22 @@ function inCannon(aX,aY, iX,iY) {
 			return cannon[1];
 	}
 	return false;
+}
+function inTeleport(iX, iY) {
+	if (!oMap.teleports) return false;
+	var oRectangles = oMap.teleports.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		var teleport = oRectangles[i];
+		if (pointInRectangle(iX,iY, teleport[0]))
+			return teleport[1];
+	}
+	var oPolygons = oMap.teleports.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		var teleport = oPolygons[i];
+		if (pointInPolygon(iX,iY, teleport[0]))
+			return teleport[1];
+	}
+
 }
 
 function getActualGameTimeMS() {
@@ -11989,6 +12024,28 @@ function move(getId, triggered) {
 		}
 		return;
 	}
+	if (oKart.teleport) {
+		oKart.teleport--;
+		if (oKart.teleport == 3) {
+			delete oKart.aX;
+			delete oKart.aY;
+			for (var i=0;i<strPlayer.length;i++) {
+				oKart.sprite[i].img.style.display = "";
+				if (course == "BB") {
+					for (var j=0;j<oKart.ballons.length;j++)
+						oKart.ballons[j][i].img.style.display = "";
+				}
+			}
+		}
+		if (oKart.teleport >= 2)
+			return;
+		if (oKart.teleport <= 0) {
+			delete oKart.teleport;
+			var i = oPlayers.indexOf(oKart);
+			if (i !== -1)
+				oContainers[i].style.opacity = "";
+		}
+	}
 
 	if (oKart.rotincdir) {
 		oKart.rotinc += 2 * oKart.rotincdir;
@@ -12492,6 +12549,39 @@ function move(getId, triggered) {
 					oKart.boostSound.onended = function() {
 						oKart.boostSound = undefined;
 						document.body.removeChild(this);
+					}
+				}
+			}
+		}
+	}
+	if (!oKart.teleport && localKart) {
+		var fTeleport = inTeleport(oKart.x, oKart.y);
+		if (fTeleport) {
+			oKart.aX = oKart.x;
+			oKart.aY = oKart.y;
+			oKart.aRotation = oKart.rotation;
+			oKart.x = fTeleport[0];
+			oKart.y = fTeleport[1];
+			oKart.rotation = fTeleport[2]*90;
+			oKart.teleport = 5;
+			if (oKart.speed < 0)
+				oKart.speed = 0;
+			for (var i=0;i<strPlayer.length;i++) {
+				oKart.sprite[i].img.style.display = "none";
+				if (course == "BB") {
+					for (var j=0;j<oKart.ballons.length;j++)
+						oKart.ballons[j][i].img.style.display = "none";
+				}
+			}
+			if (oKart.aipoint !== undefined) {
+				if (course == "BB")
+					oKart.aipoint = undefined;
+				else {
+					var aipoint = oKart.aipoints[oKart.aipoint];
+					if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
+						oKart.aipoint++;
+						if (oKart.aipoint >= oKart.aipoints.length)
+							oKart.aipoint = 0;
 					}
 				}
 			}
@@ -13770,8 +13860,8 @@ function ai(oKart) {
 
 	for (var f=0;f<oKart.aipoints.length;f++) {
 		var lastAi, currentAi, nextAi;
-		var aiId = oKart.aipoint;
 		if (course != "BB") {
+			var aiId = oKart.aipoint;
 			var lastAiId = aiId-1;
 			if (lastAiId < 0) lastAiId += oKart.aipoints.length;
 			var nextAiId = aiId+1;

@@ -106,6 +106,10 @@ if (!empty($circuitPayload->cannons)) {
 	?>,
 "cannons" : <?php echo json_encode($circuitPayload->cannons);
 }
+if (!empty($circuitPayload->teleports)) {
+	?>,
+"teleports" : <?php echo json_encode($circuitPayload->teleports);
+}
 if (!empty($circuitPayload->flows)) {
 	?>,
 "flows" : <?php echo json_encode($circuitPayload->flows);

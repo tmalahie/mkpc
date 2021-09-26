@@ -64,6 +64,7 @@ if (isset($_GET['i'])) {
 				'boosts' => $language ? 'Boosts':'Accélérateurs',
 				'decor' => $language ? 'Decor':'Décor',
 				'cannons' => $language ? 'Cannons':'Canons',
+				'teleports' => $language ? 'Teleporters':'Téléporteurs',
 				'mobiles' => $language ? 'Mobile floor':'Sol mobile',
 				'options' => $language ? 'Options':'Divers'
 			)
@@ -130,6 +131,13 @@ if (isset($_GET['i'])) {
 				<div id="mode-option-cannons">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
 					<div class="radio-selector" id="cannons-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
+					</div>
+				</div>
+				<div id="mode-option-teleports">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="teleports-shape" data-change="shapeChange">
 						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
 						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 					</div>
@@ -522,6 +530,16 @@ if (isset($_GET['i'])) {
 								vous pouvez définir la zone par un rectangle ou par un polygone.</li>
 								<li>Zone de replacement : Cliquez là où vous voulez que le kart soit transporté.</li>
 							</ul>"
+						)
+					),
+					'teleports' => array(
+						'title' => $language ? 'Teleporters':'Téléporteurs',
+						'text' => ($language ?
+							"A Teleporter is an area that moves you to another place when you go over it.<br />
+							You define them the same way you define <a href=\"javascript:selectHelpTab('holes')\">holes</a>: with a teleporter area, and a destination point"
+							:
+							"Un téléporteur est une zone qui vous déplace à un autre endroit lorsque vous roulez dessus.<br />
+							Vous les définissez de la même manière que les <a href=\"javascript:selectHelpTab('holes')\">trous</a>: avec une zone de téléportation et un point d'arrivée"
 						)
 					),
 					'mobiles' => array(
