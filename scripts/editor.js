@@ -3634,6 +3634,8 @@ var commonTools = {
 				var iData = data[i];
 				self.click(self,iData,{});
 				self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+				if (data[i].dir != null)
+					self.data[i].dir = data[i].dir;
 			}
 		},
 		"click" : function(self,point,extra) {
@@ -3655,6 +3657,27 @@ var commonTools = {
 									moveRectangle(rectangle,data);
 								}
 							}, {
+								text: (language ? "Jump height...":"Hauteur saut..."),
+								click: function() {
+									var currentHeight = data.dir;
+									if (currentHeight == null)
+										currentHeight = (data.w+data.h)/45+1;
+									var newHeight = prompt(language ? "Set jump height":"Modifier hauteur saut", Math.round(currentHeight*100)/100);
+									if (newHeight != null) {
+										if (newHeight) {
+											newHeight = +newHeight;
+											if (newHeight >= 0) {
+												storeHistoryData(self.data);
+												data.dir = newHeight;
+											}
+										}
+										else {
+											storeHistoryData(self.data);
+											delete data.dir;
+										}
+									}
+								}
+							}, {
 								text:(language ? "Delete":"Supprimer"),
 								click:function() {
 									$editor.removeChild(rectangle);
@@ -3672,12 +3695,22 @@ var commonTools = {
 		},
 		"save" : function(self,payload) {
 			payload.sauts = [];
-			for (var i=0;i<self.data.length;i++)
-				payload.sauts.push(rectToData(self.data[i]));
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				var data = rectToData(iData);
+				if (iData.dir)
+					data.push(iData.dir);
+				payload.sauts.push(data);
+			}
 		},
 		"restore" : function(self,payload) {
-			for (var i=0;i<payload.sauts.length;i++)
-				self.data.push(dataToRect(payload.sauts[i]));
+			for (var i=0;i<payload.sauts.length;i++) {
+				var rect = dataToRect(payload.sauts[i]);
+				var dir = payload.sauts[i][4];
+				if (dir != null)
+					rect.dir = dir;
+				self.data.push(rect);
+			}
 		},
 		"rescale" : function(self, scale) {
 			for (var i=0;i<self.data.length;i++)
