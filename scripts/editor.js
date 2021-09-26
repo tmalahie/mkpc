@@ -3633,9 +3633,10 @@ var commonTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.click(self,iData,{});
+				var rectangle = self.state.rectangle;
 				self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
 				if (data[i].dir != null)
-					self.data[i].dir = data[i].dir;
+					rectangle.createArrow(data[i].dir);
 			}
 		},
 		"click" : function(self,point,extra) {
@@ -3646,6 +3647,47 @@ var commonTools = {
 					startRectangleBuilder(self,point, {
 						on_apply: function(rectangle,data) {
 							self.data.push(data);
+							var arrow;
+							rectangle.createArrow = function(dir) {
+								data.dir = dir;
+								var center = {x:data.x+data.w/2,y:data.y+data.h/2};
+								arrow = createArrow(center,center);
+								arrow.move(center,{x:center.x+dir.x,y:center.y+dir.y});
+								var arrowCtxMenu = [{
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										var center = {x:data.x+data.w/2,y:data.y+data.h/2};
+										moveArrow(arrow,center,data.dir);
+									}
+								}, {
+									text: (language ? "Delete":"Supprimer"),
+									click: function() {
+										storeHistoryData(self.data);
+										arrow.remove();
+										delete data.dir;
+										arrow = undefined;
+									}
+								}];
+								for (var i=0;i<arrow.lines.length;i++)
+									addContextMenuEvent(arrow.lines[i], arrowCtxMenu);
+								/*var currentHeight = data.dir;
+								if (currentHeight == null)
+									currentHeight = (data.w+data.h)/45+1;
+								var newHeight = prompt(language ? "Set jump height":"Modifier hauteur saut", Math.round(currentHeight*100)/100);
+								if (newHeight != null) {
+									if (newHeight) {
+										newHeight = +newHeight;
+										if (newHeight >= 0) {
+											storeHistoryData(self.data);
+											data.dir = newHeight;
+										}
+									}
+									else {
+										storeHistoryData(self.data);
+										delete data.dir;
+									}
+								}*/
+							}
 							addContextMenuEvent(rectangle,[{
 								text: (language ? "Resize":"Redimensionner"),
 								click: function() {
@@ -3659,28 +3701,17 @@ var commonTools = {
 							}, {
 								text: (language ? "Jump height...":"Hauteur saut..."),
 								click: function() {
-									var currentHeight = data.dir;
-									if (currentHeight == null)
-										currentHeight = (data.w+data.h)/45+1;
-									var newHeight = prompt(language ? "Set jump height":"Modifier hauteur saut", Math.round(currentHeight*100)/100);
-									if (newHeight != null) {
-										if (newHeight) {
-											newHeight = +newHeight;
-											if (newHeight >= 0) {
-												storeHistoryData(self.data);
-												data.dir = newHeight;
-											}
-										}
-										else {
-											storeHistoryData(self.data);
-											delete data.dir;
-										}
-									}
+									if (!arrow)
+										rectangle.createArrow({x:0,y:0});
+									var center = {x:data.x+data.w/2,y:data.y+data.h/2};
+									moveArrow(arrow,center,data.dir);
 								}
 							}, {
 								text:(language ? "Delete":"Supprimer"),
 								click:function() {
 									$editor.removeChild(rectangle);
+									if (arrow)
+										arrow.remove();
 									storeHistoryData(self.data);
 									removeFromArray(self.data,data);
 								}
@@ -3693,13 +3724,17 @@ var commonTools = {
 		"move" : function(self,point,extra) {
 			moveRectangleBuilder(self,point);
 		},
+		"_arrowFactor": 10,
 		"save" : function(self,payload) {
 			payload.sauts = [];
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				var data = rectToData(iData);
-				if (iData.dir)
-					data.push(iData.dir);
+				if (iData.dir) {
+					var length = Math.hypot(iData.dir.x,iData.dir.y);
+					var angle = Math.atan2(iData.dir.y,iData.dir.x) || 0;
+					data.push(length/self._arrowFactor,angle);
+				}
 				payload.sauts.push(data);
 			}
 		},
@@ -3707,8 +3742,14 @@ var commonTools = {
 			for (var i=0;i<payload.sauts.length;i++) {
 				var rect = dataToRect(payload.sauts[i]);
 				var dir = payload.sauts[i][4];
-				if (dir != null)
-					rect.dir = dir;
+				if (dir != null) {
+					var length = dir*self._arrowFactor;
+					var angle = payload.sauts[i][5] || 0;
+					rect.dir = {
+						x: length*Math.cos(angle),
+						y: length*Math.sin(angle)
+					};
+				}
 				self.data.push(rect);
 			}
 		},
