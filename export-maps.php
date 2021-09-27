@@ -98,82 +98,8 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	foreach ($circuitPayload->decor as $type => $value)
 		$mapData['decor'][$type] = $circuitPayload->decor->{$type};
 	switch ($id) {
-	case 3:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 2;
-		unset($sautsData);
-		break;
-	case 7:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 2;
-		unset($sautsData);
-		break;
 	case 8:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 1;
-		unset($sautsData);
 		$mapData['decor']['thwomp'] = [[77,391,null,10,0],[89,391,null,10,10],[101,391,null,10,20],[283,125,null,0,0],[343,493,null,0,0]];
-		break;
-	case 10:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 1;
-		unset($sautsData);
-		break;
-	case 17:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 1;
-		unset($sautsData);
-		break;
-	case 19:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 1;
-		unset($sautsData);
-		break;
-	case 24:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 0.85;
-		unset($sautsData);
-		break;
-	case 26:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 2;
-		unset($sautsData);
-		break;
-	case 28:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 1;
-		unset($sautsData);
-		break;
-	case 30:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 1;
-		unset($sautsData);
-		break;
-	case 31:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 1;
-		unset($sautsData);
-		break;
-	case 36:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 0.85;
-		unset($sautsData);
-		break;
-	case 37:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 2;
-		unset($sautsData);
-		break;
-	case 38:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 2;
-		unset($sautsData);
-		break;
-	case 39:
-		foreach ($mapData['sauts'] as &$sautsData)
-			$sautsData[4] = 0.85;
-		unset($sautsData);
-		$mapData['sauts'][count($mapData['sauts'])-1][4] = 1;
 		break;
 	case 44:
 		$mapData['decor']['movingtree'] = [[308,777,null,0,[[302,762],[314,792]]],[326,985,null,0,[[342,963],[310,1007]]],[521,950,null,0,[[510,971],[548,957],[527,933],[497,937]]],[675,1144,null,0,[[684,1121],[665,1166]]]];
@@ -181,9 +107,6 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	case 45:
 		$mapData['decor']['firesnake'] = [[854,1070,null,0,385],[875,1077,null,0,370],[1102,1101,null,0,540],[1091,1126,null,0,505]];
 		$mapData['decor']['pokey'] = [[607,961,null,null,[17,0],[0,0.05]],[592,717,null,null,[20,10],[1,-0.04]],[618,649,null,null,[20,10],[1,-0.04]],[619,555,null,null,[17,0],[2,0.05]]];
-		break;
-	case 46:
-		$mapData['sauts'][0][4] = 1;
 		break;
 	case 48:
 		$trucks = [[1389,933,null,0,0,0,3],[1000,803,null,0,0,0,16],[822,733,null,0,0,0,24],[682,1076,null,0,0,0,32],[737,1390,null,0,0,0,42],[874,1087,null,0,0,0,52],[690,1239,null,0,0,1,10],[564,1225,null,0,0,1,24],[599,910,null,0,0,1,30],[1033,575,null,0,0,1,33],[1242,756,null,0,0,1,48]];
@@ -193,7 +116,6 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 		}
 		break;
 	case 51:
-		$mapData['sauts'][0][4] = 1.8;
 		$mapData['decor']['goomba'] = [[1398,954,null,0,0],[1390,1040,null,0,0],[1346,1140,null,0,0.8]];
 		$mapData['decor']['fireplant'] = [[884,1220,null,0,0.8],[804,1300,null,0,-0.8]];
 		break;
@@ -206,19 +128,9 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 		}
 		unset($decorData);
 		break;
-	case 53:
-		$mapData['sauts'][0][4] = 2.4;
-		$mapData['sauts'][1][4] = 2.4;
-		break;
-	case 55:
-		$mapData['sauts'][0][4] = 1.9;
-		$mapData['sauts'][1][4] = 1.6;
-		break;
 	case 56:
 		$mapData['startposition'] = [225,642];
 		$mapData['startrotation'] = 45;
-		$mapData['sauts'][0][4] = 2.3;
-		$mapData['sauts'][1][4] = 2.3;
 		break;
 	}
 }
