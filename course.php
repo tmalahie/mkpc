@@ -491,13 +491,13 @@ if (isset($_GET['i'])) {
 						'text' => ($language ?
 							"Indicate here the jumps, that is to say the areas that give instant height to the karts that roll on it.
 							You define a jump box by a rectangle.<br />
-							Note that the larger the area drawn, the higher the jump will be when arriving on this zone.
-							If you want to reduce the height of the jump, make several smaller rectangles, each one filling part of the area."
+							The height of the jump is calculated automatically from the size of the area (the larger the area, the higher the karts will jump).
+							However, you can override this jump height yourself by right-clicking on it and selecting &quot;Jump height&quot;. "
 							:
 							"Indiquez ici les sauts, c'est-à-dire les zones qui donnent de la hauteur aux karts qui roulent dessus.
 							Vous définissez une zone de saut par un rectangle.<br />
-							Notez que plus la zone dessinée est grande, plus les karts feront des grands sauts en arrivant sur cette zone.
-							Si vous souhaitez réduire la hauteur du saut, faites plusieurs rectangles plus petits, chacun remplissant une partie de la zone."
+							La hauteur du saut est calculée automatiquement à partir de la taille de la zone (plus la zone est grande, plus les karts sauteront haut).
+							Vous pouvez cependant spécifier vous-même cette hauteur de saut en faisant un clic droit dessus et en sélectionnant &quot;Hauteur saut&quot;."
 						)
 					),
 					'boosts' => array(

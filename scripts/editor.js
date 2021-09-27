@@ -3688,15 +3688,29 @@ var commonTools = {
 									}
 								}*/
 							}
+							function reshapeArrow(nData) {
+								if (arrow) {
+									var center = {x:nData.x+nData.w/2,y:nData.y+nData.h/2};
+									arrow.move(center,{x:center.x+nData.dir.x,y:center.y+nData.dir.y});
+								}
+							}
+							function hideArrow() {
+								if (arrow)
+									arrow.hide();
+							}
+							function showArrow() {
+								if (arrow)
+									arrow.show();
+							}
 							addContextMenuEvent(rectangle,[{
 								text: (language ? "Resize":"Redimensionner"),
 								click: function() {
-									resizeRectangle(rectangle,data);
+									resizeRectangle(rectangle,data, {on_apply:reshapeArrow});
 								}
 							}, {
 								text: (language ? "Move":"Déplacer"),
 								click: function() {
-									moveRectangle(rectangle,data);
+									moveRectangle(rectangle,data, {on_apply:reshapeArrow,on_start_move:hideArrow,on_end_move:showArrow});
 								}
 							}, {
 								text: (language ? "Jump height...":"Hauteur saut..."),
@@ -3724,7 +3738,7 @@ var commonTools = {
 		"move" : function(self,point,extra) {
 			moveRectangleBuilder(self,point);
 		},
-		"_arrowFactor": 10,
+		"_arrowFactor": 32.4,
 		"save" : function(self,payload) {
 			payload.sauts = [];
 			for (var i=0;i<self.data.length;i++) {
@@ -3754,16 +3768,28 @@ var commonTools = {
 			}
 		},
 		"rescale" : function(self, scale) {
-			for (var i=0;i<self.data.length;i++)
-				rescaleRect(self.data[i], scale);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rescaleRect(iData, scale);
+				if (iData.dir)
+					rescaleDir(iData.dir, scale);
+			}
 		},
 		"rotate" : function(self, orientation) {
-			for (var i=0;i<self.data.length;i++)
-				rotateRect(self.data[i], imgSize,orientation);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rotateRect(iData, imgSize,orientation);
+				if (iData.dir)
+					rotateDir(iData.dir, orientation);
+			}
 		},
 		"flip" : function(self, axis) {
-			for (var i=0;i<self.data.length;i++)
-				flipRect(self.data[i], imgSize,axis);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				flipRect(iData, imgSize,axis);
+				if (iData.dir)
+					flipDir(iData.dir, axis);
+			}
 		}
 	},
 	"boosts": {
