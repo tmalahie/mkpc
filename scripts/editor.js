@@ -2803,6 +2803,8 @@ function submitMusic(e) {
 	}
 	if (Object.keys(ytOptions).length)
 		editorTool.data.youtube_opts = ytOptions;
+	else
+		delete editorTool.data.youtube_opts;
 	applyMusicSelector();
 	hideMusicSelector();
 }
