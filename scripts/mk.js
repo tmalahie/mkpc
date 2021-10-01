@@ -12604,6 +12604,7 @@ function move(getId, triggered) {
 			oKart.y = fTeleport[1];
 			oKart.rotation = fTeleport[2]*90;
 			oKart.teleport = 5;
+			playIfShould(oKart, "musics/events/teleport.mp3");
 			if (oKart.speed < 0)
 				oKart.speed = 0;
 			for (var i=0;i<strPlayer.length;i++) {
