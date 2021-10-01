@@ -35,6 +35,11 @@ if (!$circuitMainData->music) {
 	?>
 	"yt" : "<?php echo addslashes($circuitMainData->youtube); ?>",
 	<?php
+	if (isset($circuitMainData->youtube_opts)) {
+		?>
+		"yt_opts" : <?php echo json_encode($circuitMainData->youtube_opts); ?>,
+		<?php
+	}
 }
 ?>
 "startposition" : [<?php echo ($circuitMainData->startposition[0]+5).','.($circuitMainData->startposition[1]-6); ?>],

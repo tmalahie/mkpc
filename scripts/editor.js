@@ -2673,10 +2673,28 @@ function showMusicSelector() {
 	while (mChoices.length)
 		mChoices[0].className = "";
 	var editorTool = editorTools[currentMode];
-	musicSelected = editorTool.data.music;
+	var editorData = editorTool.data;
+	musicSelected = editorData.music;
 	document.getElementById("musicchoice-"+musicSelected).className = "music-selected";
-	if (!musicSelected)
-		document.getElementById("youtube-url").value = editorTool.data.youtube;
+	if (!musicSelected) {
+		document.getElementById("youtube-url").value = editorData.youtube;
+		if (editorData.youtube_opts) {
+			var youtubeOpts = editorData.youtube_opts;
+			if (youtubeOpts.start != null)
+				document.getElementById("youtube-start").value = timeToStr(youtubeOpts.start);
+			if (youtubeOpts.end != null)
+				document.getElementById("youtube-end").value = timeToStr(youtubeOpts.end);
+			var youtubeOptsLast = youtubeOpts.last;
+			if (youtubeOptsLast) {
+				if (youtubeOptsLast.url != null)
+					document.getElementById("youtube-last-url").value = youtubeOptsLast.url;
+				if (youtubeOptsLast.start != null)
+					document.getElementById("youtube-last-start").value = timeToStr(youtubeOptsLast.start);
+				if (youtubeOptsLast.end != null)
+					document.getElementById("youtube-last-end").value = timeToStr(youtubeOptsLast.end);
+			}
+		}
+	}
 }
 function applyMusicSelector() {
 	var editorTool = editorTools[currentMode];
@@ -2708,8 +2726,9 @@ function selectMusic(m) {
 		mChoices[0].className = "";
 	document.getElementById("musicchoice-"+m).className = "music-selected";
 	if (!musicSelected) {
-		document.getElementById("youtube-url").select();
-		playYt();
+		var $youtubeUrl = document.getElementById("youtube-url");
+		$youtubeUrl.select();
+		playYt($youtubeUrl);
 	}
 }
 function youtube_parser(url) {
@@ -2717,12 +2736,12 @@ function youtube_parser(url) {
 	var match = url.match(regExp);
 	return (match&&match[1].length==11)? match[1] : false;
 }
-function playYt() {
+function playYt(elt) {
 	if (oMusic) {
 		document.body.removeChild(oMusic);
 		oMusic = null;
 	}
-	var ytId = youtube_parser(document.getElementById("youtube-url").value);
+	var ytId = youtube_parser(elt.value);
 	if (ytId) {
 		oMusic = document.createElement("iframe");
 		oMusic.id = "ytplayer";
@@ -2731,14 +2750,59 @@ function playYt() {
 		document.body.appendChild(oMusic);
 	}
 }
-function submitMusic() {
+function ytOptions(show) {
+	if (show)
+		document.querySelector(".youtube").classList.add("youtube-show-advanced");
+	else
+		document.querySelector(".youtube").classList.remove("youtube-show-advanced");
+}
+function preSubmitMusic($btn) {
+	if (musicSelected) {
+		var $elts = $btn.form.elements;
+		for (var i=0;i<$elts.length;i++)
+			$elts[i].value = "";
+	}
+}
+function zerofill(nb,l) {
+	nb += "";
+	while (nb.length < l)
+		nb = "0"+nb;
+	return nb;
+}
+function timeToStr(time) {
+	return Math.floor(time/60)+":"+zerofill(time%60,2);
+}
+function strToTime(str) {
+	var timeCmpts = str.split(":");
+	if (timeCmpts.length > 1)
+		return +timeCmpts[1] + timeCmpts[0]*60;
+	return +timeCmpts[0];
+}
+function submitMusic(e) {
+	e.preventDefault();
 	var editorTool = editorTools[currentMode];
 	storeHistoryData(editorTool.data);
 	editorTool.data.music = musicSelected;
-	if (editorTool.data.music)
+	if (editorTool.data.music) {
 		delete editorTool.data.youtube;
+		delete editorTool.data.youtube_opts;
+	}
 	else
 		editorTool.data.youtube = document.getElementById("youtube-url").value;
+	var ytOptions = {};
+	if (document.getElementById("youtube-start").value)
+		ytOptions.start = strToTime(document.getElementById("youtube-start").value);
+	if (document.getElementById("youtube-end").value)
+		ytOptions.end = strToTime(document.getElementById("youtube-end").value);
+	if (document.getElementById("youtube-last-url").value) {
+		ytOptions.last = {url:document.getElementById("youtube-last-url").value};
+		if (document.getElementById("youtube-last-start").value)
+			ytOptions.last.start = strToTime(document.getElementById("youtube-last-start").value);
+		if (document.getElementById("youtube-last-end").value)
+			ytOptions.last.end = strToTime(document.getElementById("youtube-last-end").value);
+	}
+	if (Object.keys(ytOptions).length)
+		editorTool.data.youtube_opts = ytOptions;
 	applyMusicSelector();
 	hideMusicSelector();
 }
@@ -4559,8 +4623,11 @@ var commonTools = {
 		"save" : function(self,payload) {
 			payload.main.bgimg = self.data.bg_img;
 			payload.main.music = self.data.music;
-			if (self.data.youtube)
+			if (self.data.youtube) {
 				payload.main.youtube = self.data.youtube;
+				if (self.data.youtube_opts)
+					payload.main.youtube_opts = self.data.youtube_opts;
+			}
 			payload.main.bgcolor = [self.data.out_color.r,self.data.out_color.g,self.data.out_color.b];
 		},
 		"restore" : function(self,payload) {
@@ -4568,6 +4635,8 @@ var commonTools = {
 			self.data.music = payload.main.music;
 			if (payload.main.youtube)
 				self.data.youtube = payload.main.youtube;
+			if (payload.main.youtube_opts)
+				self.data.youtube_opts = payload.main.youtube_opts;
 			self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
 		}
 	},

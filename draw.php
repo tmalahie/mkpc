@@ -22,7 +22,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create circuit':'Créer circuit'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -417,7 +417,7 @@ if (isset($_GET['i'])) {
 			?>
 			</div>
 		</div>
-		<div id="music-selector" class="fs-popup" onclick="event.stopPropagation()" oncontextmenu="event.stopPropagation()">
+		<form id="music-selector" class="fs-popup" onclick="event.stopPropagation()" oncontextmenu="event.stopPropagation()" onsubmit="submitMusic(event)">
 			<table>
 				<tr>
 					<th>SNES</th>
@@ -448,16 +448,35 @@ if (isset($_GET['i'])) {
 					<td colspan="3" class="youtube">
 						<a id="musicchoice-0" href="javascript:selectMusic(0)">Youtube</a>
 						<div>
-							<?php echo $language ? 'Video URL':'Adresse vidéo'; ?> :
-							<input type="text" name="youtube" id="youtube-url" placeholder="https://www.youtube.com/watch?v=NNMy4DKKDFA" onchange="playYt()" />
+							<?php
+							$ytPattern = '.*(?:youtu.be/|v/|u/\w/|embed/|watch\?v=)([^#&\?]*).*';
+							?>
+							<?php echo $language ? 'Video URL:':'Adresse vidéo :'; ?>
+							<input type="text" name="youtube" id="youtube-url" pattern="<?php echo htmlspecialchars($ytPattern); ?>" placeholder="https://www.youtube.com/watch?v=NNMy4DKKDFA" onchange="playYt(this)" /><br />
+							<a id="youtube-advanced-options-link" href="javascript:ytOptions(true)"><?php echo $language ? "More options...":"Plus d'options..." ?></a>
+							<div id="youtube-advanced-options">
+								<?php echo $language ? 'Loop between' : 'Boucler entre'; ?>
+								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-start" id="youtube-start" placeholder="0:00" />
+								<?php echo $language ? 'and' : 'et'; ?>
+								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-end" id="youtube-end" placeholder="9:59" />
+								<div>
+									<?php echo $language ? 'Last lap music:':'Musique du dernier tout :'; ?>
+									<input type="text" size="2" name="youtube-last" id="youtube-last-url" pattern="<?php echo htmlspecialchars($ytPattern); ?>" placeholder="https://www.youtube.com/watch?v=NNMy4DKKDFA" onchange="playYt(this)" /><br />
+									<?php echo $language ? 'Loop between' : 'Boucler entre'; ?>
+									<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-last-start" id="youtube-last-start" placeholder="0:00" />
+									<?php echo $language ? 'and' : 'et'; ?>
+									<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-last-end" id="youtube-last-end" placeholder="9:59" /><br />
+									<a href="javascript:ytOptions(false)"><?php echo $language ? "Less options":"Moins d'options" ?></a>
+								</div>
+							</div>
 						</div>
 					</td>
 				</tr>
 			</table>
 			<div class="popup-buttons">
-				<button class="options" onclick="undoMusic()"><?php echo $language ? 'Undo':'Annuler'; ?></button> <button id="cMusic" class="options" onclick="submitMusic()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+				<button type="button" class="options" onclick="undoMusic()"><?php echo $language ? 'Undo':'Annuler'; ?></button> <button type="submit" id="cMusic" class="options" onclick="preSubmitMusic(this)"><?php echo $language ? 'Submit':'Valider'; ?></button>
 			</div>
-		</div>
+		</form>
 		<div id="help" class="fs-popup" onclick="event.stopPropagation()">
 			<div class="close-ctn">
 				<span class="title"><?php echo $language ? 'Help':'Aide'; ?></span>

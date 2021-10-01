@@ -748,7 +748,7 @@ div.hover-toggle:hover {
 #music-selector th, #music-selector td {
 	background-color: #d5d5d7;
 }
-#music-selector a {
+#music-selector td > a {
 	display: block;
 	text-align: center;
 	border: solid 1px #59B;
@@ -759,7 +759,7 @@ div.hover-toggle:hover {
 	color: white;
 	text-decoration: none;
 }
-#music-selector a:hover, .music-selected {
+#music-selector td > a:hover, .music-selected {
 	background-color: #60b9f0 !important;
 	font-weight: bold;
 }
@@ -770,7 +770,7 @@ div.hover-toggle:hover {
 	margin-left: auto;
 	margin-right: auto;
 }
-#music-selector .youtube div {
+#music-selector .youtube > div {
 	display: none;
 	margin-top: 2px;
 	margin-bottom: 5px;
@@ -778,8 +778,20 @@ div.hover-toggle:hover {
 #music-selector .music-selected + div {
 	display: block;
 }
-#music-selector .youtube #youtube-url {
+#music-selector .youtube #youtube-url, #music-selector .youtube #youtube-last-url {
 	width: 300px;
+}
+#youtube-advanced-options {
+	display: none;
+}
+#youtube-advanced-options > div {
+	margin-top: 10px;
+}
+.youtube.youtube-show-advanced #youtube-advanced-options {
+	display: block;
+}
+.youtube.youtube-show-advanced #youtube-advanced-options-link {
+	display: none;
 }
 embed,#ytplayer {
 	position: absolute;
