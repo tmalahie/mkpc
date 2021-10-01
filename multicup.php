@@ -54,7 +54,7 @@ var cp = <?php include('getPersos.php'); ?>;
 include('handleCupOptions.php');
 ?>
 </script>
-<script type="text/javascript" src="scripts/cup.js?reload=1"></script>
+<script type="text/javascript" src="scripts/cup.js"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body onload="initGUI()">
