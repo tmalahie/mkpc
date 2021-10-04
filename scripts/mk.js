@@ -15396,7 +15396,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oDiv.style.paddingLeft = Math.round(iScreenScale*1.5) +"px";
 	oDiv.style.fontSize = (2*iScreenScale) +"px";
 	oDiv.style.color = "white";
-	oDiv.innerHTML = toLanguage("If enabled, your items can cause hit the players of your team", "Si activé, vos objets peuvent toucher les joueurs de votre équipe");
+	oDiv.innerHTML = toLanguage("If enabled, your items can hit your teammates", "Si activé, vos objets peuvent toucher les joueurs de votre équipe");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTr.appendChild(oTd);
@@ -18755,7 +18755,7 @@ function selectTeamScreen(IdJ) {
 	oLink.style.color = "white";
 	oLink.innerHTML = "[?]";
 	oLink.onclick = function() {
-		alert(toLanguage("If enabled, your items can cause hit the players of your team", "Si activé, vos objets peuvent toucher les joueurs de votre équipe"));
+		alert(toLanguage("If enabled, your items can hit your teammates", "Si activé, vos objets peuvent toucher les joueurs de votre équipe"));
 		return false;
 	}
 	oDiv.appendChild(oLink);
@@ -18882,7 +18882,7 @@ function acceptRulesScreen() {
 		var oDiv = document.createElement("div");
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("Your items can cause hit the players of your team", "Vos objets peuvent toucher les joueurs de votre équipe");
+		oDiv.innerHTML = toLanguage("Your items can hit your teammates", "Vos objets peuvent toucher les joueurs de votre équipe");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);

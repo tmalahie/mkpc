@@ -3,8 +3,8 @@ include('handle_sub.php');
 $isBattle = isset($_GET['battle']);
 if ($inscrit) {
 	$message = $language ? 
-	'You are now registred ! You start with 5000 points.<br />
-	In a race, you will win or loose points depending on your place.<br />
+	'You are now registered ! You start with 5000 points.<br />
+	In a race, you will win or lose points depending on your place.<br />
 	Win as many races as you can in order to climb the <a href="bestscores.php">ranking</a> ! Good luck !' :
 	'Vous &ecirc;tes &agrave; pr&eacute;sent inscrit ! Vous commencez avec 5000 points.<br />
 	Lors d\'une course, vous gagnerez ou vous perderez des points en fonction de votre place.<br />

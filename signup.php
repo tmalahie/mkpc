@@ -2,7 +2,7 @@
 include('handle_sub.php');
 if ($inscrit) {
 	$message = $language ? 
-	'You are now registred ! Welcome to the Mario Kart community :)' :
+	'You are now registered ! Welcome to the Mario Kart community :)' :
 	'Vous &ecirc;tes &agrave; pr&eacute;sent inscrit ! Bienvenue dans la communaut&eacute; de Mario Kart PC :)';
 }
 ?>
