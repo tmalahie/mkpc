@@ -17506,6 +17506,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 							aPlayers.splice(0,oSuppr);
 						}
 						aPlaces = [];
+						aTeams = [];
 						resetScores();
 						if (course != "GP") {
 							selectedPlayers = fInfos.nbPlayers;
