@@ -160,7 +160,7 @@ $clRulesByType = array(
 		),
 		'pts_equals' => array(
 			'description_mockup' => $language ? 'Make exactly x points in N races':'Faire exactement x points sur N courses',
-			'description' => $language ? 'Make exactly $pts points in N race$s':'Faire exactement $pts points sur $value course$s',
+			'description' => $language ? 'Make exactly $pts points in $value race$s':'Faire exactement $pts points sur $value course$s',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
