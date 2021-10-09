@@ -21627,7 +21627,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				iScr.style.left = (iScreenScale*20) +"px";
 			else
 				iScr.style.left = ((inc%2)*iScreenScale*40) +"px";
-			iScr.style.top = ((1 + Math.floor(inc/2)*8)*iScreenScale) +"px";
+			iScr.style.top = ((1 + Math.floor(inc/2)*7)*iScreenScale) +"px";
 			iScr.style.width = (iScreenScale*40) +"px";
 
 			var iTable = document.createElement("table");
@@ -21712,43 +21712,56 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			inc++;
 		}
 
-		var oDelete = document.createElement("div");
-		oDelete.style.position = "absolute";
-		oDelete.style.right = (7*iScreenScale) +"px";
-		oDelete.style.top = (-iScreenScale) +"px";
-		oDelete.style.width = (iScreenScale*2) +"px";
-		oDelete.style.height = (iScreenScale*2) +"px";
-		oDelete.style.display = "flex";
-		oDelete.style.alignItems = "center";
-		oDelete.style.justifyContent = "center";
-		oDelete.style.fontSize = (iScreenScale*2) +"px";
-		oDelete.innerHTML = "&times;";
-		oDelete.style.backgroundColor = "black";
-		oDelete.style.color = "white";
-		oDelete.style.border = "solid 1px white";
-		oDelete.style.borderRadius = "50%";
-		oDelete.style.cursor = "pointer";
-		oDelete.onmouseover = function() {
-			this.style.backgroundColor = "#333";
-		};
-		oDelete.onmouseout = function() {
-			this.style.backgroundColor = "black";
-		};
-		oDelete.onclick = function() {
-			if (confirm(toLanguage("Remove ghost from list?", "Retirer de la liste ?"))) {
-				var igScrs = oScr.querySelectorAll(".igScr");
-				oScr.removeChild(igScrs[igScrs.length-1]);
-				posDeleteButton();
-				gIDs.pop();
-				setMultiFaceValue();
-			}
-		}
-		function posDeleteButton() {
+		var nbGhosts = gIDs.length;
+		var oNbGhostsCtn = document.createElement("div");
+		oNbGhostsCtn.style.textAlign = "center";
+		oNbGhostsCtn.style.position = "absolute";
+		oNbGhostsCtn.style.left = (2*iScreenScale)+"px";
+		oNbGhostsCtn.style.top = (29*iScreenScale)+"px";
+		oNbGhostsCtn.style.width = (76*iScreenScale)+"px";
+		oNbGhostsCtn.style.color = "white";
+
+		var oNbGhostsLabel = document.createElement("span");
+		oNbGhostsLabel.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+		oNbGhostsLabel.innerHTML = toLanguage("Number of ghosts:", "Nombre de fantômes :");
+		oNbGhostsLabel.style.marginRight = Math.round(iScreenScale*1.2) +"px";
+		oNbGhostsCtn.appendChild(oNbGhostsLabel);
+
+		var oNbGhostsLess = document.createElement("input");
+		oNbGhostsLess.type = "button";
+		oNbGhostsLess.value = "-";
+		oNbGhostsLess.style.fontSize = (3*iScreenScale)+"px";
+		oNbGhostsLess.onclick = function() {
+			nbGhosts--;
 			var igScrs = oScr.querySelectorAll(".igScr");
-			if (igScrs.length > 1)
-				igScrs[igScrs.length-1].appendChild(oDelete);
+			igScrs[nbGhosts].style.visibility = "hidden";
+			setMultiFaceValue();
 		}
-		posDeleteButton();
+
+		var oNbGhostsValue = document.createElement("span");
+		oNbGhostsValue.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+		oNbGhostsValue.style.marginLeft = oNbGhostsValue.style.marginRight = Math.round(1.5*iScreenScale)+"px";
+
+		var oNbGhostsMore = document.createElement("input");
+		oNbGhostsMore.type = "button";
+		oNbGhostsMore.value = "+";
+		oNbGhostsMore.onclick = function() {
+			var igScrs = oScr.querySelectorAll(".igScr");
+			igScrs[nbGhosts].style.visibility = "visible";
+			nbGhosts++;
+			setMultiFaceValue();
+		}
+
+		oNbGhostsLess.className = oNbGhostsMore.className = "disablable";
+		oNbGhostsLess.style.borderRadius = oNbGhostsMore.style.borderRadius = "50%";
+		oNbGhostsLess.style.fontSize = oNbGhostsLess.style.lineHeight = oNbGhostsMore.style.fontSize = oNbGhostsMore.style.lineHeight = (3*iScreenScale)+"px";
+		oNbGhostsLess.style.width = oNbGhostsLess.style.height = oNbGhostsMore.style.width = oNbGhostsMore.style.height = (4*iScreenScale)+"px";
+
+		oNbGhostsCtn.appendChild(oNbGhostsLess);
+		oNbGhostsCtn.appendChild(oNbGhostsValue);
+		oNbGhostsCtn.appendChild(oNbGhostsMore);
+
+		oScr.appendChild(oNbGhostsCtn);
 
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
@@ -21767,7 +21780,10 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
 		function setMultiFaceValue() {
-			oPInput.value = toLanguage("Face with " + gIDs.length + " ghost" + (gIDs.length>1 ? "s":""), "Affronter " + gIDs.length + " fantôme" + (gIDs.length>1 ? "s":""));
+			oNbGhostsValue.innerHTML = nbGhosts;
+			oPInput.value = toLanguage("Face with " + nbGhosts + " ghost" + (nbGhosts>1 ? "s":""), "Affronter " + gIDs.length + " fantôme" + (gIDs.length>1 ? "s":""));
+			oNbGhostsLess.disabled = (nbGhosts<=1);
+			oNbGhostsMore.disabled = (nbGhosts>=gIDs.length);
 		}
 		setMultiFaceValue();
 		oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
@@ -21776,6 +21792,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		oPInput.style.top = (35*iScreenScale)+"px";
 		
 		oPInput.onclick = function() {
+			gIDs.length = nbGhosts;
 			seeGhost(false);
 		};
 		oScr.appendChild(oPInput);
@@ -21789,6 +21806,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		oPInput2.style.top = (35*iScreenScale)+"px";
 		
 		oPInput2.onclick = function() {
+			gIDs.length = nbGhosts;
 			seeGhost(true);
 		};
 		oScr.appendChild(oPInput2);
