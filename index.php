@@ -382,47 +382,6 @@ $slidesPath = 'images/slides';
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
 		</div>
-		<h2><img src="images/partners.png" alt="" /> <?php echo $language ? 'Partners':'Partenaires'; ?></h2>
-		<div>
-			<?php
-			if ($language) {
-				?>
-				Mario Kart PC currently has 2 partners:
-				<ul>
-					<li>
-						<a href="http://www.vanilladome.fr/">Vanilla Dome</a>, the social network of Mario!
-						Forum, musics, quiz, encyclopedia... Everything related directly or indirectly to Mario is available on this site!
-					</li>
-					<li>
-						<a href="http://www.planete-toad.fr/">Planète Toad</a>: Community site about Mario and the Nintendo universe in general. Offers exclusive services: publications system, shop, "Shrooms" currency.
-					</li>
-				</ul>
-				<?php
-			}
-			else {
-				?>
-				Mario Kart PC compte actuellement 2 partenaires :
-				<ul>
-					<li>
-						<a href="http://www.vanilladome.fr/">Vanilla Dome</a> : le réseau social Mario !
-						Forum, musiques, quiz, encyclopédie... Tout ce qui touche de près ou de loin à Mario est disponible sur ce site !
-					</li>
-					<li>
-						<a href="http://www.planete-toad.fr/">Planète Toad</a> : Site communautaire sur Mario et l'univers de Nintendo en général. Propose des services exclusifs : système de publications, boutique, monnaie "Champis".
-					</li>
-				</ul>
-				<?php
-			}
-			?>
-			<p>
-				<?php
-				if ($language)
-					echo 'You want to become partner of Mario Kart PC ? Contact me via PM on MKPC or Discord.';
-				else
-					echo 'Vous souhaitez devenir partenaire de Mario Kart PC ? Contactez-moi par MP sur MKPC ou Discord.';
-				?>
-			</p>
-		</div>
 		<h2><img src="images/follow.png" alt="" /> <?php echo $language ? 'Follow us':'Nous suivre'; ?></h2>
 		<div>
 			<?php
