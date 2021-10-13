@@ -287,6 +287,7 @@ $slidesPath = 'images/slides';
 				</div>
 			</div>
 		</div>
+		<h1>Mario Kart PC</h1>
 		<div id="toBegin"><a href="mariokart.php">
 		&#9660;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9660;<br />
 		<img src="images/mkpc_box.jpg" alt="Acc&eacute;der au jeu" style="width:310px;position: relative;top:2px" /><br />

@@ -258,6 +258,9 @@ header, nav, main, footer {
 a img {
 	border: none;
 }
+#left_section h1 {
+	display: none;
+}
 #left_section h2 {
 	margin-left: 10px;
 	font-family: Verdana;
