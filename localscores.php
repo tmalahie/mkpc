@@ -11,7 +11,7 @@ $courseRules = json_decode($courseOptions['rules']);
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Private game ranking':'Classement partie privée'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -59,7 +59,7 @@ $page = 'game';
 include('menu.php');
 ?>
 <main>
-	<h1><?php echo $language ? 'Private game ranking - Mario Kart PC':'Classement partie privée - Mario Kart PC'; ?></h1>
+	<h1><?php echo $language ? 'Private game ranking':'Classement partie privée'; ?> - Mario Kart PC</h1>
 	<div>
         <?php
         if ($language) {

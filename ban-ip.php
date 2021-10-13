@@ -21,7 +21,7 @@ if (!hasRight('moderator')) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Ban member':'Bannir un membre'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -56,9 +56,9 @@ if (isset($_GET['ip1'])) {
 ?>
 <main>
 	<?php
-	if ($ban)
+	if (isset($ban))
 		echo '<p><strong>'. $ban .'</strong> a été banni</p>';
-	elseif ($unban)
+	elseif (isset($unban))
 		echo '<p>L\'adresse <strong>'. $unban .'</strong> a été débannie</p>';
 	?>
 	<br />

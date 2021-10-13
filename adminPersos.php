@@ -126,7 +126,7 @@ function filterSearch() {
 	}
 }
 </script>
-<title><?php echo $language ? 'Rate characters':'Noter les persos'; ?></title>
+<title><?php echo $language ? 'Manage characters':'Gérer les persos'; ?></title>
 </head>
 <body>
 <?php

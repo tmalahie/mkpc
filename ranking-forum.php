@@ -34,7 +34,7 @@ case 2:
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Forum activity ranking':'Classement activité forum'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

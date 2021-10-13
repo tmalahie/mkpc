@@ -9,7 +9,7 @@ $pts_ = 'pts_'.$game;
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title>Credits - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

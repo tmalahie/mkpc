@@ -16,7 +16,7 @@ if (!hasRight('moderator')) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Nick change history':'Historique changements de pseudo'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

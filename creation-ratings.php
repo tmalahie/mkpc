@@ -17,7 +17,7 @@ include('getId.php');
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Manage circuit ratings':'Gérer les notes des circuits'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

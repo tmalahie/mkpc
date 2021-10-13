@@ -6,7 +6,7 @@ include('initdb.php');
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Advent calendar leaderboard':'Classement calendrier de l\'avent'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

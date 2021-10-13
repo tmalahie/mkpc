@@ -10,7 +10,7 @@ include('initdb.php');
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Change my nick':'Modifier mon pseudo'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

@@ -23,7 +23,7 @@ mysql_query('INSERT IGNORE INTO mkips (SELECT id AS player,identifiant AS ip1,id
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Double accounts':'Double comptes'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

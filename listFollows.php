@@ -8,7 +8,7 @@ if (isset($_GET['user'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Topics followed by':'Topics suivis par'; ?> <?php echo $getInfos['nom']; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

@@ -49,7 +49,7 @@ if (isset($_POST['nom']) && isset($_POST['award']) && isset($_POST['value'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Manage awards':'Gérer les récompenses'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

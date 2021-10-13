@@ -16,7 +16,7 @@ if (!hasRight('moderator')) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Manage member country':'Gérer le pays d\'un membre'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -33,6 +33,7 @@ include('header.php');
 $page = 'forum';
 include('menu.php');
 $success = null;
+$message = null;
 if (isset($_POST['joueur']) && isset($_POST['country'])) {
 	$nick = $_POST['joueur'];
 	$country = $_POST['country'];

@@ -8,7 +8,7 @@ if (isset($_GET['user'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'News published by':'News publiées par'; ?> <?php echo $getInfos['nom']; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -69,7 +69,7 @@ include('menu.php');
 		?>
 		<a href="news.php?id=<?php echo $new['id']; ?>" title="<?php echo $new['title']; ?>">
 			<h2><?php echo htmlspecialchars(controlLength($new['title'],40)); ?></h2>
-			<h3><?php echo $language ? 'In':'Dans'; ?> <strong><?php echo $new['catname']; ?></strong> <?php echo ($name ? ($language ? 'by':'par') .' <strong>'. $name['nom'].'</strong> ':'').pretty_dates_short($new['publication_date'],array('lower'=>true)); ?></h3>
+			<h3><?php echo $language ? 'In':'Dans'; ?> <strong><?php echo $new['catname']; ?></strong> <?php echo pretty_dates_short($new['publication_date'],array('lower'=>true)); ?></h3>
 			<div class="creation_comments" title="<?php echo $nbMsgs. ' ' . ($language ? 'comment':'commentaire') . (($nbMsgs>1) ? 's':''); ?>"><img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?></div>
 		</a>
 		<?php

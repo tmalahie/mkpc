@@ -16,7 +16,7 @@ if (!hasRight('moderator')) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Change member\'s nick':'Modifier le pseudo d\'un membre'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -40,6 +40,8 @@ include('o_online.php');
 include('header.php');
 $page = 'forum';
 include('menu.php');
+$success = null;
+$message = null;
 if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	$old = $_POST['joueur'];
 	$new = $_POST['newpseudo'];

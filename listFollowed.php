@@ -8,7 +8,7 @@ if ($id) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Following users':'Vos abonnements'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 include('avatars.php');

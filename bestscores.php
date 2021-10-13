@@ -9,7 +9,7 @@ $pts_ = 'pts_'.$game;
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title><?php echo $language ? 'Online mode leaderboard':'Classement mode en ligne'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -33,7 +33,7 @@ else
 	$myPseudo = null;
 ?>
 <main>
-	<h1><?php echo $language ? 'Ranking Mario Kart PC':'Classement Mario Kart PC'; ?></h1>
+	<h1><?php echo $language ? 'Leaderboard Mario Kart PC':'Classement Mario Kart PC'; ?></h1>
 	<div class="ranking-modes">
 		<?php
 		if ($isBattle) {

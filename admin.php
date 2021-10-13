@@ -33,7 +33,7 @@ else {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Mario Kart PC</title>
+<title>Admin - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
