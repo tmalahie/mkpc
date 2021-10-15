@@ -290,6 +290,7 @@ CREATE TABLE `mkb` (
 CREATE TABLE `mkbans` (
   `player` int(11) NOT NULL,
   `msg` text NOT NULL,
+  `end_date` date DEFAULT NULL,
   UNIQUE KEY `player` (`player`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;

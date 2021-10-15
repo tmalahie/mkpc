@@ -33,6 +33,12 @@ include('heads.php');
 #titres td:nth-child(2) {
 	width: 300px;
 }
+table a.profile {
+	color: #820;
+}
+table a.profile:hover {
+	color: #B50;
+}
 </style>
 <?php
 include('o_online.php');

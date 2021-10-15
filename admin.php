@@ -51,8 +51,6 @@ ul {
 li {
 	list-style: none;
 }
-li strong {
-}
 .action-ctn {
 	display: block;
 	color: black;

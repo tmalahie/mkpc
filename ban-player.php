@@ -29,6 +29,12 @@ include('heads.php');
 #titres td:nth-child(2) {
 	width: 300px;
 }
+table a.profile {
+	color: #820;
+}
+table a.profile:hover {
+	color: #B50;
+}
 </style>
 <?php
 include('o_online.php');
@@ -44,11 +50,11 @@ if ($ban) {
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $ban .'"'))) {
 		mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id='. $getId['id']);
 		mysql_query('DELETE FROM `mkbans` WHERE player="'. $getId['id'] .'"');
-		mysql_query('INSERT INTO `mkbans` VALUES('. $getId['id'] .',"'. $_POST['msg'] .'")');
+		mysql_query('INSERT INTO `mkbans` VALUES('. $getId['id'] .',"'. $_POST['msg'] .'",'. (!empty($_POST['ban_until_date']) ? '"'. $_POST['ban_until_date'] .'"':'NULL') .')');
 		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Ban '. $getId['id'] .'")');
 		if (isset($_POST['ip'])) {
 			$getIp = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'.$getId['id'].'"'));
-			mysql_query('INSERT INTO `ip_bans` VALUES('.$getId['id'].','.$getIp['identifiant'].','.$getIp['identifiant2'].','.$getIp['identifiant3'].','.$getIp['identifiant4'].')');
+			mysql_query('INSERT IGNORE INTO `ip_bans` VALUES('.$getId['id'].','.$getIp['identifiant'].','.$getIp['identifiant2'].','.$getIp['identifiant3'].','.$getIp['identifiant4'].')');
 		}
 	}
 }
@@ -80,6 +86,7 @@ if ($unban) {
 		<label for="joueur"><strong><?php echo $language ? 'Ban a player':'Bannir un joueur'; ?></strong></label> : <input type="text" name="joueur" id="joueur" />
 		<div id="ban_msg">
 			Message : <textarea name="msg" cols="30" rows="4"></textarea><br />
+			<label><input type="checkbox" name="ban_until" onclick="hanleBanUntil(this.checked)" /> <?php echo $language ? "Ban until:":"Bannir jusqu'à :"; ?> <input type="date" name="ban_until_date" disabled /></label><br />
 			<label><input type="checkbox" name="ip" /> <?php echo $language ? 'Also ban IP address':'Bannir également l\'adresse IP'; ?></label><br />
 			<input type="submit" value="Valider" class="action_button" />
 		</div>
@@ -91,10 +98,11 @@ if ($unban) {
 	<tr id="titres">
 	<td><?php echo $language ? 'Nick':'Pseudo'; ?></td>
 	<td>Message</td>
+	<td><?php echo $language ? 'End date':'Date de fin'; ?></td>
 	<td><?php echo $language ? 'Unban':'Débannir'; ?></td>
 	</tr>
 	<?php
-	$bannished = mysql_query('SELECT id,nom,msg FROM `mkjoueurs` LEFT JOIN `mkbans` ON id=player WHERE banned');	
+	$bannished = mysql_query('SELECT j.id,j.nom,b.msg,b.end_date FROM `mkjoueurs` j LEFT JOIN `mkbans` b ON j.id=b.player WHERE j.banned');	
 	function controlLength($str,$maxLength) {
 		$pts = '...';
 		if (strlen($str) > $maxLength)
@@ -104,10 +112,11 @@ if ($unban) {
 	while ($joueur = mysql_fetch_array($bannished)) {
 		?>
 		<tr>
-		<td><?php echo $joueur['nom']; ?></td>
+		<td><a class="profile" href="profil.php?id=<?php echo $joueur['id']; ?>"><?php echo $joueur['nom']; ?></a></td>
 		<td title="<?php echo htmlspecialchars($joueur['msg']); ?>"><?php	
 			echo nl2br(htmlspecialchars(controlLength($joueur['msg'],150)));
 		?></td>
+		<td><?php echo $joueur['end_date']; ?></td>
 		<td><a href="?unban=<?php echo $joueur['id']; ?>" class="action_button"><?php echo $language ? 'Unban':'Débannir'; ?></a></td>
 		</tr>
 		<?php
@@ -130,6 +139,13 @@ autocompletePlayer('#joueur', {
 		$("#ban_msg").show("fast");
 	}
 });
+function hanleBanUntil(checked) {
+	var $banUntilDate = $('input[name="ban_until_date"]');
+	$banUntilDate.prop("disabled", !checked);
+	$banUntilDate.prop("required", checked);
+	if (checked)
+		$banUntilDate.focus();
+}
 </script>
 <?php
 mysql_close();
