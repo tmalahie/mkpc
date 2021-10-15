@@ -22771,8 +22771,8 @@ function setChat() {
 		}
 		return false;
 	}
-	bConnectes.onclick = function() {
-		if (removeBlockDialog()) return false;
+	function showMemberList(title, blockedFn,onSelect) {
+		if (removeBlockDialog()) return;
 		oBlockDialog = document.createElement("div");
 		oBlockDialog.className = "online-chat-blockdialog";
 		oBlockDialog.style.position = "absolute";
@@ -22783,7 +22783,7 @@ function setChat() {
 		oBlockDialog.style.backgroundColor = "#222";
 
 		var oBlockTitle = document.createElement("h1");
-		oBlockTitle.innerHTML = language ? "Ignore member":"Ignorer un membre";
+		oBlockTitle.innerHTML = title;
 		oBlockDialog.appendChild(oBlockTitle);
 
 		var oBlockClose = document.createElement("input");
@@ -22807,7 +22807,7 @@ function setChat() {
 				for (var i=0;i<rCode.length;i++) {
 					var memberId = rCode[i][0];
 					var memberPseudo = rCode[i][1];
-					var memberBlocked = rCode[i][2];
+					var memberBlocked = blockedFn(rCode[i]);
 					var oBlockMember = document.createElement("div");
 					if (!oBlockMember.dataset)
 						oBlockMember.dataset = {};
@@ -22815,12 +22815,9 @@ function setChat() {
 					oBlockMember.dataset.blocked = memberBlocked ? "1":"";
 					oBlockMember.innerHTML = memberPseudo;
 					oBlockMember.onclick = function() {
-						this.dataset.blocked = this.dataset.blocked ? "":"1";
 						var that = this;
-						xhr(this.dataset.blocked ? "ignore.php":"unignore.php", "member="+ this.dataset.id, function(reponse) {
-							if (reponse == 1)
-								return true;
-							return false;
+						onSelect(this.dataset.id,!this.dataset.blocked, function() {
+							that.dataset.blocked = that.dataset.blocked ? "":"1";
 						});
 					}
 					oBlockMembers.appendChild(oBlockMember);
@@ -22831,6 +22828,18 @@ function setChat() {
 		});
 		oBlockDialog.appendChild(oBlockMembers);
 		oChat.appendChild(oBlockDialog);
+	}
+	bConnectes.onclick = function() {
+		showMemberList(language ? "Ignore member":"Ignorer un membre", function(member) {
+			return member[2];
+		}, function(id,checked, resolve) {
+			xhr(checked ? "ignore.php":"unignore.php", "member="+ id, function(reponse) {
+				if (reponse == 1)
+					return true;
+				return false;
+			});
+			resolve();
+		});
 
 		return false;
 	};
@@ -22839,6 +22848,42 @@ function setChat() {
 	biConnectes.src = "images/ic_block.png";
 	bConnectes.appendChild(biConnectes);
 	oConnectes.appendChild(bConnectes);
+
+	if (mIsModerator) {
+		var mConnectes = document.createElement("a");
+		mConnectes.href = "#null";
+		mConnectes.title = language ? "Mute player (admin)" : "Muter un joueur (admin)";
+		mConnectes.onmouseover = function() {
+			miConnectes.src = "images/ic_mute_h.png";
+		};
+		mConnectes.onmouseout = function() {
+			miConnectes.src = "images/ic_mute.png";
+		};
+		mConnectes.onclick = function() {
+			showMemberList(language ? "Mute member":"Muter un membre", function(member) {
+				return member[3];
+			}, function(id,checked, resolve) {
+				var duration = 1;
+				if (checked)
+					duration = prompt(language ? "Mute for (minutes):" : "Muter pendant (minutes) :", 10);
+				if (duration > 0) {
+					xhr(checked ? "mute.php":"unmute.php", "member="+ id +"&duration="+ duration, function(reponse) {
+						if (reponse == 1)
+							return true;
+						return false;
+					});
+					resolve();
+				}
+			});
+
+			return false;
+		};
+		var miConnectes = document.createElement("img");
+		miConnectes.alt = "Mute";
+		miConnectes.src = "images/ic_mute.png";
+		mConnectes.appendChild(miConnectes);
+		oConnectes.appendChild(mConnectes);
+	}
 
 	var oCloseChatCtn = document.createElement("div");
 	oCloseChatCtn.className = "online-chat-closectn";

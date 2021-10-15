@@ -27,6 +27,7 @@ if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs
 	mysql_close();
 	exit;
 }
+require_once('getRights.php');
 $isCup = false;
 $isBattle = false;
 $isSingle = false;
@@ -262,6 +263,7 @@ var PERSOS_DIR = "<?php
 ?>";
 var mId = <?php echo $id ? $id:'null'; ?>;
 var mPseudo = "<?php echo $myPseudo; ?>", mCode = "<?php echo $myCode; ?>";
+var mIsModerator = <?php echo hasRight('moderator') ? 1:0; ?>;
 var isSingle = <?php echo $isSingle ? 'true':'false'; ?>;
 var isBattle = <?php echo $isBattle ? 'true':'false'; ?>;
 var isCup = <?php echo $isCup ? 'true':'false'; ?>;

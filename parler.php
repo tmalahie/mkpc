@@ -3,7 +3,7 @@ session_start();
 if (!empty($_SESSION['mkid']) && isset($_POST['msg'])) {
 	$id = $_SESSION['mkid'];
 	include('initdb.php');
-	if ($getCourse = mysql_fetch_array(mysql_query('SELECT course,banned FROM `mkjoueurs` WHERE id="'.$id.'"'))) {
+	if ($getCourse = mysql_fetch_array(mysql_query('SELECT course,banned FROM `mkjoueurs` j LEFT JOIN mkmuted m ON j.id=m.player WHERE j.id="'.$id.'" AND m.player IS NULL'))) {
 		if (!$getCourse['banned']) {
 			$course = $getCourse['course'];
 			if ($course) {

@@ -6,6 +6,7 @@ if (!empty($_SESSION['mkid'])) {
 	$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
 	$course = $getCourse['course'];
 	if ($course) {
+		mysql_query('DELETE FROM mkmuted WHERE end_date<=NOW()');
 		echo '[[';
 		$joueurs = mysql_query('SELECT e.nom FROM `mkjoueurs` j INNER JOIN `mkjoueurs` e ON j.id=e.id WHERE j.course='.$course.' AND j.id!="'.$id.'"');
 		if ($joueur = mysql_fetch_array($joueurs)) {
