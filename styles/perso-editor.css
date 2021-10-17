@@ -420,6 +420,9 @@ hr {
 	height: 32px;
 	overflow: hidden;
 }
+.perso-selector > img {
+	transform: translateY(-50%) translateY(16px);
+}
 .perso-selector div:not(.perso-animate) img {
 	width: 32px;
 	height: 32px;

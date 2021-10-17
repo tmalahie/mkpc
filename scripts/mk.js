@@ -2562,23 +2562,6 @@ function startGame() {
 		var fNewPosY = this.y + this.speed * direction(1, this.rotation);
 		return ralenti(fNewPosX,fNewPosY);
 	}
-	for (var i=0;i<aKarts.length;i++) {
-		var oKart = aKarts[i];
-		oKart.spin = spinKart;
-		oKart.falling = fallKart;
-		oKart.exiting = exitKart;
-		oKart.actualSpeed = actualKartSpeed;
-		for (var j=0;j<strPlayer.length;j++) {
-			(function(sprite) {
-				sprite.nbSprites = 24;
-				sprite.img.onload = function() {
-					sprite.w = this.naturalWidth/sprite.nbSprites;
-					sprite.h = this.naturalHeight;
-					delete this.onload;
-				}
-			})(oKart.sprite[j]);
-		}
-	}
 
 	itemDistribution = selectedItemDistrib;
 	if (!itemDistribution)
@@ -2644,6 +2627,23 @@ function startGame() {
 				aKarts[i].sprite[j].div.style.opacity = (iTrajet === jTrajets[i-1]) ? 0:0.5;
 		}
 		updateObjHud(0);
+	}
+	for (var i=0;i<aKarts.length;i++) {
+		var oKart = aKarts[i];
+		oKart.spin = spinKart;
+		oKart.falling = fallKart;
+		oKart.exiting = exitKart;
+		oKart.actualSpeed = actualKartSpeed;
+		for (var j=0;j<strPlayer.length;j++) {
+			(function(sprite) {
+				sprite.nbSprites = 24;
+				sprite.img.onload = function() {
+					sprite.w = this.naturalWidth/sprite.nbSprites;
+					sprite.h = this.naturalHeight;
+					delete this.onload;
+				}
+			})(oKart.sprite[j]);
+		}
 	}
 	if (course != "CM") {
 		for (var i=0;i<oPlayers.length;i++) {
@@ -21521,6 +21521,11 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		oPImg.alt = ghostsData[1];
 	oPImg.nb = i;
 	oPImg.style.left = -(30 * iScreenScale) +"px";
+	oPImg.onload = function() {
+		var oW = (this.scrollWidth/24);
+		this.parentNode.style.width = Math.round(oW) +"px";
+		this.style.left = -Math.round(oW*6) +"px";
+	}
 	oPImg.style.top = "0px";
 	oDiv.appendChild(oPImg);
 	cDiv.appendChild(oDiv);
@@ -21648,10 +21653,16 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			iDiv.style.position = "relative";
 			iDiv.style.width = (3 * iScreenScale) + "px";
 			iDiv.style.height = (3 * iScreenScale) + "px";
+			iDiv.style.margin = "0px auto";
 			iDiv.style.overflow = "hidden";
 
 			var iPImg = new Image();
 			iPImg.style.height = (3 * iScreenScale) +"px";
+			iPImg.onload = function() {
+				var oW = (this.scrollWidth/24);
+				this.parentNode.style.width = Math.round(oW) +"px";
+				this.style.left = -Math.round(oW*6) +"px";
+			}
 			iPImg.style.position = "absolute";
 			iPImg.className = "pixelated";
 			
