@@ -21788,25 +21788,25 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		};
 		oScr.appendChild(oPInput);
 
-		var oPInput = document.createElement("input");
-		oPInput.type = "button";
+		var oPSubmit = document.createElement("input");
+		oPSubmit.type = "button";
 		function setMultiFaceValue() {
 			oNbGhostsValue.innerHTML = nbGhosts;
-			oPInput.value = toLanguage("Face with " + nbGhosts + " ghost" + (nbGhosts>1 ? "s":""), "Affronter " + gIDs.length + " fantôme" + (gIDs.length>1 ? "s":""));
+			oPSubmit.value = toLanguage("Face with " + nbGhosts + " ghost" + (nbGhosts>1 ? "s":""), "Affronter " + nbGhosts + " fantôme" + (nbGhosts>1 ? "s":""));
 			oNbGhostsLess.disabled = (nbGhosts<=1);
 			oNbGhostsMore.disabled = (nbGhosts>=gIDs.length);
 		}
 		setMultiFaceValue();
-		oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-		oPInput.style.position = "absolute";
-		oPInput.style.right = (5*iScreenScale-10)+"px";
-		oPInput.style.top = (35*iScreenScale)+"px";
+		oPSubmit.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+		oPSubmit.style.position = "absolute";
+		oPSubmit.style.right = (5*iScreenScale-10)+"px";
+		oPSubmit.style.top = (35*iScreenScale)+"px";
 		
-		oPInput.onclick = function() {
+		oPSubmit.onclick = function() {
 			gIDs.length = nbGhosts;
 			seeGhost(false);
 		};
-		oScr.appendChild(oPInput);
+		oScr.appendChild(oPSubmit);
 
 		var oPInput2 = document.createElement("input");
 		oPInput2.type = "button";
