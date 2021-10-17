@@ -52,7 +52,7 @@ $slidesPath = 'images/slides';
 									if ($language) {
 										?>
 										A computer version of the famous racing game by Nintendo.<br />
-										This is <strong>completely free</strong> and does not require <strong>any download</strong>. All you need is a web browser!
+										This game is <strong>completely free</strong> and does not require <strong>any downloads</strong>. All you need is a web browser!
 										<?php
 									}
 									else {
