@@ -2623,8 +2623,9 @@ function startGame() {
 			}
 		}
 		for (var i=oPlayers.length;i<aKarts.length;i++) {
+			var jTrajet = jTrajets ? jTrajets[i-1] : [];
 			for (var j=0;j<oPlayers.length;j++)
-				aKarts[i].sprite[j].div.style.opacity = (iTrajet === jTrajets[i-1]) ? 0:0.5;
+				aKarts[i].sprite[j].div.style.opacity = (iTrajet === jTrajet) ? 0:0.5;
 		}
 		updateObjHud(0);
 	}
@@ -2878,11 +2879,11 @@ function startGame() {
 		}
 		if (timeTrialMode() && (oPlanCharacters.length > 1)) {
 			for (var i=0;i<oPlanCharacters.length;i++) {
-				if (i) oPlanCharacters[i].style.opacity = (iTrajet === jTrajets[i-1]) ? 0:0.5;
+				if (i) oPlanCharacters[i].style.opacity = (jTrajets && iTrajet === jTrajets[i-1]) ? 0:0.5;
 				oPlanCtn.appendChild(oPlanCharacters[i]);
 			}
 			for (var i=0;i<oPlanCharacters2.length;i++) {
-				if (i) oPlanCharacters2[i].style.opacity = (iTrajet === jTrajets[i-1]) ? 0:0.5;
+				if (i) oPlanCharacters2[i].style.opacity = (jTrajets && iTrajet === jTrajets[i-1]) ? 0:0.5;
 				oPlanCtn2.appendChild(oPlanCharacters2[i]);
 			}
 		}
