@@ -1589,7 +1589,7 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "billball" :
-			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/9), 120), 40);
+			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/(11*cappedRelSpeed())), 120), 35);
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = "images/sprites/sprite_billball.png";
 				resetSpriteHeight(oKart.sprite[i]);
@@ -13372,14 +13372,14 @@ function move(getId, triggered) {
 	if (oKart.billball) {
 		oKart.z = 2;
 		oKart.heightinc = 0;
-		oKart.speed = 11*cappedRelSpeed();
+		oKart.speed = Math.min(30,13*cappedRelSpeed());
 
 		var iLocalX, iLocalY;
 		if (oKart.aipoint != undefined) {
 			iLocalX = oKart.aipoints[oKart.aipoint][0] - oKart.x;
 			iLocalY = oKart.aipoints[oKart.aipoint][1] - oKart.y;
 
-			if (iLocalX*iLocalX + iLocalY*iLocalY < 1600) {
+			if (iLocalX*iLocalX + iLocalY*iLocalY < 2000) {
 				oKart.aipoint++;
 
 				if (oKart.aipoint >= oKart.aipoints.length)
@@ -13416,13 +13416,15 @@ function move(getId, triggered) {
 		var iRotatedY = iLocalX * direction(0, oKart.rotation) + iLocalY * direction(1, oKart.rotation);
 
 		var fAngle = Math.atan2(iRotatedX,iRotatedY) / Math.PI * 180;
-		if (Math.abs(fAngle) > Math.max(10,10/cappedRelSpeed())) {
-			if (Math.abs(fAngle) > 60) {
-				oKart.speed = 1;
+		var aAngle = Math.abs(fAngle);
+		var mAngle = Math.max(15,15/cappedRelSpeed());
+		if (aAngle > mAngle) {
+			if (aAngle > 60) {
+				oKart.speed = Math.min(oKart.speed, 200/aAngle);
 				fAngle = (fAngle > 0) ? 30:-30;
 			}
 			else
-				fAngle = (fAngle > 0) ? 15:-15;
+				fAngle = (fAngle > 0) ? mAngle:-mAngle;
 		}
 
 		oKart.rotation += fAngle;
