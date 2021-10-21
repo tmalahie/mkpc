@@ -45,7 +45,7 @@ $decors = array(
         'falltree' => $language ? 'Delfino Square - Tree':'Quartier Delfino - Arbre',
         'mountaintree' => $language ? 'Shroom Ridge - Tree':'Corniche Champignon - Arbre',
         'fir' => $language ? 'DK Pass - Fir':'Pic DK - Sapin',
-        'mariotree' => $language ? 'Mario Tree - Tree':'Circuit Mario - Arbre',
+        'mariotree' => $language ? 'DS Mario Circuit - Tree':'Circuit Mario - Arbre',
         'peachtree' => $language ? 'Peach Gardens - Tree':'Jardin Peach - Arbre'
     )
 );
