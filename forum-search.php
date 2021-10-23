@@ -37,7 +37,7 @@ include('header.php');
 $page = 'forum';
 include('menu.php');
 $RES_PER_PAGE = 20;
-$page = isset($_GET['page']) ? $_GET['page']:1;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? $_GET['page']:1;
 
 function zerofill($s,$l) {
 	while (strlen($s) < $l)

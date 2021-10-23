@@ -132,8 +132,6 @@ if ($id) {
 					mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE course='.$course.' AND id!="'.$id.'"');
 					mysql_query('DELETE FROM `mkplayers` WHERE course='. $course);
 					mysql_query('DELETE FROM `mkchat` WHERE course='. $course);
-					for ($i=0;$i<$nbTables;$i++)
-						mysql_query('DELETE FROM `'.$tables[$i].'` WHERE course='.$course);
 					switchCourseIfNeeded();
 					$cas = 2;
 				}

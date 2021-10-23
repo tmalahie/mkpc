@@ -183,8 +183,12 @@ if (isset($trackIDs)) {
 		$cDate = $infos['publication_date'];
 	}
 }
-else
+elseif (isset($circuit))
 	$circuitsData = Array($circuit);
+else {
+	mysql_close();
+	exit;
+}
 require_once('circuitEscape.php');
 function escapeUtf8($str) {
 	return htmlentities(escapeCircuitNames($str));

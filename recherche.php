@@ -26,7 +26,7 @@ $page = 'forum';
 include('menu.php');
 ?>
 <main>
-<h1><?php echo $category['nom']; ?></h1>
+<h1>Forum Mario Kart PC</h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
 <p class="pub"><ins class="adsbygoogle"

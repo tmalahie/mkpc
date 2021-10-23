@@ -33,7 +33,7 @@ function get_sprite_srcs($hash) {
 	return $res;
 }
 function get_perso_music($perso) {
-	if ($perso['music'])
+	if (!empty($perso['music']))
 		return $perso['music'];
 	return 'mario';
 }

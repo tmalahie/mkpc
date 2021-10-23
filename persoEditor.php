@@ -27,7 +27,7 @@ include('o_online.php');
 ?>
 <script type="text/javascript">
 var persoId = -1;
-var author = "<?php echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
+var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;
 function selectPerso(id) {
 	if (persoId != -1)
