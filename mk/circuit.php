@@ -907,9 +907,11 @@ foreach ($circuitsData as $c => $circuit) {
 		}
 
 		$pInC = $pInT;
-		for ($i=0;$i<36;$i++) {
-			if (outOfT($i, $pInT))
-				array_push($pInC[$circuit["p$depart"]], $i);
+		if (!$noStart) {
+			for ($i=0;$i<36;$i++) {
+				if (outOfT($i, $pInT))
+					array_push($pInC[$circuit["p$depart"]], $i);
+			}
 		}
 		switch ($map) {
 			case 3 :
