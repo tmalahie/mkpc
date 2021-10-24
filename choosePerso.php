@@ -217,6 +217,19 @@ function updatePersoList(listKey, from) {
 	var listDiv = document.getElementById("persos-list-"+listKey);
 	if (listDiv && !from)
 		listDiv.innerHTML = "";
+
+	var observer = window.IntersectionObserver ? new IntersectionObserver((entries, observer) => {
+		entries.forEach((entry) => {
+			if (entry.isIntersecting) {
+				var oImg = entry.target;
+				oImg.src = oImg.dataset.src;
+				observer.unobserve(oImg);
+			}
+		});
+	}, {
+    	root: listDiv,
+  	}) : null;
+
 	for (var i=from||0;i<persosList.length;i++) {
 		var persoData = persosList[i][0];
 		var persoStats = persosList[i][1];
@@ -250,9 +263,15 @@ function updatePersoList(listKey, from) {
 		oDiv.onmouseout = persoHout;
 		var oImg = document.createElement("img");
 		oImg.id = listKey+"perso-"+persoId;
-		oImg.src = "images/sprites/uploads/"+ persoData[P_UID] + "-ld.png";
 		oImg.alt = persoData["name"];
-		oImg.setAttribute("loading", "lazy");
+		if (observer) {
+			oImg.src = "images/kart_placeholder.png";
+			oImg.dataset.src = "images/sprites/uploads/"+ persoData[P_UID] + "-ld.png";
+			observer.observe(oImg);
+		}
+		else
+			oImg.src = "images/sprites/uploads/"+ persoData[P_UID] + "-ld.png";
+
 		oDiv.appendChild(oImg);
 		listDiv.appendChild(oDiv);
 	}

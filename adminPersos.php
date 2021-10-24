@@ -125,6 +125,20 @@ function filterSearch() {
 				persoDiv.style.display = "none";
 	}
 }
+document.addEventListener("DOMContentLoaded", function() {
+	var observer = window.IntersectionObserver ? new IntersectionObserver((entries, observer) => {
+		entries.forEach((entry) => {
+			if (entry.isIntersecting) {
+				var oImg = entry.target;
+				oImg.src = oImg.dataset.src;
+				observer.unobserve(oImg);
+			}
+		});
+	}) : null;
+	var listImgs = document.querySelectorAll(".mypersos-list > div > img");
+	for (var i=0;i<listImgs.length;i++)
+		observer.observe(listImgs[i]);
+});
 </script>
 <title><?php echo $language ? 'Manage characters':'Gérer les persos'; ?></title>
 </head>
@@ -152,7 +166,7 @@ if ($arePersos) {
 		$spriteSrcs = get_sprite_srcs($perso['sprites']);
 		?>
 		<div id="myperso-<?php echo $perso['id']; ?>" class="perso-selector" onmouseover="previewPerso(<?php echo $perso['id']; ?>)" onmouseout="unprevPerso(<?php echo $perso['id']; ?>)" onclick="selectPerso(<?php echo $perso['id']; ?>)" data-name="<?php echo htmlspecialchars($perso['name']); ?>" data-author="<?php echo htmlspecialchars($perso['author']); ?>" data-sprites="<?php echo $spriteSrcs['hd']; ?>">
-			<img src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($perso['name']); ?>" loading="lazy" />
+			<img src="images/kart_placeholder.png" data-src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($perso['name']); ?>" />
 		</div>
 		<?php
 	}
