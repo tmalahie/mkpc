@@ -63,8 +63,10 @@ else
 	if ($joueur) {
 		if ($record = mysql_fetch_array($records))
 			$nb_temps = $records ? 1:0;
-		else
+		else {
 			$joueur = null;
+			$nb_temps = 0;
+		}
 	}
 	else {
 		$countPlayers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkjoueurs` j WHERE '. $where));

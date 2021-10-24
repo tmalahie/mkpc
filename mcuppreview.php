@@ -58,9 +58,11 @@ if (isset($id)) {
 			$y = floor($trackPos/$tracksSide);
 
 			$trackUrl = $protocol.'://'.$domain.$relDir.'/'.$baseUrl.$trackID;
-			$img = imagecreatefrompng($trackUrl);
-			$img = imagecropcenter($img, $imgcW,$imgcW);
-			imagecopy($image,$img,floor($x*$imgW),floor($y*$imgW),0,0,$imgW,$imgW);
+			$img = @imagecreatefrompng($trackUrl);
+			if ($img) {
+				$img = imagecropcenter($img, $imgcW,$imgcW);
+				imagecopy($image,$img,floor($x*$imgW),floor($y*$imgW),0,0,$imgW,$imgW);
+			}
 		}
 		$ext2 = 'png';
 		include('saveImage.php');

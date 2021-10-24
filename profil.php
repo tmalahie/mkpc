@@ -953,7 +953,7 @@ include('menu.php');
 				while ($news = mysql_fetch_array($getNews)) {
 					$nbMsgs = $news['nbcomments'];
 					?>
-					<a href="news.php?id=<?php echo $news['id']; ?>" title="<?php echo $topic['news']; ?>">
+					<a href="news.php?id=<?php echo $news['id']; ?>" title="<?php echo $news['title']; ?>">
 						<h2><?php echo htmlspecialchars(controlLength($news['title'],40)); ?></h2>
 						<h3><?php echo $language ? 'In':'Dans'; ?> <strong><?php echo $news['catname']; ?></strong> <?php echo pretty_dates_short($news['publication_date'],array('lower'=>true)); ?></h3>
 						<div class="creation_comments" title="<?php echo $nbMsgs. ' ' . ($language ? 'comment':'commentaire') . (($nbMsgs>1) ? 's':''); ?>"><img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?></div>
