@@ -21,9 +21,9 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	$messages = mysql_query('SELECT auteur,id,message,date
 		FROM `mkmessages` WHERE topic="'. $topicId .'" ORDER BY id');
 	$nbMsgs = 20;
-	if (isset($_GET['page']))
+	if (isset($_GET['page']) && is_numeric($_GET['page']))
 		$cPage = $_GET['page'];
-	elseif (isset($_GET['message']))
+	elseif (isset($_GET['message']) && is_numeric($_GET['message']))
 		$cPage = ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $topicId .'" AND id<="'. $_GET['message'] .'"'))/$nbMsgs);
 	else
 		$cPage = 1;

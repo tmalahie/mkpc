@@ -120,7 +120,7 @@ function handle_decor_upload($type,$file,$decor=null) {
 	if (!$file['error']) {
 		$poids = $file['size'];
 		if ($poids < 1000000) {
-			$poids += file_total_size($decor ? array('decor'=>$decor):array());
+			$poids += file_total_size($decor ? array('decor'=>$decor['id']):array());
 			if ($poids < MAX_FILE_SIZE) {
 				$infosfichier = pathinfo($file['name']);
 				$ext = strtolower($infosfichier['extension']);

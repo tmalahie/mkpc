@@ -454,11 +454,11 @@ if ($canChange) {
 }
 else {
 	require_once('utils-ratings.php');
-	$cNote = getMyRating($isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits'), $id);
+	$cNote = getMyRating($isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits'), $nid);
 	?>
 	var cNote = <?php echo $cNote ?>;
 	var ratingParams = "id=<?php
-		echo $id;
+		echo $nid;
 		if ($isMCup)
 			echo '&mc=1';
 		elseif ($isCup)
