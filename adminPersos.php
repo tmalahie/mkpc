@@ -44,7 +44,7 @@ include('o_online.php');
 </style>
 <script type="text/javascript">
 var persoIds = [];
-var author = "<?php echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
+var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;
 function previewPerso(id) {
 	var $myPerso = document.getElementById("myperso-"+id);

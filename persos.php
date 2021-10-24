@@ -66,7 +66,7 @@ function handle_upload($file,$perso=null) {
 	if (!$file['error']) {
 		$poids = $file['size'];
 		if ($poids < 1000000) {
-			$poids += file_total_size($perso ? array('perso'=>$perso):array());
+			$poids += file_total_size($perso ? array('perso'=>$perso['id']):array());
 			if ($poids < MAX_FILE_SIZE) {
 				$infosfichier = pathinfo($file['name']);
 				$ext = strtolower($infosfichier['extension']);

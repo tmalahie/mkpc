@@ -23,13 +23,7 @@ if (isset($_GET['id'])) {
 <?php
 include('o_online.php');
 ?>
-<script type="text/javascript">
-var spriteSrc = "<?php echo $spriteSrc; ?>", spriteW = <?php echo $spriteW; ?>, spriteH = <?php echo $spriteH; ?>;
-</script>
 <script type="text/javascript" src="scripts/edit-sprite.js"></script>
-<?php
-$hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($spriteSrc);
-?>
 <title><?php echo $language ? 'Decor editor':'Éditeur de decors'; ?></title>
 </head>
 <body>

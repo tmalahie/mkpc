@@ -20,7 +20,7 @@ function clone_img_resource($original_src,$thumb_src) {
 		$original = imagecreatefromjpeg($original_src);
 		break;
 	case 3 :
-		if (in_array(ord(@file_get_contents($original_src, NULL, NULL, 25, 1)), array(3,6))) {
+		if (in_array(ord(@file_get_contents($original_src, false, NULL, 25, 1)), array(3,6))) {
 			copy($original_src,$thumb_src);
 			return;
 		}
@@ -82,7 +82,7 @@ function imagealphamask(&$img, $r,$g,$b,$a) {
 	return $res;
 }
 function has_transparency($src) {
-	$type = ord(@file_get_contents($src, NULL, NULL, 25, 1));
+	$type = ord(@file_get_contents($src, false, NULL, 25, 1));
 	switch ($type) {
 	case 2 :
 	case 3 :
@@ -111,7 +111,7 @@ function has_transparency($src) {
 		}
 		return false;
 	default :
-		if ('image/gif' === mime_content_type($src))
+		if ('image/gif' === @mime_content_type($src))
 			return true;
 		return false;
 	}
@@ -167,7 +167,7 @@ function resize_img_resource($original_src,$thumb_src, $minw,$minh) {
 	else {
 		$thumb = imagecreatetruecolor($newWidth,$newHeight);
 		imagesavealpha($thumb, true);
-		$transparent = imagecolorallocatealpha($thumb, $r,$g,$b, 127);
+		$transparent = imagecolorallocatealpha($thumb, 0,0,0, 127);
 		imagefill($thumb, 0,0, $transparent);
 
 		$source = image_create_from($original_src);

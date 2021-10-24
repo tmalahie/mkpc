@@ -26,7 +26,7 @@ if (isset($_POST['type']) && isset($_FILES['sprites'])) {
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 <script type="text/javascript">
 var decorId = -1;
-var author = "<?php echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
+var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;
 function selectDecor(id) {
 	if (decorId != -1)
