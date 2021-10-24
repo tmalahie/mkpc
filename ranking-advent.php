@@ -162,7 +162,7 @@ foreach ($get as $k => $getk)
 		echo $language ? '<p><strong>No results found for this search</strong></p>':'<p><strong>Aucun r&eacute;sultat trouv&eacute; pour cette recherche</strong></p>';
 	?>
 	</table>
-	<p><a href="forum.php<?php echo ($isBattle ? '?battle':''); ?>"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
+	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>
 <?php

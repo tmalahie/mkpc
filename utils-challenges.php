@@ -548,7 +548,7 @@ function getChallengeDetails($challenge, &$params=array()) {
 		'description' => getChallengeDescription($challengeData)
 	);
 	if (!empty($params['utf8']))
-		$res['name'] = iconv('utf-8', 'windows-1252', $challenge['name']);
+		$res['name'] = @iconv('utf-8', 'windows-1252', $challenge['name']);
 	if (!empty($params['rating']))
 		$res['rating'] = array('avg' => $challenge['avgrating'], 'nb' => $challenge['nbratings']);
 	if (!empty($params['circuit'])) {

@@ -127,7 +127,7 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 	$circuit = $circuitsData[$i];
 	if (!$circuit)
 		continue;
-	echo '"'. ($circuit['nom'] ? addSlashes(escapeUtf8($circuit['nom'])) : "&nbsp;") .'"';
+	echo '"'. (!empty($circuit['nom']) ? addSlashes(escapeUtf8($circuit['nom'])) : "&nbsp;") .'"';
 }
 ?>];
 var cp = <?php include('getPersos.php'); ?>;

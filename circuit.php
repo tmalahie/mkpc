@@ -213,8 +213,12 @@ if (isset($trackIDs)) {
 		$cDate = $infos['publication_date'];
 	}
 }
-else
+elseif (!empty($infos))
 	$circuitsData = Array($infos);
+else {
+	mysql_close();
+	exit;
+}
 if ($isCup)
 	$infos = Array();
 $NBCIRCUITS = count($circuitsData);

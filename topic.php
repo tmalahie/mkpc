@@ -52,8 +52,10 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 		}
 	}
 
-	$minId = $pageMessages[0]['id'];
-	$maxId = end($pageMessages)['id'];
+	if (!empty($pageMessages)) {
+		$minId = $pageMessages[0]['id'];
+		$maxId = end($pageMessages)['id'];
+	}
 
 	require_once('reactions.php');
 	populateReactionsData('topic', $pageMessages);

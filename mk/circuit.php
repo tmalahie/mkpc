@@ -835,66 +835,68 @@ foreach ($circuitsData as $c => $circuit) {
 					break;
 				}
 				$s = null;
-				switch($circuit["p$i"]) {
-					case 4 :
-					$s = ($direction == -6) ? 3 : 0;
-					$direction = ($direction == -6) ? -1 : 6;
-					break;
-					case 5 :
-					$s = ($direction == -6) ? 1 : 0;
-					$direction = ($direction == -6) ? 1 : 6;
-					break;
-					case 6 :
-					$s = ($direction == 6) ? 1 : 2;
-					$direction = ($direction == 6) ? 1 : -6;
-					break;
-					case 7 :
-					$s = ($direction == 6) ? 3 : 2;
-					$direction = ($direction == 6) ? -1 : -6;
-					break;
-					case 0 :
-					if ($direction == 6) {
-						$s = 0;
-						$direction = false;
-					}
-					break;
-					case 1 :
-					if ($direction == 1) {
-						$s = 1;
-						$direction = false;
-					}
-					break;
-					case 2 :
-					if ($direction == -6) {
-						$s = 2;
-						$direction = false;
-					}
-					break;
-					case 3 :
-					if ($direction == -1) {
-						$s = 3;
-						$direction = false;
-					}
-					break;
-					case 11 :
-						$s = $circuit["p$depart"];
+				if (isset($circuit["p$i"])) {
+					switch($circuit["p$i"]) {
+						case 4 :
+						$s = ($direction == -6) ? 3 : 0;
+						$direction = ($direction == -6) ? -1 : 6;
 						break;
-					default :
-					if (($circuit["p$i"] == 8 && abs($direction) == 1) || ($circuit["p$i"] == 9 && abs($direction) == 6))
-						$s = null;
-					else {
-						switch ($direction) {
-							case -6 :
-							$s = 2;
-							break;
-							case -1 :
-							$s = 3;
-							break;
-							case 1 :
-							$s = 1;
-							break;
-							case 6 :
+						case 5 :
+						$s = ($direction == -6) ? 1 : 0;
+						$direction = ($direction == -6) ? 1 : 6;
+						break;
+						case 6 :
+						$s = ($direction == 6) ? 1 : 2;
+						$direction = ($direction == 6) ? 1 : -6;
+						break;
+						case 7 :
+						$s = ($direction == 6) ? 3 : 2;
+						$direction = ($direction == 6) ? -1 : -6;
+						break;
+						case 0 :
+						if ($direction == 6) {
 							$s = 0;
+							$direction = false;
+						}
+						break;
+						case 1 :
+						if ($direction == 1) {
+							$s = 1;
+							$direction = false;
+						}
+						break;
+						case 2 :
+						if ($direction == -6) {
+							$s = 2;
+							$direction = false;
+						}
+						break;
+						case 3 :
+						if ($direction == -1) {
+							$s = 3;
+							$direction = false;
+						}
+						break;
+						case 11 :
+							$s = $circuit["p$depart"];
+							break;
+						default :
+						if (($circuit["p$i"] == 8 && abs($direction) == 1) || ($circuit["p$i"] == 9 && abs($direction) == 6))
+							$s = null;
+						else {
+							switch ($direction) {
+								case -6 :
+								$s = 2;
+								break;
+								case -1 :
+								$s = 3;
+								break;
+								case 1 :
+								$s = 1;
+								break;
+								case 6 :
+								$s = 0;
+							}
 						}
 					}
 				}

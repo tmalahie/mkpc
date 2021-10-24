@@ -390,7 +390,7 @@ include('menu.php');
 			$d = $squareDays[$i];
 			$className = 'advent-square';
 			$state = 0;
-			if ($completedDays[$d]) {
+			if (isset($completedDays[$d])) {
 				$className .= ' advent-square-success';
 				$state = 2;
 			}
