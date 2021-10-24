@@ -1125,6 +1125,16 @@ function loadMap() {
 		var oRoulette = document.createElement("div");
 		oRoulette.id = "roulette"+i;
 		oObjet.appendChild(oRoulette);
+		var oCountdown = document.createElement("div");
+		oCountdown.id = "countdown"+i;
+		oCountdown.style.position = "absolute";
+		oCountdown.style.opacity = 0.8;
+		oCountdown.style.width = Math.round(iScreenScale*6.5) +"px";
+		oCountdown.style.height = Math.round(iScreenScale*4.25) +"px";
+		oCountdown.style.border = "solid "+ Math.round(iScreenScale*0.75) +"px "+ primaryColor;
+		oCountdown.style.borderRadius = iScreenScale +"px";
+		oCountdown.style.display = "none";
+		oObjet.appendChild(oCountdown);
 		hudScreen.appendChild(oObjet);
 
 		var lakitu = document.createElement("div");
@@ -1560,8 +1570,10 @@ function arme(ID, backwards, forwards) {
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
-				if (!oKart.champior)
+				if (!oKart.champior) {
 					oKart.champior = 70;
+					oKart.champior0 = oKart.champior;
+				}
 			}
 			break;
 
@@ -1589,7 +1601,10 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "billball" :
+			if (oKart.billball)
+				break;
 			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/(11*cappedRelSpeed())), 120), 35);
+			oKart.billball0 = tpsUse;
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = "images/sprites/sprite_billball.png";
 				resetSpriteHeight(oKart.sprite[i]);
@@ -1733,6 +1748,9 @@ function arme(ID, backwards, forwards) {
 			break;
 		case "champior":
 			newItem = "champior";
+			break;
+		case "billball":
+			newItem = "billball";
 		}
 		if (newItem) {
 			if (oKart.arme !== newItem) {
@@ -1742,7 +1760,8 @@ function arme(ID, backwards, forwards) {
 			}
 			else {
 				if (kartIsPlayer(oKart)) {
-					if (newItem === "champior") {
+					switch (newItem) {
+					case "champior":
 						var $img = document.getElementById("roulette"+ID).getElementsByTagName("img")[0];
 						var t = 0;
 						function rescale() {
@@ -1757,6 +1776,10 @@ function arme(ID, backwards, forwards) {
 							setTimeout(rescale, SPF);
 						}
 						rescale();
+						updateItemCountdownHud(ID,oKart.champior/oKart.champior0);
+						break;
+					case "billball":
+						updateItemCountdownHud(ID,oKart.billball/oKart.billball0);
 					}
 				}
 			}
@@ -8426,6 +8449,7 @@ function supprArme(i) {
 	if (kartIsPlayer(oKart)) {
 		document.getElementById("roulette"+i).innerHTML = "";
 		document.getElementById("scroller"+i).style.visibility = "hidden";
+		updateItemCountdownHud(i, null);
 		removeIfExists(oKart.rouletteSound);
 	}
 }
@@ -11892,6 +11916,7 @@ function resetDatas() {
 					dRest();
 					document.getElementById("compteur0").innerHTML = "";
 					document.getElementById("roulette0").innerHTML = "";
+					updateItemCountdownHud(0, null);
 					document.getElementById("scroller0").style.visibility = "hidden";
 					var lakitu = document.getElementById("lakitu0");
 					if (lakitu) lakitu.style.display = "none";
@@ -12730,6 +12755,7 @@ function move(getId, triggered) {
 				oKart.fell = true;
 				oKart.champi = 0;
 				delete oKart.champior;
+				delete oKart.champior0;
 				if (oKart.cpu)
 					oKart.aipoint = undefined;
 				oKart.tombe = 20;
@@ -13430,12 +13456,14 @@ function move(getId, triggered) {
 		oKart.rotation += fAngle;
 		oKart.rotation = oKart.rotation % 360;
 		oKart.billball--;
+		var cptJumpCheck = 12;
 		if (oKart.billball) {
-			if (!oKart.billjump && (oKart.billball < 12)) {
+			if (!oKart.billjump && (oKart.billball < cptJumpCheck)) {
 				var fMoveX = oKart.speed*direction(0, oKart.rotation);
 				var fMoveY = oKart.speed*direction(1, oKart.rotation);
 				if (sauts(oKart.x,oKart.y, fMoveX,fMoveY)) {
-					oKart.billball = 12;
+					oKart.billball0 = Math.floor(oKart.billball0*cptJumpCheck/oKart.billball);
+					oKart.billball = cptJumpCheck;
 					oKart.billjump = true;
 				}
 			}
@@ -13451,17 +13479,23 @@ function move(getId, triggered) {
 			updateDriftSize(getId);
 			oKart.jumped = false;
 			delete oKart.billjump;
+			delete oKart.billball0;
+			supprArme(getId);
 			updateProtectFlag(oKart);
 			if (!oKart.cpu)
 				delete oKart.aipoint;
 		}
+		updateItemCountdownHud(getId, oKart.billball/oKart.billball0);
 	}
 	if (oKart.champior) {
 		oKart.champior--;
 		if (oKart.champior <= 0) {
 			delete oKart.champior;
+			delete oKart.champior0;
 			supprArme(getId);
 		}
+		if (kartIsPlayer(oKart))
+			updateItemCountdownHud(getId,oKart.champior/oKart.champior0);
 	}
 	if (oKart.etoile) {
 		oKart.maxspeed *= 1.35;
@@ -13726,6 +13760,35 @@ function updateObjHud(ID) {
 	document.getElementById("scroller"+ID).style.visibility="hidden";
 	var oArme = aKarts[ID].arme;
 	document.getElementById("roulette"+ID).innerHTML = '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="height: '+ Math.round(iScreenScale*4) +'px;" />';
+}
+function updateItemCountdownHud(ID, progress) {
+	var $countdown = document.getElementById("countdown"+ID);
+	if (progress > 0) {
+		$countdown.style.display = "block";
+		var countdownW = iScreenScale*8, countdownH = iScreenScale*5.75;
+		var theta = progress*2*Math.PI + Math.PI/4;
+		var targetX = countdownW/2 - countdownW*Math.cos(theta), targetY = countdownW/2 - countdownW*Math.sin(theta);
+		var clipPath = [
+			[0,0],
+			[countdownW/2,countdownH/2],
+			[targetX,targetY]
+		];
+		if (progress > 0.75)
+			clipPath.push([0,countdownH]);
+		if (progress > 0.5)
+			clipPath.push([countdownW,countdownH]);
+		if (progress > 0.25)
+			clipPath.push([countdownW,0]);
+		$countdown.style.clipPath = "polygon("+
+			clipPath.map(function(path) {
+				return path[0]+"px "+path[1]+"px";
+			}).join(", ")
+		")";
+	}
+	else {
+		$countdown.style.display = "none";
+		$countdown.style.clipPath = "";
+	}
 }
 function timeStr(timeMS) {
 	var timeMins = Math.floor(timeMS/60000);
