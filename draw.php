@@ -965,7 +965,7 @@ else {
 				<?php
 			}
 		}
-		if ($nbTracks) {
+		if (!empty($nbTracks)) {
 			?>
 			<div class="editor-section">
 				<?php

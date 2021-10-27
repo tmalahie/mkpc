@@ -33,7 +33,7 @@ if (isset($circuitMainData->sections)) {
 <?php
 if (!$circuitMainData->music) {
 	?>
-	"yt" : "<?php echo addslashes($circuitMainData->youtube); ?>",
+	"yt" : "<?php if (isset($circuitMainData->youtube)) echo addslashes($circuitMainData->youtube); ?>",
 	<?php
 	if (isset($circuitMainData->youtube_opts)) {
 		?>

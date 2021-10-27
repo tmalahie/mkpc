@@ -42,7 +42,7 @@ if ($id) {
 		return $str;
 	}
 	function controlLengthUtf8($str,$len) {
-		return iconv('windows-1252', 'utf-8', controlLength($str,$len));
+		return @iconv('windows-1252', 'utf-8', controlLength($str,$len));
 	}
 	include('o_utils.php');
 	while ($chat = mysql_fetch_array($lastChats)) {

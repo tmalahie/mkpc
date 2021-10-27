@@ -13,7 +13,7 @@ if (isset($id)) {
 		$circuitFile = getCircuitLocalFile($circuitImg);
 		$path = $circuitFile['path'];
 		$ext = $circuitImg->ext;
-		list($w,$h) = getimagesize($path);
+		list($w,$h) = @getimagesize($path);
 		if (!$w && !$h || ($w*$h >= 20000000))
 			$path = CIRCUIT_BASE_PATH.'overload.'. $ext;
 		if (!$isTemp) {

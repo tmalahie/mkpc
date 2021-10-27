@@ -2048,20 +2048,22 @@ foreach ($circuitsData as $c => $circuit) {
 		<?php
 		$decorAssets = array();
 		$v = '';
-		foreach ($decorTypes[$map] as $i=>$decorType) {
-			if ('assets/' !== substr($decorType, 0,7)) {
-				echo $v;
-				$v = ',';
-				echo '"'.$decorTypes[$map][$i].'":[';
-				$prefix = 't'.($i ? $i.'_':'');
-				for ($j=0; isset($circuit[$prefix.$j]); $j++) {
-					if ($j) echo ',';
-					echo '['.$circuit[$prefix.$j].']';
+		if (isset($decorTypes[$map])) {
+			foreach ($decorTypes[$map] as $i=>$decorType) {
+				if ('assets/' !== substr($decorType, 0,7)) {
+					echo $v;
+					$v = ',';
+					echo '"'.$decorTypes[$map][$i].'":[';
+					$prefix = 't'.($i ? $i.'_':'');
+					for ($j=0; isset($circuit[$prefix.$j]); $j++) {
+						if ($j) echo ',';
+						echo '['.$circuit[$prefix.$j].']';
+					}
+					echo ']';
 				}
-				echo ']';
+				else
+					$decorAssets[substr($decorType, 7)] = $i;
 			}
-			else
-				$decorAssets[substr($decorType, 7)] = $i;
 		}
 		?>
 	}

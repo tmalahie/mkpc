@@ -130,9 +130,6 @@ function jouerToiTuyaux() {
 <?php
 include('o_online.php');
 ?>
-<?php
-$hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($spriteSrc);
-?>
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
 </head>
 <body>

@@ -69,7 +69,7 @@ function handle_upload($file,$perso=null) {
 			$poids += file_total_size($perso ? array('perso'=>$perso['id']):array());
 			if ($poids < MAX_FILE_SIZE) {
 				$infosfichier = pathinfo($file['name']);
-				$ext = strtolower($infosfichier['extension']);
+				$ext = isset($infosfichier['extension']) ? strtolower($infosfichier['extension']) : null;
 				$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 				if (in_array($ext, $extensions)) {
 					list($w,$h) = getimagesize($file['tmp_name']);
