@@ -3,11 +3,13 @@
 		<?php
 		function flag($chosen,$nLanguage, $src,$alt) {
 			global $page, $homepage;
-			if ($homepage)
+			if ($homepage) {
 				$url = $nLanguage ? 'en.php':'fr.php';
+				$alt = $nLanguage ? 'Home - Mario Kart PC':'Accueil - Mario Kart PC';
+			}
 			else
 				$url = 'changeLanguage.php?nLanguage='. $nLanguage .'&amp;page='. $page;
-			echo ($chosen ? '':'<a href="'. $url .'">') .'<img id="'. ($chosen ? 'chosen':'toChoose') .'" src="images/'.$src.'" alt="'. $alt .'" />'. ($chosen ? '':'</a>');
+			echo ($chosen ? '':'<a href="'. $url .'"'. ($homepage ? ' title="'.$alt.'"':'') .'>') .'<img id="'. ($chosen ? 'chosen':'toChoose') .'" src="images/'.$src.'" alt="'. $alt .'" />'. ($chosen ? '':'</a>');
 		}
 		flag($language, 1,'english.png','English');
 		echo ' <span>&nbsp;</span>';
