@@ -15,7 +15,7 @@ if (isset($_GET['id']) && isset($_GET['type'])) {
 		    $cacheFile = $file.$id.'.png';
 		    include($file .'.php');
 		    $res = setCacheFile($tempName, $cacheSrc, $w_ic,$h_ic, ($file!=='mcuppreview'));
-		    unlink($tempName);
+		    @unlink($tempName);
 		    return $res;
 		}
 		header('content-type: image/png');

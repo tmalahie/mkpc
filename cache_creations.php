@@ -73,7 +73,7 @@ function setCacheFile($original_src,$cache_src, $minW,$minH, $thumbnailize=true)
                 );
                 $toRemove = $n-$MAX_FILES;
                 for ($i=0;$i<$toRemove;$i++)
-                    unlink($CACHE_FOLDER.$files[$i]);
+                    @unlink($CACHE_FOLDER.$files[$i]);
             }
         }
 	}

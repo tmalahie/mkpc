@@ -42,11 +42,11 @@ if (isset($_POST['id'])) {
 		include('file-quotas.php');
 		$poids = file_total_size();
 		if ($poids > MAX_FILE_SIZE) {
-			unlink($newPath);
+			@unlink($newPath);
 			$circuitImg->url = $oldUrl;
 		}
 		else {
-			unlink($path);
+			@unlink($path);
 			mysql_query('UPDATE `'.$db.'` SET img_data="'. getCircuitImgDataRaw($newPath,$circuitImg->url,1) .'" WHERE id="'.$id.'"');
 			include('cache_creations.php');
 			@unlink(cachePath($isrc.$id.'.png'));

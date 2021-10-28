@@ -11,7 +11,7 @@ if (isset($_GET['id'])) {
 				require_once('persos.php');
 				$spriteSrcs = get_sprite_srcs($perso['sprites']);
 				if ($spriteSrcs[$type] != $spriteSrcs['ld'])
-					unlink($spriteSrcs[$type]);
+					@unlink($spriteSrcs[$type]);
 				header('location: persoOptions.php?id='. $persoId);
 			}
 		}

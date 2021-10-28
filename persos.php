@@ -93,7 +93,7 @@ function handle_upload($file,$perso=null) {
 								$spriteSrcs['tmp'] = PERSOS_DIR.$filehash.'-tmp.png';
 								move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
 								clone_img_resource($spriteSrcs['tmp'],$spriteSrcs['hd']);
-								unlink($spriteSrcs['tmp']);
+								@unlink($spriteSrcs['tmp']);
 								create_sprite_thumbs($spriteSrcs);
 								if ($perso)
 									update_sprite_src($perso['sprites'],$filehash);
@@ -145,7 +145,7 @@ function handle_advanced($file,$perso,$type) {
 					$spriteH = 45;
 				}
 				resize_img_resource($spriteSrcs['tmp'],$spriteSrcs[$type], $spriteW,$spriteH);
-				unlink($spriteSrcs['tmp']);
+				@unlink($spriteSrcs['tmp']);
 				update_sprite_src($perso['sprites'],$filehash);
 				return array('id' => $id);
 			}

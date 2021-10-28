@@ -94,8 +94,8 @@ if (isset($_GET['id'])) {
 								$avatarName = $getInfos['nom'].uniqid().'.'.$ext;
 								$oldAvatar = get_avatar_img($id);
 								if ($oldAvatar) {
-									unlink(AVATAR_DIR.$oldAvatar['ld']);
-									unlink(AVATAR_DIR.$oldAvatar['hd']);
+									@unlink(AVATAR_DIR.$oldAvatar['ld']);
+									@unlink(AVATAR_DIR.$oldAvatar['hd']);
 								}
 								move_uploaded_file($_FILES['avatar']['tmp_name'], AVATAR_DIR.$avatarName);
 								resize_img(AVATAR_DIR.$avatarName,AVATAR_DIR.to_ld($avatarName), AVATAR_MINW,AVATAR_MINH);

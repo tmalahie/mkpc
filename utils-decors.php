@@ -147,7 +147,7 @@ function handle_decor_upload($type,$file,$decor=null) {
                         $spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
                         move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
                         clone_img_resource($spriteSrcs['tmp'],$spriteSrcs['hd']);
-                        unlink($spriteSrcs['tmp']);
+                        @unlink($spriteSrcs['tmp']);
                         create_decor_sprite_thumbs($spriteSrcs,$spriteSizes);
                         mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $id .'"');
                         return array('id' => $id);
@@ -189,7 +189,7 @@ function handle_decor_advanced($file,$decor,$type) {
 					break;
 				}
 				resize_img_resource($spriteSrcs['tmp'],$spriteSrcs[$type], $spriteW,$spriteH);
-                unlink($spriteSrcs['tmp']);
+                @unlink($spriteSrcs['tmp']);
                 mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $id .'"');
 				return array('id' => $id);
 			}
