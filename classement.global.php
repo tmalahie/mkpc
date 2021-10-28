@@ -42,7 +42,7 @@ include('o_online.php');
 include('header.php');
 $page = 'game';
 include('menu.php');
-$page = isset($_GET['page']) ? $_GET['page']:1;
+$page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
 $cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))

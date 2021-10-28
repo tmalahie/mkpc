@@ -22,7 +22,7 @@ include('o_online.php');
 include('header.php');
 $page = 'game';
 include('menu.php');
-$page = isset($_GET['page']) ? $_GET['page']:1;
+$page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
 $get = $_GET;
 foreach ($get as $k => $getk)

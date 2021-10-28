@@ -46,7 +46,7 @@ include('menu.php');
 	while ($topic = mysql_fetch_array($getTopics))
 		$topics[] = $topic;
 	$nbTopics = count($topics);
-	$page = isset($_GET['page']) ? $_GET['page']:1;
+	$page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 	$topicsPerPage = 30;
 	$topics = array_slice($topics,($page-1)*$topicsPerPage,$topicsPerPage);
 	$nbPages = ceil($nbTopics/$topicsPerPage);

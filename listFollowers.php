@@ -43,7 +43,7 @@ include('menu.php');
 	while ($user = mysql_fetch_array($getUsers))
 		$users[] = $user;
 	$nbUsers = count($users);
-	$page = isset($_GET['page']) ? $_GET['page']:1;
+	$page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 	$usersPerPage = 30;
 	$users = array_slice($users,($page-1)*$usersPerPage,$usersPerPage);
 	$nbPages = ceil($nbUsers/$usersPerPage);

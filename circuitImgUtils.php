@@ -7,10 +7,10 @@ function getCircuitImgUrl($circuitImg) {
 }
 function deleteCircuitFile($circuitImg) {
     if ($circuitImg->local)
-        unlink(CIRCUIT_BASE_PATH.$circuitImg->url);
+        @unlink(CIRCUIT_BASE_PATH.$circuitImg->url);
 }
 function getCircuitExt(&$path, $default='png') {
-    $fileType = mime_content_type($path);
+    $fileType = @mime_content_type($path);
     $extensions = array(
         'image/png' => 'png',
         'image/gif' => 'gif',

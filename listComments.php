@@ -40,7 +40,7 @@ include('menu.php');
 			}
 		}
 		$nbComments = count($comments);
-		$page = isset($_GET['page']) ? $_GET['page']:1;
+		$page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 		$commentsPerPage = 20;
 		$comments = array_slice($comments,($page-1)*$commentsPerPage,$commentsPerPage);
 		$nbPages = ceil($nbComments/$commentsPerPage);

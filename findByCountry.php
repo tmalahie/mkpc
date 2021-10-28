@@ -29,7 +29,7 @@ include('o_online.php');
 include('header.php');
 $page = 'game';
 include('menu.php');
-$page = isset($_GET['page']) ? $_GET['page']:1;
+$page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $place = ($page-1)*20;
 ?>
 <main>

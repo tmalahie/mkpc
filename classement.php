@@ -323,7 +323,7 @@ function Resultat(circuitId) {
 }
 var iCc = <?php echo intval($cc); ?>;
 var autoSelectMap<?php
-	if (isset($_GET['map']))
+	if (isset($_GET['map']) && is_numeric($_GET['map']))
 		echo ' = '. ($_GET['map']-1);
 ?>;
 var circuitGroups = <?php

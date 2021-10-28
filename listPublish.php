@@ -55,7 +55,7 @@ include('menu.php');
 	while ($new = mysql_fetch_array($getNews))
 		$news[] = $new;
 	$nbNews = count($news);
-	$page = isset($_GET['page']) ? $_GET['page']:1;
+	$page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 	$newsPerPage = 30;
 	$news = array_slice($news,($page-1)*$newsPerPage,$newsPerPage);
 	$nbPages = ceil($nbNews/$newsPerPage);

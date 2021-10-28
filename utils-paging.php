@@ -8,7 +8,7 @@ function makePaging($cPage,$nbPages,$intervalle=3) {
 	}
     $res = array();
     $block = array();
-    $debut = $cPage-$intervalle;
+    $debut = intval($cPage)-$intervalle;
     if ($debut <= 1)
         $debut = 1;
     else {

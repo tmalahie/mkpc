@@ -9,7 +9,7 @@ if ((!isset($_FILES['image'])||$_FILES['image']['error']) && !empty($_POST['url'
 		$filePath = $fileStream['uri'];
 		file_put_contents($filePath, $fileContent);
 		$_FILES['image'] = array(
-			'size' => filesize($filePath),
+			'size' => @filesize($filePath),
 			'tmp_name' => $filePath,
 			'error' => null
 		);
