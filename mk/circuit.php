@@ -1958,6 +1958,8 @@ foreach ($circuitsData as $c => $circuit) {
 				$distance++;
 				$x = ($i%6)*100;
 				$y = floor($i/6)*100;
+				if (!isset($circuit["p$i"]))
+					continue;
 				switch($circuit["p$i"]) {
 					case 4 :
 					if ($yoshi)

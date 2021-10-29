@@ -266,6 +266,8 @@ for (var i=0;i<circuits.length;i++)
 if ($creation) {
 	if (!empty($cIDs))
 		$getResults = mysql_query('SELECT r.*,c.code FROM `mkrecords_bkp` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.circuit IN ('. implode(',',$cIDs) .') AND r.type="'. $type .'" ORDER BY r.temps');
+	else
+		$getResults = null;
 }
 elseif (isset($user))
 	$getResults = mysql_query('SELECT r.*,c.code,(r.player='.$user['id'].') AS shown FROM `records_bkp` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id ORDER BY r.temps');
