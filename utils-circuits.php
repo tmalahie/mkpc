@@ -55,6 +55,9 @@ function toSQLSort($sql, $params) {
 		break;
 	case 2 :
 		$sort = "nbcomments $desc, id $desc";
+		break;
+	default :
+		$sort = "id $desc";
 	}
 	return toSQLFilter($sql, $params) .' ORDER BY '. $sort;
 }
