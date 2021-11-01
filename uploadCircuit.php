@@ -6,8 +6,9 @@ $table = $isBattle ? 'arenes':'circuits';
 if (isset($_FILES['image'])) {
 	if (!$_FILES['image']['error']) {
 		$poids = $_FILES['image']['size'];
-		if ($poids < 1000000) {
-			$doImport = ($isUploaded || isset($_POST['import']));
+		$doImport = ($isUploaded || isset($_POST['import']));
+		$limitMb  = ($doImport ? 1 : 5);
+		if ($poids < $limitMb*1000000) {
 			include('file-quotas.php');
 			include('getId.php');
 			include('initdb.php');
@@ -40,10 +41,10 @@ if (isset($_FILES['image'])) {
 			else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete tracks or use the &quot;Paste image URL&quot; option to save space.':'Vous avez dépassé votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des circuits ou utilisez l\'option &quot;Coller l\'URL de l\'image&quot; pour gagner de l\'espace.';
 			mysql_close();
 		}
-		else $error = $language ? 'Your image mustn\'t exceed 1 Mo. Compress or reduce it if necessary.':'Votre image ne doit pas dépasser 1 Mo. Compressez-la ou réduisez la taille si nécessaire.';
+		else $error = $language ? 'Your image mustn\'t exceed '.$limitMb.' MB. Compress or reduce it if necessary.':'Votre image ne doit pas dépasser '.$limitMb.' Mo. Compressez-la ou réduisez la taille si nécessaire.';
 	}
 	else $error = $language ? 'An error occured during the image transfer. Please try again later.':'Une erreur est survenue lors de l\'envoi de l\'image. Réessayez ultèrieurement.';
 }
 if (isset($error))
-	header('Location: draw.php?error='.urlencode($error));
+	header('Location: '.($isBattle ? 'course':'draw').'.php?error='.urlencode($error));
 ?>
