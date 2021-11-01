@@ -19,7 +19,7 @@ if (isset($_COOKIE['mktoken'])) {
 			$idsSQL .= $myIdentifiants[$i];
 			$idsSQL .= '"';
 		}
+		$idsSQL .= ')';
 	}
-	$idsSQL .= ')';
 }
 ?>

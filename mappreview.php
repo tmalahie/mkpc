@@ -19,14 +19,16 @@ if (isset($id)) {
 			$image = imagecreatetruecolor(600,600);
 		else
 			$image = imagecreate(600,600);
-		$bg = $bgColors[$map];
-		imagecolorallocate($image, $bg[0], $bg[1], $bg[2]);
+		if (isset($bgColors[$map])) {
+			$bg = $bgColors[$map];
+			imagecolorallocate($image, $bg[0], $bg[1], $bg[2]);
 
-		$pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$id.'"');
-		while ($piece = mysql_fetch_array($pieces)) {
-			$i = 
-			$piececircuit = imagecreatefrompng('images/pieces/piececircuit'.$map.'_'.$piece['piece'].'.png');
-			imagecopy($image, $piececircuit, ($piece['id']%6)*100, floor($piece['id']/6)*100, 0, 0, 100, 100);
+			$pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$id.'"');
+			while ($piece = mysql_fetch_array($pieces)) {
+				$i = 
+				$piececircuit = imagecreatefrompng('images/pieces/piececircuit'.$map.'_'.$piece['piece'].'.png');
+				imagecopy($image, $piececircuit, ($piece['id']%6)*100, floor($piece['id']/6)*100, 0, 0, 100, 100);
+			}
 		}
 		$elements = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j','o');
 		$nbElements = count($elements);

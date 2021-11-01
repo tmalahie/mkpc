@@ -578,6 +578,8 @@ function getChallengeDetails($challenge, &$params=array()) {
 }
 function getCircuitPayload(&$clRace) {
 	$res = array();
+	if (!$clRace['type'])
+		return $res;
 	if ($clCircuit = mysql_fetch_array(mysql_query('SELECT * FROM `'. $clRace['type'] .'` WHERE id="'. $clRace['circuit'] .'"'))) {
 		$res['name'] = $clCircuit['nom'];
 		$res['author'] = $clCircuit['auteur'];

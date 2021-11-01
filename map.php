@@ -427,7 +427,7 @@ if ($canChange && !$isCup) {
 		}
 		return false;
 	}
-	if (null === $circuitMainData->bgcolor)
+	if (!isset($circuitMainData->bgcolor))
 		$message = $language ? 'Warning : You didn\'t specify any data for the circuit.<br />Go back to the editor before testing it.':'Attention : vous n\'avez pas encore spécifié les paramètres du circuit.<br />Revenez dans l\'éditeur avant de continuer.';
 	elseif (($circuitMainData->startposition[0] == -1) && ($circuitMainData->startposition[1] == -1))
 		$message = $language ? 'Warning : Your circuit doesn\'t has a starting.<br />Quite annoying, we don\'t know where to begin.':'Attention : Votre circuit n\'a pas de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';

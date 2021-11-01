@@ -62,7 +62,7 @@ if (!isset($mkSalt)) {
 				}
 			}
 		}
-		return true;
+		return isset($identifiants);
 	}
 }
 ?>

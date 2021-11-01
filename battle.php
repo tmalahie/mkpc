@@ -179,7 +179,7 @@ else {
 /*if ($cShared)
 	$message = $language ? 'New : a comment section for the circuit creations !':'Nouveau : une section commentaires pour les cr&eacute;ations de circuits !';*/
 if ($canChange) {
-	if (null === $circuitMainData->bgcolor)
+	if (!isset($circuitMainData->bgcolor))
 		$message = $language ? 'Warning : You didn\'t specify any data for the circuit.<br />Go back to the editor before testing it.':'Attention : vous n\'avez pas encore spécifié les paramètres du circuit.<br />Revenez dans l\'éditeur avant de continuer.';
 	elseif (count($circuitMainData->startposition) < 8)
 		$message = $language ? 'Warning : You did not indicate all the start positions.<br />Quite annoying, we don\'t know where to begin.':'Attention : Vous n\'avez pas indiqu&eacute; toutes les positions de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';
