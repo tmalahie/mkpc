@@ -12311,7 +12311,7 @@ function move(getId, triggered) {
 					var decorType = asset[1][0].src;
 					switch (asset[0]) {
 					case "oils":
-						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne) {
+						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
 							stopDrifting(getId);
 							loseBall(getId);
 							oKart.spin(20);
