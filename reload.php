@@ -25,9 +25,9 @@ if (!empty($_SESSION['mkid'])) {
 
 		include('initdb.php');
 		$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkplayers` WHERE id="'.$id.'"'));
-		$course = $getCourse['course'];
 		$lastconnect = isset($payload['lastcon']) ? $payload['lastcon']:0;
-		if ($course) {
+		if (!empty($getCourse['course'])) {
+			$course = $getCourse['course'];
 			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
 			$playerPayloads = array();
 			if (isset($payload['player'])) {

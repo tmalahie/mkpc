@@ -35,7 +35,7 @@ function print_avatar($id, $w,$unit=null) {
 		$pseudo = get_pseudo_text($id);
 		?>
 		<div class="avatar avatar-blank" style="<?php echo $css; ?>background-color:<?php echo get_avatar_color($deleted ? null : $pseudo); ?><?php if ($deleted) echo ';cursor:default;color:rgba(255,255,255,0.6)' ?>"<?php if ($deleted) echo 'title="'. ($language ? 'Deleted accound':'Compte supprimé') .'" onclick="return false"' ?>>
-			<?php echo strtoupper($pseudo[0]); ?>
+			<?php if ($pseudo !== null) echo strtoupper($pseudo[0]); ?>
 		</div>
 		<?php
 	}

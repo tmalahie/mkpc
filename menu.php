@@ -202,35 +202,40 @@
 						$circuitId = $linkData[1];
 						switch ($circuitType) {
 						case 0:
-							$notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,type,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $circuitId .'"'));
-							$designation = $notifCircuit['type'] ? ($language ? 'the arena':'l\'arène'):($language ? 'the circuit':'le circuit');
-							$link = ($notifCircuit['type'] ? 'arena':'circuit') .'.php?id='. $notifCircuit['id'];
+							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,type,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $circuitId .'"'))) {
+								$designation = $notifCircuit['type'] ? ($language ? 'the arena':'l\'arène'):($language ? 'the circuit':'le circuit');
+								$link = ($notifCircuit['type'] ? 'arena':'circuit') .'.php?id='. $notifCircuit['id'];
+							}
 							break;
 						case 1:
-							$notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,identifiant,identifiant2,identifiant3,identifiant4 FROM `circuits` WHERE id="'. $circuitId .'" AND nom IS NOT NULL'));
-							$designation = $language ? 'the circuit':'le circuit';
-							$link = 'map.php?i='. $notifCircuit['id'];
+							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,identifiant,identifiant2,identifiant3,identifiant4 FROM `circuits` WHERE id="'. $circuitId .'" AND nom IS NOT NULL'))) {
+								$designation = $language ? 'the circuit':'le circuit';
+								$link = 'map.php?i='. $notifCircuit['id'];
+							}
 							break;
 						case 2:
-							$notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,identifiant,identifiant2,identifiant3,identifiant4 FROM `arenes` WHERE id="'. $circuitId .'" AND nom IS NOT NULL'));
-							$designation = $language ? 'the arena':'l\'arène';
-							$link = 'battle.php?i='. $notifCircuit['id'];
+							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,identifiant,identifiant2,identifiant3,identifiant4 FROM `arenes` WHERE id="'. $circuitId .'" AND nom IS NOT NULL'))) {
+								$designation = $language ? 'the arena':'l\'arène';
+								$link = 'battle.php?i='. $notifCircuit['id'];
+							}
 							break;
 						case 3:
-							$notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,mode,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcups` WHERE id="'. $circuitId .'"'));
-							$designation = $language ? 'the cup':'la coupe';
-							if ($notifCircuit['mode'])
-								$link = 'map.php?cid='. $notifCircuit['id'];
-							else
-								$link = 'circuit.php?cid='. $notifCircuit['id'];
+							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,mode,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcups` WHERE id="'. $circuitId .'"'))) {
+								$designation = $language ? 'the cup':'la coupe';
+								if ($notifCircuit['mode'])
+									$link = 'map.php?cid='. $notifCircuit['id'];
+								else
+									$link = 'circuit.php?cid='. $notifCircuit['id'];
+							}
 							break;
 						case 4:
-							$notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,mode,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $circuitId .'"'));
-							$designation = $language ? 'the multicup':'la multicoupe';
-							if ($notifCircuit['mode'])
-								$link = 'map.php?mid='. $notifCircuit['id'];
-							else
-								$link = 'circuit.php?mid='. $notifCircuit['id'];
+							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,mode,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $circuitId .'"'))) {
+								$designation = $language ? 'the multicup':'la multicoupe';
+								if ($notifCircuit['mode'])
+									$link = 'map.php?mid='. $notifCircuit['id'];
+								else
+									$link = 'circuit.php?mid='. $notifCircuit['id'];
+							}
 							break;
 						}
 						if ($notifCircuit) {
