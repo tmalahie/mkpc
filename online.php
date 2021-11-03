@@ -1,6 +1,5 @@
 <?php
-session_start();
-$id = isset($_SESSION['mkid']) ? $_SESSION['mkid']:null;
+include('session.php');
 include('language.php');
 include('initdb.php');
 mysql_set_charset('utf8');
@@ -8,17 +7,6 @@ if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHER
 	$myPseudo = $getPseudo['nom'];
 else
 	$myPseudo = null;
-if (isset($_COOKIE['mkp'])) {
-	require_once('credentials.php');
-	$myCredentials = credentials_decrypt($_COOKIE['mkp']);
-	if (!$myPseudo) {
-		if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. mysql_real_escape_string($myCredentials[0]) .'"')))
-			$myPseudo = $getPseudo['nom'];
-	}
-	$myCode = isset($myCredentials[1]) ? $myCredentials[1] : null;
-}
-else
-	$myCode = null;
 if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'.$id.'" AND banned')))) {
 	include('getId.php');
 	if ($getBan['banned'] == 1)
@@ -262,7 +250,7 @@ var PERSOS_DIR = "<?php
 	echo PERSOS_DIR;
 ?>";
 var mId = <?php echo $id ? $id:'null'; ?>;
-var mPseudo = "<?php echo $myPseudo; ?>", mCode = "<?php echo $myCode; ?>";
+var mPseudo = "<?php echo $myPseudo; ?>", mCode = "";
 var mIsModerator = <?php echo hasRight('moderator') ? 1:0; ?>;
 var isSingle = <?php echo $isSingle ? 'true':'false'; ?>;
 var isBattle = <?php echo $isBattle ? 'true':'false'; ?>;
