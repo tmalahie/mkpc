@@ -66,6 +66,7 @@ function recomputeRating($type, $circuitId) {
 	mysql_query(
 		'UPDATE `'.$type.'` c1
 		LEFT JOIN tmp_pscore p ON p.type="'.$type.'" AND p.circuit=c1.id
-		SET c1.pscore=IFNULL(p.pscore,0),c1.note=IFNULL(p.note,0),c1.nbnotes=IFNULL(p.nbnotes,0);'
+		SET c1.pscore=IFNULL(p.pscore,0),c1.note=IFNULL(p.note,0),c1.nbnotes=IFNULL(p.nbnotes,0)
+		WHERE c1.id="'. $circuitId .'";'
 	);
 }
