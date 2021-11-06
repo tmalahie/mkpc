@@ -12431,7 +12431,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		if (!oKart.arme && (oKart.tours <= oMap.tours || course == "BB") && !oKart.billball && !finishing) {
+		if (!oKart.arme && (oKart.tours <= oMap.tours || course == "BB") && !finishing) {
 			var iObj;
 			if (course != "BB") {
 				iObj = randObj(oKart);
@@ -13402,14 +13402,17 @@ function move(getId, triggered) {
 
 		var iLocalX, iLocalY;
 		if (oKart.aipoint != undefined) {
-			iLocalX = oKart.aipoints[oKart.aipoint][0] - oKart.x;
-			iLocalY = oKart.aipoints[oKart.aipoint][1] - oKart.y;
+			var aipoint = oKart.aipoints[oKart.aipoint];
+			iLocalX = aipoint[0] - oKart.x;
+			iLocalY = aipoint[1] - oKart.y;
 
 			if (iLocalX*iLocalX + iLocalY*iLocalY < 2000) {
-				oKart.aipoint++;
+				if (!inTeleport(aipoint[0],aipoint[1])) {
+					oKart.aipoint++;
 
-				if (oKart.aipoint >= oKart.aipoints.length)
-					oKart.aipoint = 0;
+					if (oKart.aipoint >= oKart.aipoints.length)
+						oKart.aipoint = 0;
+				}
 			}
 		}
 		else {
@@ -13419,20 +13422,24 @@ function move(getId, triggered) {
 			var oBox = oMap.checkpoint[demitour];
 			iLocalX = oBox[0] + (oBox[3] ? Math.round(oBox[2]/2) : 8) - oKart.x;
 			iLocalY = oBox[1] + (oBox[3] ? 8 : Math.round(oBox[2]/2)) - oKart.y;
-			for (var i=0;i<oKart.aipoints.length;i++) {
-				var oBox = oKart.aipoints[i];
-				if (oKart.x > oBox[0] - 35 && oKart.x < oBox[0] + 35 && oKart.y > oBox[1] - 35 && oKart.y < oBox[1] + 35) {
-					var nextAI = i + 1;
-					if (nextAI == oKart.aipoints.length) nextAI = 0;
-					var nPosX = oKart.aipoints[nextAI][0], nPosY = oKart.aipoints[nextAI][1];
-					var angle0 = oKart.rotation*Math.PI/180;
-					var angle1 = Math.abs(normalizeAngle(Math.atan2(nPosX-oKart.x,nPosY-oKart.y)-angle0, 2*Math.PI));
-					var angle2 = Math.abs(normalizeAngle(Math.atan2(iLocalX,iLocalY)-angle0, 2*Math.PI));
-					if ((angle1 < Math.max(angle2,Math.PI/4))) {
-						oKart.aipoint = nextAI;
-						iLocalX = nPosX - oKart.x;
-						iLocalY = nPosY - oKart.y;
-						break;
+			dance: for (var i=0;i<oMap.aipoints.length;i++) {
+				var aipoints = oMap.aipoints[i];
+				for (var j=0;j<aipoints.length;j++) {
+					var oBox = aipoints[j];
+					if (oKart.x > oBox[0] - 35 && oKart.x < oBox[0] + 35 && oKart.y > oBox[1] - 35 && oKart.y < oBox[1] + 35) {
+						var nextAI = j + 1;
+						if (nextAI == aipoints.length) nextAI = 0;
+						var nPosX = aipoints[nextAI][0], nPosY = aipoints[nextAI][1];
+						var angle0 = oKart.rotation*Math.PI/180;
+						var angle1 = Math.abs(normalizeAngle(Math.atan2(nPosX-oKart.x,nPosY-oKart.y)-angle0, 2*Math.PI));
+						var angle2 = Math.abs(normalizeAngle(Math.atan2(iLocalX,iLocalY)-angle0, 2*Math.PI));
+						if ((angle1 < Math.max(angle2,Math.PI/4))) {
+							oKart.aipoints = aipoints;
+							oKart.aipoint = nextAI;
+							iLocalX = nPosX - oKart.x;
+							iLocalY = nPosY - oKart.y;
+							break;
+						}
 					}
 				}
 			}
@@ -13763,6 +13770,7 @@ function updateObjHud(ID) {
 }
 function updateItemCountdownHud(ID, progress) {
 	var $countdown = document.getElementById("countdown"+ID);
+	if (!$countdown) return;
 	if (progress > 0) {
 		$countdown.style.display = "block";
 		var countdownW = iScreenScale*8, countdownH = iScreenScale*5.75;
@@ -14124,9 +14132,11 @@ function ai(oKart) {
 			if (h < hMargin) {
 				if (!simpleBattle) {
 					if (course != "BB") {
-						oKart.aipoint++;
-						if (oKart.aipoint >= oKart.aipoints.length)
-							oKart.aipoint = 0;
+						if (!inTeleport(currentAi[0],currentAi[1])) {
+							oKart.aipoint++;
+							if (oKart.aipoint >= oKart.aipoints.length)
+								oKart.aipoint = 0;
+						}
 					}
 					else {
 						oKart.lastAI = oKart.aipoint;
