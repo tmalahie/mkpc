@@ -1129,10 +1129,10 @@ function loadMap() {
 		oCountdown.id = "countdown"+i;
 		oCountdown.style.position = "absolute";
 		oCountdown.style.opacity = 0.8;
-		oCountdown.style.width = Math.round(iScreenScale*6.5) +"px";
-		oCountdown.style.height = Math.round(iScreenScale*4.25) +"px";
+		oCountdown.style.width = Math.round(iScreenScale*6.6) +"px";
+		oCountdown.style.height = Math.round(iScreenScale*4.2) +"px";
 		oCountdown.style.border = "solid "+ Math.round(iScreenScale*0.75) +"px "+ primaryColor;
-		oCountdown.style.borderRadius = iScreenScale +"px";
+		oCountdown.style.borderRadius = Math.round(iScreenScale*1.75) +"px";
 		oCountdown.style.display = "none";
 		oObjet.appendChild(oCountdown);
 		hudScreen.appendChild(oObjet);
@@ -13773,19 +13773,24 @@ function updateItemCountdownHud(ID, progress) {
 	if (!$countdown) return;
 	if (progress > 0) {
 		$countdown.style.display = "block";
-		var countdownW = iScreenScale*8, countdownH = iScreenScale*5.75;
-		var theta = progress*2*Math.PI + Math.PI/4;
-		var targetX = countdownW/2 - countdownW*Math.cos(theta), targetY = countdownW/2 - countdownW*Math.sin(theta);
+		var countdownW = iScreenScale*8.5, countdownH = iScreenScale*6.25;
+		var angle0 = Math.atan2(countdownH,countdownW);
+		var tau = 2*Math.PI;
+		var mTheta = 0.2;
+		var theta = mTheta + progress*(tau-mTheta) + angle0;
+		var targetX = countdownW/2 - countdownW*Math.cos(theta), targetY = countdownH/2 - countdownH*Math.sin(theta);
 		var clipPath = [
 			[0,0],
+			[iScreenScale,0],
+			[Math.round(iScreenScale*2.5),iScreenScale*2],
 			[countdownW/2,countdownH/2],
 			[targetX,targetY]
 		];
-		if (progress > 0.75)
+		if (theta > tau - angle0)
 			clipPath.push([0,countdownH]);
-		if (progress > 0.5)
+		if (theta > tau-Math.PI+angle0)
 			clipPath.push([countdownW,countdownH]);
-		if (progress > 0.25)
+		if (theta > tau-Math.PI-angle0)
 			clipPath.push([countdownW,0]);
 		$countdown.style.clipPath = "polygon("+
 			clipPath.map(function(path) {
