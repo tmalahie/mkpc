@@ -54,6 +54,9 @@ function toSQLSort($sql, $params) {
 		$sort = "pscore $desc, id $desc";
 		break;
 	case 2 :
+		$sort = "tscore $desc, id $desc";
+		break;
+	case 3 :
 		$sort = "nbcomments $desc, id $desc";
 		break;
 	default :
@@ -77,23 +80,18 @@ function sortCmp1($res1,$res2) {
 	return $res2['id']-$res1['id'];
 }
 function sortCmp2($res1,$res2) {
-	$res = $res2['nbcomments']-$res1['nbcomments'];
+	$res = floatCmp($res2['tscore'],$res1['tscore']);
 	if ($res) return $res;
 	$res = $res1['category']-$res2['category'];
 	if ($res) return $res;
 	return $res2['id']-$res1['id'];
 }
 function sortCmp3($res1,$res2) {
-	if (!$res1['nom'] && $res2['nom']) return 1;
-	if (!$res2['nom'] && $res1['nom']) return -1;
-	$res = strcasecmp($res1['nom'],$res2['nom']);
+	$res = $res2['nbcomments']-$res1['nbcomments'];
 	if ($res) return $res;
 	$res = $res1['category']-$res2['category'];
 	if ($res) return $res;
 	return $res2['id']-$res1['id'];
-}
-function sortCmp4($res1,$res2) {
-	return 2*rand(0,1)-1;
 }
 function nextRaces($sql,$begin,$end,$params) {
 	return listRaces(toSQLSort($sql,$params) .' LIMIT '. $begin.','.($end-$begin));

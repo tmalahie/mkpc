@@ -373,7 +373,7 @@ include('menu.php');
 	<form method="get" action="creations.php" id="form-search">
 		<div id="sort-tabs">
 			<?php
-			$sortTabs = $language ? Array('By latest', 'Top rated', 'Top commented'):Array('Les plus r&eacute;cents', 'Les mieux not&eacute;s', 'Les plus comment&eacute;s');
+			$sortTabs = $language ? Array('By latest', 'Top rated', 'Trending'):Array('Les plus r&eacute;cents', 'Les mieux not&eacute;s', 'Tendances');
 			foreach ($sortTabs as $i => $sortTab) {
 				if ($i == $tri)
 					echo '<span>'.$sortTab.'</span>';

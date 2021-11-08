@@ -41,6 +41,7 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 			else if ($newMark)
 				mysql_query('INSERT INTO `mkratings` SET type="'.$table.'",circuit="'.$circuitId.'",identifiant="'.$identifiants[0].'",player="'.$id.'",rating='.$rating);
 			else {
+				echo '1';
 				mysql_close();
 				exit;
 			}
