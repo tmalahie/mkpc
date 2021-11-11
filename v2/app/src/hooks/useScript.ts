@@ -22,7 +22,7 @@ export function insertScript(url, { async, onload }: ScriptOptions = {}) {
 const useScript = (url, options: ScriptOptions = {}) => {
     useEffect(() => {
         insertScript(url, options);
-    }, [url]);
+    }, [url, options]);
 };
 
 export default useScript;
