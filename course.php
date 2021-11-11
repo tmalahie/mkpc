@@ -734,14 +734,14 @@ else {
 		<?php
 		include('o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
 		var isBattle = true;
 		</script>
-		<script src="scripts/editor-form.js"></script>
+		<script src="scripts/editor-form.js?reload=1"></script>
 	</head>
 	<body class="home-body">
 		<?php
@@ -874,6 +874,7 @@ else {
 					<div id="editor-track-actions">
 						<a id="editor-track-action-access"><?php echo $language ? 'Access':'Accéder'; ?></a>
 						<a id="editor-track-action-edit"><?php echo $language ? 'Edit':'Modifier'; ?></a>
+						<a id="editor-track-action-duplicate"><?php echo $language ? 'Duplicate':'Dupliquer'; ?></a>
 						<a id="editor-track-action-delete" onclick="return confirm('<?php echo ($language ? 'Are you sure you want to delete this arena?':'Voulez-vous vraiment supprimer cette arène ?'); ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
 					</div>
 					<img id="editor-track-img" src="images/maps/map41.png" alt="Arene" />

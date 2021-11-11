@@ -7,6 +7,7 @@ function previewCircuit(elt) {
 		document.getElementById("editor-track-action-access").style.display = "";
 	document.getElementById("editor-track-action-access").href = (isBattle?"battle":"map")+".php?i="+id;
 	document.getElementById("editor-track-action-edit").href = (isBattle?"course":"draw")+".php?i="+id;
+	document.getElementById("editor-track-action-duplicate").href = "duplicateCircuit.php?i="+id+(isBattle?"&battle":"");
 	document.getElementById("editor-track-action-delete").href = (isBattle?"clear":"suppr")+".php?i="+id+"&token="+csrf;
 	document.getElementById("editor-track-name").innerText = elt.getAttribute("data-name");
 	document.getElementById("editor-track-img").src = elt.getAttribute("data-src");

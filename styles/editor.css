@@ -66,8 +66,8 @@ body.theme-dark.setting-preview {
 }
 #editor-track-img {
 	max-width: 88vw;
-	max-height: 95vh;
-	max-height: calc(100vh - 125px);
+	max-height: 80vh;
+	max-height: calc(100vh - 150px);
 }
 #editor-track-close {
 	text-decoration: none;
@@ -87,12 +87,14 @@ body.theme-dark.setting-preview {
 }
 #editor-track-actions {
 	margin-top: 5px;
-	margin-bottom: 15px;
+	margin-bottom: 8px;
 }
 #editor-track-actions a {
+	display: inline-block;
 	text-decoration: none;
 	font-size: 1.2em;
 	padding: 5px 10px 4px 10px;
+	margin-bottom: 6px;
 	border-radius: 5px;
 }
 #editor-track-action-access {
@@ -105,11 +107,19 @@ body.theme-dark.setting-preview {
 }
 #editor-track-action-edit {
 	background-color: #7E8;
-	color: #0A5;
+	color: #095;
 }
 #editor-track-action-edit:hover {
-	background-color: #7F8;
+	background-color: #8F8;
 	color: #0B5;
+}
+#editor-track-action-duplicate {
+	background-color: #FB5;
+	color: #762;
+}
+#editor-track-action-duplicate:hover {
+	background-color: #FC5;
+	color: #972;
 }
 #editor-track-action-delete {
 	background-color: #F96;
