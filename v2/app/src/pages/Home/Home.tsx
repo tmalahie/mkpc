@@ -61,6 +61,7 @@ function Home() {
                       </>}
                     </p>
                   </div>
+                  {/* eslint-disable jsx-a11y/anchor-has-content */}
                   <div className="fp-prev-next-wrap">
                     <a className="fp-next" href="#fp-next"></a>
                     <a className="fp-prev" href="#fp-prev"></a>
@@ -82,6 +83,7 @@ function Home() {
                       </>}
                     </p>
                   </div>
+                  {/* eslint-disable jsx-a11y/anchor-has-content */}
                   <div className="fp-prev-next-wrap">
                     <a className="fp-next" href="#fp-next"></a>
                     <a className="fp-prev" href="#fp-prev"></a>
@@ -103,6 +105,7 @@ function Home() {
                       </>}
                     </p>
                   </div>
+                  {/* eslint-disable jsx-a11y/anchor-has-content */}
                   <div className="fp-prev-next-wrap">
                     <a className="fp-next" href="#fp-next"></a>
                     <a className="fp-prev" href="#fp-prev"></a>
@@ -124,6 +127,7 @@ function Home() {
                       </>}
                     </p>
                   </div>
+                  {/* eslint-disable jsx-a11y/anchor-has-content */}
                   <div className="fp-prev-next-wrap">
                     <a className="fp-next" href="#fp-next"></a>
                     <a className="fp-prev" href="#fp-prev"></a>
@@ -145,6 +149,7 @@ function Home() {
                       </>}
                     </p>
                   </div>
+                  {/* eslint-disable jsx-a11y/anchor-has-content */}
                   <div className="fp-prev-next-wrap">
                     <a className="fp-next" href="#fp-next"></a>
                     <a className="fp-prev" href="#fp-prev"></a>
@@ -166,6 +171,7 @@ function Home() {
                       </>}
                     </p>
                   </div>
+                  {/* eslint-disable jsx-a11y/anchor-has-content */}
                   <div className="fp-prev-next-wrap">
                     <a className="fp-next" href="#fp-next"></a>
                     <a className="fp-prev" href="#fp-prev"></a>
@@ -187,6 +193,7 @@ function Home() {
                       </>}
                     </p>
                   </div>
+                  {/* eslint-disable jsx-a11y/anchor-has-content */}
                   <div className="fp-prev-next-wrap">
                     <a className="fp-next" href="#fp-next"></a>
                     <a className="fp-prev" href="#fp-prev"></a>
@@ -209,6 +216,7 @@ function Home() {
                       </>}
                     </p>
                   </div>
+                  {/* eslint-disable jsx-a11y/anchor-has-content */}
                   <div className="fp-prev-next-wrap">
                     <a className="fp-next" href="#fp-next"></a>
                     <a className="fp-prev" href="#fp-prev"></a>
@@ -620,6 +628,9 @@ function Home() {
         </div>
         <div className="subsection rank_vs" id="rankings_section">
           <h2>Top 10</h2>
+          {/* TODO remove eslint once block is implemented correctly */}
+          {/* eslint-disable jsx-a11y/anchor-is-valid */}
+          {/* eslint-disable no-script-url */}
           <div className="ranking_tabs">
             <a className="ranking_tab tab_vs" href="javascript:dispRankTab(0)">
               {language ? 'VS mode' : 'Course VS'}
