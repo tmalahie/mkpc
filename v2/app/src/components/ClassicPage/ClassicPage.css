@@ -1,3 +1,52 @@
+* {
+	box-sizing: border-box;
+}
+body {
+	background-color: #E8964C;
+	background: url('../../images/main/wallpaper_mountains.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 40%, #E8964C 70%, #AF663D 100%);
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-position: center bottom;
+	background-position: center -30vw, center;
+	background-repeat: no-repeat;
+	margin: 5px 0;
+	padding: 0;
+	font-family: Helvetica, arial, sans-serif;
+}
+#header_left img, #header_right img {
+	height: 2.05vw;
+}
+header {
+	position: relative;
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+header table {
+	width: 100%;
+	border-collapse: collapse;
+}
+header table td {
+	padding: 0;
+}
+header table td {
+	vertical-align: bottom;
+}
+#header_left, #header_right {
+	width: 3%;
+}
+#header_center {
+	width: 94%;
+}
+#header_center img {
+	border-top-left-radius: 40px;
+	border-top-right-radius: 40px;
+	border: none;
+}
+header img {
+	width: 100%;
+	vertical-align: bottom;
+}
 nav {
   position: relative;
   text-align: center;
@@ -34,7 +83,7 @@ nav {
   margin: 0;
 }
 #menu_left a:first-child {
-  margin-right: 8px;
+  margin-right: 5px;
 }
 #thispage {
   background-color: #f60;
@@ -208,6 +257,22 @@ nav {
 #menu_right {
   padding-right: 10px;
 }
+header, nav, main, footer {
+	width: 75%;
+  margin-left: auto;
+  margin-right: auto;
+}
+main {
+	display: block;
+	background-color: white;
+	padding: 10px;
+}
+#relief_left, #footer_left {
+	left: -20px;
+}
+#relief_right, #footer_right {
+	right: -20px;
+}
 
 @media screen and (min-width: 800px) {
   header div {
@@ -236,7 +301,52 @@ nav {
     display: none;
   }
 }
+#relief_bottom, #footer_bottom {
+	position: relative;
+	width: 100%;
+}
+#relief_left, #relief_right, #footer_left, #footer_right {
+	position: absolute;
+	width: 20px;
+}
+#relief_left, #relief_right {
+	top: -20px;
+	z-index: -1;
+}
+#footer_left, #footer_right, #footer_center {
+	height: 40px;
+	background-image: url('../../images/main/footer/bottom.png');
+}
+#footer_left {
+	background-position: right;
+}
+#footer_center {
+	background-position: center;
+	color: white;
+	width: 100%;
+	font-size: 90%;
+	text-align: center;
+}
+#footer_right {
+	background-position: left;
+}
+footer a {
+	color: white;
+}
 @media screen and (max-width: 800px) {
+	body {
+		height: 100vh;
+		overflow-y: scroll;
+		background-color: #E8964C;
+		background: url('../../images/main/wallpaper_mountains.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 60%, #E8964C 70%, #AF663D 100%);
+		background-size: 200vw auto, auto;
+		background-repeat: no-repeat;
+		background-attachment: fixed;
+		background-position: center -65vw, center;
+	}
+	#header_left img, #header_right img {
+		height: 2.6vw;
+	}
   header div {
     font-size: 250%;
   }
