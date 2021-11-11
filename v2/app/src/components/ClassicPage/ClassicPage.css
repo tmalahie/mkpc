@@ -28,8 +28,6 @@ header table {
 }
 header table td {
 	padding: 0;
-}
-header table td {
 	vertical-align: bottom;
 }
 #header_left, #header_right {
@@ -69,10 +67,12 @@ nav {
 #menu_left {
   left: 0px;
   top: 7px;
+	padding-left: 10px;
 }
 #menu_right {
   right: -2px;
   top: 3px;
+	padding-right: 10px;
 }
 #menu_left,
 #menu_right {
@@ -250,12 +250,6 @@ nav {
   width: 350px;
   max-height: 300px;
   transition: max-height 0.4s ease-in;
-}
-#menu_left {
-  padding-left: 10px;
-}
-#menu_right {
-  padding-right: 10px;
 }
 header, nav, main, footer {
 	width: 75%;
