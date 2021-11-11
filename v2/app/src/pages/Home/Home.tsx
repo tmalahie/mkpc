@@ -4,8 +4,10 @@ import useLanguage from "../../hooks/useLanguage";
 import useScript, { insertScript } from "../../hooks/useScript";
 import "./Home.css"
 import "./slider.css"
+import "./photoswipe.css"
 import mkpcBox from "../../images/main/mkpc_box.jpg"
 import sidebarIcon from "../../images/icons/sidebar_icon.png"
+
 import diapo1 from "../../images/main/slides/diapo1.jpg"
 import diapo2 from "../../images/main/slides/diapo2.jpg"
 import diapo3 from "../../images/main/slides/diapo3.png"
@@ -14,6 +16,70 @@ import diapo5 from "../../images/main/slides/diapo5.jpg"
 import diapo6 from "../../images/main/slides/diapo6.jpg"
 import diapo7 from "../../images/main/slides/diapo7.jpg"
 import diapo8 from "../../images/main/slides/diapo8.png"
+
+import ss1 from "../../images/main/screenshots/ss1.png"
+import ss2 from "../../images/main/screenshots/ss2.png"
+import ss3 from "../../images/main/screenshots/ss3.png"
+import ss4 from "../../images/main/screenshots/ss4.png"
+import ss5 from "../../images/main/screenshots/ss5.png"
+import ss6 from "../../images/main/screenshots/ss6.png"
+import ss7 from "../../images/main/screenshots/ss7.png"
+import ss8 from "../../images/main/screenshots/ss8.png"
+import ss9 from "../../images/main/screenshots/ss9.png"
+import ss10 from "../../images/main/screenshots/ss10.png"
+import ss11 from "../../images/main/screenshots/ss11.png"
+import ss12 from "../../images/main/screenshots/ss12.png"
+
+import ss1xs from "../../images/main/screenshots/ss1xs.png"
+import ss2xs from "../../images/main/screenshots/ss2xs.png"
+import ss3xs from "../../images/main/screenshots/ss3xs.png"
+import ss4xs from "../../images/main/screenshots/ss4xs.png"
+import ss5xs from "../../images/main/screenshots/ss5xs.png"
+import ss6xs from "../../images/main/screenshots/ss6xs.png"
+import ss7xs from "../../images/main/screenshots/ss7xs.png"
+import ss8xs from "../../images/main/screenshots/ss8xs.png"
+import ss9xs from "../../images/main/screenshots/ss9xs.png"
+import ss10xs from "../../images/main/screenshots/ss10xs.png"
+import ss11xs from "../../images/main/screenshots/ss11xs.png"
+import ss12xs from "../../images/main/screenshots/ss12xs.png"
+
+const screenshots = [[{
+  xs: ss1xs,
+  lg: ss1
+}, {
+  xs: ss2xs,
+  lg: ss2
+}, {
+  xs: ss3xs,
+  lg: ss3
+}], [{
+  xs: ss4xs,
+  lg: ss4
+}, {
+  xs: ss5xs,
+  lg: ss5
+}, {
+  xs: ss6xs,
+  lg: ss6
+}], [{
+  xs: ss7xs,
+  lg: ss7
+}, {
+  xs: ss8xs,
+  lg: ss8
+}, {
+  xs: ss9xs,
+  lg: ss9
+}], [{
+  xs: ss10xs,
+  lg: ss10
+}, {
+  xs: ss11xs,
+  lg: ss11
+}, {
+  xs: ss12xs,
+  lg: ss12
+}]];
 
 function SectionBar({ title, link }) {
   return (
@@ -36,8 +102,13 @@ function Home() {
   }
   useScript("/scripts/jquery.min.js", {
     async: false, onload: () => {
-      insertScript("/scripts/init-diapos.js");
       insertScript("/scripts/slider.js");
+    }
+  });
+  useScript("/scripts/photoswipe.min.js", {
+    async: false,
+    onload: () => {
+      insertScript("/scripts/init-diapos.js");
     }
   });
 
@@ -258,19 +329,11 @@ function Home() {
           {language ? 'Here are some screenshots of the game to give you a quick preview of what it looks like:' : 'Une image vaut mieux qu\'un long discours, voici donc quelques captures d\'écran issues du jeu afin que vous ayez un aperçu de ce à quoi ça ressemble :'}
           <table id="screenshots" className="demo-gallery">
             <tbody>
-              {/*<?php
-				for ($i=1;$i<=12;$i++) {
-					if (!(($i-1)%3))
-						echo '<tr>';
-					echo '<td>';
-					$url_img = "images/screenshots/ss$i.png";
-					$url_thumb = 'images/screenshots/ss'.$i.'xs.png';
-					echo '<a href="'. $url_img .'" data-size="960x468" data-med="'. $url_img .'" data-med-size="240x117" className="demo-gallery__photo demo-gallery__img--main"><img src="'.$url_thumb.'" alt="Screenshot '. $i .'" /></a>';
-					echo '</td>';
-					if (!($i%3))
-						echo '</tr>';
-				}
-      ?>*/}
+              {screenshots.map((screenshotGroup, i) => <tr key={i}>
+                {screenshotGroup.map((screenshot, j) => <td key={j}>
+                  <a href={screenshot.lg} data-size="960x468" data-med={screenshot.lg} data-med-size="240x117" className="demo-gallery__photo demo-gallery__img--main"><img src={screenshot.xs} alt={"Screenshot " + (i * 3 + j + 1)} /></a>
+                </td>)}
+              </tr>)}
             </tbody>
           </table>
         </div>

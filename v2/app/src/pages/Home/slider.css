@@ -74,7 +74,7 @@
 
 .fp-pager a
 {
-	background-image:url(../../images/main/slider/featured-pager.png);
+	background-image:url(../../images/lib/slider/featured-pager.png);
 	cursor:pointer;
 	margin:0 8px 0 0;
 	padding:0;
@@ -120,7 +120,7 @@
 	margin-left:14px;
 	width:37px;
 	height:37px;
-	background:url(../../images/main/slider/featured-prev.png) left top no-repeat;
+	background:url(../../images/lib/slider/featured-prev.png) left top no-repeat;
 	opacity:0.6;
 	filter:alpha(opacity = 60);
 }
@@ -138,7 +138,7 @@
 	width:36px;
 	height:37px;
 	margin-right:14px;
-	background:url(../../images/main/slider/featured-next.png) right top no-repeat;
+	background:url(../../images/lib/slider/featured-next.png) right top no-repeat;
 	opacity:0.6;
 	filter:alpha(opacity = 60);
 }
