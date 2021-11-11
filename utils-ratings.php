@@ -40,7 +40,7 @@ function recomputeRating($type, $circuitId) {
 	mysql_query('DROP TEMPORARY TABLE IF EXISTS tmp_rating');
 	mysql_query(
 		'CREATE TEMPORARY TABLE tmp_rating
-		SELECT p.type,p.circuit,p.tscore,p.nb_of_rating AS nb_of_rating,p.nb_of_rating*5/(5+DATEDIFF(CURDATE(),IFNULL(c1.publication_date,"2018-01-01"))) AS weight FROM
+		SELECT p.type,p.circuit,p.tscore,p.nb_of_rating AS nb_of_rating,p.nb_of_rating*1/(1+POW(TIMESTAMPDIFF(SECOND,IFNULL(c1.publication_date,"2018-01-01"),NOW())/(76*3600),2)) AS weight FROM
 		(SELECT t.type,t.circuit,t.nb,o.rating,o.tscore,COUNT(r.rating) AS nb_of_rating FROM
 		((SELECT type,circuit,COUNT(id) AS nb FROM mkratings WHERE type="'. $type .'" AND circuit="'. $circuitId .'" GROUP BY type,circuit) t
 		INNER JOIN
