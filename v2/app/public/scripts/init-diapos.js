@@ -126,8 +126,6 @@
 				params.gid = parseInt(params.gid, 10);
 			}
 
-			console.log(params);
-
 			return params;
 		};
 
