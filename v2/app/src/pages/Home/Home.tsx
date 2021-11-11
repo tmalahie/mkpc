@@ -8,6 +8,12 @@ import "./photoswipe.css"
 import mkpcBox from "../../images/main/mkpc_box.jpg"
 import sidebarIcon from "../../images/icons/sidebar_icon.png"
 
+import aboutIcon from "../../images/icons/about.png"
+import screenshotsIcon from "../../images/icons/camera.png"
+import thanksIcon from "../../images/icons/thanks.png"
+import followIcon from "../../images/icons/follow.png"
+import gameIcon from "../../images/icons/gamepad.png"
+
 import diapo1 from "../../images/main/slides/diapo1.jpg"
 import diapo2 from "../../images/main/slides/diapo2.jpg"
 import diapo3 from "../../images/main/slides/diapo3.png"
@@ -82,15 +88,15 @@ const screenshots = [[{
 }]];
 
 function SectionBar({ title, link }) {
-  return (
+  const bar =
     <table className="sidebar_container">
       <tbody>
         <tr><td className="sidebar_icon"><img src={sidebarIcon} alt={title} /></td>
-          <td className="sidebar_title">{
-            link ? <a href={link}>{title}</a> : title
-          }</td></tr>
+          <td className="sidebar_title">{title}</td></tr>
       </tbody>
     </table>
+  return (
+    link ? <a href={link} className="sidebar_link">{bar}</a> : bar
   );
 }
 
@@ -305,7 +311,7 @@ function Home() {
           &#9660;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la boîte du jeu pour commencer'}&nbsp;&#9660;<br />
           <img src={mkpcBox} alt={language ? "Go to the game" : "Accéder au jeu"} style={{ width: 310, position: "relative", top: 2 }} /><br />
           &#9650;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la boîte du jeu pour commencer'}&nbsp;&#9650;</a></div>
-        <h2><img src="images/about.png" alt="" /> {language ? 'What\'s Mario Kart PC?' : 'Mario Kart PC, c\'est quoi ?'}</h2>
+        <h2><img src={aboutIcon} alt="" /> {language ? 'What\'s Mario Kart PC?' : 'Mario Kart PC, c\'est quoi ?'}</h2>
         <div>
           {language ? <>				<p>You might know Mario Kart, the most fun racing game series of all time!
             Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.</p>
@@ -324,7 +330,7 @@ function Home() {
             <p>Enfin, il est possible d'affronter les joueurs du monde entier grâce au <strong>mode multijoueurs en ligne</strong> ! Grimpez dans le <a href="bestscores.php">classement</a> et devenez champion du monde !</p>
           </>}
         </div>
-        <h2><img src="images/camera.png" alt="" /> {language ? 'Some screenshots' : 'Quelques screenshots'}</h2>
+        <h2><img src={screenshotsIcon} alt="" /> {language ? 'Some screenshots' : 'Quelques screenshots'}</h2>
         <div>
           {language ? 'Here are some screenshots of the game to give you a quick preview of what it looks like:' : 'Une image vaut mieux qu\'un long discours, voici donc quelques captures d\'écran issues du jeu afin que vous ayez un aperçu de ce à quoi ça ressemble :'}
           <table id="screenshots" className="demo-gallery">
@@ -350,7 +356,7 @@ function Home() {
             (adsbygoogle = window.adsbygoogle || []).push({ });
           </script>
         </div>
-        <h2><img src="images/thanks.png" alt="" /> {language ? 'Special thanks' : 'Remerciements'}</h2>
+        <h2><img src={thanksIcon} alt="" /> {language ? 'Special thanks' : 'Remerciements'}</h2>
         <div>
           {language ? <>				A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !
             <ul>
@@ -368,7 +374,7 @@ function Home() {
             </ul>
           </>}
         </div>
-        <h2><img src="images/follow.png" alt="" /> {language ? 'Follow us' : 'Nous suivre'}</h2>
+        <h2><img src={followIcon} alt="" /> {language ? 'Follow us' : 'Nous suivre'}</h2>
         <div>
           {language ? <>				<ul>
             <li><a href="https://discord.gg/VkeAxaj">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.</li>
@@ -397,7 +403,7 @@ function Home() {
             (adsbygoogle = window.adsbygoogle || []).push({ });
           </script>
         </div>
-        <h2><img src="images/gamepad.png" alt="" /> {language ? 'Go to the game' : 'Accéder au jeu'}</h2>
+        <h2><img src={gameIcon} alt="" /> {language ? 'Go to the game' : 'Accéder au jeu'}</h2>
         <div>
           {language ? <>				To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:<br />
             <a href="mariokart.php" className="action_button button_game">Start playing now &gt;</a>

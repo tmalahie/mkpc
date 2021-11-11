@@ -24,16 +24,26 @@ a img {
 	display: none;
 }
 #left_section h2 {
+	display: flex;
+	align-items: center;
 	margin-left: 10px;
 	font-family: Verdana;
 	color: #560000;
 }
 #left_section h2 img {
 	height: 20px;
+	margin-right: 8px;
 }
 #left_section, #right_section {
 	display: inline-block;
 	vertical-align: top;
+}
+#right_section .sidebar_link {
+	color: white;
+	text-decoration: none;
+	display: block;
+	width: 100%;
+	height: 100%;
 }
 #right_section .sidebar_container {
 	width: 100%;
@@ -43,6 +53,10 @@ a img {
 	background-color: #80CE2F;
 	background-repeat: repeat;
 	border-radius: 10px;
+}
+#right_section .sidebar_link:hover .sidebar_container {
+	background-image: url('../../images/main/menu/sidebar_hover.png');
+	background-color: #80FF00;
 }
 #right_section .sidebar_icon {
 	width: 50px;
@@ -56,13 +70,6 @@ a img {
 	color: white;
 	font-weight: bold;
 	vertical-align: middle;
-}
-#right_section .sidebar_title a {
-	color: white;
-	text-decoration: none;
-	display: block;
-	width: 100%;
-	height: 100%;
 }
 .right_subsection a {
 	position: relative;
