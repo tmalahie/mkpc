@@ -1,20 +1,33 @@
+
 import ClassicPage from "../../components/ClassicPage/ClassicPage";
 import { useLanguage } from "../../hooks/useLanguage";
+import "./Home.css"
+import mkpcBox from "../../images/main/mkpc_box.jpg"
+import sidebarIcon from "../../images/icons/sidebar_icon.png"
+import diapo1 from "../../images/main/slides/diapo1.jpg"
+import diapo2 from "../../images/main/slides/diapo2.jpg"
+import diapo3 from "../../images/main/slides/diapo3.png"
+import diapo4 from "../../images/main/slides/diapo4.png"
+import diapo5 from "../../images/main/slides/diapo5.jpg"
+import diapo6 from "../../images/main/slides/diapo6.jpg"
+import diapo7 from "../../images/main/slides/diapo7.jpg"
+import diapo8 from "../../images/main/slides/diapo8.png"
 
 function SectionBar({ title, link }) {
   return (
     <table className="sidebar_container">
-      <tr><td className="sidebar_icon"><img src="images/sidebar_icon.png" alt={title} /></td>
-        <td className="sidebar_title">{
-          link ? <a href={link}>{title}</a> : title
-        }</td></tr>
+      <tbody>
+        <tr><td className="sidebar_icon"><img src={sidebarIcon} alt={title} /></td>
+          <td className="sidebar_title">{
+            link ? <a href={link}>{title}</a> : title
+          }</td></tr>
+      </tbody>
     </table>
   );
 }
 
 function Home() {
   const language = useLanguage();
-  const slidesPath = "";
   const comments = [];
   function formatDate(d, options) {
     return "";
@@ -27,7 +40,7 @@ function Home() {
           <div className="fp-slides-container">
             <div className="fp-slides">
               <div className="fp-slides-items">
-                <div className="fp-thumbnail" style={{ background: "url('" + slidesPath + "/diapo1.jpg') top" }}>
+                <div className="fp-thumbnail" style={{ background: "url(" + diapo1 + ") top" }}>
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
@@ -48,7 +61,7 @@ function Home() {
               </div>
 
               <div className="fp-slides-items">
-                <div className="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo2.jpg">
+                <div className="fp-thumbnail" data-img={diapo2}>
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
@@ -69,7 +82,7 @@ function Home() {
               </div>
 
               <div className="fp-slides-items">
-                <div className="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo3.png">
+                <div className="fp-thumbnail" data-img={diapo3}>
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
@@ -90,7 +103,7 @@ function Home() {
               </div>
 
               <div className="fp-slides-items">
-                <div className="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo4.png">
+                <div className="fp-thumbnail" data-img={diapo4}>
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
@@ -111,7 +124,7 @@ function Home() {
               </div>
 
               <div className="fp-slides-items">
-                <div className="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo5.jpg">
+                <div className="fp-thumbnail" data-img={diapo5}>
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
@@ -132,7 +145,7 @@ function Home() {
               </div>
 
               <div className="fp-slides-items">
-                <div className="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo6.jpg">
+                <div className="fp-thumbnail" data-img={diapo6}>
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
@@ -153,7 +166,7 @@ function Home() {
               </div>
 
               <div className="fp-slides-items">
-                <div className="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo7.jpg">
+                <div className="fp-thumbnail" data-img={diapo7}>
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
@@ -174,7 +187,7 @@ function Home() {
               </div>
 
               <div className="fp-slides-items">
-                <div className="fp-thumbnail" style={{ background: "url('" + slidesPath + "/diapo8.png') top" }}>
+                <div className="fp-thumbnail" style={{ background: "url('" + diapo8 + "') top" }}>
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
@@ -202,9 +215,9 @@ function Home() {
         </div>
         <h1>Mario Kart PC</h1>
         <div id="toBegin"><a href="mariokart.php">
-          &#9660;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la bo&icirc;te du jeu pour commencer'}&nbsp;&#9660;<br />
-          <img src="images/mkpc_box.jpg" alt="Acc&eacute;der au jeu" style={{ width: 310, position: "relative", top: 2 }} /><br />
-          &#9650;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la bo&icirc;te du jeu pour commencer'}&nbsp;&#9650;</a></div>
+          &#9660;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la boîte du jeu pour commencer'}&nbsp;&#9660;<br />
+          <img src={mkpcBox} alt={language ? "Go to the game" : "Accéder au jeu"} style={{ width: 310, position: "relative", top: 2 }} /><br />
+          &#9650;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la boîte du jeu pour commencer'}&nbsp;&#9650;</a></div>
         <h2><img src="images/about.png" alt="" /> {language ? 'What\'s Mario Kart PC?' : 'Mario Kart PC, c\'est quoi ?'}</h2>
         <div>
           {language ? <>				<p>You might know Mario Kart, the most fun racing game series of all time!
@@ -228,7 +241,8 @@ function Home() {
         <div>
           {language ? 'Here are some screenshots of the game to give you a quick preview of what it looks like:' : 'Une image vaut mieux qu\'un long discours, voici donc quelques captures d\'écran issues du jeu afin que vous ayez un aperçu de ce à quoi ça ressemble :'}
           <table id="screenshots" className="demo-gallery">
-            {/*<?php
+            <tbody>
+              {/*<?php
 				for ($i=1;$i<=12;$i++) {
 					if (!(($i-1)%3))
 						echo '<tr>';
@@ -241,6 +255,7 @@ function Home() {
 						echo '</tr>';
 				}
       ?>*/}
+            </tbody>
           </table>
         </div>
         <br />
@@ -481,7 +496,8 @@ function Home() {
           <h2>{language ? 'Latest creations' : 'Dernières créations'}</h2>
           <div id="creations_section" className="right_subsection">
             <table>
-              {/*<?php
+              <tbody>
+                {/*<?php
 					function getNom($circuit) {
 						global $language;
 						return ($circuit['nom'] ? controlLengthUtf8($circuit['nom'],25):($language ? 'Untitled':'Sans titre'));
@@ -546,6 +562,7 @@ function Home() {
 					foreach ($tracksList as $line)
 						showLine($line);
         ?>*/}
+              </tbody>
             </table>
           </div>
           <a className="right_section_actions action_button" href="creations.php">{language ? 'Display all' : 'Afficher tout'}</a>
@@ -597,12 +614,13 @@ function Home() {
           <h2>Top 10</h2>
           <div className="ranking_tabs">
             <a className="ranking_tab tab_vs" href="javascript:dispRankTab(0)">
-              {/* echo $language ? 'VS mode':'Course VS'; */}
+              {language ? 'VS mode' : 'Course VS'}
+              {/* print_badge(0); */}
             </a><a className="ranking_tab tab_battle" href="javascript:dispRankTab(1)">
-              {/* echo $language ? 'Battle':'Bataille'; */}
+              {language ? 'Battle' : 'Bataille'}
               {/* print_badge(1); */}
             </a><a className="ranking_tab tab_clm tab_clm150" href="javascript:dispRankTab(currenttabcc)">
-              {/* echo $language ? 'Time Trial':'CLM'; */}
+              {language ? 'Time Trial' : 'CLM'}
             </a>
           </div>
           <div id="currently_online">
@@ -616,14 +634,16 @@ function Home() {
             <a className="clm_cc_200" href="javascript:dispRankTab(3)">200cc</a>
           </div>
           <div id="top10" className="right_subsection">
-            {['vs', 'battle', 'clm150', 'clm200'].map((modeId, i) => (
-              <table id={"top_" + modeId}>
-                <tr>
-                  <th>{language ? 'Rank' : 'Rang'}</th>
-                  <th>{language ? 'Nick' : 'Pseudo'}</th>
-                  <th>Score</th>
-                </tr>
-                {/* TODO players */}
+            {['vs', 'battle', 'clm150', 'clm200'].map((modeId) => (
+              <table id={"top_" + modeId} key={modeId}>
+                <tbody>
+                  <tr>
+                    <th>{language ? 'Rank' : 'Rang'}</th>
+                    <th>{language ? 'Nick' : 'Pseudo'}</th>
+                    <th>Score</th>
+                  </tr>
+                  {/* TODO players */}
+                </tbody>
               </table>
             ))}
           </div>
