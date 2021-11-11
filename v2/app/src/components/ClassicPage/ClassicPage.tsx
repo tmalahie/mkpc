@@ -1,5 +1,5 @@
-import { useLanguage } from "../../hooks/useLanguage";
-import { useUserId } from "../../hooks/useUserId";
+import useLanguage from "../../hooks/useLanguage";
+import useUserId from "../../hooks/useUserId";
 import "./ClassicPage.css"
 import english from "../../images/icons/english.png";
 import french from "../../images/icons/french.png";
@@ -84,9 +84,9 @@ function ClassicPage(props) {
           </div>
         </div>
         <div id="menu_center" role="menubar">
-          <a href="index.php" id={(page == 'home') ? "thispage" : ""} role="menuitem">{language ? 'Home' : 'Accueil'}</a>{" "}
-          <a href="mariokart.php" id={(page == 'game') ? "thispage" : ""} role="menuitem">{language ? 'Play game' : 'Le jeu'}</a>{" "}
-          <a href="forum.php" id={(page == 'forum') ? "thispage" : ""} role="menuitem">Forum</a>
+          <a href="index.php" id={(page === 'home') ? "thispage" : ""} role="menuitem">{language ? 'Home' : 'Accueil'}</a>{" "}
+          <a href="mariokart.php" id={(page === 'game') ? "thispage" : ""} role="menuitem">{language ? 'Play game' : 'Le jeu'}</a>{" "}
+          <a href="forum.php" id={(page === 'forum') ? "thispage" : ""} role="menuitem">Forum</a>
         </div>
       </nav>
       <main>{props.children}</main>
