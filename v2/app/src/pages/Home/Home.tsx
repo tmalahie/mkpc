@@ -1,7 +1,9 @@
 
 import ClassicPage from "../../components/ClassicPage/ClassicPage";
-import { useLanguage } from "../../hooks/useLanguage";
+import useLanguage from "../../hooks/useLanguage";
+import useScript, { insertScript } from "../../hooks/useScript";
 import "./Home.css"
+import "./slider.css"
 import mkpcBox from "../../images/main/mkpc_box.jpg"
 import sidebarIcon from "../../images/icons/sidebar_icon.png"
 import diapo1 from "../../images/main/slides/diapo1.jpg"
@@ -32,6 +34,12 @@ function Home() {
   function formatDate(d, options) {
     return "";
   }
+  useScript("/scripts/jquery.min.js", {
+    async: false, onload: () => {
+      insertScript("/scripts/init-diapos.js");
+      insertScript("/scripts/slider.js");
+    }
+  });
 
   return (
     <ClassicPage page="home">
