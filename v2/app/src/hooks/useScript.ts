@@ -22,7 +22,8 @@ export function insertScript(url, { async, onload }: ScriptOptions = {}) {
 const useScript = (url, options: ScriptOptions = {}) => {
     useEffect(() => {
         insertScript(url, options);
-    }, [url, options]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 };
 
 export default useScript;
