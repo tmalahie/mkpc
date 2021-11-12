@@ -12910,6 +12910,8 @@ function move(getId, triggered) {
 					oKart.arme = false;
 					stopDrifting(getId);
 					supprArme(getId);
+					if (oKart.billball)
+						oKart.billball = 1;
 					oKart.cpu = true;
 					oKart.aipoint = 0;
 					oKart.lastAItime = 0;
