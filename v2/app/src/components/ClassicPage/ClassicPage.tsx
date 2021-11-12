@@ -1,5 +1,6 @@
 import useLanguage from "../../hooks/useLanguage";
 import useUserId from "../../hooks/useUserId";
+import useFetch from "../../hooks/useFetch";
 import "./ClassicPage.css"
 import english from "../../images/icons/english.png";
 import french from "../../images/icons/french.png";
@@ -9,6 +10,7 @@ import headerLeft from "../../images/main/header/ic_left.png";
 import headerRight from "../../images/main/header/ic_right.png";
 import footerLeft from "../../images/main/footer/ic_left.png";
 import footerRight from "../../images/main/footer/ic_right.png";
+import { useMemo } from "react";
 
 function Flag({ nLanguage, src, alt, page, homepage = false }) {
   let url;
@@ -28,12 +30,17 @@ function Flag({ nLanguage, src, alt, page, homepage = false }) {
 }
 
 function ClassicPage(props) {
-  const nbNotifs = 0; // TODO handle notifs
   const language = useLanguage();
   const id = useUserId();
   const page = props.page;
 
+  const { data: notifsPayload } = useFetch(`api/getNotifs.php`);
+  const nbNotifs = useMemo(() => notifsPayload?.data.length ?? 0, [notifsPayload]);
+
   function closeNotifs() {
+    // TODO
+  }
+  function closeNotif(notif) {
     // TODO
   }
 
@@ -75,7 +82,10 @@ function ClassicPage(props) {
                 {id && <a href="notif-settings.php"><img src={notifSettings} alt="Settings" title={language ? 'Notification settings' : 'Paramètres de notifications'} /></a>}
               </div>}
               <div id="notifs-list">
-                {/* TODO handle notifs */}
+                {notifsPayload?.data.map((notif) => <a key={notif.id} className="notif-container" href={notif.link}>
+                  <div className="notif-options"><span className="close-notif" onClick={() => closeNotif(notif)}>&times;</span></div>
+                  <div className="notif-value" dangerouslySetInnerHTML={{ __html: notif.content }} />
+                </a>)}
               </div>
               <div id="notifs-options">
                 <input type="button" value={language ? 'Mark everything as read' : 'Tout marquer comme lu'} onClick={closeNotifs} />
