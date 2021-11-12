@@ -1,6 +1,6 @@
 
 import ClassicPage from "../../components/ClassicPage/ClassicPage";
-import useLanguage from "../../hooks/useLanguage";
+import useLanguage, { plural } from "../../hooks/useLanguage";
 import useScript, { insertScript } from "../../hooks/useScript";
 import "./Home.css"
 import "./slider.css"
@@ -48,6 +48,8 @@ import ss9xs from "../../images/main/screenshots/ss9xs.png"
 import ss10xs from "../../images/main/screenshots/ss10xs.png"
 import ss11xs from "../../images/main/screenshots/ss11xs.png"
 import ss12xs from "../../images/main/screenshots/ss12xs.png"
+import useFetch from "../../hooks/useFetch";
+import formatDate from "../../helpers/dates";
 
 const screenshots = [[{
   xs: ss1xs,
@@ -103,9 +105,6 @@ function SectionBar({ title, link }) {
 function Home() {
   const language = useLanguage();
   const comments = [];
-  function formatDate(d, options) {
-    return "";
-  }
   useScript("/scripts/jquery.min.js", {
     async: false, onload: () => {
       insertScript("/scripts/slider.js");
@@ -117,6 +116,8 @@ function Home() {
       insertScript("/scripts/init-diapos.js");
     }
   });
+
+  const { data: topicsPayload } = useFetch(`api/forum/topics`);
 
   return (
     <ClassicPage page="home">
@@ -490,39 +491,14 @@ function Home() {
           <SectionBar title="Forum" link="forum.php" />
           <h2>{language ? 'Last topics' : 'Derniers topics'}</h2>
           <div id="forum_section" className="right_subsection">
-            {/*<?php
-				require_once('getRights.php');
-				$sql = 'SELECT t.id,t.titre, t.nbmsgs, t.category, t.dernier FROM `mktopics` t ' . (hasRight('manager') ? '':' WHERE !t.private') .' ORDER BY t.dernier DESC LIMIT 10';
-				if ($language)
-					$sql = 'SELECT * FROM ('. $sql .') t ORDER BY (category=4) DESC, dernier DESC';
-				$getTopics = mysql_query($sql);
-				$topics = array();
-				$topicIds = array();
-				while ($topic = mysql_fetch_array($getTopics)) {
-					$topics[] = $topic;
-					$topicIds[] = $topic['id'];
-				}
-				$lastMsgByTopic = array();
-				$topicIdsString = implode(',', $topicIds);
-				if ($topicIdsString) {
-					$getLastMessages = mysql_query('SELECT m.topic,j.nom FROM (SELECT topic,MAX(id) AS maxid FROM mkmessages WHERE topic IN ('. $topicIdsString .') GROUP BY topic) mm LEFT JOIN mkmessages m ON m.topic=mm.topic AND m.id=mm.maxid LEFT JOIN mkjoueurs j ON m.auteur=j.id');
-					while ($message = mysql_fetch_array($getLastMessages))
-						$lastMsgByTopic[$message['topic']] = $message;
-				}
-				foreach ($topics as $topic) {
-					$nbMsgs = $topic['nbmsgs'];
-					$message = $lastMsgByTopic[$topic['id']];
-					?>
-					<a href="topic.php?topic=<?php echo $topic['id']; ?>" title="<?php echo $topic['titre']; ?>">
-						<h2><?php echo htmlspecialchars(controlLength($topic['titre'],40)); ?></h2>
-						<h3>{ language ? 'Last message':'Dernier message' } <?php echo ($message['nom'] ? ($language ? 'by':'par') .' <strong>'. $message['nom'].'</strong> ':'').pretty_dates_short($topic['dernier'],array('lower'=>true)); ?></h3>
-						<div className="creation_comments" title="<?php echo $nbMsgs. ' message'. (($nbMsgs>1) ? 's':''); ?>"><img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?></div>
-					</a>
-					<?php
-				}
-				unset($topics);
-				unset($lastMsgByTopic);
-      ?>*/}
+            {topicsPayload?.data.map(topic => {console.log(topic); return <a key={topic.id} href={"topic.php?topic="+topic.id} title={topic.title}>
+              <h2>{topic.title/* TODO control length */}</h2>
+              <h3>{ language ? 'Last message':'Dernier message' }
+              {topic.lastMessage.author && <> {language ? 'by':'par'} <strong>{topic.lastMessage.author.name}</strong></>}
+              {" "}
+              {formatDate(topic.lastMessage.date, { prefix: true, mode: "short" })}</h3>
+              <div className="creation_comments" title={plural("%n message%s", topic.nbMessages)}><img src="images/comments.png" alt="Messages" /> {topic.nbMessages}</div>
+            </a>})}
           </div>
           <a className="right_section_actions action_button" href="forum.php">{language ? 'Go to the forum' : 'Accéder au forum'}</a>
         </div>
@@ -690,7 +666,7 @@ function Home() {
             {comments.map((comment) => (
               <a href={comment.url} title={comment.message}>
                 <h2><img src="images/<?php echo $type; ?>.png" alt={comment.type} /> {comment.message /* TODO control length */}</h2>
-                <h3>{language ? 'By' : 'Par'} <strong>{comment.name /* TODO control length */}</strong> {comment.circuit.name && <>{language ? 'in' : 'dans'}{" "}<strong>{comment.circuit.name/* TODO control length */}</strong></>}{" "}{formatDate(comment.date, { prefix: true, short: true })}</h3>
+                <h3>{language ? 'By' : 'Par'} <strong>{comment.name /* TODO control length */}</strong> {comment.circuit.name && <>{language ? 'in' : 'dans'}{" "}<strong>{comment.circuit.name/* TODO control length */}</strong></>}{" "}{formatDate(comment.date, { prefix: true, mode: "short" })}</h3>
               </a>
             ))}
           </div>

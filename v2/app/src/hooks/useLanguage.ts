@@ -1,3 +1,7 @@
+export function plural(text, nb) {
+  return text.replace(/%n/g, nb).replace(/%s/g, (nb>=2) ? "s":"");
+}
+
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -10,7 +14,7 @@ function findLanguage() {
   }
   return res;
 }
-let language = findLanguage();
+export const language = findLanguage();
 function useLanguage() {
   return language;
 }

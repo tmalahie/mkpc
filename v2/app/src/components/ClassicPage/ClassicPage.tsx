@@ -10,7 +10,7 @@ import headerLeft from "../../images/main/header/ic_left.png";
 import headerRight from "../../images/main/header/ic_right.png";
 import footerLeft from "../../images/main/footer/ic_left.png";
 import footerRight from "../../images/main/footer/ic_right.png";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 function Flag({ nLanguage, src, alt, page, homepage = false }) {
   let url;
@@ -45,7 +45,7 @@ function ClassicPage(props) {
   useEffect(() => {
     setNotifsList(notifsPayload?.data);
   }, [notifsPayload]);
-  const nbNotifs = useMemo(() => notifsList?.length ?? 0, [notifsList]);
+  const nbNotifs = notifsList?.length ?? 0;
 
   function closeNotifs() {
     setNotifsList([]);
