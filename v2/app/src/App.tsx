@@ -8,6 +8,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/index.php" element={<Home />} />
         </Routes>
       </BrowserRouter>,
     </div>
