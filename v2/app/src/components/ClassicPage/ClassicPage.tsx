@@ -10,7 +10,7 @@ import headerLeft from "../../images/main/header/ic_left.png";
 import headerRight from "../../images/main/header/ic_right.png";
 import footerLeft from "../../images/main/footer/ic_left.png";
 import footerRight from "../../images/main/footer/ic_right.png";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 function Flag({ nLanguage, src, alt, page, homepage = false }) {
   let url;
@@ -29,19 +29,31 @@ function Flag({ nLanguage, src, alt, page, homepage = false }) {
   return <a href={url} title={homepage ? alt : ''} onClick={handleClick}><img id={chosen ? 'chosen' : 'toChoose'} src={src} alt={alt} /></a>;
 }
 
+type Notif = {
+  id: number,
+  ids: number[],
+  link: string,
+  content: string,
+}
 function ClassicPage(props) {
   const language = useLanguage();
   const id = useUserId();
   const page = props.page;
 
   const { data: notifsPayload } = useFetch(`api/getNotifs.php`);
-  const nbNotifs = useMemo(() => notifsPayload?.data.length ?? 0, [notifsPayload]);
+  const [notifsList, setNotifsList] = useState<Notif[]>(null);
+  useEffect(() => {
+    setNotifsList(notifsPayload?.data);
+  }, [notifsPayload]);
+  const nbNotifs = useMemo(() => notifsList?.length ?? 0, [notifsList]);
 
   function closeNotifs() {
-    // TODO
+    setNotifsList([]);
   }
-  function closeNotif(notif) {
-    // TODO
+  function closeNotif(e,notif) {
+    e.preventDefault();
+    setNotifsList(notifsList.filter(n => n.id !== notif.id));
+    // TODO make API call to close notif
   }
 
   return (
@@ -69,7 +81,7 @@ function ClassicPage(props) {
           {/* TODO handle homepage */}
         </div>
         <div id="menu_right">
-          <div id="notifs-bubble" className={nbNotifs ? 'notifs' : 'no-notifs'}>
+          {notifsList && <div id="notifs-bubble" className={nbNotifs ? 'notifs' : 'no-notifs'}>
             <div id="notifs-nb-alert">
               {nbNotifs}
             </div>
@@ -82,8 +94,8 @@ function ClassicPage(props) {
                 {id && <a href="notif-settings.php"><img src={notifSettings} alt="Settings" title={language ? 'Notification settings' : 'Paramètres de notifications'} /></a>}
               </div>}
               <div id="notifs-list">
-                {notifsPayload?.data.map((notif) => <a key={notif.id} className="notif-container" href={notif.link}>
-                  <div className="notif-options"><span className="close-notif" onClick={() => closeNotif(notif)}>&times;</span></div>
+                {notifsList.map((notif) => <a key={notif.id} className="notif-container" href={notif.link}>
+                  <div className="notif-options"><span className="close-notif" onClick={(e) => closeNotif(e,notif)}>&times;</span></div>
                   <div className="notif-value" dangerouslySetInnerHTML={{ __html: notif.content }} />
                 </a>)}
               </div>
@@ -91,7 +103,7 @@ function ClassicPage(props) {
                 <input type="button" value={language ? 'Mark everything as read' : 'Tout marquer comme lu'} onClick={closeNotifs} />
               </div>
             </div>
-          </div>
+          </div>}
         </div>
         <div id="menu_center" role="menubar">
           <a href="index.php" id={(page === 'home') ? "thispage" : ""} role="menuitem">{language ? 'Home' : 'Accueil'}</a>{" "}
