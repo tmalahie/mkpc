@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { User } from 'src/user/user.entity';
+import { I18n, I18nContext } from 'nestjs-i18n';
 import { EntityManager } from 'typeorm';
 import { Message } from './message.entity';
 import { Topic } from './topic.entity';
@@ -9,14 +9,23 @@ export class ForumController {
   constructor(private em: EntityManager) {}
 
   @Get("/topics")
-  async getTopics() {
-    const topics = await this.em.find(Topic, {
+  async getTopics(@I18n() i18n: I18nContext) {
+    let topics = await this.em.find(Topic, {
+      where: {
+        private: 0 // TODO remove filter for admins
+      },
       order: {
         lastMessageDate: "DESC"
       },
       relations: ["category"],
       take: 10
     });
+    if (i18n.detectedLanguage !== "fr") {
+      topics = [
+        ...topics.filter(t => t.getLanguage() !== "fr"),
+        ...topics.filter(t => t.getLanguage() === "fr")
+      ];
+    }
     const lastMessages = await Promise.all(topics.map(topic => this.em.findOne(Message, {
         where: {
             topic: topic.id
@@ -30,7 +39,10 @@ export class ForumController {
       id: topic.id,
       title: topic.title,
       nbMessages: topic.nbMessages,
-      category: topic.category,
+      category: {
+        id: topic.category.id,
+        name: topic.category.getName(i18n.detectedLanguage)
+      },
       lastMessage: {
         author: lastMessages[i].author,
         date: lastMessages[i].date

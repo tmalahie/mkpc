@@ -14,7 +14,13 @@ export class Topic {
   category: Category;
 
   @Column()
-  language: boolean;
+  private language: Buffer;
+  getLanguage() {
+    return this.language.toString() === '\x00' ? "fr":"en";
+  }
+  setLanguage(language) {
+    this.language = Buffer.from(language === "fr" ? "\x00" : "\x01");
+  }
 
   @Column()
   private: boolean;
