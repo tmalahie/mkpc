@@ -8,6 +8,7 @@ type DateOptions = {
   pretty?: boolean;
   includeSeconds?: boolean;
   includeYear?: "always" | "never" | "if-old";
+  shortenDays?: boolean;
   case?: "lowercase" | "uppercase" | "capitalize";
 }
 // s must be a capitalized string, like "Today" (not "today" or "TODAY")
@@ -40,12 +41,14 @@ function isOlderThanOneYear(d1: Date, d2: Date) {
 }
 function formatDay(d: Date, options: DateOptions) {
   const today = new Date();
-  if (sameDay(today, d))
-    return handleCase(language ? "Today" : "Aujourd'hui", options);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate()-1);
-  if (sameDay(yesterday, d))
-    return handleCase(language ? "Yesterday" : "Hier");
+  if (options.shortenDays !== false) {
+    if (sameDay(today, d))
+      return handleCase(language ? "Today" : "Aujourd'hui", options);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate()-1);
+    if (sameDay(yesterday, d))
+      return handleCase(language ? "Yesterday" : "Hier", options);
+  }
   const includeYearOption = options.includeYear || "if-old";
   const includeYear = includeYearOption === "always" || (includeYearOption === "if-old" && isOlderThanOneYear(d, today));
   
@@ -74,7 +77,7 @@ function formatDate(d: Date | string | number, options: DateOptions = {}) {
     if (new Date().getTime()-date.getTime() < 86400000)
       res = formatHour(date, options);
     else
-      res = formatDay(date, options);
+      res = formatDay(date, {...options, shortenDays:false});
     break;
   case "date":
     res = formatDay(date, options);
