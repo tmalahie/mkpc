@@ -280,7 +280,7 @@ function Home() {
               </div>
 
               <div className="fp-slides-items">
-                <div className="fp-thumbnail" style={{ background: "url('" + diapo8 + "') top" }}>
+                <div className="fp-thumbnail" style={{ backgroundImage: "url('" + diapo8 + "')" }}>
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
