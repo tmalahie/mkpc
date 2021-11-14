@@ -305,7 +305,7 @@ while ($myNotif = mysql_fetch_array($myNotifications)) {
                 $currentCoTime = time();
                 $minCoTime = floor(($currentCoTime - 15) * 1000 / 67);
 
-                require_once('public_links.php');
+                require_once('../includes/public_links.php');
                 $getPlayingMode = mysql_query('(
                     SELECT m.id,m.mode,m.cup,m.link
                     FROM mkjoueurs j
@@ -503,7 +503,7 @@ for ($i = 0; $i < $nbNotifs; $i++) {
             $clData = $notifData['challenge'];
             $clName = htmlspecialchars($clData['name']);
             if (!$clName) {
-                require_once('utils-challenges.php');
+                require_once('../includes/utils-challenges.php');
                 $clFulldata = getChallengeDetails($clData);
                 $clName = $clFulldata['description']['main'];
                 if (strlen($clName) >= 70)
@@ -539,7 +539,7 @@ for ($i = 0; $i < $nbNotifs; $i++) {
             $clData = $notifData['challenge'];
             $clName = htmlspecialchars($clData['name']);
             if (!$clName) {
-                require_once('utils-challenges.php');
+                require_once('../includes/utils-challenges.php');
                 $clFulldata = getChallengeDetails($clData);
                 $clName = $clFulldata['description']['main'];
                 if (strlen($clName) >= 70)
@@ -624,5 +624,6 @@ foreach ($notifsData as $i => $notifData) {
     $res[] = $notifData;
 }
 renderResponse(array(
-    'data' => $res
+    'data' => $res,
+    'count' => $nbNotifs
 ));
