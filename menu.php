@@ -482,7 +482,7 @@
 		function decodeAndEscapeCircuitNames($str) {
 			global $language;
 			if ($str)
-				return htmlspecialchars(escapeCircuitNames(utf8_encode($str)));
+				return htmlspecialchars(escapeCircuitNames($str));
 			return $language ? 'Untitled':'Sans titre';
 		}
 		for ($i=0;$i<$nbNotifs;$i++) {

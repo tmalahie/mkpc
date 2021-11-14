@@ -42,14 +42,14 @@ if ($id) {
 		return $str;
 	}
 	function controlLengthUtf8($str,$len) {
-		return @iconv('windows-1252', 'utf-8', controlLength($str,$len));
+		return controlLength($str,$len);
 	}
 	include('o_utils.php');
 	while ($chat = mysql_fetch_array($lastChats)) {
 		if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id='. $chat['other']))) {
 		  echo $v;
 		  echo '[';
-		  echo $chat['other'].',"'.$getPseudo['nom'].'","'.parse_msg(iconv('utf-8', 'windows-1252', controlLengthUtf8($chat['message'],50))).'",'.$chat['nbmsgs'].','.$chat['seen'];
+		  echo $chat['other'].',"'.$getPseudo['nom'].'","'.parse_msg(controlLengthUtf8($chat['message'],50)).'",'.$chat['nbmsgs'].','.$chat['seen'];
 	  	echo ']';
 		  $v = ',';
 	 }

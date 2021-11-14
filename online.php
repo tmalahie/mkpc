@@ -2,7 +2,6 @@
 include('session.php');
 include('language.php');
 include('initdb.php');
-mysql_set_charset('utf8');
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))
 	$myPseudo = $getPseudo['nom'];
 else

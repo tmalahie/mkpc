@@ -117,7 +117,7 @@ if (isset($_GET['id'])) {
 			return ($nb >= 2) ? 's':'';
 		}
 		function toUtf8($str) {
-			return iconv('windows-1252', 'utf-8', $str);
+			return $str;
 		}
 		function controlLength($str,$maxLength) {
 			$pts = '...';
@@ -463,7 +463,7 @@ include('menu.php');
 						?>
 						<div>
 							<div class="country-ic" style="background-image:url('images/flags/<?php echo $countryData['code'] ?>.png')"></div>
-							<?php echo htmlspecialchars(utf8_encode($countryData['name'])); ?>
+							<?php echo htmlspecialchars($countryData['name']); ?>
 						</div>
 						<?php
 					}

@@ -329,7 +329,7 @@ var autoSelectMap<?php
 var circuitGroups = <?php
 require_once('circuitEscape.php');
 function escapeUtf8($str) {
-	return addslashes(htmlspecialchars(escapeCircuitNames(utf8_encode($str))));
+	return addslashes(htmlspecialchars(escapeCircuitNames($str)));
 }
 function dict_to_array(&$chunks) {
 	$res = array();

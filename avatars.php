@@ -109,7 +109,7 @@ function get_flag_from_id($id) {
 function print_flag($id) {
 	$flagData = get_flag_data($id);
 	if ($flagData)
-		echo '<div class="mCountry"><div class="country-ic" style="background-image:url(\'images/flags/'. $flagData['code'] .'.png\')"></div> '. htmlspecialchars(utf8_encode($flagData['name'])) .'</div>';
+		echo '<div class="mCountry"><div class="country-ic" style="background-image:url(\'images/flags/'. $flagData['code'] .'.png\')"></div> '. htmlspecialchars($flagData['name']) .'</div>';
 }
 $LEAGUES_SCORES = array(4000,5000,6000,8000,10000,15000,20000,40000,100000);
 function get_league_name($pts) {

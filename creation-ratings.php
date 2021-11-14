@@ -148,7 +148,7 @@ if (isset($_GET['url'])) {
             if ($getCircuit = mysql_fetch_array(mysql_query('SELECT nom,identifiant FROM `'. $circuitType .'` WHERE id='. $circuitId))) {
                 $myCircuit = ($getCircuit['identifiant'] == $identifiants[0]);
                 ?>
-                <h2><?php echo ($language ? 'Ratings of' : 'Notes de') . ' '. htmlspecialchars(utf8_encode($getCircuit['nom'])); ?> :</h2>
+                <h2><?php echo ($language ? 'Ratings of' : 'Notes de') . ' '. htmlspecialchars($getCircuit['nom']); ?> :</h2>
                 <table>
                 	<tr id="titres">
                         <td style="min-width: 120px"><?php echo $language ? 'Nick':'Pseudo'; ?></td>
