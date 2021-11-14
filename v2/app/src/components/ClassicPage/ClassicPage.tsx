@@ -42,17 +42,22 @@ function ClassicPage(props) {
 
   const { data: notifsPayload } = useFetch(`api/getNotifs.php`);
   const [notifsList, setNotifsList] = useState<Notif[]>(null);
+  const [nbNotifs, setNbNotifs] = useState<number>(null);
   useEffect(() => {
-    setNotifsList(notifsPayload?.data);
+    if (notifsPayload) {
+      setNotifsList(notifsPayload.data);
+      setNbNotifs(notifsPayload.count);
+    }
   }, [notifsPayload]);
-  const nbNotifs = notifsList?.length ?? 0;
 
   function closeNotifs() {
     setNotifsList([]);
+    setNbNotifs(0);
   }
   function closeNotif(e,notif) {
     e.preventDefault();
     setNotifsList(notifsList.filter(n => n.id !== notif.id));
+    setNbNotifs(nbNotifs - 1);
     // TODO make API call to close notif
   }
 
