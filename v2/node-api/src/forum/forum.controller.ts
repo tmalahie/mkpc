@@ -1,5 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
+import { Auth } from '../auth/auth.decorator';
 import { I18n, I18nContext } from 'nestjs-i18n';
+import { AuthUser, GetUser } from 'src/user/user.decorator';
 import { EntityManager } from 'typeorm';
 import { Message } from './message.entity';
 import { Topic } from './topic.entity';
@@ -8,8 +10,9 @@ import { Topic } from './topic.entity';
 export class ForumController {
   constructor(private em: EntityManager) {}
 
+  @Auth()
   @Get("/topics")
-  async getTopics(@I18n() i18n: I18nContext) {
+  async getTopics(@GetUser() user: AuthUser, @I18n() i18n: I18nContext) {
     let topics = await this.em.find(Topic, {
       where: {
         private: 0 // TODO remove filter for admins

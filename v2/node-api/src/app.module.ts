@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { TranslationModule } from './translation/translation.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { TranslationModule } from './translation/translation.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-    }), ForumModule, TranslationModule],
+    }), ForumModule, TranslationModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
