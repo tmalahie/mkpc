@@ -6,7 +6,6 @@ include('getId.php');
 include('initdb.php');
 include('language.php');
 require_once('utils-challenges.php');
-mysql_set_charset('utf8');
 include('creation-challenges.php');
 require_once('circuitPrefix.php');
 $cName = null;
@@ -254,7 +253,7 @@ if ($canChange) {
 	}
 	?>
 	function getValue(name) {
-		return escape(document.getElementById(name).value).replace(/\+/g, "%2B");
+		return encodeURIComponent(document.getElementById(name).value);
 	}
 <?php
 }

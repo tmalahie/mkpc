@@ -547,15 +547,13 @@ function getChallengeDetails($challenge, &$params=array()) {
 		'data' => $challengeData,
 		'description' => getChallengeDescription($challengeData)
 	);
-	if (!empty($params['utf8']))
-		$res['name'] = @iconv('utf-8', 'windows-1252', $challenge['name']);
 	if (!empty($params['rating']))
 		$res['rating'] = array('avg' => $challenge['avgrating'], 'nb' => $challenge['nbratings']);
 	if (!empty($params['circuit'])) {
 		$res['circuit'] = getCircuitPayload($challenge);
 		if (empty($params['utf8']) && empty($params['circuit.raw']) && !empty($res['circuit'])) {
-			$res['circuit']['name'] = htmlspecialchars(escapeCircuitNames(iconv('windows-1252', 'utf-8', $res['circuit']['name'])));
-			$res['circuit']['author'] = htmlspecialchars(escapeCircuitNames(iconv('windows-1252', 'utf-8', $res['circuit']['author'])));
+			$res['circuit']['name'] = htmlspecialchars(escapeCircuitNames($res['circuit']['name']));
+			$res['circuit']['author'] = htmlspecialchars(escapeCircuitNames($res['circuit']['author']));
 		}
 	}
 	if (!empty($params['winners'])) {

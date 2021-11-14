@@ -4,7 +4,6 @@ include('language.php');
 $cids = array();
 $editting = true;
 include('initdb.php');
-mysql_set_charset('utf8');
 if (isset($_GET['cid'])) {
 	$id = $_GET['cid'];
 	if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $id .'" AND mode="'. $mode .'"'))) {

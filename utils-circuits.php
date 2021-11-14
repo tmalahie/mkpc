@@ -20,7 +20,6 @@ function listRaces($sql) {
 	return $liste;
 }
 function toSQLSearch($search) {
-	$search = utf8_decode($search);
 	$search = str_replace('"', '""', $search);
 	$search = str_replace('\\', '\\\\\\\\', $search);
 	$search = str_replace('_', '\\_', $search);
@@ -191,7 +190,7 @@ function countRows($sql,&$params) {
 	return $count['nb'];
 }
 function escape($str) {
-	return str_replace('</script>', '<\/script>', str_replace('%u', '\\u', str_replace('"', '\\"', str_replace('\\', '\\\\', utf8_encode($str)))));
+	return str_replace('</script>', '<\/script>', str_replace('%u', '\\u', str_replace('"', '\\"', str_replace('\\', '\\\\', $str))));
 }
 function addCircuitsData(&$creationsList) {
 	$lCups = array();

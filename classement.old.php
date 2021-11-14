@@ -236,7 +236,7 @@ function Resultat() {
 var circuits = <?php
 require_once('circuitEscape.php');
 function escapeUtf8($str) {
-	return addslashes(htmlspecialchars(escapeCircuitNames(utf8_encode($str))));
+	return addslashes(htmlspecialchars(escapeCircuitNames($str)));
 }
 if ($creation) {
 	echo '[';
@@ -274,7 +274,7 @@ elseif (isset($user))
 else
 	$getResults = mysql_query('SELECT r.*,c.code FROM `records_bkp` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id ORDER BY r.temps');
 while ($result = mysql_fetch_array($getResults))
-	echo 'classement['. ($creation ? 'circuits['. array_search($result['circuit'],$cIDs) .']':'"'. utf8_encode($result['circuit']) .'"') .'].classement.push(["'.addslashes($result['nom']).'","'.addslashes($result['perso']).'",'.$result['temps'].','.$result['player'].','.'"'.$result['code'].'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
+	echo 'classement['. ($creation ? 'circuits['. array_search($result['circuit'],$cIDs) .']':'"'. $result['circuit'] .'"') .'].classement.push(["'.addslashes($result['nom']).'","'.addslashes($result['perso']).'",'.$result['temps'].','.$result['player'].','.'"'.$result['code'].'"'.(isset($result['shown']) ? ','.$result['shown']:'').']);';
 ?>
 for (var i=circuits.length-1;i>=0;i--) {
 	var circuit = circuits[i];

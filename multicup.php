@@ -5,7 +5,6 @@ $mids = array();
 $editting = true;
 $cOptions = isset($_GET['opt']) ? $_GET['opt']:null;
 include('initdb.php');
-mysql_set_charset('utf8');
 if (isset($_GET['mid'])) {
 	$id = $_GET['mid'];
 	$getCups = mysql_query('SELECT cup FROM `mkmcups_tracks` WHERE mcup="'. $id .'" ORDER BY ordering');

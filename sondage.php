@@ -1,7 +1,6 @@
 <?php
 if (isset($_GET['id'])) {
 	include('initdb.php');
-	mysql_set_charset('utf8');
 	include('language.php');
 	$lang = $language ? 'en':'fr';
 	$getPoll = mysql_query('SELECT *,title_'.$lang.' AS title,question_'.$lang.' AS question  FROM `mkpolls` WHERE id="'. $_GET['id'] .'"');
@@ -28,7 +27,6 @@ if (isset($_GET['id'])) {
 				if (($type == 'radio')?($_POST['vote']==$champ['id']):isset($_POST['vote'.$champ['id']]))
 					mysql_query('INSERT INTO `mkvotes` VALUES("'. $id .'",'.$champ['id'].')');
 			}
-			mysql_set_charset('utf8');
 			$getChamps = mysql_query('SELECT * FROM `mkpollres` WHERE poll="'. $_GET['id'] .'"');
 		}
 		$getSelected = mysql_query('SELECT * FROM `mkvotes` WHERE user="'. $id .'" AND answer IN (SELECT id FROM `mkpollres` WHERE poll="'. $_GET['id'] .'")');
@@ -36,7 +34,6 @@ if (isset($_GET['id'])) {
 		while ($selectedAnswer = mysql_fetch_array($getSelected)) {
 			$selected[$selectedAnswer['answer']] = true;
 		}
-		mysql_set_charset('latin');
 	?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">

@@ -29,7 +29,7 @@ include('menu.php');
 	<div class="comments-list">
 		<?php
 		function toUtf8($str) {
-			return iconv('windows-1252', 'utf-8', $str);
+			return $str;
 		}
 		$lastComments = mysql_query('SELECT id,circuit,type,message,date FROM `mkcomments` WHERE auteur="'. $_GET['user'] .'" ORDER BY id DESC');
 		$comments = array();

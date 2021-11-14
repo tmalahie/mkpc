@@ -44,7 +44,7 @@ if (isset($_POST['joueur']) && isset($_POST['country'])) {
             $countryId = 0;
         mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Flag '. $getId['id'] .' '. $country .'")');
         mysql_query('UPDATE `mkprofiles` SET country="'. $countryId .'" WHERE id="'. $getId['id'] .'"');
-        $success = $language ? '<strong>'. $nick .'</strong>\'s country has been updated to <strong>'. utf8_encode($getCountryId['name']) .'</strong>' : 'Le pays de <strong>'. $nick .'</strong> vient d\'être changé en <strong>'. utf8_encode($getCountryId['name']) .'</strong>';
+        $success = $language ? '<strong>'. $nick .'</strong>\'s country has been updated to <strong>'. $getCountryId['name'] .'</strong>' : 'Le pays de <strong>'. $nick .'</strong> vient d\'être changé en <strong>'. $getCountryId['name'] .'</strong>';
 	}
 	else
 		$message = $language ? 'This player does not exist':'Ce membre n\'existe pas';

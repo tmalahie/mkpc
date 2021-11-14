@@ -499,7 +499,7 @@ $slidesPath = 'images/slides';
 			return escapeUtf8(decodeUtf8(controlLength($str,$len)));
 		}
 		function decodeUtf8($str) {
-			return iconv('windows-1252', 'utf-8', $str);
+			return $str;
 		}
 		require_once('circuitEscape.php');
 		function escapeUtf8($str) {
