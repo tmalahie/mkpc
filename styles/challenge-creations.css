@@ -214,6 +214,7 @@
 .challenges-item-author {
 	max-width: 100px;
 	margin-bottom: 4px;
+	padding-left: 2px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -222,6 +223,10 @@
 }
 .challenges-list-item-rate .challenges-item-author {
 	max-width: 200px;
+}
+.challenges-list-item-moderate .challenges-item-author {
+	position: relative;
+	top: 3px;
 }
 .challenges-list-item-rate .challenges-item-rating {
 	margin: 2px 0;

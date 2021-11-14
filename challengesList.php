@@ -103,7 +103,7 @@ $nbPages = ceil($nbChallenges/$challengesPerPage);
 include('heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/creations.css" />
-<link rel="stylesheet" type="text/css" href="styles/challenge-creations.css" />
+<link rel="stylesheet" type="text/css" href="styles/challenge-creations.css?reload=1" />
 
 <?php
 include('o_online.php');
@@ -478,6 +478,15 @@ include('menu.php');
 								<span class="challenge-item-link" onclick="uneditDifficulty(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Undo':'Annuler'; ?></span>
 							</div>
 						</div>
+						<?php
+						if ($circuit['author']) {
+							?>
+							<div class="challenges-item-author">
+								<?php echo ($language ? 'By':'Par').' <strong>'. $circuit['author'] .'</strong>'; ?>
+							</div>
+							<?php
+						}
+						?>
 						<div class="challenges-item-moderation">
 							<button class="challenges-item-accept" onclick="acceptChallenge(<?php echo $challenge['id']; ?>)">&check;</button>
 							<button class="challenges-item-reject" onclick="rejectChallenge(<?php echo $challenge['id']; ?>)">&times;</button>
