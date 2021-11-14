@@ -18,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+      charset: "latin1",
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
     }), ForumModule, TranslationModule, AuthModule],
   controllers: [AppController],

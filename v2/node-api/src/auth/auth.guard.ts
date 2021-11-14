@@ -1,20 +1,30 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { AuthUser } from 'src/user/user.decorator';
 import axios from 'axios';
+import { UserRole } from './userRole.entity';
+import { EntityManager } from 'typeorm';
 export enum Role {
   ADMIN = 'admin',
   MODERATOR = 'moderator',
   ORGANIZER = 'organizer',
   PUBLISHER = 'publisher',
   CLVALIDATOR = 'clvalidator',
+  MANAGER = 'manager'
 }
 @Injectable()
+export class EntityManagerProvider {
+  public static em: EntityManager;
+  constructor(em: EntityManager) {
+    EntityManagerProvider.em = em;
+  }
+}
 export class AuthGuard implements CanActivate {
   constructor(private loginRequired: boolean, private loadRoles, private requiredRoles: Role[]) {}
   
   async canActivate(
     context: ExecutionContext,
   ): Promise<boolean> {
+    const em = EntityManagerProvider.em;
     const request = context.switchToHttp().getRequest();
     const id = await this.getUserIdFromRequest(request);
     const user: AuthUser = {
@@ -22,7 +32,27 @@ export class AuthGuard implements CanActivate {
     }
     if (this.loadRoles) {
       user.roles = {};
-      // TODO get user roles
+      const userRoles = await em.find(UserRole, {
+        where: {
+          player: id
+        }
+      });
+      for (const role of userRoles) {
+        user.roles[role.privilege] = true;
+      }
+      /*
+		if (isset($res['admin'])) {
+			$res['moderator'] = true;
+			$res['organizer'] = true;
+		}
+		if (isset($res['moderator']) || isset($res['organizer']))
+			$res['manager'] = true;*/
+      if (user.roles.admin) {
+        user.roles.moderator = true;
+        user.roles.organizer = true;
+      }
+      if (user.roles.moderator || user.roles.organizer)
+        user.roles.manager = true;
     }
     request.user = user;
     if (this.loginRequired && !user.id)

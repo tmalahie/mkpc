@@ -10,12 +10,13 @@ import { Topic } from './topic.entity';
 export class ForumController {
   constructor(private em: EntityManager) {}
 
-  @Auth()
+  @Auth({loadRoles: true})
   @Get("/topics")
   async getTopics(@GetUser() user: AuthUser, @I18n() i18n: I18nContext) {
+    console.log(user);
     let topics = await this.em.find(Topic, {
-      where: {
-        private: 0 // TODO remove filter for admins
+      where: user.roles.moderator ? {} : {
+        private: 0
       },
       order: {
         lastMessageDate: "DESC"
