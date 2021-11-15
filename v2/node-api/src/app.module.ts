@@ -7,6 +7,7 @@ import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { TranslationModule } from './translation/translation.module';
 import { AuthModule } from './auth/auth.module';
+import { NewsModule } from './news/news.module';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { AuthModule } from './auth/auth.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-    }), ForumModule, TranslationModule, AuthModule],
+    }), ForumModule, TranslationModule, AuthModule, NewsModule],
   controllers: [AppController],
   providers: [AppService],
 })

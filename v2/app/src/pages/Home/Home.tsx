@@ -118,6 +118,7 @@ function Home() {
   });
 
   const { data: topicsPayload } = useFetch(`api/forum/topics`);
+  const { data: newsPayload } = useFetch(`api/news`);
 
   return (
     <ClassicPage page="home">
@@ -491,14 +492,14 @@ function Home() {
           <SectionBar title="Forum" link="forum.php" />
           <h2>{language ? 'Last topics' : 'Derniers topics'}</h2>
           <div id="forum_section" className="right_subsection">
-            {topicsPayload?.data.map(topic => {console.log(topic); return <a key={topic.id} href={"topic.php?topic="+topic.id} title={topic.title}>
-              <h2>{topic.title/* TODO control length */}</h2>
+            {topicsPayload?.data.map(topic => <a key={topic.id} href={"topic.php?topic="+topic.id} title={topic.title}>
+              <h2>{topic.title}</h2>
               <h3>{ language ? 'Last message':'Dernier message' }
               {topic.lastMessage.author && <> {language ? 'by':'par'} <strong>{topic.lastMessage.author.name}</strong></>}
               {" "}
               {formatDate(topic.lastMessage.date, { prefix: true, mode: "short" })}</h3>
               <div className="creation_comments" title={plural("%n message%s", topic.nbMessages)}><img src="images/comments.png" alt="Messages" /> {topic.nbMessages}</div>
-            </a>})}
+            </a>)}
           </div>
           <a className="right_section_actions action_button" href="forum.php">{language ? 'Go to the forum' : 'Accéder au forum'}</a>
         </div>
@@ -506,50 +507,14 @@ function Home() {
           <SectionBar title="News" link="listNews.php" />
           <h2>{language ? 'Latest news' : 'Dernières news'}</h2>
           <div id="news_section" className="right_subsection">
-            {/*<?php
-				date_default_timezone_set('Europe/Paris');
-				$getNews = mysql_query('SELECT n.id,n.title,n.nbcomments,
-					name'. $language .' AS name,author,
-					category,c.name'. $language .' AS catname,
-					n.publication_date
-					FROM `mknews` n
-					INNER JOIN `mkcats` c ON n.category=c.id
-					WHERE status="accepted"
-					ORDER BY n.publication_date DESC
-					LIMIT 8
-				');
-				$lastNewsDate = time();
-				if ($id) {
-					$lastNewsDate -= 7*86400;
-					if ($lastNewsRead = mysql_fetch_array(mysql_query('SELECT date FROM `mknewsread` WHERE user='.$id)))
-						$lastNewsDate = max($lastNewsDate,strtotime($lastNewsRead['date']));
-				}
-				$nbnews = 0;
-				while ($news = mysql_fetch_array($getNews)) {
-					$nbnews++;
-					$name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id='. $news['author']));
-					$nbMsgs = $news['nbcomments'];
-					$isNew = (strtotime($news['publication_date']) > $lastNewsDate);
-					?>
-					<a href="news.php?id=<?php echo $news['id']; ?>" title="<?php echo htmlspecialchars($news['title']); ?>"<?php if ($isNew) echo ' className="news_new"'; ?>>
-						<h2><?php echo htmlspecialchars(controlLength($news['title'],40)); ?></h2>
-						<h3>{ language ? 'In':'Dans' } <strong><?php echo $news['catname']; ?></strong> <?php echo ($name ? ($language ? 'by':'par') .' <strong>'. $name['nom'].'</strong> ':'').pretty_dates_short($news['publication_date'],array('lower'=>true)); ?></h3>
-						<div className="creation_comments" title="<?php echo $nbMsgs. ' '.($language ? 'comment':'commentaire'). (($nbMsgs>1) ? 's':''); ?>"><img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?></div>
-					</a>
-					<?php
-				}
-				date_default_timezone_set('UTC');
-				if (!$nbnews)
-					echo '<div style="text-align:center;margin-top:55px">'. ($language ? 'No news yet':'Aucune news pour l\'instant').'</div>';
-      ?>*/}
+            {
+              newsPayload?.data.map(news => <a key={news.id} href={"news.php?id="+news.id} title={news.title} className={news.isNew ? "news_new":"" /* TODO */}>
+                <h2>{news.title}</h2>
+                <h3>{ language ? 'In':'Dans' } <strong>{ news.category.name }</strong> {news.name ? <>{language ? 'by':'par'} <strong>{news.name}</strong> </>:<></>}){formatDate(news.publicationDate, { prefix: true, mode: "short" })}</h3>
+                <div className="creation_comments" title={plural(language ? '%n comment%s':'%n commentaire%s', news.nbComments)}><img src="images/comments.png" alt="Messages" /> {news.nbComments}</div>
+              </a>)
+            }
           </div>
-          {/*<?php
-			if (hasRight('publisher')) {
-				$getPendingNews = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mknews WHERE status="pending"'));
-				if ($getPendingNews['nb'])
-					echo '<p className="nb-pending-news"><a href="listNews.php#pending-news">'. $getPendingNews['nb'] .' '. ($language ? 'pending':'news') .'</a> '. ($language ? 'news':'en attente de validation') .'</p>';
-			}
-    ?>*/}
           <a className="right_section_actions action_button" href="listNews.php">{language ? 'All news' : 'Toutes les news'}</a>
         </div>
         <div className="subsection">
