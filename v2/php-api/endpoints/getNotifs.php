@@ -593,7 +593,8 @@ for ($i = 0; $i < $nbNotifs; $i++) {
             $notifsData[$i]['content'] = $namesJoined . ' ' . $verb . ' ' . ($language ? 'currently playing online' : 'actuellement en ligne') . $additionnal;
             break;
         case 'new_record':
-            include_once('circuitNames.php');
+            include_once('../includes/circuits.php');
+            $circuitNames = getCircuitNames();
             $verb = ($language ? 'broke' : ((count($names) > 1) ? 'ont battu' : ' a battu'));
             $notifsData[$i]['content'] = $namesJoined . ' ' . $verb . ' ' . ($language ? 'your record on the circuit' : 'votre record sur le circuit') . ' <strong>' . $circuitNames[$notifData['record']['circuit'] - 1] . '</strong>';
             break;
