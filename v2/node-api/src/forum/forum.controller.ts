@@ -13,7 +13,6 @@ export class ForumController {
   @Auth({loadRoles: true})
   @Get("/topics")
   async getTopics(@GetUser() user: AuthUser, @I18n() i18n: I18nContext) {
-    console.log(user);
     let topics = await this.em.find(Topic, {
       where: user.roles.moderator ? {} : {
         private: 0

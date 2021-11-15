@@ -80,6 +80,9 @@ a img {
 	text-decoration: none;
 	margin: 0;
 	margin-right: 35px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 	padding: 2px 0px 1px 3px;
 	color: #060;
 }
@@ -133,6 +136,9 @@ a img {
 	text-decoration: none;
 	margin: 0;
 	margin-right: 35px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 	padding: 2px 0px 1px 3px;
 	color: #016;
 }
