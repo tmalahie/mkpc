@@ -217,6 +217,8 @@ function addCircuitsData(&$creationsList) {
 		addCircuitData($track,$lCups,$mCups);
 }
 function addCircuitData(&$circuit,&$lCups,&$mCups) {
+	global $rootDirectory;
+	if (!isset($rootDirectory)) $rootDirectory = '.';
 	$linkBg = '';
 	$linkPreview = array();
 	$linksCached = array();
@@ -297,7 +299,7 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 	}
 	$allCached = true;
 	foreach ($linksCached as $link) {
-		$filename = 'images/creation_icons/'.$link;
+		$filename = "$rootDirectory/images/creation_icons/$link";
 		if (file_exists($filename))
 			touch_async($filename);
 		else {

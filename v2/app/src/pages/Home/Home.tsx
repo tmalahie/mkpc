@@ -1,5 +1,6 @@
 
 import ClassicPage from "../../components/ClassicPage/ClassicPage";
+import Rating from "../../components/Rating/Rating";
 import useLanguage, { plural } from "../../hooks/useLanguage";
 import useScript, { insertScript } from "../../hooks/useScript";
 import "./Home.css"
@@ -50,6 +51,7 @@ import ss11xs from "../../images/main/screenshots/ss11xs.png"
 import ss12xs from "../../images/main/screenshots/ss12xs.png"
 import useFetch from "../../hooks/useFetch";
 import formatDate from "../../helpers/dates";
+import { useEffect, useMemo } from "react";
 
 const screenshots = [[{
   xs: ss1xs,
@@ -116,9 +118,109 @@ function Home() {
       insertScript("/scripts/init-diapos.js");
     }
   });
+  useScript("/scripts/posticons.js");
+  
+  function previewCreation(creation) {
+    window.open(creation);
+  }
+  /*function cmpCreations($line1, $line2) {
+    $score1 = $line1['score'];
+    $score2 = $line2['score'];
+    if ($score1 < $score2)
+      return 1;
+    if ($score2 < $score1)
+      return -1;
+    $time1 = strtotime($line1['publication_date']);
+    $time2 = strtotime($line2['publication_date']);
+    if ($time1 < $time2)
+      return 1;
+    if ($time1 < $time2)
+      return -1;
+    return 0;
+  }
+  function sortLines($lines) {
+    $res = array();
+    $nLines = count($lines);
+    $logb = log(1.7);
+    foreach ($lines as &$line) {
+      $publishedSince = time()-strtotime($line['publication_date']);
+      $publishedSince = max($publishedSince,0);
+      $recency = 8-log($publishedSince/2000)/$logb;
+      $recency = min(max($recency,3),8);
+      $note = $line['note']-1;
+      $nbnotes = max($line['nbnotes'],1);
+      if ($note == -1) {
+        if ($recency == 8)
+          $note = $recency;
+        else
+          $note = 2;
+      }
+      elseif ($recency > $note) {
+        if ($note >= 2.6)
+          $note = $recency;
+        elseif ($note <= 1.4)
+          $nbnotes = max($nbnotes,2);
+      }
+      $line['score'] = ($recency+$note*$nbnotes)/(1+$nbnotes);
+    }
+    usort($lines, 'cmp_creation');
+    return $lines;
+  }*/
 
   const { data: topicsPayload } = useFetch(`api/forum/topics`);
   const { data: newsPayload } = useFetch(`api/news`);
+  const creationParams = useMemo(() => {
+    const nbByType = [1,1,2,2,3,3,2,2];
+    let nbByTypeParams = {};
+    for (let i=0;i<nbByType.length;i++)
+      nbByTypeParams[`nbByType[${i}]`] = nbByType[i];
+    return new URLSearchParams({
+      ...nbByTypeParams
+    }).toString();
+  }, []);
+  const { data: creationsPayload } = useFetch(`api/getCreations.php?${creationParams}`);
+  useEffect(() => {
+    // @ts-ignore
+    if (creationsPayload && window.loadCircuitImgs) {
+      // @ts-ignore
+      window.loadCircuitImgs();
+    }
+  }, [creationsPayload]);
+  const creationsSorted = useMemo(() => {
+    if (!creationsPayload)
+      return [];
+    const logb = Math.log(1.7);
+    const linesWithScore = creationsPayload.data.map((line) => {
+      let publishedSince = new Date().getTime()-line.publicationDate;
+      publishedSince = Math.max(publishedSince/1000,0);
+      let recency = 8-Math.log(publishedSince/2000)/logb;
+      recency = Math.min(Math.max(recency,3),8);
+      let rating = line.rating-1;
+      let nbRatings = Math.max(line.nbRatings,1);
+      if (rating == -1) {
+        if (recency == 8)
+          rating = recency;
+        else
+          rating = 2;
+      }
+      else if (recency > rating) {
+        if (rating >= 2.6)
+          rating = recency;
+        else if (rating <= 1.4)
+          rating = Math.max(nbRatings,2);
+      }
+      return {
+        ...line,
+        score: (recency+rating*nbRatings)/(1+nbRatings)
+      }
+    });
+    const sortedLines = linesWithScore.sort((line1, line2) => {
+      if (line1.score != line2.score)
+        return line2.score-line1.score;
+      return line2.publication_date - line1.publication_date;
+    });
+    return sortedLines.slice(0,14);
+  }, [creationsPayload]);
 
   return (
     <ClassicPage page="home">
@@ -415,39 +517,6 @@ function Home() {
         </div>
       </section>
       <section id="right_section">
-        {/*<?php
-		require_once('utils-date.php');
-		function uc_strlen($str) {
-			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
-		}
-		function uc_substr($str, $l) {
-			preg_match_all('#(%u[0-9a-fA-F]{4})+#', $str, $positions, PREG_OFFSET_CAPTURE);
-			$positions = $positions[0];
-			$res = mb_substr(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str), 0,$l);
-			foreach ($positions as $position) {
-				if ($position[1] >= strlen($res))
-					return $res;
-				$res = mb_substr($res,0,$position[1]).$position[0].mb_substr($res,$position[1]+1);
-			}
-			return $res;
-		}
-		function controlLength($str,$maxLength) {
-			$pts = '...';
-			if (uc_strlen($str) > $maxLength)
-				return uc_substr($str,$maxLength-strlen($pts)).$pts;
-			return $str;
-		}
-		function controlLengthUtf8($str,$len) {
-			return escapeUtf8(decodeUtf8(controlLength($str,$len)));
-		}
-		function decodeUtf8($str) {
-			return iconv('windows-1252', 'utf-8', $str);
-		}
-		require_once('circuitEscape.php');
-		function escapeUtf8($str) {
-			return htmlspecialchars(escapeCircuitNames($str));
-		}
-    ?>*/}
         <div className="subsection">
           {/*<?php
 		if ($id) {
@@ -523,6 +592,21 @@ function Home() {
           <div id="creations_section" className="right_subsection">
             <table>
               <tbody>
+                {creationsSorted.map(creation => <tr key={creation.id} className="creation_line">
+                  <td className={"creation_icon "+ (creation.isCup ? 'creation_cup':'single_creation')}
+                    style={{ backgroundImage: creation.icons ? creation.icons.map(src => `url('images/creation_icons/${src}')`).join(",") : undefined }}
+                    data-cicon={creation.icons ? undefined : creation.cicon}
+                    title={language ? 'Preview':'Aperçu'}
+                    onClick={() => previewCreation(creation)}>
+                  </td>
+                  <td className="creation_description">
+                    <a href={creation.href} title={creation.name}>
+                      <h2>{creation.name || (language ? "Untitled":"Sans titre")}</h2>
+                      <Rating rating={creation.rating} nbRatings={creation.nbRatings} label={<h3>{creation.author && <>{language ? "By":"Par"}{" "}{creation.author /* TODO control length */}</>}</h3>} />                      {(creation.nbComments>0) && <div className="creation_coms" title={plural(language ? "%n comment%s" : "%n commentaire%s", creation.nbComments)}><img src="images/comments.png" alt="Commentaires" />{creation.nbComments}</div>}
+                      <div className="creation_date" title={(language ? 'Published':'Publié')+' '+formatDate(creation.publicationDate, {prefix:true, mode: "datetime"})}><img src="images/records.png" alt="Date" />{formatDate(creation.publicationDate, {mode: "short"})}</div>
+                    </a>
+                  </td>
+                </tr>)}
                 {/*<?php
 					function getNom($circuit) {
 						global $language;
