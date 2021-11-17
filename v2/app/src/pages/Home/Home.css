@@ -204,16 +204,13 @@ a img {
 .nb-pending-news a:hover {
 	color: #19F;
 }
+#creations_section table {
+	table-layout: fixed;
+}
 .creation_description a {
 	display: block;
 	text-decoration: none;
-	overflow-wrap: break-word;
-	word-wrap: break-word;
-	word-break: break-word;
-	-ms-hyphens: auto;
-	-moz-hyphens: auto;
-	-webkit-hyphens: auto;
-	hyphens: auto;
+	overflow: hidden;
 }
 .creation_description h2 {
 	font-weight: bold;
@@ -222,6 +219,9 @@ a img {
 	margin: 0;
 	padding: 2px 40px 1px 3px;
 	color: #006;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 .creation_description h3 {
 	font-weight: normal;
