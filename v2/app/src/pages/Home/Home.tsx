@@ -123,49 +123,6 @@ function Home() {
   function previewCreation(creation) {
     window.open(creation);
   }
-  /*function cmpCreations($line1, $line2) {
-    $score1 = $line1['score'];
-    $score2 = $line2['score'];
-    if ($score1 < $score2)
-      return 1;
-    if ($score2 < $score1)
-      return -1;
-    $time1 = strtotime($line1['publication_date']);
-    $time2 = strtotime($line2['publication_date']);
-    if ($time1 < $time2)
-      return 1;
-    if ($time1 < $time2)
-      return -1;
-    return 0;
-  }
-  function sortLines($lines) {
-    $res = array();
-    $nLines = count($lines);
-    $logb = log(1.7);
-    foreach ($lines as &$line) {
-      $publishedSince = time()-strtotime($line['publication_date']);
-      $publishedSince = max($publishedSince,0);
-      $recency = 8-log($publishedSince/2000)/$logb;
-      $recency = min(max($recency,3),8);
-      $note = $line['note']-1;
-      $nbnotes = max($line['nbnotes'],1);
-      if ($note == -1) {
-        if ($recency == 8)
-          $note = $recency;
-        else
-          $note = 2;
-      }
-      elseif ($recency > $note) {
-        if ($note >= 2.6)
-          $note = $recency;
-        elseif ($note <= 1.4)
-          $nbnotes = max($nbnotes,2);
-      }
-      $line['score'] = ($recency+$note*$nbnotes)/(1+$nbnotes);
-    }
-    usort($lines, 'cmp_creation');
-    return $lines;
-  }*/
 
   const { data: topicsPayload } = useFetch(`api/forum/topics`);
   const { data: newsPayload } = useFetch(`api/news`);
@@ -221,6 +178,13 @@ function Home() {
     });
     return sortedLines.slice(0,14);
   }, [creationsPayload]);
+
+  const { data: challengesPayload } = useFetch(`api/getChallenges.php`);
+  const challengesSorted = useMemo(() => {
+    if (!challengesPayload)
+      return [];
+    return challengesPayload.data.slice(0,15);
+  }, [challengesPayload]);
 
   return (
     <ClassicPage page="home">
@@ -607,98 +571,30 @@ function Home() {
                     </a>
                   </td>
                 </tr>)}
-                {/*<?php
-					function getNom($circuit) {
-						global $language;
-						return ($circuit['nom'] ? controlLengthUtf8($circuit['nom'],25):($language ? 'Untitled':'Sans titre'));
-					}
-					function getAuteur($circuit) {
-						global $language;
-						return ($circuit['auteur'] ? ($language ? 'By':'Par') .' <strong>'. controlLengthUtf8($circuit['auteur'],15) .'</strong>':'');
-					}
-					function cmp_creation($line1, $line2) {
-						$score1 = $line1['score'];
-						$score2 = $line2['score'];
-						if ($score1 < $score2)
-							return 1;
-						if ($score2 < $score1)
-							return -1;
-						$time1 = strtotime($line1['publication_date']);
-						$time2 = strtotime($line2['publication_date']);
-						if ($time1 < $time2)
-							return 1;
-						if ($time1 < $time2)
-							return -1;
-						return 0;
-					}
-					function sortLines($lines) {
-						$res = array();
-						$nLines = count($lines);
-						$logb = log(1.7);
-						foreach ($lines as &$line) {
-							$publishedSince = time()-strtotime($line['publication_date']);
-							$publishedSince = max($publishedSince,0);
-							$recency = 8-log($publishedSince/2000)/$logb;
-							$recency = min(max($recency,3),8);
-							$note = $line['note']-1;
-							$nbnotes = max($line['nbnotes'],1);
-							if ($note == -1) {
-								if ($recency == 8)
-									$note = $recency;
-								else
-									$note = 2;
-							}
-							elseif ($recency > $note) {
-								if ($note >= 2.6)
-									$note = $recency;
-								elseif ($note <= 1.4)
-									$nbnotes = max($nbnotes,2);
-							}
-							$line['score'] = ($recency+$note*$nbnotes)/(1+$nbnotes);
-						}
-						usort($lines, 'cmp_creation');
-						return $lines;
-					}
-					function showLine($line) {
-						global $language, $today;
-						$circuit = $line;
-						include('creation_line.php');
-					}
-					include('utils-circuits.php');
-					$nbByType = array(1,1,2,2,3,3,2,2);
-					$tracksList = listCreations(1,$nbByType,null,$aCircuits);
-					$tracksList = sortLines($tracksList);
-					$tracksList = array_slice($tracksList,0,14);
-					foreach ($tracksList as $line)
-						showLine($line);
-        ?>*/}
               </tbody>
             </table>
           </div>
           <a className="right_section_actions action_button" href="creations.php">{language ? 'Display all' : 'Afficher tout'}</a>
           <h2>{language ? 'Last challenges' : 'Derniers défis'}</h2>
           <div id="challenges_section" className="right_subsection">
-            {/*<?php
-				require_once('utils-challenges.php');
-				$getChallenges = mysql_query('SELECT c.*,l.type,l.circuit FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id WHERE c.status="active" AND l.type!="" ORDER BY date DESC LIMIT 15');
-				$challengeParams = array(
-					'circuit' => true,
-					'circuit.raw' => true
-				);
-				if ($id) {
-					$challengeParams['winners'] = true;
-					$challengeParams['id'] = $id;
-				}
-				while ($challenge = mysql_fetch_array($getChallenges)) {
-					$challengeDetails = getChallengeDetails($challenge, $challengeParams);
-					?>
-					<a href="<?php echo 'challengeTry.php?challenge='.$challenge['id']; ?>" title="<?php echo htmlspecialchars($challengeDetails['description']['main']); ?>"<?php if (isset($challengeDetails['succeeded'])) echo ' className="challenges_section_succeeded"'; ?>>
-						<h2><?php echo htmlspecialchars(controlLength($challengeDetails['description']['main'],100)); ?></h2>
-						<h3><?php echo ucfirst(($challengeDetails['circuit']['author'] ? (($language ? 'by':'par') .' <strong>'. controlLengthUtf8($challengeDetails['circuit']['author'],10) .'</strong> '):'') . ($challengeDetails['circuit']['name'] ? (($language ? 'in':'dans') . ' <strong>'. controlLengthUtf8($challengeDetails['circuit']['name'],30-min(10,strlen($challengeDetails['circuit']['author']))-strlen($challengeDetails['difficulty']['name'])) .'</strong>'):'')); ?> - <strong><?php echo $challengeDetails['difficulty']['name']; ?></strong></h3>
-					</a>
-					<?php
-				}
-      ?>*/}
+            {
+              challengesSorted.map(challenge => <a key={challenge.id} href={"challengeTry.php?challenge="+challenge.id} title={challenge.description.main} className={challenge.succeeded && "challenges_section_succeeded"}>
+                <h2>{challenge.description.main/* TODO control length */}</h2>
+                <h3>
+                  {challenge.circuit?.author && <div className="challenge_section_author">
+                    {language ? 'By':'Par'}{" "}
+                    <strong>{challenge.circuit.author /* TODO control length */}</strong>
+                  </div>}
+                  {challenge.circuit?.name && <div className="challenge_section_circuit">
+                    {challenge.circuit.author ? (language ? 'in':'dans') : (language ? 'In':'Dans')}{" "}
+                    <strong>{challenge.circuit.name /* TODO control length */}</strong>
+                  </div>}
+                  <div className="challenge_section_difficulty">
+                    {"- "}<strong>{challenge.difficulty.name}</strong>
+                  </div>
+                </h3>
+              </a>)
+            }
           </div>
           {/*
 			if (hasRight('clvalidator')) {
