@@ -367,6 +367,12 @@ a img {
 	margin: 0;
 	padding: 2px 0px 1px 3px;
 	color: #00A;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-line-clamp: 2; /* number of lines to show */
+			line-clamp: 2; 
+	-webkit-box-orient: vertical;
 }
 #challenges_section h3 {
 	font-weight: normal;
@@ -374,7 +380,29 @@ a img {
 	margin: 0;
 	padding: 0;
 	color: #889;
-	padding: 0px 0px 2px 5px;
+	padding-left: 5px;
+	max-width: 100%;
+	justify-content: flex-start;
+	gap: 0.2em;
+}
+#challenges_section h3 > div {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	display: inline-block;
+	box-sizing: border-box;
+}
+#challenges_section h3 > div:not(:first-child) {
+	margin-left: 0.15em;
+}
+#challenges_section h3 .challenge_section_author {
+	max-width: 30%;
+}
+#challenges_section h3 .challenge_section_circuit {
+	max-width: 50%;
+}
+#challenges_section h3 .challenge_section_difficulty {
+	max-width: 20%;
 }
 #challenges_section .challenges_section_succeeded h2 {
 	color: #060;
