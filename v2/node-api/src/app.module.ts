@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TranslationModule } from './translation/translation.module';
 import { AuthModule } from './auth/auth.module';
 import { NewsModule } from './news/news.module';
+import { TrackBuilderModule } from './track-builder/track-builder.module';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { NewsModule } from './news/news.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-    }), ForumModule, TranslationModule, AuthModule, NewsModule],
+    }), ForumModule, TranslationModule, AuthModule, NewsModule, TrackBuilderModule],
   controllers: [AppController],
   providers: [AppService],
 })

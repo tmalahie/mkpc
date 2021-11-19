@@ -14,6 +14,7 @@ import screenshotsIcon from "../../images/icons/camera.png"
 import thanksIcon from "../../images/icons/thanks.png"
 import followIcon from "../../images/icons/follow.png"
 import gameIcon from "../../images/icons/gamepad.png"
+import commentIcon from "../../images/icons/comment.png"
 
 import diapo1 from "../../images/main/slides/diapo1.jpg"
 import diapo2 from "../../images/main/slides/diapo2.jpg"
@@ -106,7 +107,6 @@ function SectionBar({ title, link }) {
 
 function Home() {
   const language = useLanguage();
-  const comments = [];
   useScript("/scripts/jquery.min.js", {
     async: false, onload: () => {
       insertScript("/scripts/slider.js");
@@ -185,6 +185,8 @@ function Home() {
       return [];
     return challengesPayload.data.slice(0,15);
   }, [challengesPayload]);
+
+  const { data: commentsPayload } = useFetch(`api/track-builder/comments`);
 
   return (
     <ClassicPage page="home">
@@ -608,9 +610,9 @@ function Home() {
           <div id="challenge_ranking"><a href="challengeRanking.php">{language ? 'Challenge points - Leaderboard' : 'Classement des points défis'}</a></div>
           <h2>{language ? 'Recent activity' : 'Activité récente'}</h2>
           <div id="comments_section" className="right_subsection">
-            {comments.map((comment) => (
-              <a href={comment.url} title={comment.message}>
-                <h2><img src="images/<?php echo $type; ?>.png" alt={comment.type} /> {comment.message /* TODO control length */}</h2>
+            {commentsPayload?.data.map((comment) => (
+              <a href={comment.circuit?.url} title={comment.message}>
+                <h2><img src={commentIcon} alt={comment.type} /> {comment.message /* TODO control length */}</h2>
                 <h3>{language ? 'By' : 'Par'} <strong>{comment.name /* TODO control length */}</strong> {comment.circuit.name && <>{language ? 'in' : 'dans'}{" "}<strong>{comment.circuit.name/* TODO control length */}</strong></>}{" "}{formatDate(comment.date, { prefix: true, mode: "short" })}</h3>
               </a>
             ))}
