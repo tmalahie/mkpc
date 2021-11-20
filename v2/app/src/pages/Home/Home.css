@@ -521,6 +521,7 @@ a img {
 #top10 table {
 	width: 100%;
 	border-collapse: collapse;
+	table-layout: fixed;
 }
 #top10 th {
 	padding: 5px 0;
@@ -563,10 +564,18 @@ a img {
 #top10 tr:nth-child(2n+6) {
 	background-color: #FDC;
 }
+#top10 tr td:nth-child(1), #top10 tr th:nth-child(1) {
+	width: 50px;
+}
+#top10 tr td:nth-child(3), #top10 tr th:nth-child(3) {
+	width: 70px;
+}
 #top10 tr a {
 	text-decoration: none;
 	display: block;
-	padding: 8px 0;
+	padding: 8px 4px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 #top10 tr a:hover {
 	opacity: 0.6;
