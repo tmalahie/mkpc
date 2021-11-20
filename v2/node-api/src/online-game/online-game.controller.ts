@@ -9,7 +9,7 @@ export class OnlineGameController {
   @Get("/leaderboard")
   async getLeaderboard(@Query() params) {
     const where: FindOneOptions<User>["where"] = {
-      deleted: 0
+      deleted: false
     };
     let score = "pts_vs";
     if (params) {

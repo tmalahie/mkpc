@@ -22,6 +22,7 @@ import { OnlineGameModule } from './online-game/online-game.module';
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+      logging: true,
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
     }), ForumModule, TranslationModule, AuthModule, NewsModule, TrackBuilderModule, TimeTrialModule, OnlineGameModule],
   controllers: [AppController],

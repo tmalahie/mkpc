@@ -270,8 +270,11 @@ function Home() {
   const vsLeaderboardFiltered = useMemo(() => vsLeaderboard?.data.slice(0,10) ?? [], [vsLeaderboard]);
   const { data: battleLeaderboard } = useFetch("api/online-game/leaderboard?mode=battle");
   const battleLeaderboardFiltered = useMemo(() => battleLeaderboard?.data.slice(0,10) ?? [], [battleLeaderboard]);
-  const timeTrialLeaderboard150 = useMemo(() => [], []); // TODO implement endpoint
-  const timeTrialLeaderboard200 = useMemo(() => [], []); // TODO implement endpoint
+  
+  const { data: tt150Leaderboard } = useFetch("api/time-trial/leaderboard");
+  const tt150LeaderboardFiltered = useMemo(() => tt150Leaderboard?.data.slice(0,10) ?? [], [tt150Leaderboard]);
+  const { data: tt200Leaderboard } = useFetch("api/time-trial/leaderboard?cc=200");
+  const tt200LeaderboardFiltered = useMemo(() => tt200Leaderboard?.data.slice(0,10) ?? [], [tt200Leaderboard]);
 
   const leaderboard = useMemo(() => {
     switch (leaderboardTab) {
@@ -280,11 +283,11 @@ function Home() {
     case LeaderboardTab.BATTLE:
       return battleLeaderboardFiltered;
     case LeaderboardTab.TT_150:
-      return timeTrialLeaderboard150;
+      return tt150LeaderboardFiltered;
     case LeaderboardTab.TT_200:
-      return timeTrialLeaderboard200;
+      return tt200LeaderboardFiltered;
     }
-  }, [leaderboardTab, vsLeaderboardFiltered, battleLeaderboardFiltered, timeTrialLeaderboard150, timeTrialLeaderboard200]);
+  }, [leaderboardTab, vsLeaderboardFiltered, battleLeaderboardFiltered, tt150LeaderboardFiltered, tt200LeaderboardFiltered]);
 
   return (
     <ClassicPage page="home">
