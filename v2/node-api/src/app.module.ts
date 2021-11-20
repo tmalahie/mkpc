@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { NewsModule } from './news/news.module';
 import { TrackBuilderModule } from './track-builder/track-builder.module';
 import { TimeTrialModule } from './time-trial/time-trial.module';
+import { OnlineGameModule } from './online-game/online-game.module';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { TimeTrialModule } from './time-trial/time-trial.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-    }), ForumModule, TranslationModule, AuthModule, NewsModule, TrackBuilderModule, TimeTrialModule],
+    }), ForumModule, TranslationModule, AuthModule, NewsModule, TrackBuilderModule, TimeTrialModule, OnlineGameModule],
   controllers: [AppController],
   providers: [AppService],
 })

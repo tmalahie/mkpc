@@ -751,61 +751,6 @@ footer a {
 #challenge_ranking a:hover {
 	color: #09F;
 }
-#rankings_section:not(.rank_vs) #top_vs,
-#rankings_section:not(.rank_battle) #top_battle,
-#rankings_section:not(.rank_clm150) #top_clm150,
-#rankings_section:not(.rank_clm200) #top_clm200,
-#rankings_section:not(.rank_vs) .action_gotovs,
-#rankings_section:not(.rank_battle) .action_gotobattle,
-#rankings_section:not(.rank_clm150) .action_gotoclm150,
-#rankings_section:not(.rank_clm200) .action_gotoclm200,
-#rankings_section:not(.rank_clm150):not(.rank_clm200) #clm_cc {
-	display: none;
-}
-#rankings_section:not(.rank_clm200) .action_gotoclm200 {
-	display: none;
-}
-.ranking_tabs {
-	display: table;
-	margin-left: auto;
-	margin-right: auto;
-	margin-bottom: 5px;
-	text-align: center;
-}
-.ranking_tab {
-	position: relative;
-	display: table-cell;
-	vertical-align: middle;
-	padding-left: 10px;
-	padding-right: 10px;
-	font-size: 14px;
-	height: 26px;
-	border-top: solid 1px #820;
-	border-bottom: solid 1px #820;
-}
-.ranking_tabs a {
-	text-decoration: none;
-}
-.ranking_badge {
-	position: absolute;
-	top: -10px;
-	right: -8px;
-	background-color: rgba(255,51,51, 1);
-	display: inline-block;
-	width: 19px;
-	height: 19px;
-	border-radius: 10px;
-	font-size: 12px;
-	color: white;
-	z-index: 1;
-	font-weight: bold;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-.ranking_badge span {
-	position: relative;
-}
 #currently_online {
 	min-height: 4px;
 }
@@ -857,36 +802,68 @@ footer a {
 	margin-left: 5px;
 	padding: 3px 20px;
 }
-#rankings_section.rank_battle .tab_battle .ranking_badge {
-	display: none;
+.ranking_tabs {
+	display: table;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 5px;
+	text-align: center;
 }
-#rankings_section:not(.rank_vs) #ranking_current_vs, #rankings_section:not(.rank_battle) #ranking_current_battle, #rankings_section:not(.rank_clm150):not(.rank_clm200) #ranking_current_clm {
-	display: none;
-}
-#rankings_section:not(.rank_battle) .tab_battle, #rankings_section:not(.rank_vs) .tab_vs, #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm {
-	background-color: #FED;
-	color: #C00;
+.ranking_tabs > a {
+	position: relative;
+	display: table-cell;
+	vertical-align: middle;
+	padding-left: 10px;
+	padding-right: 10px;
+	font-size: 14px;
+	height: 26px;
+	border-top: solid 1px #820;
+	border-bottom: solid 1px #820;
 	text-decoration: none;
 }
-#rankings_section:not(.rank_battle) .tab_battle:hover, #rankings_section:not(.rank_vs) .tab_vs:hover, #rankings_section:not(.rank_clm150):not(.rank_clm200) .tab_clm:hover {
-	background-color: #FFE7D5;
-	color: #C00;
-}
-#rankings_section.rank_battle .tab_battle, #rankings_section.rank_vs .tab_vs, #rankings_section.rank_clm150 .tab_clm, #rankings_section.rank_clm200 .tab_clm {
+.ranking_tabs > a.tab_selected {
 	background-color: #FDC;
 	color: #C00;
 	font-weight: bold;
 	cursor: default;
 }
-#rankings_section .tab_vs {
+.ranking_tabs > a:not(.tab_selected) {
+	background-color: #FED;
+	color: #C00;
+}
+.ranking_tabs > a:not(.tab_selected):hover {
+	background-color: #FFE7D5;
+	color: #C00;
+}
+.ranking_tabs > a:first-child {
 	border-left: solid 1px #820;
 	border-top-left-radius: 5px;
 	border-bottom-left-radius: 5px;
 }
-#rankings_section .tab_clm {
+.ranking_tabs > a:last-child {
 	border-right: solid 1px #820;
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
+}
+.ranking_badge {
+	position: absolute;
+	top: -10px;
+	right: -8px;
+	background-color: rgba(255,51,51, 1);
+	display: inline-block;
+	width: 19px;
+	height: 19px;
+	border-radius: 10px;
+	font-size: 12px;
+	color: white;
+	z-index: 1;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.ranking_badge span {
+	position: relative;
 }
 #right_section #rankings_section h2 {
 	margin-top: 10px;
@@ -906,8 +883,7 @@ footer a {
 #clm_cc span {
 	color: #C99;
 }
-#rankings_section.rank_clm150 #clm_cc a.clm_cc_150,
-#rankings_section.rank_clm200 #clm_cc a.clm_cc_200 {
+#clm_cc > a.tab_selected {
 	cursor: default;
 	color: #820;
 	font-weight: bold;
