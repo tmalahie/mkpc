@@ -7,4 +7,16 @@ export class User {
 
   @Column({name: "nom"})
   name: string;
+
+  @Column()
+  pts_vs: string;
+
+  @Column()
+  pts_battle: string;
+
+  @Column()
+  pts_challenge: string;
+
+  @Column()
+  deleted: boolean;
 }

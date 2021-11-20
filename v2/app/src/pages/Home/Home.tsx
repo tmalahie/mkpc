@@ -55,7 +55,8 @@ import useFetch from "../../hooks/useFetch";
 import { formatDate } from "../../helpers/dates";
 import { formatRank, formatTime } from "../../helpers/records";
 import { escapeHtml } from "../../helpers/strings";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import cx from "classnames";
 import { uniqBy } from "../../helpers/objects";
 
 const screenshots = [[{
@@ -109,6 +110,13 @@ function SectionBar({ title, link }) {
   );
 }
 
+enum LeaderboardTab {
+  VS = 0,
+  BATTLE = 1,
+  TT_150 = 2,
+  TT_200 = 3
+}
+
 function Home() {
   const language = useLanguage();
   useScript("/scripts/jquery.min.js", {
@@ -127,6 +135,28 @@ function Home() {
   function previewCreation(creation) {
     window.open(creation);
   }
+
+  const [leaderboardTab, setLeaderboardTab] = useState<LeaderboardTab>(LeaderboardTab.VS);
+  function dispRankTab(e,tab) {
+    e.preventDefault();
+    setLeaderboardTab(tab);
+    if (tab >= LeaderboardTab.TT_150)
+      setCurrentTtCc(tab);
+  }
+  const [currentTtCc, setCurrentTtCc] = useState(LeaderboardTab.TT_150);
+
+  const leaderboardLink = useMemo(() => {
+    switch (leaderboardTab) {
+    case LeaderboardTab.VS:
+      return "bestscores.php";
+    case LeaderboardTab.BATTLE:
+      return "bestscores.php?battle";
+    case LeaderboardTab.TT_150:
+      return "classement.global.php?cc=150";
+    case LeaderboardTab.TT_200:
+      return "classement.global.php?cc=200";
+    }
+  }, [leaderboardTab]);
 
   const { data: topicsPayload } = useFetch(`api/forum/topics`);
   const { data: newsPayload } = useFetch(`api/news`);
@@ -235,6 +265,26 @@ function Home() {
     const allActivityByCircuit = uniqBy(activitySorted, (a) => a.circuit.url);
     return allActivityByCircuit.slice(0,14);
   }, [commentsPayload, recordsPayload, language]);
+
+  const { data: vsLeaderboard } = useFetch("api/online-game/leaderboard");
+  const vsLeaderboardFiltered = useMemo(() => vsLeaderboard?.data.slice(0,10) ?? [], [vsLeaderboard]);
+  const { data: battleLeaderboard } = useFetch("api/online-game/leaderboard?mode=battle");
+  const battleLeaderboardFiltered = useMemo(() => battleLeaderboard?.data.slice(0,10) ?? [], [battleLeaderboard]);
+  const timeTrialLeaderboard150 = useMemo(() => [], []); // TODO implement endpoint
+  const timeTrialLeaderboard200 = useMemo(() => [], []); // TODO implement endpoint
+
+  const leaderboard = useMemo(() => {
+    switch (leaderboardTab) {
+    case LeaderboardTab.VS:
+      return vsLeaderboardFiltered;
+    case LeaderboardTab.BATTLE:
+      return battleLeaderboardFiltered;
+    case LeaderboardTab.TT_150:
+      return timeTrialLeaderboard150;
+    case LeaderboardTab.TT_200:
+      return timeTrialLeaderboard200;
+    }
+  }, [leaderboardTab, vsLeaderboardFiltered, battleLeaderboardFiltered, timeTrialLeaderboard150, timeTrialLeaderboard200]);
 
   return (
     <ClassicPage page="home">
@@ -684,13 +734,19 @@ function Home() {
           {/* eslint-disable jsx-a11y/anchor-is-valid */}
           {/* eslint-disable no-script-url */}
           <div className="ranking_tabs">
-            <a className="ranking_tab tab_vs" href="javascript:dispRankTab(0)">
+            <a className={cx({
+              tab_selected: leaderboardTab === LeaderboardTab.VS
+            })} href="#null" onClick={(e) => dispRankTab(e,0)}>
               {language ? 'VS mode' : 'Course VS'}
               {/* print_badge(0); */}
-            </a><a className="ranking_tab tab_battle" href="javascript:dispRankTab(1)">
+            </a><a className={cx({
+              tab_selected: leaderboardTab === LeaderboardTab.BATTLE
+            })} href="#null" onClick={(e) => dispRankTab(e,1)}>
               {language ? 'Battle' : 'Bataille'}
               {/* print_badge(1); */}
-            </a><a className="ranking_tab tab_clm tab_clm150" href="javascript:dispRankTab(currenttabcc)">
+            </a><a className={cx({
+              tab_selected: leaderboardTab >= LeaderboardTab.TT_150
+            })} href="#null" onClick={(e) => dispRankTab(e,currentTtCc)}>
               {language ? 'Time Trial' : 'CLM'}
             </a>
           </div>
@@ -700,28 +756,28 @@ function Home() {
 			print_active_players(1,'battle');
 			*/}
           </div>
-          <div id="clm_cc">
-            <a className="clm_cc_150" href="javascript:dispRankTab(2)">150cc</a> <span>|</span>
-            <a className="clm_cc_200" href="javascript:dispRankTab(3)">200cc</a>
-          </div>
+          {(leaderboardTab >= LeaderboardTab.TT_150) && <div id="clm_cc">
+            <a className={cx({tab_selected: leaderboardTab===LeaderboardTab.TT_150})} href="#null" onClick={(e) => dispRankTab(e,2)}>150cc</a>
+            {" "}<span>|</span>{" "}
+            <a className={cx({tab_selected: leaderboardTab===LeaderboardTab.TT_200})} href="#null" onClick={(e) => dispRankTab(e,3)}>200cc</a>
+          </div>}
           <div id="top10" className="right_subsection">
-            {['vs', 'battle', 'clm150', 'clm200'].map((modeId) => (
-              <table id={"top_" + modeId} key={modeId}>
-                <tbody>
-                  <tr>
-                    <th>{language ? 'Rank' : 'Rang'}</th>
-                    <th>{language ? 'Nick' : 'Pseudo'}</th>
-                    <th>Score</th>
-                  </tr>
-                  {/* TODO players */}
-                </tbody>
-              </table>
-            ))}
+            <table>
+              <tbody>
+                <tr>
+                  <th>{language ? 'Rank' : 'Rang'}</th>
+                  <th>{language ? 'Nick' : 'Pseudo'}</th>
+                  <th>Score</th>
+                </tr>
+                {leaderboard.map((player, i) => <tr key={player.id}>
+                  <td className="top10position">{i+1}</td>
+                  <td><a href={`profil.php?id=${player.id}`}>{player.name}</a></td>
+                  <td>{player.score}</td>
+                </tr>)}
+              </tbody>
+            </table>
           </div>
-          <a className="right_section_actions action_button action_gotovs" href="bestscores.php">{language ? 'Display all' : 'Afficher tout'}</a>
-          <a className="right_section_actions action_button action_gotobattle" href="bestscores.php?battle">{language ? 'Display all' : 'Afficher tout'}</a>
-          <a className="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150">{language ? 'Display all' : 'Afficher tout'}</a>
-          <a className="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200">{language ? 'Display all' : 'Afficher tout'}</a>
+          <a className="right_section_actions action_button" href={leaderboardLink}>{language ? 'Display all' : 'Afficher tout'}</a>
         </div>
         <div className="pub_section">
           {/* Pub latérale MKPC */}
