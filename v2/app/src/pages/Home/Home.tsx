@@ -158,8 +158,8 @@ function Home() {
       recency = Math.min(Math.max(recency,3),8);
       let rating = line.rating-1;
       let nbRatings = Math.max(line.nbRatings,1);
-      if (rating == -1) {
-        if (recency == 8)
+      if (rating === -1) {
+        if (recency === 8)
           rating = recency;
         else
           rating = 2;
@@ -176,7 +176,7 @@ function Home() {
       }
     });
     const sortedLines = linesWithScore.sort((line1, line2) => {
-      if (line1.score != line2.score)
+      if (line1.score !== line2.score)
         return line2.score-line1.score;
       return line2.publication_date - line1.publication_date;
     });
@@ -211,6 +211,7 @@ function Home() {
     const comments = commentsPayload.data.map((comment) => {
       return {
         ...comment,
+        key: `comment${comment.id}`,
         message: escapeHtml(comment.message),
         name: comment.author?.name,
         icon: commentIcon,
@@ -221,6 +222,7 @@ function Home() {
     const records = recordsPayload.data.map((record) => {
       return {
         ...record,
+        key: `record${record.id}`,
         icon: clockIcon,
         message: `${formatTime(record.time)} (${formatRank(record.leaderboard.rank)} ${language ? "out of":"sur"} ${record.leaderboard.count})`,
         type: "record",
@@ -230,9 +232,9 @@ function Home() {
     const allActivity = [...comments, ...records];
     const activityWithCircuit = allActivity.filter(a => a.circuit);
     const activitySorted = activityWithCircuit.sort((a1, a2) => a1.recency - a2.recency);
-    const allActivityByCircuit = uniqBy(activitySorted, (a) => a.circuit.id);
+    const allActivityByCircuit = uniqBy(activitySorted, (a) => a.circuit.url);
     return allActivityByCircuit.slice(0,14);
-  }, [commentsPayload, recordsPayload]);
+  }, [commentsPayload, recordsPayload, language]);
 
   return (
     <ClassicPage page="home">
@@ -657,7 +659,7 @@ function Home() {
           <h2>{language ? 'Recent activity' : 'Activité récente'}</h2>
           <div id="comments_section" className="right_subsection">
             {activityPayload?.map((activity) => (
-              <a href={activity.circuit.url} title={activity.message}>
+              <a key={activity.key} href={activity.circuit.url} title={activity.message}>
                 <h2><img src={activity.icon} alt={activity.type} /> <span dangerouslySetInnerHTML={{__html:activity.message}} /></h2>
                 <h3>
                   {activity.name && <div className="comments_section_author">

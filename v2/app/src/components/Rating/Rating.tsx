@@ -16,15 +16,17 @@ function Rating({rating, nbRatings, label}: Props) {
     const restW = 3+Math.round(9*rest);
 
     return <table title={ratingTitle}>
-    <tr>
-      {Object.keys([...Array(lastRating)]).map((i) => <td key={i} className="star1"></td>)}
-      {(rest>0) && <>
-        <td className="startStar" style={{width: restW}}></td>
-        <td className="endStar" style={{width: 15-restW}}></td>
-      </>}
-      {Object.keys([...Array(5-nextRating)]).map((i) => <td key={i} className="star0"></td>)}
-      {label && <td>{label}</td>}
-    </tr>
+    <tbody>
+      <tr>
+        {Object.keys([...Array(lastRating)]).map((i) => <td key={i} className="star1"></td>)}
+        {(rest>0) && <>
+          <td className="startStar" style={{width: restW}}></td>
+          <td className="endStar" style={{width: 15-restW}}></td>
+        </>}
+        {Object.keys([...Array(5-nextRating)]).map((i) => <td key={i} className="star0"></td>)}
+        {label && <td>{label}</td>}
+      </tr>
+    </tbody>
   </table>;
 }
 
