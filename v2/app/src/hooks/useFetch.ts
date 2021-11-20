@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function useFetch(url) {
+function useFetch(input: RequestInfo, options?: RequestInit) {
   const [state, setState] = useState({
     data: null,
     loading: true,
@@ -9,11 +9,12 @@ function useFetch(url) {
 
   useEffect(() => {
     setState({ data: null, loading: true, error: null });
-    fetch(url)
+    fetch(input, options)
       .then(res => res.json())
       .then(data => setState({ data, loading: false, error: null }))
       .catch(error => setState({ data: null, loading: false, error }));
-  }, [url]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input]);
 
   return state;
 }

@@ -416,6 +416,7 @@ a img {
 	margin-bottom: 10px;
 }
 #comments_section h2 {
+	display: flex;
 	font-size: 0.8em !important;
 	font-weight: bold;
 	font-size: 1em;
@@ -424,18 +425,43 @@ a img {
 	padding: 2px 0px 1px 3px;
 	color: #00A;
 }
+#comments_section h2 span {
+	flex: 1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 #comments_section h3 {
 	font-weight: normal;
 	font-size: 0.8em;
 	margin: 0;
 	padding: 0;
 	color: #889;
-	padding: 0px 0px 2px 5px;
+	padding-left: 5px;
 }
 #comments_section h2 img {
-	position: relative;
-	top: 3px;
 	width: 16px;
+	margin-top: 0.15em;
+	margin-right: 0.4em;
+}
+#comments_section h3 > div {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	display: inline-block;
+	box-sizing: border-box;
+}
+#comments_section h3 > div:not(:first-child) {
+	margin-left: 0.15em;
+}
+#comments_section h3 .comments_section_author {
+	max-width: 33%;
+}
+#comments_section h3 .comments_section_circuit {
+	max-width: 45%;
+}
+#comments_section h3 .comments_section_date {
+	max-width: 15%;
 }
 #comments_section a {
 	display: block;

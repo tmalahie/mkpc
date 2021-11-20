@@ -15,6 +15,7 @@ import thanksIcon from "../../images/icons/thanks.png"
 import followIcon from "../../images/icons/follow.png"
 import gameIcon from "../../images/icons/gamepad.png"
 import commentIcon from "../../images/icons/comment.png"
+import clockIcon from "../../images/icons/clock.png"
 
 import diapo1 from "../../images/main/slides/diapo1.jpg"
 import diapo2 from "../../images/main/slides/diapo2.jpg"
@@ -51,8 +52,11 @@ import ss10xs from "../../images/main/screenshots/ss10xs.png"
 import ss11xs from "../../images/main/screenshots/ss11xs.png"
 import ss12xs from "../../images/main/screenshots/ss12xs.png"
 import useFetch from "../../hooks/useFetch";
-import formatDate from "../../helpers/dates";
+import { formatDate } from "../../helpers/dates";
+import { formatRank, formatTime } from "../../helpers/records";
+import { escapeHtml } from "../../helpers/strings";
 import { useEffect, useMemo } from "react";
+import { uniqBy } from "../../helpers/objects";
 
 const screenshots = [[{
   xs: ss1xs,
@@ -187,6 +191,48 @@ function Home() {
   }, [challengesPayload]);
 
   const { data: commentsPayload } = useFetch(`api/track-builder/comments`);
+  const { data: recordsPayload } = useFetch(`api/time-trial/records/find`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      "filters": {
+          "type": {
+              "type": "in",
+              "value": ["circuits", "mkcircuits"]
+          }
+      }
+    })
+  });
+  const activityPayload = useMemo(() => {
+    if (!commentsPayload || !recordsPayload)
+      return [];
+    const comments = commentsPayload.data.map((comment) => {
+      return {
+        ...comment,
+        message: escapeHtml(comment.message),
+        name: comment.author?.name,
+        icon: commentIcon,
+        type: "comment",
+        recency: new Date().getTime()-new Date(comment.date).getTime()
+      }
+    });
+    const records = recordsPayload.data.map((record) => {
+      return {
+        ...record,
+        icon: clockIcon,
+        message: `${formatTime(record.time)} (${formatRank(record.leaderboard.rank)} ${language ? "out of":"sur"} ${record.leaderboard.count})`,
+        type: "record",
+        recency: (new Date().getTime()-new Date(record.date).getTime())*2
+      }
+    });
+    const allActivity = [...comments, ...records];
+    const activityWithCircuit = allActivity.filter(a => a.circuit);
+    const activitySorted = activityWithCircuit.sort((a1, a2) => a1.recency - a2.recency);
+    const allActivityByCircuit = uniqBy(activitySorted, (a) => a.circuit.id);
+    return allActivityByCircuit.slice(0,14);
+  }, [commentsPayload, recordsPayload]);
 
   return (
     <ClassicPage page="home">
@@ -581,15 +627,15 @@ function Home() {
           <div id="challenges_section" className="right_subsection">
             {
               challengesSorted.map(challenge => <a key={challenge.id} href={"challengeTry.php?challenge="+challenge.id} title={challenge.description.main} className={challenge.succeeded && "challenges_section_succeeded"}>
-                <h2>{challenge.description.main/* TODO control length */}</h2>
+                <h2>{challenge.description.main}</h2>
                 <h3>
                   {challenge.circuit?.author && <div className="challenge_section_author">
                     {language ? 'By':'Par'}{" "}
-                    <strong>{challenge.circuit.author /* TODO control length */}</strong>
+                    <strong>{challenge.circuit.author}</strong>
                   </div>}
                   {challenge.circuit?.name && <div className="challenge_section_circuit">
                     {challenge.circuit.author ? (language ? 'in':'dans') : (language ? 'In':'Dans')}{" "}
-                    <strong>{challenge.circuit.name /* TODO control length */}</strong>
+                    <strong>{challenge.circuit.name}</strong>
                   </div>}
                   <div className="challenge_section_difficulty">
                     {"- "}<strong>{challenge.difficulty.name}</strong>
@@ -610,10 +656,22 @@ function Home() {
           <div id="challenge_ranking"><a href="challengeRanking.php">{language ? 'Challenge points - Leaderboard' : 'Classement des points défis'}</a></div>
           <h2>{language ? 'Recent activity' : 'Activité récente'}</h2>
           <div id="comments_section" className="right_subsection">
-            {commentsPayload?.data.map((comment) => (
-              <a href={comment.circuit?.url} title={comment.message}>
-                <h2><img src={commentIcon} alt={comment.type} /> {comment.message /* TODO control length */}</h2>
-                <h3>{language ? 'By' : 'Par'} <strong>{comment.name /* TODO control length */}</strong> {comment.circuit.name && <>{language ? 'in' : 'dans'}{" "}<strong>{comment.circuit.name/* TODO control length */}</strong></>}{" "}{formatDate(comment.date, { prefix: true, mode: "short" })}</h3>
+            {activityPayload?.map((activity) => (
+              <a href={activity.circuit.url} title={activity.message}>
+                <h2><img src={activity.icon} alt={activity.type} /> <span dangerouslySetInnerHTML={{__html:activity.message}} /></h2>
+                <h3>
+                  {activity.name && <div className="comments_section_author">
+                    {language ? 'By':'Par'}{" "}
+                    <strong>{activity.name}</strong>
+                  </div>}
+                  {activity.circuit.name && <div className="comments_section_circuit">
+                    {activity.name ? (language ? 'in':'dans') : (language ? 'In':'Dans')}{" "}
+                    <strong>{activity.circuit.name}</strong>
+                  </div>}
+                  <div className="comments_section_date">
+                    {formatDate(activity.date, { prefix: true, mode: "short" })}
+                  </div>
+                </h3>
               </a>
             ))}
           </div>

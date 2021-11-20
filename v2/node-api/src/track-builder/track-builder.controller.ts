@@ -1,7 +1,7 @@
 import { Controller, Get, Req } from '@nestjs/common';
 import { EntityManager, Not } from 'typeorm';
 import { Comment } from './comment.entity';
-import { CircuitService } from './circuit.service';
+import { CircuitService, CircuitType } from './circuit.service';
 
 @Controller("/track-builder")
 export class TrackBuilderController {

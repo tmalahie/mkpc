@@ -69,7 +69,7 @@ function formatHour(d: Date, options: DateOptions) {
     res = handleCase(language ? "at":"à", options) + " " + res;
   return res;
 }
-function formatDate(d: Date | string | number, options: DateOptions = {}) {
+export function formatDate(d: Date | string | number, options: DateOptions = {}) {
   let res = "";
   const date = new Date(d);
   switch (options.mode) {
@@ -91,5 +91,3 @@ function formatDate(d: Date | string | number, options: DateOptions = {}) {
   }
   return res;
 }
-
-export default formatDate;
