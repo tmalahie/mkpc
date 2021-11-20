@@ -9,6 +9,7 @@ import { TranslationModule } from './translation/translation.module';
 import { AuthModule } from './auth/auth.module';
 import { NewsModule } from './news/news.module';
 import { TrackBuilderModule } from './track-builder/track-builder.module';
+import { TimeTrialModule } from './time-trial/time-trial.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { TrackBuilderModule } from './track-builder/track-builder.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-    }), ForumModule, TranslationModule, AuthModule, NewsModule, TrackBuilderModule],
+    }), ForumModule, TranslationModule, AuthModule, NewsModule, TrackBuilderModule, TimeTrialModule],
   controllers: [AppController],
   providers: [AppService],
 })
