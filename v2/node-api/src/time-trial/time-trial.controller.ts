@@ -1,6 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { EntityManager, FindOneOptions, In, LessThan } from 'typeorm';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { EntityManager, FindOneOptions, In, LessThan, Raw } from 'typeorm';
 import { Record } from './record.entity';
+import { Ranking } from './ranking.entity';
 import { CircuitService } from '../track-builder/circuit.service';
 
 @Controller("/time-trial")
@@ -83,5 +84,29 @@ export class TimeTrialController {
     return {
       data
     }
+  }
+
+  @Get("/leaderboard")
+  async getLeaderboard(@Query() params) {
+    const ccFilter = +params.cc || 150;
+    const leaderboard = await this.em.find(Ranking, {
+      where: {
+        class: ccFilter,
+        player: {
+          deleted: false
+        }
+      },
+      order: {
+        score: "DESC"
+      },
+      relations: ["player"],
+      take: 20
+    });
+    const data = leaderboard.map((ranking) => ({
+      id: ranking.player.id,
+      name: ranking.player.name,
+      score: ranking.score,
+    }));
+    return { data };
   }
 }
