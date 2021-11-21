@@ -5835,6 +5835,8 @@ var itemBehaviors = {
 						if (fDist < 500) {
 							fNewPosX = tCible.x;
 							fNewPosY = tCible.y;
+							fSprite.x = fNewPosX;
+							fSprite.y = fNewPosY;
 							if (tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
 								var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
 								var pi2 = Math.PI*2;
@@ -5866,6 +5868,11 @@ var itemBehaviors = {
 							var fMoveY = (tCible.y-fSprite.y)*dSpeed/fDist;
 							fNewPosX = fSprite.x + fMoveX;
 							fNewPosY = fSprite.y + fMoveY;
+							if (fDist > 75) {
+								fSprite.target = -1;
+								fSprite.aipoint	= -1;
+								fSprite.aimap	= -1;
+							}
 						}
 					}
 					else {
@@ -5917,7 +5924,7 @@ var itemBehaviors = {
 
 						if (fSprite.aipoint != -2) {
 							var maxDist = 4000;
-							var tCible;
+							var tCible = null;
 		
 							for (var k=0;k<aKarts.length;k++) {
 								var pCible = aKarts[k];
@@ -5949,7 +5956,30 @@ var itemBehaviors = {
 				}
 
 				var fMoveX = fNewPosX-fSprite.x, fMoveY = fNewPosY-fSprite.y;
-				if ((fSprite.owner == -1 || (!tombe(fNewPosX, fNewPosY) && canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite.x, fSprite.y, [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
+				if (fMoveX && fMoveY && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 50)) {
+					for (var k=0;k<4;k++) {
+						var h = getHorizontality(fSprite.x,fSprite.y, fMoveX,fMoveY, {nullableRes:true,holes:true});
+						if (h) {
+							var u = h[0]*fMoveX + h[1]*fMoveY;
+							var uD = 1.5-0.5*Math.min(Math.abs(u)/dSpeed,1);
+							fMoveX = h[0]*Math.sign(u)*dSpeed*uD;
+							fMoveY = h[1]*Math.sign(u)*dSpeed*uD;
+							fNewPosX = fSprite.x + fMoveX;
+							fNewPosY = fSprite.y + fMoveY;
+						}
+						else {
+							if (k) {
+								if (!fSprite.stuckSince)
+									fSprite.stuckSince = 0;
+								fSprite.stuckSince++;
+							}
+							else
+								delete fSprite.stuckSince;
+							break;
+						}
+					}
+				}
+				if (((fSprite.owner == -1) || (!tombe(fNewPosX, fNewPosY) && canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite.x, fSprite.y, [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
 				}
@@ -8906,7 +8936,8 @@ function rotateVector(u,v,theta) {
 	return [u*cs-v*sn, u*sn+v*cs];
 }
 
-function getHorizontality(iX,iY, iI,iJ) {
+function getHorizontality(iX,iY, iI,iJ, options) {
+	if (!options) options = {};
 	var nearCol = {
 		"t" : 1
 	};
@@ -8953,10 +8984,10 @@ function getHorizontality(iX,iY, iI,iJ) {
 			}
 		}
 	}
-	if (oMap.collision) {
-		var oRectangles = oMap.collision.rectangle;
+	function handleCollisions(oBoxes, boxFn) {
+		var oRectangles = oBoxes.rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
-			var oBox = oRectangles[i];
+			var oBox = boxFn(oRectangles[i]);
 			var lines = [{
 				"x1" : oBox[0],
 				"y1" : oBox[1],
@@ -8982,10 +9013,10 @@ function getHorizontality(iX,iY, iI,iJ) {
 			if (colLine && (colLine.t < nearCol.t))
 				nearCol = colLine;
 		}
-		var oPolygons = oMap.collision.polygon;
+		var oPolygons = oBoxes.polygon;
 		for (var i=0;i<oPolygons.length;i++) {
 			var lines = [];
-			var oPoints = oPolygons[i];
+			var oPoints = boxFn(oPolygons[i]);
 			for (var j=0;j<oPoints.length;j++) {
 				var oPoint1 = oPoints[j], oPoint2 = oPoints[(j+1)%oPoints.length];
 				lines.push({
@@ -9000,12 +9031,18 @@ function getHorizontality(iX,iY, iI,iJ) {
 				nearCol = colLine;
 		}
 	}
+	if (oMap.collision)
+		handleCollisions(oMap.collision, function(oBox) { return oBox; });
+	if (options.holes && oMap.trous) {
+		for (var j=0;j<oMap.trous.length;j++)
+			handleCollisions(oMap.trous[j], function(oBox) { return oBox[0]; });
+	}
 	if (nearCol.dir) {
 		var norm = Math.hypot(nearCol.dir[0],nearCol.dir[1]);
 		nearCol.dir[0] /= norm;
 		nearCol.dir[1] /= norm;
 	}
-	else
+	else if (!options.nullableRes)
 		nearCol.dir = [0.7,0.7];
 	return nearCol.dir;
 }
