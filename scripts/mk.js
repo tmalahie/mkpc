@@ -5821,6 +5821,22 @@ var itemBehaviors = {
 			for (var l=0;l<steps;l++) {
 				var dSpeed = 15*cappedRelSpeed()/steps;
 				if (fSprite.owner != -1) {
+					if (fSprite.cannon) {
+						fSprite.z = (fSprite.z*3+4)/4;
+						var x0 = fSprite.cannon[0]-fSprite.x, y0 = fSprite.cannon[1]-fSprite.y;
+						var d0 = Math.hypot(x0,y0);
+						dSpeed = 20/steps;
+						if (dSpeed < d0) {
+							fSprite.x += x0*dSpeed/d0;
+							fSprite.y += y0*dSpeed/d0;
+						}
+						else {
+							fSprite.x = fSprite.cannon[0];
+							fSprite.y = fSprite.cannon[1];
+							delete fSprite.cannon;
+						}
+						continue;
+					}
 
 					if (!l) {
 						for (var k=0;k<oPlayers.length;k++)
@@ -5957,6 +5973,7 @@ var itemBehaviors = {
 
 				var fMoveX = fNewPosX-fSprite.x, fMoveY = fNewPosY-fSprite.y;
 				if (fSprite.owner != -1) {
+					handleCannon(fSprite, inCannon(fSprite.x,fSprite.y, fNewPosX,fNewPosY));
 					if (!fSprite.z) {
 						if (fMoveX && fMoveY && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 50)) {
 							for (var k=0;k<4;k++) {
@@ -5987,8 +6004,11 @@ var itemBehaviors = {
 								handleHeightInc(fSprite);
 						}
 					}
-					if ((fSprite.z || fSprite.heightinc) && (l%2))
+					if ((fSprite.z || fSprite.heightinc) && (l%2)) {
+						if (!fSprite.heightinc)
+							fSprite.heightinc = 0;
 						handleHeightInc(fSprite);
+					}
 				}
 				if (((fSprite.owner == -1) || (fSprite.z > 1.175) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite.x, fSprite.y, [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
 					fSprite.x = fNewPosX;
@@ -9164,6 +9184,16 @@ function handleHeightInc(oKart) {
 	if (oKart.z <= 0) {
 		oKart.heightinc = 0;
 		oKart.z = 0;
+		return true;
+	}
+	return false;
+}
+function handleCannon(oKart, cannon) {
+	if (cannon && (cannon[0]||cannon[1])) {
+		oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
+		if (!oKart.z)
+			oKart.z = 0.001;
+		oKart.heightinc = 0;
 		return true;
 	}
 	return false;
@@ -12662,12 +12692,8 @@ function move(getId, triggered) {
 		oKart.speed *= oKart.sliding ? 0.95:0.9;
 
 	if (!oKart.cannon) {
-		var cannon = inCannon(aPosX,aPosY, oKart.x,oKart.y);
-		if (cannon && (cannon[0]||cannon[1])) {
+		if (handleCannon(oKart, inCannon(aPosX,aPosY, oKart.x,oKart.y))) {
 			stopDrifting(getId);
-			oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
-			if (!oKart.z)
-				oKart.z = 0.001;
 			oKart.protect = true;
 			oKart.jumped = true;
 			if (oKart.tourne)
