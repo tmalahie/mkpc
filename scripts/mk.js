@@ -1603,7 +1603,7 @@ function arme(ID, backwards, forwards) {
 			case "billball" :
 			if (oKart.billball)
 				break;
-			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/(11*cappedRelSpeed())), 120), 35);
+			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/(9*cappedRelSpeed())), 120), 40);
 			oKart.billball0 = tpsUse;
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = "images/sprites/sprite_billball.png";
@@ -13484,7 +13484,8 @@ function move(getId, triggered) {
 			}
 			oKart.size = 1;
 			oKart.mini = 0;
-			oKart.z = 0;
+			if (!oKart.cannon)
+				oKart.z = 0;
 			updateDriftSize(getId);
 			oKart.jumped = false;
 			delete oKart.billjump;
