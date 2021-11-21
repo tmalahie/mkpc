@@ -5972,10 +5972,20 @@ var itemBehaviors = {
 				}
 
 				var fMoveX = fNewPosX-fSprite.x, fMoveY = fNewPosY-fSprite.y;
+				var isMoving = (fMoveX || fMoveY);
+				var inTarget = (fSprite.target >= 0) && !isMoving;
+				var fSpriteExcept = [fSprite];
+				if (inTarget) {
+					for (var i=0;i<items["carapace-rouge"].length;i++) {
+						var oBox = items["carapace-rouge"][i];
+						if (oBox !== fSprite && oBox.x === fSprite.x && oBox.y === fSprite.y)
+							fSpriteExcept.push(oBox);
+					}
+				}
 				if (fSprite.owner != -1) {
 					handleCannon(fSprite, inCannon(fSprite.x,fSprite.y, fNewPosX,fNewPosY));
 					if (!fSprite.z) {
-						if (fMoveX && fMoveY && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 50)) {
+						if (isMoving && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 50)) {
 							for (var k=0;k<4;k++) {
 								var h = getHorizontality(fSprite.x,fSprite.y, fMoveX,fMoveY, {nullableRes:true,holes:true,skipDecor:true});
 								if (h) {
@@ -6000,17 +6010,17 @@ var itemBehaviors = {
 						}
 
 						if (handleJump(fSprite, sauts(fSprite.x,fSprite.y, fMoveX,fMoveY))) {
-							if (!(l%2))
+							if ((l%2))
 								handleHeightInc(fSprite);
 						}
 					}
-					if ((fSprite.z || fSprite.heightinc) && (l%2)) {
+					if ((fSprite.z || fSprite.heightinc) && !(l%2)) {
 						if (!fSprite.heightinc)
 							fSprite.heightinc = 0;
 						handleHeightInc(fSprite);
 					}
 				}
-				if (((fSprite.owner == -1) || (fSprite.z > 1.175) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, [fSprite]) && !touche_crouge(fSprite.x, fSprite.y, [fSprite]) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
+				if (((fSprite.owner == -1) || (fSprite.z > 1.175) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
 				}
