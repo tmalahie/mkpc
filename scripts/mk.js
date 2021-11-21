@@ -5817,9 +5817,9 @@ var itemBehaviors = {
 			var fNewPosX;
 			var fNewPosY;
 
-			var steps = 4;
+			var steps = 6;
 			for (var l=0;l<steps;l++) {
-				var dSpeed = 10*cappedRelSpeed()/steps;
+				var dSpeed = 15*cappedRelSpeed()/steps;
 				if (fSprite.owner != -1) {
 
 					if (!l) {
