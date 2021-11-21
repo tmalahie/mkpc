@@ -862,14 +862,14 @@ else {
 		<?php
 		include('o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
 		var language = <?php echo $language ? 1:0; ?>;
 		var isBattle = false;
 		</script>
-		<script src="scripts/editor-form.js?reload=1"></script>
+		<script src="scripts/editor-form.js"></script>
 	</head>
 	<body class="home-body">
 		<?php
