@@ -1,4 +1,5 @@
 
+import Ad from "../../components/Ad/Ad";
 import ClassicPage from "../../components/ClassicPage/ClassicPage";
 import Rating from "../../components/Rating/Rating";
 import useLanguage, { plural } from "../../hooks/useLanguage";
@@ -516,16 +517,7 @@ function Home() {
         </div>
         <br />
         <div className="pub_section">
-          <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-          {/* Mario Kart PC */}
-          <ins className="adsbygoogle"
-            style={{ display: "inline-block", width: 728, height: 90 }}
-            data-ad-client="ca-pub-1340724283777764"
-            data-ad-slot="4919860724"
-          ></ins>
-          <script>
-            (adsbygoogle = window.adsbygoogle || []).push({ });
-          </script>
+          <Ad width={728} height={90} bannerId="4919860724" />
         </div>
         <h2><img src={thanksIcon} alt="" /> {language ? 'Special thanks' : 'Remerciements'}</h2>
         <div>
@@ -564,15 +556,7 @@ function Home() {
           </> : <></>}
         </div>
         <div className="pub_section">
-          { /* Mario Kart PC */}
-          <ins className="adsbygoogle"
-            style={{ display: "inline-block", width: 728, height: 90 }}
-            data-ad-client="ca-pub-1340724283777764"
-            data-ad-slot="4919860724"
-          ></ins>
-          <script>
-            (adsbygoogle = window.adsbygoogle || []).push({ });
-          </script>
+          <Ad width={728} height={90} bannerId="4919860724" />
         </div>
         <h2><img src={gameIcon} alt="" /> {language ? 'Go to the game' : 'Accéder au jeu'}</h2>
         <div>
@@ -783,14 +767,7 @@ function Home() {
           <a className="right_section_actions action_button" href={leaderboardLink}>{language ? 'Display all' : 'Afficher tout'}</a>
         </div>
         <div className="pub_section">
-          {/* Pub latérale MKPC */}
-          <ins className="adsbygoogle"
-            style={{ display: "inline-block", width: 300, height: 250 }}
-            data-ad-client="ca-pub-1340724283777764"
-            data-ad-slot="4492555127"></ins>
-          <script>
-            (adsbygoogle = window.adsbygoogle || []).push({ });
-          </script>
+          <Ad width={300} height={250} bannerId="4492555127" />
         </div>
         <div className="subsection">
           <div className="flag_counter">
