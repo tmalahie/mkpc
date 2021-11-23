@@ -1,5 +1,5 @@
 import useLanguage from "../../hooks/useLanguage";
-import useUserId from "../../hooks/useUserId";
+import useUser from "../../hooks/useUser";
 import useFetch from "../../hooks/useFetch";
 import "./ClassicPage.css"
 import english from "../../images/icons/english.png";
@@ -37,7 +37,7 @@ type Notif = {
 }
 function ClassicPage(props) {
   const language = useLanguage();
-  const id = useUserId();
+  const { id } = useUser() ?? {};
   const page = props.page;
 
   const { data: notifsPayload } = useFetch(`api/getNotifs.php`);
