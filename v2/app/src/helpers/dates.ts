@@ -63,7 +63,8 @@ function formatDay(d: Date, options: DateOptions) {
 function formatHour(d: Date, options: DateOptions) {
   let res = d.toLocaleTimeString(localeString, {
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
+    second: options.includeSeconds ? "2-digit" : undefined
   });
   if (options.prefix)
     res = handleCase(language ? "at":"à", options) + " " + res;
@@ -85,8 +86,8 @@ export function formatDate(d: Date | string | number, options: DateOptions = {})
   case "time":
     res = formatHour(date, options);
     break;
-  case "datetime":
-    res = formatDay(date, options)+" "+formatHour(date, {...options,case:"lowercase"});
+  default:
+    res = formatDay(date, options)+" "+formatHour(date, {...options,case:options.case!="uppercase" ? "lowercase":"uppercase"});
     break;
   }
   return res;

@@ -5,6 +5,7 @@ import { AuthUser, GetUser } from 'src/user/user.decorator';
 import { EntityManager } from 'typeorm';
 import { Message } from './message.entity';
 import { Topic } from './topic.entity';
+import { Category } from './category.entity';
 
 @Controller("/forum")
 export class ForumController {
@@ -49,6 +50,50 @@ export class ForumController {
       lastMessage: {
         author: lastMessages[i].author,
         date: lastMessages[i].date
+      }
+    }))
+    return {
+      data
+    }
+  }
+
+  @Get("/categories")
+  async getCategories(@I18n() i18n: I18nContext) {
+    const lang = i18n.detectedLanguage;
+    const categories = await this.em.find(Category);
+    const sortedCategories = categories.sort((c1,c2) => c1.getOrder(lang) - c2.getOrder(lang))
+    const categoriesWithData = await Promise.all(sortedCategories.map(async category => {
+      const nbTopics = await this.em.count(Topic, {
+        where: {
+          category: category.id
+        }
+      });
+      const lastTopic = await this.em.findOne(Topic, {
+        where: {
+          category: category.id
+        },
+        order: {
+          lastMessageDate: "DESC"
+        }
+      });
+      return { 
+        category,
+        nbTopics,
+        lastTopic
+      };
+    }))
+    const data = categoriesWithData.map(({category,nbTopics,lastTopic}) => ({
+      id: category.id,
+      name: category.getName(lang),
+      description: category.getDescription(lang),
+      nbTopics,
+      lastTopic: {
+        id: lastTopic.id,
+        title: lastTopic.title,
+        nbMessages: lastTopic.nbMessages,
+        lastMessage: {
+          date: lastTopic.lastMessageDate
+        }
       }
     }))
     return {

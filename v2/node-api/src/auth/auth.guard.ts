@@ -78,7 +78,7 @@ export class AuthGuard implements CanActivate {
     const protocol = request.secure ? "https":"http";
     const authUser = await axios.get(`${protocol}://${host}/api/authenticateUser.php`, {
       headers: {
-        cookie: request.headers.cookie,
+        cookie: request.headers.cookie ?? "",
       }
     });
     const id = +authUser.data;

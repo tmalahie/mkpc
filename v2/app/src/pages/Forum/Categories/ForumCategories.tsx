@@ -6,14 +6,13 @@ import Ad from "../../../components/Ad/Ad";
 import { formatDate } from "../../../helpers/dates";
 import goldCupIcon from "../../../images/icons/gold-cup.png"
 import silverCupIcon from "../../../images/icons/silver-cup.png"
+import useFetch from "../../../hooks/useFetch";
 
 function ForumCategories() {
   const language = useLanguage();
   const user = useUser();
 
-  const categoriesPayload = {
-    data: []
-  };
+  const { data: categoriesPayload } = useFetch("api/forum/categories");
 
   const forumStats = {
     nbMessages: 100000,
@@ -91,9 +90,16 @@ function ForumCategories() {
         categoriesPayload?.data.map((category,i) => <tr className={(i%2) ? 'fonce':'clair'}>
           <td className="subjects">
             <a href={"category.php?category="+ category.id}>{ category.name }</a>
+            <div className="category-description">{category.description}</div>
           </td>
-          <td>{ category.nbMessages }</td>
-          <td>{ formatDate(category.lastMessage) }</td>
+          <td>{ category.nbTopics }</td>
+          <td>{ formatDate(category.lastTopic?.lastMessage.date, {
+            mode: "datetime",
+            prefix: true,
+            case: "capitalize",
+            includeYear: "always",
+            includeSeconds: true
+          }) }</td>
         </tr>)
       }
       </table>
