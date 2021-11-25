@@ -1,6 +1,6 @@
 import { language } from "../hooks/useLanguage";
 
-const localeString = language ? "en-US":"fr-FR";
+export const localeString = language ? "en-US":"fr-FR";
 
 type DateOptions = {
   mode?: "short" | "date" | "time" | "datetime";

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { EntityManager, FindOneOptions, In, LessThan, Raw } from 'typeorm';
+import { EntityManager, FindOneOptions, In, LessThan } from 'typeorm';
 import { Record } from './record.entity';
 import { Ranking } from './ranking.entity';
 import { CircuitService } from '../track-builder/circuit.service';
