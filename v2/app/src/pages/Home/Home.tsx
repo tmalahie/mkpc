@@ -267,14 +267,14 @@ function Home() {
     return allActivityByCircuit.slice(0,14);
   }, [commentsPayload, recordsPayload, language]);
 
-  const { data: vsLeaderboard } = useFetch("api/online-game/leaderboard");
+  const { data: vsLeaderboard } = useFetch("/api/online-game/leaderboard");
   const vsLeaderboardFiltered = useMemo(() => vsLeaderboard?.data.slice(0,10) ?? [], [vsLeaderboard]);
-  const { data: battleLeaderboard } = useFetch("api/online-game/leaderboard?mode=battle");
+  const { data: battleLeaderboard } = useFetch("/api/online-game/leaderboard?mode=battle");
   const battleLeaderboardFiltered = useMemo(() => battleLeaderboard?.data.slice(0,10) ?? [], [battleLeaderboard]);
   
-  const { data: tt150Leaderboard } = useFetch("api/time-trial/leaderboard");
+  const { data: tt150Leaderboard } = useFetch("/api/time-trial/leaderboard");
   const tt150LeaderboardFiltered = useMemo(() => tt150Leaderboard?.data.slice(0,10) ?? [], [tt150Leaderboard]);
-  const { data: tt200Leaderboard } = useFetch("api/time-trial/leaderboard?cc=200");
+  const { data: tt200Leaderboard } = useFetch("/api/time-trial/leaderboard?cc=200");
   const tt200LeaderboardFiltered = useMemo(() => tt200Leaderboard?.data.slice(0,10) ?? [], [tt200Leaderboard]);
 
   const leaderboard = useMemo(() => {

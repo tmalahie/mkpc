@@ -13,9 +13,9 @@ function ForumCategories() {
   const language = useLanguage();
   const user = useUser();
 
-  const { data: categoriesPayload } = useFetch("api/forum/categories");
+  const { data: categoriesPayload } = useFetch("/api/forum/categories");
 
-  const { data: forumStats } = useFetch("api/forum/stats");
+  const { data: forumStats } = useFetch("/api/forum/stats");
   const beginMonthJsx = useMemo(() => {
     if (!forumStats?.monthActivePlayer?.beginMonth) return <></>;
     const beginMonth = new Date(forumStats.monthActivePlayer.beginMonth);
