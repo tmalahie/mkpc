@@ -2,11 +2,12 @@ import { Controller, Get, Req } from '@nestjs/common';
 import { Auth } from '../auth/auth.decorator';
 import { I18n, I18nContext } from 'nestjs-i18n';
 import { AuthUser, GetUser } from 'src/user/user.decorator';
-import { EntityManager } from 'typeorm';
+import { EntityManager, MoreThan } from 'typeorm';
 import { Message } from './message.entity';
 import { Topic } from './topic.entity';
 import { Category } from './category.entity';
-
+import { Profile } from 'src/user/profile.entity';
+import { DateTime } from 'luxon';
 @Controller("/forum")
 export class ForumController {
   constructor(private em: EntityManager) {}
@@ -98,6 +99,46 @@ export class ForumController {
     }))
     return {
       data
+    }
+  }
+
+  @Get("/stats")
+  async getStats() {
+    const messagesStats = await this.em.getRepository(Topic).createQueryBuilder("t")
+      .select(`SUM(t.nbmsgs)`, "nb")
+      .getRawOne();
+    const nbTopics = await this.em.count(Topic);
+    const nbMembers = await this.em.count(Profile, {
+      where: {
+        nbMessages: MoreThan(0)
+      }
+    });
+    const mostActivePlayer = await this.em.findOne(Profile, {
+      order: {
+        nbMessages: "DESC"
+      },
+      relations: ["user"]
+    });
+    const beginMonth = DateTime.now().startOf("month").toFormat("yyyy-MM-dd");
+    const [monthActivePlayer] = await this.em.query(
+      `SELECT j.id,j.nom AS name,m.nbMessages FROM
+      (SELECT auteur,COUNT(*) AS nbMessages FROM mkmessages WHERE date>="${beginMonth}" GROUP BY auteur) m
+      INNER JOIN mkjoueurs j ON m.auteur=j.id
+      ORDER BY nbMessages DESC, j.id ASC LIMIT 1`
+    );
+    return {
+      nbTopics,
+      nbMembers,
+      nbMessages: messagesStats.nb,
+      mostActivePlayer: mostActivePlayer && {
+        id: mostActivePlayer.id,
+        name: mostActivePlayer.user.name,
+        nbMessages: mostActivePlayer.nbMessages
+      },
+      monthActivePlayer: {
+        ...monthActivePlayer,
+        beginMonth
+      }
     }
   }
 }

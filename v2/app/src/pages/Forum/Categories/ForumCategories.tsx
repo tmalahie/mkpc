@@ -3,10 +3,11 @@ import useLanguage, { plural } from "../../../hooks/useLanguage";
 import "../Forum.css"
 import useUser from "../../../hooks/useUser";
 import Ad from "../../../components/Ad/Ad";
-import { formatDate } from "../../../helpers/dates";
+import { formatDate, localeString } from "../../../helpers/dates";
 import goldCupIcon from "../../../images/icons/gold-cup.png"
 import silverCupIcon from "../../../images/icons/silver-cup.png"
 import useFetch from "../../../hooks/useFetch";
+import { useMemo } from "react";
 
 function ForumCategories() {
   const language = useLanguage();
@@ -14,22 +15,13 @@ function ForumCategories() {
 
   const { data: categoriesPayload } = useFetch("api/forum/categories");
 
-  const forumStats = {
-    nbMessages: 100000,
-    nbTopics: 5000,
-    nbMembers: 1000,
-    mostActivePlayer: {
-      id: 1,
-      name: "Wargor",
-      nbMessages: 3000
-    },
-    monthActivePlayer: {
-      id: 11,
-      name: "Timmy",
-      nbMessages: 200,
-      since: "November 1st"
-    }
-  }
+  const { data: forumStats } = useFetch("api/forum/stats");
+  const beginMonthJsx = useMemo(() => {
+    if (!forumStats?.monthActivePlayer?.beginMonth) return <></>;
+    const beginMonth = new Date(forumStats.monthActivePlayer.beginMonth);
+    const monthStr = beginMonth.toLocaleDateString(localeString, { month: "long" });
+    return language ? <>{monthStr} 1<small className="superscript">st</small></> : <>1<small className="superscript">er</small> {monthStr}</>
+  }, [forumStats, language])
 
   return (
     <ClassicPage page="forum">
@@ -78,16 +70,19 @@ function ForumCategories() {
         </p>
       </form>
       <table id="listeTopics">
-      <col id="categories" />
-      <col id="nbmsgs" />
-      <col id="lastmsgs" />
+        <colgroup>
+          <col id="categories" />
+          <col id="nbmsgs" />
+          <col id="lastmsgs" />
+          </colgroup>
+        <tbody>
       <tr id="titres">
       <td>{ language ? 'Category':'Catégorie' }</td>
       <td>{ language ? 'Topics nb':'Nb topics'}</td>
       <td>{ language ? 'Last message':'Dernier message' }</td>
       </tr>
       {
-        categoriesPayload?.data.map((category,i) => <tr className={(i%2) ? 'fonce':'clair'}>
+        categoriesPayload?.data.map((category,i) => <tr key={category.id} className={(i%2) ? 'fonce':'clair'}>
           <td className="subjects">
             <a href={"category.php?category="+ category.id}>{ category.name }</a>
             <div className="category-description">{category.description}</div>
@@ -102,17 +97,18 @@ function ForumCategories() {
           }) }</td>
         </tr>)
       }
+      </tbody>
       </table>
       {forumStats && <ul className="forumStats">
         {
           language ? <>
             <li>The forum has a total of <strong>{ plural("%n message%s", forumStats.nbMessages) }</strong> split into <strong>{forumStats.nbTopics} topics</strong> and posted by <strong>{ plural("%n member%s", forumStats.nbMembers) }</strong>.</li>
             <li>The most active member is <a href={"profil.php?id="+ forumStats.mostActivePlayer.id}>{ forumStats.mostActivePlayer.name }</a> with <strong>{ plural("%n message%s", forumStats.mostActivePlayer.nbMessages) }</strong> posted in total.<a href="ranking-forum.php"><img src={goldCupIcon} alt="" />Ranking of most active members<img src={goldCupIcon} alt="" /></a></li>
-            {forumStats.monthActivePlayer && <li>The most active member of the month is <a href={"profil.php?id="+ forumStats.monthActivePlayer.id}>{ forumStats.monthActivePlayer.name }</a> with <strong>{ plural("%n message%s", forumStats.monthActivePlayer.nbMessages) }</strong> since {forumStats.monthActivePlayer.since }.<a href="ranking-forum.php?month=last"><img src={silverCupIcon} alt="" />Ranking of month's most active members<img src={silverCupIcon} alt="" /></a></li>}
+            {forumStats.monthActivePlayer && <li>The most active member of the month is <a href={"profil.php?id="+ forumStats.monthActivePlayer.id}>{ forumStats.monthActivePlayer.name }</a> with <strong>{ plural("%n message%s", forumStats.monthActivePlayer.nbMessages) }</strong> since { beginMonthJsx }.<a href="ranking-forum.php?month=last"><img src={silverCupIcon} alt="" />Ranking of month's most active members<img src={silverCupIcon} alt="" /></a></li>}
           </> : <>
             <li>Le forum comptabilise <strong>{ plural("%n message%s", forumStats.nbMessages) }</strong> répartis dans <strong>{forumStats.nbTopics} topics</strong> et postés par <strong>{ plural("%n member%s", forumStats.nbMembers) }</strong>.</li>
             <li>Le membre le plus actif est <a href={"profil.php?id="+ forumStats.mostActivePlayer.id}>{ forumStats.mostActivePlayer.name }</a> avec <strong>{ plural("%n message%s", forumStats.mostActivePlayer.nbMessages) }</strong> postés au total.<a href="ranking-forum.php"><img src={goldCupIcon} alt="" />Classement des membres les plus actifs<img src={goldCupIcon} alt="" /></a></li>
-            {forumStats.monthActivePlayer && <li>Le membre le plus actif du mois est <a href={"profil.php?id="+ forumStats.monthActivePlayer.id}>{ forumStats.monthActivePlayer.name }</a> avec <strong>{ plural("%n message%s", forumStats.monthActivePlayer.nbMessages) }</strong> depuis le {forumStats.monthActivePlayer.since }.<a href="ranking-forum.php?month=last"><img src={silverCupIcon} alt="" />Classement des plus actifs du mois<img src={silverCupIcon} alt="" /></a></li>}
+            {forumStats.monthActivePlayer && <li>Le membre le plus actif du mois est <a href={"profil.php?id="+ forumStats.monthActivePlayer.id}>{ forumStats.monthActivePlayer.name }</a> avec <strong>{ plural("%n message%s", forumStats.monthActivePlayer.nbMessages) }</strong> depuis le { beginMonthJsx }.<a href="ranking-forum.php?month=last"><img src={silverCupIcon} alt="" />Classement des plus actifs du mois<img src={silverCupIcon} alt="" /></a></li>}
           </>
         }
       </ul>}
