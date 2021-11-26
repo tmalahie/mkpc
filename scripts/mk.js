@@ -11839,6 +11839,8 @@ function resetDatas() {
 							oKart.sprite[0].img.src = getSpriteSrc(oKart.personnage);
 							resumeSpriteSize(oKart.sprite[0]);
 						}
+						if (oKart.aipoint >= oKart.aipoints.length)
+							oKart.aipoint = 0;
 						updateProtectFlag(oKart);
 						if (aTombe && !oKart.tombe) {
 							oKart.sprite[0].img.style.display = "block";
