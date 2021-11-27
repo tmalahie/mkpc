@@ -8,6 +8,7 @@ import goldCupIcon from "../../../images/icons/gold-cup.png"
 import silverCupIcon from "../../../images/icons/silver-cup.png"
 import useFetch from "../../../hooks/useFetch";
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 
 function ForumCategories() {
   const language = useLanguage();
@@ -113,7 +114,7 @@ function ForumCategories() {
         }
       </ul>}
       <p className="forumButtons">
-      <a href="index.php">{ language ? "Back to home":"Retour à l'accueil" }</a>
+      <Link to="/">{ language ? "Back to home":"Retour à l'accueil" }</Link>
       </p>
     </ClassicPage>
   );

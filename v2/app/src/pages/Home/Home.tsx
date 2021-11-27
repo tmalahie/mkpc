@@ -59,6 +59,7 @@ import { escapeHtml } from "../../helpers/strings";
 import { useEffect, useMemo, useState } from "react";
 import cx from "classnames";
 import { uniqBy } from "../../helpers/objects";
+import { Link } from "react-router-dom";
 
 const screenshots = [[{
   xs: ss1xs,
@@ -107,7 +108,7 @@ function SectionBar({ title, link }) {
       </tbody>
     </table>
   return (
-    link ? <a href={link} className="sidebar_link">{bar}</a> : bar
+    link ? <Link to={link} className="sidebar_link">{bar}</Link> : bar
   );
 }
 
@@ -609,7 +610,7 @@ function Home() {
 		}
 		date_default_timezone_set('UTC');
     ?>*/}
-          <SectionBar title="Forum" link="forum.php" />
+          <SectionBar title="Forum" link="/forum" />
           <h2>{language ? 'Last topics' : 'Derniers topics'}</h2>
           <div id="forum_section" className="right_subsection">
             {topicsPayload?.data.map(topic => <a key={topic.id} href={"topic.php?topic="+topic.id} title={topic.title}>
@@ -621,7 +622,7 @@ function Home() {
               <div className="creation_comments" title={plural("%n message%s", topic.nbMessages)}><img src="images/comments.png" alt="Messages" /> {topic.nbMessages}</div>
             </a>)}
           </div>
-          <a className="right_section_actions action_button" href="forum.php">{language ? 'Go to the forum' : 'Accéder au forum'}</a>
+          <Link className="right_section_actions action_button" to="/forum">{language ? 'Go to the forum' : 'Accéder au forum'}</Link>
         </div>
         <div className="subsection">
           <SectionBar title="News" link="listNews.php" />
