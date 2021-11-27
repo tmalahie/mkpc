@@ -5851,8 +5851,6 @@ var itemBehaviors = {
 						if (fDist < 500) {
 							fNewPosX = tCible.x;
 							fNewPosY = tCible.y;
-							fSprite.x = fNewPosX;
-							fSprite.y = fNewPosY;
 							if (tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
 								var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
 								var pi2 = Math.PI*2;
@@ -5876,6 +5874,8 @@ var itemBehaviors = {
 									tCible.using[0].y -= 2 * direction(1,tCible.rotation);
 								}
 							}
+							fSprite.x = fNewPosX;
+							fSprite.y = fNewPosY;
 							l = steps;
 						}
 						else {
