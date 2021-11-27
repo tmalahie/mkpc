@@ -11,6 +11,7 @@ import headerRight from "../../images/main/header/ic_right.png";
 import footerLeft from "../../images/main/footer/ic_left.png";
 import footerRight from "../../images/main/footer/ic_right.png";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 function Flag({ nLanguage, src, alt, page, homepage = false }) {
   let url;
@@ -60,6 +61,10 @@ function ClassicPage(props) {
     setNbNotifs(nbNotifs - 1);
     // TODO make API call to close notif
   }
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="ClassicPage">
@@ -111,9 +116,9 @@ function ClassicPage(props) {
           </div>}
         </div>
         <div id="menu_center" role="menubar">
-          <a href="index.php" id={(page === 'home') ? "thispage" : ""} role="menuitem">{language ? 'Home' : 'Accueil'}</a>{" "}
+          <Link to="/" id={(page === 'home') ? "thispage" : ""} role="menuitem">{language ? 'Home' : 'Accueil'}</Link>{" "}
           <a href="mariokart.php" id={(page === 'game') ? "thispage" : ""} role="menuitem">{language ? 'Play game' : 'Le jeu'}</a>{" "}
-          <a href="forum.php" id={(page === 'forum') ? "thispage" : ""} role="menuitem">Forum</a>
+          <Link to="/forum" id={(page === 'forum') ? "thispage" : ""} role="menuitem">Forum</Link>
         </div>
       </nav>
       <main>{props.children}</main>
