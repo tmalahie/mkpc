@@ -3,6 +3,7 @@ import Head from 'next/head'
 
 import Ad from "../components/Ad/Ad";
 import ClassicPage, { commonStyles } from "../components/ClassicPage/ClassicPage";
+import WithAppContext from "../components/WithAppContext/WithAppContext";
 import Rating from "../components/Rating/Rating";
 import useLanguage, { plural } from "../hooks/useLanguage";
 import useScript, { insertScript } from "../hooks/useScript";
@@ -819,4 +820,4 @@ const Home: NextPage = () => {
   )
 }
 
-export default Home
+export default WithAppContext(Home)
