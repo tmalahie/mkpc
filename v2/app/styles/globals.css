@@ -1,0 +1,27 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  background-color: #E8964C;
+  background: url('../images/main/wallpaper_mountains.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 40%, #E8964C 70%, #AF663D 100%);
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center bottom;
+  background-position: center -30vw, center;
+  background-repeat: no-repeat;
+  margin: 5px 0;
+  padding: 0;
+  font-family: Helvetica, arial, sans-serif;
+}
+@media screen and (max-width: 799px) {
+  body {
+    height: 100vh;
+    overflow-y: scroll;
+    background-color: #E8964C;
+    background: url('../images/main/wallpaper_mountains.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 60%, #E8964C 70%, #AF663D 100%);
+    background-size: 200vw auto, auto;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center -65vw, center;
+  }
+}
