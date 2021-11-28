@@ -10,6 +10,7 @@ import { formatDate, localeString } from "../../helpers/dates";
 import Ad from "../../components/Ad/Ad";
 import goldCupIcon from "../../images/icons/gold-cup.png"
 import silverCupIcon from "../../images/icons/silver-cup.png"
+import WithAppContext from "../../components/WithAppContext/WithAppContext";
 
 const ForumCategories: NextPage = () => {
   const language = useLanguage();
@@ -122,4 +123,4 @@ const ForumCategories: NextPage = () => {
   );
 }
 
-export default ForumCategories;
+export default WithAppContext(ForumCategories);
