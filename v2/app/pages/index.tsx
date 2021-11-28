@@ -244,6 +244,7 @@ const Home: NextPage = () => {
       return {
         ...comment,
         key: `comment${comment.id}`,
+        title: comment.message,
         message: escapeHtml(comment.message),
         name: comment.author?.name,
         icon: commentIcon,
@@ -701,7 +702,7 @@ const Home: NextPage = () => {
           <h2>{language ? 'Recent activity' : 'Activité récente'}</h2>
           <div id={styles.comments_section} className={styles.right_subsection}>
             {activityPayload?.map((activity) => (
-              <a key={activity.key} href={activity.circuit.url} title={activity.message}>
+              <a key={activity.key} href={activity.circuit.url} title={activity.title}>
                 <h2><img src={activity.icon.src} alt={activity.type} /> <span dangerouslySetInnerHTML={{ __html: activity.message }} /></h2>
                 <h3>
                   {activity.name && <div className={styles.comments_section_author}>
@@ -722,9 +723,6 @@ const Home: NextPage = () => {
         </div>
         <div className={cx(styles.subsection, styles.rank_vs)} id={styles.rankings_section}>
           <h2>Top 10</h2>
-          {/* TODO remove eslint once block is implemented correctly */}
-          {/* eslint-disable jsx-a11y/anchor-is-valid */}
-          {/* eslint-disable no-script-url */}
           <div className={styles.ranking_tabs}>
             <a className={cx({
               [styles.tab_selected]: leaderboardTab === LeaderboardTab.VS
