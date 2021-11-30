@@ -27,7 +27,7 @@ const ForumCategories: NextPage = () => {
   }, [forumStats, language])
 
   return (
-    <ClassicPage className={styles.ForumCategories} page="forum">
+    <ClassicPage title="Forum Mario Kart PC" className={styles.ForumCategories} page="forum">
       <h1>Forum Mario Kart PC</h1>
       {
         /* TODO handle rights msg */
