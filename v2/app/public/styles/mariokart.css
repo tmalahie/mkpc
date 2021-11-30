@@ -185,9 +185,6 @@ button.control-close:active {
     position: absolute;
     visibility: hidden;
 }
-#scroller > div {
-    position: absolute;
-}
 #scroller > div, #scroller0 > div, #scroller1 > div {
     position: absolute;
     width: 100%;

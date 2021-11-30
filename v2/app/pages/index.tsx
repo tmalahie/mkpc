@@ -486,10 +486,10 @@ const Home: NextPage = () => {
           </div>
         </div>
         <h1>Mario Kart PC</h1>
-        <div id={styles.toBegin}><a href="/mariokart.php">
+        <div id={styles.toBegin}><Link href="/game"><a>
           &#9660;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la boîte du jeu pour commencer'}&nbsp;&#9660;<br />
           <img src={mkpcBox.src} alt={language ? "Go to the game" : "Accéder au jeu"} /><br />
-          &#9650;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la boîte du jeu pour commencer'}&nbsp;&#9650;</a></div>
+          &#9650;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la boîte du jeu pour commencer'}&nbsp;&#9650;</a></Link></div>
         <h2><img src={aboutIcon.src} alt="" /> {language ? 'What\'s Mario Kart PC?' : 'Mario Kart PC, c\'est quoi ?'}</h2>
         <div>
           {language ? <>				<p>You might know Mario Kart, the most fun racing game series of all time!
@@ -568,9 +568,9 @@ const Home: NextPage = () => {
         <h2><img src={gameIcon.src} alt="" /> {language ? 'Go to the game' : 'Accéder au jeu'}</h2>
         <div>
           {language ? <>				To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:<br />
-            <a href="/mariokart.php" className={cx(commonStyles.action_button, styles.button_game)}>Start playing now &gt;</a>
+            <Link href="/game"><a className={cx(commonStyles.action_button, styles.button_game)}>Start playing now &gt;</a></Link>
           </> : <>				Pour commencer à jouer, c'est très simple, cliquez sur &quot;Le jeu&quot; dans le menu en haut. Ou plus simplement, cliquez là :<br />
-            <a href="/mariokart.php" className={cx(commonStyles.action_button, styles.button_game)}>Commencer à jouer &gt;</a>
+            <Link href="/game"><a className={cx(commonStyles.action_button, styles.button_game)}>Commencer à jouer &gt;</a></Link>
           </>}
         </div>
       </section>

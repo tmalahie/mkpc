@@ -1,4 +1,5 @@
 <?php
+header('location: /game');
 include('language.php');
 include('initdb.php');
 ?>
