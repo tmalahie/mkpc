@@ -3,7 +3,6 @@ import ClassicPage, { commonStyles } from "../../components/ClassicPage/ClassicP
 import styles from "../../styles/Forum.module.scss";
 import Link from "next/link"
 import useLanguage, { plural } from "../../hooks/useLanguage";
-import useUser from "../../hooks/useUser";
 import useFetch from "../../hooks/useFetch";
 import { useMemo } from "react";
 import { formatDate, localeString } from "../../helpers/dates";
@@ -11,10 +10,10 @@ import Ad from "../../components/Ad/Ad";
 import goldCupIcon from "../../images/icons/gold-cup.png"
 import silverCupIcon from "../../images/icons/silver-cup.png"
 import WithAppContext from "../../components/WithAppContext/WithAppContext";
+import ForumAccount from "../../components/Forum/Account/Account";
 
 const ForumCategories: NextPage = () => {
   const language = useLanguage();
-  const user = useUser();
 
   const { data: categoriesPayload } = useFetch("/api/forum/categories");
 
@@ -27,39 +26,9 @@ const ForumCategories: NextPage = () => {
   }, [forumStats, language])
 
   return (
-    <ClassicPage title="Forum Mario Kart PC" className={styles.ForumCategories} page="forum">
+    <ClassicPage title="Forum Mario Kart PC" className={styles.Forum} page="forum">
       <h1>Forum Mario Kart PC</h1>
-      {
-        /* TODO handle rights msg */
-        /* TODO handle account recovery */
-        user
-          ? <p id={styles.compte}><span>{user.name}</span>
-            <a href={"profil.php?id=" + user.id}>{language ? 'My profile' : 'Mon profil'}</a><br />
-            <a href="logout.php">{language ? 'Log out' : 'Déconnexion'}</a>
-          </p>
-          : <form method="post" action="forum.old.php">
-            <table id={styles.connexion}>
-              <caption>{language ? <>You aren't logged in.<br />Enter your login and password here :</> : <>Vous n'êtes pas connecté<br />Entrez votre pseudo et code ici :</>}</caption>
-              <tbody>
-                <tr>
-                  <td className={styles.ligne}><label htmlFor="pseudo">{language ? 'Login' : 'Pseudo'} :</label></td>
-                  <td><input type="text" name="pseudo" id={styles.pseudo} /></td>
-                </tr>
-                <tr>
-                  <td className={styles.ligne}><label htmlFor="code">{language ? 'Password' : 'Code'} :</label></td>
-                  <td><input type="password" name="code" id={styles.code} /></td>
-                </tr>
-                <tr>
-                  <td colSpan={2}><input type="submit" value={language ? 'Submit' : 'Valider'} /></td>
-                </tr>
-                <tr><td colSpan={2}>
-                  <a href="signup.php">{language ? 'Register' : 'Inscription'}</a>{" | "}
-                  <a href="password-lost.php" style={{ fontWeight: "normal" }}>{language ? 'Forgot password' : 'Mot de passe perdu'}</a>
-                </td></tr>
-              </tbody>
-            </table>
-          </form>
-      }
+      <ForumAccount />
       <Ad width={728} height={90} bannerId="4919860724" />
       <form method="get" action="recherche.php" className={styles["forum-search"]}>
         <p>
@@ -87,7 +56,7 @@ const ForumCategories: NextPage = () => {
           {
             categoriesPayload?.data.map((category, i) => <tr key={category.id} className={(i % 2) ? styles.fonce : styles.clair}>
               <td className={styles.subjects}>
-                <a href={"category.php?category=" + category.id}>{category.name}</a>
+                <a href={"forum/category/" + category.id}>{category.name}</a>
                 <div className={styles["category-description"]}>{category.description}</div>
               </td>
               <td>{category.nbTopics}</td>
