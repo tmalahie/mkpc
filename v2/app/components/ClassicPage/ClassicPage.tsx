@@ -50,7 +50,7 @@ function ClassicPage(props: Props) {
   const { id } = useUser() ?? {};
   const page = props.page;
 
-  const { data: notifsPayload } = useFetch(`api/getNotifs.php`);
+  const { data: notifsPayload } = useFetch(`/api/getNotifs.php`);
   const [notifsList, setNotifsList] = useState<Notif[]>(null);
   const [nbNotifs, setNbNotifs] = useState<number>(null);
   useEffect(() => {

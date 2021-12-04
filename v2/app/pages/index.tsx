@@ -161,8 +161,8 @@ const Home: NextPage = () => {
     }
   }, [leaderboardTab]);
 
-  const { data: topicsPayload } = useFetch(`api/forum/topics`);
-  const { data: newsPayload } = useFetch(`api/news`);
+  const { data: topicsPayload } = useFetch(`/api/forum/topics`);
+  const { data: newsPayload } = useFetch(`/api/news`);
   const creationParams = useMemo(() => {
     const nbByType = [1, 1, 2, 2, 3, 3, 2, 2];
     let nbByTypeParams = {};
@@ -172,7 +172,7 @@ const Home: NextPage = () => {
       ...nbByTypeParams
     }).toString();
   }, []);
-  const { data: creationsPayload } = useFetch(`api/getCreations.php?${creationParams}`);
+  const { data: creationsPayload } = useFetch(`/api/getCreations.php?${creationParams}`);
   useEffect(() => {
     // @ts-ignore
     if (creationsPayload && window.loadCircuitImgs) {
@@ -216,15 +216,15 @@ const Home: NextPage = () => {
     return sortedLines.slice(0, 14);
   }, [creationsPayload]);
 
-  const { data: challengesPayload } = useFetch(`api/getChallenges.php`);
+  const { data: challengesPayload } = useFetch(`/api/getChallenges.php`);
   const challengesSorted = useMemo(() => {
     if (!challengesPayload)
       return [];
     return challengesPayload.data.slice(0, 15);
   }, [challengesPayload]);
 
-  const { data: commentsPayload } = useFetch(`api/track-builder/comments`);
-  const { data: recordsPayload } = useFetch(`api/time-trial/records/find`, {
+  const { data: commentsPayload } = useFetch(`/api/track-builder/comments`);
+  const { data: recordsPayload } = useFetch(`/api/time-trial/records/find`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -258,7 +258,7 @@ const Home: NextPage = () => {
         ...record,
         key: `record${record.id}`,
         icon: clockIcon,
-        message: `${formatTime(record.time)} (${formatRank(record.leaderboard.rank)} ${language ? "out of" : "sur"} ${record.leaderboard.count})`,
+        message: `${formatTime(record.time)} (${formatRank(language, record.leaderboard.rank)} ${language ? "out of" : "sur"} ${record.leaderboard.count})`,
         type: "record",
         recency: (new Date().getTime() - new Date(record.date).getTime()) * 2
       }
