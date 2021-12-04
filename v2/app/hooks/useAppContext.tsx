@@ -5,6 +5,7 @@ const appContext = createContext<AppContext>(null);
 
 export type AppContext = {
   cookies?: string;
+  lang?: string;
 }
 const AppCtx = createContext<AppContext>(null);
 type Props = {
