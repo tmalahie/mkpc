@@ -178,7 +178,15 @@ button.control-close:active {
 #scroller0,#scroller1 {
     z-index: 19998;
 }
+#scroller, #scroller0, #scroller1 {
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    visibility: hidden;
+}
 #scroller > div, #scroller0 > div, #scroller1 > div {
+    position: absolute;
     width: 100%;
     left: 0px;
     top: 0px;
@@ -281,15 +289,15 @@ button.control-close:active {
 .driftimg {
     position: relative;
 }
-#infoplace0,#infoplace1 {
+#infoPlace0,#infoPlace0 {
     display: none;
-     position: absolute;
-     text-align: right;
-     z-index: 19999;
-     color: #EEE;
-     font-weight: bold;
-     font-family: "SMK-Rank", impact;
-     opacity: 0.8;
+    position: absolute;
+    text-align: right;
+    z-index: 19999;
+    color: #EEE;
+    font-weight: bold;
+    font-family: "SMK-Rank", impact;
+    opacity: 0.8;
 }
 .cannotChange {
     cursor: not-allowed !important;
@@ -333,6 +341,10 @@ form[name="modes"] {
     #vPub {
         margin-left: 20px;
     }
+}
+#maps-list {
+    position: absolute;
+    visibility: hidden;
 }
 #maps-list img {
     height:1px;

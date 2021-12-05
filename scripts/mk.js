@@ -2919,13 +2919,11 @@ function startGame() {
 
 		for (var i=0;i<oMap.arme.length;i++) {
 			fSprite = oMap.arme[i];
-			fSprite[2] = new Sprite("item");
-
 			var oObject = document.createElement("img");
 			oObject.src = "images/map_icons/objet.png";
 			oObject.style.position = "absolute";
 			oObject.style.display = "none";
-			oObject.style.width = oObjWidth;
+			oObject.style.width = oObjWidth +"px";
 			oObject.className = "pixelated";
 			posImg(oObject, fSprite[0],fSprite[1],Math.round(oPlayer.rotation), oObjWidth, oPlanSize);
 			oPlanCtn.appendChild(oObject);
@@ -2935,7 +2933,7 @@ function startGame() {
 			oObject2.src = "images/map_icons/objet.png";
 			oObject2.style.position = "absolute";
 			oObject2.style.display = "none";
-			oObject2.style.width = oObjWidth2;
+			oObject2.style.width = oObjWidth2 +"px";
 			oObject2.className = "pixelated";
 			posImg(oObject2, fSprite[0],fSprite[1],Math.round(oPlayer.rotation), oObjWidth2, oPlanSize2);
 			oPlanCtn2.appendChild(oObject2);
@@ -5589,7 +5587,7 @@ var itemBehaviors = {
 									oImg2.onload = function() {
 										this.dataset.loaded = 1;
 										if (this.dataset.jTime)
-											this.draw(+this.dataset.jTime);
+											oImg.draw(+this.dataset.jTime);
 									}
                                     oImg.style.zIndex = 19000;
                                     oImg.style.position = "absolute";
@@ -19528,7 +19526,7 @@ function selectChallengesScreen() {
 		oDiv.style.marginBottom = (iScreenScale*2) +"px";
 		oDiv.style.marginLeft = "auto";
 		oDiv.style.marginRight = "auto";
-		oDiv.style.width = (iScreenScale*60);
+		oDiv.style.width = (iScreenScale*60) +"px";
 		oDiv.style.color = "white";
 		oDiv.innerHTML = toLanguage("This circuit has no challenges. Create some right now, it's fast and easy!", "Ce circuit ne comporte aucun défi. Créez-en dès maintenant, c'est facile et rapide !")
 		oScroll.appendChild(oDiv);
@@ -22557,7 +22555,7 @@ function editCommands(reload,currentTab) {
 	$controlSettingsInfo.innerHTML = toLanguage("These settings allow you to disable some graphic elements from the game. Use them if you experience some lag for example.", "Ces paramètres vous permettent de désactiver certains éléments graphiques du jeu. Utilisez-les si vous avez des problèmes de lags par exemple.");
 	$controlSettings.appendChild($controlSettingsInfo);
 	var allSettings = {
-		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors, bloops)'),
+		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
 		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map')
 	};

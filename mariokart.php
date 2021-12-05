@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", MarioKart);
 <?php
 include('gameInitElts.php');
 ?>
-<div id="maps-list" style="position: absolute; visibility: hidden">
+<div id="maps-list">
 <?php
 for ($i=1;$i<48;$i+=4)
 	echo '<img src="images/selectors/select_map'.$i.'.png" alt="" />';

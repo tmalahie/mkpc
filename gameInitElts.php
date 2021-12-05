@@ -1,5 +1,5 @@
 <div id="dMaps"></div>
-<div id="scroller" style="width: 1px; height: 1px; overflow: hidden; position: absolute; visibility: hidden">
+<div id="scroller">
 	<div style="position: absolute">
 		<img class="aObjet" alt="." src="images/items/fauxobjet.png" /><br />&nbsp;<br />
 		<img class="aObjet" alt="." src="images/items/banane.png" /><br />&nbsp;<br />
