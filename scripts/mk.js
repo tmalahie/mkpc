@@ -741,7 +741,7 @@ function setPlanPos() {
 
 	function setObjPos(iPlanObjects) {
 		for (var i=0;i<oMap.arme.length;i++) {
-			if (isNaN(oMap.arme[i][2]))
+			if (oMap.arme[i][2].active)
 				iPlanObjects[i].style.display = "block";
 			else
 				iPlanObjects[i].style.display = "none";
@@ -2592,8 +2592,13 @@ function startGame() {
 
 	if (!isTT) {
 		if (itemDistribution.length) {
-			for (var i=0;i<oMap.arme.length;i++)
-				oMap.arme[i][2] = 0;
+			for (var i=0;i<oMap.arme.length;i++) {
+				var aBoxes = [];
+				var nbBoxes = oMap.arme[i][2] || 1;
+				for (var j=0;j<nbBoxes;j++)
+					aBoxes[j] = new Sprite("item");
+				oMap.arme[i][2] = {active:true,box:aBoxes};
+			}
 		}
 		else
 			oMap.arme = [];
@@ -8211,15 +8216,22 @@ function render() {
 
 			for (var j=0;j<oMap.arme.length;j++) {
 				fSprite = oMap.arme[j];
-				if (isNaN(fSprite[2])) {
-					fSprite[2][i].render(fCamera, {
-						x: fSprite[0],
-						y: fSprite[1]
-					});
+				var fItems = fSprite[2];
+				if (fItems.active) {
+					for (var k=0;k<fItems.box.length;k++) {
+						var kSprite = fItems.box[k];
+						kSprite[i].render(fCamera, {
+							x: fSprite[0],
+							y: fSprite[1],
+							z: k*4.5
+						});
+					}
 				}
 				else if (!i && lastFrame) {
-					if (fSprite[2])fSprite[2]--;
-					else fSprite[2] = new Sprite("item");
+					if (fItems.countdown)
+						fItems.countdown--;
+					else
+						fItems.active = true;
 				}
 			}
 
@@ -9137,10 +9149,15 @@ var touchedObject; // TODO make this a local var
 function objet(iX, iY) {
 	for (var i=0;i<oMap.arme.length;i++) {
 		var oBox = oMap.arme[i];
-		if (iX > oBox[0] - 7 && iX < oBox[0] + 7 && iY > oBox[1] - 7 && iY < oBox[1] + 7 && isNaN(oBox[2])) {
-			for (var j=0;j<strPlayer.length;j++)
-				oBox[2][j].div.style.display = "none";
-			oBox[2] = 20;
+		if (iX > oBox[0] - 7 && iX < oBox[0] + 7 && iY > oBox[1] - 7 && iY < oBox[1] + 7 && oBox[2].active) {
+			var fSprite = oBox[2];
+			fSprite.active = false;
+			fSprite.countdown = 20;
+			for (var k=0;k<fSprite.box.length;k++) {
+				var kBox = fSprite.box[k];
+				for (var j=0;j<strPlayer.length;j++)
+					kBox[j].div.style.display = "none";
+			}
 			touchedObject = i;
 			return true;
 		}
