@@ -7,8 +7,8 @@ include('initdb.php');
    <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="author" content="Timothé Malahieude" />
-	<meta name="description" content="Jeu de Mario Kart gratuit en ligne" />
-	<meta name="keywords" content="Mario, Kart, PC, jeu, course, jeu gratuit, multijoueurs" />
+	<meta name="description" content="<?php echo $language ? 'Free online Mario Kart game' : 'Jeu de Mario Kart gratuit en ligne'; ?>" />
+	<meta name="keywords" content="<?php echo $language ? 'Mario, Kart, PC, game, race, track, builder, multiplayer, online' : 'Mario, Kart, PC, jeu, course, éditeur, circuit, multijoueur'; ?>" />
 	<meta name="viewport" content="width=device-width, user-scalable=no" />
 	<meta name="thumbnail" content="https://mkpc.malahieude.net/images/screenshots/ssfr1.png" />
 	<meta property="og:image" content="https://mkpc.malahieude.net/images/mkthumbnail.jpg" />

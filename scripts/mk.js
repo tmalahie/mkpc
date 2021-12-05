@@ -21383,7 +21383,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		oDiv.style.top = (iScreenScale*12) + "px";
 		oDiv.style.fontSize = Math.round(iScreenScale*2.5) + "px";
 		oDiv.style.color = "#DFC";
-		oDiv.innerHTML = language ? " &nbsp; Teams are being selected... Please don't leave the game":"Les équipes sont cours de sélection... Ne pas quitter la partie.";
+		oDiv.innerHTML = language ? " &nbsp; Teams are being selected... Please don't leave the game":"Les équipes sont en cours de sélection... Ne pas quitter la partie.";
 		oScr.appendChild(oDiv);
 
 		var ratio = 41;
