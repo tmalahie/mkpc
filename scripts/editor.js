@@ -3644,21 +3644,62 @@ var commonTools = {
 			self.move(self,point,extra);
 			storeHistoryData(self.data);
 			self.data.push(point);
+
+			var boxCntText = document.createElementNS(SVG, "text");
+			boxCntText.setAttribute("class", "dark noclick");
+			boxCntText.setAttribute("font-size", 8);
+			boxCntText.setAttribute("text-anchor", "middle");
+			boxCntText.setAttribute("dominant-baseline", "middle");
+
 			var box = self.state.point;
+			box.retext = function() {
+				boxCntText.innerHTML = point.nb || "";
+			};
+			box.reposition = function(nData) {
+				boxCntText.setAttribute("x", nData.x);
+				boxCntText.setAttribute("y", nData.y+1);
+			};
+			box.retext();
+			box.reposition(point);
+			$editor.appendChild(boxCntText);
+
 			box.classList.remove("noclick");
 			box.oncontextmenu = function(e) {
 				hideBox(self.state.point,self.state.boxSize);
+				var doubleCheck = (point.nb > 1) ? "✔ ":"";
+				var moveOptions = {
+					on_apply: function(nData) {
+						box.reposition(nData);
+					},
+					on_start_move: function() {
+						boxCntText.style.display = "none";
+					},
+					on_end_move: function() {
+						boxCntText.style.display = "";
+					}
+				};
 				return showContextOnElt(e,box,[{
 					text: (language ? "Move":"Déplacer"),
 					click: function() {
-						moveBox(box,point,self.state.boxSize);
+						moveBox(box,point,self.state.boxSize, moveOptions);
 					}
 				}, {
 					text:(language ? "Delete":"Supprimer"),
 					click:function() {
 						$editor.removeChild(box);
+						$editor.removeChild(boxCntText);
 						storeHistoryData(self.data);
 						removeFromArray(self.data,point);
+					}
+				}, {
+					text: doubleCheck + (language ? "Double item":"Double objet"),
+					click:function() {
+						storeHistoryData(self.data);
+						if (point.nb > 1)
+							delete point.nb;
+						else
+							point.nb = 2;
+						box.retext();
 					}
 				}]);
 			};
@@ -3670,12 +3711,22 @@ var commonTools = {
 		},
 		"save" : function(self,payload) {
 			payload.arme = [];
-			for (var i=0;i<self.data.length;i++)
-				payload.arme.push(pointToData(self.data[i]));
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				var iPayload = pointToData(iData);
+				if (iData.nb)
+					iPayload.push(iData.nb);
+				payload.arme.push(iPayload);
+			}
 		},
 		"restore" : function(self,payload) {
-			for (var i=0;i<payload.arme.length;i++)
-				self.data.push(dataToPoint(payload.arme[i]));
+			for (var i=0;i<payload.arme.length;i++) {
+				var iPayload = payload.arme[i];
+				var iData = dataToPoint(iPayload);
+				if (iPayload.length > 2)
+					iData.nb = iPayload[2];
+				self.data.push(iData);
+			}
 		},
 		"rescale" : function(self, scale) {
 			for (var i=0;i<self.data.length;i++)
