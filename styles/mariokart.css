@@ -175,17 +175,20 @@ button.control-close:active {
     color: #FF9900;
     text-align: center;
 }
-#scroller0,#scroller1 {
+#scroller {
+    display: none;
+}
+.itemScroller {
     z-index: 19998;
 }
-#scroller, #scroller0, #scroller1 {
+.itemScroller {
     width: 1px;
     height: 1px;
     overflow: hidden;
     position: absolute;
     visibility: hidden;
 }
-#scroller > div, #scroller0 > div, #scroller1 > div {
+.itemScroller > div, .itemScroller > div, .itemScroller > div {
     position: absolute;
     width: 100%;
     left: 0px;
@@ -211,7 +214,7 @@ button.control-close:active {
     height: 50%;
     overflow: hidden;
 }
-#objet0,#objet1 {
+.itemWheel {
     background-image: url('../images/items/wheel.png');
     background-size: 100% 100%;
     image-rendering: pixelated;
@@ -225,11 +228,11 @@ button.control-close:active {
     align-items: center;
     justify-content: center;
 }
-#roulette0,#roulette1 {
+.itemChamber {
     display: flex;
     overflow: hidden;
 }
-#roulette0 img,#roulette1 img {
+.itemChamber img {
     align-self: center;
 }
 #temps0,#temps1 {
@@ -289,7 +292,7 @@ button.control-close:active {
 .driftimg {
     position: relative;
 }
-#infoPlace0,#infoPlace0 {
+#infoPlace0,#infoPlace1 {
     display: none;
     position: absolute;
     text-align: right;
