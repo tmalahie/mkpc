@@ -3773,7 +3773,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3812,7 +3812,7 @@ function startGame() {
 			showTeam(tnCountdown);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -11677,8 +11677,8 @@ function itemDataLength(type) {
 function resetDatas() {
 	var oPlayer = oPlayers[0];
 	var playerMapping = (course != "BB")
-	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","tours","demitours","champi","etoile","megachampi","billball","place"]
-	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","ballons","reserve","champi","etoile","megachampi"];
+	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
+	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi"];
 	var playerMappingExtra = (course != "BB") ? ["finaltime"]:[];
 	var cpuMapping = playerMapping.concat("aipoint");
 	var payload = {
@@ -12631,7 +12631,7 @@ function move(getId, triggered) {
 		}
 		var nbItems = oMap.arme[touchedObject][2].box.length;
 		for (var it=0;it<nbItems;it++) {
-			if (!oKart.arme || (oDoubleItemsEnabled && !oKart.stash) && (oKart.tours <= oMap.tours || course == "BB") && !finishing && !oKart.billball) {
+			if ((!oKart.arme || (oDoubleItemsEnabled && !oKart.stash)) && (oKart.tours <= oMap.tours || course == "BB") && !finishing && !oKart.billball) {
 				var iObj;
 				if (course != "BB") {
 					iObj = randObj(oKart);

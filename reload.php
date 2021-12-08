@@ -14,8 +14,8 @@ if (!empty($_SESSION['mkid'])) {
 					'items' => 'i'
 				),
 				'player' => $isBattle
-					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","ballons","reserve","champi","etoile","megachampi")
-					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","tours","demitours","champi","etoile","megachampi","billball","place")
+					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi")
+					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place")
 			);
 		}
 		$playerMapping = $paramsMapping['player'];
@@ -171,6 +171,7 @@ if (!empty($_SESSION['mkid'])) {
 						$val = $joueur[$payloadMapping[$i]];
 						switch ($payloadMapping[$i]) {
 						case 'arme':
+						case 'stash':
 							echo '"'.$val.'"';
 							break;
 						default:
