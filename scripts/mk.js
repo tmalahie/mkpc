@@ -2632,7 +2632,9 @@ function startGame() {
 		if (itemDistribution.length) {
 			for (var i=0;i<oMap.arme.length;i++) {
 				var aBoxes = [];
-				var nbBoxes = oMap.arme[i][2] || 1;
+				var nbBoxes = oMap.arme[i][2];
+				if (!nbBoxes || !oDoubleItemsEnabled)
+					nbBoxes = 1;
 				for (var j=0;j<nbBoxes;j++)
 					aBoxes[j] = new Sprite("item");
 				oMap.arme[i][2] = {active:true,box:aBoxes};
@@ -15306,6 +15308,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		if (cpuChars) cpuChars = JSON.parse(cpuChars);
 		var timeTrial = this.elements["option-timeTrial"].checked ? 1:0;
 		var noBumps = this.elements["option-noBumps"].checked ? 1:0;
+		var doubleItems = this.elements["option-doubleItems"].checked ? 1:0;
 		if (!team) {
 			manualTeams = 0;
 			teamOpts = 0;
@@ -15337,7 +15340,8 @@ function privateGameOptions(gameOptions, onProceed) {
 			cpuNames: cpuNames,
 			cpuChars: cpuChars,
 			timeTrial: timeTrial,
-			noBumps: noBumps
+			noBumps: noBumps,
+			doubleItems: doubleItems
 		});
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
@@ -16117,6 +16121,42 @@ function privateGameOptions(gameOptions, onProceed) {
 	tDiv.appendChild(oSelect);
 	cDiv.appendChild(tDiv);
 	oTd.appendChild(cDiv);
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-doubleItems-ctn";
+	if (!isOnline)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.style.textAlign = "center";
+	oTd.style.width = (iScreenScale*8) +"px";
+	var oCheckbox = document.createElement("input");
+	oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
+	oCheckbox.id = "option-doubleItems";
+	oCheckbox.name = "option-doubleItems";
+	oCheckbox.type = "checkbox";
+	if (gameOptions && gameOptions.doubleItems)
+		oCheckbox.checked = true;
+	oTd.appendChild(oCheckbox);
+	oTr.appendChild(oTd);
+
+	var oTd = document.createElement("td");
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-doubleItems");
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.style.marginBottom = "0px";
+	oH1.innerHTML = toLanguage("Allow double items", "Autoriser les double objets");
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("If enabled, you can hold 2 items in reserve instead of 1", "Si activé, il est possible de garder 2 objets en réserve au lieu de 1");
+	oLabel.appendChild(oDiv);
+	oTd.appendChild(oLabel);
+	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
 
@@ -17859,7 +17899,8 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 							cpu:1,
 							cpuLevel:1,
 							cpuNames:1,
-							cpuChars:1
+							cpuChars:1,
+							doubleItems:1
 						};
 						for (var key in shareLink.options) {
 							if (!autoAcceptedRules[key])
@@ -18028,6 +18069,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 									shareLink.options.cpuChars = options.cpuChars;
 									shareLink.options.timeTrial = options.timeTrial;
 									shareLink.options.noBumps = options.noBumps;
+									shareLink.options.doubleItems = options.doubleItems;
 									selectedTeams = options.team;
 									selectPlayerScreen(0);
 									return true;
@@ -18860,7 +18902,8 @@ var defaultGameOptions = {
 	cpuNames: null,
 	cpuChars: null,
 	timeTrial: false,
-	noBumps: false
+	noBumps: false,
+	doubleItems: false
 };
 function isCustomOptions(linkOptions) {
 	if (linkOptions) {
@@ -20818,6 +20861,10 @@ function choose(map,rand) {
 								selectedItemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib].value;
 							}
 						}
+						if (shareLink.options && shareLink.options.doubleItems)
+							oDoubleItemsEnabled = true;
+						else
+							oDoubleItemsEnabled = false;
 						var tNow = new Date().getTime();
 						tnCourse = tNow+rCode[2];
 						if (isSingle)

@@ -81,6 +81,10 @@ $rulesList = array(
 	'noBumps' => array(
 		'default' => 0,
 		'accepted' => array(1,1)
+	),
+	'doubleItems' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
 	)
 );
 function rulesEqual($rules1,$rules2) {
