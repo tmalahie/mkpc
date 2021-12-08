@@ -1117,8 +1117,8 @@ function loadMap() {
 		oObjet.id = "objet"+i;
 		oObjet.className = "itemWheel";
 		if (!pause || !fInfos.replay) {
-			oObjet.style.left = Math.round(iScreenScale*3) +"px";
-			oObjet.style.top = Math.round(iScreenScale*3) +"px";
+			oObjet.style.left = Math.round(iScreenScale) +"px";
+			oObjet.style.top = Math.round(iScreenScale) +"px";
 			oObjet.style.width = Math.round(iScreenScale * 26/3) +"px";
 			oObjet.style.height = Math.round(iScreenScale * 18/3) +"px";
 			oObjet.style.visibility = "visible";
@@ -1147,7 +1147,7 @@ function loadMap() {
 			oReserve.style.top = Math.round(iScreenScale*1) +"px";
 			oReserve.style.width = Math.round(iScreenScale * 26/5) +"px";
 			oReserve.style.height = Math.round(iScreenScale * 18/5) +"px";
-			oReserve.style.visibility = "visible";
+			oReserve.style.visibility = "hidden";
 		}
 		var oRoulette = document.createElement("div");
 		oRoulette.id = "roulette2"+i;
@@ -1195,8 +1195,8 @@ function loadMap() {
 		oScroller.id = "scroller"+i;
 		oScroller.className = "itemScroller";
 		var oScrollPadding = 1;
-		oScroller.style.left = Math.round(iScreenScale*3) +"px";
-		oScroller.style.top = Math.round(iScreenScale*3 + iScreenScale*oScrollPadding) +"px";
+		oScroller.style.left = iScreenScale +"px";
+		oScroller.style.top = Math.round(iScreenScale + iScreenScale*oScrollPadding) +"px";
 		oScroller.style.width = Math.round(iScreenScale * 26/3) +"px";
 		oScroller.style.height = Math.round(iScreenScale * 18/3 - iScreenScale*2*oScrollPadding) +"px";
 		oScroller.style.lineHeight = iScreenScale +"px";
@@ -8575,7 +8575,7 @@ function supprArme(i) {
 	var oKart = aKarts[i];
 	for (var j=0;j<oRoulettesPrefixes.length;j++) {
 		var prefix = oRoulettesPrefixes[j];
-		oKart[prefix] = 0;
+		oKart["roulette"+prefix] = 0;
 		oKart[oArmeKeys[j]] = false;
 	}
 	if (kartIsPlayer(oKart)) {
@@ -12631,7 +12631,7 @@ function move(getId, triggered) {
 		}
 		var nbItems = oMap.arme[touchedObject][2].box.length;
 		for (var it=0;it<nbItems;it++) {
-			if (!oKart.arme || (oDoubleItemsEnabled && !oKart.stash) && (oKart.tours <= oMap.tours || course == "BB") && !finishing) {
+			if (!oKart.arme || (oDoubleItemsEnabled && !oKart.stash) && (oKart.tours <= oMap.tours || course == "BB") && !finishing && !oKart.billball) {
 				var iObj;
 				if (course != "BB") {
 					iObj = randObj(oKart);
@@ -12653,8 +12653,12 @@ function move(getId, triggered) {
 						bananeX3: 1
 					};
 					for (var i=0;i<aKarts.length;i++) {
-						if (preventDuplicateItems[aKarts[i].arme])
-							forbiddenItems[aKarts[i].arme] = 1;
+						var iKart = aKarts[i];
+						for (var j=0;j<oArmeKeys.length;j++) {
+							var oArmeKey = oArmeKeys[j];
+							if (preventDuplicateItems[iKart[oArmeKey]])
+								forbiddenItems[iKart[oArmeKey]] = 1;
+						}
 					}
 					if (items["carapace-bleue"].length)
 						forbiddenItems["carapacebleue"] = 1;
@@ -12662,6 +12666,8 @@ function move(getId, triggered) {
 						forbiddenItems["eclair"] = 1;
 					if (items.bloops.length)
 						forbiddenItems["bloops"] = 1;
+					if (oKart.arme)
+						forbiddenItems[oKart.arme] = 1;
 					if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
 						do {
 							iObj = randObj(oKart);
@@ -13973,10 +13979,10 @@ function getDriftImg(getId) {
 var oRoulettesPrefixes = ["", "2"];
 var oArmeKeys = ["arme", "stash"];
 function updateObjHud(ID) {
+	var oKart = aKarts[ID];
 	for (var i=0;i<oRoulettesPrefixes.length;i++) {
 		var prefix = oRoulettesPrefixes[i];
 		var oArmeKey = oArmeKeys[i];
-		var oKart = aKarts[ID];
 		var oArme = oKart[oArmeKey];
 		var isArme = false, isRoulette = false;
 		if (oArme) {
@@ -13988,6 +13994,23 @@ function updateObjHud(ID) {
 		var oItemHeight = i ? 2.5:4;
 		document.getElementById("scroller"+prefix+ID).style.visibility = isRoulette ? "visible" : "hidden";
 		document.getElementById("roulette"+prefix+ID).innerHTML = isArme ? '<img alt="'+oArme+'" class="pixelated" src="images/items/'+oArme+'.png" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
+	}
+	var oScroller = document.getElementById("scroller"+ID);
+	var oObjet = document.getElementById("objet"+ID);
+	var oScrollPadding = 1;
+	if (oKart.stash) {
+		document.getElementById("reserve"+ID).style.visibility = "visible";
+		oObjet.style.left = Math.round(iScreenScale*3) +"px";
+		oObjet.style.top = Math.round(iScreenScale*3) +"px";
+		oScroller.style.left = Math.round(iScreenScale*3) +"px";
+		oScroller.style.top = Math.round(iScreenScale*3 + iScreenScale*oScrollPadding) +"px";
+	}
+	else {
+		document.getElementById("reserve"+ID).style.visibility = "hidden";
+		oObjet.style.left = Math.round(iScreenScale) +"px";
+		oObjet.style.top = Math.round(iScreenScale) +"px";
+		oScroller.style.left = iScreenScale +"px";
+		oScroller.style.top = Math.round(iScreenScale + iScreenScale*oScrollPadding) +"px";
 	}
 }
 function updateItemCountdownHud(ID, progress) {
@@ -14072,8 +14095,14 @@ function processCode(cheatCode) {
 		}
 		if (!isExistingObj)
 			return false;
-		oPlayer.arme = wObject;
-		oPlayer.roulette = 25;
+		if (oPlayer.billball) {
+			oPlayer.stash = wObject;
+			oPlayer.roulette2 = 25;
+		}
+		else {
+			oPlayer.arme = wObject;
+			oPlayer.roulette = 25;
+		}
 		updateObjHud(0);
 		return true;
 	}
@@ -21848,6 +21877,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	
 	var oTimeTd = document.createElement("td");
 	oTimeTd.style.textAlign = "center";
+	oTimeTd.style.whiteSpace = "nowrap";
 
 	var oPersoTime = document.createElement("span");
 	oPersoTime.style.fontSize = Math.round(iScreenScale*5.5) + "px";

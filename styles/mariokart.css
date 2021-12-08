@@ -506,6 +506,10 @@ body {
 	color: #FEFF3F;
     font-weight: bold;
 }
+body table {
+    font-weight: normal;
+    box-sizing: content-box;
+}
 #mariokartcontainer {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
