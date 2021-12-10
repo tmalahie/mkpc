@@ -12,6 +12,7 @@ var selectedCc = localStorage.getItem("cc") || "150";
 var selectedNbTeams = localStorage.getItem("nbTeams") || "2";
 var selectedFriendlyFire = !!localStorage.getItem("friendlyFire");
 var selectedTeamOpts = 0;
+var selectedDoubleItems = !!localStorage.getItem("doubleitems");
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
@@ -571,10 +572,12 @@ var gRecord;
 var gSelectedPerso;
 var gOverwriteRecord;
 var selectedItemDistrib;
+var oDoubleItemsEnabled;
 if (pause) {
 	strPlayer = fInfos.player;
 	selectedItemDistrib = fInfos.distribution;
 	fSelectedClass = fInfos.cc;
+	oDoubleItemsEnabled = !!fInfos.double_items;
 	oMap = oMaps["map"+fInfos.map];
 	clSelected = fInfos.cl;
 	if (course != "CM")
@@ -3115,7 +3118,7 @@ function startGame() {
 							oInfos.style.width = "";
 							oInfos.style.top = iScreenScale * 7 + 10 +"px";
 							oInfos.style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
-							oInfos.style.fontSize = iScreenScale * 4 +"pt";
+							oInfos.style.fontSize = iScreenScale * 4 +"px";
 						}
 						if (stillRacing) {
 							var btnFontSize = (course != "CM") ? (iScreenScale*3):Math.round(iScreenScale*2.5);
@@ -3172,6 +3175,7 @@ function startGame() {
 									player:strPlayer,
 									distribution:itemDistribution,
 									cc:fSelectedClass,
+									double_items:oDoubleItemsEnabled,
 									map:oMap.ref,
 									difficulty:iDificulty,
 									cl:clSelected
@@ -3211,6 +3215,7 @@ function startGame() {
 										player:strPlayer,
 										distribution:itemDistribution,
 										cc:fSelectedClass,
+										double_items:oDoubleItemsEnabled,
 										perso:new Array(),
 										cl:clSelected
 									};
@@ -3775,7 +3780,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3814,7 +3819,7 @@ function startGame() {
 			showTeam(tnCountdown);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -4114,7 +4119,7 @@ function continuer() {
 	document.getElementById("infos0").style.top = iScreenScale * 10 + 10 +"px";
 	document.getElementById("infos0").style.left = Math.round(iScreenScale*20+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 	document.getElementById("infos0").style.background = "transparent";
-	document.getElementById("infos0").style.fontSize = iScreenScale * 4 +"pt";
+	document.getElementById("infos0").style.fontSize = iScreenScale * 4 +"px";
 	document.getElementById("infos0").innerHTML = '<tr><td id="continuer"></td></tr><tr><td'+ ((course != "CM") ? ' style="font-size: '+ iScreenScale * 3 +'px;">&nbsp;</td></tr>' : ' id="enregistrer"></td></tr><tr><td id="revoir"></td></tr><tr><td id="classement"></td></tr><tr><td id="changercircuit">') +'</td></tr><tr><td><input type="button" id="quitter" value="'+ toLanguage('QUIT', 'QUITTER') +'" style="font-size: '+ iScreenScale*3 +'pt; width: 100%;" /></td></tr>';
 
 	var oTeamTable = document.getElementById("team-table");
@@ -4149,6 +4154,7 @@ function continuer() {
 					player:strPlayer,
 					distribution:itemDistribution,
 					cc:fSelectedClass,
+					double_items:oDoubleItemsEnabled,
 					difficulty:iDificulty,
 					cl:clSelected
 				};
@@ -4275,6 +4281,7 @@ function continuer() {
 				player:strPlayer,
 				distribution:itemDistribution,
 				cc:fSelectedClass,
+				double_items:oDoubleItemsEnabled,
 				map:oMap.ref,
 				difficulty:iDificulty,
 				perso:gPersos,
@@ -4505,6 +4512,7 @@ function continuer() {
 					player:strPlayer,
 					distribution:itemDistribution,
 					cc:fSelectedClass,
+					double_items:oDoubleItemsEnabled,
 					map:oMap.ref,
 					my_route:iTrajet,
 					replay:true,
@@ -4545,6 +4553,7 @@ function continuer() {
 				player:strPlayer,
 				distribution:itemDistribution,
 				cc:fSelectedClass,
+				double_items:oDoubleItemsEnabled,
 				perso:new Array(),
 				cl:clSelected
 			};
@@ -8620,7 +8629,6 @@ function loseUsingItem(oKart) {
 	if (oKart.rotitem === undefined)
 		loseUsingItems(oKart);
 }
-var oDoubleItemsEnabled = true;
 function dropCurrentItem(oKart) {
 	var sArme = oKart.arme;
 	if (!sArme) return;
@@ -17609,7 +17617,7 @@ function selectTypeCreate() {
 }
 
 var myPersosCache;
-function selectPlayerScreen(IdJ,newP,nbSels) {
+function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	var isCustomSel = (nbSels !== undefined);
 	var force = (IdJ === -1);
 	if (force) IdJ = 0;
@@ -17708,7 +17716,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 
 	var rotateHandler;
 	var jScreenScale = iScreenScale;
-	var oItemSelect, oClassSelect;
+	var oItemSelect, oClassSelect, oDoubleItemCheckbox;
 	function tourner(kart) {
 		var size = Math.round(jScreenScale*5*(kart.naturalWidth/768));
 		var rotation = parseFloat(kart.style.left);
@@ -17817,6 +17825,16 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				}
 				else
 					selectedItemDistrib = modeItemDistributions[0].value;
+				if (oDoubleItemCheckbox) {
+					oDoubleItemsEnabled = oDoubleItemCheckbox.checked;
+					selectedDoubleItems = oDoubleItemsEnabled;
+					if (oDoubleItemsEnabled)
+						localStorage.setItem("doubleitems", "1");
+					else
+						localStorage.removeItem("doubleitems");
+				}
+				else
+					oDoubleItemsEnabled = false;
 				if (oClassSelect) {
 					selectedCc = oClassSelect.value;
 					fSelectedClass = getRelSpeedFromCc(+selectedCc);
@@ -18274,12 +18292,78 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 				setCustomValue(oClassSelect, selectedCc, selectedCc+"cc");
 			oForm.appendChild(oClassSelect);
 
-			oForm.appendChild(document.createTextNode(toLanguage("Items", "Objets ")+ ": "));
+			var moreOptions = document.createElement("a");
+			moreOptions.href = "#null";
+			moreOptions.style.color = "white";
+			moreOptions.innerHTML = toLanguage("More options...", "Plus d'options...");
+			moreOptions.style.marginLeft = (iScreenScale*1) +"px";
+			moreOptions.onclick = function(e) {
+				oMoreOptionsScreen.style.display = "block";
+				return false;
+			}
+			oForm.appendChild(moreOptions);
+
+			var oMoreOptionsScreen = document.createElement("div");
+			oMoreOptionsScreen.style.position = "absolute";
+			oMoreOptionsScreen.style.width = "100%";
+			oMoreOptionsScreen.style.height = "100%";
+			oMoreOptionsScreen.style.left = "0px";
+			oMoreOptionsScreen.style.top = "0px";
+			oMoreOptionsScreen.style.backgroundColor = "#000";
+			if (!additionalOptions || !additionalOptions.openOptions)
+				oMoreOptionsScreen.style.display = "none";
+			oMoreOptionsScreen.style.zIndex = 3;
+			var oMoreOptionsTitle = toTitle(toLanguage("More options", "Plus d'options"), 2);
+			oMoreOptionsScreen.appendChild(oMoreOptionsTitle);
+			oScr.appendChild(oMoreOptionsScreen);
+
+			var oScroll = document.createElement("div");
+			oScroll.style.maxHeight = (24*iScreenScale) +"px";
+			oScroll.style.overflow = "auto";
+			oScroll.style.position = "absolute";
+			oScroll.style.left = "0px";
+			oScroll.style.top = (13*iScreenScale) +"px";
+			oScroll.style.width = (iWidth*iScreenScale) +"px";
+
+			var oTable = document.createElement("table");
+			oTable.style.marginLeft = "auto";
+			oTable.style.marginRight = "auto";
+			oScroll.appendChild(oTable);
+
+			var oTr = document.createElement("tr");
+			var oTd = document.createElement("td");
+			oTd.setAttribute("colspan", 2);
+
+			var cDiv = document.createElement("div");
+			cDiv.style.display = "flex";
+			cDiv.style.flexDirection = "row";
+			cDiv.style.alignItems = "center";
+			var tDiv = document.createElement("div");
+			tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+			tDiv.style.paddingRight = (iScreenScale*3) +"px";
+			var oLabel = document.createElement("label");
+			oLabel.style.cursor = "pointer";
+			oLabel.setAttribute("for", "option-itemDistrib");
+
+			var oH1 = document.createElement("h1");
+			oH1.style.fontSize = (3*iScreenScale) +"px";
+			oH1.innerHTML = toLanguage("Item distribution :", "Distribution des objets :");
+			oH1.style.marginTop = iScreenScale +"px";
+			oH1.style.marginBottom = "0px";
+			oLabel.appendChild(oH1);
+			tDiv.appendChild(oLabel);
+			cDiv.appendChild(tDiv);
+
+			var tDiv = document.createElement("div");
+			tDiv.style.display = "inline-block";
 
 			oItemSelect = document.createElement("select");
-			oItemSelect.name = "item";
-			oItemSelect.style.width = (iScreenScale*16) +"px";
-			oItemSelect.style.fontSize = iScreenScale*2 +"px";
+			oItemSelect.id = "option-itemDistrib";
+			oItemSelect.name = "option-itemDistrib";
+			oItemSelect.style.backgroundColor = "black";
+			oItemSelect.style.width = (iScreenScale*24) +"px";
+			oItemSelect.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+			oItemSelect.style.marginTop = Math.round(iScreenScale*1.5) +"px";
 			for (var i=0;i<modeItemDistributions.length;i++) {
 				var oItemOption = document.createElement("option");
 				oItemOption.value = i;
@@ -18301,7 +18385,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 						localStorage.setItem("itemset."+itemMode, modeItemDistributions.length);
 						oScr.innerHTML = "";
 						oContainers[0].removeChild(oScr);
-						selectPlayerScreen(IdJ,newP,nbSels);
+						selectPlayerScreen(IdJ,newP,nbSels,{openOptions:true});
 					});
 				}
 				else {
@@ -18310,7 +18394,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 					oItemCustomActions.style.display = (this.value >= itemDistributions[itemMode].length) ? "inline-block" : "none";
 				}
 			}
-			oForm.appendChild(oItemSelect);
+			tDiv.appendChild(oItemSelect);
 
 			var oItemCustomActions = document.createElement("div");
 			oItemCustomActions.style.display = "none";
@@ -18320,7 +18404,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oItemCustomEdit.type = "button";
 			oItemCustomEdit.style.backgroundColor = "rgb(51, 160, 51)";
 			oItemCustomEdit.style.color = "white";
-			oItemCustomEdit.style.fontSize = (iScreenScale*2) +"px";
+			oItemCustomEdit.style.fontSize = Math.round(iScreenScale*2.5) +"px";
 			oItemCustomEdit.value = "\u270E";
 			oItemCustomEdit.onclick = function() {
 				selectItemScreen(oScr, function(newDistribution) {
@@ -18329,7 +18413,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 					localStorage.setItem("itemset."+itemMode, +oItemSelect.value);
 					oScr.innerHTML = "";
 					oContainers[0].removeChild(oScr);
-					selectPlayerScreen(IdJ,newP,nbSels);
+					selectPlayerScreen(IdJ,newP,nbSels,{openOptions:true});
 				}, modeItemDistributions[oItemSelect.value]);
 			};
 			oItemCustomActions.appendChild(oItemCustomEdit);
@@ -18340,7 +18424,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			oItemCustomDel.style.backgroundColor = "rgb(204, 51, 51)";
 			oItemCustomDel.style.color = "white";
 			oItemCustomDel.value = "\xD7";
-			oItemCustomDel.style.fontSize = (iScreenScale*2) +"px";
+			oItemCustomDel.style.fontSize = Math.round(iScreenScale*2.5) +"px";
 			oItemCustomDel.onclick = function() {
 				var itemSetName = modeItemDistributions[oItemSelect.value].name;
 				if (confirm(toLanguage('Delete item set "'+ itemSetName +'"?', 'Supprimer le set "'+ itemSetName +'" ?'))) {
@@ -18349,18 +18433,65 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 					localStorage.setItem("itemset."+itemMode, 0);
 					oScr.innerHTML = "";
 					oContainers[0].removeChild(oScr);
-					selectPlayerScreen(IdJ,newP,nbSels);
+					selectPlayerScreen(IdJ,newP,nbSels,{openOptions:true});
 				}
 			}
 			oItemCustomActions.appendChild(oItemCustomDel);
 			
-			oForm.appendChild(oItemCustomActions);
+			tDiv.appendChild(oItemCustomActions);
 
 			var selectedItemSetId = localStorage.getItem("itemset."+itemMode);
 			if (selectedItemSetId) {
 				oItemSelect.selectedIndex = selectedItemSetId;
 				oItemSelect.onchange();
 			}
+
+			cDiv.appendChild(tDiv);
+			oTd.appendChild(cDiv);
+			oTr.appendChild(oTd);
+			oTable.appendChild(oTr);
+
+			var oTr = document.createElement("tr");
+			var oTd = document.createElement("td");
+			oTd.style.textAlign = "center";
+			oTd.style.width = (iScreenScale*8) +"px";
+			oTd.style.paddingLeft = (iScreenScale*2) +"px";
+			var oDoubleItemCheckbox = document.createElement("input");
+			oDoubleItemCheckbox.style.transform = oDoubleItemCheckbox.style.WebkitTransform = oDoubleItemCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
+			oDoubleItemCheckbox.id = "option-doubleItems";
+			oDoubleItemCheckbox.name = "option-doubleItems";
+			oDoubleItemCheckbox.type = "checkbox";
+			oDoubleItemCheckbox.checked = !!selectedDoubleItems;
+			oTd.appendChild(oDoubleItemCheckbox);
+			oTr.appendChild(oTd);
+
+			var oTd = document.createElement("td");
+			var oLabel = document.createElement("label");
+			oLabel.style.cursor = "pointer";
+			oLabel.setAttribute("for", "option-doubleItems");
+			var oH1 = document.createElement("h1");
+			oH1.style.fontSize = (3*iScreenScale) +"px";
+			oH1.style.margin = Math.round(1.5*iScreenScale) +"px auto";
+			oH1.innerHTML = toLanguage("Enable double items", "Autoriser les double objets");
+			oLabel.appendChild(oH1);
+			oTd.appendChild(oLabel);
+			oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
+			oTr.appendChild(oTd);
+			oTable.appendChild(oTr);
+
+			oMoreOptionsScreen.appendChild(oScroll);
+
+			var oPInput = document.createElement("input");
+			oPInput.type = "button";
+			oPInput.value = toLanguage("Back", "Retour");
+			oPInput.style.fontSize = (2*iScreenScale)+"px";
+			oPInput.style.position = "absolute";
+			oPInput.style.left = (4*iScreenScale)+"px";
+			oPInput.style.top = (32*iScreenScale)+"px";
+			oPInput.onclick = function() {
+				oMoreOptionsScreen.style.display = "none";
+			}
+			oMoreOptionsScreen.appendChild(oPInput);
 		}
 		else {
 			var ccConstraint = getCcConstraint(clSelected);
@@ -18602,7 +18733,7 @@ function selectItemScreen(oScr, callback, options) {
 	oScr2.style.height = "100%";
 	oScr2.style.left = "0px";
 	oScr2.style.top = "0px";
-	oScr2.style.zIndex = 2;
+	oScr2.style.zIndex = 4;
 	oScr2.style.backgroundColor = "#000";
 
 	var oTableItems = document.createElement("table");
@@ -18627,7 +18758,6 @@ function selectItemScreen(oScr, callback, options) {
 	oTr.appendChild(document.createElement("td"));
 	for (var i=0;i<possibleItems.length;i++) {
 		var oTd = document.createElement("td");
-		oTd.style.paddingBottom = Math.round(iScreenScale/2) +"px";
 		var oImg = document.createElement("img");
 		oImg.src = "images/items/"+possibleItems[i]+".png";
 		oImg.alt = possibleItems[i];
