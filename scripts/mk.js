@@ -12643,7 +12643,7 @@ function move(getId, triggered) {
 		}
 		var nbItems = oMap.arme[touchedObject][2].box.length;
 		for (var it=0;it<nbItems;it++) {
-			if ((!oKart.arme || (oDoubleItemsEnabled && !oKart.stash)) && (oKart.tours <= oMap.tours || course == "BB") && !finishing && !oKart.billball) {
+			if ((!oKart.arme || (oDoubleItemsEnabled && !oKart.stash && (!oKart.roulette || oKart.roulette > 7))) && (oKart.tours <= oMap.tours || course == "BB") && !finishing && !oKart.billball) {
 				var iObj;
 				if (course != "BB") {
 					iObj = randObj(oKart);
