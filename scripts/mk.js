@@ -8623,6 +8623,7 @@ function loseUsingItems(oKart) {
 				syncItems.push(oItem);
 		}
 		oKart.using.length = 0;
+		consumeItemIfDouble(aKarts.indexOf(oKart));
 	}
 }
 function loseUsingItem(oKart) {
@@ -8633,8 +8634,9 @@ function dropCurrentItem(oKart) {
 	var sArme = oKart.arme;
 	if (!sArme) return;
 	var sRoulette = oKart.roulette;
-	if (!oDoubleItemsEnabled)
-		consumeItem(aKarts.indexOf(oKart));
+	var iKart = aKarts.indexOf(oKart);
+	consumeItem(iKart);
+	consumeItemIfDouble(iKart);
 	if (sRoulette < 25) return;
 	if (isOnline && (oKart.id != identifiant) && (oKart.controller != identifiant)) return;
 	var itemCount = 1;
