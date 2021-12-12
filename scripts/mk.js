@@ -9229,19 +9229,21 @@ function objet(iX, iY) {
 	for (var i=0;i<oMap.arme.length;i++) {
 		var oBox = oMap.arme[i];
 		if (iX > oBox[0] - 7 && iX < oBox[0] + 7 && iY > oBox[1] - 7 && iY < oBox[1] + 7 && oBox[2].active) {
-			var fSprite = oBox[2];
-			fSprite.active = false;
-			fSprite.countdown = 20;
-			var iNbItems = fSprite.box.length;
-			for (var k=0;k<iNbItems;k++) {
-				var kBox = fSprite.box[k];
-				for (var j=0;j<strPlayer.length;j++)
-					kBox[j].div.style.display = "none";
-			}
+			var iNbItems = oBox[2].box.length;
 			if (iNbItems > nbItems) {
 				res = i;
 				nbItems = iNbItems;
 			}
+		}
+	}
+	if (res !== -1) {
+		var fSprite = oMap.arme[res][2];
+		fSprite.active = false;
+		fSprite.countdown = 20;
+		for (var k=0;k<nbItems;k++) {
+			var kBox = fSprite.box[k];
+			for (var j=0;j<strPlayer.length;j++)
+				kBox[j].div.style.display = "none";
 		}
 	}
 	return res;
@@ -12643,7 +12645,7 @@ function move(getId, triggered) {
 		}
 		var nbItems = oMap.arme[touchedObject][2].box.length;
 		for (var it=0;it<nbItems;it++) {
-			if ((!oKart.arme || (oDoubleItemsEnabled && !oKart.stash && (!oKart.roulette || oKart.roulette > 7))) && (oKart.tours <= oMap.tours || course == "BB") && !finishing && !oKart.billball) {
+			if ((!oKart.arme || (oDoubleItemsEnabled && !oKart.stash && (it || !oKart.roulette || oKart.roulette > 7))) && (oKart.tours <= oMap.tours || course == "BB") && !finishing) {
 				var iObj;
 				if (course != "BB") {
 					iObj = randObj(oKart);
