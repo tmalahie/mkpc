@@ -6093,7 +6093,6 @@ var itemBehaviors = {
 		move: function(fSprite) {
 			var cible = -1;
 			if (fSprite.target != -1) {
-				var cible = -1;
 				for (var k=0;k<aKarts.length;k++) {
 					if (aKarts[k].id == fSprite.target) {
 						cible = k;
@@ -6106,59 +6105,61 @@ var itemBehaviors = {
 			if (fSprite.aipoint == -1) {
 				if (fSprite.cooldown > 0) {
 					var oKart = aKarts[cible];
-					var fMoveX = fSprite.x - oKart.x;
-					var fMoveY = fSprite.y - oKart.y;
-					var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
-					var itemBehavior = itemBehaviors["carapace-bleue"];
-					if (fSprite.cooldown == itemBehavior.cooldown0) {
-						var dSpeed = 10*relSpeed;
-						if (fMove2 > dSpeed*dSpeed) {
-							var fNewMove = Math.sqrt(fMove2)/dSpeed;
-							fMoveX /= fNewMove;
-							fMoveY /= fNewMove;
-			
-							for (var k=0;k<oPlayers.length;k++)
-								fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
-						}
-						else
-							fSprite.cooldown--;
-					}
-					else {
-						if (fSprite.cooldown < 5) {
-							var maxSpeed2 = 32;
-							if (oKart.champi > 0) {
-								if (oKart.champi < (oKart.champior ? 8:16))
-									maxSpeed2 = 200;
-							}
-							else if (oKart.turbodrift)
-								maxSpeed2 = 64;
-							maxSpeed2 *= relSpeed2*relSpeed2;
-							if (fMove2 > maxSpeed2) {
-								var fNewMove = Math.sqrt(fMove2/maxSpeed2);
+					if (oKart) {
+						var fMoveX = fSprite.x - oKart.x;
+						var fMoveY = fSprite.y - oKart.y;
+						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
+						var itemBehavior = itemBehaviors["carapace-bleue"];
+						if (fSprite.cooldown == itemBehavior.cooldown0) {
+							var dSpeed = 10*relSpeed;
+							if (fMove2 > dSpeed*dSpeed) {
+								var fNewMove = Math.sqrt(fMove2)/dSpeed;
 								fMoveX /= fNewMove;
 								fMoveY /= fNewMove;
+				
+								for (var k=0;k<oPlayers.length;k++)
+									fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+							}
+							else
+								fSprite.cooldown--;
+						}
+						else {
+							if (fSprite.cooldown < 5) {
+								var maxSpeed2 = 32;
+								if (oKart.champi > 0) {
+									if (oKart.champi < (oKart.champior ? 8:16))
+										maxSpeed2 = 200;
+								}
+								else if (oKart.turbodrift)
+									maxSpeed2 = 64;
+								maxSpeed2 *= relSpeed2*relSpeed2;
+								if (fMove2 > maxSpeed2) {
+									var fNewMove = Math.sqrt(fMove2/maxSpeed2);
+									fMoveX /= fNewMove;
+									fMoveY /= fNewMove;
+								}
+							}
+							var r = (fSprite.cooldown-itemBehavior.cooldown1)/(itemBehavior.cooldown0-itemBehavior.cooldown1);
+							if (r < 0) r = 0;
+							var rX0 = 8, rX = rX0*r, rZ0 = 8, rZ = rZ0*r;
+							var theta = 2*Math.PI*r;
+							var pTheta = oKart.rotation*Math.PI/180;
+							var z0 = (15 + rZ0);
+							fSprite.z = z0 - rZ*Math.cos(theta);
+							fMoveX -= rX*Math.sin(theta)*Math.cos(pTheta);
+							fMoveY += rX*Math.sin(theta)*Math.sin(pTheta);
+							for (var k=0;k<oPlayers.length;k++)
+								fSprite.sprite[k].setState(Math.round(Math.random()));
+							fSprite.cooldown--;
+							if (!fSprite.cooldown) {
+								for (var k=0;k<oPlayers.length;k++)
+									fSprite.sprite[k].setState(0);
 							}
 						}
-						var r = (fSprite.cooldown-itemBehavior.cooldown1)/(itemBehavior.cooldown0-itemBehavior.cooldown1);
-						if (r < 0) r = 0;
-						var rX0 = 8, rX = rX0*r, rZ0 = 8, rZ = rZ0*r;
-						var theta = 2*Math.PI*r;
-						var pTheta = oKart.rotation*Math.PI/180;
-						var z0 = (15 + rZ0);
-						fSprite.z = z0 - rZ*Math.cos(theta);
-						fMoveX -= rX*Math.sin(theta)*Math.cos(pTheta);
-						fMoveY += rX*Math.sin(theta)*Math.sin(pTheta);
-						for (var k=0;k<oPlayers.length;k++)
-							fSprite.sprite[k].setState(Math.round(Math.random()));
-						fSprite.cooldown--;
-						if (!fSprite.cooldown) {
-							for (var k=0;k<oPlayers.length;k++)
-								fSprite.sprite[k].setState(0);
-						}
+			
+						fSprite.x -= fMoveX;
+						fSprite.y -= fMoveY;
 					}
-		
-					fSprite.x -= fMoveX;
-					fSprite.y -= fMoveY;
 				}
 				else {
 					fSprite.z = 0;
