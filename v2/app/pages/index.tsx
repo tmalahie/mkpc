@@ -53,7 +53,6 @@ import ss9xs from "../images/main/screenshots/ss9xs.png"
 import ss10xs from "../images/main/screenshots/ss10xs.png"
 import ss11xs from "../images/main/screenshots/ss11xs.png"
 import ss12xs from "../images/main/screenshots/ss12xs.png"
-import useFetch from "../hooks/useFetch";
 import { formatDate } from "../helpers/dates";
 import { formatRank, formatTime } from "../helpers/records";
 import { escapeHtml } from "../helpers/strings";
@@ -61,6 +60,8 @@ import { useEffect, useMemo, useState } from "react";
 import cx from "classnames";
 import { uniqBy } from "../helpers/objects";
 import Link from "next/link";
+import useSmoothFetch, { Placeholder } from '../hooks/useSmoothFetch';
+import Skeleton from '../components/Skeleton/Skeleton';
 
 const screenshots = [[{
   xs: ss1xs,
@@ -161,8 +162,39 @@ const Home: NextPage = () => {
     }
   }, [leaderboardTab]);
 
-  const { data: topicsPayload } = useFetch(`/api/forum/topics`);
-  const { data: newsPayload } = useFetch(`/api/news`);
+  const { data: topicsPayload, loading: topicsLoading } = useSmoothFetch(`/api/forum/topics`, {
+    placeholder: () => ({
+      data: Placeholder.array(10, (id) => ({
+        id,
+        title: Placeholder.text(15, 35),
+        nbMessages: Placeholder.number(1, 100),
+        lastMessage: {
+          author: {
+            name: Placeholder.text(8, 12)
+          },
+          date: Placeholder.date()
+        }
+      }))
+    })
+  });
+  const { data: newsPayload, loading: newsLoading } = useSmoothFetch(`/api/news`, {
+    placeholder: () => ({
+      data: Placeholder.array(10, (id) => ({
+        id,
+        name: Placeholder.text(15, 35),
+        author: {
+          name: Placeholder.text(8, 12)
+        },
+        category: {
+          name: Placeholder.text(3, 8)
+        },
+        isNew: false,
+        nbComments: Placeholder.number(1, 10),
+        title: Placeholder.text(15, 35),
+        publicationDate: Placeholder.date()
+      }))
+    })
+  });
   const creationParams = useMemo(() => {
     const nbByType = [1, 1, 2, 2, 3, 3, 2, 2];
     let nbByTypeParams = {};
@@ -172,7 +204,24 @@ const Home: NextPage = () => {
       ...nbByTypeParams
     }).toString();
   }, []);
-  const { data: creationsPayload } = useFetch(`/api/getCreations.php?${creationParams}`);
+  const { data: creationsPayload, loading: creationsLoading } = useSmoothFetch(`/api/getCreations.php?${creationParams}`, {
+    placeholder: () => ({
+      data: Placeholder.array(10, (id) => ({
+        id,
+        author: "",
+        category: Placeholder.text(3, 8),
+        cicon: "",
+        icons: [],
+        href: "",
+        isCup: false,
+        name: Placeholder.text(15, 35),
+        nbComments: Placeholder.number(1, 10),
+        publicationDate: Placeholder.timestamp(),
+        rating: 5,
+        nbRatings: 1
+      }))
+    })
+  });
   useEffect(() => {
     // @ts-ignore
     if (creationsPayload && window.loadCircuitImgs) {
@@ -211,32 +260,88 @@ const Home: NextPage = () => {
     const sortedLines = linesWithScore.sort((line1, line2) => {
       if (line1.score !== line2.score)
         return line2.score - line1.score;
-      return line2.publication_date - line1.publication_date;
+      return line2.publicationDate - line1.publicationDate;
     });
     return sortedLines.slice(0, 14);
   }, [creationsPayload]);
 
-  const { data: challengesPayload } = useFetch(`/api/getChallenges.php`);
+  const { data: challengesPayload, loading: challengesLoading } = useSmoothFetch(`/api/getChallenges.php`, {
+    placeholder: () => ({
+      data: Placeholder.array(10, (id) => ({
+        id,
+        name: Placeholder.text(15, 35),
+        difficulty: {
+          name: Placeholder.text(3, 8)
+        },
+        description: {
+          main: Placeholder.text(15, 35),
+          extra: Placeholder.text(15, 35)
+        },
+        circuit: {
+          name: Placeholder.text(15, 35),
+          author: Placeholder.text(8, 12),
+          href: ""
+        },
+        succeeded: null
+      }))
+    })
+  });
   const challengesSorted = useMemo(() => {
     if (!challengesPayload)
       return [];
     return challengesPayload.data.slice(0, 15);
   }, [challengesPayload]);
 
-  const { data: commentsPayload } = useFetch(`/api/track-builder/comments`);
-  const { data: recordsPayload } = useFetch(`/api/time-trial/records/find`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      "filters": {
-        "type": {
-          "type": "in",
-          "value": ["circuits", "mkcircuits"]
+  const { data: commentsPayload, loading: commentsLoading } = useSmoothFetch(`/api/track-builder/comments`, {
+    placeholder: () => ({
+      data: Placeholder.array(5, (id) => ({
+        id,
+        message: Placeholder.text(15, 35),
+        date: Placeholder.date(),
+        circuit: {
+          name: Placeholder.text(15, 35),
+          url: `#comment-${id}`
+        },
+        author: {
+          name: Placeholder.text(8, 12)
         }
-      }
+      }))
     })
+  });
+  const { data: recordsPayload, loading: recordsLoading } = useSmoothFetch(`/api/time-trial/records/find`, {
+    placeholder: () => ({
+      data: Placeholder.array(5, (id) => ({
+        id,
+        name: Placeholder.text(8, 12),
+        date: Placeholder.date(),
+        time: Placeholder.number(60000, 200000),
+        circuit: {
+          name: Placeholder.text(15, 35),
+          url: `#record-${id}`
+        },
+        player: {
+          name: Placeholder.text(8, 12)
+        },
+        leaderboard: {
+          rank: 1,
+          count: 1
+        }
+      }))
+    }),
+    requestOptions: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "filters": {
+          "type": {
+            "type": "in",
+            "value": ["circuits", "mkcircuits"]
+          }
+        }
+      })
+    }
   });
   const activityPayload = useMemo(() => {
     if (!commentsPayload || !recordsPayload)
@@ -270,14 +375,29 @@ const Home: NextPage = () => {
     return allActivityByCircuit.slice(0, 14);
   }, [commentsPayload, recordsPayload, language]);
 
-  const { data: vsLeaderboard } = useFetch("/api/online-game/leaderboard");
+  const leaderboardPlaceholder = () => ({
+    data: Placeholder.array(10, (id) => ({
+      id,
+      name: Placeholder.text(8, 12),
+      score: Placeholder.number(1000, 20000),
+    }))
+  });
+  const { data: vsLeaderboard, loading: vsLoading } = useSmoothFetch("/api/online-game/leaderboard", {
+    placeholder: leaderboardPlaceholder
+  });
   const vsLeaderboardFiltered = useMemo(() => vsLeaderboard?.data.slice(0, 10) ?? [], [vsLeaderboard]);
-  const { data: battleLeaderboard } = useFetch("/api/online-game/leaderboard?mode=battle");
+  const { data: battleLeaderboard, loading: battleLoading } = useSmoothFetch("/api/online-game/leaderboard?mode=battle", {
+    placeholder: leaderboardPlaceholder
+  });
   const battleLeaderboardFiltered = useMemo(() => battleLeaderboard?.data.slice(0, 10) ?? [], [battleLeaderboard]);
 
-  const { data: tt150Leaderboard } = useFetch("/api/time-trial/leaderboard");
+  const { data: tt150Leaderboard, loading: tt150Loading } = useSmoothFetch("/api/time-trial/leaderboard", {
+    placeholder: leaderboardPlaceholder
+  });
   const tt150LeaderboardFiltered = useMemo(() => tt150Leaderboard?.data.slice(0, 10) ?? [], [tt150Leaderboard]);
-  const { data: tt200Leaderboard } = useFetch("/api/time-trial/leaderboard?cc=200");
+  const { data: tt200Leaderboard, loading: tt200Loading } = useSmoothFetch("/api/time-trial/leaderboard?cc=200", {
+    placeholder: leaderboardPlaceholder
+  });
   const tt200LeaderboardFiltered = useMemo(() => tt200Leaderboard?.data.slice(0, 10) ?? [], [tt200Leaderboard]);
 
   const leaderboard = useMemo(() => {
@@ -618,8 +738,8 @@ const Home: NextPage = () => {
     ?>*/}
           <SectionBar title="Forum" link="/forum" />
           <h2>{language ? 'Last topics' : 'Derniers topics'}</h2>
-          <div id={styles.forum_section} className={styles.right_subsection}>
-            {topicsPayload?.data.map(topic => <a key={topic.id} href={"topic.php?topic=" + topic.id} title={topic.title}>
+          <Skeleton id={styles.forum_section} className={styles.right_subsection} loading={topicsLoading}>
+            {topicsPayload.data.map(topic => <a key={topic.id} href={"topic.php?topic=" + topic.id} title={topic.title}>
               <h2>{topic.title}</h2>
               <h3>{language ? 'Last message' : 'Dernier message'}
                 {topic.lastMessage.author && <> {language ? 'by' : 'par'} <strong>{topic.lastMessage.author.name}</strong></>}
@@ -627,27 +747,27 @@ const Home: NextPage = () => {
                 {formatDate(topic.lastMessage.date, { language, prefix: true, mode: "short" })}</h3>
               <div className={styles.creation_comments} title={plural("%n message%s", topic.nbMessages)}><img src="images/comments.png" alt="Messages" /> {topic.nbMessages}</div>
             </a>)}
-          </div>
+          </Skeleton>
           <Link href="/forum"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'Go to the forum' : 'Accéder au forum'}</a></Link>
         </div>
         <div className={styles.subsection}>
           <SectionBar title="News" link="/listNews.php" />
           <h2>{language ? 'Latest news' : 'Dernières news'}</h2>
-          <div id={styles.news_section} className={styles.right_subsection}>
+          <Skeleton loading={newsLoading} id={styles.news_section} className={styles.right_subsection}>
             {
               newsPayload?.data.map(news => <a key={news.id} href={"news.php?id=" + news.id} title={news.title} className={news.isNew ? styles.news_new : "" /* TODO */}>
                 <h2>{news.title}</h2>
-                <h3>{language ? 'In' : 'Dans'} <strong>{news.category.name}</strong> {news.name ? <>{language ? 'by' : 'par'} <strong>{news.name}</strong> </> : <></>}){formatDate(news.publicationDate, { language, prefix: true, mode: "short" })}</h3>
+                <h3>{language ? 'In' : 'Dans'} <strong>{news.category.name}</strong> {news.name ? <>{language ? 'by' : 'par'} <strong>{news.name}</strong> </> : <></>}{formatDate(news.publicationDate, { language, prefix: true, mode: "short" })}</h3>
                 <div className={styles.creation_comments} title={plural(language ? '%n comment%s' : '%n commentaire%s', news.nbComments)}><img src={commentIcon.src} alt="Messages" /> {news.nbComments}</div>
               </a>)
             }
-          </div>
+          </Skeleton>
           <a className={cx(styles.right_section_actions, commonStyles.action_button)} href="/listNews.php">{language ? 'All news' : 'Toutes les news'}</a>
         </div>
         <div className={styles.subsection}>
           <SectionBar title={language ? 'Track builder' : 'Éditeur de circuit'} link="/creations.php" />
           <h2>{language ? 'Latest creations' : 'Dernières créations'}</h2>
-          <div id={styles.creations_section} className={styles.right_subsection}>
+          <Skeleton loading={creationsLoading} id={styles.creations_section} className={styles.right_subsection}>
             <table>
               <tbody>
                 {creationsSorted.map(creation => <tr key={creation.id} className={styles.creation_line}>
@@ -660,17 +780,18 @@ const Home: NextPage = () => {
                   <td className={styles.creation_description}>
                     <a href={creation.href} title={creation.name}>
                       <h2>{creation.name || (language ? "Untitled" : "Sans titre")}</h2>
-                      <Rating rating={creation.rating} nbRatings={creation.nbRatings} label={<h3>{creation.author && <>{language ? "By" : "Par"}{" "}{creation.author /* TODO control length */}</>}</h3>} />                      {(creation.nbComments > 0) && <div className={styles.creation_coms} title={plural(language ? "%n comment%s" : "%n commentaire%s", creation.nbComments)}><img src={commentIcon.src} alt="Commentaires" />{creation.nbComments}</div>}
+                      <Rating rating={creation.rating} nbRatings={creation.nbRatings} label={<h3>{creation.author && <>{language ? "By" : "Par"}{" "}{creation.author /* TODO control length */}</>}</h3>} />
+                      {(creation.nbComments > 0) && <div className={styles.creation_coms} title={plural(language ? "%n comment%s" : "%n commentaire%s", creation.nbComments)}><img src={commentIcon.src} alt="Commentaires" />{creation.nbComments}</div>}
                       <div className={styles.creation_date} title={(language ? 'Published' : 'Publié') + ' ' + formatDate(creation.publicationDate, { language, prefix: true, mode: "datetime" })}><img src={clockIcon.src} alt="Date" />{formatDate(creation.publicationDate, { language, mode: "short" })}</div>
                     </a>
                   </td>
                 </tr>)}
               </tbody>
             </table>
-          </div>
+          </Skeleton>
           <a className={cx(styles.right_section_actions, commonStyles.action_button)} href="/creations.php">{language ? 'Display all' : 'Afficher tout'}</a>
           <h2>{language ? 'Last challenges' : 'Derniers défis'}</h2>
-          <div id={styles.challenges_section} className={styles.right_subsection}>
+          <Skeleton loading={challengesLoading} id={styles.challenges_section} className={styles.right_subsection}>
             {
               challengesSorted.map(challenge => <a key={challenge.id} href={"challengeTry.php?challenge=" + challenge.id} title={challenge.description.main} className={challenge.succeeded && styles.challenges_section_succeeded}>
                 <h2>{challenge.description.main}</h2>
@@ -689,7 +810,7 @@ const Home: NextPage = () => {
                 </h3>
               </a>)
             }
-          </div>
+          </Skeleton>
           {/*
 			if (hasRight('clvalidator')) {
 				$getPendingChallenges = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkchallenges WHERE status="pending_moderation"'));
@@ -701,7 +822,7 @@ const Home: NextPage = () => {
           <a className={cx(styles.right_section_actions, commonStyles.action_button)} href="/challengesList.php">{language ? 'Display all' : 'Afficher tout'}</a>
           <div id={styles.challenge_ranking}><a href="/challengeRanking.php">{language ? 'Challenge points - Leaderboard' : 'Classement des points défis'}</a></div>
           <h2>{language ? 'Recent activity' : 'Activité récente'}</h2>
-          <div id={styles.comments_section} className={styles.right_subsection}>
+          <Skeleton loading={commentsLoading || recordsLoading} id={styles.comments_section} className={styles.right_subsection}>
             {activityPayload?.map((activity) => (
               <a key={activity.key} href={activity.circuit.url} title={activity.title}>
                 <h2><img src={activity.icon.src} alt={activity.type} /> <span dangerouslySetInnerHTML={{ __html: activity.message }} /></h2>
@@ -720,7 +841,7 @@ const Home: NextPage = () => {
                 </h3>
               </a>
             ))}
-          </div>
+          </Skeleton>
         </div>
         <div className={cx(styles.subsection, styles.rank_vs)} id={styles.rankings_section}>
           <h2>Top 10</h2>
@@ -752,7 +873,7 @@ const Home: NextPage = () => {
             {" "}<span>|</span>{" "}
             <a className={cx({ [styles.tab_selected]: leaderboardTab === LeaderboardTab.TT_200 })} href="#null" onClick={(e) => dispRankTab(e, 3)}>200cc</a>
           </div>}
-          <div id={styles.top10} className={styles.right_subsection}>
+          <Skeleton loading={vsLoading || battleLoading || tt150Loading || tt200Loading} id={styles.top10} className={styles.right_subsection}>
             <table>
               <tbody>
                 <tr>
@@ -767,7 +888,7 @@ const Home: NextPage = () => {
                 </tr>)}
               </tbody>
             </table>
-          </div>
+          </Skeleton>
           <a className={cx(styles.right_section_actions, commonStyles.action_button)} href={leaderboardLink}>{language ? 'Display all' : 'Afficher tout'}</a>
         </div>
         <div className={styles.pub_section}>

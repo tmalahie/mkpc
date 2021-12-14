@@ -1,0 +1,25 @@
+@keyframes loadingText {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+.Skeleton {
+	&.loading {
+    pointer-events: none;
+    .loadingText {
+      position: relative;
+      top: -2px;
+      text-shadow: 0 1px 0 currentColor;
+      animation-duration: 0.6s;
+      animation-name: loadingText;
+      animation-iteration-count: infinite;
+    }
+  }
+}
