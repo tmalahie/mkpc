@@ -8,12 +8,11 @@ function useFetch(input: RequestInfo, options?: RequestInit) {
   });
 
   useEffect(() => {
-    setState({ data: null, loading: true, error: null });
     fetch(input, options)
       .then(res => res.json())
       .then(data => setState({ data, loading: false, error: null }))
       .catch(error => setState({ data: null, loading: false, error }));
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input]);
 
   return state;
