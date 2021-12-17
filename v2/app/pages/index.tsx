@@ -166,8 +166,8 @@ const Home: NextPage = () => {
     placeholder: () => ({
       data: Placeholder.array(10, (id) => ({
         id,
-        title: Placeholder.text(15, 35),
-        nbMessages: Placeholder.number(1, 100),
+        title: Placeholder.text(25, 45),
+        nbMessages: Placeholder.number(1, 1000),
         lastMessage: {
           author: {
             name: Placeholder.text(8, 12)
@@ -181,16 +181,15 @@ const Home: NextPage = () => {
     placeholder: () => ({
       data: Placeholder.array(10, (id) => ({
         id,
-        name: Placeholder.text(15, 35),
         author: {
-          name: Placeholder.text(8, 12)
+          name: Placeholder.text(10, 20)
         },
         category: {
           name: Placeholder.text(3, 8)
         },
         isNew: false,
-        nbComments: Placeholder.number(1, 10),
-        title: Placeholder.text(15, 35),
+        nbComments: Placeholder.number(1, 100),
+        title: Placeholder.text(25, 45),
         publicationDate: Placeholder.date()
       }))
     })
@@ -215,10 +214,10 @@ const Home: NextPage = () => {
         href: "",
         isCup: false,
         name: Placeholder.text(15, 35),
-        nbComments: Placeholder.number(1, 10),
+        nbComments: Placeholder.number(1, 100),
         publicationDate: Placeholder.timestamp(),
-        rating: 5,
-        nbRatings: 1
+        rating: 0,
+        nbRatings: 0
       }))
     })
   });
@@ -269,16 +268,15 @@ const Home: NextPage = () => {
     placeholder: () => ({
       data: Placeholder.array(10, (id) => ({
         id,
-        name: Placeholder.text(15, 35),
+        name: Placeholder.text(25, 45),
         difficulty: {
           name: Placeholder.text(3, 8)
         },
         description: {
-          main: Placeholder.text(15, 35),
-          extra: Placeholder.text(15, 35)
+          main: Placeholder.text(25, 45)
         },
         circuit: {
-          name: Placeholder.text(15, 35),
+          name: Placeholder.text(15, 25),
           author: Placeholder.text(8, 12),
           href: ""
         },
@@ -296,10 +294,10 @@ const Home: NextPage = () => {
     placeholder: () => ({
       data: Placeholder.array(5, (id) => ({
         id,
-        message: Placeholder.text(15, 35),
+        message: Placeholder.text(25, 45),
         date: Placeholder.date(),
         circuit: {
-          name: Placeholder.text(15, 35),
+          name: Placeholder.text(10, 20),
           url: `#comment-${id}`
         },
         author: {
@@ -316,7 +314,7 @@ const Home: NextPage = () => {
         date: Placeholder.date(),
         time: Placeholder.number(60000, 200000),
         circuit: {
-          name: Placeholder.text(15, 35),
+          name: Placeholder.text(10, 20),
           url: `#record-${id}`
         },
         player: {
@@ -378,7 +376,7 @@ const Home: NextPage = () => {
   const leaderboardPlaceholder = () => ({
     data: Placeholder.array(10, (id) => ({
       id,
-      name: Placeholder.text(8, 12),
+      name: Placeholder.text(10, 20),
       score: Placeholder.number(1000, 20000),
     }))
   });
@@ -410,6 +408,18 @@ const Home: NextPage = () => {
         return tt150LeaderboardFiltered;
       case LeaderboardTab.TT_200:
         return tt200LeaderboardFiltered;
+    }
+  }, [leaderboardTab, vsLeaderboardFiltered, battleLeaderboardFiltered, tt150LeaderboardFiltered, tt200LeaderboardFiltered]);
+  const leaderboardLoading = useMemo(() => {
+    switch (leaderboardTab) {
+      case LeaderboardTab.VS:
+        return vsLoading;
+      case LeaderboardTab.BATTLE:
+        return battleLoading;
+      case LeaderboardTab.TT_150:
+        return tt150Loading;
+      case LeaderboardTab.TT_200:
+        return tt200Loading;
     }
   }, [leaderboardTab, vsLeaderboardFiltered, battleLeaderboardFiltered, tt150LeaderboardFiltered, tt200LeaderboardFiltered]);
 
@@ -757,7 +767,7 @@ const Home: NextPage = () => {
             {
               newsPayload?.data.map(news => <a key={news.id} href={"news.php?id=" + news.id} title={news.title} className={news.isNew ? styles.news_new : "" /* TODO */}>
                 <h2>{news.title}</h2>
-                <h3>{language ? 'In' : 'Dans'} <strong>{news.category.name}</strong> {news.name ? <>{language ? 'by' : 'par'} <strong>{news.name}</strong> </> : <></>}{formatDate(news.publicationDate, { language, prefix: true, mode: "short" })}</h3>
+                <h3>{language ? 'In' : 'Dans'} <strong>{news.category.name}</strong> {news.author ? <>{language ? 'by' : 'par'} <strong>{news.author.name}</strong> </> : <></>}{formatDate(news.publicationDate, { language, prefix: true, mode: "short" })}</h3>
                 <div className={styles.creation_comments} title={plural(language ? '%n comment%s' : '%n commentaire%s', news.nbComments)}><img src={commentIcon.src} alt="Messages" /> {news.nbComments}</div>
               </a>)
             }
@@ -873,7 +883,7 @@ const Home: NextPage = () => {
             {" "}<span>|</span>{" "}
             <a className={cx({ [styles.tab_selected]: leaderboardTab === LeaderboardTab.TT_200 })} href="#null" onClick={(e) => dispRankTab(e, 3)}>200cc</a>
           </div>}
-          <Skeleton loading={vsLoading || battleLoading || tt150Loading || tt200Loading} id={styles.top10} className={styles.right_subsection}>
+          <Skeleton loading={leaderboardLoading} id={styles.top10} className={styles.right_subsection}>
             <table>
               <tbody>
                 <tr>

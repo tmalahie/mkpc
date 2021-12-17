@@ -15,17 +15,17 @@ function randomWithSeed() {
   return x - Math.floor(x);
 }
 function rand(min: number, max: number) {
-  return Math.floor(randomWithSeed() * (max - min)) + min;
+  return Math.floor(randUnif(min, max));
+}
+function randUnif(min: number, max: number) {
+  return randomWithSeed() * (max - min) + min;
 }
 
 function placeholderText(minLength: number, maxLength: number = minLength) {
   return Array(rand(minLength, maxLength + 1)).fill('-').join('');
 }
-function getNumberLength(nb: number) {
-  return nb.toString().length;
-}
 function placeholderNb(min: number, max: number = min) {
-  return Math.pow(10, rand(getNumberLength(min), getNumberLength(max) + 1));
+  return Math.floor(Math.pow(10, randUnif(Math.log10(min), Math.log10(max))));
 }
 function placeholderImg() {
   return placeholder.src;
@@ -65,26 +65,25 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
     loading: true,
     error: null
   });
-  const [currentRetryCount, setCurrentRetryCount] = useState(0);
-  const [currentRetryDelay, setCurrentRetryDelay] = useState(retryDelay);
 
-  useEffect(() => {
+  function doFetch(currentRetryCount, currentRetryDelay) {
     fetch(input, requestOptions)
       .then(res => res.json())
       .then(data => setState({ data, loading: false, error: null }))
       .catch(error => {
         if (currentRetryCount < retryCount) {
           setTimeout(() => {
-            setCurrentRetryCount(currentRetryCount + 1);
-            setCurrentRetryDelay(currentRetryDelay * retryDelayMultiplier);
-          }, retryDelay);
+            doFetch(currentRetryCount + 1, currentRetryDelay * retryDelayMultiplier);
+          }, currentRetryDelay);
         }
         else {
           setState({ data: placeholderVal, loading: false, error });
         }
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input, currentRetryCount, currentRetryDelay]);
+  }
+  useEffect(() => {
+    doFetch(0, retryDelay);
+  }, []);
 
   return state;
 }
