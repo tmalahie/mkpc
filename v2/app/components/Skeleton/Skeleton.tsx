@@ -10,7 +10,7 @@ function removeText(node: React.ReactNode, key?: number) {
   if (['string', 'number'].includes(typeof node)) {
     const text = (typeof node === "string") ? node : `${node}-`;
     if (!text.trim()) return null;
-    return <span key={key} className={styles.loadingText}>{" "}{text.replace(/.{1,3}/g, "▬")}</span>;
+    return <span key={key} className={styles.loadingText}>{" "}{text.replace(/[^ ]{1,3}/g, "▬")}</span>;
   }
   if (node instanceof Array) return node.map(removeText)
   if (typeof node === 'object' && "props" in node) {
