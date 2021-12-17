@@ -1,4 +1,4 @@
-import { Controller, Get, NotFoundException, Param, Req } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { Auth } from '../auth/auth.decorator';
 import { I18n, I18nContext } from 'nestjs-i18n';
 import { AuthUser, GetUser } from 'src/user/user.decorator';
@@ -165,7 +165,7 @@ export class ForumController {
         name: mostActivePlayer.user.name,
         nbMessages: mostActivePlayer.nbMessages
       },
-      monthActivePlayer: {
+      monthActivePlayer: monthActivePlayer && {
         ...monthActivePlayer,
         beginMonth
       }

@@ -21,8 +21,19 @@ function randUnif(min: number, max: number) {
   return randomWithSeed() * (max - min) + min;
 }
 
+function addRandomSpaces(text: string) {
+  let res = "";
+  let wordLength: number;
+  for (let c = 0; c < text.length; c += wordLength) {
+    if (c)
+      res += " ";
+    wordLength = rand(10, 30);
+    res += text.substring(c, c + wordLength - 1);
+  }
+  return res;
+}
 function placeholderText(minLength: number, maxLength: number = minLength) {
-  return Array(rand(minLength, maxLength + 1)).fill('-').join('');
+  return addRandomSpaces(Array(rand(minLength, maxLength + 1)).fill('-').join(''));
 }
 function placeholderNb(min: number, max: number = min) {
   return Math.floor(Math.pow(10, randUnif(Math.log10(min), Math.log10(max))));
@@ -68,7 +79,14 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
 
   function doFetch(currentRetryCount, currentRetryDelay) {
     fetch(input, requestOptions)
-      .then(res => res.json())
+      .then(res => {
+        if (res.ok)
+          return res.json();
+        else {
+          console.error(res);
+          throw new Error(res.statusText);
+        }
+      })
       .then(data => setState({ data, loading: false, error: null }))
       .catch(error => {
         if (currentRetryCount < retryCount) {

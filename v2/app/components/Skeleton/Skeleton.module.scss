@@ -13,6 +13,9 @@
 .Skeleton {
 	&.loading {
     pointer-events: none;
+    a {
+      text-decoration: none;
+    }
     .loadingText {
       position: relative;
       top: -2px;
