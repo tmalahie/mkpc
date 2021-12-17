@@ -4,7 +4,7 @@ import { User } from '../user/user.entity';
 
 @Controller("/online-game")
 export class OnlineGameController {
-  constructor(private em: EntityManager) {}
+  constructor(private em: EntityManager) { }
 
   @Get("/leaderboard")
   async getLeaderboard(@Query() params) {
@@ -16,16 +16,16 @@ export class OnlineGameController {
       if (params.name)
         where.name = params.name;
       switch (params.mode) {
-      case "battle":
-        score = "pts_battle";
-        break;
-      case "challenge":
-        score = "pts_challenge";
-        break;
+        case "battle":
+          score = "pts_battle";
+          break;
+        case "challenge":
+          score = "pts_challenge";
+          break;
       }
     }
     const take = 20;
-    const skip = params.page ? (params.page-1)*take : 0;
+    const skip = params.page ? (params.page - 1) * take : 0;
     const leaderboard = await this.em.find(User, {
       where,
       order: {
