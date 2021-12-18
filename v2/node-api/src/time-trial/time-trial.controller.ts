@@ -3,46 +3,36 @@ import { EntityManager, FindOneOptions, In, LessThan } from 'typeorm';
 import { Record } from './record.entity';
 import { Ranking } from './ranking.entity';
 import { CircuitService } from '../track-builder/circuit.service';
+import { SearchService, EQUALITY_SEARCH } from '../search/search.service';
 
 @Controller("/time-trial")
 export class TimeTrialController {
-  constructor(private em: EntityManager, private circuitService: CircuitService) {}
+  constructor(private em: EntityManager, private circuitService: CircuitService, private searchService: SearchService) { }
 
   @Post("/records/find")
   async getRecords(@Body() params) {
-    const where: FindOneOptions<Record>["where"] = {
-      best: 1
-    };
-    if (params) {
-      if (params.filters) {
-        if (params.filters.id !== undefined)
-          where.id = params.filters.id;
-        if (params.filters.circuit !== undefined)
-          where.circuit = params.filters.circuit;
-        if (params.filters.player !== undefined)
-          where.player = params.filters.player;
-        if (params.filters.class !== undefined)
-          where.class = params.filters.class;
-        if (params.filters.type !== undefined) {
-          if (params.filters.type?.type === "in") {
-            where.type = In(params.filters.type.value);
-          }
-          else
-            where.type = params.filters.type;
-        }
-      }
-    }
-    const records = await this.em.find(Record, {
-      where,
-      order: {
-        id: "DESC"
+    const recordsPayload = await this.searchService.find({
+      entity: Record,
+      params,
+      rules: {
+        allowedFilters: {
+          id: EQUALITY_SEARCH,
+          circuit: EQUALITY_SEARCH,
+          player: EQUALITY_SEARCH,
+          class: EQUALITY_SEARCH,
+          type: EQUALITY_SEARCH
+        },
+        allowedOrders: ["id", "date"],
+        maxResults: 30
       },
-      relations: ["player"],
-      take: 30
+      where: {
+        best: 1
+      },
+      relations: ["player"]
     });
-    const data = await Promise.all(records.map(async (record) => {
+    const data = await Promise.all(recordsPayload.data.map(async (record) => {
       const circuit = record.type ? await this.circuitService.getCircuit(record.type, record.circuit) : undefined;
-      const [circuitRecords,circuitRanking] = await Promise.all([this.em.count(Record, {
+      const [circuitRecords, circuitRanking] = await Promise.all([this.em.count(Record, {
         where: {
           type: record.type,
           circuit: record.circuit,
@@ -76,7 +66,7 @@ export class TimeTrialController {
           name: record.player.name,
         },
         leaderboard: {
-          rank: circuitRanking+1,
+          rank: circuitRanking + 1,
           count: circuitRecords
         }
       }

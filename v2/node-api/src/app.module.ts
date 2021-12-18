@@ -11,6 +11,7 @@ import { NewsModule } from './news/news.module';
 import { TrackBuilderModule } from './track-builder/track-builder.module';
 import { TimeTrialModule } from './time-trial/time-trial.module';
 import { OnlineGameModule } from './online-game/online-game.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { OnlineGameModule } from './online-game/online-game.module';
       database: process.env.DB_NAME,
       //logging: true,
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-    }), ForumModule, TranslationModule, AuthModule, NewsModule, TrackBuilderModule, TimeTrialModule, OnlineGameModule],
+    }), ForumModule, TranslationModule, AuthModule, NewsModule, TrackBuilderModule, TimeTrialModule, OnlineGameModule, SearchModule],
   controllers: [AppController],
   providers: [AppService],
 })
