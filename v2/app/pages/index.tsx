@@ -332,11 +332,14 @@ const Home: NextPage = () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        "filters": {
-          "type": {
-            "type": "in",
-            "value": ["circuits", "mkcircuits"]
-          }
+        "filters": [{
+          "key": "type",
+          "type": "in",
+          "value": ["circuits", "mkcircuits"]
+        }],
+        "sort": {
+          "key": "date",
+          "order": "desc"
         }
       })
     }
