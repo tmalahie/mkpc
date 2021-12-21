@@ -8,9 +8,8 @@ import WithAppContext from "../../../components/WithAppContext/WithAppContext";
 import ForumAccount from "../../../components/Forum/Account/Account";
 import Ad from "../../../components/Ad/Ad";
 import { formatDate } from "../../../helpers/dates";
-import useFetch from "../../../hooks/useFetch";
 import { useRouter } from "next/dist/client/router";
-import useSmoothFetch, { Placeholder } from "../../../hooks/useSmoothFetch";
+import useSmoothFetch, { postData, Placeholder } from "../../../hooks/useSmoothFetch";
 import Skeleton from "../../../components/Skeleton/Skeleton";
 
 const ForumCategory: NextPage = () => {
@@ -44,6 +43,20 @@ const ForumCategory: NextPage = () => {
           date: Placeholder.date(),
         }
       }))
+    }),
+    requestOptions: postData({
+      filters: [{
+        key: "category",
+        type: "=",
+        value: categoryID
+      }],
+      sort: {
+        key: "lastMessageDate",
+        order: "desc"
+      },
+      paging: {
+        limit: 50
+      }
     })
   });
 

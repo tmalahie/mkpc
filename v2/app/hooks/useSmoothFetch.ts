@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import placeholder from "../images/main/placeholder.png"
+export { postData, putData, deleteData } from "./useFetch";
 
 type SmoothParams<T> = {
   placeholder?: () => T;
