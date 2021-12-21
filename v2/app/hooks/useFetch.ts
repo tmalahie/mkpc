@@ -18,4 +18,23 @@ function useFetch(input: RequestInfo, options?: RequestInit) {
   return state;
 }
 
+function jsonData(method: string, data): RequestInit {
+  return {
+    method,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }
+}
+export function postData(data: any) {
+  return jsonData("POST", data);
+}
+export function putData(data: any) {
+  return jsonData("PUT", data);
+}
+export function deleteData(data: any) {
+  return jsonData("DELETE", data);
+}
+
 export default useFetch;

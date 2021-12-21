@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EntityManager, EntityTarget, FindOneOptions, In, LessThan, MoreThan, Like } from 'typeorm';
 import { EntityFieldsNames } from 'typeorm/common/EntityFieldsNames';
 
-enum SearchType {
+export enum SearchType {
   EQUALS = "=",
   LIKE = "%",
   MORE_THAN = ">",

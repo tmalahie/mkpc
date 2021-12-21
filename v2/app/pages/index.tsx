@@ -60,7 +60,7 @@ import { useEffect, useMemo, useState } from "react";
 import cx from "classnames";
 import { uniqBy } from "../helpers/objects";
 import Link from "next/link";
-import useSmoothFetch, { Placeholder } from '../hooks/useSmoothFetch';
+import useSmoothFetch, { postData, Placeholder } from '../hooks/useSmoothFetch';
 import Skeleton from '../components/Skeleton/Skeleton';
 
 const screenshots = [[{
@@ -168,6 +168,7 @@ const Home: NextPage = () => {
         id,
         title: Placeholder.text(25, 45),
         nbMessages: Placeholder.number(1, 1000),
+        language: "en",
         lastMessage: {
           author: {
             name: Placeholder.text(8, 12)
@@ -175,8 +176,25 @@ const Home: NextPage = () => {
           date: Placeholder.date()
         }
       }))
+    }),
+    requestOptions: postData({
+      sort: {
+        key: "lastMessageDate",
+        order: "desc"
+      },
+      paging: {
+        limit: 10
+      }
     })
   });
+  const topicsSorted = useMemo(() => {
+    if (language === 0)
+      return topicsPayload.data;
+    return [
+      ...topicsPayload.data.filter(t => t.language !== "fr"),
+      ...topicsPayload.data.filter(t => t.language === "fr")
+    ];
+  }, [topicsPayload, language]);
   const { data: newsPayload, loading: newsLoading } = useSmoothFetch(`/api/news`, {
     placeholder: () => ({
       data: Placeholder.array(10, (id) => ({
@@ -229,8 +247,6 @@ const Home: NextPage = () => {
     }
   }, [creationsPayload]);
   const creationsSorted = useMemo(() => {
-    if (!creationsPayload)
-      return [];
     const logb = Math.log(1.7);
     const linesWithScore = creationsPayload.data.map((line) => {
       let publishedSince = new Date().getTime() - line.publicationDate;
@@ -285,8 +301,6 @@ const Home: NextPage = () => {
     })
   });
   const challengesSorted = useMemo(() => {
-    if (!challengesPayload)
-      return [];
     return challengesPayload.data.slice(0, 15);
   }, [challengesPayload]);
 
@@ -326,27 +340,19 @@ const Home: NextPage = () => {
         }
       }))
     }),
-    requestOptions: {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        "filters": [{
-          "key": "type",
-          "type": "in",
-          "value": ["circuits", "mkcircuits"]
-        }],
-        "sort": {
-          "key": "date",
-          "order": "desc"
-        }
-      })
-    }
+    requestOptions: postData({
+      filters: [{
+        key: "type",
+        type: "in",
+        value: ["circuits", "mkcircuits"]
+      }],
+      sort: {
+        key: "date",
+        order: "desc"
+      }
+    })
   });
   const activityPayload = useMemo(() => {
-    if (!commentsPayload || !recordsPayload)
-      return [];
     const comments = commentsPayload.data.map((comment) => {
       return {
         ...comment,
@@ -752,7 +758,7 @@ const Home: NextPage = () => {
           <SectionBar title="Forum" link="/forum" />
           <h2>{language ? 'Last topics' : 'Derniers topics'}</h2>
           <Skeleton id={styles.forum_section} className={styles.right_subsection} loading={topicsLoading}>
-            {topicsPayload.data.map(topic => <a key={topic.id} href={"topic.php?topic=" + topic.id} title={topic.title}>
+            {topicsSorted.map(topic => <a key={topic.id} href={"topic.php?topic=" + topic.id} title={topic.title}>
               <h2>{topic.title}</h2>
               <h3>{language ? 'Last message' : 'Dernier message'}
                 {topic.lastMessage.author && <> {language ? 'by' : 'par'} <strong>{topic.lastMessage.author.name}</strong></>}

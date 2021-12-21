@@ -1,4 +1,4 @@
-import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, Post } from '@nestjs/common';
 import { Auth } from '../auth/auth.decorator';
 import { I18n, I18nContext } from 'nestjs-i18n';
 import { AuthUser, GetUser } from 'src/user/user.decorator';
@@ -9,29 +9,31 @@ import { Category } from './category.entity';
 import { Profile } from 'src/user/profile.entity';
 import { DateTime } from 'luxon';
 import { keyBy, pick } from 'lodash'
+import { SearchType, EQUALITY_SEARCH, SearchService } from 'src/search/search.service';
 @Controller("/forum")
 export class ForumController {
-  constructor(private em: EntityManager) { }
+  constructor(private em: EntityManager, private searchService: SearchService) { }
 
   @Auth({ loadRoles: true })
-  @Get("/topics")
-  async getTopics(@GetUser() user: AuthUser, @I18n() i18n: I18nContext) {
-    let topics = await this.em.find(Topic, {
-      where: user.roles.moderator ? {} : {
+  @Post("/topics")
+  async getTopics(@GetUser() user: AuthUser, @I18n() i18n: I18nContext, @Body() params) {
+    const { data: topics, count } = await this.searchService.find({
+      entity: Topic,
+      params,
+      rules: {
+        allowedFilters: {
+          id: EQUALITY_SEARCH,
+          category: EQUALITY_SEARCH,
+          title: [SearchType.LIKE]
+        },
+        allowedOrders: ["id", "lastMessageDate"],
+        maxResults: 50
+      },
+      where: user.roles.moderator ? null : {
         private: 0
       },
-      order: {
-        lastMessageDate: "DESC"
-      },
-      relations: ["category"],
-      take: 10
+      relations: ["category"]
     });
-    if (i18n.detectedLanguage !== "fr") {
-      topics = [
-        ...topics.filter(t => t.getLanguage() !== "fr"),
-        ...topics.filter(t => t.getLanguage() === "fr")
-      ];
-    }
     const firstMessages = await this.em.find(Message, {
       where: {
         id: 1,
@@ -53,6 +55,7 @@ export class ForumController {
       id: topic.id,
       title: topic.title,
       nbMessages: topic.nbMessages,
+      language: topic.getLanguage(),
       category: {
         id: topic.category.id,
         name: topic.category.getName(i18n.detectedLanguage)
@@ -67,7 +70,8 @@ export class ForumController {
       }
     }))
     return {
-      data
+      data,
+      count
     }
   }
 
