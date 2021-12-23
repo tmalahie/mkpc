@@ -109,10 +109,10 @@ function ClassicPage(props: Props) {
             <div className={styles["notifs-container"]}>
               {nbNotifs ? <div id={styles["nb-notifs"]}>
                 <strong>{nbNotifs}</strong> notification{(nbNotifs > 1 ? 's' : '')}
-                {id && <a href="notif-settings.php"><img src={notifSettings.src} alt="Settings" title={language ? 'Notification settings' : 'Paramètres de notifications'} /></a>}
+                {id && <a href="/notif-settings.php"><img src={notifSettings.src} alt="Settings" title={language ? 'Notification settings' : 'Paramètres de notifications'} /></a>}
               </div> : <div id={styles["no-notif"]}>
                 {language ? 'No notifications' : 'Aucune notification'}
-                {id && <a href="notif-settings.php"><img src={notifSettings.src} alt="Settings" title={language ? 'Notification settings' : 'Paramètres de notifications'} /></a>}
+                {id && <a href="/notif-settings.php"><img src={notifSettings.src} alt="Settings" title={language ? 'Notification settings' : 'Paramètres de notifications'} /></a>}
               </div>}
               <div id={styles["notifs-list"]}>
                 {notifsList.map((notif) => <a key={notif.id} className={styles["notif-container"]} href={notif.link}>
