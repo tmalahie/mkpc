@@ -103,14 +103,21 @@ export class SearchService {
     const maxResults = options.rules.maxResults || 20;
     let take = options.params?.paging?.limit ?? maxResults;
     if (take > maxResults) take = maxResults;
+    const skip = options.params?.paging?.offset ?? 0;
     let relations = options.relations;
     const data = await this.em.find(options.entity, {
       where,
       order,
       relations,
-      take
+      take,
+      skip
     });
     let count = data.length;
+    if (options.params?.paging?.count && options.rules.canReturnCount) {
+      count = await this.em.count(options.entity, {
+        where
+      });
+    }
     return { data, count };
   }
 }

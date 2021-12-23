@@ -27,6 +27,7 @@ export class ForumController {
           title: [SearchType.LIKE]
         },
         allowedOrders: ["id", "lastMessageDate"],
+        canReturnCount: true,
         maxResults: 50
       },
       where: user.roles.moderator ? null : {
