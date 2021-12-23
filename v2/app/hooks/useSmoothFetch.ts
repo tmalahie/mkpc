@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import placeholder from "../images/main/placeholder.png"
 export { postData, putData, deleteData } from "./useFetch";
 
@@ -8,6 +8,7 @@ type SmoothParams<T> = {
   retryDelayMultiplier?: number;
   retryCount?: number;
   requestOptions?: RequestInit;
+  reloadDeps?: any[]
 }
 
 let seed = 1;
@@ -43,7 +44,6 @@ function placeholderImg() {
   return placeholder.src;
 }
 function placeholderArray<T>(length: number, elt: (i: number) => T): T[] {
-  seed = 1;
   let res = Array(length);
   for (let i = 0; i < length; i++) {
     res[i] = elt(i);
@@ -70,8 +70,13 @@ export const Placeholder = {
   img: placeholderImg
 }
 
-function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000, retryDelayMultiplier = 2, retryCount = Infinity, requestOptions }: SmoothParams<T> = {}) {
-  const placeholderVal = useMemo(() => placeholder ? placeholder() : undefined, []);
+function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000, retryDelayMultiplier = 2, retryCount = Infinity, requestOptions, reloadDeps = [] }: SmoothParams<T> = {}) {
+  const placeholderVal = useMemo(() => {
+    if (placeholder) {
+      seed = 1;
+      return placeholder();
+    }
+  }, []);
   const [state, setState] = useState({
     data: placeholderVal,
     loading: true,
@@ -79,6 +84,11 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
   });
 
   function doFetch(currentRetryCount, currentRetryDelay) {
+    setState({
+      data: placeholderVal,
+      loading: true,
+      error: null
+    });
     fetch(input, requestOptions)
       .then(res => {
         if (res.ok)
@@ -102,7 +112,7 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
   }
   useEffect(() => {
     doFetch(0, retryDelay);
-  }, []);
+  }, reloadDeps);
 
   return state;
 }
