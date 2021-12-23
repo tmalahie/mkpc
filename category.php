@@ -1,5 +1,7 @@
 <?php
 if (isset($_GET['category'])) {
+	header('location: /forum/category/'.intval($_GET['category']));
+	exit;
 	include('getId.php');
 	include('language.php');
 	include('session.php');

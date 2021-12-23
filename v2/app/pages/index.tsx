@@ -758,7 +758,7 @@ const Home: NextPage = () => {
           <SectionBar title="Forum" link="/forum" />
           <h2>{language ? 'Last topics' : 'Derniers topics'}</h2>
           <Skeleton id={styles.forum_section} className={styles.right_subsection} loading={topicsLoading}>
-            {topicsSorted.map(topic => <a key={topic.id} href={"topic.php?topic=" + topic.id} title={topic.title}>
+            {topicsSorted.map(topic => <a key={topic.id} href={"/topic.php?topic=" + topic.id} title={topic.title}>
               <h2>{topic.title}</h2>
               <h3>{language ? 'Last message' : 'Dernier message'}
                 {topic.lastMessage.author && <> {language ? 'by' : 'par'} <strong>{topic.lastMessage.author.name}</strong></>}
@@ -774,7 +774,7 @@ const Home: NextPage = () => {
           <h2>{language ? 'Latest news' : 'Dernières news'}</h2>
           <Skeleton loading={newsLoading} id={styles.news_section} className={styles.right_subsection}>
             {
-              newsPayload?.data.map(news => <a key={news.id} href={"news.php?id=" + news.id} title={news.title} className={news.isNew ? styles.news_new : "" /* TODO */}>
+              newsPayload?.data.map(news => <a key={news.id} href={"/news.php?id=" + news.id} title={news.title} className={news.isNew ? styles.news_new : "" /* TODO */}>
                 <h2>{news.title}</h2>
                 <h3>{language ? 'In' : 'Dans'} <strong>{news.category.name}</strong> {news.author ? <>{language ? 'by' : 'par'} <strong>{news.author.name}</strong> </> : <></>}{formatDate(news.publicationDate, { language, prefix: true, mode: "short" })}</h3>
                 <div className={styles.creation_comments} title={plural(language ? '%n comment%s' : '%n commentaire%s', news.nbComments)}><img src={commentIcon.src} alt="Messages" /> {news.nbComments}</div>
@@ -812,7 +812,7 @@ const Home: NextPage = () => {
           <h2>{language ? 'Last challenges' : 'Derniers défis'}</h2>
           <Skeleton loading={challengesLoading} id={styles.challenges_section} className={styles.right_subsection}>
             {
-              challengesSorted.map(challenge => <a key={challenge.id} href={"challengeTry.php?challenge=" + challenge.id} title={challenge.description.main} className={challenge.succeeded && styles.challenges_section_succeeded}>
+              challengesSorted.map(challenge => <a key={challenge.id} href={"/challengeTry.php?challenge=" + challenge.id} title={challenge.description.main} className={challenge.succeeded && styles.challenges_section_succeeded}>
                 <h2>{challenge.description.main}</h2>
                 <h3>
                   {challenge.circuit?.author && <div className={styles.challenge_section_author}>

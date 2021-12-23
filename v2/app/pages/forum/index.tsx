@@ -72,7 +72,7 @@ const ForumCategories: NextPage = () => {
           <input type="text" id={styles["search-content"]} placeholder={language ? 'Topic title' : 'Titre du topic'} name="content" />
           {" "}
           <input type="submit" value="Ok" className={commonStyles.action_button} />
-          <a href="forum-search.php">{language ? 'Advanced search' : 'Recherche avancée'}</a>
+          <a href="/forum-search.php">{language ? 'Advanced search' : 'Recherche avancée'}</a>
         </p>
       </form>
       <Skeleton loading={categoriesLoading}>
@@ -113,12 +113,12 @@ const ForumCategories: NextPage = () => {
           {
             language ? <>
               <li>The forum has a total of <strong>{plural("%n message%s", forumStats.nbMessages)}</strong> split into <strong>{forumStats.nbTopics} topics</strong> and posted by <strong>{plural("%n member%s", forumStats.nbMembers)}</strong>.</li>
-              <li>The most active member is <a href={"profil.php?id=" + forumStats.mostActivePlayer.id}>{forumStats.mostActivePlayer.name}</a> with <strong>{plural("%n message%s", forumStats.mostActivePlayer.nbMessages)}</strong> posted in total.<a href="ranking-forum.php"><img src={goldCupIcon.src} alt="" />Ranking of most active members<img src={goldCupIcon.src} alt="" /></a></li>
-              {forumStats.monthActivePlayer && <li>The most active member of the month is <a href={"profil.php?id=" + forumStats.monthActivePlayer.id}>{forumStats.monthActivePlayer.name}</a> with <strong>{plural("%n message%s", forumStats.monthActivePlayer.nbMessages)}</strong> since {beginMonthJsx}.<a href="ranking-forum.php?month=last"><img src={silverCupIcon.src} alt="" />Ranking of month's most active members<img src={silverCupIcon.src} alt="" /></a></li>}
+              <li>The most active member is <a href={"/profil.php?id=" + forumStats.mostActivePlayer.id}>{forumStats.mostActivePlayer.name}</a> with <strong>{plural("%n message%s", forumStats.mostActivePlayer.nbMessages)}</strong> posted in total.<a href="/ranking-forum.php"><img src={goldCupIcon.src} alt="" />Ranking of most active members<img src={goldCupIcon.src} alt="" /></a></li>
+              {forumStats.monthActivePlayer && <li>The most active member of the month is <a href={"/profil.php?id=" + forumStats.monthActivePlayer.id}>{forumStats.monthActivePlayer.name}</a> with <strong>{plural("%n message%s", forumStats.monthActivePlayer.nbMessages)}</strong> since {beginMonthJsx}.<a href="/ranking-forum.php?month=last"><img src={silverCupIcon.src} alt="" />Ranking of month's most active members<img src={silverCupIcon.src} alt="" /></a></li>}
             </> : <>
               <li>Le forum comptabilise <strong>{plural("%n message%s", forumStats.nbMessages)}</strong> répartis dans <strong>{forumStats.nbTopics} topics</strong> et postés par <strong>{plural("%n member%s", forumStats.nbMembers)}</strong>.</li>
-              <li>Le membre le plus actif est <a href={"profil.php?id=" + forumStats.mostActivePlayer.id}>{forumStats.mostActivePlayer.name}</a> avec <strong>{plural("%n message%s", forumStats.mostActivePlayer.nbMessages)}</strong> postés au total.<a href="ranking-forum.php"><img src={goldCupIcon.src} alt="" />Classement des membres les plus actifs<img src={goldCupIcon.src} alt="" /></a></li>
-              {forumStats.monthActivePlayer && <li>Le membre le plus actif du mois est <a href={"profil.php?id=" + forumStats.monthActivePlayer.id}>{forumStats.monthActivePlayer.name}</a> avec <strong>{plural("%n message%s", forumStats.monthActivePlayer.nbMessages)}</strong> depuis le {beginMonthJsx}.<a href="ranking-forum.php?month=last"><img src={silverCupIcon.src} alt="" />Classement des plus actifs du mois<img src={silverCupIcon.src} alt="" /></a></li>}
+              <li>Le membre le plus actif est <a href={"/profil.php?id=" + forumStats.mostActivePlayer.id}>{forumStats.mostActivePlayer.name}</a> avec <strong>{plural("%n message%s", forumStats.mostActivePlayer.nbMessages)}</strong> postés au total.<a href="/ranking-forum.php"><img src={goldCupIcon.src} alt="" />Classement des membres les plus actifs<img src={goldCupIcon.src} alt="" /></a></li>
+              {forumStats.monthActivePlayer && <li>Le membre le plus actif du mois est <a href={"/profil.php?id=" + forumStats.monthActivePlayer.id}>{forumStats.monthActivePlayer.name}</a> avec <strong>{plural("%n message%s", forumStats.monthActivePlayer.nbMessages)}</strong> depuis le {beginMonthJsx}.<a href="/ranking-forum.php?month=last"><img src={silverCupIcon.src} alt="" />Classement des plus actifs du mois<img src={silverCupIcon.src} alt="" /></a></li>}
             </>
           }
         </ul>}

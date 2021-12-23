@@ -75,7 +75,7 @@ const ForumCategory: NextPage = () => {
       </Skeleton>
       {/* TODO handle rights */}
       {!!categoryID && <p className={styles.forumButtons}>
-        <a href={"newtopic.php?category=" + categoryID} className={commonStyles.action_button}>{language ? 'New topic' : 'Nouveau topic'}</a>
+        <a href={"/newtopic.php?category=" + categoryID} className={commonStyles.action_button}>{language ? 'New topic' : 'Nouveau topic'}</a>
       </p>}
       <Skeleton id={styles.listeTopicsWrapper} loading={topicsLoading}>
         <table id={styles.listeTopics}>
@@ -99,7 +99,7 @@ const ForumCategory: NextPage = () => {
               <td className={styles.authors}>
                 {
                   topic.firstMessage.author
-                    ? <a className={styles["forum-auteur"]} href={"profil.php?id=" + topic.firstMessage.author.id}>{topic.firstMessage.author.name}</a>
+                    ? <a className={styles["forum-auteur"]} href={"/profil.php?id=" + topic.firstMessage.author.id}>{topic.firstMessage.author.name}</a>
                     : <em>{language ? "Deleted account" : "Compte supprimé"}</em>
                 }
               </td>
@@ -125,7 +125,7 @@ const ForumCategory: NextPage = () => {
       </div>
       <p className={styles.forumButtons}>
         {/* TODO handle rights */}
-        {!!categoryID && <a href={"newtopic.php?category=" + categoryID} className={cx(commonStyles.action_button, styles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a>}
+        {!!categoryID && <a href={"/newtopic.php?category=" + categoryID} className={cx(commonStyles.action_button, styles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a>}
         <Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link><br />
         <Link href="/">{language ? 'Back to home' : 'Retour à l\'accueil'}</Link>
       </p>
