@@ -33,6 +33,9 @@
 #connexion caption {
     border: solid 1px #840;
     color: #A0300A;
+    &.loginError {
+        color: #B00;
+    }
 }
 #connexion td {
     padding: 2px;
@@ -66,4 +69,7 @@
     margin: 5px;
     padding: 5px;
     white-space: pre-line;
+}
+.hidden {
+    display: none;
 }

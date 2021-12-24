@@ -6,6 +6,7 @@ function getUserId() {
     global $identifiants, $_sessionUserId;
     if (isset($_sessionUserId))
         return $_sessionUserId;
+    session_set_cookie_params(0, "/");
     include('../../../session.php');
     $_sessionUserId = +$id;
     return $_sessionUserId;

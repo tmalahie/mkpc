@@ -116,7 +116,11 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
           throw new Error(res.statusText);
         }
       })
-      .then(data => setAllStates({ data, loading: false, error: null }))
+      .then(data => {
+        setAllStates({ data, loading: false, error: null })
+        if (cacheKey)
+          cacheHandler[cacheKey].setStates.length = 0;
+      })
       .catch(error => {
         if (currentRetryCount < retryCount) {
           setTimeout(() => {
