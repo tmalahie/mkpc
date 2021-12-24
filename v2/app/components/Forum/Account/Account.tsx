@@ -1,14 +1,17 @@
+import cx from "classnames";
 import styles from "./ForumAccount.module.scss";
 import forumStyles from "../../../styles/Forum.module.scss";
 import useAuthUser from "../../../hooks/useAuthUser";
 import useLanguage from "../../../hooks/useLanguage";
-import { useMemo } from "react";
-import useSmoothFetch from "../../../hooks/useSmoothFetch";
+import { FormEvent, MouseEvent, useMemo, useState } from "react";
+import useSmoothFetch, { postData } from "../../../hooks/useSmoothFetch";
 import Skeleton from "../../Skeleton/Skeleton";
+import { useRouter } from "next/router";
 
 function ForumAccount() {
   const language = useLanguage();
   const user = useAuthUser();
+  const router = useRouter();
 
   const adminRole = useMemo(() => {
     if (!user) return;
@@ -21,24 +24,92 @@ function ForumAccount() {
     }
   }, [language, user?.roles]);
 
+  const [loginMessage, setLoginMessage] = useState(language ? <>You aren't logged in.<br />Enter your login and password here :</> : <>Vous n'êtes pas connecté<br />Entrez votre pseudo et code ici :</>);
+  const [loginMessageStyle, setLoginMessageStyle] = useState("");
+  const [accountDeleted, setAccountDeleted] = useState(false);
+
+  function handleLogin(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    loginUser(undefined)
+  }
+  function loginUser(params) {
+    const $form = document.forms["login"];
+    const $submit = $form.querySelector('input[type="submit"]');
+    if ($submit instanceof HTMLInputElement)
+      $submit.disabled = true;
+    setLoginMessage(<>...</>);
+    setLoginMessageStyle("");
+    return fetch("/api/login.php", postData({
+      name: $form.elements["pseudo"].value,
+      password: $form.elements["code"].value,
+      ...params
+    }))
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          sessionStorage.removeItem("authUser");
+          router.reload(); // TODO reload component data in a less brutal way :)
+          return;
+        }
+        switch (data.error) {
+          case "wrong_credentials":
+            setLoginMessage(<>{language ? 'Incorrect login or password' : 'Pseudo ou mot de passe incorrect'}</>);
+            setLoginMessageStyle(styles.loginError);
+            break;
+          case "account_deleted":
+            setAccountDeleted(true);
+            break;
+        }
+      }).finally(() => {
+        if ($submit instanceof HTMLInputElement)
+          $submit.disabled = false;
+      });
+  }
+
+  function handleLogout(e: MouseEvent) {
+    e.preventDefault();
+    fetch("/api/logout.php")
+      .then(() => {
+        sessionStorage.removeItem("authUser");
+        router.reload(); // TODO same comment
+      });
+  }
+
+  function handleRestoreAccount(e: MouseEvent) {
+    e.preventDefault();
+    loginUser({
+      restoreDeleted: true
+    });
+  }
+
   return <>
     {
-      /* TODO handle account recovery */
+      accountDeleted && (language ? <p className={forumStyles.warning}>
+        This account has been deleted. The connection to it has been disabled.<br />
+        If you want to undo and restore it, you can still do it by clicking <a href="#null" onClick={handleRestoreAccount}>here</a>.
+      </p> : <p className={forumStyles.warning}>
+        Ce compte a été supprimé. La connexion a celui-ci a donc été desactivée.<br />
+        Si vous souhaitez revenir en arrière et le restaurer, vous pouvez toujours le faire en cliquant <a href="#null" onClick={handleRestoreAccount}>ici</a>.
+      </p>)
+    }
+    {
       user
-        ? <p id={styles.compte}><span>{user.name}</span>
-          <a href={"/profil.php?id=" + user.id}>{language ? 'My profile' : 'Mon profil'}</a><br />
-          <a href="/logout.php">{language ? 'Log out' : 'Déconnexion'}</a>
-        </p>
-        : <form method="post" action="/forum.php">
+        ? <Skeleton loading={user?.id === 0}>
+          <p id={styles.compte}><span>{user.name}</span>
+            <a href={"/profil.php?id=" + user.id}>{language ? 'My profile' : 'Mon profil'}</a><br />
+            <a href="/logout.php" onClick={handleLogout}>{language ? 'Log out' : 'Déconnexion'}</a>
+          </p>
+        </Skeleton>
+        : <form method="post" name="login" action="/forum" className={cx({ [styles.hidden]: accountDeleted })} onSubmit={handleLogin}>
           <table id={styles.connexion}>
-            <caption>{language ? <>You aren't logged in.<br />Enter your login and password here :</> : <>Vous n'êtes pas connecté<br />Entrez votre pseudo et code ici :</>}</caption>
+            <caption className={loginMessageStyle}>{loginMessage}</caption>
             <tbody>
               <tr>
-                <td className={styles.ligne}><label htmlFor="pseudo">{language ? 'Login' : 'Pseudo'} :</label></td>
+                <td className={forumStyles.ligne}><label htmlFor="pseudo">{language ? 'Login' : 'Pseudo'} :</label></td>
                 <td><input type="text" name="pseudo" id={styles.pseudo} /></td>
               </tr>
               <tr>
-                <td className={styles.ligne}><label htmlFor="code">{language ? 'Password' : 'Code'} :</label></td>
+                <td className={forumStyles.ligne}><label htmlFor="code">{language ? 'Password' : 'Code'} :</label></td>
                 <td><input type="password" name="code" id={styles.code} /></td>
               </tr>
               <tr>
@@ -60,7 +131,7 @@ function ForumAccount() {
       </div>)
     }
     {
-      user.banned && <BanMessage />
+      user?.banned && <BanMessage />
     }
   </>;
 }
@@ -74,7 +145,7 @@ function BanMessage() {
       <strong className={styles.banMessage}>{data.message}</strong><br />
       Therefore, you can not post messages until further notice.
     </p> : <p className={forumStyles.warning}>
-      Vous avez été banni pour la raison suivante :<br />
+      Vous avez été banni pour la raison suivante :<br />
       <strong className={styles.banMessage}>{data.message}</strong><br />
       Par conséquent, vous ne pourrez plus poster de message jusqu'à nouvel ordre.
     </p>
@@ -83,11 +154,11 @@ function BanMessage() {
     return <Skeleton loading={loading}>{language ? <p className={forumStyles.warning}>
       You have been banned temporarily because of inappropriate behavior.<br />
       Therefore, you can not post messages until further notice.<br />
-      Be careful : in case of recurrence, your account will be deleted.
+      Be careful : in case of recurrence, your account will be deleted.
     </p> : <p className={forumStyles.warning}>
       Vous avez été banni temporairement suite à un comportement innaproprié sur le site.<br />
       Par conséquent, vous ne pouvez plus poster de message jusqu'à nouvel ordre.<br />
-      Attention : en cas de récidive, votre compte sera supprimé définitivement.
+      Attention : en cas de récidive, votre compte sera supprimé définitivement.
     </p>}</Skeleton>;
   }
 }
