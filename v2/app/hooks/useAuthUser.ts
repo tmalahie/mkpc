@@ -13,6 +13,7 @@ type AuthUser = {
     organizer?: boolean,
     manager?: boolean
   }
+  banned?: boolean
 }
 function useAuthUser() {
   const [cookies] = useCookies(["mkp"]);
