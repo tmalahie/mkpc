@@ -3,7 +3,6 @@ import ClassicPage, { commonStyles } from "../../../components/ClassicPage/Class
 import styles from "../../../styles/Forum.module.scss";
 import Link from "next/link"
 import useLanguage from "../../../hooks/useLanguage";
-import cx from "classnames";
 import WithAppContext from "../../../components/WithAppContext/WithAppContext";
 import ForumAccount from "../../../components/Forum/Account/Account";
 import Ad from "../../../components/Ad/Ad";
@@ -14,6 +13,7 @@ import Skeleton from "../../../components/Skeleton/Skeleton";
 import { usePaging } from "../../../hooks/usePaging";
 import Pager from "../../../components/Pager/Pager";
 import useAuthUser from "../../../hooks/useAuthUser";
+import { useMemo } from "react";
 
 const ForumCategory: NextPage = () => {
   const language = useLanguage();
@@ -65,6 +65,10 @@ const ForumCategory: NextPage = () => {
     reloadDeps: [paging]
   });
 
+  const canPostTopic = useMemo(() => {
+    return user && !user.banned && (!categoryPayload.adminOnly || user.roles.manager);
+  }, [user, categoryPayload]);
+
   return (
     <ClassicPage title="Forum Mario Kart PC" className={styles.Forum} page="forum">
       <Skeleton loading={catsLoading}>
@@ -76,7 +80,7 @@ const ForumCategory: NextPage = () => {
       <Skeleton loading={catsLoading}>
         <p id={styles["category-description"]}>{categoryPayload.description}</p>
       </Skeleton>
-      {user && (!categoryPayload.adminOnly || user.roles.manager) && <p className={styles.forumButtons}>
+      {canPostTopic && <p className={styles.forumButtons}>
         <a href={"/newtopic.php?category=" + categoryID} className={commonStyles.action_button}>{language ? 'New topic' : 'Nouveau topic'}</a>
       </p>}
       <Skeleton id={styles.listeTopicsWrapper} loading={topicsLoading}>
@@ -126,7 +130,7 @@ const ForumCategory: NextPage = () => {
         </p>
       </div>
       <div className={styles.forumButtons}>
-        {user && (!categoryPayload.adminOnly || user.roles.manager) && <p><a href={"/newtopic.php?category=" + categoryID} className={commonStyles.action_button}>{language ? 'New topic' : 'Nouveau topic'}</a></p>}
+        {canPostTopic && <p><a href={"/newtopic.php?category=" + categoryID} className={commonStyles.action_button}>{language ? 'New topic' : 'Nouveau topic'}</a></p>}
         <Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link><br />
         <Link href="/">{language ? 'Back to home' : 'Retour à l\'accueil'}</Link>
       </div>
