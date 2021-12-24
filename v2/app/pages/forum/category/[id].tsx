@@ -13,10 +13,12 @@ import useSmoothFetch, { postData, Placeholder } from "../../../hooks/useSmoothF
 import Skeleton from "../../../components/Skeleton/Skeleton";
 import { usePaging } from "../../../hooks/usePaging";
 import Pager from "../../../components/Pager/Pager";
+import useUser from "../../../hooks/useUser";
 
 const ForumCategory: NextPage = () => {
   const language = useLanguage();
   const router = useRouter();
+  const user = useUser();
   const categoryID = +router.query.id;
 
   const { data: categoryPayload, loading: catsLoading } = useSmoothFetch(`/api/forum/categories/${categoryID}`, {
@@ -65,13 +67,13 @@ const ForumCategory: NextPage = () => {
   return (
     <ClassicPage title="Forum Mario Kart PC" className={styles.Forum} page="forum">
       <Skeleton loading={catsLoading}>
-        <h1>{categoryPayload?.name}</h1>
+        <h1>{categoryPayload.name}</h1>
       </Skeleton>
       <ForumAccount />
       <Ad width={728} height={90} bannerId="4919860724" />
       <p><Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link></p>
       <Skeleton loading={catsLoading}>
-        <p id={styles["category-description"]}>{categoryPayload?.description}</p>
+        <p id={styles["category-description"]}>{categoryPayload.description}</p>
       </Skeleton>
       {/* TODO handle rights */}
       {!!categoryID && <p className={styles.forumButtons}>
@@ -125,7 +127,7 @@ const ForumCategory: NextPage = () => {
       </div>
       <p className={styles.forumButtons}>
         {/* TODO handle rights */}
-        {!!categoryID && <a href={"/newtopic.php?category=" + categoryID} className={cx(commonStyles.action_button, styles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a>}
+        {!!categoryID && !!user && <a href={"/newtopic.php?category=" + categoryID} className={cx(commonStyles.action_button, styles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a>}
         <Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link><br />
         <Link href="/">{language ? 'Back to home' : 'Retour à l\'accueil'}</Link>
       </p>
