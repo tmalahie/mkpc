@@ -19,8 +19,8 @@ export class EntityManagerProvider {
   }
 }
 export class AuthGuard implements CanActivate {
-  constructor(private loginRequired: boolean, private loadRoles, private requiredRoles: Role[]) {}
-  
+  constructor(private loginRequired: boolean, private loadRoles, private requiredRoles: Role[]) { }
+
   async canActivate(
     context: ExecutionContext,
   ): Promise<boolean> {
@@ -40,13 +40,6 @@ export class AuthGuard implements CanActivate {
       for (const role of userRoles) {
         user.roles[role.privilege] = true;
       }
-      /*
-		if (isset($res['admin'])) {
-			$res['moderator'] = true;
-			$res['organizer'] = true;
-		}
-		if (isset($res['moderator']) || isset($res['organizer']))
-			$res['manager'] = true;*/
       if (user.roles.admin) {
         user.roles.moderator = true;
         user.roles.organizer = true;
@@ -66,7 +59,7 @@ export class AuthGuard implements CanActivate {
     return true;
   }
 
-  private userIdCache: Record<string,{
+  private userIdCache: Record<string, {
     data: number,
     expiryHandler: NodeJS.Timeout
   }> = {}
@@ -75,7 +68,7 @@ export class AuthGuard implements CanActivate {
     if (this.userIdCache[sessId])
       return this.userIdCache[sessId].data;
     const host = request.headers["x-forwarded-host"] || request.headers.host;
-    const protocol = request.secure ? "https":"http";
+    const protocol = request.secure ? "https" : "http";
     const authUser = await axios.get(`${protocol}://${host}/api/authenticateUser.php`, {
       headers: {
         cookie: request.headers.cookie ?? "",

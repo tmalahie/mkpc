@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({name: "mkcategories"})
+@Entity({ name: "mkcategories" })
 export class Category {
   @PrimaryGeneratedColumn()
   id: number;
@@ -11,7 +11,7 @@ export class Category {
   private name: string;
 
   getName(lang: string) {
-    return (lang === "fr") ? this.nom:this.name;
+    return (lang === "fr") ? this.nom : this.name;
   }
 
   @Column()
@@ -20,7 +20,7 @@ export class Category {
   private summary: string;
 
   getDescription(lang: string) {
-    return (lang === "fr") ? this.description:this.summary;
+    return (lang === "fr") ? this.description : this.summary;
   }
 
   @Column()
@@ -28,9 +28,9 @@ export class Category {
   @Column()
   ordering: number;
   getOrder(lang: string) {
-    return (lang === "fr") ? this.ordre:this.ordering;
+    return (lang === "fr") ? this.ordre : this.ordering;
   }
 
-  @Column()
-  adminonly: boolean;
+  @Column({ name: "adminonly" })
+  adminOnly: boolean;
 }

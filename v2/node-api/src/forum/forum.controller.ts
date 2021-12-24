@@ -133,7 +133,8 @@ export class ForumController {
     return {
       id: category.id,
       name: category.getName(lang),
-      description: category.getDescription(lang)
+      description: category.getDescription(lang),
+      adminOnly: category.adminOnly
     };
   }
 

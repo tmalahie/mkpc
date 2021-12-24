@@ -1,10 +1,10 @@
 import styles from "./ForumAccount.module.scss";
-import useUser from "../../../hooks/useUser";
+import useAuthUser from "../../../hooks/useAuthUser";
 import useLanguage from "../../../hooks/useLanguage";
 
 function ForumAccount() {
   const language = useLanguage();
-  const user = useUser();
+  const user = useAuthUser();
 
   return (
     /* TODO handle rights msg */
@@ -14,7 +14,7 @@ function ForumAccount() {
         <a href={"/profil.php?id=" + user.id}>{language ? 'My profile' : 'Mon profil'}</a><br />
         <a href="/logout.php">{language ? 'Log out' : 'Déconnexion'}</a>
       </p>
-      : <form method="post" action="forum.old.php">
+      : <form method="post" action="/forum.php">
         <table id={styles.connexion}>
           <caption>{language ? <>You aren't logged in.<br />Enter your login and password here :</> : <>Vous n'êtes pas connecté<br />Entrez votre pseudo et code ici :</>}</caption>
           <tbody>

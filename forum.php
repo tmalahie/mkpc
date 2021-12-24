@@ -1,6 +1,4 @@
 <?php
-header('location: /forum');
-exit;
 include('getId.php');
 include('language.php');
 include('session.php');
@@ -31,6 +29,8 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 		}
 	}
 }
+header('location: /forum');
+exit;
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">

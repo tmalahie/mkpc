@@ -1,11 +1,11 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({name: "mkjoueurs"})
+@Entity({ name: "mkjoueurs" })
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({name: "nom"})
+  @Column({ name: "nom" })
   name: string;
 
   @Column()
@@ -16,6 +16,9 @@ export class User {
 
   @Column()
   pts_challenge: string;
+
+  @Column()
+  banned: boolean;
 
   @Column()
   deleted: boolean;

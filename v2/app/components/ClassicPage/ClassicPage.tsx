@@ -1,5 +1,5 @@
 import useLanguage from "../../hooks/useLanguage";
-import useUser from "../../hooks/useUser";
+import useAuthUser from "../../hooks/useAuthUser";
 import useFetch from "../../hooks/useFetch";
 import styles from "./ClassicPage.module.scss"
 import innerStyles from "./Common.module.scss"
@@ -47,7 +47,7 @@ type Props = {
 }
 function ClassicPage(props: Props) {
   const language = useLanguage();
-  const { id } = useUser() ?? {};
+  const { id } = useAuthUser() ?? {};
   const page = props.page;
 
   const { data: notifsPayload } = useFetch(`/api/getNotifs.php`);
