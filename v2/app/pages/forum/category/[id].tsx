@@ -13,12 +13,12 @@ import useSmoothFetch, { postData, Placeholder } from "../../../hooks/useSmoothF
 import Skeleton from "../../../components/Skeleton/Skeleton";
 import { usePaging } from "../../../hooks/usePaging";
 import Pager from "../../../components/Pager/Pager";
-import useUser from "../../../hooks/useUser";
+import useAuthUser from "../../../hooks/useAuthUser";
 
 const ForumCategory: NextPage = () => {
   const language = useLanguage();
   const router = useRouter();
-  const user = useUser();
+  const user = useAuthUser();
   const categoryID = +router.query.id;
 
   const { data: categoryPayload, loading: catsLoading } = useSmoothFetch(`/api/forum/categories/${categoryID}`, {
@@ -26,6 +26,7 @@ const ForumCategory: NextPage = () => {
       id: categoryID,
       name: Placeholder.text(25, 45),
       description: Placeholder.text(200, 400),
+      adminOnly: true
     })
   });
 
@@ -75,8 +76,7 @@ const ForumCategory: NextPage = () => {
       <Skeleton loading={catsLoading}>
         <p id={styles["category-description"]}>{categoryPayload.description}</p>
       </Skeleton>
-      {/* TODO handle rights */}
-      {!!categoryID && <p className={styles.forumButtons}>
+      {user && (!categoryPayload.adminOnly || user.roles.manager) && <p className={styles.forumButtons}>
         <a href={"/newtopic.php?category=" + categoryID} className={commonStyles.action_button}>{language ? 'New topic' : 'Nouveau topic'}</a>
       </p>}
       <Skeleton id={styles.listeTopicsWrapper} loading={topicsLoading}>
@@ -125,12 +125,11 @@ const ForumCategory: NextPage = () => {
           <Pager page={currentPage} paging={paging} count={topicsPayload.count} onSetPage={setCurrentPage} />
         </p>
       </div>
-      <p className={styles.forumButtons}>
-        {/* TODO handle rights */}
-        {!!categoryID && !!user && <a href={"/newtopic.php?category=" + categoryID} className={cx(commonStyles.action_button, styles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a>}
+      <div className={styles.forumButtons}>
+        {user && (!categoryPayload.adminOnly || user.roles.manager) && <p><a href={"/newtopic.php?category=" + categoryID} className={commonStyles.action_button}>{language ? 'New topic' : 'Nouveau topic'}</a></p>}
         <Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link><br />
         <Link href="/">{language ? 'Back to home' : 'Retour à l\'accueil'}</Link>
-      </p>
+      </div>
     </ClassicPage>
   );
 }

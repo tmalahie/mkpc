@@ -8,7 +8,8 @@ type SmoothParams<T> = {
   retryDelayMultiplier?: number;
   retryCount?: number;
   requestOptions?: RequestInit;
-  reloadDeps?: any[]
+  reloadDeps?: any[],
+  cacheKey?: string
 }
 
 let seed = 1;
@@ -70,7 +71,12 @@ export const Placeholder = {
   img: placeholderImg
 }
 
-function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000, retryDelayMultiplier = 2, retryCount = Infinity, requestOptions, reloadDeps = [] }: SmoothParams<T> = {}) {
+type CacheHandler = Record<string, {
+  state: any,
+  setStates: Array<(newState: any) => void>
+}>
+const cacheHandler: CacheHandler = {}
+function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000, retryDelayMultiplier = 2, retryCount = Infinity, requestOptions, reloadDeps = [], cacheKey }: SmoothParams<T> = {}) {
   const placeholderVal = useMemo(() => {
     if (placeholder) {
       seed = 1;
@@ -83,22 +89,34 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
     error: null
   });
 
+  const setAllStates = useCallback((newState: typeof state) => {
+    if (!cacheKey) {
+      setState(newState);
+      return;
+    }
+    for (const stateCallback of cacheHandler[cacheKey].setStates)
+      stateCallback(newState);
+  }, [setState, cacheKey]);
+
   function doFetch(currentRetryCount, currentRetryDelay) {
-    setState({
+    setAllStates({
       data: placeholderVal,
       loading: true,
       error: null
     });
     fetch(input, requestOptions)
       .then(res => {
-        if (res.ok)
+        if (res.ok) {
+          if (res.status === 204)
+            return null;
           return res.json();
+        }
         else {
           console.error(res);
           throw new Error(res.statusText);
         }
       })
-      .then(data => setState({ data, loading: false, error: null }))
+      .then(data => setAllStates({ data, loading: false, error: null }))
       .catch(error => {
         if (currentRetryCount < retryCount) {
           setTimeout(() => {
@@ -106,11 +124,22 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
           }, currentRetryDelay);
         }
         else {
-          setState({ data: placeholderVal, loading: false, error });
+          setAllStates({ data: placeholderVal, loading: false, error });
         }
       });
   }
   useEffect(() => {
+    if (cacheKey) {
+      if (cacheHandler[cacheKey]) {
+        setState(cacheHandler[cacheKey].state);
+        cacheHandler[cacheKey].setStates.push(setState);
+        return;
+      }
+      cacheHandler[cacheKey] = {
+        state,
+        setStates: [setState]
+      }
+    }
     doFetch(0, retryDelay);
   }, reloadDeps);
 

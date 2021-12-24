@@ -3,7 +3,7 @@ include('initdb.php');
 require_once('../../../credentials.php');
 include('../../../utilId.php');
 function getUserId() {
-    global $_sessionUserId;
+    global $identifiants, $_sessionUserId;
     if (isset($_sessionUserId))
         return $_sessionUserId;
     include('../../../session.php');
