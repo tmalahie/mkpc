@@ -68,7 +68,7 @@ const Game: NextPage = () => {
 
   useEffect(() => {
     if (areGameParamsLoaded) {
-      insertScript("scripts/mk.js", {
+      insertScript("/scripts/mk.js", {
         onload: () => {
           globals.MarioKart();
         }
