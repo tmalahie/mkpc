@@ -16,6 +16,7 @@ import screenshotsIcon from "../images/icons/camera.png"
 import thanksIcon from "../images/icons/thanks.png"
 import followIcon from "../images/icons/follow.png"
 import gameIcon from "../images/icons/gamepad.png"
+import birthdayIcon from "../images/icons/birthday.png"
 import commentIcon from "../images/icons/comment.png"
 import clockIcon from "../images/icons/clock.png"
 
@@ -56,12 +57,13 @@ import ss12xs from "../images/main/screenshots/ss12xs.png"
 import { formatDate } from "../helpers/dates";
 import { formatRank, formatTime } from "../helpers/records";
 import { escapeHtml } from "../helpers/strings";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import cx from "classnames";
 import { uniqBy } from "../helpers/objects";
 import Link from "next/link";
 import useSmoothFetch, { postData, Placeholder } from '../hooks/useSmoothFetch';
 import Skeleton from '../components/Skeleton/Skeleton';
+import useAuthUser from '../hooks/useAuthUser';
 
 const screenshots = [[{
   xs: ss1xs,
@@ -161,6 +163,8 @@ const Home: NextPage = () => {
         return "classement.global.php?cc=200";
     }
   }, [leaderboardTab]);
+
+  const user = useAuthUser();
 
   const { data: topicsPayload, loading: topicsLoading } = useSmoothFetch(`/api/forum/topics`, {
     placeholder: () => ({
@@ -715,46 +719,7 @@ const Home: NextPage = () => {
       </section>
       <section id={styles.right_section}>
         <div className={styles.subsection}>
-          {/*<?php
-		if ($id) {
-			date_default_timezone_set(get_client_tz());
-
-			$today = time();
-			$cYear = date('Y', $today);
-			$cMonth = date('m', $today);
-			$cDay = date('d', $today);
-			$curDate = $cYear.'-'.$cMonth.'-'.$cDay;
-			$getBirthdays = mysql_query('SELECT j.id,j.nom,p.identifiant,p.identifiant2,p.identifiant3,p.identifiant4,p.nbmessages FROM `mkprofiles` p INNER JOIN `mkjoueurs` j ON p.id=j.id WHERE birthdate IS NOT NULL AND DAY(birthdate)='. $cDay .' AND MONTH(birthdate)='. $cMonth .' AND j.banned=0 AND j.deleted=0 AND last_connect>=DATE_SUB("'.$curDate.'",INTERVAL 1 YEAR) AND TIMESTAMPDIFF(SECOND,last_connect,"'.$curDate.'")<=TIMESTAMPDIFF(SECOND,IFNULL(sub_date,"2016-01-01"),last_connect)+7*24*3600 ORDER BY p.nbmessages DESC, p.id ASC');
-			$dc = array();
-			$birthdaysList = array();
-			while ($getBirthday = mysql_fetch_array($getBirthdays)) {
-				$dId = $getBirthday['identifiant'].'_'.$getBirthday['identifiant2'].'_'.$getBirthday['identifiant3'].'_'.$getBirthday['identifiant4'];
-				if (!isset($dc[$dId])) {
-					$dc[$dId] = $getBirthday;
-					$birthdaysList[] = $getBirthday;
-				}
-			}
-			$nbBirthdays = count($birthdaysList);
-			if ($nbBirthdays) {
-				?>
-				<div className={styles["birthdays-list"]}>
-					<img src="images/ic_birthday.png" alt="birthday" />
-					<?php echo $language ? "It's the birthday of":"C'est l'anniversaire de"; ?>
-					<?php
-					for ($i=0;$i<$nbBirthdays;$i++) {
-						$birthday = $birthdaysList[$i];
-						if ($i)
-							echo ($i==$nbBirthdays-1) ? ($language ? " and ":" et "):", ";
-						echo '<a href="/profil.php?id='. $birthday['id'] .'">'. $birthday['nom'] .'</a>';
-					}
-					echo ($language ? '!':'&nbsp;!');
-					?>
-				</div>
-				<?php
-			}
-		}
-		date_default_timezone_set('UTC');
-    ?>*/}
+          {user && <BirthdaysList />}
           <SectionBar title="Forum" link="/forum" />
           <h2>{language ? 'Last topics' : 'Derniers topics'}</h2>
           <Skeleton id={styles.forum_section} className={styles.right_subsection} loading={topicsLoading}>
@@ -958,6 +923,39 @@ const Home: NextPage = () => {
       </div>
     </ClassicPage>
   )
+}
+function BirthdaysList() {
+  const { data: birthdaysPayload } = useSmoothFetch<{
+    data: Array<{
+      id: string;
+      name: string;
+    }>
+  }>(`/api/getBirthdays.php`);
+  const language = useLanguage();
+
+  const membersList = useMemo(() => {
+    if (!birthdaysPayload) return;
+    let res = [];
+    const nbBirthdays = birthdaysPayload.data.length;
+    for (let i = 0; i < nbBirthdays; i++) {
+      const member = birthdaysPayload.data[i];
+      res.push(<Fragment key={member.id}>
+        {!!i && ((i == nbBirthdays - 1) ? (language ? " and " : " et ") : ", ")}
+        <a href={`/profil.php?id=${member.id}`}>{member.name}</a>
+      </Fragment>);
+    }
+    return res;
+  }, [birthdaysPayload]);
+
+  if (!birthdaysPayload?.data.length) return <></>;
+
+  return <div className={styles["birthdays-list"]}>
+    <img src={birthdayIcon.src} alt="" />
+    {language ? "It's the birthday of" : "C'est l'anniversaire de"}
+    {" "}
+    {membersList}
+    {language ? '!' : ' !'}
+  </div>
 }
 
 export default WithAppContext(Home)
