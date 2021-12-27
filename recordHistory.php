@@ -86,8 +86,8 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
             <table>
                 <tr id="titres">
                     <td style="width:135px">Date</td>
-                    <td style="width:40px">Perso</td>
-                    <td>Temps</td>
+                    <td style="width:40px"><?php echo $language ? 'Char.':'Perso'; ?></td>
+                    <td><?php echo $language ? 'Time':'Temps'; ?></td>
                 </tr>
                 <?php
                 while ($record = mysql_fetch_array($getRecords)) {

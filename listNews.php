@@ -23,7 +23,7 @@ $page = 'home';
 include('menu.php');
 ?>
 <main>
-<h1>Mario Kart PC - Liste des news</h1>
+<h1><?php echo $language ? 'Mario Kart PC - News list' : 'Mario Kart PC - Liste des news'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
 <p class="pub"><ins class="adsbygoogle"
