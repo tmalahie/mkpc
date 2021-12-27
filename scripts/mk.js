@@ -11343,9 +11343,12 @@ function touche_bobomb(iX, iY, iP) {
 			else {
 				if (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
 					for (j=0;j<aKarts.length;j++) {
-						var k = aKarts[j].using.indexOf(oBox);
+						var jKart = aKarts[j];
+						var k = jKart.using.indexOf(oBox);
 						if (k != -1) {
-							throwItem(aKarts[j], {theta:1,countdown:0,cooldown:1},k);
+							throwItem(jKart, {theta:1,countdown:0,cooldown:1},k);
+							if (!jKart.using.length)
+								consumeItemIfDouble(j);
 							break;
 						}
 					}
