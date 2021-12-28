@@ -63,7 +63,9 @@ const ForumCategories: NextPage = () => {
     <ClassicPage title="Forum Mario Kart PC" className={styles.Forum} page="forum">
       <h1>Forum Mario Kart PC</h1>
       <ForumAccount />
-      <Ad width={728} height={90} bannerId="4919860724" />
+      <p className={styles.pub}>
+        <Ad width={728} height={90} bannerId="4919860724" />
+      </p>
       <form method="get" action="recherche.php" className={styles["forum-search"]}>
         <p>
           <label htmlFor="search-content">
@@ -82,12 +84,14 @@ const ForumCategories: NextPage = () => {
             <col id={styles.nbmsgs} />
             <col id={styles.lastmsgs} />
           </colgroup>
-          <tbody>
+          <thead>
             <tr id={styles.titres}>
               <td>{language ? 'Category' : 'Catégorie'}</td>
               <td>{language ? 'Topics nb' : 'Nb topics'}</td>
               <td>{language ? 'Last message' : 'Dernier message'}</td>
             </tr>
+          </thead>
+          <tbody>
             {
               categoriesPayload?.data.map((category, i) => <tr key={category.id} className={(i % 2) ? styles.fonce : styles.clair}>
                 <td className={styles.subjects}>

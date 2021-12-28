@@ -15,7 +15,7 @@ export class ForumController {
   constructor(private em: EntityManager, private searchService: SearchService) { }
 
   @Auth({ loadRoles: true })
-  @Post("/topics")
+  @Post("/topics/find")
   async getTopics(@GetUser() user: AuthUser, @I18n() i18n: I18nContext, @Body() params) {
     const { data: topics, count } = await this.searchService.find({
       entity: Topic,
