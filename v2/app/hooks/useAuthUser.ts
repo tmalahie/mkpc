@@ -15,6 +15,11 @@ type AuthUser = {
   }
   banned?: boolean
 }
+let initialAuthUser: AuthUser = {
+  id: 0,
+  name: "---",
+  roles: {}
+};
 function useAuthUser() {
   const [cookies] = useCookies(["mkp"]);
 
@@ -22,21 +27,21 @@ function useAuthUser() {
     cacheKey: "useAuthUser",
     placeholder: () => {
       if (!cookies.mkp) return null;
-      return {
-        id: 0,
-        name: "---",
-        roles: {}
-      };
+      return initialAuthUser;
     }
   })
 
   const [user, setUser] = useState<AuthUser>(data);
+  function setAuthUser(authUser: AuthUser) {
+    initialAuthUser = authUser;
+    setUser(authUser);
+  }
 
   useEffect(() => {
     if (user) {
       if (typeof sessionStorage !== "undefined") {
         const authUser = sessionStorage.getItem("authUser");
-        if (authUser) setUser(JSON.parse(authUser));
+        if (authUser) setAuthUser(JSON.parse(authUser));
       }
     }
   }, []);
@@ -44,7 +49,7 @@ function useAuthUser() {
   useEffect(() => {
     if (loading) return;
     sessionStorage.setItem("authUser", JSON.stringify(data));
-    setUser(data);
+    setAuthUser(data);
   }, [data, loading]);
 
   return user;
