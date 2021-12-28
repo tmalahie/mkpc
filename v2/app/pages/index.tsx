@@ -220,6 +220,11 @@ const Home: NextPage = () => {
         key: "publicationDate",
         order: "desc"
       },
+      filters: [{
+        key: "status",
+        type: "=",
+        value: "accepted"
+      }],
       paging: {
         limit: 10
       }
