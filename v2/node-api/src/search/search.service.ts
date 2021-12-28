@@ -60,6 +60,7 @@ export class SearchService {
       for (const filter of options.params.filters) {
         const allowedFilters = options.rules.allowedFilters[filter.key];
         if (allowedFilters?.includes(filter.type)) {
+          if (where[filter.key]) continue;
           let newFilter;
           switch (filter.type) {
             case SearchType.EQUALS:

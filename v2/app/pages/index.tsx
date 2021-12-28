@@ -166,7 +166,7 @@ const Home: NextPage = () => {
 
   const user = useAuthUser();
 
-  const { data: topicsPayload, loading: topicsLoading } = useSmoothFetch(`/api/forum/topics`, {
+  const { data: topicsPayload, loading: topicsLoading } = useSmoothFetch("/api/forum/topics/find", {
     placeholder: () => ({
       data: Placeholder.array(10, (id) => ({
         id,
@@ -199,7 +199,7 @@ const Home: NextPage = () => {
       ...topicsPayload.data.filter(t => t.language === "fr")
     ];
   }, [topicsPayload, language]);
-  const { data: newsPayload, loading: newsLoading } = useSmoothFetch(`/api/news`, {
+  const { data: newsPayload, loading: newsLoading } = useSmoothFetch("/api/news/find", {
     placeholder: () => ({
       data: Placeholder.array(10, (id) => ({
         id,
@@ -214,6 +214,15 @@ const Home: NextPage = () => {
         title: Placeholder.text(25, 45),
         publicationDate: Placeholder.date()
       }))
+    }),
+    requestOptions: postData({
+      sort: {
+        key: "publicationDate",
+        order: "desc"
+      },
+      paging: {
+        limit: 10
+      }
     })
   });
   const creationParams = useMemo(() => {
@@ -324,7 +333,7 @@ const Home: NextPage = () => {
       }))
     })
   });
-  const { data: recordsPayload, loading: recordsLoading } = useSmoothFetch(`/api/time-trial/records/find`, {
+  const { data: recordsPayload, loading: recordsLoading } = useSmoothFetch("/api/time-trial/records/find", {
     placeholder: () => ({
       data: Placeholder.array(5, (id) => ({
         id,
