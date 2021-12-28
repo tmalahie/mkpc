@@ -1,5 +1,6 @@
 import { NextPage } from "next";
 import ClassicPage, { commonStyles } from "../../../components/ClassicPage/ClassicPage";
+import cx from "classnames";
 import styles from "../../../styles/Forum.module.scss";
 import Link from "next/link"
 import useLanguage from "../../../hooks/useLanguage";
@@ -31,7 +32,7 @@ const ForumCategory: NextPage = () => {
   });
 
   const { paging, currentPage, setCurrentPage } = usePaging(50);
-  const { data: topicsPayload, loading: topicsLoading } = useSmoothFetch(`/api/forum/topics`, {
+  const { data: topicsPayload, loading: topicsLoading } = useSmoothFetch("/api/forum/topics/find", {
     placeholder: () => ({
       data: Placeholder.array(20, (id) => ({
         id,
@@ -48,7 +49,7 @@ const ForumCategory: NextPage = () => {
           date: Placeholder.date(),
         }
       })),
-      count: Placeholder.number(10, 20)
+      count: 0
     }),
     requestOptions: postData({
       filters: [{
@@ -81,9 +82,9 @@ const ForumCategory: NextPage = () => {
         <p id={styles["category-description"]}>{categoryPayload.description}</p>
       </Skeleton>
       {canPostTopic && <p className={styles.forumButtons}>
-        <a href={"/newtopic.php?category=" + categoryID} className={commonStyles.action_button}>{language ? 'New topic' : 'Nouveau topic'}</a>
+        <a href={"/newtopic.php?category=" + categoryID} className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a>
       </p>}
-      <Skeleton id={styles.listeTopicsWrapper} loading={topicsLoading}>
+      <Skeleton loading={topicsLoading}>
         <table id={styles.listeTopics}>
           <colgroup>
             <col />
@@ -91,13 +92,15 @@ const ForumCategory: NextPage = () => {
             <col id={styles.nbmsgs} />
             <col id={styles.lastmsgs} />
           </colgroup>
-          <tbody>
+          <thead>
             <tr id={styles.titres}>
               <td>{language ? 'Subjects' : 'Sujets'}</td>
               <td>{language ? 'Author' : 'Auteur'}</td>
               <td className={styles["topic-nbmsgs"]}>{language ? 'Msgs nb' : 'Nb msgs'}</td>
               <td>{language ? 'Last message' : 'Dernier message'}</td>
             </tr>
+          </thead>
+          <tbody>
             {topicsPayload?.data.map((topic, i) => (<tr key={topic.id} className={(i % 2) ? styles.fonce : styles.clair}>
               <td className={styles.subjects}>
                 <a href={"/topic.php?topic=" + topic.id} className={styles.fulllink}>{topic.title}</a>
@@ -123,14 +126,14 @@ const ForumCategory: NextPage = () => {
             </tr>))}
           </tbody>
         </table>
+        <div className={styles.topicPages}>
+          <p>
+            <Pager page={currentPage} paging={paging} count={topicsPayload.count} onSetPage={setCurrentPage} />
+          </p>
+        </div>
       </Skeleton>
-      <div className={styles.topicPages}>
-        <p>
-          <Pager page={currentPage} paging={paging} count={topicsPayload.count} onSetPage={setCurrentPage} />
-        </p>
-      </div>
       <div className={styles.forumButtons}>
-        {canPostTopic && <p><a href={"/newtopic.php?category=" + categoryID} className={commonStyles.action_button}>{language ? 'New topic' : 'Nouveau topic'}</a></p>}
+        {canPostTopic && <p><a href={"/newtopic.php?category=" + categoryID} className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a></p>}
         <Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link><br />
         <Link href="/">{language ? 'Back to home' : 'Retour à l\'accueil'}</Link>
       </div>
