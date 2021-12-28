@@ -78,6 +78,11 @@ type CacheHandler = Record<string, {
 const cacheHandler: CacheHandler = {}
 function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000, retryDelayMultiplier = 2, retryCount = Infinity, requestOptions, reloadDeps = [], cacheKey }: SmoothParams<T> = {}) {
   const placeholderVal = useMemo(() => {
+    if (cacheKey && cacheHandler[cacheKey]) {
+      const { state } = cacheHandler[cacheKey];
+      if (!state.loading && !state.error)
+        return state.data;
+    }
     if (placeholder) {
       seed = 1;
       return placeholder();
@@ -94,6 +99,7 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
       setState(newState);
       return;
     }
+    cacheHandler[cacheKey].state = newState;
     for (const stateCallback of cacheHandler[cacheKey].setStates)
       stateCallback(newState);
   }, [setState, cacheKey]);
