@@ -77,7 +77,7 @@ function PublishedNews() {
     requestOptions: postData({
       filters: [{
         key: "status",
-        type: "=",
+        operator: "=",
         value: "accepted"
       }],
       sort: {
@@ -150,7 +150,7 @@ function MyPendingNews() {
       me: true,
       filters: [{
         key: "status",
-        type: "in",
+        operator: "in",
         value: ["pending", "rejected"]
       }],
       sort: {
@@ -198,7 +198,7 @@ function OtherPendingNews() {
     requestOptions: postData({
       filters: [{
         key: "status",
-        type: "=",
+        operator: "=",
         value: "pending"
       }],
       sort: {
