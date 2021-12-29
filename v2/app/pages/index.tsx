@@ -749,7 +749,7 @@ const Home: NextPage = () => {
           <Link href="/forum"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'Go to the forum' : 'Accéder au forum'}</a></Link>
         </div>
         <div className={styles.subsection}>
-          <SectionBar title="News" link="/listNews.php" />
+          <SectionBar title="News" link="/news" />
           <h2>{language ? 'Latest news' : 'Dernières news'}</h2>
           <Skeleton loading={newsLoading} id={styles.news_section} className={styles.right_subsection}>
             {
@@ -760,7 +760,7 @@ const Home: NextPage = () => {
               </a>)
             }
           </Skeleton>
-          <a className={cx(styles.right_section_actions, commonStyles.action_button)} href="/listNews.php">{language ? 'All news' : 'Toutes les news'}</a>
+          <Link href="/news"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'All news' : 'Toutes les news'}</a></Link>
         </div>
         <div className={styles.subsection}>
           <SectionBar title={language ? 'Track builder' : 'Éditeur de circuit'} link="/creations.php" />

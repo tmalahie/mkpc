@@ -3,6 +3,8 @@ include('language.php');
 include('session.php');
 include('initdb.php');
 require_once('getRights.php');
+header('location: /news');
+exit;
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
