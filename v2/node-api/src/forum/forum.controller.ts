@@ -45,7 +45,7 @@ export class ForumController {
     const firstMessagesByTopic = keyBy(firstMessages, "topic");
     const lastMessages = await Promise.all(topics.map(topic => this.em.findOne(Message, {
       where: {
-        topic: topic.id
+        topic: topic.id,
       },
       relations: ["author"],
       order: {
@@ -123,11 +123,7 @@ export class ForumController {
   @Get("/categories/:id")
   async getCategory(@I18n() i18n: I18nContext, @Param("id") id: number) {
     const lang = i18n.detectedLanguage;
-    const category = await this.em.findOne(Category, {
-      where: {
-        id
-      }
-    });
+    const category = await this.em.findOne(Category, id);
     if (!category)
       throw new NotFoundException(`Category with id ${id} does not exist`);
     return {
