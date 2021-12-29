@@ -298,6 +298,9 @@
   .listNews + .newsPages {
     width: 98%;
   }
+  .listNews:global(#pending-news) {
+    border: none;
+  }
   .newsPages {
     margin-left: auto;
     margin-right: auto;

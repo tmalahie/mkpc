@@ -106,13 +106,13 @@ export class SearchService {
     if (take > maxResults) take = maxResults;
     const skip = options.params?.paging?.offset ?? 0;
     let relations = options.relations;
-    const data = await this.em.find(options.entity, {
+    const data = (take > 0) ? await this.em.find(options.entity, {
       where,
       order,
       relations,
       take,
       skip
-    });
+    }) : [];
     let count = data.length;
     if (options.params?.paging?.count && options.rules.canReturnCount) {
       count = await this.em.count(options.entity, {
