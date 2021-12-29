@@ -222,7 +222,7 @@ const Home: NextPage = () => {
       },
       filters: [{
         key: "status",
-        type: "=",
+        operator: "=",
         value: "accepted"
       }],
       paging: {
@@ -361,7 +361,7 @@ const Home: NextPage = () => {
     requestOptions: postData({
       filters: [{
         key: "type",
-        type: "in",
+        operator: "in",
         value: ["circuits", "mkcircuits"]
       }],
       sort: {

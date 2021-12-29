@@ -54,7 +54,7 @@ const ForumCategory: NextPage = () => {
     requestOptions: postData({
       filters: [{
         key: "category",
-        type: "=",
+        operator: "=",
         value: categoryID
       }],
       sort: {

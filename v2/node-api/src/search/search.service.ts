@@ -12,7 +12,7 @@ export enum SearchType {
 
 type SearchFilter = {
   key: string;
-  type: SearchType;
+  operator: SearchType;
   value: any;
 }
 type SearchOrder = {
@@ -59,10 +59,10 @@ export class SearchService {
     if (options.params?.filters) {
       for (const filter of options.params.filters) {
         const allowedFilters = options.rules.allowedFilters[filter.key];
-        if (allowedFilters?.includes(filter.type)) {
+        if (allowedFilters?.includes(filter.operator)) {
           if (where[filter.key]) continue;
           let newFilter;
-          switch (filter.type) {
+          switch (filter.operator) {
             case SearchType.EQUALS:
               newFilter = filter.value;
               break;
