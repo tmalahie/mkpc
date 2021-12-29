@@ -14,11 +14,7 @@ export class UserController {
   async getMe(@GetUser() authUser: AuthUser) {
     if (!authUser.id)
       return null;
-    const user = await this.em.findOne(User, {
-      where: {
-        id: authUser.id
-      }
-    });
+    const user = await this.em.findOne(User, authUser.id);
     return {
       id: user.id,
       name: user.name,
@@ -32,11 +28,7 @@ export class UserController {
   async getBanMessage(@GetUser() authUser: AuthUser) {
     if (!authUser.id)
       return null;
-    const ban = await this.em.findOne(Ban, {
-      where: {
-        player: authUser.id
-      }
-    });
+    const ban = await this.em.findOne(Ban, authUser.id);
     if (!ban)
       return null;
     return {
