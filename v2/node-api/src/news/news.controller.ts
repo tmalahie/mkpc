@@ -3,6 +3,7 @@ import { Auth } from '../auth/auth.decorator';
 import { I18n, I18nContext } from 'nestjs-i18n';
 import { EntityManager } from 'typeorm';
 import { News, NewsStatus } from './news.entity';
+import { NewsRead } from './newsRead.entity';
 import { EQUALITY_SEARCH, SearchService, SearchType } from 'src/search/search.service';
 import { AuthUser, GetUser } from 'src/user/user.decorator';
 
@@ -18,6 +19,17 @@ export class NewsController {
     if (user.roles.publisher)
       return false;
     return true;
+  }
+
+  @Auth()
+  @Get("/lastRead")
+  async getLastRead(@GetUser() user: AuthUser) {
+    const newsRead = await this.em.findOne(NewsRead, user.id);
+    if (!newsRead)
+      return null;
+    return {
+      date: newsRead.date
+    }
   }
 
   @Auth({ loadRoles: true })

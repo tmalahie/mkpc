@@ -73,7 +73,7 @@ function PublishedNews() {
   const { paging, currentPage, setCurrentPage } = usePaging(50);
 
   const { data: newsPayload, loading: newsLoading } = useSmoothFetch("/api/news/find", {
-    placeholder: newsPlaceholder(20),
+    placeholder: newsPlaceholder(80),
     requestOptions: postData({
       filters: [{
         key: "status",
@@ -161,7 +161,7 @@ function MyPendingNews() {
   });
 
   return (newsPayload.data.length > 0) && <>
-    <h1>{language ? "My pending news" : "Vos news en attente"}</h1>
+    <h2>{language ? "My pending news" : "Vos news en attente"}</h2>
     <table className={cx(styles.listNews)}>
       <colgroup>
         <col className={styles["listNews-cats"]} />
@@ -207,8 +207,8 @@ function OtherPendingNews() {
     })
   });
 
-  return (newsPayload.data.length > 0) && <>
-    <h1>{language ? "News pending validation" : "News en attente de validation"}</h1>
+  return (newsPayload.data.length > 0) ? <>
+    <h2 id="pending-news">{language ? "News pending validation" : "News en attente de validation"}</h2>
     <table className={cx(styles.listNews)}>
       <colgroup>
         <col className={styles["listNews-cats"]} />
@@ -244,7 +244,7 @@ function OtherPendingNews() {
         </tr>)}
       </tbody>
     </table>
-  </>
+  </> : <div className={cx(styles.listNews)} id="pending-news" />
 }
 function NewsStatus({ news }) {
   console.log(news);

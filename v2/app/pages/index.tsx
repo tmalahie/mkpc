@@ -230,6 +230,22 @@ const Home: NextPage = () => {
       }
     })
   });
+  const { data: lastNewsRead, loading: lastNewsReadLoading } = useSmoothFetch<{ date: string }>("/api/news/lastRead", {
+    disabled: !user
+  });
+  const listNews = useMemo(() => {
+    if (lastNewsReadLoading) return newsPayload.data;
+    let newDateThreashold = new Date().getTime() - 7 * 86400000;
+    if (lastNewsRead) {
+      const lastReadDate = new Date(lastNewsRead.date).getTime();
+      if (lastReadDate > newDateThreashold)
+        newDateThreashold = lastReadDate;
+    }
+    return newsPayload.data.map(n => ({
+      ...n,
+      isNew: new Date(n.publicationDate).getTime() > newDateThreashold
+    }));
+  }, [lastNewsRead, newsPayload, lastNewsReadLoading]);
   const creationParams = useMemo(() => {
     const nbByType = [1, 1, 2, 2, 3, 3, 2, 2];
     let nbByTypeParams = {};
@@ -753,13 +769,14 @@ const Home: NextPage = () => {
           <h2>{language ? 'Latest news' : 'Dernières news'}</h2>
           <Skeleton loading={newsLoading} id={styles.news_section} className={styles.right_subsection}>
             {
-              newsPayload?.data.map(news => <a key={news.id} href={"/news.php?id=" + news.id} title={news.title} className={news.isNew ? styles.news_new : "" /* TODO */}>
+              listNews.map(news => <a key={news.id} href={"/news.php?id=" + news.id} title={news.title} className={news.isNew ? styles.news_new : ""}>
                 <h2>{news.title}</h2>
                 <h3>{language ? 'In' : 'Dans'} <strong>{news.category.name}</strong> {news.author ? <>{language ? 'by' : 'par'} <strong>{news.author.name}</strong> </> : <></>}{formatDate(news.publicationDate, { language, prefix: true, mode: "short" })}</h3>
                 <div className={styles.creation_comments} title={plural(language ? '%n comment%s' : '%n commentaire%s', news.nbComments)}><img src={commentIcon.src} alt="Messages" /> {news.nbComments}</div>
               </a>)
             }
           </Skeleton>
+          {user?.roles.publisher && <PendingNews />}
           <Link href="/news"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'All news' : 'Toutes les news'}</a></Link>
         </div>
         <div className={styles.subsection}>
@@ -970,6 +987,28 @@ function BirthdaysList() {
     {membersList}
     {language ? '!' : ' !'}
   </div>
+}
+function PendingNews() {
+  const language = useLanguage();
+  const { data: pendingNewsPayload } = useSmoothFetch<{ count: number }>("/api/news/find", {
+    requestOptions: postData({
+      filters: [{
+        key: "status",
+        operator: "=",
+        value: "pending"
+      }],
+      paging: {
+        limit: 0,
+        count: true
+      }
+    })
+  });
+
+  if (!pendingNewsPayload?.count) return <></>;
+
+  return <p className={styles["nb-pending-news"]}>
+    <Link href={"/news#pending-news"}>{plural(language ? "%n pending" : "%n news", pendingNewsPayload.count)}</Link> {language ? 'news' : 'en attente de validation'}
+  </p>
 }
 
 export default WithAppContext(Home)
