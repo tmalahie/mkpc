@@ -66,7 +66,7 @@ const ForumCategories: NextPage = () => {
       <p className={styles.pub}>
         <Ad width={728} height={90} bannerId="4919860724" />
       </p>
-      <form method="get" action="recherche.php" className={styles["forum-search"]}>
+      <form method="get" action="/forum/search" className={styles["forum-search"]}>
         <p>
           <label htmlFor="search-content">
             {language ? 'Search' : 'Recherche '}:{" "}

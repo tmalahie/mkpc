@@ -50,6 +50,10 @@ type SearchResult<T> = {
   count?: number;
 }
 
+function escapeSqlLike(search) {
+  return search.replace(/([%_\\])/g, "\\$1");
+}
+
 @Injectable()
 export class SearchService {
   constructor(private em: EntityManager) { }
@@ -76,7 +80,7 @@ export class SearchService {
               newFilter = MoreThan(filter.value);;
               break;
             case SearchType.LIKE:
-              newFilter = Like(filter.value);;
+              newFilter = Like("%" + escapeSqlLike(filter.value) + "%");
               break;
           }
           where[filter.key] = newFilter;
