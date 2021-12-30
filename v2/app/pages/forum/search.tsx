@@ -1,37 +1,32 @@
 import { NextPage } from "next";
-import ClassicPage, { commonStyles } from "../../../components/ClassicPage/ClassicPage";
-import cx from "classnames";
-import styles from "../../../styles/Forum.module.scss";
+import ClassicPage, { commonStyles } from "../../components/ClassicPage/ClassicPage";
+import styles from "../../styles/Forum.module.scss";
 import Link from "next/link"
-import useLanguage from "../../../hooks/useLanguage";
-import WithAppContext from "../../../components/WithAppContext/WithAppContext";
-import ForumAccount from "../../../components/Forum/Account/Account";
-import Ad from "../../../components/Ad/Ad";
-import { formatDate } from "../../../helpers/dates";
+import useLanguage from "../../hooks/useLanguage";
+import WithAppContext from "../../components/WithAppContext/WithAppContext";
+import Ad from "../../components/Ad/Ad";
+import { formatDate } from "../../helpers/dates";
 import { useRouter } from "next/dist/client/router";
-import useSmoothFetch, { postData, Placeholder } from "../../../hooks/useSmoothFetch";
-import Skeleton from "../../../components/Skeleton/Skeleton";
-import { usePaging } from "../../../hooks/usePaging";
-import Pager from "../../../components/Pager/Pager";
-import useAuthUser from "../../../hooks/useAuthUser";
-import { useMemo } from "react";
+import useSmoothFetch, { postData, Placeholder } from "../../hooks/useSmoothFetch";
+import Skeleton from "../../components/Skeleton/Skeleton";
+import { usePaging } from "../../hooks/usePaging";
+import Pager from "../../components/Pager/Pager";
+import { FormEvent, useEffect, useRef } from "react";
 
-const ForumCategory: NextPage = () => {
+const ForumSearch: NextPage = () => {
   const language = useLanguage();
   const router = useRouter();
-  const user = useAuthUser();
-  const categoryID = +router.query.id;
-
-  const { data: categoryPayload, loading: catsLoading } = useSmoothFetch(`/api/forum/categories/${categoryID}`, {
-    placeholder: () => ({
-      id: categoryID,
-      name: Placeholder.text(25, 45),
-      description: Placeholder.text(200, 400),
-      adminOnly: true
-    })
-  });
-
+  const searchInput = useRef<HTMLInputElement>(null);
+  const content = router.query.content;
   const { paging, currentPage, setCurrentPage } = usePaging(50);
+
+  function handleSearch(e: FormEvent) {
+    e.preventDefault();
+    setCurrentPage(1);
+    const newContent = searchInput.current.value;
+    router.push(router.pathname + "?content=" + encodeURIComponent(newContent));
+  }
+
   const { data: topicsPayload, loading: topicsLoading } = useSmoothFetch("/api/forum/topics/find", {
     placeholder: () => ({
       data: Placeholder.array(20, (id) => ({
@@ -52,40 +47,42 @@ const ForumCategory: NextPage = () => {
       count: 0
     }),
     requestOptions: postData({
-      filters: [{
-        key: "category",
-        operator: "=",
-        value: categoryID
-      }],
+      filters: content ? [{
+        key: "title",
+        operator: "%",
+        value: content
+      }] : [],
       sort: {
         key: "lastMessageDate",
         order: "desc"
       },
       paging
     }),
-    reloadDeps: [paging]
+    reloadDeps: [paging, content]
   });
 
-  const canPostTopic = useMemo(() => {
-    return user && !user.banned && (!categoryPayload.adminOnly || user.roles.manager);
-  }, [user, categoryPayload]);
+  useEffect(() => {
+    searchInput.current.value = content.toString();
+  }, [content]);
 
   return (
     <ClassicPage title="Forum Mario Kart PC" className={styles.Forum} page="forum">
-      <Skeleton loading={catsLoading}>
-        <h1>{categoryPayload.name}</h1>
-      </Skeleton>
-      <ForumAccount />
+      <h1>Forum Mario Kart PC</h1>
       <p className={styles.pub}>
         <Ad width={728} height={90} bannerId="4919860724" />
       </p>
+      <form method="get" action="/forum/search" className={styles["forum-search"]} onSubmit={handleSearch}>
+        <p>
+          <label htmlFor="search-content">
+            {language ? 'Search' : 'Recherche '}:{" "}
+          </label>
+          <input type="text" id={styles["search-content"]} placeholder={language ? 'Topic title' : 'Titre du topic'} name="content" defaultValue={content} ref={searchInput} />
+          {" "}
+          <input type="submit" value="Ok" className={commonStyles.action_button} />
+          <a href="/forum-search.php">{language ? 'Advanced search' : 'Recherche avancée'}</a>
+        </p>
+      </form>
       <p><Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link></p>
-      <Skeleton loading={catsLoading}>
-        <p id={styles["category-description"]}>{categoryPayload.description}</p>
-      </Skeleton>
-      {canPostTopic && <p className={styles.forumButtons}>
-        <a href={"/newtopic.php?category=" + categoryID} className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a>
-      </p>}
       <Skeleton loading={topicsLoading}>
         <table id={styles.listeTopics}>
           <colgroup>
@@ -135,7 +132,6 @@ const ForumCategory: NextPage = () => {
         </div>
       </Skeleton>
       <div className={styles.forumButtons}>
-        {canPostTopic && <p><a href={"/newtopic.php?category=" + categoryID} className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a></p>}
         <Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link><br />
         <Link href="/">{language ? 'Back to home' : 'Retour à l\'accueil'}</Link>
       </div>
@@ -143,4 +139,4 @@ const ForumCategory: NextPage = () => {
   );
 }
 
-export default WithAppContext(ForumCategory);
+export default WithAppContext(ForumSearch);

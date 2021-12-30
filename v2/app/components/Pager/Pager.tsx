@@ -25,6 +25,8 @@ function Pager({ paging, page, count, onSetPage, label = "Page :" }: Props) {
       return baseUrl + "?";
     if (queryChar === baseUrl.length - 1)
       return baseUrl;
+    if (baseUrl.charAt(baseUrl.length - 1) === "&")
+      return baseUrl;
     return baseUrl + "&";
   }, [router.asPath]);
 

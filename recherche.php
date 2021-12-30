@@ -1,5 +1,7 @@
 <?php
 if (isset($_GET['content'])) {
+	header('location: /forum/search?'. $_SERVER['QUERY_STRING']);
+	exit;
 	include('getId.php');
 	include('language.php');
 	include('session.php');
