@@ -12,7 +12,7 @@ import WithAppContext from "../../components/WithAppContext/WithAppContext";
 import ForumAccount from "../../components/Forum/Account/Account";
 import useSmoothFetch, { Placeholder } from "../../hooks/useSmoothFetch";
 import Skeleton from "../../components/Skeleton/Skeleton";
-import { useFormSubmit } from "../../hooks/useFormSubmit";
+import useFormSubmit from "../../hooks/useFormSubmit";
 
 const ForumCategories: NextPage = () => {
   const language = useLanguage();

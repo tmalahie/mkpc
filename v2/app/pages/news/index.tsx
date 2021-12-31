@@ -13,10 +13,16 @@ import useAuthUser from "../../hooks/useAuthUser";
 import { usePaging } from "../../hooks/usePaging";
 import { postData } from "../../hooks/useFetch";
 import Pager from "../../components/Pager/Pager";
+import { useMemo } from "react";
+import { useRouter } from "next/router";
+import useFormSubmit from "../../hooks/useFormSubmit";
 
 const NewsList: NextPage = () => {
   const language = useLanguage();
   const user = useAuthUser();
+  const router = useRouter();
+  const handleSearch = useFormSubmit();
+  const search = useMemo(() => router.query.search?.toString(), [router.query.search]);
 
   return (
     <ClassicPage title="News Mario Kart PC" className={styles.News} page="home">
@@ -24,12 +30,13 @@ const NewsList: NextPage = () => {
       <p className={styles.pub}>
         <Ad width={728} height={90} bannerId="4919860724" />
       </p>
-      <form method="get" action="/news" className={styles["news-search"]}>
+      <form method="get" action="/news" className={styles["news-search"]} onSubmit={handleSearch}>
         <p>
           <label htmlFor="search-content">
             {language ? 'Search' : 'Recherche '}:{" "}
           </label>
           <input type="text" id={styles["search-content"]} placeholder={language ? 'News title' : 'Titre de la news'} name="search" />
+          {" "}
           <input type="submit" value="Ok" className={cx(styles.action_button, commonStyles.action_button)} />
         </p>
       </form>
@@ -37,11 +44,12 @@ const NewsList: NextPage = () => {
         {user && <a href="addNews.php" className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'Add a news' : 'Créer une news'}</a>}
       </p>
 
-      <PublishedNews />
+      <PublishedNews search={search} />
       {!!user?.id && <MyPendingNews />}
       {user?.roles.publisher && <OtherPendingNews />}
 
       <p className={styles.newsButtons}>
+        {user && <a href="addNews.php" className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'Add a news' : 'Créer une news'}</a>}
         <Link href="/">{language ? "Back to home" : "Retour à l'accueil"}</Link>
       </p>
     </ClassicPage>
@@ -68,25 +76,39 @@ function newsPlaceholder(count: number) {
     count: 0
   });
 }
-function PublishedNews() {
+type NewsListProps = {
+  search?: string;
+}
+function PublishedNews({ search }: NewsListProps) {
   const language = useLanguage();
   const { paging, currentPage, setCurrentPage } = usePaging(50);
+  const filters = useMemo(() => {
+    let res = [{
+      key: "status",
+      operator: "=",
+      value: "accepted"
+    }];
+    if (search) {
+      res.push({
+        key: "title",
+        operator: "%",
+        value: search
+      });
+    }
+    return res;
+  }, [search]);
 
   const { data: newsPayload, loading: newsLoading } = useSmoothFetch("/api/news/find", {
     placeholder: newsPlaceholder(80),
     requestOptions: postData({
-      filters: [{
-        key: "status",
-        operator: "=",
-        value: "accepted"
-      }],
+      filters,
       sort: {
         key: "publicationDate",
         order: "desc"
       },
       paging
     }),
-    reloadDeps: [paging]
+    reloadDeps: [paging, filters]
   });
 
   return <Skeleton loading={newsLoading}>
