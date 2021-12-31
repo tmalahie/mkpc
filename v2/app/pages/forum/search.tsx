@@ -113,8 +113,7 @@ const ForumSearch: NextPage = () => {
                   mode: "datetime",
                   prefix: true,
                   case: "capitalize",
-                  includeYear: "always",
-                  includeSeconds: true
+                  includeYear: "always"
                 })}
               </td>
             </tr>))}

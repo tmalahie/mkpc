@@ -1,4 +1,4 @@
-export const localeString = (language: number) => language ? "en-US" : "fr-FR";
+export const localeString = (language: number) => language ? "en-GB" : "fr-FR";
 
 type DateOptions = {
   language?: number;

@@ -144,8 +144,7 @@ function PublishedNews({ search }: NewsListProps) {
             mode: "datetime",
             prefix: true,
             case: "capitalize",
-            includeYear: "always",
-            includeSeconds: true
+            includeYear: "always"
           })}</td>
         </tr>)}
         {!newsPayload.data.length && <tr className={styles.clair}>
@@ -260,8 +259,7 @@ function OtherPendingNews() {
             mode: "datetime",
             prefix: true,
             case: "capitalize",
-            includeYear: "always",
-            includeSeconds: true
+            includeYear: "always"
           })}</td>
         </tr>)}
       </tbody>
