@@ -64,6 +64,7 @@ import Link from "next/link";
 import useSmoothFetch, { postData, Placeholder } from '../hooks/useSmoothFetch';
 import Skeleton from '../components/Skeleton/Skeleton';
 import useAuthUser from '../hooks/useAuthUser';
+import useCreations from '../hooks/useCreations';
 
 const screenshots = [[{
   xs: ss1xs,
@@ -136,11 +137,8 @@ const Home: NextPage = () => {
       insertScript("/scripts/init-diapos.js");
     }
   });
-  useScript("/scripts/posticons.js");
 
-  function previewCreation(creation) {
-    window.open(creation);
-  }
+  const { previewCreation } = useCreations();
 
   const [leaderboardTab, setLeaderboardTab] = useState<LeaderboardTab>(LeaderboardTab.VS);
   function dispRankTab(e, tab) {
