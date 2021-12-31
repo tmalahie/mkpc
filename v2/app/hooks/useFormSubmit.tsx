@@ -9,7 +9,7 @@ function toJson(formData: FormData) {
   return object;
 }
 
-export function useFormSubmit() {
+function useFormSubmit() {
   const router = useRouter();
   return useCallback((e: FormEvent) => {
     const form = e.target;
@@ -22,3 +22,4 @@ export function useFormSubmit() {
     }
   }, [router]);
 }
+export default useFormSubmit;

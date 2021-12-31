@@ -11,8 +11,8 @@ import useSmoothFetch, { postData, Placeholder } from "../../hooks/useSmoothFetc
 import Skeleton from "../../components/Skeleton/Skeleton";
 import { usePaging } from "../../hooks/usePaging";
 import Pager from "../../components/Pager/Pager";
-import { FormEvent, useEffect, useRef } from "react";
-import { useFormSubmit } from "../../hooks/useFormSubmit";
+import { useEffect, useRef } from "react";
+import useFormSubmit from "../../hooks/useFormSubmit";
 
 const ForumSearch: NextPage = () => {
   const language = useLanguage();
