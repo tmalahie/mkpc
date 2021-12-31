@@ -12,9 +12,11 @@ import WithAppContext from "../../components/WithAppContext/WithAppContext";
 import ForumAccount from "../../components/Forum/Account/Account";
 import useSmoothFetch, { Placeholder } from "../../hooks/useSmoothFetch";
 import Skeleton from "../../components/Skeleton/Skeleton";
+import { useFormSubmit } from "../../hooks/useFormSubmit";
 
 const ForumCategories: NextPage = () => {
   const language = useLanguage();
+  const handleSearch = useFormSubmit();
 
   const { data: categoriesPayload, loading: categoriesLoading } = useSmoothFetch("/api/forum/categories", {
     placeholder: () => ({
@@ -66,7 +68,7 @@ const ForumCategories: NextPage = () => {
       <p className={styles.pub}>
         <Ad width={728} height={90} bannerId="4919860724" />
       </p>
-      <form method="get" action="/forum/search" className={styles["forum-search"]}>
+      <form method="get" action="/forum/search" className={styles["forum-search"]} onSubmit={handleSearch}>
         <p>
           <label htmlFor="search-content">
             {language ? 'Search' : 'Recherche '}:{" "}

@@ -12,20 +12,15 @@ import Skeleton from "../../components/Skeleton/Skeleton";
 import { usePaging } from "../../hooks/usePaging";
 import Pager from "../../components/Pager/Pager";
 import { FormEvent, useEffect, useRef } from "react";
+import { useFormSubmit } from "../../hooks/useFormSubmit";
 
 const ForumSearch: NextPage = () => {
   const language = useLanguage();
   const router = useRouter();
+  const handleSearch = useFormSubmit();
   const searchInput = useRef<HTMLInputElement>(null);
   const content = router.query.content;
   const { paging, currentPage, setCurrentPage } = usePaging(50);
-
-  function handleSearch(e: FormEvent) {
-    e.preventDefault();
-    setCurrentPage(1);
-    const newContent = searchInput.current.value;
-    router.push(router.pathname + "?content=" + encodeURIComponent(newContent));
-  }
 
   const { data: topicsPayload, loading: topicsLoading } = useSmoothFetch("/api/forum/topics/find", {
     placeholder: () => ({
