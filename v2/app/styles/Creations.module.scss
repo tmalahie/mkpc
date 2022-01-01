@@ -1,0 +1,143 @@
+.Creations {
+  position: relative;
+
+  #form-search {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  #sort-tabs {
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 6px;
+    text-align: center;
+    font-size: 0.9em;
+  }
+  #sort-tabs > * {
+    display: table-cell;
+    vertical-align: middle;
+    border-top: solid 1px #820;
+    border-bottom: solid 1px #820;
+    padding: 6px 10px;
+  }
+  @media screen and (max-width: 500px) {
+    #sort-tabs {
+      font-size: 0.7em;
+    }
+    #sort-tabs > * {
+      padding: 5px 8px;
+    }
+  }
+  #sort-tabs > a {
+    background-color: #FFE30C;
+    color: #F60;
+    text-decoration: none;
+  }
+  #sort-tabs > a:hover {
+    background-color: #FFD816;
+    color: #C30;
+  }
+  #sort-tabs > span {
+    background-color: #FFC02C;
+    color: #820;
+    font-weight: bold;
+  }
+  #sort-tabs > *:first-child {
+    border-left: solid 1px #820;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+  }
+  #sort-tabs > *:last-child {
+    border-right: solid 1px #820;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+  .pub {
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+  }
+  .retour {
+    color: #F90;
+    font-weight: bold;
+  }
+  .retour:hover {
+    background-color: #FF9;
+  }
+  select {
+    background-color: #FC0;
+    color: black;
+    border: solid 1px maroon;
+    padding: 2px;
+  }
+  select:hover {
+    background-color: #F90;
+  }
+  select:active {
+    background-color: #F60;
+  }
+  input[type="text"] {
+    background-color: #FFEE99;
+    width: 100px;
+    padding: 2px;
+  }
+  input[type="text"]:hover {
+    background-color: #FFF3A9;
+  }
+  input[type="text"]:focus {
+    background-color: #FFF6CC;
+  }
+  form div {
+    margin: 2px 0px;
+  }
+  h1, h2 {
+    text-decoration: underline;
+    font-family: Verdana;
+    color: #560000;
+  }
+  .subbuttons {
+    margin-top: 12px;
+  }
+  @media screen and (min-width: 880px) {
+    h2, .subbuttons {
+      margin-left: 15%;
+      margin-left: calc(50% - 350px);
+    }
+    .subbuttons {
+      margin-right: 15%;
+      margin-right: calc(50% - 350px);
+    }
+  }
+  .hidden {
+    /*height: <?php echo ($MAX_CIRCUITS*29+2); ?>px;*/
+    overflow: hidden;
+    text-align: center;
+  }
+  input.defiler {
+    margin-left: 5px;
+  }
+  .defiler {
+    position: relative;
+      top: -4px;
+  }
+  a.defiler::before {
+    content: "+";
+    color: #FED;
+    margin-right: 5px;
+  }
+  a.defiler {
+    float: right;
+    background-color: #F90;
+  }
+  a.defiler:hover {
+    float: right;
+    background-color: #FB0;
+  }
+  .liste {
+    max-width: 851px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    line-height: 0;
+  }
+}

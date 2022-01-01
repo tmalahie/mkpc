@@ -57,6 +57,7 @@ import ss12xs from "../images/main/screenshots/ss12xs.png"
 import { formatDate } from "../helpers/dates";
 import { formatRank, formatTime } from "../helpers/records";
 import { escapeHtml } from "../helpers/strings";
+import { buildQuery } from "../helpers/uris";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import cx from "classnames";
 import { uniqBy } from "../helpers/objects";
@@ -246,19 +247,13 @@ const Home: NextPage = () => {
   }, [lastNewsRead, newsPayload, lastNewsReadLoading]);
   const creationParams = useMemo(() => {
     const nbByType = [1, 1, 2, 2, 3, 3, 2, 2];
-    let nbByTypeParams = {};
-    for (let i = 0; i < nbByType.length; i++)
-      nbByTypeParams[`nbByType[${i}]`] = nbByType[i];
-    return new URLSearchParams({
-      ...nbByTypeParams
-    }).toString();
+    return buildQuery({ nbByType });
   }, []);
   const { data: creationsPayload, loading: creationsLoading } = useSmoothFetch(`/api/getCreations.php?${creationParams}`, {
     placeholder: () => ({
       data: Placeholder.array(10, (id) => ({
         id,
         author: "",
-        category: Placeholder.text(3, 8),
         cicon: "",
         icons: [],
         href: "",
@@ -668,14 +663,14 @@ const Home: NextPage = () => {
             <p>Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle mode, Time Trials, and more!<br />
               There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more!
               Everything is customizable! The only limit is your own imagination!<br />
-              You can share your tracks, and try other people's tracks thanks to the <a href="/creations.php">sharing tool</a>. Thousands of custom tracks are already available!</p>
+              You can share your tracks, and try other people's tracks thanks to the <Link href="/creations">sharing tool</Link>. Thousands of custom tracks are already available!</p>
             <p>Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href="/bestscores.php">rankings</a> and become world champion!</p>
           </> : <>				<p>Vous connaissez certainement Mario Kart, le jeu de course le plus fun de tous les temps !
             Mario Kart PC reprend les mêmes principes que le jeu original mais il est jouable sur navigateur, et <strong>gratuitement</strong>.</p>
             <p>La plupart des modes issus de Mario Kart ont été repris : Grand Prix, courses VS, batailles de ballons, contre-la-montre...<br />
               Et un dernier mode inédit : l'<strong>éditeur de circuits</strong> ! Placez les lignes droites et les virages, ajoutez les objets, insérez des accélérateurs...
               Tout est personnalisable ! Votre imagination est la seule limite !<br />
-              Vous pouvez également partager vos créations et essayer celles des autres grâce à l'<a href="/creations.php">outil de partage</a>.
+              Vous pouvez également partager vos créations et essayer celles des autres grâce à l'<Link href="/creations">outil de partage</Link>.
               Plusieurs milliers de circuits ont déjà été partagés !</p>
             <p>Enfin, il est possible d'affronter les joueurs du monde entier grâce au <strong>mode multijoueurs en ligne</strong> ! Grimpez dans le <a href="/bestscores.php">classement</a> et devenez champion du monde !</p>
           </>}
@@ -778,7 +773,7 @@ const Home: NextPage = () => {
           <Link href="/news"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'All news' : 'Toutes les news'}</a></Link>
         </div>
         <div className={styles.subsection}>
-          <SectionBar title={language ? 'Track builder' : 'Éditeur de circuit'} link="/creations.php" />
+          <SectionBar title={language ? 'Track builder' : 'Éditeur de circuit'} link="/creations" />
           <h2>{language ? 'Latest creations' : 'Dernières créations'}</h2>
           <Skeleton loading={creationsLoading} id={styles.creations_section} className={styles.right_subsection}>
             <table>
@@ -802,7 +797,7 @@ const Home: NextPage = () => {
               </tbody>
             </table>
           </Skeleton>
-          <a className={cx(styles.right_section_actions, commonStyles.action_button)} href="/creations.php">{language ? 'Display all' : 'Afficher tout'}</a>
+          <Link href="/creations"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'Display all' : 'Afficher tout'}</a></Link>
           <h2>{language ? 'Last challenges' : 'Derniers défis'}</h2>
           <Skeleton loading={challengesLoading} id={styles.challenges_section} className={styles.right_subsection}>
             {

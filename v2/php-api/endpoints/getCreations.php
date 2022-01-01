@@ -63,5 +63,6 @@ unset($creation);
 $nbCreations = array_sum($nbByType);
 renderResponse(array(
     'data' => $data,
-    'count' => $nbCreations
+    'count' => $nbCreations,
+    'countByType' => $nbByType
 ));

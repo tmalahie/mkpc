@@ -21,11 +21,11 @@ function Flag({ nLanguage, src: srcData, alt, page, homepage = false }) {
   let url;
   let language = useLanguage();
   if (homepage) {
-    url = nLanguage ? 'en.php' : 'fr.php';
+    url = nLanguage ? '/en.php' : '/fr.php';
     alt = nLanguage ? 'Home - Mario Kart PC' : 'Accueil - Mario Kart PC';
   }
   else
-    url = 'changeLanguage.php?nLanguage=' + nLanguage + '&amp;page=' + page;
+    url = '/changeLanguage.php?nLanguage=' + nLanguage + '&amp;page=' + page;
   const chosen = (nLanguage === language);
   function handleClick() {
     if (chosen)
