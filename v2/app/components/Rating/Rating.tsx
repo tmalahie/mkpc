@@ -1,4 +1,4 @@
-import style from "./Rating.module.scss"
+import styles from "./Rating.module.scss"
 import useLanguage, { plural } from "../../hooks/useLanguage";
 
 type Props = {
@@ -15,15 +15,15 @@ function Rating({ rating, nbRatings, label }: Props) {
   const rest = rating - lastRating;
   const restW = 3 + Math.round(9 * rest);
 
-  return <table title={ratingTitle} className={style.Rating}>
+  return <table title={ratingTitle} className={styles.Rating}>
     <tbody>
       <tr>
-        {Object.keys([...Array(lastRating)]).map((i) => <td key={i} className={style.star1}></td>)}
+        {Object.keys([...Array(lastRating)]).map((i) => <td key={i} className={styles.star1}></td>)}
         {(rest > 0) && <>
-          <td className={style.startStar} style={{ width: restW }}></td>
-          <td className={style.endStar} style={{ width: 15 - restW }}></td>
+          <td className={styles.startStar} style={{ width: restW }}></td>
+          <td className={styles.endStar} style={{ width: 15 - restW }}></td>
         </>}
-        {Object.keys([...Array(5 - nextRating)]).map((i) => <td key={i} className={style.star0}></td>)}
+        {Object.keys([...Array(5 - nextRating)]).map((i) => <td key={i} className={styles.star0}></td>)}
         {label && <td>{label}</td>}
       </tr>
     </tbody>

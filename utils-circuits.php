@@ -187,7 +187,7 @@ function countRows($sql,&$params) {
 	$query = toSQLSort($sql,$params);
 	$countQuery = preg_replace('#^SELECT.+? FROM #', 'SELECT COUNT(*) AS nb FROM ', $query);
 	$count = mysql_fetch_array(mysql_query($countQuery));
-	return $count['nb'];
+	return +$count['nb'];
 }
 function escape($str) {
 	return str_replace('</script>', '<\/script>', str_replace('%u', '\\u', str_replace('"', '\\"', str_replace('\\', '\\\\', $str))));

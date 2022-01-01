@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode } from '@nestjs/common';
+import { Controller, Get, HttpCode, Param } from '@nestjs/common';
 import { Auth } from '../auth/auth.decorator';
 import { EntityManager } from 'typeorm';
 import { User } from './user.entity';
@@ -34,6 +34,15 @@ export class UserController {
     return {
       message: ban.message,
       endDate: ban.endDate
+    }
+  }
+
+  @Get("/:id")
+  async getUser(@Param("id") id: number) {
+    const user = await this.em.findOne(User, id);
+    return {
+      id: user.id,
+      name: user.name
     }
   }
 }
