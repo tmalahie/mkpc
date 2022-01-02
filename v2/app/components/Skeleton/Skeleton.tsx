@@ -6,7 +6,7 @@ function stripHtml(html) {
   return html?.replace(/<[^>]*>?/gm, '');
 }
 
-function removeText(node: React.ReactNode, key?: number) {
+function removeText(node: React.ReactNode, key?: any) {
   if (['string', 'number'].includes(typeof node)) {
     const text = (typeof node === "string") ? node : `${node}-`;
     if (!text.trim()) return null;
@@ -21,6 +21,15 @@ function removeText(node: React.ReactNode, key?: number) {
           ...node.props,
           dangerouslySetInnerHTML: undefined,
           children: removeText(stripHtml(node.props.dangerouslySetInnerHTML.__html))
+        }
+      }
+    }
+    if (typeof node["type"] === "function") {
+      const Component = node["type"] as (props) => React.ReactNode;
+      return {
+        ...node,
+        type: (props) => {
+          return removeText(Component(props));
         }
       }
     }
