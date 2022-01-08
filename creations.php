@@ -1,4 +1,6 @@
 <?php
+header('location: /creations?'. $_SERVER['QUERY_STRING']);
+exit;
 include('language.php');
 include('session.php');
 include('tokens.php');

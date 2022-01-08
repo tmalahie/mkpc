@@ -2,18 +2,17 @@
 include('../includes/initdb.php');
 require_once('../includes/creations.php');
 require_once('../includes/api.php');
-$tri = isset($_GET['tri']) ? $_GET['tri']:0;
-$type = isset($_GET['type']) ? $_GET['type']:'';
-$nom = isset($_GET['nom']) ? stripslashes($_GET['nom']):'';
-$auteur = isset($_GET['auteur']) ? stripslashes($_GET['auteur']):'';
+$tri = isset($_GET['tri']) && is_numeric($_GET['tri']) ? $_GET['tri'] : 0;
+$type = isset($_GET['type']) ? $_GET['type'] : '';
+$nom = isset($_GET['nom']) ? stripslashes($_GET['nom']) : '';
+$auteur = isset($_GET['auteur']) ? stripslashes($_GET['auteur']) : '';
 $pids = null;
 if (isset($_GET['user'])) {
-	$user = $_GET['user'];
-	if ($getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'. $user .'"')))
-		$pids = array($getProfile['identifiant'],$getProfile['identifiant2'],$getProfile['identifiant3'],$getProfile['identifiant4']);
-}
-else
-	$user = '';
+    $user = $_GET['user'];
+    if ($getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="' . $user . '"')))
+        $pids = array($getProfile['identifiant'], $getProfile['identifiant2'], $getProfile['identifiant3'], $getProfile['identifiant4']);
+} else
+    $user = '';
 $singleType = ($type !== '');
 if ($singleType) {
     $aCircuits = array($aCircuits[$type]);
@@ -28,22 +27,22 @@ if (isset($_GET['nbByType']) && is_array($_GET['nbByType'])) {
 if ($nbCircuits > $MAX_CIRCUITS)
     $nbCircuits = $MAX_CIRCUITS;
 $aParams = array(
-	'type' => $type,
-	'tri' => $tri,
-	'nom' => $nom,
-	'auteur' => $auteur,
-	'pids' => $pids,
-	'max_circuits' => $nbCircuits,
+    'type' => $type,
+    'tri' => $tri,
+    'nom' => $nom,
+    'auteur' => $auteur,
+    'pids' => $pids,
+    'max_circuits' => $nbCircuits,
 );
-$page = isset($_GET['page']) ? $_GET['page']:1;
+$page = isset($_GET['page']) ? $_GET['page'] : 1;
 if ($nbByType === null)
-    $nbByType = countTracksByType($aCircuits,$aParams);
-$creationsList = listCreations($page,$nbByType,$weightsByType,$aCircuits,$aParams);
+    $nbByType = countTracksByType($aCircuits, $aParams);
+$creationsList = listCreations($page, $nbByType, $weightsByType, $aCircuits, $aParams);
 $data = array();
 foreach ($creationsList as &$creation) {
     $item = array(
         'id' => isset($creation['id']) ? +$creation['id'] : +$creation['ID'],
-        'publicationDate' => strtotime($creation['publication_date'])*1000,
+        'publicationDate' => strtotime($creation['publication_date']) * 1000,
         'name' => $creation['nom'],
         'author' => $creation['auteur'],
         'rating' => +$creation['note'],
