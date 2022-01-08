@@ -576,7 +576,7 @@ function getChallengeDetails($challenge, &$params=array()) {
 		'description' => getChallengeDescription($challengeData)
 	);
 	if (!empty($params['rating']))
-		$res['rating'] = array('avg' => $challenge['avgrating'], 'nb' => $challenge['nbratings']);
+		$res['rating'] = array('avg' => +$challenge['avgrating'], 'nb' => +$challenge['nbratings']);
 	if (!empty($params['circuit'])) {
 		$res['circuit'] = getCircuitPayload($challenge);
 		if (empty($params['utf8']) && empty($params['circuit.raw']) && !empty($res['circuit'])) {
