@@ -13,7 +13,7 @@ function removeText(node: React.ReactNode, key?: any) {
     return <span key={key} className={styles.loadingText}>{" "}{text.replace(/[^ ]{1,3}/g, "▬")}</span>;
   }
   if (node instanceof Array) return node.map(removeText)
-  if (typeof node === 'object' && "props" in node) {
+  if (node && typeof node === 'object' && "props" in node) {
     if ("dangerouslySetInnerHTML" in node.props) {
       return {
         ...node,

@@ -824,10 +824,10 @@ const Home: NextPage = () => {
 				$getPendingChallenges = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkchallenges WHERE status="pending_moderation"'));
 				if ($getPendingChallenges['nb']) {
 					$s = ($getPendingChallenges['nb']>=2) ? 's':'';
-					echo '<p className={styles["nb-pending-news"]}><a href="/challengesList.php?moderate">'. $getPendingChallenges['nb'] .' '. ($language ? 'pending':"défi$s") .'</a> '. ($language ? "challenge$s":'en attente de validation') .'</p>';
+					echo '<p className={styles["nb-pending-news"]}><Link href="/challenges?moderate">'. $getPendingChallenges['nb'] .' '. ($language ? 'pending':"défi$s") .'</Link> '. ($language ? "challenge$s":'en attente de validation') .'</p>';
 				}
 			*/}
-          <a className={cx(styles.right_section_actions, commonStyles.action_button)} href="/challengesList.php">{language ? 'Display all' : 'Afficher tout'}</a>
+          <Link href="/challenges"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'Display all' : 'Afficher tout'}</a></Link>
           <div id={styles.challenge_ranking}><a href="/challengeRanking.php">{language ? 'Challenge points - Leaderboard' : 'Classement des points défis'}</a></div>
           <h2>{language ? 'Recent activity' : 'Activité récente'}</h2>
           <Skeleton loading={commentsLoading || recordsLoading} id={styles.comments_section} className={styles.right_subsection}>
