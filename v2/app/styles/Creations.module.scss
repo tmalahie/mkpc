@@ -97,6 +97,9 @@
   }
   .subbuttons {
     margin-top: 12px;
+    &.invisible, .invisible {
+      visibility: hidden;
+    }
   }
   @media screen and (min-width: 880px) {
     h2, .subbuttons {
@@ -139,5 +142,16 @@
     margin-right: auto;
     text-align: center;
     line-height: 0;
+    height: 0px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    transition: height 1s;
+  }
+  #creationsList {
+    display: block;
+  }
+  h4 {
+    text-align: center;
+    margin-top: 20px;
   }
 }

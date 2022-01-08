@@ -10,7 +10,8 @@ type SmoothParams<T> = {
   requestOptions?: RequestInit;
   reloadDeps?: any[],
   cacheKey?: string,
-  disabled?: boolean
+  disabled?: boolean,
+  onSuccess?: (data: T) => void;
 }
 
 let seed = 1;
@@ -77,7 +78,7 @@ type CacheHandler = Record<string, {
   setStates: Array<(newState: any) => void>
 }>
 const cacheHandler: CacheHandler = {}
-function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000, retryDelayMultiplier = 2, retryCount = Infinity, requestOptions, reloadDeps = [], cacheKey, disabled }: SmoothParams<T> = {}) {
+function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000, retryDelayMultiplier = 2, retryCount = Infinity, requestOptions, reloadDeps = [], cacheKey, disabled, onSuccess }: SmoothParams<T> = {}) {
   const placeholderVal = useMemo(() => {
     if (!disabled && cacheKey && cacheHandler[cacheKey]) {
       const { state } = cacheHandler[cacheKey];
@@ -127,6 +128,7 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
         setAllStates({ data, loading: false, error: null })
         if (cacheKey)
           cacheHandler[cacheKey].setStates.length = 0;
+        onSuccess?.(data);
       })
       .catch(error => {
         if (currentRetryCount < retryCount) {

@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { NextRouter, useRouter } from "next/router";
 import { FormEvent, useCallback } from "react";
 
 function toJson(formData: FormData) {
@@ -9,16 +9,20 @@ function toJson(formData: FormData) {
   return object;
 }
 
+export function doSubmit(router: NextRouter, form: HTMLFormElement) {
+  router.push({
+    pathname: form.action,
+    query: toJson(new FormData(form))
+  });
+}
+
 function useFormSubmit() {
   const router = useRouter();
   return useCallback((e: FormEvent) => {
     const form = e.target;
     if (form instanceof HTMLFormElement) {
       e.preventDefault();
-      router.push({
-        pathname: form.action,
-        query: toJson(new FormData(form))
-      });
+      doSubmit(router, form);
     }
   }, [router]);
 }
