@@ -71,7 +71,7 @@ const ForumCategories: NextPage = () => {
       <form method="get" action="/forum/search" className={styles["forum-search"]} onSubmit={handleSearch}>
         <p>
           <label htmlFor="search-content">
-            {language ? 'Search' : 'Recherche '}:{" "}
+            {language ? 'Search' : 'Recherche '}:{" "}
           </label>
           <input type="text" id={styles["search-content"]} placeholder={language ? 'Topic title' : 'Titre du topic'} name="content" />
           {" "}
