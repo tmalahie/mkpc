@@ -12,10 +12,12 @@ import { usePaging } from "../../hooks/usePaging";
 import Pager from "../../components/Pager/Pager";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import useChallengeDifficulties, { ChallengeDifficulty } from "../../hooks/useChallengeDifficulties";
+import useChallengeDifficulties from "../../hooks/useChallengeDifficulties";
 import Rating from "../../components/Rating/Rating";
 import RatingControl from "../../components/RatingControl/RatingControl";
 import useCreations from "../../hooks/useCreations";
+import { buildQuery } from "../../helpers/uris";
+import useFormSubmit from "../../hooks/useFormSubmit";
 
 const ChallengesList: NextPage = () => {
   const language = useLanguage();
@@ -33,7 +35,11 @@ const ChallengesList: NextPage = () => {
     // TODO title for author
   }, [language, moderate, remoderate, ordering]);
 
-  const { data: challengesPayload, loading: challengesLoading } = useSmoothFetch("/api/getChallenges.php", {
+  const { paging, currentPage, setCurrentPage } = usePaging();
+
+  const creationParams = useMemo(() => buildQuery(router.query), [router.query]);
+
+  const { data: challengesPayload, loading: challengesLoading } = useSmoothFetch(`/api/getChallenges.php?${creationParams}`, {
     placeholder: () => ({
       data: Placeholder.array(20, (id) => ({
         id,
@@ -179,10 +185,11 @@ function ReValidationTips() {
 function ChallengesListSearch() {
   const language = useLanguage();
   const router = useRouter();
+  const handleSearch = useFormSubmit();
   const { ordering, author, winner, difficulty, hide_succeeded } = router.query;
   const challengeDifficulties = useChallengeDifficulties();
 
-  return <form method="get" className={styles["challenges-list-search"]} action="/challenges">
+  return <form method="get" className={styles["challenges-list-search"]} action="/challenges" onSubmit={handleSearch}>
     <p>
       <label>{language ? 'Filter:' : 'Filtrer :'}{" "}
         {author && <input type="hidden" name="author" defaultValue={author} />}
