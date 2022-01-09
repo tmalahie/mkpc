@@ -33,7 +33,7 @@ const NewsList: NextPage = () => {
       <form method="get" action="/news" className={styles["news-search"]} onSubmit={handleSearch}>
         <p>
           <label htmlFor="search-content">
-            {language ? 'Search' : 'Recherche '}:{" "}
+            {language ? 'Search' : 'Recherche '}:{" "}
           </label>
           <input type="text" id={styles["search-content"]} placeholder={language ? 'News title' : 'Titre de la news'} name="search" />
           {" "}

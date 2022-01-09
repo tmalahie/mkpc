@@ -19,10 +19,10 @@ function randomWithSeed() {
   let x = Math.sin(seed++) * 10000;
   return x - Math.floor(x);
 }
-function rand(min: number, max: number) {
+export function rand(min: number, max: number) {
   return Math.floor(randUnif(min, max));
 }
-function randUnif(min: number, max: number) {
+export function randUnif(min: number, max: number) {
   return randomWithSeed() * (max - min) + min;
 }
 
@@ -70,7 +70,8 @@ export const Placeholder = {
   array: placeholderArray,
   date: placeholderDate,
   timestamp: placeholderTimestamp,
-  img: placeholderImg
+  img: placeholderImg,
+  rand
 }
 
 type CacheHandler = Record<string, {

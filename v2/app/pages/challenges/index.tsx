@@ -41,37 +41,11 @@ const ChallengesList: NextPage = () => {
 
   const { data: challengesPayload, loading: challengesLoading } = useSmoothFetch(`/api/getChallenges.php?${creationParams}`, {
     placeholder: () => ({
-      data: Placeholder.array(20, (id) => ({
-        id,
-        name: Placeholder.text(25, 45),
-        difficulty: {
-          name: Placeholder.text(3, 8),
-          level: 1,
-          color: ""
-        },
-        description: {
-          main: Placeholder.text(25, 45),
-          extra: Placeholder.text(25, 45)
-        },
-        circuit: {
-          name: Placeholder.text(15, 25),
-          author: Placeholder.text(8, 12),
-          href: "",
-          isCup: false,
-          cicon: "",
-          icons: [],
-        },
-        rating: {
-          avg: 0,
-          nb: 0
-        },
-        status: "accepted",
-        succeeded: null
-      })),
+      data: Placeholder.array(20, (id) => challengePlaceholder(id)),
       count: 0
-    })
+    }),
+    reloadDeps: [creationParams]
   });
-  const { paging, currentPage, setCurrentPage } = usePaging(50);
 
   useCreations();
 
@@ -212,29 +186,36 @@ function ChallengesListSearch() {
     </p>
   </form>
 }
-type Challenge = {
-  id: number;
-  name: string;
-  difficulty: ChallengeDifficulty;
-  description: {
-    main: string;
-    extra: string;
-  };
-  circuit: {
-    name: string;
-    author: string;
-    href: string;
-    isCup: boolean;
-    cicon: string,
-    icons: string[],
-  };
-  rating: {
-    avg: number;
-    nb: number;
+
+function challengePlaceholder(id: number) {
+  return {
+    id,
+    name: Placeholder.text(25, 45),
+    difficulty: {
+      name: Placeholder.text(5, 8),
+      level: Placeholder.rand(0, 5)
+    },
+    description: {
+      main: Placeholder.text(100, 120),
+      extra: Placeholder.text(25, 45)
+    },
+    circuit: {
+      name: Placeholder.text(15, 25),
+      author: Placeholder.text(8, 12),
+      href: "",
+      isCup: false,
+      cicon: "",
+      icons: [],
+    },
+    rating: {
+      avg: 0,
+      nb: 0
+    },
+    status: "accepted",
+    succeeded: null
   }
-  status: string;
-  succeeded: boolean;
 }
+type Challenge = ReturnType<typeof challengePlaceholder>;
 type ChallengeItemProps = {
   challenge: Challenge;
 }
@@ -383,7 +364,7 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
         (challengeAction === 'rate') && <>
           <div className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${challenge.difficulty.level}`])}>
             <img src={`images/challenges/difficulty${challenge.difficulty.level}.png`} alt={challenge.difficulty.name} />
-            {challenge.difficulty.name}
+            {" "}{challenge.difficulty.name}
             {challengeThanks && <span className={styles["challenges-item-rating-thanks"]}>{language ? 'Thanks!' : 'Merci !'}</span>}
           </div>
           <RatingControl defaultValue={challenge.rating.avg} onChange={(value) => {
@@ -398,7 +379,7 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
           <div className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${challenge.difficulty.level}`])}>
             <div className={styles["challenges-item-difficulty-value"]}>
               <img src={`images/challenges/difficulty${challenge.difficulty.level}.png`} alt={challenge.difficulty.name} />
-              {challenge.difficulty.name}
+              {" "}{challenge.difficulty.name}
               <span className={styles["challenge-item-link"]} onClick={editDifficulty}>{language ? 'Edit' : 'Modifier'}</span>
             </div>
             <div className={cx(styles["challenges-item-difficulty-edit"], {
@@ -425,7 +406,7 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
             {challenge.status === 'active' ? <>
               <span className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${challenge.difficulty.level}`])}>
                 <img src={`images/challenges/difficulty${challenge.difficulty.level}.png`} alt={challenge.difficulty.name} />
-                {challenge.difficulty.name}
+                {" "}{challenge.difficulty.name}
               </span><br />
               <span className={styles["challenges-item-accepted"]}>
                 {language ? 'Accepted' : 'Accepté'}
@@ -446,7 +427,7 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
         (challengeAction === null) && <>
           <div className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${challenge.difficulty.level}`])}>
             <img src={`images/challenges/difficulty${challenge.difficulty.level}.png`} alt={challenge.difficulty.name} />
-            {challenge.difficulty.name}
+            {" "}{challenge.difficulty.name}
           </div>
           <div className={styles["challenges-item-rating"]}>
             <Rating rating={challenge.rating.avg} nbRatings={challenge.rating.nb} />
