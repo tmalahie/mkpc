@@ -30,6 +30,9 @@ if (isset($_POST['circuit']) &&  isset($_POST['type'])) {
 						echo '"banned":'.$getAuteur['banned'].',';
 				}
 			}
+			if ($getDescription = mysql_fetch_array(mysql_query('SELECT description FROM mktrackdesc WHERE circuit="'. $circuit .'" AND type="'. $type .'"'))) {
+				echo '"description":"'. escape($getDescription['description']).'",';
+			}
 			echo '"comments":[';
 			foreach ($msgs as $msg) {
 				if (isset($virgule))
@@ -49,10 +52,12 @@ if (isset($_POST['circuit']) &&  isset($_POST['type'])) {
 				echo '}';
 			}
 			echo ']';
-			echo '}';
 			include('getId.php');
-			if (($getCircuit['identifiant'] == $identifiants[0]) && ($getCircuit['identifiant2'] == $identifiants[1]) && ($getCircuit['identifiant3'] == $identifiants[2]) && ($getCircuit['identifiant4'] == $identifiants[3]))
+			if (($getCircuit['identifiant'] == $identifiants[0]) && ($getCircuit['identifiant2'] == $identifiants[1]) && ($getCircuit['identifiant3'] == $identifiants[2]) && ($getCircuit['identifiant4'] == $identifiants[3])) {
+				echo ',"mine":true';
 				mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkcomments` m ON m.id=n.link WHERE n.identifiant='.$identifiants[0].' AND n.identifiant2='.$identifiants[1].' AND n.identifiant3='.$identifiants[2].' AND n.identifiant4='.$identifiants[3].' AND n.type="circuit_comment" AND m.type="'. $type .'" AND m.circuit="'. $circuit .'"');
+			}
+			echo '}';
 			if ($id) {
 				mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkcomments` m ON m.id=n.link WHERE n.user="'. $id .'" AND n.type="answer_comment" AND m.type="'. $type .'" AND m.circuit="'. $circuit .'"');
 				mysql_query('DELETE n FROM `mkcomments` c INNER JOIN `mkreactions` r ON r.type="trackcom" AND r.link=c.id INNER JOIN `mknotifs` n ON n.type="new_reaction" AND n.link=r.id WHERE c.type="'. $type .'" AND c.circuit="'. $circuit .'" AND c.auteur="'. $id .'" AND n.user="'. $id .'"');

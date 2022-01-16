@@ -55,10 +55,44 @@ function updateCircuitDate() {
 		$("#comments-section").removeClass("comments-closed");
 		return false;
 	});
-	$("#comments-section").append('<h1>'+ (language ? 'Comments':'Commentaires') +' (<span id="comments-nb"></span>)</h1>');
-	$("#comments-section").append('<div id="comments-none">'+ (language ? 'No comments yet. Be the first one to give your opinion !':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !</div>'));
+	var $commentsScroller = $('<div id="comments-scroller"></div>');
+	$commentsScroller.append('<div id="comments-description">'+
+		'<div id="comments-description-edit" class="comment-message">'+
+			'<textarea placeholder="'+ (language ? 'Description':'Description') +'..." class="comment-textarea comment-posting"></textarea>'+
+			'<div id="comments-description-edit-actions" class="comment-options">'+
+				'<input type="button" class="comment-send" value="'+ (language ? 'Validate':'Valider') +'" />'+
+				'<img src="images/forum/delete.png" class="comment-undo" alt="'+ (language ? 'Undo':'Annuler') +'" title="'+ (language ? 'Undo':'Annuler') +'" />'+
+			'</div>'+
+		'</div>'+
+		'<div id="comments-description-content">'+
+			'<div id="comments-description-content-value">'+
+				'<div class="comment-desc-scroller">'+
+					'<img class="comment-desc-ic" src="images/cdesc.png" alt="Description" />'+
+					'<span class="comment-posted"></span>'+
+				'</div>'+
+				'<div class="comment-expand">'+
+					'<div class="comment-expand-more">'+ (language ? 'Show more':'Voir plus') +'</div>'+
+					'<div class="comment-expand-less">'+ (language ? 'Show less':'Voir moins') +'</div>'+
+				'</div>'+
+			'</div>'+
+			'<div id="comments-description-content-actions">'+
+				'<div id="comments-description-content-add">'+
+					'<img class="comment-desc-ic" src="images/cdesc.png" alt="Description" />'+
+					'<span>'+ (language ? 'Add a description...':'Ajouter une description...') +'</span>'+
+				'</div>'+
+				'<div id="comments-description-content-edit">'+ 
+					'<img src="images/forum/edit.png" class="comment-edit comment-alter" alt="'+ (language ? 'Edit':'Modifier') +'" title="'+ (language ? 'Edit':'Modifier') +'" />'+
+					'<img src="images/forum/delete.png" class="comment-suppr comment-alter" alt="'+ (language ? 'Delete':'Supprimer') +'" title="'+ (language ? 'Delete':'Supprimer') +'" />'+
+				'</div>'+
+			'</div>'+
+		'</div>'+
+		'<div id="comments-description-music"></div>'+
+	'</div>');
+	$commentsScroller.append('<h1>'+ (language ? 'Comments':'Commentaires') +' (<span id="comments-nb"></span>)</h1>');
+	$commentsScroller.append('<div id="comments-none">'+ (language ? 'No comments yet. Be the first one to give your opinion !':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !</div>'));
 	var comments = $('<div id="comments"></div>');
-	$("#comments-section").append(comments);
+	$commentsScroller.append(comments);
+	$("#comments-section").append($commentsScroller);
 	var myCommentID, myCommentName, myCommentAdmin;
 	function createComment(className) {
 		var res = $ (
@@ -244,10 +278,92 @@ function updateCircuitDate() {
 			comments.append(postedComment);
 		}
 		updateNbComments();
+		var circuitDesc = res.description;
+		function updateCircuitDesc() {
+			if (circuitDesc) {
+				var circuitScroller = $("#comments-description-content-value .comment-desc-scroller");
+				circuitScroller.find(".comment-posted").html(nl2br(circuitDesc));
+				$("#comments-description-content-value").removeClass("comment-expanded").show();
+				$("#comments-description-content-add").hide();
+				$("#comments-description-content-edit").show();
+				$("#comments-description-content-value .comment-expand").hide();
+				setTimeout(function() {
+					if (circuitScroller.prop("scrollHeight") > circuitScroller.prop("offsetHeight"))
+						$("#comments-description-content-value .comment-expand").show();
+				});
+			}
+			else {
+				$("#comments-description-content-value").hide();
+				$("#comments-description-content-add").show();
+				$("#comments-description-content-edit").hide();
+			}
+		}
+		updateCircuitDesc();
+		if (res.mine) {
+			$("#comments-description-content-actions").show();
+			var commentSend = $("#comments-description-edit-actions .comment-send");
+			commentSend.click(function() {
+				commentSend.prop("disabled", true);
+				var description = $("#comments-description-edit .comment-textarea").val();
+				$.post("setTrackDescription.php", {"circuit":commentCircuit,"type":commentType,"description":description}).success(function() {
+					circuitDesc = description;
+					updateCircuitDesc();
+					$("#comments-description-content").show();
+					$("#comments-description-edit").hide();
+				}).always(function() {
+					commentSend.prop("disabled", false);
+				});
+			});
+			$("#comments-description-edit-actions .comment-undo").click(function() {
+				$("#comments-description-content").show();
+				$("#comments-description-edit").hide();
+			});
+			$("#comments-description-content-edit .comment-edit").click(function() {
+				$("#comments-description-content").hide();
+				$("#comments-description-edit").show();
+				$("#comments-description-edit .comment-textarea").val(circuitDesc).select();
+			});
+			$("#comments-description-content-add > span").click(function() {
+				$("#comments-description-content").hide();
+				$("#comments-description-edit").show();
+				$("#comments-description-edit .comment-textarea").val(circuitDesc).select();
+			});
+			$("#comments-description-content-edit .comment-suppr").click(function() {
+				if (confirm(language ? "Clear the description?":"Supprimer la description ?")) {
+					$.post("setTrackDescription.php", {"circuit":commentCircuit,"type":commentType}).success(function() {
+						circuitDesc = "";
+						updateCircuitDesc();
+					});
+				}
+			});
+		}
+		$("#comments-description-content-value .comment-expand-more").click(function() {
+			$("#comments-description-content-value").addClass("comment-expanded");
+		});
+		$("#comments-description-content-value .comment-expand-less").click(function() {
+			$("#comments-description-content-value").removeClass("comment-expanded");
+		});
+		var musicUrl = getMusicUrl();
+		if (musicUrl) {
+			var label;
+			if (isBattle)
+				musicLabel = language ? "Arena music:":"Musique arène :";
+			else
+			musicLabel = language ? "Circuit music:":"Musique circuit\xA0:";
+			var $circuitMusic = $("#comments-description-music");
+			$circuitMusic.html(
+				'<img class="comments-description-music-ic" src="images/cmusic.png" alt="Music" />'+
+				'<div class="comments-description-music-label">'+ musicLabel +'</div>'+
+				'<a class="comments-description-music-content" href="'+ musicUrl +'" target="_blank">'+ (language ? 'View on youtube':'Voir sur Youtube') +'</a>'
+			);
+			$circuitMusic.show();
+		}
+		if (!musicUrl && !circuitDesc && !res.mine)
+			$("#comments-description-content").hide();
 		var dHeight = $(document).height();
 		$("#comments-section").css("visibility", "hidden");
 		$("#comments-section").show();
-		comments.css("max-height", dHeight-$("#comments-infos").height()-180);
+		$commentsScroller.css("max-height", dHeight-$("#comments-infos").height()-135);
 		$("#comments-section").css("visibility", "visible");
 	});
 	function updateNbComments() {
@@ -257,5 +373,15 @@ function updateCircuitDate() {
 			$("#comments-none").hide();
 		else
 			$("#comments-none").show();
+	}
+	function getMusicUrl() {
+		try {
+			if (isSingle && complete) {
+				var maps = listMaps();
+				var map = maps["map1"];
+				return map.yt;
+			}
+		}
+		catch (e) {}
 	}
 })();
