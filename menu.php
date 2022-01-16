@@ -294,6 +294,7 @@
 						if ($newsData = mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $myNotif['link'] .'" AND status!="pending"'))) {
 							if (isset($notifData['reaction']))
 								$notifData['sender'] = $notifData['reaction']['member'];
+							$notifData['status'] = $newsData['status'];
 							$notifData['link'] = 'news.php?id='. $newsData['id'];
 							$notifData['title'] = $newsData['title'];
 						}
