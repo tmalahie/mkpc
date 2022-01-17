@@ -86,7 +86,8 @@ function updateCircuitDate() {
 				'</div>'+
 			'</div>'+
 		'</div>'+
-		'<div id="comments-description-music"></div>'+
+		'<div id="comments-description-music" class="comments-description-music"></div>'+
+		'<div id="comments-description-music2" class="comments-description-music"></div>'+
 	'</div>');
 	$commentsScroller.append('<h1>'+ (language ? 'Comments':'Commentaires') +' (<span id="comments-nb"></span>)</h1>');
 	$commentsScroller.append('<div id="comments-none">'+ (language ? 'No comments yet. Be the first one to give your opinion !':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !</div>'));
@@ -344,21 +345,31 @@ function updateCircuitDate() {
 			$("#comments-description-content-value").removeClass("comment-expanded");
 		});
 		var musicUrl = getMusicUrl();
-		if (musicUrl) {
-			var label;
+		if (musicUrl.first) {
+			var musicLabel;
 			if (isBattle)
 				musicLabel = language ? "Arena music:":"Musique arène :";
 			else
-			musicLabel = language ? "Circuit music:":"Musique circuit\xA0:";
+				musicLabel = language ? "Circuit music:":"Musique circuit\xA0:";
 			var $circuitMusic = $("#comments-description-music");
 			$circuitMusic.html(
 				'<img class="comments-description-music-ic" src="images/cmusic.png" alt="Music" />'+
 				'<div class="comments-description-music-label">'+ musicLabel +'</div>'+
-				'<a class="comments-description-music-content" href="'+ musicUrl +'" target="_blank">'+ (language ? 'View on youtube':'Voir sur Youtube') +'</a>'
+				'<a class="comments-description-music-content" href="'+ musicUrl.first +'" target="_blank" rel="noopener noreferrer">'+ (language ? 'View on youtube':'Voir sur Youtube') +'</a>'
 			);
 			$circuitMusic.show();
+			if (musicUrl.last) {
+				musicLabel = language ? "Last lap:":"Dernier tour\xA0:";
+				$circuitMusic = $("#comments-description-music2");
+				$circuitMusic.html(
+					'<img class="comments-description-music-ic" src="images/cmusic.png" alt="Music" />'+
+					'<div class="comments-description-music-label">'+ musicLabel +'</div>'+
+					'<a class="comments-description-music-content" href="'+ musicUrl.last +'" target="_blank" rel="noopener noreferrer">'+ (language ? 'View on youtube':'Voir sur Youtube') +'</a>'
+				);
+				$circuitMusic.show();
+			}
 		}
-		if (!musicUrl && !circuitDesc && !res.mine)
+		if (!musicUrl.first && !circuitDesc && !res.mine)
 			$("#comments-description-content").hide();
 		var dHeight = $(document).height();
 		$("#comments-section").css("visibility", "hidden");
@@ -379,9 +390,14 @@ function updateCircuitDate() {
 			if (isSingle && complete) {
 				var maps = listMaps();
 				var map = maps["map1"];
-				return map.yt;
+				var opts = map.yt_opts;
+				return {
+					first: map.yt,
+					last: opts && opts.last && opts.last.url
+				};
 			}
 		}
 		catch (e) {}
+		return {}
 	}
 })();

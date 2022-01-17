@@ -490,7 +490,7 @@
 	margin-top: 5px;
 	margin-bottom: 2px;
 }
-#comments-description-edit, #comments-description-content-actions, #comments-description-music {
+#comments-description-edit, #comments-description-content-actions, .comments-description-music {
 	display: none;
 }
 #comments-description-content-value .comment-desc-ic {
@@ -565,7 +565,7 @@
 	color: #CEF;
 	text-decoration: underline;
 }
-#comments-description-music {
+.comments-description-music {
 	align-items: center;
 	margin-left: 6px;
 	margin-bottom: 1px;
@@ -582,11 +582,11 @@
 	margin-right: 4px;
 	display: inline-block;
 }
-#comments-description-music a {
+.comments-description-music a {
 	color: #9CF;
 	text-decoration: none;
 }
-#comments-description-music a:hover {
+.comments-description-music a:hover {
 	color: #CEF;
 	text-decoration: underline;
 }
