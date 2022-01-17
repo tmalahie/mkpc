@@ -1947,8 +1947,11 @@ function bufferMusic(elt, callback) {
 	}
 	options = elt.opts || {};
 	var startTime = options.start || 0;
+	var speed = options.speed;
 	onPlayerReady(elt, function(player) {
 		player.setVolume(0);
+		if (speed)
+			player.setPlaybackRate(speed);
 		if (startTime)
 			player.seekTo(startTime,true);
 		player.playVideo();
@@ -2050,6 +2053,8 @@ function updateMusic(elt,fast) {
 				if (fast)
 					player.setPlaybackRate(1.25);
 				var opts = elt.opts || {};
+				if (opts.speed)
+					player.setPlaybackRate(opts.speed);
 				var start = opts.start || 0;
 				player.seekTo(start,true);
 				player.setVolume(100);

@@ -2675,6 +2675,7 @@ function showMusicSelector() {
 	var editorTool = editorTools[currentMode];
 	var editorData = editorTool.data;
 	musicSelected = editorData.music;
+	var ytSpeed, ytSpeedLast;
 	document.getElementById("musicchoice-"+musicSelected).className = "music-selected";
 	if (!musicSelected) {
 		document.getElementById("youtube-url").value = editorData.youtube;
@@ -2684,6 +2685,7 @@ function showMusicSelector() {
 				document.getElementById("youtube-start").value = timeToStr(youtubeOpts.start);
 			if (youtubeOpts.end != null)
 				document.getElementById("youtube-end").value = timeToStr(youtubeOpts.end);
+			ytSpeed = youtubeOpts.speed;
 			var youtubeOptsLast = youtubeOpts.last;
 			if (youtubeOptsLast) {
 				if (youtubeOptsLast.url != null)
@@ -2692,9 +2694,12 @@ function showMusicSelector() {
 					document.getElementById("youtube-last-start").value = timeToStr(youtubeOptsLast.start);
 				if (youtubeOptsLast.end != null)
 					document.getElementById("youtube-last-end").value = timeToStr(youtubeOptsLast.end);
+				ytSpeedLast = youtubeOptsLast.speed;
 			}
 		}
 	}
+	document.getElementById("youtube-speed").value = ytSpeed || 1;
+	document.getElementById("youtube-last-speed").value = ytSpeedLast || 1;
 }
 function applyMusicSelector() {
 	var editorTool = editorTools[currentMode];
@@ -2794,12 +2799,16 @@ function submitMusic(e) {
 		ytOptions.start = strToTime(document.getElementById("youtube-start").value);
 	if (document.getElementById("youtube-end").value)
 		ytOptions.end = strToTime(document.getElementById("youtube-end").value);
+	if (document.getElementById("youtube-speed").value != 1)
+		ytOptions.speed = +document.getElementById("youtube-speed").value;
 	if (document.getElementById("youtube-last-url").value) {
 		ytOptions.last = {url:document.getElementById("youtube-last-url").value};
 		if (document.getElementById("youtube-last-start").value)
 			ytOptions.last.start = strToTime(document.getElementById("youtube-last-start").value);
 		if (document.getElementById("youtube-last-end").value)
 			ytOptions.last.end = strToTime(document.getElementById("youtube-last-end").value);
+		if (document.getElementById("youtube-last-speed").value != 1)
+			ytOptions.last.speed = +document.getElementById("youtube-last-speed").value;
 	}
 	if (Object.keys(ytOptions).length)
 		editorTool.data.youtube_opts = ytOptions;

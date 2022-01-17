@@ -33,7 +33,7 @@ if (isset($_GET['i'])) {
 		var isBattle = false;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/editor.js?reload=1"></script>
+		<script type="text/javascript" src="scripts/editor.js"></script>
 		<script type="text/javascript" src="scripts/draw.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
@@ -459,13 +459,31 @@ if (isset($_GET['i'])) {
 								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-start" id="youtube-start" placeholder="0:00" />
 								<?php echo $language ? 'and' : 'et'; ?>
 								<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-end" id="youtube-end" placeholder="9:59" />
+								&nbsp; - &nbsp;
+								<?php echo $language ? 'Speed':'Vitesse'; ?>
+								<select name="youtube-speed" id="youtube-speed">
+									<?php
+									$ytSpeeds = array(0.25,0.5,0.75,1,1.25,1.5,1.75,2);
+									foreach ($ytSpeeds as $ytSpeed)
+										echo '<option value="'. $ytSpeed .'">&times;'. $ytSpeed .'</option>';
+									?>
+								</select>
 								<div>
-									<?php echo $language ? 'Last lap music:':'Musique du dernier tout :'; ?>
+									<?php echo $language ? 'Last lap music:':'Musique du dernier tour :'; ?>
 									<input type="text" size="2" name="youtube-last" id="youtube-last-url" pattern="<?php echo htmlspecialchars($ytPattern); ?>" placeholder="https://www.youtube.com/watch?v=NNMy4DKKDFA" onchange="playYt(this)" /><br />
 									<?php echo $language ? 'Loop between' : 'Boucler entre'; ?>
 									<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-last-start" id="youtube-last-start" placeholder="0:00" />
 									<?php echo $language ? 'and' : 'et'; ?>
-									<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-last-end" id="youtube-last-end" placeholder="9:59" /><br />
+									<input type="text" size="2" pattern="\d*(:\d*)?" name="youtube-last-end" id="youtube-last-end" placeholder="9:59" />
+									&nbsp; - &nbsp;
+									<?php echo $language ? 'Speed':'Vitesse'; ?>
+									<select name="youtube-last-speed" id="youtube-last-speed">
+										<?php
+										$ytSpeeds = array(0.25,0.5,0.75,1,1.25,1.5,1.75,2);
+										foreach ($ytSpeeds as $ytSpeed)
+											echo '<option value="'. $ytSpeed .'">&times;'. $ytSpeed .'</option>';
+										?>
+									</select><br />
 									<a href="javascript:ytOptions(false)"><?php echo $language ? "Less options":"Moins d'options" ?></a>
 								</div>
 							</div>
