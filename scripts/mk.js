@@ -12,7 +12,7 @@ var selectedCc = localStorage.getItem("cc") || "150";
 var selectedNbTeams = localStorage.getItem("nbTeams") || "2";
 var selectedFriendlyFire = !!localStorage.getItem("friendlyFire");
 var selectedTeamOpts = 0;
-var selectedDoubleItems = !!localStorage.getItem("doubleitems");
+var selectedDoubleItems = (localStorage.getItem("doubleitems") != 0);
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
@@ -1146,8 +1146,8 @@ function loadMap() {
 		oReserve.id = "reserve"+i;
 		oReserve.className = "itemWheel";
 		if (!pause || !fInfos.replay) {
-			oReserve.style.left = Math.round(iScreenScale*1) +"px";
-			oReserve.style.top = Math.round(iScreenScale*1) +"px";
+			oReserve.style.left = Math.round(iScreenScale*0.75) +"px";
+			oReserve.style.top = Math.round(iScreenScale) +"px";
 			oReserve.style.width = Math.round(iScreenScale * 26/5) +"px";
 			oReserve.style.height = Math.round(iScreenScale * 18/5) +"px";
 			oReserve.style.visibility = "hidden";
@@ -1212,7 +1212,7 @@ function loadMap() {
 		oScroller2.id = "scroller2"+i;
 		oScroller2.className = "itemScroller";
 		oScrollPadding = 0.6;
-		oScroller2.style.left = Math.round(iScreenScale) +"px";
+		oScroller2.style.left = Math.round(iScreenScale*0.75) +"px";
 		oScroller2.style.top = Math.round(iScreenScale + iScreenScale*oScrollPadding) +"px";
 		oScroller2.style.width = Math.round(iScreenScale * 26/5) +"px";
 		oScroller2.style.height = Math.round(iScreenScale * 18/5 - iScreenScale*2*oScrollPadding) +"px";
@@ -15329,7 +15329,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		if (cpuChars) cpuChars = JSON.parse(cpuChars);
 		var timeTrial = this.elements["option-timeTrial"].checked ? 1:0;
 		var noBumps = this.elements["option-noBumps"].checked ? 1:0;
-		var doubleItems = this.elements["option-doubleItems"].checked ? 1:0;
+		var doubleItems = this.elements["option-doubleItems"].checked ? 0:1;
 		if (!team) {
 			manualTeams = 0;
 			teamOpts = 0;
@@ -16157,7 +16157,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oCheckbox.id = "option-doubleItems";
 	oCheckbox.name = "option-doubleItems";
 	oCheckbox.type = "checkbox";
-	if (gameOptions && gameOptions.doubleItems)
+	if (gameOptions && gameOptions.doubleItems == 0)
 		oCheckbox.checked = true;
 	oTd.appendChild(oCheckbox);
 	oTr.appendChild(oTd);
@@ -16169,12 +16169,12 @@ function privateGameOptions(gameOptions, onProceed) {
 	var oH1 = document.createElement("h1");
 	oH1.style.fontSize = (3*iScreenScale) +"px";
 	oH1.style.marginBottom = "0px";
-	oH1.innerHTML = toLanguage("Allow double items", "Autoriser les double objets");
+	oH1.innerHTML = toLanguage("Disable double items", "Désactiver les double objets");
 	oLabel.appendChild(oH1);
 	var oDiv = document.createElement("div");
 	oDiv.style.fontSize = (2*iScreenScale) +"px";
 	oDiv.style.color = "white";
-	oDiv.innerHTML = toLanguage("If enabled, you can hold 2 items in reserve instead of 1", "Si activé, il est possible de garder 2 objets en réserve au lieu de 1");
+	oDiv.innerHTML = toLanguage("If checked, you can only hold one item in reserve", "Si coché, vous ne pouvez garder qu'un seul objet en réserve");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
@@ -17839,15 +17839,15 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				else
 					selectedItemDistrib = modeItemDistributions[0].value;
 				if (oDoubleItemCheckbox) {
-					oDoubleItemsEnabled = oDoubleItemCheckbox.checked;
+					oDoubleItemsEnabled = !oDoubleItemCheckbox.checked;
 					selectedDoubleItems = oDoubleItemsEnabled;
 					if (oDoubleItemsEnabled)
-						localStorage.setItem("doubleitems", "1");
-					else
 						localStorage.removeItem("doubleitems");
+					else
+						localStorage.setItem("doubleitems", "0");
 				}
 				else
-					oDoubleItemsEnabled = false;
+					oDoubleItemsEnabled = true;
 				if (oClassSelect) {
 					selectedCc = oClassSelect.value;
 					fSelectedClass = getRelSpeedFromCc(+selectedCc);
@@ -18474,7 +18474,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oDoubleItemCheckbox.id = "option-doubleItems";
 			oDoubleItemCheckbox.name = "option-doubleItems";
 			oDoubleItemCheckbox.type = "checkbox";
-			oDoubleItemCheckbox.checked = !!selectedDoubleItems;
+			oDoubleItemCheckbox.checked = !selectedDoubleItems;
 			oTd.appendChild(oDoubleItemCheckbox);
 			oTr.appendChild(oTd);
 
@@ -18485,7 +18485,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			var oH1 = document.createElement("h1");
 			oH1.style.fontSize = (3*iScreenScale) +"px";
 			oH1.style.margin = Math.round(1.5*iScreenScale) +"px auto";
-			oH1.innerHTML = toLanguage("Enable double items", "Autoriser les double objets");
+			oH1.innerHTML = toLanguage("Disable double items", "Désactiver les double objets");
 			oLabel.appendChild(oH1);
 			oTd.appendChild(oLabel);
 			oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
@@ -19046,7 +19046,7 @@ var defaultGameOptions = {
 	cpuChars: null,
 	timeTrial: false,
 	noBumps: false,
-	doubleItems: false
+	doubleItems: true
 };
 function isCustomOptions(linkOptions) {
 	if (linkOptions) {
@@ -21004,10 +21004,10 @@ function choose(map,rand) {
 								selectedItemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib].value;
 							}
 						}
-						if (shareLink.options && shareLink.options.doubleItems)
-							oDoubleItemsEnabled = true;
-						else
+						if (shareLink.options && shareLink.options.doubleItems == 0)
 							oDoubleItemsEnabled = false;
+						else
+							oDoubleItemsEnabled = true;
 						var tNow = new Date().getTime();
 						tnCourse = tNow+rCode[2];
 						if (isSingle)

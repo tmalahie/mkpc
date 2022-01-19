@@ -181,6 +181,9 @@ button.control-close:active {
 .itemScroller {
     z-index: 19998;
 }
+#scroller20, #scroller21 {
+    z-index: 19996;
+}
 .itemScroller {
     width: 1px;
     height: 1px;
@@ -227,6 +230,9 @@ button.control-close:active {
     flex-direction: row;
     align-items: center;
     justify-content: center;
+}
+#reserve0,#reserve1 {
+    z-index: 19996;
 }
 .itemChamber {
     display: flex;
