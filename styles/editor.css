@@ -1283,3 +1283,59 @@ embed,#ytplayer {
 	display: inline-block;
 	margin-left: 0.15em;
 }
+.decor-edit-extra {
+	margin-top: 0.5em;
+	margin-bottom: 0.25em;
+}
+.decor-edit-extra .decor-extra {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25em;
+}
+.decor-edit-extra .decor-extra {
+	font-size: 0.8em;
+}
+.decor-edit-extra .decor-extra .decor-preview {
+	margin-left: 0.25em;
+	margin-right: 0.25em;
+	margin-top: 0.1em;
+}
+.decor-edit-extra .decor-extra a {
+	margin-top: 0.25em;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 8px;
+	font-size: 0.8em;
+	padding: 0.1em 0.5em;
+	text-decoration: none;
+}
+.decor-edit-extra .decor-extra a:hover {
+	color: black;
+}
+.decor-edit-extra .decor-del {
+	color: #B10;
+	border-color: #B10;
+}
+.decor-edit-extra .decor-edit {
+	color: #071;
+	border-color: #071;
+}
+.decor-edit-extra .decor-del:hover {
+	background-color: #D21;
+	border-color: #B10;
+}
+.decor-edit-extra .decor-edit:hover {
+	background-color: #091;
+	border-color: #071;
+}
+.main-decor {
+	display: inline-block;
+}
+.main-decor a {
+	color: #027;
+	text-decoration: none;
+}
+.main-decor a:hover {
+	color: #049;
+
+}

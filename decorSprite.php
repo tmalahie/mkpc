@@ -29,7 +29,7 @@ if (isset($_GET['id'])) {
 			if (isset($_FILES['sprites'])) {
 				switch ($type) {
 				case 'decor' :
-					$upload = handle_decor_upload($decor['type'],$_FILES['sprites'],$decor);
+					$upload = handle_decor_upload($decor['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'),$decor);
 					if (isset($upload['id']))
 						header('location: editDecor.php?id='. $upload['id']);
 					break;

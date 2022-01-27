@@ -15,7 +15,16 @@ if (isset($_GET['id'])) {
 			include('utils-decors.php');
 			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
 			delete_decor_sprite_imgs($spriteSrcs);
-			header('location: decorEditor.php');
+			$getExtraDecors = mysql_query('SELECT * FROM `mkdecors` WHERE extra_parent_id="'. $decorId .'"');
+			while ($extraDecor = mysql_fetch_array($getExtraDecors)) {
+				$extraSpriteSrcs = decor_sprite_srcs($extraDecor['sprites']);
+				delete_decor_sprite_imgs($extraSpriteSrcs);
+				mysql_query('DELETE FROM `mkdecors` WHERE id="'. $extraDecor['id'] .'"');
+			}
+			if ($decor['extra_parent_id'])
+				header('location: editDecor.php?id='.$decor['extra_parent_id']);
+			else
+				header('location: decorEditor.php');
 		}
 	}
 	mysql_close();

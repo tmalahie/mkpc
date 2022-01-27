@@ -8,7 +8,7 @@ include('initdb.php');
 require_once('utils-decors.php');
 include('file-quotas.php');
 if (isset($_POST['type']) && isset($_FILES['sprites'])) {
-	$upload = handle_decor_upload($_POST['type'],$_FILES['sprites']);
+	$upload = handle_decor_upload($_POST['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'));
 	if (isset($upload['id']))
 		header('location: editDecor.php?id='. $upload['id'] .'&new');
 	if (isset($upload['error']))
@@ -22,7 +22,7 @@ if (isset($_POST['type']) && isset($_FILES['sprites'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/decor-editor.css" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 <script type="text/javascript">
 var decorId = -1;
@@ -69,6 +69,21 @@ function selectDecorType($btn) {
         $decorFormNext.style.display = "block";
         document.getElementById("decor-model-img").src = "images/sprites/sprite_"+type+".png";
         $form.elements["type"].value = type;
+
+        var extraSprites = $btn.dataset.extraSprites;
+        if (extraSprites) {
+            var extraSpritesList = extraSprites.split(",");
+            for (var i=0;i<extraSpritesList.length;i++) {
+                var extraSprite = extraSpritesList[i];
+                document.getElementById("decor-extra-model-img").src = "images/sprites/sprite_"+extraSprite+".png";
+                document.getElementById("extra-sprites").name = "extraSprites:" + extraSprite;
+            }
+            document.getElementById("decor-extra-model").style.display = "block";
+        }
+        else {
+            document.getElementById("extra-sprites").name = "";
+            document.getElementById("decor-extra-model").style.display = "";
+        }
     }
 }
 </script>
@@ -96,7 +111,7 @@ if (isset($error))
         ?>
     </div>
     <?php
-    $myDecors = mysql_query('SELECT * FROM `mkdecors` WHERE identifiant='.$identifiants[0].' ORDER BY id DESC');
+    $myDecors = mysql_query('SELECT * FROM `mkdecors` WHERE identifiant='.$identifiants[0].' AND extra_parent_id=0 ORDER BY id DESC');
     $areDecors = mysql_numrows($myDecors);
     if ($areDecors) {
         ?>
@@ -187,19 +202,33 @@ if (isset($error))
                 <?php echo $language ? 'Decor type:':'Type de décor :'; ?>
                 <input type="text" name="type" required="required" style="display:none" />
                 <span class="decor-type-selector"><?php
+                /** @var $decorType array */
                 foreach ($CUSTOM_DECOR_TYPES as $type=>$decorType) {
-                    ?>
-                    <button type="button" data-type="<?php echo $type; ?>" style="background-image:url('images/map_icons/<?php echo $type; ?>.png')" onclick="selectDecorType(this)"></button>
-                    <?php
+                    if (empty($decorType['is_extra'])) {
+                        ?>
+                        <button type="button" data-type="<?php echo $type; ?>" style="background-image:url('images/map_icons/<?php echo $type; ?>.png')"<?php
+                            if (isset($decorType['extra_sprites']))
+                                echo ' data-extra-sprites="'.implode(",", $decorType['extra_sprites']).'"';
+                        ?> onclick="selectDecorType(this)"></button>
+                        <?php
+                    }
                 }
                 ?></span>
             </div>
             <div id="decor-form-next">
-                <div id="decor-model">
-                    <div id="decor-model-label"><?php echo $language ? 'Model:':'Modèle&nbsp;:'; ?></div>
-                    <div id="decor-model-value"><img id="decor-model-img" src="images/sprites/sprite_tuyau.png" /></div>
+                <div class="decor-model">
+                    <div class="decor-model-label"><?php echo $language ? 'Model:':'Modèle&nbsp;:'; ?></div>
+                    <div class="decor-model-value"><img id="decor-model-img" src="images/sprites/sprite_tuyau.png" alt="" /></div>
                 </div>
                 <div><?php echo $language ? 'Image:':'Image :'; ?> <input type="file" required="required" name="sprites" /></div>
+                <div id="decor-extra-model">
+                    <div class="decor-model">
+                        <div class="decor-model-label"><?php echo $language ? 'Model 2:':'Modèle 2&nbsp;:'; ?></div>
+                        <div class="decor-model-value"><img id="decor-extra-model-img" src="images/sprites/sprite_tuyau.png" alt="" /></div>
+                    </div>
+                <div>
+                    <?php echo $language ? '(Optional) Image 2:':'(Facultatif) Image 2 :'; ?> <input type="file" id="extra-sprites" /></div>
+                </div>
                 <div><button type="submit"><?php echo $language ? 'Send !':'Valider !'; ?></button></div>
             </div>
         </form>

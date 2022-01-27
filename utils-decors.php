@@ -74,7 +74,8 @@ $CUSTOM_DECOR_TYPES = array(
     'pendulum' => null,
     'snowman' => null,
     'goomba' => array('nbsprites' => 2),
-    'fireplant' => array('nbsprites' => 4),
+    'fireplant' => array('nbsprites' => 4, 'extra_sprites' => array('fireball')),
+    'fireball' => array('nbsprites' => 4, 'is_extra' => true),
     'piranhaplant' => array('nbsprites' => 2),
     'tortitaupe' => null,
     'billball' => array('nbsprites' => 24),
@@ -115,53 +116,92 @@ function decor_sprite_sizes($type,$src) {
 function generate_decor_sprite_src($id) {
 	return 'dc-'.uniqid().'-'.$id;
 }
-function handle_decor_upload($type,$file,$decor=null) {
-	global $language, $identifiants;
-	if (!$file['error']) {
-		$poids = $file['size'];
-		if ($poids < 1000000) {
-			$poids += file_total_size($decor ? array('decor'=>$decor['id']):array());
-			if ($poids < MAX_FILE_SIZE) {
-				$infosfichier = pathinfo($file['name']);
-				$ext = strtolower($infosfichier['extension']);
-				$extensions = Array('png', 'gif', 'jpg', 'jpeg');
-				if (in_array($ext, $extensions)) {
-                    $spriteSizes = decor_sprite_sizes($type,$file['tmp_name']);
-                    $originalW = $spriteSizes['hd']['w'];
-                    $nbSprites = $spriteSizes['nb_sprites'];
-					if (!($originalW%$nbSprites)) {
-                        if (!$decor) {
-                            mysql_query('INSERT INTO `mkdecors` SET
-                                type="'. $_POST['type'] .'",identifiant="'. $identifiants[0] .'"
-                            ');
-                            $id = mysql_insert_id();
+function get_extra_sprites_payload($prefix) {
+    $res = array();
+    foreach ($_FILES as $key => $file) {
+        $keys = explode(':', $key);
+        if ($keys[0] === $prefix && isset($keys[1]))
+            $res[$keys[1]] = $file;
+    }
+    return $res;
+}
+function handle_decor_upload($type,$file,$extra,$decor=null) {
+	global $language, $identifiants, $CUSTOM_DECOR_TYPES;
+    $files = array(array(
+        'payload' => $file,
+        'extraType' => null
+    ));
+    if (!empty($extra)) {
+        if (isset($CUSTOM_DECOR_TYPES[$type]['extra_sprites'])) {
+            /** @var $extraSprites array */
+            $extraSprites = $CUSTOM_DECOR_TYPES[$type]['extra_sprites'];
+            foreach ($extraSprites as $extraType) {
+                if (isset($extra[$extraType])) {
+                    $files[] = array(
+                        'payload' => $extra[$extraType],
+                        'extraType' => $extraType
+                    );
+                }
+            }
+        }
+    }
+    foreach ($files as &$fileData) {
+        $file = $fileData['payload'];
+        if (!$file['error']) {
+            $poids = $file['size'];
+            if ($poids < 1000000) {
+                $poids += file_total_size($decor ? array('decor'=>$decor['id']):array());
+                if ($poids < MAX_FILE_SIZE) {
+                    $infosfichier = pathinfo($file['name']);
+                    $ext = strtolower($infosfichier['extension']);
+                    $extensions = Array('png', 'gif', 'jpg', 'jpeg');
+                    if (in_array($ext, $extensions)) {
+                        $spriteSizes = decor_sprite_sizes($type,$file['tmp_name']);
+                        $originalW = $spriteSizes['hd']['w'];
+                        $nbSprites = $spriteSizes['nb_sprites'];
+                        if (!($originalW%$nbSprites)) {
+                            $fileData['sprite_sizes'] = $spriteSizes;
+                            continue;
                         }
-                        else
-                            $id = $decor['id'];
-                        $filehash = generate_decor_sprite_src($id);
-                        $spriteSrcs = decor_sprite_paths($filehash);
-                        if ($decor) {
-                            $oldSrcs = decor_sprite_srcs($decor['sprites']);
-                            move_decor_sprite_imgs($oldSrcs,$filehash);
-                        }
-                        $spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
-                        move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
-                        clone_img_resource($spriteSrcs['tmp'],$spriteSrcs['hd']);
-                        @unlink($spriteSrcs['tmp']);
-                        create_decor_sprite_thumbs($spriteSrcs,$spriteSizes);
-                        mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $id .'"');
-                        return array('id' => $id);
+                        else $error = $language ? 'Your image width must be a multiple of '.$nbSprites:'La largeur de votre image doit être un multiple de '. $nbSprites;
                     }
-                    else $error = $language ? 'Your image width must be a multiple of '.$nbSprites:'La largeur de votre image doit être un multiple de '. $nbSprites;
-				}
-				else $error = $language ? 'Your image must have a png, gif, jpg or jpeg extension.':'Votre image doit &ecirc;tre au format png, gif, jpg ou jpeg.';
-			}
-			else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete characters or circuits to free space.':'Vous avez d&eacute;pass&eacute; votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des décors ou des circuits pour lib&eacute;rer de l\'espace disque.';
-		}
-		else $error = $language ? 'Your image mustn\'t exceed 1 Mo. Compress or reduce it if necessary.':'Votre image ne doit pas d&eacute;passer 1 Mo. Compressez-la ou r&eacute;duisez la taille si n&eacute;cessaire.';
-	}
-	else $error = $language ? 'An error occured during the image transfer. Please try again later.':'Une erreur est survenue lors de l\'envoi de l\'image. R&eacute;essayez ult&egrave;rieurement.';
-	return array('error' => $error);
+                    else $error = $language ? 'Your image must have a png, gif, jpg or jpeg extension.':'Votre image doit &ecirc;tre au format png, gif, jpg ou jpeg.';
+                }
+                else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete characters or circuits to free space.':'Vous avez d&eacute;pass&eacute; votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des décors ou des circuits pour lib&eacute;rer de l\'espace disque.';
+            }
+            else $error = $language ? 'Your image mustn\'t exceed 1 Mo. Compress or reduce it if necessary.':'Votre image ne doit pas d&eacute;passer 1 Mo. Compressez-la ou r&eacute;duisez la taille si n&eacute;cessaire.';
+        }
+        else $error = $language ? 'An error occured during the image transfer. Please try again later.':'Une erreur est survenue lors de l\'envoi de l\'image. R&eacute;essayez ult&egrave;rieurement.';
+        return array('error' => $error);
+    }
+    unset($fileData);
+    foreach ($files as &$fileData) {
+        $file = $fileData['payload'];
+        $spriteSizes = $fileData['sprite_sizes'];
+        if (!$decor) {
+            mysql_query('INSERT INTO `mkdecors` SET
+                type="'. $_POST['type'] .'",identifiant="'. $identifiants[0] .'"'.
+                ($fileData['extraType'] ? ',extra_type="'. $fileData['extraType'] .'",extra_parent_id="'. $files[0]['id'] .'"':'')
+            );
+            $fileData['id'] = mysql_insert_id();
+        }
+        else
+            $fileData['id'] = $decor['id'];
+        $filehash = generate_decor_sprite_src($fileData['id']);
+        $spriteSrcs = decor_sprite_paths($filehash);
+        if ($decor) {
+            $oldSrcs = decor_sprite_srcs($decor['sprites']);
+            move_decor_sprite_imgs($oldSrcs,$filehash);
+        }
+        $spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
+        move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
+        clone_img_resource($spriteSrcs['tmp'],$spriteSrcs['hd']);
+        @unlink($spriteSrcs['tmp']);
+        create_decor_sprite_thumbs($spriteSrcs,$spriteSizes);
+        mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $fileData['id'] .'"');
+    }
+    unset($fileData);
+    return array('id' => $files[0]['id']);
 }
 function handle_decor_advanced($file,$decor,$type) {
 	global $language, $identifiants;

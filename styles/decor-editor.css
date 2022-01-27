@@ -187,7 +187,7 @@ h2 {
 #decor-form-next {
     display: none;
 }
-#decor-model {
+.decor-model {
     margin-top: 0.2em;
     margin-bottom: 0.2em;
     display: inline-flex;
@@ -197,11 +197,19 @@ h2 {
     max-width: 100%;
     overflow-x: auto;
 }
-#decor-model-label {
+.decor-model-label {
     margin-right: 0.3em;
 }
-#decor-model-value {
+.decor-model-value {
     line-height: 0;
+}
+#decor-extra-model {
+    display: none;
+    margin-top: 0.5em;
+    padding-top: 0.5em;
+    margin-bottom: 0.5em;
+    border-top: solid 1px black;
+    font-size: 0.8em;
 }
 #error {
 	background-color: #D43;
@@ -287,6 +295,10 @@ h2 {
     overflow: auto;
     padding-left: 0;
     padding-right: 0;
+}
+#transparency-form-ctn h3 {
+    margin-left: 0.75em;
+    margin-right: 0.75em;
 }
 #transparency-form {
 	display: none;
