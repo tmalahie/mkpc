@@ -2559,6 +2559,11 @@ function startGame() {
 							var hitboxConst = 0.8;
 							decorBehavior.hitboxH = hitboxConst + (hitboxHeight-hitboxConst)*sizeRatio.h;
 						}
+						if (decorBehavior.initcustom) {
+							setTimeout(function() {
+								decorBehavior.initcustom(res);
+							});
+						}
 					});
 				})(decorBehavior);
 			}
@@ -2592,16 +2597,7 @@ function startGame() {
 							for (var j=0;j<oPlayers.length;j++)
 								decorData[2][j].img.src = "images/map_icons/empty.png";
 							getCustomDecorData(customDecor, function(res) {
-								for (var j=0;j<oPlayers.length;j++) {
-									decorData[2][j].img.src = res.hd;
-									if (res.size.nb_sprites)
-										decorData[2][j].nbSprites = res.size.nb_sprites;
-									decorData[2][j].w = Math.round(decorData[2][j].w*decorBehavior.size_ratio.w);
-									decorData[2][j].h = Math.round(decorData[2][j].h*decorBehavior.size_ratio.h);
-									var z = (decorBehavior.size_ratio.w-decorBehavior.size_ratio.h)/(decorBehavior.size_ratio.w+decorBehavior.size_ratio.h);
-									z *= decorData[2][j].w/(2*decorData[2][j].h);
-									decorData[2][j].z += z;
-								}
+								updateCustomDecorSprites(decorData, res, decorBehavior.size_ratio);
 							});
 						})(decorData,decorBehavior);
 					}
@@ -6673,6 +6669,29 @@ var decorBehaviors = {
 			decorData[6] = decorData[4];
 			decorData[7] = 0;
 		},
+		initcustom:function(res) {
+			if (!res.extra || !res.extra.fireball) return;
+			var fireballData = res.extra.fireball;
+			var sizeRatio = {
+				w: fireballData.size.hd.w/fireballData.original_size.hd.w,
+				h: fireballData.size.hd.h/fireballData.original_size.hd.h
+			};
+			var tObjWidth = oObjWidth*sizeRatio.w;
+			var tObjWidth2 = oObjWidth2*sizeRatio.w;
+			for (var i=0;i<oMap.decor[this.type].length;i++) {
+				var inc = this.fireball0+i;
+				var oFireball = oMap.decor.fireball[inc];
+				updateCustomDecorSprites(oFireball, fireballData, sizeRatio);
+
+				var iDecor = oPlanDecor.fireball[inc];
+				iDecor.src = fireballData.map;
+				iDecor.style.width = tObjWidth +"px";
+
+				iDecor = oPlanDecor2.fireball[inc];
+				iDecor.src = fireballData.map;
+				iDecor.style.width = tObjWidth2 +"px";
+			}
+		},
 		move:function(decorData,i) {
 			decorData[5]--;
 			decorData[4] = decorData[6] + 0.5*Math.sin(decorData[7]);
@@ -7999,6 +8018,19 @@ function getDecorActualType(self) {
 	if (extra.custom)
 		return extra.custom.type;
 	return self.type;
+}
+
+function updateCustomDecorSprites(decorData, res, sizeRatio) {
+	for (var j=0;j<oPlayers.length;j++) {
+		decorData[2][j].img.src = res.hd;
+		if (res.size.nb_sprites)
+			decorData[2][j].nbSprites = res.size.nb_sprites;
+		decorData[2][j].w = Math.round(decorData[2][j].w*sizeRatio.w);
+		decorData[2][j].h = Math.round(decorData[2][j].h*sizeRatio.h);
+		var z = (sizeRatio.w-sizeRatio.h)/(sizeRatio.w+sizeRatio.h);
+		z *= decorData[2][j].w/(2*decorData[2][j].h);
+		decorData[2][j].z += z;
+	}
 }
 
 function getApparentRotation(oPlayer) {
