@@ -111,7 +111,7 @@ if (isset($error))
         ?>
     </div>
     <?php
-    $myDecors = mysql_query('SELECT * FROM `mkdecors` WHERE identifiant='.$identifiants[0].' AND extra_parent_id=0 ORDER BY id DESC');
+    $myDecors = mysql_query('SELECT * FROM `mkdecors` WHERE identifiant='.$identifiants[0].' AND extra_parent_id IS NULL ORDER BY id DESC');
     $areDecors = mysql_numrows($myDecors);
     if ($areDecors) {
         ?>

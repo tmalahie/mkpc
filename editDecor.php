@@ -37,6 +37,9 @@ if (isset($_GET['id'])) {
 </head>
 <body>
 	<?php
+    if (isset($_GET['error'])) {
+        echo '<div id="error">'. $_GET['error'] .'</div>';
+    }
 	if (isset($_GET['new'])) {
 		?>
 		<p id="success"><?php echo $language ? "Your decor has been created":"Votre décor a été créé"; ?></p>
@@ -60,26 +63,50 @@ if (isset($_GET['id'])) {
             </div>
             <a href="decorSprite.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? 'Edit image':'Modifier l\'image'; ?></a>
             <?php
-            $extraDecors = mysql_query('SELECT * FROM `mkdecors` WHERE extra_parent_id="'. $decorId .'"');
-            if (mysql_numrows($extraDecors) > 0) {
+            if (isset($CUSTOM_DECOR_TYPES[$decor['type']]['extra_sprites'])) {
                 echo '<div class="decor-edit-extra">';
+                /** @var array $extraSprites */
+                $extraSprites = $CUSTOM_DECOR_TYPES[$decor['type']]['extra_sprites'];
                 $i = 1;
-                assign_token();
-                while ($extraDecor = mysql_fetch_array($extraDecors)) {
+                foreach ($extraSprites as $extraSprite) {
                     $i++;
-                    $decorSrcs = decor_sprite_srcs($extraDecor['sprites']);
-                    $spriteSizes = decor_sprite_sizes($extraDecor['type'],$decorSrcs['hd']);
-                    $imgW = $spriteSizes['ld']['w'];
-                    $imgH = $spriteSizes['ld']['h'];
-                    ?>
-                    <div class="decor-extra">
-                        Décor #<?php echo $i; ?> :
+                    echo '<div class="decor-extra">';
+                    echo 'Décor #'. $i .'&nbsp;:';
+                    if ($extraDecor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE extra_parent_id="'. $decorId .'"'))) {
+                        $decorSrcs = decor_sprite_srcs($extraDecor['sprites']);
+                        $spriteSizes = decor_sprite_sizes($extraDecor['type'],$decorSrcs['hd']);
+                        $imgW = $spriteSizes['ld']['w'];
+                        $imgH = $spriteSizes['ld']['h'];
+                        ?>
                         <div class="decor-preview" style="width:<?php echo $imgW; ?>px;height:<?php echo $imgH; ?>px">
-                            <img src="<?php echo $decorSrcs['hd'] ?>" alt="<?php echo htmlspecialchars($decor['name']); ?>" />
+                            <img src="<?php echo $decorSrcs['hd'] ?>" alt="<?php echo htmlspecialchars($extraSprite); ?>" />
                         </div>
                         <a class="decor-edit" href="editDecor.php?id=<?php echo $extraDecor['id']; ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a>
                         <a class="decor-del" href="delDecor.php?id=<?php echo $extraDecor['id']; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" onclick="return confirm('<?php echo $language ? 'Delete decor?':'Supprimer le décor ?' ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
-                    <?php
+                        <?php
+                    }
+                    else {
+                        $baseSrc = 'images/sprites/sprite_'. $extraSprite .'.png';
+                        list($imgW, $imgH) = getimagesize($baseSrc);
+                        $extraData = $CUSTOM_DECOR_TYPES[$extraSprite];
+                        if (isset($extraData['nbsprites']))
+                            $imgW = round($imgW/$extraData['nbsprites']);
+                        ?>
+                        <div class="decor-preview" style="width:<?php echo $imgW; ?>px;height:<?php echo $imgH; ?>px">
+                            <img src="<?php echo $baseSrc ?>" alt="<?php echo htmlspecialchars($extraSprite); ?>" />
+                        </div>
+                        <a class="decor-edit" href="#null" onclick="document.getElementById('decor-extra-new-<?php echo $extraSprite; ?>').style.display=document.getElementById('decor-extra-new-<?php echo $extraSprite; ?>').style.display?'':'block';return false"><?php echo $language ? 'Edit':'Modifier'; ?></a>
+                        <?php
+                    }
+                    echo '</div>';
+                    if (!$extraDecor) {
+                        ?>
+                        <form class="decor-extra-new decor-editor-form" id="decor-extra-new-<?php echo $extraSprite; ?>" method="post" enctype="multipart/form-data" action="editDecorExtra.php?parent=<?php echo $decor['id']; ?>">
+                            <input type="file" name="extraSprites:<?php echo $extraSprite; ?>" />
+                            <button type="submit">Ok</button>
+                        </form>
+                        <?php
+                    }
                 }
                 echo '</div>';
             }

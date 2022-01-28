@@ -1289,8 +1289,13 @@ embed,#ytplayer {
 }
 .decor-edit-extra .decor-extra {
 	display: inline-flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 0.25em;
+}
+.decor-extra-new {
+	display: none;
+	font-size: 0.75em;
 }
 .decor-edit-extra .decor-extra {
 	font-size: 0.8em;

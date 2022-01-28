@@ -119,18 +119,26 @@ function generate_decor_sprite_src($id) {
 function get_extra_sprites_payload($prefix) {
     $res = array();
     foreach ($_FILES as $key => $file) {
-        $keys = explode(':', $key);
-        if ($keys[0] === $prefix && isset($keys[1]))
-            $res[$keys[1]] = $file;
+        if ($file['error'] !== 4) {
+            $keys = explode(':', $key);
+            if ($keys[0] === $prefix && isset($keys[1]))
+                $res[$keys[1]] = $file;
+        }
     }
     return $res;
 }
 function handle_decor_upload($type,$file,$extra,$decor=null) {
 	global $language, $identifiants, $CUSTOM_DECOR_TYPES;
-    $files = array(array(
-        'payload' => $file,
-        'extraType' => null
-    ));
+    $files = array();
+    $isParentFile = !empty($file);
+    if ($isParentFile) {
+        $files[] = array(
+            'payload' => $file,
+            'type' => $type,
+            'extraType' => false,
+            'id' => $decor ? $decor['id'] : null
+        );
+    }
     if (!empty($extra)) {
         if (isset($CUSTOM_DECOR_TYPES[$type]['extra_sprites'])) {
             /** @var $extraSprites array */
@@ -139,18 +147,21 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
                 if (isset($extra[$extraType])) {
                     $files[] = array(
                         'payload' => $extra[$extraType],
-                        'extraType' => $extraType
+                        'type' => $extraType,
+                        'extraType' => true,
+                        'id' => null
                     );
                 }
             }
         }
     }
+    $poids = file_total_size(($decor&&$isParentFile) ? array('decor'=>$decor['id']):array());
     foreach ($files as &$fileData) {
         $file = $fileData['payload'];
         if (!$file['error']) {
-            $poids = $file['size'];
-            if ($poids < 1000000) {
-                $poids += file_total_size($decor ? array('decor'=>$decor['id']):array());
+            $filesize = $file['size'];
+            if ($filesize < 1000000) {
+                $poids += $filesize;
                 if ($poids < MAX_FILE_SIZE) {
                     $infosfichier = pathinfo($file['name']);
                     $ext = strtolower($infosfichier['extension']);
@@ -175,21 +186,22 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
         return array('error' => $error);
     }
     unset($fileData);
+    $parentFileId = $decor ? $decor['id'] : null;
     foreach ($files as &$fileData) {
         $file = $fileData['payload'];
         $spriteSizes = $fileData['sprite_sizes'];
-        if (!$decor) {
+        if (!$fileData['id']) {
             mysql_query('INSERT INTO `mkdecors` SET
-                type="'. $_POST['type'] .'",identifiant="'. $identifiants[0] .'"'.
-                ($fileData['extraType'] ? ',extra_type="'. $fileData['extraType'] .'",extra_parent_id="'. $files[0]['id'] .'"':'')
+                type="'. $fileData['type'] .'",identifiant="'. $identifiants[0] .'"'.
+                ($fileData['extraType'] ? ',extra_parent_id="'. $parentFileId .'"':'')
             );
             $fileData['id'] = mysql_insert_id();
+            if (!$parentFileId)
+                $parentFileId = $fileData['id'];
         }
-        else
-            $fileData['id'] = $decor['id'];
         $filehash = generate_decor_sprite_src($fileData['id']);
         $spriteSrcs = decor_sprite_paths($filehash);
-        if ($decor) {
+        if ($decor && ($decor['id'] === $fileData['id'])) {
             $oldSrcs = decor_sprite_srcs($decor['sprites']);
             move_decor_sprite_imgs($oldSrcs,$filehash);
         }
@@ -201,7 +213,7 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
         mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $fileData['id'] .'"');
     }
     unset($fileData);
-    return array('id' => $files[0]['id']);
+    return array('id' => $parentFileId);
 }
 function handle_decor_advanced($file,$decor,$type) {
 	global $language, $identifiants;
