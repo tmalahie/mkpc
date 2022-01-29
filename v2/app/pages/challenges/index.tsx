@@ -282,7 +282,7 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
 
   const rejectChallenge = useCallback(() => {
     window["o_prompt"](language
-      ? "Please confirm challenge <strong>refusal</strong>.<br />Optionnal: explain why you rejected challenge:"
+      ? "Please confirm challenge <strong>rejection</strong>.<br />Optionnal: explain why you rejected challenge:"
       : "Veuillez confirmer la <strong>non-validation</strong> du défi.<br />Facultatif&nbsp;: donnez les raisons du refus&nbsp;:",
       "",
       function (msg) {
