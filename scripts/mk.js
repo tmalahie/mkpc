@@ -8117,6 +8117,8 @@ function render() {
 	if (!lastState) lastState = currentState;
 
 	var nbFrames = 1;
+	if (course == "VS")
+		nbFrames = 2;
 
 	function renderFrame(frame) {
 		var tFrame = frame/nbFrames;
