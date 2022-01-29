@@ -160,7 +160,7 @@ if (isset($error))
                 </ul>
             </div>
             <div class="description">
-                For exemple, the Piranha plant is modelled by the following image:<br />
+                For example, the Piranha plant is modelled by the following image:<br />
                 <img src="images/sprites/sprite_fireplant.png" alt="Plant Sprite" /><br />
                 Thus, if you select this type, you must provide an image with the 4 sprites aligned in the same way.<br />
                 You don't have to keep the same dimensions as the original sprite, but all your sprites should be the same size (in particular, in the example above, your image width must be a multiple of 4).<br />

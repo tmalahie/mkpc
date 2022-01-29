@@ -119,7 +119,7 @@ body a.challenge-action-edit:hover {
 	color: #083;
 	font-weight: bold;
 }
-.challenges-table .challenge-status-refused {
+.challenges-table .challenge-status-rejected {
 	color: #800;
 }
 .challenges-table .challenge-difficulty img {

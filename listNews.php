@@ -134,7 +134,7 @@ if ($id) {
 	');
 	if (mysql_numrows($getPendingNews)) {
 		?>
-		<h2>Vos news en attente</h2>
+		<h2><?php echo $language ? 'My pending news':'Vos news en attente'; ?></h2>
 		<table class="listNews">
 		<col class="listNews-cats" />
 		<col class="listNews-infos" />
@@ -182,7 +182,7 @@ if (hasRight('publisher')) {
 	');
 	if (mysql_numrows($getPendingNews)) {
 		?>
-		<h2 id="pending-news">News en attente de validation</h2>
+		<h2 id="pending-news"><?php echo $language ? 'News pending validation' : 'News en attente de validation'; ?></h2>
 		<table class="listNews">
 		<col class="listNews-cats" />
 		<col class="listNews-infos" />

@@ -63,7 +63,7 @@ include('o_online.php');
 					?>
 					<div class="challenge-moderation-error">
 						<?php
-						echo $language ? 'Sorry, your challenge has been refused by moderation team':'Désolé, votre défi a été refusé par l\'équipe de modération';
+						echo $language ? 'Sorry, your challenge has been rejected by moderation team':'Désolé, votre défi a été refusé par l\'équipe de modération';
 						if (!empty($validation->msg)) {
 							echo $language ? ' for the following reason:':' pour la raison suivante :';
 							echo '<br />';

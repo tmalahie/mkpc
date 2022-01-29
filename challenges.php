@@ -206,8 +206,8 @@ document.addEventListener("DOMContentLoaded", function() {
 							echo ' <a href="javascript:void(0)" class="pretty-title" title="'. ($language ? 'You have to complete the challenge to prove it\'s possible.':'Vous devez réussir le défi pour valider qu\'il n\'est pas impossible.') .'">[?]</a>';
 						}
 						else {
-							echo '<span class="challenge-status-refused">';
-							echo $language ? 'Publication refused':'Publication refusée';
+							echo '<span class="challenge-status-rejected">';
+							echo $language ? 'Publication rejected':'Publication refusée';
 							echo '</span>';
 							echo '<br />';
 							echo '<a href="'. nextPageUrl('challengeDetails.php', array('cl' => null, 'ch' => $challenge['id'])) .'">'. ($language ? 'Details':'Détails') .'</a>';
