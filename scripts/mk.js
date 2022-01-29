@@ -9338,6 +9338,11 @@ function handleHeightInc(oKart) {
 function handleCannon(oKart, cannon) {
 	if (cannon && (cannon[0]||cannon[1])) {
 		oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
+		if (oKart.champi) {
+			var cannonL = (cannon[0]*cannon[0] + cannon[1]*cannon[1]);
+			if (cannonL > 50000)
+				oKart.champi = 0;
+		}
 		if (!oKart.z)
 			oKart.z = 0.001;
 		oKart.heightinc = 0;
