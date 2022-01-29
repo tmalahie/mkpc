@@ -8117,8 +8117,14 @@ function render() {
 	if (!lastState) lastState = currentState;
 
 	var nbFrames = 1;
-	if (course == "VS")
-		nbFrames = 2;
+	if (course == "VS") {
+		if (window.location.pathname === "/mariokart.30fps.php")
+			nbFrames = 2;
+		else if (window.location.pathname === "/mariokart.60fps.php")
+			nbFrames = 4;
+		else if (window.location.pathname === "/mariokart.120fps.php")
+			nbFrames = 8;
+	}
 
 	function renderFrame(frame) {
 		var tFrame = frame/nbFrames;
