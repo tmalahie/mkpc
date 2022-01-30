@@ -8091,9 +8091,25 @@ function getLastObj(lastObjs,i,currentObj) {
 	return currentObj;
 }
 function interpolateState(x1,x2,tFrame) {
-  tFrame = tFrame === 1 ? 1 : 1 - Math.pow(2, -10 * tFrame);
-  //tFrame--;
-  //tFrame = 1 - tFrame*tFrame*tFrame*tFrame;
+  var interpolateFn = document.location.search.match(/interpolate=(\w+)/);
+  if (interpolateFn) {
+    switch (interpolateFn[1]) {
+    case "ease_out_quad":
+      tFrame = -tFrame*(tFrame-2);
+      break;
+    case "ease_out_cubic":
+      tFrame--;
+      tFrame = tFrame*tFrame*tFrame+1;
+      break;
+    case "ease_out_quart":
+      tFrame--;
+      tFrame = 1 - tFrame*tFrame*tFrame*tFrame;
+      break;
+    case "ease_out_exp":
+      tFrame = tFrame === 1 ? 1 : 1 - Math.pow(2, -10 * tFrame);
+      break;
+    }
+  }
 	return x1*(1-tFrame) + x2*tFrame;
 }
 function interpolateStateAngle(x1,x2,tFrame) {
