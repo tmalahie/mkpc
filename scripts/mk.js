@@ -8091,6 +8091,9 @@ function getLastObj(lastObjs,i,currentObj) {
 	return currentObj;
 }
 function interpolateState(x1,x2,tFrame) {
+  tFrame = tFrame === 1 ? 1 : 1 - Math.pow(2, -10 * tFrame);
+  //tFrame--;
+  //tFrame = 1 - tFrame*tFrame*tFrame*tFrame;
 	return x1*(1-tFrame) + x2*tFrame;
 }
 function interpolateStateAngle(x1,x2,tFrame) {
