@@ -2632,6 +2632,15 @@ function startGame() {
 	if (!itemDistribution)
 		itemDistribution = itemDistributions[getItemMode()][0].value;
 
+	//if (course == "VS") {
+		if (window.location.pathname === "/mariokart.30fps.php")
+			nbFrames = 2;
+		else if (window.location.pathname === "/mariokart.60fps.php")
+			nbFrames = 4;
+		else if (window.location.pathname === "/mariokart.120fps.php")
+			nbFrames = 8;
+	//}
+
 	if (!isTT) {
 		if (itemDistribution.length) {
 			for (var i=0;i<oMap.arme.length;i++) {
@@ -4778,7 +4787,7 @@ function BGLayer(strImage, scaleFactor) {
 
 
 	return {
-		draw : function(fRotation, i) {
+		draw : function(fRotation,fSpeed, i) {
 			if (!imageDims.naturalWidth) return;
 			var iRot = fRotation - 360*Math.ceil(fRotation/360);
 			var iActualWidth = 10*iScreenScale*imageDims.naturalWidth/imageDims.naturalHeight;
@@ -4789,6 +4798,19 @@ function BGLayer(strImage, scaleFactor) {
 			var iScroll = iRot*fRotScale;
 
 			oLayers[i].style.backgroundPosition = Math.round(iScroll)+"px 0";
+			if (isBluriness()) {
+				var blur0 = 2 + 4/nbFrames;
+				if (fSpeed > blur0) {
+					if (!oLayers[i].style.filter)
+						oLayers[i].className = "";
+					oLayers[i].style.filter = "blur("+ Math.min(Math.log(fSpeed / blur0)*2/3, 1) +"px)";
+				}
+				else {
+					if (oLayers[i].style.filter && !iSmooth)
+						oLayers[i].className = "pixelated";
+					oLayers[i].style.filter = "";
+				}
+			}
 		},
 		suppr : function() {
 			for (var i=0;i<strPlayer.length;i++)
@@ -5332,6 +5354,18 @@ function redrawCanvas(i, fCamera) {
 	oViewContext.restore();
 
 	oScreens[i].getContext("2d").imageSmoothingEnabled = iSmooth;
+	if (isBluriness()) {
+		var blur0 = 2 + 6/nbFrames;
+		var blur1 = 1;
+		if (fCamera.speed > blur0) {
+			oScreens[i].style.filter = "blur("+ Math.min(Math.log(fCamera.speed/blur0)*2/3, blur1*2/3) +"px)";
+			oContainers[i].style.filter = "blur("+ Math.min(Math.log(fCamera.speed / blur0)/3, blur1/3) +"px)";
+		}
+		else {
+			oScreens[i].style.filter = "";
+			oContainers[i].style.filter = "";
+		}
+	}
 
 	var oScreenContext = oScreens[i].getContext("2d");
 
@@ -5354,6 +5388,10 @@ function redrawCanvas(i, fCamera) {
 		}
 		catch (e) {}
 	}
+}
+
+function isBluriness() {
+	return nbFrames > 1 && !iSmooth;
 }
 
 function byteType(key) {
@@ -8062,6 +8100,7 @@ function interpolateStateAngle(x1,x2,tFrame) {
 function interpolateStateRound(x1,x2,tFrame) {
 	return Math.round(interpolateState(x1,x2,tFrame));
 }
+var nbFrames = 1;
 function render() {
 	var currentState = {
 		karts: [],
@@ -8075,6 +8114,7 @@ function render() {
 			x: oKart.x,
 			y: oKart.y,
 			z: oKart.z,
+			speed: oKart.speed,
 			rotation: oKart.rotation,
 			changeView: oKart.changeView||0,
 			size: oKart.size,
@@ -8116,16 +8156,6 @@ function render() {
 	}
 	if (!lastState) lastState = currentState;
 
-	var nbFrames = 1;
-	if (course == "VS") {
-		if (window.location.pathname === "/mariokart.30fps.php")
-			nbFrames = 2;
-		else if (window.location.pathname === "/mariokart.60fps.php")
-			nbFrames = 4;
-		else if (window.location.pathname === "/mariokart.120fps.php")
-			nbFrames = 8;
-	}
-
 	function renderFrame(frame) {
 		var tFrame = frame/nbFrames;
 		var lastFrame = (tFrame == 1);
@@ -8157,6 +8187,7 @@ function render() {
 					x: interpolateState(lastObj.x,currentObj.x,tFrame),
 					y: interpolateState(lastObj.y,currentObj.y,tFrame),
 					z: interpolateState(lastObj.z,currentObj.z,tFrame),
+					speed: interpolateState(lastObj.speed,currentObj.speed,tFrame),
 					rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
 					changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
 					size: interpolateState(lastObj.size,currentObj.size,tFrame),
@@ -8243,6 +8274,7 @@ function render() {
 			var fCamera = {
 				x: posX,
 				y: posY,
+				speed: oPlayer.speed,
 				rotation: fRotation
 			};
 
@@ -8402,7 +8434,7 @@ function render() {
 			}
 
 			for (var j=0;j<oBgLayers.length;j++)
-				oBgLayers[j].draw(fRotation, i);
+				oBgLayers[j].draw(fRotation,oPlayer.speed, i);
 
 			if ((strPlayer.length == 1) && !gameSettings.nomap)
 				setPlanPos();
@@ -8582,6 +8614,7 @@ function supprime(item, sound) {
 					var fCamera = {
 						x: oPlayer.x,
 						y: oPlayer.y,
+						speed: oPlayer.speed,
 						rotation: getApparentRotation(oPlayer)
 					};
 					item.sprite[i].render(fCamera, item);
@@ -13045,7 +13078,7 @@ function move(getId, triggered) {
 				supprArme(getId);
 				deleteUsingItems(oKart);
 				for (var i=0;i<oPlayers.length;i++) {
-					if ((i != getId) || (1/*nbFrames*/ == 1)) {
+					if ((i != getId) || (nbFrames == 1)) {
 						oKart.sprite[i].img.style.display = "none";
 						oKart.sprite[i].div.style.backgroundImage = "";
 						if (course == "BB") {
