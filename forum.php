@@ -155,7 +155,8 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 	echo '</td><td>';
 		echo $nbMsgs['nb'];
 	echo '</td><td>';
-		echo pretty_dates($lastMsg['dernier']);
+		if ($lastMsg)
+			echo pretty_dates($lastMsg['dernier']);
 	echo '</td></tr>';
 }
 ?>

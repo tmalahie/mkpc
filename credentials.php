@@ -29,5 +29,6 @@ function credentials_raw_decrypt($ivHashCiphertext) {
 }
 function credentials_decrypt($token) {
     $rawCredentials = credentials_raw_decrypt($token);
+    if (null === $rawCredentials) return array(null,null);
     return explode(':', $rawCredentials, 2);
 }
