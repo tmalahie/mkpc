@@ -3923,7 +3923,8 @@ function resetScreen() {
   oContainers2 = [];
   for (var i=0;i<oContainers.length;i++) {
     var oContainer2 = oContainers[i].cloneNode();
-    oContainer2.style.opacity = 0.5;
+    oContainer2.style.opacity = 0;
+	oContainer2.style.filter = "hue-rotate(5deg) blur(1px)";
     $mkScreen.appendChild(oContainer2);
     oContainers2[i] = oContainer2;
   }
@@ -8157,6 +8158,7 @@ function render() {
 			x: oKart.x,
 			y: oKart.y,
 			z: oKart.z,
+			speed: oKart.speed,
 			rotation: oKart.rotation,
 			changeView: oKart.changeView||0,
 			size: oKart.size,
@@ -8239,6 +8241,7 @@ function render() {
 					x: interpolateState(lastObj.x,currentObj.x,tFrame),
 					y: interpolateState(lastObj.y,currentObj.y,tFrame),
 					z: interpolateState(lastObj.z,currentObj.z,tFrame),
+					speed: interpolateState(lastObj.speed,currentObj.speed,tFrame),
 					rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
 					changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
 					size: interpolateState(lastObj.size,currentObj.size,tFrame),
@@ -8328,7 +8331,8 @@ function render() {
 				rotation: fRotation
 			};
 
-      clonePreviousScreen(i);
+      		clonePreviousScreen(i);
+			oContainers2[i].style.opacity = Math.min(0.5, oPlayer.speed/10);
 			redrawCanvas(i, fCamera);
 
 			if (oPlayer.time) {
