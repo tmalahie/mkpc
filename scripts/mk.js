@@ -3181,6 +3181,7 @@ function startGame() {
 								removeHUD();
 								clearResources();
 								$mkScreen.removeChild(oContainers[0]);
+								$mkScreen.removeChild(oContainers2[0]);
 								fInfos = {
 									player:strPlayer,
 									distribution:itemDistribution,
@@ -3221,6 +3222,7 @@ function startGame() {
 									removeHUD();
 									clearResources();
 									$mkScreen.removeChild(oContainers[0]);
+									$mkScreen.removeChild(oContainers2[0]);
 									fInfos = {
 										player:strPlayer,
 										distribution:itemDistribution,
@@ -3929,7 +3931,7 @@ function resetScreen() {
 
   oContainers2 = [];
   for (var i=0;i<oContainers.length;i++) {
-    var oContainer2 = oContainers[i].cloneNode(true);
+    var oContainer2 = oContainers[i].cloneNode();
     oContainer2.style.opacity = 0.5;
     $mkScreen.appendChild(oContainer2);
     oContainers2[i] = oContainer2;
@@ -3996,6 +3998,7 @@ function quitter() {
 	clearResources();
 	for (var i=0;i<strPlayer.length;i++) {
 		$mkScreen.removeChild(oContainers[i]);
+		$mkScreen.removeChild(oContainers2[i]);
 		var oInfos = document.getElementById("infos"+i);
 		if (oInfos) oInfos.style.display = "none";
 	}
@@ -4167,6 +4170,7 @@ function continuer() {
 				clearResources();
 				for (var i=0;i<strPlayer.length;i++) {
 					$mkScreen.removeChild(oContainers[i]);
+					$mkScreen.removeChild(oContainers2[i]);
 					document.getElementById("infos"+i).style.display = "none";
 				}
 				fInfos = {
@@ -4296,6 +4300,7 @@ function continuer() {
 			removeHUD();
 			clearResources();
 			$mkScreen.removeChild(oContainers[0]);
+			$mkScreen.removeChild(oContainers2[0]);
 			fInfos = {
 				player:strPlayer,
 				distribution:itemDistribution,
@@ -4527,6 +4532,7 @@ function continuer() {
 			clearResources();
 			for (var i=0;i<strPlayer.length;i++) {
 				$mkScreen.removeChild(oContainers[i]);
+				$mkScreen.removeChild(oContainers2[i]);
 				fInfos = {
 					player:strPlayer,
 					distribution:itemDistribution,
@@ -4566,6 +4572,7 @@ function continuer() {
 			clearResources();
 			for (var i=0;i<strPlayer.length;i++) {
 				$mkScreen.removeChild(oContainers[i]);
+				$mkScreen.removeChild(oContainers2[i]);
 				document.getElementById("infos"+i).style.display = "none";
 			}
 			fInfos = {
@@ -5329,19 +5336,51 @@ function createMarker(oKart) {
 }
 
 function clonePreviousScreen(i) {
-  deepCloneContent(oContainers[i], oContainers2[i]);
-  var oScreen2 = oContainers2[i].getElementsByTagName("canvas")[0];
-  oScreen2.getContext("2d").drawImage(
-    oScreens[i], 0,0
-  );
+	deepCloneContent(oContainers[i], oContainers2[i]);
+	var oScreen2 = oContainers2[i].getElementsByTagName("canvas")[0];
+	oScreen2.getContext("2d").drawImage(
+	  oScreens[i], 0,0
+	);
 }
 function deepCloneContent(elt1,elt2) {
-  // Recursively add all children of element 1 to element 2
-  // If element 2 has children that element1 don't have, remove them
-  // If element 1 has children that element2 don't have, add them
-  // For each elt1 children, store elt1.clonedTo = cloned child in elt2
-
-  elt2.innerHTML = elt1.innerHTML; // TODO optimize this
+    // Recursively add all children of element 1 to element 2
+    // If element 2 has children that element1 don't have, remove them
+    // If element 1 has children that element2 don't have, add them
+    // For each elt1 children, store elt1.clonedTo = cloned child in elt2
+    // For each elt2 children, store elt2.clonedFrom = cloned child in elt1
+  
+    var children1 = elt1.childNodes;
+    for (var i=0;i<children1.length;i++) {
+        var child1 = children1[i];
+        if (!child1.clonedTo) {
+            var clone = child1.cloneNode(false);
+            clone.clonedFrom = child1;
+			if (child1.nextSibling && child1.nextSibling.clonedTo)
+				elt2.insertBefore(clone, child1.nextSibling.clonedTo);
+			else
+	            elt2.appendChild(clone);
+            child1.clonedTo = clone;
+        }
+		else {
+			var child2 = child1.clonedTo;
+			for (var j=0;j<child2.style.length;j++) {
+				var oStyle = child2.style[j];
+				if (!child1.style[oStyle])
+					child2.style[oStyle] = "";
+			}
+			for (var j=0;j<child1.style.length;j++) {
+				var oStyle = child1.style[j];
+				child2.style[oStyle] = child1.style[oStyle];
+			}
+		}
+        deepCloneContent(child1,child1.clonedTo);
+    }
+    var children2 = elt2.childNodes;
+    for (var i=children2.length-1;i>=0;i--) {
+        var child2 = children2[i];
+        if (child2.clonedFrom.parentNode !== elt1)
+            elt2.removeChild(child2);
+    }
 }
 function redrawCanvas(i, fCamera) {
 	var oViewContext = oViewCanvas.getContext("2d");
