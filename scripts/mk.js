@@ -3172,7 +3172,6 @@ function startGame() {
 								removeHUD();
 								clearResources();
 								$mkScreen.removeChild(oContainers[0]);
-								$mkScreen.removeChild(oContainers2[0]);
 								fInfos = {
 									player:strPlayer,
 									distribution:itemDistribution,
@@ -3213,7 +3212,6 @@ function startGame() {
 									removeHUD();
 									clearResources();
 									$mkScreen.removeChild(oContainers[0]);
-									$mkScreen.removeChild(oContainers2[0]);
 									fInfos = {
 										player:strPlayer,
 										distribution:itemDistribution,
@@ -3858,7 +3856,7 @@ var fLineScale = 0;
 var oContainers = [document.createElement("div")];
 oContainers[0].className = "game-container";
 oContainers[0].tabindex = 1;
-var oContainers2;
+var oContainers2, oScreens2;
 formulaire = null;
 updateCtnFullScreen($mkScreen.dataset.fs==1);
 
@@ -3920,17 +3918,24 @@ function resetScreen() {
 		oScreenCanvas.style.height = (iHeight*iScreenScale)+"px";
 	}
 
-	oContainers2 = [];
-	for (var i=0;i<oContainers.length;i++) {
-		var oContainer2 = oContainers[i].cloneNode();
-		oContainer2.style.opacity = 0;
-		oContainer2.style.filter = "hue-rotate(5deg) blur(0.5px)";
-		$mkScreen.appendChild(oContainer2);
-		oContainers2[i] = oContainer2;
-	}
-
 	for (var i=0;i<oBgLayers.length;i++)
 		oBgLayers[i].suppr();
+	
+	oContainers2 = [];
+	oScreens2 = [];
+	for (var i=0;i<oContainers.length;i++) {
+		var oContainer2 = oContainers[i].cloneNode(true);
+		oContainer2.className = "";
+		oContainer2.style.position = "absolute";
+		oContainer2.style.left = "0px";
+		oContainer2.style.top = "0px";
+		oContainer2.style.width = "100%";
+		oContainer2.style.height = "100%";
+		oContainer2.style.opacity = 0;
+		oContainer2.style.filter = "hue-rotate(5deg) blur(0.5px)";
+		oContainers2[i] = oContainer2;
+		oScreens2[i] = oContainer2.firstChild;
+	}
 
 	var fLastZ = 0;
 		// create horizontal strip descriptions
@@ -3957,6 +3962,9 @@ function resetScreen() {
 	}
 	for (var i=0;i<oMap.fond.length;i++)
 		oBgLayers[i] = new BGLayer(oMap.fond[i], (oMap.fond.length==2)?1:i+1);
+
+	for (var i=0;i<oContainers2.length;i++)
+		oContainers[i].appendChild(oContainers2[i]);
 	oViewCanvas = document.createElement("canvas");
 	oViewCanvas.width=iViewCanvasWidth;
 	oViewCanvas.height=iViewCanvasHeight;
@@ -3999,7 +4007,6 @@ function quitter() {
 	clearResources();
 	for (var i=0;i<strPlayer.length;i++) {
 		$mkScreen.removeChild(oContainers[i]);
-		$mkScreen.removeChild(oContainers2[i]);
 		var oInfos = document.getElementById("infos"+i);
 		if (oInfos) oInfos.style.display = "none";
 	}
@@ -4171,7 +4178,6 @@ function continuer() {
 				clearResources();
 				for (var i=0;i<strPlayer.length;i++) {
 					$mkScreen.removeChild(oContainers[i]);
-					$mkScreen.removeChild(oContainers2[i]);
 					document.getElementById("infos"+i).style.display = "none";
 				}
 				fInfos = {
@@ -4301,7 +4307,6 @@ function continuer() {
 			removeHUD();
 			clearResources();
 			$mkScreen.removeChild(oContainers[0]);
-			$mkScreen.removeChild(oContainers2[0]);
 			fInfos = {
 				player:strPlayer,
 				distribution:itemDistribution,
@@ -4533,7 +4538,6 @@ function continuer() {
 			clearResources();
 			for (var i=0;i<strPlayer.length;i++) {
 				$mkScreen.removeChild(oContainers[i]);
-				$mkScreen.removeChild(oContainers2[i]);
 				fInfos = {
 					player:strPlayer,
 					distribution:itemDistribution,
@@ -4573,7 +4577,6 @@ function continuer() {
 			clearResources();
 			for (var i=0;i<strPlayer.length;i++) {
 				$mkScreen.removeChild(oContainers[i]);
-				$mkScreen.removeChild(oContainers2[i]);
 				document.getElementById("infos"+i).style.display = "none";
 			}
 			fInfos = {
@@ -4785,23 +4788,29 @@ function Sprite(strSprite) {
 
 function BGLayer(strImage, scaleFactor) {
 	var oLayers = new Array();
+	var oLayers2 = new Array();
+
+	var oAllContainers = [oContainers,oContainers2];
 
 	var imageDims = new Image();
 	imageDims.src = "images/map_bg/" + strImage + ".png";
 	if (!iSmooth) imageDims.className = "pixelated";
-	for (var i=0;i<oContainers.length;i++) {
-		oLayers[i] = document.createElement("div");
-		oLayers[i].style.height = (10 * iScreenScale)+"px";
-		oLayers[i].style.width = (iWidth * iScreenScale)+"px";
-		oLayers[i].style.position = "absolute";
-		(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+imageDims.src+"')"},500)})(oLayers[i]);
-		oLayers[i].style.backgroundSize = "auto 100%";
-		if (!iSmooth) oLayers[i].className = "pixelated";
+	for (var j=0;j<oAllContainers.length;j++) {
+		var jContainers = oAllContainers[j];
+		for (var i=0;i<jContainers.length;i++) {
+			var oLayer = document.createElement("div");
+			oLayer.style.height = (10 * iScreenScale)+"px";
+			oLayer.style.width = (iWidth * iScreenScale)+"px";
+			oLayer.style.position = "absolute";
+			(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+imageDims.src+"')"},500)})(oLayer);
+			oLayer.style.backgroundSize = "auto 100%";
+			if (!iSmooth) oLayer.className = "pixelated";
 
-		oContainers[i].appendChild(oLayers[i]);
+			jContainers[i].appendChild(oLayer);
+			if (j) oLayers2[i] = oLayer;
+			else oLayers[i] = oLayer;
+		}
 	}
-
-
 
 	return {
 		draw : function(fRotation, i) {
@@ -4815,6 +4824,9 @@ function BGLayer(strImage, scaleFactor) {
 			var iScroll = iRot*fRotScale;
 
 			oLayers[i].style.backgroundPosition = Math.round(iScroll)+"px 0";
+		},
+		drawPrev : function(i) {
+			oLayers2[i].style.backgroundPosition = oLayers[i].style.backgroundPosition;
 		},
 		suppr : function() {
 			for (var i=0;i<strPlayer.length;i++)
@@ -5338,55 +5350,14 @@ function clonePreviousScreen(i, oPlayer) {
 
 	previousScreenDelay += previousScreenPeriod;
 
-	deepCloneContent(oContainers[i], oContainer2);
-	var oScreen2 = oContainers2[i].getElementsByTagName("canvas")[0];
-	oScreen2.getContext("2d").drawImage(
+	oScreens2[i].getContext("2d").drawImage(
 	  oScreens[i], 0,0
 	);
+	for (var j=0;j<oBgLayers.length;j++)
+		oBgLayers[j].drawPrev(i);
 	oContainer2.style.transition = "";
 	previousScreenOpacity = Math.min(1, oPlayer.speed/5);
 	oContainer2.style.opacity = Math.max(previousScreenOpacity*previousScreenDelay/previousScreenPeriod, 0);
-}
-function deepCloneContent(elt1,elt2) {
-    // Recursively add all children of element 1 to element 2
-    // If element 2 has children that element1 don't have, remove them
-    // If element 1 has children that element2 don't have, add them
-    // For each elt1 children, store elt1.clonedTo = cloned child in elt2
-    // For each elt2 children, store elt2.clonedFrom = cloned child in elt1
-  
-    var children1 = elt1.childNodes;
-    for (var i=0;i<children1.length;i++) {
-        var child1 = children1[i];
-        if (!child1.clonedTo) {
-            var clone = child1.cloneNode(false);
-            clone.clonedFrom = child1;
-			if (child1.nextSibling && child1.nextSibling.clonedTo)
-				elt2.insertBefore(clone, child1.nextSibling.clonedTo);
-			else
-	            elt2.appendChild(clone);
-            child1.clonedTo = clone;
-        }
-		else {
-			var child2 = child1.clonedTo;
-			child2.src = child1.src;
-			for (var j=0;j<child2.style.length;j++) {
-				var oStyle = child2.style[j];
-				if (!child1.style[oStyle])
-					child2.style[oStyle] = "";
-			}
-			for (var j=0;j<child1.style.length;j++) {
-				var oStyle = child1.style[j];
-				child2.style[oStyle] = child1.style[oStyle];
-			}
-		}
-        deepCloneContent(child1,child1.clonedTo);
-    }
-    var children2 = elt2.childNodes;
-    for (var i=children2.length-1;i>=0;i--) {
-        var child2 = children2[i];
-        if (child2.clonedFrom.parentNode !== elt1)
-            elt2.removeChild(child2);
-    }
 }
 function redrawCanvas(i, fCamera) {
 	var oViewContext = oViewCanvas.getContext("2d");
