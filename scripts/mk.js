@@ -3933,7 +3933,7 @@ function resetScreen() {
 		var frameRadius = document.location.search.match(/frameradius=(\w+)/);
 		previousScreenFade = document.location.search.match(/framefade=(\w+)/);
 		previousScreenHue = document.location.search.match(/hue=(-?\w+)/)?.[1] || "0";
-		previousScreenBlur = document.location.search.match(/blur=(\w+)/)?.[1] || "0";
+		previousScreenBlur = document.location.search.match(/blur=([\w\.]+)/)?.[1] || "0";
 		if (frameRadius && previousScreenFade) {
 			previousScreenFade = +previousScreenFade[1];
 			previousScreenPeriod = frameRadius[1]*SPF/nbFrames;
