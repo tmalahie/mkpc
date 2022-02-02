@@ -3922,7 +3922,7 @@ function resetScreen() {
 		oBgLayers[i].suppr();
 	
 	var previousScreenHue = 0, previousScreenBlur = 0;
-	//if (course == "VS") {
+	if (course == "VS") {
 		if (window.location.pathname === "/mariokart.30fps.php")
 			nbFrames = 2;
 		else if (window.location.pathname === "/mariokart.60fps.php")
@@ -3938,7 +3938,7 @@ function resetScreen() {
 			previousScreenFade = +previousScreenFade[1];
 			previousScreenPeriod = frameRadius[1]*SPF/nbFrames;
 		}
-	//}
+	}
 	
 	oContainers2 = [];
 	oScreens2 = [];
