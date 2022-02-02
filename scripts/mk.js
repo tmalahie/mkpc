@@ -3920,14 +3920,14 @@ function resetScreen() {
 		oScreenCanvas.style.height = (iHeight*iScreenScale)+"px";
 	}
 
-  oContainers2 = [];
-  for (var i=0;i<oContainers.length;i++) {
-    var oContainer2 = oContainers[i].cloneNode();
-    oContainer2.style.opacity = 0;
-	oContainer2.style.filter = "hue-rotate(5deg) blur(1px)";
-    $mkScreen.appendChild(oContainer2);
-    oContainers2[i] = oContainer2;
-  }
+	oContainers2 = [];
+	for (var i=0;i<oContainers.length;i++) {
+		var oContainer2 = oContainers[i].cloneNode();
+		oContainer2.style.opacity = 0;
+		oContainer2.style.filter = "hue-rotate(5deg) blur(0.5px)";
+		$mkScreen.appendChild(oContainer2);
+		oContainers2[i] = oContainer2;
+	}
 
 	for (var i=0;i<oBgLayers.length;i++)
 		oBgLayers[i].suppr();
@@ -3960,6 +3960,15 @@ function resetScreen() {
 	oViewCanvas = document.createElement("canvas");
 	oViewCanvas.width=iViewCanvasWidth;
 	oViewCanvas.height=iViewCanvasHeight;
+
+	if (course == "VS") {
+		if (window.location.pathname === "/mariokart.30fps.php")
+			nbFrames = 2;
+		else if (window.location.pathname === "/mariokart.60fps.php")
+			nbFrames = 4;
+		else if (window.location.pathname === "/mariokart.120fps.php")
+			nbFrames = 8;
+	}
 }
 
 function interruptGame() {
@@ -5314,12 +5323,29 @@ function createMarker(oKart) {
 	return res;
 }
 
-function clonePreviousScreen(i) {
-	deepCloneContent(oContainers[i], oContainers2[i]);
+var previousScreenPeriod = 30, previousScreenFade = 60, previousScreenDelay = 0, previousScreenOpacity;
+function clonePreviousScreen(i, oPlayer) {
+	var oContainer2 = oContainers2[i];
+	previousScreenDelay -= SPF/nbFrames;
+	if (previousScreenDelay > 0) {
+		oContainer2.style.opacity = previousScreenOpacity*previousScreenDelay/previousScreenPeriod;
+		return;
+	}
+	if (oPlayer.speed <= 0) {
+		oContainer2.style.opacity = 0;
+		return;
+	}
+
+	previousScreenDelay += previousScreenPeriod;
+
+	deepCloneContent(oContainers[i], oContainer2);
 	var oScreen2 = oContainers2[i].getElementsByTagName("canvas")[0];
 	oScreen2.getContext("2d").drawImage(
 	  oScreens[i], 0,0
 	);
+	oContainer2.style.transition = "";
+	previousScreenOpacity = Math.min(1, oPlayer.speed/5);
+	oContainer2.style.opacity = Math.max(previousScreenOpacity*previousScreenDelay/previousScreenPeriod, 0);
 }
 function deepCloneContent(elt1,elt2) {
     // Recursively add all children of element 1 to element 2
@@ -5342,6 +5368,7 @@ function deepCloneContent(elt1,elt2) {
         }
 		else {
 			var child2 = child1.clonedTo;
+			child2.src = child1.src;
 			for (var j=0;j<child2.style.length;j++) {
 				var oStyle = child2.style[j];
 				if (!child1.style[oStyle])
@@ -8145,6 +8172,7 @@ function interpolateStateAngle(x1,x2,tFrame) {
 function interpolateStateRound(x1,x2,tFrame) {
 	return Math.round(interpolateState(x1,x2,tFrame));
 }
+var nbFrames = 1;
 function render() {
 	var currentState = {
 		karts: [],
@@ -8199,16 +8227,6 @@ function render() {
 		}
 	}
 	if (!lastState) lastState = currentState;
-
-	var nbFrames = 1;
-	if (course == "VS") {
-		if (window.location.pathname === "/mariokart.30fps.php")
-			nbFrames = 2;
-		else if (window.location.pathname === "/mariokart.60fps.php")
-			nbFrames = 4;
-		else if (window.location.pathname === "/mariokart.120fps.php")
-			nbFrames = 8;
-	}
 
 	function renderFrame(frame) {
 		var tFrame = frame/nbFrames;
@@ -8331,8 +8349,7 @@ function render() {
 				rotation: fRotation
 			};
 
-      		clonePreviousScreen(i);
-			oContainers2[i].style.opacity = Math.min(0.5, oPlayer.speed/10);
+      		clonePreviousScreen(i, oPlayer);
 			redrawCanvas(i, fCamera);
 
 			if (oPlayer.time) {
