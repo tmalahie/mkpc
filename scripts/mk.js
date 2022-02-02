@@ -3969,14 +3969,21 @@ function resetScreen() {
 	oViewCanvas.width=iViewCanvasWidth;
 	oViewCanvas.height=iViewCanvasHeight;
 
-	if (course == "VS") {
+	//if (course == "VS") {
 		if (window.location.pathname === "/mariokart.30fps.php")
 			nbFrames = 2;
 		else if (window.location.pathname === "/mariokart.60fps.php")
 			nbFrames = 4;
 		else if (window.location.pathname === "/mariokart.120fps.php")
 			nbFrames = 8;
-	}
+		interpolateFn = document.location.search.match(/interpolate=(\w+)/)?.[1];
+		var frameRadius = document.location.search.match(/frameradius=(\w+)/);
+		previousScreenFade = document.location.search.match(/framefade=(\w+)/);
+		if (frameRadius && previousScreenFade) {
+			previousScreenFade = +previousScreenFade[1];
+			previousScreenPeriod = frameRadius[1]*SPF/nbFrames;
+		}
+	//}
 }
 
 function interruptGame() {
@@ -5335,8 +5342,9 @@ function createMarker(oKart) {
 	return res;
 }
 
-var previousScreenPeriod = 30, previousScreenFade = 60, previousScreenDelay = 0, previousScreenOpacity;
+var previousScreenPeriod, previousScreenFade, previousScreenDelay = 0, previousScreenOpacity;
 function clonePreviousScreen(i, oPlayer) {
+	if (previousScreenPeriod === undefined) return;
 	var oContainer2 = oContainers2[i];
 	previousScreenDelay -= SPF/nbFrames;
 	if (previousScreenDelay > 0) {
@@ -8114,10 +8122,10 @@ function getLastObj(lastObjs,i,currentObj) {
 	}
 	return currentObj;
 }
+var interpolateFn;
 function interpolateState(x1,x2,tFrame) {
-  var interpolateFn = document.location.search.match(/interpolate=(\w+)/);
   if (interpolateFn) {
-    switch (interpolateFn[1]) {
+    switch (interpolateFn) {
     case "ease_out_quad":
       tFrame = -tFrame*(tFrame-2);
       break;
@@ -8134,7 +8142,7 @@ function interpolateState(x1,x2,tFrame) {
       break;
     }
   }
-	return x1*(1-tFrame) + x2*tFrame;
+  return x1*(1-tFrame) + x2*tFrame;
 }
 function interpolateStateAngle(x1,x2,tFrame) {
 	x1 = nearestAngle(x1,x2, 360);
