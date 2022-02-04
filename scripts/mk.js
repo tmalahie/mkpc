@@ -3856,7 +3856,7 @@ var fLineScale = 0;
 var oContainers = [document.createElement("div")];
 oContainers[0].className = "game-container";
 oContainers[0].tabindex = 1;
-var oContainers2, oScreens2, oPrevFrameStates;
+var oPrevFrameStates;
 formulaire = null;
 updateCtnFullScreen($mkScreen.dataset.fs==1);
 
@@ -3933,26 +3933,32 @@ function resetScreen() {
 		var frameRadius = document.location.search.match(/frameradius=(\w+)/);
 		prevScreenHue = document.location.search.match(/hue=(-?\w+)/)?.[1] || "0";
 		prevScreenBlur = document.location.search.match(/blur=([\w\.]+)/)?.[1] || "0";
-		prevScreenOpacity = document.location.search.match(/opacity=([\w\.]+)/)?.[1] || "0";
+		prevScreenOpacity = document.location.search.match(/frameopacity=([\w\.]+)/)?.[1] || "0";
+		prevScreenFade = +document.location.search.match(/framefade=([\w\.]+)/)?.[1] || 0;
 		if (frameRadius)
-			prevScreenDelay = frameRadius[1];
+			prevScreenDelay = +frameRadius[1];
 	}
 	
-	oContainers2 = [];
-	oScreens2 = [];
 	oPrevFrameStates = [];
 	for (var i=0;i<oContainers.length;i++) {
-		var oContainer2 = oContainers[i].cloneNode(true);
-		oContainer2.className = "";
-		oContainer2.style.position = "absolute";
-		oContainer2.style.left = "0px";
-		oContainer2.style.top = "0px";
-		oContainer2.style.width = "100%";
-		oContainer2.style.height = "100%";
-		oContainer2.style.opacity = 0;
-		oContainer2.style.filter = "hue-rotate("+ prevScreenHue +"deg) blur("+ prevScreenBlur +"px)";
-		oContainers2[i] = oContainer2;
-		oScreens2[i] = oContainer2.firstChild;
+		oPrevFrameStates[i] = [];
+		for (var j=0;j<prevScreenDelay;j++) {
+			var oContainer2 = oContainers[i].cloneNode(true);
+			oContainer2.className = "";
+			oContainer2.style.position = "absolute";
+			oContainer2.style.left = "0px";
+			oContainer2.style.top = "0px";
+			oContainer2.style.width = "100%";
+			oContainer2.style.height = "100%";
+			oContainer2.style.opacity = 0;
+			oContainer2.style.filter = "hue-rotate("+ prevScreenHue +"deg) blur("+ prevScreenBlur +"px)";
+			oPrevFrameStates[i][j] = {
+				container: oContainer2,
+				canvas: oContainer2.firstChild,
+				layer: [],
+				opacity: 0
+			}
+		}
 	}
 
 	var fLastZ = 0;
@@ -3981,16 +3987,11 @@ function resetScreen() {
 	for (var i=0;i<oMap.fond.length;i++)
 		oBgLayers[i] = new BGLayer(oMap.fond[i], (oMap.fond.length==2)?1:i+1);
 
-	for (var i=0;i<oContainers2.length;i++) {
-		oContainers[i].appendChild(oContainers2[i]);
-		oPrevFrameStates[i] = [];
+	for (var i=0;i<oPrevFrameStates.length;i++) {
 		for (var j=0;j<prevScreenDelay;j++) {
-			oPrevFrameStates[i].push({
-				canvas: oScreens2[i].cloneNode(false),
-				layer: oBgLayers.map(function(oBgLayer) {
-					return oBgLayer.getCurrentState(i);
-				})
-			})
+			oContainers[i].appendChild(oPrevFrameStates[i][j].container);
+			for (var k=0;k<oBgLayers.length;k++)
+				oPrevFrameStates[i][j].layer.push(oBgLayers[k].clone(i, oPrevFrameStates[i][j].container));
 		}
 	}
 	oViewCanvas = document.createElement("canvas");
@@ -4807,28 +4808,21 @@ function Sprite(strSprite) {
 
 function BGLayer(strImage, scaleFactor) {
 	var oLayers = new Array();
-	var oLayers2 = new Array();
-
-	var oAllContainers = [oContainers,oContainers2];
 
 	var imageDims = new Image();
 	imageDims.src = "images/map_bg/" + strImage + ".png";
 	if (!iSmooth) imageDims.className = "pixelated";
-	for (var j=0;j<oAllContainers.length;j++) {
-		var jContainers = oAllContainers[j];
-		for (var i=0;i<jContainers.length;i++) {
-			var oLayer = document.createElement("div");
-			oLayer.style.height = (10 * iScreenScale)+"px";
-			oLayer.style.width = (iWidth * iScreenScale)+"px";
-			oLayer.style.position = "absolute";
-			(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+imageDims.src+"')"},500)})(oLayer);
-			oLayer.style.backgroundSize = "auto 100%";
-			if (!iSmooth) oLayer.className = "pixelated";
+	for (var i=0;i<oContainers.length;i++) {
+		var oLayer = document.createElement("div");
+		oLayer.style.height = (10 * iScreenScale)+"px";
+		oLayer.style.width = (iWidth * iScreenScale)+"px";
+		oLayer.style.position = "absolute";
+		(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+imageDims.src+"')"},500)})(oLayer);
+		oLayer.style.backgroundSize = "auto 100%";
+		if (!iSmooth) oLayer.className = "pixelated";
 
-			jContainers[i].appendChild(oLayer);
-			if (j) oLayers2[i] = oLayer;
-			else oLayers[i] = oLayer;
-		}
+		oContainers[i].appendChild(oLayer);
+		oLayers[i] = oLayer;
 	}
 
 	return {
@@ -4844,13 +4838,17 @@ function BGLayer(strImage, scaleFactor) {
 
 			oLayers[i].style.backgroundPosition = Math.round(iScroll)+"px 0";
 		},
-		getCurrentState: function(i) {
+		clone: function(i, container) {
+			var oLayer2 = oLayers[i].cloneNode(true);
+			setTimeout(function() {
+				oLayer2.style.backgroundImage = oLayers[i].style.backgroundImage;
+			}, 500);
+			container.appendChild(oLayer2);
 			return {
-				backgroundPosition: oLayers[i].style.backgroundPosition
+				drawCurrentState : function() {
+					oLayer2.style.backgroundPosition = oLayers[i].style.backgroundPosition;
+				}
 			};
-		},
-		drawState : function(i, state) {
-			oLayers2[i].style.backgroundPosition = state.backgroundPosition;
 		},
 		suppr : function() {
 			for (var i=0;i<strPlayer.length;i++)
@@ -5360,31 +5358,25 @@ function createMarker(oKart) {
 }
 
 var prevScreenDelay;
-var prevScreenCur = 0, prevScreenOpacity = 0, prevScreenFilled = false;
+var prevScreenCur = 0, prevScreenOpacity = 0, prevScreenFade = 0;
 function clonePreviousScreen(i, oPlayer) {
-	if (prevScreenDelay === undefined) return;
-	var oContainer2 = oContainers2[i];
+	if (!prevScreenDelay) return;
 
 	var iPrevFrameStates = oPrevFrameStates[i];
 	iPrevFrameStates[prevScreenCur].canvas.getContext("2d").drawImage(
 	  oScreens[i], 0,0
 	);
 	for (var j=0;j<oBgLayers.length;j++)
-		iPrevFrameStates[prevScreenCur].layer[j] = oBgLayers[j].getCurrentState(i);
+		iPrevFrameStates[prevScreenCur].layer[j].drawCurrentState();
+	iPrevFrameStates[prevScreenCur].opacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed*prevScreenOpacity/8));
+	for (var j=0;j<prevScreenDelay;j++) {
+		var screenPos = (prevScreenCur-j + prevScreenDelay) % prevScreenDelay;
+		iPrevFrameStates[j].container.style.zIndex = prevScreenDelay-screenPos;
+		iPrevFrameStates[j].container.style.opacity = iPrevFrameStates[j].opacity * Math.pow(prevScreenFade, screenPos);
+	}
 	prevScreenCur++;
-	if (prevScreenCur >= prevScreenDelay) {
+	if (prevScreenCur >= prevScreenDelay)
 		prevScreenCur = 0;
-		prevScreenFilled = true;
-	}
-	if (prevScreenFilled) {
-		oScreens2[i].getContext("2d").drawImage(
-		iPrevFrameStates[prevScreenCur].canvas, 0,0
-		);
-		for (var j=0;j<oBgLayers.length;j++)
-			oBgLayers[j].drawState(i, iPrevFrameStates[prevScreenCur].layer[j]);
-		var screenOpacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed*prevScreenOpacity/8));
-		oContainer2.style.opacity = screenOpacity;
-	}
 }
 function redrawCanvas(i, fCamera) {
 	var oViewContext = oViewCanvas.getContext("2d");
