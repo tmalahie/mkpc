@@ -3856,7 +3856,7 @@ var fLineScale = 0;
 var oContainers = [document.createElement("div")];
 oContainers[0].className = "game-container";
 oContainers[0].tabindex = 1;
-var oContainers2, oScreens2;
+var oContainers2, oScreens2, oPrevFrameStates;
 formulaire = null;
 updateCtnFullScreen($mkScreen.dataset.fs==1);
 
@@ -3921,7 +3921,7 @@ function resetScreen() {
 	for (var i=0;i<oBgLayers.length;i++)
 		oBgLayers[i].suppr();
 	
-	var previousScreenHue = 0, previousScreenBlur = 0;
+	var prevScreenHue = 0, prevScreenBlur = 0;
 	if (course == "VS") {
 		if (window.location.pathname === "/mariokart.30fps.php")
 			nbFrames = 2;
@@ -3931,17 +3931,16 @@ function resetScreen() {
 			nbFrames = 8;
 		interpolateFn = document.location.search.match(/interpolate=(\w+)/)?.[1];
 		var frameRadius = document.location.search.match(/frameradius=(\w+)/);
-		previousScreenFade = document.location.search.match(/framefade=(\w+)/);
-		previousScreenHue = document.location.search.match(/hue=(-?\w+)/)?.[1] || "0";
-		previousScreenBlur = document.location.search.match(/blur=([\w\.]+)/)?.[1] || "0";
-		if (frameRadius && previousScreenFade) {
-			previousScreenFade = +previousScreenFade[1];
-			previousScreenPeriod = frameRadius[1]*SPF/nbFrames;
-		}
+		prevScreenHue = document.location.search.match(/hue=(-?\w+)/)?.[1] || "0";
+		prevScreenBlur = document.location.search.match(/blur=([\w\.]+)/)?.[1] || "0";
+		prevScreenOpacity = document.location.search.match(/opacity=([\w\.]+)/)?.[1] || "0";
+		if (frameRadius)
+			prevScreenDelay = frameRadius[1];
 	}
 	
 	oContainers2 = [];
 	oScreens2 = [];
+	oPrevFrameStates = [];
 	for (var i=0;i<oContainers.length;i++) {
 		var oContainer2 = oContainers[i].cloneNode(true);
 		oContainer2.className = "";
@@ -3951,7 +3950,7 @@ function resetScreen() {
 		oContainer2.style.width = "100%";
 		oContainer2.style.height = "100%";
 		oContainer2.style.opacity = 0;
-		oContainer2.style.filter = "hue-rotate("+ previousScreenHue +"deg) blur("+ previousScreenBlur +"px)";
+		oContainer2.style.filter = "hue-rotate("+ prevScreenHue +"deg) blur("+ prevScreenBlur +"px)";
 		oContainers2[i] = oContainer2;
 		oScreens2[i] = oContainer2.firstChild;
 	}
@@ -3982,8 +3981,18 @@ function resetScreen() {
 	for (var i=0;i<oMap.fond.length;i++)
 		oBgLayers[i] = new BGLayer(oMap.fond[i], (oMap.fond.length==2)?1:i+1);
 
-	for (var i=0;i<oContainers2.length;i++)
+	for (var i=0;i<oContainers2.length;i++) {
 		oContainers[i].appendChild(oContainers2[i]);
+		oPrevFrameStates[i] = [];
+		for (var j=0;j<prevScreenDelay;j++) {
+			oPrevFrameStates[i].push({
+				canvas: oScreens2[i].cloneNode(false),
+				layer: oBgLayers.map(function(oBgLayer) {
+					return oBgLayer.getCurrentState(i);
+				})
+			})
+		}
+	}
 	oViewCanvas = document.createElement("canvas");
 	oViewCanvas.width=iViewCanvasWidth;
 	oViewCanvas.height=iViewCanvasHeight;
@@ -4835,8 +4844,13 @@ function BGLayer(strImage, scaleFactor) {
 
 			oLayers[i].style.backgroundPosition = Math.round(iScroll)+"px 0";
 		},
-		drawPrev : function(i) {
-			oLayers2[i].style.backgroundPosition = oLayers[i].style.backgroundPosition;
+		getCurrentState: function(i) {
+			return {
+				backgroundPosition: oLayers[i].style.backgroundPosition
+			};
+		},
+		drawState : function(i, state) {
+			oLayers2[i].style.backgroundPosition = state.backgroundPosition;
 		},
 		suppr : function() {
 			for (var i=0;i<strPlayer.length;i++)
@@ -5345,34 +5359,32 @@ function createMarker(oKart) {
 	return res;
 }
 
-var previousScreenPeriod, previousScreenFade, previousScreenDelay = 0, previousScreenOpacity;
+var prevScreenDelay;
+var prevScreenCur = 0, prevScreenOpacity = 0, prevScreenFilled = false;
 function clonePreviousScreen(i, oPlayer) {
-	if (previousScreenPeriod === undefined) return;
+	if (prevScreenDelay === undefined) return;
 	var oContainer2 = oContainers2[i];
-	previousScreenDelay -= SPF/nbFrames;
-	if (previousScreenDelay > 0) {
-		oContainer2.style.opacity = fadedPreviousScreenOpacity();
-		return;
-	}
-	if (oPlayer.speed <= 0) {
-		oContainer2.style.opacity = 0;
-		return;
-	}
 
-	previousScreenDelay += previousScreenPeriod;
-
-	oScreens2[i].getContext("2d").drawImage(
+	var iPrevFrameStates = oPrevFrameStates[i];
+	iPrevFrameStates[prevScreenCur].canvas.getContext("2d").drawImage(
 	  oScreens[i], 0,0
 	);
 	for (var j=0;j<oBgLayers.length;j++)
-		oBgLayers[j].drawPrev(i);
-	oContainer2.style.transition = "";
-	previousScreenOpacity = Math.min(1, oPlayer.speed/5);
-	oContainer2.style.opacity = fadedPreviousScreenOpacity();
-}
-function fadedPreviousScreenOpacity() {
-	var x = previousScreenOpacity*previousScreenDelay/previousScreenPeriod;
-	return Math.max(0, Math.min(1, 1 - (1-x)*previousScreenPeriod/previousScreenFade));
+		iPrevFrameStates[prevScreenCur].layer[j] = oBgLayers[j].getCurrentState(i);
+	prevScreenCur++;
+	if (prevScreenCur >= prevScreenDelay) {
+		prevScreenCur = 0;
+		prevScreenFilled = true;
+	}
+	if (prevScreenFilled) {
+		oScreens2[i].getContext("2d").drawImage(
+		iPrevFrameStates[prevScreenCur].canvas, 0,0
+		);
+		for (var j=0;j<oBgLayers.length;j++)
+			oBgLayers[j].drawState(i, iPrevFrameStates[prevScreenCur].layer[j]);
+		var screenOpacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed*prevScreenOpacity/8));
+		oContainer2.style.opacity = screenOpacity;
+	}
 }
 function redrawCanvas(i, fCamera) {
 	var oViewContext = oViewCanvas.getContext("2d");
