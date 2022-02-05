@@ -169,10 +169,8 @@ function setQuality(iValue) {
 	
 	if (bRunning)
 		resetScreen();
-		
-	xhr("changeParam.php", "param=0&value="+ iValue, function(reponse) {
-		return (reponse == 1);
-	});
+	
+	localStorage.setItem("iQuality", iValue);
 }
 function resetQuality() {
 	if (iRendering == 5) {
@@ -305,9 +303,7 @@ function setScreenScale(iValue, triggered) {
 	else {
 		iScreenScale = iValue;
 		if (!triggered) {
-			xhr("changeParam.php", "param=1&value="+ iValue, function(reponse) {
-				return (reponse == 1);
-			});
+			localStorage.setItem("iScreenScale", iValue);
 		}
 	}
 	if (bRunning)
@@ -342,15 +338,17 @@ function setMusic(iValue) {
 	bMusic = !!iValue;
 	if (gameMenu != -1)
 		updateMenuMusic(gameMenu, true);
-	xhr("changeParam.php", "param=2&value="+ iValue, function(reponse) {
-		return (reponse == 1);
-	});
+	if (bMusic)
+		localStorage.setItem("bMusic", 1);
+	else
+		localStorage.removeItem("bMusic");
 }
 function setSfx(iValue) {
 	iSfx = !!iValue;
-	xhr("changeParam.php", "param=3&value="+ iValue, function(reponse) {
-		return (reponse == 1);
-	});
+	if (iSfx)
+		localStorage.setItem("iSfx", 1);
+	else
+		localStorage.removeItem("iSfx");
 }
 
 function removeMenuMusic(forceRemove) {
