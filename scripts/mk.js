@@ -136,11 +136,12 @@ for (circuits in oMaps) {
 var iWidth = 80;
 var iHeight = 39;
 var SPF = 67;
-var iRendering = optionOf("quality");
+var iRendering = baseOptions["quality"];
 var iQuality, iSmooth;
 resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
+var iFps = +localStorage.getItem("nbFrames") || 1;
 var gameMenu;
 var primaryColor = "#FEFF3F";
 
@@ -164,14 +165,13 @@ var myCircuit = (document.getElementById("changeRace") != null);
 
 function setQuality(iValue) {
 	iRendering = iValue;
+	baseOptions["quality"] = iValue;
 	resetQuality();
 	
-	if (bRunning)
-		resetScreen();
-		
-	xhr("changeParam.php", "param=0&value="+ iValue, function(reponse) {
-		return (reponse == 1);
-	});
+	if (iQuality == 5)
+		localStorage.removeItem("iQuality");
+	else
+		localStorage.setItem("iQuality", iValue);
 }
 function resetQuality() {
 	if (iRendering == 5) {
@@ -182,6 +182,11 @@ function resetQuality() {
 		iQuality = iRendering;
 		iSmooth = true;
 	}
+}
+
+function setFps(iValue) {
+	iFps = iValue;
+	localStorage.setItem("nbFrames", iValue);
 }
 
 function openFullscreen(elem) {
@@ -299,9 +304,7 @@ function setScreenScale(iValue, triggered) {
 	else {
 		iScreenScale = iValue;
 		if (!triggered) {
-			xhr("changeParam.php", "param=1&value="+ iValue, function(reponse) {
-				return (reponse == 1);
-			});
+			localStorage.setItem("iScreenScale", iValue);
 		}
 	}
 	if (bRunning)
@@ -336,15 +339,17 @@ function setMusic(iValue) {
 	bMusic = !!iValue;
 	if (gameMenu != -1)
 		updateMenuMusic(gameMenu, true);
-	xhr("changeParam.php", "param=2&value="+ iValue, function(reponse) {
-		return (reponse == 1);
-	});
+	if (bMusic)
+		localStorage.setItem("bMusic", 1);
+	else
+		localStorage.removeItem("bMusic");
 }
 function setSfx(iValue) {
 	iSfx = !!iValue;
-	xhr("changeParam.php", "param=3&value="+ iValue, function(reponse) {
-		return (reponse == 1);
-	});
+	if (iSfx)
+		localStorage.setItem("iSfx", 1);
+	else
+		localStorage.removeItem("iSfx");
 }
 
 function removeMenuMusic(forceRemove) {
@@ -636,8 +641,10 @@ var oTeamColors = {
 	name2: [toLanguage("blue","bleu"),toLanguage("red","rouge"),toLanguage("green","vert"),toLanguage("yellow","jaune"),toLanguage("orange","orange"),toLanguage("magenta","magenta")]
 }
 var cTeamColors = oTeamColors;
-function setPlanPos() {
-	var oPlayer = oPlayers[0];
+function setPlanPos(frameState) {
+	var oPlayer = frameState.players[0];
+	if (oPlayer.teleport > 3 || oPlayer.tombe > 10) return;
+	var frameItems = frameState.items;
 	var fRotation = Math.round(oPlayer.rotation-180);
 	var fCosR = direction(1,fRotation), fSinR = direction(0,fRotation);
 	function createObject(src, eltW, iPlanCtn, before) {
@@ -706,10 +713,11 @@ function setPlanPos() {
 	}
 
 	function setKartsPos(iPlanCharacters, iCharWidth, iMapW) {
-		for (var i=0;i<aKarts.length;i++) {
+		for (var i=0;i<frameState.karts.length;i++) {
+			var oKart = frameState.karts[i];
 			var updatePos = true;
-			if (aKarts[i].loose) {
-				if ((isOnline && !finishing) || (aKarts[i] == oPlayer))
+			if (oKart.ref.loose) {
+				if ((isOnline && !finishing) || (oKart == oPlayer))
 					iPlanCharacters[i].style.opacity = 0.25;
 				else {
 					iPlanCharacters[i].style.display = "none";
@@ -721,18 +729,18 @@ function setPlanPos() {
 				}
 			}
 			if (updatePos) {
-				var iCharR = aKarts[i].billball ? 1.5:aKarts[i].size;
+				var iCharR = oKart.ref.billball ? 1.5:oKart.size;
 				var iCharW = Math.round(iCharWidth*iCharR);
 				iPlanCharacters[i].style.width = iCharW +"px";
-				posImg(iPlanCharacters[i], aKarts[i].x,aKarts[i].y,aKarts[i].rotation-aKarts[i].tourne*360/21, iCharW, iMapW);
+				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW);
 				if (iTeamPlay && (iCharWidth==oCharWidth)) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
 					var iTeamW = Math.round(oTeamWidth*iCharR);
 					var iTeamW2 = Math.round(oTeamWidth2*iCharR);
-					posImgRel(oPlanTeams[i],aKarts[i].x,aKarts[i].y, Math.round(oPlayer.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2);
+					posImgRel(oPlanTeams[i],oKart.x,oKart.y, Math.round(oPlayer.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2);
 					oPlanTeams[i].style.width = iTeamW +"px";
 					oPlanTeams[i].style.height = iTeamW +"px";
-					posImgRel(oPlanTeams2[i],aKarts[i].x,aKarts[i].y, Math.round(oPlayer.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2);
+					posImgRel(oPlanTeams2[i],oKart.x,oKart.y, Math.round(oPlayer.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2);
 					oPlanTeams2[i].style.width = iTeamW2 +"px";
 					oPlanTeams2[i].style.height = iTeamW2 +"px";
 				}
@@ -766,47 +774,46 @@ function setPlanPos() {
 	}
 
 	function setDecorPos(iPlanDecor,iObjWidth,iPlanCtn,iPlanSize) {
-		if (oMap.decor) {
-			for (var type in oMap.decor) {
-				var firstRun = !iPlanDecor[type].length;
-				var decorBehavior = decorBehaviors[type];
-				var decorExtra = getDecorExtra(decorBehavior);
-				var customDecor = decorExtra.custom;
-				if (!decorBehavior.hidden) {
-					if ((oMap.decor[type].length!=iPlanDecor[type].length) || decorBehavior.movable) {
-						var tObjWidth = iObjWidth;
-						if (decorBehavior.size_ratio) tObjWidth *= decorBehavior.size_ratio.w;
-						syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
-						if (firstRun && customDecor) {
-							for (var i=0;i<iPlanDecor[type].length;i++) {
-								var iDecor = iPlanDecor[type][i];
-								iDecor.src = "images/map_icons/empty.png";
-							}
-							(function(type,decorBehavior) {
-								getCustomDecorData(customDecor, function(res) {
-									tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
-									for (var i=0;i<iPlanDecor[type].length;i++) {
-										var iDecor = iPlanDecor[type][i];
-										iDecor.src = res.map;
-										iDecor.style.width = tObjWidth +"px";
-									}
-									syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
-								});
-							})(type,decorBehavior);
+		for (var type in frameState.decor) {
+			var frameDecorType = frameState.decor[type];
+			var firstRun = !iPlanDecor[type].length;
+			var decorBehavior = decorBehaviors[type];
+			var decorExtra = getDecorExtra(decorBehavior);
+			var customDecor = decorExtra.custom;
+			if (!decorBehavior.hidden) {
+				if ((frameDecorType.length!=iPlanDecor[type].length) || decorBehavior.movable) {
+					var tObjWidth = iObjWidth;
+					if (decorBehavior.size_ratio) tObjWidth *= decorBehavior.size_ratio.w;
+					syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
+					if (firstRun && customDecor) {
+						for (var i=0;i<iPlanDecor[type].length;i++) {
+							var iDecor = iPlanDecor[type][i];
+							iDecor.src = "images/map_icons/empty.png";
 						}
-						var rotatable = decorBehavior.rotatable;
-						var relY;
-						if (rotatable) {
-							var iPlanDecor0 = iPlanDecor[type][0];
-							if (iPlanDecor0 && iPlanDecor0.naturalWidth)
-								relY = Math.round(tObjWidth*(iPlanDecor0.naturalWidth-iPlanDecor0.naturalHeight)/(2*iPlanDecor0.naturalWidth));
-						}
-						for (var i=0;i<oMap.decor[type].length;i++) {
-							if (rotatable)
-								posImgRel(iPlanDecor[type][i], oMap.decor[type][i][0],oMap.decor[type][i][1],Math.round(oMap.decor[type][i][4]), tObjWidth,iPlanSize, 0,relY);
-							else
-								setObject(iPlanDecor[type][i],oMap.decor[type][i][0],oMap.decor[type][i][1], tObjWidth,iPlanSize);
-						}
+						(function(type,decorBehavior) {
+							getCustomDecorData(customDecor, function(res) {
+								tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
+								for (var i=0;i<iPlanDecor[type].length;i++) {
+									var iDecor = iPlanDecor[type][i];
+									iDecor.src = res.map;
+									iDecor.style.width = tObjWidth +"px";
+								}
+								syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
+							});
+						})(type,decorBehavior);
+					}
+					var rotatable = decorBehavior.rotatable;
+					var relY;
+					if (rotatable) {
+						var iPlanDecor0 = iPlanDecor[type][0];
+						if (iPlanDecor0 && iPlanDecor0.naturalWidth)
+							relY = Math.round(tObjWidth*(iPlanDecor0.naturalWidth-iPlanDecor0.naturalHeight)/(2*iPlanDecor0.naturalWidth));
+					}
+					for (var i=0;i<frameDecorType.length;i++) {
+						if (rotatable)
+							posImgRel(iPlanDecor[type][i], frameDecorType[i].x,frameDecorType[i].y,Math.round(frameDecorType[i].ref[4]), tObjWidth,iPlanSize, 0,relY);
+						else
+							setObject(iPlanDecor[type][i],frameDecorType[i].x,frameDecorType[i].y, tObjWidth,iPlanSize);
 					}
 				}
 			}
@@ -815,34 +822,34 @@ function setPlanPos() {
 	setDecorPos(oPlanDecor, oObjWidth, oPlanCtn, oPlanSize);
 	setDecorPos(oPlanDecor2, oObjWidth2, oPlanCtn2, oPlanSize2);
 
-	syncObjects(oPlanFauxObjets,items["fauxobjet"],"objet", oObjWidth,oPlanCtn);
-	syncObjects(oPlanFauxObjets2,items["fauxobjet"],"objet", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["fauxobjet"].length;i++) {
-		var fauxobjet = items["fauxobjet"][i];
-		setObject(oPlanFauxObjets[i],fauxobjet.x,fauxobjet.y, oObjWidth,oPlanSize, fauxobjet.team,200);
-		setObject(oPlanFauxObjets2[i],fauxobjet.x,fauxobjet.y, oObjWidth2,oPlanSize2, fauxobjet.team,200);
+	syncObjects(oPlanFauxObjets,frameItems["fauxobjet"],"objet", oObjWidth,oPlanCtn);
+	syncObjects(oPlanFauxObjets2,frameItems["fauxobjet"],"objet", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["fauxobjet"].length;i++) {
+		var fauxobjet = frameItems["fauxobjet"][i];
+		setObject(oPlanFauxObjets[i],fauxobjet.x,fauxobjet.y, oObjWidth,oPlanSize, fauxobjet.ref.team,200);
+		setObject(oPlanFauxObjets2[i],fauxobjet.x,fauxobjet.y, oObjWidth2,oPlanSize2, fauxobjet.ref.team,200);
 		oPlanFauxObjets[i].style.zIndex = oPlanFauxObjets2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanBananes,items["banane"],"banane", oObjWidth,oPlanCtn);
-	syncObjects(oPlanBananes2,items["banane"],"banane", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["banane"].length;i++) {
-		var banane = items["banane"][i];
-		setObject(oPlanBananes[i],banane.x,banane.y, oObjWidth,oPlanSize, banane.team,100);
-		setObject(oPlanBananes2[i],banane.x,banane.y, oObjWidth2,oPlanSize2, banane.team,100);
+	syncObjects(oPlanBananes,frameItems["banane"],"banane", oObjWidth,oPlanCtn);
+	syncObjects(oPlanBananes2,frameItems["banane"],"banane", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["banane"].length;i++) {
+		var banane = frameItems["banane"][i];
+		setObject(oPlanBananes[i],banane.x,banane.y, oObjWidth,oPlanSize, banane.ref.team,100);
+		setObject(oPlanBananes2[i],banane.x,banane.y, oObjWidth2,oPlanSize2, banane.ref.team,100);
 		oPlanBananes[i].style.zIndex = oPlanBananes2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanPoisons,items["poison"],"poison", oObjWidth,oPlanCtn);
-	syncObjects(oPlanPoisons2,items["poison"],"poison", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["poison"].length;i++) {
-		var poison = items["poison"][i];
-		setObject(oPlanPoisons[i],poison.x,poison.y, oObjWidth,oPlanSize, poison.team,100);
-		setObject(oPlanPoisons2[i],poison.x,poison.y, oObjWidth2,oPlanSize2, poison.team,100);
+	syncObjects(oPlanPoisons,frameItems["poison"],"poison", oObjWidth,oPlanCtn);
+	syncObjects(oPlanPoisons2,frameItems["poison"],"poison", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["poison"].length;i++) {
+		var poison = frameItems["poison"][i];
+		setObject(oPlanPoisons[i],poison.x,poison.y, oObjWidth,oPlanSize, poison.ref.team,100);
+		setObject(oPlanPoisons2[i],poison.x,poison.y, oObjWidth2,oPlanSize2, poison.ref.team,100);
 		oPlanPoisons[i].style.zIndex = oPlanPoisons2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanChampis,items["champi"],"champi", oObjWidth,oPlanCtn);
-	syncObjects(oPlanChampis2,items["champi"],"champi", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["champi"].length;i++) {
-		var champi = items["champi"][i];
+	syncObjects(oPlanChampis,frameItems["champi"],"champi", oObjWidth,oPlanCtn);
+	syncObjects(oPlanChampis2,frameItems["champi"],"champi", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["champi"].length;i++) {
+		var champi = frameItems["champi"][i];
 		setObject(oPlanChampis[i],champi.x,champi.y, oObjWidth,oPlanSize, -1,100);
 		setObject(oPlanChampis2[i],champi.x,champi.y, oObjWidth2,oPlanSize2, -1,100);
 		oPlanChampis[i].style.zIndex = oPlanChampis2[i].style.zIndex = 2;
@@ -857,63 +864,64 @@ function setPlanPos() {
 	}
 
 	function setBobombPos(iPlanBobOmbs, iObjWidth,iPlanCtn, iPlanSize, iExpWidth) {
-		syncObjects(iPlanBobOmbs,items["bobomb"],"bob-omb", iObjWidth,iPlanCtn);
-		for (var i=0;i<items["bobomb"].length;i++) {
-			var bobomb = items["bobomb"][i];
-			if (bobomb.cooldown <= 0) {
-				posImg(iPlanBobOmbs[i], bobomb.x,bobomb.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobomb.team,"");
+		syncObjects(iPlanBobOmbs,frameItems["bobomb"],"bob-omb", iObjWidth,iPlanCtn);
+		for (var i=0;i<frameItems["bobomb"].length;i++) {
+			var bobomb = frameItems["bobomb"][i];
+			if (bobomb.ref.cooldown <= 0) {
+				posImg(iPlanBobOmbs[i], bobomb.x,bobomb.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobomb.ref.team,"");
 				iPlanBobOmbs[i].style.width = iExpWidth +"px";
-				iPlanBobOmbs[i].style.opacity = Math.max(1+bobomb.cooldown/10, 0);
+				iPlanBobOmbs[i].style.opacity = Math.max(1+bobomb.ref.cooldown/10, 0);
 				iPlanBobOmbs[i].style.background = "";
 			}
 			else
-				setObject(iPlanBobOmbs[i],bobomb.x,bobomb.y, iObjWidth,iPlanSize, bobomb.team,100).style.zIndex = 2;
+				setObject(iPlanBobOmbs[i],bobomb.x,bobomb.y, iObjWidth,iPlanSize, bobomb.ref.team,100).style.zIndex = 2;
 		}
 	}
 	setBobombPos(oPlanBobOmbs, oObjWidth,oPlanCtn, oPlanSize, oExpWidth);
 	setBobombPos(oPlanBobOmbs2, oObjWidth2,oPlanCtn2, oPlanSize2, oExpWidth2);
 
-	syncObjects(oPlanCarapaces,items["carapace"],"carapace", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapaces2,items["carapace"],"carapace", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["carapace"].length;i++) {
-		var carapace = items["carapace"][i];
-		setObject(oPlanCarapaces[i],carapace.x,carapace.y, oObjWidth,oPlanSize, carapace.team,200);
-		setObject(oPlanCarapaces2[i],carapace.x,carapace.y, oObjWidth2,oPlanSize2, carapace.team,200).style.zIndex = 2;
+	syncObjects(oPlanCarapaces,frameItems["carapace"],"carapace", oObjWidth,oPlanCtn);
+	syncObjects(oPlanCarapaces2,frameItems["carapace"],"carapace", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["carapace"].length;i++) {
+		var carapace = frameItems["carapace"][i];
+		setObject(oPlanCarapaces[i],carapace.x,carapace.y, oObjWidth,oPlanSize, carapace.ref.team,200);
+		setObject(oPlanCarapaces2[i],carapace.x,carapace.y, oObjWidth2,oPlanSize2, carapace.ref.team,200).style.zIndex = 2;
 	}
 
-	syncObjects(oPlanCarapacesRouges,items["carapace-rouge"],"carapace-rouge", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapacesRouges2,items["carapace-rouge"],"carapace-rouge", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["carapace-rouge"].length;i++) {
-		var carapaceRouge = items["carapace-rouge"][i];
-		setObject(oPlanCarapacesRouges[i],carapaceRouge.x,carapaceRouge.y, oObjWidth,oPlanSize, carapaceRouge.team,200);
-		setObject(oPlanCarapacesRouges2[i],carapaceRouge.x,carapaceRouge.y, oObjWidth2,oPlanSize2, carapaceRouge.team,200).style.zIndex = 2;
-		if (carapaceRouge.owner)
+	syncObjects(oPlanCarapacesRouges,frameItems["carapace-rouge"],"carapace-rouge", oObjWidth,oPlanCtn);
+	syncObjects(oPlanCarapacesRouges2,frameItems["carapace-rouge"],"carapace-rouge", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["carapace-rouge"].length;i++) {
+		var carapaceRouge = frameItems["carapace-rouge"][i];
+		setObject(oPlanCarapacesRouges[i],carapaceRouge.x,carapaceRouge.y, oObjWidth,oPlanSize, carapaceRouge.ref.team,200);
+		setObject(oPlanCarapacesRouges2[i],carapaceRouge.x,carapaceRouge.y, oObjWidth2,oPlanSize2, carapaceRouge.ref.team,200).style.zIndex = 2;
+		if (carapaceRouge.ref.owner)
 			oPlanCarapacesRouges[i].style.zIndex = 2;
 	}
 
 	function setCarapacesBleuesPos(iPlanCarapacesBleues, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
-		syncObjects(iPlanCarapacesBleues,items["carapace-bleue"],"carapace-bleue",iObjWidth,iPlanCtn);
-		for (var i=0;i<items["carapace-bleue"].length;i++) {
-			var carapaceBleue = items["carapace-bleue"][i];
-			if (carapaceBleue.cooldown <= 0) {
-				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceBleue.team,"0");
+		syncObjects(iPlanCarapacesBleues,frameItems["carapace-bleue"],"carapace-bleue",iObjWidth,iPlanCtn);
+		for (var i=0;i<frameItems["carapace-bleue"].length;i++) {
+			var carapaceBleue = frameItems["carapace-bleue"][i];
+			if (carapaceBleue.ref.cooldown <= 0) {
+				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceBleue.ref.team,"0");
 				iPlanCarapacesBleues[i].style.width = iExpWidth +"px";
-				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceBleue.cooldown/10, 0);
+				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceBleue.ref.cooldown/10, 0);
 				iPlanCarapacesBleues[i].style.background = "";
 			}
 			else
-				setObject(iPlanCarapacesBleues[i],carapaceBleue.x,carapaceBleue.y, iObjWidth,iPlanSize, carapaceBleue.team,200).style.zIndex = 2;
+				setObject(iPlanCarapacesBleues[i],carapaceBleue.x,carapaceBleue.y, iObjWidth,iPlanSize, carapaceBleue.ref.team,200).style.zIndex = 2;
 		}
 	}
 	setCarapacesBleuesPos(oPlanCarapacesBleues, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
 	setCarapacesBleuesPos(oPlanCarapacesBleues2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
 
 	var oStars = new Array(), oBillBalls = new Array();
-	for (var i=0;i<aKarts.length;i++) {
-		if (aKarts[i].etoile)
-			oStars.push(aKarts[i]);
-		else if (aKarts[i].billball)
-			oBillBalls.push(aKarts[i]);
+	for (var i=0;i<frameState.karts.length;i++) {
+		var oKart = frameState.karts[i];
+		if (oKart.ref.etoile)
+			oStars.push(oKart);
+		else if (oKart.ref.billball)
+			oBillBalls.push(oKart);
 	}
 	syncObjects(oPlanEtoiles,oStars,"etoile", oObjWidth,oPlanCtn);
 	syncObjects(oPlanEtoiles2,oStars,"etoile", oObjWidth2,oPlanCtn2);
@@ -1052,9 +1060,9 @@ function loadMap() {
 	if (strPlayer.length > 1)
 		updateCtnFullScreen(false);
 	formulaire.screenscale.disabled = true;
-	formulaire.quality.disabled = true;
 	formulaire.music.disabled = true;
 	formulaire.sfx.disabled = true;
+	formulaire.fps.disabled = true;
 
 	iTeamPlay = isTeamPlay();
 
@@ -2989,15 +2997,19 @@ function startGame() {
 			oPlanCtn2.appendChild(oObject2);
 			oPlanObjects2.push(oObject2);
 		}
-
-		oPlanDiv.appendChild(oPlanCtn);
-		document.body.appendChild(oPlanDiv);
-		oPlanDiv2.appendChild(oPlanCtn2);
-		document.body.appendChild(oPlanDiv2);
-		setPlanPos();
 	}
 
-	setTimeout(render, 500);
+	setTimeout(function() {
+		if (oPlanCtn) {
+			oPlanDiv.appendChild(oPlanCtn);
+			document.body.appendChild(oPlanDiv);
+		}
+		if (oPlanCtn2) {
+			oPlanDiv2.appendChild(oPlanCtn2);
+			document.body.appendChild(oPlanDiv2);
+		}
+		render();
+	}, 300);
 
 	if (bMusic) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
@@ -3565,6 +3577,7 @@ function startGame() {
 						var aSpeedInc = oPlayers[0].speedinc;
 						oPlayers[0].speedinc = 0;
 						var tUntil = clLocalVars.delayedStart*1000/67;
+						nbFrames = 1;
 						function fastCycle() {
 							if (pause) {
 								if (timer < tUntil) {
@@ -3574,6 +3587,7 @@ function startGame() {
 								else {
 									delete clLocalVars.fastForward;
 									oPlayers[0].speedinc = aSpeedInc;
+									nbFrames = iFps;
 									reprendre = resume;
 									reprendre(false);
 								}
@@ -3856,6 +3870,7 @@ var fLineScale = 0;
 var oContainers = [document.createElement("div")];
 oContainers[0].className = "game-container";
 oContainers[0].tabindex = 1;
+var oPrevFrameStates;
 formulaire = null;
 updateCtnFullScreen($mkScreen.dataset.fs==1);
 
@@ -3919,6 +3934,50 @@ function resetScreen() {
 
 	for (var i=0;i<oBgLayers.length;i++)
 		oBgLayers[i].suppr();
+	
+	var prevScreenBlur = 0;
+	nbFrames = iFps;
+	frameHandlers = new Array(nbFrames);
+	interpolateFn = gameSettings.frameint;
+	if (!interpolateFn) {
+		switch (iFps) {
+		case 2:
+			interpolateFn = "ease_out_quad";
+			break;
+		case 4:
+			interpolateFn = "ease_out_cubic";
+			break;
+		}
+	}
+	var frameSettings = getFrameSettings(gameSettings);
+	interpolateFn = frameSettings.frameint;
+	prevScreenDelay = frameSettings.framerad;
+	prevScreenBlur = frameSettings.frameblur;
+	prevScreenOpacity = frameSettings.frameopacity;
+	prevScreenFade = frameSettings.framefade;
+	if (nbFrames <= 1) prevScreenDelay = 0;
+	
+	oPrevFrameStates = [];
+	for (var i=0;i<oContainers.length;i++) {
+		oPrevFrameStates[i] = [];
+		for (var j=0;j<prevScreenDelay;j++) {
+			var oContainer2 = oContainers[i].cloneNode(true);
+			oContainer2.className = "";
+			oContainer2.style.position = "absolute";
+			oContainer2.style.left = "0px";
+			oContainer2.style.top = "0px";
+			oContainer2.style.width = "100%";
+			oContainer2.style.height = "100%";
+			oContainer2.style.opacity = 0;
+			oContainer2.style.filter = "blur("+ prevScreenBlur +"px)";
+			oPrevFrameStates[i][j] = {
+				container: oContainer2,
+				canvas: oContainer2.firstChild,
+				layer: [],
+				opacity: 0
+			}
+		}
+	}
 
 	var fLastZ = 0;
 		// create horizontal strip descriptions
@@ -3945,9 +4004,41 @@ function resetScreen() {
 	}
 	for (var i=0;i<oMap.fond.length;i++)
 		oBgLayers[i] = new BGLayer(oMap.fond[i], (oMap.fond.length==2)?1:i+1);
+
+	for (var i=0;i<oPrevFrameStates.length;i++) {
+		for (var j=0;j<prevScreenDelay;j++) {
+			oContainers[i].appendChild(oPrevFrameStates[i][j].container);
+			for (var k=0;k<oBgLayers.length;k++)
+				oPrevFrameStates[i][j].layer.push(oBgLayers[k].clone(i, oPrevFrameStates[i][j].container));
+		}
+	}
 	oViewCanvas = document.createElement("canvas");
 	oViewCanvas.width=iViewCanvasWidth;
 	oViewCanvas.height=iViewCanvasHeight;
+}
+
+function getFrameSettings(currentSettings) {
+	var frameint = currentSettings.frameint;
+	if (!frameint) {
+		switch (iFps) {
+		case 2:
+			frameint = "ease_out_quad";
+			break;
+		case 4:
+			frameint = "ease_out_cubic";
+			break;
+		}
+	}
+	var defaultframerad = Math.floor(iFps/2);
+	var framerad = (currentSettings.framerad >= 0) ? +currentSettings.framerad : defaultframerad;
+	return {
+		frameint: frameint,
+		framerad: framerad,
+		defaultframerad: defaultframerad,
+		frameblur: currentSettings.frameblur || "1",
+		frameopacity: (currentSettings.frameopacity >= 0) ? +currentSettings.frameopacity : 0.39/(framerad+1),
+		framefade: (currentSettings.framefade >= 0) ? +currentSettings.framefade : 1
+	}
 }
 
 function interruptGame() {
@@ -4764,18 +4855,17 @@ function BGLayer(strImage, scaleFactor) {
 	imageDims.src = "images/map_bg/" + strImage + ".png";
 	if (!iSmooth) imageDims.className = "pixelated";
 	for (var i=0;i<oContainers.length;i++) {
-		oLayers[i] = document.createElement("div");
-		oLayers[i].style.height = (10 * iScreenScale)+"px";
-		oLayers[i].style.width = (iWidth * iScreenScale)+"px";
-		oLayers[i].style.position = "absolute";
-		(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+imageDims.src+"')"},500)})(oLayers[i]);
-		oLayers[i].style.backgroundSize = "auto 100%";
-		if (!iSmooth) oLayers[i].className = "pixelated";
+		var oLayer = document.createElement("div");
+		oLayer.style.height = (10 * iScreenScale)+"px";
+		oLayer.style.width = (iWidth * iScreenScale)+"px";
+		oLayer.style.position = "absolute";
+		(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+imageDims.src+"')"},300)})(oLayer);
+		oLayer.style.backgroundSize = "auto 100%";
+		if (!iSmooth) oLayer.className = "pixelated";
 
-		oContainers[i].appendChild(oLayers[i]);
+		oContainers[i].appendChild(oLayer);
+		oLayers[i] = oLayer;
 	}
-
-
 
 	return {
 		draw : function(fRotation, i) {
@@ -4789,6 +4879,18 @@ function BGLayer(strImage, scaleFactor) {
 			var iScroll = iRot*fRotScale;
 
 			oLayers[i].style.backgroundPosition = Math.round(iScroll)+"px 0";
+		},
+		clone: function(i, container) {
+			var oLayer2 = oLayers[i].cloneNode(true);
+			setTimeout(function() {
+				oLayer2.style.backgroundImage = oLayers[i].style.backgroundImage;
+			}, 500);
+			container.appendChild(oLayer2);
+			return {
+				drawCurrentState : function() {
+					oLayer2.style.backgroundPosition = oLayers[i].style.backgroundPosition;
+				}
+			};
 		},
 		suppr : function() {
 			for (var i=0;i<strPlayer.length;i++)
@@ -5297,6 +5399,27 @@ function createMarker(oKart) {
 	return res;
 }
 
+var prevScreenDelay;
+var prevScreenCur = 0, prevScreenOpacity = 0, prevScreenFade = 0;
+function clonePreviousScreen(i, oPlayer) {
+	if (!prevScreenDelay) return;
+
+	var iPrevFrameStates = oPrevFrameStates[i];
+	iPrevFrameStates[prevScreenCur].canvas.getContext("2d").drawImage(
+	  oScreens[i], 0,0
+	);
+	for (var j=0;j<oBgLayers.length;j++)
+		iPrevFrameStates[prevScreenCur].layer[j].drawCurrentState();
+	iPrevFrameStates[prevScreenCur].opacity = Math.max(0, Math.min(prevScreenOpacity, oPlayer.speed*prevScreenOpacity/8));
+	for (var j=0;j<prevScreenDelay;j++) {
+		var screenPos = (prevScreenCur-j + prevScreenDelay) % prevScreenDelay;
+		iPrevFrameStates[j].container.style.zIndex = prevScreenDelay-screenPos;
+		iPrevFrameStates[j].container.style.opacity = iPrevFrameStates[j].opacity * Math.pow(prevScreenFade, screenPos);
+	}
+	prevScreenCur++;
+	if (prevScreenCur >= prevScreenDelay)
+		prevScreenCur = 0;
+}
 function redrawCanvas(i, fCamera) {
 	var oViewContext = oViewCanvas.getContext("2d");
 	oViewContext.fillStyle = "rgb("+ oMap.bgcolor +")";
@@ -5497,6 +5620,10 @@ var itemBehaviors = {
 							oSprites.bloops.y = oSprites.bloops.mine ? 18:12;
 							oBloops.style.zIndex = 19001;
 							oBloops.style.opacity = oSprites.bloops.mine ? 1:0;
+							if (nbFrames > 1) {
+								var transitionS = (SPF/1000);
+								oBloops.style.transition = "left "+ transitionS +"s ease-out, top "+ transitionS +"s ease-out";
+							}
 							oContainers[i].appendChild(oBloops);
 							fSprite.sprites[i] = oSprites;
 						}
@@ -8042,7 +8169,7 @@ function getApparentRotation(oPlayer) {
 	return res;
 }
 
-var lastState;
+var lastState, lastStateTime;
 function getLastObj(lastObjs,i,currentObj) {
 	if (lastObjs[i] && lastObjs[i].ref === currentObj.ref)
 		return lastObjs[i];
@@ -8052,8 +8179,34 @@ function getLastObj(lastObjs,i,currentObj) {
 	}
 	return currentObj;
 }
+var interpolateFn;
 function interpolateState(x1,x2,tFrame) {
-	return x1*(1-tFrame) + x2*tFrame;
+  if (interpolateFn) {
+    switch (interpolateFn) {
+    case "ease_out_quad":
+      tFrame = -tFrame*(tFrame-2);
+      break;
+    case "ease_out_cubic":
+      tFrame--;
+      tFrame = tFrame*tFrame*tFrame+1;
+      break;
+    case "ease_out_quart":
+      tFrame--;
+      tFrame = 1 - tFrame*tFrame*tFrame*tFrame;
+      break;
+    case "ease_out_exp":
+      tFrame = tFrame === 1 ? 1 : 1 - Math.pow(2, -10 * tFrame);
+      break;
+    }
+  }
+  return x1*(1-tFrame) + x2*tFrame;
+}
+function interpolateStateNullable(x1,x2,tFrame) {
+	if (x1 == null)
+		return x2;
+	if (x2 == null)
+		return x1;
+	return interpolateState(x1,x2,tFrame);
 }
 function interpolateStateAngle(x1,x2,tFrame) {
 	x1 = nearestAngle(x1,x2, 360);
@@ -8061,6 +8214,13 @@ function interpolateStateAngle(x1,x2,tFrame) {
 }
 function interpolateStateRound(x1,x2,tFrame) {
 	return Math.round(interpolateState(x1,x2,tFrame));
+}
+var nbFrames = 1;
+var frameHandlers;
+function resetRenderState() {
+	lastState = undefined;
+	for (var i=0;i<frameHandlers.length;i++)
+		clearTimeout(frameHandlers[i]);
 }
 function render() {
 	var currentState = {
@@ -8075,6 +8235,7 @@ function render() {
 			x: oKart.x,
 			y: oKart.y,
 			z: oKart.z,
+			speed: oKart.speed,
 			rotation: oKart.rotation,
 			changeView: oKart.changeView||0,
 			size: oKart.size,
@@ -8116,25 +8277,27 @@ function render() {
 	}
 	if (!lastState) lastState = currentState;
 
-	var nbFrames = 1;
-	if (course == "VS") {
-		if (window.location.pathname === "/mariokart.30fps.php")
-			nbFrames = 2;
-		else if (window.location.pathname === "/mariokart.60fps.php")
-			nbFrames = 4;
-		else if (window.location.pathname === "/mariokart.120fps.php")
-			nbFrames = 8;
-	}
-
 	function renderFrame(frame) {
-		var tFrame = frame/nbFrames;
-		var lastFrame = (tFrame == 1);
 		var frameState;
+		var currentStateTime = new Date().getTime();
+		var tFrame = 1/nbFrames;
+		var lastFrame = (frame == nbFrames);
+		if (lastFrame)
+			lastState = currentState;
 		if (nbFrames == 1) {
 			frameState = currentState;
 			frameState.players = [];
 		}
 		else {
+			if (frame > 1) {
+				tFrame += (currentStateTime - lastStateTime) / SPF;
+				if (tFrame*nbFrames >= (frame+1))
+					return; // Frame skip
+				if (tFrame > 1)
+					tFrame = 1;
+			}
+			else
+				lastStateTime = currentStateTime;
 			frameState = {
 				karts: [],
 				players: [],
@@ -8157,6 +8320,7 @@ function render() {
 					x: interpolateState(lastObj.x,currentObj.x,tFrame),
 					y: interpolateState(lastObj.y,currentObj.y,tFrame),
 					z: interpolateState(lastObj.z,currentObj.z,tFrame),
+					speed: interpolateState(lastObj.speed,currentObj.speed,tFrame),
 					rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
 					changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
 					size: interpolateState(lastObj.size,currentObj.size,tFrame),
@@ -8166,7 +8330,7 @@ function render() {
 					roulette: interpolateState(lastObj.roulette,currentObj.roulette,tFrame),
 					roulette2: interpolateState(lastObj.roulette2,currentObj.roulette2,tFrame),
 					tombe: interpolateState(lastObj.tombe,currentObj.tombe,tFrame),
-					teleport: interpolateState(lastObj.teleport,currentObj.teleport,tFrame)
+					teleport: interpolateStateNullable(lastObj.teleport,currentObj.teleport,tFrame)
 				});
 			}
 			for (var type in currentState.decor) {
@@ -8197,8 +8361,6 @@ function render() {
 				}
 			}
 		}
-		if (lastFrame)
-			lastState = currentState;
 		for (var i=0;i<oPlayers.length;i++)
 			frameState.players.push(frameState.karts[i]);
 		for (var i=0;i<frameState.players.length;i++) {
@@ -8233,9 +8395,15 @@ function render() {
 					posX = oPlayer.ref.aX;
 					posY = oPlayer.ref.aY;
 					oPlayer.rotation = oPlayer.ref.aRotation;
-					fRotation = getApparentRotation(oPlayer);
 				}
-				oContainers[i].style.opacity = Math.abs(oPlayer.teleport-3)/3;
+				else {
+					posX = oPlayer.ref.x;
+					posY = oPlayer.ref.y;
+					oPlayer.rotation = oPlayer.ref.rotation;
+				}
+				fRotation = getApparentRotation(oPlayer);
+				if (oPlayer.ref.teleport)
+					oContainers[i].style.opacity = Math.abs(oPlayer.teleport-3)/3;
 			}
 			//posX = aKarts[1].x;
 			//posY = aKarts[1].y;
@@ -8246,6 +8414,7 @@ function render() {
 				rotation: fRotation
 			};
 
+      		clonePreviousScreen(i, oPlayer);
 			redrawCanvas(i, fCamera);
 
 			if (oPlayer.time) {
@@ -8405,15 +8574,15 @@ function render() {
 				oBgLayers[j].draw(fRotation, i);
 
 			if ((strPlayer.length == 1) && !gameSettings.nomap)
-				setPlanPos();
+				setPlanPos(frameState);
 		}
 	}
-	renderFrame(1);
 	for (var i=1;i<nbFrames;i++) {
 		(function(i) {
-			setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
+			frameHandlers[i] = setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
 		})(i);
 	}
+	renderFrame(1);
 }
 function makeSpriteExplode(fSprite,defaultTeam,k) {
 	var src = "explosion";
@@ -12787,6 +12956,17 @@ function move(getId, triggered) {
 					document.getElementById("scroller"+prefix+getId).getElementsByTagName("div")[0].style.top = -Math.floor(Math.random()*rHeight) +"px";
 					updateObjHud(getId);
 					clLocalVars.itemsGot = true;
+
+					switch (iObj) {
+					case "etoile":
+						var eagerLoadImg = document.createElement("img");
+						eagerLoadImg.src = getStarSrc(oKart.personnage);
+						break;
+					case "billball":
+						var eagerLoadImg = document.createElement("img");
+						eagerLoadImg.src = "images/sprites/sprite_billball.png";
+						break;
+					}
 				}
 			}
 		}
@@ -14186,6 +14366,7 @@ function processCode(cheatCode) {
 		oPlayer.y = y;
 		if (!isNaN(th))
 			oPlayer.rotation = th;
+		resetRenderState();
 		return true;
 	}
 	var isLap = /^lap(?: ([1-3]|c))?(?: (\d+|c))?$/g.exec(cheatCode);
@@ -19949,7 +20130,7 @@ function selectChallengesScreen() {
 		if (myCircuit) {
 			var oPInput = document.createElement("input");
 			oPInput.type = "button";
-			oPInput.value = toLanguage("Edit challenges...", "Gérer les défis...");
+			oPInput.value = toLanguage("Manage challenges...", "Gérer les défis...");
 			oPInput.style.fontSize = (2*iScreenScale)+"px";
 			oPInput.style.position = "absolute";
 			oPInput.style.right = (2*iScreenScale)+"px";
@@ -21133,9 +21314,9 @@ function choose(map,rand) {
 							removeMenuMusic();
 							removeGameMusics();
 							formulaire.screenscale.disabled = false;
-							formulaire.quality.disabled = false;
 							formulaire.music.disabled = false;
 							formulaire.sfx.disabled = false;
+							formulaire.fps.disabled = false;
 							chatting = false;
 							searchCourse();
 							return false;
@@ -21206,9 +21387,9 @@ function choose(map,rand) {
 	updateMenuMusic(1);
 
 	formulaire.screenscale.disabled = true;
-	formulaire.quality.disabled = true;
 	formulaire.music.disabled = true;
 	formulaire.sfx.disabled = true;
+	formulaire.fps.disabled = true;
 
 	if (bMusic) {
 		startMusicHandler = setInterval(function() {
@@ -21657,9 +21838,9 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			removeMenuMusic();
 			removeGameMusics();
 			formulaire.screenscale.disabled = false;
-			formulaire.quality.disabled = false;
 			formulaire.music.disabled = false;
 			formulaire.sfx.disabled = false;
+			formulaire.fps.disabled = false;
 			chatting = false;
 			searchCourse();
 			return false;
@@ -22781,7 +22962,7 @@ function updateCommandSheet() {
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br /><strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), "R") +'</span><br /><strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "T")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
+	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), "R") +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "T")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
 function editCommands(reload,currentTab) {
 	currentTab = currentTab || 0;
@@ -22939,18 +23120,18 @@ function editCommands(reload,currentTab) {
 	$controlWindows.appendChild($controlCommands);
 	var $controlSettings = document.createElement("div");
 	$controlSettings.className = "control-settings";
-	var $controlSettingsInfo = document.createElement("div");
-	$controlSettingsInfo.className = "control-settings-info";
-	$controlSettingsInfo.innerHTML = toLanguage("These settings allow you to disable some graphic elements from the game. Use them if you experience some lag for example.", "Ces paramètres vous permettent de désactiver certains éléments graphiques du jeu. Utilisez-les si vous avez des problèmes de lags par exemple.");
-	$controlSettings.appendChild($controlSettingsInfo);
-	var allSettings = {
+	var $controlSettingsH2 = document.createElement("div");
+	$controlSettingsH2.className = "control-settings-info";
+	$controlSettingsH2.innerHTML = toLanguage("Graphics settings", "Paramètres graphiques");
+	$controlSettings.appendChild($controlSettingsH2);
+	var allGraphicSettings = {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
 		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map')
 	};
 	var currentSettings = localStorage.getItem("settings");
 	currentSettings = currentSettings ? JSON.parse(currentSettings) : {};
-	for (var key in allSettings) {
+	for (var key in allGraphicSettings) {
 		(function(key) {
 			var $controlSetting = document.createElement("label");
 			var $controlCheckbox = document.createElement("input");
@@ -22958,7 +23139,7 @@ function editCommands(reload,currentTab) {
 			$controlCheckbox.checked = !!currentSettings[key];
 			$controlSetting.appendChild($controlCheckbox);
 			var $controlText = document.createElement("span");
-			$controlText.innerHTML = allSettings[key];
+			$controlText.innerHTML = allGraphicSettings[key];
 			$controlSetting.appendChild($controlText);
 			$controlCheckbox.onclick = function() {
 				if (this.checked)
@@ -22970,6 +23151,176 @@ function editCommands(reload,currentTab) {
 			$controlSettings.appendChild($controlSetting);
 		})(key);
 	}
+	{
+		var $controlSetting = document.createElement("label");
+		$controlSetting.style.marginLeft = "5px";
+		var $controlText = document.createElement("span");
+		$controlText.innerHTML = toLanguage("Quality:", "Qualité :");
+		$controlSetting.appendChild($controlText);
+		var $controlSelect = document.createElement("select");
+		$controlSelect.style.width = "auto";
+		$controlSelect.style.marginLeft = "6px";
+		$controlSelect.onchange = function() {
+			MarioKartControl.setQuality(+this.value);
+		};
+		var options = [
+			[5, toLanguage("Pixelated","Pixelisé")],
+			[4, toLanguage("Low","Inférieure")],
+			[2, toLanguage("Medium","Moyenne")],
+			[1, toLanguage("High","Supérieure")]
+		];
+		for (var i=0;i<options.length;i++) {
+			var option = options[i];
+			var $controlOption = document.createElement("option");
+			$controlOption.value = option[0];
+			$controlOption.innerHTML = option[1];
+			$controlSelect.appendChild($controlOption);
+		}
+		if (localStorage.getItem("iQuality"))
+			$controlSelect.value = localStorage.getItem("iQuality");
+		$controlSetting.appendChild($controlSelect);
+		$controlSettings.appendChild($controlSetting);
+	}
+	if (iFps > 1) {
+		var frameSettings = getFrameSettings(currentSettings);
+
+		var $controlSettingsH2 = document.createElement("div");
+		$controlSettingsH2.className = "control-settings-info";
+		$controlSettingsH2.innerHTML = toLanguage("Framerate settings", "Paramètres FPS");
+		$controlSettings.appendChild($controlSettingsH2);
+		var $controlSettingMotion;
+		function applyMotionToggle() {
+			$controlSettingMotion.style.display = currentSettings.framerad != 0 ? "block" : "none";
+		}
+		var currentFrameRad = frameSettings.framerad || frameSettings.defaultframerad;
+		{
+			var $controlSetting = document.createElement("label");
+			$controlSetting.style.display = "inline-block";
+			var $controlCheckbox = document.createElement("input");
+			$controlCheckbox.type = "checkbox";
+			$controlCheckbox.checked = (currentSettings.framerad != 0);
+			$controlSetting.appendChild($controlCheckbox);
+			var $controlText = document.createElement("span");
+			$controlText.innerHTML = toLanguage("Enable motion trail", "Activer le motion trail");
+			$controlSetting.appendChild($controlText);
+			$controlCheckbox.onclick = function() {
+				if (this.checked) {
+					if (currentFrameRad)
+						currentSettings.framerad = currentFrameRad;
+					else
+						delete currentSettings.framerad;
+				}
+				else
+					currentSettings.framerad = 0;
+				localStorage.setItem("settings", JSON.stringify(currentSettings));
+				applyMotionToggle();
+			}
+			$controlSettings.appendChild($controlSetting);
+		}
+		{
+			$controlSettingMotion = document.createElement("div");
+			$controlSettingMotion.className = "motion-trail-settings";
+
+			{
+				var $controlSetting = document.createElement("label");
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("Frame&nbsp;count:", "Nb&nbsp;frames&nbsp;:");
+				$controlSetting.appendChild($controlText);
+				var $controlSelect = document.createElement("select");
+				$controlSelect.style.width = "auto";
+				$controlSelect.style.marginLeft = "6px";
+				$controlSelect.onchange = function() {
+					currentSettings.framerad = this.value;
+					localStorage.setItem("settings", JSON.stringify(currentSettings));
+				};
+				for (var i=1;i<10;i++) {
+					var option = options[i];
+					var $controlOption = document.createElement("option");
+					$controlOption.value = i;
+					$controlOption.innerHTML = i;
+					$controlSelect.appendChild($controlOption);
+				}
+				$controlSelect.value = currentFrameRad;
+				$controlSetting.appendChild($controlSelect);
+				$controlSettingMotion.appendChild($controlSetting);
+			}
+			{
+				var $controlSetting = document.createElement("label");
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("Opacity:", "Opacité&nbsp;:");
+				$controlSetting.appendChild($controlText);
+				var $controlInput = document.createElement("input");
+				$controlInput.type = "number";
+				$controlInput.setAttribute("step", "0.01");
+				$controlInput.style.width = "50px";
+				$controlInput.style.marginLeft = "6px";
+				$controlInput.onchange = function() {
+					currentSettings.frameopacity = Math.min(1, Math.max(0, this.value));
+					this.value = currentSettings.frameopacity;
+					localStorage.setItem("settings", JSON.stringify(currentSettings));
+				};
+				$controlInput.value = frameSettings.frameopacity;
+				$controlSetting.appendChild($controlInput);
+				$controlSettingMotion.appendChild($controlSetting);
+			}
+			{
+				var $controlSetting = document.createElement("label");
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("Blur:", "Flou&nbsp;:");
+				$controlSetting.appendChild($controlText);
+				var $controlInput = document.createElement("input");
+				$controlInput.type = "number";
+				$controlInput.setAttribute("step", "0.1");
+				$controlInput.style.width = "42px";
+				$controlInput.style.marginLeft = "6px";
+				$controlInput.onchange = function() {
+					currentSettings.frameblur = Math.min(10, Math.max(0, this.value));
+					this.value = currentSettings.frameblur;
+					localStorage.setItem("settings", JSON.stringify(currentSettings));
+				};
+				$controlInput.value = frameSettings.frameblur;
+				$controlSetting.appendChild($controlInput);
+				$controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("&nbsp;px", "&nbsp;px");
+				$controlSetting.appendChild($controlText);
+				$controlSettingMotion.appendChild($controlSetting);
+			}
+
+			$controlSettings.appendChild($controlSettingMotion);
+		}
+		applyMotionToggle();
+		{
+			var $controlSetting = document.createElement("label");
+			$controlSetting.style.marginLeft = "5px";
+			var $controlText = document.createElement("span");
+			$controlText.innerHTML = toLanguage("Interfame interpolation:", "Interpolation inter-frames :");
+			$controlSetting.appendChild($controlText);
+			var $controlSelect = document.createElement("select");
+			$controlSelect.style.width = "85px";
+			$controlSelect.style.marginLeft = "6px";
+			$controlSelect.onchange = function() {
+				currentSettings.frameint = this.value;
+				localStorage.setItem("settings", JSON.stringify(currentSettings));
+			};
+			var options = [
+				["ease_out_linear", toLanguage("Linear &nbsp; &nbsp; &nbsp; (Smoothest)", "Linéaire &nbsp; (Très fluide)")],
+				["ease_out_quad", toLanguage("Quadratic (Smooth)","Quadratique (Fluide)")],
+				["ease_out_cubic", toLanguage("Cubic &nbsp; &nbsp; &nbsp; &nbsp; (Medium)","Cubique &nbsp; &nbsp; (Moyen)")],
+				["ease_out_quart", toLanguage("Quartic &nbsp; &nbsp; (Sharp)","Quartique &nbsp; (Saccadé)")],
+				["ease_out_exp", toLanguage("Exponential (Sharpest)","Exponentiel (Très saccadé)")]
+			];
+			for (var i=0;i<options.length;i++) {
+				var option = options[i];
+				var $controlOption = document.createElement("option");
+				$controlOption.value = option[0];
+				$controlOption.innerHTML = option[1];
+				$controlSelect.appendChild($controlOption);
+			}
+			$controlSelect.value = frameSettings.frameint;
+			$controlSetting.appendChild($controlSelect);
+			$controlSettings.appendChild($controlSetting);
+		}
+	}
 	var $controlReset = document.createElement("div");
 	$controlReset.className = "control-reset";
 	var $controlResetBtn = document.createElement("a");
@@ -22978,6 +23329,7 @@ function editCommands(reload,currentTab) {
 	$controlResetBtn.onclick = function() {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
+			localStorage.removeItem("iQuality");
 			editCommands(true,currentTab);
 		}
 		return false;
@@ -22989,7 +23341,6 @@ function editCommands(reload,currentTab) {
 	$controlEditorMask.appendChild($controlEditor);
 	document.body.appendChild($controlEditorMask);
 	$controlWindows.style.width = $controlWindows.scrollWidth +"px";
-	$controlWindows.style.height = $controlWindows.scrollHeight +"px";
 	if (currentTab)
 		document.querySelectorAll(".control-tabs > div")[currentTab].click();
 }
@@ -23132,9 +23483,9 @@ function toPerso(sPerso) {
 formulaire = document.forms.modes;
 if (pause) {
 	formulaire.screenscale.disabled = false;
-	formulaire.quality.disabled = false;
 	formulaire.music.disabled = false;
 	formulaire.sfx.disabled = false;
+	formulaire.fps.disabled = false;
 	if (isSingle && !isOnline)
 		choose(1);
 	else if (fInfos.map != undefined)
@@ -23151,13 +23502,6 @@ if (pause) {
 		selectMapScreen();
 }
 else {
-	addOption("pQuality", toLanguage("Quality","Qualit&eacute;"),
-	"vQuality", "quality", [
-		[5, toLanguage("Pixelated","Pixelisé")],
-		[4, toLanguage("Low","Inf&eacute;rieure")],
-		[2, toLanguage("Medium","Moyenne")],
-		[1, toLanguage("High","Sup&eacute;rieure")]
-	], iRendering);
 	addOption("pSize", toLanguage("Screen Size","Taille de l'&eacute;cran"),
 	"vSize", "screenscale", [
 		[4, toLanguage("Very small","Tr&egrave;s petite")],
@@ -23177,6 +23521,12 @@ else {
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;s")],
 		[1, toLanguage("On","Activ&eacute;s")]
 	], iSfx);
+	addOption("pFps", toLanguage("Framerate","FPS"),
+	"vFps", "fps", [
+		[1, "15 FPS"],
+		[2, "30 FPS"],
+		[4, "60 FPS"]
+	], iFps);
 	selectMainPage();
 	
 	if (!window.turnEvents) {
@@ -23204,10 +23554,6 @@ else {
 		window.turnEvents = true;
 	}
 	
-	formulaire.quality.onchange = function() {
-		var iValue = parseInt(this.item(this.selectedIndex).value);
-		MarioKartControl.setQuality(iValue);
-	}
 	formulaire.screenscale.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setScreenScale(iValue);
@@ -23219,6 +23565,10 @@ else {
 	formulaire.sfx.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setSfx(iValue);
+	}
+	formulaire.fps.onchange = function() {
+		var iValue = parseInt(this.item(this.selectedIndex).value);
+		MarioKartControl.setFps(iValue);
 	}
 	if (!window.fsevent) {
 		window.fsevent = function(e) {
@@ -23239,7 +23589,10 @@ else {
 	if (typeof course === 'undefined')
 		course = "";
 	var $commandes = document.getElementById("commandes");
+	if (!$commandes.dataset) $commandes.dataset = {};
 	if ($commandes && $commandes.innerHTML.length < 10)
+		$commandes.dataset.hasCommands = 1;
+	if ($commandes.dataset.hasCommands)
 		displayCommands();
 	
 	if (isFirstLoad) {
@@ -23577,6 +23930,9 @@ window.MarioKartControl = {
 	},
 	setSfx : function(iValue) {
 		setSfx(iValue);
+	},
+	setFps : function(iValue) {
+		setFps(iValue);
 	}
 };
 
