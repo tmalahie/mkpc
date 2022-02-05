@@ -3570,6 +3570,7 @@ function startGame() {
 						var aSpeedInc = oPlayers[0].speedinc;
 						oPlayers[0].speedinc = 0;
 						var tUntil = clLocalVars.delayedStart*1000/67;
+						nbFrames = 1;
 						function fastCycle() {
 							if (pause) {
 								if (timer < tUntil) {
@@ -3579,6 +3580,7 @@ function startGame() {
 								else {
 									delete clLocalVars.fastForward;
 									oPlayers[0].speedinc = aSpeedInc;
+									nbFrames = iFps;
 									reprendre = resume;
 									reprendre(false);
 								}
@@ -20084,7 +20086,7 @@ function selectChallengesScreen() {
 		if (myCircuit) {
 			var oPInput = document.createElement("input");
 			oPInput.type = "button";
-			oPInput.value = toLanguage("Edit challenges...", "Gérer les défis...");
+			oPInput.value = toLanguage("Manage challenges...", "Gérer les défis...");
 			oPInput.style.fontSize = (2*iScreenScale)+"px";
 			oPInput.style.position = "absolute";
 			oPInput.style.right = (2*iScreenScale)+"px";
@@ -23257,8 +23259,8 @@ function editCommands(reload,currentTab) {
 				localStorage.setItem("settings", JSON.stringify(currentSettings));
 			};
 			var options = [
-				["ease_out_linear", toLanguage("Linear &nbsp; &nbsp; &nbsp; (Smoothest)", "Linéaire &nbsp; (Très lisse)")],
-				["ease_out_quad", toLanguage("Quadratic (Smooth)","Quadratique (Lisse)")],
+				["ease_out_linear", toLanguage("Linear &nbsp; &nbsp; &nbsp; (Smoothest)", "Linéaire &nbsp; (Très fluide)")],
+				["ease_out_quad", toLanguage("Quadratic (Smooth)","Quadratique (Fluide)")],
 				["ease_out_cubic", toLanguage("Cubic &nbsp; &nbsp; &nbsp; &nbsp; (Medium)","Cubique &nbsp; &nbsp; (Moyen)")],
 				["ease_out_quart", toLanguage("Quartic &nbsp; &nbsp; (Sharp)","Quartique &nbsp; (Saccadé)")],
 				["ease_out_exp", toLanguage("Exponential (Sharpest)","Exponentiel (Très saccadé)")]
