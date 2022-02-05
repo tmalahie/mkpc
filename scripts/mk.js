@@ -641,8 +641,10 @@ var oTeamColors = {
 	name2: [toLanguage("blue","bleu"),toLanguage("red","rouge"),toLanguage("green","vert"),toLanguage("yellow","jaune"),toLanguage("orange","orange"),toLanguage("magenta","magenta")]
 }
 var cTeamColors = oTeamColors;
-function setPlanPos() {
-	var oPlayer = oPlayers[0];
+function setPlanPos(frameState) {
+	var oPlayer = frameState.players[0];
+	if (oPlayer.teleport > 3 || oPlayer.tombe > 10) return;
+	var frameItems = frameState.items;
 	var fRotation = Math.round(oPlayer.rotation-180);
 	var fCosR = direction(1,fRotation), fSinR = direction(0,fRotation);
 	function createObject(src, eltW, iPlanCtn, before) {
@@ -711,10 +713,11 @@ function setPlanPos() {
 	}
 
 	function setKartsPos(iPlanCharacters, iCharWidth, iMapW) {
-		for (var i=0;i<aKarts.length;i++) {
+		for (var i=0;i<frameState.karts.length;i++) {
+			var oKart = frameState.karts[i];
 			var updatePos = true;
-			if (aKarts[i].loose) {
-				if ((isOnline && !finishing) || (aKarts[i] == oPlayer))
+			if (oKart.ref.loose) {
+				if ((isOnline && !finishing) || (oKart == oPlayer))
 					iPlanCharacters[i].style.opacity = 0.25;
 				else {
 					iPlanCharacters[i].style.display = "none";
@@ -726,18 +729,18 @@ function setPlanPos() {
 				}
 			}
 			if (updatePos) {
-				var iCharR = aKarts[i].billball ? 1.5:aKarts[i].size;
+				var iCharR = oKart.ref.billball ? 1.5:oKart.size;
 				var iCharW = Math.round(iCharWidth*iCharR);
 				iPlanCharacters[i].style.width = iCharW +"px";
-				posImg(iPlanCharacters[i], aKarts[i].x,aKarts[i].y,aKarts[i].rotation-aKarts[i].tourne*360/21, iCharW, iMapW);
+				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW);
 				if (iTeamPlay && (iCharWidth==oCharWidth)) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
 					var iTeamW = Math.round(oTeamWidth*iCharR);
 					var iTeamW2 = Math.round(oTeamWidth2*iCharR);
-					posImgRel(oPlanTeams[i],aKarts[i].x,aKarts[i].y, Math.round(oPlayer.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2);
+					posImgRel(oPlanTeams[i],oKart.x,oKart.y, Math.round(oPlayer.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2);
 					oPlanTeams[i].style.width = iTeamW +"px";
 					oPlanTeams[i].style.height = iTeamW +"px";
-					posImgRel(oPlanTeams2[i],aKarts[i].x,aKarts[i].y, Math.round(oPlayer.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2);
+					posImgRel(oPlanTeams2[i],oKart.x,oKart.y, Math.round(oPlayer.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2);
 					oPlanTeams2[i].style.width = iTeamW2 +"px";
 					oPlanTeams2[i].style.height = iTeamW2 +"px";
 				}
@@ -771,47 +774,46 @@ function setPlanPos() {
 	}
 
 	function setDecorPos(iPlanDecor,iObjWidth,iPlanCtn,iPlanSize) {
-		if (oMap.decor) {
-			for (var type in oMap.decor) {
-				var firstRun = !iPlanDecor[type].length;
-				var decorBehavior = decorBehaviors[type];
-				var decorExtra = getDecorExtra(decorBehavior);
-				var customDecor = decorExtra.custom;
-				if (!decorBehavior.hidden) {
-					if ((oMap.decor[type].length!=iPlanDecor[type].length) || decorBehavior.movable) {
-						var tObjWidth = iObjWidth;
-						if (decorBehavior.size_ratio) tObjWidth *= decorBehavior.size_ratio.w;
-						syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
-						if (firstRun && customDecor) {
-							for (var i=0;i<iPlanDecor[type].length;i++) {
-								var iDecor = iPlanDecor[type][i];
-								iDecor.src = "images/map_icons/empty.png";
-							}
-							(function(type,decorBehavior) {
-								getCustomDecorData(customDecor, function(res) {
-									tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
-									for (var i=0;i<iPlanDecor[type].length;i++) {
-										var iDecor = iPlanDecor[type][i];
-										iDecor.src = res.map;
-										iDecor.style.width = tObjWidth +"px";
-									}
-									syncObjects(iPlanDecor[type],oMap.decor[type],type, tObjWidth,iPlanCtn);
-								});
-							})(type,decorBehavior);
+		for (var type in frameState.decor) {
+			var frameDecorType = frameState.decor[type];
+			var firstRun = !iPlanDecor[type].length;
+			var decorBehavior = decorBehaviors[type];
+			var decorExtra = getDecorExtra(decorBehavior);
+			var customDecor = decorExtra.custom;
+			if (!decorBehavior.hidden) {
+				if ((frameDecorType.length!=iPlanDecor[type].length) || decorBehavior.movable) {
+					var tObjWidth = iObjWidth;
+					if (decorBehavior.size_ratio) tObjWidth *= decorBehavior.size_ratio.w;
+					syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
+					if (firstRun && customDecor) {
+						for (var i=0;i<iPlanDecor[type].length;i++) {
+							var iDecor = iPlanDecor[type][i];
+							iDecor.src = "images/map_icons/empty.png";
 						}
-						var rotatable = decorBehavior.rotatable;
-						var relY;
-						if (rotatable) {
-							var iPlanDecor0 = iPlanDecor[type][0];
-							if (iPlanDecor0 && iPlanDecor0.naturalWidth)
-								relY = Math.round(tObjWidth*(iPlanDecor0.naturalWidth-iPlanDecor0.naturalHeight)/(2*iPlanDecor0.naturalWidth));
-						}
-						for (var i=0;i<oMap.decor[type].length;i++) {
-							if (rotatable)
-								posImgRel(iPlanDecor[type][i], oMap.decor[type][i][0],oMap.decor[type][i][1],Math.round(oMap.decor[type][i][4]), tObjWidth,iPlanSize, 0,relY);
-							else
-								setObject(iPlanDecor[type][i],oMap.decor[type][i][0],oMap.decor[type][i][1], tObjWidth,iPlanSize);
-						}
+						(function(type,decorBehavior) {
+							getCustomDecorData(customDecor, function(res) {
+								tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
+								for (var i=0;i<iPlanDecor[type].length;i++) {
+									var iDecor = iPlanDecor[type][i];
+									iDecor.src = res.map;
+									iDecor.style.width = tObjWidth +"px";
+								}
+								syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
+							});
+						})(type,decorBehavior);
+					}
+					var rotatable = decorBehavior.rotatable;
+					var relY;
+					if (rotatable) {
+						var iPlanDecor0 = iPlanDecor[type][0];
+						if (iPlanDecor0 && iPlanDecor0.naturalWidth)
+							relY = Math.round(tObjWidth*(iPlanDecor0.naturalWidth-iPlanDecor0.naturalHeight)/(2*iPlanDecor0.naturalWidth));
+					}
+					for (var i=0;i<frameDecorType.length;i++) {
+						if (rotatable)
+							posImgRel(iPlanDecor[type][i], frameDecorType[i].x,frameDecorType[i].y,Math.round(frameDecorType[i].ref[4]), tObjWidth,iPlanSize, 0,relY);
+						else
+							setObject(iPlanDecor[type][i],frameDecorType[i].x,frameDecorType[i].y, tObjWidth,iPlanSize);
 					}
 				}
 			}
@@ -820,34 +822,34 @@ function setPlanPos() {
 	setDecorPos(oPlanDecor, oObjWidth, oPlanCtn, oPlanSize);
 	setDecorPos(oPlanDecor2, oObjWidth2, oPlanCtn2, oPlanSize2);
 
-	syncObjects(oPlanFauxObjets,items["fauxobjet"],"objet", oObjWidth,oPlanCtn);
-	syncObjects(oPlanFauxObjets2,items["fauxobjet"],"objet", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["fauxobjet"].length;i++) {
-		var fauxobjet = items["fauxobjet"][i];
-		setObject(oPlanFauxObjets[i],fauxobjet.x,fauxobjet.y, oObjWidth,oPlanSize, fauxobjet.team,200);
-		setObject(oPlanFauxObjets2[i],fauxobjet.x,fauxobjet.y, oObjWidth2,oPlanSize2, fauxobjet.team,200);
+	syncObjects(oPlanFauxObjets,frameItems["fauxobjet"],"objet", oObjWidth,oPlanCtn);
+	syncObjects(oPlanFauxObjets2,frameItems["fauxobjet"],"objet", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["fauxobjet"].length;i++) {
+		var fauxobjet = frameItems["fauxobjet"][i];
+		setObject(oPlanFauxObjets[i],fauxobjet.x,fauxobjet.y, oObjWidth,oPlanSize, fauxobjet.ref.team,200);
+		setObject(oPlanFauxObjets2[i],fauxobjet.x,fauxobjet.y, oObjWidth2,oPlanSize2, fauxobjet.ref.team,200);
 		oPlanFauxObjets[i].style.zIndex = oPlanFauxObjets2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanBananes,items["banane"],"banane", oObjWidth,oPlanCtn);
-	syncObjects(oPlanBananes2,items["banane"],"banane", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["banane"].length;i++) {
-		var banane = items["banane"][i];
-		setObject(oPlanBananes[i],banane.x,banane.y, oObjWidth,oPlanSize, banane.team,100);
-		setObject(oPlanBananes2[i],banane.x,banane.y, oObjWidth2,oPlanSize2, banane.team,100);
+	syncObjects(oPlanBananes,frameItems["banane"],"banane", oObjWidth,oPlanCtn);
+	syncObjects(oPlanBananes2,frameItems["banane"],"banane", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["banane"].length;i++) {
+		var banane = frameItems["banane"][i];
+		setObject(oPlanBananes[i],banane.x,banane.y, oObjWidth,oPlanSize, banane.ref.team,100);
+		setObject(oPlanBananes2[i],banane.x,banane.y, oObjWidth2,oPlanSize2, banane.ref.team,100);
 		oPlanBananes[i].style.zIndex = oPlanBananes2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanPoisons,items["poison"],"poison", oObjWidth,oPlanCtn);
-	syncObjects(oPlanPoisons2,items["poison"],"poison", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["poison"].length;i++) {
-		var poison = items["poison"][i];
-		setObject(oPlanPoisons[i],poison.x,poison.y, oObjWidth,oPlanSize, poison.team,100);
-		setObject(oPlanPoisons2[i],poison.x,poison.y, oObjWidth2,oPlanSize2, poison.team,100);
+	syncObjects(oPlanPoisons,frameItems["poison"],"poison", oObjWidth,oPlanCtn);
+	syncObjects(oPlanPoisons2,frameItems["poison"],"poison", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["poison"].length;i++) {
+		var poison = frameItems["poison"][i];
+		setObject(oPlanPoisons[i],poison.x,poison.y, oObjWidth,oPlanSize, poison.ref.team,100);
+		setObject(oPlanPoisons2[i],poison.x,poison.y, oObjWidth2,oPlanSize2, poison.ref.team,100);
 		oPlanPoisons[i].style.zIndex = oPlanPoisons2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanChampis,items["champi"],"champi", oObjWidth,oPlanCtn);
-	syncObjects(oPlanChampis2,items["champi"],"champi", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["champi"].length;i++) {
-		var champi = items["champi"][i];
+	syncObjects(oPlanChampis,frameItems["champi"],"champi", oObjWidth,oPlanCtn);
+	syncObjects(oPlanChampis2,frameItems["champi"],"champi", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["champi"].length;i++) {
+		var champi = frameItems["champi"][i];
 		setObject(oPlanChampis[i],champi.x,champi.y, oObjWidth,oPlanSize, -1,100);
 		setObject(oPlanChampis2[i],champi.x,champi.y, oObjWidth2,oPlanSize2, -1,100);
 		oPlanChampis[i].style.zIndex = oPlanChampis2[i].style.zIndex = 2;
@@ -862,63 +864,64 @@ function setPlanPos() {
 	}
 
 	function setBobombPos(iPlanBobOmbs, iObjWidth,iPlanCtn, iPlanSize, iExpWidth) {
-		syncObjects(iPlanBobOmbs,items["bobomb"],"bob-omb", iObjWidth,iPlanCtn);
-		for (var i=0;i<items["bobomb"].length;i++) {
-			var bobomb = items["bobomb"][i];
-			if (bobomb.cooldown <= 0) {
-				posImg(iPlanBobOmbs[i], bobomb.x,bobomb.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobomb.team,"");
+		syncObjects(iPlanBobOmbs,frameItems["bobomb"],"bob-omb", iObjWidth,iPlanCtn);
+		for (var i=0;i<frameItems["bobomb"].length;i++) {
+			var bobomb = frameItems["bobomb"][i];
+			if (bobomb.ref.cooldown <= 0) {
+				posImg(iPlanBobOmbs[i], bobomb.x,bobomb.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobomb.ref.team,"");
 				iPlanBobOmbs[i].style.width = iExpWidth +"px";
-				iPlanBobOmbs[i].style.opacity = Math.max(1+bobomb.cooldown/10, 0);
+				iPlanBobOmbs[i].style.opacity = Math.max(1+bobomb.ref.cooldown/10, 0);
 				iPlanBobOmbs[i].style.background = "";
 			}
 			else
-				setObject(iPlanBobOmbs[i],bobomb.x,bobomb.y, iObjWidth,iPlanSize, bobomb.team,100).style.zIndex = 2;
+				setObject(iPlanBobOmbs[i],bobomb.x,bobomb.y, iObjWidth,iPlanSize, bobomb.ref.team,100).style.zIndex = 2;
 		}
 	}
 	setBobombPos(oPlanBobOmbs, oObjWidth,oPlanCtn, oPlanSize, oExpWidth);
 	setBobombPos(oPlanBobOmbs2, oObjWidth2,oPlanCtn2, oPlanSize2, oExpWidth2);
 
-	syncObjects(oPlanCarapaces,items["carapace"],"carapace", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapaces2,items["carapace"],"carapace", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["carapace"].length;i++) {
-		var carapace = items["carapace"][i];
-		setObject(oPlanCarapaces[i],carapace.x,carapace.y, oObjWidth,oPlanSize, carapace.team,200);
-		setObject(oPlanCarapaces2[i],carapace.x,carapace.y, oObjWidth2,oPlanSize2, carapace.team,200).style.zIndex = 2;
+	syncObjects(oPlanCarapaces,frameItems["carapace"],"carapace", oObjWidth,oPlanCtn);
+	syncObjects(oPlanCarapaces2,frameItems["carapace"],"carapace", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["carapace"].length;i++) {
+		var carapace = frameItems["carapace"][i];
+		setObject(oPlanCarapaces[i],carapace.x,carapace.y, oObjWidth,oPlanSize, carapace.ref.team,200);
+		setObject(oPlanCarapaces2[i],carapace.x,carapace.y, oObjWidth2,oPlanSize2, carapace.ref.team,200).style.zIndex = 2;
 	}
 
-	syncObjects(oPlanCarapacesRouges,items["carapace-rouge"],"carapace-rouge", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapacesRouges2,items["carapace-rouge"],"carapace-rouge", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<items["carapace-rouge"].length;i++) {
-		var carapaceRouge = items["carapace-rouge"][i];
-		setObject(oPlanCarapacesRouges[i],carapaceRouge.x,carapaceRouge.y, oObjWidth,oPlanSize, carapaceRouge.team,200);
-		setObject(oPlanCarapacesRouges2[i],carapaceRouge.x,carapaceRouge.y, oObjWidth2,oPlanSize2, carapaceRouge.team,200).style.zIndex = 2;
-		if (carapaceRouge.owner)
+	syncObjects(oPlanCarapacesRouges,frameItems["carapace-rouge"],"carapace-rouge", oObjWidth,oPlanCtn);
+	syncObjects(oPlanCarapacesRouges2,frameItems["carapace-rouge"],"carapace-rouge", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["carapace-rouge"].length;i++) {
+		var carapaceRouge = frameItems["carapace-rouge"][i];
+		setObject(oPlanCarapacesRouges[i],carapaceRouge.x,carapaceRouge.y, oObjWidth,oPlanSize, carapaceRouge.ref.team,200);
+		setObject(oPlanCarapacesRouges2[i],carapaceRouge.x,carapaceRouge.y, oObjWidth2,oPlanSize2, carapaceRouge.ref.team,200).style.zIndex = 2;
+		if (carapaceRouge.ref.owner)
 			oPlanCarapacesRouges[i].style.zIndex = 2;
 	}
 
 	function setCarapacesBleuesPos(iPlanCarapacesBleues, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
-		syncObjects(iPlanCarapacesBleues,items["carapace-bleue"],"carapace-bleue",iObjWidth,iPlanCtn);
-		for (var i=0;i<items["carapace-bleue"].length;i++) {
-			var carapaceBleue = items["carapace-bleue"][i];
-			if (carapaceBleue.cooldown <= 0) {
-				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceBleue.team,"0");
+		syncObjects(iPlanCarapacesBleues,frameItems["carapace-bleue"],"carapace-bleue",iObjWidth,iPlanCtn);
+		for (var i=0;i<frameItems["carapace-bleue"].length;i++) {
+			var carapaceBleue = frameItems["carapace-bleue"][i];
+			if (carapaceBleue.ref.cooldown <= 0) {
+				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceBleue.ref.team,"0");
 				iPlanCarapacesBleues[i].style.width = iExpWidth +"px";
-				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceBleue.cooldown/10, 0);
+				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceBleue.ref.cooldown/10, 0);
 				iPlanCarapacesBleues[i].style.background = "";
 			}
 			else
-				setObject(iPlanCarapacesBleues[i],carapaceBleue.x,carapaceBleue.y, iObjWidth,iPlanSize, carapaceBleue.team,200).style.zIndex = 2;
+				setObject(iPlanCarapacesBleues[i],carapaceBleue.x,carapaceBleue.y, iObjWidth,iPlanSize, carapaceBleue.ref.team,200).style.zIndex = 2;
 		}
 	}
 	setCarapacesBleuesPos(oPlanCarapacesBleues, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
 	setCarapacesBleuesPos(oPlanCarapacesBleues2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
 
 	var oStars = new Array(), oBillBalls = new Array();
-	for (var i=0;i<aKarts.length;i++) {
-		if (aKarts[i].etoile)
-			oStars.push(aKarts[i]);
-		else if (aKarts[i].billball)
-			oBillBalls.push(aKarts[i]);
+	for (var i=0;i<frameState.karts.length;i++) {
+		var oKart = frameState.karts[i];
+		if (oKart.ref.etoile)
+			oStars.push(oKart);
+		else if (oKart.ref.billball)
+			oBillBalls.push(oKart);
 	}
 	syncObjects(oPlanEtoiles,oStars,"etoile", oObjWidth,oPlanCtn);
 	syncObjects(oPlanEtoiles2,oStars,"etoile", oObjWidth2,oPlanCtn2);
@@ -2994,15 +2997,15 @@ function startGame() {
 			oPlanCtn2.appendChild(oObject2);
 			oPlanObjects2.push(oObject2);
 		}
+	}
 
+	setTimeout(function() {
 		oPlanDiv.appendChild(oPlanCtn);
 		document.body.appendChild(oPlanDiv);
 		oPlanDiv2.appendChild(oPlanCtn2);
 		document.body.appendChild(oPlanDiv2);
-		setPlanPos();
-	}
-
-	setTimeout(render, 500);
+		render();
+	}, 300);
 
 	if (bMusic) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
@@ -3930,6 +3933,7 @@ function resetScreen() {
 	
 	var prevScreenBlur = 0;
 	nbFrames = iFps;
+	frameHandlers = new Array(nbFrames);
 	interpolateFn = gameSettings.frameint;
 	if (!interpolateFn) {
 		switch (iFps) {
@@ -4850,7 +4854,7 @@ function BGLayer(strImage, scaleFactor) {
 		oLayer.style.height = (10 * iScreenScale)+"px";
 		oLayer.style.width = (iWidth * iScreenScale)+"px";
 		oLayer.style.position = "absolute";
-		(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+imageDims.src+"')"},500)})(oLayer);
+		(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+imageDims.src+"')"},300)})(oLayer);
 		oLayer.style.backgroundSize = "auto 100%";
 		if (!iSmooth) oLayer.className = "pixelated";
 
@@ -5611,6 +5615,10 @@ var itemBehaviors = {
 							oSprites.bloops.y = oSprites.bloops.mine ? 18:12;
 							oBloops.style.zIndex = 19001;
 							oBloops.style.opacity = oSprites.bloops.mine ? 1:0;
+							if (nbFrames > 1) {
+								var transitionS = (SPF/1000);
+								oBloops.style.transition = "left "+ transitionS +"s ease-out, top "+ transitionS +"s ease-out";
+							}
 							oContainers[i].appendChild(oBloops);
 							fSprite.sprites[i] = oSprites;
 						}
@@ -8188,6 +8196,13 @@ function interpolateState(x1,x2,tFrame) {
   }
   return x1*(1-tFrame) + x2*tFrame;
 }
+function interpolateStateNullable(x1,x2,tFrame) {
+	if (x1 == null)
+		return x2;
+	if (x2 == null)
+		return x1;
+	return interpolateState(x1,x2,tFrame);
+}
 function interpolateStateAngle(x1,x2,tFrame) {
 	x1 = nearestAngle(x1,x2, 360);
 	return interpolateState(x1,x2,tFrame);
@@ -8196,6 +8211,12 @@ function interpolateStateRound(x1,x2,tFrame) {
 	return Math.round(interpolateState(x1,x2,tFrame));
 }
 var nbFrames = 1;
+var frameHandlers;
+function resetRenderState() {
+	lastState = undefined;
+	for (var i=0;i<frameHandlers.length;i++)
+		clearTimeout(frameHandlers[i]);
+}
 function render() {
 	var currentState = {
 		karts: [],
@@ -8304,7 +8325,7 @@ function render() {
 					roulette: interpolateState(lastObj.roulette,currentObj.roulette,tFrame),
 					roulette2: interpolateState(lastObj.roulette2,currentObj.roulette2,tFrame),
 					tombe: interpolateState(lastObj.tombe,currentObj.tombe,tFrame),
-					teleport: interpolateState(lastObj.teleport,currentObj.teleport,tFrame)
+					teleport: interpolateStateNullable(lastObj.teleport,currentObj.teleport,tFrame)
 				});
 			}
 			for (var type in currentState.decor) {
@@ -8369,9 +8390,15 @@ function render() {
 					posX = oPlayer.ref.aX;
 					posY = oPlayer.ref.aY;
 					oPlayer.rotation = oPlayer.ref.aRotation;
-					fRotation = getApparentRotation(oPlayer);
 				}
-				oContainers[i].style.opacity = Math.abs(oPlayer.teleport-3)/3;
+				else {
+					posX = oPlayer.ref.x;
+					posY = oPlayer.ref.y;
+					oPlayer.rotation = oPlayer.ref.rotation;
+				}
+				fRotation = getApparentRotation(oPlayer);
+				if (oPlayer.ref.teleport)
+					oContainers[i].style.opacity = Math.abs(oPlayer.teleport-3)/3;
 			}
 			//posX = aKarts[1].x;
 			//posY = aKarts[1].y;
@@ -8542,12 +8569,12 @@ function render() {
 				oBgLayers[j].draw(fRotation, i);
 
 			if ((strPlayer.length == 1) && !gameSettings.nomap)
-				setPlanPos();
+				setPlanPos(frameState);
 		}
 	}
 	for (var i=1;i<nbFrames;i++) {
 		(function(i) {
-			setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
+			frameHandlers[i] = setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
 		})(i);
 	}
 	renderFrame(1);
@@ -14323,6 +14350,7 @@ function processCode(cheatCode) {
 		oPlayer.y = y;
 		if (!isNaN(th))
 			oPlayer.rotation = th;
+		resetRenderState();
 		return true;
 	}
 	var isLap = /^lap(?: ([1-3]|c))?(?: (\d+|c))?$/g.exec(cheatCode);
