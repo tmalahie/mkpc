@@ -1,7 +1,7 @@
 <?php
-if (isset($_POST['param']) && isset($_POST['value'])) {
+if (isset($_POST['clear'])) {
 	$params = Array('iQuality', 'iScreenScale', 'bMusic', 'iSfx');
-	setcookie($params[$_POST['param']], $_POST['value'], 4294967295,'/');
-	echo 1;
+	foreach ($params as $param)
+		setcookie($param, null, 0,'/');
 }
-?>
+echo 1;
