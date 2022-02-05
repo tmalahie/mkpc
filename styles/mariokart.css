@@ -124,13 +124,27 @@
     color: #CAA;
 }
 .control-settings-info {
-    margin: 10px 5px 5px 5px;
-    text-align: center;
+    font-size: 17px;
+    font-weight: bold;
+    margin: 10px 5px 0 5px;
+    text-align: left;
     color: #CCC;
 }
-.control-settings label {
+.control-settings > label {
     display: block;
-    padding: 5px 10px;
+    padding: 2px 10px;
+}
+.control-settings > .motion-trail-settings {
+    margin-bottom: 8px;
+    opacity: 0.85;
+}
+.control-settings > .motion-trail-settings:hover {
+    opacity: 1;
+}
+.control-settings > .motion-trail-settings > label {
+    margin-left: 16px;
+    display: inline-block;
+    font-size: 0.9em;
 }
 .control-settings label input {
     position: relative;

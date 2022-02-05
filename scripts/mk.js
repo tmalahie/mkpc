@@ -165,12 +165,13 @@ var myCircuit = (document.getElementById("changeRace") != null);
 
 function setQuality(iValue) {
 	iRendering = iValue;
+	baseOptions["quality"] = iValue;
 	resetQuality();
 	
-	if (bRunning)
-		resetScreen();
-	
-	localStorage.setItem("iQuality", iValue);
+	if (iQuality == 5)
+		localStorage.removeItem("iQuality");
+	else
+		localStorage.setItem("iQuality", iValue);
 }
 function resetQuality() {
 	if (iRendering == 5) {
@@ -3938,10 +3939,12 @@ function resetScreen() {
 			break;
 		}
 	}
-	prevScreenDelay = (gameSettings.framerad >= 0) ? +gameSettings.framerad : Math.floor(iFps/2);
-	prevScreenBlur = gameSettings.frameblur || "1";
-	prevScreenOpacity = (gameSettings.frameopacity >= 0) ? +gameSettings.frameopacity : 0.39/(prevScreenDelay+1);
-	prevScreenFade = (gameSettings.framefade >= 0) ? +gameSettings.framefade : 1;
+	var frameSettings = getFrameSettings(gameSettings);
+	interpolateFn = frameSettings.frameint;
+	prevScreenDelay = frameSettings.framerad;
+	prevScreenBlur = frameSettings.frameblur;
+	prevScreenOpacity = frameSettings.frameopacity;
+	prevScreenFade = frameSettings.framefade;
 	
 	oPrevFrameStates = [];
 	for (var i=0;i<oContainers.length;i++) {
@@ -4001,6 +4004,30 @@ function resetScreen() {
 	oViewCanvas = document.createElement("canvas");
 	oViewCanvas.width=iViewCanvasWidth;
 	oViewCanvas.height=iViewCanvasHeight;
+}
+
+function getFrameSettings(currentSettings) {
+	var frameint = currentSettings.frameint;
+	if (!frameint) {
+		switch (iFps) {
+		case 2:
+			frameint = "ease_out_quad";
+			break;
+		case 4:
+			frameint = "ease_out_cubic";
+			break;
+		}
+	}
+	var defaultframerad = Math.floor(iFps/2);
+	var framerad = (currentSettings.framerad >= 0) ? +currentSettings.framerad : defaultframerad;
+	return {
+		frameint: frameint,
+		framerad: framerad,
+		defaultframerad: defaultframerad,
+		frameblur: currentSettings.frameblur || "1",
+		frameopacity: (currentSettings.frameopacity >= 0) ? +currentSettings.frameopacity : 0.39/(framerad+1),
+		framefade: (currentSettings.framefade >= 0) ? +currentSettings.framefade : 1
+	}
 }
 
 function interruptGame() {
@@ -23047,18 +23074,18 @@ function editCommands(reload,currentTab) {
 	$controlWindows.appendChild($controlCommands);
 	var $controlSettings = document.createElement("div");
 	$controlSettings.className = "control-settings";
-	var $controlSettingsInfo = document.createElement("div");
-	$controlSettingsInfo.className = "control-settings-info";
-	$controlSettingsInfo.innerHTML = toLanguage("These settings allow you to disable some graphic elements from the game. Use them if you experience some lag for example.", "Ces paramètres vous permettent de désactiver certains éléments graphiques du jeu. Utilisez-les si vous avez des problèmes de lags par exemple.");
-	$controlSettings.appendChild($controlSettingsInfo);
-	var allSettings = {
+	var $controlSettingsH2 = document.createElement("div");
+	$controlSettingsH2.className = "control-settings-info";
+	$controlSettingsH2.innerHTML = toLanguage("Graphics settings", "Paramètres graphiques");
+	$controlSettings.appendChild($controlSettingsH2);
+	var allGraphicSettings = {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
 		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map')
 	};
 	var currentSettings = localStorage.getItem("settings");
 	currentSettings = currentSettings ? JSON.parse(currentSettings) : {};
-	for (var key in allSettings) {
+	for (var key in allGraphicSettings) {
 		(function(key) {
 			var $controlSetting = document.createElement("label");
 			var $controlCheckbox = document.createElement("input");
@@ -23066,7 +23093,7 @@ function editCommands(reload,currentTab) {
 			$controlCheckbox.checked = !!currentSettings[key];
 			$controlSetting.appendChild($controlCheckbox);
 			var $controlText = document.createElement("span");
-			$controlText.innerHTML = allSettings[key];
+			$controlText.innerHTML = allGraphicSettings[key];
 			$controlSetting.appendChild($controlText);
 			$controlCheckbox.onclick = function() {
 				if (this.checked)
@@ -23078,6 +23105,176 @@ function editCommands(reload,currentTab) {
 			$controlSettings.appendChild($controlSetting);
 		})(key);
 	}
+	{
+		var $controlSetting = document.createElement("label");
+		$controlSetting.style.marginLeft = "5px";
+		var $controlText = document.createElement("span");
+		$controlText.innerHTML = toLanguage("Quality:", "Qualité :");
+		$controlSetting.appendChild($controlText);
+		var $controlSelect = document.createElement("select");
+		$controlSelect.style.width = "auto";
+		$controlSelect.style.marginLeft = "6px";
+		$controlSelect.onchange = function() {
+			MarioKartControl.setQuality(+this.value);
+		};
+		var options = [
+			[5, toLanguage("Pixelated","Pixelisé")],
+			[4, toLanguage("Low","Inférieure")],
+			[2, toLanguage("Medium","Moyenne")],
+			[1, toLanguage("High","Supérieure")]
+		];
+		for (var i=0;i<options.length;i++) {
+			var option = options[i];
+			var $controlOption = document.createElement("option");
+			$controlOption.value = option[0];
+			$controlOption.innerHTML = option[1];
+			$controlSelect.appendChild($controlOption);
+		}
+		if (localStorage.getItem("iQuality"))
+			$controlSelect.value = localStorage.getItem("iQuality");
+		$controlSetting.appendChild($controlSelect);
+		$controlSettings.appendChild($controlSetting);
+	}
+	if (iFps > 1) {
+		var frameSettings = getFrameSettings(currentSettings);
+
+		var $controlSettingsH2 = document.createElement("div");
+		$controlSettingsH2.className = "control-settings-info";
+		$controlSettingsH2.innerHTML = toLanguage("Framerate settings", "Paramètres FPS");
+		$controlSettings.appendChild($controlSettingsH2);
+		var $controlSettingMotion;
+		function applyMotionToggle() {
+			$controlSettingMotion.style.display = currentSettings.framerad != 0 ? "block" : "none";
+		}
+		var currentFrameRad = frameSettings.framerad || frameSettings.defaultframerad;
+		{
+			var $controlSetting = document.createElement("label");
+			$controlSetting.style.display = "inline-block";
+			var $controlCheckbox = document.createElement("input");
+			$controlCheckbox.type = "checkbox";
+			$controlCheckbox.checked = (currentSettings.framerad != 0);
+			$controlSetting.appendChild($controlCheckbox);
+			var $controlText = document.createElement("span");
+			$controlText.innerHTML = toLanguage("Enable motion trail", "Activer le motion trail");
+			$controlSetting.appendChild($controlText);
+			$controlCheckbox.onclick = function() {
+				if (this.checked) {
+					if (currentFrameRad)
+						currentSettings.framerad = currentFrameRad;
+					else
+						delete currentSettings.framerad;
+				}
+				else
+					currentSettings.framerad = 0;
+				localStorage.setItem("settings", JSON.stringify(currentSettings));
+				applyMotionToggle();
+			}
+			$controlSettings.appendChild($controlSetting);
+		}
+		{
+			$controlSettingMotion = document.createElement("div");
+			$controlSettingMotion.className = "motion-trail-settings";
+
+			{
+				var $controlSetting = document.createElement("label");
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("Frame&nbsp;count:", "Nb&nbsp;frames&nbsp;:");
+				$controlSetting.appendChild($controlText);
+				var $controlSelect = document.createElement("select");
+				$controlSelect.style.width = "auto";
+				$controlSelect.style.marginLeft = "6px";
+				$controlSelect.onchange = function() {
+					currentSettings.framerad = this.value;
+					localStorage.setItem("settings", JSON.stringify(currentSettings));
+				};
+				for (var i=1;i<10;i++) {
+					var option = options[i];
+					var $controlOption = document.createElement("option");
+					$controlOption.value = i;
+					$controlOption.innerHTML = i;
+					$controlSelect.appendChild($controlOption);
+				}
+				$controlSelect.value = currentFrameRad;
+				$controlSetting.appendChild($controlSelect);
+				$controlSettingMotion.appendChild($controlSetting);
+			}
+			{
+				var $controlSetting = document.createElement("label");
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("Opacity:", "Opacité&nbsp;:");
+				$controlSetting.appendChild($controlText);
+				var $controlInput = document.createElement("input");
+				$controlInput.type = "number";
+				$controlInput.setAttribute("step", "0.01");
+				$controlInput.style.width = "50px";
+				$controlInput.style.marginLeft = "6px";
+				$controlInput.onchange = function() {
+					currentSettings.frameopacity = Math.min(1, Math.max(0, this.value));
+					this.value = currentSettings.frameopacity;
+					localStorage.setItem("settings", JSON.stringify(currentSettings));
+				};
+				$controlInput.value = frameSettings.frameopacity;
+				$controlSetting.appendChild($controlInput);
+				$controlSettingMotion.appendChild($controlSetting);
+			}
+			{
+				var $controlSetting = document.createElement("label");
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("Blur:", "Flou&nbsp;:");
+				$controlSetting.appendChild($controlText);
+				var $controlInput = document.createElement("input");
+				$controlInput.type = "number";
+				$controlInput.setAttribute("step", "0.1");
+				$controlInput.style.width = "42px";
+				$controlInput.style.marginLeft = "6px";
+				$controlInput.onchange = function() {
+					currentSettings.frameblur = Math.min(10, Math.max(0, this.value));
+					this.value = currentSettings.frameblur;
+					localStorage.setItem("settings", JSON.stringify(currentSettings));
+				};
+				$controlInput.value = frameSettings.frameblur;
+				$controlSetting.appendChild($controlInput);
+				$controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("&nbsp;px", "&nbsp;px");
+				$controlSetting.appendChild($controlText);
+				$controlSettingMotion.appendChild($controlSetting);
+			}
+
+			$controlSettings.appendChild($controlSettingMotion);
+		}
+		applyMotionToggle();
+		{
+			var $controlSetting = document.createElement("label");
+			$controlSetting.style.marginLeft = "5px";
+			var $controlText = document.createElement("span");
+			$controlText.innerHTML = toLanguage("Interfame interpolation:", "Interpolation inter-frames :");
+			$controlSetting.appendChild($controlText);
+			var $controlSelect = document.createElement("select");
+			$controlSelect.style.width = "85px";
+			$controlSelect.style.marginLeft = "6px";
+			$controlSelect.onchange = function() {
+				currentSettings.frameint = this.value;
+				localStorage.setItem("settings", JSON.stringify(currentSettings));
+			};
+			var options = [
+				["ease_out_linear", toLanguage("Linear &nbsp; &nbsp; &nbsp; (Smoothest)", "Linéaire &nbsp; (Très lisse)")],
+				["ease_out_quad", toLanguage("Quadratic (Smooth)","Quadratique (Lisse)")],
+				["ease_out_cubic", toLanguage("Cubic &nbsp; &nbsp; &nbsp; &nbsp; (Medium)","Cubique &nbsp; &nbsp; (Moyen)")],
+				["ease_out_quart", toLanguage("Quartic &nbsp; &nbsp; (Sharp)","Quartique &nbsp; (Saccadé)")],
+				["ease_out_exp", toLanguage("Exponential (Sharpest)","Exponentiel (Très saccadé)")]
+			];
+			for (var i=0;i<options.length;i++) {
+				var option = options[i];
+				var $controlOption = document.createElement("option");
+				$controlOption.value = option[0];
+				$controlOption.innerHTML = option[1];
+				$controlSelect.appendChild($controlOption);
+			}
+			$controlSelect.value = frameSettings.frameint;
+			$controlSetting.appendChild($controlSelect);
+			$controlSettings.appendChild($controlSetting);
+		}
+	}
 	var $controlReset = document.createElement("div");
 	$controlReset.className = "control-reset";
 	var $controlResetBtn = document.createElement("a");
@@ -23086,6 +23283,7 @@ function editCommands(reload,currentTab) {
 	$controlResetBtn.onclick = function() {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
+			localStorage.removeItem("iQuality");
 			editCommands(true,currentTab);
 		}
 		return false;
@@ -23097,7 +23295,6 @@ function editCommands(reload,currentTab) {
 	$controlEditorMask.appendChild($controlEditor);
 	document.body.appendChild($controlEditorMask);
 	$controlWindows.style.width = $controlWindows.scrollWidth +"px";
-	$controlWindows.style.height = $controlWindows.scrollHeight +"px";
 	if (currentTab)
 		document.querySelectorAll(".control-tabs > div")[currentTab].click();
 }
@@ -23673,6 +23870,9 @@ function setChat() {
 }
 
 window.MarioKartControl = {
+	setQuality : function(iValue) {
+		 setQuality(iValue);
+	},
 	setScreenScale : function(iValue) {
 		 setScreenScale(iValue);
 	},
