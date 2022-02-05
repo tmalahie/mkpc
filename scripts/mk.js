@@ -8129,7 +8129,7 @@ function getApparentRotation(oPlayer) {
 	return res;
 }
 
-var lastState;
+var lastState, lastStateTime;
 function getLastObj(lastObjs,i,currentObj) {
 	if (lastObjs[i] && lastObjs[i].ref === currentObj.ref)
 		return lastObjs[i];
@@ -8225,14 +8225,26 @@ function render() {
 	if (!lastState) lastState = currentState;
 
 	function renderFrame(frame) {
-		var tFrame = frame/nbFrames;
-		var lastFrame = (tFrame == 1);
 		var frameState;
+		var currentStateTime = new Date().getTime();
+		var tFrame = 1/nbFrames;
+		var lastFrame = (frame == nbFrames);
+		if (lastFrame)
+			lastState = currentState;
 		if (nbFrames == 1) {
 			frameState = currentState;
 			frameState.players = [];
 		}
 		else {
+			if (frame > 1) {
+				tFrame += (currentStateTime - lastStateTime) / SPF;
+				if (tFrame*nbFrames >= (frame+1))
+					return; // Frame skip
+				if (tFrame > 1)
+					tFrame = 1;
+			}
+			else
+				lastStateTime = currentStateTime;
 			frameState = {
 				karts: [],
 				players: [],
@@ -8296,8 +8308,6 @@ function render() {
 				}
 			}
 		}
-		if (lastFrame)
-			lastState = currentState;
 		for (var i=0;i<oPlayers.length;i++)
 			frameState.players.push(frameState.karts[i]);
 		for (var i=0;i<frameState.players.length;i++) {
@@ -8508,12 +8518,12 @@ function render() {
 				setPlanPos();
 		}
 	}
-	renderFrame(1);
 	for (var i=1;i<nbFrames;i++) {
 		(function(i) {
 			setTimeout(function(){renderFrame(i+1)}, SPF*i/nbFrames);
 		})(i);
 	}
+	renderFrame(1);
 }
 function makeSpriteExplode(fSprite,defaultTeam,k) {
 	var src = "explosion";
