@@ -14,7 +14,7 @@ if ($isCookieSet) {
 	quality: <?php echo (isset($_COOKIE['iQuality']) ? $_COOKIE['iQuality']:5); ?>,
 	music: <?php echo (isset($_COOKIE['bMusic']) ? $_COOKIE['bMusic']:0); ?>,
 	sfx: <?php echo (isset($_COOKIE['iSfx']) ? $_COOKIE['iSfx']:(isset($_COOKIE['bMusic']) ? $_COOKIE['bMusic']:0)); ?>,
-	screenscale: <?php echo (isset($_COOKIE['iScreenScale']) ? $_COOKIE['iScreenScale']:"'$defaultScreenScale'"); ?>
+	screenscale: <?php echo (isset($_COOKIE['iScreenScale']) ? $_COOKIE['iScreenScale']:$defaultScreenScale); ?>
 };
 <?php
 foreach ($settingKeys as $settingKey=>$settingDef) {
@@ -35,7 +35,7 @@ else {
 	quality: localStorage.getItem("iQuality") ? +localStorage.getItem("iQuality") : 5,
 	music: localStorage.getItem("bMusic") ? +localStorage.getItem("bMusic"):0,
 	sfx: localStorage.getItem("iSfx") ? +localStorage.getItem("iSfx"):0,
-	screenscale: localStorage.getItem("iScreenScale") ? +localStorage.getItem("iScreenScale"):'<?php echo $defaultScreenScale; ?>'
+	screenscale: localStorage.getItem("iScreenScale") ? +localStorage.getItem("iScreenScale"):<?php echo $defaultScreenScale; ?>
 }
 	<?php
 }

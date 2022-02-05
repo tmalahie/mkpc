@@ -3000,10 +3000,14 @@ function startGame() {
 	}
 
 	setTimeout(function() {
-		oPlanDiv.appendChild(oPlanCtn);
-		document.body.appendChild(oPlanDiv);
-		oPlanDiv2.appendChild(oPlanCtn2);
-		document.body.appendChild(oPlanDiv2);
+		if (oPlanCtn) {
+			oPlanDiv.appendChild(oPlanCtn);
+			document.body.appendChild(oPlanDiv);
+		}
+		if (oPlanCtn2) {
+			oPlanDiv2.appendChild(oPlanCtn2);
+			document.body.appendChild(oPlanDiv2);
+		}
 		render();
 	}, 300);
 
@@ -3951,6 +3955,7 @@ function resetScreen() {
 	prevScreenBlur = frameSettings.frameblur;
 	prevScreenOpacity = frameSettings.frameopacity;
 	prevScreenFade = frameSettings.framefade;
+	if (nbFrames <= 1) prevScreenDelay = 0;
 	
 	oPrevFrameStates = [];
 	for (var i=0;i<oContainers.length;i++) {
@@ -12951,6 +12956,17 @@ function move(getId, triggered) {
 					document.getElementById("scroller"+prefix+getId).getElementsByTagName("div")[0].style.top = -Math.floor(Math.random()*rHeight) +"px";
 					updateObjHud(getId);
 					clLocalVars.itemsGot = true;
+
+					switch (iObj) {
+					case "etoile":
+						var eagerLoadImg = document.createElement("img");
+						eagerLoadImg.src = getStarSrc(oKart.personnage);
+						break;
+					case "billball":
+						var eagerLoadImg = document.createElement("img");
+						eagerLoadImg.src = "images/sprites/sprite_billball.png";
+						break;
+					}
 				}
 			}
 		}
@@ -22946,7 +22962,7 @@ function updateCommandSheet() {
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br /><strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), "R") +'</span><br /><strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "T")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
+	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), "R") +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "T")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
 function editCommands(reload,currentTab) {
 	currentTab = currentTab || 0;
@@ -23573,7 +23589,10 @@ else {
 	if (typeof course === 'undefined')
 		course = "";
 	var $commandes = document.getElementById("commandes");
+	if (!$commandes.dataset) $commandes.dataset = {};
 	if ($commandes && $commandes.innerHTML.length < 10)
+		$commandes.dataset.hasCommands = 1;
+	if ($commandes.dataset.hasCommands)
 		displayCommands();
 	
 	if (isFirstLoad) {
