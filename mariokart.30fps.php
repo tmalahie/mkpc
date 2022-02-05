@@ -61,17 +61,11 @@ document.addEventListener("DOMContentLoaded", MarioKart);
 	<div id="options-ctn">
 	<table cellpadding="3" cellspacing="0" border="0" id="options">
 	<tr>
-	<td id="pQuality">&nbsp;</td>
-	<td id="vQuality">
+	<td id="pSize">&nbsp;</td>
+	<td id="vSize">
 	</td>
 	<td rowspan="4" id="commandes">&nbsp;</td>
 	</tr>
-	<tr><td id="pSize">
-
-	</td>
-	<td id="vSize">
-	&nbsp;
-	</td></tr>
 	<tr><td id="pMusic">
 	&nbsp;
 	</td>
@@ -82,6 +76,12 @@ document.addEventListener("DOMContentLoaded", MarioKart);
 	&nbsp;
 	</td>
 	<td id="vSfx">
+	&nbsp;
+	</td></tr>
+	<tr><td id="pFps">
+	&nbsp;
+	</td>
+	<td id="vFps">
 	&nbsp;
 	</td></tr>
 	</table>

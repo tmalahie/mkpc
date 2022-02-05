@@ -136,11 +136,12 @@ for (circuits in oMaps) {
 var iWidth = 80;
 var iHeight = 39;
 var SPF = 67;
-var iRendering = optionOf("quality");
+var iRendering = baseOptions["quality"];
 var iQuality, iSmooth;
 resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
+var iFps = +localStorage.getItem("nbFrames") || 1;
 var gameMenu;
 var primaryColor = "#FEFF3F";
 
@@ -182,6 +183,11 @@ function resetQuality() {
 		iQuality = iRendering;
 		iSmooth = true;
 	}
+}
+
+function setFps(iValue) {
+	iFps = iValue;
+	localStorage.setItem("nbFrames", iValue);
 }
 
 function openFullscreen(elem) {
@@ -1052,9 +1058,9 @@ function loadMap() {
 	if (strPlayer.length > 1)
 		updateCtnFullScreen(false);
 	formulaire.screenscale.disabled = true;
-	formulaire.quality.disabled = true;
 	formulaire.music.disabled = true;
 	formulaire.sfx.disabled = true;
+	formulaire.fps.disabled = true;
 
 	iTeamPlay = isTeamPlay();
 
@@ -3921,23 +3927,23 @@ function resetScreen() {
 	for (var i=0;i<oBgLayers.length;i++)
 		oBgLayers[i].suppr();
 	
-	var prevScreenHue = 0, prevScreenBlur = 0;
-	if (course == "VS") {
-		if (window.location.pathname === "/mariokart.30fps.php")
-			nbFrames = 2;
-		else if (window.location.pathname === "/mariokart.60fps.php")
-			nbFrames = 4;
-		else if (window.location.pathname === "/mariokart.120fps.php")
-			nbFrames = 8;
-		interpolateFn = document.location.search.match(/interpolate=(\w+)/)?.[1];
-		var frameRadius = document.location.search.match(/frameradius=(\w+)/);
-		prevScreenHue = document.location.search.match(/hue=(-?\w+)/)?.[1] || "0";
-		prevScreenBlur = document.location.search.match(/blur=([\w\.]+)/)?.[1] || "0";
-		prevScreenOpacity = document.location.search.match(/frameopacity=([\w\.]+)/)?.[1] || "0";
-		prevScreenFade = +document.location.search.match(/framefade=([\w\.]+)/)?.[1] || 0;
-		if (frameRadius)
-			prevScreenDelay = +frameRadius[1];
+	var prevScreenBlur = 0;
+	nbFrames = iFps;
+	interpolateFn = gameSettings.frameint;
+	if (!interpolateFn) {
+		switch (iFps) {
+		case 2:
+			interpolateFn = "ease_out_quad";
+			break;
+		case 4:
+			interpolateFn = "ease_out_cubic";
+			break;
+		}
 	}
+	prevScreenDelay = (gameSettings.framerad >= 0) ? +gameSettings.framerad : Math.floor(iFps/2);
+	prevScreenBlur = gameSettings.frameblur || "1";
+	prevScreenOpacity = (gameSettings.frameopacity >= 0) ? +gameSettings.frameopacity : 0.39/(prevScreenDelay+1);
+	prevScreenFade = (gameSettings.framefade >= 0) ? +gameSettings.framefade : 1;
 	
 	oPrevFrameStates = [];
 	for (var i=0;i<oContainers.length;i++) {
@@ -3951,7 +3957,7 @@ function resetScreen() {
 			oContainer2.style.width = "100%";
 			oContainer2.style.height = "100%";
 			oContainer2.style.opacity = 0;
-			oContainer2.style.filter = "hue-rotate("+ prevScreenHue +"deg) blur("+ prevScreenBlur +"px)";
+			oContainer2.style.filter = "blur("+ prevScreenBlur +"px)";
 			oPrevFrameStates[i][j] = {
 				container: oContainer2,
 				canvas: oContainer2.firstChild,
@@ -21227,9 +21233,9 @@ function choose(map,rand) {
 							removeMenuMusic();
 							removeGameMusics();
 							formulaire.screenscale.disabled = false;
-							formulaire.quality.disabled = false;
 							formulaire.music.disabled = false;
 							formulaire.sfx.disabled = false;
+							formulaire.fps.disabled = false;
 							chatting = false;
 							searchCourse();
 							return false;
@@ -21300,9 +21306,9 @@ function choose(map,rand) {
 	updateMenuMusic(1);
 
 	formulaire.screenscale.disabled = true;
-	formulaire.quality.disabled = true;
 	formulaire.music.disabled = true;
 	formulaire.sfx.disabled = true;
+	formulaire.fps.disabled = true;
 
 	if (bMusic) {
 		startMusicHandler = setInterval(function() {
@@ -21751,9 +21757,9 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			removeMenuMusic();
 			removeGameMusics();
 			formulaire.screenscale.disabled = false;
-			formulaire.quality.disabled = false;
 			formulaire.music.disabled = false;
 			formulaire.sfx.disabled = false;
+			formulaire.fps.disabled = false;
 			chatting = false;
 			searchCourse();
 			return false;
@@ -23226,9 +23232,9 @@ function toPerso(sPerso) {
 formulaire = document.forms.modes;
 if (pause) {
 	formulaire.screenscale.disabled = false;
-	formulaire.quality.disabled = false;
 	formulaire.music.disabled = false;
 	formulaire.sfx.disabled = false;
+	formulaire.fps.disabled = false;
 	if (isSingle && !isOnline)
 		choose(1);
 	else if (fInfos.map != undefined)
@@ -23245,13 +23251,6 @@ if (pause) {
 		selectMapScreen();
 }
 else {
-	addOption("pQuality", toLanguage("Quality","Qualit&eacute;"),
-	"vQuality", "quality", [
-		[5, toLanguage("Pixelated","Pixelisé")],
-		[4, toLanguage("Low","Inf&eacute;rieure")],
-		[2, toLanguage("Medium","Moyenne")],
-		[1, toLanguage("High","Sup&eacute;rieure")]
-	], iRendering);
 	addOption("pSize", toLanguage("Screen Size","Taille de l'&eacute;cran"),
 	"vSize", "screenscale", [
 		[4, toLanguage("Very small","Tr&egrave;s petite")],
@@ -23271,6 +23270,12 @@ else {
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;s")],
 		[1, toLanguage("On","Activ&eacute;s")]
 	], iSfx);
+	addOption("pFps", toLanguage("Framerate","FPS"),
+	"vFps", "fps", [
+		[1, "15 FPS"],
+		[2, "30 FPS"],
+		[4, "60 FPS"]
+	], iFps);
 	selectMainPage();
 	
 	if (!window.turnEvents) {
@@ -23298,10 +23303,6 @@ else {
 		window.turnEvents = true;
 	}
 	
-	formulaire.quality.onchange = function() {
-		var iValue = parseInt(this.item(this.selectedIndex).value);
-		MarioKartControl.setQuality(iValue);
-	}
 	formulaire.screenscale.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setScreenScale(iValue);
@@ -23313,6 +23314,10 @@ else {
 	formulaire.sfx.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setSfx(iValue);
+	}
+	formulaire.fps.onchange = function() {
+		var iValue = parseInt(this.item(this.selectedIndex).value);
+		MarioKartControl.setFps(iValue);
 	}
 	if (!window.fsevent) {
 		window.fsevent = function(e) {
@@ -23660,9 +23665,6 @@ function setChat() {
 }
 
 window.MarioKartControl = {
-	setQuality : function(iValue) {
-		 setQuality(iValue);
-	},
 	setScreenScale : function(iValue) {
 		 setScreenScale(iValue);
 	},
@@ -23671,6 +23673,9 @@ window.MarioKartControl = {
 	},
 	setSfx : function(iValue) {
 		setSfx(iValue);
+	},
+	setFps : function(iValue) {
+		setFps(iValue);
 	}
 };
 
