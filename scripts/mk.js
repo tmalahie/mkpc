@@ -2220,12 +2220,13 @@ function loadEndingMusic() {
 }
 function loopWithoutGap() {
 	if (playingCarEngine == this) {
-        var buffer = 0.44;
-        if (this.currentTime > this.duration - buffer) {
-            this.currentTime = 0;
-            this.play();
-        }
-    }
+		var buffer = 0.44;
+		if (this.currentTime > this.duration - buffer) {
+			this.currentTime = 0;
+			if (this.parentNode)
+				this.play();
+		}
+	}
 }
 function loopAfterIntro(embed, introTime, loopTime) {
 	if (embed.looper) return;
