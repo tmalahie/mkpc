@@ -494,6 +494,9 @@ main a:hover {
 	margin-left: auto;
 	margin-right: auto;
 }
+.news-comments form {
+	display: flex;
+}
 .news-nbcomments {
 	text-align: center;
 	position: relative;
@@ -535,9 +538,11 @@ form.news-comment-editting .news-noedit {
 .news-avatar {
 	display: inline-block;
 	padding: 5px 2px 0px 4px;
+	margin-right: 4px;
 	text-align: center;
 }
 .news-comment {
+	flex: 1;
 	display: inline-block;
 	vertical-align: top;
 	width: calc(100% - 51px);
