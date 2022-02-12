@@ -21,12 +21,16 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/apollo": "^10.0.2",
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^1.1.0",
     "@nestjs/core": "^8.0.0",
+    "@nestjs/graphql": "^10.0.2",
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/typeorm": "^8.0.2",
+    "apollo-server-express": "^3.6.3",
     "cookie-parser": "^1.4.5",
+    "graphql": "^16.3.0",
     "lodash": "^4.17.21",
     "luxon": "^2.1.1",
     "mysql2": "^2.3.3-rc.0",

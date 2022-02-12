@@ -7,6 +7,6 @@ export class QueryResolver implements I18nResolver {
 
   resolve(context: ExecutionContext) {
     let req = context.switchToHttp().getRequest();
-    return req.cookies.language === "0" ? "fr" : "en";
+    return req?.cookies.language === "0" ? "fr" : "en";
   }
 }

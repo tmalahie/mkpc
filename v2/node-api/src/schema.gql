@@ -1,0 +1,41 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Category {
+  id: Int!
+  name: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Message {
+  author: User!
+  date: DateTime!
+  id: Int!
+  message: String!
+}
+
+type Query {
+  topic(id: Float!): Topic!
+  topics: [Topic!]!
+}
+
+type Topic {
+  category: Category!
+  firstMessage: Message!
+  id: Int!
+  language: String!
+  lastMessage: Message!
+  locked: Boolean!
+  nbMessages: Float!
+  title: String!
+}
+
+type User {
+  id: Int!
+  name: String!
+}

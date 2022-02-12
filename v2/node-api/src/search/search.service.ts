@@ -21,8 +21,8 @@ type SearchOrder = {
 }
 type SearchPaging = {
   limit: number;
-  offset: number;
-  count: boolean;
+  offset?: number;
+  count?: boolean;
 }
 type SearchParams = {
   filters?: SearchFilter[],
