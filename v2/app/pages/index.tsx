@@ -66,6 +66,7 @@ import useSmoothFetch, { postData, Placeholder } from '../hooks/useSmoothFetch';
 import Skeleton from '../components/Skeleton/Skeleton';
 import useAuthUser from '../hooks/useAuthUser';
 import useCreations from '../hooks/useCreations';
+import { gql, useQuery } from '@apollo/client';
 
 const screenshots = [[{
   xs: ss1xs,
@@ -164,38 +165,30 @@ const Home: NextPage = () => {
   }, [leaderboardTab]);
 
   const user = useAuthUser();
-
-  const { data: topicsPayload, loading: topicsLoading } = useSmoothFetch("/api/forum/topics/find", {
-    placeholder: () => ({
-      data: Placeholder.array(10, (id) => ({
+  const TOPICS_GQL = gql`
+    query {
+      topics {
         id,
-        title: Placeholder.text(25, 45),
-        nbMessages: Placeholder.number(1, 1000),
-        language: "en",
-        lastMessage: {
-          author: {
-            name: Placeholder.text(8, 12)
+        title,
+        nbMessages,
+        language,
+        lastMessage {
+          author {
+            name
           },
-          date: Placeholder.date()
+          date
         }
-      }))
-    }),
-    requestOptions: postData({
-      sort: {
-        key: "lastMessageDate",
-        order: "desc"
-      },
-      paging: {
-        limit: 10
       }
-    })
-  });
+    }
+  `;
+  const { data: topicsPayload, loading: topicsLoading } = useQuery(TOPICS_GQL);
   const topicsSorted = useMemo(() => {
+    if (!topicsPayload) return [];
     if (language === 0)
-      return topicsPayload.data;
+      return topicsPayload.topics;
     return [
-      ...topicsPayload.data.filter(t => t.language !== "fr"),
-      ...topicsPayload.data.filter(t => t.language === "fr")
+      ...topicsPayload.topics.filter(t => t.language !== "fr"),
+      ...topicsPayload.topics.filter(t => t.language === "fr")
     ];
   }, [topicsPayload, language]);
   const { data: newsPayload, loading: newsLoading } = useSmoothFetch("/api/news/find", {
