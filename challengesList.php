@@ -135,7 +135,7 @@ function acceptChallenge(id) {
 	var difficultyChanged = (lastDifficulty != newDifficulty);
 	if (difficultyChanged) {
 		o_prompt(language
-			? "Please confirm challenge <strong>approval</strong>.<br />Optionnal: explain why you changed challenge difficulty:"
+			? "Please confirm challenge <strong>approval</strong>.<br />Optional: explain why you changed challenge difficulty:"
 			: "Veuillez confirmer la <strong>validation</strong> du défi.<br />Facultatif&nbsp;: expliquez le changement de difficulté&nbsp;:",
 			"",
 			function(msg) {
@@ -163,7 +163,7 @@ function rejectChallenge(id) {
 	var $challengeSelect = $challenge.getElementsByClassName("challenges-item-difficulty-select");
 	$challengeSelect = $challengeSelect[0];
 	o_prompt(language
-		? "Please confirm challenge <strong>rejection</strong>.<br />Optionnal: explain why you rejected challenge:"
+		? "Please confirm challenge <strong>rejection</strong>.<br />Optional: explain why you rejected challenge:"
 		: "Veuillez confirmer la <strong>non-validation</strong> du défi.<br />Facultatif&nbsp;: donnez les raisons du refus&nbsp;:",
 		"",
 		function(msg) {

@@ -1281,7 +1281,7 @@ function o_alert(msg, onValid) {
 	return oMask;
 }
 function o_repond(dem,name,rep,elt,battle) {
-	o_prompt(rep ? (o_language ? "Send an additionnal message to "+ name +" (optionnal)":"Envoyer un message en compl\xE9ment (facultatif)") : (o_language ? "Send a message to explain your rejection (optional)":"Envoyer un message pour expliquer votre refus (facultatif)"),
+	o_prompt(rep ? (o_language ? "Send an additionnal message to "+ name +" (optional)":"Envoyer un message en compl\xE9ment (facultatif)") : (o_language ? "Send a message to explain your rejection (optional)":"Envoyer un message pour expliquer votre refus (facultatif)"),
 		o_language ? "Leave empty to send nothing":"Laisser vide pour ne rien envoyer",
 		function(msg) {
 			o_send_answer(dem,rep,msg,battle);
