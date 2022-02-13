@@ -2220,12 +2220,13 @@ function loadEndingMusic() {
 }
 function loopWithoutGap() {
 	if (playingCarEngine == this) {
-        var buffer = 0.44;
-        if (this.currentTime > this.duration - buffer) {
-            this.currentTime = 0;
-            this.play();
-        }
-    }
+		var buffer = 0.44;
+		if (this.currentTime > this.duration - buffer) {
+			this.currentTime = 0;
+			if (this.parentNode)
+				this.play();
+		}
+	}
 }
 function loopAfterIntro(embed, introTime, loopTime) {
 	if (embed.looper) return;
@@ -3938,17 +3939,6 @@ function resetScreen() {
 	var prevScreenBlur = 0;
 	nbFrames = iFps;
 	frameHandlers = new Array(nbFrames);
-	interpolateFn = gameSettings.frameint;
-	if (!interpolateFn) {
-		switch (iFps) {
-		case 2:
-			interpolateFn = "ease_out_quad";
-			break;
-		case 4:
-			interpolateFn = "ease_out_cubic";
-			break;
-		}
-	}
 	var frameSettings = getFrameSettings(gameSettings);
 	interpolateFn = frameSettings.frameint;
 	prevScreenDelay = frameSettings.framerad;
@@ -6447,7 +6437,8 @@ var decorBehaviors = {
 				if (decorData[3] == 3) {
 					decorData[4] = -1;
 					for (var j=0;j<2;j++) {
-						var o = Math.floor(9*Math.random())-4;
+						var rng = oPlayers[0].cpu ? Math.random() : (10000*Math.abs(Math.sin(timer+j)))%1;
+						var o = Math.floor(9*rng)-4;
 						if (Math.abs(scope.limite[i][j]+o) > 10)
 							o = -o;
 						scope.limite[i][j] += o;
@@ -23589,11 +23580,13 @@ else {
 	if (typeof course === 'undefined')
 		course = "";
 	var $commandes = document.getElementById("commandes");
-	if (!$commandes.dataset) $commandes.dataset = {};
-	if ($commandes && $commandes.innerHTML.length < 10)
-		$commandes.dataset.hasCommands = 1;
-	if ($commandes.dataset.hasCommands)
-		displayCommands();
+	if ($commandes) {
+		if (!$commandes.dataset) $commandes.dataset = {};
+		if ($commandes.innerHTML.length < 10)
+			$commandes.dataset.hasCommands = 1;
+		if ($commandes.dataset.hasCommands)
+			displayCommands();
+	}
 	
 	if (isFirstLoad) {
 		isFirstLoad = false;
