@@ -93,7 +93,7 @@ include('menu.php');
 			</tr>
 			<tr>
 				<td class="ligne">
-					<label for="link"><?php echo $language ? '&quot;[?]&quot; link':'Lien &quot;[?]&quot;'; ?><br /><em style="font-size:0.8em">(<?php echo $language ? 'Optionnal':'Facultatif'; ?>)</em></label>
+					<label for="link"><?php echo $language ? '&quot;[?]&quot; link':'Lien &quot;[?]&quot;'; ?><br /><em style="font-size:0.8em">(<?php echo $language ? 'Optional':'Facultatif'; ?>)</em></label>
 				</td>
 				<td>
 					<input type="text" name="link" id="link" value="<?php if (isset($award['link'])) echo htmlspecialchars($award['link']); ?>" placeholder="https://mkpc.malahieude.net/news.php?id=14430" />

@@ -686,7 +686,7 @@ $(function() {
 			<fieldset class="challenge-metadata">
 					<legend><?php echo $language ? 'Other info':'Autres infos'; ?></legend>
 				<div>
-					<label><?php echo $language ? 'Challenge name (optionnal):':'Nom du défi (facultatif) :'; ?>
+					<label><?php echo $language ? 'Challenge name (optional):':'Nom du défi (facultatif) :'; ?>
 					<input type="text" name="name" value="<?php if (isset($challenge)) echo htmlspecialchars($challenge['name']); ?>" /></label>
 					<?php
 					if (!empty($moderate))
@@ -725,7 +725,7 @@ $(function() {
 			?>
 			<fieldset class="challenge-metadata">
 				<div>
-					<label><?php echo $language ? 'Challenge name (optionnal):':'Nom du défi (facultatif) :'; ?>
+					<label><?php echo $language ? 'Challenge name (optional):':'Nom du défi (facultatif) :'; ?>
 					<input type="text" name="name" value="<?php if (isset($challenge)) echo htmlspecialchars($challenge['name']); ?>" /></label>
 				</div>
 			</fieldset>
@@ -740,7 +740,7 @@ $(function() {
 			?>
 			<fieldset class="challenge-metadata">
 				<div>
-					<label><?php echo $language ? 'Challenge name (optionnal):':'Nom du défi (facultatif) :'; ?>
+					<label><?php echo $language ? 'Challenge name (optional):':'Nom du défi (facultatif) :'; ?>
 					<input type="text" name="name" value="<?php if (isset($challenge)) echo htmlspecialchars($challenge['name']); ?>" /></label>
 				</div>
 				<div>
