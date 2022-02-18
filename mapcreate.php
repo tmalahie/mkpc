@@ -20,7 +20,7 @@ for ($i=0;$i<36;$i++) {
 	}
 }
 $snes = ($map < 13);
-$gba = ($map < 31);
+$gba = ($map < 31) || ($map >= 52);
 $elements = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j');
 include('escape_all.php');
 for ($i=0;$i<10;$i++) {

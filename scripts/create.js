@@ -368,7 +368,7 @@ function recenterPos(E) {
 function changeMap(p) {
 	var cPieces = document.getElementsByClassName("cPiece");
 	var snes = (p <= 13);
-	var gba = (p <= 30);
+	var gba = (p <= 30) || (p >= 52);
 	for (var i=0;i<36;i++)
 		document.getElementsByTagName("img")[i].src = "images/pieces/piececircuit"+ p +"_"+ document.forms[0].elements["p"+i].value +".png";
 	for (var i=0;i<cPieces.length;i++)
