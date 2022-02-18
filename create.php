@@ -50,7 +50,7 @@ else {
 	}
 }
 $snes = ($map <= 13);
-$gba = ($map > 8) && ($map <= 30);
+$gba = (($map > 8) && ($map <= 30)) || ($map >= 52);
 include('language.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -72,7 +72,7 @@ include('o_online.php');
 <script type="text/javascript">
 var decorTypes = <?php echo json_encode($decorTypes); ?>;
 </script>
-<script type="text/javascript" src="scripts/create.js"></script>
+<script type="text/javascript" src="scripts/create.js?reload=2"></script>
 </head>
 <body>
 <div id="circuit">
@@ -92,25 +92,104 @@ include('circuitObjects.php');
 <form method="get" action="circuit.php">
 <div class="editor-section adv-opt">
 Type : <select name="map" onchange="changeMap(this.value);this.blur()">
-<optgroup label="SNES">
 <?php
-$circuits = $language ? Array('Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser\'s Castle', 'Rainbow Road', 'Mario Circuit', 'Lakeside Park', 'Cheep-Cheep Island', 'Cheese Land', 'Sky Garden', 'Snow Land', 'Sunset Wilds', 'Boo Lake', 'Ribbon Road', 'Yoshi Desert', 'Bowser Castle', 'Rainbow Road', 'Figure 8 Circuit', 'Yoshi Falls', 'Cheep-Cheep Beach', 'Luigi\'s Mansion', 'Desert Hills', 'Delfino Square', 'Waluigi Pinball', 'Shroom Ridge', 'DK Pass', 'Tick-Tock Clock', 'Mario Circuit', 'Airship Fortress', 'Wario Stadium', 'Peach Gardens', 'Bowser\'s Castle', 'Rainbow Road'):Array('Circuit Mario', 'Plaine Donut', 'Plage Koopa', '&Icirc;le Choco', 'Lac Vanille', 'Vall&eacute;e Fant&ocirc;me', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit Mario', 'Bord du Lac', '&Icirc;le Cheep-Cheep', 'Pays Fromage', 'Jardin Volant', 'Royaume Sorbet', 'Pays Cr&eacute;puscule', 'Lac Boo', 'Route Ruban', 'D&eacute;sert Yoshi', 'Ch&acirc;teau de Bowser', 'Route Arc-en-Ciel', 'Circuit en 8', 'Cascade Yoshi', 'Plage Cheep-Cheep', 'Manoir de Luigi', 'Désert du Soleil', 'Quartier Delfino', 'Flipper Waluigi', 'Corniche Champignon', 'Alpes DK', 'Horloge Tic-Tac', 'Circuit Mario', 'Bateau Volant', 'Stade Wario', 'Jardin Peach', 'Château de Bowser', 'Route Arc-en-Ciel');
-for ($i=1;$i<=8;$i++)
-	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-1)].'</option>';
+$circuitGroups = $language ? Array(
+	'SNES' => Array(
+		1 => 'Mario Circuit',
+		2 => 'Donut Plains',
+		3 => 'Koopa Beach',
+		4 => 'Choco Island',
+		5 => 'Vanilla Lake',
+		6 => 'Ghost Valley',
+		7 => 'Bowser\'s Castle',
+		8 => 'Rainbow Road'
+	), 
+	'GBA' => Array(
+		14 => 'Mario Circuit',
+		52 => 'Shy Guy Beach',
+		15 => 'Lakeside Park',
+		16 => 'Cheep-Cheep Island',
+		17 => 'Cheese Land',
+		18 => 'Sky Garden',
+		19 => 'Snow Land',
+		20 => 'Sunset Wilds',
+		21 => 'Boo Lake',
+		22 => 'Ribbon Road',
+		23 => 'Yoshi Desert',
+		24 => 'Bowser Castle',
+		25 => 'Rainbow Road'
+	), 
+	'DS' => Array(
+		31 => 'Figure 8 Circuit',
+		32 => 'Yoshi Falls',
+		33 => 'Cheep-Cheep Beach',
+		34 => 'Luigi\'s Mansion',
+		35 => 'Desert Hills',
+		36 => 'Delfino Square',
+		37 => 'Waluigi Pinball',
+		38 => 'Shroom Ridge',
+		39 => 'DK Pass',
+		40 => 'Tick-Tock Clock',
+		41 => 'Mario Circuit',
+		42 => 'Airship Fortress',
+		43 => 'Wario Stadium',
+		44 => 'Peach Gardens',
+		45 => 'Bowser\'s Castle',
+		46 => 'Rainbow Road'
+	)
+) : Array(
+	'SNES' => Array(
+		1 => 'Circuit Mario',
+		2 => 'Plaine Donut',
+		3 => 'Plage Koopa',
+		4 => 'Île Choco',
+		5 => 'Lac Vanille',
+		6 => 'Vallée Fantôme',
+		7 => 'Château de Bowser',
+		8 => 'Route Arc-en-Ciel'
+	),
+	'GBA' => Array(
+		14 => 'Circuit Mario',
+		52 => 'Plage Maskass',
+		15 => 'Bord du Lac',
+		16 => 'Île Cheep-Cheep',
+		17 => 'Pays Fromage',
+		18 => 'Jardin Volant',
+		19 => 'Royaume Sorbet',
+		20 => 'Pays Crépuscule',
+		21 => 'Lac Boo',
+		22 => 'Route Ruban',
+		23 => 'Désert Yoshi',
+		24 => 'Château de Bowser',
+		25 => 'Route Arc-en-Ciel'
+	),
+	'DS' => Array(
+		31 => 'Circuit en 8',
+		32 => 'Cascade Yoshi',
+		33 => 'Plage Cheep-Cheep',
+		34 => 'Manoir de Luigi',
+		35 => 'Désert du Soleil',
+		36 => 'Quartier Delfino',
+		37 => 'Flipper Waluigi',
+		38 => 'Corniche Champignon',
+		39 => 'Alpes DK',
+		40 => 'Horloge Tic-Tac',
+		41 => 'Circuit Mario',
+		42 => 'Bateau Volant',
+		43 => 'Stade Wario',
+		44 => 'Jardin Peach',
+		45 => 'Château de Bowser',
+		46 => 'Route Arc-en-Ciel'
+	)
+);
+
+foreach ($circuitGroups as $platform => $circuitGroup) {
+	echo '<optgroup label="'.$platform.'">';
+	foreach ($circuitGroup as $circuitId => $name)
+		echo '<option value="'.$circuitId.'"'.($circuitId==$map?' selected="selected"':'').'>'.$name.'</option>';
+	echo '</optgroup>';
+}
 ?>
-</optgroup>
-<optgroup label="GBA">
-<?php
-for ($i=14;$i<=25;$i++)
-	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-6)].'</option>';
-?>
-</optgroup>
-<optgroup label="DS">
-<?php
-for ($i=31;$i<=46;$i++)
-	echo '<option value="'.$i.'" '. ($map!=$i ? null : 'selected="selected"') .'>'.$circuits[($i-11)].'</option>';
-?>
-</optgroup>
 </select>
 </div>
 <div class="editor-section adv-opt">

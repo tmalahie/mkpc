@@ -8,7 +8,7 @@ if (isset($_GET['pieces'])) {
     $map = $_GET['map'];
     $nbPieces = $isBattle ? 15:11;
     for ($i=0;$i<=$nbPieces;$i++) {
-        $id = 7000+$i;
+        $id = 50000+$i;
         $circuitFile = "map$id.png";
         $circuitPath = "images/uploads/".$circuitFile;
         copy('images/pieces/piececircuit'.$map.'_'.$i.'.png', $circuitPath);
@@ -1047,7 +1047,7 @@ $str = preg_replace('#,[ \n\r\t]*]#',']',$str);
 $circuitsData = (new Services_JSON())->decode($str);
 require_once('circuitEnums.php');
 $circuitData = $circuitsData->map1;
-$id = 6999;
+$id = 49999;
 $circuitUrl = $circuitData->map;
 $circuitFile = "map$id.png";
 $circuitPath = "images/uploads/".$circuitFile;
