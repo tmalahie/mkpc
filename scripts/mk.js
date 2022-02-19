@@ -23284,7 +23284,7 @@ function editCommands(reload,currentTab) {
 			var $controlSetting = document.createElement("label");
 			$controlSetting.style.marginLeft = "5px";
 			var $controlText = document.createElement("span");
-			$controlText.innerHTML = toLanguage("Interfame interpolation:", "Interpolation inter-frames :");
+			$controlText.innerHTML = toLanguage("Interframe interpolation:", "Interpolation inter-frames :");
 			$controlSetting.appendChild($controlText);
 			var $controlSelect = document.createElement("select");
 			$controlSelect.style.width = "85px";
@@ -23516,7 +23516,10 @@ else {
 	"vFps", "fps", [
 		[1, "15 FPS"],
 		[2, "30 FPS"],
-		[4, "60 FPS"]
+		[4, "60 FPS"],
+		[6, "90 FPS"],
+		[9.6, "144 FPS"],
+		[16, "240 FPS"]
 	], iFps);
 	selectMainPage();
 	
