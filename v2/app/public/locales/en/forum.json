@@ -1,3 +1,15 @@
 {
-  "search_": "Search:"
+  "Search_": "Search:",
+  "Topic_title": "Topic title",
+  "Advanced_search": "Advanced search",
+  "Back_to_the_forum": "Back to the forum",
+  "Subjects": "Subjects",
+  "Author": "Author",
+  "Msgs_nb": "Msgs nb",
+  "Last_message": "Last message",
+  "Deleted_account": "Deleted account",
+  "Back_to_home": "Back to home",
+  "Category": "Category",
+  "Topics_nb": "Topics nb",
+  "New_topic": "New topic"
 }

@@ -3,8 +3,9 @@ import ClassicPage, { commonStyles } from "../components/ClassicPage/ClassicPage
 import styles from "../styles/Creations.module.scss";
 import cx from "classnames";
 import useLanguage from "../hooks/useLanguage";
+import { useTranslation } from "next-i18next";
 import Ad from "../components/Ad/Ad";
-import WithAppContext from "../components/WithAppContext/WithAppContext";
+import withServerSideProps from "../components/WithAppContext/withServerSideProps";
 import useSmoothFetch, { Placeholder } from "../hooks/useSmoothFetch";
 import Skeleton from "../components/Skeleton/Skeleton";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -17,8 +18,10 @@ import useFormSubmit, { doSubmit } from "../hooks/useFormSubmit";
 import useEffectOnUpdate from "../hooks/useEffectUpdate";
 
 const resPerPage = 60, resPerRow = 5;
+const localesNs = ["creations"];
 const CreationsList: NextPage = () => {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const router = useRouter();
   const handleSearch = useFormSubmit();
 
@@ -191,11 +194,11 @@ const CreationsList: NextPage = () => {
   }
 
   return (
-    <ClassicPage title={(language ? 'All shared circuits' : 'Tous les circuits partagés') + " - Mario Kart PC"} className={styles.Creations} page="game">
+    <ClassicPage title={(t("All_shared_circuits")) + " - Mario Kart PC"} className={styles.Creations} page="game">
       <Skeleton loading={user && !creator}>
         <h1>{creator
           ? (language ? 'Creations list of ' + creator.name : 'Liste des créations de ' + creator.name)
-          : (language ? 'Creations list of Mario Kart PC' : 'Liste des créations Mario Kart PC')}</h1>
+          : (t("Creations_list_of_mario"))}</h1>
       </Skeleton>
       <p>{!user && (
         language ? <>Welcome to the list of circuits and courses shared by the Mario Kart PC community !<br />
@@ -209,17 +212,17 @@ const CreationsList: NextPage = () => {
             return (i === nTri) ? <span key={sortTab.text}>{sortTab.text}</span> : <Link key={sortTab.text} href={sortTab.url}>{sortTab.text}</Link>
           })}
         </div>
-        <div><strong>{language ? 'Creation type' : 'Type de création '}</strong>{": "}
+        <div><strong>{t("Creation_type")}</strong>{": "}
           <select name="type" defaultValue={type} onChange={(e) => doSubmit(router, e.target.form)}>
-            <option value="">{language ? 'All creations' : 'Toutes les créations'}{" "}{creationCount?.isTotal && ' (' + creationCount.total + ')'}</option>
+            <option value="">{t("All_creations")}{" "}{creationCount?.isTotal && ' (' + creationCount.total + ')'}</option>
             {types.map((iType, i) => <option key={iType} value={i}>{iType}{creationCount?.isTotal && ' (' + creationCount.byType[i] + ')'}</option>)}
           </select></div>
-        <div><strong>{language ? 'Search' : 'Recherche '}</strong>{": "}
+        <div><strong>{t("Search")}</strong>{": "}
           {admin && <input type="hidden" name="admin" value="1" />}
           <input type="hidden" name="user" defaultValue={user} />
           <input type="hidden" name="tri" id={styles.tri} defaultValue={tri} />
-          <input type="text" name="nom" placeholder={language ? 'Name' : 'Nom'} defaultValue={nom} />{" "}
-          <input type="text" name="auteur" placeholder={language ? 'Author' : 'Auteur'} defaultValue={auteur} />{" "}
+          <input type="text" name="nom" placeholder={t("Name")} defaultValue={nom} />{" "}
+          <input type="text" name="auteur" placeholder={t("Author")} defaultValue={auteur} />{" "}
           <input type="submit" value="Ok" className={commonStyles.action_button} />
         </div>
       </form>
@@ -234,21 +237,23 @@ const CreationsList: NextPage = () => {
         </div>
       </div>
       <p className={cx(styles.subbuttons, { [styles.invisible]: creationsRendering })}>
-        <input type="button" id={styles.defiler} className={cx(styles.defiler, commonStyles.action_button, { [styles.invisible]: ((creationsListHeights.current >= creationsListHeights.max) && lastPage) })} value={language ? 'More' : 'Plus'} onClick={() => loadMore()} />{"   "}
-        <input type="button" id={styles.masquer} className={cx(styles.defiler, commonStyles.action_button, { [styles.invisible]: chunkHeight >= creationsListHeights.current })} value={language ? 'Less' : 'Moins'} onClick={() => showLess()} />{"   "}
-        <input type="button" id={styles.reduire} className={cx(styles.defiler, commonStyles.action_button, { [styles.invisible]: chunkHeight >= creationsListHeights.current })} value={language ? 'Minimize' : 'Réduire'} onClick={() => reduceAll()} />
+        <input type="button" id={styles.defiler} className={cx(styles.defiler, commonStyles.action_button, { [styles.invisible]: ((creationsListHeights.current >= creationsListHeights.max) && lastPage) })} value={t<string>("More")} onClick={() => loadMore()} />{"   "}
+        <input type="button" id={styles.masquer} className={cx(styles.defiler, commonStyles.action_button, { [styles.invisible]: chunkHeight >= creationsListHeights.current })} value={t<string>("Less")} onClick={() => showLess()} />{"   "}
+        <input type="button" id={styles.reduire} className={cx(styles.defiler, commonStyles.action_button, { [styles.invisible]: chunkHeight >= creationsListHeights.current })} value={t<string>("Minimize")} onClick={() => reduceAll()} />
       </p>
 
       {!creationsLoading && !creationsList.length && <h4>
-        {language ? 'No result for this search' : 'Aucun résultat pour cette recherche'}
+        {t("No_result_for_this_search")}
       </h4>}
 
       <p>
-        <a className={styles.retour} href="#null" onClick={scrollToTop}>{language ? 'Back to top' : 'Retour haut de page'}</a>{" - "}
-        <Link href="/"><a className={styles.retour}>{language ? 'Back to Mario Kart PC' : 'Retour à Mario Kart PC'}</a></Link>
+        <a className={styles.retour} href="#null" onClick={scrollToTop}>{t("Back_to_top")}</a>{" - "}
+        <Link href="/"><a className={styles.retour}>{t("Back_to_mario_kart_pc")}</a></Link>
       </p>
     </ClassicPage>
   );
 }
 
-export default WithAppContext(CreationsList);
+export const getServerSideProps = withServerSideProps({ localesNs })
+
+export default CreationsList;

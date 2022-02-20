@@ -74,12 +74,12 @@ const ForumCategories: NextPage = () => {
       <form method="get" action="/forum/search" className={styles["forum-search"]} onSubmit={handleSearch}>
         <p>
           <label htmlFor="search-content">
-            {t("search_")}{" "}
+            {t("Search_")}{" "}
           </label>
-          <input type="text" id={styles["search-content"]} placeholder={language ? 'Topic title' : 'Titre du topic'} name="content" />
+          <input type="text" id={styles["search-content"]} placeholder={t("Topic_title")} name="content" />
           {" "}
           <input type="submit" value="Ok" className={commonStyles.action_button} />
-          <a href="/forum-search.php">{language ? 'Advanced search' : 'Recherche avancée'}</a>
+          <a href="/forum-search.php">{t("Advanced_search")}</a>
         </p>
       </form>
       <Skeleton loading={categoriesLoading}>
@@ -91,9 +91,9 @@ const ForumCategories: NextPage = () => {
           </colgroup>
           <thead>
             <tr id={styles.titres}>
-              <td>{language ? 'Category' : 'Catégorie'}</td>
-              <td>{language ? 'Topics nb' : 'Nb topics'}</td>
-              <td>{language ? 'Last message' : 'Dernier message'}</td>
+              <td>{t("Category")}</td>
+              <td>{t("Topics_nb")}</td>
+              <td>{t("Last_message")}</td>
             </tr>
           </thead>
           <tbody>
@@ -132,7 +132,7 @@ const ForumCategories: NextPage = () => {
         </ul>}
       </Skeleton>
       <p className={styles.forumButtons}>
-        <Link href="/">{language ? "Back to home" : "Retour à l'accueil"}</Link>
+        <Link href="/">{t("Back_to_home")}</Link>
       </p>
     </ClassicPage>
   );
@@ -140,4 +140,4 @@ const ForumCategories: NextPage = () => {
 
 export const getServerSideProps = withServerSideProps({ localesNs })
 
-export default ForumCategories; // WithAppContext(ForumCategories);
+export default ForumCategories;
