@@ -748,6 +748,9 @@ select {
     left: 12px;
     top: 10px;
     overflow: hidden;
+    transition-property: filter;
+    transition-timing-function: linear;
+    transition-duration: 0.25s;
 }
 .noarrow::-webkit-outer-spin-button,
 .noarrow::-webkit-inner-spin-button {

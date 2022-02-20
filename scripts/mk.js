@@ -3142,7 +3142,7 @@ function startGame() {
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RETRY  ', 'RÉESSAYER') +' &nbsp; " id="recommencer" /></td></tr>'+
 								((course != "CM") ? '':
 									'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
-									'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value="'+ toLanguage('  CHANGE RACE  ', 'CHANGER CIRCUIT') +'" id="changecircuit" /></td></tr>'
+									'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value="'+ toLanguage('  CHANGE COURSE  ', 'CHANGER CIRCUIT') +'" id="changecircuit" /></td></tr>'
 								)+
 								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
 								'<tr><td><input type="button" id="quitter" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
@@ -3156,6 +3156,7 @@ function startGame() {
 									btnDir = 1;
 									break;
 								}
+								document.getElementById("game-container").style.filter = "brightness(100%)";
 								if (btnDir) {
 									var focusingElt = document.activeElement;
 									if (focusingElt) {
@@ -3346,6 +3347,7 @@ function startGame() {
 											var resumeButton = document.getElementById("reprendre");
 											if (resumeButton)
 												resumeButton.focus();
+												document.getElementById("game-container").style.filter = "brightness(25%)";
 										}
 									}
 								}
@@ -3870,6 +3872,7 @@ var fLineScale = 0;
 // setup main container
 var oContainers = [document.createElement("div")];
 oContainers[0].className = "game-container";
+oContainers[0].id = "game-container"
 oContainers[0].tabindex = 1;
 var oPrevFrameStates;
 formulaire = null;
@@ -4039,6 +4042,7 @@ function interruptGame() {
 function reprendre(debug) {
 	if(pause) {
 		pause = false;
+		document.getElementById("game-container").style.filter = "brightness(100%)";
 		cycle();
 	}
 	if (debug) {
@@ -4621,7 +4625,7 @@ function continuer() {
 		}
 		document.getElementById("revoir").appendChild(oReplay);
 
-		oChangeRace.value = toLanguage("     CHANGE RACE     ", "   CHANGER CIRCUIT   ");
+		oChangeRace.value = toLanguage("     CHANGE COURSE     ", "   CHANGER CIRCUIT   ");
 		oChangeRace.onclick = function() {
 			interruptGame();
 			removeGameMusics();
