@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app'
+import { appWithTranslation } from 'next-i18next'; 
 import { Cookies, CookiesProvider } from "react-cookie"
 import { AppWrapper, AppContext } from '../hooks/useAppContext'
 
@@ -12,4 +13,4 @@ function MyApp({ Component, pageProps }: AppProps) {
   </AppWrapper>
 }
 
-export default MyApp
+export default appWithTranslation(MyApp)
