@@ -16892,7 +16892,7 @@ function selectTypeScreen() {
 
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = toLanguage("Time trial", "Contre-la-montre");
+		oPInput.value = toLanguage("Time Trials", "Contre-la-montre");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (41*iScreenScale)+"px";
@@ -16942,7 +16942,7 @@ function selectTypeScreen() {
 
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = toLanguage("Track builder", "Éditeur de circuit");
+		oPInput.value = toLanguage("Track Builder", "Éditeur de circuit");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (10*iScreenScale)+"px";
@@ -16957,7 +16957,7 @@ function selectTypeScreen() {
 
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = toLanguage("Online race", "Course en ligne");
+		oPInput.value = toLanguage("Online Race", "Course en ligne");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (41*iScreenScale)+"px";
@@ -17001,7 +17001,7 @@ function selectTypeScreen() {
 			oModeIds.push("CM");
 		}
 		if (nid && (!isSingle||!complete||cShared)) {
-			oModes.push(toLanguage("Online race", "Course en ligne"));
+			oModes.push(toLanguage("Online Race", "Course en ligne"));
 			oModeIds.push("CL");
 		}
 		if (!isSingle && cupScore) {
@@ -17891,7 +17891,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oTitle.style.color = "#F90";
 	}
 	else
-		oTitle = toTitle(toLanguage("Select a player", "Choisissez un joueur"), -1);
+		oTitle = toTitle(toLanguage("Select a Character", "Choisissez un joueur"), -1);
 	if (shrinkAll)
 		oTitle.style.fontSize = Math.round(7.5*iScreenScale)+"px";
 	oScr.appendChild(oTitle);
@@ -17924,7 +17924,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	hTr.appendChild(hTd2);
 	cTable.appendChild(hTr);
 	
-	var sCaracteristiques = [toLanguage("Acceleration", "Accélération"), toLanguage("Max speed", "Vitesse max"), toLanguage("Handling", "Maniabilité"), toLanguage("Weight", "Poids")];
+	var sCaracteristiques = [toLanguage("Acceleration", "Accélération"), toLanguage("Max-Speed", "Vitesse max"), toLanguage("Handling", "Maniabilité"), toLanguage("Weight", "Poids")];
 	var dCaracteristiques = new Array();
 	
 	for (var i=0;i<sCaracteristiques.length;i++) {
@@ -20544,7 +20544,7 @@ function selectMapScreen(force) {
 		oStyle.backgroundColor = "black";
 
 		if (course != "BB")
-			oScr.appendChild(toTitle(toLanguage("Choose cup", "Choisissez la coupe"), 0.5));
+			oScr.appendChild(toTitle(toLanguage("Select a Cup", "Choisissez la coupe"), 0.5));
 		else
 			oScr.appendChild(toTitle(toLanguage("Choose stage", "Choisissez une arène"), 0.5));
 
@@ -23495,11 +23495,13 @@ if (pause) {
 else {
 	addOption("pSize", toLanguage("Screen Size","Taille de l'&eacute;cran"),
 	"vSize", "screenscale", [
+		[3, toLanguage("Tiny","Minuscule")],
 		[4, toLanguage("Very small","Tr&egrave;s petite")],
 		[6, toLanguage("Small","Petite")],
 		[8, toLanguage("Medium","Moyenne")],
 		[10, toLanguage("Large","Large")],
 		[12, toLanguage("Very large","Tr&egrave;s large")],
+		[16, toLanguage("Massive","Massif")],
 		[-1, toLanguage("Full (F11)","Plein (F11)")]
 	], (+$mkScreen.dataset.lastsc)||iScreenScale);
 	addOption("pMusic", toLanguage("Music","Musique"),
@@ -23507,7 +23509,7 @@ else {
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;e")],
 		[1, toLanguage("On","Activ&eacute;e")]
 	], bMusic);
-	addOption("pSfx", toLanguage("Sound effects","Bruitages"),
+	addOption("pSfx", toLanguage("Sound Effects","Bruitages"),
 	"vSfx", "sfx", [
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;s")],
 		[1, toLanguage("On","Activ&eacute;s")]
