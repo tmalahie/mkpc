@@ -8,14 +8,17 @@ import { formatDate, localeString } from "../../helpers/dates";
 import Ad from "../../components/Ad/Ad";
 import goldCupIcon from "../../images/icons/gold-cup.png"
 import silverCupIcon from "../../images/icons/silver-cup.png"
-import WithAppContext from "../../components/WithAppContext/WithAppContext";
+import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
 import ForumAccount from "../../components/Forum/Account/Account";
 import useSmoothFetch, { Placeholder } from "../../hooks/useSmoothFetch";
 import Skeleton from "../../components/Skeleton/Skeleton";
 import useFormSubmit from "../../hooks/useFormSubmit";
+import { useTranslation } from "next-i18next";
 
+const localesNs = ["forum"];
 const ForumCategories: NextPage = () => {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const handleSearch = useFormSubmit();
 
   const { data: categoriesPayload, loading: categoriesLoading } = useSmoothFetch("/api/forum/categories", {
@@ -71,7 +74,7 @@ const ForumCategories: NextPage = () => {
       <form method="get" action="/forum/search" className={styles["forum-search"]} onSubmit={handleSearch}>
         <p>
           <label htmlFor="search-content">
-            {language ? 'Search' : 'Recherche '}:{" "}
+            {t("search_")}{" "}
           </label>
           <input type="text" id={styles["search-content"]} placeholder={language ? 'Topic title' : 'Titre du topic'} name="content" />
           {" "}
@@ -135,4 +138,6 @@ const ForumCategories: NextPage = () => {
   );
 }
 
-export default WithAppContext(ForumCategories);
+export const getServerSideProps = withServerSideProps({ localesNs })
+
+export default ForumCategories; // WithAppContext(ForumCategories);
