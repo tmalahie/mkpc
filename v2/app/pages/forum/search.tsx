@@ -3,7 +3,8 @@ import ClassicPage, { commonStyles } from "../../components/ClassicPage/ClassicP
 import styles from "../../styles/Forum.module.scss";
 import Link from "next/link"
 import useLanguage from "../../hooks/useLanguage";
-import WithAppContext from "../../components/WithAppContext/WithAppContext";
+import { useTranslation } from "next-i18next";
+import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
 import Ad from "../../components/Ad/Ad";
 import { formatDate } from "../../helpers/dates";
 import { useRouter } from "next/dist/client/router";
@@ -14,8 +15,10 @@ import Pager from "../../components/Pager/Pager";
 import { useEffect, useRef } from "react";
 import useFormSubmit from "../../hooks/useFormSubmit";
 
+const localesNs = ["forum"];
 const ForumSearch: NextPage = () => {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const router = useRouter();
   const handleSearch = useFormSubmit();
   const searchInput = useRef<HTMLInputElement>(null);
@@ -69,15 +72,15 @@ const ForumSearch: NextPage = () => {
       <form method="get" action="/forum/search" className={styles["forum-search"]} onSubmit={handleSearch}>
         <p>
           <label htmlFor="search-content">
-            {language ? 'Search:' : 'Recherche :'}{" "}
+            {t("Search_")}{" "}
           </label>
-          <input type="text" id={styles["search-content"]} placeholder={language ? 'Topic title' : 'Titre du topic'} name="content" defaultValue={content} ref={searchInput} />
+          <input type="text" id={styles["search-content"]} placeholder={t("Topic_title")} name="content" defaultValue={content} ref={searchInput} />
           {" "}
           <input type="submit" value="Ok" className={commonStyles.action_button} />
-          <a href="/forum-search.php">{language ? 'Advanced search' : 'Recherche avancée'}</a>
+          <a href="/forum-search.php">{t("Advanced_search")}</a>
         </p>
       </form>
-      <p><Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link></p>
+      <p><Link href="/forum">{t("Back_to_the_forum")}</Link></p>
       <Skeleton loading={topicsLoading}>
         <table id={styles.listeTopics}>
           <colgroup>
@@ -88,10 +91,10 @@ const ForumSearch: NextPage = () => {
           </colgroup>
           <thead>
             <tr id={styles.titres}>
-              <td>{language ? 'Subjects' : 'Sujets'}</td>
-              <td>{language ? 'Author' : 'Auteur'}</td>
-              <td className={styles["topic-nbmsgs"]}>{language ? 'Msgs nb' : 'Nb msgs'}</td>
-              <td>{language ? 'Last message' : 'Dernier message'}</td>
+              <td>{t("Subjects")}</td>
+              <td>{t("Author")}</td>
+              <td className={styles["topic-nbmsgs"]}>{t("Msgs_nb")}</td>
+              <td>{t("Last_message")}</td>
             </tr>
           </thead>
           <tbody>
@@ -103,7 +106,7 @@ const ForumSearch: NextPage = () => {
                 {
                   topic.firstMessage.author
                     ? <a className={styles["forum-auteur"]} href={"/profil.php?id=" + topic.firstMessage.author.id}>{topic.firstMessage.author.name}</a>
-                    : <em>{language ? "Deleted account" : "Compte supprimé"}</em>
+                    : <em>{t("Deleted_account")}</em>
                 }
               </td>
               <td className={styles["topic-nbmsgs"]}>{topic.nbMessages}</td>
@@ -126,11 +129,13 @@ const ForumSearch: NextPage = () => {
         </div>
       </Skeleton>
       <div className={styles.forumButtons}>
-        <Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link><br />
-        <Link href="/">{language ? 'Back to home' : 'Retour à l\'accueil'}</Link>
+        <Link href="/forum">{t("Back_to_the_forum")}</Link><br />
+        <Link href="/">{t("Back_to_home")}</Link>
       </div>
     </ClassicPage>
   );
 }
 
-export default WithAppContext(ForumSearch);
+export const getServerSideProps = withServerSideProps({ localesNs })
+
+export default ForumSearch;

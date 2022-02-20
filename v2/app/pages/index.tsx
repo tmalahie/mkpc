@@ -3,7 +3,7 @@ import Head from 'next/head'
 
 import Ad from "../components/Ad/Ad";
 import ClassicPage, { commonStyles } from "../components/ClassicPage/ClassicPage";
-import WithAppContext from "../components/WithAppContext/WithAppContext";
+import withServerSideProps from '../components/WithAppContext/withServerSideProps';
 import Rating from "../components/Rating/Rating";
 import useLanguage, { plural } from "../hooks/useLanguage";
 import useScript, { insertScript } from "../hooks/useScript";
@@ -66,6 +66,7 @@ import useSmoothFetch, { postData, Placeholder } from '../hooks/useSmoothFetch';
 import Skeleton from '../components/Skeleton/Skeleton';
 import useAuthUser from '../hooks/useAuthUser';
 import useCreations from '../hooks/useCreations';
+import { useTranslation } from 'next-i18next';
 
 const screenshots = [[{
   xs: ss1xs,
@@ -125,8 +126,10 @@ enum LeaderboardTab {
   TT_200 = 3
 }
 
+const localesNs = ["home", "common"];
 const Home: NextPage = () => {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   useScript("/scripts/jquery.min.js", {
     async: false, onload: () => {
       insertScript("/scripts/slider.js");
@@ -397,7 +400,7 @@ const Home: NextPage = () => {
         ...record,
         key: `record${record.id}`,
         icon: clockIcon,
-        message: `${formatTime(record.time)} (${formatRank(language, record.leaderboard.rank)} ${language ? "out of" : "sur"} ${record.leaderboard.count})`,
+        message: `${formatTime(record.time)} (${formatRank(language, record.leaderboard.rank)} ${t("out_of")} ${record.leaderboard.count})`,
         type: "record",
         recency: (new Date().getTime() - new Date(record.date).getTime()) * 2
       }
@@ -474,7 +477,7 @@ const Home: NextPage = () => {
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
-                    <h3 className="fp-title">{language ? 'A Mario Kart Game for browser' : 'Un jeu de Mario Kart sur navigateur'}</h3>
+                    <h3 className="fp-title">{t("A_mario_kart_game_for")}</h3>
                     <p>
                       {language ? <>										A computer version of the famous racing game by Nintendo.<br />
                         This game is <strong>completely free</strong> and does not require <strong>any downloads</strong>. All you need is a web browser!
@@ -496,7 +499,7 @@ const Home: NextPage = () => {
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
-                    <h3 className="fp-title">{language ? 'Crazy races full of fun!' : 'Des courses acharnées et pleines de fun !'}</h3>
+                    <h3 className="fp-title">{t("Crazy_races_full_of_fun")}</h3>
                     <p>
                       {language ? <>										Try to be the fastest while avoiding the items!<br />
                         Find all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
@@ -518,7 +521,7 @@ const Home: NextPage = () => {
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
-                    <h3 className="fp-title">{language ? 'Win all the Grand Prix!' : 'Remportez tous les grands prix !'}</h3>
+                    <h3 className="fp-title">{t("Win_all_the_grand_prix")}</h3>
                     <p>
                       {language ? <>										Face off the cpu on the <strong>14 grands prix</strong> tournaments and try to win the gold cup!<br />
                         Win enough cups to unlock the <strong>15 secret characters</strong>!
@@ -540,7 +543,7 @@ const Home: NextPage = () => {
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
-                    <h3 className="fp-title">{language ? 'Create your own tracks!' : 'Créez vos propres circuits !'}</h3>
+                    <h3 className="fp-title">{t("Create_your_own_tracks")}</h3>
                     <p>
                       {language ? <>										With the <strong>track builder</strong>, the possibilities are infinite: the only limit is your own imagination.<br />
                         Try other peoples' creations thanks to the integrated <strong>sharing tool</strong>.
@@ -562,7 +565,7 @@ const Home: NextPage = () => {
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
-                    <h3 className="fp-title">{language ? 'Face players from around the world!' : 'Affrontez les joueurs du monde entier !'}</h3>
+                    <h3 className="fp-title">{t("Face_players_from_around")}</h3>
                     <p>
                       {language ? <>										Fight other players in <strong>online mode</strong>!<br />
                         Win as many races as possible and <strong>climb in the official ranking</strong>!
@@ -584,7 +587,7 @@ const Home: NextPage = () => {
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
-                    <h3 className="fp-title">{language ? 'Make the best scores in time trial!' : 'Réalisez les meilleurs temps en contre-la-montre !'}</h3>
+                    <h3 className="fp-title">{t("Make_the_best_scores_in")}</h3>
                     <p>
                       {language ? <>										<strong>Finish the race track</strong> as fast as you can!<br />
                         <strong>Compare your scores</strong> with the community, and face other players' ghosts!
@@ -606,7 +609,7 @@ const Home: NextPage = () => {
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
-                    <h3 className="fp-title">{language ? 'Release your fighter talents!' : 'Montrez vos talents de combattant !'}</h3>
+                    <h3 className="fp-title">{t("Release_your_fighter_talents")}</h3>
                     <p>
                       {language ? <>										<strong>Destroy the balloons</strong> of your opponents with your own items without getting hit by theirs<br />
                         The last player standing wins!
@@ -628,7 +631,7 @@ const Home: NextPage = () => {
                 </div>
                 <div className="fp-content-wrap">
                   <div className="fp-content">
-                    <h3 className="fp-title">{language ? 'Face off your friends with the local multiplayer mode!' : 'Affrontez vos amis grâce au mode multijoueur !'}</h3>
+                    <h3 className="fp-title">{t("Face_off_your_friends")}</h3>
                     <p>
                       {language ? <>										Prove your friends that you're the best!<br />
                         Face them in <strong>multiplayer</strong> on VS races or on battle mode.
@@ -653,10 +656,10 @@ const Home: NextPage = () => {
         </div>
         <h1>Mario Kart PC</h1>
         <div id={styles.toBegin}><Link href="/game"><a>
-          &#9660;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la boîte du jeu pour commencer'}&nbsp;&#9660;<br />
-          <img src={mkpcBox.src} alt={language ? "Go to the game" : "Accéder au jeu"} /><br />
-          &#9650;&nbsp;{language ? 'Click on the game box to begin' : 'Cliquez sur la boîte du jeu pour commencer'}&nbsp;&#9650;</a></Link></div>
-        <h2><img src={aboutIcon.src} alt="" /> {language ? 'What\'s Mario Kart PC?' : 'Mario Kart PC, c\'est quoi ?'}</h2>
+          &#9660;&nbsp;{t("Click_on_the_game_box")}&nbsp;&#9660;<br />
+          <img src={mkpcBox.src} alt={t("Go_to_the_game")} /><br />
+          &#9650;&nbsp;{t("Click_on_the_game_box")}&nbsp;&#9650;</a></Link></div>
+        <h2><img src={aboutIcon.src} alt="" /> {t("Whats_mario_kart_pc")}</h2>
         <div>
           {language ? <>				<p>You might know Mario Kart, the most fun racing game series of all time!
             Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.</p>
@@ -675,9 +678,9 @@ const Home: NextPage = () => {
             <p>Enfin, il est possible d'affronter les joueurs du monde entier grâce au <strong>mode multijoueurs en ligne</strong> ! Grimpez dans le <a href="/bestscores.php">classement</a> et devenez champion du monde !</p>
           </>}
         </div>
-        <h2><img src={screenshotsIcon.src} alt="" /> {language ? 'Some screenshots' : 'Quelques screenshots'}</h2>
+        <h2><img src={screenshotsIcon.src} alt="" /> {t("Some_screenshots")}</h2>
         <div>
-          {language ? 'Here are some screenshots of the game to give you a quick preview of what it looks like:' : 'Une image vaut mieux qu\'un long discours, voici donc quelques captures d\'écran issues du jeu afin que vous ayez un aperçu de ce à quoi ça ressemble :'}
+          {t("Here_are_some_screenshots")}
           <table id={styles.screenshots} className="demo-gallery">
             <tbody>
               {screenshots.map((screenshotGroup, i) => <tr key={i}>
@@ -692,7 +695,7 @@ const Home: NextPage = () => {
         <div className={styles.pub_section}>
           <Ad width={728} height={90} bannerId="4919860724" />
         </div>
-        <h2><img src={thanksIcon.src} alt="" /> {language ? 'Special thanks' : 'Remerciements'}</h2>
+        <h2><img src={thanksIcon.src} alt="" /> {t("Special_thanks")}</h2>
         <div>
           {language ? <>				A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !
             <ul>
@@ -710,7 +713,7 @@ const Home: NextPage = () => {
             </ul>
           </>}
         </div>
-        <h2><img src={followIcon.src} alt="" /> {language ? 'Follow us' : 'Nous suivre'}</h2>
+        <h2><img src={followIcon.src} alt="" /> {t("Follow_us")}</h2>
         <div>
           {language ? <>				<ul>
             <li><a href="https://discord.gg/VkeAxaj">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.</li>
@@ -731,7 +734,7 @@ const Home: NextPage = () => {
         <div className={styles.pub_section}>
           <Ad width={728} height={90} bannerId="4919860724" />
         </div>
-        <h2><img src={gameIcon.src} alt="" /> {language ? 'Go to the game' : 'Accéder au jeu'}</h2>
+        <h2><img src={gameIcon.src} alt="" /> {t("Go_to_the_game")}</h2>
         <div>
           {language ? <>				To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:<br />
             <Link href="/game"><a className={cx(commonStyles.action_button, styles.button_game)}>Start playing now &gt;</a></Link>
@@ -744,37 +747,37 @@ const Home: NextPage = () => {
         <div className={styles.subsection}>
           {user && <BirthdaysList />}
           <SectionBar title="Forum" link="/forum" />
-          <h2>{language ? 'Last topics' : 'Derniers topics'}</h2>
+          <h2>{t("Last_topics")}</h2>
           <Skeleton id={styles.forum_section} className={styles.right_subsection} loading={topicsLoading}>
             {topicsSorted.map(topic => <a key={topic.id} href={"/topic.php?topic=" + topic.id} title={topic.title}>
               <h2>{topic.title}</h2>
-              <h3>{language ? 'Last message' : 'Dernier message'}
-                {topic.lastMessage.author && <> {language ? 'by' : 'par'} <strong>{topic.lastMessage.author.name}</strong></>}
+              <h3>{t("Last_message")}
+                {topic.lastMessage.author && <> {t("by")} <strong>{topic.lastMessage.author.name}</strong></>}
                 {" "}
                 {formatDate(topic.lastMessage.date, { language, prefix: true, mode: "short" })}</h3>
               <div className={styles.creation_comments} title={plural("%n message%s", topic.nbMessages)}><img src="images/comments.png" alt="Messages" /> {topic.nbMessages}</div>
             </a>)}
           </Skeleton>
-          <Link href="/forum"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'Go to the forum' : 'Accéder au forum'}</a></Link>
+          <Link href="/forum"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{t("Go_to_the_forum")}</a></Link>
         </div>
         <div className={styles.subsection}>
           <SectionBar title="News" link="/news" />
-          <h2>{language ? 'Latest news' : 'Dernières news'}</h2>
+          <h2>{t("Latest_news")}</h2>
           <Skeleton loading={newsLoading} id={styles.news_section} className={styles.right_subsection}>
             {
               listNews.map(news => <a key={news.id} href={"/news.php?id=" + news.id} title={news.title} className={news.isNew ? styles.news_new : ""}>
                 <h2>{news.title}</h2>
-                <h3>{language ? 'In' : 'Dans'} <strong>{news.category.name}</strong> {news.author ? <>{language ? 'by' : 'par'} <strong>{news.author.name}</strong> </> : <></>}{formatDate(news.publicationDate, { language, prefix: true, mode: "short" })}</h3>
-                <div className={styles.creation_comments} title={plural(language ? '%n comment%s' : '%n commentaire%s', news.nbComments)}><img src={commentIcon.src} alt="Messages" /> {news.nbComments}</div>
+                <h3>{t("In")} <strong>{news.category.name}</strong> {news.author ? <>{t("by")} <strong>{news.author.name}</strong> </> : <></>}{formatDate(news.publicationDate, { language, prefix: true, mode: "short" })}</h3>
+                <div className={styles.creation_comments} title={plural(t("n_comments"), news.nbComments)}><img src={commentIcon.src} alt="Messages" /> {news.nbComments}</div>
               </a>)
             }
           </Skeleton>
           {user?.roles.publisher && <PendingNews />}
-          <Link href="/news"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'All news' : 'Toutes les news'}</a></Link>
+          <Link href="/news"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{t("All_news")}</a></Link>
         </div>
         <div className={styles.subsection}>
-          <SectionBar title={language ? 'Track builder' : 'Éditeur de circuit'} link="/creations" />
-          <h2>{language ? 'Latest creations' : 'Dernières créations'}</h2>
+          <SectionBar title={t("Track_builder")} link="/creations" />
+          <h2>{t("Latest_creations")}</h2>
           <Skeleton loading={creationsLoading} id={styles.creations_section} className={styles.right_subsection}>
             <table>
               <tbody>
@@ -782,34 +785,34 @@ const Home: NextPage = () => {
                   <td className={cx(styles.creation_icon, creation.isCup ? styles.creation_cup : styles.single_creation)}
                     style={{ backgroundImage: creation.icons ? creation.icons.map(src => `url('images/creation_icons/${src}')`).join(",") : undefined }}
                     data-cicon={creation.icons ? undefined : creation.cicon}
-                    title={language ? 'Preview' : 'Aperçu'}
+                    title={t("Preview")}
                     onClick={() => previewCreation(creation)}>
                   </td>
                   <td className={styles.creation_description}>
                     <a href={creation.href} title={creation.name}>
-                      <h2>{creation.name || (language ? "Untitled" : "Sans titre")}</h2>
-                      <Rating rating={creation.rating} nbRatings={creation.nbRatings} label={<h3>{creation.author && <>{language ? "By" : "Par"}{" "}{creation.author /* TODO control length */}</>}</h3>} />
-                      {(creation.nbComments > 0) && <div className={styles.creation_coms} title={plural(language ? "%n comment%s" : "%n commentaire%s", creation.nbComments)}><img src={commentIcon.src} alt="Commentaires" />{creation.nbComments}</div>}
-                      <div className={styles.creation_date} title={(language ? 'Published' : 'Publié') + ' ' + formatDate(creation.publicationDate, { language, prefix: true, mode: "datetime" })}><img src={clockIcon.src} alt="Date" />{formatDate(creation.publicationDate, { language, mode: "short" })}</div>
+                      <h2>{creation.name || (t("Untitled"))}</h2>
+                      <Rating rating={creation.rating} nbRatings={creation.nbRatings} label={<h3>{creation.author && <>{t("By")}{" "}{creation.author /* TODO control length */}</>}</h3>} />
+                      {(creation.nbComments > 0) && <div className={styles.creation_coms} title={plural(t("n_comments"), creation.nbComments)}><img src={commentIcon.src} alt="Commentaires" />{creation.nbComments}</div>}
+                      <div className={styles.creation_date} title={(t("Published")) + ' ' + formatDate(creation.publicationDate, { language, prefix: true, mode: "datetime" })}><img src={clockIcon.src} alt="Date" />{formatDate(creation.publicationDate, { language, mode: "short" })}</div>
                     </a>
                   </td>
                 </tr>)}
               </tbody>
             </table>
           </Skeleton>
-          <Link href="/creations"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'Display all' : 'Afficher tout'}</a></Link>
-          <h2>{language ? 'Last challenges' : 'Derniers défis'}</h2>
+          <Link href="/creations"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{t("Display_all")}</a></Link>
+          <h2>{t("Last_challenges")}</h2>
           <Skeleton loading={challengesLoading} id={styles.challenges_section} className={styles.right_subsection}>
             {
               challengesSorted.map(challenge => <a key={challenge.id} href={"/challengeTry.php?challenge=" + challenge.id} title={challenge.description.main} className={challenge.succeeded && styles.challenges_section_succeeded}>
                 <h2>{challenge.description.main}</h2>
                 <h3>
                   {challenge.circuit?.author && <div className={styles.challenge_section_author}>
-                    {language ? 'By' : 'Par'}{" "}
+                    {t("By")}{" "}
                     <strong>{challenge.circuit.author}</strong>
                   </div>}
                   {challenge.circuit?.name && <div className={styles.challenge_section_circuit}>
-                    {challenge.circuit.author ? (language ? 'in' : 'dans') : (language ? 'In' : 'Dans')}{" "}
+                    {challenge.circuit.author ? (t("in")) : (t("In"))}{" "}
                     <strong>{challenge.circuit.name}</strong>
                   </div>}
                   <div className={styles.challenge_section_difficulty}>
@@ -827,20 +830,20 @@ const Home: NextPage = () => {
 					echo '<p className={styles["nb-pending-news"]}><Link href="/challenges?moderate">'. $getPendingChallenges['nb'] .' '. ($language ? 'pending':"défi$s") .'</Link> '. ($language ? "challenge$s":'en attente de validation') .'</p>';
 				}
 			*/}
-          <Link href="/challenges"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{language ? 'Display all' : 'Afficher tout'}</a></Link>
-          <div id={styles.challenge_ranking}><a href="/challengeRanking.php">{language ? 'Challenge points - Leaderboard' : 'Classement des points défis'}</a></div>
-          <h2>{language ? 'Recent activity' : 'Activité récente'}</h2>
+          <Link href="/challenges"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{t("Display_all")}</a></Link>
+          <div id={styles.challenge_ranking}><a href="/challengeRanking.php">{t("Challenge_points_leaderboard")}</a></div>
+          <h2>{t("Recent_activity")}</h2>
           <Skeleton loading={commentsLoading || recordsLoading} id={styles.comments_section} className={styles.right_subsection}>
             {activityPayload?.map((activity) => (
               <a key={activity.key} href={activity.circuit.url} title={activity.title}>
                 <h2><img src={activity.icon.src} alt={activity.type} /> <span dangerouslySetInnerHTML={{ __html: activity.message }} /></h2>
                 <h3>
                   {activity.name && <div className={styles.comments_section_author}>
-                    {language ? 'By' : 'Par'}{" "}
+                    {t("By")}{" "}
                     <strong>{activity.name}</strong>
                   </div>}
                   {activity.circuit.name && <div className={styles.comments_section_circuit}>
-                    {activity.name ? (language ? 'in' : 'dans') : (language ? 'In' : 'Dans')}{" "}
+                    {activity.name ? (t("in")) : (t("In"))}{" "}
                     <strong>{activity.circuit.name}</strong>
                   </div>}
                   <div className={styles.comments_section_date}>
@@ -857,17 +860,17 @@ const Home: NextPage = () => {
             <a className={cx({
               [styles.tab_selected]: leaderboardTab === LeaderboardTab.VS
             })} href="#null" onClick={(e) => dispRankTab(e, 0)}>
-              {language ? 'VS mode' : 'Course VS'}
+              {t("Vs_mode")}
               {/* print_badge(0); */}
             </a><a className={cx({
               [styles.tab_selected]: leaderboardTab === LeaderboardTab.BATTLE
             })} href="#null" onClick={(e) => dispRankTab(e, 1)}>
-              {language ? 'Battle' : 'Bataille'}
+              {t("Battle")}
               {/* print_badge(1); */}
             </a><a className={cx({
               [styles.tab_selected]: leaderboardTab >= LeaderboardTab.TT_150
             })} href="#null" onClick={(e) => dispRankTab(e, currentTtCc)}>
-              {language ? 'Time Trial' : 'CLM'}
+              {t("Time_trial")}
             </a>
           </div>
           <div id={styles.currently_online}>
@@ -885,8 +888,8 @@ const Home: NextPage = () => {
             <table>
               <tbody>
                 <tr>
-                  <th>{language ? 'Rank' : 'Rang'}</th>
-                  <th>{language ? 'Nick' : 'Pseudo'}</th>
+                  <th>{t("Rank")}</th>
+                  <th>{t("Nick")}</th>
                   <th>Score</th>
                 </tr>
                 {leaderboard.map((player, i) => <tr key={player.id}>
@@ -897,16 +900,16 @@ const Home: NextPage = () => {
               </tbody>
             </table>
           </Skeleton>
-          <a className={cx(styles.right_section_actions, commonStyles.action_button)} href={leaderboardLink}>{language ? 'Display all' : 'Afficher tout'}</a>
+          <a className={cx(styles.right_section_actions, commonStyles.action_button)} href={leaderboardLink}>{t("Display_all")}</a>
         </div>
         <div className={styles.pub_section}>
           <Ad width={300} height={250} bannerId="4492555127" />
         </div>
         <div className={styles.subsection}>
           <div className={styles.flag_counter}>
-            <h4>{language ? 'Visitors since november 2017' : 'Visiteurs depuis novembre 2017'}</h4>
-            <img src="https://s01.flagcounter.com/countxl/XMvG/bg_FFFFFF/txt_000000/border_CCCCCC/columns_3/maxflags_9/viewers_3/labels_0/pageviews_0/flags_0/percent_0/" alt={language ? 'Visitors' : 'Visiteurs'} />
-            <a className={cx(styles.right_section_actions, commonStyles.action_button)} href="/topic.php?topic=2288">{language ? 'Learn more' : 'En savoir plus'}</a>
+            <h4>{t("Visitors_since_november")}</h4>
+            <img src="https://s01.flagcounter.com/countxl/XMvG/bg_FFFFFF/txt_000000/border_CCCCCC/columns_3/maxflags_9/viewers_3/labels_0/pageviews_0/flags_0/percent_0/" alt={t("Visitors")} />
+            <a className={cx(styles.right_section_actions, commonStyles.action_button)} href="/topic.php?topic=2288">{t("Learn_more")}</a>
           </div>
         </div>
       </section>
@@ -956,6 +959,7 @@ function BirthdaysList() {
     }>
   }>(`/api/getBirthdays.php`);
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
 
   const membersList = useMemo(() => {
     if (!birthdaysPayload) return;
@@ -964,7 +968,7 @@ function BirthdaysList() {
     for (let i = 0; i < nbBirthdays; i++) {
       const member = birthdaysPayload.data[i];
       res.push(<Fragment key={member.id}>
-        {!!i && ((i == nbBirthdays - 1) ? (language ? " and " : " et ") : ", ")}
+        {!!i && ((i == nbBirthdays - 1) ? (t("and_")) : ", ")}
         <a href={`/profil.php?id=${member.id}`}>{member.name}</a>
       </Fragment>);
     }
@@ -975,14 +979,15 @@ function BirthdaysList() {
 
   return <div className={styles["birthdays-list"]}>
     <img src={birthdayIcon.src} alt="" />
-    {language ? "It's the birthday of" : "C'est l'anniversaire de"}
+    {t("Its_the_birthday_of")}
     {" "}
     {membersList}
-    {language ? '!' : ' !'}
+    {t("common:_exclamation_mark")}
   </div>
 }
 function PendingNews() {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const { data: pendingNewsPayload } = useSmoothFetch<{ count: number }>("/api/news/find", {
     requestOptions: postData({
       filters: [{
@@ -1000,8 +1005,11 @@ function PendingNews() {
   if (!pendingNewsPayload?.count) return <></>;
 
   return <p className={styles["nb-pending-news"]}>
-    <Link href={"/news#pending-news"}>{plural(language ? "%n pending" : "%n news", pendingNewsPayload.count)}</Link> {language ? 'news' : 'en attente de validation'}
+    <Link href={"/news#pending-news"}>{plural(t("n_pending"), pendingNewsPayload.count)}</Link> {t("news")}
   </p>
 }
 
-export default WithAppContext(Home)
+
+export const getServerSideProps = withServerSideProps({ localesNs })
+
+export default Home;

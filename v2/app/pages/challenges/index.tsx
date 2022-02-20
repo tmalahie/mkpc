@@ -4,8 +4,9 @@ import styles from "../../styles/Challenges.module.scss";
 import cx from "classnames";
 import Link from "next/link"
 import useLanguage from "../../hooks/useLanguage";
+import { useTranslation } from "next-i18next";
 import Ad from "../../components/Ad/Ad";
-import WithAppContext from "../../components/WithAppContext/WithAppContext";
+import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
 import useSmoothFetch, { Placeholder } from "../../hooks/useSmoothFetch";
 import Skeleton from "../../components/Skeleton/Skeleton";
 import { usePaging } from "../../hooks/usePaging";
@@ -19,19 +20,21 @@ import useCreations from "../../hooks/useCreations";
 import { buildQuery } from "../../helpers/uris";
 import useFormSubmit from "../../hooks/useFormSubmit";
 
+const localesNs = ["challenges"];
 const ChallengesList: NextPage = () => {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const router = useRouter();
   const { moderate, remoderate, rate, ordering } = router.query;
   const rateChallenges = rate;
   const title = useMemo(() => {
     if (moderate != null)
-      return language ? 'Challenges pending moderation' : 'Défis en attente de validation';
+      return t("Challenges_pending_moderation");
     if (ordering === "rating")
-      return language ? 'Top rated challenges' : 'Défis les mieux notés';
+      return t("Top_rated_challenges");
     if (remoderate != null)
-      return language ? 'Undo a challenge validation' : 'Annuler la validation d\'un défi';
-    return language ? 'Last published challenges' : 'Derniers défis publiés';
+      return t("Undo_a_challenge_validation");
+    return t("Last_published_challenges");
     // TODO title for author
   }, [language, moderate, remoderate, ordering]);
 
@@ -56,8 +59,8 @@ const ChallengesList: NextPage = () => {
         {moderate && <ValidationTips />}
         {remoderate && <ReValidationTips />}
         {!rateChallenges && <div className={styles["challenges-list-sublinks"]}>
-          <img src="images/cups/cup2.png" alt="Cup" /> <a href="challengeRanking.php">{language ? 'Challenges leaderboard' : 'Classement des défis'}</a> &nbsp;
-          <img src="images/ministar0.png" alt="Star" className={styles.icStar} /> <Link href="/challenges?rate">{language ? 'Rate challenges' : 'Noter les défis'}</Link>
+          <img src="images/cups/cup2.png" alt="Cup" /> <a href="challengeRanking.php">{t("Challenges_leaderboard")}</a> &nbsp;
+          <img src="images/ministar0.png" alt="Star" className={styles.icStar} /> <Link href="/challenges?rate">{t("Rate_challenges")}</Link>
         </div>}
         {!rateChallenges && <ChallengesListSearch />}
         <Ad width={728} height={90} bannerId="4919860724" />
@@ -71,21 +74,21 @@ const ChallengesList: NextPage = () => {
             </p>
           </div>
         </Skeleton>
-        {!challengesLoading && !challengesPayload.data.length && <h2><em>{language ? 'No challenge for this search' : 'Aucun défi trouvé'}</em></h2>}
+        {!challengesLoading && !challengesPayload.data.length && <h2><em>{t("No_challenge_for_this")}</em></h2>}
         <p>
           {rateChallenges && <>
-            <Link href="/challenges">{language ? 'Back to challenges list' : 'Retour à la liste des défis'}</Link>
+            <Link href="/challenges">{t("Back_to_challenges_list")}</Link>
             <br />
           </>}
           {(moderate != null) && <>
-            <Link href="/challenges?remoderate">{language ? 'Undo a challenge validation mistake' : 'Annuler une erreur de validation'}</Link>
+            <Link href="/challenges?remoderate">{t("Undo_a_challenge_validation_mistake")}</Link>
             <br />
           </>}
           {(remoderate != null) && <>
-            <Link href="/challenges?moderate">{language ? 'Back to challenges list' : 'Retour à la liste des défis'}</Link>
+            <Link href="/challenges?moderate">{t("Back_to_challenges_list")}</Link>
             <br />
           </>}
-          <Link href="/">{language ? 'Back to the Mario Kart PC' : 'Retour à Mario Kart PC'}</Link>
+          <Link href="/">{t("Back_to_the_mario_kart")}</Link>
         </p>
       </div>
     </ClassicPage>
@@ -94,6 +97,7 @@ const ChallengesList: NextPage = () => {
 
 function ValidationTips() {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   if (language) {
     return <p>
       Welcome to the challenge moderation page. Before you begin, please read the <a href="javascript:document.getElementById('validation-hints').style.display=document.getElementById('validation-hints').style.display?'':'block';void(0)">validation tips</a>.
@@ -153,11 +157,13 @@ function ValidationTips() {
 }
 function ReValidationTips() {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
 
-  return <>{language ? "A challenge you accepted or rejected by mistake? A difficulty to change? You're in the right place!" : "Un défi que vous avez accepté ou refusé par erreur ? Une difficulté à changer ? C'est ici que ça se passe !"}</>
+  return <>{t("A_challenge_you_accepted")}</>
 }
 function ChallengesListSearch() {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const router = useRouter();
   const handleSearch = useFormSubmit();
   const { ordering, author, winner, difficulty, hide_succeeded } = router.query;
@@ -165,22 +171,22 @@ function ChallengesListSearch() {
 
   return <form method="get" className={styles["challenges-list-search"]} action="/challenges" onSubmit={handleSearch}>
     <p>
-      <label>{language ? 'Filter:' : 'Filtrer :'}{" "}
+      <label>{t("Filter_")}{" "}
         {author && <input type="hidden" name="author" defaultValue={author} />}
         {winner && <input type="hidden" name="winner" defaultValue={winner} />}
         <select name="difficulty" defaultValue={difficulty}>
-          <option value="">{language ? 'Difficulty...' : 'Difficulté...'}</option>
+          <option value="">{t("Difficulty")}</option>
           {challengeDifficulties?.map((challengeDifficulty) => <option key={challengeDifficulty.level} value={challengeDifficulty.level}>{challengeDifficulty.name}</option>)}
         </select></label>
       &nbsp;
-      <label><input type="checkbox" name="hide_succeeded" defaultChecked={!!hide_succeeded} />{language ? 'Hide succeeded challenges' : 'Masquer les défis réussis'}</label>
+      <label><input type="checkbox" name="hide_succeeded" defaultChecked={!!hide_succeeded} />{t("Hide_succeeded_challenges")}</label>
     </p>
     <p>
-      <label>{language ? 'Show first:' : 'Afficher en premier :'}
+      <label>{t("Show_first_")}
         {" "}
         <select name="ordering" defaultValue={ordering}>
-          <option value="latest">{language ? 'Most recent challenges' : 'Défis les plus récents'}</option>
-          <option value="rating">{language ? 'Top rated challenges' : 'Défis les mieux notés'}</option>
+          <option value="latest">{t("Most_recent_challenges")}</option>
+          <option value="rating">{t("Top_rated_challenges")}</option>
         </select></label>
       &nbsp;<input type="submit" value="Ok" />
     </p>
@@ -222,6 +228,7 @@ type ChallengeItemProps = {
 function ChallengeItem({ challenge }: ChallengeItemProps) {
   const router = useRouter();
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const challengeDifficulties = useChallengeDifficulties();
   const { moderate, remoderate, rate, ordering } = router.query;
   const rateChallenges = rate;
@@ -294,7 +301,7 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
   }, [challenge, language]);
 
   const remoderateChallenge = useCallback(() => {
-    window["o_confirm"](language ? "Put this challenge back to the &quot;pending moderation&quot; list?" : "Repasser ce défi dans la liste des défis à modérer ?", function (valided) {
+    window["o_confirm"](t("Put_this_challenge_back"), function (valided) {
       if (valided) {
         var data = { "challenge": challenge.id };
         challengeModerate(data, "challengeRemoderate.php");
@@ -365,13 +372,13 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
           <div className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${challenge.difficulty.level}`])}>
             <img src={`images/challenges/difficulty${challenge.difficulty.level}.png`} alt={challenge.difficulty.name} />
             {" "}{challenge.difficulty.name}
-            {challengeThanks && <span className={styles["challenges-item-rating-thanks"]}>{language ? 'Thanks!' : 'Merci !'}</span>}
+            {challengeThanks && <span className={styles["challenges-item-rating-thanks"]}>{t("Thanks")}</span>}
           </div>
           <RatingControl defaultValue={challenge.rating.avg} onChange={(value) => {
             rateChallenge(value);
           }} />
           {challenge.circuit.author && <div className={styles["challenges-item-author"]}>
-            {language ? 'By' : 'Par'} <strong>{challenge.circuit.author}</strong>
+            {t("By")} <strong>{challenge.circuit.author}</strong>
           </div>}
         </>}
       {
@@ -380,7 +387,7 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
             <div className={styles["challenges-item-difficulty-value"]}>
               <img src={`images/challenges/difficulty${challenge.difficulty.level}.png`} alt={challenge.difficulty.name} />
               {" "}{challenge.difficulty.name}
-              <span className={styles["challenge-item-link"]} onClick={editDifficulty}>{language ? 'Edit' : 'Modifier'}</span>
+              <span className={styles["challenge-item-link"]} onClick={editDifficulty}>{t("Edit")}</span>
             </div>
             <div className={cx(styles["challenges-item-difficulty-edit"], {
               [styles["challenges-item-editting"]]: edittingDifficulty
@@ -388,11 +395,11 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
               <select className={styles["challenges-item-difficulty-select"]} value={selectedDifficulty} onChange={(e) => setSelectedDifficulty(+e.target.value)}>
                 {challengeDifficulties.map((name, i) => <option value={i}>{name}</option>)}
               </select>
-              <span className={styles["challenge-item-link"]} onClick={uneditDifficulty}>{language ? 'Undo' : 'Annuler'}</span>
+              <span className={styles["challenge-item-link"]} onClick={uneditDifficulty}>{t("Undo")}</span>
             </div>
           </div>
           {challenge.circuit.author && <div className={styles["challenges-item-author"]}>
-            {language ? 'By' : 'Par'} <strong>{challenge.circuit.author}</strong>
+            {t("By")} <strong>{challenge.circuit.author}</strong>
           </div>}
           <div className={styles["challenges-item-moderation"]}>
             <button className={styles["challenges-item-accept"]} onClick={acceptChallenge}>&check;</button>
@@ -409,16 +416,16 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
                 {" "}{challenge.difficulty.name}
               </span><br />
               <span className={styles["challenges-item-accepted"]}>
-                {language ? 'Accepted' : 'Accepté'}
+                {t("Accepted")}
               </span>
             </> : <>
               <span className={styles["challenges-item-rejected"]}>
-                {language ? 'Rejected' : 'Refusé'}
+                {t("Rejected")}
               </span>
             </>}
             <br />
             <span className={styles["challenge-item-link"]} onClick={remoderateChallenge}>
-              {language ? 'Undo' : 'Annuler'}
+              {t("Undo")}
             </span>
           </div>
         </>
@@ -433,7 +440,7 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
             <Rating rating={challenge.rating.avg} nbRatings={challenge.rating.nb} />
           </div>
           {challenge.circuit.author && <div className={styles["challenges-item-author"]}>
-            {language ? 'By' : 'Par'} <strong>{challenge.circuit.author}</strong>
+            {t("By")} <strong>{challenge.circuit.author}</strong>
           </div>}
         </>
       }
@@ -441,4 +448,6 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
   </a>
 }
 
-export default WithAppContext(ChallengesList);
+export const getServerSideProps = withServerSideProps({ localesNs })
+
+export default ChallengesList;

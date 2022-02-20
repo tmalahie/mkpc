@@ -4,7 +4,8 @@ import cx from "classnames";
 import styles from "../../../styles/Forum.module.scss";
 import Link from "next/link"
 import useLanguage from "../../../hooks/useLanguage";
-import WithAppContext from "../../../components/WithAppContext/WithAppContext";
+import { useTranslation } from "next-i18next";
+import withServerSideProps from "../../../components/WithAppContext/withServerSideProps";
 import ForumAccount from "../../../components/Forum/Account/Account";
 import Ad from "../../../components/Ad/Ad";
 import { formatDate } from "../../../helpers/dates";
@@ -16,8 +17,10 @@ import Pager from "../../../components/Pager/Pager";
 import useAuthUser from "../../../hooks/useAuthUser";
 import { useMemo } from "react";
 
+const localesNs = ["forum"];
 const ForumCategory: NextPage = () => {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const router = useRouter();
   const user = useAuthUser();
   const categoryID = +router.query.id;
@@ -79,12 +82,12 @@ const ForumCategory: NextPage = () => {
       <p className={styles.pub}>
         <Ad width={728} height={90} bannerId="4919860724" />
       </p>
-      <p><Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link></p>
+      <p><Link href="/forum">{t("Back_to_the_forum")}</Link></p>
       <Skeleton loading={catsLoading}>
         <p id={styles["category-description"]}>{categoryPayload.description}</p>
       </Skeleton>
       {canPostTopic && <p className={styles.forumButtons}>
-        <a href={"/newtopic.php?category=" + categoryID} className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a>
+        <a href={"/newtopic.php?category=" + categoryID} className={cx(styles.action_button, commonStyles.action_button)}>{t("New_topic")}</a>
       </p>}
       <Skeleton loading={topicsLoading}>
         <table id={styles.listeTopics}>
@@ -96,10 +99,10 @@ const ForumCategory: NextPage = () => {
           </colgroup>
           <thead>
             <tr id={styles.titres}>
-              <td>{language ? 'Subjects' : 'Sujets'}</td>
-              <td>{language ? 'Author' : 'Auteur'}</td>
-              <td className={styles["topic-nbmsgs"]}>{language ? 'Msgs nb' : 'Nb msgs'}</td>
-              <td>{language ? 'Last message' : 'Dernier message'}</td>
+              <td>{t("Subjects")}</td>
+              <td>{t("Author")}</td>
+              <td className={styles["topic-nbmsgs"]}>{t("Msgs_nb")}</td>
+              <td>{t("Last_message")}</td>
             </tr>
           </thead>
           <tbody>
@@ -111,7 +114,7 @@ const ForumCategory: NextPage = () => {
                 {
                   topic.firstMessage.author
                     ? <a className={styles["forum-auteur"]} href={"/profil.php?id=" + topic.firstMessage.author.id}>{topic.firstMessage.author.name}</a>
-                    : <em>{language ? "Deleted account" : "Compte supprimé"}</em>
+                    : <em>{t("Deleted_account")}</em>
                 }
               </td>
               <td className={styles["topic-nbmsgs"]}>{topic.nbMessages}</td>
@@ -134,12 +137,14 @@ const ForumCategory: NextPage = () => {
         </div>
       </Skeleton>
       <div className={styles.forumButtons}>
-        {canPostTopic && <p><a href={"/newtopic.php?category=" + categoryID} className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'New topic' : 'Nouveau topic'}</a></p>}
-        <Link href="/forum">{language ? 'Back to the forum' : 'Retour au forum'}</Link><br />
-        <Link href="/">{language ? 'Back to home' : 'Retour à l\'accueil'}</Link>
+        {canPostTopic && <p><a href={"/newtopic.php?category=" + categoryID} className={cx(styles.action_button, commonStyles.action_button)}>{t("New_topic")}</a></p>}
+        <Link href="/forum">{t("Back_to_the_forum")}</Link><br />
+        <Link href="/">{t("Back_to_home")}</Link>
       </div>
     </ClassicPage>
   );
 }
 
-export default WithAppContext(ForumCategory);
+export const getServerSideProps = withServerSideProps({ localesNs })
+
+export default ForumCategory;

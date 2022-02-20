@@ -4,9 +4,10 @@ import styles from "../../styles/News.module.scss";
 import cx from "classnames";
 import Link from "next/link"
 import useLanguage from "../../hooks/useLanguage";
+import { useTranslation } from "next-i18next";
 import { formatDate } from "../../helpers/dates";
 import Ad from "../../components/Ad/Ad";
-import WithAppContext from "../../components/WithAppContext/WithAppContext";
+import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
 import useSmoothFetch, { Placeholder } from "../../hooks/useSmoothFetch";
 import Skeleton from "../../components/Skeleton/Skeleton";
 import useAuthUser from "../../hooks/useAuthUser";
@@ -17,8 +18,9 @@ import { useMemo } from "react";
 import { useRouter } from "next/router";
 import useFormSubmit from "../../hooks/useFormSubmit";
 
+const localesNs = ["news"];
 const NewsList: NextPage = () => {
-  const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const user = useAuthUser();
   const router = useRouter();
   const handleSearch = useFormSubmit();
@@ -26,22 +28,22 @@ const NewsList: NextPage = () => {
 
   return (
     <ClassicPage title="News Mario Kart PC" className={styles.News} page="home">
-      <h1>{language ? "Mario Kart PC - News list" : "Mario Kart PC - Liste des news"}</h1>
+      <h1>{t("Mario_kart_pc_news_list")}</h1>
       <p className={styles.pub}>
         <Ad width={728} height={90} bannerId="4919860724" />
       </p>
       <form method="get" action="/news" className={styles["news-search"]} onSubmit={handleSearch}>
         <p>
           <label htmlFor="search-content">
-            {language ? 'Search' : 'Recherche '}:{" "}
+            {t("Search")}:{" "}
           </label>
-          <input type="text" id={styles["search-content"]} placeholder={language ? 'News title' : 'Titre de la news'} name="search" />
+          <input type="text" id={styles["search-content"]} placeholder={t("News_title")} name="search" />
           {" "}
           <input type="submit" value="Ok" className={cx(styles.action_button, commonStyles.action_button)} />
         </p>
       </form>
       <p className={styles.newsButtons}>
-        {user && <a href="addNews.php" className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'Add a news' : 'Créer une news'}</a>}
+        {user && <a href="addNews.php" className={cx(styles.action_button, commonStyles.action_button)}>{t("Add_a_news")}</a>}
       </p>
 
       <PublishedNews search={search} />
@@ -49,8 +51,8 @@ const NewsList: NextPage = () => {
       {user?.roles.publisher && <OtherPendingNews />}
 
       <p className={styles.newsButtons}>
-        {user && <a href="addNews.php" className={cx(styles.action_button, commonStyles.action_button)}>{language ? 'Add a news' : 'Créer une news'}</a>}
-        <Link href="/">{language ? "Back to home" : "Retour à l'accueil"}</Link>
+        {user && <a href="addNews.php" className={cx(styles.action_button, commonStyles.action_button)}>{t("Add_a_news")}</a>}
+        <Link href="/">{t("Back_to_home")}</Link>
       </p>
     </ClassicPage>
   );
@@ -81,6 +83,7 @@ type NewsListProps = {
 }
 function PublishedNews({ search }: NewsListProps) {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const { paging, currentPage, setCurrentPage } = usePaging(50);
   const filters = useMemo(() => {
     let res = [{
@@ -122,11 +125,11 @@ function PublishedNews({ search }: NewsListProps) {
       </colgroup>
       <thead>
         <tr className={styles["listNews-titres"]}>
-          <td>{language ? 'Type' : 'Type'}</td>
-          <td>{language ? 'Info' : 'Info'}</td>
-          <td>{language ? 'Author' : 'Auteur'}</td>
-          <td className={styles["news-nopo"]}>{language ? 'Coms nb' : 'Nb coms'}</td>
-          <td className={styles["news-nomo"]}>{language ? 'Date' : 'Date'}</td>
+          <td>{t("Type")}</td>
+          <td>{t("Info")}</td>
+          <td>{t("Author")}</td>
+          <td className={styles["news-nopo"]}>{t("Coms_nb")}</td>
+          <td className={styles["news-nomo"]}>{t("Date")}</td>
         </tr>
       </thead>
       <tbody>
@@ -136,7 +139,7 @@ function PublishedNews({ search }: NewsListProps) {
             <a className={styles.fulllink} href={'news.php?id=' + news.id}>{news.title}</a>
           </td>
           <td className={styles["news-publisher"]}>
-            {news.author ? <a href={"/profil.php?id=" + news.author.id}>{news.author.name}</a> : <em>{language ? 'Deleted account' : 'Compte supprimé'}</em>}
+            {news.author ? <a href={"/profil.php?id=" + news.author.id}>{news.author.name}</a> : <em>{t("Deleted_account")}</em>}
           </td>
           <td className={styles["news-nopo"]}>{news.nbComments}</td>
           <td className={styles["news-nomo"]}>{formatDate(news.publicationDate, {
@@ -148,7 +151,7 @@ function PublishedNews({ search }: NewsListProps) {
           })}</td>
         </tr>)}
         {!newsPayload.data.length && <tr className={styles.clair}>
-          <td colSpan={3}>{language ? 'No result found for this search' : 'Aucun résultat trouvé pour cette recherche'}</td>
+          <td colSpan={3}>{t("No_result_found_for_this")}</td>
           <td className={styles["news-nopo"]}></td>
           <td className={styles["news-nomo"]}></td>
         </tr>}
@@ -162,7 +165,7 @@ function PublishedNews({ search }: NewsListProps) {
   </Skeleton>
 }
 function MyPendingNews() {
-  const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const user = useAuthUser();
 
   const { data: newsPayload, loading: newsLoading } = useSmoothFetch("/api/news/find", {
@@ -182,7 +185,7 @@ function MyPendingNews() {
   });
 
   return (newsPayload.data.length > 0) && <>
-    <h2>{language ? "My pending news" : "Vos news en attente"}</h2>
+    <h2>{t("My_pending_news")}</h2>
     <table className={cx(styles.listNews)}>
       <colgroup>
         <col className={styles["listNews-cats"]} />
@@ -191,9 +194,9 @@ function MyPendingNews() {
       </colgroup>
       <thead>
         <tr className={styles["listNews-titres"]}>
-          <td>{language ? 'Type' : 'Type'}</td>
-          <td>{language ? 'Info' : 'Info'}</td>
-          <td>{language ? 'Status' : 'Statut'}</td>
+          <td>{t("Type")}</td>
+          <td>{t("Info")}</td>
+          <td>{t("Status")}</td>
         </tr>
       </thead>
       <tbody>
@@ -212,6 +215,7 @@ function MyPendingNews() {
 }
 function OtherPendingNews() {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
   const user = useAuthUser();
 
   const { data: newsPayload, loading: newsLoading } = useSmoothFetch("/api/news/find", {
@@ -229,7 +233,7 @@ function OtherPendingNews() {
   });
 
   return (newsPayload.data.length > 0) ? <>
-    <h2 id="pending-news">{language ? "News pending validation" : "News en attente de validation"}</h2>
+    <h2 id="pending-news">{t("News_pending_validation")}</h2>
     <table className={cx(styles.listNews)}>
       <colgroup>
         <col className={styles["listNews-cats"]} />
@@ -239,10 +243,10 @@ function OtherPendingNews() {
       </colgroup>
       <thead>
         <tr className={styles["listNews-titres"]}>
-          <td>{language ? 'Type' : 'Type'}</td>
-          <td>{language ? 'Info' : 'Info'}</td>
-          <td>{language ? 'Author' : 'Auteur'}</td>
-          <td className={styles["news-nomo"]}>{language ? 'Date' : 'Date'}</td>
+          <td>{t("Type")}</td>
+          <td>{t("Info")}</td>
+          <td>{t("Author")}</td>
+          <td className={styles["news-nomo"]}>{t("Date")}</td>
         </tr>
       </thead>
       <tbody>
@@ -252,7 +256,7 @@ function OtherPendingNews() {
             <a className={styles.fulllink} href={'news.php?id=' + news.id}>{news.title}</a>
           </td>
           <td className={styles["news-publisher"]}>
-            {news.author ? <a href={"/profil.php?id=" + news.author.id}>{news.author.name}</a> : <em>{language ? 'Deleted account' : 'Compte supprimé'}</em>}
+            {news.author ? <a href={"/profil.php?id=" + news.author.id}>{news.author.name}</a> : <em>{t("Deleted_account")}</em>}
           </td>
           <td className={styles["news-nomo"]}>{formatDate(news.publicationDate, {
             language,
@@ -268,14 +272,14 @@ function OtherPendingNews() {
 }
 function NewsStatus({ news }) {
   console.log(news);
-  const language = useLanguage();
+  const { t } = useTranslation(localesNs);
 
   switch (news.status) {
     case "pending":
-      return <>{language ? 'Waiting for validation' : 'En attente de validation'}</>;
+      return <>{t("Waiting_for_validation")}</>;
     case "rejected":
       return <>
-        {language ? 'Rejected' : 'Refusée'}
+        {t("Rejected")}
         {" "}
         <a className={styles["news-reject-details"]} href={'/news.php?id=' + news.id + '#news-status'}>[?]</a>
       </>;
@@ -283,4 +287,6 @@ function NewsStatus({ news }) {
   return <></>;
 }
 
-export default WithAppContext(NewsList);
+export const getServerSideProps = withServerSideProps({ localesNs })
+
+export default NewsList;

@@ -1,18 +1,19 @@
 import { NextPage } from "next";
-import styles from "../../styles/Forum.module.scss";
-import Link from "next/link"
 import { useCallback, useEffect, useMemo } from "react";
 import Ad from "../components/Ad/Ad";
-import WithAppContext from "../components/WithAppContext/WithAppContext";
+import withServerSideProps from "../components/WithAppContext/withServerSideProps";
 import Head from 'next/head'
 import useLanguage from "../hooks/useLanguage";
+import { useTranslation } from "next-i18next";
 import ss1 from "../images/main/screenshots/ss1.png"
 import { useCookies } from "react-cookie";
 import useFetch from "../hooks/useFetch";
 import { insertScript } from "../hooks/useScript";
 
+const localesNs = ["game"];
 const Game: NextPage = () => {
   const language = useLanguage();
+  const { t } = useTranslation(localesNs);
 
   const [cookies] = useCookies(["mkplayers", "mkteam", "mkdifficulty", "mkrecorder", "iQuality", "bMusic", "iSfx", "iScreenScale"]);
 
@@ -81,8 +82,8 @@ const Game: NextPage = () => {
       <Head>
         <title>Mario Kart PC</title>
         <meta name="author" content="Timothé Malahieude" />
-        <meta name="description" content={language ? "Free online Mario Kart game" : "Jeu de Mario Kart gratuit en ligne"} />
-        <meta name="keywords" content={language ? "Mario, Kart, PC, game, race, track, builder, multiplayer, online" : "Mario, Kart, PC, jeu, course, éditeur, circuit, multijoueur"} />
+        <meta name="description" content={t("Free_online_mario_kart")} />
+        <meta name="keywords" content={t("Mario_kart_pc_game_race")} />
         <meta name="viewport" content="width=device-width, user-scalable=no" />
         <meta name="thumbnail" content={ss1.src} />
         <meta property="og:image" content={ss1.src} />
@@ -155,4 +156,6 @@ const Game: NextPage = () => {
   );
 }
 
-export default WithAppContext(Game);
+export const getServerSideProps = withServerSideProps({ localesNs })
+
+export default Game;
