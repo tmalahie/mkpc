@@ -3347,7 +3347,7 @@ function startGame() {
 											var resumeButton = document.getElementById("reprendre");
 											if (resumeButton)
 												resumeButton.focus();
-												document.getElementById("game-container").style.filter = "brightness(25%)";
+									oContainers[0].style.filter = "brightness(25%)";
 										}
 									}
 								}
