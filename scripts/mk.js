@@ -3156,7 +3156,7 @@ function startGame() {
 									btnDir = 1;
 									break;
 								}
-								document.getElementById("game-container").style.filter = "brightness(100%)";
+								oContainers[0].style.filter = "brightness(100%)";
 								if (btnDir) {
 									var focusingElt = document.activeElement;
 									if (focusingElt) {
