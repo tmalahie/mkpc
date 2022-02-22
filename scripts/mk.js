@@ -4042,7 +4042,7 @@ function interruptGame() {
 function reprendre(debug) {
 	if(pause) {
 		pause = false;
-		document.getElementById("game-container").style.filter = "brightness(100%)";
+		oContainers[0].style.filter = "brightness(100%)";
 		cycle();
 	}
 	if (debug) {
