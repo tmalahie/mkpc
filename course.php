@@ -855,7 +855,7 @@ else {
 				?>
 				<h2><?php echo $language ? 'Your arenas':'Vos arènes'; ?> (<?php echo $nbTracks; ?>)</h2>
 				<?php
-				echo '<div class="file-quotas">'. ($language ? 'You use '.filesize_str($poids).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($poids) .')' : 'Vous utilisez '.filesize_str($poids).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($poids).')') .'</div>';
+				echo '<div class="file-quotas">'. ($language ? "You're using ".filesize_str($poids).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($poids) .')' : 'Vous utilisez '.filesize_str($poids).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($poids).')') .'</div>';
 				?>
 				<div id="editor-tracks-list">
 					<?php

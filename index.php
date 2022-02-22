@@ -111,7 +111,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										Face off the cpu on the <strong>14 grands prix</strong> tournaments and try to win the gold cup!<br />
+										Face-off the CPU in the <strong>14 grands prix</strong> tournaments and try to win the gold cup!<br />
 										Win enough cups to unlock the <strong>15 secret characters</strong>!
 										<?php
 									}
@@ -256,7 +256,7 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Face off your friends with the local multiplayer mode!':'Affrontez vos amis grâce au mode multijoueur !'; ?></h3>
+								<h3 class="fp-title"><?php echo $language ? 'Face-off your friends with the local multiplayer mode!':'Affrontez vos amis grâce au mode multijoueur !'; ?></h3>
 								<p>
 									<?php
 									if ($language) {

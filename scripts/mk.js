@@ -3142,7 +3142,7 @@ function startGame() {
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RETRY  ', 'RÉESSAYER') +' &nbsp; " id="recommencer" /></td></tr>'+
 								((course != "CM") ? '':
 									'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
-									'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value="'+ toLanguage('  CHANGE RACE  ', 'CHANGER CIRCUIT') +'" id="changecircuit" /></td></tr>'
+									'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value="'+ toLanguage('  CHANGE COURSE  ', 'CHANGER CIRCUIT') +'" id="changecircuit" /></td></tr>'
 								)+
 								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
 								'<tr><td><input type="button" id="quitter" value=" &nbsp; '+ toLanguage('QUIT', 'QUITTER') +' &nbsp; " style="font-size: '+ btnFontSize +'pt; width: 100%;" /></td></tr>';
@@ -3156,6 +3156,7 @@ function startGame() {
 									btnDir = 1;
 									break;
 								}
+								oContainers[0].style.filter = "brightness(100%)";
 								if (btnDir) {
 									var focusingElt = document.activeElement;
 									if (focusingElt) {
@@ -3346,6 +3347,7 @@ function startGame() {
 											var resumeButton = document.getElementById("reprendre");
 											if (resumeButton)
 												resumeButton.focus();
+									oContainers[0].style.filter = "brightness(25%)";
 										}
 									}
 								}
@@ -3870,6 +3872,7 @@ var fLineScale = 0;
 // setup main container
 var oContainers = [document.createElement("div")];
 oContainers[0].className = "game-container";
+oContainers[0].id = "game-container"
 oContainers[0].tabindex = 1;
 var oPrevFrameStates;
 formulaire = null;
@@ -4039,6 +4042,7 @@ function interruptGame() {
 function reprendre(debug) {
 	if(pause) {
 		pause = false;
+		oContainers[0].style.filter = "brightness(100%)";
 		cycle();
 	}
 	if (debug) {
@@ -4621,7 +4625,7 @@ function continuer() {
 		}
 		document.getElementById("revoir").appendChild(oReplay);
 
-		oChangeRace.value = toLanguage("     CHANGE RACE     ", "   CHANGER CIRCUIT   ");
+		oChangeRace.value = toLanguage("     CHANGE COURSE     ", "   CHANGER CIRCUIT   ");
 		oChangeRace.onclick = function() {
 			interruptGame();
 			removeGameMusics();
@@ -16892,7 +16896,7 @@ function selectTypeScreen() {
 
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = toLanguage("Time trial", "Contre-la-montre");
+		oPInput.value = toLanguage("Time Trials", "Contre-la-montre");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (41*iScreenScale)+"px";
@@ -16942,7 +16946,7 @@ function selectTypeScreen() {
 
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = toLanguage("Track builder", "Éditeur de circuit");
+		oPInput.value = toLanguage("Track Builder", "Éditeur de circuit");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (10*iScreenScale)+"px";
@@ -16957,7 +16961,7 @@ function selectTypeScreen() {
 
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = toLanguage("Online race", "Course en ligne");
+		oPInput.value = toLanguage("Online Race", "Course en ligne");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (41*iScreenScale)+"px";
@@ -17001,7 +17005,7 @@ function selectTypeScreen() {
 			oModeIds.push("CM");
 		}
 		if (nid && (!isSingle||!complete||cShared)) {
-			oModes.push(toLanguage("Online race", "Course en ligne"));
+			oModes.push(toLanguage("Online Race", "Course en ligne"));
 			oModeIds.push("CL");
 		}
 		if (!isSingle && cupScore) {
@@ -17891,7 +17895,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oTitle.style.color = "#F90";
 	}
 	else
-		oTitle = toTitle(toLanguage("Select a player", "Choisissez un joueur"), -1);
+		oTitle = toTitle(toLanguage("Select a Character", "Choisissez un joueur"), -1);
 	if (shrinkAll)
 		oTitle.style.fontSize = Math.round(7.5*iScreenScale)+"px";
 	oScr.appendChild(oTitle);
@@ -17924,7 +17928,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	hTr.appendChild(hTd2);
 	cTable.appendChild(hTr);
 	
-	var sCaracteristiques = [toLanguage("Acceleration", "Accélération"), toLanguage("Max speed", "Vitesse max"), toLanguage("Handling", "Maniabilité"), toLanguage("Weight", "Poids")];
+	var sCaracteristiques = [toLanguage("Acceleration", "Accélération"), toLanguage("Max-Speed", "Vitesse max"), toLanguage("Handling", "Maniabilité"), toLanguage("Weight", "Poids")];
 	var dCaracteristiques = new Array();
 	
 	for (var i=0;i<sCaracteristiques.length;i++) {
@@ -20544,7 +20548,7 @@ function selectMapScreen(force) {
 		oStyle.backgroundColor = "black";
 
 		if (course != "BB")
-			oScr.appendChild(toTitle(toLanguage("Choose cup", "Choisissez la coupe"), 0.5));
+			oScr.appendChild(toTitle(toLanguage("Select a Cup", "Choisissez la coupe"), 0.5));
 		else
 			oScr.appendChild(toTitle(toLanguage("Choose stage", "Choisissez une arène"), 0.5));
 
@@ -23284,7 +23288,7 @@ function editCommands(reload,currentTab) {
 			var $controlSetting = document.createElement("label");
 			$controlSetting.style.marginLeft = "5px";
 			var $controlText = document.createElement("span");
-			$controlText.innerHTML = toLanguage("Interfame interpolation:", "Interpolation inter-frames :");
+			$controlText.innerHTML = toLanguage("Interframe interpolation:", "Interpolation inter-frames :");
 			$controlSetting.appendChild($controlText);
 			var $controlSelect = document.createElement("select");
 			$controlSelect.style.width = "85px";
@@ -23495,11 +23499,13 @@ if (pause) {
 else {
 	addOption("pSize", toLanguage("Screen Size","Taille de l'&eacute;cran"),
 	"vSize", "screenscale", [
+		[3, toLanguage("Tiny","Minuscule")],
 		[4, toLanguage("Very small","Tr&egrave;s petite")],
 		[6, toLanguage("Small","Petite")],
 		[8, toLanguage("Medium","Moyenne")],
 		[10, toLanguage("Large","Large")],
 		[12, toLanguage("Very large","Tr&egrave;s large")],
+		[16, toLanguage("Massive","Massif")],
 		[-1, toLanguage("Full (F11)","Plein (F11)")]
 	], (+$mkScreen.dataset.lastsc)||iScreenScale);
 	addOption("pMusic", toLanguage("Music","Musique"),
@@ -23507,7 +23513,7 @@ else {
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;e")],
 		[1, toLanguage("On","Activ&eacute;e")]
 	], bMusic);
-	addOption("pSfx", toLanguage("Sound effects","Bruitages"),
+	addOption("pSfx", toLanguage("Sound Effects","Bruitages"),
 	"vSfx", "sfx", [
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;s")],
 		[1, toLanguage("On","Activ&eacute;s")]
@@ -23516,7 +23522,10 @@ else {
 	"vFps", "fps", [
 		[1, "15 FPS"],
 		[2, "30 FPS"],
-		[4, "60 FPS"]
+		[4, "60 FPS"],
+		[6, "90 FPS"],
+		[9.6, "144 FPS"],
+		[16, "240 FPS"]
 	], iFps);
 	selectMainPage();
 	
