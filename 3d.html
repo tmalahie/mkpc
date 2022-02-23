@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test 3D</title>
+    <style type="text/css">
+        body {
+            background-color: black;
+        }
+        #container {
+            position: absolute;
+            left: 10px;
+            top: 12px;
+            width: 640px;
+            height: 312px;
+            overflow: hidden;
+        }
+        #container .bg {
+            left: 0;
+            top: -10px;
+            image-rendering: pixelated;
+        }
+        canvas {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        #mkpc {
+            opacity: 0.5;
+        }
+        #mkpc:hover {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="c" width="640" height="312"></canvas>
+        <canvas id="mkpc" width="640" height="312"></canvas>
+        <div class="bg" style="height: 80px; width: 640px; position: absolute; background-size: auto 100%; background-image: url(&quot;images/map_bg/hills.png&quot;); background-position: -960px 0px;"></div>
+        <div class="bg" style="height: 80px; width: 640px; position: absolute; background-size: auto 100%; background-image: url(&quot;images/map_bg/trees.png&quot;); background-position: -1600px 0px;"></div>
+    </div>
+    <script src="scripts/three.min.js"></script>
+    <script type="text/javascript">
+        var posX = 478, posY = 370;
+        var iViewYOffset = 10;
+        var mapW = 512, mapH = 512;
+        const mapSrc = "images/maps/map1.png";
+        function renderCanvas1() {
+            const canvas = document.querySelector('#c');
+            const renderer = new THREE.WebGLRenderer({canvas});
+            renderer.setClearColor(0x00A100, 1);
+
+            const fov = 75;
+            const aspect = 2;
+            const near = 0.1;
+            const far = 512;
+            const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+            camera.position.x = posX;
+            camera.position.y = 10;
+            camera.position.z = posY - iViewYOffset;
+            camera.rotation.x = -0.5;
+
+            const scene = new THREE.Scene();
+
+            const geometry = new THREE.PlaneGeometry(mapW, mapH);
+
+            const cubes = [];  // just an array we can use to rotate the cubes
+            const loader = new THREE.TextureLoader();
+            loader.load(mapSrc, (texture) => {
+                const material = new THREE.MeshBasicMaterial({
+                    map: texture,
+                });
+                const cube = new THREE.Mesh(geometry, material);
+                scene.add(cube);
+
+                cube.position.x = mapW/2;
+                cube.position.z = mapH/2;
+                cube.rotation.x = -Math.PI/2;
+
+                renderer.render(scene, camera);
+            });
+        }
+        renderCanvas1();
+
+        var iViewCanvasHeight = 240;
+        var iViewCanvasWidth = 600;
+        var iScreenScale = 8;
+        var iCamHeight = 24;
+        var iCamDist = 32;
+        var iViewHeight = -10;
+        var fFocal = 1 / Math.tan(Math.PI*Math.PI / 360);
+        var iWidth = 80;
+        var iHeight = 39;
+        fSpriteScale = iScreenScale / 4;
+        fLineScale = 1/iScreenScale;
+        function renderCanvas2() {
+            var oViewCanvas = document.createElement("canvas");
+            var oViewContext = oViewCanvas.getContext("2d");
+            oViewCanvas.width=iViewCanvasWidth;
+            oViewCanvas.height=iViewCanvasHeight;
+
+            const canvas = document.querySelector('#mkpc');
+            const context = canvas.getContext("2d");
+            context.fillStyle = "#00A100";
+            context.fillRect(0,0, canvas.width,canvas.height);
+            const oMapImg = document.createElement("img");
+            oMapImg.src = mapSrc;
+            var fCamera = {
+                x: posX,
+                y: posY
+            };
+            oMapImg.onload = () => {
+                oViewContext.save();
+                oViewContext.translate(iViewCanvasWidth/2,iViewCanvasHeight-iViewYOffset);
+                oViewContext.drawImage(
+                    oMapImg,
+                    -posX,-posY
+                );
+            	oViewContext.restore();
+                var oScreen = document.querySelector('#mkpc');
+                var oScreenContext = oScreen.getContext("2d");
+                var vLineScale = 1/fLineScale, iViewCanvasYOffset = iViewCanvasHeight-iViewYOffset-1, iWidthScale = iWidth*vLineScale;
+                var aStrips = [];
+                var fLastZ = 0;
+                for (var iViewY=0;iViewY<iHeight;iViewY+=fLineScale) {
+                    var iTotalY = iViewY + iViewHeight; // total height of point (on view) from the ground up
+                    var iDeltaY = iCamHeight - iTotalY; // height of point relative to camera
+                    var iPointZ = (iTotalY/(iDeltaY / iCamDist)); // distance to point on the map
+                    var fScaleRatio = fFocal / (fFocal + iPointZ);
+                    var iStripWidth = Math.floor(iWidth/fScaleRatio);
+                    if (fScaleRatio > 0 && iStripWidth < iViewCanvasWidth) {
+                        if (iViewY == 0)
+                            fLastZ = iPointZ - 1;
+                        aStrips.push(
+                            {
+                                viewy : iViewY,
+                                mapz : iPointZ,
+                                scale : fScaleRatio,
+                                stripwidth : iStripWidth,
+                                mapzspan : iPointZ - fLastZ
+                            }
+                        )
+                        fLastZ = iPointZ;
+                    }
+                }
+                for (var j=0;j<aStrips.length;j++) {
+                    var oStrip = aStrips[j];
+
+                    try {
+                        oScreenContext.drawImage(
+                            oViewCanvas,
+                            (iViewCanvasWidth-oStrip.stripwidth)/2,
+                            iViewCanvasYOffset - oStrip.mapz,
+                            oStrip.stripwidth,
+                            oStrip.mapzspan,
+
+                            0,(iHeight-oStrip.viewy)*vLineScale,iWidthScale,1
+                        );
+                    }
+                    catch (e) {}
+                    }
+            };
+        }
+        renderCanvas2();
+    </script>
+</body>
+</html>
