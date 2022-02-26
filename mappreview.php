@@ -7,7 +7,7 @@ if (isset($id)) {
 	if (!$isTemp)
 		include('initdb.php');
 	if ($getMain = mysql_fetch_array(mysql_query('SELECT map FROM `mkcircuits` WHERE id="'. $id .'"'))) {
-		require_once('circuitEnumsQuick.php');
+		include('circuitEnumsQuick.php');
 		if (!$isTemp)
 			header('Content-type: image/png');
 		
