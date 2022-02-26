@@ -23284,7 +23284,7 @@ function editCommands(reload,currentTab) {
 			var $controlSetting = document.createElement("label");
 			$controlSetting.style.marginLeft = "5px";
 			var $controlText = document.createElement("span");
-			$controlText.innerHTML = toLanguage("Interfame interpolation:", "Interpolation inter-frames :");
+			$controlText.innerHTML = toLanguage("Interframe interpolation:", "Interpolation inter-frames :");
 			$controlSetting.appendChild($controlText);
 			var $controlSelect = document.createElement("select");
 			$controlSelect.style.width = "85px";
