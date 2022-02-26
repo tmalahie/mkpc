@@ -311,8 +311,8 @@ CREATE TABLE `mkchats` (
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   `seen` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `sender` (`sender`,`receiver`),
-  KEY `receiver` (`receiver`,`sender`),
+  UNIQUE KEY `sender` (`sender`,`receiver`,`id`) USING BTREE,
+  UNIQUE KEY `receiver` (`receiver`,`sender`,`id`) USING BTREE,
   KEY `date` (`date`),
   KEY `unseen` (`receiver`,`seen`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
