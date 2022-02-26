@@ -5867,7 +5867,7 @@ var itemBehaviors = {
 				}
 			}
 			for (var i=0;i<aKarts.length;i++) {
-				if (Math.random() > 0.98) {
+				if (aKarts[i].bloops === fSprite) {
 					for (var j=0;j<oPlayers.length;j++)
 						aKarts[i].sprite[j].img.style.filter = "";
 					delete aKarts[i].bloops;
