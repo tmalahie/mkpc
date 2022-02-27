@@ -287,7 +287,7 @@ if ($cShared) {
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($arene['auteur'],$id,'arenes'); ?>;
 	</script>
-	<script type="text/javascript" src="scripts/comments.js?reload=1"></script>
+	<script type="text/javascript" src="scripts/comments.js"></script>
 	<script type="text/javascript" src="scripts/topic.js"></script>
 	<?php
 }

@@ -152,8 +152,8 @@ nav {
 	color: #008;
 	text-decoration: none;
 	height: 60px;
-	overflow:hidden;
-	padding: 2px 5px;
+	overflow: hidden;
+	padding: 0;
 }
 #notifs-options input {
 	width: 100%;
@@ -183,7 +183,7 @@ nav {
 .notif-value {
 	font-size: 0.8em;
 	text-align: left;
-	padding: 0px 2px;
+	padding: 0px 7px 4px 7px;
 }
 #no-notif {
 	position: relative;
@@ -207,10 +207,16 @@ nav {
 	border-left: solid 1px #99C;
 }
 .close-notif {
+	padding: 1px 4px;
+	margin: 1px 2px;
 	color: #D03;
+	border-radius: 4px;
+	display: inline-block;
+	line-height: 0.95rem;
 }
 .close-notif:hover {
-	color: #F00;
+	background-color: #e97;
+	color: white;
 }
 #no-notif a, #nb-notifs a {
 	position:absolute;
