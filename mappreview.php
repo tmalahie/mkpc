@@ -19,12 +19,13 @@ if (isset($id)) {
 		$hImg = 600;
 		$rImg = 1;
 		if ($isTemp && isset($w_ic) && isset($w_ic)) {
-			$rImg = $w_ic/$wImg;
-			$wImg = $w_ic;
-			$hImg = $h_ic;
+			$uFactor = 2;
+			$rImg = $w_ic*$uFactor/$wImg;
+			$wImg = $w_ic*$uFactor;
+			$hImg = $h_ic*$uFactor;
 		}
 
-		if (in_array($map, array(48)))
+		if (($rImg < 1) || in_array($map, array(48)))
 			$image = imagecreatetruecolor($wImg,$hImg);
 		else
 			$image = imagecreate($wImg,$hImg);
