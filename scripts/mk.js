@@ -22,6 +22,9 @@ if (typeof noDS === 'undefined') {
 if (typeof cupOpts === 'undefined') {
 	var cupOpts = {};
 }
+if (typeof dCircuits === 'undefined') {
+	var dCircuits = lCircuits;
+}
 if (noDS) {
 	var bListMaps = listMaps;
 	listMaps = function() {
@@ -21137,6 +21140,7 @@ function choose(map,rand) {
 	}
 	var choixJoueurs = [];
 	var oTable = document.createElement("table");
+	oTable.className = "online-track-sel";
 	oTable.border = 1;
 	oTable.setAttribute("cellspacing", 2);
 	oTable.setAttribute("cellpadding", 2);
@@ -21168,7 +21172,7 @@ function choose(map,rand) {
 						var oTd = document.createElement("td");
 						var isChoix = choixJoueurs[i][2];
 						var isRandom = choixJoueurs[i][3];
-						oTd.innerHTML = isChoix ? (isRandom ? "???":lCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
+						oTd.innerHTML = isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
 						oTr.appendChild(oTd);
 						oTBody.appendChild(oTr);
 						nbChoices++;
@@ -21277,7 +21281,7 @@ function choose(map,rand) {
 							else
 								setTimeout(function(){$mkScreen.removeChild(oTable);proceedOnlineRaceSelection(rCode)}, 500);
 							if (cID == 1)
-								trs[cCursor].getElementsByTagName("td")[0].innerHTML = lCircuits[choixJoueurs[cCursor][2]-1];
+								trs[cCursor].getElementsByTagName("td")[0].innerHTML = dCircuits[choixJoueurs[cCursor][2]-1];
 						}
 						moveCursor();
 						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];

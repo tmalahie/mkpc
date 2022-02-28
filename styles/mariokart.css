@@ -743,3 +743,9 @@ select {
 .noarrow {
   -moz-appearance: textfield;
 }
+.online-track-sel td > small {
+  font-size: 0.7em;
+  margin-right: 0.1em;
+  position: relative;
+  bottom: 0.1em;
+}

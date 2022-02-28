@@ -231,12 +231,46 @@ var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 }
 elseif ($isBattle) {
 	?>
-var lCircuits = <?php echo json_encode(array_splice($circuitNames,$nbVSCircuits)); ?>;
+var lCircuits = <?php echo json_encode(array_slice($circuitNames,$nbVSCircuits)); ?>;
+var dCircuits = <?php
+$circuitNamesDetailed = array();
+$inc = $nbVSCircuits;
+for ($i=0;$i<$nbSNESArenas;$i++) {
+	$circuitNamesDetailed[] = '<small>SNES</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbGBAArenas;$i++) {
+	$circuitNamesDetailed[] = '<small>GBA</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbDSArenas;$i++) {
+	$circuitNamesDetailed[] = '<small>DS</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+echo json_encode($circuitNamesDetailed);
+?>;
 	<?php
 }
 else {
 	?>
-var lCircuits = <?php echo json_encode(array_splice($circuitNames,0,$nbVSCircuits)); ?>;
+var lCircuits = <?php echo json_encode(array_slice($circuitNames,0,$nbVSCircuits)); ?>;
+var dCircuits = <?php
+$circuitNamesDetailed = array();
+$inc = 0;
+for ($i=0;$i<$nbSNESCircuits;$i++) {
+	$circuitNamesDetailed[] = '<small>SNES</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbGBACircuits;$i++) {
+	$circuitNamesDetailed[] = '<small>GBA</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbDSCircuits;$i++) {
+	$circuitNamesDetailed[] = '<small>DS</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+echo json_encode($circuitNamesDetailed);
+?>;
 	<?php
 }
 ?>
