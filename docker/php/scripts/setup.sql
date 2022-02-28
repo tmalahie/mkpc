@@ -311,10 +311,9 @@ CREATE TABLE `mkchats` (
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   `seen` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `sender` (`sender`,`receiver`,`id`) USING BTREE,
-  UNIQUE KEY `receiver` (`receiver`,`sender`,`id`) USING BTREE,
   KEY `date` (`date`),
-  KEY `unseen` (`receiver`,`seen`)
+  KEY `unseen` (`receiver`,`seen`),
+  KEY `sender` (`sender`,`receiver`) USING BTREE
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
