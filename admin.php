@@ -144,6 +144,12 @@ include('menu.php');
 			</a>
 		</li>
 		<li>
+			<a class="action-ctn" href="chat-logs.php">
+				<div class="action-title"><?php echo $language ? "See online mode <strong>chat logs</strong>":"Voir les <strong>logs</strong> du mode en ligne"; ?></div>
+				<div class="action-desc"><?php echo $language ? "See the messages of the member in the online mode.<br />You can mute members in case of abuse":"Voir les messages d'un joueurs dans le chat du mode en ligne.<br />Vous pouvez muter les membres en cas d'abus."; ?></div>
+			</a>
+		</li>
+		<li>
 			<a class="action-ctn" href="ban-player.php">
 				<div class="action-title"><?php echo $language ? "<strong>Ban</strong> a member":"<strong>Bannir</strong> un membre"; ?></div>
 				<div class="action-desc"><?php echo $language ? "Use it as a last resort, the member in question will not be able to post anything on the site":"À utiliser en dernier recours, le membre en question ne pourra alors plus rien poster sur le site"; ?></div>
