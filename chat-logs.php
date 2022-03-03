@@ -153,7 +153,9 @@ include('menu.php');
 	if ($memberId || isset($_GET['all'])) {
 		echo '<div id="chat-logs">';
 		require_once('public_links.php');
-		$getChats = mysql_query('SELECT DISTINCT c.course FROM `mkchat` c LEFT JOIN mkracehist r1 ON c.course=r1.id LEFT JOIN mariokart r2 ON c.course=r1.id WHERE '. ($memberId ? " auteur=$memberId AND" : "") .' IFNULL(r1.link,r2.link) IN ('.$publicLinksString.') ORDER BY c.course DESC' . ($memberId ? '':' LIMIT 100'));
+		$sql = 'SELECT c.course FROM `mkchat` c LEFT JOIN mkracehist r1 ON c.course=r1.id LEFT JOIN mariokart r2 ON c.course=r2.id WHERE '. ($memberId ? " auteur=$memberId AND" : "") .' IFNULL(r1.link,r2.link) IN ('.$publicLinksString.')' . ($memberId ? '' : ' ORDER BY c.course DESC LIMIT 2000');
+		$sql = "SELECT DISTINCT course FROM ($sql) t";
+		$getChats = mysql_query($sql);
 		$chatIds = array();
 		while ($chat = mysql_fetch_array($getChats)) {
 			$chatIds[] = $chat['course'];
