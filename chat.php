@@ -20,10 +20,11 @@ if ($id) {
 		}
 		echo json_encode($playersData);
 		echo ',[';
-		$messages = mysql_query('SELECT * FROM (SELECT c.id,j.nom,c.auteur,c.message FROM `mkchat` c INNER JOIN `mkjoueurs` j ON j.id=c.auteur LEFT JOIN `mkignores` i ON i.ignored=c.auteur AND i.ignorer='.$id.' WHERE c.course='.$course.' AND i.ignorer IS NULL AND j.banned=0 ORDER BY c.id DESC LIMIT 10) t ORDER BY t.id');
+		$lastMsg = isset($_POST['lastmsg']) ? intval($_POST['lastmsg']) : 0;
+		$messages = mysql_query('SELECT * FROM (SELECT c.id,j.nom,c.auteur,c.message FROM `mkchat` c INNER JOIN `mkjoueurs` j ON j.id=c.auteur LEFT JOIN `mkignores` i ON i.ignored=c.auteur AND i.ignorer='.$id.' WHERE c.course='.$course.' AND i.ignorer IS NULL AND j.banned=0 AND c.id>'.$lastMsg.' ORDER BY c.id DESC LIMIT 10) t ORDER BY t.id');
 		$virgule = false;
 		while ($message = mysql_fetch_array($messages)) {
-			echo ($virgule ? ',':'').'["'.$message['nom'].'","'.str_replace('"','\\"',str_replace('\\','\\\\',$message['message'])).'"]';
+			echo ($virgule ? ',':'').'["'.$message['nom'].'","'.str_replace('"','\\"',str_replace('\\','\\\\',$message['message'])).'",'.$message['id'].']';
 			$virgule = true;
 		}
 		echo ']]';

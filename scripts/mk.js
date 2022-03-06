@@ -24941,9 +24941,10 @@ function setChat() {
 	oChat.appendChild(oMessages);
 	oChat.appendChild(oRepondre);
 
+	var iChatLastMsg = 0;
 	function refreshChat() {
 		if (chatting) {
-			xhr("chat.php", "", function(reponse) {
+			xhr("chat.php", "lastmsg="+iChatLastMsg, function(reponse) {
 				if (reponse) {
 					try {
 						var rCode = eval(reponse);
@@ -24955,23 +24956,27 @@ function setChat() {
 						var noms = rCode[0];
 						var sNoms = "";
 						for (var i=0;i<noms.length;i++)
-							sNoms += (i ? ", ":"")+noms[i];
+							sNoms += (i ? ", ":"")+noms[i].name;
 						jConnectes.innerHTML = sNoms;
 						var messages = rCode[1];
-						var pMessages = oMessages.getElementsByTagName("p");
-						while (pMessages.length)
-							oMessages.removeChild(pMessages[0]);
-						for (var i=0;i<messages.length;i++) {
-							var oP = document.createElement("p");
-							var sPseudo = document.createElement("span");
-							sPseudo.innerHTML = messages[i][0] +" : ";
-							oP.appendChild(sPseudo);
-							var sMessage = document.createElement("span");
-							sMessage.style.color = "white";
-							sMessage.style.fontWeight = "normal";
-							sMessage.innerHTML = messages[i][1];
-							oP.appendChild(sMessage);
-							oMessages.appendChild(oP);
+						if (messages.length) {
+							var lastMsgId = messages.length-1;
+							iChatLastMsg = messages[lastMsgId][2];
+							for (var i=lastMsgId;i>=0;i--) {
+								var oP = document.createElement("p");
+								var sPseudo = document.createElement("span");
+								sPseudo.innerHTML = messages[i][0] +" : ";
+								oP.appendChild(sPseudo);
+								var sMessage = document.createElement("span");
+								sMessage.style.color = "white";
+								sMessage.style.fontWeight = "normal";
+								sMessage.innerHTML = messages[i][1];
+								oP.appendChild(sMessage);
+								oMessages.appendChild(oP);
+							}
+							var pMessages = oMessages.getElementsByTagName("p");
+							while (pMessages.length > 10)
+								oMessages.removeChild(pMessages[0]);
 						}
 						setTimeout(refreshChat, 1000);
 					}
