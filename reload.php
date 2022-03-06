@@ -1,7 +1,6 @@
 <?php
-session_start();
-if (!empty($_SESSION['mkid'])) {
-	$id = $_SESSION['mkid'];
+include('session.php');
+if ($id) {
 	$payload = json_decode(file_get_contents('php://input'),true);
 	if ($payload) {
 		$isBattle = isset($payload['battle']);
