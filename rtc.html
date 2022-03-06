@@ -1,30 +1,22 @@
-<!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to FirebaseRTC</title>
 
-    <!-- update the version number as needed -->
-    <script defer src="scripts/firebase/firebase-app.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="scripts/firebase/firebase-firestore.js"></script>
-    <!-- initialize the SDK after all desired features are loaded -->
-    <script defer src="scripts/firebase/init.js"></script>
+<head>
+    <script src="scripts/simplepeer.min.js"></script>
 </head>
+
 <body>
-<h1>Welcome to FirebaseRTC!</h1>
-<div id="buttons">
-    <button id="cameraBtn">Open camera</button>
-    <button disabled id="createBtn">Create room</button>
-    <button disabled id="joinBtn">Join room</button>
-    <button disabled id="hangupBtn">Hangup</button>
-</div>
-<div>
-    <span id="currentRoom"></span>
-</div>
-<audio id="localAudio" muted autoplay playsinline></audio>
-<audio id="remoteAudio" autoplay playsinline></audio>
-<script src="scripts/rtc.js"></script>
+    <div id="audios" class="container">
+    </div>
+    <br />
+    <div style="display:block">
+        <button id="muteButton" class="settings" onclick="toggleMute()">Unmuted</button>
+    </div>
 </body>
+<footer>
+    <script defer src="scripts/rtc.js"></script>
+    <script defer src="scripts/online.js"></script>
+
+
+</footer>
+
 </html>

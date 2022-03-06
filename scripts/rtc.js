@@ -1,254 +1,253 @@
-const configuration = {
-  iceServers: [
-    {
-      urls: [
-        'stun:stun1.l.google.com:19302',
-        'stun:stun2.l.google.com:19302',
-      ],
-    },
-  ],
-  iceCandidatePoolSize: 10,
-};
+/**
+ * Socket.io socket
+ */
+ let socket;
+ /**
+  * The stream object used to send media
+  */
+ let localStream = null;
+ /**
+  * All peer connections
+  */
+ let peers = {}
 
-let peerConnection = null;
-let localStream = null;
-let remoteStream = null;
-let roomId = null;
-
-function init() {
-  document.querySelector('#cameraBtn').addEventListener('click', openUserMedia);
-  document.querySelector('#hangupBtn').addEventListener('click', hangUp);
-  document.querySelector('#createBtn').addEventListener('click', createRoom);
-  document.querySelector('#joinBtn').addEventListener('click', joinRoom);
-}
-
-async function createRoom() {
-  document.querySelector('#createBtn').disabled = true;
-  document.querySelector('#joinBtn').disabled = true;
-  const db = firebase.firestore();
-  const roomRef = await db.collection('rooms').doc();
-
-  console.log('Create PeerConnection with configuration: ', configuration);
-  peerConnection = new RTCPeerConnection(configuration);
-
-  registerPeerConnectionListeners();
-
-  localStream.getTracks().forEach(track => {
-    peerConnection.addTrack(track, localStream);
-  });
-
-  // Code for collecting ICE candidates below
-  const callerCandidatesCollection = roomRef.collection('callerCandidates');
-
-  peerConnection.addEventListener('icecandidate', event => {
-    if (!event.candidate) {
-      console.log('Got final candidate!');
-      return;
+ let peerId;
+ 
+ 
+ //////////// CONFIGURATION //////////////////
+ 
+ /**
+  * RTCPeerConnection configuration 
+  */
+ 
+ const configuration = {
+     // Using From https://www.metered.ca/tools/openrelay/
+     "iceServers": [
+     {
+       urls: "stun:openrelay.metered.ca:80"
+     },
+     {
+       urls: "turn:openrelay.metered.ca:80",
+       username: "openrelayproject",
+       credential: "openrelayproject"
+     },
+     {
+       urls: "turn:openrelay.metered.ca:443",
+       username: "openrelayproject",
+       credential: "openrelayproject"
+     },
+     {
+       urls: "turn:openrelay.metered.ca:443?transport=tcp",
+       username: "openrelayproject",
+       credential: "openrelayproject"
+     }
+   ]
+ }
+ 
+ /**
+  * UserMedia constraints
+  */
+ let constraints = {
+     audio: true
+ }
+ 
+ /////////////////////////////////////////////////////////
+ 
+ // enabling the camera at startup
+ navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+     console.log('Received local stream');
+ 
+     localStream = stream;
+ 
+     init()
+ 
+ }).catch(e => alert(`getusermedia error ${e.name}`))
+ 
+ /**
+  * initialize the socket connections
+  */
+ function init() {
+   o_xhr("joinChatVoc.php", "", function(res) {
+    if (res && (res >= 0)) {
+     peerId = +res;
+     pollVocChat();
+     return true;
     }
-    console.log('Got candidate: ', event.candidate);
-    callerCandidatesCollection.add(event.candidate.toJSON());
-  });
-  // Code for collecting ICE candidates above
+   });
+ 
+     /*socket.on('initReceive', socket_id => {
+         console.log('INIT RECEIVE ' + socket_id)
+         addPeer(socket_id, false)
+ 
+         socket.emit('initSend', socket_id)
+     })
+ 
+     socket.on('initSend', socket_id => {
+         console.log('INIT SEND ' + socket_id)
+         addPeer(socket_id, true)
+     })
+ 
+     socket.on('removePeer', socket_id => {
+         console.log('removing peer ' + socket_id)
+         removePeer(socket_id)
+     })
+ 
+     socket.on('disconnect', () => {
+         console.log('GOT DISCONNECTED')
+         for (let socket_id in peers) {
+             removePeer(socket_id)
+         }
+     })
+ 
+     socket.on('signal', data => {
+         peers[data.socket_id].signal(data.signal)
+     })*/
+ }
 
-  // Code for creating a room below
-  const offer = await peerConnection.createOffer();
-  await peerConnection.setLocalDescription(offer);
-  console.log('Created offer:', offer);
-
-  const roomWithOffer = {
-    'offer': {
-      type: offer.type,
-      sdp: offer.sdp,
-    },
-  };
-  await roomRef.set(roomWithOffer);
-  roomId = roomRef.id;
-  console.log(`New room created with SDP offer. Room ID: ${roomRef.id}`);
-  document.querySelector(
-      '#currentRoom').innerText = `Current room is ${roomRef.id} - You are the caller!`;
-  // Code for creating a room above
-
-  peerConnection.addEventListener('track', event => {
-    console.log('Got remote track:', event.streams[0]);
-    event.streams[0].getTracks().forEach(track => {
-      console.log('Add a track to the remoteStream:', track);
-      remoteStream.addTrack(track);
-    });
-  });
-
-  // Listening for remote session description below
-  roomRef.onSnapshot(async snapshot => {
-    const data = snapshot.data();
-    if (!peerConnection.currentRemoteDescription && data && data.answer) {
-      console.log('Got remote description: ', data.answer);
-      const rtcSessionDescription = new RTCSessionDescription(data.answer);
-      await peerConnection.setRemoteDescription(rtcSessionDescription);
-    }
-  });
-  // Listening for remote session description above
-
-  // Listen for remote ICE candidates below
-  roomRef.collection('calleeCandidates').onSnapshot(snapshot => {
-    snapshot.docChanges().forEach(async change => {
-      if (change.type === 'added') {
-        let data = change.doc.data();
-        console.log(`Got new remote ICE candidate: ${JSON.stringify(data)}`);
-        await peerConnection.addIceCandidate(new RTCIceCandidate(data));
-      }
-    });
-  });
-  // Listen for remote ICE candidates above
-}
-
-function joinRoom() {
-  document.querySelector('#createBtn').disabled = true;
-  document.querySelector('#joinBtn').disabled = true;
-
-  roomId = prompt("Enter room ID:");
-  console.log('Join room: ', roomId);
-  document.querySelector(
-      '#currentRoom').innerText = `Current room is ${roomId} - You are the callee!`;
-  joinRoomById(roomId);
-}
-
-async function joinRoomById(roomId) {
-  const db = firebase.firestore();
-  const roomRef = db.collection('rooms').doc(`${roomId}`);
-  const roomSnapshot = await roomRef.get();
-  console.log('Got room:', roomSnapshot.exists);
-
-  if (roomSnapshot.exists) {
-    console.log('Create PeerConnection with configuration: ', configuration);
-    peerConnection = new RTCPeerConnection(configuration);
-    registerPeerConnectionListeners();
-    localStream.getTracks().forEach(track => {
-      peerConnection.addTrack(track, localStream);
-    });
-
-    // Code for collecting ICE candidates below
-    const calleeCandidatesCollection = roomRef.collection('calleeCandidates');
-    peerConnection.addEventListener('icecandidate', event => {
-      if (!event.candidate) {
-        console.log('Got final candidate!');
-        return;
-      }
-      console.log('Got candidate: ', event.candidate);
-      calleeCandidatesCollection.add(event.candidate.toJSON());
-    });
-    // Code for collecting ICE candidates above
-
-    peerConnection.addEventListener('track', event => {
-      console.log('Got remote track:', event.streams[0]);
-      event.streams[0].getTracks().forEach(track => {
-        console.log('Add a track to the remoteStream:', track);
-        remoteStream.addTrack(track);
-      });
-    });
-
-    // Code for creating SDP answer below
-    const offer = roomSnapshot.data().offer;
-    console.log('Got offer:', offer);
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-    const answer = await peerConnection.createAnswer();
-    console.log('Created answer:', answer);
-    await peerConnection.setLocalDescription(answer);
-
-    const roomWithAnswer = {
-      answer: {
-        type: answer.type,
-        sdp: answer.sdp,
-      },
-    };
-    await roomRef.update(roomWithAnswer);
-    // Code for creating SDP answer above
-
-    // Listening for remote ICE candidates below
-    roomRef.collection('callerCandidates').onSnapshot(snapshot => {
-      snapshot.docChanges().forEach(async change => {
-        if (change.type === 'added') {
-          let data = change.doc.data();
-          console.log(`Got new remote ICE candidate: ${JSON.stringify(data)}`);
-          await peerConnection.addIceCandidate(new RTCIceCandidate(data));
+ var lastSignalId = 0;
+ function pollVocChat() {
+  o_xhr("chat.php", "", function(res) {
+    setTimeout(pollVocChat, 1000);
+    var data = JSON.parse(res);
+    var members = data[0];
+    for (var i=0;i<members.length;i++) {
+        var member = members[i];
+        if (member.peer) {
+            if (!peers[member.peer])
+                addPeer(member.peer, (member.peer < peerId));
         }
-      });
-    });
-    // Listening for remote ICE candidates above
-  }
-}
+    }
+    return true;
+   });
+ }
 
-async function openUserMedia() {
-  const stream = await navigator.mediaDevices.getUserMedia(
-      {audio: true});
-  document.querySelector('#localAudio').srcObject = stream;
-  localStream = stream;
-  remoteStream = new MediaStream();
-  document.querySelector('#remoteAudio').srcObject = remoteStream;
+ function pollPeerSignal(memberPeerId) {
+    if (peers[memberPeerId].isPolling) return;
+    peers[memberPeerId].isPolling = true;
+    doPollPeerSignal(memberPeerId);
+ }
+ function doPollPeerSignal(memberPeerId) {
+    if (peers[memberPeerId].hasStreamed) {
+       peers[memberPeerId].isPolling = false;
+       return;
+    }
+    var interval = 100;
+    o_xhr("getChatSignals.php", "sender="+memberPeerId+"&receiver="+peerId+"&lastsignalid="+peers[memberPeerId].lastSignalId, function(res) {
+        var signals;
+        try {
+            signals = JSON.parse(res);
+        }
+        catch (e) {
+            return false;
+        }
+        for (var i=0;i<signals.length;i++) {
+            var signal = signals[i];
+            peers[memberPeerId].lastSignalId = signal.id;
+            peers[memberPeerId].conn.signal(signal.data);
+        }
+        setTimeout(function() {
+            doPollPeerSignal(memberPeerId);
+        }, interval);
+        return true;
+     });
+ }
+ 
+ /**
+  * Remove a peer with given socket_id. 
+  * Removes the audio element and deletes the connection
+  * @param {String} socket_id 
+  */
+ function removePeer(socket_id) {
+ 
+     let audioEl = document.getElementById(socket_id)
+     if (audioEl) {
+ 
+         const tracks = audioEl.srcObject.getTracks();
+ 
+         tracks.forEach(function (track) {
+             track.stop()
+         })
+ 
+         audioEl.srcObject = null
+         audioEl.parentNode.removeChild(audioEl)
+     }
+     if (peers[socket_id]) peers[socket_id].conn.destroy()
+     delete peers[socket_id]
+ }
+ 
+ /**
+  * Creates a new peer connection and sets the event listeners
+  * @param {String} socket_id 
+  *                 ID of the peer
+  * @param {Boolean} am_initiator 
+  *                  Set to true if the peer initiates the connection process.
+  *                  Set to false if the peer receives the connection. 
+  */
+ function addPeer(socket_id, am_initiator) {
+     peers[socket_id] = {
+        conn: new SimplePeer({
+            initiator: am_initiator,
+            stream: localStream,
+            config: configuration
+        }),
+        lastSignalId: 0
+    };
+ 
+     peers[socket_id].conn.on('signal', data => {
+        sendSignalDebounced(socket_id, data);
+        pollPeerSignal(socket_id);
+        /*socket.emit('signal', {
+            signal: data,
+            socket_id: socket_id
+        })*/
+     })
+ 
+     peers[socket_id].conn.on('stream', stream => {
+        let newAudio = document.createElement('audio');
+        newAudio.srcObject = stream;
+        newAudio.id = socket_id;
+        newAudio.autoplay = true;
+        newAudio.className = "audio";
+        audios.appendChild(newAudio);
+        peers[socket_id].hasStreamed = true;
+     })
 
-  console.log('Stream:', document.querySelector('#localAudio').srcObject);
-  document.querySelector('#cameraBtn').disabled = true;
-  document.querySelector('#joinBtn').disabled = false;
-  document.querySelector('#createBtn').disabled = false;
-  document.querySelector('#hangupBtn').disabled = false;
-}
-
-async function hangUp() {
-  const tracks = document.querySelector('#localAudio').srcObject.getTracks();
-  tracks.forEach(track => {
-    track.stop();
-  });
-
-  if (remoteStream) {
-    remoteStream.getTracks().forEach(track => track.stop());
-  }
-
-  if (peerConnection) {
-    peerConnection.close();
-  }
-
-  document.querySelector('#localAudio').srcObject = null;
-  document.querySelector('#remoteAudio').srcObject = null;
-  document.querySelector('#cameraBtn').disabled = false;
-  document.querySelector('#joinBtn').disabled = true;
-  document.querySelector('#createBtn').disabled = true;
-  document.querySelector('#hangupBtn').disabled = true;
-  document.querySelector('#currentRoom').innerText = '';
-
-  // Delete room on hangup
-  if (roomId) {
-    const db = firebase.firestore();
-    const roomRef = db.collection('rooms').doc(roomId);
-    const calleeCandidates = await roomRef.collection('calleeCandidates').get();
-    calleeCandidates.forEach(async candidate => {
-      await candidate.ref.delete();
-    });
-    const callerCandidates = await roomRef.collection('callerCandidates').get();
-    callerCandidates.forEach(async candidate => {
-      await candidate.ref.delete();
-    });
-    await roomRef.delete();
-  }
-
-  document.location.reload(true);
-}
-
-function registerPeerConnectionListeners() {
-  peerConnection.addEventListener('icegatheringstatechange', () => {
-    console.log(
-        `ICE gathering state changed: ${peerConnection.iceGatheringState}`);
-  });
-
-  peerConnection.addEventListener('connectionstatechange', () => {
-    console.log(`Connection state change: ${peerConnection.connectionState}`);
-  });
-
-  peerConnection.addEventListener('signalingstatechange', () => {
-    console.log(`Signaling state change: ${peerConnection.signalingState}`);
-  });
-
-  peerConnection.addEventListener('iceconnectionstatechange ', () => {
-    console.log(
-        `ICE connection state change: ${peerConnection.iceConnectionState}`);
-  });
-}
-
-init();
+     if (!am_initiator)
+        pollPeerSignal(socket_id);
+ }
+ var sendingSignalHandlers = {};
+ function sendSignalDebounced(socket_id, data, delay=300) {
+    if (!sendingSignalHandlers[socket_id]) {
+        sendingSignalHandlers[socket_id] = {
+            data: []
+        };
+    }
+    sendingSignalHandlers[socket_id].data.push(data);
+    clearTimeout(sendingSignalHandlers[socket_id].timer);
+    sendingSignalHandlers[socket_id].timer = setTimeout(function() {
+        o_xhr("registerChatSignals.php", "sender="+peerId+"&receiver="+socket_id+"&signals="+encodeURIComponent(JSON.stringify(sendingSignalHandlers[socket_id].data)), function(res) {
+            return (res == 1);
+        });
+        delete sendingSignalHandlers[socket_id];
+    }, delay);
+ }
+ 
+ /**
+  * Enable/disable microphone
+  */
+ function toggleMute() {
+     for (let index in localStream.getAudioTracks()) {
+         localStream.getAudioTracks()[index].enabled = !localStream.getAudioTracks()[index].enabled
+         muteButton.innerText = localStream.getAudioTracks()[index].enabled ? "Unmuted" : "Muted"
+     }
+ }
+ 
+ /**
+  * updating text of buttons
+  */
+ function updateButtons() {
+     for (let index in localStream.getAudioTracks()) {
+         muteButton.innerText = localStream.getAudioTracks()[index].enabled ? "Unmuted" : "Muted"
+     }
+ }
+ 
