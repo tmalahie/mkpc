@@ -17,17 +17,27 @@
 .online-chat-connecteds {
     border: solid 1px silver;
 }
-.online-chat-connecteds > a {
-    text-decoration: none;
-    margin-left: 10px;
-    opacity: 0.7;
+.online-chat-playlerlistctn img {
     position: relative;
     top: 2px;
+    height: 14px;
+    opacity: 0.8;
 }
-.online-chat-connecteds:hover > a {
+.online-chat-actions {
+    margin-bottom: 3px;
+}
+.online-chat-actions > button {
+    cursor: pointer;
+    margin-left: 10px;
+    opacity: 0.7;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.online-chat-connecteds:hover .online-chat-actions > button:not(:disabled) {
     opacity: 1;
 }
-.online-chat-connecteds > a > img {
+.online-chat-actions > button > img {
     height: 16px;
 }
 .online-chat-closectn {

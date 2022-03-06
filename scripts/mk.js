@@ -24751,21 +24751,51 @@ function setChat() {
 	
 	var oConnectes = document.createElement("p");
 	oConnectes.className = "online-chat-connecteds";
+	var oPlayersListCtn = document.createElement("div");
+	oPlayersListCtn.className = "online-chat-playlerlistctn";
 	var iConnectes = document.createElement("span");
 	iConnectes.innerHTML = toLanguage("Online opponent(s): ", "Adversaire(s) en ligne : ");
-	oConnectes.appendChild(iConnectes);
+	oPlayersListCtn.appendChild(iConnectes);
 	var jConnectes = document.createElement("span");
 	jConnectes.style.color = "white";
-	oConnectes.appendChild(jConnectes);
-	var bConnectes = document.createElement("a");
-	bConnectes.href = "#null";
-	bConnectes.title = language ? "Ignore player" : "Ignorer un joueur";
+	oPlayersListCtn.appendChild(jConnectes);
+	oConnectes.appendChild(oPlayersListCtn);
+	var oChatActions = document.createElement("div");
+	oChatActions.className = "online-chat-actions";
+
+	var vConnectes = document.createElement("button");
+	vConnectes.className = "disablable";
+	vConnectes.title = language ? "Join vocal chat" : "Rejoindre salon vocal";
+	var viConnectes = document.createElement("img");
+	viConnectes.alt = "Voc";
+	viConnectes.src = "images/ic_voc.png";
+	vConnectes.appendChild(viConnectes);
+	vConnectes.onclick = function() {
+		rtcService.joinVocChat(null, function(e) {
+			alert((language ? "Unable to join vocal chat:" : "Impossible de rejoindre le chat vocal : ") + e);
+			vConnectes.disabled = false;
+		});
+		vConnectes.disabled = true;
+	}
+	vConnectes.onmouseover = function() {
+		viConnectes.src = "images/ic_voc_h.png";
+	};
+	vConnectes.onmouseout = function() {
+		viConnectes.src = "images/ic_voc.png";
+	};
+	vConnectes.appendChild(document.createTextNode(language ? "Vocal chat" : "Chat vocal"));
+	vConnectes.style.marginRight = "10px";
+	oChatActions.appendChild(vConnectes);
+
+	var bConnectes = document.createElement("button");
+	bConnectes.title = language ? "Ignore player..." : "Ignorer un joueur...";
 	bConnectes.onmouseover = function() {
 		biConnectes.src = "images/ic_block_h.png";
 	};
 	bConnectes.onmouseout = function() {
 		biConnectes.src = "images/ic_block.png";
 	};
+	oChatActions.appendChild(bConnectes);
 	var oBlockDialog;
 	function removeBlockDialog() {
 		if (oBlockDialog) {
@@ -24851,11 +24881,11 @@ function setChat() {
 	biConnectes.alt = "Block";
 	biConnectes.src = "images/ic_block.png";
 	bConnectes.appendChild(biConnectes);
-	oConnectes.appendChild(bConnectes);
+	bConnectes.appendChild(document.createTextNode(language ? "Ignore..." : "Ignorer..."));
+	oChatActions.appendChild(bConnectes);
 
 	if (mIsModerator) {
-		var mConnectes = document.createElement("a");
-		mConnectes.href = "#null";
+		var mConnectes = document.createElement("button");
 		mConnectes.title = language ? "Mute player (admin)" : "Muter un joueur (admin)";
 		mConnectes.onmouseover = function() {
 			miConnectes.src = "images/ic_mute_h.png";
@@ -24886,8 +24916,10 @@ function setChat() {
 		miConnectes.alt = "Mute";
 		miConnectes.src = "images/ic_mute.png";
 		mConnectes.appendChild(miConnectes);
-		oConnectes.appendChild(mConnectes);
+		mConnectes.appendChild(document.createTextNode(language ? "Mute..." : "Muter..."));
+		oChatActions.appendChild(mConnectes);
 	}
+	oConnectes.appendChild(oChatActions);
 
 	var oCloseChatCtn = document.createElement("div");
 	oCloseChatCtn.className = "online-chat-closectn";
@@ -24942,6 +24974,7 @@ function setChat() {
 	oChat.appendChild(oRepondre);
 
 	var iChatLastMsg = 0;
+	var rtcService = RTCService();
 	function refreshChat() {
 		if (chatting) {
 			xhr("chat.php", "lastmsg="+iChatLastMsg, function(reponse) {
@@ -24953,10 +24986,16 @@ function setChat() {
 						return false;
 					}
 					if (rCode != -1) {
-						var noms = rCode[0];
+						var cPlayers = rCode[0];
 						var sNoms = "";
-						for (var i=0;i<noms.length;i++)
-							sNoms += (i ? ", ":"")+noms[i].name;
+						for (var i=0;i<cPlayers.length;i++) {
+							var cPlayer = cPlayers[i];
+							sNoms += (i ? ", ":"")+cPlayer.name;
+							if (cPlayer.peer) {
+								sNoms += ' <img src="images/ic_voc.png" alt="Voc" />';
+								rtcService.addPeer(cPlayer.peer);
+							}
+						}
 						jConnectes.innerHTML = sNoms;
 						var messages = rCode[1];
 						if (messages.length) {
