@@ -40,6 +40,18 @@
 .online-chat-actions > button > img {
     height: 16px;
 }
+.vocal-chat-actions {
+    padding: 0 1px;
+    margin: 0 8px 0 5px;
+    background-color: #073;
+    border-radius: 2px;
+}
+.vocal-chat-actions > button {
+    margin: 2px;
+}
+.vocal-chat-actions > button > img {
+    height: 16px;
+}
 .online-chat-closectn {
     position: absolute;
     right: -2px;

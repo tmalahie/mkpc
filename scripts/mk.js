@@ -24771,11 +24771,24 @@ function setChat() {
 	viConnectes.src = "images/ic_voc.png";
 	vConnectes.appendChild(viConnectes);
 	vConnectes.onclick = function() {
-		rtcService.joinVocChat(null, function(e) {
-			alert((language ? "Unable to join vocal chat:" : "Impossible de rejoindre le chat vocal : ") + e);
+		function resetBtn() {
+			vtConnectes.nodeValue = language ? "Vocal chat" : "Chat vocal";
 			vConnectes.disabled = false;
+		}
+		rtcService.joinVocChat({
+			success: function() {
+				vConnectes.style.display = "none";
+				vChatActions.style.display = "inline-block";
+				resetBtn();
+			},
+			error: function(e) {
+				alert((language ? "Unable to join vocal chat:" : "Impossible de rejoindre le chat vocal : ") + e);
+				resetBtn();
+			},
+			muted: !!vcaMute.dataset.muted
 		});
 		vConnectes.disabled = true;
+		vtConnectes.nodeValue = language ? "Joining..." : "Chargement...";
 	}
 	vConnectes.onmouseover = function() {
 		viConnectes.src = "images/ic_voc_h.png";
@@ -24783,9 +24796,69 @@ function setChat() {
 	vConnectes.onmouseout = function() {
 		viConnectes.src = "images/ic_voc.png";
 	};
-	vConnectes.appendChild(document.createTextNode(language ? "Vocal chat" : "Chat vocal"));
+	var vtConnectes = document.createTextNode(language ? "Vocal chat" : "Chat vocal");
+	vConnectes.appendChild(vtConnectes);
 	vConnectes.style.marginRight = "10px";
 	oChatActions.appendChild(vConnectes);
+
+	var vChatActions = document.createElement("div");
+	vChatActions.className = "vocal-chat-actions";
+	vChatActions.style.display = "none";
+	
+	var vcaMute = document.createElement("button");
+	vcaMute.title = language ? "Mute" : "Muet";
+	var vcaiMute = document.createElement("img");
+	vcaiMute.src = "images/ic_mic.png";
+	vcaMute.appendChild(vcaiMute);
+	vcaMute.onmouseover = function() {
+		if (vcaMute.dataset.muted)
+			vcaiMute.src = "images/ic_muted_h.png";
+		else
+			vcaiMute.src = "images/ic_mic_h.png";
+	};
+	vcaMute.onmouseout = function() {
+		if (vcaMute.dataset.muted)
+			vcaiMute.src = "images/ic_muted.png";
+		else
+			vcaiMute.src = "images/ic_mic.png";
+	};
+	vcaMute.onclick = function() {
+		function onToggleMute() {
+			vcaMute.disabled = false;
+		}
+		vcaMute.disabled = true;
+		if (vcaMute.dataset.muted) {
+			vcaMute.dataset.muted = "";
+			rtcService.toggleMute(false, onToggleMute);
+			vcaiMute.src = "images/ic_mic.png";
+		}
+		else {
+			vcaMute.dataset.muted = 1;
+			rtcService.toggleMute(true, onToggleMute);
+			vcaiMute.src = "images/ic_muted.png";
+		}
+	};
+	vChatActions.appendChild(vcaMute);
+
+	var vcaHangup = document.createElement("button");
+	vcaHangup.title = language ? "Hang up" : "Raccrocher";
+	var vcaiHangup = document.createElement("img");
+	vcaiHangup.src = "images/ic_hangup.png";
+	vcaHangup.appendChild(vcaiHangup);
+	vcaHangup.onmouseover = function() {
+		vcaiHangup.src = "images/ic_hangup_h.png";
+	};
+	vcaHangup.onmouseout = function() {
+		vcaiHangup.src = "images/ic_hangup.png";
+	};
+	vcaHangup.onclick = function() {
+		rtcService.quitVocChat();
+		vChatActions.style.display = "none";
+		vConnectes.style.display = "";
+	};
+	vChatActions.appendChild(vcaHangup);
+
+	oChatActions.appendChild(vChatActions);
 
 	var bConnectes = document.createElement("button");
 	bConnectes.title = language ? "Ignore player..." : "Ignorer un joueur...";
@@ -24992,7 +25065,7 @@ function setChat() {
 							var cPlayer = cPlayers[i];
 							sNoms += (i ? ", ":"")+cPlayer.name;
 							if (cPlayer.peer) {
-								sNoms += ' <img src="images/ic_voc.png" alt="Voc" />';
+								sNoms += ' <img src="images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png" alt="Voc" />';
 								rtcService.addPeer(cPlayer.peer);
 							}
 						}

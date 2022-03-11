@@ -47,20 +47,37 @@ function RTCService() {
         audio: true
     }
 
-    function joinVocChat(successCallback, errorCallback) {
+    function joinVocChat(options) {
+        if (!navigator.mediaDevices) errorCallback(new Error("Your browser does not support the WebRTC API"));
         navigator.mediaDevices.getUserMedia(constraints).then(stream => {
             localStream = stream;
+            muteStream(options.muted);
             
-            init(successCallback);
-        }).catch(errorCallback);
+            init(options);
+        }).catch(options.error);
     }
 
-    function init(successCallback) {
-        xhr("joinChatVoc.php", "", function(res) {
+    function quitVocChat() {
+        xhr("quitChatVoc.php", "peer="+peerId, function(res) {
+            return (res == 1);
+        });
+        peerId = null;
+        for (var socket_id in peers) {
+            var peer = peers[socket_id];
+            delete peers[socket_id];
+            peer.conn.destroy();
+        }
+        localStream.getTracks().forEach(function(track) {
+            track.stop();
+        });
+    }
+
+    function init(options) {
+        xhr("joinChatVoc.php", options.muted ? "muted=1" : "", function(res) {
             if (res && (res >= 0)) {
                 peerId = +res;
-                if (successCallback)
-                    successCallback();
+                if (options.success)
+                    options.success();
                 return true;
             }
         });
@@ -69,14 +86,18 @@ function RTCService() {
     function pollPeerSignal(memberPeerId) {
         if (peers[memberPeerId].isPolling) return;
         peers[memberPeerId].isPolling = true;
-        doPollPeerSignal(memberPeerId);
+        doPollPeerSignal(memberPeerId, 100,0);
     }
-    function doPollPeerSignal(memberPeerId) {
+    function doPollPeerSignal(memberPeerId, triedSince) {
         if (peers[memberPeerId].hasStreamed) {
             peers[memberPeerId].isPolling = false;
             return;
         }
-        let interval = 100;
+        if (triedSince > 10000) {
+            removePeer(memberPeerId);
+            return;
+        }
+        const interval = Math.max(100, triedSince/10-100);
         xhr("getChatSignals.php", "sender="+memberPeerId+"&receiver="+peerId+"&lastsignalid="+peers[memberPeerId].lastSignalId, function(res) {
             let signals;
             try {
@@ -90,28 +111,30 @@ function RTCService() {
                 peers[memberPeerId].conn.signal(signal.data);
             }
             setTimeout(function() {
-                doPollPeerSignal(memberPeerId);
+                doPollPeerSignal(memberPeerId, triedSince+interval);
             }, interval);
             return true;
         });
     }
 
     function removePeer(socket_id) {
-        
-        let audioEl = document.getElementById(socket_id)
+        var peer = peers[socket_id];
+        if (!peer) return;
+        const audioEl = peer.audio;
         if (audioEl) {
-            
             const tracks = audioEl.srcObject.getTracks();
             
             tracks.forEach(function (track) {
                 track.stop()
-            })
-            
-            audioEl.srcObject = null
-            audioEl.parentNode.removeChild(audioEl)
+            });
+            audioEl.srcObject = null;
+            document.body.removeChild(audioEl);
         }
-        if (peers[socket_id]) peers[socket_id].conn.destroy()
-        delete peers[socket_id]
+        delete peers[socket_id];
+        peer.conn.destroy();
+        xhr("unregisterChatSignals.php", "sender="+peerId+"&receiver="+socket_id, function(res) {
+            return (res == 1);
+        });
     }
 
     function addPeer(socket_id) {
@@ -135,11 +158,18 @@ function RTCService() {
         peers[socket_id].conn.on('stream', stream => {
             let newAudio = document.createElement('audio');
             newAudio.srcObject = stream;
-            newAudio.id = socket_id;
             newAudio.autoplay = true;
             newAudio.className = "audio";
-            audios.appendChild(newAudio);
+            document.body.appendChild(newAudio);
+            peers[socket_id].audio = newAudio;
             peers[socket_id].hasStreamed = true;
+        })
+        
+        peers[socket_id].conn.on('error', () => {
+        });
+        
+        peers[socket_id].conn.on('close', () => {
+            removePeer(socket_id);
         })
         
         if (!am_initiator)
@@ -164,16 +194,27 @@ function RTCService() {
         }, delay);
     }
 
-    function toggleMute() {
+    function muteStream(muted) {
+        if (!localStream) return;
+        
         for (let index in localStream.getAudioTracks()) {
-            localStream.getAudioTracks()[index].enabled = !localStream.getAudioTracks()[index].enabled;
+            localStream.getAudioTracks()[index].enabled = !muted;
         }
+    }
+
+    function toggleMute(muted, callback) {
+        muteStream(muted);
+        xhr("updateChatVoc.php", "peer="+peerId+"&muted="+ (muted ? 1:0), function() {
+            if (callback) callback();
+            return true;
+        });
     }
 
     return {
         joinVocChat,
         addPeer,
         removePeer,
+        quitVocChat,
         toggleMute
     }
 }
