@@ -9,6 +9,7 @@ var selectedDifficulty;
 var updateCtnFullScreen;
 var isFirstLoad = true;
 var selectedCc = localStorage.getItem("cc") || "150";
+var selectedMirror = !!localStorage.getItem("mirror");
 var selectedNbTeams = localStorage.getItem("nbTeams") || "2";
 var selectedFriendlyFire = !!localStorage.getItem("friendlyFire");
 var selectedTeamOpts = 0;
@@ -570,7 +571,7 @@ if (!pause) {
 
 var strPlayer = new Array();
 var oMap;
-var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass;
+var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
 var iRecord;
 var iTrajet;
 var jTrajets;
@@ -585,6 +586,7 @@ if (pause) {
 	strPlayer = fInfos.player;
 	selectedItemDistrib = fInfos.distribution;
 	fSelectedClass = fInfos.cc;
+	bSelectedMirror = fInfos.mirror;
 	oDoubleItemsEnabled = !!fInfos.double_items;
 	oMap = oMaps["map"+fInfos.map];
 	clSelected = fInfos.cl;
@@ -2826,6 +2828,12 @@ function startGame() {
 		oPlanDiv2.style.height = oPlanWidth +"px";
 		oPlanDiv2.style.overflow = "hidden";
 
+		if (bSelectedMirror) {
+			oPlanDiv.style.transform = oPlanDiv.style.WebkitTransform = oPlanDiv.style.MozTransform = 
+				oPlanDiv2.style.transform = oPlanDiv2.style.WebkitTransform = oPlanDiv2.style.MozTransform =
+				"scaleX(-1)";
+		}
+
 		oPlanCtn = document.createElement("div");
 		oPlanCtn.style.position = "absolute";
 		oPlanCtn.style.transformOrigin = oPlanCtn.style.WebkitTransformOrigin = oPlanCtn.style.MozTransformOrigin = "left";
@@ -3196,6 +3204,7 @@ function startGame() {
 									player:strPlayer,
 									distribution:itemDistribution,
 									cc:fSelectedClass,
+									mirror:bSelectedMirror,
 									double_items:oDoubleItemsEnabled,
 									map:oMap.ref,
 									difficulty:iDificulty,
@@ -3236,6 +3245,7 @@ function startGame() {
 										player:strPlayer,
 										distribution:itemDistribution,
 										cc:fSelectedClass,
+										mirror:bSelectedMirror,
 										double_items:oDoubleItemsEnabled,
 										perso:new Array(),
 										cl:clSelected
@@ -3302,19 +3312,19 @@ function startGame() {
 								if (oPlayers[0].etoile) oPlayers[0].speedinc *= 5;
 								break;
 							case "left":
-								oPlayers[0].rotincdir = oPlayers[0].stats.handling;
+								oPlayers[0].rotincdir = oPlayers[0].stats.handling*getMirrorFactor();
 								if (!oPlayers[0].driftinc && !oPlayers[0].tourne && !oPlayers[0].fell && oPlayers[0].ctrl && !oPlayers[0].cannon) {
 									if (oPlayers[0].jumped)
-										oPlayers[0].driftinc = 1;
+										oPlayers[0].driftinc = getMirrorFactor();
 									if (oPlayers[0].driftinc)
 										clLocalVars.drifted = true;
 								}
 								break;
 							case "right":
-								oPlayers[0].rotincdir = -oPlayers[0].stats.handling;
+								oPlayers[0].rotincdir = -oPlayers[0].stats.handling*getMirrorFactor();
 								if (!oPlayers[0].driftinc && !oPlayers[0].tourne && !oPlayers[0].fell && oPlayers[0].ctrl && !oPlayers[0].cannon) {
 									if (oPlayers[0].jumped)
-										oPlayers[0].driftinc = -1;
+										oPlayers[0].driftinc = -getMirrorFactor();
 									if (oPlayers[0].driftinc)
 										clLocalVars.drifted = true;
 								}
@@ -4012,6 +4022,13 @@ function resetScreen() {
 	oViewCanvas = document.createElement("canvas");
 	oViewCanvas.width=iViewCanvasWidth;
 	oViewCanvas.height=iViewCanvasHeight;
+
+	if (bSelectedMirror) {
+		for (var i=0;i<oContainers.length;i++) {
+			var oCtrChange = oContainers[i];
+			oCtrChange.style.transform = oCtrChange.style.WebkitTransform = oCtrChange.style.MozTransform = "scaleX(-1)";
+		}
+	}
 }
 
 function getFrameSettings(currentSettings) {
@@ -4243,6 +4260,7 @@ function continuer() {
 					player:strPlayer,
 					distribution:itemDistribution,
 					cc:fSelectedClass,
+					mirror:bSelectedMirror,
 					double_items:oDoubleItemsEnabled,
 					difficulty:iDificulty,
 					cl:clSelected
@@ -4370,6 +4388,7 @@ function continuer() {
 				player:strPlayer,
 				distribution:itemDistribution,
 				cc:fSelectedClass,
+				mirror:bSelectedMirror,
 				double_items:oDoubleItemsEnabled,
 				map:oMap.ref,
 				difficulty:iDificulty,
@@ -4601,6 +4620,7 @@ function continuer() {
 					player:strPlayer,
 					distribution:itemDistribution,
 					cc:fSelectedClass,
+					mirror:bSelectedMirror,
 					double_items:oDoubleItemsEnabled,
 					map:oMap.ref,
 					my_route:iTrajet,
@@ -4642,6 +4662,7 @@ function continuer() {
 				player:strPlayer,
 				distribution:itemDistribution,
 				cc:fSelectedClass,
+				mirror:bSelectedMirror,
 				double_items:oDoubleItemsEnabled,
 				perso:new Array(),
 				cl:clSelected
@@ -15373,10 +15394,10 @@ document.onkeydown = function(e) {
 				updateEngineSound(carEngine2);
 			return false;
 		case "left":
-			oPlayers[0].rotincdir = 1;
+			oPlayers[0].rotincdir = getMirrorFactor();
 			return false;
 		case "right":
-			oPlayers[0].rotincdir = -1;
+			oPlayers[0].rotincdir = -getMirrorFactor();
 			return false;
 	}
 	if (oPlayers[1]) {
@@ -15385,10 +15406,10 @@ document.onkeydown = function(e) {
 				oPlayers[1].speedinc = 1;
 				break;
 			case "left_p2":
-				oPlayers[1].rotincdir = 1;
+				oPlayers[1].rotincdir = getMirrorFactor();
 				break;
 			case "right_p2":
-				oPlayers[1].rotincdir = -1;
+				oPlayers[1].rotincdir = -getMirrorFactor();
 		}
 	}
 }
@@ -18200,13 +18221,21 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				else
 					oDoubleItemsEnabled = true;
 				if (oClassSelect) {
-					selectedCc = oClassSelect.value;
+					selectedCc = parseInt(oClassSelect.value);
+					selectedMirror = oClassSelect.value.endsWith("m");
 					fSelectedClass = getRelSpeedFromCc(+selectedCc);
-					if (oClassSelect.type !== "hidden")
+					bSelectedMirror = selectedMirror;
+					if (oClassSelect.type !== "hidden") {
 						localStorage.setItem("cc", selectedCc);
+						if (selectedMirror)
+							localStorage.setItem("mirror", 1);
+						else
+							localStorage.removeItem("mirror");
+					}
 				}
 				else {
 					fSelectedClass = 1;
+					bSelectedMirror = false;
 				}
 				if (cImg.j == (isCustomSel ? nbSels:oContainers.length)) {
 					if (isOnline) {
@@ -18615,16 +18644,18 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 			oClassSelect = document.createElement("select");
 			oClassSelect.name = "cc";
-			oClassSelect.style.width = (iScreenScale*8) +"px";
+			oClassSelect.style.width = (iScreenScale*10) +"px";
 			oClassSelect.style.fontSize = iScreenScale*2 +"px";
-			var oClasses = [50,100,150,200];
+			var oClasses = [50,100,150,150,200];
+			var oMirrors = [false,false,false,true,false];
 			var isSelectedCc = false;
 			for (var i=0;i<oClasses.length;i++) {
 				var oClass = oClasses[i];
+				var oMirror = oMirrors[i];
 				var oClassOption = document.createElement("option");
-				oClassOption.value = oClass;
-				oClassOption.innerHTML = oClass+"cc";
-				if (selectedCc == oClass) {
+				oClassOption.value = oClass+(oMirror ? "m":"");
+				oClassOption.innerHTML = oClass+"cc"+ (oMirror ? toLanguage(" mirror", " miroir") : "");
+				if (selectedCc == oClass && selectedMirror == oMirror) {
 					oClassOption.setAttribute("selected", true);
 					isSelectedCc = true;
 				}
@@ -18635,13 +18666,17 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oClassOption.value = -1;
 			oClassOption.innerHTML = toLanguage("More...", "Plus...");
 			oClassSelect.appendChild(oClassOption);
-			oClassSelect.currentValue = oClassSelect.value;
+			function setCustomMirrorValue(oSelect, customNb, customMirror) {
+				setCustomValue(oSelect,customNb+(customMirror ? "m":""),customNb+"cc"+(customMirror ? toLanguage(" mirror"," miroir"):""));
+			}
 			oClassSelect.onchange = function() {
 				if (this.value == -1) {
-					var customNb = parseInt(prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue));
+					var customCc = prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue);
+					var customNb = parseInt(customCc);
 					if (!isNaN(customNb) && (customNb > 0)) {
 						customNb = Math.min(customNb,999);
-						setCustomValue(this,customNb,customNb+"cc");
+						var customMirror = customCc.toLowerCase().includes("m");
+						setCustomMirrorValue(this, customNb,customMirror);
 					}
 					else {
 						if (!isNaN(customNb))
@@ -18653,7 +18688,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				this.currentValue = this.value;
 			};
 			if (!isSelectedCc)
-				setCustomValue(oClassSelect, selectedCc, selectedCc+"cc");
+				setCustomMirrorValue(oClassSelect, selectedCc,selectedMirror);
+			oClassSelect.currentValue = oClassSelect.value;
 			oForm.appendChild(oClassSelect);
 
 			var moreOptions = document.createElement("a");
@@ -19472,6 +19508,9 @@ function getActualCc() {
 function cappedRelSpeed(oKart) {
 	var fSize = (oKart && oKart.size!==undefined) ? oKart.size : 1;
 	return Math.min(Math.max(fSelectedClass*fSize, 0.37), 2.7);
+}
+function getMirrorFactor() {
+	return bSelectedMirror ? -1 : 1;
 }
 
 function selectTeamScreen(IdJ) {
@@ -21327,6 +21366,10 @@ function choose(map,rand) {
 							fSelectedClass = getRelSpeedFromCc(rCode[4].cc);
 						else
 							fSelectedClass = 1;
+						if (rCode[4].mirror)
+							bSelectedMirror = true;
+						else
+							bSelectedMirror = false;
 						aTeams = new Array();
 						for (i=0;i<choixJoueurs.length;i++) {
 							var aID = choixJoueurs[i][0];
