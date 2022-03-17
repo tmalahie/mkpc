@@ -5484,6 +5484,7 @@ function floatType(key) {
 function intType(key) {
 	return {key:key,type:"int"};
 }
+var maxItemHitboxZ = 5;
 var itemBehaviors = {
 	"banane": {
 		size: 0.67,
@@ -5928,13 +5929,20 @@ var itemBehaviors = {
 				else
 					detruit(fSprite);
 			}
+		},
+		checkCollisions: function(fSprite, getId) {
+			var oKart = aKarts[getId];
+			if ((oKart.z < maxItemHitboxZ) && touche_cverte_aux(oKart.x,oKart.y, fSprite)) {
+				if (!friendlyHit(oKart.team, fSprite.team))
+					handleHardHit(getId);
+			}
 		}
 	},
 	"bobomb": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown"),byteType("cooldown")],
 		fadedelay: 0,
-		move: function(fSprite) {	
+		move: function(fSprite) {
 			if (fSprite.theta != -1) {
 				if (fSprite.countdown)
 					handleSpriteLaunch(fSprite, 15,0.2);
@@ -5946,6 +5954,17 @@ var itemBehaviors = {
 						fSprite.cooldown -= 12;
 					if (fSprite.cooldown < -10)
 						detruit(fSprite);
+				}
+			}
+		},
+		checkCollisions: function(fSprite, getId) {
+			var oKart = aKarts[getId];
+			if (touche_bobomb_aux(oKart.x,oKart.y, fSprite)) {
+				if (!friendlyHit(oKart.team, fSprite.team)) {
+					if (fSprite.cooldown <= 0) {
+						var pExplose = fSprite.cooldown < -5 ? 42 : 84;
+						handleExplosionHit(getId, pExplose);
+					}
 				}
 			}
 		},
@@ -6203,6 +6222,13 @@ var itemBehaviors = {
 					return;
 				}
 			}
+		},
+		checkCollisions: function(fSprite, getId) {
+			var oKart = aKarts[getId];
+			if ((oKart.z < maxItemHitboxZ) && touche_crouge_aux(oKart.x,oKart.y, fSprite)) {
+				if (!friendlyHit(oKart.team, fSprite.team))
+					handleHardHit(getId);
+			}
 		}
 	},
 	"carapace-bleue": {
@@ -6346,6 +6372,15 @@ var itemBehaviors = {
 				}
 				for (var k=0;k<oPlayers.length;k++)
 					fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+			}
+		},
+		checkCollisions: function(fSprite, getId) {
+			var oKart = aKarts[getId];
+			if (touche_cbleue_aux(oKart.x,oKart.y, fSprite)) {
+				if (!friendlyHit(oKart.team, fSprite.team)) {
+					var pExplose = fSprite.cooldown < -5 ? 42 : 84;
+					handleExplosionHit(getId, pExplose);
+				}
 			}
 		},
 		render: function(fSprite,i) {
@@ -8705,6 +8740,11 @@ function sameTeam(team1,team2) {
 	if (team1 == -1)
 		return false;
 	return (team1 == team2);
+}
+function friendlyHit(team1,team2) {
+	if (!selectedFriendlyFire && sameTeam(team1,team2))
+		return true;
+	return false;
 }
 
 function addNewBalloon(oKart,team) {
@@ -11486,12 +11526,17 @@ function touche_cverte(iX, iY, iP) {
 	for (var i=0;i<items["carapace"].length;i++) {
 		var oBox = items["carapace"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			if (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
-				handleHit(oBox);
-				detruit(oBox,isHitSound(oBox));
+			if (touche_cverte_aux(iX,iY, oBox))
 				return (collisionTeam!=oBox.team);
-			}
 		}
+	}
+	return false;
+}
+function touche_cverte_aux(iX,iY, oBox) {
+	if (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
+		handleHit(oBox);
+		detruit(oBox,isHitSound(oBox));
+		return true;
 	}
 	return false;
 }
@@ -11518,13 +11563,20 @@ function touche_crouge(iX, iY, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["carapace-rouge"].length;i++) {
 		var oBox = items["carapace-rouge"][i];
-		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
-			var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
-			if (isHitbox ? (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) : (iX == oBox.x && iY == oBox.y)) {
-				handleHit(oBox);
-				detruit(oBox,isHitSound(oBox));
+		if ((iP.indexOf(oBox) == -1)) {
+			if (touche_crouge_aux(iX,iY, oBox))
 				return (collisionTeam!=oBox.team);
-			}
+		}
+	}
+	return false;
+}
+function touche_crouge_aux(iX,iY, oBox) {
+	if (!oBox.z) {
+		var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
+		if (isHitbox ? (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) : (iX == oBox.x && iY == oBox.y)) {
+			handleHit(oBox);
+			detruit(oBox,isHitSound(oBox));
+			return true;
 		}
 	}
 	return false;
@@ -11535,12 +11587,7 @@ function touche_bobomb(iX, iY, iP) {
 		var oBox = items["bobomb"][i];
 		if (!oBox.z && (iP.indexOf(oBox) == -1)) {
 			if (oBox.theta != -1) {
-				var hitboxW = 18;
-				if (oBox.cooldown >= 38)
-					hitboxW = 0;
-				else if (oBox.cooldown >= 30)
-					hitboxW = 5;
-				if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY)) < (hitboxW*hitboxW)) {
+				if (touche_bobomb_aux(iX,iY, oBox)) {
 					if (oBox.cooldown <= 0) {
 						var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
 						if (res) handleHit(oBox);
@@ -11571,18 +11618,33 @@ function touche_bobomb(iX, iY, iP) {
 	}
 	return false;
 }
+function touche_bobomb_aux(iX,iY, oBox) {
+	var hitboxW = 18;
+	if (oBox.cooldown >= 38)
+		hitboxW = 0;
+	else if (oBox.cooldown >= 30)
+		hitboxW = 5;
+	if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY)) < (hitboxW*hitboxW))
+		return true;
+	return false;
+}
 
 function touche_cbleue(iX, iY) {
 	for (var i=0;i<items["carapace-bleue"].length;i++) {
 		var oBox = items["carapace-bleue"][i];
-		if (oBox.cooldown <= 0 && oBox.cooldown >= -10) {
-			var hitboxW = 24;
-			if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY) < (hitboxW*hitboxW))) {
-				var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
-				if (res) handleHit(oBox);
-				return res;
-			}
+		if (touche_cbleue_aux(iX,iY, oBox)) {
+			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
+			if (res) handleHit(oBox);
+			return res;
 		}
+	}
+	return false;
+}
+function touche_cbleue_aux(iX,iY, oBox) {
+	if (oBox.cooldown <= 0 && oBox.cooldown >= -10) {
+		var hitboxW = 24;
+		if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY) < (hitboxW*hitboxW)))
+			return true;
 	}
 	return false;
 }
@@ -12086,15 +12148,30 @@ function resetDatas() {
 				if (uData)
 					syncedItems.push({item:uItem,start:uConn,end:rCode[2]});
 			}
+			var localKarts = [];
+			for (var i=0;i<aKarts.length;i++) {
+				var oKart = aKarts[i];
+				if (!i || oKart.controller == identifiant)
+					localKarts.push(i);
+			}
 			for (var i=0;i<syncedItems.length;i++) {
 				var syncedItem = syncedItems[i];
 				var uItem = syncedItem.item;
 				var moveFn = itemBehaviors[uType].move;
+				var checkCollisions = itemBehaviors[uType].checkCollisions;
 				if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
 					for (var k=syncedItem.start;k<syncedItem.end;k++) {
 						if (uItem.deleted)
 							break;
 						moveFn(uItem);
+						if (checkCollisions) {
+							for (var j=0;j<localKarts.length;j++) {
+								var l = localKarts[j];
+								var lKart = aKarts[l];
+								if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
+									checkCollisions(uItem, l);
+							}
+						}
 					}
 				}
 			}
@@ -12688,42 +12765,17 @@ function move(getId, triggered) {
 				oKartItems = oKartItems.concat(aKarts[i].using);
 		}
 		var pExplose = touche_bobomb(fNewPosX, fNewPosY, oKartItems) + touche_cbleue(fNewPosX, fNewPosY);
-		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell) {
-			loseBall(getId);
-			oKart.spin(pExplose);
-			loseUsingItems(oKart);
-			stopDrifting(getId);
-			if (pExplose >= 84) {
-				oKart.champi = 0;
-				oKart.speed = 0;
-				oKart.heightinc = 3;
-				supprArme(aKarts.indexOf(oKart));
-			}
-		}
-		else if (oKart.z < 5) {
+		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
+			handleExplosionHit(getId, pExplose);
+		else if (oKart.z < maxItemHitboxZ) {
 			var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
 			fMidPosX = fNewPosX; fMidPosY = fNewPosY;
-			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (fSelectedClass>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv) {
-				loseBall(getId);
-				stopDrifting(getId);
-				oKart.spin(42);
-				loseUsingItem(oKart);
-			}
-			else if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv) {
-				loseBall(getId);
-				stopDrifting(getId);
-				oKart.spin(20);
-				loseUsingItem(oKart);
-			}
-			else if ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv) {
-				loseBall(getId);
-				stopDrifting(getId);
-				oKart.spin(20);
-				loseUsingItems(oKart);
-				oKart.size = 0.6;
-				oKart.mini = Math.max(oKart.mini, 60);
-				updateDriftSize(getId);
-			}
+			if ((touche_fauxobjet(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_fauxobjet(fMidPosX, fMidPosY, oKartItems)) || (touche_cverte(fNewPosX, fNewPosY, oKartItems) || touche_cverte(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1 && touche_cverte_future(fNewPosX, fNewPosY, oKartItems)) || (fSelectedClass>1.5 && touche_cverte(fMidPosX, fMidPosY, oKartItems))) || touche_crouge(oKart.x, oKart.y, oKartItems) || (fSelectedClass>1.5 && touche_crouge(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
+				handleHardHit(getId);
+			else if ((touche_banane(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_banane(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
+				handleSoftHit(getId);
+			else if ((touche_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && touche_poison(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
+				handlePoisonHit(getId);
 			else if ((touche_champi(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && touche_champi(fMidPosX, fMidPosY))) && !oKart.tourne) {
 				oKart.champi = 20;
 				oKart.maxspeed = 11;
@@ -14218,6 +14270,44 @@ function updateDriftSize(getId) {
 function getDriftImg(getId) {
 	return document.getElementById("drift"+ getId).getElementsByClassName("driftimg")[0];
 }
+function handleExplosionHit(getId, pExplose) {
+	var oKart = aKarts[getId];
+	loseBall(getId);
+	oKart.spin(pExplose);
+	loseUsingItems(oKart);
+	stopDrifting(getId);
+	if (pExplose >= 84) {
+		oKart.champi = 0;
+		oKart.speed = 0;
+		oKart.heightinc = 3;
+		supprArme(aKarts.indexOf(oKart));
+	}
+}
+function handleHardHit(getId) {
+	var oKart = aKarts[getId];
+	loseBall(getId);
+	stopDrifting(getId);
+	oKart.spin(42);
+	loseUsingItem(oKart);
+}
+function handleSoftHit(getId) {
+	var oKart = aKarts[getId];
+	loseBall(getId);
+	stopDrifting(getId);
+	oKart.spin(20);
+	loseUsingItem(oKart);
+}
+function handlePoisonHit(getId) {
+	var oKart = aKarts[getId];
+	loseBall(getId);
+	stopDrifting(getId);
+	oKart.spin(20);
+	loseUsingItems(oKart);
+	oKart.size = 0.6;
+	oKart.mini = Math.max(oKart.mini, 60);
+	updateDriftSize(getId);
+}
+
 var oRoulettesPrefixes = ["", "2"];
 var oArmeKeys = ["arme", "stash"];
 function updateObjHud(ID) {
