@@ -1592,6 +1592,7 @@ function addNewItem(kart,item) {
 	}
 }
 
+var CHAMPI_TYPE_ITEM = 1, CHAMPI_TYPE_BOOST = 2;
 function arme(ID, backwards, forwards) {
 	var oKart = aKarts[ID];
 	if (!oKart.using.length) {
@@ -1605,6 +1606,7 @@ function arme(ID, backwards, forwards) {
 			case "champiX3" :
 			itemKey = "champi";
 			tpsUse = 20;
+			oKart.champiType = CHAMPI_TYPE_ITEM;
 			oKart.maxspeed = 11;
 			oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 			playIfShould(oKart,"musics/events/boost.mp3");
@@ -1614,6 +1616,7 @@ function arme(ID, backwards, forwards) {
 			itemKey = "champi";
 			if (oKart.champi < 12) {
 				tpsUse = 20;
+				oKart.champiType = CHAMPI_TYPE_ITEM;
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
@@ -1671,6 +1674,7 @@ function arme(ID, backwards, forwards) {
 			oKart.z = 2;
 			oKart.protect = true;
 			oKart.champi = 0;
+			delete oKart.champiType;
 			delete oKart.shift;
 			resetPowerup(oKart);
 			playIfShould(oKart,"musics/events/boost.mp3");
@@ -5544,6 +5548,7 @@ var itemBehaviors = {
 								updateDriftSize(i);
 								loseUsingItems(kart);
 								kart.champi = 0;
+								delete kart.champiType;
 								kart.spin(20);
 								stopDrifting(i);
 								dropCurrentItem(kart);
@@ -6282,7 +6287,7 @@ var itemBehaviors = {
 							if (fSprite.cooldown < 5) {
 								var maxSpeed2 = 32;
 								if (oKart.champi > 0) {
-									if (oKart.champi < (oKart.champior ? 8:16))
+									if ((oKart.champi < (oKart.champior ? 8:16)) || (oKart.champiType !== CHAMPI_TYPE_ITEM))
 										maxSpeed2 = 200;
 								}
 								else if (oKart.turbodrift)
@@ -6330,7 +6335,7 @@ var itemBehaviors = {
 				var isBB = (course == "BB");
 				if (!isBB) {
 					var aipoints = oMap.aipoints[fSprite.aimap];
-					var dSpeed = 12*relSpeed;
+					var dSpeed = 15*relSpeed;
 					var aX = fSprite.x, aY = fSprite.y;
 					while (dSpeed > 0) {
 						var target = aipoints[fSprite.aipoint];
@@ -9015,13 +9020,15 @@ function colKart(getId) {
 						var qKart = oKart.champi ? kart:oKart;
 						if (!qKart.loose && !qKart.cannon && !qKart.frminv) {
 							var pKart = oKart.champi ? oKart:kart;
-							var iKart = aKarts.indexOf(qKart);
-							handleHit2(pKart,qKart);
-							loseBall(iKart);
-							stopDrifting(iKart);
-							if (pKart.ballons.length < 3)
-								addNewBalloon(pKart,qKart.team);
-							qKart.spin(62);
+							if (pKart.champiType === CHAMPI_TYPE_ITEM) {
+								var iKart = aKarts.indexOf(qKart);
+								handleHit2(pKart,qKart);
+								loseBall(iKart);
+								stopDrifting(iKart);
+								if (pKart.ballons.length < 3)
+									addNewBalloon(pKart,qKart.team);
+								qKart.spin(62);
+							}
 						}
 					}
 					var d20 = (nDir1[0]*nDir1[0] + nDir1[1]*nDir1[1]);
@@ -9559,8 +9566,10 @@ function handleCannon(oKart, cannon) {
 		oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
 		if (oKart.champi) {
 			var cannonL = (cannon[0]*cannon[0] + cannon[1]*cannon[1]);
-			if (cannonL > 50000)
+			if (cannonL > 50000) {
 				oKart.champi = 0;
+				delete oKart.champiType;
+			}
 		}
 		if (!oKart.z)
 			oKart.z = 0.001;
@@ -12199,7 +12208,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe;
+						var aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aChampi = oKart.champi, aItem = oKart.arme;
 						var aIpoint = oKart.aipoint;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
@@ -12243,6 +12252,10 @@ function resetDatas() {
 							oKart.sprite[0].img.src = getSpriteSrc(oKart.personnage);
 							resumeSpriteSize(oKart.sprite[0]);
 						}
+						if (aItem && aItem.startsWith("champi") && ((aItem !== oKart.arme) || (aItem === "champior")) && oKart.champi > aChampi)
+							oKart.champiType = CHAMPI_TYPE_ITEM;
+						else if (!oKart.champi)
+							delete oKart.champiType;
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
 						updateProtectFlag(oKart);
@@ -12786,6 +12799,7 @@ function move(getId, triggered) {
 				handlePoisonHit(getId);
 			else if ((touche_champi(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && touche_champi(fMidPosX, fMidPosY))) && !oKart.tourne) {
 				oKart.champi = 20;
+				oKart.champiType = CHAMPI_TYPE_ITEM;
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
@@ -13266,6 +13280,7 @@ function move(getId, triggered) {
 				oKart.figstate = 0;
 				oKart.fell = true;
 				oKart.champi = 0;
+				delete oKart.champiType;
 				delete oKart.champior;
 				delete oKart.champior0;
 				if (oKart.cpu)
@@ -13908,6 +13923,8 @@ function move(getId, triggered) {
 	if (oKart.champi) {
 		oKart.maxspeed = 11;
 		oKart.champi--;
+		if (!oKart.champi)
+			delete oKart.champiType;
 	}
 	if (oKart.billball) {
 		oKart.z = 2;
@@ -14084,6 +14101,8 @@ function move(getId, triggered) {
 	}
 
 	if (!oKart.z && (!oKart.heightinc || fSelectedClass<=1) && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
+		if (!oKart.champi)
+			oKart.champiType = CHAMPI_TYPE_BOOST;
 		oKart.champi = 20;
 		oKart.maxspeed = 11;
 		oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
@@ -14286,6 +14305,7 @@ function handleExplosionHit(getId, pExplose) {
 	stopDrifting(getId);
 	if (pExplose >= 84) {
 		oKart.champi = 0;
+		delete oKart.champiType;
 		oKart.speed = 0;
 		oKart.heightinc = 3;
 		supprArme(aKarts.indexOf(oKart));
