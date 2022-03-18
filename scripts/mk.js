@@ -5561,7 +5561,7 @@ var itemBehaviors = {
 			if (!isOnline || fSprite.id) {
 				fSprite.countdown--;
 				if (fSprite.countdown <= 0) {
-					if (fSprite.countdown < -50)
+					if (fSprite.countdown < -300)
 						detruit(fSprite);
 					else if (!fSprite.disabled) {
 						fSprite.disabled = true;
