@@ -5890,44 +5890,52 @@ var itemBehaviors = {
 
 			var relSpeed = cappedRelSpeed();
 			
-			var fMoveX = fSprite.vx*relSpeed, fMoveY = fSprite.vy*relSpeed;
-			
-			if (fMoveX || fMoveY) {
-				fNewPosX = fSprite.x + fMoveX;
-				fNewPosY = fSprite.y + fMoveY;
-	
-				for (var k=0;k<oPlayers.length;k++)
-					fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
-			}
-			else {
-				fNewPosX = fSprite.x;
-				fNewPosY = fSprite.y;
-			}
-	
-			var roundX1 = fSprite.x;
-			var roundY1 = fSprite.y;
-			var roundX2 = fNewPosX;
-			var roundY2 = fNewPosY;
-	
-			if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1) || touche_banane(roundX2, roundY2) || touche_crouge(roundX1, roundY1) || touche_crouge(roundX2, roundY2) || touche_cverte(roundX1, roundY1, [fSprite]) || touche_cverte(roundX2, roundY2, [fSprite]))
-				detruit(fSprite,true);
-			else if ((fSprite.owner == -1) || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
-				fSprite.x = fNewPosX;
-				fSprite.y = fNewPosY;
-				tendsToSpeed(fSprite, 8, 0.1);
-			}
-			else {
-				fSprite.lives--;
-				if (fSprite.lives > 0) {
-					var horizontality = getHorizontality(fSprite.x,fSprite.y, fMoveX,fMoveY);
-					var u = Math.hypot(horizontality[0],horizontality[1]);
-					var ux = horizontality[0]/u, uy = horizontality[1]/u;
-					var m_u = fMoveX*ux + fMoveY*uy;
-					fSprite.vx = 2*m_u*ux-fSprite.vx;
-					fSprite.vy = 2*m_u*uy-fSprite.vy;
+			for (var i=0;i<2;i++) {
+				var fMoveX = fSprite.vx*relSpeed/2, fMoveY = fSprite.vy*relSpeed/2;
+				
+				if (fMoveX || fMoveY) {
+					fNewPosX = fSprite.x + fMoveX;
+					fNewPosY = fSprite.y + fMoveY;
+		
+					if (!i) {
+						for (var k=0;k<oPlayers.length;k++)
+							fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
+					}
 				}
-				else
-					detruit(fSprite);
+				else {
+					fNewPosX = fSprite.x;
+					fNewPosY = fSprite.y;
+				}
+		
+				var roundX1 = fSprite.x;
+				var roundY1 = fSprite.y;
+				var roundX2 = fNewPosX;
+				var roundY2 = fNewPosY;
+		
+				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1) || touche_banane(roundX2, roundY2) || touche_crouge(roundX1, roundY1) || touche_crouge(roundX2, roundY2) || touche_cverte(roundX1, roundY1, [fSprite]) || touche_cverte(roundX2, roundY2, [fSprite])) {
+					detruit(fSprite,true);
+					break;
+				}
+				else if ((fSprite.owner == -1) || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
+					fSprite.x = fNewPosX;
+					fSprite.y = fNewPosY;
+					if (!i)
+						tendsToSpeed(fSprite, 12, 0.2);
+				}
+				else {
+					fSprite.lives--;
+					if (fSprite.lives > 0) {
+						var horizontality = getHorizontality(fSprite.x,fSprite.y, fMoveX,fMoveY);
+						var u = Math.hypot(horizontality[0],horizontality[1]);
+						var ux = horizontality[0]/u, uy = horizontality[1]/u;
+						var m_u = fMoveX*ux + fMoveY*uy;
+						fSprite.vx = 2*m_u*ux-fSprite.vx;
+						fSprite.vy = 2*m_u*uy-fSprite.vy;
+					}
+					else
+						detruit(fSprite);
+					break;
+				}
 			}
 		},
 		checkCollisions: function(fSprite, getId) {
@@ -6010,9 +6018,9 @@ var itemBehaviors = {
 			var fNewPosX;
 			var fNewPosY;
 
-			var steps = 6;
+			var steps = 5;
 			for (var l=0;l<steps;l++) {
-				var dSpeed = 15*cappedRelSpeed()/steps;
+				var dSpeed = 12*cappedRelSpeed()/steps;
 				if (fSprite.owner != -1) {
 					if (fSprite.cannon) {
 						fSprite.z = (fSprite.z*3+4)/4;
