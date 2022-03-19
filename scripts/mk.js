@@ -6025,7 +6025,7 @@ var itemBehaviors = {
 
 			var steps = 5;
 			for (var l=0;l<steps;l++) {
-				var dSpeed = 12*cappedRelSpeed()/steps;
+				var dSpeed = (fSprite.heightinc ? 15:12)*cappedRelSpeed()/steps;
 				if (fSprite.owner != -1) {
 					if (fSprite.cannon) {
 						fSprite.z = (fSprite.z*3+4)/4;
@@ -6082,7 +6082,7 @@ var itemBehaviors = {
 							}
 							fSprite.x = fNewPosX;
 							fSprite.y = fNewPosY;
-							l = steps;
+							l = steps-1;
 						}
 						else {
 							fDist = Math.sqrt(fDist);
