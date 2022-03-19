@@ -41,6 +41,10 @@ $rulesList = array(
 		'min_value' => 1,
 		'max_value' => 999
 	),
+	'mirror' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
+	),
 	'itemDistrib' => array(
 		'default' => 0
 	),

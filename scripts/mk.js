@@ -5320,6 +5320,9 @@ function createMarker(oKart) {
 		oDiv.style.display = "none";
 		oDiv.style.position = "absolute";
 		oDiv.style.opacity = 0.7;
+		if (bSelectedMirror) {
+			oDiv.style.transform = oDiv.style.WebkitTransform = oDiv.style.MozTransform = "scaleX(-1)";
+		}
 
 		var oColor = (oKart.team==-1) ? "#EEE" : cTeamColors.primary[oKart.team];
 
@@ -15692,7 +15695,8 @@ function privateGameOptions(gameOptions, onProceed) {
 			localScore = 0;
 		var minPlayers = +this.elements["option-minPlayers"].value;
 		var maxPlayers = +this.elements["option-maxPlayers"].value;
-		var cc = +this.elements["option-cc"].value;
+		var cc = parseInt(this.elements["option-cc"].value);
+		var mirror = this.elements["option-cc"].value.endsWith("m");
 		var itemDistrib = JSON.parse(this.elements["option-itemDistrib"].value);
 		var cpu = this.elements["option-cpu"].checked ? 1:0;
 		var cpuCount = +this.elements["option-cpuCount"].value;
@@ -15728,6 +15732,7 @@ function privateGameOptions(gameOptions, onProceed) {
 			minPlayers: minPlayers,
 			maxPlayers: maxPlayers,
 			cc: cc,
+			mirror: mirror,
 			itemDistrib: itemDistrib,
 			cpu: cpu,
 			cpuCount: cpuCount,
@@ -16360,14 +16365,19 @@ function privateGameOptions(gameOptions, onProceed) {
 	oSelect.style.fontSize = Math.round(iScreenScale*2.5) +"px";
 	oSelect.style.marginTop = Math.round(iScreenScale*1.5) +"px";
 
-	function setCustomValue(oSelect, customValue) {
+	function getCustomValueOrder(value) {
+		return parseFloat(value.replace("m", ".5"));
+	}
+	function setCustomValue(oSelect, customValue, customMirror) {
 		var oNewOption = document.createElement("option");
-		oNewOption.value = customValue;
-		oNewOption.innerHTML = customValue+"cc";
+		var oNewValue = customValue + (customMirror ? "m":"");
+		oNewOption.value = oNewValue;
+		var oNewValueOrder = getCustomValueOrder(oNewValue);
+		oNewOption.innerHTML = customValue+"cc"+ (customMirror ? toLanguage(" mirror"," miroir"):"");
 		var oOptions = oSelect.getElementsByTagName("option");
 		for (var i=0;i<oOptions.length;i++) {
 			var oOption = oOptions[i];
-			if (oOption.value > customValue) {
+			if (getCustomValueOrder(oOption.value) > oNewValueOrder) {
 				oSelect.insertBefore(oNewOption, oOption);
 				break;
 			}
@@ -16378,22 +16388,29 @@ function privateGameOptions(gameOptions, onProceed) {
 		}
 		if (!oNewOption.parentNode)
 			oSelect.insertBefore(oNewOption, oOptions[oOptions.length-1]);
-		oSelect.value = customValue;
+		oSelect.value = oNewValue;
 	}
 
-	var oClasses = [50,100,150,200];
-	if (!isOnline)
+	var oClasses = [50,100,150,150,200];
+	var oMirrors = [false,false,false,true,false];
+	if (!isOnline) {
 		oClasses = [150,200];
+		oMirrors = [false,false];
+	}
 	var isSelectedCc = false;
 	var gameCc = 150;
 	if (gameOptions && gameOptions.cc)
 		gameCc = gameOptions.cc;
+	var gameMirror = false;
+	if (gameOptions && gameOptions.mirror)
+		gameMirror = true;
 	for (var i=0;i<oClasses.length;i++) {
 		var oClass = oClasses[i];
+		var oMirror = oMirrors[i];
 		var oOption = document.createElement("option");
-		oOption.value = oClass;
-		oOption.innerHTML = oClass+"cc";
-		if (gameCc == oClass) {
+		oOption.value = oClass+(oMirror ? "m":"");
+		oOption.innerHTML = oClass+"cc"+ (oMirror ? toLanguage(" mirror", " miroir") : "");
+		if ((gameCc == oClass) && (gameMirror == oMirror)) {
 			oOption.setAttribute("selected", true);
 			isSelectedCc = true;
 		}
@@ -16405,14 +16422,16 @@ function privateGameOptions(gameOptions, onProceed) {
 		oOption.innerHTML = toLanguage("More...", "Plus...");
 		oSelect.appendChild(oOption);
 		if (!isSelectedCc)
-			setCustomValue(oSelect, gameCc);
+			setCustomValue(oSelect, gameCc, gameMirror);
 		oSelect.currentValue = oSelect.value;
 		oSelect.onchange = function() {
 			if (this.value == -1) {
-				var customValue = parseInt(prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue));
-				if (customValue > 0) {
-					customValue = Math.min(customValue, 999);
-					setCustomValue(this, customValue);
+				var customCc = prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue);
+				var customNb = parseInt(customCc);
+				if (!isNaN(customNb) && (customNb > 0)) {
+					customNb = Math.min(customNb,999);
+					var customMirror = customCc.toLowerCase().includes("m");
+					setCustomValue(this, customNb,customMirror);
 				}
 				else
 					this.value = this.currentValue;
@@ -18474,6 +18493,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 									shareLink.options.minPlayers = options.minPlayers;
 									shareLink.options.maxPlayers = options.maxPlayers;
 									shareLink.options.cc = options.cc;
+									shareLink.options.mirror = options.mirror;
 									shareLink.options.itemDistrib = options.itemDistrib;
 									shareLink.options.cpu = options.cpu;
 									shareLink.options.cpuCount = options.cpuCount;
@@ -18668,7 +18688,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oClassOption.value = -1;
 			oClassOption.innerHTML = toLanguage("More...", "Plus...");
 			oClassSelect.appendChild(oClassOption);
-			function setCustomMirrorValue(oSelect, customNb, customMirror) {
+			function setCustomCcValue(oSelect, customNb, customMirror) {
 				setCustomValue(oSelect,customNb+(customMirror ? "m":""),customNb+"cc"+(customMirror ? toLanguage(" mirror"," miroir"):""));
 			}
 			oClassSelect.onchange = function() {
@@ -18678,7 +18698,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					if (!isNaN(customNb) && (customNb > 0)) {
 						customNb = Math.min(customNb,999);
 						var customMirror = customCc.toLowerCase().includes("m");
-						setCustomMirrorValue(this, customNb,customMirror);
+						setCustomCcValue(this, customNb,customMirror);
 					}
 					else {
 						if (!isNaN(customNb))
@@ -18690,7 +18710,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				this.currentValue = this.value;
 			};
 			if (!isSelectedCc)
-				setCustomMirrorValue(oClassSelect, selectedCc,selectedMirror);
+				setCustomCcValue(oClassSelect, selectedCc,selectedMirror);
 			oClassSelect.currentValue = oClassSelect.value;
 			oForm.appendChild(oClassSelect);
 
@@ -19427,6 +19447,7 @@ var defaultGameOptions = {
 	minPlayers: 2,
 	maxPlayers: 12,
 	cc: 150,
+	mirror: false,
 	itemDistrib: 0,
 	cpu: false,
 	cpuCount: 2,
@@ -19799,7 +19820,7 @@ function acceptRulesScreen() {
 		oTable.appendChild(oTr);
 	}
 
-	if (shareLink.options.cc) {
+	if (shareLink.options.cc || shareLink.options.mirror) {
 		var oTr = document.createElement("tr");
 		var oTd = document.createElement("td");
 		var oLabel = document.createElement("label");
@@ -19813,7 +19834,7 @@ function acceptRulesScreen() {
 		var oDiv = document.createElement("div");
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
-		oDiv.innerHTML = shareLink.options.cc +"cc";
+		oDiv.innerHTML = (shareLink.options.cc||150) +"cc"+ (shareLink.options.mirror ? toLanguage(" mirror"," miroir"):"");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);

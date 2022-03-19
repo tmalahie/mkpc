@@ -232,6 +232,8 @@ if ($course && !$getCourse['banned']) {
 		echo ',teamOpts:'.json_encode($courseRules->teamOpts);
 	if (!empty($courseRules->cc))
 		echo ',cc:'.$courseRules->cc;
+	if (!empty($courseRules->mirror))
+		echo ',mirror:'.$courseRules->mirror;
 	echo '}';
 	echo ']';
 	if ($continuer && !$enoughPlayers) {
