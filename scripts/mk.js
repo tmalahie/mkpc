@@ -6116,18 +6116,23 @@ var itemBehaviors = {
 						else {
 							if (fSprite.aipoint == -1) {
 								if (course != "BB") {
-									var minDist = 1250;
+									var minDist = 2000;
 									for (var j=0;j<oMap.aipoints.length;j++) {
 										var iLocal = oMap.aipoints[j];
 										for (var k=0;k<iLocal.length;k++) {
 											var oBox = iLocal[k];
-											var fDist2 = (oBox[0]-fSprite.x)*(oBox[0]-fSprite.x) + (oBox[1]-fSprite.y)*(oBox[1]-fSprite.y);
-											if (fDist2 < minDist) {
-												fSprite.aimap = j;
-												fSprite.aipoint = k + 1;
-												if (fSprite.aipoint == iLocal.length)
-													fSprite.aipoint = 0;
-												minDist = fDist2;
+											var knc = (k+1)%iLocal.length;
+											var nBox = iLocal[knc];
+											var h = projete(fSprite.x,fSprite.y, oBox[0],oBox[1], nBox[0],nBox[1]);
+											if ((h > 0) && (h < 1)) {
+												var oBoxX = oBox[0] + h*(nBox[0] - oBox[0]);
+												var oBoxY = oBox[1] + h*(nBox[1] - oBox[1]);
+												var fDist2 = (oBoxX-fSprite.x)*(oBoxX-fSprite.x) + (oBoxY-fSprite.y)*(oBoxY-fSprite.y);
+												if (fDist2 < minDist) {
+													fSprite.aimap = j;
+													fSprite.aipoint = knc;
+													minDist = fDist2;
+												}
 											}
 										}
 									}
