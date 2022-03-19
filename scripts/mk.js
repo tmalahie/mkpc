@@ -6430,6 +6430,9 @@ var itemBehaviors = {
 				}
 				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
 			}
+		},
+		"del": function(item) {
+			nextBlueShellCooldown = 300;
 		}
 	}
 }
@@ -12967,6 +12970,8 @@ function move(getId, triggered) {
 					}
 					if (items["carapace-bleue"].length)
 						forbiddenItems["carapacebleue"] = 1;
+					else if (nextBlueShellCooldown)
+						forbiddenItems["carapacebleue"] = 1;
 					if ((oKart.place < aKarts.length) || items.eclair.length)
 						forbiddenItems["eclair"] = 1;
 					if (items.bloops.length)
@@ -15094,10 +15099,13 @@ function ai(oKart) {
 		}
 	}
 }
+var nextBlueShellCooldown;
 function moveItems() {
 	collisionTest = COL_OBJ;
 	collisionTeam = undefined;
 	clLocalVars.currentKart = undefined;
+	if (nextBlueShellCooldown)
+		nextBlueShellCooldown--;
 
 	for (var key in itemBehaviors) {
 		var moveFn = itemBehaviors[key].move;
