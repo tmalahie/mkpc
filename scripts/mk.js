@@ -1120,15 +1120,6 @@ function loadMap() {
 		}
 		hudScreen.appendChild(oCompteur);
 
-		var oDrift = document.createElement("div");
-		oDrift.id = "drift"+i;
-		var oDriftImg = document.createElement("img");
-		oDriftImg.alt = ".";
-		oDriftImg.src = "images/drift.png";
-		oDriftImg.className = "driftimg pixelated";
-		oDrift.appendChild(oDriftImg);
-		hudScreen.appendChild(oDrift);
-
 		var oObjet = document.createElement("div");
 		oObjet.id = "objet"+i;
 		oObjet.className = "itemWheel";
@@ -1179,11 +1170,6 @@ function loadMap() {
 		lakitu.style.height = Math.round(iScreenScale*6.6) +"px";
 		lakitu.style.fontSize = Math.round(iScreenScale*2.3) +"px";
 		hudScreen.appendChild(lakitu);
-		oDriftImg.style.width = iScreenScale * 8 +"px";
-		oDrift.style.left = (iScreenScale * 36) +"px";
-		oDrift.style.top = Math.round(iScreenScale*32) +"px";
-		oDriftImg.style.left = "0px";
-		oDriftImg.style.top = "0px";
 		var infoPlace = document.createElement("div");
 		infoPlace.id = "infoPlace"+i;
 		infoPlace.style.right = Math.round(iScreenScale/2) +"px";
@@ -3395,18 +3381,18 @@ function startGame() {
 								break;
 							case "left_p2":
 								if (!oPlayers[1]) return;
-								oPlayers[1].rotincdir = oPlayers[1].stats.handling;
+								oPlayers[1].rotincdir = oPlayers[1].stats.handling*getMirrorFactor();
 								if (!oPlayers[1].driftinc && !oPlayers[1].tourne && !oPlayers[1].fell && oPlayers[1].ctrl && !oPlayers[1].cannon) {
 									if (oPlayers[1].jumped)
-										oPlayers[1].driftinc = 1;
+										oPlayers[1].driftinc = getMirrorFactor();
 								}
 								break;
 							case "right_p2":
 								if (!oPlayers[1]) return;
-								oPlayers[1].rotincdir = -oPlayers[1].stats.handling;
+								oPlayers[1].rotincdir = -oPlayers[1].stats.handling*getMirrorFactor();
 								if (!oPlayers[1].driftinc && !oPlayers[1].tourne && !oPlayers[1].fell && oPlayers[1].ctrl && !oPlayers[1].cannon) {
 									if (oPlayers[1].jumped)
-										oPlayers[1].driftinc = -1;
+										oPlayers[1].driftinc = -getMirrorFactor();
 								}
 								break;
 							case "down_p2":
@@ -3740,7 +3726,7 @@ function startGame() {
 								if (oKart.driftinc) {
 									if (!i) {
 										if (getFlags[1])
-											document.getElementById("drift"+i).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[i].h-32)*fSpriteScale*0.15) + "px";
+											document.getElementById("drift"+i).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[i].h-32)*fSpriteScale*0.15 - 2) + "px";
 										else
 											stopDrifting_();
 									}
@@ -4022,6 +4008,22 @@ function resetScreen() {
 	oViewCanvas = document.createElement("canvas");
 	oViewCanvas.width=iViewCanvasWidth;
 	oViewCanvas.height=iViewCanvasHeight;
+
+	for (var i=0;i<oContainers.length;i++) {
+		var oDrift = document.createElement("div");
+		oDrift.id = "drift"+i;
+		oDrift.style.left = (iScreenScale * 36) +"px";
+		oDrift.style.top = (iScreenScale*32 - 2) +"px";
+		var oDriftImg = document.createElement("img");
+		oDriftImg.alt = ".";
+		oDriftImg.src = "images/drift.png";
+		oDriftImg.className = "driftimg pixelated";
+		oDriftImg.style.width = iScreenScale * 8 +"px";
+		oDriftImg.style.left = "0px";
+		oDriftImg.style.top = "0px";
+		oDrift.appendChild(oDriftImg);
+		oContainers[i].appendChild(oDrift);
+	}
 
 	if (bSelectedMirror) {
 		for (var i=0;i<oContainers.length;i++) {
@@ -12802,7 +12804,7 @@ function move(getId, triggered) {
 			}
 		}
 		if (oKart.driftinc)
-			document.getElementById("drift"+ getId).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[getId].h-32)*fSpriteScale*0.15) + "px";
+			document.getElementById("drift"+ getId).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[getId].h-32)*fSpriteScale*0.15 - 2) + "px";
 	}
 
 	var localKart = (!isOnline || !getId || oKart.controller == identifiant);
