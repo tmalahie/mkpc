@@ -266,6 +266,9 @@ body a.challenge-action-edit:hover {
 .challenge-edit-form input, .challenge-edit-form button, .challenge-edit-form select {
 	font-size: 1em;
 }
+.challenge-edit-form input[type="checkbox"] {
+	transform: scale(1.5);
+}
 button.challenge-edit-submit {
 	background-color: #CDD;
 	border-color: #ABF;

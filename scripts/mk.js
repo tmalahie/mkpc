@@ -10230,7 +10230,7 @@ var challengeRules = {
 		},
 		"success": function(scope, ruleVars) {
 			if (ruleVars)
-				return ruleVars.relSpeed === fSelectedClass;
+				return (ruleVars.relSpeed === fSelectedClass) && (!scope.mirror === !bSelectedMirror);
 		}
 	},
 	"balloons": {
@@ -19533,8 +19533,9 @@ function getRelSpeedFromCc(cc) {
 function getCcConstraint(cl) {
 	var clConstraints = cl.data.constraints;
 	for (var i=0;i<clConstraints.length;i++) {
-		if (clConstraints[i].type === "cc")
-			return clConstraints[i].value;
+		var clConstraint = clConstraints[i];
+		if (clConstraint.type === "cc")
+			return clConstraint.value + (clConstraint.mirror ? "m":"");
 	}
 }
 function getActualCc() {

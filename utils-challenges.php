@@ -215,7 +215,18 @@ $clRulesByType = array(
 		'cc' => array(
 			'description' => $language ? 'in $value​cc class':'en mode $value​cc',
 			'description_mockup' => $language ? 'Class (cc)':'Cylindrée (cc)',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup'),
+			'description_lambda' => function($language,&$scope) {
+				if ($language)
+					return 'in '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirror':'').' class';
+				else
+					return 'en mode '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirroir':'');
+				exit;
+			},
+			'parser' => function(&$scope) {
+				if (isset($scope['mirror']))
+					$scope['mirror'] = 1;
+			}
 		),
 		'no_teams' => array(
 			'description' => $language ? 'no teams':'sans équipes',

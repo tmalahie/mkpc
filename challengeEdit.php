@@ -199,7 +199,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css" />
+<link rel="stylesheet" href="styles/challenges.css?reload=1" />
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <?php
 if (empty($moderate))
@@ -363,7 +363,8 @@ function addContraintRule(clClass) {
 			$form.html(
 				'<label>'+ (language?'Class:':'Cylindrée :') +' '+
 				'<input type="text" class="challenge-contraint-value" name="scope[cc][value]" pattern="[1-9]\\d*" maxlength="3" list="scope_cc_list" required="required" style="width:60px" /> cc'+
-				'</label>'+
+				'</label> ·<small> </small>'+
+				'<label><input type="checkbox" name="scope[cc][mirror]" />&nbsp;'+ (language?'Mirror':'Miroir')+'</label>'+
 				'<datalist id="scope_cc_list">'+
 					'<option value="50">'+
 					'<option value="100">'+
@@ -625,6 +626,9 @@ $(function() {
 								toggleDecor(btn, decorData.name);
 						}
 						break;
+					case "cc":
+						var mirrorElt = mainForm.elements["scope["+constraint.type+"][mirror]"];
+						if (mirrorElt) mirrorElt.checked = constraint.mirror;
 					}
 				}
 			}
