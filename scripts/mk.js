@@ -627,13 +627,21 @@ var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = n
 	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
 
 function posImg(elt, eltX,eltY,eltR, eltW, mapW) {
-	var fRelX = -eltX/oPlanRealSize, fRelY = -eltY/oPlanRealSize;
-	elt.style.transform = elt.style.WebkitTransform = elt.style.MozTransform = "translate("+ -Math.round(mapW*fRelX + eltW/2) +"px, "+ -Math.round(mapW*fRelY + eltW/2) +"px) rotate("+ Math.round(180-eltR) +"deg)";
+	if (bSelectedMirror) {
+		eltX = oMap.w - eltX;
+		eltR = -eltR;
+	}
+	var fRelX = eltX/oPlanRealSize, fRelY = eltY/oPlanRealSize;
+	elt.style.transform = elt.style.WebkitTransform = elt.style.MozTransform = "translate("+ Math.round(mapW*fRelX - eltW/2) +"px, "+ Math.round(mapW*fRelY - eltW/2) +"px) rotate("+ Math.round(180-eltR) +"deg)";
 	return elt;
 }
 function posImgRel(elt, eltX,eltY,eltR, eltW, mapW, relX,relY) {
-	var fRelX = -eltX/oPlanRealSize, fRelY = -eltY/oPlanRealSize;
-	elt.style.transform = elt.style.WebkitTransform = elt.style.MozTransform = "translate("+ (Math.round(relX)-Math.round(mapW*fRelX + eltW/2)) +"px, "+ (Math.round(relY)-Math.round(mapW*fRelY + eltW/2)) +"px) rotate("+ Math.round(180-eltR) +"deg)";
+	if (bSelectedMirror) {
+		eltX = oMap.w - eltX;
+		eltR = -eltR;
+	}
+	var fRelX = eltX/oPlanRealSize, fRelY = eltY/oPlanRealSize;
+	elt.style.transform = elt.style.WebkitTransform = elt.style.MozTransform = "translate("+ (Math.round(relX)+Math.round(mapW*fRelX - eltW/2)) +"px, "+ (Math.round(relY)+Math.round(mapW*fRelY - eltW/2)) +"px) rotate("+ Math.round(180-eltR) +"deg)";
 	return elt;
 }
 var oTeamColors = {
@@ -651,6 +659,8 @@ function setPlanPos(frameState) {
 	if (oPlayer.teleport > 3 || oPlayer.tombe > 10) return;
 	var frameItems = frameState.items;
 	var fRotation = Math.round(oPlayer.rotation-180);
+	if (bSelectedMirror)
+		fRotation = -fRotation;
 	var fCosR = direction(1,fRotation), fSinR = direction(0,fRotation);
 	function createObject(src, eltW, iPlanCtn, before) {
 		var res = document.createElement("img");
@@ -681,6 +691,8 @@ function setPlanPos(frameState) {
 		}
 	}
 	var fRelX = oPlayer.x/oPlanRealSize, fRelY = oPlayer.y/oPlanRealSize;
+	if (bSelectedMirror)
+		fRelX = 1-fRelX;
 	oPlanCtn.style.transform = oPlanCtn.style.WebkitTransform = oPlanCtn.style.MozTransform = "translate("+ -Math.round(oPlanSize*(fRelX*fCosR - fRelY*fSinR) - oPlanWidth/2) +"px, "+ -Math.round(oPlanSize*(fRelX*fSinR + fRelY*fCosR) - oPlanWidth/2) +"px) rotate("+ fRotation +"deg)";
 
 	function setAssetPos(iPlanAssets,iPlanCtn,iPlanSize,iPlanObjects) {
@@ -692,7 +704,19 @@ function setPlanPos(frameState) {
 						var iAssetWidth = pointer[1][2]*iPlanSize/oMap.w, iAssetHeight = pointer[1][3]*iPlanSize/oMap.w;
 						var img = createObject(pointer[0].src, iAssetWidth,iPlanCtn, iPlanObjects[0]);
 						img.style.height = iAssetHeight+"px";
-						img.style.transformOrigin = img.style.WebkitTransformOrigin = img.style.MozTransformOrigin = Math.round(pointer[2][0]*100)+"% "+Math.round(pointer[2][1]*100)+"%";
+						var oX = pointer[2][0], oY = pointer[2][1];
+						if (bSelectedMirror) {
+							oX = 1-oX;
+							var oDiv = document.createElement("div");
+							oDiv.style.position = "absolute";
+							oDiv.style.display = "flex";
+							img.style.position = "static";
+							img.style.transform = "scaleX(-1)";
+							oDiv.appendChild(img);
+							iPlanCtn.appendChild(oDiv);
+							img = oDiv;
+						}
+						img.style.transformOrigin = img.style.WebkitTransformOrigin = img.style.MozTransformOrigin = Math.round(oX*100)+"% "+Math.round(oY*100)+"%";
 						iPlanAssets[type].push(img);
 					}
 				}
@@ -1019,7 +1043,7 @@ function loadMap() {
 		if (oMap[key]) {
 			function redrawAsset(asset) {
 				var ctx = this.canvas.getContext("2d");
-				if(ctx.resetTransform)
+				if (ctx.resetTransform)
 					ctx.resetTransform();
 				else
 					ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2814,12 +2838,6 @@ function startGame() {
 		oPlanDiv2.style.height = oPlanWidth +"px";
 		oPlanDiv2.style.overflow = "hidden";
 
-		if (bSelectedMirror) {
-			oPlanDiv.style.transform = oPlanDiv.style.WebkitTransform = oPlanDiv.style.MozTransform = 
-				oPlanDiv2.style.transform = oPlanDiv2.style.WebkitTransform = oPlanDiv2.style.MozTransform =
-				"scaleX(-1)";
-		}
-
 		oPlanCtn = document.createElement("div");
 		oPlanCtn.style.position = "absolute";
 		oPlanCtn.style.transformOrigin = oPlanCtn.style.WebkitTransformOrigin = oPlanCtn.style.MozTransformOrigin = "left";
@@ -2863,6 +2881,11 @@ function startGame() {
 		oPlanImg2.style.top = "0px";
 		oPlanImg2.style.width = oPlanWidth2 +"px";
 		oPlanCtn2.appendChild(oPlanImg2);
+
+		if (bSelectedMirror) {
+			oPlanImg.style.transform = oPlanImg.style.WebkitTransform = oPlanImg.style.MozTransform = 
+			oPlanImg2.style.transform = oPlanImg2.style.WebkitTransform = oPlanImg2.style.MozTransform = "scaleX(-1)";
+		}
 
 		if (oMap.decor) {
 			for (var type in oMap.decor) {
@@ -4024,13 +4047,6 @@ function resetScreen() {
 		oDrift.appendChild(oDriftImg);
 		oContainers[i].appendChild(oDrift);
 	}
-
-	if (bSelectedMirror) {
-		for (var i=0;i<oContainers.length;i++) {
-			var oCtrChange = oContainers[i];
-			oCtrChange.style.transform = oCtrChange.style.WebkitTransform = oCtrChange.style.MozTransform = "scaleX(-1)";
-		}
-	}
 }
 
 function getFrameSettings(currentSettings) {
@@ -4778,10 +4794,10 @@ function Sprite(strSprite) {
 		this[i].render = function(fCamera, fSprite) {
 			var fSize = (fSprite.size || 1);
 			
-			var fCamX = fSprite.x - fCamera.x;
+			var fCamX = (fSprite.x - fCamera.x)*getMirrorFactor();
 			var fCamY = fSprite.y - fCamera.y;
 
-			var fRotRad = fCamera.rotation * Math.PI / 180;
+			var fRotRad = fCamera.rotation * Math.PI / 180 * getMirrorFactor();
 
 			var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
 			var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
@@ -4890,6 +4906,8 @@ function BGLayer(strImage, scaleFactor) {
 	return {
 		draw : function(fRotation, i) {
 			if (!imageDims.naturalWidth) return;
+			if (bSelectedMirror)
+				fRotation = -fRotation;
 			var iRot = fRotation - 360*Math.ceil(fRotation/360);
 			var iActualWidth = 10*iScreenScale*imageDims.naturalWidth/imageDims.naturalHeight;
 
@@ -5320,9 +5338,6 @@ function createMarker(oKart) {
 		oDiv.style.display = "none";
 		oDiv.style.position = "absolute";
 		oDiv.style.opacity = 0.7;
-		if (bSelectedMirror) {
-			oDiv.style.transform = oDiv.style.WebkitTransform = oDiv.style.MozTransform = "scaleX(-1)";
-		}
 
 		var oColor = (oKart.team==-1) ? "#EEE" : cTeamColors.primary[oKart.team];
 
@@ -5395,10 +5410,10 @@ function createMarker(oKart) {
 	res.render = function(i, fCamera, fSprite) {
 		var fSize = (fSprite.size || 1);
 		
-		var fCamX = fSprite.x - fCamera.x;
+		var fCamX = (fSprite.x - fCamera.x)*getMirrorFactor();
 		var fCamY = fSprite.y - fCamera.y;
 
-		var fRotRad = fCamera.rotation * Math.PI / 180;
+		var fRotRad = (fCamera.rotation * Math.PI / 180)*getMirrorFactor();
 
 		var fTransX = fCamX * Math.cos(fRotRad) - fCamY * Math.sin(fRotRad);
 		var fTransY = fCamX * Math.sin(fRotRad) + fCamY * Math.cos(fRotRad);
@@ -5450,6 +5465,8 @@ function redrawCanvas(i, fCamera) {
 
 	oViewContext.save();
 	oViewContext.translate(iViewCanvasWidth/2,iViewCanvasHeight-iViewYOffset);
+	if (bSelectedMirror)
+		oViewContext.scale(-1, 1);
 	oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
 
 	var posX = fCamera.x, posY = fCamera.y;
@@ -7296,7 +7313,7 @@ var decorBehaviors = {
 					decorData[5] = -1;
 			}
 			for (var j=0;j<oPlayers.length;j++) {
-				var fAngle = nearestAngle(getApparentRotation(oPlayers[j])+90-decorData[4], 180,360);
+				var fAngle = nearestAngleMirrored(getApparentRotation(oPlayers[j])+90-decorData[4], 180,360);
 				var x = (fAngle%180)/180;
 				x = this.easeInOut(x);
 				fAngle = 180*Math.floor(fAngle/180) + 180*x;
@@ -7947,7 +7964,7 @@ var decorBehaviors = {
 					decorData[4] = aimAngle;
 			}
 			for (var i=0;i<oPlayers.length;i++) {
-				var fAngle = nearestAngle(getApparentRotation(oPlayers[i])-decorData[4], 180,360);
+				var fAngle = nearestAngleMirrored(getApparentRotation(oPlayers[i])-decorData[4], 180,360);
 				var x = (fAngle%180)/180;
 				x = this.easeInOut(x);
 				fAngle = 180*Math.floor(fAngle/180) + 180*x;
@@ -8115,7 +8132,7 @@ var decorBehaviors = {
 			var cAngle = Math.atan2(target[0]-origin[0],target[1]-origin[1])*180/Math.PI;
 			if (!isNaN(cAngle)) {
 				for (var j=0;j<oPlayers.length;j++) {
-					var fAngle = nearestAngle(getApparentRotation(oPlayers[j])-cAngle, 180,360);
+					var fAngle = nearestAngleMirrored(getApparentRotation(oPlayers[j])-cAngle, 180,360);
 					var iAngleStep = Math.round(fAngle*8/360)%8;
 					decorData[2][j].setState(iAngleStep);
 				}
@@ -8516,11 +8533,7 @@ function render() {
 
 			for (var j=0;j<frameState.karts.length;j++) {
 				fSprite = frameState.karts[j];
-				var fAngle = fRotation - fSprite.rotation;
-				while (fAngle < 0)
-					fAngle += 360;
-				while (fAngle > 360)
-					fAngle -= 360;
+				var fAngle = nearestAngleMirrored(fRotation-fSprite.rotation, 180,360);
 
 				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
 				if (iAngleStep > 21) iAngleStep -= 22;
@@ -8529,10 +8542,10 @@ function render() {
 					if (fSprite.figstate)
 						iAngleStep = (iAngleStep + 21-fSprite.figstate) % 21;
 					else if (fSprite.ref.driftinc)
-						iAngleStep = (fSprite.ref.driftinc>0) ? 18:4;
+						iAngleStep = (fSprite.ref.driftinc*getMirrorFactor()>0) ? 18:4;
 					else if (fSprite == frameState.players[i]) {
 						if (fSprite.ref.rotincdir && !fSprite.tourne)
-							iAngleStep = (fSprite.ref.rotincdir > 0) ? 23:22;
+							iAngleStep = (fSprite.ref.rotincdir*getMirrorFactor() > 0) ? 23:22;
 						else if (!fSprite.tourne)
 							iAngleStep = 0;
 					}
@@ -8544,7 +8557,7 @@ function render() {
 				if (course == "BB") {
 					var nbBallons = fSprite.ref.ballons.length;
 					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.ref.sprite[i].h-32)/5));
-					var fShift = 2.5;
+					var fShift = 2.5*getMirrorFactor();
 					for (k=0;k<nbBallons;k++) {
 						fSprite.ref.ballons[k][i].render(fCamera, {
 							x: fSprite.x-(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(1,fRotation),
@@ -9479,6 +9492,9 @@ function normalizeAngle(angle, modulo) {
 }
 function nearestAngle(angle1,angle2, modulo) {
 	return angle1 + modulo*Math.round((angle2-angle1)/modulo);
+}
+function nearestAngleMirrored(angle1,angle2, modulo) {
+	return nearestAngle(angle1*getMirrorFactor(), angle2, modulo);
 }
 function getNearestHoleDist(iX,iY, stopAt) {
 	var res = stopAt || Infinity;
