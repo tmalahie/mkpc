@@ -11100,12 +11100,61 @@ function deleteUpdatingKey(key, value) {
 		updatingKeys[key] = 1;
 	sessionStorage.setItem("updatingKeys", JSON.stringify(updatingKeys));
 }
-/*window.storageApi = {
-	getSessionStorage,
-	setSessionStorage,
-	deleteSessionStorage,
-	initSessionStorage
-}*/
+
+function showGamePopup(options) {
+	var oForm = document.createElement("form");
+	oForm.className = "game-popup";
+	oForm.style.fontSize = (iScreenScale*4) +"px";
+	oForm.onsubmit = function(e) {
+		e.preventDefault();
+		options.submit(e);
+		closeGamePopup();
+	}
+
+	var oWrapper = document.createElement("div");
+	if (options.title) {
+		var oH1 = document.createElement("h1");
+		oH1.innerHTML = options.title;
+		oWrapper.appendChild(oH1);
+	}
+	var oContent = document.createElement("div");
+	oContent.className = "game-popup-body";
+	for (var i=0;i<options.elements.length;i++) {
+		var oDiv = document.createElement("div");
+		oDiv.innerHTML = options.elements[i];
+		oContent.appendChild(oDiv);
+	}
+	oWrapper.appendChild(oContent);
+	var oSubmitCtn = document.createElement("div");
+	oSubmitCtn.className = "game-popup-submit";
+	var oSubmit = document.createElement("input");
+	oSubmit.type = "submit";
+	oSubmit.style.fontSize = (iScreenScale*4) +"px";
+	oSubmit.value = options.submitVal;
+	oSubmitCtn.appendChild(oSubmit);
+	oWrapper.appendChild(oSubmitCtn);
+
+	oForm.appendChild(oWrapper);
+	options.container.appendChild(oForm);
+
+	function closeGamePopup() {
+		options.container.removeChild(oForm);
+		window.removeEventListener("keydown", exitOnEscape);
+		if (options.close) options.close();
+	}
+
+	function exitOnEscape(e) {
+		if (e.keyCode === 27)
+			closeGamePopup();
+	}
+	window.addEventListener("keydown", exitOnEscape);
+	oForm.onclick = function(e) {
+		if (e.target === e.currentTarget)
+			closeGamePopup();
+	};
+
+	return oForm;
+}
 
 var isMetaItem = 0;
 var metaItemPosition = 0.5, metaItemRange = 1000;
@@ -16441,18 +16490,9 @@ function privateGameOptions(gameOptions, onProceed) {
 			setCustomValue(oSelect, gameCc, gameMirror);
 		oSelect.currentValue = oSelect.value;
 		oSelect.onchange = function() {
-			if (this.value == -1) {
-				var customCc = prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue);
-				var customNb = parseInt(customCc);
-				if (!isNaN(customNb) && (customNb > 0)) {
-					customNb = Math.min(customNb,999);
-					var customMirror = customCc.toLowerCase().includes("m");
-					setCustomValue(this, customNb,customMirror);
-				}
-				else
-					this.value = this.currentValue;
-			}
-			this.currentValue = this.value;
+			handleCcSelectChange(this,oScr, function(oSelect, customNb,customMirror) {
+				setCustomValue(oSelect, customNb,customMirror);
+			});
 		}
 	}
 	tDiv.appendChild(oSelect);
@@ -18708,22 +18748,9 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				setCustomValue(oSelect,customNb+(customMirror ? "m":""),customNb+"cc"+(customMirror ? toLanguage(" mirror"," miroir"):""));
 			}
 			oClassSelect.onchange = function() {
-				if (this.value == -1) {
-					var customCc = prompt(toLanguage("Class:", "Cylindrée :"), this.currentValue);
-					var customNb = parseInt(customCc);
-					if (!isNaN(customNb) && (customNb > 0)) {
-						customNb = Math.min(customNb,999);
-						var customMirror = customCc.toLowerCase().includes("m");
-						setCustomCcValue(this, customNb,customMirror);
-					}
-					else {
-						if (!isNaN(customNb))
-							alert(toLanguage("Invalid value", "Valeur invalide"));
-						this.value = this.currentValue;
-						return;
-					}
-				}
-				this.currentValue = this.value;
+				handleCcSelectChange(this,oScr, function(oSelect, customNb,customMirror) {
+					setCustomCcValue(oSelect, customNb,customMirror);
+				});
 			};
 			if (!isSelectedCc)
 				setCustomCcValue(oClassSelect, selectedCc,selectedMirror);
@@ -19162,6 +19189,30 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	};
 
 	updateMenuMusic(isOnline ? 0:1);
+}
+function handleCcSelectChange(oSelect,oScr, onSubmit) {
+	if (oSelect.value == -1) {
+		var oForm = showGamePopup({
+			container: oScr,
+			elements: [
+				'<label>'+toLanguage("Class", "Cylindrée&nbsp;")+': <input type="number" style="font-size: '+ Math.round(iScreenScale*2.5) +'px" name="cc" value="'+ parseInt(oSelect.currentValue) +'" style="width: 3em" required min="1" max="999" /></label>',
+				'<label><input type="checkbox" style="transform: scale('+ Math.round(iScreenScale/4) +')" name="mirror" '+ (oSelect.currentValue.endsWith("m") ? ' checked="checked"':'') +' />&nbsp;'+ toLanguage("Mirror", "Miroir") +'</label>',
+			],
+			submitVal: toLanguage("Validate", "Valider"),
+			submit: function(e) {
+				var customNb = +e.target.elements["cc"].value;
+				var customMirror = +e.target.elements["mirror"].checked;
+				onSubmit(oSelect, customNb,customMirror);
+				oSelect.currentValue = oSelect.value;
+			},
+			close: function() {
+				oSelect.value = oSelect.currentValue;
+			}
+		});
+		oForm.querySelector('input[name="cc"]').select();
+	}
+	else
+		oSelect.currentValue = oSelect.value;
 }
 function selectItemScreen(oScr, callback, options) {
 	options = options || {};

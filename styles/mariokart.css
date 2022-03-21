@@ -749,3 +749,35 @@ select {
   position: relative;
   bottom: 0.1em;
 }
+form.game-popup {
+	position: absolute;
+    z-index: 2;
+    background-color: black;
+    background-color: rgba(0,0,0, 0.85);
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+    overflow-y: auto;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+form.game-popup input {
+    font-size: 1.5em;
+}
+form.game-popup .game-popup-body {
+    margin-top: 0.5em;
+    margin-bottom: 0.75em;
+}
+form.game-popup .game-popup-body > div {
+    margin-bottom: 0.25em;
+}
+form.game-popup .game-popup-body > div > label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto 0;
+    gap: 0.25em;
+}
