@@ -16410,8 +16410,8 @@ function privateGameOptions(gameOptions, onProceed) {
 	var oClasses = [50,100,150,150,200];
 	var oMirrors = [false,false,false,true,false];
 	if (!isOnline) {
-		oClasses = [150,200];
-		oMirrors = [false,false];
+		oClasses = [150,150,200];
+		oMirrors = [false,true,false];
 	}
 	var isSelectedCc = false;
 	var gameCc = 150;

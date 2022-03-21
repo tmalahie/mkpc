@@ -944,7 +944,7 @@ $slidesPath = 'images/slides';
 						echo '<span class="ranking_badge"><span>'.$nbActivePlayers.'</span></span>';
 				}
 				function get_creation_string(&$params) {
-					global $language, $publicLinksData;
+					global $language;
 					$isMCup = ($params['mode']==8);
 					$isBattle = $params['game'];
 					$isSingle = (($params['mode']%4)>=2);
@@ -968,6 +968,7 @@ $slidesPath = 'images/slides';
 					$link = $params['link'];
 					$modeNames = array(
 						'cc' => '${value}cc',
+						'mirror' => ($language ? 'Mirror':'miroir'),
 						'team' => ($language ? 'Team':'équipe'),
 						'friendly' => ($language ? 'Friendly':'amical')
 					);
