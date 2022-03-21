@@ -505,7 +505,7 @@
 	line-height: 13px;
 }
 #comments-description-content-value:not(.comment-expanded) .comment-desc-scroller {
-	max-height: 65px;
+	max-height: 66px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	display: -webkit-box;
