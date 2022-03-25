@@ -571,6 +571,16 @@ select {
      image-rendering: optimize-contrast;
      -ms-interpolation-mode: nearest-neighbor;
 }
+.mirrored {
+    transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    -moz-transform: scaleX(-1);
+}
+@-moz-document url-prefix() {
+    .mirrored.pixelated, .mirrored .pixelated {
+        image-rendering: auto;
+    }
+  }
 .challenge-popup {
      position: absolute;
      z-index: 20200;

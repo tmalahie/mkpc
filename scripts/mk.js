@@ -711,7 +711,7 @@ function setPlanPos(frameState) {
 							oDiv.style.position = "absolute";
 							oDiv.style.display = "flex";
 							img.style.position = "static";
-							img.style.transform = img.style.WebkitTransform = img.style.MozTransform = "scaleX(-1)";
+							img.className = "mirrored";
 							oDiv.appendChild(img);
 							iPlanCtn.appendChild(oDiv);
 							img = oDiv;
@@ -2882,10 +2882,8 @@ function startGame() {
 		oPlanImg2.style.width = oPlanWidth2 +"px";
 		oPlanCtn2.appendChild(oPlanImg2);
 
-		if (bSelectedMirror) {
-			oPlanImg.style.transform = oPlanImg.style.WebkitTransform = oPlanImg.style.MozTransform = 
-			oPlanImg2.style.transform = oPlanImg2.style.WebkitTransform = oPlanImg2.style.MozTransform = "scaleX(-1)";
-		}
+		if (bSelectedMirror)
+			oPlanImg.className = oPlanImg2.className = "mirrored";
 
 		if (oMap.decor) {
 			for (var type in oMap.decor) {
@@ -8245,6 +8243,8 @@ function updateCustomDecorSprites(decorData, res, sizeRatio) {
 		decorData[2][j].img.src = res.hd;
 		if (res.size.nb_sprites)
 			decorData[2][j].nbSprites = res.size.nb_sprites;
+		if (bSelectedMirror && !(res.size.nb_sprites > 1))
+			decorData[2][j].img.classList.add("mirrored");
 		decorData[2][j].w = Math.round(decorData[2][j].w*sizeRatio.w);
 		decorData[2][j].h = Math.round(decorData[2][j].h*sizeRatio.h);
 		var z = (sizeRatio.w-sizeRatio.h)/(sizeRatio.w+sizeRatio.h);
@@ -20978,10 +20978,8 @@ function selectMapScreen(force) {
 				oDefMap.style.width = "100%";
 				oDefMap.style.height = "100%";
 				oDefMap.className = "pixelated";
-				if (bSelectedMirror) {
-					oDefMap.style.WebkitTransform = "scaleX(-1)";
-					oDefMap.style.MozTransform = "";
-				}
+				if (bSelectedMirror)
+					oDefMap.className += " mirrored";
 				oDefMap.id = "maps";
 				document.getElementById("dMaps").appendChild(oDefMap);
 				
@@ -21257,10 +21255,7 @@ function selectRaceScreen(cup) {
 			oPImg.style.height = "100%";
 			oPImg.style.border = "double 4px silver";
 			oPImg.className = "pixelated";
-			if (bSelectedMirror) {
-				oPImg.style.transform = "scaleX(-1)";
-				oPImg.style.MozTransform = "";
-			}
+			oPImg.className += " mirrored";
 			mDiv.appendChild(oPImg);
 			
 			mDiv.appendChild(mapNameOf(mScreenScale, i));
