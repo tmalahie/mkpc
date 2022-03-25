@@ -711,7 +711,7 @@ function setPlanPos(frameState) {
 							oDiv.style.position = "absolute";
 							oDiv.style.display = "flex";
 							img.style.position = "static";
-							img.style.transform = "scaleX(-1)";
+							img.style.transform = img.style.WebkitTransform = img.style.MozTransform = "scaleX(-1)";
 							oDiv.appendChild(img);
 							iPlanCtn.appendChild(oDiv);
 							img = oDiv;
@@ -20764,6 +20764,8 @@ function chooseRandMap() {
 }
 
 function selectMapScreen(force) {
+	if (typeof shareLink !== "undefined")
+		bSelectedMirror = (shareLink.options && shareLink.options.mirror);
 	if (isOnline) {
 		setSRest();
 		document.getElementById("waitrace").style.visibility = "visible";
@@ -20975,6 +20977,11 @@ function selectMapScreen(force) {
 				oDefMap.style.border = "double 4px white";
 				oDefMap.style.width = "100%";
 				oDefMap.style.height = "100%";
+				oDefMap.className = "pixelated";
+				if (bSelectedMirror) {
+					oDefMap.style.WebkitTransform = "scaleX(-1)";
+					oDefMap.style.MozTransform = "";
+				}
 				oDefMap.id = "maps";
 				document.getElementById("dMaps").appendChild(oDefMap);
 				
@@ -21250,6 +21257,10 @@ function selectRaceScreen(cup) {
 			oPImg.style.height = "100%";
 			oPImg.style.border = "double 4px silver";
 			oPImg.className = "pixelated";
+			if (bSelectedMirror) {
+				oPImg.style.transform = "scaleX(-1)";
+				oPImg.style.MozTransform = "";
+			}
 			mDiv.appendChild(oPImg);
 			
 			mDiv.appendChild(mapNameOf(mScreenScale, i));
