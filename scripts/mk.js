@@ -8188,7 +8188,7 @@ var decorBehaviors = {
 			for (var j=0;j<strPlayer.length;j++) {
 				var pTheta = getApparentRotation(oPlayers[j]);
 				var thetaApp = -theta/5*Math.sin(pTheta*Math.PI/180-phi);
-				decorData[2][j].div.style.transform = decorData[2][j].div.style.WebkitTransform = decorData[2][j].div.style.MozTransform = "translateY("+z+"%) rotate("+Math.round(thetaApp*180/Math.PI)+"deg)";
+				decorData[2][j].div.style.transform = decorData[2][j].div.style.WebkitTransform = decorData[2][j].div.style.MozTransform = "translateY("+z+"%) rotate("+Math.round(thetaApp*getMirrorFactor()*180/Math.PI)+"deg)";
 			}
 		}
 	}
