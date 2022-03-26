@@ -18655,12 +18655,12 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			if (customText === undefined) customText = customNb;
 			var oOptions = oSelect.getElementsByTagName("option");
 			for (var i=0;i<oOptions.length;i++) {
-				var oValue = +oOptions[i].value;
+				var oValue = oOptions[i].value;
 				if (oValue == customNb) {
 					oSelect.selectedIndex = i;
 					break;
 				}
-				else if ((oValue == -1) || (oValue > customNb)) {
+				else if ((oValue == -1) || (parseInt(oValue) > parseInt(customNb))) {
 					var oOption = document.createElement("option");
 					oOption.value = customNb;
 					oOption.innerHTML = customText;
