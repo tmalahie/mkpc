@@ -10230,7 +10230,7 @@ var challengeRules = {
 		},
 		"success": function(scope, ruleVars) {
 			if (ruleVars)
-				return (ruleVars.relSpeed === fSelectedClass) && (!scope.mirror === !bSelectedMirror);
+				return (ruleVars.relSpeed === fSelectedClass) && ((scope.mirror === null) || (!scope.mirror === !bSelectedMirror));
 		}
 	},
 	"balloons": {
@@ -10460,7 +10460,7 @@ function addCreationChallenges(type,cid) {
 				initChallengeRule(challenge, chRule);
 			}
 			if (!isCcConstraint) {
-				var chRule = {type: "cc", value: 150};
+				var chRule = {type: "cc", value: 150, mirror: null};
 				challengeData.constraints.push(chRule);
 				initChallengeRule(challenge, chRule);
 			}
