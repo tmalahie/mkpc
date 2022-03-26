@@ -21255,7 +21255,8 @@ function selectRaceScreen(cup) {
 			oPImg.style.height = "100%";
 			oPImg.style.border = "double 4px silver";
 			oPImg.className = "pixelated";
-			oPImg.className += " mirrored";
+			if (bSelectedMirror)
+				oPImg.className += " mirrored";
 			mDiv.appendChild(oPImg);
 			
 			mDiv.appendChild(mapNameOf(mScreenScale, i));
