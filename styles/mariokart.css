@@ -345,6 +345,22 @@ form[name="modes"] {
      align-items: center;
      flex-wrap: wrap;
 }
+.modes-change-disclaimer {
+    position: absolute;
+    text-align: center;
+    left: 230px;
+    bottom: 40px;
+    padding: 5px 8px;
+    font-size: 14px;
+    background-color: rgba(51,160,51, 0.95);
+    color: white;
+    border-radius: 5px;
+    opacity: 1;
+}
+.modes-change-disclaimer.modes-change-fadeout {
+    opacity: 0;
+	transition: opacity 1s ease-in;
+}
 #options-ctn {
     display: inline-block
 }

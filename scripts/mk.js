@@ -189,8 +189,9 @@ function resetQuality() {
 }
 
 function setFps(iValue) {
-	iFps = iValue;
 	localStorage.setItem("nbFrames", iValue);
+	if (formulaire && formulaire.dataset.disabled) return showParamChangeDisclaimer();
+	iFps = iValue;
 }
 
 function openFullscreen(elem) {
@@ -224,7 +225,7 @@ updateCtnFullScreen = function(isFullScreen) {
 		}
 		else  {
 			$mkScreen.style.zoom = "";
-			if (!formulaire || !formulaire.screenscale.disabled) {
+			if (!formulaire || !formulaire.dataset.disabled) {
 				var eWidth = window.innerWidth-20, eHeight = window.innerHeight-20;
 				var eRatio = Math.round(Math.min(eWidth/iWidth,eHeight/iHeight));
 				$mkScreen.dataset.fakefs = 1;
@@ -250,7 +251,7 @@ updateCtnFullScreen = function(isFullScreen) {
 		$mkScreen.className = "fullscreen";
 	}
 	else {
-		if ($mkScreen.dataset.fakefs && formulaire && formulaire.screenscale.disabled)
+		if ($mkScreen.dataset.fakefs && formulaire && formulaire.dataset.disabled)
 			return;
 		$mkScreen.style.zoom = "";
 		$mkScreen.className = "";
@@ -306,10 +307,11 @@ function setScreenScale(iValue, triggered) {
 		return;
 	}
 	else {
-		iScreenScale = iValue;
 		if (!triggered) {
 			localStorage.setItem("iScreenScale", iValue);
 		}
+		if (formulaire && formulaire.dataset.disabled) return showParamChangeDisclaimer();
+		iScreenScale = iValue;
 	}
 	if (bRunning)
 		resetScreen();
@@ -330,6 +332,19 @@ function setScreenScale(iValue, triggered) {
 	setSRest();
 }
 
+function showParamChangeDisclaimer() {
+	var oDisclaimer = document.createElement("div");
+	oDisclaimer.className = "modes-change-disclaimer";
+	oDisclaimer.innerHTML = toLanguage("Your settings have been saved.<br />They'll apply to your next race.", "Les paramètres ont été sauvegardés.<br />Ils s'appliqueront à la prochaine course");
+	document.body.appendChild(oDisclaimer);
+	setTimeout(function() {
+		oDisclaimer.classList.add("modes-change-fadeout");
+		setTimeout(function() {
+			document.body.removeChild(oDisclaimer);
+		}, 1000);
+	}, 3000);
+}
+
 function reposKeyboard() {
 	var virtualKeyboardW = virtualButtonW*4.8;
 	var virtualKeyboardH = virtualButtonH*2.6;
@@ -340,20 +355,35 @@ function reposKeyboard() {
 }
 
 function setMusic(iValue) {
-	bMusic = !!iValue;
-	if (gameMenu != -1)
-		updateMenuMusic(gameMenu, true);
-	if (bMusic)
+	if (iValue)
 		localStorage.setItem("bMusic", 1);
 	else
 		localStorage.removeItem("bMusic");
+	if (formulaire && formulaire.dataset.disabled) {
+		if (iValue)
+			return showParamChangeDisclaimer();
+		removeIfExists(mapMusic);
+		removeIfExists(lastMapMusic);
+		removeIfExists(endingMusic);
+	}
+	bMusic = !!iValue;
+	if (gameMenu != -1)
+		updateMenuMusic(gameMenu, true);
 }
 function setSfx(iValue) {
-	iSfx = !!iValue;
-	if (iSfx)
+	if (iValue)
 		localStorage.setItem("iSfx", 1);
 	else
 		localStorage.removeItem("iSfx");
+	if (formulaire && formulaire.dataset.disabled) {
+		if (iValue)
+			return showParamChangeDisclaimer();
+		removeSoundEffects();
+		if (oMusicEmbed)
+			unpauseMusic(mapMusic);
+		removeGameMusics([mapMusic,lastMapMusic,endingMusic]);
+	}
+	iSfx = !!iValue;
 }
 
 function removeMenuMusic(forceRemove) {
@@ -389,13 +419,29 @@ function removeIfExists(elt) {
 	if (oMusicEmbed == elt)
 		oMusicEmbed = undefined;
 }
-function removeGameMusics() {
+function removeGameMusics(whitelist) {
 	if (bMusic || iSfx) {
 		var oMusics = document.getElementsByClassName("gamemusic");
-		while (oMusics.length)
-			document.body.removeChild(oMusics[0]);
+		for (var i=oMusics.length-1;i>=0;i--) {
+			var oMusic = oMusics[i];
+			if (!whitelist || whitelist.indexOf(oMusic) === -1)
+				document.body.removeChild(oMusic);
+		}
 		oMusicEmbed = undefined;
 	}
+}
+function removeSoundEffects() {
+	playingCarEngine = undefined;
+	removeIfExists(carEngine);
+	carEngine = undefined;
+	removeIfExists(carEngine2);
+	carEngine2 = undefined;
+	removeIfExists(carEngine3);
+	carEngine3 = undefined;
+	removeIfExists(carDrift);
+	carDrift = undefined;
+	removeIfExists(carSpark);
+	carSpark = undefined;
 }
 function clearResources() {
 	if (oMapImg && oMapImg.clear)
@@ -1088,10 +1134,7 @@ function loadMap() {
 	
 	if (strPlayer.length > 1)
 		updateCtnFullScreen(false);
-	formulaire.screenscale.disabled = true;
-	formulaire.music.disabled = true;
-	formulaire.sfx.disabled = true;
-	formulaire.fps.disabled = true;
+	formulaire.dataset.disabled = 1;
 
 	iTeamPlay = isTeamPlay();
 
@@ -2259,6 +2302,7 @@ function loopAfterIntro(embed, introTime, loopTime) {
 	embed.addEventListener('timeupdate', embed.looper, false);
 }
 function startEngineSound() {
+	if (!iSfx) return;
 	carEngine = loadMusic("musics/events/engine.mp3", true);
 	carEngine2 = loadMusic("musics/events/engine2.mp3", false);
 	carEngine3 = loadMusic("musics/events/engine3.mp3", false);
@@ -2294,14 +2338,8 @@ function startEndMusic() {
 		removeIfExists(mapMusic);
 		removeIfExists(lastMapMusic);
 	}
-	if (iSfx) {
-		playingCarEngine = undefined;
-		removeIfExists(carEngine);
-		removeIfExists(carEngine2);
-		removeIfExists(carEngine3);
-		removeIfExists(carDrift);
-		removeIfExists(carSpark);
-	}
+	if (iSfx)
+		removeSoundEffects();
 	if (bMusic) {
 		willPlayEndMusic = true;
 		setTimeout(function() {
@@ -21580,10 +21618,7 @@ function choose(map,rand) {
 							$mkScreen.removeChild(oDiv);
 							removeMenuMusic();
 							removeGameMusics();
-							formulaire.screenscale.disabled = false;
-							formulaire.music.disabled = false;
-							formulaire.sfx.disabled = false;
-							formulaire.fps.disabled = false;
+							formulaire.dataset.disabled = "";
 							chatting = false;
 							searchCourse();
 							return false;
@@ -21653,10 +21688,7 @@ function choose(map,rand) {
 
 	updateMenuMusic(1);
 
-	formulaire.screenscale.disabled = true;
-	formulaire.music.disabled = true;
-	formulaire.sfx.disabled = true;
-	formulaire.fps.disabled = true;
+	formulaire.dataset.disabled = 1;
 
 	if (bMusic) {
 		startMusicHandler = setInterval(function() {
@@ -22104,10 +22136,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			$mkScreen.removeChild(oDiv);
 			removeMenuMusic();
 			removeGameMusics();
-			formulaire.screenscale.disabled = false;
-			formulaire.music.disabled = false;
-			formulaire.sfx.disabled = false;
-			formulaire.fps.disabled = false;
+			formulaire.dataset.disabled = "";
 			chatting = false;
 			searchCourse();
 			return false;
@@ -23748,11 +23777,9 @@ function toPerso(sPerso) {
 }
 
 formulaire = document.forms.modes;
+if (formulaire.dataset) formulaire.dataset.disabled = "";
+else formulaire.dataset = {};
 if (pause) {
-	formulaire.screenscale.disabled = false;
-	formulaire.music.disabled = false;
-	formulaire.sfx.disabled = false;
-	formulaire.fps.disabled = false;
 	if (isSingle && !isOnline)
 		choose(1);
 	else if (fInfos.map != undefined)
@@ -23845,7 +23872,7 @@ else {
 				iScreenScale = +formulaire.screenscale.value;
 				formulaire.screenscale.value = -1;
 				formulaire.screenscale.onchange();
-				if (formulaire.screenscale.disabled)
+				if (formulaire.dataset.disabled)
 					iScreenScale = aScreenScale;
 				return false;
 			}
