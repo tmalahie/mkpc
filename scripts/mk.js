@@ -2946,6 +2946,9 @@ function startGame() {
 			oPlanSea2.setAttribute("width", oPlanWidth2 +"px");
 			oPlanSea2.setAttribute("height", oPlanWidth2 +"px");
 			oPlanCtn2.appendChild(oPlanSea2);
+
+			if (bSelectedMirror)
+				oPlanSea.className = oPlanSea2.className = "mirrored";
 		}
 		var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 		for (var i=0;i<assetKeys.length;i++) {
