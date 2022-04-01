@@ -10,9 +10,6 @@ if (isset($_POST['sender']) && isset($_POST['receiver'])) {
 				if (($getSender['player'] == $id) && ($getSender['course'] == $getReceiver['course'])) {
 					mysql_query('DELETE FROM `mkchatvocpeer` WHERE sender="'.$_POST['sender'].'" AND receiver="'.$_POST['receiver'].'"');
 					mysql_query('DELETE FROM `mkchatvocpeer` WHERE sender="'.$_POST['receiver'].'" AND receiver="'.$_POST['sender'].'"');
-                    if (!mysql_fetch_array(mysql_query('SELECT id FROM `mkchatvocpeer` WHERE sender="'.$_POST['receiver'].'"'))) {
-                        mysql_query('DELETE FROM `mkchatvoc` WHERE id="'.$_POST['receiver'].'"');
-                    }
 				}
 			}
 	    }

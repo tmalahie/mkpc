@@ -48,7 +48,7 @@ function RTCService() {
     }
 
     function joinVocChat(options) {
-        if (!navigator.mediaDevices) errorCallback(new Error("Your browser does not support the WebRTC API"));
+        if (!navigator.mediaDevices) options.error(new Error("Your browser does not support the WebRTC API"));
         navigator.mediaDevices.getUserMedia(constraints).then(stream => {
             localStream = stream;
             muteStream(options.muted);

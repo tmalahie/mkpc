@@ -25066,7 +25066,10 @@ function setChat() {
 							sNoms += (i ? ", ":"")+cPlayer.name;
 							if (cPlayer.peer) {
 								sNoms += ' <img src="images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png" alt="Voc" />';
-								rtcService.addPeer(cPlayer.peer);
+								if (cPlayer.ignored)
+									rtcService.removePeer(cPlayer.peer);
+								else
+									rtcService.addPeer(cPlayer.peer);
 							}
 						}
 						jConnectes.innerHTML = sNoms;
