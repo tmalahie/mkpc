@@ -25048,6 +25048,7 @@ function setChat() {
 
 	var iChatLastMsg = 0;
 	var rtcService = RTCService();
+	var cPlayerPeers = {};
 	function refreshChat() {
 		if (chatting) {
 			xhr("chat.php", "lastmsg="+iChatLastMsg, function(reponse) {
@@ -25066,10 +25067,15 @@ function setChat() {
 							sNoms += (i ? ", ":"")+cPlayer.name;
 							if (cPlayer.peer) {
 								sNoms += ' <img src="images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png" alt="Voc" />';
+								cPlayerPeers[cPlayer.id] = cPlayer.peer;
 								if (cPlayer.ignored)
 									rtcService.removePeer(cPlayer.peer);
 								else
 									rtcService.addPeer(cPlayer.peer);
+							}
+							else if (cPlayerPeers[cPlayer.id]) {
+								rtcService.removePeer(cPlayerPeers[cPlayer.id]);
+								delete cPlayerPeers[cPlayer.id];
 							}
 						}
 						jConnectes.innerHTML = sNoms;
