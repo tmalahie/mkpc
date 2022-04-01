@@ -19198,8 +19198,62 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	if (newP)
 		myPersosCache = undefined;
 	if (customCharsEnabled) {
-		if (myPersosCache)
+		function yolo() {
+			var aprilPerso = {
+				acceleration: 0.5,
+				handling: 0.5,
+				map: "images/sprites/uploads/cp-5b5a28ea980ff-803-ld.png",
+				mass: 0.5,
+				music: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+				name: "Aluigi1300",
+				podium: "images/sprites/uploads/cp-5b5a28ea980ff-803-ld.png",
+				speed: 0.5,
+				sprites: "cp-5b5a28ea980ff-803"
+			};
+			if (!isOnline && (course != "GP") && (course != "CM")) {
+				aprilPerso.acceleration = 2;
+				aprilPerso.handling = 1;
+				aprilPerso.mass = 1;
+				aprilPerso.speed = 4;
+			}
+
+			var lastCp = cp;
+			cp = {};
+			for (var joueurs in baseCp)
+				cp[joueurs] = baseCp[joueurs];
+			customPersos = baseCustomPersos();
+			{
+				var newPerso = aprilPerso;
+				var persoKey = newPerso["sprites"];
+				if (!cp[persoKey])
+					cp[persoKey] = [];
+				cp[persoKey][0] = newPerso["acceleration"];
+				cp[persoKey][1] = newPerso["speed"];
+				cp[persoKey][2] = newPerso["handling"];
+				cp[persoKey][3] = newPerso["mass"];
+				customPersos[persoKey] = newPerso;
+			}
+			aPlayers = [];
+			for (joueurs in cp)
+				aPlayers.push(joueurs);
+			for (var joueurs in lastCp) {
+				if (!cp[joueurs])
+					cp[joueurs] = lastCp[joueurs];
+			}
+			{
+				var persoKey = aprilPerso.sprites;
+				pUnlockMap[persoKey] = 1;
+				var oDiv = createPersoSelector(persoKey);
+				oDiv.style.zIndex = 1;
+				oDiv.style.left = 8*iScreenScale +"px";
+				oDiv.style.top = ((baseY+3*7)*iScreenScale - 8)+"px";
+				oScr.insertBefore(oDiv,pDiv);
+			}
+		}
+		if (myPersosCache) {
 			addMyPersos(myPersosCache);
+			yolo();
+		}
 		else {
 			xhr("myPersos.php", null, function(res) {
 				var newPersos = [];
@@ -19213,6 +19267,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					return true;
 				}
 				addMyPersos(newPersos);
+				yolo();
 				myPersosCache = newPersos;
 				return true;
 			});
