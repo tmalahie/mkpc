@@ -18204,7 +18204,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		var oTr = document.createElement("tr");
 		var oTd1 = document.createElement("td");
 		oTd1.className = "rgt";
-		oTd1.innerHTML = sCaracteristiques[i] +" :";
+		oTd1.innerHTML = sCaracteristiques[i] +"&nbsp;:";
 		oTr.appendChild(oTd1);
 		var oTd2 = document.createElement("td");
 		dCaracteristiques[i] = document.createElement("div");
@@ -19205,12 +19205,12 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				map: "images/sprites/uploads/cp-5b5a28ea980ff-803-ld.png",
 				mass: 0.5,
 				music: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-				name: "Aluigi1300",
+				name: "Aluigi",
 				podium: "images/sprites/uploads/cp-5b5a28ea980ff-803-ld.png",
 				speed: 0.5,
 				sprites: "cp-5b5a28ea980ff-803"
 			};
-			if (!isOnline && (course != "GP") && (course != "CM")) {
+			if ((!isOnline || (typeof shareLink !== "undefined" && shareLink.key && !(shareLink.options && shareLink.options["public"]))) && (course != "GP") && (course != "CM")) {
 				aprilPerso.acceleration = 2;
 				aprilPerso.handling = 1;
 				aprilPerso.mass = 1;
