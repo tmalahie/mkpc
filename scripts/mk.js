@@ -10575,6 +10575,8 @@ function reinitLocalVars() {
 		if (!isDefaultDistrib)
 			clLocalVars.cheated = true;
 	}
+	if (strPlayer[0] === "cp-5b5a28ea980ff-803")
+		clLocalVars.cheated = true;
 	clHud = {};
 	for (var verifType in challengesForCircuit) {
 		var challengesForType = challengesForCircuit[verifType];
