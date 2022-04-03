@@ -3861,7 +3861,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3893,47 +3893,14 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		if (mId === 1) {
-			setTimeout(function() {
-				oPlayer.speedinc = 1;
-				setTimeout(function() {
-					oPlayer.rotinc = 5;
-					setTimeout(function() {
-						oPlayer.rotinc = 5;
-						oPlayer.speed = 1;
-						oPlayer.speedinc = 0;
-						oPlayer.roulette = 24;
-						setTimeout(function() {
-							oPlayer.rotinc = 0;
-							arme(0);
-							setTimeout(function() {
-								arme(0);
-								oPlayer.speedinc = 1;
-								oPlayer.protect = true;
-								setTimeout(function() {
-									arme(0);
-									oPlayer.speedinc = -1;
-									oPlayer.speed = -1;
-									setTimeout(function() {
-										oPlayer.speedinc = 0;
-										oPlayer.x = 60;
-										oPlayer.y = 190;
-									}, 1000);
-								}, 1000);
-							}, 1000);
-						}, 500);
-					}, 500);
-				}, 1000);
-			}, 1000);
-		}
-		/*
+		//*
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -12189,7 +12156,6 @@ function itemDataLength(type) {
 }
 
 function resetDatas() {
-	if (window.lll) return;
 	var oPlayer = oPlayers[0];
 	var playerMapping = (course != "BB")
 	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
@@ -12402,12 +12368,6 @@ function resetDatas() {
 						break;
 					}
 				}
-			}
-			if (mId === 11 && updatedItems.length === 3 && updatedItems[0][2] != "0") {
-				window.lll = 1;
-				setTimeout(function() {
-					window.lll = 0;
-				}, 3000);
 			}
 			var localKarts = [];
 			for (var i=0;i<aKarts.length;i++) {
@@ -13223,7 +13183,6 @@ function move(getId, triggered) {
 				}*/
 				var oSlotId = oKart.arme ? 1 : 0;
 				var oArmeKey = oArmeKeys[oSlotId];
-				iObj = "carapaceX3";
 				oKart[oArmeKey] = iObj;
 				// oKart.arme = iObj;
 				if (shouldPlaySound(oKart) && !oKart.rouletteSound)
@@ -21604,7 +21563,7 @@ function choose(map,rand) {
 							else
 								tnCourse += 5000;
 						}
-						rCode[2] = 0; // TODO remove
+						//rCode[2] = 0; // TODO remove
 						var tThen = tNow+rCode[2];
 						connecte = rCode[3]+1;
 						var cCursor = 0;
