@@ -3861,7 +3861,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3893,14 +3893,47 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		//*
+		if (mId === 1) {
+			setTimeout(function() {
+				oPlayer.speedinc = 1;
+				setTimeout(function() {
+					oPlayer.rotinc = 5;
+					setTimeout(function() {
+						oPlayer.rotinc = 5;
+						oPlayer.speed = 1;
+						oPlayer.speedinc = 0;
+						oPlayer.roulette = 24;
+						setTimeout(function() {
+							oPlayer.rotinc = 0;
+							arme(0);
+							setTimeout(function() {
+								arme(0);
+								oPlayer.speedinc = 1;
+								oPlayer.protect = true;
+								setTimeout(function() {
+									arme(0);
+									oPlayer.speedinc = -1;
+									oPlayer.speed = -1;
+									setTimeout(function() {
+										oPlayer.speedinc = 0;
+										oPlayer.x = 60;
+										oPlayer.y = 190;
+									}, 1000);
+								}, 1000);
+							}, 1000);
+						}, 500);
+					}, 500);
+				}, 1000);
+			}, 1000);
+		}
+		/*
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -12156,6 +12189,7 @@ function itemDataLength(type) {
 }
 
 function resetDatas() {
+	if (window.lll) return;
 	var oPlayer = oPlayers[0];
 	var playerMapping = (course != "BB")
 	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
@@ -12369,14 +12403,37 @@ function resetDatas() {
 					}
 				}
 			}
-			var syncedItems = [];
+			if (mId === 11 && updatedItems.length === 3 && updatedItems[0][2] != "0") {
+				window.lll = 1;
+				setTimeout(function() {
+					window.lll = 0;
+				}, 3000);
+			}
 			var localKarts = [];
+			for (var i=0;i<aKarts.length;i++) {
+				var oKart = aKarts[i];
+				if (!i || oKart.controller == identifiant)
+					localKarts.push(i);
+			}
+			for (var i=0;i<updatedItems.length;i++) {
+				var updatedItem = updatedItems[i];
+				var uId = updatedItem[0];
+				var uType = itemTypes[updatedItem[1]];
+				if (!uType) continue;
+				var uData = updatedItem[4];
+				var uItem = items[uType].find(function(item) {
+					return (item.id == uId);
+				});
+				if (uItem && !uData) {
+					supprime(uItem, false);
+					updatedItem[2] = 0;
+				}
+			}
 			for (var i=0;i<updatedItems.length;i++) {
 				var updatedItem = updatedItems[i];
 				var uId = updatedItem[0];
 				var uType = itemTypes[updatedItem[1]];
 				var uHolder = updatedItem[2];
-				if (!uType) continue;
 				var uConn = updatedItem[3];
 				var uData = updatedItem[4];
 				var uItem = items[uType].find(function(item) {
@@ -12390,12 +12447,6 @@ function resetDatas() {
 							type: uType
 						};
 						toAdd = true;
-					}
-				}
-				else {
-					if (!uData) {
-						supprime(uItem, false);
-						uHolder = 0;
 					}
 				}
 				if (uData) {
@@ -12430,32 +12481,25 @@ function resetDatas() {
 								consumeItemIfDouble(j);
 						}
 					}
+					moveUsingItems(oKart, true);
 				}
-				if (uData && (uHolder == 0))
-					syncedItems.push({item:uItem,start:uConn,end:rCode[2]});
-			}
-			for (var i=0;i<aKarts.length;i++) {
-				var oKart = aKarts[i];
-				moveUsingItems(oKart, true);
-				if (!i || oKart.controller == identifiant)
-					localKarts.push(i);
-			}
-			for (var i=0;i<syncedItems.length;i++) {
-				var syncedItem = syncedItems[i];
-				var uItem = syncedItem.item;
-				var moveFn = itemBehaviors[uType].move;
-				var checkCollisions = itemBehaviors[uType].checkCollisions;
-				if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
-					for (var k=syncedItem.start;k<syncedItem.end;k++) {
-						if (uItem.deleted)
-							break;
-						moveFn(uItem);
-						if (checkCollisions) {
-							for (var j=0;j<localKarts.length;j++) {
-								var l = localKarts[j];
-								var lKart = aKarts[l];
-								if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
-									checkCollisions(uItem, l);
+				if (uData && (uHolder == 0)) {
+					var start = uConn;
+					var end = rCode[2];
+					var moveFn = itemBehaviors[uType].move;
+					var checkCollisions = itemBehaviors[uType].checkCollisions;
+					if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
+						for (var k=start;k<end;k++) {
+							if (uItem.deleted)
+								break;
+							moveFn(uItem);
+							if (checkCollisions) {
+								for (var j=0;j<localKarts.length;j++) {
+									var l = localKarts[j];
+									var lKart = aKarts[l];
+									if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
+										checkCollisions(uItem, l);
+								}
 							}
 						}
 					}
@@ -13179,6 +13223,7 @@ function move(getId, triggered) {
 				}*/
 				var oSlotId = oKart.arme ? 1 : 0;
 				var oArmeKey = oArmeKeys[oSlotId];
+				iObj = "carapaceX3";
 				oKart[oArmeKey] = iObj;
 				// oKart.arme = iObj;
 				if (shouldPlaySound(oKart) && !oKart.rouletteSound)
@@ -21559,7 +21604,7 @@ function choose(map,rand) {
 							else
 								tnCourse += 5000;
 						}
-						//rCode[2] = 0; // TODO remove
+						rCode[2] = 0; // TODO remove
 						var tThen = tNow+rCode[2];
 						connecte = rCode[3]+1;
 						var cCursor = 0;
