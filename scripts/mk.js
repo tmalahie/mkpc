@@ -3861,7 +3861,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -3893,32 +3893,14 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		if (mId === 1) {
-			setTimeout(function() {
-				oPlayer.speedinc = 1;
-				setTimeout(function() {
-					oPlayer.speedinc = 0;
-					setTimeout(function() {
-						arme(0);
-						setTimeout(function() {
-							oPlayer.speedinc = -1;
-							setTimeout(function() {
-								oPlayer.speedinc = 0;
-								arme(0);
-							}, 2000);
-						}, 1000);
-					}, 2000);
-				}, 1000);
-			}, 1000);
-		}
-		/*
+		//*
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
 		if (iTeamPlay)
 			showTeam(tnCountdown);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -9046,6 +9028,37 @@ function deleteUsingItems(oKart) {
 	for (var i=oKart.using.length-1;i>=0;i--)
 		detruit(oKart.using[i]);
 }
+function moveUsingItems(oKart, triggered) {
+	if (oKart.using.length) {
+		var rotItem = 0;
+		var l = 5;
+		var dtheta = 360/oKart.using.length;
+		var isBanana = (oKart.using[0].type === "banane");
+		if (oKart.rotitem !== undefined) {
+			rotItem = oKart.rotitem;
+			if (isBanana)
+				l = 4;
+			else
+				l = 4.5;
+			if (!triggered)
+				oKart.rotitem -= 30;
+		}
+		for (var i=0;i<oKart.using.length;i++) {
+			var oArme = oKart.using[i];
+			if (isBanana) {
+				oArme.x = (oKart.x - l * (0.7+(oKart.using.length-i)*0.35) * direction(0, oKart.rotation));
+				oArme.y = (oKart.y - l * (0.7+(oKart.using.length-i)*0.35) * direction(1, oKart.rotation));
+			}
+			else {
+				oArme.x = (oKart.x - l * direction(0, oKart.rotation+rotItem+i*dtheta));
+				oArme.y = (oKart.y - l * direction(1, oKart.rotation+rotItem+i*dtheta));
+			}
+			oArme.z = oKart.z;
+		}
+	}
+	else
+		delete oKart.rotitem;
+}
 
 function stopDrifting(i) {
 	var oKart = aKarts[i];
@@ -12143,7 +12156,6 @@ function itemDataLength(type) {
 }
 
 function resetDatas() {
-	if (window.lll) return;
 	var oPlayer = oPlayers[0];
 	var playerMapping = (course != "BB")
 	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
@@ -12260,103 +12272,6 @@ function resetDatas() {
 				if (nSyncItems[i])
 					nSyncItems[i].id = newItem;
 			}
-			var syncedItems = [];
-			if (mId === 11 && updatedItems.length === 3 && updatedItems[0][2] != "0") {
-				window.lll = 1;
-				setTimeout(function() {
-					window.lll = 0;
-				}, 4000);
-			}
-			for (var i=0;i<updatedItems.length;i++) {
-				var updatedItem = updatedItems[i];
-				var uId = updatedItem[0];
-				var uType = itemTypes[updatedItem[1]];
-				var uHolder = updatedItem[2];
-				if (!uType) continue;
-				var uConn = updatedItem[3];
-				var uData = updatedItem[4];
-				var uItem = items[uType].find(function(item) {
-					return (item.id == uId);
-				});
-				var toAdd = false;
-				if (!uItem) {
-					if (uData) {
-						uItem = {
-							id: uId,
-							type: uType
-						};
-						toAdd = true;
-					}
-				}
-				else {
-					if (!uData) {
-						supprime(uItem, false);
-						uHolder = 0;
-					}
-				}
-				if (uData) {
-					var cur = 0;
-					var itemBehavior = itemBehaviors[uType];
-					for (var j=0;j<itemBehavior.sync.length;j++) {
-						var syncParams = itemBehavior.sync[j];
-						var dl = itemDataLength(syncParams.type);
-						var dc = uData.substr(cur,dl);
-						if (dc.length == dl) {
-							uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
-						}
-						cur += dl;
-					}
-					if (toAdd)
-						addNewItem(null,uItem);
-				}
-				for (var j=0;j<aKarts.length;j++) {
-					var oKart = aKarts[j];
-					var oItemId = oKart.using.indexOf(uItem);
-					if (oKart.id == uHolder) {
-						if (oItemId == -1) {
-							oKart.using.push(uItem);
-							if ((oKart.using.length > 1) && !oKart.rotitem)
-								oKart.rotitem = 0;
-						}
-					}
-					else {
-						if (oItemId != -1) {
-							oKart.using.splice(oItemId,1);
-							if (!oKart.using.length)
-								consumeItemIfDouble(j);
-						}
-					}
-				}
-				if (uData && (uHolder == 0))
-					syncedItems.push({item:uItem,start:uConn,end:rCode[2]});
-			}
-			var localKarts = [];
-			for (var i=0;i<aKarts.length;i++) {
-				var oKart = aKarts[i];
-				if (!i || oKart.controller == identifiant)
-					localKarts.push(i);
-			}
-			for (var i=0;i<syncedItems.length;i++) {
-				var syncedItem = syncedItems[i];
-				var uItem = syncedItem.item;
-				var moveFn = itemBehaviors[uType].move;
-				var checkCollisions = itemBehaviors[uType].checkCollisions;
-				if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
-					for (var k=syncedItem.start;k<syncedItem.end;k++) {
-						if (uItem.deleted)
-							break;
-						moveFn(uItem);
-						if (checkCollisions) {
-							for (var j=0;j<localKarts.length;j++) {
-								var l = localKarts[j];
-								var lKart = aKarts[l];
-								if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
-									checkCollisions(uItem, l);
-							}
-						}
-					}
-				}
-			}
 			var jCodes = rCode[0];
 			for (var i=0;i<jCodes.length;i++) {
 				var jCode = jCodes[i];
@@ -12374,7 +12289,6 @@ function resetDatas() {
 						}
 						var pCode = jCode[1];
 						var aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aChampi = oKart.champi, aItem = oKart.arme;
-						var aIpoint = oKart.aipoint;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
@@ -12452,6 +12366,98 @@ function resetDatas() {
 						for (var k=jCode[0][1];k<rCode[2];k++)
 							move(j, true);
 						break;
+					}
+				}
+			}
+			var syncedItems = [];
+			var localKarts = [];
+			for (var i=0;i<updatedItems.length;i++) {
+				var updatedItem = updatedItems[i];
+				var uId = updatedItem[0];
+				var uType = itemTypes[updatedItem[1]];
+				var uHolder = updatedItem[2];
+				if (!uType) continue;
+				var uConn = updatedItem[3];
+				var uData = updatedItem[4];
+				var uItem = items[uType].find(function(item) {
+					return (item.id == uId);
+				});
+				var toAdd = false;
+				if (!uItem) {
+					if (uData) {
+						uItem = {
+							id: uId,
+							type: uType
+						};
+						toAdd = true;
+					}
+				}
+				else {
+					if (!uData) {
+						supprime(uItem, false);
+						uHolder = 0;
+					}
+				}
+				if (uData) {
+					var cur = 0;
+					var itemBehavior = itemBehaviors[uType];
+					for (var j=0;j<itemBehavior.sync.length;j++) {
+						var syncParams = itemBehavior.sync[j];
+						var dl = itemDataLength(syncParams.type);
+						var dc = uData.substr(cur,dl);
+						if (dc.length == dl) {
+							uItem[syncParams.key] = hexToItemData(syncParams.type, dc);
+						}
+						cur += dl;
+					}
+					if (toAdd)
+						addNewItem(null,uItem);
+				}
+				for (var j=0;j<aKarts.length;j++) {
+					var oKart = aKarts[j];
+					var oItemId = oKart.using.indexOf(uItem);
+					if (oKart.id == uHolder) {
+						if (oItemId == -1) {
+							oKart.using.push(uItem);
+							if ((oKart.using.length > 1) && !oKart.rotitem)
+								oKart.rotitem = 0;
+						}
+					}
+					else {
+						if (oItemId != -1) {
+							oKart.using.splice(oItemId,1);
+							if (!oKart.using.length)
+								consumeItemIfDouble(j);
+						}
+					}
+				}
+				if (uData && (uHolder == 0))
+					syncedItems.push({item:uItem,start:uConn,end:rCode[2]});
+			}
+			for (var i=0;i<aKarts.length;i++) {
+				var oKart = aKarts[i];
+				moveUsingItems(oKart, true);
+				if (!i || oKart.controller == identifiant)
+					localKarts.push(i);
+			}
+			for (var i=0;i<syncedItems.length;i++) {
+				var syncedItem = syncedItems[i];
+				var uItem = syncedItem.item;
+				var moveFn = itemBehaviors[uType].move;
+				var checkCollisions = itemBehaviors[uType].checkCollisions;
+				if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
+					for (var k=syncedItem.start;k<syncedItem.end;k++) {
+						if (uItem.deleted)
+							break;
+						moveFn(uItem);
+						if (checkCollisions) {
+							for (var j=0;j<localKarts.length;j++) {
+								var l = localKarts[j];
+								var lKart = aKarts[l];
+								if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
+									checkCollisions(uItem, l);
+							}
+						}
 					}
 				}
 			}
@@ -13173,7 +13179,6 @@ function move(getId, triggered) {
 				}*/
 				var oSlotId = oKart.arme ? 1 : 0;
 				var oArmeKey = oArmeKeys[oSlotId];
-				iObj = "carapacerougeX3";
 				oKart[oArmeKey] = iObj;
 				// oKart.arme = iObj;
 				if (shouldPlaySound(oKart) && !oKart.rouletteSound)
@@ -13521,35 +13526,7 @@ function move(getId, triggered) {
 			delete oKart.shift;
 	}
 
-	if (oKart.using.length) {
-		var rotItem = 0;
-		var l = 5;
-		var dtheta = 360/oKart.using.length;
-		var isBanana = (oKart.using[0].type === "banane");
-		if (oKart.rotitem !== undefined) {
-			rotItem = oKart.rotitem;
-			if (isBanana)
-				l = 4;
-			else
-				l = 4.5;
-			if (!triggered)
-				oKart.rotitem -= 30;
-		}
-		for (var i=0;i<oKart.using.length;i++) {
-			var oArme = oKart.using[i];
-			if (isBanana) {
-				oArme.x = (oKart.x - l * (0.7+(oKart.using.length-i)*0.35) * direction(0, oKart.rotation));
-				oArme.y = (oKart.y - l * (0.7+(oKart.using.length-i)*0.35) * direction(1, oKart.rotation));
-			}
-			else {
-				oArme.x = (oKart.x - l * direction(0, oKart.rotation+rotItem+i*dtheta));
-				oArme.y = (oKart.y - l * direction(1, oKart.rotation+rotItem+i*dtheta));
-			}
-			oArme.z = oKart.z;
-		}
-	}
-	else
-		delete oKart.rotitem;
+	moveUsingItems(oKart, triggered);
 	if (course != "BB") {
 		if (checkpoint(oKart, fMoveX,fMoveY)) {
 			var nbjoueurs = aKarts.length;
@@ -21582,7 +21559,7 @@ function choose(map,rand) {
 							else
 								tnCourse += 5000;
 						}
-						rCode[2] = 0; // TODO remove
+						//rCode[2] = 0; // TODO remove
 						var tThen = tNow+rCode[2];
 						connecte = rCode[3]+1;
 						var cCursor = 0;
