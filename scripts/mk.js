@@ -5971,7 +5971,7 @@ var itemBehaviors = {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
 		fadedelay: 300,
-		move: function(fSprite) {
+		move: function(fSprite, ctx) {
 			var fNewPosX;
 			var fNewPosY;
 
@@ -5999,7 +5999,13 @@ var itemBehaviors = {
 				var roundX2 = fNewPosX;
 				var roundY2 = fNewPosY;
 		
-				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1) || touche_banane(roundX2, roundY2) || touche_crouge(roundX1, roundY1) || touche_crouge(roundX2, roundY2) || touche_cverte(roundX1, roundY1, [fSprite]) || touche_cverte(roundX2, roundY2, [fSprite])) {
+				var fSpriteExcept = [fSprite];
+				var oSpriteExcept;
+				if (ctx && ctx.onlineSync) {
+					fSpriteExcept = otherPlayerItems(fSpriteExcept);
+					oSpriteExcept = otherPlayerItems([]);
+				}
+				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept)) {
 					detruit(fSprite,true);
 					break;
 				}
@@ -6101,7 +6107,7 @@ var itemBehaviors = {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),intType("target")],
 		fadedelay: 300,
-		move: function(fSprite) {
+		move: function(fSprite, ctx) {
 			var fNewPosX;
 			var fNewPosY;
 
@@ -6275,6 +6281,11 @@ var itemBehaviors = {
 							fSpriteExcept.push(oBox);
 					}
 				}
+				var oSpriteExcept;
+				if (ctx && ctx.onlineSync) {
+					fSpriteExcept = otherPlayerItems(fSpriteExcept);
+					oSpriteExcept = otherPlayerItems([]);
+				}
 				if (fSprite.owner != -1) {
 					handleCannon(fSprite, inCannon(fSprite.x,fSprite.y, fNewPosX,fNewPosY));
 					if (!fSprite.z) {
@@ -6313,7 +6324,7 @@ var itemBehaviors = {
 						handleHeightInc(fSprite);
 					}
 				}
-				if (((fSprite.owner == -1) || (fSprite.z > 1.175) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY) && !touche_banane(fSprite.x, fSprite.y) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY) && !touche_cverte(fSprite.x, fSprite.y)) {
+				if (((fSprite.owner == -1) || (fSprite.z > 1.175) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept)) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
 				}
@@ -9250,7 +9261,6 @@ function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
 }
 
 function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
-
 	var nX = iX+iI, nY = iY+iJ;
 
 	if (oMap.decor) {
@@ -11921,6 +11931,23 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 	return false;
 }
 
+function otherPlayerItems(includingItems) {
+	return {
+		indexOf: function(iObj) {
+			var res = includingItems.indexOf(iObj);
+			if (res !== -1) return res;
+			for (var i=1;i<aKarts.length;i++) {
+				var oKart = aKarts[i];
+				if (oKart.controller != identifiant) {
+					if (oKart.using.indexOf(iObj) !== -1)
+						return includingItems.length;
+				}
+			}
+			return -1;
+		}
+	}
+}
+
 if(!Math.hypot)Math.hypot=function(x,y){return Math.sqrt(x*x+y*y)};
 function distKart(obj) {
 	var res = Infinity;
@@ -12449,10 +12476,11 @@ function resetDatas() {
 					var moveFn = itemBehaviors[uType].move;
 					var checkCollisions = itemBehaviors[uType].checkCollisions;
 					if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
+						var ctx = {onlineSync: true};
 						for (var k=start;k<end;k++) {
 							if (uItem.deleted)
 								break;
-							moveFn(uItem);
+							moveFn(uItem, ctx);
 							if (checkCollisions) {
 								for (var j=0;j<localKarts.length;j++) {
 									var l = localKarts[j];
