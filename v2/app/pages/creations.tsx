@@ -18,7 +18,7 @@ import useFormSubmit, { doSubmit } from "../hooks/useFormSubmit";
 import useEffectOnUpdate from "../hooks/useEffectUpdate";
 
 const resPerPage = 60, resPerRow = 5;
-const localesNs = ["creations"];
+const localesNs = ["creations", "common"];
 const CreationsList: NextPage = () => {
   const language = useLanguage();
   const { t } = useTranslation(localesNs);
@@ -248,7 +248,7 @@ const CreationsList: NextPage = () => {
 
       <p>
         <a className={styles.retour} href="#null" onClick={scrollToTop}>{t("Back_to_top")}</a>{" - "}
-        <Link href="/"><a className={styles.retour}>{t("Back_to_mario_kart_pc")}</a></Link>
+        <Link href="/"><a className={styles.retour}>{t("common:Back_to_mario_kart_pc")}</a></Link>
       </p>
     </ClassicPage>
   );

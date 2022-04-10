@@ -1,5 +1,6 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
+import { Country } from './country.entity';
 
 @Entity({name: "mkprofiles"})
 export class Profile {
@@ -9,6 +10,10 @@ export class Profile {
   @OneToOne(_type => User)
   @JoinColumn({name: "id"})
   user: User;
+
+  @OneToOne(_type => Country)
+  @JoinColumn({name: "country"})
+  country: Country;
 
   @Column()
   email: string;

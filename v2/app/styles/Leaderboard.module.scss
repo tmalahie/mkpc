@@ -1,0 +1,153 @@
+.Leaderboard {
+  text-align: center;
+  select,
+  input[type="text"],
+  input[type="number"] {
+    background-color: #fc0;
+    color: black;
+    border: solid 1px #a0300a;
+    padding: 2px;
+  }
+  select:hover,
+  input[type="text"]:hover,
+  input[type="number"]:hover {
+    background-color: #ffc028;
+  }
+  select:active,
+  input[type="text"]:active,
+  input[type="number"]:active {
+    background-color: #ff9010;
+  }
+  table {
+    text-align: center;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    border: double 4px black;
+    background-color: #ffc028;
+    font-weight: bold;
+    color: black;
+  }
+  td {
+    border: solid 1px black;
+    margin: 2px;
+    padding: 5px;
+    width: 100px;
+  }
+  tr.fonce,
+  tr.fonce a {
+    color: #820;
+  }
+  tr.fonce a:hover {
+    color: #b50;
+  }
+  tr.clair {
+    background-color: #ffe30c;
+  }
+  tr.clair,
+  tr.clair a {
+    color: #f60;
+  }
+  tr.clair a:hover {
+    color: #fa0;
+  }
+  tr a {
+    text-decoration: none;
+  }
+  table div {
+    margin-left: 30px;
+    width: 24px;
+    height: 24px;
+    overflow: hidden;
+  }
+  table div img {
+    height: 100%;
+    position: relative;
+    left: -144px;
+  }
+  table .recorder {
+    white-space: nowrap;
+    margin: 0 5px;
+  }
+  table .recorder img {
+    height: 13px;
+    margin-right: 2px;
+  }
+  #titres {
+    background-color: #f90;
+    font-size: 12px;
+    padding: 2px;
+  }
+  .pub {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  #month-selector {
+    margin-top: 10px;
+  }
+  #page {
+    text-align: left;
+    background-color: #f90;
+    color: #800;
+  }
+  #page span {
+    color: #800;
+  }
+  #page a {
+    color: yellow;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  #page a:hover {
+    color: #fc0;
+  }
+  a {
+    color: #f90;
+  }
+  a:hover {
+    color: #fc0;
+  }
+  .ranking-modes.stripped > * {
+    border-right: solid 1px #820;
+  }
+  .ranking-modes {
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+  .ranking-modes > * {
+    display: table-cell;
+    vertical-align: middle;
+    padding-left: 10px;
+    padding-right: 10px;
+    height: 32px;
+    border-top: solid 1px #820;
+    border-bottom: solid 1px #820;
+  }
+  .ranking-modes > a {
+    background-color: #ffe30c;
+    color: #f60;
+    text-decoration: none;
+  }
+  .ranking-modes > a:hover {
+    background-color: #ffd816;
+    color: #c30;
+  }
+  .ranking-modes > span {
+    background-color: #ffc02c;
+    color: #820;
+    font-weight: bold;
+  }
+  .ranking-modes > *:first-child {
+    border-left: solid 1px #820;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+  }
+  .ranking-modes > *:last-child {
+    border-right: solid 1px #820;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+}

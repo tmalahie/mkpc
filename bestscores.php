@@ -1,9 +1,11 @@
 <?php
+$isBattle = isset($_GET['battle']);
+$game = $isBattle ? 'battle':'vs';
+header("location: /leaderboard/$game");
+exit;
 include('language.php');
 include('session.php');
 include('initdb.php');
-$isBattle = isset($_GET['battle']);
-$game = $isBattle ? 'battle':'vs';
 $pts_ = 'pts_'.$game;
 ?>
 <!DOCTYPE html>

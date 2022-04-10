@@ -1,9 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Profile } from './profile.entity';
 
 @Entity({ name: "mkjoueurs" })
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @OneToOne(_type => Profile)
+  @JoinColumn({name: "id"})
+  profile: Profile;
 
   @Column({ name: "nom" })
   name: string;
