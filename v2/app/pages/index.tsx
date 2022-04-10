@@ -156,9 +156,9 @@ const Home: NextPage = () => {
   const leaderboardLink = useMemo(() => {
     switch (leaderboardTab) {
       case LeaderboardTab.VS:
-        return "bestscores.php";
+        return "/leaderboard/vs";
       case LeaderboardTab.BATTLE:
-        return "bestscores.php?battle";
+        return "/leaderboard/battle";
       case LeaderboardTab.TT_150:
         return "classement.global.php?cc=150";
       case LeaderboardTab.TT_200:
@@ -667,7 +667,7 @@ const Home: NextPage = () => {
               There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more!
               Everything is customizable! The only limit is your own imagination!<br />
               You can share your tracks, and try other people's tracks thanks to the <Link href="/creations">sharing tool</Link>. Thousands of custom tracks are already available!</p>
-            <p>Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href="/bestscores.php">rankings</a> and become world champion!</p>
+            <p>Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <Link href="/leaderboard/vs">rankings</Link> and become world champion!</p>
           </> : <>				<p>Vous connaissez certainement Mario Kart, le jeu de course le plus fun de tous les temps !
             Mario Kart PC reprend les mêmes principes que le jeu original mais il est jouable sur navigateur, et <strong>gratuitement</strong>.</p>
             <p>La plupart des modes issus de Mario Kart ont été repris : Grand Prix, courses VS, batailles de ballons, contre-la-montre...<br />
@@ -675,7 +675,7 @@ const Home: NextPage = () => {
               Tout est personnalisable ! Votre imagination est la seule limite !<br />
               Vous pouvez également partager vos créations et essayer celles des autres grâce à l'<Link href="/creations">outil de partage</Link>.
               Plusieurs milliers de circuits ont déjà été partagés !</p>
-            <p>Enfin, il est possible d'affronter les joueurs du monde entier grâce au <strong>mode multijoueurs en ligne</strong> ! Grimpez dans le <a href="/bestscores.php">classement</a> et devenez champion du monde !</p>
+            <p>Enfin, il est possible d'affronter les joueurs du monde entier grâce au <strong>mode multijoueurs en ligne</strong> ! Grimpez dans le <Link href="/leaderboard/vs">classement</Link> et devenez champion du monde !</p>
           </>}
         </div>
         <h2><img src={screenshotsIcon.src} alt="" /> {t("Some_screenshots")}</h2>

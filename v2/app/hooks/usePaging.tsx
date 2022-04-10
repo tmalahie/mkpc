@@ -17,5 +17,5 @@ export function usePaging(resPerPage = 20, { defaultPage = -1, count = true } = 
     count
   }), [currentPage, resPerPage]);
 
-  return { paging, currentPage, setCurrentPage };
+  return { paging, currentPage, setCurrentPage, resPerPage };
 }

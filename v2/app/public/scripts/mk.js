@@ -17740,7 +17740,7 @@ function selectPlayerScreen(IdJ,newP,nbSels) {
 			}
 			else {
 				eClassement.style.color = "white";
-				eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
+				eClassement.setAttribute("href", "/leaderboard/" + ((course=="BB")?"battle":"vs"));
 			}
 			oScr.appendChild(eClassement);
 
@@ -21542,7 +21542,7 @@ function connexion() {
 	eClassement.style.left = (iScreenScale*45) +"px";
 	eClassement.style.top = (iScreenScale*35) +"px";
 	eClassement.innerHTML = toLanguage("Rankings", "Classement");
-	eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
+	eClassement.setAttribute("href", "/leaderboard/" + ((course=="BB")?"battle":"vs"));
 	oScr.appendChild(eClassement);
 	
 	var oPInput = document.createElement("input");

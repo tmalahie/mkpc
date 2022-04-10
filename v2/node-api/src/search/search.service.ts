@@ -5,6 +5,7 @@ import { EntityFieldsNames } from 'typeorm/common/EntityFieldsNames';
 export enum SearchType {
   EQUALS = "=",
   LIKE = "%",
+  PREFIX = "~",
   MORE_THAN = ">",
   LESS_THAN = "<",
   IN = "in"
@@ -81,6 +82,9 @@ export class SearchService {
               break;
             case SearchType.LIKE:
               newFilter = Like("%" + escapeSqlLike(filter.value) + "%");
+              break;
+            case SearchType.PREFIX:
+              newFilter = Like(escapeSqlLike(filter.value) + "%");
               break;
           }
           where[filter.key] = newFilter;
