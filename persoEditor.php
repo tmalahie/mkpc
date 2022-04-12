@@ -5,8 +5,8 @@ session_start();
 include('tokens.php');
 assign_token();
 require_once('persos.php');
-include('file-quotas.php');
 include('initdb.php');
+include('file-quotas.php');
 if (isset($_FILES['sprites'])) {
 	$upload = handle_upload($_FILES['sprites']);
 	if (isset($upload['id']))

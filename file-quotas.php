@@ -1,6 +1,9 @@
 <?php
 require_once('circuitImgUtils.php');
-define('MAX_FILE_SIZE', 25000000);
+if ($getQuota = mysql_fetch_array(mysql_query('SELECT file_quota FROM `mkidentifiants` WHERE identifiant='.$identifiants[0].' AND file_quota IS NOT NULL')))
+	define('MAX_FILE_SIZE', +$getQuota['file_quota']);
+else
+	define('MAX_FILE_SIZE', 25000000);
 function file_total_size($except = array()) {
 	global $identifiants;
 	$poids = 0;
