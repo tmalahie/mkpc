@@ -21549,8 +21549,10 @@ function choose(map,rand) {
 							var aID = choixJoueurs[i][0];
 							if (aID != identifiant) {
 								aIDs.push(aID);
-								aPlayers.push(choixJoueurs[i][1]);
-								isCustomPerso(choixJoueurs[i][1]);
+								var sPlayerName = choixJoueurs[i][1];
+								aPlayers.push(sPlayerName);
+								isCustomPerso(sPlayerName);
+								if (!cp[sPlayerName]) cp[sPlayerName] = [0.5,0.5,0.5,0.5];
 								aPlaces.push(choixJoueurs[i][4]);
 								aPseudos.push(choixJoueurs[i][5]);
 								aTeams.push(choixJoueurs[i][6]);
