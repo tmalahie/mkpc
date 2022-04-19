@@ -81,8 +81,8 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										Try to be the fastest while avoiding the items!<br />
-										Find all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
+										Try to be the fastest while avoiding items!<br />
+										Find all <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
 										<?php
 									}
 									else {
@@ -111,7 +111,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										Face off the cpu on the <strong>14 grands prix</strong> tournaments and try to win the gold cup!<br />
+										Face off the CPU on the <strong>14 grands prix</strong> tournaments and try to win the gold trophy!<br />
 										Win enough cups to unlock the <strong>15 secret characters</strong>!
 										<?php
 									}
@@ -141,7 +141,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										With the <strong>track builder</strong>, the possibilities are infinite: the only limit is your own imagination.<br />
+										With the <strong>track builder</strong>, the possibilities are endless: the only limit is your own imagination.<br />
 										Try other peoples' creations thanks to the integrated <strong>sharing tool</strong>.
 										<?php
 									}
@@ -231,7 +231,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										<strong>Destroy the balloons</strong> of your opponents with your own items without getting hit by theirs<br />
+										<strong>Destroy your opponent</strong>'s balloons with items, without getting hit by their items.<br />
 										The last player standing wins!
 										<?php
 									}
@@ -262,7 +262,7 @@ $slidesPath = 'images/slides';
 									if ($language) {
 										?>
 										Prove your friends that you're the best!<br />
-										Face them in <strong>multiplayer</strong> on VS races or on battle mode.
+										Face them in <strong>multiplayer</strong> in VS races or in battle mode.
 										<?php
 									}
 									else {
