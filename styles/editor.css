@@ -568,6 +568,12 @@ div.hover-toggle:hover {
 .editor .dark.hover-toggle:hover {
 	fill: white;
 }
+.editor text.fade {
+	fill: #377;
+}
+.theme-dark .editor text.dark.fade {
+	fill: #499;
+}
 .theme-dark .editor .dark.hover-toggle:hover {
 	fill: black;
 }

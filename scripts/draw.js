@@ -144,6 +144,8 @@ var editorTools = {
 				var iData = data[i];
 				self.click(self,iData,{});
 				self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+				if (iData.optional)
+					self.state.rectangles[i].toggleOptional();
 			}
 			updateLapsCounter();
 		},
@@ -164,50 +166,72 @@ var editorTools = {
 							cpIdText.setAttribute("dominant-baseline", "middle");
 							self.state.rectangles.push(rectangle);
 							rectangle.reorder = function() {
-								cpIdText.innerHTML = 1+selfData.indexOf(data);
+								var nOrder = selfData.indexOf(data);
+								cpIdText.innerHTML = 1+nOrder;
+								if (!nOrder && data.optional) this.toggleOptional();
 							};
 							rectangle.reposition = function(nData) {
 								cpIdText.setAttribute("x", nData.x+nData.w/2);
 								cpIdText.setAttribute("y", nData.y+nData.h/2+2);
 							};
+							rectangle.toggleOptional = function() {
+								if (data.optional) {
+									delete data.optional;
+									cpIdText.classList.remove("fade");
+								}
+								else {
+									data.optional = true;
+									cpIdText.classList.add("fade");
+								}
+							}
 							rectangle.reorder();
 							rectangle.reposition(data);
 							$editor.appendChild(cpIdText);
-							addContextMenuEvent(rectangle, [{
-								text: (language ? "Resize":"Redimensionner"),
-								click: function() {
-									resizeRectangle(rectangle,data,{cp:true});
-								}
-							}, {
-								text: (language ? "Move":"Déplacer"),
-								click: function() {
-									moveRectangle(rectangle,data,{cp:true});
-								}
-							}, {
-								text: (language ? "Change Order":"Changer ordre"),
-								click: function() {
-									var order = selfData.indexOf(data);
-									var nOrder = prompt(language ? "Set new checkpoint position:":"Spécifier position du checkpoint :", 1+order)-1;
-									if (nOrder!=order && nOrder>=0 && nOrder<selfData.length) {
-										storeHistoryData(self.data);
-										selfData.splice(order,1);
-										selfData.splice(nOrder,0, data);
+							rectangle.oncontextmenu = function(e) {
+								var optionalCheck = data.optional ? "✔ ":"";
+								return showContextOnElt(e,rectangle, [{
+									text: (language ? "Resize":"Redimensionner"),
+									click: function() {
+										resizeRectangle(rectangle,data,{cp:true});
 									}
-									for (var i=0;i<self.state.rectangles.length;i++)
-										self.state.rectangles[i].reorder();
-								}
-							}, {
-								text:(language ? "Delete":"Supprimer"),
-								click:function() {
-									$editor.removeChild(rectangle);
-									$editor.removeChild(cpIdText);
-									storeHistoryData(self.data);
-									removeFromArray(selfData,data);
-									removeFromArray(self.state.rectangles,rectangle);
-									for (var i=0;i<self.state.rectangles.length;i++)
-										self.state.rectangles[i].reorder();
-								}
-							}]);
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										moveRectangle(rectangle,data,{cp:true});
+									}
+								}, {
+									text: (language ? "Change Order":"Changer ordre"),
+									click: function() {
+										var order = selfData.indexOf(data);
+										var nOrder = prompt(language ? "Set new checkpoint position:":"Spécifier position du checkpoint :", 1+order)-1;
+										if (nOrder!=order && nOrder>=0 && nOrder<selfData.length) {
+											storeHistoryData(self.data);
+											selfData.splice(order,1);
+											selfData.splice(nOrder,0, data);
+										}
+										for (var i=0;i<self.state.rectangles.length;i++)
+											self.state.rectangles[i].reorder();
+									}
+								}, {
+									text: optionalCheck + (language ? "Make optional":"Rendre optionel"),
+									disabled: data === selfData[0],
+									click: function() {
+										storeHistoryData(self.data);
+										rectangle.toggleOptional();
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(rectangle);
+										$editor.removeChild(cpIdText);
+										storeHistoryData(self.data);
+										removeFromArray(selfData,data);
+										removeFromArray(self.state.rectangles,rectangle);
+										for (var i=0;i<self.state.rectangles.length;i++)
+											self.state.rectangles[i].reorder();
+									}
+								}]);
+							};
 						}
 					});
 				}
@@ -230,6 +254,8 @@ var editorTools = {
 					iPayload[2] = iData.w;
 					iPayload[3] = 1;
 				}
+				if (iData.optional)
+					iPayload[4] = 1;
 				payload.checkpoint.push(iPayload);
 			}
 			payload.main.tours = self.data.nb;
@@ -249,6 +275,8 @@ var editorTools = {
 					iData.w = 15;
 					iData.h = iPayload[2];
 				}
+				if (iPayload[4])
+					iData.optional = true;
 				selfData.push(iData);
 			}
 			self.data.nb = payload.main.tours;

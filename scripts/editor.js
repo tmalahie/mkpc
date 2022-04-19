@@ -1936,7 +1936,7 @@ function showContextMenu(e,elts,onHide) {
 			oContextItem.innerHTML = elt.text;
 			if (elt.disabled) {
 				oContextItem.style.cursor = "default";
-				oContextItem.style.backgroundColor = "#EEE";
+				oContextItem.style.backgroundColor = (document.getElementById("theme-selector").getValue() === "dark") ? "#888" : "#EEE";
 				oContextItem.style.opacity = 0.6;
 			}
 			else {

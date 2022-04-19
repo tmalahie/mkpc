@@ -12090,7 +12090,6 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	var demitour = kart.demitours;
 	if (!simplified) {
 		var iCP = getNextCp(kart);
-		var jCP = (iCP?iCP:oMap.checkpoint.length)-1;
 	}
 	for (var i=0;i<oMap.checkpoint.length;i++) {
 		var oBox = oMap.checkpoint[i];
@@ -12117,13 +12116,19 @@ function checkpoint(kart, fMoveX,fMoveY) {
 				}
 			}
 			else {
-				if (i==iCP && demitour==jCP)
-					return true;
-				else if (demitour == i-1 || demitour == i+1) {
-					kart.demitours = i;
-					return false;
+				var isNextCp = true;
+				for (var j=demitour+1;true;j++) {
+					if (j >= oMap.checkpoint.length)
+						j -= oMap.checkpoint.length;
+					if (j == i) break;
+					if (!oMap.checkpoint[j][4]) {
+						isNextCp = false;
+						break;
+					}
 				}
-				else if (i==0 && demitour == oMap.checkpoint.length-1) {
+				if (isNextCp) {
+					if (i == iCP)
+						return true;
 					kart.demitours = i;
 					return false;
 				}
