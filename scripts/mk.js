@@ -9282,8 +9282,12 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 								if (collisionPlayer.turbodrift)
 									collisionPlayer.turbodrift = 0;
 								if (decorBehavior.bonus) {
-									if (!isOnline || (collisionPlayer == oPlayers[0]))
-										addNewItem(collisionPlayer, {type: (Math.random()<0.5) ? "banane":"champi", team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
+									if (!isOnline || (collisionPlayer == oPlayers[0])) {
+										var bonusType = "champi";
+										if (course != "CM" && Math.random() < 0.5)
+											bonusType = "banane";
+										addNewItem(collisionPlayer, {type: bonusType, team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
+									}
 								}
 							}
 							if (decorBehavior.transparent)
