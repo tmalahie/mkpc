@@ -621,6 +621,8 @@ if (isset($_GET['i'])) {
 								<li>Then place the following checkpoints before each turn (see image opposite).
 								In this way, the distance to the next checkpoint is a good indicator of a player's position relative to another one.</li>
 							</ul>
+							You can make a checkpoint non-mandatory to count a lap via right click > &quot;Make optional&quot;.
+							<div style=\"height:6px;\"></div>
 							Finally, you can set the number of laps or sections by clicking &quot;Edit&quot; in the right menu."
 							:
 							"Les checkpoints sont des zones rectangulaires qui servent à deux choses :
@@ -633,6 +635,8 @@ if (isset($_GET['i'])) {
 								<li>Le 1<sup>er</sup> checkpoint doit être placé au niveau de la ligne de départ, il définit le début d'un tour.</li>
 								<li>Placez ensuite les checkpoints suivants avant chaque virage (cf image ci-contre). De cette façon, la distance au checkpoint suivant est une bon indicateur de la position d'un joueur par rapport à un autre.</li>
 							</ul>
+							Vous pouvez rendre un checkpoint non obligatoire pour comptabiliser un tour via clic droit &gt; &quot;Rendre optionnel&quot;.
+							<div style=\"height:6px;\"></div>
 							Enfin, vous pouvez définir le nombre de tours ou de sections en cliquant sur &quot;Modifier&quot; dans le menu de droite."
 						)
 					),
