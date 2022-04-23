@@ -165,10 +165,16 @@ var editorTools = {
 							cpIdText.setAttribute("text-anchor", "middle");
 							cpIdText.setAttribute("dominant-baseline", "middle");
 							self.state.rectangles.push(rectangle);
+							function canBeOptional(iOrder) {
+								if (self.data.type)
+									return (iOrder < selfData.length-1) && (self.data.sections.indexOf(iOrder) == -1);
+								return iOrder;
+							}
 							rectangle.reorder = function() {
 								var nOrder = selfData.indexOf(data);
 								cpIdText.innerHTML = 1+nOrder;
-								if (!nOrder && data.optional) this.toggleOptional();
+								if (data.optional && !canBeOptional(nOrder))
+									this.toggleOptional();
 							};
 							rectangle.reposition = function(nData) {
 								cpIdText.setAttribute("x", nData.x+nData.w/2);
@@ -214,7 +220,7 @@ var editorTools = {
 									}
 								}, {
 									text: optionalCheck + (language ? "Make optional":"Rendre optionel"),
-									disabled: data === selfData[0],
+									disabled: !canBeOptional(selfData.indexOf(data)),
 									click: function() {
 										storeHistoryData(self.data);
 										rectangle.toggleOptional();

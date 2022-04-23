@@ -2594,6 +2594,9 @@ function submitLapsOptions() {
 		var lVal = +document.getElementById("choptions-nblaps").value;
 		editorTool.data.nb = lVal;
 	}
+	var selfRectangles = editorTool.state.rectangles;
+	for (var i=0;i<selfRectangles.length;i++)
+		selfRectangles[i].reorder();
 	updateLapsCounter();
 	closeLapsOptions();
 }
