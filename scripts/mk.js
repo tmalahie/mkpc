@@ -19339,15 +19339,19 @@ function selectItemScreen(oScr, callback, options) {
 		oTd.appendChild(oImg);
 		oTr.appendChild(oTd);
 	}
+	oTr.appendChild(document.createElement("td"));
 	oTableItems.appendChild(oTr);
-	for (var i=0;i<currentDistribution.length;i++) {
+	var oItemDistribTrs = oTableItems.getElementsByClassName("item-distrib");
+	function createDistribRow(i) {
 		var oTr = document.createElement("tr");
+		oTr.className = "item-distrib";
 		var oTd = document.createElement("td");
 		oTd.style.paddingRight = (iScreenScale) +"px";
 		oTd.style.fontSize = (iScreenScale*2) +"px";
 		oTd.innerHTML = "#"+(i+1);
 		oTr.appendChild(oTd);
 		var jDistribution = currentDistribution[i];
+		if (!jDistribution) jDistribution = itemDistribution0[i];
 		for (var j=0;j<possibleItems.length;j++) {
 			var itemName = possibleItems[j];
 			var oTd = document.createElement("td");
@@ -19372,8 +19376,46 @@ function selectItemScreen(oScr, callback, options) {
 			oTd.appendChild(oInput);
 			oTr.appendChild(oTd);
 		}
-		oTableItems.appendChild(oTr);
+		var oTd = document.createElement("td");
+		oTd.style.paddingRight = (iScreenScale) +"px";
+		oTd.style.fontSize = (iScreenScale*2) +"px";
+		var oButton = document.createElement("input");
+		oButton.type = "button";
+		oButton.value = "\xD7";
+		oButton.onclick = function() {
+			if (oItemDistribTrs.length <= 1) return;
+			oTableItems.removeChild(oTr);
+			for (var i=0;i<oItemDistribTrs.length;i++)
+				oItemDistribTrs[i].querySelector("td").innerHTML = "#"+(i+1);
+			oTrLineAdd.style.display = "";
+		};
+		oTd.appendChild(oButton);
+		oTr.appendChild(oTd);
+		return oTr;
 	}
+	for (var i=0;i<currentDistribution.length;i++) {
+		oTableItems.appendChild(createDistribRow(i));
+	}
+	var oTrLineAdd = document.createElement("tr");
+	if (oItemDistribTrs.length >= itemDistribution0.length)
+		oTrLineAdd.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", possibleItems.length + 1);
+	oTrLineAdd.appendChild(oTd);
+	oTd = document.createElement("td");
+	oTd.style.paddingRight = (iScreenScale) +"px";
+	oTd.style.fontSize = (iScreenScale*2) +"px";
+	var oButton = document.createElement("input");
+	oButton.type = "button";
+	oButton.value = "+";
+	oButton.onclick = function() {
+		oTableItems.insertBefore(createDistribRow(oItemDistribTrs.length), oTrLineAdd);
+		if (oItemDistribTrs.length >= itemDistribution0.length)
+			oTrLineAdd.style.display = "none";
+	};
+	oTd.appendChild(oButton);
+	oTrLineAdd.appendChild(oTd);
+	oTableItems.appendChild(oTrLineAdd);
 	oScr2.appendChild(oTableItems);
 
 	var oPInput = document.createElement("input");
@@ -19390,18 +19432,20 @@ function selectItemScreen(oScr, callback, options) {
 
 	function getDistributionValue(checkValidity) {
 		var res = [];
-		var oInputs = oTableItems.getElementsByTagName("input");
-		var inc = 0;
-		for (var i=0;i<currentDistribution.length;i++) {
+		if (checkValidity && !oItemDistribTrs.length) {
+			alert(toLanguage("You must have at least 1 row in your table", "Votre table doit comporter au moins 1 ligne"));
+			return null;
+		}
+		for (var i=0;i<oItemDistribTrs.length;i++) {
 			var iDistrib = {};
 			var isOneItem = false;
+			var oInputs = oItemDistribTrs[i].querySelectorAll('.item-distrib input[type="number"]');
 			for (var j=0;j<possibleItems.length;j++) {
-				var oInput = oInputs[inc];
+				var oInput = oInputs[j];
 				if (oInput.value > 0) {
 					iDistrib[possibleItems[j]] = +oInput.value;
 					isOneItem = true;
 				}
-				inc++;
 			}
 			if (checkValidity && !isOneItem) {
 				alert(toLanguage("You must enter at least 1 item for rank #" + (i+1), "Vous devez spécifier au moins 1 objet pour la position #" + (i+1)));
@@ -19479,16 +19523,22 @@ function selectItemScreen(oScr, callback, options) {
 		var importedDistrib = prompt(toLanguage("Export: copy this text to share this distribution with other players.\nImport: paste a new text to import other's distribution.", "Exporter : copiez ce texte pour partager cette distribution avec d'autres joueurs.\nImporter : collez un nouveau texte pour importer la distribution d'un autre."), currentDistrib);
 		if (importedDistrib && importedDistrib !== currentDistrib) {
 			importedDistrib = JSON.parse(importedDistrib);
-			var oInputs = oTableItems.getElementsByTagName("input");
-			var inc = 0;
 			for (var i=0;i<importedDistrib.length;i++) {
+				if (i >= oItemDistribTrs.length)
+					oTableItems.insertBefore(createDistribRow(oItemDistribTrs.length), oTrLineAdd);
 				var jDistribution = importedDistrib[i];
+				var oInputs = oItemDistribTrs[i].querySelectorAll('.item-distrib input[type="number"]');
 				for (var j=0;j<possibleItems.length;j++) {
 					var itemName = possibleItems[j];
-					oInputs[inc].value = jDistribution[itemName] || "";
-					inc++;
+					oInputs[j].value = jDistribution[itemName] || "";
 				}
 			}
+			while (oItemDistribTrs.length > importedDistrib.length)
+				oTableItems.removeChild(oItemDistribTrs[oItemDistribTrs.length-1]);
+			if (oItemDistribTrs.length >= itemDistribution0.length)
+				oTrLineAdd.style.display = "none";
+			else
+				oTrLineAdd.style.display = "";
 		}
 	}
 	oSetName.appendChild(oLink);
