@@ -807,3 +807,102 @@ form.game-popup .game-popup-body > div > label {
     margin: auto 0;
     gap: 0.25em;
 }
+.item-export-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(0,0,0, 0.5);
+}
+.item-export-screen > div {
+    width: 100%;
+    margin: 1em;
+    background-color: #444;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.item-export-screen .tab-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5em auto;
+    border-radius: 0.5em;
+    overflow: hidden;
+    gap: 0.1em;
+}
+.item-export-screen .tab-button {
+    padding: 0.25em 0.5em;
+    background-color: #222;
+    cursor: pointer;
+    color: #CCC;
+    font-weight: normal;
+}
+.item-export-screen .tab-button:not(.tab-button-selected):hover {
+    color: #89B;
+    background-color: #111;
+}
+.item-export-screen .tab-button-selected {
+    cursor: default;
+    color: #69F;
+    font-weight: bold;
+    background-color: black;
+}
+.tab-export-desc {
+    margin: 0 1em;
+    color: white;
+    text-align: center;
+    font-weight: normal;
+}
+.tab-export-desc strong {
+    color: #CCF;
+}
+.item-export-screen .tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.item-export-screen .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.item-export-screen .tab:not(.tab-selected) {
+    display: none;
+}
+.item-export-screen .tab-export-input {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5em 2em 0.5em 1em;
+}
+.item-export-screen .tab-export-input textarea {
+    flex: 1;
+    background-color: black;
+    color: white;
+}
+.item-export-screen .tab-export-submit {
+    padding: 0.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2em;
+}
+.item-export-screen .tab-export-submit a {
+    color: #ABF;
+}
+.item-export-screen .tab-export-submit a:hover {
+    color: #CCF;
+}
+.item-export-screen .tab-export-submit input {
+    font-size: 1.4em;
+    width: 5em;
+}
+.item-export-screen .tab-export-submit input:disabled {
+    opacity: 0.8;
+    cursor: default;
+}

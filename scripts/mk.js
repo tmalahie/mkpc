@@ -19519,10 +19519,88 @@ function selectItemScreen(oScr, callback, options) {
 	oLink.style.top = -Math.round(iScreenScale/2)+"px";
 	oLink.onclick = function(e) {
 		e.preventDefault();
-		var currentDistrib = JSON.stringify(getDistributionValue());
-		var importedDistrib = prompt(toLanguage("Export: copy this text to share this distribution with other players.\nImport: paste a new text to import other's distribution.", "Exporter : copiez ce texte pour partager cette distribution avec d'autres joueurs.\nImporter : collez un nouveau texte pour importer la distribution d'un autre."), currentDistrib);
-		if (importedDistrib && importedDistrib !== currentDistrib) {
-			importedDistrib = JSON.parse(importedDistrib);
+		var oExportScreen = document.createElement("div");
+		oExportScreen.className = "item-export-screen";
+		oExportScreen.style.fontSize = (iScreenScale*2) +"px";
+		oExportScreen.innerHTML = '<div>'+
+			'<div class="tab-buttons">'+
+				'<div class="tab-button tab-button-selected">'+ toLanguage("Export", "Exporter") +'</div>'+
+				'<div class="tab-button">'+ toLanguage("Import", "Importer") +'</div>'+
+			'</div>'+
+			'<div class="tabs">'+
+				'<form class="tab tab-export tab-selected">'+
+					'<div class="tab-export-desc">'+
+						toLanguage("<strong>Export:</strong> Copy this text to share this distribution with other players.", "<strong>Exporter :</strong> Copiez ce texte pour partager cette distribution avec d'autres joueurs.")+
+					'</div>'+
+					'<div class="tab-export-input">'+
+						'<textarea disabled>'+ JSON.stringify(getDistributionValue()) +'</textarea>'+
+					'</div>'+
+					'<div class="tab-export-submit">'+
+						'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
+						'<input type="submit" value="'+ toLanguage("Copy", "Copier") +'" />'+
+					'</div>'+
+				'</form>'+
+				'<form class="tab tab-import">'+
+					'<div class="tab-export-desc">'+
+						toLanguage("<strong>Import:</strong> Paste a new text to import distribution shared by another player.", "<strong>Importer :</strong> Collez un texte pour importer la distribution d'un autre joueur.")+
+					'</div>'+
+					'<div class="tab-export-input">'+
+						'<textarea></textarea>'+
+					'</div>'+
+					'<div class="tab-export-submit">'+
+						'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
+						'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
+					'</div>'+
+				'</form>'+
+			'</div>'+
+		'</div>';
+		var $tabButtons = oExportScreen.querySelectorAll(".tab-buttons .tab-button");
+		var $tabScreens = oExportScreen.querySelectorAll(".tabs .tab");
+		for (var i=0;i<$tabButtons.length;i++) {
+			(function(i) {
+				$tabButtons[i].onclick = function() {
+					oExportScreen.querySelector(".tab-buttons .tab-button-selected").classList.remove("tab-button-selected");
+					$tabButtons[i].classList.add("tab-button-selected");
+
+					oExportScreen.querySelector(".tabs .tab-selected").classList.remove("tab-selected");
+					$tabScreens[i].classList.add("tab-selected");
+				};
+			})(i);
+		}
+		oExportScreen.querySelector('.tab-export .tab-export-submit a').onclick = function(e) {
+			oScr2.removeChild(oExportScreen);
+		};
+		oExportScreen.querySelector('.tab-import .tab-export-submit a').onclick = function(e) {
+			oScr2.removeChild(oExportScreen);
+		};
+		oExportScreen.querySelector('.tab.tab-export').onsubmit = function(e) {
+			e.preventDefault();
+			var $form = e.currentTarget;
+
+			var $textarea = $form.querySelector("textarea");
+			$textarea.disabled = false;
+			$textarea.select();
+			document.execCommand('copy');
+			$textarea.disabled = true;
+
+			var $submit = $form.querySelector('input[type="submit"]');
+			var oldValue = $submit.value;
+			$submit.disabled = true;
+			$submit.value = toLanguage("Copied", "Copié \u2714");
+			setTimeout(function() {
+				$submit.value = oldValue;
+				$submit.disabled = false;
+			}, 500);
+		};
+		oExportScreen.querySelector('.tab.tab-import').onsubmit = function(e) {
+			e.preventDefault();
+			var $form = e.currentTarget;
+
+			var $textarea = $form.querySelector("textarea");
+
+			importedDistrib = JSON.parse($textarea.value);
+			oScr2.removeChild(oExportScreen);
+
 			for (var i=0;i<importedDistrib.length;i++) {
 				if (i >= oItemDistribTrs.length)
 					oTableItems.insertBefore(createDistribRow(oItemDistribTrs.length), oTrLineAdd);
@@ -19539,7 +19617,8 @@ function selectItemScreen(oScr, callback, options) {
 				oTrLineAdd.style.display = "none";
 			else
 				oTrLineAdd.style.display = "";
-		}
+		};
+		oScr2.appendChild(oExportScreen);
 	}
 	oSetName.appendChild(oLink);
 	
