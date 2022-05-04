@@ -19420,7 +19420,11 @@ function selectItemScreen(oScr, callback, options) {
 
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
-	oPInput.value = toLanguage("Back", "Retour");
+	oPInput.style.color = "#f90";
+	if (options.readOnly)
+		oPInput.value = toLanguage("Back", "Retour");
+	else
+		oPInput.value = toLanguage("Cancel", "Annuler");
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (2*iScreenScale)+"px";
 	oPInput.style.top = (36*iScreenScale)+"px";
@@ -19456,21 +19460,46 @@ function selectItemScreen(oScr, callback, options) {
 		return res;
 	}
 
-	var oSetName = document.createElement("form");
-	oSetName.style.position = "absolute";
-	oSetName.id = "iten-distribution-form";
-	oSetName.style.right = (5*iScreenScale)+"px";
-	oSetName.style.top = (35*iScreenScale+4)+"px";
-	oSetName.style.fontSize = Math.round(iScreenScale*2.5) +"px";
-	if (!options.untitled)
-		oSetName.innerHTML = toLanguage("Set name:&nbsp;","Nom du set :&nbsp;");
-	oSetName.onsubmit = function() {
+	var oSetForm = document.createElement("form");
+	oSetForm.style.position = "absolute";
+	oSetForm.id = "iten-distribution-form";
+	oSetForm.style.right = (5*iScreenScale)+"px";
+	oSetForm.style.top = (35*iScreenScale+4)+"px";
+	oSetForm.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	oSetForm.onsubmit = function() {
+		var dName;
+		if (options.name)
+			dName = options.name;
+		else {
+			var distribNames = {};
+			var modeItemDistrib = customItemDistrib[itemMode];
+			for (var i=0;i<modeItemDistrib.length;i++)
+				distribNames[modeItemDistrib[i].name] = 1;
+			var d;
+			for (d=1;distribNames["Distribution "+d];d++);
+			dName = "Distribution "+ d;
+		}
+
 		var newDistribution = {
-			"name": oNInput.value,
-			"value": getDistributionValue(true)
+			"value": getDistributionValue(true),
+			"name": prompt(toLanguage("Set name", "Nom du set"), dName)
 		};
 		if (!newDistribution.value)
 			return false;
+		if (!newDistribution.name)
+			return false;
+		if (advancedOptions["algorithm"])
+			newDistribution.algorithm = advancedOptions["algorithm"];
+		if (!advancedOptions["prevent-blueshell-x2"])
+			newDistribution.blueshellx2 = 0;
+		if (!advancedOptions["prevent-lightning-x2"])
+			newDistribution.lightningx2 = 0;
+		if (!advancedOptions["blueshell-cooldown"])
+			newDistribution.blueshelldelay = 1;
+		if (!advancedOptions["lightning-cooldown"])
+			newDistribution.lightningdelay = 1;
+		if (!advancedOptions["prevent-doubleitem-x2"])
+			newDistribution.doubleitemx2 = 0;
 		oScr.removeChild(oScr2);
 		try {
 			callback(newDistribution);
@@ -19480,41 +19509,128 @@ function selectItemScreen(oScr, callback, options) {
 		}
 		return false;
 	}
-	var oNInput = document.createElement("input");
-	oNInput.style.width = (iScreenScale*15) +"px";
-	oNInput.style.backgroundColor = "black";
-	oNInput.style.color = "white";
-	oNInput.style.border = "solid 1px white";
-	oNInput.type = "text";
-	oNInput.setAttribute("required", true);
-	oNInput.style.fontSize = (iScreenScale*2) +"px";
-	if (options.name)
-		oNInput.value = options.name;
-	else {
-		var distribNames = {};
-		var modeItemDistrib = customItemDistrib[itemMode];
-		for (var i=0;i<modeItemDistrib.length;i++)
-			distribNames[modeItemDistrib[i].name] = 1;
-		var d;
-		for (d=1;distribNames["Distribution "+d];d++);
-		oNInput.value = "Distribution "+ d;
+	var advancedOptions = {
+		"algorithm": options.algorithm || "",
+		"prevent-blueshell-x2": options.blueshellx2 != 0,
+		"prevent-lightning-x2": options.lightningx2 != 0,
+		"blueshell-cooldown": options.blueshelldelay != 1,
+		"lightning-cooldown": options.lightningdelay != 1,
+		"prevent-doubleitem-x2": options.doubleitemx2 != 0,
+	};
+
+	if (!options.readOnly) {
+		var oMoreOptions = document.createElement("a");
+		oMoreOptions.innerHTML = toLanguage("More options...", "Plus d'options...");
+		oMoreOptions.href = "#null";
+		oMoreOptions.style.color = "white";
+		oMoreOptions.style.position = "relative";
+		oMoreOptions.style.marginRight = (iScreenScale*6) +"px";
+		oMoreOptions.style.top = -Math.round(iScreenScale/4)+"px";
+		oMoreOptions.style.fontSize = Math.round(iScreenScale*2) +"px";
+		oMoreOptions.onclick = function(e) {
+			e.preventDefault();
+			var oOptionsScreen = document.createElement("div");
+			oOptionsScreen.className = "item-options-screen";
+			oOptionsScreen.style.fontSize = (iScreenScale*2) +"px";
+			oOptionsScreen.innerHTML = '<form>'+
+				'<div class="item-options">'+
+					'<div class="item-optgroup">'+
+						'<div class="item-option">'+
+							'<label for="item-options-algorithm">'+ toLanguage("Distribution based on", "Distribution basée sur") +'</label>'+
+							'<div>'+
+								'<select id="item-options-algorithm" name="algorithm">'+
+									'<option value="rank">'+ toLanguage("Player rank", "Position du joueur") +'</option>'+
+									'<option value="dist">'+ toLanguage("Distance to 1st", "Distance au 1er") +'</option>'+
+									'<option value="">'+ toLanguage("Rank+distance", "Position+distance") +'</option>'+
+								'</select>'+
+							'</div>'+
+						'</div>'+
+					'</div>'+
+					'<div class="item-optgroup">'+
+						'<h2>'+ toLanguage("Concurrent items", "Objets simultanés") +'</h2>'+
+						'<div class="item-option">'+
+							'<div>'+
+								'<input type="checkbox" id="item-options-blueshell" name="prevent-blueshell-x2" />'+
+							'</div>'+
+							'<label for="item-options-blueshell">'+ toLanguage("Prevent 2 players from having a blue shell", "Empêcher 2 joueurs d'avoir une carapace bleue") +'</label>'+
+						'</div>'+
+						'<div class="item-option">'+
+							'<div>'+
+								'<input type="checkbox" id="item-options-lightning" name="prevent-lightning-x2" />'+
+							'</div>'+
+							'<label for="item-options-lightning">'+ toLanguage("Prevent 2 players from having a lightning", "Empêcher 2 joueurs d'avoir un éclair") +'</label>'+
+						'</div>'+
+					'</div>'+
+					'<div class="item-optgroup">'+
+						'<h2>'+ toLanguage("Cooldown", "Cooldown") +'</h2>'+
+						'<div class="item-option">'+
+							'<div>'+
+								'<input type="checkbox" id="item-options-blueshell2" name="blueshell-cooldown" />'+
+							'</div>'+
+							'<label for="item-options-blueshell2">'+ toLanguage("Min time frame of 30s between 2 blue shells", "Empêcher 2 carapaces bleues à moins de 30s d'intervalle") +'</label>'+
+						'</div>'+
+						'<div class="item-option">'+
+							'<div>'+
+								'<input type="checkbox" id="item-options-lightning2" name="lightning-cooldown" />'+
+							'</div>'+
+							'<label for="item-options-lightning2">'+ toLanguage("Min time frame of 30s between 2 lightnings", "Empêcher 2 éclairs à moins de 30s d'intervalle") +'</label>'+
+						'</div>'+
+					'</div>'+
+					'<div class="item-optgroup">'+
+						'<h2>'+ toLanguage("Double items", "Double objets") +'</h2>'+
+						'<div class="item-option">'+
+							'<div>'+
+								'<input type="checkbox" id="item-options-doubleitem" name="prevent-doubleitem-x2" />'+
+							'</div>'+
+							'<label for="item-options-doubleitem">'+ toLanguage("Prevent a player from having twice the same item", "Empêcher un joueur d'avoir le même objet en double") +'</label>'+
+						'</div>'+
+					'</div>'+
+				'</div>'+
+				'<div class="item-submit">'+
+					'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
+					'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
+				'</siv>'+
+			'</form>';
+			oOptionsScreen.querySelector(".item-submit a").onclick = function() {
+				oScr2.removeChild(oOptionsScreen);
+				return false;
+			};
+			var $form = oOptionsScreen.querySelector("form");
+			$form.onsubmit = function(e) {
+				e.preventDefault();
+				for (var key in advancedOptions) {
+					var $input = $form.elements[key];
+					if ($input.type === "checkbox")
+						advancedOptions[key] = $input.checked;
+					else
+						advancedOptions[key] = $input.value;
+				}
+				oScr2.removeChild(oOptionsScreen);
+			};
+			for (var key in advancedOptions) {
+				var $input = $form.elements[key];
+				if ($input.type === "checkbox")
+					$input.checked = !!advancedOptions[key];
+				else
+					$input.value = advancedOptions[key];
+			}
+			oScr2.appendChild(oOptionsScreen);
+		}
+		oSetForm.appendChild(oMoreOptions);
 	}
-	if (options.untitled)
-		oNInput.style.display = "none";
-	oSetName.appendChild(oNInput);
 	var oVInput = document.createElement("input");
 	oVInput.type = "submit";
 	oVInput.style.fontSize = (iScreenScale*2) +"px";
 	oVInput.value = toLanguage("Validate!","Valider !");
 	oVInput.style.marginLeft = iScreenScale +"px";
-	oSetName.appendChild(oVInput);
+	oSetForm.appendChild(oVInput);
 
 	var oLink = document.createElement("a");
 	oLink.href = "#null";
 	oLink.style.color = "#CCF";
 	oLink.innerHTML = toLanguage("Export/Import...", "Exporter/importer");
-	oLink.style.fontSize = Math.round(iScreenScale*1.4) +"px";
-	oLink.style.marginLeft = (2*iScreenScale)+"px";
+	oLink.style.fontSize = Math.round(iScreenScale*1.6) +"px";
+	oLink.style.marginLeft = Math.round(2.5*iScreenScale)+"px";
 	oLink.style.position = "relative";
 	oLink.style.top = -Math.round(iScreenScale/2)+"px";
 	oLink.onclick = function(e) {
@@ -19620,12 +19736,12 @@ function selectItemScreen(oScr, callback, options) {
 		};
 		oScr2.appendChild(oExportScreen);
 	}
-	oSetName.appendChild(oLink);
+	oSetForm.appendChild(oLink);
 	
-	oScr2.appendChild(oSetName);
+	oScr2.appendChild(oSetForm);
 
 	if (options.readOnly)
-		oSetName.style.display = "none";
+		oSetForm.style.display = "none";
 
 	oScr.appendChild(oScr2);
 }

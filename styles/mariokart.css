@@ -822,6 +822,7 @@ form.game-popup .game-popup-body > div > label {
     width: 100%;
     margin: 1em;
     background-color: #444;
+    background-color: #444E;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -905,4 +906,75 @@ form.game-popup .game-popup-body > div > label {
 .item-export-screen .tab-export-submit input:disabled {
     opacity: 0.8;
     cursor: default;
+}
+.item-options-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(0,0,0, 0.5);
+}
+.item-options-screen form {
+    width: 100%;
+    margin: 1em;
+    background-color: #444;
+    background-color: #444E;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+}
+.item-options-screen .item-options {
+    padding: 1em 2em 0 1em;
+    flex: 1;
+    overflow-y: auto;
+}
+.item-options-screen .item-options > div {
+    width: 25em;
+    margin: 0 auto;
+}
+.item-options-screen .item-submit {
+    text-align: center;
+    padding: 0.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2em;
+}
+.item-options-screen .item-submit input {
+    font-size: 1.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+.item-options-screen .item-submit a {
+    color: #ABF;
+}
+.item-options-screen .item-submit a:hover {
+    color: #CCF;
+}
+.item-options-screen .item-optgroup {
+    margin-bottom: 0.75em;
+}
+.item-options-screen .item-option {
+    display: flex;
+    justify-content: center;
+    gap: 0.5em;
+    margin-bottom: 0.25em;
+}
+.item-options-screen .item-optgroup h2 {
+    font-size: 1.2em;
+    margin-top: 0;
+    margin-bottom: 0.25em;
+    color: white;
+}
+.item-options-screen .item-option label:first-child {
+    width: 10em;
+    text-align: right;
+}
+.item-options-screen .item-option label:last-child {
+    flex: 1;
 }
