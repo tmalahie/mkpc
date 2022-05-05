@@ -112,7 +112,7 @@ function getRulesAsString($rules) {
 	global $rulesList;
 	$res = new stdClass();
 	foreach ($rulesList as $key => $rule) {
-		if (isset($rules->$key) && isRuleValid($rule,$rules->$key) && ($rules->$key != $rule['default']))
+		if (isset($rules->$key) && isRuleValid($rule,$rules->$key) && (($rules->$key instanceof \stdClass) || ($rules->$key != $rule['default'])))
 			$res->{$key} = sanitizeRule($rule,$rules->$key);
 	}
 	return json_encode($res);

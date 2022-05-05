@@ -2696,10 +2696,12 @@ function startGame() {
 
 	itemDistribution = selectedItemDistrib;
 	if (!itemDistribution)
-		itemDistribution = itemDistributions[getItemMode()][0].value;
+		itemDistribution = itemDistributions[getItemMode()][0];
+	if (!itemDistribution.value)
+		itemDistribution = { value: itemDistribution };
 
 	if (!isTT) {
-		if (itemDistribution.length) {
+		if (itemDistribution.value.length) {
 			for (var i=0;i<oMap.arme.length;i++) {
 				var aBoxes = [];
 				var nbBoxes = oMap.arme[i][2];
@@ -5646,9 +5648,10 @@ var itemBehaviors = {
 				}
 			}
 			if (!isOnline || fSprite.id) {
+				var itemCooldown =  (itemDistribution.lightningdelay != 0) ? -300 : -50;
 				fSprite.countdown--;
 				if (fSprite.countdown <= 0) {
-					if (fSprite.countdown < -300)
+					if (fSprite.countdown < itemCooldown)
 						detruit(fSprite);
 					else if (!fSprite.disabled) {
 						fSprite.disabled = true;
@@ -8779,10 +8782,21 @@ function getItemDistributionRange(oKart) {
 		a = getItemAvgRange(a2,a);
 		b = getItemAvgRange(b2,b);
 	}
-	return [a*itemDistribution.length,b*itemDistribution.length];
+	return [a*itemDistribution.value.length,b*itemDistribution.value.length];
 }
 function getItemAvgRange(x1,x2) {
-	return Math.min(0.99999, Math.pow(x1,1-metaItemPosition)*Math.pow(x2,metaItemPosition));
+	var res;
+	switch (itemDistribution.algorithm) {
+	case "dist":
+		res = x1;
+		break;
+	case "rank":
+		res = x2;
+		break;
+	default:
+		res = Math.pow(x1,1-metaItemPosition)*Math.pow(x2,metaItemPosition);
+	}
+	return Math.min(0.99999, res);
 }
 function randObj(oKart) {
 	var distrib = getItemDistributionRange(oKart);
@@ -8796,7 +8810,7 @@ function randObj(oKart) {
 				x -= (a-a_);
 			if (i == b_-1)
 				x -= (b_-b);
-			var distribution = itemDistribution[i];
+			var distribution = itemDistribution.value[i];
 			for (var key in distribution) {
 				if (!pdf[key]) pdf[key] = 0;
 				pdf[key] += x*distribution[key];
@@ -8810,7 +8824,7 @@ function randObj(oKart) {
 		alert(JSON.stringify(pdf,null,2));
 	}*/
 	var i = Math.floor(a + (b-a)*Math.random());
-	var distribution = itemDistribution[i];
+	var distribution = itemDistribution.value[i];
 	var nbObjs = 0;
 	for (var key in distribution)
 		nbObjs += distribution[key];
@@ -8827,12 +8841,12 @@ function possibleObjs(oKart, except) {
 	var d = 0.005; // Safety belt to avoid infinite loops
 	var a = Math.floor(distrib[0]+d), b = Math.ceil(distrib[1]-d);
 	var res = {};
-	if (a >= itemDistribution.length) {
-		a = itemDistribution.length-1;
-		b = itemDistribution.length;
+	if (a >= itemDistribution.value.length) {
+		a = itemDistribution.value.length-1;
+		b = itemDistribution.value.length;
 	}
 	for (var i=a;i<b;i++) {
-		var distribution = itemDistribution[i];
+		var distribution = itemDistribution.value[i];
 		for (var key in distribution) {
 			if (!except[key])
 				res[key] = true;
@@ -10608,11 +10622,11 @@ function reinitLocalVars() {
 		lostBalloons: 0,
 		cheated: false
 	};
-	if (itemDistribution) {
+	if (itemDistribution.value) {
 		var modeItemDistributions = itemDistributions[getItemMode()];
 		var isDefaultDistrib = false;
 		for (var i=0;i<2;i++) {
-			if (isSameDistrib(itemDistribution, modeItemDistributions[i].value)) {
+			if (isSameDistrib(itemDistribution.value, modeItemDistributions[i].value)) {
 				isDefaultDistrib = true;
 				break;
 			}
@@ -13169,6 +13183,10 @@ function move(getId, triggered) {
 						bloops: 1,
 						bananeX3: 1
 					};
+					if (itemDistribution.lightningx2 == 1)
+						delete preventDuplicateItems["eclair"];
+					if (itemDistribution.blueshellx2 == 1)
+						delete preventDuplicateItems["carapacebleue"];
 					for (var i=0;i<aKarts.length;i++) {
 						var iKart = aKarts[i];
 						for (var j=0;j<oArmeKeys.length;j++) {
@@ -13179,13 +13197,13 @@ function move(getId, triggered) {
 					}
 					if (items["carapace-bleue"].length)
 						forbiddenItems["carapacebleue"] = 1;
-					else if (nextBlueShellCooldown)
+					else if (nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
 						forbiddenItems["carapacebleue"] = 1;
 					if ((oKart.place < aKarts.length) || items.eclair.length)
 						forbiddenItems["eclair"] = 1;
 					if (items.bloops.length)
 						forbiddenItems["bloops"] = 1;
-					if (oKart.arme)
+					if (oKart.arme && (itemDistribution.doubleitemx2 != 1))
 						forbiddenItems[oKart.arme] = 1;
 					if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
 						do {
@@ -13204,13 +13222,13 @@ function move(getId, triggered) {
 				/*if (oKart === oPlayers[0]) { // Uncomment to test all objs
 					if (!window.aaa) {
 						window.aaa = [];
-						for (var i=0;i<itemDistribution.length;i++) {
-							for (var key in itemDistribution[i]) {
+						for (var i=0;i<itemDistribution.value.length;i++) {
+							for (var key in itemDistribution.value[i]) {
 								if (window.aaa.indexOf(key) == -1)
 									window.aaa.push(key);
 							}
 						}
-						Array.from(new Set(itemDistribution));
+						Array.from(new Set(itemDistribution.value));
 						window.bbb = 0;
 					}
 					iObj = window.aaa[window.bbb];
@@ -14633,8 +14651,8 @@ function processCode(cheatCode) {
 	if (isObject) {
 		var wObject = isObject[1];
 		var isExistingObj = false;
-		for (var i=0;i<itemDistribution.length;i++) {
-			if (itemDistribution[i][wObject]) {
+		for (var i=0;i<itemDistribution.value.length;i++) {
+			if (itemDistribution.value[i][wObject]) {
 				isExistingObj = true;
 				break;
 			}
@@ -16630,7 +16648,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	}
 	for (var i=0;i<customItemDistrib[itemMode].length;i++) {
 		var oOption = document.createElement("option");
-		oOption.value = JSON.stringify(customItemDistrib[itemMode][i].value);
+		oOption.value = JSON.stringify(customItemDistrib[itemMode][i]);
 		oOption.innerHTML = customItemDistrib[itemMode][i].name;
 		oSelect.appendChild(oOption);
 	}
@@ -18367,11 +18385,11 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				document.body.removeChild(cTable);
 				addMyPersos = function(){};
 				if (oItemSelect) {
-					selectedItemDistrib = modeItemDistributions[oItemSelect.value].value;
+					selectedItemDistrib = modeItemDistributions[oItemSelect.value];
 					localStorage.setItem("itemset."+itemMode, +oItemSelect.value);
 				}
 				else
-					selectedItemDistrib = modeItemDistributions[0].value;
+					selectedItemDistrib = modeItemDistributions[0];
 				if (oDoubleItemCheckbox) {
 					oDoubleItemsEnabled = !oDoubleItemCheckbox.checked;
 					selectedDoubleItems = oDoubleItemsEnabled;
@@ -18928,7 +18946,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oItemSelect.onchange = function() {
 				if (this.value == -1) {
 					this.value = this.currentValue;
-					selectedItemDistrib = modeItemDistributions[this.currentValue].value;
+					selectedItemDistrib = modeItemDistributions[this.currentValue];
 					selectItemScreen(oScr, function(newDistribution) {
 						customItemDistrib[itemMode].push(newDistribution);
 						localStorage.setItem("itemsets", JSON.stringify(customItemDistrib));
@@ -18940,7 +18958,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				}
 				else {
 					this.currentValue = this.value;
-					selectedItemDistrib = modeItemDistributions[this.value].value;
+					selectedItemDistrib = modeItemDistributions[this.value];
 					oItemCustomActions.style.display = (this.value >= itemDistributions[itemMode].length) ? "inline-block" : "none";
 				}
 			}
@@ -19325,6 +19343,8 @@ function selectItemScreen(oScr, callback, options) {
 			possibleItems[item] = 1;
 	}
 	var currentDistribution = selectedItemDistrib;
+	if (currentDistribution.value)
+		currentDistribution = currentDistribution.value;
 	if (!currentDistribution.length)
 		currentDistribution = itemDistribution0;
 	possibleItems = Object.keys(possibleItems);
@@ -19389,6 +19409,8 @@ function selectItemScreen(oScr, callback, options) {
 				oItemDistribTrs[i].querySelector("td").innerHTML = "#"+(i+1);
 			oTrLineAdd.style.display = "";
 		};
+		if (options.readOnly)
+			oButton.style.display = "none";
 		oTd.appendChild(oButton);
 		oTr.appendChild(oTd);
 		return oTr;
@@ -19413,6 +19435,8 @@ function selectItemScreen(oScr, callback, options) {
 		if (oItemDistribTrs.length >= itemDistribution0.length)
 			oTrLineAdd.style.display = "none";
 	};
+	if (options.readOnly)
+		oButton.style.display = "none";
 	oTd.appendChild(oButton);
 	oTrLineAdd.appendChild(oTd);
 	oTableItems.appendChild(oTrLineAdd);
@@ -19420,11 +19444,12 @@ function selectItemScreen(oScr, callback, options) {
 
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
-	oPInput.style.color = "#f90";
 	if (options.readOnly)
 		oPInput.value = toLanguage("Back", "Retour");
-	else
+	else {
+		oPInput.style.color = "#f90";
 		oPInput.value = toLanguage("Cancel", "Annuler");
+	}
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (2*iScreenScale)+"px";
 	oPInput.style.top = (36*iScreenScale)+"px";
@@ -19488,18 +19513,7 @@ function selectItemScreen(oScr, callback, options) {
 			return false;
 		if (!newDistribution.name)
 			return false;
-		if (advancedOptions["algorithm"])
-			newDistribution.algorithm = advancedOptions["algorithm"];
-		if (!advancedOptions["prevent-blueshell-x2"])
-			newDistribution.blueshellx2 = 0;
-		if (!advancedOptions["prevent-lightning-x2"])
-			newDistribution.lightningx2 = 0;
-		if (!advancedOptions["blueshell-cooldown"])
-			newDistribution.blueshelldelay = 1;
-		if (!advancedOptions["lightning-cooldown"])
-			newDistribution.lightningdelay = 1;
-		if (!advancedOptions["prevent-doubleitem-x2"])
-			newDistribution.doubleitemx2 = 0;
+		applyAdvancedOptions(newDistribution);
 		oScr.removeChild(oScr2);
 		try {
 			callback(newDistribution);
@@ -19511,16 +19525,38 @@ function selectItemScreen(oScr, callback, options) {
 	}
 	var advancedOptions = {
 		"algorithm": options.algorithm || "",
-		"prevent-blueshell-x2": options.blueshellx2 != 0,
-		"prevent-lightning-x2": options.lightningx2 != 0,
-		"blueshell-cooldown": options.blueshelldelay != 1,
-		"lightning-cooldown": options.lightningdelay != 1,
-		"prevent-doubleitem-x2": options.doubleitemx2 != 0,
+		"prevent-blueshell-x2": options.blueshellx2 != 1,
+		"prevent-lightning-x2": options.lightningx2 != 1,
+		"blueshell-cooldown": options.blueshelldelay != 0,
+		"lightning-cooldown": options.lightningdelay != 0,
+		"prevent-doubleitem-x2": options.doubleitemx2 != 1,
 	};
 
-	if (!options.readOnly) {
+	function hasAdvancedOptions() {
+		var newDistribution = {};
+		applyAdvancedOptions(newDistribution);
+		for (var key in newDistribution)
+			return true;
+		return false;
+	}
+	function applyAdvancedOptions(newDistribution) {
+		if (advancedOptions["algorithm"])
+			newDistribution.algorithm = advancedOptions["algorithm"];
+		if (!advancedOptions["prevent-blueshell-x2"])
+			newDistribution.blueshellx2 = 1;
+		if (!advancedOptions["prevent-lightning-x2"])
+			newDistribution.lightningx2 = 1;
+		if (!advancedOptions["blueshell-cooldown"])
+			newDistribution.blueshelldelay = 0;
+		if (!advancedOptions["lightning-cooldown"])
+			newDistribution.lightningdelay = 0;
+		if (!advancedOptions["prevent-doubleitem-x2"])
+			newDistribution.doubleitemx2 = 1;
+	}
+
+	if (!options.readOnly || hasAdvancedOptions()) {
 		var oMoreOptions = document.createElement("a");
-		oMoreOptions.innerHTML = toLanguage("More options...", "Plus d'options...");
+		oMoreOptions.innerHTML = options.readOnly ? toLanguage("Advanced options...", "Options avancées...") : toLanguage("More options...", "Plus d'options...");
 		oMoreOptions.href = "#null";
 		oMoreOptions.style.color = "white";
 		oMoreOptions.style.position = "relative";
@@ -19609,139 +19645,142 @@ function selectItemScreen(oScr, callback, options) {
 			};
 			for (var key in advancedOptions) {
 				var $input = $form.elements[key];
+				if (options.readOnly)
+					$input.disabled = true;
 				if ($input.type === "checkbox")
 					$input.checked = !!advancedOptions[key];
 				else
 					$input.value = advancedOptions[key];
 			}
+			if (options.readOnly)
+				oOptionsScreen.querySelector('.item-submit input[type="submit"]').style.display = "none";
 			oScr2.appendChild(oOptionsScreen);
 		}
 		oSetForm.appendChild(oMoreOptions);
 	}
-	var oVInput = document.createElement("input");
-	oVInput.type = "submit";
-	oVInput.style.fontSize = (iScreenScale*2) +"px";
-	oVInput.value = toLanguage("Validate!","Valider !");
-	oVInput.style.marginLeft = iScreenScale +"px";
-	oSetForm.appendChild(oVInput);
+	if (!options.readOnly) {
+		var oVInput = document.createElement("input");
+		oVInput.type = "submit";
+		oVInput.style.fontSize = (iScreenScale*2) +"px";
+		oVInput.value = toLanguage("Validate!","Valider !");
+		oVInput.style.marginLeft = iScreenScale +"px";
+		oSetForm.appendChild(oVInput);
 
-	var oLink = document.createElement("a");
-	oLink.href = "#null";
-	oLink.style.color = "#CCF";
-	oLink.innerHTML = toLanguage("Export/Import...", "Exporter/importer");
-	oLink.style.fontSize = Math.round(iScreenScale*1.6) +"px";
-	oLink.style.marginLeft = Math.round(2.5*iScreenScale)+"px";
-	oLink.style.position = "relative";
-	oLink.style.top = -Math.round(iScreenScale/2)+"px";
-	oLink.onclick = function(e) {
-		e.preventDefault();
-		var oExportScreen = document.createElement("div");
-		oExportScreen.className = "item-export-screen";
-		oExportScreen.style.fontSize = (iScreenScale*2) +"px";
-		oExportScreen.innerHTML = '<div>'+
-			'<div class="tab-buttons">'+
-				'<div class="tab-button tab-button-selected">'+ toLanguage("Export", "Exporter") +'</div>'+
-				'<div class="tab-button">'+ toLanguage("Import", "Importer") +'</div>'+
-			'</div>'+
-			'<div class="tabs">'+
-				'<form class="tab tab-export tab-selected">'+
-					'<div class="tab-export-desc">'+
-						toLanguage("<strong>Export:</strong> Copy this text to share this distribution with other players.", "<strong>Exporter :</strong> Copiez ce texte pour partager cette distribution avec d'autres joueurs.")+
-					'</div>'+
-					'<div class="tab-export-input">'+
-						'<textarea disabled>'+ JSON.stringify(getDistributionValue()) +'</textarea>'+
-					'</div>'+
-					'<div class="tab-export-submit">'+
-						'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
-						'<input type="submit" value="'+ toLanguage("Copy", "Copier") +'" />'+
-					'</div>'+
-				'</form>'+
-				'<form class="tab tab-import">'+
-					'<div class="tab-export-desc">'+
-						toLanguage("<strong>Import:</strong> Paste a new text to import distribution shared by another player.", "<strong>Importer :</strong> Collez un texte pour importer la distribution d'un autre joueur.")+
-					'</div>'+
-					'<div class="tab-export-input">'+
-						'<textarea></textarea>'+
-					'</div>'+
-					'<div class="tab-export-submit">'+
-						'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
-						'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
-					'</div>'+
-				'</form>'+
-			'</div>'+
-		'</div>';
-		var $tabButtons = oExportScreen.querySelectorAll(".tab-buttons .tab-button");
-		var $tabScreens = oExportScreen.querySelectorAll(".tabs .tab");
-		for (var i=0;i<$tabButtons.length;i++) {
-			(function(i) {
-				$tabButtons[i].onclick = function() {
-					oExportScreen.querySelector(".tab-buttons .tab-button-selected").classList.remove("tab-button-selected");
-					$tabButtons[i].classList.add("tab-button-selected");
-
-					oExportScreen.querySelector(".tabs .tab-selected").classList.remove("tab-selected");
-					$tabScreens[i].classList.add("tab-selected");
-				};
-			})(i);
-		}
-		oExportScreen.querySelector('.tab-export .tab-export-submit a').onclick = function(e) {
-			oScr2.removeChild(oExportScreen);
-		};
-		oExportScreen.querySelector('.tab-import .tab-export-submit a').onclick = function(e) {
-			oScr2.removeChild(oExportScreen);
-		};
-		oExportScreen.querySelector('.tab.tab-export').onsubmit = function(e) {
+		var oLink = document.createElement("a");
+		oLink.href = "#null";
+		oLink.style.color = "#CCF";
+		oLink.innerHTML = toLanguage("Export/Import...", "Exporter/importer");
+		oLink.style.fontSize = Math.round(iScreenScale*1.6) +"px";
+		oLink.style.marginLeft = Math.round(2.5*iScreenScale)+"px";
+		oLink.style.position = "relative";
+		oLink.style.top = -Math.round(iScreenScale/2)+"px";
+		oLink.onclick = function(e) {
 			e.preventDefault();
-			var $form = e.currentTarget;
+			var oExportScreen = document.createElement("div");
+			oExportScreen.className = "item-export-screen";
+			oExportScreen.style.fontSize = (iScreenScale*2) +"px";
+			oExportScreen.innerHTML = '<div>'+
+				'<div class="tab-buttons">'+
+					'<div class="tab-button tab-button-selected">'+ toLanguage("Export", "Exporter") +'</div>'+
+					'<div class="tab-button">'+ toLanguage("Import", "Importer") +'</div>'+
+				'</div>'+
+				'<div class="tabs">'+
+					'<form class="tab tab-export tab-selected">'+
+						'<div class="tab-export-desc">'+
+							toLanguage("<strong>Export:</strong> Copy this text to share this distribution with other players.", "<strong>Exporter :</strong> Copiez ce texte pour partager cette distribution avec d'autres joueurs.")+
+						'</div>'+
+						'<div class="tab-export-input">'+
+							'<textarea disabled>'+ JSON.stringify(getDistributionValue()) +'</textarea>'+
+						'</div>'+
+						'<div class="tab-export-submit">'+
+							'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
+							'<input type="submit" value="'+ toLanguage("Copy", "Copier") +'" />'+
+						'</div>'+
+					'</form>'+
+					'<form class="tab tab-import">'+
+						'<div class="tab-export-desc">'+
+							toLanguage("<strong>Import:</strong> Paste a new text to import distribution shared by another player.", "<strong>Importer :</strong> Collez un texte pour importer la distribution d'un autre joueur.")+
+						'</div>'+
+						'<div class="tab-export-input">'+
+							'<textarea></textarea>'+
+						'</div>'+
+						'<div class="tab-export-submit">'+
+							'<a href="#null">'+ toLanguage("Back", "Retour") +'</a>'+
+							'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
+						'</div>'+
+					'</form>'+
+				'</div>'+
+			'</div>';
+			var $tabButtons = oExportScreen.querySelectorAll(".tab-buttons .tab-button");
+			var $tabScreens = oExportScreen.querySelectorAll(".tabs .tab");
+			for (var i=0;i<$tabButtons.length;i++) {
+				(function(i) {
+					$tabButtons[i].onclick = function() {
+						oExportScreen.querySelector(".tab-buttons .tab-button-selected").classList.remove("tab-button-selected");
+						$tabButtons[i].classList.add("tab-button-selected");
 
-			var $textarea = $form.querySelector("textarea");
-			$textarea.disabled = false;
-			$textarea.select();
-			document.execCommand('copy');
-			$textarea.disabled = true;
-
-			var $submit = $form.querySelector('input[type="submit"]');
-			var oldValue = $submit.value;
-			$submit.disabled = true;
-			$submit.value = toLanguage("Copied", "Copié \u2714");
-			setTimeout(function() {
-				$submit.value = oldValue;
-				$submit.disabled = false;
-			}, 500);
-		};
-		oExportScreen.querySelector('.tab.tab-import').onsubmit = function(e) {
-			e.preventDefault();
-			var $form = e.currentTarget;
-
-			var $textarea = $form.querySelector("textarea");
-
-			importedDistrib = JSON.parse($textarea.value);
-			oScr2.removeChild(oExportScreen);
-
-			for (var i=0;i<importedDistrib.length;i++) {
-				if (i >= oItemDistribTrs.length)
-					oTableItems.insertBefore(createDistribRow(oItemDistribTrs.length), oTrLineAdd);
-				var jDistribution = importedDistrib[i];
-				var oInputs = oItemDistribTrs[i].querySelectorAll('.item-distrib input[type="number"]');
-				for (var j=0;j<possibleItems.length;j++) {
-					var itemName = possibleItems[j];
-					oInputs[j].value = jDistribution[itemName] || "";
-				}
+						oExportScreen.querySelector(".tabs .tab-selected").classList.remove("tab-selected");
+						$tabScreens[i].classList.add("tab-selected");
+					};
+				})(i);
 			}
-			while (oItemDistribTrs.length > importedDistrib.length)
-				oTableItems.removeChild(oItemDistribTrs[oItemDistribTrs.length-1]);
-			if (oItemDistribTrs.length >= itemDistribution0.length)
-				oTrLineAdd.style.display = "none";
-			else
-				oTrLineAdd.style.display = "";
-		};
-		oScr2.appendChild(oExportScreen);
+			oExportScreen.querySelector('.tab-export .tab-export-submit a').onclick = function(e) {
+				oScr2.removeChild(oExportScreen);
+			};
+			oExportScreen.querySelector('.tab-import .tab-export-submit a').onclick = function(e) {
+				oScr2.removeChild(oExportScreen);
+			};
+			oExportScreen.querySelector('.tab.tab-export').onsubmit = function(e) {
+				e.preventDefault();
+				var $form = e.currentTarget;
+
+				var $textarea = $form.querySelector("textarea");
+				$textarea.disabled = false;
+				$textarea.select();
+				document.execCommand('copy');
+				$textarea.disabled = true;
+
+				var $submit = $form.querySelector('input[type="submit"]');
+				var oldValue = $submit.value;
+				$submit.disabled = true;
+				$submit.value = toLanguage("Copied", "Copié \u2714");
+				setTimeout(function() {
+					$submit.value = oldValue;
+					$submit.disabled = false;
+				}, 500);
+			};
+			oExportScreen.querySelector('.tab.tab-import').onsubmit = function(e) {
+				e.preventDefault();
+				var $form = e.currentTarget;
+
+				var $textarea = $form.querySelector("textarea");
+
+				importedDistrib = JSON.parse($textarea.value);
+				oScr2.removeChild(oExportScreen);
+
+				for (var i=0;i<importedDistrib.length;i++) {
+					if (i >= oItemDistribTrs.length)
+						oTableItems.insertBefore(createDistribRow(oItemDistribTrs.length), oTrLineAdd);
+					var jDistribution = importedDistrib[i];
+					var oInputs = oItemDistribTrs[i].querySelectorAll('.item-distrib input[type="number"]');
+					for (var j=0;j<possibleItems.length;j++) {
+						var itemName = possibleItems[j];
+						oInputs[j].value = jDistribution[itemName] || "";
+					}
+				}
+				while (oItemDistribTrs.length > importedDistrib.length)
+					oTableItems.removeChild(oItemDistribTrs[oItemDistribTrs.length-1]);
+				if (oItemDistribTrs.length >= itemDistribution0.length)
+					oTrLineAdd.style.display = "none";
+				else
+					oTrLineAdd.style.display = "";
+			};
+			oScr2.appendChild(oExportScreen);
+		}
+		oSetForm.appendChild(oLink);
 	}
-	oSetForm.appendChild(oLink);
 	
 	oScr2.appendChild(oSetForm);
-
-	if (options.readOnly)
-		oSetForm.style.display = "none";
 
 	oScr.appendChild(oScr2);
 }
@@ -20254,14 +20293,17 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		if (isNaN(shareLink.options.itemDistrib)) {
+			var itemDistrib = shareLink.options.itemDistrib;
+			if (!itemDistrib.value)
+				itemDistrib = { value: itemDistrib };
 			oDiv.innerHTML = toLanguage('Custom distribution <a href="#null">[Show]</a>', 'Distribution personnalisée <a href="#null">[Voir]</a>');
 			var oLink = oDiv.querySelector("a");
 			oLink.style.color = "#CCF";
 			oLink.onclick = function() {
-				selectedItemDistrib = shareLink.options.itemDistrib;
-				selectItemScreen(oScr, function() {}, {
+				selectedItemDistrib = itemDistrib;
+				selectItemScreen(oScr, function() {}, Object.assign({}, itemDistrib, {
 					readOnly: true
-				});
+				}));
 				return false;
 			}
 		}
