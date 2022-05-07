@@ -577,6 +577,7 @@ function baseCustomPersos() {
 }
 
 var itemDistribution;
+var ptsDistribution;
 
 var oBgLayers = new Array();
 var oPlayers = new Array();
@@ -627,10 +628,12 @@ var gRecord;
 var gSelectedPerso;
 var gOverwriteRecord;
 var selectedItemDistrib;
+var selectedPtDistrib;
 var oDoubleItemsEnabled;
 if (pause) {
 	strPlayer = fInfos.player;
 	selectedItemDistrib = fInfos.distribution;
+	selectedPtDistrib = fInfos.ptsdistrib;
 	fSelectedClass = fInfos.cc;
 	bSelectedMirror = fInfos.mirror;
 	oDoubleItemsEnabled = !!fInfos.double_items;
@@ -2699,6 +2702,7 @@ function startGame() {
 		itemDistribution = itemDistributions[getItemMode()][0];
 	if (!itemDistribution.value)
 		itemDistribution = { value: itemDistribution };
+	ptsDistribution = selectedPtDistrib;
 
 	if (!isTT) {
 		if (itemDistribution.value.length) {
@@ -3253,6 +3257,7 @@ function startGame() {
 								fInfos = {
 									player:strPlayer,
 									distribution:itemDistribution,
+									ptsdistrib:ptsDistribution,
 									cc:fSelectedClass,
 									mirror:bSelectedMirror,
 									double_items:oDoubleItemsEnabled,
@@ -3294,6 +3299,7 @@ function startGame() {
 									fInfos = {
 										player:strPlayer,
 										distribution:itemDistribution,
+										ptsdistrib:ptsDistribution,
 										cc:fSelectedClass,
 										mirror:bSelectedMirror,
 										double_items:oDoubleItemsEnabled,
@@ -4318,6 +4324,7 @@ function continuer() {
 				fInfos = {
 					player:strPlayer,
 					distribution:itemDistribution,
+					ptsdistrib:ptsDistribution,
 					cc:fSelectedClass,
 					mirror:bSelectedMirror,
 					double_items:oDoubleItemsEnabled,
@@ -4446,6 +4453,7 @@ function continuer() {
 			fInfos = {
 				player:strPlayer,
 				distribution:itemDistribution,
+				ptsdistrib:ptsDistribution,
 				cc:fSelectedClass,
 				mirror:bSelectedMirror,
 				double_items:oDoubleItemsEnabled,
@@ -4678,6 +4686,7 @@ function continuer() {
 				fInfos = {
 					player:strPlayer,
 					distribution:itemDistribution,
+					ptsdistrib:ptsDistribution,
 					cc:fSelectedClass,
 					mirror:bSelectedMirror,
 					double_items:oDoubleItemsEnabled,
@@ -4720,6 +4729,7 @@ function continuer() {
 			fInfos = {
 				player:strPlayer,
 				distribution:itemDistribution,
+				ptsdistrib:ptsDistribution,
 				cc:fSelectedClass,
 				mirror:bSelectedMirror,
 				double_items:oDoubleItemsEnabled,
@@ -10622,7 +10632,10 @@ function reinitLocalVars() {
 		lostBalloons: 0,
 		cheated: false
 	};
-	if (itemDistribution.value) {
+	if (ptsDistribution.value) {
+		clLocalVars.cheated = true;
+	}
+	else if (itemDistribution.value) {
 		var modeItemDistributions = itemDistributions[getItemMode()];
 		var isDefaultDistrib = false;
 		for (var i=0;i<2;i++) {
@@ -11641,6 +11654,9 @@ var itemDistributions = {
 		value: []
 	}]
 };
+var ptDistributions = [{
+	name: toLanguage("Default", "Par défaut")
+}];
 var customItemDistrib = localStorage.getItem("itemsets");
 if (customItemDistrib)
 	customItemDistrib = JSON.parse(customItemDistrib);
@@ -11650,8 +11666,35 @@ else {
 		"BB": []
 	}
 }
+var customPtDistrib = localStorage.getItem("ptsets");
+if (customPtDistrib)
+	customPtDistrib = JSON.parse(customPtDistrib);
+else
+	customPtDistrib = [];
 function getItemMode() {
 	return (course=="BB") ? "BB":"VS";
+}
+
+function getPointDistribution() {
+	if (!ptsDistribution.value) return getDefaultPointDistribution(aKarts.length);
+	var res = new Array(aKarts.length);
+	for (var i=0;i<aKarts.length;i++)
+		res[i] = ptsDistribution.value[i] || 0;
+	return res;
+}
+function getDefaultPointDistribution(nbPlayers) {
+	if (nbPlayers == 12) {
+		// hardcoded scores to fit wii point system
+		return [15,12,10,8,7,6,5,4,3,2,1,0];
+	}
+	var maxPts = Math.round(nbPlayers*1.25);
+	var res = new Array(nbPlayers);
+	for (var i=0;i<nbPlayers;i++) {
+		var xPts = (nbPlayers-i-1)/(nbPlayers-1);
+		res[i] = Math.round(maxPts*(Math.exp(xPts)-1)/(Math.E-1));
+	}
+	return res;
+
 }
 
 var COL_KART = 0, COL_OBJ = 1;
@@ -13669,18 +13712,14 @@ function move(getId, triggered) {
 									styleMore = "; text-shadow: -1px 0 #603, 0 1px #603, 1px 0 #603, 0 -1px #603";
 									styleMore2 = ' style="padding: 0 '+ Math.round(iScreenScale/2) +'px"';
 								}
+								var itemDistrib = getPointDistribution();
 								for (var i=0;i<nbjoueurs;i++) {
 									for (var j=0;j<nbjoueurs;j++) {
 										var joueur = aKarts[j].personnage;
 										if (aKarts[j].place == i+1) {
 											var oTeam = aKarts[j].team;
 											if (oTeam === -1) oTeam = 0;
-											var xPts = (aKarts.length-i-1)/(aKarts.length-1);
-											var ptsInc = Math.round(maxPts*(Math.exp(xPts)-1)/(Math.E-1));
-											if (aKarts.length == 12) {
-												// hardcoded scores to fit wii point system
-												ptsInc = [15,12,10,8,7,6,5,4,3,2,1,0][i];
-											}
+											var ptsInc = itemDistrib[i];
 											positions += '<tr id="fJ'+i+'" style="background-color: '+ rankingColor(j) + styleMore +'"><td>'+ toPlace(i+1)+' </td><td id="j'+i+'"'+ styleMore2 +'>'+ toPerso(joueur) +'</td><td id="pts'+i+'"'+ styleMore2 +'>'+ aScores[j] +'<small>+'+ ptsInc +'</small></td></tr>';
 											aScores[j] += ptsInc;
 											j = nbjoueurs;
@@ -18195,6 +18234,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	}
 	var itemMode = getItemMode();
 	var modeItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
+	var modePtDistributions = ptDistributions.concat(customPtDistrib);
 	if (!fInfos)
 		fInfos = {};
 
@@ -18281,7 +18321,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 	var rotateHandler;
 	var jScreenScale = iScreenScale;
-	var oItemSelect, oClassSelect, oDoubleItemCheckbox;
+	var oItemSelect, oPointSelect, oClassSelect, oDoubleItemCheckbox;
 	function tourner(kart) {
 		var size = Math.round(jScreenScale*5*(kart.naturalWidth/768));
 		var rotation = parseFloat(kart.style.left);
@@ -18390,6 +18430,12 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				}
 				else
 					selectedItemDistrib = modeItemDistributions[0];
+				if (oPointSelect) {
+					selectedPtDistrib = modePtDistributions[oPointSelect.value];
+					localStorage.setItem("ptset", +oPointSelect.value);
+				}
+				else
+					selectedPtDistrib = modePtDistributions[0];
 				if (oDoubleItemCheckbox) {
 					oDoubleItemsEnabled = !oDoubleItemCheckbox.checked;
 					selectedDoubleItems = oDoubleItemsEnabled;
@@ -18890,7 +18936,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oScroll.style.overflow = "auto";
 			oScroll.style.position = "absolute";
 			oScroll.style.left = "0px";
-			oScroll.style.top = (13*iScreenScale) +"px";
+			oScroll.style.top = (12*iScreenScale) +"px";
 			oScroll.style.width = (iWidth*iScreenScale) +"px";
 
 			var oTable = document.createElement("table");
@@ -19019,6 +19065,137 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oTr.appendChild(oTd);
 			oTable.appendChild(oTr);
 
+			var oTable = document.createElement("table");
+			oTable.style.marginLeft = "auto";
+			oTable.style.marginRight = "auto";
+			oScroll.appendChild(oTable);
+
+			if (course != "BB") {
+				var oTr = document.createElement("tr");
+				var oTd = document.createElement("td");
+				oTd.setAttribute("colspan", 2);
+
+				var cDiv = document.createElement("div");
+				cDiv.style.display = "flex";
+				cDiv.style.flexDirection = "row";
+				cDiv.style.alignItems = "center";
+				var tDiv = document.createElement("div");
+				tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+				tDiv.style.paddingRight = (iScreenScale*3) +"px";
+				var oLabel = document.createElement("label");
+				oLabel.style.cursor = "pointer";
+				oLabel.setAttribute("for", "option-ptDistrib");
+
+				var oH1 = document.createElement("h1");
+				oH1.style.fontSize = (3*iScreenScale) +"px";
+				oH1.innerHTML = toLanguage("Point distribution :", "Distribution des points :");
+				oH1.style.marginTop = iScreenScale +"px";
+				oH1.style.marginBottom = "0px";
+				oLabel.appendChild(oH1);
+				tDiv.appendChild(oLabel);
+				cDiv.appendChild(tDiv);
+
+				var tDiv = document.createElement("div");
+				tDiv.style.display = "inline-block";
+
+				oPointSelect = document.createElement("select");
+				oPointSelect.id = "option-ptDistrib";
+				oPointSelect.name = "option-ptDistrib";
+				oPointSelect.style.backgroundColor = "black";
+				oPointSelect.style.width = (iScreenScale*24) +"px";
+				oPointSelect.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+				oPointSelect.style.marginTop = Math.round(iScreenScale*1.5) +"px";
+				for (var i=0;i<modePtDistributions.length;i++) {
+					var oPtOption = document.createElement("option");
+					oPtOption.value = i;
+					oPtOption.innerHTML = modePtDistributions[i].name;
+					oPointSelect.appendChild(oPtOption);
+				}
+				var oPtOption = document.createElement("option");
+				oPtOption.value = -1;
+				oPtOption.innerHTML = toLanguage("Custom...", "Personnalisé...");
+				oPointSelect.appendChild(oPtOption);
+				oPointSelect.currentValue = oPointSelect.value;
+				oPointSelect.onchange = function() {
+					if (this.value == -1) {
+						this.value = this.currentValue;
+						selectedPtDistrib = modePtDistributions[this.currentValue];
+						selectPtScreen(oScr, function(newDistribution) {
+							customPtDistrib.push(newDistribution);
+							localStorage.setItem("ptsets", JSON.stringify(customPtDistrib));
+							localStorage.setItem("ptset", modePtDistributions.length);
+							oScr.innerHTML = "";
+							oContainers[0].removeChild(oScr);
+							selectedPlayers = newDistribution.value.length;
+							selectPlayerScreen(IdJ,newP,nbSels,{openOptions:true});
+						}, {
+							value: getDefaultPointDistribution(fInfos.nbPlayers)
+						});
+					}
+					else {
+						this.currentValue = this.value;
+						selectedPtDistrib = modePtDistributions[this.value];
+						oPtCustomActions.style.display = (this.value >= ptDistributions.length) ? "inline-block" : "none";
+					}
+				}
+				tDiv.appendChild(oPointSelect);
+
+				var oPtCustomActions = document.createElement("div");
+				oPtCustomActions.style.display = "none";
+				oPtCustomActions.style.marginLeft = (iScreenScale*1) +"px";
+
+				var oPtCustomEdit = document.createElement("input");
+				oPtCustomEdit.type = "button";
+				oPtCustomEdit.style.backgroundColor = "rgb(51, 160, 51)";
+				oPtCustomEdit.style.color = "white";
+				oPtCustomEdit.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+				oPtCustomEdit.value = "\u270E";
+				oPtCustomEdit.onclick = function() {
+					selectPtScreen(oScr, function(newDistribution) {
+						customPtDistrib[oPointSelect.value-ptDistributions.length] = newDistribution;
+						localStorage.setItem("ptsets", JSON.stringify(customPtDistrib));
+						localStorage.setItem("ptset", +oPointSelect.value);
+						oScr.innerHTML = "";
+						oContainers[0].removeChild(oScr);
+						selectPlayerScreen(IdJ,newP,nbSels,{openOptions:true});
+					}, modePtDistributions[oPointSelect.value]);
+				};
+				oPtCustomActions.appendChild(oPtCustomEdit);
+
+				var oPtCustomDel = document.createElement("input");
+				oPtCustomDel.type = "button";
+				oPtCustomDel.style.marginLeft = Math.round(iScreenScale*0.5) +"px";
+				oPtCustomDel.style.backgroundColor = "rgb(204, 51, 51)";
+				oPtCustomDel.style.color = "white";
+				oPtCustomDel.value = "\xD7";
+				oPtCustomDel.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+				oPtCustomDel.onclick = function() {
+					var ptSetName = modePtDistributions[oPointSelect.value].name;
+					if (confirm(toLanguage('Delete point set "'+ ptSetName +'"?', 'Supprimer le set "'+ ptSetName +'" ?'))) {
+						customPtDistrib.splice(oPointSelect.value-ptDistributions.length, 1);
+						localStorage.setItem("ptsets", JSON.stringify(customPtDistrib));
+						localStorage.setItem("ptset", 0);
+						oScr.innerHTML = "";
+						oContainers[0].removeChild(oScr);
+						selectPlayerScreen(IdJ,newP,nbSels,{openOptions:true});
+					}
+				}
+				oPtCustomActions.appendChild(oPtCustomDel);
+				
+				tDiv.appendChild(oPtCustomActions);
+
+				var selectedPtSetId = localStorage.getItem("ptset");
+				if (selectedPtSetId) {
+					oPointSelect.selectedIndex = selectedPtSetId;
+					oPointSelect.onchange();
+				}
+
+				cDiv.appendChild(tDiv);
+				oTd.appendChild(cDiv);
+				oTr.appendChild(oTd);
+				oTable.appendChild(oTr);
+			}
+
 			var oTr = document.createElement("tr");
 			var oTd = document.createElement("td");
 			oTd.style.textAlign = "center";
@@ -19039,7 +19216,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oLabel.setAttribute("for", "option-doubleItems");
 			var oH1 = document.createElement("h1");
 			oH1.style.fontSize = (3*iScreenScale) +"px";
-			oH1.style.margin = Math.round(1.5*iScreenScale) +"px auto";
+			oH1.style.margin = Math.round(0.5*iScreenScale) +"px auto";
 			oH1.innerHTML = toLanguage("Disable double items", "Désactiver les double objets");
 			oLabel.appendChild(oH1);
 			oTd.appendChild(oLabel);
@@ -19783,6 +19960,149 @@ function selectItemScreen(oScr, callback, options) {
 	oScr2.appendChild(oSetForm);
 
 	oScr.appendChild(oScr2);
+}
+function selectPtScreen(oScr, callback, options) {
+	options = options || {};
+	var oScr2 = document.createElement("div");
+	oScr2.style.position = "absolute";
+	oScr2.style.width = "100%";
+	oScr2.style.height = "100%";
+	oScr2.style.left = "0px";
+	oScr2.style.top = "0px";
+	oScr2.style.zIndex = 4;
+	oScr2.style.backgroundColor = "#000";
+
+	var oForm = document.createElement("form");
+	oForm.onsubmit = function() {
+		var ptElts = this.elements["pt[]"];
+		if (!ptElts.length) ptElts = [ptElts];
+		var pts = [];
+		for (var i=0;i<ptElts.length;i++)
+			pts.push(+ptElts[i].value);
+		
+		var dName;
+		if (options.name)
+			dName = options.name;
+		else {
+			var distribNames = {};
+			for (var i=0;i<customPtDistrib.length;i++)
+				distribNames[customPtDistrib[i].name] = 1;
+			var d;
+			for (d=1;distribNames["Distribution "+d];d++);
+			dName = "Distribution "+ d;
+		}
+		var newDistribution = {
+			"value": pts,
+			"name": prompt(toLanguage("Set name", "Nom du set"), dName)
+		};
+		if (!newDistribution.name)
+			return false;
+		oScr.removeChild(oScr2);
+		callback(newDistribution);
+		return false;
+	}
+	oForm.style.textAlign = "center";
+
+	var oPlayerCount = document.createElement("label");
+	oPlayerCount.style.display = "block";
+	oPlayerCount.style.marginTop = Math.round(iScreenScale*0.5) +"px";
+	oPlayerCount.style.marginBottom = iScreenScale +"px";
+	var oPlayerCountLabel = document.createElement("span");
+	oPlayerCountLabel.innerHTML = toLanguage("Number of participants:", "Nombre de participants :");
+	oPlayerCountLabel.style.marginRight = iScreenScale +"px";
+	oPlayerCountLabel.style.fontSize = Math.round(iScreenScale*2.25) +"px";
+	oPlayerCount.appendChild(oPlayerCountLabel);
+	var oPlayerCountInput = document.createElement("input");
+	oPlayerCountInput.type = "number";
+	oPlayerCountInput.setAttribute("max", 999);
+	oPlayerCountInput.setAttribute("min", 2);
+	oPlayerCountInput.style.fontSize = (iScreenScale*2) +"px";
+	oPlayerCountInput.style.width = (iScreenScale*6) +"px";
+	oPlayerCountInput.value = options.value.length;
+	oPlayerCountInput.onchange = function() {
+		var nCount = +this.value;
+		var oRankLines = oRankDiv.childNodes;
+		while (nCount > oRankLines.length) {
+			addRankLine(oRankLines.length);
+		}
+		while (nCount < oRankLines.length) {
+			oRankDiv.removeChild(oRankLines[oRankLines.length-1]);
+		}
+	};
+	oPlayerCount.appendChild(oPlayerCountInput);
+	oForm.appendChild(oPlayerCount);
+
+	var oScroll = document.createElement("div");
+	oScroll.style.maxHeight = (30*iScreenScale) +"px";
+	oScroll.style.overflowX = "hidden";
+	oScroll.style.overflowY = "auto";
+	oScroll.style.fontSize = Math.round(iScreenScale*2) +"px";
+
+	var oRankDiv = document.createElement("div");
+	oRankDiv.style.display = "table";
+	oRankDiv.style.marginTop = Math.round(iScreenScale*0.5) +"px";
+	oRankDiv.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
+	oRankDiv.style.marginLeft = oRankDiv.style.marginRight = "auto";
+	oRankDiv.style.borderSpacing = iScreenScale +"px";
+
+	function addRankLine(i) {
+		var oLabel = document.createElement("label");
+		oLabel.style.display = "table-row";
+		var oDiv1 = document.createElement("div");
+		oDiv1.innerHTML = toLanguage("Rank #"+ (i+1), "Position #"+ (i+1));
+		oDiv1.style.display = "table-cell";
+		oDiv1.style.verticalAlign = "middle";
+		oDiv1.style.textAlign = "right";
+		oLabel.appendChild(oDiv1);
+		var oDiv2 = document.createElement("div");
+		oDiv2.style.display = "table-cell";
+		oDiv2.style.verticalAlign = "middle";
+		var oInput1 = document.createElement("input");
+		oInput1.style.fontSize = Math.round(iScreenScale*1.5) +"px";
+		oInput1.name = "pt[]";
+		oInput1.type = "number";
+		oInput1.style.width = (iScreenScale*8) +"px";
+		oInput1.setAttribute("max", 9999);
+		oInput1.setAttribute("min", 0);
+		if (options.value[i] != null)
+			oInput1.value = options.value[i];
+		else
+			oInput1.value = 0;
+		oInput1.setAttribute("required", "required");
+		oDiv2.appendChild(oInput1);
+		oLabel.appendChild(oDiv2);
+		oRankDiv.appendChild(oLabel);
+	}
+	for (var i=0;i<options.value.length;i++) {
+		addRankLine(i);
+	}
+	oScroll.appendChild(oRankDiv);
+	oForm.appendChild(oScroll);
+
+	var oSubmit = document.createElement("input");
+	oSubmit.type = "submit";
+	oSubmit.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+	oSubmit.style.marginTop = iScreenScale+"px";
+	oSubmit.value = toLanguage("Validate", "Valider");
+	oForm.appendChild(oSubmit);
+
+	oScr2.appendChild(oForm);
+
+	var oPInput = document.createElement("input");
+	oPInput.type = "button";
+	oPInput.value = toLanguage("Back", "Retour");
+	oPInput.style.fontSize = (2*iScreenScale)+"px";
+	oPInput.style.position = "absolute";
+	oPInput.style.left = (2*iScreenScale)+"px";
+	oPInput.style.top = (35*iScreenScale)+"px";
+	oPInput.onclick = function() {
+		oScr.removeChild(oScr2);
+	}
+	oScr2.appendChild(oPInput);
+
+	oScr.appendChild(oScr2);
+
+	oScroll.querySelector('[name="pt[]"]').select();
 }
 function selectCpuNamesScreen(oScr, callback, options) {
 	options = options || {};
