@@ -17,7 +17,7 @@ $cShared = false;
 $pNote = 0;
 $pNotes = 0;
 if (isset($_GET['mid'])) { // Existing multicup
-	$id = $_GET['mid'];
+	$id = intval($_GET['mid']);
 	$nid = $id;
 	$isCup = true;
 	$isMCup = true;
@@ -37,7 +37,7 @@ if (isset($_GET['mid'])) { // Existing multicup
 	}
 }
 elseif (isset($_GET['cid'])) { // Existing cup
-	$id = $_GET['cid'];
+	$id = intval($_GET['cid']);
 	$nid = $id;
 	$isCup = true;
 	if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $id .'" AND mode=0'))) {
@@ -55,7 +55,7 @@ elseif (isset($_GET['cid'])) { // Existing cup
 }
 elseif (isset($_GET['id'])) { // Existing track
 	include('escape_all.php');
-	$id = $_GET['id'];
+	$id = intval($_GET['id']);
 	$nid = $id;
 	$trackIDs = array($id);
 	$hthumbnail = 'https://mkpc.malahieude.net/mappreview.php?id='.$id;
@@ -64,7 +64,7 @@ elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && 
 	$isCup = true;
 	if (isset($_GET['nid'])) { // Cup being edited
 		include('escape_all.php');
-		$nid = $_GET['nid'];
+		$nid = intval($_GET['nid']);
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcups` WHERE id="'. $nid .'" AND mode=0 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
@@ -86,7 +86,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	$isMCup = true;
 	if (isset($_GET['nid'])) { // Multicups being edited
 		include('escape_all.php');
-		$nid = $_GET['nid'];
+		$nid = intval($_GET['nid']);
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkmcups` WHERE id="'. $nid .'" AND mode=0 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
@@ -105,7 +105,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 }
 else { // Track being created
 	if (isset($_GET['nid'])) { // Track being edited
-		$nid = $_GET['nid'];
+		$nid = intval($_GET['nid']);
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id="'. $nid .'" AND !type AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
 			$infos['id'] = $nid;
 			$cName = $getMain['nom'];

@@ -41,7 +41,7 @@ function addCircuitChallenges($table,$circuitId,$circuitName,&$params,$main=true
 	}
 }
 function listCircuitChallenges($table, $circuitId,&$params) {
-	if ($getClRace = mysql_fetch_array(mysql_query('SELECT id FROM `mkclrace` WHERE type="'. $table .'" AND circuit='. $circuitId))) {
+	if ($getClRace = mysql_fetch_array(mysql_query('SELECT id FROM `mkclrace` WHERE type="'. $table .'" AND circuit="'. $circuitId .'"'))) {
 		return array(
 			'id' => $getClRace['id'],
 			'list' => listChallenges($getClRace['id'], $params)
@@ -53,7 +53,7 @@ function listClRewards($clId) {
 	global $clPayloadParams;
 	$playerId = intval($clPayloadParams['id']);
 	$res = array();
-	$getRewards = mysql_query('SELECT r.id,r.charid,w.player FROM mkclrewards r LEFT JOIN mkclrewarded w ON r.id=w.reward AND w.player='. $playerId .' WHERE r.clist ="'.$clId.'"');
+	$getRewards = mysql_query('SELECT r.id,r.charid,w.player FROM mkclrewards r LEFT JOIN mkclrewarded w ON r.id=w.reward AND w.player="'. $playerId .'" WHERE r.clist ="'.$clId.'"');
 	while ($reward = mysql_fetch_array($getRewards)) {
 		$res[] = array(
 			'id' => $reward['id'],

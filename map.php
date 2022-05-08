@@ -17,7 +17,7 @@ if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isse
 	$isCup = true;
 	$isMCup = false;
 	if (isset($_GET['nid'])) { // Cup being edited
-		$nid = $_GET['nid'];
+		$nid = intval($_GET['nid']);
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcups` WHERE id="'. $nid .'" AND mode=1'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
@@ -44,7 +44,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	$isMCup = true;
 	if (isset($_GET['nid'])) { // Multicups being edited
 		include('escape_all.php');
-		$nid = $_GET['nid'];
+		$nid = intval($_GET['nid']);
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $nid .'" AND mode=1 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
@@ -64,7 +64,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	$edittingCircuit = true;
 }
 elseif (isset($_GET['mid'])) { // Existing multicup
-	$id = $_GET['mid'];
+	$id = intval($_GET['mid']);
 	$nid = $id;
 	$isCup = true;
 	$isMCup = true;
@@ -86,7 +86,7 @@ elseif (isset($_GET['mid'])) { // Existing multicup
 	}
 }
 elseif (isset($_GET['cid'])) { // Existing cup
-	$nid = $_GET['cid'];
+	$nid = intval($_GET['cid']);
 	$isCup = true;
 	$isMCup = false;
 	if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $nid .'" AND mode=1'))) {
@@ -107,7 +107,7 @@ elseif (isset($_GET['cid'])) { // Existing cup
 else { // Existing track
 	$isCup = false;
 	$isMCup = false;
-	$id = isset($_GET['i']) ? $_GET['i']:0;
+	$id = isset($_GET['i']) ? intval($_GET['i']) : 0;
 	$nid = $id;
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT c.*,d.data,(nom IS NOT NULL) as shared FROM `circuits` c LEFT JOIN `circuits_data` d ON c.id=d.id WHERE c.id="'.$id.'"'))) {
 		$cShared = $circuit['shared'];

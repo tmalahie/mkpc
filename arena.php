@@ -17,7 +17,7 @@ $pNote = 0;
 $pNotes = 0;
 $map = 1;
 if (isset($_GET['id'])) {
-	$id = $_GET['id'];
+	$id = intval($_GET['id']);
 	$nid = $id;
 	if ($getMain = mysql_fetch_array(mysql_query('SELECT map,nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id="'. $id .'" AND type'))) {
 		$map = $getMain['map'];
@@ -57,7 +57,7 @@ if (isset($_GET['id'])) {
 }
 else {
 	if (isset($_GET['nid'])) {
-		$nid = $_GET['nid'];
+		$nid = intval($_GET['nid']);
 		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id="'. $nid .'" AND type AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];

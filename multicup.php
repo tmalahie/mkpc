@@ -6,7 +6,7 @@ $editting = true;
 $cOptions = isset($_GET['opt']) ? $_GET['opt']:null;
 include('initdb.php');
 if (isset($_GET['mid'])) {
-	$id = $_GET['mid'];
+	$id = intval($_GET['mid']);
 	$getCups = mysql_query('SELECT cup FROM `mkmcups_tracks` WHERE mcup="'. $id .'" ORDER BY ordering');
 	while ($getCup = mysql_fetch_array($getCups))
 		$mids[] = $getCup['cup'];
@@ -19,7 +19,7 @@ if (isset($_GET['mid'])) {
 }
 else {
 	if (isset($_GET['nid']))
-		$id = $_GET['nid'];
+		$id = intval($_GET['nid']);
 	for ($i=0;isset($_GET['mid'.$i]);$i++)
 		$mids[$i] = $_GET['mid'.$i];
 }

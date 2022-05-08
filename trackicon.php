@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['id']) && isset($_GET['type'])) {
 	include('escape_all.php');
-	$id = $_GET['id'];
+	$id = intval($_GET['id']);
 	$type = $_GET['type'];
 	require_once('generateTrackIcon.php');
 	header('content-type: image/png');

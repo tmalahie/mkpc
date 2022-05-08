@@ -63,7 +63,7 @@ if ($creation) {
 	}
 	elseif ($cup) {
 		$getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $cID .'"'));
-		$getCircuits = mysql_query('(SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit0'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit1'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit2'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit3'] .'")');
+		$getCircuits = mysql_query('(SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit0'] .'") UNION ALL (SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit1'] .'") UNION ALL (SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit2'] .'") UNION ALL (SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit3'] .'")');
 	}
 	else
 		$getCircuits = mysql_query('SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $cID .'"');

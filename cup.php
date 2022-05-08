@@ -5,7 +5,7 @@ $cids = array();
 $editting = true;
 include('initdb.php');
 if (isset($_GET['cid'])) {
-	$id = $_GET['cid'];
+	$id = intval($_GET['cid']);
 	if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $id .'" AND mode="'. $mode .'"'))) {
 		for ($i=0;$i<4;$i++)
 			$cids[$i] = $getCup['circuit'. $i];
@@ -15,7 +15,7 @@ if (isset($_GET['cid'])) {
 }
 else {
 	if (isset($_GET['nid']))
-		$id = $_GET['nid'];
+		$id = intval($_GET['nid']);
 	for ($i=0;$i<4;$i++) {
 		if (isset($_GET['cid'.$i]))
 			$cids[$i] = $_GET['cid'.$i];

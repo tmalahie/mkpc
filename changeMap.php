@@ -1,5 +1,5 @@
 <?php
-$id = isset($_GET['i']) ? $_GET['i']:0;
+$id = isset($_GET['i']) ? intval($_GET['i']) : 0;
 include('getId.php');
 include('initdb.php');
 include('language.php');

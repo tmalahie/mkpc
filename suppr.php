@@ -1,5 +1,5 @@
 <?php
-$cID = isset($_GET['i']) ? $_GET['i']:0;
+$cID = isset($_GET['i']) ? intval($_GET['i']) : 0;
 include('getId.php');
 include('initdb.php');
 include('session.php');

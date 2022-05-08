@@ -1,7 +1,7 @@
 <?php
 if (!isset($id) && isset($_GET['id'])) {
 	include('escape_all.php');
-	$id = $_GET['id'];
+	$id = intval($_GET['id']);
 }
 if (isset($id)) {
 	$isTemp = isset($temp);

@@ -3,7 +3,7 @@ $infos = Array();
 require_once('circuitPrefix.php');
 if (isset($_GET['id'])) {
 	include('initdb.php');
-	$id = $_GET['id'];
+	$id = intval($_GET['id']);
 	if ($getMain = mysql_fetch_array(mysql_query('SELECT map,laps,nom,auteur,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $id .'" AND !type'))) {
 		include('getId.php');
 		if ((($identifiants[0]==$getMain['identifiant'])&&($identifiants[1]==$getMain['identifiant2'])&&($identifiants[3]==$getMain['identifiant3'])&&($identifiants[3]==$getMain['identifiant4'])) || ($identifiants[0] == 1390635815)) {
@@ -28,11 +28,13 @@ if (isset($_GET['id'])) {
 		}
 	}
 	mysql_close();
+	if (!isset($map))
+		exit;
 }
 else {
 	include('escape_all.php');
 	if (isset($_GET['nid']))
-		$id = $_GET['nid'];
+		$id = intval($_GET['nid']);
 	$pieces = Array(5,9,9,9,9,4,8,11,11,11,11,8,8,11,11,11,11,8,8,11,11,11,11,2,8,11,11,11,11,8,6,9,9,9,9,7);
 	for ($i=0;$i<36;$i++)
 		${"p$i"} = (isset($_GET["p$i"])) ? $_GET["p$i"] : $pieces[$i];

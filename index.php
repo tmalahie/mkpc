@@ -914,7 +914,7 @@ $slidesPath = 'images/slides';
 					}
 				}
 			}
-			function gamePkSort(&$k1,&$k2) {
+			function gamePkSort($k1,$k2) {
 				$p1 = explode(':',$k1);
 				$p2 = explode(':',$k2);
 				for ($i=0;$i<3;$i++) {
