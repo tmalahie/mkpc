@@ -85,6 +85,8 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	foreach ($circuitPayload->sauts as &$sautsData) {
 		$sautsData[2]++;
 		$sautsData[3]++;
+		if (isset($sautsData[5]) && !isset($sautsData[6]))
+			unset($sautsData[5]);
 	}
 	unset($sautsData);
 	if ($mapData['fond'] == array('eciel','enuages'))
@@ -99,6 +101,8 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 		$mapData['decor'][$type] = $circuitPayload->decor->{$type};
 	switch ($id) {
 	case 8:
+		foreach ($mapData['sauts'] as &$sautsData)
+			unset($sautsData[5]);
 		$mapData['decor']['thwomp'] = [[77,391,null,10,0],[89,391,null,10,10],[101,391,null,10,20],[283,125,null,0,0],[343,493,null,0,0]];
 		break;
 	case 44:
