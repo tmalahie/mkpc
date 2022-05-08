@@ -15905,6 +15905,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		var cc = parseInt(this.elements["option-cc"].value);
 		var mirror = this.elements["option-cc"].value.endsWith("m");
 		var itemDistrib = JSON.parse(this.elements["option-itemDistrib"].value);
+		var ptDistrib = JSON.parse(this.elements["option-ptDistrib"].value);
 		var cpu = this.elements["option-cpu"].checked ? 1:0;
 		var cpuCount = +this.elements["option-cpuCount"].value;
 		var cpuLevel = +this.elements["option-cpuLevel"].value;
@@ -15941,6 +15942,7 @@ function privateGameOptions(gameOptions, onProceed) {
 			cc: cc,
 			mirror: mirror,
 			itemDistrib: itemDistrib,
+			ptDistrib: ptDistrib,
 			cpu: cpu,
 			cpuCount: cpuCount,
 			cpuLevel: cpuLevel,
@@ -16404,6 +16406,12 @@ function privateGameOptions(gameOptions, onProceed) {
 	oCheckbox.type = "checkbox";
 	if (gameOptions && gameOptions.friendly && gameOptions.localScore && isOnline)
 		oCheckbox.checked = true;
+	oCheckbox.onchange = function() {
+		if (this.checked)
+			document.getElementById("option-ptDistrib-ctn").style.display = "";
+		else
+			document.getElementById("option-ptDistrib-ctn").style.display = "none";
+	}
 	oTd.appendChild(oCheckbox);
 	oTr.appendChild(oTd);
 
@@ -16427,6 +16435,104 @@ function privateGameOptions(gameOptions, onProceed) {
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTd.style.paddingBottom = Math.round(iScreenScale*1.5) +"px";
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-ptDistrib-ctn";
+	if (!gameOptions || !gameOptions.localScore)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.setAttribute("colspan", 2);
+	oTd.style.paddingBottom = Math.round(iScreenScale*2) +"px";
+
+	var cDiv = document.createElement("div");
+	cDiv.style.display = "flex";
+	cDiv.style.flexDirection = "row";
+	cDiv.style.alignPts = "center";
+	var tDiv = document.createElement("div");
+	tDiv.style.paddingLeft = (iScreenScale*3) +"px";
+	tDiv.style.paddingRight = (iScreenScale*3) +"px";
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-ptDistrib");
+
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.innerHTML = toLanguage("Point distribution", "Distribution des points");
+	oH1.style.marginTop = "0px";
+	oH1.style.marginLeft = Math.round(iScreenScale*1.5) +"px";
+	oH1.style.marginBottom = "0px";
+	oLabel.appendChild(oH1);
+	tDiv.appendChild(oLabel);
+	cDiv.appendChild(tDiv);
+
+	var tDiv = document.createElement("div");
+	tDiv.style.display = "inline-block";
+	var oSelect = document.createElement("select");
+	oSelect.id = "option-ptDistrib";
+	oSelect.name = "option-ptDistrib";
+	oSelect.style.backgroundColor = "black";
+	oSelect.style.width = (iScreenScale*24) +"px";
+	oSelect.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+
+	for (var i=0;i<ptDistributions.length;i++) {
+		var oOption = document.createElement("option");
+		oOption.value = i;
+		oOption.innerHTML = ptDistributions[i].name;
+		oSelect.appendChild(oOption);
+	}
+	for (var i=0;i<customPtDistrib.length;i++) {
+		var oOption = document.createElement("option");
+		oOption.value = JSON.stringify(customPtDistrib[i]);
+		oOption.innerHTML = customPtDistrib[i].name;
+		oSelect.appendChild(oOption);
+	}
+	if (gameOptions && gameOptions.ptDistrib) {
+		var oValue = JSON.stringify(gameOptions.ptDistrib);
+		oSelect.value = oValue;
+		if (oSelect.value !== oValue) {
+			var oOption = document.createElement("option");
+			oOption.value = oValue;
+			oOption.innerHTML = toLanguage("Custom", "Personnalisé");
+			oSelect.insertBefore(oOption, oSelect.firstChild);
+			oSelect.selectedIndex = 0;
+		}
+	}
+	var oOption = document.createElement("option");
+	oOption.value = -1;
+	oOption.innerHTML = toLanguage("Custom...", "Personnalisé...");
+	oSelect.appendChild(oOption);
+	oSelect.currentValue = oSelect.value;
+	oSelect.onchange = function() {
+		if (this.value == -1) {
+			this.value = this.currentValue;
+			if (isNaN(this.currentValue))
+				selectedPtDistrib = JSON.parse(this.currentValue);
+			else
+				selectedPtDistrib = ptDistributions[this.currentValue];
+			var that = this;
+			selectPtScreen(oScr, function(newDistribution) {
+				var firstOption = that.querySelector("option");
+				if (!isNaN(firstOption.value)) {
+					firstOption = document.createElement("option");
+					firstOption.innerHTML = toLanguage("Custom", "Personnalisé");
+					that.insertBefore(firstOption, that.firstChild);
+				}
+				firstOption.value = JSON.stringify(newDistribution);
+				that.selectedIndex = 0;
+				that.currentValue = that.value;
+			}, {
+				value: getDefaultPointDistribution(6),
+				untitled: true
+			});
+		}
+		else
+			this.currentValue = this.value;
+	}
+	tDiv.appendChild(oSelect);
+	cDiv.appendChild(tDiv);
+	oTd.appendChild(cDiv);
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
 
@@ -16722,7 +16828,7 @@ function privateGameOptions(gameOptions, onProceed) {
 					firstOption.innerHTML = toLanguage("Custom", "Personnalisé");
 					that.insertBefore(firstOption, that.firstChild);
 				}
-				firstOption.value = JSON.stringify(newDistribution.value);
+				firstOption.value = JSON.stringify(newDistribution);
 				that.selectedIndex = 0;
 				that.currentValue = that.value;
 			}, {untitled: true});
@@ -18532,6 +18638,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							minPlayers:1,
 							maxPlayers:1,
 							localScore:1,
+							ptDistrib:1,
 							friendly:1,
 							cpu:1,
 							cpuLevel:1,
@@ -18700,6 +18807,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 									shareLink.options.cc = options.cc;
 									shareLink.options.mirror = options.mirror;
 									shareLink.options.itemDistrib = options.itemDistrib;
+									shareLink.options.ptDistrib = options.ptDistrib;
 									shareLink.options.cpu = options.cpu;
 									shareLink.options.cpuCount = options.cpuCount;
 									shareLink.options.cpuLevel = options.cpuLevel;
@@ -19575,10 +19683,12 @@ function selectItemScreen(oScr, callback, options) {
 		}
 		var oTd = document.createElement("td");
 		oTd.style.paddingRight = (iScreenScale) +"px";
-		oTd.style.fontSize = (iScreenScale*2) +"px";
 		var oButton = document.createElement("input");
 		oButton.type = "button";
 		oButton.value = "\xD7";
+		oButton.style.fontSize = (iScreenScale*2) +"px";
+		oButton.style.lineHeight = (iScreenScale*2) +"px";
+		oButton.style.padding = Math.round(iScreenScale/4 - 1) +" "+ Math.round(iScreenScale/2 + 2) +"px"
 		oButton.onclick = function() {
 			if (oItemDistribTrs.length <= 1) return;
 			oTableItems.removeChild(oTr);
@@ -19603,10 +19713,12 @@ function selectItemScreen(oScr, callback, options) {
 	oTrLineAdd.appendChild(oTd);
 	oTd = document.createElement("td");
 	oTd.style.paddingRight = (iScreenScale) +"px";
-	oTd.style.fontSize = (iScreenScale*2) +"px";
 	var oButton = document.createElement("input");
 	oButton.type = "button";
 	oButton.value = "+";
+	oButton.style.fontSize = (iScreenScale*2) +"px";
+	oButton.style.lineHeight = (iScreenScale*2) +"px";
+	oButton.style.padding = Math.round(iScreenScale/4 - 1) +" "+ Math.round(iScreenScale/2 + 2) +"px"
 	oButton.onclick = function() {
 		oTableItems.insertBefore(createDistribRow(oItemDistribTrs.length), oTrLineAdd);
 		if (oItemDistribTrs.length >= itemDistribution0.length)
@@ -19669,27 +19781,28 @@ function selectItemScreen(oScr, callback, options) {
 	oSetForm.style.top = (35*iScreenScale+4)+"px";
 	oSetForm.style.fontSize = Math.round(iScreenScale*2.5) +"px";
 	oSetForm.onsubmit = function() {
-		var dName;
-		if (options.name)
-			dName = options.name;
-		else {
-			var distribNames = {};
-			var modeItemDistrib = customItemDistrib[itemMode];
-			for (var i=0;i<modeItemDistrib.length;i++)
-				distribNames[modeItemDistrib[i].name] = 1;
-			var d;
-			for (d=1;distribNames["Distribution "+d];d++);
-			dName = "Distribution "+ d;
-		}
-
 		var newDistribution = {
-			"value": getDistributionValue(true),
-			"name": prompt(toLanguage("Set name", "Nom du set"), dName)
+			"value": getDistributionValue(true)
 		};
 		if (!newDistribution.value)
 			return false;
-		if (!newDistribution.name)
-			return false;
+		if (!options.untitled) {
+			var dName;
+			if (options.name)
+				dName = options.name;
+			else {
+				var distribNames = {};
+				var modeItemDistrib = customItemDistrib[itemMode];
+				for (var i=0;i<modeItemDistrib.length;i++)
+					distribNames[modeItemDistrib[i].name] = 1;
+				var d;
+				for (d=1;distribNames["Distribution "+d];d++);
+				dName = "Distribution "+ d;
+			}
+			newDistribution.name = prompt(toLanguage("Set name", "Nom du set"), dName);
+			if (!newDistribution.name)
+				return false;
+		}
 		applyAdvancedOptions(newDistribution);
 		oScr.removeChild(oScr2);
 		try {
@@ -19979,24 +20092,26 @@ function selectPtScreen(oScr, callback, options) {
 		var pts = [];
 		for (var i=0;i<ptElts.length;i++)
 			pts.push(+ptElts[i].value);
-		
-		var dName;
-		if (options.name)
-			dName = options.name;
-		else {
-			var distribNames = {};
-			for (var i=0;i<customPtDistrib.length;i++)
-				distribNames[customPtDistrib[i].name] = 1;
-			var d;
-			for (d=1;distribNames["Distribution "+d];d++);
-			dName = "Distribution "+ d;
-		}
+
 		var newDistribution = {
-			"value": pts,
-			"name": prompt(toLanguage("Set name", "Nom du set"), dName)
+			"value": pts
 		};
-		if (!newDistribution.name)
-			return false;
+		if (!options.untitled) {
+			var dName;
+			if (options.name)
+				dName = options.name;
+			else {
+				var distribNames = {};
+				for (var i=0;i<customPtDistrib.length;i++)
+					distribNames[customPtDistrib[i].name] = 1;
+				var d;
+				for (d=1;distribNames["Distribution "+d];d++);
+				dName = "Distribution "+ d;
+			}
+			newDistribution.name = prompt(toLanguage("Set name", "Nom du set"), dName);
+			if (!newDistribution.name)
+				return false;
+		}
 		oScr.removeChild(oScr2);
 		callback(newDistribution);
 		return false;
@@ -20017,7 +20132,7 @@ function selectPtScreen(oScr, callback, options) {
 	oPlayerCountInput.setAttribute("max", 999);
 	oPlayerCountInput.setAttribute("min", 2);
 	oPlayerCountInput.style.fontSize = (iScreenScale*2) +"px";
-	oPlayerCountInput.style.width = (iScreenScale*6) +"px";
+	oPlayerCountInput.style.width = (iScreenScale*5 + 8) +"px";
 	oPlayerCountInput.value = options.value.length;
 	oPlayerCountInput.onchange = function() {
 		var nCount = +this.value;
@@ -20205,6 +20320,7 @@ var defaultGameOptions = {
 	cc: 150,
 	mirror: false,
 	itemDistrib: 0,
+	ptDistrib: 0,
 	cpu: false,
 	cpuCount: 2,
 	cpuLevel: 0,
@@ -22191,6 +22307,10 @@ function choose(map,rand) {
 								selectedItemDistrib = itemDistributions[itemMode][shareLink.options.itemDistrib].value;
 							}
 						}
+						if (shareLink.options && shareLink.options.ptDistrib)
+							selectedPtDistrib = shareLink.options.ptDistrib;
+						else
+							selectedPtDistrib = ptDistributions[0];
 						if (shareLink.options && shareLink.options.doubleItems == 0)
 							oDoubleItemsEnabled = false;
 						else

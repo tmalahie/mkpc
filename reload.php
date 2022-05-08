@@ -331,13 +331,21 @@ if (!empty($_SESSION['mkid'])) {
 						$score = $joueur['aPts'];
 						if ($isFriendly) {
 							if ($isLocal) {
-								$maxPts = round($nbScores*1.25);
-								$xPts = ($nbScores-$i-1)/($nbScores-1);
-								$inc = round($maxPts*(exp($xPts)-1)/(M_E-1));
-								if ($nbScores == 12) {
-									// hardcoded scores to fit wii point system
-									$incs = array(15,12,10,8,7,6,5,4,3,2,1,0);
-									$inc = $incs[$i];
+								if (empty($courseRules->ptDistrib->value)) {
+									$maxPts = round($nbScores*1.25);
+									$xPts = ($nbScores-$i-1)/($nbScores-1);
+									$inc = round($maxPts*(exp($xPts)-1)/(M_E-1));
+									if ($nbScores == 12) {
+										// hardcoded scores to fit wii point system
+										$incs = array(15,12,10,8,7,6,5,4,3,2,1,0);
+										$inc = $incs[$i];
+									}
+								}
+								else {
+									if (isset($courseRules->ptDistrib->value[$i]))
+										$inc = $courseRules->ptDistrib->value[$i];
+									else
+										$inc = 0;
 								}
 							}
 							else

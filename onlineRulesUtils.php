@@ -48,6 +48,9 @@ $rulesList = array(
 	'itemDistrib' => array(
 		'default' => 0
 	),
+	'ptDistrib' => array(
+		'default' => 0
+	),
 	'teamOpts' => array(
 		'default' => 0
 	),
