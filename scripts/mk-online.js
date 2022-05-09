@@ -56,6 +56,26 @@ function RTCService() {
             init(options);
         }).catch(options.error);
     }
+    function getVocChat(options) {
+        if (!peerId) return options.callback(null);
+        xhr("getChatVoc.php", "peer="+peerId, function(res) {
+            try {
+                res = JSON.parse(res);
+            }
+            catch(e) {
+                options.callback(null);
+                return true;
+            }
+            if (res) {
+                if (options.callback)
+                    options.callback(res);
+                return true;
+            }
+            quitVocChat();
+            options.callback(null);
+            return true;
+        });
+    }
 
     function quitVocChat() {
         xhr("quitChatVoc.php", "peer="+peerId, function(res) {
@@ -89,6 +109,7 @@ function RTCService() {
         doPollPeerSignal(memberPeerId, 100,0);
     }
     function doPollPeerSignal(memberPeerId, triedSince) {
+        if (!peers[memberPeerId]) return;
         if (peers[memberPeerId].hasStreamed) {
             peers[memberPeerId].isPolling = false;
             return;
@@ -177,6 +198,9 @@ function RTCService() {
         
         return true;
     }
+    function getPeer(socket_id) {
+        return peers[socket_id];
+    }
     let sendingSignalHandlers = {};
     function sendSignalDebounced(socket_id, data, delay=300) {
         if (!sendingSignalHandlers[socket_id]) {
@@ -212,7 +236,9 @@ function RTCService() {
 
     return {
         joinVocChat,
+        getVocChat,
         addPeer,
+        getPeer,
         removePeer,
         quitVocChat,
         toggleMute

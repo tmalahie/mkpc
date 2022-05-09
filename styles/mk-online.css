@@ -17,11 +17,13 @@
 .online-chat-connecteds {
     border: solid 1px silver;
 }
-.online-chat-playlerlistctn img {
+.online-chat-playlerlisticon {
+    opacity: 0.8;
+}
+.online-chat-playlerlisticon img {
     position: relative;
     top: 2px;
     height: 14px;
-    opacity: 0.8;
 }
 .online-chat-actions {
     margin-bottom: 3px;
@@ -159,6 +161,24 @@
 }
 .online-chat-closed > *:not(.online-chat-closectn) {
     display: none;
+}
+.online-chat-playlerlistelt {
+    display: inline-block;
+}
+.online-chat-playlerlisticon {
+    display: inline-block;
+    position: relative;
+    width: 16px;
+    height: 16px;
+}
+.online-chat-playlerlistvolume {
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 0;
+    top: 0;
+    border-radius: 50%;
+    background-color: #679;
 }
 @media (max-width: 849px) {
     .online-chat.online-chat-closed {

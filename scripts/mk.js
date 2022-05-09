@@ -24739,7 +24739,8 @@ function onButtonPress(e) {
 	this.style.backgroundColor = "";
 	applyButtonCode("onkeyup", this.dataset.key);
 }
-	
+
+var rtcService;
 function setChat() {
 	chatting = true;
 	var oChats = document.getElementsByClassName("online-chat");
@@ -25047,7 +25048,8 @@ function setChat() {
 	oChat.appendChild(oRepondre);
 
 	var iChatLastMsg = 0;
-	var rtcService = RTCService();
+	if (!rtcService)
+		rtcService = RTCService();
 	var cPlayerPeers = {};
 	function refreshChat() {
 		if (chatting) {
@@ -25061,24 +25063,44 @@ function setChat() {
 					}
 					if (rCode != -1) {
 						var cPlayers = rCode[0];
-						var sNoms = "";
 						for (var i=0;i<cPlayers.length;i++) {
 							var cPlayer = cPlayers[i];
-							sNoms += (i ? ", ":"")+cPlayer.name;
+							var sNom = jConnectes.querySelector("[data-player='"+cPlayer.id+"']");
+							if (!sNom) {
+								sNom = document.createElement("div");
+								if (!sNom.dataset) sNom.dataset = {};
+								sNom.dataset.player = cPlayer.id;
+								sNom.className = "online-chat-playlerlistelt";
+								sNom.innerHTML = '<span class="online-chat-playlerlistname"></span> ' +
+									'<div class="online-chat-playlerlisticon">'+
+										'<div class="online-chat-playlerlistvolume"></div>'+
+										'<img alt="Voc" />'+
+									'</div>';
+								jConnectes.appendChild(sNom);
+							}
+							sNom.querySelector(".online-chat-playlerlistname").innerText = cPlayer.name;
 							if (cPlayer.peer) {
-								sNoms += ' <img src="images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png" alt="Voc" />';
+								sNom.querySelector(".online-chat-playlerlisticon").style.display = "";
+								sNom.querySelector(".online-chat-playlerlisticon img").src = 'images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png';
+								var cPeer = rtcService.getPeer(cPlayer.peer);
+								if (cPeer && cPeer.audio && !window.lll) {
+									console.log(cPeer.audio.srcObject);
+									window.lll = 1;
+								}
+
 								cPlayerPeers[cPlayer.id] = cPlayer.peer;
 								if (cPlayer.ignored)
 									rtcService.removePeer(cPlayer.peer);
 								else
 									rtcService.addPeer(cPlayer.peer);
 							}
-							else if (cPlayerPeers[cPlayer.id]) {
+							else {
+								sNom.querySelector(".online-chat-playlerlisticon").style.display = "none";
+
 								rtcService.removePeer(cPlayerPeers[cPlayer.id]);
 								delete cPlayerPeers[cPlayer.id];
 							}
 						}
-						jConnectes.innerHTML = sNoms;
 						var messages = rCode[1];
 						if (messages.length) {
 							var lastMsgId = messages.length-1;
@@ -25112,6 +25134,17 @@ function setChat() {
 			document.body.removeChild(oChat);
 	}
 	refreshChat();
+
+	vConnectes.disabled = true;
+	rtcService.getVocChat({
+		callback: function(vocChat) {
+			if (vocChat) {
+				vConnectes.style.display = "none";
+				vChatActions.style.display = "inline-block";
+			}
+			vConnectes.disabled = false;
+		}
+	});
 	
 	document.body.appendChild(oChat);
 }
