@@ -24740,7 +24740,7 @@ function onButtonPress(e) {
 	applyButtonCode("onkeyup", this.dataset.key);
 }
 
-var rtcService;
+var rtcService, cPlayerPeers = {};
 function setChat() {
 	chatting = true;
 	var oChats = document.getElementsByClassName("online-chat");
@@ -24853,9 +24853,13 @@ function setChat() {
 		vcaiHangup.src = "images/ic_hangup.png";
 	};
 	vcaHangup.onclick = function() {
-		rtcService.quitVocChat();
+		cPlayerPeers = {};
+		rtcService.quitVocChat({
+			callback: function() {
+				vConnectes.style.display = "";
+			}
+		});
 		vChatActions.style.display = "none";
-		vConnectes.style.display = "";
 	};
 	vChatActions.appendChild(vcaHangup);
 
@@ -25050,7 +25054,6 @@ function setChat() {
 	var iChatLastMsg = 0;
 	if (!rtcService)
 		rtcService = RTCService();
-	var cPlayerPeers = {};
 	function refreshChat() {
 		if (chatting) {
 			xhr("chat.php", "lastmsg="+iChatLastMsg, function(reponse) {
@@ -25065,6 +25068,30 @@ function setChat() {
 						var cPlayers = rCode[0];
 						for (var i=0;i<cPlayers.length;i++) {
 							var cPlayer = cPlayers[i];
+							if (cPlayer.id === identifiant) {
+								if (cPlayerPeers[cPlayer.id] !== cPlayer.peer) {
+									if (cPlayerPeers[cPlayer.id]) {
+										if (vConnectes.style.display === "none") {
+											vChatActions.style.display = "none";
+											rtcService.quitVocChat({
+												callback: function() {
+													rtcService.joinVocChat({
+														success: function() {
+															vChatActions.style.display = "inline-block";
+														},
+														error: function(e) {
+															vConnectes.style.display = "";
+														},
+														muted: !!vcaMute.dataset.muted
+													});
+												}
+											});
+										}
+									}
+									cPlayerPeers[cPlayer.id] = cPlayer.peer;
+								}
+								continue;
+							}
 							var sNom = jConnectes.querySelector("[data-player='"+cPlayer.id+"']");
 							if (!sNom) {
 								sNom = document.createElement("div");
@@ -25092,7 +25119,7 @@ function setChat() {
 								if (cPlayer.ignored)
 									rtcService.removePeer(cPlayer.peer);
 								else
-									rtcService.addPeer(cPlayer.peer);
+									rtcService.addPeer(cPlayer.peer, cPlayer.syncid);
 							}
 							else {
 								sNom.querySelector(".online-chat-playlerlisticon").style.display = "none";
