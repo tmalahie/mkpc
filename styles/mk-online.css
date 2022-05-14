@@ -17,10 +17,16 @@
 .online-chat-connecteds {
     border: solid 1px silver;
 }
-.online-chat-playlerlisticon {
-    opacity: 0.8;
+.online-chat-playerlistelt:not(:last-child)::after {
+    content: ", ";
+    position: relative;
 }
-.online-chat-playlerlisticon img {
+.online-chat-playerlisticon {
+    opacity: 0.8;
+    margin-left: 0.5em;
+    margin-right: 0.15em;
+}
+.online-chat-playerlisticon img {
     position: relative;
     top: 2px;
     height: 14px;
@@ -162,16 +168,16 @@
 .online-chat-closed > *:not(.online-chat-closectn) {
     display: none;
 }
-.online-chat-playlerlistelt {
+.online-chat-playerlistelt {
     display: inline-block;
 }
-.online-chat-playlerlisticon {
+.online-chat-playerlisticon {
     display: inline-block;
     position: relative;
     width: 16px;
     height: 16px;
 }
-.online-chat-playlerlistvolume {
+.online-chat-playerlistvolume {
     position: absolute;
     width: 0;
     height: 0;

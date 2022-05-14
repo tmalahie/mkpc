@@ -423,6 +423,7 @@ include('handleCupOptions.php');
 include('gameInitElts.php');
 ?>
 <script type="text/javascript" src="scripts/simplepeer.min.js"></script>
+<script type="text/javascript">var rtcService, cPlayerPeers = {};</script>
 <script type="text/javascript" src="scripts/mk-online.js"></script>
 <?php include('mk/description.php'); ?>
 </body>

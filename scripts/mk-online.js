@@ -7,7 +7,6 @@ function RTCService() {
     * All peer connections
     */
     let peers = {}
-    let peerSync = {};
 
     let peerId;
 
@@ -84,13 +83,12 @@ function RTCService() {
     function quitVocChat(options) {
         xhr("quitChatVoc.php", "peer="+peerId, function(res) {
             if (res == 1) {
-                if (options.callback)
+                if (options && options.callback)
                     options.callback();
                 return true;
             }
         });
         peerId = null;
-        peerSync = {};
         for (var socket_id in peers) {
             var peer = peers[socket_id];
             delete peers[socket_id];
@@ -125,7 +123,9 @@ function RTCService() {
             return;
         }
         if (triedSince > 10000) {
-            removePeer(memberPeerId);
+            removePeer(memberPeerId, {
+                disconnectReceiver: true
+            });
             return;
         }
         const interval = Math.max(100, triedSince/10-100);
@@ -148,7 +148,7 @@ function RTCService() {
         });
     }
 
-    function removePeer(socket_id) {
+    function removePeer(socket_id, options) {
         var peer = peers[socket_id];
         if (!peer) return;
         const audioEl = peer.audio;
@@ -163,32 +163,15 @@ function RTCService() {
         }
         delete peers[socket_id];
         peer.conn.destroy();
-        xhr("unregisterChatSignals.php", "sender="+peerId+"&receiver="+socket_id, function(res) {
+        xhr("unregisterChatSignals.php", "sender="+peerId+"&receiver="+socket_id + (options && options.disconnectReceiver ? "&disconnect" : ""), function(res) {
             if (res == 1) {
                 return true;
             }
         });
     }
 
-    function postUnregisterPeer(socket_id) {
-        var sync_id = peerSync[socket_id];
-        setTimeout(function() {
-            if(peerSync[socket_id] === sync_id && !peers[socket_id]) {
-                xhr("unregisterVocChat.php", "peer="+socket_id+"&sync="+sync_id, function(res) {
-                    if (res == 1) {
-                        if (peerSync[socket_id] === sync_id && !peers[socket_id])
-                            delete peerSync[socket_id];
-                        return true;
-                    }
-                });
-            }
-        }, 5000);
-    }
-    function addPeer(socket_id, sync_id) {
+    function addPeer(socket_id) {
         if (!peerId) return false;
-        console.log(peerSync[socket_id], sync_id);
-        if (peerSync[socket_id] >= sync_id) return false;
-        peerSync[socket_id] = sync_id;
         if (peers[socket_id]) return false;
         var am_initiator = (socket_id < peerId);
         peers[socket_id] = {
@@ -219,8 +202,9 @@ function RTCService() {
         });
         
         peers[socket_id].conn.on('close', () => {
-            removePeer(socket_id);
-            postUnregisterPeer(socket_id);
+            removePeer(socket_id, {
+                disconnectReceiver: true
+            });
         })
         
         if (!am_initiator)

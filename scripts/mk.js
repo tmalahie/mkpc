@@ -22411,8 +22411,10 @@ function choose(map,rand) {
 						
 						$mkScreen.appendChild(oDiv);
 						
-						if (choixJoueurs.length <= 1)
+						if (choixJoueurs.length <= 1) {
 							chatting = false;
+							stopVocChat();
+						}
 
 						clearInterval(startMusicHandler);
 					}
@@ -24740,7 +24742,6 @@ function onButtonPress(e) {
 	applyButtonCode("onkeyup", this.dataset.key);
 }
 
-var rtcService, cPlayerPeers = {};
 function setChat() {
 	chatting = true;
 	var oChats = document.getElementsByClassName("online-chat");
@@ -24753,7 +24754,7 @@ function setChat() {
 	var oConnectes = document.createElement("p");
 	oConnectes.className = "online-chat-connecteds";
 	var oPlayersListCtn = document.createElement("div");
-	oPlayersListCtn.className = "online-chat-playlerlistctn";
+	oPlayersListCtn.className = "online-chat-playerlistctn";
 	var iConnectes = document.createElement("span");
 	iConnectes.innerHTML = toLanguage("Online opponent(s): ", "Adversaire(s) en ligne : ");
 	oPlayersListCtn.appendChild(iConnectes);
@@ -25066,29 +25067,34 @@ function setChat() {
 					}
 					if (rCode != -1) {
 						var cPlayers = rCode[0];
+						var currentConnectedPlayers = {};
 						for (var i=0;i<cPlayers.length;i++) {
 							var cPlayer = cPlayers[i];
+							currentConnectedPlayers[cPlayer.id] = 1;
 							if (cPlayer.id === identifiant) {
 								if (cPlayerPeers[cPlayer.id] !== cPlayer.peer) {
-									if (cPlayerPeers[cPlayer.id]) {
-										if (vConnectes.style.display === "none") {
-											vChatActions.style.display = "none";
-											rtcService.quitVocChat({
-												callback: function() {
-													rtcService.joinVocChat({
-														success: function() {
-															vChatActions.style.display = "inline-block";
-														},
-														error: function(e) {
-															vConnectes.style.display = "";
-														},
-														muted: !!vcaMute.dataset.muted
-													});
-												}
-											});
+									if (vChatActions.style.display === "inline-block") {
+										if (cPlayerPeers[cPlayer.id]) {
+											(function(cPlayerId) {
+												vChatActions.style.display = "none";
+												rtcService.quitVocChat({
+													callback: function() {
+														delete cPlayerPeers[cPlayerId];
+														rtcService.joinVocChat({
+															success: function() {
+																vChatActions.style.display = "inline-block";
+															},
+															error: function(e) {
+																vConnectes.style.display = "";
+															},
+															muted: !!vcaMute.dataset.muted
+														});
+													}
+												});
+											})(cPlayer.id);
 										}
+										cPlayerPeers[cPlayer.id] = cPlayer.peer;
 									}
-									cPlayerPeers[cPlayer.id] = cPlayer.peer;
 								}
 								continue;
 							}
@@ -25097,18 +25103,18 @@ function setChat() {
 								sNom = document.createElement("div");
 								if (!sNom.dataset) sNom.dataset = {};
 								sNom.dataset.player = cPlayer.id;
-								sNom.className = "online-chat-playlerlistelt";
-								sNom.innerHTML = '<span class="online-chat-playlerlistname"></span> ' +
-									'<div class="online-chat-playlerlisticon">'+
-										'<div class="online-chat-playlerlistvolume"></div>'+
+								sNom.className = "online-chat-playerlistelt";
+								sNom.innerHTML = '<span class="online-chat-playerlistname"></span>' +
+									'<div class="online-chat-playerlisticon">'+
+										'<div class="online-chat-playerlistvolume"></div>'+
 										'<img alt="Voc" />'+
 									'</div>';
 								jConnectes.appendChild(sNom);
 							}
-							sNom.querySelector(".online-chat-playlerlistname").innerText = cPlayer.name;
+							sNom.querySelector(".online-chat-playerlistname").innerText = cPlayer.name;
 							if (cPlayer.peer) {
-								sNom.querySelector(".online-chat-playlerlisticon").style.display = "";
-								sNom.querySelector(".online-chat-playlerlisticon img").src = 'images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png';
+								sNom.querySelector(".online-chat-playerlisticon").style.display = "";
+								sNom.querySelector(".online-chat-playerlisticon img").src = 'images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png';
 								var cPeer = rtcService.getPeer(cPlayer.peer);
 								if (cPeer && cPeer.audio && !window.lll) {
 									console.log(cPeer.audio.srcObject);
@@ -25119,14 +25125,28 @@ function setChat() {
 								if (cPlayer.ignored)
 									rtcService.removePeer(cPlayer.peer);
 								else
-									rtcService.addPeer(cPlayer.peer, cPlayer.syncid);
+									rtcService.addPeer(cPlayer.peer);
 							}
 							else {
-								sNom.querySelector(".online-chat-playlerlisticon").style.display = "none";
+								sNom.querySelector(".online-chat-playerlisticon").style.display = "none";
 
 								rtcService.removePeer(cPlayerPeers[cPlayer.id]);
 								delete cPlayerPeers[cPlayer.id];
 							}
+						}
+						for (var cPlayerId in cPlayerPeers) {
+							if (!currentConnectedPlayers[cPlayerId]) {
+								rtcService.removePeer(cPlayerPeers[cPlayerId], {
+									disconnectReceiver: true
+								});
+								delete cPlayerPeers[cPlayerId];
+							}
+						}
+						var sNoms = jConnectes.querySelectorAll("[data-player]");
+						for (var i=0;i<sNoms.length;i++) {
+							var sNom = sNoms[i];
+							if (!currentConnectedPlayers[sNom.dataset.player])
+								jConnectes.removeChild(sNom);
 						}
 						var messages = rCode[1];
 						if (messages.length) {
@@ -25150,8 +25170,10 @@ function setChat() {
 						}
 						setTimeout(refreshChat, 1000);
 					}
-					else
+					else {
 						chatting = false;
+						stopVocChat();
+					}
 					return true;
 				}
 				return false;
@@ -25174,6 +25196,12 @@ function setChat() {
 	});
 	
 	document.body.appendChild(oChat);
+}
+function stopVocChat() {
+	if (rtcService) {
+		cPlayerPeers = {};
+		rtcService.quitVocChat();
+	}
 }
 
 window.MarioKartControl = {

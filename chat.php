@@ -7,13 +7,12 @@ if ($id) {
 	if ($course) {
 		mysql_query('DELETE FROM mkmuted WHERE end_date<=NOW()');
 		echo '[';
-		$players = mysql_query('SELECT DISTINCT j.id,j.nom,v.id AS peer,v.syncid,v.muted,(i.ignorer IS NOT NULL) AS ignored FROM `mkjoueurs` j LEFT JOIN `mkchatvoc` v ON j.id=v.player AND j.course=v.course LEFT JOIN `mkignores` i ON ((i.ignored=v.player AND i.ignorer='.$id.') OR (i.ignored='.$id.' AND i.ignorer=v.player)) WHERE j.course='.$course);
+		$players = mysql_query('SELECT DISTINCT j.id,j.nom,v.id AS peer,v.muted,(i.ignorer IS NOT NULL) AS ignored FROM `mkjoueurs` j LEFT JOIN `mkchatvoc` v ON j.id=v.player AND j.course=v.course LEFT JOIN `mkignores` i ON ((i.ignored=v.player AND i.ignorer='.$id.') OR (i.ignored='.$id.' AND i.ignorer=v.player)) WHERE j.course='.$course);
 		$playersData = array();
 		while ($player = mysql_fetch_array($players)) {
 			$playerData = array(
 				'id' => +$player['id'],
-				'name' => $player['nom'],
-				'syncid' => +$player['syncid']
+				'name' => $player['nom']
 			);
 			if ($player['peer'])
 				$playerData['peer'] = +$player['peer'];
