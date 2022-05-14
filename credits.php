@@ -161,6 +161,12 @@ include('menu.php');
                 'for' => $language ? 'for the':'pour le',
                 'description' => $language ? 'sprite of Toadette':'sprite de Toadette'
             ),
+            array(
+                'author' => 'Angel121',
+                'base_url' => 'profil.php?id=45670',
+                'for' => $language ? 'for the':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_skelerex.png">sprite of Dry Bones</a>':'<a href="images/sprites/sprite_skelerex.png">sprite de Skelerex</a>'
+            ),
         ),
         ($language ? 'Other resources - Musics':'Autres ressources - Musiques') => array(
             array(
