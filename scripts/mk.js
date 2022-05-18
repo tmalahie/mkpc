@@ -24781,6 +24781,12 @@ function setChat() {
 			success: function() {
 				vConnectes.style.display = "none";
 				vChatActions.style.display = "inline-block";
+				vcLoading.style.display = "";
+				var lastUpdate = ++vcLoading.dataset.lastUpdate;
+				setTimeout(function() {
+					if (vcLoading.dataset.lastUpdate == lastUpdate)
+						vcLoading.style.display = "none";
+				}, 1000);
 				resetBtn();
 			},
 			error: function(e) {
@@ -24863,6 +24869,16 @@ function setChat() {
 		vChatActions.style.display = "none";
 	};
 	vChatActions.appendChild(vcaHangup);
+
+	var vcLoading = document.createElement("span");
+	vcLoading.className = "vocal-chat-loading";
+	vcLoading.style.display = "none";
+	if (!vcLoading.dataset) vcLoading.dataset = {};
+	vcLoading.dataset.lastUpdate = 0;
+	var vciLoading = document.createElement("img");
+	vciLoading.src = "images/ic_loading.png";
+	vcLoading.appendChild(vciLoading);
+	vChatActions.appendChild(vcLoading);
 
 	oChatActions.appendChild(vChatActions);
 
@@ -25053,8 +25069,9 @@ function setChat() {
 	oChat.appendChild(oRepondre);
 
 	var iChatLastMsg = 0;
-	if (!rtcService)
+	if (!rtcService) {
 		rtcService = RTCService();
+	}
 	function refreshChat() {
 		if (chatting) {
 			xhr("chat.php", "lastmsg="+iChatLastMsg, function(reponse) {
@@ -25124,8 +25141,23 @@ function setChat() {
 								cPlayerPeers[cPlayer.id] = cPlayer.peer;
 								if (cPlayer.ignored)
 									rtcService.removePeer(cPlayer.peer);
-								else
-									rtcService.addPeer(cPlayer.peer);
+								else {
+									var lastUpdate;
+									rtcService.addPeer(cPlayer.peer, {
+										loading: function() {
+											vcLoading.style.display = "";
+											lastUpdate = ++vcLoading.dataset.lastUpdate;
+										},
+										success: function() {
+											if (vcLoading.dataset.lastUpdate == lastUpdate)
+												vcLoading.style.display = "none";
+										},
+										error: function() {
+											if (vcLoading.dataset.lastUpdate == lastUpdate)
+												vcLoading.style.display = "none";
+										}
+									});
+								}
 							}
 							else {
 								sNom.querySelector(".online-chat-playerlisticon").style.display = "none";

@@ -111,12 +111,12 @@ function RTCService() {
         });
     }
 
-    function pollPeerSignal(memberPeerId) {
+    function pollPeerSignal(memberPeerId, options) {
         if (peers[memberPeerId].isPolling) return;
         peers[memberPeerId].isPolling = true;
-        doPollPeerSignal(memberPeerId, 100,0);
+        doPollPeerSignal(memberPeerId, 100, options);
     }
-    function doPollPeerSignal(memberPeerId, triedSince) {
+    function doPollPeerSignal(memberPeerId, triedSince, options) {
         if (!peers[memberPeerId]) return;
         if (peers[memberPeerId].hasStreamed) {
             peers[memberPeerId].isPolling = false;
@@ -126,6 +126,8 @@ function RTCService() {
             removePeer(memberPeerId, {
                 disconnectReceiver: true
             });
+            if (options && options.error)
+                options.error();
             return;
         }
         const interval = Math.max(100, triedSince/10-100);
@@ -142,7 +144,7 @@ function RTCService() {
                 peers[memberPeerId].conn.signal(signal.data);
             }
             setTimeout(function() {
-                doPollPeerSignal(memberPeerId, triedSince+interval);
+                doPollPeerSignal(memberPeerId, triedSince+interval, options);
             }, interval);
             return true;
         });
@@ -170,9 +172,11 @@ function RTCService() {
         });
     }
 
-    function addPeer(socket_id) {
+    function addPeer(socket_id, options) {
         if (!peerId) return false;
         if (peers[socket_id]) return false;
+        if (options.loading)
+            options.loading();
         var am_initiator = (socket_id < peerId);
         peers[socket_id] = {
             conn: new SimplePeer({
@@ -185,7 +189,7 @@ function RTCService() {
         
         peers[socket_id].conn.on('signal', data => {
             sendSignalDebounced(socket_id, data);
-            pollPeerSignal(socket_id);
+            pollPeerSignal(socket_id, options);
         })
         
         peers[socket_id].conn.on('stream', stream => {
@@ -196,6 +200,8 @@ function RTCService() {
             document.body.appendChild(newAudio);
             peers[socket_id].audio = newAudio;
             peers[socket_id].hasStreamed = true;
+            if (options && options.success)
+                options.success();
         })
         
         peers[socket_id].conn.on('error', () => {
@@ -208,7 +214,7 @@ function RTCService() {
         })
         
         if (!am_initiator)
-            pollPeerSignal(socket_id);
+            pollPeerSignal(socket_id, options);
         
         return true;
     }

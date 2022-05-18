@@ -60,6 +60,23 @@
 .vocal-chat-actions > button > img {
     height: 16px;
 }
+.vocal-chat-loading {
+    display: inline-block;
+    margin-left: 0.15em;
+    margin-right: 0.25em;
+}
+.vocal-chat-loading img {
+    height: 16px;
+    animation: spin 1s infinite linear;
+}
+@keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 .online-chat-closectn {
     position: absolute;
     right: -2px;
