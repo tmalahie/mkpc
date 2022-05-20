@@ -208,6 +208,10 @@ function RTCService() {
         });
         
         peers[socket_id].conn.on('close', () => {
+            if (!peers[socket_id] && options.error) {
+                options.error();
+                return;
+            }
             removePeer(socket_id, {
                 disconnectReceiver: true
             });

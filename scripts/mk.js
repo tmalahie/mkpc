@@ -25133,9 +25133,47 @@ function setChat() {
 								sNom.querySelector(".online-chat-playerlisticon").style.display = "";
 								sNom.querySelector(".online-chat-playerlisticon img").src = 'images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png';
 								var cPeer = rtcService.getPeer(cPlayer.peer);
-								if (cPeer && cPeer.audio && !window.lll) {
-									console.log(cPeer.audio.srcObject);
-									window.lll = 1;
+								if (cPeer && cPeer.audio) {
+									if (!cPeer.recorderHandler) {
+										(function(cPeer, oPlayerVolume) {
+											if (!oPlayerVolume) return;
+
+											var audioCtx = new AudioContext();
+											var analyser = audioCtx.createAnalyser();
+											audioCtx.createMediaStreamSource(cPeer.audio.srcObject).connect(analyser);
+											var sampleCount = 0, sumOfAmplitudes = 0;
+											var data = new Uint8Array(analyser.fftSize);
+											cPeer.recorderHandler = setInterval(function() {
+												if (!cPeer.audio.parentNode || !document.body.contains(oPlayerVolume) || !cPlayerPeers[identifiant]) {
+													clearInterval(cPeer.recorderHandler);
+													delete cPeer.recorderHandler;
+													analyser.disconnect();
+													
+													oPlayerVolume.style.width = "";
+													oPlayerVolume.style.height = "";
+													oPlayerVolume.style.left = "";
+													oPlayerVolume.style.top = "";
+													return;
+												}
+												analyser.getByteTimeDomainData(data);
+												var avgVolum = 0;
+												for (var i=0;i<data.length;i++) {
+													avgVolum += Math.abs(data[i]-128);
+												}
+												avgVolum /= data.length;
+
+												var rVolum = Math.pow(avgVolum/128, 0.15);
+												var l = 6 + rVolum*18;
+												if (l < 14) l = 0;
+												var x = (16-l)/2;
+												oPlayerVolume.style.width = Math.round(l) +"px";
+												oPlayerVolume.style.height = Math.round(l) +"px";
+												oPlayerVolume.style.left = Math.round(x-1) +"px";
+												oPlayerVolume.style.top = Math.round(x+1) +"px";
+
+											}, 300);
+										})(cPeer, sNom.querySelector(".online-chat-playerlistvolume"));
+									}
 								}
 
 								cPlayerPeers[cPlayer.id] = cPlayer.peer;
