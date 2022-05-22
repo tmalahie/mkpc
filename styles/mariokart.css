@@ -524,7 +524,7 @@ input[type="button"]:focus, input[type="submit"]:focus, button:focus {
     opacity: 0.3;
     cursor: default;
 }
-input[type="button"].disablable:disabled {
+input[type="button"].disablable:disabled, button.disablable:disabled {
     background-color: #060610;
     border: outset 1px #4D4923;
     color: #FEFF3F;

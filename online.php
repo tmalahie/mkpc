@@ -202,7 +202,7 @@ if (isset($privateLink)) {
 ?>
 
 <?php include('c_mariokart.php'); ?>
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css?reload=1" />
 
 <?php
 if (!$isCup) {
@@ -422,6 +422,9 @@ include('handleCupOptions.php');
 <?php
 include('gameInitElts.php');
 ?>
+<script type="text/javascript" src="scripts/simplepeer.min.js"></script>
+<script type="text/javascript">var rtcService, cPlayerPeers = {};</script>
+<script type="text/javascript" src="scripts/mk-online.js"></script>
 <?php include('mk/description.php'); ?>
 </body>
 </html>

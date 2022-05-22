@@ -17,19 +17,66 @@
 .online-chat-connecteds {
     border: solid 1px silver;
 }
-.online-chat-connecteds > a {
-    text-decoration: none;
-    margin-left: 10px;
-    opacity: 0.7;
+.online-chat-playerlistelt:not(:last-child)::after {
+    content: ", ";
+    position: relative;
+}
+.online-chat-playerlisticon {
+    opacity: 0.8;
+    margin-left: 0.5em;
+    margin-right: 0.15em;
+}
+.online-chat-playerlisticon img {
     position: relative;
     top: 2px;
+    height: 14px;
 }
-.online-chat-connecteds:hover > a {
+.online-chat-actions {
+    margin-bottom: 3px;
+}
+.online-chat-actions > button {
+    cursor: pointer;
+    margin-left: 10px;
+    opacity: 0.7;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.online-chat-connecteds:hover .online-chat-actions > button:not(:disabled) {
     opacity: 1;
 }
-.online-chat-connecteds > a > img {
+.online-chat-actions > button > img {
     height: 16px;
 }
+.vocal-chat-actions {
+    padding: 0 1px;
+    margin: 0 8px 0 5px;
+    background-color: #073;
+    border-radius: 2px;
+}
+.vocal-chat-actions > button {
+    margin: 2px;
+}
+.vocal-chat-actions > button > img {
+    height: 16px;
+}
+.vocal-chat-loading {
+    display: inline-block;
+    margin-left: 0.15em;
+    margin-right: 0.25em;
+}
+.vocal-chat-loading img {
+    height: 16px;
+    animation: spin 1s infinite linear;
+}
+@keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 .online-chat-closectn {
     position: absolute;
     right: -2px;
@@ -137,6 +184,25 @@
 }
 .online-chat-closed > *:not(.online-chat-closectn) {
     display: none;
+}
+.online-chat-playerlistelt {
+    display: inline-block;
+}
+.online-chat-playerlisticon {
+    display: inline-block;
+    position: relative;
+    width: 16px;
+    height: 16px;
+}
+.online-chat-playerlistvolume {
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 8px;
+    top: 8px;
+    border-radius: 50%;
+    background-color: #679;
+    transition: width 0.25s, height 0.25s, left 0.25s, top 0.25s;
 }
 @media (max-width: 849px) {
     .online-chat.online-chat-closed {
