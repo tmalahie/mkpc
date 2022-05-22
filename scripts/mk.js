@@ -24774,7 +24774,7 @@ function setChat() {
 	vConnectes.appendChild(viConnectes);
 	vConnectes.onclick = function() {
 		function resetBtn() {
-			vtConnectes.nodeValue = language ? "Vocal chat" : "Chat vocal";
+			vtConnectes.nodeValue = language ? "Voice chat" : "Chat vocal";
 			vConnectes.disabled = false;
 		}
 		rtcService.joinVocChat({
@@ -24804,7 +24804,7 @@ function setChat() {
 	vConnectes.onmouseout = function() {
 		viConnectes.src = "images/ic_voc.png";
 	};
-	var vtConnectes = document.createTextNode(language ? "Vocal chat" : "Chat vocal");
+	var vtConnectes = document.createTextNode(language ? "Voice chat" : "Chat vocal");
 	vConnectes.appendChild(vtConnectes);
 	vConnectes.style.marginRight = "10px";
 	oChatActions.appendChild(vConnectes);

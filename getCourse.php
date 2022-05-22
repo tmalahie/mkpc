@@ -22,7 +22,6 @@ if ($id) {
 			mysql_query('UPDATE `mkjoueurs` SET course='.$course.',choice_map=0 WHERE id='.$id);
 			mysql_query('UPDATE `mkplayers` SET course='.$course.' WHERE id='.$id);
 		}
-		//mysql_query('DELETE v,p FROM `mkchatvoc` v LEFT JOIN `mkchatvocpeer` p ON v.id=p.sender OR v.id=p.receiver WHERE v.player='.$id.' AND v.course='.$course);
 		unset($_SESSION['date']);
 	}
 	function sendCourseNotifs() {
