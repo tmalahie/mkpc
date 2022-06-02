@@ -5,13 +5,18 @@ function getSubmitMsg() {
 	if (isMCups) {
 		if (selectedCircuits.length < 2)
 			return (language ? "You must select at least 2 cups":"Vous devez sélectionner au moins 2 coupes");
-		if (selectedCircuits.length > allCups.length)
-			return (language ? "You can select at most 18 cups":"Vous pouvez sélectionner 18 coupes au maximum");
-		if (actualLines.length > 4)
-			return (language ? "Please define at most 4 lines of cup":"Veuillez définir au plus 4 lignes de coupe");
+		if (selectedCircuits.length > 36)
+			return (language ? "You can select at most 36 cups":"Vous pouvez sélectionner 36 coupes au maximum");
 		for (var i=0;i<actualLines.length;i++) {
 			if (actualLines[i] > 8)
 				return (language ? "Please define at most 8 cups per line":"Veuillez définir au plus 8 coupes par ligne");
+		}
+		for (var i=0;i<=cupPages.length;i++) {
+			var minLine = getBeginCupPage(), maxLine = getEndCupPage();
+			if ((maxLine - minLine) > 4)
+				return (language ? "Please define at most 4 lines of cup":"Veuillez définir au plus 4 lignes de coupe");
+			if (arraySum(actualLines.slice(minLine, maxLine)) > allCups.length)
+				return (language ? "Please define at most 18 cups per page":"Veuillez définir au plus 18 coupes par page");
 		}
 		if (persoList) {
 			if (!persoList.length)
@@ -40,7 +45,7 @@ function selectCircuit(tr, isAuto) {
 		}
 	}
 	if (!isAuto) {
-		resetCupOptions();
+		resetCupOptions(true);
 		updateGUI();
 	}
 }
@@ -138,24 +143,34 @@ var cupLines = [];
 var persoList;
 var actualIcons, actualLines;
 var allCups = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
-function resetCupOptions() {
+var cupPage = 0;
+var cupPages = [];
+function resetCupOptions(full) {
 	if (isMCups) {
-		var nbCups = Math.min(selectedCircuits.length,allCups.length);
+		var nbCups = selectedCircuits.length;
 		var cups_per_line = 6;
 		var nb_lines = Math.ceil(nbCups/cups_per_line);
-		cups_per_line = Math.ceil(nbCups/nb_lines);
+		if (nbCups < allCups.length)
+			cups_per_line = Math.ceil(nbCups/nb_lines);
 		actualIcons = [];
-		for (var i=0;i<cupIcons.length;i++)
+		var usedIcons = {};
+		for (var i=0;i<cupIcons.length;i++) {
 			actualIcons[i] = cupIcons[i];
+			usedIcons[actualIcons[i]] = 1;
+		}
 		var cup = 0;
 		while (actualIcons.length < nbCups) {
 			for (;cup<allCups.length;cup++) {
-				if (actualIcons.indexOf(cup) == -1) {
+				if (!usedIcons[cup]) {
 					actualIcons.push(cup);
+					usedIcons[cup] = 1;
 					break;
 				}
 			}
-			if (cup >= allCups.length) break;
+			if (cup >= allCups.length) {
+				usedIcons = {};
+				cup = 0;
+			}
 		}
 		actualIcons.length = nbCups;
 
@@ -180,6 +195,24 @@ function resetCupOptions() {
 			if (nbCells < actualIcons.length) {
 				actualLines.push(actualIcons.length-nbCells);
 				nbCells = actualIcons.length;
+			}
+		}
+		for (var i=cupPages.length-1;i>=0;i--) {
+			if (cupPages[i] < actualLines.length) break;
+			cupPages.pop();
+		}
+		if (cupPage > cupPages.length) cupPage = cupPages.length;
+		if (full) {
+			for (var i=0;i<=cupPages.length;i++) {
+				var minCup = getBeginCupPage(i), maxCup = getEndCupPage(i);
+				var cupDiff = 0;
+				for (var j=minCup;j<maxCup;j++) {
+					cupDiff += actualLines[j];
+					if (cupDiff > allCups.length) {
+						cupPages.push(j);
+						break;
+					}
+				}
 			}
 		}
 
@@ -207,6 +240,8 @@ function resetCupAppearance() {
 	if (confirm(language ? "Reset cup appearance to default?":"Rétablir l'apparence par défaut ?")) {
 		cupLines = [];
 		cupIcons = [];
+		cupPages = [];
+		cupPage = 0;
 		updateCupImgGUI();
 	}
 }
@@ -222,57 +257,120 @@ function updateCupImgGUI() {
 	$cupAppearance.innerHTML = "";
 	nbRowsInLine = 0;
 	var currentLine = 0;
+	var minLine = getBeginCupPage(), maxLine = getEndCupPage();
 	for (var i=0;i<actualIcons.length;i++) {
-		var $cupImg = document.createElement("img");
-		$cupImg.className = "pixelated";
-		if (typeof actualIcons[i] === "number")
-			$cupImg.src = "images/cups/"+ allCups[actualIcons[i]] +".gif";
-		else {
-			$cupImg.src = actualIcons[i];
-			$cupImg.onload = function() {
-				if (this.naturalWidth > this.naturalHeight) {
-					this.style.width = "50px";
-					this.style.height = "auto";
-				}
-				else {
-					this.style.width = "auto";
-					this.style.height = "50px";
+		var inPage = (currentLine >= minLine && currentLine < maxLine);
+		if (inPage) {
+			var $cupImg = document.createElement("img");
+			$cupImg.className = "pixelated";
+			if (typeof actualIcons[i] === "number")
+				$cupImg.src = "images/cups/"+ allCups[actualIcons[i]] +".gif";
+			else {
+				$cupImg.src = actualIcons[i];
+				$cupImg.onload = function() {
+					if (this.naturalWidth > this.naturalHeight) {
+						this.style.width = "50px";
+						this.style.height = "auto";
+					}
+					else {
+						this.style.width = "auto";
+						this.style.height = "50px";
+					}
 				}
 			}
+			if (!$cupImg.dataset) $cupImg.dataset = {};
+			$cupImg.dataset.id = i;
+			$cupImg.onclick = function() {
+				this.className = "editing-cup-img";
+				selectCupImg(+this.dataset.id);
+			};
+			$cupAppearance.appendChild($cupImg);
 		}
-		if (!$cupImg.dataset) $cupImg.dataset = {};
-		$cupImg.dataset.id = i;
-		$cupImg.onclick = function() {
-			this.className = "editing-cup-img";
-			selectCupImg(+this.dataset.id);
-		};
-		$cupAppearance.appendChild($cupImg);
 		if (i < (actualIcons.length-1)) {
-			var $cursor = document.createElement("div");
-			$cursor.className = "cup-appearance-cursor";
-			$cursor.title = language ? "Add/remove line break" : "Ajouter/Supprimer un retour à la ligne";
-			$cursor.onclick = function(e) {
-				selectLineCursor(this,e);
+			var $cursor = null;
+			if (inPage) {
+				$cursor = document.createElement("div");
+				$cursor.className = "cup-appearance-cursor";
+				$cursor.title = language ? "Add/remove line break" : "Ajouter/Supprimer un retour à la ligne";
+				$cursor.onclick = function(e) {
+					selectLineCursor(this,e);
+				}
+				$cursor.oncontextmenu = function(e) {
+					selectLineCursor(this,e);
+					return false;
+				}
+				$cursor.innerHTML = "<div></div>";
+				$cupAppearance.appendChild($cursor);
 			}
-			$cursor.oncontextmenu = function(e) {
-				selectLineCursor(this,e);
-				return false;
-			}
-			$cursor.innerHTML = "<div></div>";
-			$cupAppearance.appendChild($cursor);
 			nbRowsInLine++;
 			if (nbRowsInLine >= actualLines[currentLine]) {
-				$cupAppearance.appendChild(document.createElement("br"));
+				if (inPage) $cupAppearance.appendChild(document.createElement("br"));
 				nbRowsInLine = 0;
 				currentLine++;
 			}
-			if (!$cursor.dataset) $cursor.dataset = {};
-			$cursor.dataset.line = currentLine;
-			$cursor.dataset.row = nbRowsInLine;
+			if ($cursor) {
+				if (!$cursor.dataset) $cursor.dataset = {};
+				$cursor.dataset.line = currentLine;
+				$cursor.dataset.row = nbRowsInLine;
+			}
 		}
 	}
-	document.getElementById("reset-cup-appearance").style.display = ((cupLines.length || cupIcons.length)) ? "":"none";
+	updateCupPageGUI();
+	document.getElementById("reset-cup-appearance").style.display = ((cupLines.length || cupIcons.length || cupPages.length)) ? "":"none";
 	updateSubmitMsg();
+}
+function updateCupPageGUI() {
+	if (!cupPages.length) {
+		document.getElementById("cup-appearance-page").style.display = "none";
+		return;
+	}
+	document.getElementById("cup-appearance-page").style.display = "";
+	document.getElementById("cup-appearance-page-prev").disabled = (cupPage <= 0);
+	document.getElementById("cup-appearance-page-next").disabled = (cupPage >= cupPages.length);
+}
+function selectCupPage(p) {
+	cupPage = p;
+	updateCupImgGUI();
+}
+function prevCupPage() {
+	selectCupPage(cupPage-1);
+}
+function nextCupPage() {
+	selectCupPage(cupPage+1);
+}
+function addCupPage(line) {
+	cupPages.splice(cupPage,0,line);
+	updateCupImgGUI();
+}
+function getBeginCupPage(p) {
+	if (p === undefined) p = cupPage;
+	if (p > 0)
+		return cupPages[p-1];
+	return 0;
+}
+function getBeginCupPageId(p) {
+	if (p === undefined) p = cupPage;
+	if (p > 0)
+		return arraySum(actualLines.slice(0,cupPages[p-1]));
+	return 0;
+}
+function getEndCupPage(p) {
+	if (p === undefined) p = cupPage;
+	if (p < cupPages.length)
+		return cupPages[p];
+	return actualLines.length;
+}
+function getEndCupPageId(p) {
+	if (p === undefined) p = cupPage;
+	if (p < cupPages.length)
+		return arraySum(actualLines.slice(0,cupPages[p]));
+	return selectedCircuits.length;
+}
+function arraySum(arr) {
+	var sum = 0;
+	for (var i=0;i<arr.length;i++)
+		sum += arr[i];
+	return sum;
 }
 function updateCupPersosGUI() {
 	resetCupOptions();
@@ -369,9 +467,10 @@ function selectCupImg(cup) {
 		oImg.onclick = function() {
 			cupIcons = actualIcons;
 			var id = +this.dataset.id;
-			var oldCup = cupIcons.indexOf(id);
+			var minCup = getBeginCupPageId(), maxCup = getEndCupPageId();
+			var oldCup = cupIcons.slice(minCup,maxCup).indexOf(id);
 			if (oldCup != -1)
-				cupIcons[oldCup] = cupIcons[cup];
+				cupIcons[minCup+oldCup] = cupIcons[cup];
 			cupIcons[cup] = id;
 			closeMask();
 			updateCupImgGUI();
@@ -410,15 +509,31 @@ function selectLineCursor($editingCursor,e) {
 		cupLines[line] -= row;
 		cupLines.splice(line, 0, row);
 		cupLines[line] = row;
+		for (var i=cupPage;i<cupPages.length;i++)
+			cupPages[i]++;
 		updateCupImgGUI();
+	}
+	function addNewPage() {
+		addCupPage(line);
 	}
 	function rmNewLine() {
 		cupLines = actualLines;
 		cupLines[line-1] += cupLines[line];
 		cupLines.splice(line, 1);
+		var isEOL = (cupPages[cupPage] === line);
+		for (var i=cupPage;i<cupPages.length;i++)
+			cupPages[i]--;
+		if (isEOL)
+			cupPages.splice(cupPage,1);
 		updateCupImgGUI();
 	}
 	if (eol) {
+		if (cupPages[cupPage] !== line) {
+			items.push({
+				label: language ? "New page here" : "Nouvelle page ici",
+				select: addNewPage
+			});
+		}
 		items.push({
 			label: language ? "<strong>Remove line</strong>" : "<strong>Supprimer ligne</strong>",
 			select: rmNewLine

@@ -64,7 +64,7 @@ include('handleCupOptions.php');
 			This editor allows you to merge several cups on the same page.<br />
 			You have created cups of a same series and you want to join them together?<br />
 			You often play online on your circuits and you don't want to be limited to 4 races?<br />
-			This mode is made for you! You can join <strong>up to 18 cups</strong>!<br />
+			This mode is made for you! You can join <strong>up to 36 cups</strong>!<br />
 			Just select the creations of your choice, like in the cups editor.
 				<?php
 			}
@@ -73,7 +73,7 @@ include('handleCupOptions.php');
 			Cet éditeur vous permet de rassembler plusieurs coupes sur une même page.<br />
 			Vous avez créé des coupes d'une même série et vous souhaitez les réunir ?<br />
 			Vous jouez souvent en ligne sur vos circuits et vous ne voulez pas être limité à 4 courses ?<br />
-			Ce mode est fait pour vous ! Vous pouvez réunir <strong>jusqu'à 18 coupes</strong> !<br />
+			Ce mode est fait pour vous ! Vous pouvez réunir <strong>jusqu'à 36 coupes</strong> !<br />
 			Sélectionnez simplement les créations de votre choix, comme dans l'éditeur de coupes.
 				<?php
 			}
@@ -147,6 +147,12 @@ include('handleCupOptions.php');
 					<div class="option-container-selected">
 						<h2><?php echo $language ? 'Multicup appearance:':'Apparence de votre coupe :'; ?> <a id="reset-cup-appearance" href="javascript:resetCupAppearance()">[<?php echo $language ? 'Reset':'Réinitialiser'; ?>]</a></h2>
 						<div id="cup-appearance"></div>
+						<div id="cup-appearance-page">
+							<div class="cup-appearance-page-buttons">
+								<button type="button" id="cup-appearance-page-prev" onclick="prevCupPage()">◄</button>
+								<button type="button" id="cup-appearance-page-next" onclick="nextCupPage()">►</button>
+							</div>
+						</div>
 					</div>
 					<div>
 						<h2><?php echo $language ? 'Character roster:':'Liste des persos :'; ?> <a id="reset-character-roster" href="javascript:resetCharacterRoster()">[<?php echo $language ? 'Reset':'Réinitialiser'; ?>]</a></h2>
