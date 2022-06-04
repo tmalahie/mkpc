@@ -39,6 +39,9 @@ function toSQLFilter($sql, $params) {
 		$pids = $params['pids'];
 		$sql .= ' AND identifiant="'.$pids[0].'" AND identifiant2="'.$pids[1].'" AND identifiant3="'.$pids[2].'" AND identifiant4="'.$pids[3].'"';
 	}
+	if (!empty($params['square'])) {
+		$sql .= ' AND id IN (SELECT circuit FROM mktrackbin)';
+	}
 	return $sql;
 }
 function toSQLSort($sql, $params) {
