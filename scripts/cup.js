@@ -61,6 +61,10 @@ function initGUI() {
 			if ($cupOptions.value) {
 				try {
 					var cupOptions = JSON.parse($cupOptions.value);
+					if (cupOptions && cupOptions.keyid) {
+						cupOptions = JSON.parse(sessionStorage.getItem("cupopt."+cupOptions.keyid));
+						$cupOptions.value = JSON.stringify(cupOptions);
+					}
 					if (cupOptions) {
 						if (cupOptions.icons) cupIcons = cupOptions.icons;
 						if (cupOptions.lines) cupLines = cupOptions.lines;
@@ -718,6 +722,15 @@ function selectPersoImg(pos) {
 			appendCustomCharacters();
 			return true;
 		});
+	}
+}
+function handleFormSubmit(e) {
+	var $form = e.target;
+	var optVal = $form.elements["opt"].value;
+	if (optVal) {
+		var key = Math.random().toString(16).substring(2);
+		sessionStorage.setItem("cupopt."+key, optVal);
+		$form.elements["opt"].value = JSON.stringify({ "keyid":key });
 	}
 }
 function showCustomCharToggleHelp() {

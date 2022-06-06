@@ -78,7 +78,7 @@ include('handleCupOptions.php');
 				<?php
 			}
 			?></div>
-		<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
+		<form method="get" onsubmit="return handleFormSubmit(event)" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
 		<div class="editor-content editor-content-active">
 			<h1><?php echo $language ? 'Cups selection':'S&eacute;lection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
 			<?php

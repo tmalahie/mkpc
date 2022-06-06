@@ -23,6 +23,15 @@ if (typeof noDS === 'undefined') {
 if (typeof cupOpts === 'undefined') {
 	var cupOpts = {};
 }
+else {
+	if (cupOpts.keyid) {
+		try {
+			cupOpts = JSON.parse(sessionStorage.getItem("cupopt."+cupOpts.keyid));
+		}
+		catch (e) {
+		}
+	}
+}
 if (typeof dCircuits === 'undefined') {
 	var dCircuits = lCircuits;
 }
@@ -21944,10 +21953,10 @@ function selectMapScreen(opts) {
 			var oPrevInput = document.createElement("input");
 			oPrevInput.type = "button";
 			oPrevInput.value = "\u25C4";
-			oPrevInput.style.fontSize = (2*iScreenScale)+"px";
+			oPrevInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
 			oPrevInput.style.position = "absolute";
 			oPrevInput.style.left = (72*iScreenScale)+"px";
-			oPrevInput.style.top = (32*iScreenScale)+"px";
+			oPrevInput.style.top = (34*iScreenScale)+"px";
 			oPrevInput.className = "disablable";
 			oPrevInput.onclick = function() {
 				opts.page--;
@@ -21962,10 +21971,10 @@ function selectMapScreen(opts) {
 			var oNextInput = document.createElement("input");
 			oNextInput.type = "button";
 			oNextInput.value = "\u25BA";
-			oNextInput.style.fontSize = (2*iScreenScale)+"px";
+			oNextInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
 			oNextInput.style.position = "absolute";
 			oNextInput.style.left = (76*iScreenScale)+"px";
-			oNextInput.style.top = (32*iScreenScale)+"px";
+			oNextInput.style.top = (34*iScreenScale)+"px";
 			oNextInput.className = "disablable";
 			oNextInput.onclick = function() {
 				opts.page++;
