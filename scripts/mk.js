@@ -21812,7 +21812,7 @@ function selectMapScreen(opts) {
 				}
 			}
 			else
-				oPImg.src = "images/cups/"+ coupes[i] +".gif";
+				oPImg.src = "images/cups/"+ coupes[i%coupes.length] +".gif";
 
 			if (course == "BB")
 				oPImg.alt = i+(NBCIRCUITS/4);

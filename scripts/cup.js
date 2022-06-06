@@ -226,8 +226,10 @@ function resetCupOptions(full) {
 			cupOptions.icons = actualIcons;
 		if (cupLines.length)
 			cupOptions.lines = actualLines;
-		if (cupPages.length)
+		if (cupPages.length) {
 			cupOptions.pages = cupPages;
+			cupOptions.lines = actualLines;
+		}
 		if (persoList) {
 			cupOptions.persos = persoList.map(function(data) {
 				if (data.id)
@@ -537,7 +539,7 @@ function selectLineCursor($editingCursor,e) {
 	if (eol) {
 		if (cupPages[cupPage] !== line) {
 			items.push({
-				label: language ? "New page here" : "Nouvelle page ici",
+				label: language ? '<span title="Split cups into multiple pages in selection screen. Do it for large multicups">New page here</span>' : '<span title="Séparer les coupes en plusieurs pages dans l\'écran de sélection. Utile pour les grosses multicoupes">Nouvelle page ici</span>',
 				select: addNewPage
 			});
 		}
