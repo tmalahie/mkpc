@@ -377,8 +377,12 @@ function addContraintRule(clClass) {
 			addConstraintNb($form,ruleId, language?'Place:':'Place :',{attrs:{min:1},css:{width:'40px'}});
 			break;
 		case 'difficulty':
-			if (clClass == "extra")
-				addConstraintSelector($form,ruleId, language?'Difficulty:':'Difficulté :', getConstraintOptions(clClass,ruleId));
+			if (clClass == "extra") {
+				addConstraintSelector($form,ruleId, language?'Difficulty:':'Difficulté :', getConstraintOptions(clClass,ruleId).map(function(option) {
+					return Object.assign({}, option, { value: option.value-2});
+				}));
+				$form.find('[name="scope['+ruleId+'][value]"]').prop("selectedIndex", 2);
+			}
 			else
 				addConstraintAutofill($form, ruleId,rulePayload.description,0);
 			break;

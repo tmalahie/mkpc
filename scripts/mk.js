@@ -2554,7 +2554,8 @@ function startGame() {
 			aipoint : 0,
 			lastAItime : 0,
 			aipoints : oMap.aipoints[0],
-			maxspeed : 5.7
+			maxspeed : 5.7,
+			maxspeed0: 5.7
 		};
 		if (isOnline) {
 			oEnemy.id = aIDs[i];
@@ -2730,8 +2731,10 @@ function startGame() {
 	}
 	else {
 		oMap.arme = [];
-		for (var i=0;i<aKarts.length;i++)
+		for (var i=0;i<aKarts.length;i++) {
 			aKarts[i].arme = "champiX3";
+			aKarts[i].maxspeed0 = aKarts[i].maxspeed;
+		}
 		aKarts[0].roulette = 25;
 		if (course == "CM") {
 			for (var i=0;i<gPersos.length;i++) {
@@ -2771,6 +2774,7 @@ function startGame() {
 					aipoint : 0,
 					aipoints : oMap.aipoints[0],
 					maxspeed : 5.7,
+					maxspeed0 : 5.7,
 
 					place : 1
 				});
@@ -13699,6 +13703,7 @@ function move(getId, triggered) {
 					oKart.aipoint = 0;
 					oKart.lastAItime = 0;
 					oKart.maxspeed = 5.7;
+					oKart.maxspeed0 = oKart.maxspeed;
 					if (!oPlayers[1-getId] || oPlayers[1-getId].cpu) {
 						if (!isOnline) {
 							if (course != "CM") {
@@ -14148,13 +14153,14 @@ function move(getId, triggered) {
 			var rRatio = 1.25;
 			if ((iDificulty > 4.75) && (aKarts.length > 8))
 				rRatio *= Math.log(1+100*aKarts.length/8)/5.5;
-			if (oKart.maxspeed > rSpeed*rRatio) oKart.maxspeed = rSpeed*rRatio;
-			else if (oKart.maxspeed < rSpeed) oKart.maxspeed = rSpeed;
+			if (oKart.maxspeed0 > rSpeed*rRatio) oKart.maxspeed0 = rSpeed*rRatio;
+			else if (oKart.maxspeed0 < rSpeed) oKart.maxspeed0 = rSpeed;
 			if (oKart.place <= oPlayerPlace)
-				oKart.maxspeed -= (oKart.maxspeed*influence-rSpeed*oKart.size*fSelectedClass)/100;
+				oKart.maxspeed0 -= (oKart.maxspeed0*influence-rSpeed*oKart.size*fSelectedClass)/100;
 			else
-				oKart.maxspeed += (rSpeed*rRatio*1.12*oKart.size*fSelectedClass-oKart.maxspeed*influence)/100;
+				oKart.maxspeed0 += (rSpeed*rRatio*1.12*oKart.size*fSelectedClass-oKart.maxspeed0*influence)/100;
 		}
+		oKart.maxspeed = oKart.maxspeed0;
 	}
 	else
 		oKart.maxspeed = 5.4 * oKart.stats.speed;
@@ -17040,15 +17046,17 @@ function privateGameOptions(gameOptions, onProceed) {
 	oSelect.style.fontSize = Math.round(iScreenScale*2.5) +"px";
 	oSelect.style.marginTop = Math.round(iScreenScale*1.5) +"px";
 
-	var iDifficulties = [toLanguage("Difficult", "Difficile"), toLanguage("Medium", "Moyen"), toLanguage("Easy", "Facile")];
+	var iDifficulties = [toLanguage("Impossible", "Impossible"), toLanguage("Extreme", "Extrême"), toLanguage("Difficult", "Difficile"), toLanguage("Medium", "Moyen"), toLanguage("Easy", "Facile")];
 	for (var i=0;i<iDifficulties.length;i++) {
 		var oOption = document.createElement("option");
-		oOption.value = i;
+		oOption.value = i-2;
 		oOption.innerHTML = iDifficulties[i];
 		oSelect.appendChild(oOption);
 	}
 	if (gameOptions && gameOptions.cpuLevel)
-		oSelect.selectedIndex = gameOptions.cpuLevel;
+		oSelect.value = gameOptions.cpuLevel;
+	else
+		oSelect.value = 0;
 
 	tDiv.appendChild(oSelect);
 	cDiv.appendChild(tDiv);
@@ -18871,7 +18879,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		}
 		if (course == "VS") {
 			oForm.appendChild(document.createTextNode(toLanguage("Difficulty: ", "Difficulté : ")));
-			var iDifficulties = [toLanguage("Easy", "Facile"), toLanguage("Medium", "Moyen"), toLanguage("Difficult", "Difficile")];
+			var iDifficulties = [toLanguage("Easy", "Facile"), toLanguage("Medium", "Moyen"), toLanguage("Difficult", "Difficile"), toLanguage("Extreme", "Extrême"), toLanguage("Impossible", "Impossible")];
 			var oSelect = document.createElement("select");
 			oSelect.name = "difficulty";
 			oSelect.style.width = "auto";

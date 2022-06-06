@@ -450,9 +450,11 @@ $clRulesByType = array(
 		),
 		'difficulty' => array(
 			'description_mockup' => $language ? 'difficulty...':'difficulté...',
-			'description' => $language ? 'in $options[$value] mode':'en mode $options[$value]',
+			'description_lambda' => function($language,&$scope) {
+				return $language ? 'in '.$scope->options[$scope->value+2].' mode':'en mode '.$scope->options[$scope->value+2];
+			},
 			'scope' => array(
-				'options' => $language ? array('difficult','medium','easy') : array('difficile','moyen','facile')
+				'options' => $language ? array('impossible','extreme','difficult','medium','easy') : array('impossible','extrême','difficile','moyen','facile')
 			),
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -759,8 +761,14 @@ function getRuleDescription($rule,$rulesClass=null) {
 			}
 		}
 	}
-	if (!isset($res) && isset($data['description_lambda']))
-		$res = $data['description_lambda']($language,$rule);
+	if (!isset($res) && isset($data['description_lambda'])) {
+		$scope = $rule;
+		if (isset($data['scope'])) {
+			foreach ($data['scope'] as $k=>$v)
+				$scope->{$k} = $v;
+		}
+		$res = $data['description_lambda']($language,$scope);
+	}
 	if (!isset($res)) {
 		$res = $data['description'];
 		$scope = (array)$rule;
