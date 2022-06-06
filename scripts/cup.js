@@ -64,6 +64,7 @@ function initGUI() {
 					if (cupOptions) {
 						if (cupOptions.icons) cupIcons = cupOptions.icons;
 						if (cupOptions.lines) cupLines = cupOptions.lines;
+						if (cupOptions.pages) cupPages = cupOptions.pages;
 						if (typeof characterRoster !== "undefined")
 							persoList = characterRoster;
 						if (cupOptions.customchars === 0)
@@ -221,6 +222,8 @@ function resetCupOptions(full) {
 			cupOptions.icons = actualIcons;
 		if (cupLines.length)
 			cupOptions.lines = actualLines;
+		if (cupPages.length)
+			cupOptions.pages = cupPages;
 		if (persoList) {
 			cupOptions.persos = persoList.map(function(data) {
 				if (data.id)

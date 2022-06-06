@@ -21571,7 +21571,8 @@ function chooseRandMap() {
 		choose(Math.ceil(Math.random()*NBCIRCUITS),true);
 }
 
-function selectMapScreen(force) {
+function selectMapScreen(opts) {
+	if (!opts) opts = {};
 	if (typeof shareLink !== "undefined")
 		bSelectedMirror = (shareLink.options && shareLink.options.mirror);
 	if (isOnline) {
@@ -21583,7 +21584,7 @@ function selectMapScreen(force) {
 		return;
 	}
 	else {
-		if (clSelected && !force) {
+		if (clSelected && !opts.force) {
 			switch (clSelected.trackType) {
 			case "cup":
 				var cupId = cupIDs.indexOf(clSelected.trackId);
@@ -21701,16 +21702,44 @@ function selectMapScreen(force) {
 			nbcoupes = 3;
 		}
 		var nb_lines = Math.ceil(nbcoupes/cups_per_line);
-		if (cupOpts.lines)
-			nb_lines = cupOpts.lines.length;
-		cups_per_line = Math.ceil(nbcoupes/nb_lines);
-		var max_cups_per_line = cups_per_line;
-		if (cupOpts.lines) {
-			max_cups_per_line = 0;
-			for (var i=0;i<cupOpts.lines.length;i++)
-				max_cups_per_line = Math.max(max_cups_per_line,cupOpts.lines[i]);
+		var nbCupInPage = nbcoupes;
+		var beginPage = 0, endPage = nb_lines;
+		var cupLines = cupOpts.lines;
+		if (cupLines) {
+			if (cupOpts.pages) {
+				if (!opts.page) {
+					opts.page = 0;
+					if (opts.cup) {
+						opts.cup /= 4;
+						var cupLine = 0, cupLineTot = 0;
+						while (cupLineTot+cupLines[cupLine] <= opts.cup) {
+							cupLineTot += cupLines[cupLine];
+							cupLine++;
+						}
+						while (cupOpts.pages[opts.page] <= cupLine)
+							opts.page++;
+						delete opts.cup;
+					}
+				}
+				var page = opts.page;
+				beginPage = (page>0) ? cupOpts.pages[page-1] : 0;
+				endPage = (page<cupOpts.pages.length) ? cupOpts.pages[page] : cupLines.length;
+				nbCupInPage = 0;
+				for (var i=beginPage;i<endPage;i++)
+					nbCupInPage += cupLines[i];
+			}
+			else
+				endPage = cupLines.length;
+			nb_lines = endPage - beginPage;
 		}
-		var cup_width = Math.min(Math.round(10.5/Math.pow(Math.max(nbcoupes/5,nb_lines,0.5),0.6)),16/nb_lines,60/max_cups_per_line);
+		cups_per_line = Math.ceil(nbCupInPage/nb_lines);
+		var max_cups_per_line = cups_per_line;
+		if (cupLines) {
+			max_cups_per_line = 0;
+			for (var i=0;i<cupLines.length;i++)
+				max_cups_per_line = Math.max(max_cups_per_line,cupLines[i]);
+		}
+		var cup_width = Math.min(Math.round(10.5/Math.pow(Math.max(nbCupInPage/5,nb_lines,0.5),0.6)),16/nb_lines,60/max_cups_per_line);
 		var cup_margin_x = Math.min(4,20/max_cups_per_line), cup_margin_y = (4/nb_lines);
 		var cup_offset_x = 1, cup_offset_y = 38;
 		if (course == "BB") {
@@ -21721,12 +21750,12 @@ function selectMapScreen(force) {
 		var currentLine = 0, currentRow = 0;
 		for (var i=0;i<nbcoupes;i++) {
 			var cup_i, cup_j, cups_in_line;
-			if (cupOpts.lines) {
-				cups_in_line = cupOpts.lines[currentRow];
+			if (cupLines) {
+				cups_in_line = cupLines[currentRow];
 				cup_i = currentLine;
 				cup_j = currentRow;
 				currentLine++;
-				if (currentLine >= cupOpts.lines[currentRow]) {
+				if (currentLine >= cupLines[currentRow]) {
 					currentLine = 0;
 					currentRow++;
 				}
@@ -21736,6 +21765,11 @@ function selectMapScreen(force) {
 				cup_i = i%cups_per_line;
 				cup_j = Math.floor(i/cups_per_line);
 			}
+
+			if (cup_j >= endPage) break;
+			cup_j -= beginPage;
+			if (cup_j < 0) continue;
+
 			var oPImg = document.createElement("img");
 			oPImg.className = "pixelated";
 
@@ -21905,6 +21939,44 @@ function selectMapScreen(force) {
 			oPInput.onclick = openRankings;
 			oScr.appendChild(oPInput);
 		}
+
+		if (cupOpts.pages && cupOpts.pages.length) {
+			var oPrevInput = document.createElement("input");
+			oPrevInput.type = "button";
+			oPrevInput.value = "\u25C4";
+			oPrevInput.style.fontSize = (2*iScreenScale)+"px";
+			oPrevInput.style.position = "absolute";
+			oPrevInput.style.left = (72*iScreenScale)+"px";
+			oPrevInput.style.top = (32*iScreenScale)+"px";
+			oPrevInput.className = "disablable";
+			oPrevInput.onclick = function() {
+				opts.page--;
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+				selectMapScreen(opts);
+			};
+			oPrevInput.disabled = (opts.page <= 0);
+			
+			oScr.appendChild(oPrevInput);
+
+			var oNextInput = document.createElement("input");
+			oNextInput.type = "button";
+			oNextInput.value = "\u25BA";
+			oNextInput.style.fontSize = (2*iScreenScale)+"px";
+			oNextInput.style.position = "absolute";
+			oNextInput.style.left = (76*iScreenScale)+"px";
+			oNextInput.style.top = (32*iScreenScale)+"px";
+			oNextInput.className = "disablable";
+			oNextInput.onclick = function() {
+				opts.page++;
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+				selectMapScreen(opts);
+			};
+			oNextInput.disabled = (opts.page >= cupOpts.pages.length);
+			
+			oScr.appendChild(oNextInput);
+		}
 		
 		if (isOnline) {
 			setTimeout(function() {
@@ -22024,10 +22096,10 @@ function selectRaceScreen(cup) {
 						}
 					}
 					else
-						selectMapScreen(true);
+						selectMapScreen({force:true,cup:cup});
 				}
 				else if (!isCup)
-					selectMapScreen(true);
+					selectMapScreen({force:true,cup:cup});
 				else if (!pause) selectGamersScreen();
 				else {removeMenuMusic(false);quitter();}
 			}
