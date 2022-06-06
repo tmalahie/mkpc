@@ -22,10 +22,37 @@ function isSquareTrack(&$circuit) {
     }
     if (!isset($depart)) return true;
     if (!isset($d)) return true;
+    if (isset($circuit["e0"])) return false;
+    if (isset($circuit["f0"])) return false;
+    if (isset($circuit["g0"])) return false;
+    if (isset($circuit["h0"])) return false;
+    if (isset($circuit["i0"])) return false;
+    if (isset($circuit["j0"])) return false;
+    $nbItems = 0;
+    for ($i=0;isset($circuit["o$i"]);$i++)
+        $nbItems++;
+    $nbBoosts = 0;
+    for ($i=0;isset($circuit["a$i"]);$i++)
+        $nbBoosts++;
+    for ($i=0;isset($circuit["b$i"]);$i++)
+        $nbBoosts++;
+    for ($i=0;isset($circuit["c$i"]);$i++)
+        $nbBoosts++;
+    for ($i=0;isset($circuit["d$i"]);$i++)
+        $nbBoosts++;
+    $nbDecors = 0;
+    for ($i=0;isset($circuit["t$i"]);$i++)
+        $nbDecors++;
+    for ($j=1;$j<10;$j++) {
+        for ($i=0;isset($circuit['t'.$j.'_'.$i]);$i++)
+            $nbDecors++;
+    }
+    if (($nbDecors*3+$nbBoosts*2+$nbItems) > 30) return false;
     $i = $depart;
     $direction = $d;
     $nbTurns = 0;
     $distance = 0;
+    $last = 0;
     while ($direction) {
         $i += $direction;
         if ($distance >= 50)
@@ -51,7 +78,13 @@ function isSquareTrack(&$circuit) {
             $nbTurns++;
             break;
             case 8 :
+                if ($last == 9)
+                    $nbTurns++;
+                break;
             case 9 :
+                if ($last == 8)
+                    $nbTurns++;
+                break;
             break;
             case 10 :
                 $nbTurns++;
@@ -63,6 +96,7 @@ function isSquareTrack(&$circuit) {
                 $direction = false;
             break;
         }
+        $last = $circuit["p$i"];
     }
     return ($nbTurns <= 4);
 }

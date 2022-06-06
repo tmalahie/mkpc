@@ -1,22 +1,28 @@
 <?php
 if ('cli' !== php_sapi_name()) exit;
-$circuitId = -1;
 $circuit = array();
 include('initdb.php');
 include('postCircuitUpdate.php');
-$getCircuitPieces = mysql_query('SELECT p.* FROM mkp p INNER JOIN mkcircuits c ON p.circuit=c.id WHERE !c.type ORDER BY p.circuit,p.id');
-function handleCircuit($circuitId, &$circuit) {
-    if ($circuitId === -1) return;
+require_once('circuitPrefix.php');
+$getCircuits = mysql_query('SELECT id FROM mkcircuits WHERE !type ORDER BY id');
+while ($circuitData = mysql_fetch_array($getCircuits)) {
+    $circuitId = $circuitData['id'];
+    $circuit = array();
+    $pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$circuitId.'"');
+    while ($piece = mysql_fetch_array($pieces))
+        $circuit['p'.$piece['id']] = $piece['piece'];
+    for ($j=0;$j<$nbLettres;$j++) {
+        $lettre = $lettres[$j];
+        $getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$circuitId.'"');
+        $incs = array();
+        while ($info=mysql_fetch_array($getInfos)) {
+            $prefix = getLetterPrefixD($lettre,$info);
+            if (!isset($incs[$prefix])) $incs[$prefix] = 0;
+            $circuit[$prefix.$incs[$prefix]] = $info['x'].','.$info['y'];
+            $incs[$prefix]++;
+        }
+    }
     if (postCircuitUpdate('mkcircuits', $circuitId, $circuit))
         echo "Flagged circuit $circuitId\n";
 }
-while ($circuitPiece = mysql_fetch_array($getCircuitPieces)) {
-    if ($circuitPiece['circuit'] !== $circuitId) {
-        handleCircuit($circuitId, $circuit);
-        $circuit = array();
-        $circuitId = $circuitPiece['circuit'];
-    }
-    $circuit['p'.$circuitPiece['id']] = $circuitPiece['piece'];
-}
-handleCircuit($circuitId, $circuit);
 mysql_close();
