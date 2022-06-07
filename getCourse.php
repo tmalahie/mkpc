@@ -182,6 +182,11 @@ if ($id) {
 						$alreadyCreated = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE 1'. $cupSQL));
 						if ($alreadyCreated)
 							break;
+						if ($nlink) {
+							require_once('apc.php');
+							if (!apcu_add("course.insert.$nlink", 1, 1))
+								break;
+						}
 					}
 					mysql_query('INSERT INTO `mariokart` VALUES (null, -1, '. ($time+35) .','. $nid .','. $nmode .','. $nlink .')');
 					$pID = mysql_insert_id();
