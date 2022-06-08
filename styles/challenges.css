@@ -475,6 +475,10 @@ a.pretty-link:hover {
 	padding: 0 5px 1px 5px;
 	border-radius: 5px;
 }
+.challenge-moderation-error small {
+	display: block;
+	margin-top: 5px;
+}
 .challenge-moderation-success {
 	max-width: 600px;
 	display: inline-block;
