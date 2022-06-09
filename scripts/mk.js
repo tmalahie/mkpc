@@ -315,6 +315,62 @@ function setScreenScale(iValue, triggered) {
 			updateCtnFullScreen(true);
 		return;
 	}
+	else if (iValue == -2) {
+		formulaire.screenscale.value = aScreenScale;
+		var customSizeDialog = document.createElement("div");
+		customSizeDialog.className = "customSizeDialog";
+		customSizeDialog.innerHTML = '<form class="customSizeDialog-content">'+
+			'<div class="customSizeDialog-title">'+
+				toLanguage("Custom size...", "Taille personnalisée...") +
+			'</div>'+
+			'<input type="range" min="2" max="36" step="2" class="customSizeDialog-cursor" />'+
+			'<div class="customSizeDialog-resolution"></div>' +
+			'<div class="customSizeDialog-submit">'+
+				'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
+				'<a href="#null" class="customSizeDialog-cancel">'+ toLanguage("Cancel", "Annuler") +'</a>'+
+			'</div>' +
+		'</form>';
+		var $cursor = customSizeDialog.querySelector(".customSizeDialog-cursor");
+		function updateResolution() {
+			var nScreenScale = +$cursor.value;
+			customSizeDialog.querySelector(".customSizeDialog-resolution").innerHTML = (nScreenScale*iWidth) +"&times;" + (nScreenScale*iHeight);
+		}
+		function closeDialog() {
+			document.body.removeChild(customSizeDialog);
+		}
+		function submitDialog() {
+			var nScreenScale = +$cursor.value;
+			addScreenScaleOption(nScreenScale);
+			setScreenScale(nScreenScale);
+			closeDialog();
+		}
+		$cursor.value = aScreenScale;
+		updateResolution();
+		$cursor.oninput = function() {
+			var nScreenScale = +$cursor.value;
+			if (!formulaire.dataset.disabled)
+				previewScreenScale(aScreenScale, nScreenScale);
+			updateResolution();
+		}
+		customSizeDialog.onclick = function(e) {
+			submitDialog();
+		}
+		customSizeDialog.querySelector(".customSizeDialog-content").onclick = function(e) {
+			e.stopPropagation();
+		}
+		customSizeDialog.querySelector(".customSizeDialog-content").onsubmit = function() {
+			submitDialog();
+			return false;
+		}
+		customSizeDialog.querySelector(".customSizeDialog-submit a").onclick = function() {
+			if (!formulaire.dataset.disabled)
+				previewScreenScale(aScreenScale, aScreenScale);
+			closeDialog();
+			return false;
+		}
+		document.body.appendChild(customSizeDialog);
+		return;
+	}
 	else {
 		if (!triggered) {
 			localStorage.setItem("iScreenScale", iValue);
@@ -325,20 +381,35 @@ function setScreenScale(iValue, triggered) {
 	if (bRunning)
 		resetScreen();
 
+	previewScreenScale(aScreenScale, iScreenScale);
+
+	reposKeyboard();
+	setSRest();
+}
+
+function addScreenScaleOption(nScreenScale) {
+	var oValue = formulaire.screenscale.querySelector('option[value="'+nScreenScale+'"]');
+	if (!oValue) {
+		var nOption = document.createElement("option");
+		nOption.value = nScreenScale;
+		nOption.innerHTML = (nScreenScale*iWidth) +"&times;" + (nScreenScale*iHeight);
+		formulaire.screenscale.insertBefore(nOption, formulaire.screenscale.childNodes[formulaire.screenscale.childNodes.length-2]);
+	}
+	formulaire.screenscale.value = nScreenScale;
+}
+
+function previewScreenScale(aScreenScale, nScreenScale) {
 	for (var i=0;i<oContainers.length;i++) {
 		var oScr = oContainers[i].firstChild;
 		if (oScr) {
 			if (!oScr.aScreenScale)
 				oScr.aScreenScale = aScreenScale;
-			oScr.style.width = (iWidth*iScreenScale)+"px";
-			oScr.style.height = (iHeight*iScreenScale)+"px";
+			oScr.style.width = (iWidth*nScreenScale)+"px";
+			oScr.style.height = (iHeight*nScreenScale)+"px";
 			oScr.style.transformOrigin = oScr.style.WebkitTransformOrigin = oScr.style.MozTransformOrigin = "top left";
-			oScr.style.transform = oScr.style.WebkitTransform = oScr.style.MozTransform = "scale("+ (iScreenScale/oScr.aScreenScale) +")";
+			oScr.style.transform = oScr.style.WebkitTransform = oScr.style.MozTransform = "scale("+ (nScreenScale/oScr.aScreenScale) +")";
 		}
 	}
-
-	reposKeyboard();
-	setSRest();
 }
 
 function showParamChangeDisclaimer() {
@@ -24670,8 +24741,10 @@ else {
 		[8, toLanguage("Medium","Moyenne")],
 		[10, toLanguage("Large","Large")],
 		[12, toLanguage("Very large","Tr&egrave;s large")],
-		[-1, toLanguage("Full (F11)","Plein (F11)")]
+		[-1, toLanguage("Full (F11)","Plein (F11)")],
+		[-2, toLanguage("Custom...","Personnalisé...")]
 	], (+$mkScreen.dataset.lastsc)||iScreenScale);
+	addScreenScaleOption(iScreenScale);
 	addOption("pMusic", toLanguage("Music","Musique"),
 	"vMusic", "music", [
 		[0, toLanguage("Off","D&eacute;sactiv&eacute;e")],
