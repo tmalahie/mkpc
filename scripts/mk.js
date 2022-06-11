@@ -198,6 +198,59 @@ function resetQuality() {
 }
 
 function setFps(iValue) {
+	if (iValue == -2) {
+		formulaire.fps.value = iFps;
+		var customSizeDialog = document.createElement("div");
+		customSizeDialog.className = "customOptionDialog";
+		customSizeDialog.innerHTML = '<form class="customOptionDialog-content">'+
+			'<div class="customOptionDialog-title">'+
+				toLanguage("Custom FPS...", "Choix des FPS...") +
+			'</div>'+
+			'<input type="range" min="1" max="8" step="1" class="customOptionDialog-cursor" />'+
+			'<div class="customOptionDialog-textValue"></div>' +
+			'<div class="customOptionDialog-submit">'+
+				'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
+				'<a href="#null" class="customOptionDialog-cancel">'+ toLanguage("Cancel", "Annuler") +'</a>'+
+			'</div>' +
+		'</form>';
+		var $cursor = customSizeDialog.querySelector(".customOptionDialog-cursor");
+		var $content = customSizeDialog.querySelector(".customOptionDialog-content");
+		function updateFpsVal() {
+			var nFps = $cursor.value*15;
+			customSizeDialog.querySelector(".customOptionDialog-textValue").innerHTML = nFps +" FPS";
+		}
+		function closeDialog() {
+			document.body.removeChild(customSizeDialog);
+		}
+		function submitDialog() {
+			var nFps = +$cursor.value;
+			addFpsOption(nFps);
+			setFps(nFps);
+			closeDialog();
+		}
+		$cursor.value = iFps;
+		updateFpsVal();
+		$cursor.oninput = function() {
+			updateFpsVal();
+		}
+		customSizeDialog.onclick = function(e) {
+			submitDialog();
+		}
+		$content.style.bottom = "5px";
+		$content.onclick = function(e) {
+			e.stopPropagation();
+		}
+		$content.onsubmit = function() {
+			submitDialog();
+			return false;
+		}
+		customSizeDialog.querySelector(".customOptionDialog-submit a").onclick = function() {
+			closeDialog();
+			return false;
+		}
+		document.body.appendChild(customSizeDialog);
+		return;
+	}
 	localStorage.setItem("nbFrames", iValue);
 	if (formulaire && formulaire.dataset.disabled) return showParamChangeDisclaimer();
 	iFps = iValue;
@@ -318,22 +371,23 @@ function setScreenScale(iValue, triggered) {
 	else if (iValue == -2) {
 		formulaire.screenscale.value = aScreenScale;
 		var customSizeDialog = document.createElement("div");
-		customSizeDialog.className = "customSizeDialog";
-		customSizeDialog.innerHTML = '<form class="customSizeDialog-content">'+
-			'<div class="customSizeDialog-title">'+
+		customSizeDialog.className = "customOptionDialog";
+		customSizeDialog.innerHTML = '<form class="customOptionDialog-content">'+
+			'<div class="customOptionDialog-title">'+
 				toLanguage("Custom size...", "Taille personnalisée...") +
 			'</div>'+
-			'<input type="range" min="2" max="36" step="2" class="customSizeDialog-cursor" />'+
-			'<div class="customSizeDialog-resolution"></div>' +
-			'<div class="customSizeDialog-submit">'+
+			'<input type="range" min="2" max="36" step="2" class="customOptionDialog-cursor" />'+
+			'<div class="customOptionDialog-textValue"></div>' +
+			'<div class="customOptionDialog-submit">'+
 				'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
-				'<a href="#null" class="customSizeDialog-cancel">'+ toLanguage("Cancel", "Annuler") +'</a>'+
+				'<a href="#null" class="customOptionDialog-cancel">'+ toLanguage("Cancel", "Annuler") +'</a>'+
 			'</div>' +
 		'</form>';
-		var $cursor = customSizeDialog.querySelector(".customSizeDialog-cursor");
+		var $cursor = customSizeDialog.querySelector(".customOptionDialog-cursor");
+		var $content = customSizeDialog.querySelector(".customOptionDialog-content");
 		function updateResolution() {
 			var nScreenScale = +$cursor.value;
-			customSizeDialog.querySelector(".customSizeDialog-resolution").innerHTML = (nScreenScale*iWidth) +"&times;" + (nScreenScale*iHeight);
+			customSizeDialog.querySelector(".customOptionDialog-textValue").innerHTML = (nScreenScale*iWidth) +"&times;" + (nScreenScale*iHeight);
 		}
 		function closeDialog() {
 			document.body.removeChild(customSizeDialog);
@@ -355,14 +409,15 @@ function setScreenScale(iValue, triggered) {
 		customSizeDialog.onclick = function(e) {
 			submitDialog();
 		}
-		customSizeDialog.querySelector(".customSizeDialog-content").onclick = function(e) {
+		$content.style.bottom = "80px";
+		$content.onclick = function(e) {
 			e.stopPropagation();
 		}
-		customSizeDialog.querySelector(".customSizeDialog-content").onsubmit = function() {
+		$content.onsubmit = function() {
 			submitDialog();
 			return false;
 		}
-		customSizeDialog.querySelector(".customSizeDialog-submit a").onclick = function() {
+		customSizeDialog.querySelector(".customOptionDialog-submit a").onclick = function() {
 			if (!formulaire.dataset.disabled)
 				previewScreenScale(aScreenScale, aScreenScale);
 			closeDialog();
@@ -387,15 +442,22 @@ function setScreenScale(iValue, triggered) {
 	setSRest();
 }
 
-function addScreenScaleOption(nScreenScale) {
-	var oValue = formulaire.screenscale.querySelector('option[value="'+nScreenScale+'"]');
+function addCustomOption($select, nValue,nValueText,nbCustomOptions) {
+	nbCustomOptions = nbCustomOptions || 1;
+	var oValue = $select.querySelector('option[value="'+nValue+'"]');
 	if (!oValue) {
 		var nOption = document.createElement("option");
-		nOption.value = nScreenScale;
-		nOption.innerHTML = (nScreenScale*iWidth) +"&times;" + (nScreenScale*iHeight);
-		formulaire.screenscale.insertBefore(nOption, formulaire.screenscale.childNodes[formulaire.screenscale.childNodes.length-2]);
+		nOption.value = nValue;
+		nOption.innerHTML = nValueText;
+		$select.insertBefore(nOption, $select.childNodes[$select.childNodes.length-nbCustomOptions]);
 	}
-	formulaire.screenscale.value = nScreenScale;
+	$select.value = nValue;
+}
+function addScreenScaleOption(nScreenScale) {
+	addCustomOption(formulaire.screenscale, nScreenScale, (nScreenScale*iWidth) +"&times;" + (nScreenScale*iHeight), 2);
+}
+function addFpsOption(nFps) {
+	addCustomOption(formulaire.fps, nFps, (nFps*15) +" FPS");
 }
 
 function previewScreenScale(aScreenScale, nScreenScale) {
@@ -4183,14 +4245,10 @@ function resetScreen() {
 function getFrameSettings(currentSettings) {
 	var frameint = currentSettings.frameint;
 	if (!frameint) {
-		switch (iFps) {
-		case 2:
-			frameint = "ease_out_quad";
-			break;
-		case 4:
+		if (iFps > 3)
 			frameint = "ease_out_cubic";
-			break;
-		}
+		else if (iFps > 1)
+			frameint = "ease_out_quad";
 	}
 	var defaultframerad = Math.floor(iFps/2);
 	var framerad = (currentSettings.framerad >= 0) ? +currentSettings.framerad : defaultframerad;
@@ -24759,8 +24817,10 @@ else {
 	"vFps", "fps", [
 		[1, "15 FPS"],
 		[2, "30 FPS"],
-		[4, "60 FPS"]
+		[4, "60 FPS"],
+		[-2, toLanguage("More...","Plus...")]
 	], iFps);
+	addFpsOption(iFps);
 	selectMainPage();
 	
 	if (!window.turnEvents) {

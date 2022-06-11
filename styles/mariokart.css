@@ -988,7 +988,7 @@ form.game-popup .game-popup-body > div > label {
 .item-options-screen .item-option label:last-child {
     flex: 1;
 }
-.customSizeDialog {
+.customOptionDialog {
     position: fixed;
     z-index: 10;
     left: 0;
@@ -998,33 +998,32 @@ form.game-popup .game-popup-body > div > label {
     background-color: rgba(0,0,0, 0.1);
     font-size: 15px;
 }
-.customSizeDialog-content {
+.customOptionDialog-content {
     position: absolute;
-    bottom: 80px;
     left: 80px;
     background-color: #444;
     color: white;
     padding: 0.5em 1em;
     text-align: center;
 }
-.customSizeDialog-cursor {
+.customOptionDialog-cursor {
     width: 200px;
 }
-.customSizeDialog-resolution {
+.customOptionDialog-textValue {
     font-size: 0.8em;
     color: #FEFF3F;
 }
-.customSizeDialog-submit {
+.customOptionDialog-submit {
     margin-top: 0.5em;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5em;
 }
-.customSizeDialog-submit a {
+.customOptionDialog-submit a {
     color: #CCF;
     font-size: 0.8em;
 }
-.customSizeDialog-submit a:hover {
+.customOptionDialog-submit a:hover {
     color: #CAA;
 }
