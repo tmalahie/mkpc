@@ -24241,7 +24241,7 @@ function displayCommands(html) {
 	}
 }
 function updateCommandSheet() {
-	var gameCommands = getCommands();
+	var gameCommands = getCommands(2);
 	var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
 	function aTouches(T1, T2) {
 		var P = language ? "P":"J";
@@ -24254,10 +24254,12 @@ function updateCommandSheet() {
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), "ESDF") +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), toLanguage("A","Q")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), toLanguage("W", "A")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), "R") +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), "G") + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), "T")):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), toLanguage("W","Z")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
+	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
-function editCommands(reload,currentTab) {
+function editCommands(reload,currentTab,selectedPlayer) {
 	currentTab = currentTab || 0;
+	selectedPlayer = selectedPlayer || 0;
+	var nbPlayers = selectedPlayer+1;
 	var $controlEditorMask = document.getElementById("control-editor-mask");
 	if ($controlEditorMask) {
 		document.body.removeChild($controlEditorMask);
@@ -24313,6 +24315,23 @@ function editCommands(reload,currentTab) {
 	$controlWindows.className = "control-window";
 	var $controlCommands = document.createElement("div");
 	$controlCommands.className = "control-window-active";
+	var $controlCommandPlayers = document.createElement("div");
+	$controlCommandPlayers.className = "control-players";
+	for (var i=0;i<2;i++) {
+		(function(playerId) {
+			var $controlCommandPlayer = document.createElement("a");
+			$controlCommandPlayer.href = "#null";
+			$controlCommandPlayer.className = "control-player " + (playerId == selectedPlayer ? "control-player-selected" : "");
+			$controlCommandPlayer.innerHTML = toLanguage("Player ","Joueur ") + (playerId+1);
+			$controlCommandPlayer.onclick = function() {
+				if (selectedPlayer === playerId) return false;
+				editCommands(true,currentTab,playerId);
+				return false;
+			}
+			$controlCommandPlayers.appendChild($controlCommandPlayer);
+		})(i);
+	}
+	$controlCommands.appendChild($controlCommandPlayers);
 	var commands = [{
 		name: toLanguage("Move forward", "Avancer"),
 		key: "up"
@@ -24350,7 +24369,14 @@ function editCommands(reload,currentTab) {
 		name: toLanguage("Quit", "Quitter"),
 		key: "quit"
 	}];
-	var gameCommands = getCommands();
+	var gameCommands = getCommands(nbPlayers);
+	if (selectedPlayer) {
+		for (var i=0;i<commands.length;i++) {
+			var p2Key = commands[i].key + "_p2";
+			if (gameCommands[p2Key])
+				commands[i].key = p2Key;
+		}
+	}
 	var localControls = JSON.parse(localStorage.getItem("controls")||"{}");
 	var isMac = (navigator.platform.toUpperCase().indexOf('MAC')>=0);
 	var $controlEditorGrid = document.createElement("div");
@@ -24403,7 +24429,7 @@ function editCommands(reload,currentTab) {
 			localStorage.removeItem("controls");
 			if (gameControls)
 				gameControls = getGameControls();
-			editCommands(true,currentTab);
+			editCommands(true,currentTab,selectedPlayer);
 		}
 		return false;
 	};
@@ -24622,7 +24648,7 @@ function editCommands(reload,currentTab) {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
 			localStorage.removeItem("iQuality");
-			editCommands(true,currentTab);
+			editCommands(true,currentTab,selectedPlayer);
 		}
 		return false;
 	};
@@ -24643,7 +24669,8 @@ function getKeyName(keyCode) {
 		return this.keyMatching[keyCode];
 	return "#"+keyCode;
 }
-function getCommands() {
+function getCommands(nbPlayers) {
+	nbPlayers = nbPlayers || strPlayer.length;
 	var defaultControls = {
 		up:[38],
 		down:[40],
@@ -24659,7 +24686,7 @@ function getCommands() {
 		quit:[27],
 		cheat:[120,33,57,105]
 	};
-	if (strPlayer.length > 1) {
+	if (nbPlayers > 1) {
 		defaultControls["up_p2"] = [69];
 		defaultControls["down_p2"] = [68];
 		defaultControls["left_p2"] = [83];

@@ -92,6 +92,29 @@
 .control-window > div.control-window-active {
     display: block;
 }
+.control-players {
+    margin-top: 0.375em;
+    margin-bottom: 0.125em;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75em;
+}
+.control-players .control-player {
+    color: #CCF;
+}
+.control-players .control-player:hover {
+    color: #EEF;
+}
+.control-players .control-player.control-player-selected {
+    cursor: default;
+    color: #FFE;
+    text-decoration: none;
+}
+.control-players .control-player.control-player-selected:hover {
+    color: #FFE;
+}
 .control-editor-grid {
     display: grid;
     grid-template-columns: auto auto;
