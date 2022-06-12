@@ -334,7 +334,6 @@ $aParams = array(
 	'pids' => $pids,
 	'max_circuits' => $MAX_CIRCUITS,
 );
-if (isset($_GET['square'])) $aParams['square'] = 1;
 $nbByType = countTracksByType($aCircuits,$aParams);
 $creationsList = listCreations(1,$nbByType,$weightsByType,$aCircuits,$aParams);
 $nbCreations = array_sum($nbByType);
@@ -470,7 +469,6 @@ function defile() {
 			'auteur' => $auteur,
 			'user' => $user
 		);
-		if (isset($_GET['square'])) $nextCircuitsParams['square'] = 1;
 		foreach ($nbByType as $i=>$nb)
 			$nextCircuitsParams['nb'.$i] = $nb;
 		?>

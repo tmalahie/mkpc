@@ -26,7 +26,6 @@ if (isset($_POST['page'])) {
 		'pids' => $pids,
 		'max_circuits' => $MAX_CIRCUITS,
 	);
-	if (isset($_POST['square'])) $aParams['square'] = 1;
 	$nbByType = countTracksByType($aCircuits,$aParams);
 	$creationsList = listCreations($page,$nbByType,$weightsByType,$aCircuits,$aParams);
 	echo '{"circuits":[';
