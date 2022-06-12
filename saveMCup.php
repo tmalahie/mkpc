@@ -9,7 +9,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		exit;
 	}
 	$save = true;
-	$maxCups = 18;
+	$maxCups = 36;
 	if (isset($_POST['cid'.$maxCups])) unset($_POST['cid'.$maxCups]);
 	for ($i=0;isset($_POST['cid'.$i]);$i++) {
 		if (!mysql_numrows(mysql_query('SELECT * FROM `mkcups` WHERE id='. $_POST['cid'. $i] .' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'. ($mode ? '':' AND mode="'. $mode .'"')))) {
