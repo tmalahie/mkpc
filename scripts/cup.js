@@ -5,8 +5,8 @@ function getSubmitMsg() {
 	if (isMCups) {
 		if (selectedCircuits.length < 2)
 			return (language ? "You must select at least 2 cups":"Vous devez sélectionner au moins 2 coupes");
-		if (selectedCircuits.length > 36)
-			return (language ? "You can select at most 36 cups":"Vous pouvez sélectionner 36 coupes au maximum");
+		if (selectedCircuits.length > 40)
+			return (language ? "You can select at most 40 cups":"Vous pouvez sélectionner 40 coupes au maximum");
 		for (var i=0;i<actualLines.length;i++) {
 			if (actualLines[i] > 8)
 				return (language ? "Please define at most 8 cups per line":"Veuillez définir au plus 8 coupes par ligne");

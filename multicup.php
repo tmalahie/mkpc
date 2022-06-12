@@ -53,7 +53,7 @@ var cp = <?php include('getPersos.php'); ?>;
 include('handleCupOptions.php');
 ?>
 </script>
-<script type="text/javascript" src="scripts/cup.js"></script>
+<script type="text/javascript" src="scripts/cup.js?reload=1"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body onload="initGUI()">
@@ -64,7 +64,7 @@ include('handleCupOptions.php');
 			This editor allows you to merge several cups on the same page.<br />
 			You have created cups of a same series and you want to join them together?<br />
 			You often play online on your circuits and you don't want to be limited to 4 races?<br />
-			This mode is made for you! You can join <strong>up to 36 cups</strong>!<br />
+			This mode is made for you! You can join <strong>up to 40 cups</strong>!<br />
 			Just select the creations of your choice, like in the cups editor.
 				<?php
 			}
@@ -73,7 +73,7 @@ include('handleCupOptions.php');
 			Cet éditeur vous permet de rassembler plusieurs coupes sur une même page.<br />
 			Vous avez créé des coupes d'une même série et vous souhaitez les réunir ?<br />
 			Vous jouez souvent en ligne sur vos circuits et vous ne voulez pas être limité à 4 courses ?<br />
-			Ce mode est fait pour vous ! Vous pouvez réunir <strong>jusqu'à 36 coupes</strong> !<br />
+			Ce mode est fait pour vous ! Vous pouvez réunir <strong>jusqu'à 40 coupes</strong> !<br />
 			Sélectionnez simplement les créations de votre choix, comme dans l'éditeur de coupes.
 				<?php
 			}
