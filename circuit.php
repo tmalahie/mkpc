@@ -339,7 +339,7 @@ if ($canChange) {
 			foreach ($cupIDs as $i=>$cupID)
 				echo '&cid'. $i .'='. $cupID;
 			if (!empty($cOptions))
-				echo '&opt="+ JSON.stringify(cupOpts) +"';
+				echo '&opt="+ encodeURIComponent(JSON.stringify(cupOpts)) +"';
 		}
 		else {
 			echo 'map='.$infos['map'].'&nl='.$infos['laps'];

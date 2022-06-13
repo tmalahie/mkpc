@@ -732,7 +732,8 @@ function handleFormSubmit(e) {
 	if (optVal) {
 		var key = Math.random().toString(16).substring(2);
 		sessionStorage.setItem("cupopt."+key, optVal);
-		$form.elements["opt"].value = JSON.stringify({ "keyid":key });
+		var optValJson = JSON.parse(optVal);
+		$form.elements["opt"].value = JSON.stringify({ "keyid":key, persos: optValJson.persos });
 	}
 }
 function showCustomCharToggleHelp() {
