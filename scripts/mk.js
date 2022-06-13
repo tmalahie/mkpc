@@ -22093,7 +22093,7 @@ function selectMapScreen(opts) {
 			oPrevInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
 			oPrevInput.style.position = "absolute";
 			oPrevInput.style.left = (72*iScreenScale)+"px";
-			oPrevInput.style.top = (34*iScreenScale)+"px";
+			oPrevInput.style.top = ((isOnline ? 31 : 34)*iScreenScale)+"px";
 			oPrevInput.className = "disablable";
 			oPrevInput.onclick = function() {
 				opts.page--;
@@ -22111,7 +22111,7 @@ function selectMapScreen(opts) {
 			oNextInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
 			oNextInput.style.position = "absolute";
 			oNextInput.style.left = (76*iScreenScale)+"px";
-			oNextInput.style.top = (34*iScreenScale)+"px";
+			oNextInput.style.top = ((isOnline ? 31 : 34)*iScreenScale)+"px";
 			oNextInput.className = "disablable";
 			oNextInput.onclick = function() {
 				opts.page++;

@@ -62,6 +62,8 @@ if (isset($_POST['key']) && is_numeric($_POST['key'])) {
         $linkOptions->rules = json_decode($getOptions['rules']);
         $linkOptions->public = $getOptions['public'];
     }
+    else
+        $linkOptions->public = false;
 }
 if (!isset($linkOptions->rules->minPlayers))
     $linkOptions->rules->minPlayers = DEFAULT_MIN_PLAYERS;

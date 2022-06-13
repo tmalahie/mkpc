@@ -80,6 +80,20 @@ if ($id) {
 		if ($nbJoueurs)
 			$pendingPlayers = $nbJoueurs+1;
 	}
+	function check_private_race_condition($course = null) {
+		global $linkOptions, $nlink, $cupSQL;
+		if (!$linkOptions->public) {
+			$alreadyCreated = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE '. ($course ? "id!=$course" : '1') . $cupSQL));
+			if ($alreadyCreated)
+				return false;
+			if ($nlink && !$course) {
+				require_once('apc.php');
+				if (!apcu_add("course.insert.$nlink", 1, 1))
+					return false;
+			}
+		}
+		return true;
+	}
 	if (!$course)
 		$cas = 1; // Il faudra créer une nouvelle course, si on n'en trouve pas une disponible (INSERT INTO mariokart)
 	elseif (mysql_numrows(mysql_query('SELECT * FROM `mkjoueurs` WHERE course='. $course)) == 1)
@@ -127,13 +141,15 @@ if ($id) {
 			$ecart = $time-$_SESSION['date'];
 			if ($ecart < 40) {
 				if ($ecart >= 25) {
-					mysql_query('UPDATE `mariokart` SET time='. ($time+35) .', map=-1,cup='. $nid .',mode='. $nmode .',link='. $nlink .' WHERE id='. $course);
-					mysql_query('UPDATE `mkjoueurs` SET choice_map=0 WHERE course='.$course);
-					mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE course='.$course.' AND id!="'.$id.'"');
-					mysql_query('DELETE FROM `mkplayers` WHERE course='. $course);
-					mysql_query('DELETE FROM `mkchat` WHERE course='. $course);
-					switchCourseIfNeeded();
-					$cas = 2;
+					if (check_private_race_condition($course)) {
+						mysql_query('UPDATE `mariokart` SET time='. ($time+35) .', map=-1,cup='. $nid .',mode='. $nmode .',link='. $nlink .' WHERE id='. $course);
+						mysql_query('UPDATE `mkjoueurs` SET choice_map=0 WHERE course='.$course);
+						mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE course='.$course.' AND id!="'.$id.'"');
+						mysql_query('DELETE FROM `mkplayers` WHERE course='. $course);
+						mysql_query('DELETE FROM `mkchat` WHERE course='. $course);
+						switchCourseIfNeeded();
+						$cas = 2;
+					}
 				}
 			}
 			else
@@ -178,16 +194,8 @@ if ($id) {
 			switch ($cas) {
 			case 1 :
 				if (!$pID) {
-					if (!$linkOptions->public) {
-						$alreadyCreated = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE 1'. $cupSQL));
-						if ($alreadyCreated)
-							break;
-						if ($nlink) {
-							require_once('apc.php');
-							if (!apcu_add("course.insert.$nlink", 1, 1))
-								break;
-						}
-					}
+					if (!check_private_race_condition())
+						break;
 					mysql_query('INSERT INTO `mariokart` VALUES (null, -1, '. ($time+35) .','. $nid .','. $nmode .','. $nlink .')');
 					$pID = mysql_insert_id();
 				}
@@ -195,6 +203,8 @@ if ($id) {
 				sendCourseNotifs();
 				break;
 			case 2 :
+				if (!check_private_race_condition($course))
+					break;
 				mysql_query('UPDATE `mariokart` SET time='. ($time+35) .', map=-1,cup='. $nid .',mode='. $nmode .',link='. $nlink .' WHERE id='. $course);
 				switchCourseIfNeeded();
 			}
