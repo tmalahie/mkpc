@@ -31,7 +31,7 @@ export class ForumController {
         maxResults: 50
       },
       where: user.roles.moderator ? null : {
-        private: 0
+        private: false
       },
       relations: ["category"]
     });
