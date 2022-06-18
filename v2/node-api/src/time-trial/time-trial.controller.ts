@@ -26,7 +26,7 @@ export class TimeTrialController {
         maxResults: 30
       },
       where: {
-        best: 1
+        best: true
       },
       relations: ["player"]
     });
@@ -37,14 +37,14 @@ export class TimeTrialController {
           type: record.type,
           circuit: record.circuit,
           class: record.class,
-          best: 1
+          best: true
         }
       }), this.em.count(Record, {
         where: {
           type: record.type,
           circuit: record.circuit,
           class: record.class,
-          best: 1,
+          best: true,
           time: LessThan(record.time)
         }
       })]);

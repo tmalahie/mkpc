@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager, EntityTarget, FindOneOptions, In, LessThan, MoreThan, Like } from 'typeorm';
+import { EntityManager, EntityTarget, FindOneOptions, In, LessThan, MoreThan, Like, FindConditions, ObjectLiteral } from 'typeorm';
 import { EntityFieldsNames } from 'typeorm/common/EntityFieldsNames';
 
 export enum SearchType {
@@ -35,13 +35,14 @@ type SearchRules<T> = {
   allowedOrders: EntityFieldsNames<T>[],
   maxResults?: number;
   canReturnCount?: boolean;
+  defaultOrder?: FindOneOptions<T>["order"];
 }
 export const SEARCH_ALL_ALLOWED = [SearchType.EQUALS, SearchType.LIKE, SearchType.LESS_THAN, SearchType.MORE_THAN, SearchType.IN];
 export const EQUALITY_SEARCH = [SearchType.EQUALS, SearchType.IN];
 type SearchOptions<T> = {
   entity: EntityTarget<T>,
   params: SearchParams;
-  where?: FindOneOptions<T>["where"],
+  where?: FindConditions<T>,
   relations?: FindOneOptions<T>["relations"],
   rules: SearchRules<T>;
 }
@@ -60,7 +61,7 @@ export class SearchService {
   constructor(private em: EntityManager) { }
 
   private buildFilterFromParams<T>(options: SearchOptions<T>) {
-    let where: FindOneOptions<T>["where"] = options.where || {};
+    let where: FindOneOptions<T>["where"] = { ...options.where };
     if (options.params?.filters) {
       for (const filter of options.params.filters) {
         const allowedFilters = options.rules.allowedFilters[filter.key];
@@ -94,12 +95,13 @@ export class SearchService {
     return where;
   }
   private buildOrderFromParams<T>(options: SearchOptions<T>) {
-    let order: FindOneOptions<T>["order"];
+    let order = options.rules.defaultOrder;
     if (options.params?.sort) {
       const key = options.params.sort.key as EntityFieldsNames<T>;
       if (options.rules.allowedOrders.includes(key)) {
         order = {
-          [key]: options.params.sort.order === "desc" ? "DESC" : "ASC"
+          [key]: options.params.sort.order === "desc" ? "DESC" : "ASC",
+          ...options.rules.defaultOrder
         } as any
       }
     }

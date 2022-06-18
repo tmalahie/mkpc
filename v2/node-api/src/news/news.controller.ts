@@ -78,7 +78,9 @@ export class NewsController {
         maxResults: 50
       },
       where: params.me ? {
-        author: user.id
+        author: {
+          id: user.id
+        }
       } : (user.roles.publisher ? null : {
         status: NewsStatus.ACCEPTED
       }),
