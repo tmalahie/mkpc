@@ -420,11 +420,23 @@ const Home: NextPage = () => {
     }))
   });
   const { data: vsLeaderboard, loading: vsLoading } = useSmoothFetch("/api/online-game/leaderboard", {
-    placeholder: leaderboardPlaceholder
+    placeholder: leaderboardPlaceholder,
+    requestOptions: postData({
+      mode: "vs",
+      paging: {
+        limit: 10
+      }
+    }),
   });
   const vsLeaderboardFiltered = useMemo(() => vsLeaderboard?.data.slice(0, 10) ?? [], [vsLeaderboard]);
-  const { data: battleLeaderboard, loading: battleLoading } = useSmoothFetch("/api/online-game/leaderboard?mode=battle", {
-    placeholder: leaderboardPlaceholder
+  const { data: battleLeaderboard, loading: battleLoading } = useSmoothFetch("/api/online-game/leaderboard", {
+    placeholder: leaderboardPlaceholder,
+    requestOptions: postData({
+      mode: "battle",
+      paging: {
+        limit: 10
+      }
+    }),
   });
   const battleLeaderboardFiltered = useMemo(() => battleLeaderboard?.data.slice(0, 10) ?? [], [battleLeaderboard]);
 
