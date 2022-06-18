@@ -11,10 +11,14 @@ import { formatRank } from "../../helpers/records";
 import { usePaging } from "../../hooks/usePaging";
 import Pager from "../../components/Pager/Pager";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Skeleton from "../../components/Skeleton/Skeleton";
 import Link from "next/link";
 import Ad from "../../components/Ad/Ad";
+import Autocomplete from "../../components/Autocomplete/Autocomplete";
+import useDebounce from "../../hooks/useDebounce";
+import useFormSubmit, { doSubmit } from "../../hooks/useFormSubmit";
+import useAuthUser from "../../hooks/useAuthUser";
 
 const localesNs = ["leaderboard", "common"];
 
@@ -24,46 +28,21 @@ enum LeaderboardType {
 }
 const OnlineLeaderboard: NextPage = () => {
   const language = useLanguage();
+  const user = useAuthUser();
   const { t } = useTranslation(localesNs);
   const router = useRouter();
   const mode = (router.query.mode as LeaderboardType) ?? LeaderboardType.VS;
   const isBattle = mode === LeaderboardType.BATTLE;
-  const [player, setPlayer] = useState<string | undefined>(undefined);
 
   const { paging, currentPage, setCurrentPage, resPerPage } = usePaging();
 
-  const initialRank = 1 + resPerPage*(currentPage-1);
+  const playerQuery = router.query.player?.toString();
+  const { recordsPayload, recordsLoading } = useLeaderboardData(mode, paging, playerQuery);
 
-  const scoreKey = `pts_${mode}`;
+  const [player, setPlayer] = useState<string>(playerQuery || (user?.id ? user.name : ""));
+  const { playerSearchOptions } = usePlayerSearchData(player);
 
-  const { data: recordsPayload, loading: recordsLoading } = useSmoothFetch(
-    `/api/user/find`,
-    {
-      placeholder: () => ({
-        data: Placeholder.array(20, (id) => ({
-          id,
-          name: Placeholder.text(10, 20),
-          pts_vs: Placeholder.number(1000, 20000),
-          pts_battle: Placeholder.number(1000, 20000),
-          country: null,
-        })),
-        count: 1,
-      }),
-      requestOptions: postData({
-        filters: [{
-          key: "deleted",
-          operator: "=",
-          value: 0
-        }],
-        sort: {
-          key: scoreKey,
-          order: "desc"
-        },
-        paging
-      }),
-      reloadDeps: [mode, paging]
-    }
-  );
+  const handleSearch = useFormSubmit();
 
   return (
     <ClassicPage
@@ -85,25 +64,27 @@ const OnlineLeaderboard: NextPage = () => {
           </>
         )}
       </div>
-      <form method="post" action="">
+      <form method="post" name="player" action={`/leaderboard/${mode}`} onSubmit={handleSearch}>
         <blockquote>
-          <p>
+          <div>
             <label htmlFor="joueur">
               <strong>{t("See_player_")}</strong>
             </label>{" "}
-            <input
+            <Autocomplete
               type="text"
               name="player"
               id="joueur"
               value={player}
-              onChange={(e) => setPlayer(e.target.value)}
+              items={playerSearchOptions}
+              onChange={(value) => setPlayer(value)}
+              onSelect={(_, e) => doSubmit(router, e.target.form)}
             />{" "}
             <input
               type="submit"
               value={t<string>("common:validate")}
               className={commonStyles.action_button}
             />
-          </p>
+          </div>
         </blockquote>
       </form>
       <Ad width={728} height={90} bannerId="4919860724" />
@@ -120,7 +101,7 @@ const OnlineLeaderboard: NextPage = () => {
             <tr className={i % 2 ? styles.clair : styles.fonce} key={record.id}>
               <td
                 dangerouslySetInnerHTML={{
-                  __html: formatRank(language, i+initialRank),
+                  __html: formatRank(language, record.rank),
                 }}
               />
               <td>
@@ -138,17 +119,17 @@ const OnlineLeaderboard: NextPage = () => {
                   {record.name}
                 </a>
               </td>
-              <td>{record[scoreKey]}</td>
+              <td>{record.score}</td>
             </tr>
           ))}
           <tr>
             <td colSpan={4} id={styles.page}>
-              <Pager
+              {playerQuery ? <CurrentPage urlPrefix={`/leaderboard/${mode}`} page={Math.ceil(recordsPayload.data[0]?.rank / resPerPage)} onSetPage={setCurrentPage} /> : <Pager
                 page={currentPage}
                 paging={paging}
                 count={recordsPayload.count}
                 onSetPage={setCurrentPage}
-              />
+              />}
             </td>
           </tr>
           </tbody>
@@ -169,6 +150,92 @@ const OnlineLeaderboard: NextPage = () => {
     </ClassicPage>
   );
 };
+
+function useLeaderboardData(mode: string, paging: any, player?: string) {  
+  const { data: recordsPayload, loading: recordsLoading } = useSmoothFetch(
+    "/api/online-game/leaderboard",
+    {
+      placeholder: () => ({
+        data: Placeholder.array(player ? 1 : 20, (id) => ({
+          id,
+          name: Placeholder.text(10, 20),
+          score: Placeholder.number(1000, 20000),
+          rank: id,
+          country: null,
+        })),
+        count: 1,
+      }),
+      requestOptions: postData({
+        name: player,
+        mode,
+        filters: [{
+          key: "deleted",
+          operator: "=",
+          value: 0
+        }],
+        paging
+      }),
+      reloadDeps: [mode, paging, player],
+    }
+  );
+
+  return { recordsPayload, recordsLoading };
+}
+
+function usePlayerSearchData(search: string) {
+  const debouncedPlayer = useDebounce(search, 300);
+
+  const { data: playerSearchData } = useSmoothFetch(
+    "/api/user/find",
+    {
+      placeholder: () => ({
+        data: Placeholder.array(0, (id) => ({
+          id,
+          name: Placeholder.text(10, 20)
+        })),
+      }),
+      requestOptions: postData({
+        filters: [{
+          key: "name",
+          operator: "~",
+          value: debouncedPlayer
+        }, {
+          key: "deleted",
+          operator: "=",
+          value: 0
+        }],
+        paging: {
+          page: 1,
+          limit: 5
+        }
+      }),
+      reloadDeps: [debouncedPlayer],
+      disabled: !debouncedPlayer
+    }
+  )
+  const playerSearchOptions = useMemo(() => {
+    if (!debouncedPlayer) return [];
+    if (!playerSearchData) return [];
+    return playerSearchData?.data.map((player) => ({
+      id: player.id,
+      label: player.name
+    }
+  ))}, [debouncedPlayer, playerSearchData]);
+
+  return { playerSearchOptions, playerSearchData };
+}
+
+interface CurrentPageProps {
+  urlPrefix: string;
+  page: number;
+  onSetPage: (page: number) => void;
+}
+function CurrentPage({ urlPrefix, page, onSetPage }: CurrentPageProps) {
+  return <>
+    Page :{"  "}
+    <Link href={`${urlPrefix}?page=${page}`}><a onClick={() => onSetPage?.(page)}>{page}</a></Link>
+  </>;
+}
 
 export const getServerSideProps = withServerSideProps({ localesNs });
 
