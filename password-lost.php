@@ -191,7 +191,6 @@ include('menu.php');
 				<?php
 				break;
 			case 'nick_found':
-				$emailObfuscated = obfuscate_email($email);
 				?>
 				<p class="big-instructions" id="success">
 					<?php
