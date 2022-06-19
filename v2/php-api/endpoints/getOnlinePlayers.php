@@ -64,7 +64,7 @@ if ($id) {
     if ($activeCourse['active']) {
       foreach ($activeCourse['players'] as &$activePlayer) {
         $game = $activePlayer['game'];
-        $playerId = $activePlayer['id'];
+        $playerId = +$activePlayer['id'];
         $activePlayers[$game][$playerId] = $activePlayer;
       }
       unset($activePlayer);
@@ -107,7 +107,7 @@ function get_creation_payload(&$params) {
   if (!$getNom) return null;
   return array(
     'type' => $table,
-    'id' => $params['cup'],
+    'id' => +$params['cup'],
     'name' => $getNom['nom']
   );
 }
@@ -121,9 +121,9 @@ function get_players_payload($players) {
   $res = array();
   foreach ($players as $player) {
     $res[] = array(
-      'id' => $player['id'],
+      'id' => +$player['id'],
       'name' => $player['nom'],
-      'pts' => $player['pts']
+      'pts' => +$player['pts']
     );
   }
   return $res;
@@ -154,12 +154,13 @@ foreach ($activePlayersByLink as $game=>$linkWithPlayers) {
   $res[$game] = array();
   foreach ($linkWithPlayers as $ph => $players) {
     $firstPlayer = $players[0];
-    $res[$game][] = array(
+    $res[$game][] = compactObject(array(
       'href' => get_creation_link($firstPlayer),
+      'key' => $firstPlayer['link'] ? +$firstPlayer['link'] : null,
       'creation' => get_creation_payload($firstPlayer),
       'rules' => get_rules_payload($firstPlayer),
       'players' => get_players_payload($players)
-    );
+    ));
   }
 }
 

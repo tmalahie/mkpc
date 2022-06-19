@@ -778,6 +778,15 @@
 		padding: 2px 8px;
 		font-size: 0.75em;
 	}
+	.ranking_current .ranking_list_game strong {
+		max-width: 200px;
+    display: inline-block;
+    vertical-align: middle;
+		line-height: 1em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+	}
 	.ranking_activeplayernb {
 		font-weight: bold;
 		text-decoration: underline;

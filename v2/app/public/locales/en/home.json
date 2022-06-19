@@ -45,5 +45,18 @@
   "and_": " and ",
   "Its_the_birthday_of": "It's the birthday of",
   "n_pending": "%n pending",
-  "news": "news"
+  "news": "news",
+  "Currently_online_": "Currently online:",
+  "n_Members_one": "{{count}} member",
+  "n_Members_other": "{{count}} members",
+  "in_the_creation": "in {{ the_creation }}",
+  "the_circuit": "the circuit",
+  "the_arena": "the arena",
+  "the_cup": "the cup", 
+  "the_multicup": "the multicup",
+  "in_mode_x": "in mode {{ x }}",
+  "Mirror": "Mirror",
+  "Team": "Team",
+  "Friendly": "Friendly",
+  "Join": "Join"
 }
