@@ -45,5 +45,18 @@
   "and_": " et ",
   "Its_the_birthday_of": "C'est l'anniversaire de",
   "n_pending": "%n news",
-  "news": "en attente de validation"
+  "news": "en attente de validation",
+  "Currently_online_": "Actuellement en ligne :",
+  "n_Members_one": "{{count}} membre",
+  "n_Members_other": "{{count}} membres",
+  "in_the_creation": "sur {{ the_creation }}",
+  "the_circuit": "le circuit",
+  "the_arena": "l'arène",
+  "the_cup": "la coupe", 
+  "the_multicup": "la multicoupe",
+  "in_mode_x": "en mode {{ x }}",
+  "Mirror": "miroir",
+  "Team": "équipe",
+  "Friendly": "amical",
+  "Join": "Rejoindre"
 }

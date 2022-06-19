@@ -67,6 +67,7 @@ import Skeleton from '../components/Skeleton/Skeleton';
 import useAuthUser from '../hooks/useAuthUser';
 import useCreations from '../hooks/useCreations';
 import { useTranslation } from 'next-i18next';
+import ReactTooltip from 'react-tooltip';
 
 const screenshots = [[{
   xs: ss1xs,
@@ -148,6 +149,7 @@ const Home: NextPage = () => {
   function dispRankTab(e, tab) {
     e.preventDefault();
     setLeaderboardTab(tab);
+    setDismissedRankTabs({ ...dismissedRankTabs, [tab]: true });
     if (tab >= LeaderboardTab.TT_150)
       setCurrentTtCc(tab);
   }
@@ -473,6 +475,14 @@ const Home: NextPage = () => {
         return tt200Loading;
     }
   }, [leaderboardTab, vsLeaderboardFiltered, battleLeaderboardFiltered, tt150LeaderboardFiltered, tt200LeaderboardFiltered]);
+
+  const { data: activeLobbiesData } = useSmoothFetch<ActiveLobbiesData>("/api/getOnlinePlayers.php", {
+    placeholder: () => ({
+      vs: [],
+      battle: []
+    })
+  });
+  const [dismissedRankTabs, setDismissedRankTabs] = useState({});
 
   return (
     <ClassicPage className={styles.Home} page="home">
@@ -871,14 +881,13 @@ const Home: NextPage = () => {
           <div className={styles.ranking_tabs}>
             <a className={cx({
               [styles.tab_selected]: leaderboardTab === LeaderboardTab.VS
-            })} href="#null" onClick={(e) => dispRankTab(e, 0)}>
+            })} href="#null" onClick={(e) => dispRankTab(e, LeaderboardTab.VS)}>
               {t("Vs_mode")}
-              {/* print_badge(0); */}
             </a><a className={cx({
               [styles.tab_selected]: leaderboardTab === LeaderboardTab.BATTLE
-            })} href="#null" onClick={(e) => dispRankTab(e, 1)}>
+            })} href="#null" onClick={(e) => dispRankTab(e, LeaderboardTab.BATTLE)}>
               {t("Battle")}
-              {/* print_badge(1); */}
+              {(!!activeLobbiesData["battle"].length && !dismissedRankTabs[LeaderboardTab.BATTLE]) && <span className={styles.ranking_badge}><span>{activeLobbiesData["battle"].length}</span></span>}
             </a><a className={cx({
               [styles.tab_selected]: leaderboardTab >= LeaderboardTab.TT_150
             })} href="#null" onClick={(e) => dispRankTab(e, currentTtCc)}>
@@ -886,10 +895,8 @@ const Home: NextPage = () => {
             </a>
           </div>
           <div id={styles.currently_online}>
-            {/*
-			print_active_players(0,'vs');
-			print_active_players(1,'battle');
-			*/}
+            {leaderboardTab === LeaderboardTab.VS && <ActiveLobbies data={activeLobbiesData} mode="vs" />}
+            {leaderboardTab === LeaderboardTab.BATTLE && <ActiveLobbies data={activeLobbiesData} mode="battle" />}
           </div>
           {(leaderboardTab >= LeaderboardTab.TT_150) && <div id={styles.clm_cc}>
             <a className={cx({ [styles.tab_selected]: leaderboardTab === LeaderboardTab.TT_150 })} href="#null" onClick={(e) => dispRankTab(e, 2)}>150cc</a>
@@ -912,7 +919,7 @@ const Home: NextPage = () => {
               </tbody>
             </table>
           </Skeleton>
-          <a className={cx(styles.right_section_actions, commonStyles.action_button)} href={leaderboardLink}>{t("Display_all")}</a>
+          <Link href={leaderboardLink}><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{t("Display_all")}</a></Link>
         </div>
         <div className={styles.pub_section}>
           <Ad width={300} height={250} bannerId="4492555127" />
@@ -970,7 +977,6 @@ function BirthdaysList() {
       name: string;
     }>
   }>(`/api/getBirthdays.php`);
-  const language = useLanguage();
   const { t } = useTranslation(localesNs);
 
   const membersList = useMemo(() => {
@@ -998,7 +1004,6 @@ function BirthdaysList() {
   </div>
 }
 function PendingNews() {
-  const language = useLanguage();
   const { t } = useTranslation(localesNs);
   const { data: pendingNewsPayload } = useSmoothFetch<{ count: number }>("/api/news/find", {
     requestOptions: postData({
@@ -1020,7 +1025,117 @@ function PendingNews() {
     <Link href={"/news#pending-news"}>{plural(t("n_pending"), pendingNewsPayload.count)}</Link> {t("news")}
   </p>
 }
+type ActiveLobbyForMode = {
+  href: string;
+  key?: number;
+  creation?: {
+      type: string;
+      id: number;
+      name: string;
+  };
+  rules?: Record<string, any>;
+  players: {
+      id: number;
+      name: string;
+      pts: number;
+  }[];
+};
+type ActiveLobbiesData = {
+  vs: ActiveLobbyForMode[];
+  battle: ActiveLobbyForMode[];
+};
 
+type OnlineGameMode = "vs" | "battle";
+
+interface ActiveLobbiesProps {
+  data: ActiveLobbiesData;
+  mode: OnlineGameMode;
+}
+function ActiveLobbies({ data, mode }: ActiveLobbiesProps) {
+  const { t } = useTranslation(localesNs);
+
+  const activeLobbiesForMode = data[mode];
+  if (!activeLobbiesForMode.length) return <></>;
+
+  const firstLobby = activeLobbiesForMode[0];
+  return <div className={styles.ranking_current} id={styles[`ranking_current_${mode}`]}>
+    <ReactTooltip place="top" effect="solid" offset={{top:-6}} />
+    {
+      (activeLobbiesForMode.length < 2) && !firstLobby.creation && !firstLobby.key ? 
+      <span className={styles.ranking_list}>
+        {t("Currently_online_")}{" "}
+        <ActivePlayers data={firstLobby} mode={mode} single />
+      </span> : <>
+        {t("Currently_online_")}
+        <ul className={styles.ranking_list_game}>
+          {activeLobbiesForMode.map((lobby, i) => {
+            return <li key={lobby.href}>
+              <ActivePlayers data={lobby} mode={mode} />
+            </li>
+          })}
+        </ul>
+      </>
+    }
+  </div>
+}
+
+interface ActivePlayersProps {
+  data: ActiveLobbyForMode;
+  mode: OnlineGameMode;
+  single?: boolean;
+}
+function ActivePlayers({ data, mode, single }: ActivePlayersProps) {
+  const { t } = useTranslation(localesNs);
+
+  const creationTrKey = useMemo(() => {
+    if (!data.creation) return;
+
+    if (mode === "battle") return "the_arena";
+
+    switch (data.creation.type) {
+      case "circuits":
+      case "mkcircuits":
+        return "the_circuit";
+      case "mkcups":
+        return "the_cup";
+      case "mkmcups":
+        return "the_multicup";
+    }
+  }, [data]);
+  const rulesTrKey = useMemo(() => {
+    if (data.creation) return;
+    const defaultVal = single ? undefined : t("Normal");
+    if (!data.rules) return defaultVal;
+
+    const modeNames = {
+      cc: '${value}cc',
+      mirror: t("Mirror"),
+      team: t("Team"),
+      friendly: t('Friendly')
+    };
+
+    let ruleNames = [];
+    for (const key in modeNames) {
+      if (data.rules[key]) {
+        ruleNames.push(modeNames[key].replace('${value}', data.rules[key]));
+      }
+    }
+    if (!ruleNames.length) return defaultVal;
+    return ruleNames.join("+");
+  }, [data]);
+
+  const title = data.players.map(player => `${player.name} (${player.pts} pts)`).join("\n");
+  return <><span className={styles.ranking_activeplayernb} data-tip={title}>
+    { t("n_Members", { count: data.players.length }) }
+  </span>
+  {" "}
+  {creationTrKey && <>{t("in_the_creation", { the_creation: t(creationTrKey) })}
+    {" "}<strong>{ data.creation?.name ?? t("Untitled") }</strong>{" "}
+  </>}
+  {rulesTrKey && t("in_mode_x", { x: t(rulesTrKey)})}
+  <a className={cx(commonStyles.action_button, styles.action_button)} href={data.href}>{t("Join")}</a>
+  </>
+}
 
 export const getServerSideProps = withServerSideProps({ localesNs })
 
