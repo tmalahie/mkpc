@@ -5,5 +5,11 @@
   "Battle_mode": "Bataille de ballons",
   "See_player_": "Voir joueur :",
   "No_result_for_this_search": "Aucun résultat trouvé pour cette recherche",
-  "Back_to_online_mode": "Retour à l'accueil du mode en ligne"
+  "Ranking_by_circuit": "Classement circuit par circuit",
+  "Back_to_online_mode": "Retour à l'accueil du mode en ligne",
+  "Global_Time_trial_leaderboard": "Contre-la-montre - Classement global",
+  "Leaderboard_explain": "Cette page affiche le classement des meilleurs joueurs en contre la montre.<br />Ce classement se base sur un calcul de score dépendant de votre place sur chaque circuit. Voir <a href=\"/topic.php?topic=5318\">ce topic</a> pour en savoir plus.",
+  "Class": "Cylindrée",
+  "Details": "Détails",
+  "See_records": "Voir les temps"
 }

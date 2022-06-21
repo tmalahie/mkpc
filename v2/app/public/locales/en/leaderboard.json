@@ -5,5 +5,11 @@
   "Battle_mode": "Battle mode",
   "See_player_": "See player:",
   "No_result_for_this_search": "No results found for this search",
-  "Back_to_online_mode": "Back to online mode homepage"
+  "Ranking_by_circuit": "Ranking circuit by circuit",
+  "Back_to_online_mode": "Back to online mode homepage",
+  "Global_Time_trial_leaderboard": "Time Trial - Global ranking",
+  "Leaderboard_explain": "This page shows a leaderboard of top players in time trial.<br />This leaderboard is based on a score calculation which depends on your rank on each circuit. See <a href=\"/topic.php?topic=5318\">this topic</a> for further info.",
+  "Class": "Class",
+  "Details": "Details",
+  "See_records": "See records"
 }

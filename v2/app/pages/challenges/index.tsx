@@ -88,7 +88,7 @@ const ChallengesList: NextPage = () => {
             <Link href="/challenges?moderate">{t("Back_to_challenges_list")}</Link>
             <br />
           </>}
-          <Link href="/">{t("Back_to_the_mario_kart")}</Link>
+          <Link href="/">{t("common:Back_to_mario_kart_pc")}</Link>
         </p>
       </div>
     </ClassicPage>
