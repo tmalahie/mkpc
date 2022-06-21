@@ -4,6 +4,7 @@ import { Record } from './record.entity';
 import { Ranking } from './ranking.entity';
 import { CircuitService } from '../track-builder/circuit.service';
 import { SearchService, EQUALITY_SEARCH } from '../search/search.service';
+import { pick } from 'lodash';
 
 @Controller("/time-trial")
 export class TimeTrialController {
@@ -76,8 +77,8 @@ export class TimeTrialController {
     }
   }
 
-  @Get("/leaderboard")
-  async getLeaderboard(@Query() params) {
+  @Post("/leaderboard")
+  async getLeaderboard(@Body() params) {
     const ccFilter = +params.cc || 150;
     const leaderboard = await this.em.find(Ranking, {
       where: {
@@ -89,14 +90,17 @@ export class TimeTrialController {
       order: {
         score: "DESC"
       },
-      relations: ["player"],
+      relations: ["player", "player.profile", "player.profile.country"],
       take: 20
     });
-    const data = leaderboard.map((ranking) => ({
+    const skip = 0;
+    const data = leaderboard.map((ranking, i) => ({
       id: ranking.player.id,
       name: ranking.player.name,
       score: ranking.score,
+      rank: i + skip + 1,
+      country: ranking.player.profile.country && pick(ranking.player.profile.country, ["id", "code"])
     }));
-    return { data };
+    return { data, count: data.length };
   }
 }

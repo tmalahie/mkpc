@@ -162,9 +162,9 @@ const Home: NextPage = () => {
       case LeaderboardTab.BATTLE:
         return "/leaderboard/battle";
       case LeaderboardTab.TT_150:
-        return "classement.global.php?cc=150";
+        return "/leaderboard/tt/150";
       case LeaderboardTab.TT_200:
-        return "classement.global.php?cc=200";
+        return "/leaderboard/tt/200";
     }
   }, [leaderboardTab]);
 
@@ -443,11 +443,23 @@ const Home: NextPage = () => {
   const battleLeaderboardFiltered = useMemo(() => battleLeaderboard?.data.slice(0, 10) ?? [], [battleLeaderboard]);
 
   const { data: tt150Leaderboard, loading: tt150Loading } = useSmoothFetch("/api/time-trial/leaderboard", {
-    placeholder: leaderboardPlaceholder
+    placeholder: leaderboardPlaceholder,
+    requestOptions: postData({
+      cc: 150,
+      paging: {
+        limit: 10
+      }
+    }),
   });
   const tt150LeaderboardFiltered = useMemo(() => tt150Leaderboard?.data.slice(0, 10) ?? [], [tt150Leaderboard]);
-  const { data: tt200Leaderboard, loading: tt200Loading } = useSmoothFetch("/api/time-trial/leaderboard?cc=200", {
-    placeholder: leaderboardPlaceholder
+  const { data: tt200Leaderboard, loading: tt200Loading } = useSmoothFetch("/api/time-trial/leaderboard", {
+    placeholder: leaderboardPlaceholder,
+    requestOptions: postData({
+      cc: 200,
+      paging: {
+        limit: 10
+      }
+    }),
   });
   const tt200LeaderboardFiltered = useMemo(() => tt200Leaderboard?.data.slice(0, 10) ?? [], [tt200Leaderboard]);
 

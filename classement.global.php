@@ -1,4 +1,7 @@
 <?php
+$cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
+header("location: /leaderboard/tt/$cc");
+exit;
 include('language.php');
 include('session.php');
 include('initdb.php');
