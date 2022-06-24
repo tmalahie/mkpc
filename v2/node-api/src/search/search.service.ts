@@ -107,6 +107,16 @@ export class SearchService {
     }
     return order;
   }
+  private buildRelationsFromParams<T>(options: SearchOptions<T>) {
+    let relations: FindOneOptions<T>["relations"] = [];
+    if (options.where) {
+      for (const [key, value] of Object.entries(options.where)) {
+        if (typeof value === "object")
+          relations.push(key);
+      }
+    }
+    return relations;
+  }
 
   async find<T>(options: SearchOptions<T>): Promise<SearchResult<T>> {
     const where = this.buildFilterFromParams<T>(options);
@@ -125,8 +135,10 @@ export class SearchService {
     }) : [];
     let count = data.length;
     if (options.params?.paging?.count && options.rules.canReturnCount) {
+      const relations = this.buildRelationsFromParams<T>(options);
       count = await this.em.count(options.entity, {
-        where
+        where,
+        relations
       });
     }
     return { data, count };

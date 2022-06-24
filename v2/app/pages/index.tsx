@@ -54,7 +54,7 @@ import ss9xs from "../images/main/screenshots/ss9xs.png"
 import ss10xs from "../images/main/screenshots/ss10xs.png"
 import ss11xs from "../images/main/screenshots/ss11xs.png"
 import ss12xs from "../images/main/screenshots/ss12xs.png"
-import { formatDate } from "../helpers/dates";
+import { formatDate, localeString } from "../helpers/dates";
 import { formatRank, formatTime } from "../helpers/records";
 import { escapeHtml } from "../helpers/strings";
 import { buildQuery } from "../helpers/uris";
@@ -67,7 +67,7 @@ import Skeleton from '../components/Skeleton/Skeleton';
 import useAuthUser from '../hooks/useAuthUser';
 import useCreations from '../hooks/useCreations';
 import { useTranslation } from 'next-i18next';
-import ReactTooltip from 'react-tooltip';
+import Tooltip from 'react-tooltip';
 
 const screenshots = [[{
   xs: ss1xs,
@@ -1071,7 +1071,7 @@ function ActiveLobbies({ data, mode }: ActiveLobbiesProps) {
 
   const firstLobby = activeLobbiesForMode[0];
   return <div className={styles.ranking_current} id={styles[`ranking_current_${mode}`]}>
-    <ReactTooltip place="top" effect="solid" offset={{top:-6}} />
+    <Tooltip place="top" effect="solid" offset={{top:-6}} />
     {
       (activeLobbiesForMode.length < 2) && !firstLobby.creation && !firstLobby.key ? 
       <span className={styles.ranking_list}>
@@ -1097,6 +1097,7 @@ interface ActivePlayersProps {
   single?: boolean;
 }
 function ActivePlayers({ data, mode, single }: ActivePlayersProps) {
+  const language = useLanguage();
   const { t } = useTranslation(localesNs);
 
   const creationTrKey = useMemo(() => {
@@ -1136,7 +1137,7 @@ function ActivePlayers({ data, mode, single }: ActivePlayersProps) {
     return ruleNames.join("+");
   }, [data]);
 
-  const title = data.players.map(player => `${player.name} (${player.pts} pts)`).join("\n");
+  const title = useMemo(() => data.players.map(player => `${player.name} (${player.pts.toLocaleString(localeString(language))} pts)`).join("\n"), [data]);
   return <><span className={styles.ranking_activeplayernb} data-tip={title}>
     { t("n_Members", { count: data.players.length }) }
   </span>

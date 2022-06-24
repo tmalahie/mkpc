@@ -168,11 +168,6 @@ function useLeaderboardData(mode: string, paging: any, player?: string) {
       requestOptions: postData({
         name: player,
         mode,
-        filters: [{
-          key: "deleted",
-          operator: "=",
-          value: 0
-        }],
         paging
       }),
       reloadDeps: [mode, paging, player],
