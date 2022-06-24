@@ -271,7 +271,6 @@ function OtherPendingNews() {
   </> : <div className={cx(styles.listNews)} id="pending-news" />
 }
 function NewsStatus({ news }) {
-  console.log(news);
   const { t } = useTranslation(localesNs);
 
   switch (news.status) {

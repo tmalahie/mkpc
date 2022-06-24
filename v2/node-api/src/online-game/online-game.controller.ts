@@ -51,7 +51,7 @@ export class OnlineGameController {
         },
         allowedOrders: ["id", score],
         defaultOrder: {
-          id: "DESC"
+          id: "ASC"
         },
         canReturnCount: true,
         maxResults: 20
