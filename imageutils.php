@@ -63,6 +63,17 @@ function image_create_from($src) {
 		return imagecreatefrompng($src);
 	}
 }
+function get_img_ext(&$src) {
+    $fileType = @mime_content_type($src);
+    $extensions = array(
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/jpeg' => 'jpg'
+    );
+    if (isset($extensions[$fileType]))
+        return $extensions[$fileType];
+    return null;
+}
 function imagealphamask(&$img, $r,$g,$b,$a) {
 	$w = imagesx($img);
 	$h = imagesy($img);

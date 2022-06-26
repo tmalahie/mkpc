@@ -68,8 +68,7 @@ function handle_upload($file,$perso=null) {
 		if ($poids < 1000000) {
 			$poids += file_total_size($perso ? array('perso'=>$perso['id']):array());
 			if ($poids < MAX_FILE_SIZE) {
-				$infosfichier = pathinfo($file['name']);
-				$ext = isset($infosfichier['extension']) ? strtolower($infosfichier['extension']) : null;
+				$ext = get_img_ext($file['tmp_name']);
 				$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 				if (in_array($ext, $extensions)) {
 					list($w,$h) = getimagesize($file['tmp_name']);
@@ -121,8 +120,7 @@ function handle_advanced($file,$perso,$type) {
 	if (!$file['error']) {
 		$poids = $file['size'];
 		if ($poids < 1000000) {
-			$infosfichier = pathinfo($file['name']);
-			$ext = strtolower($infosfichier['extension']);
+			$ext = get_img_ext($file['tmp_name']);
 			$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 			if (in_array($ext, $extensions)) {
 				$id = $perso['id'];
