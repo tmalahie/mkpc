@@ -231,7 +231,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										<strong>Destroy your opponent</strong>'s balloons with items, without getting hit by their items.<br />
+										<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items.<br />
 										The last player standing wins!
 										<?php
 									}
