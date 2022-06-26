@@ -163,8 +163,7 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
             if ($filesize < 1000000) {
                 $poids += $filesize;
                 if ($poids < MAX_FILE_SIZE) {
-                    $infosfichier = pathinfo($file['name']);
-                    $ext = strtolower($infosfichier['extension']);
+                    $ext = get_img_ext($file['tmp_name']);
                     $extensions = Array('png', 'gif', 'jpg', 'jpeg');
                     if (in_array($ext, $extensions)) {
                         $spriteSizes = decor_sprite_sizes($type,$file['tmp_name']);
@@ -220,8 +219,7 @@ function handle_decor_advanced($file,$decor,$type) {
 	if (!$file['error']) {
 		$poids = $file['size'];
 		if ($poids < 1000000) {
-			$infosfichier = pathinfo($file['name']);
-			$ext = strtolower($infosfichier['extension']);
+            $ext = get_img_ext($file['tmp_name']);
 			$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 			if (in_array($ext, $extensions)) {
 				$id = $decor['id'];

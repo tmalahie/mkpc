@@ -48,12 +48,14 @@ if (isset($profileId)) {
 				if (!$_FILES['avatar']['error']) {
 					$poids = $_FILES['avatar']['size'];
 					if ($poids < 2000000) {
-						list($w,$h) = getimagesize($_FILES['avatar']['tmp_name']);
+						$uploadSrc = $_FILES['avatar']['tmp_name'];
+						list($w,$h) = getimagesize($uploadSrc);
 						if ($w*$h < 4000000) {
-							$infosfichier = pathinfo($_FILES['avatar']['name']);
-							$ext = strtolower($infosfichier['extension']);
-							if (in_array($ext, array('png','jpg','gif','jpeg'))) {
-								function resize_img($original_src,$thumb_src, $minw,$minh) {
+							$imageType = exif_imagetype($uploadSrc);
+							$exts = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
+							if (isset($exts[$imageType])) {
+								$ext = $exts[$imageType];
+								function resize_img($original_src,$thumb_src, $minw,$minh, $ext) {
 									list($width, $height) = getimagesize($original_src);
 									if ($width*$minh > $height*$minw) {
 										$newHeight = $minh;
@@ -69,14 +71,14 @@ if (isset($profileId)) {
 									}
 									$thumb = imagecreatetruecolor($newWidth,$newHeight);
 
-									switch (exif_imagetype($original_src)) {
-									case 1 :
+									switch ($ext) {
+									case 'gif':
 										$source = imagecreatefromgif($original_src);
 										break;
-									case 2 :
+									case 'jpg':
 										$source = imagecreatefromjpeg($original_src);
 										break;
-									case 3 :
+									case 'png':
 										$source = imagecreatefrompng($original_src);
 										break;
 									default :
@@ -99,8 +101,8 @@ if (isset($profileId)) {
 									@unlink(AVATAR_DIR.$oldAvatar['ld']);
 									@unlink(AVATAR_DIR.$oldAvatar['hd']);
 								}
-								move_uploaded_file($_FILES['avatar']['tmp_name'], AVATAR_DIR.$avatarName);
-								resize_img(AVATAR_DIR.$avatarName,AVATAR_DIR.to_ld($avatarName), AVATAR_MINW,AVATAR_MINH);
+								move_uploaded_file($uploadSrc, AVATAR_DIR.$avatarName);
+								resize_img(AVATAR_DIR.$avatarName,AVATAR_DIR.to_ld($avatarName), AVATAR_MINW,AVATAR_MINH, $ext);
 								mysql_query('UPDATE `mkprofiles` SET avatar="'. $avatarName .'" WHERE id="'. $id .'"');
 								clear_avatar_cache($id);
 							}
