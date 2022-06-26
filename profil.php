@@ -164,7 +164,7 @@ if (isset($profileId)) {
 		}
 		if (isset($_GET['followed'])) {
 			if ($_GET['followed'])
-				$success = $language ? 'You are now following '. $getInfos['nom'] .'! You will receive a notification each time he posts a topic, a news, a circuit or a character.':'Vous suivez maintenant '. $getInfos['nom'] .' ! Vous recevrez une notification chaque fois qu\'il poste un topic, une news, un circuit ou un perso.';
+				$success = $language ? 'You are now following '. $getInfos['nom'] .'! You will receive a notification each time they post a topic, a news, a circuit or a character.':'Vous suivez maintenant '. $getInfos['nom'] .' ! Vous recevrez une notification chaque fois qu\'il poste un topic, une news, un circuit ou un perso.';
 			else
 				$success = $language ? 'You have stopped following '. $getInfos['nom']:'Vous ne suivez plus '. $getInfos['nom'];
 		}

@@ -25016,7 +25016,7 @@ function setChat() {
 
 	var vConnectes = document.createElement("button");
 	vConnectes.className = "disablable";
-	vConnectes.title = language ? "Join vocal chat" : "Rejoindre salon vocal";
+	vConnectes.title = language ? "Join voice chat" : "Rejoindre salon vocal";
 	var viConnectes = document.createElement("img");
 	viConnectes.alt = "Voc";
 	viConnectes.src = "images/ic_voc.png";
@@ -25039,7 +25039,7 @@ function setChat() {
 				resetBtn();
 			},
 			error: function(e) {
-				alert((language ? "Unable to join vocal chat:" : "Impossible de rejoindre le chat vocal : ") + e);
+				alert((language ? "Unable to join voice chat:" : "Impossible de rejoindre le chat vocal : ") + e);
 				resetBtn();
 			},
 			muted: !!vcaMute.dataset.muted
