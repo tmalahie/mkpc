@@ -809,6 +809,9 @@ div.hover-toggle:hover {
 .youtube.youtube-show-advanced #youtube-advanced-options-link {
 	display: none;
 }
+.youtube.youtube-show-advanced #youtube-speed, .youtube.youtube-show-advanced #youtube-last-speed {
+	width: 60px;
+}
 embed,#ytplayer {
 	position: absolute;
 	left: -10000px;

@@ -2701,8 +2701,40 @@ function showMusicSelector() {
 			}
 		}
 	}
-	document.getElementById("youtube-speed").value = ytSpeed || 1;
-	document.getElementById("youtube-last-speed").value = ytSpeedLast || 1;
+	function initYtSelect($select, defaultVal) {
+		defaultVal = defaultVal || 1;
+		$select.onchange = function() {
+			var newVal = this.value;
+			if (newVal === "") {
+				var enteredVal = +prompt(language ? "Enter value...":"Entrer une valeur...", this.lastValue);
+				if (enteredVal > 0) {
+					addOptionIfNotExist($select, enteredVal);
+					this.value = enteredVal;
+				}
+				else {
+					this.value = this.lastValue;
+					return;
+				}
+			}
+			this.lastValue = this.value;
+		}
+		addOptionIfNotExist($select, defaultVal);
+		$select.value = defaultVal;
+		$select.lastValue = $select.value;
+	}
+	initYtSelect(document.getElementById("youtube-speed"), ytSpeed);
+	initYtSelect(document.getElementById("youtube-last-speed"), ytSpeedLast);
+}
+function addOptionIfNotExist($select, value) {
+	var options = $select.options;
+	for (var i=0;i<options.length;i++) {
+		if (options[i].value == value)
+			return;
+	}
+	var option = document.createElement("option");
+	option.value = value;
+	option.innerHTML = "&times;"+value;
+	$select.insertBefore(option, options[options.length-1]);
 }
 function applyMusicSelector() {
 	var editorTool = editorTools[currentMode];
