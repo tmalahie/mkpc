@@ -286,7 +286,7 @@ else {
 <td rowspan="4" id="shareParams">
 <?php
 if ($canChange && !isset($infos['o0'])) {
-	$message = $language ? 'Warning : your course doesn\'t contain objects !<br />Hard to fight with those conditions...'
+	$message = $language ? 'Warning: your course doesn\'t contain objects !<br />Hard to fight with those conditions...'
 	: 'Attention : votre ar&egrave;ne ne contient aucun objet !<br />Difficile de se battre dans ces conditions...';
 }
 include('ip_banned.php');

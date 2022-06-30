@@ -798,7 +798,7 @@ function displayResults() {
 	}
 	if (noPlayers) {
 		var oNoResults = document.createElement("strong");
-		oNoResults.innerHTML = "Aucun résultat trouvé pour cette recherche.";
+		oNoResults.innerHTML = language ? "No result found for this search" : "Aucun résultat trouvé pour cette recherche.";
 		oContent.appendChild(oNoResults);
 	}
 }

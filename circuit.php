@@ -487,11 +487,11 @@ else {
 <?php
 if ($canChange && !$isCup) {
 	if ($noStart)
-		$message = $language ? 'Warning : Your circuit doesn\'t has a starting.<br />Quite annoying, we don\'t know where to begin.':'Attention : Votre circuit n\'a pas de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';
+		$message = $language ? 'Warning: your circuit doesn\'t have a start.<br />Quite annoying, we don\'t know where to begin.':'Attention : Votre circuit n\'a pas de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';
 	elseif ($twoStarts)
-		$message = $language ? 'Warning : your circuit have severals startings.<br />Hard to know which choosing.':'Attention : votre circuit comporte plusieurs d&eacute;parts !<br />Difficile de savoir lequel choisir...';
+		$message = $language ? 'Warning: your circuit has more than one start.<br />It\'s hard to know which one to choose.':'Attention : votre circuit comporte plusieurs d&eacute;parts !<br />Difficile de savoir lequel choisir...';
 	elseif ($bloqued)
-		$message = $language ? 'Warning : your circuit have to make a loop.<br />Otherwise it\'s impossible to know how to make a lap...':'Attention : votre circuit doit former une boucle.<br />Impossible de faire un tour sinon...';
+		$message = $language ? 'Warning: your circuit has to make a loop.<br />Otherwise it\'s impossible to know how to make a lap...':'Attention : votre circuit doit former une boucle.<br />Impossible de faire un tour sinon...';
 }
 include('ip_banned.php');
 if (isBanned())

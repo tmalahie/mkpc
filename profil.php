@@ -315,7 +315,7 @@ include('menu.php');
 				$followingUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkfollowusers` WHERE follower="'. $profileId .'"'));
 				$s = plural($followingUsers['nb']);
 				echo '<img src="images/followed.png" alt="Following" />';
-				echo '<strong>'. $followingUsers['nb'] . ' '. ($language ? 'following'.$s : 'abonnement'.$s) .'</strong>';
+				echo '<strong>'. $followingUsers['nb'] . ' '. ($language ? 'following' : 'abonnement'.$s) .'</strong>';
 				if ($me) {
 					if ($followingUsers['nb'])
 						echo ' <a class="all-follows" href="listFollowed.php">['.$view.']</a>';
