@@ -402,6 +402,17 @@ $clRulesByType = array(
 			},
 			'course' => array('vs')
 		),
+		'start_pos' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'by starting in specific location':'en partant à un emplacement spécifique',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			}
+		),
 		'mini_turbo' => array(
 			'description' => $language ? 'by performing $value​ Mini-Turbo$s':'en réalisant $value​ dérapage$s Turbo',
 			'description_mockup' => $language ? 'by performing N Turbo drifts':'en réalisant N dérapages Turbo',
@@ -771,6 +782,7 @@ function getRuleDescription($rule,$rulesClass=null) {
 	}
 	if (!isset($res)) {
 		$res = $data['description'];
+		if ($res === null) return $res;
 		$scope = (array)$rule;
 		if (isset($scope['value']))
 			$scope['s'] = ($scope['value']>=2 ? 's':'');
@@ -813,8 +825,11 @@ function getChallengeDescription($challengeData) {
 		$rulesData = $clRules[$data->type];
 		if (isAdditionalRule($rulesData,$data))
 			$extraDesc[] = getRuleDescription($data);
-		else
-			$constraintDescs[] = getRuleDescription($data);
+		else {
+			$constraintDesc = getRuleDescription($data);
+			if ($constraintDesc !== null)
+				$constraintDescs[] = $constraintDesc;
+		}
 	}
 	$challengeRulesStr = $mainDesc;
 	if (!empty($constraintDescs))

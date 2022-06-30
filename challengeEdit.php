@@ -359,6 +359,13 @@ function addContraintRule(clClass) {
 		case 'time_delay':
 			addConstraintNb($form,ruleId, language?'Delay (sec):':'Retard (sec) :',{attrs:{min:0},css:{width:'40px'}});
 			break;
+		case 'start_pos':
+			$form.html(
+				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<input type="hidden" name="scope[start_pos][value]" value="[]" />'+
+				'<button type="button" onclick="openZoneEditor(\'startpos\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
+			);
+			break;
 		case 'cc':
 			$form.html(
 				'<label>'+ (language?'Class:':'Cylindrée :') +' '+
@@ -528,12 +535,21 @@ function undoValidation() {
 		return false;
 	});
 }
-function loadZoneData() {
-	var data = document.forms[0].elements["goal[value]"].value;
+function getZoneInputKey(editorType) {
+	switch (editorType) {
+	case "startpos":
+		return "scope[start_pos]";
+	default:
+		return "goal";
+	}
+}
+function loadZoneData(editorType) {
+	var inputKey = getZoneInputKey(editorType);
+	var data = document.forms[0].elements[inputKey+"[value]"].value;
 	var meta = {};
 	var metaKeys = ["ordered"];
 	for (var i=0;i<metaKeys.length;i++) {
-		var $elt = document.forms[0].elements["goal["+metaKeys[i]+"]"];
+		var $elt = document.forms[0].elements[inputKey+"["+metaKeys[i]+"]"];
 		if ($elt)
 			meta[metaKeys[i]] = $elt.value;
 	}
@@ -542,10 +558,11 @@ function loadZoneData() {
 		meta: meta
 	}
 }
-function storeZoneData(data,meta) {
-	document.forms[0].elements["goal[value]"].value = JSON.stringify(data);
+function storeZoneData(data,meta, editorType) {
+	var inputKey = getZoneInputKey(editorType);
+	document.forms[0].elements[inputKey+"[value]"].value = JSON.stringify(data);
 	for (var key in meta) {
-		var $elt = document.forms[0].elements["goal["+key+"]"];
+		var $elt = document.forms[0].elements[inputKey+"["+key+"]"];
 		if ($elt) $elt.value = meta[key];
 	}
 }
