@@ -2992,6 +2992,11 @@ function startGame() {
 	if (clSelected && !challengesUsed[clSelected.id])
 		clSelected = undefined;
 	reinitLocalVars();
+	if (clLocalVars.startPos) {
+		oPlayers[0].x = clLocalVars.startPos.pos[0];
+		oPlayers[0].y = clLocalVars.startPos.pos[1];
+		oPlayers[0].rotation = 90 - clLocalVars.startPos.angle*180/Math.PI;
+	}
 
 	if ((strPlayer.length == 1) && !gameSettings.nomap) {
 		oPlanWidth = Math.round(iScreenScale*19.4);
@@ -10587,6 +10592,15 @@ var challengeRules = {
 			if (!clLocalVars.startedAt) return true;
 			var seconds = (clLocalVars.startedAt-1)*SPF/1000;
 			return (seconds >= scope.value);
+		}
+	},
+	"start_pos": {
+		"initSelected": function(scope) {
+			clLocalVars.startPos = scope.value;
+		},
+		"success": function(scope) {
+			if (!clLocalVars.startPos) return false;
+			return true;
 		}
 	},
 	"mini_turbo": {
