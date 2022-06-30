@@ -1902,7 +1902,7 @@ function handleKeySortcuts(e) {
 }
 function handlePageExit() {
 	if (changes)
-		return language ? "Warning : unsaved data will be lost.":"Attention, Les données non sauvegardées seront perdues.";
+		return language ? "Warning: unsaved data will be lost.":"Attention, Les données non sauvegardées seront perdues.";
 }
 function removeAllChildren(elt) {
 	while (elt.lastChild)

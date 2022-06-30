@@ -179,11 +179,11 @@ else {
 	$message = $language ? 'New : a comment section for the circuit creations !':'Nouveau : une section commentaires pour les cr&eacute;ations de circuits !';*/
 if ($canChange) {
 	if (!isset($circuitMainData->bgcolor))
-		$message = $language ? 'Warning : You didn\'t specify any data for the circuit.<br />Go back to the editor before testing it.':'Attention : vous n\'avez pas encore spécifié les paramètres du circuit.<br />Revenez dans l\'éditeur avant de continuer.';
+		$message = $language ? 'Warning: You didn\'t specify any data for the circuit.<br />Go back to the editor before testing it.':'Attention : vous n\'avez pas encore spécifié les paramètres du circuit.<br />Revenez dans l\'éditeur avant de continuer.';
 	elseif (count($circuitMainData->startposition) < 8)
-		$message = $language ? 'Warning : You did not indicate all the start positions.<br />Quite annoying, we don\'t know where to begin.':'Attention : Vous n\'avez pas indiqu&eacute; toutes les positions de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';
+		$message = $language ? 'Warning: You did not indicate all the start positions.<br />Quite annoying, we don\'t know where to begin.':'Attention : Vous n\'avez pas indiqu&eacute; toutes les positions de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';
 	elseif (empty($circuitPayload->arme))
-		$message = $language ? 'Warning : your course doesn\'t contain objects !<br />Hard to fight with those conditions...' :'Attention : votre ar&egrave;ne ne contient aucun objet !<br />Difficile de se battre dans ces conditions...';
+		$message = $language ? 'Warning: your course doesn\'t contain objects !<br />Hard to fight with those conditions...' :'Attention : votre ar&egrave;ne ne contient aucun objet !<br />Difficile de se battre dans ces conditions...';
 	elseif (empty($circuitPayload->aipoints))
 		$message = $language ? 'Warning: you have not indicated the trajectory of CPUs. They<br />may not know where to go...' :'Attention : vous n\'avez pas indiqu&eacute;<br />la trajectoire des ordis. Ils risque de ne pas<br />savoir o&ucirc; aller...';
 	elseif (!$circuitPayload->aipoints[count($circuitPayload->aipoints)-1][0])
