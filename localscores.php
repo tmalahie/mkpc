@@ -104,37 +104,13 @@ include('menu.php');
 	<td>Score</td>
 	</tr>
     <?php
+    require_once('utils-leaderboard.php');
 	foreach ($records as $i=>$record) {
         $place = $i+1;
         $playerName = $record['cpu'] ? getCpuName($cpuRankById[$record['id']], $courseRules) : $record['nom'];
 		?>
 	<tr class="<?php echo (($i%2) ? 'fonce':'clair') ?>">
-	<td><?php
-		echo $place .'<sup>';
-		if ($language) {
-			$centaines = $place%100;
-			if (($centaines >= 10) && ($centaines < 20))
-				echo 'th';
-			else {
-				switch ($place%10) {
-				case 1 :
-					echo 'st';
-					break;
-				case 2 :
-					echo 'nd';
-					break;
-				case 3 :
-					echo 'rd';
-					break;
-				default :
-					echo 'th';
-				}
-			}
-		}
-		else
-			echo 'e'. ($place>1 ? null:'r');
-		echo '</sup>';
-	?></td>
+	<td><?php print_rank($place); ?></td>
 	<td>
     <?php
     if (!$record['cpu'])

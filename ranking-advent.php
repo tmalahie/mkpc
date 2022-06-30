@@ -71,10 +71,11 @@ foreach ($get as $k => $getk)
 			$place = ($page-1)*20;
 		$i = 0;
 		$fin = $place+20;
+		require_once('utils-leaderboard.php');
 		if ($joueur) {
 		?>
 	<tr class="clair">
-	<td><?php echo $place .'<sup>e'. ($place>1 ? null:'r') .'</sup>' ?></td>
+	<td><?php print_rank($place); ?></td>
 	<td><a href="profil.php?id=<?php echo $record['id']; ?>" class="recorder"><?php
 	if ($record['code'])
 		echo '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" /> ';
@@ -91,32 +92,7 @@ foreach ($get as $k => $getk)
 					$place++;
 					?>
 	<tr class="<?php echo (($i%2) ? 'clair':'fonce') ?>">
-	<td><?php
-		echo $place .'<sup>';
-		if ($language) {
-			$centaines = $place%100;
-			if (($centaines >= 10) && ($centaines < 20))
-				echo 'th';
-			else {
-				switch ($place%10) {
-				case 1 :
-					echo 'st';
-					break;
-				case 2 :
-					echo 'nd';
-					break;
-				case 3 :
-					echo 'rd';
-					break;
-				default :
-					echo 'th';
-				}
-			}
-		}
-		else
-			echo 'e'. ($place>1 ? null:'r');
-		echo '</sup>';
-	?></td>
+	<td><?php print_rank($place); ?></td>
 	<td><a href="profil.php?id=<?php echo $record['id']; ?>" class="recorder"><?php
 	if ($record['code'])
 		echo '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" onerror="this.style.display=\'none\'" /> ';
