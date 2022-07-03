@@ -2742,82 +2742,6 @@ function startGame() {
 
 		aKarts.push(oEnemy);
 	}
-	if (oMap.decor) {
-		for (var type in oMap.decor) {
-			if (!decorBehaviors[type])
-				decorBehaviors[type] = {type:type};
-			var decorBehavior = decorBehaviors[type];
-			var decorExtra = getDecorExtra(decorBehavior);
-			var customDecor = decorExtra.custom;
-			if (customDecor) {
-				if (decorBehaviors[customDecor.type]) {
-					Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
-					decorBehavior.type = type;
-				}
-				(function(decorBehavior) {
-					getCustomDecorData(customDecor, function(res) {
-						var sizeRatio = {
-							w: res.size.hd.w/res.original_size.hd.w,
-							h: res.size.hd.h/res.original_size.hd.h
-						}
-						decorBehavior.size_ratio = sizeRatio;
-						if (sizeRatio.w !== 1) {
-							var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
-							var hitboxConst = 1;
-							decorBehavior.hitbox = hitboxConst + (hitboxSize-hitboxConst)*sizeRatio.w;
-						}
-						if (sizeRatio.h !== 1) {
-							var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
-							var hitboxConst = 0.8;
-							decorBehavior.hitboxH = hitboxConst + (hitboxHeight-hitboxConst)*sizeRatio.h;
-						}
-						if (decorBehavior.initcustom) {
-							setTimeout(function() {
-								decorBehavior.initcustom(res);
-							});
-						}
-					});
-				})(decorBehavior);
-			}
-			if (decorBehavior.preinit)
-				decorBehavior.preinit(oMap.decor[type],decorBehavior);
-		}
-		var decorIncs = {};
-		for (var type in oMap.decor) {
-			var decorBehavior = decorBehaviors[type];
-			var decorExtra = getDecorExtra(decorBehavior);
-			var customDecor = decorExtra.custom;
-			var actualType = customDecor ? customDecor.type:type;
-
-			var inc = 0;
-			if (decorIncs[actualType])
-				inc = decorIncs[actualType];
-			else
-				decorIncs[actualType] = 0;
-			
-			var decorsData = oMap.decor[type];
-			for (var i=0;i<decorsData.length;i++) {
-				var decorData = decorsData[i];
-				decorData[2] = new Sprite(type);
-				if (decorBehavior.init)
-					decorBehavior.init(decorData,i,i+inc);
-				if (gameSettings.ld && decorBehavior.hidable)
-					decorData[2][0].unshow();
-				else {
-					if (customDecor) {
-						(function(decorData,decorBehavior) {
-							for (var j=0;j<oPlayers.length;j++)
-								decorData[2][j].img.src = "images/map_icons/empty.png";
-							getCustomDecorData(customDecor, function(res) {
-								updateCustomDecorSprites(decorData, res, decorBehavior.size_ratio);
-							});
-						})(decorData,decorBehavior);
-					}
-				}
-			}
-			decorIncs[actualType] += decorsData.length;
-		}
-	}
 	function spinKart(nb) {
 		if (!this.tourne) {
 			if (isOnline)
@@ -2996,6 +2920,83 @@ function startGame() {
 		oPlayers[0].x = clLocalVars.startPos.pos[0];
 		oPlayers[0].y = clLocalVars.startPos.pos[1];
 		oPlayers[0].rotation = 90 - clLocalVars.startPos.angle*180/Math.PI;
+	}
+
+	if (oMap.decor) {
+		for (var type in oMap.decor) {
+			if (!decorBehaviors[type])
+				decorBehaviors[type] = {type:type};
+			var decorBehavior = decorBehaviors[type];
+			var decorExtra = getDecorExtra(decorBehavior);
+			var customDecor = decorExtra.custom;
+			if (customDecor) {
+				if (decorBehaviors[customDecor.type]) {
+					Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
+					decorBehavior.type = type;
+				}
+				(function(decorBehavior) {
+					getCustomDecorData(customDecor, function(res) {
+						var sizeRatio = {
+							w: res.size.hd.w/res.original_size.hd.w,
+							h: res.size.hd.h/res.original_size.hd.h
+						}
+						decorBehavior.size_ratio = sizeRatio;
+						if (sizeRatio.w !== 1) {
+							var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
+							var hitboxConst = 1;
+							decorBehavior.hitbox = hitboxConst + (hitboxSize-hitboxConst)*sizeRatio.w;
+						}
+						if (sizeRatio.h !== 1) {
+							var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
+							var hitboxConst = 0.8;
+							decorBehavior.hitboxH = hitboxConst + (hitboxHeight-hitboxConst)*sizeRatio.h;
+						}
+						if (decorBehavior.initcustom) {
+							setTimeout(function() {
+								decorBehavior.initcustom(res);
+							});
+						}
+					});
+				})(decorBehavior);
+			}
+			if (decorBehavior.preinit)
+				decorBehavior.preinit(oMap.decor[type],decorBehavior);
+		}
+		var decorIncs = {};
+		for (var type in oMap.decor) {
+			var decorBehavior = decorBehaviors[type];
+			var decorExtra = getDecorExtra(decorBehavior);
+			var customDecor = decorExtra.custom;
+			var actualType = customDecor ? customDecor.type:type;
+
+			var inc = 0;
+			if (decorIncs[actualType])
+				inc = decorIncs[actualType];
+			else
+				decorIncs[actualType] = 0;
+			
+			var decorsData = oMap.decor[type];
+			for (var i=0;i<decorsData.length;i++) {
+				var decorData = decorsData[i];
+				decorData[2] = new Sprite(type);
+				if (decorBehavior.init)
+					decorBehavior.init(decorData,i,i+inc);
+				if (gameSettings.ld && decorBehavior.hidable)
+					decorData[2][0].unshow();
+				else {
+					if (customDecor) {
+						(function(decorData,decorBehavior) {
+							for (var j=0;j<oPlayers.length;j++)
+								decorData[2][j].img.src = "images/map_icons/empty.png";
+							getCustomDecorData(customDecor, function(res) {
+								updateCustomDecorSprites(decorData, res, decorBehavior.size_ratio);
+							});
+						})(decorData,decorBehavior);
+					}
+				}
+			}
+			decorIncs[actualType] += decorsData.length;
+		}
 	}
 
 	if ((strPlayer.length == 1) && !gameSettings.nomap) {
@@ -10600,6 +10601,22 @@ var challengeRules = {
 		},
 		"success": function(scope) {
 			if (!clLocalVars.startPos) return false;
+			return true;
+		}
+	},
+	"extra_decors": {
+		"initSelected": function(scope) {
+			clLocalVars.selected = true;
+			for (var i=0;i<scope.value.length;i++) {
+				var decorData = scope.value[i];
+				if (!oMap.decor[decorData.src])
+					oMap.decor[decorData.src] = [];
+				oMap.decor[decorData.src].push(decorData.pos);
+			}
+			console.log(oMap.decor);
+		},
+		"success": function(scope) {
+			if (!clLocalVars.selected) return false;
 			return true;
 		}
 	},

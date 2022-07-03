@@ -42,6 +42,9 @@ switch ($type) {
 	case 'coins':
 		$submitTitle = $language ? 'Validate coins':'Valider les pièces';
 	break;
+	case 'decors':
+		$submitTitle = $language ? 'Validate decors':'Valider les décors';
+	break;
 	case 'startpos':
 		$submitTitle = $language ? 'Validate location':'Valider la position';
 	break;
@@ -81,6 +84,7 @@ body {
 }
 #zone-editor-options > div {
 	display: flex;
+	flex-wrap: wrap;
 	margin: 4px 0;
 	align-items: center;
 }
@@ -95,6 +99,15 @@ body {
 }
 #zone-editor-theme input[type="button"] {
 	width: 40px;
+}
+#zone-editor-decor input[type="button"] {
+    width: 22px;
+    background-size: auto 14px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+#zone-editor-decor input[type="button"].selected {
+	background-color: #7CF;
 }
 #zone-editor-shape input[type="button"] {
 	width: 25px;
@@ -207,6 +220,11 @@ function selectTheme($btn,isDark) {
 	else
 		document.body.classList.remove("theme-dark");
 }
+var currentDecor;
+function selectDecor($btn,type) {
+	selectButton($btn);
+	currentDecor = type;
+}
 function selectOrdered($btn,isOrdered) {
 	if (isOrdered)
 		document.body.classList.add("ordered-shape");
@@ -217,6 +235,9 @@ var shapeType = "rectangle";
 switch (editorType) {
 case "coins":
 	shapeType = "point";
+	break;
+case "decors":
+	shapeType = "img";
 	break;
 case "startpos":
 	shapeType = "arrow";
@@ -266,6 +287,8 @@ function getShapeType(oBox) {
 			return "point";
 		return "rectangle";
 	}
+	if (oBox.src)
+		return "img";
 	if (oBox.pos)
 		return "arrow";
 	return "polygon";
@@ -445,6 +468,44 @@ document.addEventListener("DOMContentLoaded", function() {
 			oRect = null;
 		}
 	}
+	function applyImg(x,y,src, oImg) {
+		var triggered = !oImg;
+		if (triggered)
+			oImg = document.createElementNS(SVG, "image");
+		oImg.setAttribute("href", "images/map_icons/"+ src +".png");
+		oImg.setAttribute("height", 12);
+		oImg.setAttribute("x", x-6);
+		oImg.setAttribute("y", y-6);
+		oImg.setAttribute("class", "shape");
+		if (!oImg.dataset) oImg.dataset = {};
+		oImg.dataset.data = JSON.stringify({src:src,pos:[x,y]});
+		$svg.appendChild(oImg);
+
+		if (!triggered) {
+			pushUndo(function() {
+				$svg.removeChild(oImg);
+			});
+		}
+		oImg.oncontextmenu = function(e) {
+			var lShape = oImg.nextSibling;
+			$svg.removeChild(oImg);
+			if (lShape) {
+				pushUndo(function() {
+					$svg.insertBefore(oImg,lShape);
+				});
+			}
+			else {
+				pushUndo(function() {
+					$svg.appendChild(oImg);
+				});
+			}
+			return false;
+		};
+		if (!triggered) {
+			document.onmousemove = undefined;
+			oRect = null;
+		}
+	}
 	function createArrow(x,y) {
 		var oCircle = document.createElementNS(SVG, "circle");
 		oCircle.setAttribute("r", 4);
@@ -604,6 +665,14 @@ document.addEventListener("DOMContentLoaded", function() {
 				var oCircle = document.createElementNS(SVG, "circle");
 				applyPoint(x,y, oCircle);
 				break;
+			case "img":
+				var oImg = document.createElementNS(SVG, "image");
+				if (!currentDecor) {
+					alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
+					return;
+				}
+				applyImg(x,y,currentDecor, oImg);
+				break;
 			case "arrow":
 				if (document.getElementsByClassName("shape").length) break;
 				aX = x;
@@ -691,6 +760,9 @@ document.addEventListener("DOMContentLoaded", function() {
 		case "point":
 			applyPoint(iData[0],iData[1]);
 			break;
+		case "img":
+			applyImg(iData.pos[0],iData.pos[1], iData.src);
+			break;
 		case "polygon":
 			applyPoly(iData);
 			break;
@@ -747,6 +819,20 @@ window.onload = function() {
 				<?php
 			}
 			break;
+		case 'decors':
+			if ($language) {
+				?>
+				Indicate decor locations by clicking where you want on the circuit image.
+				To delete a decor, right click on it.<br />
+				<?php
+			}
+			else {
+				?>
+				Indiquez les emplacements des décors en cliquant où vous voulez sur l'image du circuit.<br />
+				Pour supprimer un décor, faites un clic droit dessus.<br />
+				<?php
+			}
+			break;
 		case 'startpos':
 			if ($language) {
 				?>
@@ -786,15 +872,46 @@ window.onload = function() {
 		?>
 		<hr />
 		<div id="zone-editor-options">
+			<?php
+			switch ($type) {
+			case 'decors':
+				break;
+			default:
+				?>
 			<div id="zone-editor-theme">
 				<span><?php echo $language ? 'Theme:':'Thème :'; ?></span>
 				<input type="button" style="background-color:white" class="selected" onclick="selectTheme(this,false)" />
 				<input type="button" style="background-color:black" onclick="selectTheme(this,true)" />
 			</div>
+				<?php
+			}
+			?>
 			<?php
 			switch ($type) {
 			case 'coins':
 			case 'startpos':
+				break;
+			case 'decors':
+				?>
+				<div id="zone-editor-decor">
+					<span><?php echo $language ? 'Decor:':'Décor :'; ?></span>
+					<?php
+					include('circuitDecors.php');
+					foreach ($decors as &$decorGroup)
+						unset($decorGroup['truck']);
+					unset($decorGroup);
+					foreach ($decors as &$decorGroup) {
+						foreach ($decorGroup as $key => $name) {
+							if ('assets/' === substr($key,0,7))
+								continue;
+							?>
+							<input type="button" style="background-image:url('images/map_icons/<?php echo $key; ?>.png')"<?php if ($name) echo ' title="'.$name.'"'; ?> onclick="selectDecor(this, '<?php echo $key; ?>')" />
+							<?php
+						}
+					}
+					?>
+				</div>
+				<?php
 				break;
 			default;
 				?>

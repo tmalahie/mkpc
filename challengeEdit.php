@@ -366,6 +366,13 @@ function addContraintRule(clClass) {
 				'<button type="button" onclick="openZoneEditor(\'startpos\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
 			);
 			break;
+		case 'extra_decors':
+			$form.html(
+				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<input type="hidden" name="scope[extra_decors][value]" value="[]" />'+
+				'<button type="button" onclick="openZoneEditor(\'decors\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
+			);
+			break;
 		case 'cc':
 			$form.html(
 				'<label>'+ (language?'Class:':'Cylindrée :') +' '+
@@ -539,6 +546,8 @@ function getZoneInputKey(editorType) {
 	switch (editorType) {
 	case "startpos":
 		return "scope[start_pos]";
+	case "decors":
+		return "scope[extra_decors]";
 	default:
 		return "goal";
 	}

@@ -413,6 +413,17 @@ $clRulesByType = array(
 				$scope->value = json_encode($scope->value);
 			}
 		),
+		'extra_decors' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'with extra decors...':'avec plus de décors...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			}
+		),
 		'mini_turbo' => array(
 			'description' => $language ? 'by performing $value​ Mini-Turbo$s':'en réalisant $value​ dérapage$s Turbo',
 			'description_mockup' => $language ? 'by performing N Turbo drifts':'en réalisant N dérapages Turbo',
