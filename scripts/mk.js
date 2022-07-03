@@ -2877,6 +2877,7 @@ function startGame() {
 		"end_game": [],
 		"each_frame": [],
 		"each_hit": [],
+		"each_decor_hit": [],
 		"each_kill": [],
 		"each_item": [],
 		"each_coin": [],
@@ -9461,6 +9462,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 										addNewItem(collisionPlayer, {type: bonusType, team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
 									}
 								}
+								handleDecorHit(type);
 							}
 							if (decorBehavior.transparent)
 								break;
@@ -9470,6 +9472,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 					else {
 						oMap.decor[type][i][2][0].suppr();
 						oMap.decor[type].splice(i,1);
+						handleDecorHit(type);
 						break;
 					}
 				}
@@ -10294,6 +10297,34 @@ var challengeRules = {
 				return true;
 		}
 	},
+	"destroy_decors": {
+		"verify": "each_decor_hit",
+		"initLocalVars": function(scope) {
+			clLocalVars.nbDecorHits = {};
+			clLocalVars.nbDecorHits[scope.value] = 0;
+			if (!scope.nb) {
+				var oDecors = oMap.decor[scope.value] || [];
+				scope.nb = oDecors.length;
+				setTimeout(function() {
+					oDecors = oMap.decor[scope.value] || [];
+					scope.nb = oDecors.length;
+				});
+			}
+		},
+		"initSelected": function(scope) {
+			setTimeout(function() {
+				addChallengeHud("decors", {
+					title: toLanguage("Destroyed","Détruit"),
+					value: 0,
+					out_of: scope.nb
+				});
+			});
+		},
+		"success": function(scope) {
+			if (clLocalVars.nbDecorHits[scope.value] >= scope.nb)
+				return true;
+		}
+	},
 	"gold_cup": {
 		"verify": "end_gp",
 		"initRuleVars": function() {
@@ -10613,7 +10644,6 @@ var challengeRules = {
 					oMap.decor[decorData.src] = [];
 				oMap.decor[decorData.src].push(decorData.pos);
 			}
-			console.log(oMap.decor);
 		},
 		"success": function(scope) {
 			if (!clLocalVars.selected) return false;
@@ -11898,6 +11928,13 @@ function incChallengeHits(kart) {
 		}
 	}
 	challengeCheck("each_hit");
+}
+function handleDecorHit(type) {
+	if (clLocalVars.nbDecorHits && (clLocalVars.nbDecorHits[type] != undefined)) {
+		clLocalVars.nbDecorHits[type]++;
+		updateChallengeHud("decors", clLocalVars.nbDecorHits[type]);
+		challengeCheck("each_decor_hit");
+	}
 }
 function touche_banane(iX, iY, iP) {
 	if (!iP) iP = [];
