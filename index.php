@@ -106,7 +106,7 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Win all the Grand Prix!':'Remportez tous les grands prix !'; ?></h3>
+								<h3 class="fp-title"><?php echo $language ? 'Win all the cups!':'Remportez tous les grands prix !'; ?></h3>
 								<p>
 									<?php
 									if ($language) {
@@ -171,7 +171,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										Fight other players in <strong>online mode</strong>!<br />
+										Race and battle in <strong>online mode</strong>!<br />
 										Win as many races as possible and <strong>climb in the official ranking</strong>!
 										<?php
 									}
