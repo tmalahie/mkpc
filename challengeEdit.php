@@ -199,7 +199,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css" />
+<link rel="stylesheet" href="styles/challenges.css?reload=1" />
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <?php
 if (empty($moderate))
@@ -298,23 +298,43 @@ function selectMainRule() {
 			'<input type="hidden" name="goal[value]" value="[]" />'+
 			'<button type="button" onclick="openZoneEditor(\'coins\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
 			'<div>'+ (language ? 'Number of coins to collect:':'Nombre de pièces à récupérer :') + '<br />'+
-			'<label><input type="radio" name="goal_coins_all" onclick="selectAllCoins(1)" checked="checked" value="1" />'+ (language ? "All":"Toutes") + '</label> &nbsp; '+
-			'<label><input type="radio" name="goal_coins_all" onclick="selectAllCoins(0)" value="0" /> '+
-			'<input type="number" style="width:40px" name="goal[nb]" onfocus="selectNbCoins()" placeholder="25" autocomplete="off" /></label>' +
+			'<label><input type="radio" name="goal_coins_all" onclick="toggleGoalAllOption(1)" checked="checked" value="1" />'+ (language ? "All":"Toutes") + '</label> &nbsp; '+
+			'<label><input type="radio" name="goal_coins_all" onclick="toggleGoalAllOption(0)" value="0" /> '+
+			'<input type="number" style="width:40px" name="goal[nb]" onfocus="selectNbCoins()" placeholder="25" min="1" autocomplete="off" /></label>' +
 			'</div>'
 		);
+		break;
+	case 'destroy_decors':
+		$extra.html(
+			'<div>'+ (language?'Decor:':'Décor :') +' '+
+			'<input type="text" style="display:none" name="destroy_decors_fake1" required="required" >'+
+			'<div class="challenge-rule-btn-options challenge-main-btn-options"></div>'+
+			'<div class="challenge-rule-decor-names challenge-main-decor-names"></div>'+
+			'<div class="challenge-main-decor-count">'+ (language ? 'Number of decors to destroy:':'Nombre de décors à détruire :') + '<br />'+
+			'<label><input type="radio" name="goal_decors_all" onclick="toggleGoalAllOption(1)" checked="checked" value="1" />'+ (language ? "All":"Tous") + '</label> &nbsp; '+
+			'<label><input type="radio" name="goal_decors_all" onclick="toggleGoalAllOption(0)" value="0" /> '+
+			'<input type="number" style="width:40px" name="goal[nb]" onfocus="selectNbDecors()" placeholder="5" min="1" autocomplete="off" /></label>' +
+			'</div>'
+		);
+		var $extraSelector = $extra.find(".challenge-main-btn-options");
+		for (var i=0;i<decorOptions.length;i++) {
+			var decorOption = decorOptions[i];
+			if (decorOption.value.startsWith("assets/")) continue;
+			var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
+			$extraSelector.append('<button type="button" data-rule-type="main" data-rule-key="destroy_decors" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
+		}
 		break;
 	}
 	$extra.find("input,select").first().focus();
 }
 function addContraintRule(clClass) {
 	var $rule = $(
-		'<div class="challenge-contraint challenge-contraint-selecting">'+
-			'<div class="challenge-contraint-selector">'+
-				'<select name="constraint[]" class="challenge-contraint-select" required="required"></select>'+
+		'<div class="challenge-contraint challenge-constraint-selecting">'+
+			'<div class="challenge-constraint-selector">'+
+				'<select name="constraint[]" class="challenge-constraint-select" required="required"></select>'+
 				'<a href="#null" class="challenge-action-undo">'+ (language ? 'Cancel':'Annuler') +'</a>'+
 			'</div>'+
-			'<div class="challenge-contraint-options">'+
+			'<div class="challenge-constraint-options">'+
 				'<div class="challenge-constraint-form"></div>'+
 				'<div class="challenge-constraint-action">'+
 					'<a class="challenge-action-edit" href="#null">'+ (language ? "Edit":"Modifier") +'</a>'+
@@ -324,12 +344,12 @@ function addContraintRule(clClass) {
 		'</div>'
 	);
 	var $form = $rule.find(".challenge-constraint-form");
-	var $rulesSelector = $rule.find(".challenge-contraint-select");
+	var $rulesSelector = $rule.find(".challenge-constraint-select");
 	$rule.find(".challenge-action-edit").click(function() {
 		$form.empty();
 		var ruleId = $rulesSelector.val();
 		$rulesSelector.prop("selectedIndex", 0);
-		$rule.addClass("challenge-contraint-selecting");
+		$rule.addClass("challenge-constraint-selecting");
 		delete selectedConstraints[ruleId];
 		updateConstraintSelectors();
 		return false;
@@ -376,7 +396,7 @@ function addContraintRule(clClass) {
 		case 'cc':
 			$form.html(
 				'<label>'+ (language?'Class:':'Cylindrée :') +' '+
-				'<input type="text" class="challenge-contraint-value" name="scope[cc][value]" pattern="[1-9]\\d*" maxlength="3" list="scope_cc_list" required="required" style="width:60px" /> cc'+
+				'<input type="text" class="challenge-constraint-value" name="scope[cc][value]" pattern="[1-9]\\d*" maxlength="3" list="scope_cc_list" required="required" style="width:60px" /> cc'+
 				'</label> ·<small> </small>'+
 				'<label><input type="checkbox" name="scope[cc][mirror]" />&nbsp;'+ (language?'Mirror':'Miroir')+'</label>'+
 				'<datalist id="scope_cc_list">'+
@@ -407,14 +427,14 @@ function addContraintRule(clClass) {
 			$form.html(
 				'<div>'+ (language?'Decor(s):':'Décor(s) :') +' '+
 				'<input type="text" style="display:none" name="avoid_decors_fake1" required="required" >'+
-				'<div class="challenge-contraint-btn-options"></div>'+
-				'<div class="challenge-contraint-decor-names"></div>'
+				'<div class="challenge-rule-btn-options challenge-constraint-btn-options"></div>'+
+				'<div class="challenge-rule-decor-names challenge-constraint-decor-names"></div>'
 			);
-			var $extraSelector = $form.find(".challenge-contraint-btn-options");
+			var $extraSelector = $form.find(".challenge-constraint-btn-options");
 			for (var i=0;i<decorOptions.length;i++) {
 				var decorOption = decorOptions[i];
 				var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
-				$extraSelector.append('<button type="button" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
+				$extraSelector.append('<button type="button" data-rule-type="constraint" data-rule-key="avoid_decors" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
 			}
 			break;
 		case 'balloons':
@@ -448,7 +468,7 @@ function addContraintRule(clClass) {
 			$form.html(rulePayload.description);
 			break;
 		}
-		$rule.removeClass("challenge-contraint-selecting");
+		$rule.removeClass("challenge-constraint-selecting");
 		selectedConstraints[ruleId] = true;
 		updateConstraintSelectors();
 		$form.find("input,select").first().focus();
@@ -459,7 +479,7 @@ function addContraintRule(clClass) {
 }
 function updateConstraintSelectors() {
 	for (var clClass in clRules) {
-		var $selectors = $("#challenge-"+clClass+"-list > .challenge-contraint-selecting select");
+		var $selectors = $("#challenge-"+clClass+"-list > .challenge-constraint-selecting select");
 		$selectors.each(function(id,rulesSelector) {
 			updateConstraintSelector(clClass,$(rulesSelector));
 		});
@@ -486,11 +506,11 @@ function getConstraintOptions(clClass,ruleId) {
 function addConstraintSelector($form,ruleId,label,options) {
 	$form.html(
 		'<label>'+ label +' '+
-		'<select class="challenge-contraint-value" name="scope['+ruleId+'][value]">'+
+		'<select class="challenge-constraint-value" name="scope['+ruleId+'][value]">'+
 		'</select>'+
 		'</label>'
 	);
-	var $extraSelector = $form.find(".challenge-contraint-value");
+	var $extraSelector = $form.find(".challenge-constraint-value");
 	for (var i=0;i<options.length;i++)
 		$extraSelector.append('<option value="'+ options[i].value +'">'+ options[i].label +'</option>');
 }
@@ -519,7 +539,7 @@ function addConstraintInput($form,ruleId,label,inputType,options) {
 	}
 	$form.html(
 		'<label>'+ label +' '+
-		'<input type="'+inputType+'" class="challenge-contraint-value" name="scope['+ruleId+'][value]" required="required"'+htmlAttrs+' />'+
+		'<input type="'+inputType+'" class="challenge-constraint-value" name="scope['+ruleId+'][value]" required="required"'+htmlAttrs+' />'+
 		'</label>'
 	);
 }
@@ -578,7 +598,7 @@ function storeZoneData(data,meta, editorType) {
 function openZoneEditor(type) {
 	window.open(document.location.href.replace("challengeEdit.php","challengeZone.php")+(type?("&type="+type):""),'chose','scrollbars=1, resizable=1, width=800, height=600');
 }
-function selectAllCoins(value) {
+function toggleGoalAllOption(value) {
 	if (value == 1)
 		document.forms[0].elements["goal[nb]"].value = "";
 	else
@@ -587,36 +607,58 @@ function selectAllCoins(value) {
 function selectNbCoins() {
 	document.forms[0].elements["goal_coins_all"].value = 0;
 }
+function selectNbDecors() {
+	document.forms[0].elements["goal_decors_all"].value = 0;
+}
 function toggleDecor(btn, label) {
-	if (btn.dataset.selected)
-		delete btn.dataset.selected;
-	else
+	var ruleType = btn.dataset.ruleType;
+	var ruleKey = btn.dataset.ruleKey;
+	var multiSelectAllowed = (ruleKey === "avoid_decors");
+	if (multiSelectAllowed) {
+		if (btn.dataset.selected)
+			delete btn.dataset.selected;
+		else
+			btn.dataset.selected = "1";
+	}
+	else {
+		var previouslySelected = btn.parentNode.querySelectorAll('button[data-selected="1"]');
+		for (var i=0;i<previouslySelected.length;i++) {
+			var iBtn = previouslySelected[i];
+			delete iBtn.dataset.selected;
+			var decorId = ruleKey + "_name_"+ iBtn.dataset.value.replace(/\//g, "-");
+			$("#"+decorId).remove();
+		}
 		btn.dataset.selected = "1";
+	}
 	
 	var decorOption = decorOptions.find(function(decorOption) {
 		return (decorOption.value === btn.dataset.value);
 	});
 	var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
-	var decorId = "avoid_decor_name_"+ decorOption.value.replace(/\//g, "-");
-	$decorNameCtn = $(".challenge-contraint-decor-names");
+	var decorId = ruleKey + "_name_"+ decorOption.value.replace(/\//g, "-");
+	$decorNameCtn = $(".challenge-"+ ruleType +"-decor-names");
 	if (btn.dataset.selected) {
+		var decorNameKey = (ruleType === "main") ? 'goal[value]['+ decorOption.value +'][name]' : 'scope['+ ruleKey +'][value]['+ decorOption.value +'][name]';
 		var $decorNameSelector = $('<div id="'+ decorId +'">'+
 			'<img src="'+ decorIcon +'" alt="'+ decorOption.value +'" /> '+
-			(language ? 'Decor name:':'Nom du décor :') + ' <input type="text" name="scope[avoid_decors][value]['+ decorOption.value +'][name]" />'+
+			(language ? 'Decor name:':'Nom du décor :') + ' <input type="text" name="'+ decorNameKey +'" />'+
 		'</div>');
 		if (!label) label = decorOption.label;
 		if (!label) label = "";
-		var $decorNameInput = $decorNameSelector.find("input");
+		var $decorNameInput = $decorNameSelector.find('input[name="'+ decorNameKey +'"]');
 		$decorNameInput.val(label);
 		$decorNameCtn.append($decorNameSelector);
 		if (decorOption.custom)
 			$decorNameInput.attr("required", true)
 		else
 			$decorNameSelector.hide();
+		
+		if (ruleKey === "destroy_decors")
+			$(".challenge-main-decor-count").show();
 	}
 	else
 		$("#"+decorId).remove();
-	$("input[name='avoid_decors_fake1']").val($decorNameCtn.children().length ? "1":"");
+	$("input[name='"+ ruleKey +"_fake1']").val($decorNameCtn.children().length ? "1":"");
 	btn.blur();
 }
 function helpDifficulty() {
@@ -642,7 +684,7 @@ $(function() {
 			for (var j=0;j<constraintRules.length;j++) {
 				var constraint = constraintRules[j];
 				var $rule = addContraintRule(constraintClass);
-				var $rulesSelector = $rule.find(".challenge-contraint-select");
+				var $rulesSelector = $rule.find(".challenge-constraint-select");
 				$rulesSelector.val(constraint.type).change();
 				if (constraint.value != undefined) {
 					var formElt = mainForm.elements["scope["+constraint.type+"][value]"];
@@ -651,7 +693,7 @@ $(function() {
 					case "avoid_decors":
 						for (var key in constraint.value) {
 							var decorData = constraint.value[key];
-							var btn = mainForm.querySelector(".challenge-contraint-btn-options button[data-value='"+ key +"']");
+							var btn = mainForm.querySelector(".challenge-constraint-btn-options button[data-value='"+ key +"']");
 							if (btn)
 								toggleDecor(btn, decorData.name);
 						}
@@ -667,6 +709,16 @@ $(function() {
 		case "collect_coins":
 			if (mainRule.nb) {
 				selectNbCoins();
+				mainForm.elements["goal[nb]"].value = mainRule.nb;
+			}
+			break;
+		case "destroy_decors":
+			var key = mainRule.value;
+			var btn = mainForm.querySelector(".challenge-main-btn-options button[data-value='"+ key +"']");
+			if (btn)
+				toggleDecor(btn, mainRule.name);
+			if (mainRule.nb) {
+				selectNbDecors();
 				mainForm.elements["goal[nb]"].value = mainRule.nb;
 			}
 		}

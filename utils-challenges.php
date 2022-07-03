@@ -120,6 +120,32 @@ $clRulesByType = array(
 			},
 			'course' => array('vs','battle')
 		),
+		'destroy_decors' => array(
+			'description_mockup' => $language ? 'Destroy decors...':'Détruire les décors...',
+			'description_lambda' => function($language,&$scope) {
+				if (isset($scope->nb)) {
+					$nb = $scope->nb;
+					$decorName = getChallengeDecorName($scope->value, $scope->name, $nb);
+					return $language ? "Destroy $nb $decorName":"Détruire $nb $decorName";
+				}
+				$decorName = getChallengeDecorName($scope->value, $scope->name, 2);
+				return $language ? "Destroy all $decorName":"Détruire les $decorName";
+			},
+			'parser' => function(&$scope) {
+				$decors = $scope['value'];
+				foreach ($decors as $type => $options) {
+					$scope['value'] = $type;
+					if (!empty($options['name']))
+						$scope['name'] = $options['name'];
+					break;
+				}
+				if (empty($scope['nb']))
+					unset($scope['nb']);
+				else
+					$scope['nb'] = intval($scope['nb']);
+			},
+			'course' => array('vs','battle')
+		),
 		'gold_cup' => array(
 			'description' => $language ? 'Get the gold cup':'Obtenir la coupe d\'or',
 			'course' => array('cup'),
@@ -271,64 +297,9 @@ $clRulesByType = array(
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
 			'description_lambda' => function($language,&$scope) {
-				$decorTree = $language ? 'tree' : 'arbre';
-				$decorMapping = array(
-					'tuyau' => $language ? 'pipe':'tuyau',
-					'taupe' => $language ? 'Monty Mole':'Topi Taupe',
-					'poisson' => 'Cheep-Cheep',
-					'plante' => $language ? 'Piranha Plant':'Plante Piranha',
-					'boo' => 'Boo',
-					'thwomp' => 'Thwomp',
-					'spectre' => 'Thwomp',
-					'assets/oil1' => $language ? 'oil spill':'tâche d\'huile',
-					'assets/oil2' => $language ? 'puddle':'flaque',
-					'crabe' => $language ? 'crab':'crabe',
-					'cheepcheep' => 'Cheep-Cheep',
-					'movingtree' => $language ? 'moving tree' : 'arbre mobile',
-					'pokey' => 'Pokey',
-					'firesnake' => $language ? 'fire snake' : 'serpent de feu',
-					'box' => $language ? 'box':'caisse',
-					'snowball' => $language ? 'snow ball':'boule de neige',
-					'cannonball' => $language ? 'pinball ball':'boule de flipper',
-					'truck' => 'bus',
-					'pendulum' => $language ? 'pendulum':'pendule',
-					'assets/pivothand' => $language ? 'clock hand':'aiguille',
-					'snowman' => $language ? 'snowman':'bonhomme de neige',
-					'goomba' => 'Goomba',
-					'fireplant' => $language ? 'fire plant' : 'plante de feu',
-					'piranhaplant' => $language ? 'Piranha Plant':'Plante Piranha',
-					'tortitaupe' => $language ? 'Monty Mole' : 'Torti Taupe',
-					'billball' => $language ? 'Bullet Bill' : 'Bill Ball',
-					'firering' => $language ? 'fire circle':'cercle de feu',
-					'fire3star' => $language ? 'fire triplet':'triolet de feu',
-					'topitaupe' => $language ? 'Monty Mole' : 'Topi Taupe',
-					'chomp' => 'Chomp',
-					'movingthwomp' => 'Thwomp',
-					'firebar' => $language ? 'fire bar' : 'barre de feu',
-					'tree' => $decorTree,
-					'palm' => $decorTree,
-					'coconut' => $decorTree,
-					'sinistertree' => $decorTree,
-					'falltree' => $decorTree,
-					'mountaintree' => $decorTree,
-					'fir' => $decorTree,
-					'mariotree' => $decorTree,
-					'peachtree' => $decorTree,
-					'assets/flower1' => $language ? 'flower':'fleur',
-					'assets/flower2' => $language ? 'flower':'fleur',
-					'assets/flower3' => $language ? 'flower':'fleur',
-					'assets/bumper' => 'bumper'
-				);
 				$itemsToAvoid = array();
-				foreach ($scope->value as $key=>$decor) {
-					if (!empty($decor->name))
-						$decorName = $decor->name;
-					elseif (isset($decorMapping[$key]))
-						$decorName = $decorMapping[$key];
-					else
-						$decorName = $key;
-					$itemsToAvoid[] = $decorName;
-				}
+				foreach ($scope->value as $key=>$decor)
+					$itemsToAvoid[] = getChallengeDecorName($key, $decor->name);
 				$itemsToAvoid = array_values(array_unique($itemsToAvoid));
 				$itemsToAvoidString = '';
 				$nbItems = count($itemsToAvoid);
@@ -935,5 +906,64 @@ function getRewardedPlayers($filters) {
 }
 function isRuleElligible(&$rule,&$course) {
 	return in_array($course, $rule['course']);
+}
+function getChallengeDecorName($key, &$name, $nb=0) {
+	global $language;
+	$e = ($nb > 1) ? 'e' : '';
+	$s = ($nb > 1) ? 's' : '';
+	$x = ($nb > 1) ? 'x' : '';
+	$decorTree = $language ? "tree$s" : "arbre$s";
+	$decorMapping = array(
+		'tuyau' => $language ? "pipe$s":"tuyau$x",
+		'taupe' => $language ? "Monty Mole$s":"Topi Taupe$s",
+		'poisson' => "Cheep-Cheep$s",
+		'plante' => $language ? "Piranha Plant$s":"Plante$s Piranha",
+		'boo' => "Boo$s",
+		'thwomp' => "Thwomp$s",
+		'spectre' => "Thwomp$s",
+		'assets/oil1' => $language ? "oil spill$s":"tâche$s d\"huile",
+		'assets/oil2' => $language ? "puddle$s":"flaque$s",
+		'crabe' => $language ? "crab$s":"crabe$s",
+		'cheepcheep' => "Cheep-Cheep$s",
+		'movingtree' => $language ? "moving tree$s" : "arbre$s mobile",
+		'pokey' => "Pokey$s",
+		'firesnake' => $language ? "fire snake$s" : "serpent$s de feu",
+		'box' => $language ? "box$e$s":"caisse$s",
+		'snowball' => $language ? "snow ball$s":"boule$s de neige",
+		'cannonball' => $language ? "pinball ball$s":"boule$s de flipper",
+		'truck' => $language ? "bus$e$s" : "bus",
+		'pendulum' => $language ? "pendulum$s":"pendule$s",
+		'assets/pivothand' => $language ? "clock hand$s":"aiguille$s",
+		'snowman' => $language ? "snowman$s":"bonhomme$s de neige",
+		'goomba' => "Goomba$s",
+		'fireplant' => $language ? "fire plant$s" : "plante$s de feu",
+		'piranhaplant' => $language ? "Piranha Plant$s":"Plante$s Piranha",
+		'tortitaupe' => $language ? "Monty Mole$s" : "Torti Taupe$s",
+		'billball' => $language ? "Bullet Bill$s" : "Bill Ball$s",
+		'firering' => $language ? "fire circle$s":"cercle$s de feu",
+		'fire3star' => $language ? "fire triplet$s":"triolet$s de feu",
+		'topitaupe' => $language ? "Monty Mole$s" : "Topi Taupe$s",
+		'chomp' => "Chomp$s",
+		'movingthwomp' => "Thwomp$s",
+		'firebar' => $language ? "fire bar$s" : "barre$s de feu",
+		'tree' => $decorTree,
+		'palm' => $decorTree,
+		'coconut' => $decorTree,
+		'sinistertree' => $decorTree,
+		'falltree' => $decorTree,
+		'mountaintree' => $decorTree,
+		'fir' => $decorTree,
+		'mariotree' => $decorTree,
+		'peachtree' => $decorTree,
+		'assets/flower1' => $language ? "flower$s":"fleur$s",
+		'assets/flower2' => $language ? "flower$s":"fleur$s",
+		'assets/flower3' => $language ? "flower$s":"fleur$s",
+		'assets/bumper' => "bumper$s"
+	);
+	if (!empty($name))
+		return $name;
+	if (isset($decorMapping[$key]))
+		return $decorMapping[$key];
+	return $key;
 }
 ?>
