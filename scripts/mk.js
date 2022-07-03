@@ -10571,6 +10571,18 @@ var challengeRules = {
 			return true;
 		}
 	},
+	"init_item": {
+		"initSelected": function(scope) {
+			clLocalVars.selected = true;
+			oPlayers[0].arme = scope.value;
+			oPlayers[0].roulette = 25;
+			updateObjHud(0);
+		},
+		"success": function(scope) {
+			if (!clLocalVars.selected) return false;
+			return true;
+		}
+	},
 	"character": {
 		"success": function(scope) {
 			return (oPlayers[0].personnage == scope.value);

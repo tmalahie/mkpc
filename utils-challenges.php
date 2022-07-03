@@ -291,8 +291,13 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle', 'cup', 'mcup')
 		),
 		'no_item' => array(
-			'description' => $language ? 'without using any object':'sans utiliser d\'objets',
+			'description' => $language ? 'without using any item':'sans utiliser d\'objets',
 			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
+		'init_item' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'starting with item...':'en commençant avec l\'objet...',
+			'course' => array('vs', 'battle')
 		),
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
