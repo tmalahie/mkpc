@@ -215,6 +215,7 @@ if (isset($challenge))
 	echo 'var challengeId = '. $challenge['id'] .';';
 if (isset($chRules))
 	echo 'var chRules = '. json_encode($chRules) .';';
+echo 'var clCourse = "'. $clCourse .'";';
 ?>
 var persoOptions = <?php echo isset($persoOptions) ? json_encode($persoOptions) : 'null'; ?>;
 var decorOptions = <?php echo isset($decorOptions) ? json_encode($decorOptions) : 'null'; ?>;
@@ -435,6 +436,24 @@ function addContraintRule(clClass) {
 				var decorOption = decorOptions[i];
 				var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
 				$extraSelector.append('<button type="button" data-rule-type="constraint" data-rule-key="avoid_decors" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
+			}
+			break;
+		case 'init_item':
+			$form.html(
+				'<div>'+ (language?'Item:':'Objet :') +' '+
+				'<input type="text" style="display:none" name="scope[init_item][value]" required="required" >'+
+				'<div class="challenge-rule-btn-options challenge-item-btn-options"></div>'
+			);
+			var $extraSelector = $form.find(".challenge-item-btn-options");
+			var itemOptions;
+			if (clCourse === "battle")
+				itemOptions = ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops"];
+			else
+				itemOptions = ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
+			for (var i=0;i<itemOptions.length;i++) {
+				var itemOption = itemOptions[i];
+				var itemIcon = "images/items/"+ itemOption +".png";
+				$extraSelector.append('<button type="button" data-value="'+ itemOption +'" style="background-image:url(\''+ itemIcon +'\')" onclick="toggleItem(this)"></button>');
 			}
 			break;
 		case 'balloons':
@@ -661,6 +680,13 @@ function toggleDecor(btn, label) {
 	$("input[name='"+ ruleKey +"_fake1']").val($decorNameCtn.children().length ? "1":"");
 	btn.blur();
 }
+function toggleItem(btn) {
+	var previouslySelected = $(btn).parent().find('button[data-selected="1"]');
+	previouslySelected.removeAttr("data-selected");
+	btn.dataset.selected = "1";
+	$("input[name='scope[init_item][value]']").val(btn.dataset.value);
+	btn.blur();
+}
 function helpDifficulty() {
 	window.open('<?php echo $language ? 'helpDifficulty':'aideDifficulty'; ?>.html','gerer','scrollbars=1, resizable=1, width=500, height=500');
 }
@@ -697,6 +723,11 @@ $(function() {
 							if (btn)
 								toggleDecor(btn, decorData.name);
 						}
+						break;
+					case "init_item":
+						var btn = mainForm.querySelector(".challenge-item-btn-options button[data-value='"+ constraint.value +"']");
+						if (btn)
+							toggleItem(btn);
 						break;
 					case "cc":
 						var mirrorElt = mainForm.elements["scope["+constraint.type+"][mirror]"];
