@@ -35,6 +35,22 @@ if (isset($id)) {
 				$decors = $circuitData->decor;
 				$decorParams = isset($circuitData->decorparams) ? $circuitData->decorparams:new \stdClass();
 				$decorExtra = isset($decorParams->extra) ? $decorParams->extra:new \stdClass();
+				$assetTypes = array('pointers', 'flippers', 'bumpers','oils');
+				if (!empty($circuitData->assets)) {
+					$decors = new \stdClass();
+					foreach ($assetTypes as $assetType) {
+						if (!empty($circuitData->assets->{$assetType})) {
+							$assetsList = $circuitData->assets->{$assetType};
+							foreach ($assetsList as $asset) {
+								$assetData = $asset[1];
+								$assetData[4] = $asset[2];
+								$decors->{'assets/'.$asset[0]}[] = $assetData;
+							}
+						}
+					}
+					foreach ($circuitData->decor as $key => $decor)
+						$decors->{$key} = $decor;
+				}
 				require_once('utils-decors.php');
 				foreach ($decors as $type=>$decorsData) {
 					if (isset($decorExtra->{$type}) && isset($decorExtra->{$type}->custom)) {
@@ -56,8 +72,21 @@ if (isset($id)) {
 						$r = 12/$w;
 						$rW = round($r*$w);
 						$rH = round($r*$h);
-						foreach ($decorsData as $decorData)
-							imagecopyresampled($image, $decorImg, $decorData[0]-round($rW/2),$decorData[1]-round($rH/2), 0,0, $rW,$rH, $w,$h);
+						$rX = round($rW/2);
+						$rY = round($rH/2);
+						foreach ($decorsData as $decorData) {
+							if ('assets/' === substr($actualType, 0,7)) {
+								if (isset($decorData[2]) && isset($decorData[3])) {
+									$rW = $decorData[2];
+									$rH = $decorData[3];
+									if (isset($decorData[4])) {
+										$rX = round($rW*$decorData[4][0]);
+										$rY = round($rH*$decorData[4][1]);
+									}
+								}
+							}
+							imagecopyresampled($image, $decorImg, $decorData[0]-$rX,$decorData[1]-$rY, 0,0, $rW,$rH, $w,$h);
+						}
 					}
 					unset($decorImg);
 				}
