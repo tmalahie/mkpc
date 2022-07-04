@@ -590,7 +590,7 @@ if ($id) {
                                 <?php
                                 if ($language) {
                                     ?>
-                                    Welcome to the 2021 Mario Kart World Cup's predictor page!!!<br />
+                                    Welcome to the <?php echo $year; ?> Mario Kart World Cup's predictor page!!!<br />
                                     Here, you can predict the team you think will win the World Cup.<br />
                                     In case of a correct prediction, you will earn an unique role on the forum!!!
                                     <img src="images/forum/reactions/laugh.png" alt="laugh" />
@@ -598,8 +598,8 @@ if ($id) {
                                 }
                                 else {
                                     ?>
-                                    Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart 2021 !!!<br />
-                                    Ici, vous pourrez-voter pour l'équipe que vous allez pronostiquer comme vainqueur de la Coupe Du Monde!<br />
+                                    Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart <?php echo $year; ?> !!!<br />
+                                    Ici, vous pourrez-voter pour l'équipe que vous allez pronostiquer comme vainqueur de la Coupe Du Monde !<br />
                                     En cas de pronostic correct, vous gagnerez un rôle inédit sur le forum !!!
                                     <img src="images/forum/reactions/laugh.png" alt="laugh" />
                                     <?php
