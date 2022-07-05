@@ -448,14 +448,14 @@ $slidesPath = 'images/slides';
 	<section id="right_section">
 		<?php
 		require_once('utils-date.php');
-		/*if ($id) {
+		if ($id) {
 			$today = time();
 			//if (($today > 1607310000) && ($today < 1607914800)) {
 				if ($language) {
 				?>
 				<div class="subsection">
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
-						The <strong>2021 Mario Kart World Cup</strong> has begun!<br />
+						The <strong>2022 Mario Kart World Cup</strong> has begun!<br />
 						Come and <a href="mkwc.php">vote here</a> for your favorite team!<br />
 						Will your prognosis be correct? <img src="images/forum/reactions/wink.png" alt="wink" style="height: 1em; position: relative; top: 0.1em" />
 					</div>
@@ -466,7 +466,7 @@ $slidesPath = 'images/slides';
 				?>
 				<div class="subsection">
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
-						La <strong>Coupe Du Monde 2021 de Mario Kart</strong> à débuté !<br />
+						La <strong>Coupe Du Monde 2022 de Mario Kart</strong> à débuté !<br />
 						Venez <a href="mkwc.php">voter ici</a> pour votre équipe préférée !<br />
 						Votre pronostic sera-t-il correct ? <img src="images/forum/reactions/wink.png" alt="wink" style="height: 1em; position: relative; top: 0.1em" />
 					</div>
@@ -474,7 +474,7 @@ $slidesPath = 'images/slides';
 				<?php
 				}
 			//}
-		}*/
+		}
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
