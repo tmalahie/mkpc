@@ -457,7 +457,7 @@ $slidesPath = 'images/slides';
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
 						The <strong>2022 Mario Kart World Cup</strong> has begun!<br />
 						Come and <a href="mkwc.php">vote here</a> for your favorite team!<br />
-						Will your prognosis be correct? <img src="images/forum/reactions/wink.png" alt="wink" style="height: 1em; position: relative; top: 0.1em" />
+						For more information, read the related <a href="news.php?id=14697">news</a>.
 					</div>
 				</div>
 				<?php
@@ -468,7 +468,7 @@ $slidesPath = 'images/slides';
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
 						La <strong>Coupe Du Monde 2022 de Mario Kart</strong> à débuté !<br />
 						Venez <a href="mkwc.php">voter ici</a> pour votre équipe préférée !<br />
-						Votre pronostic sera-t-il correct ? <img src="images/forum/reactions/wink.png" alt="wink" style="height: 1em; position: relative; top: 0.1em" />
+						Pour plus d'information, consultez la <a href="news.php?id=14697">news</a> associée.
 					</div>
 				</div>
 				<?php
