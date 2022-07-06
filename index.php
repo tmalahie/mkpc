@@ -449,8 +449,10 @@ $slidesPath = 'images/slides';
 		<?php
 		require_once('utils-date.php');
 		if ($id) {
-			$today = time();
+			//$today = time();
 			//if (($today > 1607310000) && ($today < 1607914800)) {
+			$alreadyVoted = mysql_fetch_array(mysql_query('SELECT vote FROM mkwcbets WHERE player = ' . $id));
+			if (!$alreadyVoted) {
 				if ($language) {
 				?>
 				<div class="subsection">
@@ -473,7 +475,7 @@ $slidesPath = 'images/slides';
 				</div>
 				<?php
 				}
-			//}
+			}
 		}
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
