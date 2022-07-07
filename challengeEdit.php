@@ -445,15 +445,25 @@ function addContraintRule(clClass) {
 				'<div class="challenge-rule-btn-options challenge-item-btn-options"></div>'
 			);
 			var $extraSelector = $form.find(".challenge-item-btn-options");
-			var itemOptions;
-			if (clCourse === "battle")
-				itemOptions = ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops"];
-			else
-				itemOptions = ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
+			var itemOptions = getItemOptions();
 			for (var i=0;i<itemOptions.length;i++) {
 				var itemOption = itemOptions[i];
 				var itemIcon = "images/items/"+ itemOption +".png";
-				$extraSelector.append('<button type="button" data-value="'+ itemOption +'" style="background-image:url(\''+ itemIcon +'\')" onclick="toggleItem(this)"></button>');
+				$extraSelector.append('<button type="button" data-value="'+ itemOption +'" data-rule-key="init_item" style="background-image:url(\''+ itemIcon +'\')" onclick="toggleItem(this)"></button>');
+			}
+			break;
+		case 'item_distribution':
+			$form.html(
+				'<div>'+ (language?'Item(s):':'Objet(s) :') +' '+
+				'<input type="text" style="display:none" name="scope[item_distribution][value]" required="required" >'+
+				'<div class="challenge-rule-btn-options challenge-item-btn-options"></div>'
+			);
+			var $extraSelector = $form.find(".challenge-item-btn-options");
+			var itemOptions = getItemOptions();
+			for (var i=0;i<itemOptions.length;i++) {
+				var itemOption = itemOptions[i];
+				var itemIcon = "images/items/"+ itemOption +".png";
+				$extraSelector.append('<button type="button" data-value="'+ itemOption +'" data-rule-key="item_distribution" style="background-image:url(\''+ itemIcon +'\')" onclick="toggleItem(this)"></button>');
 			}
 			break;
 		case 'balloons':
@@ -681,10 +691,26 @@ function toggleDecor(btn, label) {
 	btn.blur();
 }
 function toggleItem(btn) {
-	var previouslySelected = $(btn).parent().find('button[data-selected="1"]');
-	previouslySelected.removeAttr("data-selected");
-	btn.dataset.selected = "1";
-	$("input[name='scope[init_item][value]']").val(btn.dataset.value);
+	var ruleKey = btn.dataset.ruleKey;
+	var multiSelectAllowed = (ruleKey === "item_distribution");
+	if (multiSelectAllowed) {
+		if (btn.dataset.selected)
+			delete btn.dataset.selected;
+		else
+			btn.dataset.selected = "1";
+		var selectedBtns = $(btn).parent().find('button[data-selected="1"]');
+		var res = [];
+		selectedBtns.each(function(i, selectedBtn) {
+			res.push(selectedBtn.dataset.value);
+		});
+		$("input[name='scope["+ ruleKey +"][value]']").val(res.join(","));
+	}
+	else {
+		var previouslySelected = $(btn).parent().find('button[data-selected="1"]');
+		previouslySelected.removeAttr("data-selected");
+		btn.dataset.selected = "1";
+		$("input[name='scope["+ ruleKey +"][value]']").val(btn.dataset.value);
+	}
 	btn.blur();
 }
 function helpDifficulty() {
@@ -729,6 +755,13 @@ $(function() {
 						if (btn)
 							toggleItem(btn);
 						break;
+					case "item_distribution":
+						for (var i=0;i<constraint.value.length;i++) {
+							var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='item_distribution'][data-value='"+ constraint.value[i] +"']");
+							if (btn)
+								toggleItem(btn);
+						}
+						break;
 					case "cc":
 						var mirrorElt = mainForm.elements["scope["+constraint.type+"][mirror]"];
 						if (mirrorElt) mirrorElt.checked = constraint.mirror;
@@ -757,6 +790,12 @@ $(function() {
 			document.activeElement.blur();
 	}
 });
+function getItemOptions() {
+	if (clCourse === "battle")
+		return ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops"];
+	else
+		return ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
+}
 </script>
 </head>
 <body>

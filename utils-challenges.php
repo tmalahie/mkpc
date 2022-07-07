@@ -299,6 +299,14 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'starting with item...':'en commençant avec l\'objet...',
 			'course' => array('vs', 'battle')
 		),
+		'item_distribution' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'possible items...':'objets possibles...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = explode(',', $scope['value']);
+			}
+		),
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
 			'description_lambda' => function($language,&$scope) {
