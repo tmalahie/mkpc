@@ -10583,6 +10583,19 @@ var challengeRules = {
 			return true;
 		}
 	},
+	"item_distribution": {
+		"initSelected": function(scope) {
+			clLocalVars.selected = true;
+			var newDistrib = {};
+			for (var i=0;i<scope.value.length;i++)
+				newDistrib[scope.value[i]] = 1;
+			itemDistribution.value = [newDistrib];
+		},
+		"success": function(scope) {
+			if (!clLocalVars.selected) return false;
+			return true;
+		}
+	},
 	"character": {
 		"success": function(scope) {
 			return (oPlayers[0].personnage == scope.value);
