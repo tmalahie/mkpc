@@ -307,6 +307,11 @@ $clRulesByType = array(
 				$scope['value'] = explode(',', $scope['value']);
 			}
 		),
+		'no_item_box' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'without items':'sans objets',
+			'course' => array('vs', 'battle')
+		),
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
 			'description_lambda' => function($language,&$scope) {
