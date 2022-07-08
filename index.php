@@ -452,7 +452,7 @@ $slidesPath = 'images/slides';
 			//$today = time();
 			//if (($today > 1607310000) && ($today < 1607914800)) {
 			$alreadyVoted = mysql_fetch_array(mysql_query('SELECT vote FROM mkwcbets WHERE player = ' . $id));
-			if (!$alreadyVoted) {
+			if (!$alreadyVoted && (time() < 1657335600)) {
 				if ($language) {
 				?>
 				<div class="subsection">

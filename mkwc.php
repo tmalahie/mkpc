@@ -9,6 +9,7 @@ $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
+$isPollClosed = (time() > 1657335600);
 switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
@@ -187,7 +188,7 @@ if (isset($teams)) {
     }
 
 }
-if ($console && isset($_POST['vote'])) {
+if ($console && !$isPollClosed && isset($_POST['vote'])) {
     $vote = $_POST['vote'];
     if (isset($teamsDict[$vote])) {
         if ($id) {
@@ -592,7 +593,7 @@ if ($id) {
                                     ?>
                                     Welcome to the <?php echo $year; ?> Mario Kart World Cup's predictor page!!!<br />
                                     Here, you can predict the team you think will win the World Cup.<br />
-                                    In case of a correct prediction, you will earn an unique role on the forum!!!
+                                    In case of a correct prediction, you will earn a unique role on the forum!!!
                                     <img src="images/forum/reactions/laugh.png" alt="laugh" />
                                     <?php
                                 }
@@ -634,12 +635,14 @@ if ($id) {
                                 <?php
                                 if ($myVote)
                                     echo '<img src="images/mkwc/flags/'.$myVote.'.png" alt="'. $myVote .'" /> ' . ($language ? 'You have selected <strong>'. $teamsDict[$myVote] .'</strong> team' : 'Vous avez sélectionné l\'équipe de <strong>'. $teamsDict[$myVote] .'</strong>');
+                                elseif ($isPollClosed)
+                                    echo ($language ? 'The poll is closed. See you at the end of the tournament!' : 'Le sondage est fermé. Rendez-vous à la fin du tournoi !');
                                 else
                                     echo $language ? 'Select your team within the list below' : 'Sélectionnez votre équipe dans la liste';
                                 ?>
                             </h2>
                             <?php
-                            if ($myVote) {
+                            if ($myVote || $isPollClosed) {
                                 ?>
                                 <div class="mVotesList">+ <a href="javascript:toggleOtherVotes()"><?php echo $language ? 'See other members\' bets' : 'Voir les paris des autres membres'; ?></a></div>
                                 <div id="mVotesList">
@@ -710,7 +713,7 @@ if ($id) {
                                                 if (!$isNormalTeam)
                                                     $src = 'pin';
                                                 echo '<label>';
-                                                    echo '<input type="radio"'. (($myVote || !$isNormalTeam) ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
+                                                    echo '<input type="radio"'. (($myVote || !$isNormalTeam || $isPollClosed) ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
                                                     echo '<img src="images/mkwc/flags/'.$src.'.png" alt="'. $src .'" />';
                                                     echo ' '. htmlspecialchars($country);
                                                 echo '</label>';
