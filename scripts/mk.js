@@ -10558,6 +10558,18 @@ var challengeRules = {
 			return !clLocalVars.itemsUsed;
 		}
 	},
+	"no_item_box": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			oMap.arme = [];
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
+		}
+	},
 	"avoid_decors": {
 		"initLocalVars": function(scope) {
 			if (!clLocalVars.decorsHit)
@@ -10572,28 +10584,32 @@ var challengeRules = {
 		}
 	},
 	"init_item": {
-		"initSelected": function(scope) {
-			clLocalVars.selected = true;
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
 			oPlayers[0].arme = scope.value;
 			oPlayers[0].roulette = 25;
 			updateObjHud(0);
 		},
-		"success": function(scope) {
-			if (!clLocalVars.selected) return false;
-			return true;
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
 		}
 	},
 	"item_distribution": {
-		"initSelected": function(scope) {
-			clLocalVars.selected = true;
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
 			var newDistrib = {};
 			for (var i=0;i<scope.value.length;i++)
 				newDistrib[scope.value[i]] = 1;
 			itemDistribution.value = [newDistrib];
 		},
-		"success": function(scope) {
-			if (!clLocalVars.selected) return false;
-			return true;
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
 		}
 	},
 	"character": {
@@ -10661,8 +10677,11 @@ var challengeRules = {
 		}
 	},
 	"extra_decors": {
-		"initSelected": function(scope) {
-			clLocalVars.selected = true;
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
 			for (var i=0;i<scope.value.length;i++) {
 				var decorData = scope.value[i];
 				if (!oMap.decor[decorData.src])
@@ -10670,9 +10689,8 @@ var challengeRules = {
 				oMap.decor[decorData.src].push(decorData.pos);
 			}
 		},
-		"success": function(scope) {
-			if (!clLocalVars.selected) return false;
-			return true;
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
 		}
 	},
 	"mini_turbo": {
