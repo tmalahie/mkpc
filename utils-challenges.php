@@ -397,6 +397,8 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle'),
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
+				if (isset($scope['no_cpu']))
+					$scope['no_cpu'] = 1;
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);

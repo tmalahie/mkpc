@@ -382,10 +382,15 @@ function addContraintRule(clClass) {
 			break;
 		case 'start_pos':
 			$form.html(
-				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
-				'<input type="hidden" name="scope[start_pos][value]" value="[]" />'+
-				'<button type="button" onclick="openZoneEditor(\'startpos\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
+				'<div style="position: relative; top: -0.2em"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<input type="hidden" name="scope[start_pos][value]" />'+
+				'<button type="button" onclick="openZoneEditor(\'startpos\')">'+ (language ? "Indicate...":"Indiquer...") +'</button></label><br />'+
+				'<label style="font-size: 0.8em; display: block; text-align: right"><input type="checkbox" name="scope[start_pos][no_cpu]" />&nbsp;'+ (language?'Play without CPUs':'Jouer sans ordis')+'</label></div>'
 			);
+			$form.parent().css({
+				"align-items": "flex-start",
+				"margin": "10px 0 0 0"
+			});
 			break;
 		case 'extra_decors':
 			$form.html(
@@ -765,6 +770,10 @@ $(function() {
 					case "cc":
 						var mirrorElt = mainForm.elements["scope["+constraint.type+"][mirror]"];
 						if (mirrorElt) mirrorElt.checked = constraint.mirror;
+						break;
+					case "start_pos":
+						var noCpuElt = mainForm.elements["scope["+constraint.type+"][no_cpu]"];
+						if (noCpuElt) noCpuElt.checked = constraint.no_cpu;
 					}
 				}
 			}
