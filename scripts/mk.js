@@ -11978,6 +11978,8 @@ function incChallengeHits(kart) {
 	challengeCheck("each_hit");
 }
 function handleDecorHit(type) {
+	if (clLocalVars.decorsHit && (collisionPlayer == oPlayers[0]))
+		clLocalVars.decorsHit[type] = true;
 	if (clLocalVars.nbDecorHits && (clLocalVars.nbDecorHits[type] != undefined)) {
 		clLocalVars.nbDecorHits[type]++;
 		updateChallengeHud("decors", clLocalVars.nbDecorHits[type]);
