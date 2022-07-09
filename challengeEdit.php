@@ -721,6 +721,9 @@ function toggleItem(btn) {
 function helpDifficulty() {
 	window.open('<?php echo $language ? 'helpDifficulty':'aideDifficulty'; ?>.html','gerer','scrollbars=1, resizable=1, width=500, height=500');
 }
+function toggleSetupOptions() {
+	$("#challenge-setup-options").slideToggle();
+}
 $(function() {
 	if (typeof chRules != 'undefined') {
 		var mainForm = document.forms[0];
@@ -734,7 +737,7 @@ $(function() {
 				if (ruleElt) ruleElt.value = mainRule[key];
 			}
 		}
-		var constraintClasses = ["basic", "extra"];
+		var constraintClasses = ["basic", "extra", "setup"];
 		for (var i=0;i<constraintClasses.length;i++) {
 			var constraintClass = constraintClasses[i];
 			var constraintRules = chRules[constraintClass];
@@ -848,8 +851,23 @@ function getItemOptions() {
 				<div class="challenge-constraints-list" id="challenge-extra-list"></div>
 				<button type="button" onclick="addContraintRule('extra')"><?php echo $language ? 'Add constraint':'Ajouter une contrainte'; ?></button>
 			</fieldset>
+			<?php
+			if (!empty($clRulesPayload['setup'])) {
+				?>
+				<div class="toggle-link"><a href="javascript:toggleSetupOptions()"><?php echo $language ? 'Other setup options...':'Autres options de setup...'; ?></a></div>
+				<div id="challenge-setup-options"<?php if (!empty($chRules['setup'])) echo ' style="display:block"'; ?>>
+					<fieldset class="challenge-setup">
+						<legend><?php echo $language ? 'Setup options':'Setup'; ?></legend>
+						<div class="challenge-constraints-explain"><?php echo $language ? 'Change some game setup when the challenge is selected' : 'Modifiez des éléments de la partie lorsque le défi est sélectionné'; ?></div>
+						<div class="challenge-constraints-list" id="challenge-setup-list"></div>
+						<button type="button" onclick="addContraintRule('setup')"><?php echo $language ? 'Add option':'Ajouter une option'; ?></button>
+					</fieldset>
+				</div>
+				<?php
+			}
+			?>
 			<fieldset class="challenge-metadata">
-					<legend><?php echo $language ? 'Other info':'Autres infos'; ?></legend>
+				<legend><?php echo $language ? 'Other info':'Autres infos'; ?></legend>
 				<div>
 					<label><?php echo $language ? 'Challenge name (optional):':'Nom du défi (facultatif) :'; ?>
 					<input type="text" name="name" value="<?php if (isset($challenge)) echo htmlspecialchars($challenge['name']); ?>" /></label>

@@ -226,6 +226,29 @@ body a.challenge-action-edit:hover {
 .challenge-basic {
 	padding-top: 0;
 }
+.challenge-constraints-explain {
+	font-size: 0.8em;
+}
+#challenge-setup-options {
+	display: none;
+	overflow: hidden;
+	padding-top: 10px;
+}
+#challenge-setup-options fieldset {
+	margin-top: 0;
+	margin-bottom: 10px;
+}
+.challenge-edit-form .toggle-link {
+	margin-top: 10px;
+}
+.challenge-edit-form .toggle-link a {
+	color: white;
+	font-weight: bold;
+	text-shadow: -1px -1px black, -1px 1px black, 1px -1px black, 1px 1px black;
+}
+.challenge-edit-form fieldset.challenge-metadata {
+	margin-top: 20px;
+}
 .challenge-metadata > div {
 	margin: 6px 0;
 }
