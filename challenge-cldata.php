@@ -180,7 +180,8 @@ function getChallengeRulesByType($challenge) {
 	$res = array(
 		'main' => null,
 		'basic' => array(),
-		'extra' => array()
+		'extra' => array(),
+		'setup' => array()
 	);
 	$challengeData = json_decode($challenge['data']);
 	$res['main'] = formatChallengeConstraint($challengeData->goal, 'main');

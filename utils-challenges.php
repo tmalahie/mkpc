@@ -294,24 +294,6 @@ $clRulesByType = array(
 			'description' => $language ? 'without using any item':'sans utiliser d\'objets',
 			'course' => array('vs', 'battle', 'cup', 'mcup')
 		),
-		'init_item' => array(
-			'description' => null,
-			'description_mockup' => $language ? 'starting with item...':'en commençant avec l\'objet...',
-			'course' => array('vs', 'battle')
-		),
-		'item_distribution' => array(
-			'description' => null,
-			'description_mockup' => $language ? 'possible items...':'objets possibles...',
-			'course' => array('vs', 'battle'),
-			'parser' => function(&$scope) {
-				$scope['value'] = explode(',', $scope['value']);
-			}
-		),
-		'no_item_box' => array(
-			'description' => null,
-			'description_mockup' => $language ? 'without items':'sans objets',
-			'course' => array('vs', 'battle')
-		),
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
 			'description_lambda' => function($language,&$scope) {
@@ -391,30 +373,6 @@ $clRulesByType = array(
 			},
 			'course' => array('vs')
 		),
-		'start_pos' => array(
-			'description' => null,
-			'description_mockup' => $language ? 'by starting in specific location':'en partant à un emplacement spécifique',
-			'course' => array('vs', 'battle'),
-			'parser' => function(&$scope) {
-				$scope['value'] = json_decode($scope['value']);
-				if (isset($scope['no_cpu']))
-					$scope['no_cpu'] = 1;
-			},
-			'formatter' => function(&$scope) {
-				$scope->value = json_encode($scope->value);
-			}
-		),
-		'extra_decors' => array(
-			'description' => null,
-			'description_mockup' => $language ? 'with extra decors...':'avec plus de décors...',
-			'course' => array('vs', 'battle'),
-			'parser' => function(&$scope) {
-				$scope['value'] = json_decode($scope['value']);
-			},
-			'formatter' => function(&$scope) {
-				$scope->value = json_encode($scope->value);
-			}
-		),
 		'mini_turbo' => array(
 			'description' => $language ? 'by performing $value​ Mini-Turbo$s':'en réalisant $value​ dérapage$s Turbo',
 			'description_mockup' => $language ? 'by performing N Turbo drifts':'en réalisant N dérapages Turbo',
@@ -489,6 +447,50 @@ $clRulesByType = array(
 			},
 			'autoset' => function(&$res, $scope) {
 				$res['selectedPlayers'] = $scope->value;
+			}
+		)
+	),
+	'setup' => array(
+		'start_pos' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'start at location...':'commencer à... (position)',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+				if (isset($scope['no_cpu']))
+					$scope['no_cpu'] = 1;
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			}
+		),
+		'init_item' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'start with item...':'commencer avec l\'objet...',
+			'course' => array('vs', 'battle')
+		),
+		'item_distribution' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'item distribution...':'distribution des objets...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = explode(',', $scope['value']);
+			}
+		),
+		'no_item_box' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'without items':'sans objets',
+			'course' => array('vs', 'battle')
+		),
+		'extra_decors' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'add extra decors...':'ajouter des décors...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
 			}
 		)
 	)
