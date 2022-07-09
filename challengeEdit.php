@@ -318,8 +318,9 @@ function selectMainRule() {
 			'</div>'
 		);
 		var $extraSelector = $extra.find(".challenge-main-btn-options");
-		for (var i=0;i<decorOptions.length;i++) {
-			var decorOption = decorOptions[i];
+		var allDecorOpions = getAllDecorOptions(chRules.main);
+		for (var i=0;i<allDecorOpions.length;i++) {
+			var decorOption = allDecorOpions[i];
 			if (decorOption.value.startsWith("assets/")) continue;
 			var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
 			$extraSelector.append('<button type="button" data-rule-type="main" data-rule-key="destroy_decors" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
@@ -328,7 +329,7 @@ function selectMainRule() {
 	}
 	$extra.find("input,select").first().focus();
 }
-function addContraintRule(clClass) {
+function addConstraintRule(clClass) {
 	var $rule = $(
 		'<div class="challenge-contraint challenge-constraint-selecting">'+
 			'<div class="challenge-constraint-selector">'+
@@ -437,8 +438,9 @@ function addContraintRule(clClass) {
 				'<div class="challenge-rule-decor-names challenge-constraint-decor-names"></div>'
 			);
 			var $extraSelector = $form.find(".challenge-constraint-btn-options");
-			for (var i=0;i<decorOptions.length;i++) {
-				var decorOption = decorOptions[i];
+			var allDecorOpions = getAllDecorOptions(getConstraint(clClass, ruleId));
+			for (var i=0;i<allDecorOpions.length;i++) {
+				var decorOption = allDecorOpions[i];
 				var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
 				$extraSelector.append('<button type="button" data-rule-type="constraint" data-rule-key="avoid_decors" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
 			}
@@ -580,6 +582,50 @@ function addConstraintInput($form,ruleId,label,inputType,options) {
 function addConstraintAutofill($form,ruleId,label,value) {
 	$form.html('<input type="hidden" name="scope['+ruleId+'][value]" value="'+value+'" />'+ label);
 }
+function getAllDecorOptions(constraint) {
+	var res = {};
+	for (var i=0;i<decorOptions.length;i++)
+		res[decorOptions[i].value] = decorOptions[i];
+	function addDecor(key) {
+		if (!res[key])
+			res[key] = { value: key };
+	}
+	if (constraint) {
+		var cVal = constraint.value;
+		switch (constraint.type) {
+		case "avoid_decors":
+			for (var key in cVal)
+				addDecor(key);
+			break;
+		case "destroy_decors":
+			addDecor(cVal);
+			break;
+		}
+	}
+	try {
+		var $extraDecors = $('.challenge-edit-form input[name="scope[extra_decors][value]"]');
+		var extraDecors = $extraDecors.val();
+		if (!extraDecors) {
+			extraDecors = chRules.setup.find(function(chRule) {
+				return chRule.type === "extra_decors";
+			}).value;
+		}
+		if (extraDecors) {
+			var extraDecorsList = JSON.parse(extraDecors);
+			for (var i=0;i<extraDecorsList.length;i++)
+				addDecor(extraDecorsList[i].src);
+		}
+	}
+	catch (e) {
+		// No extra decor, ignore
+	}
+	return Object.values(res);
+}
+function getConstraint(clClass, ruleId) {
+	return chRules[clClass].find(function(constraintRule) {
+		return constraintRule.type === ruleId;
+	});
+}
 function ucfirst(word) {
 	if (!word) return word;
 	return word.charAt(0).toUpperCase() + word.substring(1);
@@ -667,7 +713,7 @@ function toggleDecor(btn, label) {
 	
 	var decorOption = decorOptions.find(function(decorOption) {
 		return (decorOption.value === btn.dataset.value);
-	});
+	}) || { value: btn.dataset.value };
 	var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
 	var decorId = ruleKey + "_name_"+ decorOption.value.replace(/\//g, "-");
 	$decorNameCtn = $(".challenge-"+ ruleType +"-decor-names");
@@ -743,7 +789,7 @@ $(function() {
 			var constraintRules = chRules[constraintClass];
 			for (var j=0;j<constraintRules.length;j++) {
 				var constraint = constraintRules[j];
-				var $rule = addContraintRule(constraintClass);
+				var $rule = addConstraintRule(constraintClass);
 				var $rulesSelector = $rule.find(".challenge-constraint-select");
 				$rulesSelector.val(constraint.type).change();
 				if (constraint.value != undefined) {
@@ -846,10 +892,10 @@ function getItemOptions() {
 				<legend><?php echo $language ? 'Constraints':'Contraintes'; ?></legend>
 				<h2><?php echo $language ? 'Basic constraints':'Contraintes de base'; ?></h2>
 				<div class="challenge-constraints-list" id="challenge-basic-list"></div>
-				<button type="button" onclick="addContraintRule('basic')"><?php echo $language ? 'Add constraint':'Ajouter une contrainte'; ?></button>
+				<button type="button" onclick="addConstraintRule('basic')"><?php echo $language ? 'Add constraint':'Ajouter une contrainte'; ?></button>
 				<h2><?php echo $language ? 'Additional constraints':'Contraines additionnelles'; ?></h2>
 				<div class="challenge-constraints-list" id="challenge-extra-list"></div>
-				<button type="button" onclick="addContraintRule('extra')"><?php echo $language ? 'Add constraint':'Ajouter une contrainte'; ?></button>
+				<button type="button" onclick="addConstraintRule('extra')"><?php echo $language ? 'Add constraint':'Ajouter une contrainte'; ?></button>
 			</fieldset>
 			<?php
 			if (!empty($clRulesPayload['setup'])) {
@@ -860,7 +906,7 @@ function getItemOptions() {
 						<legend><?php echo $language ? 'Setup options':'Setup'; ?></legend>
 						<div class="challenge-constraints-explain"><?php echo $language ? 'Change some game setup when the challenge is selected' : 'Modifiez des éléments de la partie lorsque le défi est sélectionné'; ?></div>
 						<div class="challenge-constraints-list" id="challenge-setup-list"></div>
-						<button type="button" onclick="addContraintRule('setup')"><?php echo $language ? 'Add option':'Ajouter une option'; ?></button>
+						<button type="button" onclick="addConstraintRule('setup')"><?php echo $language ? 'Add option':'Ajouter une option'; ?></button>
 					</fieldset>
 				</div>
 				<?php
