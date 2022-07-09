@@ -10670,6 +10670,11 @@ var challengeRules = {
 	"start_pos": {
 		"initSelected": function(scope) {
 			clLocalVars.startPos = scope.value;
+			if (scope.no_cpu) {
+				aKarts.length = strPlayer.length;
+				for (var i=0;i<strPlayer.length;i++)
+					document.getElementById("infoPlace"+i).style.display = "none";
+			}
 		},
 		"success": function(scope) {
 			if (!clLocalVars.startPos) return false;
@@ -12372,6 +12377,7 @@ function distanceToSecond(kart) {
 			cPlace = oKart.place;
 		}
 	}
+	if (!oKart) return 0;
 	return distanceToKart(oKart,kart);
 }
 function distanceToKart(kart,oKart) {
