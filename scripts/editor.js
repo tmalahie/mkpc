@@ -253,6 +253,8 @@ function resizeRectangle(rectangle,data,options) {
 							resizeRect(e);
 							storeHistoryData(editorTools[currentMode].data);
 							var apply;
+							if (options.on_end_move)
+								options.on_end_move();
 							if (options.on_apply)
 								apply = options.on_apply(nData);
 							if (false !== apply)
@@ -265,6 +267,8 @@ function resizeRectangle(rectangle,data,options) {
 						mask.addEventListener("mouseup", stopResizeRect);
 						mask.close = function(){};
 						$toolbox.classList.add("hiddenbox");
+						if (options.on_start_move)
+							options.on_start_move();
 					};
 					mask.appendChild(bubble);
 					bubbles.push(bubble);
@@ -3162,17 +3166,22 @@ var commonTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.state.shape = iData.type;
+				var createdShape;
 				switch (iData.type) {
 				case "rectangle":
 					self.click(self,iData,{});
+					createdShape = self.state.rectangle;
 					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
 					break;
 				case "polygon":
 					for (var j=0;j<iData.points.length;j++)
 						self.click(self,iData.points[j],{});
+					createdShape = self.state.polygon;
 					self.state.nodes[0].circle.onclick();
 					break;
 				}
+				if (createdShape && iData.z !== undefined)
+					createdShape.reheight(iData.z);
 			}
 			replaceNodeType(self);
 			document.getElementById("walls-shape").setValue(self.state.shape);
@@ -3188,20 +3197,28 @@ var commonTools = {
 						startRectangleBuilder(self,point, {
 							on_apply: function(rectangle,data) {
 								self.data.push(data);
+								setupShapeHeight(rectangle, data);
+								var moveOptions = {on_apply:rectangle.reposition,on_start_move:rectangle.text.hide,on_end_move:rectangle.text.show};
 								addContextMenuEvent(rectangle,[{
 									text: (language ? "Resize":"Redimensionner"),
 									click: function() {
-										resizeRectangle(rectangle,data);
+										resizeRectangle(rectangle,data, moveOptions);
 									}
 								}, {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
-										moveRectangle(rectangle,data);
+										moveRectangle(rectangle,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Wall height...":"Hauteur mur...."),
+									click: function() {
+										rectangle.promptHeight();
 									}
 								}, {
 									text:(language ? "Delete":"Supprimer"),
 									click:function() {
 										$editor.removeChild(rectangle);
+										rectangle.text.remove();
 										storeHistoryData(self.data);
 										removeFromArray(self.data,data);
 									}
@@ -3221,20 +3238,31 @@ var commonTools = {
 								var data = {type:"polygon",points:points};
 								self.data.push(data);
 								polygon.setAttribute("stroke-width", 1);
+								setupShapeHeight(polygon, data);
+								function repositionPoly(nPoints) {
+									polygon.reposition(Object.assign({}, data, { points: nPoints }));
+								}
+								var moveOptions = {on_apply:repositionPoly,on_start_move:polygon.text.hide,on_end_move:polygon.text.show};
 								addContextMenuEvent(polygon, [{
 									text: (language ? "Edit":"Modifier"),
 									click: function() {
-										editPolygon(polygon,data);
+										editPolygon(polygon,data, moveOptions);
 									}
 								}, {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
-										movePolygon(polygon,data);
+										movePolygon(polygon,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Wall height...":"Hauteur mur...."),
+									click: function() {
+										polygon.promptHeight();
 									}
 								}, {
 									text:(language ? "Delete":"Supprimer"),
 									click:function() {
 										$editor.removeChild(polygon);
+										polygon.text.remove();
 										storeHistoryData(self.data);
 										removeFromArray(self.data,data);
 									}
@@ -3244,6 +3272,61 @@ var commonTools = {
 					}
 				}
 				break;
+			}
+			function setupShapeHeight(shape, data) {
+				var hText = document.createElementNS(SVG, "text");
+				hText.setAttribute("class", "dark noclick");
+				hText.setAttribute("font-size", 15);
+				hText.setAttribute("text-anchor", "middle");
+				hText.setAttribute("dominant-baseline", "middle");
+				$editor.appendChild(hText);
+				hText.remove = function() {
+					$editor.removeChild(hText);
+				};
+				hText.show = function() {
+					hText.style.display = "";
+				};
+				hText.hide = function() {
+					hText.style.display = "none";
+				};
+				shape.text = hText;
+				shape.reheight = function(z) {
+					storeHistoryData(self.data);
+					if (z === "") {
+						delete data.z;
+						shape.reposition(data);
+					}
+					else {
+						data.z = z;
+						shape.reposition(data);
+					}
+				};
+				shape.reposition = function(data) {
+					switch (data.type) {
+					case "rectangle":
+						hText.setAttribute("x", data.x+data.w/2);
+						hText.setAttribute("y", data.y+data.h/2+2);
+						break;
+					case "polygon":
+						var polygonCenter = getPolygonCenter(data.points);
+						hText.setAttribute("x", polygonCenter.x);
+						hText.setAttribute("y", polygonCenter.y+2);
+						break;
+					}
+					hText.innerHTML = data.z == null ? "" : data.z;
+				};
+				shape.promptHeight = function() {
+					var defaultVal = 1;
+					var enteredVal = prompt(language ? "Enter value...":"Entrer une valeur...", data.z || defaultVal);
+					if (enteredVal == null) return;
+					if (enteredVal !== "") {
+						enteredVal = +enteredVal;
+						if (enteredVal === defaultVal)
+							enteredVal = "";
+					}
+					if (enteredVal >= 0)
+						shape.reheight(enteredVal);
+				}
 			}
 		},
 		"move" : function(self,point,extra) {
@@ -3262,12 +3345,26 @@ var commonTools = {
 		},
 		"save" : function(self,payload) {
 			payload.collision = [];
-			for (var i=0;i<self.data.length;i++)
-				payload.collision.push(shapeToData(self.data[i]));
+			var collisionProps = {}, hasCollisionProps = false;
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				payload.collision.push(shapeToData(iData));
+				if (iData.z != null) {
+					collisionProps[i] = {z:iData.z};
+					hasCollisionProps = true;
+				}
+			}
+			if (hasCollisionProps)
+				payload.collisionProps = collisionProps;
 		},
 		"restore" : function(self,payload) {
-			for (var i=0;i<payload.collision.length;i++)
-				self.data.push(dataToShape(payload.collision[i]));
+			var collisionProps = payload.collisionProps || {};
+			for (var i=0;i<payload.collision.length;i++) {
+				var iData = dataToShape(payload.collision[i]);
+				if (collisionProps[i])
+					iData.z = collisionProps[i].z;
+				self.data.push(iData);
+			}
 		},
 		"rescale" : function(self, scale) {
 			for (var i=0;i<self.data.length;i++)
