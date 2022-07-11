@@ -9,7 +9,7 @@ $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
-$isPollClosed = (time() > 1657335600);
+$isPollClosed = true;//(time() > 1657335600);
 switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
@@ -63,7 +63,8 @@ case 'mkt':
                     'pan'=> $language ? 'Panama':'Panama',
                     'gua'=> $language ? 'Guatemala':'Guatemala',
                     'can'=> $language ? 'Canada':'Canada'
-                )
+                ),
+                'eliminated' => array('pan', 'can')
             ),
             "$group 2" => array(
                 'list' => array(
@@ -71,7 +72,8 @@ case 'mkt':
                     'arg'=> $language ? 'Argentina':'Argentina',
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'aus'=> $language ? 'Australia':'Australie'
-                )
+                ),
+                'eliminated' => array('ger', 'aus')
             ),
             "$group 3" => array(
                 'list' => array(
@@ -79,14 +81,16 @@ case 'mkt':
                     'swi'=> $language ? 'Switzerland':'Suisse',
                     'ven'=> $language ? 'Venezuela':'Venezuela',
                     'bol'=> $language ? 'Bolivia':'Bolivie'
-                )
+                ),
+                'eliminated' => array('ven', 'bol')
             ),
             "$group 4" => array(
                 'list' => array(
                     'spa'=> $language ? 'Spain':'Espagne',
                     'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
                     'nic'=> $language ? 'Nicaragua':'Nicaragua'
-                )
+                ),
+                'eliminated' => array('nic')
             )
         ),
         $groupStage => array(
@@ -94,32 +98,32 @@ case 'mkt':
                 'list' => array(
                     'mex'=> $language ? 'Mexico':'Mexique',
                     'sal'=> $language ? 'El Salvador':'Salvador',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'spa'=> $language ? 'Spain':'Espagne',
+                    'gua'=> $language ? 'Guatemala':'Guatemala'
                 )
             ),
             "$group B" => array(
                 'list' => array(
                     'per'=> $language ? 'Peru':'Pérou',
                     'col'=> $language ? 'Colombia':'Colombie',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'arg'=> $language ? 'Argentina':'Argentina',
+                    'swi'=> $language ? 'Switzerland':'Suisse'
                 )
             ),
             "$group C" => array(
                 'list' => array(
                     'usa'=> $language ? 'USA':'États-Unis',
                     'fra'=> $language ? 'France':'France',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'ecu'=> $language ? 'Ecuador':'Équateur',
+                    'chi'=> $language ? 'Chile':'Chili'
                 )
             ),
             "$group D" => array(
                 'list' => array(
                     'jap'=> $language ? 'Japan':'Japon',
                     'hok'=> $language ? 'Hong Kong':'Hong Kong',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'bra'=> $language ? 'Brazil':'Brésil',
+                    'ukg'=> $language ? 'United Kingdom':'Royaume-Uni'
                 )
             )
         )
@@ -400,6 +404,10 @@ if ($id) {
             text-align: left;
             margin-left: 10px;
             margin-right: 10px;
+        }
+        .mTeamsTf label.eliminated {
+            text-decoration: line-through;
+            opacity: 0.6;
         }
         .mTeamsTd img {
             height: 1em;
@@ -712,7 +720,8 @@ if ($id) {
                                                 $isNormalTeam = isNormalTeam($code);
                                                 if (!$isNormalTeam)
                                                     $src = 'pin';
-                                                echo '<label>';
+                                                $eliminated = isset($group['eliminated']) && in_array($code, $group['eliminated']);
+                                                echo '<label'. ($eliminated ? ' class="eliminated"':'') .'>';
                                                     echo '<input type="radio"'. (($myVote || !$isNormalTeam || $isPollClosed) ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
                                                     echo '<img src="images/mkwc/flags/'.$src.'.png" alt="'. $src .'" />';
                                                     echo ' '. htmlspecialchars($country);
