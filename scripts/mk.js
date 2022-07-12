@@ -15813,6 +15813,8 @@ function runOneFrame() {
 			else {
 				oKart.cpu = true;
 				oKart.aipoint = 0;
+				oKart.tours = oMap.tours+1;
+				oKart.demitours = 0;
 				oKart.lastAItime = 0;
 				oKart.arme = false;
 			}
