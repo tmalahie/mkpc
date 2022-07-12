@@ -3991,8 +3991,11 @@ function startGame() {
 						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;stopDrifting_();stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
 						render();
 					}
-					for (i=0;i<aKarts.length;i++)
+					for (i=0;i<aKarts.length;i++) {
 						aKarts[i].cpu = true;
+						aKarts[i].tours = 1;
+						aKarts[i].demitours = 0;
+					}
 					for (i=0;i<gPersos.length;i++)
 						iTrajets.push(jTrajets[i]);
 					clearInterval(redrawCanvasHandler);
