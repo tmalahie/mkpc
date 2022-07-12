@@ -3969,6 +3969,10 @@ function startGame() {
 										stopStunt();
 									}
 								}
+								if (oKart.demitours === undefined) {
+									oKart.tours = oMap.tours+1;
+									oKart.demitours = 0;
+								}
 								ai(oKart);
 								var aSfx = iSfx;
 								iSfx = false;
