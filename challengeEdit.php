@@ -318,7 +318,7 @@ function selectMainRule() {
 			'</div>'
 		);
 		var $extraSelector = $extra.find(".challenge-main-btn-options");
-		var allDecorOpions = getAllDecorOptions(chRules.main);
+		var allDecorOpions = getAllDecorOptions(typeof chRules === "undefined" ? null : chRules.main);
 		for (var i=0;i<allDecorOpions.length;i++) {
 			var decorOption = allDecorOpions[i];
 			if (decorOption.value.startsWith("assets/")) continue;
