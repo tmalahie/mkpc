@@ -524,7 +524,10 @@ function updateConstraintSelectors() {
 function updateConstraintSelector(clClass,$rulesSelector) {
 	var listRules = clRules[clClass];
 	$rulesSelector.empty();
-	$rulesSelector.append('<option value="">'+ (language ? 'Select constraint...':'Sélectionner contrainte...'));
+	var selectConstraintLabel = language ? 'Select constraint...':'Sélectionner contrainte...';
+	if (clClass === "setup")
+		selectConstraintLabel = language ? 'Select option...':'Sélectionner option...';
+	$rulesSelector.append('<option value="">'+ selectConstraintLabel +'</option>');
 	for (var ruleId in listRules) {
 		if (!selectedConstraints[ruleId]) {
 			var $option = $('<option value="'+ ruleId +'">'+ listRules[ruleId].description +'</option>');
@@ -622,6 +625,8 @@ function getAllDecorOptions(constraint) {
 	return Object.values(res);
 }
 function getConstraint(clClass, ruleId) {
+	if (typeof chRules === "undefined")
+		return null;
 	return chRules[clClass].find(function(constraintRule) {
 		return constraintRule.type === ruleId;
 	});
@@ -810,8 +815,8 @@ $(function() {
 							toggleItem(btn);
 						break;
 					case "item_distribution":
-						for (var i=0;i<constraint.value.length;i++) {
-							var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='item_distribution'][data-value='"+ constraint.value[i] +"']");
+						for (var k=0;k<constraint.value.length;k++) {
+							var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='item_distribution'][data-value='"+ constraint.value[k] +"']");
 							if (btn)
 								toggleItem(btn);
 						}
