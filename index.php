@@ -82,7 +82,7 @@ $slidesPath = 'images/slides';
 									if ($language) {
 										?>
 										Try to be the fastest while avoiding items!<br />
-										Find all <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
+										Race on all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
 										<?php
 									}
 									else {
