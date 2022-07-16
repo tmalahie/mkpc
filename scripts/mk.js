@@ -10622,9 +10622,13 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			ruleVars.selected = true;
 			clLocalVars.isSetup = true;
-			oPlayers[0].arme = scope.value;
-			oPlayers[0].roulette = 25;
-			updateObjHud(0);
+			if (scope.value) {
+				oPlayers[0].arme = scope.value;
+				oPlayers[0].roulette = 25;
+				updateObjHud(0);
+			}
+			else
+				supprArme(0);
 		},
 		"success": function(scope, ruleVars) {
 			return !!ruleVars.selected;

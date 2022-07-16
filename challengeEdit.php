@@ -448,10 +448,11 @@ function addConstraintRule(clClass) {
 		case 'init_item':
 			$form.html(
 				'<div>'+ (language?'Item:':'Objet :') +' '+
-				'<input type="text" style="display:none" name="scope[init_item][value]" required="required" >'+
+				'<input type="text" style="display:none" name="scope[init_item][value]" >'+
 				'<div class="challenge-rule-btn-options challenge-item-btn-options"></div>'
 			);
 			var $extraSelector = $form.find(".challenge-item-btn-options");
+			$extraSelector.append('<button type="button" data-value="" data-rule-key="init_item" style="background-image:url(\'images/challenges/noitem.png\')" title="'+ (language ? "No item" : "Aucun objet") +'" onclick="toggleItem(this)"></button>');
 			var itemOptions = getItemOptions();
 			for (var i=0;i<itemOptions.length;i++) {
 				var itemOption = itemOptions[i];
