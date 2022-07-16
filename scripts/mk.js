@@ -3482,45 +3482,16 @@ function startGame() {
 				);
 
 				if (!pause || !fInfos.replay) {
-					document.onkeydown = function(e) {
-						if (forceStartMusic) {
-							try {
-								if (mapMusic.yt)
-									mapMusic.yt.playVideo();
-								forceStartMusic = false;
-							}
-							catch (e) {
-							}
-						}
-						else if (forcePrepareEnding) {
-							try {
-								if (endingMusic.yt) {
-									endingMusic.yt.setVolume(0);
-									endingMusic.yt.playVideo();
-									setTimeout(function() {
-										endingMusic.yt.seekTo(0,true);
-										endingMusic.yt.setVolume(100);
-										endingMusic.yt.pauseVideo();
-									}, 1000);
-								}
-								forcePrepareEnding = false;
-							}
-							catch (e) {
-							}
-						}
-						if (clLocalVars.fastForward) return;
-						var gameAction = gameControls[e.keyCode];
-						if (!gameAction) return;
-						var aElt = document.activeElement;
-						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
-						if (e.preventDefault)
-							e.preventDefault();
+					var currentPressedKeys = {};
+					function handleInputPressed(gameAction) {
 						switch (gameAction) {
 							case "up":
+								currentPressedKeys[gameAction] = true;
 								oPlayers[0].speedinc = oPlayers[0].stats.acceleration*oPlayers[0].size;
 								if (oPlayers[0].etoile) oPlayers[0].speedinc *= 5;
 								break;
 							case "left":
+								currentPressedKeys[gameAction] = true;
 								oPlayers[0].rotincdir = oPlayers[0].stats.handling*getMirrorFactor();
 								if (!oPlayers[0].driftinc && !oPlayers[0].tourne && !oPlayers[0].fell && oPlayers[0].ctrl && !oPlayers[0].cannon) {
 									if (oPlayers[0].jumped)
@@ -3530,6 +3501,7 @@ function startGame() {
 								}
 								break;
 							case "right":
+								currentPressedKeys[gameAction] = true;
 								oPlayers[0].rotincdir = -oPlayers[0].stats.handling*getMirrorFactor();
 								if (!oPlayers[0].driftinc && !oPlayers[0].tourne && !oPlayers[0].fell && oPlayers[0].ctrl && !oPlayers[0].cannon) {
 									if (oPlayers[0].jumped)
@@ -3539,6 +3511,7 @@ function startGame() {
 								}
 								break;
 							case "down":
+								currentPressedKeys[gameAction] = true;
 								oPlayers[0].speedinc -= 0.2;
 								break;
 							case "jump":
@@ -3651,11 +3624,7 @@ function startGame() {
 								break;
 						}
 					}
-					document.onkeyup = function(e) {
-						var gameAction = gameControls[e.keyCode];
-						if (!gameAction) return;
-						var aElt = document.activeElement;
-						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
+					function handleInputReleased(gameAction) {
 						switch (gameAction) {
 							case "item":
 							case "item_back":
@@ -3664,16 +3633,24 @@ function startGame() {
 									arme(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
 								break;
 							case "up":
+								currentPressedKeys.up = false;
 								oPlayers[0].speedinc = 0;
+								retriggerInputIfPressed("down");
 								break;
 							case "left":
+								currentPressedKeys.left = false;
 								oPlayers[0].rotincdir = 0;
+								retriggerInputIfPressed("right");
 								break;
 							case "right":
+								currentPressedKeys.right = false;
 								oPlayers[0].rotincdir = 0;
+								retriggerInputIfPressed("left");
 								break;
 							case "down":
+								currentPressedKeys.down = false;
 								oPlayers[0].speedinc = 0;
+								retriggerInputIfPressed("up");
 								break;
 							case "jump":
 								if (pause) break;
@@ -3764,7 +3741,54 @@ function startGame() {
 								showRearView(1);
 						}
 					}
+					function retriggerInputIfPressed(gameAction) {
+						if (currentPressedKeys[gameAction])
+							handleInputPressed(gameAction);
+					}
+					document.onkeydown = function(e) {
+						if (forceStartMusic) {
+							try {
+								if (mapMusic.yt)
+									mapMusic.yt.playVideo();
+								forceStartMusic = false;
+							}
+							catch (e2) {
+							}
+						}
+						else if (forcePrepareEnding) {
+							try {
+								if (endingMusic.yt) {
+									endingMusic.yt.setVolume(0);
+									endingMusic.yt.playVideo();
+									setTimeout(function() {
+										endingMusic.yt.seekTo(0,true);
+										endingMusic.yt.setVolume(100);
+										endingMusic.yt.pauseVideo();
+									}, 1000);
+								}
+								forcePrepareEnding = false;
+							}
+							catch (e2) {
+							}
+						}
+						if (clLocalVars.fastForward) return;
+						var gameAction = gameControls[e.keyCode];
+						if (!gameAction) return;
+						var aElt = document.activeElement;
+						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
+						if (e.preventDefault)
+							e.preventDefault();
+						handleInputPressed(gameAction);
+					}
+					document.onkeyup = function(e) {
+						var gameAction = gameControls[e.keyCode];
+						if (!gameAction) return;
+						var aElt = document.activeElement;
+						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
+						handleInputReleased(gameAction);
+					}
 					window.releaseOnBlur = function() {
+						currentPressedKeys = {};
 						for (var i=0;i<oPlayers.length;i++) {
 							oPlayers[i].speedinc = 0;
 							oPlayers[i].rotincdir = 0;
