@@ -667,6 +667,12 @@ function loadZoneData(editorType) {
 		if ($elt)
 			meta[metaKeys[i]] = $elt.value;
 	}
+	var mainForm = document.forms[0];
+	var $extraDecorsInput = mainForm.elements["scope[extra_decors][value]"];
+	if ($extraDecorsInput && $extraDecorsInput.value) {
+		var extraDecorsData = JSON.parse($extraDecorsInput.value);
+		meta.extra_decors = extraDecorsData;
+	}
 	return {
 		data: JSON.parse(data),
 		meta: meta

@@ -472,11 +472,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		var triggered = !oImg;
 		if (triggered)
 			oImg = document.createElementNS(SVG, "image");
-		oImg.setAttribute("href", "images/map_icons/"+ src +".png");
-		oImg.setAttribute("height", 12);
-		oImg.setAttribute("x", x-6);
-		oImg.setAttribute("y", y-6);
-		oImg.setAttribute("class", "shape");
+		setupImg(x,y,src, oImg);
 		if (!oImg.dataset) oImg.dataset = {};
 		oImg.dataset.data = JSON.stringify({src:src,pos:[x,y]});
 		$svg.appendChild(oImg);
@@ -505,6 +501,13 @@ document.addEventListener("DOMContentLoaded", function() {
 			document.onmousemove = undefined;
 			oRect = null;
 		}
+	}
+	function setupImg(x,y,src, oImg) {
+		oImg.setAttribute("href", "images/map_icons/"+ src +".png");
+		oImg.setAttribute("height", 12);
+		oImg.setAttribute("x", x-6);
+		oImg.setAttribute("y", y-6);
+		oImg.setAttribute("class", "shape");
 	}
 	function createArrow(x,y) {
 		var oCircle = document.createElementNS(SVG, "circle");
@@ -775,6 +778,16 @@ document.addEventListener("DOMContentLoaded", function() {
 	var meta = params.meta;
 	if (meta.ordered == 1)
 		document.getElementById("zone-editor-ordered").click();
+	if (meta.extra_decors && (editorType !== "decors")) {
+		var decors = meta.extra_decors;
+		for (var i=decors.length-1;i>=0;i--) {
+			var iData = decors[i];
+			var oImg = document.createElementNS(SVG, "image");
+			setupImg(iData.pos[0],iData.pos[1], iData.src, oImg);
+			$svg.insertBefore(oImg, $svg.firstChild);
+			delete oImg.dataset.data;
+		}
+	}
 });
 window.onload = function() {
 	document.getElementById("editor-ctn").style.width = Math.max(200,document.getElementById("editor").scrollWidth) +"px";
