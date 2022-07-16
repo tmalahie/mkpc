@@ -10571,6 +10571,7 @@ var challengeRules = {
 		},
 		"initSelected": function(scope, ruleVars) {
 			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
 			oMap.arme = [];
 		},
 		"success": function(scope, ruleVars) {
@@ -10596,6 +10597,7 @@ var challengeRules = {
 		},
 		"initSelected": function(scope, ruleVars) {
 			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
 			oPlayers[0].arme = scope.value;
 			oPlayers[0].roulette = 25;
 			updateObjHud(0);
@@ -10610,10 +10612,12 @@ var challengeRules = {
 		},
 		"initSelected": function(scope, ruleVars) {
 			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
 			var newDistrib = {};
 			for (var i=0;i<scope.value.length;i++)
 				newDistrib[scope.value[i]] = 1;
 			itemDistribution.value = [newDistrib];
+			itemDistribution.isSetup = true;
 		},
 		"success": function(scope, ruleVars) {
 			return !!ruleVars.selected;
@@ -10677,6 +10681,7 @@ var challengeRules = {
 	"start_pos": {
 		"initSelected": function(scope) {
 			clLocalVars.startPos = scope.value;
+			clLocalVars.isSetup = true;
 			if (scope.no_cpu) {
 				aKarts.length = strPlayer.length;
 				for (var i=0;i<strPlayer.length;i++)
@@ -10694,6 +10699,7 @@ var challengeRules = {
 		},
 		"initSelected": function(scope, ruleVars) {
 			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
 			for (var i=0;i<scope.value.length;i++) {
 				var decorData = scope.value[i];
 				if (!oMap.decor[decorData.src])
@@ -10893,7 +10899,7 @@ function reinitLocalVars() {
 	if (ptsDistribution.value) {
 		clLocalVars.cheated = true;
 	}
-	else if (itemDistribution.value) {
+	else if (itemDistribution.value && !itemDistribution.isSetup) {
 		var modeItemDistributions = itemDistributions[getItemMode()];
 		var isDefaultDistrib = false;
 		for (var i=0;i<2;i++) {
@@ -10932,6 +10938,8 @@ function challengeCheck(verifType, events) {
 	var challengesForType = challengesForCircuit[verifType];
 	for (var i=0;i<challengesForType.length;i++) {
 		var challenge = challengesForType[i];
+		if (clLocalVars.isSetup && (challenge !== clSelected))
+			continue;
 		var chRules = listChallengeRules(challenge.data);
 		var status = challengeRulesSatisfied(challenge,chRules);
 		if (status) {

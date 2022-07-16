@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function() {
 					switch ($challenge['status']) {
 					case 'pending_completion':
 						if (!$challenge['validation']) {
-							echo $language ? 'Panding completion':'En attente de réussite';
+							echo $language ? 'Pending completion':'En attente de réussite';
 							echo ' <a href="javascript:void(0)" class="pretty-title" title="'. ($language ? 'You have to succeed the challenge to prove it\'s possible.':'Vous devez réussir le défi pour valider qu\'il n\'est pas impossible.') .'">[?]</a>';
 						}
 						else {
