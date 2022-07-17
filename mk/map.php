@@ -58,6 +58,7 @@ if (!$circuitMainData->music) {
 	unset($collisionData);
 	echo json_encode($circuitPayload->collision);
 ?>,
+<?php if (isset($circuitPayload->collisionProps)) echo '"collisionProps":'. json_encode($circuitPayload->collisionProps) .','; ?>
 "horspistes" : <?php
 	foreach ($circuitPayload->horspistes as &$hpsData) {
 		foreach ($hpsData as &$hpData) {

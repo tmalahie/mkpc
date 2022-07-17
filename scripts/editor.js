@@ -3279,15 +3279,22 @@ var commonTools = {
 				hText.setAttribute("font-size", 15);
 				hText.setAttribute("text-anchor", "middle");
 				hText.setAttribute("dominant-baseline", "middle");
+				hText.style.display = "none";
+				shape.onmouseover = function() {
+					hText.style.display = "";
+				};
+				shape.onmouseout = function() {
+					hText.style.display = "none";
+				};
 				$editor.appendChild(hText);
 				hText.remove = function() {
 					$editor.removeChild(hText);
 				};
 				hText.show = function() {
-					hText.style.display = "";
+					hText.style.visibility = "";
 				};
 				hText.hide = function() {
-					hText.style.display = "none";
+					hText.style.visibility = "hidden";
 				};
 				shape.text = hText;
 				shape.reheight = function(z) {
