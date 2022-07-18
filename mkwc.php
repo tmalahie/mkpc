@@ -100,7 +100,8 @@ case 'mkt':
                     'sal'=> $language ? 'El Salvador':'Salvador',
                     'spa'=> $language ? 'Spain':'Espagne',
                     'gua'=> $language ? 'Guatemala':'Guatemala'
-                )
+                ),
+                'eliminated' => array('spa', 'gua')
             ),
             "$group B" => array(
                 'list' => array(
@@ -108,7 +109,8 @@ case 'mkt':
                     'col'=> $language ? 'Colombia':'Colombie',
                     'arg'=> $language ? 'Argentina':'Argentina',
                     'swi'=> $language ? 'Switzerland':'Suisse'
-                )
+                ),
+                'eliminated' => array('arg', 'swi')
             ),
             "$group C" => array(
                 'list' => array(
@@ -116,7 +118,8 @@ case 'mkt':
                     'fra'=> $language ? 'France':'France',
                     'ecu'=> $language ? 'Ecuador':'Équateur',
                     'chi'=> $language ? 'Chile':'Chili'
-                )
+                ),
+                'eliminated' => array('ecu', 'chi')
             ),
             "$group D" => array(
                 'list' => array(
@@ -124,7 +127,8 @@ case 'mkt':
                     'hok'=> $language ? 'Hong Kong':'Hong Kong',
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'ukg'=> $language ? 'United Kingdom':'Royaume-Uni'
-                )
+                ),
+                'eliminated' => array('bra', 'ukg')
             )
         )
     );
