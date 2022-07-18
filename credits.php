@@ -168,12 +168,6 @@ include('menu.php');
                 'description' => $language ? '<a href="images/sprites/sprite_skelerex.png">sprite of Dry Bones</a>':'<a href="images/sprites/sprite_skelerex.png">sprite de Skelerex</a>'
             ),
             array(
-                'author' => 'VulpixTails',
-                'base_url' => 'profil.php?id=48454',
-                'for' => $language ? 'for the':'pour le',
-                'description' => $language ? '<a href="images/sprites/sprite_bowser.png">sprite of Bowser</a>':'<a href="images/sprites/sprite_bowser.png">sprite de Bowser</a>'
-            ),
-            array(
                 'author' => 'Hoppingicon',
                 'base_url' => 'profil.php?id=26749',
                 'for' => $language ? 'for the':'pour le',
