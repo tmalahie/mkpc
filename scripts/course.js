@@ -363,5 +363,6 @@ var editorTools = {
 	"cannons": commonTools["cannons"],
 	"teleports": commonTools["teleports"],
 	"mobiles": commonTools["mobiles"],
+	"elevators": commonTools["elevators"],
 	"options": commonTools["options"]
 };

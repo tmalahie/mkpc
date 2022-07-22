@@ -1548,6 +1548,14 @@ function initMap() {
 		}
 		oMap.teleports = teleports;
 	}
+	if (oMap.elevators) {
+		var elevators = {rectangle:[],polygon:[]};
+		for (var i=0;i<oMap.elevators.length;i++) {
+			var elevator = oMap.elevators[i];
+			elevators[getShapeType(elevator[0])].push(elevator);
+		}
+		oMap.elevators = elevators;
+	}
 	if (oMap.sea) {
 		var oWaves = oMap.sea.waves;
 		oMap.sea.projections = [];
@@ -9461,7 +9469,10 @@ function pointInAltitude(zMap, i,z) {
 }
 function getZoneHeight(zMap, i) {
 	var wallProps = zMap[i] || { z: 1 };
-	return wallProps.z*jumpHeight1;
+	return getPointHeight(wallProps.z);
+}
+function getPointHeight(z) {
+	return z*jumpHeight1;
 }
 
 function pointCrossRectangle(iX,iY,iI,iJ, oBox) {	
@@ -9552,12 +9563,26 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 	var oRectangles = oMap.collision.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
 		if (pointInRectangle(iX,iY, oRectangles[i]))
-			zH = Math.max(iZ, getZoneHeight(oMap.collisionProps.rectangle, i));
+			zH = Math.max(zH, getZoneHeight(oMap.collisionProps.rectangle, i));
 	}
 	var oPolygons = oMap.collision.polygon;
 	for (var i=0;i<oPolygons.length;i++) {
 		if (pointInPolygon(iX,iY, oPolygons[i]))
-			zH = Math.max(iZ, getZoneHeight(oMap.collisionProps.polygon, i));
+			zH = Math.max(zH, getZoneHeight(oMap.collisionProps.polygon, i));
+	}
+	if (oMap.elevators) {
+		var eRectangles = oMap.elevators.rectangle;
+		for (var i=0;i<eRectangles.length;i++) {
+			var oRectangle = eRectangles[i];
+			if (pointInRectangle(iX,iY, oRectangle[0]) && !(iZ0 < getPointHeight(oRectangle[1][0])))
+				zH = Math.max(zH, getPointHeight(oRectangle[1][1]));
+		}
+		var ePolygons = oMap.elevators.polygon;
+		for (var i=0;i<ePolygons.length;i++) {
+			var oPolygon = ePolygons[i];
+			if (pointInPolygon(iX,iY, oPolygon[0]) && !(iZ0 < getPointHeight(oPolygon[1][0])))
+				zH = Math.max(zH, getPointHeight(oPolygon[1][1]));
+		}
 	}
 
 	if (iZ0) iZ += iZ0;
@@ -13684,7 +13709,7 @@ function move(getId, triggered) {
 	collisionDecor = null;
 	collisionFloor = null;
 	var nPosZ0;
-	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0)) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0)) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
@@ -13717,7 +13742,7 @@ function move(getId, triggered) {
 		for (var i=5;i>0;i--) {
 			oKart.x += horizontality[0]*s*i/5;
 			oKart.y += horizontality[1]*s*i/5;
-			if (canMoveTo(aPosX,aPosY,oKart.z, oKart.x-aPosX,oKart.y-aPosY, oKart.protect, oKart.z0))
+			if (canMoveTo(aPosX,aPosY,oKart.z, oKart.x-aPosX,oKart.y-aPosY, oKart.protect, oKart.z0||0))
 				break;
 			else {
 				oKart.x = aPosX;
@@ -14330,7 +14355,7 @@ function move(getId, triggered) {
 				for (i=strPlayer.length;i<aKarts.length;i++)
 					aKarts[i].loose = true;
 			}
-			else {
+			else if (aKarts.length > 1) {
 				if (iTeamPlay) {
 					var EnVie = new Array(selectedNbTeams).fill(false);
 					var nEnVie = 0;

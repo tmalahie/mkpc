@@ -127,6 +127,11 @@ if (!empty($circuitPayload->spinners)) {
 "spinners" : <?php echo json_encode($circuitPayload->spinners); ?>
 	<?php
 }
+if (!empty($circuitPayload->elevators)) {
+	?>,
+"elevators" : <?php echo json_encode($circuitPayload->elevators); ?>
+	<?php
+}
 ?>
 	}
 	<?php
