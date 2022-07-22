@@ -47,6 +47,7 @@ foreach ($circuitsData as $c => $arene) {
 		}
 		echo json_encode($circuitPayload->collision);
 	?>,
+	<?php if (isset($circuitPayload->collisionProps)) echo '"collisionProps":'. json_encode($circuitPayload->collisionProps) .','; ?>
 	"horspistes" : <?php echo json_encode($circuitPayload->horspistes); ?>,
 	"trous" : <?php echo json_encode($circuitPayload->trous); ?>,
 	"arme" : <?php echo json_encode($circuitPayload->arme); ?>,
@@ -87,6 +88,10 @@ foreach ($circuitsData as $c => $arene) {
 	if (!empty($circuitPayload->spinners)) {
 		?>,
 	"spinners" : <?php echo json_encode($circuitPayload->spinners);
+	}
+	if (!empty($circuitPayload->elevators)) {
+		?>,
+	"elevators" : <?php echo json_encode($circuitPayload->elevators);
 	}
 	echo '}';
 }

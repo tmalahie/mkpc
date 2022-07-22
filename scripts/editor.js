@@ -285,8 +285,8 @@ function moveRectangle(rectangle,data,options) {
 	var fakeRectangle = document.createElement("div");
 	fakeRectangle.style.left = screenCoords.x +"px";
 	fakeRectangle.style.top = screenCoords.y +"px";
-	fakeRectangle.style.width = screenCoords.w +"px";
-	fakeRectangle.style.height = screenCoords.h +"px";
+	fakeRectangle.style.width = (screenCoords.w+zoomLevel) +"px";
+	fakeRectangle.style.height = (screenCoords.h+zoomLevel) +"px";
 	fakeRectangle.style.cursor = "move";
 	fakeRectangle.onclick = function(e) {
 		e.stopPropagation();
@@ -1016,11 +1016,11 @@ function getScreenCoords(point) {
 		"x": Math.round(point.x*zoomLevel + offsetX),
 		"y": Math.round(point.y*zoomLevel + offsetY)
 	};
-	if (point.w)
+	if (point.w != null)
 		res.w = Math.round(point.w*zoomLevel);
-	if (point.h)
+	if (point.h != null)
 		res.h = Math.round(point.h*zoomLevel);
-	if (point.r)
+	if (point.r != null)
 		res.r = point.r;
 	if (point.l)
 		res.l = point.l;
@@ -1031,9 +1031,9 @@ function getScreenCoordsExact(point) {
 		"x": point.x*zoomLevel + offsetX,
 		"y": point.y*zoomLevel + offsetY
 	};
-	if (point.w)
+	if (point.w != null)
 		res.w = point.w*zoomLevel;
-	if (point.h)
+	if (point.h != null)
 		res.h = point.h*zoomLevel;
 	return res;
 }
@@ -2233,9 +2233,9 @@ function rescaleShape(data, scale) {
 }
 function rescaleBox(data, scale) {
 	rescalePoint(data, scale);
-	if (data.w)
+	if (data.w != null)
 		data.w = Math.round(data.w*scale.x);
-	if (data.h)
+	if (data.h != null)
 		data.h = Math.round(data.h*scale.y);
 }
 function replaceStartPositions(self) {
@@ -3210,7 +3210,7 @@ var commonTools = {
 										moveRectangle(rectangle,data, moveOptions);
 									}
 								}, {
-									text: (language ? "Wall height...":"Hauteur mur...."),
+									text: (language ? "Wall height...":"Hauteur mur..."),
 									click: function() {
 										rectangle.promptHeight();
 									}
@@ -3254,7 +3254,7 @@ var commonTools = {
 										movePolygon(polygon,data, moveOptions);
 									}
 								}, {
-									text: (language ? "Wall height...":"Hauteur mur...."),
+									text: (language ? "Wall height...":"Hauteur mur..."),
 									click: function() {
 										polygon.promptHeight();
 									}
@@ -3322,7 +3322,7 @@ var commonTools = {
 					}
 					hText.innerHTML = data.z == null ? "" : data.z;
 				};
-				shape.promptHeight = function() {
+				shape.promptHeight = function(prop) {
 					var defaultVal = 1;
 					var enteredVal = prompt(language ? "Enter value...":"Entrer une valeur...", data.z || defaultVal);
 					if (enteredVal == null) return;
@@ -5541,6 +5541,232 @@ var commonTools = {
 						iData.dir.dtheta = -iData.dir.dtheta;
 				}
 			}
+		}
+	},
+	"elevators": {
+		"resume" : function(self) {
+			self.state.point = createRectangle({x:-1,y:-1});
+			self.state.shape = "rectangle";
+			var data = self.data;
+			self.data = [];
+			for (var i=0;i<data.length;i++) {
+				var iData = data[i];
+				self.state.shape = iData.type;
+				var createdShape;
+				switch (iData.type) {
+				case "rectangle":
+					self.click(self,iData,{});
+					createdShape = self.state.rectangle;
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					break;
+				case "polygon":
+					for (var j=0;j<iData.points.length;j++)
+						self.click(self,iData.points[j],{});
+					createdShape = self.state.polygon;
+					self.state.nodes[0].circle.onclick();
+					break;
+				}
+				if (createdShape) {
+					createdShape.reheight("z", iData.z);
+					createdShape.reheight("z0", iData.z0);
+				}
+			}
+			replaceNodeType(self);
+			document.getElementById("elevators-shape").setValue(self.state.shape);
+		},
+		"click" : function(self,point,extra) {
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				if (self.state.rectangle)
+					appendRectangleBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startRectangleBuilder(self,point, {
+							on_apply: function(rectangle,data) {
+								self.data.push(data);
+								setupShapeHeight(self,rectangle,data);
+								var moveOptions = {on_apply:rectangle.reposition,on_start_move:rectangle.text.hide,on_end_move:rectangle.text.show};
+								addContextMenuEvent(rectangle,[{
+									text: (language ? "Resize":"Redimensionner"),
+									click: function() {
+										resizeRectangle(rectangle,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										moveRectangle(rectangle,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Target height...":"Hauteur cible..."),
+									click: function() {
+										rectangle.promptHeight("z");
+									}
+								}, {
+									text: (language ? "Min height...":"Hauteur min..."),
+									click: function() {
+										rectangle.promptHeight("z0");
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(rectangle);
+										rectangle.text.remove();
+										storeHistoryData(self.data);
+										removeFromArray(self.data,data);
+									}
+								}]);
+							}
+						});
+					}
+				}
+				break;
+			case "polygon":
+				if (self.state.polygon)
+					appendPolygonBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startPolygonBuilder(self,point, {
+							on_apply: function(polygon,points) {
+								var data = {type:"polygon",points:points};
+								self.data.push(data);
+								polygon.setAttribute("stroke-width", 1);
+								setupShapeHeight(self,polygon,data);
+								function repositionPoly(nPoints) {
+									polygon.reposition(Object.assign({}, data, { points: nPoints }));
+								}
+								var moveOptions = {on_apply:repositionPoly,on_start_move:polygon.text.hide,on_end_move:polygon.text.show};
+								addContextMenuEvent(polygon, [{
+									text: (language ? "Edit":"Modifier"),
+									click: function() {
+										editPolygon(polygon,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										movePolygon(polygon,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Target height...":"Hauteur cible..."),
+									click: function() {
+										polygon.promptHeight("z");
+									}
+								}, {
+									text: (language ? "Min height...":"Hauteur min..."),
+									click: function() {
+										polygon.promptHeight("z0");
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(polygon);
+										polygon.text.remove();
+										storeHistoryData(self.data);
+										removeFromArray(self.data,data);
+									}
+								}]);
+							}
+						});
+					}
+				}
+				break;
+			}
+			function setupShapeHeight(self, shape, data) {
+				var prevData = self.data[self.data.length-2] || { z0: 0, z: 1 };
+				var hText = document.createElementNS(SVG, "text");
+				hText.setAttribute("class", "dark noclick");
+				hText.setAttribute("font-size", 15);
+				hText.setAttribute("text-anchor", "middle");
+				hText.setAttribute("dominant-baseline", "middle");
+				$editor.appendChild(hText);
+				hText.remove = function() {
+					$editor.removeChild(hText);
+				};
+				hText.show = function() {
+					hText.style.visibility = "";
+				};
+				hText.hide = function() {
+					hText.style.visibility = "hidden";
+				};
+				shape.text = hText;
+				shape.reheight = function(prop, z) {
+					storeHistoryData(self.data);
+					data[prop] = z;
+					shape.reposition(data);
+				};
+				shape.reposition = function(data) {
+					switch (data.type) {
+					case "rectangle":
+						hText.setAttribute("x", data.x+data.w/2);
+						hText.setAttribute("y", data.y+data.h/2+2);
+						break;
+					case "polygon":
+						var polygonCenter = getPolygonCenter(data.points);
+						hText.setAttribute("x", polygonCenter.x);
+						hText.setAttribute("y", polygonCenter.y+2);
+						break;
+					}
+					if (data.z0)
+						hText.innerHTML = data.z0 + "→" + data.z;
+					else
+						hText.innerHTML = data.z;
+				};
+				shape.promptHeight = function(prop) {
+					var enteredVal = +prompt(language ? "Enter value...":"Entrer une valeur...", data[prop]);
+					if (isNaN(enteredVal)) return;
+					if (enteredVal >= 0)
+						shape.reheight(prop, enteredVal);
+				}
+
+				if (data.z === undefined)
+					data.z = prevData.z;
+				if (data.z0 === undefined)
+					data.z0 = prevData.z0;
+				shape.reposition(data);
+			}
+		},
+		"move" : function(self,point,extra) {
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				moveRectangleBuilder(self,point);
+				break;
+			case "polygon":
+				movePolygonBuilder(self,point);
+				break;
+			}
+		},
+		"round_on_pixel" : function(self) {
+			return self.state.shape == "polygon";
+		},
+		"save" : function(self,payload) {
+			payload.elevators = [];
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				payload.elevators.push([shapeToData(iData),[iData.z0,iData.z]]);
+			}
+		},
+		"restore" : function(self,payload) {
+			if (!payload.elevators) return;
+			for (var i=0;i<payload.elevators.length;i++) {
+				var iData = payload.elevators[i];
+				var nData = dataToShape(iData[0]);
+				nData.z0 = iData[1][0];
+				nData.z = iData[1][1];
+				self.data.push(nData);
+			}
+		},
+		"rescale" : function(self, scale) {
+			for (var i=0;i<self.data.length;i++)
+				rescaleShape(self.data[i], scale);
+		},
+		"rotate" : function(self, orientation) {
+			for (var i=0;i<self.data.length;i++)
+				rotateShape(self.data[i], imgSize,orientation);
+		},
+		"flip" : function(self, axis) {
+			for (var i=0;i<self.data.length;i++)
+				flipShape(self.data[i], imgSize,axis);
 		}
 	}
 };
