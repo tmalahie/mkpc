@@ -555,6 +555,13 @@ div.hover-toggle:hover {
 	fill: transparent;
 	stroke: black;
 }
+.editor .path.hover-toggle:hover {
+	fill: transparent;
+	stroke: black;
+}
+.theme-dark .editor .path.hover-toggle:hover {
+	stroke: white;
+}
 .theme-dark .editor .path.dark {
 	fill: transparent;
 	stroke: white;
