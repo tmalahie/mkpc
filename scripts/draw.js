@@ -81,10 +81,175 @@ var editorTools = {
 		},
 		"resume" : function(self) {
 			var traject = +document.getElementById("traject").value;
+			var oldData = self.data[traject];
 			initRouteBuilder(self,self.data,traject);
+			self.shortcut.rebuild(self, oldData);
+		},
+		"shortcut": {
+			"start": function(self, startPt) {
+				var selfData = self.state.data;
+				var selfPoints = selfData.points;
+				self.shortcut.removeStarting(self, startPt);
+			
+				var mask = createMask();
+				mask.classList.add("mask-dark");
+				mask.close = function () { };
+				for (var j=0;j<selfPoints.length;j++) {
+					var bubbleR = 10;
+					var screenCoords = getScreenCoords(selfPoints[j]);
+					var bubble = createBubble(
+						screenCoords.x,
+						screenCoords.y,
+						bubbleR
+					);
+					(function (j) {
+						bubble.onclick = function (e) {
+							e.stopPropagation();
+							mask.defaultClose();
+			
+							storeHistoryData(self.data);
+							self.shortcut.close(self, startPt, selfPoints[j]);
+						};
+					})(j);
+					mask.appendChild(bubble);
+				}
+				mask.onmousemove = function (e) {
+					var nX = e.pageX, nY = e.pageY;
+					var nPoint = getEditorCoordsRounded({ x: nX, y: nY });
+					movePolygonBuilder(self, nPoint);
+				};
+				mask.onclick = function (e) {
+					var nX = e.pageX, nY = e.pageY;
+					var nPoint = getEditorCoordsRounded({ x: nX, y: nY });
+					self.shortcut.append(self, nPoint);
+				};
+				self.shortcut.init(self, startPt);
+			},
+			"init": function(self,startPt) {
+				self.oldState = self.state;
+				self.state = {
+					data: {points:[],closed:false},
+					point: self.state.point
+				};
+				startPolygonBuilder(self,startPt, {
+					closed: false,
+					custom_undos: true,
+					keep_box: true
+				});
+			},
+			"append": function(self, point) {
+				appendRouteBuilder(self,point,{}, {
+					allow_undos: false
+				});
+			},
+			"close": function(self, startPt,endPt) {
+				movePolygonBuilder(self,endPt);
+				var autoInc = 0;
+				var oldPoints = self.oldState.data.points;
+				for (var i=0;i<oldPoints.length;i++) {
+					if (oldPoints[i].id)
+						autoInc = Math.max(autoInc,oldPoints[i].id);
+				}
+				if (!startPt.id)
+					startPt.id = ++autoInc;
+				if (!endPt.id)
+					endPt.id = ++autoInc;
+				var shortcutRoute = self.state.data.points;
+				var shortcutNodes = self.state.nodes;
+				for (var i=0;i<shortcutNodes.length;i++) {
+					var node = shortcutNodes[i];
+					$editor.removeChild(node.center);
+					$editor.removeChild(node.circle);
+				}
+				var shortcutPoly = self.state.polygon;
+				$editor.removeChild(shortcutPoly);
+				shortcutPoly.classList.add("hover-toggle");
+				shortcutPoly.style.strokeOpacity = 0.5;
+				$editor.insertBefore(shortcutPoly,$editor.firstChild);
+				addContextMenuEvent(shortcutPoly, [{
+					text:(language ? "Edit":"Modifier"),
+					click:function() {
+						self.shortcut.start(self, startPt);
+					}
+				}, {
+					text:(language ? "Delete":"Supprimer"),
+					click:function() {
+						self.shortcut.removeStarting(self, startPt);
+					}
+				}]);
+				self.state = self.oldState;
+				delete self.oldState;
+				var selfData = self.state.data;
+				selfData.shortcuts.push({
+					start: startPt.id,
+					end: endPt.id,
+					route: shortcutRoute
+				});
+				self.state.shortcuts.push({
+					start: startPt.id,
+					remove: function() {
+						$editor.removeChild(shortcutPoly);
+					}
+				});
+			},
+			"rebuild": function(self, oldData) {
+				var oldPoints = oldData.points;
+				var selfData = self.state.data;
+				var selfPoints = selfData.points;
+				var initRebuild = true;
+				if (self.state.shortcuts) {
+					initRebuild = false;
+					for (var i=0;i<self.state.shortcuts.length;i++)
+						self.state.shortcuts[i].remove();
+				}
+				self.state.shortcuts = [];
+				selfData.shortcuts = [];
+				for (var i=0;i<oldData.shortcuts.length;i++) {
+					var shortcut = oldData.shortcuts[i];
+					var startPointId = oldPoints.indexOf(oldPoints.find(function(pt) {
+						return pt.id === shortcut.start;
+					}));
+					var endPointId = oldPoints.indexOf(oldPoints.find(function(pt) {
+						return pt.id === shortcut.end;
+					}));
+					if ((startPointId != -1) && (endPointId != -1)) {
+						self.shortcut.init(self, selfPoints[startPointId]);
+						for (var j=0;j<shortcut.route.length;j++)
+							self.shortcut.append(self, shortcut.route[j]);
+						if (initRebuild)
+							storeHistoryData(self.data);
+						self.shortcut.close(self, selfPoints[startPointId],selfPoints[endPointId]);
+					}
+				}
+			},
+			"removeStarting": function(self, point) {
+				self.state.shortcuts.forEach(function(s) {
+					if (s.start === point.id)
+						s.remove();
+				});
+				self.state.shortcuts = self.state.shortcuts.filter(function(s) {
+					return s.start !== point.id;
+				});
+				var selfData = self.state.data;
+				selfData.shortcuts = selfData.shortcuts.filter(function(s) {
+					return s.start !== point.id;
+				});
+			}
 		},
 		"click" : function(self,point,extra) {
-			appendRouteBuilder(self,point,extra);
+			appendRouteBuilder(self,point,extra, {
+				ctxmenu: function(i) {
+					return [{
+						text: (language ? "Shortcut route...":"Raccourci..."),
+						click: function() {
+							self.shortcut.start(self, self.state.data.points[i]);
+						}
+					}]
+				},
+				on_post_edit: function(self) {
+					self.shortcut.rebuild(self, deepCopy(self.state.data));
+				}
+			});
 		},
 		"move" : function(self,point,extra) {
 			moveRouteBuilder(self,point,extra);
@@ -99,6 +264,27 @@ var editorTools = {
 				var iData = self.data[i];
 				payload.main.aiclosed.push(iData.closed ? 1:0);
 				payload.aipoints.push(polyToData(iData.points));
+				if (iData.shortcuts.length) {
+					var nShortcuts = [];
+					if (!payload.aishortcuts) payload.aishortcuts = [];
+					for (var j=0;j<iData.shortcuts.length;j++) {
+						var iShortcut = iData.shortcuts[j];
+						var startPointId = iData.points.indexOf(iData.points.find(function(pt) {
+							return pt.id === iShortcut.start;
+						}));
+						var endPointId = iData.points.indexOf(iData.points.find(function(pt) {
+							return pt.id === iShortcut.end;
+						}));
+						if ((startPointId != -1) && (endPointId != -1)) {
+							nShortcuts.push([
+								startPointId,
+								endPointId,
+								polyToData(iShortcut.route)
+							]);
+						}
+					}
+					payload.aishortcuts[i] = nShortcuts;
+				}
 			}
 		},
 		"restore" : function(self,payload) {
@@ -107,20 +293,61 @@ var editorTools = {
 			for (var i=1;i<payload.aipoints.length;i++)
 				addTraject();
 			document.getElementById("traject").selectedIndex = 0;
-			for (var i=0;i<payload.aipoints.length;i++)
-				self.data[i] = {closed:payload.main.aiclosed[i]==1,points:dataToPoly(payload.aipoints[i])};
+			for (var i=0;i<payload.aipoints.length;i++) {
+				var shortcuts = [];
+				var points = dataToPoly(payload.aipoints[i]);
+				if (payload.aishortcuts && payload.aishortcuts[i]) {
+					var aishortcuts = payload.aishortcuts[i];
+					var autoInc = 0;
+					for (var j=0;j<aishortcuts.length;j++) {
+						var startPointId = aishortcuts[j][0];
+						var endPointId = aishortcuts[j][1];
+						var route = dataToPoly(aishortcuts[j][2]);
+						var startPt = points[startPointId];
+						var endPt = points[endPointId];
+						if (startPt && endPt) {
+							if (!startPt.id) startPt.id = ++autoInc;
+							if (!endPt.id) endPt.id = ++autoInc;
+							shortcuts.push({
+								start: startPt.id,
+								end: endPt.id,
+								route: route
+							});
+						}
+					}
+				}
+				self.data[i] = {closed:payload.main.aiclosed[i]==1,shortcuts:shortcuts,points:points};
+			}
 		},
 		"rescale" : function(self, scale) {
-			for (var i=0;i<self.data.length;i++)
-				rescalePoly(self.data[i].points, scale);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rescalePoly(iData.points, scale);
+				if (iData.shortcuts) {
+					for (var j=0;j<iData.shortcuts.length;j++)
+						rescalePoly(iData.shortcuts[j].route, scale);
+				}
+			}
 		},
 		"rotate" : function(self, orientation) {
-			for (var i=0;i<self.data.length;i++)
-				rotatePoly(self.data[i].points, imgSize,orientation);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				rotatePoly(iData.points, imgSize,orientation);
+				if (iData.shortcuts) {
+					for (var j=0;j<iData.shortcuts.length;j++)
+						rotatePoly(iData.shortcuts[j].route, imgSize,orientation);
+				}
+			}
 		},
 		"flip" : function(self, axis) {
-			for (var i=0;i<self.data.length;i++)
-				flipPoly(self.data[i].points, imgSize,axis);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				flipPoly(iData.points, imgSize,axis);
+				if (iData.shortcuts) {
+					for (var j=0;j<iData.shortcuts.length;j++)
+						flipPoly(iData.shortcuts[j].route, imgSize,axis);
+				}
+			}
 		}
 	},
 	"walls": commonTools["walls"],

@@ -192,15 +192,11 @@ function resizeRectangle(rectangle,data,options) {
 		for (var y=-1;y<=1;y++) {
 			if (options.cp ? (l?y:x) : (x||y)) {
 				(function(x,y) {
-					var bubble = document.createElement("div");
-					bubble.style.left = Math.round(centerX + (x*screenCoords.w-bubbleR)/2 + (1+x)*(zoomLevel-1)/2) +"px";
-					bubble.style.top = Math.round(centerY + (y*screenCoords.h-bubbleR)/2 + (1+y)*(zoomLevel-1)/2) +"px";
-					bubble.style.width = (bubbleR-2) +"px";
-					bubble.style.height = (bubbleR-2) +"px";
-					bubble.className = "bubble";
-					bubble.style.borderRadius = bubbleR +"px";
-					bubble.style.cursor = "pointer";
-					bubble.className = "bubble hover-toggle";
+					var bubble = createBubble(
+						centerX + x*screenCoords.w/2 + (1+x)*(zoomLevel-1)/2,
+						centerY + y*screenCoords.h/2 + (1+y)*(zoomLevel-1)/2,
+						bubbleR
+					);
 					bubble.onclick = function(e) {
 						e.stopPropagation();
 						for (var i=0;i<bubbles.length;i++)
@@ -276,6 +272,18 @@ function resizeRectangle(rectangle,data,options) {
 			}
 		}
 	}
+}
+function createBubble(bubbleX,bubbleY, bubbleR) {
+	var bubble = document.createElement("div");
+	bubble.style.left = Math.round(bubbleX - bubbleR/2) +"px";
+	bubble.style.top = Math.round(bubbleY - bubbleR/2) +"px";
+	bubble.style.width = (bubbleR-2) +"px";
+	bubble.style.height = (bubbleR-2) +"px";
+	bubble.className = "bubble";
+	bubble.style.borderRadius = bubbleR +"px";
+	bubble.style.cursor = "pointer";
+	bubble.className = "bubble hover-toggle";
+	return bubble;
 }
 function moveRectangle(rectangle,data,options) {
 	options = options||{};
@@ -1384,11 +1392,11 @@ function createCircularArrow(center,angle1,dAngle,append,options) {
 		show: showArrow
 	}
 }
-function createPolygonNode(point) {
-	var center = createRectangle({x:point.x-0.25,y:point.y-0.25,w:0.5,h:0.5});
+function createPolygonNode(point,append) {
+	var center = createRectangle({x:point.x-0.25,y:point.y-0.25,w:0.5,h:0.5},append);
 	center.setAttribute("class", "transparent");
 	var r = point.r||4, l = point.l||1;
-	var circle = createCircle({x:point.x,y:point.y,r:r,l:l});
+	var circle = createCircle({x:point.x,y:point.y,r:r,l:l},append);
 	addZoomListener(circle, function() {
 		this.setAttribute("r", r/zoomLevel);
 		this.setAttribute("stroke-width", l/zoomLevel);
@@ -1416,57 +1424,60 @@ function startPolygonBuilder(self,point, options) {
 		this.setAttribute("stroke-width", 4/zoomLevel);
 	});
 	$editor.appendChild(polygon);
-	self.state.nodes = [createPolygonNode(point)];
-	self.state.nodes[0].circle.classList.add("hover-toggle");
-	self.state.nodes[0].circle.onmouseover = function(e) {
-		polygon.classList.add("dark");
-	};
-	self.state.nodes[0].circle.onmouseout = function(e) {
-		polygon.classList.remove("dark");
-	};
-	self.state.nodes[0].circle.onclick = function(e) {
-		if (e) e.stopPropagation();
-		var points = self.state.points;
-		if (points.length > options.min_points) {
-			$toolbox.classList.remove("hiddenbox");
-			storeHistoryData(self.data);
-			points.pop();
-			setPolygonPoints(polygon,points,true);
-			if (!options.hollow)
-				polygon.classList.remove("path");
-			this.onmouseout();
-			if (options.keep_nodes) {
-				self.state.nodes[0].circle.onmouseover = undefined;
-				self.state.nodes[0].circle.onmouseout = undefined;
-				self.state.nodes[0].circle.onclick = undefined;
-				self.state.nodes[0].circle.classList.remove("hover-toggle");
-				self.state.nodes[0].center.onmouseover = undefined;
-				self.state.nodes[0].center.onmouseout = undefined;
-				self.state.nodes[0].center.onclick = undefined;
-				self.state.nodes[0].center.classList.remove("hover-toggle");
-			}
-			else {
-				for (var i=0;i<self.state.nodes.length;i++) {
-					$editor.removeChild(self.state.nodes[i].center);
-					$editor.removeChild(self.state.nodes[i].circle);
+	self.state.nodes = [];
+	if (options.closed !== false) {
+		self.state.nodes.push(createPolygonNode(point));
+		self.state.nodes[0].circle.classList.add("hover-toggle");
+		self.state.nodes[0].circle.onmouseover = function(e) {
+			polygon.classList.add("dark");
+		};
+		self.state.nodes[0].circle.onmouseout = function(e) {
+			polygon.classList.remove("dark");
+		};
+		self.state.nodes[0].circle.onclick = function(e) {
+			if (e) e.stopPropagation();
+			var points = self.state.points;
+			if (points.length > options.min_points) {
+				$toolbox.classList.remove("hiddenbox");
+				storeHistoryData(self.data);
+				points.pop();
+				setPolygonPoints(polygon,points,true);
+				if (!options.hollow)
+					polygon.classList.remove("path");
+				this.onmouseout();
+				if (options.keep_nodes) {
+					self.state.nodes[0].circle.onmouseover = undefined;
+					self.state.nodes[0].circle.onmouseout = undefined;
+					self.state.nodes[0].circle.onclick = undefined;
+					self.state.nodes[0].circle.classList.remove("hover-toggle");
+					self.state.nodes[0].center.onmouseover = undefined;
+					self.state.nodes[0].center.onmouseout = undefined;
+					self.state.nodes[0].center.onclick = undefined;
+					self.state.nodes[0].center.classList.remove("hover-toggle");
 				}
-				self.state.nodes = null;
+				else {
+					for (var i=0;i<self.state.nodes.length;i++) {
+						$editor.removeChild(self.state.nodes[i].center);
+						$editor.removeChild(self.state.nodes[i].circle);
+					}
+					self.state.nodes = null;
+				}
+				if (!options.custom_undos) {
+					self.onundo = null;
+					self.onredo = null;
+				}
+				self.state.points = null;
+				self.state.polygon = null;
+				self.state.point.classList.remove("dark");
+				setNodePos(self.state.point,{x:-1,y:-1});
+				if (options.on_apply)
+					options.on_apply(polygon,points,points[0]);
 			}
-			if (!options.custom_undos) {
-				self.onundo = null;
-				self.onredo = null;
-			}
-			self.state.points = null;
-			self.state.polygon = null;
-			self.state.point.classList.remove("dark");
-			setNodePos(self.state.point,{x:-1,y:-1});
-			if (options.on_apply)
-				options.on_apply(polygon,points,points[0]);
-		}
-	};
-	self.state.nodes[0].center.onmouseover = self.state.nodes[0].circle.onmouseover;
-	self.state.nodes[0].center.onmouseout = self.state.nodes[0].circle.onmouseout;
-	self.state.nodes[0].center.onclick = self.state.nodes[0].circle.onclick;
+		};
+		self.state.nodes[0].center.onmouseover = self.state.nodes[0].circle.onmouseover;
+		self.state.nodes[0].center.onmouseout = self.state.nodes[0].circle.onmouseout;
+		self.state.nodes[0].center.onclick = self.state.nodes[0].circle.onclick;
+	}
 	self.state.points = [point,deepCopy(point)];
 	setPolygonPoints(polygon,self.state.points);
 	self.state.point.classList.add("dark");
@@ -1573,12 +1584,14 @@ function initRouteBuilder(self,data,traject) {
 			self.state.nodes[0].circle.onclick();
 	}
 }
-function appendRouteBuilder(self,point,extra) {
+function appendRouteBuilder(self,point,extra,options) {
+	options = options || {};
 	var polygon = self.state.polygon;
 	var selfData = self.state.data;
 	var selfPoints = selfData.points;
 	if (polygon) {
-		storeHistoryData(self.data);
+		if (options.allow_undos !== false)
+			storeHistoryData(self.data);
 		selfPoints.push(point);
 		appendPolygonBuilder(self,point);
 	}
@@ -1587,9 +1600,13 @@ function appendRouteBuilder(self,point,extra) {
 		if (i !== undefined) {
 			$toolbox.classList.remove("hiddenbox");
 			self.move(self,point,extra);
-			selfData.points[i] = point;
+			selfData.points[i] = Object.assign({}, selfData.points[i], point);
 			$editor.removeChild(self.state.mask);
 			delete self.state.movingNode;
+			if (self.state.onPostMove) {
+				self.state.onPostMove(self);
+				delete self.state.onPostMove;
+			}
 		}
 	}
 	else {
@@ -1599,7 +1616,6 @@ function appendRouteBuilder(self,point,extra) {
 			startPolygonBuilder(self,point, {
 				min_points: 1,
 				hollow: true,
-				allow_undos: true,
 				custom_undos: true,
 				keep_nodes: true,
 				keep_box: true,
@@ -1607,7 +1623,7 @@ function appendRouteBuilder(self,point,extra) {
 					$editor.removeChild(polygon);
 					self.state.polygon = null;
 					selfData.closed = true;
-					createPolyline(self,points);
+					createPolyline(self,points,options);
 				}
 			});
 		}
@@ -1753,7 +1769,8 @@ function setPolygonPoints(polygon,data,closed) {
 		res += ","+data[0].x+","+data[0].y;
 	polygon.setAttribute("points", res);
 }
-function createPolyline(self,points) {
+function createPolyline(self,points, options) {
+	options = options || {};
 	self.state.lines = [];
 	function addPointInLine(e,i) {
 		var nPoint = getEditorCoordsRounded(getPointerPos(e));
@@ -1763,7 +1780,7 @@ function createPolyline(self,points) {
 			$editor.removeChild(lines[j]);
 		storeHistoryData(self.data);
 		self.state.data.points.splice(i+1,0,nPoint);
-		createPolyline(self,self.state.data.points);
+		createPolyline(self,self.state.data.points, options);
 		self.state.nodes[i+1].circle.onclick();
 	}
 	for (var i=0;i<points.length;i++) {
@@ -1797,6 +1814,7 @@ function createPolyline(self,points) {
 				mask.setAttribute("class", "transparent");
 				self.state.mask = mask;
 				self.state.movingNode = i;
+				self.state.onPostMove = options.on_post_edit;
 				if (e) storeHistoryData(self.data);
 				$toolbox.classList.add("hiddenbox");
 			};
@@ -1804,7 +1822,7 @@ function createPolyline(self,points) {
 				//alert(i);
 				//return false;
 				e.stopPropagation();
-				showContextMenu(e,[{
+				var ctxMenuItems = [{
 					text: (language ? "Move":"Déplacer"),
 					click: function() {
 						self.state.nodes[i].circle.onclick(e);
@@ -1820,9 +1838,17 @@ function createPolyline(self,points) {
 							$editor.removeChild(lines[j]);
 						storeHistoryData(self.data);
 						self.state.data.points.splice(i,1);
-						createPolyline(self,self.state.data.points);
+						createPolyline(self,self.state.data.points, options);
+						if (options.on_post_edit)
+							options.on_post_edit(self);
 					}
-				}]);
+				}];
+				if (options.ctxmenu) {
+					var extraItems = options.ctxmenu(i, e);
+					for (var j=0;j<extraItems.length;j++)
+						ctxMenuItems.push(extraItems[j]);
+				}
+				showContextMenu(e,ctxMenuItems);
 				return false;
 			};
 		})(i);
