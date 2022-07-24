@@ -265,7 +265,7 @@ var editorTools = {
 				payload.main.aiclosed.push(iData.closed ? 1:0);
 				payload.aipoints.push(polyToData(iData.points));
 				if (iData.shortcuts.length) {
-					var nShortcuts = [];
+					var nShortcuts = {};
 					if (!payload.aishortcuts) payload.aishortcuts = [];
 					for (var j=0;j<iData.shortcuts.length;j++) {
 						var iShortcut = iData.shortcuts[j];
@@ -276,11 +276,10 @@ var editorTools = {
 							return pt.id === iShortcut.end;
 						}));
 						if ((startPointId != -1) && (endPointId != -1)) {
-							nShortcuts.push([
-								startPointId,
-								endPointId,
-								polyToData(iShortcut.route)
-							]);
+							nShortcuts[startPointId] = [
+								polyToData(iShortcut.route),
+								endPointId
+							];
 						}
 					}
 					payload.aishortcuts[i] = nShortcuts;
@@ -299,10 +298,9 @@ var editorTools = {
 				if (payload.aishortcuts && payload.aishortcuts[i]) {
 					var aishortcuts = payload.aishortcuts[i];
 					var autoInc = 0;
-					for (var j=0;j<aishortcuts.length;j++) {
-						var startPointId = aishortcuts[j][0];
-						var endPointId = aishortcuts[j][1];
-						var route = dataToPoly(aishortcuts[j][2]);
+					for (var startPointId in aishortcuts) {
+						var route = dataToPoly(aishortcuts[startPointId][0]);
+						var endPointId = aishortcuts[startPointId][1];
 						var startPt = points[startPointId];
 						var endPt = points[endPointId];
 						if (startPt && endPt) {

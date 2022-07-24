@@ -2713,8 +2713,12 @@ function startGame() {
 			else
 				oEnemy.cpu = false;
 		}
-		else
-			oEnemy.aipoints = oMap.aipoints[inc%oMap.aipoints.length]||[];
+		else {
+			var iPt = inc%oMap.aipoints.length;
+			oEnemy.aipoints = oMap.aipoints[iPt]||[];
+			if (oMap.aishortcuts && (iDificulty > 4.5) && (fSelectedClass >= 1))
+				oEnemy.aishortcuts = oMap.aishortcuts[iPt];
+		}
 
 		if (isOnline)
 			oEnemy.nick = aPseudos[inc];
@@ -14585,7 +14589,7 @@ function move(getId, triggered) {
 							oKart.aipoint = nextAI;
 							iLocalX = nPosX - oKart.x;
 							iLocalY = nPosY - oKart.y;
-							break;
+							break dance;
 						}
 					}
 				}
@@ -15168,12 +15172,66 @@ function distToAiPoints(x,y, aipoints) {
 	return d2;
 }
 
+function distToNextShortcut(oKart) {
+	var aiId = oKart.aipoint;
+	var currentAi = oKart.aipoints[aiId];
+	if (!currentAi) return Infinity;
+	var res = Math.hypot(currentAi[0]-oKart.x, currentAi[1]-oKart.y);
+	while (true) {
+		if (oKart.aishortcuts[aiId])
+			return res;
+		var nextAiId = aiId + 1;
+		if (nextAiId >= oKart.aipoints.length) {
+			if (oMap.sections || oKart.tours >= oMap.tours)
+				return Infinity;
+			nextAiId = 0;
+		}
+		var nextAi = oKart.aipoints[nextAiId];
+		res += Math.hypot(nextAi[0]-currentAi[0], nextAi[1]-currentAi[1]);
+		aiId = nextAiId;
+		currentAi = oKart.aipoints[aiId];
+		if (aiId == oKart.aipoint)
+			return Infinity;
+	}
+}
+
+function hasShortcutItem(oKart) {
+	if (oKart.using.length) return false;
+	switch (oKart.arme) {
+	case "champi":
+	case "champiX2":
+	case "champiX3":
+	case "champior":
+		return true;
+	}
+	return false;
+}
+function hasExtraShortcutItem(oKart) {
+	switch (oKart.stash) {
+	case "champi":
+	case "champiX2":
+	case "champiX3":
+	case "champior":
+		return true;
+	}
+	switch (oKart.arme) {
+	case "champiX2":
+	case "champiX3":
+		return true;
+	case "champior":
+		if (oKart.champior)
+			return true;
+	}
+	return false;
+}
+
 var fMaxRotInCp = 10;
 function ai(oKart) {
 	var simpleBattle = (isBattle && simplified);
 	var completeBattle = (isBattle && complete);
 	var completeCircuit = (!isBattle && complete);
 	if (oKart.aipoint == undefined) {
+		delete oKart.aishortcut;
 		if (course != "BB") {
 			var minDist = Infinity;
 			for (var i=0;i<oKart.aipoints.length;i++) {
@@ -15216,15 +15274,44 @@ function ai(oKart) {
 
 	for (var f=0;f<oKart.aipoints.length;f++) {
 		var lastAi, currentAi, nextAi;
+		var aiId = oKart.aipoint;
 		if (course != "BB") {
-			var aiId = oKart.aipoint;
-			var lastAiId = aiId-1;
-			if (lastAiId < 0) lastAiId += oKart.aipoints.length;
-			var nextAiId = aiId+1;
-			if (nextAiId >= oKart.aipoints.length) nextAiId = 0;
-			lastAi = oKart.aipoints[lastAiId];
-			currentAi = oKart.aipoints[aiId];
-			nextAi = oKart.aipoints[nextAiId];
+			if (oKart.aishortcut != null && !oKart.aishortcuts[oKart.aipoint])
+				delete oKart.aishortcut;
+			if (oKart.aishortcut != null) {
+				var aishortcuts = oKart.aishortcuts[oKart.aipoint];
+				var sRoute = aishortcuts[0];
+				if (oKart.aishortcut > 0)
+					lastAi = sRoute[oKart.aishortcut-1];
+				else
+					lastAi = oKart.aipoints[aiId];
+				var nextAiId;
+				if (oKart.aishortcut < sRoute.length) {
+					currentAi = sRoute[oKart.aishortcut];
+					if ((oKart.aishortcut+1) < sRoute.length)
+						nextAi = sRoute[oKart.aishortcut+1];
+					else
+						nextAiId = aishortcuts[1];
+				}
+				else {
+					aiId = aishortcuts[1];
+					currentAi = oKart.aipoints[aiId];
+					nextAiId = aiId+1;
+				}
+				if (nextAiId != null) {
+					if (nextAiId >= oKart.aipoints.length) nextAiId = 0;
+					nextAi = oKart.aipoints[nextAiId];
+				}
+			}
+			else {
+				var lastAiId = aiId-1;
+				if (lastAiId < 0) lastAiId += oKart.aipoints.length;
+				var nextAiId = aiId+1;
+				if (nextAiId >= oKart.aipoints.length) nextAiId = 0;
+				lastAi = oKart.aipoints[lastAiId];
+				currentAi = oKart.aipoints[aiId];
+				nextAi = oKart.aipoints[nextAiId];
+			}
 		}
 		else {
 			if (simpleBattle) {
@@ -15366,9 +15453,21 @@ function ai(oKart) {
 				if (!simpleBattle) {
 					if (course != "BB") {
 						if (!inTeleport(currentAi[0],currentAi[1])) {
-							oKart.aipoint++;
-							if (oKart.aipoint >= oKart.aipoints.length)
-								oKart.aipoint = 0;
+							if ((oKart.aishortcut!=null) && oKart.aishortcuts[oKart.aipoint]) {
+								var aishortcuts = oKart.aishortcuts[oKart.aipoint];
+								var sRoute = aishortcuts[0];
+								if (oKart.aishortcut < sRoute.length)
+									oKart.aishortcut++;
+								else
+									oKart.aipoint = aishortcuts[1];
+							}
+							else if (oKart.aishortcuts && oKart.aishortcuts[oKart.aipoint] && hasShortcutItem(oKart))
+								oKart.aishortcut = 0;
+							else {
+								oKart.aipoint++;
+								if (oKart.aipoint >= oKart.aipoints.length)
+									oKart.aipoint = 0;
+							}
 						}
 					}
 					else {
@@ -15631,7 +15730,31 @@ function ai(oKart) {
 			return false;
 		}
 		if (!isOnline || oKart.controller == identifiant) {
-			if (oKart.using.length) {
+			var shouldWait = false;
+			if (oKart.aishortcuts) {
+				var shouldWaitItemCache;
+				if (hasShortcutItem(oKart)) {
+					if (oKart.aishortcut != null) {
+						if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
+							arme(aKarts.indexOf(oKart));
+					}
+					else if (!hasExtraShortcutItem(oKart)) {
+						shouldWaitItemCache = oKart.shouldWaitItemCache;
+						if (!(shouldWaitItemCache && shouldWaitItemCache.isValid())) {
+							if (distToNextShortcut(oKart) < 1000)
+								shouldWaitItemCache = { value: true, isValid: function() { return true }};
+							else {
+								var currentAiPt = oKart.aipoint;
+								shouldWaitItemCache = { value: false, isValid: function() { return (oKart.aipoint === currentAiPt); }};
+							}
+						}
+						shouldWait = shouldWaitItemCache.value;
+					}
+				}
+				oKart.shouldWaitItemCache = shouldWaitItemCache;
+			}
+			if (shouldWait);
+			else if (oKart.using.length) {
 				switch(oKart.using[0].type) {
 				case "carapace-rouge":
 					if ((course == "BB") && (oKart.using.length < 2)) {
