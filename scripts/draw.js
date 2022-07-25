@@ -373,7 +373,12 @@ var editorTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.click(self,iData,{});
+				var iRect = self.state.rectangle;
 				self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+				if (iData.theta) {
+					self.data.checkpoints[i].theta = iData.theta;
+					iRect.reposition(self.data.checkpoints[i]);
+				}
 				if (iData.optional)
 					self.state.rectangles[i].toggleOptional();
 			}
@@ -409,6 +414,12 @@ var editorTools = {
 							rectangle.reposition = function(nData) {
 								cpIdText.setAttribute("x", nData.x+nData.w/2);
 								cpIdText.setAttribute("y", nData.y+nData.h/2+2);
+								if (nData.theta) {
+									rectangle.style.transform = "rotate("+nData.theta+"rad)";
+									rectangle.style.transformOrigin = (nData.x + nData.w/2)+"px "+(nData.y + nData.h/2)+"px";
+								}
+								else
+									rectangle.style.transform = "";
 							};
 							rectangle.toggleOptional = function() {
 								if (data.optional) {
@@ -428,12 +439,20 @@ var editorTools = {
 								return showContextOnElt(e,rectangle, [{
 									text: (language ? "Resize":"Redimensionner"),
 									click: function() {
-										resizeRectangle(rectangle,data,{cp:true});
+										rectangle.style.transform = "";
+										resizeRectangle(rectangle,data,{cp:true, on_exit: function(nData) {
+											rectangle.reposition(nData);
+										}});
 									}
 								}, {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
 										moveRectangle(rectangle,data,{cp:true});
+									}
+								}, {
+									text: (language ? "Rotate":"Pivoter"),
+									click: function() {
+										rotateAngleRectangle(rectangle,data,{cp:true});
 									}
 								}, {
 									text: (language ? "Change Order":"Changer ordre"),
@@ -524,8 +543,6 @@ var editorTools = {
 				self.data.type = 0;
 		},
 		"rescale" : function(self, scale) {
-			var keys = ["x","y"];
-			var keys2 = ["w","h"];
 			var plus = new Array();
 			var iInfo = [];
 			for (var j=0;j<self.data.checkpoints.length;j++) {
@@ -579,3 +596,46 @@ var editorTools = {
 	"elevators": commonTools["elevators"],
 	"options": commonTools["options"]
 };
+
+function rotateAngleRectangle(rectangle,data,options) {
+	options = options||{};
+	var mask = createMask();
+	mask.classList.add("mask-dark");
+
+	var screenCoords = getScreenCoords(data);
+	var aX = screenCoords.x + screenCoords.w/2, aY = screenCoords.y + screenCoords.h/2;
+	var nData = deepCopy(data);
+	mask.classList.remove("mask-dark");
+	function rotateRect(e) {
+		var nX = e.pageX, nY = e.pageY;
+		var diffX = nX-aX;
+		var diffY = nY-aY;
+		var angle = (data.h != 15) ? -Math.atan2(diffX,diffY) : Math.atan2(diffY,diffX);
+		if (e.shiftKey)
+			angle = undefined;
+		nData.theta = angle;
+		rectangle.reposition(nData);
+	}
+	function stopRotateRect(e) {
+		e.stopPropagation();
+		$toolbox.classList.remove("hiddenbox");
+		rotateRect(e);
+		storeHistoryData(editorTools[currentMode].data);
+		if (options.on_end_move)
+			options.on_end_move();
+		var apply;
+		if (options.on_apply)
+			apply = options.on_apply(nData);
+		if (false !== apply)
+			data.theta = nData.theta;
+		mask.removeEventListener("mousemove", rotateRect);
+		mask.removeEventListener("mouseup", stopRotateRect);
+		mask.defaultClose();
+	}
+	mask.addEventListener("mousemove", rotateRect);
+	mask.addEventListener("mouseup", stopRotateRect);
+	mask.close = function(){};
+	$toolbox.classList.add("hiddenbox");
+	if (options.on_start_move)
+		options.on_start_move();
+}

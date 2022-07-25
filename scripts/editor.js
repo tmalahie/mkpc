@@ -253,6 +253,8 @@ function resizeRectangle(rectangle,data,options) {
 								options.on_end_move();
 							if (options.on_apply)
 								apply = options.on_apply(nData);
+							if (options.on_exit)
+								options.on_exit();
 							if (false !== apply)
 								applyObject(data,nData);
 							mask.removeEventListener("mousemove", resizeRect);
@@ -271,6 +273,12 @@ function resizeRectangle(rectangle,data,options) {
 				})(x,y);
 			}
 		}
+	}
+	if (options.on_exit) {
+		mask.close = function(){
+			options.on_exit();
+			mask.defaultClose();
+		};
 	}
 }
 function createBubble(bubbleX,bubbleY, bubbleR) {
@@ -295,6 +303,10 @@ function moveRectangle(rectangle,data,options) {
 	fakeRectangle.style.top = screenCoords.y +"px";
 	fakeRectangle.style.width = (screenCoords.w+zoomLevel) +"px";
 	fakeRectangle.style.height = (screenCoords.h+zoomLevel) +"px";
+	if (options.cp && data.theta) {
+		fakeRectangle.style.transform = "rotate("+data.theta+"rad)";
+		fakeRectangle.style.transformOrigin = "center center";
+	}
 	fakeRectangle.style.cursor = "move";
 	fakeRectangle.onclick = function(e) {
 		e.stopPropagation();
