@@ -1964,6 +1964,7 @@ function showContextMenu(e,elts,onHide) {
 		(function(elt) {
 			var oContextItem = document.createElement("div");
 			oContextItem.innerHTML = elt.text;
+			if (elt.title) oContextItem.title = elt.title;
 			if (elt.disabled) {
 				oContextItem.style.cursor = "default";
 				oContextItem.style.backgroundColor = (document.getElementById("theme-selector").getValue() === "dark") ? "#888" : "#EEE";
