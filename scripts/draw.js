@@ -76,7 +76,7 @@ var editorTools = {
 	},
 	"aipoints": {
 		"init" : function(self) {
-			self.data = [{points:[],closed:false}];
+			self.data = [{points:[],shortcuts:[],closed:false}];
 			initRouteSelector(document.getElementById("traject"),1);
 		},
 		"resume" : function(self) {
@@ -163,6 +163,10 @@ var editorTools = {
 				}
 				var shortcutPoly = self.state.polygon;
 				$editor.removeChild(shortcutPoly);
+				if (startPt == endPt) {
+					self.state = self.oldState;
+					return;
+				}
 				shortcutPoly.classList.add("hover-toggle");
 				shortcutPoly.style.strokeOpacity = 0.5;
 				$editor.insertBefore(shortcutPoly,$editor.firstChild);
@@ -240,7 +244,8 @@ var editorTools = {
 			appendRouteBuilder(self,point,extra, {
 				ctxmenu: function(i) {
 					return [{
-						text: (language ? "Shortcut route...":"Raccourci..."),
+						text: (language ? "Shortcut route":"Raccourci..."),
+						title: (language ? "Alternate route the CPU will take if he has a mushroom item":"Route alternative lorsque l'ordi a un champignon"),
 						click: function() {
 							self.shortcut.start(self, self.state.data.points[i]);
 						}
