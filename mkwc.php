@@ -110,7 +110,7 @@ case 'mkt':
                     'arg'=> $language ? 'Argentina':'Argentina',
                     'swi'=> $language ? 'Switzerland':'Suisse'
                 ),
-                'eliminated' => array('arg', 'swi')
+                'eliminated' => array('arg', 'swi', 'per', 'col')
             ),
             "$group C" => array(
                 'list' => array(
@@ -119,7 +119,7 @@ case 'mkt':
                     'ecu'=> $language ? 'Ecuador':'Équateur',
                     'chi'=> $language ? 'Chile':'Chili'
                 ),
-                'eliminated' => array('ecu', 'chi')
+                'eliminated' => array('ecu', 'chi', 'fra')
             ),
             "$group D" => array(
                 'list' => array(
@@ -128,7 +128,7 @@ case 'mkt':
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'ukg'=> $language ? 'United Kingdom':'Royaume-Uni'
                 ),
-                'eliminated' => array('bra', 'ukg')
+                'eliminated' => array('bra', 'ukg', 'hok')
             )
         )
     );
@@ -445,6 +445,12 @@ if ($id) {
             font-size: 1.2em;
             text-align: center;
         }
+        .mBracket {
+            color: #f83;
+            font-size: 1.2em;
+            text-align: center;
+            margin-top: 0.25em;
+        }
         #mVotesList {
             display: none;
             margin-top: 0.5em;
@@ -459,6 +465,14 @@ if ($id) {
             justify-content: center;
             margin-top: 0.2em;
             margin-bottom: 0.2em;
+        }
+        #mBracket {
+            display: none;
+            margin-top: 0.5em;
+            text-align: center;
+        }
+        #mBracket.mBracketShow {
+            display: block;
         }
         .mVotesName {
             display: flex;
@@ -540,6 +554,13 @@ if ($id) {
             $mVotesList.classList.remove("mVotesListShow");
         else
             $mVotesList.classList.add("mVotesListShow");
+    }
+    function toggleBracket() {
+        var $mVotesList = document.getElementById("mBracket");
+        if ($mVotesList.classList.contains("mBracketShow"))
+            $mVotesList.classList.remove("mBracketShow");
+        else
+            $mVotesList.classList.add("mBracketShow");
     }
     function showOtherVotes() {
         var $mVotesList = document.getElementById("mVotesList");
@@ -681,6 +702,10 @@ if ($id) {
                                     echo '</div>';
                                 }
                                 ?>
+                                </div>
+                                <div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir la tableau des qualifications'; ?></a></div>
+                                <div id="mBracket">
+                                    <img src="https://cdn.discordapp.com/attachments/309729458925993985/1000834773377355846/unknown.png" alt="Bracket" />
                                 </div>
                                 <?php
                             }
