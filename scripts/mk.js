@@ -15197,6 +15197,7 @@ function distToNextShortcut(oKart) {
 
 function hasShortcutItem(oKart) {
 	if (oKart.using.length) return false;
+	if (oKart.roulette != 25) return false;
 	switch (oKart.arme) {
 	case "champi":
 	case "champiX2":
@@ -15207,12 +15208,14 @@ function hasShortcutItem(oKart) {
 	return false;
 }
 function hasExtraShortcutItem(oKart) {
-	switch (oKart.stash) {
-	case "champi":
-	case "champiX2":
-	case "champiX3":
-	case "champior":
-		return true;
+	if (oKart.roulette2 == 25) {
+		switch (oKart.stash) {
+		case "champi":
+		case "champiX2":
+		case "champiX3":
+		case "champior":
+			return true;
+		}
 	}
 	switch (oKart.arme) {
 	case "champiX2":
@@ -15434,7 +15437,7 @@ function ai(oKart) {
 				oKart.randShift *= oMap.randshift;
 			if (completeBattle)
 				oKart.randShift /= 1.5;
-			else if (completeCircuit) {
+			else if (completeCircuit || (oKart.aishortcut!=null)) {
 				var maxShift = w/10;
 				if (Math.abs(oKart.randShift) > maxShift)
 					oKart.randShift = maxShift*Math.sign(oKart.randShift);
@@ -15730,31 +15733,7 @@ function ai(oKart) {
 			return false;
 		}
 		if (!isOnline || oKart.controller == identifiant) {
-			var shouldWait = false;
-			if (oKart.aishortcuts) {
-				var shouldWaitItemCache;
-				if (hasShortcutItem(oKart)) {
-					if (oKart.aishortcut != null) {
-						if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
-							arme(aKarts.indexOf(oKart));
-					}
-					else if (!hasExtraShortcutItem(oKart)) {
-						shouldWaitItemCache = oKart.shouldWaitItemCache;
-						if (!(shouldWaitItemCache && shouldWaitItemCache.isValid())) {
-							if (distToNextShortcut(oKart) < 1000)
-								shouldWaitItemCache = { value: true, isValid: function() { return true }};
-							else {
-								var currentAiPt = oKart.aipoint;
-								shouldWaitItemCache = { value: false, isValid: function() { return (oKart.aipoint === currentAiPt); }};
-							}
-						}
-						shouldWait = shouldWaitItemCache.value;
-					}
-				}
-				oKart.shouldWaitItemCache = shouldWaitItemCache;
-			}
-			if (shouldWait);
-			else if (oKart.using.length) {
+			if (oKart.using.length) {
 				switch(oKart.using[0].type) {
 				case "carapace-rouge":
 					if ((course == "BB") && (oKart.using.length < 2)) {
@@ -15779,30 +15758,55 @@ function ai(oKart) {
 				}
 			}
 			else {
-				switch (oKart.arme) {
-				case "megachampi":
-				case "etoile":
-					if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-						arme(aKarts.indexOf(oKart));
-					break;
-				case "champi":
-				case "champiX2":
-				case "champiX3":
-					if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-						arme(aKarts.indexOf(oKart));
-					break;
-				case "champior":
-					if (oKart.champior) {
-						if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
-							arme(aKarts.indexOf(oKart));
+				var shouldWait = false;
+				if (oKart.aishortcuts) {
+					var shouldWaitItemCache;
+					if (hasShortcutItem(oKart)) {
+						if (oKart.aishortcut != null) {
+							if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
+								arme(aKarts.indexOf(oKart));
+						}
+						else if (!hasExtraShortcutItem(oKart)) {
+							shouldWaitItemCache = oKart.shouldWaitItemCache;
+							if (!(shouldWaitItemCache && shouldWaitItemCache.isValid())) {
+								if (distToNextShortcut(oKart) < 1000)
+									shouldWaitItemCache = { value: true, isValid: function() { return true }};
+								else {
+									var currentAiPt = oKart.aipoint;
+									shouldWaitItemCache = { value: false, isValid: function() { return (oKart.aipoint === currentAiPt); }};
+								}
+							}
+							shouldWait = shouldWaitItemCache.value;
+						}
 					}
-					else {
+					oKart.shouldWaitItemCache = shouldWaitItemCache;
+				}
+				if (!shouldWait) {
+					switch (oKart.arme) {
+					case "megachampi":
+					case "etoile":
 						if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
 							arme(aKarts.indexOf(oKart));
+						break;
+					case "champi":
+					case "champiX2":
+					case "champiX3":
+						if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+							arme(aKarts.indexOf(oKart));
+						break;
+					case "champior":
+						if (oKart.champior) {
+							if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
+								arme(aKarts.indexOf(oKart));
+						}
+						else {
+							if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+								arme(aKarts.indexOf(oKart));
+						}
+						break;
+					default:
+						useRandomly = true;
 					}
-					break;
-				default:
-					useRandomly = true;
 				}
 			}
 		}
