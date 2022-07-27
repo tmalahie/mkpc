@@ -237,8 +237,10 @@ function resizeRectangle(rectangle,data,options) {
 									point2.y = pY;
 								}
 								nData = getRectDataCp(point1,point2);
+								if (data.theta)
+									nData.theta = data.theta;
 							}
-							absolutizeData(nData);
+							absolutizeData(nData, options);
 							setRectangleBounds(rectangle,nData);
 							if (options.cp)
 								rectangle.reposition(nData);
@@ -254,7 +256,7 @@ function resizeRectangle(rectangle,data,options) {
 							if (options.on_apply)
 								apply = options.on_apply(nData);
 							if (options.on_exit)
-								options.on_exit();
+								options.on_exit(nData);
 							if (false !== apply)
 								applyObject(data,nData);
 							mask.removeEventListener("mousemove", resizeRect);
@@ -276,7 +278,7 @@ function resizeRectangle(rectangle,data,options) {
 	}
 	if (options.on_exit) {
 		mask.close = function(){
-			options.on_exit();
+			options.on_exit(data);
 			mask.defaultClose();
 		};
 	}
@@ -319,7 +321,7 @@ function moveRectangle(rectangle,data,options) {
 			var diffY = Math.round((nY-aY)/zoomLevel);
 			nData.x = data.x + diffX;
 			nData.y = data.y + diffY;
-			capRectangle(nData);
+			capRectangle(nData, options);
 			setRectangleBounds(rectangle,nData);
 			if (options.cp)
 				rectangle.reposition(nData);
@@ -991,11 +993,21 @@ function capPointExact(point) {
 	else if (point.y >= imgSize.h) point.y = imgSize.h-0.25;
 	return point;
 }
-function capRectangle(rectangle) {
-	if (rectangle.x < 0) rectangle.x = 0;
-	else if (rectangle.x >= (imgSize.w-rectangle.w)) rectangle.x = imgSize.w-rectangle.w-1;
-	if (rectangle.y < 0) rectangle.y = 0;
-	else if (rectangle.y > (imgSize.h-rectangle.h)) rectangle.y = imgSize.h-rectangle.h-1;
+function capRectangle(rectangle, options) {
+	options = options || {};
+	switch (options.cap) {
+	case "bounds":
+		if (rectangle.x <= -rectangle.w) rectangle.x = -rectangle.w;
+		else if (rectangle.x >= imgSize.w) rectangle.x = imgSize.w-1;
+		if (rectangle.y <= -rectangle.h) rectangle.y = -rectangle.h;
+		else if (rectangle.y >= imgSize.h) rectangle.y = imgSize.h-1;
+		break;
+	default:
+		if (rectangle.x < 0) rectangle.x = 0;
+		else if (rectangle.x > (imgSize.w-rectangle.w)) rectangle.x = imgSize.w-rectangle.w-1;
+		if (rectangle.y < 0) rectangle.y = 0;
+		else if (rectangle.y > (imgSize.h-rectangle.h)) rectangle.y = imgSize.h-rectangle.h-1;
+	}
 	return rectangle;
 }
 function capCircle(circle) {
@@ -1713,10 +1725,21 @@ function getCircleDataOptions(origin,point,options) {
 		r: Math.round(Math.hypot(point.x-origin.x,point.y-origin.y)/2)
 	};
 }
-function absolutizeData(data) {
-	var origin = capPoint({x:data.x,y:data.y});
-	var point = capPoint({x:data.x+data.w,y:data.y+data.h});
-	var nData = getRectData(origin,point);
+function absolutizeData(data, options) {
+	var origin = {x:data.x,y:data.y};
+	var point = {x:data.x+data.w,y:data.y+data.h};
+	var nData;
+	switch (options.cap) {
+	case "bounds":
+		nData = getRectData(origin,point);
+		capRectangle(nData,options);
+		break;
+	default:
+		origin = capPoint(origin);
+		point = capPoint(point);
+		nData = getRectData(origin,point);
+		break;
+	}
 	applyObject(data,nData);
 };
 function applyObject(data, nData) {

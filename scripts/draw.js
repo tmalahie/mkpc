@@ -440,14 +440,14 @@ var editorTools = {
 									text: (language ? "Resize":"Redimensionner"),
 									click: function() {
 										rectangle.style.transform = "";
-										resizeRectangle(rectangle,data,{cp:true, on_exit: function(nData) {
+										resizeRectangle(rectangle,data,{cp:true, cap:"bounds", on_exit: function(nData) {
 											rectangle.reposition(nData);
 										}});
 									}
 								}, {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
-										moveRectangle(rectangle,data,{cp:true});
+										moveRectangle(rectangle,data,{cp:true,cap:"bounds"});
 									}
 								}, {
 									text: (language ? "Rotate":"Pivoter"),
@@ -509,6 +509,20 @@ var editorTools = {
 					iPayload[2] = iData.w;
 					iPayload[3] = 1;
 				}
+				if (iData.theta) {
+					var u0 = 7.5, v0 = 7.5;
+					var xO = iData.x + u0, yO = iData.y + v0;
+					var xC = iData.x + iData.w/2, yC = iData.y + iData.h/2;
+					var xCO = xO - xC, yCO = yO - yC;
+					var cosTheta = Math.cos(iData.theta), sinTheta = Math.sin(iData.theta);
+					var xR = xC + xCO*cosTheta + yCO*sinTheta;
+					var yR = yC + yCO*cosTheta - xCO*sinTheta;
+					var x0 = xR - u0, y0 = yR - v0;
+					iPayload[0] = x0;
+					iPayload[1] = y0;
+					iPayload[3] += iData.theta*2/Math.PI;
+					iPayload[3] -= Math.floor(iPayload[3]/4)*4;
+				}
 				if (iData.optional)
 					iPayload[4] = 1;
 				payload.checkpoint.push(iPayload);
@@ -522,13 +536,36 @@ var editorTools = {
 			for (var i=0;i<payload.checkpoint.length;i++) {
 				var iPayload = payload.checkpoint[i];
 				var iData = {x:iPayload[0],y:iPayload[1]};
-				if (iPayload[3]) {
-					iData.w = iPayload[2];
-					iData.h = 15;
-				}
-				else {
+				switch (iPayload[3]) {
+				case 0:
 					iData.w = 15;
 					iData.h = iPayload[2];
+					break;
+				case 1:
+					iData.w = iPayload[2];
+					iData.h = 15;
+					break;
+				default:
+					var actualTheta = iPayload[3]*Math.PI/2;
+					var u0 = 7.5, v0 = 7.5;
+					var cosTheta = Math.cos(actualTheta), sinTheta = Math.sin(actualTheta);
+					var xR = iData.x + u0, yR = iData.y + v0;
+					var yCR = iPayload[2]/2 - u0;
+					var xC = xR + yCR*sinTheta, yC = yR + yCR*cosTheta;
+
+					var rot = iPayload[3] + 0.5;
+					if (rot-2*Math.floor(rot/2) < 1) {
+						iData.w = 15;
+						iData.h = iPayload[2];
+					}
+					else {
+						iData.w = iPayload[2];
+						iData.h = 15;
+						actualTheta += Math.PI/2;
+					}
+					iData.x = Math.round(xC - iData.w/2);
+					iData.y = Math.round(yC - iData.h/2);
+					iData.theta = actualTheta;
 				}
 				if (iPayload[4])
 					iData.optional = true;
@@ -612,22 +649,47 @@ function rotateAngleRectangle(rectangle,data,options) {
 		var diffY = nY-aY;
 		var angle = (data.h != 15) ? -Math.atan2(diffX,diffY) : Math.atan2(diffY,diffX);
 		if (e.shiftKey)
-			angle = undefined;
+			angle = Math.round(angle/Math.PI*2)*Math.PI/2;
 		nData.theta = angle;
 		rectangle.reposition(nData);
 	}
 	function stopRotateRect(e) {
 		e.stopPropagation();
 		$toolbox.classList.remove("hiddenbox");
-		rotateRect(e);
+		//rotateRect(e);
 		storeHistoryData(editorTools[currentMode].data);
 		if (options.on_end_move)
 			options.on_end_move();
 		var apply;
 		if (options.on_apply)
 			apply = options.on_apply(nData);
-		if (false !== apply)
-			data.theta = nData.theta;
+		if (false !== apply) {
+			var nbQuarters = nData.theta * 2/Math.PI;
+			var nbQuartersRound = Math.round(nbQuarters);
+			if (Math.abs(nbQuarters-nbQuartersRound) < 1e-5) {
+				nbQuartersRound = nbQuartersRound - Math.floor(nbQuartersRound/4)*4;
+				delete data.theta;
+				var xO = Math.round(data.w/2), yO = Math.round(data.h/2);
+				var xC = data.x + xO, yC = data.y + yO;
+				for (var i=0;i<nbQuartersRound;i++) {
+					var nX = yO, nY = xO;
+					var nW = data.h, nH = data.w;
+					xO = nX;
+					yO = nY;
+					data.w = nW;
+					data.h = nH;
+				}
+				data.x = xC - xO;
+				data.y = yC - yO;
+				rectangle.setAttribute("x", data.x);
+				rectangle.setAttribute("y", data.y);
+				rectangle.setAttribute("width", data.w+1);
+				rectangle.setAttribute("height", data.h+1);
+				rectangle.reposition(data);
+			}
+			else
+				data.theta = nData.theta;
+		}
 		mask.removeEventListener("mousemove", rotateRect);
 		mask.removeEventListener("mouseup", stopRotateRect);
 		mask.defaultClose();
