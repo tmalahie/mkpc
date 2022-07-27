@@ -450,11 +450,6 @@ var editorTools = {
 										moveRectangle(rectangle,data,{cp:true,cap:"bounds"});
 									}
 								}, {
-									text: (language ? "Rotate":"Pivoter"),
-									click: function() {
-										rotateAngleRectangle(rectangle,data,{cp:true});
-									}
-								}, {
 									text: (language ? "Change Order":"Changer ordre"),
 									click: function() {
 										var order = selfData.indexOf(data);
@@ -466,6 +461,11 @@ var editorTools = {
 										}
 										for (var i=0;i<self.state.rectangles.length;i++)
 											self.state.rectangles[i].reorder();
+									}
+								}, {
+									text: (language ? "Rotate":"Pivoter"),
+									click: function() {
+										rotateAngleRectangle(rectangle,data,{cp:true});
 									}
 								}, {
 									text: optionalCheck + (language ? "Make optional":"Rendre optionel"),
@@ -517,9 +517,8 @@ var editorTools = {
 					var cosTheta = Math.cos(iData.theta), sinTheta = Math.sin(iData.theta);
 					var xR = xC + xCO*cosTheta + yCO*sinTheta;
 					var yR = yC + yCO*cosTheta - xCO*sinTheta;
-					var x0 = xR - u0, y0 = yR - v0;
-					iPayload[0] = x0;
-					iPayload[1] = y0;
+					iPayload[0] = xR - u0;
+					iPayload[1] = yR - v0;
 					iPayload[3] += iData.theta*2/Math.PI;
 					iPayload[3] -= Math.floor(iPayload[3]/4)*4;
 				}
@@ -563,8 +562,8 @@ var editorTools = {
 						iData.h = 15;
 						actualTheta += Math.PI/2;
 					}
-					iData.x = Math.round(xC - iData.w/2);
-					iData.y = Math.round(yC - iData.h/2);
+					iData.x = xC - iData.w/2;
+					iData.y = yC - iData.h/2;
 					iData.theta = actualTheta;
 				}
 				if (iPayload[4])
@@ -679,8 +678,8 @@ function rotateAngleRectangle(rectangle,data,options) {
 					data.w = nW;
 					data.h = nH;
 				}
-				data.x = xC - xO;
-				data.y = yC - yO;
+				data.x = Math.round(xC - xO);
+				data.y = Math.round(yC - yO);
 				rectangle.setAttribute("x", data.x);
 				rectangle.setAttribute("y", data.y);
 				rectangle.setAttribute("width", data.w+1);
