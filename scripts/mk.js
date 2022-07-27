@@ -1485,6 +1485,11 @@ function initMap() {
 		for (var type in oMap.horspistes)
 			oMap.horspistes[type] = classifyByShape(oMap.horspistes[type]);
 	}
+	if (oMap.checkpoint) {
+		oMap.checkpointCoords = oMap.checkpoint.map(function(oBox) {
+			return getCheckpointCoords(oBox);
+		});
+	}
 	if (oMap.flowers) {
 		for (var i=0;i<oMap.flowers.length;i++) {
 			var flower = oMap.flowers[i][1];
@@ -1968,10 +1973,9 @@ function arme(ID, backwards, forwards) {
 						var demitour = oKart.demitours+1;
 						if (demitour >= oMap.checkpoint.length)
 							demitour = 0;
-						var nextCp = oMap.checkpoint[demitour];
+						var nextCp = oMap.checkpointCoords[demitour];
 						if (nextCp) {
-							var cpX = nextCp[0] + (nextCp[3] ? Math.round(nextCp[2]/2) : 8);
-							var cpY = nextCp[1] + (nextCp[3] ? 8 : Math.round(nextCp[2]/2));
+							var cpX = nextCp.O[0], cpY = nextCp.O[1];
 							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
 							if (ddist)
 								dist -= 150*((cpX-oKart.x)*(aipoint[0]-lastAipoint[0]) + (cpY-oKart.y)*(aipoint[1]-lastAipoint[1]))/ddist;
@@ -9468,6 +9472,15 @@ function pointInPolygon(x,y, vs) {
 	
 	return inside;
 }
+function pointInQuad(x,y, quad) {
+	var l = projete(x,y, quad.A[0],quad.A[1], quad.B[0],quad.B[1]);
+	if ((l > 0) && (l <= 1)) {
+		l = projete(x,y, quad.A[0],quad.A[1], quad.C[0],quad.C[1]);
+		if ((l > 0) && (l <= 1))
+			return true;
+	}
+	return false;
+}
 function pointInAltitude(zMap, i,z) {
 	return (z < getZoneHeight(zMap, i));
 }
@@ -12396,7 +12409,27 @@ function stuntKart(oKart) {
 	playIfShould(oKart, "musics/events/stunt.mp3");
 }
 
-function places(j,force) {
+function getRankScore(oKart) {
+	if (course != "BB") {
+		var dest = oKart.demitours+1;
+		if (dest >= oMap.checkpoint.length) dest = 0;
+
+		var iLine = oMap.checkpointCoords[dest];
+		var hLine = projete(oKart.x,oKart.y, iLine.A[0],iLine.A[1], iLine.B[0],iLine.B[1]);
+		var xLine = iLine.A[0] + hLine*iLine.u[0], yLine = iLine.A[1] + hLine*iLine.u[1];
+		var dLine = Math.hypot(xLine-oKart.x, yLine-oKart.y);
+
+		return oKart.tours*oMap.checkpoint.length + getCpScore(oKart) - dLine / 10000;
+	}
+	else
+		return oKart.ballons.length ? oKart.ballons.length+oKart.reserve : 0;
+}
+function getRankScores() {
+	return aKarts.map(function(oKart) {
+		return getRankScore(oKart);
+	});
+}
+function places(j,aRankScores,force) {
 	var oKart = aKarts[j];
 	var retour = !force;
 	for (var i=0;i<strPlayer.length;i++) {
@@ -12406,27 +12439,14 @@ function places(j,force) {
 	if (retour) return;
 	var place = 1;
 	if (course != "BB") {
-		if (oKart.tours > oMap.tours || !oMap.checkpoint.length) return;
-		var dest = oKart.demitours+1;
-		if (dest >= oMap.checkpoint.length) dest = 0;
-		var iLine = oMap.checkpoint[dest][3];
-		var score = oKart.tours*oMap.checkpoint.length + getCpScore(oKart) - Math.abs(oKart[(iLine ? "y" : "x")]-oMap.checkpoint[dest][iLine]) / 10000;
-		for (var i=0;i<aKarts.length;i++) {
-			var kart = aKarts[i];
-			dest = kart.demitours+1;
-			if (dest >= oMap.checkpoint.length) dest = 0;
-			iLine = oMap.checkpoint[dest][3];
-			if (kart != oKart && kart.tours*oMap.checkpoint.length + getCpScore(kart) - Math.abs(kart[(iLine ? "y" : "x")]-oMap.checkpoint[dest][iLine]) / 10000 > score)
-			place++;
-		}
+		if (oKart.tours > oMap.tours || !oMap.checkpoint.length)
+			return;
 	}
-	else {
-		for (i=0;i<aKarts.length;i++) {
-			var score1 = oKart.ballons.length ? oKart.ballons.length+oKart.reserve : 0;
-			var score2 = aKarts[i].ballons.length ? aKarts[i].ballons.length+aKarts[i].reserve : 0;
-			if ((aKarts[i] != oKart) && (score1 < score2) || ((score1 == score2) && (oKart.initialPlace > aKarts[i].initialPlace)))
-				place++;
-		}
+	var score1 = aRankScores[j];
+	for (i=0;i<aKarts.length;i++) {
+		var score2 = aRankScores[i];
+		if ((aKarts[i] != oKart) && (score1 < score2) || ((score1 == score2) && (oKart.initialPlace > aKarts[i].initialPlace)))
+			place++;
 	}
 	if (!oKart.loose)
 		oKart.place = place;
@@ -12500,9 +12520,9 @@ function distanceToKart(kart,oKart) {
 			checkpoint = 0;
 			tours++;
 		}
-		var oBox = oMap.checkpoint[checkpoint];
-		var nPosX = oBox[0] + (oBox[3] ? Math.round(oBox[2]/2) : 8);
-		var nPosY = oBox[1] + (oBox[3] ? 8 : Math.round(oBox[2]/2));
+		var oBox = oMap.checkpointCoords[checkpoint];
+		var nPosX = oBox.O[0], nPosY = oBox.O[1];
+
 		res += Math.hypot(nPosX-posX, nPosY-posY);
 		posX = nPosX;
 		posY = nPosY;
@@ -12518,20 +12538,14 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	if (!simplified) {
 		var iCP = getNextCp(kart);
 	}
-	for (var i=0;i<oMap.checkpoint.length;i++) {
-		var oBox = oMap.checkpoint[i];
-		var oRect = [oBox[0],oBox[1],15,15];
-		oRect[3-oBox[3]] = oBox[2];
-		var inRect = pointInRectangle(kart.x,kart.y, oRect);
+	for (var i=0;i<oMap.checkpointCoords.length;i++) {
+		var oBox = oMap.checkpointCoords[i];
+		var inRect = pointInQuad(kart.x,kart.y, oBox);
 		if (!inRect && fast) {
-			var j = oBox[3];
-			var l = dir[j];
-			if ((l ? ((aPos[j] <= oRect[j])&&((aPos[j]+aMove[j]) >= oRect[j])):((aPos[j] >= (oRect[j]+oRect[j+2]))&&((aPos[j]+aMove[j]) <= (oRect[j]+oRect[j+2]))))) {
-				var dim = 1-j;
-				var croiseJ = aPos[dim] + ((l?oRect[j]:oRect[j]+oRect[j+2])-aPos[j])*aMove[dim]/aMove[j];
-				if ((croiseJ >= oRect[dim]) && (croiseJ <= (oRect[dim]+oRect[dim+2])))
-					inRect = true;
-			}
+			if (secants(aPos[0],aPos[1],kart.x,kart.y, oBox.A[0],oBox.A[1], oBox.B[0],oBox.B[1]))
+				inRect = true;
+			else if (secants(aPos[0],aPos[1],kart.x,kart.y, oBox.C[0],oBox.C[1], oBox.D[0],oBox.D[1]))
+				inRect = true;
 		}
 		if (inRect) {
 			if (simplified) {
@@ -12563,6 +12577,51 @@ function checkpoint(kart, fMoveX,fMoveY) {
 		}
 	}
 	return false;
+}
+function getCheckpointCoords(oBox) {
+	var x = oBox[0], y = oBox[1];
+	var w = oBox[2], h = 15;
+	var mainCoords;
+	switch (oBox[3]) {
+	case 0:
+	case 1:
+		var l = oBox[3];
+		mainCoords = {
+			A: [x,y],
+			u: [l ? w:0, l ? 0:w],
+			v: [l ? 0:h, l ? h:0],
+			O: [x + (l ? w/2:8), y + (l ? 8:w/2)]
+		};
+		break;
+	default:
+		var actualTheta = oBox[3]*Math.PI/2;
+		var u0 = 7.5, v0 = 7.5;
+		var cosTheta = Math.cos(actualTheta), sinTheta = Math.sin(actualTheta);
+		var xR = x + u0, yR = y + v0;
+		var yCR = oBox[2]/2 - u0;
+		var xC = xR + yCR*sinTheta, yC = yR + yCR*cosTheta;
+
+		var xU = w*sinTheta, xV = h*cosTheta, yU = -w*cosTheta, yV = h*sinTheta;
+		mainCoords = {
+			A: [xC - (xU+xV)/2, yC - (yU+yV)/2],
+			u: [xU,yU],
+			v: [xV,yV],
+			O: [xC,yC]
+		};
+	}
+	mainCoords.B = [
+		mainCoords.A[0]+mainCoords.u[0],
+		mainCoords.A[1]+mainCoords.u[1]
+	];
+	mainCoords.C = [
+		mainCoords.A[0]+mainCoords.v[0],
+		mainCoords.A[1]+mainCoords.v[1]
+	];
+	mainCoords.D = [
+		mainCoords.B[0]+mainCoords.v[0],
+		mainCoords.B[1]+mainCoords.v[1]
+	];
+	return mainCoords;
 }
 
 function int8ToHexString(arr) {
@@ -14010,21 +14069,16 @@ function move(getId, triggered) {
 			oKart.demitours = getNextCp(oKart);
 			oKart.tours++;
 
-			var lastCp = oMap.checkpoint[0];
+			var lastCp = oMap.checkpointCoords[0];
 			if (oMap.sections)
-				lastCp = oMap.checkpoint[oMap.checkpoint.length-1];
-			var distToCp, dSpeed;
-			if (lastCp[3]) {
-				var distToCp = (aPosY<lastCp[1]) ? (lastCp[1]-aPosY) : (aPosY-lastCp[1]-15);
-				dSpeed = fMoveY;
-			}
-			else {
-				var distToCp = (aPosX<lastCp[0]) ? (lastCp[0]-aPosX) : (aPosX-lastCp[0]-15);
-				dSpeed = fMoveX;
-			}
-			var dt = distToCp/Math.abs(dSpeed);
-			dt = Math.max(0,Math.min(dt,1));
-			if (isNaN(dt-dt)) dt = 0.5;
+				lastCp = oMap.checkpointCoords[oMap.checkpointCoords.length-1];
+			var dt = 1;
+			var crossPoint = intersectionLineLine(aPosX,aPosY, aPosX+fMoveX,aPosY+fMoveY, lastCp.A[0],lastCp.A[1], lastCp.B[0],lastCp.B[1]);
+			if (crossPoint[0] >= 0 && crossPoint[0] < dt)
+				dt = crossPoint[0];
+			crossPoint = intersectionLineLine(aPosX,aPosY, aPosX+fMoveX,aPosY+fMoveY, lastCp.C[0],lastCp.C[1], lastCp.D[0],lastCp.D[1]);
+			if (crossPoint[0] >= 0 && crossPoint[0] < dt)
+				dt = crossPoint[0];
 
 			var lapTimer = Math.round((timer+dt-1)*SPF);
 			if ((oKart == oPlayers[0]) && !oKart.cpu) {
@@ -14069,8 +14123,9 @@ function move(getId, triggered) {
 					if (!oPlayers[1-getId] || oPlayers[1-getId].cpu) {
 						if (!isOnline) {
 							if (course != "CM") {
+								var aRankScores = getRankScores();
 								for (var i=0;i<nbjoueurs;i++)
-									places(i,true);
+									places(i,aRankScores,true);
 								var cKarts = aKarts.slice(0);
 								cKarts.sort(function(k1,k2) {
 									return k1.place-k2.place;
@@ -14570,9 +14625,15 @@ function move(getId, triggered) {
 			var demitour = oKart.demitours+1;
 			if (demitour >= oMap.checkpoint.length)
 				demitour = 0;
-			var oBox = oMap.checkpoint[demitour];
+
+			var oBox = oMap.checkpointCoords[demitour];
+			iLocalX = oBox.O[0] - oKart.x;
+			iLocalY = oBox.O[1] - oKart.y;
+
+			oBox = oMap.checkpoint[demitour];
 			iLocalX = oBox[0] + (oBox[3] ? Math.round(oBox[2]/2) : 8) - oKart.x;
 			iLocalY = oBox[1] + (oBox[3] ? 8 : Math.round(oBox[2]/2)) - oKart.y;
+
 			dance: for (var i=0;i<oMap.aipoints.length;i++) {
 				var aipoints = oMap.aipoints[i];
 				for (var j=0;j<aipoints.length;j++) {
@@ -16079,8 +16140,9 @@ function runOneFrame() {
 		}
 	}
 	if (course != "CM") {
+		var aRankScores = getRankScores();
 		for (var i=0;i<aKarts.length;i++)
-			places(i);
+			places(i,aRankScores);
 	}
 	moveItems();
 	moveDecor();
