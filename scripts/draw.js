@@ -86,7 +86,7 @@ var editorTools = {
 			self.shortcut.rebuild(self, oldData);
 		},
 		"shortcut": {
-			"start": function(self, startPt) {
+			"start": function(self, startPt, options) {
 				var selfData = self.state.data;
 				var selfPoints = selfData.points;
 				self.shortcut.removeStarting(self, startPt);
@@ -108,7 +108,7 @@ var editorTools = {
 							mask.defaultClose();
 			
 							storeHistoryData(self.data);
-							self.shortcut.close(self, startPt, selfPoints[j]);
+							self.shortcut.close(self, startPt, selfPoints[j], options);
 						};
 					})(j);
 					mask.appendChild(bubble);
@@ -142,7 +142,7 @@ var editorTools = {
 					allow_undos: false
 				});
 			},
-			"close": function(self, startPt,endPt) {
+			"close": function(self, startPt,endPt, options) {
 				movePolygonBuilder(self,endPt);
 				var autoInc = 0;
 				var oldPoints = self.oldState.data.points;
@@ -173,22 +173,31 @@ var editorTools = {
 				addContextMenuEvent(shortcutPoly, [{
 					text:(language ? "Edit":"Modifier"),
 					click:function() {
-						self.shortcut.start(self, startPt);
+						storeHistoryData(self.data);
+						self.shortcut.start(self, startPt, nShortcut.options);
 					}
 				}, {
 					text:(language ? "Delete":"Supprimer"),
 					click:function() {
+						storeHistoryData(self.data);
 						self.shortcut.removeStarting(self, startPt);
+					}
+				}, {
+					text:(language ? "Options...":"Options..."),
+					click:function() {
+						openShortcutOptions(self, startPt);
 					}
 				}]);
 				self.state = self.oldState;
 				delete self.oldState;
 				var selfData = self.state.data;
-				selfData.shortcuts.push({
+				var nShortcut = {
 					start: startPt.id,
 					end: endPt.id,
-					route: shortcutRoute
-				});
+					route: shortcutRoute,
+					options: options
+				};
+				selfData.shortcuts.push(nShortcut);
 				self.state.shortcuts.push({
 					start: startPt.id,
 					remove: function() {
@@ -208,6 +217,7 @@ var editorTools = {
 				}
 				self.state.shortcuts = [];
 				selfData.shortcuts = [];
+				if (!oldData.shortcuts) return;
 				for (var i=0;i<oldData.shortcuts.length;i++) {
 					var shortcut = oldData.shortcuts[i];
 					var startPointId = oldPoints.indexOf(oldPoints.find(function(pt) {
@@ -222,7 +232,7 @@ var editorTools = {
 							self.shortcut.append(self, shortcut.route[j]);
 						if (initRebuild)
 							storeHistoryData(self.data);
-						self.shortcut.close(self, selfPoints[startPointId],selfPoints[endPointId]);
+						self.shortcut.close(self, selfPoints[startPointId],selfPoints[endPointId], shortcut.options);
 					}
 				}
 			},
@@ -281,10 +291,13 @@ var editorTools = {
 							return pt.id === iShortcut.end;
 						}));
 						if ((startPointId != -1) && (endPointId != -1)) {
-							nShortcuts[startPointId] = [
+							var nShortcut = [
 								polyToData(iShortcut.route),
 								endPointId
 							];
+							if (iShortcut.options)
+								nShortcut.push(iShortcut.options);
+							nShortcuts[startPointId] = nShortcut;
 						}
 					}
 					payload.aishortcuts[i] = nShortcuts;
@@ -304,8 +317,9 @@ var editorTools = {
 					var aishortcuts = payload.aishortcuts[i];
 					var autoInc = 0;
 					for (var startPointId in aishortcuts) {
-						var route = dataToPoly(aishortcuts[startPointId][0]);
-						var endPointId = aishortcuts[startPointId][1];
+						var aishortcut = aishortcuts[startPointId];
+						var route = dataToPoly(aishortcut[0]);
+						var endPointId = aishortcut[1];
 						var startPt = points[startPointId];
 						var endPt = points[endPointId];
 						if (startPt && endPt) {
@@ -314,7 +328,8 @@ var editorTools = {
 							shortcuts.push({
 								start: startPt.id,
 								end: endPt.id,
-								route: route
+								route: route,
+								options: aishortcut[2]
 							});
 						}
 					}
@@ -699,4 +714,83 @@ function rotateAngleRectangle(rectangle,data,options) {
 	$toolbox.classList.add("hiddenbox");
 	if (options.on_start_move)
 		options.on_start_move();
+}
+
+function openShortcutOptions(self, startPt) {
+	var shortcut = self.state.data.shortcuts.find(function(s) {
+		return s.start === startPt.id;
+	});
+	if (!shortcut) return;
+	showShortcutOptions({
+		value: shortcut.options,
+		callback: function(value) {
+			storeHistoryData(self.data);
+			shortcut.options = value;
+		}
+	})
+}
+function showShortcutOptions(options) {
+	options = options || {};
+	options.value = options.value || {};
+	var defaultOptions = {
+		items: ["champi"],
+		difficulty: 2,
+		cc: 150
+	};
+	for (var key in defaultOptions) {
+		if (options.value[key] == null)
+			options.value[key] = defaultOptions[key];
+	}
+	var $shortcutOptions = document.getElementById("shortcut-options");
+	document.body.removeChild($shortcutOptions);
+	var $mask = createMask();
+	$mask.id = "mask-shortcut";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($shortcutOptions);
+	$shortcutOptions.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($shortcutOptions);
+		$shortcutOptions.classList.remove("fs-shown");
+		document.body.appendChild($shortcutOptions);
+		this.defaultClose();
+	};
+
+	var $form = $shortcutOptions.querySelector("form");
+	var $checkboxes = $form.querySelectorAll("input[type=checkbox]");
+	for (var i=0;i<$checkboxes.length;i++)
+		$checkboxes[i].checked = false;
+	for (var i=0;i<options.value.items.length;i++) {
+		var item = options.value.items[i];
+		var $checkbox = $form.elements["item."+item];
+		if ($checkbox) $checkbox.checked = true;
+	}
+	$form.elements["difficulty"].value = options.value.difficulty;
+	$form.elements["cc"].value = options.value.cc;
+
+	$form.onsubmit = function(e) {
+		e.preventDefault();
+		if (options.callback) {
+			var value = {
+				items: [],
+				difficulty: +$form.elements["difficulty"].value,
+				cc: +$form.elements["cc"].value
+			};
+			for (var i=0;i<$form.elements.length;i++) {
+				var el = $form.elements[i];
+				if (el.name.startsWith("item.") && el.checked)
+					value.items.push(el.name.substring(5));
+			}
+			for (var key in defaultOptions) {
+				if (JSON.stringify(value[key]) === JSON.stringify(defaultOptions[key]))
+					delete value[key];
+			}
+			options.callback(value);
+		}
+		closeShortcutOptions();
+	};
+}
+function closeShortcutOptions() {
+	var $mask = document.getElementById('mask-shortcut');
+	if ($mask)
+		$mask.close();
 }

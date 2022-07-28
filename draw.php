@@ -321,6 +321,67 @@ if (isset($_GET['i'])) {
 				</div>
 			</div>
 		</div>
+		<div id="shortcut-options" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeShortcutOptions()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div class="shortcut-dialog">
+				<div>
+					<h1><?php echo $language ? 'Shortcut options' : 'Options du raccourci'; ?></h1>
+					<div><?php
+						echo $language
+							? 'Specify here some advanced conditions to satisfy for the CPUs to take the shortcut'
+							: 'Spécifiez ici des conditions avancées à vérifier pour que les ordis prennent le raccourci';
+						?>
+					</div>
+				</div>
+				<form method="post" onsubmit="submitShortcutOptions(event)">
+					<div class="form-row form-row-block">
+						<div class="form-label"><?php echo $language ? 'Possible items to take the shortcut:' : 'Objets possibles pour prendre le raccourci:'; ?></div>
+						<div class="form-value">
+							<label><input type="checkbox" name="item.champi" /> <img src="images/items/champi.png" /></label>
+							<label><input type="checkbox" name="item.megachampi" /> <img src="images/items/megachampi.png" /></label>
+							<label><input type="checkbox" name="item.etoile" /> <img src="images/items/etoile.png" /></label>
+						</div>
+					</div>
+					<label class="form-row">
+						<div class="form-label"><?php echo $language ? 'Minimal CPU difficulty:' : 'Difficulté ordi minimale :'; ?></div>
+						<div class="form-value">
+							<select name="difficulty">
+								<?php
+								$difficulties = array(
+									$language ? 'Easy' : 'Facile',
+									$language ? 'Medium' : 'Moyen',
+									$language ? 'Difficult' : 'Difficile',
+									$language ? 'Extreme' : 'Extrême',
+									$language ? 'Impossible' : 'Impossible'
+								);
+								foreach ($difficulties as $i=>$difficulty)
+									echo '<option value="'.$i.'">'. $difficulty .'</option>';
+								?>
+							</select>
+						</div>
+					</label>
+					<label class="form-row">
+						<div class="form-label"><?php echo $language ? 'Minimal engine class:' : 'Cylindrée minimale :'; ?></div>
+						<div class="form-value">
+							<input type="text" class="challenge-constraint-value" name="cc" pattern="[1-9]\d*" maxlength="3" list="shortcut_cc_list" required="required" style="width:45px" /> cc
+							<datalist id="shortcut_cc_list">
+								<option value="50">
+								<option value="100">
+								<option value="150">
+								<option value="200">
+							</datalist>
+						</div>
+					</label>
+					<div class="form-submit popup-buttons">
+						<a href="javascript:closeShortcutOptions()" class="close"><?php echo $language ? 'Cancel' : 'Annuler'; ?></a>
+						&nbsp;
+						<button type="submit"><?php echo $language ? 'Submit' : 'Valider'; ?></button>
+					</div>
+				</form>
+			</div>
+		</div>
 		<div id="offroad-transfer" class="fs-popup" onclick="event.stopPropagation()">
 			<?php
 			echo $language ? 'This menu allows you to change the type of an off-road a posteriori.
@@ -534,9 +595,9 @@ if (isset($_GET['i'])) {
 							First place the point that the computers will follow in 1<sup>st</sup>, then the point they will follow in 2<sup>nd</sup>, and so on.
 							When finished, click on the first point to close the loop. You can then:
 							<ul>
-								<li>Move points by clicking on them</li>
+								<li>Move or delete points by right-clicking on them</li>
 								<li>Add a point by clicking on a line linking 2 points</li>
-								<li>Delete a point by right-clicking on it</li>
+								<li>Define &quot;shortcut&quot; routes from a point, which will be taken by CPUs if they have a &quot;mushroom&quot; item</li>
 							</ul>
 							Finally, you can define other trajectories by clicking on the drop-down menu in the right menu."
 							:
@@ -544,9 +605,9 @@ if (isset($_GET['i'])) {
 							Placez d'abord le point que les ordis vont suivre en 1<sup>er</sup>, puis le point qu'ils vont suivre en 2<sup>e</sup>, et ainsi de suite.
 							Lorsque vous avez fini, recliquez sur le 1<sup>er</sup> point pour fermer la boucle. Vous pouvez ensuite :
 							<ul>
-								<li>Déplacer des points en cliquant dessus</li>
+								<li>Déplacer ou supprimer des points en cliquant dessus</li>
 								<li>Ajouter un point en cliquant sur une ligne reliant 2 points</li>
-								<li>Supprimer un point en faisant un clic droit dessus</li>
+								<li>Définir des trajets &quot;raccourci&quot; &agrave; partir d'un point, qui seront pris par les ordis s'ils ont un objet &quot;champi&quot;</li>
 							</ul>
 							Enfin, vous pouvez définir d'autres trajectoires en cliquant sur le menu déroulant dans le menu de droite."
 						)
