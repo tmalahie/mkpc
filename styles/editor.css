@@ -951,6 +951,53 @@ embed,#ytplayer {
 	margin-top: 15px;
 	margin-bottom: 5px;
 }
+#shortcut-options {
+	padding: 0;
+	width: 420px;
+	background-color: #d5d5d7;
+	border: double 4px #666;
+	text-align: center;
+}
+#shortcut-options .shortcut-dialog {
+	padding: 5px;
+}
+#shortcut-options h1 {
+	margin-top: 0;
+	margin-bottom: 10px;
+	color: #058;
+}
+#shortcut-options .form-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 5px;
+	gap: 6px;
+}
+#shortcut-options .form-row-block {
+	flex-direction: column;
+	gap: 0;
+}
+#shortcut-options .form-label {
+	color: #058;
+}
+#shortcut-options .form-row-block .form-value {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+#shortcut-options .form-row-block .form-value img {
+	height: 12px;
+}
+#shortcut-options .form-submit {
+	margin-top: 15px;
+	margin-bottom: 5px;
+	font-size: 1.2em;
+}
+#shortcut-options .form-submit button {
+	font-size: 1em;
+}
 #offroad-transfer .popup-buttons {
 	margin-top: 15px;
 	margin-bottom: 5px;

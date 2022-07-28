@@ -2720,8 +2720,32 @@ function startGame() {
 		else {
 			var iPt = inc%oMap.aipoints.length;
 			oEnemy.aipoints = oMap.aipoints[iPt]||[];
-			if (oMap.aishortcuts && (iDificulty > 4.5) && (fSelectedClass >= 1))
-				oEnemy.aishortcuts = oMap.aishortcuts[iPt];
+			if (oMap.aishortcuts) {
+				var validShortcuts = {};
+				var isValidShortcuts = false;
+				for (var startPt in oMap.aishortcuts[iPt]) {
+					var aishortcut = oMap.aishortcuts[iPt][startPt];
+					if (!aishortcut[2]) aishortcut[2] = {};
+					var aiOptions = aishortcut[2];
+					if (aiOptions.items == null) aiOptions.items = ["champi"];
+					if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
+					if (aiOptions.cc == null) aiOptions.cc = 150;
+					var minDifficulty = 4 + aiOptions.difficulty*0.5;
+					var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
+					if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass)) {
+						isValidShortcuts = true;
+						if (!aiOptions.itemsDict) {
+							var oItems = {};
+							for (var j=0;j<aiOptions.items.length;j++)
+								oItems[aiOptions.items[j]] = 1;
+							aiOptions.itemsDict = oItems;
+						}
+						validShortcuts[startPt] = aishortcut;
+					}
+				}
+				if (isValidShortcuts)
+					oEnemy.aishortcuts = validShortcuts;
+			}
 		}
 
 		if (isOnline)
@@ -15239,7 +15263,7 @@ function distToNextShortcut(oKart) {
 	if (!currentAi) return Infinity;
 	var res = Math.hypot(currentAi[0]-oKart.x, currentAi[1]-oKart.y);
 	while (true) {
-		if (oKart.aishortcuts[aiId])
+		if (oKart.aishortcuts[aiId] && hasShortcutItem(oKart, oKart.aishortcuts[aiId]) && !hasExtraShortcutItem(oKart, oKart.aishortcuts[aiId]))
 			return res;
 		var nextAiId = aiId + 1;
 		if (nextAiId >= oKart.aipoints.length) {
@@ -15256,35 +15280,50 @@ function distToNextShortcut(oKart) {
 	}
 }
 
-function hasShortcutItem(oKart) {
+function hasShortcutItem(oKart, aishortcut) {
 	if (oKart.using.length) return false;
 	if (oKart.roulette != 25) return false;
-	switch (oKart.arme) {
+	return isShortcutItem(oKart.arme, aishortcut);
+}
+function isShortcutItem(arme, aishortcut) {
+	var itemKey;
+	switch (arme) {
 	case "champi":
 	case "champiX2":
 	case "champiX3":
 	case "champior":
-		return true;
+		itemKey = "champi";
+		break;
+	case "megachampi":
+		itemKey = "megachampi";
+		break;
+	case "etoile":
+		itemKey = "etoile";
+		break;
+	case "billball":
+		itemKey = "billball";
+		break;
 	}
-	return false;
+	return isShortcutItemKey(itemKey, aishortcut);
 }
-function hasExtraShortcutItem(oKart) {
+function isShortcutItemKey(itemKey, aishortcut) {
+	if (!itemKey) return false;
+	return aishortcut ? aishortcut[2].itemsDict[itemKey] : true;
+}
+function hasExtraShortcutItem(oKart, aishortcut) {
 	if (oKart.roulette2 == 25) {
-		switch (oKart.stash) {
-		case "champi":
+		if (isShortcutItem(oKart.stash, aishortcut))
+			return true;
+	}
+	if (isShortcutItemKey("champi", aishortcut)) {
+		switch (oKart.arme) {
 		case "champiX2":
 		case "champiX3":
+			return true;
 		case "champior":
-			return true;
+			if (oKart.champior)
+				return true;
 		}
-	}
-	switch (oKart.arme) {
-	case "champiX2":
-	case "champiX3":
-		return true;
-	case "champior":
-		if (oKart.champior)
-			return true;
 	}
 	return false;
 }
@@ -15525,7 +15564,7 @@ function ai(oKart) {
 								else
 									oKart.aipoint = aishortcuts[1];
 							}
-							else if (oKart.aishortcuts && oKart.aishortcuts[oKart.aipoint] && hasShortcutItem(oKart))
+							else if (oKart.aishortcuts && oKart.aishortcuts[oKart.aipoint] && hasShortcutItem(oKart, oKart.aishortcuts[oKart.aipoint]))
 								oKart.aishortcut = 0;
 							else {
 								oKart.aipoint++;
@@ -15827,7 +15866,7 @@ function ai(oKart) {
 							if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
 								arme(aKarts.indexOf(oKart));
 						}
-						else if (!hasExtraShortcutItem(oKart)) {
+						else {
 							shouldWaitItemCache = oKart.shouldWaitItemCache;
 							if (!(shouldWaitItemCache && shouldWaitItemCache.isValid())) {
 								if (distToNextShortcut(oKart) < 1000)
