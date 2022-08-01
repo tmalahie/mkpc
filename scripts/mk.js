@@ -3516,6 +3516,7 @@ function startGame() {
 								break;
 							case "jump":
 								if (pause) break;
+								if (!isJumpEnabled()) break;
 								oPlayers[0].ctrl = true;
 								if (!oPlayers[0].z && !oPlayers[0].heightinc) {
 									if (!oPlayers[0].driftinc && !oPlayers[0].tourne) {
@@ -9292,6 +9293,10 @@ function stopDrifting(i) {
 			oKart.sparkSound = undefined;
 		}
 	}
+}
+
+function isJumpEnabled() {
+    return !(isOnline && shareLink.options && shareLink.options.noJump);
 }
 
 function showRearView(getId) {
@@ -16223,6 +16228,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		if (cpuChars) cpuChars = JSON.parse(cpuChars);
 		var timeTrial = this.elements["option-timeTrial"].checked ? 1:0;
 		var noBumps = this.elements["option-noBumps"].checked ? 1:0;
+		var noJump = this.elements["option-noJump"].checked ? 1:0;
 		var doubleItems = this.elements["option-doubleItems"].checked ? 0:1;
 		if (!team) {
 			manualTeams = 0;
@@ -16258,6 +16264,7 @@ function privateGameOptions(gameOptions, onProceed) {
 			cpuChars: cpuChars,
 			timeTrial: timeTrial,
 			noBumps: noBumps,
+			noJump: noJump,
 			doubleItems: doubleItems
 		});
 		oScr.innerHTML = "";
@@ -17558,6 +17565,44 @@ function privateGameOptions(gameOptions, onProceed) {
 	oDiv.style.fontSize = (2*iScreenScale) +"px";
 	oDiv.style.color = "white";
 	oDiv.innerHTML = toLanguage("If checked, karts are not impacted when they hit each other (bumps)", "Si coché, les karts ne sont pas impactés lorsqu'ils se rentrent dedans (bumps)");
+	oLabel.appendChild(oDiv);
+	oTd.appendChild(oLabel);
+	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	oScroll.appendChild(oTable);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-noJump-ctn";
+	if (!isOnline)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.style.textAlign = "center";
+	oTd.style.width = (iScreenScale*8) +"px";
+	var oCheckbox = document.createElement("input");
+	oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
+	oCheckbox.id = "option-noJump";
+	oCheckbox.name = "option-noJump";
+	oCheckbox.type = "checkbox";
+	if (gameOptions && gameOptions.noJump)
+		oCheckbox.checked = true;
+	oTd.appendChild(oCheckbox);
+	oTr.appendChild(oTd);
+
+	var oTd = document.createElement("td");
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-noJump");
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.style.marginBottom = "0px";
+	oH1.innerHTML = toLanguage("Disable jumps", "Désactiver les sauts");
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("If checked, it becomes impossible to jump, drift or make stunts", "Si coché, il est impossible de faire des sauts, dérapages ou figures");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
@@ -19125,6 +19170,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 									shareLink.options.cpuChars = options.cpuChars;
 									shareLink.options.timeTrial = options.timeTrial;
 									shareLink.options.noBumps = options.noBumps;
+									shareLink.options.noJump = options.noJump;
 									shareLink.options.doubleItems = options.doubleItems;
 									selectedTeams = options.team;
 									selectPlayerScreen(0);
@@ -20638,6 +20684,7 @@ var defaultGameOptions = {
 	cpuChars: null,
 	timeTrial: false,
 	noBumps: false,
+	noJump: false,
 	doubleItems: true
 };
 function isCustomOptions(linkOptions) {
@@ -21124,6 +21171,27 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		oDiv.innerHTML = toLanguage("Karts are not impacted when they hit each other", "Les karts ne sont pas impactés lorsqu'ils se rentrent dedans");
+		oLabel.appendChild(oDiv);
+		oTd.appendChild(oLabel);
+		oTr.appendChild(oTd);
+		oTable.appendChild(oTr);
+	}
+
+	if (shareLink.options.noJump) {
+		var oTr = document.createElement("tr");
+		var oTd = document.createElement("td");
+		var oLabel = document.createElement("label");
+		oTd.appendChild(oLabel);
+
+		var oH1 = document.createElement("h1");
+		oH1.style.fontSize = (3*iScreenScale) +"px";
+		oH1.innerHTML = toLanguage("No kart jumps", "Sauts désactivés");
+		oH1.style.marginBottom = "0px";
+		oLabel.appendChild(oH1);
+		var oDiv = document.createElement("div");
+		oDiv.style.fontSize = (2*iScreenScale) +"px";
+		oDiv.style.color = "white";
+		oDiv.innerHTML = toLanguage("It's impossible to perform a jump, drift or stunt", "Il est impossible de faire des sauts, dérapages ou figures");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
