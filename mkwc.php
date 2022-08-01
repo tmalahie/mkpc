@@ -101,7 +101,7 @@ case 'mkt':
                     'spa'=> $language ? 'Spain':'Espagne',
                     'gua'=> $language ? 'Guatemala':'Guatemala'
                 ),
-                'eliminated' => array('spa', 'gua')
+                'eliminated' => array('spa', 'gua', 'sal')
             ),
             "$group B" => array(
                 'list' => array(
@@ -119,7 +119,7 @@ case 'mkt':
                     'ecu'=> $language ? 'Ecuador':'Équateur',
                     'chi'=> $language ? 'Chile':'Chili'
                 ),
-                'eliminated' => array('ecu', 'chi', 'fra')
+                'eliminated' => array('ecu', 'chi', 'fra', 'usa')
             ),
             "$group D" => array(
                 'list' => array(
@@ -703,9 +703,9 @@ if ($id) {
                                 }
                                 ?>
                                 </div>
-                                <div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir la tableau des qualifications'; ?></a></div>
+                                <div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir le tableau des qualifications'; ?></a></div>
                                 <div id="mBracket">
-                                    <img src="https://cdn.discordapp.com/attachments/309729458925993985/1000834773377355846/unknown.png" alt="Bracket" />
+                                    <img src="https://cdn.discordapp.com/attachments/309729458925993985/1003589779776094268/unknown.png" alt="Bracket" />
                                 </div>
                                 <?php
                             }
