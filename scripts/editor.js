@@ -834,13 +834,6 @@ function updateZoom(nLevel, focusOnMouse) {
 		window.scrollTo(Math.round(nPos.x),Math.round(nPos.y));
 	}
 }
-function startDirChange(e) {
-	var editorTool = editorTools[currentMode];
-	storeHistoryData(editorTool.data);
-	editorTool.data.orientation = parseInt(e.value);
-	editorTool.data.mirror = (e.value.lastIndexOf("r")!=-1);
-	replaceStartPositions(editorTool);
-}
 function helpChange(e) {
 	var $shownText = document.querySelector(".help-text-shown");
 	if ($shownText)
@@ -2300,48 +2293,7 @@ function rescaleBox(data, scale) {
 	if (data.h != null)
 		data.h = Math.round(data.h*scale.y);
 }
-function replaceStartPositions(self) {
-	var $startPositions = self.state.startPositions;
-	removeAllChildren($startPositions);
-	var orientation = (540-self.data.orientation)%360;
-	var mirror = self.data.mirror ? 1:0;
-	var hitboxW = rotateRectangle(deepCopy(startPositionsSize),startPositionsSize,orientation);
-	var hitbox = createRectangle({x:0,y:0,w:hitboxW.w,h:hitboxW.h},false);
-	startCenterRotated = rotatePoint(deepCopy(startCenter),startPositionsSize,orientation);
-	hitbox.style.fill = "transparent";
-	$startPositions.appendChild(hitbox);
-	var startRelPos = [
-		{x:0,y:0,w:1,h:3},
-		{x:1,y:0,w:10,h:1},
-		{x:11,y:0,w:1,h:3},
-		{x:5,y:5,w:1,h:1,className:"dark"}
-	];
-	for (var i=0;i<8;i++) {
-		var absPos = {x:(i%2!=mirror)?16:0, y:i*12};
-		var circle = createCircle(rotatePoint({x:absPos.x+5.5,y:absPos.y+5.5,r:3,l:1},startPositionsSize,orientation),false);
-		$startPositions.appendChild(circle);
-		for (var j=0;j<startRelPos.length;j++) {
-			var relPos = startRelPos[j];
-			var line = createRectangle(rotateRectangle({x:absPos.x+relPos.x,y:absPos.y+relPos.y,w:relPos.w,h:relPos.h},startPositionsSize,orientation),false);
-			if (relPos.className)
-				line.setAttribute("class", relPos.className);
-			$startPositions.appendChild(line);
-		}
-	}
-	var point = self.data.pos;
-	if (point)
-		setPointPos($startPositions, {x:point.x-startCenterRotated.x,y:point.y-startCenterRotated.y});
-}
 var hpTypes = ["herbe","eau","glace","choco"];
-var startCenterRotated = startCenter;
-var startPositionsSize = {w:28,h:94};
-var startCenter = {x:Math.floor(startPositionsSize.w/2),y:Math.floor(startPositionsSize.h/2)};
-var startShifts = {
-	"180" : {x:-14,y:-48},
-	"270" : {x:-59,y:14},
-	"0" : {x:3,y:59},
-	"90" : {x:48,y:-3}
-};
 function boostSizeChanged() {
 	var editorTool = editorTools[currentMode];
 	var boxSize = {w:+document.getElementById("boost-w").value,h:+document.getElementById("boost-h").value};
