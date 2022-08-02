@@ -8,7 +8,11 @@ var editorTools = {
 			var $startPositions = document.createElementNS(SVG, "svg");
 			$startPositions.setAttribute("x",-100);
 			$startPositions.setAttribute("y",-100);
+			$startPositions.style.overflow = "visible";
+			var $startPositionsGroup = document.createElementNS(SVG, "g");
+			$startPositions.appendChild($startPositionsGroup);
 			self.state.startPositions = $startPositions;
+			self.state.startPositionsGroup = $startPositionsGroup;
 			$editor.appendChild($startPositions);
 			replaceStartPositions(self);
 			document.getElementById("start-dir-selector").setValue(self.data.orientation+(self.data.mirror?"r":""));
@@ -16,12 +20,24 @@ var editorTools = {
 			delete self.data.pos;
 			if (data.pos)
 				self.click(self,data.pos,{});
+			self.state.startPositionsGroup.reposition({
+				theta: data.theta
+			});
 		},
 		"click" : function(self,point,extra) {
 			if (!self.state.placed) {
 				storeHistoryData(self.data);
 				setPointPos(self.state.startPositions, {x:point.x-startCenterRotated.x,y:point.y-startCenterRotated.y});
 				self.data.pos = point;
+				var rectangle = self.state.startPositionsGroup;
+				rectangle.reposition = function(nData) {
+					if (nData.theta) {
+						rectangle.setAttribute("transform-origin", (self.state.hitbox.w/2)+"px "+(self.state.hitbox.h/2)+"px");
+						rectangle.setAttribute("transform", "rotate("+Math.round(nData.theta*180/Math.PI)+")");
+					}
+					else
+						rectangle.removeAttribute("transform");
+				};
 				self.state.startPositions.oncontextmenu = function(e) {
 					showContextMenu(e,[{
 						text: (language ? "Move":"Déplacer"),
@@ -29,6 +45,20 @@ var editorTools = {
 							storeHistoryData(self.data);
 							delete self.data.pos;
 							self.state.placed = false;
+						}
+					}, {
+						text: (language ? "Rotate...":"Pivoter..."),
+						click: function() {
+							rotateAngleRectangle(rectangle, {
+								x: point.x - self.state.hitbox.w/2,
+								y: point.y - self.state.hitbox.h/2,
+								w: self.state.hitbox.w,
+								h: self.state.hitbox.h
+							}, {
+								on_apply: function(nData) {
+									self.data.theta = nData.theta;
+								}
+							});
 						}
 					}]);
 					return false;
@@ -42,20 +72,29 @@ var editorTools = {
 		},
 		"save" : function(self,payload) {
 			payload.main.startposition = nullablePointToData(self.data.pos);
+			payload.main.startrotation = self.data.orientation;
+			if (self.data.theta) {
+				payload.main.startrotation -= Math.round(self.data.theta*180/Math.PI);
+				payload.main.startrotation -= 360*Math.floor(payload.main.startrotation/360);
+			}
 			if (self.data.pos) {
-				var startShiftRotated = startShifts[self.data.orientation];
+				var startShiftRotated = startShift(payload.main.startrotation);
 				payload.main.startposition[0] += startShiftRotated.x;
 				payload.main.startposition[1] += startShiftRotated.y;
+				payload.main.startposition[0] = Math.round(payload.main.startposition[0]);
+				payload.main.startposition[1] = Math.round(payload.main.startposition[1]);
 			}
-			payload.main.startrotation = self.data.orientation;
 			payload.main.startdirection = self.data.mirror ? 1:0;
 		},
 		"restore" : function(self,payload) {
-			self.data.orientation = payload.main.startrotation;
+			self.data.orientation = getStartRotationRounded(payload.main.startrotation);
+			var theta = self.data.orientation - payload.main.startrotation;
+			if (theta)
+				self.data.theta = theta*Math.PI/180;
 			if (payload.main.startdirection) self.data.mirror = true;
 			self.data.pos = dataToNullablePoint(payload.main.startposition);
 			if (self.data.pos) {
-				var startShiftRotated = startShifts[self.data.orientation];
+				var startShiftRotated = startShift(payload.main.startrotation);
 				self.data.pos.x -= startShiftRotated.x;
 				self.data.pos.y -= startShiftRotated.y;
 			}
@@ -430,11 +469,11 @@ var editorTools = {
 								cpIdText.setAttribute("x", nData.x+nData.w/2);
 								cpIdText.setAttribute("y", nData.y+nData.h/2+2);
 								if (nData.theta) {
-									rectangle.style.transform = "rotate("+nData.theta+"rad)";
-									rectangle.style.transformOrigin = (nData.x + nData.w/2)+"px "+(nData.y + nData.h/2)+"px";
+									rectangle.setAttribute("transform", "rotate("+Math.round(nData.theta*180/Math.PI)+")");
+									rectangle.setAttribute("transform-origin", (nData.x + nData.w/2)+"px "+(nData.y + nData.h/2)+"px");
 								}
 								else
-									rectangle.style.transform = "";
+									rectangle.removeAttribute("transform");
 							};
 							rectangle.toggleOptional = function() {
 								if (data.optional) {
@@ -648,6 +687,83 @@ var editorTools = {
 	"options": commonTools["options"]
 };
 
+var startCenterRotated = startCenter;
+var startPositionsSize = {w:28,h:94};
+var startCenter = {x:Math.floor(startPositionsSize.w/2),y:Math.floor(startPositionsSize.h/2)};
+var startShifts = {
+	"180" : {x:-14,y:-48},
+	"270" : {x:-59,y:14},
+	"0" : {x:3,y:59},
+	"90" : {x:48,y:-3}
+};
+function startShift(angle) {
+	if (startShifts[angle])
+		return startShifts[angle];
+	var centerShift = {x:0,y:0};
+	for (var key in startShifts) {
+		centerShift.x += startShifts[key].x;
+		centerShift.y += startShifts[key].y;
+	}
+	centerShift.x /= 4;
+	centerShift.y /= 4;
+	var origin = startShifts["0"];
+	var diffX = origin.x-centerShift.x, diffY = origin.y-centerShift.y;
+	var radius = Math.hypot(diffX, diffY);
+	var theta0 = Math.atan2(diffY, diffX);
+	var theta = theta0 - angle*Math.PI/180;
+	return {
+		x: centerShift.x + radius*Math.cos(theta),
+		y: centerShift.y + radius*Math.sin(theta)
+	};
+}
+function startDirChange(e) {
+	var editorTool = editorTools[currentMode];
+	storeHistoryData(editorTool.data);
+	editorTool.data.orientation = parseInt(e.value);
+	editorTool.data.mirror = (e.value.lastIndexOf("r")!=-1);
+	replaceStartPositions(editorTool);
+	editorTool.state.startPositionsGroup.reposition({
+		theta: editorTool.data.theta
+	});
+}
+function replaceStartPositions(self) {
+	var $startPositionsGroup = self.state.startPositionsGroup;
+	removeAllChildren($startPositionsGroup);
+	var orientation = Math.round((540-self.data.orientation)%360);
+	var mirror = self.data.mirror ? 1:0;
+	self.state.hitbox = rotateRectangle(deepCopy(startPositionsSize),startPositionsSize,orientation);
+	var hitbox = createRectangle({x:0,y:0,w:self.state.hitbox.w,h:self.state.hitbox.h},false);
+	startCenterRotated = rotatePoint(deepCopy(startCenter),startPositionsSize,orientation);
+	hitbox.style.fill = "transparent";
+	$startPositionsGroup.appendChild(hitbox);
+	var startRelPos = [
+		{x:0,y:0,w:1,h:3},
+		{x:1,y:0,w:10,h:1},
+		{x:11,y:0,w:1,h:3},
+		{x:5,y:5,w:1,h:1,className:"dark"}
+	];
+	for (var i=0;i<8;i++) {
+		var absPos = {x:(i%2!=mirror)?16:0, y:i*12};
+		var circle = createCircle(rotatePoint({x:absPos.x+5.5,y:absPos.y+5.5,r:3,l:1},startPositionsSize,orientation),false);
+		$startPositionsGroup.appendChild(circle);
+		for (var j=0;j<startRelPos.length;j++) {
+			var relPos = startRelPos[j];
+			var line = createRectangle(rotateRectangle({x:absPos.x+relPos.x,y:absPos.y+relPos.y,w:relPos.w,h:relPos.h},startPositionsSize,orientation),false);
+			if (relPos.className)
+				line.setAttribute("class", relPos.className);
+			$startPositionsGroup.appendChild(line);
+		}
+	}
+	var point = self.data.pos;
+	if (point)
+		setPointPos(self.state.startPositions, {x:point.x-startCenterRotated.x,y:point.y-startCenterRotated.y});
+}
+function getStartRotationRounded(angle) {
+	angle = 90*Math.round(angle/90);
+	angle -= 360*Math.floor(angle/360);
+	return angle;
+}
+
 function rotateAngleRectangle(rectangle,data,options) {
 	options = options||{};
 	var mask = createMask();
@@ -661,7 +777,11 @@ function rotateAngleRectangle(rectangle,data,options) {
 		var nX = e.pageX, nY = e.pageY;
 		var diffX = nX-aX;
 		var diffY = nY-aY;
-		var angle = (data.h != 15) ? -Math.atan2(diffX,diffY) : Math.atan2(diffY,diffX);
+		var angle;
+		if (options.cp)
+			angle = (data.h != 15) ? -Math.atan2(diffX,diffY) : Math.atan2(diffY,diffX);
+		else
+			angle = (data.h > data.w) ? -Math.atan2(diffX,diffY) : Math.atan2(diffY,diffX);
 		if (e.shiftKey)
 			angle = Math.round(angle/Math.PI*2)*Math.PI/2;
 		nData.theta = angle;
@@ -680,7 +800,7 @@ function rotateAngleRectangle(rectangle,data,options) {
 		if (false !== apply) {
 			var nbQuarters = nData.theta * 2/Math.PI;
 			var nbQuartersRound = Math.round(nbQuarters);
-			if (Math.abs(nbQuarters-nbQuartersRound) < 1e-5) {
+			if (options.cp && (Math.abs(nbQuarters-nbQuartersRound) < 1e-5)) {
 				nbQuartersRound = nbQuartersRound - Math.floor(nbQuartersRound/4)*4;
 				delete data.theta;
 				var xO = Math.round(data.w/2), yO = Math.round(data.h/2);
