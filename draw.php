@@ -580,12 +580,14 @@ if (isset($_GET['i'])) {
 							"Define here positions where karts will start race.
 							Click on the buttons at the right menu to choose start orientation.
 							Then click on the map to place start positions.
-							You can change those positions later by right-clicking on then en clicking on &quot;Move&quot;."
+							You can change those positions later by right-clicking on then en clicking on &quot;Move&quot;.<br />
+							You can also define a custom orientation via right-click &gt; Rotate"
 							:
 							"Définissez ici les positions de départ des karts.
 							Cliquez sur un des 8 boutons dans le menu de droite pour choisir l'orientation de départ.
 							Cliquez ensuite sur la carte pour placer les positions de départ.
-							Vous pouvez modifier ces positions a posteriori en faisant un clic droit dessus et en cliquant sur &quot;Déplacer&quot;."
+							Vous pouvez modifier ces positions a posteriori en faisant un clic droit dessus et en cliquant sur &quot;Déplacer&quot;.<br />
+							Vous pouvez aussi définir une orientation quelconque via clic droit &gt; Pivoter"
 						)
 					),
 					'aipoints' => array(

@@ -111,6 +111,8 @@ var editorTools = {
 			self.data.mirror = !self.data.mirror;
 			if (axis.coord == "y")
 				self.data.orientation = (self.data.orientation + 180)%360;
+			if (self.data.theta)
+				self.data.theta = -self.data.theta;
 		}
 	},
 	"aipoints": {
@@ -664,7 +666,7 @@ var editorTools = {
 					jInfo[3] = jInfo[2];
 					jInfo[2] = 15;
 				}
-				self.data.checkpoints[j] = dataToRect(jInfo);
+				self.data.checkpoints[j] = Object.assign({}, self.data.checkpoints[j], dataToRect(jInfo));
 			}
 		},
 		"rotate" : function(self, orientation) {
@@ -672,8 +674,12 @@ var editorTools = {
 				rotateRect(self.data.checkpoints[i], imgSize,orientation);
 		},
 		"flip" : function(self, axis) {
-			for (var i=0;i<self.data.checkpoints.length;i++)
-				flipRect(self.data.checkpoints[i], imgSize,axis);
+			for (var i=0;i<self.data.checkpoints.length;i++) {
+				var iData = self.data.checkpoints[i];
+				flipRect(iData, imgSize,axis);
+				if (iData.theta)
+					iData.theta = -iData.theta;
+			}
 		}
 	},
 	"items": commonTools["items"],
