@@ -493,7 +493,7 @@ var editorTools = {
 								return showContextOnElt(e,rectangle, [{
 									text: (language ? "Resize":"Redimensionner"),
 									click: function() {
-										rectangle.style.transform = "";
+										rectangle.setAttribute("transform", "");
 										resizeRectangle(rectangle,data,{cp:true, cap:"bounds", on_exit: function(nData) {
 											rectangle.reposition(nData);
 										}});
@@ -764,6 +764,7 @@ function getStartRotationRounded(angle) {
 	return angle;
 }
 
+var isRotateMsgRead = false;
 function rotateAngleRectangle(rectangle,data,options) {
 	options = options||{};
 	var mask = createMask();
@@ -773,6 +774,8 @@ function rotateAngleRectangle(rectangle,data,options) {
 	var aX = screenCoords.x + screenCoords.w/2, aY = screenCoords.y + screenCoords.h/2;
 	var nData = deepCopy(data);
 	mask.classList.remove("mask-dark");
+
+	var $toastMsg;
 	function rotateRect(e) {
 		var nX = e.pageX, nY = e.pageY;
 		var diffX = nX-aX;
@@ -786,6 +789,7 @@ function rotateAngleRectangle(rectangle,data,options) {
 			angle = Math.round(angle/Math.PI*2)*Math.PI/2;
 		nData.theta = angle;
 		rectangle.reposition(nData);
+		handleRotateHint(e);
 	}
 	function stopRotateRect(e) {
 		e.stopPropagation();
@@ -827,6 +831,7 @@ function rotateAngleRectangle(rectangle,data,options) {
 		mask.removeEventListener("mousemove", rotateRect);
 		mask.removeEventListener("mouseup", stopRotateRect);
 		mask.defaultClose();
+		removeRotateHint();
 	}
 	mask.addEventListener("mousemove", rotateRect);
 	mask.addEventListener("mouseup", stopRotateRect);
@@ -834,6 +839,29 @@ function rotateAngleRectangle(rectangle,data,options) {
 	$toolbox.classList.add("hiddenbox");
 	if (options.on_start_move)
 		options.on_start_move();
+	
+	function handleRotateHint(e) {
+		if (e.shiftKey) {
+			if ($toastMsg) {
+				removeRotateHint();
+				isRotateMsgRead = true;
+			}
+		}
+		else if (!$toastMsg && !isRotateMsgRead) {
+			$toastMsg = showToast(language ? "Hold shift to rotate by a right angle" : "Maintenir shift pour pivoter d'un angle droit");
+			$toastMsg.addEventListener("click", function(e) {
+				e.stopPropagation();
+				removeRotateHint();
+				isRotateMsgRead = true;
+			});
+		}
+	}
+	function removeRotateHint() {
+		if ($toastMsg && $toastMsg.parentNode) {
+			document.body.removeChild($toastMsg);
+			$toastMsg = undefined;
+		}
+	}
 }
 
 function openShortcutOptions(self, startPt) {

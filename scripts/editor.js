@@ -2046,6 +2046,19 @@ function createMask() {
 	    document.activeElement.blur();
 	return res;
 }
+function showToast(msg) {
+	if (document.getElementById("editor-toast"))
+		document.body.removeChild(document.getElementById("editor-toast"));
+	var res = document.createElement("div");
+	res.id = "editor-toast";
+	res.innerHTML = msg;
+	document.body.appendChild(res);
+	setTimeout(function() {
+		if (res.parentNode)
+			document.body.removeChild(res);
+	}, 4000);
+	return res;
+}
 function removeFromArray(arr,elt) {
 	var id = arr.indexOf(elt);
 	if (-1 !== id) {
