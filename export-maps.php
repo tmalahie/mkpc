@@ -134,10 +134,6 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 		}
 		unset($decorData);
 		break;
-	case 56:
-		$mapData['startposition'] = [225,642];
-		$mapData['startrotation'] = 45;
-		break;
 	}
 }
 header('Content-Type: application/json');
