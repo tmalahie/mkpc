@@ -159,6 +159,13 @@ if (isset($_GET['i'])) {
 				<div id="mode-option-decor">
 					<?php printModeDecor(); ?>
 				</div>
+				<div id="mode-option-jumps">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="jumps-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
+					</div>
+				</div>
 				<div id="mode-option-cannons">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
 					<div class="radio-selector" id="cannons-shape" data-change="shapeChange">

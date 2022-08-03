@@ -560,7 +560,7 @@ function editPolygon(polygon,data,options) {
 					storeHistoryData(editorTool.data);
 					var apply;
 					if (options.on_apply)
-						apply = options.on_apply(nPoints);
+						apply = options.on_apply(Object.assign({}, data, { points: nPoints }));
 					if (false !== apply)
 						data.points = nPoints;
 					mask.removeEventListener("mousemove", movePoint);
@@ -607,7 +607,7 @@ function editPolygon(polygon,data,options) {
 					storeHistoryData(editorTool.data);
 					var apply;
 					if (options.on_apply)
-						apply = options.on_apply(nPoints);
+						apply = options.on_apply(Object.assign({}, data, { points: nPoints }));
 					if (false !== apply)
 						data.points = nPoints;
 					mask.removeEventListener("mousemove", movePoint);
@@ -636,7 +636,7 @@ function editPolygon(polygon,data,options) {
 						nPoints.splice(i,1);
 						var apply;
 						if (options.on_apply)
-							apply = options.on_apply(nPoints);
+							apply = options.on_apply(Object.assign({}, data, { points: nPoints }));
 						if (false !== apply)
 							data.points = nPoints;
 						setPolygonPoints(polygon,nPoints,true);
@@ -708,7 +708,7 @@ function movePolygon(polygon,data,options) {
 				options.on_end_move();
 			var apply;
 			if (options.on_apply)
-				apply = options.on_apply(nPoints);
+				apply = options.on_apply(Object.assign({}, data, { points: nPoints }));
 			if (false !== apply)
 				data.points = nPoints;
 			mask.removeEventListener("mousemove", movePoly);
@@ -3266,8 +3266,8 @@ var commonTools = {
 								self.data.push(data);
 								polygon.setAttribute("stroke-width", 1);
 								setupShapeHeight(polygon, data);
-								function repositionPoly(nPoints) {
-									polygon.reposition(Object.assign({}, data, { points: nPoints }));
+								function repositionPoly(nData) {
+									polygon.reposition(Object.assign({}, data, nData));
 								}
 								var moveOptions = {on_apply:repositionPoly,on_start_move:polygon.text.hide,on_end_move:polygon.text.show};
 								addContextMenuEvent(polygon, [{
@@ -3920,122 +3920,184 @@ var commonTools = {
 		"resume" : function(self) {
 			self.state.point = createRectangle({x:-1,y:-1});
 			self.state.point.classList.add("noclick");
+			self.state.shape = "rectangle";
 			var data = self.data;
 			self.data = [];
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
-				self.click(self,iData,{});
-				var rectangle = self.state.rectangle;
-				self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
-				if (data[i].dir != null)
-					rectangle.createArrow(data[i].dir);
+				self.state.shape = iData.type;
+				var shape;
+				switch (iData.type) {
+				case "rectangle":
+					self.click(self,iData,{});
+					shape = self.state.rectangle;
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					break;
+				case "polygon":
+					for (var j=0;j<iData.points.length;j++)
+						self.click(self,iData.points[j],{});
+					shape = self.state.polygon;
+					self.state.nodes[0].circle.onclick();
+					break;
+				}
+				if (shape && data[i].dir != null)
+					shape.createArrow(data[i].dir);
 			}
+			document.getElementById("jumps-shape").setValue(self.state.shape);
 		},
 		"click" : function(self,point,extra) {
-			if (self.state.rectangle)
-				appendRectangleBuilder(self,point);
-			else {
-				if (!extra.oob) {
-					startRectangleBuilder(self,point, {
-						on_apply: function(rectangle,data) {
-							self.data.push(data);
-							var arrow;
-							rectangle.createArrow = function(dir) {
-								data.dir = dir;
-								var center = {x:data.x+data.w/2,y:data.y+data.h/2};
-								arrow = createArrow(center,center);
-								arrow.move(center,{x:center.x+dir.x,y:center.y+dir.y});
-								var arrowCtxMenu = [{
-									text: (language ? "Move":"Déplacer"),
+			var selectedShape = self.state.shape;
+			function onApply(data, shape) {
+				self.data.push(data);
+				var arrow;
+				shape.createArrow = function(dir) {
+					if (arrow) return arrow;
+					dir = dir || {x:0,y:0};
+					data.dir = dir;
+					var center = shape.getCenter(data);
+					arrow = createArrow(center,center);
+					arrow.move(center,{x:center.x+dir.x,y:center.y+dir.y});
+					var arrowCtxMenu = [{
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							var center = {x:data.x+data.w/2,y:data.y+data.h/2};
+							moveArrow(arrow,center,data.dir);
+						}
+					}, {
+						text: (language ? "Delete":"Supprimer"),
+						click: function() {
+							storeHistoryData(self.data);
+							arrow.remove();
+							delete data.dir;
+							arrow = undefined;
+						}
+					}];
+					for (var i=0;i<arrow.lines.length;i++)
+						addContextMenuEvent(arrow.lines[i], arrowCtxMenu);
+					return arrow;
+				}
+				shape.hideArrow = function() {
+					if (arrow)
+						arrow.hide();
+				}
+				shape.showArrow = function() {
+					if (arrow)
+						arrow.show();
+				}
+				shape.reshapeArrow = function(nData) {
+					if (arrow) {
+						var center = shape.getCenter(nData);
+						arrow.move(center,{x:center.x+nData.dir.x,y:center.y+nData.dir.y});
+					}
+				}
+				shape.remove = function() {
+					$editor.removeChild(shape);
+					if (arrow)
+						arrow.remove();
+					storeHistoryData(self.data);
+					removeFromArray(self.data,data);
+				}
+			}
+			function getRectCenter(nData) {
+				return {x:nData.x+nData.w/2,y:nData.y+nData.h/2};
+			}
+			function getPolyCenter(nData) {
+				return getPolygonCenter(nData.points);
+			}
+			switch (selectedShape) {
+			case "rectangle":
+				if (self.state.rectangle)
+					appendRectangleBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startRectangleBuilder(self,point, {
+							on_apply: function(rectangle,data) {
+								onApply(data, rectangle);
+								rectangle.getCenter = getRectCenter;
+								addContextMenuEvent(rectangle, [{
+									text: (language ? "Resize":"Redimensionner"),
 									click: function() {
-										var center = {x:data.x+data.w/2,y:data.y+data.h/2};
-										moveArrow(arrow,center,data.dir);
+										resizeRectangle(rectangle,data, {on_apply:rectangle.reshapeArrow});
 									}
 								}, {
-									text: (language ? "Delete":"Supprimer"),
+									text: (language ? "Move":"Déplacer"),
 									click: function() {
-										storeHistoryData(self.data);
-										arrow.remove();
-										delete data.dir;
-										arrow = undefined;
+										moveRectangle(rectangle,data, {on_apply:rectangle.reshapeArrow,on_start_move:rectangle.hideArrow,on_end_move:rectangle.showArrow});
 									}
-								}];
-								for (var i=0;i<arrow.lines.length;i++)
-									addContextMenuEvent(arrow.lines[i], arrowCtxMenu);
-								/*var currentHeight = data.dir;
-								if (currentHeight == null)
-									currentHeight = (data.w+data.h)/45+1;
-								var newHeight = prompt(language ? "Set jump height":"Modifier hauteur saut", Math.round(currentHeight*100)/100);
-								if (newHeight != null) {
-									if (newHeight) {
-										newHeight = +newHeight;
-										if (newHeight >= 0) {
-											storeHistoryData(self.data);
-											data.dir = newHeight;
-										}
+								}, {
+									text: (language ? "Jump height...":"Hauteur saut..."),
+									click: function() {
+										var arrow = rectangle.createArrow();
+										moveArrow(arrow,rectangle.getCenter(data),data.dir);
 									}
-									else {
-										storeHistoryData(self.data);
-										delete data.dir;
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										rectangle.remove();
 									}
-								}*/
+								}]);
 							}
-							function reshapeArrow(nData) {
-								if (arrow) {
-									var center = {x:nData.x+nData.w/2,y:nData.y+nData.h/2};
-									arrow.move(center,{x:center.x+nData.dir.x,y:center.y+nData.dir.y});
-								}
+						});
+					}
+				}
+				break;
+			case "polygon":
+				if (self.state.polygon)
+					appendPolygonBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startPolygonBuilder(self,point, {
+							on_apply: function(polygon,points) {
+								var data = {type:"polygon",points:points};
+								onApply(data, polygon);
+								polygon.getCenter = getPolyCenter;
+								addContextMenuEvent(polygon, [{
+									text: (language ? "Edit":"Modifier"),
+									click: function() {
+										editPolygon(polygon,data, {on_apply:polygon.reshapeArrow});
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										movePolygon(polygon,data, {on_apply:polygon.reshapeArrow,on_start_move:polygon.hideArrow,on_end_move:polygon.showArrow});
+									}
+								}, {
+									text: (language ? "Jump height...":"Hauteur saut..."),
+									click: function() {
+										var arrow = polygon.createArrow();
+										moveArrow(arrow,polygon.getCenter(data),data.dir);
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										polygon.remove();
+									}
+								}]);
 							}
-							function hideArrow() {
-								if (arrow)
-									arrow.hide();
-							}
-							function showArrow() {
-								if (arrow)
-									arrow.show();
-							}
-							addContextMenuEvent(rectangle,[{
-								text: (language ? "Resize":"Redimensionner"),
-								click: function() {
-									resizeRectangle(rectangle,data, {on_apply:reshapeArrow});
-								}
-							}, {
-								text: (language ? "Move":"Déplacer"),
-								click: function() {
-									moveRectangle(rectangle,data, {on_apply:reshapeArrow,on_start_move:hideArrow,on_end_move:showArrow});
-								}
-							}, {
-								text: (language ? "Jump height...":"Hauteur saut..."),
-								click: function() {
-									if (!arrow)
-										rectangle.createArrow({x:0,y:0});
-									var center = {x:data.x+data.w/2,y:data.y+data.h/2};
-									moveArrow(arrow,center,data.dir);
-								}
-							}, {
-								text:(language ? "Delete":"Supprimer"),
-								click:function() {
-									$editor.removeChild(rectangle);
-									if (arrow)
-										arrow.remove();
-									storeHistoryData(self.data);
-									removeFromArray(self.data,data);
-								}
-							}]);
-						}
-					});
+						});
+					}
 				}
 			}
 		},
 		"move" : function(self,point,extra) {
-			moveRectangleBuilder(self,point);
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				moveRectangleBuilder(self,point);
+				break;
+			case "polygon":
+				movePolygonBuilder(self,point);
+				break;
+			}
 		},
 		"_arrowFactor": 32.4,
 		"save" : function(self,payload) {
 			payload.sauts = [];
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
-				var data = rectToData(iData);
+				var data = shapeToData(iData);
+				if (iData.type !== "rectangle")
+					data = [data];
 				if (iData.dir) {
 					var length = Math.hypot(iData.dir.x,iData.dir.y);
 					var angle = Math.atan2(iData.dir.y,iData.dir.x) || 0;
@@ -4046,23 +4108,34 @@ var commonTools = {
 		},
 		"restore" : function(self,payload) {
 			for (var i=0;i<payload.sauts.length;i++) {
-				var rect = dataToRect(payload.sauts[i]);
-				var dir = payload.sauts[i][4];
+				var shape, dir, angle;
+				var iData = payload.sauts[i];
+				if (typeof iData[0] === "number") {
+					shape = dataToRect(iData);
+					shape.type = "rectangle";
+					dir = iData[4];
+					angle = iData[5];
+				}
+				else {
+					shape = dataToShape(iData[0]);
+					dir = iData[1];
+					angle = iData[2];
+				}
 				if (dir != null) {
 					var length = dir*self._arrowFactor;
-					var angle = payload.sauts[i][5] || 0;
-					rect.dir = {
+					angle = angle || 0;
+					shape.dir = {
 						x: length*Math.cos(angle),
 						y: length*Math.sin(angle)
 					};
 				}
-				self.data.push(rect);
+				self.data.push(shape);
 			}
 		},
 		"rescale" : function(self, scale) {
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
-				rescaleRect(iData, scale);
+				rescaleShape(iData, scale);
 				if (iData.dir)
 					rescaleDir(iData.dir, scale);
 			}
@@ -4070,7 +4143,7 @@ var commonTools = {
 		"rotate" : function(self, orientation) {
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
-				rotateRect(iData, imgSize,orientation);
+				rotateShape(iData, imgSize,orientation);
 				if (iData.dir)
 					rotateDir(iData.dir, orientation);
 			}
@@ -4078,7 +4151,7 @@ var commonTools = {
 		"flip" : function(self, axis) {
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
-				flipRect(iData, imgSize,axis);
+				flipShape(iData, imgSize,axis);
 				if (iData.dir)
 					flipDir(iData.dir, axis);
 			}
@@ -4919,7 +4992,7 @@ var commonTools = {
 						setRectangleBounds(respawnShape.shape,data.respawn);
 						break;
 					case "polygon":
-						var nPoints = deepCopy(nData);
+						var nPoints = deepCopy(nData.points);
 						for (var i=0;i<nData.length;i++) {
 							nPoints[i].x += data.respawn.points[0].x-data.points[0].x;
 							nPoints[i].y += data.respawn.points[0].y-data.points[0].y;
@@ -4937,7 +5010,7 @@ var commonTools = {
 						respawnShape.arrow.move({x:nData.x+newCenter.x,y:nData.y+newCenter.y},{x:data.respawn.x+newCenter.x,y:data.respawn.y+newCenter.y});
 						break;
 					case "polygon":
-						var newCenter = getPolygonRelativeCenter(nData);
+						var newCenter = getPolygonRelativeCenter(nData.points);
 						respawnShape.arrow.move({x:nData[0].x+newCenter.x,y:nData[0].y+newCenter.y},{x:data.respawn.points[0].x+newCenter.x,y:data.respawn.points[0].y+newCenter.y});
 						break;
 					}
@@ -4949,7 +5022,7 @@ var commonTools = {
 						respawnShape.arrow.move(null,{x:nData.x+newCenter.x,y:nData.y+newCenter.y});
 						break;
 					case "polygon":
-						var newCenter = getPolygonRelativeCenter(nData);
+						var newCenter = getPolygonRelativeCenter(nData.points);
 						respawnShape.arrow.move(null,{x:nData[0].x+newCenter.x,y:nData[0].y+newCenter.y});
 						break;
 					}
@@ -5260,7 +5333,7 @@ var commonTools = {
 						dirVect.center = {x:Math.round(nData.x+nData.w/2),y:Math.round(nData.y+nData.h/2)};
 						break;
 					case "polygon":
-						dirVect.center = getPolygonCenter(nData);
+						dirVect.center = getPolygonCenter(nData.points);
 						break;
 					case "circle":
 						dirVect.center.x = nData.x;
@@ -5659,8 +5732,8 @@ var commonTools = {
 								self.data.push(data);
 								polygon.setAttribute("stroke-width", 1);
 								setupShapeHeight(self,polygon,data);
-								function repositionPoly(nPoints) {
-									polygon.reposition(Object.assign({}, data, { points: nPoints }));
+								function repositionPoly(nData) {
+									polygon.reposition(Object.assign({}, data, nData));
 								}
 								var moveOptions = {on_apply:repositionPoly,on_start_move:polygon.text.hide,on_end_move:polygon.text.show};
 								addContextMenuEvent(polygon, [{
