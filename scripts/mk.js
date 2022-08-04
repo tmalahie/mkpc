@@ -1531,11 +1531,43 @@ function initMap() {
 		}
 	}
 	if (oMap.sauts) {
+		var sauts = {rectangle:[],polygon:[]};
 		for (var i=0;i<oMap.sauts.length;i++) {
 			var oBox = oMap.sauts[i];
-			if (oBox.length < 5)
-				oBox[4] = (oBox[2]+oBox[3])/45+1;
+			var shapeType;
+			if (typeof oBox[0] === "number") {
+				shapeType = "rectangle";
+				oBox = [oBox.slice(0,4),oBox[4]];
+			}
+			else {
+				shapeType = getShapeType(oBox[0]);
+				oBox = [oBox[0],oBox[1]]
+			}
+			if (!oBox[1]) {
+				var oShape = oBox[0];
+				var shapeW, shapeH;
+				switch (shapeType) {
+				case "rectangle":
+					shapeW = oShape[2];
+					shapeH = oShape[3];
+					break;
+				case "polygon":
+					var minX = oMap.w*2, maxX = -oMap.w, minY = oMap.h*2, maxY = -oMap.h;
+					for (var j=0;j<oShape.length;j++) {
+						var oPoint = oShape[j];
+						minX = Math.min(minX, oPoint[0]);
+						maxX = Math.max(maxX, oPoint[0]);
+						minY = Math.min(minY, oPoint[1]);
+						maxY = Math.max(maxY, oPoint[1]);
+					}
+					shapeW = maxX - minX;
+					shapeH = maxY - minY;
+				}
+				oBox[1] = (shapeW+shapeH)/45+1;
+			}
+			sauts[shapeType].push(oBox);
 		}
+		oMap.sauts = sauts;
 	}
 	if (oMap.cannons) {
 		var cannons = {rectangle:[],polygon:[]};
@@ -9973,12 +10005,22 @@ function sauts(iX, iY, iI, iJ) {
 		return false;
 	var aPos = [iX, iY], aMove = [iI, iJ];
 	var dir = [(iI>0), (iJ>0)];
-	for (var i=0;i<oMap.sauts.length;i++) {
-		var oBox = oMap.sauts[i];
-		if (pointInRectangle(iX,iY, oBox))
-			return oBox[4];
-		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
-			return oBox[4];
+	var oRectangles = oMap.sauts.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
+		if (pointInRectangle(iX,iY, oBox[0]))
+			return oBox[1];
+		if (pointCrossRectangle(iX,iY, iI,iJ, oBox[0]))
+			return oBox[1];
+	}
+	var oPolygons = oMap.sauts.polygon;
+	var nX = iX+iI, nY = iY+iJ;
+	for (var i=0;i<oPolygons.length;i++) {
+		var oBox = oPolygons[i];
+		if (pointInPolygon(iX,iY, oBox[0]))
+			return oBox[1];
+		if (pointCrossPolygon(iX,iY, nX,nY, oBox[0]))
+			return oBox[1];
 	}
 	return false;
 }
