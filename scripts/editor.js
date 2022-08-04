@@ -4993,7 +4993,7 @@ var commonTools = {
 						break;
 					case "polygon":
 						var nPoints = deepCopy(nData.points);
-						for (var i=0;i<nData.length;i++) {
+						for (var i=0;i<nPoints.length;i++) {
 							nPoints[i].x += data.respawn.points[0].x-data.points[0].x;
 							nPoints[i].y += data.respawn.points[0].y-data.points[0].y;
 						}
@@ -5011,7 +5011,7 @@ var commonTools = {
 						break;
 					case "polygon":
 						var newCenter = getPolygonRelativeCenter(nData.points);
-						respawnShape.arrow.move({x:nData[0].x+newCenter.x,y:nData[0].y+newCenter.y},{x:data.respawn.points[0].x+newCenter.x,y:data.respawn.points[0].y+newCenter.y});
+						respawnShape.arrow.move({x:nData.points[0].x+newCenter.x,y:nData.points[0].y+newCenter.y},{x:data.respawn.points[0].x+newCenter.x,y:data.respawn.points[0].y+newCenter.y});
 						break;
 					}
 				}
@@ -5023,7 +5023,7 @@ var commonTools = {
 						break;
 					case "polygon":
 						var newCenter = getPolygonRelativeCenter(nData.points);
-						respawnShape.arrow.move(null,{x:nData[0].x+newCenter.x,y:nData[0].y+newCenter.y});
+						respawnShape.arrow.move(null,{x:nData.points[0].x+newCenter.x,y:nData.points[0].y+newCenter.y});
 						break;
 					}
 				}
@@ -5318,10 +5318,12 @@ var commonTools = {
 				storeHistoryData(self.data);
 				var data = self.data[self.data.length-1];
 				self.move(self,point,extra);
+				var diffX = point.x - dirVect.center.x;
+				var diffY = point.y - dirVect.center.y;
 				if ("circle" !== data.type)
-					data.dir = {x:point.x-dirVect.center.x,y:point.y-dirVect.center.y};
+					data.dir = {x:diffX,y:diffY};
 				else
-					data.dir = {dtheta: dirVect.center.dtheta};
+					data.dir = {dtheta: Math.atan2(diffY,diffX)-dirVect.center.theta0};
 				var shape = self.state.currentshape;
 				delete self.state.currentshape;
 				function reshapeItem(nData) {
