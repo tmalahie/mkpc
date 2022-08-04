@@ -2752,7 +2752,7 @@ function startGame() {
 		else {
 			var iPt = inc%oMap.aipoints.length;
 			oEnemy.aipoints = oMap.aipoints[iPt]||[];
-			if (oMap.aishortcuts) {
+			if (oMap.aishortcuts && oMap.aishortcuts[iPt]) {
 				var validShortcuts = {};
 				var isValidShortcuts = false;
 				for (var k=0;k<oMap.aishortcuts[iPt].length;k++) {
@@ -15710,6 +15710,14 @@ function ai(oKart) {
 					vAim = -vAim;
 				}
 				nTheta = Math.atan2(uAim,vAim);
+				var aTheta = oKart.rotation*Math.PI/180;
+				var maxRelThetaFactor = 5, maxRelThetaOffset = 0.15;
+				var nTheta0 = Math.atan2(currentAi[0]-oKart.x, currentAi[1]-oKart.y);
+				if (maxRelThetaFactor*Math.abs(normalizeAngle(nTheta0-aTheta, 2*Math.PI))+maxRelThetaOffset < Math.abs(normalizeAngle(nTheta0-nTheta, 2*Math.PI))) {
+					aimX = currentAi[0];
+					aimY = currentAi[1];
+					nTheta = nTheta0;
+				}
 			}
 			var decorT = 16;
 			var oX = oKart.x, oY = oKart.y, gX = aimX, gY = aimY;
