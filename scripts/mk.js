@@ -2759,7 +2759,7 @@ function startGame() {
 					var aishortcut = oMap.aishortcuts[iPt][startPt];
 					if (!aishortcut[2]) aishortcut[2] = {};
 					var aiOptions = aishortcut[2];
-					if (aiOptions.items == null) aiOptions.items = ["champi"];
+					if (aiOptions.items == null) aiOptions.items = ["champi", "megachampi", "etoile"];
 					if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
 					if (aiOptions.cc == null) aiOptions.cc = 150;
 					var minDifficulty = 4 + aiOptions.difficulty*0.5;
