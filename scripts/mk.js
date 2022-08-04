@@ -2755,8 +2755,10 @@ function startGame() {
 			if (oMap.aishortcuts) {
 				var validShortcuts = {};
 				var isValidShortcuts = false;
-				for (var startPt in oMap.aishortcuts[iPt]) {
-					var aishortcut = oMap.aishortcuts[iPt][startPt];
+				for (var k=0;k<oMap.aishortcuts[iPt].length;k++) {
+					var aishortcut = oMap.aishortcuts[iPt][k];
+					var startPt = aishortcut[0];
+					aishortcut = aishortcut.slice(1);
 					if (!aishortcut[2]) aishortcut[2] = {};
 					var aiOptions = aishortcut[2];
 					if (aiOptions.items == null) aiOptions.items = ["champi", "megachampi", "etoile"];
