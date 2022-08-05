@@ -2749,37 +2749,36 @@ function startGame() {
 			else
 				oEnemy.cpu = false;
 		}
-		else {
-			var iPt = inc%oMap.aipoints.length;
-			oEnemy.aipoints = oMap.aipoints[iPt]||[];
-			if (oMap.aishortcuts && oMap.aishortcuts[iPt]) {
-				var validShortcuts = {};
-				var isValidShortcuts = false;
-				for (var k=0;k<oMap.aishortcuts[iPt].length;k++) {
-					var aishortcut = oMap.aishortcuts[iPt][k];
-					var startPt = aishortcut[0];
-					aishortcut = aishortcut.slice(1);
-					if (!aishortcut[2]) aishortcut[2] = {};
-					var aiOptions = aishortcut[2];
-					if (aiOptions.items == null) aiOptions.items = ["champi", "megachampi", "etoile"];
-					if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
-					if (aiOptions.cc == null) aiOptions.cc = 150;
-					var minDifficulty = 4 + aiOptions.difficulty*0.5;
-					var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
-					if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass)) {
-						isValidShortcuts = true;
-						if (!aiOptions.itemsDict) {
-							var oItems = {};
-							for (var j=0;j<aiOptions.items.length;j++)
-								oItems[aiOptions.items[j]] = 1;
-							aiOptions.itemsDict = oItems;
-						}
-						validShortcuts[startPt] = aishortcut;
+
+		var iPt = inc%oMap.aipoints.length;
+		oEnemy.aipoints = oMap.aipoints[iPt]||[];
+		if (oMap.aishortcuts && oMap.aishortcuts[iPt]) {
+			var validShortcuts = {};
+			var isValidShortcuts = false;
+			for (var k=0;k<oMap.aishortcuts[iPt].length;k++) {
+				var aishortcut = oMap.aishortcuts[iPt][k];
+				var startPt = aishortcut[0];
+				aishortcut = aishortcut.slice(1);
+				if (!aishortcut[2]) aishortcut[2] = {};
+				var aiOptions = aishortcut[2];
+				if (aiOptions.items == null) aiOptions.items = ["champi", "megachampi", "etoile"];
+				if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
+				if (aiOptions.cc == null) aiOptions.cc = 150;
+				var minDifficulty = 4 + aiOptions.difficulty*0.5;
+				var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
+				if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass)) {
+					isValidShortcuts = true;
+					if (!aiOptions.itemsDict) {
+						var oItems = {};
+						for (var j=0;j<aiOptions.items.length;j++)
+							oItems[aiOptions.items[j]] = 1;
+						aiOptions.itemsDict = oItems;
 					}
+					validShortcuts[startPt] = aishortcut;
 				}
-				if (isValidShortcuts)
-					oEnemy.aishortcuts = validShortcuts;
 			}
+			if (isValidShortcuts)
+				oEnemy.aishortcuts = validShortcuts;
 		}
 
 		if (isOnline)
@@ -15428,7 +15427,7 @@ function ai(oKart) {
 			if (oKart.aishortcut != null) {
 				var aishortcuts = oKart.aishortcuts[oKart.aipoint];
 				var sRoute = aishortcuts[0];
-				if (oKart.aishortcut > 0)
+				if ((oKart.aishortcut > 0) && (oKart.aishortcut <= sRoute.length))
 					lastAi = sRoute[oKart.aishortcut-1];
 				else
 					lastAi = oKart.aipoints[aiId];
