@@ -1000,7 +1000,10 @@ embed,#ytplayer {
 	align-items: center;
 	justify-content: center;
 	flex-wrap: wrap;
-	gap: 6px;
+	gap: 5px;
+}
+#shortcut-options .form-row-block .form-value input[type="checkbox"] {
+	margin-right: 0;
 }
 #shortcut-options .form-row-block .form-value img {
 	height: 12px;

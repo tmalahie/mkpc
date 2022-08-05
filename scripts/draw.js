@@ -889,7 +889,7 @@ function showShortcutOptions(options) {
 	options = options || {};
 	options.value = options.value || {};
 	var defaultOptions = {
-		items: ["champi", "megachampi", "etoile"],
+		items: ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"],
 		difficulty: 2,
 		cc: 150
 	};

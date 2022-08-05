@@ -2761,7 +2761,7 @@ function startGame() {
 				aishortcut = aishortcut.slice(1);
 				if (!aishortcut[2]) aishortcut[2] = {};
 				var aiOptions = aishortcut[2];
-				if (aiOptions.items == null) aiOptions.items = ["champi", "megachampi", "etoile"];
+				if (aiOptions.items == null) aiOptions.items = ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
 				if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
 				if (aiOptions.cc == null) aiOptions.cc = 150;
 				var minDifficulty = 4 + aiOptions.difficulty*0.5;
@@ -15329,8 +15329,8 @@ function hasShortcutItem(oKart, aishortcut) {
 	return isShortcutItem(oKart.arme, aishortcut);
 }
 function isShortcutItem(arme, aishortcut) {
-	var itemKey;
-	switch (arme) {
+	var itemKey = arme;
+	/*switch (arme) {
 	case "champi":
 	case "champiX2":
 	case "champiX3":
@@ -15346,7 +15346,7 @@ function isShortcutItem(arme, aishortcut) {
 	case "billball":
 		itemKey = "billball";
 		break;
-	}
+	}*/
 	return isShortcutItemKey(itemKey, aishortcut);
 }
 function isShortcutItemKey(itemKey, aishortcut) {
@@ -15907,12 +15907,13 @@ function ai(oKart) {
 				}
 			}
 			else {
-				var shouldWait = false;
+				var shouldWait = false, isCutting = false;
 				if (oKart.aishortcuts) {
 					var shouldWaitItemCache;
 					if (hasShortcutItem(oKart)) {
 						if (oKart.aishortcut != null) {
-							if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
+							isCutting = true;
+							if (!oKart.champi && (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10)))
 								arme(aKarts.indexOf(oKart));
 						}
 						else {
@@ -15930,7 +15931,7 @@ function ai(oKart) {
 					}
 					oKart.shouldWaitItemCache = shouldWaitItemCache;
 				}
-				if (!shouldWait) {
+				if (!shouldWait && !isCutting) {
 					switch (oKart.arme) {
 					case "megachampi":
 					case "etoile":

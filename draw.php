@@ -22,7 +22,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create circuit':'Créer circuit'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=3" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=4" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -34,7 +34,7 @@ if (isset($_GET['i'])) {
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
 		<script type="text/javascript" src="scripts/editor.js?reload=3"></script>
-		<script type="text/javascript" src="scripts/draw.js?reload=3"></script>
+		<script type="text/javascript" src="scripts/draw.js?reload=4"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
@@ -347,6 +347,9 @@ if (isset($_GET['i'])) {
 						<div class="form-label"><?php echo $language ? 'Possible items to take the shortcut:' : 'Objets possibles pour prendre le raccourci:'; ?></div>
 						<div class="form-value">
 							<label><input type="checkbox" name="item.champi" /> <img src="images/items/champi.png" /></label>
+							<label><input type="checkbox" name="item.champiX2" /> <img src="images/items/champiX2.png" /></label>
+							<label><input type="checkbox" name="item.champiX3" /> <img src="images/items/champiX3.png" /></label>
+							<label><input type="checkbox" name="item.champior" /> <img src="images/items/champior.png" /></label>
 							<label><input type="checkbox" name="item.megachampi" /> <img src="images/items/megachampi.png" /></label>
 							<label><input type="checkbox" name="item.etoile" /> <img src="images/items/etoile.png" /></label>
 						</div>
@@ -977,7 +980,7 @@ else {
 		<?php
 		include('o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=3" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=4" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css?reload=3" />
 		<script type="text/javascript">
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
