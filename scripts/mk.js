@@ -1457,15 +1457,23 @@ function getShapeType(oBox) {
 		return "rectangle";
 	return "polygon";
 }
-function classifyByShape(shapes) {
+function classifyByShape(shapes, callback) {
 	var res = {rectangle:[],polygon:[]};
-	for (var i=0;i<shapes.length;i++)
-		res[getShapeType(shapes[i])].push(shapes[i]);
+	for (var i=0;i<shapes.length;i++) {
+		var shapeType = getShapeType(shapes[i]);
+		if (callback) callback(i,res[shapeType].length, shapeType);
+		res[shapeType].push(shapes[i]);
+	}
 	return res;
 }
 function initMap() {
-	if (oMap.collision)
-		oMap.collision = classifyByShape(oMap.collision);
+	if (oMap.collision) {
+		var collisionProps = {rectangle:{},polygon:{}};
+		oMap.collision = classifyByShape(oMap.collision, oMap.collisionProps && function(i,j, shapeType) {
+			collisionProps[shapeType][j] = oMap.collisionProps[i];
+		});
+		oMap.collisionProps = collisionProps;
+	}
 	if (oMap.pivots) {
 		for (var i=0;i<oMap.pivots.length;i++) {
 			var pivot = oMap.pivots[i][1];
@@ -1476,6 +1484,11 @@ function initMap() {
 	if (oMap.horspistes) {
 		for (var type in oMap.horspistes)
 			oMap.horspistes[type] = classifyByShape(oMap.horspistes[type]);
+	}
+	if (oMap.checkpoint) {
+		oMap.checkpointCoords = oMap.checkpoint.map(function(oBox) {
+			return getCheckpointCoords(oBox);
+		});
 	}
 	if (oMap.flowers) {
 		for (var i=0;i<oMap.flowers.length;i++) {
@@ -1518,11 +1531,43 @@ function initMap() {
 		}
 	}
 	if (oMap.sauts) {
+		var sauts = {rectangle:[],polygon:[]};
 		for (var i=0;i<oMap.sauts.length;i++) {
 			var oBox = oMap.sauts[i];
-			if (oBox.length < 5)
-				oBox[4] = (oBox[2]+oBox[3])/45+1;
+			var shapeType;
+			if (typeof oBox[0] === "number") {
+				shapeType = "rectangle";
+				oBox = [oBox.slice(0,4),oBox[4]];
+			}
+			else {
+				shapeType = getShapeType(oBox[0]);
+				oBox = [oBox[0],oBox[1]]
+			}
+			if (!oBox[1]) {
+				var oShape = oBox[0];
+				var shapeW, shapeH;
+				switch (shapeType) {
+				case "rectangle":
+					shapeW = oShape[2];
+					shapeH = oShape[3];
+					break;
+				case "polygon":
+					var minX = oMap.w*2, maxX = -oMap.w, minY = oMap.h*2, maxY = -oMap.h;
+					for (var j=0;j<oShape.length;j++) {
+						var oPoint = oShape[j];
+						minX = Math.min(minX, oPoint[0]);
+						maxX = Math.max(maxX, oPoint[0]);
+						minY = Math.min(minY, oPoint[1]);
+						maxY = Math.max(maxY, oPoint[1]);
+					}
+					shapeW = maxX - minX;
+					shapeH = maxY - minY;
+				}
+				oBox[1] = (shapeW+shapeH)/45+1;
+			}
+			sauts[shapeType].push(oBox);
 		}
+		oMap.sauts = sauts;
 	}
 	if (oMap.cannons) {
 		var cannons = {rectangle:[],polygon:[]};
@@ -1539,6 +1584,14 @@ function initMap() {
 			teleports[getShapeType(teleport[0])].push(teleport);
 		}
 		oMap.teleports = teleports;
+	}
+	if (oMap.elevators) {
+		var elevators = {rectangle:[],polygon:[]};
+		for (var i=0;i<oMap.elevators.length;i++) {
+			var elevator = oMap.elevators[i];
+			elevators[getShapeType(elevator[0])].push(elevator);
+		}
+		oMap.elevators = elevators;
 	}
 	if (oMap.sea) {
 		var oWaves = oMap.sea.waves;
@@ -1952,10 +2005,9 @@ function arme(ID, backwards, forwards) {
 						var demitour = oKart.demitours+1;
 						if (demitour >= oMap.checkpoint.length)
 							demitour = 0;
-						var nextCp = oMap.checkpoint[demitour];
+						var nextCp = oMap.checkpointCoords[demitour];
 						if (nextCp) {
-							var cpX = nextCp[0] + (nextCp[3] ? Math.round(nextCp[2]/2) : 8);
-							var cpY = nextCp[1] + (nextCp[3] ? 8 : Math.round(nextCp[2]/2));
+							var cpX = nextCp.O[0], cpY = nextCp.O[1];
 							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
 							if (ddist)
 								dist -= 150*((cpX-oKart.x)*(aipoint[0]-lastAipoint[0]) + (cpY-oKart.y)*(aipoint[1]-lastAipoint[1]))/ddist;
@@ -2697,8 +2749,37 @@ function startGame() {
 			else
 				oEnemy.cpu = false;
 		}
-		else
-			oEnemy.aipoints = oMap.aipoints[inc%oMap.aipoints.length]||[];
+
+		var iPt = inc%oMap.aipoints.length;
+		oEnemy.aipoints = oMap.aipoints[iPt]||[];
+		if (oMap.aishortcuts && oMap.aishortcuts[iPt]) {
+			var validShortcuts = {};
+			var isValidShortcuts = false;
+			for (var k=0;k<oMap.aishortcuts[iPt].length;k++) {
+				var aishortcut = oMap.aishortcuts[iPt][k];
+				var startPt = aishortcut[0];
+				aishortcut = aishortcut.slice(1);
+				if (!aishortcut[2]) aishortcut[2] = {};
+				var aiOptions = aishortcut[2];
+				if (aiOptions.items == null) aiOptions.items = ["champi", "megachampi", "etoile"];
+				if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
+				if (aiOptions.cc == null) aiOptions.cc = 150;
+				var minDifficulty = 4 + aiOptions.difficulty*0.5;
+				var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
+				if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass)) {
+					isValidShortcuts = true;
+					if (!aiOptions.itemsDict) {
+						var oItems = {};
+						for (var j=0;j<aiOptions.items.length;j++)
+							oItems[aiOptions.items[j]] = 1;
+						aiOptions.itemsDict = oItems;
+					}
+					validShortcuts[startPt] = aishortcut;
+				}
+			}
+			if (isValidShortcuts)
+				oEnemy.aishortcuts = validShortcuts;
+		}
 
 		if (isOnline)
 			oEnemy.nick = aPseudos[inc];
@@ -6199,6 +6280,7 @@ var itemBehaviors = {
 					fSpriteExcept = otherPlayerItems(fSpriteExcept);
 					oSpriteExcept = otherPlayerItems([]);
 				}
+				collisionFloor = null;
 				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept)) {
 					detruit(fSprite,true);
 					break;
@@ -6212,12 +6294,13 @@ var itemBehaviors = {
 				else {
 					fSprite.lives--;
 					if (fSprite.lives > 0) {
-						var horizontality = getHorizontality(fSprite.x,fSprite.y, fMoveX,fMoveY);
-						var u = Math.hypot(horizontality[0],horizontality[1]);
-						var ux = horizontality[0]/u, uy = horizontality[1]/u;
-						var m_u = fMoveX*ux + fMoveY*uy;
-						fSprite.vx = 2*m_u*ux-fSprite.vx;
-						fSprite.vy = 2*m_u*uy-fSprite.vy;
+						var horizontality = getHorizontality(fSprite.x,fSprite.y,collisionFloor?collisionFloor.z:0, fMoveX,fMoveY);
+						var ux = horizontality[0], uy = horizontality[1];
+						var vx = fSprite.vx, vy = fSprite.vy;
+						var m_u = vx*ux + vy*uy;
+						var l = 0.7;
+						fSprite.vx = l*(2*m_u*ux - vx);
+						fSprite.vy = l*(2*m_u*uy - vy);
 					}
 					else
 						detruit(fSprite);
@@ -6485,7 +6568,7 @@ var itemBehaviors = {
 					if (!fSprite.z) {
 						if (isMoving && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 50)) {
 							for (var k=0;k<4;k++) {
-								var h = getHorizontality(fSprite.x,fSprite.y, fMoveX,fMoveY, {nullableRes:true,holes:true,skipDecor:true});
+								var h = getHorizontality(fSprite.x,fSprite.y,0, fMoveX,fMoveY, {nullableRes:true,holes:true,skipDecor:true});
 								if (h) {
 									var u = h[0]*fMoveX + h[1]*fMoveY;
 									var uD = 1.5-0.5*Math.min(Math.abs(u)/dSpeed,1);
@@ -6518,7 +6601,7 @@ var itemBehaviors = {
 						handleHeightInc(fSprite);
 					}
 				}
-				if (((fSprite.owner == -1) || (fSprite.z > 1.175) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept)) {
+				if (((fSprite.owner == -1) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept)) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
 				}
@@ -8049,13 +8132,14 @@ var decorBehaviors = {
 									oMap.decor[this.type] = [];
 									var pJump = sauts(decorData[0],decorData[1], fMoveX,fMoveY);
 									var pAsset;
+									collisionFloor = null;
 									if (pJump) {
 										var nSpeed = this.jumpspeed(pJump), nMove = 32*pJump;
 										var nMoveX = diffX*nMove/diffL, nMoveY = diffY*nMove/diffL;
 										this.autojump(decorData,nMoveX,nMoveY,nSpeed);
 									}
 									else if (!canMoveTo(decorData[0],decorData[1],0, fMoveX,fMoveY)) {
-										var horizontality = getHorizontality(decorData[0],decorData[1], fMoveX,fMoveY);
+										var horizontality = getHorizontality(decorData[0],decorData[1],collisionFloor?collisionFloor.z:0, fMoveX,fMoveY);
 										var u = Math.hypot(horizontality[0],horizontality[1]);
 										var ux = horizontality[0]/u, uy = horizontality[1]/u;
 										var m_u = fMoveX*ux + fMoveY*uy;
@@ -9341,7 +9425,7 @@ function colKart(getId) {
 		var isChampiCol = (course == "BB") && (!oKart.champi != !kart.champi);
 		if (oKart.cpu && kart.cpu && (protect1 == protect2) && !isChampiCol)
 			continue;
-		if (!friendlyFire(oKart,kart) && (course!="BB"||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=1.175||oKart.billball) && (kart.z<=1.175||kart.billball) && !oKart.tourne && !kart.tourne) {
+		if (!friendlyFire(oKart,kart) && (course!="BB"||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||oKart.billball) && (kart.z<=jumpHeight0||kart.billball) && !oKart.tourne && !kart.tourne) {
 			var dir1 = kartInstantSpeed(oKart), dir2 = kartInstantSpeed(kart);
 			var relDir = [dir2[0]-dir1[0],dir2[1]-dir1[1]];
 			var nDir1 = [oKart.x-kart.x,oKart.y-kart.y];
@@ -9445,6 +9529,25 @@ function pointInPolygon(x,y, vs) {
 	
 	return inside;
 }
+function pointInQuad(x,y, quad) {
+	var l = projete(x,y, quad.A[0],quad.A[1], quad.B[0],quad.B[1]);
+	if ((l > 0) && (l <= 1)) {
+		l = projete(x,y, quad.A[0],quad.A[1], quad.C[0],quad.C[1]);
+		if ((l > 0) && (l <= 1))
+			return true;
+	}
+	return false;
+}
+function pointInAltitude(zMap, i,z) {
+	return (z < getZoneHeight(zMap, i));
+}
+function getZoneHeight(zMap, i) {
+	var wallProps = zMap[i] || { z: 1 };
+	return getPointHeight(wallProps.z);
+}
+function getPointHeight(z) {
+	return z*jumpHeight1;
+}
 
 function pointCrossRectangle(iX,iY,iI,iJ, oBox) {	
 	var aPos = [iX,iY], aMove = [iI,iJ];
@@ -9469,7 +9572,8 @@ function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
 	return false;
 }
 
-function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
+var jumpHeight0 = 1.175, jumpHeight1 = jumpHeight0+1e-5;
+function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 	var nX = iX+iI, nY = iY+iJ;
 
 	if (oMap.decor) {
@@ -9516,7 +9620,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 		}
 	}
 
-	if (iZ > 1.175) return true;
+	if (iZ > jumpHeight0 && !oMap.collisionProps) return true;
 
 	if (!oMap.collision) return true;
 
@@ -9529,15 +9633,38 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 		}
 	}
 
+	var zH = 0;
 	var oRectangles = oMap.collision.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
 		if (pointInRectangle(iX,iY, oRectangles[i]))
-			return true;
+			zH = Math.max(zH, getZoneHeight(oMap.collisionProps.rectangle, i));
 	}
 	var oPolygons = oMap.collision.polygon;
 	for (var i=0;i<oPolygons.length;i++) {
 		if (pointInPolygon(iX,iY, oPolygons[i]))
-			return true;
+			zH = Math.max(zH, getZoneHeight(oMap.collisionProps.polygon, i));
+	}
+	if (oMap.elevators) {
+		var eRectangles = oMap.elevators.rectangle;
+		for (var i=0;i<eRectangles.length;i++) {
+			var oRectangle = eRectangles[i];
+			if (pointInRectangle(iX,iY, oRectangle[0]) && !(iZ0 < getPointHeight(oRectangle[1][0])))
+				zH = Math.max(zH, getPointHeight(oRectangle[1][1]));
+		}
+		var ePolygons = oMap.elevators.polygon;
+		for (var i=0;i<ePolygons.length;i++) {
+			var oPolygon = ePolygons[i];
+			if (pointInPolygon(iX,iY, oPolygon[0]) && !(iZ0 < getPointHeight(oPolygon[1][0])))
+				zH = Math.max(zH, getPointHeight(oPolygon[1][1]));
+		}
+	}
+
+	if (iZ0) iZ += iZ0;
+	if (zH) {
+		if (!oMap.collisionProps) return true;
+		if (zH > iZ)
+			iZ = zH;
+		collisionFloor = { z: zH };
 	}
 	
 	if (!isCup) {
@@ -9550,11 +9677,11 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP) {
 	}
 
 	for (var i=0;i<oRectangles.length;i++) {
-		if (pointCrossRectangle(iX,iY,iI,iJ, oRectangles[i]))
+		if (pointCrossRectangle(iX,iY,iI,iJ, oRectangles[i]) && pointInAltitude(oMap.collisionProps.rectangle, i,iZ))
 			return false;
 	}
 	for (var i=0;i<oPolygons.length;i++) {
-		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]) && pointInAltitude(oMap.collisionProps.polygon, i,iZ))
 			return false;
 	}
 	return true;
@@ -9674,7 +9801,7 @@ function rotateVector(u,v,theta) {
 	return [u*cs-v*sn, u*sn+v*cs];
 }
 
-function getHorizontality(iX,iY, iI,iJ, options) {
+function getHorizontality(iX,iY,iZ, iI,iJ, options) {
 	if (!options) options = {};
 	var nearCol = {
 		"t" : 1
@@ -9722,7 +9849,7 @@ function getHorizontality(iX,iY, iI,iJ, options) {
 			}
 		}
 	}
-	function handleCollisions(oBoxes, boxFn) {
+	function handleCollisions(oBoxes, boxFn, checkHeightFn) {
 		var oRectangles = oBoxes.rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
 			var oBox = boxFn(oRectangles[i]);
@@ -9748,7 +9875,7 @@ function getHorizontality(iX,iY, iI,iJ, options) {
 				"y2" : oBox[1]+oBox[3]
 			}];
 			var colLine = getLineHorizontality(iX,iY, nX,nY, lines);
-			if (colLine && (colLine.t < nearCol.t))
+			if (colLine && (colLine.t < nearCol.t) && checkHeightFn("rectangle", i,iZ))
 				nearCol = colLine;
 		}
 		var oPolygons = oBoxes.polygon;
@@ -9765,15 +9892,15 @@ function getHorizontality(iX,iY, iI,iJ, options) {
 				})
 			}
 			var colLine = getLineHorizontality(iX,iY, nX,nY, lines);
-			if (colLine && (colLine.t < nearCol.t))
+			if (colLine && (colLine.t < nearCol.t) && checkHeightFn("polygon", i,iZ))
 				nearCol = colLine;
 		}
 	}
 	if (oMap.collision)
-		handleCollisions(oMap.collision, function(oBox) { return oBox; });
+		handleCollisions(oMap.collision, function(oBox) { return oBox; }, function(shapeType, i,z) { return pointInAltitude(oMap.collisionProps[shapeType], i,z) });
 	if (options.holes && oMap.trous) {
 		for (var j=0;j<oMap.trous.length;j++)
-			handleCollisions(oMap.trous[j], function(oBox) { return oBox[0]; });
+			handleCollisions(oMap.trous[j], function(oBox) { return oBox[0]; }, function(oBox) { return true; });
 	}
 	if (nearCol.dir) {
 		var norm = Math.hypot(nearCol.dir[0],nearCol.dir[1]);
@@ -9830,7 +9957,7 @@ function getHoleSegmentDist(currentRes, x,y, x1,y1, u1,v1) {
 	var res = u*u + v*v;
 	if (res > currentRes)
 		return currentRes;
-	if (canMoveTo(x,y, u,v))
+	if (canMoveTo(x,y,0, u,v))
 		return res;
 	return currentRes;
 }
@@ -9879,12 +10006,22 @@ function sauts(iX, iY, iI, iJ) {
 		return false;
 	var aPos = [iX, iY], aMove = [iI, iJ];
 	var dir = [(iI>0), (iJ>0)];
-	for (var i=0;i<oMap.sauts.length;i++) {
-		var oBox = oMap.sauts[i];
-		if (pointInRectangle(iX,iY, oBox))
-			return oBox[4];
-		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
-			return oBox[4];
+	var oRectangles = oMap.sauts.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
+		if (pointInRectangle(iX,iY, oBox[0]))
+			return oBox[1];
+		if (pointCrossRectangle(iX,iY, iI,iJ, oBox[0]))
+			return oBox[1];
+	}
+	var oPolygons = oMap.sauts.polygon;
+	var nX = iX+iI, nY = iY+iJ;
+	for (var i=0;i<oPolygons.length;i++) {
+		var oBox = oPolygons[i];
+		if (pointInPolygon(iX,iY, oBox[0]))
+			return oBox[1];
+		if (pointCrossPolygon(iX,iY, nX,nY, oBox[0]))
+			return oBox[1];
 	}
 	return false;
 }
@@ -9892,7 +10029,7 @@ function handleJump(oKart, pJump) {
 	if (pJump && !oKart.tourne) {
 		var height0 = pJump * 1.5;
 		oKart.heightinc = height0 * Math.pow(cappedRelSpeed(oKart), -0.7);
-		if ((fSelectedClass > 1) && (0.7*oKart.heightinc*oKart.heightinc < 1.175))
+		if ((fSelectedClass > 1) && (0.7*oKart.heightinc*oKart.heightinc < jumpHeight0))
 			oKart.z = Math.max(oKart.z, height0*height0 - oKart.heightinc*oKart.heightinc);
 		return true;
 	}
@@ -11997,7 +12134,7 @@ function getDefaultPointDistribution(nbPlayers) {
 }
 
 var COL_KART = 0, COL_OBJ = 1;
-var collisionTest, collisionPlayer, collisionTeam, collisionDecor;
+var collisionTest, collisionPlayer, collisionTeam, collisionDecor, collisionFloor;
 function isHitSound(oBox) {
 	if (collisionTest==COL_OBJ)
 		return true;
@@ -12339,7 +12476,27 @@ function stuntKart(oKart) {
 	playIfShould(oKart, "musics/events/stunt.mp3");
 }
 
-function places(j,force) {
+function getRankScore(oKart) {
+	if (course != "BB") {
+		var dest = oKart.demitours+1;
+		if (dest >= oMap.checkpoint.length) dest = 0;
+
+		var iLine = oMap.checkpointCoords[dest];
+		var hLine = projete(oKart.x,oKart.y, iLine.A[0],iLine.A[1], iLine.B[0],iLine.B[1]);
+		var xLine = iLine.A[0] + hLine*iLine.u[0], yLine = iLine.A[1] + hLine*iLine.u[1];
+		var dLine = Math.hypot(xLine-oKart.x, yLine-oKart.y);
+
+		return oKart.tours*oMap.checkpoint.length + getCpScore(oKart) - dLine / 10000;
+	}
+	else
+		return oKart.ballons.length ? oKart.ballons.length+oKart.reserve : 0;
+}
+function getRankScores() {
+	return aKarts.map(function(oKart) {
+		return getRankScore(oKart);
+	});
+}
+function places(j,aRankScores,force) {
 	var oKart = aKarts[j];
 	var retour = !force;
 	for (var i=0;i<strPlayer.length;i++) {
@@ -12349,27 +12506,14 @@ function places(j,force) {
 	if (retour) return;
 	var place = 1;
 	if (course != "BB") {
-		if (oKart.tours > oMap.tours || !oMap.checkpoint.length) return;
-		var dest = oKart.demitours+1;
-		if (dest >= oMap.checkpoint.length) dest = 0;
-		var iLine = oMap.checkpoint[dest][3];
-		var score = oKart.tours*oMap.checkpoint.length + getCpScore(oKart) - Math.abs(oKart[(iLine ? "y" : "x")]-oMap.checkpoint[dest][iLine]) / 10000;
-		for (var i=0;i<aKarts.length;i++) {
-			var kart = aKarts[i];
-			dest = kart.demitours+1;
-			if (dest >= oMap.checkpoint.length) dest = 0;
-			iLine = oMap.checkpoint[dest][3];
-			if (kart != oKart && kart.tours*oMap.checkpoint.length + getCpScore(kart) - Math.abs(kart[(iLine ? "y" : "x")]-oMap.checkpoint[dest][iLine]) / 10000 > score)
-			place++;
-		}
+		if (oKart.tours > oMap.tours || !oMap.checkpoint.length)
+			return;
 	}
-	else {
-		for (i=0;i<aKarts.length;i++) {
-			var score1 = oKart.ballons.length ? oKart.ballons.length+oKart.reserve : 0;
-			var score2 = aKarts[i].ballons.length ? aKarts[i].ballons.length+aKarts[i].reserve : 0;
-			if ((aKarts[i] != oKart) && (score1 < score2) || ((score1 == score2) && (oKart.initialPlace > aKarts[i].initialPlace)))
-				place++;
-		}
+	var score1 = aRankScores[j];
+	for (i=0;i<aKarts.length;i++) {
+		var score2 = aRankScores[i];
+		if ((aKarts[i] != oKart) && (score1 < score2) || ((score1 == score2) && (oKart.initialPlace > aKarts[i].initialPlace)))
+			place++;
 	}
 	if (!oKart.loose)
 		oKart.place = place;
@@ -12443,9 +12587,9 @@ function distanceToKart(kart,oKart) {
 			checkpoint = 0;
 			tours++;
 		}
-		var oBox = oMap.checkpoint[checkpoint];
-		var nPosX = oBox[0] + (oBox[3] ? Math.round(oBox[2]/2) : 8);
-		var nPosY = oBox[1] + (oBox[3] ? 8 : Math.round(oBox[2]/2));
+		var oBox = oMap.checkpointCoords[checkpoint];
+		var nPosX = oBox.O[0], nPosY = oBox.O[1];
+
 		res += Math.hypot(nPosX-posX, nPosY-posY);
 		posX = nPosX;
 		posY = nPosY;
@@ -12461,20 +12605,14 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	if (!simplified) {
 		var iCP = getNextCp(kart);
 	}
-	for (var i=0;i<oMap.checkpoint.length;i++) {
-		var oBox = oMap.checkpoint[i];
-		var oRect = [oBox[0],oBox[1],15,15];
-		oRect[3-oBox[3]] = oBox[2];
-		var inRect = pointInRectangle(kart.x,kart.y, oRect);
+	for (var i=0;i<oMap.checkpointCoords.length;i++) {
+		var oBox = oMap.checkpointCoords[i];
+		var inRect = pointInQuad(kart.x,kart.y, oBox);
 		if (!inRect && fast) {
-			var j = oBox[3];
-			var l = dir[j];
-			if ((l ? ((aPos[j] <= oRect[j])&&((aPos[j]+aMove[j]) >= oRect[j])):((aPos[j] >= (oRect[j]+oRect[j+2]))&&((aPos[j]+aMove[j]) <= (oRect[j]+oRect[j+2]))))) {
-				var dim = 1-j;
-				var croiseJ = aPos[dim] + ((l?oRect[j]:oRect[j]+oRect[j+2])-aPos[j])*aMove[dim]/aMove[j];
-				if ((croiseJ >= oRect[dim]) && (croiseJ <= (oRect[dim]+oRect[dim+2])))
-					inRect = true;
-			}
+			if (secants(aPos[0],aPos[1],kart.x,kart.y, oBox.A[0],oBox.A[1], oBox.B[0],oBox.B[1]))
+				inRect = true;
+			else if (secants(aPos[0],aPos[1],kart.x,kart.y, oBox.C[0],oBox.C[1], oBox.D[0],oBox.D[1]))
+				inRect = true;
 		}
 		if (inRect) {
 			if (simplified) {
@@ -12506,6 +12644,51 @@ function checkpoint(kart, fMoveX,fMoveY) {
 		}
 	}
 	return false;
+}
+function getCheckpointCoords(oBox) {
+	var x = oBox[0], y = oBox[1];
+	var w = oBox[2], h = 15;
+	var mainCoords;
+	switch (oBox[3]) {
+	case 0:
+	case 1:
+		var l = oBox[3];
+		mainCoords = {
+			A: [x,y],
+			u: [l ? w:0, l ? 0:w],
+			v: [l ? 0:h, l ? h:0],
+			O: [x + (l ? w/2:8), y + (l ? 8:w/2)]
+		};
+		break;
+	default:
+		var actualTheta = oBox[3]*Math.PI/2;
+		var u0 = 7.5, v0 = 7.5;
+		var cosTheta = Math.cos(actualTheta), sinTheta = Math.sin(actualTheta);
+		var xR = x + u0, yR = y + v0;
+		var yCR = oBox[2]/2 - u0;
+		var xC = xR + yCR*sinTheta, yC = yR + yCR*cosTheta;
+
+		var xU = w*sinTheta, xV = h*cosTheta, yU = -w*cosTheta, yV = h*sinTheta;
+		mainCoords = {
+			A: [xC - (xU+xV)/2, yC - (yU+yV)/2],
+			u: [xU,yU],
+			v: [xV,yV],
+			O: [xC,yC]
+		};
+	}
+	mainCoords.B = [
+		mainCoords.A[0]+mainCoords.u[0],
+		mainCoords.A[1]+mainCoords.u[1]
+	];
+	mainCoords.C = [
+		mainCoords.A[0]+mainCoords.v[0],
+		mainCoords.A[1]+mainCoords.v[1]
+	];
+	mainCoords.D = [
+		mainCoords.B[0]+mainCoords.v[0],
+		mainCoords.B[1]+mainCoords.v[1]
+	];
+	return mainCoords;
 }
 
 function int8ToHexString(arr) {
@@ -13654,7 +13837,9 @@ function move(getId, triggered) {
 	}
 
 	collisionDecor = null;
-	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect)) {
+	collisionFloor = null;
+	var nPosZ0;
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0)) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
@@ -13670,7 +13855,8 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		var horizontality = getHorizontality(aPosX,aPosY, fMoveX,fMoveY);
+		var z0 = Math.max(collisionFloor?collisionFloor.z:0, oKart.z+(oKart.z0||0));
+		var horizontality = getHorizontality(aPosX,aPosY,z0, fMoveX,fMoveY);
 		if (oKart.cpu) {
 			oKart.collided = true;
 			oKart.horizontality = horizontality;
@@ -13686,7 +13872,7 @@ function move(getId, triggered) {
 		for (var i=5;i>0;i--) {
 			oKart.x += horizontality[0]*s*i/5;
 			oKart.y += horizontality[1]*s*i/5;
-			if (canMoveTo(aPosX,aPosY,oKart.z, oKart.x-aPosX,oKart.y-aPosY, oKart.protect))
+			if (canMoveTo(aPosX,aPosY,oKart.z, oKart.x-aPosX,oKart.y-aPosY, oKart.protect, oKart.z0||0))
 				break;
 			else {
 				oKart.x = aPosX;
@@ -13712,6 +13898,8 @@ function move(getId, triggered) {
 			}
 		}
 	}
+	if (collisionFloor)
+		nPosZ0 = collisionFloor.z;
 
 	if (!oKart.speedinc)
 		oKart.speed *= oKart.sliding ? 0.95:0.9;
@@ -13774,6 +13962,10 @@ function move(getId, triggered) {
 		if (!oKart.heightinc) {
 			oKart.ctrled = false;
 			oKart.fell = false;
+			if (nPosZ0)
+				oKart.z0 = nPosZ0;
+			else if (oKart.z0)
+				delete oKart.z0;
 		}
 		if (oKart.figuring) {
 			oKart.turbodrift = 15;
@@ -13944,21 +14136,16 @@ function move(getId, triggered) {
 			oKart.demitours = getNextCp(oKart);
 			oKart.tours++;
 
-			var lastCp = oMap.checkpoint[0];
+			var lastCp = oMap.checkpointCoords[0];
 			if (oMap.sections)
-				lastCp = oMap.checkpoint[oMap.checkpoint.length-1];
-			var distToCp, dSpeed;
-			if (lastCp[3]) {
-				var distToCp = (aPosY<lastCp[1]) ? (lastCp[1]-aPosY) : (aPosY-lastCp[1]-15);
-				dSpeed = fMoveY;
-			}
-			else {
-				var distToCp = (aPosX<lastCp[0]) ? (lastCp[0]-aPosX) : (aPosX-lastCp[0]-15);
-				dSpeed = fMoveX;
-			}
-			var dt = distToCp/Math.abs(dSpeed);
-			dt = Math.max(0,Math.min(dt,1));
-			if (isNaN(dt-dt)) dt = 0.5;
+				lastCp = oMap.checkpointCoords[oMap.checkpointCoords.length-1];
+			var dt = 1;
+			var crossPoint = intersectionLineLine(aPosX,aPosY, aPosX+fMoveX,aPosY+fMoveY, lastCp.A[0],lastCp.A[1], lastCp.B[0],lastCp.B[1]);
+			if (crossPoint[0] >= 0 && crossPoint[0] < dt)
+				dt = crossPoint[0];
+			crossPoint = intersectionLineLine(aPosX,aPosY, aPosX+fMoveX,aPosY+fMoveY, lastCp.C[0],lastCp.C[1], lastCp.D[0],lastCp.D[1]);
+			if (crossPoint[0] >= 0 && crossPoint[0] < dt)
+				dt = crossPoint[0];
 
 			var lapTimer = Math.round((timer+dt-1)*SPF);
 			if ((oKart == oPlayers[0]) && !oKart.cpu) {
@@ -14003,8 +14190,9 @@ function move(getId, triggered) {
 					if (!oPlayers[1-getId] || oPlayers[1-getId].cpu) {
 						if (!isOnline) {
 							if (course != "CM") {
+								var aRankScores = getRankScores();
 								for (var i=0;i<nbjoueurs;i++)
-									places(i,true);
+									places(i,aRankScores,true);
 								var cKarts = aKarts.slice(0);
 								cKarts.sort(function(k1,k2) {
 									return k1.place-k2.place;
@@ -14293,7 +14481,7 @@ function move(getId, triggered) {
 				for (i=strPlayer.length;i<aKarts.length;i++)
 					aKarts[i].loose = true;
 			}
-			else {
+			else if (aKarts.length > 1) {
 				if (iTeamPlay) {
 					var EnVie = new Array(selectedNbTeams).fill(false);
 					var nEnVie = 0;
@@ -14504,9 +14692,15 @@ function move(getId, triggered) {
 			var demitour = oKart.demitours+1;
 			if (demitour >= oMap.checkpoint.length)
 				demitour = 0;
-			var oBox = oMap.checkpoint[demitour];
+
+			var oBox = oMap.checkpointCoords[demitour];
+			iLocalX = oBox.O[0] - oKart.x;
+			iLocalY = oBox.O[1] - oKart.y;
+
+			oBox = oMap.checkpoint[demitour];
 			iLocalX = oBox[0] + (oBox[3] ? Math.round(oBox[2]/2) : 8) - oKart.x;
 			iLocalY = oBox[1] + (oBox[3] ? 8 : Math.round(oBox[2]/2)) - oKart.y;
+
 			dance: for (var i=0;i<oMap.aipoints.length;i++) {
 				var aipoints = oMap.aipoints[i];
 				for (var j=0;j<aipoints.length;j++) {
@@ -14523,7 +14717,7 @@ function move(getId, triggered) {
 							oKart.aipoint = nextAI;
 							iLocalX = nPosX - oKart.x;
 							iLocalY = nPosY - oKart.y;
-							break;
+							break dance;
 						}
 					}
 				}
@@ -15106,12 +15300,84 @@ function distToAiPoints(x,y, aipoints) {
 	return d2;
 }
 
+function distToNextShortcut(oKart) {
+	var aiId = oKart.aipoint;
+	var currentAi = oKart.aipoints[aiId];
+	if (!currentAi) return Infinity;
+	var res = Math.hypot(currentAi[0]-oKart.x, currentAi[1]-oKart.y);
+	while (true) {
+		if (oKart.aishortcuts[aiId] && hasShortcutItem(oKart, oKart.aishortcuts[aiId]) && !hasExtraShortcutItem(oKart, oKart.aishortcuts[aiId]))
+			return res;
+		var nextAiId = aiId + 1;
+		if (nextAiId >= oKart.aipoints.length) {
+			if (oMap.sections || oKart.tours >= oMap.tours)
+				return Infinity;
+			nextAiId = 0;
+		}
+		var nextAi = oKart.aipoints[nextAiId];
+		res += Math.hypot(nextAi[0]-currentAi[0], nextAi[1]-currentAi[1]);
+		aiId = nextAiId;
+		currentAi = oKart.aipoints[aiId];
+		if (aiId == oKart.aipoint)
+			return Infinity;
+	}
+}
+
+function hasShortcutItem(oKart, aishortcut) {
+	if (oKart.using.length) return false;
+	if (oKart.roulette != 25) return false;
+	return isShortcutItem(oKart.arme, aishortcut);
+}
+function isShortcutItem(arme, aishortcut) {
+	var itemKey;
+	switch (arme) {
+	case "champi":
+	case "champiX2":
+	case "champiX3":
+	case "champior":
+		itemKey = "champi";
+		break;
+	case "megachampi":
+		itemKey = "megachampi";
+		break;
+	case "etoile":
+		itemKey = "etoile";
+		break;
+	case "billball":
+		itemKey = "billball";
+		break;
+	}
+	return isShortcutItemKey(itemKey, aishortcut);
+}
+function isShortcutItemKey(itemKey, aishortcut) {
+	if (!itemKey) return false;
+	return aishortcut ? aishortcut[2].itemsDict[itemKey] : true;
+}
+function hasExtraShortcutItem(oKart, aishortcut) {
+	if (oKart.roulette2 == 25) {
+		if (isShortcutItem(oKart.stash, aishortcut))
+			return true;
+	}
+	if (isShortcutItemKey("champi", aishortcut)) {
+		switch (oKart.arme) {
+		case "champiX2":
+		case "champiX3":
+			return true;
+		case "champior":
+			if (oKart.champior)
+				return true;
+		}
+	}
+	return false;
+}
+
 var fMaxRotInCp = 10;
 function ai(oKart) {
 	var simpleBattle = (isBattle && simplified);
 	var completeBattle = (isBattle && complete);
 	var completeCircuit = (!isBattle && complete);
 	if (oKart.aipoint == undefined) {
+		delete oKart.aishortcut;
 		if (course != "BB") {
 			var minDist = Infinity;
 			for (var i=0;i<oKart.aipoints.length;i++) {
@@ -15154,15 +15420,44 @@ function ai(oKart) {
 
 	for (var f=0;f<oKart.aipoints.length;f++) {
 		var lastAi, currentAi, nextAi;
+		var aiId = oKart.aipoint;
 		if (course != "BB") {
-			var aiId = oKart.aipoint;
-			var lastAiId = aiId-1;
-			if (lastAiId < 0) lastAiId += oKart.aipoints.length;
-			var nextAiId = aiId+1;
-			if (nextAiId >= oKart.aipoints.length) nextAiId = 0;
-			lastAi = oKart.aipoints[lastAiId];
-			currentAi = oKart.aipoints[aiId];
-			nextAi = oKart.aipoints[nextAiId];
+			if (oKart.aishortcut != null && !oKart.aishortcuts[oKart.aipoint])
+				delete oKart.aishortcut;
+			if (oKart.aishortcut != null) {
+				var aishortcuts = oKart.aishortcuts[oKart.aipoint];
+				var sRoute = aishortcuts[0];
+				if ((oKart.aishortcut > 0) && (oKart.aishortcut <= sRoute.length))
+					lastAi = sRoute[oKart.aishortcut-1];
+				else
+					lastAi = oKart.aipoints[aiId];
+				var nextAiId;
+				if (oKart.aishortcut < sRoute.length) {
+					currentAi = sRoute[oKart.aishortcut];
+					if ((oKart.aishortcut+1) < sRoute.length)
+						nextAi = sRoute[oKart.aishortcut+1];
+					else
+						nextAiId = aishortcuts[1];
+				}
+				else {
+					aiId = aishortcuts[1];
+					currentAi = oKart.aipoints[aiId];
+					nextAiId = aiId+1;
+				}
+				if (nextAiId != null) {
+					if (nextAiId >= oKart.aipoints.length) nextAiId = 0;
+					nextAi = oKart.aipoints[nextAiId];
+				}
+			}
+			else {
+				var lastAiId = aiId-1;
+				if (lastAiId < 0) lastAiId += oKart.aipoints.length;
+				var nextAiId = aiId+1;
+				if (nextAiId >= oKart.aipoints.length) nextAiId = 0;
+				lastAi = oKart.aipoints[lastAiId];
+				currentAi = oKart.aipoints[aiId];
+				nextAi = oKart.aipoints[nextAiId];
+			}
 		}
 		else {
 			if (simpleBattle) {
@@ -15285,7 +15580,7 @@ function ai(oKart) {
 				oKart.randShift *= oMap.randshift;
 			if (completeBattle)
 				oKart.randShift /= 1.5;
-			else if (completeCircuit) {
+			else if (completeCircuit || (oKart.aishortcut!=null)) {
 				var maxShift = w/10;
 				if (Math.abs(oKart.randShift) > maxShift)
 					oKart.randShift = maxShift*Math.sign(oKart.randShift);
@@ -15304,9 +15599,21 @@ function ai(oKart) {
 				if (!simpleBattle) {
 					if (course != "BB") {
 						if (!inTeleport(currentAi[0],currentAi[1])) {
-							oKart.aipoint++;
-							if (oKart.aipoint >= oKart.aipoints.length)
-								oKart.aipoint = 0;
+							if ((oKart.aishortcut!=null) && oKart.aishortcuts[oKart.aipoint]) {
+								var aishortcuts = oKart.aishortcuts[oKart.aipoint];
+								var sRoute = aishortcuts[0];
+								if (oKart.aishortcut < sRoute.length)
+									oKart.aishortcut++;
+								else
+									oKart.aipoint = aishortcuts[1];
+							}
+							else if (oKart.aishortcuts && oKart.aishortcuts[oKart.aipoint] && hasShortcutItem(oKart, oKart.aishortcuts[oKart.aipoint]))
+								oKart.aishortcut = 0;
+							else {
+								oKart.aipoint++;
+								if (oKart.aipoint >= oKart.aipoints.length)
+									oKart.aipoint = 0;
+							}
 						}
 					}
 					else {
@@ -15402,6 +15709,12 @@ function ai(oKart) {
 					vAim = -vAim;
 				}
 				nTheta = Math.atan2(uAim,vAim);
+				var maxRelThetaFactor = 5, maxRelThetaOffset = 0.15;
+				var nTheta0 = Math.atan2(currentAi[0]-oKart.x, currentAi[1]-oKart.y);
+				var diffTheta = normalizeAngle(nTheta - nTheta0, 2*Math.PI);
+				var maxDiffTheta = 0.3;
+				if (Math.abs(diffTheta) > maxDiffTheta)
+					nTheta = nTheta0 + maxDiffTheta*Math.sign(diffTheta);
 			}
 			var decorT = 16;
 			var oX = oKart.x, oY = oKart.y, gX = aimX, gY = aimY;
@@ -15594,30 +15907,55 @@ function ai(oKart) {
 				}
 			}
 			else {
-				switch (oKart.arme) {
-				case "megachampi":
-				case "etoile":
-					if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-						arme(aKarts.indexOf(oKart));
-					break;
-				case "champi":
-				case "champiX2":
-				case "champiX3":
-					if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
-						arme(aKarts.indexOf(oKart));
-					break;
-				case "champior":
-					if (oKart.champior) {
-						if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
-							arme(aKarts.indexOf(oKart));
+				var shouldWait = false;
+				if (oKart.aishortcuts) {
+					var shouldWaitItemCache;
+					if (hasShortcutItem(oKart)) {
+						if (oKart.aishortcut != null) {
+							if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
+								arme(aKarts.indexOf(oKart));
+						}
+						else {
+							shouldWaitItemCache = oKart.shouldWaitItemCache;
+							if (!(shouldWaitItemCache && shouldWaitItemCache.isValid())) {
+								if (distToNextShortcut(oKart) < 1000)
+									shouldWaitItemCache = { value: true, isValid: function() { return true }};
+								else {
+									var currentAiPt = oKart.aipoint;
+									shouldWaitItemCache = { value: false, isValid: function() { return (oKart.aipoint === currentAiPt); }};
+								}
+							}
+							shouldWait = shouldWaitItemCache.value;
+						}
 					}
-					else {
+					oKart.shouldWaitItemCache = shouldWaitItemCache;
+				}
+				if (!shouldWait) {
+					switch (oKart.arme) {
+					case "megachampi":
+					case "etoile":
 						if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
 							arme(aKarts.indexOf(oKart));
+						break;
+					case "champi":
+					case "champiX2":
+					case "champiX3":
+						if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+							arme(aKarts.indexOf(oKart));
+						break;
+					case "champior":
+						if (oKart.champior) {
+							if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
+								arme(aKarts.indexOf(oKart));
+						}
+						else {
+							if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+								arme(aKarts.indexOf(oKart));
+						}
+						break;
+					default:
+						useRandomly = true;
 					}
-					break;
-				default:
-					useRandomly = true;
 				}
 			}
 		}
@@ -15890,8 +16228,9 @@ function runOneFrame() {
 		}
 	}
 	if (course != "CM") {
+		var aRankScores = getRankScores();
 		for (var i=0;i<aKarts.length;i++)
-			places(i);
+			places(i,aRankScores);
 	}
 	moveItems();
 	moveDecor();
@@ -20371,9 +20710,11 @@ function selectItemScreen(oScr, callback, options) {
 				})(i);
 			}
 			oExportScreen.querySelector('.tab-export .tab-export-submit a').onclick = function(e) {
+				e.preventDefault();
 				oScr2.removeChild(oExportScreen);
 			};
 			oExportScreen.querySelector('.tab-import .tab-export-submit a').onclick = function(e) {
+				e.preventDefault();
 				oScr2.removeChild(oExportScreen);
 			};
 			oExportScreen.querySelector('.tab.tab-export').onsubmit = function(e) {

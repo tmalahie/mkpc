@@ -28,7 +28,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create arena':'Créer arène'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=3" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -39,7 +39,7 @@ if (isset($_GET['i'])) {
 		var isBattle = true;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/editor.js"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=3"></script>
 		<script type="text/javascript" src="scripts/course.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
@@ -66,6 +66,7 @@ if (isset($_GET['i'])) {
 				'cannons' => $language ? 'Cannons':'Canons',
 				'teleports' => $language ? 'Teleporters':'Téléporteurs',
 				'mobiles' => $language ? 'Mobile floor':'Sol mobile',
+				'elevators' => $language ? 'Elevators':'Élévateurs',
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
@@ -128,6 +129,13 @@ if (isset($_GET['i'])) {
 				<div id="mode-option-decor">
 					<?php printModeDecor(); ?>
 				</div>
+				<div id="mode-option-jumps">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="jumps-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
+					</div>
+				</div>
 				<div id="mode-option-cannons">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
 					<div class="radio-selector" id="cannons-shape" data-change="shapeChange">
@@ -148,6 +156,13 @@ if (isset($_GET['i'])) {
 						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
 						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 						&nbsp;<button value="circle" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/circle.png')"></button>
+					</div>
+				</div>
+				<div id="mode-option-elevators">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="elevators-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 					</div>
 				</div>
 				<div id="mode-option-options">
@@ -378,6 +393,7 @@ if (isset($_GET['i'])) {
 									$ytSpeeds = array(0.25,0.5,0.75,1,1.25,1.5,1.75,2);
 									foreach ($ytSpeeds as $ytSpeed)
 										echo '<option value="'. $ytSpeed .'">&times;'. $ytSpeed .'</option>';
+									echo '<option value="">'. ($language ? 'Custom':'Autre') .'...</option>';
 									?>
 								</select><br />
 								<input type="hidden" name="youtube-last" id="youtube-last-url" />
@@ -459,7 +475,8 @@ if (isset($_GET['i'])) {
 								<li>Rectangle : cliquez une première fois pour définir un des coins du rectangle, puis une seconde fois pour définir le coin opposé.</li>
 								<li>Polygone : cliquez pour tracer le premier point, puis cliquez à nouveau pour tracer le point suivant, et ainsi de suite. Quand vous avez fini, recliquez sur le 1<sup>er</sup> point pour fermer le polygone.</li>
 							</ul>
-							Une fois la zone du mur définie, vous pouvez la modifer ou la supprimer en faisant un clic droit dessus."
+							Une fois la zone du mur définie, vous pouvez la modifer ou la supprimer en faisant un clic droit dessus.<br />
+							Vous pouvez également modifier la hauteur du mur, i.e à partir de quelle altitude un kart peut passer au dessus du mur. Cette hauteur est de 1 par défaut."
 						)
 					),
 					'offroad' => array(
@@ -585,6 +602,18 @@ if (isset($_GET['i'])) {
 							<li>Direction de poussée : une fois la zone entrée, une flèche apparait. Placez cette flèche dans la direction et la force souhaitée.
 							Plus la flèche est grande, plus la poussée sera forte.</li>
 						</ul>")
+					),
+					'elevators' => array(
+						'title' => $language ? 'Elevators':'Élévateurs',
+						'text' => ($language ?
+						"The &quot;Elevator&quot; tool allows to define areas where you can gain instant altitude.<br />
+						For example, if you have a wall of height 1 and you want to make it climbable from the floor, you can define an elevator zone of 0&rarr;1 in front of the wall.<br />
+						To define an elevator, you can specify 3 informations: the elevator area, the height you'll obtain once you're on it, and optionally the minimum height for the elevator to be enabled."
+						:
+						"L'outil &quot;élévateur&quot; permet de définir des zones qui vous font gagner de l'altitude instantanément.<br />
+						Par exemple, si vous avez un mur de hauteur 1 et que vous voulez rendre le mur escaladable depuis le sol, vous pouvez définir une zone d'élévateur de 0&rarr;1 devant le mur.<br />
+						Pour définir un élévateur, vous pouvez renseigner 3 informations : la zone de l'élévateur, la hauteur obtenue lorsque vous êtes dessus, et éventuellement la hauteur minimale pour activer l'élévateur."
+						)
 					),
 					'decor' => array(
 						'title' => $language ? 'Decor':'Décor',

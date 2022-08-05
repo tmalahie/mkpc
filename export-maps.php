@@ -33,9 +33,11 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	$mapData['startrotation'] = $circuitMainData->startrotation;
 	if (180 === $mapData['startrotation'])
 		unset($mapData['startrotation']);
-	$mapData['startdirection'] = $circuitMainData->startdirection?0:1;
+	$mapData['startdirection'] = empty($circuitMainData->startdirection)?1:0;
 	$aipoints = $mapData['aipoints'];
 	$mapData['aipoints'] = $circuitPayload->aipoints;
+	if (isset($circuitPayload->aishortcuts))
+		$mapData['aishortcuts'] = $circuitPayload->aishortcuts;
 	if (count($mapData['aipoints']) == 1)
 		$mapData['aipoints'] = $mapData['aipoints'][0];
 	if (empty($mapData['aipoints']))
@@ -131,10 +133,6 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 			$decorData[] = 90;
 		}
 		unset($decorData);
-		break;
-	case 56:
-		$mapData['startposition'] = [225,642];
-		$mapData['startrotation'] = 45;
 		break;
 	}
 }

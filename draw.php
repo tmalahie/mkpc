@@ -22,7 +22,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create circuit':'Créer circuit'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=3" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -33,8 +33,8 @@ if (isset($_GET['i'])) {
 		var isBattle = false;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
-		<script type="text/javascript" src="scripts/draw.js?reload=2"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=3"></script>
+		<script type="text/javascript" src="scripts/draw.js?reload=3"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
@@ -61,6 +61,7 @@ if (isset($_GET['i'])) {
 				'cannons' => $language ? 'Cannons':'Canons',
 				'teleports' => $language ? 'Teleporters':'Téléporteurs',
 				'mobiles' => $language ? 'Mobile floor':'Sol mobile',
+				'elevators' => $language ? 'Elevators':'Élévateurs',
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
@@ -158,6 +159,13 @@ if (isset($_GET['i'])) {
 				<div id="mode-option-decor">
 					<?php printModeDecor(); ?>
 				</div>
+				<div id="mode-option-jumps">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="jumps-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
+					</div>
+				</div>
 				<div id="mode-option-cannons">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
 					<div class="radio-selector" id="cannons-shape" data-change="shapeChange">
@@ -178,6 +186,13 @@ if (isset($_GET['i'])) {
 						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
 						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 						&nbsp;<button value="circle" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/circle.png')"></button>
+					</div>
+				</div>
+				<div id="mode-option-elevators">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="elevators-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 					</div>
 				</div>
 				<div id="mode-option-options">
@@ -311,6 +326,67 @@ if (isset($_GET['i'])) {
 						</div>
 					</div>
 				</div>
+			</div>
+		</div>
+		<div id="shortcut-options" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeShortcutOptions()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div class="shortcut-dialog">
+				<div>
+					<h1><?php echo $language ? 'Shortcut options' : 'Options du raccourci'; ?></h1>
+					<div><?php
+						echo $language
+							? 'Specify here some advanced conditions to satisfy for the CPUs to take the shortcut'
+							: 'Spécifiez ici des conditions avancées à vérifier pour que les ordis prennent le raccourci';
+						?>
+					</div>
+				</div>
+				<form method="post" onsubmit="submitShortcutOptions(event)">
+					<div class="form-row form-row-block">
+						<div class="form-label"><?php echo $language ? 'Possible items to take the shortcut:' : 'Objets possibles pour prendre le raccourci:'; ?></div>
+						<div class="form-value">
+							<label><input type="checkbox" name="item.champi" /> <img src="images/items/champi.png" /></label>
+							<label><input type="checkbox" name="item.megachampi" /> <img src="images/items/megachampi.png" /></label>
+							<label><input type="checkbox" name="item.etoile" /> <img src="images/items/etoile.png" /></label>
+						</div>
+					</div>
+					<label class="form-row">
+						<div class="form-label"><?php echo $language ? 'Minimal CPU difficulty:' : 'Difficulté ordi minimale :'; ?></div>
+						<div class="form-value">
+							<select name="difficulty">
+								<?php
+								$difficulties = array(
+									$language ? 'Easy' : 'Facile',
+									$language ? 'Medium' : 'Moyen',
+									$language ? 'Difficult' : 'Difficile',
+									$language ? 'Extreme' : 'Extrême',
+									$language ? 'Impossible' : 'Impossible'
+								);
+								foreach ($difficulties as $i=>$difficulty)
+									echo '<option value="'.$i.'">'. $difficulty .'</option>';
+								?>
+							</select>
+						</div>
+					</label>
+					<label class="form-row">
+						<div class="form-label"><?php echo $language ? 'Minimal engine class:' : 'Cylindrée minimale :'; ?></div>
+						<div class="form-value">
+							<input type="text" class="challenge-constraint-value" name="cc" pattern="[1-9]\d*" maxlength="3" list="shortcut_cc_list" required="required" style="width:45px" /> cc
+							<datalist id="shortcut_cc_list">
+								<option value="50">
+								<option value="100">
+								<option value="150">
+								<option value="200">
+							</datalist>
+						</div>
+					</label>
+					<div class="form-submit popup-buttons">
+						<a href="javascript:closeShortcutOptions()" class="close"><?php echo $language ? 'Cancel' : 'Annuler'; ?></a>
+						&nbsp;
+						<button type="submit"><?php echo $language ? 'Submit' : 'Valider'; ?></button>
+					</div>
+				</form>
 			</div>
 		</div>
 		<div id="offroad-transfer" class="fs-popup" onclick="event.stopPropagation()">
@@ -466,6 +542,7 @@ if (isset($_GET['i'])) {
 									$ytSpeeds = array(0.25,0.5,0.75,1,1.25,1.5,1.75,2);
 									foreach ($ytSpeeds as $ytSpeed)
 										echo '<option value="'. $ytSpeed .'">&times;'. $ytSpeed .'</option>';
+									echo '<option value="">'. ($language ? 'Custom':'Autre') .'...</option>';
 									?>
 								</select>
 								<div>
@@ -482,6 +559,7 @@ if (isset($_GET['i'])) {
 										$ytSpeeds = array(0.25,0.5,0.75,1,1.25,1.5,1.75,2);
 										foreach ($ytSpeeds as $ytSpeed)
 											echo '<option value="'. $ytSpeed .'">&times;'. $ytSpeed .'</option>';
+										echo '<option value="">'. ($language ? 'Custom':'Autre') .'...</option>';
 										?>
 									</select><br />
 									<a href="javascript:ytOptions(false)"><?php echo $language ? "Less options":"Moins d'options" ?></a>
@@ -509,12 +587,14 @@ if (isset($_GET['i'])) {
 							"Define here positions where karts will start race.
 							Click on the buttons at the right menu to choose start orientation.
 							Then click on the map to place start positions.
-							You can change those positions later by right-clicking on then en clicking on &quot;Move&quot;."
+							You can change those positions later by right-clicking on then en clicking on &quot;Move&quot;.<br />
+							You can also define a custom orientation via right-click &gt; Rotate"
 							:
 							"Définissez ici les positions de départ des karts.
 							Cliquez sur un des 8 boutons dans le menu de droite pour choisir l'orientation de départ.
 							Cliquez ensuite sur la carte pour placer les positions de départ.
-							Vous pouvez modifier ces positions a posteriori en faisant un clic droit dessus et en cliquant sur &quot;Déplacer&quot;."
+							Vous pouvez modifier ces positions a posteriori en faisant un clic droit dessus et en cliquant sur &quot;Déplacer&quot;.<br />
+							Vous pouvez aussi définir une orientation quelconque via clic droit &gt; Pivoter"
 						)
 					),
 					'aipoints' => array(
@@ -524,9 +604,9 @@ if (isset($_GET['i'])) {
 							First place the point that the computers will follow in 1<sup>st</sup>, then the point they will follow in 2<sup>nd</sup>, and so on.
 							When finished, click on the first point to close the loop. You can then:
 							<ul>
-								<li>Move points by clicking on them</li>
+								<li>Move or delete points by right-clicking on them</li>
 								<li>Add a point by clicking on a line linking 2 points</li>
-								<li>Delete a point by right-clicking on it</li>
+								<li>Define &quot;shortcut&quot; routes from a point, which will be taken by CPUs if they have a &quot;mushroom&quot; item</li>
 							</ul>
 							Finally, you can define other trajectories by clicking on the drop-down menu in the right menu."
 							:
@@ -534,9 +614,9 @@ if (isset($_GET['i'])) {
 							Placez d'abord le point que les ordis vont suivre en 1<sup>er</sup>, puis le point qu'ils vont suivre en 2<sup>e</sup>, et ainsi de suite.
 							Lorsque vous avez fini, recliquez sur le 1<sup>er</sup> point pour fermer la boucle. Vous pouvez ensuite :
 							<ul>
-								<li>Déplacer des points en cliquant dessus</li>
+								<li>Déplacer ou supprimer des points en cliquant dessus</li>
 								<li>Ajouter un point en cliquant sur une ligne reliant 2 points</li>
-								<li>Supprimer un point en faisant un clic droit dessus</li>
+								<li>Définir des trajets &quot;raccourci&quot; &agrave; partir d'un point, qui seront pris par les ordis s'ils ont un objet &quot;champi&quot;</li>
 							</ul>
 							Enfin, vous pouvez définir d'autres trajectoires en cliquant sur le menu déroulant dans le menu de droite."
 						)
@@ -564,7 +644,8 @@ if (isset($_GET['i'])) {
 								<li>Rectangle : cliquez une première fois pour définir un des coins du rectangle, puis une seconde fois pour définir le coin opposé.</li>
 								<li>Polygone : cliquez pour tracer le premier point, puis cliquez à nouveau pour tracer le point suivant, et ainsi de suite. Quand vous avez fini, recliquez sur le 1<sup>er</sup> point pour fermer le polygone.</li>
 							</ul>
-							Une fois la zone du mur définie, vous pouvez la modifer ou la supprimer en faisant un clic droit dessus."
+							Une fois la zone du mur définie, vous pouvez la modifer ou la supprimer en faisant un clic droit dessus.<br />
+							Vous pouvez également modifier la hauteur du mur, i.e à partir de quelle altitude un kart peut passer au dessus du mur. Cette hauteur est de 1 par défaut."
 						)
 					),
 					'offroad' => array(
@@ -726,6 +807,18 @@ if (isset($_GET['i'])) {
 							Plus la flèche est grande, plus la poussée sera forte.</li>
 						</ul>")
 					),
+					'elevators' => array(
+						'title' => $language ? 'Elevators':'Élévateurs',
+						'text' => ($language ?
+						"The &quot;Elevator&quot; tool allows to define areas where you can gain instant altitude.<br />
+						For example, if you have a wall of height 1 and you want to make it climbable from the floor, you can define an elevator zone of 0&rarr;1 in front of the wall.<br />
+						To define an elevator, you can specify 3 informations: the elevator area, the height you'll obtain once you're on it, and optionally the minimum height for the elevator to be enabled."
+						:
+						"L'outil &quot;élévateur&quot; permet de définir des zones qui vous font gagner de l'altitude instantanément.<br />
+						Par exemple, si vous avez un mur de hauteur 1 et que vous voulez rendre le mur escaladable depuis le sol, vous pouvez définir une zone d'élévateur de 0&rarr;1 devant le mur.<br />
+						Pour définir un élévateur, vous pouvez renseigner 3 informations : la zone de l'élévateur, la hauteur obtenue lorsque vous êtes dessus, et éventuellement la hauteur minimale pour activer l'élévateur."
+						)
+					),
 					'decor' => array(
 						'title' => $language ? 'Decor':'Décor',
 						'text' => ($language ?
@@ -884,8 +977,8 @@ else {
 		<?php
 		include('o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
-		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=3" />
+		<link rel="stylesheet" type="text/css" href="styles/draw.css?reload=3" />
 		<script type="text/javascript">
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
 		var language = <?php echo $language ? 1:0; ?>;
