@@ -15710,14 +15710,12 @@ function ai(oKart) {
 					vAim = -vAim;
 				}
 				nTheta = Math.atan2(uAim,vAim);
-				var aTheta = oKart.rotation*Math.PI/180;
 				var maxRelThetaFactor = 5, maxRelThetaOffset = 0.15;
 				var nTheta0 = Math.atan2(currentAi[0]-oKart.x, currentAi[1]-oKart.y);
-				if (maxRelThetaFactor*Math.abs(normalizeAngle(nTheta0-aTheta, 2*Math.PI))+maxRelThetaOffset < Math.abs(normalizeAngle(nTheta0-nTheta, 2*Math.PI))) {
-					aimX = currentAi[0];
-					aimY = currentAi[1];
-					nTheta = nTheta0;
-				}
+				var diffTheta = normalizeAngle(nTheta - nTheta0, 2*Math.PI);
+				var maxDiffTheta = 0.3;
+				if (Math.abs(diffTheta) > maxDiffTheta)
+					nTheta = nTheta0 + maxDiffTheta*Math.sign(diffTheta);
 			}
 			var decorT = 16;
 			var oX = oKart.x, oY = oKart.y, gX = aimX, gY = aimY;
@@ -20713,9 +20711,11 @@ function selectItemScreen(oScr, callback, options) {
 				})(i);
 			}
 			oExportScreen.querySelector('.tab-export .tab-export-submit a').onclick = function(e) {
+				e.preventDefault();
 				oScr2.removeChild(oExportScreen);
 			};
 			oExportScreen.querySelector('.tab-import .tab-export-submit a').onclick = function(e) {
+				e.preventDefault();
 				oScr2.removeChild(oExportScreen);
 			};
 			oExportScreen.querySelector('.tab.tab-export').onsubmit = function(e) {

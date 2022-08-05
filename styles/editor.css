@@ -452,7 +452,7 @@ body.theme-dark {
 	max-width: 50%;
 	font-size: 1.2em;
 	transform: translateX(-50%);
-    animation: progressive-fade 5s 1 linear;
+	animation: progressive-fade 5s 1 linear;
 	cursor: default;
 }
 #mode-option-start .radio-button {
