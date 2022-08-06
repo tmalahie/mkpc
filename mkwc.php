@@ -101,7 +101,8 @@ case 'mkt':
                     'spa'=> $language ? 'Spain':'Espagne',
                     'gua'=> $language ? 'Guatemala':'Guatemala'
                 ),
-                'eliminated' => array('spa', 'gua', 'sal')
+                'eliminated' => array('spa', 'gua', 'sal'),
+                'winner' => array('mex')
             ),
             "$group B" => array(
                 'list' => array(
@@ -128,7 +129,7 @@ case 'mkt':
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'ukg'=> $language ? 'United Kingdom':'Royaume-Uni'
                 ),
-                'eliminated' => array('bra', 'ukg', 'hok')
+                'eliminated' => array('bra', 'ukg', 'hok', 'jap')
             )
         )
     );
@@ -412,6 +413,10 @@ if ($id) {
         .mTeamsTf label.eliminated {
             text-decoration: line-through;
             opacity: 0.6;
+        }
+        .mTeamsTf label.winner {
+            font-weight: bold;
+            color : #E80;
         }
         .mTeamsTd img {
             height: 1em;
@@ -705,7 +710,7 @@ if ($id) {
                                 </div>
                                 <div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir le tableau des qualifications'; ?></a></div>
                                 <div id="mBracket">
-                                    <img src="https://cdn.discordapp.com/attachments/309729458925993985/1003589779776094268/unknown.png" alt="Bracket" />
+                                    <img src="https://cdn.discordapp.com/attachments/309729458925993985/1005467247210418205/unknown.png" alt="Bracket" />
                                 </div>
                                 <?php
                             }
@@ -750,9 +755,12 @@ if ($id) {
                                                 if (!$isNormalTeam)
                                                     $src = 'pin';
                                                 $eliminated = isset($group['eliminated']) && in_array($code, $group['eliminated']);
-                                                echo '<label'. ($eliminated ? ' class="eliminated"':'') .'>';
+                                                $winner = !$eliminated && isset($group['winner']) && in_array($code, $group['winner']);
+                                                echo '<label'. ($eliminated ? ' class="eliminated"':'') . ($winner ? ' class="winner"':'') .'>';
                                                     echo '<input type="radio"'. (($myVote || !$isNormalTeam || $isPollClosed) ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
                                                     echo '<img src="images/mkwc/flags/'.$src.'.png" alt="'. $src .'" />';
+                                                    if ($winner)
+                                                        echo '<small> &nbsp;</small><img src="images/cups/cup1.png" alt="Winner" />';
                                                     echo ' '. htmlspecialchars($country);
                                                 echo '</label>';
                                             }
