@@ -7225,18 +7225,23 @@ var decorBehaviors = {
 			};
 			var tObjWidth = oObjWidth*sizeRatio.w;
 			var tObjWidth2 = oObjWidth2*sizeRatio.w;
-			for (var i=0;i<oMap.decor[this.type].length;i++) {
+			var tType = this.type;
+			for (var i=0;i<oMap.decor[tType].length;i++) {
 				var inc = this.fireball0+i;
 				var oFireball = oMap.decor.fireball[inc];
 				updateCustomDecorSprites(oFireball, fireballData, sizeRatio);
 
 				var iDecor = oPlanDecor.fireball[inc];
-				iDecor.src = fireballData.map;
-				iDecor.style.width = tObjWidth +"px";
+				if (iDecor) {
+					iDecor.src = fireballData.map;
+					iDecor.style.width = tObjWidth +"px";
+				}
 
 				iDecor = oPlanDecor2.fireball[inc];
-				iDecor.src = fireballData.map;
-				iDecor.style.width = tObjWidth2 +"px";
+				if (iDecor) {
+					iDecor.src = fireballData.map;
+					iDecor.style.width = tObjWidth2 +"px";
+				}
 			}
 		},
 		move:function(decorData,i) {
@@ -12163,8 +12168,8 @@ function incChallengeHits(kart) {
 	challengeCheck("each_hit");
 }
 function handleDecorHit(type) {
-	if (clLocalVars.decorsHit && (collisionPlayer == oPlayers[0]))
-		clLocalVars.decorsHit[type] = true;
+	//if (clLocalVars.decorsHit && (collisionPlayer == oPlayers[0]))
+	//	clLocalVars.decorsHit[type] = true;
 	if (clLocalVars.nbDecorHits && (clLocalVars.nbDecorHits[type] != undefined)) {
 		clLocalVars.nbDecorHits[type]++;
 		updateChallengeHud("decors", clLocalVars.nbDecorHits[type]);
