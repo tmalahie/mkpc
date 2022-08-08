@@ -1490,6 +1490,8 @@ function initMap() {
 			return getCheckpointCoords(oBox);
 		});
 	}
+	else
+		oMap.checkpointCoords = [];
 	if (oMap.flowers) {
 		for (var i=0;i<oMap.flowers.length;i++) {
 			var flower = oMap.flowers[i][1];
@@ -12487,6 +12489,8 @@ function getRankScore(oKart) {
 		if (dest >= oMap.checkpoint.length) dest = 0;
 
 		var iLine = oMap.checkpointCoords[dest];
+		if (!iLine) return 0;
+
 		var hLine = projete(oKart.x,oKart.y, iLine.A[0],iLine.A[1], iLine.B[0],iLine.B[1]);
 		var xLine = iLine.A[0] + hLine*iLine.u[0], yLine = iLine.A[1] + hLine*iLine.u[1];
 		var dLine = Math.hypot(xLine-oKart.x, yLine-oKart.y);
@@ -14681,16 +14685,22 @@ function move(getId, triggered) {
 		var iLocalX, iLocalY;
 		if (oKart.aipoint != undefined) {
 			var aipoint = oKart.aipoints[oKart.aipoint];
-			iLocalX = aipoint[0] - oKart.x;
-			iLocalY = aipoint[1] - oKart.y;
+			if (aipoint) {
+				iLocalX = aipoint[0] - oKart.x;
+				iLocalY = aipoint[1] - oKart.y;
 
-			if (iLocalX*iLocalX + iLocalY*iLocalY < 2000) {
-				if (!inTeleport(aipoint[0],aipoint[1])) {
-					oKart.aipoint++;
+				if (iLocalX*iLocalX + iLocalY*iLocalY < 2000) {
+					if (!inTeleport(aipoint[0],aipoint[1])) {
+						oKart.aipoint++;
 
-					if (oKart.aipoint >= oKart.aipoints.length)
-						oKart.aipoint = 0;
+						if (oKart.aipoint >= oKart.aipoints.length)
+							oKart.aipoint = 0;
+					}
 				}
+			}
+			else {
+				iLocalX = 0;
+				iLocalY = 0;
 			}
 		}
 		else {
@@ -14699,12 +14709,14 @@ function move(getId, triggered) {
 				demitour = 0;
 
 			var oBox = oMap.checkpointCoords[demitour];
-			iLocalX = oBox.O[0] - oKart.x;
-			iLocalY = oBox.O[1] - oKart.y;
-
-			oBox = oMap.checkpoint[demitour];
-			iLocalX = oBox[0] + (oBox[3] ? Math.round(oBox[2]/2) : 8) - oKart.x;
-			iLocalY = oBox[1] + (oBox[3] ? 8 : Math.round(oBox[2]/2)) - oKart.y;
+			if (oBox) {
+				iLocalX = oBox.O[0] - oKart.x;
+				iLocalY = oBox.O[1] - oKart.y;
+			}
+			else {
+				iLocalX = 0;
+				iLocalY = 0;
+			}
 
 			dance: for (var i=0;i<oMap.aipoints.length;i++) {
 				var aipoints = oMap.aipoints[i];
