@@ -4,6 +4,21 @@
 	color: #DDD;
 	z-index: 20001;
 	visibility: hidden;
+    pointer-events: none;
+}
+#spectatormode {
+    position: absolute;
+    text-align: center;
+	z-index: 20001;
+    pointer-events: none;
+}
+#spectatormode a {
+    background-color: black;
+    color: #ABF;
+    pointer-events: auto;
+}
+#spectatormode a:hover {
+    color: #CCF;
 }
 .online-chat {
     display: flex;

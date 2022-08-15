@@ -1,5 +1,9 @@
 <?php
-$getCourse = mysql_fetch_array(mysql_query('SELECT course,banned FROM `mkjoueurs` WHERE id="'.$id.'"'));
+$spectatorId = isset($_POST['spectator']) ? intval($_POST['spectator']) : 0;
+if ($spectatorId)
+	$getCourse = mysql_fetch_array(mysql_query('SELECT s.course,j.banned FROM `mkspectators` s INNER JOIN `mkjoueurs` j ON s.player=j.id WHERE s.id="'.$spectatorId.'" AND s.player="'. $id .'"'));
+else
+	$getCourse = mysql_fetch_array(mysql_query('SELECT course,banned FROM `mkjoueurs` WHERE id="'.$id.'"'));
 $course = $getCourse['course'];
 if ($course && !$getCourse['banned']) {
 	$isBattle = isset($_POST['battle']);
@@ -16,7 +20,7 @@ if ($course && !$getCourse['banned']) {
 	$getMap = getMapData();
 	$map = $getMap['map'];
 	$time = $getMap['time'];
-	$continuer = ($map == -1);
+	$continuer = ($map == -1) && !$spectatorId;
 	$allChosen = true;
 	$joueurs = mysql_query('SELECT choice_map FROM `mkjoueurs` WHERE course='. $course .' ORDER BY id');
 	for ($i=0;$joueur=mysql_fetch_array($joueurs);$i++) {
@@ -184,6 +188,8 @@ if ($course && !$getCourse['banned']) {
 		else
 			mysql_query('UPDATE `mkplayers` SET team=-1 WHERE course='. $course);
 	}
+	if ($spectatorId && ($nbPlayers > $minPlayers))
+		mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id="'.$id.'" AND course="'.$course.'"');
 	if ($enoughPlayers && $allChosen) {
 		usleep(100000);
 		$joueursData = listPlayers();

@@ -114,6 +114,8 @@ if (typeof cupNames === 'undefined') {
 //challenges["track"]["4749"].list = [challenges["track"]["4749"].list[1]];
 var challengesForCircuit;
 
+var onlineSpectatorId;
+
 function MarioKart() {
 
 var oMaps = listMaps();
@@ -848,9 +850,14 @@ var oTeamColors = {
 var cTeamColors = oTeamColors;
 function setPlanPos(frameState) {
 	var oPlayer = frameState.players[0];
+	if (oSpecCam)
+		oPlayer = frameState.karts[oSpecCam.playerId];
 	if (oPlayer.teleport > 3 || oPlayer.tombe > 10) return;
 	var frameItems = frameState.items;
-	var fRotation = Math.round(oPlayer.rotation-180);
+	var oCamera = oPlayer;
+	if (oSpecCam)
+		oCamera = oSpecCam.pos;
+	var fRotation = Math.round(oCamera.rotation-180);
 	if (bSelectedMirror)
 		fRotation = -fRotation;
 	var fCosR = direction(1,fRotation), fSinR = direction(0,fRotation);
@@ -864,7 +871,7 @@ function setPlanPos(frameState) {
 		return res;
 	}
 	function setObject(elt, eltX,eltY, eltW,mapW, iTeam,hallowSize) {
-		posImg(elt, eltX,eltY,oPlayer.rotation, eltW,mapW);
+		posImg(elt, eltX,eltY,oCamera.rotation, eltW,mapW);
 		if ((iTeam >= 0) && (elt.team != iTeam)) {
 			var iColor = cTeamColors.primary[iTeam];
 			elt.team = iTeam;
@@ -882,7 +889,7 @@ function setPlanPos(frameState) {
 			}
 		}
 	}
-	var fRelX = oPlayer.x/oPlanRealSize, fRelY = oPlayer.y/oPlanRealSize;
+	var fRelX = oCamera.x/oPlanRealSize, fRelY = oCamera.y/oPlanRealSize;
 	if (bSelectedMirror)
 		fRelX = 1-fRelX;
 	oPlanCtn.style.transform = oPlanCtn.style.WebkitTransform = oPlanCtn.style.MozTransform = "translate("+ -Math.round(oPlanSize*(fRelX*fCosR - fRelY*fSinR) - oPlanWidth/2) +"px, "+ -Math.round(oPlanSize*(fRelX*fSinR + fRelY*fCosR) - oPlanWidth/2) +"px) rotate("+ fRotation +"deg)";
@@ -958,10 +965,10 @@ function setPlanPos(frameState) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
 					var iTeamW = Math.round(oTeamWidth*iCharR);
 					var iTeamW2 = Math.round(oTeamWidth2*iCharR);
-					posImgRel(oPlanTeams[i],oKart.x,oKart.y, Math.round(oPlayer.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2);
+					posImgRel(oPlanTeams[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW,oPlanSize, (iCharW-iTeamW)/2,(iCharW-iTeamW)/2);
 					oPlanTeams[i].style.width = iTeamW +"px";
 					oPlanTeams[i].style.height = iTeamW +"px";
-					posImgRel(oPlanTeams2[i],oKart.x,oKart.y, Math.round(oPlayer.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2);
+					posImgRel(oPlanTeams2[i],oKart.x,oKart.y, Math.round(oCamera.rotation), iCharW2,oPlanSize2, (iCharW2-iTeamW2)/2,(iCharW2-iTeamW2)/2);
 					oPlanTeams2[i].style.width = iTeamW2 +"px";
 					oPlanTeams2[i].style.height = iTeamW2 +"px";
 				}
@@ -986,7 +993,7 @@ function setPlanPos(frameState) {
 		if (iPlanCoins.length != oMap.coins.length) {
 			syncObjects(iPlanCoins,oMap.coins,"coin", iObjWidth,iPlanCtn);
 			for (var i=0;i<iPlanCoins.length;i++)
-				posImg(iPlanCoins[i], oMap.coins[i].x,oMap.coins[i].y,Math.round(oPlayer.rotation), iObjWidth, iPlanSize);
+				posImg(iPlanCoins[i], oMap.coins[i].x,oMap.coins[i].y,Math.round(oCamera.rotation), iObjWidth, iPlanSize);
 		}
 	}
 	if (oMap.coins) {
@@ -1089,7 +1096,7 @@ function setPlanPos(frameState) {
 		for (var i=0;i<frameItems["bobomb"].length;i++) {
 			var bobomb = frameItems["bobomb"][i];
 			if (bobomb.ref.cooldown <= 0) {
-				posImg(iPlanBobOmbs[i], bobomb.x,bobomb.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobomb.ref.team,"");
+				posImg(iPlanBobOmbs[i], bobomb.x,bobomb.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",bobomb.ref.team,"");
 				iPlanBobOmbs[i].style.width = iExpWidth +"px";
 				iPlanBobOmbs[i].style.opacity = Math.max(1+bobomb.ref.cooldown/10, 0);
 				iPlanBobOmbs[i].style.background = "";
@@ -1124,7 +1131,7 @@ function setPlanPos(frameState) {
 		for (var i=0;i<frameItems["carapace-bleue"].length;i++) {
 			var carapaceBleue = frameItems["carapace-bleue"][i];
 			if (carapaceBleue.ref.cooldown <= 0) {
-				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oPlayer.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceBleue.ref.team,"0");
+				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceBleue.ref.team,"0");
 				iPlanCarapacesBleues[i].style.width = iExpWidth +"px";
 				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceBleue.ref.cooldown/10, 0);
 				iPlanCarapacesBleues[i].style.background = "";
@@ -1154,8 +1161,8 @@ function setPlanPos(frameState) {
 	syncObjects(oPlanBillballs,oBillBalls,"billball", oObjWidth,oPlanCtn);
 	syncObjects(oPlanBillballs2,oBillBalls,"billball", oObjWidth2,oPlanCtn2);
 	for (var i=0;i<oBillBalls.length;i++) {
-		posImg(oPlanBillballs[i],oBillBalls[i].x,oBillBalls[i].y, Math.round(oPlayer.rotation), oBBWidth,oPlanSize).style.width = oBBWidth +"px";
-		posImg(oPlanBillballs2[i],oBillBalls[i].x,oBillBalls[i].y, Math.round(oPlayer.rotation), oBBWidth2,oPlanSize2).style.width = oBBWidth2 +"px";
+		posImg(oPlanBillballs[i],oBillBalls[i].x,oBillBalls[i].y, Math.round(oCamera.rotation), oBBWidth,oPlanSize).style.width = oBBWidth +"px";
+		posImg(oPlanBillballs2[i],oBillBalls[i].x,oBillBalls[i].y, Math.round(oCamera.rotation), oBBWidth2,oPlanSize2).style.width = oBBWidth2 +"px";
 		oPlanBillballs[i].style.zIndex = oPlanBillballs2[i].style.zIndex = 2;
 	}
 }
@@ -2613,11 +2620,13 @@ function startGame() {
 		}
 	}
 	var isTT = timeTrialMode();
-	for (var i=0;i<strPlayer.length;i++) {
+	var nbPlayers = strPlayer.length;
+	if (onlineSpectatorId) nbPlayers = 0;
+	for (var i=0;i<nbPlayers;i++) {
 		var oPlace = aPlaces[i];
 		var oPlayer = {
 			id : i,
-			
+
 			x : oMap.startposition[0],
 			y : oMap.startposition[1],
 			z : 0,
@@ -2648,7 +2657,7 @@ function startGame() {
 			arme : false,
 			stash: false,
 			maxspeed : 5.7,
-			
+
 			driftinc : 0,
 			driftcpt : 0,
 			drift : 0,
@@ -2827,6 +2836,20 @@ function startGame() {
 		oEnemy.initialPlace = oEnemy.place;
 
 		aKarts.push(oEnemy);
+	}
+	if (onlineSpectatorId) {
+		oPlayers.push(aKarts[0]);
+		oSpecCam = {
+			playerId: 0,
+			pos: {},
+			reset: function() {
+				var oKart = aKarts[this.playerId];
+				this.pos.x = oKart.x;
+				this.pos.y = oKart.y;
+				this.pos.rotation = oKart.rotation;
+			}
+		};
+		oSpecCam.reset();
 	}
 	function spinKart(nb) {
 		if (!this.tourne) {
@@ -3294,7 +3317,7 @@ function startGame() {
 			oObject.style.display = "none";
 			oObject.style.width = oObjWidth +"px";
 			oObject.className = "pixelated";
-			posImg(oObject, fSprite[0],fSprite[1],Math.round(oPlayer.rotation), oObjWidth, oPlanSize);
+			posImg(oObject, fSprite[0],fSprite[1],Math.round(oPlayers[0].rotation), oObjWidth, oPlanSize);
 			oPlanCtn.appendChild(oObject);
 			oPlanObjects.push(oObject);
 
@@ -3304,7 +3327,7 @@ function startGame() {
 			oObject2.style.display = "none";
 			oObject2.style.width = oObjWidth2 +"px";
 			oObject2.className = "pixelated";
-			posImg(oObject2, fSprite[0],fSprite[1],Math.round(oPlayer.rotation), oObjWidth2, oPlanSize2);
+			posImg(oObject2, fSprite[0],fSprite[1],Math.round(oPlayers[0].rotation), oObjWidth2, oPlanSize2);
 			oPlanCtn2.appendChild(oObject2);
 			oPlanObjects2.push(oObject2);
 		}
@@ -3834,6 +3857,24 @@ function startGame() {
 						if (currentPressedKeys[gameAction])
 							handleInputPressed(gameAction);
 					}
+					function handleSpectatorInput(e) {
+						switch (e.keyCode) {
+						case 37:
+						case 38:
+							oSpecCam.playerId--;
+							if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
+							oSpecCam.reset();
+							return false;
+						case 39:
+						case 40:
+							oSpecCam.playerId++;
+							if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
+							oSpecCam.reset();
+							return false;
+						default:
+							return true;
+						}
+					}
 					document.onkeydown = function(e) {
 						if (forceStartMusic) {
 							try {
@@ -3861,6 +3902,8 @@ function startGame() {
 							}
 						}
 						if (clLocalVars.fastForward) return;
+						if (onlineSpectatorId)
+							return handleSpectatorInput(e);
 						var gameAction = gameControls[e.keyCode];
 						if (!gameAction) return;
 						var aElt = document.activeElement;
@@ -3870,6 +3913,7 @@ function startGame() {
 						handleInputPressed(gameAction);
 					}
 					document.onkeyup = function(e) {
+						if (onlineSpectatorId) return;
 						var gameAction = gameControls[e.keyCode];
 						if (!gameAction) return;
 						var aElt = document.activeElement;
@@ -3877,6 +3921,7 @@ function startGame() {
 						handleInputReleased(gameAction);
 					}
 					window.releaseOnBlur = function() {
+						if (onlineSpectatorId) return;
 						currentPressedKeys = {};
 						for (var i=0;i<oPlayers.length;i++) {
 							oPlayers[i].speedinc = 0;
@@ -3901,11 +3946,6 @@ function startGame() {
 								return true;
 							}
 							return true;
-						}
-					}
-					if (isOnline) {
-						window.onbeforeunload = function() {
-							return language ? "Caution, if you leave the game, you are considered loser" : "Attention, si vous quittez la partie, vous êtes considéré comme perdant";
 						}
 					}
 					pause = false;
@@ -8652,6 +8692,7 @@ function interpolateStateRound(x1,x2,tFrame) {
 }
 var nbFrames = 1;
 var frameHandlers;
+var oSpecCam;
 function resetRenderState() {
 	lastState = undefined;
 	for (var i=0;i<frameHandlers.length;i++)
@@ -8843,6 +8884,11 @@ function render() {
 			//posX = aKarts[1].x;
 			//posY = aKarts[1].y;
 			//fRotation = aKarts[1].rotation;
+			if (oSpecCam) {
+				posX = oSpecCam.pos.x;
+				posY = oSpecCam.pos.y;
+				fRotation = oSpecCam.pos.rotation;
+			}
 			var fCamera = {
 				x: posX,
 				y: posY,
@@ -12772,82 +12818,88 @@ function resetDatas() {
 		mapping: playerMapping,
 		kart: oPlayer
 	}];
-	for (var i=0;i<aKarts.length;i++) {
-		var oKart = aKarts[i];
-		if (oKart.controller == identifiant) {
-			if (!payload.cpu) payload.cpu = {};
-			payload.cpu[oKart.id] = [];
-			payloadsToSync.push({
-				params: payload.cpu[oKart.id],
-				mapping: cpuMapping,
-				kart: oKart
-			});
-		}
-	}
-	for (var j=0;j<payloadsToSync.length;j++) {
-		var payloadToSync = payloadsToSync[j];
-		var oParams = payloadToSync.params, oKart = payloadToSync.kart;
-		var params = payloadToSync.mapping;
-		oParams.length = params.length;
-		for (var i=0;i<params.length;i++) {
-			var param = params[i];
-			var value;
-			switch (param) {
-			case "demitours":
-				if (course != "BB")
-					value = getCpScore(oKart);
-				break;
-			case "ballons":
-				if (course == "BB")
-					value = oKart.ballons.length;
-				break;
-			default:
-				value = oKart[params[i]];
+	if (onlineSpectatorId)
+		delete payload.player;
+	else {
+		for (var i=0;i<aKarts.length;i++) {
+			var oKart = aKarts[i];
+			if (oKart.controller == identifiant) {
+				if (!payload.cpu) payload.cpu = {};
+				payload.cpu[oKart.id] = [];
+				payloadsToSync.push({
+					params: payload.cpu[oKart.id],
+					mapping: cpuMapping,
+					kart: oKart
+				});
 			}
-			oParams[i] = value;
 		}
-		var oExtra = {};
-		for (var i=0;i<playerMappingExtra.length;i++) {
-			if (oKart[playerMappingExtra[i]])
-				oExtra[playerMappingExtra[i]] = oKart[playerMappingExtra[i]];
+		for (var j=0;j<payloadsToSync.length;j++) {
+			var payloadToSync = payloadsToSync[j];
+			var oParams = payloadToSync.params, oKart = payloadToSync.kart;
+			var params = payloadToSync.mapping;
+			oParams.length = params.length;
+			for (var i=0;i<params.length;i++) {
+				var param = params[i];
+				var value;
+				switch (param) {
+				case "demitours":
+					if (course != "BB")
+						value = getCpScore(oKart);
+					break;
+				case "ballons":
+					if (course == "BB")
+						value = oKart.ballons.length;
+					break;
+				default:
+					value = oKart[params[i]];
+				}
+				oParams[i] = value;
+			}
+			var oExtra = {};
+			for (var i=0;i<playerMappingExtra.length;i++) {
+				if (oKart[playerMappingExtra[i]])
+					oExtra[playerMappingExtra[i]] = oKart[playerMappingExtra[i]];
+			}
+			if (Object.keys(oExtra).length)
+				payload.extra[oKart.id] = oExtra;
 		}
-		if (Object.keys(oExtra).length)
-			payload.extra[oKart.id] = oExtra;
 	}
 	if (!Object.keys(payload.extra).length)
 		delete payload.extra;
 	var aSyncItems = Array.from(new Set(syncItems));
 	var nSyncItems = [];
-	for (var i=0;i<aSyncItems.length;i++) {
-		var syncItem = aSyncItems[i];
-		var itemData = "";
-		if (syncItem.deleted) {
-			if (!syncItem.id) continue;
-		}
-		else {
-			var itemBehavior = itemBehaviors[syncItem.type];
-			for (var j=0;j<itemBehavior.sync.length;j++) {
-				var syncParams = itemBehavior.sync[j];
-				itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
+	if (!onlineSpectatorId) {
+		for (var i=0;i<aSyncItems.length;i++) {
+			var syncItem = aSyncItems[i];
+			var itemData = "";
+			if (syncItem.deleted) {
+				if (!syncItem.id) continue;
 			}
-		}
-		var itemPayload = {
-			data: itemData
-		};
-		for (var j=0;j<payloadsToSync.length;j++) {
-			var oKart = payloadsToSync[j].kart;
-			if (oKart.using.indexOf(syncItem) !== -1) {
-				itemPayload.holder = oKart.id;
-				break;
+			else {
+				var itemBehavior = itemBehaviors[syncItem.type];
+				for (var j=0;j<itemBehavior.sync.length;j++) {
+					var syncParams = itemBehavior.sync[j];
+					itemData += itemDataToHex(syncParams.type,syncItem[syncParams.key]||0);
+				}
 			}
+			var itemPayload = {
+				data: itemData
+			};
+			for (var j=0;j<payloadsToSync.length;j++) {
+				var oKart = payloadsToSync[j].kart;
+				if (oKart.using.indexOf(syncItem) !== -1) {
+					itemPayload.holder = oKart.id;
+					break;
+				}
+			}
+			if (syncItem.id)
+				itemPayload.id = syncItem.id;
+			else {
+				itemPayload.type = itemTypes.indexOf(syncItem.type);
+				nSyncItems.push(syncItem);
+			}
+			payload.item.push(itemPayload);
 		}
-		if (syncItem.id)
-			itemPayload.id = syncItem.id;
-		else {
-			itemPayload.type = itemTypes.indexOf(syncItem.type);
-			nSyncItems.push(syncItem);
-		}
-		payload.item.push(itemPayload);
 	}
 	syncItems.length = 0;
 	if (course == "BB")
@@ -12856,6 +12908,8 @@ function resetDatas() {
 		if (oMap.tours != 3)
 			payload.laps = oMap.tours;
 	}
+	if (onlineSpectatorId)
+		payload.spectator = onlineSpectatorId;
 	fetch('reload.php', {
 		method: 'post',
 		body: JSON.stringify(payload)
@@ -12962,6 +13016,9 @@ function resetDatas() {
 						}
 						if (oKart.turnSound && !oKart.tourne)
 							oKart.turnSound = undefined;
+
+						if (oSpecCam && oSpecCam.playerId === j)
+							oSpecCam.reset();
 						for (var k=jCode[0][1];k<rCode[2];k++)
 							move(j, true);
 						break;
@@ -12969,10 +13026,12 @@ function resetDatas() {
 				}
 			}
 			var localKarts = [];
-			for (var i=0;i<aKarts.length;i++) {
-				var oKart = aKarts[i];
-				if (!i || oKart.controller == identifiant)
-					localKarts.push(i);
+			if (!onlineSpectatorId) {
+				for (var i=0;i<aKarts.length;i++) {
+					var oKart = aKarts[i];
+					if (!i || oKart.controller == identifiant)
+						localKarts.push(i);
+				}
 			}
 			for (var i=0;i<updatedItems.length;i++) {
 				var updatedItem = updatedItems[i];
@@ -15024,6 +15083,8 @@ function angleDrift(oKart) {
 		return 0;
 	if (oKart.sliding)
 		return oKart.rotinc*oKart.sliding;
+	if (!oKart.drift)
+		return 0;
 	return oKart.drift*6;
 }
 function angleShoot(oKart, backwards) {
@@ -22194,9 +22255,9 @@ function searchCourse() {
 						}
 						if (reponse.time < 1)
 							reponse.time = 1;
-						document.getElementById("racecountdown").innerHTML = reponse.time-5;
-						selectMapScreen();
+						selectMapScreen({ racecountdown: reponse.time-5 });
 						dRest();
+						showSpectatorLink();
 						setTimeout(setChat, 1000);
 					}
 					return true;
@@ -22320,6 +22381,8 @@ function selectMapScreen(opts) {
 	if (isOnline) {
 		setSRest();
 		document.getElementById("waitrace").style.visibility = "visible";
+		if (opts.racecountdown != null)
+			document.getElementById("racecountdown").innerHTML = opts.racecountdown;
 	}
 	if ((isCup&&!isMCups) || (isBattle&&isCup)) {
 		selectRaceScreen(0);
@@ -23063,11 +23126,15 @@ function choose(map,rand) {
 						var isChoix = choixJoueurs[i][2];
 						var isRandom = choixJoueurs[i][3];
 						oTd.innerHTML = isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
+						if (!isChoix && onlineSpectatorId && (choixJoueurs[i][0] == identifiant))
+							oTd.style.display = "none";
 						oTr.appendChild(oTd);
 						oTBody.appendChild(oTr);
 						nbChoices++;
 					}
 				}
+				if (onlineSpectatorId && !nbChoices)
+					rCode[1] = -2;
 				if (rCode[1] == -1)
 					setTimeout(waitForChoice, 1000);
 				else {
@@ -23231,6 +23298,8 @@ function choose(map,rand) {
 						}
 
 						clearInterval(startMusicHandler);
+
+						window.onbeforeunload = undefined;
 					}
 				}
 			}
@@ -23270,9 +23339,22 @@ function choose(map,rand) {
 		else
 			resetGame(strMap);
 	}
-	xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(course=="BB"?"&battle":"")+(rand?"&rand":""), refreshTab);
+	if (onlineSpectatorId)
+		setTimeout(waitForChoice, 1);
+	else {
+		xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(course=="BB"?"&battle":"")+(rand?"&rand":""), refreshTab);
+
+		window.onbeforeunload = function() {
+			return language ? "Caution, if you leave the game, you are considered loser" : "Attention, si vous quittez la partie, vous êtes considéré comme perdant";
+		}
+	}
 	function waitForChoice() {
-		xhr("getMap.php", (course=="BB"?"battle":""), refreshTab);
+		var xhrParams = [];
+		if (onlineSpectatorId)
+			xhrParams.push("spectator="+onlineSpectatorId);
+		if (course == "BB")
+			xhrParams.push("battle");
+		xhr("getMap.php", xhrParams.join("&"), refreshTab);
 	}
 	oTable.appendChild(oTBody);
 	$mkScreen.appendChild(oTable);
@@ -23746,6 +23828,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		$mkScreen.appendChild(oDiv);
 
 		clearInterval(startMusicHandler);
+
+		window.onbeforeunload = undefined;
 	}
 	function removeTeamSelectionUI() {
 		oTableCtn.style.display = "none";
@@ -23802,8 +23886,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	var curTime = new Date().getTime();
 	var tnCountdown = tnCourse-curTime-2000;
 	if (selecter) {
-		document.getElementById("teamcountdown").innerHTML = Math.round(tnCountdown/1000);
 		setSRest("team");
+		document.getElementById("teamcountdown").innerHTML = Math.round(tnCountdown/1000);
 		document.getElementById("waitteam").style.visibility = "visible";
 		dRest("team");
 		forceTeamHandler = setTimeout(function() {
@@ -23961,11 +24045,61 @@ function dRest(type) {
 function setSRest(type) {
 	if (!type) type = "race";
 	if (isOnline) {
-		document.getElementById("wait"+type).style.left = (iScreenScale*2+10) +"px";
-		document.getElementById("wait"+type).style.top = (iScreenScale*35+10) +"px";
-		document.getElementById("wait"+type).style.minWidth = (iScreenScale*(iWidth-4)) +"px";
-		document.getElementById("wait"+type).style.fontSize = (iScreenScale*3) +"px";
+		var $wait = document.getElementById("wait"+type);
+		if (!$wait) {
+			var defaultMessages = {
+				race: toLanguage('There are <strong id="racecountdown">30</strong> second(s) left to choose the next race', 'Il vous reste <span id="racecountdown">30</span> seconde(s) pour choisir la prochaine course'),
+				team: toLanguage('There are <strong id="teamcountdown">10</strong> second(s) left to choose the teams', 'Il vous reste <span id="teamcountdown">10</span> seconde(s) pour choisir les équipes')
+			};
+			$wait = document.createElement("div");
+			$wait.id = "wait"+type;
+			$wait.className = "wait";
+			$wait.innerHTML = defaultMessages[type];
+			document.getElementById("mariokartcontainer").appendChild($wait);
+		}
+		$wait.style.left = (iScreenScale*2+10) +"px";
+		$wait.style.top = (iScreenScale*35+10) +"px";
+		$wait.style.minWidth = (iScreenScale*(iWidth-4)) +"px";
+		$wait.style.fontSize = (iScreenScale*3) +"px";
 	}
+}
+
+function showSpectatorLink() {
+	var $spectatorLinkCtn = document.createElement("div");
+	$spectatorLinkCtn.id = "spectatormode";
+	$spectatorLinkCtn.style.left = (iScreenScale*2+10) +"px";
+	$spectatorLinkCtn.style.top = (iScreenScale*38+15) +"px";
+	$spectatorLinkCtn.style.width = (iScreenScale*(iWidth-4)) +"px";
+	$spectatorLinkCtn.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+
+	var $spectatorLink = document.createElement("a");
+	$spectatorLink.innerHTML = toLanguage('Switch to spectator mode', 'Passer en mode spectateur');
+	$spectatorLink.href = "#null";
+	$spectatorLink.title = toLanguage("You'll see games but not play on it", "Vous verrez les parties mais ne jouerez pas dedans");
+	var switchingSpectator = false;
+	$spectatorLink.onclick = function(e) {
+		e.preventDefault();
+		if (switchingSpectator) return;
+		switchingSpectator = true;
+		
+		forceClic4 = false;
+		var oScr = oContainers[0].firstChild;
+		oScr.innerHTML = "";
+		oContainers[0].removeChild(oScr);
+		xhr("spectatorMode.php", "", function(res) {
+			if (res > 0) {
+				onlineSpectatorId = +res;
+				switchingSpectator = false;
+				choose();
+				return true;
+			}
+			iDeco();
+			return true;
+		});
+	};
+	$spectatorLinkCtn.appendChild($spectatorLink);
+
+	document.getElementById("mariokartcontainer").appendChild($spectatorLinkCtn);
 }
 
 function connexion() {
