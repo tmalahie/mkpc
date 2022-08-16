@@ -33,8 +33,8 @@ if (isset($_GET['i'])) {
 		var isBattle = false;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/editor.js?reload=3"></script>
-		<script type="text/javascript" src="scripts/draw.js?reload=4"></script>
+		<script type="text/javascript" src="scripts/editor.js"></script>
+		<script type="text/javascript" src="scripts/draw.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
@@ -375,8 +375,20 @@ if (isset($_GET['i'])) {
 					<label class="form-row">
 						<div class="form-label"><?php echo $language ? 'Minimal engine class:' : 'Cylindrée minimale :'; ?></div>
 						<div class="form-value">
-							<input type="text" class="challenge-constraint-value" name="cc" pattern="[1-9]\d*" maxlength="3" list="shortcut_cc_list" required="required" style="width:45px" /> cc
+							<input type="text" name="cc" pattern="[1-9]\d*" maxlength="3" list="shortcut_cc_list" required="required" style="width:45px" /> cc
 							<datalist id="shortcut_cc_list">
+								<option value="50">
+								<option value="100">
+								<option value="150">
+								<option value="200">
+							</datalist>
+						</div>
+					</label>
+					<label class="form-row">
+						<div class="form-label"><?php echo $language ? 'Maximal engine class:' : 'Cylindrée maximale :'; ?></div>
+						<div class="form-value">
+							<input type="text" name="ccm" pattern="[1-9]\d*" maxlength="3" list="shortcut_ccm_list" style="width:45px" /> cc
+							<datalist id="shortcut_ccm_list">
 								<option value="50">
 								<option value="100">
 								<option value="150">

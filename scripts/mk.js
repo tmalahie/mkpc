@@ -2766,9 +2766,11 @@ function startGame() {
 				if (aiOptions.items == null) aiOptions.items = ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
 				if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
 				if (aiOptions.cc == null) aiOptions.cc = 150;
+				if (aiOptions.ccm == null) aiOptions.ccm = 1000;
 				var minDifficulty = 4 + aiOptions.difficulty*0.5;
 				var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
-				if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass)) {
+				var maxSelectedClass = getRelSpeedFromCc(aiOptions.ccm);
+				if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass) && (fSelectedClass <= maxSelectedClass)) {
 					isValidShortcuts = true;
 					if (!aiOptions.itemsDict) {
 						var oItems = {};

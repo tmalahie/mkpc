@@ -891,7 +891,8 @@ function showShortcutOptions(options) {
 	var defaultOptions = {
 		items: ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"],
 		difficulty: 2,
-		cc: 150
+		cc: 150,
+		ccm: ""
 	};
 	for (var key in defaultOptions) {
 		if (options.value[key] == null)
@@ -922,6 +923,7 @@ function showShortcutOptions(options) {
 	}
 	$form.elements["difficulty"].value = options.value.difficulty;
 	$form.elements["cc"].value = options.value.cc;
+	$form.elements["ccm"].value = options.value.ccm;
 
 	$form.onsubmit = function(e) {
 		e.preventDefault();
@@ -929,8 +931,10 @@ function showShortcutOptions(options) {
 			var value = {
 				items: [],
 				difficulty: +$form.elements["difficulty"].value,
-				cc: +$form.elements["cc"].value
+				cc: +$form.elements["cc"].value,
+				ccm: $form.elements["ccm"].value
 			};
+			if (value.ccm !== "") value.ccm = +value.ccm;
 			for (var i=0;i<$form.elements.length;i++) {
 				var el = $form.elements[i];
 				if (el.name.startsWith("item.") && el.checked)
