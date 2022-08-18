@@ -30,6 +30,7 @@ else {
 		}
 		catch (e) {
 		}
+		if (!cupOpts) cupOpts = {};
 	}
 }
 if (typeof dCircuits === 'undefined') {

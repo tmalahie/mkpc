@@ -130,7 +130,7 @@ function updateCircuitDate() {
 		return res;
 	}
 	function nl2br(str) {
-		return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*))/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>').replace(/([a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4})/gi, '<a href="mailto:$1">$1</a>').replace(/\r?\n/g, '<br />').replace(/  /g, ' &nbsp;');
+		return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=;]*))/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>').replace(/([a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4})/gi, '<a href="mailto:$1">$1</a>').replace(/\r?\n/g, '<br />').replace(/  /g, ' &nbsp;');
 	}
 	function br2nl(str) {
 		return str.replace(/ &nbsp;/g, '  ').replace(/<br ?\/?>/g, '\r\n').replace(/<([^>]+)>/g,"").replace(/&#039;/g, "'").replace(/&quot;/g, '"').replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
