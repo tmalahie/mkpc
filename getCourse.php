@@ -6,8 +6,13 @@ if ($id) {
 	$cupSQL = ' AND cup="'. $nid .'" AND mode='. $nmode .' AND link='. $nlink;
 	$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
 	$course = $getCourse['course'];
+	$requestedCourse = isset($_POST['course']) ? intval($_POST['course']) : 0;
 	$cas = 0;
 	$switchCourse = false;
+	if (!$course && $requestedCourse) {
+		$course = $requestedCourse;
+		$switchCourse = true;
+	}
 	if (!$course && !$linkOptions->public) {
 		// Course privée, on impose l'ID de course s'il existe déjà
 		$alreadyCreated = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE 1'. $cupSQL));
@@ -111,7 +116,7 @@ if ($id) {
 	elseif ($getTime && $getTime['map']==-1 && $getTime['cup']==$nid && $getTime['mode']==$nmode && $getTime['link']==$nlink && $getTime['time']>=($time+10)) {
 		// La course actuelle est sur le point de démarrer
 		// On vérifie que le nombre des joueurs match les conditions de la partie
-		if (!$linkOptions->public && (get_remaining_players($course, $getTime, false) >= $linkOptions->rules->maxPlayers))
+		if ($switchCourse && (get_remaining_players($course, $getTime, false) >= $linkOptions->rules->maxPlayers))
 			$cas = 1; // Trop de joueurs, il faudra rejoindre une autre game
 		else {
 			$nbJoueurs = get_remaining_players($course, $getTime);

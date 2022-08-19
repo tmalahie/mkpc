@@ -4,7 +4,7 @@ if ($spectatorId)
 	$getCourse = mysql_fetch_array(mysql_query('SELECT s.course,j.banned FROM `mkspectators` s INNER JOIN `mkjoueurs` j ON s.player=j.id WHERE s.id="'.$spectatorId.'" AND s.player="'. $id .'"'));
 else
 	$getCourse = mysql_fetch_array(mysql_query('SELECT course,banned FROM `mkjoueurs` WHERE id="'.$id.'"'));
-$course = $getCourse['course'];
+$course = $getCourse ? $getCourse['course'] : 0;
 if ($course && !$getCourse['banned']) {
 	$isBattle = isset($_POST['battle']);
 	$pts_ = 'pts_'.($isBattle ? 'battle':'vs');

@@ -558,8 +558,8 @@ input {
 }
 #dMaps {
     display: none;
-     position: absolute;
-     top: 400px;
+    position: absolute;
+    top: 400px;
 }
 .rgt {
     text-align: right;

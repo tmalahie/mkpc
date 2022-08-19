@@ -2708,7 +2708,7 @@ function startGame() {
 
 	for (i=0;i<aPlayers.length;i++) {
 		var joueur = aPlayers[i];
-		var inc = i+strPlayer.length;
+		var inc = i+nbPlayers;
 		var oPlace = aPlaces[inc];
 		var depart = (iDificulty-4)*2+Math.round(Math.random());
 		if (course == "BB")
@@ -2842,11 +2842,41 @@ function startGame() {
 		oSpecCam = {
 			playerId: 0,
 			pos: {},
-			reset: function() {
+			aim: {},
+			lastReset: 0,
+			move: function() {
+				var smoothFactor = 0.5;
+				this.pos.x = interpolateRaw(this.pos.x,this.aim.x, smoothFactor);
+				this.pos.y = interpolateRaw(this.pos.y,this.aim.y, smoothFactor);
+				this.pos.rotation = interpolateRaw(nearestAngle(this.pos.rotation,this.aim.rotation,360), this.aim.rotation, smoothFactor);
+				this.lastReset++;
+
 				var oKart = aKarts[this.playerId];
-				this.pos.x = oKart.x;
-				this.pos.y = oKart.y;
-				this.pos.rotation = oKart.rotation;
+				smoothFactor = 1/this.lastReset;
+				this.aim.x = interpolateRaw(this.aim.x,oKart.x, smoothFactor);
+				this.aim.y = interpolateRaw(this.aim.y,oKart.y, smoothFactor);
+				this.aim.rotation = interpolateRaw(nearestAngle(this.aim.rotation,oKart.rotation, 360),oKart.rotation, smoothFactor);
+			},
+			reset: function(opts) {
+				if (!opts) opts = {};
+				this.resetAim();
+				this.lastReset = opts.since || 0;
+				if (!opts.smooth) {
+					this.pos.x = this.aim.x;
+					this.pos.y = this.aim.y;
+					this.pos.rotation = this.aim.rotation;
+					if (lastState && lastState.cam) {
+						lastState.cam.x = this.pos.x;
+						lastState.cam.y = this.pos.y;
+						lastState.cam.rotation = this.pos.rotation;
+					}
+				}
+			},
+			resetAim: function() {
+				var oKart = aKarts[this.playerId];
+				this.aim.x = oKart.x;
+				this.aim.y = oKart.y;
+				this.aim.rotation = oKart.rotation;
 			}
 		};
 		oSpecCam.reset();
@@ -8674,7 +8704,10 @@ function interpolateState(x1,x2,tFrame) {
       break;
     }
   }
-  return x1*(1-tFrame) + x2*tFrame;
+  return interpolateRaw(x1,x2, tFrame);
+}
+function interpolateRaw(x1,x2, t) {
+  return x1*(1-t) + x2*t;
 }
 function interpolateStateNullable(x1,x2,tFrame) {
 	if (x1 == null)
@@ -8703,6 +8736,13 @@ function render() {
 		karts: [],
 		decor: {},
 		items: {}
+	}
+	if (oSpecCam) {
+		currentState.cam = {
+			x: oSpecCam.pos.x,
+			y: oSpecCam.pos.y,
+			rotation: oSpecCam.pos.rotation
+		}
 	}
 	for (var i=0;i<aKarts.length;i++) {
 		var oKart = aKarts[i];
@@ -8780,6 +8820,14 @@ function render() {
 				decor: {},
 				items: {}
 			};
+			if (currentState.cam) {
+				var lastCam = lastState.cam, currentCam = currentState.cam;
+				frameState.cam = {
+					x: interpolateState(lastCam.x,currentCam.x,tFrame),
+					y: interpolateState(lastCam.y,currentCam.y,tFrame),
+					rotation: interpolateStateAngle(lastCam.rotation,currentCam.rotation,tFrame),
+				};
+			}
 			for (var i=0;i<currentState.karts.length;i++) {
 				var currentObj = currentState.karts[i];
 				var lastObj = getLastObj(lastState.karts,i,currentObj);
@@ -8841,10 +8889,17 @@ function render() {
 			frameState.players.push(frameState.karts[i]);
 		for (var i=0;i<frameState.players.length;i++) {
 			var oPlayer = frameState.players[i];
+			if (oSpecCam)
+				oPlayer = frameState.karts[oSpecCam.playerId];
 
 			var posX = oPlayer.x;
 			var posY = oPlayer.y;
 			var fRotation = getApparentRotation(oPlayer);
+			if (frameState.cam) {
+				posX = frameState.cam.x;
+				posY = frameState.cam.y;
+				fRotation = frameState.cam.rotation;
+			}
 			if (oPlayer.tombe) {
 				if (oPlayer.tombe > 10) {
 					if (oPlayer.tombe == 20 && !lastFrame) {
@@ -8884,11 +8939,6 @@ function render() {
 			//posX = aKarts[1].x;
 			//posY = aKarts[1].y;
 			//fRotation = aKarts[1].rotation;
-			if (oSpecCam) {
-				posX = oSpecCam.pos.x;
-				posY = oSpecCam.pos.y;
-				fRotation = oSpecCam.pos.rotation;
-			}
 			var fCamera = {
 				x: posX,
 				y: posY,
@@ -8926,12 +8976,14 @@ function render() {
 				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
 				if (iAngleStep > 21) iAngleStep -= 22;
 
+				var isActualPlayer = (fSprite == oPlayer) && !oSpecCam;
+
 				if (!fSprite.changeView) {
 					if (fSprite.figstate)
 						iAngleStep = (iAngleStep + 21-fSprite.figstate) % 21;
 					else if (fSprite.ref.driftinc)
 						iAngleStep = (fSprite.ref.driftinc*getMirrorFactor()>0) ? 18:4;
-					else if (fSprite == frameState.players[i]) {
+					else if (isActualPlayer) {
 						if (fSprite.ref.rotincdir && !fSprite.tourne)
 							iAngleStep = (fSprite.ref.rotincdir*getMirrorFactor() > 0) ? 23:22;
 						else if (!fSprite.tourne)
@@ -8956,7 +9008,7 @@ function render() {
 					}
 				}
 
-				if (fSprite != frameState.players[i]) {
+				if (!isActualPlayer) {
 					if (fSprite.ref.marker && !fSprite.ref.loose && !fSprite.ref.tombe)
 						fSprite.ref.marker.render(i, fCamera, fSprite);
 				}
@@ -13017,10 +13069,14 @@ function resetDatas() {
 						if (oKart.turnSound && !oKart.tourne)
 							oKart.turnSound = undefined;
 
-						if (oSpecCam && oSpecCam.playerId === j)
-							oSpecCam.reset();
 						for (var k=jCode[0][1];k<rCode[2];k++)
 							move(j, true);
+						if (oSpecCam && oSpecCam.playerId === j) {
+							oSpecCam.reset({
+								smooth: true,
+								since: rCode[2]-jCode[0][1]
+							});
+						}
 						break;
 					}
 				}
@@ -16318,6 +16374,8 @@ function runOneFrame() {
 	}
 	moveItems();
 	moveDecor();
+	if (oSpecCam)
+		oSpecCam.move();
 	if (!oPlayers[0].cpu) {
 		if (clSelected && !clSelectionFail) {
 			if (false === challengeRulesSatisfied(clSelected, clSelected.data.constraints))
@@ -22087,7 +22145,8 @@ function selectChallengesScreen() {
 	oContainers[0].appendChild(oScr);
 }
 
-function searchCourse() {
+function searchCourse(opts) {
+	opts = opts || {};
 
 	var oScr = document.createElement("div");
 
@@ -22200,6 +22259,8 @@ function searchCourse() {
 		courseParams += "nods";
 	if (shareLink.key)
 		courseParams += (courseParams ? '&':'') + 'key='+ shareLink.key;
+	if (opts.course)
+		courseParams += (courseParams ? '&':'') + 'course='+ opts.course;
 	function rSearchCourse() {
 		if (rCount) {
 			rCount--;
@@ -22257,7 +22318,6 @@ function searchCourse() {
 							reponse.time = 1;
 						selectMapScreen({ racecountdown: reponse.time-5 });
 						dRest();
-						showSpectatorLink();
 						setTimeout(setChat, 1000);
 					}
 					return true;
@@ -22450,6 +22510,7 @@ function selectMapScreen(opts) {
 				if (isOnline)
 					document.getElementById("waitrace").style.visibility = "hidden";
 				chatting = false;
+				hideSpectatorLink();
 				selectGamersScreen();
 			}
 		}
@@ -22784,6 +22845,12 @@ function selectMapScreen(opts) {
 		}
 		
 		if (isOnline) {
+			handleSpectatorLink(function() {
+				forceClic4 = false;
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+			});
+
 			setTimeout(function() {
 				if (forceClic4) {
 					document.getElementById("dMaps").style.display = "none";
@@ -22888,6 +22955,7 @@ function selectRaceScreen(cup) {
 			if (isOnline && isCup && !isMCups) {
 				document.getElementById("waitrace").style.visibility = "hidden";
 				chatting = false;
+				hideSpectatorLink();
 				selectPlayerScreen(0);
 			}
 			else {
@@ -23048,6 +23116,11 @@ function selectRaceScreen(cup) {
 
 		if (isOnline) {
 			setSRest();
+			handleSpectatorLink(function() {
+				forceClic4 = false;
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+			});
 			setTimeout(function() {
 				if (forceClic4) {
 					oScr.innerHTML = "";
@@ -23105,6 +23178,7 @@ function choose(map,rand) {
 	oTable.style.width = (iScreenScale*30) +"px";
 	var oTBody = document.createElement("tbody");
 	function refreshTab(reponse) {
+		if (waitHandler == null) return;
 		if (reponse) {
 			if (reponse != -1) {
 				var rCode;
@@ -23136,8 +23210,9 @@ function choose(map,rand) {
 				if (onlineSpectatorId && !nbChoices)
 					rCode[1] = -2;
 				if (rCode[1] == -1)
-					setTimeout(waitForChoice, 1000);
+					waitHandler = setTimeout(waitForChoice, 1000);
 				else {
+					hideSpectatorLink();
 					if (nbChoices >= rCode[4].minPlayers) {
 						aPlayers = new Array();
 						aIDs = new Array();
@@ -23273,11 +23348,7 @@ function choose(map,rand) {
 						nSearch.onclick = function() {
 							$mkScreen.removeChild(oTable);
 							$mkScreen.removeChild(oDiv);
-							removeMenuMusic();
-							removeGameMusics();
-							formulaire.dataset.disabled = "";
-							chatting = false;
-							searchCourse();
+							leaveRaceWheelScreen();
 							return false;
 						};
 						oDiv.appendChild(nSearch);
@@ -23339,15 +23410,26 @@ function choose(map,rand) {
 		else
 			resetGame(strMap);
 	}
-	if (onlineSpectatorId)
-		setTimeout(waitForChoice, 1);
+	if (onlineSpectatorId) {
+		waitHandler = setTimeout(waitForChoice, 1);
+		showSpectatorLink({
+			toggled: true,
+			click: function() {
+				clearTimeout(waitHandler);
+				waitHandler = null;
+				$mkScreen.removeChild(oTable);
+			}
+		});
+	}
 	else {
 		xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(course=="BB"?"&battle":"")+(rand?"&rand":""), refreshTab);
 
+		hideSpectatorLink();
 		window.onbeforeunload = function() {
 			return language ? "Caution, if you leave the game, you are considered loser" : "Attention, si vous quittez la partie, vous êtes considéré comme perdant";
 		}
 	}
+	var waitHandler = 0;
 	function waitForChoice() {
 		var xhrParams = [];
 		if (onlineSpectatorId)
@@ -23372,6 +23454,16 @@ function choose(map,rand) {
 			}
 		}, 500);
 	}
+}
+
+function leaveRaceWheelScreen(opts) {
+	removeMenuMusic();
+	removeGameMusics();
+	formulaire.dataset.disabled = "";
+	chatting = false;
+	onlineSpectatorId = undefined;
+	hideSpectatorLink();
+	searchCourse(opts);
 }
 
 function selectOnlineTeams(strMap,choixJoueurs,selecter) {
@@ -23808,11 +23900,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		nSearch.setAttribute("href", "#null");
 		nSearch.onclick = function() {
 			$mkScreen.removeChild(oDiv);
-			removeMenuMusic();
-			removeGameMusics();
-			formulaire.dataset.disabled = "";
-			chatting = false;
-			searchCourse();
+			leaveRaceWheelScreen();
 			return false;
 		};
 		oDiv.appendChild(nSearch);
@@ -24022,6 +24110,9 @@ function iDeco() {
 	oDiv.appendChild(oQuit);
 	$mkScreen.appendChild(oDiv);
 	chatting = false;
+	hideSpectatorLink();
+	var $waitRace = document.getElementById("waitrace");
+	if ($waitRace) $waitRace.style.visibility = "hidden";
 	window.onbeforeunload = undefined;
 }
 
@@ -24064,7 +24155,9 @@ function setSRest(type) {
 	}
 }
 
-function showSpectatorLink() {
+function showSpectatorLink(opts) {
+	hideSpectatorLink();
+
 	var $spectatorLinkCtn = document.createElement("div");
 	$spectatorLinkCtn.id = "spectatormode";
 	$spectatorLinkCtn.style.left = (iScreenScale*2+10) +"px";
@@ -24073,33 +24166,64 @@ function showSpectatorLink() {
 	$spectatorLinkCtn.style.fontSize = Math.round(iScreenScale*2.5) +"px";
 
 	var $spectatorLink = document.createElement("a");
-	$spectatorLink.innerHTML = toLanguage('Switch to spectator mode', 'Passer en mode spectateur');
 	$spectatorLink.href = "#null";
-	$spectatorLink.title = toLanguage("You'll see games but not play on it", "Vous verrez les parties mais ne jouerez pas dedans");
 	var switchingSpectator = false;
-	$spectatorLink.onclick = function(e) {
-		e.preventDefault();
-		if (switchingSpectator) return;
-		switchingSpectator = true;
-		
-		forceClic4 = false;
-		var oScr = oContainers[0].firstChild;
-		oScr.innerHTML = "";
-		oContainers[0].removeChild(oScr);
-		xhr("spectatorMode.php", "", function(res) {
-			if (res > 0) {
-				onlineSpectatorId = +res;
-				switchingSpectator = false;
-				choose();
+	if (opts.toggled) {
+		$spectatorLink.innerHTML = toLanguage('Exit spectator mode', 'Quitter le mode spectateur');
+		$spectatorLink.onclick = function(e) {
+			e.preventDefault();
+			if (switchingSpectator) return;
+			switchingSpectator = true;
+
+			opts.click();
+			xhr("leaveSpectatorMode.php", "spectator="+onlineSpectatorId, function(res) {
+				leaveRaceWheelScreen({
+					course: +res
+				});
 				return true;
-			}
-			iDeco();
-			return true;
-		});
-	};
+			});
+		};
+	}
+	else {
+		$spectatorLink.title = toLanguage("You'll see games but not play on it", "Vous verrez les parties mais ne jouerez pas dedans");
+		$spectatorLink.innerHTML = toLanguage('Switch to spectator mode', 'Passer en mode spectateur');
+		$spectatorLink.onclick = function(e) {
+			e.preventDefault();
+			if (switchingSpectator) return;
+			switchingSpectator = true;
+
+			opts.click();
+			xhr("spectatorMode.php", "", function(res) {
+				if (res > 0) {
+					onlineSpectatorId = +res;
+					switchingSpectator = false;
+					choose();
+					return true;
+				}
+				iDeco();
+				return true;
+			});
+		};
+	}
 	$spectatorLinkCtn.appendChild($spectatorLink);
 
 	document.getElementById("mariokartcontainer").appendChild($spectatorLinkCtn);
+}
+function hideSpectatorLink() {
+	var $spectatorLinkCtn = document.getElementById("spectatormode");
+	if ($spectatorLinkCtn) {
+		document.getElementById("mariokartcontainer").removeChild($spectatorLinkCtn);
+	}
+}
+function handleSpectatorLink(callback) {
+	if (onlineSpectatorId) {
+		callback();
+		choose();
+		return;
+	}
+	showSpectatorLink({
+		click: callback
+	});
 }
 
 function connexion() {

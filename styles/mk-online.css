@@ -20,6 +20,9 @@
 #spectatormode a:hover {
     color: #CCF;
 }
+#dMaps {
+	z-index: 20002;
+}
 .online-chat {
     display: flex;
     flex-direction: column;
