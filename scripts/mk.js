@@ -1444,6 +1444,15 @@ function loadMap() {
 		$mkScreen.appendChild(hudScreen);
 
 		hudScreens[i] = hudScreen;
+
+		if (onlineSpectatorId) {
+			oScroller.style.display = "none";
+			oScroller2.style.display = "none";
+			oObjet.style.display = "none";
+			oReserve.style.display = "none";
+			infoPlace.style.visibility = "hidden";
+			oCompteur.style.visibility = "hidden";
+		}
 	}
 
 	oChallengeCpts = document.createElement("div");
@@ -2870,6 +2879,7 @@ function startGame() {
 						lastState.cam.y = this.pos.y;
 						lastState.cam.rotation = this.pos.rotation;
 					}
+					oContainers[0].style.opacity = 1;
 				}
 			},
 			resetAim: function() {
@@ -3478,6 +3488,8 @@ function startGame() {
 						document.body.removeChild(countDownMusic);
 						document.body.removeChild(goMusic);
 					};
+					if (onlineSpectatorId)
+						iSfx = false;
 				};
 				forcePrepareEnding = true;
 				setTimeout(
@@ -3616,6 +3628,18 @@ function startGame() {
 							if (bMusic && !oMusicEmbed) {
 								unpauseMusic(mapMusic);
 								forceStartMusic = true;
+							}
+							if (onlineSpectatorId) {
+								oInfos.innerHTML =
+									'<tbody style="text-align: left; color: white; font-weight: normal; text-shadow: black -1px -1px, black -1px 1px, black 1px -1px, black 1px 1px">'
+									  + '<tr><td style="font-weight: bold; text-decoration: underline; font-size: 1.1em; text-shadow: #030 -1px -1px, #030 -1px 1px, #030 1px -1px, #030 1px 1px">'+ toLanguage("Spectator mode", "Mode spectateur") +'</td></tr>'
+									  + '<tr><td>'+ toLanguage("Switch player:", "Changer de joueur :") +' <strong style="font-size: 1.4em; line-height: 1.1em">&larr; &rarr;</strong></td></tr>'
+									  + '<tr><td>'+ toLanguage("Exit: Escape", "Quitter : Echap") +'</td></tr>'
+									+ '</tbody>';
+								oInfos.style.left = Math.round(10 + iScreenScale/2) +"px";
+								oInfos.style.top = Math.round(10 + iScreenScale*(iHeight-8)) +"px";
+								oInfos.style.fontSize = Math.round(iScreenScale * 1.75) +"px";
+								oInfos.style.display = "";
 							}
 						}
 						bCounting = false;
@@ -3890,16 +3914,17 @@ function startGame() {
 					function handleSpectatorInput(e) {
 						switch (e.keyCode) {
 						case 37:
-						case 38:
 							oSpecCam.playerId--;
 							if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
 							oSpecCam.reset();
 							return false;
 						case 39:
-						case 40:
 							oSpecCam.playerId++;
 							if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
 							oSpecCam.reset();
+							return false;
+						case 27:
+							document.location.reload();
 							return false;
 						default:
 							return true;
@@ -14316,7 +14341,7 @@ function move(getId, triggered) {
 					oKart.lastAItime = 0;
 					oKart.maxspeed = 5.7;
 					oKart.maxspeed0 = oKart.maxspeed;
-					if (!oPlayers[1-getId] || oPlayers[1-getId].cpu) {
+					if ((!oPlayers[1-getId] || oPlayers[1-getId].cpu) && !onlineSpectatorId) {
 						if (!isOnline) {
 							if (course != "CM") {
 								var aRankScores = getRankScores();
@@ -14508,7 +14533,7 @@ function move(getId, triggered) {
 				if (oMap.sections)
 					if (oKart.billball>1) oKart.billball = 1;
 			}
-			else if (!(isOnline ? (getId||finishing):oKart.cpu)) {
+			else if (!(isOnline ? (getId||finishing||onlineSpectatorId):oKart.cpu)) {
 				var oCompteurTours = document.querySelectorAll("#compteur"+getId+" .tour");
 				for (var i=0;i<oCompteurTours.length;i++)
 					oCompteurTours[i].innerHTML = oKart.tours;
@@ -15049,6 +15074,8 @@ function move(getId, triggered) {
 function kartIsPlayer(oKart) {
 	if (!isOnline)
 		return !oKart.cpu;
+	if (oSpecCam)
+		return (oKart == oPlayers[oSpecCam.playerId]);
 	return (oKart == oPlayers[0]);
 }
 function isControlledByPlayer(id) {
@@ -24163,7 +24190,14 @@ function showSpectatorLink(opts) {
 	$spectatorLinkCtn.style.left = (iScreenScale*2+10) +"px";
 	$spectatorLinkCtn.style.top = (iScreenScale*38+15) +"px";
 	$spectatorLinkCtn.style.width = (iScreenScale*(iWidth-4)) +"px";
-	$spectatorLinkCtn.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+	$spectatorLinkCtn.style.fontSize = Math.round(iScreenScale*2.25) +"px";
+
+	var $spectatorImg = document.createElement("img");
+	$spectatorImg.src = "images/ic_spectator.png";
+	$spectatorImg.alt = "Toggle";
+	$spectatorImg.style.height = Math.round(iScreenScale*1.75) +"px";
+	$spectatorImg.style.marginRight = Math.round(iScreenScale/4) +"px";
+	$spectatorLinkCtn.appendChild($spectatorImg);
 
 	var $spectatorLink = document.createElement("a");
 	$spectatorLink.href = "#null";
