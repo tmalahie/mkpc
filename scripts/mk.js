@@ -2839,7 +2839,7 @@ function startGame() {
 			oEnemy.ballons = [createBalloonSprite(oEnemy)];
 			oEnemy.reserve = 4;
 			oEnemy.place = iAI+1;
-			if (!simplified)
+			if (!simplified && !isOnline)
 				oEnemy.speed = oEnemy.maxspeed;
 		}
 		oEnemy.initialPlace = oEnemy.place;
@@ -2870,24 +2870,30 @@ function startGame() {
 				if (!opts) opts = {};
 				this.resetAim();
 				this.lastReset = opts.since || 0;
-				if (!opts.smooth) {
-					this.pos.x = this.aim.x;
-					this.pos.y = this.aim.y;
-					this.pos.rotation = this.aim.rotation;
-					if (lastState && lastState.cam) {
-						lastState.cam.x = this.pos.x;
-						lastState.cam.y = this.pos.y;
-						lastState.cam.rotation = this.pos.rotation;
-					}
-					oContainers[0].style.opacity = 1;
-				}
+				if (!opts.smooth)
+					this.resetPos();
 			},
 			resetAim: function() {
 				var oKart = aKarts[this.playerId];
 				this.aim.x = oKart.x;
 				this.aim.y = oKart.y;
 				this.aim.rotation = oKart.rotation;
+			},
+			resetPos: function() {
+				this.pos.x = this.aim.x;
+				this.pos.y = this.aim.y;
+				this.pos.rotation = this.aim.rotation;
+				if (lastState && lastState.cam) {
+					lastState.cam.x = this.pos.x;
+					lastState.cam.y = this.pos.y;
+					lastState.cam.rotation = this.pos.rotation;
+				}
+				oContainers[0].style.opacity = 1;
+				resetRenderState();
 			}
+		};
+		getPlayerAtScreen = function(i) {
+			return aKarts[oSpecCam.playerId];
 		};
 		oSpecCam.reset();
 	}
@@ -3494,7 +3500,7 @@ function startGame() {
 				forcePrepareEnding = true;
 				setTimeout(
 					function() {
-						var stillRacing = (kartIsPlayer(oPlayers[0]) && !oPlayers[0].loose && !finishing) || willReplay;
+						var stillRacing = (((kartIsPlayer(oPlayers[0]) && !oPlayers[0].loose) || onlineSpectatorId) && !finishing) || willReplay;
 						for (var i=0;i<strPlayer.length;i++) {
 							oContainers[i].removeChild(oCounts[i][0]);
 							if (stillRacing||i)
@@ -3910,25 +3916,6 @@ function startGame() {
 					function retriggerInputIfPressed(gameAction) {
 						if (currentPressedKeys[gameAction])
 							handleInputPressed(gameAction);
-					}
-					function handleSpectatorInput(e) {
-						switch (e.keyCode) {
-						case 37:
-							oSpecCam.playerId--;
-							if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
-							oSpecCam.reset();
-							return false;
-						case 39:
-							oSpecCam.playerId++;
-							if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
-							oSpecCam.reset();
-							return false;
-						case 27:
-							document.location.reload();
-							return false;
-						default:
-							return true;
-						}
 					}
 					document.onkeydown = function(e) {
 						if (forceStartMusic) {
@@ -6062,7 +6049,7 @@ var itemBehaviors = {
 				for (var i=0;i<aKarts.length;i++) {
 					var kart = aKarts[i];
 					if ((kart === oKart) || (!friendlyFire(kart,oKart) && !kart.protect)) {
-						if (i < oPlayers.length) {
+						if ((i < oPlayers.length) && !onlineSpectatorId) {
 							var oSprites = {
 								"bloops": {
 									elt: document.createElement("img"),
@@ -7747,7 +7734,7 @@ var decorBehaviors = {
 					decorData[5] = -1;
 			}
 			for (var j=0;j<oPlayers.length;j++) {
-				var fAngle = nearestAngleMirrored(getApparentRotation(oPlayers[j])+90-decorData[4], 180,360);
+				var fAngle = nearestAngleMirrored(getApparentRotation(getPlayerAtScreen(j))+90-decorData[4], 180,360);
 				var x = (fAngle%180)/180;
 				x = this.easeInOut(x);
 				fAngle = 180*Math.floor(fAngle/180) + 180*x;
@@ -8399,7 +8386,7 @@ var decorBehaviors = {
 					decorData[4] = aimAngle;
 			}
 			for (var i=0;i<oPlayers.length;i++) {
-				var fAngle = nearestAngleMirrored(getApparentRotation(oPlayers[i])-decorData[4], 180,360);
+				var fAngle = nearestAngleMirrored(getApparentRotation(getPlayerAtScreen(i))-decorData[4], 180,360);
 				var x = (fAngle%180)/180;
 				x = this.easeInOut(x);
 				fAngle = 180*Math.floor(fAngle/180) + 180*x;
@@ -8567,7 +8554,7 @@ var decorBehaviors = {
 			var cAngle = Math.atan2(target[0]-origin[0],target[1]-origin[1])*180/Math.PI;
 			if (!isNaN(cAngle)) {
 				for (var j=0;j<oPlayers.length;j++) {
-					var fAngle = nearestAngleMirrored(getApparentRotation(oPlayers[j])-cAngle, 180,360);
+					var fAngle = nearestAngleMirrored(getApparentRotation(getPlayerAtScreen(j))-cAngle, 180,360);
 					var iAngleStep = Math.round(fAngle*8/360)%8;
 					decorData[2][j].setState(iAngleStep);
 				}
@@ -8623,7 +8610,7 @@ var decorBehaviors = {
 			decorData[1] = decorData[5][1] + r*Math.sin(theta)*Math.cos(phi);
 			var z = -l*(1-Math.cos(theta));
 			for (var j=0;j<strPlayer.length;j++) {
-				var pTheta = getApparentRotation(oPlayers[j]);
+				var pTheta = getApparentRotation(getPlayerAtScreen(j));
 				var thetaApp = -theta/5*Math.sin(pTheta*Math.PI/180-phi);
 				decorData[2][j].div.style.transform = decorData[2][j].div.style.WebkitTransform = decorData[2][j].div.style.MozTransform = "translateY("+z+"%) rotate("+Math.round(thetaApp*getMirrorFactor()*180/Math.PI)+"deg)";
 			}
@@ -8847,6 +8834,7 @@ function render() {
 			};
 			if (currentState.cam) {
 				var lastCam = lastState.cam, currentCam = currentState.cam;
+				if (!lastCam) lastCam = currentCam;
 				frameState.cam = {
 					x: interpolateState(lastCam.x,currentCam.x,tFrame),
 					y: interpolateState(lastCam.y,currentCam.y,tFrame),
@@ -9316,7 +9304,7 @@ function supprime(item, sound) {
 		var itemBehavior = itemBehaviors[key];
 		if (item.sprite) {
 			for (var i=0;i<oPlayers.length;i++) {
-				var oPlayer = oPlayers[i];
+				var oPlayer = getPlayerAtScreen(i);
 				if (!oPlayer.tombe) {
 					var fCamera = {
 						x: oPlayer.x,
@@ -9730,7 +9718,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 								if (collisionPlayer.turbodrift)
 									collisionPlayer.turbodrift = 0;
 								if (decorBehavior.bonus) {
-									if (!isOnline || (collisionPlayer == oPlayers[0])) {
+									if (!isOnline || (collisionPlayer == oPlayers[0] && !onlineSpectatorId)) {
 										var bonusType = "champi";
 										if (course != "CM" && Math.random() < 0.5)
 											bonusType = "banane";
@@ -13412,7 +13400,7 @@ function resetFall(oKart) {
 	delete oKart.aY;
 	delete oKart.aRotation;
 	for (var i=0;i<oPlayers.length;i++) {
-		if (oKart == oPlayers[i])
+		if (oKart == getPlayerAtScreen(i))
 			oContainers[i].style.opacity = 1;
 		oKart.sprite[i].img.style.display = "block";
 	}
@@ -14341,7 +14329,7 @@ function move(getId, triggered) {
 					oKart.lastAItime = 0;
 					oKart.maxspeed = 5.7;
 					oKart.maxspeed0 = oKart.maxspeed;
-					if ((!oPlayers[1-getId] || oPlayers[1-getId].cpu) && !onlineSpectatorId) {
+					if (!oPlayers[1-getId] || oPlayers[1-getId].cpu) {
 						if (!isOnline) {
 							if (course != "CM") {
 								var aRankScores = getRankScores();
@@ -15056,9 +15044,10 @@ function move(getId, triggered) {
 		var setOpac = oKart.sprite[0].div.style.opacity-0.1;
 		for (var i=0;i<strPlayer.length;i++)
 			oKart.sprite[i].div.style.opacity = setOpac;
-		var oPacLim = (isOnline&&oKart==oPlayers[0]) ? 0.4:0.01;
+		var stayVisible = (isOnline&&!onlineSpectatorId&&oKart==oPlayers[0])
+		var oPacLim = stayVisible ? 0.4:0.01;
 		if (setOpac < oPacLim) {
-			if (!isOnline || oKart != oPlayers[0]) {
+			if (!stayVisible) {
 				for (var i=0;i<strPlayer.length;i++) {
 					oKart.sprite[i].img.style.display = "none";
 					if (oKart.marker)
@@ -15074,10 +15063,15 @@ function move(getId, triggered) {
 function kartIsPlayer(oKart) {
 	if (!isOnline)
 		return !oKart.cpu;
-	if (oSpecCam)
-		return (oKart == oPlayers[oSpecCam.playerId]);
+	if (onlineSpectatorId)
+		return false;
 	return (oKart == oPlayers[0]);
 }
+var getPlayerAtScreen = function(i) {
+	// Can be overriden, see oSpecCam
+
+	return oPlayers[i];
+};
 function isControlledByPlayer(id) {
 	var oKart = aKarts.find(function(kart) {
 		return kart.id == id;
@@ -15166,8 +15160,6 @@ function angleDrift(oKart) {
 		return 0;
 	if (oKart.sliding)
 		return oKart.rotinc*oKart.sliding;
-	if (!oKart.drift)
-		return 0;
 	return oKart.drift*6;
 }
 function angleShoot(oKart, backwards) {
@@ -16417,7 +16409,32 @@ function runOneFrame() {
 }
 
 var gameControls = {};
+function handleSpectatorInput(e) {
+	switch (e.keyCode) {
+	case 37:
+		oSpecCam.playerId--;
+		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
+		oSpecCam.reset();
+		return false;
+	case 39:
+		oSpecCam.playerId++;
+		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
+		oSpecCam.reset();
+		return false;
+	case 27:
+		document.location.reload();
+		return false;
+	default:
+		return true;
+	}
+}
 document.onkeydown = function(e) {
+	if (onlineSpectatorId) {
+		var res = handleSpectatorInput(e);
+		if (res === false)
+			render();
+		return res;
+	}
 	var gameAction = gameControls[e.keyCode];
 	switch (gameAction) {
 		case "up":
@@ -16449,6 +16466,7 @@ document.onkeydown = function(e) {
 
 
 document.onkeyup = function(e) {
+	if (onlineSpectatorId) return;
 	var gameAction = gameControls[e.keyCode];
 	switch (gameAction) {
 		case "up":
@@ -23250,6 +23268,8 @@ function choose(map,rand) {
 							var cpuLevel = shareLink.options.cpuLevel || 0;
 							cpuLevel = 2-cpuLevel;
 							iDificulty = 4+cpuLevel*0.5;
+							if (isBattle)
+								iDificulty = 4.5;
 						}
 						if (rCode[4].cc)
 							fSelectedClass = getRelSpeedFromCc(rCode[4].cc);
