@@ -8,7 +8,7 @@ if (!empty($_SESSION['mkid'])) {
 	include('onlineUtils.php');
 	$course = getCourse();
 	if ($course) {
-		$joueurs = mysql_query('SELECT j.id,j.nom,i.ignorer,m.player AS muted FROM `mkjoueurs` j LEFT JOIN `mkignores` i ON i.ignored=j.id AND i.ignorer='.$id.' LEFT JOIN `mkmuted` m ON m.player=j.id WHERE j.course='.$course.' AND j.id!="'.$id.'"');
+		$joueurs = mysql_query('SELECT j.*,i.ignorer,m.player AS muted FROM (SELECT id,nom FROM mkjoueurs WHERE course='.$course.' UNION SELECT j.id,j.nom FROM mkspectators s INNER JOIN mkjoueurs j ON s.player=j.id WHERE s.course='.$course.') j LEFT JOIN `mkignores` i ON i.ignored=j.id AND i.ignorer='.$id.' LEFT JOIN `mkmuted` m ON m.player=j.id WHERE j.id!='.$id);
 		$virgule = false;
 		while ($joueur = mysql_fetch_array($joueurs)) {
 			echo ($virgule ? ',':'');

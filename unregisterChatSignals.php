@@ -5,9 +5,8 @@ if (isset($_POST['sender']) && isset($_POST['receiver'])) {
     include('session.php');
 	if ($id) {
     	include('initdb.php');
-		$course = 0;
-		if ($getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"')))
-			$course = $getCourse['course'];
+		include('onlineUtils.php');
+		$course = getCourse();
 	    if ($getSender = mysql_fetch_array(mysql_query('SELECT player,course FROM mkchatvoc WHERE id="'.$_POST['sender'] .'"'))) {
 		    if ($getReceiver = mysql_fetch_array(mysql_query('SELECT player,course FROM mkchatvoc WHERE id="'.$_POST['receiver'] .'"'))) {
 				if (($getSender['player'] == $id) && ($getSender['course'] == $getReceiver['course'])) {

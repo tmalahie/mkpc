@@ -23508,9 +23508,15 @@ function leaveRaceWheelScreen(opts) {
 	removeGameMusics();
 	formulaire.dataset.disabled = "";
 	chatting = false;
-	onlineSpectatorId = undefined;
+	setSpectatorId(undefined);
 	hideSpectatorLink();
 	searchCourse(opts);
+}
+
+function setSpectatorId(id) {
+	onlineSpectatorId = id;
+	if (rtcService)
+		rtcService.setSpectatorId(onlineSpectatorId);
 }
 
 function selectOnlineTeams(strMap,choixJoueurs,selecter) {
@@ -24251,7 +24257,7 @@ function showSpectatorLink(opts) {
 			opts.click();
 			xhr("spectatorMode.php", "", function(res) {
 				if (res > 0) {
-					onlineSpectatorId = +res;
+					setSpectatorId(+res);
 					switchingSpectator = false;
 					choose();
 					return true;
@@ -25915,7 +25921,7 @@ function setChat() {
 	var oPlayersListCtn = document.createElement("div");
 	oPlayersListCtn.className = "online-chat-playerlistctn";
 	var iConnectes = document.createElement("span");
-	iConnectes.innerHTML = toLanguage("Online opponent(s): ", "Adversaire(s) en ligne : ");
+	iConnectes.innerHTML = toLanguage("Online players: ", "Joueurs en ligne : ");
 	oPlayersListCtn.appendChild(iConnectes);
 	var jConnectes = document.createElement("span");
 	jConnectes.style.color = "white";
@@ -26229,7 +26235,9 @@ function setChat() {
 
 	var iChatLastMsg = 0;
 	if (!rtcService) {
-		rtcService = RTCService();
+		rtcService = RTCService({
+			spectatorId: onlineSpectatorId
+		});
 	}
 	function refreshChat() {
 		if (chatting) {
@@ -26282,15 +26290,26 @@ function setChat() {
 								sNom.className = "online-chat-playerlistelt";
 								sNom.innerHTML = '<span class="online-chat-playerlistname"></span>' +
 									'<div class="online-chat-playerlisticon">'+
-										'<div class="online-chat-playerlistvolume"></div>'+
-										'<img alt="Voc" />'+
+										'<img class="online-chat-spectator" alt="Spectator" src="images/ic_spectator.png" />'+
+										'<div class="online-chat-playerlisticonwrapper">'+
+											'<div class="online-chat-playerlistvolume"></div>'+
+											'<img alt="Voc" />'+
+										'</div>'+
 									'</div>';
 								jConnectes.appendChild(sNom);
 							}
+							var isIcon = false;
 							sNom.querySelector(".online-chat-playerlistname").innerText = cPlayer.name;
+							if (cPlayer.spectator) {
+								sNom.querySelector(".online-chat-spectator").style.display = "";
+								isIcon = true;
+							}
+							else
+								sNom.querySelector(".online-chat-spectator").style.display = "none";
 							if (cPlayer.peer) {
-								sNom.querySelector(".online-chat-playerlisticon").style.display = "";
-								sNom.querySelector(".online-chat-playerlisticon img").src = 'images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png';
+								isIcon = true;
+								sNom.querySelector(".online-chat-playerlisticonwrapper").style.display = "";
+								sNom.querySelector(".online-chat-playerlisticonwrapper img").src = 'images/'+ (cPlayer.muted ? "ic_muted" : "ic_voc") +'.png';
 								var cPeer = rtcService.getPeer(cPlayer.peer);
 								if (cPeer && cPeer.audio) {
 									if (!cPeer.recorderHandler) {
@@ -26357,11 +26376,12 @@ function setChat() {
 								}
 							}
 							else {
-								sNom.querySelector(".online-chat-playerlisticon").style.display = "none";
+								sNom.querySelector(".online-chat-playerlisticonwrapper").style.display = "none";
 
 								rtcService.removePeer(cPlayerPeers[cPlayer.id]);
 								delete cPlayerPeers[cPlayer.id];
 							}
+							sNom.querySelector(".online-chat-playerlisticon").style.display = isIcon ? "" : "none";
 						}
 						for (var cPlayerId in cPlayerPeers) {
 							if (!currentConnectedPlayers[cPlayerId]) {

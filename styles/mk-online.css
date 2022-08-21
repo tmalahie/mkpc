@@ -14,6 +14,9 @@
 	z-index: 20001;
     pointer-events: none;
 }
+#spectatormode img {
+    opacity: 0.8;
+}
 #spectatormode a {
     background-color: black;
     color: #9cd;
@@ -40,6 +43,12 @@
 .online-chat-playerlistelt:not(:last-child)::after {
     content: ", ";
     position: relative;
+}
+.online-chat-spectator {
+    position: relative;
+    top: 2px;
+    margin-right: 0.15em;
+    height: 14px;
 }
 .online-chat-playerlisticon {
     opacity: 0.8;
@@ -209,6 +218,9 @@
     display: inline-block;
 }
 .online-chat-playerlisticon {
+    display: inline-block;
+}
+.online-chat-playerlisticonwrapper {
     display: inline-block;
     position: relative;
     width: 16px;
