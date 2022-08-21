@@ -5,12 +5,12 @@ if ($id) {
 	include('getCourseParams.php');
 	include('onlineUtils.php');
 	$cupSQL = ' AND cup="'. $nid .'" AND mode='. $nmode .' AND link='. $nlink;
-	$course = getCourse(array(
-	    'spectator' => 0,
-	));
+	$course = getCourse();
 	$requestedCourse = isset($_POST['course']) ? intval($_POST['course']) : 0;
 	$cas = 0;
 	$switchCourse = false;
+	if ($course && $spectatorId)
+		$switchCourse = true;
 	if (!$course && $requestedCourse) {
 		$course = $requestedCourse;
 		$switchCourse = true;

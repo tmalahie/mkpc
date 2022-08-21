@@ -22289,23 +22289,7 @@ function searchCourse(opts) {
 	var rCount = 1;
 	var mLoadX = iScreenScale/2;
 
-	var courseParams = "";
-	if (isCup) {
-		if (isMCups)
-			courseParams += "mid=" + nid;
-		else if (isSingle)
-			courseParams += (complete ? 'i':'id') + '='+ nid + (isBattle ? '&battle':'');
-		else
-			courseParams += (complete ? 'c':'s') + 'id='+ nid;
-	}
-	else if (isBattle)
-		courseParams += 'battle';
-	else if (noDS)
-		courseParams += "nods";
-	if (shareLink.key)
-		courseParams += (courseParams ? '&':'') + 'key='+ shareLink.key;
-	if (opts.course)
-		courseParams += (courseParams ? '&':'') + 'course='+ opts.course;
+	var courseParams = getOnlineCourseParams(opts);
 	function rSearchCourse() {
 		if (rCount) {
 			rCount--;
@@ -22359,11 +22343,7 @@ function searchCourse(opts) {
 							reponse.time -= Math.round((new Date().getTime()-sTime)/1000);
 							document.body.removeChild(oMusicAlert);
 						}
-						if (reponse.time < 1)
-							reponse.time = 1;
-						selectMapScreen({ racecountdown: reponse.time-5 });
-						dRest();
-						setTimeout(setChat, 1000);
+						handleMatchmakingSuccess(reponse);
 					}
 					return true;
 				});
@@ -22462,6 +22442,35 @@ function searchCourse(opts) {
 	oContainers[0].appendChild(oScr);
 
 	updateMenuMusic(0);
+}
+function getOnlineCourseParams(opts) {
+	var courseParams = "";
+	if (isCup) {
+		if (isMCups)
+			courseParams += "mid=" + nid;
+		else if (isSingle)
+			courseParams += (complete ? 'i':'id') + '='+ nid + (isBattle ? '&battle':'');
+		else
+			courseParams += (complete ? 'c':'s') + 'id='+ nid;
+	}
+	else if (isBattle)
+		courseParams += 'battle';
+	else if (noDS)
+		courseParams += "nods";
+	if (shareLink.key)
+		courseParams += (courseParams ? '&':'') + 'key='+ shareLink.key;
+	if (opts.spectator)
+		courseParams += (courseParams ? '&':'') + 'spectator='+ opts.spectator;
+	else if (opts.course)
+		courseParams += (courseParams ? '&':'') + 'course='+ opts.course;
+	return courseParams;
+}
+function handleMatchmakingSuccess(reponse) {
+	if (reponse.time < 1)
+		reponse.time = 1;
+	selectMapScreen({ racecountdown: reponse.time-5 });
+	dRest();
+	setTimeout(setChat, 1000);
 }
 
 function chooseRandMap() {
@@ -23504,13 +23513,16 @@ function choose(map,rand) {
 }
 
 function leaveRaceWheelScreen(opts) {
+	clearRaceWheenScreen();
+	chatting = false;
+	setSpectatorId(undefined);
+	searchCourse(opts);
+}
+function clearRaceWheenScreen() {
 	removeMenuMusic();
 	removeGameMusics();
 	formulaire.dataset.disabled = "";
-	chatting = false;
-	setSpectatorId(undefined);
 	hideSpectatorLink();
-	searchCourse(opts);
 }
 
 function setSpectatorId(id) {
@@ -24238,10 +24250,28 @@ function showSpectatorLink(opts) {
 			switchingSpectator = true;
 
 			opts.click();
-			xhr("leaveSpectatorMode.php", "spectator="+onlineSpectatorId, function(res) {
-				leaveRaceWheelScreen({
-					course: +res
-				});
+			xhr("getCourse.php", getOnlineCourseParams({
+				spectator: onlineSpectatorId
+			}), function(reponse) {
+				if (!reponse)
+					return false;
+				try {
+					reponse = JSON.parse(reponse);
+				}
+				catch (e) {
+					return false;
+				}
+				if (reponse.found) {
+					clearRaceWheenScreen();
+					setSpectatorId(undefined);
+					handleMatchmakingSuccess(reponse);
+				}
+				else {
+					choose();
+					hideSpectatorLink();
+
+					showExitSpectatorFailMessage();
+				}
 				return true;
 			});
 		};
@@ -24286,6 +24316,38 @@ function handleSpectatorLink(callback) {
 	showSpectatorLink({
 		click: callback
 	});
+}
+function showExitSpectatorFailMessage() {
+	var oFailMessage = document.createElement("div");
+	oFailMessage.style.position = "absolute";
+	oFailMessage.style.left = (10 + 2*iScreenScale) +"px";
+	oFailMessage.style.width = ((iWidth-4) * iScreenScale) +"px";
+	oFailMessage.style.top = (iScreenScale*38+15) +"px";
+	oFailMessage.style.fontSize = (2*iScreenScale) +"px";
+	oFailMessage.style.textAlign = "center";
+
+	var oFailMessageDiv = document.createElement("div");
+	oFailMessageDiv.style.color = "#dc7";
+	oFailMessageDiv.style.backgroundColor = "#430";
+	oFailMessageDiv.style.display = "inline-block";
+	oFailMessageDiv.style.padding = Math.round(0.5*iScreenScale) +" "+ (iScreenScale) +"px"
+	oFailMessageDiv.style.borderRadius = (iScreenScale) +"px"
+	oFailMessageDiv.innerHTML = toLanguage("Sorry, it's too late to join the race", "Désolé, il est trop tard pour rejoindre la course");
+	oFailMessage.appendChild(oFailMessageDiv);
+
+	document.body.appendChild(oFailMessage);
+
+	var fadeOpacity = 1;
+	function fadeMessageOut() {
+		fadeOpacity -= 0.05;
+		if (fadeOpacity <= 0) {
+			document.body.removeChild(oFailMessage);
+			return;
+		}
+		oFailMessage.style.opacity = fadeOpacity;
+		setTimeout(fadeMessageOut, 100);
+	}
+	setTimeout(fadeMessageOut, 1500);
 }
 
 function connexion() {
@@ -25908,6 +25970,7 @@ function onButtonPress(e) {
 }
 
 function setChat() {
+	if (chatting) return;
 	chatting = true;
 	var oChats = document.getElementsByClassName("online-chat");
 	while (oChats.length)
