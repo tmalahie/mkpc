@@ -7,11 +7,9 @@ if ($id) {
         'check_ban' => true
     ));
     if ($course) {
-        //mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id="'.$id.'" AND course="'.$course.'"');
-        mysql_query('INSERT IGNORE INTO `mkspectators` SET player='.$id.',course='.$course.',state="joined" ON DUPLICATE KEY UPDATE state=VALUES(state)');
-        $getSpectatorId = mysql_fetch_array(mysql_query('SELECT id FROM `mkspectators` WHERE player="'.$id.'" AND course="'.$course.'"'));
-        if ($getSpectatorId)
-            echo $getSpectatorId['id'];
+        $newSpectatorId = joinSpectatorMode($course);
+        if ($newSpectatorId)
+            echo $newSpectatorId;
         else
             echo -1;
     }

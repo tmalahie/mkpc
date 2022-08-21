@@ -9,6 +9,9 @@ if ($id) {
 	$requestedCourse = isset($_POST['course']) ? intval($_POST['course']) : 0;
 	$cas = 0;
 	$switchCourse = false;
+	$noJoin = isset($_POST['nojoin']);
+	if ($noJoin) $linkOptions->rules->maxPlayers += 1000; // hack to remove max player restriction if spectator mode enabled
+
 	if ($course && $spectatorId)
 		$switchCourse = true;
 	if (!$course && $requestedCourse) {
@@ -23,13 +26,20 @@ if ($id) {
 			$switchCourse = true;
 		}
 	}
+	$newSpectatorId = 0;
 	function switchCourseIfNeeded() {
-		global $switchCourse,$course,$id;
-		if ($switchCourse) {
-			mysql_query('UPDATE `mkjoueurs` SET course='.$course.',choice_map=0 WHERE id='.$id);
-			mysql_query('UPDATE `mkplayers` SET course='.$course.' WHERE id='.$id);
+		global $switchCourse,$course,$id, $noJoin,$newSpectatorId;
+		if ($noJoin) {
+			mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id='.$id.' AND choice_map=0');
+			$newSpectatorId = joinSpectatorMode($course);
 		}
-		mysql_query('DELETE FROM `mkspectators` WHERE course='.$course.' AND player='.$id);
+		else {
+			if ($switchCourse) {
+				mysql_query('UPDATE `mkjoueurs` SET course='.$course.',choice_map=0 WHERE id='.$id);
+				mysql_query('UPDATE `mkplayers` SET course='.$course.' WHERE id='.$id);
+			}
+			mysql_query('DELETE FROM `mkspectators` WHERE course='.$course.' AND player='.$id);
+		}
 		unset($_SESSION['date']);
 	}
 	function sendCourseNotifs() {
@@ -43,7 +53,8 @@ if ($id) {
 		mysql_query('UPDATE `mkplayers` SET team=-1 WHERE id='. $id);
 	}
 	function return_success($remainingTtime) {
-		echo '{"found":true,"time":'.max($remainingTtime,12).'}';
+		global $newSpectatorId;
+		echo '{"found":true,"time":'.max($remainingTtime,12).($newSpectatorId ? ',"spectator":'.$newSpectatorId:'').'}';
 	}
 	function return_failure() {
 		global $pendingPlayers, $linkOptions;
@@ -182,7 +193,8 @@ if ($id) {
 			if (($nbJoueurs >= $maxPlayers) && ($nbJoueurs < $linkOptions->rules->maxPlayers)) {
 				if (($nbJoueurs+1) >= $linkOptions->rules->minPlayers) {
 					// Cette course est sur le point de démarrer, on l'assigne !
-					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$courses['id'].',p.course='.$courses['id'].',p.connecte=0,j.choice_map=0 WHERE j.id="'. $id .'"');
+					if (!$noJoin)
+						mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$courses['id'].',p.course='.$courses['id'].',p.connecte=0,j.choice_map=0 WHERE j.id="'. $id .'"');
 					$search = false;
 					$tempsRestant = ($courses['time']-$time);
 					if ($tempsRestant > 35) {
@@ -207,8 +219,10 @@ if ($id) {
 					mysql_query('INSERT INTO `mariokart` VALUES (null, -1, '. ($time+35) .','. $nid .','. $nmode .','. $nlink .')');
 					$pID = mysql_insert_id();
 				}
-				mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$pID.',p.course='.$pID.',p.connecte=0,j.choice_map=0 WHERE j.id="'. $id .'"');
-				sendCourseNotifs();
+				if (!$noJoin) {
+					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$pID.',p.course='.$pID.',p.connecte=0,j.choice_map=0 WHERE j.id="'. $id .'"');
+					sendCourseNotifs();
+				}
 				break;
 			case 2 :
 				if (!check_private_race_condition($course))

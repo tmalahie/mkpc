@@ -19236,7 +19236,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
 
-	var shrinkAll = (!isOnline && ((course == "VS") || (course == "BB")) && !clSelected);
+	var shrinkAll = ((course == "VS") || (course == "BB")) && !clSelected;
 
 	var oTitle;
 	if (isCustomSel) {
@@ -19531,10 +19531,13 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							if (!autoAcceptedRules[key])
 								shownOptions[key] = shareLink.options[key];
 						}
-						if (isCustomOptions(shownOptions) && !shareLink.accepted && (shareLink.player != identifiant))
+						if (!enableSpectatorMode && isCustomOptions(shownOptions) && !shareLink.accepted && (shareLink.player != identifiant))
 							acceptRulesScreen();
-						else
-							searchCourse();
+						else {
+							searchCourse({
+								enableSpectatorMode: enableSpectatorMode
+							});
+						}
 					}
 					else {
 						if (isTeamPlay())
@@ -19727,7 +19730,66 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			}
 		}
 	}
-	if (!isOnline && (course == "VS" || course == "BB")) {
+
+	var enableSpectatorMode = false;
+	if (isOnline) {
+		if (additionalOptions && additionalOptions.enableSpectatorMode)
+			enableSpectatorMode = true;
+
+		var $spectatorModeCtn = document.createElement("div");
+		$spectatorModeCtn.style.position = "absolute";
+		$spectatorModeCtn.style.left = (toLanguage(24,21)*iScreenScale)+"px";
+		$spectatorModeCtn.style.top = (29*iScreenScale)+"px";
+		$spectatorModeCtn.style.fontSize = Math.round(2*iScreenScale)+"px";
+		$spectatorModeCtn.style.display = "flex";
+		$spectatorModeCtn.style.alignItems = "center";
+
+		var $spectatorModeLabel = document.createElement("label");
+		$spectatorModeLabel.style.display = "inline-flex";
+		$spectatorModeLabel.style.alignItems = "center";
+		$spectatorModeLabel.style.cursor = "pointer";
+		$spectatorModeLabel.style.gap = Math.round(iScreenScale*0.5) +"px";
+		$spectatorModeLabel.style.marginRight = iScreenScale +"px";
+		var $spectatorModeCheckbox = document.createElement("input");
+		$spectatorModeCheckbox.type = "checkbox";
+		$spectatorModeCheckbox.checked = enableSpectatorMode;
+		$spectatorModeCheckbox.style.transform = "scale("+ (iScreenScale/8) +")";
+		$spectatorModeCheckbox.style.transformOrigin = "center";
+		$spectatorModeCheckbox.style.marginRight = (iScreenScale-5) +"px";
+		$spectatorModeCheckbox.onclick = function() {
+			enableSpectatorMode = this.checked;
+		}
+		$spectatorModeLabel.appendChild($spectatorModeCheckbox);
+		var $spectatorModeCheckboxText = document.createElement("span");
+		$spectatorModeCheckboxText.innerHTML = toLanguage("Join in spectator mode", "Rejoindre en mode spectateur");
+		$spectatorModeLabel.appendChild($spectatorModeCheckboxText);
+		$spectatorModeCtn.appendChild($spectatorModeLabel);
+
+		var $spectatorModeHelp = document.createElement("a");
+		$spectatorModeHelp.href = "#null";
+		$spectatorModeHelp.style.color = "#CCF";
+		$spectatorModeHelp.innerHTML = "[?]";
+		$spectatorModeHelp.style.cursor = "help";
+		$spectatorModeHelp.onclick = function() {
+			return false;
+		}
+		$spectatorModeCtn.appendChild($spectatorModeHelp);
+
+		addFancyTitle({
+			elt: $spectatorModeHelp,
+			title: toLanguage("Check this to see races<br />without playing on them", "Cochez cette case pour voir<br />les courses sans y participer"),
+			style: function(rect) {
+				return {
+					left: (rect.left - iScreenScale*10)+"px",
+					top: (rect.top + iScreenScale*4)+"px",
+					backgroundColor: "rgba(51,51,160, 0.95)"
+				};
+			}
+		});
+
+		oScr.appendChild($spectatorModeCtn);
+	}
+	else if (course == "VS" || course == "BB") {
 		var oForm = document.createElement("form");
 		oForm.onsubmit = function(){return false};
 		oForm.style.position = "absolute";
@@ -22290,11 +22352,13 @@ function searchCourse(opts) {
 	var mLoadX = iScreenScale/2;
 
 	var courseParams = getOnlineCourseParams(opts);
+	var courseParamsSpectator = courseParams + (courseParams ? "&":"") + "nojoin";
+	var enableSpectatorMode = !!opts.enableSpectatorMode;
 	function rSearchCourse() {
 		if (rCount) {
 			rCount--;
 			if (!rCount) {
-				xhr("getCourse.php", courseParams, function(reponse) {
+				xhr("getCourse.php", enableSpectatorMode ? courseParamsSpectator : courseParams, function(reponse) {
 					if (!reponse)
 						return false;
 					try {
@@ -22358,62 +22422,35 @@ function searchCourse(opts) {
 	rSearchCourse();
 
 	function addPlayerDetails($elt, paramKey) {
-		var $fancyTitle;
-		var fancyInterval;
-		$elt.onmouseover = function() {
-			if ($fancyTitle) return;
-			$elt.style.opacity = 0.9;
-			$fancyTitle = document.createElement("div");
-			$fancyTitle.className = "ranking_activeplayertitle";
-			$fancyTitle.innerHTML = "...";
-			$fancyTitle.style.position = "fixed";
-			$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
-			$fancyTitle.style.borderRadius = iScreenScale+"px";
-			$fancyTitle.style.zIndex = 10;
-			$fancyTitle.style.backgroundColor = "rgba(51,160,51, 0.95)";
-			$fancyTitle.style.color = "white";
-			$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
-			$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
-			$fancyTitle.style.visibility = "hidden";
-			$mkScreen.appendChild($fancyTitle);
-			var rect = $elt.getBoundingClientRect();
-			$fancyTitle.style.left = (rect.left + iScreenScale)+"px";
-			$fancyTitle.style.top = (rect.bottom + iScreenScale)+"px";
-			$fancyTitle.style.visibility = "visible";
-
-			clearInterval(fancyInterval);
-			fancyInterval = setInterval(function() {
-				if (!$fancyTitle) return;
-				if (document.body.contains($elt)) return;
-				$mkScreen.removeChild($fancyTitle);
-				clearInterval(fancyInterval);
-				$fancyTitle = undefined;
-			}, 1000);
-
-			xhr("getCourseDetails.php", courseParams, function(reponse) {
-				if (!$fancyTitle)
+		addFancyTitle({
+			elt: $elt,
+			title: "...",
+			style: function(rect) {
+				return {
+					left: (rect.left + iScreenScale)+"px",
+					top: (rect.bottom + iScreenScale)+"px",
+					backgroundColor: "rgba(51,160,51, 0.95)"
+				};
+			},
+			onShow: function($fancyTitle) {
+				xhr("getCourseDetails.php", courseParams, function(reponse) {
+					if (!$mkScreen.contains($fancyTitle))
+						return true;
+					var reponseJson = JSON.parse(reponse);
+					var oPlayerNames = reponseJson[paramKey].map(function(player) {
+						return player.name
+					});
+					if (oPlayerNames.length) {
+						var oPlayerNamesString = oPlayerNames.join("<br />");
+						$fancyTitle.innerHTML = oPlayerNamesString;
+						$fancyTitle.style.left = Math.max(iScreenScale,Math.round(rect.left + (rect.width-$fancyTitle.scrollWidth)/2))+"px";
+					}
+					else
+						$fancyTitle.style.visibility = "hidden";
 					return true;
-				var reponseJson = JSON.parse(reponse);
-				var oPlayerNames = reponseJson[paramKey].map(function(player) {
-					return player.name
 				});
-				if (oPlayerNames.length) {
-					var oPlayerNamesString = oPlayerNames.join("<br />");
-					$fancyTitle.innerHTML = oPlayerNamesString;
-					$fancyTitle.style.left = Math.max(iScreenScale,Math.round(rect.left + (rect.width-$fancyTitle.scrollWidth)/2))+"px";
-				}
-				else
-					$fancyTitle.style.visibility = "hidden";
-				return true;
-			});
-		};
-		$elt.onmouseout = function() {
-			if (!$fancyTitle) return;
-			$elt.style.opacity = "";
-			$mkScreen.removeChild($fancyTitle);
-			clearInterval(fancyInterval);
-			$fancyTitle = undefined;
-		};
+			}
+		});
 	}
 	addPlayerDetails(oActivePlayers.querySelector("#nb-active-players"), "active_players");
 	addPlayerDetails(oRequiredPlayers.querySelector("#nb-pending-players"), "pending_players");
@@ -22435,11 +22472,66 @@ function searchCourse(opts) {
 		rSearchCourse = function(){};
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
-		selectPlayerScreen(0);
+		selectPlayerScreen(0, undefined,undefined, {
+			enableSpectatorMode: enableSpectatorMode
+		});
 	}
 	oScr.appendChild(oPInput);
 	
 	oContainers[0].appendChild(oScr);
+
+	var $spectatorModeCtn = document.createElement("div");
+	$spectatorModeCtn.style.position = "absolute";
+	$spectatorModeCtn.style.left = (28*iScreenScale)+"px";
+	$spectatorModeCtn.style.top = (34*iScreenScale)+"px";
+	$spectatorModeCtn.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+	$spectatorModeCtn.style.display = "flex";
+	$spectatorModeCtn.style.alignItems = "center";
+
+	var $spectatorModeLabel = document.createElement("label");
+	$spectatorModeLabel.style.display = "inline-flex";
+	$spectatorModeLabel.style.alignItems = "center";
+	$spectatorModeLabel.style.cursor = "pointer";
+	$spectatorModeLabel.style.gap = Math.round(iScreenScale*0.5) +"px";
+	$spectatorModeLabel.style.marginRight = iScreenScale +"px";
+	var $spectatorModeCheckbox = document.createElement("input");
+	$spectatorModeCheckbox.type = "checkbox";
+	$spectatorModeCheckbox.checked = enableSpectatorMode;
+	$spectatorModeCheckbox.style.transform = "scale("+ (iScreenScale/6) +")";
+	$spectatorModeCheckbox.style.transformOrigin = "center";
+	$spectatorModeCheckbox.style.marginRight = Math.round(iScreenScale*1.5-6) +"px";
+	$spectatorModeCheckbox.onclick = function() {
+		enableSpectatorMode = this.checked;
+	}
+	$spectatorModeLabel.appendChild($spectatorModeCheckbox);
+	var $spectatorModeCheckboxText = document.createElement("span");
+	$spectatorModeCheckboxText.innerHTML = toLanguage("Spectator mode", "Mode spectateur");
+	$spectatorModeLabel.appendChild($spectatorModeCheckboxText);
+	$spectatorModeCtn.appendChild($spectatorModeLabel);
+
+	var $spectatorModeHelp = document.createElement("a");
+	$spectatorModeHelp.href = "#null";
+	$spectatorModeHelp.style.color = "#CCF";
+	$spectatorModeHelp.innerHTML = "[?]";
+	$spectatorModeHelp.style.cursor = "help";
+	$spectatorModeHelp.onclick = function() {
+		return false;
+	}
+	$spectatorModeCtn.appendChild($spectatorModeHelp);
+
+	addFancyTitle({
+		elt: $spectatorModeHelp,
+		title: toLanguage("Check this to see races<br />without playing on them", "Cochez cette case pour voir<br />les courses sans y participer"),
+		style: function(rect) {
+			return {
+				left: (rect.left - iScreenScale*10)+"px",
+				bottom: (rect.top + iScreenScale*6)+"px",
+				backgroundColor: "rgba(51,51,160, 0.95)"
+			};
+		}
+	});
+
+	oScr.appendChild($spectatorModeCtn);
 
 	updateMenuMusic(0);
 }
@@ -22468,9 +22560,56 @@ function getOnlineCourseParams(opts) {
 function handleMatchmakingSuccess(reponse) {
 	if (reponse.time < 1)
 		reponse.time = 1;
+	if (reponse.spectator)
+		onlineSpectatorId = reponse.spectator;
 	selectMapScreen({ racecountdown: reponse.time-5 });
 	dRest();
 	setTimeout(setChat, 1000);
+}
+function addFancyTitle(options) {
+	var $elt = options.elt;
+	var $fancyTitle;
+	var fancyInterval;
+	$elt.onmouseover = function() {
+		if ($fancyTitle) return;
+		$elt.style.opacity = 0.9;
+		$fancyTitle = document.createElement("div");
+		$fancyTitle.className = "ranking_activeplayertitle";
+		$fancyTitle.innerHTML = options.title;
+		$fancyTitle.style.position = "fixed";
+		$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
+		$fancyTitle.style.borderRadius = iScreenScale+"px";
+		$fancyTitle.style.zIndex = 10;
+		$fancyTitle.style.color = "white";
+		$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+		$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
+		$fancyTitle.style.visibility = "hidden";
+		$mkScreen.appendChild($fancyTitle);
+		if (options.style) {
+			var rect = $elt.getBoundingClientRect();
+			Object.assign($fancyTitle.style, options.style(rect));
+		}
+		$fancyTitle.style.visibility = "visible";
+
+		clearInterval(fancyInterval);
+		fancyInterval = setInterval(function() {
+			if (!$fancyTitle) return;
+			if (document.body.contains($elt)) return;
+			$mkScreen.removeChild($fancyTitle);
+			clearInterval(fancyInterval);
+			$fancyTitle = undefined;
+		}, 1000);
+
+		if (options.onShow)
+			options.onShow($fancyTitle);
+	};
+	$elt.onmouseout = function() {
+		if (!$fancyTitle) return;
+		$elt.style.opacity = "";
+		$mkScreen.removeChild($fancyTitle);
+		clearInterval(fancyInterval);
+		$fancyTitle = undefined;
+	};
 }
 
 function chooseRandMap() {
@@ -23512,9 +23651,12 @@ function choose(map,rand) {
 	}
 }
 
-function leaveRaceWheelScreen(opts) {
+function leaveRaceWheelScreen() {
 	clearRaceWheenScreen();
 	chatting = false;
+	var opts = {
+		enableSpectatorMode: !!onlineSpectatorId
+	};
 	setSpectatorId(undefined);
 	searchCourse(opts);
 }
