@@ -23,14 +23,13 @@ if ($id) {
 		$extraParamsMapping = array("finaltime");
 
 		include('initdb.php');
+		include('onlineUtils.php');
 		$spectatorId = isset($payload['spectator']) ? intval($payload['spectator']) : 0;
-		if ($spectatorId)
-			$getCourse = mysql_fetch_array(mysql_query('SELECT s.course FROM `mkspectators` s WHERE s.id="'.$spectatorId.'" AND s.player="'. $id .'"'));
-		else
-			$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
+		$course = getCourse(array(
+			'spectator' => $spectatorId,
+		));
 		$lastconnect = isset($payload['lastcon']) ? $payload['lastcon']:0;
-		if (!empty($getCourse['course'])) {
-			$course = $getCourse['course'];
+		if ($course) {
 			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
 			$playerPayloads = array();
 			if (isset($payload['player'])) {

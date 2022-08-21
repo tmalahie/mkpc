@@ -4259,7 +4259,7 @@ function startGame() {
 		//*
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
-		if (iTeamPlay)
+		if (iTeamPlay && !onlineSpectatorId)
 			showTeam(tnCountdown);
 	}
 	else {
@@ -13197,7 +13197,7 @@ function resetDatas() {
 			if (rCode[3]) {
 				refreshDatas = false;
 				function displayRankings() {
-					var oPlayer = oPlayers[0];
+					var oPlayer = getPlayerAtScreen(0);
 					if (course == "BB") {
 						oPlayer.arme = false;
 						oPlayer.speed = 0;
@@ -23381,7 +23381,7 @@ function choose(map,rand) {
 						oDiv.style.left = (iScreenScale*10+10) +"px";
 						oDiv.style.top = (iScreenScale*20+10) +"px";
 						oDiv.style.fontSize = (iScreenScale*2) +"pt";
-						if (nbChoices > 1)
+						if ((nbChoices > 1) || onlineSpectatorId)
 							oDiv.innerHTML = toLanguage("Sorry, there are not enough players to begin the race...", "D&eacute;sol&eacute;, il n'y a pas assez de joueurs pour commencer la course...");
 						else
 							oDiv.innerHTML = toLanguage("Sorry, all your opponents have left the race...", "D&eacute;sol&eacute;, tous vos adversaires ont quitt&eacute; la course...");
@@ -23887,11 +23887,13 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		}
 		for (var i=0;i<choosedTeams.length;i++)
 			playersTeams[choosedTeams[i].id][6] = choosedTeams[i].team;
-		for (var i=0;i<strPlayer.length;i++)
+		var nbPlayers = strPlayer.length;
+		if (onlineSpectatorId) nbPlayers = 0;
+		for (var i=0;i<nbPlayers;i++)
 			aTeams[i] = playersTeams[identifiant][6];
 		for (var i=0;i<aPlayers.length;i++) {
 			var id = aIDs[i];
-			var inc = i+strPlayer.length;
+			var inc = i+nbPlayers;
 			aTeams[inc] = playersTeams[id][6];
 		}
 		selectedTeams = (aTeams.indexOf(-1) == -1);
@@ -24095,7 +24097,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		}
 
 		function waitForSelection() {
-			xhr("getTeams.php", "", function(res) {
+			xhr("getTeams.php", (onlineSpectatorId ? "spectator="+onlineSpectatorId : ""), function(res) {
 				oScr.style.visibility = "";
 				if (!res) return false;
 				var gTeams;
@@ -26082,7 +26084,7 @@ function setChat() {
 
 		var oBlockMembers = document.createElement("div");
 		oBlockMembers.className = "online-chat-blockdialog-members";
-		xhr("listCoursePlayers.php", "", function(reponse) {
+		xhr("listCoursePlayers.php", (onlineSpectatorId ? "spectator="+onlineSpectatorId : ""), function(reponse) {
 			if (reponse) {
 				try {
 					var rCode = eval(reponse);
@@ -26215,7 +26217,7 @@ function setChat() {
 	oRepondre.appendChild(rEnvoi);
 	oRepondre.onsubmit = function() {
 		if (rMessage.value) {
-			xhr("parler.php", "msg="+encodeURIComponent(rMessage.value).replace(/\+/g, "%2B"), function(reponse){return (reponse=="1")});
+			xhr("parler.php", "msg="+encodeURIComponent(rMessage.value).replace(/\+/g, "%2B") + (onlineSpectatorId ? "&spectator="+onlineSpectatorId : ""), function(reponse){return (reponse=="1")});
 			rMessage.value = "";
 		}
 		return false;
@@ -26231,7 +26233,7 @@ function setChat() {
 	}
 	function refreshChat() {
 		if (chatting) {
-			xhr("chat.php", "lastmsg="+iChatLastMsg, function(reponse) {
+			xhr("chat.php", "lastmsg="+iChatLastMsg + (onlineSpectatorId ? "&spectator="+onlineSpectatorId : ""), function(reponse) {
 				if (reponse) {
 					try {
 						var rCode = eval(reponse);

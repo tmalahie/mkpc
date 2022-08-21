@@ -3,9 +3,11 @@ include('session.php');
 if ($id) {
 	include('initdb.php');
 	include('getCourseParams.php');
+	include('onlineUtils.php');
 	$cupSQL = ' AND cup="'. $nid .'" AND mode='. $nmode .' AND link='. $nlink;
-	$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
-	$course = $getCourse['course'];
+	$course = getCourse(array(
+	    'spectator' => 0,
+	));
 	$requestedCourse = isset($_POST['course']) ? intval($_POST['course']) : 0;
 	$cas = 0;
 	$switchCourse = false;

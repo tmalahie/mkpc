@@ -2,8 +2,8 @@
 include('session.php');
 if ($id) {
 	include('initdb.php');
-	$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
-	$course = $getCourse['course'];
+	include('onlineUtils.php');
+	$course = getCourse();
 	if ($course) {
 		mysql_query('DELETE FROM mkmuted WHERE end_date<=NOW()');
 		echo '[';

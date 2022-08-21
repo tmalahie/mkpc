@@ -1,11 +1,7 @@
 <?php
-$spectatorId = isset($_POST['spectator']) ? intval($_POST['spectator']) : 0;
-if ($spectatorId)
-	$getCourse = mysql_fetch_array(mysql_query('SELECT s.course,j.banned FROM `mkspectators` s INNER JOIN `mkjoueurs` j ON s.player=j.id WHERE s.id="'.$spectatorId.'" AND s.player="'. $id .'"'));
-else
-	$getCourse = mysql_fetch_array(mysql_query('SELECT course,banned FROM `mkjoueurs` WHERE id="'.$id.'"'));
-$course = $getCourse ? $getCourse['course'] : 0;
-if ($course && !$getCourse['banned']) {
+include('onlineUtils.php');
+$course = getCourse(array('check_ban' => true));
+if ($course) {
 	$isBattle = isset($_POST['battle']);
 	$pts_ = 'pts_'.($isBattle ? 'battle':'vs');
 	if (mysql_numrows(mysql_query('SELECT * FROM `mariokart` WHERE id='.$course.' AND time<='. time())))
