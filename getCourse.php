@@ -29,6 +29,7 @@ if ($id) {
 			mysql_query('UPDATE `mkjoueurs` SET course='.$course.',choice_map=0 WHERE id='.$id);
 			mysql_query('UPDATE `mkplayers` SET course='.$course.' WHERE id='.$id);
 		}
+		mysql_query('DELETE FROM `mkspectators` WHERE course='.$course.' AND player='.$id);
 		unset($_SESSION['date']);
 	}
 	function sendCourseNotifs() {

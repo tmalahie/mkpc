@@ -4,12 +4,11 @@ if ($id) {
     include('initdb.php');
 	include('onlineUtils.php');
 	$course = getCourse(array(
-        'spectator' => 0,
         'check_ban' => true
     ));
     if ($course) {
         //mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id="'.$id.'" AND course="'.$course.'"');
-        mysql_query('INSERT IGNORE INTO `mkspectators` (player,course) VALUES ('.$id.','.$course.')');
+        mysql_query('INSERT IGNORE INTO `mkspectators` SET player='.$id.',course='.$course.',state="joined" ON DUPLICATE KEY UPDATE state=VALUES(state)');
         $getSpectatorId = mysql_fetch_array(mysql_query('SELECT id FROM `mkspectators` WHERE player="'.$id.'" AND course="'.$course.'"'));
         if ($getSpectatorId)
             echo $getSpectatorId['id'];

@@ -24310,7 +24310,10 @@ function hideSpectatorLink() {
 function handleSpectatorLink(callback) {
 	if (onlineSpectatorId) {
 		callback();
-		choose();
+		xhr("spectatorMode.php", "spectator="+onlineSpectatorId, function(res) {
+			choose();
+			return true;
+		});
 		return;
 	}
 	showSpectatorLink({

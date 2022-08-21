@@ -238,10 +238,13 @@ if ($course) {
 		echo ',mirror:'.$courseRules->mirror;
 	echo '}';
 	echo ']';
-	if ($continuer && !$enoughPlayers) {
-		mysql_query('UPDATE `mariokart` SET map=-1,time='. time() .' WHERE id='. $course);
-		mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET '.(($nbPlayers<2) ? 'j.choice_map=0,':'').'p.connecte=0 WHERE j.course='. $course);
-		mysql_query('DELETE p FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='. $course .' AND j.id IS NULL');
+	if ($continuer) {
+		if (!$enoughPlayers) {
+			mysql_query('UPDATE `mariokart` SET map=-1,time='. time() .' WHERE id='. $course);
+			mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET '.(($nbPlayers<2) ? 'j.choice_map=0,':'').'p.connecte=0 WHERE j.course='. $course);
+			mysql_query('DELETE p FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='. $course .' AND j.id IS NULL');
+		}
+		mysql_query('DELETE FROM `mkspectators` WHERE course='.$course.' AND state="pending"');
 	}
 }
 else

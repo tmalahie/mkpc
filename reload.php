@@ -225,6 +225,7 @@ if ($id) {
 				if ($finishing) {
 					$mkState['time'] = $time+35;
 					mysql_query('UPDATE `mariokart` SET map=-1,time='.$mkState['time'].' WHERE id='. $course);
+					mysql_query('UPDATE `mkspectators` SET state="pending" WHERE course='. $course);
 					$finished = true;
 				}
 			}
