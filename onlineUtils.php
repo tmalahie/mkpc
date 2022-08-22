@@ -11,9 +11,9 @@ function getCourse($opts = array()) {
     if ($getCourse) return $getCourse['course'];
     return 0;
 }
-function joinSpectatorMode($course) {
+function joinSpectatorMode($course, $status='joined') {
     global $id;
-    mysql_query('INSERT IGNORE INTO `mkspectators` SET player='.$id.',course='.$course.',state="joined" ON DUPLICATE KEY UPDATE state=VALUES(state)');
+    mysql_query('INSERT IGNORE INTO `mkspectators` SET player='.$id.',course='.$course.',state="'.$status.'" ON DUPLICATE KEY UPDATE state=VALUES(state), refresh_date=NOW()');
     $getSpectatorId = mysql_fetch_array(mysql_query('SELECT id FROM `mkspectators` WHERE player="'.$id.'" AND course="'.$course.'"'));
     if ($getSpectatorId)
         return +$getSpectatorId['id'];

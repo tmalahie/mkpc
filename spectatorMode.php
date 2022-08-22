@@ -7,7 +7,7 @@ if ($id) {
         'check_ban' => true
     ));
     if ($course) {
-        $newSpectatorId = joinSpectatorMode($course);
+        $newSpectatorId = isset($_POST['state']) ? joinSpectatorMode($course, $_POST['state']) : joinSpectatorMode($course);
         if ($newSpectatorId)
             echo $newSpectatorId;
         else

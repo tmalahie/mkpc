@@ -125,6 +125,8 @@ if ($id) {
 					// Run a GC some times to remove old deleted items
 					mysql_query('DELETE FROM items WHERE course="'. $course .'" AND data="" AND updated_at<"'.$limIdle.'"');
 				}
+				if ($spectatorId)
+					mysql_query('UPDATE `mkspectators` SET refresh_date=NOW() WHERE id='. $spectatorId);
 				if ($winning && !$isBattle && ($mkState['time'] > $time)) {
 					$mkState['time'] = $time;
 					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time);
@@ -224,8 +226,9 @@ if ($id) {
 				$finishing = !$finished;
 				if ($finishing) {
 					$mkState['time'] = $time+35;
+					mysql_query('UPDATE `mkspectators` s INNER JOIN `mkjoueurs` j ON s.player=j.id AND j.course=0 SET j.course='. $course .' WHERE s.course='. $course .' AND s.state="queuing" AND s.refresh_date >= NOW()-INTERVAL 5 SECOND');
+					mysql_query('UPDATE `mkspectators` SET state="pending" WHERE course='. $course .' AND state="joined"');
 					mysql_query('UPDATE `mariokart` SET map=-1,time='.$mkState['time'].' WHERE id='. $course);
-					mysql_query('UPDATE `mkspectators` SET state="pending" WHERE course='. $course);
 					$finished = true;
 				}
 			}

@@ -1446,6 +1446,7 @@ function loadMap() {
 		hudScreens[i] = hudScreen;
 
 		if (onlineSpectatorId) {
+			oTemps.style.display = "none";
 			oScroller.style.display = "none";
 			oScroller2.style.display = "none";
 			oObjet.style.display = "none";
@@ -2853,6 +2854,9 @@ function startGame() {
 			pos: {},
 			aim: {},
 			lastReset: 0,
+			isSetup() {
+				return !isNaN(this.pos.x)
+			},
 			move: function() {
 				var smoothFactor = 0.5;
 				this.pos.x = interpolateRaw(this.pos.x,this.aim.x, smoothFactor);
@@ -2870,7 +2874,7 @@ function startGame() {
 				if (!opts) opts = {};
 				this.resetAim();
 				this.lastReset = opts.since || 0;
-				if (!opts.smooth)
+				if (!opts.smooth || !this.isSetup())
 					this.resetPos();
 			},
 			resetAim: function() {
@@ -2895,7 +2899,8 @@ function startGame() {
 		getPlayerAtScreen = function(i) {
 			return aKarts[oSpecCam.playerId];
 		};
-		oSpecCam.reset();
+		if (!isOnlineQueuing() || ((tnCourse+3000) > new Date().getTime()))
+			oSpecCam.reset();
 	}
 	function spinKart(nb) {
 		if (!this.tourne) {
@@ -3391,7 +3396,7 @@ function startGame() {
 		render();
 	}, 300);
 
-	if (bMusic) {
+	if (bMusic && !isOnlineQueuing()) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
 		startingMusic.pause();
 		setTimeout(function() {
@@ -3424,13 +3429,16 @@ function startGame() {
 		oContainers[i].appendChild(oCounts[i][0]);
 
 		oCounts[i].scrollLeft = 0;
+
+		if (isOnlineQueuing())
+			oCounts[i][0].style.display = "none";
 	}
 
 	var iCntStep = 0;
 	var redrawCanvasHandler;
 
 	var countDownMusic, goMusic;
-	if (bMusic || iSfx) {
+	if ((bMusic || iSfx) && !isOnlineQueuing()) {
 		countDownMusic = loadMusic("musics/events/countdown.mp3");
 		countDownMusic.removeAttribute("loop");
 		document.body.appendChild(countDownMusic);
@@ -3489,13 +3497,15 @@ function startGame() {
 					}
 				}
 				if (bMusic || iSfx) {
-					goMusic.play();
-					goMusic.onended = function() {
-						document.body.removeChild(countDownMusic);
-						document.body.removeChild(goMusic);
-					};
 					if (onlineSpectatorId)
 						iSfx = false;
+					else {
+						goMusic.play();
+						goMusic.onended = function() {
+							document.body.removeChild(countDownMusic);
+							document.body.removeChild(goMusic);
+						};
+					}
 				};
 				forcePrepareEnding = true;
 				setTimeout(
@@ -3646,10 +3656,12 @@ function startGame() {
 								oInfos.style.top = Math.round(10 + iScreenScale*(iHeight-8)) +"px";
 								oInfos.style.fontSize = Math.round(iScreenScale * 1.75) +"px";
 								oInfos.style.display = "";
+								oInfos.style.visibility = "";
+								document.body.style.cursor = "default";
 							}
 						}
 						bCounting = false;
-					}, 1000
+					}, isOnlineQueuing() ? 1 : 1000
 				);
 
 				if (!pause || !fInfos.replay) {
@@ -4256,11 +4268,21 @@ function startGame() {
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
+		if (onlineSpectatorId)
+			iSfx = false;
+		if (isOnlineQueuing()) {
+			iCntStep = 3;
+			tnCountdown += 4000;
+			for (var i=0;i<aKarts.length;i++)
+				aKarts[i].speedinc = 0;
+		}
+		else {
+			if (iTeamPlay && !onlineSpectatorId)
+				showTeam(tnCountdown);
+		}
 		//*
 		setTimeout(fncCount,tnCountdown);
 		//*/setTimeout(fncCount,5);
-		if (iTeamPlay && !onlineSpectatorId)
-			showTeam(tnCountdown);
 	}
 	else {
 		//* gogogo
@@ -4662,34 +4684,6 @@ function continuer() {
 					oContinue.value = toLanguage("      NEXT BATTLE	   ", "BATAILLE SUIVANTE");
 				else
 					oContinue.value = toLanguage("       NEXT RACE	   ", "COURSE SUIVANTE");
-			}
-			function nextRace() {
-				interruptGame();
-				removeGameMusics();
-				removeHUD();
-				clearResources();
-				for (var i=0;i<strPlayer.length;i++) {
-					$mkScreen.removeChild(oContainers[i]);
-					document.getElementById("infos"+i).style.display = "none";
-				}
-				fInfos = {
-					player:strPlayer,
-					distribution:itemDistribution,
-					ptsdistrib:ptsDistribution,
-					cc:fSelectedClass,
-					mirror:bSelectedMirror,
-					double_items:oDoubleItemsEnabled,
-					difficulty:iDificulty,
-					cl:clSelected
-				};
-				if (course == "GP")
-					fInfos.map = oMap.ref+1;
-				$mkScreen.style.opacity = 1;
-				if (strPlayer.length == 1)
-					removePlan();
-				oBgLayers.length = 0;
-				document.onmousedown = undefined;
-				setTimeout(MarioKart, 500);
 			}
 			var forceClic3 = true;
 			oContinue.onclick = function() {
@@ -5109,6 +5103,34 @@ function continuer() {
 	document.getElementById("quitter").onclick = quitter;
 	if (!isChatting())
 		oContinue.focus();
+}
+function nextRace() {
+	interruptGame();
+	removeGameMusics();
+	removeHUD();
+	clearResources();
+	for (var i=0;i<strPlayer.length;i++) {
+		$mkScreen.removeChild(oContainers[i]);
+		document.getElementById("infos"+i).style.display = "none";
+	}
+	fInfos = {
+		player:strPlayer,
+		distribution:itemDistribution,
+		ptsdistrib:ptsDistribution,
+		cc:fSelectedClass,
+		mirror:bSelectedMirror,
+		double_items:oDoubleItemsEnabled,
+		difficulty:iDificulty,
+		cl:clSelected
+	};
+	if (course == "GP")
+		fInfos.map = oMap.ref+1;
+	$mkScreen.style.opacity = 1;
+	if (strPlayer.length == 1)
+		removePlan();
+	oBgLayers.length = 0;
+	document.onmousedown = undefined;
+	setTimeout(MarioKart, 500);
 }
 
 function rankingColor(getId) {
@@ -8750,6 +8772,7 @@ function render() {
 		items: {}
 	}
 	if (oSpecCam) {
+		if (!oSpecCam.isSetup()) return;
 		currentState.cam = {
 			x: oSpecCam.pos.x,
 			y: oSpecCam.pos.y,
@@ -13367,6 +13390,26 @@ function resetDatas() {
 					updateItemCountdownHud(0, null);
 					var lakitu = document.getElementById("lakitu0");
 					if (lakitu) lakitu.style.display = "none";
+					if (isOnlineQueuing()) {
+						forceClic = false;
+						infos0.style.display = "none";
+						xhr("getCourse.php", getOnlineCourseParams({
+							spectator: onlineSpectatorId
+						}), function(reponse) {
+							if (!reponse)
+								return false;
+							try {
+								reponse = JSON.parse(reponse);
+							}
+							catch (e) {
+								return false;
+							}
+							if (reponse.found)
+								setSpectatorId(undefined);
+							nextRace();
+							return true;
+						});
+					}
 				}
 				if (course == "BB") {
 					var firstID = rCode[3][0][0];
@@ -22578,8 +22621,11 @@ function getOnlineCourseParams(opts) {
 function handleMatchmakingSuccess(reponse) {
 	if (reponse.time < 1)
 		reponse.time = 1;
-	if (reponse.spectator)
-		onlineSpectatorId = reponse.spectator;
+	if (reponse.spectator) {
+		setSpectatorId(reponse.spectator);
+		if (reponse.spectatorState)
+			onlineSpectatorState = reponse.spectatorState;
+	}
 	selectMapScreen({ racecountdown: reponse.time-5 });
 	dRest();
 	setTimeout(setChat, 1000);
@@ -23387,6 +23433,8 @@ function choose(map,rand) {
 	oTable.style.left = (iScreenScale*25) +"px";
 	oTable.style.top = (iScreenScale*2) +"px";
 	oTable.style.width = (iScreenScale*30) +"px";
+	if (isOnlineQueuing())
+		oTable.style.display = "none";
 	var oTBody = document.createElement("tbody");
 	function refreshTab(reponse) {
 		if (waitHandler == null) return;
@@ -23426,8 +23474,19 @@ function choose(map,rand) {
 				}
 				if (onlineSpectatorId && !nbChoices)
 					rCode[1] = -2;
-				if (rCode[1] == -1)
+
+				function backToSearch() {
+					$mkScreen.removeChild(oTable);
+					leaveRaceWheelScreen();
+				}
+				if (rCode[1] == -1) {
+					if (isOnlineQueuing()) {
+						setSpectatorId(undefined);
+						backToSearch();
+						return true;
+					}
 					waitHandler = setTimeout(waitForChoice, 1000);
+				}
 				else {
 					hideSpectatorLink();
 					if (nbChoices >= rCode[4].minPlayers) {
@@ -23544,10 +23603,23 @@ function choose(map,rand) {
 							if (cID == 1)
 								trs[cCursor].getElementsByTagName("td")[0].innerHTML = dCircuits[choixJoueurs[cCursor][2]-1];
 						}
-						moveCursor();
 						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];
+						if (isOnlineQueuing()) {
+							$mkScreen.removeChild(oTable);
+							setTimeout(function() {
+								proceedOnlineRaceSelection(rCode);
+							}, 500);
+						}
+						else
+							moveCursor();
 					}
 					else {
+						if (isOnlineQueuing()) {
+							setSpectatorId(undefined);
+							backToSearch();
+							return true;
+						}
+
 						var oDiv = document.createElement("div");
 						oDiv.style.position = "absolute";
 						oDiv.style.left = (iScreenScale*10+10) +"px";
@@ -23565,9 +23637,8 @@ function choose(map,rand) {
 						nSearch.innerHTML = toLanguage("Search for new players", "Rechercher de nouveaux joueurs");
 						nSearch.setAttribute("href", "#null");
 						nSearch.onclick = function() {
-							$mkScreen.removeChild(oTable);
 							$mkScreen.removeChild(oDiv);
-							leaveRaceWheelScreen();
+							backToSearch();
 							return false;
 						};
 						oDiv.appendChild(nSearch);
@@ -23631,14 +23702,16 @@ function choose(map,rand) {
 	}
 	if (onlineSpectatorId) {
 		waitHandler = setTimeout(waitForChoice, 1);
-		showSpectatorLink({
-			toggled: true,
-			click: function() {
-				clearTimeout(waitHandler);
-				waitHandler = null;
-				$mkScreen.removeChild(oTable);
-			}
-		});
+		if (!isOnlineQueuing()) {
+			showSpectatorLink({
+				toggled: true,
+				click: function() {
+					clearTimeout(waitHandler);
+					waitHandler = null;
+					$mkScreen.removeChild(oTable);
+				}
+			});
+		}
 	}
 	else {
 		xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(course=="BB"?"&battle":"")+(rand?"&rand":""), refreshTab);
@@ -23671,7 +23744,7 @@ function choose(map,rand) {
 				loadMapMusic();
 				clearInterval(startMusicHandler);
 			}
-		}, 500);
+		}, isOnlineQueuing() ? 10 : 500);
 	}
 }
 
@@ -23691,10 +23764,16 @@ function clearRaceWheenScreen() {
 	hideSpectatorLink();
 }
 
+var onlineSpectatorState;
 function setSpectatorId(id) {
 	onlineSpectatorId = id;
+	if (!onlineSpectatorId)
+		onlineSpectatorState = undefined;
 	if (rtcService)
 		rtcService.setSpectatorId(onlineSpectatorId);
+}
+function isOnlineQueuing() {
+	return (onlineSpectatorState === "queuing");
 }
 
 function selectOnlineTeams(strMap,choixJoueurs,selecter) {
@@ -24112,7 +24191,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			resetGame(strMap);
-		}, Math.min(res.previewTime,tnCountdown-1000));
+		}, isOnlineQueuing() ? 0 : Math.min(res.previewTime,tnCountdown-1000));
 	}
 	function onTeamsCanceled() {
 		oContainers[0].removeChild(oScr);
@@ -24312,6 +24391,12 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		waitForSelection();
 	}
 
+	if (isOnlineQueuing()) {
+		oScr.style.opacity = 0;
+		setTimeout(function() {
+			oScr.style.opacity = "";
+		}, 1000);
+	}
 	oContainers[0].appendChild(oScr);
 }
 
@@ -24476,7 +24561,8 @@ function hideSpectatorLink() {
 function handleSpectatorLink(callback) {
 	if (onlineSpectatorId) {
 		callback();
-		xhr("spectatorMode.php", "spectator="+onlineSpectatorId, function(res) {
+		document.getElementById("waitrace").style.visibility = "hidden";
+		xhr("spectatorMode.php", "spectator="+onlineSpectatorId + (onlineSpectatorState ? "&state="+onlineSpectatorState : ""), function(res) {
 			choose();
 			return true;
 		});
@@ -26118,7 +26204,10 @@ function isMobile() {
 	return navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i);
 }
 function isChatting() {
-	return isOnline && (document.activeElement == document.forms[1].elements["rMessage"]);
+	if (!isOnline) return false;
+	if (!document.forms[1]) return false;
+	if (!document.forms[1].elements["rMessage"]) return false;
+	return (document.activeElement == document.forms[1].elements["rMessage"]);
 }
 function applyButtonCode(action,keyData) {
 	var keycodes = keyData.split(",");

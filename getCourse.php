@@ -6,7 +6,6 @@ if ($id) {
 	include('onlineUtils.php');
 	$cupSQL = ' AND cup="'. $nid .'" AND mode='. $nmode .' AND link='. $nlink;
 	$course = getCourse();
-	$requestedCourse = isset($_POST['course']) ? intval($_POST['course']) : 0;
 	$cas = 0;
 	$switchCourse = false;
 	$noJoin = isset($_POST['nojoin']);
@@ -14,10 +13,6 @@ if ($id) {
 
 	if ($course && $spectatorId)
 		$switchCourse = true;
-	if (!$course && $requestedCourse) {
-		$course = $requestedCourse;
-		$switchCourse = true;
-	}
 	if (!$course && !$linkOptions->public) {
 		// Course privée, on impose l'ID de course s'il existe déjà
 		$alreadyCreated = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE 1'. $cupSQL));
@@ -26,13 +21,14 @@ if ($id) {
 			$switchCourse = true;
 		}
 	}
-	$newSpectatorId = 0;
+	$newSpectatorId = 0; $newSpectatorState = 'joined';
 	function switchCourseIfNeeded($newCourse = null) {
 		global $switchCourse,$course,$id, $noJoin,$spectatorId,$newSpectatorId;
 		if (null === $newCourse) $newCourse = $course;
 		if ($noJoin) {
 			mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id='.$id.' AND choice_map=0');
-			$newSpectatorId = joinSpectatorMode($newCourse);
+			if ($newCourse)
+				$newSpectatorId = joinSpectatorMode($newCourse);
 		}
 		else {
 			if ($switchCourse) {
@@ -55,8 +51,13 @@ if ($id) {
 		mysql_query('UPDATE `mkplayers` SET team=-1 WHERE id='. $id);
 	}
 	function return_success($remainingTtime) {
-		global $newSpectatorId;
-		echo '{"found":true,"time":'.max($remainingTtime,12).($newSpectatorId ? ',"spectator":'.$newSpectatorId:'').'}';
+		global $newSpectatorId, $newSpectatorState;
+		echo '{"found":true,"time":'.max($remainingTtime,12);
+		if ($newSpectatorId) {
+			echo ',"spectator":'.$newSpectatorId;
+			echo ',"spectatorState":"'.$newSpectatorState.'"';
+		}
+		echo '}';
 	}
 	function return_failure() {
 		global $pendingPlayers, $linkOptions;
@@ -83,13 +84,17 @@ if ($id) {
 			'SELECT p.course,m.time,COUNT(p.id) AS nb FROM mkplayers p
 			INNER JOIN mariokart m ON p.course=m.id
 			WHERE p.connecte>='.floor(($time-35)*1000/67).'
-			AND m.cup="'. $nid .'" AND m.mode='. $nmode .' AND m.link='. $nlink .' AND (m.time>='.(($time-($isBattle?300:210))*1000).' OR m.time<'.($time+1000).')
+			AND m.cup="'. $nid .'" AND m.mode='. $nmode .' AND m.link='. $nlink .' AND (m.time>='.afk_threshold_time().' OR m.time<'.($time+1000).')
 			GROUP BY p.course HAVING(nb<'.(+$linkOptions->rules->maxPlayers).')
 			ORDER BY nb DESC LIMIT 1'
 		);
 		if ($nbPlayers = mysql_fetch_array($getPlayers))
 			return intval($nbPlayers['nb']);
 		return 0;
+	}
+	function afk_threshold_time() {
+		global $time, $isBattle;
+		return (($time-($isBattle?300:210))*1000);
 	}
 	function get_remaining_players($course, &$getTime, $shouldBeActive=true) {
 		global $id;
@@ -100,6 +105,35 @@ if ($id) {
 		global $pendingPlayers;
 		if ($nbJoueurs)
 			$pendingPlayers = $nbJoueurs+1;
+	}
+	function check_for_active_games($course=0) {
+		global $id, $spectatorId, $time, $cupSQL, $noJoin, $newSpectatorId, $newSpectatorState, $linkOptions;
+		if ($spectatorId) return false;
+		$limConnect = floor(($time-5)*1000/67);
+		$getActiveCourses = mysql_query('SELECT
+			mariokart.id,
+			MAX(p.connecte) AS lastConnect,
+			COUNT(DISTINCT p.id)+COUNT(DISTINCT s2.id) AS nbAttendees
+			FROM `mariokart`
+			INNER JOIN `mkplayers` p ON p.course=mariokart.id
+			LEFT JOIN `mkspectators` s ON s.course=mariokart.id AND s.state="queuing" AND s.player!='.$id.'
+			LEFT JOIN `mkplayers` p2 ON s.course=p2.course AND s.player=p2.id
+			LEFT JOIN `mkspectators` s2 ON s.id=s2.id AND p2.id IS NULL
+			WHERE map!=-1 AND time>='. afk_threshold_time()
+			. ($course ? " AND mariokart.id=$course" : '')
+			. $cupSQL .
+			' GROUP BY mariokart.id
+			HAVING(lastConnect>='. $limConnect .' AND nbAttendees<'. $linkOptions->rules->maxPlayers .')
+			ORDER BY nbAttendees DESC, lastConnect DESC LIMIT 1'
+		);
+		if ($activeCourse = mysql_fetch_array($getActiveCourses)) {
+			mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id='. $id);
+			$newSpectatorState = $noJoin ? 'joined' : 'queuing';
+			$newSpectatorId = joinSpectatorMode($activeCourse['id'], $newSpectatorState);
+			return_success(0);
+			return true;
+		}
+		return false;
 	}
 	function check_private_race_condition($course = null) {
 		global $linkOptions, $nlink, $cupSQL;
@@ -179,13 +213,13 @@ if ($id) {
 		else
 			$_SESSION['date'] = $time;
 	}
-	if ($cas) {
-		$pID = 0;
-		if ($cas == 1) {
-			$getCourses = mysql_query('SELECT mariokart.id FROM `mariokart` LEFT JOIN `mkjoueurs` j ON j.course=mariokart.id WHERE map=-1 AND j.id IS NULL' . $cupSQL);
-			if ($courses = mysql_fetch_array($getCourses))
-				$pID = $courses['id'];
+	elseif ($getTime && ($getTime['map'] >= 0) && $switchCourse) {
+		if (check_for_active_games($course)) {
+			mysql_close();
+			exit;
 		}
+	}
+	if ($cas) {
 		$getCourses = mysql_query('SELECT mariokart.id,COUNT(j.id) AS nb,mariokart.time FROM `mariokart` INNER JOIN `mkjoueurs` j ON j.course=mariokart.id WHERE map=-1 AND time>='. ($time+10) .' AND mariokart.id!='. $course . $cupSQL .' GROUP BY mariokart.id ORDER BY nb DESC');
 		$search = true;
 		$maxPlayers = get_highest_players();
@@ -213,9 +247,17 @@ if ($id) {
 			}
 		}
 		if ($search) {
+			if (check_for_active_games())
+				$search = false;
+		}
+		if ($search) {
 			switch ($cas) {
 			case 1 :
-				if (!$pID) {
+				$pID = 0;
+				$getCourses = mysql_query('SELECT mariokart.id FROM `mariokart` LEFT JOIN `mkjoueurs` j ON j.course=mariokart.id WHERE map=-1 AND j.id IS NULL' . $cupSQL);
+				if ($courses = mysql_fetch_array($getCourses))
+					$pID = $courses['id'];
+				else {
 					if (!check_private_race_condition())
 						break;
 					mysql_query('INSERT INTO `mariokart` VALUES (null, -1, '. ($time+35) .','. $nid .','. $nmode .','. $nlink .')');
@@ -239,4 +281,3 @@ if ($id) {
 		return_failure();
 	mysql_close();
 }
-?>
