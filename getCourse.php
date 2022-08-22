@@ -27,18 +27,20 @@ if ($id) {
 		}
 	}
 	$newSpectatorId = 0;
-	function switchCourseIfNeeded() {
-		global $switchCourse,$course,$id, $noJoin,$newSpectatorId;
+	function switchCourseIfNeeded($newCourse = null) {
+		global $switchCourse,$course,$id, $noJoin,$spectatorId,$newSpectatorId;
+		if (null === $newCourse) $newCourse = $course;
 		if ($noJoin) {
 			mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id='.$id.' AND choice_map=0');
-			$newSpectatorId = joinSpectatorMode($course);
+			$newSpectatorId = joinSpectatorMode($newCourse);
 		}
 		else {
 			if ($switchCourse) {
-				mysql_query('UPDATE `mkjoueurs` SET course='.$course.',choice_map=0 WHERE id='.$id);
-				mysql_query('UPDATE `mkplayers` SET course='.$course.' WHERE id='.$id);
+				mysql_query('UPDATE `mkjoueurs` SET course='.$newCourse.',choice_map=0 WHERE id='.$id);
+				mysql_query('UPDATE `mkplayers` SET course='.$newCourse.' WHERE id='.$id);
 			}
-			mysql_query('DELETE FROM `mkspectators` WHERE course='.$course.' AND player='.$id);
+			if (!$spectatorId)
+				mysql_query('DELETE FROM `mkspectators` WHERE course='.$newCourse.' AND player='.$id);
 		}
 		unset($_SESSION['date']);
 	}
@@ -115,7 +117,7 @@ if ($id) {
 	}
 	if (!$course)
 		$cas = 1; // Il faudra créer une nouvelle course, si on n'en trouve pas une disponible (INSERT INTO mariokart)
-	elseif (mysql_numrows(mysql_query('SELECT * FROM `mkjoueurs` WHERE course='. $course)) == 1)
+	elseif (!mysql_numrows(mysql_query('SELECT * FROM `mkjoueurs` WHERE course='. $course .' AND id!='.$id)))
 		$cas = 2; // Plus de joueurs connecté sur la course actuelle. cas=2 : On pourra garder cette course, si on n'en trouve pas une disponible
 	elseif (($getTime=mysql_fetch_array(mysql_query('SELECT time,map,cup,mode,link FROM `mariokart` WHERE id='. $course))) &&
 		!get_remaining_players($course, $getTime)) {
@@ -202,7 +204,7 @@ if ($id) {
 						$tempsRestant = 35;
 					}
 					update_lastco();
-					switchCourseIfNeeded();
+					switchCourseIfNeeded($courses['id']);
 					return_success($tempsRestant);
 					break;
 				}

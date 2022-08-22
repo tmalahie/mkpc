@@ -8928,8 +8928,10 @@ function render() {
 					else {
 						posX = oPlayer.ref.aX;
 						posY = oPlayer.ref.aY;
-						oPlayer.rotation = oPlayer.ref.aRotation;
-						fRotation = getApparentRotation(oPlayer);
+						fRotation = getApparentRotation({
+							rotation: oPlayer.ref.aRotation,
+							changeView: oPlayer.changeView
+						});
 					}
 				}
 				oContainers[i].style.opacity = Math.abs(oPlayer.tombe-10)/10;
@@ -13006,7 +13008,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aChampi = oKart.champi, aItem = oKart.arme;
+						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aChampi = oKart.champi, aItem = oKart.arme;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
@@ -13062,6 +13064,15 @@ function resetDatas() {
 								for (var k=0;k<oKart.ballons.length;k++)
 									oKart.ballons[k][0].img.style.display = "block";
 							}
+							if (onlineSpectatorId) {
+								for (var k=0;k<oPlayers.length;k++) {
+									if (oKart === getPlayerAtScreen(k)) {
+										oContainers[k].style.opacity = 1;
+										resetRenderState();
+										break;
+									}
+								}
+							}
 						}
 						if (!aTombe && oKart.tombe) {
 							oKart.sprite[0].img.style.display = "none";
@@ -13073,6 +13084,9 @@ function resetDatas() {
 								}
 								if (oKart.marker)
 									oKart.marker.div[0].style.display = "none";
+								oKart.aX = aX;
+								oKart.aY = aY;
+								oKart.aRotation = aRotation;
 							}
 						}
 						if (!oKart.turnSound && oKart.tourne) {
@@ -13679,7 +13693,7 @@ function move(getId, triggered) {
 			document.getElementById("drift"+ getId).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[getId].h-32)*fSpriteScale*0.15 - 2) + "px";
 	}
 
-	var localKart = (!isOnline || !getId || oKart.controller == identifiant);
+	var localKart = (!isOnline || !getId || oKart.controller == identifiant) && !onlineSpectatorId;
 	
 	if (localKart && !oKart.loose) {
 		var oKartItems = oKart.using;
@@ -15044,7 +15058,7 @@ function move(getId, triggered) {
 		var setOpac = oKart.sprite[0].div.style.opacity-0.1;
 		for (var i=0;i<strPlayer.length;i++)
 			oKart.sprite[i].div.style.opacity = setOpac;
-		var stayVisible = (isOnline&&!onlineSpectatorId&&oKart==oPlayers[0])
+		var stayVisible = (isOnline && (oKart==oPlayers[0] || onlineSpectatorId))
 		var oPacLim = stayVisible ? 0.4:0.01;
 		if (setOpac < oPacLim) {
 			if (!stayVisible) {
@@ -15053,6 +15067,10 @@ function move(getId, triggered) {
 					if (oKart.marker)
 						oKart.marker.div[i].style.display = "none";
 				}
+			}
+			else if (onlineSpectatorId && oKart.marker) {
+				for (var i=0;i<strPlayer.length;i++)
+					oKart.marker.div[i].style.display = "none";
 			}
 			oKart.loose = true;
 			challengeCheck("each_kill");
@@ -22525,7 +22543,7 @@ function searchCourse(opts) {
 		style: function(rect) {
 			return {
 				left: (rect.left - iScreenScale*10)+"px",
-				bottom: (rect.top + iScreenScale*6)+"px",
+				top: (rect.top - iScreenScale*6)+"px",
 				backgroundColor: "rgba(51,51,160, 0.95)"
 			};
 		}
@@ -23393,8 +23411,14 @@ function choose(map,rand) {
 						var isChoix = choixJoueurs[i][2];
 						var isRandom = choixJoueurs[i][3];
 						oTd.innerHTML = isChoix ? (isRandom ? "???":dCircuits[isChoix-1]) : toLanguage("Not chosen","Non choisi");
-						if (!isChoix && onlineSpectatorId && (choixJoueurs[i][0] == identifiant))
-							oTd.style.display = "none";
+						if (onlineSpectatorId && (choixJoueurs[i][0] == identifiant)) {
+							if (isChoix) {
+								setSpectatorId(undefined);
+								hideSpectatorLink();
+							}
+							else
+								oTd.style.display = "none";
+						}
 						oTr.appendChild(oTd);
 						oTBody.appendChild(oTr);
 						nbChoices++;
