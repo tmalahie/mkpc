@@ -3111,6 +3111,7 @@ function startGame() {
 		oPlanDiv.style.width = oPlanWidth +"px";
 		oPlanDiv.style.height = oPlanWidth +"px";
 		oPlanDiv.style.overflow = "hidden";
+		oPlanDiv.style.opacity = 0.01;
 
 		oPlanDiv2 = document.createElement("div");
 		oPlanDiv2.style.backgroundColor = "rgb("+ oMap.bgcolor +")";
@@ -3120,6 +3121,7 @@ function startGame() {
 		oPlanDiv2.style.width = oPlanWidth +"px";
 		oPlanDiv2.style.height = oPlanWidth +"px";
 		oPlanDiv2.style.overflow = "hidden";
+		oPlanDiv2.style.opacity = 0.01;
 
 		oPlanCtn = document.createElement("div");
 		oPlanCtn.style.position = "absolute";
@@ -3306,17 +3308,17 @@ function startGame() {
 			oPlanCtn2.appendChild(oObject2);
 			oPlanObjects2.push(oObject2);
 		}
+
+		oPlanDiv.appendChild(oPlanCtn);
+		document.body.appendChild(oPlanDiv);
+
+		oPlanDiv2.appendChild(oPlanCtn2);
+		document.body.appendChild(oPlanDiv2);
 	}
 
 	setTimeout(function() {
-		if (oPlanCtn) {
-			oPlanDiv.appendChild(oPlanCtn);
-			document.body.appendChild(oPlanDiv);
-		}
-		if (oPlanCtn2) {
-			oPlanDiv2.appendChild(oPlanCtn2);
-			document.body.appendChild(oPlanDiv2);
-		}
+		if (oPlanDiv) oPlanDiv.style.opacity = "";
+		if (oPlanDiv2) oPlanDiv2.style.opacity = "";
 		render();
 	}, 300);
 
