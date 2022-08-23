@@ -34,7 +34,7 @@ if (!empty($_SESSION['mkid'])) {
 					$minTime = getTeamSelectionTime($nbPlayers) - 6000;
 					$time = "GREATEST(time-$minTime,$time)";
 				}
-				mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='. $course);
+				mysql_query('UPDATE `mariokart` m LEFT JOIN mkplayers p ON m.id=p.course SET m.time='.$time.',p.connecte=ROUND(m.time/67) WHERE m.id='. $course);
 				setCourseExtra($course, array('state' => 'teams_selected'));
 			}
 		}

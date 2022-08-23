@@ -24186,6 +24186,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		oTableCtn.appendChild(oTeamsSelected);
 		oTableCtn.style.display = "block";
 
+		connecte = res.connect+1;
+
 		var tnCountdown = tnCourse-new Date().getTime();
 		setTimeout(function() {
 			oScr.innerHTML = "";
