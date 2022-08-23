@@ -2899,7 +2899,7 @@ function startGame() {
 		getPlayerAtScreen = function(i) {
 			return aKarts[oSpecCam.playerId];
 		};
-		if (!isOnlineQueuing() || ((tnCourse+3000) > new Date().getTime()))
+		if (!onlineSpectatorState || ((tnCourse+3000) > new Date().getTime()))
 			oSpecCam.reset();
 	}
 	function spinKart(nb) {
@@ -3396,7 +3396,7 @@ function startGame() {
 		render();
 	}, 300);
 
-	if (bMusic && !isOnlineQueuing()) {
+	if (bMusic && !onlineSpectatorState) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
 		startingMusic.pause();
 		setTimeout(function() {
@@ -3430,7 +3430,7 @@ function startGame() {
 
 		oCounts[i].scrollLeft = 0;
 
-		if (isOnlineQueuing())
+		if (onlineSpectatorState)
 			oCounts[i][0].style.display = "none";
 	}
 
@@ -3438,7 +3438,7 @@ function startGame() {
 	var redrawCanvasHandler;
 
 	var countDownMusic, goMusic;
-	if ((bMusic || iSfx) && !isOnlineQueuing()) {
+	if ((bMusic || iSfx) && !onlineSpectatorState) {
 		countDownMusic = loadMusic("musics/events/countdown.mp3");
 		countDownMusic.removeAttribute("loop");
 		document.body.appendChild(countDownMusic);
@@ -3499,7 +3499,7 @@ function startGame() {
 				if (bMusic || iSfx) {
 					if (onlineSpectatorId)
 						iSfx = false;
-					else {
+					if (goMusic) {
 						goMusic.play();
 						goMusic.onended = function() {
 							document.body.removeChild(countDownMusic);
@@ -3661,7 +3661,7 @@ function startGame() {
 							}
 						}
 						bCounting = false;
-					}, isOnlineQueuing() ? 1 : 1000
+					}, onlineSpectatorState ? 1 : 1000
 				);
 
 				if (!pause || !fInfos.replay) {
@@ -4264,13 +4264,11 @@ function startGame() {
 		}
 	}
 
-	if (iSfx && !fInfos.replay)
+	if (iSfx && !fInfos.replay && !onlineSpectatorId)
 		setTimeout(startEngineSound,bMusic ? 2600:1100);
 	if (isOnline) {
 		var tnCountdown = tnCourse-new Date().getTime();
-		if (onlineSpectatorId)
-			iSfx = false;
-		if (isOnlineQueuing()) {
+		if (onlineSpectatorState) {
 			iCntStep = 3;
 			tnCountdown += 4000;
 			for (var i=0;i<aKarts.length;i++)
@@ -13390,7 +13388,7 @@ function resetDatas() {
 					updateItemCountdownHud(0, null);
 					var lakitu = document.getElementById("lakitu0");
 					if (lakitu) lakitu.style.display = "none";
-					if (isOnlineQueuing()) {
+					if (onlineSpectatorState === "queuing") {
 						forceClic = false;
 						infos0.style.display = "none";
 						xhr("getCourse.php", getOnlineCourseParams({
@@ -15101,7 +15099,7 @@ function move(getId, triggered) {
 		var setOpac = oKart.sprite[0].div.style.opacity-0.1;
 		for (var i=0;i<strPlayer.length;i++)
 			oKart.sprite[i].div.style.opacity = setOpac;
-		var stayVisible = (isOnline && (oKart==oPlayers[0] || onlineSpectatorId))
+		var stayVisible = (isOnline && (oKart==oPlayers[0] || onlineSpectatorId));
 		var oPacLim = stayVisible ? 0.4:0.01;
 		if (setOpac < oPacLim) {
 			if (!stayVisible) {
@@ -22438,7 +22436,9 @@ function searchCourse(opts) {
 							oActivePlayers.style.display = "block";
 						}
 						else if (reponse.pending_players) {
-							document.getElementById("nb-pending-players").innerHTML = reponse.pending_players +" "+ toLanguage("player","joueur") + (reponse.pending_players>1 ? "s":"");
+							var $pendingPlayersNb = document.getElementById("nb-pending-players");
+							$pendingPlayersNb.dataset.pendingCourse = reponse.pending_course;
+							$pendingPlayersNb.innerHTML = reponse.pending_players +" "+ toLanguage("player","joueur") + (reponse.pending_players>1 ? "s":"");
 							var missingPlayers = reponse.min_players-reponse.pending_players;
 							if (missingPlayers < 1) missingPlayers = 1;
 							document.getElementById("nb-missing-players").innerHTML = missingPlayers +" "+ toLanguage("player","joueur") + (missingPlayers>1 ? "s":"");
@@ -22483,10 +22483,13 @@ function searchCourse(opts) {
 	rSearchCourse();
 
 	function addPlayerDetails($elt, paramKey) {
+		var titleRect;
+		if (!$elt.dataset) $elt.dataset = {};
 		addFancyTitle({
 			elt: $elt,
 			title: "...",
 			style: function(rect) {
+				titleRect = rect;
 				return {
 					left: (rect.left + iScreenScale)+"px",
 					top: (rect.bottom + iScreenScale)+"px",
@@ -22494,7 +22497,10 @@ function searchCourse(opts) {
 				};
 			},
 			onShow: function($fancyTitle) {
-				xhr("getCourseDetails.php", courseParams, function(reponse) {
+				var courseDetailsParams = courseParams;
+				if ($elt.dataset.pendingCourse)
+					courseDetailsParams += (courseDetailsParams ? "&":"") + "&course="+ $elt.dataset.pendingCourse;
+				xhr("getCourseDetails.php", courseDetailsParams, function(reponse) {
 					if (!$mkScreen.contains($fancyTitle))
 						return true;
 					var reponseJson = JSON.parse(reponse);
@@ -22504,7 +22510,7 @@ function searchCourse(opts) {
 					if (oPlayerNames.length) {
 						var oPlayerNamesString = oPlayerNames.join("<br />");
 						$fancyTitle.innerHTML = oPlayerNamesString;
-						$fancyTitle.style.left = Math.max(iScreenScale,Math.round(rect.left + (rect.width-$fancyTitle.scrollWidth)/2))+"px";
+						$fancyTitle.style.left = Math.max(iScreenScale,Math.round(titleRect.left + (titleRect.width-$fancyTitle.scrollWidth)/2))+"px";
 					}
 					else
 						$fancyTitle.style.visibility = "hidden";
@@ -23433,7 +23439,7 @@ function choose(map,rand) {
 	oTable.style.left = (iScreenScale*25) +"px";
 	oTable.style.top = (iScreenScale*2) +"px";
 	oTable.style.width = (iScreenScale*30) +"px";
-	if (isOnlineQueuing())
+	if (onlineSpectatorState)
 		oTable.style.display = "none";
 	var oTBody = document.createElement("tbody");
 	function refreshTab(reponse) {
@@ -23472,15 +23478,13 @@ function choose(map,rand) {
 						nbChoices++;
 					}
 				}
-				if (onlineSpectatorId && !nbChoices)
-					rCode[1] = -2;
 
 				function backToSearch() {
 					$mkScreen.removeChild(oTable);
 					leaveRaceWheelScreen();
 				}
 				if (rCode[1] == -1) {
-					if (isOnlineQueuing()) {
+					if (onlineSpectatorState) {
 						setSpectatorId(undefined);
 						backToSearch();
 						return true;
@@ -23604,7 +23608,7 @@ function choose(map,rand) {
 								trs[cCursor].getElementsByTagName("td")[0].innerHTML = dCircuits[choixJoueurs[cCursor][2]-1];
 						}
 						oMap = oMaps[aAvailableMaps[choixJoueurs[rCode[1]][2]-1]];
-						if (isOnlineQueuing()) {
+						if (onlineSpectatorState) {
 							$mkScreen.removeChild(oTable);
 							setTimeout(function() {
 								proceedOnlineRaceSelection(rCode);
@@ -23614,7 +23618,7 @@ function choose(map,rand) {
 							moveCursor();
 					}
 					else {
-						if (isOnlineQueuing()) {
+						if (onlineSpectatorState) {
 							setSpectatorId(undefined);
 							backToSearch();
 							return true;
@@ -23702,7 +23706,7 @@ function choose(map,rand) {
 	}
 	if (onlineSpectatorId) {
 		waitHandler = setTimeout(waitForChoice, 1);
-		if (!isOnlineQueuing()) {
+		if (!onlineSpectatorState) {
 			showSpectatorLink({
 				toggled: true,
 				click: function() {
@@ -23744,12 +23748,14 @@ function choose(map,rand) {
 				loadMapMusic();
 				clearInterval(startMusicHandler);
 			}
-		}, isOnlineQueuing() ? 10 : 500);
+		}, onlineSpectatorState ? 10 : 500);
 	}
 }
 
 function leaveRaceWheelScreen() {
 	clearRaceWheenScreen();
+	removeMenuMusic();
+	removeGameMusics();
 	chatting = false;
 	var opts = {
 		enableSpectatorMode: !!onlineSpectatorId
@@ -23758,8 +23764,7 @@ function leaveRaceWheelScreen() {
 	searchCourse(opts);
 }
 function clearRaceWheenScreen() {
-	removeMenuMusic();
-	removeGameMusics();
+	clearInterval(startMusicHandler);
 	formulaire.dataset.disabled = "";
 	hideSpectatorLink();
 }
@@ -23771,9 +23776,6 @@ function setSpectatorId(id) {
 		onlineSpectatorState = undefined;
 	if (rtcService)
 		rtcService.setSpectatorId(onlineSpectatorId);
-}
-function isOnlineQueuing() {
-	return (onlineSpectatorState === "queuing");
 }
 
 function selectOnlineTeams(strMap,choixJoueurs,selecter) {
@@ -24193,7 +24195,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
 			resetGame(strMap);
-		}, isOnlineQueuing() ? 0 : Math.min(res.previewTime,tnCountdown-1000));
+		}, onlineSpectatorState ? 0 : Math.min(res.previewTime,tnCountdown-1000));
 	}
 	function onTeamsCanceled() {
 		oContainers[0].removeChild(oScr);
@@ -24393,7 +24395,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		waitForSelection();
 	}
 
-	if (isOnlineQueuing()) {
+	if (onlineSpectatorState) {
 		oScr.style.opacity = 0;
 		setTimeout(function() {
 			oScr.style.opacity = "";

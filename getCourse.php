@@ -21,7 +21,7 @@ if ($id) {
 			$switchCourse = true;
 		}
 	}
-	$newSpectatorId = 0; $newSpectatorState = 'joined';
+	$newSpectatorId = 0; $newSpectatorState = null;
 	function switchCourseIfNeeded($newCourse = null) {
 		global $switchCourse,$course,$id, $noJoin,$spectatorId,$newSpectatorId;
 		if (null === $newCourse) $newCourse = $course;
@@ -55,29 +55,17 @@ if ($id) {
 		echo '{"found":true,"time":'.max($remainingTtime,12);
 		if ($newSpectatorId) {
 			echo ',"spectator":'.$newSpectatorId;
-			echo ',"spectatorState":"'.$newSpectatorState.'"';
+			if ($newSpectatorState)
+				echo ',"spectatorState":"'.$newSpectatorState.'"';
 		}
 		echo '}';
 	}
 	function return_failure() {
-		global $pendingPlayers, $linkOptions;
-		$activePlayers = get_active_players();
-		echo '{"found":false'.($activePlayers?(',"nb_players":'.$activePlayers):'').($pendingPlayers?(',"pending_players":'.$pendingPlayers.',"min_players":'.$linkOptions->rules->minPlayers):'').'}';
-	}
-	function get_active_players() {
-		global $time, $nmode, $nid, $nlink;
-		$getPlayers = mysql_query(
-			'SELECT COUNT(DISTINCT p.id) AS nb FROM mkplayers p
-			INNER JOIN mariokart m ON p.course=m.id
-			WHERE p.connecte>='.floor(($time-35)*1000/67).' AND p.controller=0
-			AND m.cup="'. $nid .'" AND m.mode='. $nmode .' AND m.link='. $nlink
-		);
-		if ($nbPlayers = mysql_fetch_array($getPlayers))
-			return intval($nbPlayers['nb']);
-		return 0;
+		global $pendingPlayers, $pendingCourse, $linkOptions;
+		echo '{"found":false'.($pendingPlayers?(',"pending_players":'.$pendingPlayers.',"pending_course":'.$pendingCourse.',"min_players":'.$linkOptions->rules->minPlayers):'').'}';
 	}
 	function get_highest_players() {
-		global $time, $nmode, $nid, $nlink, $isBattle, $linkOptions;
+		global $time, $nmode, $nid, $nlink, $linkOptions;
 		if (!$linkOptions->public)
 			return 0;
 		$getPlayers = mysql_query(
@@ -101,10 +89,13 @@ if ($id) {
 		//return mysql_numrows(mysql_query('SELECT * FROM `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id WHERE j.course='. $course .' AND j.id!="'.$id.'" AND (p.connecte>='. $lConnect . ($getTime['map']==-1&&$getTime['time']>=($time-5)&&$getTime['time']<($time+1000) ? ' OR p.connecte IS NULL OR p.connecte=0':'') .')'));
 		return mysql_numrows(get_remaining_player_query($course,$getTime,$shouldBeActive,$id));
 	}
-	function store_pending_players($nbJoueurs) {
-		global $pendingPlayers;
-		if ($nbJoueurs)
-			$pendingPlayers = $nbJoueurs+1;
+	$pendingCourse = null;
+	function store_pending_players($nbPlayers, $newCourse) {
+		global $pendingPlayers, $pendingCourse;
+		if ($nbPlayers) {
+			$pendingPlayers = $nbPlayers;
+			$pendingCourse = $newCourse;
+		}
 	}
 	function check_for_active_games($course=0) {
 		global $id, $spectatorId, $time, $cupSQL, $noJoin, $newSpectatorId, $newSpectatorState, $linkOptions;
@@ -170,9 +161,10 @@ if ($id) {
 			$cas = 1; // Trop de joueurs, il faudra rejoindre une autre game
 		else {
 			$nbJoueurs = get_remaining_players($course, $getTime);
-			if (($nbJoueurs+1) < $linkOptions->rules->minPlayers) {
+			$nbPlayersIncludingMe = $nbJoueurs + ($noJoin ? 0:1);
+			if ($nbPlayersIncludingMe < $linkOptions->rules->minPlayers) {
 				$cas = 2; // Pas assez de joueurs, on attend
-				store_pending_players($nbJoueurs);
+				store_pending_players($nbPlayersIncludingMe, $course);
 			}
 			else {
 				// C'est bon, on affiche le temps restant pour choisir la map
@@ -227,7 +219,8 @@ if ($id) {
 		while ($courses = mysql_fetch_array($getCourses)) {
 			$nbJoueurs = $courses['nb'];
 			if (($nbJoueurs >= $maxPlayers) && ($nbJoueurs < $linkOptions->rules->maxPlayers)) {
-				if (($nbJoueurs+1) >= $linkOptions->rules->minPlayers) {
+				$nbPlayersIncludingMe = $nbJoueurs + ($noJoin ? 0:1);
+				if ($nbPlayersIncludingMe >= $linkOptions->rules->minPlayers) {
 					// Cette course est sur le point de démarrer, on l'assigne !
 					if (!$noJoin)
 						mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$courses['id'].',p.course='.$courses['id'].',p.connecte=0,j.choice_map=0 WHERE j.id="'. $id .'"');
@@ -243,7 +236,7 @@ if ($id) {
 					break;
 				}
 				else
-					store_pending_players($nbJoueurs);
+					store_pending_players($nbPlayersIncludingMe, $courses['id']);
 			}
 		}
 		if ($search) {

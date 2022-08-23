@@ -186,12 +186,16 @@ if ($course) {
 	}
 	if ($spectatorId && ($nbPlayers > $minPlayers))
 		mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id="'.$id.'" AND course="'.$course.'"');
-	if ($enoughPlayers && $allChosen) {
-		usleep(100000);
-		$joueursData = listPlayers();
-		$getMap = getMapData();
-		$map = $getMap['map'];
-		$now = round(microtime(true)*1000);
+	if ($allChosen) {
+		if ($enoughPlayers) {
+			usleep(100000);
+			$joueursData = listPlayers();
+			$getMap = getMapData();
+			$map = $getMap['map'];
+			$now = round(microtime(true)*1000);
+		}
+		elseif (($map == -1) && $spectatorId)
+			$map = -2;
 	}
 	$courseRules = json_decode($getMap['rules']);
 	echo '[[';
