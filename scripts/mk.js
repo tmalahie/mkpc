@@ -26246,7 +26246,7 @@ function setChat() {
 	var oPlayersListCtn = document.createElement("div");
 	oPlayersListCtn.className = "online-chat-playerlistctn";
 	var iConnectes = document.createElement("span");
-	iConnectes.innerHTML = toLanguage("Online players: ", "Joueurs en ligne : ");
+	iConnectes.innerHTML = toLanguage("Currently online: ", "Actuellement en ligne : ");
 	oPlayersListCtn.appendChild(iConnectes);
 	var jConnectes = document.createElement("span");
 	jConnectes.style.color = "white";
