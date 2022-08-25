@@ -26615,7 +26615,7 @@ function setChat() {
 								sNom.className = "online-chat-playerlistelt";
 								sNom.innerHTML = '<span class="online-chat-playerlistname"></span>' +
 									'<div class="online-chat-playerlisticon">'+
-										'<img class="online-chat-spectator" alt="Spectator" src="images/ic_spectator.png" />'+
+										'<img class="online-chat-spectator" alt="Spectator" title="'+ toLanguage("Spectator mode", "Mode spectateur") +'" src="images/ic_spectator.png" />'+
 										'<div class="online-chat-playerlisticonwrapper">'+
 											'<div class="online-chat-playerlistvolume"></div>'+
 											'<img alt="Voc" />'+
@@ -26726,7 +26726,7 @@ function setChat() {
 						if (messages.length) {
 							var lastMsgId = messages.length-1;
 							iChatLastMsg = messages[lastMsgId][2];
-							for (var i=lastMsgId;i>=0;i--) {
+							for (var i=0;i<=lastMsgId;i++) {
 								var oP = document.createElement("p");
 								var sPseudo = document.createElement("span");
 								sPseudo.innerHTML = messages[i][0] +" : ";
