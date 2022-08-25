@@ -948,7 +948,7 @@ function getItemOptions() {
 					<div id="difficulty-faq">
 					<?php
 					if ($language)
-						echo 'Please read the <a class="pretty-link" href="javascript:helpDifficulty()">recommandations</a> about difficulty selection';
+						echo 'Please read the <a class="pretty-link" href="javascript:helpDifficulty()">recommendations</a> about difficulty selection';
 					else
 						echo 'Merci de lire les <a class="pretty-link" href="javascript:helpDifficulty()">recommandations</a> sur le choix de la difficulté';
 					?>

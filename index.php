@@ -544,7 +544,7 @@ $slidesPath = 'images/slides';
 				?>
 				<div class="birthdays-list">
 					<img src="images/ic_birthday.png" alt="birthday" />
-					<?php echo $language ? "It's the birthday of":"C'est l'anniversaire de"; ?>
+					<?php echo $language ? "Happy birthday to":"C'est l'anniversaire de"; ?>
 					<?php
 					for ($i=0;$i<$nbBirthdays;$i++) {
 						$birthday = $birthdaysList[$i];

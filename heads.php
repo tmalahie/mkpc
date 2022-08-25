@@ -24,7 +24,7 @@ if ($hdescription) {
 	<?php
 }
 ?>
-<meta name="keywords" content="<?php echo $language ? 'Mario, Kart, PC, game, race, free game, multiplayers, circuits editor':'Mario, Kart, PC, jeu, course, jeu gratuit, multijoueurs, éditeur de circuits'; ?>" />
+<meta name="keywords" content="<?php echo $language ? 'Mario, Kart, PC, game, race, free game, multiplayer, circuits editor':'Mario, Kart, PC, jeu, course, jeu gratuit, multijoueur, éditeur de circuits'; ?>" />
 <?php
 if ($hthumbnail) {
 	?>

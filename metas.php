@@ -4,10 +4,10 @@ if (!isset($hthumbnail))
 ?>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta name="author" content="Timothé Malahieude" />
-<meta name="description" content="Jeu de Mario Kart gratuit en ligne" />
+<meta name="description" content="<?php echo $language ? 'Free online Mario Kart game' : 'Jeu de Mario Kart gratuit en ligne'; ?>" />
 <meta name="keywords" content="<?php echo $language ?
-	'Mario, Kart, PC, game, race, free game, multiplayer' :
-	'Mario, Kart, PC, jeu, course, jeu gratuit, multijoueur';
+	'Mario, Kart, PC, game, race, free game, multiplayer, track builder' :
+	'Mario, Kart, PC, jeu, course, jeu gratuit, multijoueur, éditeur de circuits';
 	?>" />
 <meta name="viewport" content="width=device-width, user-scalable=no" />
 <?php

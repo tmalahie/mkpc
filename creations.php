@@ -356,7 +356,7 @@ include('menu.php');
 	<h1><?php
 		if ($pids) {
 			$username = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $user .'"'));
-			echo $language ? ('Creations list of ' . $username['nom']):'Liste des créations de '. $username['nom'];
+			echo $language ? ($username['nom']."'s creations"):'Liste des créations de '. $username['nom'];
 		}
 		else
 			echo $language ? 'Creations list of Mario Kart PC':'Liste des créations Mario Kart PC';
