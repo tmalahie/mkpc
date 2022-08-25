@@ -2858,14 +2858,14 @@ function startGame() {
 				return !isNaN(this.pos.x)
 			},
 			move: function() {
-				var smoothFactor = 0.5;
+				var smoothFactor = 0.3;
 				this.pos.x = interpolateRaw(this.pos.x,this.aim.x, smoothFactor);
 				this.pos.y = interpolateRaw(this.pos.y,this.aim.y, smoothFactor);
 				this.pos.rotation = interpolateRaw(nearestAngle(this.pos.rotation,this.aim.rotation,360), this.aim.rotation, smoothFactor);
 				this.lastReset++;
 
 				var oKart = aKarts[this.playerId];
-				smoothFactor = 1/this.lastReset;
+				smoothFactor = 2/(1+this.lastReset);
 				this.aim.x = interpolateRaw(this.aim.x,oKart.x, smoothFactor);
 				this.aim.y = interpolateRaw(this.aim.y,oKart.y, smoothFactor);
 				this.aim.rotation = interpolateRaw(nearestAngle(this.aim.rotation,oKart.rotation, 360),oKart.rotation, smoothFactor);
