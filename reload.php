@@ -23,10 +23,13 @@ if ($id) {
 		$extraParamsMapping = array("finaltime");
 
 		include('initdb.php');
-		$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkplayers` WHERE id="'.$id.'"'));
+		include('onlineUtils.php');
+		$spectatorId = isset($payload['spectator']) ? intval($payload['spectator']) : 0;
+		$course = getCourse(array(
+			'spectator' => $spectatorId,
+		));
 		$lastconnect = isset($payload['lastcon']) ? $payload['lastcon']:0;
-		if (!empty($getCourse['course'])) {
-			$course = $getCourse['course'];
+		if ($course) {
 			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
 			$playerPayloads = array();
 			if (isset($payload['player'])) {
@@ -122,6 +125,8 @@ if ($id) {
 					// Run a GC some times to remove old deleted items
 					mysql_query('DELETE FROM items WHERE course="'. $course .'" AND data="" AND updated_at<"'.$limIdle.'"');
 				}
+				if ($spectatorId)
+					mysql_query('UPDATE `mkspectators` SET refresh_date=NOW() WHERE id='. $spectatorId);
 				if ($winning && !$isBattle && ($mkState['time'] > $time)) {
 					$mkState['time'] = $time;
 					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time);
@@ -221,6 +226,8 @@ if ($id) {
 				$finishing = !$finished;
 				if ($finishing) {
 					$mkState['time'] = $time+35;
+					mysql_query('UPDATE `mkspectators` s INNER JOIN `mkjoueurs` j ON s.player=j.id AND j.course=0 SET j.course='. $course .' WHERE s.course='. $course .' AND s.state="queuing" AND s.refresh_date >= NOW()-INTERVAL 5 SECOND');
+					mysql_query('UPDATE `mkspectators` SET state="pending" WHERE course='. $course .' AND state="joined"');
 					mysql_query('UPDATE `mariokart` SET map=-1,time='.$mkState['time'].' WHERE id='. $course);
 					$finished = true;
 				}

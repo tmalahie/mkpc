@@ -202,7 +202,7 @@ if (isset($privateLink)) {
 ?>
 
 <?php include('c_mariokart.php'); ?>
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css?reload=1" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css" />
 
 <?php
 if (!$isCup) {
@@ -373,10 +373,7 @@ include('handleCupOptions.php');
 <script type="text/javascript">document.addEventListener("DOMContentLoaded", MarioKart);</script>
 </head>
 <body>
-<div id="mariokartcontainer">
-	<p id="waitrace" class="wait"><?php echo $language ? 'There are <strong id="racecountdown">30</strong> second(s) left to choose the next race':'Il vous reste <span id="racecountdown">30</span> seconde(s) pour choisir la prochaine course'; ?></p>
-	<p id="waitteam" class="wait"><?php echo $language ? 'There are <strong id="teamcountdown">10</strong> second(s) left to choose the teams':'Il vous reste <span id="teamcountdown">10</span> seconde(s) pour choisir les équipes'; ?></p>
-</div>
+<div id="mariokartcontainer"></div>
 
 <div id="virtualkeyboard"></div>
 

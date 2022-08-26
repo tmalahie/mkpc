@@ -4,8 +4,9 @@ session_start();
 $res = array();
 if (!empty($_SESSION['mkid'])) {
 	$id = $_SESSION['mkid'];
-	if ($getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id='.$id))) {
-		$course = $getCourse['course'];
+	include('onlineUtils.php');
+	$course = getCourse();
+	if ($course) {
 		include('onlineStateUtils.php');
 		if ($getExtra = getCourseExtra($course)) {
 			if ($getExtra->state == 'selecting_teams') {

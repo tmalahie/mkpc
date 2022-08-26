@@ -1217,6 +1217,19 @@ CREATE TABLE `mksessionstorage` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkspectators` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `course` int(11) NOT NULL,
+  `player` int(11) NOT NULL,
+  `join_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `refresh_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `state` enum('joined','pending','queuing') NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `course` (`course`,`player`)
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkt` (
   `circuit` int(10) NOT NULL,
   `x` smallint(3) NOT NULL,

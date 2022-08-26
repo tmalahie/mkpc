@@ -2,12 +2,12 @@
 include('session.php');
 if ($id) {
 	include('initdb.php');
-	$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
-	$course = $getCourse['course'];
+	include('onlineUtils.php');
+	$course = getCourse();
 	if ($course) {
 		mysql_query('DELETE FROM mkmuted WHERE end_date<=NOW()');
 		echo '[';
-		$players = mysql_query('SELECT DISTINCT j.id,j.nom,v.id AS peer,v.muted,(i.ignorer IS NOT NULL) AS ignored FROM `mkjoueurs` j LEFT JOIN `mkchatvoc` v ON j.id=v.player AND j.course=v.course LEFT JOIN `mkignores` i ON ((i.ignored=v.player AND i.ignorer='.$id.') OR (i.ignored='.$id.' AND i.ignorer=v.player)) WHERE j.course='.$course);
+		$players = mysql_query('SELECT DISTINCT j.*,v.id AS peer,v.muted,(i.ignorer IS NOT NULL) AS ignored FROM (SELECT id,nom,course FROM mkjoueurs WHERE course='.$course.' UNION SELECT j.id,j.nom,j.course FROM mkspectators s INNER JOIN mkjoueurs j ON s.player=j.id WHERE s.course='. $course .') j LEFT JOIN `mkchatvoc` v ON v.player=j.id AND v.course='.$course.' LEFT JOIN `mkignores` i ON ((i.ignored=v.player AND i.ignorer='.$id.') OR (i.ignored='.$id.' AND i.ignorer=v.player))');
 		$playersData = array();
 		while ($player = mysql_fetch_array($players)) {
 			$playerData = array(
@@ -20,6 +20,8 @@ if ($id) {
 				$playerData['muted'] = 1;
 			if ($player['ignored'])
 				$playerData['ignored'] = 1;
+			if ($player['course'] !== $course)
+				$playerData['spectator'] = 1;
 			$playersData[] = $playerData;
 		}
 		echo json_encode($playersData);

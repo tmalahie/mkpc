@@ -1,4 +1,4 @@
-function RTCService() {
+function RTCService(opts = {}) {
     /**
     * The stream object used to send media
     */
@@ -9,6 +9,11 @@ function RTCService() {
     let peers = {}
 
     let peerId;
+
+    let spectatorId = opts.spectatorId;
+    function setSpectatorId(id) {
+        spectatorId = id;
+    }
 
     //////////// CONFIGURATION //////////////////
 
@@ -49,7 +54,7 @@ function RTCService() {
     }
     function getVocChat(options) {
         if (!peerId) return options.callback(null);
-        xhr("getChatVoc.php", "peer="+peerId, function(res) {
+        xhr("getChatVoc.php", "peer="+peerId+(spectatorId ? "&spectator="+spectatorId : ""), function(res) {
             try {
                 res = JSON.parse(res);
             }
@@ -92,7 +97,12 @@ function RTCService() {
     }
 
     function init(options) {
-        xhr("joinChatVoc.php", options.muted ? "muted=1" : "", function(res) {
+        var xhrParams = [];
+        if (options.muted)
+            xhrParams.push("muted=1");
+        if (spectatorId)
+            xhrParams.push("spectator="+spectatorId);
+        xhr("joinChatVoc.php", xhrParams.join("&"), function(res) {
             if (res && (res >= 0)) {
                 peerId = +res;
                 if (options.success)
@@ -156,7 +166,7 @@ function RTCService() {
         }
         delete peers[socket_id];
         peer.conn.destroy();
-        xhr("unregisterChatSignals.php", "sender="+peerId+"&receiver="+socket_id + (options && options.disconnectReceiver ? "&disconnect" : ""), function(res) {
+        xhr("unregisterChatSignals.php", "sender="+peerId+"&receiver="+socket_id + (options && options.disconnectReceiver ? "&disconnect" : "") + (spectatorId ? "&spectator="+spectatorId : ""), function(res) {
             if (res == 1) {
                 return true;
             }
@@ -256,6 +266,7 @@ function RTCService() {
         getPeer,
         removePeer,
         quitVocChat,
-        toggleMute
+        toggleMute,
+        setSpectatorId,
     }
 }
