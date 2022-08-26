@@ -41,7 +41,7 @@
     border: solid 1px silver;
 }
 .online-chat-playerlistelt:not(:last-child)::after {
-    content: ", ";
+    content: ",\00a0";
     position: relative;
 }
 .online-chat-spectator {
