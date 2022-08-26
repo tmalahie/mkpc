@@ -12,6 +12,8 @@ if ($id) {
 	if ($noJoin) $linkOptions->rules->maxPlayers += 1000; // hack to remove max player restriction if spectator mode enabled
 
 	$targetCourse = 0;
+	if ($spectatorId && !$course)
+		$spectatorId = 0;
 	if ($spectatorId) {
 		$currentCourse = getCourse(array(
 			'spectator' => 0
@@ -47,7 +49,9 @@ if ($id) {
 				mysql_query('UPDATE `mkjoueurs` SET course='.$newCourse.',choice_map=0 WHERE id='.$id);
 				mysql_query('UPDATE `mkplayers` SET course='.$newCourse.' WHERE id='.$id);
 			}
-			if (!$spectatorId)
+			if ($spectatorId)
+				mysql_query('UPDATE `mkspectators` SET state="pending" WHERE id='. $spectatorId);
+			else
 				mysql_query('DELETE FROM `mkspectators` WHERE course='.$newCourse.' AND player='.$id);
 		}
 		unset($_SESSION['date']);
