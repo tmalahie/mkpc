@@ -2073,16 +2073,17 @@ function arme(ID, backwards, forwards) {
 			newItem = "billball";
 		}
 		if (newItem) {
+			var sID = getScreenPlayerIndex(ID);
 			if (oKart.arme !== newItem) {
 				oKart.arme = newItem;
-				if (kartIsPlayer(oKart))
-					updateObjHud(ID);
+				if (sID < oPlayers.length)
+					updateObjHud(sID);
 			}
 			else {
-				if (kartIsPlayer(oKart)) {
+				if (sID < oPlayers.length) {
 					switch (newItem) {
 					case "champior":
-						var $img = document.getElementById("roulette"+ID).getElementsByTagName("img")[0];
+						var $img = document.getElementById("roulette"+sID).getElementsByTagName("img")[0];
 						var t = 0;
 						function rescale() {
 							t++;
@@ -2096,10 +2097,10 @@ function arme(ID, backwards, forwards) {
 							setTimeout(rescale, SPF);
 						}
 						rescale();
-						updateItemCountdownHud(ID,oKart.champior/oKart.champior0);
+						updateItemCountdownHud(sID,oKart.champior/oKart.champior0);
 						break;
 					case "billball":
-						updateItemCountdownHud(ID,oKart.billball/oKart.billball0);
+						updateItemCountdownHud(sID,oKart.billball/oKart.billball0);
 					}
 				}
 			}
@@ -2895,6 +2896,14 @@ function startGame() {
 		};
 		getPlayerAtScreen = function(i) {
 			return aKarts[oSpecCam.playerId];
+		};
+		getScreenPlayerIndex = function(getId) {
+			var oKart = aKarts[getId];
+			for (var i=0;i<oPlayers.length;i++) {
+				if (getPlayerAtScreen(i) === oKart)
+					return i;
+			}
+			return oPlayers.length;
 		};
 		if (!onlineSpectatorState || ((tnCourse+3000) > new Date().getTime()))
 			oSpecCam.reset();
@@ -5131,13 +5140,14 @@ function nextRace() {
 function rankingColor(getId) {
 	var oKart = aKarts[getId];
 	var oTeam = oKart.team;
+	var sID = getScreenPlayerIndex(getId);
 	if (oTeam != -1) {
-		if (getId < oPlayers.length)
-			return getId ? cTeamColors.dark[oTeam] : cTeamColors.light[oTeam];
+		if (sID < oPlayers.length)
+			return sID ? cTeamColors.dark[oTeam] : cTeamColors.light[oTeam];
 		return cTeamColors.primary[oTeam];
 	}
-	if (getId < oPlayers.length)
-		return getId ? cTeamColors.dark[0] : "#990";
+	if (sID < oPlayers.length)
+		return sID ? cTeamColors.dark[0] : "#990";
 	return "transparent";
 }
 
@@ -9382,9 +9392,10 @@ function supprArme(i) {
 		oKart["roulette"+prefix] = 0;
 		oKart[oArmeKeys[j]] = false;
 	}
-	if (kartIsPlayer(oKart)) {
-		updateObjHud(i);
-		updateItemCountdownHud(i, null);
+	var sID = getScreenPlayerIndex(i);
+	if (sID < oPlayers.length) {
+		updateObjHud(sID);
+		updateItemCountdownHud(sID, null);
 		removeIfExists(oKart.rouletteSound);
 	}
 }
@@ -9394,9 +9405,10 @@ function consumeItem(i) {
 	oKart.stash = false;
 	oKart.roulette = oKart.roulette2;
 	oKart.roulette2 = 0;
-	if (kartIsPlayer(oKart)) {
-		updateObjHud(i);
-		updateItemCountdownHud(i, null);
+	var sID = getScreenPlayerIndex(i);
+	if (sID < oPlayers.length) {
+		updateObjHud(sID);
+		updateItemCountdownHud(sID, null);
 	}
 }
 function consumeItemIfDouble(i) {
@@ -12645,8 +12657,11 @@ function places(j,aRankScores,force) {
 	var oKart = aKarts[j];
 	var retour = !force;
 	for (var i=0;i<strPlayer.length;i++) {
-		if (!oPlayers[i].cpu && !oPlayers[i].loose)
+		var oPlayer = getPlayerAtScreen(i);
+		if (!(oPlayer.tours > oMap.tours) && !oPlayer.loose)
 			retour = false;
+		else if (onlineSpectatorId)
+			document.getElementById("infoPlace"+i).style.visibility = "hidden";
 	}
 	if (retour) return;
 	var place = 1;
@@ -12662,8 +12677,9 @@ function places(j,aRankScores,force) {
 	}
 	if (!oKart.loose)
 		oKart.place = place;
-	if (j<strPlayer.length)
-		document.getElementById("infoPlace"+j).innerHTML = place;
+	var sID = getScreenPlayerIndex(j);
+	if (sID < oPlayers.length)
+		document.getElementById("infoPlace"+sID).innerHTML = place;
 }
 
 function getLastCp(kart) {
@@ -13026,7 +13042,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aChampi = oKart.champi, aItem = oKart.arme;
+						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aChampi = oKart.champi, aItem = oKart.arme, aStash = oKart.stash;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
@@ -13076,20 +13092,20 @@ function resetDatas() {
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
 						updateProtectFlag(oKart);
+						var sID = getScreenPlayerIndex(j);
+						if (sID < oPlayers.length) {
+							if ((oKart.arme !== aItem) || (oKart.stash !== aStash))
+								updateObjHud(sID);
+						}
 						if (aTombe && !oKart.tombe) {
 							oKart.sprite[0].img.style.display = "block";
 							if (course == "BB") {
 								for (var k=0;k<oKart.ballons.length;k++)
 									oKart.ballons[k][0].img.style.display = "block";
 							}
-							if (onlineSpectatorId) {
-								for (var k=0;k<oPlayers.length;k++) {
-									if (oKart === getPlayerAtScreen(k)) {
-										oContainers[k].style.opacity = 1;
-										resetRenderState();
-										break;
-									}
-								}
+							if (sID < oPlayers.length) {
+								oContainers[sID].style.opacity = 1;
+								resetRenderState();
 							}
 						}
 						if (!aTombe && oKart.tombe) {
@@ -13468,9 +13484,12 @@ function loseBall(i) {
 				clLocalVars.lostBalloons++;
 				updateChallengeHud("balloons", clLocalVars.lostBalloons);
 			}
-			if (isOnline && !i && !aKarts[i].ballons.length) {
-				supprArme(i);
-				document.getElementById("infoPlace0").style.visibility = "hidden";
+			if (isOnline) {
+				var sID = getScreenPlayerIndex(i);
+				if ((sID < oPlayers.length) && !aKarts[i].ballons.length) {
+					supprArme(i);
+					document.getElementById("infoPlace"+sID).style.visibility = "hidden";
+				}
 			}
 		}
 	}
@@ -13971,9 +13990,10 @@ function move(getId, triggered) {
 				// oKart.arme = iObj;
 				if (shouldPlaySound(oKart) && !oKart.rouletteSound)
 					oKart.rouletteSound = playSoundEffect("musics/events/roulette.mp3");
-				if (kartIsPlayer(oKart)) {
+				var sID = getScreenPlayerIndex(getId);
+				if (sID < oPlayers.length) {
 					var prefix = oRoulettesPrefixes[oSlotId];
-					var rScroller = document.getElementById("scroller"+prefix+getId);
+					var rScroller = document.getElementById("scroller"+prefix+sID);
 					var rTurner = rScroller.getElementsByTagName("div")[0];
 					var rHeight = rTurner.offsetHeight;
 					var rSize = iScreenScale*7;
@@ -13982,8 +14002,8 @@ function move(getId, triggered) {
 					rTurner.dataset.h = rHeight;
 					rTurner.dataset.s = rSize;
 					rTurner.dataset.v = oSlotId ? 1.2 : 2;
-					document.getElementById("scroller"+prefix+getId).getElementsByTagName("div")[0].style.top = -Math.floor(Math.random()*rHeight) +"px";
-					updateObjHud(getId);
+					document.getElementById("scroller"+prefix+sID).getElementsByTagName("div")[0].style.top = -Math.floor(Math.random()*rHeight) +"px";
+					updateObjHud(sID);
 					clLocalVars.itemsGot = true;
 
 					switch (iObj) {
@@ -14017,8 +14037,9 @@ function move(getId, triggered) {
 				oKart[key]++;
 				if (oKart[key] >= 25) {
 					oKart[key] = 25;
-					if (kartIsPlayer(oKart)) {
-						updateObjHud(getId);
+					var sID = getScreenPlayerIndex(getId);
+					if (sID < oPlayers.length) {
+						updateObjHud(sID);
 						if (oKart.rouletteSound) {
 							removeIfExists(oKart.rouletteSound);
 							playSoundEffect("musics/events/gotitem.mp3");
@@ -14263,8 +14284,9 @@ function move(getId, triggered) {
 				stopDrifting(getId);
 				supprArme(getId);
 				deleteUsingItems(oKart);
+				var sID = getScreenPlayerIndex(i);
 				for (var i=0;i<oPlayers.length;i++) {
-					if ((i != getId) || (1/*nbFrames*/ == 1)) {
+					if (i != sID) {
 						oKart.sprite[i].img.style.display = "none";
 						oKart.sprite[i].div.style.backgroundImage = "";
 						if (course == "BB") {
@@ -14569,6 +14591,11 @@ function move(getId, triggered) {
 						window.removeEventListener("blur", window.releaseOnBlur);
 						window.releaseOnBlur = undefined;
 					}
+				}
+				else if (onlineSpectatorId && !finishing) {
+					var sID = getScreenPlayerIndex(getId);
+					if (sID < oPlayers.length)
+						document.getElementById("infoPlace0").style.visibility = "hidden";
 				}
 				if (oMap.sections)
 					if (oKart.billball>1) oKart.billball = 1;
@@ -14974,7 +15001,8 @@ function move(getId, triggered) {
 			if (!oKart.cpu)
 				delete oKart.aipoint;
 		}
-		updateItemCountdownHud(getId, oKart.billball/oKart.billball0);
+		if (!oKart.cpu || oKart.controller)
+			updateItemCountdownHud(getScreenPlayerIndex(getId), oKart.billball/oKart.billball0);
 	}
 	if (oKart.champior) {
 		oKart.champior--;
@@ -14983,8 +15011,8 @@ function move(getId, triggered) {
 			delete oKart.champior0;
 			consumeItem(getId);
 		}
-		if (kartIsPlayer(oKart))
-			updateItemCountdownHud(getId,oKart.champior/oKart.champior0);
+		if (!oKart.cpu || oKart.controller)
+			updateItemCountdownHud(getScreenPlayerIndex(getId), oKart.champior/oKart.champior0);
 	}
 	if (oKart.etoile) {
 		oKart.maxspeed *= 1.35;
@@ -15128,6 +15156,10 @@ var getPlayerAtScreen = function(i) {
 
 	return oPlayers[i];
 };
+var getScreenPlayerIndex = function(i) {
+	// Same, can be overriden
+	return i;
+}
 function isControlledByPlayer(id) {
 	var oKart = aKarts.find(function(kart) {
 		return kart.id == id;
@@ -15301,7 +15333,7 @@ function handlePoisonHit(getId) {
 var oRoulettesPrefixes = ["", "2"];
 var oArmeKeys = ["arme", "stash"];
 function updateObjHud(ID) {
-	var oKart = aKarts[ID];
+	var oKart = getPlayerAtScreen(ID);
 	for (var i=0;i<oRoulettesPrefixes.length;i++) {
 		var prefix = oRoulettesPrefixes[i];
 		var oArmeKey = oArmeKeys[i];
