@@ -1449,9 +1449,6 @@ function loadMap() {
 			oTemps.style.display = "none";
 			oScroller.style.display = "none";
 			oScroller2.style.display = "none";
-			oObjet.style.display = "none";
-			oReserve.style.display = "none";
-			infoPlace.style.visibility = "hidden";
 			oCompteur.style.visibility = "hidden";
 		}
 	}
@@ -16473,19 +16470,27 @@ function handleSpectatorInput(e) {
 	case 37:
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
-		oSpecCam.reset();
-		return false;
+		break;
 	case 39:
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
-		oSpecCam.reset();
-		return false;
+		break;
 	case 27:
 		document.location.reload();
 		return false;
 	default:
 		return true;
 	}
+	oSpecCam.reset();
+	var oKart = getPlayerAtScreen(0);
+	var stillRacing = isBattle ? !oKart.loose : (oKart.tours <= oMap.tours);
+	if (stillRacing) {
+		document.getElementById("infoPlace0").style.visibility = "";
+		document.getElementById("infoPlace0").innerHTML = oKart.place;
+	}
+	updateObjHud(0);
+	updateItemCountdownHud(0, null);
+	return false;
 }
 document.onkeydown = function(e) {
 	if (onlineSpectatorId) {
@@ -23489,6 +23494,7 @@ function choose(map,rand) {
 						backToSearch();
 						return true;
 					}
+					rePosSpectatorLink();
 					waitHandler = setTimeout(waitForChoice, 1000);
 				}
 				else {
@@ -23703,6 +23709,13 @@ function choose(map,rand) {
 		}
 		else
 			resetGame(strMap);
+	}
+	function rePosSpectatorLink() {
+		var $spectatorLinkCtn = document.getElementById("spectatormode");
+		if ($spectatorLinkCtn) {
+			var oTableRect = oTable.getBoundingClientRect();
+			$spectatorLinkCtn.style.top = Math.max(oTableRect.bottom+5, iScreenScale*38+15) +"px";
+		}
 	}
 	if (onlineSpectatorId) {
 		waitHandler = setTimeout(waitForChoice, 1);

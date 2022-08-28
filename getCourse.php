@@ -97,8 +97,12 @@ if ($id) {
 		return 0;
 	}
 	function afk_threshold_time() {
-		global $time, $isBattle;
-		return (($time-($isBattle?300:210))*1000);
+		global $time, $isBattle, $noJoin;
+		if ($noJoin)
+			$maxDelay = 900;
+		else
+			$maxDelay = $isBattle ? 300:210;
+		return (($time-$maxDelay)*1000);
 	}
 	function get_remaining_players($course, &$getTime, $shouldBeActive=true) {
 		global $id;
