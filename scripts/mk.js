@@ -1451,8 +1451,6 @@ function loadMap() {
 			oScroller2.style.display = "none";
 			oObjet.style.display = "none";
 			oReserve.style.display = "none";
-			infoPlace.style.visibility = "hidden";
-			oCompteur.style.visibility = "hidden";
 		}
 	}
 
@@ -2899,6 +2897,14 @@ function startGame() {
 		getPlayerAtScreen = function(i) {
 			return aKarts[oSpecCam.playerId];
 		};
+		getScreenPlayerIndex = function(getId) {
+			var oKart = aKarts[getId];
+			for (var i=0;i<oPlayers.length;i++) {
+				if (getPlayerAtScreen(i) === oKart)
+					return i;
+			}
+			return oPlayers.length;
+		};
 		if (!onlineSpectatorState || ((tnCourse+3000) > new Date().getTime()))
 			oSpecCam.reset();
 	}
@@ -3652,8 +3658,8 @@ function startGame() {
 									  + '<tr><td>'+ toLanguage("Switch player:", "Changer de joueur :") +' <strong style="font-size: 1.4em; line-height: 1.1em">&larr; &rarr;</strong></td></tr>'
 									  + '<tr><td>'+ toLanguage("Exit: Escape", "Quitter : Echap") +'</td></tr>'
 									+ '</tbody>';
-								oInfos.style.left = Math.round(10 + iScreenScale/2) +"px";
-								oInfos.style.top = Math.round(10 + iScreenScale*(iHeight-8)) +"px";
+								oInfos.style.left = (10 + iScreenScale) +"px";
+								oInfos.style.top = (10 + iScreenScale) +"px";
 								oInfos.style.fontSize = Math.round(iScreenScale * 1.75) +"px";
 								oInfos.style.display = "";
 								oInfos.style.visibility = "";
@@ -5134,13 +5140,14 @@ function nextRace() {
 function rankingColor(getId) {
 	var oKart = aKarts[getId];
 	var oTeam = oKart.team;
+	var sID = getScreenPlayerIndex(getId);
 	if (oTeam != -1) {
-		if (getId < oPlayers.length)
-			return getId ? cTeamColors.dark[oTeam] : cTeamColors.light[oTeam];
+		if (sID < oPlayers.length)
+			return sID ? cTeamColors.dark[oTeam] : cTeamColors.light[oTeam];
 		return cTeamColors.primary[oTeam];
 	}
-	if (getId < oPlayers.length)
-		return getId ? cTeamColors.dark[0] : "#990";
+	if (sID < oPlayers.length)
+		return sID ? cTeamColors.dark[0] : "#990";
 	return "transparent";
 }
 
@@ -12648,8 +12655,11 @@ function places(j,aRankScores,force) {
 	var oKart = aKarts[j];
 	var retour = !force;
 	for (var i=0;i<strPlayer.length;i++) {
-		if (!oPlayers[i].cpu && !oPlayers[i].loose)
+		var oPlayer = getPlayerAtScreen(i);
+		if (!(oPlayer.tours > oMap.tours) && !oPlayer.loose)
 			retour = false;
+		else if (onlineSpectatorId)
+			document.getElementById("infoPlace"+i).style.visibility = "hidden";
 	}
 	if (retour) return;
 	var place = 1;
@@ -12665,8 +12675,9 @@ function places(j,aRankScores,force) {
 	}
 	if (!oKart.loose)
 		oKart.place = place;
-	if (j<strPlayer.length)
-		document.getElementById("infoPlace"+j).innerHTML = place;
+	var sID = getScreenPlayerIndex(j);
+	if (sID < oPlayers.length)
+		document.getElementById("infoPlace"+sID).innerHTML = place;
 }
 
 function getLastCp(kart) {
@@ -13029,7 +13040,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aChampi = oKart.champi, aItem = oKart.arme;
+						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aReserve = oKart.reserve;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
@@ -13078,6 +13089,16 @@ function resetDatas() {
 							delete oKart.champiType;
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
+						if (aTours !== oKart.tours) {
+							var sID = getScreenPlayerIndex(j);
+							if (sID < oPlayers.length)
+								updateLapHud(sID);
+						}
+						if (aReserve !== oKart.reserve) {
+							var sID = getScreenPlayerIndex(j);
+							if (sID < oPlayers.length)
+								updateBalloonHud(document.getElementById("compteur0"),oKart);
+						}
 						updateProtectFlag(oKart);
 						if (aTombe && !oKart.tombe) {
 							oKart.sprite[0].img.style.display = "block";
@@ -13085,14 +13106,10 @@ function resetDatas() {
 								for (var k=0;k<oKart.ballons.length;k++)
 									oKart.ballons[k][0].img.style.display = "block";
 							}
-							if (onlineSpectatorId) {
-								for (var k=0;k<oPlayers.length;k++) {
-									if (oKart === getPlayerAtScreen(k)) {
-										oContainers[k].style.opacity = 1;
-										resetRenderState();
-										break;
-									}
-								}
+							var sID = getScreenPlayerIndex(j);
+							if (sID < oPlayers.length) {
+								oContainers[sID].style.opacity = 1;
+								resetRenderState();
 							}
 						}
 						if (!aTombe && oKart.tombe) {
@@ -13471,9 +13488,12 @@ function loseBall(i) {
 				clLocalVars.lostBalloons++;
 				updateChallengeHud("balloons", clLocalVars.lostBalloons);
 			}
-			if (isOnline && !i && !aKarts[i].ballons.length) {
-				supprArme(i);
-				document.getElementById("infoPlace0").style.visibility = "hidden";
+			if (isOnline) {
+				var sID = getScreenPlayerIndex(i);
+				if ((sID < oPlayers.length) && !aKarts[i].ballons.length) {
+					supprArme(i);
+					document.getElementById("infoPlace"+sID).style.visibility = "hidden";
+				}
 			}
 		}
 	}
@@ -14266,8 +14286,9 @@ function move(getId, triggered) {
 				stopDrifting(getId);
 				supprArme(getId);
 				deleteUsingItems(oKart);
+				var sID = getScreenPlayerIndex(i);
 				for (var i=0;i<oPlayers.length;i++) {
-					if ((i != getId) || (1/*nbFrames*/ == 1)) {
+					if (i != sID) {
 						oKart.sprite[i].img.style.display = "none";
 						oKart.sprite[i].div.style.backgroundImage = "";
 						if (course == "BB") {
@@ -14352,6 +14373,7 @@ function move(getId, triggered) {
 				lapTimers.push(lapTimer-lapTimerSum);
 			}
 
+			var sID = getScreenPlayerIndex(getId);
 			if (oKart.tours == (oMap.tours+1)) {
 				oKart.place = 0;
 				for (var i=0;i<nbjoueurs;i++) {
@@ -14573,95 +14595,99 @@ function move(getId, triggered) {
 						window.releaseOnBlur = undefined;
 					}
 				}
+				else if (onlineSpectatorId && !finishing) {
+					if (sID < oPlayers.length)
+						document.getElementById("infoPlace0").style.visibility = "hidden";
+				}
 				if (oMap.sections)
 					if (oKart.billball>1) oKart.billball = 1;
 			}
-			else if (!(isOnline ? (getId||finishing||onlineSpectatorId):oKart.cpu)) {
-				var oCompteurTours = document.querySelectorAll("#compteur"+getId+" .tour");
-				for (var i=0;i<oCompteurTours.length;i++)
-					oCompteurTours[i].innerHTML = oKart.tours;
-				document.getElementById("lakitu"+getId).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.tours;
-				oKart.time = 40;
-				if (bMusic || iSfx) {
-					if (oKart.tours == oMap.tours) {
-						var firstOne = true;
-						for (var i=0;i<oPlayers.length;i++) {
-							if ((oPlayers[i] != oKart) && (oPlayers[i].tours >= 3)) {
-								firstOne = false;
-								break;
-							}
-						}
-						if (firstOne) {
-							var cMusicEmbed = postStartMusic("musics/events/lastlap.mp3");
-							if (iSfx) {
-								fadeOutMusic(carEngine,1,0.6,-1);
-								fadeOutMusic(carEngine2,1,0.6,-1);
-							}
-							cMusicEmbed.removeAttribute("loop");
-							setTimeout(function() {
-								if (bMusic) {
-									if (willPlayEndMusic || isEndMusicPlayed)
-										return;
-									if (document.body.contains(cMusicEmbed)) {
-										document.body.removeChild(cMusicEmbed);
-										startMapMusic(true);
-									}
-									else if (lastMapMusic) {
-										startMapMusic(true);
-										forceStartMusic = true;
-									}
-									else
-										fastenMusic(mapMusic);
+			else if (!(isOnline ? (sID||finishing):oKart.cpu)) {
+				updateLapHud(sID);
+				if (!onlineSpectatorId) {
+					document.getElementById("lakitu"+sID).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.tours;
+					oKart.time = 40;
+					if (bMusic || iSfx) {
+						if (oKart.tours == oMap.tours) {
+							var firstOne = true;
+							for (var i=0;i<oPlayers.length;i++) {
+								if ((oPlayers[i] != oKart) && (oPlayers[i].tours >= 3)) {
+									firstOne = false;
+									break;
 								}
+							}
+							if (firstOne) {
+								var cMusicEmbed = postStartMusic("musics/events/lastlap.mp3");
 								if (iSfx) {
-									carEngine.volume = 1;
-									carEngine2.volume = 1;
+									fadeOutMusic(carEngine,1,0.6,-1);
+									fadeOutMusic(carEngine2,1,0.6,-1);
 								}
-							}, 2700);
-							if (lastMapMusic)
-								bufferMusic(lastMapMusic);
+								cMusicEmbed.removeAttribute("loop");
+								setTimeout(function() {
+									if (bMusic) {
+										if (willPlayEndMusic || isEndMusicPlayed)
+											return;
+										if (document.body.contains(cMusicEmbed)) {
+											document.body.removeChild(cMusicEmbed);
+											startMapMusic(true);
+										}
+										else if (lastMapMusic) {
+											startMapMusic(true);
+											forceStartMusic = true;
+										}
+										else
+											fastenMusic(mapMusic);
+									}
+									if (iSfx) {
+										carEngine.volume = 1;
+										carEngine2.volume = 1;
+									}
+								}, 2700);
+								if (lastMapMusic)
+									bufferMusic(lastMapMusic);
+							}
 						}
+						else if (iSfx)
+							playSoundEffect("musics/events/nextlap.mp3");
 					}
-					else if (iSfx)
-						playSoundEffect("musics/events/nextlap.mp3");
-				}
-				if (timeTrialMode()) {
-					if (oLapTimeDiv)
-						oContainers[0].removeChild(oLapTimeDiv);
-					oLapTimeDiv = document.createElement("div");
-					oLapTimeDiv.style.position = "absolute";
-					oLapTimeDiv.style.zIndex = 20000;
-					oLapTimeDiv.style.left = Math.round(iScreenScale*iWidth/2) +"px";
-					oLapTimeDiv.style.top = Math.round(iScreenScale*iHeight/2) +"px";
-					oLapTimeDiv.style.textAlign = "center";
-					oLapTimeDiv.style.transform = oLapTimeDiv.style.WebkitTransform = oLapTimeDiv.style.MozTransform = "translate(-50%, -100%)";
-					var oLapTimeText = document.createElement("div");
-					oLapTimeText.className = "lap-time";
-					oLapTimeText.innerHTML = timeStr(lapTimers[lapTimers.length-1]);
-					oLapTimeText.style.fontSize = (iScreenScale*4) +"px";
-					oLapTimeText.style.fontFamily = "Courier New";
-					oLapTimeText.style.color = "#DDD";
-					var sThickness = Math.ceil(iScreenScale/4) +"px";
-					var oShadow = "black";
-					oLapTimeText.style.textShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
-					oLapTimeDiv.appendChild(oLapTimeText);
+					if (timeTrialMode()) {
+						if (oLapTimeDiv)
+							oContainers[0].removeChild(oLapTimeDiv);
+						oLapTimeDiv = document.createElement("div");
+						oLapTimeDiv.style.position = "absolute";
+						oLapTimeDiv.style.zIndex = 20000;
+						oLapTimeDiv.style.left = Math.round(iScreenScale*iWidth/2) +"px";
+						oLapTimeDiv.style.top = Math.round(iScreenScale*iHeight/2) +"px";
+						oLapTimeDiv.style.textAlign = "center";
+						oLapTimeDiv.style.transform = oLapTimeDiv.style.WebkitTransform = oLapTimeDiv.style.MozTransform = "translate(-50%, -100%)";
+						var oLapTimeText = document.createElement("div");
+						oLapTimeText.className = "lap-time";
+						oLapTimeText.innerHTML = timeStr(lapTimers[lapTimers.length-1]);
+						oLapTimeText.style.fontSize = (iScreenScale*4) +"px";
+						oLapTimeText.style.fontFamily = "Courier New";
+						oLapTimeText.style.color = "#DDD";
+						var sThickness = Math.ceil(iScreenScale/4) +"px";
+						var oShadow = "black";
+						oLapTimeText.style.textShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
+						oLapTimeDiv.appendChild(oLapTimeText);
 
-					if (iLapTimes) {
-						var timeDiff = 0;
-						for (var i=0;i<lapTimers.length;i++)
-							timeDiff += lapTimers[i]-iLapTimes[i];
-						var oTimeDiffText = document.createElement("div");
-						oTimeDiffText.innerHTML = ((timeDiff>=0) ? "+":"-") +" "+ timeStr(Math.abs(timeDiff));
-						oTimeDiffText.style.fontSize = Math.round(iScreenScale*2.5) +"px";
-						oTimeDiffText.style.fontFamily = "Courier New";
-						oTimeDiffText.style.color = (timeDiff>=0) ? "#FDD":"#DFD";
-						sThickness = Math.ceil(iScreenScale/8) +"px";
-						oShadow = (timeDiff>=0) ? "#C00":"#0A0";
-						oTimeDiffText.style.textShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
-						oLapTimeDiv.appendChild(oTimeDiffText);
+						if (iLapTimes) {
+							var timeDiff = 0;
+							for (var i=0;i<lapTimers.length;i++)
+								timeDiff += lapTimers[i]-iLapTimes[i];
+							var oTimeDiffText = document.createElement("div");
+							oTimeDiffText.innerHTML = ((timeDiff>=0) ? "+":"-") +" "+ timeStr(Math.abs(timeDiff));
+							oTimeDiffText.style.fontSize = Math.round(iScreenScale*2.5) +"px";
+							oTimeDiffText.style.fontFamily = "Courier New";
+							oTimeDiffText.style.color = (timeDiff>=0) ? "#FDD":"#DFD";
+							sThickness = Math.ceil(iScreenScale/8) +"px";
+							oShadow = (timeDiff>=0) ? "#C00":"#0A0";
+							oTimeDiffText.style.textShadow = "-"+sThickness+" 0 "+oShadow+", 0 "+sThickness+" "+oShadow+", "+sThickness+" 0 "+oShadow+", 0 -"+sThickness+" "+oShadow;
+							oLapTimeDiv.appendChild(oTimeDiffText);
+						}
+
+						oContainers[0].appendChild(oLapTimeDiv);
 					}
-
-					oContainers[0].appendChild(oLapTimeDiv);
 				}
 			}
 		}
@@ -14986,8 +15012,7 @@ function move(getId, triggered) {
 			delete oKart.champior0;
 			consumeItem(getId);
 		}
-		if (kartIsPlayer(oKart))
-			updateItemCountdownHud(getId,oKart.champior/oKart.champior0);
+		updateItemCountdownHud(getId, oKart.champior/oKart.champior0);
 	}
 	if (oKart.etoile) {
 		oKart.maxspeed *= 1.35;
@@ -15131,6 +15156,10 @@ var getPlayerAtScreen = function(i) {
 
 	return oPlayers[i];
 };
+var getScreenPlayerIndex = function(i) {
+	// Same, can be overriden
+	return i;
+}
 function isControlledByPlayer(id) {
 	var oKart = aKarts.find(function(kart) {
 		return kart.id == id;
@@ -15373,6 +15402,12 @@ function updateItemCountdownHud(ID, progress) {
 		$countdown.style.clipPath = "";
 	}
 }
+function updateLapHud(sID) {
+	var oKart = getPlayerAtScreen(sID);
+	var oCompteurTours = document.querySelectorAll("#compteur"+sID+" .tour");
+	for (var i=0;i<oCompteurTours.length;i++)
+		oCompteurTours[i].innerHTML = Math.min(oKart.tours, oMap.tours);
+}
 function timeStr(timeMS) {
 	var timeMins = Math.floor(timeMS/60000);
 	timeMS -= timeMins*60000;
@@ -15463,9 +15498,7 @@ function processCode(cheatCode) {
 			return false;
 		oPlayer.tours = t;
 		oPlayer.demitours = c;
-		var oCompteurTours = document.querySelectorAll("#compteur0 .tour");
-		for (var i=0;i<oCompteurTours.length;i++)
-			oCompteurTours[i].innerHTML = oPlayer.tours;
+		updateLapHud(0);
 		return true;
 	}
 	if (cheatCode == "pos") {
@@ -16473,19 +16506,32 @@ function handleSpectatorInput(e) {
 	case 37:
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
-		oSpecCam.reset();
-		return false;
+		break;
 	case 39:
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
-		oSpecCam.reset();
-		return false;
+		break;
 	case 27:
 		document.location.reload();
 		return false;
 	default:
 		return true;
 	}
+	oSpecCam.reset();
+	var oKart = getPlayerAtScreen(0);
+	var stillRacing = isBattle ? !oKart.loose : (oKart.tours <= oMap.tours);
+	if (stillRacing) {
+		var $infoPlace = document.getElementById("infoPlace0");
+		$infoPlace.style.visibility = "";
+		$infoPlace.innerHTML = oKart.place;
+		if (oKart.team != -1)
+			$infoPlace.style.color = cTeamColors.light[oKart.team];
+	}
+	if (isBattle)
+		updateBalloonHud(document.getElementById("compteur0"),oKart);
+	else
+		updateLapHud(0);
+	return false;
 }
 document.onkeydown = function(e) {
 	if (onlineSpectatorId) {
@@ -23489,6 +23535,7 @@ function choose(map,rand) {
 						backToSearch();
 						return true;
 					}
+					rePosSpectatorLink();
 					waitHandler = setTimeout(waitForChoice, 1000);
 				}
 				else {
@@ -23703,6 +23750,13 @@ function choose(map,rand) {
 		}
 		else
 			resetGame(strMap);
+	}
+	function rePosSpectatorLink() {
+		var $spectatorLinkCtn = document.getElementById("spectatormode");
+		if ($spectatorLinkCtn) {
+			var oTableRect = oTable.getBoundingClientRect();
+			$spectatorLinkCtn.style.top = Math.max(oTableRect.bottom+5, iScreenScale*38+15) +"px";
+		}
 	}
 	if (onlineSpectatorId) {
 		waitHandler = setTimeout(waitForChoice, 1);

@@ -129,7 +129,7 @@ if ($id) {
 					mysql_query('UPDATE `mkspectators` SET refresh_date=NOW() WHERE id='. $spectatorId);
 				if ($winning && !$isBattle && ($mkState['time'] > $time)) {
 					$mkState['time'] = $time;
-					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time);
+					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time.' AND map=-1');
 				}
 			}
 			$joueurs = mysql_query('SELECT * FROM `mkplayers` WHERE course='.$course.' ORDER BY id');
