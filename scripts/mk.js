@@ -4279,6 +4279,7 @@ function startGame() {
 			tnCountdown += 4000;
 			for (var i=0;i<aKarts.length;i++)
 				aKarts[i].speedinc = 0;
+			if (tnCountdown < 0) tnCountdown = 0;
 		}
 		else {
 			if (iTeamPlay && !onlineSpectatorId)
@@ -12658,7 +12659,7 @@ function places(j,aRankScores,force) {
 		var oPlayer = getPlayerAtScreen(i);
 		if (!(oPlayer.tours > oMap.tours) && !oPlayer.loose)
 			retour = false;
-		else if (onlineSpectatorId)
+		else if (onlineSpectatorId && !finishing)
 			document.getElementById("infoPlace"+i).style.visibility = "hidden";
 	}
 	if (retour) return;
@@ -12675,6 +12676,7 @@ function places(j,aRankScores,force) {
 	}
 	if (!oKart.loose)
 		oKart.place = place;
+	if (finishing) return;
 	var sID = getScreenPlayerIndex(j);
 	if (sID < oPlayers.length)
 		document.getElementById("infoPlace"+sID).innerHTML = place;
@@ -13276,7 +13278,7 @@ function resetDatas() {
 						var pCode = rCode[3][i];
 						var oTr = document.createElement("tr");
 						oTds[i] = new Array();
-						if (pCode[0] == identifiant) {
+						if (pCode[0] == oPlayer.id) {
 							oTr.style.backgroundColor = rankingColor(0);
 							document.getElementById("infoPlace0").innerHTML = i+1;
 							document.getElementById("infoPlace0").style.visibility = "visible";

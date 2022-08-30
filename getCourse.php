@@ -130,7 +130,7 @@ if ($id) {
 			LEFT JOIN `mkspectators` s ON s.course=mariokart.id AND s.state="queuing" AND s.player!='.$id.'
 			LEFT JOIN `mkplayers` p2 ON s.course=p2.course AND s.player=p2.id
 			LEFT JOIN `mkspectators` s2 ON s.id=s2.id AND p2.id IS NULL
-			WHERE map!=-1 AND time>='. afk_threshold_time()
+			WHERE map!=-1 AND (CASE WHEN time>'.($time+1000).' THEN time ELSE time*1000 END)>='. afk_threshold_time()
 			. ($course ? " AND mariokart.id=$course" : '')
 			. $cupSQL .
 			' GROUP BY mariokart.id
