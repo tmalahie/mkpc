@@ -254,6 +254,8 @@ if ($id) {
 					mysql_query('UPDATE `mkjoueurs` SET choice_map=0 WHERE course='. $course);
 					mysql_query('DELETE FROM `items` WHERE course='.$course.' AND (data!="" OR updated_at<"'.$lConnect.'")');
 				}
+				if ($spectatorId)
+					mysql_query('UPDATE `mkspectators` SET state="joined" WHERE id="'. $spectatorId .'" AND state="pending"');
 				function getScoreInc($i,$score,$nbScores,$total) {
 					$coeff = (($nbScores-$i-1)/($nbScores-1))-($score/$total);
 					$coeff *= pow(2,$coeff);

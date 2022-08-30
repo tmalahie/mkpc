@@ -24490,6 +24490,7 @@ function iDeco() {
 	var $waitRace = document.getElementById("waitrace");
 	if ($waitRace) $waitRace.style.visibility = "hidden";
 	window.onbeforeunload = undefined;
+	oQuit.focus();
 }
 
 var dRestHandlers = {};
