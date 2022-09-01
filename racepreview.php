@@ -77,8 +77,8 @@ if (isset($id)) {
 						foreach ($decorsData as $decorData) {
 							if ('assets/' === substr($actualType, 0,7)) {
 								if (isset($decorData[2]) && isset($decorData[3])) {
-									$rW = $decorData[2];
-									$rH = $decorData[3];
+									$rW = round($decorData[2]);
+									$rH = round($decorData[3]);
 									if (isset($decorData[4])) {
 										$rX = round($rW*$decorData[4][0]);
 										$rY = round($rH*$decorData[4][1]);

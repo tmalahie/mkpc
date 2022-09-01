@@ -21,8 +21,8 @@ if (isset($id)) {
 		if ($isTemp && isset($w_ic) && isset($w_ic)) {
 			$uFactor = 2;
 			$rImg = $w_ic*$uFactor/$wImg;
-			$wImg = $w_ic*$uFactor;
-			$hImg = $h_ic*$uFactor;
+			$wImg = round($w_ic*$uFactor);
+			$hImg = round($h_ic*$uFactor);
 		}
 
 		if (($rImg < 1) || in_array($map, array(48)))
@@ -34,8 +34,8 @@ if (isset($id)) {
 			imagecolorallocate($image, $bg[0], $bg[1], $bg[2]);
 
 			$pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$id.'"');
-			$pW = 100*$rImg;
-			$pH = 100*$rImg;
+			$pW = round(100*$rImg);
+			$pH = round(100*$rImg);
 			while ($piece = mysql_fetch_array($pieces)) {
 				$piececircuit = imagecreatefrompng('images/pieces/piececircuit'.$map.'_'.$piece['piece'].'.png');
 				if ($rImg === 1)
@@ -70,7 +70,7 @@ if (isset($id)) {
 				if ($rImg === 1)
 					imagecopy($image, $piececircuit, $getPiece['x']-$cw,$getPiece['y']-$ch, 0,0, $w,$h);
 				else
-					imagecopyresampled($image, $piececircuit, ($getPiece['x']-$cw)*$rImg,($getPiece['y']-$ch)*$rImg, 0,0, $w*$rImg,$h*$rImg, $w,$h);
+					imagecopyresampled($image, $piececircuit, round(($getPiece['x']-$cw)*$rImg),round(($getPiece['y']-$ch)*$rImg), 0,0, round($w*$rImg),round($h*$rImg), $w,$h);
 			}
 		}
 		foreach ($decorTypes[$map] as $i=>$decorType) {
@@ -86,7 +86,7 @@ if (isset($id)) {
 			$ch = round($rh/2);
 			$getPieces = mysql_query('SELECT x,y FROM `mkt` WHERE circuit="'.$id.'" AND t="'.$i.'"');
 			while ($getPiece = mysql_fetch_array($getPieces))
-				imagecopyresampled($image, $piececircuit, ($getPiece['x']-$cw)*$rImg,($getPiece['y']-$ch)*$rImg, 0,0, $rw*$rImg,$rh*$rImg, $w,$h);
+				imagecopyresampled($image, $piececircuit, round(($getPiece['x']-$cw)*$rImg),round(($getPiece['y']-$ch)*$rImg), 0,0, round($rw*$rImg),round($rh*$rImg), $w,$h);
 		}
 
 		$ext2 = 'png';

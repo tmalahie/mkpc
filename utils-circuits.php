@@ -67,6 +67,8 @@ function floatCmp($a,$b) {
     return ($a > $b) - ($a < $b);
 }
 function sortCmp0($res1,$res2) {
+	if ($res1['publication_date'] === null) $res1['publication_date'] = '2000-01-01';
+	if ($res2['publication_date'] === null) $res2['publication_date'] = '2000-01-01';
 	$res = strtotime($res2['publication_date'])-strtotime($res1['publication_date']);
 	if ($res) return $res;
 	return $res2['id']-$res1['id'];
