@@ -13396,8 +13396,10 @@ function resetDatas() {
 						startEndMusic();
 					finishing = true;
 					document.getElementById("racecountdown").innerHTML = rCode[4]-(course=="BB"?6:5);
-					document.getElementById("waitrace").style.visibility = "visible";
-					dRest();
+					if (!onlineSpectatorId || (onlineSpectatorState === "queuing")) {
+						document.getElementById("waitrace").style.visibility = "visible";
+						dRest();
+					}
 					document.getElementById("compteur0").innerHTML = "";
 					for (var i=0;i<oRoulettesPrefixes.length;i++) {
 						var prefix = oRoulettesPrefixes[i];
@@ -24518,8 +24520,8 @@ function setSRest(type) {
 		var $wait = document.getElementById("wait"+type);
 		if (!$wait) {
 			var defaultMessages = {
-				race: toLanguage('There are <strong id="racecountdown">30</strong> second(s) left to choose the next race', 'Il vous reste <span id="racecountdown">30</span> seconde(s) pour choisir la prochaine course'),
-				team: toLanguage('There are <strong id="teamcountdown">10</strong> second(s) left to choose the teams', 'Il vous reste <span id="teamcountdown">10</span> seconde(s) pour choisir les équipes')
+				race: toLanguage('There are <strong id="racecountdown">30</strong> seconds left to choose the next race', 'Il vous reste <span id="racecountdown">30</span> secondes pour choisir la prochaine course'),
+				team: toLanguage('There are <strong id="teamcountdown">10</strong> seconds left to choose the teams', 'Il vous reste <span id="teamcountdown">10</span> secondes pour choisir les équipes')
 			};
 			$wait = document.createElement("div");
 			$wait.id = "wait"+type;
