@@ -1,6 +1,6 @@
 import cx from "classnames";
 import styles from "./ForumAccount.module.scss";
-import forumStyles from "../../../styles/Forum.module.scss";
+import forumStyles from "../../../helpers/globalStyles";
 import useAuthUser from "../../../hooks/useAuthUser";
 import useLanguage from "../../../hooks/useLanguage";
 import { FormEvent, MouseEvent, useMemo, useState } from "react";

@@ -92,6 +92,29 @@
 .control-window > div.control-window-active {
     display: block;
 }
+.control-players {
+    margin-top: 0.375em;
+    margin-bottom: 0.125em;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75em;
+}
+.control-players .control-player {
+    color: #CCF;
+}
+.control-players .control-player:hover {
+    color: #EEF;
+}
+.control-players .control-player.control-player-selected {
+    cursor: default;
+    color: #FFE;
+    text-decoration: none;
+}
+.control-players .control-player.control-player-selected:hover {
+    color: #FFE;
+}
 .control-editor-grid {
     display: grid;
     grid-template-columns: auto auto;
@@ -124,13 +147,27 @@
     color: #CAA;
 }
 .control-settings-info {
-    margin: 10px 5px 5px 5px;
-    text-align: center;
+    font-size: 17px;
+    font-weight: bold;
+    margin: 10px 5px 0 5px;
+    text-align: left;
     color: #CCC;
 }
-.control-settings label {
+.control-settings > label {
     display: block;
-    padding: 5px 10px;
+    padding: 2px 10px;
+}
+.control-settings > .motion-trail-settings {
+    margin-bottom: 8px;
+    opacity: 0.85;
+}
+.control-settings > .motion-trail-settings:hover {
+    opacity: 1;
+}
+.control-settings > .motion-trail-settings > label {
+    margin-left: 16px;
+    display: inline-block;
+    font-size: 0.9em;
 }
 .control-settings label input {
     position: relative;
@@ -175,17 +212,23 @@ button.control-close:active {
     color: #FF9900;
     text-align: center;
 }
-#scroller0,#scroller1 {
+#scroller {
+    display: none;
+}
+.itemScroller {
     z-index: 19998;
 }
-#scroller, #scroller0, #scroller1 {
+#scroller20, #scroller21 {
+    z-index: 19996;
+}
+.itemScroller {
     width: 1px;
     height: 1px;
     overflow: hidden;
     position: absolute;
     visibility: hidden;
 }
-#scroller > div, #scroller0 > div, #scroller1 > div {
+.itemScroller > div, .itemScroller > div, .itemScroller > div {
     position: absolute;
     width: 100%;
     left: 0px;
@@ -211,7 +254,7 @@ button.control-close:active {
     height: 50%;
     overflow: hidden;
 }
-#objet0,#objet1 {
+.itemWheel {
     background-image: url('../images/items/wheel.png');
     background-size: 100% 100%;
     image-rendering: pixelated;
@@ -225,11 +268,14 @@ button.control-close:active {
     align-items: center;
     justify-content: center;
 }
-#roulette0,#roulette1 {
+#reserve0,#reserve1 {
+    z-index: 19996;
+}
+.itemChamber {
     display: flex;
     overflow: hidden;
 }
-#roulette0 img,#roulette1 img {
+.itemChamber img {
     align-self: center;
 }
 #temps0,#temps1 {
@@ -322,11 +368,28 @@ form[name="modes"] {
      align-items: center;
      flex-wrap: wrap;
 }
+.modes-change-disclaimer {
+    position: absolute;
+    text-align: center;
+    left: 230px;
+    bottom: 40px;
+    padding: 5px 8px;
+    font-size: 14px;
+    background-color: rgba(51,160,51, 0.95);
+    color: white;
+    border-radius: 5px;
+    opacity: 1;
+}
+.modes-change-disclaimer.modes-change-fadeout {
+    opacity: 0;
+	transition: opacity 1s ease-in;
+}
 #options-ctn {
     display: inline-block
 }
 #options-ctn select{
-    min-width:75px;
+    min-width: 75px;
+    max-width: 92px;
 }
 #options-ctn select:disabled {
     opacity:0.5;
@@ -485,15 +548,18 @@ input[type="button"]:focus, input[type="submit"]:focus, button:focus {
     opacity: 0.3;
     cursor: default;
 }
-input[type="button"].disablable:disabled {
+input[type="button"].disablable:disabled, button.disablable:disabled {
     background-color: #060610;
     border: outset 1px #4D4923;
     color: #FEFF3F;
 }
+input {
+    box-sizing: border-box;
+}
 #dMaps {
     display: none;
-     position: absolute;
-     top: 400px;
+    position: absolute;
+    top: 400px;
 }
 .rgt {
     text-align: right;
@@ -502,6 +568,10 @@ body {
     background-color: black;
 	color: #FEFF3F;
     font-weight: bold;
+}
+body table {
+    font-weight: normal;
+    box-sizing: content-box;
 }
 #mariokartcontainer {
 	-webkit-touch-callout: none;
@@ -541,6 +611,16 @@ select {
      image-rendering: optimize-contrast;
      -ms-interpolation-mode: nearest-neighbor;
 }
+.mirrored {
+    transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    -moz-transform: scaleX(-1);
+}
+@-moz-document url-prefix() {
+    .mirrored.pixelated, .mirrored .pixelated {
+        image-rendering: auto;
+    }
+  }
 .challenge-popup {
      position: absolute;
      z-index: 20200;
@@ -712,4 +792,261 @@ select {
 }
 .noarrow {
   -moz-appearance: textfield;
+}
+.online-track-sel td > small {
+  font-size: 0.7em;
+  margin-right: 0.1em;
+  position: relative;
+  bottom: 0.1em;
+}
+form.game-popup {
+	position: absolute;
+    z-index: 2;
+    background-color: black;
+    background-color: rgba(0,0,0, 0.85);
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+    overflow-y: auto;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+form.game-popup input {
+    font-size: 1.5em;
+}
+form.game-popup .game-popup-body {
+    margin-top: 0.5em;
+    margin-bottom: 0.75em;
+}
+form.game-popup .game-popup-body > div {
+    margin-bottom: 0.25em;
+}
+form.game-popup .game-popup-body > div > label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto 0;
+    gap: 0.25em;
+}
+.item-export-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(0,0,0, 0.5);
+}
+.item-export-screen > div {
+    width: 100%;
+    width: calc(100% - 2em);
+    border-radius: 0.75em;
+    margin: 1em;
+    background-color: #444;
+    background-color: #444E;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.item-export-screen .tab-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5em auto;
+    border-radius: 0.5em;
+    overflow: hidden;
+    gap: 0.1em;
+}
+.item-export-screen .tab-button {
+    padding: 0.25em 0.5em;
+    background-color: #222;
+    cursor: pointer;
+    color: #CCC;
+    font-weight: normal;
+}
+.item-export-screen .tab-button:not(.tab-button-selected):hover {
+    color: #89B;
+    background-color: #111;
+}
+.item-export-screen .tab-button-selected {
+    cursor: default;
+    color: #69F;
+    font-weight: bold;
+    background-color: black;
+}
+.tab-export-desc {
+    margin: 0 1em;
+    color: white;
+    text-align: center;
+    font-weight: normal;
+}
+.tab-export-desc strong {
+    color: #CCF;
+}
+.item-export-screen .tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.item-export-screen .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.item-export-screen .tab:not(.tab-selected) {
+    display: none;
+}
+.item-export-screen .tab-export-input {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5em 2em 0.5em 1em;
+}
+.item-export-screen .tab-export-input textarea {
+    flex: 1;
+    background-color: black;
+    color: white;
+    font-size: 1em;
+}
+.item-export-screen .tab-export-submit {
+    padding: 0.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2em;
+}
+.item-export-screen .tab-export-submit a {
+    color: #ABF;
+}
+.item-export-screen .tab-export-submit a:hover {
+    color: #CCF;
+}
+.item-export-screen .tab-export-submit input {
+    font-size: 1.4em;
+    width: 5em;
+}
+.item-export-screen .tab-export-submit input:disabled {
+    opacity: 0.8;
+    cursor: default;
+}
+.item-options-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(0,0,0, 0.5);
+}
+.item-options-screen form {
+    width: 100%;
+    width: calc(100% - 2em);
+    border-radius: 0.75em;
+    margin: 1em;
+    background-color: #444;
+    background-color: #444E;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+}
+.item-options-screen .item-options {
+    padding: 0.75em 2em 0 1em;
+    flex: 1;
+    overflow-y: auto;
+}
+.item-options-screen .item-options > div {
+    width: 25em;
+    margin: 0 auto;
+}
+.item-options-screen .item-options select {
+    font-size: 1em;
+}
+.item-options-screen .item-submit {
+    text-align: center;
+    padding: 0.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2em;
+}
+.item-options-screen .item-submit input {
+    font-size: 1.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+.item-options-screen .item-submit a {
+    color: #ABF;
+}
+.item-options-screen .item-submit a:hover {
+    color: #CCF;
+}
+.item-options-screen .item-optgroup {
+    margin-bottom: 0.75em;
+}
+.item-options-screen .item-option {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 0.25em;
+}
+.item-options-screen .item-optgroup h2 {
+    font-size: 1.2em;
+    margin-top: 0;
+    margin-bottom: 0.25em;
+    color: white;
+}
+.item-options-screen .item-option label:first-child {
+    width: 10em;
+    text-align: right;
+}
+.item-options-screen .item-option label:last-child {
+    flex: 1;
+}
+.customOptionDialog {
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0, 0.1);
+    font-size: 15px;
+}
+.customOptionDialog-content {
+    position: absolute;
+    left: 80px;
+    background-color: #444;
+    color: white;
+    padding: 0.5em 1em;
+    text-align: center;
+}
+.customOptionDialog-cursor {
+    width: 200px;
+}
+.customOptionDialog-textValue {
+    font-size: 0.8em;
+    color: #FEFF3F;
+}
+.customOptionDialog-submit {
+    margin-top: 0.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+}
+.customOptionDialog-submit a {
+    color: #CCF;
+    font-size: 0.8em;
+}
+.customOptionDialog-submit a:hover {
+    color: #CAA;
 }

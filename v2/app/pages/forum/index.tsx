@@ -1,11 +1,12 @@
 import { NextPage } from "next";
 import ClassicPage, { commonStyles } from "../../components/ClassicPage/ClassicPage";
-import styles from "../../styles/Forum.module.scss";
+import styles from "../../helpers/globalStyles";
 import Link from "next/link"
 import useLanguage, { plural } from "../../hooks/useLanguage";
 import { useMemo } from "react";
 import { formatDate, localeString } from "../../helpers/dates";
 import Ad from "../../components/Ad/Ad";
+import Head from 'next/head';
 import goldCupIcon from "../../images/icons/gold-cup.png"
 import silverCupIcon from "../../images/icons/silver-cup.png"
 import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
@@ -66,6 +67,9 @@ const ForumCategories: NextPage = () => {
 
   return (
     <ClassicPage title="Forum Mario Kart PC" className={styles.Forum} page="forum">
+      <Head>
+        <link rel="stylesheet" type="text/css" href="/styles/forum.css" />
+      </Head>
       <h1>Forum Mario Kart PC</h1>
       <ForumAccount />
       <p className={styles.pub}>

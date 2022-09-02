@@ -1,13 +1,14 @@
 import { NextPage } from "next";
 import ClassicPage, { commonStyles } from "../../../components/ClassicPage/ClassicPage";
 import cx from "classnames";
-import styles from "../../../styles/Forum.module.scss";
+import styles from "../../../helpers/globalStyles";
 import Link from "next/link"
 import useLanguage from "../../../hooks/useLanguage";
 import { useTranslation } from "next-i18next";
 import withServerSideProps from "../../../components/WithAppContext/withServerSideProps";
 import ForumAccount from "../../../components/Forum/Account/Account";
 import Ad from "../../../components/Ad/Ad";
+import Head from 'next/head';
 import { formatDate } from "../../../helpers/dates";
 import { useRouter } from "next/dist/client/router";
 import useSmoothFetch, { postData, Placeholder } from "../../../hooks/useSmoothFetch";
@@ -75,6 +76,9 @@ const ForumCategory: NextPage = () => {
 
   return (
     <ClassicPage title="Forum Mario Kart PC" className={styles.Forum} page="forum">
+      <Head>
+        <link rel="stylesheet" type="text/css" href="/styles/forum.css" />
+      </Head>
       <Skeleton loading={catsLoading}>
         <h1>{categoryPayload.name}</h1>
       </Skeleton>

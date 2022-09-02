@@ -102,6 +102,30 @@ main a {
 main a:hover {
 	color: #FC0;
 }
+main .details {
+  width: 20px;
+}
+main .details:hover {
+	opacity: 0.7;
+}
+main .cell-auto {
+  width: auto;
+}
+main .cell-xs {
+  width: 20px;
+}
+.ranking-modes-ctn {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.ranking-modes-ctn > div {
+  display: inline-flex;
+  align-items: center;
+}
+.ranking-modes-ctn > div > span {
+  font-weight: bold;
+  margin-right: 6px;
+}
 .ranking-modes.stripped > * {
 	border-right: solid 1px #820;
 }

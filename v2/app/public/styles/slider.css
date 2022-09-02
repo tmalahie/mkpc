@@ -1,3 +1,4 @@
+
 /* SLIDER STYLES */
 .fp-slider
 {
@@ -9,6 +10,10 @@
 	overflow:hidden;
 	position:relative;
 	margin-bottom: 35px;
+}
+
+.fp-slides-container
+{
 }
 
 .fp-slides,.fp-thumbnail

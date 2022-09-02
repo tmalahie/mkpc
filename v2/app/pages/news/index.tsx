@@ -1,6 +1,6 @@
 import { NextPage } from "next";
 import ClassicPage, { commonStyles } from "../../components/ClassicPage/ClassicPage";
-import styles from "../../styles/News.module.scss";
+import styles from "../../helpers/globalStyles";
 import cx from "classnames";
 import Link from "next/link"
 import useLanguage from "../../hooks/useLanguage";
@@ -8,6 +8,7 @@ import { useTranslation } from "next-i18next";
 import { formatDate } from "../../helpers/dates";
 import Ad from "../../components/Ad/Ad";
 import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
+import Head from 'next/head';
 import useSmoothFetch, { Placeholder } from "../../hooks/useSmoothFetch";
 import Skeleton from "../../components/Skeleton/Skeleton";
 import useAuthUser from "../../hooks/useAuthUser";
@@ -28,6 +29,9 @@ const NewsList: NextPage = () => {
 
   return (
     <ClassicPage title="News Mario Kart PC" className={styles.News} page="home">
+      <Head>
+        <link rel="stylesheet" type="text/css" href="/styles/news.css" />
+      </Head>
       <h1>{t("Mario_kart_pc_news_list")}</h1>
       <p className={styles.pub}>
         <Ad width={728} height={90} bannerId="4919860724" />

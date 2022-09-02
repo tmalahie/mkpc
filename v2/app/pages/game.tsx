@@ -37,10 +37,10 @@ const Game: NextPage = () => {
     globals.language = language;
     globals.recorder = cookies.mkrecorder ?? "";
     globals.baseOptions = {
-      quality: getCookieValue("iQuality", 5),
-      music: getCookieValue("bMusic", 0),
-      sfx: +cookies.iSfx ?? (getCookieValue("bMusic", 0)),
-      screenscale: getCookieValue("iScreenScale", (screen.width < 800) ? ((screen.width < 480) ? 4 : 6) : ((screen.width < 1500) ? 8 : 10))
+      quality: localStorage.getItem("iQuality") ? +localStorage.getItem("iQuality") : 5,
+      music: localStorage.getItem("bMusic") ? +localStorage.getItem("bMusic"):0,
+      sfx: localStorage.getItem("iSfx") ? +localStorage.getItem("iSfx"):0,
+      screenscale: localStorage.getItem("iScreenScale") ? +localStorage.getItem("iScreenScale"):(screen.width < 800) ? ((screen.width < 480) ? 4 : 6) : ((screen.width < 1500) ? 8 : 10)
     };
     globals.isCup = false;
     globals.isBattle = false;
@@ -100,17 +100,11 @@ const Game: NextPage = () => {
           <table cellPadding="3" cellSpacing="0" style={{ border: 0 }} id="options">
             <tbody>
               <tr>
-                <td id="pQuality">&nbsp;</td>
-                <td id="vQuality">
+                <td id="pSize">&nbsp;</td>
+                <td id="vSize">
                 </td>
                 <td rowSpan={4} id="commandes">&nbsp;</td>
               </tr>
-              <tr><td id="pSize">
-
-              </td>
-                <td id="vSize">
-                  &nbsp;
-                </td></tr>
               <tr><td id="pMusic">
                 &nbsp;
               </td>
@@ -121,6 +115,12 @@ const Game: NextPage = () => {
                 &nbsp;
               </td>
                 <td id="vSfx">
+                  &nbsp;
+                </td></tr>
+              <tr><td id="pFps">
+                &nbsp;
+              </td>
+                <td id="vFps">
                   &nbsp;
                 </td></tr>
             </tbody>

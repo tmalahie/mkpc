@@ -1,11 +1,12 @@
 import { NextPage } from "next";
 import ClassicPage from "../../components/ClassicPage/ClassicPage";
-import styles from "../../styles/Challenges.module.scss";
+import styles from "../../helpers/globalStyles";
 import cx from "classnames";
 import Link from "next/link"
 import useLanguage from "../../hooks/useLanguage";
 import { useTranslation } from "next-i18next";
 import Ad from "../../components/Ad/Ad";
+import Head from 'next/head';
 import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
 import useSmoothFetch, { Placeholder } from "../../hooks/useSmoothFetch";
 import Skeleton from "../../components/Skeleton/Skeleton";
@@ -54,6 +55,9 @@ const ChallengesList: NextPage = () => {
 
   return (
     <ClassicPage title={title} className={styles.Challenges} page="game">
+      <Head>
+        <link rel="stylesheet" type="text/css" href="/styles/challenge-creations.css" />
+      </Head>
       <div className={styles["challenges-list-ctn"]}>
         <h1>{title}</h1>
         {moderate && <ValidationTips />}

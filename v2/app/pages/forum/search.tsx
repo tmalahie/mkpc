@@ -1,11 +1,12 @@
 import { NextPage } from "next";
 import ClassicPage, { commonStyles } from "../../components/ClassicPage/ClassicPage";
-import styles from "../../styles/Forum.module.scss";
+import styles from "../../helpers/globalStyles";
 import Link from "next/link"
 import useLanguage from "../../hooks/useLanguage";
 import { useTranslation } from "next-i18next";
 import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
 import Ad from "../../components/Ad/Ad";
+import Head from 'next/head';
 import { formatDate } from "../../helpers/dates";
 import { useRouter } from "next/dist/client/router";
 import useSmoothFetch, { postData, Placeholder } from "../../hooks/useSmoothFetch";
@@ -65,6 +66,9 @@ const ForumSearch: NextPage = () => {
 
   return (
     <ClassicPage title="Forum Mario Kart PC" className={styles.Forum} page="forum">
+      <Head>
+        <link rel="stylesheet" type="text/css" href="/styles/forum.css" />
+      </Head>
       <h1>Forum Mario Kart PC</h1>
       <p className={styles.pub}>
         <Ad width={728} height={90} bannerId="4919860724" />

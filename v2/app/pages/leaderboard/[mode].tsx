@@ -2,7 +2,7 @@ import { NextPage } from "next";
 import ClassicPage, {
   commonStyles,
 } from "../../components/ClassicPage/ClassicPage";
-import styles from "../../styles/Leaderboard.module.scss";
+import styles from "../../helpers/globalStyles";
 import useLanguage from "../../hooks/useLanguage";
 import { useTranslation } from "next-i18next";
 import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 import Skeleton from "../../components/Skeleton/Skeleton";
 import Link from "next/link";
 import Ad from "../../components/Ad/Ad";
+import Head from 'next/head';
 import Autocomplete from "../../components/Autocomplete/Autocomplete";
 import useDebounce from "../../hooks/useDebounce";
 import useFormSubmit, { doSubmit } from "../../hooks/useFormSubmit";
@@ -50,6 +51,9 @@ const OnlineLeaderboard: NextPage = () => {
       className={styles.Leaderboard}
       page="game"
     >
+      <Head>
+        <link rel="stylesheet" type="text/css" href="/styles/classement.css" />
+      </Head>
       <h1>{t("Leaderboard_Mario_Kart_PC")}</h1>
       <div className={styles["ranking-modes"]}>
         {isBattle ? (
