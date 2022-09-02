@@ -2,13 +2,35 @@
 	box-sizing: border-box;
 }
 body {
-	background-color: black;
-	background-image: url('../images/fond_stars.jpg');
-	background-repeat: repeat;
-	background-position: center;
+	background-color: #E8964C;
+	background: url('../images/fond_mountains2.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 40%, #E8964C 70%, #AF663D 100%);
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-position: center bottom;
+	background-position: center -30vw, center;
+	background-repeat: no-repeat;
 	margin: 5px 0;
 	padding: 0;
 	font-family: Helvetica, arial, sans-serif;
+}
+#header_left img, #header_right img {
+	height: 2.05vw;
+}
+@media only screen and (max-width: 800px) {
+	body {
+		height: 100vh;
+		overflow-y: scroll;
+		background-color: #E8964C;
+		background: url('../images/fond_mountains2.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 60%, #E8964C 70%, #AF663D 100%);
+		background-size: 200vw auto, auto;
+		background-repeat: no-repeat;
+		background-attachment: fixed;
+		background-position: center -65vw, center;
+	}
+	#header_left img, #header_right img {
+		height: 2.6vw;
+	}
 }
 header {
 	position: relative;
