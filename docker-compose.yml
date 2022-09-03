@@ -16,6 +16,22 @@ services:
             - ./docker/php/scripts:/root/scripts
         ports:
             - "8080:80"
+    app:
+        container_name: mkpc_app
+        build:
+            context: ./v2/app
+        depends_on:
+            - node-api
+        volumes:
+            - ./v2/app:/app
+    node-api:
+        container_name: mkpc_node
+        build:
+            context: ./v2/node-api
+        depends_on:
+            - web
+        volumes:
+            - ./v2/node-api:/usr/src/app
     db:
         image: mariadb:latest
         restart: always

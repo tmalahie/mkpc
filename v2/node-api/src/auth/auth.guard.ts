@@ -67,9 +67,7 @@ export class AuthGuard implements CanActivate {
     const sessId = request.cookies.PHPSESSID;
     if (this.userIdCache[sessId])
       return this.userIdCache[sessId].data;
-    const host = request.headers["x-forwarded-host"] || request.headers.host;
-    const protocol = request.secure ? "https" : "http";
-    const authUser = await axios.get(`${protocol}://${host}/api/authenticateUser.php`, {
+    const authUser = await axios.get(`${process.env.PHP_API_HOST}/api/authenticateUser.php`, {
       headers: {
         cookie: request.headers.cookie ?? "",
       }
