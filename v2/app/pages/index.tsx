@@ -535,8 +535,8 @@ const Home: NextPage = () => {
                   <div className="fp-content">
                     <h3 className="fp-title">{t("Crazy_races_full_of_fun")}</h3>
                     <p>
-                      {language ? <>										Try to be the fastest while avoiding the items!<br />
-                        Find all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
+                      {language ? <>										Try to be the fastest while avoiding items!<br />
+                        Race on all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
                       </> : <>										Tentez d'être le plus rapide tout en évitant les objets !<br />
                         Retrouvez l'intégralité des <strong>56 circuits</strong> repris du jeu original <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> et <strong>Mario Kart DS</strong>.
                       </>}
@@ -557,7 +557,7 @@ const Home: NextPage = () => {
                   <div className="fp-content">
                     <h3 className="fp-title">{t("Win_all_the_grand_prix")}</h3>
                     <p>
-                      {language ? <>										Face off the cpu on the <strong>14 grands prix</strong> tournaments and try to win the gold cup!<br />
+                      {language ? <>										Face off the CPU on the <strong>14 grands prix</strong> tournaments and try to win the gold trophy!<br />
                         Win enough cups to unlock the <strong>15 secret characters</strong>!
                       </> : <>										Affrontez les ordis sur les <strong>14 grands prix</strong> et tentez de gagner la coupe en or !<br />
                         Remportez suffisament de coupes pour débloquer les <strong>15 persos secrets</strong> !
@@ -579,7 +579,7 @@ const Home: NextPage = () => {
                   <div className="fp-content">
                     <h3 className="fp-title">{t("Create_your_own_tracks")}</h3>
                     <p>
-                      {language ? <>										With the <strong>track builder</strong>, the possibilities are infinite: the only limit is your own imagination.<br />
+                      {language ? <>										With the <strong>track builder</strong>, the possibilities are endless: the only limit is your own imagination.<br />
                         Try other peoples' creations thanks to the integrated <strong>sharing tool</strong>.
                       </> : <>										Avec l'<strong>éditeur de circuits</strong> et d'arènes, les possibilités sont infinies ; votre imagination est la seule limite !<br />
                         Essayer les créations des autres grâce à l'<strong>outil de partage intégré</strong>.
@@ -601,7 +601,7 @@ const Home: NextPage = () => {
                   <div className="fp-content">
                     <h3 className="fp-title">{t("Face_players_from_around")}</h3>
                     <p>
-                      {language ? <>										Fight other players in <strong>online mode</strong>!<br />
+                      {language ? <>										Race and battle in <strong>online mode</strong>!<br />
                         Win as many races as possible and <strong>climb in the official ranking</strong>!
                       </> : <>										Battez-vous contre d'autres joueurs avec le <strong>mode en ligne</strong> !<br />
                         Remportez un maximum de course afin de <strong>grimper dans le classement</strong> officiel !
@@ -645,7 +645,7 @@ const Home: NextPage = () => {
                   <div className="fp-content">
                     <h3 className="fp-title">{t("Release_your_fighter_talents")}</h3>
                     <p>
-                      {language ? <>										<strong>Destroy the balloons</strong> of your opponents with your own items without getting hit by theirs<br />
+                      {language ? <>										<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items.<br />
                         The last player standing wins!
                       </> : <>										<strong>Détruisez les ballons</strong> de votre adversaire en évitant de vous faire toucher !<br />
                         Soyez le dernier survivant pour remporter la partie !
@@ -668,7 +668,7 @@ const Home: NextPage = () => {
                     <h3 className="fp-title">{t("Face_off_your_friends")}</h3>
                     <p>
                       {language ? <>										Prove your friends that you're the best!<br />
-                        Face them in <strong>multiplayer</strong> on VS races or on battle mode.
+                        Face them in <strong>multiplayer</strong> in VS races or in battle mode.
                       </> : <>
                         Montrez à vos amis que vous êtes le meilleur !<br />
                         Affrontez-les en <strong>multijoueur</strong> en course VS ou sur les batailles de ballons.
@@ -752,13 +752,13 @@ const Home: NextPage = () => {
           {language ? <>				<ul>
             <li><a href="https://discord.gg/VkeAxaj">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.</li>
             <li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Official Youtube Channel</a> : find out videos about the game and informations about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="/topic.php?topic=3392">official topic</a>.</li>
-            <li><a href="https://twitter.com/MarioKartPC">Twitter Page</a> and <a href="https://www.facebook.com/groups/126497814060671/">Facebook Group</a> of the game: follow then to be informed of the latest news concerning the site!</li>
+            <li><a href="https://github.com/tmalahie/mkpc">Github repo</a> of the site. Follow here all the ongoing developments, and if you can code, don't hesitate to contribute to the project!</li>
             <li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on the <a href="/topic.php?topic=343">this topic</a>!</li>
           </ul>
           </> : <>				<ul>
             <li><a href="https://discord.gg/VkeAxaj">Serveur Discord</a> du site : rejoignez-le pour discuter avec la communauté et être informé des mises à jours et événements.</li>
             <li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Chaîne Youtube Officielle</a> : retrouvez des vidéos sur le jeu et des informations sur le site et ses évenements. La chaîne est alimentée par les membres, si vous voulez participez, parlez-en sur <a href="/topic.php?topic=3392">le topic officiel</a>.</li>
-            <li><a href="https://twitter.com/MarioKartPC">Page Twitter</a> et <a href="https://www.facebook.com/groups/126497814060671/">Groupe Facebook</a> du jeu : suivez-les pour être au courant des dernières actualités du site !</li>
+            <li><a href="https://github.com/tmalahie/mkpc">Repo Github</a> du site : suivez ici tous les développements en cours, et si vous avez des connaissances en code, n'hésitez pas à venir contribuer !</li>
             <li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">Wiki MKPC</a> : retrouvez toutes les informations sur le jeu et son histoire. Ce site est maintenu par les membres, si vous voulez contribuer, parlez-en sur <a href="/topic.php?topic=343">ce topic</a>&nbsp;!</li>
           </ul>
           </>}
@@ -825,7 +825,7 @@ const Home: NextPage = () => {
                   <td className={styles.creation_description}>
                     <a href={creation.href} title={creation.name}>
                       <h2>{creation.name || (t("Untitled"))}</h2>
-                      <Rating rating={creation.rating} nbRatings={creation.nbRatings} label={<h3>{creation.author && <>{t("By")}{" "}{creation.author /* TODO control length */}</>}</h3>} />
+                      <Rating rating={creation.rating} nbRatings={creation.nbRatings} label={<h3>{creation.author && <>{t("By")}{" "}<strong>{creation.author}</strong></>}</h3>} />
                       {(creation.nbComments > 0) && <div className={styles.creation_coms} title={plural(t("n_comments"), creation.nbComments)}><img src={commentIcon.src} alt="Commentaires" />{creation.nbComments}</div>}
                       <div className={styles.creation_date} title={(t("Published")) + ' ' + formatDate(creation.publicationDate, { language, prefix: true, mode: "datetime" })}><img src={clockIcon.src} alt="Date" />{formatDate(creation.publicationDate, { language, mode: "short" })}</div>
                     </a>
@@ -889,6 +889,7 @@ const Home: NextPage = () => {
           </Skeleton>
         </div>
         <div className={cx(styles.subsection, styles.rank_vs)} id={styles.rankings_section}>
+          <SectionBar title={t("Online_mode")} link="/creations" />
           <h2>Top 10</h2>
           <div className={styles.ranking_tabs}>
             <a className={cx({

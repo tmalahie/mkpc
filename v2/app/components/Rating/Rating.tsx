@@ -18,12 +18,12 @@ function Rating({ rating, nbRatings, label }: Props) {
   return <table title={ratingTitle} className={styles.Rating}>
     <tbody>
       <tr>
-        {Object.keys([...Array(lastRating)]).map((i) => <td key={i} className={styles.star1}></td>)}
+        {Object.keys([...Array(lastRating)]).map((i) => <td key={i} className={styles.star1}><div className={styles.star1} /></td>)}
         {(rest > 0) && <>
           <td className={styles.startStar} style={{ width: restW }}></td>
           <td className={styles.endStar} style={{ width: 15 - restW }}></td>
         </>}
-        {Object.keys([...Array(5 - nextRating)]).map((i) => <td key={i} className={styles.star0}></td>)}
+        {Object.keys([...Array(5 - nextRating)]).map((i) => <td key={i} className={styles.star0}><div className={styles.star0} /></td>)}
         {label && <td>{label}</td>}
       </tr>
     </tbody>

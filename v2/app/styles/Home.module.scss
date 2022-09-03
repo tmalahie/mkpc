@@ -307,6 +307,22 @@
 	.creation_description:hover h3 {
 		color: #889;
 	}
+	.creation_description h3 {
+		display: flex;
+		gap: 0.25em;
+		overflow: hidden;
+		width: calc(20vw - 70px);
+	}
+  @media screen and (max-width: 799px) {
+		.creation_description h3 {
+			width: calc(70vw - 70px);
+		}
+	}
+	.creation_description strong {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 	.creation_line:nth-child(2n) .creation_description {
 		background-color: #DDF;
 	}
@@ -610,7 +626,7 @@
 	#toBegin img {
 		width: 310px;
 		max-width: 100%;
-		position: "relative";
+		position: relative;
 		top: 2px;
 	}
 	#left_section a {
@@ -900,6 +916,7 @@
   @media screen and (min-width: 800px) {
     #left_section {
       padding-right: 2%;
+			margin-right: 5px;
       width: 63%;
       text-align: justify;
     }
