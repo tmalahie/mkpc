@@ -366,6 +366,19 @@ include('menu.php');
 						echo ' - '. toPlace($place);
 					echo '</div>';
 				}
+				$getRecordsByCc = mysql_query('SELECT class,COUNT(*) AS nb FROM `mkrecords` WHERE player="'. $profileId .'" AND type="" AND best=1 GROUP BY class ORDER BY class');
+				while ($recordByCc = mysql_fetch_array($getRecordsByCc)) {
+					$cc = $recordByCc['class'];
+					if ($getTtRank = mysql_fetch_array(mysql_query('SELECT t.class,t.score,1+COUNT(j.id) AS rank FROM mkttranking t LEFT JOIN mkttranking t2 ON t.class=t2.class AND (t.score<t2.score OR (t.score=t2.score AND t.player>t2.player)) LEFT JOIN mkjoueurs j ON t2.player=j.id AND j.deleted=0 WHERE t.player='. $profileId .' AND t.class='. $cc))) {
+						echo '<div class="player-league">';
+						echo '<img src="images/records.png" alt="Time trial" />';
+						echo $cc . ($language ? 'cc:':'cc :');
+						echo ' <strong>'. $getTtRank['score'] . ' pt'. plural($getTtRank['score']) .'</strong>';
+						echo ' - <strong>'. $recordByCc['nb'] . ' record'. plural($recordByCc['nb']) .'</strong>';
+						echo ' - '. toPlace($getTtRank['rank']);
+						echo '</div>';
+					}
+				}
 				$rkname = get_forum_rkname($getProfile['nbmessages']);
 				$rkimg = get_forum_rkimg($getProfile['nbmessages']);
 				echo '<div class="player-rank">';
@@ -427,12 +440,6 @@ include('menu.php');
 							$nbComments--;
 					}
 					echo '<strong>'. $nbComments . ' '. ($language ? 'comment'.plural($nbComments) .'</strong> on circuits' : 'commentaire'.plural($nbComments) .'</strong> sur les circuits');
-					?>
-				</div>
-				<div>
-					<?php
-					$getRecords = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkrecords` WHERE player="'. $profileId .'" AND type="" AND best=1'));
-					echo '<strong>'. $getRecords['nb'] . ' record'. plural($getRecords['nb']) .'</strong> '. ($language ? 'in time trial':'en contre-la-montre');
 					?>
 				</div>
 				<div>
