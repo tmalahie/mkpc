@@ -56,7 +56,6 @@ export class ForumController {
       id: topic.id,
       title: topic.title,
       nbMessages: topic.nbMessages,
-      language: topic.getLanguage(),
       category: {
         id: topic.category.id,
         name: topic.category.getName(i18n.detectedLanguage)

@@ -176,7 +176,9 @@ const Home: NextPage = () => {
         id,
         title: Placeholder.text(25, 45),
         nbMessages: Placeholder.number(1, 1000),
-        language: "en",
+        category: {
+          id: 1,
+        },
         lastMessage: {
           author: {
             name: Placeholder.text(8, 12)
@@ -199,8 +201,8 @@ const Home: NextPage = () => {
     if (language === 0)
       return topicsPayload.data;
     return [
-      ...topicsPayload.data.filter(t => t.language !== "fr"),
-      ...topicsPayload.data.filter(t => t.language === "fr")
+      ...topicsPayload.data.filter(t => t.category.id === 4),
+      ...topicsPayload.data.filter(t => t.category.id !== 4)
     ];
   }, [topicsPayload, language]);
   const { data: newsPayload, loading: newsLoading } = useSmoothFetch("/api/news/find", {
@@ -338,7 +340,7 @@ const Home: NextPage = () => {
 
   const { data: commentsPayload, loading: commentsLoading } = useSmoothFetch(`/api/track-builder/comments`, {
     placeholder: () => ({
-      data: Placeholder.array(5, (id) => ({
+      data: Placeholder.array(4, (id) => ({
         id,
         message: Placeholder.text(25, 45),
         date: Placeholder.date(),
@@ -354,7 +356,7 @@ const Home: NextPage = () => {
   });
   const { data: recordsPayload, loading: recordsLoading } = useSmoothFetch("/api/time-trial/records/find", {
     placeholder: () => ({
-      data: Placeholder.array(5, (id) => ({
+      data: Placeholder.array(4, (id) => ({
         id,
         name: Placeholder.text(8, 12),
         date: Placeholder.date(),

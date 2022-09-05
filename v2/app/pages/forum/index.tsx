@@ -104,7 +104,7 @@ const ForumCategories: NextPage = () => {
             {
               categoriesPayload?.data.map((category, i) => <tr key={category.id} className={(i % 2) ? styles.fonce : styles.clair}>
                 <td className={styles.subjects}>
-                  <Link href={"forum/category/" + category.id}>{category.name}</Link>
+                  <Link href={"/forum/category/" + category.id}>{category.name}</Link>
                   <div className={styles["category-description"]}>{category.description}</div>
                 </td>
                 <td>{category.nbTopics}</td>
