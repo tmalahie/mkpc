@@ -389,13 +389,16 @@
 .challengePages a:hover {
 	color: #06F;
 }
+.validation-hints-ctn {
+	margin: 0.5em auto;
+}
 #validation-hints {
-	display: none;
 	background-color: #DDF;
 	padding: 10px 10px 1px 10px;
 	color: #014;
 	width: 800px;
 	max-width: 100%;
+	margin-top: 0.5em;
 	margin-left: auto;
 	margin-right: auto;
 	text-align: left;

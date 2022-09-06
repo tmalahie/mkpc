@@ -12,7 +12,7 @@ import useSmoothFetch, { Placeholder } from "../../hooks/useSmoothFetch";
 import Skeleton from "../../components/Skeleton/Skeleton";
 import { usePaging } from "../../hooks/usePaging";
 import Pager from "../../components/Pager/Pager";
-import { useCallback, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import useChallengeDifficulties from "../../hooks/useChallengeDifficulties";
 import Rating from "../../components/Rating/Rating";
@@ -21,7 +21,7 @@ import useCreations from "../../hooks/useCreations";
 import { buildQuery } from "../../helpers/uris";
 import useFormSubmit from "../../hooks/useFormSubmit";
 
-const localesNs = ["challenges"];
+const localesNs = ["challenges", "common"];
 const ChallengesList: NextPage = () => {
   const language = useLanguage();
   const { t } = useTranslation(localesNs);
@@ -53,6 +53,16 @@ const ChallengesList: NextPage = () => {
 
   useCreations();
 
+  const challengeAction = useMemo(() => {
+    if (rateChallenges)
+      return "rate";
+    if (moderate != null)
+      return "moderate";
+    if (remoderate != null)
+      return "remoderate";
+    return null;
+  }, [rateChallenges, moderate, remoderate]);
+
   return (
     <ClassicPage title={title} className={styles.Challenges} page="game">
       <Head>
@@ -60,17 +70,17 @@ const ChallengesList: NextPage = () => {
       </Head>
       <div className={styles["challenges-list-ctn"]}>
         <h1>{title}</h1>
-        {moderate && <ValidationTips />}
-        {remoderate && <ReValidationTips />}
-        {!rateChallenges && <div className={styles["challenges-list-sublinks"]}>
-          <img src="images/cups/cup2.png" alt="Cup" /> <a href="challengeRanking.php">{t("Challenges_leaderboard")}</a> &nbsp;
+        {(moderate != null) && <ValidationTips />}
+        {(remoderate != null) && <ReValidationTips />}
+        {!challengeAction && <div className={styles["challenges-list-sublinks"]}>
+          <img src="images/cups/cup2.png" alt="Cup" /> <a href="challengeRanking.php">{t("Challenges_leaderboard")}</a>  
           <img src="images/ministar0.png" alt="Star" className={styles.icStar} /> <Link href="/challenges?rate">{t("Rate_challenges")}</Link>
         </div>}
-        {!rateChallenges && <ChallengesListSearch />}
+        {!challengeAction && <ChallengesListSearch />}
         <Ad width={728} height={90} bannerId="4919860724" />
         <Skeleton loading={challengesLoading}>
           <div className={styles["challenges-list"]}>
-            {challengesPayload.data.map((challenge) => <ChallengeItem key={challenge.id} challenge={challenge} />)}
+            {challengesPayload.data.map((challenge) => <ChallengeItem key={challenge.id} challenge={challenge} challengeAction={challengeAction} />)}
           </div>
           <div className={styles.challengePages}>
             <p>
@@ -102,33 +112,40 @@ const ChallengesList: NextPage = () => {
 function ValidationTips() {
   const language = useLanguage();
   const { t } = useTranslation(localesNs);
+
+  const [showValidationTips, setShowValidationTips] = useState(false);
+  function toggleValidationTips(e) {
+    e.preventDefault();
+    setShowValidationTips(!showValidationTips);
+  }
+
   if (language) {
-    return <p>
-      Welcome to the challenge moderation page. Before you begin, please read the <a href="javascript:document.getElementById('validation-hints').style.display=document.getElementById('validation-hints').style.display?'':'block';void(0)">validation tips</a>.
-      <div id={styles["validation-hints"]}>
+    return <div className={styles["validation-hints-ctn"]}>
+      Welcome to the challenge moderation page. Before you begin, please read the <a href="#null" onClick={toggleValidationTips}>validation tips</a>.
+      {showValidationTips && <div id={styles["validation-hints"]}>
         For each challenge, you have 3 options:
         <ul>
-          <li>Accept challenge, by clicking on <button className={styles["challenges-item-accept"]}>&check;</button></li>
-          <li>Reject challenge, by clicking on <button className={styles["challenges-item-reject"]}>&times;</button></li>
+          <li>Accept challenge, by clicking on <button className={styles["challenges-item-accept"]}>✓</button></li>
+          <li>Reject challenge, by clicking on <button className={styles["challenges-item-reject"]}>×</button></li>
           <li>Accept challenge, but change difficulty level</li>
         </ul>
         Here are the reasons why you would reject a challenge:
         <ul>
-          <li>Challenge pointless or with no difficulty (&quot;Complete track&quot; without constraint, on an easy track)</li>
+          <li>Challenge pointless or with no difficulty ("Complete track" without constraint, on an easy track)</li>
           <li>Spam (12 times the same challenge, or simillar challenges posted by the same person)</li>
-          <li>Obvious constraint missing (&quot;CPUs in difficult mode&quot;). In the case, precise it on the rejection message.</li>
+          <li>Obvious constraint missing ("CPUs in difficult mode"). In the case, precise it on the rejection message.</li>
           <li>Challenge name with insults or inappropriate words.</li>
         </ul>
         You can also change the difficulty if you find it unsuitable for the challenge. Try to make it consistent with the reference scale:
         <ul>
-          <li>A challenge <span className={styles["challenges-item-difficulty-0"]}>easy</span> has to be feasible for a beginner (&quot;Complete Mario Circuit 1 in Time Trial in less than 55s&quot;)</li>
-          <li>A challenge <span className={styles["challenges-item-difficulty-1"]}>medium</span> is typically difficult for a beginner but easy for an experimented player (&quot;Complete Mario Circuit 1 in TT in less than 45s&quot;)</li>
-          <li>A challenge <span className={styles["challenges-item-difficulty-2"]}>difficult</span> would be difficult for an experimented player but completable in several trials (&quot;Complete Mario Circuit 1 in TT in less than 39s&quot;)</li>
-          <li>A challenge <span className={styles["challenges-item-difficulty-3"]}>extreme</span> will require to try-hard even for an experimented player (&quot;Complete Mario Circuit 1 in TT in less than 38s&quot;)</li>
-          <li>A challenge <span className={styles["challenges-item-difficulty-4"]}>impossible</span> will require to try-hard and may typically take several hours (or even days) before succeeding (&quot;Complete Mario Circuit 1 in TT in less than 37s&quot;)</li>
+          <li>A challenge <span className={styles["challenges-item-difficulty-0"]}>easy</span> has to be feasible for a beginner ("Complete Mario Circuit 1 in Time Trial in less than 55s")</li>
+          <li>A challenge <span className={styles["challenges-item-difficulty-1"]}>medium</span> is typically difficult for a beginner but easy for an experimented player ("Complete Mario Circuit 1 in TT in less than 45s")</li>
+          <li>A challenge <span className={styles["challenges-item-difficulty-2"]}>difficult</span> would be difficult for an experimented player but completable in several trials ("Complete Mario Circuit 1 in TT in less than 39s")</li>
+          <li>A challenge <span className={styles["challenges-item-difficulty-3"]}>extreme</span> will require to try-hard even for an experimented player ("Complete Mario Circuit 1 in TT in less than 38s")</li>
+          <li>A challenge <span className={styles["challenges-item-difficulty-4"]}>impossible</span> will require to try-hard and may typically take several hours (or even days) before succeeding ("Complete Mario Circuit 1 in TT in less than 37s")</li>
         </ul>
-      </div>
-    </p>;
+      </div>}
+    </div>;
   }
   else {
     return <p>
@@ -136,24 +153,24 @@ function ValidationTips() {
       <div id={styles["validation-hints"]}>
         Pour chaque défi, vous avez 3 possibilités :
         <ul>
-          <li>Accepter le défi, en cliquant sur <button className={styles["challenges-item-accept"]}>&check;</button></li>
-          <li>Refuser le défi, en cliquant sur <button className={styles["challenges-item-reject"]}>&times;</button></li>
+          <li>Accepter le défi, en cliquant sur <button className={styles["challenges-item-accept"]}>✓</button></li>
+          <li>Refuser le défi, en cliquant sur <button className={styles["challenges-item-reject"]}>×</button></li>
           <li>Accepter le défi, mais modifier le niveau de difficulté</li>
         </ul>
-        Voici les raisons pour lesquelles vous pouvez refuser un défi&nbsp;:
+        Voici les raisons pour lesquelles vous pouvez refuser un défi :
         <ul>
-          <li>Défi sans intérêt ou avec aucune difficulté (&quot;Finir le circuit&quot; sans contraintes, sur un circuit facile)</li>
+          <li>Défi sans intérêt ou avec aucune difficulté ("Finir le circuit" sans contraintes, sur un circuit facile)</li>
           <li>Spam (12 fois le même défi, ou des défis simillaires publiées par la même personne)</li>
-          <li>Contrainte évidente manquante (&quot;Ordis en mode difficile&quot;). Dans ce cas, précisez-le dans le message de refus.</li>
+          <li>Contrainte évidente manquante ("Ordis en mode difficile"). Dans ce cas, précisez-le dans le message de refus.</li>
           <li>Nom de défi avec des insultes ou des mots obscènes</li>
         </ul>
-        Vous pouvez également modifier la difficulté si vous la jugez inadaptée au défi. Essayez de vous confortez à cette échelle de référence&nbsp;:
+        Vous pouvez également modifier la difficulté si vous la jugez inadaptée au défi. Essayez de vous confortez à cette échelle de référence :
         <ul>
-          <li>Un défi <span className={styles["challenges-item-difficulty-0"]}>facile</span> doit être faisable par un débutant (&quot;Finir le Circuit Mario 1 en Contre-La-Montre en moins de 55s&quot;)</li>
-          <li>Un défi <span className={styles["challenges-item-difficulty-1"]}>moyen</span> est typiquement difficile pour un débutant mais facile pour un joueur expérimenté (&quot;Finir le Circuit Mario 1 en CLM en moins de 45s&quot;)</li>
-          <li>Un défi <span className={styles["challenges-item-difficulty-2"]}>difficile</span> sera difficile pour un joueur expérimenté mais réussissable en plusieurs essais (&quot;Finir le Circuit Mario 1 en CLM en moins de 39s&quot;)</li>
-          <li>Un défi <span className={styles["challenges-item-difficulty-3"]}>extrême</span> nécessitera de try-harder même pour un joueur expérimenté (&quot;Finir le Circuit Mario 1 en CLM en moins de 38s&quot;)</li>
-          <li>Un défi <span className={styles["challenges-item-difficulty-4"]}>impossible</span> nécessite de try-harder et peut typiquement prendre plusieurs heures (voire jours) avant de réussir (&quot;Finir le Circuit Mario 1 en CLM en moins de 37s&quot;)</li>
+          <li>Un défi <span className={styles["challenges-item-difficulty-0"]}>facile</span> doit être faisable par un débutant ("Finir le Circuit Mario 1 en Contre-La-Montre en moins de 55s")</li>
+          <li>Un défi <span className={styles["challenges-item-difficulty-1"]}>moyen</span> est typiquement difficile pour un débutant mais facile pour un joueur expérimenté ("Finir le Circuit Mario 1 en CLM en moins de 45s")</li>
+          <li>Un défi <span className={styles["challenges-item-difficulty-2"]}>difficile</span> sera difficile pour un joueur expérimenté mais réussissable en plusieurs essais ("Finir le Circuit Mario 1 en CLM en moins de 39s")</li>
+          <li>Un défi <span className={styles["challenges-item-difficulty-3"]}>extrême</span> nécessitera de try-harder même pour un joueur expérimenté ("Finir le Circuit Mario 1 en CLM en moins de 38s")</li>
+          <li>Un défi <span className={styles["challenges-item-difficulty-4"]}>impossible</span> nécessite de try-harder et peut typiquement prendre plusieurs heures (voire jours) avant de réussir ("Finir le Circuit Mario 1 en CLM en moins de 37s")</li>
         </ul>
       </div>
     </p>
@@ -182,7 +199,7 @@ function ChallengesListSearch() {
           <option value="">{t("Difficulty")}</option>
           {challengeDifficulties?.map((challengeDifficulty) => <option key={challengeDifficulty.level} value={challengeDifficulty.level}>{challengeDifficulty.name}</option>)}
         </select></label>
-      &nbsp;
+       
       <label><input type="checkbox" name="hide_succeeded" defaultChecked={!!hide_succeeded} />{t("Hide_succeeded_challenges")}</label>
     </p>
     <p>
@@ -192,7 +209,7 @@ function ChallengesListSearch() {
           <option value="latest">{t("Most_recent_challenges")}</option>
           <option value="rating">{t("Top_rated_challenges")}</option>
         </select></label>
-      &nbsp;<input type="submit" value="Ok" />
+       <input type="submit" value="Ok" />
     </p>
   </form>
 }
@@ -228,8 +245,9 @@ function challengePlaceholder(id: number) {
 type Challenge = ReturnType<typeof challengePlaceholder>;
 type ChallengeItemProps = {
   challenge: Challenge;
+  challengeAction: string;
 }
-function ChallengeItem({ challenge }: ChallengeItemProps) {
+function ChallengeItem({ challenge, challengeAction }: ChallengeItemProps) {
   const router = useRouter();
   const language = useLanguage();
   const { t } = useTranslation(localesNs);
@@ -237,15 +255,6 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
   const { moderate, remoderate, rate, ordering } = router.query;
   const rateChallenges = rate;
   const isChallengeAction = rateChallenges || (moderate != null) || (remoderate != null);
-  const challengeAction = useMemo(() => {
-    if (rateChallenges)
-      return "rate";
-    if (moderate != null)
-      return "moderate";
-    if (remoderate != null)
-      return "remoderate";
-    return null;
-  }, [rateChallenges, moderate, remoderate]);
 
   const [challengeThanks, setChallengeThanks] = useState(false);
 
@@ -259,16 +268,25 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
     });
   }, [challenge]);
   const [edittingDifficulty, setEdittingDifficulty] = useState(false);
-  const [selectedDifficulty, setSelectedDifficulty] = useState(challenge.difficulty.level);
+  const [selectedLevel, setSelectedLevel] = useState(challenge.difficulty.level);
+  const selectedDifficulty = useMemo(() => {
+    const res = challengeDifficulties?.find((difficulty) => difficulty.level === selectedLevel);
+    return res ?? challenge.difficulty;
+  }, [selectedLevel, challengeDifficulties]);
+
+  const updateChallengeDifficulty = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedLevel(+e.target.value);
+    setEdittingDifficulty(false);
+  }, []);
 
   const acceptChallenge = useCallback(() => {
     const lastDifficulty = challenge.difficulty.level;
-    const newDifficulty = selectedDifficulty;
+    const newDifficulty = selectedLevel;
     const difficultyChanged = (lastDifficulty != newDifficulty);
     if (difficultyChanged) {
       window["o_prompt"](language
         ? "Please confirm challenge <strong>approval</strong>.<br />Optionnal: explain why you changed challenge difficulty:"
-        : "Veuillez confirmer la <strong>validation</strong> du défi.<br />Facultatif&nbsp;: expliquez le changement de difficulté&nbsp;:",
+        : "Veuillez confirmer la <strong>validation</strong> du défi.<br />Facultatif : expliquez le changement de difficulté :",
         "",
         function (msg) {
           var data = { "challenge": challenge.id, "accept": 1, "difficulty": newDifficulty };
@@ -289,12 +307,12 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
         }
       );
     }
-  }, [challenge, language]);
+  }, [challenge, selectedLevel, language]);
 
   const rejectChallenge = useCallback(() => {
     window["o_prompt"](language
       ? "Please confirm challenge <strong>rejection</strong>.<br />Optionnal: explain why you rejected challenge:"
-      : "Veuillez confirmer la <strong>non-validation</strong> du défi.<br />Facultatif&nbsp;: donnez les raisons du refus&nbsp;:",
+      : "Veuillez confirmer la <strong>non-validation</strong> du défi.<br />Facultatif : donnez les raisons du refus :",
       "",
       function (msg) {
         var data = { "challenge": challenge.id, "accept": 0 };
@@ -366,9 +384,9 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
     <div className={cx(styles["challenges-item-action"], {
       [styles["challenges-item-action-rate"]]: isChallengeAction,
     })}
-      onClick={() => {
+      onClick={(e) => {
         if (isChallengeAction)
-          return false;
+          e.preventDefault();
       }}
     >
       {
@@ -387,17 +405,17 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
         </>}
       {
         (challengeAction === "moderate") && <>
-          <div className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${challenge.difficulty.level}`])}>
-            <div className={styles["challenges-item-difficulty-value"]}>
-              <img src={`images/challenges/difficulty${challenge.difficulty.level}.png`} alt={challenge.difficulty.name} />
-              {" "}{challenge.difficulty.name}
-              <span className={styles["challenge-item-link"]} onClick={editDifficulty}>{t("Edit")}</span>
-            </div>
-            <div className={cx(styles["challenges-item-difficulty-edit"], {
+          <div className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${selectedLevel}`], {
               [styles["challenges-item-editting"]]: edittingDifficulty
             })}>
-              <select className={styles["challenges-item-difficulty-select"]} value={selectedDifficulty} onChange={(e) => setSelectedDifficulty(+e.target.value)}>
-                {challengeDifficulties.map((name, i) => <option value={i}>{name}</option>)}
+            <div className={styles["challenges-item-difficulty-value"]}>
+              <img src={`images/challenges/difficulty${selectedLevel}.png`} alt={selectedDifficulty.name} />
+              {" "}{selectedDifficulty.name}{" "}
+              <span className={styles["challenge-item-link"]} onClick={editDifficulty}>{t("Edit")}</span>
+            </div>
+            <div className={cx(styles["challenges-item-difficulty-edit"])}>
+              <select className={styles["challenges-item-difficulty-select"]} value={selectedLevel} onChange={updateChallengeDifficulty}>
+                {challengeDifficulties?.map((challengeDifficulty, i) => <option key={i} value={i}>{challengeDifficulty.name}</option>)}
               </select>
               <span className={styles["challenge-item-link"]} onClick={uneditDifficulty}>{t("Undo")}</span>
             </div>
@@ -406,8 +424,9 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
             {t("By")} <strong>{challenge.circuit.author}</strong>
           </div>}
           <div className={styles["challenges-item-moderation"]}>
-            <button className={styles["challenges-item-accept"]} onClick={acceptChallenge}>&check;</button>
-            <button className={styles["challenges-item-reject"]} onClick={rejectChallenge}>&times;</button>
+            <button className={styles["challenges-item-accept"]} onClick={acceptChallenge}>✓</button>
+            {" "}
+            <button className={styles["challenges-item-reject"]} onClick={rejectChallenge}>×</button>
           </div>
         </>
       }
@@ -415,9 +434,9 @@ function ChallengeItem({ challenge }: ChallengeItemProps) {
         (challengeAction === "remoderate") && <>
           <div className={styles["challenge-item-remoderate"]}>
             {challenge.status === 'active' ? <>
-              <span className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${challenge.difficulty.level}`])}>
-                <img src={`images/challenges/difficulty${challenge.difficulty.level}.png`} alt={challenge.difficulty.name} />
-                {" "}{challenge.difficulty.name}
+              <span className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${selectedLevel}`])}>
+                <img src={`images/challenges/difficulty${selectedLevel}.png`} alt={selectedDifficulty.name} />
+                {" "}{selectedDifficulty.name}
               </span><br />
               <span className={styles["challenges-item-accepted"]}>
                 {t("Accepted")}

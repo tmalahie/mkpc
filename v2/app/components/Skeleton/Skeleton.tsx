@@ -33,6 +33,8 @@ function removeText(node: React.ReactNode, key?: any) {
         }
       }
     }
+    if (node["type"] === "option")
+      return node;
     return {
       ...node,
       props: {
