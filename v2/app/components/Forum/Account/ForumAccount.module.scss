@@ -1,0 +1,75 @@
+#compte {
+    margin-left: auto;
+    margin-right: auto;
+    padding: 5px 2px;
+    width: 200px;
+    border: solid 1px #F60;
+    background-color: #FF9;
+}
+#compte span {
+    display: block;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+}
+#compte a {
+    display: inline-block;
+    margin-left: 45px;
+}
+#connexion {
+    font-weight: bold;
+    color: #930;
+    margin-left: auto;
+    margin-right: auto;
+    width: 300px;
+}
+#connexion tr, #connexion caption {
+    background-color: #FFC028;
+}
+#connexion tr:hover, #connexion caption:hover {
+    background-color: #FFE30C;
+    color: #FF5118;
+}
+#connexion caption {
+    border: solid 1px #840;
+    color: #A0300A;
+    &.loginError {
+        color: #B00;
+    }
+}
+#connexion td {
+    padding: 2px;
+    border: solid 1px #840;
+}
+#connexion input[type="text"], #connexion input[type="password"] {
+    width: 97%;
+}
+#connexion input[type="submit"] {
+    font-weight: bold;
+    width: 100px;
+    background-color: #FF9010;
+    color: white;
+}
+#connexion td[colspan="2"] {
+    text-align: center;
+}
+#connexion td a {
+    color: #844;
+    font-size: 1.1em;
+}
+#connexion td a:hover {
+    color: #976;
+}
+#connexion a {
+    color: white;
+}
+.banMessage {
+    background-color: #FCC;
+    display: inline-block;
+    margin: 5px;
+    padding: 5px;
+    white-space: pre-line;
+}
+.hidden {
+    display: none;
+}

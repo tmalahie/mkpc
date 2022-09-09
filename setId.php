@@ -10,6 +10,8 @@ if ($profile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,id
 	else {
 		if (isset($identifiants))
 			mysql_query('INSERT IGNORE INTO `mkips` SET player='. $id .',ip1="'. $identifiants[0] .'",ip2="'. $identifiants[1] .'",ip3="'. $identifiants[2] .'",ip4="'. $identifiants[3] .'"');
+		else
+			$identifiants = array();
 		$idKeys = array('identifiant', 'identifiant2', 'identifiant3', 'identifiant4');
 		$i = 0;
 		foreach ($idKeys as $idKey) {

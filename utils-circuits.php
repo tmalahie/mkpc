@@ -189,7 +189,7 @@ function countRows($sql,&$params) {
 	$query = toSQLSort($sql,$params);
 	$countQuery = preg_replace('#^SELECT.+? FROM #', 'SELECT COUNT(*) AS nb FROM ', $query);
 	$count = mysql_fetch_array(mysql_query($countQuery));
-	return $count['nb'];
+	return +$count['nb'];
 }
 function escape($str) {
 	return str_replace('</script>', '<\/script>', str_replace('%u', '\\u', str_replace('"', '\\"', str_replace('\\', '\\\\', $str))));
@@ -219,6 +219,8 @@ function addCircuitsData(&$creationsList) {
 		addCircuitData($track,$lCups,$mCups);
 }
 function addCircuitData(&$circuit,&$lCups,&$mCups) {
+	global $rootDirectory;
+	if (!isset($rootDirectory)) $rootDirectory = '.';
 	$linkBg = '';
 	$linkPreview = array();
 	$linksCached = array();
@@ -299,7 +301,7 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 	}
 	$allCached = true;
 	foreach ($linksCached as $link) {
-		$filename = 'images/creation_icons/'.$link;
+		$filename = "$rootDirectory/images/creation_icons/$link";
 		if (file_exists($filename))
 			touch_async($filename);
 		else {

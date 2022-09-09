@@ -88,7 +88,7 @@ CREATE TABLE `items` (
   `data` varbinary(252) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `course` (`course`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;

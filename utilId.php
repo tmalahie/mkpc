@@ -1,4 +1,5 @@
 <?php
+global $mkSalt;
 if (!isset($mkSalt)) {
 	require('config/id.php');
 	function base64($nb) {

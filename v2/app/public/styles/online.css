@@ -1,0 +1,625 @@
+#connect {
+	bottom: 5px;
+	background-color: white;
+	text-align: center;
+	opacity: 0.8;
+	cursor: default;
+}
+#chatsctn {
+	bottom: 2px;
+	right: 235px;
+}
+#coliste {
+	background-color: #EEF;
+	bottom: 80px;
+	text-align: center;
+	padding-bottom: 5px;
+}
+#cotable {
+	width: 100%;
+	opacity: 0.9;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	max-height: calc(100vh - 200px);
+	overflow-y: auto;
+}
+#cotable > div {
+	text-align: left;
+	position: relative;
+	border-color: black;
+	padding: 2px 30px 2px 8px;
+}
+#cotable.noconnect {
+	color: #789;
+	font-style: italic;
+	font-size: 0.9em;
+}
+#cotable .costatus {
+	display: inline-block;
+	position: relative;
+	top: -2px;
+	margin-right: 6px;
+	width: 8px;
+	height: 8px;
+	border-radius: 4px;
+}
+#cotable .coflag {
+	position: absolute;
+	right: 5px;
+	top: 3px;
+	width: 25px;
+	opacity: 0.9;
+}
+#cotable .coselectable:hover .coflag {
+	opacity: 0.7;
+}
+#coliste .cotxtmenu {
+	position: absolute;
+	left: 10px;
+	top: 10px;
+	background-color: white;
+	border: solid 1px black;
+	text-align: left;
+}
+.cotxtmenu > div {
+	border-bottom: solid 1px gray;
+	color: black;
+	padding: 5px 10px;
+}
+.cotxtmenu > div:last-child {
+	border-bottom: none;
+}
+.cotxtmenu > div:hover {
+	background-color: #CCF;
+}
+#coliste .cotxtmenu2 {
+	position: absolute;
+	left: -120px;
+	background-color: white;
+	border: solid 1px black;
+	text-align: left;
+}
+.cotxtmenu2 > div {
+	position: relative;
+	width: 130px;
+	border-bottom: solid 1px gray;
+	color: black;
+	padding: 5px 10px;
+}
+.cotxtmenu2 > div:last-child {
+	border-bottom: none;
+}
+.cotxtmenu2 > div:hover {
+	background-color: #CCF;
+}
+.cotxtmenu2 > div > div {
+	position: absolute;
+	right: 5px;
+	top: 8px;
+	top: calc(6px + 0.1em);
+	font-size: 0.8em;
+	color: #666;
+}
+#cotable .coselectable {
+	border-bottom: solid 1px #88C;
+}
+#cotable .coselectable:first-child {
+	border-top: solid 1px #88C;
+}
+#cotable .coignored {
+	text-decoration: line-through;
+	opacity: 0.7;
+}
+#cotable .coignored:hover {
+	opacity: 1;
+}
+#connect, #coliste, .comsg {
+	color: black;
+	border-radius: 5px 5px 5px 5px;
+	border: solid 1px black;
+	width: 225px;
+	right: 5px;
+}
+#connect, #coliste, .comsg, #chatsctn {
+	position: fixed;
+	z-index: 10;
+    font-family: Helvetica, arial, sans-serif;
+    font-weight: normal;
+}
+#pseudostatus, .chatinfos, .comsg-value {
+	padding-left: 4px;
+	padding-right: 4px;
+}
+.comsg-value {
+	margin-bottom: 2px;
+}
+#pseudostatus {
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+#connect #pseudostatus a {
+	font-size: 15px;
+	display: inline;
+	color: #058;
+}
+#connect #pseudostatus a:hover {
+	color: #024;
+	text-decoration: underline;
+}
+.chatinfos {
+	font-size: 0.9em;
+}
+.comsg {
+	background-color: white;
+	text-align: center;
+	z-index: 1000;
+	padding-bottom: 2px;
+}
+.comsg a, #coliste a {
+	font-weight: bold;
+	color: #33F;
+	text-decoration: none;
+}
+.comsg a:hover, #coliste a:hover {
+	color: navy;
+}
+#connect:hover {
+	opacity: 1;
+}
+#connect a {
+	display: block;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	font-family: Arial;
+	font-size: 16px;
+	text-decoration: none;
+}
+.coselectable {
+	cursor: pointer;
+	color: #008;
+	background-color: #CCF;
+}
+.coselectable:hover {
+	color: #FFB;
+	background-color: #99F;
+}
+#statutco {
+	width: 95px;
+	display: none;
+	font-weight: bold;
+	background-color: white;
+	font-size: 15px;
+}
+#statutco option {
+	font-weight: bold;
+}
+.isconnected {
+	color: #090;
+}
+.ismuted {
+	color: #C70;
+}
+.isnotconnected {
+	color: #B00;
+}
+.bgconnected {
+	background-color: #090;
+}
+.bgmuted {
+	background-color: #C70;
+}
+.bgnotconnected {
+	background-color: #B00;
+}
+.conline {
+	color: #8F8;
+}
+.comuted {
+	color: #FC8;
+}
+.coffline {
+	color: #F75;
+}
+.closelister {
+	text-align: right;
+	margin: 0;
+	padding: 0;
+	margin-right: 5px;
+}
+.closelister a {
+	font-weight: bold;
+	font-size: 20px;
+	text-decoration: none;
+	color: #800000 !important;
+	background-color: transparent !important;
+}
+.closelister a:hover {
+	text-decoration: none;
+	color: red !important;
+}
+#cosheader {
+	background-color: #666 !important;
+	font-size: 10px;
+}
+#cosheader td {
+	padding: 0 !important;
+}
+.cobutton {
+	background-color: #060610;
+	border: outset 1px #4D4923;
+	color: yellow;
+	font-weight: bold;
+	cursor: pointer;
+}
+.cobutton:hover {
+	background-color: #372F1A;
+	border: outset 1px #A9A118;
+	color: #E9E85D;
+}
+.cobutton:active {
+	border: inset 1px #FF6600;
+}
+#deleteAll {
+	margin-left: 20px;
+	font-size: 15px;
+	color: red;
+	background-color: #f94;
+    color: #C24;
+	border: double 3px #C24;
+	cursor : pointer;
+}
+#deleteAll:hover {
+	color: #C00;
+	background-color: #e72;
+}
+#deleteAll:active {
+	color: #f24;
+	background-color:#800;
+}
+.comsg input[type="button"], .comsg input[type="submit"] {
+	background-color: #CCF;
+	color: #66F;
+	font-weight: bold;
+	cursor: pointer;
+}
+.comsg input[type="button"]:hover, .comsg input[type="submit"]:hover {
+	background-color: #DDF;
+	color: #99F;
+}
+.comsg input[type="button"]:active, .comsg input[type="submit"]:active {
+	background-color: #EEF;
+	color: #AAF;
+}
+.o_msg {
+	margin: 2px 0;
+}
+.o_msg span {
+	display: inline-block;
+	padding: 4px 8px;
+	margin-left: auto;
+	margin-right: auto;
+	background-color: #D2F0FF;
+	font-style: italic;
+	word-wrap: break-word;
+	max-width: 100%;
+	max-height: 80px;
+	overflow-y: hidden;
+}
+.o_mask {
+	position: fixed;
+	z-index: 20001;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0, 0.5);
+}
+.o_dialog_box {
+	position: absolute;
+	z-index: 20001;
+	background-color: #CCF;
+	left: 50%;
+	top: 50%;
+	bottom: auto;
+	transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	-webkit-transform: translate(-50%, -50%);
+	width: 300px;
+	padding: 5px 10px;
+	border-radius: 10px;
+}
+.o_dialog_cross {
+	position: absolute;
+	right: 5px;
+	top: -4px;
+	font-size: 25px;
+	font-weight: bold;
+	color: red;
+	text-decoration: none;
+}
+.o_dialog_msg {
+	margin-top: 18px;
+	margin-bottom: 5px;
+	text-align: center;
+	color: black;
+	font-weight: normal;
+}
+.o_dialog_input {
+	margin: 5px;
+}
+.o_dialog_input input {
+	width: 100%;
+	font-size: 15px;
+}
+.o_dialog_buttons {
+	text-align: center;
+	margin: 5px;
+}
+.o_dialog_buttons input {
+	font-size: 18px;
+	font-weight: bold;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+.o_dialog_submit {
+	background-color: #6F6;
+	color: #080;
+}
+.o_dialog_cancel {
+	background-color: #F66;
+	color: #800;
+}
+.chatwindow {
+	position: relative;
+	display: inline-block;
+	width: 225px;
+	margin-left: 5px;
+	background-color: #FEE;
+	opacity: 0.92;
+	transition: opacity 0.5s ease;
+}
+.chatwindow:hover {
+	opacity: 1;
+	transition: opacity 0.5s ease;
+}
+
+@media screen and (max-width: 450px) {
+	.chatwindow {
+		left: calc(350px - 100%) !important;
+		top: -80px !important;
+	}
+}
+.chatbar {
+	position: relative;
+	background-color: #941;
+	color: white;
+	font-size: 0.8em;
+	padding: 0px 0px 2px 7px;
+	cursor: move;
+}
+.chatbar .chatbullet {
+	position: relative;
+	top: 2px;
+	font-size: 1.5em;
+	margin-right: 5px;
+}
+.chatbar a {
+	color: white;
+	text-decoration: none;
+}
+.chatbar a:hover {
+	color: #DDD;
+	text-decoration: underline;
+}
+.chatbar .close {
+	position: absolute;
+	bottom: 0px;
+	right: 5px;
+	font-weight: bold;
+	font-size: 1.6em;
+	color: white;
+}
+.chatbar .reduce, .chatbar .restore {
+	position: absolute;
+	bottom: 0px;
+	right: 0.9em;
+	margin-right: 5px;
+	font-weight: bold;
+	font-size: 1.6em;
+	color: white;
+}
+.chatbar .reduce {
+	bottom: 0.3em;
+}
+.chatbar .restore {
+	bottom: 0.05em;
+}
+.chatbar .reduce {
+	text-decoration: underline;
+}
+.chatbar .close:hover, .chatbar .restore:hover {
+	text-decoration: none;
+}
+.chatmsgs {
+	height: 250px;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	padding-left: 2px;
+	padding-top: 10px;
+}
+.chat_isw .chatmsgs {
+	height: 234px;
+}
+.chatwindow.chatreduced .chatmsgs, .chatwindow.chatreduced .chatans {
+	display: none;
+}
+.chatwindow .restore {
+	display: none;
+}
+.chatwindow.chatreduced .restore {
+	display: block;
+}
+.chatwindow.chatreduced .reduce {
+	display: none;
+}
+.chatmsg .osmiley {
+	position: relative;
+	top: 2px;
+	width: 14px;
+}
+.chatmsg .osmiley2 {
+	position: relative;
+	top: 2px;
+	width: 14px;
+}
+.chatmsg a {
+	color: #369;
+}
+.chatmsg a:hover {
+	color: #59B;
+}
+.chatmsgs.fullyloaded {
+	padding-top: 0px;
+}
+.chatwritting {
+	padding: 0px 4px;
+	margin-top: 1px;
+	color: #855;
+	font-size: 11px;
+	height: 15px;
+	text-align: right;
+	overflow: hidden;
+	display: none;
+}
+.chat_isw .chatwritting {
+	display: block;
+}
+.chatreduced.chat_isw .chatwritting {
+	display: none;
+}
+.chatans {
+	background-color: white;
+}
+.chatans textarea {
+	width: 100%;
+	outline: none;
+}
+.chatans textarea, .fakemsginput {
+	font-size: 0.9em;
+	padding: 2px;
+	border: outset 2px #DEB59C;
+}
+.fakemsginput {
+	position: absolute;
+	word-wrap: break-word;
+}
+.chatmsg {
+	position: relative;
+	width: 175px;
+	padding: 5px 5px 13px 5px;
+	border-radius: 5px;
+	color: #6F6F6F;
+	font-size: 0.8em;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	word-wrap: break-word;
+    box-sizing: border-box;
+}
+.chatmsg.cosender {
+	background-color: #AFF987;
+}
+.chatmsg.coreceiver {
+	background-color: #FBCAAF;
+	margin-left: 30px;
+	text-align: right;
+}
+.chathour {
+	position: absolute;
+	bottom: 2px;
+	font-size: 0.75em;
+	font-style: italic;
+	color: gray;
+	opacity: 0.7;
+}
+.chatmsg.cosender .chathour {
+	right: 4px;
+}
+.chatmsg.coreceiver .chathour {
+	left: 4px;
+}
+.o_chat_lastconvs {
+	border: solid 2px #99C;
+	border-radius: 5px;
+	padding: 0;
+	background-color: #DDF;
+}
+.o_chat_lastchats h1 {
+	color: #77A;
+	font-size: 1.1em;
+}
+.o_chat_history {
+	max-height: 180px;
+	overflow-y: auto;
+}
+.o_chat_history > div {
+	position: relative;
+	border-bottom: solid 1px #CCF;
+	padding: 5px 10px;
+	cursor: pointer;
+}
+.o_chat_history > div:hover {
+	background-color: #99C;
+}
+.o_chat_history h2 {
+	margin: 0;
+	font-size: 1em;
+	color: #556;
+}
+.o_chat_history em {
+	position: absolute;
+	right: 3px;
+	top: 2px;
+	font-size: 0.7em;
+	color: #99A;
+	font-style: normal;
+}
+.o_chat_history > div > div {
+	font-size: 0.8em;
+	color: #89A;
+}
+.o_chat_history > div:hover h2 {
+	color: #EEF;
+}
+.o_chat_history > div:hover > div {
+	color: #CCD;
+}
+.o_chat_history > div:hover em {
+	color: #BBD;
+}
+.o_chat_history .o_msg_new {
+	color: #DA5;
+	font-weight: bold;
+}
+.o_noconv {
+	text-align: center;
+	font-style: italic;
+}
+.o_new_conv {
+	position: static;
+	text-align: center;
+	margin-bottom: 10px;
+}
+.o_new_conv label {
+	margin-right: 5px;
+	color: black;
+}
+.o_new_conv input[type="text"] {
+	padding-left: 2px;
+	padding-right: 2px;
+}
+.o_new_conv input[type="submit"] {
+	cursor: pointer;
+	font-weight: bold;
+	margin-left: 5px;
+	margin-right: 5px;
+}

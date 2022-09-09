@@ -1,4 +1,6 @@
 <?php
+header('location: /credits');
+exit;
 include('language.php');
 include('session.php');
 include('initdb.php');

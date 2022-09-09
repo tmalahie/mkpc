@@ -1,4 +1,6 @@
 <?php
+header('location: /');
+exit;
 include('initdb.php');
 if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] != '')) {
 	function startsWith($haystack, $needle) {

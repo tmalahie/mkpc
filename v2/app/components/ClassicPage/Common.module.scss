@@ -1,0 +1,16 @@
+.Common {
+	.action_button {
+		display: inline-block;
+		padding: 5px 10px;
+		background-color: #0C0;
+		font-weight: bold;
+		color: white;
+		border-radius: 5px;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.action_button:hover {
+		background-color: #080;
+		color: white;
+	}
+}

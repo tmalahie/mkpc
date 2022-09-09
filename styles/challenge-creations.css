@@ -237,7 +237,6 @@
 	cursor: pointer;
 }
 .challenges-list-item-rate .challenges-item-rating-thanks {
-	display: none;
 	font-weight: bold;
 	margin-left: 3px;
 	color: #082;
@@ -389,13 +388,16 @@
 .challengePages a:hover {
 	color: #06F;
 }
+.validation-hints-ctn {
+	margin: 0.5em auto;
+}
 #validation-hints {
-	display: none;
 	background-color: #DDF;
 	padding: 10px 10px 1px 10px;
 	color: #014;
 	width: 800px;
 	max-width: 100%;
+	margin-top: 0.5em;
 	margin-left: auto;
 	margin-right: auto;
 	text-align: left;
@@ -403,7 +405,7 @@
 .challenges-list-ctn {
 	text-align: center;
 }
-.challenges-list-ctn > h1 {
+.challenges-list-ctn > div > h1 {
 	text-align: center;
 	text-decoration: underline;
 	margin-bottom: 15px;
