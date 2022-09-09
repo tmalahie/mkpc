@@ -371,7 +371,7 @@ main a:hover {
 .newsButtons {
 	margin-left: 10%;
 }
-.newsButtons .action_button {
+p.newsButtons a.action_button {
 	display: block;
 	width: 160px;
 	margin-bottom: 10px;
@@ -440,12 +440,6 @@ main a:hover {
 		width: 80px;
 	}
 }
-.news-search .action_button {
-	background-color: #66C;
-}
-.news-search .action_button:hover {
-	background-color: #44A;
-}
 @media (min-width: 800px) {
 	.news-search {
 		text-align: center;
@@ -483,10 +477,10 @@ main a:hover {
 .news-publisher {
 	word-wrap: break-word;
 }
-.newsButtons .action_button {
+p.newsButtons a.action_button {
 	background-color: #66C;
 }
-.newsButtons .action_button:hover {
+p.newsButtons a.action_button:hover {
 	background-color: #44A;
 }
 .news-comments {

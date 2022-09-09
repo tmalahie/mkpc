@@ -243,7 +243,7 @@ function OtherPendingNews() {
         <col className={styles["listNews-cats"]} />
         <col className={styles["listNews-infos"]} />
         <col className={styles["listNews-writer"]} />
-        <col className={cx(styles["listNews-nomo"], styles["listNews-dates"])} />
+        <col className={cx(styles["news-nomo"], styles["listNews-dates"])} />
       </colgroup>
       <thead>
         <tr className={styles["listNews-titres"]}>
