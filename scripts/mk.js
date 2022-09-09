@@ -3615,7 +3615,7 @@ function startGame() {
 								document.onkeyup = undefined;
 								window.removeEventListener("blur", window.releaseOnBlur);
 								window.releaseOnBlur = undefined;
-								setTimeout(MarioKart, 500);
+								resetApp();
 							};
 							if (course == "CM") {
 								document.getElementById("changecircuit").onclick = function() {
@@ -3643,7 +3643,7 @@ function startGame() {
 									document.onkeyup = undefined;
 									window.removeEventListener("blur", window.releaseOnBlur);
 									window.releaseOnBlur = undefined;
-									setTimeout(MarioKart, 500);
+									resetApp();
 								};
 							}
 							document.getElementById("quitter").onclick = quitter;
@@ -4542,7 +4542,20 @@ function quitter() {
 	aScores = [];
 	clRuleVars = {};
 	clGlobalVars = undefined;
-	setTimeout(function(){pause=false;MarioKart()},500);
+	resetApp({onRestart:function(){pause=false}});
+}
+function resetApp(opts) {
+	opts = opts || {};
+	var gameTime = getActualGameTimeMS();
+	if (gameTime) {
+		xhr("incGameTime.php", "time="+gameTime, function() {
+			return true;
+		});
+	}
+	setTimeout(function() {
+		if (opts.onRestart) opts.onRestart();
+		MarioKart();
+	}, opts.time||500);
 }
 
 function classement() {
@@ -4837,7 +4850,7 @@ function continuer() {
 				removePlan();
 			oBgLayers.length = 0;
 			document.onmousedown = undefined;
-			setTimeout(MarioKart, 500);
+			resetApp();
 		}
 
 		oSave.value = "   "+ toLanguage('SAVE', 'ENREGISTRER') +"   ";
@@ -5062,7 +5075,7 @@ function continuer() {
 				removePlan();
 			oBgLayers.length = 0;
 			document.onmousedown = undefined;
-			setTimeout(MarioKart, 500);
+			resetApp();
 		}
 		document.getElementById("revoir").appendChild(oReplay);
 
@@ -5092,7 +5105,7 @@ function continuer() {
 				removePlan();
 			oBgLayers.length = 0;
 			document.onmousedown = undefined;
-			setTimeout(MarioKart, 500);
+			resetApp();
 		}
 		document.getElementById("changercircuit").appendChild(oChangeRace);
 
@@ -5135,7 +5148,7 @@ function nextRace() {
 		removePlan();
 	oBgLayers.length = 0;
 	document.onmousedown = undefined;
-	setTimeout(MarioKart, 500);
+	resetApp();
 }
 
 function rankingColor(getId) {
