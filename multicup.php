@@ -38,7 +38,7 @@ function escapeUtf8($str) {
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create multicup':'Cr&eacute;er multicoupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css?reload=1" />
+<link rel="stylesheet" href="styles/cup.css" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -53,7 +53,7 @@ var cp = <?php include('getPersos.php'); ?>;
 include('handleCupOptions.php');
 ?>
 </script>
-<script type="text/javascript" src="scripts/cup.js?reload=2"></script>
+<script type="text/javascript" src="scripts/cup.js"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body onload="initGUI()">
