@@ -168,3 +168,16 @@ main .cell-xs {
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
 }
+#ranking_explain {
+	max-width: 650px;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: justify;
+}
+#ranking_info {
+	margin-top: 10px;
+}
+#ranking_info ul {
+	margin: 5px 0;
+	padding-left: 25px;
+}

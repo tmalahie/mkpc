@@ -1,80 +1,96 @@
 import { NextPage } from "next";
 import ClassicPage, {
   commonStyles,
-} from "../../../components/ClassicPage/ClassicPage";
-import styles from "../../../helpers/globalStyles";
-import useLanguage from "../../../hooks/useLanguage";
+} from "../../components/ClassicPage/ClassicPage";
+import styles from "../../helpers/globalStyles";
+import useLanguage, { plural } from "../../hooks/useLanguage";
 import { useTranslation } from "next-i18next";
-import withServerSideProps from "../../../components/WithAppContext/withServerSideProps";
-import useSmoothFetch, { Placeholder, postData } from "../../../hooks/useSmoothFetch";
-import { formatRank } from "../../../helpers/records";
-import { usePaging } from "../../../hooks/usePaging";
-import Pager from "../../../components/Pager/Pager";
+import withServerSideProps from "../../components/WithAppContext/withServerSideProps";
+import useSmoothFetch, { Placeholder, postData } from "../../hooks/useSmoothFetch";
+import { formatRank } from "../../helpers/records";
+import { usePaging } from "../../hooks/usePaging";
+import Pager from "../../components/Pager/Pager";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
-import Skeleton from "../../../components/Skeleton/Skeleton";
+import Skeleton from "../../components/Skeleton/Skeleton";
 import Link from "next/link";
-import Ad from "../../../components/Ad/Ad";
+import Ad from "../../components/Ad/Ad";
 import Head from 'next/head';
-import Autocomplete from "../../../components/Autocomplete/Autocomplete";
-import useDebounce from "../../../hooks/useDebounce";
-import useFormSubmit, { doSubmit } from "../../../hooks/useFormSubmit";
-import useAuthUser from "../../../hooks/useAuthUser";
-
-import detailsIcon from "../../../images/icons/details.png"
+import Autocomplete from "../../components/Autocomplete/Autocomplete";
+import useDebounce from "../../hooks/useDebounce";
+import useFormSubmit, { doSubmit } from "../../hooks/useFormSubmit";
+import useAuthUser from "../../hooks/useAuthUser";
+import useChallengeDifficulties from "../../hooks/useChallengeDifficulties";
 
 const localesNs = ["leaderboard", "common"];
 
-const TTLeaderboard: NextPage = () => {
+const ChallengeLeaderboard: NextPage = () => {
   const language = useLanguage();
   const user = useAuthUser();
   const { t } = useTranslation(localesNs);
   const router = useRouter();
-  const cc = +(router.query.cc || 150);
 
   const { paging, currentPage, setCurrentPage, resPerPage } = usePaging();
 
   const playerQuery = router.query.player?.toString();
-  const { recordsPayload, recordsLoading } = useLeaderboardData(cc, paging, playerQuery);
+  const { recordsPayload, recordsLoading } = useLeaderboardData(paging, playerQuery);
 
   const [player, setPlayer] = useState<string>(playerQuery || (user?.id ? user.name : ""));
   const { playerSearchOptions } = usePlayerSearchData(player);
 
   const handleSearch = useFormSubmit();
 
+  const [showExplain, setShowExplain] = useState(false);
+  function toggleChallengeExplain(e) {
+    e.preventDefault();
+    setShowExplain(!showExplain);
+  }
+
+  const challengeDifficulties = useChallengeDifficulties();
+
   return (
     <ClassicPage
-      title={t("Time_trial_leaderboard")}
+      title={t("Challenge_leaderboard")}
       className={styles.Leaderboard}
       page="game"
     >
       <Head>
         <link rel="stylesheet" type="text/css" href="/styles/classement.css" />
       </Head>
-      <h1>{t("Global_Time_trial_leaderboard")}</h1>
-      <p dangerouslySetInnerHTML={{
-        __html: t("Leaderboard_tt_explain")
-      }} />
-      <Ad width={728} height={90} bannerId="4919860724" />
-    	<div className={styles["ranking-modes-ctn"]}>
-        <div>
-          <span>{t("Class")}</span>
-          <div className={styles["ranking-modes"]}>
-            {(cc != 150) ? (
-              <>
-                <Link href="/leaderboard/tt/150">150cc</Link>
-                <span>200cc</span>
-              </>
-            ) : (
-              <>
-                <span>150cc</span>
-                <Link href="/leaderboard/tt/200">200cc</Link>
-              </>
-            )}
-          </div>
-        </div>
+      <h1>{t("Challenge_points_leaderboard")}</h1>
+      <div id={styles["ranking_explain"]}>
+        {t("Leaderboard_cl_explain")}
+        {" "}
+        <a href="#null" onClick={toggleChallengeExplain} style={{position:"relative",top:-1}}>[{t("common:Learn_more")}]</a>.
+        {showExplain && <div id={styles["ranking_info"]}>{
+          language ? <>
+            <Link href="/challenges">Challenges</Link> are actions to perform in the game (Ex: &quot;Complete a track in less than 1:30&quot;).
+            They are created by members thanks to the <strong>challenge editor</strong>. Anyone can create challenges, including you!<br />
+            When you complete a challenge, you win a certain amount of <strong>challenge points</strong> depending on the difficulty of the challenge. Your position in the ranking is determined by your number of challenge points.
+            {challengeDifficulties && <ul>
+              {
+                challengeDifficulties.map((difficulty,i) => <li>
+                  A challenge <strong>{difficulty.name}</strong> gives you <strong>{plural("%n pt%s", difficulty.reward)}</strong>.
+                </li>)
+              }
+            </ul>}
+          </> : <>
+            Les <Link href="/challenges">défis</Link> sont des actions à réaliser sur le jeu (Ex : &quot;Finir un circuit en moins de 1:30&quot;).
+            Ils sont créés par les membres via l'<strong>éditeur de défis</strong>. N'importe qui peut créer des défis, vous aussi !<br />
+            Lorsque vous réussissez un défi, vous gagnez un certain nombre de <strong>points défis</strong> en fonction de la difficulté. Ce sont ces points défis qui déterminent votre place dans le classement.
+            {challengeDifficulties && <ul>
+              {
+                challengeDifficulties.map((difficulty,i) => <li>
+                  Un défi <strong>{difficulty.name}</strong> rapporte <strong>{plural("%n pt%s", difficulty.reward)}</strong>.
+                </li>)
+              }
+            </ul>}
+          </>
+        }
+				</div>}
       </div>
-      <form method="post" name="player" action={`/leaderboard/tt/${cc}`} onSubmit={handleSearch}>
+      <Ad width={728} height={90} bannerId="4919860724" />
+      <form method="post" name="player" action={`/leaderboard/challenges`} onSubmit={handleSearch}>
         <blockquote>
           <div>
             <label htmlFor="joueur">
@@ -105,7 +121,6 @@ const TTLeaderboard: NextPage = () => {
             <td>Place</td>
             <td>{t("common:Nick")}</td>
             <td>Score</td>
-            <td className={styles["cell-xs"]}>{t("Details")}</td>
           </tr>
           {recordsPayload.data.map((record, i) => (
             <tr className={i % 2 ? styles.clair : styles.fonce} key={record.id}>
@@ -130,12 +145,11 @@ const TTLeaderboard: NextPage = () => {
                 </a>
               </td>
               <td className={styles["cell-auto"]}>{record.score}</td>
-              <td className={styles["cell-auto"]} title={t("See_records")}><a href={`classement.php?user=${record.id}&amp;cc=${cc}&amp;pts`}><img src={detailsIcon.src} className={styles.details} alt="Preview" /></a></td>
             </tr>
           ))}
           <tr>
-            <td colSpan={4} id={styles.page}>
-              {playerQuery ? <CurrentPage urlPrefix={`/leaderboard/tt/${cc}`} page={Math.ceil(recordsPayload.data[0]?.rank / resPerPage)} onSetPage={setCurrentPage} /> : <Pager
+            <td colSpan={3} id={styles.page}>
+              {playerQuery ? <CurrentPage urlPrefix={`/leaderboard/challenges`} page={Math.ceil(recordsPayload.data[0]?.rank / resPerPage)} onSetPage={setCurrentPage} /> : <Pager
                 page={currentPage}
                 paging={paging}
                 count={recordsPayload.count}
@@ -152,9 +166,9 @@ const TTLeaderboard: NextPage = () => {
         </p>
       )}
       <p>
-        <a href={`/classement.php?cc=${cc}`}>
-          {t("Ranking_by_circuit")}
-        </a>
+        <Link href={"/challenges"}>
+          {t("Back_to_challenges")}
+        </Link>
         <br />
         <Link href="/"><a className={styles.retour}>{t("common:Back_to_mario_kart_pc")}</a></Link>
       </p>
@@ -162,9 +176,9 @@ const TTLeaderboard: NextPage = () => {
   );
 };
 
-function useLeaderboardData(cc: number, paging: any, player?: string) {  
+function useLeaderboardData(paging: any, player?: string) {  
   const { data: recordsPayload, loading: recordsLoading } = useSmoothFetch(
-    "/api/time-trial/leaderboard",
+    "/api/online-game/leaderboard",
     {
       placeholder: () => ({
         data: Placeholder.array(player ? 1 : 20, (id) => ({
@@ -172,16 +186,16 @@ function useLeaderboardData(cc: number, paging: any, player?: string) {
           name: Placeholder.text(10, 20),
           score: Placeholder.number(1000, 20000),
           rank: id,
-          country: null as { code: string } | null,
+          country: null,
         })),
         count: 1,
       }),
       requestOptions: postData({
         name: player,
-        cc,
+        mode: "challenge",
         paging
       }),
-      reloadDeps: [cc, paging, player],
+      reloadDeps: [paging, player],
     }
   );
 
@@ -245,4 +259,4 @@ function CurrentPage({ urlPrefix, page, onSetPage }: CurrentPageProps) {
 
 export const getServerSideProps = withServerSideProps({ localesNs });
 
-export default TTLeaderboard;
+export default ChallengeLeaderboard;

@@ -1,5 +1,7 @@
 {
   "Online_mode_leaderboard": "Classement mode en ligne",
+  "Time_trial_leaderboard": "Classement contre-la-montre",
+  "Challenge_leaderboard": "Classement défis",
   "Leaderboard_Mario_Kart_PC": "Classement Mario Kart PC",
   "VS_mode": "Course VS",
   "Battle_mode": "Bataille de ballons",
@@ -7,8 +9,11 @@
   "No_result_for_this_search": "Aucun résultat trouvé pour cette recherche",
   "Ranking_by_circuit": "Classement circuit par circuit",
   "Back_to_online_mode": "Retour à l'accueil du mode en ligne",
+  "Back_to_challenges": "Retour à la liste des défis",
   "Global_Time_trial_leaderboard": "Contre-la-montre - Classement global",
-  "Leaderboard_explain": "Cette page affiche le classement des meilleurs joueurs en contre la montre.<br />Ce classement se base sur un calcul de score dépendant de votre place sur chaque circuit. Voir <a href=\"/topic.php?topic=5318\">ce topic</a> pour en savoir plus.",
+  "Challenge_points_leaderboard": "Classement des points défis",
+  "Leaderboard_tt_explain": "Cette page affiche le classement des meilleurs joueurs en contre la montre.<br />Ce classement se base sur un calcul de score dépendant de votre place sur chaque circuit. Voir <a href=\"/topic.php?topic=5318\">ce topic</a> pour en savoir plus.",
+  "Leaderboard_cl_explain": "Cette page affiche le classement des joueurs ayant le plus de points dans le mode défis de MKPC",
   "Class": "Cylindrée",
   "Details": "Détails",
   "See_records": "Voir les temps"

@@ -1,7 +1,7 @@
 import { Controller, Body, Post } from '@nestjs/common';
 import { pick } from 'lodash';
 import { SearchService, SearchType } from 'src/search/search.service';
-import { EntityManager, FindOneOptions, Raw } from 'typeorm';
+import { EntityManager, FindOneOptions, Not, Raw } from 'typeorm';
 import { EntityFieldsNames } from 'typeorm/common/EntityFieldsNames';
 import { User } from '../user/user.entity';
 
@@ -15,6 +15,7 @@ export class OnlineGameController {
       deleted: false
     };
     let score: EntityFieldsNames<User> = "pts_vs";
+    let defaultScore = 5000;
     if (params) {
       switch (params.mode) {
         case "battle":
@@ -22,8 +23,9 @@ export class OnlineGameController {
           break;
         case "challenge":
           score = "pts_challenge";
-          break;
+          defaultScore = 0;
       }
+      where[score] = Not(defaultScore);
       if (params.name) {
         params.filters = [
           ...(params.filters || []), {
@@ -61,8 +63,8 @@ export class OnlineGameController {
     if (params.name && leaderboard.length) {
       const usersBefore = await this.em.count(User, {
         where: {
-          [score]: Raw((alias) => `(${alias} > :pts OR (${alias} = :pts AND id<:id))`, { id: leaderboard[0].id, pts: leaderboard[0][score] }),
-          ...where
+          ...where,
+          [score]: Raw((alias) => `(${alias} > :pts OR (${alias} = :pts AND id<:id)) AND (${alias} != :def)`, { id: leaderboard[0].id, pts: leaderboard[0][score], def: defaultScore })
         }
       });
       skip = usersBefore;

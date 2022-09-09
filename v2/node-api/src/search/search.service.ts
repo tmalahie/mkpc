@@ -73,13 +73,13 @@ export class SearchService {
               newFilter = filter.value;
               break;
             case SearchType.IN:
-              newFilter = In(filter.value);;
+              newFilter = In(filter.value);
               break;
             case SearchType.LESS_THAN:
-              newFilter = LessThan(filter.value);;
+              newFilter = LessThan(filter.value);
               break;
             case SearchType.MORE_THAN:
-              newFilter = MoreThan(filter.value);;
+              newFilter = MoreThan(filter.value);
               break;
             case SearchType.LIKE:
               newFilter = Like("%" + escapeSqlLike(filter.value) + "%");
@@ -111,7 +111,7 @@ export class SearchService {
     let relations: FindOneOptions<T>["relations"] = [];
     if (options.where) {
       for (const [key, value] of Object.entries(options.where)) {
-        if (typeof value === "object")
+        if (value?.constructor === Object)
           relations.push(key);
       }
     }

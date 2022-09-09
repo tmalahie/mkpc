@@ -3,7 +3,8 @@ import useSmoothFetch from "./useSmoothFetch";
 export type ChallengeDifficulty = {
   level: number,
   name: string,
-  color: string
+  color: string,
+  reward: number
 }
 function useChallengeDifficulties() {
   const { data: difficultiesData } = useSmoothFetch<{ data: ChallengeDifficulty[] }>(`/api/getChallengeDifficulties.php`, {

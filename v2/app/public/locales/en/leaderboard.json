@@ -1,5 +1,7 @@
 {
   "Online_mode_leaderboard": "Online mode leaderboard",
+  "Time_trial_leaderboard": "Time trial leaderboard",
+  "Challenge_leaderboard": "Challenge leaderboard",
   "Leaderboard_Mario_Kart_PC": "Leaderboard Mario Kart PC",
   "VS_mode": "VS mode",
   "Battle_mode": "Battle mode",
@@ -7,8 +9,11 @@
   "No_result_for_this_search": "No results found for this search",
   "Ranking_by_circuit": "Ranking circuit by circuit",
   "Back_to_online_mode": "Back to online mode homepage",
+  "Back_to_challenges": "Back to challenge list",
   "Global_Time_trial_leaderboard": "Time Trial - Global ranking",
-  "Leaderboard_explain": "This page shows a leaderboard of top players in time trial.<br />This leaderboard is based on a score calculation which depends on your rank on each circuit. See <a href=\"/topic.php?topic=5318\">this topic</a> for further info.",
+  "Challenge_points_leaderboard": "Challenge points leaderboard",
+  "Leaderboard_tt_explain": "This page shows a leaderboard of top players in time trial.<br />This leaderboard is based on a score calculation which depends on your rank on each circuit. See <a href=\"/topic.php?topic=5318\">this topic</a> for further info.",
+  "Leaderboard_cl_explain": "This page displays the ranking of the players with the most points in the MKPC challenge mode",
   "Class": "Class",
   "Details": "Details",
   "See_records": "See records"

@@ -860,7 +860,7 @@ const Home: NextPage = () => {
           </Skeleton>
           {user?.roles.clvalidator && <PendingChallenges />}
           <Link href="/challenges"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{t("Display_all")}</a></Link>
-          <div id={styles.challenge_ranking}><a href="/challengeRanking.php">{t("Challenge_points_leaderboard")}</a></div>
+          <div id={styles.challenge_ranking}><Link href="/leaderboard/challenges">{t("Challenge_points_leaderboard")}</Link></div>
           <h2>{t("Recent_activity")}</h2>
           <Skeleton loading={commentsLoading || recordsLoading} id={styles.comments_section} className={styles.right_subsection}>
             {activityPayload?.map((activity) => (
@@ -1030,7 +1030,7 @@ function PendingNews() {
   if (!pendingNewsPayload?.count) return <></>;
 
   return <p className={styles["nb-pending-news"]}>
-    <Link href={"/news#pending-news"}>{plural(t("pending_news_prefix"), pendingNewsPayload.count)}</Link> {t("pending_news_suffix")}
+    <a href={"/news#pending-news"}>{plural(t("pending_news_prefix"), pendingNewsPayload.count)}</a> {t("pending_news_suffix")}
   </p>
 }
 function PendingChallenges() {
