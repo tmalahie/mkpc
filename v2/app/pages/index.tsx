@@ -858,14 +858,7 @@ const Home: NextPage = () => {
               </a>)
             }
           </Skeleton>
-          {/*
-			if (hasRight('clvalidator')) {
-				$getPendingChallenges = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkchallenges WHERE status="pending_moderation"'));
-				if ($getPendingChallenges['nb']) {
-					$s = ($getPendingChallenges['nb']>=2) ? 's':'';
-					echo '<p className={styles["nb-pending-news"]}><Link href="/challenges?moderate">'. $getPendingChallenges['nb'] .' '. ($language ? 'pending':"défi$s") .'</Link> '. ($language ? "challenge$s":'en attente de validation') .'</p>';
-				}
-			*/}
+          {user?.roles.clvalidator && <PendingChallenges />}
           <Link href="/challenges"><a className={cx(styles.right_section_actions, commonStyles.action_button)}>{t("Display_all")}</a></Link>
           <div id={styles.challenge_ranking}><a href="/challengeRanking.php">{t("Challenge_points_leaderboard")}</a></div>
           <h2>{t("Recent_activity")}</h2>
@@ -1037,7 +1030,17 @@ function PendingNews() {
   if (!pendingNewsPayload?.count) return <></>;
 
   return <p className={styles["nb-pending-news"]}>
-    <Link href={"/news#pending-news"}>{plural(t("n_pending"), pendingNewsPayload.count)}</Link> {t("news")}
+    <Link href={"/news#pending-news"}>{plural(t("pending_news_prefix"), pendingNewsPayload.count)}</Link> {t("pending_news_suffix")}
+  </p>
+}
+function PendingChallenges() {
+  const { t } = useTranslation(localesNs);
+  const { data: pendingChallengesPayload } = useSmoothFetch<{ count: number }>("/api/getChallenges.php?moderate&limit=0");
+
+  if (!pendingChallengesPayload?.count) return <></>;
+
+  return <p className={styles["nb-pending-news"]}>
+    <Link href={"/challenges?moderate"}>{plural(t("pending_challenges_prefix"), pendingChallengesPayload.count)}</Link> {plural(t("pending_challenges_suffix"), pendingChallengesPayload.count)}
   </p>
 }
 type ActiveLobbyForMode = {
