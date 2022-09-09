@@ -1113,7 +1113,7 @@ else {
 						$id = $track['id'];
 						echo '<a href="map.php?i='.$id.'"
 							data-id="'.$id.'"
-							data-name="'.htmlspecialchars($track['nom']).'"
+							data-name="'.($track['nom'] ? htmlspecialchars($track['nom']) : '').'"
 							'. ($track['data'] ? '':'data-pending="1"') .'
 							data-src="'.getCircuitImgUrl($circuitImg).'"
 							onclick="previewCircuit(this);return false"><img
