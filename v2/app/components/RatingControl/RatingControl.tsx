@@ -30,7 +30,10 @@ function RatingControl({ value, defaultValue, onChange }: Props) {
   }
 
   return <div className={styles.RatingControl}>
-    {[...Array(5)].map((_, i) => <img src={i <= shownRating ? star1.src : star0.src} alt="Star" onMouseOver={() => setPreviewedRating(i)} onMouseOut={() => setPreviewedRating(undefined)} onClick={() => handleSetRating(i)} />)}
+    {[...Array(5)].map((_, i) => {
+      const rating = i+1;
+      return <img key={rating} src={rating <= shownRating ? star1.src : star0.src} alt="Star" onMouseOver={() => setPreviewedRating(rating)} onMouseOut={() => setPreviewedRating(undefined)} onClick={() => handleSetRating(rating)} />;
+    })}
   </div>
 }
 

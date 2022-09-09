@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, NotFoundException, Param, Post } from '@nestjs/common';
 import { Auth } from '../auth/auth.decorator';
 import { EntityManager } from 'typeorm';
 import { User } from './user.entity';
@@ -42,6 +42,10 @@ export class UserController {
   @Get("/:id")
   async getUser(@Param("id") id: number) {
     const user = await this.em.findOne(User, id);
+
+    if (!user)
+      throw new NotFoundException(`User with id ${id} does not exist`);
+
     return {
       id: user.id,
       name: user.name

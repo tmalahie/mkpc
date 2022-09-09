@@ -7,10 +7,15 @@ require_once('../includes/challenges.php');
 require_once('../includes/api.php');
 require_once('../includes/language.php');
 $language = getLanguage();
-if (isset($_GET['pending_moderation'])) {
-	require_once('getRights.php');
+if (isset($_GET['moderate'])) {
+	require_once('../includes/auth.php');
 	if (hasUserRights($id, 'clvalidator'))
 		$moderate = true;
+}
+elseif (isset($_GET['remoderate'])) {
+	require_once('../includes/auth.php');
+	if (hasUserRights($id, 'clvalidator'))
+		$remoderate = true;
 }
 $completed = isset($_GET['completed']);
 $chSelect = 'c.*,l.type,l.circuit';
@@ -21,10 +26,12 @@ $chWhere[] = 'l.type!=""';
 if (isset($moderate)) {
 	$chWhere[] = 'c.status="pending_moderation"';
 	$chOrder = 'c.date';
-	$challengeTitle = $language ? 'Challenges pending moderation':'Défis en attente de validation';
 }
 else {
-	$chWhere[] = 'c.status="active"';
+	if (isset($remoderate))
+		$chWhere[] = '(c.status="active" OR (c.status="pending_completion" AND validation!=""))';
+	else
+		$chWhere[] = 'c.status="active"';
 	if (empty($_GET['ordering']) || ('rating' !== $_GET['ordering']))
 		$chOrder = 'c.date DESC';
 	else
@@ -42,8 +49,6 @@ if (isset($_GET['author'])) {
 		$chWhere[] = 'l.identifiant2='.$getProfile['identifiant2'];
 		$chWhere[] = 'l.identifiant3='.$getProfile['identifiant3'];
 		$chWhere[] = 'l.identifiant4='.$getProfile['identifiant4'];
-		if ($username = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $_GET['author'] .'"')))
-			$challengeTitle = $language ? 'Challenges list of '.$username['nom']:'Liste des défis de '.$username['nom'];
 	}
 }
 if ($completed || isset($_GET['winner'])) {
@@ -56,12 +61,14 @@ if ($completed || isset($_GET['winner'])) {
 $chOrder .= ', c.id DESC';
 $currentPage = isset($_GET['page']) ? $_GET['page']:1;
 $challengesPerPage = 20;
+if (isset($_GET['limit']) && ($_GET['limit'] < $challengesPerPage))
+	$challengesPerPage = intval($_GET['limit']);
 $chOffset = ($currentPage-1)*$challengesPerPage;
 $challengeParams = array(
 	'rating' => true,
 	'circuit' => true
 );
-if ($id) {
+if (!isset($moderate) && !isset($remoderate) && $id) {
 	$challengeParams['winners'] = true;
 	$challengeParams['id'] = $id;
 }

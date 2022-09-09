@@ -237,7 +237,6 @@
 	cursor: pointer;
 }
 .challenges-list-item-rate .challenges-item-rating-thanks {
-	display: none;
 	font-weight: bold;
 	margin-left: 3px;
 	color: #082;
@@ -406,7 +405,7 @@
 .challenges-list-ctn {
 	text-align: center;
 }
-.challenges-list-ctn > h1 {
+.challenges-list-ctn > div > h1 {
 	text-align: center;
 	text-decoration: underline;
 	margin-bottom: 15px;

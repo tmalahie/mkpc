@@ -20,28 +20,48 @@ import RatingControl from "../../components/RatingControl/RatingControl";
 import useCreations from "../../hooks/useCreations";
 import { buildQuery } from "../../helpers/uris";
 import useFormSubmit from "../../hooks/useFormSubmit";
+import useEffectOnUpdate from "../../hooks/useEffectUpdate";
 
 const localesNs = ["challenges", "common"];
 const ChallengesList: NextPage = () => {
   const language = useLanguage();
   const { t } = useTranslation(localesNs);
   const router = useRouter();
-  const { moderate, remoderate, rate, ordering } = router.query;
-  const rateChallenges = rate;
+  const { author, winner, moderate, remoderate, rate, ordering } = router.query;
+  const rateChallenges = (rate != null);
+  const userIdFilter = author || winner;
+  const { data: userPayload, loading: userLoading } = useSmoothFetch<{ name: string }>(`/api/user/${userIdFilter}`, {
+    disabled: !userIdFilter,
+    reloadDeps: [userIdFilter]
+  });
   const title = useMemo(() => {
     if (moderate != null)
       return t("Challenges_pending_moderation");
-    if (ordering === "rating")
-      return t("Top_rated_challenges");
     if (remoderate != null)
       return t("Undo_a_challenge_validation");
+    if (author != null)
+      return userPayload ? t("Challenges_list_of_", { name: userPayload.name }) : fallbackTitle();
+    if (winner != null)
+      return userPayload ? t("Challenges_completed_by_", { name: userPayload.name }) : fallbackTitle();
+    if (ordering === "rating")
+      return t("Top_rated_challenges");
+    if (rateChallenges)
+      return t("Rate_completed_challenges");
     return t("Last_published_challenges");
-    // TODO title for author
-  }, [language, moderate, remoderate, ordering]);
+  }, [language, moderate, remoderate, rateChallenges, ordering, userPayload]);
+  function fallbackTitle() {
+    if (userLoading)
+      return null;
+    return t("Last_published_challenges");
+  }
 
   const { paging, currentPage, setCurrentPage } = usePaging();
 
-  const creationParams = useMemo(() => buildQuery(router.query), [router.query]);
+  const creationParams = useMemo(() => buildQuery({
+    ...router.query,
+    rate: undefined,
+    completed: router.query.rate
+  }), [router.query]);
 
   const { data: challengesPayload, loading: challengesLoading } = useSmoothFetch(`/api/getChallenges.php?${creationParams}`, {
     placeholder: () => ({
@@ -50,6 +70,11 @@ const ChallengesList: NextPage = () => {
     }),
     reloadDeps: [creationParams]
   });
+
+  useEffectOnUpdate(() => {
+    // @ts-ignore
+    window.loadCircuitImgs?.();
+  }, [challengesPayload]);
 
   useCreations();
 
@@ -69,7 +94,9 @@ const ChallengesList: NextPage = () => {
         <link rel="stylesheet" type="text/css" href="/styles/challenge-creations.css" />
       </Head>
       <div className={styles["challenges-list-ctn"]}>
-        <h1>{title}</h1>
+        <Skeleton loading={title == null}>
+          <h1>{title ?? t("Last_published_challenges")}</h1>
+        </Skeleton>
         {(moderate != null) && <ValidationTips />}
         {(remoderate != null) && <ReValidationTips />}
         {!challengeAction && <div className={styles["challenges-list-sublinks"]}>
@@ -148,9 +175,9 @@ function ValidationTips() {
     </div>;
   }
   else {
-    return <p>
-      Bienvenue dans la page de modération des défis. Avant de commencer, merci de lire les <a href="javascript:document.getElementById('validation-hints').style.display=document.getElementById('validation-hints').style.display?'':'block';void(0)">conseils de validation</a>.
-      <div id={styles["validation-hints"]}>
+    return <div className={styles["validation-hints-ctn"]}>
+      Bienvenue dans la page de modération des défis. Avant de commencer, merci de lire les <a href="#null" onClick={toggleValidationTips}>conseils de validation</a>.
+      {showValidationTips && <div id={styles["validation-hints"]}>
         Pour chaque défi, vous avez 3 possibilités :
         <ul>
           <li>Accepter le défi, en cliquant sur <button className={styles["challenges-item-accept"]}>✓</button></li>
@@ -172,8 +199,8 @@ function ValidationTips() {
           <li>Un défi <span className={styles["challenges-item-difficulty-3"]}>extrême</span> nécessitera de try-harder même pour un joueur expérimenté ("Finir le Circuit Mario 1 en CLM en moins de 38s")</li>
           <li>Un défi <span className={styles["challenges-item-difficulty-4"]}>impossible</span> nécessite de try-harder et peut typiquement prendre plusieurs heures (voire jours) avant de réussir ("Finir le Circuit Mario 1 en CLM en moins de 37s")</li>
         </ul>
-      </div>
-    </p>
+      </div>}
+    </div>
   }
 }
 function ReValidationTips() {
@@ -252,14 +279,16 @@ function ChallengeItem({ challenge, challengeAction }: ChallengeItemProps) {
   const language = useLanguage();
   const { t } = useTranslation(localesNs);
   const challengeDifficulties = useChallengeDifficulties();
-  const { moderate, remoderate, rate, ordering } = router.query;
-  const rateChallenges = rate;
-  const isChallengeAction = rateChallenges || (moderate != null) || (remoderate != null);
+  const { moderate, remoderate, rate } = router.query;
+  const rateChallenges = (rate != null);
+  const isModerating = (moderate != null) || (remoderate != null);
+  const isChallengeAction = rateChallenges || isModerating;
 
   const [challengeThanks, setChallengeThanks] = useState(false);
 
   const rateChallenge = useCallback((rating) => {
-    window["o_xhr"]("challengeRate.php", "challenge=" + challenge.id + "&rating=" + rating, function (reponse) {
+    setChallengeThanks(false);
+    window["o_xhr"]("challengeRate.php", "challenge=" + challenge.id + "&rating=" + (rating??0), function (reponse) {
       if (reponse == 1) {
         setChallengeThanks(true);
         return true;
@@ -346,7 +375,7 @@ function ChallengeItem({ challenge, challengeAction }: ChallengeItemProps) {
       function fadeOutAux() {
         opacity -= 0.1;
         if (opacity <= 0)
-          $elt.parentNode.removeChild($elt);
+          $elt.style.display = "none";
         else {
           $elt.style.opacity = opacity;
           setTimeout(fadeOutAux, 40);
@@ -366,18 +395,21 @@ function ChallengeItem({ challenge, challengeAction }: ChallengeItemProps) {
 
   return <a className={cx(styles["challenges-list-item"], {
     [styles["challenges-list-item-rate"]]: rateChallenges,
-    [styles["challenges-list-item-moderate"]]: (moderate != null) || (remoderate != null),
-    [styles["list-item-success"]]: challenge.succeeded
+    [styles["challenges-list-item-moderate"]]: isModerating,
+    [styles["challenges-list-item-success"]]: challenge.succeeded && !rateChallenges,
   })} id={styles[`challenges-item-${challenge.id}`]} href={`challengeTry.php?challenge=${challenge.id}`}>
     <div className={cx(styles["challenges-item-circuit"], styles.creation_icon, challenge.circuit.isCup ? styles.creation_cup : styles.single_creation)}
       style={{ backgroundImage: challenge.circuit.icons ? challenge.circuit.icons.map(src => `url('images/creation_icons/${src}')`).join(",") : undefined }}
       data-cicon={challenge.circuit.icons ? undefined : challenge.circuit.cicon}>
-      {challenge.succeeded && <div className={styles["challenges-item-success"]}>✔</div>}
+      {(challenge.succeeded && !rateChallenges) && <div className={styles["challenges-item-success"]}>✔</div>}
     </div>
     <div className={styles["challenges-item-description"]}>
       <div>
         {challenge.name && <h2>{challenge.name}</h2>}
-        {challenge.circuit.name && <h3><strong>{challenge.circuit.name}</strong> : {challenge.description.main}</h3>}
+        {challenge.description.main && <h3>
+          {challenge.circuit.name && <>
+            <strong>{challenge.circuit.name}</strong>{" : "}
+          </>}{challenge.description.main}</h3>}
         {challenge.description.extra && <h4>{challenge.description.extra}</h4>}
       </div>
     </div>
@@ -393,7 +425,7 @@ function ChallengeItem({ challenge, challengeAction }: ChallengeItemProps) {
         (challengeAction === 'rate') && <>
           <div className={cx(styles["challenges-item-difficulty"], styles[`challenges-item-difficulty-${challenge.difficulty.level}`])}>
             <img src={`images/challenges/difficulty${challenge.difficulty.level}.png`} alt={challenge.difficulty.name} />
-            {" "}{challenge.difficulty.name}
+            {" "}{challenge.difficulty.name}{" "}
             {challengeThanks && <span className={styles["challenges-item-rating-thanks"]}>{t("Thanks")}</span>}
           </div>
           <RatingControl defaultValue={challenge.rating.avg} onChange={(value) => {

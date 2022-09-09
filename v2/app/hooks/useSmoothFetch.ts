@@ -74,6 +74,12 @@ export const Placeholder = {
   rand
 }
 
+class HttpError extends Error {
+  constructor(msg, public readonly status) {
+    super(msg);
+  }
+}
+
 type CacheHandler = Record<string, {
   state: any,
   setStates: Array<(newState: any) => void>
@@ -122,7 +128,7 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
         }
         else {
           console.error(res);
-          throw new Error(res.statusText);
+          throw new HttpError(res.statusText, res.status);
         }
       })
       .then(data => {
@@ -132,15 +138,17 @@ function useSmoothFetch<T>(input: RequestInfo, { placeholder, retryDelay = 1000,
         onSuccess?.(data);
       })
       .catch(error => {
-        if (currentRetryCount < retryCount) {
-          setTimeout(() => {
-            doFetch(currentRetryCount + 1, currentRetryDelay * retryDelayMultiplier);
-          }, currentRetryDelay);
-        }
-        else {
+        const isClientError = (error instanceof HttpError && error.status < 500);
+        if (isClientError || (currentRetryCount >= retryCount)) {
           setAllStates({ data: placeholderVal, loading: false, error });
+          return;
         }
-      });
+        setTimeout(() => {
+            doFetch(currentRetryCount + 1, currentRetryDelay * retryDelayMultiplier);
+          }, currentRetryDelay
+        );
+      }
+    );
   }
   useEffect(() => {
     if (disabled)
