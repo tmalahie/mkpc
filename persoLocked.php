@@ -309,14 +309,14 @@ if (empty($clId)) {
         ?>
         This page shows the list of unlockable characters created by members.
         To unlock them, you have to complete the challenges listed below.
-        To learn more about how the challenges work, <a href="challengesList.php">click here</a>.
+        To learn more about how the challenges work, <a href="/challenges">click here</a>.
         <?php
     }
     else {
         ?>
         Cette page affiche la liste des persos à débloquer créés par les membres.
         Pour les débloquer, vous devrez réaliser les défis affichés ci-dessous.
-        Pour en savoir plus sur le fonctionnement des défis, <a href="challengesList.php">cliquez ici</a>.
+        Pour en savoir plus sur le fonctionnement des défis, <a href="/challenges">cliquez ici</a>.
         <?php
     }
     ?></div>

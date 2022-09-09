@@ -804,7 +804,7 @@ include('menu.php');
 						print_challenge($challenge, $challengeParams);
 					?>
 					</div>
-					<h3><a href="challengesList.php?author=<?php echo urlencode($profileId); ?>&amp;ordering=rating"><?php echo $language ? 'See all their challenges':'Voir tous ses défis'; ?></a></h3>
+					<h3><a href="/challenges?author=<?php echo urlencode($profileId); ?>&amp;ordering=rating"><?php echo $language ? 'See all their challenges':'Voir tous ses défis'; ?></a></h3>
 					<?php
 				}
 			}
@@ -862,7 +862,7 @@ include('menu.php');
 						print_challenge($challenge, $challengeParams);
 					?>
 					</div>
-					<h3><a href="challengesList.php?winner=<?php echo urlencode($profileId); ?>"><?php echo $language ? 'See all completed challenges':'Voir tous les défis réussis'; ?></a></h3>
+					<h3><a href="/challenges?winner=<?php echo urlencode($profileId); ?>"><?php echo $language ? 'See all completed challenges':'Voir tous les défis réussis'; ?></a></h3>
 					<?php
 				}
 			}

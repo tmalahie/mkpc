@@ -1,4 +1,6 @@
 <?php
+header('location: /challenges?'. $_SERVER['QUERY_STRING']);
+exit;
 include('session.php');
 include('language.php');
 include('initdb.php');
