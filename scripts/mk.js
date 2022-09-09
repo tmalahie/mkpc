@@ -4547,7 +4547,7 @@ function quitter() {
 function resetApp(opts) {
 	opts = opts || {};
 	var gameTime = getActualGameTimeMS();
-	if (gameTime) {
+	if (gameTime > 0) {
 		xhr("incGameTime.php", "time="+gameTime, function() {
 			return true;
 		});
