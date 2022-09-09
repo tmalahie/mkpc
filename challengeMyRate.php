@@ -13,7 +13,7 @@ function getMyRating($challenge) {
 				return null;
 			}
 		}
-		if ($getWin = mysql_fetch_array(mysql_query('SELECT w.player,w.rating FROM mkclwin w INNER JOIN mkprofiles p ON w.player=p.id AND w.player!="'.$id.'" AND w.rating>0 WHERE p.identifiant='. $getIdentifiants['identifiant'] .' AND p.identifiant2='. $getIdentifiants['identifiant2'] .' AND p.identifiant3='. $getIdentifiants['identifiant3'] .' AND p.identifiant4='. $getIdentifiants['identifiant4'])))
+		if ($getWin = mysql_fetch_array(mysql_query('SELECT w.player,w.rating FROM mkclwin w INNER JOIN mkprofiles p ON w.player=p.id AND w.player!="'.$id.'" AND w.rating>0 WHERE w.challenge="'.$challenge['id'].'" AND p.identifiant='. $getIdentifiants['identifiant'] .' AND p.identifiant2='. $getIdentifiants['identifiant2'] .' AND p.identifiant3='. $getIdentifiants['identifiant3'] .' AND p.identifiant4='. $getIdentifiants['identifiant4'])))
 			return $getWin;
 		return array(
 			'player' => $id,
