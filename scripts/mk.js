@@ -4008,6 +4008,8 @@ function startGame() {
 							return true;
 						}
 					}
+					if (!window.onbeforeunload)
+						window.onbeforeunload = logGameTime;
 					pause = false;
 					if (course == "CM")
 						iTrajet = new Array();
@@ -4550,6 +4552,11 @@ function resetApp(opts) {
 		if (opts.onRestart) opts.onRestart();
 		MarioKart();
 	}, opts.time||500);
+
+	window.onbeforeunload = undefined;
+	logGameTime();
+}
+function logGameTime() {
 	var gameTime = getActualGameTimeMS();
 	if (gameTime > 0) {
 		xhr("incGameTime.php", "time="+gameTime, function() {
@@ -13401,7 +13408,7 @@ function resetDatas() {
 					document.onkeydown = undefined;
 					document.onkeyup = undefined;
 					document.onmousedown = undefined;
-					window.onbeforeunload = undefined;
+					window.onbeforeunload = logGameTime;
 					window.removeEventListener("blur", window.releaseOnBlur);
 					window.releaseOnBlur = undefined;
 					supprArme(0);
@@ -14607,7 +14614,7 @@ function move(getId, triggered) {
 						document.onkeydown = undefined;
 						document.onkeyup = undefined;
 						document.onmousedown = undefined;
-						window.onbeforeunload = undefined;
+						window.onbeforeunload = logGameTime;
 						window.removeEventListener("blur", window.releaseOnBlur);
 						window.releaseOnBlur = undefined;
 					}
@@ -14817,7 +14824,7 @@ function move(getId, triggered) {
 				document.onkeydown = undefined;
 				document.onkeyup = undefined;
 				document.onmousedown = undefined;
-				window.onbeforeunload = undefined;
+				window.onbeforeunload = logGameTime;
 				window.removeEventListener("blur", window.releaseOnBlur);
 				window.releaseOnBlur = undefined;
 			}
