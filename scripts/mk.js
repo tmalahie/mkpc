@@ -4546,16 +4546,16 @@ function quitter() {
 }
 function resetApp(opts) {
 	opts = opts || {};
+	setTimeout(function() {
+		if (opts.onRestart) opts.onRestart();
+		MarioKart();
+	}, opts.time||500);
 	var gameTime = getActualGameTimeMS();
 	if (gameTime > 0) {
 		xhr("incGameTime.php", "time="+gameTime, function() {
 			return true;
 		});
 	}
-	setTimeout(function() {
-		if (opts.onRestart) opts.onRestart();
-		MarioKart();
-	}, opts.time||500);
 }
 
 function classement() {

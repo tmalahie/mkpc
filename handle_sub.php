@@ -44,6 +44,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code']) && isset($_POST['confirm'])
 			include('setId.php');
 			mysql_query('UPDATE `mkrecords` SET player='.$id.' WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND (player=0 OR name="'.$pseudo.'")');
 			mysql_query('UPDATE `mkgametime` SET player='.$id.' WHERE identifiant='.$identifiants[0].' AND player=0');
+			mysql_query('UPDATE `mkgametimehist` SET player='.$id.' WHERE identifiant='.$identifiants[0].' AND player=0');
 			$inscrit = true;
 		}
 		else
