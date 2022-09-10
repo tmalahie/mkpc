@@ -94,11 +94,6 @@ h2 {
 	width: 24px;
 	cursor: pointer;
 }
-#decor-actions-feedback {
-	display: none;
-	font-size: 0.7em;
-	color: #AF0;
-}
 #decor-actions .edit-decor {
 	background-color: #7E8;
 	color: #0A5;

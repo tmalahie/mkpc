@@ -35,7 +35,18 @@ h2 {
 .bgs-list {
     margin-bottom: 4px;
 }
+.bgs-list .bg-preview {
+    cursor: pointer;
+}
+.bgs-list .bg-preview:not(.bg-selected):hover {
+    opacity: 0.8;
+}
+.bgs-list .bg-selected {
+    border: none !important;
+    outline: solid 2px #ff7100;
+}
 #bg-actions {
+    margin-top: 0.25em;
     font-size: 1.2em;
 	display: none;
 	margin-left: auto;
@@ -188,4 +199,28 @@ h2 {
 }
 .editor-navigation {
     font-size: 1rem;
+}
+.bg-preview {
+    width: 100%;
+    height: 24px;
+    background-size: auto 100%;
+}
+#bg-edit-form {
+    margin-top: 0.4em;
+}
+#bg-actions .edit-bg {
+	background-color: #7E8;
+	color: #0A5;
+}
+#bg-actions .edit-bg:hover {
+	background-color: #7F8;
+    color: #0B5;
+}
+#bg-actions .suppr-bg {
+	background-color: #F96;
+	color: #C24;
+}
+#bg-actions .suppr-bg:hover {
+	background-color: #FB7;
+	color: #D35;
 }

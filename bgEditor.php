@@ -7,8 +7,8 @@ assign_token();
 include('initdb.php');
 require_once('utils-bgs.php');
 include('file-quotas.php');
-if (isset($_POST['type']) && isset($_FILES['sprites'])) {
-	$upload = handle_bg_upload($_POST['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'));
+if (isset($_FILES['layer'])) {
+	$upload = handle_bg_upload($_FILES['layer']);
 	if (isset($upload['id']))
 		header('location: editBg.php?id='. $upload['id'] .'&new');
 	if (isset($upload['error']))
@@ -30,13 +30,13 @@ var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COO
 var language = <?php echo ($language ? 'true':'false'); ?>;
 function selectBg(id) {
 	if (bgId != -1)
-		document.getElementById("mybg-"+bgId).className = "";
+		document.getElementById("mybg-"+bgId).classList.remove("bg-selected");
 	if (id == bgId)
         bgId = -1;
 	else
         bgId = id;
 	if (bgId != -1) {
-		document.getElementById("mybg-"+bgId).className = "bg-selected";
+		document.getElementById("mybg-"+bgId).classList.add("bg-selected");
 		document.getElementById("bg-actions").style.display = "inline-block";
 		var bgName = document.getElementById("mybg-"+bgId).dataset.name;
 		document.getElementById("bg-actions-name").innerHTML = bgName;
@@ -113,6 +113,9 @@ if (isset($error))
             <h3><?php echo $language ? 'Your backgrounds':'Vos arrière-plans'; ?></h3>
             <div class="bgs-list"><?php
             while ($bg = mysql_fetch_array($myBgs)) {
+                print_bg_div($bg['id'], array(
+                    'attrs' => 'id="mybg-'. $bg['id'] .'" data-name="'. $bg['name'] .'" onclick="selectBg('. $bg['id'] .')"'
+                ));
             }
             ?></div>
             <div id="bg-actions">
