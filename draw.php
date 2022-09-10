@@ -476,7 +476,8 @@ if (isset($_GET['i'])) {
 			$decors = Array (
 				'SNES' => array_slice($bgImages, 0,8),
 				'GBA' => array_slice($bgImages, 8,20),
-				'DS' => array_slice($bgImages, 28,20)
+				'DS' => array_slice($bgImages, 28,20),
+				'Custom' => null
 			);
 			$i = 0;
 			foreach ($decors as $name=>$decorGroup) {
@@ -491,16 +492,27 @@ if (isset($_GET['i'])) {
 			$j = 0;
 			foreach ($decors as $name=>$decorGroup) {
 				echo '<div class="bg-selector-optgroup" data-value="'.$i.'" id="bg-selector-optgroup-'.$i.'">';
-				foreach ($decorGroup as $decor) {
+				if (null === $decorGroup) {
 					?>
-					<div id="bgchoice-<?php echo $j; ?>" data-value="<?php echo $j; ?>" onclick="changeBg(this)">
+					<div class="add-custom-bg" onclick="createCustomBg()">
 						<?php
-						foreach ($decor as $img)
-							echo '<span style="background-image:url(\'images/map_bg/'.$img.'.png\')"></span>';
+						echo '<span><strong>+</strong> '. ($language ? "Go to backgrounds editor..." : "Éditeur d'arrière-plans...") .'</span>';
 						?>
 					</div>
 					<?php
-					$j++;
+				}
+				else {
+					foreach ($decorGroup as $decor) {
+						?>
+						<div id="bgchoice-<?php echo $j; ?>" data-value="<?php echo $j; ?>" onclick="changeBg(this)">
+							<?php
+							foreach ($decor as $img)
+								echo '<span style="background-image:url(\'images/map_bg/'.$img.'.png\')"></span>';
+							?>
+						</div>
+						<?php
+						$j++;
+					}
 				}
 				echo '</div>';
 				$i++;

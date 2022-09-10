@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	}
 	if (circuitData)
 		restoreData(circuitData);
-	//document.getElementById('mode').value = "decor";
+	//document.getElementById('mode').value = "options";
 	selectMode(document.getElementById('mode').value);
 	//document.getElementById("decor-selector").setValue("truck");
 	//decorChange();
@@ -2673,6 +2673,9 @@ function changeBg($elt) {
 	applyBgSelector();
 	var $mask = document.getElementById("mask-bg");
 	$mask.close();
+}
+function createCustomBg() {
+	window.open('bgEditor.php','chose','scrollbars=1, resizable=1, width=500, height=500');
 }
 function applyBgSelector() {
 	var editorTool = editorTools[currentMode];

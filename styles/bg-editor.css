@@ -1,0 +1,191 @@
+body {
+	background-image: url('../images/editor/fond_circuit_dark.jpg');
+	background-color: black;
+	background-size: cover;
+	background-attachment: fixed;
+	background-position: center bottom;
+	background-repeat: no-repeat;
+	font-family: Helvetica, arial, sans-serif;
+	text-align: center;
+    font-size: 1.2em;
+}
+h1, h2, h3 {
+    margin: 5px auto;
+}
+h2 {
+    margin-top: 10px;
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black, -1px -1px black, -1px 1px black, 1px -1px black, 1px 1px black;
+}
+.bgs-list-container {
+    border-radius: 6px;
+    background-color: rgba(156,181,207, 0.85);
+    max-width: 550px;
+    padding: 10px 20px;
+    margin: 10px auto;
+}
+.bgs-list-empty {
+    font-style: italic;
+    margin-bottom: 5px;
+}
+.bgs-list-more {
+    position: relative;
+    top: -0.1em;
+}
+.bgs-list {
+    margin-bottom: 4px;
+}
+#bg-actions {
+    font-size: 1.2em;
+	display: none;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 5px;
+	padding: 5px;
+    background-color: #93b8f9;
+}
+#bg-actions button {
+	font-size: 0.7em;
+	padding: 3px 8px;
+	cursor: pointer;
+	margin: 0 2px;
+}
+#bg-actions-name {
+    color: #337;
+    font-size: 0.8em;
+	margin-bottom: 0.15em;
+	font-weight: bold;
+}
+#bg-actions-name:empty {
+    display: none;
+}
+#bg-instructions {
+    margin-bottom: 10px;
+    font-size: 0.8em;
+    text-align: left;
+}
+#bg-instructions .description {
+    margin: 1em 0;
+}
+#bg-instructions .description-layers {
+    width: 100%;
+    overflow: auto;
+}
+#bg-instructions .description-layers div {
+}
+#bg-instructions .description-layers div img {
+    border: solid 1px transparent;
+}
+#bg-instructions .description-layers div img:hover {
+    border-color: #379;
+}
+.description-layers-24 img {
+    height: 24px;
+}
+.description-layers-48 img {
+    height: 48px;
+}
+#bg-instructions ul {
+    margin-top: 0.5em;
+    padding-left: 1em;
+}
+#bg-instructions hr {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    height: 1px;
+    background-color: #359;
+    border: none;
+}
+#bg-instructions.instructions-unshown {
+	display: none;
+}
+#bg-new-form {
+    text-align: center;
+}
+#bg-new-form h3 {
+    position: relative;
+    top: -0.2em;
+}
+#bg-new-form button[type="submit"] {
+    width: 150px;
+}
+#bg-edit-form input[type="text"] {
+    width: 200px;
+}
+.bg-editor-form input, .bg-editor-form button {
+    font-size: 1em;
+}
+.bg-editor-form input[type="file"] {
+    border: solid 1px #88B;
+    background-color: #BFBFCF;
+}
+.bg-editor-form button {
+    cursor: pointer;
+    background-color: #69C;
+    color: white;
+    border-color: #48A;
+}
+.bg-editor-form button:hover {
+    background-color: #669FD9;
+    border-color: #59B;
+}
+.bg-editor-form button:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+.bg-editor-form button[type="submit"] {
+    margin-top: 0.2em;
+}
+.bg-editor-form button.btn-edit {
+	background-color: #7E8;
+	color: #094;
+	border-color: #0A5;
+}
+.bg-editor-form button.btn-edit:hover {
+	background-color: #7F8;
+    color: #0A5;
+	border-color: #0B5;
+}
+.bg-editor-form button.btn-del {
+	background-color: #F96;
+	color: #C24;
+	border-color: #D45;
+}
+.bg-editor-form button.btn-del:hover {
+	background-color: #FB7;
+	color: #D35;
+	border-color: #E79;
+}
+#error {
+	background-color: #D43;
+	color: #721;
+	font-weight: bold;
+	text-align: center;
+	display: inline-block;
+	padding: 8px 20px;
+}
+#error a {
+	color: #A5444C;
+}
+#success {
+	background-color: #3D4;
+	color: #172;
+	font-weight: bold;
+	text-align: center;
+	display: inline-block;
+	padding: 8px 20px;
+}
+#error a {
+	color: #A5444C;
+}
+
+.bg-form-layer-new {
+    margin-top: 0.25em;
+    margin-bottom: 0.5em;
+}
+.bg-form-layer-new button {
+    font-size: 0.8em;
+}
+.editor-navigation {
+    font-size: 1rem;
+}
