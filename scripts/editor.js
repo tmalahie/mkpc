@@ -2675,7 +2675,7 @@ function changeBg($elt) {
 	$mask.close();
 }
 function createCustomBg() {
-	window.open('bgEditor.php','chose','scrollbars=1, resizable=1, width=500, height=500');
+	window.open('bgEditor.php');
 }
 function applyBgSelector() {
 	var editorTool = editorTools[currentMode];

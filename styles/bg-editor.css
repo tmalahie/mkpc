@@ -24,6 +24,9 @@ h2 {
     padding: 10px 20px;
     margin: 10px auto;
 }
+.bg-layers-container {
+    margin-top: 1em;
+}
 .bgs-list-empty {
     font-style: italic;
     margin-bottom: 5px;
@@ -44,6 +47,58 @@ h2 {
 .bgs-list .bg-selected {
     border: none !important;
     outline: solid 2px #ff7100;
+}
+.bg-layer {
+    display: flex;
+}
+.bg-layer-img {
+    width: 100%;
+    overflow: hidden;
+}
+.bg-layer-img img {
+    border: solid 1px transparent;
+    height: 32px;
+}
+.bg-layer-img img:hover {
+    border-color: #379;
+}
+.bg-layer-actions {
+    flex: 1;
+    display: flex;
+    padding: 0.25em 0 0.35em 0.5em;
+    gap: 0.25em;
+}
+.bg-layer-actions button {
+    width: 2.25em;
+    cursor: pointer;
+}
+#transparency-form-ctn {
+    width: auto;
+    max-width: 100%;
+    display: inline-block;
+    overflow: auto;
+    padding-left: 0;
+    padding-right: 0;
+}
+#transparency-form-ctn h3 {
+    margin-left: 0.75em;
+    margin-right: 0.75em;
+}
+#transparency-form {
+	display: none;
+}
+#select-transparency {
+	cursor: crosshair;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+#transparency-color-preview {
+	display: inline-block;
+	width: 60px;
+	height: 25px;
+	border: solid 1px #BDE;
+	position: relative;
+	top: 6px;
 }
 #bg-actions {
     margin-top: 0.25em;
@@ -208,19 +263,36 @@ h2 {
 #bg-edit-form {
     margin-top: 0.4em;
 }
-#bg-actions .edit-bg {
+.bg-edit {
 	background-color: #7E8;
 	color: #0A5;
 }
-#bg-actions .edit-bg:hover {
+.bg-edit:hover {
 	background-color: #7F8;
     color: #0B5;
 }
-#bg-actions .suppr-bg {
+.bg-del {
 	background-color: #F96;
 	color: #C24;
 }
-#bg-actions .suppr-bg:hover {
+.bg-del:hover {
 	background-color: #FB7;
 	color: #D35;
+}
+.bg-layers-add {
+    margin-top: 0.25em;
+}
+.bg-layers-add > a {
+    text-decoration: none;
+}
+.bg-layers-add > a:hover {
+    text-decoration: underline;
+}
+#bg-layers-add-form {
+    display: none;
+    margin-top: 0.15em;
+    margin-bottom: 0.25em;
+}
+#bg-layers-add-form.shown {
+    display: block;
 }

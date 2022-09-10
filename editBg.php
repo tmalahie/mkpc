@@ -6,13 +6,15 @@ if (isset($_GET['id'])) {
 		include('getId.php');
 		if ($bg['identifiant'] == $identifiants[0]) {
 			include('language.php');
-			include('utils-bgs.php');
+			require_once('utils-bgs.php');
             session_start();
             include('tokens.php');
+            assign_token();
 			if (isset($_POST['name'])) {
                 $bg['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);
                 mysql_query('UPDATE `mkbgs` SET name="'. $bg['name'] .'" WHERE id="'. $_GET['id'] .'"');
             }
+            $bgLayers = get_bg_layers($bg['id']);
 			?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -23,6 +25,23 @@ if (isset($_GET['id'])) {
 <link rel="stylesheet" href="styles/editor.css" />
 <link rel="stylesheet" href="styles/bg-editor.css" />
 <title><?php echo $language ? 'Background editor':'Éditeur d\'arrière-plans'; ?></title>
+<script type="text/javascript">
+var language = <?php echo $language ? 1:0; ?>;
+function editLayer(id) {
+    document.location.href = "editLayer.php?id=" + id;
+}
+function delLayer(id) {
+    if (confirm(language ? "Delete layer?" : "Supprimer le calque ?"))
+        document.location.href = "delBgLayer.php?id=" + id +"&token=<?php echo $_SESSION['csrf']; ?>";
+}
+function toggleLayerAdd() {
+    var $form = document.getElementById("bg-layers-add-form");
+    if ($form.classList.contains("shown"))
+        $form.classList.remove("shown");
+    else
+        $form.classList.add("shown");
+}
+</script>
 </head>
 <body>
 	<?php
@@ -48,41 +67,48 @@ if (isset($_GET['id'])) {
     <div class="bgs-list-container">
         <div class="bg-edit-preview">
             <?php
-            print_bg_div($bg['id']);
+            print_bg_div(array(
+                'layers' => $bgLayers
+            ));
             ?>
-            <a href="bgSprite.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? 'Edit image':'Modifier l\'image'; ?></a>
         </div>
         <form method="post" id="bg-edit-form" class="bg-editor-form" action="editBg.php?id=<?php echo $_GET['id']; ?>">
-            <label for="name"><?php echo $language ? 'Name for your background (optional):':'Nom pour votre arrière-plan (facultatif) :'; ?></label>
+            <label for="name"><?php echo $language ? 'Name for your background (optional):':'Nom pour votre arrière-plan (facultatif) :'; ?></label><br />
             <input type="text" maxlength="30" name="name" id="name" placeholder="<?php echo $language ? 'Sunset':'Coucher de soleil'; ?>" value="<?php echo htmlspecialchars($bg['name']); ?>" />
             <button type="submit">Ok</button>
         </form>
     </div>
+    <div class="bgs-list-container bg-layers-container">
+        <h3><?php echo $language ? 'Layers' : 'Calques'; ?></h3>
+        <div class="bg-layers">
+            <?php
+            foreach ($bgLayers as $i=>$bgLayer) {
+                ?>
+                <div class="bg-layer">
+                    <div class="bg-layer-img">
+                        <img src="<?php echo $bgLayer['path']; ?>" alt="Layer <?php echo $i; ?>" />
+                    </div>
+                    <div class="bg-layer-actions">
+                        <button class="bg-edit" onclick="editLayer(<?php echo $bgLayer['id']; ?>)">✎</button>
+                        <button class="bg-del" onclick="delLayer(<?php echo $bgLayer['id']; ?>)">&times;</button>
+                    </div>
+                </div>
+                <?php
+            }
+            ?>
+        </div>
+        <div class="bg-layers-add" action="addBgLayer.php">
+            <a href="javascript:toggleLayerAdd()">+ <?php echo $language ? 'Add layer':'Ajouter un calque'; ?>...</a>
+            <form method="post" action="addBgLayer.php" enctype="multipart/form-data" id="bg-layers-add-form" class="bg-editor-form">
+                <input type="hidden" name="id" value="<?php echo $bg['id']; ?>" />
+                <input type="file" required="required" name="layer[]" />
+                <button type="submit">Ok</button>
+            </form>
+        </div>
+    </div>
     <div class="editor-navigation">
         <a href="bgEditor.php">&lt; <u><?php echo $language ? "Back to background editor":"Retour à l'éditeur d'arrière-plans"; ?></u></a>
     </div>
-    <script type="text/javascript">
-    function showBgPreview($div) {
-        var $img = $div.querySelector("img");
-        var left = 0, contentWidth, totalWidth;
-        function rotateImg() {
-            left += contentWidth;
-            if (left >= totalWidth)
-                left = 0;
-            $img.style.left = -left +"px";
-        }
-        $img.onload = function() {
-            $img.onload = undefined;
-            contentWidth = $div.offsetWidth;
-            totalWidth = $img.offsetWidth;
-            if (contentWidth < totalWidth)
-                setInterval(rotateImg,500);
-        }
-        if ($img.naturalHeight && $img.complete)
-            $img.onload();
-    }
-    showBgPreview(document.querySelector(".bg-preview"));
-    </script>
 </body>
 </html>
 		<?php

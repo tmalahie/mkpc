@@ -113,15 +113,16 @@ if (isset($error))
             <h3><?php echo $language ? 'Your backgrounds':'Vos arrière-plans'; ?></h3>
             <div class="bgs-list"><?php
             while ($bg = mysql_fetch_array($myBgs)) {
-                print_bg_div($bg['id'], array(
+                print_bg_div(array(
+                    'bg' => $bg['id'],
                     'attrs' => 'id="mybg-'. $bg['id'] .'" data-name="'. $bg['name'] .'" onclick="selectBg('. $bg['id'] .')"'
                 ));
             }
             ?></div>
             <div id="bg-actions">
                 <div id="bg-actions-name"></div>
-                <button class="edit-bg" onclick="javascript:editBg()"><?php echo $language ? "Edit":"Modifier"; ?></button>
-                <button class="suppr-bg" onclick="javascript:delBg()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
+                <button class="bg-edit" onclick="javascript:editBg()"><?php echo $language ? "Edit":"Modifier"; ?></button>
+                <button class="bg-del" onclick="javascript:delBg()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
             </div>
         <?php
         $poids = file_total_size();

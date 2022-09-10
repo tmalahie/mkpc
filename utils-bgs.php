@@ -34,9 +34,11 @@ function handle_bg_upload($files,$options=array()) {
 
 	$ordering = 0;
 	if (isset($options['layer'])) {
-		$getBg = mysql_fetch_array(mysql_query('SELECT bg FROM `mkbglayers` WHERE id="'. $options['layer'] .'"'));
+		$getBg = mysql_fetch_array(mysql_query('SELECT id,bg,filename FROM `mkbglayers` WHERE id="'. $options['layer'] .'"'));
 		if (!$getBg)
 			return array('error' => 'Unknown error');
+		$filePath = get_layer_path($getBg['filename']);
+		@unlink($filePath);
 		$id = $getBg['id'];
 	}
 	elseif (isset($options['bg'])) {
@@ -81,9 +83,12 @@ function get_bg_layers($bgId) {
 	}
 	return $bgLayers;
 }
-function print_bg_div($bgId, $options=array()) {
+function print_bg_div($options) {
+	if (isset($options['bg']))
+		$bgLayers = get_bg_layers($options['bg']);
+	elseif (isset($options['layers']))
+		$bgLayers = $options['layers'];
 	$customAttrs = isset($options['attrs']) ? ' '.$options['attrs'] : '';
-	$bgLayers = get_bg_layers($bgId);
 	$layerStyles = array();
 	foreach ($bgLayers as $bgLayer)
 		$layerStyles[] = "url('".$bgLayer['path']."')";
