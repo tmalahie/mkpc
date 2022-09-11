@@ -158,7 +158,7 @@ if (isset($error))
                 <br />
                 <div class="description-layers description-layers-24">
                     <div><img src="images/map_bg/hills.png" alt="Layer 1" /></div>
-                    <div><img src="images/map_bg/trees.png" alt="Layer 2" /></div>
+                    <div><img src="images/map_bg/trees1.png" alt="Layer 2" /></div>
                 </div>
                 <br />
                 And Figure 8 Circuit has 3:
@@ -185,7 +185,7 @@ if (isset($error))
                 <br />
                 <div class="description-layers description-layers-24">
                     <div><img src="images/map_bg/hills.png" alt="Calque 1" /></div>
-                    <div><img src="images/map_bg/trees.png" alt="Calque 2" /></div>
+                    <div><img src="images/map_bg/trees1.png" alt="Calque 2" /></div>
                 </div>
                 <br />
                 Et le Circuit en 8 en a 3 :

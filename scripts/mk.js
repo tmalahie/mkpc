@@ -4450,9 +4450,9 @@ function resetScreen() {
 			fLastZ = iPointZ;
 		}
 	}
-	function setupBgLayer(strImages) {
+	function setupBgLayer(strImages, fixedScale) {
 		for (var i=0;i<strImages.length;i++)
-			oBgLayers[i] = new BGLayer(strImages[i], (strImages.length==2)?1:i+1);
+			oBgLayers[i] = new BGLayer(strImages[i], fixedScale ? 1:i+1);
 		
 		for (var i=0;i<oPrevFrameStates.length;i++) {
 			for (var j=0;j<prevScreenDelay;j++) {
@@ -4479,7 +4479,7 @@ function resetScreen() {
 	else if (oMap.fond) {
 		setupBgLayer(oMap.fond.map(function(layer) {
 			return "images/map_bg/"+ layer +".png";
-		}));
+		}), oMap.fond.length===2);
 	}
 
 	for (var i=0;i<oPrevFrameStates.length;i++) {
