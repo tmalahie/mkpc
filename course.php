@@ -70,7 +70,7 @@ if (isset($_GET['i'])) {
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
-		include('circuitModes.php');
+		require_once('circuitUiUtils.php');
 		?>
 		<div id="toolbox">
 			<div id="mode-selection">
@@ -127,7 +127,7 @@ if (isset($_GET['i'])) {
 					<input type="text" id="boost-w" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />&times;<input type="text" id="boost-h" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />
 				</div>
 				<div id="mode-option-decor">
-					<?php printModeDecor(); ?>
+					<?php printDecorTypeSelector(); ?>
 				</div>
 				<div id="mode-option-jumps">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
@@ -306,44 +306,9 @@ if (isset($_GET['i'])) {
 			echo '</div>';
 			?>
 		</div>
-		<div id="bg-selector" class="fs-popup" onclick="event.stopPropagation()">
-			<div id="bg-selector-tabs">
-			<?php
-			$decors = Array (
-				'SNES' => array_slice($bgImages, 0,8),
-				'GBA' => array_slice($bgImages, 8,20),
-				'DS' => array_slice($bgImages, 28,20)
-			);
-			$i = 0;
-			foreach ($decors as $name=>$decorGroup) {
-				echo '<a id="bg-selector-tab-'.$i.'" href="javascript:showBgTab('.$i.')">'.$name.'</a>';
-				$i++;
-			}
-			?>
-			</div>
-			<div id="bg-selector-options">
-			<?php
-			$i = 0;
-			$j = 0;
-			foreach ($decors as $name=>$decorGroup) {
-				echo '<div class="bg-selector-optgroup" data-value="'.$i.'" id="bg-selector-optgroup-'.$i.'">';
-				foreach ($decorGroup as $decor) {
-					?>
-					<div id="bgchoice-<?php echo $j; ?>" data-value="<?php echo $j; ?>" onclick="changeBg(this)">
-						<?php
-						foreach ($decor as $img)
-							echo '<span style="background-image:url(\'images/map_bg/'.$img.'.png\')"></span>';
-						?>
-					</div>
-					<?php
-					$j++;
-				}
-				echo '</div>';
-				$i++;
-			}
-			?>
-			</div>
-		</div>
+		<?php
+		printBgSelector();
+		?>
 		<form id="music-selector" class="fs-popup" onclick="event.stopPropagation()" oncontextmenu="event.stopPropagation()" onsubmit="submitMusic(event)">
 			<table>
 				<tr>
@@ -894,7 +859,7 @@ else {
 						$id = $track['id'];
 						echo '<a href="battle.php?i='.$id.'"
 							data-id="'.$id.'"
-							data-name="'.htmlspecialchars($track['nom']).'"
+							data-name="'.($track['nom'] ? htmlspecialchars($track['nom']) : '').'"
 							'. ($track['data'] ? '':'data-pending="1"') .'
 							data-src="'.getCircuitImgUrl($circuitImg).'"
 							onclick="previewCircuit(this);return false"><img
