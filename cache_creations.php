@@ -27,12 +27,12 @@ function thumbnail($original_src,$cache_src, $maxw, $maxh) {
     $newHeight = $maxh;
     
     if ($height*$maxw > $maxh*$width) {
-        $newHeight = $maxw*$height/$width;
-        $y = ($newHeight-$maxh)/2;
+        $newHeight = round($maxw*$height/$width);
+        $y = round(($newHeight-$maxh)/2);
     }
     else {
-        $newWidth = $maxh*$width/$height;
-        $x = ($newWidth-$maxw)/2;
+        $newWidth = round($maxh*$width/$height);
+        $x = round(($newWidth-$maxw)/2);
     }
 
     imagecopyresampled($thumb, $source, -$x,-$y, 0, 0, $newWidth,$newHeight, $width,$height);
