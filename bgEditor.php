@@ -40,6 +40,7 @@ function selectBg(id) {
 		document.getElementById("bg-actions").style.display = "inline-block";
 		var bgName = document.getElementById("mybg-"+bgId).dataset.name;
 		document.getElementById("bg-actions-name").innerHTML = bgName;
+        document.getElementById("bg-actions").scrollIntoView();
 	}
 	else
 		document.getElementById("bg-actions").style.display = "none";

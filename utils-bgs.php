@@ -34,12 +34,12 @@ function handle_bg_upload($files,$options=array()) {
 
 	$ordering = 0;
 	if (isset($options['layer'])) {
-		$getBg = mysql_fetch_array(mysql_query('SELECT id,bg,filename FROM `mkbglayers` WHERE id="'. $options['layer'] .'"'));
-		if (!$getBg)
+		$getBgLayer = mysql_fetch_array(mysql_query('SELECT id,bg,filename FROM `mkbglayers` WHERE id="'. $options['layer'] .'"'));
+		if (!$getBgLayer)
 			return array('error' => 'Unknown error');
-		$filePath = get_layer_path($getBg['filename']);
+		$filePath = get_layer_path($getBgLayer['filename']);
 		@unlink($filePath);
-		$id = $getBg['id'];
+		$id = $getBgLayer['bg'];
 	}
 	elseif (isset($options['bg'])) {
 		$id = $options['bg'];

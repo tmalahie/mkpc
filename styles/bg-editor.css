@@ -37,10 +37,14 @@ h2 {
 }
 .bgs-list {
     margin-bottom: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25em;
 }
 .bgs-list .bg-preview {
     cursor: pointer;
     margin-bottom: 0.4em;
+    width: 250px;
 }
 .bgs-list .bg-preview:not(.bg-selected):hover {
     opacity: 0.8;
@@ -66,8 +70,8 @@ h2 {
 .bg-layer-actions {
     flex: 1;
     display: flex;
-    padding: 0.25em 0 0.35em 0.5em;
-    gap: 0.25em;
+    padding: 4px 0 9px 8px;
+    gap: 4px;
 }
 .bg-layer-actions button {
     width: 2.25em;
@@ -223,6 +227,10 @@ h2 {
 	color: #D35;
 	border-color: #E79;
 }
+.bg-edit-preview .bg-preview {
+    width: 384px;
+    height: 48px;
+}
 #error {
 	background-color: #D43;
 	color: #721;
@@ -257,7 +265,9 @@ h2 {
     font-size: 1rem;
 }
 .bg-preview {
-    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
     height: 24px;
     background-size: auto 100%;
 }

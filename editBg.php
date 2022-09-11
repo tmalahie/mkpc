@@ -72,6 +72,31 @@ function toggleLayerAdd() {
             ));
             ?>
         </div>
+        <style type="text/css">
+        <?php
+        $nbLayers = count($bgLayers);
+        $from = array();
+        $to = array();
+        $bgPreviewHeight = 48;
+        foreach ($bgLayers as $i=>$bgLayer) {
+            list($w,$h) = getimagesize($bgLayer['path']);
+            $imgW = round($w * ($bgPreviewHeight/$h));
+            $offset = -$imgW*($i+1);
+            $from[] = '0px 0px';
+            $to[] = $offset . 'px 0px';
+        }
+        $to = array_reverse($to);
+        ?>
+        @keyframes movebg {
+            from {background-position: <?php echo implode(',', $from); ?>}
+            to   {background-position: <?php echo implode(',', $to); ?>}
+        }
+        @media screen and (min-width: 480px) {
+            .bg-edit-preview .bg-preview {
+                animation: movebg 10s infinite linear;
+            }
+        }
+        </style>
         <form method="post" id="bg-edit-form" class="bg-editor-form" action="editBg.php?id=<?php echo $_GET['id']; ?>">
             <label for="name"><?php echo $language ? 'Name for your background (optional):':'Nom pour votre arrière-plan (facultatif) :'; ?></label><br />
             <input type="text" maxlength="30" name="name" id="name" placeholder="<?php echo $language ? 'Sunset':'Coucher de soleil'; ?>" value="<?php echo htmlspecialchars($bg['name']); ?>" />
@@ -82,7 +107,6 @@ function toggleLayerAdd() {
         <h3><?php echo $language ? 'Layers' : 'Calques'; ?></h3>
         <div class="bg-layers">
             <?php
-            $nbLayers = count($bgLayers);
             foreach ($bgLayers as $i=>$bgLayer) {
                 ?>
                 <div class="bg-layer">
