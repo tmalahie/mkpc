@@ -28,6 +28,7 @@ if (isset($_FILES['layer'])) {
 var bgId = -1;
 var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;
+var MAX_LAYERS = <?php echo MAX_LAYERS; ?>;
 function selectBg(id) {
 	if (bgId != -1)
 		document.getElementById("mybg-"+bgId).classList.remove("bg-selected");
@@ -62,7 +63,10 @@ function addLayer() {
     var $layer = $layerTemplate.content.cloneNode(true).children[0];
     $layerContainer.appendChild($layer);
     updateLayer($layer, nbLayers);
+    nbLayers++;
     document.querySelector(".bg-form-submit button").disabled = false;
+    if (nbLayers >= MAX_LAYERS)
+        document.querySelector(".bg-form-layer-new").style.display = "none";
 }
 function updateLayer($layer, id) {
     $layer.querySelector(".layer-id").innerText = id+1;
@@ -77,6 +81,7 @@ function deleteLayer($layerBtn) {
     }
     else
         document.querySelector(".bg-form-submit button").disabled = true;
+    document.querySelector(".bg-form-layer-new").style.display = "";
 }
 document.addEventListener("DOMContentLoaded", function() {
     addLayer();
@@ -169,6 +174,7 @@ if (isset($error))
                 </div>
                 <br />
                 To proceed, simply upload as many images as you want in the form below. 
+                You can specify up to <?php echo MAX_LAYERS; ?> layers.
                 <hr />
             </div>
             <?php
@@ -196,6 +202,7 @@ if (isset($error))
                 </div>
                 <br />
                 Pour continuer, envoyez simplement autant d'images que vous le souhaitez dans le formulaire ci-dessous.
+                Vous pouvez spécifier jusqu'à <?php echo MAX_LAYERS; ?> calques.
                 <hr />
             </div>
             <?php

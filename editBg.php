@@ -128,6 +128,9 @@ function toggleLayerAdd() {
             }
             ?>
         </div>
+        <?php
+        if ($nbLayers < MAX_LAYERS) {
+            ?>
         <div class="bg-layers-add" action="addBgLayer.php">
             <a href="javascript:toggleLayerAdd()">+ <?php echo $language ? 'Add layer':'Ajouter un calque'; ?>...</a>
             <form method="post" action="addBgLayer.php" enctype="multipart/form-data" id="bg-layers-add-form" class="bg-editor-form">
@@ -136,6 +139,9 @@ function toggleLayerAdd() {
                 <button type="submit">Ok</button>
             </form>
         </div>
+            <?php
+        }
+        ?>
     </div>
     <div class="editor-navigation">
         <a href="bgEditor.php">&lt; <u><?php echo $language ? "Back to background editor":"Retour à l'éditeur d'arrière-plans"; ?></u></a>

@@ -1,5 +1,6 @@
 <?php
 define('BGS_DIR', 'images/sprites/uploads/');
+define('MAX_LAYERS', 5);
 require_once('imageutils.php');
 function handle_bg_upload($files,$options=array()) {
 	global $language, $identifiants;
@@ -33,6 +34,8 @@ function handle_bg_upload($files,$options=array()) {
 		return array('error' => $error);
 
 	$ordering = 0;
+	$nbLayers = count($layerFiles);
+	$baseLayers = 0;
 	if (isset($options['layer'])) {
 		$getBgLayer = mysql_fetch_array(mysql_query('SELECT id,bg,filename FROM `mkbglayers` WHERE id="'. $options['layer'] .'"'));
 		if (!$getBgLayer)
@@ -43,13 +46,16 @@ function handle_bg_upload($files,$options=array()) {
 	}
 	elseif (isset($options['bg'])) {
 		$id = $options['bg'];
-		$getOrdering = mysql_fetch_array(mysql_query('SELECT MAX(ordering) AS max FROM `mkbglayers` WHERE bg="'. $options['bg'] .'"'));
-		$ordering = $getOrdering['max']+1;
+		$getLayerStats = mysql_fetch_array(mysql_query('SELECT MAX(ordering) AS max, COUNT(*) AS nb FROM `mkbglayers` WHERE bg="'. $options['bg'] .'"'));
+		$ordering = $getLayerStats['max']+1;
+		$baseLayers = +$getLayerStats['nb'];
 	}
 	else {
 		mysql_query('INSERT INTO `mkbgs` SET identifiant="'. $identifiants[0] .'"');
 		$id = mysql_insert_id();
 	}
+	if (($baseLayers+$nbLayers) > MAX_LAYERS)
+		$layerFiles = array_slice($layerFiles,0, MAX_LAYERS-$baseLayers);
 
 	foreach ($layerFiles as $layerFile) {
 		if (isset($options['layer']))
