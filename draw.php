@@ -22,7 +22,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create circuit':'Créer circuit'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
