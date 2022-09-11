@@ -27,7 +27,7 @@ function file_total_size($except = array()) {
 		$poids += @filesize('images/sprites/uploads/'.$decor['sprites'].'.png');
 	$bgLayers = mysql_query('SELECT l.filename FROM `mkbglayers` l INNER JOIN `mkbgs` b ON l.bg=b.id WHERE b.identifiant='.$identifiants[0]. (isset($except['layer']) ? ' AND l.id != '.$except['layer'] : ''));
 	while ($bgLayer = mysql_fetch_array($bgLayers))
-		$poids += @filesize('images/sprites/uploads/'.$bgLayer['filename'].'.png');
+		$poids += @filesize('images/sprites/uploads/'.$bgLayer['filename']);
 	return $poids;
 }
 function filesize_str($poids) {

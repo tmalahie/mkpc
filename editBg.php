@@ -82,6 +82,7 @@ function toggleLayerAdd() {
         <h3><?php echo $language ? 'Layers' : 'Calques'; ?></h3>
         <div class="bg-layers">
             <?php
+            $nbLayers = count($bgLayers);
             foreach ($bgLayers as $i=>$bgLayer) {
                 ?>
                 <div class="bg-layer">
@@ -90,7 +91,13 @@ function toggleLayerAdd() {
                     </div>
                     <div class="bg-layer-actions">
                         <button class="bg-edit" onclick="editLayer(<?php echo $bgLayer['id']; ?>)">✎</button>
-                        <button class="bg-del" onclick="delLayer(<?php echo $bgLayer['id']; ?>)">&times;</button>
+                        <?php
+                        if ($nbLayers > 1) {
+                            ?>
+                            <button class="bg-del" onclick="delLayer(<?php echo $bgLayer['id']; ?>)">&times;</button>
+                            <?php
+                        }
+                        ?>
                     </div>
                 </div>
                 <?php

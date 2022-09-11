@@ -111,6 +111,11 @@ if (isset($error))
         ?>
         <div class="bgs-list-container">
             <h3><?php echo $language ? 'Your backgrounds':'Vos arrière-plans'; ?></h3>
+            <div id="bg-actions">
+                <div id="bg-actions-name"></div>
+                <button class="bg-edit" onclick="javascript:editBg()"><?php echo $language ? "Edit":"Modifier"; ?></button>
+                <button class="bg-del" onclick="javascript:delBg()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
+            </div>
             <div class="bgs-list"><?php
             while ($bg = mysql_fetch_array($myBgs)) {
                 print_bg_div(array(
@@ -119,11 +124,6 @@ if (isset($error))
                 ));
             }
             ?></div>
-            <div id="bg-actions">
-                <div id="bg-actions-name"></div>
-                <button class="bg-edit" onclick="javascript:editBg()"><?php echo $language ? "Edit":"Modifier"; ?></button>
-                <button class="bg-del" onclick="javascript:delBg()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
-            </div>
         <?php
         $poids = file_total_size();
         echo '<div class="file-quotas">'. ($language ? 'You use '.filesize_str($poids).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($poids) .')' : 'Vous utilisez '.filesize_str($poids).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($poids).')') .'</div>';
