@@ -491,7 +491,7 @@ if (isset($_GET['i'])) {
 			$i = 0;
 			$j = 0;
 			foreach ($decors as $name=>$decorGroup) {
-				echo '<div class="bg-selector-optgroup" data-value="'.$i.'" id="bg-selector-optgroup-'.$i.'">';
+				echo '<div class="bg-selector-optgroup" data-value="'.$i.'" id="bg-selector-optgroup-'.$i.'"'.($decorGroup===null ? ' data-custom="1"':'').'>';
 				if (null === $decorGroup) {
 					?>
 					<div class="add-custom-bg" onclick="createCustomBg()">

@@ -2638,11 +2638,59 @@ function showBgTab(id) {
 	var $bgGroups = document.querySelectorAll(".bg-selector-optgroup");
 	for (var i=0;i<$bgGroups.length;i++)
 		$bgGroups[i].style.display = "";
-	document.getElementById("bg-selector-optgroup-"+id).style.display = "block";
+	var $selectorOptions = document.getElementById("bg-selector-optgroup-"+id);
+	$selectorOptions.style.display = "block";
 	var $bgTabs = document.querySelectorAll("#bg-selector-tabs > a");
 	for (var i=0;i<$bgTabs.length;i++)
 		$bgTabs[i].className = "";
 	document.getElementById("bg-selector-tab-"+id).className = "bg-selector-tab-selected";
+	if ($selectorOptions.dataset.custom)
+		fetchCustomBgData();
+}
+function fetchCustomBgData(opts) {
+	if (!opts) opts = {};
+	var $selectorOptions = document.querySelector('#bg-selector-options > div[data-custom="1"]');
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "getBgsData.php");
+	xhr.onload = function() {
+		var res = JSON.parse(xhr.responseText);
+		if (res) {
+			feedCustomBgData($selectorOptions, res);
+			if (opts.callback) opts.callback(res);
+		}
+	};
+	xhr.send(null);
+}
+function feedCustomBgData($selectorOptions, data) {
+	var $optionsList = $selectorOptions.querySelectorAll(":scope > div:not(.add-custom-bg)");
+	for (var i=0;i<$optionsList.length;i++)
+		$selectorOptions.removeChild($optionsList[i]);
+	var editorData = editorTools["options"].data;
+	var currentSelectedBg = editorData.bg_custom ? editorData.bg_img : -1;
+	for (var i=0;i<data.length;i++) {
+		var bg = data[i];
+		var $selectorOption = document.createElement("div");
+		$selectorOption.dataset.value = bg.id;
+		$selectorOption.dataset.custom = 1;
+		$selectorOption.id = "bgchoice-custom-" + bg.id;
+		$selectorOption.onclick = function() {
+			changeBg(this);
+		};
+		if (bg.id == currentSelectedBg)
+			$selectorOption.className = "bg-selected";
+
+		var $customBgBtn = $selectorOptions.querySelector(".add-custom-bg");
+		var bgLayers = bg.layers;
+		for (var j=0;j<bgLayers.length;j++) {
+			var $selectorLayer = document.createElement("span");
+			$selectorLayer.style.backgroundImage = "url('"+ bgLayers[j].path +"')";
+			$selectorOption.appendChild($selectorLayer);
+		}
+		customBgImgs[bg.id] = bgLayers.map(function(bgLayer) {
+			return bgLayer.path;
+		});
+		$selectorOptions.insertBefore($selectorOption, $customBgBtn);
+	}
 }
 function showBgSelector() {
 	var $background = document.getElementById("bg-selector");
@@ -2652,24 +2700,36 @@ function showBgSelector() {
 	$mask.classList.add("mask-dark");
 	$mask.appendChild($background);
 	$background.classList.add("fs-shown");
+	function handleTabFocus() {
+		fetchCustomBgData();
+	}
+	window.addEventListener("focus", handleTabFocus);
 	$mask.close = function() {
 		$mask.removeChild($background);
 		$background.classList.remove("fs-shown");
 		document.body.appendChild($background);
+		window.removeEventListener("focus", handleTabFocus);
 		this.defaultClose();
 	};
 	var bChoices = document.getElementsByClassName("bg-selected");
 	while (bChoices.length)
 		bChoices[0].className = "";
 	var editorTool = editorTools[currentMode];
-	var $selectedBg = document.getElementById("bgchoice-"+editorTool.data.bg_img);
-	$selectedBg.className = "bg-selected";
-	showBgTab($selectedBg.parentNode.getAttribute("data-value"));
+	var $selectedTab;
+	if (editorTool.data.bg_custom)
+		$selectedTab = document.querySelector('#bg-selector-options > div[data-custom="1"]');
+	else {
+		var $selectedBg = document.getElementById("bgchoice-"+editorTool.data.bg_img);
+		$selectedBg.className = "bg-selected";
+		$selectedTab = $selectedBg.parentNode;
+	}
+	showBgTab($selectedTab.getAttribute("data-value"));
 }
 function changeBg($elt) {
 	var editorTool = editorTools[currentMode];
 	storeHistoryData(editorTool.data);
 	editorTool.data.bg_img = +$elt.getAttribute("data-value");
+	editorTool.data.bg_custom = !!$elt.getAttribute("data-custom");
 	applyBgSelector();
 	var $mask = document.getElementById("mask-bg");
 	$mask.close();
@@ -2677,13 +2737,31 @@ function changeBg($elt) {
 function createCustomBg() {
 	window.open('bgEditor.php');
 }
+var customBgImgs = {};
 function applyBgSelector() {
 	var editorTool = editorTools[currentMode];
-	var selectedBg = bgImgs[editorTool.data.bg_img];
 	var selectedBgArr = [];
-	for (var i=0;i<selectedBg.length;i++)
-		selectedBgArr.unshift("url('images/map_bg/"+selectedBg[i]+".png')");
-	document.getElementById("button-bgimg").style.backgroundImage = selectedBgArr.join(",");
+	if (!editorTool.data.bg_custom) {
+		var selectedBg = bgImgs[editorTool.data.bg_img];
+		for (var i=0;i<selectedBg.length;i++)
+			selectedBgArr.unshift("url('images/map_bg/"+selectedBg[i]+".png')");
+	}
+	else {
+		selectedBg = customBgImgs[editorTool.data.bg_img];
+		if (selectedBg) {
+			for (var i=0;i<selectedBg.length;i++)
+				selectedBgArr.unshift("url('"+selectedBg[i]+"')");
+		}
+		else
+			fetchCustomBgData({
+				callback: function() {
+					if (customBgImgs[editorTool.data.bg_img])
+						applyBgSelector();
+				}
+			});
+	}
+	if (selectedBgArr.length)
+		document.getElementById("button-bgimg").style.backgroundImage = selectedBgArr.join(",");
 }
 function applyColorSelector() {
 	var editorTool = editorTools[currentMode];
@@ -4926,6 +5004,8 @@ var commonTools = {
 		},
 		"save" : function(self,payload) {
 			payload.main.bgimg = self.data.bg_img;
+			if (self.data.bg_custom)
+				payload.main.bgcustom = 1;
 			payload.main.music = self.data.music;
 			if (self.data.youtube) {
 				payload.main.youtube = self.data.youtube;
@@ -4936,6 +5016,7 @@ var commonTools = {
 		},
 		"restore" : function(self,payload) {
 			self.data.bg_img = payload.main.bgimg;
+			self.data.bg_custom = payload.main.bgcustom;
 			self.data.music = payload.main.music;
 			if (payload.main.youtube)
 				self.data.youtube = payload.main.youtube;

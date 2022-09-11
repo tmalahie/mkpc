@@ -83,6 +83,15 @@ function get_bg_layers($bgId) {
 	}
 	return $bgLayers;
 }
+function get_bg_payload($bg) {
+	$bgPayload = array(
+		'id' => $bg['id'],
+		'layers' => get_bg_layers($bg['id'])
+	);
+	if (isset($bg['name']) && ($bg['name'] !== ''))
+		$bgPayload['name'] = $bg['name'];
+	return $bgPayload;
+}
 function print_bg_div($options) {
 	if (isset($options['bg']))
 		$bgLayers = get_bg_layers($options['bg']);
