@@ -4,6 +4,7 @@ var fInfos;
 var formulaire;
 var baseCp, baseCp0, pUnlockMap;
 var customDecorData = {};
+var customBgData = {};
 var nBasePersos, customPersos;
 var selectedDifficulty;
 var updateCtnFullScreen;
@@ -4449,15 +4450,41 @@ function resetScreen() {
 			fLastZ = iPointZ;
 		}
 	}
-	for (var i=0;i<oMap.fond.length;i++)
-		oBgLayers[i] = new BGLayer(oMap.fond[i], (oMap.fond.length==2)?1:i+1);
+	function setupBgLayer(strImages) {
+		for (var i=0;i<strImages.length;i++)
+			oBgLayers[i] = new BGLayer(strImages[i], (strImages.length==2)?1:i+1);
+		
+		for (var i=0;i<oPrevFrameStates.length;i++) {
+			for (var j=0;j<prevScreenDelay;j++) {
+				for (var k=0;k<oBgLayers.length;k++)
+					oPrevFrameStates[i][j].layer.push(oBgLayers[k].clone(i, oPrevFrameStates[i][j].container));
+			}
+		}
+	}
+	if (oMap.custombg) {
+		if (customBgData[oMap.custombg])
+			setupBgLayer(customBgData[oMap.custombg]);
+		else {
+			xhr("getBgData.php", "id="+oMap.custombg, function(res) {
+				if (!res) return true;
+				res = JSON.parse(res);
+				customBgData[oMap.custombg] = res.layers.map(function(layer) {
+					return layer.path;
+				});
+				setupBgLayer(customBgData[oMap.custombg]);
+				return true;
+			});
+		}
+	}
+	else if (oMap.fond) {
+		setupBgLayer(oMap.fond.map(function(layer) {
+			return "images/map_bg/"+ layer +".png";
+		}));
+	}
 
 	for (var i=0;i<oPrevFrameStates.length;i++) {
-		for (var j=0;j<prevScreenDelay;j++) {
+		for (var j=0;j<prevScreenDelay;j++)
 			oContainers[i].appendChild(oPrevFrameStates[i][j].container);
-			for (var k=0;k<oBgLayers.length;k++)
-				oPrevFrameStates[i][j].layer.push(oBgLayers[k].clone(i, oPrevFrameStates[i][j].container));
-		}
 	}
 	oViewCanvas = document.createElement("canvas");
 	oViewCanvas.width=iViewCanvasWidth;
@@ -5338,14 +5365,14 @@ function BGLayer(strImage, scaleFactor) {
 	var oLayers = new Array();
 
 	var imageDims = new Image();
-	imageDims.src = "images/map_bg/" + strImage + ".png";
+	imageDims.src = strImage;
 	if (!iSmooth) imageDims.className = "pixelated";
 	for (var i=0;i<oContainers.length;i++) {
 		var oLayer = document.createElement("div");
 		oLayer.style.height = (10 * iScreenScale)+"px";
 		oLayer.style.width = (iWidth * iScreenScale)+"px";
 		oLayer.style.position = "absolute";
-		(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+imageDims.src+"')"},300)})(oLayer);
+		(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+strImage+"')"},300)})(oLayer);
 		oLayer.style.backgroundSize = "auto 100%";
 		if (!iSmooth) oLayer.className = "pixelated";
 

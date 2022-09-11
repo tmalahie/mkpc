@@ -18,11 +18,17 @@ foreach ($circuitsData as $c => $circuit) {
 "smartjump": 1,
 "w" : <?php echo $circuitImg->w; ?>,
 "h" : <?php echo $circuitImg->h; ?>,
-"fond" : ["<?php
+<?php
+if (isset($circuitMainData->bgcustom))
+	echo '"custombg":'.$circuitMainData->bgimg.',';
+else {
+	echo '"fond":["';
 	require_once('circuitEnums.php');
 	$getInfos = $bgImages[$circuitMainData->bgimg];
 	echo implode('","',$getInfos);
-?>"],
+	echo '"],';
+}
+?>
 "tours" : <?php echo $circuitMainData->tours; ?>,
 <?php
 if (isset($circuitMainData->sections)) {
