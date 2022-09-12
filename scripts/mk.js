@@ -1,5 +1,5 @@
 var pause, chatting = false;
-var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array();
+var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array(), aTracksHist = new Array();
 var fInfos;
 var formulaire;
 var baseCp, baseCp0, pUnlockMap;
@@ -1291,6 +1291,7 @@ function loadMap() {
 	formulaire.dataset.disabled = 1;
 
 	iTeamPlay = isTeamPlay();
+	aTracksHist.push(oMap.ref);
 
 	setSRest();
 	document.body.style.cursor = "progress";
@@ -4707,6 +4708,7 @@ function resetScores() {
 			aScores[i] = 0;
 		}
 	}
+	aTracksHist = new Array();
 	return res;
 }
 
@@ -22782,16 +22784,30 @@ function addFancyTitle(options) {
 function chooseRandMap() {
 	if (page == "MK") {
 		if (course != "BB")
-			choose(Math.ceil(Math.random()*NBCIRCUITS));
+			chooseWithin(0, NBCIRCUITS);
 		else
-			choose(NBCIRCUITS + Math.ceil(Math.random()*12));
+			chooseWithin(NBCIRCUITS, 12);
 	}
 	else if (isSingle)
 		choose(1);
 	else if (isBattle)
-		choose(NBCIRCUITS+Math.ceil(Math.random()*12),true);
+		chooseWithin(NBCIRCUITS, 12);
 	else
-		choose(Math.ceil(Math.random()*NBCIRCUITS),true);
+		chooseWithin(0, NBCIRCUITS);
+}
+function chooseWithin(min,range) {
+	var max = min+range;
+	var availableTracks = {};
+	for (var i=min+1;i<=max;i++)
+		availableTracks[i] = 1;
+	for (var i=0;i<aTracksHist.length;i++)
+		delete availableTracks[aTracksHist[i]];
+	availableTracks = Object.keys(availableTracks);
+	if (!availableTracks.length && aTracksHist.length) {
+		aTracksHist = aTracksHist.slice(aTracksHist.length-Math.floor(range/2));
+		return chooseWithin(min,range);
+	}
+	return choose(availableTracks[Math.floor(Math.random()*availableTracks.length)], true);
 }
 
 function selectMapScreen(opts) {
@@ -26149,7 +26165,7 @@ if (pause) {
 	if (isSingle && !isOnline)
 		choose(1);
 	else if (fInfos.map != undefined)
-		loadMap(fInfos.map);
+		loadMap();
 	else if (course == "VS")
 		selectMapScreen();
 	else if (course == "BB") {
