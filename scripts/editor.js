@@ -2679,7 +2679,6 @@ function feedCustomBgData($selectorOptions, data) {
 		if (bg.id == currentSelectedBg)
 			$selectorOption.className = "bg-selected";
 
-		var $customBgBtn = $selectorOptions.querySelector(".add-custom-bg");
 		var bgLayers = bg.layers;
 		for (var j=0;j<bgLayers.length;j++) {
 			var $selectorLayer = document.createElement("span");
@@ -2689,7 +2688,7 @@ function feedCustomBgData($selectorOptions, data) {
 		customBgImgs[bg.id] = bgLayers.map(function(bgLayer) {
 			return bgLayer.path;
 		});
-		$selectorOptions.insertBefore($selectorOption, $customBgBtn);
+		$selectorOptions.appendChild($selectorOption);
 	}
 }
 function showBgSelector() {
