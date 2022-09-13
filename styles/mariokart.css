@@ -832,23 +832,11 @@ form.game-popup .game-popup-body > div > label {
     gap: 0.25em;
 }
 .item-export-screen {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
     z-index: 1;
     display: flex;
     flex-direction: column;
-    background-color: rgba(0,0,0, 0.5);
 }
 .item-export-screen > div {
-    width: 100%;
-    width: calc(100% - 2em);
-    border-radius: 0.75em;
-    margin: 1em;
-    background-color: #444;
-    background-color: #444E;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -934,25 +922,30 @@ form.game-popup .game-popup-body > div > label {
     opacity: 0.8;
     cursor: default;
 }
-.item-options-screen {
+.fsmask {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
     background-color: rgba(0,0,0, 0.5);
+    display: flex;
 }
-.item-options-screen form {
+.fsmask > div, .fsmask > form {
+    flex: 1;
     width: 100%;
     width: calc(100% - 2em);
     border-radius: 0.75em;
     margin: 1em;
     background-color: #444;
     background-color: #444E;
-    flex: 1;
+}
+.item-options-screen {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+}
+.item-options-screen form {
     display: flex;
     flex-direction: column;
     overflow-y: hidden;
@@ -1010,6 +1003,125 @@ form.game-popup .game-popup-body > div > label {
 }
 .item-options-screen .item-option label:last-child {
     flex: 1;
+}
+.options-load-screen {
+    align-items: center;
+}
+.options-load-screen > div {
+    padding: 0.5em;
+    padding-bottom: 1em;
+    color: white;
+    text-align: center;
+    position: relative;
+    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.options-load-screen .close {
+    position: fixed;
+    z-index: 1;
+    left: 17.5em;
+    left: calc(18em - 10px);
+    top: 1em;
+    top: calc(0.75em + 10px);
+    background-color: rgba(0,0,0, 0.5);
+    color: white;
+    font-size: 2em;
+    border: solid 1px white;
+    border-radius: 50%;
+    width: 1.25em;
+    height: 1.25em;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.options-load-screen .close:hover {
+    background-color: rgba(255,255,255, 0.8);
+    color: black;
+}
+.options-load-screen .saved-links-ctn {
+    margin-top: 1em;
+}
+.options-load-screen h1 {
+    margin: 0.5em auto;
+    font-size: 2em;
+    color: #FEFF3F;
+}
+.options-load-screen h2 {
+    margin: 0.5em auto 0.25em auto;
+    font-size: 1.5em;
+    color: #FEFF3F;
+}
+.options-load-screen .private-link-form {
+    margin: 0.25em 2em;
+    gap: 0.25em;
+    display: flex;
+}
+.options-load-screen .private-link-form input[type="url"] {
+    font-size: 1.5em;
+    flex: 1;
+}
+.options-load-screen .private-link-form input[type="submit"] {
+    font-size: 1.25em;
+}
+.options-load-screen .saved-links {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    border-radius: 0.25em;
+    overflow: hidden;
+}
+.options-load-screen .saved-links-add a {
+    color: #ABF;
+}
+.options-load-screen .saved-links-add a:hover {
+    color: #CCF;
+}
+.options-load-screen .no-link {
+    color: #ddd;
+    font-style: italic;
+}
+.options-load-screen .saved-link {
+    display: flex;
+    background-color: black;
+    cursor: pointer;
+    position: relative;
+}
+.options-load-screen .saved-link:hover {
+    background-color: #123;
+}
+.options-load-screen .saved-link:not(:first-child) {
+    margin-top: 0.25em;
+}
+.options-load-screen .saved-link:not(:last-child) {
+    margin-bottom: 0.25em;
+}
+.options-load-screen .saved-link-data {
+    text-align: left;
+    padding: 0.25em 0.5em;
+}
+.options-load-screen .saved-link-options {
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+.options-load-screen .saved-link:hover .saved-link-options {
+    visibility: visible;
+}
+.options-load-screen .saved-link-name {
+    font-size: 1.5em;
+}
+.options-load-screen .saved-link-url {
+    color: #ABF;
+}
+.options-load-screen .saved-link-edit {
+    color: white;
+    background-color: #33a033;
+}
+.options-load-screen .saved-link-del {
+    color: white;
+    background-color: #cc3333;
 }
 .customOptionDialog {
     position: fixed;

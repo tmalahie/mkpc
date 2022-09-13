@@ -18324,7 +18324,157 @@ function privateGameOptions(gameOptions, onProceed) {
 	}
 	oScr.appendChild(oPInput);
 
+	var oLink = document.createElement("a");
+	if (!isOnline) oLink.style.display = "none";
+	oLink.href = "#null";
+	oLink.style.color = "#CCF";
+	oLink.innerHTML = toLanguage("Load options...", "Charger des options...");
+	oLink.style.fontSize = Math.round(iScreenScale*1.6) +"px";
+	oLink.style.position = "absolute";
+	oLink.style.right = (3*iScreenScale)+"px";
+	oLink.style.top = (35*iScreenScale+4)+"px";
+	oLink.onclick = function(e) {
+		e.preventDefault();
+		var oLoadScreen = document.createElement("div");
+		oLoadScreen.className = "fsmask options-load-screen";
+		oLoadScreen.style.fontSize = (iScreenScale*2) +"px";
+		oLoadScreen.innerHTML = '<div>'+
+			'<a class="close" href="#null">&times;</a>'+
+			'<h1>'+ toLanguage("Load private game options", "Charger options partie privée") +'</h1>'+
+			'<div>'+ toLanguage("This menu lets you import options from a previous private game.", "Ce menu vous permet d'importer des options d'une partie privée précédente.") +'</div>'+
+			'<form class="private-link-form">'+
+				'<input type="url" required="required" name="private-link" placeholder="'+ document.location.origin +'/online.php?key=20100620" />'+
+				'<input type="submit" value="Ok" />'+
+			'</form>'+
+			'<div class="saved-links-ctn">'+
+			'<h2>'+ toLanguage("Saved options", "Options sauvegardées") +'</h2>'+
+			'<div class="saved-links"></div>'+
+			'<div class="saved-links-add">\u2606 <a href="#null">'+ toLanguage("Save current private link options", "Sauvegarder les options actuelles") +'</a></div>'+
+			'</div>'+
+		'</div>';
+		oLoadScreen.querySelector(".private-link-form").onsubmit = function(e) {
+			e.preventDefault();
+			loadSavedLink(e.target.elements["private-link"].value);
+		};
+		function loadSavedLink(url) {
+			var key;
+			try {
+				key = new URLSearchParams(new URL(url).search).get('key');
+			}
+			catch (e) {
+			}
+			if (key == null) {
+				alert(toLanguage("Invalid URL", "URL invalide"));
+				return;
+			}
+			oLoadScreen.innerHTML = "";
+			xhr("getPrivGameOptions.php", "key="+key, function(res) {
+				oScr.removeChild(oLoadScreen);
+				if (!res) {
+					alert(toLanguage("Invalid link", "Lien invalide"));
+					return true;
+				}
+				try {
+					res = JSON.parse(res);
+				}
+				catch (e) {
+				}
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+				privateGameOptions(res, onProceed);
+				return true;
+			})
+		}
+
+		var $savedLinks = oLoadScreen.querySelector(".saved-links");
+		var savedLinks = loadOptionLinks();
+		function showSavedLinks() {
+			for (var i=0;i<savedLinks.length;i++) {
+				var savedLink = savedLinks[i];
+				var $savedLink = document.createElement("div");
+				$savedLink.className = "saved-link";
+				$savedLink.innerHTML = '<div class="saved-link-data">'+
+					'<div class="saved-link-name">'+ savedLink.name +'</div>'+
+					'<div class="saved-link-url">'+ savedLink.url +'</div>'+
+				'</div>'+
+				'<div class="saved-link-options">'+
+					'<button class="saved-link-edit">\u270E</button>'+
+					'<button class="saved-link-del">&times;</button>'+
+				'</div>';
+				(function(savedLink) {
+					$savedLink.onclick = function() {
+						loadSavedLink(savedLink.url);
+					}
+					$savedLink.querySelector(".saved-link-edit").onclick = function() {
+						var newName = prompt(toLanguage("New options name:", "Renommer ces options :"), savedLink.name);
+						if (newName && (newName !== savedLink.name)) {
+							savedLink.name = newName;
+							resetSavedLinks();
+						}
+					};
+					$savedLink.querySelector(".saved-link-del").onclick = function() {
+						if (confirm(toLanguage("Delete options set \""+ savedLink.name +"\"?", "Supprimer le jeu d'options \""+ savedLink.name +"\" ?"))) {
+							savedLinks.splice(savedLinks.indexOf(savedLink), 1);
+							resetSavedLinks();
+						}
+					};
+					$savedLink.querySelector(".saved-link-options").onclick = function(e) {
+						e.stopPropagation();
+					};
+				})(savedLink);
+				$savedLinks.appendChild($savedLink);
+			}
+			if (savedLinks.length) {
+				if (!shareLink.key)
+					oLoadScreen.querySelector(".saved-links-add").style.display = "none";
+			}
+			else {
+				$savedLinks.innerHTML = '<div class="no-link">'+ toLanguage("No saved options", "Aucune option sauvegardée") +'</div>';
+				if (!shareLink.key)
+					oLoadScreen.querySelector(".saved-links-ctn").style.display = "none";
+			}
+		}
+		function resetSavedLinks() {
+			storeOptionLinks(savedLinks);
+			$savedLinks.innerHTML = "";
+			showSavedLinks();
+		}
+		showSavedLinks();
+		var $close = oLoadScreen.querySelector(".close");
+		$close.style.left = ((iWidth-9)*iScreenScale + 5) +"px";
+		$close.onclick = function(e) {
+			e.preventDefault();
+			oScr.removeChild(oLoadScreen);
+		}
+		oLoadScreen.querySelector(".saved-links-add a").onclick = function(e) {
+			e.preventDefault();
+			var newName = prompt(toLanguage("Name for your options set:", "Nom pour le jeu d'options :"));
+			if (newName) {
+				savedLinks.push({
+					name: newName,
+					url: document.location.href
+				});
+				oLoadScreen.querySelector(".saved-links-add").style.display = "none";
+				resetSavedLinks();
+			}
+		};
+		oScr.appendChild(oLoadScreen);
+	}
+	oScr.appendChild(oLink);
+
 	oContainers[0].appendChild(oScr);
+}
+function loadOptionLinks() {
+	var res = localStorage.getItem("privgameopts");
+	if (res)
+		return JSON.parse(res);
+	return [];
+}
+function storeOptionLinks(savedLinks) {
+	savedLinks.sort(function(obj1,obj2) {
+		return obj1.name.localeCompare(obj2.name)
+	});
+	localStorage.setItem("privgameopts", JSON.stringify(savedLinks));
 }
 function privateLink(options) {
 	var oScr = document.createElement("div");
@@ -18338,7 +18488,9 @@ function privateLink(options) {
 
 	oScr.appendChild(toTitle(toLanguage("Private game", "Partie privée"), 0));
 
-	xhr("privateGame.php", isCustomOptions(options) ? ("options="+encodeURIComponent(JSON.stringify(options))):null, function(res) {
+	var customOptionsExist = isCustomOptions(options);
+
+	xhr("privateGame.php", customOptionsExist ? ("options="+encodeURIComponent(JSON.stringify(options))):null, function(res) {
 		if (res) {
 			var baseUrl = shareLink.url;
 			var params = shareLink.params.slice(0);
@@ -18347,13 +18499,61 @@ function privateLink(options) {
 			var oDiv = document.createElement("div");
 			oDiv.style.position = "absolute";
 			oDiv.style.left = "0px";
-			oDiv.style.top = (iScreenScale*13) + "px";
+			oDiv.style.top = (iScreenScale*12) + "px";
 			oDiv.style.width = (iWidth*iScreenScale) +"px";
 			oDiv.style.textAlign = "center";
 			oDiv.style.fontSize = (iScreenScale*3) + "px";
 			oDiv.style.color = "#CFC";
 			oDiv.innerHTML = language ? 'The following private link has been generated:<br /><a href="'+url+'" style="color:AAF">'+url+'</a><br /><br />Enjoy game :)' : 'Le lien privé suivant a été généré :<br /><a href="'+url+'" style="color:AAF">'+url+'</a><br /><br />Bonne partie :)';
 			oScr.appendChild(oDiv);
+
+			if (customOptionsExist) {
+				var oSaveLink = document.createElement("input");
+				oSaveLink.type = "button";
+				oSaveLink.style.position = "absolute";
+				oSaveLink.style.right = (iScreenScale*1) +"px";
+				oSaveLink.style.top = (iScreenScale*33) +"px";
+				oSaveLink.style.fontSize = Math.round(iScreenScale*1.7) +"px";
+				oSaveLink.value = "\u2606 " + toLanguage("Save game options...", "Sauvegarder options partie privée");
+				oSaveLink.onclick = function() {
+					var newName = prompt(toLanguage("Options name:", "Nom des options :"));
+					if (newName) {
+						var savedLinks = loadOptionLinks();
+						var newOptions = {
+							name: newName,
+							url: url
+						};
+						savedLinks.push(newOptions);
+						storeOptionLinks(savedLinks);
+						oScr.removeChild(oSaveLink);
+						oScr.appendChild(oSaveLinkSuccess);
+						oSaveLinkUndo.onclick = function(e) {
+							e.preventDefault();
+							savedLinks.splice(savedLinks.indexOf(newOptions), 1);
+							storeOptionLinks(savedLinks);
+							oScr.removeChild(oSaveLinkSuccess);
+							oScr.appendChild(oSaveLink);
+						}
+					}
+				}
+				oScr.appendChild(oSaveLink);
+
+				var oSaveLinkSuccess = document.createElement("div");
+				oSaveLinkSuccess.style.color = "white";
+				oSaveLinkSuccess.style.position = "absolute";
+				oSaveLinkSuccess.style.left = (iScreenScale*1) +"px";
+				oSaveLinkSuccess.style.width = (iScreenScale*(iWidth-2)) +"px";
+				oSaveLinkSuccess.style.top = (iScreenScale*33) +"px";
+				oSaveLinkSuccess.style.textAlign = "center";
+				oSaveLinkSuccess.style.fontSize = (iScreenScale*2) +"px";
+				oSaveLinkSuccess.innerHTML = toLanguage("Options saved, you can access them by clicking on &quot;Load options...&quot; in private game options screen ", "Options sauvegardées, vous pourrez y accéder en cliquannt sur &quot;Charger des options...&quot; dans les options de partie privée ");
+				var oSaveLinkUndo = document.createElement("a");
+				oSaveLinkUndo.href = "#null";
+				oSaveLinkUndo.style.color = "#ccf";
+				oSaveLinkUndo.style.textDecoration = "none";
+				oSaveLinkUndo.innerHTML = toLanguage("[Undo]", "[Annuler]");
+				oSaveLinkSuccess.appendChild(oSaveLinkUndo);
+			}
 			return true;
 		}
 		return false;
@@ -20958,7 +21158,7 @@ function selectItemScreen(oScr, callback, options) {
 		oMoreOptions.onclick = function(e) {
 			e.preventDefault();
 			var oOptionsScreen = document.createElement("div");
-			oOptionsScreen.className = "item-options-screen";
+			oOptionsScreen.className = "fsmask item-options-screen";
 			oOptionsScreen.style.fontSize = (iScreenScale*2) +"px";
 			oOptionsScreen.innerHTML = '<form>'+
 				'<div class="item-options">'+
@@ -21069,7 +21269,7 @@ function selectItemScreen(oScr, callback, options) {
 		oLink.onclick = function(e) {
 			e.preventDefault();
 			var oExportScreen = document.createElement("div");
-			oExportScreen.className = "item-export-screen";
+			oExportScreen.className = "fsmask item-export-screen";
 			oExportScreen.style.fontSize = (iScreenScale*2) +"px";
 			oExportScreen.innerHTML = '<div>'+
 				'<div class="tab-buttons">'+
