@@ -14215,7 +14215,7 @@ function move(getId, triggered) {
 		}
 		var newShift;
 		if (handleJump(oKart, sauts(aPosX,aPosY, fMoveX,fMoveY))) {
-			oKart.speed = 11;
+			oKart.speed = 11*cappedRelSpeed(oKart);
 			oKart.figuring = false;
 			oKart.figstate = 0;
 			if (!oKart.bounceSound) {
