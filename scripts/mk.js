@@ -1,5 +1,5 @@
 var pause, chatting = false;
-var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array(), aTracksHist = new Array();
+var aPlayers = new Array(), aPlaces = new Array(), aScores = new Array(), aTeams = new Array(), aPseudos = new Array(), aControllers = new Array(), aTracksHist = new Array(), iRaceCount = 0;
 var fInfos;
 var formulaire;
 var baseCp, baseCp0, pUnlockMap;
@@ -1292,6 +1292,7 @@ function loadMap() {
 
 	iTeamPlay = isTeamPlay();
 	aTracksHist.push(oMap.ref);
+	iRaceCount++;
 
 	setSRest();
 	document.body.style.cursor = "progress";
@@ -3463,6 +3464,27 @@ function startGame() {
 		}
 	}
 
+	var oRaceCounts;
+	if ((course != "CM") && (iRaceCount > 1) && isLocalScore()) {
+		oRaceCounts = new Array();
+		for (var i=0;i<strPlayer.length;i++) {
+			var oRaceCount = document.createElement("div");
+			oRaceCount.style.position = "absolute";
+			oRaceCount.style.right = Math.round(iScreenScale*0.6+1) +"px";
+			oRaceCount.style.top = Math.round(iScreenScale*0.4-3) +"px";
+			oRaceCount.style.color = "white";
+			oRaceCount.style.fontFamily = '"MuseoModerno", Arial';
+			oRaceCount.style.fontSize = Math.round(iScreenScale*2.4) +"px";
+			var shadowShift = Math.round(iScreenScale/8) +"px";
+			var shadowShift2 = Math.round(iScreenScale/4) +"px";
+			oRaceCount.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
+			var sRaceLabel = (course == "BB") ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
+			oRaceCount.innerHTML = sRaceLabel + " " + iRaceCount;
+			hudScreens[i].appendChild(oRaceCount);
+			oRaceCounts.push(oRaceCount);
+		}
+	}
+
 	var willReplay = (fInfos && fInfos.replay);
 	var fncCount = function() {
 		if (iCntStep) {
@@ -3480,6 +3502,8 @@ function startGame() {
 			}
 			else {
 				for (var i=0;i<strPlayer.length;i++) {
+					if (oRaceCounts)
+						hudScreens[i].removeChild(oRaceCounts[i]);
 					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('GO!', 'PARTEZ !') +'</td></tr>';
 					document.getElementById("infos"+i).style.fontSize = iScreenScale * 12 + "px";
 					document.getElementById("infos"+i).style.top = Math.round(12.5*iScreenScale) + "px";
@@ -4709,6 +4733,7 @@ function resetScores() {
 		}
 	}
 	aTracksHist = new Array();
+	iRaceCount = 0;
 	return res;
 }
 
@@ -9584,6 +9609,11 @@ function stopDrifting(i) {
 
 function isJumpEnabled() {
     return !(isOnline && shareLink.options && shareLink.options.noJump);
+}
+function isLocalScore() {
+	if (isOnline)
+		return (shareLink.options && shareLink.options.localScore);
+	return true;
 }
 
 function showRearView(getId) {
@@ -19818,6 +19848,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 							return;
 						}
 						aPlayers = [strPlayer[0]];
+						iRaceCount = 0;
 					}
 					else if (course == "CM")
 						aPlayers = [];
@@ -23382,6 +23413,8 @@ function selectMapScreen(opts) {
 			oScr.appendChild(oPInput);
 		}
 
+		showRaceCountIfRelevant(oScr);
+
 		if (cupOpts.pages && cupOpts.pages.length) {
 			var oPrevInput = document.createElement("input");
 			oPrevInput.type = "button";
@@ -23488,6 +23521,20 @@ function exitCircuit() {
 		changeRace.click();
 	else
 		document.location.href = "index.php";
+}
+
+function showRaceCountIfRelevant(oScr) {
+	if ((course != "CM") && iRaceCount && isLocalScore()) {
+		var oRaceCount = document.createElement("div");
+		var sRaceLabel = (course == "BB") ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
+		oRaceCount.innerHTML = sRaceLabel + " " + (iRaceCount+1);
+		oRaceCount.style.fontSize = (2*iScreenScale)+"px";
+		oRaceCount.style.position = "absolute";
+		oRaceCount.style.color = "#ccc";
+		oRaceCount.style.right = (3*iScreenScale)+"px";
+		oRaceCount.style.top = ((isOnline?((isSingle||isMCups||!isCup)?31:27):35)*iScreenScale)+"px";
+		oScr.appendChild(oRaceCount);
+	}
 }
 
 function appendContainers() {
@@ -23690,6 +23737,8 @@ function selectRaceScreen(cup) {
 			oScr.appendChild(oPInput);
 		}
 
+		showRaceCountIfRelevant(oScr);
+
 		if (isOnline) {
 			setSRest();
 			handleSpectatorLink(function() {
@@ -23807,7 +23856,8 @@ function choose(map,rand) {
 				}
 				else {
 					hideSpectatorLink();
-					if (nbChoices >= rCode[4].minPlayers) {
+					var gameRules = rCode[4];
+					if (nbChoices >= gameRules.minPlayers) {
 						aPlayers = new Array();
 						aIDs = new Array();
 						aPlaces = new Array();
@@ -23820,14 +23870,16 @@ function choose(map,rand) {
 							if (isBattle)
 								iDificulty = 4.5;
 						}
-						if (rCode[4].cc)
-							fSelectedClass = getRelSpeedFromCc(rCode[4].cc);
+						if (gameRules.cc)
+							fSelectedClass = getRelSpeedFromCc(gameRules.cc);
 						else
 							fSelectedClass = 1;
-						if (rCode[4].mirror)
+						if (gameRules.mirror)
 							bSelectedMirror = true;
 						else
 							bSelectedMirror = false;
+						if (gameRules.raceCount >= 0)
+							iRaceCount = gameRules.raceCount;
 						aTeams = new Array();
 						for (i=0;i<choixJoueurs.length;i++) {
 							var aID = choixJoueurs[i][0];
@@ -23872,11 +23924,11 @@ function choose(map,rand) {
 						if (isSingle)
 							rCode[2] = 0;
 						else {
-							if (rCode[4].manualTeams) {
+							if (gameRules.manualTeams) {
 								if (playerIsSelecter())
 									rCode[2] = 0;
 								else
-									rCode[2] -= rCode[4].selectionTime;
+									rCode[2] -= gameRules.selectionTime;
 							}
 							else
 								tnCourse += 5000;
@@ -24078,6 +24130,7 @@ function leaveRaceWheelScreen() {
 	removeMenuMusic();
 	removeGameMusics();
 	chatting = false;
+	iRaceCount = 0;
 	var opts = {
 		enableSpectatorMode: !!onlineSpectatorId
 	};

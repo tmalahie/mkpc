@@ -183,6 +183,11 @@ if ($course) {
 		}
 		else
 			mysql_query('UPDATE `mkplayers` SET team=-1 WHERE course='. $course);
+		
+		if (!empty($courseRules->localScore)) {
+			require_once('onlineStateUtils.php');
+			initCourseState($getMap['link']);
+		}
 	}
 	if ($spectatorId && ($nbPlayers > $minPlayers))
 		mysql_query('UPDATE `mkjoueurs` SET course=0 WHERE id="'.$id.'" AND course="'.$course.'"');
@@ -229,6 +234,11 @@ if ($course) {
 		$selectionTime = getTeamSelectionTime($nbJoueurs);
 		echo ',manualTeams:1';
 		echo ',selectionTime:'.$selectionTime;
+	}
+	if (!empty($courseRules->localScore)) {
+		require_once('onlineStateUtils.php');
+		$courseState = getCourseState($getMap['link']);
+		echo ',raceCount:' . $courseState['raceCount'];
 	}
 	if (!empty($courseRules->friendlyFire))
 		echo ',friendlyFire:1';

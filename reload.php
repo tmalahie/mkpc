@@ -234,6 +234,8 @@ if ($id) {
 			}
 			if ($finished) {
 				$nbScores = mysql_numrows($joueurs);
+				$isFriendly = !empty($courseRules->friendly);
+				$isLocal = $isFriendly && !empty($courseRules->localScore);
 				if ($finishing) {
 					$nbPlaces = $nbScores;
 					if ($isBattle) {
@@ -253,6 +255,10 @@ if ($id) {
 					mysql_query('UPDATE `mkplayers` SET connecte=0 WHERE course='. $course);
 					mysql_query('UPDATE `mkjoueurs` SET choice_map=0 WHERE course='. $course);
 					mysql_query('DELETE FROM `items` WHERE course='.$course.' AND (data!="" OR updated_at<"'.$lConnect.'")');
+					if ($isLocal) {
+						require_once('onlineStateUtils.php');
+						incCourseState($courseOptions['id']);
+					}
 				}
 				if ($spectatorId)
 					mysql_query('UPDATE `mkspectators` SET state="joined" WHERE id="'. $spectatorId .'" AND state="pending"');
@@ -261,8 +267,6 @@ if ($id) {
 					$coeff *= pow(2,$coeff);
 					return $coeff*(($coeff<0)?$score:max(20000-$score,5000))/80;
 				}
-				$isFriendly = !empty($courseRules->friendly);
-				$isLocal = $isFriendly && !empty($courseRules->localScore);
 				$joueurs = mysql_query('SELECT p.id,j.nom,p.aPts,p.team,p.controller AS cpu,p.finaltime FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' ORDER BY p.place');
 				$playersData = array();
 				$allPlayersData = array();
