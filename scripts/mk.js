@@ -13298,7 +13298,7 @@ function resetDatas() {
 						var pCode = rCode[3][i];
 						var oTr = document.createElement("tr");
 						oTds[i] = new Array();
-						if (pCode[0] == oPlayer.id) {
+						if (pCode[0] == identifiant) {
 							oTr.style.backgroundColor = rankingColor(0);
 							document.getElementById("infoPlace0").innerHTML = i+1;
 							document.getElementById("infoPlace0").style.visibility = "visible";
@@ -19861,7 +19861,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	}
 
 	var enableSpectatorMode = false;
-	if (isOnline) {
+	if (isOnline && !isCustomSel) {
 		if (additionalOptions && additionalOptions.enableSpectatorMode)
 			enableSpectatorMode = true;
 
