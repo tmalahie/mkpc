@@ -30,12 +30,16 @@ foreach ($circuitsData as $c => $arene) {
 			<?php
 		}
 	}
-	?>
-	"fond" : ["<?php
+	if (isset($circuitMainData->bgcustom))
+		echo '"custombg":'.$circuitMainData->bgimg.',';
+	else {
+		echo '"fond":["';
 		require_once('circuitEnums.php');
 		$getInfos = $bgImages[$circuitMainData->bgimg];
 		echo implode('","',$getInfos);
-	?>"],
+		echo '"],';
+	}
+	?>
 	"startposition" : <?php echo empty($circuitMainData->startposition) ? '[[-1,-1,0]]':json_encode($circuitMainData->startposition); ?>,
 	"aipoints" : <?php echo json_encode($circuitPayload->aipoints); ?>,
 	"collision" : <?php
