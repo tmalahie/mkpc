@@ -11,7 +11,7 @@ function handle_bg_upload($files,$options=array()) {
 		if (!$files['error'][$i]) {
 			$poids = $files['size'][$i];
 			if ($poids < 1000000) {
-				$totalSize += file_total_size(isset($options['layer']) ? array('layer'=>$options['layer']):array());
+				$totalSize += $poids;
 				if ($totalSize < MAX_FILE_SIZE) {
 					$ext = get_img_ext($filePath);
 					$extensions = Array('png', 'gif', 'jpg', 'jpeg');
@@ -23,7 +23,7 @@ function handle_bg_upload($files,$options=array()) {
 					}
 					else $error = $language ? 'Your image must have a png, gif, jpg or jpeg extension.':'Votre image doit &ecirc;tre au format png, gif, jpg ou jpeg.';
 				}
-				else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete characters or circuits to free space.':'Vous avez d&eacute;pass&eacute; votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des persos ou des circuits pour lib&eacute;rer de l\'espace disque.';
+				else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete backgrounds or circuits to free space.':'Vous avez d&eacute;pass&eacute; votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des arrière-plans ou des circuits pour lib&eacute;rer de l\'espace disque.';
 			}
 			else $error = $language ? 'Your image mustn\'t exceed 1 Mo. Compress or reduce it if necessary.':'Votre image ne doit pas d&eacute;passer 1 Mo. Compressez-la ou r&eacute;duisez la taille si n&eacute;cessaire.';
 		}
