@@ -81,10 +81,11 @@ function toggleLayerAdd() {
         foreach ($bgLayers as $i=>$bgLayer) {
             list($w,$h) = getimagesize($bgLayer['path']);
             $imgW = round($w * ($bgPreviewHeight/$h));
-            $offset = -$imgW*($i+1);
-            $from[] = '0px 0px';
-            $to[] = $offset . 'px 0px';
+            $offset = $imgW*($i+1)/2;
+            $from[] = ceil($offset) . 'px 0px';
+            $to[] = -floor($offset) . 'px 0px';
         }
+        $from = array_reverse($from);
         $to = array_reverse($to);
         ?>
         @keyframes movebg {
