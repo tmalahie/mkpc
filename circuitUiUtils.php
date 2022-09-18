@@ -61,7 +61,7 @@ function printBgSelector() {
                 ?>
                 <div class="add-custom-bg" onclick="createCustomBg()">
                     <?php
-                    echo '<span><strong>+</strong> '. ($language ? "Go to backgrounds editor..." : "Éditeur d'arrière-plans...") .'</span>';
+                    echo '<span><strong>+</strong> '. ($language ? "Go to background editor..." : "Éditeur d'arrière-plans...") .'</span>';
                     ?>
                 </div>
                 <?php

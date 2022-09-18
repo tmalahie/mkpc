@@ -98,7 +98,7 @@ if (isset($error))
         <?php
         if ($language) {
             ?>
-            Welcome to the backgrounds editor!<br />
+            Welcome to the background editor!<br />
             With this mode, you can create your own backgrounds and use them in the complete mode of the track builder.
             <?php
         }
