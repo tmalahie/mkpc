@@ -22731,7 +22731,7 @@ function handleMatchmakingSuccess(reponse) {
 	}
 	selectMapScreen({ racecountdown: reponse.time-5 });
 	dRest();
-	setTimeout(setChat, 1000);
+	setTimeout(setChat, 1);
 }
 function addFancyTitle(options) {
 	var $elt = options.elt;
