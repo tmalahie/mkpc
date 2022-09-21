@@ -301,7 +301,6 @@ h2 {
 }
 #bg-layers-add-form {
     display: none;
-    margin-top: 0.15em;
     margin-bottom: 0.25em;
 }
 #bg-layers-add-form.shown {

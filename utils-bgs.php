@@ -6,17 +6,20 @@ function handle_bg_upload($files,$options=array()) {
 	global $language, $identifiants;
 	$totalSize = file_total_size(isset($options['layer']) ? array('layer'=>$options['layer']):array());
 	$layerFiles = array();
-	foreach ($files['tmp_name'] as $i => $filePath) {
+	foreach ($files as &$file) {
 		$error = null;
-		if (!$files['error'][$i]) {
-			$poids = $files['size'][$i];
+		$filePath = $file['tmp_name'];
+		if (!$file['error']) {
+			$poids = $file['size'];
 			if ($poids < 1000000) {
-				$totalSize += $poids;
+				if (!isset($file['url']))
+					$totalSize += $poids;
 				if ($totalSize < MAX_FILE_SIZE) {
 					$ext = get_img_ext($filePath);
 					$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 					if (in_array($ext, $extensions)) {
 						$layerFiles[] = array(
+							'url' => isset($file['url']) ? $file['url'] : null,
 							'path' => $filePath,
 							'ext' => $ext
 						);
@@ -40,8 +43,10 @@ function handle_bg_upload($files,$options=array()) {
 		$getBgLayer = mysql_fetch_array(mysql_query('SELECT id,bg,filename FROM `mkbglayers` WHERE id="'. $options['layer'] .'"'));
 		if (!$getBgLayer)
 			return array('error' => 'Unknown error');
-		$filePath = get_layer_path($getBgLayer['filename']);
-		@unlink($filePath);
+		if ($getBgLayer['filename'] !== '') {
+			$filePath = get_layer_path($getBgLayer['filename']);
+			@unlink($filePath);
+		}
 		$id = $getBgLayer['bg'];
 	}
 	elseif (isset($options['bg'])) {
@@ -61,13 +66,19 @@ function handle_bg_upload($files,$options=array()) {
 		if (isset($options['layer']))
 			$layerId = $options['layer'];
 		else {
-			mysql_query('INSERT INTO `mkbglayers` SET bg="'. $id .'",ordering="'. $ordering .'",filename=""');
+			mysql_query('INSERT INTO `mkbglayers` SET bg="'. $id .'",ordering="'. $ordering .'",filename="",url=""');
 			$layerId = mysql_insert_id();
 		}
-		$fileName = generate_layer_name($layerId, $layerFile['ext']);
-		$filePath = get_layer_path($fileName);
-		move_uploaded_file($layerFile['path'], $filePath);
-		mysql_query('UPDATE mkbglayers SET filename="'. $fileName .'" WHERE id='. $layerId);
+		if ($layerFile['url'] === null) {
+			$fileName = generate_layer_name($layerId, $layerFile['ext']);
+			$filePath = get_layer_path($fileName);
+			move_uploaded_file($layerFile['path'], $filePath);
+			mysql_query('UPDATE mkbglayers SET filename="'. $fileName .'", url="" WHERE id='. $layerId);
+		}
+		else {
+			@unlink($layerFile['path']);
+			mysql_query('UPDATE mkbglayers SET url="'. $layerFile['url'] .'", filename="" WHERE id='. $layerId);
+		}
 		$ordering++;
 	}
 	return array('id' => $id);
@@ -80,11 +91,13 @@ function get_layer_path($fileName) {
 }
 function get_bg_layers($bgId) {
 	$bgLayers = array();
-	$getLayers = mysql_query('SELECT id,filename FROM mkbglayers WHERE bg="'. $bgId .'" ORDER BY ordering');
+	$getLayers = mysql_query('SELECT id,filename,url FROM mkbglayers WHERE bg="'. $bgId .'" ORDER BY ordering');
 	while ($getLayer = mysql_fetch_array($getLayers)) {
+		$local = ($getLayer['filename'] !== '');
 		$bgLayers[] = array(
 			'id' => $getLayer['id'],
-			'path' => get_layer_path($getLayer['filename'])
+			'path' => $local ? get_layer_path($getLayer['filename']) : $getLayer['url'],
+			'local' => $local
 		);
 	}
 	return $bgLayers;
@@ -97,6 +110,30 @@ function get_bg_payload($bg) {
 	if (isset($bg['name']) && ($bg['name'] !== ''))
 		$bgPayload['name'] = $bg['name'];
 	return $bgPayload;
+}
+function url_to_file_payload($url) {
+	$fileContent = @file_get_contents($url);
+	if ($fileContent) {
+		$file = tmpfile();
+		$fileStream = stream_get_meta_data($file);
+		$filePath = $fileStream['uri'];
+		file_put_contents($filePath, $fileContent);
+		return array(
+			'url' => $url,
+			'size' => @filesize($filePath),
+			'tmp_name' => $filePath,
+			'tmp_file' => $file,
+			'error' => 0
+		);
+	}
+	else {
+		return array(
+			'url' => $url,
+			'size' => 0,
+			'tmp_name' => null,
+			'error' => 1
+		);
+	}
 }
 function print_bg_div($options) {
 	if (isset($options['bg']))

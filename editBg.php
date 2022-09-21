@@ -24,6 +24,7 @@ if (isset($_GET['id'])) {
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css" />
 <link rel="stylesheet" href="styles/bg-editor.css" />
+<script type="text/javascript" src="scripts/bg-editor.js"></script>
 <title><?php echo $language ? 'Background editor':'Éditeur d\'arrière-plans'; ?></title>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -79,8 +80,8 @@ function toggleLayerAdd() {
         $to = array();
         $bgPreviewHeight = 48;
         foreach ($bgLayers as $i=>$bgLayer) {
-            list($w,$h) = getimagesize($bgLayer['path']);
-            $imgW = round($w * ($bgPreviewHeight/$h));
+            list($w,$h) = @getimagesize($bgLayer['path']);
+            $imgW = $h ? round($w * ($bgPreviewHeight/$h)) : 0;
             $offset = $imgW*($i+1)/2;
             $from[] = ceil($offset) . 'px 0px';
             $to[] = -floor($offset) . 'px 0px';
@@ -136,7 +137,23 @@ function toggleLayerAdd() {
             <a href="javascript:toggleLayerAdd()">+ <?php echo $language ? 'Add layer':'Ajouter un calque'; ?>...</a>
             <form method="post" action="addBgLayer.php" enctype="multipart/form-data" id="bg-layers-add-form" class="bg-editor-form">
                 <input type="hidden" name="id" value="<?php echo $bg['id']; ?>" />
-                <input type="file" required="required" name="layer[]" />
+                <div class="editor-upload">
+                    <div class="editor-upload-tabs">
+                        <div class="editor-upload-tab editor-upload-tab-selected">
+                            <?php echo $language ? 'Upload an image':'Uploader une image'; ?>
+                        </div><div class="editor-upload-tab">
+                            <?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image'; ?>
+                        </div>
+                    </div>
+                    <div class="editor-upload-inputs">
+                        <div class="editor-upload-input editor-upload-input-selected">
+                            <input type="file" accept="image/png,image/gif,image/jpeg" name="layer" required="required" />
+                        </div>
+                        <div class="editor-upload-input">
+                            <input type="url" name="url" placeholder="https://tcrf.net/images/c/c0/SMK_UnusedChocoBGPalette.png" />
+                        </div>
+                    </div>
+                </div>
                 <button type="submit">Ok</button>
             </form>
         </div>
@@ -147,6 +164,9 @@ function toggleLayerAdd() {
     <div class="editor-navigation">
         <a href="bgEditor.php">&lt; <u><?php echo $language ? "Back to background editor":"Retour à l'éditeur d'arrière-plans"; ?></u></a>
     </div>
+	<script type="text/javascript">
+		setupUploadTabs(document.querySelector(".editor-upload"));
+	</script>
 </body>
 </html>
 		<?php

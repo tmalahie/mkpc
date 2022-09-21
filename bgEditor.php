@@ -8,7 +8,21 @@ include('initdb.php');
 require_once('utils-bgs.php');
 include('file-quotas.php');
 if (isset($_FILES['layer'])) {
-	$upload = handle_bg_upload($_FILES['layer']);
+    $files = array();
+    $layerFiles = $_FILES['layer'];
+    foreach ($layerFiles['tmp_name'] as $i=>$filePath) {
+        $url = isset($_POST['url'][$i]) ? $_POST['url'][$i] : '';
+        if ($url === '') {
+            $files[] = array(
+                'tmp_name' => $filePath,
+                'error' => $layerFiles['error'][$i],
+                'size' => $layerFiles['size'][$i],
+            );
+        }
+        else
+            $files[] = url_to_file_payload($url);
+    }
+	$upload = handle_bg_upload($files);
 	if (isset($upload['id']))
 		header('location: editBg.php?id='. $upload['id'] .'&new');
 	if (isset($upload['error']))
@@ -22,6 +36,7 @@ if (isset($_FILES['layer'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css" />
+<script type="text/javascript" src="scripts/bg-editor.js"></script>
 <link rel="stylesheet" href="styles/bg-editor.css" />
 <title><?php echo $language ? 'Background editor':'Éditeur d\'arrière-plans'; ?></title>
 <script type="text/javascript">
@@ -62,6 +77,8 @@ function addLayer() {
     var $layerTemplate = document.getElementById("bg-form-layer");
     var $layer = $layerTemplate.content.cloneNode(true).children[0];
     $layerContainer.appendChild($layer);
+
+    setupUploadTabs($layer);
     updateLayer($layer, nbLayers);
     nbLayers++;
     document.querySelector(".bg-form-submit button").disabled = false;
@@ -222,7 +239,23 @@ if (isset($error))
             <template id="bg-form-layer">
                 <div class="bg-form-layer">
                     <?php echo $language ? 'Layer <span class="layer-id"></span>:':'Calque <span class="layer-id"></span> :'; ?>
-                    <input type="file" required="required" name="layer[]" />
+                    <div class="editor-upload">
+                        <div class="editor-upload-tabs">
+                            <div class="editor-upload-tab editor-upload-tab-selected">
+                                <?php echo $language ? 'Upload an image':'Uploader une image'; ?>
+                            </div><div class="editor-upload-tab">
+                                <?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image'; ?>
+                            </div>
+                        </div>
+                        <div class="editor-upload-inputs">
+                            <div class="editor-upload-input editor-upload-input-selected">
+                                <input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="layer[]" />
+                            </div>
+                            <div class="editor-upload-input">
+                                <input type="url" name="url[]" placeholder="https://tcrf.net/images/c/c0/SMK_UnusedChocoBGPalette.png" />
+                            </div>
+                        </div>
+                    </div>
                     <button type="button" class="btn-del" onclick="deleteLayer(this)">&times;</button>
                 </div>
             </template>

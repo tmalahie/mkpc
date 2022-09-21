@@ -12,11 +12,13 @@ if (isset($_GET['id'])) {
 		include('getId.php');
 		if ($bg['identifiant'] == $identifiants[0]) {
 			require_once('utils-bgs.php');
-            $layers = get_bg_layers($bg['id']);
+			$layers = get_bg_layers($bg['id']);
 			mysql_query('DELETE FROM `mkbgs` WHERE id="'. $bgId .'"');
 			mysql_query('DELETE FROM `mkbglayers` WHERE bg="'. $bgId .'"');
-            foreach ($layers as $layer)
-                @unlink($layer['path']);
+			foreach ($layers as $layer) {
+				if ($layer['local'])
+					@unlink($layer['path']);
+			}
 		}
 	}
 	header('location: bgEditor.php');
