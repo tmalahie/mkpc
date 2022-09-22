@@ -198,6 +198,7 @@ CREATE TABLE `mkbglayers` (
   `bg` int(11) NOT NULL,
   `ordering` int(11) NOT NULL,
   `filename` varchar(255) NOT NULL,
+  `url` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -610,6 +611,15 @@ CREATE TABLE `mkgamecpu` (
   `max_id` int(11) NOT NULL,
   PRIMARY KEY (`course`),
   UNIQUE KEY `min_id` (`min_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkgamedata` (
+  `game` int(11) NOT NULL,
+  `aRaceCount` int(11) NOT NULL,
+  `raceCount` int(11) NOT NULL,
+  PRIMARY KEY (`game`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
