@@ -1,3 +1,3 @@
 <?php
-$action = 'ban';
+$action = 'warn';
 include('moderate-player.php');

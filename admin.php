@@ -151,8 +151,8 @@ include('menu.php');
 		</li>
 		<li>
 			<a class="action-ctn" href="ban-player.php">
-				<div class="action-title"><?php echo $language ? "<strong>Ban</strong> a member":"<strong>Bannir</strong> un membre"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Use it as a last resort, the member in question will not be able to post anything on the site":"À utiliser en dernier recours, le membre en question ne pourra alors plus rien poster sur le site"; ?></div>
+				<div class="action-title"><?php echo $language ? "<strong>Ban</strong> or <strong>warn</strong> a member":"<strong>Bannir</strong> ou <strong>avertir</strong> un membre"; ?></div>
+				<div class="action-desc"><?php echo $language ? "Warn a user for innapropriate behavior, or ban them if he persists. Banned members are unable to post anything on the site":"Avertir un membre d'un comportement inapproprié, ou le bannir en cas de récidive. Les membres bannis ne peuvent plus rien poster sur le site"; ?></div>
 			</a>
 		</li>
 			<?php

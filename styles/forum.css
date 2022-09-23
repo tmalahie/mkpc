@@ -942,6 +942,11 @@ a.forum-auteur:hover {
 	color: red;
 	font-weight: bold;
 }
+.notice {
+	text-align: center;
+	color: #D30;
+	font-weight: bold;
+}
 .success {
 	margin: 0px 50px;
 	font-weight: bold;

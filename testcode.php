@@ -18,16 +18,17 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 			setcookie('mkp', credentials_encrypt($id,$_POST['code']), 4294967295,'/');
 			include('setId.php');
 			if (ip_banned()) {
+				include('language.php');
 				mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id="'.$id.'"');
-				mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"Auto-ban par IP")');
-				setcookie('mkp', null, 0,'/');
+				mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"'. ($language ? 'Auto-ban by IP' : 'Auto-ban par IP') .'",NULL)');
+				setcookie('mkp', '', 0,'/');
 				session_destroy();
 				$id = 0;
 			}
 		}
 	}
 	else
-		setcookie('mkp', null, 0,'/');
+		setcookie('mkp', '', 0,'/');
 	mysql_close();
 	echo $id;
 }

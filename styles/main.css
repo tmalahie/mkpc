@@ -904,6 +904,19 @@ footer a {
 .birthdays-list a:hover {
 	color: #FB0;
 }
+.warning-top-message {
+	padding: 10px;
+	margin: 0 5px 10px 15px;
+	background-color: #FB9;
+	color: #600;
+	border-radius: 5px;
+}
+.warning-top-message a {
+	color: #F30;
+}
+.warning-top-message a:hover {
+	color: #F60;
+}
 #official_message {
 	padding: 10px;
 	margin-left: 15px;

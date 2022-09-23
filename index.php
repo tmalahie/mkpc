@@ -522,6 +522,22 @@ $slidesPath = 'images/slides';
 		<div class="subsection">
 		<?php
 		if ($id) {
+			if (($getWarn = mysql_fetch_array(mysql_query('SELECT seen FROM mkwarns WHERE player="'. $id .'"'))) && !$getWarn['seen']) {
+				?>
+				<div class="warning-top-message">
+					<?php
+					echo $language ? 'You have received a warning for inappropriate behavior.' : 'Vous avez reçu un avertissement pour comportement inapproprié.';
+					echo $language ? ' Please ' : ' ';
+					echo '<a href="forum.php?warn#compte">';
+					echo $language ? 'click here' : 'Cliquez ici';
+					echo '</a>';
+					echo ' ';
+					echo $language ? 'to find it out.' : 'pour en prendre connaissance.';
+					?>
+				</div>
+				<?php
+			}
+
 			date_default_timezone_set(get_client_tz());
 
 			$today = time();

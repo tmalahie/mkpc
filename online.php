@@ -10,7 +10,7 @@ if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs
 	include('getId.php');
 	if ($getBan['banned'] == 1)
 		include('ban_ip.php');
-	echo 'Access denied';
+	echo $language ? 'You have been banned from the online mode' : 'Vous avez été banni du mode en ligne';
 	mysql_close();
 	exit;
 }

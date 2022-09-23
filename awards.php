@@ -81,26 +81,6 @@ include('o_online.php');
 include('header.php');
 $page = 'forum';
 include('menu.php');
-$ban = isset($_POST['joueur']) ? $_POST['joueur']:null;
-if ($ban) {
-	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $ban .'"'))) {
-		mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id='. $getId['id']);
-		mysql_query('DELETE FROM `mkbans` WHERE player="'. $getId['id'] .'"');
-		mysql_query('INSERT INTO `mkbans` VALUES('. $getId['id'] .',"'. $_POST['msg'] .'")');
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Ban '. $getId['id'] .'")');
-		if (isset($_POST['ip'])) {
-			$getIp = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'.$getId['id'].'"'));
-			mysql_query('INSERT INTO `ip_bans` VALUES('.$getId['id'].','.$getIp['identifiant'].','.$getIp['identifiant2'].','.$getIp['identifiant3'].','.$getIp['identifiant4'].')');
-		}
-	}
-}
-$unban = isset($_GET['unban']) ? $_GET['unban']:null;
-if ($unban) {
-	mysql_query('UPDATE `mkjoueurs` SET banned=0 WHERE id="'. $unban .'"');
-	mysql_query('DELETE FROM `ip_bans` WHERE player="'. $unban .'"');
-	mysql_query('DELETE FROM `mkbans` WHERE player="'. $unban .'"');
-	mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Unban '. $unban .'")');
-}
 ?>
 <main>
 	<?php
