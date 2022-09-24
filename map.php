@@ -450,7 +450,12 @@ elseif ($canChange) {
 		<?php
 	}
 	?>
-	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php echo ($language ? 'Share '.$typeStr:'Partager '.$typeStr); ?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
+	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
+	if ($cShared)
+		echo $language ? 'Edit sharing':'Modifier partage';
+	else
+		echo $language ? 'Share '.$typeStr:'Partager '.$typeStr;
+	?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
 	if ($cShared) {
 		?>
 	<br /><br /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />

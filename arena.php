@@ -301,7 +301,12 @@ elseif ($canChange) {
 		<?php
 	}
 	?>
-	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php echo ($language ? 'Share course':'Partager l\'ar&egrave;ne'); ?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
+	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
+	if (isset($_GET['id']))
+		echo $language ? 'Edit sharing':'Modifier partage';
+	else
+		echo $language ? 'Share course':'Partager l\'ar&egrave;ne';
+	?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
 	if (isset($_GET['id'])) {
 		?>
 	<br /><br /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
