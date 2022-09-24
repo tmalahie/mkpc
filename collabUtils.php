@@ -52,3 +52,23 @@ function isCollabOwner($type, $creationId) {
     $getCreation = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'.$type.'` WHERE id="'. $creationId .'"'));
     return ($getCreation && ($getCreation['identifiant'] == $identifiants[0]));
 }
+
+
+function getCollabLink($type, $creationId, $key) {
+    $getCollab = mysql_fetch_array(mysql_query('SELECT id,secret,rights FROM mkcollablinks WHERE secret="'. $key .'" AND type="'. $type .'" AND creation_id="'. $creationId .'"'));
+    if (!$getCollab) return null;
+    $rightsList = explode(',', $getCollab['rights']);
+    $rightsDict = array();
+    foreach ($rightsList as $right)
+        $rightsDict[$right] = 1;
+    return array(
+        'id' => $getCollab['id'],
+        'key' => $getCollab['secret'],
+        'rights' => $rightsDict
+    );
+}
+function getCollabLinkFromQuery($type, $creationId) {
+    if (isset($_GET['collab']))
+        return getCollabLink($type, $creationId, $_GET['collab']);
+    return null;
+}

@@ -270,7 +270,23 @@ function listMaps() {
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 <?php
-$canChange = !isset($nid) || (isset($creationData) && ($creationData['identifiant'] == $identifiants[0]) && ($creationData['identifiant2'] == $identifiants[1]) && ($creationData['identifiant3'] == $identifiants[2]) && ($creationData['identifiant4'] == $identifiants[3]));
+$collab = null;
+require_once('collabUtils.php');
+$collab = getCollabLinkFromQuery('circuits', $nid);
+if (isset($nid)) {
+	if (isset($creationData)) {
+		$creator = ($creationData['identifiant'] == $identifiants[0]) && ($creationData['identifiant2'] == $identifiants[1]) && ($creationData['identifiant3'] == $identifiants[2]) && ($creationData['identifiant4'] == $identifiants[3]);
+		$canChange = $creator || isset($collab['rights']['view']);
+	}
+	else {
+		$creator = false;
+		$canChange = false;
+	}
+}
+else {
+	$creator = true;
+	$canChange = true;
+}
 if ($canChange) {
 	?>
 	function saveRace() {
@@ -444,8 +460,22 @@ if (isBanned())
 elseif ($canChange) {
 	$typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')):($language ? 'circuit':'le circuit');
 	?>
-	<input type="button" id="changeRace" onclick="document.location.href=<?php echo ($isCup ? "'". ($isMCup ? "completecups.php":"completecup.php") ."'+document.location.search":"'draw.php?i=$nid'") ?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br /><br class="br-small" />
-	<input type="button" id="linkRace" onclick="showCollabPopup()" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br /><?php
+	<input type="button" id="changeRace" onclick="document.location.href=<?php
+		echo ($isCup ? "'". ($isMCup ? "completecups.php":"completecup.php") ."'+document.location.search":"'draw.php?i=$nid'");
+		if ($collab) echo "+'&collab=". $collab['key'] ."'";
+	?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br />
+	<?php
+	if ($creator) {
+		?>
+		<br class="br-small" />
+		<input type="button" id="linkRace" onclick="showCollabPopup()" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+		<?php
+	}
+	else {
+		?>
+		<br />
+		<?php
+	}
 	if (!$cShared) {
 		?>
 	&nbsp;
