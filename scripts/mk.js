@@ -9868,7 +9868,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 		collisionFloor = { z: zH };
 	}
 	
-	if (!isCup) {
+	if (!isCup && (iZ <= jumpHeight0)) {
 		if ((course == "BB") || (oMap.map <= 20)) {
 			if (nX > (oMap.w-5) || nY > (oMap.h-5) || nX < 4 || nY < 4) return false;
 		}
