@@ -14,6 +14,7 @@ require_once('persos.php');
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/perso-editor.css" />
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
+<script type="text/javascript" src="scripts/xhr.js"></script>
 <script type="text/javascript">
 var PERSO_DIR = "<?php echo PERSOS_DIR; ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;
@@ -115,54 +116,6 @@ function restoreStats() {
 		document.getElementById(statType).value = Math.round(statsGradient*(persoData[statType]-statsRange[statType].min)/(statsRange[statType].max-statsRange[statType].min));
 	}
 	updateCursors();
-}
-function xhr(page, send, onload, backoff) {
-	if (!backoff)
-		backoff = 1000;
-	var xhr_object;
-	if (window.XMLHttpRequest || window.ActiveXObject) {
-		if (window.ActiveXObject) {
-			try {
-				xhr_object = new ActiveXObject("Msxml2.XMLHTTP");
-			}
-			catch(e) {
-				xhr_object = new ActiveXObject("Microsoft.XMLHTTP");
-			}
-		}
-		else
-			xhr_object = new XMLHttpRequest(); 
-	}
-	xhr_object.open("POST", page, true);
-	xhr_object.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-	xhr_object.setRequestHeader("If-Modified-Since", "Wed, 15 Nov 1995 00:00:00 GMT");
-	try {
-		xhr_object.onload = function () {
-			if (xhr_object.status == 200) {
-				if (!onload(xhr_object.responseText)) {
-					setTimeout(function() {
-						xhr(page,send,onload,backoff*2);
-					}, backoff);
-				}
-			}
-			else
-				xhr_object.onerror();
-		};
-		xhr_object.onerror = function () {
-			setTimeout(function() {
-				xhr(page,send,onload, backoff*2);
-			}, backoff);
-		};
-	}
-	catch (e) {
-		xhr_object.onreadystatechange = function () {
-			if ((xhr_object.readyState == 4) && !onload(xhr_object.responseText)) {
-				setTimeout(function() {
-					xhr(page,send,onload,backoff*2);
-				}, backoff);
-			}
-		};
-	}
-	xhr_object.send(send);
 }
 function confirmStats() {
 	document.forms["perso-form"].style.visibility = "hidden";

@@ -1,0 +1,113 @@
+.collab-backdrop {
+    position: fixed;
+    display: none;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background-color: rgba(0,0,0, 0.5);
+    z-index: 1;
+    align-items: center;
+    justify-content: center;
+}
+.collab-backdrop.open {
+    display: flex;
+}
+.collab-track {
+    position: relative;
+    width: 500px;
+    max-width: 100%;
+    max-height: 90%;
+    overflow-y: auto;
+    padding: 1em;
+    border-radius: 0.5em;
+    background-color: #333;
+    font-size: 1.125em;
+}
+.collab-track-section:not(.show) {
+    display: none;
+}
+.collab-track h2 {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+.collab-track-close {
+    position: absolute;
+    right: 0.5em;
+    top: 0.5em;
+    color: white;
+    text-decoration: none;
+    font-size: 1.5em;
+    line-height: 1.5em;
+    width: 1.25em;
+    height: 1.25em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: solid 1px white;
+    background-color: black;
+}
+.collab-track-close:hover {
+    background-color: #222;
+}
+.collab-track .collab-explain {
+    color: white;
+}
+.collab-options h3 {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    font-size: 1.25em;
+}
+.collab-options-list {
+    color: white;
+    margin-top: 0.25em;
+    margin-bottom: 0.75em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+}
+.collab-track .collab-option {
+    display: flex;
+    gap: 0.375em;
+    cursor: pointer;
+    align-items: center;
+}
+.collab-track .collab-option span {
+    flex: 1;
+}
+.collab-form {
+    margin-bottom: 0;
+}
+.collab-form input[type="checkbox"]:disabled {
+    cursor: default;
+}
+.collab-form input[type="checkbox"]:disabled + span {
+    opacity: 0.5;
+    cursor: default;
+}
+.collab-submit {
+    margin-top: 0.5em;
+    text-align: center;
+}
+.collab-submit input {
+    font-size: 1.25em;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+.collab-submit input:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.collab-track-success {
+    color: white;
+    font-size: 1.25em;
+    text-align: center;
+}
+.collab-track-success a {
+    display: inline-block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    word-break: break-word;
+    color: #CCF;
+}

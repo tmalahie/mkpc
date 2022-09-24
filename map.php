@@ -208,6 +208,7 @@ $sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'i'));
 include('metas.php');
 
 include('c_mariokart.php');
+include('c_collab.php');
 include('c_comments.php');
 
 include('o_online.php');
@@ -443,7 +444,8 @@ if (isBanned())
 elseif ($canChange) {
 	$typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')):($language ? 'circuit':'le circuit');
 	?>
-	<input type="button" id="changeRace" onclick="document.location.href=<?php echo ($isCup ? "'". ($isMCup ? "completecups.php":"completecup.php") ."'+document.location.search":"'draw.php?i=$nid'") ?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br /><br /><?php
+	<input type="button" id="changeRace" onclick="document.location.href=<?php echo ($isCup ? "'". ($isMCup ? "completecups.php":"completecup.php") ."'+document.location.search":"'draw.php?i=$nid'") ?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br /><br class="br-small" />
+	<input type="button" id="linkRace" onclick="showCollabPopup()" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br /><?php
 	if (!$cShared) {
 		?>
 	&nbsp;
@@ -458,7 +460,7 @@ elseif ($canChange) {
 	?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
 	if ($cShared) {
 		?>
-	<br /><br /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
+	<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
 		<?php
 	}
 }
@@ -544,6 +546,8 @@ if (!isset($cannotChange)) {
 	</form>
 	<?php
 }
+require_once('collabUtils.php');
+printTrackCollabScreen('circuits', $nid);
 include('gameInitElts.php');
 ?>
 <?php
