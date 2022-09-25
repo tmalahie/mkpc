@@ -4,11 +4,7 @@ if (isset($_POST['type']) && isset($_POST['id'])) {
     include('getId.php');
     require_once('collabUtils.php');
     if (isCollabOwner($_POST['type'], $_POST['id'])) {
-        if (isset($_POST['rights']))
-            $rights = array_keys($_POST['rights']);
-        else
-            $rights = array();
-        $rightsStr = implode(',', $rights);
+        $collabValues = getCollabInputValues($_POST);
 
         function generateRandomString($length) {
             $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_';
@@ -21,21 +17,14 @@ if (isset($_POST['type']) && isset($_POST['id'])) {
         }
 
         for ($try=0;$try<10;$try++) {
-            $key = generateRandomString(24);
-            $q = mysql_query('INSERT INTO `mkcollablinks` SET type="'. $_POST['type'] .'", creation_id="'. $_POST['id'] .'", secret="'. $key .'", rights="'. $rightsStr .'"');
+            $collabValues['secret'] = generateRandomString(24);
+            $q = mysql_query('INSERT INTO `mkcollablinks` SET type="'. $collabValues['type'] .'", creation_id="'. $collabValues['creation_id'] .'", secret="'. $collabValues['secret'] .'", rights="'. $collabValues['rights'] .'"');
             if (mysql_affected_rows())
                 break;
         }
-        $collabId = mysql_insert_id();
+        $collabValues['id'] = mysql_insert_id();
 
-        $res = array(
-            'id' => $collabId,
-            'type' => $_POST['type'],
-            'creation_id' => $_POST['id'],
-            'secret' => $key,
-            'rights' => $rightsStr
-        );
-        echo json_encode(collabPayload($res));
+        echo json_encode(collabPayload($collabValues));
     }
     else
         echo '{}';

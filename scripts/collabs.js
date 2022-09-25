@@ -4,14 +4,29 @@ if (!window.xhr) {
     document.getElementsByTagName('head')[0].appendChild(script);
 }
 
-function showCollabPopup() {
-    var $popup = document.querySelector(".collab-backdrop");
-    if ($popup) $popup.classList.add("open");
+function showCollabPopup(type, id) {
+    var $popup = document.createElement("div");
+    $popup.dataset.id = id;
+    $popup.dataset.type = type;
+    $popup.className = "collab-backdrop";
+    document.body.appendChild($popup);
+    resetTrackCollabPopup();
 }
 function closeCollabPopup(e) {
     if (e) e.preventDefault();
-    var $popup = document.querySelector(".collab-backdrop.open");
-    if ($popup) $popup.classList.remove("open");
+    var $popup = document.querySelector(".collab-backdrop");
+    if ($popup) $popup.parentNode.removeChild($popup);
+}
+function resetTrackCollabPopup() {
+    var $popup = document.querySelector(".collab-backdrop");
+    var id = $popup.dataset.id;
+    var type = $popup.dataset.type;
+    xhr("getTrackCollabPopup.php", "type="+type+"&id="+id, function(html) {
+        if (!html) return false;
+        $popup.innerHTML = html;
+        setupCollabForm($popup);
+        return true;
+    });
 }
 
 function onSaveTrackCollab(payload) {
@@ -22,18 +37,30 @@ function onSaveTrackCollab(payload) {
     document.querySelector(".collab-track .collab-track-success").classList.add("show");
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    var $collabForms = document.querySelectorAll(".collab-form");
+function setupCollabForm($parent) {
+    var $collabForms = $parent.querySelectorAll(".collab-form");
     [...$collabForms].forEach(function($collabForm) {
         $collabForm.onsubmit = function(e) {
             e.preventDefault();
             var $form = e.target;
-            $form.querySelector('input[type="submit"]').disabled = true;
+            var $submits = $form.querySelectorAll('input[type="submit"]');
+            [...$submits].forEach(function($submit) {
+                $submit.disabled = true;
+            });
             var fd = new FormData($form);
-            fd.append("id", $form.dataset.id);
-            fd.append("type", $form.dataset.type);
-            var queryString = new URLSearchParams(fd).toString();
-            xhr("createCollab.php", queryString, function(res) {
+            if ($form.dataset.collab) {
+                fd.append("id", $form.dataset.collab);
+                var queryString = new URLSearchParams(fd).toString();
+                xhr("editCollab.php", queryString, handleCollabSave);
+            }
+            else {
+                fd.append("id", $form.dataset.id);
+                fd.append("type", $form.dataset.type);
+                var queryString = new URLSearchParams(fd).toString();
+                xhr("createCollab.php", queryString, handleCollabSave);
+            }
+
+            function handleCollabSave(res) {
                 if (!res) return false;
                 try {
                     res = JSON.parse(res);
@@ -44,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if ($collabForm.dataset.onsave && window[$collabForm.dataset.onsave])
                     window[$collabForm.dataset.onsave](res);
                 return true;
-            });
+            }
         };
         var $checkboxes = $collabForm.querySelectorAll("input[type='checkbox'][name^='rights[']");
         [...$checkboxes].forEach(function($checkbox) {
@@ -63,4 +90,51 @@ document.addEventListener("DOMContentLoaded", function() {
             };
         });
     });
-});
+}
+
+function editTrackCollabLink(collab) {
+    document.querySelector(".collab-track-links").classList.remove("show");
+    var $collabForm = document.querySelector(".collab-form");
+    $collabForm.dataset.collab = collab.id;
+    $collabForm.dataset.onsave = "resetTrackCollabPopup";
+    $collabForm.querySelector(".collab-current a").href = collab.url;
+    $collabForm.querySelector(".collab-current a").innerHTML = collab.url;
+
+    var $checkboxes = $collabForm.querySelectorAll("input[type='checkbox'][name^='rights[']");
+    [...$checkboxes].forEach(function($checkbox) {
+        var rightKey = $checkbox.name.replace(/^rights\[(.+)\]$/, "$1");
+        $checkbox.checked = !!collab.rights[rightKey];
+        $checkbox.onclick();
+    });
+
+    $collabForm.classList.remove("add");
+    $collabForm.classList.add("edit");
+    $collabForm.classList.add("show");
+}
+function addTrackCollabLink() {
+    document.querySelector(".collab-track-links").classList.remove("show");
+    var $collabForm = document.querySelector(".collab-form");
+    $collabForm.classList.add("add");
+    $collabForm.classList.add("new");
+    $collabForm.classList.add("show");
+}
+
+function delCollabLink(id, callback) {
+    if (confirm("Delete collab link?")) {
+        xhr("delCollab.php", "id="+ id, function(res) {
+            if (res != 1) return false;
+            callback(res);
+            return true;
+        });
+    }
+}
+function delTrackCollabLink(id) {
+    delCollabLink(id, resetTrackCollabPopup);
+}
+
+function backToTrackCollabLinks(e) {
+    if (e) e.preventDefault();
+    document.querySelector(".collab-form").classList.remove("show");
+    document.querySelector(".collab-track-links").classList.add("show");
+    resetTrackCollabPopup();
+}

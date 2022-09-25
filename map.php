@@ -468,7 +468,7 @@ elseif ($canChange) {
 	if ($creator) {
 		?>
 		<br class="br-small" />
-		<input type="button" id="linkRace" onclick="showCollabPopup()" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+		<input type="button" id="linkRace" onclick="showCollabPopup('circuits', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
 		<?php
 	}
 	else {
@@ -577,7 +577,6 @@ if (!isset($cannotChange)) {
 	<?php
 }
 require_once('collabUtils.php');
-printTrackCollabScreen('circuits', $nid);
 include('gameInitElts.php');
 ?>
 <?php
