@@ -15,9 +15,9 @@ function closeCollabPopup(e) {
 }
 
 function onSaveTrackCollab(payload) {
-    var url = document.location.href + "&collab=" + payload.key;
-    document.querySelector(".collab-track-link").href = url;
-    document.querySelector(".collab-track-link").innerHTML = url;
+    var url = payload.url;
+    document.querySelector(".collab-track-success a").href = url;
+    document.querySelector(".collab-track-success a").innerHTML = url;
     document.querySelector(".collab-track .collab-form").classList.remove("show");
     document.querySelector(".collab-track .collab-track-success").classList.add("show");
 }

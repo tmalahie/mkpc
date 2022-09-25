@@ -28,11 +28,14 @@ if (isset($_POST['type']) && isset($_POST['id'])) {
         }
         $collabId = mysql_insert_id();
 
-        echo json_encode(array(
+        $res = array(
             'id' => $collabId,
-            'key' => $key,
-            'rights' => $rights
-        ));
+            'type' => $_POST['type'],
+            'creation_id' => $_POST['id'],
+            'secret' => $key,
+            'rights' => $rightsStr
+        );
+        echo json_encode(collabPayload($res));
     }
     else
         echo '{}';

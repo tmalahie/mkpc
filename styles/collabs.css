@@ -111,3 +111,17 @@
     word-break: break-word;
     color: #CCF;
 }
+.collab-track-links-list {
+    margin-bottom: 0.5em;
+}
+.collab-track-link {
+    display: flex;
+    gap: 0.25em;
+}
+.collab-track-link a {
+    color: #CCF;
+    flex: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
