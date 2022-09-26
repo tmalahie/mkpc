@@ -1936,6 +1936,8 @@ function handleKeySortcuts(e) {
 			}
 			break;
 		case 90:
+			if (readOnly) break;
+			
 			if (e.ctrlKey || e.metaKey) {
 				e.preventDefault();
 				if (e.shiftKey)
@@ -1945,12 +1947,16 @@ function handleKeySortcuts(e) {
 			}
 			break;
 		case 89:
+			if (readOnly) break;
+			
 			if (e.ctrlKey || e.metaKey) {
 				e.preventDefault();
 				redo();
 			}
 			break;
 		case 83:
+			if (readOnly) break;
+			
 			if (e.ctrlKey || e.metaKey) {
 				e.preventDefault();
 				saveData();
@@ -3120,7 +3126,11 @@ function saveData() {
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", isBattle ? "saveCourse.php" : "saveMap.php");
 	xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-	xhr.send(JSON.stringify({id:circuitId,payload:payload}));
+	var postData = {id:circuitId,payload:payload};
+	var collab = new URLSearchParams(document.location.search).get("collab");
+	if (collab)
+		postData.collab = collab;
+	xhr.send(JSON.stringify(postData));
 	xhr.onload = function() {
 		if (xhr.responseText == 1) {
 			$mask.removeChild($loading);
@@ -3153,7 +3163,8 @@ function saveData() {
 			else
 				$popupAccess.innerHTML = language ? "Test circuit":"Tester circuit";
 			$popupAccess.onclick = function() {
-				document.location.href = (isBattle?"battle":"map")+".php?i="+circuitId;
+				var collab = new URLSearchParams(document.location.search).get("collab");
+				document.location.href = (isBattle?"battle":"map")+".php?i="+circuitId+(collab ? "&collab="+collab : "");
 			};
 			$popupActions.appendChild($popupAccess);
 			$success.appendChild($popupActions);

@@ -71,6 +71,11 @@ function getCollabLinkFromQuery($type, $creationId) {
         return getCollabLink($type, $creationId, $_GET['collab']);
     return null;
 }
+function hasCollabGrants($type, $creationId, &$key, $rightKey) {
+    if (!$key) return false;
+    $collab = getCollabLink($type, $creationId, $key);
+    return ($collab && isset($collab['rights'][$rightKey]));
+}
 
 function getCollabLinks($type, $creationId) {
     $getCollabs = mysql_query('SELECT id,type,creation_id,secret,rights FROM mkcollablinks WHERE type="'. $type .'" AND creation_id="'. $creationId .'"');

@@ -160,6 +160,10 @@ a:hover {
 	background-color: #669FD9;
 	border-color: #59B;
 }
+.toolbox-button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
 .theme-dark .toolbox-button {
 	background-color: #6AD;
 	border-color: #59B;
@@ -278,6 +282,9 @@ body.theme-dark {
 	min-width: calc(100vw - 40px);
 	min-height: 95vh;
 	min-height: calc(100vh - 20px);
+}
+#editor-wrapper.readonly {
+	pointer-events: none;
 }
 #editor-ctn {
 	position: relative;

@@ -270,7 +270,6 @@ function listMaps() {
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 <?php
-$collab = null;
 require_once('collabUtils.php');
 $collab = getCollabLinkFromQuery('circuits', $nid);
 if (isset($nid)) {
@@ -305,6 +304,7 @@ if ($canChange) {
 			}
 			if (isset($nid)) echo 'id='.$nid.'&';
 			if ($clId) echo 'cl='.$clId.'&';
+			if ($collab) echo 'collab='.$collab['key'].'&';
 			?>nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
 			if (reponse && !isNaN(reponse)) {
 				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
