@@ -276,15 +276,18 @@ if (isset($nid)) {
 	if (isset($creationData)) {
 		$creator = ($creationData['identifiant'] == $identifiants[0]) && ($creationData['identifiant2'] == $identifiants[1]) && ($creationData['identifiant3'] == $identifiants[2]) && ($creationData['identifiant4'] == $identifiants[3]);
 		$canChange = $creator || isset($collab['rights']['view']);
+		$canShare = $creator || isset($collab['rights']['edit']);
 	}
 	else {
 		$creator = false;
 		$canChange = false;
+		$canShare = false;
 	}
 }
 else {
 	$creator = true;
 	$canChange = true;
+	$canShare = true;
 }
 if ($canChange) {
 	?>
@@ -352,7 +355,10 @@ if ($canChange) {
 		document.getElementById("sAnnuler").className = "cannotChange";
 		document.getElementById("sConfirmer").disabled = true;
 		document.getElementById("sConfirmer").className = "cannotChange";
-		xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':'supprDraw')); ?>.php", "id=<?php echo $nid; ?>", function(reponse) {
+		xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':'supprDraw')); ?>.php", "id=<?php
+			echo $nid;
+			if ($collab) echo '&collab='.$collab['key'];
+		?>", function(reponse) {
 			if (reponse == 1) {
 				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The circuit has been successfully removed from the list.':'Le circuit a &eacute;t&eacute; retir&eacute; de la liste avec succ&egrave;s.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
@@ -381,6 +387,7 @@ if ($canChange) {
 					}
 					else
 						echo 'i='.$nid;
+					if ($collab) echo '&collab='.$collab['key'];
 					?>";
 				};
 				document.getElementById("supprButtons").appendChild(cCont);
@@ -460,7 +467,7 @@ if (isBanned())
 elseif ($canChange) {
 	$typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')):($language ? 'circuit':'le circuit');
 	?>
-	<input type="button" id="changeRace" onclick="document.location.href=<?php
+	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href=<?php
 		echo ($isCup ? "'". ($isMCup ? "completecups.php":"completecup.php") ."'+document.location.search":"'draw.php?i=$nid'");
 		if ($collab) echo "+'&collab=". $collab['key'] ."'";
 	?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br />
@@ -476,11 +483,12 @@ elseif ($canChange) {
 		<br />
 		<?php
 	}
-	if (!$cShared) {
-		?>
-	&nbsp;
-		<?php
-	}
+	if ($canShare) {
+		if (!$cShared) {
+			?>
+		&nbsp;
+			<?php
+		}
 	?>
 	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
 	if ($cShared)
@@ -488,10 +496,11 @@ elseif ($canChange) {
 	else
 		echo $language ? 'Share '.$typeStr:'Partager '.$typeStr;
 	?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
-	if ($cShared) {
-		?>
+		if ($cShared) {
+			?>
 	<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
-		<?php
+			<?php
+		}
 	}
 }
 else

@@ -16,7 +16,20 @@ $musicOptions = Array(
 if (isset($_GET['i'])) {
 	$circuitId = intval($_GET['i']);
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT * FROM arenes WHERE id="'. $circuitId .'"'))) {
-		if ((($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) || (($identifiants[0] == 1390635815) && !$identifiants[1] && !$identifiants[2] && !$identifiants[3])) {
+		require_once('collabUtils.php');
+		if (($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) {
+			$hasReadGrants = true;
+			$hasWriteGrants = true;
+		}
+		elseif ($collab = getCollabLinkFromQuery('arenes', $circuitId)) {
+			$hasReadGrants = isset($collab['rights']['view']);
+			$hasWriteGrants = isset($collab['rights']['edit']);
+		}
+		else {
+			$hasReadGrants = ($identifiants[0] == 1390635815);
+			$hasWriteGrants = false;
+		}
+		if ($hasReadGrants) {
 			if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM arenes_data WHERE id="'. $circuitId .'"')))
 				$circuitData = gzuncompress($getCircuitData['data']);
 			$circuitImg = json_decode($circuit['img_data']);
@@ -37,13 +50,14 @@ if (isset($_GET['i'])) {
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
 		var isBattle = true;
+		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
 		<script type="text/javascript" src="scripts/editor.js?reload=1"></script>
 		<script type="text/javascript" src="scripts/course.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
-		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
+		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?> onmousemove="handleMove(event)" onclick="handleClick(event)">
 			<div id="editor-ctn">
 				<img id="editor-img" src="<?php echo getCircuitImgUrl($circuitImg); ?>" alt="Arene" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
 				<svg id="editor" class="editor" />
@@ -189,9 +203,15 @@ if (isset($_GET['i'])) {
 				Zoom:<div><img src="images/editor/zoom-less.png" class="fancy-title" onclick="zoomLess()" title="<?php echo $language ? 'Unzoom':'Dézoomer'; ?> (Ctrl+↓)" /><span id="zoom-value">100</span>%<img src="images/editor/zoom-more.png" class="fancy-title" onclick="zoomMore()" title="<?php echo $language ? 'Zoom':'Zoomer'; ?> (Ctrl+↑)" /></div>
 			</div>
 			<div id="history-ctrl">
+			<?php
+			if ($hasWriteGrants) {
+				?>
 				<img src="images/editor/undo.png" class="fancy-title" onclick="undo()" title="<?php echo $language ? 'Undo':'Annuler'; ?> (Ctrl+Z)" />
 				<div><?php echo $language ? 'History':'Historique'; ?></div>
 				<img src="images/editor/redo.png" class="fancy-title" onclick="redo()" title="<?php echo $language ? 'Redo':'Refaire'; ?> (Ctrl+Y)" />
+				<?php
+			}
+			?>
 			</div>
 			<div id="editor-theme">
 				<?php echo $language ? 'Theme:':'Thème :'; ?>
@@ -201,7 +221,7 @@ if (isset($_GET['i'])) {
 				</div>
 			</div>
 			<div id="save-buttons">
-				<button class="toolbox-button fancy-title fancy-title-center" onclick="saveData()" title="Ctrl+S"><?php echo $language ? 'Save':'Sauvegarder'; ?></button>
+				<button class="toolbox-button fancy-title fancy-title-center" onclick="saveData()" <?php if ($hasWriteGrants) echo ' title="Ctrl+S"'; else echo ' disabled="disabled" title="'. ($language ? 'Read-only' : 'Lecture seule') .'"'; ?>><?php echo $language ? 'Save':'Sauvegarder'; ?></button>
 			</div>
 			<div id="editor-back">
 				<a href="javascript:showHelp()"><?php echo $language ? 'Help':'Aide'; ?></a>
@@ -794,10 +814,10 @@ else {
 					<br />
 					The first step is to provide an image of the arena seen from above.
 					That image is what will be used to render the arena in the game.<br />
-					For example, here is the image of Battle Course 1: <a href="images/maps/map41.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Show</a>
+					For example, here is the image of Battle Course 1: <a href="images/maps/map57.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Show</a>
 					<br />
 					<div id="map-example">
-						<img src="images/maps/map41.png" alt="Battle Course 1" />
+						<img src="images/maps/map57.png" alt="Battle Course 1" />
 					</div>
 					<br />
 					To draw the image of the arena, you can use a drawing software like Paint or Photoshop.
@@ -822,10 +842,10 @@ else {
 					<br />
 					La première étape consiste à fournir une image de l'arène vu de dessus.
 					C'est cette image qui sera utilisée pour afficher l'arène dans le jeu.<br />
-					Par exemple, voici l'image de l'Arène Bataille 1 : <a href="images/maps/map41.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Afficher</a>
+					Par exemple, voici l'image de l'Arène Bataille 1 : <a href="images/maps/map57.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Afficher</a>
 					<br />
 					<div id="map-example">
-						<img src="images/maps/map41.png" alt="Arène Bataille 1" />
+						<img src="images/maps/map57.png" alt="Arène Bataille 1" />
 					</div>
 					<br />
 					Pour dessiner l'image de l'arène, vous pouvez utiliser un logiciel de dessin comme Paint ou Photoshop.
@@ -881,7 +901,7 @@ else {
 						<a id="editor-track-action-duplicate"><?php echo $language ? 'Duplicate':'Dupliquer'; ?></a>
 						<a id="editor-track-action-delete" onclick="return confirm('<?php echo ($language ? 'Are you sure you want to delete this arena?':'Voulez-vous vraiment supprimer cette arène ?'); ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
 					</div>
-					<img id="editor-track-img" src="images/maps/map41.png" alt="Arene" />
+					<img id="editor-track-img" src="images/maps/map57.png" alt="Arene" />
 				</div>
 			</div>
 			<?php

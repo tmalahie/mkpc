@@ -177,7 +177,8 @@ if (typeof shareLink !== "undefined") {
 			selectedTeams = 1;
 	}
 }
-var myCircuit = (document.getElementById("changeRace") != null);
+var $changeRace = document.getElementById("changeRace");
+var myCircuit = ($changeRace != null) && (!$changeRace.dataset || !$changeRace.dataset.collab);
 
 
 function setQuality(iValue) {

@@ -51,7 +51,7 @@ if (isset($_GET['i'])) {
 		<script type="text/javascript" src="scripts/draw.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
-		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?>' onmousemove="handleMove(event)" onclick="handleClick(event)">
+		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?> onmousemove="handleMove(event)" onclick="handleClick(event)">
 			<div id="editor-ctn">
 				<img id="editor-img" src="<?php echo getCircuitImgUrl($circuitImg); ?>" alt="Circuit" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
 				<svg id="editor" class="editor" />

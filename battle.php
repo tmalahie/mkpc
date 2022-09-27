@@ -36,6 +36,7 @@ if ($arene = mysql_fetch_array(mysql_query('SELECT a.*,(a.nom IS NOT NULL) as sh
 include('metas.php');
 
 include('c_mariokart.php');
+include('c_collab.php');
 include('c_comments.php');
 
 include('o_online.php');
@@ -80,7 +81,18 @@ function listMaps() {
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 <?php
-$canChange = (($arene['identifiant'] == $identifiants[0]) && ($arene['identifiant2'] == $identifiants[1]) && ($arene['identifiant3'] == $identifiants[2]) && ($arene['identifiant4'] == $identifiants[3]));
+require_once('collabUtils.php');
+$collab = getCollabLinkFromQuery('arenes', $id);
+if ($arene) {
+	$creator = (($arene['identifiant'] == $identifiants[0]) && ($arene['identifiant2'] == $identifiants[1]) && ($arene['identifiant3'] == $identifiants[2]) && ($arene['identifiant4'] == $identifiants[3]));
+	$canChange = $creator || isset($collab['rights']['view']);
+	$canShare = $creator || isset($collab['rights']['edit']);
+}
+else {
+	$creator = false;
+	$canChange = false;
+	$canShare = false;
+}
 if ($canChange) {
 	$shared = mysql_numrows(mysql_query('SELECT * FROM `arenes` WHERE id="'.$id.'" AND nom IS NOT NULL'));
 	?>
@@ -89,7 +101,11 @@ if ($canChange) {
 		document.getElementById("cAnnuler").className = "cannotChange";
 		document.getElementById("cEnregistrer").disabled = true;
 		document.getElementById("cEnregistrer").className = "cannotChange";
-		xhr("saveBattle.php", "id=<?php echo $id; ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
+		xhr("saveBattle.php", "id=<?php
+			echo $id;
+			if ($clId) echo '&cl='. $clId;
+			if ($collab) echo '&collab='.$collab['key'];
+		?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
 			if (reponse == 1) {
 				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
 				var cP = document.createElement("p");
@@ -122,7 +138,10 @@ if ($canChange) {
 		document.getElementById("sAnnuler").className = "cannotChange";
 		document.getElementById("sConfirmer").disabled = true;
 		document.getElementById("sConfirmer").className = "cannotChange";
-		xhr("supprBattle.php", "id=<?php echo $id ?>", function(reponse) {
+		xhr("supprBattle.php", "id=<?php
+			echo $id;
+			if ($collab) echo '&collab='.$collab['key'];
+		?>", function(reponse) {
 			if (reponse == 1) {
 				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The course has been successfully removed from the list.':'L\\\'ar&egrave;ne a &eacute;t&eacute; retir&eacute;e de la liste avec succ&egrave;s.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
@@ -130,7 +149,10 @@ if ($canChange) {
 				cCont.type = "button";
 				cCont.value = language ? "Continue" : "Continuer";
 				cCont.onclick = function() {
-					document.location.href = "?i=<?php echo $id ?>";
+					document.location.href = "?i=<?php
+						echo $id;
+						if ($collab) echo '&collab='.$collab['key'];
+					?>";
 				};
 				document.getElementById("supprButtons").appendChild(cCont);
 				return true;
@@ -194,23 +216,39 @@ if (isBanned())
   echo '&nbsp;';
 elseif ($canChange) {
 	?>
-	<input type="button" id="changeRace" onclick="document.location.href='course.php?i=<?php echo $id; ?>'" value="<?php echo ($language ? 'Edit course':'Modifier l\'ar&egrave;ne'); ?>" /><br /><br /><?php
+	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='course.php?i=<?php
+		echo $id;
+		if ($collab) echo '&collab='. $collab['key'];
+	?>'" value="<?php echo ($language ? 'Edit course':'Modifier l\'ar&egrave;ne'); ?>" /><br /><?php
+	if ($creator) {
+		?>
+		<br class="br-small" />
+		<input type="button" id="linkRace" onclick="showCollabPopup('arenes', <?php echo $id; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+		<?php
+	}
+	else {
+		?>
+		<br />
+		<?php
+	}
 	if (!$shared) {
 		?>
 	&nbsp;
 		<?php
 	}
-	?>
+	if ($canShare) {
+		?>
 	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
 	if ($shared)
 		echo $language ? 'Edit sharing':'Modifier partage';
 	else
 		echo $language ? 'Share course':'Partager l\'ar&egrave;ne';
 	?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
-	if ($shared) {
-		?>
+		if ($shared) {
+			?>
 	<br /><br /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
-		<?php
+			<?php
+		}
 	}
 }
 else
@@ -279,6 +317,7 @@ if (!isset($cannotChange)) {
 }
 ?>
 <?php
+require_once('collabUtils.php');
 include('gameInitElts.php');
 if ($cShared) {
 	include('circuitUser.php');
