@@ -21,6 +21,19 @@ a {
 img {
 	cursor: pointer;
 }
+.collab-readonly #circuit {
+	pointer-events: none;
+}
+.collab-readonly #pPieces {
+	pointer-events: none;
+	width: 0;
+	height: 0;
+	padding: 0;
+	overflow: hidden;
+}
+.collab-readonly #deleteAllCtn {
+	display: none;
+}
 #crossing-warning {
 	display: none;
 }
@@ -53,6 +66,12 @@ img {
 #valider input:hover {
 	background-color: #26a;
 	border-color: #59B;
+}
+#valider input:disabled {
+	cursor: default;
+	opacity: 0.5;
+    background-color: #249;
+    border-color: #57c;
 }
 #valider a {
 	font-size: 12pt;

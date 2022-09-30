@@ -106,7 +106,9 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 else { // Track being created
 	if (isset($_GET['nid'])) { // Track being edited
 		$nid = intval($_GET['nid']);
-		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id="'. $nid .'" AND !type AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
+		require_once('collabUtils.php');
+		$requireOwner = !hasCollabGrants('mkcircuits', $nid, $_GET['collab'], 'view');
+		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id="'. $nid .'" AND !type'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : '')))) {
 			$infos['id'] = $nid;
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
@@ -241,6 +243,7 @@ function escapeUtf8($str) {
 include('metas.php');
 
 include('c_mariokart.php');
+include('c_collab.php');
 include('c_comments.php');
 
 include('o_online.php');
@@ -325,7 +328,18 @@ function listMaps() {
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 <?php
-$canChange = (!isset($nid) || mysql_numrows(mysql_query('SELECT * FROM `'.($isMCup ? 'mkmcups':($isCup?'mkcups':'mkcircuits')).'` WHERE id="'. $nid.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])));
+require_once('collabUtils.php');
+$collab = getCollabLinkFromQuery('mkcircuits', $nid);
+if (isset($nid)) {
+	$creator = mysql_numrows(mysql_query('SELECT * FROM `'.($isMCup ? 'mkmcups':($isCup?'mkcups':'mkcircuits')).'` WHERE id="'. $nid.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
+	$canChange = $creator || isset($collab['rights']['view']);
+	$canShare = $creator || isset($collab['rights']['edit']);
+}
+else {
+	$creator = true;
+	$canChange = true;
+	$canShare = true;
+}
 if ($canChange) {
 	?>
 	function saveRace() {
@@ -357,6 +371,7 @@ if ($canChange) {
 		}
 		if (isset($nid)) echo '&id='.$nid;
 		if ($clId) echo '&cl='.$clId;
+		if ($collab) echo '&collab='.$collab['key'];
 		?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
 			if (reponse && !isNaN(reponse)) {
 				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
@@ -373,7 +388,9 @@ if ($canChange) {
 				cCont.type = "button";
 				cCont.value = language ? "Continue":"Continuer";
 				cCont.onclick = function() {
-					document.location.href = "?<?php echo $sid; ?>="+ reponse;
+					document.location.href = "?<?php echo $sid; ?>="+ reponse<?php
+					if ($collab) echo '+"&collab='.$collab['key'].'"';
+					?>;
 				};
 				cP.appendChild(cCont);
 				document.getElementById("cSave").appendChild(cP);
@@ -393,7 +410,10 @@ if ($canChange) {
 		document.getElementById("sAnnuler").className = "cannotChange";
 		document.getElementById("sConfirmer").disabled = true;
 		document.getElementById("sConfirmer").className = "cannotChange";
-		xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':'supprCreation')); ?>.php", "id=<?php echo $nid; ?>", function(reponse) {
+		xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':'supprCreation')); ?>.php", "id=<?php
+			echo $nid;
+			if ($collab) echo '&collab='.$collab['key'];
+		?>", function(reponse) {
 			if (reponse == 1) {
 				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The circuit has been successfully removed from the list.':'Le circuit a &eacute;t&eacute; retir&eacute; de la liste avec succ&egrave;s.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
@@ -499,19 +519,35 @@ if (isBanned())
 elseif ($canChange) {
 	$typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')):($language ? 'circuit':'le circuit');
 	?>
-<input type="button" id="changeRace" onclick="document.location.href='<?php echo ($isCup ? ($isMCup ? 'simplecups.php':'simplecup.php'):'create.php') ?>'+document.location.search" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" />
-<br /><br />
-
+<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='<?php echo ($isCup ? ($isMCup ? 'simplecups.php':'simplecup.php'):'create.php') ?>'+document.location.search<?php
+if ($collab) echo "+'&collab=". $collab['key'] ."'";
+?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" />
+<br />
+<?php
+if ($creator && isset($nid) && !isset($_GET['nid'])) {
+	?>
+	<br class="br-small" />
+	<input type="button" id="linkRace" onclick="showCollabPopup('mkcircuits', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+	<?php
+}
+else {
+	?>
+	<br />
+	<?php
+}
+if ($canShare) {
+?>
 <input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
 if (isset($_GET[$sid]))
 	echo $language ? 'Edit sharing':'Modifier partage';
 else
 	echo $language ? 'Share '.$typeStr:'Partager '.$typeStr;
 ?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
-	if (isset($_GET[$sid])) {
-		?>
-<br /><br /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
-		<?php
+		if (isset($_GET[$sid])) {
+			?>
+<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
+			<?php
+		}
 	}
 }
 else

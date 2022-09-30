@@ -1,12 +1,26 @@
 <?php
 $infos = Array();
 require_once('circuitPrefix.php');
+$hasReadGrants = true;
+$hasWriteGrants = true;
 if (isset($_GET['id'])) {
 	include('initdb.php');
 	$id = intval($_GET['id']);
 	if ($getMain = mysql_fetch_array(mysql_query('SELECT map,laps,nom,auteur,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $id .'" AND !type'))) {
 		include('getId.php');
-		if ((($identifiants[0]==$getMain['identifiant'])&&($identifiants[1]==$getMain['identifiant2'])&&($identifiants[3]==$getMain['identifiant3'])&&($identifiants[3]==$getMain['identifiant4'])) || ($identifiants[0] == 1390635815)) {
+		require_once('collabUtils.php');
+		if (($identifiants[0]==$getMain['identifiant'])&&($identifiants[1]==$getMain['identifiant2'])&&($identifiants[3]==$getMain['identifiant3'])&&($identifiants[3]==$getMain['identifiant4'])) {
+			// Ok
+		}
+		elseif ($collab = getCollabLinkFromQuery('mkcircuits', $id)) {
+			$hasReadGrants = isset($collab['rights']['view']);
+			$hasWriteGrants = isset($collab['rights']['edit']);
+		}
+		else {
+			$hasReadGrants = ($identifiants[0] == 1390635815);
+			$hasWriteGrants = false;
+		}
+		if ($hasReadGrants) {
 			$map = $getMain['map'];
 			$laps = $getMain['laps'];
 			$cName = $getMain['nom'];
@@ -73,10 +87,11 @@ include('o_online.php');
 </style>
 <script type="text/javascript">
 var decorTypes = <?php echo json_encode($decorTypes); ?>;
+var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 </script>
 <script type="text/javascript" src="scripts/create.js"></script>
 </head>
-<body>
+<body<?php if (!$hasWriteGrants) echo ' class="collab-readonly"'; ?>>
 <div id="circuit">
 <?php
 for ($i=0;$i<36;$i++)
@@ -93,7 +108,7 @@ include('circuitObjects.php');
 </p>
 <form method="get" action="circuit.php">
 <div class="editor-section adv-opt">
-Type : <select name="map" onchange="changeMap(this.value);this.blur()">
+Type : <select name="map" onchange="changeMap(this.value);this.blur()"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?>>
 <?php
 $circuitGroups = $language ? Array(
 	'SNES' => Array(
@@ -200,7 +215,9 @@ foreach ($circuitGroups as $platform => $circuitGroup) {
 <?php
 if (isset($_GET['cl']))
 	echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
-echo ($language ? 'Nb laps:':'Nb tours :'); ?> <select name="nl"><?php
+if (isset($_GET['collab']))
+	echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />';
+echo ($language ? 'Nb laps:':'Nb tours :'); ?> <select name="nl"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?>><?php
 for ($i=1;$i<10;$i++)
 	echo '<option value="'.$i.'" '. ($laps!=$i ? null : ' selected="selected"') .'>'.$i.'</option>';
 ?></select>
@@ -221,7 +238,7 @@ foreach ($lettres as $l) {
 }
 ?>
 </p>
-<p id="valider"><input type="submit" value="&nbsp; <?php echo $language ? 'Create circuit':'Cr&eacute;er circuit' ?> &nbsp;" />
+<p id="valider"><input type="submit" value="&nbsp; <?php echo $language ? 'Create circuit':'Cr&eacute;er circuit' ?> &nbsp;"<?php if (!$hasWriteGrants) echo ' disabled="disabled"' ?> />
 <?php
 if ($language) {
 	?>

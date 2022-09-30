@@ -33,7 +33,9 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 				$laps = 3;
 			if (isset($_POST['id'])) {
 				$circuitId = $_POST['id'];
-				if (mysql_numrows(mysql_query('SELECT * FROM `mkcircuits` WHERE id="'.$circuitId.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
+				require_once('collabUtils.php');
+				$requireOwner = !hasCollabGrants('mkcircuits', $circuitId, $_POST['collab'], 'edit');
+				if (mysql_numrows(mysql_query('SELECT * FROM `mkcircuits` WHERE id="'.$circuitId.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
 					mysql_query('UPDATE `mkcircuits` SET map="'. $map .'", laps="'. $laps .'", nom="'. $_POST['nom'] .'", auteur="'. $_POST['auteur'] .'" WHERE id="'. $circuitId .'"');
 					mysql_query('DELETE FROM `mkp` WHERE circuit="'. $circuitId .'"');
 					if ($isBattle)

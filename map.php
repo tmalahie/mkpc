@@ -585,7 +585,6 @@ if (!isset($cannotChange)) {
 	</form>
 	<?php
 }
-require_once('collabUtils.php');
 include('gameInitElts.php');
 ?>
 <?php

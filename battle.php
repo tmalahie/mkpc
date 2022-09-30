@@ -317,7 +317,6 @@ if (!isset($cannotChange)) {
 }
 ?>
 <?php
-require_once('collabUtils.php');
 include('gameInitElts.php');
 if ($cShared) {
 	include('circuitUser.php');
