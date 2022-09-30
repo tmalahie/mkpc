@@ -17,6 +17,12 @@ if (isset($_POST['id']) && isset($_POST['type'])) {
     case 'mkmcups':
         $itemCategory = 'multicup';
         break;
+    case 'mkcircuits':
+        if ($getType = mysql_fetch_array(mysql_query('SELECT type FROM mkcircuits WHERE id="'. $itemId .'"')))
+            $itemCategory = $getType['type'] ? 'arena' : 'circuit';
+        else
+            $itemCategory = 'circuit';
+        break;
     default:
         $itemCategory = 'circuit';
         break;
