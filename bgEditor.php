@@ -76,9 +76,15 @@ function addLayer() {
     var nbLayers = $layerContainer.querySelectorAll(".bg-form-layer").length;
     var $layerTemplate = document.getElementById("bg-form-layer");
     var $layer = $layerTemplate.content.cloneNode(true).children[0];
+    var $lastSelector = $layerContainer.querySelector(".bg-form-layer:last-child .editor-upload-tab-selected");
     $layerContainer.appendChild($layer);
 
     setupUploadTabs($layer);
+    if ($lastSelector) {
+        var lastSelectorIndex = Array.from($lastSelector.parentNode.children).indexOf($lastSelector);
+        if (lastSelectorIndex > 0)
+            $layer.querySelector(".editor-upload-tabs").children[lastSelectorIndex].click();
+    }
     updateLayer($layer, nbLayers);
     nbLayers++;
     document.querySelector(".bg-form-submit button").disabled = false;
