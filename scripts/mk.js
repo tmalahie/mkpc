@@ -3036,7 +3036,7 @@ function startGame() {
 			document.getElementById("infoPlace"+i).style.display = "block";
 			var oColor = (oPlayers[i].team != -1) ? cTeamColors.light[oPlayers[i].team]:"";
 			document.getElementById("infoPlace"+i).style.color = oColor;
-			if (course != "BB")
+			if ((course != "BB") && !onlineSpectatorId)
 				document.getElementById("compteur"+i).style.color = oColor;
 		}
 	}
