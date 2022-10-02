@@ -305,10 +305,12 @@ if ($canChange) {
 					echo '&opt="+ encodeURIComponent(JSON.stringify(cupOpts)) +"';
 				echo '&';
 			}
-			if (isset($nid)) echo 'id='.$nid.'&';
-			if ($clId) echo 'cl='.$clId.'&';
-			if ($collab) echo 'collab='.$collab['key'].'&';
-			?>nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
+			if (isset($nid)) echo 'id='.$nid;
+			if ($clId) echo '&cl='.$clId;
+			if ($collab) echo '&collab='.$collab['key'];
+			if ($isCup)
+				echo '"+getCollabQuery("circuits", ['. implode(',',$cupIDs) .'])+"';
+			?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
 			if (reponse && !isNaN(reponse)) {
 				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
 				var cP = document.createElement("p");
@@ -472,7 +474,7 @@ elseif ($canChange) {
 		if ($collab) echo "+'&collab=". $collab['key'] ."'";
 	?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br />
 	<?php
-	if ($creator) {
+	if ($creator && isset($nid) && !isset($_GET['nid'])) {
 		?>
 		<br class="br-small" />
 		<input type="button" id="linkRace" onclick="showCollabPopup('circuits', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />

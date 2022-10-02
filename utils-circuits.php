@@ -30,7 +30,13 @@ function toSQLSearch($search) {
 }
 function toSQLFilter($sql, $params) {
 	if (!empty($params['id']))
-		$sql .= ' AND id='. (+$params['id']);
+		$sql .= ' AND id='. intval($params['id']);
+	if (!empty($params['ids'])) {
+		$idsArray = array();
+		foreach ($params['ids'] as $pId)
+			$idsArray[] = intval($pId);
+		$sql .= ' AND id IN ('. implode(',', $idsArray) .')';
+	}
 	if (!empty($params['nom']))
 		$sql .= ' AND nom LIKE "'. toSQLSearch($params['nom']) .'"';
 	if (!empty($params['auteur']))

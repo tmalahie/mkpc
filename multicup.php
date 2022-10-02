@@ -56,7 +56,7 @@ include('handleCupOptions.php');
 <script type="text/javascript" src="scripts/cup.js"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
-<body onload="initGUI()">
+<body>
 	<div class="container <?php echo $mode ? 'complete':'simplified'; ?>">
 		<div id="global-infos" class="editor-section"><?php
 			if ($language) {

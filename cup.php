@@ -46,6 +46,7 @@ include('o_online.php');
 var language = <?php echo $language ? 1:0; ?>;
 var editting = <?php echo $editting ? 'true':'false'; ?>;
 var ckey = "cid";
+var complete = <?php echo $mode; ?>;
 <?php
 if (isset($cids))
 	echo 'var cids = '. json_encode($cids) .';';
@@ -54,7 +55,7 @@ if (isset($cids))
 <script type="text/javascript" src="scripts/cup.js"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
-<body onload="initGUI()">
+<body>
 	<div class="container <?php echo $mode ? 'complete':'simplified'; ?>">
 		<div id="global-infos" class="editor-section"><?php
 			if ($language) {
@@ -75,6 +76,8 @@ if (isset($cids))
 		<h1><?php echo $language ? 'Circuits selection':'S&eacute;lection des circuits'; ?> (<span id="nb-selected">0</span>/4) :</h1>
 		<?php
 		include('utils-circuits.php');
+		include('utils-cups.php');
+		require_once('collabUtils.php');
 		$type = 5-$mode;
 		$aCircuits = array($aCircuits[$type]);
 		$aParams = array(
@@ -82,6 +85,19 @@ if (isset($cids))
 			'type' => $type
 		);
 		$listCircuits = listCreations(1,null,null,$aCircuits,$aParams);
+		$misingTrackIds = array();
+		foreach ($cids as $cid)
+			$misingTrackIds[$cid] = true;
+		foreach ($listCircuits as $circuit)
+			unset($misingTrackIds[$circuit['id']]);
+		if (!empty($misingTrackIds)) {
+			$aParams = array(
+				'ids' => array_keys($misingTrackIds),
+				'type' => $type
+			);
+			$misingTracks = listCreations(1,null,null,$aCircuits,$aParams);
+			$listCircuits = array_merge($misingTracks, $listCircuits);
+		}
 		$nbCircuits = count($listCircuits);
 		if ($nbCircuits) {
 			if ($nbCircuits < 4)
@@ -93,22 +109,16 @@ if (isset($cids))
 					<?php
 					$circuitnb = 1;
 					foreach ($listCircuits as $circuit) {
-						?>
-						<tr id="circuit<?php echo $circuit['id']; ?>" data-id="<?php echo $circuit['id']; ?>" onclick="selectCircuit(this)">
-							<td class="td-preview" <?php
-							if (isset($circuit['icon']))
-								echo ' style="background-image:url(\'images/creation_icons/'.$circuit['icon'][0].'\')"';
-							else
-								echo ' data-cicon="'.$circuit['cicon'].'"';
-							?> onclick="previewImg(event,'<?php echo $circuit['srcs'][0]; ?>')"></td>
-							<td class="td-name"><em><?php echo $circuitnb; ?></em><?php echo ($circuit['nom'] ? escapeUtf8($circuit['nom']):($language ? 'Untitled':'Sans titre')); ?></td>
-							<td class="td-access">&rarr; <a href="<?php echo ($mode ? ('map.php?i='.$circuit['id']):('circuit.php?id='.$circuit['id'])); ?>" target="_blank" onclick="event.stopPropagation()"><?php echo $language ? 'Access':'Acc&eacute;der'; ?></a></td>
-						</tr>
-						<?php
+						printCupCircuit($circuit, array(
+							'nb' => $circuitnb
+						));
 						$circuitnb++;
 					}
 					?>
 					</table>
+				</div>
+				<div id="collab-container">
+					+ <a href="#null" onclick="showCollabImportPopup(event)"><?php echo $language ? "Import track of another member..." : "Importer un circuit d'un autre membre..."; ?></a>
 				</div>
 				<p>
 					<span id="cid-ctn"></span>
@@ -121,6 +131,27 @@ if (isset($cids))
 					<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
 				</p>
 			</form>
+			<div id="collab-popup" class="editor-mask editor-mask-dark" onclick="closeCollabImportPopup()">
+				<div class="editor-mask-content" onclick="event.stopPropagation()">
+					<h2>Importer un circuit d'un autre membre</h2>
+					<div>
+						Saisissez ici le lien de collaboration du circuit.<br />
+						Pour obtenir ce lien, le propriétaire du circuit devra simplement
+						cliquer sur &quot;Collaborer&quot; en bas à droite de la page du circuit.
+					</div>
+					<form onsubmit="importCollabTrack(event)">
+						<input type="url" name="collablink" placeholder="<?php
+						$collab = array(
+							'type' => 'circuits',
+							'creation_id' => 42,
+							'secret' => 'y-vf-erny_2401_pbasvezrq'
+						);
+						echo getCollabUrl($collab);
+						?>" required="required" />
+						<input type="submit" value="Ok" />
+					</form>
+				</div>
+			</div>
 			<?php
 		}
 		else

@@ -180,6 +180,37 @@ h2 {
 	background-size: 50% 50%;
 	background-size: calc(50% + 1px) calc(50% + 1px);
 }
+#collab-container {
+	color: white;
+	margin-top: 0.5em;
+}
+#collab-container a {
+	color: #CCF;
+}
+#collab-popup:not([data-state]) {
+	display: none;
+}
+#collab-popup[data-state="loading"] .collab-popup {
+	display: block;
+}
+#collab-popup form {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	font-size: 0.9em;
+	display: flex;
+	gap: 0.1em;
+}
+#collab-popup form input[type="url"] {
+	font-size: 1em;
+	flex: 1;
+}
+#collab-popup form input[type="submit"] {
+    background-color: #69C;
+    color: white;
+    border-color: #48A;
+	cursor: pointer;
+	border-radius: 0.25em;
+}
 .submit-selection {
 	width: 200px;
 	font-size: 1.5em;
@@ -508,6 +539,9 @@ h2 {
 .editor-mask-content h4 {
 	margin-top: 2px;
 	margin-bottom: 2px;
+}
+.editor-mask-content h2 {
+	color: black;
 }
 #cup-selection-choices img {
 	height: 50px;

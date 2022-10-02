@@ -138,3 +138,15 @@ function backToTrackCollabLinks(e) {
     document.querySelector(".collab-track-links").classList.add("show");
     resetTrackCollabPopup();
 }
+
+function getCollabQuery(type, ids) {
+    var res = "";
+    for (var i=0;i<ids.length;i++) {
+        var collabKey = sessionStorage.getItem("collab.track."+type+"."+ids[i]+".key");
+        if (collabKey) {
+            res += "&";
+            res += "collabs["+ids[i]+"]="+collabKey;
+        }
+    }
+    return res;
+}

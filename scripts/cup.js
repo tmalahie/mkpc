@@ -745,3 +745,68 @@ function selectOptionTab(id) {
 	document.querySelector(".option-container-selected").classList.remove("option-container-selected");
 	document.querySelectorAll("#option-containers > div")[id].classList.add("option-container-selected");
 }
+function showCollabImportPopup(e) {
+	e.preventDefault();
+	var $collabPopup = document.getElementById("collab-popup");
+	$collabPopup.dataset.state = "open";
+
+	closeCollabImportPopup = function() {
+		document.removeEventListener("keydown", hideOnEscape);
+		delete $collabPopup.dataset.state;
+	}
+	function hideOnEscape(e) {
+		switch (e.keyCode) {
+		case 27:
+			closeCollabImportPopup();
+		}
+	}
+	document.addEventListener("keydown", hideOnEscape);
+}
+var closeCollabImportPopup;
+function importCollabTrack(e) {
+	e.preventDefault();
+	var $form = e.target;
+	var url = $form.elements["collablink"].value;
+	var creationId, creationType, creationKey;
+	try {
+		var urlParams = new URLSearchParams(new URL(url).search);
+		if (complete) {
+			creationType = "circuits";
+			creationId = urlParams.get('i');
+			creationKey = urlParams.get('collab');
+		}
+		else {
+			creationType = "mkcircuits";
+			creationId = urlParams.get('id');
+			creationKey = urlParams.get('collab');
+		}
+	}
+	catch (e) {
+	}
+	if (!creationKey) {
+		alert("Invalid URL");
+		return;
+	}
+	var $collabPopup = document.getElementById("collab-popup");
+	$collabPopup.dataset.state = "loading";
+	o_xhr("importCollabTrack.php", "type="+creationType+"&id="+creationId+"&collab="+creationKey, function(res) {
+		if (!res) {
+			alert("Invalid link");
+			return true;
+		}
+		if (!document.getElementById("circuit"+creationId)) {
+			var template = document.createElement('template');
+			template.innerHTML = res.trim();
+			var $tr = template.content.cloneNode(true).firstChild;
+			var $table = document.getElementById("table-circuits");
+			var $tbody = $table.querySelector("tbody");
+			$tbody.insertBefore($tr, $tbody.firstChild);
+		}
+
+		closeCollabImportPopup();
+		sessionStorage.setItem("collab.track."+creationType+"."+creationId+".key", creationKey);
+		return true;
+	});
+}
+
+document.addEventListener("DOMContentLoaded", initGUI);

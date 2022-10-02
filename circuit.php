@@ -372,6 +372,8 @@ if ($canChange) {
 		if (isset($nid)) echo '&id='.$nid;
 		if ($clId) echo '&cl='.$clId;
 		if ($collab) echo '&collab='.$collab['key'];
+		if ($isCup)
+			echo '"+getCollabQuery("mkcircuits", ['. implode(',',$cupIDs) .'])+"';
 		?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
 			if (reponse && !isNaN(reponse)) {
 				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
