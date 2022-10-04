@@ -131,28 +131,8 @@ if (isset($cids))
 					<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
 				</p>
 			</form>
-			<div id="collab-popup" class="editor-mask editor-mask-dark" onclick="closeCollabImportPopup()">
-				<div class="editor-mask-content" onclick="event.stopPropagation()">
-					<h2>Importer un circuit d'un autre membre</h2>
-					<div>
-						Saisissez ici le lien de collaboration du circuit.<br />
-						Pour obtenir ce lien, le propriétaire du circuit devra simplement
-						cliquer sur &quot;Collaborer&quot; en bas à droite de la page du circuit.
-					</div>
-					<form onsubmit="importCollabTrack(event)">
-						<input type="url" name="collablink" placeholder="<?php
-						$collab = array(
-							'type' => 'circuits',
-							'creation_id' => 42,
-							'secret' => 'y-vf-erny_2401_pbasvezrq'
-						);
-						echo getCollabUrl($collab);
-						?>" required="required" />
-						<input type="submit" value="Ok" />
-					</form>
-				</div>
-			</div>
 			<?php
+			printCollabImportPopup('circuit');
 		}
 		else
 			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared circuits in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create one.':'Vous n\'avez pas encore partag&eacute; de circuits en mode '. ($mode ? 'complet':'simplifi&eacute;') .'.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en cr&eacute;er un.') .'</em>';

@@ -44,6 +44,7 @@ include('o_online.php');
 var language = <?php echo $language ? 1:0; ?>;
 var editting = <?php echo $editting ? 'true':'false'; ?>;
 var ckey = "mid";
+var complete = <?php echo $mode; ?>;
 <?php
 if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
@@ -83,6 +84,8 @@ include('handleCupOptions.php');
 			<h1><?php echo $language ? 'Cups selection':'S&eacute;lection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
 			<?php
 			include('utils-circuits.php');
+			include('utils-cups.php');
+			require_once('collabUtils.php');
 			$type = 3-$mode;
 			$aCircuits = array($aCircuits[$type]);
 			$aParams = array(
@@ -90,6 +93,19 @@ include('handleCupOptions.php');
 				'type' => $type
 			);
 			$listCups = listCreations(1,null,null,$aCircuits,$aParams);
+			$misingCupIds = array();
+			foreach ($mids as $cid)
+				$misingCupIds[$cid] = true;
+			foreach ($listCups as $cup)
+				unset($misingCupIds[$cup['id']]);
+			if (!empty($misingCupIds)) {
+				$aParams = array(
+					'ids' => array_keys($misingCupIds),
+					'type' => $type
+				);
+				$misingTracks = listCreations(1,null,null,$aCircuits,$aParams);
+				$listCups = array_merge($misingTracks, $listCups);
+			}
 			$nbCups = count($listCups);
 			if ($nbCups) {
 				if ($nbCups < 2)
@@ -100,26 +116,16 @@ include('handleCupOptions.php');
 					<?php
 					$cupnb = 1;
 					foreach ($listCups as $cup) {
-						?>
-						<tr id="circuit<?php echo $cup['id']; ?>" data-id="<?php echo $cup['id']; ?>" onclick="selectCircuit(this)">
-							<td class="td-preview td-preview-cup" <?php
-							if (isset($cup['icon'])) {
-								$allMapSrcs = $cup['icon'];
-								foreach ($allMapSrcs as $j=>$jMapSrc)
-									$allMapSrcs[$j] = "url('images/creation_icons/$jMapSrc')";
-								echo ' style="background-image:'.implode(',',$allMapSrcs).'"';
-							}
-							else
-								echo ' data-cicon="'.$cup['cicon'].'"';
-							?> onclick="previewImg(event,<?php echo htmlspecialchars(json_encode($cup['srcs'])); ?>)"></td>
-							<td class="td-name"><em><?php echo $cupnb; ?></em><?php echo ($cup['nom'] ? escapeUtf8($cup['nom']):($language ? 'Untitled':'Sans titre')); ?></td>
-							<td class="td-access">&rarr; <a href="<?php echo $cup['href']; ?>" target="_blank" onclick="event.stopPropagation()"><?php echo $language ? 'Access':'Acc&eacute;der'; ?></a></td>
-						</tr>
-						<?php
+						printCupCircuit($cup, array(
+							'nb' => $cupnb
+						));
 						$cupnb++;
 					}
 					?>
 					</table>
+				</div>
+				<div id="collab-container">
+					+ <a href="#null" onclick="showCollabImportPopup(event)"><?php echo $language ? "Import cup of another member..." : "Importer la coupe d'un autre membre..."; ?></a>
 				</div>
 				<p>
 					<span id="cid-ctn"></span>
@@ -176,6 +182,9 @@ include('handleCupOptions.php');
 		?>
 		</div>
 		</form>
+		<?php
+		printCollabImportPopup('cup');
+		?>
 		<div class="editor-navigation">
 			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une multicoupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></a></u>
 			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></u></a>

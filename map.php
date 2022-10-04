@@ -271,7 +271,8 @@ function listMaps() {
 <script type="text/javascript">
 <?php
 require_once('collabUtils.php');
-$collab = getCollabLinkFromQuery('circuits', $nid);
+$creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'circuits');
+$collab = getCollabLinkFromQuery($creationType, $nid);
 if (isset($nid)) {
 	if (isset($creationData)) {
 		$creator = ($creationData['identifiant'] == $identifiants[0]) && ($creationData['identifiant2'] == $identifiants[1]) && ($creationData['identifiant3'] == $identifiants[2]) && ($creationData['identifiant4'] == $identifiants[3]);
@@ -309,7 +310,7 @@ if ($canChange) {
 			if ($clId) echo '&cl='.$clId;
 			if ($collab) echo '&collab='.$collab['key'];
 			if ($isCup)
-				echo '"+getCollabQuery("circuits", ['. implode(',',$cupIDs) .'])+"';
+				echo '"+getCollabQuery("'. ($isMCup ? 'mkcups':'circuits') .'", ['. implode(',',$cupIDs) .'])+"';
 			?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
 			if (reponse && !isNaN(reponse)) {
 				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
@@ -408,7 +409,7 @@ if ($canChange) {
 }
 else {
 	require_once('utils-ratings.php');
-	$cNote = getMyRating($isMCup ? 'mkmcups':($isCup ? 'mkcups':'circuits'), $nid);
+	$cNote = getMyRating($creationType, $nid);
 	?>
 	var cNote = <?php echo $cNote ?>;
 	var ratingParams = "id=<?php
@@ -477,7 +478,7 @@ elseif ($canChange) {
 	if ($creator && isset($nid) && !isset($_GET['nid'])) {
 		?>
 		<br class="br-small" />
-		<input type="button" id="linkRace" onclick="showCollabPopup('circuits', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+		<input type="button" id="linkRace" onclick="showCollabPopup('<?php echo $creationType ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
 		<?php
 	}
 	else {
@@ -597,7 +598,7 @@ if ($cShared) {
 	?>
 	<div id="comments-section"></div>
 	<script type="text/javascript">
-	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $isMCup ? 'mkmcups' : ($isCup?'mkcups':'circuits'); ?>",
+	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $creationType; ?>",
 	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cAuteur,$isCup?$circuitsData[0]['ID']:$nid,'circuits'); ?>;

@@ -190,8 +190,8 @@ h2 {
 #collab-popup:not([data-state]) {
 	display: none;
 }
-#collab-popup[data-state="loading"] .collab-popup {
-	display: block;
+#collab-popup[data-state="loading"] .editor-mask-content {
+	display: none;
 }
 #collab-popup form {
 	margin-top: 0.5em;
@@ -541,6 +541,9 @@ h2 {
 	margin-bottom: 2px;
 }
 .editor-mask-content h2 {
+	color: black;
+}
+#collab-popup .editor-mask-content {
 	color: black;
 }
 #cup-selection-choices img {

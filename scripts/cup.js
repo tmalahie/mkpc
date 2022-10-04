@@ -770,16 +770,19 @@ function importCollabTrack(e) {
 	var creationId, creationType, creationKey;
 	try {
 		var urlParams = new URLSearchParams(new URL(url).search);
-		if (complete) {
+		if (isMCups) {
+			creationType = "mkcups";
+			creationId = urlParams.get('cid');
+		}
+		else if (complete) {
 			creationType = "circuits";
 			creationId = urlParams.get('i');
-			creationKey = urlParams.get('collab');
 		}
 		else {
 			creationType = "mkcircuits";
 			creationId = urlParams.get('id');
-			creationKey = urlParams.get('collab');
 		}
+		creationKey = urlParams.get('collab');
 	}
 	catch (e) {
 	}
@@ -789,9 +792,10 @@ function importCollabTrack(e) {
 	}
 	var $collabPopup = document.getElementById("collab-popup");
 	$collabPopup.dataset.state = "loading";
-	o_xhr("importCollabTrack.php", "type="+creationType+"&id="+creationId+"&collab="+creationKey, function(res) {
+	o_xhr("importCollabTrack.php", "type="+creationType+"&id="+creationId+"&collab="+creationKey+(isMCups ? ("&mode="+complete):""), function(res) {
 		if (!res) {
 			alert("Invalid link");
+			$collabPopup.dataset.state = "open";
 			return true;
 		}
 		if (!document.getElementById("circuit"+creationId)) {
@@ -804,6 +808,7 @@ function importCollabTrack(e) {
 		}
 
 		closeCollabImportPopup();
+		$form.reset();
 		sessionStorage.setItem("collab.track."+creationType+"."+creationId+".key", creationKey);
 		return true;
 	});

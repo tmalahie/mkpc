@@ -329,9 +329,10 @@ function listMaps() {
 <script type="text/javascript">
 <?php
 require_once('collabUtils.php');
-$collab = getCollabLinkFromQuery('mkcircuits', $nid);
+$creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits');
+$collab = getCollabLinkFromQuery($creationType, $nid);
 if (isset($nid)) {
-	$creator = mysql_numrows(mysql_query('SELECT * FROM `'.($isMCup ? 'mkmcups':($isCup?'mkcups':'mkcircuits')).'` WHERE id="'. $nid.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
+	$creator = mysql_numrows(mysql_query('SELECT * FROM `'.$creationType.'` WHERE id="'. $nid.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
 	$canChange = $creator || isset($collab['rights']['view']);
 	$canShare = $creator || isset($collab['rights']['edit']);
 }
@@ -373,7 +374,7 @@ if ($canChange) {
 		if ($clId) echo '&cl='.$clId;
 		if ($collab) echo '&collab='.$collab['key'];
 		if ($isCup)
-			echo '"+getCollabQuery("mkcircuits", ['. implode(',',$cupIDs) .'])+"';
+			echo '"+getCollabQuery("'. ($isMCup ? 'mkcups':'mkcircuits') .'", ['. implode(',',$cupIDs) .'])+"';
 		?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
 			if (reponse && !isNaN(reponse)) {
 				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
@@ -475,7 +476,7 @@ if ($canChange) {
 }
 else {
 	require_once('utils-ratings.php');
-	$cNote = getMyRating($isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits'), $nid);
+	$cNote = getMyRating($creationType, $nid);
 	?>
 	var cNote = <?php echo $cNote ?>;
 	var ratingParams = "id=<?php
@@ -529,7 +530,7 @@ if ($collab) echo "+'&collab=". $collab['key'] ."'";
 if ($creator && isset($nid) && !isset($_GET['nid'])) {
 	?>
 	<br class="br-small" />
-	<input type="button" id="linkRace" onclick="showCollabPopup('mkcircuits', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+	<input type="button" id="linkRace" onclick="showCollabPopup('<?php echo $creationType ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
 	<?php
 }
 else {
@@ -643,7 +644,7 @@ if (isset($id)) {
 	?>
 	<div id="comments-section"></div>
 	<script type="text/javascript">
-	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $isMCup ? 'mkmcups' : ($isCup?'mkcups':'mkcircuits'); ?>",
+	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $creationType; ?>",
 	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cPseudo)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cPseudo,$isCup?$circuitsData[0]['id']:$nid,'mkcircuits'); ?>;
