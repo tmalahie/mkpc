@@ -180,6 +180,21 @@ h2 {
 	background-size: 50% 50%;
 	background-size: calc(50% + 1px) calc(50% + 1px);
 }
+.readonly #table-circuits tr {
+	cursor: default;
+}
+.readonly #table-circuits tr:not(.selected):hover {
+	background-color: transparent;
+}
+.readonly #collab-container {
+	display: none;
+}
+.readonly .option-container-selected {
+	pointer-events: none;
+}
+.readonly #reset-cup-appearance, .readonly #reset-character-roster {
+	display: none;
+}
 #collab-container {
 	color: white;
 	margin-top: 0.5em;

@@ -328,8 +328,11 @@ if ($canChange) {
 				cCont.value = language ? "Continue":"Continuer";
 				cCont.onclick = function() {
 					<?php
-					if ($isCup)
-						echo 'document.location.href = "?'.$sid.'="+ reponse;';
+					if ($isCup) {
+						echo 'document.location.href = "?'.$sid.'="+ reponse';
+						if ($collab) echo '+"&collab='.$collab['key'].'"';
+						echo ';';
+					}
 					else
 						echo 'location.reload();';
 					?>
@@ -472,7 +475,7 @@ elseif ($canChange) {
 	?>
 	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href=<?php
 		echo ($isCup ? "'". ($isMCup ? "completecups.php":"completecup.php") ."'+document.location.search":"'draw.php?i=$nid'");
-		if ($collab) echo "+'&collab=". $collab['key'] ."'";
+		if ($collab && !$isCup) echo "+'&collab=". $collab['key'] ."'";
 	?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br />
 	<?php
 	if ($creator && isset($nid) && !isset($_GET['nid'])) {
@@ -487,11 +490,6 @@ elseif ($canChange) {
 		<?php
 	}
 	if ($canShare) {
-		if (!$cShared) {
-			?>
-		&nbsp;
-			<?php
-		}
 	?>
 	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
 	if ($cShared)

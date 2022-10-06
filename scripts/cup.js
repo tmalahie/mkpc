@@ -2,6 +2,8 @@ var selectedCircuits = [];
 var loadingMsg = language ? "Loading":"Chargement";
 var isMCups = (ckey === "mid");
 function getSubmitMsg() {
+	if (readOnly)
+		return language ? "Read-only":"Lecture seule";
 	if (isMCups) {
 		if (selectedCircuits.length < 2)
 			return (language ? "You must select at least 2 cups":"Vous devez sélectionner au moins 2 coupes");
@@ -27,6 +29,7 @@ function getSubmitMsg() {
 	return (selectedCircuits.length != 4) ? (language ? "You must select 4 circuits":"Vous devez sélectionner 4 circuits"):"";
 }
 function selectCircuit(tr, isAuto) {
+	if (readOnly && !isAuto) return;
 	var id = tr.dataset.id;
 	var selectionID = selectedCircuits.indexOf(id);
 	var orderTD = tr.getElementsByClassName("td-preview")[0];
@@ -88,7 +91,7 @@ function initGUI() {
 			var $fancyTitle = document.createElement("div");
 			$fancyTitle.className = "fancy-title";
 			if (!$prettyTitle.dataset) $prettyTitle.dataset = {};
-			$prettyTitle.dataset.title = "";
+			if (!readOnly) $prettyTitle.dataset.title = "";
 			$prettyTitle.parentNode.onmouseover = function() {
 				if ($prettyTitle.dataset.title) {
 					$fancyTitle.innerHTML = $prettyTitle.dataset.title;
@@ -102,6 +105,7 @@ function initGUI() {
 				$fancyTitle.style.display = "none";
 			};
 			document.body.appendChild($fancyTitle);
+			window.$fancyTitle = $fancyTitle;
 		})($prettyTitles[i]);
 	}
 }
@@ -761,6 +765,7 @@ function showCollabImportPopup(e) {
 		}
 	}
 	document.addEventListener("keydown", hideOnEscape);
+	$collabPopup.querySelector('input[name="collablink"]').focus();
 }
 var closeCollabImportPopup;
 function importCollabTrack(e) {

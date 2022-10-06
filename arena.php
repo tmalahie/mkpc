@@ -314,9 +314,7 @@ if (isBanned())
    echo '&nbsp;';
 elseif ($canChange) {
 	?>
-	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='arene.php'+document.location.search<?php
-	if ($collab) echo "+'&collab=". $collab['key'] ."'";
-	?>" value="<?php echo ($language ? 'Edit course':'Modifier l\'ar&egrave;ne'); ?>" /><br /><?php
+	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='arene.php'+document.location.search" value="<?php echo ($language ? 'Edit course':'Modifier l\'ar&egrave;ne'); ?>" /><br /><?php
 	if ($creator && isset($nid) && !isset($_GET['nid'])) {
 		?>
 		<br class="br-small" />

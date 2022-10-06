@@ -231,11 +231,6 @@ elseif ($canChange) {
 		<br />
 		<?php
 	}
-	if (!$shared) {
-		?>
-	&nbsp;
-		<?php
-	}
 	if ($canShare) {
 		?>
 	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
