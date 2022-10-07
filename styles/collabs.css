@@ -10,7 +10,7 @@
     align-items: center;
     justify-content: center;
 }
-.collab-track {
+.collab-popup {
     position: relative;
     width: 500px;
     max-width: 100%;
@@ -18,10 +18,12 @@
     overflow-y: auto;
     padding: 1em;
     border-radius: 0.5em;
-    background-color: #333;
     font-size: 1.125em;
 }
-.collab-track-section:not(.show) {
+.collab-popup.collab-track {
+    background-color: #333;
+}
+.collab-popup-section:not(.show) {
     display: none;
 }
 .collab-form:not(.add) .collab-form-on-add {
@@ -33,14 +35,15 @@
 .collab-form:not(.edit) .collab-form-on-edit {
     display: none;
 }
-.collab-track a {
+.collab-popup a {
     color: #CCF;
 }
-.collab-track h2 {
+.collab-popup h2 {
+    margin-right: 2em;
     margin-top: 0;
     margin-bottom: 0.5em;
 }
-.collab-track-close {
+.collab-popup-close {
     position: absolute;
     right: 0.5em;
     top: 0.5em;
@@ -55,15 +58,17 @@
     justify-content: center;
     border-radius: 50%;
     border: solid 1px white;
+}
+.collab-popup.collab-track .collab-popup-close {
     background-color: black;
 }
-.collab-track-close:hover {
+.collab-popup.collab-track .collab-popup-close:hover {
     background-color: #222;
 }
-.collab-track .collab-explain {
+.collab-popup .collab-explain {
     color: white;
 }
-.collab-track .collab-current {
+.collab-popup .collab-current {
     color: white;
     word-break: break-all;
     text-align: justify;
@@ -73,6 +78,12 @@
     margin-bottom: 0.5em;
     font-size: 1.25em;
 }
+.collab-popup .collab-btn-primary:not(:disabled) {
+    cursor: pointer;
+}
+.collab-popup input[type="button"]:not(:disabled) {
+    cursor: pointer;
+}
 .collab-options-list {
     color: white;
     margin-top: 0.25em;
@@ -81,13 +92,13 @@
     flex-direction: column;
     gap: 0.25em;
 }
-.collab-track .collab-option {
+.collab-popup .collab-option {
     display: flex;
     gap: 0.375em;
     cursor: pointer;
     align-items: center;
 }
-.collab-track .collab-option span {
+.collab-popup .collab-option span {
     flex: 1;
 }
 .collab-form {
@@ -119,52 +130,52 @@
     opacity: 0.5;
     cursor: default;
 }
-.collab-track-success {
+.collab-popup-success {
     color: white;
     font-size: 1.25em;
     text-align: center;
 }
-.collab-track-success a {
+.collab-popup-success a {
     display: inline-block;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
     word-break: break-word;
 }
-.collab-track-links h3 {
+.collab-popup-links h3 {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
 }
-.collab-track-links-list {
+.collab-popup-links-list {
     margin-bottom: 0.5em;
     display: flex;
     flex-direction: column;
     gap: 0.25em;
 }
-.collab-track-link {
+.collab-popup-link {
     display: flex;
     gap: 0.25em;
 }
-.collab-track-link > a {
+.collab-popup-link > a {
     flex: 1;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
 }
-.collab-track-link-actions {
+.collab-popup-link-actions {
     display: flex;
     align-items: center;
     gap: 0.25em;
 }
-.collab-track-link-actions input {
+.collab-popup-link-actions input {
     width: 2em;
     height: 1.5em;
     line-height: 1.375em;
 }
-.collab-track-link-actions input.collab-track-link-action-edit {
+.collab-popup-link-actions input.collab-popup-link-action-edit {
     background-color: #33a033;
     color: white;
 }
-.collab-track-link-actions input.collab-track-link-action-del {
+.collab-popup-link-actions input.collab-popup-link-action-del {
     background-color: #cc3333;
     color: white;
 }

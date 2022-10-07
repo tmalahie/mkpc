@@ -528,7 +528,7 @@ elseif ($canChange) {
 if ($creator && isset($nid) && !isset($_GET['nid'])) {
 	?>
 	<br class="br-small" />
-	<input type="button" id="linkRace" onclick="showCollabPopup('<?php echo $creationType ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+	<input type="button" id="linkRace" onclick="showTrackCollabPopup('<?php echo $creationType ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
 	<?php
 }
 else {

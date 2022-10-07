@@ -290,6 +290,20 @@ h2 {
 	background-color: #FB7;
 	color: #D35;
 }
+#bg-actions .bg-collab {
+    display: block;
+    margin-top: 0.4em;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 0.6em;
+    padding: 0.1em 0.5em;
+    background-color: #7BF;
+    color: #35D;
+}
+#bg-actions .bg-collab:hover {
+    background-color: #69F;
+    color: #24C;
+}
 .bg-layers-add {
     margin-top: 0.25em;
 }
@@ -305,4 +319,34 @@ h2 {
 }
 #bg-layers-add-form.shown {
     display: block;
+}
+.collab-popup.collab-bg {
+    background-color: #14465f;
+    text-align: left;
+    color: #DEF;
+    font-size: 0.9em;
+}
+.collab-popup.collab-bg .collab-popup-close {
+    background-color: #134;
+}
+.collab-popup.collab-bg .collab-popup-close:hover {
+    background-color: #145;
+}
+.collab-popup.collab-bg h2 {
+    font-size: 1.5em;
+    color: white;
+}
+.collab-popup.collab-bg h3 {
+    color: white;
+    margin-bottom: 0.1em;
+}
+.collab-popup.collab-bg .collab-btn-primary {
+    background-color: #58B;
+    color: white;
+    border-color: #379;
+}
+.collab-popup.collab-bg .collab-btn-primary:hover {
+    cursor: pointer;
+    background-color: #69C;
+    border-color: #48A;
 }

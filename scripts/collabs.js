@@ -4,24 +4,29 @@ if (!window.xhr) {
     document.getElementsByTagName('head')[0].appendChild(script);
 }
 
-function showCollabPopup(type, id) {
+function showCollabPopup(type, id, src) {
     var $popup = document.createElement("div");
     $popup.dataset.id = id;
     $popup.dataset.type = type;
+    $popup.dataset.src = src;
     $popup.className = "collab-backdrop";
     document.body.appendChild($popup);
-    resetTrackCollabPopup();
+    resetCollabPopup();
+}
+function showTrackCollabPopup(type, id) {
+    showCollabPopup(type, id, "getTrackCollabPopup.php");
 }
 function closeCollabPopup(e) {
     if (e) e.preventDefault();
     var $popup = document.querySelector(".collab-backdrop");
     if ($popup) $popup.parentNode.removeChild($popup);
 }
-function resetTrackCollabPopup() {
+function resetCollabPopup() {
     var $popup = document.querySelector(".collab-backdrop");
     var id = $popup.dataset.id;
     var type = $popup.dataset.type;
-    xhr("getTrackCollabPopup.php", "type="+type+"&id="+id, function(html) {
+    var src = $popup.dataset.src;
+    xhr(src, "type="+type+"&id="+id, function(html) {
         if (!html) return false;
         $popup.innerHTML = html;
         setupCollabForm($popup);
@@ -29,12 +34,12 @@ function resetTrackCollabPopup() {
     });
 }
 
-function onSaveTrackCollab(payload) {
+function onSavePopupCollab(payload) {
     var url = payload.url;
-    document.querySelector(".collab-track-success a").href = url;
-    document.querySelector(".collab-track-success a").innerHTML = url;
-    document.querySelector(".collab-track .collab-form").classList.remove("show");
-    document.querySelector(".collab-track .collab-track-success").classList.add("show");
+    document.querySelector(".collab-popup-success a").href = url;
+    document.querySelector(".collab-popup-success a").innerHTML = url;
+    document.querySelector(".collab-popup .collab-form").classList.remove("show");
+    document.querySelector(".collab-popup .collab-popup-success").classList.add("show");
 }
 
 function setupCollabForm($parent) {
@@ -68,8 +73,7 @@ function setupCollabForm($parent) {
                 catch (e) {
                     return false;
                 }
-                if ($collabForm.dataset.onsave && window[$collabForm.dataset.onsave])
-                    window[$collabForm.dataset.onsave](res);
+                resetCollabPopup(res);
                 return true;
             }
         };
@@ -88,15 +92,15 @@ function setupCollabForm($parent) {
                     }
                 });
             };
+            $checkbox.onclick();
         });
     });
 }
 
-function editTrackCollabLink(collab) {
-    document.querySelector(".collab-track-links").classList.remove("show");
+function editPopupCollabLink(collab) {
+    document.querySelector(".collab-popup-links").classList.remove("show");
     var $collabForm = document.querySelector(".collab-form");
     $collabForm.dataset.collab = collab.id;
-    $collabForm.dataset.onsave = "resetTrackCollabPopup";
     $collabForm.querySelector(".collab-current a").href = collab.url;
     $collabForm.querySelector(".collab-current a").innerHTML = collab.url;
 
@@ -111,8 +115,8 @@ function editTrackCollabLink(collab) {
     $collabForm.classList.add("edit");
     $collabForm.classList.add("show");
 }
-function addTrackCollabLink() {
-    document.querySelector(".collab-track-links").classList.remove("show");
+function addPopupCollabLink() {
+    document.querySelector(".collab-popup-links").classList.remove("show");
     var $collabForm = document.querySelector(".collab-form");
     $collabForm.classList.add("add");
     $collabForm.classList.add("new");
@@ -128,15 +132,15 @@ function delCollabLink(id, callback) {
         });
     }
 }
-function delTrackCollabLink(id) {
-    delCollabLink(id, resetTrackCollabPopup);
+function delPopupCollabLink(id) {
+    delCollabLink(id, resetCollabPopup);
 }
 
-function backToTrackCollabLinks(e) {
+function backToPopupCollabLinks(e) {
     if (e) e.preventDefault();
     document.querySelector(".collab-form").classList.remove("show");
-    document.querySelector(".collab-track-links").classList.add("show");
-    resetTrackCollabPopup();
+    document.querySelector(".collab-popup-links").classList.add("show");
+    resetCollabPopup();
 }
 
 function getCollabQuery(type, ids) {

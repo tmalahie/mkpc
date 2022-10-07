@@ -110,6 +110,20 @@ h2 {
 	background-color: #FB7;
 	color: #D35;
 }
+#decor-actions .collab-decor {
+    display: block;
+    margin-top: 0.4em;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 0.6em;
+    padding: 0.1em 0.5em;
+	background-color: #7BF;
+	color: #35D;
+}
+#decor-actions .collab-decor:hover {
+	background-color: #69F;
+	color: #24C;
+}
 .decors-list .decor-selected, .decors-list .decor-selected:hover {
 	background-color: #93b8f9;
 }

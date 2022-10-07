@@ -223,7 +223,7 @@ elseif ($canChange) {
 	if ($creator) {
 		?>
 		<br class="br-small" />
-		<input type="button" id="linkRace" onclick="showCollabPopup('arenes', <?php echo $id; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+		<input type="button" id="linkRace" onclick="showTrackCollabPopup('arenes', <?php echo $id; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
 		<?php
 	}
 	else {
