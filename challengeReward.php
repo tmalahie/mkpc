@@ -3,6 +3,7 @@ include('getId.php');
 include('language.php');
 include('initdb.php');
 require_once('utils-challenges.php');
+require_once('collabUtils.php');
 if (isset($_GET['rw'])) {
 	$reward = mysql_fetch_array(mysql_query('SELECT * FROM mkclrewards WHERE id="'. $_GET['rw'] .'"'));
 	if ($reward)
@@ -25,8 +26,9 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
     $clMsg = null;
     if (!empty($challengeIds)) {
         $persoId = $_POST['perso'];
+        $hasCollabGrants = hasCollabGrants('mkchars', $persoId, $_POST['collab'], 'use');
         if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'" AND name!=""'))) {
-            if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
+            if ($hasCollabGrants || (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3]))) {
                 if (isset($reward)) {
                     $rewardId = intval($reward['id']);
                     mysql_query('UPDATE mkclrewards SET charid="'. $persoId .'" WHERE id='.$rewardId);
@@ -52,6 +54,8 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
 
                 $clMsg = 'reward_created';
             }
+            elseif (isset($_POST['collab']))
+                $clMsg = 'invalid_collab_link';
         }
     }
 	header('location: '. nextPageUrl('challengeRewards.php', array('rw'=>null,'cl'=>$clRace['clid'],'clmsg'=>$clMsg)));
@@ -73,6 +77,7 @@ else
 <?php
 include('o_online.php');
 ?>
+<script type="text/javascript" src="scripts/challenges.js"></script>
 <title><?php echo $language ? 'Challenge rewards':'Défis et récompenses'; ?> - Mario Kart PC</title>
 </head>
 <body>
@@ -86,6 +91,7 @@ include('o_online.php');
     <fieldset class="challenge-reward">
         <?php echo $language ? 'Unlocked character':'Perso à débloquer'; ?> :<br />
         <input type="text" name="perso" required="required" style="display:none" />
+        <input type="hidden" name="collab" />
         <?php
         $getEligiblePersos = mysql_query('SELECT * FROM `mkchars` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="" AND author IS NULL ORDER BY id DESC');
         $areEligiblePersos = mysql_numrows($getEligiblePersos);
@@ -120,7 +126,30 @@ include('o_online.php');
                 echo $language ? 'You haven\'t created any character yet. Go to the <a class="pretty-link" href="persoEditor.php">character editor</a> to create one.':'Vous n\'avez créé aucun perso pour l\'instant. Rendez-vous dans l\'<a class="pretty-link" href="persoEditor.php">éditeur de persos</a> pour en créer.';
             echo '</div>';
         }
-        ?><br />
+        ?>
+        <div class="challenge-perso-collab">
+            <?php
+            echo '<em>'. ($language ? 'OR' : 'OU') .'</em> <a class="pretty-link" href="javascript:toggleCollabChar()">'. ($language ? "Select character from another member..." : "Sélectionner le perso d'un autre membre...") .'</a>';
+            ?>
+            <label id="challenge-perso-collab">
+                <span>
+                    <?php
+                    echo $language ? 'Collaboration link' : 'Lien de collaboration';
+                    ?><a href="javascript:void(0)" class="pretty-link pretty-title" title="<?php
+                    echo $language ? "Enter the characters's collaboration link here.<br />To get this link, the character owner will simply need to select the character in the editor and click on &quot;Collaborate&quot;" : "Saisissez ici le lien de collaboration du perso.<br />Pour obtenir ce lien, le propriétaire du perso devra simplement sélectionner le perso dans l'éditeur et cliquer sur &quot;Collaborer&quot;";
+                    ?>">[?]</a>:
+                </span>
+                <input type="url" id="collab-link" placeholder="<?php
+                $collab = array(
+                    'type' => 'mkchars',
+                    'creation_id' => 42,
+                    'secret' => 'y-vf-erny_2401_pbasvezrq'
+                );
+                echo getCollabUrl($collab);
+                ?>" onchange="handleCollabCharChange(this)" />
+            </label>
+        </div>
+        <br />
         <?php echo $language ? 'Challenge(s) to succeed':'Défi(s) à réaliser'; ?> :<br />
         <?php
         if (empty($challenges)) {
@@ -155,24 +184,68 @@ include('o_online.php');
 </div>
 <script type="text/javascript">
 var $form = document.querySelector('.challenge-edit-form');
-function selectPerso($elt) {
+function resetSelectedPerso() {
     var $selectedPerso = document.querySelector(".challenge-character-selector > div.character-selected");
     if ($selectedPerso)
         $selectedPerso.className = "";
+}
+function selectPerso($elt) {
+    resetSelectedPerso();
     $elt.className = "character-selected";
     $form.elements["perso"].value = $elt.dataset.cid;
+    $form.elements["collab"].value = "";
+    document.getElementById("collab-link").value = "";
     document.getElementById("challenge-reward-selection").innerHTML = $elt.dataset.cname;
     onFormChange();
 }
 <?php
-if (isset($reward))
-    echo 'selectPerso(document.querySelector(".challenge-character-selector > div[data-cid=\\"'.$reward['charid'] .'\\"]"));';
+if (isset($reward)) {
+    ?>
+    var $currentlySelectedPerso = document.querySelector('.challenge-character-selector > div[data-cid="<?php echo $reward['charid']; ?>"]');
+    if ($currentlySelectedPerso)
+        selectPerso($currentlySelectedPerso);
+    else
+        toggleCollabChar();
+    <?php
+}
 ?>
 function onFormChange() {
     $form.querySelector('.challenge-edit-submit').disabled = !$form.checkValidity()
 }
+
+function handleCollabCharChange($elt) {
+    var $form = $elt.form;
+    var $perso = $form.elements["perso"];
+    var $collab = $form.elements["collab"];
+    var url = $elt.value;
+    if (url) {
+        $perso.value = "";
+        $collab.value = "";
+        resetSelectedPerso();
+        document.getElementById("challenge-reward-selection").innerHTML = "";
+		try {
+			var urlParams = new URLSearchParams(new URL(url).search);
+			$perso.value = urlParams.get('id');
+			$collab.value = urlParams.get('collab');
+		}
+		catch (e) {
+		}
+    }
+    else if ($collab.value) {
+        $perso.value = "";
+        $collab.value = "";
+    }
+    onFormChange();
+}
+function toggleCollabChar() {
+    var $collabCharForm = document.getElementById("challenge-perso-collab");
+    $collabCharForm.className = $collabCharForm.className ? "" : "shown";
+    if ($collabCharForm.className)
+        document.getElementById("collab-link").focus();
+}
 $form.addEventListener("change", onFormChange);
 onFormChange();
+document.addEventListener("DOMContentLoaded", initPrettyTitles);
 </script>
 </body>
 </html>

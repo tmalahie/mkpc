@@ -17,6 +17,9 @@ if (isset($_GET['clmsg'])) {
     case 'reward_created':
         $clMsg = $language ? 'The reward has been created':'La récompense a été créée';
         break;
+    case 'invalid_collab_link':
+        $clError = $language ? 'The collaboration link est invalid':'Le lien de collaboration est invalide';
+        break;
     }
     unset($_GET['clmsg']);
 }
@@ -36,6 +39,8 @@ include('o_online.php');
 <body>
 <h1 class="challenge-main-title"><?php echo $language ? 'Challenge rewards' : 'Défis et récompenses'; ?></h1>
 <?php
+if (isset($clError))
+    echo '<div class="challenge-msg-error">'. $clError .'</div>';
 if (isset($clMsg))
     echo '<div class="challenge-msg-success">'. $clMsg .'</div><br />';
 if (empty($rewards)) {
