@@ -2845,7 +2845,7 @@ function selectBgSelectorCollab(e) {
 		alert("Invalid URL");
 		return;
 	}
-	var $submitBtn = $form.querySelector('button[type="submit"]');;
+	var $submitBtn = $form.querySelector('button[type="submit"]');
 	$submitBtn.disabled = true;
 	xhr("importCollabBg.php", "id="+creationId+"&collab="+creationKey, function(res) {
 		$submitBtn.disabled = false;

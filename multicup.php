@@ -66,6 +66,14 @@ if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
 ?>
 var cp = <?php include('getPersos.php'); ?>;
+var collabCharPlaceholder = "<?php
+$collabPlaceholder = array(
+	'type' => 'mkchars',
+	'creation_id' => 42,
+	'secret' => 'y-vf-erny_2401_pbasvezrq'
+);
+echo getCollabUrl($collabPlaceholder);
+?>";
 <?php
 include('handleCupOptions.php');
 ?>
@@ -185,7 +193,9 @@ include('handleCupOptions.php');
 						<label>
 							<input type="checkbox" id="customchars" checked="checked" onclick="resetCupOptions()" /> <?php echo ($language ? 'Allow custom characters' : 'Autoriser les persos custom'); ?>
 						</label>
-						<a href="javascript:showCustomCharToggleHelp()">[?]</a>
+						<span class="pretty-title-ctn"><a href="javascript:void(0)" class="pretty-title" data-title="<?php
+							echo htmlspecialchars('<div class="fancy-title-customchars">'. ($language ? "If unchecked, you don't give access to the character editor in the character selector screen. Only the characters in the list above can be selected." : "Si décoché, vous ne donnez pas accès à l'éditeur de persos dans l'écran de sélection du perso. Seuls les persos de la liste ci-dessus pourront être sélectionnés.") .'</div>');
+						?>">[?]</a></span>
 					</div>
 				</div>
 			</div>

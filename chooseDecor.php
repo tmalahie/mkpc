@@ -48,7 +48,7 @@ function selectDecorSelectorCollab(e) {
 		alert("Invalid URL");
 		return;
 	}
-	var $submitBtn = $form.querySelector('button[type="submit"]');;
+	var $submitBtn = $form.querySelector('button[type="submit"]');
 	$submitBtn.disabled = true;
 	xhr("importCollabDecor.php", "id="+creationId+"&collab="+creationKey, function(res) {
 		$submitBtn.disabled = false;
