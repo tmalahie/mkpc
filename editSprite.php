@@ -143,7 +143,7 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 		<?php echo $language ? 'Current image:':'Image actuelle :'; ?> <img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
 		<?php
 		if ($spriteSrc != $spriteSrcs['ld'] && $hasWriteGrants)
-			echo '&nbsp;<a href="delSprite.php?id='. $persoId .'&amp;'. $type . $collabSuffix .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
+			echo '&nbsp;<a href="delSprite.php?id='. $persoId .'&amp;'. $type . htmlspecialchars($collabSuffix) .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
 		?>
 		<?php
 	}
@@ -166,11 +166,11 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 		<?php
 		if ($type != 'perso') {
 			?>
-			<a href="persoOptions.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>"><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></a><br />
+			<a href="persoOptions.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>"><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></a><br />
 			<?php
 		}
 		?>
-		<a href="editPerso.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a>
+		<a href="editPerso.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a>
 	</p>
 </body>
 </html>

@@ -140,7 +140,7 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 			<?php echo $language ? 'Current image:':'Image actuelle :'; ?>&nbsp;<img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
 			<?php
 			if ($spriteSrc != $spriteSrcs['ld'])
-				echo '&nbsp;<a href="delDecorSprite.php?id='. $decorId .'&amp;'. $type . $collabSuffix .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
+				echo '&nbsp;<a href="delDecorSprite.php?id='. $decorId .'&amp;'. $type . htmlspecialchars($collabSuffix) .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
 			?>
 			</div>
 			<?php
@@ -167,11 +167,11 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 		<?php
 		if ($type != 'decor') {
 			?>
-			<a href="decorOptions.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">&lt; <u><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></u></a>
+			<a href="decorOptions.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></u></a>
 			<?php
 		}
 		?>
-		<a href="editDecor.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
+		<a href="editDecor.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
 	</div>
 </body>
 </html>

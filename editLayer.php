@@ -132,7 +132,7 @@ $hasTransparency = !isset($spriteSrc) || has_transparency($spriteSrc);
 	}
 	?>
 	<div class="editor-navigation">
-		<a href="editBg.php?id=<?php echo $layer['bg'] . $collabSuffix; ?>">&lt; <u><?php echo $language ? "Back to background editor":"Retour à l'édition de l'arrière-plan"; ?></u></a>
+		<a href="editBg.php?id=<?php echo $layer['bg'] . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? "Back to background editor":"Retour à l'édition de l'arrière-plan"; ?></u></a>
 	</div>
 	<script type="text/javascript">
 		setupUploadTabs(document.querySelector(".editor-upload"));

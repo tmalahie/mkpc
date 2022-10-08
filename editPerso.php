@@ -117,7 +117,7 @@ var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		<div class="perso-preview perso-animate"><img src="<?php echo PERSOS_DIR.$perso['sprites']; ?>.png" onload="this.parentNode.style.width=Math.round(this.naturalWidth/24)+'px';this.parentNode.style.height=this.naturalHeight+'px';this.style.width=this.naturalWidth+'px'" alt="perso" /></div>
 		<?php
 		if ($hasWriteGrants)
-			echo '<a class="perso-editsprites" href="editSprite.php?id='. $_GET['id'] . $collabSuffix .'" onclick="unsavedData=false">'. ($language ? "Edit image":"Modifier l'image") .'</a>';
+			echo '<a class="perso-editsprites" href="editSprite.php?id='. $_GET['id'] . htmlspecialchars($collabSuffix) .'" onclick="unsavedData=false">'. ($language ? "Edit image":"Modifier l'image") .'</a>';
 		?>
 	</div>
 	<?php
@@ -128,7 +128,7 @@ var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 	else
 		echo '<br />';
 	?>
-	<form method="post" name="perso-form" class="perso-form" action="editPerso.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>" onsubmit="unsavedData=false">
+	<form method="post" name="perso-form" class="perso-form" action="editPerso.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>" onsubmit="unsavedData=false">
 		<label for="name"><?php echo $language ? 'Character name:':'Nom du perso :'; ?></label><input type="text" maxlength="30" required="required" name="name" id="name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" value="<?php echo htmlspecialchars($perso['name']); ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> />
 		<br /><br />
 		<fieldset class="perso-stats">
@@ -169,7 +169,7 @@ var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 			<tr>
 				<td>
 					<div class="advanced-options">
-						<a href="persoOptions.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>" onclick="unsavedData=false">
+						<a href="persoOptions.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>" onclick="unsavedData=false">
 							<img src="images/advanced-options.png" alt="Avanced" /> <?php echo $language ? 'Advanced options':'Options avancées'; ?>
 						</a>
 					</div>

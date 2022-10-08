@@ -14,7 +14,7 @@ if (isset($_GET['id'])) {
             $collab = getCollabLinkFromQuery('mkdecors', $decorId);
             $hasReadGrants = isset($collab['rights']['view']);
             $hasWriteGrants = isset($collab['rights']['edit']);
-            if ($collab) $collabSuffix = '&collab='. $collab['key'];
+            if ($collab) $collabSuffix = '&amp;collab='. $collab['key'];
         }
         if ($hasReadGrants) {
             include('language.php');
