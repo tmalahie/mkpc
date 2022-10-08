@@ -154,7 +154,7 @@ if (isset($cids))
 			</p>
 		</form>
 		<?php
-		printCollabImportPopup('circuit');
+		printCollabImportPopup('circuit', $mode);
 		?>
 		<div class="editor-navigation">
 			<a href="<?php echo $mode ? 'simplecup.php':'completecup.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une coupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></u></a>

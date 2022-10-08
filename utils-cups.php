@@ -21,16 +21,20 @@ function printCupCircuit(&$circuit, $options=array()) {
     <?php
 }
 
-function printCollabImportPopup($type) {
+function printCollabImportPopup($type, $mode) {
     global $language;
     switch ($type) {
     case 'cup':
         $aCircuit = $language ? 'a cup' : 'une coupe';
         $ofCircuit = $language ? 'of the cup' : 'de la coupe';
+        $placeholderType = 'mkcups';
+        $placeholderId = 1+$mode;
         break;
     default:
         $aCircuit = $language ? 'a circuit' : 'un circuit';
         $ofCircuit = $language ? 'of the circuit' : 'du circuit';
+        $placeholderType = $mode ? 'circuits' : 'mkcircuits';
+        $placeholderId = 42;
     }
     ?>
     <div id="collab-popup" class="editor-mask editor-mask-dark" onclick="closeCollabImportPopup()">
@@ -44,8 +48,8 @@ function printCollabImportPopup($type) {
             <form onsubmit="importCollabTrack(event)">
                 <input type="url" name="collablink" placeholder="<?php
                 $collab = array(
-                    'type' => 'circuits',
-                    'creation_id' => 42,
+                    'type' => $placeholderType,
+                    'creation_id' => $placeholderId,
                     'secret' => 'y-vf-erny_2401_pbasvezrq'
                 );
                 echo getCollabUrl($collab);

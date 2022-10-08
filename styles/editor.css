@@ -440,6 +440,7 @@ body.theme-dark {
 }
 .fancy-title-text {
 	position: fixed;
+	z-index: 1;
 	pointer-events: none;
 	font-size: 1.1em;
 	background-color: black;
@@ -789,6 +790,34 @@ div.hover-toggle:hover {
 }
 .bg-selector-optgroup > div.add-custom-bg:hover {
 	border-color: #48A !important;
+}
+.bg-selector-collab {
+	margin-top: 0.25em;
+	color: #024;
+}
+#bg-selector-collab {
+	display: none;
+	margin-top: 0.5em;
+}
+#bg-selector-collab.shown {
+	display: block;
+}
+#bg-selector-collab a {
+	position: relative;
+	top: -0.4em;
+	font-size: 0.8em;
+}
+#bg-selector-collab label {
+	display: flex;
+	align-items: center;
+	gap: 0.3em;
+}
+#bg-selector-collab input[type="url"] {
+	flex: 1;
+}
+.fancy-title-collab {
+	width: 400px;
+	text-align: center;
 }
 #music-selector {
 	padding-left: 5px;

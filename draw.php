@@ -47,6 +47,7 @@ if (isset($_GET['i'])) {
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
+		<script type="text/javascript" src="scripts/xhr.js"></script>
 		<script type="text/javascript" src="scripts/editor.js?reload=1"></script>
 		<script type="text/javascript" src="scripts/draw.js"></script>
 	</head>

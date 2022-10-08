@@ -39,10 +39,10 @@ function getCollabUrlPrefix(&$collab) {
         return 'battle.php?i='. $creationId;
     case 'mkcups':
         $circuit = mysql_fetch_array(mysql_query('SELECT mode FROM `mkcups` WHERE id="'. $creationId .'"'));
-        return ($circuit['mode'] ? 'map':'circuit') .'.php?cid='. $creationId;
+        return (empty($circuit['mode']) ? 'circuit':'map') .'.php?cid='. $creationId;
     case 'mkmcups':
         $circuit = mysql_fetch_array(mysql_query('SELECT mode FROM `mkmcups` WHERE id="'. $creationId .'"'));
-        return ($circuit['mode'] ? 'map':'circuit') .'.php?mid='. $creationId;
+        return (empty($circuit['mode']) ? 'circuit':'map') .'.php?mid='. $creationId;
     case 'mkchars':
         return 'editPerso.php?id='. $creationId;
     case 'mkdecors':

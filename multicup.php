@@ -199,7 +199,7 @@ include('handleCupOptions.php');
 		</div>
 		</form>
 		<?php
-		printCollabImportPopup('cup');
+		printCollabImportPopup('cup', $mode);
 		?>
 		<div class="editor-navigation">
 			<a href="<?php echo $mode ? 'simplecups.php':'completecups.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une multicoupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></a></u>
