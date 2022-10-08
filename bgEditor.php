@@ -36,10 +36,10 @@ if (isset($_FILES['layer'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/bg-editor.css" />
 <link rel="stylesheet" href="styles/collabs.css" />
-<script type="text/javascript" src="scripts/bg-editor.js"></script>
+<link rel="stylesheet" href="styles/bg-editor.css" />
 <script type="text/javascript" src="scripts/collabs.js"></script>
+<script type="text/javascript" src="scripts/bg-editor.js"></script>
 <title><?php echo $language ? 'Background editor':'Éditeur d\'arrière-plans'; ?></title>
 <script type="text/javascript">
 var bgId = -1;

@@ -5,6 +5,7 @@ if (!window.xhr) {
 }
 
 function showCollabPopup(type, id, src) {
+    if (document.querySelector(".collab-backdrop")) return;
     var $popup = document.createElement("div");
     $popup.dataset.id = id;
     $popup.dataset.type = type;
@@ -73,7 +74,10 @@ function setupCollabForm($parent) {
                 catch (e) {
                     return false;
                 }
-                resetCollabPopup(res);
+                if ($form.dataset.collab)
+                    resetCollabPopup(res);
+                else
+                    onSavePopupCollab(res);
                 return true;
             }
         };

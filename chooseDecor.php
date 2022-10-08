@@ -13,13 +13,55 @@ $myDecors = mysql_query('SELECT * FROM mkdecors WHERE identifiant="'. $identifia
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css" />
 <link rel="stylesheet" href="styles/decor-editor.css" />
+<script type="text/javascript" src="scripts/xhr.js"></script>
 <script type="text/javascript">
+var language = <?php echo $language ? 1 : 0; ?>;
 function selectDecor(elt) {
     window.opener.selectCustomDecor(elt.dataset);
     window.close();
 }
 function goToEditor() {
 	window.close();
+}
+function showDecorCollab() {
+    var $decorCollab = document.getElementById("decors-collab");
+    $decorCollab.className = $decorCollab.className ? "" : "shown";
+    if ($decorCollab.className)
+        $decorCollab.elements["collab-link"].focus();
+}
+function showDecorCollabExplein() {
+    alert(language ? "Enter the decor's collaboration link here.\nTo get this link, the decor owner will simply need to select the decor in the editor and click on \"Collaborate\"" : "Saisissez ici le lien de collaboration du décor.\nPour obtenir ce lien, le propriétaire du décor devra simplement sélectionner le décor dans l'éditeur et cliquer sur \"Collaborer\"");
+}
+function selectDecorSelectorCollab(e) {
+    e.preventDefault();
+	var $form = e.target;
+	var url = $form.elements["collab-link"].value;
+	var creationId, creationKey;
+	try {
+		var urlParams = new URLSearchParams(new URL(url).search);
+		creationId = urlParams.get('id');
+		creationKey = urlParams.get('collab');
+	}
+	catch (e) {
+	}
+	if (!creationKey) {
+		alert("Invalid URL");
+		return;
+	}
+	var $submitBtn = $form.querySelector('button[type="submit"]');;
+	$submitBtn.disabled = true;
+	xhr("importCollabDecor.php", "id="+creationId+"&collab="+creationKey, function(res) {
+		$submitBtn.disabled = false;
+		if (!res) {
+			alert("Invalid link");
+			return true;
+		}
+		res = JSON.parse(res);
+        window.opener.selectCustomDecor(res);
+        window.close();
+
+		return true;
+	});
 }
 </script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
@@ -38,6 +80,24 @@ function goToEditor() {
             ?><div data-id="<?php echo $decor['id'] ?>" data-name="<?php echo htmlspecialchars($decor['name']) ?>" data-ld="<?php echo $decorSrcs['ld'] ?>" data-type="<?php echo $decor['type']; ?>" onclick="selectDecor(this)"><img src="<?php echo $decorSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($decor['name']) ?>" /></div><?php
         }
         ?></div>
+        <div class="decors-collab">
+            <strong style="color:#a8d4ff">+</strong> <a href="javascript:showDecorCollab()"><?php echo $language ? "Select decor from another member...":"Sélectionner le décor d'un autre membre..."; ?></a>
+            <form id="decors-collab" onsubmit="selectDecorSelectorCollab(event)">
+                <label>
+                    <span><?php echo $language ? 'Collaboration link' : 'Lien de collaboration'; ?><a href="javascript:showDecorCollabExplein()">[?]</a>:</span>
+                    <input type="url" name="collab-link" required="required" placeholder="<?php
+                        include('collabUtils.php');
+                        $collab = array(
+                            'type' => 'mkdecors',
+                            'creation_id' => 42,
+                            'secret' => 'y-vf-erny_2401_pbasvezrq'
+                        );
+                        echo getCollabUrl($collab);
+                    ?>" />
+                    <button type="submit">Ok</button>
+                </label>
+            </form>
+        </div>
         <?php
     }
     else {

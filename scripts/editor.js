@@ -2650,8 +2650,13 @@ function showBgTab(id) {
 	for (var i=0;i<$bgTabs.length;i++)
 		$bgTabs[i].className = "";
 	document.getElementById("bg-selector-tab-"+id).className = "bg-selector-tab-selected";
-	if ($selectorOptions.dataset.custom)
+	var $bgSelectorCollab = document.querySelector("#bg-selector .bg-selector-collab");
+	if ($selectorOptions.dataset.custom) {
 		fetchCustomBgData();
+		$bgSelectorCollab.style.display = "";
+	}
+	else
+		$bgSelectorCollab.style.display = "none";
 }
 function fetchCustomBgData(opts) {
 	if (!opts) opts = {};
@@ -2821,6 +2826,7 @@ function showBgSelectorCollab() {
 		var $bgSelectorExplain = $bgSelectorCollab.querySelector("label span a.fancy-title");
 		$bgSelectorExplain.title = '<div class="fancy-title-collab">'+ (language ? "Enter the background's collaboration link here.<br />To get this link, the background owner will simply need to select the background in the editor and click on &quot;Collaborate&quot;" : "Saisissez ici le lien de collaboration de l'arrière-plan.<br />Pour obtenir ce lien, le propriétaire de l'arrière-plan devra simplement sélectionner l'arrière-plan dans l'éditeur et cliquer sur &quot;Collaborer&quot;") +'</div>';
 		initFancyTitle($bgSelectorExplain);
+		$bgSelectorCollab.elements["collab-link"].focus();
 	}
 }
 function selectBgSelectorCollab(e) {
@@ -2855,7 +2861,6 @@ function selectBgSelectorCollab(e) {
 
 		return true;
 	});
-
 }
 function applyColorSelector() {
 	var editorTool = editorTools[currentMode];

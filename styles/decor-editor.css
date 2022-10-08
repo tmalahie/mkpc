@@ -190,6 +190,10 @@ h2 {
     background-color: #669FD9;
     border-color: #59B;
 }
+.decor-editor-form button:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
 .decor-editor-form button[type="submit"] {
     margin-top: 0.2em;
 }
@@ -346,6 +350,13 @@ h2 {
 .advanced-option:hover {
 	background-color: #93b8f9;
 }
+.readonly .advanced-option {
+    cursor: default;
+    text-decoration: none;
+}
+.readonly .advanced-option:hover {
+	background-color: transparent;
+}
 .advanced-option .option-bg {
     position: relative;
     width: 150px;
@@ -376,4 +387,67 @@ h2 {
 	margin-top: 10px;
 	margin-bottom: 10px;
 	height: 60px;
+}
+.collab-popup.collab-decor {
+    background-color: #14465f;
+    text-align: left;
+    color: #DEF;
+    font-size: 0.9em;
+}
+.collab-popup.collab-decor .collab-popup-close {
+    background-color: #134;
+}
+.collab-popup.collab-decor .collab-popup-close:hover {
+    background-color: #145;
+}
+.collab-popup.collab-decor h2 {
+    font-size: 1.5em;
+    color: white;
+}
+.collab-popup.collab-decor h3 {
+    color: white;
+    margin-bottom: 0.1em;
+}
+.collab-popup.collab-decor .collab-btn-primary {
+    background-color: #58B;
+    color: white;
+    border-color: #379;
+}
+.collab-popup.collab-decor .collab-btn-primary:hover {
+    cursor: pointer;
+    background-color: #69C;
+    border-color: #48A;
+}
+.decors-collab {
+    font-size: 0.8em;
+}
+#decors-collab {
+    display: none;
+    margin-top: 0.25em;
+}
+#decors-collab.shown {
+    display: block;
+}
+#decors-collab label {
+    display: flex;
+    gap: 0.25em;
+    align-items: baseline;
+}
+#decors-collab label a {
+    position: relative;
+    top: -0.6em;
+    font-size: 0.6em;
+}
+#decors-collab input[type="url"] {
+    flex: 1;
+}
+#decors-collab button {
+    cursor: pointer;
+    background-color: #69C;
+    color: white;
+    border-color: #48A;
+}
+#decors-collab button:hover {
+    background-color: #669FD9;
+    border-color: #59B;
 }
