@@ -306,6 +306,13 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 	background-color: #90AADD;
 	border-color: #90AADD;
 }
+.readonly #original-perso-selector > div {
+	cursor: default;
+}
+.readonly #original-perso-selector > div:hover {
+	background-color: transparent;
+	border-color: transparent;
+}
 #original-perso-selector.perso-selector-enabled > #perso-selected {
 	background-color: #BDE;
 	border-color: #BDE;
@@ -563,6 +570,13 @@ h1, h2 {
 }
 .advanced-option:hover {
 	background-color: #4E6DB3;
+}
+.readonly .advanced-option:not(:last-child) {
+    cursor: default;
+    text-decoration: none;
+}
+.readonly .advanced-option:not(:last-child):hover {
+	background-color: transparent;
 }
 .advanced-option .option-bg {
 	position: relative;

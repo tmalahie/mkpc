@@ -17,7 +17,7 @@ if (isset($_GET['id'])) {
 			$hasWriteGrants = isset($collab['rights']['edit']);
 			if ($collab) $collabSuffix = '&collab='. $collab['key'];
 		}
-		if ($hasReadGrants) {
+		if ($hasWriteGrants) {
 			include('utils-decors.php');
 			include('file-quotas.php');
 			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
@@ -38,51 +38,49 @@ if (isset($_GET['id'])) {
 				$spriteH = round($spriteH*$minW/$spriteW);
 				$spriteW = $minW;
 			}
-			if ($hasWriteGrants) {
-				if (isset($_FILES['sprites'])) {
-					switch ($type) {
-					case 'decor' :
-						$upload = handle_decor_upload($decor['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'),$decor);
-						if (isset($upload['id']))
-							header('location: editDecor.php?id='. $upload['id'] . $collabSuffix);
-						break;
-					default :
-						$upload = handle_decor_advanced($_FILES['sprites'],$decor,$type);
-						if (isset($upload['id']))
-							header('location: decorOptions.php?id='. $upload['id'] . $collabSuffix);
-						break;
-					}
-					if (isset($upload['error']))
-						$error = $upload['error'];
+			if (isset($_FILES['sprites'])) {
+				switch ($type) {
+				case 'decor' :
+					$upload = handle_decor_upload($decor['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'),$decor);
+					if (isset($upload['id']))
+						header('location: editDecor.php?id='. $upload['id'] . $collabSuffix);
+					break;
+				default :
+					$upload = handle_decor_advanced($_FILES['sprites'],$decor,$type);
+					if (isset($upload['id']))
+						header('location: decorOptions.php?id='. $upload['id'] . $collabSuffix);
+					break;
 				}
-				elseif (isset($_POST['color'])) {
-					$color = explode(',', $_POST['color']);
-					$oldSrcs = decor_sprite_srcs($decor['sprites']);
-					$filehash = generate_decor_sprite_src($decor['id']);
-					move_decor_sprite_imgs($oldSrcs,$filehash);
-					$newSrcs = decor_sprite_srcs($filehash);
-					switch ($type) {
-					case 'decor' :
-						add_transparency($newSrcs['hd'],$newSrcs['hd'], $color[0],$color[1],$color[2]);
-						clone_img_resource($newSrcs['hd'],$newSrcs['hd']);
-						$spriteSizes = decor_sprite_sizes($decor['type'],$newSrcs['hd']);
-						create_decor_sprite_thumbs($newSrcs,$spriteSizes);
-						break;
-					default :
-						add_transparency($newSrcs[$type],$newSrcs[$type], $color[0],$color[1],$color[2]);
-						clone_img_resource($newSrcs[$type],$newSrcs[$type]);
-						break;
-					}
-					mysql_query('UPDATE `mkdecors` SET sprites="'.$filehash.'" WHERE id="'. $decorId .'"');
-					$decor['sprites'] = $filehash;
-					switch ($type) {
-					case 'decor' :
-						header('location: editDecor.php?id='. $decor['id'] . $collabSuffix);
-						break;
-					default :
-						header('location: decorOptions.php?id='. $decor['id'] . $collabSuffix);
-						break;
-					}
+				if (isset($upload['error']))
+					$error = $upload['error'];
+			}
+			elseif (isset($_POST['color'])) {
+				$color = explode(',', $_POST['color']);
+				$oldSrcs = decor_sprite_srcs($decor['sprites']);
+				$filehash = generate_decor_sprite_src($decor['id']);
+				move_decor_sprite_imgs($oldSrcs,$filehash);
+				$newSrcs = decor_sprite_srcs($filehash);
+				switch ($type) {
+				case 'decor' :
+					add_transparency($newSrcs['hd'],$newSrcs['hd'], $color[0],$color[1],$color[2]);
+					clone_img_resource($newSrcs['hd'],$newSrcs['hd']);
+					$spriteSizes = decor_sprite_sizes($decor['type'],$newSrcs['hd']);
+					create_decor_sprite_thumbs($newSrcs,$spriteSizes);
+					break;
+				default :
+					add_transparency($newSrcs[$type],$newSrcs[$type], $color[0],$color[1],$color[2]);
+					clone_img_resource($newSrcs[$type],$newSrcs[$type]);
+					break;
+				}
+				mysql_query('UPDATE `mkdecors` SET sprites="'.$filehash.'" WHERE id="'. $decorId .'"');
+				$decor['sprites'] = $filehash;
+				switch ($type) {
+				case 'decor' :
+					header('location: editDecor.php?id='. $decor['id'] . $collabSuffix);
+					break;
+				default :
+					header('location: decorOptions.php?id='. $decor['id'] . $collabSuffix);
+					break;
 				}
 			}
 		?>

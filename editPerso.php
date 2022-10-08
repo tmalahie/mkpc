@@ -4,11 +4,23 @@ if (isset($_GET['id'])) {
 	include('initdb.php');
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
 		include('getId.php');
-		if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
+        require_once('collabUtils.php');
+        $collabSuffix = '';
+        if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
+            $hasReadGrants = true;
+            $hasWriteGrants = true;
+        }
+        else {
+            $collab = getCollabLinkFromQuery('mkchars', $persoId);
+            $hasReadGrants = isset($collab['rights']['view']);
+            $hasWriteGrants = isset($collab['rights']['edit']);
+            if ($collab) $collabSuffix = '&collab='. $collab['key'];
+        }
+        if ($hasReadGrants) {
 			include('language.php');
 			include('perso-stats.php');
 			require_once('persos.php');
-			if (isset($_POST['name']) && isset($_POST['speed']) && isset($_POST['acceleration']) && isset($_POST['handling']) && isset($_POST['mass'])) {
+			if (isset($_POST['name']) && isset($_POST['speed']) && isset($_POST['acceleration']) && isset($_POST['handling']) && isset($_POST['mass']) && $hasWriteGrants) {
 				$_POST['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);
 				if (!$_POST['name'])
 					$error = $language ? 'Please enter a name':'Veuillez entrer un nom';
@@ -32,7 +44,10 @@ if (isset($_GET['id'])) {
 						handling="'. $statPost['handling'] .'",
 						mass="'. $statPost['mass'] .'"
 					WHERE id="'. $_GET['id'] .'"');
-					header('location: persoEditor.php?new='.$_GET['id']);
+					if ($collabSuffix)
+						header('location: editPerso.php?id='.$_GET['id'] . $collabSuffix);
+					else
+						header('location: persoEditor.php?new='.$_GET['id']);
 				}
 			}
 			$statShow = array();
@@ -65,6 +80,7 @@ var statsGradient = <?php echo $statsGradient; ?>;
 var statsRange = <?php echo json_encode($statsRange); ?>;
 var cp = <?php echo json_encode($defaultPersosStats); ?>;
 var pUnlocked = <?php include('getLocks.php'); ?>;
+var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 </script>
 <script type="text/javascript" src="scripts/perso-stats.js"></script>
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
@@ -99,7 +115,10 @@ var pUnlocked = <?php include('getLocks.php'); ?>;
 	?>
 	<div>
 		<div class="perso-preview perso-animate"><img src="<?php echo PERSOS_DIR.$perso['sprites']; ?>.png" onload="this.parentNode.style.width=Math.round(this.naturalWidth/24)+'px';this.parentNode.style.height=this.naturalHeight+'px';this.style.width=this.naturalWidth+'px'" alt="perso" /></div>
-		<a class="perso-editsprites" href="editSprite.php?id=<?php echo $_GET['id']; ?>" onclick="unsavedData=false"><?php echo $language ? "Edit image":"Modifier l'image"; ?></a>
+		<?php
+		if ($hasWriteGrants)
+			echo '<a class="perso-editsprites" href="editSprite.php?id='. $_GET['id'] . $collabSuffix .'" onclick="unsavedData=false">'. ($language ? "Edit image":"Modifier l'image") .'</a>';
+		?>
 	</div>
 	<?php
 	if (!$perso['name'])
@@ -109,32 +128,32 @@ var pUnlocked = <?php include('getLocks.php'); ?>;
 	else
 		echo '<br />';
 	?>
-	<form method="post" name="perso-form" class="perso-form" action="editPerso.php?id=<?php echo $_GET['id']; ?>" onsubmit="unsavedData=false">
-		<label for="name"><?php echo $language ? 'Character name:':'Nom du perso :'; ?></label><input type="text" maxlength="30" required="required" name="name" id="name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" value="<?php echo htmlspecialchars($perso['name']); ?>" />
+	<form method="post" name="perso-form" class="perso-form" action="editPerso.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>" onsubmit="unsavedData=false">
+		<label for="name"><?php echo $language ? 'Character name:':'Nom du perso :'; ?></label><input type="text" maxlength="30" required="required" name="name" id="name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" value="<?php echo htmlspecialchars($perso['name']); ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> />
 		<br /><br />
 		<fieldset class="perso-stats">
 			<legend>&nbsp;<?php echo $language ? 'Character stats':'Stats du perso'; ?>&nbsp;</legend>
 			<div id="statstemplate">
-				<?php echo $language ? 'Retreive stats from another character:':'Reprendre les stats de:'; ?> <select id="stats-template">
+				<?php echo $language ? 'Retrieve stats from another character:':'Reprendre les stats de:'; ?> <select id="stats-template"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?>>
 					<option><?php echo $language ? 'Character':'Perso'; ?>...</option>
 				</select>
 			</div>
 			<table>
 				<tr>
 					<td><label for="acceleration"><?php echo $language ? 'Acceleration:':'Accélération :'; ?></label></td>
-					<td><input type="range" name="acceleration" id="acceleration" min="0" max="<?php echo $statsGradient; ?>" step="1" value="<?php echo $statShow['acceleration']; ?>" /></td>
+					<td><input type="range" name="acceleration" id="acceleration" min="0" max="<?php echo $statsGradient; ?>" step="1" value="<?php echo $statShow['acceleration']; ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> /></td>
 				</tr>
 				<tr>
 					<td><label for="speed"><?php echo $language ? 'Max speed:':'Vitesse max :'; ?></label></td>
-					<td><input type="range" name="speed" id="speed" min="0" max="<?php echo $statsGradient; ?>" step="1" value="<?php echo $statShow['speed']; ?>" /></td>
+					<td><input type="range" name="speed" id="speed" min="0" max="<?php echo $statsGradient; ?>" step="1" value="<?php echo $statShow['speed']; ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> /></td>
 				</tr>
 				<tr>
 					<td><label for="handling"><?php echo $language ? 'Handling:':'Maniabilité :'; ?></label></td>
-					<td><input type="range" name="handling" id="handling" min="0" max="<?php echo $statsGradient; ?>" step="1" value="<?php echo $statShow['handling']; ?>" /></td>
+					<td><input type="range" name="handling" id="handling" min="0" max="<?php echo $statsGradient; ?>" step="1" value="<?php echo $statShow['handling']; ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> /></td>
 				</tr>
 				<tr>
 					<td><label for="mass"><?php echo $language ? 'Weight:':'Poids :'; ?></label></td>
-					<td><input type="range" name="mass" id="mass" min="0" max="<?php echo $statsGradient; ?>" step="1" value="<?php echo $statShow['mass']; ?>" /></td>
+					<td><input type="range" name="mass" id="mass" min="0" max="<?php echo $statsGradient; ?>" step="1" value="<?php echo $statShow['mass']; ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> /></td>
 				</tr>
 			</table>
 			<div id="statsinfo">
@@ -150,7 +169,7 @@ var pUnlocked = <?php include('getLocks.php'); ?>;
 			<tr>
 				<td>
 					<div class="advanced-options">
-						<a href="persoOptions.php?id=<?php echo $_GET['id']; ?>" onclick="unsavedData=false">
+						<a href="persoOptions.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>" onclick="unsavedData=false">
 							<img src="images/advanced-options.png" alt="Avanced" /> <?php echo $language ? 'Advanced options':'Options avancées'; ?>
 						</a>
 					</div>

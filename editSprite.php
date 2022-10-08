@@ -5,7 +5,19 @@ if (isset($_GET['id'])) {
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
 		include('language.php');
 		include('getId.php');
-		if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
+        require_once('collabUtils.php');
+        $collabSuffix = '';
+        if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
+            $hasReadGrants = true;
+            $hasWriteGrants = true;
+        }
+        else {
+            $collab = getCollabLinkFromQuery('mkchars', $persoId);
+            $hasReadGrants = isset($collab['rights']['view']);
+            $hasWriteGrants = isset($collab['rights']['edit']);
+            if ($collab) $collabSuffix = '&collab='. $collab['key'];
+        }
+        if ($hasWriteGrants) {
 			require_once('persos.php');
 			include('file-quotas.php');
 			$spriteSrcs = get_sprite_srcs($perso['sprites']);
@@ -33,12 +45,12 @@ if (isset($_GET['id'])) {
 				case 'perso' :
 					$upload = handle_upload($_FILES['sprites'],$perso);
 					if (isset($upload['id']))
-						header('location: editPerso.php?id='. $upload['id']);
+						header('location: editPerso.php?id='. $upload['id'] . $collabSuffix);
 					break;
 				default :
 					$upload = handle_advanced($_FILES['sprites'],$perso,$type);
 					if (isset($upload['id']))
-						header('location: persoOptions.php?id='. $upload['id']);
+						header('location: persoOptions.php?id='. $upload['id'] . $collabSuffix);
 					break;
 				}
 				if (isset($upload['error']))
@@ -65,10 +77,10 @@ if (isset($_GET['id'])) {
 				$perso['sprites'] = $filehash;
 				switch ($type) {
 				case 'perso' :
-					header('location: editPerso.php?id='. $perso['id']);
+					header('location: editPerso.php?id='. $perso['id'] . $collabSuffix);
 					break;
 				default :
-					header('location: persoOptions.php?id='. $perso['id']);
+					header('location: persoOptions.php?id='. $perso['id'] . $collabSuffix);
 					break;
 				}
 			}
@@ -130,8 +142,8 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 		?>
 		<?php echo $language ? 'Current image:':'Image actuelle :'; ?> <img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
 		<?php
-		if ($spriteSrc != $spriteSrcs['ld'])
-			echo '&nbsp;<a href="delSprite.php?id='. $persoId .'&amp;'. $type .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
+		if ($spriteSrc != $spriteSrcs['ld'] && $hasWriteGrants)
+			echo '&nbsp;<a href="delSprite.php?id='. $persoId .'&amp;'. $type . $collabSuffix .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
 		?>
 		<?php
 	}
@@ -154,11 +166,11 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 		<?php
 		if ($type != 'perso') {
 			?>
-			<a href="persoOptions.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></a><br />
+			<a href="persoOptions.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>"><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></a><br />
 			<?php
 		}
 		?>
-		<a href="editPerso.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a>
+		<a href="editPerso.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a>
 	</p>
 </body>
 </html>
