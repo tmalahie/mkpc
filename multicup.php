@@ -14,13 +14,10 @@ if (isset($_GET['mid'])) {
 		$hasReadGrants = true;
 		$hasWriteGrants = true;
 	}
-	elseif ($collab = getCollabLinkFromQuery('mkmcups', $id)) {
+	else {
+		$collab = getCollabLinkFromQuery('mkmcups', $id);
 		$hasReadGrants = isset($collab['rights']['view']);
 		$hasWriteGrants = isset($collab['rights']['edit']);
-	}
-	else {
-		$hasReadGrants = false;
-		$hasWriteGrants = false;
 	}
 	if (!$hasReadGrants) {
 		mysql_close();

@@ -5,9 +5,11 @@ if (isset($_GET['id'])) {
 	if ($layer = mysql_fetch_array(mysql_query('SELECT l.bg,l.filename,l.url,b.identifiant FROM `mkbglayers` l INNER JOIN `mkbgs` b ON l.bg=b.id WHERE l.id="'. $layerId .'"'))) {
 		include('language.php');
 		include('getId.php');
-		if ($layer['identifiant'] == $identifiants[0]) {
+		require_once('collabUtils.php');
+		if (($layer['identifiant'] == $identifiants[0]) || hasCollabGrants('mkbgs', $layer['bg'], $_GET['collab'], 'edit')) {
 			include('utils-bgs.php');
 			include('file-quotas.php');
+			$collabSuffix = isset($_GET['collab']) ? '&collab='.$_GET['collab'] : '';
 			if (isset($_FILES['layer'])) {
 				$url = isset($_POST['url']) ? $_POST['url'] : '';
 				if ($url === '')
@@ -20,7 +22,7 @@ if (isset($_GET['id'])) {
 				if (isset($upload['error']))
 					$error = $upload['error'];
 				elseif (isset($upload['id'])) {
-					header('location: editBg.php?id='. $upload['id']);
+					header('location: editBg.php?id='. $upload['id'] . $collabSuffix);
 					mysql_close();
 					exit;
 				}
@@ -36,7 +38,7 @@ if (isset($_GET['id'])) {
 				mysql_query('UPDATE `mkbglayers` SET filename="'.$fileName.'" WHERE id="'. $layerId .'"');
 				@unlink($oldPath);
 
-				header('location: editBg.php?id='. $layer['bg']);
+				header('location: editBg.php?id='. $layer['bg'] . $collabSuffix);
 				mysql_close();
 				exit;
 			}
@@ -130,7 +132,7 @@ $hasTransparency = !isset($spriteSrc) || has_transparency($spriteSrc);
 	}
 	?>
 	<div class="editor-navigation">
-		<a href="editBg.php?id=<?php echo $layer['bg']; ?>">&lt; <u><?php echo $language ? "Back to background editor":"Retour à l'édition de l'arrière-plan"; ?></u></a>
+		<a href="editBg.php?id=<?php echo $layer['bg'] . $collabSuffix; ?>">&lt; <u><?php echo $language ? "Back to background editor":"Retour à l'édition de l'arrière-plan"; ?></u></a>
 	</div>
 	<script type="text/javascript">
 		setupUploadTabs(document.querySelector(".editor-upload"));

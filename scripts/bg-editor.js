@@ -22,3 +22,7 @@ function setupUploadTabs($parent) {
         })(i);
     }
 }
+
+function showBgCollabPopup(bgId) {
+    showCollabPopup("bg", bgId, "getBgCollabPopup.php");
+}
