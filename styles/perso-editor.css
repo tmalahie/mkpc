@@ -294,6 +294,27 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 #persos-list-search input::-ms-input-placeholder {
 	color: #AAAAAF;
 }
+#persos-list-collab {
+	display: none;
+}
+#persos-collab-form {
+	display: none;
+	font-size: 0.8em;
+	margin-bottom: 15px;
+}
+#persos-collab-form label {
+	display: flex;
+	align-items: center;
+	gap: 0.25em;
+}
+#persos-collab-form label a {
+	position: relative;
+	top: -0.5em;
+	font-size: 0.7em;
+}
+#persos-collab-form label input[type="url"] {
+	flex: 1;
+}
 #original-perso-selector {
 	margin-bottom: 15px;
 }

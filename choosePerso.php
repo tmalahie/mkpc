@@ -89,7 +89,7 @@ function houtPerso(list,id) {
 var persoId = -1;
 function selectPerso(list,id) {
 	var div = document.getElementById(list+"persoctn-"+id);
-	if ((list != "all" && list != "unlocked") || div.dataset.mine) {
+	if ((list != "all" && list != "unlocked" && list != "collab") || div.dataset.mine) {
 		if (window.opener) {
 			window.opener.selectPerso(id);
 			window.close();
@@ -352,6 +352,66 @@ function refreshPersoList() {
 		return true;
 	});
 }
+function showCollabLinkHelp() {
+	alert(language ? "Enter the characters's collaboration link here.\nTo get this link, the character owner will simply need to select the character in the editor and click on \"Collaborate\"" : "Saisissez ici le lien de collaboration du perso.\nPour obtenir ce lien, le propriétaire du perso devra simplement sélectionner le perso dans l'éditeur et cliquer sur \"Collaborer\"");
+}
+function togglePersoCollab() {
+	var $persoListCollab = document.getElementById("persos-collab-form");
+	if ($persoListCollab.style.display)
+		$persoListCollab.style.display = "";
+	else {
+		$persoListCollab.style.display = "block";
+		$persoListCollab.elements["collab-link"].focus();
+	}
+}
+function handlePersoCollabSubmit(e) {
+	e.preventDefault();
+	var $form = e.target;
+	var url = $form.elements["collab-link"].value;
+	var creationId, creationKey;
+	try {
+		var urlParams = new URLSearchParams(new URL(url).search);
+		creationId = urlParams.get('id');
+		creationKey = urlParams.get('collab');
+	}
+	catch (e) {
+	}
+	if (!creationKey) {
+		alert("Invalid URL");
+		return;
+	}
+	var $submitBtn = $form.querySelector('input[type="submit"]');
+	$submitBtn.disabled = true;
+	xhr("importCollabPerso.php", "id="+creationId+"&collab="+creationKey, function(res) {
+		$submitBtn.disabled = false;
+		if (!res) {
+			alert("Invalid link");
+			return true;
+		}
+		res = JSON.parse(res);
+		var persoData = [];
+		persoData[P_ID] = res.id;
+		persoData[P_UID] = res.sprites;
+		persoData[P_NAME] = res.name;
+		persoData[P_AUTHOR] = res.author;
+		persoData[P_MAP] = res.map;
+		persoData[P_PODIUM] = res.podium;
+		var persoStats = [
+			res.acceleration,
+			res.speed,
+			res.handling,
+			res.mass
+		];
+		persosLists.collab = [[
+			persoData,
+			persoStats
+		]];
+		updatePersoList("collab");
+		selectPerso("collab", res.id);
+
+		return true;
+	});
+}
 document.addEventListener("DOMContentLoaded", function() {
 	for (var listKey in persosLists)
 		updatePersoList(listKey);
@@ -510,6 +570,30 @@ updateCursors = function() {
 		<script>
 		(adsbygoogle = window.adsbygoogle || []).push({});
 		</script>
+	</div>
+	<div class="persos-list-container">
+		<div class="persos-list" id="persos-list-collab"></div>
+		<div class="persos-list-more">
+			<strong style="color:#42C2F2;font-size:0.7em"><?php echo urldecode('%F0%9F%94%97'); ?></strong> <a href="javascript:togglePersoCollab()"><?php echo $language ? "Import from collaboration link":"Importer via un lien de collaboration"; ?></a>
+		</div>
+		<form id="persos-collab-form" name="persos-collab-form" onsubmit="handlePersoCollabSubmit(event)">
+			<label>
+				<span><?php
+				echo $language ? 'Link':'Lien';
+				?><a href="javascript:showCollabLinkHelp()">[?]</a>:
+				</span>
+				<input type="url" name="collab-link" placeholder="<?php
+				require_once('collabUtils.php');
+				$collab = array(
+					'type' => 'mkchars',
+					'creation_id' => 42,
+					'secret' => 'y-vf-erny_2401_pbasvezrq'
+				);
+				echo getCollabUrl($collab);
+				?>" />
+				<input type="submit" value="Ok" />
+			</label>
+		</form>
 	</div>
 </body>
 </html>
