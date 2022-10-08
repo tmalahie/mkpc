@@ -113,6 +113,19 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 	background-color: #9AF;
 	color: #545CB5;
 }
+#perso-options .collab-perso {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 0.5em;
+	font-size: 0.6em;
+	background-color: #A9D;
+	color: #54A;
+}
+#perso-options .collab-perso:hover {
+	background-color: #BAE;
+	color: #55A;
+}
 .perso-options-stars {
 	padding: 0px 4px;
 }
@@ -712,4 +725,27 @@ h1, h2 {
 	margin-top: 10px;
 	margin-bottom: 10px;
 	height: 60px;
+}
+.collab-popup.collab-perso {
+    background-color: #4242EF;
+    text-align: left;
+    color: #BDE;
+    font-size: 0.9em;
+}
+.collab-popup.collab-perso .collab-popup-close {
+    background-color: #1843b9;
+}
+.collab-popup.collab-perso .collab-popup-close:hover {
+    background-color: #133594;
+}
+.collab-popup.collab-perso h2 {
+    font-size: 1.5em;
+    color: white;
+}
+.collab-popup.collab-perso h3 {
+    color: white;
+    margin-bottom: 0.1em;
+}
+.collab-popup.collab-perso a:hover {
+    color: #CDE;
 }

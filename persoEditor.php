@@ -21,10 +21,12 @@ if (isset($_FILES['sprites'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
+<link rel="stylesheet" href="styles/collabs.css" />
 <link rel="stylesheet" href="styles/perso-editor.css" />
 <?php
 include('o_online.php');
 ?>
+<script type="text/javascript" src="scripts/collabs.js"></script>
 <script type="text/javascript">
 var persoId = -1;
 var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
@@ -79,6 +81,9 @@ function sharePerso() {
 function sharePersoWithId(id) {
 	selectPerso(id);
 	sharePerso();
+}
+function collabPerso() {
+    showCollabPopup("mkchars", persoId, "getPersoCollabPopup.php");
 }
 function toggleHelp() {
 	document.getElementById("perso-instructions").style.display = (document.getElementById("perso-instructions").style.display =="block") ? "none":"block";
@@ -155,9 +160,10 @@ if ($arePersos) {
 	</div>
 	<div id="perso-options">
 		<div id="perso-options-name"></div>
-		<button class="edit-perso" onclick="javascript:editPerso()"><?php echo $language ? "Edit":"Modifier"; ?></button>
-		<button class="suppr-perso" onclick="javascript:delPerso()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
-		<button class="share-perso" onclick="javascript:sharePerso()"><?php echo $language ? "Share":"Partage"; ?>...</button>
+		<button class="edit-perso" onclick="editPerso()"><?php echo $language ? "Edit":"Modifier"; ?></button>
+		<button class="suppr-perso" onclick="delPerso()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
+		<button class="share-perso" onclick="sharePerso()"><?php echo $language ? "Share":"Partage"; ?>...</button>
+		<button class="collab-perso" onclick="collabPerso()"><?php echo $language ? "Collaborate":"Collaborer"; ?>...</button>
 	</div>
 	</div>
 	<?php

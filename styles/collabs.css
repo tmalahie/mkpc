@@ -23,6 +23,9 @@
 .collab-popup.collab-track {
     background-color: #333;
 }
+.collab-popup.collab-track .collab-options-list {
+    color: white;
+}
 .collab-popup-section:not(.show) {
     display: none;
 }
@@ -65,10 +68,10 @@
 .collab-popup.collab-track .collab-popup-close:hover {
     background-color: #222;
 }
-.collab-popup .collab-explain {
+.collab-popup.collab-track .collab-explain {
     color: white;
 }
-.collab-popup .collab-current {
+.collab-popup.collab-track .collab-current {
     color: white;
     word-break: break-all;
     text-align: justify;
@@ -85,7 +88,6 @@
     cursor: pointer;
 }
 .collab-options-list {
-    color: white;
     margin-top: 0.25em;
     margin-bottom: 0.75em;
     display: flex;
@@ -130,7 +132,7 @@
     opacity: 0.5;
     cursor: default;
 }
-.collab-popup-success {
+.collab-popup.collab-track .collab-popup-success {
     color: white;
     font-size: 1.25em;
     text-align: center;
