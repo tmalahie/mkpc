@@ -2842,7 +2842,7 @@ function selectBgSelectorCollab(e) {
 	catch (e) {
 	}
 	if (!creationKey) {
-		alert("Invalid URL");
+		alert(language ? "Invalid URL" : "URL invalide");
 		return;
 	}
 	var $submitBtn = $form.querySelector('button[type="submit"]');
@@ -2850,7 +2850,7 @@ function selectBgSelectorCollab(e) {
 	xhr("importCollabBg.php", "id="+creationId+"&collab="+creationKey, function(res) {
 		$submitBtn.disabled = false;
 		if (!res) {
-			alert("Invalid link");
+			alert(language ? "Invalid link" : "Lien invalide");
 			return true;
 		}
 		$form.reset();

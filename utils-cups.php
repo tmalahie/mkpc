@@ -25,12 +25,14 @@ function printCollabImportPopup($type, $mode) {
     global $language;
     switch ($type) {
     case 'cup':
+        $Circuit = $language ? 'cup' : 'coupe';
         $aCircuit = $language ? 'a cup' : 'une coupe';
         $ofCircuit = $language ? 'of the cup' : 'de la coupe';
         $placeholderType = 'mkcups';
         $placeholderId = 1+$mode;
         break;
     default:
+        $Circuit = $language ? 'circuit' : 'circuit';
         $aCircuit = $language ? 'a circuit' : 'un circuit';
         $ofCircuit = $language ? 'of the circuit' : 'du circuit';
         $placeholderType = $mode ? 'circuits' : 'mkcircuits';
@@ -39,11 +41,24 @@ function printCollabImportPopup($type, $mode) {
     ?>
     <div id="collab-popup" class="editor-mask editor-mask-dark" onclick="closeCollabImportPopup()">
         <div class="editor-mask-content" onclick="event.stopPropagation()">
-            <h2>Importer <?php echo $aCircuit; ?> d'un autre membre</h2>
+            <h2><?php echo $language ? "Importer $aCircuit of another member" : "Importer $aCircuit d'un autre membre"; ?></h2>
             <div>
+            <?php
+            if ($language) {
+                ?>
+                Enter the <?php echo $Circuit ?>'s collaboration link here.<br />
+                To get this link, the <?php echo $Circuit ?> owner will simply need
+                to click on &quot;Collaborate&quot; at the bottom-left of the <?php echo $Circuit ?> page.
+                <?php
+            }
+            else {
+                ?>
                 Saisissez ici le lien de collaboration <?php echo $ofCircuit; ?>.<br />
                 Pour obtenir ce lien, le propriétaire <?php echo $ofCircuit; ?> devra simplement
-                cliquer sur &quot;Collaborer&quot; en bas à droite de la page <?php echo $ofCircuit; ?>.
+                cliquer sur &quot;Collaborer&quot; en bas à gauche de la page <?php echo $ofCircuit; ?>.
+                <?php
+            }
+            ?>
             </div>
             <form onsubmit="importCollabTrack(event)">
                 <input type="url" name="collablink" placeholder="<?php

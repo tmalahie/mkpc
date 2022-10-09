@@ -373,7 +373,7 @@ function handlePersoCollabSubmit(e) {
 	catch (e) {
 	}
 	if (!creationKey) {
-		alert("Invalid URL");
+		alert(language ? "Invalid URL" : "URL invalide");
 		return;
 	}
 	var $submitBtn = $form.querySelector('input[type="submit"]');
@@ -381,7 +381,7 @@ function handlePersoCollabSubmit(e) {
 	xhr("importCollabPerso.php", "id="+creationId+"&collab="+creationKey, function(res) {
 		$submitBtn.disabled = false;
 		if (!res) {
-			alert("Invalid link");
+			alert(language ? "Invalid link" : "Lien invalide");
 			return true;
 		}
 		res = JSON.parse(res);

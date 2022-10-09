@@ -11,16 +11,30 @@ function showCollabPopup(type, id, src) {
     $popup.dataset.type = type;
     $popup.dataset.src = src;
     $popup.className = "collab-backdrop";
+    $popup.onclick = function(e) {
+        if (e.target === this)
+            closeCollabPopup(e);
+    };
     document.body.appendChild($popup);
     resetCollabPopup();
+    document.addEventListener("keydown", closeCollabPopupOnEscape);
+    return $popup;
 }
 function showTrackCollabPopup(type, id) {
-    showCollabPopup(type, id, "getTrackCollabPopup.php");
+    var $popup = showCollabPopup(type, id, "getTrackCollabPopup.php");
+    $popup.style.zIndex = 20010;
 }
 function closeCollabPopup(e) {
     if (e) e.preventDefault();
     var $popup = document.querySelector(".collab-backdrop");
     if ($popup) $popup.parentNode.removeChild($popup);
+    document.removeEventListener("keydown", closeCollabPopupOnEscape);
+}
+function closeCollabPopupOnEscape(e) {
+    if (e.keyCode === 27) {
+        e.stopPropagation();
+        closeCollabPopup(e);
+    }
 }
 function resetCollabPopup() {
     var $popup = document.querySelector(".collab-backdrop");

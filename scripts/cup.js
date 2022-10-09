@@ -787,7 +787,7 @@ function selectPersoImg(pos) {
 		catch (e) {
 		}
 		if (!creationKey) {
-			alert("Invalid URL");
+			alert(language ? "Invalid URL" : "URL invalide");
 			return;
 		}
 		var $submitBtn = $oPersoCollabForm.querySelector('button[type="submit"]');
@@ -795,7 +795,7 @@ function selectPersoImg(pos) {
 		o_xhr("importCollabPerso.php", "id="+creationId+"&collab="+creationKey, function(res) {
 			$submitBtn.disabled = false;
 			if (!res) {
-				alert("Invalid link");
+				alert(language ? "Invalid link" : "Lien invalide");
 				return true;
 			}
 			res = JSON.parse(res);
@@ -864,14 +864,14 @@ function importCollabTrack(e) {
 	catch (e) {
 	}
 	if (!creationKey) {
-		alert("Invalid URL");
+		alert(language ? "Invalid URL" : "URL invalide");
 		return;
 	}
 	var $collabPopup = document.getElementById("collab-popup");
 	$collabPopup.dataset.state = "loading";
 	o_xhr("importCollabTrack.php", "type="+creationType+"&id="+creationId+"&collab="+creationKey+(isMCups ? ("&mode="+complete):""), function(res) {
 		if (!res) {
-			alert("Invalid link");
+			alert(language ? "Invalid link" : "Lien invalide");
 			$collabPopup.dataset.state = "open";
 			return true;
 		}
