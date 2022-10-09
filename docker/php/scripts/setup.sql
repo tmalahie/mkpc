@@ -355,6 +355,7 @@ CREATE TABLE `mkchisto` (
   `identifiant2` int(10) unsigned NOT NULL,
   `identifiant3` int(10) unsigned NOT NULL,
   `identifiant4` int(10) unsigned NOT NULL,
+  `list` enum('all','unlocked','collab') NOT NULL DEFAULT 'all',
   `acceleration` float NOT NULL,
   `speed` float NOT NULL,
   `handling` float NOT NULL,

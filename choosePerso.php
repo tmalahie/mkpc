@@ -119,8 +119,9 @@ function restoreStats() {
 }
 function confirmStats() {
 	document.forms["perso-form"].style.visibility = "hidden";
+	var list = document.getElementById("perso-stats-mask").dataset.list;
 	document.getElementById("perso-stats-mask").onclick = undefined;
-	var apiParams = "id="+persoId;
+	var apiParams = "id="+persoId+"&list="+list;
 	for (var i=0;i<statTypes.length;i++) {
 		var statType = statTypes[i];
 		apiParams += "&"+ statType +"="+ document.getElementById(statType).value;
@@ -252,16 +253,11 @@ function toggleSearch() {
 }
 <?php
 $unlocked = array();
-$unlockedIds = array();
 if ($id) {
 	$unlockedPersos = mysql_query('SELECT c.* FROM `mkclrewarded` rw INNER JOIN `mkclrewards` r ON rw.reward=r.id INNER JOIN `mkchars` c ON r.charid=c.id WHERE rw.player='. $id .' ORDER BY rw.id DESC');
-	while ($unlockedPerso = mysql_fetch_array($unlockedPersos)) {
+	while ($unlockedPerso = mysql_fetch_array($unlockedPersos))
 		$unlocked[] = array(get_perso_payload($unlockedPerso),array(+$unlockedPerso['acceleration'],+$unlockedPerso['speed'],+$unlockedPerso['handling'],+$unlockedPerso['mass']));
-		$unlockedIds[] = $unlockedPerso['id'];
-	}
 }
-$unlockedIdsString = implode(',', $unlockedIds);
-if (!$unlockedIdsString) $unlockedIdsString = '0';
 ?>
 var persosLists = {
 	"my":<?php
@@ -272,7 +268,7 @@ var persosLists = {
 	echo json_encode($my);
 	?>,
 	"hist":<?php
-	$histPersos = mysql_query('SELECT c.*,h.acceleration,h.speed,h.handling,h.mass FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND (c.author IS NOT NULL OR c.id IN ('.$unlockedIdsString.')) WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC, id DESC LIMIT 100');
+	$histPersos = mysql_query('SELECT c.*,h.acceleration,h.speed,h.handling,h.mass FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND (c.author IS NOT NULL OR h.list IN ("unlocked", "collab")) WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC, id DESC LIMIT 100');
 	$hist = array();
 	while ($histPerso = mysql_fetch_array($histPersos))
 		$hist[] = array(get_perso_payload($histPerso),array(+$histPerso['acceleration'],+$histPerso['speed'],+$histPerso['handling'],+$histPerso['mass']));

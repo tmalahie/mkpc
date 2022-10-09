@@ -29,7 +29,7 @@ if (isset($_POST['id'])) {
 			$customPerso = mysql_fetch_array(mysql_query('SELECT DATE(date) AS day FROM mkchisto WHERE id="'.$persoId.'" AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'));
 			if ($customPerso['day'] != date('Y-m-d'))
 				mysql_query('UPDATE mkchars SET playcount=playcount+1 WHERE id="'.$persoId.'"');
-			mysql_query('UPDATE `mkchisto` SET date=CURRENT_TIMESTAMP() WHERE id="'.$persoId.'" AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"');
+			mysql_query('UPDATE `mkchisto` SET date=CURRENT_TIMESTAMP()'. (isset($_POST['list']) ? ',list="'.$_POST['list'].'"' : '') .' WHERE id="'.$persoId.'" AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"');
 		}
 		$currentSelection = mysql_fetch_array(mysql_query('SELECT perso1 FROM `mkpersosel` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
 		if ($currentSelection) {
