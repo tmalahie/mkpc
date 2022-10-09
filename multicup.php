@@ -160,6 +160,8 @@ include('handleCupOptions.php');
 					echo '<input type="hidden" name="nid" value="'.$id.'" />';
 				if (isset($_GET['cl']))
 					echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
+				if (isset($collab))
+					echo '<input type="hidden" name="collab" value="'. htmlspecialchars($collab['key']) .'" />';
 				?>
 				<input type="hidden" id="cup-options" name="opt" value="<?php echo htmlspecialchars($cOptions) ?>" />
 				<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>

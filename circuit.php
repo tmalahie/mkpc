@@ -87,7 +87,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	if (isset($_GET['nid'])) { // Multicups being edited
 		include('escape_all.php');
 		$nid = intval($_GET['nid']);
-		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkmcups` WHERE id="'. $nid .'" AND mode=0 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
+		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkmcups` WHERE id="'. $nid .'" AND mode=0'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
 			$pNote = $getMain['note'];
@@ -100,7 +100,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;isset($_GET['mid'.$i])&&is_numeric($_GET['mid'.$i]);$i++)
 		$cupIDs[$i] = $_GET['mid'.$i];
-	$cOptions = stripslashes($_GET['opt']);
+	$cOptions = isset($_GET['opt']) ? stripslashes($_GET['opt']) : null;
 	$edittingCircuit = true;
 }
 else { // Track being created

@@ -45,7 +45,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	if (isset($_GET['nid'])) { // Multicups being edited
 		include('escape_all.php');
 		$nid = intval($_GET['nid']);
-		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $nid .'" AND mode=1 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
+		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $nid .'" AND mode=1'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
 			$cAuteur = $cPseudo;
