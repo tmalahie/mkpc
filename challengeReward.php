@@ -27,7 +27,7 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
     if (!empty($challengeIds)) {
         $persoId = $_POST['perso'];
         $hasCollabGrants = hasCollabGrants('mkchars', $persoId, $_POST['collab'], 'use');
-        if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'" AND name!=""'))) {
+        if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'" AND name!="" AND author IS NULL'))) {
             if ($hasCollabGrants || (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3]))) {
                 if (isset($reward)) {
                     $rewardId = intval($reward['id']);
@@ -57,6 +57,8 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
             elseif (isset($_POST['collab']))
                 $clMsg = 'invalid_collab_link';
         }
+        else
+            $clMsg = 'character_not_found';
     }
 	header('location: '. nextPageUrl('challengeRewards.php', array('rw'=>null,'cl'=>$clRace['clid'],'clmsg'=>$clMsg)));
 	exit;
@@ -109,10 +111,10 @@ include('o_online.php');
             }
             ?>
             </div>
-            <div id="challenge-reward-selection"></div>
             <?php
         }
         ?>
+        <div id="challenge-reward-selection"></div>
         <?php
         if ($areEligiblePersos)
             echo '<div id="challenge-reward-note">'. ($language ? 'Note that only unpublished characters appear in this list' : 'Notez que seuls les persos non publiés apparaissent dans cette liste') .'</div>';

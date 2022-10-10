@@ -20,6 +20,9 @@ if (isset($_GET['clmsg'])) {
     case 'invalid_collab_link':
         $clError = $language ? 'The collaboration link est invalid':'Le lien de collaboration est invalide';
         break;
+    case 'character_not_found':
+        $clError = $language ? "The selected character doesn't exist anymore or has been shared":"Le perso sélectionné n'existe plus ou a été partagé";
+        break;
     }
     unset($_GET['clmsg']);
 }

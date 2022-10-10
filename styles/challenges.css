@@ -48,7 +48,9 @@ body a.challenge-action-edit:hover {
 	max-width: 550px;
 	font-size: 1em;
 	color: #035;
-	display: inline-block;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
     padding: 5px 8px;
     border-radius: 6px;
 	background-color: rgba(204,204,216, 0.85);

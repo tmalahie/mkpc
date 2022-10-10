@@ -511,10 +511,10 @@ h2 {
 	margin-top: 0.5em;
 	font-size: 0.75em;
 }
-.perso-selection-collab a {
+.perso-selection-custom a {
 	color: #049;
 }
-.perso-selection-collab a:hover {
+.perso-selection-custom a:hover {
 	color: #05B;
 }
 .perso-selection-collab-toggle {

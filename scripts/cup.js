@@ -657,12 +657,9 @@ function selectPersoImg(pos) {
 							+ '<div class="perso-selection-standard"></div>'
 								+ '<h4>'+ (language ? "Basic characters":"Persos de base") +'</h4>'
 								+ '<div class="perso-selection-choices" id="perso-selection-standard-choices"></div>'
-							+ '<div id="perso-selection-custom" style="display:none">'
+							+ '<div class="perso-selection-custom">'
 								+ '<h4>'+ (language ? "Custom characters":"Persos custom") +'</h4>'
-								+ '<div class="perso-selection-custom-explain">'+ (language
-									? "Select here a character from the character editor. If the character hasn't been shared, he will appear as locked for other members."
-									: "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres"
-								) +'</div>'
+								+ '<div class="perso-selection-custom-explain"></div>'
 								+ '<div id="perso-info">'
 									+'<div>'
 										+ '<div id="perso-info-name">Mario</div>'
@@ -745,8 +742,16 @@ function selectPersoImg(pos) {
 				oPersoSelector.querySelector("#perso-info").style.display = "";
 			};
 		}
-		if (customCharacters.length)
-			document.getElementById("perso-selection-custom").style.display = "";
+		if (customCharacters.length) {
+			oPersoSelector.querySelector(".perso-selection-custom-explain").innerHTML = language
+				? "Select here a character from the character editor. If the character hasn't been shared, he will appear as locked for other members."
+				: "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres";
+		}
+		else {
+			oPersoSelector.querySelector(".perso-selection-custom-explain").innerHTML = language
+				? "You haven't created any character yet. Click <a href=\"persoEditor.php\" target=\"_blank\">here</a> to create some."
+				: "Vous n'avez pas créé de perso. Cliquez <a href=\"persoEditor.php\" target=\"_blank\">ici</a> pour en créer.";
+		}
 	}
 	if (customCharacters)
 		appendCustomCharacters();

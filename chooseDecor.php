@@ -80,24 +80,6 @@ function selectDecorSelectorCollab(e) {
             ?><div data-id="<?php echo $decor['id'] ?>" data-name="<?php echo htmlspecialchars($decor['name']) ?>" data-ld="<?php echo $decorSrcs['ld'] ?>" data-type="<?php echo $decor['type']; ?>" onclick="selectDecor(this)"><img src="<?php echo $decorSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($decor['name']) ?>" /></div><?php
         }
         ?></div>
-        <div class="decors-collab">
-            <strong style="color:#a8d4ff">+</strong> <a href="javascript:showDecorCollab()"><?php echo $language ? "Select decor from another member...":"Sélectionner le décor d'un autre membre..."; ?></a>
-            <form id="decors-collab" onsubmit="selectDecorSelectorCollab(event)">
-                <label>
-                    <span><?php echo $language ? 'Collaboration link' : 'Lien de collaboration'; ?><a href="javascript:showDecorCollabExplein()">[?]</a>:</span>
-                    <input type="url" name="collab-link" required="required" placeholder="<?php
-                        include('collabUtils.php');
-                        $collab = array(
-                            'type' => 'mkdecors',
-                            'creation_id' => 42,
-                            'secret' => 'y-vf-erny_2401_pbasvezrq'
-                        );
-                        echo getCollabUrl($collab);
-                    ?>" />
-                    <button type="submit">Ok</button>
-                </label>
-            </form>
-        </div>
         <?php
     }
     else {
@@ -108,9 +90,28 @@ function selectDecorSelectorCollab(e) {
         <div class="decors-list-more">
             <strong style="color:#a8d4ff">+</strong> <a href="decorEditor.php" target="_blank" onclick="goToEditor()"><?php echo $language ? "Go to decors editor":"Accéder à l'éditeur de décors"; ?></a>
         </div>
+        <hr />
         <?php
     }
     ?>
+    <div class="decors-collab">
+        <strong style="color:#a8d4ff">+</strong> <a href="javascript:showDecorCollab()"><?php echo $language ? "Select decor from another member...":"Sélectionner le décor d'un autre membre..."; ?></a>
+        <form id="decors-collab" onsubmit="selectDecorSelectorCollab(event)">
+            <label>
+                <span><?php echo $language ? 'Collaboration link' : 'Lien de collaboration'; ?><a href="javascript:showDecorCollabExplein()">[?]</a>:</span>
+                <input type="url" name="collab-link" required="required" placeholder="<?php
+                    include('collabUtils.php');
+                    $collab = array(
+                        'type' => 'mkdecors',
+                        'creation_id' => 42,
+                        'secret' => 'y-vf-erny_2401_pbasvezrq'
+                    );
+                    echo getCollabUrl($collab);
+                ?>" />
+                <button type="submit">Ok</button>
+            </label>
+        </form>
+    </div>
     </div>
     <?php
     if ($areDecors) {
