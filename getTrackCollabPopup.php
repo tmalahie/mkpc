@@ -58,13 +58,15 @@ if (isset($_POST['id']) && isset($_POST['type'])) {
     if ($itemCategory === 'circuit') {
         $rights[] = array(
             'key' => 'use',
-            'label' => $language ? "Use $theItemLabel in cups" : "Utiliser $theItemLabel dans les coupes"
+            'label' => $language ? "Use $theItemLabel in cups" : "Utiliser $theItemLabel dans les coupes",
+            'default_val' => true
         );
     }
     if ($itemCategory === 'cup') {
         $rights[] = array(
             'key' => 'use',
-            'label' => $language ? "Use $theItemLabel in multicups" : "Utiliser $theItemLabel dans les multicoupes"
+            'label' => $language ? "Use $theItemLabel in multicups" : "Utiliser $theItemLabel dans les multicoupes",
+            'default_val' => true
         );
     }
     printCollabPopup(array(
