@@ -12,7 +12,7 @@ if (isset($_GET['id'])) {
 			$hasWriteGrants = true;
 		}
 		else {
-			$collab = getCollabLinkFromQuery('mkdecors', $decorId);
+			$collab = getCollabLinkFromQuery('mkdecors', $decor['extra_parent_id'] ?? $decorId);
 			$hasReadGrants = isset($collab['rights']['view']);
 			$hasWriteGrants = isset($collab['rights']['edit']);
 			if ($collab) $collabSuffix = '&collab='. $collab['key'];

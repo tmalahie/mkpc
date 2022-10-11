@@ -6,7 +6,7 @@ if (isset($_GET['id'])) {
 	if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
 		include('getId.php');
 		require_once('collabUtils.php');
-		if (($decor['identifiant'] == $identifiants[0]) || hasCollabGrants('mkdecors', $decorId, $_GET['collab'], 'edit')) {
+		if (($decor['identifiant'] == $identifiants[0]) || hasCollabGrants('mkdecors', $decor['extra_parent_id'] ?? $decorId, $_GET['collab'], 'edit')) {
 			$type = isset($_GET['map']) ? 'map' : null;
 			$collabSuffix = isset($_GET['collab']) ? '&collab='.$_GET['collab'] : '';
 			if ($type) {

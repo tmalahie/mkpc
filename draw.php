@@ -954,7 +954,10 @@ if (isset($_GET['i'])) {
 			<?php
 		}
 		?>
-		<iframe id="image-options" class="fs-popup" src="changeMap.php?i=<?php echo $circuitId; ?>" onclick="event.stopPropagation()"></iframe>
+		<iframe id="image-options" class="fs-popup" src="changeMap.php?i=<?php
+			echo $circuitId;
+			if (isset($collab)) echo '&collab='.$collab['key'];
+		?>" onclick="event.stopPropagation()"></iframe>
 	</body>
 </html>
 			<?php

@@ -17,7 +17,8 @@ if (isset($_GET['id'])) {
 				else
 					$layerFile = url_to_file_payload($url);
 				$upload = handle_bg_upload(array($layerFile), array(
-					'layer' => $_GET['id']
+					'layer' => $_GET['id'],
+					'identifiant' => $layer['identifiant']
 				));
 				if (isset($upload['error']))
 					$error = $upload['error'];
