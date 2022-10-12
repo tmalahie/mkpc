@@ -142,7 +142,7 @@ function addPopupCollabLink() {
 }
 
 function delCollabLink(id, callback) {
-    if (confirm("Delete collab link?")) {
+    if (confirm(window.language ? "Delete collaboration link?" : "Supprimer le lien de collaboration ?")) {
         xhr("delCollab.php", "id="+ id, function(res) {
             if (res != 1) return false;
             callback(res);

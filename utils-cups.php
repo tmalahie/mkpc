@@ -41,7 +41,7 @@ function printCollabImportPopup($type, $mode) {
     ?>
     <div id="collab-popup" class="editor-mask editor-mask-dark" onclick="closeCollabImportPopup()">
         <div class="editor-mask-content" onclick="event.stopPropagation()">
-            <h2><?php echo $language ? "Importer $aCircuit of another member" : "Importer $aCircuit d'un autre membre"; ?></h2>
+            <h2><?php echo $language ? "Import $aCircuit of another member" : "Importer $aCircuit d'un autre membre"; ?></h2>
             <div>
             <?php
             if ($language) {

@@ -202,7 +202,7 @@ if ($canChange) {
 				cP.style.textAlign = "center";
 				cP.innerHTML = '<?php
 					if (isset($nid))
-						echo $language ? 'The sharing of your course has been updated.':'Le partage de votre ar&egrave;ne a &eacute;t&eacute; mis &agrave; jour.';
+						echo $language ? 'Course updated successfully.':'Le partage de votre ar&egrave;ne a &eacute;t&eacute; mis &agrave; jour.';
 					else
 						echo $language ? 'Your course has just been added to the <a href="creations.php" target="_blank">list</a> !':'Votre ar&egrave;ne vient d\\\'&ecirc;tre ajout&eacute;e &agrave; la <a href="creations.php" target="_blank">liste</a> !';
 				?><br /><br />';
@@ -392,7 +392,7 @@ if (isset($message)) {
 ?>
 <div id="confirmSuppr">
 <p id="supprInfos"><?php echo $language ?
-	'Delete this course sharing ?<br />
+	'Stop sharing this course?<br />
 	The course will be only removed from the list :<br />
 	data will be retained.' :
 	'Supprimer le partage de cette ar&egrave;ne ?<br />

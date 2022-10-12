@@ -383,7 +383,7 @@ if ($canChange) {
 				cP.style.textAlign = "center";
 				cP.innerHTML = '<?php
 					if (isset($nid))
-						echo $language ? 'The sharing of your '. ($isCup ? 'cup':'circuit') .' has been updated.':'Le partage de votre '. ($isCup ? 'coupe':'circuit') .' a &eacute;t&eacute; mis &agrave; jour.';
+						echo $language ? ($isCup ? 'Cup':'Circuit') .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':'circuit') .' a &eacute;t&eacute; mis &agrave; jour.';
 					else
 						echo $language ? 'Your '. ($isCup ? 'cup':'circuit') .' has just been added to the <a href="creations.php" target="_blank">list</a> !':'Votre '. ($isCup ? 'coupe':'circuit') .' vient d\\\'&ecirc;tre ajout&eacute; &agrave; la <a href="creations.php" target="_blank">liste</a> !';
 				?><br /><br />';
@@ -611,7 +611,7 @@ if (isset($message)) {
 ?>
 <div id="confirmSuppr">
 <p id="supprInfos"><?php echo $language ?
-	'Delete this circuit sharing ?<br />
+	'Stop sharing this circuit?<br />
 	The circuit will be only removed from the list :<br />
 	data will be recoverable.' :
 	'Supprimer le partage de ce circuit ?<br />
