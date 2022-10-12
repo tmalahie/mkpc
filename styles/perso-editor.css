@@ -254,6 +254,12 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 .persos-list-empty + .persos-list-more {
 	margin-top: 0;
 }
+.persos-list-more-collab {
+	font-size: 0.8em;
+}
+.persos-list-more-collab a {
+	color: #BDE;
+}
 .persos-sort {
 	padding: 4px 0px;
 	border-bottom: solid 1px #7F90EE;
@@ -314,6 +320,9 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 }
 #persos-collab-form label input[type="url"] {
 	flex: 1;
+}
+#persos-collab-form input {
+	font-size: 0.8em;
 }
 #original-perso-selector {
 	margin-bottom: 15px;

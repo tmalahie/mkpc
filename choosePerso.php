@@ -496,6 +496,7 @@ updateCursors = function() {
 		<a href="#null" onclick="sortPersos(this,'playcount');return false"><?php echo $language ? 'Most&nbsp;played':'Les&nbsp;plus&nbsp;joués'; ?></a>
 	</div>
 	<div class="persos-list" id="persos-list-all" onscroll="handleListScroll(this)"></div>
+	<div class="persos-list" id="persos-list-collab"></div>
 	<div class="persos-list-more">
 		<span style="color:#DBE;font-size:0.8em;display:inline-block;-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);-o-transform: rotate(45deg);transform: rotate(45deg);">&#9906;</span>
 		<a href="#null" onclick="toggleSearch();return false"><?php echo $language ? "Search characters":"Rechercher un perso"; ?></a>
@@ -503,6 +504,27 @@ updateCursors = function() {
 	<form id="persos-list-search" name="persos-list-search">
 		<div><?php echo $language ? 'Name:':'Nom :'; ?> <input type="text" name="perso-name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" oninput="filterSearch()" /></div>
 		<div><?php echo $language ? 'Author:':'Auteur :'; ?> <input type="text" name="perso-author" placeholder="Wargor" oninput="filterSearch()" /></div>
+	</form>
+	<div class="persos-list-more persos-list-more-collab">
+		<strong style="color:#42C2F2;font-size:0.7em"><?php echo urldecode('%F0%9F%94%97'); ?></strong> <a href="javascript:togglePersoCollab()"><?php echo $language ? "Import from collaboration link":"Importer via un lien de collaboration"; ?></a>
+	</div>
+	<form id="persos-collab-form" name="persos-collab-form" onsubmit="handlePersoCollabSubmit(event)">
+		<label>
+			<span><?php
+			echo $language ? 'Link':'Lien';
+			?><a href="javascript:showCollabLinkHelp()">[?]</a>:
+			</span>
+			<input type="url" name="collab-link" placeholder="<?php
+			require_once('collabUtils.php');
+			$collab = array(
+				'type' => 'mkchars',
+				'creation_id' => 42,
+				'secret' => 'y-vf-erny_2401_pbasvezrq'
+			);
+			echo getCollabUrl($collab);
+			?>" />
+			<input type="submit" value="Ok" />
+		</label>
 	</form>
 	</div>
 	<div id="perso-info">
@@ -566,30 +588,6 @@ updateCursors = function() {
 		<script>
 		(adsbygoogle = window.adsbygoogle || []).push({});
 		</script>
-	</div>
-	<div class="persos-list-container">
-		<div class="persos-list" id="persos-list-collab"></div>
-		<div class="persos-list-more">
-			<strong style="color:#42C2F2;font-size:0.7em"><?php echo urldecode('%F0%9F%94%97'); ?></strong> <a href="javascript:togglePersoCollab()"><?php echo $language ? "Import from collaboration link":"Importer via un lien de collaboration"; ?></a>
-		</div>
-		<form id="persos-collab-form" name="persos-collab-form" onsubmit="handlePersoCollabSubmit(event)">
-			<label>
-				<span><?php
-				echo $language ? 'Link':'Lien';
-				?><a href="javascript:showCollabLinkHelp()">[?]</a>:
-				</span>
-				<input type="url" name="collab-link" placeholder="<?php
-				require_once('collabUtils.php');
-				$collab = array(
-					'type' => 'mkchars',
-					'creation_id' => 42,
-					'secret' => 'y-vf-erny_2401_pbasvezrq'
-				);
-				echo getCollabUrl($collab);
-				?>" />
-				<input type="submit" value="Ok" />
-			</label>
-		</form>
 	</div>
 </body>
 </html>
