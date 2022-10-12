@@ -125,7 +125,7 @@ include('o_online.php');
         <?php
         if (empty($challenges)) {
             echo '<div class="challenge-reward-empty">';
-            echo $language ? 'You don\'t have any active challenges yet. Go back to the <a class="pretty-link" href="'. nextPageUrl('challenges.php', array('rw'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])) .'">challenges list</a> to complete your existing challenges or create a new one.':'Vous n\'avez aucun défi actif pour l\'instant. Retournez à la <a class="pretty-link" href="'. nextPageUrl('challenges.php', array('rw'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])) .'">liste des défis</a> pour compléter vos défis existans ou en créer de nouveaux.';
+            echo $language ? 'You don\'t have any active challenges yet. Go back to the <a class="pretty-link" href="'. nextPageUrl('challenges.php', array('rw'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])) .'">challenges list</a> to complete your existing challenges or create a new one.':'Vous n\'avez aucun défi actif pour l\'instant. Retournez à la <a class="pretty-link" href="'. nextPageUrl('challenges.php', array('rw'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])) .'">liste des défis</a> pour compléter vos défis existants ou en créer de nouveaux.';
             echo '</div>';
         }
         ?>
