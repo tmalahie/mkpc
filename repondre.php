@@ -45,12 +45,15 @@ include('menu.php');
 		<?php
 		require_once('getRights.php');
 		include('category_fields.php');
-		$category = mysql_fetch_array(mysql_query('SELECT mkcategories.id,'. $categoryFields .' FROM `mkcategories` INNER JOIN `mktopics` ON category=mkcategories.id WHERE mktopics.id="'. $_GET['topic'] .'"'));
-		$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
-		if (($banned=mysql_fetch_array($getBanned)) && $banned['banned'])
-			include('ban_msg.php');
-		elseif (isset($_POST['message'])) {
-			if (mysql_numrows(mysql_query('SELECT * FROM `mktopics` WHERE id="'. $_GET['topic'] .'" AND !locked'. (hasRight('manager') ? '':' AND !private')))) {
+		$getTopic = mysql_fetch_array(mysql_query('SELECT * FROM `mktopics` WHERE id="'. $_GET['topic'] .'" AND !locked'. (hasRight('manager') ? '':' AND !private')));
+		if (!$getTopic)
+			echo $language ? '<p style="text-align: center">This subject doesn\'t exist or has been deleted.':'Ce sujet n\'existe pas ou plus.</p>';
+		else {
+			$category = mysql_fetch_array(mysql_query('SELECT id,'. $categoryFields .',adminonly FROM `mkcategories` WHERE id="'. $getTopic['category'] .'"'));
+			$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
+			if (($banned=mysql_fetch_array($getBanned)) && $banned['banned'])
+				include('ban_msg.php');
+			elseif (isset($_POST['message'])) {
 				$getAI = mysql_fetch_array(mysql_query('SELECT id FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id DESC LIMIT 1'));
 				$ainc = $getAI['id']+1;
 				$maxiter = 10;
@@ -87,11 +90,56 @@ include('menu.php');
 				<a href="category.php?category='. $category['id'] .'">Cliquez ici</a> pour retourner à la catégorie.<br />
 				<a href="forum.php">Cliquez ici</a> pour retourner au forum.</p>';
 			}
-			else
-				echo $language ? '<p style="text-align: center">This subject doesn\'t exist or has been deleted.':'Ce sujet n\'existe pas ou plus.</p>';
-		}
-		else {
-		?>
+			else {
+				function isOldTopic(&$topic) {
+					global $id;
+					$getFirstMessage = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkmessages` WHERE topic="'. $topic['id'] .'" AND id=1 LIMIT 1'));
+					if ($getFirstMessage['auteur'] == $id) return false;
+					return strtotime($topic['dernier']) < (time() - 90*24*3600);
+				}
+				if (!isset($_GET['force']) && !$category['adminonly'] && isOldTopic($getTopic)) {
+				?>
+				<p style="text-align: center">
+				<?php
+				include('utils-date.php');
+				if ($language) {
+					?>
+					It looks like you're trying to reply to an old topic.
+					The last message has been posted on <?php echo to_local_tz($getTopic['dernier'], 'Y-m-d'); ?>.<br />
+					It's generally a bad idea to revive old topics, you might want to create a
+					<a href="newtopic.php?category=<?php echo $getTopic['category']; ?>">new topic</a> instead.<br />
+					In case of doubt, please read the <a href="topic.php?topic=2448">forum's rules</a> topic.
+					<?php
+				}
+				else {
+					?>
+					Il semblerait que vous essayez de répondre à un ancien topic.
+					Le dernier message remonte au <?php echo to_local_tz($getTopic['dernier'], 'd/m/Y'); ?>.<br />
+					C'est généralement une mauvaise idée de déterrer des vieux topics, il est peut-être préférable de créer un
+					<a href="newtopic.php?category=<?php echo $getTopic['category']; ?>">nouveau topic</a> à la place.<br />
+					En cas de doute, réferrez-vous au <a href="topic.php?topic=2448">règlement</a> du forum.
+					<?php
+				}
+				?>
+				</p>
+				<p style="text-align: center; margin-bottom:2em">
+				<?php
+				if ($language) {
+					?>
+					If you think it's still appropriate to reply to this topic, <a href="?<?php echo http_build_query($_GET); ?>&amp;force">click here</a>.
+					<?php
+				}
+				else {
+					?>
+					Si vous pensez toujours que répondre à ce topic est approprié dans ce contexte, <a href="?<?php echo http_build_query($_GET); ?>&amp;force">cliquez ici</a>.
+					<?php
+				}
+				?>
+				</p>
+				<?php
+				}
+				else {
+			?>
 <form method="post" action="repondre.php?topic=<?php echo $_GET['topic']; ?>" onsubmit="if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('bbButtons.php'); ?></td></tr>
@@ -110,14 +158,17 @@ if (isset($_GET['quote'])) {
 <tr><td colspan="2" class="mLabel"><input type="button" value="<?php echo $language ? 'Preview':'Aper&ccedil;u'; ?>" onclick="apercu()" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Send':'Envoyer'; ?>" /></td></tr>
 </table>
 </form>
-<?php
-include('preview-msg.php');
-?>
-<p class="forumButtons">
-	<a href="topic.php?topic=<?php echo $_GET['topic']; ?>"><?php echo $language ? 'Back to the topic':'Retour au topic'; ?></a><br />
-	<a href="category.php?category=<?php echo $category['id']; ?>"><?php echo $language ? 'Back to '. $category['nom']:'Retour à '. $category['nom']; ?></a><br />
-	<a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a></p>
-			<?php
+					<?php
+					include('preview-msg.php');
+				}
+				?>
+				<p class="forumButtons">
+				<a href="topic.php?topic=<?php echo $_GET['topic']; ?>"><?php echo $language ? 'Back to the topic':'Retour au topic'; ?></a><br />
+				<a href="category.php?category=<?php echo $category['id']; ?>"><?php echo $language ? 'Back to '. $category['nom']:'Retour à '. $category['nom']; ?></a><br />
+				<a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a>
+				</p>
+				<?php
+			}
 		}
 	}
 	else
