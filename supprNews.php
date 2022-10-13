@@ -28,7 +28,7 @@ include('menu.php');
 <?php
 include('smileys.php');
 ?>
-<h1><?php echo $language ? 'Deletion':'Suppression'; ?></h1>
+<h1><?php echo $language ? 'News deleted':'Suppression'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
 <p class="pub"><ins class="adsbygoogle"

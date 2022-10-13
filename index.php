@@ -141,8 +141,8 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										With the <strong>track builder</strong>, the possibilities are endless: the only limit is your own imagination.<br />
-										Try other peoples' creations thanks to the integrated <strong>sharing tool</strong>.
+										With the <strong>track builder</strong>, the possibilities are endless: the only limit is your imagination.<br />
+										You can <strong>share</strong> your tracks or try other people's creations!
 										<?php
 									}
 									else {
@@ -391,9 +391,9 @@ $slidesPath = 'images/slides';
 				?>
 				<ul>
 					<li><a href="https://discord.gg/VkeAxaj">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.</li>
-					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Official Youtube Channel</a> : find out videos about the game and informations about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="topic.php?topic=3392">official topic</a>.</li>
+					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Official Youtube Channel</a>: find videos on the game and information about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="topic.php?topic=3392">official topic</a>.</li>
 					<li><a href="https://github.com/tmalahie/mkpc">Github repo</a> of the site. Follow here all the ongoing developments, and if you can code, don't hesitate to contribute to the project!</li>
-					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on the <a href="topic.php?topic=343">this topic</a>!</li>
+					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on <a href="topic.php?topic=343">this topic</a>!</li>
 				</ul>
 				<?php
 			}

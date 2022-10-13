@@ -113,7 +113,7 @@ if (isset($profileId)) {
 							$error = $language ? 'Your image musn\'t exceed 2000×2000 in dimension':'Votre image ne doit pas dépasser 1732×1732px';
 					}
 					else
-						$error = $language ? 'Your image musn\'t exceed 2 Mo.':'Votre image ne doit pas dépasser 2 Mo.';
+						$error = $language ? 'Your image musn\'t exceed 2 MB.':'Votre image ne doit pas dépasser 2 Mo.';
 				}
 			}
 		}
@@ -166,7 +166,7 @@ if (isset($profileId)) {
 		}
 		if (isset($_GET['followed'])) {
 			if ($_GET['followed'])
-				$success = $language ? 'You are now following '. $getInfos['nom'] .'! You will receive a notification each time they post a topic, a news, a circuit or a character.':'Vous suivez maintenant '. $getInfos['nom'] .' ! Vous recevrez une notification chaque fois qu\'il poste un topic, une news, un circuit ou un perso.';
+				$success = $language ? 'You are now following '. $getInfos['nom'] .'! You will receive a notification each time they post a topic, news, a circuit or a character.':'Vous suivez maintenant '. $getInfos['nom'] .' ! Vous recevrez une notification chaque fois qu\'il poste un topic, une news, un circuit ou un perso.';
 			else
 				$success = $language ? 'You have stopped following '. $getInfos['nom']:'Vous ne suivez plus '. $getInfos['nom'];
 		}

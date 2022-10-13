@@ -53,7 +53,7 @@ include('menu.php');
 <col id="nbmsgs" />
 <col id="lastmsgs" />
 <tr id="titres">
-<td><?php echo $language ? 'Subjects':'Sujets'; ?></td>
+<td><?php echo $language ? 'Topics':'Sujets'; ?></td>
 <td><?php echo $language ? 'Author':'Auteur'; ?></td>
 <td><?php echo $language ? 'Msgs nb':'Nb msgs'; ?></td>
 <td><?php echo $language ? 'Last message':'Dernier message'; ?></td>

@@ -792,7 +792,7 @@ if (isset($_GET['i'])) {
 						'text' => ($language ?
 						"The &quot;Elevator&quot; tool allows to define areas where you can gain instant altitude.<br />
 						For example, if you have a wall of height 1 and you want to make it climbable from the floor, you can define an elevator zone of 0&rarr;1 in front of the wall.<br />
-						To define an elevator, you can specify 3 informations: the elevator area, the height you'll obtain once you're on it, and optionally the minimum height for the elevator to be enabled."
+						To define an elevator, you can specify 3 information: the elevator area, the height you'll obtain once you're on it, and optionally the minimum height for the elevator to be enabled."
 						:
 						"L'outil &quot;élévateur&quot; permet de définir des zones qui vous font gagner de l'altitude instantanément.<br />
 						Par exemple, si vous avez un mur de hauteur 1 et que vous voulez rendre le mur escaladable depuis le sol, vous pouvez définir une zone d'élévateur de 0&rarr;1 devant le mur.<br />

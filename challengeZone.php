@@ -850,7 +850,7 @@ window.onload = function() {
 			if ($language) {
 				?>
 				Indicate the location in the circuit where the player will start.<br />
-                You have to indicate 2 informations: the initial position and the orientation of the player.<br />
+                You have to indicate 2 information: the initial position and the orientation of the player.<br />
 				<?php
 			}
 			else {

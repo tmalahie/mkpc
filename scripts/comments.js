@@ -9,7 +9,7 @@ function updateCircuitNote() {
 		}
 		var r = average(r1,r2), g = average(g1,g2), b = average(b1,b2);
 		commentNote.css("color", "rgb("+ r +","+ g +","+ b +")");
-		commentNote.html(Math.round(circuitNote*100)/100 +"&nbsp;/&nbsp;5&nbsp;"+ (language ? "on":"sur") +"&nbsp;"+ circuitNotes +"&nbsp;"+ (language ? ("view"+ (circuitNote>1 ? "s":"")) : "avis"));
+		commentNote.html(Math.round(circuitNote*100)/100 +"&nbsp;/&nbsp;5&nbsp;"+ (language ? "on":"sur") +"&nbsp;"+ circuitNotes +"&nbsp;"+ (language ? ("view"+ (circuitNotes>1 ? "s":"")) : "avis"));
 	}
 	else {
 		commentNote.css("color", "white");
@@ -100,7 +100,7 @@ function updateCircuitDate() {
 			'<div class="comment-container comment-'+ className +'">'+
 				'<div class="comment-header"></div>'+
 				'<div class="comment-message">'+
-					'<textarea placeholder="'+ (language ? 'Your message':'Votre message') +'..." class="comment-textarea comment-posting"></textarea>'+
+					'<textarea placeholder="'+ (language ? 'Send message':'Votre message') +'..." class="comment-textarea comment-posting"></textarea>'+
 					'<span class="comment-value comment-posted"></span>'+
 				'</div>'+
 				'<div class="comment-reactions comment-posted"></div>'+

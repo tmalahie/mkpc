@@ -6,7 +6,7 @@ include('initdb.php');
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Deletion':'Suppression'; ?></title>
+<title><?php echo $language ? 'Message deleted':'Suppression'; ?></title>
 <?php
 include('heads.php');
 ?>
