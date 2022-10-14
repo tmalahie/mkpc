@@ -12,7 +12,7 @@ if (!$id) {
 	exit;
 }
 require_once('getRights.php');
-if (!hasRight('moderator')) {
+if (!hasRight('manager')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
 	exit;

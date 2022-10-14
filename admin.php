@@ -129,14 +129,16 @@ include('menu.php');
 		</li>
 			<?php
 		}
-		if (hasRight('moderator')) {
-			?>
+		?>
 		<li>
 			<a class="action-ctn" href="doublecomptes.php">
 				<div class="action-title"><?php echo $language ? "See <strong>double accounts</strong>":"Voir les <strong>double comptes</strong>"; ?></div>
 				<div class="action-desc"><?php echo $language ? "If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)":"Si un &quot;nouveau&quot; membre vous parait louche... (outil pas 100% fiable)"; ?></div>
 			</a>
 		</li>
+		<?php
+		if (hasRight('moderator')) {
+			?>
 		<li>
 			<a class="action-ctn" href="edit-country.php">
 				<div class="action-title"><?php echo $language ? "Edit member <strong>country</strong>":"Changer le <strong>pays</strong> d'un membre"; ?></div>
