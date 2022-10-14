@@ -918,6 +918,7 @@ footer a {
 	color: #F60;
 }
 #official_message {
+	position: relative;
 	padding: 10px;
 	margin-left: 15px;
 	margin-right: 5px;
@@ -925,7 +926,14 @@ footer a {
 	color: #063;
 	border: dashed 1px #063;
 	border-radius: 5px;
-	text-align: justify;
+	font-size: 0.9em;
+}
+#official_message .close {
+	position: absolute;
+	right: 4px;
+	top: 0px;
+	font-size: 1.1em;
+	text-decoration: none;
 }
 #official_message a {
 	font-weight: bold;

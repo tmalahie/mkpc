@@ -448,16 +448,17 @@ $slidesPath = 'images/slides';
 	<section id="right_section">
 		<?php
 		require_once('utils-date.php');
-		/*if ($id) {
-			$alreadyVoted = mysql_fetch_array(mysql_query('SELECT vote FROM mkwcbets WHERE player = ' . $id));
-			if (!$alreadyVoted && (time() < 1657335600)) {
+		if ($id) {
+			$alreadyClosed = mysql_fetch_array(mysql_query('SELECT read_date FROM mkofficialmsgread WHERE player = '.$id.' AND message="lounge_2022"'));
+			if (!$alreadyClosed) {
 				if ($language) {
 				?>
 				<div class="subsection">
-					<div id="official_message" style="font-size: 0.9em; text-align: left">
-						The <strong>2022 Mario Kart World Cup</strong> has begun!<br />
-						Come and <a href="mkwc.php">vote here</a> for your favorite team!<br />
-						For more information, read the related <a href="news.php?id=14697">news</a>.
+					<div id="official_message">
+						<a href="javascript:closeOfficialMessage('lounge_2022')" class="close">&times;</a>
+						A new <strong>lounge tournanment</strong> season has begun!<br />
+						Play with other members in online games and climb in the rankings!<br />
+						For more information, join the <a href="https://discord.gg/2wZd8CHZ" target="_blank">Discord server</a> of the event.
 					</div>
 				</div>
 				<?php
@@ -466,15 +467,13 @@ $slidesPath = 'images/slides';
 				?>
 				<div class="subsection">
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
-						La <strong>Coupe Du Monde 2022 de Mario Kart</strong> à débuté !<br />
-						Venez <a href="mkwc.php">voter ici</a> pour votre équipe préférée !<br />
-						Pour plus d'information, consultez la <a href="news.php?id=14697">news</a> associée.
+						TODO
 					</div>
 				</div>
 				<?php
 				}
 			}
-		}*/
+		}
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
@@ -1212,6 +1211,7 @@ mysql_close();
 <script>
 var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
 </script>
+<script async src="scripts/officials.js"></script>
 <script async src="scripts/creations.js"></script>
 <script async src="scripts/posticons.js"></script>
 
