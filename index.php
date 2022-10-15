@@ -451,27 +451,31 @@ $slidesPath = 'images/slides';
 		if ($id) {
 			$alreadyClosed = mysql_fetch_array(mysql_query('SELECT read_date FROM mkofficialmsgread WHERE player = '.$id.' AND message="lounge_2022"'));
 			if (!$alreadyClosed) {
-				if ($language) {
 				?>
 				<div class="subsection">
 					<div id="official_message">
 						<a href="javascript:closeOfficialMessage('lounge_2022')" class="close">&times;</a>
-						A new <strong>lounge tournanment</strong> season has begun!<br />
-						Play with other members in online games and climb in the rankings!<br />
-						For more information, join the <a href="https://discord.gg/2wZd8CHZ" target="_blank">Discord server</a> of the event.
+						<?php
+						if ($language) {
+							?>
+							The <strong>MKPC lounge</strong> has arrived!<br />
+							Play with other members in online games and climb in the rankings!<br />
+							For more information, check <a href="topic.php?topic=10101">this topic</a>
+							and join the official <a href="https://discord.gg/TqzGYAwW" target="_blank">Discord server</a> of the lounge.
+							<?php
+						}
+						else {
+							?>
+							Le <strong>lounge MKPC</strong> a commencé&nbsp;!<br />
+							Affrontez d'autres membres sur des courses en ligne et grimpez dans le classement&nbsp;!<br />
+							Pour plus d'informations, lisez <a href="topic.php?topic=10101">ce topic</a>
+							et rejoignez le <a href="https://discord.gg/TqzGYAwW" target="_blank">serveur Discord</a> officiel du lounge.
+							<?php
+						}
+						?>
 					</div>
 				</div>
 				<?php
-				}
-				else {
-				?>
-				<div class="subsection">
-					<div id="official_message" style="font-size: 0.9em; text-align: left">
-						TODO
-					</div>
-				</div>
-				<?php
-				}
 			}
 		}
 		function uc_strlen($str) {
