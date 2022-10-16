@@ -310,7 +310,9 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 }
 #persos-collab-form label {
 	display: flex;
+    flex-wrap: wrap;
 	align-items: center;
+	justify-content: center;
 	gap: 0.25em;
 }
 #persos-collab-form label a {

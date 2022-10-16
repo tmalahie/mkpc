@@ -430,8 +430,10 @@ h2 {
 }
 #decors-collab label {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.25em;
     align-items: baseline;
+	justify-content: center;
 }
 #decors-collab label a {
     position: relative;

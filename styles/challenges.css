@@ -339,6 +339,8 @@ button.challenge-edit-submit:disabled {
 	display: none;
 	gap: 0.5em;
 	align-items: baseline;
+	justify-content: center;
+    flex-wrap: wrap;
 }
 #challenge-perso-collab.shown {
 	display: flex;
