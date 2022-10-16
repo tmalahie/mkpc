@@ -26924,7 +26924,27 @@ function setChat() {
 	oRepondre.appendChild(rEnvoi);
 	oRepondre.onsubmit = function() {
 		if (rMessage.value) {
-			xhr("parler.php", "msg="+encodeURIComponent(rMessage.value).replace(/\+/g, "%2B") + (onlineSpectatorId ? "&spectator="+onlineSpectatorId : ""), function(reponse){return (reponse=="1")});
+			xhr("parler.php", "msg="+encodeURIComponent(rMessage.value).replace(/\+/g, "%2B") + (onlineSpectatorId ? "&spectator="+onlineSpectatorId : ""), function(reponse) {
+				var failureMsg;
+				switch (+reponse) {
+				case -1:
+					failureMsg = toLanguage("inappropriate words", "mots inappropriés");
+					break;
+				case -2:
+					failureMsg = toLanguage("spam", "spam");
+					break;
+				case -3:
+					failureMsg = toLanguage("too long", "trop long");
+					break;
+				}
+				if (failureMsg) {
+					var oP = document.createElement("p");
+					oP.className = "chatlog";
+					oP.innerHTML = "<em>" + toLanguage("Message not sent (reason: "+ failureMsg +")", "Message non envoyé (raison : "+ failureMsg +")") +"</em>";
+					oMessages.appendChild(oP);
+				}
+				return true;
+			});
 			rMessage.value = "";
 		}
 		return false;

@@ -169,6 +169,12 @@ include('menu.php');
 			</a>
 		</li>
 		<li>
+			<a class="action-ctn" href="chat-blacklist.php">
+				<div class="action-title"><?php echo $language ? "Manage <strong>forbidden words</strong> in online chat":"Gestion des <strong>mots interdits</strong> dans le chat en ligne"; ?></div>
+				<div class="action-desc"><?php echo $language ? "All messages containing forbidden words will be blocked":"Les messages contenant ces mots ne seront pas envoyés"; ?></div>
+			</a>
+		</li>
+		<li>
 			<a class="action-ctn" href="chat-logs.php">
 				<div class="action-title"><?php echo $language ? "See online mode <strong>chat logs</strong>":"Voir les <strong>logs</strong> du mode en ligne"; ?></div>
 				<div class="action-desc"><?php echo $language ? "See the messages of the member in the online mode.<br />You can mute members in case of abuse":"Voir les messages d'un joueurs dans le chat du mode en ligne.<br />Vous pouvez muter les membres en cas d'abus."; ?></div>
