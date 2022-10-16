@@ -3,7 +3,18 @@ include('getId.php');
 include('language.php');
 include('session.php');
 include('initdb.php');
-if ($getProfile = mysql_fetch_array(mysql_query('SELECT YEAR(birthdate) AS y0,MONTH(birthdate) AS m0,DAY(birthdate) AS d0,birthdate,description,email,country FROM `mkprofiles` WHERE id="'. $id .'"'))) {
+$userId = $id;
+if (isset($_GET['member'])) {
+	require_once('getRights.php');
+	if (!hasRight('moderator')) {
+		echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
+		mysql_close();
+		exit;
+	}
+	$userId = intval($_GET['member']);
+	$member = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $userId .'"'));
+}
+if ($getProfile = mysql_fetch_array(mysql_query('SELECT YEAR(birthdate) AS y0,MONTH(birthdate) AS m0,DAY(birthdate) AS d0,birthdate,description,email,country FROM `mkprofiles` WHERE id="'. $userId .'"'))) {
 	if ($getProfile['country']) {
 		if ($getCountryCode = mysql_fetch_array(mysql_query('SELECT code FROM mkcountries WHERE id='. $getProfile['country'])))
 			$selCountry = $getCountryCode['code'];
@@ -12,7 +23,12 @@ if ($getProfile = mysql_fetch_array(mysql_query('SELECT YEAR(birthdate) AS y0,MO
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Edit profile':'Modifier mon profil'; ?> - Mario Kart PC</title>
+<title><?php
+	if (empty($member))
+		echo $language ? 'Edit my profile':'Modifier mon profil';
+	else
+		echo $language ? "Edit ". $member['nom'] ."'s profile":"Modifier le profil de ". $member['nom'];
+?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -60,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$age = getAge($birthdate);
 	if ($email && !preg_match("#^[a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$#i", $email))
 		$error = ($language ? 'Please enter a valid email address':'Veuillez entrer une adresse email valide');
-	//elseif ($email && mysql_numrows(mysql_query('SELECT * FROM `mkprofiles` WHERE id!="'. $id .'" AND email="'. $email .'"')))
+	//elseif ($email && mysql_numrows(mysql_query('SELECT * FROM `mkprofiles` WHERE id!="'. $userId .'" AND email="'. $email .'"')))
 	//	$error = ($language ? 'This email address is already taken':'Cette adress email existe déjà');
 	elseif ($birthdate && (($age < 2) || ($age > 150)))
 		$error = ($language ? 'Please enter a valid birth date':'Veuillez entrer une date de naissance valide');
@@ -74,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				$countryId = $getCountryId['id'];
 			else
 				$countryId = 0;
-			mysql_query('UPDATE `mkprofiles` SET email="'. $email .'",country="'.$countryId.'",description="'. $description .'",birthdate='. ($birthdate ? '"'.$birthdate.'"':'NULL') .' WHERE id="'.$id.'"');
+			mysql_query('UPDATE `mkprofiles` SET email="'. $email .'",country="'.$countryId.'",description="'. $description .'",birthdate='. ($birthdate ? '"'.$birthdate.'"':'NULL') .' WHERE id="'.$userId.'"');
 			$success = $language ? 'Profile updated successfully':'Profil mis à jour avec succès';
 		}
 	}
@@ -89,14 +105,19 @@ else {
 }
 ?>
 <main>
-<form method="post" class="advanced-search" action="edit-profile.php">
+<form method="post" class="advanced-search" action="">
 	<?php
 	if (isset($success))
 		echo '<div class="success">'. $success .'</div>';
 	elseif (isset($error))
 		echo '<div class="warning">'. $error .'</div>';
 	?>
-	<h1><?php echo $language ? 'Edit profile':'Modifier le profil'; ?></h1>
+	<h1><?php
+		if (empty($member))
+			echo $language ? 'Edit profile':'Modifier le profil';
+		else
+			echo $language ? "Edit ". $member['nom'] ."'s profile":"Modifier le profil de ". $member['nom'];
+	?></h1>
 	<table class="signup">
 		<tr>
 			<td class="ligne">
@@ -156,7 +177,16 @@ else {
 		</tr>
 	</table>
 	<p class="forumButtons">
-		<a href="profil.php?id=<?php echo $id; ?>"><?php echo $language ? 'Back to your profile':'Retour à votre profil'; ?></a><br />
+		<?php
+		if (isset($_GET['member']))
+			echo '<a href="admin.php">'. ($language ? 'Back to the admin page':'Retour à la page admin') .'</a><br />';
+		?>
+		<a href="profil.php?id=<?php echo $userId; ?>"><?php
+		if (empty($member))
+			echo $language ? 'Back to your profile':'Retour à votre profil';
+		else
+			echo $language ? "Back to ". $member['nom'] ."'s profile" : "Retour au profil de " . $member['nom'];
+		?></a><br />
 		<a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a>
 	</p>
 </form>

@@ -111,16 +111,18 @@ include('menu.php');
 		</li>
 			<?php
 		}
-		?>
-		<li>
-			<a class="action-ctn" href="updatepts.php">
-				<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in the <strong>online mode</strong>":"Donner/retirer des <strong>points</strong> dans le <strong>mode en ligne</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
-			</a>
-		</li>
-		<?php
 		if (hasRight('organizer')) {
+			if (!hasRight('moderator')) {
 			?>
+			<li>
+				<a class="action-ctn" href="updatepts.php">
+					<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in the <strong>online mode</strong>":"Donner/retirer des <strong>points</strong> dans le <strong>mode en ligne</strong>"; ?></div>
+					<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
+				</a>
+			</li>
+			<?php
+			}
+		?>
 		<li>
 			<a class="action-ctn" href="awards.php">
 				<div class="action-title"><?php echo $language ? "Award a <strong>reward</strong>":"Attribuer des <strong>titres</strong>"; ?></div>
@@ -140,15 +142,9 @@ include('menu.php');
 		if (hasRight('moderator')) {
 			?>
 		<li>
-			<a class="action-ctn" href="edit-country.php">
-				<div class="action-title"><?php echo $language ? "Edit member <strong>country</strong>":"Changer le <strong>pays</strong> d'un membre"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Can be useful if a troll member has put a fake country for example":"Peut servir si un membre troll a renseigné un faux pays par exemple"; ?></div>
-			</a>
-		</li>
-		<li>
-			<a class="action-ctn" href="chat-logs.php">
-				<div class="action-title"><?php echo $language ? "See online mode <strong>chat logs</strong>":"Voir les <strong>logs</strong> du mode en ligne"; ?></div>
-				<div class="action-desc"><?php echo $language ? "See the messages of the member in the online mode.<br />You can mute members in case of abuse":"Voir les messages d'un joueurs dans le chat du mode en ligne.<br />Vous pouvez muter les membres en cas d'abus."; ?></div>
+			<a class="action-ctn" href="edit-user.php">
+				<div class="action-title"><?php echo $language ? "Edit member <strong>profile</strong>":"Changer le <strong>profil</strong> d'un membre"; ?></div>
+				<div class="action-desc"><?php echo $language ? "Can be useful if a troll member has put an inappropriate description for example, or a fake country":"Peut servir si un membre troll a renseigné une description inappropriée par exemple, ou un faux pays"; ?></div>
 			</a>
 		</li>
 		<li>
@@ -164,7 +160,22 @@ include('menu.php');
 	<?php
 	if (hasRight('moderator')) {
 		?>
-	<h2>Gestion des partages</h2>
+	<h2><?php echo $language ? 'Online mode' : 'Mode en ligne'; ?></h2>
+	<ul>
+		<li>
+			<a class="action-ctn" href="updatepts.php">
+				<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in the <strong>online mode</strong>":"Donner/retirer des <strong>points</strong> dans le mode en ligne"; ?></div>
+				<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
+			</a>
+		</li>
+		<li>
+			<a class="action-ctn" href="chat-logs.php">
+				<div class="action-title"><?php echo $language ? "See online mode <strong>chat logs</strong>":"Voir les <strong>logs</strong> du mode en ligne"; ?></div>
+				<div class="action-desc"><?php echo $language ? "See the messages of the member in the online mode.<br />You can mute members in case of abuse":"Voir les messages d'un joueurs dans le chat du mode en ligne.<br />Vous pouvez muter les membres en cas d'abus."; ?></div>
+			</a>
+		</li>
+	</ul>
+	<h2><?php echo $language ? 'Share management' : 'Gestion des partages'; ?></h2>
 	<ul>
 		<li>
 			<a class="action-ctn" href="creations.php?admin=1">
@@ -185,7 +196,7 @@ include('menu.php');
 			</a>
 		</li>
 	</ul>
-	<h2>Autres droits</h2>
+	<h2><?php echo $language ? 'Other rights' : 'Autres droits'; ?></h2>
 	<ul>
 		<li>
 			<div class="action-ctn">
