@@ -509,10 +509,15 @@ include('menu.php');
 ?>
 <main>
 	<h1><?php echo $language ? 'Admin logs' : 'Logs admin'; ?></h1>
-    <p><?php echo $language
+    <?php
+    if (!isset($_GET['role'])) {
+        echo '<p>';
+        echo $language
         ? "This page shows the history of all actions made by MKPC staff members"
-        : "Cette page affiche l'historique de toutes les actions effectuées par l'équipe admin MKPC"
-    ?></p>
+        : "Cette page affiche l'historique de toutes les actions effectuées par l'équipe admin MKPC";
+        echo '</p>';
+    }
+    ?>
 	<form method="get" action="admin-logs.php">
         <blockquote>
             <p id="admin-filter">

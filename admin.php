@@ -222,6 +222,12 @@ include('menu.php');
 				<div class="action-desc"><?php echo $language ? "Go to the news in question and click on &quot;Edit&quot; or &quot;Delete&quot;":"Se rendre sur la news en question et cliquer sur &quot;Modifier&quot; ou &quot;Supprimer&quot;"; ?></div>
 			</div>
 		</li>
+		<li>
+			<a class="action-ctn" href="admin-logs.php">
+				<div class="action-title"><?php echo $language ? "See <strong>admin logs</strong>":"Voir les <strong>logs admin</strong>"; ?></div>
+				<div class="action-desc"><?php echo $language ? "To retrace and understand the different actions done by MKPC staff":"Pour retracer et comprendre les différentes actions réalisées par les admins MKPC"; ?></div>
+			</a>
+		</li>
 	</ul>
 		<?php
 	}
