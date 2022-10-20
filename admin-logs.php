@@ -239,8 +239,20 @@ $logMapping = array(
         'render' => ($language ? 'unmuted member ' : 'a unmuté le membre ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
+    'Blacklist' => array(
+        'render' => ($language ? 'added ' : 'a ajouté ') . '<strong>{{table.mkbadwords(id=$1).word|global.ifNull("</strong>'. ($language ? 'a word' : 'un mot') .'<strong>")}}</strong>' . ($language ? ' to the forbidden words list' : ' à la liste des mots interdits'),
+        'role' => 'moderator'
+    ),
+    'Unblacklist' => array(
+        'render' => $language ? 'removed word #$1 from list of forbidden words' : 'a retiré le mot #$1 de la liste des mots interdits',
+        'role' => 'moderator'
+    ),
     'MCup' => array(
         'render' => $language ? 'deleted multicup #$1' : 'a supprimé la multicoupe #$1',
+        'role' => 'moderator'
+    ),
+    'Profile' => array(
+        'render' => $language ? 'updated ' . $logTemplates['member']('$1') .'\'s profile' : 'a modifié le profil de ' . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Flag' => array(
@@ -569,7 +581,7 @@ include('menu.php');
     if (empty($_GET['type'])) {
         $availableLogWhere = array();
         foreach ($availableLogs as $availableLog)
-            $availableLogWhere[] = "l.log LIKE '%$availableLog %'";
+            $availableLogWhere[] = "l.log LIKE '$availableLog %'";
     }
     else {
         $logFilter = $_GET['type'];
