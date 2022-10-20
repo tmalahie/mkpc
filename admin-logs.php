@@ -7,15 +7,9 @@ if (!$id) {
 include('language.php');
 include('initdb.php');
 include('utils-date.php');
-require_once('getRights.php');
-if (!hasRight('moderator')) {
-	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
-	mysql_close();
-	exit;
-}
 $logTemplates = array(
     'award' => function($var) {
-        return '<strong>{{table.mkawards(id='.$var.').name}}</strong>';
+        return '<strong>{{table.mkawards(id='.$var.').name|global.ifEmpty("Titre supprimé")}}</strong>';
     },
     'challenge' => function($var) {
         return '<a href="challengeTry.php?challenge='.$var.'">{{table.mkchallenges(id='.$var.').name|global.ifEmpty("Sans titre")}}</a>';
@@ -32,10 +26,12 @@ $logTemplates = array(
 );
 $logMapping = array(
     'AChallenge' => array(
-        'render' => 'a accepté le défi '. $logTemplates['challenge']('$1')
+        'render' => 'a accepté le défi '. $logTemplates['challenge']('$1'),
+        'role' => 'clvalidator'
     ),
     'CCircuit' => array(
-        'render' => 'a supprimé le circuit complet #$1'
+        'render' => 'a supprimé le circuit complet #$1',
+        'role' => 'moderator'
     ),
     'Suppr' => array(
         'render' => function(&$group) {
@@ -43,7 +39,8 @@ $logMapping = array(
             if (isset($group[2]))
                 return 'a supprimé le message #$2 dans le topic '. $logTemplates['topic']('$1');
             return 'a supprimé le topic #$1';
-        }
+        },
+        'role' => 'moderator'
     ),
     'Edit' => array(
         'render' => function(&$group) {
@@ -51,7 +48,8 @@ $logMapping = array(
             if (isset($group[2]))
                 return 'a modifié le <a href="topic.php?topic=$1&amp;message=$2">message #$2</a> dans le topic '. $logTemplates['topic']('$1');
             return 'a modifié le topic '. $logTemplates['topic']('$1');
-        }
+        },
+        'role' => 'moderator'
     ),
     'DChallenge' => array(
         'render' => 'a modifié la difficulté du défi '. $logTemplates['challenge']('$1') .' {{table.mkchallenges(id=$1).difficulty|local.difficulty()}}',
@@ -62,22 +60,28 @@ $logMapping = array(
                 $difficulties = getChallengeDifficulties();
                 return 'en <strong>' . $difficulties[$i] .'</strong>';
             }
-        )
+        ),
+        'role' => 'clvalidator'
     ),
     'RChallenge' => array(
-        'render' => 'a refusé le défi '. $logTemplates['challenge']('$1')
+        'render' => 'a refusé le défi '. $logTemplates['challenge']('$1'),
+        'role' => 'clvalidator'
     ),
     'Ban' => array(
-        'render' => 'a banni le membre '. $logTemplates['member']('$1')
+        'render' => 'a banni le membre '. $logTemplates['member']('$1'),
+        'role' => 'moderator'
     ),
     'Warn' => array(
-        'render' => 'a averti le membre '. $logTemplates['member']('$1')
+        'render' => 'a averti le membre '. $logTemplates['member']('$1'),
+        'role' => 'moderator'
     ),
     'Unban' => array(
-        'render' => 'a débanni le membre '. $logTemplates['member']('$1')
+        'render' => 'a débanni le membre '. $logTemplates['member']('$1'),
+        'role' => 'moderator'
     ),
     'SComment' => array(
-        'render' => 'a supprimé le commentaire #$1 sur un circuit'
+        'render' => 'a supprimé le commentaire #$1 sur un circuit',
+        'role' => 'moderator'
     ),
     'pts' => array(
         'render' => function(&$group) {
@@ -88,7 +92,8 @@ $logMapping = array(
                 $group[1] = -$group[1];
             }
             return 'a '.$verb.' $1 pts à '. $logTemplates['member']('$2') .' dans le mode en ligne (VS)';
-        }
+        },
+        'role' => 'manager'
     ),
     'Bpts' => array(
         'render' => function(&$group) {
@@ -99,10 +104,12 @@ $logMapping = array(
                 $group[1] = -$group[1];
             }
             return 'a '.$verb.' $1 pts à '. $logTemplates['member']('$2') .' dans le mode en ligne (bataille)';
-        }
+        },
+        'role' => 'manager'
     ),
     'nick' => array(
-        'render' => 'a modifié le pseudo de <strong>$2</strong> en '. $logTemplates['member']('$1')
+        'render' => 'a modifié le pseudo de <strong>$2</strong> en '. $logTemplates['member']('$1'),
+        'role' => 'moderator'
     ),
     'SPerso' => array(
         'render' => function(&$matches) {
@@ -110,22 +117,28 @@ $logMapping = array(
             $matches[1] = implode(', #', $ids);
             $matches[2] = count($ids);
             return 'a supprimé {{$2|global.plural("le%s perso%s")}} #$1';
-        }
+        },
+        'role' => 'moderator'
     ),
     'LTopic' => array(
-        'render' => 'a locké le topic '. $logTemplates['topic']('$1')
+        'render' => 'a locké le topic '. $logTemplates['topic']('$1'),
+        'role' => 'moderator'
     ),
     'ULTopic' => array(
-        'render' => 'a unlocké le topic '. $logTemplates['topic']('$1')
+        'render' => 'a unlocké le topic '. $logTemplates['topic']('$1'),
+        'role' => 'moderator'
     ),
     'Cup' => array(
-        'render' => 'a supprimé la coupe #$1'
+        'render' => 'a supprimé la coupe #$1',
+        'role' => 'moderator'
     ),
     'RNews' => array(
-        'render' => 'a rejeté la news '. $logTemplates['news']('$1')
+        'render' => 'a rejeté la news '. $logTemplates['news']('$1'),
+        'role' => 'publisher'
     ),
     'ANews' => array(
-        'render' => 'a accepté la news '. $logTemplates['news']('$1')
+        'render' => 'a accepté la news '. $logTemplates['news']('$1'),
+        'role' => 'publisher'
     ),
     'EComment' => array(
         'render' => function(&$groups) {
@@ -137,7 +150,8 @@ $logMapping = array(
                 $groups[6] = $getCircuitData['label'];
             }
             return 'a modifié le commentaire de <a href="profil.php?id={{$3}}">{{$3|global.join("mkjoueurs", "id", "nom")|global.ifNull("<em>Compte supprimé</em>")}}</a> sur $6 <a href="$5">{{$4|global.ifNull("<em>Circuit supprimé</em>")}}</a>';
-        }
+        },
+        'role' => 'moderator'
     ),
     'DRating' => array(
         'render' => function(&$groups) {
@@ -146,82 +160,104 @@ $logMapping = array(
             $groups[5] = $getCircuitData['link'];
             $groups[6] = $getCircuitData['label'];
             return 'a supprimé une note sur $6 <a href="$5">{{$4|global.ifNull("<em>Circuit supprimé</em>")}}</a>';
-        }
+        },
+        'role' => 'moderator'
     ),
     'SCircuit' => array(
-        'render' => 'a supprimé le circuit simplifié #$1'
+        'render' => 'a supprimé le circuit simplifié #$1',
+        'role' => 'moderator'
     ),
     'SArene' => array(
-        'render' => 'a supprimé l\'arène simplifié #$1'
+        'render' => 'a supprimé l\'arène simplifié #$1',
+        'role' => 'moderator'
     ),
     'CArene' => array(
-        'render' => 'a supprimé l\'arène complet #$1'
+        'render' => 'a supprimé l\'arène complet #$1',
+        'role' => 'moderator'
     ),
     'SNews' => array(
-        'render' => 'a supprimé la news #$1'
+        'render' => 'a supprimé la news #$1',
+        'role' => 'publisher'
     ),
     'ENews' => array(
-        'render' => 'a modifié la news '. $logTemplates['news']('$1')
+        'render' => 'a modifié la news '. $logTemplates['news']('$1'),
+        'role' => 'publisher'
     ),
     'CAwarded' => array(
-        'render' => 'a attribué le titre <strong>{{table.mkawards(id=$2).name|global.ifNull("<em>Titre supprimé</em>")}}</strong> à '. $logTemplates['member']('$1')
+        'render' => 'a attribué le titre <strong>{{table.mkawards(id=$2).name|global.ifNull("<em>Titre supprimé</em>")}}</strong> à '. $logTemplates['member']('$1'),
+        'role' => 'organizer'
     ),
     'EAwarded' => array(
-        'render' => 'a modifié le message du titre <strong>{{table.mkawards(id=$2).name|global.ifNull("<em>Titre supprimé</em>")}}</strong> pour le membre '. $logTemplates['member']('$1')
+        'render' => 'a modifié le message du titre <strong>{{table.mkawards(id=$2).name|global.ifNull("<em>Titre supprimé</em>")}}</strong> pour le membre '. $logTemplates['member']('$1'),
+        'role' => 'organizer'
     ),
     'SAwarded' => array(
-        'render' => 'a retiré le titre <strong>{{table.mkawards(id=$2).name|global.ifNull("<em>Titre supprimé</em>")}}</strong> pour le membre '. $logTemplates['member']('$1')
+        'render' => 'a retiré le titre <strong>{{table.mkawards(id=$2).name|global.ifNull("<em>Titre supprimé</em>")}}</strong> pour le membre '. $logTemplates['member']('$1'),
+        'role' => 'organizer'
     ),
     'SPicture' => array(
-        'render' => 'a supprimé l\'avatar de '. $logTemplates['member']('$1')
+        'render' => 'a supprimé l\'avatar de '. $logTemplates['member']('$1'),
+        'role' => 'moderator'
     ),
     'UAChallenge' => array(
-        'render' => 'a annulé la validation du défi '. $logTemplates['challenge']('$1')
+        'render' => 'a annulé la validation du défi '. $logTemplates['challenge']('$1'),
+        'role' => 'clvalidator'
     ),
     'URChallenge' => array(
-        'render' => 'a annulé le refus du défi '. $logTemplates['challenge']('$1')
+        'render' => 'a annulé le refus du défi '. $logTemplates['challenge']('$1'),
+        'role' => 'clvalidator'
     ),
     'CChallenge' => array(
-        'render' => 'a revalidé le défi '. $logTemplates['challenge']('$1')
+        'render' => 'a revalidé le défi '. $logTemplates['challenge']('$1'),
+        'role' => 'clvalidator'
     ),
     'ENewscom' => array(
-        'render' => 'a modifié le commentaire #$1 sur la news <a href="news.php?id={{table.mknewscoms(id=$1).news}}">{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>News supprimée</em>")}}</a>'
+        'render' => 'a modifié le commentaire #$1 sur la news <a href="news.php?id={{table.mknewscoms(id=$1).news}}">{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>News supprimée</em>")}}</a>',
+        'role' => 'moderator'
     ),
     'DNewscom' => array(
-        'render' => 'a supprimé le commentaire de news #$1'
+        'render' => 'a supprimé le commentaire de news #$1',
+        'role' => 'moderator'
     ),
     'Mute' => array(
-        'render' => 'a muté le membre '. $logTemplates['member']('$1') .' pendant $2 {{$2|global.plural("minute%s")}}'
+        'render' => 'a muté le membre '. $logTemplates['member']('$1') .' pendant {{$2|global.plural("%n minute%s")}}',
+        'role' => 'moderator'
     ),
     'Unmute' => array(
-        'render' => 'a unmuté le membre '. $logTemplates['member']('$1')
+        'render' => 'a unmuté le membre '. $logTemplates['member']('$1'),
+        'role' => 'moderator'
     ),
     'MCup' => array(
-        'render' => 'a supprimé la multicoupe #$1'
+        'render' => 'a supprimé la multicoupe #$1',
+        'role' => 'moderator'
     ),
     'Flag' => array(
-        'render' => 'a modifié le pays de '. $logTemplates['member']('$1') .' en <strong>{{table.mkcountries(code=$2).name_fr|global.ifNull($2)}}</strong>'
+        'render' => 'a modifié le pays de '. $logTemplates['member']('$1') .' en <strong>{{table.mkcountries(code=$2).name_fr|global.ifNull($2)}}</strong>',
+        'role' => 'moderator'
     ),
     'EChallenge' => array(
-        'render' => 'a modifié le défi '. $logTemplates['challenge']('$1')
-    ),
-    'Chat' => array(
-        'render' => 'a modifié le défi '. $logTemplates['challenge']('$1')
+        'render' => 'a modifié le défi '. $logTemplates['challenge']('$1'),
+        'role' => 'clvalidator'
     ),
     'CAward' => array(
-        'render' => 'a créé le titre '. $logTemplates['award']('$1')
+        'render' => 'a créé le titre '. $logTemplates['award']('$1'),
+        'role' => 'organizer'
     ),
     'EAward' => array(
-        'render' => 'a modifié le titre '. $logTemplates['award']('$1')
+        'render' => 'a modifié le titre '. $logTemplates['award']('$1'),
+        'role' => 'organizer'
     ),
     'SAward' => array(
-        'render' => 'a supprimé le titre #$1'
+        'render' => 'a supprimé le titre #$1',
+        'role' => 'organizer'
     ),
     'LNews' => array(
-        'render' => 'a locké les commentaires sur la news '. $logTemplates['news']('$1')
+        'render' => 'a locké les commentaires sur la news '. $logTemplates['news']('$1'),
+        'role' => 'moderator'
     ),
     'ULNews' => array(
-        'render' => 'a unlocké les commentaires sur la news '. $logTemplates['news']('$1')
+        'render' => 'a unlocké les commentaires sur la news '. $logTemplates['news']('$1'),
+        'role' => 'moderator'
     )
 );
 $logGlobals = array(
@@ -231,11 +267,13 @@ $logGlobals = array(
     'ifNull' => function($res, $fallback) {
         return ($res === null) ? $fallback : $res;
     },
-    'plural' => function($res, $text, $pluralText=null) {
+    'plural' => function($nb, $text, $pluralText=null) {
         if ($pluralText === null)
             $pluralText = str_replace('%s', 's', $text);
         $text = str_replace('%s', '', $text);
-        return ($res >= 2) ? $pluralText : $text;
+        $res = ($nb >= 2) ? $pluralText : $text;
+        $res = str_replace('%n', $nb, $res);
+        return $res;
     },
     'join' => function($value, $table, $col, $field) {
         if ($value !== null)
@@ -248,21 +286,58 @@ $logGlobals = array(
         return null;
     }
 );
+require_once('getRights.php');
+$availableLogs = array();
+if (isset($_GET['role'])) {
+    $roleFilter = $_GET['role'];
+    if (hasRight($roleFilter)) {
+        foreach ($logMapping as $key => $log) {
+            if ($log['role'] === $roleFilter)
+                $availableLogs[] = $key;
+        }
+    }
+}
+else {
+    foreach ($logMapping as $key => $log) {
+        if (hasRight($log['role']))
+            $availableLogs[] = $key;
+    }
+}
+if (empty($availableLogs)) {
+    echo 'Access denied';
+    exit;
+}
 function format_log($log) {
     global $logMapping;
     $logArgs = explode(' ', $log);
     $logType = $logArgs[0];
     if (!isset($logMapping[$logType])) return $log;
+    $pattern = get_log_pattern($logType, $logArgs);
+    return format_log_pattern($pattern, $logArgs);
+}
+function get_log_pattern($logType, &$logArgs) {
+    global $logMapping;
     $renderFn = $logMapping[$logType]['render'];
     switch (gettype($renderFn)) {
     case 'object':
-        $pattern = $renderFn($logArgs);
-        break;
+        return $renderFn($logArgs);
     default:
-        $pattern = $renderFn;
-        break;
+        return $renderFn;
     }
-    return format_log_pattern($pattern, $logArgs);
+}
+function format_log_placeholder($logType) {
+    $logArgs = array($logType, '0', '0', '0');
+    $res = get_log_pattern($logType, $logArgs);
+    $res = preg_replace_callback('#\{\{\$\d+\|global\.plural\("(.+?)"(?:,".+?")?\)\}\}#', function($matches) {
+        global $logGlobals;
+        $res = str_replace('%n', '•', $matches[1]);
+        return $logGlobals['plural'](2, $res);
+    }, $res);
+    $res = preg_replace('#\{\{.+?\}\}#', '•', $res);
+    $res = preg_replace('#\#?\$\d+#', '•', $res);
+    $res = strip_tags($res);
+    $res = str_replace('• •', '•', $res);
+    return $res;
 }
 function preprocess_pattern($pattern, $logArgs) {
     $offset = 0;
@@ -351,6 +426,8 @@ function get_circuit_data($type, $id) {
         'label' => null,
         'link' => null
     );
+    if (empty($type))
+        return $res;
     if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($type=='mkcircuits') ? ',!type AS is_circuit':'') .' FROM `'. $type .'` WHERE id="'. $id .'"'))) {
         $res['name'] = $getCircuit['nom'];
         switch ($type) {
@@ -393,6 +470,7 @@ include('o_online.php');
 <style type="text/css">
 main table {
     font-weight: normal;
+    word-break: break-word;
 }
 main table a {
     font-weight: bold;
@@ -412,6 +490,15 @@ table a.profile:hover {
 #log {
     width: 400px;
 }
+#admin-filter {
+	line-height: 1.5em;
+	text-align: center;
+	margin: 0 auto;
+}
+
+#log-type {
+    width: 250px;
+}
 </style>
 </head>
 <body>
@@ -426,6 +513,29 @@ include('menu.php');
         ? "This page shows the history of all actions made by MKPC staff members"
         : "Cette page affiche l'historique de toutes les actions effectuées par l'équipe admin MKPC"
     ?></p>
+	<form method="get" action="admin-logs.php">
+        <blockquote>
+            <p id="admin-filter">
+                <label for="log-type">
+                    <strong><?php echo $language ? 'Log type':'Type de log'; ?></strong>
+                </label> :
+                <select name="type" id="log-type" onchange="this.form.submit()">
+                    <option value=""><?php echo $language ? 'Select' : 'Sélectionner'; ?>...</option>
+                    <?php
+                    $selectedLog = isset($_GET['type']) ? $_GET['type'] : null;
+                    foreach ($availableLogs as $availableLog) {
+                        echo '<option value="'. $availableLog .'"'. ($selectedLog === $availableLog ? ' selected="selected"' : '') .'>'. format_log_placeholder($availableLog) .'</option>';
+                    }
+                    ?>
+                </select>
+                <?php
+                if (isset($_GET['role']))
+                    echo '<input type="hidden" name="role" value="'. htmlspecialchars($_GET['role']) .'" />';
+                ?>
+                <input type="submit" value="<?php echo $language ? 'Filter' : 'Filtrer'; ?>" class="action_button" />
+            </p>
+        </blockquote>
+	</form>
     <table>
         <tr id="titres">
         <td>Date</td>
@@ -434,8 +544,25 @@ include('menu.php');
     <?php
     $RES_PER_PAGE = 50;
     $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-    $getLogs = mysql_query('SELECT l.id,l.auteur,l.date,l.log,j.nom FROM mklogs l LEFT JOIN mkjoueurs j ON l.auteur=j.id ORDER BY l.id DESC LIMIT '. (($page-1)*$RES_PER_PAGE) .','.$RES_PER_PAGE);
-    $logCount = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mklogs'));
+    $wheres = array();
+    if (empty($_GET['type'])) {
+        $availableLogWhere = array();
+        foreach ($availableLogs as $availableLog)
+            $availableLogWhere[] = "l.log LIKE '%$availableLog %'";
+    }
+    else {
+        $logFilter = $_GET['type'];
+        if (in_array($logFilter, $availableLogs))
+            $availableLogWhere[] = "l.log LIKE '$logFilter %'";
+        else
+            $availableLogWhere[] = '0';
+    }
+    $wheres[] = '(' . implode(' OR ', $availableLogWhere) .')';
+    if (isset($_GET['id']))
+        $wheres[] = ' l.id="'. $_GET['id'] .'"';
+    $where = implode(' AND ', $wheres);
+    $getLogs = mysql_query('SELECT l.id,l.auteur,l.date,l.log,j.nom FROM mklogs l LEFT JOIN mkjoueurs j ON l.auteur=j.id WHERE '. $where .' ORDER BY l.id DESC LIMIT '. (($page-1)*$RES_PER_PAGE) .','.$RES_PER_PAGE);
+    $logCount = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mklogs l WHERE '. $where));
     while ($log = mysql_fetch_array($getLogs)) {
         ?>
         <tr>
@@ -443,6 +570,8 @@ include('menu.php');
         <td><?php
             if ($log['nom'])
                 echo '<a class="profile" href="profil.php?id='.$log['auteur'].'">'.$log['nom'].'</a>';
+            elseif ($log['auteur'] === 0)
+                echo '<em>MKPC</em>';
             else
                 echo '<em>'. ($language ? 'Deleted account' : 'Compte supprimé') .'</em>';
             echo ' ';
@@ -453,8 +582,11 @@ include('menu.php');
     ?>
     <tr><td colspan="4" id="page"><strong>Page : </strong> 
     <?php
+    $get = $_GET;
     function pageLink($page, $isCurrent) {
-        echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?page='.$page.'">'.$page.'</a>').'&nbsp; ';
+        global $get;
+        $get['page'] = $page;
+        echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'">'.$page.'</a>').'&nbsp; ';
     }
     $limite = ceil($logCount['nb']/$RES_PER_PAGE);
     require_once('utils-paging.php');
