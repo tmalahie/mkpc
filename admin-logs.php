@@ -9,139 +9,147 @@ include('initdb.php');
 include('utils-date.php');
 $logTemplates = array(
     'award' => function($var) {
-        return '<strong>{{table.mkawards(id='.$var.').name|global.ifEmpty("Titre supprimé")}}</strong>';
+        global $language;
+        return '<strong>{{table.mkawards(id='.$var.').name|global.ifEmpty("'. ($language ? 'Deleted award':'Titre supprimé') .'")}}</strong>';
     },
     'challenge' => function($var) {
-        return '<a href="challengeTry.php?challenge='.$var.'">{{table.mkchallenges(id='.$var.').name|global.ifEmpty("Sans titre")}}</a>';
+        global $language;
+        return '<a href="challengeTry.php?challenge='.$var.'">{{table.mkchallenges(id='.$var.').name|global.ifEmpty("'. ($language ? 'Untitled':'Sans titre') .'")}}</a>';
     },
     'member' => function($var) {
-        return '<a href="profil.php?id='.$var.'">{{table.mkjoueurs(id='.$var.').nom|global.ifNull("<em>Compte supprimé</em>")}}</a>';
+        global $language;
+        return '<a href="profil.php?id='.$var.'">{{table.mkjoueurs(id='.$var.').nom|global.ifNull("<em>'. ($language ? 'Deleted account':'Compte supprimé') .'</em>")}}</a>';
     },
     'topic' => function($var) {
-        return '<a href="topic.php?topic='.$var.'">{{table.mktopics(id='.$var.').titre|global.ifNull("<em>Topic supprimé</em>")}}</a>';
+        global $language;
+        return '<a href="topic.php?topic='.$var.'">{{table.mktopics(id='.$var.').titre|global.ifNull("<em>'. ($language ? 'Deleted topic':'Topic supprimé') .'</em>")}}</a>';
     },
     'news' => function($var) {
-        return '<a href="news.php?id='.$var.'">{{table.mknews(id='.$var.').title|global.ifNull("<em>News supprimée</em>")}}</a>';
+        global $language;
+        return '<a href="news.php?id='.$var.'">{{table.mknews(id='.$var.').title|global.ifNull("<em>'. ($language ? 'Deleted news':'News supprimée') .'</em>")}}</a>';
     }
 );
 $logMapping = array(
     'AChallenge' => array(
-        'render' => 'a accepté le défi '. $logTemplates['challenge']('$1'),
+        'render' => ($language ? 'accepted challenge ' : 'a accepté le défi ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'CCircuit' => array(
-        'render' => 'a supprimé le circuit complet #$1',
+        'render' => $language ? 'deleted complete track #$1' : 'a supprimé le circuit complet #$1',
         'role' => 'moderator'
     ),
     'Suppr' => array(
         'render' => function(&$group) {
-            global $logTemplates;
+            global $logTemplates, $language;
             if (isset($group[2]))
-                return 'a supprimé le message #$2 dans le topic '. $logTemplates['topic']('$1');
-            return 'a supprimé le topic #$1';
+                return ($language ? 'deleted message #$2 in topic ' : 'a supprimé le message #$2 dans le topic ') . $logTemplates['topic']('$1');
+            return 'deleted the topic #$1';
         },
         'role' => 'moderator'
     ),
     'Edit' => array(
         'render' => function(&$group) {
-            global $logTemplates;
+            global $logTemplates, $language;
             if (isset($group[2]))
-                return 'a modifié le <a href="topic.php?topic=$1&amp;message=$2">message #$2</a> dans le topic '. $logTemplates['topic']('$1');
-            return 'a modifié le topic '. $logTemplates['topic']('$1');
+                return ($language ? 'edited <a href="topic.php?topic=$1&amp;message=$2">message #$2</a> in topic ' : 'a modifié le <a href="topic.php?topic=$1&amp;message=$2">message #$2</a> dans le topic ') . $logTemplates['topic']('$1');
+            return ($language ? 'edited topic ' : 'a modifié le topic ') . $logTemplates['topic']('$1');
         },
         'role' => 'moderator'
     ),
     'DChallenge' => array(
-        'render' => 'a modifié la difficulté du défi '. $logTemplates['challenge']('$1') .' {{table.mkchallenges(id=$1).difficulty|local.difficulty()}}',
+        'render' => ($language ? 'changed difficulty of challenge ' : 'a modifié la difficulté du défi ') . $logTemplates['challenge']('$1') .' {{table.mkchallenges(id=$1).difficulty|local.difficulty()}}',
         'locals' => array(
             'difficulty' => function($i) {
+                global $language;
                 if ($i === null) return '';
                 require_once('challenge-consts.php');
                 $difficulties = getChallengeDifficulties();
-                return 'en <strong>' . $difficulties[$i] .'</strong>';
+                return ($language ? 'to' : 'en') . ' <strong>' . $difficulties[$i] .'</strong>';
             }
         ),
         'role' => 'clvalidator'
     ),
     'RChallenge' => array(
-        'render' => 'a refusé le défi '. $logTemplates['challenge']('$1'),
+        'render' => ($language ? 'rejected challenge ' : 'a refusé le défi ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'Ban' => array(
-        'render' => 'a banni le membre '. $logTemplates['member']('$1'),
+        'render' => ($language ? 'banned member ' : 'a banni le membre ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Warn' => array(
-        'render' => 'a averti le membre '. $logTemplates['member']('$1'),
+        'render' => ($language ? 'warned member ' : 'a averti le membre ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Unban' => array(
-        'render' => 'a débanni le membre '. $logTemplates['member']('$1'),
+        'render' => ($language ? 'unbanned member ' : 'a débanni le membre ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'SComment' => array(
-        'render' => 'a supprimé le commentaire #$1 sur un circuit',
+        'render' => $language ? 'deleted comment #$1 on a track' : 'a supprimé le commentaire #$1 sur un circuit',
         'role' => 'moderator'
     ),
     'pts' => array(
         'render' => function(&$group) {
-            global $logTemplates;
-            $verb = 'donné';
+            global $logTemplates, $language;
+            $verb = $language ? 'gave' : 'donné';
             if ($group[1] < 0) {
-                $verb = 'retiré';
+                $verb = $language ? 'removed' : 'retiré';
                 $group[1] = -$group[1];
             }
-            return 'a '.$verb.' $1 pts à '. $logTemplates['member']('$2') .' dans le mode en ligne (VS)';
+            return $language ? $verb.' $1 pts to '. $logTemplates['member']('$2') .' in online mode (VS)' : 'a '.$verb.' $1 pts à '. $logTemplates['member']('$2') .' dans le mode en ligne (VS)';
         },
         'role' => 'manager'
     ),
     'Bpts' => array(
         'render' => function(&$group) {
-            global $logTemplates;
-            $verb = 'donné';
+            global $logTemplates, $language;
+            $verb = $language ? 'gave' : 'donné';
             if ($group[1] < 0) {
-                $verb = 'retiré';
+                $verb = $language ? 'removed' : 'retiré';
                 $group[1] = -$group[1];
             }
-            return 'a '.$verb.' $1 pts à '. $logTemplates['member']('$2') .' dans le mode en ligne (bataille)';
+            return $language ? $verb.' $1 pts to '. $logTemplates['member']('$2') .' in online mode (bataille)' : 'a '.$verb.' $1 pts à '. $logTemplates['member']('$2') .' dans le mode en ligne (battle)';
         },
         'role' => 'manager'
     ),
     'nick' => array(
-        'render' => 'a modifié le pseudo de <strong>$2</strong> en '. $logTemplates['member']('$1'),
+        'render' => ($language ? 'changed <strong>$2</strong>\'s nick to ' : 'a modifié le pseudo de <strong>$2</strong> en ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'SPerso' => array(
         'render' => function(&$matches) {
+            global $language;
             $ids = explode(',', $matches[1]);
             $matches[1] = implode(', #', $ids);
             $matches[2] = count($ids);
-            return 'a supprimé {{$2|global.plural("le%s perso%s")}} #$1';
+            return $language ? 'deleted {{$2|global.plural("character%s")}} #$1' : 'a supprimé {{$2|global.plural("le%s perso%s")}} #$1';
         },
         'role' => 'moderator'
     ),
     'LTopic' => array(
-        'render' => 'a locké le topic '. $logTemplates['topic']('$1'),
+        'render' => ($language ? 'locked topic ' : 'a locké le topic ') . $logTemplates['topic']('$1'),
         'role' => 'moderator'
     ),
     'ULTopic' => array(
-        'render' => 'a unlocké le topic '. $logTemplates['topic']('$1'),
+        'render' => ($language ? 'unlocked topic ' : 'a unlocké le topic ') . $logTemplates['topic']('$1'),
         'role' => 'moderator'
     ),
     'Cup' => array(
-        'render' => 'a supprimé la coupe #$1',
+        'render' => $language ? 'deleted cup #$1' : 'a supprimé la coupe #$1',
         'role' => 'moderator'
     ),
     'RNews' => array(
-        'render' => 'a rejeté la news '. $logTemplates['news']('$1'),
+        'render' => ($language ? 'rejected news ' : 'a rejeté la news ') . $logTemplates['news']('$1'),
         'role' => 'publisher'
     ),
     'ANews' => array(
-        'render' => 'a accepté la news '. $logTemplates['news']('$1'),
+        'render' => ($language ? 'accepted news ' : 'a accepté la news ') . $logTemplates['news']('$1'),
         'role' => 'publisher'
     ),
     'EComment' => array(
         'render' => function(&$groups) {
+            global $language;
             if ($comment = mysql_fetch_array(mysql_query('SELECT auteur,type,circuit FROM `mkcomments` WHERE id="'. mysql_real_escape_string($groups[1]) .'"'))) {
                 $groups[3] = $comment['auteur'];
                 $getCircuitData = get_circuit_data($comment['type'],$comment['circuit']);
@@ -149,114 +157,118 @@ $logMapping = array(
                 $groups[5] = $getCircuitData['link'];
                 $groups[6] = $getCircuitData['label'];
             }
-            return 'a modifié le commentaire de <a href="profil.php?id={{$3}}">{{$3|global.join("mkjoueurs", "id", "nom")|global.ifNull("<em>Compte supprimé</em>")}}</a> sur $6 <a href="$5">{{$4|global.ifNull("<em>Circuit supprimé</em>")}}</a>';
+            $member = '<a href="profil.php?id={{$3}}">{{$3|global.join("mkjoueurs", "id", "nom")|global.ifNull("<em>'. ($language ? 'Deleted account':'Compte supprimé') .'</em>")}}</a>';
+            $track = '<a href="$5">{{$4|global.ifNull("<em>'. ($language ? 'Deleted track' : 'Circuit supprimé') .'</em>")}}</a>';
+            return $language ? 'updated '. $member .'\'s comment in $6 ' . $track : 'a modifié le commentaire de '. $member .' sur $6 '. $track;
         },
         'role' => 'moderator'
     ),
     'DRating' => array(
         'render' => function(&$groups) {
+            global $language;
             $getCircuitData = get_circuit_data($groups[1],$groups[2]);
             $groups[4] = $getCircuitData['name'];
             $groups[5] = $getCircuitData['link'];
             $groups[6] = $getCircuitData['label'];
-            return 'a supprimé une note sur $6 <a href="$5">{{$4|global.ifNull("<em>Circuit supprimé</em>")}}</a>';
+            $track = '<a href="$5">{{$4|global.ifNull("<em>'. ($language ? 'Deleted circuit' : 'Circuit supprimé') .'</em>")}}</a>';
+            return $language ? 'deleted a rating in $6 '. $track : 'a supprimé une note sur $6 '. $track;
         },
         'role' => 'moderator'
     ),
     'SCircuit' => array(
-        'render' => 'a supprimé le circuit simplifié #$1',
+        'render' => $language ? 'deleted quick circuit #$1' : 'a supprimé le circuit simplifié #$1',
         'role' => 'moderator'
     ),
     'SArene' => array(
-        'render' => 'a supprimé l\'arène simplifié #$1',
+        'render' => $language ? 'deleted quick arena #$1' : 'a supprimé l\'arène simplifié #$1',
         'role' => 'moderator'
     ),
     'CArene' => array(
-        'render' => 'a supprimé l\'arène complet #$1',
+        'render' => $language ? 'deleted complete arena #$1' : 'a supprimé l\'arène complet #$1',
         'role' => 'moderator'
     ),
     'SNews' => array(
-        'render' => 'a supprimé la news #$1',
+        'render' => $language ? 'deleted news #$1' : 'a supprimé la news #$1',
         'role' => 'publisher'
     ),
     'ENews' => array(
-        'render' => 'a modifié la news '. $logTemplates['news']('$1'),
+        'render' => ($language ? 'updated news ' : 'a modifié la news ') . $logTemplates['news']('$1'),
         'role' => 'publisher'
     ),
     'CAwarded' => array(
-        'render' => 'a attribué le titre <strong>{{table.mkawards(id=$2).name|global.ifNull("<em>Titre supprimé</em>")}}</strong> à '. $logTemplates['member']('$1'),
+        'render' => ($language ? 'awarded the title '. $logTemplates['award']('$2') .' to ' : 'a attribué le titre '. $logTemplates['award']('$2') .' à ') . $logTemplates['member']('$1'),
         'role' => 'organizer'
     ),
     'EAwarded' => array(
-        'render' => 'a modifié le message du titre <strong>{{table.mkawards(id=$2).name|global.ifNull("<em>Titre supprimé</em>")}}</strong> pour le membre '. $logTemplates['member']('$1'),
+        'render' => $language ? 'updated message of award '. $logTemplates['award']('$2') .' for member '. $logTemplates['member']('$1') : 'a modifié le message du titre '. $logTemplates['award']('$2') .' pour le membre '. $logTemplates['member']('$1'),
         'role' => 'organizer'
     ),
     'SAwarded' => array(
-        'render' => 'a retiré le titre <strong>{{table.mkawards(id=$2).name|global.ifNull("<em>Titre supprimé</em>")}}</strong> pour le membre '. $logTemplates['member']('$1'),
+        'render' => $language ? 'removed award '. $logTemplates['award']('$2')  .' for member '. $logTemplates['member']('$1') : 'a retiré le titre '. $logTemplates['award']('$2') .' pour le membre '. $logTemplates['member']('$1'),
         'role' => 'organizer'
     ),
     'SPicture' => array(
-        'render' => 'a supprimé l\'avatar de '. $logTemplates['member']('$1'),
+        'render' => ($language ? 'deleted avatar of ' : 'a supprimé l\'avatar de ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'UAChallenge' => array(
-        'render' => 'a annulé la validation du défi '. $logTemplates['challenge']('$1'),
+        'render' => ($language ? 'reverted validation of challenge ' : 'a annulé la validation du défi ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'URChallenge' => array(
-        'render' => 'a annulé le refus du défi '. $logTemplates['challenge']('$1'),
+        'render' => ($language ? 'reverted rejection of challenge ' : 'a annulé le refus du défi ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'CChallenge' => array(
-        'render' => 'a revalidé le défi '. $logTemplates['challenge']('$1'),
+        'render' => ($language ? 'revalidated challenge ' : 'a revalidé le défi ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'ENewscom' => array(
-        'render' => 'a modifié le commentaire #$1 sur la news <a href="news.php?id={{table.mknewscoms(id=$1).news}}">{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>News supprimée</em>")}}</a>',
+        'render' => $language ? 'updated comment #$1 on news <a href="news.php?id={{table.mknewscoms(id=$1).news}}">{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>Deleted news</em>")}}</a>' : 'a modifié le commentaire #$1 sur la news <a href="news.php?id={{table.mknewscoms(id=$1).news}}">{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>News supprimée</em>")}}</a>',
         'role' => 'moderator'
     ),
     'DNewscom' => array(
-        'render' => 'a supprimé le commentaire de news #$1',
+        'render' => $language ? 'deleted comment on news #$1' : 'a supprimé le commentaire de news #$1',
         'role' => 'moderator'
     ),
     'Mute' => array(
-        'render' => 'a muté le membre '. $logTemplates['member']('$1') .' pendant {{$2|global.plural("%n minute%s")}}',
+        'render' => ($language ? 'muted member ' : 'a muté le membre ') . $logTemplates['member']('$1') . ($language ? ' for {{$2|global.plural("%n minute%s")}}' : ' pendant {{$2|global.plural("%n minute%s")}}'),
         'role' => 'moderator'
     ),
     'Unmute' => array(
-        'render' => 'a unmuté le membre '. $logTemplates['member']('$1'),
+        'render' => ($language ? 'unmuted member ' : 'a unmuté le membre ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'MCup' => array(
-        'render' => 'a supprimé la multicoupe #$1',
+        'render' => $language ? 'deleted multicup #$1' : 'a supprimé la multicoupe #$1',
         'role' => 'moderator'
     ),
     'Flag' => array(
-        'render' => 'a modifié le pays de '. $logTemplates['member']('$1') .' en <strong>{{table.mkcountries(code=$2).name_fr|global.ifNull($2)}}</strong>',
+        'render' => $language ? 'updated country of ' . $logTemplates['member']('$1') .' to <strong>{{table.mkcountries(code=$2).name_en|global.ifNull($2)}}</strong>' : 'a modifié le pays de ' . $logTemplates['member']('$1') .' en <strong>{{table.mkcountries(code=$2).name_fr|global.ifNull($2)}}</strong>',
         'role' => 'moderator'
     ),
     'EChallenge' => array(
-        'render' => 'a modifié le défi '. $logTemplates['challenge']('$1'),
+        'render' => ($language ? 'updated challenge ' : 'a modifié le défi ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'CAward' => array(
-        'render' => 'a créé le titre '. $logTemplates['award']('$1'),
+        'render' => ($language ? 'created award ' : 'a créé le titre ') . $logTemplates['award']('$1'),
         'role' => 'organizer'
     ),
     'EAward' => array(
-        'render' => 'a modifié le titre '. $logTemplates['award']('$1'),
+        'render' => ($language ? 'updated award ' : 'a modifié le titre ') . $logTemplates['award']('$1'),
         'role' => 'organizer'
     ),
     'SAward' => array(
-        'render' => 'a supprimé le titre #$1',
+        'render' => $language ? 'deleted award #$1' : 'a supprimé le titre #$1',
         'role' => 'organizer'
     ),
     'LNews' => array(
-        'render' => 'a locké les commentaires sur la news '. $logTemplates['news']('$1'),
+        'render' => ($language ? 'locked comments on news ' : 'a locké les commentaires sur la news ') . $logTemplates['news']('$1'),
         'role' => 'moderator'
     ),
     'ULNews' => array(
-        'render' => 'a unlocké les commentaires sur la news '. $logTemplates['news']('$1'),
+        'render' => ($language ? 'unlocked comments on news ' : 'a unlocké les commentaires sur la news ') . $logTemplates['news']('$1'),
         'role' => 'moderator'
     )
 );
@@ -421,6 +433,7 @@ function evaluate_group(&$group) {
     return htmlspecialchars($group);
 }
 function get_circuit_data($type, $id) {
+    global $language;
     $res = array(
         'name' => null,
         'label' => null,
@@ -433,23 +446,26 @@ function get_circuit_data($type, $id) {
         switch ($type) {
             case 'mkcircuits':
                 $res['link'] = ($getCircuit['is_circuit'] ? 'circuit':'arena') .'.php?id='. $getCircuit['id'];
-                $res['label'] = $getCircuit['is_circuit'] ? "le circuit" : "l'arène";
+                if ($getCircuit['is_circuit'])
+                    $res['label'] = $language ? "the circuit" : "le circuit";
+                else
+                    $res['label'] = $language ? "the arena" : "l'arène";
                 break;
             case 'circuits':
                 $res['link'] = 'map.php?i='. $getCircuit['ID'];
-                $res['label'] = "le circuit";
+                $res['label'] = $language ? "the circuit" : "le circuit";
                 break;
             case 'arenes':
                 $res['link'] = 'battle.php?i='. $getCircuit['ID'];
-                $res['label'] = "l'arène";
+                $res['label'] = $language ? "the arena" : "l'arène";
                 break;
             case 'mkcups':
                 $res['link'] = ($getCircuit['mode'] ? 'map.php':'circuit.php') .'?cid='. $getCircuit['id'];
-                $res['label'] = "la coupe";
+                $res['label'] = $language ? "the cup" : "la coupe";
                 break;
             case 'mkmcups':
                 $res['link'] = ($getCircuit['mode'] ? 'map.php':'circuit.php') .'?mid='. $getCircuit['id'];
-                $res['label'] = "la multicoupe";
+                $res['label'] = $language ? "the multicup" : "la multicoupe";
                 break;
         }
     }
