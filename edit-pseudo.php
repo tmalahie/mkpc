@@ -48,6 +48,8 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $old .'"'))) {
         include('utils-nicks.php');
         $success = editNick($getId['id'],$old,$new,$message);
+		if ($success)
+			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "nick '. $getId['id'] .' '. $old .'")');
 	}
 	else
 		$message = $language ? 'This player does not exist':'Ce membre n\'existe pas';

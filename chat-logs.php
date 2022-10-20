@@ -104,7 +104,7 @@ include('menu.php');
 	<h1><?php echo $language ? 'See online chat logs':'Voir les logs du mode en ligne'; ?></h1>
 	<form method="get" action="chat-logs.php">
 	<blockquote>
-	<p id="chat-filter"><label for="pseudo"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" value="<?php if (isset($_GET['pseudo'])) echo htmlspecialchars($_GET['pseudo']); ?>" /> <input type="submit" value="Valider" class="action_button" />
+	<p id="chat-filter"><label for="pseudo"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" value="<?php if (isset($_GET['pseudo'])) echo htmlspecialchars($_GET['pseudo']); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" />
 	<br /><strong><?php echo $language ? '&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; <small>&nbsp; &nbsp;</small>OR':'&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp;OU'; ?> : <a href="?all"><?php echo $language ? 'See all logs' : 'Voir tous les logs'; ?></a></strong></p>
 	</blockquote>
 	</form>

@@ -178,7 +178,7 @@ include('menu.php');
 				echo $language ? 'It contains a link which will allow you to generate a new password.':'Il contient un lien permettant de générer un nouveau mot de passe.';
 				?></p>
 				<p><?php
-				echo $language ? 'If you didn\t receive the email after a few minutes, you can':'Si vous n\'avez pas reçu l\'email au bout de quelques minutes, vous pouvez';
+				echo $language ? 'If you didn\'t receive the email after a few minutes, you can':'Si vous n\'avez pas reçu l\'email au bout de quelques minutes, vous pouvez';
 				?>
 				<a href="javascript:location.reload()"><?php echo $language ? 'click here':'cliquer ici'; ?></a>
 				<?php

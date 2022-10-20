@@ -253,8 +253,8 @@ if ($unban) {
 		?>
 		<tr>
 		<td><a class="profile" href="profil.php?id=<?php echo $joueur['id']; ?>"><?php echo $joueur['nom']; ?></a></td>
-		<td title="<?php echo htmlspecialchars($joueur['msg']); ?>"><?php	
-			echo nl2br(htmlspecialchars(controlLength($joueur['msg'],150)));
+		<td title="<?php if ($joueur['msg']) echo htmlspecialchars($joueur['msg']); ?>"><?php
+			if ($joueur['msg']) echo nl2br(htmlspecialchars(controlLength($joueur['msg'],150)));
 		?></td>
 		<?php
         if ($action === 'ban')

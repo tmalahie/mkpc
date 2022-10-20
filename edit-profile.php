@@ -91,6 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			else
 				$countryId = 0;
 			mysql_query('UPDATE `mkprofiles` SET email="'. $email .'",country="'.$countryId.'",description="'. $description .'",birthdate='. ($birthdate ? '"'.$birthdate.'"':'NULL') .' WHERE id="'.$userId.'"');
+			if (isset($_GET['member']))
+				mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Profile '. $_GET['member'] .'")');
 			$success = $language ? 'Profile updated successfully':'Profil mis à jour avec succès';
 		}
 	}
@@ -101,6 +103,9 @@ else {
 	$d0 = $getProfile['d0'];
 	$m0 = $getProfile['m0'];
 	$y0 = $getProfile['y0'];
+	if ($d0 === null) $d0 = '';
+	if ($m0 === null) $m0 = '';
+	if ($y0 === null) $y0 = '';
 	$date0 = $getProfile['birthdate'];
 }
 ?>

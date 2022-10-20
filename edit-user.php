@@ -12,6 +12,11 @@ if (!hasRight('moderator')) {
 	mysql_close();
 	exit;
 }
+if (isset($_POST['joueur'])) {
+	$nick = $_POST['joueur'];
+	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $nick .'"')))
+		header('location: edit-profile.php?member='. $getId['id']);
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -32,11 +37,6 @@ include('o_online.php');
 include('header.php');
 $page = 'forum';
 include('menu.php');
-if (isset($_POST['joueur'])) {
-	$nick = $_POST['joueur'];
-	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $nick .'"')))
-		header('location: edit-profile.php?member='. $getId['id']);
-}
 ?>
 <main>
 	<h1><?php echo $language ? 'Edit profile':'Modification du profil'; ?></h1>

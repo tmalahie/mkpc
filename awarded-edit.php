@@ -103,7 +103,7 @@ include('menu.php');
 					<select name="award">
 						<?php
 						$awards = mysql_query('SELECT id,name FROM `mkawards` ORDER BY ordering DESC');
-						$selectedAward = isset($awarded['award']) ? $awarded['award']:$selectedAward;
+						$selectedAward = isset($awarded['award']) ? $awarded['award']:null;
 						while ($award = mysql_fetch_array($awards))
 							echo '<option value="'.$award['id'].'"'. (($award['id']===$selectedAward)?' selected="selected"':'') .'>'.$award['name'].'</option>';
 						?>
