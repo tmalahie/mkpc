@@ -6,14 +6,14 @@ if (isset($_POST['msg'])) {
 		include('initdb.php');
 		include('onlineUtils.php');
 		$course = getCourse(array('check_ban' => true));
-		function return_failure($resultCode) {
-			global $id;
-			mysql_query('INSERT IGNORE INTO mkbadmsglog SET player='.$id.', message="'. $_POST['msg'] .'", code="'. $resultCode .'"');
-			echo $resultCode;
-			mysql_close();
-			exit;
-		}
 		if ($course) {
+			function return_failure($resultCode) {
+				global $id, $course;
+				mysql_query('INSERT IGNORE INTO mkbadmsglog SET player='.$id.', course='.$course.', message="'. $_POST['msg'] .'", code="'. $resultCode .'"');
+				echo $resultCode;
+				mysql_close();
+				exit;
+			}
 			$msg = $_POST['msg'];
 			$courseOptions = mysql_fetch_array(mysql_query('SELECT IFNULL(g.public,m.link=0) AS public FROM `mariokart` m LEFT JOIN `mkgameoptions` g ON m.link=g.id WHERE m.id="'. $course .'"'));
 			if (!$courseOptions || $courseOptions['public']) {

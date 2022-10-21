@@ -20,7 +20,8 @@ if (!hasRight('moderator')) {
 if (!empty($_POST['word'])) {
     mysql_query('INSERT IGNORE INTO mkbadwords SET word="'. strtolower($_POST['word']) .'"');
     $wordId = mysql_insert_id();
-    mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Blacklist '. $wordId .'")');
+    if ($wordId)
+        mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Blacklist '. $wordId .'")');
 }
 elseif (isset($_GET['del'])) {
     mysql_query('DELETE FROM mkbadwords WHERE id="'. $_GET['del'] .'"');
@@ -52,6 +53,27 @@ include('menu.php');
 ?>
 <main>
 	<h1><?php echo $language ? 'Manage forbidden words in online chat':'Gérer les mots interdits du chat en ligne'; ?></h1>
+    <p><?php
+    if ($language) {
+        ?>
+        This page allows you to manage a words blacklist in online mode chat.<br />
+        If a user sends text containing one of these words, the message will not be sent.<br />
+        Note that this restriction does not apply to private games.
+        <span style="display:block;line-height: 0.5em">&nbsp;</span>
+        You can also <a href="blacklist-logs.php">see blocked messages history</a>.
+        <?php
+    }
+    else {
+        ?>
+        Cette page vous permet de gérer une blacklist de mots dans le chat du mode en ligne.<br />
+        Si un utilisateur envoie un texte contenant un de ces mots, le message ne sera pas envoyé.<br />
+        Notez que cette restriction ne s'applique pas aux parties privées.
+        <span style="display:block;line-height: 0.5em">&nbsp;</span>
+        Vous pouvez aussi <a href="blacklist-logs.php">voir l'historique des messages bloqués</a>.
+        <?php
+    }
+    ?>
+    </p>
 	<form method="post" action="chat-blacklist.php">
 	<blockquote>
         <?php echo $language ? 'Add banned word:' : 'Ajouter un mot :'; ?>

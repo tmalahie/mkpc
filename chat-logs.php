@@ -21,7 +21,7 @@ if (!hasRight('moderator')) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Double accounts':'Double comptes'; ?> - Mario Kart PC</title>
+<title><?php echo $language ? 'Online chat logs':'Logs chat en ligne'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -51,6 +51,9 @@ include('o_online.php');
 	font-weight: bold;
 	background-color: #333;
 	padding: 0.2em 0.5em;
+}
+#chat-logs > .highlight-alert {
+	background-color: #620;
 }
 #chat-logs a {
 	color: yellow;
@@ -101,19 +104,34 @@ $page = 'forum';
 include('menu.php');
 ?>
 <main>
+	<?php
+	$memberId = 0;
+	if (isset($_GET['blacklist'])) {
+		if ($getLog = mysql_fetch_array(mysql_query('SELECT l.date,l.player,l.course,l.message,j.nom FROM mkbadmsglog l LEFT JOIN mkjoueurs j ON l.player=j.id WHERE l.id="'. $_GET['blacklist'] .'"'))) {
+			$memberId = $getLog['player'];
+			$memberNick = $getLog['nom'];
+			$courseFilter = $getLog['course'];
+		}
+	}
+	elseif (isset($_GET['pseudo']))
+		$memberNick = $_GET['pseudo'];
+	?>
 	<h1><?php echo $language ? 'See online chat logs':'Voir les logs du mode en ligne'; ?></h1>
 	<form method="get" action="chat-logs.php">
 	<blockquote>
-	<p id="chat-filter"><label for="pseudo"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" value="<?php if (isset($_GET['pseudo'])) echo htmlspecialchars($_GET['pseudo']); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" />
+	<p id="chat-filter"><label for="pseudo"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" value="<?php if (isset($memberNick)) echo htmlspecialchars($memberNick); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" />
 	<br /><strong><?php echo $language ? '&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; <small>&nbsp; &nbsp;</small>OR':'&nbsp; &nbsp; &nbsp; &nbsp;  &nbsp; &nbsp; &nbsp;OU'; ?> : <a href="?all"><?php echo $language ? 'See all logs' : 'Voir tous les logs'; ?></a></strong></p>
 	</blockquote>
 	</form>
 	<?php
-	$memberId = 0;
-	if (isset($_GET['pseudo'])) {
+	if (isset($_GET['blacklist'])) {
+		if (isset($memberNick))
+			echo '<h2 id="context">'. ($language ? 'See logs in context for ' : 'Voir les logs en contexte pour ') .' '. htmlspecialchars($memberNick) .'</h2>';
+	}
+	elseif (isset($_GET['pseudo'])) {
 		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $_GET['pseudo'] .'"'))) {
 			$memberId = $getId['id'];
-    	    echo '<h2>'. ($language ? 'Online chat log of' : 'Logs chat en ligne de') .' '. htmlspecialchars($_GET['pseudo']) .'</h2>';
+			echo '<h2>'. ($language ? 'Online chat log of' : 'Logs chat en ligne de') .' '. htmlspecialchars($memberNick) .'</h2>';
 			?>
 			<div>
 				<?php
@@ -153,31 +171,56 @@ include('menu.php');
 	if ($memberId || isset($_GET['all'])) {
 		echo '<div id="chat-logs">';
 		require_once('public_links.php');
-		$sql = 'SELECT c.course FROM `mkchat` c LEFT JOIN mkracehist r1 ON c.course=r1.id LEFT JOIN mariokart r2 ON c.course=r2.id WHERE '. ($memberId ? " auteur=$memberId AND" : "") .' IFNULL(r1.link,r2.link) IN ('.$publicLinksString.') AND IFNULL(r1.cup,r2.cup)=0' . ($memberId ? '' : ' ORDER BY c.course DESC LIMIT 2000');
-		$sql = "SELECT DISTINCT course FROM ($sql) t";
-		$getChats = mysql_query($sql);
-		$chatIds = array();
-		while ($chat = mysql_fetch_array($getChats)) {
-			$chatIds[] = $chat['course'];
+		if (isset($courseFilter))
+			$chatIds = array($courseFilter);
+		else {
+			$sql = 'SELECT c.course FROM `mkchat` c LEFT JOIN mkracehist r1 ON c.course=r1.id LEFT JOIN mariokart r2 ON c.course=r2.id WHERE '. ($memberId ? " c.auteur=$memberId AND" : "") .' IFNULL(r1.link,r2.link) IN ('.$publicLinksString.') AND IFNULL(r1.cup,r2.cup)=0' . ($memberId ? '' : ' ORDER BY c.course DESC LIMIT 2000');
+			$sql = "SELECT DISTINCT course FROM ($sql) t";
+			$getChats = mysql_query($sql);
+			$chatIds = array();
+			while ($chat = mysql_fetch_array($getChats)) {
+				$chatIds[] = $chat['course'];
+			}
 		}
 		if (empty($chatIds))
 			echo '&nbsp; ' . ($language ? 'No result found' : 'Aucun résultat trouvé');
 		else {
 			$chatIdsString = implode(',', $chatIds);
 			$getNbConvs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkchat` WHERE course IN ('. $chatIdsString .')'));
-			$currentPage = isset($_GET['page']) ? $_GET['page']:1;
 			$resPerPage = 100;
 			$nbPages = ceil($getNbConvs['nb'] / $resPerPage);
-			$getConvs = mysql_query('SELECT c.course,c.auteur,c.message,j.nom FROM `mkchat` c LEFT JOIN `mkjoueurs` j ON c.auteur=j.id WHERE c.course IN ('. $chatIdsString .') ORDER BY c.course DESC,c.id ASC LIMIT '.(($currentPage-1)*$resPerPage).','. $resPerPage);
+			$logPage = -1;
+			if (!empty($getLog)) {
+				$getNbConvsBeforeLog = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkchat` WHERE course IN ('. $chatIdsString .') AND date<="'. $getLog['date'] .'"'));
+				$logPage = max(ceil($getNbConvsBeforeLog['nb'] / $resPerPage), 1);
+			}
+			if (isset($_GET['page']))
+				$currentPage = max(intval($_GET['page']),1);
+			elseif ($logPage === -1)
+				$currentPage = 1;
+			else
+				$currentPage = $logPage;
+			$getConvs = mysql_query('SELECT c.date,c.course,c.auteur,c.message,j.nom FROM `mkchat` c LEFT JOIN `mkjoueurs` j ON c.auteur=j.id WHERE c.course IN ('. $chatIdsString .') ORDER BY c.course DESC,c.id ASC LIMIT '.(($currentPage-1)*$resPerPage).','. $resPerPage);
 			$lastCourse = 0;
+			function show_censored_message() {
+				global $getLog;
+				echo '<div class="highlight highlight-alert"><a href="profil.php?id='. $getLog['player'] .'">'. $getLog['nom'] .'</a>: '. $getLog['message'] .'</div>';
+			}
+			$showCensored = ($logPage == $currentPage);
 			while ($conv = mysql_fetch_array($getConvs)) {
 				if ($lastCourse != $conv['course']) {
 					if ($lastCourse)
 						echo '<hr />';
 					$lastCourse = $conv['course'];
 				}
+				if ($showCensored && (strtotime($conv['date']) > strtotime($getLog['date']))) {
+					show_censored_message();
+					$showCensored = false;
+				}
 				echo '<div'. ($conv['auteur'] == $memberId ? ' class="highlight"' : '') .'><a href="profil.php?id='. $conv['auteur'] .'">'. $conv['nom'] .'</a>: '. $conv['message'] .'</div>';
 			}
+			if ($showCensored)
+				show_censored_message();
 		}
 		echo '</div>';
 		if ($nbPages > 1) {

@@ -202,8 +202,14 @@ include('menu.php');
 			</a>
 		</li>
 	</ul>
+		<?php
+	}
+	?>
 	<h2><?php echo $language ? 'Other rights' : 'Autres droits'; ?></h2>
 	<ul>
+		<?php
+		if (hasRight('moderator')) {
+			?>
 		<li>
 			<div class="action-ctn">
 				<div class="action-title"><?php echo $language ? "Moderate a message on the <strong>forum</strong>":"Modérer un message sur le <strong>forum</strong>"; ?></div>
@@ -222,6 +228,9 @@ include('menu.php');
 				<div class="action-desc"><?php echo $language ? "Go to the news in question and click on &quot;Edit&quot; or &quot;Delete&quot;":"Se rendre sur la news en question et cliquer sur &quot;Modifier&quot; ou &quot;Supprimer&quot;"; ?></div>
 			</div>
 		</li>
+			<?php
+		}
+		?>
 		<li>
 			<a class="action-ctn" href="admin-logs.php">
 				<div class="action-title"><?php echo $language ? "See <strong>admin logs</strong>":"Voir les <strong>logs admin</strong>"; ?></div>
@@ -229,9 +238,6 @@ include('menu.php');
 			</a>
 		</li>
 	</ul>
-		<?php
-	}
-	?>
 	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>

@@ -502,10 +502,10 @@ main table {
 }
 main table a {
     font-weight: bold;
-    color: #f80;
+    color: #f60;
 }
 main table a:hover {
-    color: #f90;
+    color: #f80;
 }
 
 table a.profile {
