@@ -79,7 +79,7 @@ else
 <?php
 include('o_online.php');
 ?>
-<script type="text/javascript" src="scripts/challenges.js"></script>
+<script type="text/javascript" src="scripts/challenges.js?reload=1"></script>
 <title><?php echo $language ? 'Challenge rewards':'Défis et récompenses'; ?> - Mario Kart PC</title>
 </head>
 <body>

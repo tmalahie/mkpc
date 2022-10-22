@@ -12,7 +12,7 @@ require_once('persos.php');
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/perso-editor.css" />
+<link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
 <script type="text/javascript" src="scripts/xhr.js"></script>
 <script type="text/javascript">
@@ -414,7 +414,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	refreshPersoList();
 });
 </script>
-<script type="text/javascript" src="scripts/perso-stats.js"></script>
+<script type="text/javascript" src="scripts/perso-stats.js?reload=1"></script>
 <script type="text/javascript">
 var onUpdateCursors = updateCursors;
 updateCursors = function() {

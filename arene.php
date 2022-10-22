@@ -95,7 +95,7 @@ include('language.php');
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create a course Mario Kart':'Cr&eacute;er une ar&egrave;ne Mario Kart'; ?></title>
-<link rel="stylesheet" type="text/css" href="styles/create.css" />
+<link rel="stylesheet" type="text/css" href="styles/create.css?reload=1" />
 <script type="text/javascript">
 var decorTypes = <?php echo json_encode($decorTypes); ?>;
 var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;

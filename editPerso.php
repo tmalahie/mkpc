@@ -68,7 +68,7 @@ if (isset($_GET['id'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/perso-editor.css" />
+<link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <?php
 include('o_online.php');
 ?>
@@ -82,7 +82,7 @@ var cp = <?php echo json_encode($defaultPersosStats); ?>;
 var pUnlocked = <?php include('getLocks.php'); ?>;
 var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 </script>
-<script type="text/javascript" src="scripts/perso-stats.js"></script>
+<script type="text/javascript" src="scripts/perso-stats.js?reload=1"></script>
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
 </head>
 <body onbeforeunload="if(unsavedData)return language?'Your character is not finished and therefore will not be playable yet':'Votre perso n\'est pas encore terminé et ne sera donc pas jouable'">

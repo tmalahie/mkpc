@@ -79,7 +79,7 @@ include('language.php');
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create a circuit Mario Kart':'Cr&eacute;er un circuit Mario Kart'; ?></title>
-<link rel="stylesheet" type="text/css" href="styles/create.css" />
+<link rel="stylesheet" type="text/css" href="styles/create.css?reload=1" />
 <style type="text/css">
 #croisement {
 	background-image: url('mapcreate.php?p0=11&p1=5&p2=4&p6=5&p7=10&p8=7&map=<?php echo $map ?>');
