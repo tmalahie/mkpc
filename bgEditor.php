@@ -35,9 +35,11 @@ if (isset($_FILES['layer'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
-<script type="text/javascript" src="scripts/bg-editor.js"></script>
-<link rel="stylesheet" href="styles/bg-editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
+<link rel="stylesheet" href="styles/collabs.css" />
+<link rel="stylesheet" href="styles/bg-editor.css?reload=1" />
+<script type="text/javascript" src="scripts/collabs.js"></script>
+<script type="text/javascript" src="scripts/bg-editor.js?reload=2"></script>
 <title><?php echo $language ? 'Background editor':'Éditeur d\'arrière-plans'; ?></title>
 <script type="text/javascript">
 var bgId = -1;
@@ -56,7 +58,7 @@ function selectBg(id) {
 		document.getElementById("bg-actions").style.display = "inline-block";
 		var bgName = document.getElementById("mybg-"+bgId).dataset.name;
 		document.getElementById("bg-actions-name").innerHTML = bgName;
-        document.getElementById("bg-actions").scrollIntoView();
+        document.querySelector(".bgs-list-container").scrollIntoView();
 	}
 	else
 		document.getElementById("bg-actions").style.display = "none";
@@ -67,6 +69,9 @@ function editBg() {
 function delBg() {
 	if (confirm(language ? "Delete background?":"Supprimer l'arrière-plan ?"))
 		document.location.href = "delBg.php?id="+bgId +"&token=<?php echo $_SESSION['csrf']; ?>";
+}
+function collabBg() {
+    showCollabPopup("mkbgs", bgId, "getBgCollabPopup.php");
 }
 function toggleHelp() {
 	document.getElementById("bg-instructions").style.display = (document.getElementById("bg-instructions").style.display =="block") ? "none":"block";
@@ -142,8 +147,9 @@ if (isset($error))
             <h3><?php echo $language ? 'Your backgrounds':'Vos arrière-plans'; ?></h3>
             <div id="bg-actions">
                 <div id="bg-actions-name"></div>
-                <button class="bg-edit" onclick="javascript:editBg()"><?php echo $language ? "Edit":"Modifier"; ?></button>
-                <button class="bg-del" onclick="javascript:delBg()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
+                <button class="bg-edit" onclick="editBg()"><?php echo $language ? "Edit":"Modifier"; ?></button>
+                <button class="bg-del" onclick="delBg()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
+                <button class="bg-collab" onclick="collabBg()"><?php echo $language ? "Collaborate":"Collaborer"; ?>&mldr;</button>
             </div>
             <div class="bgs-list"><?php
             while ($bg = mysql_fetch_array($myBgs)) {

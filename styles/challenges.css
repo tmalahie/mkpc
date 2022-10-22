@@ -48,7 +48,9 @@ body a.challenge-action-edit:hover {
 	max-width: 550px;
 	font-size: 1em;
 	color: #035;
-	display: inline-block;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
     padding: 5px 8px;
     border-radius: 6px;
 	background-color: rgba(204,204,216, 0.85);
@@ -327,6 +329,29 @@ button.challenge-edit-submit:disabled {
 }
 .challenge-reward .challenge-edit-submit {
 	width: 250px;
+}
+.challenge-perso-collab {
+	margin-top: 0.5em;
+	font-size: 0.8em;
+}
+#challenge-perso-collab {
+	margin-top: 0.25em;
+	display: none;
+	gap: 0.5em;
+	align-items: baseline;
+	justify-content: center;
+    flex-wrap: wrap;
+}
+#challenge-perso-collab.shown {
+	display: flex;
+}
+#challenge-perso-collab a {
+	font-size: 0.8em;
+	position: relative;
+	top: -0.5em;
+}
+#challenge-perso-collab input[type="url"] {
+	flex: 1;
 }
 .main-challenge-actions {
 	margin: 5px auto 0px auto;

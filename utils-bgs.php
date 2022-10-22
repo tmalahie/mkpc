@@ -4,7 +4,15 @@ define('MAX_LAYERS', 5);
 require_once('imageutils.php');
 function handle_bg_upload($files,$options=array()) {
 	global $language, $identifiants;
-	$totalSize = file_total_size(isset($options['layer']) ? array('layer'=>$options['layer']):array());
+	$totalSizeOptions = null;
+	$totalQuotaOptions = null;
+	if (isset($options['layer']))
+		$totalSizeOptions['layer'] = $options['layer'];
+	if (isset($options['identifiant'])) {
+		$totalSizeOptions['identifiants'] = array($options['identifiant']);
+		$totalQuotaOptions['identifiant'] = $options['identifiant'];
+	}
+	$totalSize = file_total_size($totalSizeOptions);
 	$layerFiles = array();
 	foreach ($files as &$file) {
 		$error = null;
@@ -14,7 +22,7 @@ function handle_bg_upload($files,$options=array()) {
 			if ($poids < 1000000) {
 				if (!isset($file['url']))
 					$totalSize += $poids;
-				if ($totalSize < MAX_FILE_SIZE) {
+				if ($totalSize < file_total_quota($totalQuotaOptions)) {
 					$ext = get_img_ext($filePath);
 					$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 					if (in_array($ext, $extensions)) {

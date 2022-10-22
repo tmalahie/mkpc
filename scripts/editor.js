@@ -1936,6 +1936,8 @@ function handleKeySortcuts(e) {
 			}
 			break;
 		case 90:
+			if (readOnly) break;
+			
 			if (e.ctrlKey || e.metaKey) {
 				e.preventDefault();
 				if (e.shiftKey)
@@ -1945,12 +1947,16 @@ function handleKeySortcuts(e) {
 			}
 			break;
 		case 89:
+			if (readOnly) break;
+			
 			if (e.ctrlKey || e.metaKey) {
 				e.preventDefault();
 				redo();
 			}
 			break;
 		case 83:
+			if (readOnly) break;
+			
 			if (e.ctrlKey || e.metaKey) {
 				e.preventDefault();
 				saveData();
@@ -1959,7 +1965,7 @@ function handleKeySortcuts(e) {
 	}
 }
 function handlePageExit() {
-	if (changes)
+	if (changes && !readOnly)
 		return language ? "Warning: unsaved data will be lost.":"Attention, Les données non sauvegardées seront perdues.";
 }
 function removeAllChildren(elt) {
@@ -2644,31 +2650,71 @@ function showBgTab(id) {
 	for (var i=0;i<$bgTabs.length;i++)
 		$bgTabs[i].className = "";
 	document.getElementById("bg-selector-tab-"+id).className = "bg-selector-tab-selected";
-	if ($selectorOptions.dataset.custom)
+	var $bgSelectorCollab = document.querySelector("#bg-selector .bg-selector-collab");
+	if ($selectorOptions.dataset.custom) {
 		fetchCustomBgData();
+		$bgSelectorCollab.style.display = "";
+	}
+	else
+		$bgSelectorCollab.style.display = "none";
 }
 function fetchCustomBgData(opts) {
 	if (!opts) opts = {};
-	var $selectorOptions = document.querySelector('#bg-selector-options > div[data-custom="1"]');
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "getBgsData.php");
-	xhr.onload = function() {
-		var res = JSON.parse(xhr.responseText);
-		if (res) {
-			feedCustomBgData($selectorOptions, res);
-			if (opts.callback) opts.callback(res);
-		}
-	};
-	xhr.send(null);
+	function onProceed(res) {
+		feedCustomBgData();
+		if (opts.callback) opts.callback(res);
+	}
+	if (opts.id) {
+		xhr("getBgData.php", "id="+opts.id, function(res) {
+			try {
+				res = JSON.parse(res);
+			}
+			catch (e) {
+			}
+			if (res) {
+				extraBgs[res.id] = res;
+				onProceed([res]);
+			}
+			return true;
+		});
+	}
+	else {
+		xhr("getBgsData.php", null, function(res) {
+			try {
+				res = JSON.parse(res);
+			}
+			catch (e) {
+			}
+			if (res) {
+				myBgs = res;
+				onProceed(res);
+				return true;
+			}
+			return false;
+		});
+	}
 }
-function feedCustomBgData($selectorOptions, data) {
+function feedCustomBgData($selectorOptions) {
+	var $selectorOptions = document.querySelector('#bg-selector-options > div[data-custom="1"]');
 	var $optionsList = $selectorOptions.querySelectorAll(":scope > div:not(.add-custom-bg)");
 	for (var i=0;i<$optionsList.length;i++)
 		$selectorOptions.removeChild($optionsList[i]);
 	var editorData = editorTools["options"].data;
 	var currentSelectedBg = editorData.bg_custom ? editorData.bg_img : -1;
-	for (var i=0;i<data.length;i++) {
-		var bg = data[i];
+	customBgImgs = {};
+	Object.assign(customBgImgs, extraBgs);
+	var allBgs = Object.values(customBgImgs).reverse();
+	if (myBgs) {
+		for (var i=0;i<myBgs.length;i++) {
+			var myBg = myBgs[i];
+			if (!customBgImgs[myBg.id]) {
+				customBgImgs[myBg.id] = myBg;
+				allBgs.push(myBg)
+			}
+		}
+	}
+	for (var i=0;i<allBgs.length;i++) {
+		var bg = allBgs[i];
 		var $selectorOption = document.createElement("div");
 		$selectorOption.dataset.value = bg.id;
 		$selectorOption.dataset.custom = 1;
@@ -2685,9 +2731,6 @@ function feedCustomBgData($selectorOptions, data) {
 			$selectorLayer.style.backgroundImage = "url('"+ bgLayers[j].path +"')";
 			$selectorOption.appendChild($selectorLayer);
 		}
-		customBgImgs[bg.id] = bgLayers.map(function(bgLayer) {
-			return bgLayer.path;
-		});
 		$selectorOptions.appendChild($selectorOption);
 	}
 }
@@ -2736,6 +2779,8 @@ function changeBg($elt) {
 function createCustomBg() {
 	window.open('bgEditor.php');
 }
+var myBgs;
+var extraBgs = {};
 var customBgImgs = {};
 function applyBgSelector() {
 	var editorTool = editorTools[currentMode];
@@ -2748,19 +2793,74 @@ function applyBgSelector() {
 	else {
 		selectedBg = customBgImgs[editorTool.data.bg_img];
 		if (selectedBg) {
-			for (var i=0;i<selectedBg.length;i++)
-				selectedBgArr.unshift("url('"+selectedBg[i]+"')");
+			var bgLayers = selectedBg.layers;
+			for (var i=0;i<bgLayers.length;i++)
+				selectedBgArr.unshift("url('"+bgLayers[i].path+"')");
 		}
-		else
-			fetchCustomBgData({
-				callback: function() {
-					if (customBgImgs[editorTool.data.bg_img])
+		else {
+			if (myBgs) {
+				fetchCustomBgData({
+					id: editorTool.data.bg_img,
+					callback: function() {
+						if (customBgImgs[editorTool.data.bg_img])
+							applyBgSelector();
+					}
+				});
+			}
+			else {
+				fetchCustomBgData({
+					callback: function() {
 						applyBgSelector();
-				}
-			});
+					}
+				});
+			}
+		}
 	}
 	if (selectedBgArr.length)
 		document.getElementById("button-bgimg").style.backgroundImage = selectedBgArr.join(",");
+}
+function showBgSelectorCollab() {
+	var $bgSelectorCollab = document.getElementById("bg-selector-collab");
+	$bgSelectorCollab.className = $bgSelectorCollab.className ? "" : "shown";
+	if ($bgSelectorCollab.className) {
+		var $bgSelectorExplain = $bgSelectorCollab.querySelector("label span a.fancy-title");
+		$bgSelectorExplain.title = '<div class="fancy-title-collab">'+ (language ? "Enter the background's collaboration link here.<br />To get this link, the background owner will simply need to select the background in the editor and click on &quot;Collaborate&quot;" : "Saisissez ici le lien de collaboration de l'arrière-plan.<br />Pour obtenir ce lien, le propriétaire de l'arrière-plan devra simplement sélectionner l'arrière-plan dans l'éditeur et cliquer sur &quot;Collaborer&quot;") +'</div>';
+		initFancyTitle($bgSelectorExplain);
+		$bgSelectorCollab.elements["collab-link"].focus();
+	}
+}
+function selectBgSelectorCollab(e) {
+	e.preventDefault();
+	var $form = e.target;
+	var url = $form.elements["collab-link"].value;
+	var creationId, creationKey;
+	try {
+		var urlParams = new URLSearchParams(new URL(url).search);
+		creationId = urlParams.get('id');
+		creationKey = urlParams.get('collab');
+	}
+	catch (e) {
+	}
+	if (!creationKey) {
+		alert(language ? "Invalid URL" : "URL invalide");
+		return;
+	}
+	var $submitBtn = $form.querySelector('button[type="submit"]');
+	$submitBtn.disabled = true;
+	xhr("importCollabBg.php", "id="+creationId+"&collab="+creationKey, function(res) {
+		$submitBtn.disabled = false;
+		if (!res) {
+			alert(language ? "Invalid link" : "Lien invalide");
+			return true;
+		}
+		$form.reset();
+		res = JSON.parse(res);
+		extraBgs[res.id] = res;
+		feedCustomBgData();
+		changeBg(document.getElementById("bgchoice-custom-" + res.id));
+
+		return true;
+	});
 }
 function applyColorSelector() {
 	var editorTool = editorTools[currentMode];
@@ -3117,12 +3217,16 @@ function saveData() {
 	$loading.className = "save-popup save-loading";
 	$loading.innerHTML = language ? "Saving...":"Sauvegarde...";
 	$mask.appendChild($loading);
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", isBattle ? "saveCourse.php" : "saveMap.php");
-	xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-	xhr.send(JSON.stringify({id:circuitId,payload:payload}));
-	xhr.onload = function() {
-		if (xhr.responseText == 1) {
+	var req = new XMLHttpRequest();
+	req.open("POST", isBattle ? "saveCourse.php" : "saveMap.php");
+	req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+	var postData = {id:circuitId,payload:payload};
+	var collab = new URLSearchParams(document.location.search).get("collab");
+	if (collab)
+		postData.collab = collab;
+	req.send(JSON.stringify(postData));
+	req.onload = function() {
+		if (req.responseText == 1) {
 			$mask.removeChild($loading);
 			$mask.close = $mask.defaultClose;
 			changes = false;
@@ -3153,7 +3257,8 @@ function saveData() {
 			else
 				$popupAccess.innerHTML = language ? "Test circuit":"Tester circuit";
 			$popupAccess.onclick = function() {
-				document.location.href = (isBattle?"battle":"map")+".php?i="+circuitId;
+				var collab = new URLSearchParams(document.location.search).get("collab");
+				document.location.href = (isBattle?"battle":"map")+".php?i="+circuitId+(collab ? "&collab="+collab : "");
 			};
 			$popupActions.appendChild($popupAccess);
 			$success.appendChild($popupActions);
@@ -3163,7 +3268,7 @@ function saveData() {
 		else
 			this.onerror();
 	};
-	xhr.onerror = function() {
+	req.onerror = function() {
 		$mask.removeChild($loading);
 		$mask.close = $mask.defaultClose;
 		var $error = document.createElement("div");
@@ -3254,14 +3359,12 @@ function feedCustomDecorData($btnDecor,decor) {
 		initFancyTitle($btnDecor);
 }
 function fetchCustomDecorData($btnDecor,decor) {
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "getDecorData.php?id="+decor.id);
-	xhr.onload = function() {
-		var res = JSON.parse(xhr.responseText);
+	xhr("getDecorData.php?id="+decor.id, null, function(res) {
+		res = JSON.parse(res);
 		if (res)
 			feedCustomDecorData($btnDecor,res);
-	};
-	xhr.send(null);
+		return true;
+	});
 }
 var commonTools = {
 	"walls": {

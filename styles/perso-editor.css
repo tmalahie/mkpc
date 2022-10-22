@@ -113,6 +113,19 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 	background-color: #9AF;
 	color: #545CB5;
 }
+#perso-options .collab-perso {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 0.5em;
+	font-size: 0.6em;
+	background-color: #A9D;
+	color: #54A;
+}
+#perso-options .collab-perso:hover {
+	background-color: #BAE;
+	color: #55A;
+}
 .perso-options-stars {
 	padding: 0px 4px;
 }
@@ -241,6 +254,12 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 .persos-list-empty + .persos-list-more {
 	margin-top: 0;
 }
+.persos-list-more-collab {
+	font-size: 0.8em;
+}
+.persos-list-more-collab a {
+	color: #BDE;
+}
 .persos-sort {
 	padding: 4px 0px;
 	border-bottom: solid 1px #7F90EE;
@@ -281,6 +300,32 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 #persos-list-search input::-ms-input-placeholder {
 	color: #AAAAAF;
 }
+#persos-list-collab {
+	display: none;
+}
+#persos-collab-form {
+	display: none;
+	font-size: 0.8em;
+	margin-bottom: 15px;
+}
+#persos-collab-form label {
+	display: flex;
+    flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 0.25em;
+}
+#persos-collab-form label a {
+	position: relative;
+	top: -0.5em;
+	font-size: 0.7em;
+}
+#persos-collab-form label input[type="url"] {
+	flex: 1;
+}
+#persos-collab-form input {
+	font-size: 0.8em;
+}
 #original-perso-selector {
 	margin-bottom: 15px;
 }
@@ -292,6 +337,13 @@ input[type="file"]:not(:valid) + input[type="submit"] {
 #original-perso-selector > div:hover {
 	background-color: #90AADD;
 	border-color: #90AADD;
+}
+.readonly #original-perso-selector > div {
+	cursor: default;
+}
+.readonly #original-perso-selector > div:hover {
+	background-color: transparent;
+	border-color: transparent;
 }
 #original-perso-selector.perso-selector-enabled > #perso-selected {
 	background-color: #BDE;
@@ -551,6 +603,13 @@ h1, h2 {
 .advanced-option:hover {
 	background-color: #4E6DB3;
 }
+.readonly .advanced-option:not(:last-child) {
+    cursor: default;
+    text-decoration: none;
+}
+.readonly .advanced-option:not(:last-child):hover {
+	background-color: transparent;
+}
 .advanced-option .option-bg {
 	position: relative;
 	height: 130px;
@@ -712,4 +771,27 @@ h1, h2 {
 	margin-top: 10px;
 	margin-bottom: 10px;
 	height: 60px;
+}
+.collab-popup.collab-perso {
+    background-color: #4242EF;
+    text-align: left;
+    color: #BDE;
+    font-size: 0.9em;
+}
+.collab-popup.collab-perso .collab-popup-close {
+    background-color: #1843b9;
+}
+.collab-popup.collab-perso .collab-popup-close:hover {
+    background-color: #133594;
+}
+.collab-popup.collab-perso h2 {
+    font-size: 1.5em;
+    color: white;
+}
+.collab-popup.collab-perso h3 {
+    color: white;
+    margin-bottom: 0.1em;
+}
+.collab-popup.collab-perso a:hover {
+    color: #CDE;
 }

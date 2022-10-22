@@ -4,13 +4,25 @@ if (isset($_GET['id'])) {
 	include('initdb.php');
 	if ($bg = mysql_fetch_array(mysql_query('SELECT * FROM `mkbgs` WHERE id="'. $bgId .'"'))) {
 		include('getId.php');
+        require_once('collabUtils.php');
+        $collabSuffix = '';
 		if ($bg['identifiant'] == $identifiants[0]) {
+			$hasReadGrants = true;
+			$hasWriteGrants = true;
+        }
+        else {
+            $collab = getCollabLinkFromQuery('mkbgs', $bgId);
+			$hasReadGrants = isset($collab['rights']['view']);
+			$hasWriteGrants = isset($collab['rights']['edit']);
+            if ($collab) $collabSuffix = '&collab='. $collab['key'];
+        }
+        if ($hasReadGrants) {
 			include('language.php');
 			require_once('utils-bgs.php');
             session_start();
             include('tokens.php');
             assign_token();
-			if (isset($_POST['name'])) {
+			if (isset($_POST['name']) && $hasWriteGrants) {
                 $bg['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);
                 mysql_query('UPDATE `mkbgs` SET name="'. $bg['name'] .'" WHERE id="'. $_GET['id'] .'"');
             }
@@ -22,18 +34,19 @@ if (isset($_GET['id'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/bg-editor.css" />
-<script type="text/javascript" src="scripts/bg-editor.js"></script>
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
+<link rel="stylesheet" href="styles/bg-editor.css?reload=1" />
+<script type="text/javascript" src="scripts/bg-editor.js?reload=2"></script>
 <title><?php echo $language ? 'Background editor':'Éditeur d\'arrière-plans'; ?></title>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
+var collabSuffix = "<?php echo $collabSuffix; ?>";
 function editLayer(id) {
-    document.location.href = "editLayer.php?id=" + id;
+    document.location.href = "editLayer.php?id=" + id + collabSuffix;
 }
 function delLayer(id) {
     if (confirm(language ? "Delete layer?" : "Supprimer le calque ?"))
-        document.location.href = "delBgLayer.php?id=" + id +"&token=<?php echo $_SESSION['csrf']; ?>";
+        document.location.href = "delBgLayer.php?id=" + id +"&token=<?php echo $_SESSION['csrf']; ?>" + collabSuffix;
 }
 function toggleLayerAdd() {
     var $form = document.getElementById("bg-layers-add-form");
@@ -99,10 +112,10 @@ function toggleLayerAdd() {
             }
         }
         </style>
-        <form method="post" id="bg-edit-form" class="bg-editor-form" action="editBg.php?id=<?php echo $_GET['id']; ?>">
+        <form method="post" id="bg-edit-form" class="bg-editor-form" action="">
             <label for="name"><?php echo $language ? 'Name for your background (optional):':'Nom pour votre arrière-plan (facultatif) :'; ?></label><br />
-            <input type="text" maxlength="30" name="name" id="name" placeholder="<?php echo $language ? 'Sunset':'Coucher de soleil'; ?>" value="<?php echo htmlspecialchars($bg['name']); ?>" />
-            <button type="submit">Ok</button>
+            <input type="text" maxlength="30" name="name" id="name" placeholder="<?php echo $language ? 'Sunset':'Coucher de soleil'; ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> value="<?php echo htmlspecialchars($bg['name']); ?>" />
+            <button type="submit"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?>>Ok</button>
         </form>
     </div>
     <div class="bgs-list-container bg-layers-container">
@@ -116,11 +129,17 @@ function toggleLayerAdd() {
                         <img src="<?php echo $bgLayer['path']; ?>" alt="Layer <?php echo $i; ?>" />
                     </div>
                     <div class="bg-layer-actions">
-                        <button class="bg-edit" onclick="editLayer(<?php echo $bgLayer['id']; ?>)">✎</button>
                         <?php
-                        if ($nbLayers > 1) {
+                        if ($hasWriteGrants) {
                             ?>
-                            <button class="bg-del" onclick="delLayer(<?php echo $bgLayer['id']; ?>)">&times;</button>
+                            <button class="bg-edit" onclick="editLayer(<?php echo $bgLayer['id']; ?>)">✎</button>
+                            <?php
+                            if ($nbLayers > 1) {
+                                ?>
+                                <button class="bg-del" onclick="delLayer(<?php echo $bgLayer['id']; ?>)">&times;</button>
+                                <?php
+                            }
+                            ?>
                             <?php
                         }
                         ?>
@@ -131,12 +150,15 @@ function toggleLayerAdd() {
             ?>
         </div>
         <?php
-        if ($nbLayers < MAX_LAYERS) {
+        if ($hasWriteGrants && ($nbLayers < MAX_LAYERS)) {
             ?>
         <div class="bg-layers-add" action="addBgLayer.php">
             <a href="javascript:toggleLayerAdd()">+ <?php echo $language ? 'Add layer':'Ajouter un calque'; ?>...</a>
             <form method="post" action="addBgLayer.php" enctype="multipart/form-data" id="bg-layers-add-form" class="bg-editor-form">
                 <input type="hidden" name="id" value="<?php echo $bg['id']; ?>" />
+                <?php
+                if (isset($collab)) echo '<input type="hidden" name="collab" value="'. $collab['key'] .'" />';
+                ?>
                 <div class="editor-upload">
                     <div class="editor-upload-tabs">
                         <div class="editor-upload-tab editor-upload-tab-selected">

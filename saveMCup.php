@@ -3,6 +3,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	include('getId.php');
 	include('initdb.php');
 	include('ip_banned.php');
+	require_once('collabUtils.php');
 	$mode = $_POST['mode'];
 	if (isBanned()) {
 		mysql_close();
@@ -10,9 +11,26 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	}
 	$save = true;
 	$maxCups = 40;
+	$currentMCup = null;
+	if (isset($_POST['id'])) {
+		$requireOwner = !hasCollabGrants('mkmcups', $_POST['id'], $_POST['collab'], 'edit');
+		$currentMCup = mysql_fetch_array(mysql_query('SELECT * FROM mkmcups WHERE id="'. $_POST['id'] .'"'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : '')));
+		if ($currentMCup) {
+			$currentCups = array();
+			$getCups = mysql_query('SELECT cup FROM `mkmcups_tracks` WHERE mcup="'. $_POST['id'] .'" ORDER BY ordering');
+			while ($cup = mysql_fetch_array($getCups))
+				$currentCups[$cup['cup']] = true;
+			$currentMCup['cups'] = $currentCups;
+		}
+	}
 	if (isset($_POST['cid'.$maxCups])) unset($_POST['cid'.$maxCups]);
 	for ($i=0;isset($_POST['cid'.$i]);$i++) {
-		if (!mysql_numrows(mysql_query('SELECT * FROM `mkcups` WHERE id='. $_POST['cid'. $i] .' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'. ($mode ? '':' AND mode="'. $mode .'"')))) {
+		$cId = $_POST['cid'.$i];
+		if (isset($currentMCup['cups'][$cId]))
+			$requireOwner = false;
+		else
+			$requireOwner = !hasCollabGrants('mkcups', $cId, $_POST['collabs'][$cId], 'use');
+		if (!mysql_numrows(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $_POST['cid'. $i] .'"'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : '') . ($mode ? '':' AND mode="'. $mode .'"')))) {
 			$save = false;
 			break;
 		}
@@ -22,7 +40,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		$optionsJson = isset($_POST['opt']) ? $_POST['opt']:'';
 		setcookie('mkauteur', $_POST['auteur'], 4294967295,'/');
 		if (isset($_POST['id'])) {
-			if (mysql_numrows(mysql_query('SELECT * FROM mkmcups WHERE id="'. $_POST['id'] .'" AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
+			if ($currentMCup) {
 				mysql_query('UPDATE `mkmcups` SET nom="'. $_POST['nom'] .'",auteur="'. $_POST['auteur'] .'",options="'.$optionsJson.'" WHERE id="'. $_POST['id'] .'"');
 				$cupId = $_POST['id'];
 			}

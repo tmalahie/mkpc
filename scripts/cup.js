@@ -2,6 +2,8 @@ var selectedCircuits = [];
 var loadingMsg = language ? "Loading":"Chargement";
 var isMCups = (ckey === "mid");
 function getSubmitMsg() {
+	if (readOnly)
+		return language ? "Read-only":"Lecture seule";
 	if (isMCups) {
 		if (selectedCircuits.length < 2)
 			return (language ? "You must select at least 2 cups":"Vous devez sélectionner au moins 2 coupes");
@@ -27,6 +29,7 @@ function getSubmitMsg() {
 	return (selectedCircuits.length != 4) ? (language ? "You must select 4 circuits":"Vous devez sélectionner 4 circuits"):"";
 }
 function selectCircuit(tr, isAuto) {
+	if (readOnly && !isAuto) return;
 	var id = tr.dataset.id;
 	var selectionID = selectedCircuits.indexOf(id);
 	var orderTD = tr.getElementsByClassName("td-preview")[0];
@@ -82,28 +85,46 @@ function initGUI() {
 	}
 	resetCupOptions();
 	updateGUI();
+	if (!readOnly) {
+		var $submits = document.querySelectorAll(".submit-selection");
+		for (var i=0;i<$submits.length;i++)
+			$submits[i].dataset.title = "";
+	}
 	var $prettyTitles = document.querySelectorAll(".pretty-title");
 	for (var i=0;i<$prettyTitles.length;i++) {
-		(function($prettyTitle) {
-			var $fancyTitle = document.createElement("div");
-			$fancyTitle.className = "fancy-title";
-			if (!$prettyTitle.dataset) $prettyTitle.dataset = {};
-			$prettyTitle.dataset.title = "";
-			$prettyTitle.parentNode.onmouseover = function() {
-				if ($prettyTitle.dataset.title) {
-					$fancyTitle.innerHTML = $prettyTitle.dataset.title;
-					$fancyTitle.style.display = "block";
-					var rect = $prettyTitle.getBoundingClientRect();
-					$fancyTitle.style.left = Math.max(0,(rect.left + ($prettyTitle.scrollWidth-$fancyTitle.scrollWidth)/2))+"px";
-					$fancyTitle.style.top = (rect.top - $prettyTitle.scrollHeight)+"px";
-				}
-			};
-			$prettyTitle.parentNode.onmouseout = function() {
-				$fancyTitle.style.display = "none";
-			};
-			document.body.appendChild($fancyTitle);
-		})($prettyTitles[i]);
+		var $prettyTitle = $prettyTitles[i];
+		initFancyTitle($prettyTitle);
 	}
+}
+function initFancyTitle($prettyTitle) {
+	var $fancyTitle = document.createElement("div");
+	$fancyTitle.className = "fancy-title";
+	if (!$prettyTitle.dataset) $prettyTitle.dataset = {};
+	var fancyInterval;
+	$prettyTitle.parentNode.onmouseover = function() {
+		if ($prettyTitle.dataset.title) {
+			$fancyTitle.innerHTML = $prettyTitle.dataset.title;
+			document.body.appendChild($fancyTitle);
+			var rect = $prettyTitle.getBoundingClientRect();
+			$fancyTitle.style.left = Math.max(0,(rect.left + ($prettyTitle.scrollWidth-$fancyTitle.scrollWidth)/2))+"px";
+			$fancyTitle.style.top = (rect.top - $fancyTitle.scrollHeight - 5)+"px";
+
+			if (fancyInterval) return;
+			fancyInterval = setInterval(function() {
+				if (!$fancyTitle) return;
+				if (document.body.contains($prettyTitle)) return;
+				document.body.removeChild($fancyTitle);
+				clearInterval(fancyInterval);
+				$fancyTitle = undefined;
+			}, 1000);
+		}
+	};
+	$prettyTitle.parentNode.onmouseout = function() {
+		if (document.body.contains($fancyTitle))
+			document.body.removeChild($fancyTitle);
+		clearInterval(fancyInterval);
+		fancyInterval = undefined;
+	};
 }
 function showEditorContent(id) {
 	if (id == 1) {
@@ -632,27 +653,37 @@ function selectPersoImg(pos) {
 	var oPersoSelector = document.createElement("div");
 	oPersoSelector.className = "editor-mask-content";
 	oPersoSelector.innerHTML = '<h3>'+ (language ? "Character selection..." : "Sélection du perso...") +'</h3>'
+							+ '<a class="perso-selection-close" href="javascript:void(0)">&times;</a>'
 							+ '<div class="perso-selection-standard"></div>'
 								+ '<h4>'+ (language ? "Basic characters":"Persos de base") +'</h4>'
 								+ '<div class="perso-selection-choices" id="perso-selection-standard-choices"></div>'
-							+ '<div id="perso-selection-custom" style="display:none">'
+							+ '<div class="perso-selection-custom">'
 								+ '<h4>'+ (language ? "Custom characters":"Persos custom") +'</h4>'
-								+ '<div class="perso-selection-custom-explain">'+ (language
-									? "Select here a character from the character editor. If the character hasn't been shared, he will appear as locked for other members."
-									: "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres"
-								) +'</div>'
+								+ '<div class="perso-selection-custom-explain"></div>'
 								+ '<div id="perso-info">'
 									+'<div>'
-										+'<div id="perso-info-name">Mario</div>'
-										+'<div class="perso-info-share" id="perso-info-shared">✓ '+ (language ? "Shared character":"Perso partagé") +'</div>'
-										+'<div class="perso-info-share" id="perso-info-unshared">🔒 '+ (language ? "Non-shared character":"Perso non partagé") +'</div>'
+										+ '<div id="perso-info-name">Mario</div>'
+										+ '<div class="perso-info-share" id="perso-info-shared">✓ '+ (language ? "Shared character":"Perso partagé") +'</div>'
+										+ '<div class="perso-info-share" id="perso-info-unshared">🔒 '+ (language ? "Non-shared character":"Perso non partagé") +'</div>'
 									+'</div>'
 								+ '</div>'
 								+ '<div class="perso-selection-choices" id="perso-selection-custom-choices"></div>'
+								+ '<div class="perso-selection-collab">'
+									+ '<div class="perso-selection-collab-toggle">+ <a href="javascript:void(0)">'+ (language ? "Select a character from another member..." : "Sélectionner le perso d'un autre membre...") +'</a></div>'
+									+ '<form id="perso-selection-collab">'
+										+ '<label>'
+											+ '<span>'+ (language ? 'Collaboration link' : 'Lien de collaboration') + '<span class="pretty-title-ctn"><a href="javascript:void(0)">[?]</a></span>:&nbsp;</span>'
+											+ '<input type="url" name="collab-link" required="required" placeholder="'+ collabCharPlaceholder +'" />'
+											+ '<button type="submit">Ok</button>'
+										+ '</label>'
+									+ '</form>'
+								+ '</div>'
 							+ '</div>';
+
 	oPersoSelector.onclick = function(e) {
 		e.stopPropagation();
 	}
+	oPersoSelector.querySelector(".perso-selection-close").onclick = closeMask;
 	$mask.appendChild(oPersoSelector);
 	var $persoSelectionChoices = document.getElementById("perso-selection-standard-choices");
 	function appendPersoChoice($div, src, data) {
@@ -661,26 +692,29 @@ function selectPersoImg(pos) {
 		var oImg = document.createElement("img");
 		oImg.src = src;
 		oImg.onclick = function() {
-			var perso = data.sprites;
-			var pList = getPersosList();
-			var persoCurrentElt = perso && pList.find(function(p) { return p && p.sprites === perso });
-			var persoPos = persoCurrentElt ? pList.indexOf(persoCurrentElt) : -1;
-			var currentPerso = pList[pos];
-			if ((persoPos !== -1) && !currentPerso) {
-				pos = pList.length - 1;
-				currentPerso = pList[pos];
-			}
-			pList[pos] = data;
-			if (persoPos !== -1)
-				pList[persoPos] = currentPerso;
-			persoList = pList;
-			closeMask();
-			updateCupPersosGUI();
+			doSelectPerso(data);
 		};
 		oDiv2.appendChild(oImg);
 		oDiv.appendChild(oDiv2);
 		$div.appendChild(oDiv);
 		return oDiv;
+	}
+	function doSelectPerso(data) {
+		var perso = data.sprites;
+		var pList = getPersosList();
+		var persoCurrentElt = perso && pList.find(function(p) { return p && p.sprites === perso });
+		var persoPos = persoCurrentElt ? pList.indexOf(persoCurrentElt) : -1;
+		var currentPerso = pList[pos];
+		if ((persoPos !== -1) && !currentPerso) {
+			pos = pList.length - 1;
+			currentPerso = pList[pos];
+		}
+		pList[pos] = data;
+		if (persoPos !== -1)
+			pList[persoPos] = currentPerso;
+		persoList = pList;
+		closeMask();
+		updateCupPersosGUI();
 	}
 	for (var perso in cp) {
 		appendPersoChoice($persoSelectionChoices, "images/sprites/sprite_"+ perso +".png", {
@@ -708,8 +742,16 @@ function selectPersoImg(pos) {
 				oPersoSelector.querySelector("#perso-info").style.display = "";
 			};
 		}
-		if (customCharacters.length)
-			document.getElementById("perso-selection-custom").style.display = "";
+		if (customCharacters.length) {
+			oPersoSelector.querySelector(".perso-selection-custom-explain").innerHTML = language
+				? "Select here a character from the character editor. If the character hasn't been shared, he will appear as locked for other members."
+				: "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres";
+		}
+		else {
+			oPersoSelector.querySelector(".perso-selection-custom-explain").innerHTML = language
+				? "You haven't created any character yet. Click <a href=\"persoEditor.php\" target=\"_blank\">here</a> to create some."
+				: "Vous n'avez pas créé de perso. Cliquez <a href=\"persoEditor.php\" target=\"_blank\">ici</a> pour en créer.";
+		}
 	}
 	if (customCharacters)
 		appendCustomCharacters();
@@ -725,6 +767,48 @@ function selectPersoImg(pos) {
 			return true;
 		});
 	}
+
+	var $oPersoCollabForm = oPersoSelector.querySelector("#perso-selection-collab");
+	oPersoSelector.querySelector(".perso-selection-collab-toggle a").onclick = function(e) {
+		$oPersoCollabForm.className = $oPersoCollabForm.className ? "" : "shown";
+		if ($oPersoCollabForm.className) {
+			$oPersoCollabForm.elements["collab-link"].focus();
+			var $persoCollabExplain = $oPersoCollabForm.querySelector("#perso-selection-collab > label a");
+			if (!$persoCollabExplain.dataset.title) {
+				$persoCollabExplain.dataset.title = '<div class="fancy-title-collab">'+ (language ? "Enter the characters's collaboration link here.<br />To get this link, the character owner will simply need to select the character in the editor and click on &quot;Collaborate&quot;" : "Saisissez ici le lien de collaboration du perso.<br />Pour obtenir ce lien, le propriétaire du perso devra simplement sélectionner le perso dans l'éditeur et cliquer sur &quot;Collaborer&quot;") +'</div>';
+				initFancyTitle($persoCollabExplain);
+			}
+		}
+	};
+	$oPersoCollabForm.onsubmit = function(e) {
+		e.preventDefault();
+		var url = $oPersoCollabForm.elements["collab-link"].value;
+		var creationId, creationKey;
+		try {
+			var urlParams = new URLSearchParams(new URL(url).search);
+			creationId = urlParams.get('id');
+			creationKey = urlParams.get('collab');
+		}
+		catch (e) {
+		}
+		if (!creationKey) {
+			alert(language ? "Invalid URL" : "URL invalide");
+			return;
+		}
+		var $submitBtn = $oPersoCollabForm.querySelector('button[type="submit"]');
+		$submitBtn.disabled = true;
+		o_xhr("importCollabPerso.php", "id="+creationId+"&collab="+creationKey, function(res) {
+			$submitBtn.disabled = false;
+			if (!res) {
+				alert(language ? "Invalid link" : "Lien invalide");
+				return true;
+			}
+			res = JSON.parse(res);
+			doSelectPerso(res);
+
+			return true;
+		});
+	};
 }
 function handleFormSubmit(e) {
 	var $form = e.target;
@@ -736,12 +820,81 @@ function handleFormSubmit(e) {
 		$form.elements["opt"].value = JSON.stringify({ "keyid":key, persos: optValJson.persos });
 	}
 }
-function showCustomCharToggleHelp() {
-	alert(language ? "If unchecked, you don't give access to the character editor in the character selector screen. Only the characters in the list above can be selected." : "Si décoché, vous ne donnez pas accès à l'éditeur de persos dans l'écran de sélection du perso. Seuls les persos de la liste ci-dessus pourront être sélectionnés.");
-}
 function selectOptionTab(id) {
 	document.querySelector(".option-tab-selected").classList.remove("option-tab-selected");
 	document.querySelectorAll("#option-tabs > div")[id].classList.add("option-tab-selected");
 	document.querySelector(".option-container-selected").classList.remove("option-container-selected");
 	document.querySelectorAll("#option-containers > div")[id].classList.add("option-container-selected");
 }
+function showCollabImportPopup(e) {
+	e.preventDefault();
+	var $collabPopup = document.getElementById("collab-popup");
+	$collabPopup.dataset.state = "open";
+
+	closeCollabImportPopup = function() {
+		document.removeEventListener("keydown", hideOnEscape);
+		delete $collabPopup.dataset.state;
+	}
+	function hideOnEscape(e) {
+		switch (e.keyCode) {
+		case 27:
+			closeCollabImportPopup();
+		}
+	}
+	document.addEventListener("keydown", hideOnEscape);
+	$collabPopup.querySelector('input[name="collablink"]').focus();
+}
+var closeCollabImportPopup;
+function importCollabTrack(e) {
+	e.preventDefault();
+	var $form = e.target;
+	var url = $form.elements["collablink"].value;
+	var creationId, creationType, creationKey;
+	try {
+		var urlParams = new URLSearchParams(new URL(url).search);
+		if (isMCups) {
+			creationType = "mkcups";
+			creationId = urlParams.get('cid');
+		}
+		else if (complete) {
+			creationType = "circuits";
+			creationId = urlParams.get('i');
+		}
+		else {
+			creationType = "mkcircuits";
+			creationId = urlParams.get('id');
+		}
+		creationKey = urlParams.get('collab');
+	}
+	catch (e) {
+	}
+	if (!creationKey) {
+		alert(language ? "Invalid URL" : "URL invalide");
+		return;
+	}
+	var $collabPopup = document.getElementById("collab-popup");
+	$collabPopup.dataset.state = "loading";
+	o_xhr("importCollabTrack.php", "type="+creationType+"&id="+creationId+"&collab="+creationKey+(isMCups ? ("&mode="+complete):""), function(res) {
+		if (!res) {
+			alert(language ? "Invalid link" : "Lien invalide");
+			$collabPopup.dataset.state = "open";
+			return true;
+		}
+		if (!document.getElementById("circuit"+creationId)) {
+			var template = document.createElement('template');
+			template.innerHTML = res.trim();
+			var $tr = template.content.cloneNode(true).firstChild;
+			var $table = document.getElementById("table-circuits");
+			var $tbody = $table.querySelector("tbody");
+			$tbody.insertBefore($tr, $tbody.firstChild);
+			loadCircuitImgs();
+		}
+
+		closeCollabImportPopup();
+		$form.reset();
+		sessionStorage.setItem("collab.track."+creationType+"."+creationId+".key", creationKey);
+		return true;
+	});
+}
+
+document.addEventListener("DOMContentLoaded", initGUI);

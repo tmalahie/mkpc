@@ -1,31 +1,40 @@
 <?php
 require_once('circuitImgUtils.php');
-if ($getQuota = mysql_fetch_array(mysql_query('SELECT file_quota FROM `mkidentifiants` WHERE identifiant='.$identifiants[0].' AND file_quota IS NOT NULL')))
-	define('MAX_FILE_SIZE', +$getQuota['file_quota']);
-else
-	define('MAX_FILE_SIZE', 25000000);
-function file_total_size($except = array()) {
+function file_total_quota($options=null) {
 	global $identifiants;
+	$ownerId = isset($options['identifiant']) ? $options['identifiant'] : $identifiants[0];
+	if ($getQuota = mysql_fetch_array(mysql_query('SELECT file_quota FROM `mkidentifiants` WHERE identifiant='.$ownerId.' AND file_quota IS NOT NULL')))
+		return +$getQuota['file_quota'];
+	return 25000000;
+}
+define('MAX_FILE_SIZE', file_total_quota());
+function file_total_size($item=null) {
+	global $identifiants;
+	$ownerIds = $identifiants;
+	if (isset($item['identifiants'])) {
+		foreach ($item['identifiants'] as $i=>$identifiant)
+			$ownerIds[$i] = $identifiant;
+	}
 	$poids = 0;
-	$circuits = mysql_query('SELECT ID,img_data FROM `circuits` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3] . (isset($except['circuit']) ? ' AND ID != '.$except['circuit'] : ''));
+	$circuits = mysql_query('SELECT ID,img_data FROM `circuits` WHERE identifiant='.$ownerIds[0].' AND identifiant2='.$ownerIds[1].' AND identifiant3='.$ownerIds[2].' AND identifiant4='.$ownerIds[3] . (isset($item['circuit']) ? ' AND ID != '.$item['circuit'] : ''));
 	while ($circuit = mysql_fetch_array($circuits)) {
 		$circuitImg = json_decode($circuit['img_data']);
 		if ($circuitImg->local)
 			$poids += @filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
 	}
-	$arenes = mysql_query('SELECT ID,img_data FROM `arenes` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3] . (isset($except['arena']) ? ' AND ID != '.$except['arena'] : ''));
+	$arenes = mysql_query('SELECT ID,img_data FROM `arenes` WHERE identifiant='.$ownerIds[0].' AND identifiant2='.$ownerIds[1].' AND identifiant3='.$ownerIds[2].' AND identifiant4='.$ownerIds[3] . (isset($item['arena']) ? ' AND ID != '.$item['arena'] : ''));
 	while ($arene = mysql_fetch_array($arenes)) {
 		$circuitImg = json_decode($arene['img_data']);
 		if ($circuitImg->local)
 			$poids += @filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
 	}
-	$persos = mysql_query('SELECT sprites FROM `mkchars` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3] . (isset($except['perso']) ? ' AND id != '.$except['perso'] : ''));
+	$persos = mysql_query('SELECT sprites FROM `mkchars` WHERE identifiant='.$ownerIds[0].' AND identifiant2='.$ownerIds[1].' AND identifiant3='.$ownerIds[2].' AND identifiant4='.$ownerIds[3] . (isset($item['perso']) ? ' AND id != '.$item['perso'] : ''));
 	while ($perso = mysql_fetch_array($persos))
 		$poids += @filesize('images/sprites/uploads/'.$perso['sprites'].'.png');
-	$decors = mysql_query('SELECT sprites FROM `mkdecors` WHERE identifiant='.$identifiants[0]. (isset($except['decor']) ? ' AND id != '.$except['decor'] : ''));
+	$decors = mysql_query('SELECT sprites FROM `mkdecors` WHERE identifiant='.$ownerIds[0]. (isset($item['decor']) ? ' AND id != '.$item['decor'] : ''));
 	while ($decor = mysql_fetch_array($decors))
 		$poids += @filesize('images/sprites/uploads/'.$decor['sprites'].'.png');
-	$bgLayers = mysql_query('SELECT l.filename FROM `mkbglayers` l INNER JOIN `mkbgs` b ON l.bg=b.id AND l.filename!="" WHERE b.identifiant='.$identifiants[0]. (isset($except['layer']) ? ' AND l.id != '.$except['layer'] : ''));
+	$bgLayers = mysql_query('SELECT l.filename FROM `mkbglayers` l INNER JOIN `mkbgs` b ON l.bg=b.id AND l.filename!="" WHERE b.identifiant='.$ownerIds[0]. (isset($item['layer']) ? ' AND l.id != '.$item['layer'] : ''));
 	while ($bgLayer = mysql_fetch_array($bgLayers))
 		$poids += @filesize('images/sprites/uploads/'.$bgLayer['filename']);
 	return $poids;

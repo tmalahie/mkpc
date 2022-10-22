@@ -84,6 +84,26 @@ function printBgSelector() {
         }
         ?>
         </div>
+        <div class="bg-selector-collab">
+            + <a href="javascript:showBgSelectorCollab()"><?php echo $language ? 'Select a background from another member...' :"Sélectionner un arrière-plan d'un autre membre..."; ?></a>
+            <form id="bg-selector-collab" onsubmit="selectBgSelectorCollab(event)">
+                <label>
+                    <span><?php
+                        echo $language ? 'Collaboration link' : 'Lien de collaboration';
+                        ?><a href="javascript:void(0)" class="fancy-title fancy-title-center">[?]</a>:
+                    </span>
+                    <input type="url" required="required" name="collab-link" placeholder="<?php
+                    $collab = array(
+                        'type' => 'mkbgs',
+                        'creation_id' => 42,
+                        'secret' => 'y-vf-erny_2401_pbasvezrq'
+                    );
+                    echo getCollabUrl($collab);
+                    ?>" />
+                    <button type="submit" class="toolbox-button">Ok</button>
+                </label>
+            </form>
+        </div>
     </div>
     <?php
 }

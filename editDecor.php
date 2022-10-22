@@ -1,16 +1,28 @@
 <?php
 if (isset($_GET['id'])) {
-	$decorId = $_GET['id'];
-	include('initdb.php');
-	if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
-		include('getId.php');
-		if ($decor['identifiant'] == $identifiants[0]) {
-			include('language.php');
-			include('utils-decors.php');
+    $decorId = $_GET['id'];
+    include('initdb.php');
+    if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
+        include('getId.php');
+        require_once('collabUtils.php');
+        $collabSuffix = '';
+        if ($decor['identifiant'] == $identifiants[0]) {
+            $hasReadGrants = true;
+            $hasWriteGrants = true;
+        }
+        else {
+            $collab = getCollabLinkFromQuery('mkdecors', $decor['extra_parent_id'] ?? $decorId);
+            $hasReadGrants = isset($collab['rights']['view']);
+            $hasWriteGrants = isset($collab['rights']['edit']);
+            if ($collab) $collabSuffix = '&amp;collab='. $collab['key'];
+        }
+        if ($hasReadGrants) {
+            include('language.php');
+            include('utils-decors.php');
             session_start();
             include('tokens.php');
             $decorSrcs = decor_sprite_srcs($decor['sprites']);
-			if (isset($_POST['name'])) {
+            if (isset($_POST['name']) && $hasWriteGrants) {
                 $decor['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);
                 mysql_query('UPDATE `mkdecors` SET name="'. $decor['name'] .'" WHERE id="'. $_GET['id'] .'"');
             }
@@ -20,49 +32,50 @@ if (isset($_GET['id'])) {
             $mW = 32;
             $imgL = $imgH;
             if ($imgL < $mW) {
-                $rescale = round($mW/$imgL);
+                $rescale = $imgL ? round($mW/$imgL) : 1;
                 $imgW *= $rescale;
                 $imgH *= $rescale;
             }
-			?>
+            ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/decor-editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 </head>
 <body>
-	<?php
+    <?php
     if (isset($_GET['error'])) {
         echo '<div id="error">'. $_GET['error'] .'</div>';
     }
-	if (isset($_GET['new'])) {
-		?>
-		<p id="success"><?php echo $language ? "Your decor has been created":"Votre décor a été créé"; ?></p>
-		<?php
-	}
-	elseif (isset($_POST['name'])) {
-		?>
-		<p id="success"><?php echo $language ? 'Decor renamed to &quot;'. $decor['name'] .'&quot;':'Décor renommé en &quot;'. $decor['name'] .'&quot;'; ?></p>
-		<?php
-	}
-	else {
-		?>
-		<h2><?php echo $language ? "Edit a decor":"Modifier un décor"; ?></h2>
-		<?php
-	}
-	?>
+    if (isset($_GET['new'])) {
+        ?>
+        <p id="success"><?php echo $language ? "Your decor has been created":"Votre décor a été créé"; ?></p>
+        <?php
+    }
+    elseif (isset($_POST['name'])) {
+        ?>
+        <p id="success"><?php echo $language ? 'Decor renamed to &quot;'. $decor['name'] .'&quot;':'Décor renommé en &quot;'. $decor['name'] .'&quot;'; ?></p>
+        <?php
+    }
+    else {
+        ?>
+        <h2><?php echo $language ? "Edit a decor":"Modifier un décor"; ?></h2>
+        <?php
+    }
+    ?>
     <div class="decors-list-container">
         <div class="decor-edit-preview">
             <div class="decor-preview" style="width:<?php echo $imgW; ?>px;height:<?php echo $imgH; ?>px">
                 <img src="<?php echo $decorSrcs['hd'] ?>" alt="<?php echo htmlspecialchars($decor['name']); ?>" />
             </div>
-            <a href="decorSprite.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? 'Edit image':'Modifier l\'image'; ?></a>
             <?php
+            if ($hasWriteGrants)
+                echo '<a href="decorSprite.php?id='. $_GET['id'] . $collabSuffix .'">'. ($language ? 'Edit image':'Modifier l\'image') .'</a>';
             if (isset($CUSTOM_DECOR_TYPES[$decor['type']]['extra_sprites'])) {
                 echo '<div class="decor-edit-extra">';
                 /** @var array $extraSprites */
@@ -81,8 +94,8 @@ if (isset($_GET['id'])) {
                         <div class="decor-preview" style="width:<?php echo $imgW; ?>px;height:<?php echo $imgH; ?>px">
                             <img src="<?php echo $decorSrcs['hd'] ?>" alt="<?php echo htmlspecialchars($extraSprite); ?>" />
                         </div>
-                        <a class="decor-edit" href="editDecor.php?id=<?php echo $extraDecor['id']; ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a>
-                        <a class="decor-del" href="delDecor.php?id=<?php echo $extraDecor['id']; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" onclick="return confirm('<?php echo $language ? 'Delete decor?':'Supprimer le décor ?' ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
+                        <a class="decor-edit" href="editDecor.php?id=<?php echo $extraDecor['id'] . $collabSuffix; ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a>
+                        <a class="decor-del" href="delDecor.php?id=<?php echo $extraDecor['id'] . $collabSuffix; ?>&amp;token=<?php echo $_SESSION['csrf']; ?>" onclick="return confirm('<?php echo $language ? 'Delete decor?':'Supprimer le décor ?' ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
                         <?php
                     }
                     else {
@@ -101,7 +114,7 @@ if (isset($_GET['id'])) {
                     echo '</div>';
                     if (!$extraDecor) {
                         ?>
-                        <form class="decor-extra-new decor-editor-form" id="decor-extra-new-<?php echo $extraSprite; ?>" method="post" enctype="multipart/form-data" action="editDecorExtra.php?parent=<?php echo $decor['id']; ?>">
+                        <form class="decor-extra-new decor-editor-form" id="decor-extra-new-<?php echo $extraSprite; ?>" method="post" enctype="multipart/form-data" action="editDecorExtra.php?parent=<?php echo $decor['id'] . $collabSuffix; ?>">
                             <input type="file" name="extraSprites:<?php echo $extraSprite; ?>" />
                             <button type="submit">Ok</button>
                         </form>
@@ -112,18 +125,18 @@ if (isset($_GET['id'])) {
             }
             ?>
         </div>
-        <form method="post" id="decor-edit-form" class="decor-editor-form" action="editDecor.php?id=<?php echo $_GET['id']; ?>">
+        <form method="post" id="decor-edit-form" class="decor-editor-form" action="editDecor.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">
             <?php
             if (!$decor['extra_parent_id']) {
                 ?>
             <label for="name"><?php echo $language ? 'Name for your decor (optional):':'Nom pour votre décor (facultatif) :'; ?></label>
-            <input type="text" maxlength="30" name="name" id="name" placeholder="<?php echo $language ? 'Red pipe':'Tuyau rouge'; ?>" value="<?php echo htmlspecialchars($decor['name']); ?>" />
-            <button type="submit">Ok</button>
+            <input type="text" maxlength="30" name="name" id="name" placeholder="<?php echo $language ? 'Red pipe':'Tuyau rouge'; ?>" value="<?php echo htmlspecialchars($decor['name']); ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> />
+            <button type="submit"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?>>Ok</button>
                 <?php
             }
             ?>
             <div class="advances-options">
-                +<a href="decorOptions.php?id=<?php echo $_GET['id']; ?>">
+                +<a href="decorOptions.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">
                     <?php echo $language ? 'Advanced options':'Options avancées'; ?>...
                 </a>
             </div>
@@ -141,7 +154,7 @@ if (isset($_GET['id'])) {
             <div class="decor-preview" style="width:<?php echo $imgW; ?>px;height:<?php echo $imgH; ?>px">
                 <img src="<?php echo $decorSrcs['hd'] ?>" alt="<?php echo htmlspecialchars($decor['name']); ?>" />
             </div>
-            <a href="editDecor.php?id=<?php echo $decor['extra_parent_id']; ?>">&lt; &nbsp;<u><?php echo $language ? 'Back to main decor':'Retour au décor principal'; ?></u></a>
+            <a href="editDecor.php?id=<?php echo $decor['extra_parent_id'] . $collabSuffix; ?>">&lt; &nbsp;<u><?php echo $language ? 'Back to main decor':'Retour au décor principal'; ?></u></a>
         </div><br />
         <?php
         }
@@ -174,9 +187,9 @@ if (isset($_GET['id'])) {
     </script>
 </body>
 </html>
-		<?php
-		}
-	}
-	mysql_close();
+        <?php
+        }
+    }
+    mysql_close();
 }
 ?>

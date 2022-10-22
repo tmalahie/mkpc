@@ -7,7 +7,9 @@ $success = (isset($_GET['x'])&&isset($_GET['y']))+isset($_GET['pivot']);
 $src = isset($_GET['arenes']) ? 'course':'map';
 $db = isset($_GET['arenes']) ? 'arenes':'circuits';
 $isrc = isset($_GET['arenes']) ? 'coursepreview':'racepreview';
-if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `'.$db.'` WHERE id="'.$id.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
+require_once('collabUtils.php');
+$requireOwner = !hasCollabGrants($db, $id, $_GET['collab'], 'edit');
+if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,identifiant2,identifiant3,identifiant4 FROM `'.$db.'` WHERE id="'.$id.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
 	require_once('circuitImgUtils.php');
 	$circuitImg = json_decode($circuit['img_data']);
 	$ext = $circuitImg->ext;
@@ -18,9 +20,11 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `'.$db.'` 
 			$limitMb  = ($isUploaded ? 1 : 5);
 			if ($poids < $limitMb*1000000) {
 				include('file-quotas.php');
-				if ($isUploaded)
-					$poids += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id):array('circuit'=>$id));
-				if ($poids < MAX_FILE_SIZE) {
+				if ($isUploaded) {
+					$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
+					$poids += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id,'identifiants'=>$ownerIds):array('circuit'=>$id,'identifiants'=>$ownerIds));
+				}
+				if ($poids < file_total_quota($circuit)) {
 					$fileType = mime_content_type($_FILES['image']['tmp_name']);
 					$extensions = array(
 						'image/png' => 'png',
@@ -205,10 +209,7 @@ elseif (isset($error))
 else
 	echo '<p>&nbsp;</p>';
 ?>
-<form method="post" enctype="multipart/form-data" action="?i=<?php
-	echo $id;
-	if (isset($_GET['arenes'])) echo '&arenes=1';
-?>">
+<form method="post" enctype="multipart/form-data" action="">
 <fieldset>
 <legend><?php echo $language ? 'Change circuit image':'Modifier l\'image du circuit'; ?></legend>
 <p>
@@ -235,6 +236,7 @@ if ($circuitImg->local) {
 <label for="apercuauto"><input type="checkbox" id="apercuauto" checked="checked" onchange="if(!this.checked)window.parent.resetImageOptions()" /> <?php echo $language ? 'Auto preview':'Aper&ccedil;u automatique'; ?></label><br />
 <input type="hidden" name="id" value="<?php echo $id ?>" />
 <?php if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />'; ?>
+<?php if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />'; ?>
 <input type="submit" value="Valider" id="redimensionner" disabled="disabled" /></p>
 </fieldset>
 </form>
@@ -250,6 +252,7 @@ for ($i=0;$i<5;$i++)
 ?>
 <input type="hidden" name="id" value="<?php echo $id ?>" />
 <?php if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />'; ?>
+<?php if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />'; ?>
 <input type="submit" value="<?php echo $language ? 'Submit':'Valider'; ?>" id="pivoter" disabled="disabled" />
 </fieldset>
 </form>

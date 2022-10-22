@@ -10,7 +10,8 @@ if (isset($_GET['id'])) {
 	$decorId = $_GET['id'];
 	if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
 		include('getId.php');
-		if ($decor['identifiant'] == $identifiants[0]) {
+		require_once('collabUtils.php');
+		if (($decor['identifiant'] == $identifiants[0]) || hasCollabGrants('mkdecors', $decor['extra_parent_id'], $_GET['collab'], 'edit')) {
 			mysql_query('DELETE FROM `mkdecors` WHERE id="'. $decorId .'"');
 			include('utils-decors.php');
 			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
@@ -21,11 +22,12 @@ if (isset($_GET['id'])) {
 				delete_decor_sprite_imgs($extraSpriteSrcs);
 				mysql_query('DELETE FROM `mkdecors` WHERE id="'. $extraDecor['id'] .'"');
 			}
-			if ($decor['extra_parent_id'])
-				header('location: editDecor.php?id='.$decor['extra_parent_id']);
-			else
-				header('location: decorEditor.php');
 		}
+		$collabSuffix = isset($_GET['collab']) ? '&collab='.$_GET['collab'] : '';
+		if ($decor['extra_parent_id'])
+			header('location: editDecor.php?id='.$decor['extra_parent_id'].$collabSuffix);
+		else
+			header('location: decorEditor.php'.$collabSuffix);
 	}
 	mysql_close();
 }

@@ -355,6 +355,7 @@ CREATE TABLE `mkchisto` (
   `identifiant2` int(10) unsigned NOT NULL,
   `identifiant3` int(10) unsigned NOT NULL,
   `identifiant4` int(10) unsigned NOT NULL,
+  `list` enum('all','unlocked','collab') NOT NULL DEFAULT 'all',
   `acceleration` float NOT NULL,
   `speed` float NOT NULL,
   `handling` float NOT NULL,
@@ -462,6 +463,19 @@ CREATE TABLE `mkclwin` (
   UNIQUE KEY `challenge` (`challenge`,`player`),
   KEY `player` (`player`),
   KEY `date` (`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkcollablinks` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `type` enum('arenes','circuits','mkcircuits','mkcups','mkmcups','mkchars','mkdecors','mkbgs') NOT NULL,
+  `creation_id` int(11) NOT NULL,
+  `secret` char(24) NOT NULL,
+  `rights` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `secret` (`secret`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

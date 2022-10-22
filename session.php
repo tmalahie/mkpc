@@ -25,7 +25,7 @@ if (!$id) {
 			include('setId.php');
 		}
 		else
-			setcookie('mkp', null, 0, '/');
+			setcookie('mkp', '', 0, '/');
 	}
 	if ($dbToOpen)
 		mysql_close();

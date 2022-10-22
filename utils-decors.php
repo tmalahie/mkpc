@@ -155,14 +155,20 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
             }
         }
     }
-    $poids = file_total_size(($decor&&$isParentFile) ? array('decor'=>$decor['id']):array());
+    $fileSizeOptions = null;
+    if ($decor) {
+        $fileSizeOptions['identifiants'] = array($decor['identifiant']);
+        if ($isParentFile)
+            $fileSizeOptions['decor'] = $decor['id'];
+    }
+    $poids = file_total_size($fileSizeOptions);
     foreach ($files as &$fileData) {
         $file = $fileData['payload'];
         if (!$file['error']) {
             $filesize = $file['size'];
             if ($filesize < 1000000) {
                 $poids += $filesize;
-                if ($poids < MAX_FILE_SIZE) {
+                if ($poids < file_total_quota($decor)) {
                     $ext = get_img_ext($file['tmp_name']);
                     $extensions = Array('png', 'gif', 'jpg', 'jpeg');
                     if (in_array($ext, $extensions)) {
@@ -186,12 +192,13 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
     }
     unset($fileData);
     $parentFileId = $decor ? $decor['id'] : null;
+    $ownerId = $decor ? $decor['identifiant'] : $identifiants[0];
     foreach ($files as &$fileData) {
         $file = $fileData['payload'];
         $spriteSizes = $fileData['sprite_sizes'];
         if (!$fileData['id']) {
             mysql_query('INSERT INTO `mkdecors` SET
-                type="'. $fileData['type'] .'",identifiant="'. $identifiants[0] .'"'.
+                type="'. $fileData['type'] .'",identifiant="'. $ownerId .'"'.
                 ($fileData['extraType'] ? ',extra_parent_id="'. $parentFileId .'"':'')
             );
             $fileData['id'] = mysql_insert_id();

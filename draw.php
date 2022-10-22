@@ -10,7 +10,20 @@ $musicOptions = $language
 if (isset($_GET['i'])) {
 	$circuitId = intval($_GET['i']);
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT * FROM circuits WHERE id="'. $circuitId .'"'))) {
-		if ((($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) || (($identifiants[0] == 1390635815) && !$identifiants[1] && !$identifiants[2] && !$identifiants[3])) {
+		require_once('collabUtils.php');
+		if (($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) {
+			$hasReadGrants = true;
+			$hasWriteGrants = true;
+		}
+		elseif ($collab = getCollabLinkFromQuery('circuits', $circuitId)) {
+			$hasReadGrants = isset($collab['rights']['view']);
+			$hasWriteGrants = isset($collab['rights']['edit']);
+		}
+		else {
+			$hasReadGrants = ($identifiants[0] == 1390635815);
+			$hasWriteGrants = false;
+		}
+		if ($hasReadGrants) {
 			if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM circuits_data WHERE id="'. $circuitId .'"')))
 				$circuitData = gzuncompress($getCircuitData['data']);
 			$circuitImg = json_decode($circuit['img_data']);
@@ -31,13 +44,15 @@ if (isset($_GET['i'])) {
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
 		var isBattle = false;
+		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/editor.js?reload=1"></script>
+		<script type="text/javascript" src="scripts/xhr.js"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
 		<script type="text/javascript" src="scripts/draw.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
-		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
+		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?> onmousemove="handleMove(event)" onclick="handleClick(event)">
 			<div id="editor-ctn">
 				<img id="editor-img" src="<?php echo getCircuitImgUrl($circuitImg); ?>" alt="Circuit" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
 				<svg id="editor" class="editor" />
@@ -219,9 +234,15 @@ if (isset($_GET['i'])) {
 				Zoom:<div><img src="images/editor/zoom-less.png" class="fancy-title" onclick="zoomLess()" title="<?php echo $language ? 'Unzoom':'Dézoomer'; ?> (Ctrl+↓)" /><span id="zoom-value">100</span>%<img src="images/editor/zoom-more.png" class="fancy-title" onclick="zoomMore()" title="<?php echo $language ? 'Zoom':'Zoomer'; ?> (Ctrl+↑)" /></div>
 			</div>
 			<div id="history-ctrl">
+			<?php
+			if ($hasWriteGrants) {
+				?>
 				<img src="images/editor/undo.png" class="fancy-title" onclick="undo()" title="<?php echo $language ? 'Undo':'Annuler'; ?> (Ctrl+Z)" />
 				<div><?php echo $language ? 'History':'Historique'; ?></div>
 				<img src="images/editor/redo.png" class="fancy-title" onclick="redo()" title="<?php echo $language ? 'Redo':'Refaire'; ?> (Ctrl+Y)" />
+				<?php
+			}
+			?>
 			</div>
 			<div id="editor-theme">
 				<?php echo $language ? 'Theme:':'Thème :'; ?>
@@ -231,7 +252,7 @@ if (isset($_GET['i'])) {
 				</div>
 			</div>
 			<div id="save-buttons">
-				<button class="toolbox-button fancy-title fancy-title-center" onclick="saveData()" title="Ctrl+S"><?php echo $language ? 'Save':'Sauvegarder'; ?></button>
+				<button class="toolbox-button fancy-title fancy-title-center" onclick="saveData()"<?php if ($hasWriteGrants) echo ' title="Ctrl+S"'; else echo ' disabled="disabled" title="'. ($language ? 'Read-only' : 'Lecture seule') .'"'; ?>><?php echo $language ? 'Save':'Sauvegarder'; ?></button>
 			</div>
 			<div id="editor-back">
 				<a href="javascript:showHelp()"><?php echo $language ? 'Help':'Aide'; ?></a>
@@ -933,7 +954,10 @@ if (isset($_GET['i'])) {
 			<?php
 		}
 		?>
-		<iframe id="image-options" class="fs-popup" src="changeMap.php?i=<?php echo $circuitId; ?>" onclick="event.stopPropagation()"></iframe>
+		<iframe id="image-options" class="fs-popup" src="changeMap.php?i=<?php
+			echo $circuitId;
+			if (isset($collab)) echo '&collab='.$collab['key'];
+		?>" onclick="event.stopPropagation()"></iframe>
 	</body>
 </html>
 			<?php
@@ -957,7 +981,7 @@ else {
 		<?php
 		include('o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";

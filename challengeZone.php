@@ -198,7 +198,7 @@ body {
 </style>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
-var editorType = "<?php echo htmlspecialchars($type); ?>";
+var editorType = "<?php if ($type) echo htmlspecialchars($type); ?>";
 function getRelativePos(e,parent) {
 	var rect = parent.getBoundingClientRect();
 	return {

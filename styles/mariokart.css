@@ -520,6 +520,9 @@ form[name="modes"] {
 #shareParams {
     text-align: center
 }
+#shareParams .br-small {
+    line-height: 0.5em;
+}
 .chatLink {
     color: white
 }

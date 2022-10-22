@@ -12,8 +12,9 @@ require_once('persos.php');
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/perso-editor.css" />
+<link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
+<script type="text/javascript" src="scripts/xhr.js"></script>
 <script type="text/javascript">
 var PERSO_DIR = "<?php echo PERSOS_DIR; ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;
@@ -88,7 +89,7 @@ function houtPerso(list,id) {
 var persoId = -1;
 function selectPerso(list,id) {
 	var div = document.getElementById(list+"persoctn-"+id);
-	if ((list != "all" && list != "unlocked") || div.dataset.mine) {
+	if ((list != "all" && list != "unlocked" && list != "collab") || div.dataset.mine) {
 		if (window.opener) {
 			window.opener.selectPerso(id);
 			window.close();
@@ -116,58 +117,11 @@ function restoreStats() {
 	}
 	updateCursors();
 }
-function xhr(page, send, onload, backoff) {
-	if (!backoff)
-		backoff = 1000;
-	var xhr_object;
-	if (window.XMLHttpRequest || window.ActiveXObject) {
-		if (window.ActiveXObject) {
-			try {
-				xhr_object = new ActiveXObject("Msxml2.XMLHTTP");
-			}
-			catch(e) {
-				xhr_object = new ActiveXObject("Microsoft.XMLHTTP");
-			}
-		}
-		else
-			xhr_object = new XMLHttpRequest(); 
-	}
-	xhr_object.open("POST", page, true);
-	xhr_object.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-	xhr_object.setRequestHeader("If-Modified-Since", "Wed, 15 Nov 1995 00:00:00 GMT");
-	try {
-		xhr_object.onload = function () {
-			if (xhr_object.status == 200) {
-				if (!onload(xhr_object.responseText)) {
-					setTimeout(function() {
-						xhr(page,send,onload,backoff*2);
-					}, backoff);
-				}
-			}
-			else
-				xhr_object.onerror();
-		};
-		xhr_object.onerror = function () {
-			setTimeout(function() {
-				xhr(page,send,onload, backoff*2);
-			}, backoff);
-		};
-	}
-	catch (e) {
-		xhr_object.onreadystatechange = function () {
-			if ((xhr_object.readyState == 4) && !onload(xhr_object.responseText)) {
-				setTimeout(function() {
-					xhr(page,send,onload,backoff*2);
-				}, backoff);
-			}
-		};
-	}
-	xhr_object.send(send);
-}
 function confirmStats() {
 	document.forms["perso-form"].style.visibility = "hidden";
+	var list = document.getElementById("perso-stats-mask").dataset.list;
 	document.getElementById("perso-stats-mask").onclick = undefined;
-	var apiParams = "id="+persoId;
+	var apiParams = "id="+persoId+"&list="+list;
 	for (var i=0;i<statTypes.length;i++) {
 		var statType = statTypes[i];
 		apiParams += "&"+ statType +"="+ document.getElementById(statType).value;
@@ -299,16 +253,11 @@ function toggleSearch() {
 }
 <?php
 $unlocked = array();
-$unlockedIds = array();
 if ($id) {
 	$unlockedPersos = mysql_query('SELECT c.* FROM `mkclrewarded` rw INNER JOIN `mkclrewards` r ON rw.reward=r.id INNER JOIN `mkchars` c ON r.charid=c.id WHERE rw.player='. $id .' ORDER BY rw.id DESC');
-	while ($unlockedPerso = mysql_fetch_array($unlockedPersos)) {
+	while ($unlockedPerso = mysql_fetch_array($unlockedPersos))
 		$unlocked[] = array(get_perso_payload($unlockedPerso),array(+$unlockedPerso['acceleration'],+$unlockedPerso['speed'],+$unlockedPerso['handling'],+$unlockedPerso['mass']));
-		$unlockedIds[] = $unlockedPerso['id'];
-	}
 }
-$unlockedIdsString = implode(',', $unlockedIds);
-if (!$unlockedIdsString) $unlockedIdsString = '0';
 ?>
 var persosLists = {
 	"my":<?php
@@ -319,7 +268,7 @@ var persosLists = {
 	echo json_encode($my);
 	?>,
 	"hist":<?php
-	$histPersos = mysql_query('SELECT c.*,h.acceleration,h.speed,h.handling,h.mass FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND (c.author IS NOT NULL OR c.id IN ('.$unlockedIdsString.')) WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC, id DESC LIMIT 100');
+	$histPersos = mysql_query('SELECT c.*,h.acceleration,h.speed,h.handling,h.mass FROM `mkchisto` h INNER JOIN `mkchars` c ON h.id=c.id AND (c.author IS NOT NULL OR h.list IN ("unlocked", "collab")) WHERE h.identifiant='.$identifiants[0].' AND h.identifiant2='.$identifiants[1].' AND h.identifiant3='.$identifiants[2].' AND h.identifiant4='.$identifiants[3].' ORDER BY date DESC, id DESC LIMIT 100');
 	$hist = array();
 	while ($histPerso = mysql_fetch_array($histPersos))
 		$hist[] = array(get_perso_payload($histPerso),array(+$histPerso['acceleration'],+$histPerso['speed'],+$histPerso['handling'],+$histPerso['mass']));
@@ -399,13 +348,73 @@ function refreshPersoList() {
 		return true;
 	});
 }
+function showCollabLinkHelp() {
+	alert(language ? "Enter the characters's collaboration link here.\nTo get this link, the character owner will simply need to select the character in the editor and click on \"Collaborate\"" : "Saisissez ici le lien de collaboration du perso.\nPour obtenir ce lien, le propriétaire du perso devra simplement sélectionner le perso dans l'éditeur et cliquer sur \"Collaborer\"");
+}
+function togglePersoCollab() {
+	var $persoListCollab = document.getElementById("persos-collab-form");
+	if ($persoListCollab.style.display)
+		$persoListCollab.style.display = "";
+	else {
+		$persoListCollab.style.display = "block";
+		$persoListCollab.elements["collab-link"].focus();
+	}
+}
+function handlePersoCollabSubmit(e) {
+	e.preventDefault();
+	var $form = e.target;
+	var url = $form.elements["collab-link"].value;
+	var creationId, creationKey;
+	try {
+		var urlParams = new URLSearchParams(new URL(url).search);
+		creationId = urlParams.get('id');
+		creationKey = urlParams.get('collab');
+	}
+	catch (e) {
+	}
+	if (!creationKey) {
+		alert(language ? "Invalid URL" : "URL invalide");
+		return;
+	}
+	var $submitBtn = $form.querySelector('input[type="submit"]');
+	$submitBtn.disabled = true;
+	xhr("importCollabPerso.php", "id="+creationId+"&collab="+creationKey, function(res) {
+		$submitBtn.disabled = false;
+		if (!res) {
+			alert(language ? "Invalid link" : "Lien invalide");
+			return true;
+		}
+		res = JSON.parse(res);
+		var persoData = [];
+		persoData[P_ID] = res.id;
+		persoData[P_UID] = res.sprites;
+		persoData[P_NAME] = res.name;
+		persoData[P_AUTHOR] = res.author;
+		persoData[P_MAP] = res.map;
+		persoData[P_PODIUM] = res.podium;
+		var persoStats = [
+			res.acceleration,
+			res.speed,
+			res.handling,
+			res.mass
+		];
+		persosLists.collab = [[
+			persoData,
+			persoStats
+		]];
+		updatePersoList("collab");
+		selectPerso("collab", res.id);
+
+		return true;
+	});
+}
 document.addEventListener("DOMContentLoaded", function() {
 	for (var listKey in persosLists)
 		updatePersoList(listKey);
 	refreshPersoList();
 });
 </script>
-<script type="text/javascript" src="scripts/perso-stats.js"></script>
+<script type="text/javascript" src="scripts/perso-stats.js?reload=1"></script>
 <script type="text/javascript">
 var onUpdateCursors = updateCursors;
 updateCursors = function() {
@@ -487,6 +496,7 @@ updateCursors = function() {
 		<a href="#null" onclick="sortPersos(this,'playcount');return false"><?php echo $language ? 'Most&nbsp;played':'Les&nbsp;plus&nbsp;joués'; ?></a>
 	</div>
 	<div class="persos-list" id="persos-list-all" onscroll="handleListScroll(this)"></div>
+	<div class="persos-list" id="persos-list-collab"></div>
 	<div class="persos-list-more">
 		<span style="color:#DBE;font-size:0.8em;display:inline-block;-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);-o-transform: rotate(45deg);transform: rotate(45deg);">&#9906;</span>
 		<a href="#null" onclick="toggleSearch();return false"><?php echo $language ? "Search characters":"Rechercher un perso"; ?></a>
@@ -494,6 +504,27 @@ updateCursors = function() {
 	<form id="persos-list-search" name="persos-list-search">
 		<div><?php echo $language ? 'Name:':'Nom :'; ?> <input type="text" name="perso-name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" oninput="filterSearch()" /></div>
 		<div><?php echo $language ? 'Author:':'Auteur :'; ?> <input type="text" name="perso-author" placeholder="Wargor" oninput="filterSearch()" /></div>
+	</form>
+	<div class="persos-list-more persos-list-more-collab">
+		<strong style="color:#42C2F2;font-size:0.7em"><?php echo urldecode('%F0%9F%94%97'); ?></strong> <a href="javascript:togglePersoCollab()"><?php echo $language ? "Import from collaboration link":"Importer via un lien de collaboration"; ?></a>
+	</div>
+	<form id="persos-collab-form" name="persos-collab-form" onsubmit="handlePersoCollabSubmit(event)">
+		<label>
+			<span><?php
+			echo $language ? 'Link':'Lien';
+			?><a href="javascript:showCollabLinkHelp()">[?]</a>:
+			</span>
+			<input type="url" name="collab-link" placeholder="<?php
+			require_once('collabUtils.php');
+			$collab = array(
+				'type' => 'mkchars',
+				'creation_id' => 42,
+				'secret' => 'y-vf-erny_2401_pbasvezrq'
+			);
+			echo getCollabUrl($collab);
+			?>" />
+			<input type="submit" value="Ok" />
+		</label>
 	</form>
 	</div>
 	<div id="perso-info">
