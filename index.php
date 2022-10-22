@@ -461,7 +461,7 @@ $slidesPath = 'images/slides';
 							The <strong>MKPC lounge</strong> has arrived!<br />
 							Play with other members in online games and climb in the rankings!<br />
 							For more information, check <a href="topic.php?topic=10101">this topic</a>
-							and join the official <a href="https://discord.gg/TqzGYAwW" target="_blank">Discord server</a> of the lounge.
+							and join the official <a href="https://discord.gg/jsYtJcUF7F" target="_blank">Discord server</a> of the lounge.
 							<?php
 						}
 						else {
@@ -469,7 +469,7 @@ $slidesPath = 'images/slides';
 							Le <strong>lounge MKPC</strong> a commencé&nbsp;!<br />
 							Affrontez d'autres membres sur des courses en ligne et grimpez dans le classement&nbsp;!<br />
 							Pour plus d'informations, lisez <a href="topic.php?topic=10101">ce topic</a>
-							et rejoignez le <a href="https://discord.gg/TqzGYAwW" target="_blank">serveur Discord</a> officiel du lounge.
+							et rejoignez le <a href="https://discord.gg/jsYtJcUF7F" target="_blank">serveur Discord</a> officiel du lounge.
 							<?php
 						}
 						?>
