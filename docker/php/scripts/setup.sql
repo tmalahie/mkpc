@@ -184,6 +184,28 @@ CREATE TABLE `mkb` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkbadmsglog` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `player` int(11) NOT NULL,
+  `course` int(11) NOT NULL,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `message` varchar(255) NOT NULL,
+  `code` tinyint(4) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkbadwords` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `word` varchar(255) NOT NULL,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `word` (`word`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkbans` (
   `player` int(11) NOT NULL,
   `msg` text NOT NULL,
@@ -303,6 +325,7 @@ CREATE TABLE `mkchat` (
   `course` int(10) NOT NULL,
   `auteur` int(10) NOT NULL,
   `message` text NOT NULL,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `course` (`course`),
   KEY `auteur` (`auteur`)
