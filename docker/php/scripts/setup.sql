@@ -1002,6 +1002,15 @@ CREATE TABLE `mko` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkofficialmsgread` (
+  `player` int(11) NOT NULL,
+  `message` varchar(255) NOT NULL,
+  `read_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`player`,`message`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkp` (
   `id` tinyint(2) NOT NULL,
   `circuit` int(10) NOT NULL,
