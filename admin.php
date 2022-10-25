@@ -201,6 +201,12 @@ include('menu.php');
 				<div class="action-desc"><?php echo $language ? "In case of plagiarism or if eventual cheating (invisible character...)":"En cas de plagiat ou de risque de triche (perso invisible...)"; ?></div>
 			</a>
 		</li>
+		<li>
+			<a class="action-ctn" href="findByCreation.php">
+				<div class="action-title"><?php echo $language ? "Find the <strong>author</strong> of a given creation":"Trouver l'<strong>auteur</strong> d'une création"; ?></div>
+				<div class="action-desc"><?php echo $language ? "Find the creator of a circuit published by an anonymous user":"Retrouver le créateur d'un circuit publié par un utilisateur anonyme"; ?></div>
+			</a>
+		</li>
 	</ul>
 		<?php
 	}
