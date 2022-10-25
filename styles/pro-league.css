@@ -1,0 +1,67 @@
+#pro-league {
+	border: solid 2px #ccf;
+	border-radius: 2px;
+	margin-top: 5px;
+	margin-bottom: 10px;
+	font-size: 0.9em;
+	height: auto;
+	overflow: hidden;
+}
+#pro-league table {
+	width: 100%;
+	border-collapse: collapse;
+	color: white;
+}
+#pro-league th {
+	padding: 5px 0;
+}
+#pro-league th, #pro-league td {
+	text-align: center;
+	border: solid 1px white;
+}
+#pro-league tr:nth-child(2), #pro-league tr:nth-child(3), #pro-league tr:nth-child(4) {
+	font-weight: bold;
+}
+#pro-league tr:first-child {
+	background-color: #0F2E5F;
+	font-size: 0.9em;
+}
+#pro-league th {
+	padding: 0.25em 0.5em;
+}
+#pro-league td img {
+	width: 2em;
+}
+#pro-league td > div {
+	margin: 0.25em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 1em;
+}
+#pro-league tr:nth-child(2n+2) {
+	background-color: #3D4351;
+}
+#pro-league tr:nth-child(2n+3) {
+	background-color: #23262E;
+}
+#pro-league tr a {
+	text-decoration: none;
+	display: block;
+	padding: 8px 0;
+}
+#pro-league tr a:hover {
+	opacity: 0.6;
+}
+#pro-league + .link-extra {
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	margin-top: 7px;
+}
+#pro-league + .link-extra a {
+	color: #6AF;
+}
+#pro-league + .link-extra a:hover {
+	color: #09F;
+}

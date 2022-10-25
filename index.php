@@ -20,6 +20,7 @@ include('heads.php');
 ?>
 <link rel="stylesheet" href="styles/slider.css" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
+<link rel="stylesheet" href="styles/pro-league.css" />
 <?php
 include('o_online.php');
 ?>
@@ -669,6 +670,58 @@ $slidesPath = 'images/slides';
 			}
 			?>
 			<a class="right_section_actions action_button" href="listNews.php"><?php echo $language ? 'All news':'Toutes les news'; ?></a>
+		</div>
+		<div class="subsection">
+			<?php
+			display_sidebar('MKPC Pro League', 'topic.php?topic=10070');
+			?>
+			<h2><?php echo $language ? 'Current ranking':'Classement actuel'; ?></h2>
+			<div id="pro-league" class="right_subsection">
+				<table>
+					<tr>
+						<th><?php echo $language ? 'Rank':'Rang'; ?></th>
+						<th><?php echo $language ? 'Team':'Équipe'; ?></th>
+						<th>Score</th>
+					</tr>
+					<?php
+					$plRanking = array(
+						array(
+							'name' => 'Celestial Guardians',
+							'icon' => 'celestial-guardians.png',
+							'score' => 10
+						),
+						array(
+							'name' => 'Senko Nation',
+							'icon' => 'senko-nation.png',
+							'score' => 5
+						),
+						array(
+							'name' => 'Red Stari FC',
+							'icon' => 'red-stari.png',
+							'score' => 7
+						),
+					);
+					usort($plRanking, function($team1, $team2) {
+						return $team2['score'] - $team1['score'];
+					});
+					foreach ($plRanking as $i=>$team) {
+						?>
+						<tr>
+						<td><?php echo ($i+1); ?></td>
+						<td>
+							<div>
+								<img src="images/events/pro-league/<?php echo $team['icon']; ?>" alt="<?php echo $team['name']; ?>" />
+								<?php echo $team['name']; ?>
+							</div>
+						</td>
+						<td><?php echo $team['score']; ?></td>
+						</tr>
+						<?php
+					}
+					?>
+				</table>
+			</div>
+			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?php echo $language ? 'Tournament\'s Discord Server':'Serveur Discord du tournoi'; ?></a></div>
 		</div>
 		<div class="subsection">
 			<?php
