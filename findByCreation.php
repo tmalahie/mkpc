@@ -13,6 +13,93 @@ if (!hasRight('moderator')) {
 	exit;
 }
 include('getId.php');
+$resMessage = '';
+if (!empty($_GET['url'])) {
+    include('adminUtils.php');
+    $creationData = getCreationByUrl($_GET['url']);
+    if ($creationData) {
+        $creationId = $creationData['id'];
+        $creationType = $creationData['type'];
+        $creationPk = 'id';
+        $authorCol = 'auteur';
+    }
+    if (!$creationData) {
+        if (preg_match('#/images/sprites/uploads/(cp-\w+-\d+)(?:-\w+)?\.png$#', $_GET['url'], $matches)) {
+            $creationId = $matches[1];
+            $creationType = 'mkchars';
+            $creationPk = 'sprites';
+            $authorCol = 'author';
+        }
+    }
+    if (isset($creationType)) {
+        if ($getCreation = mysql_fetch_array(mysql_query('SELECT identifiant,'.$authorCol.' FROM `'. $creationType .'` WHERE '. $creationPk .'="'. $creationId .'"'))) {
+            $resMessage .= '<p>';
+            if (isset($_GET['created']))
+                $getPlayers = mysql_query('SELECT id,nom FROM mkjoueurs WHERE id="'. $_GET['created'] .'"');
+            else
+                $getPlayers = mysql_query('SELECT j.id,j.nom FROM mkprofiles p INNER JOIN mkjoueurs j ON p.id=j.id WHERE p.identifiant="'. $getCreation['identifiant'] .'"');
+            $nbPlayers = mysql_numrows($getPlayers);
+            if ($nbPlayers) {
+                $v = '';
+                $s = ($nbPlayers >= 2) ? 's' : '';
+                $have = $language ? (($nbPlayers >= 2) ? 'have':'has') : (($nbPlayers >= 2) ? 'ont':'a');
+                if (isset($_GET['created']))
+                    $resMessage .= $language ? "The following account has been created: " : "Le compte suivant a été créé : ";
+                else
+                    $resMessage .= $language ? "The following account$s $have been found: " : "Le$s compte$s suivant$s $have été trouvé$s : ";
+                while ($player = mysql_fetch_array($getPlayers)) {
+                    $resMessage .= $v.'<a href="profil.php?id='. $player['id'] .'"><strong>'.$player['nom'].'</strong></a>';
+                    $v = ', ';
+                }
+            }
+            elseif (isset($_GET['create'])) {
+                $pseudo = $getCreation[$authorCol];
+                $pseudo = preg_replace('#[^a-zA-Z0-9_\-]#', '', $pseudo);
+                if (!$pseudo)
+                    $pseudo = 'fake-account';
+                $pseudo0 = $pseudo;
+                $i = 0;
+                $userId = 0;
+                for ($i=-1;$i<100;$i++) {
+                    if ($i >= 0) {
+                        $pseudo = $pseudo0 . '_';
+                        if ($i)
+                            $pseudo .= $i;
+                    }
+                    mysql_query('INSERT IGNORE INTO `mkjoueurs` SET nom="'.$pseudo.'", code="********", joueur=0, choice_map=0, choice_rand=0, pts_vs=5000, pts_battle=5000, pts_challenge=0, online=2, banned=0, deleted=0');
+                    $userId = mysql_insert_id();
+                    if ($userId)
+                        break;
+                }
+                if ($userId) {
+                    mysql_query('INSERT INTO `mkprofiles` SET id='. $userId .', identifiant='.$getCreation['identifiant'].',identifiant2=0,identifiant3=0,identifiant4=0,avatar="",nick_color="'.$pseudo.'",nbmessages=0,email="",country=0,sub_date=CURDATE(),description=""');
+                    $get = $_GET;
+                    unset($get['create']);
+                    $get['created'] = $userId;
+                    header('location: findByCreation.php?'. http_build_query($get));
+                }
+            }
+            else {
+                $resMessage .= '<em>';
+                $resMessage .= $language ? "No account has been found" : "Aucun compte n'a été trouvé";
+                $resMessage .= '</em>';
+                $resMessage .= '. ';
+                $get = $_GET;
+                $get['create'] = 1;
+                $resMessage .= '<a href="findByCreation.php?'. http_build_query($get) .'" style="color: #080">';
+                $resMessage .= $language ? "Create account from user" : "Créer un compte à partir de l'utilisateur";
+                $resMessage .= '</a>';
+            }
+            $resMessage .= '</p>';
+        }
+        else {
+            $resMessage .= '<p class="error">'. ($language ? 'This circuit/character does not exist' : 'Ce circuit/perso n\'existe pas') .'</p>';
+        }
+    }
+    else {
+        $resMessage .= '<p class="error">'. ($language ? 'This URL does not correspond to a circuit/character URL' : 'Cette URL n\'est pas celle d\'un circuit ou d\'un perso') .'</p>';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -60,34 +147,6 @@ include('o_online.php');
 include('header.php');
 $page = 'game';
 include('menu.php');
-if (isset($_GET['del'])) {
-    if ($rating = mysql_fetch_array(mysql_query('SELECT type,circuit,identifiant FROM mkratings WHERE id="'. $_GET['del'] .'"'))) {
-        if ($circuit = mysql_fetch_array(mysql_query('SELECT nom,identifiant FROM `'. $rating['type'] .'` WHERE id='. $rating['circuit']))) {
-            if ($circuit['identifiant'] != $identifiants[0]) {
-                mysql_query('DELETE FROM mkratings WHERE id="'. $_GET['del'] .'"');
-                require_once('utils-ratings.php');
-                recomputeRating($rating['type'], $rating['circuit']);
-                mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "DRating '. $rating['type'] .' '. $rating['circuit'] .' '. $rating['identifiant'] .'")');
-            }
-        }
-    }
-}
-if (isset($_GET['url'])) {
-    include('adminUtils.php');
-    $creationData = getCreationByUrl($_GET['url']);
-    if ($creationData) {
-        $creationId = $creationData['id'];
-        $creationType = $creationData['type'];
-        $creationPk = 'id';
-    }
-    if (!$creationData) {
-        if (preg_match('#/images/sprites/uploads/(cp-\w+-\d+)(?:-\w+)?\.png$#', $_GET['url'], $matches)) {
-            $creationId = $matches[1];
-            $creationType = 'mkchars';
-            $creationPk = 'sprites';
-        }
-    }
-}
 ?>
 <main>
 	<h1><?php echo $language ? "Find author of creation":"Trouver l'auteur d'une création"; ?></h1>
@@ -117,43 +176,7 @@ if (isset($_GET['url'])) {
         <input type="submit" class="action_button" value="Ok" />
     </form>
     <?php
-    if (isset($_GET['url'])) {
-        if (isset($creationType)) {
-            if ($getCreation = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $creationType .'` WHERE '. $creationPk .'="'. $creationId .'"'))) {
-                echo '<p>';
-                $getPlayers = mysql_query('SELECT j.id,j.nom FROM mkprofiles p INNER JOIN mkjoueurs j ON p.id=j.id WHERE p.identifiant="'. $getCreation['identifiant'] .'"');
-                $nbPlayers = 0;//mysql_numrows($getPlayers);
-                if ($nbPlayers) {
-                    $v = '';
-                    $s = ($nbPlayers >= 2) ? 's' : '';
-                    $have = $language ? (($nbPlayers >= 2) ? 'have':'has') : (($nbPlayers >= 2) ? 'ont':'a');
-                    echo $language ? "The following account$s $have been found: " : "Le$s compte$s suivant$s $have été trouvé$s : ";
-                    while ($player = mysql_fetch_array($getPlayers)) {
-                        echo $v.'<a href="profil.php?id='. $player['id'] .'"><strong>'.$player['nom'].'</strong></a>';
-                        $v = ', ';
-                    }
-                }
-                else {
-                    echo '<em>';
-                    echo $language ? "No account has been found" : "Aucun compte n'a été trouvé";
-                    echo '</em>';
-                    echo '. ';
-                    $get = $_GET;
-                    $get['create'] = 1;
-                    echo '<a href="findByCreation.php?'. http_build_query($get) .'" style="color: #080">';
-                    echo $language ? "Create account from user" : "Créer un compte à partir de l'utilisateur";
-                    echo '</a>';
-                }
-                echo '</p>';
-            }
-            else {
-                echo '<p class="error">'. ($language ? 'This circuit/character does not exist' : 'Ce circuit/perso n\'existe pas') .'</p>';
-            }
-        }
-        else {
-            echo '<p class="error">'. ($language ? 'This URL does not correspond to a circuit/character URL' : 'Cette URL n\'est pas celle d\'un circuit ou d\'un perso') .'</p>';
-        }
-    }
+    echo $resMessage;
     ?>
 	<p><a href="admin.php"><?php echo $language ? 'Back to the admin page':'Retour à la page admin'; ?></a><br />
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
