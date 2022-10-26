@@ -681,24 +681,38 @@ $slidesPath = 'images/slides';
 					<tr>
 						<th><?php echo $language ? 'Rank':'Rang'; ?></th>
 						<th><?php echo $language ? 'Team':'Équipe'; ?></th>
-						<th>Score</th>
+						<th>Pts</th>
+						<th class="pl-l" title="<?php echo $language ? 'Wins - Losses - Ties' : 'Victoires - Défaites - Nuls'; ?>"><?php echo $language ? 'W-L-T' : 'V-D-N'; ?></th>
+						<th class="pl-xl" title="<?php echo $language ? 'Score difference' : 'Différence de score'; ?>"><?php echo $language ? 'Diff' : 'Diff'; ?></th>
 					</tr>
 					<?php
 					$plRanking = array(
 						array(
 							'name' => 'Celestial Guardians',
 							'icon' => 'celestial-guardians.png',
-							'score' => 10
+							'score' => 10,
+							'wins' => 3,
+							'losses' => 0,
+							'ties' => 1,
+							'diff' => 4
 						),
 						array(
 							'name' => 'Senko Nation',
 							'icon' => 'senko-nation.png',
-							'score' => 5
+							'score' => 5,
+							'wins' => 1,
+							'losses' => 1,
+							'ties' => 2,
+							'diff' => -3
 						),
 						array(
 							'name' => 'Red Stari FC',
 							'icon' => 'red-stari.png',
-							'score' => 7
+							'score' => 7,
+							'wins' => 2,
+							'losses' => 1,
+							'ties' => 1,
+							'diff' => 1
 						),
 					);
 					usort($plRanking, function($team1, $team2) {
@@ -715,6 +729,8 @@ $slidesPath = 'images/slides';
 							</div>
 						</td>
 						<td><?php echo $team['score']; ?></td>
+						<td class="pl-l"><?php echo $team['wins'].'-'.$team['losses'].'-'.$team['ties']; ?></td>
+						<td class="pl-xl"><?php echo $team['diff']; ?></td>
 						</tr>
 						<?php
 					}

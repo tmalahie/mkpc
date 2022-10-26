@@ -65,3 +65,25 @@
 #pro-league + .link-extra a:hover {
 	color: #09F;
 }
+@media screen and (min-width: 800px) {
+	@media (max-width: 1400px) {
+		.pl-l {
+			display: none;
+		}
+	}
+	@media (max-width: 1500px) {
+		.pl-xl {
+			display: none;
+		}
+	}
+}
+@media screen and (max-width: 450px) {
+	.pl-l {
+		display: none;
+	}
+}
+@media screen and (max-width: 500px) {
+	.pl-xl {
+		display: none;
+	}
+}
