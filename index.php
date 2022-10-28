@@ -671,6 +671,9 @@ $slidesPath = 'images/slides';
 			?>
 			<a class="right_section_actions action_button" href="listNews.php"><?php echo $language ? 'All news':'Toutes les news'; ?></a>
 		</div>
+		<?php
+		if (time() >= 1667070000) {
+			?>
 		<div class="subsection">
 			<?php
 			display_sidebar('MKPC Pro League', 'topic.php?topic=10070');
@@ -690,29 +693,29 @@ $slidesPath = 'images/slides';
 						array(
 							'name' => 'Celestial Guardians',
 							'icon' => 'celestial-guardians.png',
-							'score' => 10,
-							'wins' => 3,
+							'score' => 0,
+							'wins' => 0,
 							'losses' => 0,
-							'ties' => 1,
-							'diff' => 4
+							'ties' => 0,
+							'diff' => 0
 						),
 						array(
 							'name' => 'Senko Nation',
 							'icon' => 'senko-nation.png',
-							'score' => 5,
-							'wins' => 1,
-							'losses' => 1,
-							'ties' => 2,
-							'diff' => -3
+							'score' => 0,
+							'wins' => 0,
+							'losses' => 0,
+							'ties' => 0,
+							'diff' => 0
 						),
 						array(
 							'name' => 'Red Stari FC',
 							'icon' => 'red-stari.png',
-							'score' => 7,
-							'wins' => 2,
-							'losses' => 1,
-							'ties' => 1,
-							'diff' => 1
+							'score' => 0,
+							'wins' => 0,
+							'losses' => 0,
+							'ties' => 0,
+							'diff' => 0
 						),
 					);
 					usort($plRanking, function($team1, $team2) {
@@ -739,6 +742,9 @@ $slidesPath = 'images/slides';
 			</div>
 			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?php echo $language ? 'Tournament\'s Discord Server':'Serveur Discord du tournoi'; ?></a></div>
 		</div>
+			<?php
+		}
+		?>
 		<div class="subsection">
 			<?php
 			display_sidebar($language ? 'Track builder':'Éditeur de circuit', 'creations.php');
