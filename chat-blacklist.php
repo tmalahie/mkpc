@@ -31,7 +31,7 @@ elseif (isset($_GET['del'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Double accounts':'Double comptes'; ?> - Mario Kart PC</title>
+<title><?php echo $language ? 'Online chat blacklist':'Blacklist chat en ligne'; ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -46,6 +46,12 @@ form label {
 form label select {
     width: 200px;
 }
+form #action-label {
+    display: none;
+}
+form input[type="submit"] {
+    margin-top: 5px;
+}
 </style>
 <?php
 include('o_online.php');
@@ -58,24 +64,22 @@ $page = 'forum';
 include('menu.php');
 ?>
 <main>
-	<h1><?php echo $language ? 'Manage forbidden words in online chat':'Gérer les mots interdits du chat en ligne'; ?></h1>
+	<h1><?php echo $language ? 'Manage forbidden words in online chat':'Gérer les mots surveillés du chat en ligne'; ?></h1>
     <p><?php
     if ($language) {
         ?>
         This page allows you to manage a words blacklist in online mode chat.<br />
-        If a user sends text containing one of these words, the message will not be sent.<br />
-        Note that this restriction does not apply to private games.
-        <span style="display:block;line-height: 0.5em">&nbsp;</span>
-        You can also <a href="blacklist-logs.php">see blocked messages history</a>.
+        If a user sends a text containing one of these words, you will see it in the <a href="blacklist-logs.php"><strong>message logs</strong></a>.<br />
+        Depending on the word, you can decide to just log, block the message, or even mute the member.<br />
+        Note that this blacklist does not apply to private games.
         <?php
     }
     else {
         ?>
         Cette page vous permet de gérer une blacklist de mots dans le chat du mode en ligne.<br />
-        Si un utilisateur envoie un texte contenant un de ces mots, le message ne sera pas envoyé.<br />
-        Notez que cette restriction ne s'applique pas aux parties privées.
-        <span style="display:block;line-height: 0.5em">&nbsp;</span>
-        Vous pouvez aussi <a href="blacklist-logs.php">voir l'historique des messages bloqués</a>.
+        Si un utilisateur envoie un texte contenant un de ces mots, vous pourrez le voir dans les <a href="blacklist-logs.php"><strong>logs des messages</strong></a>.<br />
+        En fonction du mot, vous pouvez décider de juste logguer, bloquer le message, ou carrément muter le membre.<br />
+        Notez que cette blacklist ne s'applique pas aux parties privées.
         <?php
     }
     ?>
@@ -83,9 +87,9 @@ include('menu.php');
 	<form method="post" action="chat-blacklist.php">
         <label>
             <?php echo $language ? 'Add a word:' : 'Ajouter un mot :'; ?>
-            <input type="text" name="word" />
+            <input type="text" name="word" placeholder="fumier" onfocus="showAction()" />
         </label>
-        <label>
+        <label id="action-label">
             <?php echo $language ? 'Action:' : 'Action :'; ?>
             <select name="action">
                 <option value="none"><?php echo $language ? "None (just log message)" : "Aucune (logguer le message uniquement)"; ?></option>
@@ -93,9 +97,9 @@ include('menu.php');
                 <option value="mute"><?php echo $language ? "Don't send message + Mute member" : "Ne pas envoyer le message + Muter le membre"; ?></option>
             </select>
         </label>
-        <input type="submit" class="action_button" value="Ok" />
+        <input type="submit" class="action_button" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" />
 	</form>
-    <h2><?php echo ($language ? 'Banned words:' : 'Mots bannis :'); ?></h2>
+    <h2><?php echo ($language ? 'Current watched word list:' : 'Liste des mots surveillés :'); ?></h2>
     <table>
         <tr id="titres">
             <td style="min-width: 120px"><?php echo $language ? 'Word':'Mot'; ?></td>
@@ -109,7 +113,7 @@ include('menu.php');
             $action = null;
             switch ($blacklist['action']) {
             case 'none':
-                $action = 'None';
+                $action = $language ? 'None' : 'Aucune';
                 break;
             case 'block':
                 $action = 'Block msg';
@@ -139,5 +143,10 @@ include('menu.php');
 include('footer.php');
 mysql_close();
 ?>
+<script type="text/javascript">
+function showAction() {
+    document.getElementById("action-label").style.display = "block";
+}
+</script>
 </body>
 </html>

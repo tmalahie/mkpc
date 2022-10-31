@@ -10,7 +10,7 @@ include('utils-date.php');
 $logTemplates = array(
     'award' => function($var) {
         global $language;
-        return '<strong>{{table.mkawards(id='.$var.').name|global.ifEmpty("'. ($language ? 'Deleted award':'Titre supprimé') .'")}}</strong>';
+        return '<strong>{{table.mkawards(id='.$var.').name|global.ifEmpty("</strong><em>'. ($language ? 'Deleted award':'Titre supprimé') .'</em><strong>")}}</strong>';
     },
     'challenge' => function($var) {
         global $language;
@@ -43,7 +43,7 @@ $logMapping = array(
             global $logTemplates, $language;
             if (isset($group[2]))
                 return ($language ? 'deleted message #$2 in topic ' : 'a supprimé le message #$2 dans le topic ') . $logTemplates['topic']('$1');
-            return 'deleted the topic #$1';
+            return $language ? 'deleted topic #$1' : 'a supprimé le topic #$1';
         },
         'role' => 'moderator'
     ),

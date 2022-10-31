@@ -182,8 +182,10 @@ include('menu.php');
 				$chatIds[] = $chat['course'];
 			}
 		}
-		if (empty($chatIds))
+		if (empty($chatIds)) {
 			echo '&nbsp; ' . ($language ? 'No result found' : 'Aucun résultat trouvé');
+			$nbPages = 0;
+		}
 		else {
 			$chatIdsString = implode(',', $chatIds);
 			$getNbConvs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkchat` WHERE course IN ('. $chatIdsString .')'));

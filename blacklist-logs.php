@@ -65,19 +65,19 @@ $page = 'forum';
 include('menu.php');
 ?>
 <main>
-	<h1><?php echo $language ? 'Censored messages logs':'Logs des messages censurés'; ?></h1>
+	<h1><?php echo $language ? 'Blacklisted messages logs':'Logs des messages blacklistés'; ?></h1>
     <p>
         <?php
         if ($language) {
             ?>
-            This page shows the list of posts that have been blocked by the moderation bot.<br />
+            This page shows the list of messages that have been detected by the moderation bot.<br />
             This can be used to take actions on the concerned members,<br />
             or on the contrary to soften the blocking rules in case of a false positive.
             <?php
         }
         else {
             ?>
-            Cette page affiche la liste des messages qui ont été bloqués par le bot de modération.<br />
+            Cette page affiche la liste des messages qui ont été détectés par le bot de modération.<br />
             Cela peut servir pour effectuer des actions sur les membres concernés,<br />
             ou au contraire pour assouplir les règles de bloquage en cas de faux positif.
             <?php
@@ -89,7 +89,7 @@ include('menu.php');
         <td><?php echo $language ? 'Member' : 'Membre'; ?></td>
         <td>Date</td>
         <td id="log">Message</td>
-        <td><?php echo $language ? 'Block<br />Reason' : 'Raison du<br />bloquage'; ?></td>
+        <td><?php echo $language ? 'Log<br />Reason' : 'Raison<br />du log'; ?></td>
         </tr>
         <?php
         $RES_PER_PAGE = 20;
@@ -114,6 +114,8 @@ include('menu.php');
         <td><?php echo to_local_tz($log['date']); ?></td>
         <td><?php
             echo $log['message'];
+            if ($log['code'] === -3)
+                echo '...';
         ?>
         <a class="details" href="chat-logs.php?blacklist=<?php echo $log['id']; ?>#context">[<?php
             echo $language ? 'See logs in context' : 'Voir les logs en contexte';

@@ -43,6 +43,7 @@ if (!empty($_GET['url'])) {
                 $v = '';
                 $s = ($nbPlayers >= 2) ? 's' : '';
                 $have = $language ? (($nbPlayers >= 2) ? 'have':'has') : (($nbPlayers >= 2) ? 'ont':'a');
+                $resMessage .= '<div class="success-message">';
                 if (isset($_GET['created']))
                     $resMessage .= $language ? "The following account has been created: " : "Le compte suivant a été créé : ";
                 else
@@ -51,6 +52,8 @@ if (!empty($_GET['url'])) {
                     $resMessage .= $v.'<a href="profil.php?id='. $player['id'] .'"><strong>'.$player['nom'].'</strong></a>';
                     $v = ', ';
                 }
+                $resMessage .= '</div>';
+                $resMessage .= '<br /><em>'. ($language ? "Note: if you want to prevent the user from posting new creations, you'll have to IP-ban the account" : "Note : si vous souhaitez empêcher l'utilisateur de poster d'autres créations, il vous faudra ban-IP son compte") .'</em>';
             }
             elseif (isset($_GET['create'])) {
                 $pseudo = $getCreation[$authorCol];
@@ -136,6 +139,16 @@ table em {
 }
 main tr.clair a.action_button, main tr.fonce a.action_button {
     color: white;
+}
+.success-message {
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #9F9;
+    color: #031;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 0.5em;
 }
 </style>
 <?php

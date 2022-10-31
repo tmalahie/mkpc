@@ -131,7 +131,7 @@ include('menu.php');
 				}
 				else {
 					?>
-					Si vous pensez toujours que répondre à ce topic est approprié dans ce contexte, <a href="?<?php echo http_build_query($_GET); ?>&amp;force">cliquez ici</a>.
+					Si vous pensez que répondre à ce topic est approprié dans ce contexte, <a href="?<?php echo http_build_query($_GET); ?>&amp;force">cliquez ici</a>.
 					<?php
 				}
 				?>

@@ -98,15 +98,15 @@ include('menu.php');
 		if (hasRight('moderator')) {
 			?>
 		<li>
-			<a class="action-ctn" href="nick-history.php">
-				<div class="action-title"><?php echo $language ? "See <strong>nick change history</strong>":"Voir l'historique des <strong>changements de pseudo</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "To monitor people who would abuse of this option.":"Pour surveiller les membres qui abuseraient de cette option."; ?></div>
-			</a>
-		</li>
-		<li>
 			<a class="action-ctn" href="edit-pseudo.php">
 				<div class="action-title"><?php echo $language ? "Edit member <strong>nick</strong>":"Changer le <strong>pseudo</strong> d'un membre"; ?></div>
 				<div class="action-desc"><?php echo $language ? "Can be useful if a member has a troll nick for example":"Peut servir si un membre a un pseudo troll par exemple"; ?></div>
+			</a>
+		</li>
+		<li>
+			<a class="action-ctn" href="nick-history.php">
+				<div class="action-title"><?php echo $language ? "See <strong>nick change history</strong>":"Voir l'historique des <strong>changements de pseudo</strong>"; ?></div>
+				<div class="action-desc"><?php echo $language ? "To monitor people who would abuse of this option.":"Pour surveiller les membres qui abuseraient de cette option."; ?></div>
 			</a>
 		</li>
 			<?php
@@ -116,7 +116,7 @@ include('menu.php');
 			?>
 			<li>
 				<a class="action-ctn" href="updatepts.php">
-					<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in the <strong>online mode</strong>":"Donner/retirer des <strong>points</strong> dans le <strong>mode en ligne</strong>"; ?></div>
+					<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in <strong>online mode</strong>":"Donner/retirer des <strong>points</strong> dans le <strong>mode en ligne</strong>"; ?></div>
 					<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
 				</a>
 			</li>
@@ -164,14 +164,14 @@ include('menu.php');
 	<ul>
 		<li>
 			<a class="action-ctn" href="updatepts.php">
-				<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in the <strong>online mode</strong>":"Donner/retirer des <strong>points</strong> dans le mode en ligne"; ?></div>
+				<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in online mode":"Donner/retirer des <strong>points</strong> dans le mode en ligne"; ?></div>
 				<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="chat-blacklist.php">
-				<div class="action-title"><?php echo $language ? "Manage <strong>forbidden words</strong> in online chat":"Gestion des <strong>mots interdits</strong> dans le chat en ligne"; ?></div>
-				<div class="action-desc"><?php echo $language ? "All messages containing forbidden words will be blocked":"Les messages contenant ces mots ne seront pas envoyés"; ?></div>
+				<div class="action-title"><?php echo $language ? "Manage <strong>forbidden/watched words</strong> in online chat":"Gérer les <strong>mots interdits/surveillés</strong> dans le chat en ligne"; ?></div>
+				<div class="action-desc"><?php echo $language ? "All messages containing forbidden words will be blocked and/or logged":"Les messages contenant ces mots ne seront pas envoyés ou seront loggués"; ?></div>
 			</a>
 		</li>
 		<li>

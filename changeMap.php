@@ -230,14 +230,14 @@ if ($circuitImg->local) {
 <form method="post" action="redimensionne.php">
 <fieldset>
 <legend><?php echo $language ? 'Resize':'Redimensionner'; ?></legend>
-<p><?php echo $language ? 'Width':'Longueur'; ?> : <input type="text" name="x" value="<?php echo $circuitImg->w ?>" maxlength="4" size="1" onfocus="this.select()" onchange="if(document.getElementById('proportionnel').checked)this.form.y.value=Math.round(this.value*<?php echo $circuitImg->h ?>/<?php echo $circuitImg->w ?>);reForbid()" onblur="apercu()" /> 
-&nbsp; <?php echo $language ? 'Height':'Largeur'; ?> : <input type="text" name="y" value="<?php echo $circuitImg->h ?>" maxlength="4" size="1" onfocus="this.select()" onchange="if(document.getElementById('proportionnel').checked)this.form.x.value=Math.round(this.value*<?php echo $circuitImg->w ?>/<?php echo $circuitImg->h ?>);reForbid()" onblur="apercu()" /><br />
+<p><?php echo $language ? 'Width':'Longueur'; ?> : <input type="text" name="x" value="<?php echo $circuitImg->w ?>" maxlength="4" size="3" onfocus="this.select()" onchange="if(document.getElementById('proportionnel').checked)this.form.y.value=Math.round(this.value*<?php echo $circuitImg->h ?>/<?php echo $circuitImg->w ?>);reForbid()" onblur="apercu()" />
+&nbsp; <?php echo $language ? 'Height':'Largeur'; ?> : <input type="text" name="y" value="<?php echo $circuitImg->h ?>" maxlength="4" size="3" onfocus="this.select()" onchange="if(document.getElementById('proportionnel').checked)this.form.x.value=Math.round(this.value*<?php echo $circuitImg->w ?>/<?php echo $circuitImg->h ?>);reForbid()" onblur="apercu()" /><br />
 <label for="proportionnel"><input type="checkbox" id="proportionnel" checked="checked" /> <?php echo $language ? 'Keep proportions':'Conserver les proportions'; ?></label><br />
 <label for="apercuauto"><input type="checkbox" id="apercuauto" checked="checked" onchange="if(!this.checked)window.parent.resetImageOptions()" /> <?php echo $language ? 'Auto preview':'Aper&ccedil;u automatique'; ?></label><br />
 <input type="hidden" name="id" value="<?php echo $id ?>" />
 <?php if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />'; ?>
 <?php if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />'; ?>
-<input type="submit" value="Valider" id="redimensionner" disabled="disabled" /></p>
+<input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" id="redimensionner" disabled="disabled" /></p>
 </fieldset>
 </form>
 <form method="post" action="pivote.php">
@@ -253,7 +253,7 @@ for ($i=0;$i<5;$i++)
 <input type="hidden" name="id" value="<?php echo $id ?>" />
 <?php if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />'; ?>
 <?php if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />'; ?>
-<input type="submit" value="<?php echo $language ? 'Submit':'Valider'; ?>" id="pivoter" disabled="disabled" />
+<input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" id="pivoter" disabled="disabled" />
 </fieldset>
 </form>
 	<?php

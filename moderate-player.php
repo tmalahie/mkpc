@@ -201,7 +201,7 @@ if ($unban) {
                 <?php
             }
             ?>
-            <input type="submit" value="Valider" class="action_button" />
+            <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" />
 		</div>
 	</p>
 	</blockquote>
