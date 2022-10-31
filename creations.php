@@ -103,6 +103,10 @@ main input[type="text"]:hover {
 main input[type="text"]:focus {
 	background-color: #FFF6CC;
 }
+main input[type="url"] {
+	width: 200px;
+	padding: 2px;
+}
 main form div {
 	margin: 2px 0px;
 }
@@ -313,6 +317,7 @@ $tri = isset($_GET['tri']) ? $_GET['tri']:0;
 $type = isset($_GET['type']) ? $_GET['type']:'';
 $nom = isset($_GET['nom']) ? stripslashes($_GET['nom']):'';
 $auteur = isset($_GET['auteur']) ? stripslashes($_GET['auteur']):'';
+$url = isset($_GET['url']) ? stripslashes($_GET['url']):'';
 $pids = null;
 if (isset($_GET['user'])) {
 	$user = $_GET['user'];
@@ -321,19 +326,40 @@ if (isset($_GET['user'])) {
 }
 else
 	$user = '';
-$singleType = ($type !== '');
-if ($singleType) {
-	$aCircuits = array($aCircuits[$type]);
-	$weightsByType = array($weightsByType[$type]);
+if ($managing && $url) {
+    include('adminUtils.php');
+	$circuitData = getCreationByUrl($url);
+	if ($circuitData) {
+		$aParams = array(
+			'max_circuits' => 1,
+			'type' => $circuitData['filter'],
+			'id' => $circuitData['id']
+		);
+	}
+	else {
+		$aParams = array(
+			'max_circuits' => 0,
+			'type' => 0,
+			'id' => -1
+		);
+	}
 }
-$aParams = array(
-	'type' => $type,
-	'tri' => $tri,
-	'nom' => $nom,
-	'auteur' => $auteur,
-	'pids' => $pids,
-	'max_circuits' => $MAX_CIRCUITS,
-);
+else {
+	$aParams = array(
+		'type' => $type,
+		'tri' => $tri,
+		'nom' => $nom,
+		'auteur' => $auteur,
+		'pids' => $pids,
+		'max_circuits' => $MAX_CIRCUITS,
+	);
+}
+$pType = $aParams['type'];
+$singleType = ($pType !== '');
+if ($singleType) {
+	$aCircuits = array($aCircuits[$pType]);
+	$weightsByType = array($weightsByType[$pType]);
+}
 $nbByType = countTracksByType($aCircuits,$aParams);
 $creationsList = listCreations(1,$nbByType,$weightsByType,$aCircuits,$aParams);
 $nbCreations = array_sum($nbByType);
@@ -408,6 +434,19 @@ include('menu.php');
 			<input type="text" name="auteur" placeholder="<?php echo $language ? 'Author':'Auteur'; ?>" value="<?php echo htmlspecialchars($auteur); ?>" />
 			<input type="submit" value="Ok" class="action_button" />
 		</div>
+		<?php
+		if ($managing) {
+			?>
+			<div>
+				<label>
+					<?php echo $language ? '<em>OR</em> &nbsp;<strong>track URL</strong>':'<em>OU</em> &nbsp;<strong>URL Circuit</strong>'; ?> :
+					<input type="url" name="url" placeholder="https://mkpc.malahieude.net/map.php?i=42" value="<?php echo htmlspecialchars($url); ?>" />
+				</label>
+				<input type="submit" value="Ok" class="action_button" />
+			</div>
+			<?php
+		}
+		?>
 	</form>
 	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 	<!-- Forum MKPC -->

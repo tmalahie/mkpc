@@ -166,12 +166,10 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 		'nb' => $nbTracksTotal
 	);
 	if ($nbTracksTotal) {
-		if (!isset($params['type'])) $params['type'] = '';
 		if (!isset($params['tri'])) $params['tri'] = 0;
 		if (!isset($params['max_circuits'])) $params['max_circuits'] = $nbTracksTotal;
 		$nbsToLoadBegin = getTracksToLoad($page-1,$nbByType,$weightsByType,$params['max_circuits']);
 		$nbsToLoadEnd = getTracksToLoad($page,$nbByType,$weightsByType,$params['max_circuits']);
-		$type = $params['type'];
 		$tri = $params['tri'];
 		foreach ($aCircuits as $i=>$aCircuit) {
 			$aList = nextRaces($aCircuit,$nbsToLoadBegin[$i],$nbsToLoadEnd[$i],$params);
