@@ -17,8 +17,8 @@ if (!hasRight('moderator')) {
 	mysql_close();
 	exit;
 }
-if (!empty($_POST['word'])) {
-    mysql_query('INSERT IGNORE INTO mkbadwords SET word="'. strtolower($_POST['word']) .'"');
+if (!empty($_POST['word']) && isset($_POST['action'])) {
+    mysql_query('INSERT INTO mkbadwords SET word="'. strtolower($_POST['word']) .'",action="'.$_POST['action'].'" ON DUPLICATE KEY UPDATE action=VALUES(action)');
     $wordId = mysql_insert_id();
     if ($wordId)
         mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Blacklist '. $wordId .'")');
@@ -39,6 +39,12 @@ include('heads.php');
 <style type="text/css">
 main tr.clair a.action_button, main tr.fonce a.action_button {
     color: white;
+}
+form label {
+    display: block;
+}
+form label select {
+    width: 200px;
 }
 </style>
 <?php
@@ -75,24 +81,46 @@ include('menu.php');
     ?>
     </p>
 	<form method="post" action="chat-blacklist.php">
-	<blockquote>
-        <?php echo $language ? 'Add banned word:' : 'Ajouter un mot :'; ?>
-        <input type="text" name="word" />
+        <label>
+            <?php echo $language ? 'Add a word:' : 'Ajouter un mot :'; ?>
+            <input type="text" name="word" />
+        </label>
+        <label>
+            <?php echo $language ? 'Action:' : 'Action :'; ?>
+            <select name="action">
+                <option value="none"><?php echo $language ? "None (just log message)" : "Aucune (logguer le message uniquement)"; ?></option>
+                <option value="block"><?php echo $language ? "Don't send message" : "Ne pas envoyer le message"; ?></option>
+                <option value="mute"><?php echo $language ? "Don't send message + Mute member" : "Ne pas envoyer le message + Muter le membre"; ?></option>
+            </select>
+        </label>
         <input type="submit" class="action_button" value="Ok" />
-	</blockquote>
 	</form>
     <h2><?php echo ($language ? 'Banned words:' : 'Mots bannis :'); ?></h2>
     <table>
         <tr id="titres">
             <td style="min-width: 120px"><?php echo $language ? 'Word':'Mot'; ?></td>
             <td>Action</td>
+            <td>Options</td>
         </tr>
         <?php
-        $getBlacklist = mysql_query('SELECT id,word FROM mkbadwords ORDER BY id DESC');
+        $getBlacklist = mysql_query('SELECT id,word,action FROM mkbadwords ORDER BY id DESC');
         $i = 0;
         while ($blacklist = mysql_fetch_array($getBlacklist)) {
+            $action = null;
+            switch ($blacklist['action']) {
+            case 'none':
+                $action = 'None';
+                break;
+            case 'block':
+                $action = 'Block msg';
+                break;
+            case 'mute':
+                $action = 'Block+Mute';
+                break;
+            }
             echo '<tr class="'. ($i%2 ? 'fonce':'clair') .'">
                 <td>'.$blacklist['word'].'</td>
+                <td>'.$action.'</td>
                 <td><a class="action_button" href="?del='. $blacklist['id'] .'" onclick="return confirmDelete(&quot;'.htmlspecialchars(addslashes($blacklist['word'])).'&quot;)">'. ($language ? 'Delete':'Supprimer') .'</a></td>
             </tr>';
             $i++;

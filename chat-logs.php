@@ -107,7 +107,7 @@ include('menu.php');
 	<?php
 	$memberId = 0;
 	if (isset($_GET['blacklist'])) {
-		if ($getLog = mysql_fetch_array(mysql_query('SELECT l.date,l.player,l.course,l.message,j.nom FROM mkbadmsglog l LEFT JOIN mkjoueurs j ON l.player=j.id WHERE l.id="'. $_GET['blacklist'] .'"'))) {
+		if ($getLog = mysql_fetch_array(mysql_query('SELECT l.date,l.player,l.course,l.message,l.chat,j.nom FROM mkbadmsglog l LEFT JOIN mkjoueurs j ON l.player=j.id WHERE l.id="'. $_GET['blacklist'] .'"'))) {
 			$memberId = $getLog['player'];
 			$memberNick = $getLog['nom'];
 			$courseFilter = $getLog['course'];
@@ -200,7 +200,7 @@ include('menu.php');
 				$currentPage = 1;
 			else
 				$currentPage = $logPage;
-			$getConvs = mysql_query('SELECT c.date,c.course,c.auteur,c.message,j.nom FROM `mkchat` c LEFT JOIN `mkjoueurs` j ON c.auteur=j.id WHERE c.course IN ('. $chatIdsString .') ORDER BY c.course DESC,c.id ASC LIMIT '.(($currentPage-1)*$resPerPage).','. $resPerPage);
+			$getConvs = mysql_query('SELECT c.date,c.course,c.auteur,c.message,j.nom FROM `mkchat` c LEFT JOIN `mkjoueurs` j ON c.auteur=j.id WHERE c.course IN ('. $chatIdsString .')'.(empty($getLog['chat']) ? '' : ' AND c.id!='.$getLog['chat']).' ORDER BY c.course DESC,c.id ASC LIMIT '.(($currentPage-1)*$resPerPage).','. $resPerPage);
 			$lastCourse = 0;
 			function show_censored_message() {
 				global $getLog;
