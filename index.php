@@ -672,7 +672,7 @@ $slidesPath = 'images/slides';
 			<a class="right_section_actions action_button" href="listNews.php"><?php echo $language ? 'All news':'Toutes les news'; ?></a>
 		</div>
 		<?php
-		if (time() >= 1667070000) {
+		//if (time() >= 1667070000) {
 			?>
 		<div class="subsection">
 			<?php
@@ -685,7 +685,7 @@ $slidesPath = 'images/slides';
 						<th><?php echo $language ? 'Rank':'Rang'; ?></th>
 						<th><?php echo $language ? 'Team':'Équipe'; ?></th>
 						<th>Pts</th>
-						<th class="pl-l" title="<?php echo $language ? 'Wins - Losses - Ties' : 'Victoires - Défaites - Nuls'; ?>"><?php echo $language ? 'W-L-T' : 'V-D-N'; ?></th>
+						<th class="pl-l" title="<?php echo $language ? 'Wins - Ties - Losses' : 'Victoires - Nuls - Défaites'; ?>"><?php echo $language ? 'W-T-L' : 'V-N-D'; ?></th>
 						<th class="pl-xl" title="<?php echo $language ? 'Score difference' : 'Différence de score'; ?>"><?php echo $language ? 'Diff' : 'Diff'; ?></th>
 					</tr>
 					<?php
@@ -704,18 +704,18 @@ $slidesPath = 'images/slides';
 							'icon' => 'senko-nation.png',
 							'score' => 0,
 							'wins' => 0,
-							'losses' => 0,
+							'losses' => 1,
 							'ties' => 0,
-							'diff' => 0
+							'diff' => -4
 						),
 						array(
 							'name' => 'Red Stari FC',
 							'icon' => 'red-stari.png',
-							'score' => 0,
-							'wins' => 0,
+							'score' => 3,
+							'wins' => 1,
 							'losses' => 0,
 							'ties' => 0,
-							'diff' => 0
+							'diff' => 4
 						),
 					);
 					usort($plRanking, function($team1, $team2) {
@@ -732,7 +732,7 @@ $slidesPath = 'images/slides';
 							</div>
 						</td>
 						<td><?php echo $team['score']; ?></td>
-						<td class="pl-l"><?php echo $team['wins'].'-'.$team['losses'].'-'.$team['ties']; ?></td>
+						<td class="pl-l"><?php echo $team['wins'].'-'.$team['ties'].'-'.$team['losses']; ?></td>
 						<td class="pl-xl"><?php echo $team['diff']; ?></td>
 						</tr>
 						<?php
@@ -743,7 +743,7 @@ $slidesPath = 'images/slides';
 			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?php echo $language ? 'Tournament\'s Discord Server':'Serveur Discord du tournoi'; ?></a></div>
 		</div>
 			<?php
-		}
+		//}
 		?>
 		<div class="subsection">
 			<?php
