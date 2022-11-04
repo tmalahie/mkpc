@@ -55,7 +55,7 @@ CREATE TABLE `circuits` (
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `pscore` (`pscore`),
   KEY `tscore` (`tscore`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -88,7 +88,7 @@ CREATE TABLE `items` (
   `data` varbinary(252) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `course` (`course`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -102,7 +102,7 @@ CREATE TABLE `mariokart` (
   PRIMARY KEY (`id`),
   KEY `time` (`time`),
   KEY `map` (`map`,`time`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -184,6 +184,29 @@ CREATE TABLE `mkb` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkbadmsglog` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `player` int(11) NOT NULL,
+  `course` int(11) NOT NULL,
+  `chat` int(11) NOT NULL,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `message` varchar(255) NOT NULL,
+  `code` tinyint(4) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkbadwords` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `word` varchar(255) NOT NULL,
+  `action` enum('none','block','mute') NOT NULL DEFAULT 'none',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `word` (`word`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkbans` (
   `player` int(11) NOT NULL,
   `msg` text NOT NULL,
@@ -232,7 +255,7 @@ CREATE TABLE `mkc` (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkcategories` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `nom` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
   `description` varchar(255) NOT NULL,
@@ -246,7 +269,7 @@ CREATE TABLE `mkcategories` (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkcats` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name1` varchar(255) NOT NULL,
   `name0` varchar(255) NOT NULL,
   `color` varchar(7) NOT NULL,
@@ -303,6 +326,7 @@ CREATE TABLE `mkchat` (
   `course` int(10) NOT NULL,
   `auteur` int(10) NOT NULL,
   `message` text NOT NULL,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `course` (`course`),
   KEY `auteur` (`auteur`)
@@ -329,7 +353,6 @@ CREATE TABLE `mkchatvoc` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `course` int(11) NOT NULL,
   `player` int(11) NOT NULL,
-  `syncid` tinyint(3) NOT NULL DEFAULT 0,
   `muted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `player` (`course`,`player`)
@@ -837,7 +860,9 @@ CREATE TABLE `mkmatches` (
   `rank` tinyint(4) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `date` (`date`)
+  KEY `date` (`date`),
+  KEY `player` (`player`),
+  KEY `course` (`course`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

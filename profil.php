@@ -602,6 +602,8 @@ include('menu.php');
 							echo '<li><a href="?id='. $profileId .'&amp;unignore">'. ($language ? 'Stop ignoring ' . $getInfos['nom']:'Ne plus ignorer ' . $getInfos['nom']) .'</a></li>';
 						else
 							echo '<li><a href="?id='. $profileId .'&amp;ignore">'. ($language ? 'Ignore ' . $getInfos['nom']:'Ignorer ' . $getInfos['nom']) .'</a></li>';
+						if ($isModerator)
+							echo '<li><a href="edit-profile.php?member='. $profileId .'">'. ($language ? 'Edit profile':'Modifier le profil') .'</a></li>';
 						?>
 					</ul>
 					<?php

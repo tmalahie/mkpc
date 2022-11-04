@@ -98,29 +98,31 @@ include('menu.php');
 		if (hasRight('moderator')) {
 			?>
 		<li>
-			<a class="action-ctn" href="nick-history.php">
-				<div class="action-title"><?php echo $language ? "See <strong>nick change history</strong>":"Voir l'historique des <strong>changements de pseudo</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "To monitor people who would abuse of this option.":"Pour surveiller les membres qui abuseraient de cette option."; ?></div>
-			</a>
-		</li>
-		<li>
 			<a class="action-ctn" href="edit-pseudo.php">
 				<div class="action-title"><?php echo $language ? "Edit member <strong>nick</strong>":"Changer le <strong>pseudo</strong> d'un membre"; ?></div>
 				<div class="action-desc"><?php echo $language ? "Can be useful if a member has a troll nick for example":"Peut servir si un membre a un pseudo troll par exemple"; ?></div>
 			</a>
 		</li>
-			<?php
-		}
-		?>
 		<li>
-			<a class="action-ctn" href="updatepts.php">
-				<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in the <strong>online mode</strong>":"Donner/retirer des <strong>points</strong> dans le <strong>mode en ligne</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
+			<a class="action-ctn" href="nick-history.php">
+				<div class="action-title"><?php echo $language ? "See <strong>nick change history</strong>":"Voir l'historique des <strong>changements de pseudo</strong>"; ?></div>
+				<div class="action-desc"><?php echo $language ? "To monitor people who would abuse of this option.":"Pour surveiller les membres qui abuseraient de cette option."; ?></div>
 			</a>
 		</li>
-		<?php
+			<?php
+		}
 		if (hasRight('organizer')) {
+			if (!hasRight('moderator')) {
 			?>
+			<li>
+				<a class="action-ctn" href="updatepts.php">
+					<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in <strong>online mode</strong>":"Donner/retirer des <strong>points</strong> dans le <strong>mode en ligne</strong>"; ?></div>
+					<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
+				</a>
+			</li>
+			<?php
+			}
+		?>
 		<li>
 			<a class="action-ctn" href="awards.php">
 				<div class="action-title"><?php echo $language ? "Award a <strong>reward</strong>":"Attribuer des <strong>titres</strong>"; ?></div>
@@ -140,15 +142,9 @@ include('menu.php');
 		if (hasRight('moderator')) {
 			?>
 		<li>
-			<a class="action-ctn" href="edit-country.php">
-				<div class="action-title"><?php echo $language ? "Edit member <strong>country</strong>":"Changer le <strong>pays</strong> d'un membre"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Can be useful if a troll member has put a fake country for example":"Peut servir si un membre troll a renseigné un faux pays par exemple"; ?></div>
-			</a>
-		</li>
-		<li>
-			<a class="action-ctn" href="chat-logs.php">
-				<div class="action-title"><?php echo $language ? "See online mode <strong>chat logs</strong>":"Voir les <strong>logs</strong> du mode en ligne"; ?></div>
-				<div class="action-desc"><?php echo $language ? "See the messages of the member in the online mode.<br />You can mute members in case of abuse":"Voir les messages d'un joueurs dans le chat du mode en ligne.<br />Vous pouvez muter les membres en cas d'abus."; ?></div>
+			<a class="action-ctn" href="edit-user.php">
+				<div class="action-title"><?php echo $language ? "Edit member <strong>profile</strong>":"Changer le <strong>profil</strong> d'un membre"; ?></div>
+				<div class="action-desc"><?php echo $language ? "Can be useful if a troll member has put an inappropriate description for example, or a fake country":"Peut servir si un membre troll a renseigné une description inappropriée par exemple, ou un faux pays"; ?></div>
 			</a>
 		</li>
 		<li>
@@ -164,7 +160,28 @@ include('menu.php');
 	<?php
 	if (hasRight('moderator')) {
 		?>
-	<h2>Gestion des partages</h2>
+	<h2><?php echo $language ? 'Online mode' : 'Mode en ligne'; ?></h2>
+	<ul>
+		<li>
+			<a class="action-ctn" href="updatepts.php">
+				<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in online mode":"Donner/retirer des <strong>points</strong> dans le mode en ligne"; ?></div>
+				<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
+			</a>
+		</li>
+		<li>
+			<a class="action-ctn" href="chat-blacklist.php">
+				<div class="action-title"><?php echo $language ? "Manage <strong>forbidden/watched words</strong> in online chat":"Gérer les <strong>mots interdits/surveillés</strong> dans le chat en ligne"; ?></div>
+				<div class="action-desc"><?php echo $language ? "All messages containing forbidden words will be blocked and/or logged":"Les messages contenant ces mots ne seront pas envoyés ou seront loggués"; ?></div>
+			</a>
+		</li>
+		<li>
+			<a class="action-ctn" href="chat-logs.php">
+				<div class="action-title"><?php echo $language ? "See online mode <strong>chat logs</strong>":"Voir les <strong>logs</strong> du mode en ligne"; ?></div>
+				<div class="action-desc"><?php echo $language ? "See the messages of the member in the online mode.<br />You can mute members in case of abuse":"Voir les messages d'un joueurs dans le chat du mode en ligne.<br />Vous pouvez muter les membres en cas d'abus."; ?></div>
+			</a>
+		</li>
+	</ul>
+	<h2><?php echo $language ? 'Share management' : 'Gestion des partages'; ?></h2>
 	<ul>
 		<li>
 			<a class="action-ctn" href="creations.php?admin=1">
@@ -184,9 +201,21 @@ include('menu.php');
 				<div class="action-desc"><?php echo $language ? "In case of plagiarism or if eventual cheating (invisible character...)":"En cas de plagiat ou de risque de triche (perso invisible...)"; ?></div>
 			</a>
 		</li>
+		<li>
+			<a class="action-ctn" href="findByCreation.php">
+				<div class="action-title"><?php echo $language ? "Find the <strong>author</strong> of a given creation":"Trouver l'<strong>auteur</strong> d'une création"; ?></div>
+				<div class="action-desc"><?php echo $language ? "Find the creator of a circuit published by an anonymous user":"Retrouver le créateur d'un circuit publié par un utilisateur anonyme"; ?></div>
+			</a>
+		</li>
 	</ul>
-	<h2>Autres droits</h2>
+		<?php
+	}
+	?>
+	<h2><?php echo $language ? 'Other rights' : 'Autres droits'; ?></h2>
 	<ul>
+		<?php
+		if (hasRight('moderator')) {
+			?>
 		<li>
 			<div class="action-ctn">
 				<div class="action-title"><?php echo $language ? "Moderate a message on the <strong>forum</strong>":"Modérer un message sur le <strong>forum</strong>"; ?></div>
@@ -205,10 +234,16 @@ include('menu.php');
 				<div class="action-desc"><?php echo $language ? "Go to the news in question and click on &quot;Edit&quot; or &quot;Delete&quot;":"Se rendre sur la news en question et cliquer sur &quot;Modifier&quot; ou &quot;Supprimer&quot;"; ?></div>
 			</div>
 		</li>
+			<?php
+		}
+		?>
+		<li>
+			<a class="action-ctn" href="admin-logs.php">
+				<div class="action-title"><?php echo $language ? "See <strong>admin logs</strong>":"Voir les <strong>logs admin</strong>"; ?></div>
+				<div class="action-desc"><?php echo $language ? "To retrace and understand the different actions done by MKPC staff":"Pour retracer et comprendre les différentes actions réalisées par les admins MKPC"; ?></div>
+			</a>
+		</li>
 	</ul>
-		<?php
-	}
-	?>
 	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>

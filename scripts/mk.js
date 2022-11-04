@@ -26924,7 +26924,31 @@ function setChat() {
 	oRepondre.appendChild(rEnvoi);
 	oRepondre.onsubmit = function() {
 		if (rMessage.value) {
-			xhr("parler.php", "msg="+encodeURIComponent(rMessage.value).replace(/\+/g, "%2B") + (onlineSpectatorId ? "&spectator="+onlineSpectatorId : ""), function(reponse){return (reponse=="1")});
+			var msgValue = rMessage.value;
+			xhr("parler.php", "msg="+encodeURIComponent(msgValue).replace(/\+/g, "%2B") + (onlineSpectatorId ? "&spectator="+onlineSpectatorId : ""), function(reponse) {
+				var failureMsg;
+				switch (+reponse) {
+				case -1:
+					failureMsg = toLanguage("inappropriate words", "mots inappropriés");
+					break;
+				case -2:
+					failureMsg = toLanguage("spam", "spam");
+					break;
+				case -3:
+					failureMsg = toLanguage("too long", "trop long");
+					break;
+				case -4:
+					addMsgToChat(mPseudo, msgValue);
+					break;
+				}
+				if (failureMsg) {
+					var oP = document.createElement("p");
+					oP.className = "chatlog";
+					oP.innerHTML = "<em>" + toLanguage("Message not sent (reason: "+ failureMsg +")", "Message non envoyé (raison : "+ failureMsg +")") +"</em>";
+					oMessages.appendChild(oP);
+				}
+				return true;
+			});
 			rMessage.value = "";
 		}
 		return false;
@@ -27102,18 +27126,8 @@ function setChat() {
 						if (messages.length) {
 							var lastMsgId = messages.length-1;
 							iChatLastMsg = messages[lastMsgId][2];
-							for (var i=0;i<=lastMsgId;i++) {
-								var oP = document.createElement("p");
-								var sPseudo = document.createElement("span");
-								sPseudo.innerHTML = messages[i][0] +" : ";
-								oP.appendChild(sPseudo);
-								var sMessage = document.createElement("span");
-								sMessage.style.color = "white";
-								sMessage.style.fontWeight = "normal";
-								sMessage.innerHTML = messages[i][1];
-								oP.appendChild(sMessage);
-								oMessages.appendChild(oP);
-							}
+							for (var i=0;i<=lastMsgId;i++)
+								addMsgToChat(messages[i][0],messages[i][1]);
 							var pMessages = oMessages.getElementsByTagName("p");
 							while (pMessages.length > 10)
 								oMessages.removeChild(pMessages[0]);
@@ -27131,6 +27145,18 @@ function setChat() {
 		}
 		else
 			document.body.removeChild(oChat);
+	}
+	function addMsgToChat(pseudo, message) {
+		var oP = document.createElement("p");
+		var sPseudo = document.createElement("span");
+		sPseudo.innerHTML = pseudo +" : ";
+		oP.appendChild(sPseudo);
+		var sMessage = document.createElement("span");
+		sMessage.style.color = "white";
+		sMessage.style.fontWeight = "normal";
+		sMessage.innerHTML = message;
+		oP.appendChild(sMessage);
+		oMessages.appendChild(oP);
 	}
 	refreshChat();
 

@@ -200,6 +200,10 @@
     word-wrap: break-word;
     overflow-y: auto;
 }
+.online-chat-messages p.chatlog {
+    color: white;
+    padding: 2px;
+}
 .online-chat-answer {
     display: flex;
     margin: 4px 3px;

@@ -45,6 +45,9 @@ include('heads.php');
 .titres td:nth-child(2) {
 	width: 300px;
 }
+h1 + .action_button {
+	margin-bottom: 1em;
+}
 .aw-table .action_button {
 	font-size: 0.8em;
 	padding: 3px 7px;
@@ -100,6 +103,7 @@ include('menu.php');
 		echo '<div class="success">'. $success .'</div>';
 	?>
 	<h1><?php echo $language ? 'Manage awards':'Gérer les récompenses'; ?></h1>
+	<a class="action_button" href="award-edit.php">+ <?php echo $language ? 'New award':'Nouvelle récompense'; ?></a>
 	<table class="aw-table" id="awards">
 		<tr class="titres">
 			<td style="width:40%"><?php echo $language ? 'Title':'Titre'; ?></td>
@@ -124,8 +128,8 @@ include('menu.php');
 	}
 	?>
 	</table>
-	<a class="action_button" href="award-edit.php" style="margin-left: 100px">+ <?php echo $language ? 'New award':'Nouvelle récompense'; ?></a>
 	<h1><?php echo $language ? 'Manage awarded people':'Gérer les membres récompensés'; ?></h1>
+	<a class="action_button" href="awarded-edit.php">+ <?php echo $language ? 'New assigned award':'Attribuer une récompense'; ?></a>
 	<table class="aw-table" id="awarded">
 		<tr class="titres">
 			<td style="width: 15%"><?php echo $language ? 'Member':'Membre'; ?></td>
@@ -156,7 +160,6 @@ include('menu.php');
 	}
 	?>
 	</table>
-	<a class="action_button" href="awarded-edit.php" style="margin-left: 100px">+ <?php echo $language ? 'New assigned award':'Attribuer une récompense'; ?></a>
 	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>

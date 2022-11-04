@@ -58,13 +58,13 @@ if ($unban) {
 	<?php
 	if (isset($_GET['pseudo'])) {
 		echo '<p>';
-		echo 'Doubles comptes de '. $_GET['pseudo'] .' : ';
+		echo $language ? 'Double accounts of '. $_GET['pseudo'] .': ' : 'Doubles comptes de '. $_GET['pseudo'] .' : ';
 		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $_GET['pseudo'] .'"'))) {
 			$getPlayers = mysql_query('SELECT DISTINCT res.player FROM (SELECT player FROM `mkips` m WHERE EXISTS(SELECT * FROM `mkips` m2 WHERE player='. $getId['id'] .' AND m2.ip1=m.ip1 AND m2.ip2=m.ip2 AND m2.ip3=m.ip3 AND m2.ip4=m.ip4) AND player!="'. $getId['id'] .'") res');
 			$v = '';
 			while ($playerId = mysql_fetch_array($getPlayers)) {
 				if ($playerName = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id='. $playerId['player']))) {
-					echo $v.'<strong>'.$playerName['nom'].'</strong>';
+					echo $v.'<a href="profil.php?id='. $playerId['player'] .'"><strong>'.$playerName['nom'].'</strong></a>';
 					$v = ', ';
 				}
 			}
@@ -74,7 +74,7 @@ if ($unban) {
 	?>
 	<form method="get" action="doublecomptes.php">
 	<blockquote>
-	<p><label for="pseudo"><strong><?php echo $language ? 'Enter the nickname':'Pseudo du joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" /> <input type="submit" value="Valider" class="action_button" /></p>
+	<p><label for="pseudo"><strong><?php echo $language ? 'Enter the nickname':'Pseudo du joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" /> <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>
 	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
