@@ -64,7 +64,7 @@ $page = 'forum';
 include('menu.php');
 ?>
 <main>
-	<h1><?php echo $language ? 'Manage forbidden words in online chat':'Gérer les mots surveillés du chat en ligne'; ?></h1>
+    <h1><?php echo $language ? 'Manage forbidden words in online chat':'Gérer les mots surveillés du chat en ligne'; ?></h1>
     <p><?php
     if ($language) {
         ?>

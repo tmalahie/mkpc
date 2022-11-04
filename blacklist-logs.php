@@ -98,7 +98,7 @@ include('menu.php');
         $logCount = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkbadmsglog'));
         include('utils-date.php');
         $blockReasons = array(
-            '-1' => 'Blacklist',
+            '-1' => $language ? 'Watched<br />word' : 'Mot<br />surveillé',
             '-2' => 'Spam',
             '-3' => $language ? 'Message<br />too long' : 'Message<br />trop long'
         );
