@@ -695,18 +695,18 @@ $slidesPath = 'images/slides';
 							'icon' => 'celestial-guardians.png',
 							'score' => 0,
 							'wins' => 0,
-							'losses' => 0,
+							'losses' => 1,
 							'ties' => 0,
-							'diff' => 0
+							'diff' => -74
 						),
 						array(
 							'name' => 'Senko Nation',
 							'icon' => 'senko-nation.png',
-							'score' => 0,
-							'wins' => 0,
+							'score' => 3,
+							'wins' => 1,
 							'losses' => 1,
 							'ties' => 0,
-							'diff' => -4
+							'diff' => 70
 						),
 						array(
 							'name' => 'Red Stari FC',
