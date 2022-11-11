@@ -285,7 +285,7 @@ button.control-close:active {
     color: #F8F8F8;
     font-family: "SMK-Timer", Courier New;
 }
-#lakitu0,#lakitu1,#drift0,#drift1 {
+#lakitu0,#lakitu1 {
     visibility: visible;
      display: none;
      position: absolute;
@@ -308,9 +308,6 @@ button.control-close:active {
 }
 #lakitu0 div small,#lakitu1 div small {
     font-size:0.5em;
-}
-#drift0,#drift1 {
-    z-index: 10001;
 }
 #challenge-cpts {
     position: absolute;

@@ -1960,7 +1960,6 @@ function arme(ID, backwards, forwards) {
 			tpsUse = 80;
 			oKart.size = 1;
 			oKart.mini = 0;
-			updateDriftSize(ID);
 			oKart.protect = true;
 			if (!oKart.megachampi && shouldPlaySound(oKart) && !oPlayers[1])
 				postStartMusic("musics/events/megamushroom.mp3");
@@ -2674,6 +2673,7 @@ function startGame() {
 			driftcpt : 0,
 			drift : 0,
 			turbodrift : 0,
+			driftSprite: new Sprite("drift"),
 			jumped : false,
 
 			champi : 0,
@@ -2752,6 +2752,11 @@ function startGame() {
 			roulette : 0,
 			roulette2 : 0,
 			arme : false,
+
+			drift : 0,
+			driftinc: 0,
+			driftcpt: 0,
+			driftSprite: new Sprite("drift"),
 
 			champi : 0,
 			etoile : 0,
@@ -2992,6 +2997,11 @@ function startGame() {
 					roulette2 : 0,
 					arme : false,
 
+					drift : 0,
+					driftinc: 0,
+					driftcpt: 0,
+					driftSprite: new Sprite("drift"),
+
 					champi : 0,
 					etoile : 0,
 					megachampi : 0,
@@ -3009,8 +3019,124 @@ function startGame() {
 		}
 		for (var i=oPlayers.length;i<aKarts.length;i++) {
 			var jTrajet = jTrajets ? jTrajets[i-1] : [];
-			for (var j=0;j<oPlayers.length;j++)
-				aKarts[i].sprite[j].div.style.opacity = (iTrajet === jTrajet) ? 0:0.5;
+			var opacity = (iTrajet === jTrajet) ? 0:0.5;
+			for (var j=0;j<oPlayers.length;j++) {
+				aKarts[i].sprite[j].div.style.opacity = opacity;
+				aKarts[i].driftSprite[j].div.style.opacity = opacity;
+			}
+		}
+		for (var i=0;i<aKarts.length;i++) {
+			var aStunted = false, aJumped = false, aSmallJump = false, iTrajets = [iTrajet];
+			(function(getId) {
+				var oKart = aKarts[getId];
+				oKart.stopDrifting = function() {
+					oKart.tourne = 0;
+					oKart.driftcpt = 0;
+					oKart.driftinc = 0;
+					resetDriftSprite(oKart);
+					aDriftInc = 0;
+				};
+				oKart.stopStunt = function() {
+					if (aStunted) {
+						aStunted = false;
+						oKart.tourne = 0;
+					}
+					var oSprite = oKart.sprite[0];
+					if (oSprite.div.ahallowed) {
+						oSprite.div.ahallowed = false;
+						oSprite.div.style.backgroundColor = "";
+						oSprite.div.style.backgroundImage = "";
+						oSprite.div.style.backgroundRepeat = "";
+						oSprite.div.style.backgroundSize = "";
+						oSprite.img.style.opacity = 1;
+					}
+				}
+				oKart.moveGhost = function(getInfos) {
+					var oKart = aKarts[getId];
+					if (oKart.tombe) {
+						oKart.tombe--;
+						if (!oKart.tombe)
+							resetFall(oKart);
+						if (!getId) {
+							if (oKart.tombe === 19)
+								oKart.sprite[getId].img.style.opacity = 1;
+							oContainers[0].style.opacity = Math.abs(oKart.tombe-10)/10;
+						}
+					}
+					var aX = oKart.x;
+					var aY = oKart.y;
+					var aRotation = oKart.rotation;
+					oKart.x = getInfos[0];
+					oKart.y = getInfos[1];
+					oKart.z = getInfos[2];
+					oKart.rotation = getInfos[3];
+					var getFlags = (getInfos[4]||"0000").split("");
+					for (var j=0;j<4;j++)
+						getFlags[j] = +getFlags[j];
+					var rotincdir = 0;
+					if (getFlags[2])
+						rotincdir = 1;
+					else if (getFlags[3])
+						rotincdir = -1;
+					oKart.rotincdir = oKart.stats.handling*rotincdir;
+					if (oKart.z) {
+						if (!aJumped) {
+							aJumped = true;
+							aSmallJump = true;
+							oKart.stopDrifting();
+						}
+						if (oKart.z > 1.18)
+							aSmallJump = false;
+						if (aSmallJump) {
+							if (getFlags[1]) {
+								if (!oKart.driftinc && rotincdir)
+									oKart.driftinc = rotincdir;
+							}
+						}
+						else {
+							if (aStunted) {
+								oKart.tourne -= 1 + Math.round((11-Math.abs(11-oKart.tourne))*0.5);
+								if (oKart.tourne < 8) {
+									var oSprite = oKart.sprite[0];
+									if (!oSprite.div.ahallowed) {
+										oSprite.div.ahallowed = true;
+										oSprite.div.style.backgroundImage = "url('images/halo.png')";
+										oSprite.div.style.backgroundRepeat = "no-repeat";
+										oSprite.div.style.backgroundSize = "contain";
+										oSprite.img.style.opacity = 0.7;
+									}
+									if (oKart.tourne < 0)
+										oKart.tourne = 0;
+								}
+							}
+							else if (getFlags[1] && !oKart.driftinc && !oKart.tombe) {
+								aStunted = true;
+								oKart.stopDrifting();
+								oKart.tourne = 19;
+							}
+						}
+						if (getFlags[0]) {
+							oKart.tombe = 20;
+							oKart.aX = aX;
+							oKart.aY = aY;
+							oKart.aRotation = aRotation;
+							oKart.sprite[0].img.style.display = "none";
+							oKart.stopStunt();
+						}
+					}
+					else {
+						if (aJumped) {
+							aJumped = false;
+							oKart.stopStunt();
+						}
+					}
+					if (oKart.driftinc) {
+						if (!getFlags[1])
+							oKart.stopDrifting();
+					}
+					handleDriftCpt(getId);
+				}
+			})(i);
 		}
 		updateObjHud(0);
 	}
@@ -3029,6 +3155,11 @@ function startGame() {
 					delete this.onload;
 				}
 			})(oKart.sprite[j]);
+
+			oKart.driftSprite[j].nbSprites = 3;
+			oKart.driftSprite[j].w = 63;
+			oKart.driftSprite[j].h = 22;
+			oKart.driftSprite[j].z = -0.55;
 		}
 	}
 	if (course != "CM") {
@@ -3887,10 +4018,9 @@ function startGame() {
 												updateChallengeHud("superTurbo", clLocalVars.superTurbo+ruleVars.superTurbo);
 										}
 										oPlayers[0].turbodrift0 = oPlayers[0].turbodrift;
-										getDriftImg(0).src = "images/drift.png";
+										resetDriftSprite(oPlayers[0]);
 									}
 									oPlayers[0].driftcpt = 0;
-									document.getElementById("drift0").style.display = "none";
 									if (oPlayers[0].driftSound) {
 										oPlayers[0].driftSound.pause();
 										oPlayers[0].driftSound = undefined;
@@ -3938,10 +4068,9 @@ function startGame() {
 										if (oPlayers[1].driftcpt >= fTurboDriftCpt2)
 											oPlayers[1].turbodrift += 15;
 										oPlayers[1].turbodrift0 = oPlayers[1].turbodrift;
-										getDriftImg(1).src = "images/drift.png";
+										resetDriftSprite(oPlayers[1]);
 									}
 									oPlayers[1].driftcpt = 0;
-									document.getElementById("drift1").style.display = "none";
 									if (oPlayers[1].driftSound) {
 										oPlayers[1].driftSound.pause();
 										oPlayers[1].driftSound = undefined;
@@ -4074,131 +4203,14 @@ function startGame() {
 				}
 				else {
 					pause = false;
-					var aStunted = false, aJumped = false, aSmallJump = false, iTrajets = [iTrajet];
-					function stopDrifting_() {
-						var oKart = aKarts[0];
-						oKart.tourne = 0;
-						oKart.driftcpt = 0;
-						oKart.driftinc = 0;
-						getDriftImg(0).src = "images/drift.png";
-						document.getElementById("drift0").style.display = "none";
-						aDriftInc = 0;
-					}
-					function stopStunt() {
-						if (aStunted) {
-							aStunted = false;
-							aKarts[0].tourne = 0;
-						}
-						var oSprite = aKarts[0].sprite[0];
-						if (oSprite.div.ahallowed) {
-							oSprite.div.ahallowed = false;
-							oSprite.div.style.backgroundColor = "";
-							oSprite.div.style.backgroundImage = "";
-							oSprite.div.style.backgroundRepeat = "";
-							oSprite.div.style.backgroundSize = "";
-							oSprite.img.style.opacity = 1;
-						}
-					}
 					function revoir() {
 						if (pause)
 							return;
 						for (var i=0;i<iTrajets.length;i++) {
 							var oKart = aKarts[i];
 							var getInfos = iTrajets[i][timer];
-							if (getInfos) {
-								if (oKart.tombe) {
-									oKart.tombe--;
-									if (!oKart.tombe)
-										resetFall(oKart);
-									if (!i)
-										oContainers[0].style.opacity = Math.abs(oKart.tombe-10)/10;
-								}
-								var aX = oKart.x;
-								var aY = oKart.y;
-								var aRotation = oKart.rotation;
-								oKart.x = getInfos[0];
-								oKart.y = getInfos[1];
-								oKart.z = getInfos[2];
-								oKart.rotation = getInfos[3];
-								var getFlags = (getInfos[4]||"0000").split("");
-								for (var j=0;j<4;j++)
-									getFlags[j] = +getFlags[j];
-								var rotincdir = 0;
-								if (getFlags[2])
-									rotincdir = 1;
-								else if (getFlags[3])
-									rotincdir = -1;
-								oKart.rotincdir = oKart.stats.handling*rotincdir;
-								if (oKart.z) {
-									if (!i) {
-										if (!aJumped) {
-											aJumped = true;
-											aSmallJump = true;
-											stopDrifting_();
-										}
-										if (oKart.z > 1.18)
-											aSmallJump = false;
-										if (aSmallJump) {
-											if (getFlags[1]) {
-												if (!oKart.driftinc && rotincdir) {
-													oKart.driftinc = rotincdir;
-													oKart.tourne = (rotincdir>0) ? 18:4;
-												}
-											}
-										}
-										else {
-											if (aStunted) {
-												oKart.tourne -= 1 + Math.round((11-Math.abs(11-oKart.tourne))*0.5);
-												if (oKart.tourne < 8) {
-													var oSprite = oKart.sprite[0];
-													if (!oSprite.div.ahallowed) {
-														oSprite.div.ahallowed = true;
-														oSprite.div.style.backgroundImage = "url('images/halo.png')";
-														oSprite.div.style.backgroundRepeat = "no-repeat";
-														oSprite.div.style.backgroundSize = "contain";
-														oSprite.img.style.opacity = 0.7;
-													}
-													if (oKart.tourne < 0)
-														oKart.tourne = 0;
-												}
-											}
-											else if (getFlags[1] && !oKart.driftinc && !oKart.tombe) {
-												aStunted = true;
-												stopDrifting_();
-												oKart.tourne = 19;
-											}
-										}
-									}
-									if (getFlags[0]) {
-										oKart.tombe = 20;
-										oKart.aX = aX;
-										oKart.aY = aY;
-										oKart.aRotation = aRotation;
-										oKart.sprite[0].img.style.display = "none";
-										stopStunt();
-									}
-								}
-								else {
-									if (!i) {
-										if (aJumped) {
-											aJumped = false;
-											if (oKart.driftinc)
-												document.getElementById("drift"+i).style.display = "block";
-											stopStunt();
-										}
-									}
-								}
-								if (oKart.driftinc) {
-									if (!i) {
-										if (getFlags[1])
-											document.getElementById("drift"+i).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[i].h-32)*fSpriteScale*0.15 - 2) + "px";
-										else
-											stopDrifting_();
-									}
-								}
-								if (!i)
-									handleDriftCpt(i);
-							}
+							if (getInfos)
+								oKart.moveGhost(getInfos);
 							else {
 								if (oKart.aipoint == undefined) {
 									oKart.aipoint = 0;
@@ -4207,8 +4219,8 @@ function startGame() {
 									oKart.maxspeed = 5.7;
 									if (!i) {
 										oKart.tourne = 0;
-										stopDrifting_();
-										stopStunt();
+										oKart.stopDrifting();
+										oKart.stopStunt();
 									}
 								}
 								if (oKart.demitours === undefined) {
@@ -4225,12 +4237,12 @@ function startGame() {
 						timer++;
 						showTimer(timer*SPF);
 						//if (!(timer%100))
-						//	aKarts[0].changeView = Math.floor(Math.random()*21)*(360/21);
+						//	oKart.changeView = Math.floor(Math.random()*21)*(360/21);
 
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;stopDrifting_();stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++) {
@@ -4515,22 +4527,6 @@ function resetScreen() {
 	oViewCanvas = document.createElement("canvas");
 	oViewCanvas.width=iViewCanvasWidth;
 	oViewCanvas.height=iViewCanvasHeight;
-
-	for (var i=0;i<oContainers.length;i++) {
-		var oDrift = document.createElement("div");
-		oDrift.id = "drift"+i;
-		oDrift.style.left = (iScreenScale * 36) +"px";
-		oDrift.style.top = (iScreenScale*32 - 2) +"px";
-		var oDriftImg = document.createElement("img");
-		oDriftImg.alt = ".";
-		oDriftImg.src = "images/drift.png";
-		oDriftImg.className = "driftimg pixelated";
-		oDriftImg.style.width = iScreenScale * 8 +"px";
-		oDriftImg.style.left = "0px";
-		oDriftImg.style.top = "0px";
-		oDrift.appendChild(oDriftImg);
-		oContainers[i].appendChild(oDrift);
-	}
 }
 
 function getFrameSettings(currentSettings) {
@@ -6093,7 +6089,6 @@ var itemBehaviors = {
 								if (!isOnline || !i || kart.controller == identifiant)
 									kart.size = 0.6;
 								kart.mini = Math.round(Math.max(kart.mini, 120-(kart.place-1)*40/(aKarts.length-1)));
-								updateDriftSize(i);
 								loseUsingItems(kart);
 								kart.champi = 0;
 								delete kart.champiType;
@@ -9068,8 +9063,11 @@ function render() {
 			redrawCanvas(i, fCamera);
 
 			if (oPlayer.time) {
-				document.getElementById("lakitu"+i).style.left = Math.round(iScreenScale * (20-oPlayer.time/5))+"px";
-				document.getElementById("lakitu"+i).style.top = Math.round((-(Math.abs(oPlayer.time - 20)) + 18) * (iScreenScale - 2)) +"px";
+				var $lakitu = document.getElementById("lakitu"+i);
+				if ($lakitu) {
+					$lakitu.style.left = Math.round(iScreenScale * (20-oPlayer.time/5))+"px";
+					$lakitu.style.top = Math.round((-(Math.abs(oPlayer.time - 20)) + 18) * (iScreenScale - 2)) +"px";
+				}
 			}
 			for (var j=0;j<oRoulettesPrefixes.length;j++) {
 				var prefix = oRoulettesPrefixes[j];
@@ -9090,6 +9088,7 @@ function render() {
 
 			for (var j=0;j<frameState.karts.length;j++) {
 				fSprite = frameState.karts[j];
+				var fSpriteRef = fSprite.ref;
 				var fAngle = nearestAngleMirrored(fRotation-fSprite.rotation, 180,360);
 
 				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
@@ -9100,25 +9099,25 @@ function render() {
 				if (!fSprite.changeView) {
 					if (fSprite.figstate)
 						iAngleStep = (iAngleStep + 21-fSprite.figstate) % 21;
-					else if (fSprite.ref.driftinc)
-						iAngleStep = (fSprite.ref.driftinc*getMirrorFactor()>0) ? 18:4;
+					else if (fSpriteRef.driftinc && ((iAngleStep < 4) || (iAngleStep > 18)))
+						iAngleStep = (fSpriteRef.driftinc*getMirrorFactor()>0) ? 18:4;
 					else if (isActualPlayer) {
-						if (fSprite.ref.rotincdir && !fSprite.tourne)
-							iAngleStep = (fSprite.ref.rotincdir*getMirrorFactor() > 0) ? 23:22;
+						if (fSpriteRef.rotincdir && !fSprite.tourne)
+							iAngleStep = (fSpriteRef.rotincdir*getMirrorFactor() > 0) ? 23:22;
 						else if (!fSprite.tourne)
 							iAngleStep = 0;
 					}
 				}
 
-				fSprite.ref.sprite[i].setState(iAngleStep);
-				fSprite.ref.sprite[i].render(fCamera, fSprite);
+				fSpriteRef.sprite[i].setState(iAngleStep);
+				fSpriteRef.sprite[i].render(fCamera, fSprite);
 
 				if (course == "BB") {
-					var nbBallons = fSprite.ref.ballons.length;
-					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSprite.ref.sprite[i].h-32)/5));
+					var nbBallons = fSpriteRef.ballons.length;
+					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSpriteRef.sprite[i].h-32)/5));
 					var fShift = 2.5*getMirrorFactor();
 					for (k=0;k<nbBallons;k++) {
-						fSprite.ref.ballons[k][i].render(fCamera, {
+						fSpriteRef.ballons[k][i].render(fCamera, {
 							x: fSprite.x-(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(1,fRotation),
 							y: fSprite.y+(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(0,fRotation),
 							z: fHauteur,
@@ -9127,9 +9126,22 @@ function render() {
 					}
 				}
 
+				if (fSpriteRef.driftinc) {
+					if (!fSpriteRef.z || (fSpriteRef.driftSprite[i].div.style.display === "block")) {
+						fSpriteRef.driftSprite[i].render(fCamera, {
+							x: fSprite.x,
+							y: fSprite.y,
+							z: fSprite.z,
+							size: fSprite.size/2
+						});
+					}
+				}
+				else
+					fSpriteRef.driftSprite[i].div.style.display = "none";
+
 				if (!isActualPlayer) {
-					if (fSprite.ref.marker && !fSprite.ref.loose && !fSprite.ref.tombe)
-						fSprite.ref.marker.render(i, fCamera, fSprite);
+					if (fSpriteRef.marker && !fSpriteRef.loose && !fSpriteRef.tombe)
+						fSpriteRef.marker.render(i, fCamera, fSprite);
 				}
 			}
 
@@ -9591,20 +9603,24 @@ function moveUsingItems(oKart, triggered) {
 
 function stopDrifting(i) {
 	var oKart = aKarts[i];
-	if (kartIsPlayer(oKart)) {
-		aKarts[i].driftinc = 0;
-		aKarts[i].driftcpt = 0;
-		aKarts[i].turbodrift = 0;
-		getDriftImg(i).src = "images/drift.png";
-		document.getElementById("drift"+ i).style.display = "none";
-		if (oKart.driftSound) {
-			oKart.driftSound.pause();
-			oKart.driftSound = undefined;
-		}
-		if (oKart.sparkSound) {
-			oKart.sparkSound.pause();
-			oKart.sparkSound = undefined;
-		}
+	oKart.driftinc = 0;
+	oKart.driftcpt = 0;
+	oKart.turbodrift = 0;
+	resetDriftSprite(oKart);
+	if (oKart.driftSound) {
+		oKart.driftSound.pause();
+		oKart.driftSound = undefined;
+	}
+	if (oKart.sparkSound) {
+		oKart.sparkSound.pause();
+		oKart.sparkSound = undefined;
+	}
+}
+function resetDriftSprite(oKart) {
+	for (var i=0;i<oPlayers.length;i++) {
+		var driftSprite = oKart.driftSprite[i];
+		driftSprite.div.style.display = "none";
+		driftSprite.setState(0);
 	}
 }
 
@@ -12984,8 +13000,8 @@ function itemDataLength(type) {
 function resetDatas() {
 	var oPlayer = oPlayers[0];
 	var playerMapping = (course != "BB")
-	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
-	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi"];
+	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
+	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi"];
 	var playerMappingExtra = (course != "BB") ? ["finaltime"]:[];
 	var cpuMapping = playerMapping.concat("aipoint");
 	var payload = {
@@ -13122,7 +13138,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aReserve = oKart.reserve;
+						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDrift = oKart.driftinc, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aReserve = oKart.reserve;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
@@ -13208,6 +13224,10 @@ function resetDatas() {
 								oKart.aY = aY;
 								oKart.aRotation = aRotation;
 							}
+						}
+						if (aDrift && !oKart.driftinc) {
+							oKart.driftcpt = 0;
+							resetDriftSprite(oKart);
 						}
 						if (!oKart.turnSound && oKart.tourne) {
 							oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);
@@ -13636,7 +13656,6 @@ function move(getId, triggered) {
 
 	if (oKart.tombe) {
 		oKart.tombe--;
-		updateDriftSize(getId);
 		oKart.size = 1;
 		oKart.mini = 0;
 		if (oKart.tombe == 19) {
@@ -13823,19 +13842,14 @@ function move(getId, triggered) {
 	else {
 		if (handleHeightInc(oKart)) {
 			delete oKart.jumped;
-			if (kartIsPlayer(oKart)) {
-				if (oKart.driftinc) {
-					document.getElementById("drift"+ getId).style.display = "block";
-					if (carDrift && !oKart.driftSound) {
-						carDrift.currentTime = 0;
-						carDrift.play();
-						oKart.driftSound = carDrift;
-					}
+			if (oKart.driftinc) {
+				if (carDrift && !oKart.driftSound) {
+					carDrift.currentTime = 0;
+					carDrift.play();
+					oKart.driftSound = carDrift;
 				}
 			}
 		}
-		if (oKart.driftinc)
-			document.getElementById("drift"+ getId).style.top = Math.round(iScreenScale*(32-correctZ(oKart.z)) + (oKart.sprite[getId].h-32)*fSpriteScale*0.15 - 2) + "px";
 	}
 
 	var localKart = (!isOnline || !getId || oKart.controller == identifiant) && !onlineSpectatorId;
@@ -15078,7 +15092,6 @@ function move(getId, triggered) {
 			oKart.mini = 0;
 			if (!oKart.cannon)
 				oKart.z = 0;
-			updateDriftSize(getId);
 			oKart.jumped = false;
 			delete oKart.billjump;
 			delete oKart.billball0;
@@ -15123,7 +15136,6 @@ function move(getId, triggered) {
 				stopMegaMusic(oKart);
 			}
 		}
-		updateDriftSize(getId);
 	}
 	if (oKart.mini) {
 		oKart.mini--;
@@ -15131,7 +15143,6 @@ function move(getId, triggered) {
 			oKart.mini = 0;
 			if (localKart)
 				oKart.size = 1;
-			updateDriftSize(aKarts.indexOf(oKart));
 		}
 	}
 	if (oKart.cannon) {
@@ -15299,8 +15310,9 @@ function handleDriftCpt(getId) {
 			else
 				oKart.driftcpt++;
 			if (oKart.driftcpt >= fTurboDriftCpt2) {
-				getDriftImg(getId).src = "images/turbo-drift-2.png";
-				if (carSpark && (oKart != oPlayers[1])) {
+				for (var i=0;i<oPlayers.length;i++)
+					oKart.driftSprite[i].setState(2);
+				if (carSpark && (oKart === oPlayers[0])) {
 					carSpark.currentTime = 0;
 					carSpark.volume = 1;
 					carSpark.play();
@@ -15308,8 +15320,9 @@ function handleDriftCpt(getId) {
 				}
 			}
 			else if ((lastDriftCpt < fTurboDriftCpt) && (oKart.driftcpt >= fTurboDriftCpt)) {
-				getDriftImg(getId).src = "images/turbo-drift.png";
-				if (carSpark && (oKart != oPlayers[1])) {
+				for (var i=0;i<oPlayers.length;i++)
+					oKart.driftSprite[i].setState(1);
+				if (carSpark && (oKart === oPlayers[0])) {
 					carSpark.currentTime = 0;
 					carSpark.volume = 0.7;
 					carSpark.play();
@@ -15328,9 +15341,7 @@ function handleDriftCpt(getId) {
 	}
 }
 function angleDrift(oKart) {
-	if (!kartIsPlayer(oKart))
-		return 0;
-	if (oKart.sliding)
+	if (oKart.sliding && kartIsPlayer(oKart))
 		return oKart.rotinc*oKart.sliding;
 	return oKart.drift*6;
 }
@@ -15363,17 +15374,6 @@ function kartInstantSpeed(oKart) {
 		fMoveY += oKart.shift[1];
 	}
 	return [fMoveX,fMoveY];
-}
-function updateDriftSize(getId) {
-	if (kartIsPlayer(aKarts[getId])) {
-		var k = aKarts[getId].size-1;
-		getDriftImg(getId).style.left = -Math.round((iScreenScale*2)*k) + "px";
-		getDriftImg(getId).style.top = Math.round((iScreenScale*2)*k) + "px";
-		getDriftImg(getId).style.width = Math.round(iScreenScale * 8 + (iScreenScale*4)*k) + "px";
-	}
-}
-function getDriftImg(getId) {
-	return document.getElementById("drift"+ getId).getElementsByClassName("driftimg")[0];
 }
 function handleExplosionHit(getId, pExplose) {
 	var oKart = aKarts[getId];
@@ -15411,7 +15411,6 @@ function handlePoisonHit(getId) {
 	loseUsingItems(oKart);
 	oKart.size = 0.6;
 	oKart.mini = Math.max(oKart.mini, 60);
-	updateDriftSize(getId);
 }
 
 var oRoulettesPrefixes = ["", "2"];
@@ -16510,25 +16509,7 @@ function runOneFrame() {
 			var jTrajet = jTrajets[i-1];
 			if (timer <= jTrajet.length) {
 				var getInfos = jTrajet[timer-1];
-				if (oKart.tombe) {
-					oKart.tombe--;
-					if (!oKart.tombe)
-						resetFall(oKart);
-				}
-				var aX = oKart.x;
-				var aY = oKart.y;
-				var aRotation = oKart.rotation;
-				oKart.x = getInfos[0];
-				oKart.y = getInfos[1];
-				oKart.z = getInfos[2];
-				oKart.rotation = getInfos[3];
-				if (getInfos[4] && (getInfos[4][0] == "1")) {
-					oKart.tombe = 20;
-					oKart.aX = aX;
-					oKart.aY = aY;
-					oKart.aRotation = aRotation;
-					oKart.sprite[0].img.style.display = "none";
-				}
+				oKart.moveGhost(getInfos);
 				continue;
 			}
 			else {
