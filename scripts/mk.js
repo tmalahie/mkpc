@@ -13843,7 +13843,7 @@ function move(getId, triggered) {
 		if (handleHeightInc(oKart)) {
 			delete oKart.jumped;
 			if (oKart.driftinc) {
-				if (carDrift && !oKart.driftSound) {
+				if (carDrift && !oKart.driftSound && kartIsPlayer(oKart)) {
 					carDrift.currentTime = 0;
 					carDrift.play();
 					oKart.driftSound = carDrift;
