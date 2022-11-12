@@ -172,6 +172,12 @@ include('menu.php');
                 'base_url' => 'profil.php?id=26749',
                 'for' => $language ? 'for the':'pour le',
                 'description' => $language ? '<a href="images/sprites/sprite_frere_marto.png">sprite of Hammer Bro</a>':'<a href="images/sprites/sprite_frere_marto.png">sprite de Frère Marto</a>'
+            ),
+            array(
+                'author' => 'Aluigi1300',
+                'base_url' => 'profil.php?id=8923',
+                'for' => $language ? 'for the':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_yoshi.png">sprite of Yoshi</a>':'<a href="images/sprites/sprite_yoshi.png">sprite de Yoshi</a>'
             )
         ),
         ($language ? 'Other resources - Musics':'Autres ressources - Musiques') => array(
