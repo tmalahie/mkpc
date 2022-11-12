@@ -2,5 +2,5 @@
 if (($_SERVER['HTTP_HOST'] !== 'mkpc.malahieude.net') || isset($_GET['metakey']))
 	echo '<script type="text/javascript" src="scripts/mk.js"></script>';
 else
-	echo '<script type="text/javascript" src="scripts/mk.vdf.js"></script>';
+	echo '<script type="text/javascript" src="scripts/mk.ve0.js"></script>';
 ?>

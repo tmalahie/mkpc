@@ -3147,19 +3147,19 @@ function startGame() {
 		oKart.exiting = exitKart;
 		oKart.actualSpeed = actualKartSpeed;
 		for (var j=0;j<strPlayer.length;j++) {
-			(function(sprite) {
+			(function(sprite, driftSprite) {
 				sprite.nbSprites = 24;
+				driftSprite.nbSprites = 3;
+				driftSprite.w = 63;
+				driftSprite.h = 22;
+				driftSprite.z = -0.544;
 				sprite.img.onload = function() {
 					sprite.w = this.naturalWidth/sprite.nbSprites;
 					sprite.h = this.naturalHeight;
+					driftSprite.z = -0.017 * sprite.h;
 					delete this.onload;
 				}
-			})(oKart.sprite[j]);
-
-			oKart.driftSprite[j].nbSprites = 3;
-			oKart.driftSprite[j].w = 63;
-			oKart.driftSprite[j].h = 22;
-			oKart.driftSprite[j].z = -0.55;
+			})(oKart.sprite[j], oKart.driftSprite[j]);
 		}
 	}
 	if (course != "CM") {
