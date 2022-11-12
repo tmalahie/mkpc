@@ -695,9 +695,9 @@ $slidesPath = 'images/slides';
 							'icon' => 'celestial-guardians.png',
 							'score' => 0,
 							'wins' => 0,
-							'losses' => 1,
+							'losses' => 2,
 							'ties' => 0,
-							'diff' => -74
+							'diff' => -108
 						),
 						array(
 							'name' => 'Senko Nation',
@@ -711,11 +711,11 @@ $slidesPath = 'images/slides';
 						array(
 							'name' => 'Red Stari FC',
 							'icon' => 'red-stari.png',
-							'score' => 3,
-							'wins' => 1,
+							'score' => 6,
+							'wins' => 2,
 							'losses' => 0,
 							'ties' => 0,
-							'diff' => 4
+							'diff' => 38
 						),
 					);
 					usort($plRanking, function($team1, $team2) {
