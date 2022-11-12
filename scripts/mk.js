@@ -16519,6 +16519,8 @@ function runOneFrame() {
 				oKart.demitours = 0;
 				oKart.lastAItime = 0;
 				oKart.arme = false;
+				oKart.stopDrifting();
+				oKart.stopStunt();
 			}
 		}
 		if (!oKart.loose || (isOnline && !finishing)) {
