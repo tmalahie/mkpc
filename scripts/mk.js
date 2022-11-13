@@ -6721,7 +6721,6 @@ var itemBehaviors = {
 							}
 							if (tCible) {
 								fSprite.target = tCible.id;
-								var oPlayer = oPlayers[0];
 								if (isOnline && ((tCible.id == identifiant) || (tCible.controller == identifiant) || isControlledByPlayer(fSprite.owner)))
 									syncItems.push(fSprite);
 							}
@@ -15226,14 +15225,17 @@ function move(getId, triggered) {
 	}
 	if (course == "BB" && !oKart.ballons.length && !oKart.tourne && !oKart.loose) {
 		var setOpac = oKart.sprite[0].div.style.opacity-0.1;
-		for (var i=0;i<strPlayer.length;i++)
+		for (var i=0;i<strPlayer.length;i++) {
 			oKart.sprite[i].div.style.opacity = setOpac;
+			oKart.driftSprite[i].div.style.opacity = setOpac;
+		}
 		var stayVisible = (isOnline && (oKart==oPlayers[0] || onlineSpectatorId));
 		var oPacLim = stayVisible ? 0.4:0.01;
 		if (setOpac < oPacLim) {
 			if (!stayVisible) {
 				for (var i=0;i<strPlayer.length;i++) {
 					oKart.sprite[i].img.style.display = "none";
+					oKart.driftSprite[i].img.style.display = "none";
 					if (oKart.marker)
 						oKart.marker.div[i].style.display = "none";
 				}
