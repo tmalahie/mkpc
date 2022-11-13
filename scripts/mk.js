@@ -3034,7 +3034,6 @@ function startGame() {
 					oKart.driftcpt = 0;
 					oKart.driftinc = 0;
 					resetDriftSprite(oKart);
-					aDriftInc = 0;
 				};
 				oKart.stopStunt = function() {
 					if (aStunted) {
@@ -13000,8 +12999,8 @@ function itemDataLength(type) {
 function resetDatas() {
 	var oPlayer = oPlayers[0];
 	var playerMapping = (course != "BB")
-	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
-	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi"];
+	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place"]
+	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi"];
 	var playerMappingExtra = (course != "BB") ? ["finaltime"]:[];
 	var cpuMapping = playerMapping.concat("aipoint");
 	var payload = {
@@ -13138,7 +13137,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDrift = oKart.driftinc, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aReserve = oKart.reserve;
+						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aReserve = oKart.reserve;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
@@ -13225,9 +13224,17 @@ function resetDatas() {
 								oKart.aRotation = aRotation;
 							}
 						}
-						if (aDrift && !oKart.driftinc) {
-							oKart.driftcpt = 0;
-							resetDriftSprite(oKart);
+						if ((aDriftCpt >= fTurboDriftCpt) && (oKart.driftcpt < fTurboDriftCpt)) {
+							if (oKart.driftinc)
+								oKart.driftSprite[0].setState(0);
+							else
+								resetDriftSprite(oKart);
+						}
+						else {
+							if ((aDriftCpt < fTurboDriftCpt) && (oKart.driftcpt >= fTurboDriftCpt))
+								oKart.driftSprite[0].setState(1);
+							if ((aDriftCpt < fTurboDriftCpt2) && (oKart.driftcpt >= fTurboDriftCpt2))
+								oKart.driftSprite[0].setState(2);
 						}
 						if (!oKart.turnSound && oKart.tourne) {
 							oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(course=="BB")?80:50);

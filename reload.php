@@ -13,8 +13,8 @@ if ($id) {
 					'items' => 'i'
 				),
 				'player' => $isBattle
-					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi")
-					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place")
+					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi")
+					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place")
 			);
 		}
 		$playerMapping = $paramsMapping['player'];
