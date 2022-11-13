@@ -58,6 +58,7 @@ if ($id) {
 					$payloadData[$key] = isset($payloadParam[$i]) ? $payloadParam[$i]:null;
 				if (!$isBattle)
 					if ($payloadData['tours'] > $fLaps) $payloadData['tours'] = $fLaps;
+				if ($payloadData['driftcpt'] > 255) $payloadData['driftcpt'] = 255;
 				$playerPayload['data'] = $payloadData;
 			}
 			unset($playerPayload);

@@ -13225,8 +13225,10 @@ function resetDatas() {
 							}
 						}
 						if ((aDriftCpt >= fTurboDriftCpt) && (oKart.driftcpt < fTurboDriftCpt)) {
-							if (oKart.driftinc)
-								oKart.driftSprite[0].setState(0);
+							if (oKart.driftinc) {
+								if (oKart.driftcpt < (fTurboDriftCpt - 10))
+									oKart.driftSprite[0].setState(0);
+							}
 							else
 								resetDriftSprite(oKart);
 						}
