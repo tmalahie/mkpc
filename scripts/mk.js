@@ -3738,7 +3738,8 @@ function startGame() {
 								removeGameMusics();
 								removeHUD();
 								clearResources();
-								$mkScreen.removeChild(oContainers[0]);
+								for (var i=0;i<oContainers.length;i++)
+									$mkScreen.removeChild(oContainers[i]);
 								fInfos = {
 									player:strPlayer,
 									distribution:itemDistribution,
@@ -6617,7 +6618,7 @@ var itemBehaviors = {
 									rAngle -= pi2;
 								if (rAngle > Math.PI)
 									rAngle = pi2-rAngle;
-								if (Math.abs(rAngle) > 2.5) {
+								if (Math.abs(rAngle) > Math.PI/2) {
 									fNewPosX = tCible.using[0].x;
 									fNewPosY = tCible.using[0].y;
 									fSprite.x = fNewPosX;
