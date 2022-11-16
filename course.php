@@ -22,8 +22,7 @@ if (isset($_GET['i'])) {
 			$hasWriteGrants = true;
 		}
 		elseif ($collab = getCollabLinkFromQuery('arenes', $circuitId)) {
-			$hasReadGrants = isset($collab['rights']['view']);
-			$hasWriteGrants = isset($collab['rights']['edit']);
+			include('grantCollabRights.php');
 		}
 		else {
 			$hasReadGrants = ($identifiants[0] == 1390635815);

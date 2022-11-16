@@ -449,7 +449,7 @@ $slidesPath = 'images/slides';
 	<section id="right_section">
 		<?php
 		require_once('utils-date.php');
-		if ($id) {
+		/*if ($id) {
 			$alreadyClosed = mysql_fetch_array(mysql_query('SELECT read_date FROM mkofficialmsgread WHERE player = '.$id.' AND message="lounge_2022"'));
 			if (!$alreadyClosed) {
 				?>
@@ -478,7 +478,7 @@ $slidesPath = 'images/slides';
 				</div>
 				<?php
 			}
-		}
+		}*/
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
