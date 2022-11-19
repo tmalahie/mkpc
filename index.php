@@ -704,18 +704,18 @@ $slidesPath = 'images/slides';
 							'icon' => 'senko-nation.png',
 							'score' => 3,
 							'wins' => 1,
-							'losses' => 1,
+							'losses' => 2,
 							'ties' => 0,
-							'diff' => 70
+							'diff' => 54
 						),
 						array(
 							'name' => 'Red Stari FC',
 							'icon' => 'red-stari.png',
-							'score' => 6,
-							'wins' => 2,
+							'score' => 9,
+							'wins' => 3,
 							'losses' => 0,
 							'ties' => 0,
-							'diff' => 38
+							'diff' => 54
 						),
 					);
 					usort($plRanking, function($team1, $team2) {
