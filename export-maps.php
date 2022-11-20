@@ -52,6 +52,8 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	$mapData['collision'] = $circuitPayload->collision;
 	if (empty($mapData['collision']))
 		unset($mapData['collision']);
+	if (isset($circuitPayload->collisionProps))
+		$mapData['collisionProps'] = $circuitPayload->collisionProps;
 	foreach ($circuitPayload->horspistes as &$hpsData) {
 		foreach ($hpsData as &$hpData) {
 			if (isset($hpData[3]) && is_numeric($hpData[3])) {

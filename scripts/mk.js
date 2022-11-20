@@ -2926,6 +2926,7 @@ function startGame() {
 		}
 		this.frminv = 10;
 		this.tourne = nb;
+		resetWrongWay(this);
 	}
 	function fallKart() {
 		return tombe(this.x+this.speed*direction(0,this.rotation),this.y+this.speed*direction(1,this.rotation));
@@ -13535,6 +13536,7 @@ function resetDatas() {
 					window.removeEventListener("blur", window.releaseOnBlur);
 					window.releaseOnBlur = undefined;
 					supprArme(0);
+					resetWrongWay(oPlayer);
 					if (bMusic||iSfx)
 						startEndMusic();
 					finishing = true;
@@ -14543,6 +14545,7 @@ function move(getId, triggered) {
 					oKart.arme = false;
 					stopDrifting(getId);
 					supprArme(getId);
+					resetWrongWay(oKart);
 					if (oKart.billball)
 						oKart.billball = 1;
 					oKart.cpu = true;
@@ -15576,8 +15579,7 @@ function handleWrongWay(oKart) {
 		var dAngle = (dAngle1 + dAngle2) / 2;
 
 		if (dAngle < Math.PI*0.6) {
-			if (!oKart.tombe)
-				isWrongWay = false;
+			isWrongWay = false;
 			if (dAngle < Math.PI*0.45) {
 				isRightWay = true;
 				break;
@@ -15617,7 +15619,7 @@ function handleWrongWay(oKart) {
 		}
 	}
 	else {
-		if (isWrongWay)
+		if (isWrongWay && !oKart.tombe && !oKart.tourne)
 			oKart.wrongWaySince = 1;
 	}
 }
