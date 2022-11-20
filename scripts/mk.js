@@ -9138,6 +9138,40 @@ function render() {
 				else
 					fSpriteRef.driftSprite[i].div.style.display = "none";
 
+				if (fSpriteRef.wrongWaySprite && (i === j)) {
+					var shiftT0 = 10, shiftT1 = 20, shiftT = 30;
+					var shiftX, shiftY;
+					var tF = interpolateState(-1,0, tFrame);
+					var tW = fSpriteRef.wrongWaySince + tF - shiftT0;
+					fSpriteRef.wrongWaySprite[i].setState(Math.floor((tW%8)/4));
+					if (tW < shiftT1) {
+						var tR = tW/shiftT1;
+						shiftX = 15 * (Math.pow(tR,0.7) - 1);
+						shiftY = 40*(1-tR);
+					}
+					else {
+						tW -= shiftT1;
+						var tR = (tW%shiftT)/shiftT;
+						var aW = 5, aH = 10;
+						var cosT = Math.cos(2*Math.PI*tR);
+						var sinT = Math.sin(2*Math.PI*tR);
+						var cos2t1 = 1 + cosT*cosT;
+						shiftX = aW*sinT/cos2t1;
+						shiftY = -aH*cosT*sinT/cos2t1;
+					}
+					shiftX -= 2;
+					if (fSpriteRef.rightWaySince) {
+						var shiftTf = 10;
+						var tU = (fSpriteRef.rightWaySince+tF)/shiftTf;
+						shiftY += 50*tU;
+					}
+					fSpriteRef.wrongWaySprite[i].render(fCamera, {
+						x: fSprite.x - shiftX*direction(1,fRotation),
+						y: fSprite.y + shiftX*direction(0,fRotation),
+						z: 20 + shiftY
+					});
+				}
+
 				if (!isActualPlayer) {
 					if (fSpriteRef.marker && !fSpriteRef.loose && !fSpriteRef.tombe)
 						fSpriteRef.marker.render(i, fCamera, fSprite);
@@ -13651,6 +13685,8 @@ function move(getId, triggered) {
 					}
 				}
 			}
+
+			handleWrongWay(oKart);
 		}
 		else if (oKart.tours == (oMap.tours+1)) {
 			if (!oKart.changeView)
@@ -14407,6 +14443,7 @@ function move(getId, triggered) {
 						oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
 				}
 				resetPowerup(oKart);
+				resetWrongWay(oKart);
 				if (!oKart.cpu) {
 					clLocalVars.falls++;
 					var ruleVars;
@@ -15516,6 +15553,84 @@ function timeStr(timeMS) {
 	while (timeMS.length < 3)
 		timeMS = "0"+ timeMS;
 	return timeMins +"'"+ timeSecs +"&quot;"+ timeMS;
+}
+
+function handleWrongWay(oKart) {
+	if (!oMap.checkpoint) return;
+	if (isCup) return;
+	if (onlineSpectatorId) return;
+
+	var isWrongWay = true;
+	var isRightWay = false;
+	for (var i=1;i<=oMap.checkpointCoords.length;i++) {
+		var dest = (oKart.demitours+i) % oMap.checkpointCoords.length;
+		var iLine = oMap.checkpointCoords[dest];
+
+		var hLine = projete(oKart.x,oKart.y, iLine.O[0],iLine.O[1], iLine.O[0]+iLine.u[0],iLine.O[1]+iLine.u[1]);
+		var xLine = iLine.O[0] + hLine*iLine.u[0], yLine = iLine.O[1] + hLine*iLine.u[1];
+		var lAngle = Math.atan2(xLine-oKart.x,yLine-oKart.y);
+		var oAngle = Math.atan2(iLine.O[0]-oKart.x,iLine.O[1]-oKart.y);
+		var kAngle = oKart.rotation*Math.PI/180;
+		var dAngle1 = Math.abs(nearestAngle(lAngle-kAngle, 0,2*Math.PI));
+		var dAngle2 = Math.abs(nearestAngle(oAngle-kAngle, 0,2*Math.PI));
+		var dAngle = (dAngle1 + dAngle2) / 2;
+
+		if (dAngle < Math.PI*0.6) {
+			if (!oKart.tombe)
+				isWrongWay = false;
+			if (dAngle < Math.PI*0.45) {
+				isRightWay = true;
+				break;
+			}
+		}
+		if (!oMap.checkpoint[dest][4])
+			break;
+	}
+
+	if (oKart.wrongWaySince) {
+		if (oKart.rightWaySince) {
+			oKart.rightWaySince++;
+			if (oKart.rightWaySince > 10)
+				resetWrongWay(oKart);
+		}
+		else {
+			oKart.wrongWaySince++;
+			if (oKart.wrongWaySince > 10) {
+				if (!oKart.wrongWaySprite) {
+					oKart.wrongWaySprite = new Sprite("wrongway");
+					for (var j=0;j<oPlayers.length;j++) {
+						var wrongWaySprite = oKart.wrongWaySprite[j];
+						wrongWaySprite.nbSprites = 2;
+						wrongWaySprite.w = 36;
+						wrongWaySprite.h = 32;
+					}
+					if (!oKart.wrongWaySound && shouldPlaySound(oKart)) {
+						oKart.wrongWaySound = loadMusic("musics/events/wrongway.mp3", true);
+						document.body.appendChild(oKart.wrongWaySound);
+					}
+				}
+			}
+			if (isRightWay) {
+				oKart.rightWaySince = 1;
+				removeIfExists(oKart.wrongWaySound);
+			}
+		}
+	}
+	else {
+		if (isWrongWay)
+			oKart.wrongWaySince = 1;
+	}
+}
+
+function resetWrongWay(oKart) {
+	delete oKart.wrongWaySince;
+	delete oKart.rightWaySince;
+	if (oKart.wrongWaySprite) {
+		oKart.wrongWaySprite[0].suppr();
+		delete oKart.wrongWaySprite;
+	}
+	removeIfExists(oKart.wrongWaySound);
+	delete oKart.wrongWaySound;
 }
 
 var clLocalVars, clHud, clSelected;
