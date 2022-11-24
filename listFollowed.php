@@ -60,7 +60,7 @@ include('menu.php');
 			echo '<div class="nick-ctn">';
 			echo get_pseudo_text($user['followed']);
 			echo '<br />';
-			echo '<span class="nick-info">'. ($language ? 'You follow since '.$user['infosDate']:'Suivi depuis '.$user['infosDate']) .'</span>';
+			echo '<span class="nick-info">'. ($language ? 'Followed since '.$user['infosDate']:'Suivi depuis '.$user['infosDate']) .'</span>';
 			echo '</div>';
 			?>
 		</a>

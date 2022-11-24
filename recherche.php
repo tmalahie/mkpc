@@ -10,7 +10,7 @@ if (isset($_GET['content'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Recherche - Forum Mario Kart PC</title>
+<title><?php echo $language ? 'Search':'Recherche'; ?> - Forum Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>

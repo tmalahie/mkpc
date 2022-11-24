@@ -107,18 +107,18 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Win all the cups!':'Remportez tous les grands prix !'; ?></h3>
+								<h3 class="fp-title"><?php echo $language ? 'Win all the cups!':'Remportez tous les grand prix !'; ?></h3>
 								<p>
 									<?php
 									if ($language) {
 										?>
-										Face off the CPU on the <strong>14 grands prix</strong> tournaments and try to win the gold trophy!<br />
+										Face off the CPU on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!<br />
 										Win enough cups to unlock the <strong>15 secret characters</strong>!
 										<?php
 									}
 									else {
 										?>
-										Affrontez les ordis sur les <strong>14 grands prix</strong> et tentez de gagner la coupe en or !<br />
+										Affrontez les ordis sur les <strong>14 grand prix</strong> et tentez de gagner la coupe en or !<br />
 										Remportez suffisament de coupes pour débloquer les <strong>15 persos secrets</strong> !
 										<?php
 									}
@@ -142,7 +142,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										With the <strong>track builder</strong>, the possibilities are endless: the only limit is your imagination.<br />
+										With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!<br />
 										You can <strong>share</strong> your tracks or try other people's creations!
 										<?php
 									}
