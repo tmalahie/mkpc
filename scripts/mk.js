@@ -11463,7 +11463,7 @@ function challengeRuleSatisfied(challenge,rule) {
 }
 function challengeSucceeded(challenge) {
 	if (challenge.succeeded && (challenge !== clSelected)) return;
-	var wasSucceeded = challenge.succeeded;
+	var wasSucceeded = false;//challenge.succeeded;
 	challenge.succeeded = true;
 	if (clSelected == challenge) {
 		clSelected = undefined;
@@ -11565,7 +11565,21 @@ function showChallengePopup(challenge, res) {
 	oDiv.style.opacity = 0;
 	var challengeTitle = language ? 'Challenge completed!':'Défi réussi !';
 	var challengeCongrats = challenge.description.main;
-	var challengeAward = language ? 'You receive a reward of <strong>'+gain+' pt'+(gain>=2?'s':'')+'</strong>.':'Vous recevez <strong>'+gain+' pt'+(gain>=2?'s':'')+'</strong> en récompense.';
+	var challengeAward = (language ? 'You receive a reward of <strong>'+gain+' pt'+(gain>=2?'s':'')+'</strong>.':'Vous recevez <strong>'+gain+' pt'+(gain>=2?'s':'')+'</strong> en récompense.') + '<br />';
+	var challengeAward1 = '';
+	if (res.pts_advent) {
+		var ptsExtra = res.pts_advent;
+		var ptsStr = ptsExtra+"";
+		if (res.pts_advent_extra) {
+			ptsStr += "+"+res.pts_advent_extra;
+			ptsExtra += res.pts_advent_extra;
+		}
+		challengeAward1 = '<div class="challenge-popup-award-advent">🎁 '+ (language ? 'Advent calendar: you receive a bonus reward of <strong>'+ptsStr+' pt'+(ptsExtra>=2?'s':'')+'</strong>!!':'Calendrier de l\'avent : vous recevez un bonus de <strong>'+ptsStr+' pt'+(ptsExtra>=2?'s':'')+'</strong> !!') +'</div>';
+		if (!gain) {
+			gain = true;
+			challengeAward = '';
+		}
+	}
 	var challengeAward2 = language ? 'Your challenge points go from <strong>'+res.pts_before+'</strong> to <strong>'+res.pts_after+'</strong>!':'Vos points défis passent de <strong>'+res.pts_before+'</strong> à <strong>'+res.pts_after+'</strong> !';
 	var challengeClose = language ? 'Close':'Fermer';
 	oDiv.innerHTML = 
@@ -11574,7 +11588,7 @@ function showChallengePopup(challenge, res) {
 			'<h1 class="challenge-popup-title" style="margin:'+ Math.round(iScreenScale/2) +'px 0; font-size: '+ Math.round(iScreenScale*3.25) +'px">'+ challengeTitle +'</h1>'+
 		'</div>'+
 		'<div class="challenge-popup-header" style="font-size: '+ Math.round(iScreenScale*2.25) +'px">'+challengeCongrats+'</div>'+
-		(gain ? '<div class="challenge-popup-award" style="margin:'+iScreenScale+'px 0">'+challengeAward+'<br />'+challengeAward2+'</div>':'') +
+		(gain ? '<div class="challenge-popup-award" style="margin:'+iScreenScale+'px 0">'+challengeAward+challengeAward1+challengeAward2+'</div>':'') +
 		((res.rating>=0) ? '<div class="challenge-rating" style="margin-left:'+Math.round(iScreenScale*3.5)+'px;font-size:'+Math.round(iScreenScale*2.5)+'px">'+ toLanguage('Rate this challenge:', 'Notez ce défi :') +'<div class="challenge-rating-stars"></div><div class="challenge-rated">'+toLanguage("Thanks","Merci")+'</div></div>':'')+
 		(res.publish ? '<div class="challenge-publish" style="margin:'+iScreenScale+'px 0">'+ toLanguage("You can now", "Vous pouvez maintenant") +' <a href="javascript:publishChallenge('+challenge.id+')">'+toLanguage("publish challenge","publier le défi")+'</a>.</div>':'')+
 		'<div class="challenge-popup-close" style="font-size:'+(iScreenScale*2)+'px;bottom:'+iScreenScale+'px;right:'+Math.round(iScreenScale*1.25)+'px">'+

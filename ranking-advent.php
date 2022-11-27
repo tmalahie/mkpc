@@ -24,6 +24,7 @@ $page = 'game';
 include('menu.php');
 $page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
+$year = isset($_GET['y']) ? $_GET['y'] : 2018;
 $get = $_GET;
 foreach ($get as $k => $getk)
 	$get[$k] = stripslashes($get[$k]);
@@ -44,7 +45,7 @@ foreach ($get as $k => $getk)
 	<p><label for="joueur"><strong><?php echo $language ? 'See member':'Voir membre'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo $joueur; ?>" /> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
 	</form>
 	<?php
-	$records = mysql_query('SELECT j.id,j.nom,c.code,IFNULL(COUNT(*),0) AS nb FROM mkjoueurs j INNER JOIN mkprofiles p ON j.id=p.id LEFT JOIN mkcountries c ON c.id=p.country INNER JOIN mkadvent a ON j.id=a.user'. ($joueur ? ' WHERE j.nom="'.$joueur.'"':'').' GROUP BY j.id ORDER BY nb DESC');
+	$records = mysql_query('SELECT j.id,j.nom,c.code,IFNULL(COUNT(*),0) AS nb FROM mkjoueurs j INNER JOIN mkprofiles p ON j.id=p.id LEFT JOIN mkcountries c ON c.id=p.country INNER JOIN mkadvent a ON j.id=a.user AND a.year="'.$year.'"'. ($joueur ? ' WHERE j.nom="'.$joueur.'"':'').' GROUP BY j.id ORDER BY nb DESC');
 	if ($joueur) {
 		if ($record = mysql_fetch_array($records))
 			$nb_temps = $records ? 1:0;
@@ -63,7 +64,7 @@ foreach ($get as $k => $getk)
 	</tr>
 	<?php
 		if ($joueur) {
-			$getPlaces = mysql_query('SELECT user,COUNT(*) AS nb FROM mkadvent a INNER JOIN mkjoueurs j ON a.user=j.id GROUP BY user HAVING(nb>0 AND (nb>'. $record['nb'] .' OR (nb='. $record['nb'] .' AND user<'. $record['id'] .')))');
+			$getPlaces = mysql_query('SELECT user,COUNT(*) AS nb FROM mkadvent a INNER JOIN mkjoueurs j ON a.user=j.id WHERE a.year="'.$year.'" GROUP BY user HAVING(nb>0 AND (nb>'. $record['nb'] .' OR (nb='. $record['nb'] .' AND user<'. $record['id'] .')))');
 			$place = 1+mysql_numrows($getPlaces);
 			$page = 0;
 		}
@@ -151,7 +152,7 @@ function showMonth() {
 	$("#month-selector").slideDown();
 }
 var joueurs = [<?php
-$joueurs = mysql_query('SELECT nom FROM `mkjoueurs` j INNER JOIN mkadvent a ON j.id=a.user GROUP BY j.id ORDER BY nom');
+$joueurs = mysql_query('SELECT nom FROM `mkjoueurs` j INNER JOIN mkadvent a ON j.id=a.user AND a.year="'.$year.'" GROUP BY j.id ORDER BY nom');
 $v = false;
 while ($iJoueur = mysql_fetch_array($joueurs)) {
 	if ($v)
