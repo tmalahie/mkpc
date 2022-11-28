@@ -10,7 +10,7 @@ include('initdb.php');
 <?php
 $hdescription = $language ? "It's Christmas on Mario Kart PC! To celebrate, this unique event gives you access to 1 challenge per day! Win as many challenges as possible to earn lots of challenge points!" : "C'est Noël sur Mario Kart PC ! Pour fêter ça, cet événement inédit vous donne accès à 1 défi par jour ! Remportez un maximum de défis pour gagner tout plein de points défis !";
 include('heads.php');
-$year = isset($_GET['y']) ? $_GET['y'] : 2018;
+$year = isset($_GET['y']) ? $_GET['y'] : 2022;
 $over = false;
 date_default_timezone_set('Europe/Paris');
 if ($year < date('Y')) {

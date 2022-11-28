@@ -24,13 +24,29 @@ $page = 'game';
 include('menu.php');
 $page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
-$year = isset($_GET['y']) ? $_GET['y'] : 2018;
+$year = isset($_GET['y']) ? $_GET['y'] : 2022;
 $get = $_GET;
 foreach ($get as $k => $getk)
 	$get[$k] = stripslashes($get[$k]);
 ?>
 <main>
 	<h1><?php echo $language ? 'Leaderboard advent calendar':'Calendrier de l\'avent - meilleurs joueurs'; ?></h1>
+	<div class="ranking-modes">
+		<?php
+		if ($year == 2018) {
+			?>
+			<a href="?y=2022">2022</a><span>
+			2018</span>
+			<?php
+		}
+		else {
+			?>
+			<span>2022</span><a
+			href="?y=2018">2018</a>
+			<?php
+		}
+		?>
+	</div>
 	<!-- Forum MKPC -->
 	<p class="pub"><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 	<!-- Mario Kart PC -->
