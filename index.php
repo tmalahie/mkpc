@@ -20,7 +20,7 @@ include('heads.php');
 ?>
 <link rel="stylesheet" href="styles/slider.css" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
-<link rel="stylesheet" href="styles/pro-league.css" />
+<link rel="stylesheet" href="styles/advent-calendar.css" />
 <?php
 include('o_online.php');
 ?>
@@ -667,7 +667,7 @@ $slidesPath = 'images/slides';
 			<a class="right_section_actions action_button" href="listNews.php"><?php echo $language ? 'All news':'Toutes les news'; ?></a>
 		</div>
 		<?php
-		//if (time() >= 1667070000) {
+		if (false) {
 			?>
 		<div class="subsection">
 			<?php
@@ -738,7 +738,7 @@ $slidesPath = 'images/slides';
 			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?php echo $language ? 'Tournament\'s Discord Server':'Serveur Discord du tournoi'; ?></a></div>
 		</div>
 			<?php
-		//}
+		}
 		?>
 		<div class="subsection">
 			<?php
