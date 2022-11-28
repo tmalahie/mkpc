@@ -27,6 +27,7 @@ if (isset($_POST['id'])) {
 						break;
 					}
 				}
+				date_default_timezone_set('Europe/Paris');
 				if ($selectedDay && ($selectedDay <= date('j'))) {
 					$year = date('Y');
 					$alreadyCompleted = mysql_fetch_array(mysql_query('SELECT date FROM mkadvent WHERE year="'. $year .'" AND user="'. $id .'" AND day="'. $selectedDay .'"'));
