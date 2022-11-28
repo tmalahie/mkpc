@@ -276,10 +276,22 @@ function selectMainRule() {
 		$extra.html(
 			'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
 			'<input type="hidden" name="goal[value]" value="[]" />'+
+			'<input type="hidden" name="goal[translated]" value="0" />'+
 			'<button type="button" onclick="openZoneEditor()">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
-			'<div style="font-size:16px"><label>'+ (language ? 'Description: ':'Description : ') +
+			'<div style="font-size:16px" id="goal_reach_zone_description"><label>'+ (language ? 'Description: ':'Description : ') +
 			'<input type="text" name="goal[description]" style="font-size:12px;width:350px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? 'example: &quot;Find the secret passage&quot;, &quot;Reach the central zone&quot;':'Ex : &quot;Trouver le passage secret&quot;, &quot;Atteindre la zone centrale&quot;') +'" required="required" maxlength="100" />'+
-			'</label></div>'
+			'</label>'+
+			'<div style="margin-top:0.25em"><a class="pretty-link" href="javascript:toggleGoalDescriptionTr()">'+ (language ? 'Translate description' : 'Traduire la description') +'...</a></div>'+
+			'</div>'+
+			'<div style="font-size:14px;margin-top:0.25em;display:none" id="goal_reach_zone_description_tr">'+
+			'<label>'+ (language ? 'Description (EN): ':'Description (FR) : ') +
+			'<input type="text" name="goal[description_'+(language ? 'en':'fr')+']" style="font-size:12px;width:300px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;Find the secret passage&quot;, &quot;Reach the central zone&quot;':'&quot;Trouver le passage secret&quot;, &quot;Atteindre la zone centrale&quot;') +'" maxlength="100" />'+
+			'</label><br />'+
+			'<label>'+ (language ? 'Description (FR): ':'Description (EN) : ') +
+			'<input type="text" name="goal[description_'+(language ? 'fr':'en')+']" style="font-size:12px;width:300px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;Trouver le passage secret&quot;, &quot;Atteindre la zone centrale&quot;':'&quot;Find the secret passage&quot;, &quot;Reach the central zone&quot;') +'" maxlength="100" />'+
+			'</label>'+
+			'<div style="margin-top:0.25em"><a class="pretty-link" href="javascript:toggleGoalDescriptionTr()">'+ (language ? 'Stop translating' : 'Ne plus traduire') +'</a></div>'+
+			'</div>'
 		);
 		break;
 	case 'reach_zones':
@@ -287,10 +299,23 @@ function selectMainRule() {
 			'<div style="margin:10px 0"><label>'+ (language ? 'Locations: ':'Emplacements : ') +
 			'<input type="hidden" name="goal[value]" value="[]" />'+
 			'<input type="hidden" name="goal[ordered]" value="0" />'+
+			'<input type="hidden" name="goal[translated]" value="0" />'+
 			'<button type="button" onclick="openZoneEditor(\'zones\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
-			'<div style="font-size:16px"><label>'+ (language ? 'Description: ':'Description : ') +
+			'<div style="font-size:16px" id="goal_reach_zones_description">'+
+			'<label>'+ (language ? 'Description: ':'Description : ') +
 			'<input type="text" name="goal[description]" style="font-size:12px;width:350px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? 'example: &quot;Pass through 8 rings&quot;, &quot;Roll over the 4 pillars&quot;':'Ex : &quot;Traverser les 8 anneaux&quot;, &quot;Rouler sur les 4 pilliers&quot;') +'" required="required" maxlength="100" />'+
-			'</label></div>'
+			'</label>'+
+			'<div style="margin-top:0.25em"><a class="pretty-link" href="javascript:toggleGoalDescriptionTr()">'+ (language ? 'Translate description' : 'Traduire la description') +'...</a></div>'+
+			'</div>'+
+			'<div style="font-size:14px;margin-top:0.25em;display:none" id="goal_reach_zones_description_tr">'+
+			'<label>'+ (language ? 'Description (EN): ':'Description (FR) : ') +
+			'<input type="text" name="goal[description_'+(language ? 'en':'fr')+']" style="font-size:12px;width:300px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;Pass through 8 rings&quot;, &quot;Roll over the 4 pillars&quot;':'&quot;Traverser les 8 anneaux&quot;, &quot;Rouler sur les 4 pilliers&quot;') +'" maxlength="100" />'+
+			'</label><br />'+
+			'<label>'+ (language ? 'Description (FR): ':'Description (EN) : ') +
+			'<input type="text" name="goal[description_'+(language ? 'fr':'en')+']" style="font-size:12px;width:300px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;Traverser les 8 anneaux&quot;, &quot;Rouler sur les 4 pilliers&quot;':'&quot;Pass through 8 rings&quot;, &quot;Roll over the 4 pillars&quot;') +'" maxlength="100" />'+
+			'</label>'+
+			'<div style="margin-top:0.25em"><a class="pretty-link" href="javascript:toggleGoalDescriptionTr()">'+ (language ? 'Stop translating' : 'Ne plus traduire') +'</a></div>'+
+			'</div>'
 		);
 		break;
 	case 'collect_coins':
@@ -776,6 +801,32 @@ function toggleItem(btn) {
 	}
 	btn.blur();
 }
+function toggleGoalDescriptionTr() {
+	var ruleValue = $("#challenge-main-rule").val();
+	var $descriptionDiv = document.getElementById("goal_"+ruleValue+"_description");
+	var $descriptionTrDiv = document.getElementById("goal_"+ruleValue+"_description_tr");
+	var mainForm = document.forms[0];
+	var $trStateInput = mainForm.elements["goal[translated]"];
+	if ($trStateInput.value == 1) {
+		$trStateInput.value = 0;
+		$descriptionTrDiv.style.display = "none";
+		$descriptionDiv.style.display = "block";
+		mainForm.elements["goal[description]"].required = true;
+		mainForm.elements["goal[description_fr]"].required = false;
+		mainForm.elements["goal[description_en]"].required = false;
+	}
+	else {
+		$trStateInput.value = 1;
+		$descriptionDiv.style.display = "none";
+		$descriptionTrDiv.style.display = "block";
+		mainForm.elements["goal[description]"].required = false;
+		mainForm.elements["goal[description_fr]"].required = true;
+		mainForm.elements["goal[description_en]"].required = true;
+		var $trInput = mainForm.elements["goal[description_"+(language ? "en":"fr")+"]"];
+		if (!$trInput.value)
+			$trInput.value = mainForm.elements["goal[description]"].value;
+	}
+}
 function helpDifficulty() {
 	window.open('<?php echo $language ? 'helpDifficulty':'aideDifficulty'; ?>.html','gerer','scrollbars=1, resizable=1, width=500, height=500');
 }
@@ -787,13 +838,26 @@ $(function() {
 		var mainForm = document.forms[0];
 		var mainRule = chRules.main;
 		$("#challenge-main-rule").val(mainRule.type).change();
-		var acceptedKeys = ["value","description","ordered","pts"];
+		var acceptedKeys = ["value","ordered","pts"];
 		for (var i=0;i<acceptedKeys.length;i++) {
 			var key = acceptedKeys[i];
 			if (mainRule[key]) {
 				var ruleElt = mainForm.elements["goal["+key+"]"];
 				if (ruleElt) ruleElt.value = mainRule[key];
 			}
+		}
+		switch (mainRule.type) {
+		case "reach_zone":
+		case "reach_zones":
+			if (typeof mainRule.description === "string")
+				mainForm.elements["goal[description]"].value = mainRule.description;
+			else {
+				toggleGoalDescriptionTr();
+				mainForm.elements["goal[description]"];
+				mainForm.elements["goal[description_fr]"].value = mainRule.description.fr;
+				mainForm.elements["goal[description_en]"].value = mainRule.description.en;
+			}
+			break;
 		}
 		var constraintClasses = ["basic", "extra", "setup"];
 		for (var i=0;i<constraintClasses.length;i++) {

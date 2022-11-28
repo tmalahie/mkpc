@@ -69,10 +69,23 @@ $clRulesByType = array(
 		'reach_zone' => array(
 			'description_mockup' => $language ? 'Reach zone...':'Atteindre la zone...',
 			'description_lambda' => function($language,&$scope) {
+				$lang = $language ? 'en' : 'fr';
+				if (isset($scope->description->{$lang}))
+					return $scope->description->{$lang};
 				return $scope->description;
 			},
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
+				if (!empty($scope['translated'])) {
+					$scope['description'] = array(
+						'fr' => $scope['description_fr'],
+						'en' => $scope['description_en']
+					);
+				}
+				else {
+					unset($scope['description_fr']);
+					unset($scope['description_en']);
+				}
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
@@ -82,12 +95,25 @@ $clRulesByType = array(
 		'reach_zones' => array(
 			'description_mockup' => $language ? 'Go through N zones...':'Passer par N zones...',
 			'description_lambda' => function($language,&$scope) {
+				$lang = $language ? 'en' : 'fr';
+				if (isset($scope->description->{$lang}))
+					return $scope->description->{$lang};
 				return $scope->description;
 			},
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
 				if (isset($scope['ordered']))
 					$scope['ordered'] = intval($scope['ordered']);
+				if (!empty($scope['translated'])) {
+					$scope['description'] = array(
+						'fr' => $scope['description_fr'],
+						'en' => $scope['description_en']
+					);
+				}
+				else {
+					unset($scope['description_fr']);
+					unset($scope['description_en']);
+				}
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
