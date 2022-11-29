@@ -289,9 +289,10 @@ default:
 		$circuitDetails = $challengeDetails['circuit'];
 		$circuitLink = "challengeTry.php?challenge=$challengeId";
 		$adventChallenge = array(
+			'name' => $challenge['name'],
 			'description' => ($language
-				? '<a href="'. $circuitLink .'" target="_blank">'. $circuitDetails['name'] .'</a>: '. $challengeDetails['description']['main']
-				: '<a href="'. $circuitLink .'" target="_blank">'. $circuitDetails['name'] .'</a> : '. $challengeDetails['description']['main']
+				? '<a href="'. $circuitDetails['href'] .'" target="_blank">'. $circuitDetails['name'] .'</a>: '. $challengeDetails['description']['main']
+				: '<a href="'. $circuitDetails['href'] .'" target="_blank">'. $circuitDetails['name'] .'</a> : '. $challengeDetails['description']['main']
 			),
 			'img' => $circuitDetails['cicon'],
 			'link' => $circuitLink

@@ -158,6 +158,12 @@ $adventChallengesUntil = get_challenges_until($day);
 	margin-top: 5px;
 	margin-bottom: 10px;
 }
+#advent-challenge-name:not(:empty) {
+	margin-top: 5px;
+	font-size: 1.1em;
+	color: #005656;
+	text-decoration: underline;
+}
 #advent-challenge-body {
 	font-size: 1.1em;
 	margin-top: 0.25em;
@@ -248,6 +254,7 @@ function populateChallenge(square) {
 			$("#advent-challenge-state").hide();
 			break;
 		}
+		$("#advent-challenge-name").html(challenge.name);
 		var description = challenge.description;
 		$("#advent-challenge-body").html(description);
 		if (challenge.img) {
@@ -276,6 +283,7 @@ function populateChallenge(square) {
 			if (challenge.link)
 				link = challenge.link;
 			$("#advent-challenge-button").attr("href", link);
+			$("#advent-challenge-body > a:first-child").attr("href", link);
 			$("#advent-challenge-link").show();
 		}
 		else
@@ -284,6 +292,7 @@ function populateChallenge(square) {
 	else {
 		$("#advent-challenge-extra").hide();
 		$("#advent-challenge-img").hide();
+		$("#advent-challenge-name").html("");
 		$("#advent-challenge-body").html("");
 		$("#advent-challenge-state").css("color","#800");
 		$("#advent-challenge-state").text(language ? "It's too early for this challenge":"Il est trop tôt pour ce défi");
@@ -437,6 +446,7 @@ include('menu.php');
 			</div>
 			<div id="advent-challenge-state">Ce défi a été réussi</div>
 			<div id="advent-challenge-img"><img alt="star" /></div>
+			<div id="advent-challenge-name"></div>
 			<div id="advent-challenge-body">Finissez le <strong>Circuit Mario 1</strong> en mode <strong>Contre-la-Montre</strong> en moins de <strong>40 secondes</strong>.</div>
 			<div id="advent-challenge-extra">En mode difficile, avec 8 joueurs</div>
 			<div id="advent-challenge-link"><a id="advent-challenge-button"><?php echo $language ? 'Challenge accepted!' : 'Relever le défi'; ?></a></div>
