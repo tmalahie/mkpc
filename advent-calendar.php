@@ -290,6 +290,7 @@ function populateChallenge(square) {
 			$("#advent-challenge-link").hide();
 	}
 	else {
+		$("#advent-challenge-link").hide();
 		$("#advent-challenge-extra").hide();
 		$("#advent-challenge-img").hide();
 		$("#advent-challenge-name").html("");
