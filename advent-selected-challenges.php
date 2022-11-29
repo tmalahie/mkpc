@@ -22,7 +22,7 @@ $selectedChallenges = array(
     20 => 526,
     21 => 16069,
     22 => 18083,
-    23 => 28052,
+    23 => 28059,
     24 => 1
 );
 $adventChallengeRewardsByNb = array(
