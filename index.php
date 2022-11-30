@@ -20,7 +20,6 @@ include('heads.php');
 ?>
 <link rel="stylesheet" href="styles/slider.css" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
-<link rel="stylesheet" href="styles/advent-calendar.css" />
 <?php
 include('o_online.php');
 ?>
@@ -459,14 +458,14 @@ $slidesPath = 'images/slides';
 						It's christmas on MKPC!
 						Enjoy the <strong>advent calendar</strong> special event!<br />
 						<a href="advent-calendar.php">Click here</a> to discover it.<br />
-						To learn more, head to the <a href="topic.php?topic=3954">official topic</a>.
+						To learn more, head to the <a href="topic.php?topic=10452">official topic</a>.
 						<?php
 					}
 					else {
 						?>
 						C'est Noël sur MKPC ! Profitez de l'événement spécial : <strong>calendrier de l'avent</strong> !<br />
 						<a href="advent-calendar.php">Cliquez ici</a> pour le découvrir.<br />
-						Pour en savoir plus, rendez-vous sur le <a href="topic.php?topic=3954">topic officiel</a>.
+						Pour en savoir plus, rendez-vous sur le <a href="topic.php?topic=10452">topic officiel</a>.
 						<?php
 					}
 					?>

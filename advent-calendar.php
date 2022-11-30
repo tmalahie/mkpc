@@ -357,7 +357,7 @@ include('menu.php');
 				On this occasion, a unique event is organized on the site: the <strong>Advent Calendar</strong>!<br />
 				This event gives you access to 1 challenge per day until December 25.<br />
 				As a present, each successful challenge gives you <strong>twice as many points</strong> as normal, and even more if you complete a lot of challenges!<br />
-				To learn more, check out <a href="topic.php?topic=3954">this topic</a>.
+				To learn more, check out <a href="topic.php?topic=10452">this topic</a>.
 				<?php
 			}
 			else {
@@ -366,7 +366,7 @@ include('menu.php');
 				À cette occasion, un événement inédit est organisé sur le site : le <strong>Calendrier de l'Avent</strong> !<br />
 				Cet événement vous donne accès à <strong>1 défi par jour</strong> jusqu'au 25 décembre.<br />
 				En cadeau, chaque défi réussi vous rapporte <strong>2 fois plus</strong> de points qu'en temps normal, et encore plus si vous réussissez beaucoup de défis !<br />
-				Pour en savoir plus, rendez-vous sur <a href="topic.php?topic=3954">ce topic</a>.<br />
+				Pour en savoir plus, rendez-vous sur <a href="topic.php?topic=10452">ce topic</a>.<br />
 				<?php
 			}
 		}
@@ -400,7 +400,7 @@ include('menu.php');
 	(adsbygoogle = window.adsbygoogle || []).push({});
 	</script>
 	<div class="advent-begin">
-		&#9660;&nbsp;<?php echo $language ? 'Click on current day number to begin': 'Cliquez sur le numéro du jour pour jouer'; ?>&nbsp;&#9660;
+		&#9660;&nbsp;<?php echo $language ? 'Click on the day number to begin': 'Cliquez sur le numéro du jour pour jouer'; ?>&nbsp;&#9660;
 	</div>
 	<div class="advent-calendar">
 		<img src="images/advent-calendar/calendar.jpg" class="advent-calendar-bg" />
