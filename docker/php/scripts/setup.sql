@@ -136,10 +136,11 @@ CREATE TABLE `mka` (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkadvent` (
+  `year` smallint(6) NOT NULL,
   `user` int(11) NOT NULL,
   `day` tinyint(4) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`user`,`day`)
+  PRIMARY KEY (`year`,`user`,`day`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

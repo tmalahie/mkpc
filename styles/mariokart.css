@@ -661,6 +661,14 @@ select {
 .challenge-popup-award strong {
      color: #038;
 }
+.challenge-popup-award-advent {
+    color: #c89111;
+    text-shadow: 0.05em 0px 0.1em #fc0, 0px 0.05em 0.1em #fc0, -0.05em 0px 0.1em #fc0, 0px -0.05em 0.1em #fc0;
+    margin-bottom: 0.1em;
+}
+.challenge-popup-award-advent strong {
+    color: #ee9107;
+}
 .challenge-popup-close {
      position: absolute;
 }

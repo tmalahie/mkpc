@@ -19,6 +19,37 @@ if (isset($_POST['id'])) {
 					$res['pts_after'] = $getOldPts['pts_challenge']+$reward;
 					mysql_query('UPDATE `mkjoueurs` SET pts_challenge='.$res['pts_after'].' WHERE id='. $id);
 				}
+				include('advent-selected-challenges.php');
+				$selectedDay = null;
+				foreach ($selectedChallenges as $d => $selectedChallengeId) {
+					if ($selectedChallengeId == $challengeId) {
+						$selectedDay = $d;
+						break;
+					}
+				}
+				date_default_timezone_set('Europe/Paris');
+				if ($selectedDay && ($selectedDay <= date('j'))) {
+					$year = date('Y');
+					$alreadyCompleted = mysql_fetch_array(mysql_query('SELECT date FROM mkadvent WHERE year="'. $year .'" AND user="'. $id .'" AND day="'. $selectedDay .'"'));
+					if (!$alreadyCompleted) {
+						mysql_query('INSERT INTO mkadvent SET year="'. $year .'", user="'. $id .'", day="'. $selectedDay .'"');
+						require_once('challenge-consts.php');
+						$reward = getChallengeReward($challenge);
+						$res['pts_advent'] = $reward;
+						$alreadyCompletedCount = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkadvent WHERE year="'. $year .'" AND user="'. $id .'"'));
+						$nbCompleted = $alreadyCompletedCount['nb'];
+						if (isset($adventChallengeRewardsByNb[$nbCompleted])) {
+							$extraReward = $adventChallengeRewardsByNb[$nbCompleted];
+							$res['pts_advent_extra'] = $extraReward;
+							$reward += $extraReward;
+						}
+						$getOldPts = mysql_fetch_array(mysql_query('SELECT pts_challenge FROM `mkjoueurs` WHERE id='.$id));
+						$res['pts_before_advent'] = $getOldPts['pts_challenge'];
+						if (!isset($res['pts_before'])) $res['pts_before'] = $res['pts_before_advent'];
+						$res['pts_after'] = $res['pts_before_advent'] + $reward;
+						mysql_query('UPDATE `mkjoueurs` SET pts_challenge='.$res['pts_after'].' WHERE id='. $id);
+					}
+				}
 				include('challengeMyRate.php');
 				$myRate = getMyRating($challenge);
 				if (!empty($myRate))
