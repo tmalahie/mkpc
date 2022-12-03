@@ -455,7 +455,7 @@ $slidesPath = 'images/slides';
 					<?php
 					if ($language) {
 						?>
-						It's christmas on MKPC!
+						It's Christmas on MKPC!
 						Enjoy the <strong>advent calendar</strong> special event!<br />
 						<a href="advent-calendar.php">Click here</a> to discover it.<br />
 						To learn more, head to the <a href="topic.php?topic=10452">official topic</a>.

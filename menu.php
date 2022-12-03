@@ -105,7 +105,10 @@
 					case 'circuit_comment' :
 					case 'reaction_trackcom' :
 						if ($comment = mysql_fetch_array(mysql_query('SELECT auteur,type,circuit FROM `mkcomments` WHERE id="'. $myNotif['link'] .'"'))) {
-							$notifData['sender'] = $comment['auteur'];
+							if (isset($notifData['reaction']))
+								$notifData['sender'] = $notifData['reaction']['member'];
+							else
+								$notifData['sender'] = $comment['auteur'];
 							if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($comment['type']=='mkcircuits') ? ',!type AS is_circuit':'') .' FROM `'. $comment['type'] .'` WHERE id="'. $comment['circuit'] .'"'))) {
 								if ($myNotif['type'] == 'answer_comment') {
 									if ($myIdentifiants && ($getCircuit['identifiant'] == $myIdentifiants[0]) && ($getCircuit['identifiant2'] == $myIdentifiants[1]) && ($getCircuit['identifiant3'] == $myIdentifiants[2]) && ($getCircuit['identifiant4'] == $myIdentifiants[3]))

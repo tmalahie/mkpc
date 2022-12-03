@@ -247,7 +247,7 @@ function populateChallenge(square) {
 		switch (state) {
 		case 2:
 			$("#advent-challenge-state").css("color","green");
-			$("#advent-challenge-state").text(language ? "This challenge hase been completed!":"Ce défi a été réussi !");
+			$("#advent-challenge-state").text(language ? "This challenge has been completed!":"Ce défi a été réussi !");
 			$("#advent-challenge-state").show();
 			break;
 		default:
