@@ -11117,6 +11117,20 @@ var challengeRules = {
 			return !clLocalVars.forwards;
 		}
 	},
+	"without_turning": {
+		"success": function(scope) {
+			if ((scope.value !== "right") && clLocalVars.leftTurn)
+				return false;
+			if ((scope.value !== "left") && clLocalVars.rightTurn)
+				return false;
+			return true;
+		}
+	},
+	"forwards": {
+		"success": function(scope) {
+			return !clLocalVars.backwards;
+		}
+	},
 	"time": {
 		"success": function(scope) {
 			return (getActualGameTime() <= scope.value);
@@ -13869,6 +13883,24 @@ function move(getId, triggered) {
 		if (!clLocalVars.forwards) {
 			if (oKart.speed > 0 && (oKart.speedinc > 0 || oKart.turbodrift))
 				clLocalVars.forwards = true;
+		}
+		if (!clLocalVars.backwards) {
+			if (oKart.speed < 0 && oKart.speedinc < 0)
+				clLocalVars.backwards = true;
+		}
+		if (!clLocalVars.rightTurn && oKart.speed) {
+			var backwardsSign = (oKart.speedinc||oKart.speed) < 0 ? -1 : 1;
+			if ((oKart.rotinc*backwardsSign < 0) && (oKart.rotincdir*backwardsSign < 0))
+				clLocalVars.rightTurn = true;
+			else if (oKart.driftinc*backwardsSign < 0)
+				clLocalVars.rightTurn = true;
+		}
+		if (!clLocalVars.leftTurn && oKart.speed) {
+			var backwardsSign = (oKart.speedinc||oKart.speed) < 0 ? -1 : 1;
+			if ((oKart.rotinc*backwardsSign > 0) && (oKart.rotincdir*backwardsSign > 0))
+				clLocalVars.leftTurn = true;
+			else if (oKart.driftinc*backwardsSign > 0)
+				clLocalVars.leftTurn = true;
 		}
 	}
 

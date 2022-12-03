@@ -400,6 +400,18 @@ function addConstraintRule(clClass) {
 		case 'game_mode_cup':
 			addConstraintSelector($form,ruleId, language?'Game mode:':'Mode de jeu :', getConstraintOptions(clClass,ruleId));
 			break;
+		case 'without_turning':
+			addConstraintSelector($form,ruleId, language ? 'Select:' : 'Option :', [{
+				label: language ? "Without turning" : "Sans tourner",
+				value: ""
+			}, {
+				label: language ? "Without turning left" : "Sans tourner à gauche",
+				value: "left"
+			}, {
+				label: language ? "Without turning right" : "Sans tourner à droite",
+				value: "right"
+			}]);
+			break;
 		case 'time':
 			addConstraintTime($form,ruleId, language?'Time:':'Temps :',{css:{width:'50px'}});
 			break;

@@ -391,6 +391,26 @@ $clRulesByType = array(
 			'description' => $language ? 'by driving backwards':'en marche arrière',
 			'course' => array('vs', 'battle', 'cup', 'mcup')
 		),
+		'forwards' => array(
+			'description' => $language ? 'without going backwards':'sans reculer',
+			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
+		'without_turning' => array(
+			'description_mockup' => $language ? 'without turning...':'sans tourner...',
+			'description_lambda' => function($language,&$scope) {
+				$direction = '';
+				switch ($scope->value) {
+					case 'left':
+						$direction = $language ? ' left' : ' à gauche';
+						break;
+					case 'right':
+						$direction = $language ? ' right' : ' à droite';
+						break;
+				}
+				return $language ? "without turning $direction" : "sans tourner $direction";
+			},
+			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
 		'time_delay' => array(
 			'description' => $language ? 'by starting with $value​s delay':'en partant avec $value​s de retard',
 			'description_mockup' => $language ? 'by starting with x seconds delay':'en partant avec x secondes de retard',
