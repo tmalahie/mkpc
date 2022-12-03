@@ -20,6 +20,7 @@ include('heads.php');
 ?>
 <link rel="stylesheet" href="styles/slider.css" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
+<link rel="stylesheet" href="styles/pro-league.css" />
 <?php
 include('o_online.php');
 ?>
@@ -666,7 +667,7 @@ $slidesPath = 'images/slides';
 			<a class="right_section_actions action_button" href="listNews.php"><?php echo $language ? 'All news':'Toutes les news'; ?></a>
 		</div>
 		<?php
-		if (false) {
+		if ($id) {
 			?>
 		<div class="subsection">
 			<?php
@@ -689,9 +690,9 @@ $slidesPath = 'images/slides';
 							'icon' => 'celestial-guardians.png',
 							'score' => 0,
 							'wins' => 0,
-							'losses' => 3,
+							'losses' => 4,
 							'ties' => 0,
-							'diff' => -166
+							'diff' => -334
 						),
 						array(
 							'name' => 'Senko Nation',
@@ -705,11 +706,11 @@ $slidesPath = 'images/slides';
 						array(
 							'name' => 'Red Stari FC',
 							'icon' => 'red-stari.png',
-							'score' => 9,
-							'wins' => 3,
+							'score' => 12,
+							'wins' => 4,
 							'losses' => 0,
 							'ties' => 0,
-							'diff' => 54
+							'diff' => 222
 						),
 					);
 					usort($plRanking, function($team1, $team2) {
