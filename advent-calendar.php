@@ -378,13 +378,13 @@ include('menu.php');
 		<div class="advent-completed"><?php
 		if ($nbCompleted == 24) {
 			if ($day < 24)
-				echo $language ? 'Well done, you have completed all the chalenges so far! See you tomorrow for the next challenge.':'Bravo, vous avez réussi tous les défis pour l\'instant ! Rendez-vous demain pour le prochain défi.';
+				echo $language ? 'Well done, you have completed all the challenges so far! See you tomorrow for the next challenge.':'Bravo, vous avez réussi tous les défis pour l\'instant ! Rendez-vous demain pour le prochain défi.';
 			else
-				echo $language ? 'You have completed all the chalenges, congratulations!!':'Vous avez réussi tous les défis, félicitations !!';
+				echo $language ? 'You have completed all the challenges, congratulations!!':'Vous avez réussi tous les défis, félicitations !!';
 		}
 		else {
 			$plural = ($nbCompleted>=2) ? 's':'';
-			echo $language ? 'You have completed '. $nbCompleted .' chalenge'. $plural .' out of '. 24 .'!':'Vous avez réussi '. $nbCompleted .' défi'. $plural .' sur '. 24;
+			echo $language ? 'You have completed '. $nbCompleted .' challenge'. $plural .' out of '. 24 .'!':'Vous avez réussi '. $nbCompleted .' défi'. $plural .' sur '. 24;
 		}
 		?></div>
 		<?php
