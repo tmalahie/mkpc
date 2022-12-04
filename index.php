@@ -20,7 +20,7 @@ include('heads.php');
 ?>
 <link rel="stylesheet" href="styles/slider.css" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
-<link rel="stylesheet" href="styles/pro-league.css" />
+<link rel="stylesheet" href="styles/pro-league.css?reload=1" />
 <?php
 include('o_online.php');
 ?>
@@ -673,67 +673,9 @@ $slidesPath = 'images/slides';
 			<?php
 			display_sidebar('MKPC Pro League', 'topic.php?topic=10070');
 			?>
-			<h2><?php echo $language ? 'Current ranking':'Classement actuel'; ?></h2>
+			<h2><?php echo $language ? 'Current bracket':'Classement actuel'; ?></h2>
 			<div id="pro-league" class="right_subsection">
-				<table>
-					<tr>
-						<th><?php echo $language ? 'Rank':'Rang'; ?></th>
-						<th><?php echo $language ? 'Team':'Équipe'; ?></th>
-						<th>Pts</th>
-						<th class="pl-l" title="<?php echo $language ? 'Wins - Ties - Losses' : 'Victoires - Nuls - Défaites'; ?>"><?php echo $language ? 'W-T-L' : 'V-N-D'; ?></th>
-						<th class="pl-xl" title="<?php echo $language ? 'Score difference' : 'Différence de score'; ?>"><?php echo $language ? 'Diff' : 'Diff'; ?></th>
-					</tr>
-					<?php
-					$plRanking = array(
-						array(
-							'name' => 'Celestial Guardians',
-							'icon' => 'celestial-guardians.png',
-							'score' => 0,
-							'wins' => 0,
-							'losses' => 4,
-							'ties' => 0,
-							'diff' => -334
-						),
-						array(
-							'name' => 'Senko Nation',
-							'icon' => 'senko-nation.png',
-							'score' => 6,
-							'wins' => 2,
-							'losses' => 2,
-							'ties' => 0,
-							'diff' => 112
-						),
-						array(
-							'name' => 'Red Stari FC',
-							'icon' => 'red-stari.png',
-							'score' => 12,
-							'wins' => 4,
-							'losses' => 0,
-							'ties' => 0,
-							'diff' => 222
-						),
-					);
-					usort($plRanking, function($team1, $team2) {
-						return $team2['score'] - $team1['score'];
-					});
-					foreach ($plRanking as $i=>$team) {
-						?>
-						<tr>
-						<td><?php echo ($i+1); ?></td>
-						<td>
-							<div>
-								<img src="images/events/pro-league/<?php echo $team['icon']; ?>" alt="<?php echo $team['name']; ?>" />
-								<?php echo $team['name']; ?>
-							</div>
-						</td>
-						<td><?php echo $team['score']; ?></td>
-						<td class="pl-l"><?php echo $team['wins'].'-'.$team['ties'].'-'.$team['losses']; ?></td>
-						<td class="pl-xl"><?php echo $team['diff']; ?></td>
-						</tr>
-						<?php
-					}
-					?>
-				</table>
+				<img src="https://media.discordapp.net/attachments/672895603130236938/1051517061563678880/image.png" onclick="apercu(this.src)" />
 			</div>
 			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?php echo $language ? 'Tournament\'s Discord Server':'Serveur Discord du tournoi'; ?></a></div>
 		</div>

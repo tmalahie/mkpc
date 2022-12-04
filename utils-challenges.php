@@ -557,7 +557,7 @@ $clRulesByType = array(
 		'balloons_cpu' => array(
 			'description' => $language ? 'having CPUs starting with $value balloon$s':'les ordis commençant avec $value ballon$s',
 			'description_mockup' => $language ? 'initial CPU balloons':'nb ballons initiaux (ordis)',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('battle')
 		)
 	)
 );
