@@ -2917,6 +2917,22 @@ function startGame() {
 		if (!onlineSpectatorState || ((tnCourse+3000) > new Date().getTime()))
 			oSpecCam.reset();
 	}
+	function accelerateKart() {
+		this.speedinc = this.stats.acceleration*this.size;
+		if (this.etoile) this.speedinc *= 5;
+	}
+	function turnKart(dir) {
+		dir *= getMirrorFactor();
+		if (clLocalVars.invertDirs)
+			dir = -dir;
+		this.rotincdir = this.stats.handling*dir;
+		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon) {
+			if (this.jumped)
+				this.driftinc = dir;
+			if (this.driftinc)
+				clLocalVars.drifted = true;
+		}
+	}
 	function spinKart(nb) {
 		if (!this.tourne) {
 			if (isOnline)
@@ -3142,6 +3158,8 @@ function startGame() {
 	}
 	for (var i=0;i<aKarts.length;i++) {
 		var oKart = aKarts[i];
+		oKart.accelerate = accelerateKart;
+		oKart.turn = turnKart;
 		oKart.spin = spinKart;
 		oKart.falling = fallKart;
 		oKart.exiting = exitKart;
@@ -3835,28 +3853,15 @@ function startGame() {
 						switch (gameAction) {
 							case "up":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].speedinc = oPlayers[0].stats.acceleration*oPlayers[0].size;
-								if (oPlayers[0].etoile) oPlayers[0].speedinc *= 5;
+								oPlayers[0].accelerate();
 								break;
 							case "left":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].rotincdir = oPlayers[0].stats.handling*getMirrorFactor();
-								if (!oPlayers[0].driftinc && !oPlayers[0].tourne && !oPlayers[0].fell && oPlayers[0].ctrl && !oPlayers[0].cannon) {
-									if (oPlayers[0].jumped)
-										oPlayers[0].driftinc = getMirrorFactor();
-									if (oPlayers[0].driftinc)
-										clLocalVars.drifted = true;
-								}
+								oPlayers[0].turn(1);
 								break;
 							case "right":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].rotincdir = -oPlayers[0].stats.handling*getMirrorFactor();
-								if (!oPlayers[0].driftinc && !oPlayers[0].tourne && !oPlayers[0].fell && oPlayers[0].ctrl && !oPlayers[0].cannon) {
-									if (oPlayers[0].jumped)
-										oPlayers[0].driftinc = -getMirrorFactor();
-									if (oPlayers[0].driftinc)
-										clLocalVars.drifted = true;
-								}
+								oPlayers[0].turn(-1);
 								break;
 							case "down":
 								currentPressedKeys[gameAction] = true;
@@ -3921,24 +3926,15 @@ function startGame() {
 								break;
 							case "up_p2":
 								if (!oPlayers[1]) return;
-								oPlayers[1].speedinc = oPlayers[1].stats.acceleration*oPlayers[1].size;
-								if (oPlayers[1].etoile) oPlayers[1].speedinc *= 5;
+								oPlayers[1].accelerate();
 								break;
 							case "left_p2":
 								if (!oPlayers[1]) return;
-								oPlayers[1].rotincdir = oPlayers[1].stats.handling*getMirrorFactor();
-								if (!oPlayers[1].driftinc && !oPlayers[1].tourne && !oPlayers[1].fell && oPlayers[1].ctrl && !oPlayers[1].cannon) {
-									if (oPlayers[1].jumped)
-										oPlayers[1].driftinc = getMirrorFactor();
-								}
+								oPlayers[1].turn(1);
 								break;
 							case "right_p2":
 								if (!oPlayers[1]) return;
-								oPlayers[1].rotincdir = -oPlayers[1].stats.handling*getMirrorFactor();
-								if (!oPlayers[1].driftinc && !oPlayers[1].tourne && !oPlayers[1].fell && oPlayers[1].ctrl && !oPlayers[1].cannon) {
-									if (oPlayers[1].jumped)
-										oPlayers[1].driftinc = -getMirrorFactor();
-								}
+								oPlayers[1].turn(-1);
 								break;
 							case "down_p2":
 								if (!oPlayers[1]) return;
@@ -11131,6 +11127,22 @@ var challengeRules = {
 			return !clLocalVars.backwards;
 		}
 	},
+	"auto_accelerate": {
+		"initSelected": function(scope) {
+			clLocalVars.autoAccelerate = true;
+		},
+		"success": function(scope) {
+			return !!clLocalVars.autoAccelerate;
+		}
+	},
+	"invert_dirs": {
+		"initSelected": function(scope) {
+			clLocalVars.invertDirs = true;
+		},
+		"success": function(scope) {
+			return !!clLocalVars.invertDirs;
+		}
+	},
 	"time": {
 		"success": function(scope) {
 			return (getActualGameTime() <= scope.value);
@@ -13889,14 +13901,14 @@ function move(getId, triggered) {
 				clLocalVars.backwards = true;
 		}
 		if (!clLocalVars.rightTurn && oKart.speed) {
-			var backwardsSign = (oKart.speedinc||oKart.speed) < 0 ? -1 : 1;
+			var backwardsSign = (oKart.speedinc||oKart.speed) < 0 ? -getMirrorFactor() : getMirrorFactor();
 			if ((oKart.rotinc*backwardsSign < 0) && (oKart.rotincdir*backwardsSign < 0))
 				clLocalVars.rightTurn = true;
 			else if (oKart.driftinc*backwardsSign < 0)
 				clLocalVars.rightTurn = true;
 		}
 		if (!clLocalVars.leftTurn && oKart.speed) {
-			var backwardsSign = (oKart.speedinc||oKart.speed) < 0 ? -1 : 1;
+			var backwardsSign = (oKart.speedinc||oKart.speed) < 0 ? -getMirrorFactor() : getMirrorFactor();
 			if ((oKart.rotinc*backwardsSign > 0) && (oKart.rotincdir*backwardsSign > 0))
 				clLocalVars.leftTurn = true;
 			else if (oKart.driftinc*backwardsSign > 0)
@@ -13921,6 +13933,8 @@ function move(getId, triggered) {
 	var aPosX = oKart.x, aPosY = oKart.y;
 
 	if (!oKart.z && !oKart.heightinc) {
+		if (clLocalVars.autoAccelerate && !oKart.cpu)
+			oKart.accelerate();
 		oKart.speed += oKart.speedinc;
 		if ((isCup && oMap.skin != 22 && oMap.skin != 30) || (!isCup && oMap.smartjump)) {
 			var hpType, hpProps;

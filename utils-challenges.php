@@ -538,6 +538,16 @@ $clRulesByType = array(
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
 			}
+		),
+		'auto_accelerate' => array(
+			'description' => $language ? 'while constantly accelerating' : 'en accélérant en continu',
+			'description_mockup' => $language ? 'auto accelerate':'auto-accélérer',
+			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
+		'invert_dirs' => array(
+			'description' => $language ? 'with inverted controls':'avec les contrôles inversés',
+			'description_mockup' => $language ? 'invert left and right' : 'inverser gauche et droite',
+			'course' => array('vs', 'battle', 'cup', 'mcup')
 		)
 	)
 );
