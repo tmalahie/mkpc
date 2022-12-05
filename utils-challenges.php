@@ -71,8 +71,8 @@ $clRulesByType = array(
 			'description_lambda' => function($language,&$scope) {
 				$lang = $language ? 'en' : 'fr';
 				if (isset($scope->description->{$lang}))
-					return $scope->description->{$lang};
-				return $scope->description;
+					return htmlspecialchars($scope->description->{$lang});
+				return htmlspecialchars($scope->description);
 			},
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
@@ -97,8 +97,8 @@ $clRulesByType = array(
 			'description_lambda' => function($language,&$scope) {
 				$lang = $language ? 'en' : 'fr';
 				if (isset($scope->description->{$lang}))
-					return $scope->description->{$lang};
-				return $scope->description;
+					return htmlspecialchars($scope->description->{$lang});
+				return htmlspecialchars($scope->description);
 			},
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
@@ -1040,9 +1040,9 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 	);
 	$lang = $language ? 'en' : 'fr';
 	if (isset($name->{$lang}))
-		return $name->{$lang};
+		return htmlspecialchars($name->{$lang});
 	if (!empty($name))
-		return $name;
+		return htmlspecialchars($name);
 	if (isset($decorMapping[$key]))
 		return $decorMapping[$key];
 	return $key;
