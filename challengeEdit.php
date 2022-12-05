@@ -517,6 +517,12 @@ function addConstraintRule(clClass) {
 		case 'balloons_lost':
 			addConstraintNb($form,ruleId, language?'Max lost balloons:':'Max ballons perdus :',{attrs:{min:0},css:{width:'30px'}});
 			break;
+		case 'balloons_player':
+			addConstraintNb($form,ruleId, language?'Player balloons:':'Nb ballons (joueur) :',{attrs:{min:1},css:{width:'30px'}});
+			break;
+		case 'balloons_cpu':
+			addConstraintNb($form,ruleId, language?'CPUs balloons:':'Nb ballons (ordis) :',{attrs:{min:1},css:{width:'30px'}});
+			break;
 		case 'falls':
 			addConstraintNb($form,ruleId, language?'Max falls:':'Max chutes :',{attrs:{min:0},css:{width:'40px'}});
 			break;

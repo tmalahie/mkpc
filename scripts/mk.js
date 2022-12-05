@@ -3669,13 +3669,8 @@ function startGame() {
 				if (course == "BB") {
 					for (var i=0;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
-						if (oKart.cpu) {
-							var f = 1+Math.round(Math.random());
-							for (j=0;j<f;j++) {
-								addNewBalloon(oKart);
-								oKart.reserve--;
-							}
-						}
+						if (oKart.cpu)
+							inflateNewBalloons(oKart);
 					}
 				}
 				if (bMusic || iSfx) {
@@ -9422,6 +9417,13 @@ function friendlyHit(team1,team2) {
 function addNewBalloon(oKart,team) {
 	oKart.ballons.push(createBalloonSprite(oKart,team));
 }
+function inflateNewBalloons(oKart) {
+	var f = 1+Math.round(Math.random());
+	for (var i=0;(i<f)&&(oKart.reserve);i++) {
+		addNewBalloon(oKart);
+		oKart.reserve--;
+	}
+}
 function createBalloonSprite(oKart,team) {
 	if (team === undefined) team = oKart.team;
 	return new Sprite("ballon" + ((team!=-1) ? team:""));
@@ -10994,6 +10996,36 @@ var challengeRules = {
 			if (oPlayers[0].loose && clLocalVars.gagnant != oPlayers[0])
 				return false;
 			return (clLocalVars.lostBalloons <= scope.value);
+		}
+	},
+	"balloons_player": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
+			oPlayers[0].reserve = scope.value - oPlayers[0].ballons.length;
+			updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
+		}
+	},
+	"balloons_cpu": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
+			for (var i=oPlayers.length;i<aKarts.length;i++) {
+				var oKart = aKarts[i];
+				oKart.reserve = scope.value - oKart.ballons.length;
+			}
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
 		}
 	},
 	"no_drift": {
@@ -13772,16 +13804,11 @@ function move(getId, triggered) {
 			loseBall(getId);
 			if (course == "BB") {
 				if (oKart.cpu && oKart.ballons.length == 1) {
-					if (!isOnline || oKart.controller == identifiant) {
-						var f = 1+Math.round(Math.random());
-						for (i=0;(i<f)&&(oKart.reserve);i++) {
-							addNewBalloon(oKart);
-							oKart.reserve--;
-						}
-					}
+					if (!isOnline || oKart.controller == identifiant)
+						inflateNewBalloons(oKart);
 				}
 				if (!oKart.ballons.length && !oKart.loose) {
-					for (i=0;i<strPlayer.length;i++)
+					for (var i=0;i<strPlayer.length;i++)
 						oKart.sprite[i].div.style.opacity = 1;
 				}
 			}
@@ -13849,16 +13876,11 @@ function move(getId, triggered) {
 		if (!oKart.tourne) {
 			if (course == "BB") {
 				if (oKart.cpu && oKart.ballons.length == 1) {
-					if (!isOnline || oKart.controller == identifiant) {
-						var f = 1+Math.round(Math.random());
-						for (i=0;(i<f)&&(oKart.reserve);i++) {
-							addNewBalloon(oKart);
-							oKart.reserve--;
-						}
-					}
+					if (!isOnline || oKart.controller == identifiant)
+						inflateNewBalloons(oKart);
 				}
 				if (!oKart.ballons.length && !oKart.loose) {
-					for (i=0;i<strPlayer.length;i++)
+					for (var i=0;i<strPlayer.length;i++)
 						oKart.sprite[i].div.style.opacity = 1;
 				}
 			}

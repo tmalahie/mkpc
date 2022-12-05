@@ -548,6 +548,16 @@ $clRulesByType = array(
 			'description' => $language ? 'with inverted controls':'avec les contrôles inversés',
 			'description_mockup' => $language ? 'invert left and right' : 'inverser gauche et droite',
 			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
+		'balloons_player' => array(
+			'description' => $language ? 'by starting with $value balloon$s':'en commençant avec $value ballon$s',
+			'description_mockup' => $language ? 'initial player balloons':'nb ballons initiaux (joueur)',
+			'course' => array('battle')
+		),
+		'balloons_cpu' => array(
+			'description' => $language ? 'having CPUs starting with $value balloon$s':'les ordis commençant avec $value ballon$s',
+			'description_mockup' => $language ? 'initial CPU balloons':'nb ballons initiaux (ordis)',
+			'course' => array('vs', 'battle', 'cup', 'mcup')
 		)
 	)
 );
