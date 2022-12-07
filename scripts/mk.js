@@ -16411,6 +16411,7 @@ function ai(oKart) {
 			var nbPlayers = isOnline ? aKarts.length : strPlayer.length;
 			for (var i=0;i<nbPlayers;i++) {
 				var iKart = aKarts[i];
+				var iMaxAngle = maxAngle*Math.max(0.2,Math.min(Math.abs(iKart.speed)/5, 1));
 				if (!iKart.loose && !iKart.protect && !iKart.cpu) {
 					var dDist2 = (iKart.x-oKart.x)*(iKart.x-oKart.x) + (iKart.y-oKart.y)*(iKart.y-oKart.y);
 					if ((dDist2 >= minDist2) && (dDist2 < maxDist2)) {
@@ -16418,7 +16419,7 @@ function ai(oKart) {
 						if (reverse)
 							iAngle += 180;
 						var dAngle = Math.abs(nearestAngle(iAngle-oKart.rotation, 0,360));
-						if ((dAngle >= minAngle) && (dAngle < maxAngle))
+						if ((dAngle >= minAngle) && (dAngle < iMaxAngle))
 							return true;
 					}
 				}
@@ -16497,6 +16498,28 @@ function ai(oKart) {
 							if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
 								arme(aKarts.indexOf(oKart));
 						}
+						break;
+					case "carapace":
+						if (course == "BB" && clSelected && clSelected.id === 28253) {
+							if (canMoveTo(oKart.x,oKart.y,0, oPlayers[0].x-oKart.x,oPlayers[0].y-oKart.y) && !(aKarts.lastUsedTimer > (timer-10))) {
+								if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,150, 0,15)) {
+									arme(aKarts.indexOf(oKart));
+									setTimeout(function() {
+										arme(aKarts.indexOf(oKart));
+									});
+									aKarts.lastUsedTimer = timer;
+								}
+								else if (isPlayerTargetable(0,20, 0,30, true) || isPlayerTargetable(0,80, 0,15, true)) {
+									arme(aKarts.indexOf(oKart));
+									setTimeout(function() {
+										arme(aKarts.indexOf(oKart), true);
+									});
+									aKarts.lastUsedTimer = timer;
+								}
+							}
+						}
+						else
+							useRandomly = true;
 						break;
 					default:
 						useRandomly = true;
