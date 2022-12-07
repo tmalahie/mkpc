@@ -16502,7 +16502,7 @@ function ai(oKart) {
 					case "carapace":
 						if (course == "BB" && clSelected && clSelected.id === 28253) {
 							if (canMoveTo(oKart.x,oKart.y,0, oPlayers[0].x-oKart.x,oPlayers[0].y-oKart.y) && !(aKarts.lastUsedTimer > (timer-10))) {
-								if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,150, 0,15)) {
+								if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,300, 0,15)) {
 									arme(aKarts.indexOf(oKart));
 									setTimeout(function() {
 										arme(aKarts.indexOf(oKart));
