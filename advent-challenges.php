@@ -271,7 +271,7 @@ case 2018:
 		)
 	);
 	break;
-default:
+case 2022:
 	require_once('utils-challenges.php');
 	include('advent-selected-challenges.php');
 	$challengeIds = array_values($selectedChallenges);
@@ -301,6 +301,9 @@ default:
 			$adventChallenge['extra'] = $challengeDetails['description']['extra'];
 		$adventChallenges[$d] = $adventChallenge;
 	}
+	$adventChallenges[19]['name'] = $language ? '12 labours of Mario' : 'Les 12 travaux de Mario';
+	$adventChallenges[19]['description'] = '<a href="map.php?i=86275" target="_blank">'. $adventChallenges[19]['name'] .'</a>' . ($language ? ': Complete all challenges of the track' : ' : Complétez tous les défis du circuit');
+	$adventChallenges[19]['link'] = 'map.php?i=86275';
 }
 function get_challenges_until($day) {
 	global $adventChallenges;

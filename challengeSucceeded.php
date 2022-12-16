@@ -27,14 +27,29 @@ if (isset($_POST['id'])) {
 						break;
 					}
 				}
+				$shouldCompleteAll = false;
+				if ($challenge['clist'] == 18033) {
+					$selectedDay = 19;
+					$shouldCompleteAll = true;
+				}
 				date_default_timezone_set('Europe/Paris');
 				if ($selectedDay && ($selectedDay <= date('j'))) {
 					$year = date('Y');
 					$alreadyCompleted = mysql_fetch_array(mysql_query('SELECT date FROM mkadvent WHERE year="'. $year .'" AND user="'. $id .'" AND day="'. $selectedDay .'"'));
+					if ($shouldCompleteAll) {
+						$pendingCompletion = mysql_fetch_array(mysql_query('SELECT * FROM mkchallenges c LEFT JOIN mkclwin w ON c.id=w.challenge AND w.player="'.$id.'" WHERE c.clist="'. $challenge['clist'] .'" AND c.status="active" AND w.id IS NULL LIMIT 1'));
+						if ($pendingCompletion)
+							$alreadyCompleted = true;
+					}
 					if (!$alreadyCompleted) {
 						mysql_query('INSERT INTO mkadvent SET year="'. $year .'", user="'. $id .'", day="'. $selectedDay .'"');
 						require_once('challenge-consts.php');
 						$reward = getChallengeReward($challenge);
+						if ($shouldCompleteAll) {
+							$otherChallenges = mysql_query('SELECT difficulty FROM mkchallenges WHERE clist="'. $challenge['clist'] .'" AND status="active" AND id!="'. $challengeId .'"');
+							while ($otherChallenge = mysql_fetch_array($otherChallenges))
+								$reward += getChallengeReward($otherChallenge);
+						}
 						$res['pts_advent'] = $reward;
 						$alreadyCompletedCount = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkadvent WHERE year="'. $year .'" AND user="'. $id .'"'));
 						$nbCompleted = $alreadyCompletedCount['nb'];
