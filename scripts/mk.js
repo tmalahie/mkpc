@@ -10755,7 +10755,8 @@ var challengeRules = {
 	"destroy_decors": {
 		"verify": "each_decor_hit",
 		"initLocalVars": function(scope) {
-			clLocalVars.nbDecorHits = {};
+			if (!clLocalVars.nbDecorHits)
+				clLocalVars.nbDecorHits = {};
 			clLocalVars.nbDecorHits[scope.value] = 0;
 			if (!scope.nb) {
 				var oDecors = oMap.decor[scope.value] || [];
