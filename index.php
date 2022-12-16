@@ -673,11 +673,12 @@ $slidesPath = 'images/slides';
 			<?php
 			display_sidebar('MKPC Pro League', 'topic.php?topic=10070');
 			?>
-			<h2><?php echo $language ? 'Current bracket':'Classement actuel'; ?></h2>
-			<div id="pro-league" class="right_subsection">
-				<img src="https://media.discordapp.net/attachments/672895603130236938/1051517061563678880/image.png" onclick="apercu(this.src)" />
-			</div>
-			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?php echo $language ? 'Tournament\'s Discord Server':'Serveur Discord du tournoi'; ?></a></div>
+            <div id="pro-league" class="right_subsection" style="overflow:auto">
+                <br />
+				<a href="https://discord.gg/dPerbeFc36" target="_blank">
+	                <img src="images/events/pro-league/finals.png" style="cursor:pointer" alt="Finals" />
+				</a>
+            </div>
 		</div>
 			<?php
 		}
