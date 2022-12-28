@@ -20,7 +20,6 @@ include('heads.php');
 ?>
 <link rel="stylesheet" href="styles/slider.css" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
-<link rel="stylesheet" href="styles/pro-league.css?reload=1" />
 <?php
 include('o_online.php');
 ?>
@@ -666,23 +665,6 @@ $slidesPath = 'images/slides';
 			?>
 			<a class="right_section_actions action_button" href="listNews.php"><?php echo $language ? 'All news':'Toutes les news'; ?></a>
 		</div>
-		<?php
-		if ($id) {
-			?>
-		<div class="subsection">
-			<?php
-			display_sidebar('MKPC Pro League', 'topic.php?topic=10070');
-			?>
-            <div id="pro-league" class="right_subsection" style="overflow:auto">
-                <br />
-				<a href="https://discord.gg/dPerbeFc36" target="_blank">
-	                <img src="images/events/pro-league/finals.png" style="cursor:pointer" alt="Finals" />
-				</a>
-            </div>
-		</div>
-			<?php
-		}
-		?>
 		<div class="subsection">
 			<?php
 			display_sidebar($language ? 'Track builder':'Éditeur de circuit', 'creations.php');
