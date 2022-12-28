@@ -1,5 +1,5 @@
 <?php
-include('language.php');
+include('translation.php');
 include('session.php');
 include('initdb.php');
 $isBattle = isset($_GET['battle']);
@@ -7,9 +7,11 @@ $game = $isBattle ? 'battle':'vs';
 $pts_ = 'pts_'.$game;
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<html lang="<?php echo languageCode(); ?>">
 <head>
-<title><?php echo $language ? 'Online mode leaderboard':'Classement mode en ligne'; ?> - Mario Kart PC</title>
+<title><?php echo translate('page_title', array(
+	'content' => translate('online_mode_leaderboard')
+)); ?></title>
 <?php
 include('heads.php');
 ?>
@@ -33,26 +35,26 @@ else
 	$myPseudo = null;
 ?>
 <main>
-	<h1><?php echo $language ? 'Leaderboard Mario Kart PC':'Classement Mario Kart PC'; ?></h1>
+	<h1><?php echo translate('leaderboard_mkpc'); ?></h1>
 	<div class="ranking-modes">
 		<?php
 		if ($isBattle) {
 			?>
-			<a href="bestscores.php"><?php echo $language ? 'VS mode':'Course VS'; ?></a><span>
-			<?php echo $language ? 'Battle mode':'Bataille de ballons'; ?></span>
+			<a href="bestscores.php"><?php echo translate('vs_mode'); ?></a><span>
+			<?php echo translate('battle_mode'); ?></span>
 			<?php
 		}
 		else {
 			?>
-			<span><?php echo $language ? 'VS mode':'Course VS'; ?></span><a
-			href="bestscores.php?battle"><?php echo $language ? 'Battle mode':'Bataille de ballons'; ?></a>
+			<span><?php echo translate('vs_mode'); ?></span><a
+			href="bestscores.php?battle"><?php echo translate('battle_mode'); ?></a>
 			<?php
 		}
 		?>
 	</div>
 	<form method="post" action="bestscores.php<?php if ($isBattle) echo '?battle'; ?>">
 	<blockquote>
-	<p><label for="joueur"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
+	<p><label for="joueur"><strong><?php echo translate('see_player'); ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo translate('validate'); ?>" class="action_button" /></p>
 	</blockquote>
 	</form>
 	<?php
@@ -77,7 +79,7 @@ else
 	<table>
 	<tr id="titres">
 	<td>Place</td>
-	<td><?php echo $language ? 'Nick':'Pseudo'; ?></td>
+	<td><?php echo translate('nick'); ?></td>
 	<td>Score</td>
 	</tr>
 	<?php
@@ -148,11 +150,11 @@ else
 	<?php
 	}
 	else
-		echo $language ? '<p><strong>No results found for this search</strong></p>':'<p><strong>Aucun r&eacute;sultat trouv&eacute; pour cette recherche</strong></p>';
+		echo '<p><strong>'. translate('no_search_result') .'</strong></p>';
 	?>
 	</table>
-	<p><a href="online.php<?php echo ($isBattle ? '?battle':''); ?>"><?php echo $language ? 'Back to the online mode home':'Retour &agrave; l\'accueil du mode en ligne'; ?></a><br />
-	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
+	<p><a href="online.php<?php echo ($isBattle ? '?battle':''); ?>"><?php echo translate('back_online_home'); ?></a><br />
+	<a href="index.php"><?php echo translate('back_mkpc'); ?></a></p>
 </main>
 <?php
 include('footer.php');
