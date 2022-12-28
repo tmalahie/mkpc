@@ -34,7 +34,6 @@ if ($hthumbnail) {
 }
 ?>
 <link rel="stylesheet" href="styles/main.css?reload=1" />
-<link rel="stylesheet" href="styles/advent-calendar.css" />
 <link rel="stylesheet" media="only screen and (max-width: 800px)" href="styles/mobile.css" />
 <link rel="stylesheet" media="only screen and (min-width: 800px)" href="styles/computer.css" />
 <link rel="stylesheet" href="styles/creations.css" />

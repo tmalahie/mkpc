@@ -448,7 +448,7 @@ $slidesPath = 'images/slides';
 	<section id="right_section">
 		<?php
 		require_once('utils-date.php');
-		if ($id) {
+		/*if ($id) {
 			?>
 			<div class="subsection">
 				<div id="official_message">
@@ -472,7 +472,7 @@ $slidesPath = 'images/slides';
 				</div>
 			</div>
 			<?php
-		}
+		}*/
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
