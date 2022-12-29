@@ -787,7 +787,7 @@ else {
 				<form class="editor-section editor-description" method="post" action="uploadCircuit.php?battle" enctype="multipart/form-data">
 					<?php
 					if (isset($_GET['error']))
-						echo '<div class="editor-error">'. stripslashes($_GET['error']) .'</div>';
+						echo '<div class="editor-error">'. htmlspecialchars(stripslashes($_GET['error'])) .'</div>';
 					?>
 					Welcome to the arena editor in complete mode.<br />
 					To create a new arena, send your image here:
@@ -800,7 +800,7 @@ else {
 				<form class="editor-section editor-description" method="post" action="uploadCircuit.php?battle" enctype="multipart/form-data">
 					<?php
 					if (isset($_GET['error']))
-						echo '<div class="editor-error">'. stripslashes($_GET['error']) .'</div>';
+						echo '<div class="editor-error">'. htmlspecialchars(stripslashes($_GET['error'])) .'</div>';
 					?>
 					Bienvenue dans l'éditeur d'arènes en mode complet.<br />
 					Pour créer une nouvelle arène, envoyez votre image ici :
