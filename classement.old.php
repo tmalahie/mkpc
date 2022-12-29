@@ -531,7 +531,7 @@ window.onload = function() {
 		}
 		<?php
 		if (isset($_GET['map']))
-			echo 'iCircuit.value = "'.$_GET['map'].'";';
+			echo 'iCircuit.value = "'.htmlspecialchars($_GET['map']).'";';
 		?>
 		iCircuit.onchange = displayResults;
 		oParamsContent.appendChild(iCircuit);
