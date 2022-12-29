@@ -52,7 +52,7 @@ include('o_online.php');
 	}
 	?>
 	<div class="decors-list-container" id="advanced-option-ctn">
-		<a class="advanced-option option-map" href="<?php echo $hasWriteGrants ? 'decorSprite.php?id='.$_GET['id'].$collabSuffix : 'javascript:void(0)'; ?>&amp;map">
+		<a class="advanced-option option-map" href="<?php echo $hasWriteGrants ? 'decorSprite.php?id='.urlencode($_GET['id']).$collabSuffix : 'javascript:void(0)'; ?>&amp;map">
 			<div class="option-bg">
 				<img src="images/maps/map3.png" alt="Map" />
 				<img src="<?php echo $spriteSrcs['map']; ?>" alt="Decor" style="width:<?php echo round(12*$sizeRatio); ?>px" />

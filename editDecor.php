@@ -75,7 +75,7 @@ if (isset($_GET['id'])) {
             </div>
             <?php
             if ($hasWriteGrants)
-                echo '<a href="decorSprite.php?id='. $_GET['id'] . $collabSuffix .'">'. ($language ? 'Edit image':'Modifier l\'image') .'</a>';
+                echo '<a href="decorSprite.php?id='. urlencode($_GET['id']) . $collabSuffix .'">'. ($language ? 'Edit image':'Modifier l\'image') .'</a>';
             if (isset($CUSTOM_DECOR_TYPES[$decor['type']]['extra_sprites'])) {
                 echo '<div class="decor-edit-extra">';
                 /** @var array $extraSprites */

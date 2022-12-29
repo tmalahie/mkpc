@@ -26,7 +26,7 @@ if (isset($_GET['news']) && isset($_POST['comment'])) {
 			while ($otherComment = mysql_fetch_array($otherComments))
 				mysql_query('INSERT INTO `mknotifs` SET type="answer_newscom", user="'. $otherComment['author'] .'", link="'. $commentId .'"');
 			mysql_query('UPDATE `mkprofiles` SET last_connect=NULL WHERE id='. $id);
-			header('location: news.php?id='.$_GET['news'].'#news-comment-ctn-'.$commentId);
+			header('location: news.php?id='.urlencode($_GET['news']).'#news-comment-ctn-'.$commentId);
 		}
 		mysql_close();
 	}

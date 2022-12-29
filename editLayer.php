@@ -9,7 +9,7 @@ if (isset($_GET['id'])) {
 		if (($layer['identifiant'] == $identifiants[0]) || hasCollabGrants('mkbgs', $layer['bg'], $_GET['collab'], 'edit')) {
 			include('utils-bgs.php');
 			include('file-quotas.php');
-			$collabSuffix = isset($_GET['collab']) ? '&collab='.$_GET['collab'] : '';
+			$collabSuffix = isset($_GET['collab']) ? '&collab='.urlencode($_GET['collab']) : '';
 			if (isset($_FILES['layer'])) {
 				$url = isset($_POST['url']) ? $_POST['url'] : '';
 				if ($url === '')

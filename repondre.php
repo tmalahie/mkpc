@@ -92,11 +92,11 @@ include('menu.php');
 							mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($ainc) .'"');
 					}
 					echo $language ? '<p id="successSent">Message sent successfully<br />
-					<a href="topic.php?topic='. $_GET['topic'].'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic='. $_GET['topic']))/20) .'">Click here</a> to go to the topic.<br />
+					<a href="topic.php?topic='. urlencode($_GET['topic']).'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'"'))/20) .'">Click here</a> to go to the topic.<br />
 					<a href="category.php?category='. $category['id'] .'">Click here</a> to return to the category.<br />
 					<a href="forum.php">Click here</a> to return to the forum.</p>' :
 					'<p id="successSent">Message envoy&eacute; avec succ&egrave;s<br />
-					<a href="topic.php?topic='. $_GET['topic'] .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic='. $_GET['topic']))/20) .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
+					<a href="topic.php?topic='. urlencode($_GET['topic']) .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'"'))/20) .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
 					<a href="category.php?category='. $category['id'] .'">Cliquez ici</a> pour retourner à la catégorie.<br />
 					<a href="forum.php">Cliquez ici</a> pour retourner au forum.</p>';
 				}

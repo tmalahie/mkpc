@@ -8,4 +8,4 @@ $baseSettings = array(
 );
 mysql_query('UPDATE metaitem SET settings="'. mysql_real_escape_string(json_encode($baseSettings)) .'" WHERE id="'. $_GET['id'] .'"');
 mysql_close();
-header('location: setMetaItem.php?id='. $_GET['id']);
+header('location: setMetaItem.php?id='. urlencode($_GET['id']));

@@ -8,7 +8,7 @@ if (isset($_GET['id'])) {
 		require_once('collabUtils.php');
 		if (($decor['identifiant'] == $identifiants[0]) || hasCollabGrants('mkdecors', $decor['extra_parent_id'] ?? $decorId, $_GET['collab'], 'edit')) {
 			$type = isset($_GET['map']) ? 'map' : null;
-			$collabSuffix = isset($_GET['collab']) ? '&collab='.$_GET['collab'] : '';
+			$collabSuffix = isset($_GET['collab']) ? '&collab='.urlencode($_GET['collab']) : '';
 			if ($type) {
 				include('utils-decors.php');
 				$spriteSrcs = decor_sprite_srcs($decor['sprites']);

@@ -37,7 +37,7 @@ include('o_online.php');
 	<h1><?php echo $language ? 'Advanced options':'Options avancées'; ?></h1>
 	<div>
 		<a class="advanced-option option-map" href="<?php
-		echo $hasWriteGrants ? 'editSprite.php?id='. $_GET['id'] . $collabSuffix .'&amp;map' : 'javascript:void(0)';
+		echo $hasWriteGrants ? 'editSprite.php?id='. urlencode($_GET['id']) . $collabSuffix .'&amp;map' : 'javascript:void(0)';
 		?>">
 			<div class="option-bg">
 				<img src="images/maps/map1.png" alt="Map" />
@@ -51,7 +51,7 @@ include('o_online.php');
 			?></div>
 		</a>
 		<a class="advanced-option option-podium" href="<?php
-		echo $hasWriteGrants ? 'editSprite.php?id='. $_GET['id'] . $collabSuffix .'&amp;podium' : 'javascript:void(0)';
+		echo $hasWriteGrants ? 'editSprite.php?id='. urlencode($_GET['id']) . $collabSuffix .'&amp;podium' : 'javascript:void(0)';
 		?>">
 			<div class="option-bg">
 				<img src="images/podium.gif" alt="Podium" />

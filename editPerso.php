@@ -45,9 +45,9 @@ if (isset($_GET['id'])) {
 						mass="'. $statPost['mass'] .'"
 					WHERE id="'. $_GET['id'] .'"');
 					if ($collabSuffix)
-						header('location: editPerso.php?id='.$_GET['id'] . $collabSuffix);
+						header('location: editPerso.php?id='.urlencode($_GET['id']) . $collabSuffix);
 					else
-						header('location: persoEditor.php?new='.$_GET['id']);
+						header('location: persoEditor.php?new='.urlencode($_GET['id']));
 				}
 			}
 			$statShow = array();
@@ -117,7 +117,7 @@ var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		<div class="perso-preview perso-animate"><img src="<?php echo PERSOS_DIR.$perso['sprites']; ?>.png" onload="this.parentNode.style.width=Math.round(this.naturalWidth/24)+'px';this.parentNode.style.height=this.naturalHeight+'px';this.style.width=this.naturalWidth+'px'" alt="perso" /></div>
 		<?php
 		if ($hasWriteGrants)
-			echo '<a class="perso-editsprites" href="editSprite.php?id='. $_GET['id'] . htmlspecialchars($collabSuffix) .'" onclick="unsavedData=false">'. ($language ? "Edit image":"Modifier l'image") .'</a>';
+			echo '<a class="perso-editsprites" href="editSprite.php?id='. urlencode($_GET['id']) . htmlspecialchars($collabSuffix) .'" onclick="unsavedData=false">'. ($language ? "Edit image":"Modifier l'image") .'</a>';
 		?>
 	</div>
 	<?php
