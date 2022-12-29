@@ -15,7 +15,7 @@ if (isset($_GET['id']) && isset($_POST['comment'])) {
 				mysql_query('UPDATE `mknewscoms` SET message="'. $_POST['comment'] .'" WHERE id="'. $_GET['id'] .'"');
 				if ($comment['author']!=$id)
 					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "ENewscom '. $_GET['id'] .'")');
-				header('location: news.php?id='.$comment['news'].'#news-comment-ctn-'.$_GET['id']);
+				header('location: news.php?id='.$comment['news'].'#news-comment-ctn-'.urlencode($_GET['id']));
 			}
 		}
 		mysql_close();

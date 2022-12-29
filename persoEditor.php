@@ -99,7 +99,7 @@ if (isset($_GET['new'])) {
 	if ($isShared = mysql_fetch_array(mysql_query('SELECT author FROM mkchars WHERE id="'. $_GET['new'] .'"'))) {
 		echo '<p id="success">'
 			. ($language ? 'Your character has been saved.':'Votre perso a été enregistré.')
-			. ((null==$isShared['author']) ? ' <a href="javascript:sharePersoWithId('. $_GET['new'] .')">'. ($language ? 'Share':'Partager') .'</a>':'')
+			. ((null==$isShared['author']) ? ' <a href="javascript:sharePersoWithId('. intval($_GET['new']) .')">'. ($language ? 'Share':'Partager') .'</a>':'')
 			. '</p>';
 	}
 }

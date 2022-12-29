@@ -8,6 +8,6 @@ if (isset($_GET['url'])) {// && isset($_GET['cookies'])) {
 		}
 		setcookie('migr', 1, time()+3600*24, '/');
 	}
-	header('location: '. $_GET['url']);
+	header('location: '. urlencode($_GET['url']));
 }
 ?>

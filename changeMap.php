@@ -196,7 +196,7 @@ image.src = "<?php echo getCircuitImgUrl($circuitImg); ?>";
 image.onload = function() {
 	this.style.width = this.naturalWidth+"px";
 	this.style.height = "";<?php
-	if ($success!=2) echo 'window.parent.'.(isset($_GET['pivot']) ? 'rotateImg('.($_GET['pivot']+1).');':'resizeImg('.$_GET['x'].','.$_GET['y'].');');
+	if ($success!=2) echo 'window.parent.'.(isset($_GET['pivot']) ? 'rotateImg('.($_GET['pivot']+1).');':'resizeImg('.intval($_GET['x']).','.intval($_GET['y']).');');
 	else echo 'window.parent.imgSize.w=this.naturalWidth;window.parent.imgSize.h=this.naturalHeight;';
 	?>
 	this.onload = undefined;

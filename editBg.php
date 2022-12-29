@@ -60,7 +60,7 @@ function toggleLayerAdd() {
 <body>
 	<?php
     if (isset($_GET['error'])) {
-        echo '<div id="error">'. $_GET['error'] .'</div>';
+        echo '<div id="error">'. htmlspecialchars($_GET['error']) .'</div>';
     }
 	if (isset($_GET['new'])) {
 		?>
