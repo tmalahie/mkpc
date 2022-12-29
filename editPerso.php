@@ -128,7 +128,7 @@ var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 	else
 		echo '<br />';
 	?>
-	<form method="post" name="perso-form" class="perso-form" action="editPerso.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>" onsubmit="unsavedData=false">
+	<form method="post" name="perso-form" class="perso-form" action="editPerso.php?id=<?php echo urlencode($_GET['id']) . htmlspecialchars($collabSuffix); ?>" onsubmit="unsavedData=false">
 		<label for="name"><?php echo $language ? 'Character name:':'Nom du perso :'; ?></label><input type="text" maxlength="30" required="required" name="name" id="name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" value="<?php echo htmlspecialchars($perso['name']); ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> />
 		<br /><br />
 		<fieldset class="perso-stats">
@@ -169,7 +169,7 @@ var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 			<tr>
 				<td>
 					<div class="advanced-options">
-						<a href="persoOptions.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>" onclick="unsavedData=false">
+						<a href="persoOptions.php?id=<?php echo urlencode($_GET['id']) . htmlspecialchars($collabSuffix); ?>" onclick="unsavedData=false">
 							<img src="images/advanced-options.png" alt="Avanced" /> <?php echo $language ? 'Advanced options':'Options avancées'; ?>
 						</a>
 					</div>

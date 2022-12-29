@@ -64,7 +64,7 @@ include('o_online.php');
 				echo $language ? "Grand Prix image":"Image de grand prix";
 			?></div>
 		</a>
-		<a class="advanced-option option-ending" href="persoMusic.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">
+		<a class="advanced-option option-ending" href="persoMusic.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>">
 			<div class="option-bg">
 				<img src="images/end_music.png" alt="Ending" />
 				<div><img src="<?php echo $spriteSrcs['hd']; ?>" alt="Perso" onload="this.parentNode.style.height=Math.round(576*this.naturalHeight/this.naturalWidth)+'px'" /></div>
@@ -78,7 +78,7 @@ include('o_online.php');
 			?></div>
 		</a>
 	</div>
-	<p><a href="editPerso.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a></p>
+	<p><a href="editPerso.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a></p>
 </body>
 </html>
 		<?php

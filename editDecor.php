@@ -125,7 +125,7 @@ if (isset($_GET['id'])) {
             }
             ?>
         </div>
-        <form method="post" id="decor-edit-form" class="decor-editor-form" action="editDecor.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">
+        <form method="post" id="decor-edit-form" class="decor-editor-form" action="editDecor.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>">
             <?php
             if (!$decor['extra_parent_id']) {
                 ?>
@@ -136,7 +136,7 @@ if (isset($_GET['id'])) {
             }
             ?>
             <div class="advances-options">
-                +<a href="decorOptions.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">
+                +<a href="decorOptions.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>">
                     <?php echo $language ? 'Advanced options':'Options avancées'; ?>...
                 </a>
             </div>

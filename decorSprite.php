@@ -167,11 +167,11 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 		<?php
 		if ($type != 'decor') {
 			?>
-			<a href="decorOptions.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></u></a>
+			<a href="decorOptions.php?id=<?php echo urlencode($_GET['id']) . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></u></a>
 			<?php
 		}
 		?>
-		<a href="editDecor.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
+		<a href="editDecor.php?id=<?php echo urlencode($_GET['id']) . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
 	</div>
 </body>
 </html>

@@ -42,9 +42,9 @@ else
     </p>
     <p>
         <input type="submit" value="Valider les paramètres" /> - 
-        <a href="resetMetaItem.php?id=<?php echo $_GET['id']; ?>" onclick="return confirm('Réinitialiser les paramètres ?')">Réinitialiser</a>
+        <a href="resetMetaItem.php?id=<?php echo urlencode($_GET['id']); ?>" onclick="return confirm('Réinitialiser les paramètres ?')">Réinitialiser</a>
     </p>
 </form>
-<a href="mariokart.php?metakey=<?php echo $_GET['id']; ?>">Retour au jeu</a>
+<a href="mariokart.php?metakey=<?php echo urlencode($_GET['id']); ?>">Retour au jeu</a>
 <?php
 mysql_close();

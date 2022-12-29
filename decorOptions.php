@@ -67,7 +67,7 @@ include('o_online.php');
 	</div>
 	<br />
 	<div class="editor-navigation">
-		<a href="editDecor.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
+		<a href="editDecor.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
 	</div>
 </body>
 </html>
