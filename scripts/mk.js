@@ -16895,8 +16895,10 @@ function addButton(lettre, key, x, y, w, h, fs) {
 		oButton.style.fontSize = fs+"px";
 	oButton.innerHTML = lettre;
 	oButton.dataset.key = key;
-	oButton.ontouchstart = onButtonTouch;
-	oButton.ontouchend = onButtonPress;
+	//oButton.ontouchstart = onButtonTouch;
+	//oButton.ontouchend = onButtonPress;
+	oButton.onmousedown = onButtonTouch;
+	oButton.onmouseup = onButtonPress;
 	document.getElementById("virtualkeyboard").appendChild(oButton);
 	return oButton;
 }
@@ -26124,126 +26126,184 @@ function editCommands(reload,currentTab,selectedPlayer) {
 	$controlWindows.className = "control-window";
 	var $controlCommands = document.createElement("div");
 	$controlCommands.className = "control-window-active";
-	var $controlCommandPlayers = document.createElement("div");
-	$controlCommandPlayers.className = "control-players";
-	for (var i=0;i<2;i++) {
-		(function(playerId) {
-			var $controlCommandPlayer = document.createElement("a");
-			$controlCommandPlayer.href = "#null";
-			$controlCommandPlayer.className = "control-player " + (playerId == selectedPlayer ? "control-player-selected" : "");
-			$controlCommandPlayer.innerHTML = toLanguage("Player ","Joueur ") + (playerId+1);
-			$controlCommandPlayer.onclick = function() {
-				if (selectedPlayer === playerId) return false;
-				editCommands(true,currentTab,playerId);
-				return false;
-			}
-			$controlCommandPlayers.appendChild($controlCommandPlayer);
-		})(i);
-	}
-	$controlCommands.appendChild($controlCommandPlayers);
-	var commands = [{
-		name: toLanguage("Move forward", "Avancer"),
-		key: "up"
-	}, {
-		name: toLanguage("Move back", "Reculer"),
-		key: "down"
-	}, {
-		name: toLanguage("Turn left", "Tourner à gauche"),
-		key: "left"
-	}, {
-		name: toLanguage("Turn right", "Tourner à droite"),
-		key: "right"
-	}, {
-		name: toLanguage("Use item", "Utiliser un objet"),
-		key: "item"
-	}, {
-		name: toLanguage("Item backwards", "Objet en arrière"),
-		key: "item_back"
-	}, {
-		name: toLanguage("Item forwards", "Objet en avant"),
-		key: "item_fwd"
-	}, {
-		name: toLanguage("Jump/drift", "Sauter/déraper"),
-		key: "jump"
-	}, {
-		name: toLanguage("Inflate balloon", "Gonfler un ballon"),
-		key: "balloon"
-	}, {
-		name: toLanguage("Rear view", "Vue arrière"),
-		key: "rear"
-	}, {
-		name: toLanguage("Pause", "Pause"),
-		key: "pause"
-	}, {
-		name: toLanguage("Quit", "Quitter"),
-		key: "quit"
-	}];
-	var gameCommands = getCommands(nbPlayers);
-	if (selectedPlayer) {
-		for (var i=0;i<commands.length;i++) {
-			var p2Key = commands[i].key + "_p2";
-			if (gameCommands[p2Key])
-				commands[i].key = p2Key;
+	if (isMobile()) {
+		var $controlTypeTitle = document.createElement("div");
+		$controlTypeTitle.className = "control-type-title";
+		$controlTypeTitle.innerHTML = toLanguage("Command interface", "Interface de commandes");
+		$controlCommands.appendChild($controlTypeTitle);
+		var $controlTypeValues = document.createElement("div");
+		$controlTypeValues.className = "control-type-values";
+		var controlTypeValues = [{
+			id: "keyboard",
+			name: toLanguage("Virtual Keyboard", "Clavier virtuel"),
+			description: toLanguage("Shows buttons that behave like keys in a keyboard", "Affiche des boutons pour simuler les touches d'un clavier")
+		}, {
+			id: "gestures",
+			name: toLanguage("Gestures control", "Contrôles par gestes"),
+			description: toLanguage("Touch the screen where you want your kart to go. Controls similar to Mario Kart Tour", "Touchez l'écran où vous voulez que votre kart aille. Contrôles similaires à Mario Kart Tour")
+		}, {
+			id: "gyroscope",
+			name: toLanguage("Gyroscope", "Gyroscope"),
+			description: toLanguage("Rotate the screen to turn, like a real wheel", "Pivotez l'écran pour tourner, comme avec un vrai volant")
+		}];
+		var currentControlType = localStorage.getItem("controlType") || "keyboard";
+		for (var i=0;i<controlTypeValues.length;i++) {
+			(function(controlTypeValue) {
+				var $controlTypeValue = document.createElement("label");
+
+				var $controlTypeInput = document.createElement("div");
+				$controlTypeInput.className = "control-type-input";
+				var $controlTypeRadio = document.createElement("input");
+				$controlTypeRadio.type = "radio";
+				$controlTypeRadio.name = "control-type";
+				$controlTypeInput.appendChild($controlTypeRadio);
+				$controlTypeRadio.onclick = function() {
+					localStorage.setItem("controlType", controlTypeValue.id);
+				};
+				if (controlTypeValue.id === currentControlType) {
+					$controlTypeRadio.checked = "checked";
+				}
+				$controlTypeValue.appendChild($controlTypeInput);
+
+				var $controlTypeExplain = document.createElement("div");
+				$controlTypeExplain.className = "control-type-explain";
+				var $controlTypeName = document.createElement("div");
+				$controlTypeName.className = "control-type-name";
+				$controlTypeName.innerHTML = controlTypeValue.name;
+				$controlTypeExplain.appendChild($controlTypeName);
+				var $controlTypeDesc = document.createElement("div");
+				$controlTypeDesc.className = "control-type-desc";
+				$controlTypeDesc.innerHTML = controlTypeValue.description;
+				$controlTypeExplain.appendChild($controlTypeDesc);
+				$controlTypeValue.appendChild($controlTypeExplain);
+
+				$controlTypeValues.appendChild($controlTypeValue);
+			})(controlTypeValues[i]);
 		}
+		$controlCommands.appendChild($controlTypeValues);
 	}
-	var localControls = JSON.parse(localStorage.getItem("controls")||"{}");
-	var isMac = (navigator.platform.toUpperCase().indexOf('MAC')>=0);
-	var $controlEditorGrid = document.createElement("div");
-	$controlEditorGrid.className = "control-editor-grid";
-	for (var i=0;i<commands.length;i++) {
-		(function(command) {
-			var localControl = gameCommands[command.key];
-			var keyCode = localControl[0];
-			if (localControl[1] && isMac)
-				keyCode = localControl[1];
-			var $controlKey = document.createElement("div");
-			var $controlLabel = document.createElement("div");
-			$controlLabel.className = "control-label";
-			$controlLabel.innerHTML = command.name;
-			$controlKey.appendChild($controlLabel);
-			var $controlInput = document.createElement("button");
-			$controlInput.className = "control-input";
-			$controlInput.innerHTML = getKeyName(keyCode);
-			$controlInput.onfocus = function() {
-				this.innerHTML = "...";
-			};
-			$controlInput.onblur = function() {
-				this.innerHTML = getKeyName(keyCode);
-			};
-			$controlInput.onclick = function() {
-				this.focus();
-			};
-			$controlInput.onkeydown = function(e) {
-				e.preventDefault();
-				e.stopPropagation();
-				keyCode = e.keyCode;
-				localControls[command.key] = keyCode;
-				localStorage.setItem("controls", JSON.stringify(localControls));
+	else {
+		var $controlCommandPlayers = document.createElement("div");
+		$controlCommandPlayers.className = "control-players";
+		for (var i=0;i<2;i++) {
+			(function(playerId) {
+				var $controlCommandPlayer = document.createElement("a");
+				$controlCommandPlayer.href = "#null";
+				$controlCommandPlayer.className = "control-player " + (playerId == selectedPlayer ? "control-player-selected" : "");
+				$controlCommandPlayer.innerHTML = toLanguage("Player ","Joueur ") + (playerId+1);
+				$controlCommandPlayer.onclick = function() {
+					if (selectedPlayer === playerId) return false;
+					editCommands(true,currentTab,playerId);
+					return false;
+				}
+				$controlCommandPlayers.appendChild($controlCommandPlayer);
+			})(i);
+		}
+		$controlCommands.appendChild($controlCommandPlayers);
+		var commands = [{
+			name: toLanguage("Move forward", "Avancer"),
+			key: "up"
+		}, {
+			name: toLanguage("Move back", "Reculer"),
+			key: "down"
+		}, {
+			name: toLanguage("Turn left", "Tourner à gauche"),
+			key: "left"
+		}, {
+			name: toLanguage("Turn right", "Tourner à droite"),
+			key: "right"
+		}, {
+			name: toLanguage("Use item", "Utiliser un objet"),
+			key: "item"
+		}, {
+			name: toLanguage("Item backwards", "Objet en arrière"),
+			key: "item_back"
+		}, {
+			name: toLanguage("Item forwards", "Objet en avant"),
+			key: "item_fwd"
+		}, {
+			name: toLanguage("Jump/drift", "Sauter/déraper"),
+			key: "jump"
+		}, {
+			name: toLanguage("Inflate balloon", "Gonfler un ballon"),
+			key: "balloon"
+		}, {
+			name: toLanguage("Rear view", "Vue arrière"),
+			key: "rear"
+		}, {
+			name: toLanguage("Pause", "Pause"),
+			key: "pause"
+		}, {
+			name: toLanguage("Quit", "Quitter"),
+			key: "quit"
+		}];
+		var gameCommands = getCommands(nbPlayers);
+		if (selectedPlayer) {
+			for (var i=0;i<commands.length;i++) {
+				var p2Key = commands[i].key + "_p2";
+				if (gameCommands[p2Key])
+					commands[i].key = p2Key;
+			}
+		}
+		var localControls = JSON.parse(localStorage.getItem("controls")||"{}");
+		var isMac = (navigator.platform.toUpperCase().indexOf('MAC')>=0);
+		var $controlEditorGrid = document.createElement("div");
+		$controlEditorGrid.className = "control-editor-grid";
+		for (var i=0;i<commands.length;i++) {
+			(function(command) {
+				var localControl = gameCommands[command.key];
+				var keyCode = localControl[0];
+				if (localControl[1] && isMac)
+					keyCode = localControl[1];
+				var $controlKey = document.createElement("div");
+				var $controlLabel = document.createElement("div");
+				$controlLabel.className = "control-label";
+				$controlLabel.innerHTML = command.name;
+				$controlKey.appendChild($controlLabel);
+				var $controlInput = document.createElement("button");
+				$controlInput.className = "control-input";
+				$controlInput.innerHTML = getKeyName(keyCode);
+				$controlInput.onfocus = function() {
+					this.innerHTML = "...";
+				};
+				$controlInput.onblur = function() {
+					this.innerHTML = getKeyName(keyCode);
+				};
+				$controlInput.onclick = function() {
+					this.focus();
+				};
+				$controlInput.onkeydown = function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					keyCode = e.keyCode;
+					localControls[command.key] = keyCode;
+					localStorage.setItem("controls", JSON.stringify(localControls));
+					if (gameControls)
+						gameControls = getGameControls();
+					this.blur();
+				};
+				$controlKey.appendChild($controlInput);
+				$controlEditorGrid.appendChild($controlKey);
+			})(commands[i]);
+		}
+		$controlCommands.appendChild($controlEditorGrid);
+		var $controlReset = document.createElement("div");
+		$controlReset.className = "control-reset";
+		var $controlResetBtn = document.createElement("a");
+		$controlResetBtn.href = "#null";
+		$controlResetBtn.innerHTML = toLanguage("Reset controls", "Rétablir les contrôles par défaut");
+		$controlResetBtn.onclick = function() {
+			if (confirm(toLanguage("Reset to default controls?","Confirmer la réinitialisation des contrôles ?"))) {
+				localStorage.removeItem("controls");
 				if (gameControls)
 					gameControls = getGameControls();
-				this.blur();
-			};
-			$controlKey.appendChild($controlInput);
-			$controlEditorGrid.appendChild($controlKey);
-		})(commands[i]);
+				editCommands(true,currentTab,selectedPlayer);
+			}
+			return false;
+		};
+		$controlReset.appendChild($controlResetBtn);
+		$controlCommands.appendChild($controlReset);
 	}
-	$controlCommands.appendChild($controlEditorGrid);
-	var $controlReset = document.createElement("div");
-	$controlReset.className = "control-reset";
-	var $controlResetBtn = document.createElement("a");
-	$controlResetBtn.href = "#null";
-	$controlResetBtn.innerHTML = toLanguage("Reset controls", "Rétablir les contrôles par défaut");
-	$controlResetBtn.onclick = function() {
-		if (confirm(toLanguage("Reset to default controls?","Confirmer la réinitialisation des contrôles ?"))) {
-			localStorage.removeItem("controls");
-			if (gameControls)
-				gameControls = getGameControls();
-			editCommands(true,currentTab,selectedPlayer);
-		}
-		return false;
-	};
-	$controlReset.appendChild($controlResetBtn);
-	$controlCommands.appendChild($controlReset);
 	$controlWindows.appendChild($controlCommands);
 	var $controlSettings = document.createElement("div");
 	$controlSettings.className = "control-settings";
@@ -26608,6 +26668,13 @@ function toPerso(sPerso) {
 	return res;
 }
 
+var isMobileCache = true;
+function isMobile() {
+	if (isMobileCache !== undefined) return isMobileCache;
+	isMobileCache = !!(navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i));
+	return isMobileCache;
+}
+
 formulaire = document.forms.modes;
 if (formulaire.dataset) formulaire.dataset.disabled = "";
 else formulaire.dataset = {};
@@ -26678,8 +26745,6 @@ else {
 				return false;
 			};
 			document.getElementById("virtualkeyboard").style.display = "block";
-			var $commandes = document.getElementById("commandes");
-			if ($commandes) $commandes.style.display = "none";
 		}
 		window.turnEvents = true;
 	}
@@ -26775,9 +26840,6 @@ else {
 			});
 		}
 	}
-}
-function isMobile() {
-	return navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i);
 }
 function isChatting() {
 	if (!isOnline) return false;
