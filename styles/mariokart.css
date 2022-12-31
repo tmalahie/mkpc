@@ -92,7 +92,7 @@
 .control-window > div.control-window-active {
 	display: block;
 }
-.control-type-title {
+.control-main-title {
     font-size: 1.4em;
     font-weight: bold;
     color: #CCC;
@@ -103,6 +103,7 @@
 }
 .control-type-values > label {
     display: flex;
+	align-items: center;
     margin-bottom: 0.5em;
     padding: 0.25em 0;
     cursor: pointer;
@@ -122,6 +123,14 @@
 .control-type-name {
     font-size: 1.2em;
     font-weight: bold;
+}
+.control-misc-values {
+	margin-left: 1em;
+	margin-bottom: 0.5em;
+}
+.control-misc-values > label {
+	display: flex;
+	align-items: center;
 }
 .control-players {
 	margin-top: 0.375em;

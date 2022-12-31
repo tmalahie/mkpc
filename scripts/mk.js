@@ -26128,7 +26128,7 @@ function editCommands(reload,currentTab,selectedPlayer) {
 	$controlCommands.className = "control-window-active";
 	if (isMobile()) {
 		var $controlTypeTitle = document.createElement("div");
-		$controlTypeTitle.className = "control-type-title";
+		$controlTypeTitle.className = "control-main-title";
 		$controlTypeTitle.innerHTML = toLanguage("Command interface", "Interface de commandes");
 		$controlCommands.appendChild($controlTypeTitle);
 		var $controlTypeValues = document.createElement("div");
@@ -26181,6 +26181,41 @@ function editCommands(reload,currentTab,selectedPlayer) {
 			})(controlTypeValues[i]);
 		}
 		$controlCommands.appendChild($controlTypeValues);
+
+		var $controlMiscTitle = document.createElement("div");
+		$controlMiscTitle.className = "control-main-title";
+		$controlMiscTitle.innerHTML = toLanguage("Other options", "Autre options");
+		$controlCommands.appendChild($controlMiscTitle);
+		
+		var $controlMiscValues = document.createElement("div");
+		$controlMiscValues.className = "control-misc-values";
+		var allMiscSettings = {
+			'autoacc' : toLanguage('Auto-accelerate', 'Accélérer automatiquement')
+		};
+		var currentSettings = localStorage.getItem("settings.ctrl");
+		currentSettings = currentSettings ? JSON.parse(currentSettings) : {};
+		for (var key in allMiscSettings) {
+			(function(key) {
+				var $controlSetting = document.createElement("label");
+				var $controlCheckbox = document.createElement("input");
+				$controlCheckbox.type = "checkbox";
+				$controlCheckbox.checked = !!currentSettings[key];
+				$controlSetting.appendChild($controlCheckbox);
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = allMiscSettings[key];
+				$controlSetting.appendChild($controlText);
+				$controlCheckbox.onclick = function() {
+					if (this.checked)
+						currentSettings[key] = 1;
+					else
+						delete currentSettings[key];
+					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettings));
+				}
+				$controlMiscValues.appendChild($controlSetting);
+			})(key);
+		}
+		
+		$controlCommands.appendChild($controlMiscValues);
 	}
 	else {
 		var $controlCommandPlayers = document.createElement("div");
