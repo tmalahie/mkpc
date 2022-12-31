@@ -340,13 +340,13 @@ include('menu.php');
 			if ($language) {
 				?>
 				The event <strong>Advent Calendar</strong> is now closed. You can find the results <a href="ranking-advent.php">here</a>, congrats to all particiants!<br />
-				If you missed the event and want to learn more about it, go to <a href="topic.php?topic=3954">this topic</a>.<br />
+				If you missed the event and want to learn more about it, go to <a href="topic.php?topic=10452">this topic</a>.<br />
 				<?php
 			}
 			else {
 				?>
 				L'événement <strong>Calendrier de l'avent</strong> est terminé. Les résultats sont disponibles <a href="ranking-advent.php">ici</a>, bravo à tous les participants !<br />
-				Si vous avez manqué l'événement et que vous voulez en savoir plus, rendez-vous sur <a href="topic.php?topic=3954">ce topic</a>.<br />
+				Si vous avez manqué l'événement et que vous voulez en savoir plus, rendez-vous sur <a href="topic.php?topic=10452">ce topic</a>.<br />
 				<?php
 			}
 		}
