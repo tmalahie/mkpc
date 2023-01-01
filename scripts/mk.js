@@ -443,7 +443,6 @@ function setScreenScale(iValue, triggered) {
 
 	previewScreenScale(aScreenScale, iScreenScale);
 
-	reposKeyboard();
 	setSRest();
 }
 
@@ -490,15 +489,6 @@ function showParamChangeDisclaimer() {
 			document.body.removeChild(oDisclaimer);
 		}, 1000);
 	}, 3000);
-}
-
-function reposKeyboard() {
-	var virtualKeyboardW = virtualButtonW*4.8;
-	var virtualKeyboardH = virtualButtonH*2.6;
-	document.getElementById("virtualkeyboard").style.width = Math.round(virtualKeyboardW) +"px";
-	document.getElementById("virtualkeyboard").style.height = Math.round(virtualKeyboardH) +"px";
-	document.getElementById("virtualkeyboard").style.left = (iScreenScale*iWidth - virtualKeyboardW)/2 +"px";
-	document.getElementById("virtualkeyboard").style.top = (iScreenScale*40) +"px";
 }
 
 function setMusic(iValue) {
@@ -1418,6 +1408,7 @@ function loadMap() {
 		oInfos.style.textStroke = oInfos.style.WebkitTextStroke = oInfos.style.MozTextStroke = Math.round(iScreenScale/4) +"px "+ primaryColor;
 		oInfos.style.visibility = "hidden";
 		oInfos.style.display = "";
+		oInfos.style.pointerEvents = "none";
 		oInfos.innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
 
 		var oScroller = document.getElementById("scroller").cloneNode(true);
@@ -2928,10 +2919,22 @@ function startGame() {
 		dir *= getMirrorFactor();
 		if (clLocalVars.invertDirs)
 			dir = -dir;
-		this.rotincdir = this.stats.handling*dir;
-		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon) {
+		var sDir = dir;
+		if (Math.abs(dir) < 1) {
+			var targetRotinc = (fMaxRotInc+2)*dir;
+			var targetDir = (targetRotinc - this.rotinc) / 2;
+			if (targetDir > this.stats.handling)
+				targetDir = this.stats.handling;
+			else if (targetDir < -this.stats.handling)
+				targetDir = -this.stats.handling;
+			this.rotincdir = targetDir;
+			sDir = Math.sign(targetDir);
+		}
+		else
+			this.rotincdir = this.stats.handling*dir;
+		if (sDir && !this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon) {
 			if (this.jumped)
-				this.driftinc = dir;
+				this.driftinc = sDir;
 			if (this.driftinc)
 				clLocalVars.drifted = true;
 		}
@@ -3704,7 +3707,11 @@ function startGame() {
 							oInfos.style.top = iScreenScale * 7 + 10 +"px";
 							oInfos.style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 							oInfos.style.fontSize = iScreenScale * 4 +"px";
+							oInfos.style.pointerEvents = "";
 						}
+						var $virtualPauseBtn = document.getElementById("virtualbtn-pause");
+						if ($virtualPauseBtn)
+							$virtualPauseBtn.style.display = "block";
 						if (stillRacing) {
 							var btnFontSize = (course != "CM") ? (iScreenScale*3):Math.round(iScreenScale*2.5);
 							oInfos.innerHTML =
@@ -3847,19 +3854,20 @@ function startGame() {
 
 				if (!pause || !fInfos.replay) {
 					var currentPressedKeys = {};
-					function handleInputPressed(gameAction) {
+					function handleInputPressed(gameAction, intensity) {
+						if (intensity === undefined) intensity = 1;
 						switch (gameAction) {
 							case "up":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].accelerate();
+								oPlayers[0].accelerate(intensity);
 								break;
 							case "left":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].turn(1);
+								oPlayers[0].turn(intensity);
 								break;
 							case "right":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].turn(-1);
+								oPlayers[0].turn(-intensity);
 								break;
 							case "down":
 								currentPressedKeys[gameAction] = true;
@@ -4121,7 +4129,7 @@ function startGame() {
 						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
 						if (e.preventDefault)
 							e.preventDefault();
-						handleInputPressed(gameAction);
+						handleInputPressed(gameAction, e.keyIntensity);
 					}
 					document.onkeyup = function(e) {
 						if (onlineSpectatorId) return;
@@ -4345,6 +4353,17 @@ function startGame() {
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
+	if (isMobile()) {
+		switch (ctrlSettings.mode) {
+		case "gestures":
+			setupGestureEvents();
+			break;
+		case "gyroscope":
+			break;
+		default:
+			showVirtualKeyboard();
+		}
+	}
 	if (oMapImg.image) {
 		redrawCanvasHandler = setTimeout(function() {
 			redrawCanvasHandler = setInterval(function() {
@@ -4359,6 +4378,145 @@ function startGame() {
 		showRearView(0);
 	if (!isOnline)
 		document.body.style.cursor = "default";
+}
+
+function showVirtualKeyboard() {
+	var $virtualKeyboard = document.getElementById("virtualkeyboard");
+	$virtualKeyboard.innerHTML = "";
+	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
+	var accDriftButton = addButton(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',[38,17], 0,0);
+	accDriftButton.id = "virtualbtn-accdrift";
+	var accButton = addButton(" \u2191 ",38, 1,0);
+	accButton.id = "virtualbtn-accelerate";
+	addButton("Obj",32, 2,0, null,null, 25);
+	addButton("\u275A\u275A",80, 3,0, null,null, 25);
+	$virtualKeyboard.appendChild(document.createElement("br"));
+	$virtualKeyboard.appendChild(document.createElement("br"));
+	addButton(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", 17, 0,1,null,null, 11);
+	addButton(" \u2193 ",40, 1,1);
+	addButton(" \u2190 ",37, 2,1);
+	addButton(" \u2192 ",39, 3,1);
+	var virtualKeyboardW = virtualButtonW*4.8;
+	var virtualKeyboardH = virtualButtonH*2.6;
+	$virtualKeyboard.style.width = Math.round(virtualKeyboardW) +"px";
+	$virtualKeyboard.style.height = Math.round(virtualKeyboardH) +"px";
+	$virtualKeyboard.style.left = (iScreenScale*iWidth - virtualKeyboardW)/2 +"px";
+	$virtualKeyboard.style.top = (iScreenScale*40) +"px";
+	$virtualKeyboard.ontouchstart = function(e) {
+		e.preventDefault();
+		return false;
+	};
+	$virtualKeyboard.style.display = "block";
+}
+
+var $virtualScreens = new Array();
+function setupGestureEvents() {
+	for (var i=0;i<oContainers.length;i++) {
+		var $virtualScreen = document.createElement("div");
+		$virtualScreen.style.position = "absolute";
+		$virtualScreen.style.left = 0;
+		$virtualScreen.style.top = 0;
+		$virtualScreen.style.width = iWidth*iScreenScale +"px";
+		$virtualScreen.style.height = iHeight*iScreenScale +"px";
+		$virtualScreen.style.zIndex = 20000;
+		var pressedKeys = {};
+		function pressKey(code, intensity) {
+			if (intensity === undefined) intensity = 1;
+			if (pressedKeys[code] === intensity) return;
+			doPressKey(code, intensity);
+		}
+		function doPressKey(code, intensity) {
+			pressedKeys[code] = intensity;
+			if (document.onkeydown)
+				document.onkeydown({keyCode:code, keyIntensity: intensity});
+		}
+		function releaseKey(code) {
+			if (!pressedKeys[code]) return;
+			pressedKeys[code] = 0;
+			if (document.onkeyup)
+				document.onkeyup({keyCode:code});
+		}
+		var adjustAngleHandler;
+		function handlePointerEvent(e) {
+			e.preventDefault();
+			var rect = e.target.getBoundingClientRect();
+			var x = e.touches[0].pageX - rect.left, y = e.touches[0].clientY - rect.top;
+			var relX = x/rect.width - 0.5, relY = y/rect.height - 0.5;
+
+			var relX0 = 0.05, relXM = 0.3;
+			clearInterval(adjustAngleHandler);
+			if (relX < -relX0) {
+				var intensity = Math.min((-relX-relX0)/relXM, 1);
+				doPressKey(37, intensity);
+				adjustAngleHandler = setInterval(function() {
+					doPressKey(37, intensity);
+				}, SPF);
+			}
+			else if (relX > relX0) {
+				var intensity = Math.min((relX-relX0)/relXM, 1);
+				doPressKey(39, intensity);
+				adjustAngleHandler = setInterval(function() {
+					doPressKey(39, intensity);
+				}, SPF);
+			}
+			else {
+				releaseKey(37);
+				releaseKey(39);
+			}
+
+			var relY0 = 0.2, relYM = 0.3;
+			if (relY < relY0)
+				pressKey(38);
+			else if (relY > relYM)
+				pressKey(40);
+			else {
+				releaseKey(38);
+				releaseKey(40);
+			}
+		}
+		$virtualScreen.ontouchstart = function(e) {
+			handlePointerEvent(e);
+		}
+		$virtualScreen.ontouchmove = function(e) {
+			handlePointerEvent(e);
+		}
+		$virtualScreen.ontouchend = function(e) {
+			clearInterval(adjustAngleHandler);
+			for (var code in pressedKeys)
+				releaseKey(code);
+		}
+
+		var $virtualRoulette = document.createElement("div");
+		$virtualRoulette.style.position = "absolute";
+		$virtualRoulette.style.left = 0;
+		$virtualRoulette.style.top = 0;
+		$virtualRoulette.style.width = (iScreenScale*12) +"px";
+		$virtualRoulette.style.height = (iScreenScale*9) +"px";
+		$virtualRoulette.ontouchstart = function(e) {
+			e.stopPropagation();
+			releaseKey(32);
+		}
+		$virtualScreen.appendChild($virtualRoulette);
+
+		var $virtualPauseBtn = document.createElement("button");
+		$virtualPauseBtn.innerHTML = "\u275A\u275A";
+		$virtualPauseBtn.style.position = "absolute";
+		$virtualPauseBtn.style.right = (iScreenScale*21) +"px";
+		$virtualPauseBtn.style.top = Math.round(iScreenScale*2/3) +"px";
+		$virtualPauseBtn.style.fontSize = iScreenScale +"px";
+		$virtualPauseBtn.style.padding = Math.round(iScreenScale/3) +"px";
+		$virtualPauseBtn.ontouchstart = function(e) {
+			e.stopPropagation();
+			doPressKey(80);
+		}
+		$virtualPauseBtn.id = "virtualbtn-pause";
+		$virtualPauseBtn.style.display = "none";
+		$virtualScreen.appendChild($virtualPauseBtn);
+
+		hudScreens[i].appendChild($virtualScreen);
+
+		$virtualScreens.push($virtualScreen);
+	}
 }
 
 function youtube_parser(url) {
@@ -9119,7 +9277,7 @@ function render() {
 					else if (fSpriteRef.driftinc && ((iAngleStep < 4) || (iAngleStep > 18)))
 						iAngleStep = (fSpriteRef.driftinc*getMirrorFactor()>0) ? 18:4;
 					else if (isActualPlayer) {
-						if (fSpriteRef.rotincdir && !fSprite.tourne)
+						if (fSpriteRef.rotincdir && !fSprite.tourne && (Math.abs(fSpriteRef.rotincdir) >= fSpriteRef.stats.handling))
 							iAngleStep = (fSpriteRef.rotincdir*getMirrorFactor() > 0) ? 23:22;
 						else if (!fSprite.tourne)
 							iAngleStep = 0;
@@ -26151,6 +26309,9 @@ function editCommands(reload,currentTab,selectedPlayer) {
 	var $controlCommands = document.createElement("div");
 	$controlCommands.className = "control-window-active";
 	if (isMobile()) {
+		var currentSettings = localStorage.getItem("settings.ctrl");
+		currentSettings = currentSettings ? JSON.parse(currentSettings) : {};
+
 		var $controlTypeTitle = document.createElement("div");
 		$controlTypeTitle.className = "control-main-title";
 		$controlTypeTitle.innerHTML = toLanguage("Command interface", "Interface de commandes");
@@ -26170,7 +26331,7 @@ function editCommands(reload,currentTab,selectedPlayer) {
 			name: toLanguage("Gyroscope", "Gyroscope"),
 			description: toLanguage("Rotate the screen to turn, like a real wheel", "Pivotez l'écran pour tourner, comme avec un vrai volant")
 		}];
-		var currentControlType = localStorage.getItem("controlType") || "keyboard";
+		var currentControlType = currentSettings.mode || "keyboard";
 		for (var i=0;i<controlTypeValues.length;i++) {
 			(function(controlTypeValue) {
 				var $controlTypeValue = document.createElement("label");
@@ -26182,7 +26343,8 @@ function editCommands(reload,currentTab,selectedPlayer) {
 				$controlTypeRadio.name = "control-type";
 				$controlTypeInput.appendChild($controlTypeRadio);
 				$controlTypeRadio.onclick = function() {
-					localStorage.setItem("controlType", controlTypeValue.id);
+					currentSettings.mode = controlTypeValue.id;
+					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettings));
 				};
 				if (controlTypeValue.id === currentControlType) {
 					$controlTypeRadio.checked = "checked";
@@ -26216,8 +26378,6 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		var allMiscSettings = {
 			'autoacc' : toLanguage('Auto-accelerate', 'Accélérer automatiquement')
 		};
-		var currentSettings = localStorage.getItem("settings.ctrl");
-		currentSettings = currentSettings ? JSON.parse(currentSettings) : {};
 		for (var key in allMiscSettings) {
 			(function(key) {
 				var $controlSetting = document.createElement("label");
@@ -26737,28 +26897,6 @@ function isMobile() {
 formulaire = document.forms.modes;
 if (formulaire.dataset) formulaire.dataset.disabled = "";
 else formulaire.dataset = {};
-if (isMobile()) {
-	document.getElementById("virtualkeyboard").innerHTML = "";
-	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
-	var accDriftButton = addButton(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',[38,17], 0,0);
-	accDriftButton.id = "virtualbtn-accdrift";
-	var accButton = addButton(" \u2191 ",38, 1,0);
-	accButton.id = "virtualbtn-accelerate";
-	addButton("Obj",32, 2,0, null,null, 25);
-	addButton("\u275A\u275A",80, 3,0, null,null, 25);
-	document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
-	document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
-	addButton(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", 17, 0,1,null,null, 11);
-	addButton(" \u2193 ",40, 1,1);
-	addButton(" \u2190 ",37, 2,1);
-	addButton(" \u2192 ",39, 3,1);
-	reposKeyboard();
-	document.getElementById("virtualkeyboard").ontouchstart = function(e) {
-		e.preventDefault();
-		return false;
-	};
-	document.getElementById("virtualkeyboard").style.display = "block";
-}
 if (pause) {
 	if (isSingle && !isOnline)
 		choose(1);
