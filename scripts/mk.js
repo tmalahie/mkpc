@@ -1182,11 +1182,14 @@ function removePlan() {
 }
 
 var gameSettings;
+var ctrlSettings;
 var oChallengeCpts;
 function loadMap() {
 	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
+	ctrlSettings = localStorage.getItem("settings.ctrl");
+	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
 
 	if (gameSettings.rtime) {
 		var lastFrameTime;
@@ -3860,7 +3863,7 @@ function startGame() {
 								break;
 							case "down":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].speedinc -= 0.2;
+								oPlayers[0].speedinc = -0.2;
 								break;
 							case "jump":
 								if (pause) break;
@@ -4132,7 +4135,8 @@ function startGame() {
 						if (onlineSpectatorId) return;
 						currentPressedKeys = {};
 						for (var i=0;i<oPlayers.length;i++) {
-							oPlayers[i].speedinc = 0;
+							if (!ctrlSettings.autoacc)
+								oPlayers[i].speedinc = 0;
 							oPlayers[i].rotincdir = 0;
 							stopDrifting(i);
 						}
@@ -4154,6 +4158,20 @@ function startGame() {
 								return true;
 							}
 							return true;
+						}
+
+						if (ctrlSettings.autoacc) {
+							var accButton = document.getElementById("virtualbtn-accelerate");
+							if (accButton) {
+								accButton.dataset.inverted = 1;
+								accButton.ontouchstart = onButtonPress;
+								accButton.ontouchend = onButtonTouch;
+								var e = new Event('touchend');
+								accButton.dispatchEvent(e);
+							}
+							var accDriftButton = document.getElementById("virtualbtn-accdrift");
+							if (accDriftButton)
+								accDriftButton.dataset.key = 17;
 						}
 					}
 					if (!window.onbeforeunload)
@@ -4595,6 +4613,14 @@ function resetApp(opts) {
 	}, opts.time||500);
 
 	window.onbeforeunload = undefined;
+	var accButton = document.getElementById("virtualbtn-accelerate");
+	if (accButton && accButton.dataset && accButton.dataset.inverted) {
+		accButton.dataset.inverted = "";
+		accButton.ontouchstart = onButtonTouch;
+		accButton.ontouchend = onButtonPress;
+		var e = new Event('touchend');
+		accButton.dispatchEvent(e);
+	}
 	logGameTime();
 }
 function logGameTime() {
@@ -16895,10 +16921,8 @@ function addButton(lettre, key, x, y, w, h, fs) {
 		oButton.style.fontSize = fs+"px";
 	oButton.innerHTML = lettre;
 	oButton.dataset.key = key;
-	//oButton.ontouchstart = onButtonTouch;
-	//oButton.ontouchend = onButtonPress;
-	oButton.onmousedown = onButtonTouch;
-	oButton.onmouseup = onButtonPress;
+	oButton.ontouchstart = onButtonTouch;
+	oButton.ontouchend = onButtonPress;
 	document.getElementById("virtualkeyboard").appendChild(oButton);
 	return oButton;
 }
@@ -26713,6 +26737,28 @@ function isMobile() {
 formulaire = document.forms.modes;
 if (formulaire.dataset) formulaire.dataset.disabled = "";
 else formulaire.dataset = {};
+if (isMobile()) {
+	document.getElementById("virtualkeyboard").innerHTML = "";
+	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
+	var accDriftButton = addButton(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',[38,17], 0,0);
+	accDriftButton.id = "virtualbtn-accdrift";
+	var accButton = addButton(" \u2191 ",38, 1,0);
+	accButton.id = "virtualbtn-accelerate";
+	addButton("Obj",32, 2,0, null,null, 25);
+	addButton("\u275A\u275A",80, 3,0, null,null, 25);
+	document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
+	document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
+	addButton(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", 17, 0,1,null,null, 11);
+	addButton(" \u2193 ",40, 1,1);
+	addButton(" \u2190 ",37, 2,1);
+	addButton(" \u2192 ",39, 3,1);
+	reposKeyboard();
+	document.getElementById("virtualkeyboard").ontouchstart = function(e) {
+		e.preventDefault();
+		return false;
+	};
+	document.getElementById("virtualkeyboard").style.display = "block";
+}
 if (pause) {
 	if (isSingle && !isOnline)
 		choose(1);
@@ -26760,29 +26806,6 @@ else {
 	], iFps);
 	addFpsOption(iFps);
 	selectMainPage();
-	
-	if (!window.turnEvents) {
-		if (isMobile()) {
-			navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
-			addButton(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',[38,17], 0,0);
-			addButton(" \u2191 ",38, 1,0);
-			addButton("Obj",32, 2,0, null,null, 25);
-			addButton("\u275A\u275A",80, 3,0, null,null, 25);
-			document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
-			document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
-			var driftButton = addButton(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", 17, 0,1,null,null, 11);
-			addButton(" \u2193 ",40, 1,1);
-			addButton(" \u2190 ",37, 2,1);
-			addButton(" \u2192 ",39, 3,1);
-			reposKeyboard();
-			document.getElementById("virtualkeyboard").ontouchstart = function(e) {
-				e.preventDefault();
-				return false;
-			};
-			document.getElementById("virtualkeyboard").style.display = "block";
-		}
-		window.turnEvents = true;
-	}
 	
 	formulaire.screenscale.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
@@ -26883,6 +26906,7 @@ function isChatting() {
 	return (document.activeElement == document.forms[1].elements["rMessage"]);
 }
 function applyButtonCode(action,keyData) {
+	if (!document[action]) return;
 	var keycodes = keyData.split(",");
 	for (var i=0;i<keycodes.length;i++)
 		document[action]({"keyCode":parseInt(keycodes[i])});
