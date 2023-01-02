@@ -584,6 +584,14 @@ function clearResources() {
 	if (oMapImg && oMapImg.clear)
 		oMapImg.clear();
 }
+function resetEvents() {
+	document.onmousedown = undefined;
+	document.onkeydown = undefined;
+	document.onkeyup = undefined;
+	window.removeEventListener("blur", window.releaseOnBlur);
+	window.releaseOnBlur = undefined;
+	hideVirtualKeyboard();
+}
 function pauseSounds() {
 	if (bMusic || iSfx) {
 		if (!clLocalVars.forcePause) {
@@ -3792,11 +3800,7 @@ function startGame() {
 									else if (course != "CM")
 										delete fInfos.map;
 								}
-								document.onmousedown = undefined;
-								document.onkeydown = undefined;
-								document.onkeyup = undefined;
-								window.removeEventListener("blur", window.releaseOnBlur);
-								window.releaseOnBlur = undefined;
+								resetEvents();
 								resetApp();
 							};
 							if (course == "CM") {
@@ -3820,11 +3824,7 @@ function startGame() {
 									if (strPlayer.length == 1)
 										removePlan();
 									oBgLayers.length = 0;
-									document.onmousedown = undefined;
-									document.onkeydown = undefined;
-									document.onkeyup = undefined;
-									window.removeEventListener("blur", window.releaseOnBlur);
-									window.releaseOnBlur = undefined;
+									resetEvents();
 									resetApp();
 								};
 							}
@@ -4123,7 +4123,7 @@ function startGame() {
 						if (clLocalVars.fastForward) return;
 						if (onlineSpectatorId)
 							return handleSpectatorInput(e);
-						var gameAction = gameControls[e.keyCode];
+						var gameAction = getGameAction(e);
 						if (!gameAction) return;
 						var aElt = document.activeElement;
 						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
@@ -4133,7 +4133,7 @@ function startGame() {
 					}
 					document.onkeyup = function(e) {
 						if (onlineSpectatorId) return;
-						var gameAction = gameControls[e.keyCode];
+						var gameAction = getGameAction(e);
 						if (!gameAction) return;
 						var aElt = document.activeElement;
 						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
@@ -4156,7 +4156,7 @@ function startGame() {
 								return true;
 							if (!oPlayers[0].tourne && !oPlayers[0].cannon) {
 								if (course == "BB") {
-									document.onkeydown({"keyCode":findKeyCode("balloon")});
+									document.onkeydown({keyAction:"balloon"});
 									return false;
 								}
 								if (oPlayers[0].arme || oPlayers[0].using.length) {
@@ -4278,7 +4278,7 @@ function startGame() {
 						document.querySelector("#enregistrer input").style.display = "none";
 					},1000);
 					document.onkeyup = function(e) {
-						var gameAction = gameControls[e.keyCode];
+						var gameAction = getGameAction(e);
 						if (gameAction == "pause" && !bCounting) {
 							document.getElementById("infos0").style.display = (document.getElementById("infos0").style.display == "none") ? "" : "none";
 							var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];
@@ -4382,20 +4382,19 @@ function startGame() {
 
 function showVirtualKeyboard() {
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
-	$virtualKeyboard.innerHTML = "";
 	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
-	var accDriftButton = addButton(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',[38,17], 0,0);
+	var accDriftButton = addButton(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',["up","jump"], 0,0);
 	accDriftButton.id = "virtualbtn-accdrift";
-	var accButton = addButton(" \u2191 ",38, 1,0);
+	var accButton = addButton(" \u2191 ","up", 1,0);
 	accButton.id = "virtualbtn-accelerate";
-	addButton("Obj",32, 2,0, null,null, 25);
-	addButton("\u275A\u275A",80, 3,0, null,null, 25);
+	addButton("Obj","item", 2,0, null,null, 25);
+	addButton("\u275A\u275A","pause", 3,0, null,null, 25);
 	$virtualKeyboard.appendChild(document.createElement("br"));
 	$virtualKeyboard.appendChild(document.createElement("br"));
-	addButton(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", 17, 0,1,null,null, 11);
-	addButton(" \u2193 ",40, 1,1);
-	addButton(" \u2190 ",37, 2,1);
-	addButton(" \u2192 ",39, 3,1);
+	addButton(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", "jump", 0,1,null,null, 11);
+	addButton(" \u2193 ","down", 1,1);
+	addButton(" \u2190 ","left", 2,1);
+	addButton(" \u2192 ","right", 3,1);
 	var virtualKeyboardW = virtualButtonW*4.8;
 	var virtualKeyboardH = virtualButtonH*2.6;
 	$virtualKeyboard.style.width = Math.round(virtualKeyboardW) +"px";
@@ -4407,6 +4406,10 @@ function showVirtualKeyboard() {
 		return false;
 	};
 	$virtualKeyboard.style.display = "block";
+}
+function hideVirtualKeyboard() {
+	var $virtualKeyboard = document.getElementById("virtualkeyboard");
+	$virtualKeyboard.innerHTML = "";
 }
 
 var $virtualScreens = new Array();
@@ -4428,13 +4431,13 @@ function setupGestureEvents() {
 		function doPressKey(code, intensity) {
 			pressedKeys[code] = intensity;
 			if (document.onkeydown)
-				document.onkeydown({keyCode:code, keyIntensity: intensity});
+				document.onkeydown({keyAction:code, keyIntensity: intensity});
 		}
 		function releaseKey(code) {
 			if (!pressedKeys[code]) return;
 			pressedKeys[code] = 0;
 			if (document.onkeyup)
-				document.onkeyup({keyCode:code});
+				document.onkeyup({keyAction:code});
 		}
 		var adjustAngleHandler;
 		function handlePointerEvent(e) {
@@ -4447,31 +4450,31 @@ function setupGestureEvents() {
 			clearInterval(adjustAngleHandler);
 			if (relX < -relX0) {
 				var intensity = Math.min((-relX-relX0)/relXM, 1);
-				doPressKey(37, intensity);
+				doPressKey("left", intensity);
 				adjustAngleHandler = setInterval(function() {
-					doPressKey(37, intensity);
+					doPressKey("left", intensity);
 				}, SPF);
 			}
 			else if (relX > relX0) {
 				var intensity = Math.min((relX-relX0)/relXM, 1);
-				doPressKey(39, intensity);
+				doPressKey("right", intensity);
 				adjustAngleHandler = setInterval(function() {
-					doPressKey(39, intensity);
+					doPressKey("right", intensity);
 				}, SPF);
 			}
 			else {
-				releaseKey(37);
-				releaseKey(39);
+				releaseKey("left");
+				releaseKey("right");
 			}
 
 			var relY0 = 0.2, relYM = 0.3;
 			if (relY < relY0)
-				pressKey(38);
+				pressKey("up");
 			else if (relY > relYM)
-				pressKey(40);
+				pressKey("down");
 			else {
-				releaseKey(38);
-				releaseKey(40);
+				releaseKey("up");
+				releaseKey("down");
 			}
 		}
 		$virtualScreen.ontouchstart = function(e) {
@@ -4494,20 +4497,20 @@ function setupGestureEvents() {
 		$virtualRoulette.style.height = (iScreenScale*9) +"px";
 		$virtualRoulette.ontouchstart = function(e) {
 			e.stopPropagation();
-			releaseKey(32);
+			releaseKey("item");
 		}
 		$virtualScreen.appendChild($virtualRoulette);
 
 		var $virtualPauseBtn = document.createElement("button");
 		$virtualPauseBtn.innerHTML = "\u275A\u275A";
 		$virtualPauseBtn.style.position = "absolute";
-		$virtualPauseBtn.style.right = (iScreenScale*21) +"px";
-		$virtualPauseBtn.style.top = Math.round(iScreenScale*2/3) +"px";
-		$virtualPauseBtn.style.fontSize = iScreenScale +"px";
+		$virtualPauseBtn.style.right = (iScreenScale*22) +"px";
+		$virtualPauseBtn.style.top = "5px";
+		$virtualPauseBtn.style.fontSize = Math.round(iScreenScale*1.4) +"px";
 		$virtualPauseBtn.style.padding = Math.round(iScreenScale/3) +"px";
 		$virtualPauseBtn.ontouchstart = function(e) {
 			e.stopPropagation();
-			doPressKey(80);
+			doPressKey("pause");
 		}
 		$virtualPauseBtn.id = "virtualbtn-pause";
 		$virtualPauseBtn.style.display = "none";
@@ -4751,11 +4754,7 @@ function quitter() {
 	$mkScreen.style.opacity = 1;
 	if (strPlayer.length == 1)
 		removePlan();
-	document.onmousedown = undefined;
-	document.onkeydown = undefined;
-	document.onkeyup = undefined;
-	window.removeEventListener("blur", window.releaseOnBlur);
-	window.releaseOnBlur = undefined;
+	resetEvents();
 	oBgLayers.length = 0;
 	aPlayers = [];
 	aScores = [];
@@ -5083,7 +5082,7 @@ function continuer() {
 			if (strPlayer.length == 1)
 				removePlan();
 			oBgLayers.length = 0;
-			document.onmousedown = undefined;
+			resetEvents();
 			resetApp();
 		}
 
@@ -5308,7 +5307,7 @@ function continuer() {
 			if (strPlayer.length == 1)
 				removePlan();
 			oBgLayers.length = 0;
-			document.onmousedown = undefined;
+			resetEvents();
 			resetApp();
 		}
 		document.getElementById("revoir").appendChild(oReplay);
@@ -5338,7 +5337,7 @@ function continuer() {
 			if (strPlayer.length == 1)
 				removePlan();
 			oBgLayers.length = 0;
-			document.onmousedown = undefined;
+			resetEvents();
 			resetApp();
 		}
 		document.getElementById("changercircuit").appendChild(oChangeRace);
@@ -5381,7 +5380,7 @@ function nextRace() {
 	if (strPlayer.length == 1)
 		removePlan();
 	oBgLayers.length = 0;
-	document.onmousedown = undefined;
+	resetEvents();
 	resetApp();
 }
 
@@ -11907,7 +11906,7 @@ function showChallengePopup(challenge, res) {
 	fadeInPopup();
 	if (!pause && document.onkeydown) {
 		clLocalVars.forcePause = true;
-		document.onkeydown({keyCode:findKeyCode("pause")});
+		document.onkeydown({keyAction:"pause"});
 		delete clLocalVars.forcePause;
 	}
 	if (bMusic || iSfx) {
@@ -16965,6 +16964,11 @@ function runOneFrame() {
 }
 
 var gameControls = {};
+function getGameAction(e) {
+	if (e.keyAction)
+		return e.keyAction;
+	return gameControls[e.keyCode];
+}
 function handleSpectatorInput(e) {
 	switch (e.keyCode) {
 	case 37:
@@ -17004,7 +17008,7 @@ document.onkeydown = function(e) {
 			render();
 		return res;
 	}
-	var gameAction = gameControls[e.keyCode];
+	var gameAction = getGameAction(e);
 	switch (gameAction) {
 		case "up":
 			oPlayers[0].speedinc = 1;
@@ -17036,7 +17040,7 @@ document.onkeydown = function(e) {
 
 document.onkeyup = function(e) {
 	if (onlineSpectatorId) return;
-	var gameAction = gameControls[e.keyCode];
+	var gameAction = getGameAction(e);
 	switch (gameAction) {
 		case "up":
 			oPlayers[0].speedinc = 0;
@@ -26807,13 +26811,6 @@ function getGameControls() {
 	}
 	return res;
 }
-function findKeyCode(action) {
-	for (var key in gameControls) {
-		if (gameControls[key] == action)
-			return key;
-	}
-	return "";
-}
 
 function toLanguage(english, french) {
 	return language ? english:french;
@@ -27047,7 +27044,7 @@ function applyButtonCode(action,keyData) {
 	if (!document[action]) return;
 	var keycodes = keyData.split(",");
 	for (var i=0;i<keycodes.length;i++)
-		document[action]({"keyCode":parseInt(keycodes[i])});
+		document[action]({keyAction:keycodes[i]});
 }
 function onButtonTouch(e) {
 	e.preventDefault();
