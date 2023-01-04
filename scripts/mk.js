@@ -1871,6 +1871,7 @@ function addNewItem(kart,item) {
 
 var CHAMPI_TYPE_ITEM = 1, CHAMPI_TYPE_BOOST = 2;
 function arme(ID, backwards, forwards) {
+	console.trace();
 	var oKart = aKarts[ID];
 	if (!oKart.using.length) {
 		if (oKart.roulette != 25) return;
@@ -2928,20 +2929,21 @@ function startGame() {
 		if (clLocalVars.invertDirs)
 			dir = -dir;
 		var sDir = dir;
+		var targetDir;
 		if (Math.abs(dir) < 1) {
 			var targetRotinc = (fMaxRotInc+2)*dir;
-			var targetDir = (targetRotinc - this.rotinc) / 2;
+			var targetDir = (targetRotinc - angleInc(this)) / 2;
 			if (targetDir > this.stats.handling)
 				targetDir = this.stats.handling;
 			else if (targetDir < -this.stats.handling)
 				targetDir = -this.stats.handling;
-			this.rotincdir = targetDir;
 			sDir = Math.sign(targetDir);
 		}
 		else
-			this.rotincdir = this.stats.handling*dir;
+			targetDir = this.stats.handling*dir;
+		this.rotincdir = targetDir;
 		if (sDir && !this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon) {
-			if (this.jumped)
+			if (this.jumped && (Math.abs(targetDir) >= Math.min(0.5,this.stats.handling)))
 				this.driftinc = sDir;
 			if (this.driftinc)
 				clLocalVars.drifted = true;
@@ -4151,21 +4153,23 @@ function startGame() {
 					};
 					window.addEventListener("blur", window.releaseOnBlur);
 					if (isMobile()) {
-						document.onmousedown = function(e) {
-							if (pause)
-								return true;
-							if (!oPlayers[0].tourne && !oPlayers[0].cannon) {
-								if (course == "BB") {
-									document.onkeydown({keyAction:"balloon"});
-									return false;
-								}
-								if (oPlayers[0].arme || oPlayers[0].using.length) {
-									arme(0);
-									return false;
+						if (!ctrlSettings.mode || ctrlSettings.mode === "keyboard") {
+							document.onmousedown = function(e) {
+								if (pause)
+									return true;
+								if (!oPlayers[0].tourne && !oPlayers[0].cannon) {
+									if (course == "BB") {
+										document.onkeydown({keyAction:"balloon"});
+										return false;
+									}
+									if (oPlayers[0].arme || oPlayers[0].using.length) {
+										arme(0);
+										return false;
+									}
+									return true;
 								}
 								return true;
 							}
-							return true;
 						}
 
 						if (ctrlSettings.autoacc) {
@@ -4177,6 +4181,8 @@ function startGame() {
 								var e = new Event('touchend');
 								accButton.dispatchEvent(e);
 							}
+							else
+								document.onkeydown({keyAction:"up"});
 							var accDriftButton = document.getElementById("virtualbtn-accdrift");
 							if (accDriftButton)
 								accDriftButton.dataset.key = 17;
@@ -4301,7 +4307,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -4349,7 +4355,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -4420,7 +4426,7 @@ function setupGestureEvents() {
 		$virtualScreen.style.left = 0;
 		$virtualScreen.style.top = 0;
 		$virtualScreen.style.width = iWidth*iScreenScale +"px";
-		$virtualScreen.style.height = iHeight*iScreenScale +"px";
+		$virtualScreen.style.height = "calc(100vh - 20px)";
 		$virtualScreen.style.zIndex = 20000;
 		var pressedKeys = {};
 		function pressKey(code, intensity) {
@@ -4435,49 +4441,55 @@ function setupGestureEvents() {
 		}
 		function releaseKey(code) {
 			if (!pressedKeys[code]) return;
+			doReleaseKey(code);
+		}
+		function doReleaseKey(code) {
 			pressedKeys[code] = 0;
 			if (document.onkeyup)
 				document.onkeyup({keyAction:code});
 		}
 		var adjustAngleHandler;
+		var releaseAccHandler;
 		function handlePointerEvent(e) {
 			e.preventDefault();
-			var rect = e.target.getBoundingClientRect();
-			var x = e.touches[0].pageX - rect.left, y = e.touches[0].clientY - rect.top;
-			var relX = x/rect.width - 0.5, relY = y/rect.height - 0.5;
+			var relPos = getPointerRelPos(e.touches);
+			var relX = relPos.x, relY = relPos.y;
 
-			var relX0 = 0.05, relXM = 0.3;
+			var relXM = 0.3;
+			var intP = 1.4;
 			clearInterval(adjustAngleHandler);
-			if (relX < -relX0) {
-				var intensity = Math.min((-relX-relX0)/relXM, 1);
+			if (relX < 0) {
+				var intensity = Math.min(-relX/relXM, 1);
+				intensity = Math.pow(intensity, intP);
 				doPressKey("left", intensity);
 				adjustAngleHandler = setInterval(function() {
 					doPressKey("left", intensity);
 				}, SPF);
 			}
-			else if (relX > relX0) {
-				var intensity = Math.min((relX-relX0)/relXM, 1);
+			else {
+				var intensity = Math.min(relX/relXM, 1);
+				intensity = Math.pow(intensity, intP);
+				if (!intensity) intensity = 0.001;
 				doPressKey("right", intensity);
 				adjustAngleHandler = setInterval(function() {
 					doPressKey("right", intensity);
 				}, SPF);
 			}
-			else {
-				releaseKey("left");
-				releaseKey("right");
-			}
-
-			var relY0 = 0.2, relYM = 0.3;
-			if (relY < relY0)
-				pressKey("up");
-			else if (relY > relYM)
-				pressKey("down");
-			else {
-				releaseKey("up");
-				releaseKey("down");
-			}
+			pressKey("up");
 		}
+		var releasedAt = {
+			t: 0
+		};
+		var jumpDelay = ctrlSettings.autoacc ? 200 : 500;
+		var wasDrift = false;
 		$virtualScreen.ontouchstart = function(e) {
+			wasDrift = false;
+			if ((new Date().getTime() - releasedAt.t) < jumpDelay) {
+				if (!ctrlSettings.autoacc || isRelPosCloseEnough(e,releasedAt))
+				pressKey("jump");
+				wasDrift = true;
+			}
+			clearTimeout(releaseAccHandler);
 			handlePointerEvent(e);
 		}
 		$virtualScreen.ontouchmove = function(e) {
@@ -4485,9 +4497,45 @@ function setupGestureEvents() {
 		}
 		$virtualScreen.ontouchend = function(e) {
 			clearInterval(adjustAngleHandler);
-			for (var code in pressedKeys)
-				releaseKey(code);
+			adjustAngleHandler = undefined;
+			for (var code in pressedKeys) {
+				if (code !== "up")
+					releaseKey(code);
+			}
+			if (!ctrlSettings.autoacc) {
+				releaseAccHandler = setTimeout(function() {
+					releaseKey("up");
+				}, 300);
+			}
+			if (!wasDrift) {
+				var relPos = getPointerRelPos(e.changedTouches);
+				releasedAt = {
+					x: relPos.x,
+					y: relPos.y,
+					t: new Date().getTime()
+				}
+			}
 		}
+
+		function getPointerRelPos(touches) {
+			var rect = $virtualScreen.getBoundingClientRect();
+			if ($mkScreen.dataset.fs) {
+				rect = {
+					x: rect.x,
+					y: rect.y,
+					width: window.innerWidth - rect.x*2,
+					height: window.innerHeight - rect.y*2
+				};
+			}
+			var x = touches[0].pageX - rect.x, y = touches[0].clientY - rect.y;
+			var relX = x/rect.width - 0.5, relY = y/rect.height - 0.5;
+			return { x: relX, y: relY };
+		}
+		function isRelPosCloseEnough(e,relPos) {
+			var relPos2 = getPointerRelPos(e.touches);
+			var dist2 = (relPos2.x-relPos.x)*(relPos2.x-relPos.x) + (relPos2.y-relPos.y)*(relPos2.y-relPos.y);
+			return (dist2 < 0.05);
+		} 
 
 		var $virtualRoulette = document.createElement("div");
 		$virtualRoulette.style.position = "absolute";
@@ -4497,7 +4545,8 @@ function setupGestureEvents() {
 		$virtualRoulette.style.height = (iScreenScale*9) +"px";
 		$virtualRoulette.ontouchstart = function(e) {
 			e.stopPropagation();
-			releaseKey("item");
+			doReleaseKey("item");
+			wasDrift = true;
 		}
 		$virtualScreen.appendChild($virtualRoulette);
 
@@ -14024,7 +14073,7 @@ function move(getId, triggered) {
 
 	if (oKart.rotincdir) {
 		oKart.rotinc += 2 * oKart.rotincdir;
-		if (oKart.driftinc && ((oKart.driftinc>0)!=(oKart.rotincdir>0))) {
+		if (oKart.driftinc && ((oKart.driftinc>0)!=(oKart.rotincdir>0)) && (Math.abs(oKart.rotincdir) >= oKart.stats.handling)) {
 			var maxValue = Math.max(1.1,1.6-Math.max(0,(oKart.driftcpt-20)/80));
 			if (oKart.driftinc > 0)
 				oKart.rotinc = Math.max(oKart.rotinc,-maxValue);
@@ -14086,7 +14135,7 @@ function move(getId, triggered) {
 			}
 		}
 		else if (oKart.speed && !oKart.billball && !oKart.cannon)
-			oKart.rotation += (oKart.rotinc+(oKart.driftinc||0)*1.5)*((((oKart.speedinc<0)||(oKart.speedinc==0&&oKart.speed<0))?-1:1))*Math.abs(Math.cos(angleDrift(oKart)*Math.PI/180));
+			oKart.rotation += angleInc(oKart);
 		if (oKart.frminv)
 			oKart.frminv--;
 	}
@@ -15590,7 +15639,7 @@ function timeTrialMode() {
 function handleDriftCpt(getId) {
 	var oKart = aKarts[getId];
 	if (oKart.driftinc) {
-		if (oKart.rotincdir) {
+		if (Math.abs(oKart.rotincdir) >= oKart.stats.handling) {
 			if ((oKart.rotincdir>0) == (oKart.driftinc>0)) {
 				oKart.drift += oKart.driftinc;
 				if (oKart.driftinc > 0) {
@@ -15625,8 +15674,11 @@ function handleDriftCpt(getId) {
 				oKart.driftcpt += 2;
 			else if ((oKart.rotincdir>0) == (oKart.driftinc>0))
 				oKart.driftcpt += 6*Math.max(0.7,Math.pow(Math.abs(oKart.rotincdir)/0.6,0.8));
-			else
+			else {
 				oKart.driftcpt++;
+				if (Math.abs(oKart.rotincdir) < oKart.stats.handling)
+					oKart.driftcpt++;
+			}
 			if (oKart.driftcpt >= fTurboDriftCpt2) {
 				for (var i=0;i<oPlayers.length;i++)
 					oKart.driftSprite[i].setState(2);
@@ -15662,6 +15714,9 @@ function angleDrift(oKart) {
 	if (oKart.sliding && kartIsPlayer(oKart))
 		return oKart.rotinc*oKart.sliding;
 	return oKart.drift*6;
+}
+function angleInc(oKart) {
+	return (oKart.rotinc+(oKart.driftinc||0)*1.5)*((((oKart.speedinc<0)||(oKart.speedinc==0&&oKart.speed<0))?-1:1))*Math.abs(Math.cos(angleDrift(oKart)*Math.PI/180));
 }
 function angleShoot(oKart, backwards) {
 	var res = oKart.rotation;
@@ -26313,8 +26368,8 @@ function editCommands(reload,currentTab,selectedPlayer) {
 	var $controlCommands = document.createElement("div");
 	$controlCommands.className = "control-window-active";
 	if (isMobile()) {
-		var currentSettings = localStorage.getItem("settings.ctrl");
-		currentSettings = currentSettings ? JSON.parse(currentSettings) : {};
+		var currentSettingsCtrl = localStorage.getItem("settings.ctrl");
+		currentSettingsCtrl = currentSettingsCtrl ? JSON.parse(currentSettingsCtrl) : {};
 
 		var $controlTypeTitle = document.createElement("div");
 		$controlTypeTitle.className = "control-main-title";
@@ -26335,7 +26390,7 @@ function editCommands(reload,currentTab,selectedPlayer) {
 			name: toLanguage("Gyroscope", "Gyroscope"),
 			description: toLanguage("Rotate the screen to turn, like a real wheel", "Pivotez l'écran pour tourner, comme avec un vrai volant")
 		}];
-		var currentControlType = currentSettings.mode || "keyboard";
+		var currentControlType = currentSettingsCtrl.mode || "keyboard";
 		for (var i=0;i<controlTypeValues.length;i++) {
 			(function(controlTypeValue) {
 				var $controlTypeValue = document.createElement("label");
@@ -26347,8 +26402,8 @@ function editCommands(reload,currentTab,selectedPlayer) {
 				$controlTypeRadio.name = "control-type";
 				$controlTypeInput.appendChild($controlTypeRadio);
 				$controlTypeRadio.onclick = function() {
-					currentSettings.mode = controlTypeValue.id;
-					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettings));
+					currentSettingsCtrl.mode = controlTypeValue.id;
+					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
 				};
 				if (controlTypeValue.id === currentControlType) {
 					$controlTypeRadio.checked = "checked";
@@ -26387,17 +26442,17 @@ function editCommands(reload,currentTab,selectedPlayer) {
 				var $controlSetting = document.createElement("label");
 				var $controlCheckbox = document.createElement("input");
 				$controlCheckbox.type = "checkbox";
-				$controlCheckbox.checked = !!currentSettings[key];
+				$controlCheckbox.checked = !!currentSettingsCtrl[key];
 				$controlSetting.appendChild($controlCheckbox);
 				var $controlText = document.createElement("span");
 				$controlText.innerHTML = allMiscSettings[key];
 				$controlSetting.appendChild($controlText);
 				$controlCheckbox.onclick = function() {
 					if (this.checked)
-						currentSettings[key] = 1;
+						currentSettingsCtrl[key] = 1;
 					else
-						delete currentSettings[key];
-					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettings));
+						delete currentSettingsCtrl[key];
+					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
 				}
 				$controlMiscValues.appendChild($controlSetting);
 			})(key);
