@@ -756,8 +756,8 @@ $slidesPath = 'images/slides';
 				while ($challenge = mysql_fetch_array($getChallenges)) {
 					$challengeDetails = getChallengeDetails($challenge, $challengeParams);
 					?>
-					<a href="<?php echo 'challengeTry.php?challenge='.$challenge['id']; ?>" title="<?php echo htmlspecialchars($challengeDetails['description']['main']); ?>"<?php if (isset($challengeDetails['succeeded'])) echo ' class="challenges_section_succeeded"'; ?>>
-						<h2><?php echo htmlspecialchars(controlLength($challengeDetails['description']['main'],100)); ?></h2>
+					<a href="<?php echo 'challengeTry.php?challenge='.$challenge['id']; ?>" title="<?php echo $challengeDetails['description']['main']; ?>"<?php if (isset($challengeDetails['succeeded'])) echo ' class="challenges_section_succeeded"'; ?>>
+						<h2><?php echo controlLength($challengeDetails['description']['main'],100); ?></h2>
 						<h3><?php echo ucfirst(($challengeDetails['circuit']['author'] ? (($language ? 'by':'par') .' <strong>'. controlLengthUtf8($challengeDetails['circuit']['author'],10) .'</strong> '):'') . ($challengeDetails['circuit']['name'] ? (($language ? 'in':'dans') . ' <strong>'. controlLengthUtf8($challengeDetails['circuit']['name'],30-min(10,strlen($challengeDetails['circuit']['author']))-strlen($challengeDetails['difficulty']['name'])) .'</strong>'):'')); ?> - <strong><?php echo $challengeDetails['difficulty']['name']; ?></strong></h3>
 					</a>
 					<?php
