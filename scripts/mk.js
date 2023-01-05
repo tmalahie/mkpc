@@ -1871,7 +1871,6 @@ function addNewItem(kart,item) {
 
 var CHAMPI_TYPE_ITEM = 1, CHAMPI_TYPE_BOOST = 2;
 function arme(ID, backwards, forwards) {
-	console.trace();
 	var oKart = aKarts[ID];
 	if (!oKart.using.length) {
 		if (oKart.roulette != 25) return;
@@ -2928,23 +2927,10 @@ function startGame() {
 		dir *= getMirrorFactor();
 		if (clLocalVars.invertDirs)
 			dir = -dir;
-		var sDir = dir;
-		var targetDir;
-		if (Math.abs(dir) < 1) {
-			var targetRotinc = (fMaxRotInc+2)*dir;
-			var targetDir = (targetRotinc - angleInc(this)) / 2;
-			if (targetDir > this.stats.handling)
-				targetDir = this.stats.handling;
-			else if (targetDir < -this.stats.handling)
-				targetDir = -this.stats.handling;
-			sDir = Math.sign(targetDir);
-		}
-		else
-			targetDir = this.stats.handling*dir;
-		this.rotincdir = targetDir;
-		if (sDir && !this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon) {
-			if (this.jumped && (Math.abs(targetDir) >= Math.min(0.5,this.stats.handling)))
-				this.driftinc = sDir;
+		this.rotincdir = this.stats.handling*dir;
+		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon) {
+			if (this.jumped)
+				this.driftinc = dir;
 			if (this.driftinc)
 				clLocalVars.drifted = true;
 		}
@@ -3856,20 +3842,19 @@ function startGame() {
 
 				if (!pause || !fInfos.replay) {
 					var currentPressedKeys = {};
-					function handleInputPressed(gameAction, intensity) {
-						if (intensity === undefined) intensity = 1;
+					function handleInputPressed(gameAction) {
 						switch (gameAction) {
 							case "up":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].accelerate(intensity);
+								oPlayers[0].accelerate();
 								break;
 							case "left":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].turn(intensity);
+								oPlayers[0].turn(1);
 								break;
 							case "right":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].turn(-intensity);
+								oPlayers[0].turn(-1);
 								break;
 							case "down":
 								currentPressedKeys[gameAction] = true;
@@ -4159,11 +4144,7 @@ function startGame() {
 									return true;
 								if (!oPlayers[0].tourne && !oPlayers[0].cannon) {
 									if (course == "BB") {
-										document.onkeydown({keyAction:"balloon"});
-										return false;
-									}
-									if (oPlayers[0].arme || oPlayers[0].using.length) {
-										arme(0);
+										doPressKey("balloon");
 										return false;
 									}
 									return true;
@@ -4173,19 +4154,13 @@ function startGame() {
 						}
 
 						if (ctrlSettings.autoacc) {
-							var accButton = document.getElementById("virtualbtn-accelerate");
-							if (accButton) {
-								accButton.dataset.inverted = 1;
-								accButton.ontouchstart = onButtonPress;
-								accButton.ontouchend = onButtonTouch;
-								var e = new Event('touchend');
-								accButton.dispatchEvent(e);
+							var $accButton = document.getElementById("virtualbtn-accelerate");
+							if ($accButton && $accButton.dataset && !$accButton.dataset.pressed) {
+								var e = new Event('touchstart');
+								$accButton.dispatchEvent(e);
 							}
 							else
-								document.onkeydown({keyAction:"up"});
-							var accDriftButton = document.getElementById("virtualbtn-accdrift");
-							if (accDriftButton)
-								accDriftButton.dataset.key = 17;
+								doPressKey("up");
 						}
 					}
 					if (!window.onbeforeunload)
@@ -4369,6 +4344,8 @@ function startGame() {
 		default:
 			showVirtualKeyboard();
 		}
+
+		setupCommonMobileControls();
 	}
 	if (oMapImg.image) {
 		redrawCanvasHandler = setTimeout(function() {
@@ -4389,33 +4366,59 @@ function startGame() {
 function showVirtualKeyboard() {
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
 	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
-	var accDriftButton = addButton(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',["up","jump"], 0,0);
-	accDriftButton.id = "virtualbtn-accdrift";
-	var accButton = addButton(" \u2191 ","up", 1,0);
-	accButton.id = "virtualbtn-accelerate";
-	addButton("Obj","item", 2,0, null,null, 25);
-	addButton("\u275A\u275A","pause", 3,0, null,null, 25);
-	$virtualKeyboard.appendChild(document.createElement("br"));
-	$virtualKeyboard.appendChild(document.createElement("br"));
-	addButton(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", "jump", 0,1,null,null, 11);
-	addButton(" \u2193 ","down", 1,1);
-	addButton(" \u2190 ","left", 2,1);
-	addButton(" \u2192 ","right", 3,1);
-	var virtualKeyboardW = virtualButtonW*4.8;
-	var virtualKeyboardH = virtualButtonH*2.6;
-	$virtualKeyboard.style.width = Math.round(virtualKeyboardW) +"px";
-	$virtualKeyboard.style.height = Math.round(virtualKeyboardH) +"px";
-	$virtualKeyboard.style.left = (iScreenScale*iWidth - virtualKeyboardW)/2 +"px";
-	$virtualKeyboard.style.top = (iScreenScale*40) +"px";
+
+	addButton("I", { key: "item" });
+
+	var $div = document.createElement("div");
+	$div.className = "btn-ctn";
+	addButton("\u2191", { key: "item_fwd", parent: $div });
+	addButton("\u2193", { key: "item_back", parent: $div });
+	$virtualKeyboard.appendChild($div);
+
+	var $div = document.createElement("div");
+	$div.className = "btn-ctn";
+	var $accButton = document.createElement("button");
+	$accButton.id = "virtualbtn-accelerate";
+	var $backButton = document.createElement("button");
+	addButton("\u2191", { btn: $accButton, key: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
+	addButton("\u2193", { btn: $backButton, key: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
+	$virtualKeyboard.appendChild($div);
+
+	addButton("J", { key: "jump" });
+	addButton("\u2190", { key: "left" });
+	addButton("\u2192", { key: "right" });
+
+	function toggleBtnAction(otherButton) {
+		return function() {
+			if (this.dataset.pressed)
+				onButtonPress.bind(this)();
+			else {
+				if (otherButton.dataset.pressed)
+					onButtonPress.bind(otherButton)();
+				onButtonTouch.bind(this)();
+			}
+		}
+	}
+	
+	var virtualKeyboardY = iScreenScale*iHeight + 20;
+	$virtualKeyboard.style.top = virtualKeyboardY +"px";
+	$virtualKeyboard.className = "shown";
+
+	var virtualKeyboardW = $virtualKeyboard.offsetWidth;
+	var virtualKeyboardH = window.innerHeight - virtualKeyboardY;
+	virtualKeyboardH = Math.min(virtualKeyboardH, Math.round(virtualKeyboardW * 0.45));
+	if (virtualKeyboardW < iWidth*iScreenScale)
+		$virtualKeyboard.style.left = Math.round((iWidth*iScreenScale - virtualKeyboardW) / 2) +"px";
+	$virtualKeyboard.style.height = virtualKeyboardH +"px";
 	$virtualKeyboard.ontouchstart = function(e) {
 		e.preventDefault();
 		return false;
 	};
-	$virtualKeyboard.style.display = "block";
 }
 function hideVirtualKeyboard() {
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
 	$virtualKeyboard.innerHTML = "";
+	$virtualKeyboard.className = "";
 }
 
 var $virtualScreens = new Array();
@@ -4428,77 +4431,68 @@ function setupGestureEvents() {
 		$virtualScreen.style.width = iWidth*iScreenScale +"px";
 		$virtualScreen.style.height = "calc(100vh - 20px)";
 		$virtualScreen.style.zIndex = 20000;
-		var pressedKeys = {};
-		function pressKey(code, intensity) {
-			if (intensity === undefined) intensity = 1;
-			if (pressedKeys[code] === intensity) return;
-			doPressKey(code, intensity);
-		}
-		function doPressKey(code, intensity) {
-			pressedKeys[code] = intensity;
-			if (document.onkeydown)
-				document.onkeydown({keyAction:code, keyIntensity: intensity});
-		}
-		function releaseKey(code) {
-			if (!pressedKeys[code]) return;
-			doReleaseKey(code);
-		}
-		function doReleaseKey(code) {
-			pressedKeys[code] = 0;
-			if (document.onkeyup)
-				document.onkeyup({keyAction:code});
-		}
 		var adjustAngleHandler;
 		var releaseAccHandler;
+		var oKart = oPlayers[i];
 		function handlePointerEvent(e) {
 			e.preventDefault();
 			var relPos = getPointerRelPos(e.touches);
-			var relX = relPos.x, relY = relPos.y;
-
-			var relXM = 0.3;
-			var intP = 1.4;
-			clearInterval(adjustAngleHandler);
-			if (relX < 0) {
-				var intensity = Math.min(-relX/relXM, 1);
-				intensity = Math.pow(intensity, intP);
-				doPressKey("left", intensity);
-				adjustAngleHandler = setInterval(function() {
-					doPressKey("left", intensity);
-				}, SPF);
+			var posDiff = relPos.x - originalPos.x;
+			var maxAngle = 120, smoothingFactor = 1.4;
+			var targetRotinc = -Math.sign(posDiff) * Math.pow(Math.abs(posDiff),smoothingFactor) * maxAngle;
+			function adjustAngle() {
+				var targetDir = (targetRotinc - angleInc(oKart)) / 2;
+				var action;
+				if (targetDir > oKart.stats.handling/2)
+					action = "left";
+				else if (targetDir < -oKart.stats.handling/2)
+					action = "right";
+				if (action !== "left")
+					releaseKey("left");
+				if (action !== "right")
+					releaseKey("right");
+				if (action)
+					pressKey(action);
+				if (Math.abs(targetDir) >= 1)
+					wasSpecialTouch = true;
 			}
-			else {
-				var intensity = Math.min(relX/relXM, 1);
-				intensity = Math.pow(intensity, intP);
-				if (!intensity) intensity = 0.001;
-				doPressKey("right", intensity);
-				adjustAngleHandler = setInterval(function() {
-					doPressKey("right", intensity);
-				}, SPF);
-			}
-			pressKey("up");
+			adjustAngle();
+			adjustAngleHandler = setInterval(adjustAngle, SPF);
 		}
 		var releasedAt = {
 			t: 0
 		};
 		var jumpDelay = ctrlSettings.autoacc ? 200 : 500;
-		var wasDrift = false;
+		var wasSpecialTouch = false;
+		var originalAngle, originalPos;
 		$virtualScreen.ontouchstart = function(e) {
-			wasDrift = false;
+			var lastPos = originalPos;
+			originalAngle = oKart.rotation;
+			originalPos = getPointerRelPos(e.touches);
+			pressKey("up");
 			if ((new Date().getTime() - releasedAt.t) < jumpDelay) {
-				if (!ctrlSettings.autoacc || isRelPosCloseEnough(e,releasedAt))
-				pressKey("jump");
-				wasDrift = true;
+				var minDiffToDrift = 0.1, maxAngleToJump = 0.5;
+				var posDiff = originalPos.x - lastPos.x;
+				if (Math.abs(posDiff) < maxAngleToJump) {
+					pressKey("jump");
+					if (posDiff >= minDiffToDrift)
+						pressKey("right");
+					else if (posDiff <= -minDiffToDrift)
+						pressKey("left");
+				}
 			}
 			clearTimeout(releaseAccHandler);
-			handlePointerEvent(e);
 		}
 		$virtualScreen.ontouchmove = function(e) {
+			clearInterval(adjustAngleHandler);
 			handlePointerEvent(e);
 		}
 		$virtualScreen.ontouchend = function(e) {
 			clearInterval(adjustAngleHandler);
 			adjustAngleHandler = undefined;
-			for (var code in pressedKeys) {
+			if (oKart.driftinc)
+				wasSpecialTouch = true;
+			for (var code in oPressedKeys) {
 				if (code !== "up")
 					releaseKey(code);
 			}
@@ -4507,7 +4501,7 @@ function setupGestureEvents() {
 					releaseKey("up");
 				}, 300);
 			}
-			if (!wasDrift) {
+			if (!wasSpecialTouch) {
 				var relPos = getPointerRelPos(e.changedTouches);
 				releasedAt = {
 					x: relPos.x,
@@ -4515,6 +4509,8 @@ function setupGestureEvents() {
 					t: new Date().getTime()
 				}
 			}
+			else
+				wasSpecialTouch = false;
 		}
 
 		function getPointerRelPos(touches) {
@@ -4531,11 +4527,6 @@ function setupGestureEvents() {
 			var relX = x/rect.width - 0.5, relY = y/rect.height - 0.5;
 			return { x: relX, y: relY };
 		}
-		function isRelPosCloseEnough(e,relPos) {
-			var relPos2 = getPointerRelPos(e.touches);
-			var dist2 = (relPos2.x-relPos.x)*(relPos2.x-relPos.x) + (relPos2.y-relPos.y)*(relPos2.y-relPos.y);
-			return (dist2 < 0.05);
-		} 
 
 		var $virtualRoulette = document.createElement("div");
 		$virtualRoulette.style.position = "absolute";
@@ -4546,29 +4537,52 @@ function setupGestureEvents() {
 		$virtualRoulette.ontouchstart = function(e) {
 			e.stopPropagation();
 			doReleaseKey("item");
-			wasDrift = true;
+			wasSpecialTouch = true;
 		}
 		$virtualScreen.appendChild($virtualRoulette);
-
-		var $virtualPauseBtn = document.createElement("button");
-		$virtualPauseBtn.innerHTML = "\u275A\u275A";
-		$virtualPauseBtn.style.position = "absolute";
-		$virtualPauseBtn.style.right = (iScreenScale*22) +"px";
-		$virtualPauseBtn.style.top = "5px";
-		$virtualPauseBtn.style.fontSize = Math.round(iScreenScale*1.4) +"px";
-		$virtualPauseBtn.style.padding = Math.round(iScreenScale/3) +"px";
-		$virtualPauseBtn.ontouchstart = function(e) {
-			e.stopPropagation();
-			doPressKey("pause");
-		}
-		$virtualPauseBtn.id = "virtualbtn-pause";
-		$virtualPauseBtn.style.display = "none";
-		$virtualScreen.appendChild($virtualPauseBtn);
 
 		hudScreens[i].appendChild($virtualScreen);
 
 		$virtualScreens.push($virtualScreen);
 	}
+}
+function setupCommonMobileControls() {
+	var $virtualPauseBtn = document.createElement("button");
+	$virtualPauseBtn.innerHTML = "\u275A\u275A";
+	$virtualPauseBtn.style.position = "absolute";
+	$virtualPauseBtn.style.zIndex = 20000;
+	$virtualPauseBtn.style.right = (iScreenScale*22) +"px";
+	$virtualPauseBtn.style.top = "5px";
+	$virtualPauseBtn.style.fontSize = Math.round(iScreenScale*3) +"px";
+	$virtualPauseBtn.style.padding = Math.round(iScreenScale/2) +"px "+ iScreenScale +"px";
+	$virtualPauseBtn.ontouchstart = function(e) {
+		e.stopPropagation();
+		doPressKey("pause");
+	}
+	$virtualPauseBtn.id = "virtualbtn-pause";
+	$virtualPauseBtn.style.display = "none";
+	for (var i=0;i<oPlayers.length;i++)
+		hudScreens[i].appendChild($virtualPauseBtn);
+}
+
+var oPressedKeys = {};
+function pressKey(code) {
+	if (oPressedKeys[code]) return;
+	doPressKey(code);
+}
+function doPressKey(code) {
+	oPressedKeys[code] = 1;
+	if (document.onkeydown)
+		document.onkeydown({keyAction:code});
+}
+function releaseKey(code) {
+	if (!oPressedKeys[code]) return;
+	doReleaseKey(code);
+}
+function doReleaseKey(code) {
+	oPressedKeys[code] = undefined;
+	if (document.onkeyup)
+		document.onkeyup({keyAction:code});
 }
 
 function youtube_parser(url) {
@@ -4819,14 +4833,6 @@ function resetApp(opts) {
 	}, opts.time||500);
 
 	window.onbeforeunload = undefined;
-	var accButton = document.getElementById("virtualbtn-accelerate");
-	if (accButton && accButton.dataset && accButton.dataset.inverted) {
-		accButton.dataset.inverted = "";
-		accButton.ontouchstart = onButtonTouch;
-		accButton.ontouchend = onButtonPress;
-		var e = new Event('touchend');
-		accButton.dispatchEvent(e);
-	}
 	logGameTime();
 }
 function logGameTime() {
@@ -11955,7 +11961,7 @@ function showChallengePopup(challenge, res) {
 	fadeInPopup();
 	if (!pause && document.onkeydown) {
 		clLocalVars.forcePause = true;
-		document.onkeydown({keyAction:"pause"});
+		doPressKey("pause");
 		delete clLocalVars.forcePause;
 	}
 	if (bMusic || iSfx) {
@@ -13834,12 +13840,8 @@ function resetDatas() {
 					infos0.style.display = "";
 					if (!isChatting())
 						oContinue.focus();
-					document.onkeydown = undefined;
-					document.onkeyup = undefined;
-					document.onmousedown = undefined;
+					resetEvents();
 					window.onbeforeunload = logGameTime;
-					window.removeEventListener("blur", window.releaseOnBlur);
-					window.releaseOnBlur = undefined;
 					supprArme(0);
 					resetWrongWay(oPlayer);
 					if (bMusic||iSfx)
@@ -15049,12 +15051,8 @@ function move(getId, triggered) {
 							document.getElementById("infoPlace0").style.visibility = "hidden";
 							finishing = true;
 						}
-						document.onkeydown = undefined;
-						document.onkeyup = undefined;
-						document.onmousedown = undefined;
+						resetEvents();
 						window.onbeforeunload = logGameTime;
-						window.removeEventListener("blur", window.releaseOnBlur);
-						window.releaseOnBlur = undefined;
 					}
 				}
 				else if (onlineSpectatorId && !finishing) {
@@ -15259,12 +15257,8 @@ function move(getId, triggered) {
 				for (i=0;i<aKarts.length;i++)
 					aKarts[i].loose = true;
 				handleEndRace();
-				document.onkeydown = undefined;
-				document.onkeyup = undefined;
-				document.onmousedown = undefined;
+				resetEvents();
 				window.onbeforeunload = logGameTime;
-				window.removeEventListener("blur", window.releaseOnBlur);
-				window.releaseOnBlur = undefined;
 			}
 		}
 	}
@@ -17122,25 +17116,23 @@ document.onkeyup = function(e) {
 	}
 }
 
-var virtualButtonW = 60, virtualButtonH = 50;
-function addButton(lettre, key, x, y, w, h, fs) {
-	w = (w || 1)*virtualButtonW;
-	h = (h || 1)*virtualButtonH;
-	var oButton = document.createElement("button");
-	oButton.style.position = "absolute";
-	oButton.style.left = Math.round(x*virtualButtonW*1.2) + "px";
-	oButton.style.top = Math.round(y*virtualButtonH*1.3) + "px";
-	oButton.style.width = w + "px";
-	oButton.style.height = h + "px";
+function addButton(lettre, options) {
+	var oButton = options.btn || document.createElement("button");
 	oButton.style.textAlign = "center";
 	oButton.style.padding = "0px";
-	if (fs)
-		oButton.style.fontSize = fs+"px";
 	oButton.innerHTML = lettre;
-	oButton.dataset.key = key;
-	oButton.ontouchstart = onButtonTouch;
-	oButton.ontouchend = onButtonPress;
-	document.getElementById("virtualkeyboard").appendChild(oButton);
+	oButton.dataset.key = options.key;
+	if ("touchstart" in options)
+		oButton.ontouchstart = options.touchstart;
+	else
+		oButton.ontouchstart = onButtonTouch;
+	if ("touchend" in options)
+		oButton.ontouchend = options.touchend;
+	else
+		oButton.ontouchend = onButtonPress;
+	if (!options.parent)
+		options.parent = document.getElementById("virtualkeyboard");
+	options.parent.appendChild(oButton);
 	return oButton;
 }
 
@@ -26283,6 +26275,7 @@ function optionOf(vName) {
 	return formulaire ? formulaire.elements[vName].value*1 : baseOptions[vName];
 }
 function displayCommands(html) {
+	if (isMobile()) html = "";
 	var $commandes = document.getElementById("commandes");
 	if ($commandes) {
 		var emptyCommands = !html;
@@ -27095,23 +27088,18 @@ function isChatting() {
 	if (!document.forms[1].elements["rMessage"]) return false;
 	return (document.activeElement == document.forms[1].elements["rMessage"]);
 }
-function applyButtonCode(action,keyData) {
-	if (!document[action]) return;
-	var keycodes = keyData.split(",");
-	for (var i=0;i<keycodes.length;i++)
-		document[action]({keyAction:keycodes[i]});
-}
 function onButtonTouch(e) {
-	e.preventDefault();
+	if (e) e.preventDefault();
 	this.style.backgroundColor = "#603";
+	this.dataset.pressed = "1";
 	navigator.vibrate(30);
-	var keycode = this.dataset.key;
-	applyButtonCode("onkeydown", keycode);
+	doPressKey(this.dataset.key);
 	return false;
 }
 function onButtonPress(e) {
 	this.style.backgroundColor = "";
-	applyButtonCode("onkeyup", this.dataset.key);
+	this.dataset.pressed = "";
+	doReleaseKey(this.dataset.key);
 }
 
 function setChat() {
