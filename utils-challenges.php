@@ -265,7 +265,7 @@ $clRulesByType = array(
 			}
 		),
 		'cc' => array(
-			'description' => $language ? 'in $value​cc class':'en mode $value​cc',
+			'description' => $language ? 'in ${value}cc class':'en mode ${value}cc',
 			'description_mockup' => $language ? 'Class (cc)':'Cylindrée (cc)',
 			'course' => array('vs', 'battle', 'cup', 'mcup'),
 			'description_lambda' => function($language,&$scope) {
@@ -412,7 +412,7 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle', 'cup', 'mcup')
 		),
 		'time_delay' => array(
-			'description' => $language ? 'by starting with $value​s delay':'en partant avec $value​s de retard',
+			'description' => $language ? 'by starting with ${value}s delay':'en partant avec ${value}s de retard',
 			'description_mockup' => $language ? 'by starting with x seconds delay':'en partant avec x secondes de retard',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -420,7 +420,7 @@ $clRulesByType = array(
 			'course' => array('vs')
 		),
 		'mini_turbo' => array(
-			'description' => $language ? 'by performing $value​ Mini-Turbo$s':'en réalisant $value​ dérapage$s Turbo',
+			'description' => $language ? 'by performing $value Mini-Turbo$s':'en réalisant $value dérapage$s Turbo',
 			'description_mockup' => $language ? 'by performing N Turbo drifts':'en réalisant N dérapages Turbo',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -428,7 +428,7 @@ $clRulesByType = array(
 			'course' => array('vs','battle', 'cup', 'mcup')
 		),
 		'super_turbo' => array(
-			'description' => $language ? 'by performing $value​ Super Mini-Turbo$s':'en réalisant $value​ Super Mini-Turbo$s',
+			'description' => $language ? 'by performing $value Super Mini-Turbo$s':'en réalisant $value Super Mini-Turbo$s',
 			'description_mockup' => $language ? 'by performing N Super Mini-Turbo':'en réalisant N Super Mini-Turbo',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -436,7 +436,7 @@ $clRulesByType = array(
 			'course' => array('vs','battle', 'cup', 'mcup')
 		),
 		'stunts' => array(
-			'description' => $language ? 'by performing $value​ stunt$s':'en réalisant $value​ figure$s',
+			'description' => $language ? 'by performing $value stunt$s':'en réalisant $value figure$s',
 			'description_mockup' => $language ? 'by performing N stunts':'en réalisant N figures',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -858,13 +858,13 @@ function getRuleDescription($rule,$rulesClass=null) {
 			$scope['s'] = ($scope['value']>=2 ? 's':'');
 		if (isset($data['scope']))
 			$scope = array_merge($data['scope'],$scope);
-		$res = preg_replace_callback('#\$(\w+)#', function($matches) use ($scope) {
+		$res = preg_replace_callback('#\$\{?(\w+)\}?#', function($matches) use ($scope) {
 			$k = $matches[1];
 			if (isset($scope[$k]) && !is_array($scope[$k]))
 				return $scope[$k];
 			return $matches[0];
 		}, $res);
-		$res = preg_replace_callback('#\$(\w+)\[(\w+)\]#', function($matches) use ($scope) {
+		$res = preg_replace_callback('#\$\{?(\w+)\[(\w+)\]\}?#', function($matches) use ($scope) {
 			$a = $matches[1];
 			$k = $matches[2];
 			if (isset($scope[$a]) && is_array($scope[$a]) && isset($scope[$a][$k]))
