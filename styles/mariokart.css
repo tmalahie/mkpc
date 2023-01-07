@@ -67,8 +67,11 @@
 		left: 0;
 		width: 100%;
 	}
+	.control-editor .control-type-values {
+		max-width: none;
+	}
 }
-@media screen and (max-height: 599px) {
+@media screen and (max-height: 499px) {
 	.control-editor {
 		top: 0;
 		max-height: 100%;
@@ -118,7 +121,7 @@
     margin: 0.25em 0.5em 0.125em 0.5em;
 }
 .control-type-values {
-    min-width: 27em;
+    max-width: 27em;
 }
 .control-type-value {
     padding: 0.25em 0;

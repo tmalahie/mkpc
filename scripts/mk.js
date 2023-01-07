@@ -4482,11 +4482,11 @@ var $virtualScreens = new Array();
 function setupGestureEvents() {
 	for (var i=0;i<oContainers.length;i++) {
 		var $virtualScreen = document.createElement("div");
-		$virtualScreen.style.position = "absolute";
-		$virtualScreen.style.left = 0;
-		$virtualScreen.style.top = 0;
-		$virtualScreen.style.width = iWidth*iScreenScale +"px";
-		$virtualScreen.style.height = "calc(100vh - 20px)";
+		$virtualScreen.style.position = "fixed";
+		$virtualScreen.style.left = "0px";
+		$virtualScreen.style.top = "0px";
+		$virtualScreen.style.width = "100%";
+		$virtualScreen.style.height = "100%";
 		$virtualScreen.style.zIndex = 20000;
 		var adjustAngleHandler;
 		var releaseAccHandler;
@@ -4494,9 +4494,16 @@ function setupGestureEvents() {
 		function handlePointerEvent(e) {
 			e.preventDefault();
 			var relPos = getPointerRelPos(e.touches);
-			var posDiff = relPos.x - originalPos.x;
+			var diffX = relPos.x - originalPos.x, diffY = relPos.y - originalPos.y;
+			if (diffY > Math.max(0.2, 3*Math.abs(diffX))) {
+				if (diffY > 0) {
+					releaseKey("up");
+					pressKey("down");
+				}
+				return;
+			}
 			var maxAngle = 120, smoothingFactor = 1.4;
-			var targetRotinc = -Math.sign(posDiff) * Math.pow(Math.abs(posDiff),smoothingFactor) * maxAngle;
+			var targetRotinc = -Math.sign(diffX) * Math.pow(Math.abs(diffX),smoothingFactor) * maxAngle;
 			function adjustAngle() {
 				var targetDir = (targetRotinc - angleInc(oKart)) / 2;
 				var action;
@@ -4521,7 +4528,7 @@ function setupGestureEvents() {
 		};
 		var jumpDelay = ctrlSettings.autoacc ? 200 : 500;
 		var wasSpecialTouch = false;
-		var originalAngle, originalPos;
+		var originalPos;
 		$virtualScreen.ontouchstart = function(e) {
 			var lastPos = originalPos;
 			originalAngle = oKart.rotation;
@@ -4568,17 +4575,13 @@ function setupGestureEvents() {
 		}
 
 		function getPointerRelPos(touches) {
-			var rect = $virtualScreen.getBoundingClientRect();
+			var sW = iScreenScale*iWidth;
 			if ($mkScreen.dataset.fs) {
-				rect = {
-					x: rect.x,
-					y: rect.y,
-					width: window.innerWidth - rect.x*2,
-					height: window.innerHeight - rect.y*2
-				};
+				var bounds = $virtualScreen.getBoundingClientRect();
+				sW = window.innerWidth - bounds.x*2;
 			}
-			var x = touches[0].pageX - rect.x, y = touches[0].clientY - rect.y;
-			var relX = x/rect.width - 0.5, relY = y/rect.height - 0.5;
+			var x = touches[0].pageX, y = touches[0].clientY;
+			var relX = x/sW, relY = y/sW;
 			return { x: relX, y: relY };
 		}
 
