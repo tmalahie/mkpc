@@ -4155,9 +4155,12 @@ function startGame() {
 
 						if (ctrlSettings.autoacc) {
 							var $accButton = document.getElementById("virtualbtn-accelerate");
-							if ($accButton && $accButton.dataset && !$accButton.dataset.pressed) {
-								var e = new Event('touchstart');
-								$accButton.dispatchEvent(e);
+							if ($accButton && $accButton.dataset) {
+								$accButton.ontouchend = undefined;
+								if (!$accButton.dataset.pressed) {
+									var e = new Event('touchstart');
+									$accButton.dispatchEvent(e);
+								}
 							}
 							else
 								doPressKey("up");
@@ -4367,42 +4370,93 @@ function showVirtualKeyboard() {
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
 	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
 
-	addButton("I", { key: "item" });
+	function showItemLine() {
+		addButton("I", { key: "item" });
+	
+		var $div = document.createElement("div");
+		$div.className = "btn-ctn";
+		addButton("\u2191", { key: "item_fwd", parent: $div });
+		addButton("\u2193", { key: "item_back", parent: $div });
+		$virtualKeyboard.appendChild($div);
+	
+		var $div = document.createElement("div");
+		$div.className = "btn-ctn";
+		var $accButton = document.createElement("button");
+		$accButton.id = "virtualbtn-accelerate";
+		var $backButton = document.createElement("button");
+		addButton("\u2191", { btn: $accButton, key: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
+		addButton("\u2193", { btn: $backButton, key: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
+		$virtualKeyboard.appendChild($div);
 
-	var $div = document.createElement("div");
-	$div.className = "btn-ctn";
-	addButton("\u2191", { key: "item_fwd", parent: $div });
-	addButton("\u2193", { key: "item_back", parent: $div });
-	$virtualKeyboard.appendChild($div);
-
-	var $div = document.createElement("div");
-	$div.className = "btn-ctn";
-	var $accButton = document.createElement("button");
-	$accButton.id = "virtualbtn-accelerate";
-	var $backButton = document.createElement("button");
-	addButton("\u2191", { btn: $accButton, key: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
-	addButton("\u2193", { btn: $backButton, key: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
-	$virtualKeyboard.appendChild($div);
-
-	addButton("J", { key: "jump" });
-	addButton("\u2190", { key: "left" });
-	addButton("\u2192", { key: "right" });
-
-	function toggleBtnAction(otherButton) {
-		return function() {
-			if (this.dataset.pressed)
-				onButtonPress.bind(this)();
-			else {
-				if (otherButton.dataset.pressed)
-					onButtonPress.bind(otherButton)();
-				onButtonTouch.bind(this)();
+		function toggleBtnAction(otherButton) {
+			return function() {
+				if (this.dataset.pressed)
+					onButtonPress.bind(this)();
+				else {
+					if (otherButton.dataset.pressed)
+						onButtonPress.bind(otherButton)();
+					onButtonTouch.bind(this)();
+				}
 			}
 		}
 	}
+
+	function showDirLine() {
+		addButton("J", { key: "jump" });
+		addButton("\u2190", { key: "left" });
+		addButton("\u2192", { key: "right" });
+	}
+
+	function showLegacyLayout() {
+		var $accDriftButton = addButtonLegacy(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',["up","jump"], 0,0);
+		if (ctrlSettings.autoacc)
+			$accDriftButton.style.display = "none";
+		var $accButton = addButtonLegacy(" \u2191 ","up", 1,0);
+		$accButton.id = "virtualbtn-accelerate";
+		addButtonLegacy("Obj","item", 2,0, null,null, 25);
+		addButtonLegacy("\u275A\u275A","pause", 3,0, null,null, 25);
+		document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
+		document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
+		addButtonLegacy(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", "jump", 0,1,null,null, 11);
+		addButtonLegacy(" \u2193 ","down", 1,1);
+		addButtonLegacy(" \u2190 ","left", 2,1);
+		addButtonLegacy(" \u2192 ","right", 3,1);
+	}
+
+	switch (ctrlSettings.layout) {
+	case "old":
+		showLegacyLayout();
+		break;
+	case "inverted":
+		showDirLine();
+		showItemLine();
+		break;
+	default:
+		showItemLine();
+		showDirLine();
+	}
 	
+	$virtualKeyboard.ontouchstart = function(e) {
+		e.preventDefault();
+		return false;
+	};
+	$virtualKeyboard.className = "shown";
+
+	if (ctrlSettings.layout === "old") {
+		$virtualKeyboard.classList.add("legacy");
+
+		var virtualButtonW = 60, virtualButtonH = 50;
+		var virtualKeyboardW = virtualButtonW*4.8;
+		var virtualKeyboardH = virtualButtonH*2.6;
+		$virtualKeyboard.style.width = Math.round(virtualKeyboardW) +"px";
+		$virtualKeyboard.style.height = Math.round(virtualKeyboardH) +"px";
+		$virtualKeyboard.style.left = (iScreenScale*iWidth - virtualKeyboardW)/2 +"px";
+		$virtualKeyboard.style.top = (iScreenScale*40) +"px";
+		return;
+	}
+
 	var virtualKeyboardY = iScreenScale*iHeight + 20;
 	$virtualKeyboard.style.top = virtualKeyboardY +"px";
-	$virtualKeyboard.className = "shown";
 
 	var virtualKeyboardW = $virtualKeyboard.offsetWidth;
 	var virtualKeyboardH = window.innerHeight - virtualKeyboardY;
@@ -4410,15 +4464,12 @@ function showVirtualKeyboard() {
 	if (virtualKeyboardW < iWidth*iScreenScale)
 		$virtualKeyboard.style.left = Math.round((iWidth*iScreenScale - virtualKeyboardW) / 2) +"px";
 	$virtualKeyboard.style.height = virtualKeyboardH +"px";
-	$virtualKeyboard.ontouchstart = function(e) {
-		e.preventDefault();
-		return false;
-	};
 }
 function hideVirtualKeyboard() {
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
 	$virtualKeyboard.innerHTML = "";
 	$virtualKeyboard.className = "";
+	$virtualKeyboard.setAttribute("style", "");
 }
 
 var $virtualScreens = new Array();
@@ -17135,6 +17186,27 @@ function addButton(lettre, options) {
 	options.parent.appendChild(oButton);
 	return oButton;
 }
+function addButtonLegacy(lettre, key, x, y, w, h, fs) {
+	var virtualButtonW = 60, virtualButtonH = 50;
+	w = (w || 1)*virtualButtonW;
+	h = (h || 1)*virtualButtonH;
+	var oButton = document.createElement("button");
+	oButton.style.position = "absolute";
+	oButton.style.left = Math.round(x*virtualButtonW*1.2) + "px";
+	oButton.style.top = Math.round(y*virtualButtonH*1.3) + "px";
+	oButton.style.width = w + "px";
+	oButton.style.height = h + "px";
+	oButton.style.textAlign = "center";
+	oButton.style.padding = "0px";
+	if (fs)
+		oButton.style.fontSize = fs+"px";
+	oButton.innerHTML = lettre;
+	oButton.dataset.key = key;
+	oButton.ontouchstart = onButtonTouch;
+	oButton.ontouchend = onButtonPress;
+	document.getElementById("virtualkeyboard").appendChild(oButton);
+	return oButton;
+}
 
 if (!String.prototype.startsWith) {
 	String.prototype.startsWith = function(searchString, position) {
@@ -26373,11 +26445,41 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		var controlTypeValues = [{
 			id: "keyboard",
 			name: toLanguage("Virtual Keyboard", "Clavier virtuel"),
-			description: toLanguage("Shows buttons that behave like keys in a keyboard", "Affiche des boutons pour simuler les touches d'un clavier")
+			description: toLanguage("Shows buttons that behave like keys in a keyboard", "Affiche des boutons pour simuler les touches d'un clavier"),
+			dropdown: function($div) {
+				var $controlSetting = document.createElement("label");
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("Keyboard layout:", "Agencement des touches :");
+				$controlSetting.appendChild($controlText);
+				var $controlSelect = document.createElement("select");
+				var selectOptions = {
+					"": toLanguage("Default", "Défaut"),
+					"inverted": toLanguage("Inverted", "Inversé"),
+					"old": toLanguage("Old version", "Ancienne version")
+				};
+				var currentVal = currentSettingsCtrl["layout"] || "";
+				for (var key in selectOptions) {
+					var $controlOption = document.createElement("option");
+					$controlOption.value = key;
+					if (key === currentVal)
+						$controlOption.selected = "selected";
+					$controlOption.innerHTML = selectOptions[key];
+					$controlSelect.appendChild($controlOption);
+				}
+				$controlSetting.appendChild($controlSelect);
+				$controlSelect.onchange = function() {
+					if (this.value)
+						currentSettingsCtrl["layout"] = this.value;
+					else
+						delete currentSettingsCtrl["layout"];
+					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
+				}
+				$div.appendChild($controlSetting);
+			}
 		}, {
 			id: "gestures",
 			name: toLanguage("Gestures control", "Contrôles par gestes"),
-			description: toLanguage("Touch the screen where you want your kart to go. Controls similar to Mario Kart Tour", "Touchez l'écran où vous voulez que votre kart aille. Contrôles similaires à Mario Kart Tour")
+			description: toLanguage("Swipe the screen to go in the desired direction. Controls similar to Mario Kart Tour", "Balayez l'écran pour vous diriger dans la direction souhaitée. Contrôles similaires à Mario Kart Tour")
 		}, {
 			id: "gyroscope",
 			name: toLanguage("Gyroscope", "Gyroscope"),
@@ -26386,7 +26488,10 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		var currentControlType = currentSettingsCtrl.mode || "keyboard";
 		for (var i=0;i<controlTypeValues.length;i++) {
 			(function(controlTypeValue) {
-				var $controlTypeValue = document.createElement("label");
+				var $controlTypeValue = document.createElement("div");
+				$controlTypeValue.className = "control-type-value";
+
+				var $controlTypeLabel = document.createElement("label");
 
 				var $controlTypeInput = document.createElement("div");
 				$controlTypeInput.className = "control-type-input";
@@ -26397,11 +26502,16 @@ function editCommands(reload,currentTab,selectedPlayer) {
 				$controlTypeRadio.onclick = function() {
 					currentSettingsCtrl.mode = controlTypeValue.id;
 					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
+
+					var $selectedCtrl;
+					while ($selectedCtrl = document.querySelector(".control-type-value.selected"))
+						$selectedCtrl.classList.remove("selected");
+					$controlTypeValue.classList.add("selected");
 				};
 				if (controlTypeValue.id === currentControlType) {
-					$controlTypeRadio.checked = "checked";
+					$controlTypeRadio.click();
 				}
-				$controlTypeValue.appendChild($controlTypeInput);
+				$controlTypeLabel.appendChild($controlTypeInput);
 
 				var $controlTypeExplain = document.createElement("div");
 				$controlTypeExplain.className = "control-type-explain";
@@ -26413,7 +26523,15 @@ function editCommands(reload,currentTab,selectedPlayer) {
 				$controlTypeDesc.className = "control-type-desc";
 				$controlTypeDesc.innerHTML = controlTypeValue.description;
 				$controlTypeExplain.appendChild($controlTypeDesc);
-				$controlTypeValue.appendChild($controlTypeExplain);
+				$controlTypeLabel.appendChild($controlTypeExplain);
+
+				$controlTypeValue.appendChild($controlTypeLabel);
+
+				var $controlTypeExtra = document.createElement("div");
+				$controlTypeExtra.className = "control-type-extra";
+				if (controlTypeValue.dropdown)
+					controlTypeValue.dropdown($controlTypeExtra);
+				$controlTypeValue.appendChild($controlTypeExtra);
 
 				$controlTypeValues.appendChild($controlTypeValue);
 			})(controlTypeValues[i]);
@@ -27093,13 +27211,17 @@ function onButtonTouch(e) {
 	this.style.backgroundColor = "#603";
 	this.dataset.pressed = "1";
 	navigator.vibrate(30);
-	doPressKey(this.dataset.key);
+	var keycodes = this.dataset.key.split(",");
+	for (var i=0;i<keycodes.length;i++)
+		doPressKey(keycodes[i]);
 	return false;
 }
 function onButtonPress(e) {
 	this.style.backgroundColor = "";
 	this.dataset.pressed = "";
-	doReleaseKey(this.dataset.key);
+	var keycodes = this.dataset.key.split(",");
+	for (var i=0;i<keycodes.length;i++)
+		doReleaseKey(keycodes[i]);
 }
 
 function setChat() {
