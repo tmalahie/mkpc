@@ -4144,21 +4144,6 @@ function startGame() {
 					};
 					window.addEventListener("blur", window.releaseOnBlur);
 					if (isMobile()) {
-						if (!ctrlSettings.mode || ctrlSettings.mode === "keyboard") {
-							document.onmousedown = function(e) {
-								if (pause)
-									return true;
-								if (!oPlayers[0].tourne && !oPlayers[0].cannon) {
-									if (course == "BB") {
-										doPressKey("balloon");
-										return false;
-									}
-									return true;
-								}
-								return true;
-							}
-						}
-
 						if (ctrlSettings.autoacc) {
 							var $accButton = document.getElementById("virtualbtn-accelerate");
 							if ($accButton && $accButton.dataset) {
@@ -4638,8 +4623,7 @@ function setupCommonMobileControls() {
 			else
 				doReleaseKey("item");
 		}
-		for (var i=0;i<oPlayers.length;i++)
-			hudScreens[i].appendChild($virtualItemScreen);
+		hudScreens[0].appendChild($virtualItemScreen);
 	}
 
 	var $virtualPauseBtn = document.createElement("button");
@@ -4651,13 +4635,27 @@ function setupCommonMobileControls() {
 	$virtualPauseBtn.style.fontSize = Math.round(iScreenScale*3) +"px";
 	$virtualPauseBtn.style.padding = Math.round(iScreenScale/2) +"px "+ iScreenScale +"px";
 	$virtualPauseBtn.ontouchstart = function(e) {
-		e.stopPropagation();
+		e.preventDefault();
 		doPressKey("pause");
 	}
 	$virtualPauseBtn.id = "virtualbtn-pause";
 	$virtualPauseBtn.style.display = "none";
-	for (var i=0;i<oPlayers.length;i++)
-		hudScreens[i].appendChild($virtualPauseBtn);
+	hudScreens[0].appendChild($virtualPauseBtn);
+
+	if (course == "BB") {
+		var $virtualBalloonBtn = document.createElement("div");
+		$virtualBalloonBtn.style.position = "absolute";
+		$virtualBalloonBtn.style.zIndex = 20000;
+		$virtualBalloonBtn.style.left = "0px";
+		$virtualBalloonBtn.style.bottom = "-2px";
+		$virtualBalloonBtn.style.width = (iScreenScale*16) +"px";
+		$virtualBalloonBtn.style.height = (iScreenScale*5 + 4) +"px";
+		$virtualBalloonBtn.ontouchstart = function(e) {
+			e.preventDefault();
+			doPressKey("balloon");
+		}
+		hudScreens[0].appendChild($virtualBalloonBtn);
+	}
 }
 
 var oPressedKeys = {};
