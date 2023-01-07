@@ -1188,6 +1188,12 @@ function loadMap() {
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
 	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
+	if (isMobile()) {
+		if (ctrlSettings.autoacc === undefined)
+			ctrlSettings.autoacc = 1;
+		if (ctrlSettings.vitem === undefined)
+			ctrlSettings.vitem = 1;
+	}
 
 	if (gameSettings.rtime) {
 		var lastFrameTime;
@@ -4553,10 +4559,7 @@ function setupGestureEvents() {
 				}, 300);
 			}
 			if (!wasSpecialTouch) {
-				var relPos = getPointerRelPos(e.changedTouches);
 				releasedAt = {
-					x: relPos.x,
-					y: relPos.y,
 					t: new Date().getTime()
 				}
 			}
@@ -4598,6 +4601,44 @@ function setupGestureEvents() {
 	}
 }
 function setupCommonMobileControls() {
+	if (ctrlSettings.vitem) {
+		var $virtualItemScreen = document.createElement("div");
+		$virtualItemScreen.style.position = "absolute";
+		$virtualItemScreen.style.left = "0px";
+		$virtualItemScreen.style.top = "0px";
+		$virtualItemScreen.style.zIndex = 20000;
+		$virtualItemScreen.style.width = (iScreenScale*iWidth) +"px";
+		$virtualItemScreen.style.height = (iScreenScale*iHeight) +"px";
+
+		var originPos;
+		$virtualItemScreen.ontouchstart = function(e) {
+			e.preventDefault();
+			originPos = {
+				x: e.touches[0].clientX,
+				y: e.touches[0].clientY
+			};
+		}
+		$virtualItemScreen.ontouchend = function(e) {
+			var endPos = {
+				x: e.changedTouches[0].clientX,
+				y: e.changedTouches[0].clientY,
+			}
+			var diffX = endPos.x - originPos.x;
+			var diffY = endPos.y - originPos.y;
+
+			if (Math.abs(diffY) > Math.max(50, 3*Math.abs(diffX))) {
+				if (diffY > 0)
+					doReleaseKey("item_back");
+				else
+					doReleaseKey("item_fwd");
+			}
+			else
+				doReleaseKey("item");
+		}
+		for (var i=0;i<oPlayers.length;i++)
+			hudScreens[i].appendChild($virtualItemScreen);
+	}
+
 	var $virtualPauseBtn = document.createElement("button");
 	$virtualPauseBtn.innerHTML = "\u275A\u275A";
 	$virtualPauseBtn.style.position = "absolute";
@@ -26546,23 +26587,24 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		var $controlMiscValues = document.createElement("div");
 		$controlMiscValues.className = "control-misc-values";
 		var allMiscSettings = {
-			'autoacc' : toLanguage('Auto-accelerate', 'Accélérer automatiquement')
+			'autoacc' : toLanguage("Auto-accelerate", "Accélérer automatiquement"),
+			'vitem' : toLanguage("Touch game screen to send an item", "Toucher l'écran de jeu pour lancer un objet")
 		};
 		for (var key in allMiscSettings) {
 			(function(key) {
 				var $controlSetting = document.createElement("label");
 				var $controlCheckbox = document.createElement("input");
 				$controlCheckbox.type = "checkbox";
-				$controlCheckbox.checked = !!currentSettingsCtrl[key];
+				$controlCheckbox.checked = (currentSettingsCtrl[key] != 0);
 				$controlSetting.appendChild($controlCheckbox);
 				var $controlText = document.createElement("span");
 				$controlText.innerHTML = allMiscSettings[key];
 				$controlSetting.appendChild($controlText);
 				$controlCheckbox.onclick = function() {
 					if (this.checked)
-						currentSettingsCtrl[key] = 1;
-					else
 						delete currentSettingsCtrl[key];
+					else
+						currentSettingsCtrl[key] = 0;
 					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
 				}
 				$controlMiscValues.appendChild($controlSetting);

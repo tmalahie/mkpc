@@ -176,6 +176,7 @@
 .control-misc-values > label {
 	display: flex;
 	align-items: center;
+	gap: 0.25em;
 }
 .control-players {
 	margin-top: 0.375em;
