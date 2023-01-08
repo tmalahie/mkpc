@@ -26452,8 +26452,8 @@ function displayCommands(html) {
 	}
 }
 function updateCommandSheet() {
-	var gameCommands = getCommands(2);
-	var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+	var gameCommands = getCommands(null, 2);
+	var isMac = navigator.platform && navigator.platform.toUpperCase().indexOf('MAC')>=0;
 	function aTouches(T1, T2) {
 		var P = language ? "P":"J";
 		return (oContainers.length == 1) ? T1 : P+"1 : "+ T1 +"; "+P+"2 : "+ T2 +"";
@@ -26467,14 +26467,16 @@ function updateCommandSheet() {
 	}
 	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
-function editCommands(reload,currentTab,selectedPlayer) {
-	currentTab = currentTab || 0;
-	selectedPlayer = selectedPlayer || 0;
+function editCommands(options) {
+	options = options || {};
+	var currentTab = options.currentTab || 0;
+	var selectedPlayer = options.selectedPlayer || 0;
+	var selectedDevice = options.selectedDevice || "keyboard";
 	var nbPlayers = selectedPlayer+1;
 	var $controlEditorMask = document.getElementById("control-editor-mask");
 	if ($controlEditorMask) {
 		document.body.removeChild($controlEditorMask);
-		if (!reload) {
+		if (!options.reload) {
 			if (document.querySelector("#commandes strong"))
 				updateCommandSheet();
 			return;
@@ -26688,7 +26690,8 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		$controlResetBtn.onclick = function() {
 			if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 				localStorage.removeItem("settings.ctrl");
-				editCommands(true,currentTab,selectedPlayer);
+				options.reload = true;
+				editCommands(options);
 			}
 			return false;
 		};
@@ -26696,23 +26699,58 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		$controlCommands.appendChild($controlReset);
 	}
 	else {
+		var $controlCommandTabs = document.createElement("div");
+		$controlCommandTabs.className = "control-command-tabs";
+
 		var $controlCommandPlayers = document.createElement("div");
 		$controlCommandPlayers.className = "control-players";
 		for (var i=0;i<2;i++) {
 			(function(playerId) {
 				var $controlCommandPlayer = document.createElement("a");
 				$controlCommandPlayer.href = "#null";
-				$controlCommandPlayer.className = "control-player " + (playerId == selectedPlayer ? "control-player-selected" : "");
+				$controlCommandPlayer.className = "control-command-tab " + (playerId === selectedPlayer ? "control-command-tab-selected" : "");
 				$controlCommandPlayer.innerHTML = toLanguage("Player ","Joueur ") + (playerId+1);
 				$controlCommandPlayer.onclick = function() {
 					if (selectedPlayer === playerId) return false;
-					editCommands(true,currentTab,playerId);
+					options.reload = true;
+					options.selectedPlayer = playerId;
+					editCommands(options);
 					return false;
 				}
 				$controlCommandPlayers.appendChild($controlCommandPlayer);
 			})(i);
 		}
-		$controlCommands.appendChild($controlCommandPlayers);
+		$controlCommandTabs.appendChild($controlCommandPlayers);
+
+		var $controlInputDevices = document.createElement("div");
+		$controlInputDevices.className = "control-input-devices";
+		var inputDevices = [{
+			id: "keyboard",
+			label: toLanguage("Keyboard", "Clavier")
+		}, {
+			id: "gamepad",
+			label: toLanguage("Gamepad", "Manette")
+		}];
+		for (var i=0;i<inputDevices.length;i++) {
+			(function(inputDevice) {
+				var $controlInputDevice = document.createElement("a");
+				$controlInputDevice.href = "#null";
+				$controlInputDevice.className = "control-command-tab " + (inputDevice.id === selectedDevice ? "control-command-tab-selected" : "");
+				$controlInputDevice.innerHTML = inputDevice.label;
+				$controlInputDevice.onclick = function() {
+					if (selectedDevice === inputDevice.id) return false;
+					options.reload = true;
+					options.selectedDevice = inputDevice.id;
+					editCommands(options);
+					return false;
+				}
+				$controlInputDevices.appendChild($controlInputDevice);
+			})(inputDevices[i]);
+		}
+		$controlCommandTabs.appendChild($controlInputDevices);
+
+		$controlCommands.appendChild($controlCommandTabs);
+
 		var commands = [{
 			name: toLanguage("Move forward", "Avancer"),
 			key: "up"
@@ -26750,7 +26788,7 @@ function editCommands(reload,currentTab,selectedPlayer) {
 			name: toLanguage("Quit", "Quitter"),
 			key: "quit"
 		}];
-		var gameCommands = getCommands(nbPlayers);
+		var gameCommands = getCommands(selectedDevice, nbPlayers);
 		if (selectedPlayer) {
 			for (var i=0;i<commands.length;i++) {
 				var p2Key = commands[i].key + "_p2";
@@ -26758,8 +26796,8 @@ function editCommands(reload,currentTab,selectedPlayer) {
 					commands[i].key = p2Key;
 			}
 		}
-		var localControls = JSON.parse(localStorage.getItem("controls")||"{}");
-		var isMac = (navigator.platform.toUpperCase().indexOf('MAC')>=0);
+		var localControls = JSON.parse(localStorage.getItem(getLocalControlKey(selectedDevice))||"{}");
+		var isMac = (navigator.platform && navigator.platform.toUpperCase().indexOf('MAC')>=0);
 		var $controlEditorGrid = document.createElement("div");
 		$controlEditorGrid.className = "control-editor-grid";
 		for (var i=0;i<commands.length;i++) {
@@ -26790,7 +26828,7 @@ function editCommands(reload,currentTab,selectedPlayer) {
 					e.stopPropagation();
 					keyCode = e.keyCode;
 					localControls[command.key] = keyCode;
-					localStorage.setItem("controls", JSON.stringify(localControls));
+					localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
 					if (gameControls)
 						gameControls = getGameControls();
 					this.blur();
@@ -26807,10 +26845,11 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		$controlResetBtn.innerHTML = toLanguage("Reset controls", "Rétablir les contrôles par défaut");
 		$controlResetBtn.onclick = function() {
 			if (confirm(toLanguage("Reset to default controls?","Confirmer la réinitialisation des contrôles ?"))) {
-				localStorage.removeItem("controls");
+				localStorage.removeItem(getLocalControlKey(selectedDevice));
 				if (gameControls)
 					gameControls = getGameControls();
-				editCommands(true,currentTab,selectedPlayer);
+				options.reload = true;
+				editCommands(options);
 			}
 			return false;
 		};
@@ -26863,17 +26902,17 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		$controlSelect.onchange = function() {
 			MarioKartControl.setQuality(+this.value);
 		};
-		var options = [
+		var graphicOptions = [
 			[5, toLanguage("Pixelated","Pixelisé")],
 			[4, toLanguage("Low","Inférieure")],
 			[2, toLanguage("Medium","Moyenne")],
 			[1, toLanguage("High","Supérieure")]
 		];
-		for (var i=0;i<options.length;i++) {
-			var option = options[i];
+		for (var i=0;i<graphicOptions.length;i++) {
+			var graphicOption = graphicOptions[i];
 			var $controlOption = document.createElement("option");
-			$controlOption.value = option[0];
-			$controlOption.innerHTML = option[1];
+			$controlOption.value = graphicOption[0];
+			$controlOption.innerHTML = graphicOption[1];
 			$controlSelect.appendChild($controlOption);
 		}
 		if (localStorage.getItem("iQuality"))
@@ -26934,7 +26973,7 @@ function editCommands(reload,currentTab,selectedPlayer) {
 					localStorage.setItem("settings", JSON.stringify(currentSettings));
 				};
 				for (var i=1;i<10;i++) {
-					var option = options[i];
+					var graphicOption = graphicOptions[i];
 					var $controlOption = document.createElement("option");
 					$controlOption.value = i;
 					$controlOption.innerHTML = i;
@@ -27002,18 +27041,18 @@ function editCommands(reload,currentTab,selectedPlayer) {
 				currentSettings.frameint = this.value;
 				localStorage.setItem("settings", JSON.stringify(currentSettings));
 			};
-			var options = [
+			var graphicOptions = [
 				["ease_out_linear", toLanguage("Linear &nbsp; &nbsp; &nbsp; (Smoothest)", "Linéaire &nbsp; (Très fluide)")],
 				["ease_out_quad", toLanguage("Quadratic (Smooth)","Quadratique (Fluide)")],
 				["ease_out_cubic", toLanguage("Cubic &nbsp; &nbsp; &nbsp; &nbsp; (Medium)","Cubique &nbsp; &nbsp; (Moyen)")],
 				["ease_out_quart", toLanguage("Quartic &nbsp; &nbsp; (Sharp)","Quartique &nbsp; (Saccadé)")],
 				["ease_out_exp", toLanguage("Exponential (Sharpest)","Exponentiel (Très saccadé)")]
 			];
-			for (var i=0;i<options.length;i++) {
-				var option = options[i];
+			for (var i=0;i<graphicOptions.length;i++) {
+				var graphicOption = graphicOptions[i];
 				var $controlOption = document.createElement("option");
-				$controlOption.value = option[0];
-				$controlOption.innerHTML = option[1];
+				$controlOption.value = graphicOption[0];
+				$controlOption.innerHTML = graphicOption[1];
 				$controlSelect.appendChild($controlOption);
 			}
 			$controlSelect.value = frameSettings.frameint;
@@ -27030,7 +27069,8 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
 			localStorage.removeItem("iQuality");
-			editCommands(true,currentTab,selectedPlayer);
+			options.reload = true;
+			editCommands(options);
 		}
 		return false;
 	};
@@ -27051,7 +27091,13 @@ function getKeyName(keyCode) {
 		return this.keyMatching[keyCode];
 	return "#"+keyCode;
 }
-function getCommands(nbPlayers) {
+function getLocalControlKey(inputDevice) {
+	var defaultInputDevice = "keyboard";
+	if (!inputDevice || (inputDevice === defaultInputDevice))
+		return "controls";
+	return "controls." + inputDevice;
+}
+function getCommands(inputDevice, nbPlayers) {
 	nbPlayers = nbPlayers || strPlayer.length;
 	var defaultControls = {
 		up:[38],
@@ -27081,7 +27127,7 @@ function getCommands(nbPlayers) {
 		defaultControls["rear_p2"] = [toLanguage(87,90)];
 	}
 	var res = defaultControls;
-	var localControls = localStorage.getItem("controls");
+	var localControls = localStorage.getItem(getLocalControlKey(inputDevice));
 	if (localControls) {
 		localControls = JSON.parse(localControls);
 		for (var key in localControls)
@@ -27089,9 +27135,9 @@ function getCommands(nbPlayers) {
 	}
 	return res;
 }
-function getGameControls() {
+function getGameControls(inputDevice) {
 	var res = {};
-	var commands = getCommands();
+	var commands = getCommands(inputDevice);
 	for (var key in commands) {
 		for (var i=0;i<commands[key].length;i++) {
 			var iCommand = commands[key][i];
