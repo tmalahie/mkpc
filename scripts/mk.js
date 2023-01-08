@@ -3201,6 +3201,8 @@ function startGame() {
 		}
 	}
 	gameControls = getGameControls();
+	for (var i=0;i<oPlayers.length;i++)
+		previouslyPressedBtns[i] = new Array();
 
 	challengesForCircuit = {
 		"end_game": [],
@@ -4278,7 +4280,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -4326,7 +4328,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -17057,6 +17059,37 @@ function moveDecor() {
 		}
 	}
 }
+var previouslyPressedBtns = [];
+function handleGamepadEvents() {
+	if (gameControls.gamepad) {
+		for (var i=0;i<gameControls.gamepad.length;i++) {
+			var data = gameControls.gamepad[i];
+			var selectedGamepad = findGamePadById(data);
+			if (!selectedGamepad)
+				continue;
+			var pressedBtns = getGamepadPressedBtns(selectedGamepad);
+			var pressedBtnsMap = {};
+			for (var j=0;j<pressedBtns.length;j++)
+				pressedBtnsMap[pressedBtns[j].key] = pressedBtns[j];
+			for (var j=0;j<data.controls.length;j++) {
+				var isPressed = data.controls[j].inputs.every(function(control) {
+					var pressedBtn = pressedBtnsMap[control.key];
+					return pressedBtn && control.isPressed(pressedBtn);
+				});
+				if (isPressed) {
+					var pressedKey = data.controls[j].key;
+					previouslyPressedBtns[i][j] = true;
+					doPressKey(pressedKey);
+				}
+				else if (previouslyPressedBtns[i][j]) {
+					var pressedKey = data.controls[j].key;
+					previouslyPressedBtns[i][j] = undefined;
+					doReleaseKey(pressedKey);
+				}
+			}
+		}
+	}
+}
 function handleAudio() {
 	if (mapMusic && mapMusic.opts && mapMusic.opts.end && mapMusic.yt && mapMusic.yt.getCurrentTime && mapMusic.yt.getCurrentTime() > mapMusic.opts.end) {
 		var start = mapMusic.opts.start || 0;
@@ -17072,6 +17105,7 @@ function cycle() {
 }
 var decorPos = {};
 function runOneFrame() {
+	handleGamepadEvents();
 	if (!timeTrialMode()) {
 		for (var i=0;i<aKarts.length;i++)
 			colKart(i);
@@ -17157,11 +17191,13 @@ function runOneFrame() {
 	render();
 }
 
-var gameControls = {};
+var gameControls = {
+	keyboard: {}
+};
 function getGameAction(e) {
 	if (e.keyAction)
 		return e.keyAction;
-	return gameControls[e.keyCode];
+	return gameControls.keyboard[e.keyCode];
 }
 function handleSpectatorInput(e) {
 	switch (e.keyCode) {
@@ -27285,8 +27321,8 @@ function getCommands(inputDevice, nbPlayers) {
 			left:[[-1]],
 			right:[[1]],
 			item:[6],
-			item_back:[[0,-1],6],
-			item_fwd:[[0,1],6],
+			item_back:[[0,1],6],
+			item_fwd:[[0,-1],6],
 			jump:[7],
 			balloon:[2],
 			rear:[3],
@@ -27343,15 +27379,82 @@ function getCommands(inputDevice, nbPlayers) {
 	}
 	return res;
 }
-function getGameControls(inputDevice) {
-	var res = {};
-	var commands = getCommands(inputDevice);
+function getGameControls() {
+	var res = {
+		keyboard: {}
+	};
+	var commands = getCommands("keyboard");
 	for (var key in commands) {
 		for (var i=0;i<commands[key].length;i++) {
 			var iCommand = commands[key][i];
-			if (!res[iCommand])
-				res[iCommand] = key;
+			if (!res.keyboard[iCommand])
+				res.keyboard[iCommand] = key;
 		}
+	}
+	commands = getCommands("gamepad");
+	if (("_id" in commands) || (oPlayers[1] && ("_id_p2" in commands))) {
+		var gamepadCommands = [];
+		for (var i=0;i<oPlayers.length;i++)
+			gamepadCommands[i] = [];
+		var nbCommands = Object.values(commands).length;
+		for (var key in commands) {
+			if (key.startsWith("_")) continue;
+			var oPlayerId = 0;
+			if (key.endsWith("_p2")) oPlayerId = 1;
+			if (!gamepadCommands[oPlayerId]) continue;
+			var oCommand = [];
+			for (var i=0;i<commands[key].length;i++) {
+				var iKey = commands[key][i];
+				if ((typeof iKey === "object") && iKey.length) {
+					for (var j=0;j<iKey.length;j++) {
+						if (Math.abs(iKey[j]) > 0) {
+							oCommand.push({
+								key: "stick."+j,
+								type: "stick",
+								id: j,
+								value: iKey[j],
+								isPressed: function(pressedBtn) {
+									return Math.sign(pressedBtn.value) === Math.sign(this.value);
+								}
+							});
+						}
+					}
+				}
+				else if (typeof iKey === "number") {
+					oCommand.push({
+						key: "button."+iKey,
+						type: "button",
+						id: iKey,
+						isPressed: function() {
+							return true;
+						}
+					});
+				}
+			}
+			gamepadCommands[oPlayerId].push({
+				priority: oCommand.length - gamepadCommands[oPlayerId].length / nbCommands,
+				key: key,
+				value: oCommand
+			});
+		}
+		for (var i=0;i<gamepadCommands.length;i++) {
+			gamepadCommands[i].sort(function(c1, c2) {
+				return c2.priority - c1.priority;
+			});
+		}
+		res.gamepad = gamepadCommands.map(function(playerCommands, i) {
+			var plSuffix = i ? "_p2" : "";
+			return {
+				_id: commands["_id"+plSuffix],
+				_name: commands["_name"+plSuffix],
+				controls: playerCommands.map(function(playerCommands) {
+					return {
+						key: playerCommands.key,
+						inputs: playerCommands.value
+					}
+				})
+			}
+		});
 	}
 	return res;
 }
