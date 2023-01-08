@@ -4278,7 +4278,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -4326,7 +4326,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -26630,7 +26630,7 @@ function editCommands(reload,currentTab,selectedPlayer) {
 
 		var $controlMiscTitle = document.createElement("div");
 		$controlMiscTitle.className = "control-main-title";
-		$controlMiscTitle.innerHTML = toLanguage("Other options", "Autre options");
+		$controlMiscTitle.innerHTML = toLanguage("Other options", "Autres options");
 		$controlCommands.appendChild($controlMiscTitle);
 		
 		var $controlMiscValues = document.createElement("div");
@@ -26679,6 +26679,21 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		});
 		
 		$controlCommands.appendChild($controlMiscValues);
+
+		var $controlReset = document.createElement("div");
+		$controlReset.className = "control-reset";
+		var $controlResetBtn = document.createElement("a");
+		$controlResetBtn.href = "#null";
+		$controlResetBtn.innerHTML = toLanguage("Reset settings", "Rétablir les paramètres par défaut");
+		$controlResetBtn.onclick = function() {
+			if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
+				localStorage.removeItem("settings.ctrl");
+				editCommands(true,currentTab,selectedPlayer);
+			}
+			return false;
+		};
+		$controlReset.appendChild($controlResetBtn);
+		$controlCommands.appendChild($controlReset);
 	}
 	else {
 		var $controlCommandPlayers = document.createElement("div");
@@ -27159,10 +27174,8 @@ function toPerso(sPerso) {
 	return res;
 }
 
-var isMobileCache = true;
+var isMobileCache = !!(navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i));
 function isMobile() {
-	if (isMobileCache !== undefined) return isMobileCache;
-	isMobileCache = !!(navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i));
 	return isMobileCache;
 }
 
