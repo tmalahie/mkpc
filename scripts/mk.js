@@ -590,6 +590,8 @@ function resetEvents() {
 	document.onkeyup = undefined;
 	window.removeEventListener("blur", window.releaseOnBlur);
 	window.releaseOnBlur = undefined;
+	window.removeEventListener("deviceorientation", window.turnOnRotate);
+	window.turnOnRotate = undefined;
 	hideVirtualKeyboard();
 }
 function pauseSounds() {
@@ -4375,8 +4377,14 @@ function showVirtualKeyboard() {
 		var $accButton = document.createElement("button");
 		$accButton.id = "virtualbtn-accelerate";
 		var $backButton = document.createElement("button");
-		addButton("\u2191", { btn: $accButton, key: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
-		addButton("\u2193", { btn: $backButton, key: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
+		if (ctrlSettings.autoacc) {
+			addButton("\u2191", { btn: $accButton, key: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
+			addButton("\u2193", { btn: $backButton, key: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
+		}
+		else {
+			addButton("\u2191", { btn: $accButton, key: "up", parent: $div });
+			addButton("\u2193", { btn: $backButton, key: "down", parent: $div });
+		}
 		$virtualKeyboard.appendChild($div);
 
 		function toggleBtnAction(otherButton) {
@@ -4394,8 +4402,10 @@ function showVirtualKeyboard() {
 
 	function showDirLine() {
 		addButton("J", { key: "jump" });
-		addButton("\u2190", { key: "left" });
-		addButton("\u2192", { key: "right" });
+		var $leftButton = addButton("\u2190", { key: "left" });
+		$leftButton.id = "virtualbtn-left";
+		var $rightButton = addButton("\u2192", { key: "right" });
+		$rightButton.id = "virtualbtn-right";
 	}
 
 	function showLegacyLayout() {
@@ -4410,8 +4420,10 @@ function showVirtualKeyboard() {
 		document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
 		addButtonLegacy(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", "jump", 0,1,null,null, 11);
 		addButtonLegacy(" \u2193 ","down", 1,1);
-		addButtonLegacy(" \u2190 ","left", 2,1);
-		addButtonLegacy(" \u2192 ","right", 3,1);
+		var $leftButton = addButtonLegacy(" \u2190 ","left", 2,1);
+		$leftButton.id = "virtualbtn-left";
+		var $rightButton = addButtonLegacy(" \u2192 ","right", 3,1);
+		$rightButton.id = "virtualbtn-right";
 	}
 
 	switch (ctrlSettings.layout) {
@@ -4487,22 +4499,13 @@ function setupGestureEvents() {
 				}
 				return;
 			}
+			if (ctrlSettings.gyroscope)
+				return;
 			var maxAngle = 120, smoothingFactor = 1.4;
 			var targetRotinc = -Math.sign(diffX) * Math.pow(Math.abs(diffX),smoothingFactor) * maxAngle;
 			function adjustAngle() {
-				var targetDir = (targetRotinc - angleInc(oKart)) / 2;
-				var action;
-				if (targetDir > oKart.stats.handling/2)
-					action = "left";
-				else if (targetDir < -oKart.stats.handling/2)
-					action = "right";
-				if (action !== "left")
-					releaseKey("left");
-				if (action !== "right")
-					releaseKey("right");
-				if (action)
-					pressKey(action);
-				if (Math.abs(targetDir) >= 1)
+				var res = rotateToAngle(oKart, targetRotinc);
+				if (Math.abs(res.targetDir) >= 1)
 					wasSpecialTouch = true;
 			}
 			adjustAngle();
@@ -4516,7 +4519,6 @@ function setupGestureEvents() {
 		var originalPos;
 		$virtualScreen.ontouchstart = function(e) {
 			var lastPos = originalPos;
-			originalAngle = oKart.rotation;
 			originalPos = getPointerRelPos(e.touches);
 			pressKey("up");
 			if ((new Date().getTime() - releasedAt.t) < jumpDelay) {
@@ -4567,7 +4569,7 @@ function setupGestureEvents() {
 			}
 			var x = touches[0].pageX, y = touches[0].clientY;
 			var relX = x/sW, relY = y/sW;
-			return { x: relX, y: relY };
+			return { x: relX, y: relY, t: new Date().getTime() };
 		}
 
 		var $virtualRoulette = document.createElement("div");
@@ -4656,6 +4658,37 @@ function setupCommonMobileControls() {
 		}
 		hudScreens[0].appendChild($virtualBalloonBtn);
 	}
+
+	if (ctrlSettings.gyroscope) {
+		var $leftButton = document.getElementById("virtualbtn-left");
+		var $rightButton = document.getElementById("virtualbtn-right");
+		var isLandscape = (window.innerWidth > window.innerHeight);
+		window.turnOnRotate = function(e) {
+			if ($leftButton && $leftButton.dataset.pressed)
+				return;
+			if ($rightButton && $rightButton.dataset.pressed)
+				return;
+			var angle;
+			var maxAngle, smoothingFactor;
+			if (isLandscape) {
+				angle = e.beta;
+				if (Math.abs(angle) >= 90)
+					angle = Math.sign(angle) * (180 - Math.abs(angle));
+				maxAngle = 15;
+				smoothingFactor = 1;
+			}
+			else {
+				angle = e.gamma;
+				if (e.beta >= 90)
+					angle = -angle;
+				maxAngle = 15;
+				smoothingFactor = 2;
+			}
+			var targetRotinc = -Math.sign(angle) * Math.pow(Math.abs(angle/90),smoothingFactor) * maxAngle;
+			rotateToAngle(oPlayers[0], targetRotinc);
+		}
+		window.addEventListener("deviceorientation", window.turnOnRotate);
+	}
 }
 
 var oPressedKeys = {};
@@ -4676,6 +4709,25 @@ function doReleaseKey(code) {
 	oPressedKeys[code] = undefined;
 	if (document.onkeyup)
 		document.onkeyup({keyAction:code});
+}
+
+function rotateToAngle(oKart, targetRotinc) {
+	var targetDir = (targetRotinc - angleInc(oKart)) / 2;
+	var action;
+	if (targetDir > oKart.stats.handling/2)
+		action = "left";
+	else if (targetDir < -oKart.stats.handling/2)
+		action = "right";
+	if (action !== "left")
+		releaseKey("left");
+	if (action !== "right")
+		releaseKey("right");
+	if (action)
+		pressKey(action);
+	return {
+		targetDir: targetDir,
+		action: action
+	};
 }
 
 function youtube_parser(url) {
@@ -26522,10 +26574,6 @@ function editCommands(reload,currentTab,selectedPlayer) {
 			id: "gestures",
 			name: toLanguage("Gestures control", "Contrôles par gestes"),
 			description: toLanguage("Swipe the screen to go in the desired direction. Controls similar to Mario Kart Tour", "Balayez l'écran pour vous diriger dans la direction souhaitée. Contrôles similaires à Mario Kart Tour")
-		}, {
-			id: "gyroscope",
-			name: toLanguage("Gyroscope", "Gyroscope"),
-			description: toLanguage("Rotate the screen to turn, like a real wheel", "Pivotez l'écran pour tourner, comme avec un vrai volant")
 		}];
 		var currentControlType = currentSettingsCtrl.mode || "keyboard";
 		for (var i=0;i<controlTypeValues.length;i++) {
@@ -26587,30 +26635,42 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		
 		var $controlMiscValues = document.createElement("div");
 		$controlMiscValues.className = "control-misc-values";
-		var allMiscSettings = {
-			'autoacc' : toLanguage("Auto-accelerate", "Accélérer automatiquement"),
-			'vitem' : toLanguage("Touch game screen to send an item", "Toucher l'écran de jeu pour lancer un objet")
-		};
-		for (var key in allMiscSettings) {
-			(function(key) {
-				var $controlSetting = document.createElement("label");
-				var $controlCheckbox = document.createElement("input");
-				$controlCheckbox.type = "checkbox";
-				$controlCheckbox.checked = (currentSettingsCtrl[key] != 0);
-				$controlSetting.appendChild($controlCheckbox);
-				var $controlText = document.createElement("span");
-				$controlText.innerHTML = allMiscSettings[key];
-				$controlSetting.appendChild($controlText);
-				$controlCheckbox.onclick = function() {
-					if (this.checked)
-						delete currentSettingsCtrl[key];
-					else
-						currentSettingsCtrl[key] = 0;
-					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
-				}
-				$controlMiscValues.appendChild($controlSetting);
-			})(key);
-		}
+		var allMiscSettings = [{
+			key: "autoacc",
+			label: toLanguage("Auto-accelerate", "Accélérer automatiquement"),
+			defaultVal: 1
+		}, {
+			key: "vitem",
+			label: toLanguage("Touch game screen to send an item", "Toucher l'écran de jeu pour lancer un objet"),
+			defaultVal: 1
+		}, {
+			key: "gyroscope",
+			label: toLanguage("Rotate the screen to turn, like with a steering wheel", "Pivotez l'écran pour tourner, comme avec un volant"),
+			defaultVal: 0
+		}];
+		allMiscSettings.forEach(function(miscSetting) {
+			var $controlSetting = document.createElement("label");
+			var $controlCheckbox = document.createElement("input");
+			$controlCheckbox.type = "checkbox";
+			var key = miscSetting.key;
+			if (key in currentSettingsCtrl)
+				$controlCheckbox.checked = currentSettingsCtrl[key];
+			else
+				$controlCheckbox.checked = miscSetting.defaultVal;
+			$controlSetting.appendChild($controlCheckbox);
+			var $controlText = document.createElement("span");
+			$controlText.innerHTML = miscSetting.label;
+			$controlSetting.appendChild($controlText);
+			$controlCheckbox.onclick = function() {
+				var val = +this.checked;
+				if (val === miscSetting.defaultVal)
+					delete currentSettingsCtrl[key];
+				else
+					currentSettingsCtrl[key] = val;
+				localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
+			}
+			$controlMiscValues.appendChild($controlSetting);
+		});
 		
 		$controlCommands.appendChild($controlMiscValues);
 	}
