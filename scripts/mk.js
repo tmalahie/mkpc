@@ -26467,7 +26467,10 @@ function updateCommandSheet() {
 	}
 	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
+var pollingGamepadsHandler;
 function editCommands(options) {
+	clearInterval(pollingGamepadsHandler);
+	var reload = !!options;
 	options = options || {};
 	var currentTab = options.currentTab || 0;
 	var selectedPlayer = options.selectedPlayer || 0;
@@ -26476,7 +26479,7 @@ function editCommands(options) {
 	var $controlEditorMask = document.getElementById("control-editor-mask");
 	if ($controlEditorMask) {
 		document.body.removeChild($controlEditorMask);
-		if (!options.reload) {
+		if (!reload) {
 			if (document.querySelector("#commandes strong"))
 				updateCommandSheet();
 			return;
@@ -26690,7 +26693,6 @@ function editCommands(options) {
 		$controlResetBtn.onclick = function() {
 			if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 				localStorage.removeItem("settings.ctrl");
-				options.reload = true;
 				editCommands(options);
 			}
 			return false;
@@ -26712,7 +26714,6 @@ function editCommands(options) {
 				$controlCommandPlayer.innerHTML = toLanguage("Player ","Joueur ") + (playerId+1);
 				$controlCommandPlayer.onclick = function() {
 					if (selectedPlayer === playerId) return false;
-					options.reload = true;
 					options.selectedPlayer = playerId;
 					editCommands(options);
 					return false;
@@ -26739,7 +26740,6 @@ function editCommands(options) {
 				$controlInputDevice.innerHTML = inputDevice.label;
 				$controlInputDevice.onclick = function() {
 					if (selectedDevice === inputDevice.id) return false;
-					options.reload = true;
 					options.selectedDevice = inputDevice.id;
 					editCommands(options);
 					return false;
@@ -26789,72 +26789,183 @@ function editCommands(options) {
 			key: "quit"
 		}];
 		var gameCommands = getCommands(selectedDevice, nbPlayers);
+		var plSuffix = "";
 		if (selectedPlayer) {
+			plSuffix = "_p2";
 			for (var i=0;i<commands.length;i++) {
-				var p2Key = commands[i].key + "_p2";
+				var p2Key = commands[i].key + plSuffix;
 				if (gameCommands[p2Key])
 					commands[i].key = p2Key;
 			}
 		}
 		var localControls = JSON.parse(localStorage.getItem(getLocalControlKey(selectedDevice))||"{}");
 		var isMac = (navigator.platform && navigator.platform.toUpperCase().indexOf('MAC')>=0);
-		var $controlEditorGrid = document.createElement("div");
-		$controlEditorGrid.className = "control-editor-grid";
-		for (var i=0;i<commands.length;i++) {
-			(function(command) {
-				var localControl = gameCommands[command.key];
-				var keyCode = localControl[0];
-				if (localControl[1] && isMac)
-					keyCode = localControl[1];
-				var $controlKey = document.createElement("div");
-				var $controlLabel = document.createElement("div");
-				$controlLabel.className = "control-label";
-				$controlLabel.innerHTML = command.name;
-				$controlKey.appendChild($controlLabel);
-				var $controlInput = document.createElement("button");
-				$controlInput.className = "control-input";
-				$controlInput.innerHTML = getKeyName(keyCode);
-				$controlInput.onfocus = function() {
-					this.innerHTML = "...";
+		var isKeyboard = (selectedDevice === "keyboard");
+		var isGamepad = (selectedDevice === "gamepad");
+		if (isGamepad && (localControls["_id"+plSuffix] === undefined)) {
+			var $controlEditorEmpty = document.createElement("div");
+			$controlEditorEmpty.className = "control-editor-empty";
+			$controlEditorEmpty.innerHTML = '<div class="control-editor-empty-title">🎮</div>';
+			$controlEditorEmpty.innerHTML += '<div>'+ toLanguage("Connect a gamepad and press any button to continue", "Branchez une manette et appuyez sur n'importe quel bouton pour continuer") +'</div>';
+			$controlCommands.appendChild($controlEditorEmpty);
+
+			clearInterval(pollingGamepadsHandler);
+			pollingGamepadsHandler = setInterval(function() {
+				var gamepads = navigator.getGamepads();
+				for (var i=0;i<gamepads.length;i++) {
+					var gamepad = gamepads[i];
+					if (!gamepad) continue;
+					var pressedBtns = getGamepadPressedBtns(gamepad);
+					if (pressedBtns.length) {
+						localControls["_id"+plSuffix] = gamepad.index;
+						localControls["_name"+plSuffix] = gamepad.id;
+						localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+						editCommands(options);
+					}
+				}
+			}, 100);
+		}
+		else {
+			if (isGamepad) {
+				var $gamepadReset = document.createElement("div");
+				$gamepadReset.className = "control-gamepad-reset";
+				var $gamepadResetName = document.createElement("span");
+				$gamepadResetName.innerHTML = "<strong>"+ toLanguage("Selected:", "Séléctionné :") +"</strong> " + localControls["_name"+plSuffix];
+				$gamepadReset.appendChild($gamepadResetName);
+
+				var $gamepadResetBtn = document.createElement("a");
+				$gamepadResetBtn.href = "#null";
+				$gamepadResetBtn.innerHTML = toLanguage("[Reset]", "[Réinitiliser]");
+				$gamepadResetBtn.onclick = function() {
+					if (confirm(toLanguage("Reset controller selection?","Réinitialiser la sélection de la manette ?"))) {
+						delete localControls["_id"+plSuffix];
+						delete localControls["_name"+plSuffix];
+						for (var i=0;i<commands.length;i++)
+							delete localControls[commands[i].key];
+						localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+						if (gameControls)
+							gameControls = getGameControls();
+						editCommands(options);
+					}
+					return false;
 				};
-				$controlInput.onblur = function() {
-					this.innerHTML = getKeyName(keyCode);
-				};
-				$controlInput.onclick = function() {
-					this.focus();
-				};
-				$controlInput.onkeydown = function(e) {
-					e.preventDefault();
-					e.stopPropagation();
-					keyCode = e.keyCode;
-					localControls[command.key] = keyCode;
-					localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+				$gamepadReset.appendChild($gamepadResetBtn);
+				$controlCommands.appendChild($gamepadReset);
+			}
+			
+			var $controlEditorGrid = document.createElement("div");
+			$controlEditorGrid.className = "control-editor-grid";
+			for (var i=0;i<commands.length;i++) {
+				(function(command) {
+					var localControl = gameCommands[command.key];
+					var keyCode = localControl;
+					if (isKeyboard) {
+						keyCode = localControl[0];
+						if (localControl[1] && isMac)
+							keyCode = localControl[1];
+					}
+					var $controlKey = document.createElement("div");
+					var $controlLabel = document.createElement("div");
+					$controlLabel.className = "control-label";
+					$controlLabel.innerHTML = command.name;
+					$controlKey.appendChild($controlLabel);
+					var $controlInput = document.createElement("button");
+					$controlInput.className = "control-input";
+					$controlInput.innerHTML = getKeyName(keyCode, selectedDevice);
+					$controlInput.onfocus = function() {
+						this.innerHTML = "...";
+						if (isGamepad) {
+							var pressedGamepadKeys = {};
+							var isPressedBtn = false;
+							clearInterval(pollingGamepadsHandler);
+							pollingGamepadsHandler = setInterval(function() {
+								var selectedGamepad = findGamePadById(localControls, selectedPlayer);
+								if (!selectedGamepad)
+									return;
+								var pressedBtns = getGamepadPressedBtns(selectedGamepad);
+								for (var i=0;i<pressedBtns.length;i++) {
+									var pressedBtn = pressedBtns[i];
+									pressedGamepadKeys[pressedBtn.key] = pressedBtn;
+								}
+								if (pressedBtns.length)
+									isPressedBtn = true;
+								else if (isPressedBtn) {
+									clearInterval(pollingGamepadsHandler);
+									var btnCodes = [];
+									for (var key in pressedGamepadKeys) {
+										var pressedBtn = pressedGamepadKeys[key];
+										var stickCode;
+										switch (pressedBtn.type) {
+										case "stick":
+											if (!stickCode) {
+												stickCode = [];
+												btnCodes.push(stickCode);
+											}
+											while (stickCode.length < pressedBtn.id)
+												stickCode.push(0);
+											stickCode[pressedBtn.id] = pressedBtn.value;
+											break;
+										case "button":
+											btnCodes.push(pressedBtn.id);
+											break;
+										}
+									}
+									keyCode = btnCodes;
+									localControls[command.key] = keyCode;
+									localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+									if (gameControls)
+										gameControls = getGameControls();
+									$controlInput.blur();
+								}
+							}, SPF);
+						}
+					};
+					$controlInput.onblur = function() {
+						clearInterval(pollingGamepadsHandler);
+						this.innerHTML = getKeyName(keyCode, selectedDevice);
+					};
+					$controlInput.onclick = function() {
+						this.focus();
+					};
+					switch (selectedDevice) {
+					case "keyboard":
+						$controlInput.onkeydown = function(e) {
+							e.preventDefault();
+							e.stopPropagation();
+							keyCode = e.keyCode;
+							localControls[command.key] = keyCode;
+							localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+							if (gameControls)
+								gameControls = getGameControls();
+							this.blur();
+						};
+						break;
+					case "gamepad":
+						break;
+					}
+					$controlKey.appendChild($controlInput);
+					$controlEditorGrid.appendChild($controlKey);
+				})(commands[i]);
+			}
+			$controlCommands.appendChild($controlEditorGrid);
+
+			var $controlReset = document.createElement("div");
+			$controlReset.className = "control-reset";
+			var $controlResetBtn = document.createElement("a");
+			$controlResetBtn.href = "#null";
+			$controlResetBtn.innerHTML = toLanguage("Reset controls", "Rétablir les contrôles par défaut");
+			$controlResetBtn.onclick = function() {
+				if (confirm(toLanguage("Reset to default controls?","Confirmer la réinitialisation des contrôles ?"))) {
+					localStorage.removeItem(getLocalControlKey(selectedDevice));
 					if (gameControls)
 						gameControls = getGameControls();
-					this.blur();
-				};
-				$controlKey.appendChild($controlInput);
-				$controlEditorGrid.appendChild($controlKey);
-			})(commands[i]);
+					editCommands(options);
+				}
+				return false;
+			};
+			$controlReset.appendChild($controlResetBtn);
+			$controlCommands.appendChild($controlReset);
 		}
-		$controlCommands.appendChild($controlEditorGrid);
-		var $controlReset = document.createElement("div");
-		$controlReset.className = "control-reset";
-		var $controlResetBtn = document.createElement("a");
-		$controlResetBtn.href = "#null";
-		$controlResetBtn.innerHTML = toLanguage("Reset controls", "Rétablir les contrôles par défaut");
-		$controlResetBtn.onclick = function() {
-			if (confirm(toLanguage("Reset to default controls?","Confirmer la réinitialisation des contrôles ?"))) {
-				localStorage.removeItem(getLocalControlKey(selectedDevice));
-				if (gameControls)
-					gameControls = getGameControls();
-				options.reload = true;
-				editCommands(options);
-			}
-			return false;
-		};
-		$controlReset.appendChild($controlResetBtn);
-		$controlCommands.appendChild($controlReset);
 	}
 	$controlWindows.appendChild($controlCommands);
 	var $controlSettings = document.createElement("div");
@@ -27069,7 +27180,6 @@ function editCommands(options) {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
 			localStorage.removeItem("iQuality");
-			options.reload = true;
 			editCommands(options);
 		}
 		return false;
@@ -27084,12 +27194,59 @@ function editCommands(options) {
 	if (currentTab)
 		document.querySelectorAll(".control-tabs > div")[currentTab].click();
 }
-function getKeyName(keyCode) {
-	if (!this.keyMatching)
-		this.keyMatching = ["","","","Break","","","","","Backspace","Tab","","","Clear","Enter","","","Shift","Ctrl","Alt","Pause","CapsLock","Hangul","","","","Hanja","",toLanguage("Escape","Échap"),"Conversion","Non-conversion","","",toLanguage("Spacebar","Espace"),"PageUp","PageDown","End","Home","&larr;","&uarr;","&rarr;","&darr;","Select","Print","Execute",toLanguage("Print Screen","ImpEcr"),"Inser",toLanguage("Delete","Suppr"),"Help","0","1","2","3","4","5","6","7","8","9",":","=","&lt;","=","","SS","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Meta","Meta","Meta","","Sleep","0","1","2","3","4","5","6","7","8","9","&times;","+",".","-",".","/","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24","","","","","","","","","NumLock","ScrollLock","","","","","","","","","","","","","","","^","!","؛","#","$","Ù","PageDown","PageUp","Refresh",")","*","~","Home","-","Vol. down","Vol. up","Next","Previous","Stop","Play/pause","@","Mute","Vol. down","Vol. up","","","Ñ","=",",","#",".","/","%","°",",","","","","","","","","","","","","","","","","","","","","","","","","","{","\\","}","'","`","Meta","AltGr","&lt;","","","","Compose","Ç","","Forward","Back","Non-conversion","","","","","Alphanumeric","","Hiragana","Half-width","Kanji","","","","","","","Unlock Trackpad","","","","Toggle Touchpad"];
-	if (this.keyMatching[keyCode])
-		return this.keyMatching[keyCode];
-	return "#"+keyCode;
+function getKeyName(keyCode, inputDevice) {
+	switch (inputDevice) {
+	case "gamepad":
+		var resList = [];
+		for (var i=0;i<keyCode.length;i++) {
+			var iKey = keyCode[i];
+			if ((typeof iKey === "object") && iKey.length) {
+				for (var j=0;j<iKey.length;j++) {
+					if (iKey[j] > 0)
+						resList.push((j%2) ? "\u2193" : "\u2192");
+					else if (iKey[j] < 0)
+						resList.push((j%2) ? "\u2191" : "\u2190");
+				}
+			}
+			else if (typeof iKey === "number")
+				resList.push("("+iKey+")");
+		}
+		return resList.join("+");
+		break;
+	default:
+		if (!this.keyMatching)
+			this.keyMatching = ["","","","Break","","","","","Backspace","Tab","","","Clear","Enter","","","Shift","Ctrl","Alt","Pause","CapsLock","Hangul","","","","Hanja","",toLanguage("Escape","Échap"),"Conversion","Non-conversion","","",toLanguage("Spacebar","Espace"),"PageUp","PageDown","End","Home","&larr;","&uarr;","&rarr;","&darr;","Select","Print","Execute",toLanguage("Print Screen","ImpEcr"),"Inser",toLanguage("Delete","Suppr"),"Help","0","1","2","3","4","5","6","7","8","9",":","=","&lt;","=","","SS","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Meta","Meta","Meta","","Sleep","0","1","2","3","4","5","6","7","8","9","&times;","+",".","-",".","/","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24","","","","","","","","","NumLock","ScrollLock","","","","","","","","","","","","","","","^","!","؛","#","$","Ù","PageDown","PageUp","Refresh",")","*","~","Home","-","Vol. down","Vol. up","Next","Previous","Stop","Play/pause","@","Mute","Vol. down","Vol. up","","","Ñ","=",",","#",".","/","%","°",",","","","","","","","","","","","","","","","","","","","","","","","","","{","\\","}","'","`","Meta","AltGr","&lt;","","","","Compose","Ç","","Forward","Back","Non-conversion","","","","","Alphanumeric","","Hiragana","Half-width","Kanji","","","","","","","Unlock Trackpad","","","","Toggle Touchpad"];
+		if (this.keyMatching[keyCode])
+			return this.keyMatching[keyCode];
+		return "#"+keyCode;
+	}
+}
+function getGamepadPressedBtns(gamepad) {
+	var res = [];
+	if (gamepad.axes) {
+		for (var i=0;i<gamepad.axes.length;i++) {
+			if (Math.abs(gamepad.axes[i]) >= 1) {
+				res.push({
+					key: "stick."+i,
+					type: "stick",
+					id: i,
+					value: gamepad.axes[i]
+				});
+			}
+		}
+	}
+	if (gamepad.buttons) {
+		for (var i=0;i<gamepad.buttons.length;i++) {
+			if (gamepad.buttons[i] && gamepad.buttons[i].pressed) {
+				res.push({
+					key: "button."+i,
+					type: "button",
+					id: i
+				});
+			}
+		}
+	}
+	return res;
 }
 function getLocalControlKey(inputDevice) {
 	var defaultInputDevice = "keyboard";
@@ -27097,41 +27254,92 @@ function getLocalControlKey(inputDevice) {
 		return "controls";
 	return "controls." + inputDevice;
 }
+function findGamePadById(localControls, selectedPlayer) {
+	var gamepads = navigator.getGamepads();
+	var plSuffix = "";
+	if (selectedPlayer)
+		plSuffix = "_p2";
+	for (var i=0;i<gamepads.length;i++) {
+		var gamepad = gamepads[i];
+		if (gamepad && gamepad.id === localControls["_name"+plSuffix] && gamepad.index === localControls["_id"+plSuffix])
+			return gamepad;
+	}
+	for (var i=0;i<gamepads.length;i++) {
+		var gamepad = gamepads[i];
+		if (gamepad && gamepad.id === localControls["_name"+plSuffix])
+			return gamepad;
+	}
+	for (var i=0;i<gamepads.length;i++) {
+		var gamepad = gamepads[i];
+		if (gamepad && gamepad.index === localControls["_id"+plSuffix])
+			return gamepad;
+	}
+}
 function getCommands(inputDevice, nbPlayers) {
 	nbPlayers = nbPlayers || strPlayer.length;
-	var defaultControls = {
-		up:[38],
-		down:[40],
-		left:[37],
-		right:[39],
-		item:[32],
-		item_back:[67],
-		item_fwd:[86],
-		jump:[17,18],
-		balloon:[16],
-		rear:[88],
-		pause:[80],
-		quit:[27],
-		cheat:[120,33,57,105]
-	};
-	if (nbPlayers > 1) {
-		defaultControls["up_p2"] = [69];
-		defaultControls["down_p2"] = [68];
-		defaultControls["left_p2"] = [83];
-		defaultControls["right_p2"] = [70];
-		defaultControls["item_p2"] = [toLanguage(65,81)];
-		defaultControls["item_back_p2"] = [toLanguage(87,65)];
-		defaultControls["item_fwd_p2"] = [82];
-		defaultControls["jump_p2"] = [71];
-		defaultControls["balloon_p2"] = [84];
-		defaultControls["rear_p2"] = [toLanguage(87,90)];
+	var defaultControls;
+	if (inputDevice === "gamepad") {
+		defaultControls = {
+			up:[1],
+			down:[0],
+			left:[[-1]],
+			right:[[1]],
+			item:[6],
+			item_back:[[0,-1],6],
+			item_fwd:[[0,1],6],
+			jump:[7],
+			balloon:[2],
+			rear:[3],
+			pause:[9],
+			quit:[16]
+		};
+		if (nbPlayers > 1) {
+			var clonedControls = [
+				"up", "down", "left", "right", "item", "item_back", "item_fwd", "jump", "balloon", "rear"
+			];
+			for (var clonedControl of clonedControls)
+				defaultControls[clonedControl+"_p2"] = JSON.parse(JSON.stringify(defaultControls[clonedControl]));
+		}
+	}
+	else {
+		defaultControls = {
+			up:[38],
+			down:[40],
+			left:[37],
+			right:[39],
+			item:[32],
+			item_back:[67],
+			item_fwd:[86],
+			jump:[17,18],
+			balloon:[16],
+			rear:[88],
+			pause:[80],
+			quit:[27],
+			cheat:[120,33,57,105]
+		};
+		if (nbPlayers > 1) {
+			defaultControls["up_p2"] = [69];
+			defaultControls["down_p2"] = [68];
+			defaultControls["left_p2"] = [83];
+			defaultControls["right_p2"] = [70];
+			defaultControls["item_p2"] = [toLanguage(65,81)];
+			defaultControls["item_back_p2"] = [toLanguage(87,65)];
+			defaultControls["item_fwd_p2"] = [82];
+			defaultControls["jump_p2"] = [71];
+			defaultControls["balloon_p2"] = [84];
+			defaultControls["rear_p2"] = [toLanguage(87,90)];
+		}
 	}
 	var res = defaultControls;
 	var localControls = localStorage.getItem(getLocalControlKey(inputDevice));
 	if (localControls) {
 		localControls = JSON.parse(localControls);
-		for (var key in localControls)
-			res[key] = [localControls[key]];
+		var isKeyboard = !inputDevice || (inputDevice === "keyboard");
+		for (var key in localControls) {
+			res[key] = localControls[key];
+			if (isKeyboard)
+				res[key] = [res[key]];
+		}
 	}
 	return res;
 }

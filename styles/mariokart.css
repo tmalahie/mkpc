@@ -218,6 +218,15 @@
 	display: flex;
 	justify-content: space-between;
 }
+.control-editor-empty {
+	max-width: 20em;
+	margin: 1em;
+	text-align: center;
+}
+.control-editor-empty-title {
+	font-size: 8em;
+	margin-bottom: 0.25em;
+}
 .control-label {
 	margin-right: 5px;
 }
@@ -238,6 +247,25 @@
 	color: #CCF;
 }
 .control-reset a:hover {
+	color: #CAA;
+}
+.control-gamepad-reset {
+	margin: 0.5em 1em;
+	max-width: 27em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.25em;
+}
+.control-gamepad-reset > span {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.control-gamepad-reset > a {
+	color: #CCF;
+}
+.control-gamepad-reset > a:hover {
 	color: #CAA;
 }
 .control-settings-info {
