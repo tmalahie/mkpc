@@ -26646,7 +26646,11 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		}, {
 			key: "gyroscope",
 			label: toLanguage("Rotate the screen to turn, like with a steering wheel", "Pivotez l'écran pour tourner, comme avec un volant"),
-			defaultVal: 0
+			defaultVal: 0,
+			onCheck: function(checked) {
+				if (checked && ("DeviceOrientationEvent" in window) && DeviceOrientationEvent.requestPermission)
+					DeviceOrientationEvent.requestPermission();
+			}
 		}];
 		allMiscSettings.forEach(function(miscSetting) {
 			var $controlSetting = document.createElement("label");
@@ -26668,6 +26672,8 @@ function editCommands(reload,currentTab,selectedPlayer) {
 				else
 					currentSettingsCtrl[key] = val;
 				localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
+				if (miscSetting.onCheck)
+					miscSetting.onCheck(val);
 			}
 			$controlMiscValues.appendChild($controlSetting);
 		});
