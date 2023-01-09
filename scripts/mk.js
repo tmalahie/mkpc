@@ -10017,6 +10017,13 @@ function moveUsingItems(oKart, triggered) {
 	else
 		delete oKart.rotitem;
 }
+function hasOnHoldItem(oKart) {
+	if (!oKart.using.length)
+		return false;
+	if (oKart.rotitem !== undefined)
+		return false;
+	return true;
+}
 
 function stopDrifting(i) {
 	var oKart = aKarts[i];
@@ -17072,12 +17079,17 @@ function handleGamepadEvents() {
 			for (var j=0;j<pressedBtns.length;j++)
 				pressedBtnsMap[pressedBtns[j].key] = pressedBtns[j];
 			var pressedBtns = [];
+			var pressedActions = {};
+			var releasedActions = {};
+			var pressActions = [];
+			var releaseActions = [];
 			for (var j=0;j<data.controls.length;j++) {
 				var jControls = data.controls[j];
 				var isPressed = jControls.inputs.every(function(control) {
 					var pressedBtn = pressedBtnsMap[control.key];
 					return pressedBtn && control.isPressed(pressedBtn);
 				});
+				var wasPressed = previouslyPressedBtns[i][j];
 				if (isPressed) {
 					var priorBtn = false;
 					for (var k=0;k<pressedBtns.length;k++) {
@@ -17090,13 +17102,72 @@ function handleGamepadEvents() {
 						pressedBtns.push(jControls);
 						var pressedKey = jControls.key;
 						previouslyPressedBtns[i][j] = true;
-						doPressKey(pressedKey);
+						pressActions.push({
+							key: pressedKey,
+							wasPressed: wasPressed
+						});
+						pressedActions[pressedKey] = true;
 					}
 				}
-				else if (previouslyPressedBtns[i][j]) {
-					var pressedKey = jControls.key;
-					previouslyPressedBtns[i][j] = undefined;
-					doReleaseKey(pressedKey);
+				else if (wasPressed) {
+					var fullyReleased = jControls.inputs.every(function(control) {
+						var pressedBtn = pressedBtnsMap[control.key];
+						return !pressedBtn || (pressedBtn.type === "stick");
+					});
+					if (fullyReleased) {
+						var pressedKey = jControls.key;
+						previouslyPressedBtns[i][j] = undefined;
+						releaseActions.push({
+							key: pressedKey
+						});
+						releasedActions[pressedKey] = true;
+					}
+				}
+			}
+			var plSuffix = i ? "_p2" : "";
+			var oPlayer = oPlayers[i];
+			for (var j=0;j<pressActions.length;j++) {
+				var pressAction = pressActions[j];
+				var key = pressAction.key;
+				var fullKey = key + plSuffix;
+				switch (key) {
+				case "down":
+					if (pressedActions["up"])
+						doReleaseKey("up");
+					else
+						doPressKey(fullKey);
+					break;
+				case "item":
+				case "item_fwd":
+				case "item_back":
+					if (!pressAction.wasPressed && !hasOnHoldItem(oPlayer))
+						doReleaseKey(fullKey);
+					break;
+				case "rear":
+					if (!oPlayer.changeView)
+						doReleaseKey(fullKey);
+					break;
+				default:
+					doPressKey(fullKey);
+				}
+			}
+			for (var j=0;j<releaseActions.length;j++) {
+				var releaseAction = releaseActions[j];
+				var key = releaseAction.key;
+				var fullKey = key + plSuffix;
+				switch (key) {
+				case "item":
+				case "item_fwd":
+				case "item_back":
+					if (hasOnHoldItem(oPlayer))
+						doReleaseKey(fullKey);
+					break;
+				case "rear":
+					if (oPlayer.changeView)
+						doReleaseKey(fullKey);
+					break;
+				default:
+					doReleaseKey(fullKey);
 				}
 			}
 		}
@@ -27423,7 +27494,10 @@ function getGameControls() {
 		for (var key in commands) {
 			if (key.startsWith("_")) continue;
 			var oPlayerId = 0;
-			if (key.endsWith("_p2")) oPlayerId = 1;
+			if (key.endsWith("_p2")) {
+				oPlayerId = 1;
+				key = key.substring(0, key.length - 3);
+			}
 			if (!gamepadCommands[oPlayerId]) continue;
 			var oCommand = [];
 			for (var i=0;i<commands[key].length;i++) {
