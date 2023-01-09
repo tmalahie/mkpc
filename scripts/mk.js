@@ -3607,6 +3607,7 @@ function startGame() {
 
 	var iCntStep = 0;
 	var redrawCanvasHandler;
+	var refreshGamepadHandler;
 
 	var countDownMusic, goMusic;
 	if ((bMusic || iSfx) && !onlineSpectatorState) {
@@ -4167,6 +4168,7 @@ function startGame() {
 					if (course == "CM")
 						iTrajet = new Array();
 					clearInterval(redrawCanvasHandler);
+					clearInterval(refreshGamepadHandler);
 					if (clLocalVars.delayedStart) {
 						oPlayers[0].speed = 0;
 						var aSpeedInc = oPlayers[0].speedinc;
@@ -4250,6 +4252,7 @@ function startGame() {
 					for (i=0;i<gPersos.length;i++)
 						iTrajets.push(jTrajets[i]);
 					clearInterval(redrawCanvasHandler);
+					clearInterval(refreshGamepadHandler);
 					revoir();
 					pause = false;
 					setTimeout(function() {
@@ -4280,7 +4283,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -4328,7 +4331,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -4344,6 +4347,9 @@ function startGame() {
 		}
 
 		setupCommonMobileControls();
+	}
+	if (gameControls.gamepad) {
+		refreshGamepadHandler = setInterval(handleGamepadEvents, SPF);
 	}
 	if (oMapImg.image) {
 		redrawCanvasHandler = setTimeout(function() {
