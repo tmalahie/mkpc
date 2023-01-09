@@ -17071,18 +17071,30 @@ function handleGamepadEvents() {
 			var pressedBtnsMap = {};
 			for (var j=0;j<pressedBtns.length;j++)
 				pressedBtnsMap[pressedBtns[j].key] = pressedBtns[j];
+			var pressedBtns = [];
 			for (var j=0;j<data.controls.length;j++) {
-				var isPressed = data.controls[j].inputs.every(function(control) {
+				var jControls = data.controls[j];
+				var isPressed = jControls.inputs.every(function(control) {
 					var pressedBtn = pressedBtnsMap[control.key];
 					return pressedBtn && control.isPressed(pressedBtn);
 				});
 				if (isPressed) {
-					var pressedKey = data.controls[j].key;
-					previouslyPressedBtns[i][j] = true;
-					doPressKey(pressedKey);
+					var priorBtn = false;
+					for (var k=0;k<pressedBtns.length;k++) {
+						if (isGamepadControlSubset(jControls.inputs, pressedBtns[k].inputs)) {
+							priorBtn = true;
+							break;
+						}
+					}
+					if (!priorBtn) {
+						pressedBtns.push(jControls);
+						var pressedKey = jControls.key;
+						previouslyPressedBtns[i][j] = true;
+						doPressKey(pressedKey);
+					}
 				}
 				else if (previouslyPressedBtns[i][j]) {
-					var pressedKey = data.controls[j].key;
+					var pressedKey = jControls.key;
 					previouslyPressedBtns[i][j] = undefined;
 					doReleaseKey(pressedKey);
 				}
@@ -27283,6 +27295,17 @@ function getGamepadPressedBtns(gamepad) {
 		}
 	}
 	return res;
+}
+function isGamepadControlSubset(inputs1, inputs2) {
+	for (var i=0;i<inputs1.length;i++) {
+		var input1 = inputs1[i];
+		if (inputs2.every(function(input) {
+			return (input.key !== input1.key) || (input.value !== input1.value);
+		})) {
+			return false;
+		}
+	}
+	return true;
 }
 function getLocalControlKey(inputDevice) {
 	var defaultInputDevice = "keyboard";
