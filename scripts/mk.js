@@ -17321,6 +17321,98 @@ function handleSpectatorInput(e) {
 	return false;
 }
 document.onkeydown = function(e) {
+	if (!oPlayers.length) {
+		var oScr = oContainers[0].childNodes[0];
+		if (e.key === "Enter") {
+			if (selectedOscrElt) {
+				if (focusIndicator.parentNode === oScr)
+					oScr.removeChild(focusIndicator);
+				selectedOscrElt.click();
+			}
+		}
+		if (["ArrowUp","ArrowLeft","ArrowRight","ArrowDown"].indexOf(e.key) === -1) return;
+		if (selectedOscrElt && !oScr.contains(selectedOscrElt))
+			selectedOscrElt = undefined;
+		var oButtons = [...oScr.querySelectorAll("*")].filter(elt => elt.onclick).filter(elt => !elt.disabled).filter(elt => {
+			var bounds = elt.getBoundingClientRect();
+			return (bounds.width) > 0 && (bounds.height) > 0;
+		});
+		var pos, rPos, dir, rDir, sign, uPos, vPos;
+		switch (e.key) {
+		case "ArrowUp":
+			dir = "up";
+			rDir = "down";
+			pos = "top";
+			rPos = "bottom";
+			uPos = "left";
+			vPos = "right";
+			sign = -1;
+			break;
+		case "ArrowDown":
+			dir = "down";
+			rDir = "up";
+			pos = "bottom";
+			rPos = "top";
+			uPos = "left";
+			vPos = "right";
+			sign = 1;
+			break;
+		case "ArrowLeft":
+			dir = "left";
+			rDir = "right";
+			pos = dir;
+			rPos = rDir;
+			uPos = "top";
+			vPos = "bottom";
+			sign = -1;
+			break;
+		case "ArrowRight":
+			dir = "right";
+			rDir = "left";
+			pos = dir;
+			rPos = rDir;
+			uPos = "top";
+			vPos = "bottom";
+			sign = 1;
+			break;
+		}
+		if (selectedOscrElt) {
+			var sRect = selectedOscrElt.getBoundingClientRect();
+			var cRect = oScr.getBoundingClientRect();
+			var minDist = Infinity, minButton;
+			for (var i=0;i<oButtons.length;i++) {
+				var oButton = oButtons[i];
+				if (oButton === selectedOscrElt) continue;
+				var oRect = oButton.getBoundingClientRect();
+				var distX = (oRect[rPos] - sRect[pos])*sign;
+				var distY = Math.max(oRect[uPos],sRect[uPos]) - Math.min(oRect[vPos],sRect[vPos]);
+				if (distX < 0)
+					distX += cRect.width;
+				if (distY < 0) distY = 0;
+				var dist = distX + 3*distY;
+				if (dist < minDist) {
+					minDist = dist;
+					minButton = oButton;
+				}
+			}
+			if (minButton)
+				showFocusIndicator(oScr, minButton);
+		}
+		else {
+			var maxPos = Infinity*sign;
+			var maxButton;
+			for (var i=0;i<oButtons.length;i++) {
+				var oButton = oButtons[i];
+				var oRect = oButton.getBoundingClientRect();
+				if (oRect[rPos]*sign < maxPos*sign) {
+					maxPos = oRect[rPos];
+					maxButton = oButton;
+				}
+			}
+			if (maxButton)
+				showFocusIndicator(oScr, maxButton);
+		}
+	}
 	if (onlineSpectatorId) {
 		var res = handleSpectatorInput(e);
 		if (res === false)
@@ -17354,6 +17446,28 @@ document.onkeydown = function(e) {
 				oPlayers[1].rotincdir = -getMirrorFactor();
 		}
 	}
+}
+
+var selectedOscrElt;
+var focusIndicator;
+function showFocusIndicator(oScr, oButton) {
+	selectedOscrElt = oButton;
+	var oRect = oButton.getBoundingClientRect();
+	var cRect = oScr.getBoundingClientRect();
+	if (!focusIndicator) {
+		focusIndicator = document.createElement("div");
+		focusIndicator.style.position = "absolute";
+		focusIndicator.style.backgroundColor = primaryColor;
+		focusIndicator.style.opacity = 0.4;
+		focusIndicator.style.pointerEvents = "none";
+	}
+	oScr.appendChild(focusIndicator);
+	var paddingW = iScreenScale, paddingH = Math.round(iScreenScale/2);
+	focusIndicator.style.left = (oRect.left - cRect.left - paddingW) +"px";
+	focusIndicator.style.top = (oRect.top - cRect.top - paddingH) +"px";
+	focusIndicator.style.width = (oRect.width + 2*paddingW) +"px";
+	focusIndicator.style.height = (oRect.height + 2*paddingH) +"px";
+	focusIndicator.style.borderRadius = paddingH +"px";
 }
 
 
