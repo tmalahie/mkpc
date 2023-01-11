@@ -117,6 +117,8 @@ var challengesForCircuit;
 
 var onlineSpectatorId;
 
+var gamepadMenuEventsHandler;
+
 function MarioKart() {
 
 var oMaps = listMaps();
@@ -17076,60 +17078,12 @@ var previouslyPressedBtns = [];
 function handleGamepadEvents() {
 	if (gameControls.gamepad) {
 		for (var i=0;i<gameControls.gamepad.length;i++) {
-			var data = gameControls.gamepad[i];
-			var selectedGamepad = findGamePadById(data);
-			if (!selectedGamepad)
-				continue;
-			var pressedBtns = getGamepadPressedBtns(selectedGamepad);
-			var pressedBtnsMap = {};
-			for (var j=0;j<pressedBtns.length;j++)
-				pressedBtnsMap[pressedBtns[j].key] = pressedBtns[j];
-			var pressedBtns = [];
-			var pressedActions = {};
-			var releasedActions = {};
-			var pressActions = [];
-			var releaseActions = [];
-			for (var j=0;j<data.controls.length;j++) {
-				var jControls = data.controls[j];
-				var isPressed = jControls.inputs.every(function(control) {
-					var pressedBtn = pressedBtnsMap[control.key];
-					return pressedBtn && control.isPressed(pressedBtn);
-				});
-				var wasPressed = previouslyPressedBtns[i][j];
-				if (isPressed) {
-					var priorBtn = false;
-					for (var k=0;k<pressedBtns.length;k++) {
-						if (isGamepadControlSubset(jControls.inputs, pressedBtns[k].inputs)) {
-							priorBtn = true;
-							break;
-						}
-					}
-					if (!priorBtn) {
-						pressedBtns.push(jControls);
-						var pressedKey = jControls.key;
-						previouslyPressedBtns[i][j] = true;
-						pressActions.push({
-							key: pressedKey,
-							wasPressed: wasPressed
-						});
-						pressedActions[pressedKey] = true;
-					}
-				}
-				else if (wasPressed) {
-					var fullyReleased = jControls.inputs.every(function(control) {
-						var pressedBtn = pressedBtnsMap[control.key];
-						return !pressedBtn || (pressedBtn.type === "stick");
-					});
-					if (fullyReleased) {
-						var pressedKey = jControls.key;
-						previouslyPressedBtns[i][j] = undefined;
-						releaseActions.push({
-							key: pressedKey
-						});
-						releasedActions[pressedKey] = true;
-					}
-				}
-			}
+			var gamepadInputsData = getGamepadInputsData(i, previouslyPressedBtns[i]);
+			if (!gamepadInputsData) continue;
+			var pressedActions = gamepadInputsData.pressedActions;
+			var pressActions = gamepadInputsData.pressActions;
+			var releaseActions = gamepadInputsData.releaseActions;
+
 			var plSuffix = i ? "_p2" : "";
 			var oPlayer = oPlayers[i];
 			for (var j=0;j<pressActions.length;j++) {
@@ -17152,6 +17106,13 @@ function handleGamepadEvents() {
 				case "rear":
 					if (!oPlayer.changeView)
 						doReleaseKey(fullKey);
+					break;
+				case "pause":
+					pressKey(key);
+					break;
+				case "balloon":
+					if (!pressAction.wasPressed)
+						doPressKey(fullKey);
 					break;
 				default:
 					doPressKey(fullKey);
@@ -17179,6 +17140,71 @@ function handleGamepadEvents() {
 		}
 	}
 }
+function getGamepadInputsData(i, previouslyPressed) {
+	var data = gameControls.gamepad[i];
+	var selectedGamepad = findGamePadById(data);
+	if (!selectedGamepad)
+		return;
+	var pressedBtnsRaw = getGamepadPressedBtns(selectedGamepad);
+	var pressedBtnsMap = {};
+	for (var j=0;j<pressedBtnsRaw.length;j++)
+		pressedBtnsMap[pressedBtnsRaw[j].key] = pressedBtnsRaw[j];
+	var pressedBtns = [];
+	var pressedActions = {};
+	var releasedActions = {};
+	var pressActions = [];
+	var releaseActions = [];
+	for (var j=0;j<data.controls.length;j++) {
+		var jControls = data.controls[j];
+		var isPressed = jControls.inputs.every(function(control) {
+			var pressedBtn = pressedBtnsMap[control.key];
+			return pressedBtn && control.isPressed(pressedBtn);
+		});
+		var wasPressed = previouslyPressed[j];
+		if (isPressed) {
+			var priorBtn = false;
+			for (var k=0;k<pressedBtns.length;k++) {
+				if (isGamepadControlSubset(jControls.inputs, pressedBtns[k].inputs)) {
+					priorBtn = true;
+					break;
+				}
+			}
+			if (!priorBtn) {
+				pressedBtns.push(jControls);
+				var pressedKey = jControls.key;
+				previouslyPressed[j] = true;
+				pressActions.push({
+					key: pressedKey,
+					wasPressed: wasPressed
+				});
+				pressedActions[pressedKey] = true;
+			}
+		}
+		else if (wasPressed) {
+			var fullyReleased = jControls.inputs.every(function(control) {
+				var pressedBtn = pressedBtnsMap[control.key];
+				return !pressedBtn || (pressedBtn.type === "stick");
+			});
+			if (fullyReleased) {
+				var pressedKey = jControls.key;
+				previouslyPressed[j] = undefined;
+				releaseActions.push({
+					key: pressedKey
+				});
+				releasedActions[pressedKey] = true;
+			}
+		}
+	}
+	return {
+		pressedBtnsRaw: pressedBtnsRaw,
+		pressedBtns: pressedBtns,
+		pressedActions: pressedActions,
+		releasedActions: releasedActions,
+		pressActions: pressActions,
+		releaseActions: releaseActions
+	};
+}
+
 function handleAudio() {
 	if (mapMusic && mapMusic.opts && mapMusic.opts.end && mapMusic.yt && mapMusic.yt.getCurrentTime && mapMusic.yt.getCurrentTime() > mapMusic.opts.end) {
 		var start = mapMusic.opts.start || 0;
@@ -17323,12 +17349,28 @@ function handleSpectatorInput(e) {
 document.onkeydown = function(e) {
 	if (!oPlayers.length) {
 		var oScr = oContainers[0].childNodes[0];
-		if (e.key === "Enter") {
+		if (!oScr) return;
+		if (document.activeElement && (document.activeElement.tabIndex >= 0) && !oScr.contains(document.activeElement))
+			return;
+		switch (e.key) {
+		case "Enter":
 			if (selectedOscrElt) {
 				if (focusIndicator.parentNode === oScr)
 					oScr.removeChild(focusIndicator);
 				selectedOscrElt.click();
 			}
+			break;
+		case "_Back":
+			var oBackButtons = oScr.querySelectorAll('input[type="Button"][value="'+toLanguage("Back","Retour")+'"]:not(:disabled)');
+			for (var i=0;i<oBackButtons.length;i++) {
+				var oBackButton = oBackButtons[i];
+				var bounds = oBackButton.getBoundingClientRect();
+				if (bounds.width > 0 && bounds.height > 0) {
+					oBackButton.click();
+					break;
+				}
+			}
+			break;
 		}
 		if (["ArrowUp","ArrowLeft","ArrowRight","ArrowDown"].indexOf(e.key) === -1) return;
 		if (selectedOscrElt && !oScr.contains(selectedOscrElt))
@@ -27059,6 +27101,7 @@ function editCommands(options) {
 						localControls["_id"+plSuffix] = gamepad.index;
 						localControls["_name"+plSuffix] = gamepad.id;
 						localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+						refreshGameControls();
 						editCommands(options);
 					}
 				}
@@ -27082,8 +27125,7 @@ function editCommands(options) {
 						for (var i=0;i<commands.length;i++)
 							delete localControls[commands[i].key];
 						localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
-						if (gameControls)
-							gameControls = getGameControls();
+						refreshGameControls();
 						editCommands(options);
 					}
 					return false;
@@ -27152,8 +27194,7 @@ function editCommands(options) {
 									keyCode = btnCodes;
 									localControls[command.key] = keyCode;
 									localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
-									if (gameControls)
-										gameControls = getGameControls();
+									refreshGameControls();
 									$controlInput.blur();
 								}
 							}, SPF);
@@ -27174,8 +27215,7 @@ function editCommands(options) {
 							keyCode = e.keyCode;
 							localControls[command.key] = keyCode;
 							localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
-							if (gameControls)
-								gameControls = getGameControls();
+							refreshGameControls();
 							this.blur();
 						};
 						break;
@@ -27196,8 +27236,7 @@ function editCommands(options) {
 			$controlResetBtn.onclick = function() {
 				if (confirm(toLanguage("Reset to default controls?","Confirmer la réinitialisation des contrôles ?"))) {
 					localStorage.removeItem(getLocalControlKey(selectedDevice));
-					if (gameControls)
-						gameControls = getGameControls();
+					refreshGameControls();
 					editCommands(options);
 				}
 				return false;
@@ -27461,10 +27500,11 @@ function getKeyName(keyCode, inputDevice) {
 	}
 }
 function getGamepadPressedBtns(gamepad) {
+	var stickThreshold = 0.75;
 	var res = [];
 	if (gamepad.axes) {
 		for (var i=0;i<gamepad.axes.length;i++) {
-			if (Math.abs(gamepad.axes[i]) >= 1) {
+			if (Math.abs(gamepad.axes[i]) >= stickThreshold) {
 				res.push({
 					key: "stick."+i,
 					type: "stick",
@@ -27505,6 +27545,7 @@ function getLocalControlKey(inputDevice) {
 	return "controls." + inputDevice;
 }
 function findGamePadById(localControls, selectedPlayer) {
+	if (!localControls) return;
 	var gamepads = navigator.getGamepads();
 	var plSuffix = "";
 	if (selectedPlayer)
@@ -27607,7 +27648,7 @@ function getGameControls() {
 	}
 	commands = getCommands("gamepad");
 	if (("_id" in commands) || (oPlayers[1] && ("_id_p2" in commands))) {
-		var gamepadCommands = [];
+		var gamepadCommands = [[]];
 		for (var i=0;i<oPlayers.length;i++)
 			gamepadCommands[i] = [];
 		var nbCommands = Object.values(commands).length;
@@ -27674,6 +27715,83 @@ function getGameControls() {
 		});
 	}
 	return res;
+}
+
+function initGamepadMenuEvents() {
+	if (gamepadMenuEventsHandler) return false;
+	if (!gameControls.gamepad) return false;
+	var gamepads = navigator.getGamepads();
+	if (!gamepads.some(Boolean)) return false;
+	var lastPressedActions = {};
+	function handlePressedAction(key, nextPressedActions) {
+		nextPressedActions[key] = true;
+		if (lastPressedActions[key]) return;
+		if (oPlayers.length) {
+			var oInfos = document.getElementById("infos0");
+			if (oInfos && oInfos.onkeydown && oInfos.contains(document.activeElement)) {
+				switch (key) {
+				case "ArrowUp":
+					oInfos.onkeydown({ keyCode: 38 });
+					break;
+				case "ArrowDown":
+					oInfos.onkeydown({ keyCode: 40 });
+					break;
+				case "Enter":
+					document.activeElement.click();
+					break;
+				}
+			}
+		}
+		else
+			document.onkeydown({ key: key });
+	}
+	var menuPressedBtns = [];
+	gamepadMenuEventsHandler = setInterval(function() {
+		var gamepadInputsData = getGamepadInputsData(0, menuPressedBtns);
+		if (!gamepadInputsData) return;
+		var pressedBtnsRaw = gamepadInputsData.pressedBtnsRaw;
+		var pressActions = gamepadInputsData.pressActions;
+		var nextPressedActions = {};
+		for (var i=0;i<pressedBtnsRaw.length;i++) {
+			var pressedBtn = pressedBtnsRaw[i];
+			if (pressedBtn.type === "stick") {
+				var mappedKeyName = null;
+				if (pressedBtn.id % 2)
+					mappedKeyName = pressedBtn.value > 0 ? "ArrowDown" : "ArrowUp";
+				else
+					mappedKeyName = pressedBtn.value > 0 ? "ArrowRight" : "ArrowLeft";
+				handlePressedAction(mappedKeyName, nextPressedActions);
+			}
+		}
+		for (var j=0;j<pressActions.length;j++) {
+			var pressAction = pressActions[j];
+			var key = pressAction.key;
+			if (lastPressedActions[key])
+				continue;
+			var mappedKeyName = null;
+			switch (key) {
+			case "up":
+				mappedKeyName = "Enter";
+				break;
+			case "down":
+				mappedKeyName = "_Back";
+				break;
+			}
+			if (mappedKeyName)
+				handlePressedAction(mappedKeyName, nextPressedActions);
+		}
+
+		lastPressedActions = nextPressedActions;
+	}, SPF);
+	if (window.gamePadEventListener) {
+		window.removeEventListener("gamepadconnected", window.gamePadEventListener);
+		window.gamePadEventListener = undefined;
+	}
+	return true;
+}
+function refreshGameControls() {
+	gameControls = getGameControls();
+	return initGamepadMenuEvents();
 }
 
 function toLanguage(english, french) {
@@ -27756,6 +27874,17 @@ function isMobile() {
 formulaire = document.forms.modes;
 if (formulaire.dataset) formulaire.dataset.disabled = "";
 else formulaire.dataset = {};
+
+if (window.gamePadEventListener) {
+	window.removeEventListener("gamepadconnected", window.gamePadEventListener);
+	window.gamePadEventListener = undefined;
+}
+clearInterval(gamepadMenuEventsHandler);
+gamepadMenuEventsHandler = undefined;
+if (!refreshGameControls()) {
+	window.gamePadEventListener = refreshGameControls;
+	window.addEventListener("gamepadconnected", window.gamePadEventListener);
+}
 if (pause) {
 	if (isSingle && !isOnline)
 		choose(1);
