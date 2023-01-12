@@ -4373,29 +4373,46 @@ function showVirtualKeyboard() {
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
 	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
 
-	function showItemLine() {
-		addButton("I", { key: "item" });
-	
-		var $div = document.createElement("div");
-		$div.className = "btn-ctn";
-		addButton("\u2191", { key: "item_fwd", parent: $div });
-		addButton("\u2193", { key: "item_back", parent: $div });
-		$virtualKeyboard.appendChild($div);
-	
-		var $div = document.createElement("div");
-		$div.className = "btn-ctn";
-		var $accButton = document.createElement("button");
-		$accButton.id = "virtualbtn-accelerate";
-		var $backButton = document.createElement("button");
-		if (ctrlSettings.autoacc) {
-			addButton("\u2191", { btn: $accButton, key: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
-			addButton("\u2193", { btn: $backButton, key: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
+	function showItemLine(inverted) {
+		if (inverted) {
+			showDirBtn();
+			showItemDirBtn();
+			showItemBtn();
 		}
 		else {
-			addButton("\u2191", { btn: $accButton, key: "up", parent: $div });
-			addButton("\u2193", { btn: $backButton, key: "down", parent: $div });
+			showItemBtn();
+			showItemDirBtn();
+			showDirBtn();
 		}
-		$virtualKeyboard.appendChild($div);
+		
+		function showItemBtn() {
+			addButton("I", { key: "item" });
+		}
+
+		function showItemDirBtn() {
+			var $div = document.createElement("div");
+			$div.className = "btn-ctn";
+			addButton("\u2191", { key: "item_fwd", parent: $div });
+			addButton("\u2193", { key: "item_back", parent: $div });
+			$virtualKeyboard.appendChild($div);
+		}
+	
+		function showDirBtn() {
+			var $div = document.createElement("div");
+			$div.className = "btn-ctn";
+			var $accButton = document.createElement("button");
+			$accButton.id = "virtualbtn-accelerate";
+			var $backButton = document.createElement("button");
+			if (ctrlSettings.autoacc) {
+				addButton("\u2191", { btn: $accButton, key: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
+				addButton("\u2193", { btn: $backButton, key: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
+			}
+			else {
+				addButton("\u2191", { btn: $accButton, key: "up", parent: $div });
+				addButton("\u2193", { btn: $backButton, key: "down", parent: $div });
+			}
+			$virtualKeyboard.appendChild($div);
+		}
 
 		function toggleBtnAction(otherButton) {
 			return function() {
@@ -4410,12 +4427,29 @@ function showVirtualKeyboard() {
 		}
 	}
 
-	function showDirLine() {
-		addButton("J", { key: "jump" });
-		var $leftButton = addButton("\u2190", { key: "left" });
-		$leftButton.id = "virtualbtn-left";
-		var $rightButton = addButton("\u2192", { key: "right" });
-		$rightButton.id = "virtualbtn-right";
+	function showDirLine(inverted) {
+		if (inverted) {
+			showLeftBtm();
+			showRightBtn();
+			showJumpBtm();
+		}
+		else {
+			showJumpBtm();
+			showLeftBtm();
+			showRightBtn();
+		}
+
+		function showJumpBtm() {
+			addButton("J", { key: "jump" });
+		}
+		function showLeftBtm() {
+			var $leftButton = addButton("\u2190", { key: "left" });
+			$leftButton.id = "virtualbtn-left";
+		}
+		function showRightBtn() {
+			var $rightButton = addButton("\u2192", { key: "right" });
+			$rightButton.id = "virtualbtn-right";
+		}
 	}
 
 	function showLegacyLayout() {
@@ -4440,9 +4474,17 @@ function showVirtualKeyboard() {
 	case "old":
 		showLegacyLayout();
 		break;
-	case "inverted":
+	case "h_sym":
+		showItemLine(true);
+		showDirLine(true);
+		break;
+	case "v_sym":
 		showDirLine();
 		showItemLine();
+		break;
+	case "vh_sym":
+		showDirLine(true);
+		showItemLine(true);
 		break;
 	default:
 		showItemLine();
@@ -26833,8 +26875,10 @@ function editCommands(options) {
 				$controlSetting.appendChild($controlText);
 				var $controlSelect = document.createElement("select");
 				var selectOptions = {
-					"": toLanguage("Default", "Défaut"),
-					"inverted": toLanguage("Inverted", "Inversé"),
+					"": toLanguage("Default", "Par défaut"),
+					"h_sym": toLanguage("Horizontal symmetry", "Symétrie horizontale"),
+					"v_sym": toLanguage("Vertical symmetry", "Symétrie verticale"),
+					"vh_sym": toLanguage("Both symmetries", "Symétrie mixte"),
 					"old": toLanguage("Old version", "Ancienne version")
 				};
 				var currentVal = currentSettingsCtrl["layout"] || "";
