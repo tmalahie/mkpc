@@ -26858,8 +26858,19 @@ function editCommands(options) {
 			}
 		}, {
 			id: "gestures",
-			name: toLanguage("Touch control", "Contrôles tactiles"),
-			description: toLanguage("Swipe the screen to go in the desired direction. Controls similar to Mario Kart Tour", "Balayez l'écran pour vous diriger dans la direction souhaitée. Contrôles similaires à Mario Kart Tour")
+			name: toLanguage("Touch controls", "Contrôles tactiles"),
+			description: toLanguage("Swipe the screen to go in the desired direction. Controls similar to Mario Kart Tour", "Balayez l'écran pour vous diriger dans la direction souhaitée. Contrôles similaires à Mario Kart Tour"),
+			dropdown: function($div) {
+				var $touchCtrlHelp = document.createElement("a");
+				$touchCtrlHelp.className = "control-touch-help";
+				$touchCtrlHelp.href = "#null";
+				$touchCtrlHelp.innerHTML = toLanguage("How touch controls work...", "Aide sur les contrôles tactiles...");
+				$touchCtrlHelp.onclick = function() {
+					window.open('helpTouchCtrls.php','help','scrollbars=1, resizable=1, width=500, height=500');
+					return false;
+				};
+				$div.appendChild($touchCtrlHelp);
+			}
 		}, {
 			id: "external",
 			name: toLanguage("External controller", "Contrôleur externe"),

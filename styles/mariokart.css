@@ -1151,6 +1151,14 @@ form.game-popup .game-popup-body > div > label {
 .control-ext-settings:hover {
 	color: #DDF;
 }
+.control-touch-help {
+	margin-left: 2.75em;
+	color: #CCF;
+	text-decoration: none;
+}
+.control-touch-help:hover {
+	color: #DDF;
+}
 .item-options-screen .item-optgroup {
 	margin-bottom: 0.75em;
 }
