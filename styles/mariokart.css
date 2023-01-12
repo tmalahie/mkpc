@@ -124,13 +124,13 @@
     max-width: 27em;
 }
 .control-type-value {
-    padding: 0.25em 0;
+    padding: 0.1em 0;
 }
 .control-type-value > label {
     display: flex;
 	align-items: center;
-    margin-top: 0.25em;
-    margin-bottom: 0.25em;
+    margin-top: 0.125em;
+    margin-bottom: 0.125em;
     cursor: pointer;
 }
 .control-type-value:hover {
@@ -169,8 +169,11 @@
     flex: 1;
 }
 .control-type-name {
-    font-size: 1.2em;
+    font-size: 1.1em;
     font-weight: bold;
+}
+.control-type-desc {
+	font-size: 0.9em;
 }
 .control-misc-values {
 	margin-left: 1em;
@@ -222,6 +225,8 @@
 	max-width: 20em;
 	margin: 1em;
 	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
 }
 .control-editor-empty-title {
 	font-size: 8em;
@@ -516,6 +521,12 @@ form[name="modes"] {
 	display: inline-block;
 	margin-top:10px;
 	margin-bottom:10px;
+}
+@media screen and (max-width: 599px) {
+	#vPub {
+		width: 100%;
+		min-height: 70px;
+	}
 }
 @media screen and (min-width: 600px) {
 	#vPub {
@@ -1131,6 +1142,14 @@ form.game-popup .game-popup-body > div > label {
 }
 .item-options-screen .item-submit a:hover {
 	color: #CCF;
+}
+.control-ext-settings {
+	margin-left: 2.75em;
+	color: #CCF;
+	text-decoration: none;
+}
+.control-ext-settings:hover {
+	color: #DDF;
 }
 .item-options-screen .item-optgroup {
 	margin-bottom: 0.75em;

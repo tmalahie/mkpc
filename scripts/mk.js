@@ -4342,7 +4342,7 @@ function startGame() {
 		case "gestures":
 			setupGestureEvents();
 			break;
-		case "gyroscope":
+		case "external":
 			break;
 		default:
 			showVirtualKeyboard();
@@ -26812,7 +26812,7 @@ function editCommands(options) {
 	$controlWindows.className = "control-window";
 	var $controlCommands = document.createElement("div");
 	$controlCommands.className = "control-window-active";
-	if (isMobile()) {
+	if (!options.pc && isMobile()) {
 		var currentSettingsCtrl = localStorage.getItem("settings.ctrl");
 		currentSettingsCtrl = currentSettingsCtrl ? JSON.parse(currentSettingsCtrl) : {};
 
@@ -26829,7 +26829,7 @@ function editCommands(options) {
 			dropdown: function($div) {
 				var $controlSetting = document.createElement("label");
 				var $controlText = document.createElement("span");
-				$controlText.innerHTML = toLanguage("Keyboard layout:", "Agencement des touches :");
+				$controlText.innerHTML = toLanguage("Keyboard layout:", "Disposition des touches :");
 				$controlSetting.appendChild($controlText);
 				var $controlSelect = document.createElement("select");
 				var selectOptions = {
@@ -26858,8 +26858,24 @@ function editCommands(options) {
 			}
 		}, {
 			id: "gestures",
-			name: toLanguage("Gestures control", "Contrôles par gestes"),
+			name: toLanguage("Touch control", "Contrôles tactiles"),
 			description: toLanguage("Swipe the screen to go in the desired direction. Controls similar to Mario Kart Tour", "Balayez l'écran pour vous diriger dans la direction souhaitée. Contrôles similaires à Mario Kart Tour")
+		}, {
+			id: "external",
+			name: toLanguage("External controller", "Contrôleur externe"),
+			description: toLanguage("Connect an external keyboard or gamepad", "Connetez un clavier ou une manette externe"),
+			dropdown: function($div) {
+				var $extCtrlSettings = document.createElement("a");
+				$extCtrlSettings.className = "control-ext-settings";
+				$extCtrlSettings.href = "#null";
+				$extCtrlSettings.innerHTML = toLanguage("Controller settings...", "Paramètres du contrôlleur...");
+				$extCtrlSettings.onclick = function() {
+					options.pc = true;
+					editCommands(options);
+					return false;
+				};
+				$div.appendChild($extCtrlSettings);
+			}
 		}];
 		var currentControlType = currentSettingsCtrl.mode || "keyboard";
 		for (var i=0;i<controlTypeValues.length;i++) {
