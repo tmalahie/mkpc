@@ -38,6 +38,7 @@ include('language.php');
 				width: 140px;
 				height: 70px;
 				background-color: white;
+				overflow: hidden;
 			}
 			.mkscreen .item {
 				position: absolute;
@@ -175,7 +176,7 @@ include('language.php');
 			<?php
 			printScreen('screen-item');
 			?>
-			<h2>Move backwards</h2>
+			<h2><?php echo $language ? 'Move backwards' : 'Reculer'; ?></h2>
 			<div class="backwards">
 				<?php
 				if ($language) {
@@ -351,7 +352,7 @@ include('language.php');
 						frameEvents: [{
 							t: 200,
 							callback: function() {
-								$banana.style.top = "58px";
+								$banana.style.top = "60px";
 							}
 						}]
 					});
