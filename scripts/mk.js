@@ -4386,14 +4386,14 @@ function showVirtualKeyboard() {
 		}
 		
 		function showItemBtn() {
-			addButton("I", { key: "item" });
+			addButton("I", { key: "item", src: "item" });
 		}
 
 		function showItemDirBtn() {
 			var $div = document.createElement("div");
 			$div.className = "btn-ctn";
-			addButton("\u2191", { key: "item_fwd", parent: $div });
-			addButton("\u2193", { key: "item_back", parent: $div });
+			addButton("\u2191", { key: "item_fwd", src: "item_fwd", parent: $div });
+			addButton("\u2193", { key: "item_back", src: "item_back", parent: $div });
 			$virtualKeyboard.appendChild($div);
 		}
 	
@@ -4404,12 +4404,12 @@ function showVirtualKeyboard() {
 			$accButton.id = "virtualbtn-accelerate";
 			var $backButton = document.createElement("button");
 			if (ctrlSettings.autoacc) {
-				addButton("\u2191", { btn: $accButton, key: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
-				addButton("\u2193", { btn: $backButton, key: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
+				addButton("\u2191", { btn: $accButton, key: "up", src: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
+				addButton("\u2193", { btn: $backButton, key: "down", src: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
 			}
 			else {
-				addButton("\u2191", { btn: $accButton, key: "up", parent: $div });
-				addButton("\u2193", { btn: $backButton, key: "down", parent: $div });
+				addButton("\u2191", { btn: $accButton, key: "up", src: "up", parent: $div });
+				addButton("\u2193", { btn: $backButton, key: "down", src: "up", parent: $div });
 			}
 			$virtualKeyboard.appendChild($div);
 		}
@@ -4440,14 +4440,14 @@ function showVirtualKeyboard() {
 		}
 
 		function showJumpBtm() {
-			addButton("J", { key: "jump" });
+			addButton("J", { key: "jump", src: "jump" });
 		}
 		function showLeftBtm() {
-			var $leftButton = addButton("\u2190", { key: "left" });
+			var $leftButton = addButton("\u2190", { key: "left", src: "left" });
 			$leftButton.id = "virtualbtn-left";
 		}
 		function showRightBtn() {
-			var $rightButton = addButton("\u2192", { key: "right" });
+			var $rightButton = addButton("\u2192", { key: "right", src: "right" });
 			$rightButton.id = "virtualbtn-right";
 		}
 	}
@@ -17588,8 +17588,16 @@ function addButton(lettre, options) {
 	var oButton = options.btn || document.createElement("button");
 	oButton.style.textAlign = "center";
 	oButton.style.padding = "0px";
-	oButton.innerHTML = lettre;
 	oButton.dataset.key = options.key;
+	if (options.src) {
+		oButton.className = "btn-img";
+		var oImg = document.createElement("img");
+		oImg.src = "images/vkeyboard/"+ options.src +".png";
+		oImg.alt = lettre;
+		oButton.appendChild(oImg);
+	}
+	else
+		oButton.innerHTML = lettre;
 	if ("touchstart" in options)
 		oButton.ontouchstart = options.touchstart;
 	else
@@ -20644,6 +20652,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oDiv.style.borderLeft = "double 4px #F8F8F8"; 
 		oDiv.style.borderRight = "double 4px #F8F8F8"; 
 		oDiv.style.borderBottom = "solid 5px #00B800";
+		oDiv.style.cursor = "pointer";
+		oDiv.id = "perso-selector-"+oJoueur;
 
 		var cDiv = document.createElement("div");
 		cDiv.style.position = "absolute";
@@ -20667,8 +20677,6 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oPImg.src = (libre ? getSpriteSrc(oJoueur):getStarSrc(oJoueur));
 			oPImg.alt = oJoueur;
 			oPImg.style.left = -(30 * jScreenScale) +"px";
-			oPImg.style.cursor = "pointer";
-			oPImg.id = "perso-selector-"+oJoueur;
 			oPImg.j = IdJ;
 			oPImg.onload = function() {
 				var cWidth = Math.min(5*this.naturalWidth/768,5.8);
@@ -20682,7 +20690,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				cDiv.style.left = Math.round((5-cWidth)/2*jScreenScale)+"px";
 				cDiv.style.top = Math.round(1+(5-cHeight)/2*jScreenScale)+"px";
 			}
-			cDiv.onmouseover = function() {
+			oDiv.onmouseover = function() {
 				cTable.style.display = "block";
 				var cImg = cDiv.firstChild;
 				hTd2.innerHTML = toPerso(cImg.alt);
@@ -20691,7 +20699,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				clearTimeout(rotateHandler);
 				tourner(cImg);
 			}
-			cDiv.onmouseout = function() {
+			oDiv.onmouseout = function() {
 				cTable.style.display = "none";
 				var cImg = cDiv.firstChild;
 				if (cImg.naturalWidth) {
@@ -20702,9 +20710,9 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					cImg.style.left = -(30 * jScreenScale) +"px";
 				clearTimeout(rotateHandler);
 			}
-			cDiv.onclick = function() {
+			oDiv.onclick = function() {
 				clearTimeout(rotateHandler);
-				var cImg = cDiv.firstChild;
+				var cImg = oDiv.firstChild.firstChild;
 				strPlayer[cImg.j] = cImg.alt;
 				var newOptions = ""; // will be used later
 				if (!isOnline) {
@@ -21751,8 +21759,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 	if (clSelected && clSelected.autoset && clSelected.autoset.selectedPerso && !force) {
 		var persoSelector = document.getElementById("perso-selector-"+clSelected.autoset.selectedPerso);
-		if (persoSelector && persoSelector.parentNode && persoSelector.parentNode.onclick) {
-			persoSelector.parentNode.onclick();
+		if (persoSelector && persoSelector.onclick) {
+			persoSelector.onclick();
 			return;
 		}
 	}
@@ -21785,8 +21793,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			var persoKey = newPersos[i].sprites;
 			pUnlockMap[persoKey] = 1;
 			var oDiv = createPersoSelector(persoKey);
-			if (newP && !i && oDiv.firstChild.onclick) {
-				oDiv.firstChild.onclick();
+			if (newP && !i && oDiv.onclick) {
+				oDiv.onclick();
 				return;
 			}
 			oDiv.style.left = 67*iScreenScale +"px";

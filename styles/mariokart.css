@@ -581,6 +581,22 @@ form[name="modes"] {
 #virtualkeyboard > .btn-ctn button {
 	flex: 1;
 }
+#virtualkeyboard button.btn-img {
+	position: relative;
+}
+#virtualkeyboard button.btn-img > img {
+	position: absolute;
+	top: 10%;
+	height: 32px;
+	height: calc(20% + 20px);
+	left: 50%;
+	top: 50%;
+	-webkit-transform: translate(-50%,-50%);
+	-moz-transform: translate(-50%,-50%);
+	-o-transform: translate(-50%,-50%);
+	-ms-transform: translate(-50%,-50%);
+	transform: translate(-50%,-50%);
+}
 #alerte {
 	position: absolute;
 	left:10%;
