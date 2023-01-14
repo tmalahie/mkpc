@@ -17360,14 +17360,25 @@ function getGameAction(e) {
 function handleSpectatorInput(e) {
 	switch (e.keyCode) {
 	case 37:
+		e.keyAction = "left";
+		break;
+	case 39:
+		e.keyAction = "right";
+		break;
+	case 27:
+		e.keyAction = "quit";
+		break;
+	}
+	switch (e.keyAction) {
+	case "left":
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
 		break;
-	case 39:
+	case "right":
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
 		break;
-	case 27:
+	case "quit":
 		document.location.reload();
 		return false;
 	default:
