@@ -26773,9 +26773,13 @@ function optionOf(vName) {
 	return formulaire ? formulaire.elements[vName].value*1 : baseOptions[vName];
 }
 function displayCommands(html) {
-	if (isMobile()) html = "";
 	var $commandes = document.getElementById("commandes");
 	if ($commandes) {
+		if (isMobile()) {
+			if (document.getElementById("commandes-edit"))
+				return;
+			html = "";
+		}
 		var emptyCommands = !html;
 		$commandes.innerHTML = (html||"")+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit"'+ (emptyCommands ? ' class="nocommand"':'') +' title="'+toLanguage("More settings","Plus de paramètres")+'" />';
 		document.getElementById("commandes-edit").onclick = function() {
@@ -27167,7 +27171,7 @@ function editCommands(options) {
 			var $controlEditorEmpty = document.createElement("div");
 			$controlEditorEmpty.className = "control-editor-empty";
 			$controlEditorEmpty.innerHTML = '<div class="control-editor-empty-title">🎮</div>';
-			$controlEditorEmpty.innerHTML += '<div>'+ toLanguage("Connect a gamepad and press any button to continue", "Branchez une manette et appuyez sur n'importe quel bouton pour continuer") +'</div>';
+			$controlEditorEmpty.innerHTML += '<div>'+ toLanguage("Connect a gamepad and press any button to continue", "Connectez une manette et appuyez sur n'importe quel bouton pour continuer") +'</div>';
 			$controlCommands.appendChild($controlEditorEmpty);
 
 			clearInterval(pollingGamepadsHandler);
