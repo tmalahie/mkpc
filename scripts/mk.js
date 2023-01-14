@@ -117,6 +117,8 @@ var challengesForCircuit;
 
 var onlineSpectatorId;
 
+var gamepadMenuEventsHandler;
+
 function MarioKart() {
 
 var oMaps = listMaps();
@@ -443,7 +445,6 @@ function setScreenScale(iValue, triggered) {
 
 	previewScreenScale(aScreenScale, iScreenScale);
 
-	reposKeyboard();
 	setSRest();
 }
 
@@ -490,15 +491,6 @@ function showParamChangeDisclaimer() {
 			document.body.removeChild(oDisclaimer);
 		}, 1000);
 	}, 3000);
-}
-
-function reposKeyboard() {
-	var virtualKeyboardW = virtualButtonW*4.8;
-	var virtualKeyboardH = virtualButtonH*2.6;
-	document.getElementById("virtualkeyboard").style.width = Math.round(virtualKeyboardW) +"px";
-	document.getElementById("virtualkeyboard").style.height = Math.round(virtualKeyboardH) +"px";
-	document.getElementById("virtualkeyboard").style.left = (iScreenScale*iWidth - virtualKeyboardW)/2 +"px";
-	document.getElementById("virtualkeyboard").style.top = (iScreenScale*40) +"px";
 }
 
 function setMusic(iValue) {
@@ -593,6 +585,16 @@ function removeSoundEffects() {
 function clearResources() {
 	if (oMapImg && oMapImg.clear)
 		oMapImg.clear();
+}
+function resetEvents() {
+	document.onmousedown = undefined;
+	document.onkeydown = undefined;
+	document.onkeyup = undefined;
+	window.removeEventListener("blur", window.releaseOnBlur);
+	window.releaseOnBlur = undefined;
+	window.removeEventListener("deviceorientation", window.turnOnRotate);
+	window.turnOnRotate = undefined;
+	hideVirtualKeyboard();
 }
 function pauseSounds() {
 	if (bMusic || iSfx) {
@@ -1182,11 +1184,20 @@ function removePlan() {
 }
 
 var gameSettings;
+var ctrlSettings;
 var oChallengeCpts;
 function loadMap() {
 	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
+	ctrlSettings = localStorage.getItem("settings.ctrl");
+	ctrlSettings = ctrlSettings ? JSON.parse(ctrlSettings) : {};
+	if (isMobile()) {
+		if (ctrlSettings.autoacc === undefined)
+			ctrlSettings.autoacc = 1;
+		if (ctrlSettings.vitem === undefined)
+			ctrlSettings.vitem = 1;
+	}
 
 	if (gameSettings.rtime) {
 		var lastFrameTime;
@@ -1415,6 +1426,7 @@ function loadMap() {
 		oInfos.style.textStroke = oInfos.style.WebkitTextStroke = oInfos.style.MozTextStroke = Math.round(iScreenScale/4) +"px "+ primaryColor;
 		oInfos.style.visibility = "hidden";
 		oInfos.style.display = "";
+		oInfos.style.pointerEvents = "none";
 		oInfos.innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
 
 		var oScroller = document.getElementById("scroller").cloneNode(true);
@@ -3191,6 +3203,8 @@ function startGame() {
 		}
 	}
 	gameControls = getGameControls();
+	for (var i=0;i<oPlayers.length;i++)
+		previouslyPressedBtns[i] = new Array();
 
 	challengesForCircuit = {
 		"end_game": [],
@@ -3595,6 +3609,7 @@ function startGame() {
 
 	var iCntStep = 0;
 	var redrawCanvasHandler;
+	var refreshGamepadHandler;
 
 	var countDownMusic, goMusic;
 	if ((bMusic || iSfx) && !onlineSpectatorState) {
@@ -3701,7 +3716,11 @@ function startGame() {
 							oInfos.style.top = iScreenScale * 7 + 10 +"px";
 							oInfos.style.left = Math.round(iScreenScale*25+10 + (strPlayer.length-1)/2*(iWidth*iScreenScale+2)) +"px";
 							oInfos.style.fontSize = iScreenScale * 4 +"px";
+							oInfos.style.pointerEvents = "";
 						}
+						var $virtualPauseBtn = document.getElementById("virtualbtn-pause");
+						if ($virtualPauseBtn)
+							$virtualPauseBtn.style.display = "block";
 						if (stillRacing) {
 							var btnFontSize = (course != "CM") ? (iScreenScale*3):Math.round(iScreenScale*2.5);
 							oInfos.innerHTML =
@@ -3782,11 +3801,7 @@ function startGame() {
 									else if (course != "CM")
 										delete fInfos.map;
 								}
-								document.onmousedown = undefined;
-								document.onkeydown = undefined;
-								document.onkeyup = undefined;
-								window.removeEventListener("blur", window.releaseOnBlur);
-								window.releaseOnBlur = undefined;
+								resetEvents();
 								resetApp();
 							};
 							if (course == "CM") {
@@ -3810,11 +3825,7 @@ function startGame() {
 									if (strPlayer.length == 1)
 										removePlan();
 									oBgLayers.length = 0;
-									document.onmousedown = undefined;
-									document.onkeydown = undefined;
-									document.onkeyup = undefined;
-									window.removeEventListener("blur", window.releaseOnBlur);
-									window.releaseOnBlur = undefined;
+									resetEvents();
 									resetApp();
 								};
 							}
@@ -3860,7 +3871,7 @@ function startGame() {
 								break;
 							case "down":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].speedinc -= 0.2;
+								oPlayers[0].speedinc = -0.2;
 								break;
 							case "jump":
 								if (pause) break;
@@ -4112,17 +4123,17 @@ function startGame() {
 						if (clLocalVars.fastForward) return;
 						if (onlineSpectatorId)
 							return handleSpectatorInput(e);
-						var gameAction = gameControls[e.keyCode];
+						var gameAction = getGameAction(e);
 						if (!gameAction) return;
 						var aElt = document.activeElement;
 						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
 						if (e.preventDefault)
 							e.preventDefault();
-						handleInputPressed(gameAction);
+						handleInputPressed(gameAction, e.keyIntensity);
 					}
 					document.onkeyup = function(e) {
 						if (onlineSpectatorId) return;
-						var gameAction = gameControls[e.keyCode];
+						var gameAction = getGameAction(e);
 						if (!gameAction) return;
 						var aElt = document.activeElement;
 						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
@@ -4132,28 +4143,25 @@ function startGame() {
 						if (onlineSpectatorId) return;
 						currentPressedKeys = {};
 						for (var i=0;i<oPlayers.length;i++) {
-							oPlayers[i].speedinc = 0;
+							if (!ctrlSettings.autoacc)
+								oPlayers[i].speedinc = 0;
 							oPlayers[i].rotincdir = 0;
 							stopDrifting(i);
 						}
 					};
 					window.addEventListener("blur", window.releaseOnBlur);
 					if (isMobile()) {
-						document.onmousedown = function(e) {
-							if (pause)
-								return true;
-							if (!oPlayers[0].tourne && !oPlayers[0].cannon) {
-								if (course == "BB") {
-									document.onkeydown({"keyCode":findKeyCode("balloon")});
-									return false;
+						if (ctrlSettings.autoacc) {
+							var $accButton = document.getElementById("virtualbtn-accelerate");
+							if ($accButton && $accButton.dataset) {
+								$accButton.ontouchend = undefined;
+								if (!$accButton.dataset.pressed) {
+									var e = new Event('touchstart');
+									$accButton.dispatchEvent(e);
 								}
-								if (oPlayers[0].arme || oPlayers[0].using.length) {
-									arme(0);
-									return false;
-								}
-								return true;
 							}
-							return true;
+							else
+								doPressKey("up");
 						}
 					}
 					if (!window.onbeforeunload)
@@ -4162,6 +4170,7 @@ function startGame() {
 					if (course == "CM")
 						iTrajet = new Array();
 					clearInterval(redrawCanvasHandler);
+					clearInterval(refreshGamepadHandler);
 					if (clLocalVars.delayedStart) {
 						oPlayers[0].speed = 0;
 						var aSpeedInc = oPlayers[0].speedinc;
@@ -4245,6 +4254,7 @@ function startGame() {
 					for (i=0;i<gPersos.length;i++)
 						iTrajets.push(jTrajets[i]);
 					clearInterval(redrawCanvasHandler);
+					clearInterval(refreshGamepadHandler);
 					revoir();
 					pause = false;
 					setTimeout(function() {
@@ -4252,7 +4262,7 @@ function startGame() {
 						document.querySelector("#enregistrer input").style.display = "none";
 					},1000);
 					document.onkeyup = function(e) {
-						var gameAction = gameControls[e.keyCode];
+						var gameAction = getGameAction(e);
 						if (gameAction == "pause" && !bCounting) {
 							document.getElementById("infos0").style.display = (document.getElementById("infos0").style.display == "none") ? "" : "none";
 							var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];
@@ -4327,6 +4337,22 @@ function startGame() {
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
+	if (isMobile()) {
+		switch (ctrlSettings.mode) {
+		case "gestures":
+			setupGestureEvents();
+			break;
+		case "external":
+			break;
+		default:
+			showVirtualKeyboard();
+		}
+
+		setupCommonMobileControls();
+	}
+	if (gameControls.gamepad) {
+		refreshGamepadHandler = setInterval(handleGamepadEvents, SPF);
+	}
 	if (oMapImg.image) {
 		redrawCanvasHandler = setTimeout(function() {
 			redrawCanvasHandler = setInterval(function() {
@@ -4341,6 +4367,420 @@ function startGame() {
 		showRearView(0);
 	if (!isOnline)
 		document.body.style.cursor = "default";
+}
+
+function showVirtualKeyboard() {
+	var $virtualKeyboard = document.getElementById("virtualkeyboard");
+	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
+
+	function showItemLine(inverted) {
+		if (inverted) {
+			showDirBtn();
+			showItemDirBtn();
+			showItemBtn();
+		}
+		else {
+			showItemBtn();
+			showItemDirBtn();
+			showDirBtn();
+		}
+		
+		function showItemBtn() {
+			addButton("I", { key: "item", src: "item" });
+		}
+
+		function showItemDirBtn() {
+			var $div = document.createElement("div");
+			$div.className = "btn-ctn";
+			addButton("\u2191", { key: "item_fwd", src: "item_fwd", parent: $div });
+			addButton("\u2193", { key: "item_back", src: "item_back", parent: $div });
+			$virtualKeyboard.appendChild($div);
+		}
+	
+		function showDirBtn() {
+			var $div = document.createElement("div");
+			$div.className = "btn-ctn";
+			var $accButton = document.createElement("button");
+			$accButton.id = "virtualbtn-accelerate";
+			var $backButton = document.createElement("button");
+			if (ctrlSettings.autoacc) {
+				addButton("\u2191", { btn: $accButton, key: "up", src: "up", parent: $div, touchstart: toggleBtnAction($backButton), touchend: undefined });
+				addButton("\u2193", { btn: $backButton, key: "down", src: "down", parent: $div, touchstart: toggleBtnAction($accButton), touchend: undefined });
+			}
+			else {
+				addButton("\u2191", { btn: $accButton, key: "up", src: "up", parent: $div });
+				addButton("\u2193", { btn: $backButton, key: "down", src: "up", parent: $div });
+			}
+			$virtualKeyboard.appendChild($div);
+		}
+
+		function toggleBtnAction(otherButton) {
+			return function() {
+				if (this.dataset.pressed)
+					onButtonPress.bind(this)();
+				else {
+					if (otherButton.dataset.pressed)
+						onButtonPress.bind(otherButton)();
+					onButtonTouch.bind(this)();
+				}
+			}
+		}
+	}
+
+	function showDirLine(inverted) {
+		if (inverted) {
+			showLeftBtm();
+			showRightBtn();
+			showJumpBtm();
+		}
+		else {
+			showJumpBtm();
+			showLeftBtm();
+			showRightBtn();
+		}
+
+		function showJumpBtm() {
+			addButton("J", { key: "jump", src: "jump" });
+		}
+		function showLeftBtm() {
+			var $leftButton = addButton("\u2190", { key: "left", src: "left" });
+			$leftButton.id = "virtualbtn-left";
+		}
+		function showRightBtn() {
+			var $rightButton = addButton("\u2192", { key: "right", src: "right" });
+			$rightButton.id = "virtualbtn-right";
+		}
+	}
+
+	function showLegacyLayout() {
+		var $accDriftButton = addButtonLegacy(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',["up","jump"], 0,0);
+		if (ctrlSettings.autoacc)
+			$accDriftButton.style.display = "none";
+		var $accButton = addButtonLegacy(" \u2191 ","up", 1,0);
+		$accButton.id = "virtualbtn-accelerate";
+		addButtonLegacy("Obj","item", 2,0, null,null, 25);
+		addButtonLegacy("\u275A\u275A","pause", 3,0, null,null, 25);
+		document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
+		document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
+		addButtonLegacy(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", "jump", 0,1,null,null, 11);
+		addButtonLegacy(" \u2193 ","down", 1,1);
+		var $leftButton = addButtonLegacy(" \u2190 ","left", 2,1);
+		$leftButton.id = "virtualbtn-left";
+		var $rightButton = addButtonLegacy(" \u2192 ","right", 3,1);
+		$rightButton.id = "virtualbtn-right";
+	}
+
+	switch (ctrlSettings.layout) {
+	case "old":
+		showLegacyLayout();
+		break;
+	case "h_sym":
+		showItemLine(true);
+		showDirLine(true);
+		break;
+	case "v_sym":
+		showDirLine();
+		showItemLine();
+		break;
+	case "vh_sym":
+		showDirLine(true);
+		showItemLine(true);
+		break;
+	default:
+		showItemLine();
+		showDirLine();
+	}
+	
+	$virtualKeyboard.ontouchstart = function(e) {
+		e.preventDefault();
+		return false;
+	};
+	$virtualKeyboard.className = "shown";
+
+	if (ctrlSettings.layout === "old") {
+		$virtualKeyboard.classList.add("legacy");
+
+		var virtualButtonW = 60, virtualButtonH = 50;
+		var virtualKeyboardW = virtualButtonW*4.8;
+		var virtualKeyboardH = virtualButtonH*2.6;
+		$virtualKeyboard.style.width = Math.round(virtualKeyboardW) +"px";
+		$virtualKeyboard.style.height = Math.round(virtualKeyboardH) +"px";
+		$virtualKeyboard.style.left = (iScreenScale*iWidth - virtualKeyboardW)/2 +"px";
+		$virtualKeyboard.style.top = (iScreenScale*40) +"px";
+		return;
+	}
+
+	var virtualKeyboardY = iScreenScale*iHeight + 20;
+	$virtualKeyboard.style.top = virtualKeyboardY +"px";
+
+	var virtualKeyboardW = $virtualKeyboard.offsetWidth;
+	var virtualKeyboardH = window.innerHeight - virtualKeyboardY;
+	virtualKeyboardH = Math.min(virtualKeyboardH, Math.round(virtualKeyboardW * 0.45));
+	var screenW = Math.min(window.innerWidth, iWidth*iScreenScale);
+	if (virtualKeyboardW < screenW)
+		$virtualKeyboard.style.left = Math.round((screenW - virtualKeyboardW) / 2) +"px";
+	$virtualKeyboard.style.height = virtualKeyboardH +"px";
+}
+function hideVirtualKeyboard() {
+	var $virtualKeyboard = document.getElementById("virtualkeyboard");
+	$virtualKeyboard.innerHTML = "";
+	$virtualKeyboard.className = "";
+	$virtualKeyboard.setAttribute("style", "");
+}
+
+var $virtualScreens = new Array();
+function setupGestureEvents() {
+	for (var i=0;i<oContainers.length;i++) {
+		var $virtualScreen = document.createElement("div");
+		$virtualScreen.style.position = "fixed";
+		$virtualScreen.style.left = "0px";
+		$virtualScreen.style.top = "0px";
+		$virtualScreen.style.width = "100%";
+		$virtualScreen.style.height = "100%";
+		$virtualScreen.style.zIndex = 20000;
+		var adjustAngleHandler;
+		var releaseAccHandler;
+		var oKart = oPlayers[i];
+		function handlePointerEvent(e) {
+			e.preventDefault();
+			var relPos = getPointerRelPos(e.touches);
+			var diffX = relPos.x - originalPos.x, diffY = relPos.y - originalPos.y;
+			if (diffY > Math.max(0.2, 3*Math.abs(diffX))) {
+				if (diffY > 0) {
+					releaseKey("up");
+					pressKey("down");
+				}
+				return;
+			}
+			if (ctrlSettings.gyroscope)
+				return;
+			var maxAngle = 120, smoothingFactor = 1.4;
+			var targetRotinc = -Math.sign(diffX) * Math.pow(Math.abs(diffX),smoothingFactor) * maxAngle;
+			function adjustAngle() {
+				var res = rotateToAngle(oKart, targetRotinc);
+				if (Math.abs(res.targetDir) >= 1)
+					wasSpecialTouch = true;
+			}
+			adjustAngle();
+			adjustAngleHandler = setInterval(adjustAngle, SPF);
+		}
+		var releasedAt = {
+			t: 0
+		};
+		var jumpDelay = ctrlSettings.autoacc ? 200 : 500;
+		var wasSpecialTouch = false;
+		var originalPos;
+		$virtualScreen.ontouchstart = function(e) {
+			var lastPos = originalPos;
+			originalPos = getPointerRelPos(e.touches);
+			pressKey("up");
+			if ((new Date().getTime() - releasedAt.t) < jumpDelay) {
+				var minDiffToDrift = 0.1, maxAngleToJump = 0.5;
+				var posDiff = originalPos.x - lastPos.x;
+				if (Math.abs(posDiff) < maxAngleToJump) {
+					pressKey("jump");
+					if (posDiff >= minDiffToDrift)
+						pressKey("right");
+					else if (posDiff <= -minDiffToDrift)
+						pressKey("left");
+				}
+			}
+			clearTimeout(releaseAccHandler);
+		}
+		$virtualScreen.ontouchmove = function(e) {
+			clearInterval(adjustAngleHandler);
+			handlePointerEvent(e);
+		}
+		$virtualScreen.ontouchend = function(e) {
+			clearInterval(adjustAngleHandler);
+			adjustAngleHandler = undefined;
+			if (oKart.driftinc)
+				wasSpecialTouch = true;
+			for (var code in oPressedKeys) {
+				if (code !== "up")
+					releaseKey(code);
+			}
+			if (!ctrlSettings.autoacc) {
+				releaseAccHandler = setTimeout(function() {
+					releaseKey("up");
+				}, 300);
+			}
+			if (!wasSpecialTouch) {
+				releasedAt = {
+					t: new Date().getTime()
+				}
+			}
+			else
+				wasSpecialTouch = false;
+		}
+
+		function getPointerRelPos(touches) {
+			var sW = iScreenScale*iWidth;
+			if ($mkScreen.dataset.fs) {
+				var bounds = $virtualScreen.getBoundingClientRect();
+				sW = window.innerWidth - bounds.x*2;
+			}
+			var x = touches[0].pageX, y = touches[0].clientY;
+			var relX = x/sW, relY = y/sW;
+			return { x: relX, y: relY, t: new Date().getTime() };
+		}
+
+		var $virtualRoulette = document.createElement("div");
+		$virtualRoulette.style.position = "absolute";
+		$virtualRoulette.style.left = 0;
+		$virtualRoulette.style.top = 0;
+		$virtualRoulette.style.width = (iScreenScale*12) +"px";
+		$virtualRoulette.style.height = (iScreenScale*9) +"px";
+		$virtualRoulette.ontouchstart = function(e) {
+			e.stopPropagation();
+			doReleaseKey("item");
+			wasSpecialTouch = true;
+		}
+		$virtualScreen.appendChild($virtualRoulette);
+
+		hudScreens[i].appendChild($virtualScreen);
+
+		$virtualScreens.push($virtualScreen);
+	}
+}
+function setupCommonMobileControls() {
+	if (ctrlSettings.vitem) {
+		var $virtualItemScreen = document.createElement("div");
+		$virtualItemScreen.style.position = "absolute";
+		$virtualItemScreen.style.left = "0px";
+		$virtualItemScreen.style.top = "0px";
+		$virtualItemScreen.style.zIndex = 20000;
+		$virtualItemScreen.style.width = (iScreenScale*iWidth) +"px";
+		$virtualItemScreen.style.height = (iScreenScale*iHeight) +"px";
+
+		var originPos;
+		$virtualItemScreen.ontouchstart = function(e) {
+			e.preventDefault();
+			originPos = {
+				x: e.touches[0].clientX,
+				y: e.touches[0].clientY
+			};
+		}
+		$virtualItemScreen.ontouchend = function(e) {
+			var endPos = {
+				x: e.changedTouches[0].clientX,
+				y: e.changedTouches[0].clientY,
+			}
+			var diffX = endPos.x - originPos.x;
+			var diffY = endPos.y - originPos.y;
+
+			if (Math.abs(diffY) > Math.max(50, 3*Math.abs(diffX))) {
+				if (diffY > 0)
+					doReleaseKey("item_back");
+				else
+					doReleaseKey("item_fwd");
+			}
+			else
+				doReleaseKey("item");
+		}
+		hudScreens[0].appendChild($virtualItemScreen);
+	}
+
+	var $virtualPauseBtn = document.createElement("button");
+	$virtualPauseBtn.innerHTML = "\u275A\u275A";
+	$virtualPauseBtn.style.position = "absolute";
+	$virtualPauseBtn.style.zIndex = 20000;
+	$virtualPauseBtn.style.right = (iScreenScale*22) +"px";
+	$virtualPauseBtn.style.top = "5px";
+	$virtualPauseBtn.style.fontSize = Math.round(iScreenScale*3) +"px";
+	$virtualPauseBtn.style.padding = Math.round(iScreenScale/2) +"px "+ iScreenScale +"px";
+	$virtualPauseBtn.ontouchstart = function(e) {
+		e.preventDefault();
+		doPressKey("pause");
+	}
+	$virtualPauseBtn.id = "virtualbtn-pause";
+	$virtualPauseBtn.style.display = "none";
+	hudScreens[0].appendChild($virtualPauseBtn);
+
+	if (course == "BB") {
+		var $virtualBalloonBtn = document.createElement("div");
+		$virtualBalloonBtn.style.position = "absolute";
+		$virtualBalloonBtn.style.zIndex = 20000;
+		$virtualBalloonBtn.style.left = "0px";
+		$virtualBalloonBtn.style.bottom = "-2px";
+		$virtualBalloonBtn.style.width = (iScreenScale*16) +"px";
+		$virtualBalloonBtn.style.height = (iScreenScale*5 + 4) +"px";
+		$virtualBalloonBtn.ontouchstart = function(e) {
+			e.preventDefault();
+			doPressKey("balloon");
+		}
+		hudScreens[0].appendChild($virtualBalloonBtn);
+	}
+
+	if (ctrlSettings.gyroscope) {
+		var $leftButton = document.getElementById("virtualbtn-left");
+		var $rightButton = document.getElementById("virtualbtn-right");
+		var isLandscape = (window.innerWidth > window.innerHeight);
+		window.turnOnRotate = function(e) {
+			if ($leftButton && $leftButton.dataset.pressed)
+				return;
+			if ($rightButton && $rightButton.dataset.pressed)
+				return;
+			var angle;
+			var maxAngle, smoothingFactor;
+			if (isLandscape) {
+				angle = e.beta;
+				if (Math.abs(angle) >= 90)
+					angle = Math.sign(angle) * (180 - Math.abs(angle));
+				maxAngle = 15;
+				smoothingFactor = 1;
+			}
+			else {
+				angle = e.gamma;
+				if (e.beta >= 90)
+					angle = -angle;
+				maxAngle = 15;
+				smoothingFactor = 2;
+			}
+			var targetRotinc = -Math.sign(angle) * Math.pow(Math.abs(angle/90),smoothingFactor) * maxAngle;
+			rotateToAngle(oPlayers[0], targetRotinc);
+		}
+		window.addEventListener("deviceorientation", window.turnOnRotate);
+	}
+}
+
+var oPressedKeys = {};
+function pressKey(code) {
+	if (oPressedKeys[code]) return;
+	doPressKey(code);
+}
+function doPressKey(code) {
+	oPressedKeys[code] = 1;
+	if (document.onkeydown)
+		document.onkeydown({keyAction:code});
+}
+function releaseKey(code) {
+	if (!oPressedKeys[code]) return;
+	doReleaseKey(code);
+}
+function doReleaseKey(code) {
+	oPressedKeys[code] = undefined;
+	if (document.onkeyup)
+		document.onkeyup({keyAction:code});
+}
+
+function rotateToAngle(oKart, targetRotinc) {
+	var targetDir = (targetRotinc - angleInc(oKart)) / 2;
+	var action;
+	if (targetDir > oKart.stats.handling/2)
+		action = "left";
+	else if (targetDir < -oKart.stats.handling/2)
+		action = "right";
+	if (action !== "left")
+		releaseKey("left");
+	if (action !== "right")
+		releaseKey("right");
+	if (action)
+		pressKey(action);
+	return {
+		targetDir: targetDir,
+		action: action
+	};
 }
 
 function youtube_parser(url) {
@@ -4575,11 +5015,7 @@ function quitter() {
 	$mkScreen.style.opacity = 1;
 	if (strPlayer.length == 1)
 		removePlan();
-	document.onmousedown = undefined;
-	document.onkeydown = undefined;
-	document.onkeyup = undefined;
-	window.removeEventListener("blur", window.releaseOnBlur);
-	window.releaseOnBlur = undefined;
+	resetEvents();
 	oBgLayers.length = 0;
 	aPlayers = [];
 	aScores = [];
@@ -4899,7 +5335,7 @@ function continuer() {
 			if (strPlayer.length == 1)
 				removePlan();
 			oBgLayers.length = 0;
-			document.onmousedown = undefined;
+			resetEvents();
 			resetApp();
 		}
 
@@ -5124,7 +5560,7 @@ function continuer() {
 			if (strPlayer.length == 1)
 				removePlan();
 			oBgLayers.length = 0;
-			document.onmousedown = undefined;
+			resetEvents();
 			resetApp();
 		}
 		document.getElementById("revoir").appendChild(oReplay);
@@ -5154,7 +5590,7 @@ function continuer() {
 			if (strPlayer.length == 1)
 				removePlan();
 			oBgLayers.length = 0;
-			document.onmousedown = undefined;
+			resetEvents();
 			resetApp();
 		}
 		document.getElementById("changercircuit").appendChild(oChangeRace);
@@ -5197,7 +5633,7 @@ function nextRace() {
 	if (strPlayer.length == 1)
 		removePlan();
 	oBgLayers.length = 0;
-	document.onmousedown = undefined;
+	resetEvents();
 	resetApp();
 }
 
@@ -9093,7 +9529,7 @@ function render() {
 					else if (fSpriteRef.driftinc && ((iAngleStep < 4) || (iAngleStep > 18)))
 						iAngleStep = (fSpriteRef.driftinc*getMirrorFactor()>0) ? 18:4;
 					else if (isActualPlayer) {
-						if (fSpriteRef.rotincdir && !fSprite.tourne)
+						if (fSpriteRef.rotincdir && !fSprite.tourne && (Math.abs(fSpriteRef.rotincdir) >= fSpriteRef.stats.handling))
 							iAngleStep = (fSpriteRef.rotincdir*getMirrorFactor() > 0) ? 23:22;
 						else if (!fSprite.tourne)
 							iAngleStep = 0;
@@ -9631,6 +10067,13 @@ function moveUsingItems(oKart, triggered) {
 	}
 	else
 		delete oKart.rotitem;
+}
+function hasOnHoldItem(oKart) {
+	if (!oKart.using.length)
+		return false;
+	if (oKart.rotitem !== undefined)
+		return false;
+	return true;
 }
 
 function stopDrifting(i) {
@@ -11723,7 +12166,7 @@ function showChallengePopup(challenge, res) {
 	fadeInPopup();
 	if (!pause && document.onkeydown) {
 		clLocalVars.forcePause = true;
-		document.onkeydown({keyCode:findKeyCode("pause")});
+		doPressKey("pause");
 		delete clLocalVars.forcePause;
 	}
 	if (bMusic || iSfx) {
@@ -13602,12 +14045,8 @@ function resetDatas() {
 					infos0.style.display = "";
 					if (!isChatting())
 						oContinue.focus();
-					document.onkeydown = undefined;
-					document.onkeyup = undefined;
-					document.onmousedown = undefined;
+					resetEvents();
 					window.onbeforeunload = logGameTime;
-					window.removeEventListener("blur", window.releaseOnBlur);
-					window.releaseOnBlur = undefined;
 					supprArme(0);
 					resetWrongWay(oPlayer);
 					if (bMusic||iSfx)
@@ -13841,7 +14280,7 @@ function move(getId, triggered) {
 
 	if (oKart.rotincdir) {
 		oKart.rotinc += 2 * oKart.rotincdir;
-		if (oKart.driftinc && ((oKart.driftinc>0)!=(oKart.rotincdir>0))) {
+		if (oKart.driftinc && ((oKart.driftinc>0)!=(oKart.rotincdir>0)) && (Math.abs(oKart.rotincdir) >= oKart.stats.handling)) {
 			var maxValue = Math.max(1.1,1.6-Math.max(0,(oKart.driftcpt-20)/80));
 			if (oKart.driftinc > 0)
 				oKart.rotinc = Math.max(oKart.rotinc,-maxValue);
@@ -13903,7 +14342,7 @@ function move(getId, triggered) {
 			}
 		}
 		else if (oKart.speed && !oKart.billball && !oKart.cannon)
-			oKart.rotation += (oKart.rotinc+(oKart.driftinc||0)*1.5)*((((oKart.speedinc<0)||(oKart.speedinc==0&&oKart.speed<0))?-1:1))*Math.abs(Math.cos(angleDrift(oKart)*Math.PI/180));
+			oKart.rotation += angleInc(oKart);
 		if (oKart.frminv)
 			oKart.frminv--;
 	}
@@ -14817,12 +15256,8 @@ function move(getId, triggered) {
 							document.getElementById("infoPlace0").style.visibility = "hidden";
 							finishing = true;
 						}
-						document.onkeydown = undefined;
-						document.onkeyup = undefined;
-						document.onmousedown = undefined;
+						resetEvents();
 						window.onbeforeunload = logGameTime;
-						window.removeEventListener("blur", window.releaseOnBlur);
-						window.releaseOnBlur = undefined;
 					}
 				}
 				else if (onlineSpectatorId && !finishing) {
@@ -15027,12 +15462,8 @@ function move(getId, triggered) {
 				for (i=0;i<aKarts.length;i++)
 					aKarts[i].loose = true;
 				handleEndRace();
-				document.onkeydown = undefined;
-				document.onkeyup = undefined;
-				document.onmousedown = undefined;
+				resetEvents();
 				window.onbeforeunload = logGameTime;
-				window.removeEventListener("blur", window.releaseOnBlur);
-				window.releaseOnBlur = undefined;
 			}
 		}
 	}
@@ -15407,7 +15838,7 @@ function timeTrialMode() {
 function handleDriftCpt(getId) {
 	var oKart = aKarts[getId];
 	if (oKart.driftinc) {
-		if (oKart.rotincdir) {
+		if (Math.abs(oKart.rotincdir) >= oKart.stats.handling) {
 			if ((oKart.rotincdir>0) == (oKart.driftinc>0)) {
 				oKart.drift += oKart.driftinc;
 				if (oKart.driftinc > 0) {
@@ -15442,8 +15873,11 @@ function handleDriftCpt(getId) {
 				oKart.driftcpt += 2;
 			else if ((oKart.rotincdir>0) == (oKart.driftinc>0))
 				oKart.driftcpt += 6*Math.max(0.7,Math.pow(Math.abs(oKart.rotincdir)/0.6,0.8));
-			else
+			else {
 				oKart.driftcpt++;
+				if (Math.abs(oKart.rotincdir) < oKart.stats.handling)
+					oKart.driftcpt++;
+			}
 			if (oKart.driftcpt >= fTurboDriftCpt2) {
 				for (var i=0;i<oPlayers.length;i++)
 					oKart.driftSprite[i].setState(2);
@@ -15479,6 +15913,9 @@ function angleDrift(oKart) {
 	if (oKart.sliding && kartIsPlayer(oKart))
 		return oKart.rotinc*oKart.sliding;
 	return oKart.drift*6;
+}
+function angleInc(oKart) {
+	return (oKart.rotinc+(oKart.driftinc||0)*1.5)*((((oKart.speedinc<0)||(oKart.speedinc==0&&oKart.speed<0))?-1:1))*Math.abs(Math.cos(angleDrift(oKart)*Math.PI/180));
 }
 function angleShoot(oKart, backwards) {
 	var res = oKart.rotation;
@@ -16680,6 +17117,137 @@ function moveDecor() {
 		}
 	}
 }
+var previouslyPressedBtns = [];
+function handleGamepadEvents() {
+	if (gameControls.gamepad) {
+		for (var i=0;i<gameControls.gamepad.length;i++) {
+			var gamepadInputsData = getGamepadInputsData(i, previouslyPressedBtns[i]);
+			if (!gamepadInputsData) continue;
+			var pressedActions = gamepadInputsData.pressedActions;
+			var pressActions = gamepadInputsData.pressActions;
+			var releaseActions = gamepadInputsData.releaseActions;
+
+			var plSuffix = i ? "_p2" : "";
+			var oPlayer = oPlayers[i];
+			for (var j=0;j<pressActions.length;j++) {
+				var pressAction = pressActions[j];
+				var key = pressAction.key;
+				var fullKey = key + plSuffix;
+				switch (key) {
+				case "down":
+					if (pressedActions["up"])
+						doReleaseKey("up");
+					else
+						doPressKey(fullKey);
+					break;
+				case "item":
+				case "item_fwd":
+				case "item_back":
+					if (!pressAction.wasPressed && !hasOnHoldItem(oPlayer))
+						doReleaseKey(fullKey);
+					break;
+				case "rear":
+					if (!oPlayer.changeView)
+						doReleaseKey(fullKey);
+					break;
+				case "pause":
+					pressKey(key);
+					break;
+				case "balloon":
+					if (!pressAction.wasPressed)
+						doPressKey(fullKey);
+					break;
+				default:
+					doPressKey(fullKey);
+				}
+			}
+			for (var j=0;j<releaseActions.length;j++) {
+				var releaseAction = releaseActions[j];
+				var key = releaseAction.key;
+				var fullKey = key + plSuffix;
+				switch (key) {
+				case "item":
+				case "item_fwd":
+				case "item_back":
+					if (hasOnHoldItem(oPlayer))
+						doReleaseKey(fullKey);
+					break;
+				case "rear":
+					if (oPlayer.changeView)
+						doReleaseKey(fullKey);
+					break;
+				default:
+					doReleaseKey(fullKey);
+				}
+			}
+		}
+	}
+}
+function getGamepadInputsData(i, previouslyPressed) {
+	var data = gameControls.gamepad[i];
+	var selectedGamepad = findGamePadById(data);
+	if (!selectedGamepad)
+		return;
+	var pressedBtnsRaw = getGamepadPressedBtns(selectedGamepad);
+	var pressedBtnsMap = {};
+	for (var j=0;j<pressedBtnsRaw.length;j++)
+		pressedBtnsMap[pressedBtnsRaw[j].key] = pressedBtnsRaw[j];
+	var pressedBtns = [];
+	var pressedActions = {};
+	var releasedActions = {};
+	var pressActions = [];
+	var releaseActions = [];
+	for (var j=0;j<data.controls.length;j++) {
+		var jControls = data.controls[j];
+		var isPressed = jControls.inputs.every(function(control) {
+			var pressedBtn = pressedBtnsMap[control.key];
+			return pressedBtn && control.isPressed(pressedBtn);
+		});
+		var wasPressed = previouslyPressed[j];
+		if (isPressed) {
+			var priorBtn = false;
+			for (var k=0;k<pressedBtns.length;k++) {
+				if (isGamepadControlSubset(jControls.inputs, pressedBtns[k].inputs)) {
+					priorBtn = true;
+					break;
+				}
+			}
+			if (!priorBtn) {
+				pressedBtns.push(jControls);
+				var pressedKey = jControls.key;
+				previouslyPressed[j] = true;
+				pressActions.push({
+					key: pressedKey,
+					wasPressed: wasPressed
+				});
+				pressedActions[pressedKey] = true;
+			}
+		}
+		else if (wasPressed) {
+			var fullyReleased = jControls.inputs.every(function(control) {
+				var pressedBtn = pressedBtnsMap[control.key];
+				return !pressedBtn || (pressedBtn.type === "stick");
+			});
+			if (fullyReleased) {
+				var pressedKey = jControls.key;
+				previouslyPressed[j] = undefined;
+				releaseActions.push({
+					key: pressedKey
+				});
+				releasedActions[pressedKey] = true;
+			}
+		}
+	}
+	return {
+		pressedBtnsRaw: pressedBtnsRaw,
+		pressedBtns: pressedBtns,
+		pressedActions: pressedActions,
+		releasedActions: releasedActions,
+		pressActions: pressActions,
+		releaseActions: releaseActions
+	};
+}
+
 function handleAudio() {
 	if (mapMusic && mapMusic.opts && mapMusic.opts.end && mapMusic.yt && mapMusic.yt.getCurrentTime && mapMusic.yt.getCurrentTime() > mapMusic.opts.end) {
 		var start = mapMusic.opts.start || 0;
@@ -16695,6 +17263,7 @@ function cycle() {
 }
 var decorPos = {};
 function runOneFrame() {
+	handleGamepadEvents();
 	if (!timeTrialMode()) {
 		for (var i=0;i<aKarts.length;i++)
 			colKart(i);
@@ -16780,7 +17349,14 @@ function runOneFrame() {
 	render();
 }
 
-var gameControls = {};
+var gameControls = {
+	keyboard: {}
+};
+function getGameAction(e) {
+	if (e.keyAction)
+		return e.keyAction;
+	return gameControls.keyboard[e.keyCode];
+}
 function handleSpectatorInput(e) {
 	switch (e.keyCode) {
 	case 37:
@@ -16814,13 +17390,121 @@ function handleSpectatorInput(e) {
 	return false;
 }
 document.onkeydown = function(e) {
+	if (!oPlayers.length) {
+		var oScr = oContainers[0].childNodes[0];
+		if (!oScr) return;
+		if (document.activeElement && (document.activeElement.tabIndex >= 0) && !oScr.contains(document.activeElement))
+			return;
+		switch (e.key) {
+		case "Enter":
+			if (selectedOscrElt) {
+				if (focusIndicator.parentNode === oScr)
+					oScr.removeChild(focusIndicator);
+				selectedOscrElt.click();
+			}
+			break;
+		case "_Back":
+			var oBackButtons = oScr.querySelectorAll('input[type="Button"][value="'+toLanguage("Back","Retour")+'"]:not(:disabled)');
+			for (var i=0;i<oBackButtons.length;i++) {
+				var oBackButton = oBackButtons[i];
+				var bounds = oBackButton.getBoundingClientRect();
+				if (bounds.width > 0 && bounds.height > 0) {
+					oBackButton.click();
+					break;
+				}
+			}
+			break;
+		}
+		if (["ArrowUp","ArrowLeft","ArrowRight","ArrowDown"].indexOf(e.key) === -1) return;
+		if (selectedOscrElt && !oScr.contains(selectedOscrElt))
+			selectedOscrElt = undefined;
+		var oButtons = [...oScr.querySelectorAll("*")].filter(elt => elt.onclick).filter(elt => !elt.disabled).filter(elt => {
+			var bounds = elt.getBoundingClientRect();
+			return (bounds.width) > 0 && (bounds.height) > 0;
+		});
+		var pos, rPos, dir, rDir, sign, uPos, vPos;
+		switch (e.key) {
+		case "ArrowUp":
+			dir = "up";
+			rDir = "down";
+			pos = "top";
+			rPos = "bottom";
+			uPos = "left";
+			vPos = "right";
+			sign = -1;
+			break;
+		case "ArrowDown":
+			dir = "down";
+			rDir = "up";
+			pos = "bottom";
+			rPos = "top";
+			uPos = "left";
+			vPos = "right";
+			sign = 1;
+			break;
+		case "ArrowLeft":
+			dir = "left";
+			rDir = "right";
+			pos = dir;
+			rPos = rDir;
+			uPos = "top";
+			vPos = "bottom";
+			sign = -1;
+			break;
+		case "ArrowRight":
+			dir = "right";
+			rDir = "left";
+			pos = dir;
+			rPos = rDir;
+			uPos = "top";
+			vPos = "bottom";
+			sign = 1;
+			break;
+		}
+		if (selectedOscrElt) {
+			var sRect = selectedOscrElt.getBoundingClientRect();
+			var cRect = oScr.getBoundingClientRect();
+			var minDist = Infinity, minButton;
+			for (var i=0;i<oButtons.length;i++) {
+				var oButton = oButtons[i];
+				if (oButton === selectedOscrElt) continue;
+				var oRect = oButton.getBoundingClientRect();
+				var distX = (oRect[rPos] - sRect[pos])*sign;
+				var distY = Math.max(oRect[uPos],sRect[uPos]) - Math.min(oRect[vPos],sRect[vPos]);
+				if (distX < 0)
+					distX += cRect.width;
+				if (distY < 0) distY = 0;
+				var dist = distX + 3*distY;
+				if (dist < minDist) {
+					minDist = dist;
+					minButton = oButton;
+				}
+			}
+			if (minButton)
+				showFocusIndicator(oScr, minButton);
+		}
+		else {
+			var maxPos = Infinity*sign;
+			var maxButton;
+			for (var i=0;i<oButtons.length;i++) {
+				var oButton = oButtons[i];
+				var oRect = oButton.getBoundingClientRect();
+				if (oRect[rPos]*sign < maxPos*sign) {
+					maxPos = oRect[rPos];
+					maxButton = oButton;
+				}
+			}
+			if (maxButton)
+				showFocusIndicator(oScr, maxButton);
+		}
+	}
 	if (onlineSpectatorId) {
 		var res = handleSpectatorInput(e);
 		if (res === false)
 			render();
 		return res;
 	}
-	var gameAction = gameControls[e.keyCode];
+	var gameAction = getGameAction(e);
 	switch (gameAction) {
 		case "up":
 			oPlayers[0].speedinc = 1;
@@ -16849,10 +17533,32 @@ document.onkeydown = function(e) {
 	}
 }
 
+var selectedOscrElt;
+var focusIndicator;
+function showFocusIndicator(oScr, oButton) {
+	selectedOscrElt = oButton;
+	var oRect = oButton.getBoundingClientRect();
+	var cRect = oScr.getBoundingClientRect();
+	if (!focusIndicator) {
+		focusIndicator = document.createElement("div");
+		focusIndicator.style.position = "absolute";
+		focusIndicator.style.backgroundColor = primaryColor;
+		focusIndicator.style.opacity = 0.4;
+		focusIndicator.style.pointerEvents = "none";
+	}
+	oScr.appendChild(focusIndicator);
+	var paddingW = iScreenScale, paddingH = Math.round(iScreenScale/2);
+	focusIndicator.style.left = (oRect.left - cRect.left - paddingW) +"px";
+	focusIndicator.style.top = (oRect.top - cRect.top - paddingH) +"px";
+	focusIndicator.style.width = (oRect.width + 2*paddingW) +"px";
+	focusIndicator.style.height = (oRect.height + 2*paddingH) +"px";
+	focusIndicator.style.borderRadius = paddingH +"px";
+}
+
 
 document.onkeyup = function(e) {
 	if (onlineSpectatorId) return;
-	var gameAction = gameControls[e.keyCode];
+	var gameAction = getGameAction(e);
 	switch (gameAction) {
 		case "up":
 			oPlayers[0].speedinc = 0;
@@ -16879,8 +17585,35 @@ document.onkeyup = function(e) {
 	}
 }
 
-var virtualButtonW = 60, virtualButtonH = 50;
-function addButton(lettre, key, x, y, w, h, fs) {
+function addButton(lettre, options) {
+	var oButton = options.btn || document.createElement("button");
+	oButton.style.textAlign = "center";
+	oButton.style.padding = "0px";
+	oButton.dataset.key = options.key;
+	if (options.src) {
+		oButton.className = "btn-img";
+		var oImg = document.createElement("img");
+		oImg.src = "images/vkeyboard/"+ options.src +".png";
+		oImg.alt = lettre;
+		oButton.appendChild(oImg);
+	}
+	else
+		oButton.innerHTML = lettre;
+	if ("touchstart" in options)
+		oButton.ontouchstart = options.touchstart;
+	else
+		oButton.ontouchstart = onButtonTouch;
+	if ("touchend" in options)
+		oButton.ontouchend = options.touchend;
+	else
+		oButton.ontouchend = onButtonPress;
+	if (!options.parent)
+		options.parent = document.getElementById("virtualkeyboard");
+	options.parent.appendChild(oButton);
+	return oButton;
+}
+function addButtonLegacy(lettre, key, x, y, w, h, fs) {
+	var virtualButtonW = 60, virtualButtonH = 50;
 	w = (w || 1)*virtualButtonW;
 	h = (h || 1)*virtualButtonH;
 	var oButton = document.createElement("button");
@@ -19920,6 +20653,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oDiv.style.borderLeft = "double 4px #F8F8F8"; 
 		oDiv.style.borderRight = "double 4px #F8F8F8"; 
 		oDiv.style.borderBottom = "solid 5px #00B800";
+		oDiv.style.cursor = "pointer";
+		oDiv.id = "perso-selector-"+oJoueur;
 
 		var cDiv = document.createElement("div");
 		cDiv.style.position = "absolute";
@@ -19943,8 +20678,6 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oPImg.src = (libre ? getSpriteSrc(oJoueur):getStarSrc(oJoueur));
 			oPImg.alt = oJoueur;
 			oPImg.style.left = -(30 * jScreenScale) +"px";
-			oPImg.style.cursor = "pointer";
-			oPImg.id = "perso-selector-"+oJoueur;
 			oPImg.j = IdJ;
 			oPImg.onload = function() {
 				var cWidth = Math.min(5*this.naturalWidth/768,5.8);
@@ -19958,7 +20691,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				cDiv.style.left = Math.round((5-cWidth)/2*jScreenScale)+"px";
 				cDiv.style.top = Math.round(1+(5-cHeight)/2*jScreenScale)+"px";
 			}
-			cDiv.onmouseover = function() {
+			oDiv.onmouseover = function() {
 				cTable.style.display = "block";
 				var cImg = cDiv.firstChild;
 				hTd2.innerHTML = toPerso(cImg.alt);
@@ -19967,7 +20700,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				clearTimeout(rotateHandler);
 				tourner(cImg);
 			}
-			cDiv.onmouseout = function() {
+			oDiv.onmouseout = function() {
 				cTable.style.display = "none";
 				var cImg = cDiv.firstChild;
 				if (cImg.naturalWidth) {
@@ -19978,9 +20711,9 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					cImg.style.left = -(30 * jScreenScale) +"px";
 				clearTimeout(rotateHandler);
 			}
-			cDiv.onclick = function() {
+			oDiv.onclick = function() {
 				clearTimeout(rotateHandler);
-				var cImg = cDiv.firstChild;
+				var cImg = oDiv.firstChild.firstChild;
 				strPlayer[cImg.j] = cImg.alt;
 				var newOptions = ""; // will be used later
 				if (!isOnline) {
@@ -21027,8 +21760,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 	if (clSelected && clSelected.autoset && clSelected.autoset.selectedPerso && !force) {
 		var persoSelector = document.getElementById("perso-selector-"+clSelected.autoset.selectedPerso);
-		if (persoSelector && persoSelector.parentNode && persoSelector.parentNode.onclick) {
-			persoSelector.parentNode.onclick();
+		if (persoSelector && persoSelector.onclick) {
+			persoSelector.onclick();
 			return;
 		}
 	}
@@ -21061,8 +21794,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			var persoKey = newPersos[i].sprites;
 			pUnlockMap[persoKey] = 1;
 			var oDiv = createPersoSelector(persoKey);
-			if (newP && !i && oDiv.firstChild.onclick) {
-				oDiv.firstChild.onclick();
+			if (newP && !i && oDiv.onclick) {
+				oDiv.onclick();
 				return;
 			}
 			oDiv.style.left = 67*iScreenScale +"px";
@@ -26042,6 +26775,11 @@ function optionOf(vName) {
 function displayCommands(html) {
 	var $commandes = document.getElementById("commandes");
 	if ($commandes) {
+		if (isMobile()) {
+			if (document.getElementById("commandes-edit"))
+				return;
+			html = "";
+		}
 		var emptyCommands = !html;
 		$commandes.innerHTML = (html||"")+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit"'+ (emptyCommands ? ' class="nocommand"':'') +' title="'+toLanguage("More settings","Plus de paramètres")+'" />';
 		document.getElementById("commandes-edit").onclick = function() {
@@ -26050,8 +26788,8 @@ function displayCommands(html) {
 	}
 }
 function updateCommandSheet() {
-	var gameCommands = getCommands(2);
-	var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+	var gameCommands = getCommands(null, 2);
+	var isMac = navigator.platform && navigator.platform.toUpperCase().indexOf('MAC')>=0;
 	function aTouches(T1, T2) {
 		var P = language ? "P":"J";
 		return (oContainers.length == 1) ? T1 : P+"1 : "+ T1 +"; "+P+"2 : "+ T2 +"";
@@ -26065,9 +26803,14 @@ function updateCommandSheet() {
 	}
 	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((course=="BB") ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((course=="BB") ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
-function editCommands(reload,currentTab,selectedPlayer) {
-	currentTab = currentTab || 0;
-	selectedPlayer = selectedPlayer || 0;
+var pollingGamepadsHandler;
+function editCommands(options) {
+	clearInterval(pollingGamepadsHandler);
+	var reload = !!options;
+	options = options || {};
+	var currentTab = options.currentTab || 0;
+	var selectedPlayer = options.selectedPlayer || 0;
+	var selectedDevice = options.selectedDevice || "keyboard";
 	var nbPlayers = selectedPlayer+1;
 	var $controlEditorMask = document.getElementById("control-editor-mask");
 	if ($controlEditorMask) {
@@ -26124,126 +26867,468 @@ function editCommands(reload,currentTab,selectedPlayer) {
 	$controlWindows.className = "control-window";
 	var $controlCommands = document.createElement("div");
 	$controlCommands.className = "control-window-active";
-	var $controlCommandPlayers = document.createElement("div");
-	$controlCommandPlayers.className = "control-players";
-	for (var i=0;i<2;i++) {
-		(function(playerId) {
-			var $controlCommandPlayer = document.createElement("a");
-			$controlCommandPlayer.href = "#null";
-			$controlCommandPlayer.className = "control-player " + (playerId == selectedPlayer ? "control-player-selected" : "");
-			$controlCommandPlayer.innerHTML = toLanguage("Player ","Joueur ") + (playerId+1);
-			$controlCommandPlayer.onclick = function() {
-				if (selectedPlayer === playerId) return false;
-				editCommands(true,currentTab,playerId);
-				return false;
+	if (!options.pc && isMobile()) {
+		var currentSettingsCtrl = localStorage.getItem("settings.ctrl");
+		currentSettingsCtrl = currentSettingsCtrl ? JSON.parse(currentSettingsCtrl) : {};
+
+		var $controlTypeTitle = document.createElement("div");
+		$controlTypeTitle.className = "control-main-title";
+		$controlTypeTitle.innerHTML = toLanguage("Command interface", "Interface de commandes");
+		$controlCommands.appendChild($controlTypeTitle);
+		var $controlTypeValues = document.createElement("div");
+		$controlTypeValues.className = "control-type-values";
+		var controlTypeValues = [{
+			id: "keyboard",
+			name: toLanguage("Virtual Keyboard", "Clavier virtuel"),
+			description: toLanguage("Shows buttons that behave like keys in a keyboard", "Affiche des boutons pour simuler les touches d'un clavier"),
+			dropdown: function($div) {
+				var $controlSetting = document.createElement("label");
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = toLanguage("Keyboard layout:", "Disposition des touches :");
+				$controlSetting.appendChild($controlText);
+				var $controlSelect = document.createElement("select");
+				var selectOptions = {
+					"": toLanguage("Default", "Par défaut"),
+					"h_sym": toLanguage("Horizontal symmetry", "Symétrie horizontale"),
+					"v_sym": toLanguage("Vertical symmetry", "Symétrie verticale"),
+					"vh_sym": toLanguage("Both symmetries", "Symétrie mixte"),
+					"old": toLanguage("Old version", "Ancienne version")
+				};
+				var currentVal = currentSettingsCtrl["layout"] || "";
+				for (var key in selectOptions) {
+					var $controlOption = document.createElement("option");
+					$controlOption.value = key;
+					if (key === currentVal)
+						$controlOption.selected = "selected";
+					$controlOption.innerHTML = selectOptions[key];
+					$controlSelect.appendChild($controlOption);
+				}
+				$controlSetting.appendChild($controlSelect);
+				$controlSelect.onchange = function() {
+					if (this.value)
+						currentSettingsCtrl["layout"] = this.value;
+					else
+						delete currentSettingsCtrl["layout"];
+					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
+				}
+				$div.appendChild($controlSetting);
 			}
-			$controlCommandPlayers.appendChild($controlCommandPlayer);
-		})(i);
+		}, {
+			id: "gestures",
+			name: toLanguage("Touch controls", "Contrôles tactiles"),
+			description: toLanguage("Swipe the screen to go in the desired direction. Controls similar to Mario Kart Tour", "Balayez l'écran pour vous diriger dans la direction souhaitée. Contrôles similaires à Mario Kart Tour"),
+			dropdown: function($div) {
+				var $touchCtrlHelp = document.createElement("a");
+				$touchCtrlHelp.className = "control-touch-help";
+				$touchCtrlHelp.href = "#null";
+				$touchCtrlHelp.innerHTML = toLanguage("How touch controls work...", "Aide sur les contrôles tactiles...");
+				$touchCtrlHelp.onclick = function() {
+					window.open('helpTouchCtrls.php','help','scrollbars=1, resizable=1, width=500, height=500');
+					return false;
+				};
+				$div.appendChild($touchCtrlHelp);
+			}
+		}, {
+			id: "external",
+			name: toLanguage("External controller", "Contrôleur externe"),
+			description: toLanguage("Connect an external keyboard or gamepad", "Connetez un clavier ou une manette externe"),
+			dropdown: function($div) {
+				var $extCtrlSettings = document.createElement("a");
+				$extCtrlSettings.className = "control-ext-settings";
+				$extCtrlSettings.href = "#null";
+				$extCtrlSettings.innerHTML = toLanguage("Controller settings...", "Paramètres du contrôlleur...");
+				$extCtrlSettings.onclick = function() {
+					options.pc = true;
+					editCommands(options);
+					return false;
+				};
+				$div.appendChild($extCtrlSettings);
+			}
+		}];
+		var currentControlType = currentSettingsCtrl.mode || "keyboard";
+		for (var i=0;i<controlTypeValues.length;i++) {
+			(function(controlTypeValue) {
+				var $controlTypeValue = document.createElement("div");
+				$controlTypeValue.className = "control-type-value";
+
+				var $controlTypeLabel = document.createElement("label");
+
+				var $controlTypeInput = document.createElement("div");
+				$controlTypeInput.className = "control-type-input";
+				var $controlTypeRadio = document.createElement("input");
+				$controlTypeRadio.type = "radio";
+				$controlTypeRadio.name = "control-type";
+				$controlTypeInput.appendChild($controlTypeRadio);
+				$controlTypeRadio.onclick = function() {
+					currentSettingsCtrl.mode = controlTypeValue.id;
+					localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
+
+					var $selectedCtrl;
+					while ($selectedCtrl = document.querySelector(".control-type-value.selected"))
+						$selectedCtrl.classList.remove("selected");
+					$controlTypeValue.classList.add("selected");
+				};
+				if (controlTypeValue.id === currentControlType) {
+					$controlTypeRadio.click();
+				}
+				$controlTypeLabel.appendChild($controlTypeInput);
+
+				var $controlTypeExplain = document.createElement("div");
+				$controlTypeExplain.className = "control-type-explain";
+				var $controlTypeName = document.createElement("div");
+				$controlTypeName.className = "control-type-name";
+				$controlTypeName.innerHTML = controlTypeValue.name;
+				$controlTypeExplain.appendChild($controlTypeName);
+				var $controlTypeDesc = document.createElement("div");
+				$controlTypeDesc.className = "control-type-desc";
+				$controlTypeDesc.innerHTML = controlTypeValue.description;
+				$controlTypeExplain.appendChild($controlTypeDesc);
+				$controlTypeLabel.appendChild($controlTypeExplain);
+
+				$controlTypeValue.appendChild($controlTypeLabel);
+
+				var $controlTypeExtra = document.createElement("div");
+				$controlTypeExtra.className = "control-type-extra";
+				if (controlTypeValue.dropdown)
+					controlTypeValue.dropdown($controlTypeExtra);
+				$controlTypeValue.appendChild($controlTypeExtra);
+
+				$controlTypeValues.appendChild($controlTypeValue);
+			})(controlTypeValues[i]);
+		}
+		$controlCommands.appendChild($controlTypeValues);
+
+		var $controlMiscTitle = document.createElement("div");
+		$controlMiscTitle.className = "control-main-title";
+		$controlMiscTitle.innerHTML = toLanguage("Other options", "Autres options");
+		$controlCommands.appendChild($controlMiscTitle);
+		
+		var $controlMiscValues = document.createElement("div");
+		$controlMiscValues.className = "control-misc-values";
+		var allMiscSettings = [{
+			key: "autoacc",
+			label: toLanguage("Auto-accelerate", "Accélérer automatiquement"),
+			defaultVal: 1
+		}, {
+			key: "vitem",
+			label: toLanguage("Touch game screen to send an item", "Toucher l'écran de jeu pour lancer un objet"),
+			defaultVal: 1
+		}, {
+			key: "gyroscope",
+			label: toLanguage("Rotate the screen to turn, like with a steering wheel", "Pivotez l'écran pour tourner, comme avec un volant"),
+			defaultVal: 0,
+			onCheck: function(checked) {
+				if (checked && ("DeviceOrientationEvent" in window) && DeviceOrientationEvent.requestPermission)
+					DeviceOrientationEvent.requestPermission();
+			}
+		}];
+		allMiscSettings.forEach(function(miscSetting) {
+			var $controlSetting = document.createElement("label");
+			var $controlCheckbox = document.createElement("input");
+			$controlCheckbox.type = "checkbox";
+			var key = miscSetting.key;
+			if (key in currentSettingsCtrl)
+				$controlCheckbox.checked = currentSettingsCtrl[key];
+			else
+				$controlCheckbox.checked = miscSetting.defaultVal;
+			$controlSetting.appendChild($controlCheckbox);
+			var $controlText = document.createElement("span");
+			$controlText.innerHTML = miscSetting.label;
+			$controlSetting.appendChild($controlText);
+			$controlCheckbox.onclick = function() {
+				var val = +this.checked;
+				if (val === miscSetting.defaultVal)
+					delete currentSettingsCtrl[key];
+				else
+					currentSettingsCtrl[key] = val;
+				localStorage.setItem("settings.ctrl", JSON.stringify(currentSettingsCtrl));
+				if (miscSetting.onCheck)
+					miscSetting.onCheck(val);
+			}
+			$controlMiscValues.appendChild($controlSetting);
+		});
+		
+		$controlCommands.appendChild($controlMiscValues);
+
+		var $controlReset = document.createElement("div");
+		$controlReset.className = "control-reset";
+		var $controlResetBtn = document.createElement("a");
+		$controlResetBtn.href = "#null";
+		$controlResetBtn.innerHTML = toLanguage("Reset settings", "Rétablir les paramètres par défaut");
+		$controlResetBtn.onclick = function() {
+			if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
+				localStorage.removeItem("settings.ctrl");
+				editCommands(options);
+			}
+			return false;
+		};
+		$controlReset.appendChild($controlResetBtn);
+		$controlCommands.appendChild($controlReset);
 	}
-	$controlCommands.appendChild($controlCommandPlayers);
-	var commands = [{
-		name: toLanguage("Move forward", "Avancer"),
-		key: "up"
-	}, {
-		name: toLanguage("Move back", "Reculer"),
-		key: "down"
-	}, {
-		name: toLanguage("Turn left", "Tourner à gauche"),
-		key: "left"
-	}, {
-		name: toLanguage("Turn right", "Tourner à droite"),
-		key: "right"
-	}, {
-		name: toLanguage("Use item", "Utiliser un objet"),
-		key: "item"
-	}, {
-		name: toLanguage("Item backwards", "Objet en arrière"),
-		key: "item_back"
-	}, {
-		name: toLanguage("Item forwards", "Objet en avant"),
-		key: "item_fwd"
-	}, {
-		name: toLanguage("Jump/drift", "Sauter/déraper"),
-		key: "jump"
-	}, {
-		name: toLanguage("Inflate balloon", "Gonfler un ballon"),
-		key: "balloon"
-	}, {
-		name: toLanguage("Rear view", "Vue arrière"),
-		key: "rear"
-	}, {
-		name: toLanguage("Pause", "Pause"),
-		key: "pause"
-	}, {
-		name: toLanguage("Quit", "Quitter"),
-		key: "quit"
-	}];
-	var gameCommands = getCommands(nbPlayers);
-	if (selectedPlayer) {
-		for (var i=0;i<commands.length;i++) {
-			var p2Key = commands[i].key + "_p2";
-			if (gameCommands[p2Key])
-				commands[i].key = p2Key;
+	else {
+		var $controlCommandTabs = document.createElement("div");
+		$controlCommandTabs.className = "control-command-tabs";
+
+		var $controlCommandPlayers = document.createElement("div");
+		$controlCommandPlayers.className = "control-players";
+		for (var i=0;i<2;i++) {
+			(function(playerId) {
+				var $controlCommandPlayer = document.createElement("a");
+				$controlCommandPlayer.href = "#null";
+				$controlCommandPlayer.className = "control-command-tab " + (playerId === selectedPlayer ? "control-command-tab-selected" : "");
+				$controlCommandPlayer.innerHTML = toLanguage("Player ","Joueur ") + (playerId+1);
+				$controlCommandPlayer.onclick = function() {
+					if (selectedPlayer === playerId) return false;
+					options.selectedPlayer = playerId;
+					editCommands(options);
+					return false;
+				}
+				$controlCommandPlayers.appendChild($controlCommandPlayer);
+			})(i);
+		}
+		$controlCommandTabs.appendChild($controlCommandPlayers);
+
+		var $controlInputDevices = document.createElement("div");
+		$controlInputDevices.className = "control-input-devices";
+		var inputDevices = [{
+			id: "keyboard",
+			label: toLanguage("Keyboard", "Clavier")
+		}, {
+			id: "gamepad",
+			label: toLanguage("Gamepad", "Manette")
+		}];
+		for (var i=0;i<inputDevices.length;i++) {
+			(function(inputDevice) {
+				var $controlInputDevice = document.createElement("a");
+				$controlInputDevice.href = "#null";
+				$controlInputDevice.className = "control-command-tab " + (inputDevice.id === selectedDevice ? "control-command-tab-selected" : "");
+				$controlInputDevice.innerHTML = inputDevice.label;
+				$controlInputDevice.onclick = function() {
+					if (selectedDevice === inputDevice.id) return false;
+					options.selectedDevice = inputDevice.id;
+					editCommands(options);
+					return false;
+				}
+				$controlInputDevices.appendChild($controlInputDevice);
+			})(inputDevices[i]);
+		}
+		$controlCommandTabs.appendChild($controlInputDevices);
+
+		$controlCommands.appendChild($controlCommandTabs);
+
+		var commands = [{
+			name: toLanguage("Move forward", "Avancer"),
+			key: "up"
+		}, {
+			name: toLanguage("Move back", "Reculer"),
+			key: "down"
+		}, {
+			name: toLanguage("Turn left", "Tourner à gauche"),
+			key: "left"
+		}, {
+			name: toLanguage("Turn right", "Tourner à droite"),
+			key: "right"
+		}, {
+			name: toLanguage("Use item", "Utiliser un objet"),
+			key: "item"
+		}, {
+			name: toLanguage("Item backwards", "Objet en arrière"),
+			key: "item_back"
+		}, {
+			name: toLanguage("Item forwards", "Objet en avant"),
+			key: "item_fwd"
+		}, {
+			name: toLanguage("Jump/drift", "Sauter/déraper"),
+			key: "jump"
+		}, {
+			name: toLanguage("Inflate balloon", "Gonfler un ballon"),
+			key: "balloon"
+		}, {
+			name: toLanguage("Rear view", "Vue arrière"),
+			key: "rear"
+		}, {
+			name: toLanguage("Pause", "Pause"),
+			key: "pause"
+		}, {
+			name: toLanguage("Quit", "Quitter"),
+			key: "quit"
+		}];
+		var gameCommands = getCommands(selectedDevice, nbPlayers);
+		var plSuffix = "";
+		if (selectedPlayer) {
+			plSuffix = "_p2";
+			for (var i=0;i<commands.length;i++) {
+				var p2Key = commands[i].key + plSuffix;
+				if (gameCommands[p2Key])
+					commands[i].key = p2Key;
+			}
+		}
+		var localControls = JSON.parse(localStorage.getItem(getLocalControlKey(selectedDevice))||"{}");
+		var isMac = (navigator.platform && navigator.platform.toUpperCase().indexOf('MAC')>=0);
+		var isKeyboard = (selectedDevice === "keyboard");
+		var isGamepad = (selectedDevice === "gamepad");
+		if (isGamepad && (localControls["_id"+plSuffix] === undefined)) {
+			var $controlEditorEmpty = document.createElement("div");
+			$controlEditorEmpty.className = "control-editor-empty";
+			$controlEditorEmpty.innerHTML = '<div class="control-editor-empty-title">🎮</div>';
+			$controlEditorEmpty.innerHTML += '<div>'+ toLanguage("Connect a gamepad and press any button to continue", "Connectez une manette et appuyez sur n'importe quel bouton pour continuer") +'</div>';
+			$controlCommands.appendChild($controlEditorEmpty);
+
+			clearInterval(pollingGamepadsHandler);
+			pollingGamepadsHandler = setInterval(function() {
+				var gamepads = navigator.getGamepads();
+				for (var i=0;i<gamepads.length;i++) {
+					var gamepad = gamepads[i];
+					if (!gamepad) continue;
+					var pressedBtns = getGamepadPressedBtns(gamepad);
+					if (pressedBtns.length) {
+						localControls["_id"+plSuffix] = gamepad.index;
+						localControls["_name"+plSuffix] = gamepad.id;
+						localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+						refreshGameControls();
+						editCommands(options);
+					}
+				}
+			}, 100);
+		}
+		else {
+			if (isGamepad) {
+				var $gamepadReset = document.createElement("div");
+				$gamepadReset.className = "control-gamepad-reset";
+				var $gamepadResetName = document.createElement("span");
+				$gamepadResetName.innerHTML = "<strong>"+ toLanguage("Selected:", "Séléctionné :") +"</strong> " + localControls["_name"+plSuffix];
+				$gamepadReset.appendChild($gamepadResetName);
+
+				var $gamepadResetBtn = document.createElement("a");
+				$gamepadResetBtn.href = "#null";
+				$gamepadResetBtn.innerHTML = toLanguage("[Reset]", "[Réinitiliser]");
+				$gamepadResetBtn.onclick = function() {
+					if (confirm(toLanguage("Reset controller selection?","Réinitialiser la sélection de la manette ?"))) {
+						delete localControls["_id"+plSuffix];
+						delete localControls["_name"+plSuffix];
+						for (var i=0;i<commands.length;i++)
+							delete localControls[commands[i].key];
+						localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+						refreshGameControls();
+						editCommands(options);
+					}
+					return false;
+				};
+				$gamepadReset.appendChild($gamepadResetBtn);
+				$controlCommands.appendChild($gamepadReset);
+			}
+			
+			var $controlEditorGrid = document.createElement("div");
+			$controlEditorGrid.className = "control-editor-grid";
+			for (var i=0;i<commands.length;i++) {
+				(function(command) {
+					var localControl = gameCommands[command.key];
+					var keyCode = localControl;
+					if (isKeyboard) {
+						keyCode = localControl[0];
+						if (localControl[1] && isMac)
+							keyCode = localControl[1];
+					}
+					var $controlKey = document.createElement("div");
+					var $controlLabel = document.createElement("div");
+					$controlLabel.className = "control-label";
+					$controlLabel.innerHTML = command.name;
+					$controlKey.appendChild($controlLabel);
+					var $controlInput = document.createElement("button");
+					$controlInput.className = "control-input";
+					$controlInput.innerHTML = getKeyName(keyCode, selectedDevice);
+					$controlInput.onfocus = function() {
+						this.innerHTML = "...";
+						if (isGamepad) {
+							var pressedGamepadKeys = {};
+							var isPressedBtn = false;
+							clearInterval(pollingGamepadsHandler);
+							pollingGamepadsHandler = setInterval(function() {
+								var selectedGamepad = findGamePadById(localControls, selectedPlayer);
+								if (!selectedGamepad)
+									return;
+								var pressedBtns = getGamepadPressedBtns(selectedGamepad);
+								for (var i=0;i<pressedBtns.length;i++) {
+									var pressedBtn = pressedBtns[i];
+									pressedGamepadKeys[pressedBtn.key] = pressedBtn;
+								}
+								if (pressedBtns.length)
+									isPressedBtn = true;
+								else if (isPressedBtn) {
+									clearInterval(pollingGamepadsHandler);
+									var btnCodes = [];
+									for (var key in pressedGamepadKeys) {
+										var pressedBtn = pressedGamepadKeys[key];
+										var stickCode;
+										switch (pressedBtn.type) {
+										case "stick":
+											if (!stickCode) {
+												stickCode = [];
+												btnCodes.push(stickCode);
+											}
+											while (stickCode.length < pressedBtn.id)
+												stickCode.push(0);
+											stickCode[pressedBtn.id] = pressedBtn.value;
+											break;
+										case "button":
+											btnCodes.push(pressedBtn.id);
+											break;
+										}
+									}
+									keyCode = btnCodes;
+									localControls[command.key] = keyCode;
+									localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+									refreshGameControls();
+									$controlInput.blur();
+								}
+							}, SPF);
+						}
+					};
+					$controlInput.onblur = function() {
+						clearInterval(pollingGamepadsHandler);
+						this.innerHTML = getKeyName(keyCode, selectedDevice);
+					};
+					$controlInput.onclick = function() {
+						this.focus();
+					};
+					switch (selectedDevice) {
+					case "keyboard":
+						$controlInput.onkeydown = function(e) {
+							e.preventDefault();
+							e.stopPropagation();
+							keyCode = e.keyCode;
+							localControls[command.key] = keyCode;
+							localStorage.setItem(getLocalControlKey(selectedDevice), JSON.stringify(localControls));
+							refreshGameControls();
+							this.blur();
+						};
+						break;
+					case "gamepad":
+						break;
+					}
+					$controlKey.appendChild($controlInput);
+					$controlEditorGrid.appendChild($controlKey);
+				})(commands[i]);
+			}
+			$controlCommands.appendChild($controlEditorGrid);
+
+			var $controlReset = document.createElement("div");
+			$controlReset.className = "control-reset";
+			var $controlResetBtn = document.createElement("a");
+			$controlResetBtn.href = "#null";
+			$controlResetBtn.innerHTML = toLanguage("Reset controls", "Rétablir les contrôles par défaut");
+			$controlResetBtn.onclick = function() {
+				if (confirm(toLanguage("Reset to default controls?","Confirmer la réinitialisation des contrôles ?"))) {
+					localStorage.removeItem(getLocalControlKey(selectedDevice));
+					refreshGameControls();
+					editCommands(options);
+				}
+				return false;
+			};
+			$controlReset.appendChild($controlResetBtn);
+			$controlCommands.appendChild($controlReset);
 		}
 	}
-	var localControls = JSON.parse(localStorage.getItem("controls")||"{}");
-	var isMac = (navigator.platform.toUpperCase().indexOf('MAC')>=0);
-	var $controlEditorGrid = document.createElement("div");
-	$controlEditorGrid.className = "control-editor-grid";
-	for (var i=0;i<commands.length;i++) {
-		(function(command) {
-			var localControl = gameCommands[command.key];
-			var keyCode = localControl[0];
-			if (localControl[1] && isMac)
-				keyCode = localControl[1];
-			var $controlKey = document.createElement("div");
-			var $controlLabel = document.createElement("div");
-			$controlLabel.className = "control-label";
-			$controlLabel.innerHTML = command.name;
-			$controlKey.appendChild($controlLabel);
-			var $controlInput = document.createElement("button");
-			$controlInput.className = "control-input";
-			$controlInput.innerHTML = getKeyName(keyCode);
-			$controlInput.onfocus = function() {
-				this.innerHTML = "...";
-			};
-			$controlInput.onblur = function() {
-				this.innerHTML = getKeyName(keyCode);
-			};
-			$controlInput.onclick = function() {
-				this.focus();
-			};
-			$controlInput.onkeydown = function(e) {
-				e.preventDefault();
-				e.stopPropagation();
-				keyCode = e.keyCode;
-				localControls[command.key] = keyCode;
-				localStorage.setItem("controls", JSON.stringify(localControls));
-				if (gameControls)
-					gameControls = getGameControls();
-				this.blur();
-			};
-			$controlKey.appendChild($controlInput);
-			$controlEditorGrid.appendChild($controlKey);
-		})(commands[i]);
-	}
-	$controlCommands.appendChild($controlEditorGrid);
-	var $controlReset = document.createElement("div");
-	$controlReset.className = "control-reset";
-	var $controlResetBtn = document.createElement("a");
-	$controlResetBtn.href = "#null";
-	$controlResetBtn.innerHTML = toLanguage("Reset controls", "Rétablir les contrôles par défaut");
-	$controlResetBtn.onclick = function() {
-		if (confirm(toLanguage("Reset to default controls?","Confirmer la réinitialisation des contrôles ?"))) {
-			localStorage.removeItem("controls");
-			if (gameControls)
-				gameControls = getGameControls();
-			editCommands(true,currentTab,selectedPlayer);
-		}
-		return false;
-	};
-	$controlReset.appendChild($controlResetBtn);
-	$controlCommands.appendChild($controlReset);
 	$controlWindows.appendChild($controlCommands);
 	var $controlSettings = document.createElement("div");
 	$controlSettings.className = "control-settings";
@@ -26290,17 +27375,17 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		$controlSelect.onchange = function() {
 			MarioKartControl.setQuality(+this.value);
 		};
-		var options = [
+		var graphicOptions = [
 			[5, toLanguage("Pixelated","Pixelisé")],
 			[4, toLanguage("Low","Inférieure")],
 			[2, toLanguage("Medium","Moyenne")],
 			[1, toLanguage("High","Supérieure")]
 		];
-		for (var i=0;i<options.length;i++) {
-			var option = options[i];
+		for (var i=0;i<graphicOptions.length;i++) {
+			var graphicOption = graphicOptions[i];
 			var $controlOption = document.createElement("option");
-			$controlOption.value = option[0];
-			$controlOption.innerHTML = option[1];
+			$controlOption.value = graphicOption[0];
+			$controlOption.innerHTML = graphicOption[1];
 			$controlSelect.appendChild($controlOption);
 		}
 		if (localStorage.getItem("iQuality"))
@@ -26361,7 +27446,7 @@ function editCommands(reload,currentTab,selectedPlayer) {
 					localStorage.setItem("settings", JSON.stringify(currentSettings));
 				};
 				for (var i=1;i<10;i++) {
-					var option = options[i];
+					var graphicOption = graphicOptions[i];
 					var $controlOption = document.createElement("option");
 					$controlOption.value = i;
 					$controlOption.innerHTML = i;
@@ -26429,18 +27514,18 @@ function editCommands(reload,currentTab,selectedPlayer) {
 				currentSettings.frameint = this.value;
 				localStorage.setItem("settings", JSON.stringify(currentSettings));
 			};
-			var options = [
+			var graphicOptions = [
 				["ease_out_linear", toLanguage("Linear &nbsp; &nbsp; &nbsp; (Smoothest)", "Linéaire &nbsp; (Très fluide)")],
 				["ease_out_quad", toLanguage("Quadratic (Smooth)","Quadratique (Fluide)")],
 				["ease_out_cubic", toLanguage("Cubic &nbsp; &nbsp; &nbsp; &nbsp; (Medium)","Cubique &nbsp; &nbsp; (Moyen)")],
 				["ease_out_quart", toLanguage("Quartic &nbsp; &nbsp; (Sharp)","Quartique &nbsp; (Saccadé)")],
 				["ease_out_exp", toLanguage("Exponential (Sharpest)","Exponentiel (Très saccadé)")]
 			];
-			for (var i=0;i<options.length;i++) {
-				var option = options[i];
+			for (var i=0;i<graphicOptions.length;i++) {
+				var graphicOption = graphicOptions[i];
 				var $controlOption = document.createElement("option");
-				$controlOption.value = option[0];
-				$controlOption.innerHTML = option[1];
+				$controlOption.value = graphicOption[0];
+				$controlOption.innerHTML = graphicOption[1];
 				$controlSelect.appendChild($controlOption);
 			}
 			$controlSelect.value = frameSettings.frameint;
@@ -26457,7 +27542,7 @@ function editCommands(reload,currentTab,selectedPlayer) {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
 			localStorage.removeItem("iQuality");
-			editCommands(true,currentTab,selectedPlayer);
+			editCommands(options);
 		}
 		return false;
 	};
@@ -26471,69 +27556,326 @@ function editCommands(reload,currentTab,selectedPlayer) {
 	if (currentTab)
 		document.querySelectorAll(".control-tabs > div")[currentTab].click();
 }
-function getKeyName(keyCode) {
-	if (!this.keyMatching)
-		this.keyMatching = ["","","","Break","","","","","Backspace","Tab","","","Clear","Enter","","","Shift","Ctrl","Alt","Pause","CapsLock","Hangul","","","","Hanja","",toLanguage("Escape","Échap"),"Conversion","Non-conversion","","",toLanguage("Spacebar","Espace"),"PageUp","PageDown","End","Home","&larr;","&uarr;","&rarr;","&darr;","Select","Print","Execute",toLanguage("Print Screen","ImpEcr"),"Inser",toLanguage("Delete","Suppr"),"Help","0","1","2","3","4","5","6","7","8","9",":","=","&lt;","=","","SS","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Meta","Meta","Meta","","Sleep","0","1","2","3","4","5","6","7","8","9","&times;","+",".","-",".","/","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24","","","","","","","","","NumLock","ScrollLock","","","","","","","","","","","","","","","^","!","؛","#","$","Ù","PageDown","PageUp","Refresh",")","*","~","Home","-","Vol. down","Vol. up","Next","Previous","Stop","Play/pause","@","Mute","Vol. down","Vol. up","","","Ñ","=",",","#",".","/","%","°",",","","","","","","","","","","","","","","","","","","","","","","","","","{","\\","}","'","`","Meta","AltGr","&lt;","","","","Compose","Ç","","Forward","Back","Non-conversion","","","","","Alphanumeric","","Hiragana","Half-width","Kanji","","","","","","","Unlock Trackpad","","","","Toggle Touchpad"];
-	if (this.keyMatching[keyCode])
-		return this.keyMatching[keyCode];
-	return "#"+keyCode;
-}
-function getCommands(nbPlayers) {
-	nbPlayers = nbPlayers || strPlayer.length;
-	var defaultControls = {
-		up:[38],
-		down:[40],
-		left:[37],
-		right:[39],
-		item:[32],
-		item_back:[67],
-		item_fwd:[86],
-		jump:[17,18],
-		balloon:[16],
-		rear:[88],
-		pause:[80],
-		quit:[27],
-		cheat:[120,33,57,105]
-	};
-	if (nbPlayers > 1) {
-		defaultControls["up_p2"] = [69];
-		defaultControls["down_p2"] = [68];
-		defaultControls["left_p2"] = [83];
-		defaultControls["right_p2"] = [70];
-		defaultControls["item_p2"] = [toLanguage(65,81)];
-		defaultControls["item_back_p2"] = [toLanguage(87,65)];
-		defaultControls["item_fwd_p2"] = [82];
-		defaultControls["jump_p2"] = [71];
-		defaultControls["balloon_p2"] = [84];
-		defaultControls["rear_p2"] = [toLanguage(87,90)];
+function getKeyName(keyCode, inputDevice) {
+	switch (inputDevice) {
+	case "gamepad":
+		var resList = [];
+		for (var i=0;i<keyCode.length;i++) {
+			var iKey = keyCode[i];
+			if ((typeof iKey === "object") && iKey.length) {
+				for (var j=0;j<iKey.length;j++) {
+					if (iKey[j] > 0)
+						resList.push((j%2) ? "\u2193" : "\u2192");
+					else if (iKey[j] < 0)
+						resList.push((j%2) ? "\u2191" : "\u2190");
+				}
+			}
+			else if (typeof iKey === "number")
+				resList.push("("+iKey+")");
+		}
+		return resList.join("+");
+		break;
+	default:
+		if (!this.keyMatching)
+			this.keyMatching = ["","","","Break","","","","","Backspace","Tab","","","Clear","Enter","","","Shift","Ctrl","Alt","Pause","CapsLock","Hangul","","","","Hanja","",toLanguage("Escape","Échap"),"Conversion","Non-conversion","","",toLanguage("Spacebar","Espace"),"PageUp","PageDown","End","Home","&larr;","&uarr;","&rarr;","&darr;","Select","Print","Execute",toLanguage("Print Screen","ImpEcr"),"Inser",toLanguage("Delete","Suppr"),"Help","0","1","2","3","4","5","6","7","8","9",":","=","&lt;","=","","SS","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","Meta","Meta","Meta","","Sleep","0","1","2","3","4","5","6","7","8","9","&times;","+",".","-",".","/","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24","","","","","","","","","NumLock","ScrollLock","","","","","","","","","","","","","","","^","!","؛","#","$","Ù","PageDown","PageUp","Refresh",")","*","~","Home","-","Vol. down","Vol. up","Next","Previous","Stop","Play/pause","@","Mute","Vol. down","Vol. up","","","Ñ","=",",","#",".","/","%","°",",","","","","","","","","","","","","","","","","","","","","","","","","","{","\\","}","'","`","Meta","AltGr","&lt;","","","","Compose","Ç","","Forward","Back","Non-conversion","","","","","Alphanumeric","","Hiragana","Half-width","Kanji","","","","","","","Unlock Trackpad","","","","Toggle Touchpad"];
+		if (this.keyMatching[keyCode])
+			return this.keyMatching[keyCode];
+		return "#"+keyCode;
 	}
-	var res = defaultControls;
-	var localControls = localStorage.getItem("controls");
-	if (localControls) {
-		localControls = JSON.parse(localControls);
-		for (var key in localControls)
-			res[key] = [localControls[key]];
-	}
-	return res;
 }
-function getGameControls() {
-	var res = {};
-	var commands = getCommands();
-	for (var key in commands) {
-		for (var i=0;i<commands[key].length;i++) {
-			var iCommand = commands[key][i];
-			if (!res[iCommand])
-				res[iCommand] = key;
+function getGamepadPressedBtns(gamepad) {
+	var stickThreshold = 0.75;
+	var res = [];
+	if (gamepad.axes) {
+		for (var i=0;i<gamepad.axes.length;i++) {
+			if (Math.abs(gamepad.axes[i]) >= stickThreshold) {
+				res.push({
+					key: "stick."+i,
+					type: "stick",
+					id: i,
+					value: gamepad.axes[i]
+				});
+			}
+		}
+	}
+	if (gamepad.buttons) {
+		for (var i=0;i<gamepad.buttons.length;i++) {
+			if (gamepad.buttons[i] && gamepad.buttons[i].pressed) {
+				res.push({
+					key: "button."+i,
+					type: "button",
+					id: i
+				});
+			}
 		}
 	}
 	return res;
 }
-function findKeyCode(action) {
-	for (var key in gameControls) {
-		if (gameControls[key] == action)
-			return key;
+function isGamepadControlSubset(inputs1, inputs2) {
+	for (var i=0;i<inputs1.length;i++) {
+		var input1 = inputs1[i];
+		if (inputs2.every(function(input) {
+			return (input.key !== input1.key) || (input.value !== input1.value);
+		})) {
+			return false;
+		}
 	}
-	return "";
+	return true;
+}
+function getLocalControlKey(inputDevice) {
+	var defaultInputDevice = "keyboard";
+	if (!inputDevice || (inputDevice === defaultInputDevice))
+		return "controls";
+	return "controls." + inputDevice;
+}
+function findGamePadById(localControls, selectedPlayer) {
+	if (!localControls) return;
+	var gamepads = navigator.getGamepads();
+	var plSuffix = "";
+	if (selectedPlayer)
+		plSuffix = "_p2";
+	for (var i=0;i<gamepads.length;i++) {
+		var gamepad = gamepads[i];
+		if (gamepad && gamepad.id === localControls["_name"+plSuffix] && gamepad.index === localControls["_id"+plSuffix])
+			return gamepad;
+	}
+	for (var i=0;i<gamepads.length;i++) {
+		var gamepad = gamepads[i];
+		if (gamepad && gamepad.id === localControls["_name"+plSuffix])
+			return gamepad;
+	}
+	for (var i=0;i<gamepads.length;i++) {
+		var gamepad = gamepads[i];
+		if (gamepad && gamepad.index === localControls["_id"+plSuffix])
+			return gamepad;
+	}
+}
+function getCommands(inputDevice, nbPlayers) {
+	nbPlayers = nbPlayers || strPlayer.length;
+	var defaultControls;
+	if (inputDevice === "gamepad") {
+		defaultControls = {
+			up:[1],
+			down:[0],
+			left:[[-1]],
+			right:[[1]],
+			item:[6],
+			item_back:[[0,1],6],
+			item_fwd:[[0,-1],6],
+			jump:[7],
+			balloon:[2],
+			rear:[3],
+			pause:[9],
+			quit:[16]
+		};
+		if (nbPlayers > 1) {
+			var clonedControls = [
+				"up", "down", "left", "right", "item", "item_back", "item_fwd", "jump", "balloon", "rear"
+			];
+			for (var clonedControl of clonedControls)
+				defaultControls[clonedControl+"_p2"] = JSON.parse(JSON.stringify(defaultControls[clonedControl]));
+		}
+	}
+	else {
+		defaultControls = {
+			up:[38],
+			down:[40],
+			left:[37],
+			right:[39],
+			item:[32],
+			item_back:[67],
+			item_fwd:[86],
+			jump:[17,18],
+			balloon:[16],
+			rear:[88],
+			pause:[80],
+			quit:[27],
+			cheat:[120,33,57,105]
+		};
+		if (nbPlayers > 1) {
+			defaultControls["up_p2"] = [69];
+			defaultControls["down_p2"] = [68];
+			defaultControls["left_p2"] = [83];
+			defaultControls["right_p2"] = [70];
+			defaultControls["item_p2"] = [toLanguage(65,81)];
+			defaultControls["item_back_p2"] = [toLanguage(87,65)];
+			defaultControls["item_fwd_p2"] = [82];
+			defaultControls["jump_p2"] = [71];
+			defaultControls["balloon_p2"] = [84];
+			defaultControls["rear_p2"] = [toLanguage(87,90)];
+		}
+	}
+	var res = defaultControls;
+	var localControls = localStorage.getItem(getLocalControlKey(inputDevice));
+	if (localControls) {
+		localControls = JSON.parse(localControls);
+		var isKeyboard = !inputDevice || (inputDevice === "keyboard");
+		for (var key in localControls) {
+			res[key] = localControls[key];
+			if (isKeyboard)
+				res[key] = [res[key]];
+		}
+	}
+	return res;
+}
+function getGameControls() {
+	var res = {
+		keyboard: {}
+	};
+	var commands = getCommands("keyboard");
+	for (var key in commands) {
+		for (var i=0;i<commands[key].length;i++) {
+			var iCommand = commands[key][i];
+			if (!res.keyboard[iCommand])
+				res.keyboard[iCommand] = key;
+		}
+	}
+	commands = getCommands("gamepad");
+	if (("_id" in commands) || (oPlayers[1] && ("_id_p2" in commands))) {
+		var gamepadCommands = [[]];
+		for (var i=0;i<oPlayers.length;i++)
+			gamepadCommands[i] = [];
+		var nbCommands = Object.values(commands).length;
+		for (var key in commands) {
+			if (key.startsWith("_")) continue;
+			var oPlayerId = 0;
+			if (key.endsWith("_p2")) {
+				oPlayerId = 1;
+				key = key.substring(0, key.length - 3);
+			}
+			if (!gamepadCommands[oPlayerId]) continue;
+			var oCommand = [];
+			for (var i=0;i<commands[key].length;i++) {
+				var iKey = commands[key][i];
+				if ((typeof iKey === "object") && iKey.length) {
+					for (var j=0;j<iKey.length;j++) {
+						if (Math.abs(iKey[j]) > 0) {
+							oCommand.push({
+								key: "stick."+j,
+								type: "stick",
+								id: j,
+								value: iKey[j],
+								isPressed: function(pressedBtn) {
+									return Math.sign(pressedBtn.value) === Math.sign(this.value);
+								}
+							});
+						}
+					}
+				}
+				else if (typeof iKey === "number") {
+					oCommand.push({
+						key: "button."+iKey,
+						type: "button",
+						id: iKey,
+						isPressed: function() {
+							return true;
+						}
+					});
+				}
+			}
+			gamepadCommands[oPlayerId].push({
+				priority: oCommand.length - gamepadCommands[oPlayerId].length / nbCommands,
+				key: key,
+				value: oCommand
+			});
+		}
+		for (var i=0;i<gamepadCommands.length;i++) {
+			gamepadCommands[i].sort(function(c1, c2) {
+				return c2.priority - c1.priority;
+			});
+		}
+		res.gamepad = gamepadCommands.map(function(playerCommands, i) {
+			var plSuffix = i ? "_p2" : "";
+			return {
+				_id: commands["_id"+plSuffix],
+				_name: commands["_name"+plSuffix],
+				controls: playerCommands.map(function(playerCommands) {
+					return {
+						key: playerCommands.key,
+						inputs: playerCommands.value
+					}
+				})
+			}
+		});
+	}
+	return res;
+}
+
+function initGamepadMenuEvents() {
+	if (gamepadMenuEventsHandler) return false;
+	if (!gameControls.gamepad) return false;
+	var gamepads = navigator.getGamepads();
+	if (!gamepads.some(Boolean)) return false;
+	var lastPressedActions = {};
+	function handlePressedAction(key, nextPressedActions) {
+		nextPressedActions[key] = true;
+		if (lastPressedActions[key]) return;
+		if (oPlayers.length) {
+			var oInfos = document.getElementById("infos0");
+			if (oInfos && oInfos.onkeydown && oInfos.contains(document.activeElement)) {
+				switch (key) {
+				case "ArrowUp":
+					oInfos.onkeydown({ keyCode: 38 });
+					break;
+				case "ArrowDown":
+					oInfos.onkeydown({ keyCode: 40 });
+					break;
+				case "Enter":
+					document.activeElement.click();
+					break;
+				}
+			}
+		}
+		else
+			document.onkeydown({ key: key });
+	}
+	var menuPressedBtns = [];
+	gamepadMenuEventsHandler = setInterval(function() {
+		var gamepadInputsData = getGamepadInputsData(0, menuPressedBtns);
+		if (!gamepadInputsData) return;
+		var pressedBtnsRaw = gamepadInputsData.pressedBtnsRaw;
+		var pressActions = gamepadInputsData.pressActions;
+		var nextPressedActions = {};
+		for (var i=0;i<pressedBtnsRaw.length;i++) {
+			var pressedBtn = pressedBtnsRaw[i];
+			if (pressedBtn.type === "stick") {
+				var mappedKeyName = null;
+				if (pressedBtn.id % 2)
+					mappedKeyName = pressedBtn.value > 0 ? "ArrowDown" : "ArrowUp";
+				else
+					mappedKeyName = pressedBtn.value > 0 ? "ArrowRight" : "ArrowLeft";
+				handlePressedAction(mappedKeyName, nextPressedActions);
+			}
+		}
+		for (var j=0;j<pressActions.length;j++) {
+			var pressAction = pressActions[j];
+			var key = pressAction.key;
+			if (lastPressedActions[key])
+				continue;
+			var mappedKeyName = null;
+			switch (key) {
+			case "up":
+				mappedKeyName = "Enter";
+				break;
+			case "down":
+				mappedKeyName = "_Back";
+				break;
+			}
+			if (mappedKeyName)
+				handlePressedAction(mappedKeyName, nextPressedActions);
+		}
+
+		lastPressedActions = nextPressedActions;
+	}, SPF);
+	if (window.gamePadEventListener) {
+		window.removeEventListener("gamepadconnected", window.gamePadEventListener);
+		window.gamePadEventListener = undefined;
+	}
+	return true;
+}
+function refreshGameControls() {
+	gameControls = getGameControls();
+	return initGamepadMenuEvents();
 }
 
 function toLanguage(english, french) {
@@ -26608,9 +27950,25 @@ function toPerso(sPerso) {
 	return res;
 }
 
+var isMobileCache = !!(navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i));
+function isMobile() {
+	return isMobileCache;
+}
+
 formulaire = document.forms.modes;
 if (formulaire.dataset) formulaire.dataset.disabled = "";
 else formulaire.dataset = {};
+
+if (window.gamePadEventListener) {
+	window.removeEventListener("gamepadconnected", window.gamePadEventListener);
+	window.gamePadEventListener = undefined;
+}
+clearInterval(gamepadMenuEventsHandler);
+gamepadMenuEventsHandler = undefined;
+if (!refreshGameControls()) {
+	window.gamePadEventListener = refreshGameControls;
+	window.addEventListener("gamepadconnected", window.gamePadEventListener);
+}
 if (pause) {
 	if (isSingle && !isOnline)
 		choose(1);
@@ -26658,31 +28016,6 @@ else {
 	], iFps);
 	addFpsOption(iFps);
 	selectMainPage();
-	
-	if (!window.turnEvents) {
-		if (isMobile()) {
-			navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
-			addButton(' <span style="position:absolute;left:8px;top:-5px">\u2191</span><span style="position:absolute;right:6px;bottom:8px;font-size:10px;text-align:right">'+(language?'+ Jump<br/>Drift':'+ Saut<br/>Dérapage')+'</span>',[38,17], 0,0);
-			addButton(" \u2191 ",38, 1,0);
-			addButton("Obj",32, 2,0, null,null, 25);
-			addButton("\u275A\u275A",80, 3,0, null,null, 25);
-			document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
-			document.getElementById("virtualkeyboard").appendChild(document.createElement("br"));
-			var driftButton = addButton(language ? "Jump<br/>Drift":"Saut<br/>Dérapage", 17, 0,1,null,null, 11);
-			addButton(" \u2193 ",40, 1,1);
-			addButton(" \u2190 ",37, 2,1);
-			addButton(" \u2192 ",39, 3,1);
-			reposKeyboard();
-			document.getElementById("virtualkeyboard").ontouchstart = function(e) {
-				e.preventDefault();
-				return false;
-			};
-			document.getElementById("virtualkeyboard").style.display = "block";
-			var $commandes = document.getElementById("commandes");
-			if ($commandes) $commandes.style.display = "none";
-		}
-		window.turnEvents = true;
-	}
 	
 	formulaire.screenscale.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
@@ -26776,31 +28109,28 @@ else {
 		}
 	}
 }
-function isMobile() {
-	return navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i);
-}
 function isChatting() {
 	if (!isOnline) return false;
 	if (!document.forms[1]) return false;
 	if (!document.forms[1].elements["rMessage"]) return false;
 	return (document.activeElement == document.forms[1].elements["rMessage"]);
 }
-function applyButtonCode(action,keyData) {
-	var keycodes = keyData.split(",");
-	for (var i=0;i<keycodes.length;i++)
-		document[action]({"keyCode":parseInt(keycodes[i])});
-}
 function onButtonTouch(e) {
-	e.preventDefault();
+	if (e) e.preventDefault();
 	this.style.backgroundColor = "#603";
+	this.dataset.pressed = "1";
 	navigator.vibrate(30);
-	var keycode = this.dataset.key;
-	applyButtonCode("onkeydown", keycode);
+	var keycodes = this.dataset.key.split(",");
+	for (var i=0;i<keycodes.length;i++)
+		doPressKey(keycodes[i]);
 	return false;
 }
 function onButtonPress(e) {
 	this.style.backgroundColor = "";
-	applyButtonCode("onkeyup", this.dataset.key);
+	this.dataset.pressed = "";
+	var keycodes = this.dataset.key.split(",");
+	for (var i=0;i<keycodes.length;i++)
+		doReleaseKey(keycodes[i]);
 }
 
 function setChat() {
