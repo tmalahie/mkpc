@@ -27672,8 +27672,10 @@ function getCommands(inputDevice, nbPlayers) {
 			var clonedControls = [
 				"up", "down", "left", "right", "item", "item_back", "item_fwd", "jump", "balloon", "rear"
 			];
-			for (var clonedControl of clonedControls)
+			for (var i=0;i<clonedControls.length;i++) {
+				var clonedControl = clonedControls[i];
 				defaultControls[clonedControl+"_p2"] = JSON.parse(JSON.stringify(defaultControls[clonedControl]));
+			}
 		}
 	}
 	else {
