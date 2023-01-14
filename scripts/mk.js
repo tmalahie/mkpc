@@ -4516,8 +4516,9 @@ function showVirtualKeyboard() {
 	var virtualKeyboardW = $virtualKeyboard.offsetWidth;
 	var virtualKeyboardH = window.innerHeight - virtualKeyboardY;
 	virtualKeyboardH = Math.min(virtualKeyboardH, Math.round(virtualKeyboardW * 0.45));
-	if (virtualKeyboardW < iWidth*iScreenScale)
-		$virtualKeyboard.style.left = Math.round((iWidth*iScreenScale - virtualKeyboardW) / 2) +"px";
+	var screenW = Math.min(window.innerWidth, iWidth*iScreenScale);
+	if (virtualKeyboardW < screenW)
+		$virtualKeyboard.style.left = Math.round((screenW - virtualKeyboardW) / 2) +"px";
 	$virtualKeyboard.style.height = virtualKeyboardH +"px";
 }
 function hideVirtualKeyboard() {
