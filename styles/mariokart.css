@@ -560,6 +560,10 @@ form[name="modes"] {
 	grid-template-columns: auto auto auto;
 	grid-gap: 4px;
 }
+#virtualkeyboard.spectator {
+	position: absolute;
+	grid-template-columns: auto auto;
+}
 #virtualkeyboard.legacy {
     left: 50px;
     top: 20px;

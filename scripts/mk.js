@@ -4338,17 +4338,21 @@ function startGame() {
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
 	if (isMobile()) {
-		switch (ctrlSettings.mode) {
-		case "gestures":
-			setupGestureEvents();
-			break;
-		case "external":
-			break;
-		default:
-			showVirtualKeyboard();
-		}
+		if (onlineSpectatorId)
+			showSpectatorKeyboard();
+		else {
+			switch (ctrlSettings.mode) {
+			case "gestures":
+				setupGestureEvents();
+				break;
+			case "external":
+				break;
+			default:
+				showVirtualKeyboard();
+			}
 
-		setupCommonMobileControls();
+			setupCommonMobileControls();
+		}
 	}
 	if (gameControls.gamepad) {
 		refreshGamepadHandler = setInterval(handleGamepadEvents, SPF);
@@ -4510,6 +4514,9 @@ function showVirtualKeyboard() {
 		return;
 	}
 
+	posVirtualKeyboard($virtualKeyboard);
+}
+function posVirtualKeyboard($virtualKeyboard) {
 	var virtualKeyboardY = iScreenScale*iHeight + 20;
 	$virtualKeyboard.style.top = virtualKeyboardY +"px";
 
@@ -4681,21 +4688,23 @@ function setupCommonMobileControls() {
 		hudScreens[0].appendChild($virtualItemScreen);
 	}
 
-	var $virtualPauseBtn = document.createElement("button");
-	$virtualPauseBtn.innerHTML = "\u275A\u275A";
-	$virtualPauseBtn.style.position = "absolute";
-	$virtualPauseBtn.style.zIndex = 20000;
-	$virtualPauseBtn.style.right = (iScreenScale*22) +"px";
-	$virtualPauseBtn.style.top = "5px";
-	$virtualPauseBtn.style.fontSize = Math.round(iScreenScale*3) +"px";
-	$virtualPauseBtn.style.padding = Math.round(iScreenScale/2) +"px "+ iScreenScale +"px";
-	$virtualPauseBtn.ontouchstart = function(e) {
-		e.preventDefault();
-		doPressKey("pause");
+	if (!isOnline) {
+		var $virtualPauseBtn = document.createElement("button");
+		$virtualPauseBtn.innerHTML = "\u275A\u275A";
+		$virtualPauseBtn.style.position = "absolute";
+		$virtualPauseBtn.style.zIndex = 20000;
+		$virtualPauseBtn.style.right = (iScreenScale*22) +"px";
+		$virtualPauseBtn.style.top = "5px";
+		$virtualPauseBtn.style.fontSize = Math.round(iScreenScale*3) +"px";
+		$virtualPauseBtn.style.padding = Math.round(iScreenScale/2) +"px "+ iScreenScale +"px";
+		$virtualPauseBtn.ontouchstart = function(e) {
+			e.preventDefault();
+			doPressKey("pause");
+		}
+		$virtualPauseBtn.id = "virtualbtn-pause";
+		$virtualPauseBtn.style.display = "none";
+		hudScreens[0].appendChild($virtualPauseBtn);
 	}
-	$virtualPauseBtn.id = "virtualbtn-pause";
-	$virtualPauseBtn.style.display = "none";
-	hudScreens[0].appendChild($virtualPauseBtn);
 
 	if (course == "BB") {
 		var $virtualBalloonBtn = document.createElement("div");
@@ -4742,6 +4751,15 @@ function setupCommonMobileControls() {
 		}
 		window.addEventListener("deviceorientation", window.turnOnRotate);
 	}
+}
+function showSpectatorKeyboard() {
+	var $virtualKeyboard = document.getElementById("virtualkeyboard");
+	addButton("\u2190", { key: "left", src: "left" });
+	addButton("\u2192", { key: "right", src: "right" });
+	$virtualKeyboard.className = "shown spectator";
+
+	posVirtualKeyboard($virtualKeyboard);
+	$virtualKeyboard.style.height = "40px";
 }
 
 var oPressedKeys = {};
@@ -17140,6 +17158,9 @@ function handleGamepadEvents() {
 					else
 						doPressKey(fullKey);
 					break;
+				case "up":
+					doPressKey(fullKey);
+					break;
 				case "item":
 				case "item_fwd":
 				case "item_back":
@@ -17153,12 +17174,9 @@ function handleGamepadEvents() {
 				case "pause":
 					pressKey(key);
 					break;
-				case "balloon":
+				default:
 					if (!pressAction.wasPressed)
 						doPressKey(fullKey);
-					break;
-				default:
-					doPressKey(fullKey);
 				}
 			}
 			for (var j=0;j<releaseActions.length;j++) {
