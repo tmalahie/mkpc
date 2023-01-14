@@ -4783,7 +4783,10 @@ function doReleaseKey(code) {
 }
 
 function rotateToAngle(oKart, targetRotinc) {
-	var targetDir = (targetRotinc - angleInc(oKart)) / 2;
+	var dir = getMirrorFactor();
+	if (clLocalVars.invertDirs)
+		dir = -dir;
+	var targetDir = (targetRotinc - angleInc(oKart)*dir) / 2;
 	var action;
 	if (targetDir > oKart.stats.handling/2)
 		action = "left";
