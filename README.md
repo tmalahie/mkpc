@@ -32,7 +32,7 @@ php-curl php-gd php-dev php-mbstring php-mcrypt php-mysql php-xdebug php-xml
 If you're on Windows, you'll probably be faster by just installing [Wamp](https://www.wampserver.com/) which comes with all the base packages out of the box.
 
 Then create a MySQL database with the name `mkpc`.
-Feed the database structure and data by importing the SQL script in `docker/mysql/setup.sql`.
+Feed the database structure and data by importing the SQL script in `docker/php/scripts/setup.sql`.
 
 Then copy some placeholder config files in the root config folder:
 ```
