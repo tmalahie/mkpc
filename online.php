@@ -202,7 +202,7 @@ if (isset($privateLink)) {
 ?>
 
 <?php include('c_mariokart.php'); ?>
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css?reload=1" />
 
 <?php
 if (!$isCup) {

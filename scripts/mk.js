@@ -4553,10 +4553,12 @@ function setupGestureEvents() {
 			var relPos = getPointerRelPos(e.touches);
 			var diffX = relPos.x - originalPos.x, diffY = relPos.y - originalPos.y;
 			if (diffY > Math.max(0.2, 3*Math.abs(diffX))) {
-				if (diffY > 0) {
-					releaseKey("up");
-					pressKey("down");
-				}
+				releaseKey("up");
+				pressKey("down");
+				if (document.body.scrollTop > 0)
+					document.body.scrollTop -= 10;
+				else if (document.documentElement.scrollTop > 0)
+					document.documentElement.scrollTop -= 10;
 				return;
 			}
 			if (ctrlSettings.gyroscope)
@@ -9550,7 +9552,7 @@ function render() {
 					else if (fSpriteRef.driftinc && ((iAngleStep < 4) || (iAngleStep > 18)))
 						iAngleStep = (fSpriteRef.driftinc*getMirrorFactor()>0) ? 18:4;
 					else if (isActualPlayer) {
-						if (fSpriteRef.rotincdir && !fSprite.tourne && (Math.abs(fSpriteRef.rotincdir) >= fSpriteRef.stats.handling))
+						if (fSpriteRef.rotincdir && !fSprite.tourne)
 							iAngleStep = (fSpriteRef.rotincdir*getMirrorFactor() > 0) ? 23:22;
 						else if (!fSprite.tourne)
 							iAngleStep = 0;
@@ -14301,7 +14303,7 @@ function move(getId, triggered) {
 
 	if (oKart.rotincdir) {
 		oKart.rotinc += 2 * oKart.rotincdir;
-		if (oKart.driftinc && ((oKart.driftinc>0)!=(oKart.rotincdir>0)) && (Math.abs(oKart.rotincdir) >= oKart.stats.handling)) {
+		if (oKart.driftinc && ((oKart.driftinc>0)!=(oKart.rotincdir>0))) {
 			var maxValue = Math.max(1.1,1.6-Math.max(0,(oKart.driftcpt-20)/80));
 			if (oKart.driftinc > 0)
 				oKart.rotinc = Math.max(oKart.rotinc,-maxValue);
@@ -15859,7 +15861,7 @@ function timeTrialMode() {
 function handleDriftCpt(getId) {
 	var oKart = aKarts[getId];
 	if (oKart.driftinc) {
-		if (Math.abs(oKart.rotincdir) >= oKart.stats.handling) {
+		if (oKart.rotincdir) {
 			if ((oKart.rotincdir>0) == (oKart.driftinc>0)) {
 				oKart.drift += oKart.driftinc;
 				if (oKart.driftinc > 0) {
@@ -15894,11 +15896,8 @@ function handleDriftCpt(getId) {
 				oKart.driftcpt += 2;
 			else if ((oKart.rotincdir>0) == (oKart.driftinc>0))
 				oKart.driftcpt += 6*Math.max(0.7,Math.pow(Math.abs(oKart.rotincdir)/0.6,0.8));
-			else {
+			else
 				oKart.driftcpt++;
-				if (Math.abs(oKart.rotincdir) < oKart.stats.handling)
-					oKart.driftcpt++;
-			}
 			if (oKart.driftcpt >= fTurboDriftCpt2) {
 				for (var i=0;i<oPlayers.length;i++)
 					oKart.driftSprite[i].setState(2);
