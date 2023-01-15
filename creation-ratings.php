@@ -73,47 +73,11 @@ if (isset($_GET['del'])) {
     }
 }
 if (isset($_GET['url'])) {
-    $urlComponents = parse_url($_GET['url']);
-    $queryComponents = array();
-    if (isset($urlComponents['query']))
-        parse_str($urlComponents['query'], $queryComponents);
-    switch ($urlComponents['path']) {
-    case '/arena.php':
-        $circuitType = 'mkcircuits';
-        $circuitId = isset($queryComponents['id']) ? intval($queryComponents['id']) : 0;
-        break;
-    case '/circuit.php':
-        if (isset($queryComponents['mid'])) {
-            $circuitType = 'mkmcups';
-            $circuitId = intval($queryComponents['mid']);
-        }
-        elseif (isset($queryComponents['cid'])) {
-            $circuitType = 'mkcups';
-            $circuitId = intval($queryComponents['cid']);
-        }
-        else {
-            $circuitType = 'mkcircuits';
-            $circuitId = isset($queryComponents['id']) ? intval($queryComponents['id']) : 0;
-        }
-        break;
-    case '/map.php':
-        if (isset($queryComponents['mid'])) {
-            $circuitType = 'mkmcups';
-            $circuitId = intval($queryComponents['mid']);
-        }
-        elseif (isset($queryComponents['cid'])) {
-            $circuitType = 'mkcups';
-            $circuitId = intval($queryComponents['cid']);
-        }
-        else {
-            $circuitType = 'circuits';
-            $circuitId = isset($queryComponents['i']) ? intval($queryComponents['i']) : 0;
-        }
-        break;
-    case '/battle.php':
-        $circuitType = 'arenes';
-        $circuitId = isset($queryComponents['i']) ? intval($queryComponents['i']) : 0;
-        break;
+    include('adminUtils.php');
+    $creationData = getCreationByUrl($_GET['url']);
+    if ($creationData) {
+        $circuitId = $creationData['id'];
+        $circuitType = $creationData['type'];
     }
 }
 ?>

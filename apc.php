@@ -13,4 +13,9 @@ if (!function_exists('apcu_fetch')) {
         global $apcStore;
         unset($apcStore[$key]);
     }
+    function apcu_add($key,$value,$ttl=0) {
+        global $apcStore;
+        $apcStore[$key] = $value;
+        return true;
+    }
 }

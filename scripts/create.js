@@ -144,10 +144,14 @@ function ajouter(params, Id) {
 	var src = params.t, tSrc = src;
 	if (src.match(/^[a-d]$/g)) {
 		var cMap = currentMap();
-		if (cMap > 30)
-			tSrc = {"a":"u","b":"v","c":"w","d":"x"}[src];
-		else if (cMap > 13)
+		var console = getMapConsole(cMap);
+		switch (console) {
+		case "gba":
 			tSrc = {"a":"p","b":"q","c":"r","d":"s"}[src];
+			break;
+		case "ds":
+			tSrc = {"a":"u","b":"v","c":"w","d":"x"}[src];
+		}
 	}
 	var nImg = document.createElement("img");
 	if ("t" !== src)
@@ -365,16 +369,32 @@ function recenterPos(E) {
 		}
 	}
 }
+function getMapConsole(p) {
+	if (p <= 13)
+		return "snes";
+	if ((p <= 30) || (p >= 52))
+		return "gba";
+	return "ds";
+}
 function changeMap(p) {
 	var cPieces = document.getElementsByClassName("cPiece");
-	var snes = (p <= 13);
-	var gba = (p <= 30);
+	var console = getMapConsole(p);
 	for (var i=0;i<36;i++)
 		document.getElementsByTagName("img")[i].src = "images/pieces/piececircuit"+ p +"_"+ document.forms[0].elements["p"+i].value +".png";
 	for (var i=0;i<cPieces.length;i++)
 		cPieces[i].src = "images/pieces/piececircuit"+ p +"_"+ i +".png";
 	var accSrc = "abcd";
-	var accEffSrc = snes ? accSrc: (gba ? "pqrs":"uvwx");
+	var accEffSrc;
+	switch (console) {
+	case "gba":
+		accEffSrc = "pqrs";
+		break;
+	case "ds":
+		accEffSrc = "uvwx";
+		break;
+	default:
+		accEffSrc = accSrc;
+	}
 	for (var i=0;i<accSrc.length;i++) {
 		for (var j=0;document.getElementById(accSrc[i]+j);j++)
 			document.getElementById(accSrc[i]+j).src = "images/pieces/piececircuit_"+accEffSrc[i]+".png";

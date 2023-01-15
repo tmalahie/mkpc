@@ -16,11 +16,11 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 			if ($getId['deleted'])
 				mysql_query('UPDATE `mkjoueurs` SET deleted=0 WHERE id="'. $id .'"');
 			function banIfBlackIp() {
-				global $id, $getId, $identifiants;
+				global $id, $getId, $identifiants, $language;
 				if (!$getId['banned'] && mysql_numrows(mysql_query('SELECT * FROM `ip_bans` WHERE ip1="'.$identifiants[0].'" AND ip2="'.$identifiants[1].'" AND ip3="'.$identifiants[2].'" AND ip4="'.$identifiants[3].'"'))) {
 					mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id="'.$id.'"');
 					mysql_query('INSERT IGNORE INTO `ip_bans` VALUES('.$id.',"'.$identifiants[0].'","'.$identifiants[1].'","'.$identifiants[2].'","'.$identifiants[3].'")');
-					mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"Auto-ban par IP")');
+					mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"'. ($language ? 'Auto-ban by IP' : 'Auto-ban par IP') .'",NULL)');
 				}
 			}
 			banIfBlackIp();
@@ -37,7 +37,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=1" />
 <?php
 include('o_online.php');
 ?>

@@ -7,7 +7,9 @@ if (isset($_POST['id'])) {
 	$isrc = isset($_POST['arenes']) ? 'coursepreview':'racepreview';
 	include('getId.php');
 	include('initdb.php');
-	if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `'. $db .'` WHERE id="'.$id.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
+	require_once('collabUtils.php');
+	$requireOwner = !hasCollabGrants($db, $id, $_POST['collab'], 'edit');
+	if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,identifiant2,identifiant3,identifiant4 FROM `'.$db.'` WHERE id="'.$id.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
 		require_once('circuitImgUtils.php');
 		$circuitImg = json_decode($circuit['img_data']);
 		if (!$circuitImg->local)
@@ -40,8 +42,9 @@ if (isset($_POST['id'])) {
 		eval('image'.$ext2.'($destination, "$newPath");');
 
 		include('file-quotas.php');
-		$poids = file_total_size();
-		if ($poids > MAX_FILE_SIZE) {
+		$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
+		$poids = file_total_size(array('identifiants'=> $ownerIds));
+		if ($poids > file_total_quota($circuit)) {
 			@unlink($newPath);
 			$circuitImg->url = $oldUrl;
 		}
@@ -52,7 +55,8 @@ if (isset($_POST['id'])) {
 			@unlink(cachePath($isrc.$id.'.png'));
 		}
 
-		header('Location: changeMap.php?i='.$id.(isset($_POST['arenes']) ? '&arenes=1':'').'&pivot='.$_POST['pivot']);
+		$collabSuffix = isset($_POST['collab']) ? '&collab='.$_POST['collab'] : '';
+		header('Location: changeMap.php?i='.$id.(isset($_POST['arenes']) ? '&arenes=1':'').'&pivot='.$_POST['pivot'].$collabSuffix);
 	}
 	mysql_close();
 }

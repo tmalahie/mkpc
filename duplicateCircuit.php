@@ -5,7 +5,7 @@ $table = $isBattle ? 'arenes':'circuits';
 if (isset($_GET['i'])) {
     include('getId.php');
     include('initdb.php');
-    $cID = $_GET['i'];
+    $cID = intval($_GET['i']);
     $nID = $cID;
     $error = null;
     if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `'.$table.'` WHERE id="'.$cID.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {

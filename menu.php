@@ -105,7 +105,10 @@
 					case 'circuit_comment' :
 					case 'reaction_trackcom' :
 						if ($comment = mysql_fetch_array(mysql_query('SELECT auteur,type,circuit FROM `mkcomments` WHERE id="'. $myNotif['link'] .'"'))) {
-							$notifData['sender'] = $comment['auteur'];
+							if (isset($notifData['reaction']))
+								$notifData['sender'] = $notifData['reaction']['member'];
+							else
+								$notifData['sender'] = $comment['auteur'];
 							if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($comment['type']=='mkcircuits') ? ',!type AS is_circuit':'') .' FROM `'. $comment['type'] .'` WHERE id="'. $comment['circuit'] .'"'))) {
 								if ($myNotif['type'] == 'answer_comment') {
 									if ($myIdentifiants && ($getCircuit['identifiant'] == $myIdentifiants[0]) && ($getCircuit['identifiant2'] == $myIdentifiants[1]) && ($getCircuit['identifiant3'] == $myIdentifiants[2]) && ($getCircuit['identifiant4'] == $myIdentifiants[3]))
@@ -332,7 +335,7 @@
 							$toDelete = true;
 						break;
 					case 'currently_online' :
-						$userId = $myNotif['link'];
+						$onlineUserId = $myNotif['link'];
 						$currentCoTime = time();
 						$minCoTime = floor(($currentCoTime-15)*1000/67);
 
@@ -341,16 +344,16 @@
 							SELECT m.id,m.mode,m.cup,m.link
 							FROM mkjoueurs j
 							INNER JOIN mariokart m ON m.id=j.course
-							WHERE m.map=-1 AND m.time>='.$currentCoTime.' AND m.link IN ('.$publicLinksString.') AND j.id='.$userId.'
+							WHERE m.map=-1 AND m.time>='.$currentCoTime.' AND m.link IN ('.$publicLinksString.') AND j.id='.$onlineUserId.'
 						) UNION (
 							SELECT m.id,m.mode,m.cup,m.link
 							FROM mkjoueurs j
 							INNER JOIN mariokart m ON m.id=j.course
-							WHERE m.time>='.($currentCoTime*1000).' AND m.link IN ('.$publicLinksString.') AND j.id='.$userId.'
+							WHERE m.time>='.($currentCoTime*1000).' AND m.link IN ('.$publicLinksString.') AND j.id='.$onlineUserId.'
 						) UNION (
 							SELECT m.id,m.mode,m.cup,m.link
 							FROM mkjoueurs j INNER JOIN mariokart m ON j.course=m.id AND m.mode=0 INNER JOIN mkplayers p ON j.id=p.id
-							WHERE p.connecte>='.$minCoTime.' AND m.link IN ('.$publicLinksString.') AND j.id='.$userId.'
+							WHERE p.connecte>='.$minCoTime.' AND m.link IN ('.$publicLinksString.') AND j.id='.$onlineUserId.'
 						) ORDER BY id DESC');
 						if ($playingMode = mysql_fetch_array($getPlayingMode)) {
 							$nlink = $playingMode['link'];
@@ -372,7 +375,7 @@
 								$notifData['link'] = 'online.php'.($isBattle?('?battle'.($nlink?('&key='.$nlink):'')):($nlink?('?key='.$nlink):''));
 							}
 							$notifData['battle'] = $isBattle;
-							$notifData['sender'] = $userId;
+							$notifData['sender'] = $onlineUserId;
 						}
 						else
 							$toDelete = true;

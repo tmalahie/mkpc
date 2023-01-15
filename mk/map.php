@@ -18,11 +18,17 @@ foreach ($circuitsData as $c => $circuit) {
 "smartjump": 1,
 "w" : <?php echo $circuitImg->w; ?>,
 "h" : <?php echo $circuitImg->h; ?>,
-"fond" : ["<?php
+<?php
+if (isset($circuitMainData->bgcustom))
+	echo '"custombg":'.$circuitMainData->bgimg.',';
+else {
+	echo '"fond":["';
 	require_once('circuitEnums.php');
 	$getInfos = $bgImages[$circuitMainData->bgimg];
 	echo implode('","',$getInfos);
-?>"],
+	echo '"],';
+}
+?>
 "tours" : <?php echo $circuitMainData->tours; ?>,
 <?php
 if (isset($circuitMainData->sections)) {
@@ -48,6 +54,7 @@ if (!$circuitMainData->music) {
 "startrotation" : <?php echo $circuitMainData->startrotation; ?>,
 "startdirection" : <?php echo empty($circuitMainData->startdirection)?1:0; ?>,
 "aipoints" : <?php echo json_encode($circuitPayload->aipoints); ?>,
+<?php if (isset($circuitPayload->aishortcuts)) echo '"aishortcuts":'. json_encode($circuitPayload->aishortcuts) .','; ?>
 "collision" : <?php
 	foreach ($circuitPayload->collision as &$collisionData) {
 		if (isset($collisionData[3]) && is_numeric($collisionData[3])) {
@@ -58,6 +65,7 @@ if (!$circuitMainData->music) {
 	unset($collisionData);
 	echo json_encode($circuitPayload->collision);
 ?>,
+<?php if (isset($circuitPayload->collisionProps)) echo '"collisionProps":'. json_encode($circuitPayload->collisionProps) .','; ?>
 "horspistes" : <?php
 	foreach ($circuitPayload->horspistes as &$hpsData) {
 		foreach ($hpsData as &$hpData) {
@@ -88,8 +96,12 @@ if (!$circuitMainData->music) {
 "arme" : <?php echo json_encode($circuitPayload->arme); ?>,
 "sauts" : <?php
 	foreach ($circuitPayload->sauts as &$sautsData) {
-		$sautsData[2]++;
-		$sautsData[3]++;
+		if (count($sautsData) > 3) {
+			if (is_numeric($sautsData[2]))
+				$sautsData[2]++;
+			if (is_numeric($sautsData[3]))
+				$sautsData[3]++;
+		}
 	}
 	unset($sautsData);
 	echo json_encode($circuitPayload->sauts);
@@ -124,6 +136,11 @@ if (!empty($circuitPayload->flows)) {
 if (!empty($circuitPayload->spinners)) {
 	?>,
 "spinners" : <?php echo json_encode($circuitPayload->spinners); ?>
+	<?php
+}
+if (!empty($circuitPayload->elevators)) {
+	?>,
+"elevators" : <?php echo json_encode($circuitPayload->elevators); ?>
 	<?php
 }
 ?>

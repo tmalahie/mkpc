@@ -2,16 +2,23 @@ var selectedCircuits = [];
 var loadingMsg = language ? "Loading":"Chargement";
 var isMCups = (ckey === "mid");
 function getSubmitMsg() {
+	if (readOnly)
+		return language ? "Read-only":"Lecture seule";
 	if (isMCups) {
 		if (selectedCircuits.length < 2)
 			return (language ? "You must select at least 2 cups":"Vous devez sélectionner au moins 2 coupes");
-		if (selectedCircuits.length > allCups.length)
-			return (language ? "You can select at most 18 cups":"Vous pouvez sélectionner 18 coupes au maximum");
-		if (actualLines.length > 4)
-			return (language ? "Please define at most 4 lines of cup":"Veuillez définir au plus 4 lignes de coupe");
+		if (selectedCircuits.length > 40)
+			return (language ? "You can select at most 40 cups":"Vous pouvez sélectionner 40 coupes au maximum");
 		for (var i=0;i<actualLines.length;i++) {
 			if (actualLines[i] > 8)
 				return (language ? "Please define at most 8 cups per line":"Veuillez définir au plus 8 coupes par ligne");
+		}
+		for (var i=0;i<=cupPages.length;i++) {
+			var minLine = getBeginCupPage(), maxLine = getEndCupPage();
+			if ((maxLine - minLine) > 4)
+				return (language ? "Please define at most 4 lines of cup":"Veuillez définir au plus 4 lignes de coupe");
+			if (arraySum(actualLines.slice(minLine, maxLine)) > allCups.length)
+				return (language ? "Please define at most 18 cups per page":"Veuillez définir au plus 18 coupes par page");
 		}
 		if (persoList) {
 			if (!persoList.length)
@@ -22,6 +29,7 @@ function getSubmitMsg() {
 	return (selectedCircuits.length != 4) ? (language ? "You must select 4 circuits":"Vous devez sélectionner 4 circuits"):"";
 }
 function selectCircuit(tr, isAuto) {
+	if (readOnly && !isAuto) return;
 	var id = tr.dataset.id;
 	var selectionID = selectedCircuits.indexOf(id);
 	var orderTD = tr.getElementsByClassName("td-preview")[0];
@@ -40,7 +48,7 @@ function selectCircuit(tr, isAuto) {
 		}
 	}
 	if (!isAuto) {
-		resetCupOptions();
+		resetCupOptions(true);
 		updateGUI();
 	}
 }
@@ -56,9 +64,14 @@ function initGUI() {
 			if ($cupOptions.value) {
 				try {
 					var cupOptions = JSON.parse($cupOptions.value);
+					if (cupOptions && cupOptions.keyid) {
+						cupOptions = JSON.parse(sessionStorage.getItem("cupopt."+cupOptions.keyid));
+						$cupOptions.value = JSON.stringify(cupOptions);
+					}
 					if (cupOptions) {
 						if (cupOptions.icons) cupIcons = cupOptions.icons;
 						if (cupOptions.lines) cupLines = cupOptions.lines;
+						if (cupOptions.pages) cupPages = cupOptions.pages;
 						if (typeof characterRoster !== "undefined")
 							persoList = characterRoster;
 						if (cupOptions.customchars === 0)
@@ -72,28 +85,46 @@ function initGUI() {
 	}
 	resetCupOptions();
 	updateGUI();
+	if (!readOnly) {
+		var $submits = document.querySelectorAll(".submit-selection");
+		for (var i=0;i<$submits.length;i++)
+			$submits[i].dataset.title = "";
+	}
 	var $prettyTitles = document.querySelectorAll(".pretty-title");
 	for (var i=0;i<$prettyTitles.length;i++) {
-		(function($prettyTitle) {
-			var $fancyTitle = document.createElement("div");
-			$fancyTitle.className = "fancy-title";
-			if (!$prettyTitle.dataset) $prettyTitle.dataset = {};
-			$prettyTitle.dataset.title = "";
-			$prettyTitle.parentNode.onmouseover = function() {
-				if ($prettyTitle.dataset.title) {
-					$fancyTitle.innerHTML = $prettyTitle.dataset.title;
-					$fancyTitle.style.display = "block";
-					var rect = $prettyTitle.getBoundingClientRect();
-					$fancyTitle.style.left = Math.max(0,(rect.left + ($prettyTitle.scrollWidth-$fancyTitle.scrollWidth)/2))+"px";
-					$fancyTitle.style.top = (rect.top - $prettyTitle.scrollHeight)+"px";
-				}
-			};
-			$prettyTitle.parentNode.onmouseout = function() {
-				$fancyTitle.style.display = "none";
-			};
-			document.body.appendChild($fancyTitle);
-		})($prettyTitles[i]);
+		var $prettyTitle = $prettyTitles[i];
+		initFancyTitle($prettyTitle);
 	}
+}
+function initFancyTitle($prettyTitle) {
+	var $fancyTitle = document.createElement("div");
+	$fancyTitle.className = "fancy-title";
+	if (!$prettyTitle.dataset) $prettyTitle.dataset = {};
+	var fancyInterval;
+	$prettyTitle.parentNode.onmouseover = function() {
+		if ($prettyTitle.dataset.title) {
+			$fancyTitle.innerHTML = $prettyTitle.dataset.title;
+			document.body.appendChild($fancyTitle);
+			var rect = $prettyTitle.getBoundingClientRect();
+			$fancyTitle.style.left = Math.max(0,(rect.left + ($prettyTitle.scrollWidth-$fancyTitle.scrollWidth)/2))+"px";
+			$fancyTitle.style.top = (rect.top - $fancyTitle.scrollHeight - 5)+"px";
+
+			if (fancyInterval) return;
+			fancyInterval = setInterval(function() {
+				if (!$fancyTitle) return;
+				if (document.body.contains($prettyTitle)) return;
+				document.body.removeChild($fancyTitle);
+				clearInterval(fancyInterval);
+				$fancyTitle = undefined;
+			}, 1000);
+		}
+	};
+	$prettyTitle.parentNode.onmouseout = function() {
+		if (document.body.contains($fancyTitle))
+			document.body.removeChild($fancyTitle);
+		clearInterval(fancyInterval);
+		fancyInterval = undefined;
+	};
 }
 function showEditorContent(id) {
 	if (id == 1) {
@@ -138,24 +169,34 @@ var cupLines = [];
 var persoList;
 var actualIcons, actualLines;
 var allCups = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
-function resetCupOptions() {
+var cupPage = 0;
+var cupPages = [];
+function resetCupOptions(full) {
 	if (isMCups) {
-		var nbCups = Math.min(selectedCircuits.length,allCups.length);
+		var nbCups = selectedCircuits.length;
 		var cups_per_line = 6;
 		var nb_lines = Math.ceil(nbCups/cups_per_line);
-		cups_per_line = Math.ceil(nbCups/nb_lines);
+		if (nbCups < allCups.length)
+			cups_per_line = Math.ceil(nbCups/nb_lines);
 		actualIcons = [];
-		for (var i=0;i<cupIcons.length;i++)
+		var usedIcons = {};
+		for (var i=0;i<cupIcons.length;i++) {
 			actualIcons[i] = cupIcons[i];
+			usedIcons[actualIcons[i]] = 1;
+		}
 		var cup = 0;
 		while (actualIcons.length < nbCups) {
 			for (;cup<allCups.length;cup++) {
-				if (actualIcons.indexOf(cup) == -1) {
+				if (!usedIcons[cup]) {
 					actualIcons.push(cup);
+					usedIcons[cup] = 1;
 					break;
 				}
 			}
-			if (cup >= allCups.length) break;
+			if (cup >= allCups.length) {
+				usedIcons = {};
+				cup = 0;
+			}
 		}
 		actualIcons.length = nbCups;
 
@@ -182,12 +223,34 @@ function resetCupOptions() {
 				nbCells = actualIcons.length;
 			}
 		}
+		for (var i=cupPages.length-1;i>=0;i--) {
+			if (cupPages[i] < actualLines.length) break;
+			cupPages.pop();
+		}
+		if (cupPage > cupPages.length) cupPage = cupPages.length;
+		if (full) {
+			for (var i=0;i<=cupPages.length;i++) {
+				var minCup = getBeginCupPage(i), maxCup = getEndCupPage(i);
+				var cupDiff = 0;
+				for (var j=minCup;j<maxCup;j++) {
+					cupDiff += actualLines[j];
+					if (cupDiff > allCups.length) {
+						cupPages.push(j);
+						break;
+					}
+				}
+			}
+		}
 
 		var cupOptions = {};
 		if (cupIcons.length)
 			cupOptions.icons = actualIcons;
 		if (cupLines.length)
 			cupOptions.lines = actualLines;
+		if (cupPages.length) {
+			cupOptions.pages = cupPages;
+			cupOptions.lines = actualLines;
+		}
 		if (persoList) {
 			cupOptions.persos = persoList.map(function(data) {
 				if (data.id)
@@ -207,6 +270,8 @@ function resetCupAppearance() {
 	if (confirm(language ? "Reset cup appearance to default?":"Rétablir l'apparence par défaut ?")) {
 		cupLines = [];
 		cupIcons = [];
+		cupPages = [];
+		cupPage = 0;
 		updateCupImgGUI();
 	}
 }
@@ -222,57 +287,120 @@ function updateCupImgGUI() {
 	$cupAppearance.innerHTML = "";
 	nbRowsInLine = 0;
 	var currentLine = 0;
+	var minLine = getBeginCupPage(), maxLine = getEndCupPage();
 	for (var i=0;i<actualIcons.length;i++) {
-		var $cupImg = document.createElement("img");
-		$cupImg.className = "pixelated";
-		if (typeof actualIcons[i] === "number")
-			$cupImg.src = "images/cups/"+ allCups[actualIcons[i]] +".gif";
-		else {
-			$cupImg.src = actualIcons[i];
-			$cupImg.onload = function() {
-				if (this.naturalWidth > this.naturalHeight) {
-					this.style.width = "50px";
-					this.style.height = "auto";
-				}
-				else {
-					this.style.width = "auto";
-					this.style.height = "50px";
+		var inPage = (currentLine >= minLine && currentLine < maxLine);
+		if (inPage) {
+			var $cupImg = document.createElement("img");
+			$cupImg.className = "pixelated";
+			if (typeof actualIcons[i] === "number")
+				$cupImg.src = "images/cups/"+ allCups[actualIcons[i]] +".gif";
+			else {
+				$cupImg.src = actualIcons[i];
+				$cupImg.onload = function() {
+					if (this.naturalWidth > this.naturalHeight) {
+						this.style.width = "50px";
+						this.style.height = "auto";
+					}
+					else {
+						this.style.width = "auto";
+						this.style.height = "50px";
+					}
 				}
 			}
+			if (!$cupImg.dataset) $cupImg.dataset = {};
+			$cupImg.dataset.id = i;
+			$cupImg.onclick = function() {
+				this.className = "editing-cup-img";
+				selectCupImg(+this.dataset.id);
+			};
+			$cupAppearance.appendChild($cupImg);
 		}
-		if (!$cupImg.dataset) $cupImg.dataset = {};
-		$cupImg.dataset.id = i;
-		$cupImg.onclick = function() {
-			this.className = "editing-cup-img";
-			selectCupImg(+this.dataset.id);
-		};
-		$cupAppearance.appendChild($cupImg);
 		if (i < (actualIcons.length-1)) {
-			var $cursor = document.createElement("div");
-			$cursor.className = "cup-appearance-cursor";
-			$cursor.title = language ? "Add/remove line break" : "Ajouter/Supprimer un retour à la ligne";
-			$cursor.onclick = function(e) {
-				selectLineCursor(this,e);
+			var $cursor = null;
+			if (inPage) {
+				$cursor = document.createElement("div");
+				$cursor.className = "cup-appearance-cursor";
+				$cursor.title = language ? "Add/remove line break" : "Ajouter/Supprimer un retour à la ligne";
+				$cursor.onclick = function(e) {
+					selectLineCursor(this,e);
+				}
+				$cursor.oncontextmenu = function(e) {
+					selectLineCursor(this,e);
+					return false;
+				}
+				$cursor.innerHTML = "<div></div>";
+				$cupAppearance.appendChild($cursor);
 			}
-			$cursor.oncontextmenu = function(e) {
-				selectLineCursor(this,e);
-				return false;
-			}
-			$cursor.innerHTML = "<div></div>";
-			$cupAppearance.appendChild($cursor);
 			nbRowsInLine++;
 			if (nbRowsInLine >= actualLines[currentLine]) {
-				$cupAppearance.appendChild(document.createElement("br"));
+				if (inPage) $cupAppearance.appendChild(document.createElement("br"));
 				nbRowsInLine = 0;
 				currentLine++;
 			}
-			if (!$cursor.dataset) $cursor.dataset = {};
-			$cursor.dataset.line = currentLine;
-			$cursor.dataset.row = nbRowsInLine;
+			if ($cursor) {
+				if (!$cursor.dataset) $cursor.dataset = {};
+				$cursor.dataset.line = currentLine;
+				$cursor.dataset.row = nbRowsInLine;
+			}
 		}
 	}
-	document.getElementById("reset-cup-appearance").style.display = ((cupLines.length || cupIcons.length)) ? "":"none";
+	updateCupPageGUI();
+	document.getElementById("reset-cup-appearance").style.display = ((cupLines.length || cupIcons.length || cupPages.length)) ? "":"none";
 	updateSubmitMsg();
+}
+function updateCupPageGUI() {
+	if (!cupPages.length) {
+		document.getElementById("cup-appearance-page").style.display = "none";
+		return;
+	}
+	document.getElementById("cup-appearance-page").style.display = "";
+	document.getElementById("cup-appearance-page-prev").disabled = (cupPage <= 0);
+	document.getElementById("cup-appearance-page-next").disabled = (cupPage >= cupPages.length);
+}
+function selectCupPage(p) {
+	cupPage = p;
+	updateCupImgGUI();
+}
+function prevCupPage() {
+	selectCupPage(cupPage-1);
+}
+function nextCupPage() {
+	selectCupPage(cupPage+1);
+}
+function addCupPage(line) {
+	cupPages.splice(cupPage,0,line);
+	updateCupImgGUI();
+}
+function getBeginCupPage(p) {
+	if (p === undefined) p = cupPage;
+	if (p > 0)
+		return cupPages[p-1];
+	return 0;
+}
+function getBeginCupPageId(p) {
+	if (p === undefined) p = cupPage;
+	if (p > 0)
+		return arraySum(actualLines.slice(0,cupPages[p-1]));
+	return 0;
+}
+function getEndCupPage(p) {
+	if (p === undefined) p = cupPage;
+	if (p < cupPages.length)
+		return cupPages[p];
+	return actualLines.length;
+}
+function getEndCupPageId(p) {
+	if (p === undefined) p = cupPage;
+	if (p < cupPages.length)
+		return arraySum(actualLines.slice(0,cupPages[p]));
+	return selectedCircuits.length;
+}
+function arraySum(arr) {
+	var sum = 0;
+	for (var i=0;i<arr.length;i++)
+		sum += arr[i];
+	return sum;
 }
 function updateCupPersosGUI() {
 	resetCupOptions();
@@ -369,9 +497,10 @@ function selectCupImg(cup) {
 		oImg.onclick = function() {
 			cupIcons = actualIcons;
 			var id = +this.dataset.id;
-			var oldCup = cupIcons.indexOf(id);
+			var minCup = getBeginCupPageId(), maxCup = getEndCupPageId();
+			var oldCup = cupIcons.slice(minCup,maxCup).indexOf(id);
 			if (oldCup != -1)
-				cupIcons[oldCup] = cupIcons[cup];
+				cupIcons[minCup+oldCup] = cupIcons[cup];
 			cupIcons[cup] = id;
 			closeMask();
 			updateCupImgGUI();
@@ -410,15 +539,31 @@ function selectLineCursor($editingCursor,e) {
 		cupLines[line] -= row;
 		cupLines.splice(line, 0, row);
 		cupLines[line] = row;
+		for (var i=cupPage;i<cupPages.length;i++)
+			cupPages[i]++;
 		updateCupImgGUI();
+	}
+	function addNewPage() {
+		addCupPage(line);
 	}
 	function rmNewLine() {
 		cupLines = actualLines;
 		cupLines[line-1] += cupLines[line];
 		cupLines.splice(line, 1);
+		var isEOL = (cupPages[cupPage] === line);
+		for (var i=cupPage;i<cupPages.length;i++)
+			cupPages[i]--;
+		if (isEOL)
+			cupPages.splice(cupPage,1);
 		updateCupImgGUI();
 	}
 	if (eol) {
+		if (cupPages[cupPage] !== line) {
+			items.push({
+				label: language ? '<span title="Split cups into multiple pages in selection screen. Do it for large multicups">New page here</span>' : '<span title="Séparer les coupes en plusieurs pages dans l\'écran de sélection. Utile pour les grosses multicoupes">Nouvelle page ici</span>',
+				select: addNewPage
+			});
+		}
 		items.push({
 			label: language ? "<strong>Remove line</strong>" : "<strong>Supprimer ligne</strong>",
 			select: rmNewLine
@@ -508,27 +653,37 @@ function selectPersoImg(pos) {
 	var oPersoSelector = document.createElement("div");
 	oPersoSelector.className = "editor-mask-content";
 	oPersoSelector.innerHTML = '<h3>'+ (language ? "Character selection..." : "Sélection du perso...") +'</h3>'
+							+ '<a class="perso-selection-close" href="javascript:void(0)">&times;</a>'
 							+ '<div class="perso-selection-standard"></div>'
 								+ '<h4>'+ (language ? "Basic characters":"Persos de base") +'</h4>'
 								+ '<div class="perso-selection-choices" id="perso-selection-standard-choices"></div>'
-							+ '<div id="perso-selection-custom" style="display:none">'
+							+ '<div class="perso-selection-custom">'
 								+ '<h4>'+ (language ? "Custom characters":"Persos custom") +'</h4>'
-								+ '<div class="perso-selection-custom-explain">'+ (language
-									? "Select here a character from the character editor. If the character hasn't been shared, he will appear as locked for other members."
-									: "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres"
-								) +'</div>'
+								+ '<div class="perso-selection-custom-explain"></div>'
 								+ '<div id="perso-info">'
 									+'<div>'
-										+'<div id="perso-info-name">Mario</div>'
-										+'<div class="perso-info-share" id="perso-info-shared">✓ '+ (language ? "Shared character":"Perso partagé") +'</div>'
-										+'<div class="perso-info-share" id="perso-info-unshared">🔒 '+ (language ? "Non-shared character":"Perso non partagé") +'</div>'
+										+ '<div id="perso-info-name">Mario</div>'
+										+ '<div class="perso-info-share" id="perso-info-shared">✓ '+ (language ? "Shared character":"Perso partagé") +'</div>'
+										+ '<div class="perso-info-share" id="perso-info-unshared">🔒 '+ (language ? "Non-shared character":"Perso non partagé") +'</div>'
 									+'</div>'
 								+ '</div>'
 								+ '<div class="perso-selection-choices" id="perso-selection-custom-choices"></div>'
+								+ '<div class="perso-selection-collab">'
+									+ '<div class="perso-selection-collab-toggle">+ <a href="javascript:void(0)">'+ (language ? "Select a character from another member..." : "Sélectionner le perso d'un autre membre...") +'</a></div>'
+									+ '<form id="perso-selection-collab">'
+										+ '<label>'
+											+ '<span>'+ (language ? 'Collaboration link' : 'Lien de collaboration') + '<span class="pretty-title-ctn"><a href="javascript:void(0)">[?]</a></span>:&nbsp;</span>'
+											+ '<input type="url" name="collab-link" required="required" placeholder="'+ collabCharPlaceholder +'" />'
+											+ '<button type="submit">Ok</button>'
+										+ '</label>'
+									+ '</form>'
+								+ '</div>'
 							+ '</div>';
+
 	oPersoSelector.onclick = function(e) {
 		e.stopPropagation();
 	}
+	oPersoSelector.querySelector(".perso-selection-close").onclick = closeMask;
 	$mask.appendChild(oPersoSelector);
 	var $persoSelectionChoices = document.getElementById("perso-selection-standard-choices");
 	function appendPersoChoice($div, src, data) {
@@ -537,26 +692,29 @@ function selectPersoImg(pos) {
 		var oImg = document.createElement("img");
 		oImg.src = src;
 		oImg.onclick = function() {
-			var perso = data.sprites;
-			var pList = getPersosList();
-			var persoCurrentElt = perso && pList.find(function(p) { return p && p.sprites === perso });
-			var persoPos = persoCurrentElt ? pList.indexOf(persoCurrentElt) : -1;
-			var currentPerso = pList[pos];
-			if ((persoPos !== -1) && !currentPerso) {
-				pos = pList.length - 1;
-				currentPerso = pList[pos];
-			}
-			pList[pos] = data;
-			if (persoPos !== -1)
-				pList[persoPos] = currentPerso;
-			persoList = pList;
-			closeMask();
-			updateCupPersosGUI();
+			doSelectPerso(data);
 		};
 		oDiv2.appendChild(oImg);
 		oDiv.appendChild(oDiv2);
 		$div.appendChild(oDiv);
 		return oDiv;
+	}
+	function doSelectPerso(data) {
+		var perso = data.sprites;
+		var pList = getPersosList();
+		var persoCurrentElt = perso && pList.find(function(p) { return p && p.sprites === perso });
+		var persoPos = persoCurrentElt ? pList.indexOf(persoCurrentElt) : -1;
+		var currentPerso = pList[pos];
+		if ((persoPos !== -1) && !currentPerso) {
+			pos = pList.length - 1;
+			currentPerso = pList[pos];
+		}
+		pList[pos] = data;
+		if (persoPos !== -1)
+			pList[persoPos] = currentPerso;
+		persoList = pList;
+		closeMask();
+		updateCupPersosGUI();
 	}
 	for (var perso in cp) {
 		appendPersoChoice($persoSelectionChoices, "images/sprites/sprite_"+ perso +".png", {
@@ -584,8 +742,16 @@ function selectPersoImg(pos) {
 				oPersoSelector.querySelector("#perso-info").style.display = "";
 			};
 		}
-		if (customCharacters.length)
-			document.getElementById("perso-selection-custom").style.display = "";
+		if (customCharacters.length) {
+			oPersoSelector.querySelector(".perso-selection-custom-explain").innerHTML = language
+				? "Select here a character from the character editor. If the character hasn't been shared, he will appear as locked for other members."
+				: "Sélectionnez ici un perso de l'éditeur de persos. Si le perso n'a pas été partagé, il apparaitra comme à débloquer pour les autres membres";
+		}
+		else {
+			oPersoSelector.querySelector(".perso-selection-custom-explain").innerHTML = language
+				? "You haven't created any character yet. Click <a href=\"persoEditor.php\" target=\"_blank\">here</a> to create some."
+				: "Vous n'avez pas créé de perso. Cliquez <a href=\"persoEditor.php\" target=\"_blank\">ici</a> pour en créer.";
+		}
 	}
 	if (customCharacters)
 		appendCustomCharacters();
@@ -601,9 +767,58 @@ function selectPersoImg(pos) {
 			return true;
 		});
 	}
+
+	var $oPersoCollabForm = oPersoSelector.querySelector("#perso-selection-collab");
+	oPersoSelector.querySelector(".perso-selection-collab-toggle a").onclick = function(e) {
+		$oPersoCollabForm.className = $oPersoCollabForm.className ? "" : "shown";
+		if ($oPersoCollabForm.className) {
+			$oPersoCollabForm.elements["collab-link"].focus();
+			var $persoCollabExplain = $oPersoCollabForm.querySelector("#perso-selection-collab > label a");
+			if (!$persoCollabExplain.dataset.title) {
+				$persoCollabExplain.dataset.title = '<div class="fancy-title-collab">'+ (language ? "Enter the characters's collaboration link here.<br />To get this link, the character owner will simply need to select the character in the editor and click on &quot;Collaborate&quot;" : "Saisissez ici le lien de collaboration du perso.<br />Pour obtenir ce lien, le propriétaire du perso devra simplement sélectionner le perso dans l'éditeur et cliquer sur &quot;Collaborer&quot;") +'</div>';
+				initFancyTitle($persoCollabExplain);
+			}
+		}
+	};
+	$oPersoCollabForm.onsubmit = function(e) {
+		e.preventDefault();
+		var url = $oPersoCollabForm.elements["collab-link"].value;
+		var creationId, creationKey;
+		try {
+			var urlParams = new URLSearchParams(new URL(url).search);
+			creationId = urlParams.get('id');
+			creationKey = urlParams.get('collab');
+		}
+		catch (e) {
+		}
+		if (!creationKey) {
+			alert(language ? "Invalid URL" : "URL invalide");
+			return;
+		}
+		var $submitBtn = $oPersoCollabForm.querySelector('button[type="submit"]');
+		$submitBtn.disabled = true;
+		o_xhr("importCollabPerso.php", "id="+creationId+"&collab="+creationKey, function(res) {
+			$submitBtn.disabled = false;
+			if (!res) {
+				alert(language ? "Invalid link" : "Lien invalide");
+				return true;
+			}
+			res = JSON.parse(res);
+			doSelectPerso(res);
+
+			return true;
+		});
+	};
 }
-function showCustomCharToggleHelp() {
-	alert(language ? "If unchecked, you don't give access to the character editor in the character selector screen. Only the characters in the list above can be selected." : "Si décoché, vous ne donnez pas accès à l'éditeur de persos dans l'écran de sélection du perso. Seuls les persos de la liste ci-dessus pourront être sélectionnés.");
+function handleFormSubmit(e) {
+	var $form = e.target;
+	var optVal = $form.elements["opt"].value;
+	if (optVal) {
+		var key = Math.random().toString(16).substring(2);
+		sessionStorage.setItem("cupopt."+key, optVal);
+		var optValJson = JSON.parse(optVal);
+		$form.elements["opt"].value = JSON.stringify({ "keyid":key, persos: optValJson.persos });
+	}
 }
 function selectOptionTab(id) {
 	document.querySelector(".option-tab-selected").classList.remove("option-tab-selected");
@@ -611,3 +826,75 @@ function selectOptionTab(id) {
 	document.querySelector(".option-container-selected").classList.remove("option-container-selected");
 	document.querySelectorAll("#option-containers > div")[id].classList.add("option-container-selected");
 }
+function showCollabImportPopup(e) {
+	e.preventDefault();
+	var $collabPopup = document.getElementById("collab-popup");
+	$collabPopup.dataset.state = "open";
+
+	closeCollabImportPopup = function() {
+		document.removeEventListener("keydown", hideOnEscape);
+		delete $collabPopup.dataset.state;
+	}
+	function hideOnEscape(e) {
+		switch (e.keyCode) {
+		case 27:
+			closeCollabImportPopup();
+		}
+	}
+	document.addEventListener("keydown", hideOnEscape);
+	$collabPopup.querySelector('input[name="collablink"]').focus();
+}
+var closeCollabImportPopup;
+function importCollabTrack(e) {
+	e.preventDefault();
+	var $form = e.target;
+	var url = $form.elements["collablink"].value;
+	var creationId, creationType, creationKey;
+	try {
+		var urlParams = new URLSearchParams(new URL(url).search);
+		if (isMCups) {
+			creationType = "mkcups";
+			creationId = urlParams.get('cid');
+		}
+		else if (complete) {
+			creationType = "circuits";
+			creationId = urlParams.get('i');
+		}
+		else {
+			creationType = "mkcircuits";
+			creationId = urlParams.get('id');
+		}
+		creationKey = urlParams.get('collab');
+	}
+	catch (e) {
+	}
+	if (!creationKey) {
+		alert(language ? "Invalid URL" : "URL invalide");
+		return;
+	}
+	var $collabPopup = document.getElementById("collab-popup");
+	$collabPopup.dataset.state = "loading";
+	o_xhr("importCollabTrack.php", "type="+creationType+"&id="+creationId+"&collab="+creationKey+(isMCups ? ("&mode="+complete):""), function(res) {
+		if (!res) {
+			alert(language ? "Invalid link" : "Lien invalide");
+			$collabPopup.dataset.state = "open";
+			return true;
+		}
+		if (!document.getElementById("circuit"+creationId)) {
+			var template = document.createElement('template');
+			template.innerHTML = res.trim();
+			var $tr = template.content.cloneNode(true).firstChild;
+			var $table = document.getElementById("table-circuits");
+			var $tbody = $table.querySelector("tbody");
+			$tbody.insertBefore($tr, $tbody.firstChild);
+			loadCircuitImgs();
+		}
+
+		closeCollabImportPopup();
+		$form.reset();
+		sessionStorage.setItem("collab.track."+creationType+"."+creationId+".key", creationKey);
+		return true;
+	});
+}
+
+document.addEventListener("DOMContentLoaded", initGUI);

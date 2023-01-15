@@ -56,9 +56,9 @@ include('menu.php');
 			?>
 	<form method="post" action="password.php">
 	<table>
-	<tr><td class="ligne"><label for="ancien"><?php echo $language ? 'Old password':'Ancien mot de passe'; ?> :</label></td><td><input type="password" name="ancien" id="ancien" value="<?php echo $ancien ?>" maxlength="30" /></td></tr>
-	<tr><td class="ligne"><label for="nouveau"><?php echo $language ? 'New password':'Nouveau mot de passe'; ?> :</label></td><td><input type="password" name="nouveau" id="nouveau" value="<?php echo $nouveau ?>" maxlength="30" /></td></tr>
-	<tr><td class="ligne"><label for="confirm"><?php echo $language ? 'Re-enter the password':'Retapez le mot de passe'; ?> :</label></td><td><input type="password" name="confirm" id="confirm" value="<?php echo $confirm ?>" maxlength="30" /></td></tr>
+	<tr><td class="ligne"><label for="ancien"><?php echo $language ? 'Old password':'Ancien mot de passe'; ?> :</label></td><td><input type="password" name="ancien" id="ancien"<?php if (isset($ancien)) echo ' value="'.$ancien.'"'; ?> maxlength="30" /></td></tr>
+	<tr><td class="ligne"><label for="nouveau"><?php echo $language ? 'New password':'Nouveau mot de passe'; ?> :</label></td><td><input type="password" name="nouveau" id="nouveau"<?php if (isset($nouveau)) echo ' value="'.$nouveau.'"'; ?> maxlength="30" /></td></tr>
+	<tr><td class="ligne"><label for="confirm"><?php echo $language ? 'Re-enter the password':'Retapez le mot de passe'; ?> :</label></td><td><input type="password" name="confirm" id="confirm"<?php if (isset($confirm)) echo ' value="'.$confirm.'"'; ?> maxlength="30" /></td></tr>
 	<tr><td colspan="2"><input type="submit" value="<?php echo $language ? 'Submit':'Valider'; ?>" class="action_button" /></td></tr>
 	</table>
 	</form>

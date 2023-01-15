@@ -1,12 +1,25 @@
 <?php
 $infos = Array();
 require_once('circuitPrefix.php');
+$hasReadGrants = true;
+$hasWriteGrants = true;
 if (isset($_GET['id'])) {
 	include('initdb.php');
-	$id = $_GET['id'];
+	$id = intval($_GET['id']);
 	if ($getMain = mysql_fetch_array(mysql_query('SELECT map,nom,auteur,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $id .'" AND type'))) {
 		include('getId.php');
-		if ((($identifiants[0]==$getMain['identifiant'])&&($identifiants[1]==$getMain['identifiant2'])&&($identifiants[3]==$getMain['identifiant3'])&&($identifiants[3]==$getMain['identifiant4'])) || ($identifiants[0] == 1390635815)) {
+		require_once('collabUtils.php');
+		if (($identifiants[0]==$getMain['identifiant'])&&($identifiants[1]==$getMain['identifiant2'])&&($identifiants[3]==$getMain['identifiant3'])&&($identifiants[3]==$getMain['identifiant4'])) {
+			// Ok
+		}
+		elseif ($collab = getCollabLinkFromQuery('mkcircuits', $id)) {
+			include('grantCollabRights.php');
+		}
+		else {
+			$hasReadGrants = ($identifiants[0] == 1390635815);
+			$hasWriteGrants = false;
+		}
+		if ($hasReadGrants) {
 			$map = $getMain['map'];
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
@@ -36,7 +49,7 @@ if (isset($_GET['id'])) {
 else {
 	include('escape_all.php');
 	if (isset($_GET['nid']))
-		$id = $_GET['nid'];
+		$id = intval($_GET['nid']);
 	$pieces = Array(5,0,0,0,0,4,1,11,11,11,11,3,1,11,11,11,11,3,1,11,11,11,11,3,1,11,11,11,11,3,6,2,2,2,2,7);
 	for ($i=0;$i<36;$i++)
 		${"p$i"} = (isset($_GET["p$i"])) ? $_GET["p$i"] : $pieces[$i];
@@ -81,13 +94,14 @@ include('language.php');
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create a course Mario Kart':'Cr&eacute;er une ar&egrave;ne Mario Kart'; ?></title>
-<link rel="stylesheet" type="text/css" href="styles/create.css" />
+<link rel="stylesheet" type="text/css" href="styles/create.css?reload=1" />
 <script type="text/javascript">
 var decorTypes = <?php echo json_encode($decorTypes); ?>;
+var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 </script>
 <script type="text/javascript" src="scripts/create.js"></script>
 </head>
-<body>
+<body<?php if (!$hasWriteGrants) echo ' class="collab-readonly"'; ?>>
 <div id="circuit">
 <?php
 for ($i=0;$i<36;$i++)
@@ -107,8 +121,10 @@ include('circuitObjects.php');
 <?php
 if (isset($_GET['cl']))
 	echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
+if (isset($_GET['collab']))
+	echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />';
 ?>
-Type : <select name="map" onchange="changeMap(this.value);this.blur()">
+Type : <select name="map" onchange="changeMap(this.value);this.blur()"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?>>
 <optgroup label="SNES">
 <?php
 $bValue = $language ? 'Battle course ':'Ar&egrave;ne  bataille ';
@@ -165,7 +181,7 @@ for ($i=0;$i<8;$i++) {
 }
 ?>
 </p>
-<p id="valider"><input type="submit" value="&nbsp; <?php echo $language ? 'Create course':'Cr&eacute;er ar&egrave;ne'; ?> &nbsp;" /></p>
+<p id="valider"><input type="submit" value="&nbsp; <?php echo $language ? 'Create course':'Cr&eacute;er ar&egrave;ne'; ?> &nbsp;"<?php if (!$hasWriteGrants) echo ' disabled="disabled"' ?> /></p>
 <p><?php
 $PJ = $language ? 'P':'J';
 for ($i=0;$i<8;$i++)

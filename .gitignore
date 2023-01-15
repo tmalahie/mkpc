@@ -10,3 +10,4 @@ admin/
 sftp-config.json
 **.directory
 .DS_Store
+advent-selected-challenges.php

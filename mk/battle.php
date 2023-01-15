@@ -30,12 +30,16 @@ foreach ($circuitsData as $c => $arene) {
 			<?php
 		}
 	}
-	?>
-	"fond" : ["<?php
+	if (isset($circuitMainData->bgcustom))
+		echo '"custombg":'.$circuitMainData->bgimg.',';
+	else {
+		echo '"fond":["';
 		require_once('circuitEnums.php');
 		$getInfos = $bgImages[$circuitMainData->bgimg];
 		echo implode('","',$getInfos);
-	?>"],
+		echo '"],';
+	}
+	?>
 	"startposition" : <?php echo empty($circuitMainData->startposition) ? '[[-1,-1,0]]':json_encode($circuitMainData->startposition); ?>,
 	"aipoints" : <?php echo json_encode($circuitPayload->aipoints); ?>,
 	"collision" : <?php
@@ -47,6 +51,7 @@ foreach ($circuitsData as $c => $arene) {
 		}
 		echo json_encode($circuitPayload->collision);
 	?>,
+	<?php if (isset($circuitPayload->collisionProps)) echo '"collisionProps":'. json_encode($circuitPayload->collisionProps) .','; ?>
 	"horspistes" : <?php echo json_encode($circuitPayload->horspistes); ?>,
 	"trous" : <?php echo json_encode($circuitPayload->trous); ?>,
 	"arme" : <?php echo json_encode($circuitPayload->arme); ?>,
@@ -87,6 +92,10 @@ foreach ($circuitsData as $c => $arene) {
 	if (!empty($circuitPayload->spinners)) {
 		?>,
 	"spinners" : <?php echo json_encode($circuitPayload->spinners);
+	}
+	if (!empty($circuitPayload->elevators)) {
+		?>,
+	"elevators" : <?php echo json_encode($circuitPayload->elevators);
 	}
 	echo '}';
 }

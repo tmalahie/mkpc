@@ -21,8 +21,10 @@ if (isset($_POST['type']) && isset($_FILES['sprites'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
+<link rel="stylesheet" href="styles/collabs.css" />
 <link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
+<script type="text/javascript" src="scripts/collabs.js"></script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 <script type="text/javascript">
 var decorId = -1;
@@ -40,6 +42,7 @@ function selectDecor(id) {
 		document.getElementById("decor-actions").style.display = "inline-block";
 		var decorName = document.getElementById("mydecor-"+decorId).dataset.name;
 		document.getElementById("decor-actions-name").innerHTML = decorName;
+		document.querySelector(".decors-list-container").scrollIntoView();
 	}
 	else
 		document.getElementById("decor-actions").style.display = "none";
@@ -50,6 +53,9 @@ function editDecor() {
 function delDecor() {
 	if (confirm(language ? "Delete decor?":"Supprimer le décor ?"))
 		document.location.href = "delDecor.php?id="+decorId +"&token=<?php echo $_SESSION['csrf']; ?>";
+}
+function collabDecor() {
+    showCollabPopup("mkdecors", decorId, "getDecorCollabPopup.php");
 }
 function toggleHelp() {
 	document.getElementById("decor-instructions").style.display = (document.getElementById("decor-instructions").style.display =="block") ? "none":"block";
@@ -117,17 +123,18 @@ if (isset($error))
         ?>
         <div class="decors-list-container">
             <h3><?php echo $language ? 'Your decors':'Vos décors'; ?></h3>
+            <div id="decor-actions">
+                <div id="decor-actions-name"></div>
+                <button class="edit-decor" onclick="editDecor()"><?php echo $language ? "Edit":"Modifier"; ?></button>
+                <button class="suppr-decor" onclick="delDecor()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
+                <button class="collab-decor" onclick="collabDecor()"><?php echo $language ? "Collaborate":"Collaborer"; ?>&mldr;</button>
+            </div>
             <div class="decors-list"><?php
             while ($decor = mysql_fetch_array($myDecors)) {
                 $decorSrcs = decor_sprite_srcs($decor['sprites']);
                 ?><div id="mydecor-<?php echo $decor['id'] ?>" data-id="<?php echo $decor['id'] ?>" data-name="<?php echo htmlspecialchars($decor['name']) ?>" data-ld="<?php echo $decorSrcs['ld'] ?>" data-type="<?php echo $decor['type']; ?>" onclick="selectDecor(<?php echo $decor['id'] ?>)"><img src="<?php echo $decorSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($decor['name']) ?>" /></div><?php
             }
             ?></div>
-            <div id="decor-actions">
-                <div id="decor-actions-name"></div>
-                <button class="edit-decor" onclick="javascript:editDecor()"><?php echo $language ? "Edit":"Modifier"; ?></button>
-                <button class="suppr-decor" onclick="javascript:delDecor()"><?php echo $language ? "Delete":"Supprimer"; ?></button>
-            </div>
         <?php
         $poids = file_total_size();
         echo '<div class="file-quotas">'. ($language ? "You're using ".filesize_str($poids).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($poids) .')' : 'Vous utilisez '.filesize_str($poids).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($poids).')') .'</div>';

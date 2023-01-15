@@ -16,8 +16,14 @@ if ($id) {
             'name' => $player['nom']
         );
     }
-    $getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkjoueurs` WHERE id="'.$id.'"'));
-	$course = $getCourse['course'];
+    include('onlineUtils.php');
+    if (isset($_POST['course']))
+        $course = intval($_POST['course']);
+    else {
+        $course = getCourse(array(
+            'spectator' => 0,
+        ));
+    }
     $pendingPlayers = array();
     if ($getTime=mysql_fetch_array(mysql_query('SELECT time,map FROM `mariokart` WHERE id='. $course))) {
         $players = get_remaining_player_query($course,$getTime,true,-1);

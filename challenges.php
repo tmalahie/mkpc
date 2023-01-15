@@ -38,6 +38,7 @@ if (isset($_GET['clmsg'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/challenges.css" />
+<script type="text/javascript" src="scripts/challenges.js?reload=1"></script>
 <?php
 include('o_online.php');
 ?>
@@ -101,34 +102,7 @@ function unpublishChallenge(id) {
 function challengeReco() {
 	window.open('challengeReco.php','gerer','scrollbars=1, resizable=1, width=500, height=500');
 }
-document.addEventListener("DOMContentLoaded", function() {
-	var prettyTitles = document.getElementsByClassName("pretty-title");
-	var $fancyTitle;
-	for (var i=0;i<prettyTitles.length;i++) {
-		var prettyTitle = prettyTitles[i];
-		if (!prettyTitle.dataset) prettyTitle.dataset = {};
-		prettyTitle.dataset.title = prettyTitle.title;
-		prettyTitle.title = "";
-		prettyTitle.onmouseover = function(e) {
-			if ($fancyTitle) return;
-			var iScreenScale = 8;
-			$fancyTitle = document.createElement("div");
-			$fancyTitle.className = "challenge-title-fancy";
-			$fancyTitle.innerHTML = this.dataset.title;
-			$fancyTitle.style.visibility = "hidden";
-			document.body.appendChild($fancyTitle);
-			var rect = this.getBoundingClientRect();
-			$fancyTitle.style.left = Math.round(rect.left + (this.scrollWidth-$fancyTitle.scrollWidth)/2)+"px";
-			$fancyTitle.style.top = (rect.top - $fancyTitle.scrollHeight - 3)+"px";
-			$fancyTitle.style.visibility = "visible";
-		};
-		prettyTitle.onmouseout = function(e) {
-			if (!$fancyTitle) return;
-			document.body.removeChild($fancyTitle);
-			$fancyTitle = undefined;
-		};
-	}
-});
+document.addEventListener("DOMContentLoaded", initPrettyTitles);
 </script>
 
 <title><?php echo $language ? 'Challenge editor':'Éditeur de défis'; ?> - Mario Kart PC</title>
@@ -202,8 +176,8 @@ document.addEventListener("DOMContentLoaded", function() {
 					switch ($challenge['status']) {
 					case 'pending_completion':
 						if (!$challenge['validation']) {
-							echo $language ? 'Waiting success':'En attente de réussite';
-							echo ' <a href="javascript:void(0)" class="pretty-title" title="'. ($language ? 'You have to complete the challenge to prove it\'s possible.':'Vous devez réussir le défi pour valider qu\'il n\'est pas impossible.') .'">[?]</a>';
+							echo $language ? 'Pending completion':'En attente de réussite';
+							echo ' <a href="javascript:void(0)" class="pretty-title" title="'. ($language ? 'You have to succeed the challenge to prove it\'s possible.':'Vous devez réussir le défi pour valider qu\'il n\'est pas impossible.') .'">[?]</a>';
 						}
 						else {
 							echo '<span class="challenge-status-rejected">';

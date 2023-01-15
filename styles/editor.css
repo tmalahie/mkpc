@@ -160,6 +160,10 @@ a:hover {
 	background-color: #669FD9;
 	border-color: #59B;
 }
+.toolbox-button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
 .theme-dark .toolbox-button {
 	background-color: #6AD;
 	border-color: #59B;
@@ -278,6 +282,9 @@ body.theme-dark {
 	min-width: calc(100vw - 40px);
 	min-height: 95vh;
 	min-height: calc(100vh - 20px);
+}
+#editor-wrapper.readonly {
+	pointer-events: none;
 }
 #editor-ctn {
 	position: relative;
@@ -433,12 +440,28 @@ body.theme-dark {
 }
 .fancy-title-text {
 	position: fixed;
+	z-index: 1;
 	pointer-events: none;
 	font-size: 1.1em;
 	background-color: black;
 	background-color: rgba(0,0,0, 0.7);
 	color: white;
 	padding: 2px 6px;
+}
+#editor-toast {
+	position: fixed;
+	bottom: 15%;
+	left: 50%;
+	background-color: rgb(0,40,80);
+	background-color: rgba(0,40,80, 0.7);
+	border-radius: 6px;
+	color: white;
+	padding: 2px 6px;
+	max-width: 50%;
+	font-size: 1.2em;
+	transform: translateX(-50%);
+	animation: progressive-fade 5s 1 linear;
+	cursor: default;
 }
 #mode-option-start .radio-button {
 	width: 1.5em;
@@ -555,6 +578,13 @@ div.hover-toggle:hover {
 	fill: transparent;
 	stroke: black;
 }
+.editor .path.hover-toggle:hover {
+	fill: transparent;
+	stroke: black;
+}
+.theme-dark .editor .path.hover-toggle:hover {
+	stroke: white;
+}
 .theme-dark .editor .path.dark {
 	fill: transparent;
 	stroke: white;
@@ -567,6 +597,12 @@ div.hover-toggle:hover {
 }
 .editor .dark.hover-toggle:hover {
 	fill: white;
+}
+.editor text.fade {
+	fill: #377;
+}
+.theme-dark .editor text.dark.fade {
+	fill: #499;
 }
 .theme-dark .editor .dark.hover-toggle:hover {
 	fill: black;
@@ -724,14 +760,11 @@ div.hover-toggle:hover {
 	z-index: 10;
 	overflow: hidden;
 }
+.bg-selector-optgroup > div {
+	width: 270px;
+}
 #bg-selector-optgroup-0 > div {
 	width: 540px;
-}
-#bg-selector-optgroup-1 > div {
-	width: 270px;
-}
-#bg-selector-optgroup-2 > div {
-	width: 270px;
 }
 .bg-selector-optgroup > div:hover, .bg-selected {
 	border: solid 2px #ff7100 !important;
@@ -745,6 +778,46 @@ div.hover-toggle:hover {
 	height: 100%;
 	position: absolute;
 	cursor: pointer;
+}
+.bg-selector-optgroup > div.add-custom-bg span {
+	background-color: #69C;
+	color: white;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+}
+.bg-selector-optgroup > div.add-custom-bg:hover {
+	border-color: #48A !important;
+}
+.bg-selector-collab {
+	margin-top: 0.25em;
+	color: #024;
+}
+#bg-selector-collab {
+	display: none;
+	margin-top: 0.5em;
+}
+#bg-selector-collab.shown {
+	display: block;
+}
+#bg-selector-collab a {
+	position: relative;
+	top: -0.4em;
+	font-size: 0.8em;
+}
+#bg-selector-collab label {
+	display: flex;
+	align-items: center;
+	gap: 0.3em;
+}
+#bg-selector-collab input[type="url"] {
+	flex: 1;
+}
+.fancy-title-collab {
+	width: 400px;
+	text-align: center;
 }
 #music-selector {
 	padding-left: 5px;
@@ -802,6 +875,9 @@ div.hover-toggle:hover {
 }
 .youtube.youtube-show-advanced #youtube-advanced-options-link {
 	display: none;
+}
+.youtube.youtube-show-advanced #youtube-speed, .youtube.youtube-show-advanced #youtube-last-speed {
+	width: 60px;
 }
 embed,#ytplayer {
 	position: absolute;
@@ -934,6 +1010,56 @@ embed,#ytplayer {
 .traject-info .popup-buttons {
 	margin-top: 15px;
 	margin-bottom: 5px;
+}
+#shortcut-options {
+	padding: 0;
+	width: 420px;
+	background-color: #d5d5d7;
+	border: double 4px #666;
+	text-align: center;
+}
+#shortcut-options .shortcut-dialog {
+	padding: 5px;
+}
+#shortcut-options h1 {
+	margin-top: 0;
+	margin-bottom: 10px;
+	color: #058;
+}
+#shortcut-options .form-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 5px;
+	gap: 6px;
+}
+#shortcut-options .form-row-block {
+	flex-direction: column;
+	gap: 0;
+}
+#shortcut-options .form-label {
+	color: #058;
+}
+#shortcut-options .form-row-block .form-value {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 5px;
+}
+#shortcut-options .form-row-block .form-value input[type="checkbox"] {
+	margin-right: 0;
+}
+#shortcut-options .form-row-block .form-value img {
+	height: 12px;
+}
+#shortcut-options .form-submit {
+	margin-top: 15px;
+	margin-bottom: 5px;
+	font-size: 1.2em;
+}
+#shortcut-options .form-submit button {
+	font-size: 1em;
 }
 #offroad-transfer .popup-buttons {
 	margin-top: 15px;
@@ -1342,5 +1468,17 @@ embed,#ytplayer {
 }
 .main-decor a:hover {
 	color: #049;
+}
 
+
+@keyframes progressive-fade {
+	15% {
+		opacity: 1;
+	}
+	80% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 0;
+	}
 }

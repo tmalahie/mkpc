@@ -5,8 +5,20 @@ if (isset($_GET['id'])) {
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
 		include('language.php');
 		include('getId.php');
-		if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
-			if (isset($_POST['type'])) {
+        require_once('collabUtils.php');
+        $collabSuffix = '';
+        if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
+            $hasReadGrants = true;
+            $hasWriteGrants = true;
+        }
+        else {
+            $collab = getCollabLinkFromQuery('mkchars', $persoId);
+            $hasReadGrants = isset($collab['rights']['view']);
+            $hasWriteGrants = isset($collab['rights']['edit']);
+            if ($collab) $collabSuffix = '&collab='. $collab['key'];
+        }
+        if ($hasReadGrants) {
+			if (isset($_POST['type']) && $hasWriteGrants) {
 				switch ($_POST['type']) {
 				case 'original':
 					$perso = $_POST['perso'];
@@ -19,7 +31,7 @@ if (isset($_GET['id'])) {
 				}
 				if ($perso) {
 					mysql_query('UPDATE `mkchars` SET music="'. $perso .'" WHERE id="'. $persoId .'"');
-					header('location: persoOptions.php?id='. $persoId);
+					header('location: persoOptions.php?id='. $persoId . $collabSuffix);
 				}
 			}
 			require_once('persos.php');
@@ -38,7 +50,7 @@ if (isset($_GET['id'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/perso-editor.css" />
+<link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <style type="text/css">
 h2 {
 	margin-top: 0px;
@@ -132,17 +144,17 @@ include('o_online.php');
 ?>
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
 </head>
-<body>
+<body<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?>>
 	<h1><?php echo $language ? "Edit end race music":"Modifier la musique de fin de course"; ?></h1>
 	<form method="post" name="perso-selector">
-	<h2><label><input type="radio" name="type" value="original" onclick="originalSelect()"<?php if ($isOriginal) echo ' checked="checked"'; ?> /> <?php echo $language ? "From existing character:":"À partir d'un perso existant :"; ?></label></h2>
+	<h2><label><input type="radio" name="type" value="original" onclick="originalSelect()"<?php if ($isOriginal) echo ' checked="checked"'; if (!$hasWriteGrants) echo ' disabled="disabled"'; ?>  /> <?php echo $language ? "From existing character:":"À partir d'un perso existant :"; ?></label></h2>
 	<input type="hidden" name="perso" value="<?php echo $persoMusic; ?>" />
 	<div id="original-perso-selector"<?php if ($isOriginal) echo ' class="perso-selector-enabled"'; ?>>
 		<?php
 		$i = 0;
 		foreach ($persos as $perso => $ignored) {
 			if ($unlocked[$i]) {
-				?><div data-perso="<?php echo $perso; ?>" onclick="selectPerso(this)"<?php if ($persoMusic==$perso) echo ' id="perso-selected"' ?>>
+				?><div data-perso="<?php echo $perso; ?>"<?php if ($hasWriteGrants) echo ' onclick="selectPerso(this)"'; if ($persoMusic==$perso) echo ' id="perso-selected"' ?>>
 					<div><img src="images/sprites/sprite_<?php echo $perso; ?>.png" alt="<?php echo $perso; ?>" onload="this.style.left=-Math.round(this.naturalWidth*11/24+((this.naturalWidth/24)-32)/2)+'px';this.style.top=-Math.round((this.naturalHeight-32)/2)+'px'" /></div>
 				</div><?php
 			}
@@ -150,17 +162,17 @@ include('o_online.php');
 		}
 		?>
 	</div>
-	<h2><label><input type="radio" name="type" value="youtube" onclick="youtubeSelect()"<?php if (!$isOriginal) echo ' checked="checked"'; ?> /> <?php echo $language ? "From Youtube:":"À partir de Youtube :"; ?></label></h2>
+	<h2><label><input type="radio" name="type" value="youtube" onclick="youtubeSelect()"<?php if (!$isOriginal) echo ' checked="checked"'; if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> /> <?php echo $language ? "From Youtube:":"À partir de Youtube :"; ?></label></h2>
 	<div id="youtube-perso-selector"<?php if (!$isOriginal) echo ' class="perso-selector-enabled"'; ?>>
-		<input type="text" name="youtube" value="<?php if (!$isOriginal) echo htmlspecialchars($persoMusic); ?>" placeholder="https://www.youtube.com/watch?v=g5VNjnmdY5I" onfocus="this.form.elements['type'].value='youtube';youtubeSelect();var that=this;setTimeout(function(){that.select()},1);" onchange="jouerToiTuyaux()" />
+		<input type="text" name="youtube" value="<?php if (!$isOriginal) echo htmlspecialchars($persoMusic); ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> placeholder="https://www.youtube.com/watch?v=g5VNjnmdY5I" onfocus="this.form.elements['type'].value='youtube';youtubeSelect();var that=this;setTimeout(function(){that.select()},1);" onchange="jouerToiTuyaux()" />
 	</div>
 	<p>
-	<input type="submit" value="<?php echo $language ? 'Select the music':'Sélectionner la musique'; ?>" />
+	<input type="submit" value="<?php echo $language ? 'Select the music':'Sélectionner la musique'; ?>"<?php if (!$hasWriteGrants) echo ' disabled="disabled"'; ?> />
 	</p>
 	</form>
 	<p>
-		<a href="persoOptions.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></a><br />
-		<a href="editPerso.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a>
+		<a href="persoOptions.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>"><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></a><br />
+		<a href="editPerso.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a>
 	</p>
 </body>
 </html>

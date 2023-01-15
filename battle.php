@@ -3,7 +3,7 @@ include('initdb.php');
 include('language.php');
 require_once('utils-challenges.php');
 include('creation-challenges.php');
-$id = isset($_GET['i']) ? $_GET['i']:0;
+$id = isset($_GET['i']) ? intval($_GET['i']) : 0;
 if ($arene = mysql_fetch_array(mysql_query('SELECT a.*,(a.nom IS NOT NULL) as shared,d.data FROM `arenes` a LEFT JOIN `arenes_data` d ON a.id=d.id WHERE a.id="'.$id.'"'))) {
 	$cShared = $arene['shared'];
 	if ($arene['nom'] != null)
@@ -36,6 +36,7 @@ if ($arene = mysql_fetch_array(mysql_query('SELECT a.*,(a.nom IS NOT NULL) as sh
 include('metas.php');
 
 include('c_mariokart.php');
+include('c_collab.php');
 include('c_comments.php');
 
 include('o_online.php');
@@ -80,7 +81,18 @@ function listMaps() {
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 <?php
-$canChange = (($arene['identifiant'] == $identifiants[0]) && ($arene['identifiant2'] == $identifiants[1]) && ($arene['identifiant3'] == $identifiants[2]) && ($arene['identifiant4'] == $identifiants[3]));
+require_once('collabUtils.php');
+$collab = getCollabLinkFromQuery('arenes', $id);
+if ($arene) {
+	$creator = (($arene['identifiant'] == $identifiants[0]) && ($arene['identifiant2'] == $identifiants[1]) && ($arene['identifiant3'] == $identifiants[2]) && ($arene['identifiant4'] == $identifiants[3]));
+	$canChange = $creator || isset($collab['rights']['view']);
+	$canShare = $creator || isset($collab['rights']['edit']);
+}
+else {
+	$creator = false;
+	$canChange = false;
+	$canShare = false;
+}
 if ($canChange) {
 	$shared = mysql_numrows(mysql_query('SELECT * FROM `arenes` WHERE id="'.$id.'" AND nom IS NOT NULL'));
 	?>
@@ -89,7 +101,11 @@ if ($canChange) {
 		document.getElementById("cAnnuler").className = "cannotChange";
 		document.getElementById("cEnregistrer").disabled = true;
 		document.getElementById("cEnregistrer").className = "cannotChange";
-		xhr("saveBattle.php", "id=<?php echo $id; ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
+		xhr("saveBattle.php", "id=<?php
+			echo $id;
+			if ($clId) echo '&cl='. $clId;
+			if ($collab) echo '&collab='.$collab['key'];
+		?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
 			if (reponse == 1) {
 				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
 				var cP = document.createElement("p");
@@ -97,7 +113,7 @@ if ($canChange) {
 				cP.style.textAlign = "center";
 				cP.innerHTML = '<?php
 					if ($shared)
-						echo $language ? 'The sharing of your course has been updated.':'Le partage de votre ar&egrave;ne a &eacute;t&eacute; mis &agrave; jour.';
+						echo $language ? 'Course updated successfully.':'Le partage de votre ar&egrave;ne a &eacute;t&eacute; mis &agrave; jour.';
 					else
 						echo $language ? 'Your course has just been added to the <a href="creations.php" target="_blank">list</a> !':'Votre ar&egrave;ne vient d\\\'&ecirc;tre ajout&eacute; &agrave; la <a href="creations.php" target="_blank">liste</a> !';
 				?><br /><br />';
@@ -122,7 +138,10 @@ if ($canChange) {
 		document.getElementById("sAnnuler").className = "cannotChange";
 		document.getElementById("sConfirmer").disabled = true;
 		document.getElementById("sConfirmer").className = "cannotChange";
-		xhr("supprBattle.php", "id=<?php echo $id ?>", function(reponse) {
+		xhr("supprBattle.php", "id=<?php
+			echo $id;
+			if ($collab) echo '&collab='.$collab['key'];
+		?>", function(reponse) {
 			if (reponse == 1) {
 				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The course has been successfully removed from the list.':'L\\\'ar&egrave;ne a &eacute;t&eacute; retir&eacute;e de la liste avec succ&egrave;s.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
@@ -130,7 +149,10 @@ if ($canChange) {
 				cCont.type = "button";
 				cCont.value = language ? "Continue" : "Continuer";
 				cCont.onclick = function() {
-					document.location.href = "?i=<?php echo $id ?>";
+					document.location.href = "?i=<?php
+						echo $id;
+						if ($collab) echo '&collab='.$collab['key'];
+					?>";
 				};
 				document.getElementById("supprButtons").appendChild(cCont);
 				return true;
@@ -179,11 +201,11 @@ else {
 	$message = $language ? 'New : a comment section for the circuit creations !':'Nouveau : une section commentaires pour les cr&eacute;ations de circuits !';*/
 if ($canChange) {
 	if (!isset($circuitMainData->bgcolor))
-		$message = $language ? 'Warning : You didn\'t specify any data for the circuit.<br />Go back to the editor before testing it.':'Attention : vous n\'avez pas encore spécifié les paramètres du circuit.<br />Revenez dans l\'éditeur avant de continuer.';
+		$message = $language ? 'Warning: You didn\'t specify any data for the circuit.<br />Go back to the editor before testing it.':'Attention : vous n\'avez pas encore spécifié les paramètres du circuit.<br />Revenez dans l\'éditeur avant de continuer.';
 	elseif (count($circuitMainData->startposition) < 8)
-		$message = $language ? 'Warning : You did not indicate all the start positions.<br />Quite annoying, we don\'t know where to begin.':'Attention : Vous n\'avez pas indiqu&eacute; toutes les positions de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';
+		$message = $language ? 'Warning: You did not indicate all the start positions.<br />Quite annoying, we don\'t know where to begin.':'Attention : Vous n\'avez pas indiqu&eacute; toutes les positions de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';
 	elseif (empty($circuitPayload->arme))
-		$message = $language ? 'Warning : your course doesn\'t contain objects !<br />Hard to fight with those conditions...' :'Attention : votre ar&egrave;ne ne contient aucun objet !<br />Difficile de se battre dans ces conditions...';
+		$message = $language ? 'Warning: your course doesn\'t contain objects !<br />Hard to fight with those conditions...' :'Attention : votre ar&egrave;ne ne contient aucun objet !<br />Difficile de se battre dans ces conditions...';
 	elseif (empty($circuitPayload->aipoints))
 		$message = $language ? 'Warning: you have not indicated the trajectory of CPUs. They<br />may not know where to go...' :'Attention : vous n\'avez pas indiqu&eacute;<br />la trajectoire des ordis. Ils risque de ne pas<br />savoir o&ucirc; aller...';
 	elseif (!$circuitPayload->aipoints[count($circuitPayload->aipoints)-1][0])
@@ -194,18 +216,34 @@ if (isBanned())
   echo '&nbsp;';
 elseif ($canChange) {
 	?>
-	<input type="button" id="changeRace" onclick="document.location.href='course.php?i=<?php echo $id; ?>'" value="<?php echo ($language ? 'Edit course':'Modifier l\'ar&egrave;ne'); ?>" /><br /><br /><?php
-	if (!$shared) {
+	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='course.php?i=<?php
+		echo $id;
+		if ($collab) echo '&collab='. $collab['key'];
+	?>'" value="<?php echo ($language ? 'Edit course':'Modifier l\'ar&egrave;ne'); ?>" /><br /><?php
+	if ($creator) {
 		?>
-	&nbsp;
+		<br class="br-small" />
+		<input type="button" id="linkRace" onclick="showTrackCollabPopup('arenes', <?php echo $id; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
 		<?php
 	}
-	?>
-	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php echo ($language ? 'Share course':'Partager l\'ar&egrave;ne'); ?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
-	if ($shared) {
+	else {
 		?>
-	<br /><br /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
+		<br />
 		<?php
+	}
+	if ($canShare) {
+		?>
+	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
+	if ($shared)
+		echo $language ? 'Edit sharing':'Modifier partage';
+	else
+		echo $language ? 'Share course':'Partager l\'ar&egrave;ne';
+	?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
+		if ($shared) {
+			?>
+	<br /><br /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
+			<?php
+		}
 	}
 }
 else
@@ -251,7 +289,7 @@ if (isset($message)) {
 ?>
 <div id="confirmSuppr">
 <p id="supprInfos"><?php echo $language ?
-	'Delete this course sharing ?<br />
+	'Stop sharing this course?<br />
 	The course will be only removed from the list :<br />
 	data will be retained.' :
 	'Supprimer le partage de cette ar&egrave;ne ?<br />
@@ -287,7 +325,7 @@ if ($cShared) {
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($arene['auteur'],$id,'arenes'); ?>;
 	</script>
-	<script type="text/javascript" src="scripts/comments.js?reload=1"></script>
+	<script type="text/javascript" src="scripts/comments.js"></script>
 	<script type="text/javascript" src="scripts/topic.js"></script>
 	<?php
 }

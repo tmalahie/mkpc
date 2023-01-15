@@ -47,7 +47,7 @@ function updateCursors() {
 	}
 	else {
 		document.forms["perso-form"].className = "perso-form";
-		document.getElementById("perso-submit").disabled = false;
+		document.getElementById("perso-submit").disabled = !!window.readOnly;
 	}
 }
 function ucwords(str) {

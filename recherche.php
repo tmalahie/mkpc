@@ -10,7 +10,7 @@ if (isset($_GET['content'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Recherche - Forum Mario Kart PC</title>
+<title><?php echo $language ? 'Search':'Recherche'; ?> - Forum Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -53,7 +53,7 @@ include('menu.php');
 <col id="nbmsgs" />
 <col id="lastmsgs" />
 <tr id="titres">
-<td><?php echo $language ? 'Subjects':'Sujets'; ?></td>
+<td><?php echo $language ? 'Topics':'Sujets'; ?></td>
 <td><?php echo $language ? 'Author':'Auteur'; ?></td>
 <td><?php echo $language ? 'Msgs nb':'Nb msgs'; ?></td>
 <td><?php echo $language ? 'Last message':'Dernier message'; ?></td>

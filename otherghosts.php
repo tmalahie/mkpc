@@ -7,7 +7,7 @@ if (isset($_POST['map'])) {
 	echo '[';
 	$colon = '';
 	while ($getPerso = mysql_fetch_array($getPersos)) {
-		echo $colon.'['.$getPerso['id'].',"'. $getPerso['perso'] .'","'. addslashes($getPerso['name']) .'",'. $getPerso['time'] .','.$getPerso['lap_times'].']';
+		echo $colon.'['.$getPerso['id'].',"'. $getPerso['perso'] .'","'. addslashes($getPerso['name'] ?? '') .'",'. $getPerso['time'] .','.$getPerso['lap_times'].']';
 		$colon = ',';
 	}
 	echo ']';

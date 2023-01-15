@@ -73,6 +73,9 @@ include('o_online.php');
 							echo '...';
 						echo '<br />';
 						echo $language ? 'You can still edit the challenge to make it be re-evaluated.':'Vous pouvez toujours modifier le défi pour qu\'il repasse en modération.';
+						echo '<small>';
+						echo $language ? 'Please re-publish your challenge once you actually fixed the reported problem. In case of doubt, refer to this <a class="pretty-link" target="_blank" href="topic.php?topic=7109">forum topic</a> to see the recommendations about challenges.':'Merci de ne republier votre défi qu\'une fois que vous avez corrigé le problème remonté. En cas de doute, référez-vous à <a class="pretty-link" target="_blank" href="topic.php?topic=7109">ce topic</a> du forum pour voir les recommandations sur les défis.';
+						echo '</small>';
 						?>
 					</div>
 					<?php

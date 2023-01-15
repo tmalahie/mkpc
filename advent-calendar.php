@@ -1,5 +1,4 @@
 <?php
-date_default_timezone_set('Europe/Paris');
 include('session.php');
 include('language.php');
 include('initdb.php');
@@ -9,9 +8,17 @@ include('initdb.php');
 <head>
 <title>Calendrier de l'Avent - Mario Kart PC</title>
 <?php
-$hdescription = "C'est Noël sur Mario Kart PC ! Pour fêter ça, cet événement inédit vous donne accès à 1 défi par jour ! Remportez un maximum de défis et gagnez jusqu'à 2000 points dans le mode en ligne !";
+$hdescription = $language ? "It's Christmas on Mario Kart PC! To celebrate, this unique event gives you access to 1 challenge per day! Win as many challenges as possible to earn up to 400+ challenge points!" : "C'est Noël sur Mario Kart PC ! Pour fêter ça, cet événement inédit vous donne accès à 1 défi par jour ! Remportez un maximum de défis pour gagner jusqu'à 400+ points défis !";
 include('heads.php');
-$day = 25;//date('j');
+$year = isset($_GET['y']) ? $_GET['y'] : 2022;
+$over = false;
+date_default_timezone_set('Europe/Paris');
+if ($year < date('Y')) {
+	$day = 25;
+	$over = true;
+}
+else
+	$day = date('j');
 $dayStr = $day;
 if ($language) {
 	if ($day == 1 || $day == 21)
@@ -146,13 +153,20 @@ $adventChallengesUntil = get_challenges_until($day);
 }
 #advent-challenge-title {
 	display: inline-block;
-	font-size: 1.6em;
+	font-size: 1.25em;
 	margin-left: 4px;
 	margin-top: 5px;
 	margin-bottom: 10px;
 }
+#advent-challenge-name:not(:empty) {
+	margin-top: 5px;
+	font-size: 1.1em;
+	color: #005656;
+	text-decoration: underline;
+}
 #advent-challenge-body {
-	font-size: 1.2em;
+	font-size: 1.1em;
+	margin-top: 0.25em;
 }
 #advent-challenge-body a {
 	font-weight: bold;
@@ -173,6 +187,10 @@ $adventChallengesUntil = get_challenges_until($day);
 	margin-top: 5px;
 	margin-bottom: 2px;
 	font-size: 0.8em;
+}
+#advent-challenge-link {
+	margin-top: 0.75em;
+	margin-bottom: 0.5em;
 }
 #advent-challenge-button {
 	padding: 5px 10px;
@@ -229,13 +247,14 @@ function populateChallenge(square) {
 		switch (state) {
 		case 2:
 			$("#advent-challenge-state").css("color","green");
-			$("#advent-challenge-state").text(language ? "This challenge hase been completed!":"Ce défi a été réussi !");
+			$("#advent-challenge-state").text(language ? "This challenge has been completed!":"Ce défi a été réussi !");
 			$("#advent-challenge-state").show();
 			break;
 		default:
 			$("#advent-challenge-state").hide();
 			break;
 		}
+		$("#advent-challenge-name").html(challenge.name);
 		var description = challenge.description;
 		$("#advent-challenge-body").html(description);
 		if (challenge.img) {
@@ -264,11 +283,17 @@ function populateChallenge(square) {
 			if (challenge.link)
 				link = challenge.link;
 			$("#advent-challenge-button").attr("href", link);
+			$("#advent-challenge-body > a:first-child").attr("href", link);
+			$("#advent-challenge-link").show();
 		}
+		else
+			$("#advent-challenge-link").hide();
 	}
 	else {
+		$("#advent-challenge-link").hide();
 		$("#advent-challenge-extra").hide();
 		$("#advent-challenge-img").hide();
+		$("#advent-challenge-name").html("");
 		$("#advent-challenge-body").html("");
 		$("#advent-challenge-state").css("color","#800");
 		$("#advent-challenge-state").text(language ? "It's too early for this challenge":"Il est trop tôt pour ce défi");
@@ -308,20 +333,42 @@ include('menu.php');
 		<?php
 		$nbCompleted = 0;
 		if ($id) {
-			if ($getNbCompleted = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkadvent WHERE user='.$id.' AND day<='.$day)))
+			if ($getNbCompleted = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkadvent WHERE user='.$id.' AND year="'.$year.'" AND day<='.$day)))
 				$nbCompleted = $getNbCompleted['nb'];
 		}
-		if ($language) {
-			?>
-			The event <strong>Advent Calendar</strong> is now closed. You can find the results <a href="ranking-advent.php">here</a>, congrats to all particiants!<br />
-			If you missed the event and want to learn more about it, go to <a href="topic.php?topic=3954">this topic</a>.<br />
-			<?php
+		if ($over) {
+			if ($language) {
+				?>
+				The event <strong>Advent Calendar</strong> is now closed. You can find the results <a href="ranking-advent.php">here</a>, congrats to all particiants!<br />
+				If you missed the event and want to learn more about it, go to <a href="topic.php?topic=10452">this topic</a>.<br />
+				<?php
+			}
+			else {
+				?>
+				L'événement <strong>Calendrier de l'avent</strong> est terminé. Les résultats sont disponibles <a href="ranking-advent.php">ici</a>, bravo à tous les participants !<br />
+				Si vous avez manqué l'événement et que vous voulez en savoir plus, rendez-vous sur <a href="topic.php?topic=10452">ce topic</a>.<br />
+				<?php
+			}
 		}
 		else {
-			?>
-			L'événement <strong>Calendrier de l'avent</strong> est terminé. Les résultats sont disponibles <a href="ranking-advent.php">ici</a>, bravo à tous les participants !<br />
-			Si vous avez manqué l'événement et que vous voulez en savoir plus, rendez-vous sur <a href="topic.php?topic=3954">ce topic</a>.<br />
-			<?php
+			if ($language) {
+				?>
+				It's Christmas on Mario Kart PC!<br />
+				On this occasion, a unique event is organized on the site: the <strong>Advent Calendar</strong>!<br />
+				This event gives you access to 1 challenge per day until December 25.<br />
+				As a present, each successful challenge gives you <strong>twice as many points</strong> as normal, and even more if you complete a lot of challenges!<br />
+				To learn more, check out <a href="topic.php?topic=10452">this topic</a>.
+				<?php
+			}
+			else {
+				?>
+				C'est Noël sur Mario Kart PC !<br />
+				À cette occasion, un événement inédit est organisé sur le site : le <strong>Calendrier de l'Avent</strong> !<br />
+				Cet événement vous donne accès à <strong>1 défi par jour</strong> jusqu'au 25 décembre.<br />
+				En cadeau, chaque défi réussi vous rapporte <strong>2 fois plus</strong> de points qu'en temps normal, et encore plus si vous réussissez beaucoup de défis !<br />
+				Pour en savoir plus, rendez-vous sur <a href="topic.php?topic=10452">ce topic</a>.<br />
+				<?php
+			}
 		}
 		?>
 	</div>
@@ -331,32 +378,17 @@ include('menu.php');
 		<div class="advent-completed"><?php
 		if ($nbCompleted == 24) {
 			if ($day < 24)
-				echo $language ? 'Well done, you have completed all the chalenges so far! See you tomorrow for the next challenge.':'Bravo, vous avez réussi tous les défis pour l\'instant ! Rendez-vous demain pour le prochain défi.';
+				echo $language ? 'Well done, you have completed all the challenges so far! See you tomorrow for the next challenge.':'Bravo, vous avez réussi tous les défis pour l\'instant ! Rendez-vous demain pour le prochain défi.';
 			else
-				echo $language ? 'You have completed all the chalenges, congratulations!!':'Vous avez réussi tous les défis, félicitations !!';
+				echo $language ? 'You have completed all the challenges, congratulations!!':'Vous avez réussi tous les défis, félicitations !!';
 		}
 		else {
 			$plural = ($nbCompleted>=2) ? 's':'';
-			echo $language ? 'You have completed '. $nbCompleted .' chalenge'. $plural .' out of '. 24 .'!':'Vous avez réussi '. $nbCompleted .' défi'. $plural .' sur '. 24;
+			echo $language ? 'You have completed '. $nbCompleted .' challenge'. $plural .' out of '. 24 .'!':'Vous avez réussi '. $nbCompleted .' défi'. $plural .' sur '. 24;
 		}
 		?></div>
 		<?php
 	}
-	/*else {
-		?>
-		<div class="advent-countdown"><?php
-		$now = time();
-		$tomorrow = strtotime("tomorrow midnight");
-		$remainingTime = $tomorrow-$now;
-		$remainingTimeMins = round($remainingTime/60);
-		$remainingHours = floor($remainingTimeMins/60);
-		$remainingMins = $remainingTimeMins%60;
-		if ($remainingMins < 10) $remainingMins = '0'.$remainingMins;
-		echo '<img src="images/advent-calendar/clock.png" alt="Clock" />';
-		echo $language ? $remainingHours.'h'.$remainingMins.' remaining to complete today\'s chalenge ('. $dayStr .')':'Il reste '.$remainingHours.'h'.$remainingMins.' pour réussir le défi du jour ('. $dayStr .')';
-		?></div>
-		<?php
-	}*/
 	?>
 	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 	<!-- Forum MKPC -->
@@ -368,7 +400,7 @@ include('menu.php');
 	(adsbygoogle = window.adsbygoogle || []).push({});
 	</script>
 	<div class="advent-begin">
-		&#9660;&nbsp;<?php echo $language ? 'Click on current day number to begin': 'Cliquez sur le numéro du jour pour jouer'; ?>&nbsp;&#9660;
+		&#9660;&nbsp;<?php echo $language ? 'Click on the day number to begin': 'Cliquez sur le numéro du jour pour jouer'; ?>&nbsp;&#9660;
 	</div>
 	<div class="advent-calendar">
 		<img src="images/advent-calendar/calendar.jpg" class="advent-calendar-bg" />
@@ -380,7 +412,7 @@ include('menu.php');
 		$squareDays = array(14,2,19,11,17,22,24,18,23,12,8,20,7,21,13,6,10,5,16,4,9,3,15,1);
 		$completedDays = array();
 		if ($id) {
-			$getCompletedDays = mysql_query('SELECT day FROM mkadvent WHERE user='. $id);
+			$getCompletedDays = mysql_query('SELECT day FROM mkadvent WHERE year="'.$year.'" AND user='. $id);
 			while ($completedDay = mysql_fetch_array($getCompletedDays))
 				$completedDays[$completedDay['day']] = true;
 		}
@@ -415,8 +447,10 @@ include('menu.php');
 			</div>
 			<div id="advent-challenge-state">Ce défi a été réussi</div>
 			<div id="advent-challenge-img"><img alt="star" /></div>
+			<div id="advent-challenge-name"></div>
 			<div id="advent-challenge-body">Finissez le <strong>Circuit Mario 1</strong> en mode <strong>Contre-la-Montre</strong> en moins de <strong>40 secondes</strong>.</div>
 			<div id="advent-challenge-extra">En mode difficile, avec 8 joueurs</div>
+			<div id="advent-challenge-link"><a id="advent-challenge-button"><?php echo $language ? 'Challenge accepted!' : 'Relever le défi'; ?></a></div>
 		</div>
 	</div>
 </main>

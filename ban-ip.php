@@ -69,6 +69,7 @@ if (isset($_GET['ip1'])) {
 	?>
 	<br />
 	<div class="ranking-modes">
+		<a href="warn-player.php"><?php echo $language ? 'Warned members':'Membres avertis'; ?></a>
 		<a href="ban-player.php"><?php echo $language ? 'Banned members':'Membres bannis'; ?></a>
 		<span><?php echo $language ? 'Banned IPs':'IP bannies'; ?></span>
 	</div>

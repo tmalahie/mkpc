@@ -17,7 +17,7 @@ else {
 		}
 		return ($id==$nbLanguages) ? $default:$availableLanguages[$id];
 	}
-	$language = (findAcceptedLanguage(array('fr','en'),'fr') == 'fr') ? 0:1;
+	$language = (findAcceptedLanguage(array('fr','en'),'en') == 'fr') ? 0:1;
 	setcookie('language', $language, 4294967295,'/');
 }
 ?>

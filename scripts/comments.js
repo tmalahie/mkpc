@@ -9,7 +9,7 @@ function updateCircuitNote() {
 		}
 		var r = average(r1,r2), g = average(g1,g2), b = average(b1,b2);
 		commentNote.css("color", "rgb("+ r +","+ g +","+ b +")");
-		commentNote.html(Math.round(circuitNote*100)/100 +"&nbsp;/&nbsp;5&nbsp;"+ (language ? "on":"sur") +"&nbsp;"+ circuitNotes +"&nbsp;"+ (language ? ("view"+ (circuitNote>1 ? "s":"")) : "avis"));
+		commentNote.html(Math.round(circuitNote*100)/100 +"&nbsp;/&nbsp;5&nbsp;"+ (language ? "on":"sur") +"&nbsp;"+ circuitNotes +"&nbsp;"+ (language ? ("view"+ (circuitNotes>1 ? "s":"")) : "avis"));
 	}
 	else {
 		commentNote.css("color", "white");
@@ -100,7 +100,7 @@ function updateCircuitDate() {
 			'<div class="comment-container comment-'+ className +'">'+
 				'<div class="comment-header"></div>'+
 				'<div class="comment-message">'+
-					'<textarea placeholder="'+ (language ? 'Your message':'Votre message') +'..." class="comment-textarea comment-posting"></textarea>'+
+					'<textarea placeholder="'+ (language ? 'Send message':'Votre message') +'..." class="comment-textarea comment-posting"></textarea>'+
 					'<span class="comment-value comment-posted"></span>'+
 				'</div>'+
 				'<div class="comment-reactions comment-posted"></div>'+
@@ -130,7 +130,7 @@ function updateCircuitDate() {
 		return res;
 	}
 	function nl2br(str) {
-		return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*))/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>').replace(/([a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4})/gi, '<a href="mailto:$1">$1</a>').replace(/\r?\n/g, '<br />').replace(/  /g, ' &nbsp;');
+		return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=;]*))/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>').replace(/([a-z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4})/gi, '<a href="mailto:$1">$1</a>').replace(/\r?\n/g, '<br />').replace(/  /g, ' &nbsp;');
 	}
 	function br2nl(str) {
 		return str.replace(/ &nbsp;/g, '  ').replace(/<br ?\/?>/g, '\r\n').replace(/<([^>]+)>/g,"").replace(/&#039;/g, "'").replace(/&quot;/g, '"').replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");

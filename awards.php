@@ -45,6 +45,9 @@ include('heads.php');
 .titres td:nth-child(2) {
 	width: 300px;
 }
+h1 + .action_button {
+	margin-bottom: 1em;
+}
 .aw-table .action_button {
 	font-size: 0.8em;
 	padding: 3px 7px;
@@ -81,26 +84,6 @@ include('o_online.php');
 include('header.php');
 $page = 'forum';
 include('menu.php');
-$ban = isset($_POST['joueur']) ? $_POST['joueur']:null;
-if ($ban) {
-	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $ban .'"'))) {
-		mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id='. $getId['id']);
-		mysql_query('DELETE FROM `mkbans` WHERE player="'. $getId['id'] .'"');
-		mysql_query('INSERT INTO `mkbans` VALUES('. $getId['id'] .',"'. $_POST['msg'] .'")');
-		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Ban '. $getId['id'] .'")');
-		if (isset($_POST['ip'])) {
-			$getIp = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'.$getId['id'].'"'));
-			mysql_query('INSERT INTO `ip_bans` VALUES('.$getId['id'].','.$getIp['identifiant'].','.$getIp['identifiant2'].','.$getIp['identifiant3'].','.$getIp['identifiant4'].')');
-		}
-	}
-}
-$unban = isset($_GET['unban']) ? $_GET['unban']:null;
-if ($unban) {
-	mysql_query('UPDATE `mkjoueurs` SET banned=0 WHERE id="'. $unban .'"');
-	mysql_query('DELETE FROM `ip_bans` WHERE player="'. $unban .'"');
-	mysql_query('DELETE FROM `mkbans` WHERE player="'. $unban .'"');
-	mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Unban '. $unban .'")');
-}
 ?>
 <main>
 	<?php
@@ -120,6 +103,7 @@ if ($unban) {
 		echo '<div class="success">'. $success .'</div>';
 	?>
 	<h1><?php echo $language ? 'Manage awards':'Gérer les récompenses'; ?></h1>
+	<a class="action_button" href="award-edit.php">+ <?php echo $language ? 'New award':'Nouvelle récompense'; ?></a>
 	<table class="aw-table" id="awards">
 		<tr class="titres">
 			<td style="width:40%"><?php echo $language ? 'Title':'Titre'; ?></td>
@@ -144,8 +128,8 @@ if ($unban) {
 	}
 	?>
 	</table>
-	<a class="action_button" href="award-edit.php" style="margin-left: 100px">+ <?php echo $language ? 'New award':'Nouvelle récompense'; ?></a>
 	<h1><?php echo $language ? 'Manage awarded people':'Gérer les membres récompensés'; ?></h1>
+	<a class="action_button" href="awarded-edit.php">+ <?php echo $language ? 'New assigned award':'Attribuer une récompense'; ?></a>
 	<table class="aw-table" id="awarded">
 		<tr class="titres">
 			<td style="width: 15%"><?php echo $language ? 'Member':'Membre'; ?></td>
@@ -176,7 +160,6 @@ if ($unban) {
 	}
 	?>
 	</table>
-	<a class="action_button" href="awarded-edit.php" style="margin-left: 100px">+ <?php echo $language ? 'New assigned award':'Attribuer une récompense'; ?></a>
 	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>

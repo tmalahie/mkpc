@@ -10,12 +10,23 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	}
 	$save = true;
 	$table = ($mode ? 'circuits':'mkcircuits');
+	$currentCup = null;
+	require_once('collabUtils.php');
+	if (isset($_POST['id'])) {
+		$requireOwner = !hasCollabGrants('mkcups', $_POST['id'], $_POST['collab'], 'edit');
+		$currentCup = mysql_fetch_array(mysql_query('SELECT * FROM mkcups WHERE id="'. $_POST['id'] .'"'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : '')));
+	}
 	for ($i=0;$i<4;$i++) {
 		if (!isset($_POST['cid'.$i])) {
 			$save = false;
 			break;
 		}
-		if (!mysql_numrows(mysql_query('SELECT * FROM `'. $table .'` WHERE id='. $_POST['cid'. $i] .' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'. ($mode ? '':' AND !type')))) {
+		$cId = $_POST['cid'.$i];
+		if ($currentCup && in_array($cId, array($currentCup['circuit0'],$currentCup['circuit1'],$currentCup['circuit2'],$currentCup['circuit3'])))
+			$requireOwner = false;
+		else
+			$requireOwner = !hasCollabGrants($table, $cId, $_POST['collabs'][$cId], 'use');
+		if (!mysql_numrows(mysql_query('SELECT * FROM `'. $table .'` WHERE id="'. $cId .'"'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : ''). ($mode ? '':' AND !type')))) {
 			$save = false;
 			break;
 		}
@@ -24,7 +35,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	if ($save) {
 		setcookie('mkauteur', $_POST['auteur'], 4294967295,'/');
 		if (isset($_POST['id'])) {
-			if (mysql_numrows(mysql_query('SELECT * FROM mkcups WHERE id="'. $_POST['id'] .'" AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
+			if ($currentCup) {
 				mysql_query('UPDATE `mkcups` SET circuit0="'. $_POST['cid0'] .'",circuit1="'. $_POST['cid1'] .'",circuit2="'. $_POST['cid2'] .'",circuit3="'. $_POST['cid3'] .'",nom="'. $_POST['nom'] .'",auteur="'. $_POST['auteur'] .'" WHERE id="'. $_POST['id'] .'"');
 				$cupId = $_POST['id'];
 			}

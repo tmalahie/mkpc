@@ -1,7 +1,6 @@
 <?php
-session_start();
-if (!empty($_SESSION['mkid'])) {
-	$id = $_SESSION['mkid'];
+include('session.php');
+if ($id) {
 	$payload = json_decode(file_get_contents('php://input'),true);
 	if ($payload) {
 		$isBattle = isset($payload['battle']);
@@ -14,8 +13,8 @@ if (!empty($_SESSION['mkid'])) {
 					'items' => 'i'
 				),
 				'player' => $isBattle
-					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi")
-					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place")
+					? array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","ballons","reserve","champi","etoile","megachampi")
+					: array("x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","tourne","tombe","arme","stash","tours","demitours","champi","etoile","megachampi","billball","place")
 			);
 		}
 		$playerMapping = $paramsMapping['player'];
@@ -24,10 +23,13 @@ if (!empty($_SESSION['mkid'])) {
 		$extraParamsMapping = array("finaltime");
 
 		include('initdb.php');
-		$getCourse = mysql_fetch_array(mysql_query('SELECT course FROM `mkplayers` WHERE id="'.$id.'"'));
+		include('onlineUtils.php');
+		$spectatorId = isset($payload['spectator']) ? intval($payload['spectator']) : 0;
+		$course = getCourse(array(
+			'spectator' => $spectatorId,
+		));
 		$lastconnect = isset($payload['lastcon']) ? $payload['lastcon']:0;
-		if (!empty($getCourse['course'])) {
-			$course = $getCourse['course'];
+		if ($course) {
 			$fLaps = (isset($payload['laps'])&&is_numeric($payload['laps'])) ? ($payload['laps']+1):4;
 			$playerPayloads = array();
 			if (isset($payload['player'])) {
@@ -56,6 +58,7 @@ if (!empty($_SESSION['mkid'])) {
 					$payloadData[$key] = isset($payloadParam[$i]) ? $payloadParam[$i]:null;
 				if (!$isBattle)
 					if ($payloadData['tours'] > $fLaps) $payloadData['tours'] = $fLaps;
+				if ($payloadData['driftcpt'] > 255) $payloadData['driftcpt'] = 255;
 				$playerPayload['data'] = $payloadData;
 			}
 			unset($playerPayload);
@@ -123,6 +126,8 @@ if (!empty($_SESSION['mkid'])) {
 					// Run a GC some times to remove old deleted items
 					mysql_query('DELETE FROM items WHERE course="'. $course .'" AND data="" AND updated_at<"'.$limIdle.'"');
 				}
+				if ($spectatorId)
+					mysql_query('UPDATE `mkspectators` SET refresh_date=NOW() WHERE id='. $spectatorId);
 				if ($winning && !$isBattle && ($mkState['time'] > $time)) {
 					$mkState['time'] = $time;
 					mysql_query('UPDATE `mariokart` SET time='.$time.' WHERE id='.$course.' AND time>'.$time);
@@ -222,12 +227,16 @@ if (!empty($_SESSION['mkid'])) {
 				$finishing = !$finished;
 				if ($finishing) {
 					$mkState['time'] = $time+35;
+					mysql_query('UPDATE `mkspectators` s INNER JOIN `mkjoueurs` j ON s.player=j.id AND j.course=0 SET j.course='. $course .' WHERE s.course='. $course .' AND s.state="queuing" AND s.refresh_date >= NOW()-INTERVAL 5 SECOND');
+					mysql_query('UPDATE `mkspectators` SET state="pending" WHERE course='. $course .' AND state="joined"');
 					mysql_query('UPDATE `mariokart` SET map=-1,time='.$mkState['time'].' WHERE id='. $course);
 					$finished = true;
 				}
 			}
 			if ($finished) {
 				$nbScores = mysql_numrows($joueurs);
+				$isFriendly = !empty($courseRules->friendly);
+				$isLocal = $isFriendly && !empty($courseRules->localScore);
 				if ($finishing) {
 					$nbPlaces = $nbScores;
 					if ($isBattle) {
@@ -247,14 +256,18 @@ if (!empty($_SESSION['mkid'])) {
 					mysql_query('UPDATE `mkplayers` SET connecte=0 WHERE course='. $course);
 					mysql_query('UPDATE `mkjoueurs` SET choice_map=0 WHERE course='. $course);
 					mysql_query('DELETE FROM `items` WHERE course='.$course.' AND (data!="" OR updated_at<"'.$lConnect.'")');
+					if ($isLocal) {
+						require_once('onlineStateUtils.php');
+						incCourseState($courseOptions['id']);
+					}
 				}
+				if ($spectatorId)
+					mysql_query('UPDATE `mkspectators` SET state="joined" WHERE id="'. $spectatorId .'" AND state="pending"');
 				function getScoreInc($i,$score,$nbScores,$total) {
 					$coeff = (($nbScores-$i-1)/($nbScores-1))-($score/$total);
 					$coeff *= pow(2,$coeff);
 					return $coeff*(($coeff<0)?$score:max(20000-$score,5000))/80;
 				}
-				$isFriendly = !empty($courseRules->friendly);
-				$isLocal = $isFriendly && !empty($courseRules->localScore);
 				$joueurs = mysql_query('SELECT p.id,j.nom,p.aPts,p.team,p.controller AS cpu,p.finaltime FROM `mkplayers` p LEFT JOIN `mkjoueurs` j ON p.id=j.id WHERE p.course='.$course.' ORDER BY p.place');
 				$playersData = array();
 				$allPlayersData = array();
@@ -331,13 +344,21 @@ if (!empty($_SESSION['mkid'])) {
 						$score = $joueur['aPts'];
 						if ($isFriendly) {
 							if ($isLocal) {
-								$maxPts = round($nbScores*1.25);
-								$xPts = ($nbScores-$i-1)/($nbScores-1);
-								$inc = round($maxPts*(exp($xPts)-1)/(M_E-1));
-								if ($nbScores == 12) {
-									// hardcoded scores to fit wii point system
-									$incs = array(15,12,10,8,7,6,5,4,3,2,1,0);
-									$inc = $incs[$i];
+								if (empty($courseRules->ptDistrib->value)) {
+									$maxPts = round($nbScores*1.25);
+									$xPts = ($nbScores-$i-1)/($nbScores-1);
+									$inc = round($maxPts*(exp($xPts)-1)/(M_E-1));
+									if ($nbScores == 12) {
+										// hardcoded scores to fit wii point system
+										$incs = array(15,12,10,8,7,6,5,4,3,2,1,0);
+										$inc = $incs[$i];
+									}
+								}
+								else {
+									if (isset($courseRules->ptDistrib->value[$i]))
+										$inc = $courseRules->ptDistrib->value[$i];
+									else
+										$inc = 0;
 								}
 							}
 							else

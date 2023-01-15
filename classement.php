@@ -2,6 +2,7 @@
 include('session.php');
 include('language.php');
 include('initdb.php');
+include('getId.php');
 require_once('utils-date.php');
 $creation = false;
 $cup = false;
@@ -46,14 +47,10 @@ if (!$manage && isset($_GET['user'])) {
 	if (!$user)
 		unset($user);
 }
-if (!$creation && isset($_GET['map'])) {
-	include('getId.php');
+if (!$creation && isset($_GET['map']))
 	mysql_query('DELETE n FROM `mknotifs` n INNER JOIN `mkrecords` r ON n.link=r.id WHERE n.identifiant='.$identifiants[0].' AND n.identifiant2='.$identifiants[1].' AND n.identifiant3='.$identifiants[2].' AND n.identifiant4='.$identifiants[3].' AND n.type="new_record" AND r.class="'.$cc.'" AND r.type="" AND r.circuit="'.$_GET['map'].'"');
-}
-if ($manage) {
-	include('getId.php');
+if ($manage)
 	$pIDs = $identifiants;
-}
 if ($creation) {
 	if ($mcup) {
 		$getMCup = mysql_fetch_array(mysql_query('SELECT mode FROM `mkmcups` WHERE id="'. $cID .'"'));
@@ -63,7 +60,7 @@ if ($creation) {
 	}
 	elseif ($cup) {
 		$getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $cID .'"'));
-		$getCircuits = mysql_query('(SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit0'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit1'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit2'] .'") UNION ALL (SELECT id,nom FROM `'. $type .'` WHERE id="'. $getCup['circuit3'] .'")');
+		$getCircuits = mysql_query('(SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit0'] .'") UNION ALL (SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit1'] .'") UNION ALL (SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit2'] .'") UNION ALL (SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit3'] .'")');
 	}
 	else
 		$getCircuits = mysql_query('SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $cID .'"');
@@ -197,6 +194,21 @@ main table div {
 	background-color: #FD9;
 	color: #963;
 }
+.reset_ranking {
+    margin-top: 10px;
+}
+.reset_ranking button {
+    background-color: #C66;
+    color: white;
+    display: inline-block;
+    font-weight: bold;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.reset_ranking button:hover {
+    background-color: #D77;
+}
 </style>
 </head>
 <body>
@@ -282,6 +294,51 @@ if (!$manage) {
 <form name="params" action="classement.php" onsubmit="displayResults();return false">
 </form>
 <p id="content"><strong style="font-size:1.4em"><?php echo $language ? 'Loading':'Chargement'; ?>...</strong></p>
+<?php
+if ($creation) {
+	$groupsById = array();
+	$circuitGroups = array();
+	while ($getCircuit = mysql_fetch_array($getCircuits)) {
+		if (!$getCircuit['nom'])
+			$getCircuit['nom'] = $language ? 'Untitled':'Sans titre';
+		$circuitGroups[$getCircuit['gid']][] = escapeUtf8($getCircuit['nom']);
+		$cIDs[] = $getCircuit['id'];
+		$groupsById[$getCircuit['gid']] = escapeUtf8($getCircuit['gname']);
+	}
+}
+$joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.player=r2.player AND r.identifiant=r2.identifiant AND r.identifiant2=r2.identifiant2 AND r.identifiant3=r2.identifiant3 AND r.identifiant4=r2.identifiant4 AND r.class=r2.class AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
+$whereBest = isset($_GET['date']) ? ' AND r2.id IS NULL AND r.date<="'.$_GET['date'].'"':' AND r.best=1';
+if (isset($user))
+	$getResults = mysql_query('SELECT r.*,c.code,r.date,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'. $cc .'" AND r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
+else {
+	if ($creation && empty($cIDs))
+		$cIDs = array(0);
+	$getResults = mysql_query('SELECT r.*,c.code,r.date'.(empty($pIDs)?'':',(r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'") AS shown').' FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
+}
+if ($creation && !$cup) {
+	if (($getId = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $type .'` WHERE id="'. $cID .'"'))) && ($getId['identifiant'] == $identifiants[0])) {
+		if (mysql_numrows($getResults)) {
+			?>
+			<div class="reset_ranking">
+				<button class="action_button" onclick="resetRanking()"><?php echo $language ? 'Reset ranking':'Réinitialiser le classement'; ?></button>
+			</div>
+			<p></p>
+			<script type="text/javascript">
+			function resetRanking() {
+				if (confirm("<?php echo $language ? 'Delete all time trials records? Caution, this action cannot be undone':'Effacer tous les records ? Attention, cette action est irréversible'; ?>")) {
+					document.body.style.cursor = "progress";
+					o_xhr("resetTimeTrials.php", "type=<?php echo $type; ?>&id=<?php echo $cID; ?>", function() {
+						document.location.reload();
+						return true;
+					});
+				}
+			}
+			</script>
+			<?php
+		}
+	}
+}
+?>
 <p>
 	<?php
 	if (isset($user)) {
@@ -337,26 +394,15 @@ function dict_to_array(&$chunks) {
 		$res[] = $chunck;
 	return $res;
 }
-if ($creation) {
-	$groupsById = array();
-	$circuitGroups = array();
-	while ($getCircuit = mysql_fetch_array($getCircuits)) {
-		if (!$getCircuit['nom'])
-			$getCircuit['nom'] = $language ? 'Untitled':'Sans titre';
-		$circuitGroups[$getCircuit['gid']][] = escapeUtf8($getCircuit['nom']);
-		$cIDs[] = $getCircuit['id'];
-		$groupsById[$getCircuit['gid']] = escapeUtf8($getCircuit['gname']);
-	}
+if ($creation)
 	echo json_encode(dict_to_array($circuitGroups));
-}
 else {
 	include_once('circuitNames.php');
-	$circuitGroups = array(
+	echo json_encode(array(
 		array_slice($circuitNames,0,20),
 		array_slice($circuitNames,20,20),
 		array_slice($circuitNames,40,16)
-	);
-	echo json_encode($circuitGroups);
+	));
 }
 ?>;
 var circuits = [];
@@ -377,15 +423,6 @@ var classement = new Array();
 for (var i=0;i<circuits.length;i++)
 	classement[i] = new Resultat(i);
 <?php
-$joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.player=r2.player AND r.identifiant=r2.identifiant AND r.identifiant2=r2.identifiant2 AND r.identifiant3=r2.identifiant3 AND r.identifiant4=r2.identifiant4 AND r.class=r2.class AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
-$whereBest = isset($_GET['date']) ? ' AND r2.id IS NULL AND r.date<="'.$_GET['date'].'"':' AND r.best=1';
-if (isset($user))
-	$getResults = mysql_query('SELECT r.*,c.code,r.date,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'. $cc .'" AND r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
-else {
-	if ($creation && empty($cIDs))
-		$cIDs = array(0);
-	$getResults = mysql_query('SELECT r.*,c.code,r.date'.(empty($pIDs)?'':',(r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'") AS shown').' FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
-}
 while ($result = mysql_fetch_array($getResults))
 	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false)).'"'.(isset($result['shown']) ? ','.$result['shown']:'').''.($manage ? ','.$result['id']:'').']);';
 ?>
@@ -798,7 +835,7 @@ function displayResults() {
 	}
 	if (noPlayers) {
 		var oNoResults = document.createElement("strong");
-		oNoResults.innerHTML = "Aucun résultat trouvé pour cette recherche.";
+		oNoResults.innerHTML = language ? "No result found for this search" : "Aucun résultat trouvé pour cette recherche.";
 		oContent.appendChild(oNoResults);
 	}
 }
@@ -868,6 +905,7 @@ window.onload = function() {
 	
 	var tJoueur = document.createElement("span");
 	tJoueur.innerHTML = language ? "See player:":"Voir joueur :";
+	tJoueur.innerHTML += "&nbsp;";
 	tJoueur.style.fontWeight = "bold";
 	oParamsContent.appendChild(tJoueur);
 	var iJoueur = document.createElement("input");

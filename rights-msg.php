@@ -55,6 +55,30 @@ if ($isBanned && $isBanned['banned']) {
 		<?php
 	}
 }
+elseif ($getWarnMsg = mysql_fetch_array(mysql_query('SELECT msg FROM mkwarns WHERE player='. $id .' AND msg!=""'))) {
+	?>
+	<?php
+	if ($language) {
+		?>
+		<p class="notice">The moderation team has given you the following warning:<br />
+		<strong style="background-color: #FEC;display:inline-block;margin:5px;padding:5px"><?php
+		echo nl2br(htmlspecialchars($getWarnMsg['msg']));
+		?></strong><br />
+		Caution, if you don't change your behavior, you might have your account banned from the site.</p>
+		<?php
+	}
+	else {
+		?>
+		<p class="notice">L'équipe de modération vous a donné l'avertissement suivant :<br />
+		<strong style="background-color: #FEC;display:inline-block;margin:5px;padding:5px"><?php
+		echo nl2br(htmlspecialchars($getWarnMsg['msg']));
+		?></strong><br />
+		Attention, en cas de récidive, votre compte pourrait être banni du site.</p>
+		<?php
+	}
+	if (isset($_GET['warn']))
+		mysql_query('UPDATE mkwarns SET seen=1 WHERE player='.$id);
+}
 require_once('getRights.php');
 if (hasRight('manager')) {
 	if (hasRight('admin'))

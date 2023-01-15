@@ -2,10 +2,10 @@
 if (isset($_GET['pseudo'])) {
 	include('initdb.php');
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM mkjoueurs WHERE nom="'. $_GET['pseudo'] .'"')))
-		$_GET['id'] = $getId['id'];
+		$profileId = $getId['id'];
 	elseif ($getId = mysql_fetch_array(mysql_query('SELECT id FROM mknewnicks WHERE oldnick="'. $_GET['pseudo'] .'"'))) {
 		$gotOldNick = $_GET['pseudo'];
-		$_GET['id'] = $getId['id'];
+		$profileId = $getId['id'];
 	}
 	else {
 		include('session.php');
@@ -15,43 +15,47 @@ if (isset($_GET['pseudo'])) {
 	}
 	unset($_GET['pseudo']);
 }
-elseif (isset($_GET['id']))
+elseif (isset($_GET['id'])) {
 	include('initdb.php');
-if (isset($_GET['id'])) {
+	$profileId = intval($_GET['id']);
+}
+if (isset($profileId)) {
 	include('session.php');
-	$me = ($id == $_GET['id']);
+	$me = ($id == $profileId);
 	include('language.php');
 	include('avatars.php');
-	if ($id != $_GET['id']) {
+	if ($id != $profileId) {
 		if (isset($_GET['unignore'])) {
-			mysql_query('DELETE FROM `mkignores` WHERE ignorer="'. $id .'" AND ignored="'. $_GET['id'] .'"');
+			mysql_query('DELETE FROM `mkignores` WHERE ignorer="'. $id .'" AND ignored="'. $profileId .'"');
 			$unignored = true;
 		}
 		elseif (isset($_GET['ignore']))
-			mysql_query('INSERT IGNORE INTO `mkignores` SET ignorer="'. $id .'",ignored="'. $_GET['id'] .'"');
+			mysql_query('INSERT IGNORE INTO `mkignores` SET ignorer="'. $id .'",ignored="'. $profileId .'"');
 	}
-	if ($getInfos = mysql_fetch_array(mysql_query('SELECT nom,pts_vs,pts_battle,pts_challenge,banned,deleted FROM `mkjoueurs` WHERE id="'. $_GET['id'] .'"'))) {
+	if ($getInfos = mysql_fetch_array(mysql_query('SELECT nom,pts_vs,pts_battle,pts_challenge,banned,deleted FROM `mkjoueurs` WHERE id="'. $profileId .'"'))) {
 		if ($getInfos['banned'])
 			$error = $language ? 'This account has been banned.':'Ce compte a été banni.';
-		elseif (mysql_fetch_array(mysql_query('SELECT * FROM `mkignores` WHERE ignorer="'.$id.'" AND ignored="'.$_GET['id'].'"')))
-			$error = $language ? 'You are ignoring '. $getInfos['nom'] .'. <a href="?id='. urlencode($_GET['id']) .'&amp;unignore=1">Unignore</a>':'Vous ignorez '. $getInfos['nom'] .'. <a href="?id='. urlencode($_GET['id']) .'&amp;unignore=1">Désignorer</a>';
-		$getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4,nbmessages,description,country,birthdate,sub_date,NULLIF(DATE(last_connect),0) AS last_connect FROM `mkprofiles` WHERE id="'. $_GET['id'] .'"'));
+		elseif (mysql_fetch_array(mysql_query('SELECT * FROM `mkignores` WHERE ignorer="'.$id.'" AND ignored="'.$profileId.'"')))
+			$error = $language ? 'You are ignoring '. $getInfos['nom'] .'. You won\'t see his messages in MKPC chat nor in online mode. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Unignore</a>':'Vous venez d\'ignorer '. $getInfos['nom'] .'. Vous ne verrez plus ses messages dans le chat MKPC ni dans le mode en ligne. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Désignorer</a>';
+		$getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4,nbmessages,description,country,birthdate,sub_date,NULLIF(DATE(last_connect),0) AS last_connect FROM `mkprofiles` WHERE id="'. $profileId .'"'));
 		if ($getProfile['identifiant'] === null)
 			$getProfile['identifiant'] = -1;
 		require_once('getRights.php');
-		$userRights = getUserRights($_GET['id']);
+		$userRights = getUserRights($profileId);
 		$isModerator = hasRight('moderator');
-		if ($id == $_GET['id']) {
+		if ($id == $profileId) {
 			if (isset($_FILES['avatar'])) {
 				if (!$_FILES['avatar']['error']) {
 					$poids = $_FILES['avatar']['size'];
 					if ($poids < 2000000) {
-						list($w,$h) = getimagesize($_FILES['avatar']['tmp_name']);
+						$uploadSrc = $_FILES['avatar']['tmp_name'];
+						list($w,$h) = getimagesize($uploadSrc);
 						if ($w*$h < 4000000) {
-							$infosfichier = pathinfo($_FILES['avatar']['name']);
-							$ext = strtolower($infosfichier['extension']);
-							if (in_array($ext, array('png','jpg','gif','jpeg'))) {
-								function resize_img($original_src,$thumb_src, $minw,$minh) {
+							$imageType = exif_imagetype($uploadSrc);
+							$exts = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
+							if (isset($exts[$imageType])) {
+								$ext = $exts[$imageType];
+								function resize_img($original_src,$thumb_src, $minw,$minh, $ext) {
 									list($width, $height) = getimagesize($original_src);
 									if ($width*$minh > $height*$minw) {
 										$newHeight = $minh;
@@ -67,14 +71,14 @@ if (isset($_GET['id'])) {
 									}
 									$thumb = imagecreatetruecolor($newWidth,$newHeight);
 
-									switch (exif_imagetype($original_src)) {
-									case 1 :
+									switch ($ext) {
+									case 'gif':
 										$source = imagecreatefromgif($original_src);
 										break;
-									case 2 :
+									case 'jpg':
 										$source = imagecreatefromjpeg($original_src);
 										break;
-									case 3 :
+									case 'png':
 										$source = imagecreatefrompng($original_src);
 										break;
 									default :
@@ -97,8 +101,8 @@ if (isset($_GET['id'])) {
 									@unlink(AVATAR_DIR.$oldAvatar['ld']);
 									@unlink(AVATAR_DIR.$oldAvatar['hd']);
 								}
-								move_uploaded_file($_FILES['avatar']['tmp_name'], AVATAR_DIR.$avatarName);
-								resize_img(AVATAR_DIR.$avatarName,AVATAR_DIR.to_ld($avatarName), AVATAR_MINW,AVATAR_MINH);
+								move_uploaded_file($uploadSrc, AVATAR_DIR.$avatarName);
+								resize_img(AVATAR_DIR.$avatarName,AVATAR_DIR.to_ld($avatarName), AVATAR_MINW,AVATAR_MINH, $ext);
 								mysql_query('UPDATE `mkprofiles` SET avatar="'. $avatarName .'" WHERE id="'. $id .'"');
 								clear_avatar_cache($id);
 							}
@@ -109,7 +113,7 @@ if (isset($_GET['id'])) {
 							$error = $language ? 'Your image musn\'t exceed 2000×2000 in dimension':'Votre image ne doit pas dépasser 1732×1732px';
 					}
 					else
-						$error = $language ? 'Your image musn\'t exceed 2 Mo.':'Votre image ne doit pas dépasser 2 Mo.';
+						$error = $language ? 'Your image musn\'t exceed 2 MB.':'Votre image ne doit pas dépasser 2 Mo.';
 				}
 			}
 		}
@@ -162,12 +166,12 @@ if (isset($_GET['id'])) {
 		}
 		if (isset($_GET['followed'])) {
 			if ($_GET['followed'])
-				$success = $language ? 'You are now following '. $getInfos['nom'] .'! You will receive a notification each time he posts a topic, a news, a circuit or a character.':'Vous suivez maintenant '. $getInfos['nom'] .' ! Vous recevrez une notification chaque fois qu\'il poste un topic, une news, un circuit ou un perso.';
+				$success = $language ? 'You are now following '. $getInfos['nom'] .'! You will receive a notification each time they post a topic, news, a circuit or a character.':'Vous suivez maintenant '. $getInfos['nom'] .' ! Vous recevrez une notification chaque fois qu\'il poste un topic, une news, un circuit ou un perso.';
 			else
 				$success = $language ? 'You have stopped following '. $getInfos['nom']:'Vous ne suivez plus '. $getInfos['nom'];
 		}
 		elseif (isset($unignored)) {
-			$success = $language ? 'You have stopped ignoring '. $getInfos['nom'] .'. <a href="?id='. urlencode($_GET['id']) .'&amp;ignore=1">Reignore</a>':'Vous avez désignoré '. $getInfos['nom'] .'. <a href="?id='. urlencode($_GET['id']) .'&amp;ignore=1">Réignorer</a>';
+			$success = $language ? 'You have stopped ignoring '. $getInfos['nom'] .'. <a href="?id='. urlencode($profileId) .'&amp;ignore=1">Reignore</a>':'Vous avez désignoré '. $getInfos['nom'] .'. <a href="?id='. urlencode($profileId) .'&amp;ignore=1">Réignorer</a>';
 			$successCenter = true;
 		}
 		include('bbCode.php');
@@ -213,7 +217,7 @@ include('menu.php');
 		<div class="profile-summary">
 			<h1><?php echo $language ? $getInfos['nom'].'\'s profile' : 'Profil de '. $getInfos['nom']; ?></h1>
 			<?php
-			$getLastNicks = mysql_query('SELECT oldnick,date FROM mknewnicks WHERE id="'. $_GET['id'] .'" ORDER BY date DESC');
+			$getLastNicks = mysql_query('SELECT oldnick,date FROM mknewnicks WHERE id="'. $profileId .'" ORDER BY date DESC');
 			$dateByNick = array();
 			$oldNicks = array();
 			$nickDate = time();
@@ -254,9 +258,9 @@ include('menu.php');
 			}
 			?>
 			<div class="avatar-container">
-				<?php print_avatar($_GET['id'],AVATAR_M); ?>
+				<?php print_avatar($profileId,AVATAR_M); ?>
 				<?php
-				$avatarSrc = get_avatar_img($_GET['id']);
+				$avatarSrc = get_avatar_img($profileId);
 				if ($me || $isModerator) {
 					if ($me) {
 						echo '<form method="post" enctype="multipart/form-data" action="profil.php?id='. $id .'" class="avatar-edit'. ($avatarSrc ? ' preview-avatar':'') .'"'. ($avatarSrc ? ' onclick="apercu(\''. AVATAR_DIR.$avatarSrc['hd'] .'\')"':'') .'>';
@@ -272,7 +276,7 @@ include('menu.php');
 							$warningMsg = ($language ? 'Delete your avatar?':'Supprimer votre avatar ?');
 						else
 							$warningMsg = ($language ? 'Delete '. $getInfos['nom'] .'\\\'s avatar?':'Supprimer l\\\'avatar de '. $getInfos['nom'] .' ?');
-						echo '<br /><a href="delAvatar.php'. ($me ? '':'?id='.$_GET['id']) .'" class="suppr" onclick="event.stopPropagation();return confirm(\''. $warningMsg .'\')">'. ($language ? 'Delete':'Supprimer') .'</a>';
+						echo '<br /><a href="delAvatar.php'. ($me ? '':'?id='.$profileId) .'" class="suppr" onclick="event.stopPropagation();return confirm(\''. $warningMsg .'\')">'. ($language ? 'Delete':'Supprimer') .'</a>';
 					}
 					echo '</form>';
 				}
@@ -291,7 +295,7 @@ include('menu.php');
 				<h2><?php echo $language ? 'General stats':'Stats générales'; ?></h2>
 				<div class="player-followers">
 				<?php
-				$followedUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb, '.($id?'SUM(follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` WHERE followed="'. $_GET['id'] .'"'));
+				$followedUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb, '.($id?'SUM(follower='.$id.')':'0').' AS userisfollower FROM `mkfollowusers` WHERE followed="'. $profileId .'"'));
 				$s = plural($followedUsers['nb']);
 				$view = $language ? 'View' : 'Voir';
 				echo '<img src="images/followers.png" alt="Followers" />';
@@ -302,16 +306,16 @@ include('menu.php');
 				}
 				elseif ($id) {
 					$isFollower = $followedUsers['userisfollower'];
-					echo ' <a class="follow-user'. ($isFollower ? ' followed':'') .'" href="follow-user.php?user='. $_GET['id'] . ($isFollower?'':'&amp;follow') .'"><span>'.($isFollower?'&ndash;':'+').'</span>'. ($language ? ($isFollower?'Unfollow':'Follow'):($isFollower?'Ne plus suivre':'Suivre')) .'</a></span>';
+					echo ' <a class="follow-user'. ($isFollower ? ' followed':'') .'" href="follow-user.php?user='. $profileId . ($isFollower?'':'&amp;follow') .'"><span>'.($isFollower?'&ndash;':'+').'</span>'. ($language ? ($isFollower?'Unfollow':'Follow'):($isFollower?'Ne plus suivre':'Suivre')) .'</a></span>';
 				}
 				?>
 				</div>
 				<div class="player-followers">
 				<?php
-				$followingUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkfollowusers` WHERE follower="'. $_GET['id'] .'"'));
+				$followingUsers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkfollowusers` WHERE follower="'. $profileId .'"'));
 				$s = plural($followingUsers['nb']);
 				echo '<img src="images/followed.png" alt="Following" />';
-				echo '<strong>'. $followingUsers['nb'] . ' '. ($language ? 'following'.$s : 'abonnement'.$s) .'</strong>';
+				echo '<strong>'. $followingUsers['nb'] . ' '. ($language ? 'following' : 'abonnement'.$s) .'</strong>';
 				if ($me) {
 					if ($followingUsers['nb'])
 						echo ' <a class="all-follows" href="listFollowed.php">['.$view.']</a>';
@@ -320,7 +324,7 @@ include('menu.php');
 				</div>
 				<?php
 				$pts = $getInfos['pts_vs'];
-				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` WHERE (pts_vs!=5000) AND (pts_vs>"'. $pts .'" OR (pts_vs="'. $pts .'" AND id<"'. $_GET['id'] .'")) AND deleted=0'));
+				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` WHERE (pts_vs!=5000) AND (pts_vs>"'. $pts .'" OR (pts_vs="'. $pts .'" AND id<"'. $profileId .'")) AND deleted=0'));
 				$place = 1+$place['cnt'];
 				echo '<div class="player-league">';
 					echo '<img src="images/vs_pts.png" alt="VS" />';
@@ -329,7 +333,7 @@ include('menu.php');
 					echo '- '. toPlace($place);
 				echo '</div>';
 				$pts = $getInfos['pts_battle'];
-				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` j WHERE (j.pts_battle!=5000) AND (j.pts_battle>"'. $pts .'" OR (j.pts_battle="'. $pts .'" AND j.id<"'. $_GET['id'] .'")) AND j.deleted=0'));
+				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` j WHERE (j.pts_battle!=5000) AND (j.pts_battle>"'. $pts .'" OR (j.pts_battle="'. $pts .'" AND j.id<"'. $profileId .'")) AND j.deleted=0'));
 				$place = 1+$place['cnt'];
 				echo '<div class="player-league">';
 					echo '<img src="images/battle_pts.png" alt="Battle" />';
@@ -338,10 +342,10 @@ include('menu.php');
 					echo '- '. toPlace($place);
 				echo '</div>';
 				$pts = $getInfos['pts_challenge'];
-				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` j WHERE (j.pts_challenge!=0) AND (j.pts_challenge>"'. $pts .'" OR (j.pts_challenge="'. $pts .'" AND j.id<"'. $_GET['id'] .'")) AND j.deleted=0'));
+				$place = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS cnt FROM `mkjoueurs` j WHERE (j.pts_challenge!=0) AND (j.pts_challenge>"'. $pts .'" OR (j.pts_challenge="'. $pts .'" AND j.id<"'. $profileId .'")) AND j.deleted=0'));
 				$place = 1+$place['cnt'];
 				$whereIP = 'identifiant="'.$getProfile['identifiant'].'" AND identifiant2='.$getProfile['identifiant2'].' AND identifiant3='.$getProfile['identifiant3'].' AND identifiant4='.$getProfile['identifiant4'].'';
-				$nbClSucceess = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkclwin` WHERE player="'. $_GET['id'] .'" AND creator=0'));
+				$nbClSucceess = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkclwin` WHERE player="'. $profileId .'" AND creator=0'));
 				$nbClCreate = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkclrace` l INNER JOIN `mkchallenges` c ON c.clist=l.id WHERE '. $whereIP .' AND c.status="active"'));
 				if ($pts) {
 					echo '<div class="player-league">';
@@ -362,6 +366,19 @@ include('menu.php');
 						echo ' - '. toPlace($place);
 					echo '</div>';
 				}
+				$getRecordsByCc = mysql_query('SELECT class,COUNT(*) AS nb FROM `mkrecords` WHERE player="'. $profileId .'" AND type="" AND best=1 GROUP BY class ORDER BY class');
+				while ($recordByCc = mysql_fetch_array($getRecordsByCc)) {
+					$cc = $recordByCc['class'];
+					if ($getTtRank = mysql_fetch_array(mysql_query('SELECT t.class,t.score,1+COUNT(j.id) AS rank FROM mkttranking t LEFT JOIN mkttranking t2 ON t.class=t2.class AND (t.score<t2.score OR (t.score=t2.score AND t.player>t2.player)) LEFT JOIN mkjoueurs j ON t2.player=j.id AND j.deleted=0 WHERE t.player='. $profileId .' AND t.class='. $cc))) {
+						echo '<div class="player-league">';
+						echo '<img src="images/records.png" alt="Time trial" />';
+						echo $cc . ($language ? 'cc:':'cc :');
+						echo ' <strong>'. $getTtRank['score'] . ' pt'. plural($getTtRank['score']) .'</strong>';
+						echo ' - <strong>'. $recordByCc['nb'] . ' record'. plural($recordByCc['nb']) .'</strong>';
+						echo ' - '. toPlace($getTtRank['rank']);
+						echo '</div>';
+					}
+				}
 				$rkname = get_forum_rkname($getProfile['nbmessages']);
 				$rkimg = get_forum_rkimg($getProfile['nbmessages']);
 				echo '<div class="player-rank">';
@@ -370,7 +387,7 @@ include('menu.php');
 					echo ' - <span><img src="images/ranks/'. $rkimg .'.gif" alt="'. $rkname .'" class="mNbmsgsRk" /></span>';
 					echo $rkname.'</strong><sup><a href="javascript:helpRanks()">[?]</a></sup>';
 				echo '</div>';
-				$getNews = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mknews` WHERE author="'. $_GET['id'] .'" AND status="accepted"'));
+				$getNews = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mknews` WHERE author="'. $profileId .'" AND status="accepted"'));
 				if ($getNews['nb']) {
 					?>
 					<div><?php
@@ -407,7 +424,7 @@ include('menu.php');
 				</div>
 				<div>
 					<?php
-					$lastComments = mysql_query('SELECT id,circuit,type,message,date FROM `mkcomments` WHERE auteur="'. $_GET['id'] .'" ORDER BY id DESC');
+					$lastComments = mysql_query('SELECT id,circuit,type,message,date FROM `mkcomments` WHERE auteur="'. $profileId .'" ORDER BY id DESC');
 					$nbComments = mysql_numrows($lastComments);
 					$displayedComments = 0;
 					$comments = array();
@@ -427,13 +444,7 @@ include('menu.php');
 				</div>
 				<div>
 					<?php
-					$getRecords = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkrecords` WHERE player="'. $_GET['id'] .'" AND type="" AND best=1'));
-					echo '<strong>'. $getRecords['nb'] . ' record'. plural($getRecords['nb']) .'</strong> '. ($language ? 'in time trial':'en contre-la-montre');
-					?>
-				</div>
-				<div>
-					<?php
-					$followedTopics = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkfollowers` INNER JOIN `mktopics` ON topic=id WHERE user="'. $_GET['id'] .'" AND NOT EXISTS(SELECT * FROM mkmessages WHERE id=1 AND mkfollowers.topic=mkmessages.topic AND user=auteur)'));
+					$followedTopics = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkfollowers` INNER JOIN `mktopics` ON topic=id WHERE user="'. $profileId .'" AND NOT EXISTS(SELECT * FROM mkmessages WHERE id=1 AND mkfollowers.topic=mkmessages.topic AND user=auteur)'));
 					$s = plural($followedTopics['nb']);
 					echo '<strong>'. $followedTopics['nb'] . ' '. ($language ? 'topic'.$s .'</strong> followed' : 'topic'.$s .'</strong> suivi'. $s);
 					?>
@@ -550,7 +561,7 @@ include('menu.php');
 					</div>
 					<?php
 				}
-				$getAwards = mysql_query('SELECT a.name,a.link,p.value FROM mkawarded p INNER JOIN mkawards a ON p.award=a.id WHERE p.user="'. $_GET['id'] .'" ORDER BY a.ordering DESC');
+				$getAwards = mysql_query('SELECT a.name,a.link,p.value FROM mkawarded p INNER JOIN mkawards a ON p.award=a.id WHERE p.user="'. $profileId .'" ORDER BY a.ordering DESC');
 				while ($award = mysql_fetch_array($getAwards)) {
 					$oneData = true;
 					?>
@@ -574,10 +585,26 @@ include('menu.php');
 					<h2>Options</h2>
 					<ul>
 						<li><a href="edit-profile.php"><?php echo $language ? 'Edit personal info':'Modifier mes infos persos'; ?></a></li>
-						<li><a href="edit-nick.php"><?php echo $language ? 'Change my nick':'Modifier mon pseudo'; ?></a></li>
+						<li><a href="edit-nick.php"><?php echo $language ? 'Change your nickname':'Modifier mon pseudo'; ?></a></li>
 						<li><a href="nick-color.php"><?php echo $language ? 'Edit nick color':'Modifier la couleur du pseudo'; ?></a></li>
 						<li><a href="password.php"><?php echo $language ? 'Change password':'Modifier mot de passe'; ?></a></li>
 						<li><a href="signout.php"><?php echo $language ? 'Delete account':'Supprimer compte'; ?></a></li>
+					</ul>
+					<?php
+				}
+				elseif ($id) {
+					?>
+					<br />
+					<h2>Options</h2>
+					<ul>
+						<?php
+						if (mysql_fetch_array(mysql_query('SELECT * FROM `mkignores` WHERE ignorer="'. $id .'" AND ignored="'. $profileId .'"')))
+							echo '<li><a href="?id='. $profileId .'&amp;unignore">'. ($language ? 'Stop ignoring ' . $getInfos['nom']:'Ne plus ignorer ' . $getInfos['nom']) .'</a></li>';
+						else
+							echo '<li><a href="?id='. $profileId .'&amp;ignore">'. ($language ? 'Ignore ' . $getInfos['nom']:'Ignorer ' . $getInfos['nom']) .'</a></li>';
+						if ($isModerator)
+							echo '<li><a href="edit-profile.php?member='. $profileId .'">'. ($language ? 'Edit profile':'Modifier le profil') .'</a></li>';
+						?>
 					</ul>
 					<?php
 				}
@@ -591,7 +618,7 @@ include('menu.php');
 			<?php
 			$getLastMessages = mysql_query(
 				'SELECT mkmessages.id,titre,auteur,topic,message,date
-				FROM `mkmessages` INNER JOIN `mktopics` ON mkmessages.topic=mktopics.id WHERE auteur="'. $_GET['id'] .'"'. (hasRight('manager') ? '':' AND !private') .' ORDER BY date DESC LIMIT 3'
+				FROM `mkmessages` INNER JOIN `mktopics` ON mkmessages.topic=mktopics.id WHERE auteur="'. $profileId .'"'. (hasRight('manager') ? '':' AND !private') .' ORDER BY date DESC LIMIT 3'
 			);
 			$lastMessages = array();
 			while ($message = mysql_fetch_array($getLastMessages)) {
@@ -692,7 +719,7 @@ include('menu.php');
 				echo '</tr>';
 				echo '</table>';
 				?>
-				<h3><a href="creations.php?user=<?php echo urlencode($_GET['id']); ?>&amp;tri=1"><?php echo $language ? 'See all their circuits':'Voir tous ses circuits'; ?></a></h3>
+				<h3><a href="creations.php?user=<?php echo urlencode($profileId); ?>&amp;tri=1"><?php echo $language ? 'See all their circuits':'Voir tous ses circuits'; ?></a></h3>
 				<?php
 			}
 			else
@@ -779,7 +806,7 @@ include('menu.php');
 						print_challenge($challenge, $challengeParams);
 					?>
 					</div>
-					<h3><a href="challengesList.php?author=<?php echo urlencode($_GET['id']); ?>&amp;ordering=rating"><?php echo $language ? 'See all their challenges':'Voir tous ses défis'; ?></a></h3>
+					<h3><a href="challengesList.php?author=<?php echo urlencode($profileId); ?>&amp;ordering=rating"><?php echo $language ? 'See all their challenges':'Voir tous ses défis'; ?></a></h3>
 					<?php
 				}
 			}
@@ -821,11 +848,11 @@ include('menu.php');
 				}
 				?>
 				</div>
-				<h3><a href="listComments.php?user=<?php echo urlencode($_GET['id']); ?>"><?php echo $language ? 'See all their comments':'Voir tous ses commentaires'; ?></a></h3>
+				<h3><a href="listComments.php?user=<?php echo urlencode($profileId); ?>"><?php echo $language ? 'See all their comments':'Voir tous ses commentaires'; ?></a></h3>
 				<?php
 			}
 			if ($nbClSucceess['nb']) {
-				$getChallenges = mysql_query('SELECT c.*,l.type,l.circuit FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id INNER JOIN mkclwin w ON w.challenge=c.id AND w.player="'. $_GET['id'] .'" AND w.creator=0 WHERE l.type!="" AND c.status="active" ORDER BY w.date DESC LIMIT 3');
+				$getChallenges = mysql_query('SELECT c.*,l.type,l.circuit FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id INNER JOIN mkclwin w ON w.challenge=c.id AND w.player="'. $profileId .'" AND w.creator=0 WHERE l.type!="" AND c.status="active" ORDER BY w.date DESC LIMIT 3');
 				if (mysql_numrows($getChallenges)) {
 					?>
 					<hr />
@@ -837,14 +864,14 @@ include('menu.php');
 						print_challenge($challenge, $challengeParams);
 					?>
 					</div>
-					<h3><a href="challengesList.php?winner=<?php echo urlencode($_GET['id']); ?>"><?php echo $language ? 'See all completed challenges':'Voir tous les défis réussis'; ?></a></h3>
+					<h3><a href="challengesList.php?winner=<?php echo urlencode($profileId); ?>"><?php echo $language ? 'See all completed challenges':'Voir tous les défis réussis'; ?></a></h3>
 					<?php
 				}
 			}
 			?>
 			<hr />
 			<?php
-			$bestScores = mysql_query('SELECT r.perso,r.time,r.class,r.circuit,1+COUNT(r2.circuit) AS place FROM `mkrecords` r LEFT JOIN `mkrecords` r2 ON r.class=r2.class AND r.type=r2.type AND r.circuit=r2.circuit AND r2.time<r.time AND r2.best=1 WHERE r.player="'.$_GET['id'].'" AND r.type="" AND r.best=1 GROUP BY r.class,r.circuit ORDER BY place LIMIT 3');
+			$bestScores = mysql_query('SELECT r.perso,r.time,r.class,r.circuit,1+COUNT(r2.circuit) AS place FROM `mkrecords` r LEFT JOIN `mkrecords` r2 ON r.class=r2.class AND r.type=r2.type AND r.circuit=r2.circuit AND r2.time<r.time AND r2.best=1 WHERE r.player="'.$profileId.'" AND r.type="" AND r.best=1 GROUP BY r.class,r.circuit ORDER BY place LIMIT 3');
 			if (mysql_numrows($bestScores)) {
 				require_once('persos.php');
 				function getSpriteSrc($playerName) {
@@ -898,7 +925,7 @@ include('menu.php');
 				}
 				?>
 				</table>
-				<h3><a href="classement.php?user=<?php echo urlencode($_GET['id']); ?>"><?php echo $language ? 'See all their scores':'Voir tous ses temps'; ?></a></h3>
+				<h3><a href="classement.php?user=<?php echo urlencode($profileId); ?>"><?php echo $language ? 'See all their scores':'Voir tous ses temps'; ?></a></h3>
 				<?php
 			}
 			else
@@ -907,7 +934,7 @@ include('menu.php');
 			<hr />
 			<?php
 			$today = time();
-			$topics = mysql_query('SELECT id,titre,dernier,nbmsgs FROM `mkfollowers` INNER JOIN `mktopics` ON topic=id WHERE user="'. $_GET['id'] .'" AND NOT EXISTS(SELECT * FROM mkmessages WHERE id=1 AND mkfollowers.topic=mkmessages.topic AND user=auteur)'. (hasRight('manager') ? '':' AND !private') .' ORDER BY dernier DESC LIMIT 6');
+			$topics = mysql_query('SELECT id,titre,dernier,nbmsgs FROM `mkfollowers` INNER JOIN `mktopics` ON topic=id WHERE user="'. $profileId .'" AND NOT EXISTS(SELECT * FROM mkmessages WHERE id=1 AND mkfollowers.topic=mkmessages.topic AND user=auteur)'. (hasRight('manager') ? '':' AND !private') .' ORDER BY dernier DESC LIMIT 6');
 			if (mysql_numrows($topics)) {
 				?>
 				<h2><?php echo $language ? 'Last followed topics':'Derniers topics suivis'; ?>&nbsp;:</h2>
@@ -927,7 +954,7 @@ include('menu.php');
 				}
 				?>
 				</div>
-				<h3><a href="listFollows.php?user=<?php echo urlencode($_GET['id']); ?>"><?php echo $language ? 'See all followed topics':'Voir tous les topics suivis'; ?></a></h3>
+				<h3><a href="listFollows.php?user=<?php echo urlencode($profileId); ?>"><?php echo $language ? 'See all followed topics':'Voir tous les topics suivis'; ?></a></h3>
 				<?php
 			}
 			else
@@ -940,7 +967,7 @@ include('menu.php');
 					n.publication_date
 					FROM `mknews` n
 					INNER JOIN `mkcats` c ON n.category=c.id
-					WHERE author="'. $_GET['id'] .'" AND status="accepted"
+					WHERE author="'. $profileId .'" AND status="accepted"
 					ORDER BY n.publication_date DESC
 					LIMIT 6
 				');
@@ -962,7 +989,7 @@ include('menu.php');
 				}
 				?>
 				</div>
-				<h3><a href="listPublish.php?user=<?php echo urlencode($_GET['id']); ?>"><?php echo $language ? 'See all published news':'Voir toutes les news publiées'; ?></a></h3>
+				<h3><a href="listPublish.php?user=<?php echo urlencode($profileId); ?>"><?php echo $language ? 'See all published news':'Voir toutes les news publiées'; ?></a></h3>
 				<?php
 			}
 			?>

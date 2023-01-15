@@ -1,14 +1,15 @@
 <?php
-include('404.html');
-exit;
 include('getId.php');
 include('language.php');
 include('session.php');
 include('initdb.php');
-$console = isset($_GET['console']) ? $_GET['console'] : null;
+$console = 'mkt';//isset($_GET['console']) ? $_GET['console'] : null;
+$year = 2022;
+$playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
+$isPollClosed = true;//(time() > 1657335600);
 switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
@@ -54,39 +55,81 @@ case 'mkw':
 case 'mkt':
     $consoleName = 'Mario Kart Tour';
     $teams = array(
-        $groupStage => array(
-            "$group J" => array(
-                'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mkt/2021.html',
+        $playInStage => array(
+            "$group 1" => array(
+                'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mkt/2022.html',
                 'list' => array(
-                    'jap'=> $language ? 'Japan':'Japon',
-                    'per'=> $language ? 'Peru':'Perou',
-                    'swi'=> $language ? 'Switzerland':'Suisse',
-                    'gua'=> $language ? 'Guatemala':'Guatemala'
-                )
+                    'bra'=> $language ? 'Brazil':'Brésil',
+                    'pan'=> $language ? 'Panama':'Panama',
+                    'gua'=> $language ? 'Guatemala':'Guatemala',
+                    'can'=> $language ? 'Canada':'Canada'
+                ),
+                'eliminated' => array('pan', 'can')
             ),
-            "$group K" => array(
+            "$group 2" => array(
+                'list' => array(
+                    'chi'=> $language ? 'Chile':'Chili',
+                    'arg'=> $language ? 'Argentina':'Argentina',
+                    'ger'=> $language ? 'Germany':'Allemagne',
+                    'aus'=> $language ? 'Australia':'Australie'
+                ),
+                'eliminated' => array('ger', 'aus')
+            ),
+            "$group 3" => array(
+                'list' => array(
+                    'ecu'=> $language ? 'Ecuador':'Équateur',
+                    'swi'=> $language ? 'Switzerland':'Suisse',
+                    'ven'=> $language ? 'Venezuela':'Venezuela',
+                    'bol'=> $language ? 'Bolivia':'Bolivie'
+                ),
+                'eliminated' => array('ven', 'bol')
+            ),
+            "$group 4" => array(
+                'list' => array(
+                    'spa'=> $language ? 'Spain':'Espagne',
+                    'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
+                    'nic'=> $language ? 'Nicaragua':'Nicaragua'
+                ),
+                'eliminated' => array('nic')
+            )
+        ),
+        $groupStage => array(
+            "$group A" => array(
                 'list' => array(
                     'mex'=> $language ? 'Mexico':'Mexique',
-                    'chi'=> $language ? 'Chile':'Chili',
-                    'hok'=> $language ? 'Hong Kong':'Hong Kong',
-                    'spa'=> $language ? 'Spain':'Espagne'
-                )
-            ),
-            "$group L" => array(
-                'list' => array(
-                    'fra'=> $language ? 'France':'France',
-                    'col'=> $language ? 'Colombia':'Colombie',
-                    'cri'=> $language ? 'Costa Rica':'Costa Rica',
-                    'bra'=> $language ? 'Brazil':'Brésil'
-                )
-            ),
-            "$group M" => array(
-                'list' => array(
-                    'usa'=> $language ? 'United States':'États-Unis',
-                    'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
                     'sal'=> $language ? 'El Salvador':'Salvador',
-                    'ecu'=> $language ? 'Ecuador':'Équateur'
-                )
+                    'spa'=> $language ? 'Spain':'Espagne',
+                    'gua'=> $language ? 'Guatemala':'Guatemala'
+                ),
+                'eliminated' => array('spa', 'gua', 'sal'),
+                'winner' => array('mex')
+            ),
+            "$group B" => array(
+                'list' => array(
+                    'per'=> $language ? 'Peru':'Pérou',
+                    'col'=> $language ? 'Colombia':'Colombie',
+                    'arg'=> $language ? 'Argentina':'Argentina',
+                    'swi'=> $language ? 'Switzerland':'Suisse'
+                ),
+                'eliminated' => array('arg', 'swi', 'per', 'col')
+            ),
+            "$group C" => array(
+                'list' => array(
+                    'usa'=> $language ? 'USA':'États-Unis',
+                    'fra'=> $language ? 'France':'France',
+                    'ecu'=> $language ? 'Ecuador':'Équateur',
+                    'chi'=> $language ? 'Chile':'Chili'
+                ),
+                'eliminated' => array('ecu', 'chi', 'fra', 'usa')
+            ),
+            "$group D" => array(
+                'list' => array(
+                    'jap'=> $language ? 'Japan':'Japon',
+                    'hok'=> $language ? 'Hong Kong':'Hong Kong',
+                    'bra'=> $language ? 'Brazil':'Brésil',
+                    'ukg'=> $language ? 'United Kingdom':'Royaume-Uni'
+                ),
+                'eliminated' => array('bra', 'ukg', 'hok', 'jap')
             )
         )
     );
@@ -154,7 +197,7 @@ if (isset($teams)) {
     }
 
 }
-if ($console && isset($_POST['vote'])) {
+if ($console && !$isPollClosed && isset($_POST['vote'])) {
     $vote = $_POST['vote'];
     if (isset($teamsDict[$vote])) {
         if ($id) {
@@ -162,7 +205,8 @@ if ($console && isset($_POST['vote'])) {
             $success .= '<br />';
             $success .= '<a href="#mVotesTitle" onclick="showOtherVotes()">'. ($language ? 'See other members\' bets':'Voir les paris des autres membres') .'</a>';
             $success .= '<br />';
-            $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
+            //$success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
+            $success .= '<a href="news.php?id=14697">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
         else {
@@ -366,6 +410,14 @@ if ($id) {
             margin-left: 10px;
             margin-right: 10px;
         }
+        .mTeamsTf label.eliminated {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        .mTeamsTf label.winner {
+            font-weight: bold;
+            color : #E80;
+        }
         .mTeamsTd img {
             height: 1em;
         }
@@ -398,6 +450,12 @@ if ($id) {
             font-size: 1.2em;
             text-align: center;
         }
+        .mBracket {
+            color: #f83;
+            font-size: 1.2em;
+            text-align: center;
+            margin-top: 0.25em;
+        }
         #mVotesList {
             display: none;
             margin-top: 0.5em;
@@ -412,6 +470,14 @@ if ($id) {
             justify-content: center;
             margin-top: 0.2em;
             margin-bottom: 0.2em;
+        }
+        #mBracket {
+            display: none;
+            margin-top: 0.5em;
+            text-align: center;
+        }
+        #mBracket.mBracketShow {
+            display: block;
         }
         .mVotesName {
             display: flex;
@@ -494,6 +560,13 @@ if ($id) {
         else
             $mVotesList.classList.add("mVotesListShow");
     }
+    function toggleBracket() {
+        var $mVotesList = document.getElementById("mBracket");
+        if ($mVotesList.classList.contains("mBracketShow"))
+            $mVotesList.classList.remove("mBracketShow");
+        else
+            $mVotesList.classList.add("mBracketShow");
+    }
     function showOtherVotes() {
         var $mVotesList = document.getElementById("mVotesList");
         $mVotesList.classList.add("mVotesListShow");
@@ -552,11 +625,32 @@ if ($id) {
                         <?php
                         if ($console) {
                             ?>
+                            <div class="mDescriptionMain">
+                                <?php
+                                if ($language) {
+                                    ?>
+                                    Welcome to the <?php echo $year; ?> Mario Kart World Cup's predictor page!!!<br />
+                                    Here, you can predict the team you think will win the World Cup.<br />
+                                    In case of a correct prediction, you will earn a unique role on the forum!!!
+                                    <img src="images/forum/reactions/laugh.png" alt="laugh" />
+                                    <?php
+                                }
+                                else {
+                                    ?>
+                                    Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart <?php echo $year; ?> !!!<br />
+                                    Ici, vous pourrez-voter pour l'équipe que vous allez pronostiquer comme vainqueur de la Coupe Du Monde !<br />
+                                    En cas de pronostic correct, vous gagnerez un rôle inédit sur le forum !!!
+                                    <img src="images/forum/reactions/laugh.png" alt="laugh" />
+                                    <?php
+                                }
+                                ?>
+                                <br />&nbsp;
+                            </div>
                             <div class="mDescriptionHeader">
                                 <?php
                                 $logos = array(
                                     array(
-                                        "src" => "images/mkwc/logo-mkwc.png",
+                                        "src" => "images/mkwc/logo-mkwc-$year.png",
                                         "alt" => "MKWC"
                                     ),
                                     array(
@@ -564,7 +658,8 @@ if ($id) {
                                         "alt" => $consoleName
                                     ),
                                     array(
-                                        "src" => "images/mkwc/logo-$console.png",
+                                        //"src" => "images/mkwc/logo-$console-$year.png",
+                                        "src" => "images/mkwc/logo-mkwc-$year.png",
                                         "alt" => $console
                                     )
                                 );
@@ -578,12 +673,14 @@ if ($id) {
                                 <?php
                                 if ($myVote)
                                     echo '<img src="images/mkwc/flags/'.$myVote.'.png" alt="'. $myVote .'" /> ' . ($language ? 'You have selected <strong>'. $teamsDict[$myVote] .'</strong> team' : 'Vous avez sélectionné l\'équipe de <strong>'. $teamsDict[$myVote] .'</strong>');
+                                elseif ($isPollClosed)
+                                    echo ($language ? 'The poll is closed. See you at the end of the tournament!' : 'Le sondage est fermé. Rendez-vous à la fin du tournoi !');
                                 else
                                     echo $language ? 'Select your team within the list below' : 'Sélectionnez votre équipe dans la liste';
                                 ?>
                             </h2>
                             <?php
-                            if ($myVote) {
+                            if ($myVote || $isPollClosed) {
                                 ?>
                                 <div class="mVotesList">+ <a href="javascript:toggleOtherVotes()"><?php echo $language ? 'See other members\' bets' : 'Voir les paris des autres membres'; ?></a></div>
                                 <div id="mVotesList">
@@ -611,6 +708,10 @@ if ($id) {
                                 }
                                 ?>
                                 </div>
+                                <div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir le tableau des qualifications'; ?></a></div>
+                                <div id="mBracket">
+                                    <img src="https://cdn.discordapp.com/attachments/309729458925993985/1005467247210418205/unknown.png" alt="Bracket" />
+                                </div>
                                 <?php
                             }
                             ?>
@@ -624,11 +725,11 @@ if ($id) {
                                         $name2 = $groupNames[$i+1];
                                         $group1 = $groups[$name1];
                                         $group2 = $groups[$name2];
-                                        /*if (!$i) {
+                                        if (!$i) {
                                             echo '<div class="mTeamsCaption">';
                                                 echo $title;
                                             echo '</div>';
-                                        }*/
+                                        }
                                         $group12 = array($group1,$group2);
                                         $name12 = array($name1,$name2);
                                         $groupHeader = array();
@@ -653,9 +754,13 @@ if ($id) {
                                                 $isNormalTeam = isNormalTeam($code);
                                                 if (!$isNormalTeam)
                                                     $src = 'pin';
-                                                echo '<label>';
-                                                    echo '<input type="radio"'. (($myVote || !$isNormalTeam) ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
+                                                $eliminated = isset($group['eliminated']) && in_array($code, $group['eliminated']);
+                                                $winner = !$eliminated && isset($group['winner']) && in_array($code, $group['winner']);
+                                                echo '<label'. ($eliminated ? ' class="eliminated"':'') . ($winner ? ' class="winner"':'') .'>';
+                                                    echo '<input type="radio"'. (($myVote || !$isNormalTeam || $isPollClosed) ? ' disabled="disabled"':'') .' name="vote"'. (($myVote===$code) ? ' checked="checked"':'') .' onclick="handleTeamSelect()" value="'.$code.'" />';
                                                     echo '<img src="images/mkwc/flags/'.$src.'.png" alt="'. $src .'" />';
+                                                    if ($winner)
+                                                        echo '<small> &nbsp;</small><img src="images/cups/cup1.png" alt="Winner" />';
                                                     echo ' '. htmlspecialchars($country);
                                                 echo '</label>';
                                             }
@@ -678,56 +783,6 @@ if ($id) {
                             </form>
                             <?php
                         }
-                        else {
-                            ?>
-                        <div class="mDescriptionMain">
-                            <?php
-                            if ($language) {
-                                ?>
-                                Welcome to the 2021 Mario Kart World Cup's predictor page!!!<br />
-                                Here, you can predict a total of 3 teams (1 for each game), to win the World Cup.<br />
-                                In case of a correct prediction, you will earn an unique role on the forum!!!
-                                <img src="images/forum/reactions/laugh.png" alt="laugh" />
-                                <?php
-                            }
-                            else {
-                                ?>
-                                Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart 2021 !!!<br />
-                                Ici, vous pourrez-voter pour un total de 3 équipes (1 par jeu) que vous aller pronostiquer comme vainqueur de la Coupe Du Monde!<br />
-                                En cas de pronostic correct, vous gagnerez un rôle inédit sur le forum !!!
-                                <img src="images/forum/reactions/laugh.png" alt="laugh" />
-                                <?php
-                            }
-                            ?>
-                        </div>
-                        <div class="mDescriptionConsoles">
-                            <a href="?console=mkw">
-                                <div class="mDescriptionConsoleHeader">
-                                    <img src="images/mkwc/header-mkw.png" alt="Mario Kart Wii" />
-                                </div>
-                                <div class="mDescriptionConsoleLabel">
-                                    Mario Kart Wii
-                                </div>
-                            </a>
-                            <a href="?console=mk8d">
-                                <div class="mDescriptionConsoleHeader">
-                                    <img src="images/mkwc/header-mk8d.png" alt="Mario Kart 8" />
-                                </div>
-                                <div class="mDescriptionConsoleLabel">
-                                    Mario Kart 8 Deluxe
-                                </div>
-                            </a>
-                            <a href="?console=mkt">
-                                <div class="mDescriptionConsoleHeader">
-                                    <img src="images/mkwc/header-mkt.png" alt="Mario Kart Tour" />
-                                </div>
-                                <div class="mDescriptionConsoleLabel">
-                                    Mario Kart Tour
-                                </div>
-                            </a>
-                        </div>
-                            <?php
-                        }
                         ?>
                     </div>
                 </div>
@@ -735,9 +790,10 @@ if ($id) {
         </div>
         <p class="forumButtons">
             <?php
-            if (isset($console))
-                echo '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a><br />';
+            //if (isset($console))
+            //    echo '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a><br />';
             ?>
+            <a href="news.php?id=14697"><?php echo $language ? 'Back to MKWC news':'Retour &agrave; la news MKWC'; ?></a><br />
             <a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a>
         </p>
     </main>

@@ -2,13 +2,35 @@
 	box-sizing: border-box;
 }
 body {
-	background-color: black;
-	background-image: url('../images/fond_stars.jpg');
-	background-repeat: repeat;
-	background-position: center;
+	background-color: #E8964C;
+	background: url('../images/fond_mountains2.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 40%, #E8964C 70%, #AF663D 100%);
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-position: center bottom;
+	background-position: center -30vw, center;
+	background-repeat: no-repeat;
 	margin: 5px 0;
 	padding: 0;
 	font-family: Helvetica, arial, sans-serif;
+}
+#header_left img, #header_right img {
+	height: 2.05vw;
+}
+@media only screen and (max-width: 800px) {
+	body {
+		height: 100vh;
+		overflow-y: scroll;
+		background-color: #E8964C;
+		background: url('../images/fond_mountains2.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 60%, #E8964C 70%, #AF663D 100%);
+		background-size: 200vw auto, auto;
+		background-repeat: no-repeat;
+		background-attachment: fixed;
+		background-position: center -65vw, center;
+	}
+	#header_left img, #header_right img {
+		height: 2.6vw;
+	}
 }
 header {
 	position: relative;
@@ -152,8 +174,8 @@ nav {
 	color: #008;
 	text-decoration: none;
 	height: 60px;
-	overflow:hidden;
-	padding: 2px 5px;
+	overflow: hidden;
+	padding: 0;
 }
 #notifs-options input {
 	width: 100%;
@@ -183,7 +205,7 @@ nav {
 .notif-value {
 	font-size: 0.8em;
 	text-align: left;
-	padding: 0px 2px;
+	padding: 0px 7px 4px 7px;
 }
 #no-notif {
 	position: relative;
@@ -207,10 +229,16 @@ nav {
 	border-left: solid 1px #99C;
 }
 .close-notif {
+	padding: 1px 4px;
+	margin: 1px 2px;
 	color: #D03;
+	border-radius: 4px;
+	display: inline-block;
+	line-height: 0.95rem;
 }
 .close-notif:hover {
-	color: #F00;
+	background-color: #e97;
+	color: white;
 }
 #no-notif a, #nb-notifs a {
 	position:absolute;
@@ -876,7 +904,21 @@ footer a {
 .birthdays-list a:hover {
 	color: #FB0;
 }
+.warning-top-message {
+	padding: 10px;
+	margin: 0 5px 10px 15px;
+	background-color: #FB9;
+	color: #600;
+	border-radius: 5px;
+}
+.warning-top-message a {
+	color: #F30;
+}
+.warning-top-message a:hover {
+	color: #F60;
+}
 #official_message {
+	position: relative;
 	padding: 10px;
 	margin-left: 15px;
 	margin-right: 5px;
@@ -884,7 +926,14 @@ footer a {
 	color: #063;
 	border: dashed 1px #063;
 	border-radius: 5px;
-	text-align: justify;
+	font-size: 0.9em;
+}
+#official_message .close {
+	position: absolute;
+	right: 4px;
+	top: 0px;
+	font-size: 1.1em;
+	text-decoration: none;
 }
 #official_message a {
 	font-weight: bold;

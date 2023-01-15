@@ -14,7 +14,7 @@ if (isset($_GET['pseudo'])) {
 			do {
 				$code = bin2hex(openssl_random_pseudo_bytes(16));
 			} while (mysql_numrows(mysql_query('SELECT * FROM mkpassrecovery WHERE token="'. $code .'"')));
-			mysql_query('INSERT INTO `mkpassrecovery` VALUES("'. $code .'",'.$getId['id'].',DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 DAY))');
+			mysql_query('INSERT INTO `mkpassrecovery` VALUES("'. $code .'",'.$getId['id'].',DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 7 DAY))');
 
 			$link = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']. '/new-password.php?code='. $code;
 			$title = $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
@@ -178,7 +178,7 @@ include('menu.php');
 				echo $language ? 'It contains a link which will allow you to generate a new password.':'Il contient un lien permettant de générer un nouveau mot de passe.';
 				?></p>
 				<p><?php
-				echo $language ? 'If you didn\t receive the email after a few minutes, you can':'Si vous n\'avez pas reçu l\'email au bout de quelques minutes, vous pouvez';
+				echo $language ? 'If you didn\'t receive the email after a few minutes, you can':'Si vous n\'avez pas reçu l\'email au bout de quelques minutes, vous pouvez';
 				?>
 				<a href="javascript:location.reload()"><?php echo $language ? 'click here':'cliquer ici'; ?></a>
 				<?php
@@ -191,7 +191,6 @@ include('menu.php');
 				<?php
 				break;
 			case 'nick_found':
-				$emailObfuscated = obfuscate_email($email);
 				?>
 				<p class="big-instructions" id="success">
 					<?php

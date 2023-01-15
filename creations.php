@@ -103,6 +103,10 @@ main input[type="text"]:hover {
 main input[type="text"]:focus {
 	background-color: #FFF6CC;
 }
+main input[type="url"] {
+	width: 200px;
+	padding: 2px;
+}
 main form div {
 	margin: 2px 0px;
 }
@@ -313,6 +317,7 @@ $tri = isset($_GET['tri']) ? $_GET['tri']:0;
 $type = isset($_GET['type']) ? $_GET['type']:'';
 $nom = isset($_GET['nom']) ? stripslashes($_GET['nom']):'';
 $auteur = isset($_GET['auteur']) ? stripslashes($_GET['auteur']):'';
+$url = isset($_GET['url']) ? stripslashes($_GET['url']):'';
 $pids = null;
 if (isset($_GET['user'])) {
 	$user = $_GET['user'];
@@ -321,19 +326,40 @@ if (isset($_GET['user'])) {
 }
 else
 	$user = '';
-$singleType = ($type !== '');
-if ($singleType) {
-	$aCircuits = array($aCircuits[$type]);
-	$weightsByType = array($weightsByType[$type]);
+if ($managing && $url) {
+    include('adminUtils.php');
+	$circuitData = getCreationByUrl($url);
+	if ($circuitData) {
+		$aParams = array(
+			'max_circuits' => 1,
+			'type' => $circuitData['filter'],
+			'id' => $circuitData['id']
+		);
+	}
+	else {
+		$aParams = array(
+			'max_circuits' => 0,
+			'type' => 0,
+			'id' => -1
+		);
+	}
 }
-$aParams = array(
-	'type' => $type,
-	'tri' => $tri,
-	'nom' => $nom,
-	'auteur' => $auteur,
-	'pids' => $pids,
-	'max_circuits' => $MAX_CIRCUITS,
-);
+else {
+	$aParams = array(
+		'type' => $type,
+		'tri' => $tri,
+		'nom' => $nom,
+		'auteur' => $auteur,
+		'pids' => $pids,
+		'max_circuits' => $MAX_CIRCUITS,
+	);
+}
+$pType = $aParams['type'];
+$singleType = ($pType !== '');
+if ($singleType) {
+	$aCircuits = array($aCircuits[$pType]);
+	$weightsByType = array($weightsByType[$pType]);
+}
 $nbByType = countTracksByType($aCircuits,$aParams);
 $creationsList = listCreations(1,$nbByType,$weightsByType,$aCircuits,$aParams);
 $nbCreations = array_sum($nbByType);
@@ -356,7 +382,7 @@ include('menu.php');
 	<h1><?php
 		if ($pids) {
 			$username = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $user .'"'));
-			echo $language ? ('Creations list of ' . $username['nom']):'Liste des créations de '. $username['nom'];
+			echo $language ? ($username['nom']."'s creations"):'Liste des créations de '. $username['nom'];
 		}
 		else
 			echo $language ? 'Creations list of Mario Kart PC':'Liste des créations Mario Kart PC';
@@ -365,7 +391,7 @@ include('menu.php');
 	if (!$pids) {
 		echo $language ?
 		'Welcome to the list of circuits and courses shared by the Mario Kart PC community !<br />
-		You too, share your circuit creations by clicking on &quot;Share circuit&quot; at the bottom-left of the circuit page.' :
+		You too can share your circuit creations by clicking on &quot;Share circuit&quot; at the bottom-left of the circuit page.' :
 		'Bienvenue dans la liste des circuits et ar&egrave;nes partag&eacute;s par la communaut&eacute; de Mario Kart PC !<br />
 		Vous aussi, partagez les circuits que vous cr&eacute;ez en cliquant sur &quot;Partager le circuit&quot; en bas &agrave; gauche de la page du circuit.';
 	}
@@ -408,6 +434,19 @@ include('menu.php');
 			<input type="text" name="auteur" placeholder="<?php echo $language ? 'Author':'Auteur'; ?>" value="<?php echo htmlspecialchars($auteur); ?>" />
 			<input type="submit" value="Ok" class="action_button" />
 		</div>
+		<?php
+		if ($managing) {
+			?>
+			<div>
+				<label>
+					<?php echo $language ? '<em>OR</em> &nbsp;<strong>Track URL</strong>':'<em>OU</em> &nbsp;<strong>URL circuit</strong>'; ?> :
+					<input type="url" name="url" placeholder="https://mkpc.malahieude.net/map.php?i=42" value="<?php echo htmlspecialchars($url); ?>" />
+				</label>
+				<input type="submit" value="Ok" class="action_button" />
+			</div>
+			<?php
+		}
+		?>
 	</form>
 	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 	<!-- Forum MKPC -->

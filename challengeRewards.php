@@ -17,6 +17,12 @@ if (isset($_GET['clmsg'])) {
     case 'reward_created':
         $clMsg = $language ? 'The reward has been created':'La récompense a été créée';
         break;
+    case 'invalid_collab_link':
+        $clError = $language ? 'The collaboration link est invalid':'Le lien de collaboration est invalide';
+        break;
+    case 'character_not_found':
+        $clError = $language ? "The selected character doesn't exist anymore or has been shared":"Le perso sélectionné n'existe plus ou a été partagé";
+        break;
     }
     unset($_GET['clmsg']);
 }
@@ -27,7 +33,7 @@ if (isset($_GET['clmsg'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css" />
+<link rel="stylesheet" href="styles/challenges.css?reload=1" />
 <?php
 include('o_online.php');
 ?>
@@ -36,6 +42,8 @@ include('o_online.php');
 <body>
 <h1 class="challenge-main-title"><?php echo $language ? 'Challenge rewards' : 'Défis et récompenses'; ?></h1>
 <?php
+if (isset($clError))
+    echo '<div class="challenge-msg-error">'. $clError .'</div>';
 if (isset($clMsg))
     echo '<div class="challenge-msg-success">'. $clMsg .'</div><br />';
 if (empty($rewards)) {

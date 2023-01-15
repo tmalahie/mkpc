@@ -69,10 +69,23 @@ $clRulesByType = array(
 		'reach_zone' => array(
 			'description_mockup' => $language ? 'Reach zone...':'Atteindre la zone...',
 			'description_lambda' => function($language,&$scope) {
-				return $scope->description;
+				$lang = $language ? 'en' : 'fr';
+				if (isset($scope->description->{$lang}))
+					return htmlspecialchars($scope->description->{$lang});
+				return htmlspecialchars($scope->description);
 			},
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
+				if (!empty($scope['translated'])) {
+					$scope['description'] = array(
+						'fr' => $scope['description_fr'],
+						'en' => $scope['description_en']
+					);
+				}
+				else {
+					unset($scope['description_fr']);
+					unset($scope['description_en']);
+				}
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
@@ -82,12 +95,25 @@ $clRulesByType = array(
 		'reach_zones' => array(
 			'description_mockup' => $language ? 'Go through N zones...':'Passer par N zones...',
 			'description_lambda' => function($language,&$scope) {
-				return $scope->description;
+				$lang = $language ? 'en' : 'fr';
+				if (isset($scope->description->{$lang}))
+					return htmlspecialchars($scope->description->{$lang});
+				return htmlspecialchars($scope->description);
 			},
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
 				if (isset($scope['ordered']))
 					$scope['ordered'] = intval($scope['ordered']);
+				if (!empty($scope['translated'])) {
+					$scope['description'] = array(
+						'fr' => $scope['description_fr'],
+						'en' => $scope['description_en']
+					);
+				}
+				else {
+					unset($scope['description_fr']);
+					unset($scope['description_en']);
+				}
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
@@ -117,6 +143,32 @@ $clRulesByType = array(
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
+			},
+			'course' => array('vs','battle')
+		),
+		'destroy_decors' => array(
+			'description_mockup' => $language ? 'Destroy decors...':'Détruire les décors...',
+			'description_lambda' => function($language,&$scope) {
+				if (isset($scope->nb)) {
+					$nb = $scope->nb;
+					$decorName = getChallengeDecorName($scope->value, $scope->name, $nb);
+					return $language ? "Destroy $nb $decorName":"Détruire $nb $decorName";
+				}
+				$decorName = getChallengeDecorName($scope->value, $scope->name, 2);
+				return $language ? "Destroy all $decorName":"Détruire les $decorName";
+			},
+			'parser' => function(&$scope) {
+				$decors = $scope['value'];
+				foreach ($decors as $type => $options) {
+					$scope['value'] = $type;
+					if (!empty($options['name']))
+						$scope['name'] = $options['name'];
+					break;
+				}
+				if (empty($scope['nb']))
+					unset($scope['nb']);
+				else
+					$scope['nb'] = intval($scope['nb']);
 			},
 			'course' => array('vs','battle')
 		),
@@ -213,9 +265,20 @@ $clRulesByType = array(
 			}
 		),
 		'cc' => array(
-			'description' => $language ? 'in $value​cc class':'en mode $value​cc',
+			'description' => $language ? 'in ${value}cc class':'en mode ${value}cc',
 			'description_mockup' => $language ? 'Class (cc)':'Cylindrée (cc)',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup'),
+			'description_lambda' => function($language,&$scope) {
+				if ($language)
+					return 'in '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirror':'').' class';
+				else
+					return 'en mode '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirroir':'');
+				exit;
+			},
+			'parser' => function(&$scope) {
+				if (isset($scope['mirror']))
+					$scope['mirror'] = 1;
+			}
 		),
 		'no_teams' => array(
 			'description' => $language ? 'no teams':'sans équipes',
@@ -254,70 +317,15 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle', 'cup', 'mcup')
 		),
 		'no_item' => array(
-			'description' => $language ? 'without using any object':'sans utiliser d\'objets',
+			'description' => $language ? 'without using any item':'sans utiliser d\'objets',
 			'course' => array('vs', 'battle', 'cup', 'mcup')
 		),
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
 			'description_lambda' => function($language,&$scope) {
-				$decorTree = $language ? 'tree' : 'arbre';
-				$decorMapping = array(
-					'tuyau' => $language ? 'pipe':'tuyau',
-					'taupe' => $language ? 'Monty Mole':'Topi Taupe',
-					'poisson' => 'Cheep-Cheep',
-					'plante' => $language ? 'Piranha Plant':'Plante Piranha',
-					'boo' => 'Boo',
-					'thwomp' => 'Thwomp',
-					'spectre' => 'Thwomp',
-					'assets/oil1' => $language ? 'oil spill':'tâche d\'huile',
-					'assets/oil2' => $language ? 'puddle':'flaque',
-					'crabe' => $language ? 'crab':'crabe',
-					'cheepcheep' => 'Cheep-Cheep',
-					'movingtree' => $language ? 'moving tree' : 'arbre mobile',
-					'pokey' => 'Pokey',
-					'firesnake' => $language ? 'fire snake' : 'serpent de feu',
-					'box' => $language ? 'box':'caisse',
-					'snowball' => $language ? 'snow ball':'boule de neige',
-					'cannonball' => $language ? 'pinball ball':'boule de flipper',
-					'truck' => 'bus',
-					'pendulum' => $language ? 'pendulum':'pendule',
-					'assets/pivothand' => $language ? 'clock hand':'aiguille',
-					'snowman' => $language ? 'snowman':'bonhomme de neige',
-					'goomba' => 'Goomba',
-					'fireplant' => $language ? 'fire plant' : 'plante de feu',
-					'piranhaplant' => $language ? 'Piranha Plant':'Plante Piranha',
-					'tortitaupe' => $language ? 'Monty Mole' : 'Torti Taupe',
-					'billball' => $language ? 'Bullet Bill' : 'Bill Ball',
-					'firering' => $language ? 'fire circle':'cercle de feu',
-					'fire3star' => $language ? 'fire triplet':'triolet de feu',
-					'topitaupe' => $language ? 'Monty Mole' : 'Topi Taupe',
-					'chomp' => 'Chomp',
-					'movingthwomp' => 'Thwomp',
-					'firebar' => $language ? 'fire bar' : 'barre de feu',
-					'tree' => $decorTree,
-					'palm' => $decorTree,
-					'coconut' => $decorTree,
-					'sinistertree' => $decorTree,
-					'falltree' => $decorTree,
-					'mountaintree' => $decorTree,
-					'fir' => $decorTree,
-					'mariotree' => $decorTree,
-					'peachtree' => $decorTree,
-					'assets/flower1' => $language ? 'flower':'fleur',
-					'assets/flower2' => $language ? 'flower':'fleur',
-					'assets/flower3' => $language ? 'flower':'fleur',
-					'assets/bumper' => 'bumper'
-				);
 				$itemsToAvoid = array();
-				foreach ($scope->value as $key=>$decor) {
-					if (!empty($decor->name))
-						$decorName = $decor->name;
-					elseif (isset($decorMapping[$key]))
-						$decorName = $decorMapping[$key];
-					else
-						$decorName = $key;
-					$itemsToAvoid[] = $decorName;
-				}
+				foreach ($scope->value as $key=>$decor)
+					$itemsToAvoid[] = getChallengeDecorName($key, $decor->name);
 				$itemsToAvoid = array_values(array_unique($itemsToAvoid));
 				$itemsToAvoidString = '';
 				$nbItems = count($itemsToAvoid);
@@ -383,8 +391,28 @@ $clRulesByType = array(
 			'description' => $language ? 'by driving backwards':'en marche arrière',
 			'course' => array('vs', 'battle', 'cup', 'mcup')
 		),
+		'forwards' => array(
+			'description' => $language ? 'without going backwards':'sans reculer',
+			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
+		'without_turning' => array(
+			'description_mockup' => $language ? 'without turning...':'sans tourner...',
+			'description_lambda' => function($language,&$scope) {
+				$direction = '';
+				switch ($scope->value) {
+					case 'left':
+						$direction = $language ? ' left' : ' à gauche';
+						break;
+					case 'right':
+						$direction = $language ? ' right' : ' à droite';
+						break;
+				}
+				return $language ? "without turning $direction" : "sans tourner $direction";
+			},
+			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
 		'time_delay' => array(
-			'description' => $language ? 'by starting with $value​s delay':'en partant avec $value​s de retard',
+			'description' => $language ? 'by starting with ${value}s delay':'en partant avec ${value}s de retard',
 			'description_mockup' => $language ? 'by starting with x seconds delay':'en partant avec x secondes de retard',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -392,7 +420,7 @@ $clRulesByType = array(
 			'course' => array('vs')
 		),
 		'mini_turbo' => array(
-			'description' => $language ? 'by performing $value​ Mini-Turbo$s':'en réalisant $value​ dérapage$s Turbo',
+			'description' => $language ? 'by performing $value Mini-Turbo$s':'en réalisant $value dérapage$s Turbo',
 			'description_mockup' => $language ? 'by performing N Turbo drifts':'en réalisant N dérapages Turbo',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -400,7 +428,7 @@ $clRulesByType = array(
 			'course' => array('vs','battle', 'cup', 'mcup')
 		),
 		'super_turbo' => array(
-			'description' => $language ? 'by performing $value​ Super Mini-Turbo$s':'en réalisant $value​ Super Mini-Turbo$s',
+			'description' => $language ? 'by performing $value Super Mini-Turbo$s':'en réalisant $value Super Mini-Turbo$s',
 			'description_mockup' => $language ? 'by performing N Super Mini-Turbo':'en réalisant N Super Mini-Turbo',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -408,7 +436,7 @@ $clRulesByType = array(
 			'course' => array('vs','battle', 'cup', 'mcup')
 		),
 		'stunts' => array(
-			'description' => $language ? 'by performing $value​ stunt$s':'en réalisant $value​ figure$s',
+			'description' => $language ? 'by performing $value stunt$s':'en réalisant $value figure$s',
 			'description_mockup' => $language ? 'by performing N stunts':'en réalisant N figures',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -439,9 +467,11 @@ $clRulesByType = array(
 		),
 		'difficulty' => array(
 			'description_mockup' => $language ? 'difficulty...':'difficulté...',
-			'description' => $language ? 'in $options[$value] mode':'en mode $options[$value]',
+			'description_lambda' => function($language,&$scope) {
+				return $language ? 'in '.$scope->options[$scope->value+2].' mode':'en mode '.$scope->options[$scope->value+2];
+			},
 			'scope' => array(
-				'options' => $language ? array('difficult','medium','easy') : array('difficile','moyen','facile')
+				'options' => $language ? array('impossible','extreme','difficult','medium','easy') : array('impossible','extrême','difficile','moyen','facile')
 			),
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
@@ -464,6 +494,70 @@ $clRulesByType = array(
 			'autoset' => function(&$res, $scope) {
 				$res['selectedPlayers'] = $scope->value;
 			}
+		)
+	),
+	'setup' => array(
+		'start_pos' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'start at location...':'commencer à... (position)',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+				if (isset($scope['no_cpu']))
+					$scope['no_cpu'] = 1;
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			}
+		),
+		'init_item' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'start with item...':'commencer avec l\'objet...',
+			'course' => array('vs', 'battle')
+		),
+		'item_distribution' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'item distribution...':'distribution des objets...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = explode(',', $scope['value']);
+			}
+		),
+		'no_item_box' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'without items':'sans objets',
+			'course' => array('vs', 'battle')
+		),
+		'extra_decors' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'add extra decors...':'ajouter des décors...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			}
+		),
+		'auto_accelerate' => array(
+			'description' => $language ? 'while constantly accelerating' : 'en accélérant en continu',
+			'description_mockup' => $language ? 'auto accelerate':'auto-accélérer',
+			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
+		'invert_dirs' => array(
+			'description' => $language ? 'with inverted controls':'avec les contrôles inversés',
+			'description_mockup' => $language ? 'invert left and right' : 'inverser gauche et droite',
+			'course' => array('vs', 'battle', 'cup', 'mcup')
+		),
+		'balloons_player' => array(
+			'description' => $language ? 'by starting with $value balloon$s':'en commençant avec $value ballon$s',
+			'description_mockup' => $language ? 'initial player balloons':'nb ballons initiaux (joueur)',
+			'course' => array('battle')
+		),
+		'balloons_cpu' => array(
+			'description' => $language ? 'having CPUs starting with $value balloon$s':'les ordis commençant avec $value ballon$s',
+			'description_mockup' => $language ? 'initial CPU balloons':'nb ballons initiaux (ordis)',
+			'course' => array('battle')
 		)
 	)
 );
@@ -748,22 +842,29 @@ function getRuleDescription($rule,$rulesClass=null) {
 			}
 		}
 	}
-	if (!isset($res) && isset($data['description_lambda']))
-		$res = $data['description_lambda']($language,$rule);
+	if (!isset($res) && isset($data['description_lambda'])) {
+		$scope = $rule;
+		if (isset($data['scope'])) {
+			foreach ($data['scope'] as $k=>$v)
+				$scope->{$k} = $v;
+		}
+		$res = $data['description_lambda']($language,$scope);
+	}
 	if (!isset($res)) {
 		$res = $data['description'];
+		if ($res === null) return $res;
 		$scope = (array)$rule;
 		if (isset($scope['value']))
 			$scope['s'] = ($scope['value']>=2 ? 's':'');
 		if (isset($data['scope']))
 			$scope = array_merge($data['scope'],$scope);
-		$res = preg_replace_callback('#\$(\w+)#', function($matches) use ($scope) {
+		$res = preg_replace_callback('#\$\{?(\w+)\}?#', function($matches) use ($scope) {
 			$k = $matches[1];
 			if (isset($scope[$k]) && !is_array($scope[$k]))
 				return $scope[$k];
 			return $matches[0];
 		}, $res);
-		$res = preg_replace_callback('#\$(\w+)\[(\w+)\]#', function($matches) use ($scope) {
+		$res = preg_replace_callback('#\$\{?(\w+)\[(\w+)\]\}?#', function($matches) use ($scope) {
 			$a = $matches[1];
 			$k = $matches[2];
 			if (isset($scope[$a]) && is_array($scope[$a]) && isset($scope[$a][$k]))
@@ -794,8 +895,11 @@ function getChallengeDescription($challengeData) {
 		$rulesData = $clRules[$data->type];
 		if (isAdditionalRule($rulesData,$data))
 			$extraDesc[] = getRuleDescription($data);
-		else
-			$constraintDescs[] = getRuleDescription($data);
+		else {
+			$constraintDesc = getRuleDescription($data);
+			if ($constraintDesc !== null)
+				$constraintDescs[] = $constraintDesc;
+		}
 	}
 	$challengeRulesStr = $mainDesc;
 	if (!empty($constraintDescs))
@@ -890,5 +994,67 @@ function getRewardedPlayers($filters) {
 }
 function isRuleElligible(&$rule,&$course) {
 	return in_array($course, $rule['course']);
+}
+function getChallengeDecorName($key, &$name, $nb=0) {
+	global $language;
+	$e = ($nb > 1) ? 'e' : '';
+	$s = ($nb > 1) ? 's' : '';
+	$x = ($nb > 1) ? 'x' : '';
+	$decorTree = $language ? "tree$s" : "arbre$s";
+	$decorMapping = array(
+		'tuyau' => $language ? "pipe$s":"tuyau$x",
+		'taupe' => $language ? "Monty Mole$s":"Topi Taupe$s",
+		'poisson' => "Cheep-Cheep$s",
+		'plante' => $language ? "Piranha Plant$s":"Plante$s Piranha",
+		'boo' => "Boo$s",
+		'thwomp' => "Thwomp$s",
+		'spectre' => "Thwomp$s",
+		'assets/oil1' => $language ? "oil spill$s":"tâche$s d\"huile",
+		'assets/oil2' => $language ? "puddle$s":"flaque$s",
+		'crabe' => $language ? "crab$s":"crabe$s",
+		'cheepcheep' => "Cheep-Cheep$s",
+		'movingtree' => $language ? "moving tree$s" : "arbre$s mobile",
+		'pokey' => "Pokey$s",
+		'firesnake' => $language ? "fire snake$s" : "serpent$s de feu",
+		'box' => $language ? "box$e$s":"caisse$s",
+		'snowball' => $language ? "snow ball$s":"boule$s de neige",
+		'cannonball' => $language ? "pinball ball$s":"boule$s de flipper",
+		'truck' => $language ? "bus$e$s" : "bus",
+		'pendulum' => $language ? "pendulum$s":"pendule$s",
+		'assets/pivothand' => $language ? "clock hand$s":"aiguille$s",
+		'snowman' => $language ? "snowman$s":"bonhomme$s de neige",
+		'goomba' => "Goomba$s",
+		'fireplant' => $language ? "fire plant$s" : "plante$s de feu",
+		'piranhaplant' => $language ? "Piranha Plant$s":"Plante$s Piranha",
+		'tortitaupe' => $language ? "Monty Mole$s" : "Torti Taupe$s",
+		'billball' => $language ? "Bullet Bill$s" : "Bill Ball$s",
+		'firering' => $language ? "fire circle$s":"cercle$s de feu",
+		'fire3star' => $language ? "fire triplet$s":"triolet$s de feu",
+		'topitaupe' => $language ? "Monty Mole$s" : "Topi Taupe$s",
+		'chomp' => "Chomp$s",
+		'movingthwomp' => "Thwomp$s",
+		'firebar' => $language ? "fire bar$s" : "barre$s de feu",
+		'tree' => $decorTree,
+		'palm' => $decorTree,
+		'coconut' => $decorTree,
+		'sinistertree' => $decorTree,
+		'falltree' => $decorTree,
+		'mountaintree' => $decorTree,
+		'fir' => $decorTree,
+		'mariotree' => $decorTree,
+		'peachtree' => $decorTree,
+		'assets/flower1' => $language ? "flower$s":"fleur$s",
+		'assets/flower2' => $language ? "flower$s":"fleur$s",
+		'assets/flower3' => $language ? "flower$s":"fleur$s",
+		'assets/bumper' => "bumper$s"
+	);
+	$lang = $language ? 'en' : 'fr';
+	if (isset($name->{$lang}))
+		return htmlspecialchars($name->{$lang});
+	if (!empty($name))
+		return htmlspecialchars($name);
+	if (isset($decorMapping[$key]))
+		return $decorMapping[$key];
+	return $key;
 }
 ?>

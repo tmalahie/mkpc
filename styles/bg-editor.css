@@ -1,0 +1,352 @@
+body {
+	background-image: url('../images/editor/fond_circuit_dark.jpg');
+	background-color: black;
+	background-size: cover;
+	background-attachment: fixed;
+	background-position: center bottom;
+	background-repeat: no-repeat;
+	font-family: Helvetica, arial, sans-serif;
+	text-align: center;
+    font-size: 1.2em;
+}
+h1, h2, h3 {
+    margin: 5px auto;
+}
+h2 {
+    margin-top: 10px;
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black, -1px -1px black, -1px 1px black, 1px -1px black, 1px 1px black;
+}
+.bgs-list-container {
+    border-radius: 6px;
+    background-color: rgba(156,181,207, 0.85);
+    max-width: 550px;
+    padding: 10px 20px;
+    margin: 10px auto;
+}
+.bg-layers-container {
+    margin-top: 1em;
+}
+.bgs-list-empty {
+    font-style: italic;
+    margin-bottom: 5px;
+}
+.bgs-list-more {
+    position: relative;
+    top: -0.1em;
+}
+.bgs-list {
+    margin-bottom: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25em;
+}
+.bgs-list .bg-preview {
+    cursor: pointer;
+    margin-bottom: 0.4em;
+    width: 250px;
+}
+.bgs-list .bg-preview:not(.bg-selected):hover {
+    opacity: 0.8;
+}
+.bgs-list .bg-selected {
+    border: none !important;
+    outline: solid 2px #ff7100;
+}
+.bg-layer {
+    display: flex;
+}
+.bg-layer-img {
+    width: 100%;
+    overflow: hidden;
+}
+.bg-layer-img img {
+    border: solid 1px transparent;
+    height: 32px;
+}
+.bg-layer-img img:hover {
+    border-color: #379;
+}
+.bg-layer-actions {
+    flex: 1;
+    display: flex;
+    padding: 4px 0 9px 8px;
+    gap: 4px;
+}
+.bg-layer-actions button {
+    width: 2.25em;
+    cursor: pointer;
+}
+#transparency-form-ctn {
+    width: auto;
+    max-width: 100%;
+    display: inline-block;
+    overflow: auto;
+    padding-left: 0;
+    padding-right: 0;
+}
+#transparency-form-ctn h3 {
+    margin-left: 0.75em;
+    margin-right: 0.75em;
+}
+#transparency-form {
+	display: none;
+}
+#select-transparency {
+	cursor: crosshair;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+#transparency-color-preview {
+	display: inline-block;
+	width: 60px;
+	height: 25px;
+	border: solid 1px #BDE;
+	position: relative;
+	top: 6px;
+}
+#bg-actions {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+    font-size: 1.2em;
+	display: none;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 5px;
+    background-color: #93b8f9;
+}
+#bg-actions button {
+	font-size: 0.7em;
+	padding: 3px 8px;
+	cursor: pointer;
+	margin: 0 2px;
+}
+#bg-actions-name {
+    color: #337;
+    font-size: 0.8em;
+	margin-bottom: 0.15em;
+	font-weight: bold;
+}
+#bg-actions-name:empty {
+    display: none;
+}
+#bg-instructions {
+    margin-bottom: 10px;
+    font-size: 0.8em;
+    text-align: left;
+}
+#bg-instructions .description {
+    margin: 1em 0;
+}
+#bg-instructions .description-layers {
+    width: 100%;
+    overflow: auto;
+}
+#bg-instructions .description-layers div {
+}
+#bg-instructions .description-layers div img {
+    border: solid 1px transparent;
+}
+#bg-instructions .description-layers div img:hover {
+    border-color: #379;
+}
+.description-layers-24 img {
+    height: 24px;
+}
+.description-layers-48 img {
+    height: 48px;
+}
+#bg-instructions ul {
+    margin-top: 0.5em;
+    padding-left: 1em;
+}
+#bg-instructions hr {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    height: 1px;
+    background-color: #359;
+    border: none;
+}
+#bg-instructions.instructions-unshown {
+	display: none;
+}
+#bg-new-form {
+    text-align: center;
+}
+#bg-new-form h3 {
+    position: relative;
+    top: -0.2em;
+}
+#bg-new-form button[type="submit"] {
+    width: 150px;
+}
+#bg-edit-form input[type="text"] {
+    width: 200px;
+}
+.bg-editor-form input, .bg-editor-form button {
+    font-size: 1em;
+}
+.bg-editor-form input[type="file"] {
+    border: solid 1px #88B;
+    background-color: #BFBFCF;
+}
+.bg-editor-form button {
+    cursor: pointer;
+    background-color: #69C;
+    color: white;
+    border-color: #48A;
+}
+.bg-editor-form button:hover {
+    background-color: #669FD9;
+    border-color: #59B;
+}
+.bg-editor-form button:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+.bg-editor-form button[type="submit"] {
+    margin-top: 0.2em;
+}
+.bg-editor-form button.btn-edit {
+	background-color: #7E8;
+	color: #094;
+	border-color: #0A5;
+}
+.bg-editor-form button.btn-edit:hover {
+	background-color: #7F8;
+    color: #0A5;
+	border-color: #0B5;
+}
+.bg-editor-form button.btn-del {
+	background-color: #F96;
+	color: #C24;
+	border-color: #D45;
+}
+.bg-editor-form button.btn-del:hover {
+	background-color: #FB7;
+	color: #D35;
+	border-color: #E79;
+}
+.bg-edit-preview .bg-preview {
+    width: 384px;
+    height: 48px;
+}
+#error {
+	background-color: #D43;
+	color: #721;
+	font-weight: bold;
+	text-align: center;
+	display: inline-block;
+	padding: 8px 20px;
+}
+#error a {
+	color: #A5444C;
+}
+#success {
+	background-color: #3D4;
+	color: #172;
+	font-weight: bold;
+	text-align: center;
+	display: inline-block;
+	padding: 8px 20px;
+}
+#error a {
+	color: #A5444C;
+}
+
+.bg-form-layer-new {
+    margin-top: 0.25em;
+    margin-bottom: 0.5em;
+}
+.bg-form-layer-new button {
+    font-size: 0.8em;
+}
+.editor-navigation {
+    font-size: 1rem;
+}
+.bg-preview {
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    height: 24px;
+    background-size: auto 100%;
+}
+#bg-edit-form {
+    margin-top: 0.4em;
+}
+.bg-edit {
+	background-color: #7E8;
+	color: #0A5;
+}
+.bg-edit:hover {
+	background-color: #7F8;
+    color: #0B5;
+}
+.bg-del {
+	background-color: #F96;
+	color: #C24;
+}
+.bg-del:hover {
+	background-color: #FB7;
+	color: #D35;
+}
+#bg-actions .bg-collab {
+    display: block;
+    margin-top: 0.4em;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 0.6em;
+    padding: 0.1em 0.5em;
+    background-color: #7BF;
+    color: #35D;
+}
+#bg-actions .bg-collab:hover {
+    background-color: #69F;
+    color: #24C;
+}
+.bg-layers-add {
+    margin-top: 0.25em;
+}
+.bg-layers-add > a {
+    text-decoration: none;
+}
+.bg-layers-add > a:hover {
+    text-decoration: underline;
+}
+#bg-layers-add-form {
+    display: none;
+    margin-bottom: 0.25em;
+}
+#bg-layers-add-form.shown {
+    display: block;
+}
+.collab-popup.collab-bg {
+    background-color: #14465f;
+    text-align: left;
+    color: #DEF;
+    font-size: 0.9em;
+}
+.collab-popup.collab-bg .collab-popup-close {
+    background-color: #134;
+}
+.collab-popup.collab-bg .collab-popup-close:hover {
+    background-color: #145;
+}
+.collab-popup.collab-bg h2 {
+    font-size: 1.5em;
+    color: white;
+}
+.collab-popup.collab-bg h3 {
+    color: white;
+    margin-bottom: 0.1em;
+}
+.collab-popup.collab-bg .collab-btn-primary {
+    background-color: #58B;
+    color: white;
+    border-color: #379;
+}
+.collab-popup.collab-bg .collab-btn-primary:hover {
+    cursor: pointer;
+    background-color: #69C;
+    border-color: #48A;
+}

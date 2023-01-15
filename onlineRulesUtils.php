@@ -41,7 +41,14 @@ $rulesList = array(
 		'min_value' => 1,
 		'max_value' => 999
 	),
+	'mirror' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
+	),
 	'itemDistrib' => array(
+		'default' => 0
+	),
+	'ptDistrib' => array(
 		'default' => 0
 	),
 	'teamOpts' => array(
@@ -82,6 +89,10 @@ $rulesList = array(
 		'default' => 0,
 		'accepted' => array(1,1)
 	),
+	'noJump' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
+	),
 	'doubleItems' => array(
 		'default' => 1,
 		'accepted' => array(1,1)
@@ -108,7 +119,7 @@ function getRulesAsString($rules) {
 	global $rulesList;
 	$res = new stdClass();
 	foreach ($rulesList as $key => $rule) {
-		if (isset($rules->$key) && isRuleValid($rule,$rules->$key) && ($rules->$key != $rule['default']))
+		if (isset($rules->$key) && isRuleValid($rule,$rules->$key) && (($rules->$key instanceof \stdClass) || ($rules->$key != $rule['default'])))
 			$res->{$key} = sanitizeRule($rule,$rules->$key);
 	}
 	return json_encode($res);

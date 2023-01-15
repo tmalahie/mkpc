@@ -469,7 +469,7 @@
 }
 #comments-description {
 	border-bottom: solid 1px white;
-	font-size: 12px;
+	font-size: 11px;
 }
 #comments-description-content {
 	padding: 4px 6px;
@@ -501,9 +501,11 @@
 	top: 1px;
     image-rendering: pixelated;
 }
+#comments-description-content-value .comment-desc-scroller {
+	line-height: 13px;
+}
 #comments-description-content-value:not(.comment-expanded) .comment-desc-scroller {
-	line-height: 14px;
-	max-height: 70px;
+	max-height: 66px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	display: -webkit-box;

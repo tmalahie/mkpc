@@ -30,7 +30,13 @@ function toSQLSearch($search) {
 }
 function toSQLFilter($sql, $params) {
 	if (!empty($params['id']))
-		$sql .= ' AND id='. (+$params['id']);
+		$sql .= ' AND id='. intval($params['id']);
+	if (!empty($params['ids'])) {
+		$idsArray = array();
+		foreach ($params['ids'] as $pId)
+			$idsArray[] = intval($pId);
+		$sql .= ' AND id IN ('. implode(',', $idsArray) .')';
+	}
 	if (!empty($params['nom']))
 		$sql .= ' AND nom LIKE "'. toSQLSearch($params['nom']) .'"';
 	if (!empty($params['auteur']))
@@ -67,6 +73,8 @@ function floatCmp($a,$b) {
     return ($a > $b) - ($a < $b);
 }
 function sortCmp0($res1,$res2) {
+	if ($res1['publication_date'] === null) $res1['publication_date'] = '2000-01-01';
+	if ($res2['publication_date'] === null) $res2['publication_date'] = '2000-01-01';
 	$res = strtotime($res2['publication_date'])-strtotime($res1['publication_date']);
 	if ($res) return $res;
 	return $res2['id']-$res1['id'];
@@ -158,12 +166,10 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 		'nb' => $nbTracksTotal
 	);
 	if ($nbTracksTotal) {
-		if (!isset($params['type'])) $params['type'] = '';
 		if (!isset($params['tri'])) $params['tri'] = 0;
 		if (!isset($params['max_circuits'])) $params['max_circuits'] = $nbTracksTotal;
 		$nbsToLoadBegin = getTracksToLoad($page-1,$nbByType,$weightsByType,$params['max_circuits']);
 		$nbsToLoadEnd = getTracksToLoad($page,$nbByType,$weightsByType,$params['max_circuits']);
-		$type = $params['type'];
 		$tri = $params['tri'];
 		foreach ($aCircuits as $i=>$aCircuit) {
 			$aList = nextRaces($aCircuit,$nbsToLoadBegin[$i],$nbsToLoadEnd[$i],$params);

@@ -6,7 +6,7 @@ include('initdb.php');
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>	">
 <head>
-<title><?php echo $language ? 'Deletion':'Suppression'; ?></title>
+<title><?php echo $language ? 'Topic deleted':'Suppression'; ?></title>
 <?php
 include('heads.php');
 ?>
@@ -23,7 +23,7 @@ $page = 'forum';
 include('menu.php');
 ?>
 <main>
-<h1><?php echo $language ? 'Deletion':'Suppression'; ?></h1>
+<h1><?php echo $language ? 'Topic deleted':'Suppression'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
 <p class="pub"><ins class="adsbygoogle"

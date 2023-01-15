@@ -10,7 +10,7 @@ if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs
 	include('getId.php');
 	if ($getBan['banned'] == 1)
 		include('ban_ip.php');
-	echo 'Access denied';
+	echo $language ? 'You have been banned from the online mode' : 'Vous avez été banni du mode en ligne';
 	mysql_close();
 	exit;
 }
@@ -22,27 +22,27 @@ $isMCup = false;
 if (isset($_GET['mid'])) {
 	$isCup = true;
 	$isMCup = true;
-	$nid = $_GET['mid'];
+	$nid = intval($_GET['mid']);
 }
 elseif (isset($_GET['sid'])) {
 	$isCup = true;
-	$nid = $_GET['sid'];
+	$nid = intval($_GET['sid']);
 	$complete = false;
 }
 elseif (isset($_GET['cid'])) {
 	$isCup = true;
-	$nid = $_GET['cid'];
+	$nid = intval($_GET['cid']);
 	$complete = true;
 }
 elseif (isset($_GET['id'])) {
 	$isCup = true;
-	$nid = $_GET['id'];
+	$nid = intval($_GET['id']);
 	$complete = false;
 	$isSingle = true;
 }
 elseif (isset($_GET['i'])) {
 	$isCup = true;
-	$nid = $_GET['i'];
+	$nid = intval($_GET['i']);
 	$complete = true;
 	$isSingle = true;
 }
@@ -207,7 +207,7 @@ if (isset($privateLink)) {
 <?php
 if (!$isCup) {
 	?>
-<script type="text/javascript" src="mk/maps.php?reload=1"></script>
+<script type="text/javascript" src="mk/maps.php"></script>
 	<?php
 }
 ?>
@@ -231,12 +231,46 @@ var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 }
 elseif ($isBattle) {
 	?>
-var lCircuits = <?php echo json_encode(array_splice($circuitNames,$nbVSCircuits)); ?>;
+var lCircuits = <?php echo json_encode(array_slice($circuitNames,$nbVSCircuits)); ?>;
+var dCircuits = <?php
+$circuitNamesDetailed = array();
+$inc = $nbVSCircuits;
+for ($i=0;$i<$nbSNESArenas;$i++) {
+	$circuitNamesDetailed[] = '<small>SNES</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbGBAArenas;$i++) {
+	$circuitNamesDetailed[] = '<small>GBA</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbDSArenas;$i++) {
+	$circuitNamesDetailed[] = '<small>DS</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+echo json_encode($circuitNamesDetailed);
+?>;
 	<?php
 }
 else {
 	?>
-var lCircuits = <?php echo json_encode(array_splice($circuitNames,0,$nbVSCircuits)); ?>;
+var lCircuits = <?php echo json_encode(array_slice($circuitNames,0,$nbVSCircuits)); ?>;
+var dCircuits = <?php
+$circuitNamesDetailed = array();
+$inc = 0;
+for ($i=0;$i<$nbSNESCircuits;$i++) {
+	$circuitNamesDetailed[] = '<small>SNES</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbGBACircuits;$i++) {
+	$circuitNamesDetailed[] = '<small>GBA</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbDSCircuits;$i++) {
+	$circuitNamesDetailed[] = '<small>DS</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+echo json_encode($circuitNamesDetailed);
+?>;
 	<?php
 }
 ?>
@@ -339,10 +373,7 @@ include('handleCupOptions.php');
 <script type="text/javascript">document.addEventListener("DOMContentLoaded", MarioKart);</script>
 </head>
 <body>
-<div id="mariokartcontainer">
-	<p id="waitrace" class="wait"><?php echo $language ? 'There are <strong id="racecountdown">30</strong> second(s) left to choose the next race':'Il vous reste <span id="racecountdown">30</span> seconde(s) pour choisir la prochaine course'; ?></p>
-	<p id="waitteam" class="wait"><?php echo $language ? 'There are <strong id="teamcountdown">10</strong> second(s) left to choose the teams':'Il vous reste <span id="teamcountdown">10</span> seconde(s) pour choisir les équipes'; ?></p>
-</div>
+<div id="mariokartcontainer"></div>
 
 <div id="virtualkeyboard"></div>
 
@@ -388,6 +419,9 @@ include('handleCupOptions.php');
 <?php
 include('gameInitElts.php');
 ?>
+<script type="text/javascript" src="scripts/simplepeer.min.js"></script>
+<script type="text/javascript">var rtcService, cPlayerPeers = {};</script>
+<script type="text/javascript" src="scripts/mk-online.js"></script>
 <?php include('mk/description.php'); ?>
 </body>
 </html>

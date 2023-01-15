@@ -9,9 +9,9 @@ if (isset($_FILES['image'])) {
 		$doImport = ($isUploaded || isset($_POST['import']));
 		$limitMb  = ($doImport ? 1 : 5);
 		if ($poids < $limitMb*1000000) {
-			include('file-quotas.php');
 			include('getId.php');
 			include('initdb.php');
+			include('file-quotas.php');
 			if ($doImport)
 				$poids += file_total_size();
 			$id = 0;

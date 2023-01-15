@@ -66,10 +66,9 @@ function handle_upload($file,$perso=null) {
 	if (!$file['error']) {
 		$poids = $file['size'];
 		if ($poids < 1000000) {
-			$poids += file_total_size($perso ? array('perso'=>$perso['id']):array());
-			if ($poids < MAX_FILE_SIZE) {
-				$infosfichier = pathinfo($file['name']);
-				$ext = isset($infosfichier['extension']) ? strtolower($infosfichier['extension']) : null;
+			$poids += file_total_size($perso ? array('perso'=>$perso['id'],'identifiants'=>array($perso['identifiant'],$perso['identifiant2'],$perso['identifiant3'],$perso['identifiant4'])):null);
+			if ($poids < file_total_quota($perso)) {
+				$ext = get_img_ext($file['tmp_name']);
 				$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 				if (in_array($ext, $extensions)) {
 					list($w,$h) = getimagesize($file['tmp_name']);
@@ -111,7 +110,7 @@ function handle_upload($file,$perso=null) {
 			}
 			else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete characters or circuits to free space.':'Vous avez d&eacute;pass&eacute; votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des persos ou des circuits pour lib&eacute;rer de l\'espace disque.';
 		}
-		else $error = $language ? 'Your image mustn\'t exceed 1 Mo. Compress or reduce it if necessary.':'Votre image ne doit pas d&eacute;passer 1 Mo. Compressez-la ou r&eacute;duisez la taille si n&eacute;cessaire.';
+		else $error = $language ? 'Your image mustn\'t exceed 1 MB. Compress or reduce it if necessary.':'Votre image ne doit pas d&eacute;passer 1 Mo. Compressez-la ou r&eacute;duisez la taille si n&eacute;cessaire.';
 	}
 	else $error = $language ? 'An error occured during the image transfer. Please try again later.':'Une erreur est survenue lors de l\'envoi de l\'image. R&eacute;essayez ult&egrave;rieurement.';
 	return array('error' => $error);
@@ -121,8 +120,7 @@ function handle_advanced($file,$perso,$type) {
 	if (!$file['error']) {
 		$poids = $file['size'];
 		if ($poids < 1000000) {
-			$infosfichier = pathinfo($file['name']);
-			$ext = strtolower($infosfichier['extension']);
+			$ext = get_img_ext($file['tmp_name']);
 			$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 			if (in_array($ext, $extensions)) {
 				$id = $perso['id'];
@@ -151,7 +149,7 @@ function handle_advanced($file,$perso,$type) {
 			}
 			else $error = $language ? 'Your image must have a png, gif, jpg or jpeg extension.':'Votre image doit &ecirc;tre au format png, gif, jpg ou jpeg.';
 		}
-		else $error = $language ? 'Your image mustn\'t exceed 1 Mo. Compress or reduce it if necessary.':'Votre image ne doit pas d&eacute;passer 1 Mo. Compressez-la ou r&eacute;duisez la taille si n&eacute;cessaire.';
+		else $error = $language ? 'Your image mustn\'t exceed 1 MB. Compress or reduce it if necessary.':'Votre image ne doit pas d&eacute;passer 1 Mo. Compressez-la ou r&eacute;duisez la taille si n&eacute;cessaire.';
 	}
 	else $error = $language ? 'An error occured during the image transfer. Please try again later.':'Une erreur est survenue lors de l\'envoi de l\'image. R&eacute;essayez ult&egrave;rieurement.';
 	return array('error' => $error);

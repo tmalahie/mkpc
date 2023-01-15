@@ -1,0 +1,184 @@
+.collab-backdrop {
+    position: fixed;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background-color: rgba(0,0,0, 0.5);
+    z-index: 1;
+    align-items: center;
+    justify-content: center;
+}
+.collab-popup {
+    position: relative;
+    width: 500px;
+    max-width: 100%;
+    max-height: 90%;
+    overflow-y: auto;
+    padding: 1em;
+    border-radius: 0.5em;
+    font-size: 1.125em;
+}
+.collab-popup.collab-track {
+    background-color: #333;
+    z-index: 20003;
+}
+.collab-popup.collab-track .collab-options-list {
+    color: white;
+}
+.collab-popup-section:not(.show) {
+    display: none;
+}
+.collab-form:not(.add) .collab-form-on-add {
+    display: none;
+}
+.collab-form:not(.new) .collab-form-on-new {
+    display: none;
+}
+.collab-form:not(.edit) .collab-form-on-edit {
+    display: none;
+}
+.collab-popup a {
+    color: #CCF;
+}
+.collab-popup h2 {
+    margin-right: 2em;
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+.collab-popup-close {
+    position: absolute;
+    right: 0.5em;
+    top: 0.5em;
+    color: white;
+    text-decoration: none;
+    font-size: 1.5em;
+    line-height: 1.5em;
+    width: 1.25em;
+    height: 1.25em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: solid 1px white;
+}
+.collab-popup.collab-track .collab-popup-close {
+    background-color: black;
+}
+.collab-popup.collab-track .collab-popup-close:hover {
+    background-color: #222;
+}
+.collab-popup.collab-track .collab-explain {
+    color: white;
+}
+.collab-popup.collab-track .collab-current {
+    color: white;
+    word-break: break-all;
+    text-align: justify;
+}
+.collab-options h3 {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    font-size: 1.25em;
+}
+.collab-popup .collab-btn-primary:not(:disabled) {
+    cursor: pointer;
+}
+.collab-popup input[type="button"]:not(:disabled) {
+    cursor: pointer;
+}
+.collab-options-list {
+    margin-top: 0.25em;
+    margin-bottom: 0.75em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+}
+.collab-popup .collab-option {
+    display: flex;
+    gap: 0.375em;
+    cursor: pointer;
+    align-items: center;
+}
+.collab-popup .collab-option span {
+    flex: 1;
+}
+.collab-form {
+    margin-bottom: 0;
+}
+.collab-form input[type="checkbox"]:disabled {
+    cursor: default;
+}
+.collab-form input[type="checkbox"]:disabled + span {
+    opacity: 0.5;
+    cursor: default;
+}
+.collab-submit {
+    display: flex;
+    gap: 1em;
+    align-items: center;
+    justify-content: center;
+}
+.collab-submit {
+    margin-top: 0.5em;
+    text-align: center;
+}
+.collab-submit input {
+    font-size: 1.25em;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+.collab-submit input:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.collab-popup.collab-track .collab-popup-success {
+    color: white;
+    font-size: 1.25em;
+    text-align: center;
+}
+.collab-popup-success a {
+    display: inline-block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    word-break: break-word;
+}
+.collab-popup-links h3 {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+.collab-popup-links-list {
+    margin-bottom: 0.5em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+}
+.collab-popup-link {
+    display: flex;
+    gap: 0.25em;
+}
+.collab-popup-link > a {
+    flex: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.collab-popup-link-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25em;
+}
+.collab-popup-link-actions input {
+    width: 2em;
+    height: 1.5em;
+    line-height: 1.375em;
+}
+.collab-popup-link-actions input.collab-popup-link-action-edit {
+    background-color: #33a033;
+    color: white;
+}
+.collab-popup-link-actions input.collab-popup-link-action-del {
+    background-color: #cc3333;
+    color: white;
+}

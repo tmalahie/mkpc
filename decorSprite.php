@@ -5,7 +5,19 @@ if (isset($_GET['id'])) {
 	if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
 		include('language.php');
 		include('getId.php');
+		require_once('collabUtils.php');
+		$collabSuffix = '';
 		if ($decor['identifiant'] == $identifiants[0]) {
+			$hasReadGrants = true;
+			$hasWriteGrants = true;
+		}
+		else {
+			$collab = getCollabLinkFromQuery('mkdecors', $decor['extra_parent_id'] ?? $decorId);
+			$hasReadGrants = isset($collab['rights']['view']);
+			$hasWriteGrants = isset($collab['rights']['edit']);
+			if ($collab) $collabSuffix = '&collab='. $collab['key'];
+		}
+		if ($hasWriteGrants) {
 			include('utils-decors.php');
 			include('file-quotas.php');
 			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
@@ -22,7 +34,7 @@ if (isset($_GET['id'])) {
 			}
 			list($spriteW, $spriteH) = getimagesize($spriteSrc);
 			$minW = 64;
-			if ($spriteW < $minW) {
+			if (($spriteW < $minW) && $spriteW) {
 				$spriteH = round($spriteH*$minW/$spriteW);
 				$spriteW = $minW;
 			}
@@ -31,12 +43,12 @@ if (isset($_GET['id'])) {
 				case 'decor' :
 					$upload = handle_decor_upload($decor['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'),$decor);
 					if (isset($upload['id']))
-						header('location: editDecor.php?id='. $upload['id']);
+						header('location: editDecor.php?id='. $upload['id'] . $collabSuffix);
 					break;
 				default :
 					$upload = handle_decor_advanced($_FILES['sprites'],$decor,$type);
 					if (isset($upload['id']))
-						header('location: decorOptions.php?id='. $upload['id']);
+						header('location: decorOptions.php?id='. $upload['id'] . $collabSuffix);
 					break;
 				}
 				if (isset($upload['error']))
@@ -52,7 +64,7 @@ if (isset($_GET['id'])) {
 				case 'decor' :
 					add_transparency($newSrcs['hd'],$newSrcs['hd'], $color[0],$color[1],$color[2]);
 					clone_img_resource($newSrcs['hd'],$newSrcs['hd']);
-                    $spriteSizes = decor_sprite_sizes($decor['type'],$newSrcs['hd']);
+					$spriteSizes = decor_sprite_sizes($decor['type'],$newSrcs['hd']);
 					create_decor_sprite_thumbs($newSrcs,$spriteSizes);
 					break;
 				default :
@@ -64,22 +76,22 @@ if (isset($_GET['id'])) {
 				$decor['sprites'] = $filehash;
 				switch ($type) {
 				case 'decor' :
-					header('location: editDecor.php?id='. $decor['id']);
+					header('location: editDecor.php?id='. $decor['id'] . $collabSuffix);
 					break;
 				default :
-					header('location: decorOptions.php?id='. $decor['id']);
+					header('location: decorOptions.php?id='. $decor['id'] . $collabSuffix);
 					break;
 				}
 			}
-			?>
+		?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/decor-editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
 <?php
 include('o_online.php');
 ?>
@@ -115,12 +127,12 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 		if (!$hasTransparency)
 			echo '<h2><?php echo $language ? "New image:":"Nouvelle image :"; ?></h2>';
 	}
-    ?>
-    <div class="decors-list-container">
-        <form method="post" class="decor-editor-form" action="" enctype="multipart/form-data">
-            <input type="file" required="required" name="sprites" />
-            <button type="submit"><?php echo $language ? 'Send':'Valider'; ?></button>
-        </form>
+	?>
+	<div class="decors-list-container">
+		<form method="post" class="decor-editor-form" action="" enctype="multipart/form-data">
+			<input type="file" required="required" name="sprites" />
+			<button type="submit"><?php echo $language ? 'Send':'Valider'; ?></button>
+		</form>
 		<?php
 		if ($type != 'decor' && ($hasTransparency || ($spriteSrc != $spriteSrcs['ld']))) {
 			?>
@@ -128,38 +140,38 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 			<?php echo $language ? 'Current image:':'Image actuelle :'; ?>&nbsp;<img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
 			<?php
 			if ($spriteSrc != $spriteSrcs['ld'])
-				echo '&nbsp;<a href="delDecorSprite.php?id='. $decorId .'&amp;'. $type .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
+				echo '&nbsp;<a href="delDecorSprite.php?id='. $decorId .'&amp;'. $type . htmlspecialchars($collabSuffix) .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
 			?>
 			</div>
 			<?php
 		}
 		?>
-    </div>
+	</div>
 	<?php
 	if (!$hasTransparency) {
 		?>
-        <hr />
-        <div class="decors-list-container" id="transparency-form-ctn">
-            <h3><?php echo $language ? 'Transparent color:':'Couleur de transparence :'; ?></h3>
-            <canvas id="select-transparency" width="<?php echo $spriteW; ?>" height="<?php echo $spriteH; ?>"></canvas>
-            <form method="post" id="transparency-form" class="decor-editor-form" action="">
-                <input type="hidden" name="color" />
-                <div id="transparency-color-preview"></div>
-                <button type="submit"><?php echo $language ? 'Send':'Valider'; ?></button>
-            </form>
-        </div><br />
+		<hr />
+		<div class="decors-list-container" id="transparency-form-ctn">
+			<h3><?php echo $language ? 'Transparent color:':'Couleur de transparence :'; ?></h3>
+			<canvas id="select-transparency" width="<?php echo $spriteW; ?>" height="<?php echo $spriteH; ?>"></canvas>
+			<form method="post" id="transparency-form" class="decor-editor-form" action="">
+				<input type="hidden" name="color" />
+				<div id="transparency-color-preview"></div>
+				<button type="submit"><?php echo $language ? 'Send':'Valider'; ?></button>
+			</form>
+		</div><br />
 		<?php
 	}
 	?>
-    <div class="editor-navigation">
+	<div class="editor-navigation">
 		<?php
 		if ($type != 'decor') {
-            ?>
-            <a href="decorOptions.php?id=<?php echo $_GET['id']; ?>">&lt; <u><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></u></a>
+			?>
+			<a href="decorOptions.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></u></a>
 			<?php
 		}
 		?>
-		<a href="editDecor.php?id=<?php echo $_GET['id']; ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
+		<a href="editDecor.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
 	</div>
 </body>
 </html>

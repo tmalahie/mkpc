@@ -1,5 +1,5 @@
 <?php
-if (isset($_POST['topic'])) {
+if (isset($_POST['topic']) && is_numeric($_POST['topic'])) {
 	include('session.php');
 	if ($id) {
 		include('initdb.php');

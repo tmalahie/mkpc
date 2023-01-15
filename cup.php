@@ -3,10 +3,26 @@ include('getId.php');
 include('language.php');
 $cids = array();
 $editting = true;
+$readOnly = false;
 include('initdb.php');
+require_once('collabUtils.php');
 if (isset($_GET['cid'])) {
-	$id = $_GET['cid'];
+	$id = intval($_GET['cid']);
 	if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $id .'" AND mode="'. $mode .'"'))) {
+		if (($getCup['identifiant'] == $identifiants[0]) && ($getCup['identifiant2'] == $identifiants[1]) && ($getCup['identifiant3'] == $identifiants[2]) && ($getCup['identifiant4'] == $identifiants[3])) {
+			$hasReadGrants = true;
+			$hasWriteGrants = true;
+		}
+		else {
+			$collab = getCollabLinkFromQuery('mkcups', $id);
+			$hasReadGrants = isset($collab['rights']['view']);
+			$hasWriteGrants = isset($collab['rights']['edit']);
+		}
+		if (!$hasReadGrants) {
+			mysql_close();
+			exit;
+		}
+		$readOnly = !$hasWriteGrants;
 		for ($i=0;$i<4;$i++)
 			$cids[$i] = $getCup['circuit'. $i];
 	}
@@ -15,7 +31,7 @@ if (isset($_GET['cid'])) {
 }
 else {
 	if (isset($_GET['nid']))
-		$id = $_GET['nid'];
+		$id = intval($_GET['nid']);
 	for ($i=0;$i<4;$i++) {
 		if (isset($_GET['cid'.$i]))
 			$cids[$i] = $_GET['cid'.$i];
@@ -40,21 +56,23 @@ function escapeUtf8($str) {
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create cup':'Cr&eacute;er coupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css" />
+<link rel="stylesheet" href="styles/cup.css?reload=1" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
 var editting = <?php echo $editting ? 'true':'false'; ?>;
 var ckey = "cid";
+var complete = <?php echo $mode; ?>;
+var readOnly = <?php echo $readOnly ? 1:0; ?>;
 <?php
 if (isset($cids))
 	echo 'var cids = '. json_encode($cids) .';';
 ?>
 </script>
-<script type="text/javascript" src="scripts/cup.js"></script>
+<script type="text/javascript" src="scripts/cup.js?reload=1"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
-<body onload="initGUI()">
+<body<?php if ($readOnly) echo ' class="readonly"'; ?>>
 	<div class="container <?php echo $mode ? 'complete':'simplified'; ?>">
 		<div id="global-infos" class="editor-section"><?php
 			if ($language) {
@@ -75,6 +93,7 @@ if (isset($cids))
 		<h1><?php echo $language ? 'Circuits selection':'S&eacute;lection des circuits'; ?> (<span id="nb-selected">0</span>/4) :</h1>
 		<?php
 		include('utils-circuits.php');
+		include('utils-cups.php');
 		$type = 5-$mode;
 		$aCircuits = array($aCircuits[$type]);
 		$aParams = array(
@@ -82,49 +101,59 @@ if (isset($cids))
 			'type' => $type
 		);
 		$listCircuits = listCreations(1,null,null,$aCircuits,$aParams);
+		$misingTrackIds = array();
+		foreach ($cids as $cid)
+			$misingTrackIds[$cid] = true;
+		foreach ($listCircuits as $circuit)
+			unset($misingTrackIds[$circuit['id']]);
+		if (!empty($misingTrackIds)) {
+			$aParams = array(
+				'ids' => array_keys($misingTrackIds),
+				'type' => $type
+			);
+			$misingTracks = listCreations(1,null,null,$aCircuits,$aParams);
+			$listCircuits = array_merge($misingTracks, $listCircuits);
+		}
 		$nbCircuits = count($listCircuits);
-		if ($nbCircuits) {
-			if ($nbCircuits < 4)
-				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t created enough circuits to make a cup<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create other ones.':'Vous n\'avez pas encore cr&eacute;&eacute; assez de circuits pour faire une coupe.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en cr&eacute;er de nouveaux.') .'</em>';
-			?>
-			<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
-				<div id="table-container">
-					<table id="table-circuits">
+		if (!$nbCircuits)
+			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared circuits in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create one.':'Vous n\'avez pas encore partag&eacute; de circuits en mode '. ($mode ? 'complet':'simplifi&eacute;') .'.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en cr&eacute;er un.') .'</em>';
+		elseif ($nbCircuits < 4)
+			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t created enough circuits to make a cup<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create other ones.':'Vous n\'avez pas encore cr&eacute;&eacute; assez de circuits pour faire une coupe.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en cr&eacute;er de nouveaux.') .'</em>';
+		?>
+		<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
+			<div id="table-container">
+				<table id="table-circuits">
+					<tbody>
 					<?php
 					$circuitnb = 1;
 					foreach ($listCircuits as $circuit) {
-						?>
-						<tr id="circuit<?php echo $circuit['id']; ?>" data-id="<?php echo $circuit['id']; ?>" onclick="selectCircuit(this)">
-							<td class="td-preview" <?php
-							if (isset($circuit['icon']))
-								echo ' style="background-image:url(\'images/creation_icons/'.$circuit['icon'][0].'\')"';
-							else
-								echo ' data-cicon="'.$circuit['cicon'].'"';
-							?> onclick="previewImg(event,'<?php echo $circuit['srcs'][0]; ?>')"></td>
-							<td class="td-name"><em><?php echo $circuitnb; ?></em><?php echo ($circuit['nom'] ? escapeUtf8($circuit['nom']):($language ? 'Untitled':'Sans titre')); ?></td>
-							<td class="td-access">&rarr; <a href="<?php echo ($mode ? ('map.php?i='.$circuit['id']):('circuit.php?id='.$circuit['id'])); ?>" target="_blank" onclick="event.stopPropagation()"><?php echo $language ? 'Access':'Acc&eacute;der'; ?></a></td>
-						</tr>
-						<?php
+						printCupCircuit($circuit, array(
+							'nb' => $circuitnb
+						));
 						$circuitnb++;
 					}
 					?>
-					</table>
-				</div>
-				<p>
-					<span id="cid-ctn"></span>
-					<?php
-					if (isset($id))
-						echo '<input type="hidden" name="nid" value="'.$id.'" />';
-					if (isset($_GET['cl']))
-						echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
-					?>
-					<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
-				</p>
-			</form>
-			<?php
-		}
-		else
-			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared circuits in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create one.':'Vous n\'avez pas encore partag&eacute; de circuits en mode '. ($mode ? 'complet':'simplifi&eacute;') .'.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en cr&eacute;er un.') .'</em>';
+					</tbody>
+				</table>
+			</div>
+			<div id="collab-container">
+				+ <a href="#null" onclick="showCollabImportPopup(event)"><?php echo $language ? "Import track of another member..." : "Importer un circuit d'un autre membre..."; ?></a>
+			</div>
+			<p>
+				<span id="cid-ctn"></span>
+				<?php
+				if (isset($id))
+					echo '<input type="hidden" name="nid" value="'.$id.'" />';
+				if (isset($_GET['cl']))
+					echo '<input type="hidden" name="cl" value="'. htmlspecialchars($_GET['cl']) .'" />';
+				if (isset($collab))
+					echo '<input type="hidden" name="collab" value="'. htmlspecialchars($collab['key']) .'" />';
+				?>
+				<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
+			</p>
+		</form>
+		<?php
+		printCollabImportPopup('circuit', $mode);
 		?>
 		<div class="editor-navigation">
 			<a href="<?php echo $mode ? 'simplecup.php':'completecup.php'; ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup in '. ($mode ? 'simplified':'complete') .' mode'):('Cr&eacute;er une coupe en mode '. ($mode ? 'simplifi&eacute;':'complet')); ?></u></a>

@@ -16,7 +16,19 @@ $musicOptions = Array(
 if (isset($_GET['i'])) {
 	$circuitId = intval($_GET['i']);
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT * FROM arenes WHERE id="'. $circuitId .'"'))) {
-		if ((($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) || (($identifiants[0] == 1390635815) && !$identifiants[1] && !$identifiants[2] && !$identifiants[3])) {
+		require_once('collabUtils.php');
+		if (($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) {
+			$hasReadGrants = true;
+			$hasWriteGrants = true;
+		}
+		elseif ($collab = getCollabLinkFromQuery('arenes', $circuitId)) {
+			include('grantCollabRights.php');
+		}
+		else {
+			$hasReadGrants = ($identifiants[0] == 1390635815);
+			$hasWriteGrants = false;
+		}
+		if ($hasReadGrants) {
 			if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM arenes_data WHERE id="'. $circuitId .'"')))
 				$circuitData = gzuncompress($getCircuitData['data']);
 			$circuitImg = json_decode($circuit['img_data']);
@@ -28,7 +40,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create arena':'Créer arène'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -37,13 +49,15 @@ if (isset($_GET['i'])) {
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
 		var isBattle = true;
+		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/editor.js"></script>
+		<script type="text/javascript" src="scripts/xhr.js"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
 		<script type="text/javascript" src="scripts/course.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
-		<div id="editor-wrapper" onmousemove="handleMove(event)" onclick="handleClick(event)">
+		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?> onmousemove="handleMove(event)" onclick="handleClick(event)">
 			<div id="editor-ctn">
 				<img id="editor-img" src="<?php echo getCircuitImgUrl($circuitImg); ?>" alt="Arene" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
 				<svg id="editor" class="editor" />
@@ -66,10 +80,11 @@ if (isset($_GET['i'])) {
 				'cannons' => $language ? 'Cannons':'Canons',
 				'teleports' => $language ? 'Teleporters':'Téléporteurs',
 				'mobiles' => $language ? 'Mobile floor':'Sol mobile',
+				'elevators' => $language ? 'Elevators':'Élévateurs',
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
-		include('circuitModes.php');
+		require_once('circuitUiUtils.php');
 		?>
 		<div id="toolbox">
 			<div id="mode-selection">
@@ -126,7 +141,14 @@ if (isset($_GET['i'])) {
 					<input type="text" id="boost-w" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />&times;<input type="text" id="boost-h" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />
 				</div>
 				<div id="mode-option-decor">
-					<?php printModeDecor(); ?>
+					<?php printDecorTypeSelector(); ?>
+				</div>
+				<div id="mode-option-jumps">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="jumps-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
+					</div>
 				</div>
 				<div id="mode-option-cannons">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
@@ -148,6 +170,13 @@ if (isset($_GET['i'])) {
 						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
 						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 						&nbsp;<button value="circle" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/circle.png')"></button>
+					</div>
+				</div>
+				<div id="mode-option-elevators">
+					<?php echo $language ? 'Shape:':'Forme :'; ?>
+					<div class="radio-selector" id="elevators-shape" data-change="shapeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 					</div>
 				</div>
 				<div id="mode-option-options">
@@ -174,9 +203,15 @@ if (isset($_GET['i'])) {
 				Zoom:<div><img src="images/editor/zoom-less.png" class="fancy-title" onclick="zoomLess()" title="<?php echo $language ? 'Unzoom':'Dézoomer'; ?> (Ctrl+↓)" /><span id="zoom-value">100</span>%<img src="images/editor/zoom-more.png" class="fancy-title" onclick="zoomMore()" title="<?php echo $language ? 'Zoom':'Zoomer'; ?> (Ctrl+↑)" /></div>
 			</div>
 			<div id="history-ctrl">
+			<?php
+			if ($hasWriteGrants) {
+				?>
 				<img src="images/editor/undo.png" class="fancy-title" onclick="undo()" title="<?php echo $language ? 'Undo':'Annuler'; ?> (Ctrl+Z)" />
 				<div><?php echo $language ? 'History':'Historique'; ?></div>
 				<img src="images/editor/redo.png" class="fancy-title" onclick="redo()" title="<?php echo $language ? 'Redo':'Refaire'; ?> (Ctrl+Y)" />
+				<?php
+			}
+			?>
 			</div>
 			<div id="editor-theme">
 				<?php echo $language ? 'Theme:':'Thème :'; ?>
@@ -186,7 +221,7 @@ if (isset($_GET['i'])) {
 				</div>
 			</div>
 			<div id="save-buttons">
-				<button class="toolbox-button fancy-title fancy-title-center" onclick="saveData()" title="Ctrl+S"><?php echo $language ? 'Save':'Sauvegarder'; ?></button>
+				<button class="toolbox-button fancy-title fancy-title-center" onclick="saveData()" <?php if ($hasWriteGrants) echo ' title="Ctrl+S"'; else echo ' disabled="disabled" title="'. ($language ? 'Read-only' : 'Lecture seule') .'"'; ?>><?php echo $language ? 'Save':'Sauvegarder'; ?></button>
 			</div>
 			<div id="editor-back">
 				<a href="javascript:showHelp()"><?php echo $language ? 'Help':'Aide'; ?></a>
@@ -291,44 +326,9 @@ if (isset($_GET['i'])) {
 			echo '</div>';
 			?>
 		</div>
-		<div id="bg-selector" class="fs-popup" onclick="event.stopPropagation()">
-			<div id="bg-selector-tabs">
-			<?php
-			$decors = Array (
-				'SNES' => array_slice($bgImages, 0,8),
-				'GBA' => array_slice($bgImages, 8,20),
-				'DS' => array_slice($bgImages, 28,20)
-			);
-			$i = 0;
-			foreach ($decors as $name=>$decorGroup) {
-				echo '<a id="bg-selector-tab-'.$i.'" href="javascript:showBgTab('.$i.')">'.$name.'</a>';
-				$i++;
-			}
-			?>
-			</div>
-			<div id="bg-selector-options">
-			<?php
-			$i = 0;
-			$j = 0;
-			foreach ($decors as $name=>$decorGroup) {
-				echo '<div class="bg-selector-optgroup" data-value="'.$i.'" id="bg-selector-optgroup-'.$i.'">';
-				foreach ($decorGroup as $decor) {
-					?>
-					<div id="bgchoice-<?php echo $j; ?>" data-value="<?php echo $j; ?>" onclick="changeBg(this)">
-						<?php
-						foreach ($decor as $img)
-							echo '<span style="background-image:url(\'images/map_bg/'.$img.'.png\')"></span>';
-						?>
-					</div>
-					<?php
-					$j++;
-				}
-				echo '</div>';
-				$i++;
-			}
-			?>
-			</div>
-		</div>
+		<?php
+		printBgSelector();
+		?>
 		<form id="music-selector" class="fs-popup" onclick="event.stopPropagation()" oncontextmenu="event.stopPropagation()" onsubmit="submitMusic(event)">
 			<table>
 				<tr>
@@ -378,6 +378,7 @@ if (isset($_GET['i'])) {
 									$ytSpeeds = array(0.25,0.5,0.75,1,1.25,1.5,1.75,2);
 									foreach ($ytSpeeds as $ytSpeed)
 										echo '<option value="'. $ytSpeed .'">&times;'. $ytSpeed .'</option>';
+									echo '<option value="">'. ($language ? 'Custom':'Autre') .'...</option>';
 									?>
 								</select><br />
 								<input type="hidden" name="youtube-last" id="youtube-last-url" />
@@ -459,7 +460,8 @@ if (isset($_GET['i'])) {
 								<li>Rectangle : cliquez une première fois pour définir un des coins du rectangle, puis une seconde fois pour définir le coin opposé.</li>
 								<li>Polygone : cliquez pour tracer le premier point, puis cliquez à nouveau pour tracer le point suivant, et ainsi de suite. Quand vous avez fini, recliquez sur le 1<sup>er</sup> point pour fermer le polygone.</li>
 							</ul>
-							Une fois la zone du mur définie, vous pouvez la modifer ou la supprimer en faisant un clic droit dessus."
+							Une fois la zone du mur définie, vous pouvez la modifer ou la supprimer en faisant un clic droit dessus.<br />
+							Vous pouvez également modifier la hauteur du mur, i.e à partir de quelle altitude un kart peut passer au dessus du mur. Cette hauteur est de 1 par défaut."
 						)
 					),
 					'offroad' => array(
@@ -585,6 +587,18 @@ if (isset($_GET['i'])) {
 							<li>Direction de poussée : une fois la zone entrée, une flèche apparait. Placez cette flèche dans la direction et la force souhaitée.
 							Plus la flèche est grande, plus la poussée sera forte.</li>
 						</ul>")
+					),
+					'elevators' => array(
+						'title' => $language ? 'Elevators':'Élévateurs',
+						'text' => ($language ?
+						"The &quot;Elevator&quot; tool allows to define areas where you can gain instant altitude.<br />
+						For example, if you have a wall of height 1 and you want to make it climbable from the floor, you can define an elevator zone of 0&rarr;1 in front of the wall.<br />
+						To define an elevator, you can specify 3 information: the elevator area, the height you'll obtain once you're on it, and optionally the minimum height for the elevator to be enabled."
+						:
+						"L'outil &quot;élévateur&quot; permet de définir des zones qui vous font gagner de l'altitude instantanément.<br />
+						Par exemple, si vous avez un mur de hauteur 1 et que vous voulez rendre le mur escaladable depuis le sol, vous pouvez définir une zone d'élévateur de 0&rarr;1 devant le mur.<br />
+						Pour définir un élévateur, vous pouvez renseigner 3 informations : la zone de l'élévateur, la hauteur obtenue lorsque vous êtes dessus, et éventuellement la hauteur minimale pour activer l'élévateur."
+						)
 					),
 					'decor' => array(
 						'title' => $language ? 'Decor':'Décor',
@@ -720,7 +734,10 @@ if (isset($_GET['i'])) {
 			<?php
 		}
 		?>
-		<iframe id="image-options" class="fs-popup" src="changeMap.php?i=<?php echo $circuitId; ?>&amp;arenes=1" onclick="event.stopPropagation()"></iframe>
+		<iframe id="image-options" class="fs-popup" src="changeMap.php?i=<?php
+			echo $circuitId;
+			if (isset($collab)) echo '&collab='.$collab['key'];
+		?>&amp;arenes=1" onclick="event.stopPropagation()"></iframe>
 	</body>
 </html>
 			<?php
@@ -744,7 +761,7 @@ else {
 		<?php
 		include('o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -800,10 +817,10 @@ else {
 					<br />
 					The first step is to provide an image of the arena seen from above.
 					That image is what will be used to render the arena in the game.<br />
-					For example, here is the image of Battle Course 1: <a href="images/maps/map41.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Show</a>
+					For example, here is the image of Battle Course 1: <a href="images/maps/map57.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Show</a>
 					<br />
 					<div id="map-example">
-						<img src="images/maps/map41.png" alt="Battle Course 1" />
+						<img src="images/maps/map57.png" alt="Battle Course 1" />
 					</div>
 					<br />
 					To draw the image of the arena, you can use a drawing software like Paint or Photoshop.
@@ -828,10 +845,10 @@ else {
 					<br />
 					La première étape consiste à fournir une image de l'arène vu de dessus.
 					C'est cette image qui sera utilisée pour afficher l'arène dans le jeu.<br />
-					Par exemple, voici l'image de l'Arène Bataille 1 : <a href="images/maps/map41.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Afficher</a>
+					Par exemple, voici l'image de l'Arène Bataille 1 : <a href="images/maps/map57.png" onclick="document.getElementById('map-example').style.display=document.getElementById('map-example').style.display=='block'?'':'block';return false">Afficher</a>
 					<br />
 					<div id="map-example">
-						<img src="images/maps/map41.png" alt="Arène Bataille 1" />
+						<img src="images/maps/map57.png" alt="Arène Bataille 1" />
 					</div>
 					<br />
 					Pour dessiner l'image de l'arène, vous pouvez utiliser un logiciel de dessin comme Paint ou Photoshop.
@@ -865,7 +882,7 @@ else {
 						$id = $track['id'];
 						echo '<a href="battle.php?i='.$id.'"
 							data-id="'.$id.'"
-							data-name="'.htmlspecialchars($track['nom']).'"
+							data-name="'.($track['nom'] ? htmlspecialchars($track['nom']) : '').'"
 							'. ($track['data'] ? '':'data-pending="1"') .'
 							data-src="'.getCircuitImgUrl($circuitImg).'"
 							onclick="previewCircuit(this);return false"><img
@@ -887,7 +904,7 @@ else {
 						<a id="editor-track-action-duplicate"><?php echo $language ? 'Duplicate':'Dupliquer'; ?></a>
 						<a id="editor-track-action-delete" onclick="return confirm('<?php echo ($language ? 'Are you sure you want to delete this arena?':'Voulez-vous vraiment supprimer cette arène ?'); ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
 					</div>
-					<img id="editor-track-img" src="images/maps/map41.png" alt="Arene" />
+					<img id="editor-track-img" src="images/maps/map57.png" alt="Arene" />
 				</div>
 			</div>
 			<?php

@@ -21,6 +21,7 @@
 	height:300px;
 	overflow:hidden;
 	position:relative;
+	image-rendering: pixelated;
 }
 
 .fp-title

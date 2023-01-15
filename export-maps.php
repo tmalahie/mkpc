@@ -33,9 +33,11 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	$mapData['startrotation'] = $circuitMainData->startrotation;
 	if (180 === $mapData['startrotation'])
 		unset($mapData['startrotation']);
-	$mapData['startdirection'] = $circuitMainData->startdirection?0:1;
+	$mapData['startdirection'] = empty($circuitMainData->startdirection)?1:0;
 	$aipoints = $mapData['aipoints'];
 	$mapData['aipoints'] = $circuitPayload->aipoints;
+	if (isset($circuitPayload->aishortcuts))
+		$mapData['aishortcuts'] = $circuitPayload->aishortcuts;
 	if (count($mapData['aipoints']) == 1)
 		$mapData['aipoints'] = $mapData['aipoints'][0];
 	if (empty($mapData['aipoints']))
@@ -50,6 +52,8 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	$mapData['collision'] = $circuitPayload->collision;
 	if (empty($mapData['collision']))
 		unset($mapData['collision']);
+	if (isset($circuitPayload->collisionProps))
+		$mapData['collisionProps'] = $circuitPayload->collisionProps;
 	foreach ($circuitPayload->horspistes as &$hpsData) {
 		foreach ($hpsData as &$hpData) {
 			if (isset($hpData[3]) && is_numeric($hpData[3])) {
@@ -85,6 +89,8 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 	foreach ($circuitPayload->sauts as &$sautsData) {
 		$sautsData[2]++;
 		$sautsData[3]++;
+		if (isset($sautsData[5]) && !isset($sautsData[6]))
+			unset($sautsData[5]);
 	}
 	unset($sautsData);
 	if ($mapData['fond'] == array('eciel','enuages'))
@@ -99,6 +105,8 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 		$mapData['decor'][$type] = $circuitPayload->decor->{$type};
 	switch ($id) {
 	case 8:
+		foreach ($mapData['sauts'] as &$sautsData)
+			unset($sautsData[5]);
 		$mapData['decor']['thwomp'] = [[77,391,null,10,0],[89,391,null,10,10],[101,391,null,10,20],[283,125,null,0,0],[343,493,null,0,0]];
 		break;
 	case 44:
@@ -127,10 +135,6 @@ while ($circuit = mysql_fetch_array($getCircuitsData)) {
 			$decorData[] = 90;
 		}
 		unset($decorData);
-		break;
-	case 56:
-		$mapData['startposition'] = [225,642];
-		$mapData['startrotation'] = 45;
 		break;
 	}
 }

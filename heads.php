@@ -24,7 +24,7 @@ if ($hdescription) {
 	<?php
 }
 ?>
-<meta name="keywords" content="<?php echo $language ? 'Mario, Kart, PC, game, race, free game, multiplayers, circuits editor':'Mario, Kart, PC, jeu, course, jeu gratuit, multijoueurs, éditeur de circuits'; ?>" />
+<meta name="keywords" content="<?php echo $language ? 'Mario, Kart, PC, game, race, free game, multiplayer, circuits editor':'Mario, Kart, PC, jeu, course, jeu gratuit, multijoueur, éditeur de circuits'; ?>" />
 <?php
 if ($hthumbnail) {
 	?>
@@ -33,8 +33,7 @@ if ($hthumbnail) {
 	<?php
 }
 ?>
-<link rel="stylesheet" href="styles/main.css" />
-<link rel="stylesheet" href="styles/main-mountains2.css" />
+<link rel="stylesheet" href="styles/main.css?reload=1" />
 <link rel="stylesheet" media="only screen and (max-width: 800px)" href="styles/mobile.css" />
 <link rel="stylesheet" media="only screen and (min-width: 800px)" href="styles/computer.css" />
 <link rel="stylesheet" href="styles/creations.css" />

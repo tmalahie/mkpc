@@ -161,6 +161,24 @@ include('menu.php');
                 'for' => $language ? 'for the':'pour le',
                 'description' => $language ? 'sprite of Toadette':'sprite de Toadette'
             ),
+            array(
+                'author' => 'Angel121',
+                'base_url' => 'profil.php?id=45670',
+                'for' => $language ? 'for the':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_skelerex.png">sprite of Dry Bones</a>':'<a href="images/sprites/sprite_skelerex.png">sprite de Skelerex</a>'
+            ),
+            array(
+                'author' => 'Hoppingicon',
+                'base_url' => 'profil.php?id=26749',
+                'for' => $language ? 'for the':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_frere_marto.png">sprite of Hammer Bro</a>':'<a href="images/sprites/sprite_frere_marto.png">sprite de Frère Marto</a>'
+            ),
+            array(
+                'author' => 'Aluigi1300',
+                'base_url' => 'profil.php?id=8923',
+                'for' => $language ? 'for the':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_yoshi.png">sprite of Yoshi</a>':'<a href="images/sprites/sprite_yoshi.png">sprite de Yoshi</a>'
+            )
         ),
         ($language ? 'Other resources - Musics':'Autres ressources - Musiques') => array(
             array(

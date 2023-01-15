@@ -3,7 +3,7 @@ if($_SERVER['HTTP_HOST']!=='local-mkpc.malahieude.info') exit;
 if (isset($_GET['p'])) {
     $p = intval($_GET['p']);
     $isBattle = isset($_GET['battle']);
-    $id = 7000+$p;
+    $id = 50000+$p;
     include('initdb.php');
     if ($circuit = mysql_fetch_array(mysql_query('SELECT c.*,d.data FROM `circuits` c LEFT JOIN `circuits_data` d ON c.id=d.id WHERE c.id='.$id))) {
 	$circuitPayload = json_decode(gzuncompress($circuit['data']));

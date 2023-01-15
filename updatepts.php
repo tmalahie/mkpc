@@ -101,7 +101,7 @@ if (isset($_POST['joueur']) && isset($_POST['pts']) && is_numeric($_POST['pts'])
 	<blockquote>
 		<p><label for="joueur"><strong><?php echo $language ? 'Player':'Joueur'; ?></strong></label> : <input type="text" name="joueur" id="joueur" required="required" /></p>
 		<p><label for="pts"><strong><?php echo $language ? 'Add':'Ajouter'; ?></strong></label> <input type="number" min="-9999" max="9999" style="width:50px" name="pts" id="pts" /> pts.</p>
-		<p><input type="submit" value="Valider" class="action_button" /></p>
+		<p><input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>
 	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />

@@ -42,6 +42,12 @@ switch ($type) {
 	case 'coins':
 		$submitTitle = $language ? 'Validate coins':'Valider les pièces';
 	break;
+	case 'decors':
+		$submitTitle = $language ? 'Validate decors':'Valider les décors';
+	break;
+	case 'startpos':
+		$submitTitle = $language ? 'Validate location':'Valider la position';
+	break;
 	default:
 		$submitTitle = $language ? 'Validate zone':'Valider la zone';
 }
@@ -78,6 +84,7 @@ body {
 }
 #zone-editor-options > div {
 	display: flex;
+	flex-wrap: wrap;
 	margin: 4px 0;
 	align-items: center;
 }
@@ -92,6 +99,15 @@ body {
 }
 #zone-editor-theme input[type="button"] {
 	width: 40px;
+}
+#zone-editor-decor input[type="button"] {
+    width: 22px;
+    background-size: auto 14px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+#zone-editor-decor input[type="button"].selected {
+	background-color: #7CF;
 }
 #zone-editor-shape input[type="button"] {
 	width: 25px;
@@ -145,6 +161,14 @@ body {
 .theme-dark #editor-svg polygon {
 	background-color: black;
 }
+#editor-svg line {
+	stroke-width: 4;
+	stroke: white;
+	fill: transparent;
+}
+.theme-dark #editor-svg line {
+	stroke: black;
+}
 #editor-svg text {
 	alignment-baseline: middle;
 	text-anchor: middle;
@@ -174,7 +198,7 @@ body {
 </style>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
-var editorType = "<?php echo htmlspecialchars($type); ?>";
+var editorType = "<?php if ($type) echo htmlspecialchars($type); ?>";
 function getRelativePos(e,parent) {
 	var rect = parent.getBoundingClientRect();
 	return {
@@ -196,6 +220,11 @@ function selectTheme($btn,isDark) {
 	else
 		document.body.classList.remove("theme-dark");
 }
+var currentDecor;
+function selectDecor($btn,type) {
+	selectButton($btn);
+	currentDecor = type;
+}
 function selectOrdered($btn,isOrdered) {
 	if (isOrdered)
 		document.body.classList.add("ordered-shape");
@@ -206,6 +235,12 @@ var shapeType = "rectangle";
 switch (editorType) {
 case "coins":
 	shapeType = "point";
+	break;
+case "decors":
+	shapeType = "img";
+	break;
+case "startpos":
+	shapeType = "arrow";
 }
 function selectShape($btn,type) {
 	selectButton($btn);
@@ -216,13 +251,20 @@ function validateZone() {
 	var $svg = document.getElementById("editor-svg");
 	var oShapes = $svg.getElementsByClassName("shape");
 	var data = [];
-	for (var i=0;i<oShapes.length;i++)
-		data.push(JSON.parse(oShapes[i].dataset.data));
+	for (var i=0;i<oShapes.length;i++) {
+		var iData = oShapes[i].dataset.data;
+		if (iData)
+			data.push(JSON.parse(iData));
+	}
+	switch (editorType) {
+	case "startpos":
+		data = data[0];
+	}
 	var meta = {};
 	var $ordered = document.getElementById("zone-editor-ordered");
 	if ($ordered)
 		meta.ordered = +$ordered.checked;
-	window.opener.storeZoneData(data,meta);
+	window.opener.storeZoneData(data,meta, editorType);
 	window.close();
 };
 var undo = function(){};
@@ -245,6 +287,10 @@ function getShapeType(oBox) {
 			return "point";
 		return "rectangle";
 	}
+	if (oBox.src)
+		return "img";
+	if (oBox.pos)
+		return "arrow";
 	return "polygon";
 }
 function showOrderHelp() {
@@ -254,7 +300,7 @@ var SVG = "http://www.w3.org/2000/svg";
 document.addEventListener("DOMContentLoaded", function() {
 	var editor = document.getElementById("editor");
 	var $svg = document.getElementById("editor-svg");
-	var oRect, oPoly;
+	var oRect, oPoly, oArrow;
 	var aX, aY, aPts;
 	function applyRect(x,y,w,h,iRect) {
 		var triggered = !iRect;
@@ -422,6 +468,140 @@ document.addEventListener("DOMContentLoaded", function() {
 			oRect = null;
 		}
 	}
+	function applyImg(x,y,src, oImg) {
+		var triggered = !oImg;
+		if (triggered)
+			oImg = document.createElementNS(SVG, "image");
+		setupImg(x,y,src, oImg);
+		if (!oImg.dataset) oImg.dataset = {};
+		oImg.dataset.data = JSON.stringify({src:src,pos:[x,y]});
+		$svg.appendChild(oImg);
+
+		if (!triggered) {
+			pushUndo(function() {
+				$svg.removeChild(oImg);
+			});
+		}
+		oImg.oncontextmenu = function(e) {
+			var lShape = oImg.nextSibling;
+			$svg.removeChild(oImg);
+			if (lShape) {
+				pushUndo(function() {
+					$svg.insertBefore(oImg,lShape);
+				});
+			}
+			else {
+				pushUndo(function() {
+					$svg.appendChild(oImg);
+				});
+			}
+			return false;
+		};
+		if (!triggered) {
+			document.onmousemove = undefined;
+			oRect = null;
+		}
+	}
+	function setupImg(x,y,src, oImg) {
+		oImg.setAttribute("href", "images/map_icons/"+ src +".png");
+		oImg.setAttribute("height", 12);
+		oImg.setAttribute("x", x-6);
+		oImg.setAttribute("y", y-6);
+		oImg.setAttribute("class", "shape");
+	}
+	function createArrow(x,y) {
+		var oCircle = document.createElementNS(SVG, "circle");
+		oCircle.setAttribute("r", 4);
+		oCircle.setAttribute("cx", x);
+		oCircle.setAttribute("cy", y);
+		oCircle.setAttribute("class", "shape");
+		if (!oCircle.dataset) oCircle.dataset = {};
+		oCircle.dataset.data = JSON.stringify({pos:[x,y],angle:0});
+		$svg.appendChild(oCircle);
+		var oLines = [
+			document.createElementNS(SVG, "line"),
+			document.createElementNS(SVG, "line"),
+			document.createElementNS(SVG, "line")
+		];
+		for (var i=0;i<oLines.length;i++)
+			$svg.appendChild(oLines[i]);
+		var res = {
+			start: oCircle,
+			lines: oLines
+		}
+		function removeArr(e) {
+			removeArrow(res);
+			var aArrow = oArrow;
+			var aPos = [aX,aY];
+			var aMouseMove = document.onmousemove;
+			document.onmousemove = undefined;
+			oArrow = undefined;
+			pushUndo(function() {
+				$svg.appendChild(oCircle);
+				for (var i=0;i<oLines.length;i++)
+					$svg.appendChild(oLines[i]);
+				oArrow = aArrow;
+				document.onmousemove = aMouseMove;
+				aX = aPos[0];
+				aY = aPos[1];
+			});
+			return false;
+		};
+		oCircle.oncontextmenu = removeArr;
+		for (var i=0;i<oLines.length;i++)
+			oLines[i].oncontextmenu = removeArr;
+		return res;
+	}
+	function removeArrow(cArrow) {
+		var oCircle = cArrow.start, oLines = cArrow.lines;
+		$svg.removeChild(oCircle);
+		for (var i=0;i<oLines.length;i++)
+			$svg.removeChild(oLines[i]);
+	}
+	function applyArrow(aX,aY, x,y, cArrow) {
+		if (!cArrow) {
+			cArrow = createArrow(aX,aY);
+			pushUndo(function() {
+				$svg.removeChild(cArrow.start);
+				for (var i=0;i<cArrow.lines.length;i++)
+					$svg.removeChild(cArrow.lines[i]);
+				oArrow = undefined;
+			});
+		}
+		var angle = Math.atan2(y-aY,x-aX) || 0;
+
+		var oData = JSON.parse(cArrow.start.dataset.data);
+		oData.angle = angle;
+		cArrow.start.dataset.data = JSON.stringify(oData);
+
+		var arrowLength = 30;
+		var nX = aX + arrowLength * Math.cos(angle);
+		var nY = aY + arrowLength * Math.sin(angle);
+		cArrow.lines[0].setAttribute("x1", aX);
+		cArrow.lines[0].setAttribute("y1", aY);
+		cArrow.lines[0].setAttribute("x2", nX);
+		cArrow.lines[0].setAttribute("y2", nY);
+
+		var tipOffset = 1, tipLength = 10, tipAngle = angle - Math.PI*3/4;
+		var aX1 = nX - tipOffset * Math.cos(tipAngle);
+		var aY1 = nY - tipOffset * Math.sin(tipAngle);
+		var nX1 = nX + tipLength * Math.cos(tipAngle);
+		var nY1 = nY + tipLength * Math.sin(tipAngle);
+		cArrow.lines[1].setAttribute("x1", aX1);
+		cArrow.lines[1].setAttribute("y1", aY1);
+		cArrow.lines[1].setAttribute("x2", nX1);
+		cArrow.lines[1].setAttribute("y2", nY1);
+
+		tipAngle = angle + Math.PI*3/4;
+		var aX2 = nX - tipOffset * Math.cos(tipAngle);
+		var aY2 = nY - tipOffset * Math.sin(tipAngle);
+		var nX2 = nX + tipLength * Math.cos(tipAngle);
+		var nY2 = nY + tipLength * Math.sin(tipAngle);
+		cArrow.lines[2].setAttribute("x1", aX2);
+		cArrow.lines[2].setAttribute("y1", aY2);
+		cArrow.lines[2].setAttribute("x2", nX2);
+		cArrow.lines[2].setAttribute("y2", nY2);
+	}
 	editor.onclick = function(e) {
 		var pos = getRelativePos(e,editor);
 		var x = pos.x, y = pos.y;
@@ -445,6 +625,20 @@ document.addEventListener("DOMContentLoaded", function() {
 				aPts.splice(aPts.length-2,1);
 				oPoly.pts.pop();
 				setPolyPoints(oLines, aPts);
+			});
+		}
+		else if (oArrow) {
+			applyArrow(aX,aY,x,y, oArrow);
+			var aMouseMove = document.onmousemove;
+			document.onmousemove = undefined;
+			var aArrow = oArrow;
+			var aPos = [aX,aY];
+			oArrow = undefined;
+			pushUndo(function() {
+				oArrow = aArrow;
+				document.onmousemove = aMouseMove;
+				aX = aPos[0];
+				aY = aPos[1];
 			});
 		}
 		else {
@@ -473,6 +667,31 @@ document.addEventListener("DOMContentLoaded", function() {
 			case "point":
 				var oCircle = document.createElementNS(SVG, "circle");
 				applyPoint(x,y, oCircle);
+				break;
+			case "img":
+				var oImg = document.createElementNS(SVG, "image");
+				if (!currentDecor) {
+					alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
+					return;
+				}
+				applyImg(x,y,currentDecor, oImg);
+				break;
+			case "arrow":
+				if (document.getElementsByClassName("shape").length) break;
+				aX = x;
+				aY = y;
+				oArrow = createArrow(x,y);
+				document.onmousemove = function(e2) {
+					var pos2 = getRelativePos(e2,editor);
+					var x2 = pos2.x, y2 = pos2.y;
+					applyArrow(aX,aY,x2,y2, oArrow);
+				};
+				var cArrow = oArrow;
+				pushUndo(function() {
+					removeArrow(cArrow);
+					document.onmousemove = undefined;
+					oArrow = undefined;
+				});
 				break;
 			case "polygon":
 				aPts = [[x,y],[x,y]];
@@ -529,8 +748,12 @@ document.addEventListener("DOMContentLoaded", function() {
 		if (oShapes.length && (firstUndo != undo))
 			return language ? "Caution, if you want to save the zone, click on \"<?php echo $submitTitle; ?>\" before":"Attention, si vous voulez sauvegarder la zone, cliquez sur \"<?php echo $submitTitle; ?>\" avant";
 	};
-	var params = window.opener.loadZoneData();
+	var params = window.opener.loadZoneData(editorType);
 	var data = params.data;
+	if (!data)
+		data = [];
+	else if (data.length === undefined)
+		data = [data];
 	for (var i=0;i<data.length;i++) {
 		var iData = data[i];
 		switch (getShapeType(iData)) {
@@ -540,13 +763,31 @@ document.addEventListener("DOMContentLoaded", function() {
 		case "point":
 			applyPoint(iData[0],iData[1]);
 			break;
+		case "img":
+			applyImg(iData.pos[0],iData.pos[1], iData.src);
+			break;
 		case "polygon":
 			applyPoly(iData);
+			break;
+		case "arrow":
+			var x1 = iData.pos[0], y1 = iData.pos[1];
+			var x2 = x1 + Math.cos(iData.angle), y2 = y1 + Math.sin(iData.angle);
+			applyArrow(x1,y1,x2,y2);
 		}
 	}
 	var meta = params.meta;
 	if (meta.ordered == 1)
 		document.getElementById("zone-editor-ordered").click();
+	if (meta.extra_decors && (editorType !== "decors")) {
+		var decors = meta.extra_decors;
+		for (var i=decors.length-1;i>=0;i--) {
+			var iData = decors[i];
+			var oImg = document.createElementNS(SVG, "image");
+			setupImg(iData.pos[0],iData.pos[1], iData.src, oImg);
+			$svg.insertBefore(oImg, $svg.firstChild);
+			delete oImg.dataset.data;
+		}
+	}
 });
 window.onload = function() {
 	document.getElementById("editor-ctn").style.width = Math.max(200,document.getElementById("editor").scrollWidth) +"px";
@@ -591,6 +832,34 @@ window.onload = function() {
 				<?php
 			}
 			break;
+		case 'decors':
+			if ($language) {
+				?>
+				Indicate decor locations by clicking where you want on the circuit image.
+				To delete a decor, right click on it.<br />
+				<?php
+			}
+			else {
+				?>
+				Indiquez les emplacements des décors en cliquant où vous voulez sur l'image du circuit.<br />
+				Pour supprimer un décor, faites un clic droit dessus.<br />
+				<?php
+			}
+			break;
+		case 'startpos':
+			if ($language) {
+				?>
+				Indicate the location in the circuit where the player will start.<br />
+                You have to indicate 2 information: the initial position and the orientation of the player.<br />
+				<?php
+			}
+			else {
+				?>
+				Indiquez la position de départ du joueur dans le circuit.<br />
+                Vous devez indiquer 2 informations: la position initiale et l'orientation du joueur.<br />
+				<?php
+			}
+			break;
 		default:
 			if ($language) {
 				?>
@@ -616,14 +885,46 @@ window.onload = function() {
 		?>
 		<hr />
 		<div id="zone-editor-options">
+			<?php
+			switch ($type) {
+			case 'decors':
+				break;
+			default:
+				?>
 			<div id="zone-editor-theme">
 				<span><?php echo $language ? 'Theme:':'Thème :'; ?></span>
 				<input type="button" style="background-color:white" class="selected" onclick="selectTheme(this,false)" />
 				<input type="button" style="background-color:black" onclick="selectTheme(this,true)" />
 			</div>
+				<?php
+			}
+			?>
 			<?php
 			switch ($type) {
 			case 'coins':
+			case 'startpos':
+				break;
+			case 'decors':
+				?>
+				<div id="zone-editor-decor">
+					<span><?php echo $language ? 'Decor:':'Décor :'; ?></span>
+					<?php
+					include('circuitDecors.php');
+					foreach ($decors as &$decorGroup)
+						unset($decorGroup['truck']);
+					unset($decorGroup);
+					foreach ($decors as &$decorGroup) {
+						foreach ($decorGroup as $key => $name) {
+							if ('assets/' === substr($key,0,7))
+								continue;
+							?>
+							<input type="button" style="background-image:url('images/map_icons/<?php echo $key; ?>.png')"<?php if ($name) echo ' title="'.$name.'"'; ?> onclick="selectDecor(this, '<?php echo $key; ?>')" />
+							<?php
+						}
+					}
+					?>
+				</div>
+				<?php
 				break;
 			default;
 				?>

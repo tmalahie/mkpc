@@ -72,7 +72,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo2.jpg">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo2.png">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -81,8 +81,8 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										Try to be the fastest while avoiding the items!<br />
-										Find all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
+										Try to be the fastest while avoiding items!<br />
+										Race on all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
 										<?php
 									}
 									else {
@@ -106,18 +106,18 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Win all the Grand Prix!':'Remportez tous les grands prix !'; ?></h3>
+								<h3 class="fp-title"><?php echo $language ? 'Win all the cups!':'Remportez tous les grand prix !'; ?></h3>
 								<p>
 									<?php
 									if ($language) {
 										?>
-										Face-off the CPU in the <strong>14 grands prix</strong> tournaments and try to win the gold cup!<br />
+										Face off the CPU on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!<br />
 										Win enough cups to unlock the <strong>15 secret characters</strong>!
 										<?php
 									}
 									else {
 										?>
-										Affrontez les ordis sur les <strong>14 grands prix</strong> et tentez de gagner la coupe en or !<br />
+										Affrontez les ordis sur les <strong>14 grand prix</strong> et tentez de gagner la coupe en or !<br />
 										Remportez suffisament de coupes pour débloquer les <strong>15 persos secrets</strong> !
 										<?php
 									}
@@ -141,8 +141,8 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										With the <strong>track builder</strong>, the possibilities are infinite: the only limit is your own imagination.<br />
-										Try other peoples' creations thanks to the integrated <strong>sharing tool</strong>.
+										With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!<br />
+										You can <strong>share</strong> your tracks or try other people's creations!
 										<?php
 									}
 									else {
@@ -162,7 +162,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo5.jpg">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo5.png">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -171,7 +171,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										Fight other players in <strong>online mode</strong>!<br />
+										Race and battle in <strong>online mode</strong>!<br />
 										Win as many races as possible and <strong>climb in the official ranking</strong>!
 										<?php
 									}
@@ -192,7 +192,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo6.jpg">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo6.png">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -222,7 +222,7 @@ $slidesPath = 'images/slides';
 					</div>
 					
 					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo7.jpg">
+						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo7.png">
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
@@ -231,7 +231,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										<strong>Destroy the balloons</strong> of your opponents with your own items without getting hit by theirs<br />
+										<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items.<br />
 										The last player standing wins!
 										<?php
 									}
@@ -262,7 +262,7 @@ $slidesPath = 'images/slides';
 									if ($language) {
 										?>
 										Prove your friends that you're the best!<br />
-										Face them in <strong>multiplayer</strong> on VS races or on battle mode.
+										Face them in <strong>multiplayer</strong> in VS races or in battle mode.
 										<?php
 									}
 									else {
@@ -391,9 +391,9 @@ $slidesPath = 'images/slides';
 				?>
 				<ul>
 					<li><a href="https://discord.gg/VkeAxaj">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.</li>
-					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Official Youtube Channel</a> : find out videos about the game and informations about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="topic.php?topic=3392">official topic</a>.</li>
-					<li><a href="https://twitter.com/MarioKartPC">Twitter Page</a> and <a href="https://www.facebook.com/groups/126497814060671/">Facebook Group</a> of the game: follow then to be informed of the latest news concerning the site!</li>
-					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on the <a href="topic.php?topic=343">this topic</a>!</li>
+					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Official Youtube Channel</a>: find videos on the game and information about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="topic.php?topic=3392">official topic</a>.</li>
+					<li><a href="https://github.com/tmalahie/mkpc">Github repo</a> of the site. Follow here all the ongoing developments, and if you can code, don't hesitate to contribute to the project!</li>
+					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on <a href="topic.php?topic=343">this topic</a>!</li>
 				</ul>
 				<?php
 			}
@@ -402,7 +402,7 @@ $slidesPath = 'images/slides';
 				<ul>
 					<li><a href="https://discord.gg/VkeAxaj">Serveur Discord</a> du site : rejoignez-le pour discuter avec la communauté et être informé des mises à jours et événements.</li>
 					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Chaîne Youtube Officielle</a> : retrouvez des vidéos sur le jeu et des informations sur le site et ses évenements. La chaîne est alimentée par les membres, si vous voulez participez, parlez-en sur <a href="topic.php?topic=3392">le topic officiel</a>.</li>
-					<li><a href="https://twitter.com/MarioKartPC">Page Twitter</a> et <a href="https://www.facebook.com/groups/126497814060671/">Groupe Facebook</a> du jeu : suivez-les pour être au courant des dernières actualités du site !</li>
+					<li><a href="https://github.com/tmalahie/mkpc">Repo Github</a> du site : suivez ici tous les développements en cours, et si vous avez des connaissances en code, n'hésitez pas à venir contribuer !</li>
 					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">Wiki MKPC</a> : retrouvez toutes les informations sur le jeu et son histoire. Ce site est maintenu par les membres, si vous voulez contribuer, parlez-en sur <a href="topic.php?topic=343">ce topic</a>&nbsp;!</li>
 				</ul>
 				<?php
@@ -449,31 +449,29 @@ $slidesPath = 'images/slides';
 		<?php
 		require_once('utils-date.php');
 		/*if ($id) {
-			$today = time();
-			//if (($today > 1607310000) && ($today < 1607914800)) {
-				if ($language) {
-				?>
-				<div class="subsection">
-					<div id="official_message" style="font-size: 0.9em; text-align: left">
-						The <strong>2021 Mario Kart World Cup</strong> has begun!<br />
-						Come and <a href="mkwc.php">vote here</a> for your favorite team!<br />
-						Will your prognosis be correct? <img src="images/forum/reactions/wink.png" alt="wink" style="height: 1em; position: relative; top: 0.1em" />
-					</div>
+			?>
+			<div class="subsection">
+				<div id="official_message">
+					<?php
+					if ($language) {
+						?>
+						It's Christmas on MKPC!
+						Enjoy the <strong>advent calendar</strong> special event!<br />
+						<a href="advent-calendar.php">Click here</a> to discover it.<br />
+						To learn more, head to the <a href="topic.php?topic=10452">official topic</a>.
+						<?php
+					}
+					else {
+						?>
+						C'est Noël sur MKPC ! Profitez de l'événement spécial : <strong>calendrier de l'avent</strong> !<br />
+						<a href="advent-calendar.php">Cliquez ici</a> pour le découvrir.<br />
+						Pour en savoir plus, rendez-vous sur le <a href="topic.php?topic=10452">topic officiel</a>.
+						<?php
+					}
+					?>
 				</div>
-				<?php
-				}
-				else {
-				?>
-				<div class="subsection">
-					<div id="official_message" style="font-size: 0.9em; text-align: left">
-						La <strong>Coupe Du Monde 2021 de Mario Kart</strong> à débuté !<br />
-						Venez <a href="mkwc.php">voter ici</a> pour votre équipe préférée !<br />
-						Votre pronostic sera-t-il correct ? <img src="images/forum/reactions/wink.png" alt="wink" style="height: 1em; position: relative; top: 0.1em" />
-					</div>
-				</div>
-				<?php
-				}
-			//}
+			</div>
+			<?php
 		}*/
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
@@ -522,6 +520,22 @@ $slidesPath = 'images/slides';
 		<div class="subsection">
 		<?php
 		if ($id) {
+			if (($getWarn = mysql_fetch_array(mysql_query('SELECT seen FROM mkwarns WHERE player="'. $id .'"'))) && !$getWarn['seen']) {
+				?>
+				<div class="warning-top-message">
+					<?php
+					echo $language ? 'You have received a warning for inappropriate behavior.' : 'Vous avez reçu un avertissement pour comportement inapproprié.';
+					echo $language ? ' Please ' : ' ';
+					echo '<a href="forum.php?warn#compte">';
+					echo $language ? 'click here' : 'Cliquez ici';
+					echo '</a>';
+					echo ' ';
+					echo $language ? 'to find it out.' : 'pour en prendre connaissance.';
+					?>
+				</div>
+				<?php
+			}
+
 			date_default_timezone_set(get_client_tz());
 
 			$today = time();
@@ -529,7 +543,7 @@ $slidesPath = 'images/slides';
 			$cMonth = date('m', $today);
 			$cDay = date('d', $today);
 			$curDate = $cYear.'-'.$cMonth.'-'.$cDay;
-			$getBirthdays = mysql_query('SELECT j.id,j.nom,p.identifiant,p.identifiant2,p.identifiant3,p.identifiant4,p.nbmessages FROM `mkprofiles` p INNER JOIN `mkjoueurs` j ON p.id=j.id WHERE birthdate IS NOT NULL AND DAY(birthdate)='. $cDay .' AND MONTH(birthdate)='. $cMonth .' AND j.banned=0 AND j.deleted=0 AND last_connect>=DATE_SUB("'.$curDate.'",INTERVAL 1 YEAR) AND TIMESTAMPDIFF(SECOND,last_connect,"'.$curDate.'")<=TIMESTAMPDIFF(SECOND,IFNULL(sub_date,"2016-01-01"),last_connect)+7*24*3600 ORDER BY p.nbmessages DESC, p.id ASC');
+			$getBirthdays = mysql_query('SELECT j.id,j.nom,p.identifiant,p.identifiant2,p.identifiant3,p.identifiant4,p.nbmessages FROM `mkprofiles` p INNER JOIN `mkjoueurs` j ON p.id=j.id WHERE birthdate IS NOT NULL AND DAY(birthdate)='. $cDay .' AND MONTH(birthdate)='. $cMonth .' AND j.banned=0 AND j.deleted=0 AND last_connect>=DATE_SUB("'.$curDate.'",INTERVAL 6 MONTH) AND TIMESTAMPDIFF(SECOND,last_connect,"'.$curDate.'")<=TIMESTAMPDIFF(SECOND,IFNULL(sub_date,"2016-01-01"),last_connect)*0.25+7*24*3600 ORDER BY p.nbmessages DESC, p.id ASC');
 			$dc = array();
 			$birthdaysList = array();
 			while ($getBirthday = mysql_fetch_array($getBirthdays)) {
@@ -544,7 +558,7 @@ $slidesPath = 'images/slides';
 				?>
 				<div class="birthdays-list">
 					<img src="images/ic_birthday.png" alt="birthday" />
-					<?php echo $language ? "It's the birthday of":"C'est l'anniversaire de"; ?>
+					<?php echo $language ? "Happy birthday to":"C'est l'anniversaire de"; ?>
 					<?php
 					for ($i=0;$i<$nbBirthdays;$i++) {
 						$birthday = $birthdaysList[$i];
@@ -742,8 +756,8 @@ $slidesPath = 'images/slides';
 				while ($challenge = mysql_fetch_array($getChallenges)) {
 					$challengeDetails = getChallengeDetails($challenge, $challengeParams);
 					?>
-					<a href="<?php echo 'challengeTry.php?challenge='.$challenge['id']; ?>" title="<?php echo htmlspecialchars($challengeDetails['description']['main']); ?>"<?php if (isset($challengeDetails['succeeded'])) echo ' class="challenges_section_succeeded"'; ?>>
-						<h2><?php echo htmlspecialchars(controlLength($challengeDetails['description']['main'],100)); ?></h2>
+					<a href="<?php echo 'challengeTry.php?challenge='.$challenge['id']; ?>" title="<?php echo $challengeDetails['description']['main']; ?>"<?php if (isset($challengeDetails['succeeded'])) echo ' class="challenges_section_succeeded"'; ?>>
+						<h2><?php echo controlLength($challengeDetails['description']['main'],100); ?></h2>
 						<h3><?php echo ucfirst(($challengeDetails['circuit']['author'] ? (($language ? 'by':'par') .' <strong>'. controlLengthUtf8($challengeDetails['circuit']['author'],10) .'</strong> '):'') . ($challengeDetails['circuit']['name'] ? (($language ? 'in':'dans') . ' <strong>'. controlLengthUtf8($challengeDetails['circuit']['name'],30-min(10,strlen($challengeDetails['circuit']['author']))-strlen($challengeDetails['difficulty']['name'])) .'</strong>'):'')); ?> - <strong><?php echo $challengeDetails['difficulty']['name']; ?></strong></h3>
 					</a>
 					<?php
@@ -914,7 +928,7 @@ $slidesPath = 'images/slides';
 					}
 				}
 			}
-			function gamePkSort(&$k1,&$k2) {
+			function gamePkSort($k1,$k2) {
 				$p1 = explode(':',$k1);
 				$p2 = explode(':',$k2);
 				for ($i=0;$i<3;$i++) {
@@ -944,7 +958,7 @@ $slidesPath = 'images/slides';
 						echo '<span class="ranking_badge"><span>'.$nbActivePlayers.'</span></span>';
 				}
 				function get_creation_string(&$params) {
-					global $language, $publicLinksData;
+					global $language;
 					$isMCup = ($params['mode']==8);
 					$isBattle = $params['game'];
 					$isSingle = (($params['mode']%4)>=2);
@@ -968,6 +982,7 @@ $slidesPath = 'images/slides';
 					$link = $params['link'];
 					$modeNames = array(
 						'cc' => '${value}cc',
+						'mirror' => ($language ? 'Mirror':'miroir'),
 						'team' => ($language ? 'Team':'équipe'),
 						'friendly' => ($language ? 'Friendly':'amical')
 					);
@@ -1195,6 +1210,7 @@ mysql_close();
 <script>
 var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
 </script>
+<script async src="scripts/officials.js"></script>
 <script async src="scripts/creations.js"></script>
 <script async src="scripts/posticons.js"></script>
 

@@ -437,7 +437,7 @@ function o_invitesb() {
 		o_liste.appendChild(o_close);
 		var o_infos = document.createElement("div");
 		o_infos.className = "chatinfos";
-		o_infos.innerHTML = o_language ? "Chat with other members or invite them to play with you in the <a href=\"online.php\" target=\"_blank\">online mode</a>.":"Ici, discutez avec les autres membres, ou invitez-les &agrave; vous affronter dans le <a href=\"online.php\" target=\"_blank\">mode en ligne</a>.";
+		o_infos.innerHTML = o_language ? "Chat with other members or invite them in <a href=\"online.php\" target=\"_blank\">online mode</a>.":"Ici, discutez avec les autres membres, ou invitez-les &agrave; vous affronter dans le <a href=\"online.php\" target=\"_blank\">mode en ligne</a>.";
 		o_liste.appendChild(o_infos);
 		var o_table = document.createElement("div");
 		o_table.id = "cotable";

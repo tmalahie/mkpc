@@ -1,7 +1,7 @@
 <?php
 include('escape_all.php');
 if (!isset($id) && isset($_GET['id']))
-	$id = $_GET['id'];
+	$id = intval($_GET['id']);
 if (isset($id)) {
 	$isTemp = isset($temp);
 	if (!$isTemp)
@@ -19,18 +19,6 @@ if (isset($id)) {
 		$nbTracksInSpace = $tracksSide*$tracksSide;
 		$nbTracksToDraw = min($nbTracksInSpace,$nbTracks);
 		$nbTracksTotal = max($nbTracksInSpace,$nbTracks);
-		if ($mode == 0)
-			$baseUrl = 'trackicon.php?type=0&id=';
-		else
-			$baseUrl = 'trackicon.php?type=1&id=';
-		$protocol = 'http'. (isset($_SERVER['HTTPS']) ? 's' : '');
-		$domain = $_SERVER['HTTP_HOST'];
-		if ($_SERVER['SERVER_NAME'] === 'localhost') {
-			$domain = $_SERVER['SERVER_NAME'];
-			$relDir = substr(__DIR__, strlen($_SERVER['DOCUMENT_ROOT']));
-		}
-		else
-			$relDir = '';
 		$resW = 120;
 		$imgW = 120/$tracksSide;
 		$imgcW = ceil($imgW);
@@ -57,8 +45,9 @@ if (isset($id)) {
 			$x = $trackPos%$tracksSide;
 			$y = floor($trackPos/$tracksSide);
 
-			$trackUrl = $protocol.'://'.$domain.$relDir.'/'.$baseUrl.$trackID;
-			$img = @imagecreatefrompng($trackUrl);
+			require_once('generateTrackIcon.php');
+			$trackPath = generateTrackIcon($trackID, $mode);
+			$img = @imagecreatefrompng($trackPath);
 			if ($img) {
 				$img = imagecropcenter($img, $imgcW,$imgcW);
 				imagecopy($image,$img,floor($x*$imgW),floor($y*$imgW),0,0,$imgW,$imgW);

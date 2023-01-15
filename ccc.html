@@ -11,6 +11,7 @@
             return false;
         }
         for (var p in obj2) {
+            //if (p === "aipoints") continue;
             if (obj1[p] === undefined) {
                 console.log(undefined,obj2[p]);
                 console.log(p);
@@ -18,6 +19,7 @@
             }
         }
         for (var p in obj1) {
+            //if (p === "aipoints") continue;
             if (!deep_cmp(obj1[p],obj2[p])) {
                 console.log(p);
                 return false;
