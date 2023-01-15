@@ -27886,14 +27886,14 @@ function toLanguage(english, french) {
 function toPlace(place) {
 	var term;
 	if (language) {
-		switch (place) {
-		case 1 :
+		switch (place.toString().charAt(place.toString().length - 1)) {
+		case "1" :
 			term = "st";
 			break;
-		case 2 :
+		case "2" :
 			term = "nd";
 			break;
-		case 3 :
+		case "3" :
 			term = "rd";
 			break;
 		default :
