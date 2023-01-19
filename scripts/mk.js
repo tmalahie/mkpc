@@ -4126,7 +4126,7 @@ function startGame() {
 						var gameAction = getGameAction(e);
 						if (!gameAction) return;
 						var aElt = document.activeElement;
-						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
+						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit") && e.keyCode) return;
 						if (e.preventDefault)
 							e.preventDefault();
 						handleInputPressed(gameAction, e.keyIntensity);
@@ -4136,7 +4136,7 @@ function startGame() {
 						var gameAction = getGameAction(e);
 						if (!gameAction) return;
 						var aElt = document.activeElement;
-						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit")) return;
+						if (aElt && (aElt.tagName == "INPUT") && (aElt.type != "button") && (aElt.type != "submit") && e.keyCode) return;
 						handleInputReleased(gameAction);
 					}
 					window.releaseOnBlur = function() {
@@ -4374,6 +4374,7 @@ function startGame() {
 }
 
 function showVirtualKeyboard() {
+	setupVibrate();
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
 	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
 
@@ -4413,7 +4414,7 @@ function showVirtualKeyboard() {
 			}
 			else {
 				addButton("\u2191", { btn: $accButton, key: "up", src: "up", parent: $div });
-				addButton("\u2193", { btn: $backButton, key: "down", src: "up", parent: $div });
+				addButton("\u2193", { btn: $backButton, key: "down", src: "down", parent: $div });
 			}
 			$virtualKeyboard.appendChild($div);
 		}
@@ -4754,7 +4755,11 @@ function setupCommonMobileControls() {
 		window.addEventListener("deviceorientation", window.turnOnRotate);
 	}
 }
+function setupVibrate() {
+	navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate || function(){};
+}
 function showSpectatorKeyboard() {
+	setupVibrate();
 	var $virtualKeyboard = document.getElementById("virtualkeyboard");
 	addButton("\u2190", { key: "left", src: "left" });
 	addButton("\u2192", { key: "right", src: "right" });
@@ -27983,7 +27988,7 @@ function toPerso(sPerso) {
 	return res;
 }
 
-var isMobileCache = !!(navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i));
+var isMobileCache = true;//!!(navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPod/i) || navigator.userAgent.match(/BlackBerry/i));
 function isMobile() {
 	return isMobileCache;
 }

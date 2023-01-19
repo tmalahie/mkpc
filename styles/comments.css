@@ -71,6 +71,8 @@
 @media screen and (max-width: 600px) {
 	#comments-section {
 		top: 100%;
+		z-index: 20000;
+		background-color: black;
 		width: 100%;
 		border-top: solid 1px white;
 		border-right: solid 1px white;
