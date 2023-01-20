@@ -82,6 +82,9 @@
 	#comments-section.comments-closed {
 		border-top: solid 1px white;
 	}
+	div#connect, div#coliste, div.comsg, div#chatsctn {
+		z-index: 20000;
+	}
 }
 #comments-section h1 {
 	margin: 5px;
