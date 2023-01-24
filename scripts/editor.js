@@ -807,6 +807,35 @@ function moveArrowNode(arrow,data) {
 	mask.close = function(){};
 	$toolbox.classList.add("hiddenbox");
 }
+function rotateArrowNode(arrow,data,origin) {
+	var mask = createMask();
+	var angle = data.orientation;
+	var hint = rotateHintBuilder();
+	function moveArr(e) {
+		var point = getEditorCoordsExact(getPointerPos(e));
+		angle = Math.atan2(point.x-origin.x, point.y-origin.y) * 2 / Math.PI;
+		if (!angle) angle = 0;
+		if (e.shiftKey)
+			angle = Math.round(angle);
+		arrow.rotate(angle);
+		hint.handleRotate(e);
+	}
+	function stopMoveArr(e) {
+		e.stopPropagation();
+		$toolbox.classList.remove("hiddenbox");
+		moveArr(e);
+		storeHistoryData(editorTools[currentMode].data);
+		data.orientation = angle;
+		mask.removeEventListener("mousemove", moveArr);
+		mask.removeEventListener("mouseup", stopMoveArr);
+		mask.defaultClose();
+		hint.remove();
+	}
+	mask.addEventListener("mousemove", moveArr);
+	mask.addEventListener("mouseup", stopMoveArr);
+	mask.close = function(){};
+	$toolbox.classList.add("hiddenbox");
+}
 function updateBoxSize(box,boxSize) {
 	box.setAttribute("x", +box.getAttribute("x")+Math.round((box.getAttribute("width")-boxSize.w)/2));
 	box.setAttribute("y", +box.getAttribute("y")+Math.round((box.getAttribute("height")-boxSize.h)/2));
@@ -1173,14 +1202,12 @@ function moveArc(arc,data) {
 function createArrowNode(point, orientation, append) {
 	var l = 18;
 	var d = 6;
-	var screenData = {w:0,h:0};
 	function getArrowLines(orientation) {
-		orientation = (4-orientation)%4*90;
 		var arrowPoints = [
 			{x:0,y:0},
-			rotatePoint({x:0,y:l},screenData, orientation),
-			rotatePoint({x:-d,y:l-d},screenData, orientation),
-			rotatePoint({x:d,y:l-d},screenData, orientation)
+			rotatePointCustom({x:0,y:l}, orientation),
+			rotatePointCustom({x:-d,y:l-d}, orientation),
+			rotatePointCustom({x:d,y:l-d}, orientation)
 		];
 		return [
 			[arrowPoints[0],arrowPoints[1]],
@@ -2065,6 +2092,37 @@ function showToast(msg) {
 	}, 4000);
 	return res;
 }
+var isRotateMsgRead = false;
+function rotateHintBuilder() {
+	var $toastMsg;
+	function handleRotateHint(e) {
+		if (e.shiftKey) {
+			if ($toastMsg) {
+				removeRotateHint();
+				isRotateMsgRead = true;
+			}
+		}
+		else if (!$toastMsg && !isRotateMsgRead) {
+			$toastMsg = showToast(language ? "Hold shift to rotate by a right angle" : "Maintenir shift pour pivoter d'un angle droit");
+			$toastMsg.addEventListener("click", function(e) {
+				e.stopPropagation();
+				removeRotateHint();
+				isRotateMsgRead = true;
+			});
+		}
+	}
+	function removeRotateHint() {
+		if ($toastMsg && $toastMsg.parentNode) {
+			document.body.removeChild($toastMsg);
+			$toastMsg = undefined;
+		}
+	}
+
+	return {
+		handleRotate: handleRotateHint,
+		remove: removeRotateHint
+	}
+}
 function removeFromArray(arr,elt) {
 	var id = arr.indexOf(elt);
 	if (-1 !== id) {
@@ -2094,6 +2152,14 @@ function rotatePoint(data,screenData,orientation) {
 		sW = sH;
 		sH = aW;
 	}
+	return data;
+}
+function rotatePointCustom(data,orientation) {
+	var theta = orientation*Math.PI/2;
+	var cosTheta = Math.cos(theta), sinTheta = Math.sin(theta);
+	var dX = data.x, dY = data.y;
+	data.x = dX*cosTheta + dY*sinTheta;
+	data.y = dY*cosTheta - dX*sinTheta;
 	return data;
 }
 function rotateNullablePoint(data,screenData,orientation) {
@@ -3803,7 +3869,7 @@ var commonTools = {
 					if (nRotateTime > lastRotateTime+2500)
 						storeHistoryData(self.data);
 					lastRotateTime = nRotateTime;
-					data.orientation = (data.orientation+1)%4;
+					data.orientation = Math.round(data.orientation+1)%4;
 					self.state.orientation = data.orientation;
 					respawnNode.rotate(data.orientation);
 				};
@@ -3820,9 +3886,14 @@ var commonTools = {
 				}
 				respawnNode.origin.oncontextmenu = function(e) {
 					return showContextOnElt(e,shape, [{
-						text: (language ? "Rotate":"Pivoter"),
+						text: (language ? "Rotate 90°":"Rotation 90°"),
 						click: function() {
 							respawnNode.origin.onclick();
+						}
+					}, {
+						text: (language ? "Rotate custom...":"Rotation libre..."),
+						click: function() {
+							rotateArrowNode(respawnNode,data,data.respawn);
 						}
 					}, {
 						text: (language ? "Move":"Déplacer"),
@@ -3940,12 +4011,24 @@ var commonTools = {
 				var iData = self.data[i];
 				var shape = shapeToData(iData);
 				var respawn = nullablePointToData(iData.respawn);
+				var orientation = iData.orientation||0;
+				if (!payload.trous[orientation]) {
+					if (Array.isArray(payload.trous)) {
+						var nTrous = {};
+						for (var j=0;j<payload.trous.length;j++) {
+							if (payload.trous[j].length)
+								nTrous[j] = payload.trous[j];
+						}
+						payload.trous = nTrous;
+					}
+					payload.trous[orientation] = [];
+				}
 				payload.trous[iData.orientation||0].push([shape,respawn]);
 			}
 		},
 		"restore" : function(self,payload) {
 			for (var k=0;k<2;k++) {
-				for (var j=0;j<4;j++) {
+				for (var j in payload.trous) {
 					for (var i=0;i<payload.trous[j].length;i++) {
 						var iPayload = payload.trous[j][i];
 						var iData = dataToShape(iPayload[0]);
@@ -3979,8 +4062,12 @@ var commonTools = {
 				var iData = self.data[i];
 				flipShape(iData, imgSize,axis);
 				flipNullablePoint(iData.respawn, imgSize,axis);
-				if ((iData.orientation%2) == (axis.coord=="x" ? 1:0))
-					iData.orientation = (iData.orientation+2)%4;
+				if (iData.orientation != null) {
+					if (axis.coord == "x")
+						iData.orientation = (4 - iData.orientation) % 4;
+					else
+						iData.orientation = (6 - iData.orientation) % 4;
+				}
 			}
 		}
 	},
