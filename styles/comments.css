@@ -85,6 +85,9 @@
 	div#connect, div#coliste, div.comsg, div#chatsctn {
 		z-index: 20000;
 	}
+	div#message-reactions {
+		z-index: 20001;
+	}
 }
 #comments-section h1 {
 	margin: 5px;
