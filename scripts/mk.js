@@ -1532,7 +1532,7 @@ function initMap() {
 		}
 	}
 	if (oMap.trous) {
-		for (var i=0;i<4;i++) {
+		for (var i in oMap.trous) {
 			var holes = {rectangle:[],polygon:[]};
 			for (var j=0;j<oMap.trous[i].length;j++) {
 				var hole = oMap.trous[i][j];
@@ -10663,7 +10663,7 @@ function getHorizontality(iX,iY,iZ, iI,iJ, options) {
 	if (oMap.collision)
 		handleCollisions(oMap.collision, function(oBox) { return oBox; }, function(shapeType, i,z) { return pointInAltitude(oMap.collisionProps[shapeType], i,z) });
 	if (options.holes && oMap.trous) {
-		for (var j=0;j<oMap.trous.length;j++)
+		for (var j in oMap.trous)
 			handleCollisions(oMap.trous[j], function(oBox) { return oBox[0]; }, function(oBox) { return true; });
 	}
 	if (nearCol.dir) {
@@ -10688,7 +10688,7 @@ function getNearestHoleDist(iX,iY, stopAt) {
 	var res = stopAt || Infinity;
 	if (!oMap.trous)
 		return res;
-	for (var j=0;j<4;j++) {
+	for (var j in oMap.trous) {
 		var oRectangles = oMap.trous[j].rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
 			var oHole = oRectangles[i][0];
@@ -10917,7 +10917,7 @@ function tombe(iX, iY, iC) {
 
 	var fTrou;
 	if (oMap.trous) {
-		for (var j=0;j<4;j++) {
+		for (var j in oMap.trous) {
 			var oRectangles = oMap.trous[j].rectangle;
 			for (var i=0;i<oRectangles.length;i++) {
 				var oHole = oRectangles[i];
