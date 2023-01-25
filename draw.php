@@ -167,8 +167,16 @@ if (isset($_GET['i'])) {
 					</div>
 				</div>
 				<div id="mode-option-boosts">
-					<?php echo $language ? 'Size':'Taille'; ?>:
-					<input type="text" id="boost-w" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />&times;<input type="text" id="boost-h" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />
+					<?php echo $language ? 'Type:':'Type :'; ?>
+					<div class="radio-selector" id="boosts-shape" data-change="boostTypeChange">
+						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
+						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
+						&nbsp;<button value="box" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/box.png')"></button>
+					</div>
+					<div id="boosts-size">
+						<?php echo $language ? 'Size':'Taille'; ?>:
+						<input type="text" id="boost-w" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />&times;<input type="text" id="boost-h" size="1" value="8" maxlength="3" onchange="boostSizeChanged()" />
+					</div>
 				</div>
 				<div id="mode-option-decor">
 					<?php printDecorTypeSelector(); ?>

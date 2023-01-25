@@ -875,6 +875,10 @@ function shapeChange(e) {
 	editorTool.state.shape = e.value;
 	replaceNodeType(editorTool);
 }
+function boostTypeChange(e) {
+	shapeChange(e);
+	boostTypeChanged(e.type);
+}
 function replaceNodeType(editorTool) {
 	if (editorTool.state.point) {
 		var lastPoint = editorTool.state.point;
@@ -882,6 +886,9 @@ function replaceNodeType(editorTool) {
 		switch (editorTool.state.shape) {
 		case "polygon":
 			editorTool.state.point = createCircle({x:-1,y:-1,r:0.5});
+			break;
+		case "box":
+			editorTool.state.point = createBox(editorTool.state.boxSize);
 			break;
 		default:
 			editorTool.state.point = createRectangle({x:-1,y:-1});
@@ -2381,6 +2388,7 @@ function rescaleBox(data, scale) {
 var hpTypes = ["herbe","eau","glace","choco"];
 function boostSizeChanged() {
 	var editorTool = editorTools[currentMode];
+	if (editorTool.state.shape !== "box") return;
 	var boxSize = {w:+document.getElementById("boost-w").value,h:+document.getElementById("boost-h").value};
 	if (!(boxSize.w > 0)) {
 		boxSize.w = editorTool.state.boxSize.w;
@@ -2392,6 +2400,13 @@ function boostSizeChanged() {
 	}
 	updateBoxSize(editorTool.state.point,boxSize);
 	editorTool.state.boxSize = boxSize;
+}
+function boostTypeChanged(type) {
+	var $boostSize = document.getElementById("boosts-size");
+	if (type === "box")
+		$boostSize.style.display = "";
+	else
+		$boostSize.style.display = "none";
 }
 function initTrajectOptions() {
 	document.getElementById("traject-menu").style.display = "block";
@@ -4432,59 +4447,170 @@ var commonTools = {
 			self.state.boxSize = {w:8,h:8};
 			self.state.point = createBox(self.state.boxSize);
 			self.state.point.classList.add("noclick");
+			self.state.shape = "rectangle";
 			var data = self.data;
 			self.data = [];
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
-				var boxSize = {w:iData.w,h:iData.h};
-				updateBoxSize(self.state.point,boxSize);
-				self.state.boxSize = boxSize;
-				self.click(self,iData,{});
+				self.state.shape = iData.type;
+				switch (iData.type) {
+				case "rectangle":
+					self.click(self,iData,{});
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					break;
+				case "polygon":
+					for (var j=0;j<iData.points.length;j++)
+						self.click(self,iData.points[j],{});
+					self.state.nodes[0].circle.onclick();
+					break;
+				default:
+					var boxSize = {w:iData.w,h:iData.h};
+					updateBoxSize(self.state.point,boxSize);
+					self.state.boxSize = boxSize;
+					self.click(self,iData,{});
+				}
 			}
+			replaceNodeType(self);
+			document.getElementById("boosts-shape").setValue(self.state.shape);
+			boostTypeChanged(self.state.shape);
 			boostSizeChanged();
 		},
-		"click" : function(self,data,extra) {
-			if (extra.oob)
-				return;
-			self.move(self,data,extra);
-			data.w = self.state.boxSize.w;
-			data.h = self.state.boxSize.h;
-			storeHistoryData(self.data);
-			self.data.push(data);
-			var box = self.state.point;
-			box.classList.remove("noclick");
-			box.oncontextmenu = function(e) {
-				hideBox(self.state.point,self.state.boxSize);
-				return showContextOnElt(e,box,[{
-					text: (language ? "Move":"Déplacer"),
-					click: function() {
-						moveBox(box,data,data);
+		"click" : function(self,point,extra) {
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				if (self.state.rectangle)
+					appendRectangleBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startRectangleBuilder(self,point, {
+							on_apply: function(rectangle,data) {
+								self.data.push(data);
+								addContextMenuEvent(rectangle,[{
+									text: (language ? "Resize":"Redimensionner"),
+									click: function() {
+										resizeRectangle(rectangle,data);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										moveRectangle(rectangle,data);
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(rectangle);
+										storeHistoryData(self.data);
+										removeFromArray(self.data,data);
+									}
+								}]);
+							}
+						});
 					}
-				}, {
-					text:(language ? "Delete":"Supprimer"),
-					click:function() {
-						$editor.removeChild(box);
-						storeHistoryData(self.data);
-						removeFromArray(self.data,data);
+				}
+				break;
+			case "polygon":
+				if (self.state.polygon)
+					appendPolygonBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startPolygonBuilder(self,point, {
+							on_apply: function(polygon,points) {
+								var data = {type:"polygon",points:points};
+								self.data.push(data);
+								polygon.setAttribute("stroke-width", 1);
+								addContextMenuEvent(polygon, [{
+									text: (language ? "Edit":"Modifier"),
+									click: function() {
+										editPolygon(polygon,data);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										movePolygon(polygon,data);
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(polygon);
+										storeHistoryData(self.data);
+										removeFromArray(self.data,data);
+									}
+								}]);
+							}
+						});
 					}
-				}]);
-			};
-			self.state.point = createBox(self.state.boxSize);
-			self.state.point.classList.add("noclick");
+				}
+				break;
+			default:
+				if (extra.oob)
+					return;
+				self.move(self,point,extra);
+				point.type = "box";
+				point.w = self.state.boxSize.w;
+				point.h = self.state.boxSize.h;
+				storeHistoryData(self.data);
+				self.data.push(point);
+				var box = self.state.point;
+				box.classList.remove("noclick");
+				box.oncontextmenu = function(e) {
+					hideBox(self.state.point,self.state.boxSize);
+					return showContextOnElt(e,box,[{
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							moveBox(box,point,point);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							$editor.removeChild(box);
+							storeHistoryData(self.data);
+							removeFromArray(self.data,point);
+						}
+					}]);
+				};
+				self.state.point = createBox(self.state.boxSize);
+				self.state.point.classList.add("noclick");
+			}
 		},
 		"move" : function(self,point,extra) {
-			setBoxPosRound(self.state.point,point,self.state.boxSize);
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				moveRectangleBuilder(self,point);
+				break;
+			case "polygon":
+				movePolygonBuilder(self,point);
+				break;
+			default:
+				setBoxPosRound(self.state.point,point,self.state.boxSize);
+			}
 		},
 		"save" : function(self,payload) {
 			payload.accelerateurs = [];
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
-				var iPayload = pointToData(iData);
-				iPayload[0] = Math.round(iPayload[0]-iData.w/2);
-				iPayload[1] = Math.round(iPayload[1]-iData.h/2);
-				if (iData.w != 8 || iData.h != 8) {
-					iPayload[2] = iData.w;
-					iPayload[3] = iData.h;
+				var iPayload;
+				switch (iData.type) {
+				case "box":
+					iPayload = pointToData(iData);
+					iPayload[0] = Math.round(iPayload[0]-iData.w/2);
+					iPayload[1] = Math.round(iPayload[1]-iData.h/2);
+					if (iData.w != 8 || iData.h != 8) {
+						iPayload[2] = iData.w;
+						iPayload[3] = iData.h;
+					}
+					break;
+				case "rectangle":
+					iPayload = rectToData(iData);
+					if (iData.w == 8 && iData.h == 8) {
+						delete iPayload[2];
+						delete iPayload[3];
+					}
+					break;
+				case "polygon":
+					iPayload = polyToData(iData.points);
+					break;
 				}
 				payload.accelerateurs.push(iPayload);
 			}
@@ -4492,31 +4618,61 @@ var commonTools = {
 		"restore" : function(self,payload) {
 			for (var i=0;i<payload.accelerateurs.length;i++) {
 				var iPayload = payload.accelerateurs[i];
-				var iData = dataToPoint(iPayload);
-				if (iPayload[2] && iPayload[3]) {
-					iData.w = iPayload[2];
-					iData.h = iPayload[3];
+				if (("number" === typeof(iPayload[0])) && !(iPayload[2] && iPayload[3])) {
+					iPayload[2] = 8;
+					iPayload[3] = 8;
 				}
-				else {
-					iData.w = 8;
-					iData.h = 8;
-				}
-				iData.x += Math.floor(iData.w/2);
-				iData.y += Math.floor(iData.h/2);
+				var iData = dataToShape(iPayload);
 				self.data.push(iData);
 			}
 		},
 		"rescale" : function(self, scale) {
-			for (var i=0;i<self.data.length;i++)
-				rescaleBox(self.data[i], scale);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				switch (iData.type) {
+				case "box":
+					rescaleBox(iData, scale);
+					break;
+				case "rectangle":
+					rescaleRect(iData, scale);
+					break;
+				case "polygon":
+					rescalePoly(iData.points, scale);
+					break;
+				}
+			}
 		},
 		"rotate" : function(self, orientation) {
-			for (var i=0;i<self.data.length;i++)
-				rotateBox(self.data[i], imgSize,orientation);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				switch (iData.type) {
+				case "box":
+					rotateBox(iData, imgSize,orientation);
+					break;
+				case "rectangle":
+					rotateRect(iData, imgSize,orientation);
+					break;
+				case "polygon":
+					rotatePoly(iData.points, imgSize,orientation);
+					break;
+				}
+			}
 		},
 		"flip" : function(self, axis) {
-			for (var i=0;i<self.data.length;i++)
-				flipBox(self.data[i], imgSize,axis);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				switch (iData.type) {
+				case "box":
+					flipBox(iData, imgSize,axis);
+					break;
+				case "rectangle":
+					flipRect(iData, imgSize,axis);
+					break;
+				case "polygon":
+					flipPoly(iData.points, imgSize,axis);
+					break;
+				}
+			}
 		}
 	},
 	"decor": {
