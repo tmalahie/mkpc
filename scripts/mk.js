@@ -1552,8 +1552,10 @@ function initMap() {
 		oMap.flows = flows;
 	}
 	if (oMap.accelerateurs) {
-		for (var i=0;i<oMap.accelerateurs.length;i++) {
-			var oBox = oMap.accelerateurs[i];
+		oMap.accelerateurs = classifyByShape(oMap.accelerateurs);
+		var oRectangles = oMap.accelerateurs.rectangle;
+		for (var i=0;i<oRectangles.length;i++) {
+			var oBox = oRectangles[i];
 			if (oBox[2]) {
 				oBox[2]++;
 				oBox[3]++;
@@ -10859,11 +10861,19 @@ function getOffroadProps(oKart,hpType) {
 function accelere(iX, iY, iI, iJ) {
 	if (!oMap.accelerateurs) return false;
 	var nX = iX+iI, nY = iY+iJ;
-	for (var i=0;i<oMap.accelerateurs.length;i++) {
-		var oBox = oMap.accelerateurs[i];
+	var oRectangles = oMap.accelerateurs.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
 		if (pointInRectangle(nX,nY, oBox))
 			return true;
 		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
+			return true;
+	}
+	var oPolygons = oMap.accelerateurs.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(nX,nY, oPolygons[i]))
+			return true;
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
 			return true;
 	}
 	return false;
