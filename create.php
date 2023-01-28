@@ -135,6 +135,7 @@ $circuitGroups = $language ? Array(
 		19 => 'Snow Land',
 		22 => 'Ribbon Road',
 		23 => 'Yoshi Desert',
+		55 => 'Riverside Park',
 		53 => 'Bowser Castle 3',
 		25 => 'Rainbow Road'
 	), 
@@ -181,6 +182,7 @@ $circuitGroups = $language ? Array(
 		19 => 'Royaume Sorbet',
 		22 => 'Route Ruban',
 		23 => 'Désert Yoshi',
+		55 => 'Bord du Fleuve',
 		53 => 'Château de Bowser 3',
 		25 => 'Route Arc-en-Ciel'
 	),
