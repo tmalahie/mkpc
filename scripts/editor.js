@@ -877,7 +877,7 @@ function shapeChange(e) {
 }
 function boostTypeChange(e) {
 	shapeChange(e);
-	boostTypeChanged(e.type);
+	boostTypeChanged(e.value);
 }
 function replaceNodeType(editorTool) {
 	if (editorTool.state.point) {
