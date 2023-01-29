@@ -579,15 +579,15 @@ function o_appendmsgs(memberID,messages) {
 	if (isBottomScrolled)
 		o_list.scrollTop = o_list.scrollHeight;
 }
-function o_notify_msg(pseudo,msg) {
+function o_notify_msg(key,pseudo,msg) {
 	if (!o_focused) {
 		msg = msg.replace(/&#039;/g, "'").replace(/&quot;/g, '"').replace("<br />", "\n").replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
-		b_notify(pseudo,msg);
+		b_notify("o_msg."+key,pseudo,msg);
 	}
 }
-function o_notify_online(pseudo,battle) {
+function o_notify_online(key,pseudo,battle) {
 	if (!o_focused)
-		b_notify(pseudo, (o_language ? 'Propose an online '+(battle?"battle":"race")+' with you.' : 'Propose de vous affronter sur une '+(battle?"bataille":"course")+' en ligne.'));
+		b_notify("o_online."+key,pseudo, (o_language ? 'Wants to play an online '+(battle?"battle":"race")+' with you.' : 'Propose de vous affronter sur une '+(battle?"bataille":"course")+' en ligne.'));
 }
 function o_newmsgsound() {
 	if (o_active) {
@@ -1436,7 +1436,7 @@ function o_refresh() {
 			}
 			for (var i=0;i<newDemandes.length;i++) {
 				o_updateactivity(newDemandes[i][0], 10);
-				var o_msgId = displayMsg(o_language ? '<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) proposes an online <b>'+(newDemandes[i][3]?"battle":"race")+'</b> with you<br /><input type="button" value="Accept" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Reject" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />':'<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) propose de vous affronter sur une <b>'+(newDemandes[i][3]?"bataille":"course")+'</b> en ligne<br /><input type="button" value="Accepter" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Refuser" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />', true);
+				var o_msgId = displayMsg(o_language ? '<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) wants to play an online <b>'+(newDemandes[i][3]?"battle":"race")+'</b> with you<br /><input type="button" value="Accept" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Reject" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />':'<b>'+ newDemandes[i][1] +'</b> ('+ newDemandes[i][2] +' pts) propose de vous affronter sur une <b>'+(newDemandes[i][3]?"bataille":"course")+'</b> en ligne<br /><input type="button" value="Accepter" onclick="o_send_answer('+ newDemandes[i][0] +',1,\'\','+ newDemandes[i][3] +');deleteCross(this)" /> - <input type="button" value="Refuser" onclick="o_repond('+ newDemandes[i][0] +',\''+ newDemandes[i][1] +'\',0,this,'+ newDemandes[i][3] +')" />', true);
 				if (o_msgId != -1) {
 					var cross = document.getElementById("comsg"+ o_msgId).getElementsByTagName("a")[0];
 					cross.player = newDemandes[i][0];
@@ -1444,7 +1444,7 @@ function o_refresh() {
 					cross.onclick = function() {
 						o_send_answer(this.player,0,"",this.battle);
 					}
-					o_notify_online(newDemandes[i][1],newDemandes[i][3]);
+					o_notify_online(newDemandes[i][0],newDemandes[i][1],newDemandes[i][3]);
 				}
 			}
 			if (newDemandes.length)
@@ -1588,7 +1588,7 @@ function o_handlenewconvs(newConvs) {
 				o_launchchat(this.dataset.member,this.dataset.pseudo);
 				deleteCross(this);
 			};
-			o_notify_msg(newConv[2],newConv[3]);
+			o_notify_msg(newConv[1],newConv[2],newConv[3]);
 		}
 	}
 	if (newConvs.length)
@@ -1636,12 +1636,13 @@ function o_updateactivityto(memberID,timestamp) {
 function o_stopactivity(memberID) {
 	delete oLastActivities[memberID];
 }
-function b_notify(title,msg) {
+function b_notify(key,title,msg) {
 	if (o_active) {
 		if (window.Notification) {
 			var notification = new Notification(title, {
 				icon: 'images/mkpc_box.jpg',
-				body: msg
+				body: msg,
+				tag: key
 			});
 			notification.onclick = function() {
 				window.focus();
