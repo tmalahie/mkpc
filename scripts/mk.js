@@ -3742,6 +3742,15 @@ function startGame() {
 								case 40:
 									btnDir = 1;
 									break;
+								case 13:
+									var focusingElt = document.activeElement;
+									if (focusingElt && focusingElt.onclick && oInfos.contains(focusingElt) && iSfx) {
+										setTimeout(function() {
+											if (!document.onkeydown)
+												playSoundEffect("musics/events/menuselect.mp3");
+										});
+									}
+									break;
 								}
 								if (btnDir) {
 									var focusingElt = document.activeElement;
@@ -3758,6 +3767,8 @@ function startGame() {
 												var nextElt = inputs[i];
 												if (nextElt && (nextElt.style.display != "none") && (nextElt.style.visibility != "hidden")) {
 													nextElt.focus();
+													if (iSfx)
+														playSoundEffect("musics/events/menumove.mp3");
 													break;
 												}
 											} while (i != currentId);
@@ -17436,7 +17447,10 @@ document.onkeydown = function(e) {
 			if (selectedOscrElt) {
 				if (focusIndicator.parentNode === oScr)
 					oScr.removeChild(focusIndicator);
+				var isBack = selectedOscrElt.value === toLanguage("Back","Retour");
 				selectedOscrElt.click();
+				if (iSfx)
+					playSoundEffect("musics/events/"+ (isBack ? "menuback" : "menuselect") +".mp3");
 			}
 			break;
 		case "_Back":
@@ -17446,6 +17460,8 @@ document.onkeydown = function(e) {
 				var bounds = oBackButton.getBoundingClientRect();
 				if (bounds.width > 0 && bounds.height > 0) {
 					oBackButton.click();
+					if (iSfx)
+						playSoundEffect("musics/events/menuback.mp3");
 					break;
 				}
 			}
@@ -17541,19 +17557,21 @@ document.onkeydown = function(e) {
 		return res;
 	}
 	var gameAction = getGameAction(e);
-	switch (gameAction) {
-		case "up":
-			oPlayers[0].speedinc = 1;
-			var $decompte = document.getElementById("decompte0");
-			if ($decompte.innerHTML > 1)
-				updateEngineSound(carEngine2);
-			return false;
-		case "left":
-			oPlayers[0].rotincdir = getMirrorFactor();
-			return false;
-		case "right":
-			oPlayers[0].rotincdir = -getMirrorFactor();
-			return false;
+	if (oPlayers[0]) {
+		switch (gameAction) {
+			case "up":
+				oPlayers[0].speedinc = 1;
+				var $decompte = document.getElementById("decompte0");
+				if ($decompte.innerHTML > 1)
+					updateEngineSound(carEngine2);
+				return false;
+			case "left":
+				oPlayers[0].rotincdir = getMirrorFactor();
+				return false;
+			case "right":
+				oPlayers[0].rotincdir = -getMirrorFactor();
+				return false;
+		}
 	}
 	if (oPlayers[1]) {
 		switch (gameAction) {
@@ -17589,23 +17607,28 @@ function showFocusIndicator(oScr, oButton) {
 	focusIndicator.style.width = (oRect.width + 2*paddingW) +"px";
 	focusIndicator.style.height = (oRect.height + 2*paddingH) +"px";
 	focusIndicator.style.borderRadius = paddingH +"px";
+
+	if (iSfx)
+		playSoundEffect("musics/events/menumove.mp3");
 }
 
 
 document.onkeyup = function(e) {
 	if (onlineSpectatorId) return;
 	var gameAction = getGameAction(e);
-	switch (gameAction) {
-		case "up":
-			oPlayers[0].speedinc = 0;
-			updateEngineSound(carEngine);
-			break;
-		case "left":
-			oPlayers[0].rotincdir = 0;
-			break;
-		case "right":
-			oPlayers[0].rotincdir = 0;
-			break;
+	if (oPlayers[0]) {
+		switch (gameAction) {
+			case "up":
+				oPlayers[0].speedinc = 0;
+				updateEngineSound(carEngine);
+				break;
+			case "left":
+				oPlayers[0].rotincdir = 0;
+				break;
+			case "right":
+				oPlayers[0].rotincdir = 0;
+				break;
+		}
 	}
 	if (oPlayers[1]) {
 		switch (gameAction) {
@@ -27860,6 +27883,7 @@ function initGamepadMenuEvents() {
 					break;
 				case "Enter":
 					document.activeElement.click();
+					oInfos.onkeydown({ keyCode: 13 });
 					break;
 				}
 			}
