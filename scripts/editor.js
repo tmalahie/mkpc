@@ -4375,6 +4375,9 @@ var commonTools = {
 				break;
 			}
 		},
+		"round_on_pixel" : function(self) {
+			return self.state.shape == "polygon";
+		},
 		"_arrowFactor": 32.4,
 		"save" : function(self,payload) {
 			payload.sauts = [];
@@ -4585,6 +4588,9 @@ var commonTools = {
 			default:
 				setBoxPosRound(self.state.point,point,self.state.boxSize);
 			}
+		},
+		"round_on_pixel" : function(self) {
+			return self.state.shape == "polygon";
 		},
 		"save" : function(self,payload) {
 			payload.accelerateurs = [];
