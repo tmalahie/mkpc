@@ -15442,6 +15442,10 @@ function move(getId, triggered) {
 					}
 				}
 			}
+			else if (oPlayers[0].losing) {
+				gagnant = oPlayers[0];
+				delete gagnant.losing;
+			}
 			if (gagnant) {
 				clLocalVars.gagnant = gagnant;
 				for (i=0;i<strPlayer.length;i++) {
@@ -15838,7 +15842,10 @@ function move(getId, triggered) {
 				for (var i=0;i<strPlayer.length;i++)
 					oKart.marker.div[i].style.display = "none";
 			}
-			oKart.loose = true;
+			if (aKarts.length > 1)
+				oKart.loose = true;
+			else
+				oKart.losing = true;
 			challengeCheck("each_kill");
 		}
 	}
