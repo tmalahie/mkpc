@@ -7,7 +7,7 @@ if ($id) {
 		echo '[';
 		echo $id.',"'.$getPseudo['nom'].'",'.$language.','.$getPseudo['online'].',';
 		echo '[';
-		$getConvs = mysql_query('SELECT c.receiver,j.nom FROM `mkconvs` c INNER JOIN `mkjoueurs` j ON c.receiver=j.id WHERE c.sender="'. $id .'" ORDER BY c.id');
+		$getConvs = mysql_query('SELECT c.receiver,j.nom,c.reduced FROM `mkconvs` c INNER JOIN `mkjoueurs` j ON c.receiver=j.id WHERE c.sender="'. $id .'" ORDER BY c.id');
 		$v = '';
 		include('o_consts.php');
 		include('o_utils.php');
@@ -17,7 +17,10 @@ if ($id) {
 			echo '[';
 			echo $conv['receiver'] .',"'. $conv['nom'].'",';
 			echo '[';
-			$getMsgs = mysql_query('SELECT * FROM `mkchats` WHERE (sender="'. $id .'" AND receiver="'. $conv['receiver'] .'") OR (sender="'. $conv['receiver'] .'" AND receiver="'. $id .'") ORDER BY id DESC LIMIT '. $MSGS_PACKET_SIZE);
+			if ($conv['reduced'])
+				$getMsgs = mysql_query('SELECT * FROM `mkchats` WHERE (sender="'. $id .'" AND receiver="'. $conv['receiver'] .'") OR (sender="'. $conv['receiver'] .'" AND receiver="'. $id .'" AND seen=1) ORDER BY id DESC LIMIT '. $MSGS_PACKET_SIZE);
+			else
+				$getMsgs = mysql_query('SELECT * FROM `mkchats` WHERE (sender="'. $id .'" AND receiver="'. $conv['receiver'] .'") OR (sender="'. $conv['receiver'] .'" AND receiver="'. $id .'") ORDER BY id DESC LIMIT '. $MSGS_PACKET_SIZE);
 			$v2 = '';
 			while ($msg = mysql_fetch_array($getMsgs)) {
 				echo $v2;
@@ -25,6 +28,8 @@ if ($id) {
 				echo '['.$msg['id'].','.$msg['sender'].',"'.parse_msg($msg['message']).'","'.to_local_tz($msg['date']).'"]';
 			}
 			echo ']';
+			if ($conv['reduced'])
+				echo ',1';
 			echo ']';
 		}
 		echo '],[';

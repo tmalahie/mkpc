@@ -3,7 +3,7 @@ include('session.php');
 if ($id && isset($_POST['member'])) {
 	include('initdb.php');
 	if (mysql_numrows(mysql_query('SELECT * FROM `mkjoueurs` WHERE id="'. $_POST['member'] .'"'))) {
-		mysql_query('INSERT INTO `mkconvs` VALUES(NULL,"'. $id .'","'. $_POST['member'] .'",NULL)');
+		mysql_query('INSERT IGNORE INTO `mkconvs` VALUES(NULL,"'. $id .'","'. $_POST['member'] .'",NULL,0)');
 		mysql_query('UPDATE `mkchats` SET seen=1 WHERE sender="'. $_POST['member'] .'" AND receiver="'. $id .'"');
 		mysql_query('DELETE FROM `mkignores` WHERE ignorer="'. $id .'" AND ignored="'. $_POST['member'] .'"');
 	}

@@ -647,7 +647,14 @@ function o_launchchat(memberID,memberPseudo) {
 			oIgnores.splice(ignoreID,1);
 			o_refreshtable();
 		}
-		o_startchat(memberID,memberPseudo,reponse,true);
+		o_startchat({
+			member: {
+				id: memberID,
+				pseudo: memberPseudo
+			},
+			messages: reponse,
+			autofocus: true
+		});
 		return true;
 	});
 }
@@ -656,7 +663,10 @@ function o_updateinputsize(o_input) {
 	if (o_input.value)
 		o_input.style.height = (o_input.scrollHeight+4) +"px";
 }
-function o_startchat(memberID,pseudo,messages,autofocus) {
+function o_startchat(opts) {
+	var memberID = opts.member.id;
+	var pseudo = opts.member.pseudo;
+	var messages = opts.messages;
 	var o_chat = document.getElementById("chatwindow"+ memberID);
 	if (o_chat) {
 		if (o_chat.dataset.reduced)
@@ -670,6 +680,8 @@ function o_startchat(memberID,pseudo,messages,autofocus) {
 	o_chat.dataset.member = memberID;
 	o_chat.dataset.pseudo = pseudo;
 	o_chat.dataset.typing = -1;
+	if (opts.reduced)
+		o_reducechat(o_chat);
 	var o_header = document.createElement("div");
 	o_header.className = "chatbar";
 	var o_title = document.createElement("div");
@@ -722,6 +734,9 @@ function o_startchat(memberID,pseudo,messages,autofocus) {
 	}
 	o_reduce.onclick = function() {
 		o_reducechat(o_chat);
+		o_xhr("reducechat.php", "member="+ memberID +"&state=1", function(reponse) {
+			return (reponse == 1);
+		});
 		return false;
 	};
 	o_header.appendChild(o_reduce);
@@ -796,7 +811,7 @@ function o_startchat(memberID,pseudo,messages,autofocus) {
 	o_input.onfocus = function() {
 		o_resettitle();
 	};
-	if (autofocus)
+	if (opts.autofocus)
 		o_input.focus();
 }
 function o_stopchat(memberID) {
@@ -819,6 +834,11 @@ function o_restorechat(o_chat) {
 	o_chat.dataset.reduced = "";
 	var o_list = o_chat.getElementsByClassName("chatmsgs")[0];
 	o_list.scrollTop = o_list.scrollHeight;
+	var o_input = o_chat.querySelector('textarea[name="o_msginput"]');
+	if (o_input) o_input.focus();
+	o_xhr("reducechat.php", "member="+ o_chat.dataset.member +"&state=0", function(reponse) {
+		return (reponse == 1);
+	});
 }
 function o_updatestatut(memberID) {
 	var o_chat = document.getElementById("chatwindow"+ memberID);
@@ -1025,7 +1045,14 @@ function o_loadOnline() {
 			var o_convs = oPseudoInfos[4];
 			for (var i=0;i<o_convs.length;i++) {
 				var o_conv = o_convs[i];
-				o_startchat(o_conv[0],o_conv[1],o_conv[2],false);
+				o_startchat({
+					member: {
+						id: o_conv[0],
+						pseudo: o_conv[1]
+					},
+					messages: o_conv[2],
+					reduced: o_conv[3]
+				});
 			}
 			oIgnores = oPseudoInfos[5];
 			o_xhr("coreload.php", "", function(reponse) {
@@ -1534,8 +1561,10 @@ function o_chatrefresh() {
 }
 function o_addmsgdata(inc,data,o_chat) {
 	data.push("c"+ inc +"="+ o_chat.dataset.member);
-	var lastID = o_lastmsgid(o_chat);
-	data.push("m"+ inc +"="+ lastID);
+	if (!o_chat.dataset.reduced) {
+		var lastID = o_lastmsgid(o_chat);
+		data.push("m"+ inc +"="+ lastID);
+	}
 	if (o_chat.dataset.typing != -1) {
 		data.push("w"+ inc +"="+ o_chat.dataset.typing);
 		o_chat.dataset.typing = -1;
