@@ -47,6 +47,9 @@ main table a {
 main table a:hover {
     color: #f80;
 }
+main table td {
+    word-break: break-word;
+}
 table a.profile {
 	color: #820;
 }
