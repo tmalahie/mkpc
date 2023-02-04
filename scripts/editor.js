@@ -2,6 +2,7 @@ var offsetX = 0, offsetY = 0;
 var $editor, $editorCtn, $toolbox;
 var SVG = "http://www.w3.org/2000/svg";
 var initFancyTitle;
+var editorClipboard = {};
 document.addEventListener("DOMContentLoaded", function() {
 	var $radioSelectors = document.querySelectorAll(".radio-selector");
 	for (var i=0;i<$radioSelectors.length;i++) {
@@ -178,6 +179,102 @@ function storeHistoryData(data) {
 		historyData.shift();
 	historyUndo.length = 0;
 }
+
+function handleMoveOnPaste(fakeRectangle, options) {
+	if (options.autoMoveFrom) {
+		var event = new MouseEvent('click', {
+			'clientX' : options.autoMoveFrom.pageX,
+			'clientY' : options.autoMoveFrom.pageY
+		});
+		fakeRectangle.dispatchEvent(event);
+	}
+}
+function copyShape(data) {
+	editorClipboard.mode = currentMode;
+	editorClipboard.content = deepCopy(data);
+}
+function pasteShape(e,selfData,point) {
+	var clipboardContent = editorClipboard.content;
+	switch (clipboardContent.type) {
+	case "rectangle":
+		clipboardContent.x = point.x - clipboardContent.w/2;
+		clipboardContent.y = point.y - clipboardContent.h/2;
+		break;
+	case "polygon":
+		var polygonCenter = getPolygonCenter(clipboardContent.points);
+		for (var i=0;i<clipboardContent.points.length;i++) {
+			var iPoint = clipboardContent.points[i];
+			iPoint.x += point.x - polygonCenter.x;
+			iPoint.y += point.y - polygonCenter.y;
+		}
+		break;
+	case "circle":
+		clipboardContent.x = point.x;
+		clipboardContent.y = point.y;
+		break;
+	case "box":
+		clipboardContent.x = point.x;
+		clipboardContent.y = point.y;
+		break;
+	}
+	clipboardContent.pastedFrom = e;
+	storeHistoryData(editorTools[currentMode].data);
+	selfData.push(clipboardContent);
+	selectMode(currentMode);
+	editorClipboard.content = deepCopy(clipboardContent);
+}
+var editorPasteHandler;
+function handlePaste(shape,data,extra,options) {
+	if (extra && extra.pastedFrom) {
+		var newOptions = Object.assign({ autoMoveFrom: extra.pastedFrom }, options);
+		clearTimeout(editorPasteHandler);
+		editorPasteHandler = setTimeout(function() {
+			switch (data.type) {
+			case "rectangle":
+				moveRectangle(shape,data, newOptions);
+				break;
+			case "polygon":
+				movePolygon(shape,data, newOptions);
+				break;
+			case "circle":
+				moveCircle(shape,data, newOptions);
+				break;
+			case "box":
+				moveBox(shape,data,data, newOptions);
+				break;
+			}
+		});
+	}
+}
+function showPasteCtxMenu(options) {
+	options = options || {};
+	return function(self,e,point) {
+		var selfData = options.selfData ? options.selfData(self) : self.data;
+		var disabled = isPasteOptionDisabled(self,options);
+		showContextMenu(e,[{
+			text: (language ? "Paste":"Coller"),
+			click: function(e) {
+				pasteShape(e,selfData,point);
+			},
+			disabled: disabled
+		}]);
+	}
+}
+function isPasteOptionDisabled(self,options) {
+	if (editorClipboard.mode !== currentMode)
+		return true;
+	if ($toolbox.classList.contains("hiddenbox"))
+		return true;
+	if (options.disabled && options.disabled(self))
+		return true;
+	return false;
+}
+function getExtraForResume(iData) {
+	var extra = {pastedFrom: iData.pastedFrom};
+	delete iData.pastedFrom;
+	return extra;
+}
+
 function resizeRectangle(rectangle,data,options) {
 	options = options||{};
 	var mask = createMask();
@@ -330,7 +427,8 @@ function moveRectangle(rectangle,data,options) {
 			e.stopPropagation();
 			$toolbox.classList.remove("hiddenbox");
 			moveRect(e);
-			storeHistoryData(editorTools[currentMode].data);
+			if (!options.autoMoveFrom)
+				storeHistoryData(editorTools[currentMode].data);
 			if (options.on_end_move)
 				options.on_end_move();
 			var apply;
@@ -350,6 +448,7 @@ function moveRectangle(rectangle,data,options) {
 			options.on_start_move();
 	};
 	mask.appendChild(fakeRectangle);
+	handleMoveOnPaste(fakeRectangle, options);
 }
 function moveCircle(circle,data,options) {
 	options = options||{};
@@ -400,6 +499,7 @@ function moveCircle(circle,data,options) {
 			options.on_start_move();
 	};
 	mask.appendChild(fakeRectangle);
+	handleMoveOnPaste(fakeRectangle, options);
 }
 function editCircle(circle,data,options) {
 	options = options||{};
@@ -483,6 +583,7 @@ function moveBox(box,data,size,options) {
 			options.on_start_move();
 	};
 	mask.appendChild(fakeRectangle);
+	handleMoveOnPaste(fakeRectangle, options);
 }
 function moveNode(node,data,lines) {
 	var mask = createMask();
@@ -703,7 +804,8 @@ function movePolygon(polygon,data,options) {
 			e.stopPropagation();
 			$toolbox.classList.remove("hiddenbox");
 			movePoly(e);
-			storeHistoryData(editorTools[currentMode].data);
+			if (!options.autoMoveFrom)
+				storeHistoryData(editorTools[currentMode].data);
 			if (options.on_end_move)
 				options.on_end_move();
 			var apply;
@@ -723,6 +825,7 @@ function movePolygon(polygon,data,options) {
 			options.on_start_move();
 	};
 	mask.appendChild(fakeRectangle);
+	handleMoveOnPaste(fakeRectangle, options);
 }
 function moveArrow(arrow,origin,dir,options) {
 	options = options||{};
@@ -807,6 +910,35 @@ function moveArrowNode(arrow,data) {
 	mask.close = function(){};
 	$toolbox.classList.add("hiddenbox");
 }
+function rotateArrowNode(arrow,data,origin) {
+	var mask = createMask();
+	var angle = data.orientation;
+	var hint = rotateHintBuilder();
+	function moveArr(e) {
+		var point = getEditorCoordsExact(getPointerPos(e));
+		angle = Math.atan2(point.x-origin.x, point.y-origin.y) * 2 / Math.PI;
+		if (!angle) angle = 0;
+		if (e.shiftKey)
+			angle = Math.round(angle);
+		arrow.rotate(angle);
+		hint.handleRotate(e);
+	}
+	function stopMoveArr(e) {
+		e.stopPropagation();
+		$toolbox.classList.remove("hiddenbox");
+		moveArr(e);
+		storeHistoryData(editorTools[currentMode].data);
+		data.orientation = angle;
+		mask.removeEventListener("mousemove", moveArr);
+		mask.removeEventListener("mouseup", stopMoveArr);
+		mask.defaultClose();
+		hint.remove();
+	}
+	mask.addEventListener("mousemove", moveArr);
+	mask.addEventListener("mouseup", stopMoveArr);
+	mask.close = function(){};
+	$toolbox.classList.add("hiddenbox");
+}
 function updateBoxSize(box,boxSize) {
 	box.setAttribute("x", +box.getAttribute("x")+Math.round((box.getAttribute("width")-boxSize.w)/2));
 	box.setAttribute("y", +box.getAttribute("y")+Math.round((box.getAttribute("height")-boxSize.h)/2));
@@ -846,6 +978,10 @@ function shapeChange(e) {
 	editorTool.state.shape = e.value;
 	replaceNodeType(editorTool);
 }
+function boostTypeChange(e) {
+	shapeChange(e);
+	boostTypeChanged(e.value);
+}
 function replaceNodeType(editorTool) {
 	if (editorTool.state.point) {
 		var lastPoint = editorTool.state.point;
@@ -853,6 +989,9 @@ function replaceNodeType(editorTool) {
 		switch (editorTool.state.shape) {
 		case "polygon":
 			editorTool.state.point = createCircle({x:-1,y:-1,r:0.5});
+			break;
+		case "box":
+			editorTool.state.point = createBox(editorTool.state.boxSize);
 			break;
 		default:
 			editorTool.state.point = createRectangle({x:-1,y:-1});
@@ -956,6 +1095,15 @@ function handleMove(e) {
 		mouseCoords = getEditorCoordsExact(pointerCoords);
 		var roundedCoords = getRoundedCoords(mouseCoords,editorTool);
 		editorTool.move(editorTool,roundedCoords,{});
+	}
+}
+function handleCtxmenu(e) {
+	var editorTool = editorTools[currentMode];
+	if (editorTool.ctxmenu) {
+		e.preventDefault();
+		var pointerCoords = getPointerPos(e);
+		var roundedCoords = getEditorCoordsRounded(pointerCoords);
+		editorTool.ctxmenu(editorTool,e,roundedCoords,{});
 	}
 }
 var imgSize = {w:0,h:0};
@@ -1173,14 +1321,12 @@ function moveArc(arc,data) {
 function createArrowNode(point, orientation, append) {
 	var l = 18;
 	var d = 6;
-	var screenData = {w:0,h:0};
 	function getArrowLines(orientation) {
-		orientation = (4-orientation)%4*90;
 		var arrowPoints = [
 			{x:0,y:0},
-			rotatePoint({x:0,y:l},screenData, orientation),
-			rotatePoint({x:-d,y:l-d},screenData, orientation),
-			rotatePoint({x:d,y:l-d},screenData, orientation)
+			rotatePointCustom({x:0,y:l}, orientation),
+			rotatePointCustom({x:-d,y:l-d}, orientation),
+			rotatePointCustom({x:d,y:l-d}, orientation)
 		];
 		return [
 			[arrowPoints[0],arrowPoints[1]],
@@ -2005,9 +2151,9 @@ function showContextMenu(e,elts,onHide) {
 				oContextItem.style.opacity = 0.6;
 			}
 			else {
-				oContextItem.onclick = function() {
+				oContextItem.onclick = function(e2) {
 					oContextmenu.close();
-					elt.click();
+					elt.click(e2);
 				}
 			}
 			oContextItems.appendChild(oContextItem);
@@ -2065,6 +2211,37 @@ function showToast(msg) {
 	}, 4000);
 	return res;
 }
+var isRotateMsgRead = false;
+function rotateHintBuilder() {
+	var $toastMsg;
+	function handleRotateHint(e) {
+		if (e.shiftKey) {
+			if ($toastMsg) {
+				removeRotateHint();
+				isRotateMsgRead = true;
+			}
+		}
+		else if (!$toastMsg && !isRotateMsgRead) {
+			$toastMsg = showToast(language ? "Hold shift to rotate by a right angle" : "Maintenir shift pour pivoter d'un angle droit");
+			$toastMsg.addEventListener("click", function(e) {
+				e.stopPropagation();
+				removeRotateHint();
+				isRotateMsgRead = true;
+			});
+		}
+	}
+	function removeRotateHint() {
+		if ($toastMsg && $toastMsg.parentNode) {
+			document.body.removeChild($toastMsg);
+			$toastMsg = undefined;
+		}
+	}
+
+	return {
+		handleRotate: handleRotateHint,
+		remove: removeRotateHint
+	}
+}
 function removeFromArray(arr,elt) {
 	var id = arr.indexOf(elt);
 	if (-1 !== id) {
@@ -2094,6 +2271,14 @@ function rotatePoint(data,screenData,orientation) {
 		sW = sH;
 		sH = aW;
 	}
+	return data;
+}
+function rotatePointCustom(data,orientation) {
+	var theta = orientation*Math.PI/2;
+	var cosTheta = Math.cos(theta), sinTheta = Math.sin(theta);
+	var dX = data.x, dY = data.y;
+	data.x = dX*cosTheta + dY*sinTheta;
+	data.y = dY*cosTheta - dX*sinTheta;
 	return data;
 }
 function rotateNullablePoint(data,screenData,orientation) {
@@ -2315,6 +2500,7 @@ function rescaleBox(data, scale) {
 var hpTypes = ["herbe","eau","glace","choco"];
 function boostSizeChanged() {
 	var editorTool = editorTools[currentMode];
+	if (editorTool.state.shape !== "box") return;
 	var boxSize = {w:+document.getElementById("boost-w").value,h:+document.getElementById("boost-h").value};
 	if (!(boxSize.w > 0)) {
 		boxSize.w = editorTool.state.boxSize.w;
@@ -2326,6 +2512,13 @@ function boostSizeChanged() {
 	}
 	updateBoxSize(editorTool.state.point,boxSize);
 	editorTool.state.boxSize = boxSize;
+}
+function boostTypeChanged(type) {
+	var $boostSize = document.getElementById("boosts-size");
+	if (type === "box")
+		$boostSize.style.display = "";
+	else
+		$boostSize.style.display = "none";
 }
 function initTrajectOptions() {
 	document.getElementById("traject-menu").style.display = "block";
@@ -3376,16 +3569,17 @@ var commonTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.state.shape = iData.type;
+				var extra = getExtraForResume(iData);
 				var createdShape;
 				switch (iData.type) {
 				case "rectangle":
-					self.click(self,iData,{});
+					self.click(self,iData,extra);
 					createdShape = self.state.rectangle;
-					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},extra);
 					break;
 				case "polygon":
 					for (var j=0;j<iData.points.length;j++)
-						self.click(self,iData.points[j],{});
+						self.click(self,iData.points[j],extra);
 					createdShape = self.state.polygon;
 					self.state.nodes[0].circle.onclick();
 					break;
@@ -3409,6 +3603,7 @@ var commonTools = {
 								self.data.push(data);
 								setupShapeHeight(rectangle, data);
 								var moveOptions = {on_apply:rectangle.reposition,on_start_move:rectangle.text.hide,on_end_move:rectangle.text.show};
+								handlePaste(rectangle,data,extra,moveOptions);
 								addContextMenuEvent(rectangle,[{
 									text: (language ? "Resize":"Redimensionner"),
 									click: function() {
@@ -3418,6 +3613,11 @@ var commonTools = {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
 										moveRectangle(rectangle,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
 									}
 								}, {
 									text: (language ? "Wall height...":"Hauteur mur..."),
@@ -3453,6 +3653,7 @@ var commonTools = {
 									polygon.reposition(Object.assign({}, data, nData));
 								}
 								var moveOptions = {on_apply:repositionPoly,on_start_move:polygon.text.hide,on_end_move:polygon.text.show};
+								handlePaste(polygon,data,extra,moveOptions);
 								addContextMenuEvent(polygon, [{
 									text: (language ? "Edit":"Modifier"),
 									click: function() {
@@ -3462,6 +3663,11 @@ var commonTools = {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
 										movePolygon(polygon,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
 									}
 								}, {
 									text: (language ? "Wall height...":"Hauteur mur..."),
@@ -3557,6 +3763,7 @@ var commonTools = {
 				break;
 			}
 		},
+		"ctxmenu" : showPasteCtxMenu(),
 		"round_on_pixel" : function(self) {
 			return self.state.shape == "polygon";
 		},
@@ -3613,14 +3820,15 @@ var commonTools = {
 			for (var i=0;i<oldData.length;i++) {
 				var iData = oldData[i];
 				self.state.shape = iData.type;
+				var extra = getExtraForResume(iData);
 				switch (iData.type) {
 				case "rectangle":
-					self.click(self,iData,{});
-					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					self.click(self,iData,extra);
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},extra);
 					break;
 				case "polygon":
 					for (var j=0;j<iData.points.length;j++)
-						self.click(self,iData.points[j],{});
+						self.click(self,iData.points[j],extra);
 					self.state.nodes[0].circle.onclick();
 					break;
 				}
@@ -3639,6 +3847,7 @@ var commonTools = {
 						startRectangleBuilder(self,point, {
 							on_apply: function(rectangle,data) {
 								self.state.data.push(data);
+								handlePaste(rectangle,data,extra);
 								addContextMenuEvent(rectangle,[{
 									text: (language ? "Resize":"Redimensionner"),
 									click: function() {
@@ -3648,6 +3857,11 @@ var commonTools = {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
 										moveRectangle(rectangle,data);
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
 									}
 								}, {
 									text:(language ? "Delete":"Supprimer"),
@@ -3672,6 +3886,7 @@ var commonTools = {
 								var data = {type:"polygon",points:points};
 								self.state.data.push(data);
 								polygon.setAttribute("stroke-width", 1);
+								handlePaste(polygon,data,extra);
 								addContextMenuEvent(polygon, [{
 									text: (language ? "Edit":"Modifier"),
 									click: function() {
@@ -3681,6 +3896,11 @@ var commonTools = {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
 										movePolygon(polygon,data);
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
 									}
 								}, {
 									text:(language ? "Delete":"Supprimer"),
@@ -3708,6 +3928,9 @@ var commonTools = {
 				break;
 			}
 		},
+		"ctxmenu" : showPasteCtxMenu({
+			selfData: function(self) { return self.state.data }
+		}),
 		"round_on_pixel" : function(self) {
 			return self.state.shape == "polygon";
 		},
@@ -3769,19 +3992,20 @@ var commonTools = {
 				self.state.shape = iData.type;
 				if (undefined !== iData.orientation)
 					self.state.orientation = iData.orientation;
+				var extra = getExtraForResume(iData);
 				switch (iData.type) {
 				case "rectangle":
-					self.click(self,iData,{});
-					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					self.click(self,iData,extra);
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},extra);
 					break;
 				case "polygon":
 					for (var j=0;j<iData.points.length;j++)
-						self.click(self,iData.points[j],{});
+						self.click(self,iData.points[j],extra);
 					self.state.nodes[0].circle.onclick();
 					break;
 				}
 				if (iData.respawn)
-					self.click(self,iData.respawn,{});
+					self.click(self,iData.respawn,extra);
 			}
 			replaceNodeType(self);
 			document.getElementById(self._shape_selector_id).setValue(self.state.shape);
@@ -3803,7 +4027,7 @@ var commonTools = {
 					if (nRotateTime > lastRotateTime+2500)
 						storeHistoryData(self.data);
 					lastRotateTime = nRotateTime;
-					data.orientation = (data.orientation+1)%4;
+					data.orientation = Math.round(data.orientation+1)%4;
 					self.state.orientation = data.orientation;
 					respawnNode.rotate(data.orientation);
 				};
@@ -3820,9 +4044,14 @@ var commonTools = {
 				}
 				respawnNode.origin.oncontextmenu = function(e) {
 					return showContextOnElt(e,shape, [{
-						text: (language ? "Rotate":"Pivoter"),
+						text: (language ? "Rotate 90°":"Rotation 90°"),
 						click: function() {
 							respawnNode.origin.onclick();
+						}
+					}, {
+						text: (language ? "Rotate custom...":"Rotation libre..."),
+						click: function() {
+							rotateArrowNode(respawnNode,data,data.respawn);
 						}
 					}, {
 						text: (language ? "Move":"Déplacer"),
@@ -3836,6 +4065,7 @@ var commonTools = {
 						}
 					}]);
 				};
+				handlePaste(shape,data,extra);
 				switch (data.type) {
 				case "rectangle":
 					addContextMenuEvent(shape,[{
@@ -3847,6 +4077,11 @@ var commonTools = {
 						text: (language ? "Move":"Déplacer"),
 						click: function() {
 							moveRectangle(shape,data);
+						}
+					}, {
+						text: (language ? "Copy":"Copier"),
+						click: function() {
+							copyShape(data);
 						}
 					}, {
 						text:(language ? "Delete":"Supprimer"),
@@ -3865,6 +4100,11 @@ var commonTools = {
 						text: (language ? "Move":"Déplacer"),
 						click: function() {
 							movePolygon(shape,data);
+						}
+					}, {
+						text: (language ? "Copy":"Copier"),
+						click: function() {
+							copyShape(data);
 						}
 					}, {
 						text:(language ? "Delete":"Supprimer"),
@@ -3931,6 +4171,9 @@ var commonTools = {
 				}
 			}
 		},
+		"ctxmenu" : showPasteCtxMenu({
+			disabled: function(self) { return !!self.state.respawnNode }
+		}),
 		"round_on_pixel" : function(self) {
 			return self.state.respawnNode || (self.state.shape == "polygon");
 		},
@@ -3940,18 +4183,30 @@ var commonTools = {
 				var iData = self.data[i];
 				var shape = shapeToData(iData);
 				var respawn = nullablePointToData(iData.respawn);
+				var orientation = iData.orientation||0;
+				if (!payload.trous[orientation]) {
+					if (Array.isArray(payload.trous)) {
+						var nTrous = {};
+						for (var j=0;j<payload.trous.length;j++) {
+							if (payload.trous[j].length)
+								nTrous[j] = payload.trous[j];
+						}
+						payload.trous = nTrous;
+					}
+					payload.trous[orientation] = [];
+				}
 				payload.trous[iData.orientation||0].push([shape,respawn]);
 			}
 		},
 		"restore" : function(self,payload) {
 			for (var k=0;k<2;k++) {
-				for (var j=0;j<4;j++) {
+				for (var j in payload.trous) {
 					for (var i=0;i<payload.trous[j].length;i++) {
 						var iPayload = payload.trous[j][i];
 						var iData = dataToShape(iPayload[0]);
 						iData.respawn = dataToNullablePoint(iPayload[1]);
 						if (iData.respawn)
-							iData.orientation = j;
+							iData.orientation = +j;
 						if (k == !iData.respawn)
 							self.data.push(iData);
 					}
@@ -3979,8 +4234,12 @@ var commonTools = {
 				var iData = self.data[i];
 				flipShape(iData, imgSize,axis);
 				flipNullablePoint(iData.respawn, imgSize,axis);
-				if ((iData.orientation%2) == (axis.coord=="x" ? 1:0))
-					iData.orientation = (iData.orientation+2)%4;
+				if (iData.orientation != null) {
+					if (axis.coord == "x")
+						iData.orientation = (4 - iData.orientation) % 4;
+					else
+						iData.orientation = (6 - iData.orientation) % 4;
+				}
 			}
 		}
 	},
@@ -4109,16 +4368,17 @@ var commonTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.state.shape = iData.type;
+				var extra = getExtraForResume(iData);
 				var shape;
 				switch (iData.type) {
 				case "rectangle":
-					self.click(self,iData,{});
+					self.click(self,iData,extra);
 					shape = self.state.rectangle;
-					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},extra);
 					break;
 				case "polygon":
 					for (var j=0;j<iData.points.length;j++)
-						self.click(self,iData.points[j],{});
+						self.click(self,iData.points[j],extra);
 					shape = self.state.polygon;
 					self.state.nodes[0].circle.onclick();
 					break;
@@ -4197,6 +4457,8 @@ var commonTools = {
 							on_apply: function(rectangle,data) {
 								onApply(data, rectangle);
 								rectangle.getCenter = getRectCenter;
+								var moveOptions = {on_apply:rectangle.reshapeArrow,on_start_move:rectangle.hideArrow,on_end_move:rectangle.showArrow};
+								handlePaste(rectangle,data,extra,moveOptions);
 								addContextMenuEvent(rectangle, [{
 									text: (language ? "Resize":"Redimensionner"),
 									click: function() {
@@ -4205,7 +4467,12 @@ var commonTools = {
 								}, {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
-										moveRectangle(rectangle,data, {on_apply:rectangle.reshapeArrow,on_start_move:rectangle.hideArrow,on_end_move:rectangle.showArrow});
+										moveRectangle(rectangle,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
 									}
 								}, {
 									text: (language ? "Jump height...":"Hauteur saut..."),
@@ -4234,6 +4501,8 @@ var commonTools = {
 								var data = {type:"polygon",points:points};
 								onApply(data, polygon);
 								polygon.getCenter = getPolyCenter;
+								var moveOptions = {on_apply:polygon.reshapeArrow,on_start_move:polygon.hideArrow,on_end_move:polygon.showArrow};
+								handlePaste(polygon,data,extra,moveOptions);
 								addContextMenuEvent(polygon, [{
 									text: (language ? "Edit":"Modifier"),
 									click: function() {
@@ -4242,7 +4511,12 @@ var commonTools = {
 								}, {
 									text: (language ? "Move":"Déplacer"),
 									click: function() {
-										movePolygon(polygon,data, {on_apply:polygon.reshapeArrow,on_start_move:polygon.hideArrow,on_end_move:polygon.showArrow});
+										movePolygon(polygon,data, moveOptions);
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
 									}
 								}, {
 									text: (language ? "Jump height...":"Hauteur saut..."),
@@ -4272,6 +4546,10 @@ var commonTools = {
 				movePolygonBuilder(self,point);
 				break;
 			}
+		},
+		"ctxmenu" : showPasteCtxMenu(),
+		"round_on_pixel" : function(self) {
+			return self.state.shape == "polygon";
 		},
 		"_arrowFactor": 32.4,
 		"save" : function(self,payload) {
@@ -4345,59 +4623,193 @@ var commonTools = {
 			self.state.boxSize = {w:8,h:8};
 			self.state.point = createBox(self.state.boxSize);
 			self.state.point.classList.add("noclick");
+			self.state.shape = "rectangle";
 			var data = self.data;
 			self.data = [];
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
-				var boxSize = {w:iData.w,h:iData.h};
-				updateBoxSize(self.state.point,boxSize);
-				self.state.boxSize = boxSize;
-				self.click(self,iData,{});
+				self.state.shape = iData.type;
+				var extra = getExtraForResume(iData);
+				switch (iData.type) {
+				case "rectangle":
+					self.click(self,iData,extra);
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},extra);
+					break;
+				case "polygon":
+					for (var j=0;j<iData.points.length;j++)
+						self.click(self,iData.points[j],extra);
+					self.state.nodes[0].circle.onclick();
+					break;
+				default:
+					var boxSize = {w:iData.w,h:iData.h};
+					updateBoxSize(self.state.point,boxSize);
+					self.state.boxSize = boxSize;
+					self.click(self,iData,extra);
+				}
 			}
+			replaceNodeType(self);
+			document.getElementById("boosts-shape").setValue(self.state.shape);
+			boostTypeChanged(self.state.shape);
 			boostSizeChanged();
 		},
-		"click" : function(self,data,extra) {
-			if (extra.oob)
-				return;
-			self.move(self,data,extra);
-			data.w = self.state.boxSize.w;
-			data.h = self.state.boxSize.h;
-			storeHistoryData(self.data);
-			self.data.push(data);
-			var box = self.state.point;
-			box.classList.remove("noclick");
-			box.oncontextmenu = function(e) {
-				hideBox(self.state.point,self.state.boxSize);
-				return showContextOnElt(e,box,[{
-					text: (language ? "Move":"Déplacer"),
-					click: function() {
-						moveBox(box,data,data);
+		"click" : function(self,point,extra) {
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				if (self.state.rectangle)
+					appendRectangleBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startRectangleBuilder(self,point, {
+							on_apply: function(rectangle,data) {
+								self.data.push(data);
+								handlePaste(rectangle,data,extra);
+								addContextMenuEvent(rectangle,[{
+									text: (language ? "Resize":"Redimensionner"),
+									click: function() {
+										resizeRectangle(rectangle,data);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										moveRectangle(rectangle,data);
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(rectangle);
+										storeHistoryData(self.data);
+										removeFromArray(self.data,data);
+									}
+								}]);
+							}
+						});
 					}
-				}, {
-					text:(language ? "Delete":"Supprimer"),
-					click:function() {
-						$editor.removeChild(box);
-						storeHistoryData(self.data);
-						removeFromArray(self.data,data);
+				}
+				break;
+			case "polygon":
+				if (self.state.polygon)
+					appendPolygonBuilder(self,point);
+				else {
+					if (!extra.oob) {
+						startPolygonBuilder(self,point, {
+							on_apply: function(polygon,points) {
+								var data = {type:"polygon",points:points};
+								self.data.push(data);
+								polygon.setAttribute("stroke-width", 1);
+								handlePaste(polygon,data,extra);
+								addContextMenuEvent(polygon, [{
+									text: (language ? "Edit":"Modifier"),
+									click: function() {
+										editPolygon(polygon,data);
+									}
+								}, {
+									text: (language ? "Move":"Déplacer"),
+									click: function() {
+										movePolygon(polygon,data);
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
+									}
+								}, {
+									text:(language ? "Delete":"Supprimer"),
+									click:function() {
+										$editor.removeChild(polygon);
+										storeHistoryData(self.data);
+										removeFromArray(self.data,data);
+									}
+								}]);
+							}
+						});
 					}
-				}]);
-			};
-			self.state.point = createBox(self.state.boxSize);
-			self.state.point.classList.add("noclick");
+				}
+				break;
+			default:
+				if (extra.oob)
+					return;
+				self.move(self,point,extra);
+				point.type = "box";
+				point.w = self.state.boxSize.w;
+				point.h = self.state.boxSize.h;
+				storeHistoryData(self.data);
+				self.data.push(point);
+				var box = self.state.point;
+				box.classList.remove("noclick");
+				handlePaste(box,point,extra);
+				box.oncontextmenu = function(e) {
+					hideBox(self.state.point,self.state.boxSize);
+					return showContextOnElt(e,box,[{
+						text: (language ? "Move":"Déplacer"),
+						click: function() {
+							moveBox(box,point,point);
+						}
+					}, {
+						text: (language ? "Copy":"Copier"),
+						click: function() {
+							copyShape(point);
+						}
+					}, {
+						text:(language ? "Delete":"Supprimer"),
+						click:function() {
+							$editor.removeChild(box);
+							storeHistoryData(self.data);
+							removeFromArray(self.data,point);
+						}
+					}]);
+				};
+				self.state.point = createBox(self.state.boxSize);
+				self.state.point.classList.add("noclick");
+			}
 		},
 		"move" : function(self,point,extra) {
-			setBoxPosRound(self.state.point,point,self.state.boxSize);
+			var selectedShape = self.state.shape;
+			switch (selectedShape) {
+			case "rectangle":
+				moveRectangleBuilder(self,point);
+				break;
+			case "polygon":
+				movePolygonBuilder(self,point);
+				break;
+			default:
+				setBoxPosRound(self.state.point,point,self.state.boxSize);
+			}
+		},
+		"ctxmenu" : showPasteCtxMenu(),
+		"round_on_pixel" : function(self) {
+			return self.state.shape == "polygon";
 		},
 		"save" : function(self,payload) {
 			payload.accelerateurs = [];
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
-				var iPayload = pointToData(iData);
-				iPayload[0] = Math.round(iPayload[0]-iData.w/2);
-				iPayload[1] = Math.round(iPayload[1]-iData.h/2);
-				if (iData.w != 8 || iData.h != 8) {
-					iPayload[2] = iData.w;
-					iPayload[3] = iData.h;
+				var iPayload;
+				switch (iData.type) {
+				case "box":
+					iPayload = pointToData(iData);
+					iPayload[0] = Math.round(iPayload[0]-iData.w/2);
+					iPayload[1] = Math.round(iPayload[1]-iData.h/2);
+					if (iData.w != 8 || iData.h != 8) {
+						iPayload[2] = iData.w;
+						iPayload[3] = iData.h;
+					}
+					break;
+				case "rectangle":
+					iPayload = rectToData(iData);
+					if (iData.w == 8 && iData.h == 8) {
+						delete iPayload[2];
+						delete iPayload[3];
+					}
+					break;
+				case "polygon":
+					iPayload = polyToData(iData.points);
+					break;
 				}
 				payload.accelerateurs.push(iPayload);
 			}
@@ -4405,31 +4817,61 @@ var commonTools = {
 		"restore" : function(self,payload) {
 			for (var i=0;i<payload.accelerateurs.length;i++) {
 				var iPayload = payload.accelerateurs[i];
-				var iData = dataToPoint(iPayload);
-				if (iPayload[2] && iPayload[3]) {
-					iData.w = iPayload[2];
-					iData.h = iPayload[3];
+				if (("number" === typeof(iPayload[0])) && !(iPayload[2] && iPayload[3])) {
+					iPayload[2] = 8;
+					iPayload[3] = 8;
 				}
-				else {
-					iData.w = 8;
-					iData.h = 8;
-				}
-				iData.x += Math.floor(iData.w/2);
-				iData.y += Math.floor(iData.h/2);
+				var iData = dataToShape(iPayload);
 				self.data.push(iData);
 			}
 		},
 		"rescale" : function(self, scale) {
-			for (var i=0;i<self.data.length;i++)
-				rescaleBox(self.data[i], scale);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				switch (iData.type) {
+				case "box":
+					rescaleBox(iData, scale);
+					break;
+				case "rectangle":
+					rescaleRect(iData, scale);
+					break;
+				case "polygon":
+					rescalePoly(iData.points, scale);
+					break;
+				}
+			}
 		},
 		"rotate" : function(self, orientation) {
-			for (var i=0;i<self.data.length;i++)
-				rotateBox(self.data[i], imgSize,orientation);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				switch (iData.type) {
+				case "box":
+					rotateBox(iData, imgSize,orientation);
+					break;
+				case "rectangle":
+					rotateRect(iData, imgSize,orientation);
+					break;
+				case "polygon":
+					rotatePoly(iData.points, imgSize,orientation);
+					break;
+				}
+			}
 		},
 		"flip" : function(self, axis) {
-			for (var i=0;i<self.data.length;i++)
-				flipBox(self.data[i], imgSize,axis);
+			for (var i=0;i<self.data.length;i++) {
+				var iData = self.data[i];
+				switch (iData.type) {
+				case "box":
+					flipBox(iData, imgSize,axis);
+					break;
+				case "rectangle":
+					flipRect(iData, imgSize,axis);
+					break;
+				case "polygon":
+					flipPoly(iData.points, imgSize,axis);
+					break;
+				}
+			}
 		}
 	},
 	"decor": {
@@ -5135,21 +5577,22 @@ var commonTools = {
 			self.data = [];
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
+				var extra = getExtraForResume(iData);
 				self.state.shape = iData.type;
 				switch (iData.type) {
 				case "rectangle":
-					self.click(self,iData,{});
-					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					self.click(self,iData,extra);
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},extra);
 					if (iData.respawn)
-						self.click(self,{x:iData.respawn.x+Math.round(iData.w/2),y:iData.respawn.y+Math.round(iData.h/2)},{});
+						self.click(self,{x:iData.respawn.x+Math.round(iData.w/2),y:iData.respawn.y+Math.round(iData.h/2)},extra);
 					break;
 				case "polygon":
 					for (var j=0;j<iData.points.length;j++)
-						self.click(self,iData.points[j],{});
+						self.click(self,iData.points[j],extra);
 					self.state.nodes[0].circle.onclick();
 					if (iData.respawn) {
 						var polygonCenter = getPolygonRelativeCenter(iData.points);
-						self.click(self,{x:iData.respawn.points[0].x+polygonCenter.x,y:iData.respawn.points[0].y+polygonCenter.y},{});
+						self.click(self,{x:iData.respawn.points[0].x+polygonCenter.x,y:iData.respawn.points[0].y+polygonCenter.y},extra);
 					}
 					break;
 				}
@@ -5240,6 +5683,7 @@ var commonTools = {
 						deleteItem();
 					}
 				}]);
+				handlePaste(shape,data,extra,moveOptions);
 				switch (data.type) {
 				case "rectangle":
 					addContextMenuEvent(shape,[{
@@ -5251,6 +5695,11 @@ var commonTools = {
 						text: (language ? "Move":"Déplacer"),
 						click: function() {
 							moveRectangle(shape,data,moveOptions);
+						}
+					}, {
+						text: (language ? "Copy":"Copier"),
+						click: function() {
+							copyShape(data);
 						}
 					}, {
 						text:(language ? "Delete":"Supprimer"),
@@ -5269,6 +5718,11 @@ var commonTools = {
 						text: (language ? "Move":"Déplacer"),
 						click: function() {
 							movePolygon(shape,data,moveOptions);
+						}
+					}, {
+						text: (language ? "Copy":"Copier"),
+						click: function() {
+							copyShape(data);
 						}
 					}, {
 						text:(language ? "Delete":"Supprimer"),
@@ -5356,6 +5810,9 @@ var commonTools = {
 				}
 			}
 		},
+		"ctxmenu" : showPasteCtxMenu({
+			disabled: function(self) { return !!self.state.respawnShape }
+		}),
 		"round_on_pixel" : function(self) {
 			var selectedType = self.state.respawnShape ? self.state.respawnShape.data.type : self.state.shape;
 			return (selectedType == "polygon");
@@ -5467,28 +5924,29 @@ var commonTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.state.shape = iData.type;
+				var extra = getExtraForResume(iData);
 				switch (iData.type) {
 				case "rectangle":
-					self.click(self,iData,{});
-					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					self.click(self,iData,extra);
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},extra);
 					if (iData.dir)
-						self.click(self,{x:Math.round(iData.x+iData.w/2+iData.dir.x),y:Math.round(iData.y+iData.h/2+iData.dir.y)},{});
+						self.click(self,{x:Math.round(iData.x+iData.w/2+iData.dir.x),y:Math.round(iData.y+iData.h/2+iData.dir.y)},extra);
 					break;
 				case "polygon":
 					for (var j=0;j<iData.points.length;j++)
-						self.click(self,iData.points[j],{});
+						self.click(self,iData.points[j],extra);
 					self.state.nodes[0].circle.onclick();
 					if (iData.dir) {
 						var polygonCenter = getPolygonCenter(iData.points);
-						self.click(self,{x:polygonCenter.x+iData.dir.x,y:polygonCenter.y+iData.dir.y},{});
+						self.click(self,{x:polygonCenter.x+iData.dir.x,y:polygonCenter.y+iData.dir.y},extra);
 					}
 					break;
 				case "circle":
-					self.click(self,{x:iData.x-iData.r,y:iData.y},{});
-					self.click(self,{x:iData.x+iData.r,y:iData.y},{});
+					self.click(self,{x:iData.x-iData.r,y:iData.y},extra);
+					self.click(self,{x:iData.x+iData.r,y:iData.y},extra);
 					if (iData.dir) {
 						var angle2 = self.state.dirVect.center.theta0 + iData.dir.dtheta;
-						self.click(self,{x:iData.x+iData.r*Math.cos(angle2), y:iData.y+iData.r*Math.sin(angle2)},{});
+						self.click(self,{x:iData.x+iData.r*Math.cos(angle2), y:iData.y+iData.r*Math.sin(angle2)},extra);
 					}
 					break;
 				}
@@ -5565,6 +6023,7 @@ var commonTools = {
 					}]);
 				};
 				var moveOptions = {on_apply:reshapeArrow,on_start_move:dirVect.arrow.hide,on_end_move:dirVect.arrow.show};
+				handlePaste(shape,data,extra,moveOptions);
 				switch (data.type) {
 				case "rectangle":
 					addContextMenuEvent(shape,[{
@@ -5581,6 +6040,11 @@ var commonTools = {
 						text: (language ? "Edit ↗":"Modifier ↗"),
 						click: function() {
 							moveArrow(dirVect.arrow,dirVect.center,data.dir);
+						}
+					}, {
+						text: (language ? "Copy":"Copier"),
+						click: function() {
+							copyShape(data);
 						}
 					}, {
 						text:(language ? "Delete":"Supprimer"),
@@ -5606,6 +6070,11 @@ var commonTools = {
 							moveArrow(dirVect.arrow,dirVect.center,data.dir);
 						}
 					}, {
+						text: (language ? "Copy":"Copier"),
+						click: function() {
+							copyShape(data);
+						}
+					}, {
 						text:(language ? "Delete":"Supprimer"),
 						click:function() {
 							deleteItem();
@@ -5627,6 +6096,11 @@ var commonTools = {
 						text: (language ? "Edit ↗":"Modifier ↗"),
 						click: function() {
 							moveCircularArrow(dirVect.arrow,dirVect.center,data.dir);
+						}
+					}, {
+						text: (language ? "Copy":"Copier"),
+						click: function() {
+							copyShape(data);
 						}
 					}, {
 						text:(language ? "Delete":"Supprimer"),
@@ -5724,6 +6198,9 @@ var commonTools = {
 				}
 			}
 		},
+		"ctxmenu" : showPasteCtxMenu({
+			disabled: function(self) { return !!self.state.dirVect }
+		}),
 		"round_on_pixel" : function(self) {
 			var selectedType = self.state.dirVect ? self.data[self.data.length-1].type : self.state.shape;
 			return (selectedType == "polygon");
@@ -5840,16 +6317,17 @@ var commonTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.state.shape = iData.type;
+				var extra = getExtraForResume(iData);
 				var createdShape;
 				switch (iData.type) {
 				case "rectangle":
-					self.click(self,iData,{});
+					self.click(self,iData,extra);
 					createdShape = self.state.rectangle;
-					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},{});
+					self.click(self,{x:iData.x+iData.w,y:iData.y+iData.h},extra);
 					break;
 				case "polygon":
 					for (var j=0;j<iData.points.length;j++)
-						self.click(self,iData.points[j],{});
+						self.click(self,iData.points[j],extra);
 					createdShape = self.state.polygon;
 					self.state.nodes[0].circle.onclick();
 					break;
@@ -5875,6 +6353,7 @@ var commonTools = {
 								self.data.push(data);
 								setupShapeHeight(self,rectangle,data);
 								var moveOptions = {on_apply:rectangle.reposition,on_start_move:rectangle.text.hide,on_end_move:rectangle.text.show};
+								handlePaste(rectangle,data,extra,moveOptions);
 								addContextMenuEvent(rectangle,[{
 									text: (language ? "Resize":"Redimensionner"),
 									click: function() {
@@ -5894,6 +6373,11 @@ var commonTools = {
 									text: (language ? "Min height...":"Hauteur min..."),
 									click: function() {
 										rectangle.promptHeight("z0");
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
 									}
 								}, {
 									text:(language ? "Delete":"Supprimer"),
@@ -5924,6 +6408,7 @@ var commonTools = {
 									polygon.reposition(Object.assign({}, data, nData));
 								}
 								var moveOptions = {on_apply:repositionPoly,on_start_move:polygon.text.hide,on_end_move:polygon.text.show};
+								handlePaste(polygon,data,extra,moveOptions);
 								addContextMenuEvent(polygon, [{
 									text: (language ? "Edit":"Modifier"),
 									click: function() {
@@ -5943,6 +6428,11 @@ var commonTools = {
 									text: (language ? "Min height...":"Hauteur min..."),
 									click: function() {
 										polygon.promptHeight("z0");
+									}
+								}, {
+									text: (language ? "Copy":"Copier"),
+									click: function() {
+										copyShape(data);
 									}
 								}, {
 									text:(language ? "Delete":"Supprimer"),
@@ -6024,6 +6514,7 @@ var commonTools = {
 				break;
 			}
 		},
+		"ctxmenu" : showPasteCtxMenu(),
 		"round_on_pixel" : function(self) {
 			return self.state.shape == "polygon";
 		},

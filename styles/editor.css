@@ -370,6 +370,9 @@ body.theme-dark {
 #decor-options > .decor-option-selected {
 	display: block;
 }
+#boosts-shape {
+	margin-bottom: 0.1em;
+}
 #decor-bus-decors label {
 	display: block;
 }

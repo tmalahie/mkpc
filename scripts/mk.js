@@ -1532,7 +1532,7 @@ function initMap() {
 		}
 	}
 	if (oMap.trous) {
-		for (var i=0;i<4;i++) {
+		for (var i in oMap.trous) {
 			var holes = {rectangle:[],polygon:[]};
 			for (var j=0;j<oMap.trous[i].length;j++) {
 				var hole = oMap.trous[i][j];
@@ -1552,8 +1552,10 @@ function initMap() {
 		oMap.flows = flows;
 	}
 	if (oMap.accelerateurs) {
-		for (var i=0;i<oMap.accelerateurs.length;i++) {
-			var oBox = oMap.accelerateurs[i];
+		oMap.accelerateurs = classifyByShape(oMap.accelerateurs);
+		var oRectangles = oMap.accelerateurs.rectangle;
+		for (var i=0;i<oRectangles.length;i++) {
+			var oBox = oRectangles[i];
 			if (oBox[2]) {
 				oBox[2]++;
 				oBox[3]++;
@@ -10663,7 +10665,7 @@ function getHorizontality(iX,iY,iZ, iI,iJ, options) {
 	if (oMap.collision)
 		handleCollisions(oMap.collision, function(oBox) { return oBox; }, function(shapeType, i,z) { return pointInAltitude(oMap.collisionProps[shapeType], i,z) });
 	if (options.holes && oMap.trous) {
-		for (var j=0;j<oMap.trous.length;j++)
+		for (var j in oMap.trous)
 			handleCollisions(oMap.trous[j], function(oBox) { return oBox[0]; }, function(oBox) { return true; });
 	}
 	if (nearCol.dir) {
@@ -10688,7 +10690,7 @@ function getNearestHoleDist(iX,iY, stopAt) {
 	var res = stopAt || Infinity;
 	if (!oMap.trous)
 		return res;
-	for (var j=0;j<4;j++) {
+	for (var j in oMap.trous) {
 		var oRectangles = oMap.trous[j].rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
 			var oHole = oRectangles[i][0];
@@ -10859,11 +10861,19 @@ function getOffroadProps(oKart,hpType) {
 function accelere(iX, iY, iI, iJ) {
 	if (!oMap.accelerateurs) return false;
 	var nX = iX+iI, nY = iY+iJ;
-	for (var i=0;i<oMap.accelerateurs.length;i++) {
-		var oBox = oMap.accelerateurs[i];
+	var oRectangles = oMap.accelerateurs.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		var oBox = oRectangles[i];
 		if (pointInRectangle(nX,nY, oBox))
 			return true;
 		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
+			return true;
+	}
+	var oPolygons = oMap.accelerateurs.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(nX,nY, oPolygons[i]))
+			return true;
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]))
 			return true;
 	}
 	return false;
@@ -10917,7 +10927,7 @@ function tombe(iX, iY, iC) {
 
 	var fTrou;
 	if (oMap.trous) {
-		for (var j=0;j<4;j++) {
+		for (var j in oMap.trous) {
 			var oRectangles = oMap.trous[j].rectangle;
 			for (var i=0;i<oRectangles.length;i++) {
 				var oHole = oRectangles[i];
