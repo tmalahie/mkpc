@@ -17467,7 +17467,7 @@ document.onkeydown = function(e) {
 				var isBack = selectedOscrElt.value === toLanguage("Back","Retour");
 				selectedOscrElt.click();
 				if (iSfx)
-					playSoundEffect("musics/events/"+ (isBack ? "menuback" : "menuselect") +".mp3");
+					playSoundEffect("musics/events/"+ (isBack ? "back" : "select") +".mp3");
 			}
 			break;
 		case "_Back":
