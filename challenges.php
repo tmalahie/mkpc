@@ -124,16 +124,20 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 			?>
 			Welcome to the challenge editor! A challenge is an action to perform in the circuit, than can be tried out by other players.<br />
 			Example of challenge: &quot;Complete the track in less than 30s&quot;, &quot;Finish 1<sup>st</sup> with 100 participants&quot;, &quot;Complete the track without falling&quot;...
-			The editor offers you a variety of combinations, which leaves a lot of freedom for the creation.<br />
-			It's up to you to find the right combo that makes the challenge fun. Happy creating!
+			The editor offers you a variety of combinations, which leaves a lot of freedom for the creation.
+			It's up to you to find the right combo that makes the challenge fun!<br />
+			If you're just starting out, we recommend reading <a href="https://mkpc.malahieude.net/topic.php?topic=7109" class="pretty-link" target="_blank">this topic</a> to make sure you post appropriate challenges.
+			<br />
+			Happy creating!
 			<?php
 		}
 		else {
 			?>
 			Bienvenue dans l'éditeur de défis ! Les défis sont des actions à réaliser dans le circuit et qui peuvent être tentés par les autres joueurs.<br />
 			Exemple de défi : &quot;Finir le circuit en moins de 30s&quot;, &quot;Finir 1<sup>er</sup> avec 100 participants&quot;, &quot;Finir le circuit sans tomber&quot;...
-			L'éditeur offre un grand nombre de combinaisons différentes, ce qui vous laisse un large choix dans la création.<br />
-			À vous de trouver le combo qui rend le défi amusant. Bonne création !
+			L'éditeur offre un grand nombre de combinaisons différentes, ce qui vous laisse un large choix dans la création. À vous de trouver le combo qui rend le défi amusant&nbsp;!<br />
+			Si vous débutez, nous vous recommandons de lire <a href="https://mkpc.malahieude.net/topic.php?topic=7109" class="pretty-link" target="_blank">ce topic</a> pour vous assurer de publier des défis appropriés.
+			<br />Bonne création !
 			<?php
 		}
 		?>
@@ -173,6 +177,7 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 					<?php echo $challenge['difficulty']['name']; ?>
 				</td>
 				<td class="challenges-td-center"><?php
+					$needsAck = false;
 					switch ($challenge['status']) {
 					case 'pending_completion':
 						if (!$challenge['validation']) {
@@ -180,6 +185,9 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 							echo ' <a href="javascript:void(0)" class="pretty-title" title="'. ($language ? 'You have to succeed the challenge to prove it\'s possible.':'Vous devez réussir le défi pour valider qu\'il n\'est pas impossible.') .'">[?]</a>';
 						}
 						else {
+							$validationData = json_decode($challenge['validation']);
+							if (!isset($validationData->ack))
+								$needsAck = true;
 							echo '<span class="challenge-status-rejected">';
 							echo $language ? 'Publication rejected':'Publication refusée';
 							echo '</span>';
@@ -202,14 +210,36 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 						echo '<span class="challenge-status-active">';
 						echo $language ? 'Active':'Actif';
 						echo '</span>';
+						if ($challenge['validation']) {
+							$validationData = json_decode($challenge['validation']);
+							if (isset($validationData->old_difficulty) && !isset($validationData->ack)) {
+								echo '<br />';
+								echo '<span class="challenge-status-warning">';
+								echo '⚠️ ';
+								echo $language ? 'Difficulty change':'Difficulté modifiée';
+								echo '</span>';
+								echo ' ';
+								echo '<a href="'. nextPageUrl('challengeDetails.php', array('cl' => null, 'ch' => $challenge['id'])) .'">['. ($language ? 'Details':'Détails') .']</a>';
+							}
+						}
 						break;
 					case 'deleted':
 						echo $language ? 'Deleted':'Supprimé';
 						break;
 					}
 				?></td>
-				<td class="challenges-td-center"><a class="challenge-action-edit" href="<?php echo nextPageUrl('challengeEdit.php', array('cl' => null, 'ch' => $challenge['id'])); ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a><br />
-				<a class="challenge-action-del" href="<?php echo nextPageUrl('challengeDel.php', array('cl' => null, 'ch' => $challenge['id'])); ?>" onclick="return confirm('<?php echo $language ? 'Delete this challenge?':'Supprimer ce défi ?'; ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a></td>
+				<td class="challenges-td-center">
+					<?php
+					if ($needsAck)
+						echo '<a href="'. nextPageUrl('challengeDetails.php', array('cl' => null, 'ch' => $challenge['id'])) .'">'. ($language ? 'Details':'Détails') .'</a>';
+					else {
+						?>
+						<a class="challenge-action-edit" href="<?php echo nextPageUrl('challengeEdit.php', array('cl' => null, 'ch' => $challenge['id'])); ?>"><?php echo $language ? 'Edit':'Modifier'; ?></a><br />
+						<a class="challenge-action-del" href="<?php echo nextPageUrl('challengeDel.php', array('cl' => null, 'ch' => $challenge['id'])); ?>" onclick="return confirm('<?php echo $language ? 'Delete this challenge?':'Supprimer ce défi ?'; ?>')"><?php echo $language ? 'Delete':'Supprimer'; ?></a>
+						<?php
+					}
+					?>
+				</td>
 			</tr>
 			<?php
 		}

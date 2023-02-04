@@ -124,6 +124,9 @@ body a.challenge-action-edit:hover {
 .challenges-table .challenge-status-rejected {
 	color: #800;
 }
+.challenges-table .challenge-status-warning {
+	color: #C90;
+}
 .challenges-table .challenge-difficulty img {
 	width: 18px;
 }

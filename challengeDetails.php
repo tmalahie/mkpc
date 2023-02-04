@@ -80,6 +80,11 @@ include('o_online.php');
 					</div>
 					<?php
 				}
+				if (!isset($validation->ack)) {
+					$validation->ack = time();
+					$validationJson = mysql_real_escape_string(json_encode($validation));
+					mysql_query('UPDATE mkchallenges SET validation="'.$validationJson.'" WHERE id="'. $challenge['id'] .'"');
+				}
 			}
 			?>
 		</div>
