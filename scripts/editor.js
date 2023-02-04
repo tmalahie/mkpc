@@ -182,11 +182,11 @@ function storeHistoryData(data) {
 
 function handleMoveOnPaste(fakeRectangle, options) {
 	if (options.autoMoveFrom) {
-		var event = new MouseEvent('click', {
-			'clientX' : options.autoMoveFrom.pageX,
-			'clientY' : options.autoMoveFrom.pageY
+		fakeRectangle.onclick({
+			stopPropagation: function() {},
+			pageX : options.autoMoveFrom.pageX,
+			pageY : options.autoMoveFrom.pageY
 		});
-		fakeRectangle.dispatchEvent(event);
 	}
 }
 function copyShape(data) {
