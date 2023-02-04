@@ -178,6 +178,12 @@ include('menu.php');
                 'base_url' => 'profil.php?id=8923',
                 'for' => $language ? 'for the':'pour le',
                 'description' => $language ? '<a href="images/sprites/sprite_yoshi.png">sprite of Yoshi</a>':'<a href="images/sprites/sprite_yoshi.png">sprite de Yoshi</a>'
+            ),
+            array(
+                'author_raw' => '<strong>Waluigi68</strong> '. ($language ? 'and':'et') .' <a class="author" href="profil.php?id=36925">BowserJr03</a>',
+                'base_url' => 'profil.php?id=36925',
+                'for' => $language ? 'for some':'pour certains',
+                'description' => $language ? '<a href="create.php">quick mode</a> themes':'thèmes du <a href="create.php">mode simplifié</a>'
             )
         ),
         ($language ? 'Other resources - Musics':'Autres ressources - Musiques') => array(
