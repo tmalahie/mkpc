@@ -34,9 +34,9 @@ if (isset($_GET['id'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css?reload=1" />
-<link rel="stylesheet" href="styles/bg-editor.css?reload=1" />
-<script type="text/javascript" src="scripts/bg-editor.js?reload=2"></script>
+<link rel="stylesheet" href="styles/editor.css" />
+<link rel="stylesheet" href="styles/bg-editor.css" />
+<script type="text/javascript" src="scripts/bg-editor.js"></script>
 <title><?php echo $language ? 'Background editor':'Éditeur d\'arrière-plans'; ?></title>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
