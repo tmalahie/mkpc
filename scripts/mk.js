@@ -3749,7 +3749,7 @@ function startGame() {
 									if (focusingElt && focusingElt.onclick && oInfos.contains(focusingElt) && iSfx) {
 										setTimeout(function() {
 											if (!document.onkeydown)
-												playSoundEffect("musics/events/menuselect.mp3");
+												playSoundEffect("musics/events/select.mp3");
 										});
 									}
 									break;
@@ -3770,7 +3770,7 @@ function startGame() {
 												if (nextElt && (nextElt.style.display != "none") && (nextElt.style.visibility != "hidden")) {
 													nextElt.focus();
 													if (iSfx)
-														playSoundEffect("musics/events/menumove.mp3");
+														playSoundEffect("musics/events/move.mp3");
 													break;
 												}
 											} while (i != currentId);
@@ -17478,7 +17478,7 @@ document.onkeydown = function(e) {
 				if (bounds.width > 0 && bounds.height > 0) {
 					oBackButton.click();
 					if (iSfx)
-						playSoundEffect("musics/events/menuback.mp3");
+						playSoundEffect("musics/events/back.mp3");
 					break;
 				}
 			}
@@ -17626,7 +17626,7 @@ function showFocusIndicator(oScr, oButton) {
 	focusIndicator.style.borderRadius = paddingH +"px";
 
 	if (iSfx)
-		playSoundEffect("musics/events/menumove.mp3");
+		playSoundEffect("musics/events/move.mp3");
 }
 
 
