@@ -27953,18 +27953,23 @@ function toLanguage(english, french) {
 function toPlace(place) {
 	var term;
 	if (language) {
-		switch (place) {
-		case 1 :
-			term = "st";
-			break;
-		case 2 :
-			term = "nd";
-			break;
-		case 3 :
-			term = "rd";
-			break;
-		default :
-			term = "th";
+		var dec = place%100;
+		if ((dec >= 10) && (dec < 20))
+			term = 'th';
+		else {
+			switch (place%10) {
+			case 1 :
+				term = "st";
+				break;
+			case 2 :
+				term = "nd";
+				break;
+			case 3 :
+				term = "rd";
+				break;
+			default :
+				term = "th";
+			}
 		}
 	}
 	else
