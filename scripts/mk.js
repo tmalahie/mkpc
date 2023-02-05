@@ -1736,6 +1736,9 @@ function initMap() {
 				}
 			}
 		}
+		if (gameSettings.nowater) {
+			oMap.sea.render = function() {};
+		}
 		oMap.sea.color = function(i,type) {
 			if (this["colors."+i])
 				return this["colors."+i][type];
@@ -27415,6 +27418,7 @@ function editCommands(options) {
 	var allGraphicSettings = {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
+		'nowater' : toLanguage('Disable water animation (Palm Shore Arena)', 'Désactiver l\'animation de l\'eau (DS Feuille de Palmier)'),
 		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map')
 	};
 	var currentSettings = localStorage.getItem("settings");
