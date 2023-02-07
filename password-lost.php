@@ -18,13 +18,13 @@ if (isset($_GET['pseudo'])) {
 
 			$link = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']. '/new-password.php?code='. $code;
 			$title = $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
-			$msg = $language ? 'Hello '.$pseudo.'
+			$msg = $language ? 'Hello '.htmlspecialchars($pseudo).'
 You are receiving this email because you have applied for password recovery on the Mario Kart PC site.
 
 Here is a link that will allow you to generate a new password:
 <a href="'.$link.'">'. $link .'</a>
 
-See you soon on Mario Kart PC :)':'Bonjour '.$pseudo.'
+See you soon on Mario Kart PC :)':'Bonjour '.htmlspecialchars($pseudo).'
 Vous recevez cet email car vous avez fait une demande de récupération de mot de passe sur le site Mario Kart PC.
 
 Voici un lien qui va vous permettre de générer un nouveau mot de passe:

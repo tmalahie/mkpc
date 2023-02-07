@@ -48,7 +48,7 @@ include('menu.php');
 		elseif (isset($_POST['titre']) && isset($_POST['message']) && isset($_POST['message'])) {
 			$lastMessage = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id=1 AND topic="'. $_GET['topic'] .'"'));
 			if (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
-				$categoryID = $_POST['category'];
+				$categoryID = intval($_POST['category']);
 				if ($category = mysql_fetch_array(mysql_query('SELECT id FROM `mkcategories` WHERE id="'. $categoryID .'"'. (hasRight('manager') ? '':' AND adminonly=0')))) {
 					$private = (isset($_POST['admin']) && hasRight('manager')) ? 1:0;
 					mysql_query('UPDATE `mktopics` SET titre="'. $_POST['titre'] .'",private='.$private.',category="'. $categoryID .'" WHERE id="'. $_GET['topic'] .'"');

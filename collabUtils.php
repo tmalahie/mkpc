@@ -112,7 +112,7 @@ function printCollabPopup($params) {
     ?>">
         <a href="#null" class="collab-popup-close" onclick="closeCollabPopup(event)">&times;</a>
         <h2><?php echo $language ? "Collaborate with other members" : "Collaborer avec d'autres membres"; ?></h2>
-        <form class="collab-form collab-popup-section<?php if (!$hasLinks) echo ' add show'; ?>" data-type="<?php echo $itemType; ?>" data-id="<?php echo $itemId; ?>">
+        <form class="collab-form collab-popup-section<?php if (!$hasLinks) echo ' add show'; ?>" data-type="<?php echo htmlspecialchars($itemType); ?>" data-id="<?php echo htmlspecialchars($itemId); ?>">
             <div class="collab-explain collab-form-on-add">
             <?php
             echo $language

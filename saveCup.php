@@ -37,7 +37,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		if (isset($_POST['id'])) {
 			if ($currentCup) {
 				mysql_query('UPDATE `mkcups` SET circuit0="'. $_POST['cid0'] .'",circuit1="'. $_POST['cid1'] .'",circuit2="'. $_POST['cid2'] .'",circuit3="'. $_POST['cid3'] .'",nom="'. $_POST['nom'] .'",auteur="'. $_POST['auteur'] .'" WHERE id="'. $_POST['id'] .'"');
-				$cupId = $_POST['id'];
+				$cupId = intval($_POST['id']);
 			}
 		}
 		else {

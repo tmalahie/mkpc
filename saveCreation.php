@@ -40,7 +40,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 			if (!(($laps > 0) && ($laps < 10)))
 				$laps = 3;
 			if (isset($_POST['id'])) {
-				$circuitId = $_POST['id'];
+				$circuitId = intval($_POST['id']);
 				require_once('collabUtils.php');
 				$requireOwner = !hasCollabGrants('mkcircuits', $circuitId, $_POST['collab'], 'edit');
 				if (mysql_numrows(mysql_query('SELECT * FROM `mkcircuits` WHERE id="'.$circuitId.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {

@@ -6,9 +6,9 @@ if (isset($_POST['challenge']) || isset($_GET['challenge'])) {
 	include('initdb.php');
 	require_once('utils-challenges.php');
 	if (isset($_POST['challenge']))
-		$challengeId = $_POST['challenge'];
+		$challengeId = intval($_POST['challenge']);
 	else {
-		$challengeId = $_GET['challenge'];
+		$challengeId = intval($_GET['challenge']);
 		$redirect = true;
 	}
 	if ($challenge = mysql_fetch_array(mysql_query('SELECT clist,data FROM mkchallenges WHERE id="'. $challengeId .'"'))) {

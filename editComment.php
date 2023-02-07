@@ -3,8 +3,7 @@ if (isset($_POST['id_msg']) && isset($_POST['message'])) {
 	include('session.php');
 	include('escape_all.php');
 	if ($id) {
-		$message = $_POST['message'];
-		if ($message) {
+		if ($_POST['message']) {
 			include('initdb.php');
 			if ($getMsg = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkcomments` WHERE id="'. $_POST['id_msg'] .'"'))) {
 				require_once('getRights.php');

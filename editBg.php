@@ -1,6 +1,6 @@
 <?php
 if (isset($_GET['id'])) {
-	$bgId = $_GET['id'];
+	$bgId = intval($_GET['id']);
 	include('initdb.php');
 	if ($bg = mysql_fetch_array(mysql_query('SELECT * FROM `mkbgs` WHERE id="'. $bgId .'"'))) {
 		include('getId.php');

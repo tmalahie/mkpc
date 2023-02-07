@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['parent'])) {
     include('initdb.php');
-    $decorId = $_GET['parent'];
+    $decorId = intval($_GET['parent']);
     $collabSuffix = isset($_GET['collab']) ? '&collab='.urlencode($_GET['collab']) : '';
     if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
 		include('getId.php');

@@ -192,7 +192,7 @@ if ($success) {
 	?>
 <p id="success"><?php echo $language ? "The image has been changed successfully":"L'image a &eacute;t&eacute; modifi&eacute;e avec succ&egrave;s !"; ?></p>
 <script type="text/javascript">
-image.src = "<?php echo getCircuitImgUrl($circuitImg); ?>";
+image.src = <?php echo json_encode(getCircuitImgUrl($circuitImg)); ?>;
 image.onload = function() {
 	this.style.width = this.naturalWidth+"px";
 	this.style.height = "";<?php

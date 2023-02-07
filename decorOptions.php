@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['id'])) {
 	include('initdb.php');
-	$decorId = $_GET['id'];
+	$decorId = intval($_GET['id']);
 	if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
 		include('language.php');
 		include('getId.php');

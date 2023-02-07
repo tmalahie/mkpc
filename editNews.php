@@ -55,7 +55,7 @@ include('smileys.php');
 		');
 		if ($news['author'] != $id)
 			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "ENews '. $_GET['id'] .'")');
-		$iGenerated = $_GET['id'];
+		$iGenerated = intval($_GET['id']);
 		echo $language ? '<p id="successSent">News edited successfully<br />
 		<a href="news.php?id='. $iGenerated .'">Click here</a> to see the news.<br />
 		<a href="listNews.php">Click here</a> to return to the news list.</p>' :

@@ -1,6 +1,6 @@
 <?php
 if (isset($_GET['id'])) {
-	$persoId = $_GET['id'];
+	$persoId = intval($_GET['id']);
 	include('initdb.php');
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
 		include('getId.php');

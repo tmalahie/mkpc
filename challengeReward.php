@@ -25,7 +25,7 @@ if (isset($_POST['perso']) && isset($_POST['challenges']) && !empty($clRace)) {
     }
     $clMsg = null;
     if (!empty($challengeIds)) {
-        $persoId = $_POST['perso'];
+        $persoId = intval($_POST['perso']);
         $hasCollabGrants = hasCollabGrants('mkchars', $persoId, $_POST['collab'], 'use');
         if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'" AND name!="" AND author IS NULL'))) {
             if ($hasCollabGrants || (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3]))) {

@@ -231,15 +231,15 @@ while ($perso = mysql_fetch_array($getPersos)) {
             if (isset($myStat[$key]) && ($myStat[$key] != $globalStat[$key])) {
                 echo '<div>';
                 echo "$name: ";
-                echo '<span class="before">'.$globalStat[$key].'</span>';
-                echo '<span class="after">'.$myStat[$key].'</span>';
+                echo '<span class="before">'.htmlspecialchars($globalStat[$key]).'</span>';
+                echo '<span class="after">'.htmlspecialchars($myStat[$key]).'</span>';
                 echo '<a href="javascript:void(0)" onclick="resetStat(this,\''.$perso.'\','.$key.')"> ['. ($language ? 'Reset':'Rétablir') .']</a>';
                 echo '</div>';
             }
         }
         foreach ((array)$myStats as $perso => $myStat) {
             $globalStat = $globalStats->{$perso};
-            echo '<h4>'. getCharacterName($perso) .'</h4>';
+            echo '<h4>'. htmlspecialchars(getCharacterName($perso)) .'</h4>';
             print_diff($perso,0, $language ? 'Acceleration':'Accélération');
             print_diff($perso,1, $language ? 'Speed':'Vitesse');
             print_diff($perso,2, $language ? 'Handling':'Maniabilité');
