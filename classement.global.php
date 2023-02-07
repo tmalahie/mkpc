@@ -44,7 +44,7 @@ $page = 'game';
 include('menu.php');
 $page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
-$cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
+$cc = isset($_GET['cc']) ? intval($_GET['cc']) : 150;
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))
 	$myPseudo = $getPseudo['nom'];
 else
