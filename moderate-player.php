@@ -75,6 +75,12 @@ if ($ban) {
                 $getIp = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'.$getId['id'].'"'));
                 mysql_query('INSERT IGNORE INTO `ip_bans` VALUES('.$getId['id'].','.$getIp['identifiant'].','.$getIp['identifiant2'].','.$getIp['identifiant3'].','.$getIp['identifiant4'].')');
             }
+            if (isset($_POST['full_delete'])) {
+                mysql_query('DELETE m,t FROM mkmessages m LEFT JOIN mktopics t ON m.id=1 AND m.topic=t.id WHERE m.auteur="'. $getId['id'] .'"');
+                mysql_query('DELETE FROM mknewscoms WHERE author="'. $getId['id'] .'"');
+                mysql_query('DELETE FROM mknews WHERE author="'. $getId['id'] .'"');
+                mysql_query('DELETE FROM mkcomments WHERE auteur="'. $getId['id'] .'"');
+            }
             break;
         case 'warn':
             mysql_query('DELETE FROM `mkwarns` WHERE player="'. $getId['id'] .'"');
@@ -198,6 +204,7 @@ if ($unban) {
                 ?>
                 <label><input type="checkbox" name="ban_until" onclick="hanleBanUntil(this.checked)" /> <?php echo $language ? "Ban until:":"Bannir jusqu'à :"; ?> <input type="date" name="ban_until_date" disabled /></label><br />
                 <label><input type="checkbox" name="ip" /> <?php echo $language ? 'Also ban IP address':'Bannir également l\'adresse IP'; ?></label><br />
+                <label><input type="checkbox" name="full_delete" /> <?php echo $language ? 'Delete all messages from member':'Supprimer les messages du membre'; ?></label><br />
                 <?php
             }
             ?>

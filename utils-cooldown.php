@@ -13,7 +13,7 @@ function isMsgCooldowned($context = array()) {
     $profileIdsString = getProfileIdsString();
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkmessages WHERE auteur IN ('. $profileIdsString .') AND date>=DATE_SUB(NOW(),INTERVAL 60 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];
-    if ($recentMsgs >= 1)
+    if ($recentMsgs >= 2)
         return true;
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkmessages WHERE auteur IN ('. $profileIdsString .') AND date>=DATE_SUB(NOW(),INTERVAL 600 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];
