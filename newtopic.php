@@ -4,7 +4,7 @@ if (isset($_GET['category'])) {
 	include('language.php');
 	include('session.php');
 	include('initdb.php');
-	$categoryID = $_GET['category'];
+	$categoryID = intval($_GET['category']);
 	include('category_fields.php');
 	require_once('getRights.php');
 	if ($category = mysql_fetch_array(mysql_query('SELECT '. $categoryFields .' FROM `mkcategories` WHERE id="'. $categoryID .'"'.(hasRight('manager') ? '':' AND adminonly=0')))) {
@@ -45,41 +45,53 @@ if ($id) {
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 	<?php
-	$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
-	if ($getBanned && $getBanned['banned'])
+	$showForm = false;
+	$showNavLinks = true;
+
+	$banned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
+	if ($banned['banned'])
 		include('ban_msg.php');
 	elseif (isset($_POST['titre']) && isset($_POST['message'])) {
-		$private = (isset($_POST['admin']) && hasRight('manager')) ? 1:0;
-		mysql_query('INSERT INTO `mktopics` VALUES(NULL, "'. $_POST['titre'] .'",'. $categoryID .','. $language .','.$private.',0,1,NULL)');
-		$iGenerated = mysql_insert_id();
-		mysql_query('INSERT INTO `mkmessages` VALUES(1, '. $iGenerated .', "'.$id.'", NULL, "'. $_POST['message'] .'")');
-		mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages+1,last_connect=NULL WHERE id="'.$id.'"');
-		mysql_query('INSERT INTO `mkfollowers` VALUES("'. $id .'","'. $iGenerated .'")');
-		$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
-		while ($follower = mysql_fetch_array($getFollowers))
-			mysql_query('INSERT INTO `mknotifs` SET type="follower_topic", user="'. $follower['follower'] .'", link="'.$iGenerated.'"');
-		preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
-		foreach ($mentions[1] as $pseudo) {
-			$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
-			if ($getMid=mysql_fetch_array($getMids))
-				mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.$iGenerated.',1"');
+		include('utils-cooldown.php');
+		if (isMsgCooldowned()) {
+			printMsgCooldowned();
 		}
-		preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', stripcslashes($_POST['message']), $quotes);
-		foreach ($quotes[1] as $pseudo) {
-			$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
-			if ($getMid=mysql_fetch_array($getMids))
-				mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$iGenerated.',1"');
+		else {
+			$private = (isset($_POST['admin']) && hasRight('manager')) ? 1:0;
+			mysql_query('INSERT INTO `mktopics` VALUES(NULL, "'. $_POST['titre'] .'",'. $categoryID .','. $language .','.$private.',0,1,NULL)');
+			$iGenerated = mysql_insert_id();
+			mysql_query('INSERT INTO `mkmessages` VALUES(1, '. $iGenerated .', "'.$id.'", NULL, "'. $_POST['message'] .'")');
+			mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages+1,last_connect=NULL WHERE id="'.$id.'"');
+			mysql_query('INSERT INTO `mkfollowers` VALUES("'. $id .'","'. $iGenerated .'")');
+			$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
+			while ($follower = mysql_fetch_array($getFollowers))
+				mysql_query('INSERT INTO `mknotifs` SET type="follower_topic", user="'. $follower['follower'] .'", link="'.$iGenerated.'"');
+			preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
+			foreach ($mentions[1] as $pseudo) {
+				$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+				if ($getMid=mysql_fetch_array($getMids))
+					mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.$iGenerated.',1"');
+			}
+			preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', stripcslashes($_POST['message']), $quotes);
+			foreach ($quotes[1] as $pseudo) {
+				$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+				if ($getMid=mysql_fetch_array($getMids))
+					mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$iGenerated.',1"');
+			}
+			echo $language ? '<p id="successSent">Message sent successfully<br />
+			<a href="topic.php?topic='. $iGenerated .'">Click here</a> to go to the topic.<br />
+			<a href="category.php?category='. $categoryID .'">Click here</a> to return to the category.<br />
+			<a href="forum.php">Click here</a> to return to the forum.</p>' :
+			'<p id="successSent">Message envoy&eacute; avec succ&egrave;s<br />
+			<a href="topic.php?topic='. $iGenerated .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
+			<a href="category.php?category='. $categoryID .'">Cliquez ici</a> pour retourner à la catégorie.<br />
+			<a href="forum.php">Cliquez ici</a> pour retourner au forum.</p>';
 		}
-		echo $language ? '<p id="successSent">Message sent successfully<br />
-		<a href="topic.php?topic='. $iGenerated .'">Click here</a> to go to the topic.<br />
-		<a href="category.php?category='. $categoryID .'">Click here</a> to return to the category.<br />
-		<a href="forum.php">Click here</a> to return to the forum.</p>' :
-		'<p id="successSent">Message envoy&eacute; avec succ&egrave;s<br />
-		<a href="topic.php?topic='. $iGenerated .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
-		<a href="category.php?category='. $categoryID .'">Cliquez ici</a> pour retourner à la catégorie.<br />
-		<a href="forum.php">Cliquez ici</a> pour retourner au forum.</p>';
 	}
 	else {
+		$showForm = true;
+	}
+	if ($showForm) {
 	?>
 <form method="post" action="newtopic.php?category=<?php echo $categoryID; ?>" onsubmit="if(!this.titre.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
@@ -108,14 +120,16 @@ if (hasRight('manager')) {
 <tr><td colspan="2" class="mLabel"><input type="button" value="<?php echo $language ? 'Preview':'Aper&ccedil;u'; ?>" onclick="apercu()" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Send':'Envoyer'; ?>" /></td></tr>
 </table>
 </form>
-<?php
-include('preview-msg.php');
-?>
+	<?php
+	include('preview-msg.php');
+}
+if ($showNavLinks) {
+	?>
 <p class="forumButtons" style="margin: 10px 0 0 23%">
 	<a href="category.php?category=<?php echo $categoryID; ?>"><?php echo $language ? 'Back to '. $category['nom']:'Retour à '. $category['nom']; ?></a><br />
 	<a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a>
 </p>
-		<?php
+	<?php
 	}
 }
 else

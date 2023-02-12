@@ -15,6 +15,12 @@ if (isset($_POST['circuit']) &&  isset($_POST['type']) && isset($_POST['message'
 					mysql_close();
 					exit;
 				}
+				include('getId.php');
+				include('utils-cooldown.php');
+				if (isTrackComCooldowned()) {
+					mysql_close();
+					exit;
+				}
 				if ($getCircuit = mysql_fetch_array(mysql_query('SELECT * FROM `'. $type .'` WHERE id="'. $circuit.'"'))) {
 					mysql_query('INSERT INTO `mkcomments` VALUES(NULL,"'.$circuit.'","'.$type.'","'.$id.'","'.$message.'",NULL)');
 					$commentID = mysql_insert_id();

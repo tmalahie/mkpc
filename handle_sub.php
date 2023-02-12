@@ -10,6 +10,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code']) && isset($_POST['confirm'])
 	$confirm = $_POST['confirm'];
 	$email = $_POST['email'];
 	$country = $_POST['country'];
+	include('utils-cooldown.php');
 	if (!$pseudo)
 		$message = $language ? 'Please enter a nick':'Veuillez entrer un pseudo';
 	elseif (!$code)
@@ -28,6 +29,8 @@ if (isset($_POST['pseudo']) && isset($_POST['code']) && isset($_POST['confirm'])
 	}
 	elseif (mysql_numrows(mysql_query('SELECT * FROM `ip_bans` WHERE ip1="'. $identifiants[0] .'" AND ip2="'. $identifiants[1] .'" AND ip3="'. $identifiants[2] .'" AND ip4="'. $identifiants[3] .'"')))
 		 $message = $language ? 'You have been banned.':'Vous avez &eacute;t&eacute; banni.';
+	elseif (isAccountCooldown())
+		$message = $language ? 'Too many accounts created recently, please try again later.':'Trop de comptes créés récemment, veuillez réessayer ultérieurement.';
 	else {
 		if ($getCountryId = mysql_fetch_array(mysql_query('SELECT id FROM mkcountries WHERE code="'. $country .'"')))
 			$countryId = $getCountryId['id'];

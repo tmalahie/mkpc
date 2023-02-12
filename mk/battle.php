@@ -57,8 +57,12 @@ foreach ($circuitsData as $c => $arene) {
 	"arme" : <?php echo json_encode($circuitPayload->arme); ?>,
 	"sauts" : <?php
 		foreach ($circuitPayload->sauts as &$sautsData) {
-			$sautsData[2]++;
-			$sautsData[3]++;
+			if (count($sautsData) > 3) {
+				if (is_numeric($sautsData[2]))
+					$sautsData[2]++;
+				if (is_numeric($sautsData[3]))
+					$sautsData[3]++;
+			}
 		}
 		echo json_encode($circuitPayload->sauts);
 	?>,

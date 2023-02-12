@@ -9,6 +9,13 @@ if (isset($_GET['news']) && isset($_POST['comment'])) {
 				mysql_close();
 				exit;
 			}
+			include('getId.php');
+			include('utils-cooldown.php');
+			if (isNewsComCooldowned()) {
+				header('location: news.php?id='.$_GET['news']);
+				mysql_close();
+				exit;
+			}
 			mysql_query('INSERT INTO `mknewscoms` SET news="'. $_GET['news'] .'",author="'. $id .'", message="'. $_POST['comment'] .'"');
 			$commentId = mysql_insert_id();
 			mysql_query('UPDATE `mknews` SET nbcomments=nbcomments+1 WHERE id="'. $_GET['news'] .'"');

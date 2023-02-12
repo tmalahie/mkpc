@@ -12,6 +12,12 @@ if (isset($_POST['id']) && isset($_POST['nom']) && isset($_POST['auteur'])) {
 	require_once('collabUtils.php');
 	$requireOwner = !hasCollabGrants('circuits', $_POST['id'], $_POST['collab'], 'edit');
 	if ($getCircuit = mysql_fetch_array(mysql_query('SELECT publication_date FROM circuits WHERE id="'.$_POST['id'].'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
+		include('utils-cooldown.php');
+		if (!$getCircuit['publication_date'] && isTrackCooldowned(array('type' => 'circuits'))) {
+			echo 1;
+			mysql_close();
+			exit;
+		}
 		mysql_query('UPDATE `circuits` SET nom="'.$_POST['nom'].'",auteur="'.$_POST['auteur'].'",publication_date=IFNULL(publication_date,CURRENT_TIMESTAMP()) WHERE id="'.$_POST['id'].'"');
 		include('session.php');
 		if ($id && !$getCircuit['publication_date']) {

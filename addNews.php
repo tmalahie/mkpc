@@ -67,6 +67,12 @@ if (isset($draftSaved)) {
 </script>
 	<?php
 	if (isset($_POST['title']) && isset($_POST['category']) && isset($_POST['message']) && !isset($_POST['draft']) && !isset($_POST['undraft'])) {
+		include('utils-cooldown.php');
+		if (isNewsCooldowned()) {
+			mysql_close();
+			printNewsCooldowned();
+			exit;
+		}
 		mysql_query('DELETE FROM `mknewsdraft` WHERE author="'. $id .'"');
 		mysql_query('INSERT INTO `mknews` SET
 			title="'. $_POST['title'] .'",

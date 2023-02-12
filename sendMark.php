@@ -38,8 +38,11 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 				else
 					mysql_query('DELETE FROM `mkratings` WHERE id='. $oldMark['id']);
 			}
-			else if ($newMark)
-				mysql_query('INSERT INTO `mkratings` SET type="'.$table.'",circuit="'.$circuitId.'",identifiant="'.$identifiants[0].'",player="'.$id.'",rating='.$rating);
+			else if ($newMark) {
+				include('utils-cooldown.php');
+				if (!isRatingCooldown())
+					mysql_query('INSERT INTO `mkratings` SET type="'.$table.'",circuit="'.$circuitId.'",identifiant="'.$identifiants[0].'",player="'.$id.'",rating='.$rating);
+			}
 			else {
 				echo '1';
 				mysql_close();
