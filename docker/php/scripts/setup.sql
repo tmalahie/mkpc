@@ -531,8 +531,22 @@ CREATE TABLE `mkconvs` (
   `sender` int(10) unsigned NOT NULL,
   `receiver` int(10) unsigned NOT NULL,
   `writting` timestamp NULL DEFAULT NULL,
+  `reduced` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sender` (`sender`,`receiver`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkcooldownhist` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `player` int(11) NOT NULL,
+  `identifiant` int(11) unsigned NOT NULL,
+  `type` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `player` (`player`),
+  KEY `identifiant` (`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
