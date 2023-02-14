@@ -12,6 +12,7 @@ if (isset($_GET['news']) && isset($_POST['comment'])) {
 			include('getId.php');
 			include('utils-cooldown.php');
 			if (isNewsComCooldowned()) {
+				logCooldownEvent('news_com');
 				header('location: news.php?id='.$_GET['news']);
 				mysql_close();
 				exit;

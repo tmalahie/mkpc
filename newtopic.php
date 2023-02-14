@@ -53,7 +53,8 @@ if ($id) {
 		include('ban_msg.php');
 	elseif (isset($_POST['titre']) && isset($_POST['message'])) {
 		include('utils-cooldown.php');
-		if (isMsgCooldowned()) {
+		if (isMsgCooldowned(array('newtopic' => 1))) {
+			logCooldownEvent('forum_topic');
 			printMsgCooldowned();
 		}
 		else {

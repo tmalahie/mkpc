@@ -14,6 +14,7 @@ if (isset($_POST['id']) && isset($_POST['nom']) && isset($_POST['auteur'])) {
 	if ($getCircuit = mysql_fetch_array(mysql_query('SELECT publication_date FROM arenes WHERE id="'.$_POST['id'].'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
 		include('utils-cooldown.php');
 		if (!$getCircuit['publication_date'] && isTrackCooldowned(array('type' => 'arenes'))) {
+			logCooldownEvent('track');
 			echo 1;
 			mysql_close();
 			exit;

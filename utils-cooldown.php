@@ -130,7 +130,7 @@ function isTrackComCooldowned() {
         return true;
     return false;
 }
-function isRatingCooldown() {
+function isRatingCooldowned() {
     global $identifiants;
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkratings` WHERE identifiant='.$identifiants[0].' AND date>=DATE_SUB(NOW(),INTERVAL 60 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];
@@ -142,11 +142,17 @@ function isRatingCooldown() {
         return true;
     return false;
 }
-function isAccountCooldown() {
+function isAccountCooldowned() {
     global $identifiants;
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkprofiles` WHERE identifiant='.$identifiants[0].' AND sub_date=CURDATE()'));
     $recentMsgs = $getRecentMsgs['nb'];
     if ($recentMsgs >= 25)
         return true;
     return false;
+}
+function logCooldownEvent($type) {
+    global $id, $identifiants;
+    $identifiant = isset($identifiants) ? $identifiants[0] : 0;
+    $playerId = isset($id) ? $id : 0;
+    mysql_query('INSERT INTO `mkcooldownhist` SET player="'.$playerId.'",identifiant="'.$identifiant.'",type="'.$type.'"');
 }

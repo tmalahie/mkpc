@@ -69,6 +69,7 @@ if (isset($draftSaved)) {
 	if (isset($_POST['title']) && isset($_POST['category']) && isset($_POST['message']) && !isset($_POST['draft']) && !isset($_POST['undraft'])) {
 		include('utils-cooldown.php');
 		if (isNewsCooldowned()) {
+			logCooldownEvent('news');
 			mysql_close();
 			printNewsCooldowned();
 			exit;

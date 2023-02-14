@@ -18,6 +18,7 @@ if (isset($_POST['circuit']) &&  isset($_POST['type']) && isset($_POST['message'
 				include('getId.php');
 				include('utils-cooldown.php');
 				if (isTrackComCooldowned()) {
+					logCooldownEvent('track_com');
 					mysql_close();
 					exit;
 				}

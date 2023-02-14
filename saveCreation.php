@@ -49,6 +49,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 			else {
 				include('utils-cooldown.php');
 				if (isTrackCooldowned(array('type' => 'mkcircuits'))) {
+					logCooldownEvent('track');
 					echo -1;
 					mysql_close();
 					exit;

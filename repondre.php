@@ -59,6 +59,7 @@ include('menu.php');
 			elseif (isset($_POST['message'])) {
 				include('utils-cooldown.php');
 				if (isMsgCooldowned()) {
+					logCooldownEvent('forum_msg');
 					printMsgCooldowned();
 				}
 				else {
