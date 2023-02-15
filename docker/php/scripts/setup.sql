@@ -962,7 +962,8 @@ CREATE TABLE `mknews` (
   `nbcomments` int(11) NOT NULL DEFAULT 0,
   `locked` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  KEY `publication_date` (`publication_date`)
+  KEY `publication_date` (`status`,`publication_date`),
+  KEY `author` (`author`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -974,7 +975,8 @@ CREATE TABLE `mknewscoms` (
   `message` text NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `news` (`news`)
+  KEY `news` (`news`),
+  KEY `author` (`author`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
