@@ -122,11 +122,11 @@ function isTrackComCooldowned() {
     $profileIdsString = getProfileIdsString();
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkcomments WHERE auteur IN ('. $profileIdsString .') AND date>=DATE_SUB(NOW(),INTERVAL 60 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];
-    if ($recentMsgs >= 2)
+    if ($recentMsgs >= 4)
         return true;
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkcomments WHERE auteur IN ('. $profileIdsString .') AND date>=DATE_SUB(NOW(),INTERVAL 300 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];
-    if ($recentMsgs > 5)
+    if ($recentMsgs >= 15)
         return true;
     return false;
 }
@@ -134,11 +134,11 @@ function isRatingCooldowned() {
     global $identifiants;
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkratings` WHERE identifiant='.$identifiants[0].' AND date>=DATE_SUB(NOW(),INTERVAL 60 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];
-    if ($recentMsgs >= 3)
+    if ($recentMsgs >= 5)
         return true;
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkratings` WHERE identifiant='.$identifiants[0].' AND date>=DATE_SUB(NOW(),INTERVAL 300 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];
-    if ($recentMsgs >= 10)
+    if ($recentMsgs >= 20)
         return true;
     return false;
 }
