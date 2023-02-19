@@ -7,9 +7,9 @@
 			</td>
 			<td id="header_center">
 				<?php
-				//if ($id)
-				//	echo '<a href="news.php?id=14473"><img src="images/header_es.png" alt="Mario Kart PC" /></a>';
-				//else
+				if ($id)
+					echo '<a href="news.php?id=15069"><img src="images/header_3nation.png" alt="Mario Kart PC" class="event-link" /></a>';
+				else
 					echo '<img src="images/header_transparent2.png" alt="Mario Kart PC" />';
 				?>
 			</td>

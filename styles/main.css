@@ -58,6 +58,13 @@ header table td {
 	border-top-right-radius: 40px;
 	border: none;
 }
+#header_center img.event-link {
+	opacity: 0.8;
+	transition: opacity 0.3s ease-in;
+}
+#header_center img.event-link:hover {
+	opacity: 1;
+}
 header img {
 	width: 100%;
 	vertical-align: bottom;
