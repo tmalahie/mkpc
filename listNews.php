@@ -217,7 +217,7 @@ if (hasRight('publisher')) {
 if ($id)
 	echo '<a href="addNews.php" class="action_button">'. ($language ? 'Add a news':'Créer une news') .'</a>';
 ?>
-<a href="index.php"><?php echo $language ? 'Back to home':'Retour &agrave; l\'accueil'; ?></a>
+<a href="index.php"><?php echo $language ? 'Back to the homepage':'Retour &agrave; l\'accueil'; ?></a>
 </p>
 </main>
 <?php

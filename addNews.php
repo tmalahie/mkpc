@@ -182,10 +182,10 @@ if ($draft) {
 <div class="news-header">
 	<h1 id="mTitle"><?php if ($draft) echo $draft['title']; ?></h1>
 	<div class="news-author">
-		Dans <strong id="mCategory"><?php echo $currentCategory['name']; ?></strong> par <strong><?php echo $getAuthor['nom']; ?></strong>
+		<?php echo $language ? 'In':'Dans'; ?> <strong id="mCategory"><?php echo $currentCategory['name']; ?></strong> <?php echo $language ? 'by':'par'; ?> <strong><?php echo $getAuthor['nom']; ?></strong>
 	</div>
 	<div class="news-date">
-		Publiée <span class="mDate"></span>
+		<?php echo $language ? 'Published':'Publié'; ?> <span class="mDate"></span>
 	</div>
 </div>
 <div class="news-content mBody"></div>

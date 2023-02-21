@@ -120,7 +120,7 @@ if ($nbPages > 1) {
 ?>
 <p class="forumButtons">
 <a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
-<a href="index.php"><?php echo $language ? 'Back to home':'Retour &agrave; l\'accueil'; ?></a>
+<a href="index.php"><?php echo $language ? 'Back to the homepage':'Retour &agrave; l\'accueil'; ?></a>
 </p>
 </main>
 <?php

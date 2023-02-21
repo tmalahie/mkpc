@@ -111,7 +111,7 @@ $slidesPath = 'images/slides';
 									<?php
 									if ($language) {
 										?>
-										Face off the CPU on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!<br />
+										Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!<br />
 										Win enough cups to unlock the <strong>15 secret characters</strong>!
 										<?php
 									}

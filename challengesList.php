@@ -611,7 +611,7 @@ include('menu.php');
 				<?php
 			}
 			?>
-			<a href="index.php"><?php echo $language ? 'Back to the Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
+			<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
 		</p>
 	</div>
 </main>

@@ -20294,7 +20294,7 @@ function selectTypeCreate() {
 		oTr.style.backgroundColor = "#CCC";
 		var oTd = document.createElement("td");
 		if (language)
-			oTd.innerHTML = '<strong>Quick mode:</strong> create a track in a few clics thanks to ready-made pieces';
+			oTd.innerHTML = '<strong>Quick mode:</strong> create a track in a few clicks thanks to ready-made pieces';
 		else
 			oTd.innerHTML = '<strong>Mode simplifié :</strong> créez un circuit en quelques clics grâce à des pièces toutes faites';
 		oTd.style.padding = (iScreenScale*2) +"px " + (iScreenScale*3) +"px";
@@ -22226,7 +22226,7 @@ function selectItemScreen(oScr, callback, options) {
 							'<div>'+
 								'<input type="checkbox" id="item-options-lightning" name="prevent-lightning-x2" />'+
 							'</div>'+
-							'<label for="item-options-lightning">'+ toLanguage("Prevent 2 players from having a lightning", "Empêcher 2 joueurs d'avoir un éclair") +'</label>'+
+							'<label for="item-options-lightning">'+ toLanguage("Prevent 2 players from having a lightning item", "Empêcher 2 joueurs d'avoir un éclair") +'</label>'+
 						'</div>'+
 					'</div>'+
 					'<div class="item-optgroup">'+

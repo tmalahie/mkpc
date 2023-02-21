@@ -121,7 +121,7 @@ if ($id && (!$category['adminonly']||hasRight('manager')))
 	echo '<a href="newtopic.php?category='. $categoryID .'" class="action_button">'. ($language ? 'New topic':'Nouveau topic') .'</a>';
 ?>
 <a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
-<a href="index.php"><?php echo $language ? 'Back to home':'Retour &agrave; l\'accueil'; ?></a>
+<a href="index.php"><?php echo $language ? 'Back to the homepage':'Retour &agrave; l\'accueil'; ?></a>
 </p>
 </main>
 <?php
