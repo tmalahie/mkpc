@@ -26,6 +26,10 @@ if (isset($_POST['name'])) {
 	$clMsg = null;
 	if (empty($challenge) || ('pending_completion' === $challenge['status']) || !empty($moderate)) {
 		if (isset($_POST['goal']) && isset($_POST['difficulty'])) {
+			require_once('challenge-consts.php');
+			$difficulties = getChallengeDifficulties();
+			if (!isset($difficulties[$_POST['difficulty']]))
+				$_POST['difficulty'] = 0;
 			$data = array();
 			$data['goal'] = $_POST['goal'];
 			parseChallengeConstraint($data['goal']);
@@ -65,8 +69,11 @@ if (isset($_POST['name'])) {
 	elseif ('deleted' !== $challenge['status']) {
 		mysql_query('UPDATE `mkchallenges` SET name="'. $_POST['name'] .'" WHERE id="'. $challenge['id'] .'"');
 		if (in_array($challenge['status'], array('pending_publication','pending_moderation'))) {
-			if (isset($_POST['difficulty']))
-				updateChallengeDifficulty($challenge, $_POST['difficulty']);
+			if (isset($_POST['difficulty'])) {
+				$difficulties = getChallengeDifficulties();
+				if (isset($difficulties[$_POST['difficulty']]))
+					updateChallengeDifficulty($challenge, $_POST['difficulty']);
+			}
 		}
 		$clMsg = 'challenge_updated';
 	}
