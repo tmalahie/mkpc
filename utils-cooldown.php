@@ -110,11 +110,11 @@ function isTrackCooldowned($context) {
     $table = $context['type'];
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `'.$table.'` WHERE identifiant='.$identifiants[0].' AND publication_date>=DATE_SUB(NOW(),INTERVAL 60 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];
-    if ($recentMsgs >= 1)
+    if ($recentMsgs >= 2)
         return true;
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `'.$table.'` WHERE identifiant='.$identifiants[0].' AND publication_date>=DATE_SUB(NOW(),INTERVAL 300 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];
-    if ($recentMsgs >= 3)
+    if ($recentMsgs > 5)
         return true;
     return false;
 }
