@@ -4,7 +4,7 @@ if (isset($_GET['category'])) {
 	include('language.php');
 	include('session.php');
 	include('initdb.php');
-	$categoryID = $_GET['category'];
+	$categoryID = intval($_GET['category']);
 	include('category_fields.php');
 	if ($category = mysql_fetch_array(mysql_query('SELECT '. $categoryFields .',adminonly FROM `mkcategories` WHERE id="'. $categoryID .'"'))) {
 		?>

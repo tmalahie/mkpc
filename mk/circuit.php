@@ -27,6 +27,8 @@ foreach ($circuitsData as $c => $circuit) {
 	if ($c)
 		echo ',';
 	$map = $circuit['map'];
+	if (!isset($bgColors[$map]))
+		$map = 1;
 	$snes = ($map <= 8);
 	$gba = ($map > 8) && ($map <= 25);
 	$roady = $snes ? ($map < 6) : ($gba ? (($map != 21)&&($map<24)) : true);

@@ -12,7 +12,7 @@ function getLetterPrefixD($l,&$info) {
 }
 function getLetterPrefixes($l,$map) {
     global $decorTypes;
-    if ('t' === $l)
+    if (('t' === $l) && isset($decorTypes[$map]))
         return count($decorTypes[$map]);
     return 1;
 }

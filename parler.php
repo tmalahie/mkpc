@@ -29,6 +29,7 @@ if (isset($_POST['msg'])) {
 				return_failure(-4, false);
 			$msg = $_POST['msg'];
 			$courseOptions = mysql_fetch_array(mysql_query('SELECT IFNULL(g.public,m.link=0) AS public FROM `mariokart` m LEFT JOIN `mkgameoptions` g ON m.link=g.id WHERE m.id="'. $course .'"'));
+			$shouldLog = false;
 			if (!$courseOptions || $courseOptions['public']) {
 				if (strlen($msg) > 255)
 					return_failure(-3);
@@ -45,7 +46,6 @@ if (isset($_POST['msg'])) {
 					$blackListRegexParts[$action][] = preg_quote($word);
 				}
 				$resultCode = 1;
-				$shouldLog = false;
 				foreach ($blackListRegexParts as $action => $actionRegexPart) {
 					$actionRegexPartStr = implode('|', $actionRegexPart);
 					if ($actionRegexPartStr === '') continue;

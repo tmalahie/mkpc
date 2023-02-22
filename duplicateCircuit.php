@@ -16,7 +16,7 @@ if (isset($_GET['i'])) {
             $circuitPath = CIRCUIT_BASE_PATH.$circuitImg->url;
             $filesize = filesize($circuitPath);
             $filesize += file_total_size();
-            if ($poids >= MAX_FILE_SIZE)
+            if ($filesize >= MAX_FILE_SIZE)
                 $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete tracks or use the &quot;Paste image URL&quot; option to save space.':'Vous avez dépassé votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des circuits ou utilisez l\'option &quot;Coller l\'URL de l\'image&quot; pour gagner de l\'espace.';
         }
         if (!$error) {

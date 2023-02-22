@@ -45,6 +45,8 @@ if (isset($_GET['id'])) {
 		}
 	}
 	mysql_close();
+	if (!isset($map))
+		exit;
 }
 else {
 	include('escape_all.php');
@@ -80,6 +82,8 @@ else {
 		}
 	}
 }
+if (!isset($bgColors[$map]))
+	exit;
 $snes = ($map <= 13);
 $gba = ($map > 13) && ($map <= 30);
 $ds = ($map > 46);

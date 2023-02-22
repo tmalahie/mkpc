@@ -5,7 +5,7 @@ if ($getMkSave = mysql_fetch_array(mysql_query('SELECT scores FROM `mksaves` WHE
 	$mkSaves = $getMkSave['scores'];
 else {
 	$mkSaves = '00000000000000';
-	mysql_query('INSERT INTO `mksaves` VALUES("'. $identifiants[0] .'","'. $identifiants[1] .'","'. $identifiants[2] .'","'. $identifiants[3] .'","'. mysql_real_escape_string($mkSaves) .'")');
+	mysql_query('INSERT IGNORE INTO `mksaves` VALUES("'. $identifiants[0] .'","'. $identifiants[1] .'","'. $identifiants[2] .'","'. $identifiants[3] .'","'. mysql_real_escape_string($mkSaves) .'")');
 }
 $total1 = 0;
 $nbSaves = strlen($mkSaves);

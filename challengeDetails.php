@@ -37,6 +37,7 @@ include('o_online.php');
 			<?php
 			if ($challenge['validation']) {
 				$validation = json_decode($challenge['validation']);
+				if (is_array($validation)) $validation = new \stdClass();
 				if ('active' === $challenge['status']) {
 					?>
 					<div class="challenge-moderation-success">

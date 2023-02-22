@@ -24,6 +24,8 @@ foreach ($circuitsData as $c => $arene) {
 		Array(false,true,false,false)
 	);
 	$map = $arene['map'];
+	if (!isset($bgColors[$map]))
+		$map = 9;
 	$snes = ($map < 14);
 	if ($map == 29)
 		$pieces[10] = Array(true,true,true,true);

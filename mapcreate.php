@@ -7,6 +7,8 @@ if (in_array($map, array(48)))
 	$image = imagecreatetruecolor(600,600);
 else
 	$image = imagecreate(600,600);
+if (!isset($bgColors[$map]))
+	$map = 1;
 $bg = $bgColors[$map];
 imagecolorallocate($image, $bg[0], $bg[1], $bg[2]);
 
@@ -15,8 +17,8 @@ if (in_array($map, array(49,50)))
 	$pieceprefix .= '_';
 for ($i=0;$i<36;$i++) {
 	if (isset($_GET['p'.$i])) {
-		$piececircuit = imagecreatefrompng('images/pieces/'.$pieceprefix.$_GET['p'.$i].'.png');
-		imagecopy($image, $piececircuit, ($i%6)*100, floor($i/6)*100, 0, 0, 100, 100);
+		if ($piececircuit = @imagecreatefrompng('images/pieces/'.$pieceprefix.$_GET['p'.$i].'.png'))
+			imagecopy($image, $piececircuit, ($i%6)*100, floor($i/6)*100, 0, 0, 100, 100);
 	}
 }
 $snes = ($map < 13);

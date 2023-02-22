@@ -65,6 +65,8 @@ else {
 		}
 	}
 }
+if (!isset($bgColors[$map]))
+	exit;
 $snes = ($map <= 13);
 $gba = (($map > 8) && ($map <= 30)) || ($map >= 52);
 include('language.php');

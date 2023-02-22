@@ -1,17 +1,11 @@
 <?php
 include('session.php');
 include('initdb.php');
-/*if ($id == 5188) {
-	unset($_COOKIE['identifiant']);
-	unset($_COOKIE['identifiant2']);
-	unset($_COOKIE['identifiant3']);
-	unset($_COOKIE['identifiant4']);
-	unset($_COOKIE['mktoken']);
-	include('getId.php');
-	mysql_query('UPDATE `mkprofiles` SET identifiant="'. $identifiants[0] .'",identifiant2="'. $identifiants[1] .'",identifiant3="'. $identifiants[2] .'",identifiant4="'. $identifiants[3] .'" WHERE id='. $id);
-if (isset($_COOKIE['tz']))
-	file_put_contents('aaa.txt', $_COOKIE['tz']."\n", FILE_APPEND);
-}*/
+if (!$id) {
+	echo '[]';
+	mysql_close();
+	exit;
+}
 $timeStamp = time();
 mysql_query('INSERT INTO `mkconnectes` SET id="'. $id .'",connecte='. $timeStamp .' ON DUPLICATE KEY UPDATE connecte='. $timeStamp);
 mysql_query('DELETE FROM `mkconnectes` WHERE connecte <= '. ($timeStamp-30));
