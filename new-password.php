@@ -16,7 +16,7 @@ if (isset($_GET['code'])) {
 			if (!$nouveau)
 				$message = $language ? 'Please enter your new password':'Veuillez entrer votre nouveau mot de passe';
 			elseif ($nouveau != $confirm)
-				$message = $language ? 'You made a mistake by re-entering your password':'Vous avez fait une erreur en retapant votre nouveau mot de passe';
+				$message = $language ? 'You made a mistake re-entering your password':'Vous avez fait une erreur en retapant votre nouveau mot de passe';
 			else {
 				$modifie = true;
 				mysql_query('UPDATE `mkjoueurs` SET code="'. password_hash($nouveau,PASSWORD_DEFAULT) .'",deleted=0 WHERE id="'. $player .'"');

@@ -697,8 +697,6 @@ $slidesPath = 'images/slides';
 						return 0;
 					}
 					function sortLines($lines) {
-						$res = array();
-						$nLines = count($lines);
 						$logb = log(1.7);
 						foreach ($lines as &$line) {
 							$publishedSince = time()-strtotime($line['publication_date']);

@@ -14,7 +14,7 @@ if ($id) {
 		elseif (!($getCode=mysql_fetch_array(mysql_query('SELECT code FROM `mkjoueurs` WHERE id="'.$id.'"'))) || !password_verify($ancien,$getCode['code']))
 			$message = $language ? 'The old password that you entered is wrong':'L\'ancien mot de passe que vous avez entr&eacute; est incorrect';
 		elseif ($nouveau != $confirm)
-			$message = $language ? 'You made a mistake by re-entering your password':'Vous avez fait une erreur en retapant votre nouveau mot de passe';
+			$message = $language ? 'You made a mistake re-entering your password':'Vous avez fait une erreur en retapant votre nouveau mot de passe';
 		else {
 			mysql_query('UPDATE `mkjoueurs` SET code="'. password_hash($nouveau,PASSWORD_DEFAULT) .'" WHERE id="'. $id .'"');
 			$modifie = true;

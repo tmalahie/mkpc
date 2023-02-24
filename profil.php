@@ -118,7 +118,7 @@ if (isset($profileId)) {
 			}
 		}
 		function plural($nb) {
-			return ($nb >= 2) ? 's':'';
+			return ($nb != 1) ? 's':'';
 		}
 		function toUtf8($str) {
 			return $str;
