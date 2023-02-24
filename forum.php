@@ -37,7 +37,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=1" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=2" />
 <?php
 include('o_online.php');
 ?>
@@ -58,6 +58,20 @@ if ($id && $myIdentifiants) {
 if ($id) {
 	$getNom = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	?>
+	<div class="forum-welcome">
+		<?php
+		if ($language) {
+			?>
+			Welcome to the MKPC forum! If you haven't done it yet, please check out the <a href="topic.php?topic=2448">rules</a> before posting.
+			<?php
+		}
+		else {
+			?>
+			Bienvenue sur le forum MKPC ! Si ce n'est pas déjà fait, prenez le temps de consulter le <a href="topic.php?topic=2448">règlement</a> avant de poster.
+			<?php
+		}
+		?>
+	</div>
 	<p id="compte"><span><?php echo $getNom['nom']; ?></span>
 	<a href="profil.php?id=<?php echo $id; ?>"><?php echo $language ? 'My profile':'Mon profil'; ?></a><br />
 	<a href="logout.php"><?php echo $language ? 'Log out':'D&eacute;connexion'; ?></a>
