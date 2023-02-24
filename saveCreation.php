@@ -7,11 +7,19 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 			$allPieces = false;
 			break;
 		}
+		if (!is_numeric($_POST['p'.$i])) {
+			$allPieces = false;
+			break;
+		}
 	}
 	if ($allPieces) {
 		if ($isBattle) {
 			for ($i=0;$i<8;$i++) {
 				if (!isset($_POST['r'.$i]) || !isset($_POST['s'.$i])) {
+					$allPieces = false;
+					break;
+				}
+				if (!is_numeric($_POST['r'.$i]) || !is_numeric($_POST['s'.$i])) {
 					$allPieces = false;
 					break;
 				}

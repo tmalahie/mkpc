@@ -37,11 +37,12 @@ if (isset($id)) {
 			$pW = round(100*$rImg);
 			$pH = round(100*$rImg);
 			while ($piece = mysql_fetch_array($pieces)) {
-				$piececircuit = imagecreatefrompng('images/pieces/piececircuit'.$map.'_'.$piece['piece'].'.png');
-				if ($rImg === 1)
-					imagecopy($image, $piececircuit, ($piece['id']%6)*$pW,floor($piece['id']/6)*$pH, 0,0, $pW,$pH);
-				else
-					imagecopyresampled($image, $piececircuit, ($piece['id']%6)*$pW,floor($piece['id']/6)*$pH, 0,0, $pW,$pH, 100,100);
+				if ($piececircuit = @imagecreatefrompng('images/pieces/piececircuit'.$map.'_'.$piece['piece'].'.png')) {
+					if ($rImg === 1)
+						imagecopy($image, $piececircuit, ($piece['id']%6)*$pW,floor($piece['id']/6)*$pH, 0,0, $pW,$pH);
+					else
+						imagecopyresampled($image, $piececircuit, ($piece['id']%6)*$pW,floor($piece['id']/6)*$pH, 0,0, $pW,$pH, 100,100);
+				}
 			}
 		}
 		$elements = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j','o');

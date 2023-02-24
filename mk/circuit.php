@@ -699,6 +699,9 @@ foreach ($circuitsData as $c => $circuit) {
 						$startposition = (($i%6)*100+3).','.(floor($i/6)*100+59);
 						$d = -1;
 						break;
+						default :
+						$startposition = '41,5';
+						$d = -6;
 					}
 					echo $startposition.','.$circuit["p$depart"];
 				}

@@ -313,7 +313,7 @@ require_once('getRights.php');
 $managing = false;
 if (isset($_GET['admin']) && hasRight('moderator'))
 	$managing = true;
-$tri = isset($_GET['tri']) ? $_GET['tri']:0;
+$tri = isset($_GET['tri']) ? intval($_GET['tri']):0;
 $type = isset($_GET['type']) ? $_GET['type']:'';
 $nom = isset($_GET['nom']) ? stripslashes($_GET['nom']):'';
 $auteur = isset($_GET['auteur']) ? stripslashes($_GET['auteur']):'';
@@ -357,8 +357,15 @@ else {
 $pType = $aParams['type'];
 $singleType = ($pType !== '');
 if ($singleType) {
-	$aCircuits = array($aCircuits[$pType]);
-	$weightsByType = array($weightsByType[$pType]);
+	if (isset($aCircuits[$pType])) {
+		$aCircuits = array($aCircuits[$pType]);
+		$weightsByType = array($weightsByType[$pType]);
+	}
+	else {
+		$singleType = true;
+		$pType = '';
+		$aParams['type'] = $pType;
+	}
 }
 $nbByType = countTracksByType($aCircuits,$aParams);
 $creationsList = listCreations(1,$nbByType,$weightsByType,$aCircuits,$aParams);

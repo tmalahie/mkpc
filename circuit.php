@@ -126,9 +126,9 @@ else { // Track being created
 	else
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;$i<36;$i++)
-		$infos["p$i"] = (isset($_GET["p$i"])) ? $_GET["p$i"] : 11;
-	$infos['map'] = (isset($_GET["map"])) ? $_GET["map"] : 1;
-	$infos['laps'] = (isset($_GET["nl"])) ? $_GET["nl"] : 3;
+		$infos["p$i"] = (isset($_GET["p$i"])) ? intval($_GET["p$i"]) : 11;
+	$infos['map'] = (isset($_GET["map"])) ? intval($_GET["map"]) : 1;
+	$infos['laps'] = (isset($_GET["nl"])) ? intval($_GET["nl"]) : 3;
 	$infos['name'] = '';
 	for ($i=0;$i<$nbLettres;$i++) {
 		$lettre = $lettres[$i];

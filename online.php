@@ -52,7 +52,7 @@ else {
 if (isset($_GET['battle']))
 	$isBattle = true;
 if (isset($_GET['key'])) {
-	$privateLink = $_GET['key'];
+	$privateLink = intval($_GET['key']);
 	if ($privateLinkData = mysql_fetch_array(mysql_query('SELECT * FROM `mkprivgame` WHERE id="'.$privateLink.'"'))) {
 		if ($id)
 			mysql_query('UPDATE `mkprivgame` SET last_used_date=NULL WHERE id="'.$privateLink.'"');

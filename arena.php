@@ -76,10 +76,10 @@ else {
 	else
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;$i<36;$i++)
-		$infos["p$i"] = (isset($_GET["p$i"])) ? $_GET["p$i"] : 11;
+		$infos["p$i"] = (isset($_GET["p$i"])) ? intval($_GET["p$i"]) : 11;
 	for ($i=0;$i<8;$i++) {
-		$infos["r$i"] = isset($_GET["r$i"]) ? $_GET["r$i"] : 0;
-		$infos["s$i"] = isset($_GET["s$i"]) ? $_GET["s$i"] : 0;
+		$infos["r$i"] = isset($_GET["r$i"]) ? intval($_GET["r$i"]) : 0;
+		$infos["s$i"] = isset($_GET["s$i"]) ? intval($_GET["s$i"]) : 0;
 	}
 	$map = (isset($_GET["map"])) ? $_GET["map"] : 1;
 	$infos['map'] = $map;
