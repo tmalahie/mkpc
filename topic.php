@@ -93,7 +93,7 @@ include('heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
-<script type="text/javascript" src="scripts/topic.js"></script>
+<script type="text/javascript" src="scripts/topic.js?reload=1"></script>
 <?php
 include('o_online.php');
 ?>
@@ -178,8 +178,15 @@ if ($topic['locked'])
 		include('bbCode.php');
 		include('avatars.php');
 		echo '<div id="fMessages">';
-		foreach ($pageMessages as $message)
-			print_forum_msg($message,($message['auteur']==$id || $isModerator),!$topic['locked'],true);
+		foreach ($pageMessages as $message) {
+			$mayEdit = $message['auteur']==$id || $isModerator;
+			print_forum_msg($message, array(
+				'mayEdit' => $mayEdit,
+				'mayQuote' => !$topic['locked'],
+				'mayReact' => true,
+				'mayReport' => !$mayEdit
+			));
+		}
 		echo '</div>';
 		echo $pagesDiv;
 		?>

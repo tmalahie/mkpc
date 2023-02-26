@@ -56,6 +56,8 @@ if (isset($_GET['id']) && isset($_GET['topic']) && ($_GET['id'] > 1)) {
 				$getCat = mysql_fetch_array(mysql_query('SELECT category FROM `mktopics` WHERE id="'. $topicId .'"'));
 				mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages-1 WHERE id="'.$msg['auteur'].'"');
 				mysql_query('DELETE FROM `mkreactions` WHERE type="topic" AND link="'. $topicId .','. $msgId .'"');
+				mysql_query('DELETE FROM `mkreports` WHERE type="topic" AND link="'. $topicId .','. $msgId .'"');
+				mysql_query('DELETE FROM `mkreportshist` WHERE type="topic" AND link="'. $topicId .','. $msgId .'"');
 				echo $language ? '<p id="successSent">Message deleted successfully<br />
 				<a href="topic.php?topic='. $topicId .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $topicId .'" AND id<'. $msgId))/20) .'">Click here</a> to go to the topic.<br />
 				<a href="category.php?category='. $getCat['category'] .'">Click here</a> to return to the category.<br />

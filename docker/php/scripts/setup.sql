@@ -1304,6 +1304,33 @@ CREATE TABLE `mkrecords_bkp` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkreports` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('topic') NOT NULL,
+  `link` varchar(255) NOT NULL,
+  `count` int(11) NOT NULL,
+  `first_reported` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_reported` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `state` enum('pending','acknowledged','archived') NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `type` (`type`,`link`),
+  KEY `count` (`type`,`state`,`count`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkreportshist` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('topic') NOT NULL,
+  `link` varchar(255) NOT NULL,
+  `reporter` int(11) NOT NULL,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `type` (`type`,`link`,`reporter`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkrights` (
   `player` int(11) NOT NULL,
   `privilege` enum('admin','moderator','organizer','publisher','clvalidator') CHARACTER SET utf8 NOT NULL,

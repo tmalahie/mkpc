@@ -633,7 +633,7 @@ include('menu.php');
 				printReactionUI();
 				populateReactionsData('topic', $lastMessages);
 				foreach ($lastMessages as $message)
-					print_forum_msg($message,false);
+					print_forum_msg($message);
 				?>
 				<h3><a href="forum-search.php?author=<?php echo $getInfos['nom']; ?>#search-results"><?php echo $language ? 'See all their messages':'Voir tous ses messages'; ?></a></h3>
 				<?php

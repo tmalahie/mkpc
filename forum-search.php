@@ -231,7 +231,7 @@ if ($oneset) {
 					echo '<h2><a href="topic.php?topic='.$result['topic'].'">'.htmlspecialchars($topicName).'</a></h2>';
 					echo '<div class="fMessages" data-topic="'.$result['topic'].'">';
 				}
-				print_forum_msg($result,false);
+				print_forum_msg($result);
 			}
 		}
 		?>

@@ -57,6 +57,8 @@ if (isset($_GET['topic'])) {
 					mysql_query('DELETE FROM `mkmessages` WHERE topic="'. $topicId .'"');
 					mysql_query('DELETE FROM `mktopics` WHERE id="'. $topicId .'"');
 					mysql_query('DELETE FROM `mkreactions` WHERE type="topic" AND link LIKE "'. $topicId .',%"');
+					mysql_query('DELETE FROM `mkreports` WHERE type="topic" AND link LIKE "'. $topicId .',%"');
+					mysql_query('DELETE FROM `mkreportshist` WHERE type="topic" AND link LIKE "'. $topicId .',%"');
 					echo $language ? '<p id="successSent">Topic deleted successfully<br />
 					<a href="category.php?category='. $getCat['category'] .'">Click here</a> to return to the category.<br />
 					<a href="forum.php">Click here</a> to return to the forum.</p>':

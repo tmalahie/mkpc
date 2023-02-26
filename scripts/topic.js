@@ -131,6 +131,30 @@ function hideReactionDetails() {
 	var $details = document.getElementById("message-reactions-details");
 	$details.classList.remove("show");
 }
+function showToast(msg) {
+	if (document.getElementById("forum-toast"))
+		document.body.removeChild(document.getElementById("forum-toast"));
+	var res = document.createElement("div");
+	res.id = "forum-toast";
+	res.innerHTML = msg;
+	document.body.appendChild(res);
+	setTimeout(function() {
+		if (res.parentNode)
+			document.body.removeChild(res);
+	}, 4000);
+	return res;
+}
+function reportMsg(topicId, msgId) {
+	var contentType = (msgId === 1) ? 'topic' : 'message';
+	if (confirm(o_language ? ("Report this "+contentType+" to the moderation team?") : ("Signaler ce "+contentType+" à l'équipe de modération ?"))) {
+		var link = topicId+","+msgId;
+		o_xhr("report.php", "type=topic&link="+link, function(res) {
+			if (res != 1) return false;
+			showToast(o_language ? "\uD83D\uDC4D The message has been reported to the moderation team" : "\uD83D\uDC4D Le message a été reporté à l'équipe de modération");
+			return true;
+		})
+	}
+}
 document.addEventListener("keydown", function(e) {
 	if (e.keyCode == 27) {
 		var $reactions = document.getElementById("message-reactions");
