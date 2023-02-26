@@ -16,7 +16,7 @@ if (isset($_GET['category'])) {
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 
 <?php
@@ -93,6 +93,8 @@ if ($id) {
 		$showForm = true;
 	}
 	if ($showForm) {
+		include('utils-moderation.php');
+		printForumReplyNotices();
 	?>
 <form method="post" action="newtopic.php?category=<?php echo $categoryID; ?>" onsubmit="if(!this.titre.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">

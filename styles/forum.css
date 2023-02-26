@@ -244,6 +244,15 @@ blockquote .action_button {
 .topicPages, .fMessage {
 	width: 95%;
 }
+.auto-moderation-notice {
+	text-align: center;
+	margin: 30px 50px;
+	padding: 10px 5px;
+	background-color: #FEC;
+}
+.auto-moderation-warning {
+	text-align: center;
+}
 @media screen and (min-width: 600px) {
 	.mAuteur, .mPseudo {
 		width: 170px;

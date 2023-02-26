@@ -11,7 +11,7 @@ if (isset($_GET['topic'])) {
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 
 <?php
@@ -113,7 +113,7 @@ include('menu.php');
 				if (!isset($_GET['force']) && !$category['adminonly'] && isOldTopic($getTopic)) {
 					$showForm = false;
 				?>
-				<p style="text-align: center">
+				<p class="auto-moderation-warning">
 				<?php
 				include('utils-date.php');
 				if ($language) {
@@ -154,7 +154,9 @@ include('menu.php');
 				}
 			}
 			if ($showForm) {
-			?>
+				include('utils-moderation.php');
+				printForumReplyNotices();
+				?>
 <form method="post" action="repondre.php?topic=<?php echo $_GET['topic']; ?>" onsubmit="if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('bbButtons.php'); ?></td></tr>
