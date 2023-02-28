@@ -921,6 +921,8 @@ for ($i=0;$i<4;$i++) {
             $trouData = array(array($trouData[0],$trouData[1],$trouData[2]-1,$trouData[3]-1),array($trouData[4],$trouData[5]));
     }
 }
+if (!empty($trous) && $trous[0] === null)
+    $trous = array();
 $data['trous'] = $trous;
 $data['checkpoint'] = $circuitData->checkpoint;
 $data['arme'] = $circuitData->arme;
