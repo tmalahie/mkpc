@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			clickToTopic(fMessage, topicID,msgID);
 			var fLinks = fMessage.querySelectorAll("a");
 			for (var k=0;k<fLinks.length;k++)
-				fLinks[k].onclick = preventPropagation;
+				fLinks[k].addEventListener('click', preventPropagation);
 		}
 	}
 });

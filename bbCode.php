@@ -54,11 +54,17 @@ function print_league($pts,$ic) {
 }
 function print_forum_msg($message,$options=array()) {
 	global $id, $language;
-	$topicId = isset($_GET['topic']) ? intval($_GET['topic']):0;
+	if (isset($_GET['topic']))
+		$topicId = intval($_GET['topic']);
+	elseif (isset($message['topic']))
+		$topicId = $message['topic'];
+	else
+		$topicId = 0;
 	$mayEdit = !empty($options['mayEdit']);
 	$mayQuote = isset($options['mayQuote']) ? $options['mayQuote'] : $mayEdit;
 	$mayReact = isset($options['mayReact']) ? $options['mayReact'] : $mayQuote;
 	$mayReport = isset($options['mayReport']) ? $options['mayReport'] : $mayEdit;
+	$canModerate = isset($options['canModerate']) ? $options['canModerate'] : false;
 
 	echo '<div class="fMessage" data-msg="'. $message['id'] .'">';
 	echo '<div class="mAuteur">';
@@ -102,6 +108,7 @@ function print_forum_msg($message,$options=array()) {
 			. ($id&&$mayQuote ? '<a href="repondre.php?topic='. $topicId .'&amp;quote='. $message['id'] .'" class="mQuote" title="'. ($language ? 'Quote':'Citer') .'"><img src="images/forum/quote.png" alt="'. ($language ? 'Quote':'Citer') .'" /></a>':'')
 			. ($id&&$mayReact ? '<a href="#null" onclick="openReactions(\'topic\',\''.$topicId.','. $message['id'] .'\',this);return false" class="mReact" title="'. ($language ? 'Add reaction':'Ajouter une réaction') .'"><img src="images/forum/react.png" alt="'. ($language ? 'React':'Réagir') .'" /></a>':'')
 			. ($id&&$mayReport ? '<a href="#null" onclick="reportMsg('.$topicId.','.$message['id'].');return false" class="mReport" title="'. ($language ? 'Report as inappropriate':'Signaler comme inapproprié') .'"><img src="images/forum/report.png" alt="'. ($language ? 'Report':'Signaler') .'" /></a>':'')
+			. ($canModerate ? '<a href="#null" onclick="archiveReport('.$message['reportid'].');return false" class="mArchive" title="'. ($language ? 'Archive report':'Archiver le report') .'"><img src="images/forum/archive.png" alt="'. ($language ? 'Archive':'Archiver') .'" /></a>':'')
 			. '</div>';
 		echo '</div>';
 		echo '<div class="mBody">'. bbcode($message['message']) .'</div>';
