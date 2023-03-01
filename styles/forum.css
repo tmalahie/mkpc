@@ -594,6 +594,12 @@ a.forum-auteur:hover {
 .mReact {
 	margin-left: 0px;
 }
+.mReport {
+	margin-right: 2px;
+}
+.mArchive {
+	margin-left: 5px;
+}
 .mOptions {
 	padding-right: 5px;
 }

@@ -91,7 +91,7 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 <?php
 include('heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/forum.css" />
+<link rel="stylesheet" type="text/css" href="styles/forum.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <script type="text/javascript" src="scripts/topic.js?reload=1"></script>
 <?php

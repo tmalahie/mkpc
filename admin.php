@@ -234,6 +234,12 @@ include('menu.php');
 				<div class="action-desc"><?php echo $language ? "Go to the news in question and click on &quot;Edit&quot; or &quot;Delete&quot;":"Se rendre sur la news en question et cliquer sur &quot;Modifier&quot; ou &quot;Supprimer&quot;"; ?></div>
 			</div>
 		</li>
+		<li>
+			<a class="action-ctn" href="adminReports.php">
+				<div class="action-title"><?php echo $language ? "See forum <strong>reported messages</strong>":"Voir les <strong>messages signalés</strong> sur le forum"; ?></div>
+				<div class="action-desc"><?php echo $language ? "To quickly perform actions on what members reported":"Pour prendre des actions rapides sur ce que les membres ont remonté"; ?></div>
+			</a>
+		</li>
 			<?php
 		}
 		?>

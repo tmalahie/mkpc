@@ -135,6 +135,19 @@ $logMapping = array(
         'render' => ($language ? 'unlocked topic ' : 'a unlocké le topic ') . $logTemplates['topic']('$1'),
         'role' => 'moderator'
     ),
+    'AReport' => array(
+        'render' => function(&$groups) {
+            global $language, $logTemplates;
+            if ($report = mysql_fetch_array(mysql_query('SELECT link FROM `mkreports` WHERE id="'. mysql_real_escape_string($groups[1]) .'"'))) {
+                $link = explode(',', $report['link']);
+                $groups[2] = $link[0];
+                $groups[3] = $link[1];
+                return ($language ? 'archived report on <a href="topic.php?topic=$2&amp;message=$3">message #$3</a> in topic ' : 'a archivé le signalement du <a href="topic.php?topic=$2&amp;message=$3">message #$3</a> dans le topic ') . $logTemplates['topic']('$2');
+            }
+            return $language ? 'archived report #$1' : 'a archivé le signalement #$1';
+        },
+        'role' => 'moderator'
+    ),
     'Cup' => array(
         'render' => $language ? 'deleted cup #$1' : 'a supprimé la coupe #$1',
         'role' => 'moderator'
