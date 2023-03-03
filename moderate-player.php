@@ -63,7 +63,18 @@ $page = 'forum';
 include('menu.php');
 $ban = isset($_POST['joueur']) ? $_POST['joueur']:null;
 if ($ban) {
-	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $ban .'"'))) {
+    $origin = (isset($_SERVER['HTTPS'])?'https':'http') . '://' . $_SERVER['HTTP_HOST'];
+    $profileUrl = "$origin/profil.php?id=";
+    if (str_starts_with($ban, $profileUrl)) {
+        $banId = substr($ban, strlen($profileUrl));
+        $getId = mysql_fetch_array(mysql_query('SELECT id,nom FROM `mkjoueurs` WHERE id="'. $banId .'"'));
+    }
+    else
+        $getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $ban .'"'));
+    
+	if ($getId) {
+        if (isset($getId['nom']))
+            $ban = $getId['nom'];
         switch ($action) {
         case 'ban':
             mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id='. $getId['id']);
@@ -89,6 +100,8 @@ if ($ban) {
             break;
         }
 	}
+    else
+        $ban = null;
 }
 $unban = isset($_GET['unban']) ? $_GET['unban']:null;
 if ($unban) {
@@ -289,7 +302,7 @@ include('footer.php');
 ?>
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
-<script type="text/javascript" src="scripts/autocomplete-player.js"></script>
+<script type="text/javascript" src="scripts/autocomplete-player.js?reload=1"></script>
 <script type="text/javascript">
 autocompletePlayer('#joueur', {
 	onSelect: function(event, term, item) {
