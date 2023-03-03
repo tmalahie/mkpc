@@ -23,7 +23,7 @@ You can now start developing!
 ## Dockerless
 If you don't want to use a Docker image, it's a little more complex but still doable.
 
-First install [PHP](https://www.php.net/manual/en/install.php) >= 7, [MariaDB](https://mariadb.com/kb/en/getting-installing-and-upgrading-mariadb/) and [Apache](https://httpd.apache.org/docs/current/install.html).
+First install [PHP](https://www.php.net/manual/en/install.php) >= 8, [MariaDB](https://mariadb.com/kb/en/getting-installing-and-upgrading-mariadb/) and [Apache](https://httpd.apache.org/docs/current/install.html).
 For PHP you'll need the following packages:
 ```
 php-curl php-gd php-dev php-mbstring php-mcrypt php-mysql php-xdebug php-xml
