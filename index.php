@@ -20,6 +20,7 @@ include('heads.php');
 ?>
 <link rel="stylesheet" href="styles/slider.css" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
+<link rel="stylesheet" href="styles/tri-nations.css" />
 <?php
 include('o_online.php');
 ?>
@@ -665,6 +666,80 @@ $slidesPath = 'images/slides';
 			?>
 			<a class="right_section_actions action_button" href="listNews.php"><?php echo $language ? 'All news':'Toutes les news'; ?></a>
 		</div>
+		<?php
+		if ($id) {
+			?>
+		<div class="subsection">
+			<?php
+			display_sidebar('MKPC Tri-Nations', 'news.php?id=15069');
+			?>
+			<h2><?php echo $language ? 'Current bracket':'Classement actuel'; ?></h2>
+			<div id="tri-nations" class="right_subsection">
+			<table>
+					<tr>
+						<th><?php echo $language ? 'Rank':'Rang'; ?></th>
+						<th><?php echo $language ? 'Team':'Équipe'; ?></th>
+						<th>Pts</th>
+						<th class="pl-l" title="<?php echo $language ? 'Wins - Ties - Losses' : 'Victoires - Nuls - Défaites'; ?>"><?php echo $language ? 'W-T-L' : 'V-N-D'; ?></th>
+						<th class="pl-xl" title="<?php echo $language ? 'Score difference' : 'Différence de score'; ?>"><?php echo $language ? 'Diff' : 'Diff'; ?></th>
+					</tr>
+					<?php
+					$plRanking = array(
+						array(
+							'icon' => 'ea.png',
+							'name' => $language ? 'Eurasia' : 'Eurasie',
+							'score' => 3,
+							'wins' => 1,
+							'losses' => 0,
+							'ties' => 0,
+							'diff' => 32
+						),
+						array(
+							'icon' => 'fr.png',
+							'name' => $language ? 'France' : 'France',
+							'score' => 3,
+							'wins' => 1,
+							'losses' => 1,
+							'ties' => 0,
+							'diff' => 40
+						),
+						array(
+							'icon' => 'am.png',
+							'name' => $language ? 'Americas' : 'Amériques',
+							'score' => 0,
+							'wins' => 0,
+							'losses' => 1,
+							'ties' => 0,
+							'diff' => -72
+						),
+					);
+					usort($plRanking, function($team1, $team2) {
+						return ($team2['score']+$team2['diff']/1000) <=> ($team1['score']+$team1['diff']/1000);
+					});
+					foreach ($plRanking as $i=>$team) {
+						?>
+						<tr>
+						<td><?php echo ($i+1); ?></td>
+						<td>
+							<div>
+								<img src="images/events/tri-nations/<?php echo $team['icon']; ?>" alt="<?php echo $team['name']; ?>" />
+								<?php echo $team['name']; ?>
+							</div>
+						</td>
+						<td><?php echo $team['score']; ?></td>
+						<td class="pl-l"><?php echo $team['wins'].'-'.$team['ties'].'-'.$team['losses']; ?></td>
+						<td class="pl-xl"><?php echo $team['diff']; ?></td>
+						</tr>
+						<?php
+					}
+					?>
+				</table>
+			</div>
+			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?php echo $language ? 'Tournament\'s Discord Server':'Serveur Discord du tournoi'; ?></a></div>
+		</div>
+			<?php
+		}
+		?>
 		<div class="subsection">
 			<?php
 			display_sidebar($language ? 'Track builder':'Éditeur de circuit', 'creations.php');

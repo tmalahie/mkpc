@@ -62,7 +62,7 @@ header table td {
 	opacity: 0.8;
 	transition: opacity 0.3s ease-in;
 }
-#header_center img.event-link:hover {
+#header_center a img.event-link:hover {
 	opacity: 1;
 }
 header img {
