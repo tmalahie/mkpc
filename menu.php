@@ -312,6 +312,14 @@
 						else
 							$toDelete = true;
 						break;
+					case 'admin_report':
+						if ($getReport = mysql_fetch_array(mysql_query('SELECT h.reporter FROM `mkreportshist` h INNER JOIN `mkreports` r ON h.type=r.type AND h.link=r.link WHERE h.id="'. $myNotif['link'] .'" AND r.state="pending"'))) {
+							$notifData['link'] = 'adminReports.php';
+							$notifData['sender'] = $getReport['reporter'];
+						}
+						else
+							$toDelete = true;
+						break;
 					case 'new_followuser' :
 						if ($getFollower = mysql_fetch_array(mysql_query('SELECT * FROM `mkfollowusers` WHERE follower="'. $myNotif['link'] .'" AND followed="'. $id .'"'))) {
 							$notifData['link'] = 'listFollowers.php';
@@ -548,6 +556,10 @@
 				}
 				$moderated = ($clData['status']=='active') ? ($language?'accepted':'accepté') : ($language?'rejected':'refusé');
 				$notifsData[$i]['content'] = ($language ? "Your challenge <strong>$clName</strong> has been $moderated":"Votre défi <strong>$clName</strong> a été $moderated");
+				break;
+			case 'admin_report':
+				$verb = ($language ? ((count($names)>1) ? 'reported some messages in the forum':'reported a message in the forum'):((count($names)>1) ? 'ont signalé des messages sur le forum':'a signalé un message sur le forum'));
+				$notifsData[$i]['content'] = $namesJoined .' '. $verb;
 				break;
 			case 'answer_comment' :
 				$verb = ($language ? 'also commented':((count($names)>1) ? 'ont également commenté':'a également commenté'));

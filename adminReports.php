@@ -11,6 +11,7 @@ if (!hasRight('moderator')) {
 }
 include('tokens.php');
 assign_token();
+mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="admin_report"');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">

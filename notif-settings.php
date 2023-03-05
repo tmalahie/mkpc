@@ -25,6 +25,10 @@ if ($id) {
 		'new_followuser' => $language ? 'New profile follower':'Nouvel abonné à votre profil',
 		'new_followtopic' => $language ? 'New subscriber to your topic':'Nouvel abonnement à votre topic'
 	);
+	require_once('getRights.php');
+	if (hasRight('moderator')) {
+		$notifs['admin_report'] = $language ? 'Reported messages on the forum' : 'Messages signalés sur le forum';
+	}
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$getNotifMute = mysql_query('DELETE FROM `mknotifmute` WHERE user="'. $id .'"');
 		foreach ($notifs as $type => $notif) {
