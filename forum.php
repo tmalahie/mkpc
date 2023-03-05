@@ -203,7 +203,7 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 <a href="index.php"><?php echo $language ? 'Back to the homepage':'Retour &agrave; l\'accueil'; ?></a>
 </p>
 </main>
-<script type="text/javascript" src="scripts/adsbymkpc.js"></script>
+<script async type="text/javascript" src="scripts/adsbymkpc.js"></script>
 <?php
 mysql_close();
 include('footer.php');

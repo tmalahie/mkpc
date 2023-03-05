@@ -1294,5 +1294,6 @@ var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
 var last_tz = '<?php echo isset($_COOKIE['tz']) ? addslashes($_COOKIE['tz']):''; ?>';
 </script>
 <script async src="scripts/timezones.js"></script>
+<script async type="text/javascript" src="scripts/adsbymkpc.js"></script>
 </body>
 </html>

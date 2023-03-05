@@ -121,6 +121,7 @@ if ($id && (!$category['adminonly']||hasRight('manager')))
 <a href="index.php"><?php echo $language ? 'Back to the homepage':'Retour &agrave; l\'accueil'; ?></a>
 </p>
 </main>
+<script async type="text/javascript" src="scripts/adsbymkpc.js"></script>
 <?php
 include('footer.php');
 ?>
