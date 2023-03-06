@@ -40,6 +40,8 @@ if (isset($_POST['challenge']) || isset($_GET['challenge'])) {
 }
 if (isset($redirectUrl))
 	header("location: $redirectUrl");
-else
+else {
+	header('Content-Type: application/json');
 	echo json_encode($res);
+}
 ?>

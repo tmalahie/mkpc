@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['change']) && isset($_POST['pts'])) {
 	include('escape_all.php');
 	$change = $_POST['change'];

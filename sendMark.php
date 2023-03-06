@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['note'])) $_POST['rating'] = $_POST['note']+1;
 if (isset($_POST['id']) && isset($_POST['rating'])) {
 	if (isset($_POST['mc']))

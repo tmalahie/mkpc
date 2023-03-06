@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['id_msg']) && isset($_POST['message'])) {
 	include('session.php');
 	include('escape_all.php');

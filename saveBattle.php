@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['id']) && isset($_POST['nom']) && isset($_POST['auteur'])) {
 	include('initdb.php');
 	include('getId.php');

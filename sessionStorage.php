@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 include('initdb.php');
 include('session.php');
 if (isset($_POST['key'])) {

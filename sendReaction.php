@@ -1,4 +1,5 @@
 <?php
+//header('Content-Type: text/html');
 if (isset($_POST['type']) && isset($_POST['link']) && isset($_POST['reaction'])) {
 	include('session.php');
 	if ($id) {

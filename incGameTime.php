@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST["time"])) {
 	include('getId.php');
 	include('session.php');

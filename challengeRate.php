@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 $res = array();
 if (isset($_POST['challenge']) && isset($_POST['rating'])) {
 	$rating = $_POST['rating'];

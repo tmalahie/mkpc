@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 include('session.php');
 $res = 0;
 if (isset($_POST['sender']) && isset($_POST['receiver'])) {

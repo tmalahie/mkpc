@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['type']) && isset($_POST['link'])) {
     include('session.php');
     echo 1;

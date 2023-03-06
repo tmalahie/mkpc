@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/json');
 session_start();
 $res = array();
 if (isset($_SESSION['clselected'])) {

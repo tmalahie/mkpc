@@ -1,5 +1,6 @@
 <?php
 if (isset($_POST['type']) && isset($_POST['id'])) {
+    header('Content-Type: application/json');
     include('initdb.php');
     include('getId.php');
     require_once('collabUtils.php');

@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/json');
 include('session.php');
 $res = null;
 if ($id && isset($_POST['peer'])) {

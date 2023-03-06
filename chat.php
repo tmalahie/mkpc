@@ -1,5 +1,6 @@
 <?php
 include('session.php');
+header('Content-Type: text/plain');
 if ($id) {
 	include('initdb.php');
 	include('onlineUtils.php');

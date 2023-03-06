@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/json');
 include('initdb.php');
 session_start();
 $res = array();

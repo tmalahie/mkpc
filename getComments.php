@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['circuit']) &&  isset($_POST['type'])) {
 	include('escape_all.php');
 	$type = $_POST['type'];

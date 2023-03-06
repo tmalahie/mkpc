@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['id']) && isset($_POST['type']) && isset($_POST['collab'])) {
     include('initdb.php');
     require_once('collabUtils.php');

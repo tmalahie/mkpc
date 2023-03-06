@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['type']) && isset($_POST['circuit'])) {
     include('circuitTables.php');
     include('initdb.php');

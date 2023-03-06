@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['challenge']) && isset($_POST['status'])) {
 	include('getId.php');
 	include('initdb.php');

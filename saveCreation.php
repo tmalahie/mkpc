@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 	$allPieces = true;
 	$isBattle = +isset($_POST['battle']);

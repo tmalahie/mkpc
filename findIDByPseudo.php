@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 $res = -1;
 if (isset($_POST['pseudo'])) {
 	include('session.php');

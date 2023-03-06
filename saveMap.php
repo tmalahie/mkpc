@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 $data = json_decode(file_get_contents('php://input'));
 if (is_object($data) && isset($data->id) && isset($data->payload)) {
 	$id = $data->id;

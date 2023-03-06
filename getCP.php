@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['perso'])) {
 	include('initdb.php');
 	$perso = mysql_fetch_array(mysql_query('SELECT name,acceleration,speed,handling,mass,sprites FROM `mkchars` WHERE sprites="'. $_POST['perso'] .'"'));

@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/json');
 include('language.php');
 include('getId.php');
 include('initdb.php');

@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['map']) && isset($_POST['perso'])) {
 	for ($n=0;isset($_POST['p'.$n]);$n++);
 	if ($n < 10000) {

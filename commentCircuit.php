@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['circuit']) &&  isset($_POST['type']) && isset($_POST['message'])) {
 	include('session.php');
 	include('escape_all.php');

@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['connecte']) && in_array($_POST['connecte'], array(0,1,2))) {
 	include('session.php');
 	if ($id) {
