@@ -155,7 +155,7 @@ if ($arePersos) {
 	</div>
 	<?php
 	$poids = file_total_size();
-	echo '<div class="mypersos-size">'. ($language ? 'You use '.filesize_str($poids).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($poids) .')' : 'Vous utilisez '.filesize_str($poids).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($poids).')') .'</div>';
+	echo '<div class="mypersos-size">'. ($language ? "You're using ".filesize_str($poids).' out of '.filesize_str(MAX_FILE_SIZE).' ('. filesize_percent($poids) .')' : 'Vous utilisez '.filesize_str($poids).' sur '.filesize_str(MAX_FILE_SIZE).' ('.filesize_percent($poids).')') .'</div>';
 	?>
 	</div>
 	<div id="perso-options">

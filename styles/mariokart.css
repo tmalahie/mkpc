@@ -14,6 +14,20 @@
 	font-family: 'MuseoModerno';
 	src: url('museomoderno-bold.ttf');
 }
+div div input {
+	color: #6d9eeb;
+	background-color: #1c4587;
+	border-color: #4a6fa8;
+	border-width: 10px;
+	border-radius: 10px;
+	transition: cubic-bezier(0.215, 0.610, 0.355, 2);
+	transition-property: all;
+	transition-duration: 0.5s;
+}
+  div div input:hover {
+	transform: rotate(-5deg) scale(85%);
+	filter: brightness(200%);
+}
 #options {
 	text-align: right;
 	display:inline-table;

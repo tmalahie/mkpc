@@ -257,7 +257,7 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Face off your friends with the local multiplayer mode!':'Affrontez vos amis grâce au mode multijoueur !'; ?></h3>
+								<h3 class="fp-title"><?php echo $language ? 'Face-off your friends with the local multiplayer mode!':'Affrontez vos amis grâce au mode multijoueur !'; ?></h3>
 								<p>
 									<?php
 									if ($language) {
