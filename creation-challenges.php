@@ -73,7 +73,7 @@ function addClChallenges(&$cId,&$params) {
 			$cType = 'cup';
 		else
 			$cType = 'track';
-		$clId = $_GET['cl'];
+		$clId = intval($_GET['cl']);
 		$cList = listChallenges($clId,$params);
 		$clRewards = listClRewards($clId);
 		if (!empty($cList))
