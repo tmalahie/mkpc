@@ -163,7 +163,7 @@ include('handleCupOptions.php');
 				if (isset($collab))
 					echo '<input type="hidden" name="collab" value="'. htmlspecialchars($collab['key']) .'" />';
 				?>
-				<input type="hidden" id="cup-options" name="opt" value="<?php echo htmlspecialchars($cOptions) ?>" />
+				<input type="hidden" id="cup-options" name="opt" value="<?php if ($cOptions !== null) echo htmlspecialchars($cOptions) ?>" />
 				<span class="pretty-title-ctn"><input type="submit" class="submit-selection pretty-title" disabled="disabled" value="<?php echo $language ? 'Validate!':'Valider !'; ?>" /></span>
 				<a class="editor-switch-options" href="javascript:showEditorContent(1)"><?php echo $language ? 'Advanced&nbsp;options':'Options&nbsp;avancées'; ?></a>
 			</p>

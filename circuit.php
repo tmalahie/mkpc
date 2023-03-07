@@ -100,7 +100,8 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;isset($_GET['mid'.$i])&&is_numeric($_GET['mid'.$i]);$i++)
 		$cupIDs[$i] = $_GET['mid'.$i];
-	$cOptions = isset($_GET['opt']) ? json_encode(json_decode(stripslashes($_GET['opt']))) : null;
+	$cOptions = isset($_GET['opt']) ? json_decode(stripslashes($_GET['opt'])) : null;
+	if ($cOptions) $cOptions = json_encode($cOptions);
 	$edittingCircuit = true;
 }
 else { // Track being created
