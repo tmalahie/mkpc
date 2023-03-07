@@ -1024,7 +1024,7 @@ CREATE TABLE `mknotes` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mknotifmute` (
   `user` int(11) NOT NULL,
-  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','reaction_topic','reaction_newscom','reaction_news','reaction_trackcom') CHARACTER SET utf8 NOT NULL,
+  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','reaction_topic','reaction_newscom','reaction_news','reaction_trackcom','admin_report') CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`user`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1032,7 +1032,7 @@ CREATE TABLE `mknotifmute` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mknotifs` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction') CHARACTER SET latin1 NOT NULL,
+  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction','admin_report') CHARACTER SET latin1 NOT NULL,
   `user` int(10) unsigned DEFAULT NULL,
   `identifiant` int(10) unsigned DEFAULT NULL,
   `identifiant2` int(10) unsigned DEFAULT NULL,
@@ -1570,3 +1570,4 @@ INSERT INTO `mkcountries` VALUES (1,'af','Afghanistan','Afghanistan',32767),(2,'
 INSERT INTO mkjoueurs SET id=1,course=0,nom="Wargor",code="$2y$10$DHPgMFxb56xU.ohu3ildtuhfHcFUcqwz0HilUn6p9UMnSM/tqGwnO",joueur="mario",choice_map=0,choice_rand=0,pts_vs=5000,pts_battle=5000,pts_challenge=0,online=0,deleted=0;
 INSERT INTO mkprofiles SET id=1,identifiant=0,identifiant2=0,identifiant3=0,identifiant4=0,avatar="",nick_color="Wargor",nbmessages=0,email="",country=76,description="";
 INSERT INTO mkratingoptions VALUES(1,1),(2,2),(3,3),(4,4),(5,5);
+INSERT INTO mkgamecpu VALUES(0,0,1000000000);

@@ -49,13 +49,13 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 						@unlink(cachePath($isrc.$id.'.png'));
 						$success = 2;
 					}
-					else $error = $language ? 'Your image must have the png, gif, jpg or jpeg format':'Votre image doit &ecirc;tre au format png, gif, jpg ou jpeg';
+					else $error = $language ? 'Your image must have the png, gif, jpg or jpeg format':'Votre image doit être au format png, gif, jpg ou jpeg';
 				}
-				else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE):'Vous avez d&eacute;pass&eacute; votre quota de '.filesize_str(MAX_FILE_SIZE);
+				else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE):'Vous avez dépassé votre quota de '.filesize_str(MAX_FILE_SIZE);
 			}
-			else $error = $language ? 'You image mustn\'t exceed '.$limitMb.' MB':'Votre image ne doit pas d&eacute;passer '.$limitMb.' Mo';
+			else $error = $language ? 'You image mustn\'t exceed '.$limitMb.' MB':'Votre image ne doit pas dépasser '.$limitMb.' Mo';
 		}
-	else $error = $language ? 'An error occured. Please try again':'Une erreur est survenue, veuillez r&eacute;essayez';
+	else $error = $language ? 'An error occured. Please try again':'Une erreur est survenue, veuillez réessayez';
 	}
 }
 mysql_close();

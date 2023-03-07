@@ -16,3 +16,4 @@ mysqldump -h $dbHost -u $dbLogin -p$dbPass --no-create-info --skip-add-locks --s
 echo 'INSERT INTO mkjoueurs SET id=1,course=0,nom="Wargor",code="$2y$10$DHPgMFxb56xU.ohu3ildtuhfHcFUcqwz0HilUn6p9UMnSM/tqGwnO",joueur="mario",choice_map=0,choice_rand=0,pts_vs=5000,pts_battle=5000,pts_challenge=0,online=0,deleted=0;' >> $DIR/setup.sql
 echo 'INSERT INTO mkprofiles SET id=1,identifiant=0,identifiant2=0,identifiant3=0,identifiant4=0,avatar="",nick_color="Wargor",nbmessages=0,email="",country=76,description="";' >> $DIR/setup.sql
 echo 'INSERT INTO mkratingoptions VALUES(1,1),(2,2),(3,3),(4,4),(5,5);' >> $DIR/setup.sql
+echo 'INSERT INTO mkgamecpu VALUES(0,0,1000000000);' >> $DIR/setup.sql

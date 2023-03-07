@@ -111,8 +111,8 @@ else {
 	else
 		echo '<caption>'. ($language ? 'You aren\'t logged in.<br />Enter your login and password here :':'Vous n\'&ecirc;tes pas connect&eacute;<br />Entrez votre pseudo et code ici :') .'</caption>';
 	?>
-	<tr><td class="ligne"><label for="pseudo"><?php echo $language ? 'Login':'Pseudo'; ?> :</label></td><td><input type="text" name="pseudo" id="pseudo"<?php echo isset($_POST['pseudo']) ? ' value="'. $_POST['pseudo'] .'"':null; ?> /></td></tr>
-	<tr><td class="ligne"><label for="code"><?php echo $language ? 'Password':'Code'; ?> :</label></td><td><input type="password" name="code" id="code"<?php echo isset($_POST['code']) ? ' value="'. $_POST['code'] .'"':null; ?> /></td></tr>
+	<tr><td class="ligne"><label for="pseudo"><?php echo $language ? 'Login':'Pseudo'; ?> :</label></td><td><input type="text" name="pseudo" id="pseudo"<?php echo isset($_POST['pseudo']) ? ' value="'. htmlspecialchars($_POST['pseudo']) .'"':null; ?> /></td></tr>
+	<tr><td class="ligne"><label for="code"><?php echo $language ? 'Password':'Code'; ?> :</label></td><td><input type="password" name="code" id="code"<?php echo isset($_POST['code']) ? ' value="'. htmlspecialchars($_POST['code']) .'"':null; ?> /></td></tr>
 	<tr><td colspan="2"><input type="submit" value="<?php echo $language ? 'Submit':'Valider'; ?>" /></td></tr>
 	<tr><td colspan="2">
 		<a href="signup.php"><?php echo $language ? 'Register':'Inscription'; ?></a> | 
