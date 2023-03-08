@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 include('session.php');
 include('initdb.php');
 $timeStamp = time();

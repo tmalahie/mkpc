@@ -20,7 +20,7 @@ if (isset($_GET['id'])) {
 				@unlink($filePath);
 			}
 		}
-		$collabSuffix = isset($_GET['collab']) ? '&collab='.$_GET['collab'] : '';
+		$collabSuffix = isset($_GET['collab']) ? '&collab='.urlencode($_GET['collab']) : '';
 		header('location: editBg.php?id='. $layer['bg'] . $collabSuffix);
 	}
 	mysql_close();

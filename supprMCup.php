@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['id'])) {
 	include('initdb.php');
 	$cID = $_POST['id'];

@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['id']) && isset($_POST['rating'])) {
 	include('initdb.php');
 	$persoId = $_POST['id'];

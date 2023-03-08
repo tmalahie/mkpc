@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['key'])) {
     include('session.php');
     if ($id) {

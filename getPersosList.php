@@ -10,6 +10,7 @@ function toSQLSearch($search) {
     return $search;
 }
 if (isset($_POST['page']) && isset($_POST['sort'])) {
+    header('Content-Type: application/json');
     $page = intval($_POST['page']);
     $resPerPage = 100;
     switch ($_POST['sort']) {

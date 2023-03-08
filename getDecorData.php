@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_GET['id'])) {
     include('initdb.php');
     $getDecor = mysql_query('SELECT * FROM mkdecors WHERE id="'. $_GET['id'] .'"');

@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['peer']) && isset($_POST['muted'])) {
     include('session.php');
     if ($id) {

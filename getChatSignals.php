@@ -1,5 +1,6 @@
 <?php
 if (isset($_POST['sender']) && isset($_POST['receiver']) && isset($_POST['lastsignalid'])) {
+    header('Content-Type: application/json');
     $res = array();
     include('session.php');
     if (!$id) {

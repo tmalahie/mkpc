@@ -55,7 +55,7 @@ include('smileys.php');
 		');
 		if ($news['author'] != $id)
 			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "ENews '. $_GET['id'] .'")');
-		$iGenerated = $_GET['id'];
+		$iGenerated = intval($_GET['id']);
 		echo $language ? '<p id="successSent">News edited successfully<br />
 		<a href="news.php?id='. $iGenerated .'">Click here</a> to see the news.<br />
 		<a href="listNews.php">Click here</a> to return to the news list.</p>' :
@@ -66,7 +66,7 @@ include('smileys.php');
 	}
 	else {
 	?>
-<form method="post" action="editNews.php?id=<?php echo $_GET['id']; ?>" onsubmit="if(!this.title.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a content':'Veuillez entrer un contenu'; ?>');return false}this.querySelector('[type=submit]:not([name=draft])').disabled=true">
+<form method="post" action="editNews.php?id=<?php echo urlencode($_GET['id']); ?>" onsubmit="if(!this.title.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a content':'Veuillez entrer un contenu'; ?>');return false}this.querySelector('[type=submit]:not([name=draft])').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel"><label for="title"><?php echo $language ? 'Title':'Titre'; ?> :</label></td>
 <td class="mInput"><input type="text" id="title" name="title" onchange="document.getElementById('mTitle').innerHTML=htmlspecialchars(this.value)" value="<?php echo htmlspecialchars($news['title']); ?>" /></td></tr>
@@ -114,7 +114,7 @@ for ($i=0;$i<$nbSmileys;$i++)
 <div class="news-content mBody"></div>
 </div>
 <p class="forumButtons" style="margin: 10px 0 0 23%">
-	<a href="news.php?id=<?php echo $_GET['id']; ?>"><?php echo $language ? 'Back to the news':'Retour à la news'; ?></a><br />
+	<a href="news.php?id=<?php echo urlencode($_GET['id']); ?>"><?php echo $language ? 'Back to the news':'Retour à la news'; ?></a><br />
 	<a href="listNews.php"><?php echo $language ? 'Back to the news list':'Retour à la liste des news'; ?></a>
 </p>
 	<?php

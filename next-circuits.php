@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['page'])) {
 	include('initdb.php');
 	include('utils-circuits.php');

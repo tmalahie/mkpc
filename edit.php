@@ -94,11 +94,11 @@ include('menu.php');
 						mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($_GET['id']) .'"');
 				}
 				echo $language ? '<p id="successSent">Message edited successfully<br />
-				<a href="topic.php?topic='. $_GET['topic'].'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id<='. $_GET['id']))/20) .'">Click here</a> to go to the topic.<br />
+				<a href="topic.php?topic='. urlencode($_GET['topic']).'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id<="'. $_GET['id'] .'"'))/20) .'">Click here</a> to go to the topic.<br />
 				<a href="category.php?category='. $category['id'] .'">Click here</a> to return to the category.<br />
 				<a href="forum.php">Click here</a> to return to the forum.</p>' :
 				'<p id="successSent">Message modifi&eacute; avec succ&egrave;s<br />
-				<a href="topic.php?topic='. $_GET['topic'] .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id<='. $_GET['id']))/20) .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
+				<a href="topic.php?topic='. urlencode($_GET['topic']) .'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id<="'. $_GET['id'] .'"'))/20) .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
 				<a href="category.php?category='. $category['id'] .'">Cliquez ici</a> pour retourner à la catégorie.<br />
 				<a href="forum.php">Cliquez ici</a> pour retourner au forum.</p>';
 			}
@@ -108,7 +108,7 @@ include('menu.php');
 		else {
 			$getMessage = mysql_fetch_array(mysql_query('SELECT message FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'].'"'));
 		?>
-<form method="post" action="edit.php?id=<?php echo $_GET['id']; ?>&amp;topic=<?php echo $_GET['topic']; ?>" onsubmit="if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
+<form method="post" action="edit.php?id=<?php echo urlencode($_GET['id']); ?>&amp;topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('bbButtons.php'); ?></td></tr>
 <tr><td class="mLabel"><p><label for="message">Message :</label></p>
@@ -127,7 +127,7 @@ for ($i=0;$i<$nbSmileys;$i++)
 include('preview-msg.php');
 ?>
 <p class="forumButtons" style="margin: 10px 0 0 23%">
-	<a href="topic.php?topic=<?php echo $_GET['topic']; ?>"><?php echo $language ? 'Back to the topic':'Retour au topic'; ?></a><br />
+	<a href="topic.php?topic=<?php echo urlencode($_GET['topic']); ?>"><?php echo $language ? 'Back to the topic':'Retour au topic'; ?></a><br />
 	<a href="category.php?category=<?php echo $category['id']; ?>"><?php echo $language ? 'Back to '. $category['nom']:'Retour à '. $category['nom']; ?></a><br />
 	<a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a></p>
 			<?php

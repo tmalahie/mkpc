@@ -29,20 +29,20 @@ elseif (isset($_GET['page'])) {
 		if (isset($_GET['mid'])) {
 			$clCourse = 'mcup';
 			$clTable = 'mkmcups';
-			$clCid = $_GET['mid'];
+			$clCid = intval($_GET['mid']);
 		}
 		elseif (isset($_GET['cid'])) {
 			$clCourse = 'cup';
 			$clTable = 'mkcups';
-			$clCid = $_GET['cid'];
+			$clCid = intval($_GET['cid']);
 		}
 		elseif (isset($_GET['id']))
-			$nid = $_GET['id'];
+			$nid = intval($_GET['id']);
 		elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) {
 			$clCourse = 'cup';
 			if (isset($_GET['nid'])) {
 				$clTable = 'mkcups';
-				$clCid = $_GET['nid'];
+				$clCid = intval($_GET['nid']);
 				$edittingCircuit = true;
 			}
 		}
@@ -50,12 +50,12 @@ elseif (isset($_GET['page'])) {
 			$clCourse = 'mcup';
 			if (isset($_GET['nid'])) {
 				$clTable = 'mkmcups';
-				$clCid = $_GET['nid'];
+				$clCid = intval($_GET['nid']);
 				$edittingCircuit = true;
 			}
 		}
 		elseif (isset($_GET['nid'])) {
-			$nid = $_GET['nid'];
+			$nid = intval($_GET['nid']);
 			$edittingCircuit = true;
 		}
 		if (isset($nid)) {
@@ -69,7 +69,7 @@ elseif (isset($_GET['page'])) {
 			$clCourse = 'cup';
 			if (isset($_GET['nid'])) {
 				$clTable = 'mkcups';
-				$clCid = $_GET['nid'];
+				$clCid = intval($_GET['nid']);
 				$edittingCircuit = true;
 			}
 		}
@@ -77,32 +77,32 @@ elseif (isset($_GET['page'])) {
 			$clCourse = 'mcup';
 			if (isset($_GET['nid'])) {
 				$clTable = 'mkmcups';
-				$clCid = $_GET['nid'];
+				$clCid = intval($_GET['nid']);
 				$edittingCircuit = true;
 			}
 		}
 		elseif (isset($_GET['mid'])) {
 			$clCourse = 'mcup';
 			$clTable = 'mkmcups';
-			$clCid = $_GET['mid'];
+			$clCid = intval($_GET['mid']);
 		}
 		elseif (isset($_GET['cid'])) {
 			$clCourse = 'cup';
 			$clTable = 'mkcups';
-			$clCid = $_GET['cid'];
+			$clCid = intval($_GET['cid']);
 		}
 		elseif (isset($_GET['i'])) {
 			$clCourse = 'vs';
 			$clTable = 'circuits';
-			$clCid = $_GET['i'];
+			$clCid = intval($_GET['i']);
 		}
 		break;
 	case 'arena':
 		$clCourse = 'battle';
 		if (isset($_GET['id']))
-			$nid = $_GET['id'];
+			$nid = intval($_GET['id']);
 		elseif (isset($_GET['nid'])) {
-			$nid = $_GET['nid'];
+			$nid = intval($_GET['nid']);
 			$edittingCircuit = true;
 		}
 		if (isset($nid)) {
@@ -114,7 +114,7 @@ elseif (isset($_GET['page'])) {
 		$clCourse = 'battle';
 		if (isset($_GET['i'])) {
 			$clTable = 'arenes';
-			$clCid = $_GET['i'];
+			$clCid = intval($_GET['i']);
 		}
 		break;
 	}
@@ -204,11 +204,10 @@ function getChallengeRulesByType($challenge) {
 function backCircuitUrl() {
 	global $clRace, $clCircuit;
 	if (isset($_GET['page'])) {
-		$page = $_GET['page'];
 		$params = array('page' => null);
 		if (!empty($clRace) && $clRace['type'])
 			$params['cl'] = null;
-		return nextPageUrl($_GET['page'].'.php', array('page'=>null));
+		return nextPageUrl(urlencode($_GET['page']).'.php', array('page'=>null));
 	}
 	elseif (!empty($clRace)) {
 		if ($clCircuit) {

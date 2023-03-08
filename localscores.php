@@ -43,7 +43,7 @@ include('o_online.php');
 function resetRanking() {
     if (confirm("<?php echo $language ? 'Reset ranking? Caution, this action cannot be undone':'Réinitialiser le classement ? Attention, cette action est irréversible'; ?>")) {
         document.body.style.cursor = "progress";
-        o_xhr("resetLocalScores.php", "key=<?php echo $_GET['key']; ?>", function() {
+        o_xhr("resetLocalScores.php", "key=<?php echo urlencode($_GET['key']); ?>", function() {
             document.location.reload();
             return true;
         });

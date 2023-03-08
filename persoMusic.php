@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['id'])) {
 	include('initdb.php');
-	$persoId = $_GET['id'];
+	$persoId = intval($_GET['id']);
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
 		include('language.php');
 		include('getId.php');
@@ -171,8 +171,8 @@ include('o_online.php');
 	</p>
 	</form>
 	<p>
-		<a href="persoOptions.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>"><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></a><br />
-		<a href="editPerso.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a>
+		<a href="persoOptions.php?id=<?php echo urlencode($_GET['id']) . htmlspecialchars($collabSuffix); ?>"><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></a><br />
+		<a href="editPerso.php?id=<?php echo urlencode($_GET['id']) . htmlspecialchars($collabSuffix); ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a>
 	</p>
 </body>
 </html>

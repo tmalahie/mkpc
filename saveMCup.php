@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	include('getId.php');
 	include('initdb.php');
@@ -42,7 +43,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		if (isset($_POST['id'])) {
 			if ($currentMCup) {
 				mysql_query('UPDATE `mkmcups` SET nom="'. $_POST['nom'] .'",auteur="'. $_POST['auteur'] .'",options="'.$optionsJson.'" WHERE id="'. $_POST['id'] .'"');
-				$cupId = $_POST['id'];
+				$cupId = intval($_POST['id']);
 			}
 			else
 				$save = false;

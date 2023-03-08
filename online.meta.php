@@ -31,34 +31,34 @@ $isMCup = false;
 if (isset($_GET['mid'])) {
 	$isCup = true;
 	$isMCup = true;
-	$nid = $_GET['mid'];
+	$nid = intval($_GET['mid']);
 }
 elseif (isset($_GET['sid'])) {
 	$isCup = true;
-	$nid = $_GET['sid'];
+	$nid = intval($_GET['sid']);
 	$complete = false;
 }
 elseif (isset($_GET['cid'])) {
 	$isCup = true;
-	$nid = $_GET['cid'];
+	$nid = intval($_GET['cid']);
 	$complete = true;
 }
 elseif (isset($_GET['id'])) {
 	$isCup = true;
-	$nid = $_GET['id'];
+	$nid = intval($_GET['id']);
 	$complete = false;
 	$isSingle = true;
 }
 elseif (isset($_GET['i'])) {
 	$isCup = true;
-	$nid = $_GET['i'];
+	$nid = intval($_GET['i']);
 	$complete = true;
 	$isSingle = true;
 }
 if (isset($_GET['battle']))
 	$isBattle = true;
 if (isset($_GET['key'])) {
-	$privateLink = $_GET['key'];
+	$privateLink = intval($_GET['key']);
 	if ($privateLinkData = mysql_fetch_array(mysql_query('SELECT * FROM `mkprivgame` WHERE id="'.$privateLink.'"'))) {
 		if ($id)
 			mysql_query('UPDATE `mkprivgame` SET last_used_date=NULL WHERE id="'.$privateLink.'"');

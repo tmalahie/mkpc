@@ -1006,7 +1006,7 @@ else {
 				<form class="editor-section editor-description" method="post" action="uploadCircuit.php" enctype="multipart/form-data">
 					<?php
 					if (isset($_GET['error']))
-						echo '<div class="editor-error">'. stripslashes($_GET['error']) .'</div>';
+						echo '<div class="editor-error">'. htmlspecialchars(stripslashes($_GET['error'])) .'</div>';
 					?>
 					Welcome to the track builder in complete mode.<br />
 					To create a new circuit, send your image here:
@@ -1019,7 +1019,7 @@ else {
 				<form class="editor-section editor-description" method="post" action="uploadCircuit.php" enctype="multipart/form-data">
 					<?php
 					if (isset($_GET['error']))
-						echo '<div class="editor-error">'. stripslashes($_GET['error']) .'</div>';
+						echo '<div class="editor-error">'. htmlspecialchars(stripslashes($_GET['error'])) .'</div>';
 					?>
 					Bienvenue dans l'éditeur de circuits en mode complet.<br />
 					Pour créer un nouveau circuit, envoyez votre image ici :

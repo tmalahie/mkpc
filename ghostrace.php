@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['id'])) {
 	include('initdb.php');
 	require_once('utils-tt.php');

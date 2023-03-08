@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['options'])) $options = $_POST['options'];
 include('initdb.php');
 if (isset($options)) $_POST['options'] = $options;

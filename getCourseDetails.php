@@ -1,6 +1,7 @@
 <?php
 include('session.php');
 if ($id) {
+    header('Content-Type: application/json');
 	include('initdb.php');
     include('getCourseParams.php');
     $players = mysql_query(

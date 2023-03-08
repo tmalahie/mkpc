@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['id'])) {
 	include('initdb.php');
-	$layerId = $_GET['id'];
+	$layerId = intval($_GET['id']);
 	if ($layer = mysql_fetch_array(mysql_query('SELECT l.bg,l.filename,l.url,b.identifiant FROM `mkbglayers` l INNER JOIN `mkbgs` b ON l.bg=b.id WHERE l.id="'. $layerId .'"'))) {
 		include('language.php');
 		include('getId.php');
@@ -9,7 +9,7 @@ if (isset($_GET['id'])) {
 		if (($layer['identifiant'] == $identifiants[0]) || hasCollabGrants('mkbgs', $layer['bg'], $_GET['collab'], 'edit')) {
 			include('utils-bgs.php');
 			include('file-quotas.php');
-			$collabSuffix = isset($_GET['collab']) ? '&collab='.$_GET['collab'] : '';
+			$collabSuffix = isset($_GET['collab']) ? '&collab='.urlencode($_GET['collab']) : '';
 			if (isset($_FILES['layer'])) {
 				$url = isset($_POST['url']) ? $_POST['url'] : '';
 				if ($url === '')

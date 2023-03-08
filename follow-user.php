@@ -12,9 +12,9 @@ if (isset($_GET['user'])) {
 				mysql_query('DELETE FROM `mkfollowusers` WHERE follower="'. $id .'" AND followed="'. $_GET['user'] .'"');
 		}
 		mysql_close();
-		header('location: profil.php?id='.$_GET['user'].'&followed='.(isset($_GET['follow'])?1:0));
+		header('location: profil.php?id='.urlencode($_GET['user']).'&followed='.(isset($_GET['follow'])?1:0));
 	}
 	else
-		header('location: profil.php?id='.$_GET['user']);
+		header('location: profil.php?id='.urlencode($_GET['user']));
 }
 ?>

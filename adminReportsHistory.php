@@ -1,5 +1,6 @@
 <?php
 if (!isset($_POST['id'])) exit;
+header('Content-Type: application/json');
 include('session.php');
 include('initdb.php');
 require_once('getRights.php');

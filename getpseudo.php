@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 include('language.php');
 include('session.php');
 if ($id) {

@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['prefix'])) {
 	function toSQLSearch($search) {
 	    $search = str_replace('"', '""', $search);

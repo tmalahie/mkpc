@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 $ids = array();
 for ($i=0;isset($_POST['id'.$i]);$i++) {
 	$id = $_POST['id'.$i];

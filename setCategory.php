@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_GET['topic']) && isset($_GET['category'])) {
 	include('session.php');
 	require_once('getRights.php');

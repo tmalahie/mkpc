@@ -59,7 +59,7 @@ if ($id) {
 		}
 		else {
 			$private = (isset($_POST['admin']) && hasRight('manager')) ? 1:0;
-			mysql_query('INSERT INTO `mktopics` VALUES(NULL, "'. $_POST['titre'] .'",'. $categoryID .','. $language .','.$private.',0,1,NULL)');
+			mysql_query('INSERT INTO `mktopics` VALUES(NULL, "'. $_POST['titre'] .'","'. $categoryID .'",'. $language .','.$private.',0,1,NULL)');
 			$iGenerated = mysql_insert_id();
 			mysql_query('INSERT INTO `mkmessages` VALUES(1, '. $iGenerated .', "'.$id.'", NULL, "'. $_POST['message'] .'")');
 			mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages+1,last_connect=NULL WHERE id="'.$id.'"');

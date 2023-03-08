@@ -338,7 +338,7 @@ $rewardsSQL = array(
 );
 $getRewards = array();
 foreach ($rewardsSQL as $key=>$rewardSQL)
-    $getRewards[$key] = mysql_query('SELECT '.$rewardSQL['columns'].' FROM mkclrewards r LEFT JOIN mkclrewarded w ON w.reward=r.id AND w.player='. $playerId .' INNER JOIN mkclrace l ON l.id=r.clist INNER JOIN mkchars c ON r.charid=c.id'. (empty($clId) ? '':' WHERE r.clist='.$clId) .' ORDER BY r.id DESC'.$rewardSQL['limit']);
+    $getRewards[$key] = mysql_query('SELECT '.$rewardSQL['columns'].' FROM mkclrewards r LEFT JOIN mkclrewarded w ON w.reward=r.id AND w.player='. $playerId .' INNER JOIN mkclrace l ON l.id=r.clist INNER JOIN mkchars c ON r.charid=c.id'. (empty($clId) ? '':' WHERE r.clist="'.$clId.'"') .' ORDER BY r.id DESC'.$rewardSQL['limit']);
 $getRewardsData = $getRewards['data'];
 $getNbRewards = mysql_fetch_array($getRewards['nb']);
 $nbRewards = $getNbRewards['nb'];

@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['key'])) {
     include('initdb.php');
     $key = $_POST['key'];

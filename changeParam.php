@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['clear'])) {
 	$params = Array('iQuality', 'iScreenScale', 'bMusic', 'iSfx');
 	foreach ($params as $param)

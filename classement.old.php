@@ -6,33 +6,33 @@ $creation = false;
 $cup = false;
 $mcup = false;
 if (isset($_GET['circuit'])) {
-	$cID = $_GET['circuit'];
+	$cID = intval($_GET['circuit']);
 	$creation = true;
 	$simplified = true;
 	$type = 'mkcircuits';
 }
 elseif (isset($_GET['draw'])) {
-	$cID = $_GET['draw'];
+	$cID = intval($_GET['draw']);
 	$creation = true;
 	$simplified = false;
 	$type = 'circuits';
 }
 elseif (isset($_GET['scup'])) {
-	$cID = $_GET['scup'];
+	$cID = intval($_GET['scup']);
 	$creation = true;
 	$simplified = true;
 	$cup = true;
 	$type = 'mkcircuits';
 }
 elseif (isset($_GET['ccup'])) {
-	$cID = $_GET['ccup'];
+	$cID = intval($_GET['ccup']);
 	$creation = true;
 	$simplified = false;
 	$cup = true;
 	$type = 'circuits';
 }
 elseif (isset($_GET['mcup'])) {
-	$cID = $_GET['mcup'];
+	$cID = intval($_GET['mcup']);
 	$creation = true;
 	$cup = true;
 	$mcup = true;
@@ -531,7 +531,7 @@ window.onload = function() {
 		}
 		<?php
 		if (isset($_GET['map']))
-			echo 'iCircuit.value = "'.$_GET['map'].'";';
+			echo 'iCircuit.value = "'.htmlspecialchars($_GET['map']).'";';
 		?>
 		iCircuit.onchange = displayResults;
 		oParamsContent.appendChild(iCircuit);

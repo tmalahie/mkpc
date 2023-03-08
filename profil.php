@@ -4,7 +4,7 @@ if (isset($_GET['pseudo'])) {
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM mkjoueurs WHERE nom="'. $_GET['pseudo'] .'"')))
 		$profileId = $getId['id'];
 	elseif ($getId = mysql_fetch_array(mysql_query('SELECT id FROM mknewnicks WHERE oldnick="'. $_GET['pseudo'] .'"'))) {
-		$gotOldNick = $_GET['pseudo'];
+		$gotOldNick = htmlspecialchars($_GET['pseudo']);
 		$profileId = $getId['id'];
 	}
 	else {

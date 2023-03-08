@@ -1,6 +1,6 @@
 <?php
 if (isset($_POST['id']) && isset($_FILES['layer'])) {
-	$bgId = $_POST['id'];
+	$bgId = intval($_POST['id']);
 	include('initdb.php');
     include('getId.php');
     include('language.php');

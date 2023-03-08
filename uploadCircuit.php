@@ -38,7 +38,7 @@ if (isset($_FILES['image'])) {
 				}
 				else $error = $language ? 'Your image must have a png, gif, or jpg extension.':'Votre image doit être au format png, gif ou jpg.';
 			}
-			else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete tracks or use the &quot;Paste image URL&quot; option to save space.':'Vous avez dépassé votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des circuits ou utilisez l\'option &quot;Coller l\'URL de l\'image&quot; pour gagner de l\'espace.';
+			else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete tracks or use the "Paste image URL" option to save space.':'Vous avez dépassé votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des circuits ou utilisez l\'option "Coller l\'URL de l\'image" pour gagner de l\'espace.';
 			mysql_close();
 		}
 		else $error = $language ? 'Your image mustn\'t exceed '.$limitMb.' MB. Compress or reduce it if necessary.':'Votre image ne doit pas dépasser '.$limitMb.' Mo. Compressez-la ou réduisez la taille si nécessaire.';

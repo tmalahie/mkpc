@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['id'])) {
 	include('initdb.php');
-	$decorId = $_GET['id'];
+	$decorId = intval($_GET['id']);
 	if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
 		include('language.php');
 		include('getId.php');
@@ -167,11 +167,11 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($sprite
 		<?php
 		if ($type != 'decor') {
 			?>
-			<a href="decorOptions.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></u></a>
+			<a href="decorOptions.php?id=<?php echo urlencode($_GET['id']) . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? 'Back to advanced options':'Retour aux options avancées'; ?></u></a>
 			<?php
 		}
 		?>
-		<a href="editDecor.php?id=<?php echo $_GET['id'] . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
+		<a href="editDecor.php?id=<?php echo urlencode($_GET['id']) . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
 	</div>
 </body>
 </html>

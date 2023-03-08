@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['challenge']) && isset($_POST['accept'])) {
 	include('initdb.php');
 	include('session.php');

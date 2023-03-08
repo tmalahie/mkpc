@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 include('initdb.php');
 $ip = $_SERVER['REMOTE_ADDR'];
 $getCountryCode = mysql_query('SELECT country,date FROM `mkipcountry` WHERE ip="'. $ip .'"');

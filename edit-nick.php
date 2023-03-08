@@ -81,7 +81,7 @@ else
 	<h1><?php echo $language ? 'Edit nick':'Modification de pseudo'; ?></h1>
 	<?php
 	if (isset($success))
-		echo $language ? '<p class="success">You have been renamed into <strong>'. $new .'</strong>.</p>' : '<p class="success">Vous avez été renommé en <strong>'. $new .'</strong>.</p>';
+		echo $language ? '<p class="success">You have been renamed into <strong>'. htmlspecialchars($new) .'</strong>.</p>' : '<p class="success">Vous avez été renommé en <strong>'. htmlspecialchars($new) .'</strong>.</p>';
 	if (isset($message))
 		echo '<p style="color: red">'. $message .'</p>';
     if ($language) {

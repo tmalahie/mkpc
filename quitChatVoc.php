@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['peer'])) {
     include('session.php');
     if ($id) {

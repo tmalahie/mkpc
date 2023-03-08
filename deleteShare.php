@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['ids']) && preg_match('#^\d+(,\d+)*$#', $_POST['ids'])) {
 	include('session.php');
 	include('initdb.php');

@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 session_start();
 echo '[';
 if (!empty($_SESSION['mkid'])) {

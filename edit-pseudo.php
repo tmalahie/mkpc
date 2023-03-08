@@ -59,7 +59,7 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	<h1><?php echo $language ? 'Edit nick':'Modification de pseudo'; ?></h1>
 	<?php
 	if ($success)
-		echo $language ? '<p><strong>'. $old .'</strong> has just been renamed into <strong>'. $new .'</strong>.</p>' : '<p><strong>'. $old .'</strong> vient d\'être renommé en <strong>'. $new .'</strong>.</p>';
+		echo $language ? '<p><strong>'. htmlspecialchars($old) .'</strong> has just been renamed into <strong>'. htmlspecialchars($new) .'</strong>.</p>' : '<p><strong>'. htmlspecialchars($old) .'</strong> vient d\'être renommé en <strong>'. htmlspecialchars($new) .'</strong>.</p>';
 	if ($message)
 		echo '<p style="color: red">'. $message .'</p>';
 	?>

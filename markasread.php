@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 include('session.php');
 if ($id && isset($_POST['answer'])) {
 	include('initdb.php');

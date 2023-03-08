@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 include('session.php');
 if ($id) {
 	if (isset($_POST['msg'])) {

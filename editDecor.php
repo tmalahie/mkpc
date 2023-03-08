@@ -1,6 +1,6 @@
 <?php
 if (isset($_GET['id'])) {
-    $decorId = $_GET['id'];
+    $decorId = intval($_GET['id']);
     include('initdb.php');
     if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
         include('getId.php');
@@ -50,7 +50,7 @@ if (isset($_GET['id'])) {
 <body>
     <?php
     if (isset($_GET['error'])) {
-        echo '<div id="error">'. $_GET['error'] .'</div>';
+        echo '<div id="error">'. htmlspecialchars($_GET['error']) .'</div>';
     }
     if (isset($_GET['new'])) {
         ?>
@@ -75,7 +75,7 @@ if (isset($_GET['id'])) {
             </div>
             <?php
             if ($hasWriteGrants)
-                echo '<a href="decorSprite.php?id='. $_GET['id'] . $collabSuffix .'">'. ($language ? 'Edit image':'Modifier l\'image') .'</a>';
+                echo '<a href="decorSprite.php?id='. urlencode($_GET['id']) . $collabSuffix .'">'. ($language ? 'Edit image':'Modifier l\'image') .'</a>';
             if (isset($CUSTOM_DECOR_TYPES[$decor['type']]['extra_sprites'])) {
                 echo '<div class="decor-edit-extra">';
                 /** @var array $extraSprites */
@@ -125,7 +125,7 @@ if (isset($_GET['id'])) {
             }
             ?>
         </div>
-        <form method="post" id="decor-edit-form" class="decor-editor-form" action="editDecor.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">
+        <form method="post" id="decor-edit-form" class="decor-editor-form" action="editDecor.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>">
             <?php
             if (!$decor['extra_parent_id']) {
                 ?>
@@ -136,7 +136,7 @@ if (isset($_GET['id'])) {
             }
             ?>
             <div class="advances-options">
-                +<a href="decorOptions.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">
+                +<a href="decorOptions.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>">
                     <?php echo $language ? 'Advanced options':'Options avancées'; ?>...
                 </a>
             </div>

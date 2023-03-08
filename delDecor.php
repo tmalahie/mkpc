@@ -23,7 +23,7 @@ if (isset($_GET['id'])) {
 				mysql_query('DELETE FROM `mkdecors` WHERE id="'. $extraDecor['id'] .'"');
 			}
 		}
-		$collabSuffix = isset($_GET['collab']) ? '&collab='.$_GET['collab'] : '';
+		$collabSuffix = isset($_GET['collab']) ? '&collab='.urlencode($_GET['collab']) : '';
 		if ($decor['extra_parent_id'])
 			header('location: editDecor.php?id='.$decor['extra_parent_id'].$collabSuffix);
 		else

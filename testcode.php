@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 	include('initdb.php');
 	$id = 0;

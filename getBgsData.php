@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/json');
 include('initdb.php');
 include('getId.php');
 $getBgs = mysql_query('SELECT id,name FROM mkbgs WHERE identifiant="'. $identifiants[0] .'" ORDER BY id DESC');

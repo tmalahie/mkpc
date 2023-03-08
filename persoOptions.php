@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['id'])) {
 	include('initdb.php');
-	$persoId = $_GET['id'];
+	$persoId = intval($_GET['id']);
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
 		include('language.php');
 		include('getId.php');
@@ -37,7 +37,7 @@ include('o_online.php');
 	<h1><?php echo $language ? 'Advanced options':'Options avancées'; ?></h1>
 	<div>
 		<a class="advanced-option option-map" href="<?php
-		echo $hasWriteGrants ? 'editSprite.php?id='. $_GET['id'] . $collabSuffix .'&amp;map' : 'javascript:void(0)';
+		echo $hasWriteGrants ? 'editSprite.php?id='. urlencode($_GET['id']) . $collabSuffix .'&amp;map' : 'javascript:void(0)';
 		?>">
 			<div class="option-bg">
 				<img src="images/maps/map1.png" alt="Map" />
@@ -51,7 +51,7 @@ include('o_online.php');
 			?></div>
 		</a>
 		<a class="advanced-option option-podium" href="<?php
-		echo $hasWriteGrants ? 'editSprite.php?id='. $_GET['id'] . $collabSuffix .'&amp;podium' : 'javascript:void(0)';
+		echo $hasWriteGrants ? 'editSprite.php?id='. urlencode($_GET['id']) . $collabSuffix .'&amp;podium' : 'javascript:void(0)';
 		?>">
 			<div class="option-bg">
 				<img src="images/podium.gif" alt="Podium" />
@@ -64,7 +64,7 @@ include('o_online.php');
 				echo $language ? "Grand Prix image":"Image de grand prix";
 			?></div>
 		</a>
-		<a class="advanced-option option-ending" href="persoMusic.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>">
+		<a class="advanced-option option-ending" href="persoMusic.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>">
 			<div class="option-bg">
 				<img src="images/end_music.png" alt="Ending" />
 				<div><img src="<?php echo $spriteSrcs['hd']; ?>" alt="Perso" onload="this.parentNode.style.height=Math.round(576*this.naturalHeight/this.naturalWidth)+'px'" /></div>
@@ -78,7 +78,7 @@ include('o_online.php');
 			?></div>
 		</a>
 	</div>
-	<p><a href="editPerso.php?id=<?php echo $_GET['id'] . $collabSuffix; ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a></p>
+	<p><a href="editPerso.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>"><?php echo $language ? "Back to character editor":"Retour à l'édition du perso"; ?></a></p>
 </body>
 </html>
 		<?php

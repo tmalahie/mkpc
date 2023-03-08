@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 if (isset($_POST['topic']) && is_numeric($_POST['topic'])) {
 	include('session.php');
 	if ($id) {

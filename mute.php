@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/plain');
 include('session.php');
 if ($id && isset($_POST['member']) && is_numeric($_POST['member']) && isset($_POST['duration']) && is_numeric($_POST['duration'])) {
 	include('initdb.php');
