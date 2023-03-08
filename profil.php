@@ -120,9 +120,6 @@ if (isset($profileId)) {
 		function plural($nb) {
 			return ($nb != 1) ? 's':'';
 		}
-		function toUtf8($str) {
-			return $str;
-		}
 		function controlLength($str,$maxLength) {
 			$pts = '...';
 			if (mb_strlen($str) > $maxLength)
@@ -130,7 +127,7 @@ if (isset($profileId)) {
 			return $str;
 		}
 		function controlLengthUtf8($str,$len) {
-			return toUtf8(controlLength($str,$len));
+			return controlLength($str,$len);
 		}
 		function toPlace($place) {
 			global $language;
@@ -840,7 +837,7 @@ include('menu.php');
 							<div class="circuit-comment-msg"><?php echo str_replace('  ',' &nbsp;',nl2br(htmlspecialchars($comment['message']))); ?></div>
 							<div class="circuit-comment-infos"><img src="images/comments.png" alt="comments"> <?php
 							if ($getCircuit['nom']) {
-								echo ($language ? 'In':'Dans'); ?> <strong><?php echo escapeUtf8(toUtf8($getCircuit['nom'])) ?></strong><?php
+								echo ($language ? 'In':'Dans'); ?> <strong><?php echo escapeUtf8($getCircuit['nom']); ?></strong><?php
 							}
 							?> <?php echo pretty_dates($comment['date'], array('lower'=>true)); ?></div>
 						</a>

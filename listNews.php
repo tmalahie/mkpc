@@ -83,7 +83,7 @@ for ($i=0;$pieceOfNews=mysql_fetch_array($news);$i++) {
 	echo '<tr class="'. (($i%2) ? 'fonce':'clair') .'"><td style="color:'. $pieceOfNews['color'] .'">';
 		echo $pieceOfNews['catname'];
 	echo '</td><td>';
-		echo '<a class="fulllink" href="news.php?id='. $pieceOfNews['id'] .'">'. $pieceOfNews['title'] .'</a>';
+		echo '<a class="fulllink" href="news.php?id='. $pieceOfNews['id'] .'">'. htmlspecialchars($pieceOfNews['title']) .'</a>';
 	echo '</td><td class="news-publisher">';
 		echo $pieceOfNews['nom'] ? '<a href="profil.php?id='.$pieceOfNews['author'].'">'.$pieceOfNews['nom'].'</a>':'<em>'. ($language ? 'Deleted account':'Compte supprimé') .'</em>';
 	echo '</td><td class="news-nopo">';
@@ -149,7 +149,7 @@ if ($id) {
 			echo '<tr class="'. (($i%2) ? 'fonce':'clair') .'"><td style="color:'. $pieceOfNews['color'] .'">';
 				echo $pieceOfNews['catname'];
 			echo '</td><td>';
-				echo '<a class="fulllink" href="news.php?id='. $pieceOfNews['id'] .'">'. $pieceOfNews['title'] .'</a>';
+				echo '<a class="fulllink" href="news.php?id='. $pieceOfNews['id'] .'">'. htmlspecialchars($pieceOfNews['title']) .'</a>';
 			echo '</td><td>';
 			echo '<span class="news-status news-'.$pieceOfNews['status'].'">';
 			if ($pieceOfNews['status'] == 'pending')
@@ -199,7 +199,7 @@ if (hasRight('publisher')) {
 			echo '<tr class="'. (($i%2) ? 'fonce':'clair') .'"><td style="color:'. $pieceOfNews['color'] .'">';
 				echo $pieceOfNews['catname'];
 			echo '</td><td>';
-				echo '<a class="fulllink" href="news.php?id='. $pieceOfNews['id'] .'">'. $pieceOfNews['title'] .'</a>';
+				echo '<a class="fulllink" href="news.php?id='. $pieceOfNews['id'] .'">'. htmlspecialchars($pieceOfNews['title']) .'</a>';
 			echo '</td><td class="news-publisher">';
 				echo $pieceOfNews['nom'] ? '<a class="news-writer-name" href="profil.php?id='.$pieceOfNews['author'].'">'.$pieceOfNews['nom'].'</a>':'<em>'. ($language ? 'Deleted account':'Compte supprimé') .'</em>';
 			echo '</td><td class="news-nomo">';

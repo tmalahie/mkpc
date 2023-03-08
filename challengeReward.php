@@ -106,7 +106,7 @@ include('o_online.php');
             while ($perso = mysql_fetch_array($getEligiblePersos)) {
                 $spriteSrcs = get_sprite_srcs($perso['sprites']);
                 ?>
-                <div data-cid="<?php echo $perso['id'] ?>" data-cname="<?php echo $perso['name'] ?>" onclick="selectPerso(this)"><img src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo $perso['name'] ?>" /></div>
+                <div data-cid="<?php echo $perso['id'] ?>" data-cname="<?php echo htmlspecialchars($perso['name']) ?>" onclick="selectPerso(this)"><img src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($perso['name']) ?>" /></div>
                 <?php
             }
             ?>

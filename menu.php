@@ -628,8 +628,7 @@
 						$getName = mysql_fetch_array(mysql_query('SELECT nom FROM `mkcups` WHERE id="'. $notifCreation['id'] .'"'));
 					$creationName = null;
 					if ($getName)
-						$creationName = $getName['nom'];
-					$creationName = decodeAndEscapeCircuitNames($getName['nom']);
+						$creationName = decodeAndEscapeCircuitNames($getName['nom']);
 					$theCreation = '';
 					if ($notifCreation['single']) {
 						if ($notifData['battle'])

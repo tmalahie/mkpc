@@ -87,7 +87,7 @@ else {
         ?>
         <tr>
             <td class="challenges-td-center" style="padding-top:5px">
-            <img src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo $reward['name']; ?>" />
+            <img src="<?php echo $spriteSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($reward['name']); ?>" />
             <br /><?php
             echo $reward['name'];
             ?></td>

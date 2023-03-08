@@ -28,9 +28,7 @@ include('menu.php');
 <main>
 	<div class="comments-list">
 		<?php
-		function toUtf8($str) {
-			return $str;
-		}
+		require_once('circuitEscape.php');
 		$lastComments = mysql_query('SELECT id,circuit,type,message,date FROM `mkcomments` WHERE auteur="'. $_GET['user'] .'" ORDER BY id DESC');
 		$comments = array();
 		while ($comment = mysql_fetch_array($lastComments)) {
@@ -75,7 +73,7 @@ include('menu.php');
 					<div class="circuit-comment-msg"><?php echo nl2br(htmlspecialchars($comment['message'])); ?></div>
 					<div class="circuit-comment-infos"><img src="images/comments.png" alt="comments"> <?php
 					if ($getCircuit['nom']) {
-						echo ($language ? 'In':'Dans'); ?> <strong><?php echo toUtf8($getCircuit['nom']) ?></strong><?php
+						echo ($language ? 'In':'Dans'); ?> <strong><?php echo escapeCircuitNames(htmlspecialchars($getCircuit['nom'])) ?></strong><?php
 					}
 					?> <?php echo pretty_dates($comment['date'],array('lower'=>true)); ?></div>
 				</a>

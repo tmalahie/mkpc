@@ -155,7 +155,7 @@ if (isset($error))
             while ($bg = mysql_fetch_array($myBgs)) {
                 print_bg_div(array(
                     'bg' => $bg['id'],
-                    'attrs' => 'id="mybg-'. $bg['id'] .'" data-name="'. $bg['name'] .'" onclick="selectBg('. $bg['id'] .')"'
+                    'attrs' => 'id="mybg-'. $bg['id'] .'" data-name="'. htmlspecialchars($bg['name']) .'" onclick="selectBg('. $bg['id'] .')"'
                 ));
             }
             ?></div>

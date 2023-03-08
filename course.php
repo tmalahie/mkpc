@@ -892,7 +892,7 @@ else {
 							data-id="'.$id.'"
 							data-name="'.($track['nom'] ? htmlspecialchars($track['nom']) : '').'"
 							'. ($track['data'] ? '':'data-pending="1"') .'
-							data-src="'.getCircuitImgUrl($circuitImg).'"
+							data-src="'.htmlspecialchars(getCircuitImgUrl($circuitImg)).'"
 							onclick="previewCircuit(this);return false"><img
 								src="images/creation_icons/coursepreview'. $id .'.png"
 								onerror="var that=this;setTimeout(function(){that.src=\'trackicon.php?type=2&id='. $id .'\';},loadDt);this.onerror=null;loadDt+=50"
