@@ -66,29 +66,31 @@ if (isset($id)) {
 						$actualType = $type;
 					if (!isset($decorImg))
 						$decorImg = imagecreatefrompng('images/map_icons/'.$actualType.'.png');
-					$w = imagesx($decorImg);
-					$h = imagesy($decorImg);
-					if ($w) {
-						$r = 12/$w;
-						$rW = round($r*$w);
-						$rH = round($r*$h);
-						$rX = round($rW/2);
-						$rY = round($rH/2);
-						foreach ($decorsData as $decorData) {
-							if ('assets/' === substr($actualType, 0,7)) {
-								if (isset($decorData[2]) && isset($decorData[3])) {
-									$rW = $decorData[2];
-									$rH = $decorData[3];
-									if (isset($decorData[4])) {
-										$rX = round($rW*$decorData[4][0]);
-										$rY = round($rH*$decorData[4][1]);
+					if ($decorImg) {
+						$w = imagesx($decorImg);
+						$h = imagesy($decorImg);
+						if ($w) {
+							$r = 12/$w;
+							$rW = round($r*$w);
+							$rH = round($r*$h);
+							$rX = round($rW/2);
+							$rY = round($rH/2);
+							foreach ($decorsData as $decorData) {
+								if ('assets/' === substr($actualType, 0,7)) {
+									if (isset($decorData[2]) && isset($decorData[3])) {
+										$rW = $decorData[2];
+										$rH = $decorData[3];
+										if (isset($decorData[4])) {
+											$rX = round($rW*$decorData[4][0]);
+											$rY = round($rH*$decorData[4][1]);
+										}
 									}
 								}
+								imagecopyresampled($image, $decorImg, $decorData[0]-$rX,$decorData[1]-$rY, 0,0, $rW,$rH, $w,$h);
 							}
-							imagecopyresampled($image, $decorImg, $decorData[0]-$rX,$decorData[1]-$rY, 0,0, $rW,$rH, $w,$h);
 						}
+						unset($decorImg);
 					}
-					unset($decorImg);
 				}
 			}
 		}
