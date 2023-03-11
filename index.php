@@ -686,29 +686,29 @@ $slidesPath = 'images/slides';
 						array(
 							'icon' => 'ea.png',
 							'name' => $language ? 'Eurasia' : 'Eurasie',
-							'score' => 3,
-							'wins' => 1,
-							'losses' => 0,
+							'score' => 6,
+							'wins' => 2,
+							'losses' => 1,
 							'ties' => 0,
-							'diff' => 32
+							'diff' => 56
 						),
 						array(
 							'icon' => 'fr.png',
 							'name' => $language ? 'France' : 'France',
-							'score' => 3,
-							'wins' => 1,
+							'score' => 6,
+							'wins' => 2,
 							'losses' => 1,
 							'ties' => 0,
-							'diff' => 40
+							'diff' => 42
 						),
 						array(
 							'icon' => 'am.png',
 							'name' => $language ? 'Americas' : 'Amériques',
 							'score' => 0,
 							'wins' => 0,
-							'losses' => 1,
+							'losses' => 2,
 							'ties' => 0,
-							'diff' => -72
+							'diff' => -98
 						),
 					);
 					usort($plRanking, function($team1, $team2) {
