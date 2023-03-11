@@ -5045,7 +5045,7 @@ function reprendre(debug) {
 
 function quitter() {
 	if (isOnline) {
-		document.location.href = isMCups ? ((complete ? 'map':'circuit') + '.php?mid=' + nid):(isCup ? (complete ? (isBattle ? 'battle':'map')+'.php?'+(isSingle ? 'i':'cid')+'='+nid:(isBattle ? 'arena':'circuit')+'.php?'+(isSingle ? 'id':'cid')+'='+nid):"index.php");
+		document.location.href = isCup ? ((isBattle ? (complete ? 'battle':'arena') : (complete ? 'map':'circuit')) + '.php?' + (isMCups ? ('mid=' + nid) : ((isSingle ? (complete?'i':'id'):'cid')+'='+nid))) : 'index.php';
 		return;
 	}
 	interruptGame();
@@ -17618,6 +17618,7 @@ function showFocusIndicator(oScr, oButton) {
 	if (!focusIndicator) {
 		focusIndicator = document.createElement("div");
 		focusIndicator.style.position = "absolute";
+		focusIndicator.style.zIndex = 1;
 		focusIndicator.style.backgroundColor = primaryColor;
 		focusIndicator.style.opacity = 0.4;
 		focusIndicator.style.pointerEvents = "none";
@@ -20178,6 +20179,7 @@ function selectTypeCreate() {
 	oLink.style.left = (toLanguage(30,29)*iScreenScale)+"px";
 	oLink.style.top = (35*iScreenScale)+"px";
 	oLink.href = "creations.php";
+	oLink.onclick = function() {};
 	oLink.innerHTML = toLanguage("List of creations", "Liste des créations");
 	oScr.appendChild(oLink);
 
@@ -20209,10 +20211,13 @@ function selectTrackCreate(i) {
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
 
-	oScr.appendChild(toTitle(
+	var oTitle = toTitle(
 		i ? toLanguage("Complete track builder", "Éditeur complet")
-		  : toLanguage("Quick track builder", "Éditeur simplifié")
-	));
+		  : toLanguage("Quick track builder", "Éditeur simplifié"),
+		0
+	);
+	oTitle.style.fontSize = Math.round(7*iScreenScale)+"px";
+	oScr.appendChild(oTitle);
 
 	var oModes = [{
 		name: toLanguage("Circuit", "Circuit"),
@@ -20257,6 +20262,7 @@ function selectTrackCreate(i) {
 		var oMode = oModes[i];
 		var oDiv = document.createElement("a");
 		oDiv.href = oMode.url;
+		oDiv.onclick = function() {};
 		oDiv.style.display = "block";
 		oDiv.style.paddingTop = Math.round(iScreenScale/2) +"px";
 		oDiv.style.paddingBottom = Math.round(iScreenScale/4) +"px";
@@ -20283,8 +20289,9 @@ function selectTrackCreate(i) {
 	oLink.style.fontSize = Math.round(2.5*iScreenScale)+"px";
 	oLink.style.position = "absolute";
 	oLink.style.left = (toLanguage(30,29)*iScreenScale)+"px";
-	oLink.style.top = (35*iScreenScale)+"px";
+	oLink.style.top = (36*iScreenScale)+"px";
 	oLink.href = "creations.php";
+	oLink.onclick = function() {};
 	oLink.innerHTML = toLanguage("List of creations", "Liste des créations");
 	oScr.appendChild(oLink);
 
@@ -20295,7 +20302,7 @@ function selectTrackCreate(i) {
 	oPInput.style.fontSize = (2*iScreenScale)+"px";
 	oPInput.style.position = "absolute";
 	oPInput.style.left = (2*iScreenScale)+"px";
-	oPInput.style.top = (35*iScreenScale)+"px";
+	oPInput.style.top = (36*iScreenScale)+"px";
 	oPInput.onclick = function() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);

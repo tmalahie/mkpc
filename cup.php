@@ -149,7 +149,7 @@ if (isset($cids))
 		elseif ($nbCircuits < 4)
 			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t created enough '. ($isBattle ? "arenas":"circuits") .' to make a cup<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create other ones.':'Vous n\'avez pas encore créé assez '. ($isBattle ? "d'arènes":"de circuits") .' pour faire une coupe.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en créer de nouveaux.') .'</em>';
 		?>
-		<form method="get" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
+		<form method="get" action="<?php echo $isBattle ? ($mode ? 'battle.php':'arena.php') : ($mode ? 'map.php':'circuit.php'); ?>">
 			<div id="table-container">
 				<table id="table-circuits">
 					<tbody>
@@ -166,7 +166,7 @@ if (isset($cids))
 				</table>
 			</div>
 			<div id="collab-container">
-				+ <a href="#null" onclick="showCollabImportPopup(event)"><?php echo $language ? "Import track of another member..." : "Importer un circuit d'un autre membre..."; ?></a>
+				+ <a href="#null" onclick="showCollabImportPopup(event)"><?php echo $language ? "Import ". ($isBattle ? 'arena' : 'track') ." of another member..." : "Importer ". ($isBattle ? 'une arène' : 'un circuit') ." d'un autre membre..."; ?></a>
 			</div>
 			<p>
 				<span id="cid-ctn"></span>
