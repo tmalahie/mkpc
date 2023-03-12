@@ -177,7 +177,7 @@ if (isset($trackIDs)) {
 	}
 	$circuitsData = array();
 	if (!empty($trackIDs)) {
-		$getAllTracks = mysql_query('SELECT id,map,laps,nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id IN ('. implode(',',$trackIDs) .') AND type');
+		$getAllTracks = mysql_query('SELECT id,map,nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id IN ('. implode(',',$trackIDs) .') AND type');
 		$allTracks = array();
 		while ($getMain = mysql_fetch_array($getAllTracks))
 			$allTracks[$getMain['id']] = $getMain;
@@ -188,7 +188,6 @@ if (isset($trackIDs)) {
 				$infos['id'] = $trackID;
 				$infos['map'] = $getMain['map'];
 				$infos['name'] = $getMain['nom'];
-				$infos['laps'] = $getMain['laps'];
 				$infos['note'] = $getMain['note'];
 				$infos['nbnotes'] = $getMain['nbnotes'];
 				$infos['auteur'] = $getMain['auteur'];
@@ -399,7 +398,7 @@ if ($canChange) {
 		document.getElementById("sConfirmer").disabled = true;
 		document.getElementById("sConfirmer").className = "cannotChange";
 		xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':'supprCreation')); ?>.php", "id=<?php
-			echo $id;
+			echo $nid;
 			if ($collab) echo '&collab='.$collab['key'];
 		?>", function(reponse) {
 			if (reponse == 1) {
@@ -427,7 +426,7 @@ if ($canChange) {
 						}
 					}
 					else {
-						echo 'map='.$infos['map'].'&nl='.$infos['laps'];
+						echo 'map='.$infos['map'];
 						for ($i=0;$i<36;$i++)
 							echo '&p'.$i.'='.$infos['p'.$i];
 						for ($i=0;$i<$nbLettres;$i++) {
@@ -461,11 +460,11 @@ if ($canChange) {
 }
 else {
 	require_once('utils-ratings.php');
-	$cNote = getMyRating($isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits'), $id);
+	$cNote = getMyRating($creationType, $nid);
 	?>
 	var cNote = <?php echo $cNote ?>;
 	var ratingParams = "id=<?php
-		echo $id;
+		echo $nid;
 		if ($isMCup)
 			echo '&mc=1';
 		elseif ($isCup)
@@ -601,7 +600,7 @@ if (isset($message)) {
 <?php
 if (!isset($cannotChange)) {
 	?>
-	<form id="cSave" method="post" action="" onsubmit="saveRace();return false">
+	<form id="cSave" method="post" action="" onsubmit="try{saveRace();}catch(e){console.log(e)}return false">
 	<table id="cTable">
 	<tr><td style="text-align: right"><label for="cPseudo"><?php echo $language ? 'Enter your nick':'Indiquez votre pseudo'; ?> :</label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
 	<tr><td style="text-align: right"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):'Arena').' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):'de l\'arène'); ?> :</label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName) ?>" /></td></tr>

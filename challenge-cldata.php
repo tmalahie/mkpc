@@ -14,32 +14,35 @@ if (!empty($clRace) && $clRace['type']) {
 		$clCourse = 'battle';
 		break;
 	case 'mkcups':
-		$clCourse = 'cup';
+		$clCourse = ($clCircuit['mode'] >= 2) ? 'bcup' : 'cup';
 		$edittingCircuit = isset($_GET['nid']);
 		break;
 	case 'mkmcups':
-		$clCourse = 'mcup';
+		$clCourse = ($clCircuit['mode'] >= 2) ? 'mbcup' : 'mcup';
 		$edittingCircuit = isset($_GET['nid']);
 		break;
 	}
 }
 elseif (isset($_GET['page'])) {
-	switch ($_GET['page']) {
+	$clPage = $_GET['page'];
+	switch ($clPage) {
 	case 'circuit':
+	case 'arena':
+		$clBattle = ($clPage === 'arena');
 		if (isset($_GET['mid'])) {
-			$clCourse = 'mcup';
+			$clCourse = $clBattle ? 'mbcup' : 'mcup';
 			$clTable = 'mkmcups';
 			$clCid = intval($_GET['mid']);
 		}
 		elseif (isset($_GET['cid'])) {
-			$clCourse = 'cup';
+			$clCourse = $clBattle ? 'bcup' : 'cup';
 			$clTable = 'mkcups';
 			$clCid = intval($_GET['cid']);
 		}
 		elseif (isset($_GET['id']))
 			$nid = intval($_GET['id']);
 		elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) {
-			$clCourse = 'cup';
+			$clCourse = $clBattle ? 'bcup' : 'cup';
 			if (isset($_GET['nid'])) {
 				$clTable = 'mkcups';
 				$clCid = intval($_GET['nid']);
@@ -47,7 +50,7 @@ elseif (isset($_GET['page'])) {
 			}
 		}
 		elseif (isset($_GET['mid0'])) {
-			$clCourse = 'mcup';
+			$clCourse = $clBattle ? 'mbcup' : 'mcup';
 			if (isset($_GET['nid'])) {
 				$clTable = 'mkmcups';
 				$clCid = intval($_GET['nid']);
@@ -59,14 +62,16 @@ elseif (isset($_GET['page'])) {
 			$edittingCircuit = true;
 		}
 		if (isset($nid)) {
-			$clCourse = 'vs';
+			$clCourse = $clBattle ? 'battle' : 'vs';
 			$clTable = 'mkcircuits';
 			$clCid = $nid;
 		}
 		break;
 	case 'map':
+	case 'battle':
+		$clBattle = ($clPage === 'battle');
 		if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) {
-			$clCourse = 'cup';
+			$clCourse = $clBattle ? 'bcup' : 'cup';
 			if (isset($_GET['nid'])) {
 				$clTable = 'mkcups';
 				$clCid = intval($_GET['nid']);
@@ -74,7 +79,7 @@ elseif (isset($_GET['page'])) {
 			}
 		}
 		elseif (isset($_GET['mid0'])) {
-			$clCourse = 'mcup';
+			$clCourse = $clBattle ? 'mbcup' : 'mcup';
 			if (isset($_GET['nid'])) {
 				$clTable = 'mkmcups';
 				$clCid = intval($_GET['nid']);
@@ -82,38 +87,18 @@ elseif (isset($_GET['page'])) {
 			}
 		}
 		elseif (isset($_GET['mid'])) {
-			$clCourse = 'mcup';
+			$clCourse = $clBattle ? 'mbcup' : 'mcup';
 			$clTable = 'mkmcups';
 			$clCid = intval($_GET['mid']);
 		}
 		elseif (isset($_GET['cid'])) {
-			$clCourse = 'cup';
+			$clCourse = $clBattle ? 'bcup' : 'cup';
 			$clTable = 'mkcups';
 			$clCid = intval($_GET['cid']);
 		}
 		elseif (isset($_GET['i'])) {
-			$clCourse = 'vs';
-			$clTable = 'circuits';
-			$clCid = intval($_GET['i']);
-		}
-		break;
-	case 'arena':
-		$clCourse = 'battle';
-		if (isset($_GET['id']))
-			$nid = intval($_GET['id']);
-		elseif (isset($_GET['nid'])) {
-			$nid = intval($_GET['nid']);
-			$edittingCircuit = true;
-		}
-		if (isset($nid)) {
-			$clTable = 'mkcircuits';
-			$clCid = $nid;
-		}
-		break;
-	case 'battle':
-		$clCourse = 'battle';
-		if (isset($_GET['i'])) {
-			$clTable = 'arenes';
+			$clCourse = $clBattle ? 'battle' : 'vs';
+			$clTable = $clBattle ? 'arenes' : 'circuits';
 			$clCid = intval($_GET['i']);
 		}
 		break;
@@ -219,13 +204,25 @@ function backCircuitUrl() {
 			case 'arenes':
 				return 'battle.php?i='. $clCircuit['ID'];
 			case 'mkcups':
-				return ($clCircuit['mode'] ? 'map':'circuit') .'.php?cid='. $clCircuit['id'];
+				return getCupPage($clCircuit['mode']) .'.php?cid='. $clCircuit['id'];
 			case 'mkmcups':
-				return ($clCircuit['mode'] ? 'map':'circuit') .'.php?mid='. $clCircuit['id'];
+				return getCupPage($clCircuit['mode']) .'.php?mid='. $clCircuit['id'];
 			}
 		}
 	}
 	return 'mariokart.php';
+}
+function getCupPage($mode) {
+	switch ($mode) {
+	case 1:
+		return 'map';
+	case 2:
+		return 'arena';
+	case 3:
+		return 'battle';
+	default:
+		return 'circuit';
+	}
 }
 function backCircuitText() {
 	global $language, $clCourse;
@@ -238,9 +235,11 @@ function backCircuitText() {
 		$theCircuit = $language ? 'arena':'à l\'arène';
 		break;
 	case 'cup':
+	case 'bcup':
 		$theCircuit = $language ? 'cup':'à la coupe';
 		break;
 	case 'mcup':
+	case 'mbcup':
 		$theCircuit = $language ? 'multicup':'à la multicoupe';
 		break;
 	}

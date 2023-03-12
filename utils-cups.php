@@ -31,6 +31,13 @@ function printCollabImportPopup($type, $mode) {
         $placeholderType = 'mkcups';
         $placeholderId = 1+$mode;
         break;
+    case 'arena':
+        $Circuit = $language ? "arena" : "arène";
+        $aCircuit = $language ? "an arena" : "une arène";
+        $ofCircuit = $language ? "of the arena" : "de l'arène";
+        $placeholderType = $mode ? 'arenes' : 'mkcircuits';
+        $placeholderId = 226;
+        break;
     default:
         $Circuit = $language ? 'circuit' : 'circuit';
         $aCircuit = $language ? 'a circuit' : 'un circuit';

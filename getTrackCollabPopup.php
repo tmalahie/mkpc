@@ -55,14 +55,16 @@ if (isset($_POST['id']) && isset($_POST['type'])) {
             'depends_on' => 'view'
         )
     );
-    if ($itemCategory === 'circuit') {
+    switch ($itemCategory) {
+    case 'circuit':
+    case 'arena':
         $rights[] = array(
             'key' => 'use',
             'label' => $language ? "Use $theItemLabel in cups" : "Utiliser $theItemLabel dans les coupes",
             'default_val' => true
         );
-    }
-    if ($itemCategory === 'cup') {
+        break;
+    case 'cup':
         $rights[] = array(
             'key' => 'use',
             'label' => $language ? "Use $theItemLabel in multicups" : "Utiliser $theItemLabel dans les multicoupes",

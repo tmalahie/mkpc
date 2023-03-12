@@ -11379,7 +11379,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: toLanguage("Race","Course"),
+					title: (course == "BB") ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -17394,7 +17394,7 @@ function runOneFrame() {
 	moveDecor();
 	if (oSpecCam)
 		oSpecCam.move();
-	if (!oPlayers[0].cpu) {
+	if (!oPlayers[0].cpu && !oPlayers[0].loose) {
 		if (clSelected && !clSelectionFail) {
 			if (false === challengeRulesSatisfied(clSelected, clSelected.data.constraints))
 				challengeHandleFail();
@@ -17492,7 +17492,7 @@ document.onkeydown = function(e) {
 		if (["ArrowUp","ArrowLeft","ArrowRight","ArrowDown"].indexOf(e.key) === -1) return;
 		if (selectedOscrElt && !oScr.contains(selectedOscrElt))
 			selectedOscrElt = undefined;
-		var oButtons = [...oScr.querySelectorAll("*")].filter(elt => elt.onclick).filter(elt => !elt.disabled).filter(elt => {
+		var oButtons = [...oScr.querySelectorAll("*")].filter(elt => elt.onclick).filter(elt => !elt.disabled).filter(elt => !elt.dataset.noselect).filter(elt => {
 			var bounds = elt.getBoundingClientRect();
 			return (bounds.width) > 0 && (bounds.height) > 0;
 		});
@@ -20769,6 +20769,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				eClassement.style.color = "white";
 				eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
 			}
+			eClassement.onclick = function() {};
 			oScr.appendChild(eClassement);
 
 			if (shareLink.key) {
@@ -20882,6 +20883,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		$spectatorModeHelp.onclick = function() {
 			return false;
 		}
+		$spectatorModeHelp.dataset.noselect = "1";
 		$spectatorModeCtn.appendChild($spectatorModeHelp);
 
 		addFancyTitle({
@@ -23627,6 +23629,7 @@ function searchCourse(opts) {
 	$spectatorModeHelp.onclick = function() {
 		return false;
 	}
+	$spectatorModeHelp.dataset.noselect = "1";
 	$spectatorModeCtn.appendChild($spectatorModeHelp);
 
 	addFancyTitle({
@@ -24376,6 +24379,7 @@ function selectRaceScreen(cup) {
 				mLink.onmouseout = function() {
 					this.style.backgroundColor = "rgba(0,50,128, 0.5)";
 				}
+				mLink.dataset.noselect = "1";
 				var iLink = document.createElement("img");
 				iLink.src = "images/clink.png";
 				iLink.style.width = (2*iScreenScale) +"px";
