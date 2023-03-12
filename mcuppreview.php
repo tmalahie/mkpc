@@ -15,6 +15,9 @@ if (isset($id)) {
 	}
 	$nbTracks = count($trackIDs);
 	if ($nbTracks) {
+		if ($mode === 2) $mode = 0;
+		elseif ($mode === 3) $mode = 2;
+
 		$tracksSide = floor(sqrt($nbTracks+1));
 		$nbTracksInSpace = $tracksSide*$tracksSide;
 		$nbTracksToDraw = min($nbTracksInSpace,$nbTracks);

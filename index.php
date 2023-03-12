@@ -801,7 +801,7 @@ $slidesPath = 'images/slides';
 						include('creation_line.php');
 					}
 					include('utils-circuits.php');
-					$nbByType = array(1,1,2,2,3,3,2,2);
+					$nbByType = array(1,1,2,2,3,3,2,2,1,1,1,1);
 					$tracksList = listCreations(1,$nbByType,null,$aCircuits);
 					$tracksList = sortLines($tracksList);
 					$tracksList = array_slice($tracksList,0,14);
