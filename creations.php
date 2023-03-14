@@ -399,14 +399,14 @@ include('menu.php');
 		echo $language ?
 		'Welcome to the list of circuits and courses shared by the Mario Kart PC community !<br />
 		You too can share your circuit creations by clicking on &quot;Share circuit&quot; at the bottom-left of the circuit page.' :
-		'Bienvenue dans la liste des circuits et ar&egrave;nes partag&eacute;s par la communaut&eacute; de Mario Kart PC !<br />
-		Vous aussi, partagez les circuits que vous cr&eacute;ez en cliquant sur &quot;Partager le circuit&quot; en bas &agrave; gauche de la page du circuit.';
+		'Bienvenue dans la liste des circuits et arènes partagés par la communauté de Mario Kart PC !<br />
+		Vous aussi, partagez les circuits que vous créez en cliquant sur &quot;Partager le circuit&quot; en bas à gauche de la page du circuit.';
 	}
 	?></p>
 	<form method="get" action="creations.php" id="form-search">
 		<div id="sort-tabs">
 			<?php
-			$sortTabs = $language ? Array('By latest', 'Top rated', 'Trending'):Array('Les plus r&eacute;cents', 'Les mieux not&eacute;s', 'Tendances');
+			$sortTabs = $language ? Array('Latest', 'Top rated', 'Trending'):Array('Les plus récents', 'Les mieux notés', 'Tendances');
 			foreach ($sortTabs as $i => $sortTab) {
 				if ($i == $tri)
 					echo '<span>'.$sortTab.'</span>';
@@ -471,12 +471,12 @@ include('menu.php');
 	<p class="subbuttons">
 	<input type="button" id="defiler" class="defiler action_button" value="<?php echo $language ? 'More':'Plus'; ?>" onclick="defile()" /> &nbsp; 
 	<input type="button" id="masquer" class="defiler action_button" value="<?php echo $language ? 'Less':'Moins'; ?>" style="visibility: hidden" onclick="masque()" /> &nbsp; 
-	<input type="button" id="reduire" class="defiler action_button" value="<?php echo $language ? 'Minimize':'R&eacute;duire'; ?>" style="visibility: hidden" onclick="reduceAll()" />
+	<input type="button" id="reduire" class="defiler action_button" value="<?php echo $language ? 'Minimize':'Réduire'; ?>" style="visibility: hidden" onclick="reduceAll()" />
 	</p>
 
 	<p>
 		<a class="retour" href="javascript:scrollTo(0,0)"><?php echo $language ? 'Back to top':'Retour haut de page'; ?></a> - 
-		<a class="retour" href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a>
+		<a class="retour" href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
 	</p>
 </main>
 <?php

@@ -163,6 +163,7 @@ if (isset($trackIDs)) {
 		$cDate = $infos['publication_date'];
 		$pNote = $infos['note'];
 		$pNotes = $infos['nbnotes'];
+		$creationData = $circuitsData[0];
 		$cShared = (null !== $cName);
 		if ($cShared)
 			$cPseudo = $cAuteur;

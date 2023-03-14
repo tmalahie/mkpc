@@ -29,6 +29,8 @@ elseif (isset($_GET['page'])) {
 	case 'circuit':
 	case 'arena':
 		$clBattle = ($clPage === 'arena');
+		$clCourse = $clBattle ? 'battle' : 'vs';
+		$clTable = 'mkcircuits';
 		if (isset($_GET['mid'])) {
 			$clCourse = $clBattle ? 'mbcup' : 'mcup';
 			$clTable = 'mkmcups';
@@ -61,11 +63,8 @@ elseif (isset($_GET['page'])) {
 			$nid = intval($_GET['nid']);
 			$edittingCircuit = true;
 		}
-		if (isset($nid)) {
-			$clCourse = $clBattle ? 'battle' : 'vs';
-			$clTable = 'mkcircuits';
+		if (isset($nid))
 			$clCid = $nid;
-		}
 		break;
 	case 'map':
 	case 'battle':

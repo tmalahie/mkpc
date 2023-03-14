@@ -517,12 +517,12 @@ elseif ($canChange) {
 	if ($canShare) {
 		?>
 	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
-	if (isset($_GET['id']))
+	if (isset($_GET[$sid]))
 		echo $language ? 'Edit sharing':'Modifier partage';
 	else
 		echo $language ? "Share $typeStr":"Partager $typeStr";
 	?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
-		if (isset($_GET['id'])) {
+		if (isset($_GET[$sid])) {
 			?>
 		<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
 			<?php
