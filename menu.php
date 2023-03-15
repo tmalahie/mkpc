@@ -116,6 +116,7 @@
 								}
 								if (!$toDelete) {
 									$notifData['title'] = $getCircuit['nom'];
+									require_once('utils-cups.php');
 									switch ($comment['type']) {
 										case 'mkcircuits':
 											$notifData['link'] = ($getCircuit['is_circuit'] ? 'circuit':'arena') .'.php?id='. $getCircuit['id'];
@@ -133,12 +134,12 @@
 											$notifData['the_circuit'] = ($language ? 'the ':'l\'');
 											break;
 										case 'mkcups':
-											$notifData['link'] = ($getCircuit['mode'] ? 'map.php':'circuit.php') .'?cid='. $getCircuit['id'];
+											$notifData['link'] = getCupPage($getCircuit['mode']) .'.php?cid='. $getCircuit['id'];
 											$notifData['type_circuit'] = ($language ? 'cup':'coupe');
 											$notifData['the_circuit'] = ($language ? 'the ':'la ');
 											break;
 										case 'mkmcups':
-											$notifData['link'] = ($getCircuit['mode'] ? 'map.php':'circuit.php') .'?mid='. $getCircuit['id'];
+											$notifData['link'] = getCupPage($getCircuit['mode']) .'.php?mid='. $getCircuit['id'];
 											$notifData['type_circuit'] = ($language ? 'cup':'coupe');
 											$notifData['the_circuit'] = ($language ? 'the ':'la ');
 											break;

@@ -110,8 +110,8 @@ include('handleCupOptions.php');
 		<div class="editor-content editor-content-active">
 			<h1><?php echo $language ? 'Cups selection':'Sélection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
 			<?php
-			include('utils-circuits.php');
-			include('utils-cups.php');
+			require_once('utils-circuits.php');
+			require_once('utils-cups.php');
 			if ($isBattle)
 				$type = 9-$mode;
 			else
@@ -137,7 +137,7 @@ include('handleCupOptions.php');
 			}
 			$nbCups = count($listCups);
 			if (!$nbCups)
-				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">here</a> to create one.':'Vous n\'avez pas encore partagé de coupes en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">ici</a> pour en créer une.') .'</em>';
+				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'quick') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">here</a> to create one.':'Vous n\'avez pas encore partagé de coupes en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">ici</a> pour en créer une.') .'</em>';
 			elseif ($nbCups < 2)
 				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">ici</a> pour en créer une nouvelle.') .'</em>';
 			?>
@@ -218,7 +218,7 @@ include('handleCupOptions.php');
 		?>
 		<div class="editor-navigation">
 			<a href="<?php echo ($mode ? 'completecups.php':'simplecups.php').($isBattle ? '':'?battle'); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup of '. ($isBattle ? 'circuits':'arenas')):('Créer une multicoupe '. ($isBattle ? 'de circuits':'d\'arènes')); ?></a></u>
-			<a href="<?php echo ($mode ? 'simplecups.php':'completecups.php').($isBattle ? '?battle':''); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'simplified':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
+			<a href="<?php echo ($mode ? 'simplecups.php':'completecups.php').($isBattle ? '?battle':''); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'quick':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
 			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</div>

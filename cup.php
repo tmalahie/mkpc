@@ -118,8 +118,8 @@ if (isset($cids))
 				echo $language ? 'Circuits selection':'Sélection des circuits';
 		?> (<span id="nb-selected">0</span>/4) :</h1>
 		<?php
-		include('utils-circuits.php');
-		include('utils-cups.php');
+		require_once('utils-circuits.php');
+		require_once('utils-cups.php');
 		if ($isBattle)
 			$type = 7-$mode;
 		else
@@ -144,10 +144,11 @@ if (isset($cids))
 			$listCircuits = array_merge($misingTracks, $listCircuits);
 		}
 		$nbCircuits = count($listCircuits);
+		$trackBuilderPage = $isBattle ? ($mode ? 'course.php':'arene.php') : ($mode ? 'draw.php':'create.php');
 		if (!$nbCircuits)
-			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared any '. ($isBattle ? "arenas":"circuits") .' in '. ($mode ? 'complete':'simplified') .' mode.<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create one.':'Vous n\'avez pas encore partagé '. ($isBattle ? "d'arènes":"de circuits") .' en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en créer un.') .'</em>';
+			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared any '. ($isBattle ? "arenas":"circuits") .' in '. ($mode ? 'complete':'quick') .' mode.<br />Click <a href="'. $trackBuilderPage .'">here</a> to create one.':'Vous n\'avez pas encore partagé '. ($isBattle ? "d'arènes":"de circuits") .' en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. $trackBuilderPage .'">ici</a> pour en créer un.') .'</em>';
 		elseif ($nbCircuits < 4)
-			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t created enough '. ($isBattle ? "arenas":"circuits") .' to make a cup<br />Click <a href="'. ($mode ? 'draw.php':'create.php') .'">here</a> to create other ones.':'Vous n\'avez pas encore créé assez '. ($isBattle ? "d'arènes":"de circuits") .' pour faire une coupe.<br />Cliquez <a href="'. ($mode ? 'draw.php':'create.php') .'">ici</a> pour en créer de nouveaux.') .'</em>';
+			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t created enough '. ($isBattle ? "arenas":"circuits") .' to make a cup<br />Click <a href="'. $trackBuilderPage .'">here</a> to create other ones.':'Vous n\'avez pas encore créé assez '. ($isBattle ? "d'arènes":"de circuits") .' pour faire une coupe.<br />Cliquez <a href="'. $trackBuilderPage .'">ici</a> pour en créer de nouveaux.') .'</em>';
 		?>
 		<form method="get" action="<?php echo $isBattle ? ($mode ? 'battle.php':'arena.php') : ($mode ? 'map.php':'circuit.php'); ?>">
 			<div id="table-container">
@@ -186,7 +187,7 @@ if (isset($cids))
 		?>
 		<div class="editor-navigation">
 			<a href="<?php echo ($mode ? 'completecup.php':'simplecup.php').($isBattle ? '':'?battle'); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup of '. ($isBattle ? 'circuits':'arenas')):('Créer une coupe '. ($isBattle ? 'de circuits':'d\'arènes')); ?></u></a>
-			<a href="<?php echo ($mode ? 'simplecup.php':'completecup.php').($isBattle ? '?battle':''); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup in '. ($mode ? 'simplified':'complete') .' mode'):('Créer une coupe en mode '. ($mode ? 'simplifié':'complet')); ?></u></a>
+			<a href="<?php echo ($mode ? 'simplecup.php':'completecup.php').($isBattle ? '?battle':''); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup in '. ($mode ? 'quick':'complete') .' mode'):('Créer une coupe en mode '. ($mode ? 'simplifié':'complet')); ?></u></a>
 			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</div>

@@ -250,8 +250,9 @@ function listMaps() {
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 <?php
+$creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'arenes');
 require_once('collabUtils.php');
-$collab = getCollabLinkFromQuery('arenes', $id);
+$collab = getCollabLinkFromQuery($creationType, $nid);
 if ($arene) {
 	$creator = (($arene['identifiant'] == $identifiants[0]) && ($arene['identifiant2'] == $identifiants[1]) && ($arene['identifiant3'] == $identifiants[2]) && ($arene['identifiant4'] == $identifiants[3]));
 	$canChange = $creator || isset($collab['rights']['view']);
@@ -380,7 +381,7 @@ if ($canChange) {
 }
 else {
 	require_once('utils-ratings.php');
-	$cNote = getMyRating('arenes', $id);
+	$cNote = getMyRating($creationType, $nid);
 	?>
 	var cNote = <?php echo $cNote ?>;
 	var ratingParams = "id=<?php
@@ -436,7 +437,7 @@ elseif ($canChange) {
 	if ($creator && isset($nid) && !isset($_GET['nid'])) {
 		?>
 		<br class="br-small" />
-		<input type="button" id="linkRace" onclick="showTrackCollabPopup('arenes', <?php echo $id; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+		<input type="button" id="linkRace" onclick="showTrackCollabPopup('<?php echo $creationType; ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
 		<?php
 	}
 	else {

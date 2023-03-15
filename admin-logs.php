@@ -7,6 +7,7 @@ if (!$id) {
 include('language.php');
 include('initdb.php');
 include('utils-date.php');
+require_once('utils-cups.php');
 $logTemplates = array(
     'award' => function($var) {
         global $language;
@@ -485,11 +486,11 @@ function get_circuit_data($type, $id) {
                 $res['label'] = $language ? "the arena" : "l'arène";
                 break;
             case 'mkcups':
-                $res['link'] = ($getCircuit['mode'] ? 'map.php':'circuit.php') .'?cid='. $getCircuit['id'];
+                $res['link'] = getCupPage($getCircuit['mode']) .'.php?cid='. $getCircuit['id'];
                 $res['label'] = $language ? "the cup" : "la coupe";
                 break;
             case 'mkmcups':
-                $res['link'] = ($getCircuit['mode'] ? 'map.php':'circuit.php') .'?mid='. $getCircuit['id'];
+                $res['link'] = getCupPage($getCircuit['mode']) .'.php?mid='. $getCircuit['id'];
                 $res['label'] = $language ? "the multicup" : "la multicoupe";
                 break;
         }

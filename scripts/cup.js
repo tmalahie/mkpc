@@ -849,15 +849,16 @@ function importCollabTrack(e) {
 	e.preventDefault();
 	var $form = e.target;
 	var url = $form.elements["collablink"].value;
-	var creationId, creationType, creationKey;
+	var creationId, creationType, creationKey, creationMode;
 	try {
 		var urlParams = new URLSearchParams(new URL(url).search);
 		if (isMCups) {
 			creationType = "mkcups";
 			creationId = urlParams.get('cid');
+			creationMode = isBattle * 2 + complete;
 		}
 		else if (complete) {
-			creationType = "circuits";
+			creationType = isBattle ? "arenes" : "circuits";
 			creationId = urlParams.get('i');
 		}
 		else {
@@ -874,7 +875,7 @@ function importCollabTrack(e) {
 	}
 	var $collabPopup = document.getElementById("collab-popup");
 	$collabPopup.dataset.state = "loading";
-	o_xhr("importCollabTrack.php", "type="+creationType+"&id="+creationId+"&collab="+creationKey+(isMCups ? ("&mode="+complete):""), function(res) {
+	o_xhr("importCollabTrack.php", "type="+creationType+"&id="+creationId+"&collab="+creationKey+((creationMode!=null) ? ("&mode="+creationMode):""), function(res) {
 		if (!res) {
 			alert(language ? "Invalid link" : "Lien invalide");
 			$collabPopup.dataset.state = "open";

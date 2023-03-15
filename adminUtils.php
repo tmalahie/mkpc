@@ -7,9 +7,21 @@ function getCreationByUrl($url) {
     if (!isset($urlComponents['path'])) return null;
     switch ($urlComponents['path']) {
     case '/arena.php':
-        $circuitType = 'mkcircuits';
-        $circuitId = isset($queryComponents['id']) ? intval($queryComponents['id']) : 0;
-        $circuitFilter = 7;
+        if (isset($queryComponents['mid'])) {
+            $circuitType = 'mkmcups';
+            $circuitId = intval($queryComponents['mid']);
+            $circuitFilter = 11;
+        }
+        elseif (isset($queryComponents['cid'])) {
+            $circuitType = 'mkcups';
+            $circuitId = intval($queryComponents['cid']);
+            $circuitFilter = 9;
+        }
+        else {
+            $circuitType = 'mkcircuits';
+            $circuitId = isset($queryComponents['id']) ? intval($queryComponents['id']) : 0;
+            $circuitFilter = 7;
+        }
         break;
     case '/circuit.php':
         if (isset($queryComponents['mid'])) {
@@ -46,9 +58,21 @@ function getCreationByUrl($url) {
         }
         break;
     case '/battle.php':
-        $circuitType = 'arenes';
-        $circuitId = isset($queryComponents['i']) ? intval($queryComponents['i']) : 0;
-        $circuitFilter = 6;
+        if (isset($queryComponents['mid'])) {
+            $circuitType = 'mkmcups';
+            $circuitId = intval($queryComponents['mid']);
+            $circuitFilter = 10;
+        }
+        elseif (isset($queryComponents['cid'])) {
+            $circuitType = 'mkcups';
+            $circuitId = intval($queryComponents['cid']);
+            $circuitFilter = 8;
+        }
+        else {
+            $circuitType = 'arenes';
+            $circuitId = isset($queryComponents['i']) ? intval($queryComponents['i']) : 0;
+            $circuitFilter = 6;
+        }
         break;
     }
     if (!isset($circuitType)) return null;

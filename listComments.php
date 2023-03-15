@@ -50,14 +50,15 @@ include('menu.php');
 			?>
 			<div class="circuit-comments">
 			<?php
+			require_once('utils-cups.php');
 			foreach ($comments as $comment) {
 				$getCircuit = $comment['circuit_data'];
 				switch ($comment['type']) {
 				case 'mkmcups' :
-					$url = ($getCircuit['mode'] ? 'map.php':'circuit.php') . '?mid='. $getCircuit['id'];
+					$url = getCupPage($getCircuit['mode']) . '.php?mid='. $getCircuit['id'];
 					break;
 				case 'mkcups' :
-					$url = ($getCircuit['mode'] ? 'map.php':'circuit.php') . '?cid='. $getCircuit['id'];
+					$url = getCupPage($getCircuit['mode']) . '.php?cid='. $getCircuit['id'];
 					break;
 				case 'mkcircuits' :
 					$url = ($getCircuit['is_circuit'] ? 'circuit.php':'arena.php') . '?id='. $getCircuit['id'];

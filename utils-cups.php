@@ -82,3 +82,15 @@ function printCollabImportPopup($type, $mode) {
     </div>
     <?php
 }
+function getCupPage(&$mode) {
+	switch ($mode) {
+	case 1:
+		return 'map';
+	case 2:
+		return 'arena';
+	case 3:
+		return 'battle';
+	default:
+		return 'circuit';
+	}
+}

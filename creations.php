@@ -2,7 +2,7 @@
 include('language.php');
 include('session.php');
 include('tokens.php');
-include('utils-circuits.php');
+require_once('utils-circuits.php');
 include('creations-params.php');
 assign_token();
 ?>

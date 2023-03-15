@@ -185,6 +185,7 @@ function getChallengeRulesByType($challenge) {
 	}
 	return $res;
 }
+require_once('utils-cups.php');
 function backCircuitUrl() {
 	global $clRace, $clCircuit;
 	if (isset($_GET['page'])) {
@@ -210,18 +211,6 @@ function backCircuitUrl() {
 		}
 	}
 	return 'mariokart.php';
-}
-function getCupPage($mode) {
-	switch ($mode) {
-	case 1:
-		return 'map';
-	case 2:
-		return 'arena';
-	case 3:
-		return 'battle';
-	default:
-		return 'circuit';
-	}
 }
 function backCircuitText() {
 	global $language, $clCourse;

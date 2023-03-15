@@ -672,6 +672,7 @@ function getChallengeDetails($challenge, &$params=array()) {
 	}
 	return $res;
 }
+require_once('utils-cups.php');
 function getCircuitPayload(&$clRace) {
 	$res = array();
 	if (!$clRace['type'])
@@ -704,19 +705,22 @@ function getCircuitPayload(&$clRace) {
 			$linksCached[] = 'coursepreview' . $clCircuit['ID'] .'.png';
 			break;
 		case 'mkcups':
-			$linkUrl = ($clCircuit['mode'] ? 'map':'circuit') .'.php?cid='. $clCircuit['id'];
+			$linkUrl = getCupPage($clCircuit['mode']) .'.php?cid='. $clCircuit['id'];
 			if ($clCircuit['mode'])
 				$baseCache = 'racepreview';
 			else
 				$baseCache = 'mappreview';
 			for ($i=0;$i<4;$i++) {
 				$lId = $clCircuit['circuit'.$i];
-				$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type='. $clCircuit['mode'];
+				$iconType = $clCircuit['mode'];
+				if ($iconType >= 2)
+					$iconType = 0;
+				$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type='. $iconType;
 				$linksCached[] = $baseCache . $lId .'.png';
 			}
 			break;
 		case 'mkmcups':
-			$linkUrl = ($clCircuit['mode'] ? 'map':'circuit') .'.php?mid='. $clCircuit['id'];
+			$linkUrl = getCupPage($clCircuit['mode']) .'.php?mid='. $clCircuit['id'];
 			$linkBg .= 'trackicon.php?id='. $clCircuit['id'] .'&type=4';
 			$linksCached[] = 'mcuppreview'. $clCircuit['id'] .'.png';
 		}
