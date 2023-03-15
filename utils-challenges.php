@@ -463,7 +463,11 @@ $clRulesByType = array(
 		),
 		'different_circuits' => array(
 			'description' => $language ? 'in different circuits':'sur des circuits différents',
-			'course' => array('cup', 'mcup', 'bcup', 'mbcup')
+			'course' => array('cup', 'mcup')
+		),
+		'different_arenas' => array(
+			'description' => $language ? 'in different arenas':'sur des arènes différentes',
+			'course' => array('bcup', 'mbcup')
 		),
 		'difficulty' => array(
 			'description_mockup' => $language ? 'difficulty...':'difficulté...',

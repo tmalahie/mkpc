@@ -11824,6 +11824,8 @@ var challengeRules = {
 		}
 	}
 };
+challengeRules.different_arenas = challengeRules.different_circuits;
+
 function addCreationChallenges(type,cid) {
 	var creationChallenges = challenges[type][cid];
 	if (creationChallenges) {
@@ -22998,7 +23000,7 @@ function selectChallengesScreen() {
 							trackType = toLanguage("Cup", "Coupe");
 							break;
 						case "track":
-							trackType = toLanguage("Track", "Circuit");
+							trackType = isBattle ? toLanguage("Arena", "Arène") : toLanguage("Track", "Circuit");
 							break;
 					}
 					oH1.innerHTML = trackType + ' <span style="color:#FDB">'+ creationChallenges.name +'</span>';
