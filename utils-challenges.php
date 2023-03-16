@@ -575,8 +575,10 @@ unset($rulesList);
 unset($rules);
 function listChallenges($clRace, &$params=array()) {
 	global $identifiants;
-	if (isset($params['status']))
+	if (isset($params['status'])) {
 		$statusCheck = 'status IN ("'. implode('","',$params['status']) .'")';
+		$getClist = mysql_fetch_array(mysql_query('SELECT id,type,circuit FROM `mkclrace` WHERE id="'. $clRace .'"'));
+	}
 	else {
 		$myCircuit = false;
 		if (isset($identifiants)) {
@@ -624,7 +626,17 @@ function listChallenges($clRace, &$params=array()) {
 		}
 		if (!empty($allSubTracks['circuits'])) {
 			$trackIdsString = implode(',',$allSubTracks['circuits']);
-			$getClTracks = mysql_query('SELECT DISTINCT id FROM mkclrace WHERE type="'. ($allSubTracks['mode'] ? 'circuits':'mkcircuits') .'" AND circuit IN ('.$trackIdsString.')');
+			switch ($allSubTracks['mode']) {
+			case 1:
+				$trackTable = 'circuits';
+				break;
+			case 3:
+				$trackTable = 'arenes';
+				break;
+			default:
+				$trackTable = 'mkcircuits';
+			}
+			$getClTracks = mysql_query('SELECT DISTINCT id FROM mkclrace WHERE type="'. $trackTable .'" AND circuit IN ('.$trackIdsString.')');
 			while ($subCl = mysql_fetch_array($getClTracks))
 				$subCls[] = $subCl['id'];
 		}
