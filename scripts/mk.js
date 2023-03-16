@@ -19779,7 +19779,7 @@ function selectTypeScreen() {
 			}
 			else {
 				oCup.style.left = (5*iScreenScale)+"px";
-				oCup.style.top = Math.round(oButtonsTop*iScreenScale)+"px";
+				oCup.style.top = Math.round((oButtonsTop-1)*iScreenScale)+"px";
 			}
 			oCup.className = "pixelated";
 			oScr.appendChild(oCup);
@@ -20101,7 +20101,7 @@ function selectOnlineScreen(options) {
 }
 
 function onlineModeLink() {
-	return "online.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid);
+	return "online.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid)+(isBattle?"&battle":"");
 }
 function openOnlineMode(isBattle, options) {
 	if (options) {
