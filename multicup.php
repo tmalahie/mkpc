@@ -214,7 +214,7 @@ include('handleCupOptions.php');
 		</div>
 		</form>
 		<?php
-		printCollabImportPopup('cup', $mode);
+		printCollabImportPopup('cup', $mode, $isBattle);
 		?>
 		<div class="editor-navigation">
 			<a href="<?php echo ($mode ? 'completecups.php':'simplecups.php').($isBattle ? '':'?battle'); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup of '. ($isBattle ? 'circuits':'arenas')):('Créer une multicoupe '. ($isBattle ? 'de circuits':'d\'arènes')); ?></a></u>
