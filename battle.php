@@ -11,6 +11,7 @@ $cPseudo = null;
 $cAuteur = null;
 $cDate = null;
 $cShared = false;
+$cEditting = false;
 $pNote = 0;
 $pNotes = 0;
 if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) { // Cup being created
@@ -28,6 +29,7 @@ if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isse
 			$pNotes = $getMain['nbnotes'];
 			$creationData = $getMain;
 			$cShared = true;
+			$cEditting = true;
 			addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
 		}
 	}
@@ -46,7 +48,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	if (isset($_GET['nid'])) { // Multicups being edited
 		include('escape_all.php');
 		$nid = $_GET['nid'];
-		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $nid .'" AND mode=3 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
+		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $nid .'" AND mode=3'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
 			$cAuteur = $cPseudo;
@@ -54,6 +56,8 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 			$pNotes = $getMain['nbnotes'];
 			$cDate = $getMain['publication_date'];
 			$creationData = $getMain;
+			$cShared = true;
+			$cEditting = true;
 			addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
 		}
 	}
@@ -163,6 +167,7 @@ if (isset($trackIDs)) {
 		$cDate = $infos['publication_date'];
 		$pNote = $infos['note'];
 		$pNotes = $infos['nbnotes'];
+		$creationData = $circuitsData[0];
 		$cShared = (null !== $cName);
 		if ($cShared)
 			$cPseudo = $cAuteur;
@@ -246,22 +251,30 @@ function listMaps() {
 	include('mk/battle.php');
 	?>};
 }
+<?php include('handleCupOptions.php'); ?>
 </script>
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 <?php
-$creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'arenes');
 require_once('collabUtils.php');
+$creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'arenes');
 $collab = getCollabLinkFromQuery($creationType, $nid);
-if ($arene) {
-	$creator = (($arene['identifiant'] == $identifiants[0]) && ($arene['identifiant2'] == $identifiants[1]) && ($arene['identifiant3'] == $identifiants[2]) && ($arene['identifiant4'] == $identifiants[3]));
-	$canChange = $creator || isset($collab['rights']['view']);
-	$canShare = $creator || isset($collab['rights']['edit']);
+if (isset($nid)) {
+	if (isset($creationData)) {
+		$creator = ($creationData['identifiant'] == $identifiants[0]) && ($creationData['identifiant2'] == $identifiants[1]) && ($creationData['identifiant3'] == $identifiants[2]) && ($creationData['identifiant4'] == $identifiants[3]);
+		$canChange = $creator || isset($collab['rights']['view']);
+		$canShare = $creator || isset($collab['rights']['edit']);
+	}
+	else {
+		$creator = false;
+		$canChange = false;
+		$canShare = false;
+	}
 }
 else {
-	$creator = false;
-	$canChange = false;
-	$canShare = false;
+	$creator = true;
+	$canChange = true;
+	$canShare = true;
 }
 if ($canChange) {
 	?>
@@ -283,7 +296,7 @@ if ($canChange) {
 			if ($clId) echo '&cl='.$clId;
 			if ($collab) echo '&collab='.$collab['key'];
 			if ($isCup)
-				echo '"+getCollabQuery("'. ($isMCup ? 'mkcups':'circuits') .'", ['. implode(',',$cupIDs) .'])+"';
+				echo '"+getCollabQuery("'. ($isMCup ? 'mkcups':'arenes') .'", ['. implode(',',$cupIDs) .'])+"';
 			?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
 			if (reponse && !isNaN(reponse)) {
 				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
@@ -301,8 +314,11 @@ if ($canChange) {
 				cCont.value = language ? "Continue":"Continuer";
 				cCont.onclick = function() {
 					<?php
-					if ($isCup)
-						echo 'document.location.href = "?'.$sid.'="+ reponse;';
+					if ($isCup) {
+						echo 'document.location.href = "?'.$sid.'="+ reponse';
+						if ($collab) echo '+"&collab='.$collab['key'].'"';
+						echo ';';
+					}
 					else
 						echo 'location.reload();';
 					?>
@@ -452,10 +468,10 @@ elseif ($canChange) {
 		echo $language ? 'Edit sharing':'Modifier partage';
 	else
 		echo $language ? 'Share '.$typeStr:'Partager '.$typeStr;
-	?>"<?php if (isset($message)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
-		if ($cShared) {
+	?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
+		if ($cShared && !$cEditting) {
 			?>
-	<br /><br /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
+	<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
 			<?php
 		}
 	}
@@ -495,6 +511,20 @@ else
 </script></div>
 </form>
 <?php
+if (!isset($message) && isset($nid)) {
+	if (!$isCup) {
+		if ($cupOfCircuit = mysql_fetch_array(mysql_query('SELECT id FROM `mkcups` WHERE (circuit0="'. $nid .'" OR circuit1="'. $nid .'" OR circuit2="'. $nid .'" OR circuit3="'. $nid .'") AND mode=3 LIMIT 1'))) {
+			$message = ($language ? 'This arena is part of a cup!<br /><a href="?cid='. $cupOfCircuit['id'] .'">Click here</a> to access it.':'Cette arène fait partie d\'une coupe !<br /><a href="?cid='. $cupOfCircuit['id'] .'">Cliquez ici</a> pour y acc&eacute;der.');
+			$infoMsg = true;
+		}
+	}
+	elseif (!$isMCup) {
+		if ($cupOfCircuit = mysql_fetch_array(mysql_query('SELECT mcup FROM `mkmcups_tracks` WHERE cup="'. $nid .'"'))) {
+			$message = ($language ? 'This cup is part of a multicup!<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Click here</a> to access it.':'Cette coupe fait partie d\'une multicoupe !<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Cliquez ici</a> pour y acc&eacute;der.');
+			$infoMsg = true;
+		}
+	}
+}
 if (isset($message)) {
 	?>
 	<div id="alerte"<?php if (isset($infoMsg)) echo ' class="alerte-info"'; ?>><p id="closeAlert"><a href="javascript:document.getElementById('alerte').style.display='none';void(0)">&times;</a></p><p><?php echo $message; ?></p></div>

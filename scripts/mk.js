@@ -19965,10 +19965,8 @@ function selectNbJoueurs(force) {
 		oPInput.style.position = "absolute";
 		oPInput.style.left = ((sShared?26:27)*iScreenScale)+"px";
 		oPInput.style.top = (((sShared?7:10)+i*(sShared?7:8))*iScreenScale)+"px";
-		if (sShared) {
-			oPInput.style.paddingLeft = (iScreenScale*2) +"px";
-			oPInput.style.paddingRight = (iScreenScale*2) +"px";
-		}
+		if (sShared)
+			oPInput.style.width = (22*iScreenScale) +"px";
 
 		oPInput.onclick = function() {
 			oScr.innerHTML = "";
@@ -19986,11 +19984,12 @@ function selectNbJoueurs(force) {
 	if (sShared) {
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = toLanguage("Online mode", "Mode en ligne");
+		oPInput.value = toLanguage(" Online mode ", "Mode en ligne");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (26*iScreenScale)+"px";
 		oPInput.style.top = (30*iScreenScale)+"px";
+		oPInput.style.width = (22*iScreenScale)+"px";
 		oPInput.style.paddingTop = Math.round(iScreenScale*0.5) +"px";
 		oPInput.style.paddingBottom = Math.round(iScreenScale*0.5) +"px";
 		oPInput.onclick = function() {

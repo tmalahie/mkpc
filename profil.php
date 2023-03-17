@@ -814,7 +814,7 @@ include('menu.php');
 				<div class="circuit-comments">
 				<?php
 				require_once('utils-date.php');
-				require_once('utils-date.php');
+				require_once('utils-cups.php');
 				foreach ($comments as $comment) {
 					$getCircuit = $comment['circuit_data'];
 					switch ($comment['type']) {

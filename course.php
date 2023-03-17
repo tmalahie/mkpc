@@ -919,6 +919,8 @@ else {
 		}
 		?>
 		<div class="editor-navigation">
+			<a href="draw.php">&ndash; <u><?php echo $language ? 'Create a VS track':'Créer un circuit VS'; ?></u></a>
+			<a href="arene.php">&ndash; <u><?php echo $language ? 'Create arena in quick mode':'Créer arène en mode simplifié'; ?></u></a>
 			<a href="index.php">&lt; <u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</body>

@@ -11,6 +11,7 @@ $cPseudo = null;
 $cAuteur = null;
 $cDate = null;
 $cShared = false;
+$cEditting = false;
 $pNote = 0;
 $pNotes = 0;
 if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) { // Cup being created
@@ -27,6 +28,7 @@ if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isse
 			$pNotes = $getMain['nbnotes'];
 			$creationData = $getMain;
 			$cShared = true;
+			$cEditting = true;
 			addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
 		}
 	}
@@ -52,6 +54,8 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 			$pNotes = $getMain['nbnotes'];
 			$cDate = $getMain['publication_date'];
 			$creationData = $getMain;
+			$cShared = true;
+			$cEditting = true;
 			addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
 		}
 	}
@@ -486,7 +490,7 @@ elseif ($canChange) {
 	else
 		echo $language ? 'Share '.$typeStr:'Partager '.$typeStr;
 	?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
-		if ($cShared) {
+		if ($cShared && !$cEditting) {
 			?>
 	<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
 			<?php

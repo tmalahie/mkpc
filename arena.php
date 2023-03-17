@@ -66,7 +66,7 @@ elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && 
 	$isCup = true;
 	if (isset($_GET['nid'])) { // Cup being edited
 		$nid = intval($_GET['nid']);
-		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcups` WHERE id="'. $nid .'" AND mode=2 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
+		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcups` WHERE id="'. $nid .'" AND mode=2'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
 			$cAuteur = $cPseudo;
@@ -306,6 +306,7 @@ function listMaps() {
 	include('mk/arena.php');
 	?>};
 }
+<?php include('handleCupOptions.php'); ?>
 </script>
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
