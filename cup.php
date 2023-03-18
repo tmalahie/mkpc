@@ -72,7 +72,7 @@ if (isset($cids))
 	echo 'var cids = '. json_encode($cids) .';';
 ?>
 </script>
-<script type="text/javascript" src="scripts/cup.js?reload=1"></script>
+<script type="text/javascript" src="scripts/cup.js"></script>
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body<?php if ($readOnly) echo ' class="readonly"'; ?>>
