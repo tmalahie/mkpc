@@ -717,11 +717,15 @@ function addRace() {
 			switch (type) {
 			case 0 :
 			case 1 :
+			case 10 :
+			case 11 :
 				supprUrl = "supprMCup.php";
 				supprData = "id="+ id;
 				break;
 			case 2 :
 			case 3 :
+			case 8 :
+			case 9 :
 				supprUrl = "supprCup.php";
 				supprData = "id="+ id;
 				break;
@@ -729,15 +733,13 @@ function addRace() {
 				supprUrl = "suppr.php?i="+ id +"&token=<?php echo $_SESSION['csrf']; ?>";
 				break;
 			case 5 :
+			case 7 :
 				supprUrl = "supprCreation.php";
 				supprData = "id="+ id;
 				break;
 			case 6 :
 				supprUrl = "clear.php?i="+ id +"&token=<?php echo $_SESSION['csrf']; ?>";
 				break;
-			case 7 :
-				supprUrl = "supprArene.php";
-				supprData = "id="+ id;
 			}
 			o_xhr(supprUrl, supprData, function(res) {
 				if (res != "") {
