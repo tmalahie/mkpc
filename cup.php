@@ -81,8 +81,8 @@ if (isset($cids))
 		if ($isBattle) {
 			if ($language) {
 				?>
-			Create a &quot;Grand Prix&quot; cup from the circuits you shared !<br />
-			To make the cup, it's quite easy: select 4 circuits in any order and validate.<br />
+			Create a &quot;Battle cup&quot; to gather the arenas you shared!<br />
+			To make the cup, it's quite easy: select 4 arenas in any order and validate.<br />
 			Your cup will be created!
 				<?php
 			}
@@ -104,9 +104,9 @@ if (isset($cids))
 			}
 			else {
 				?>
-			Create a &quot;Battle cup&quot; to gather the arenas you shared!<br />
-			To make the cup, it's quite easy: select 4 circuits in any order and validate.<br />
-			Your cup will be created!
+			Créez une coupe &quot;Grand Prix&quot; à partir des circuits que vous avez partagés !<br />
+			Pour créer la coupe, c'est très simple : sélectionnez 4 circuits dans l'ordre de votre choix et validez.<br />
+			Votre coupe est crée !
 				<?php
 			}
 		}
