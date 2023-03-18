@@ -225,20 +225,16 @@
 							break;
 						case 3:
 							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,mode,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcups` WHERE id="'. $circuitId .'"'))) {
+								require_once('utils-cups.php');
 								$designation = $language ? 'the cup':'la coupe';
-								if ($notifCircuit['mode'])
-									$link = 'map.php?cid='. $notifCircuit['id'];
-								else
-									$link = 'circuit.php?cid='. $notifCircuit['id'];
+								$link = getCupPage($notifCircuit['mode']) .'.php?cid='. $notifCircuit['id'];
 							}
 							break;
 						case 4:
 							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,mode,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $circuitId .'"'))) {
+								require_once('utils-cups.php');
 								$designation = $language ? 'the multicup':'la multicoupe';
-								if ($notifCircuit['mode'])
-									$link = 'map.php?mid='. $notifCircuit['id'];
-								else
-									$link = 'circuit.php?mid='. $notifCircuit['id'];
+								$link = getCupPage($notifCircuit['mode']) .'.php?mid='. $notifCircuit['id'];
 							}
 							break;
 						}
