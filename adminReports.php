@@ -83,7 +83,7 @@ if ($nbres) {
         $searchResults[] = $result;
     if (empty($searchResults)) {
         echo '<h4>';
-        echo $language ? 'No result in this page. It generally occurs when messages are deleted or made private. Please check the next or previous page' : 'Aucun résultat sur cette page. Cela se produit généralement lorsque les messages sont supprimés ou rendus privés. Essayez la page suivante ou précédente';
+        echo $language ? "No new reported message for now" : "Aucun nouveau signalement pour l'instant";
         echo '</h4>';
     }
     else {
