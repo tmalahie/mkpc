@@ -22,6 +22,9 @@ body {
 	background-image: url('../images/editor/fond_circuit_dark.jpg');
 	background-color: #31549A;
 }
+.complete.is-battle {
+	background-image: url('../images/editor/fond_arene_dark.jpg');
+}
 .editor-section {
 	max-width: 600px;
 	padding: 10px;

@@ -85,7 +85,7 @@ include('handleCupOptions.php');
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body<?php if ($readOnly) echo ' class="readonly"'; ?>>
-	<div class="container <?php echo $mode ? 'complete':'simplified'; ?>">
+	<div class="container <?php echo $mode ? 'complete':'simplified'; ?> <?php echo $isBattle ? ' is-battle':''; ?>">
 		<div id="global-infos" class="editor-section"><?php
 			if ($language) {
 				?>

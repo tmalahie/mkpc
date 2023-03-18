@@ -58,7 +58,7 @@ function escapeUtf8($str) {
 include('o_online.php');
 ?>
 <title><?php echo $language ? 'Create cup':'Créer coupe'; ?></title>
-<link rel="stylesheet" href="styles/cup.css" />
+<link rel="stylesheet" href="styles/cup.css?reload=1" />
 <script type="text/javascript" src="scripts/creations.js"></script>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
@@ -76,7 +76,7 @@ if (isset($cids))
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body<?php if ($readOnly) echo ' class="readonly"'; ?>>
-	<div class="container <?php echo $mode ? 'complete':'simplified'; ?>">
+	<div class="container <?php echo $mode ? 'complete':'simplified'; ?> <?php echo $isBattle ? 'is-battle':''; ?>">
 		<div id="global-infos" class="editor-section"><?php
 		if ($isBattle) {
 			if ($language) {
