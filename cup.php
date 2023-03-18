@@ -148,7 +148,7 @@ if (isset($cids))
 		if (!$nbCircuits)
 			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared any '. ($isBattle ? "arenas":"circuits") .' in '. ($mode ? 'complete':'quick') .' mode.<br />Click <a href="'. $trackBuilderPage .'">here</a> to create one.':'Vous n\'avez pas encore partagé '. ($isBattle ? "d'arènes":"de circuits") .' en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. $trackBuilderPage .'">ici</a> pour en créer un.') .'</em>';
 		elseif ($nbCircuits < 4)
-			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t created enough '. ($isBattle ? "arenas":"circuits") .' to make a cup<br />Click <a href="'. $trackBuilderPage .'">here</a> to create other ones.':'Vous n\'avez pas encore créé assez '. ($isBattle ? "d'arènes":"de circuits") .' pour faire une coupe.<br />Cliquez <a href="'. $trackBuilderPage .'">ici</a> pour en créer de nouveaux.') .'</em>';
+			echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared enough '. ($isBattle ? "arenas":"circuits") .' to make a cup<br />Click <a href="'. $trackBuilderPage .'">here</a> to create other ones.':'Vous n\'avez pas encore partagé assez '. ($isBattle ? "d'arènes":"de circuits") .' pour faire une coupe.<br />Cliquez <a href="'. $trackBuilderPage .'">ici</a> pour en créer de nouveaux.') .'</em>';
 		?>
 		<form method="get" action="<?php echo $isBattle ? ($mode ? 'battle.php':'arena.php') : ($mode ? 'map.php':'circuit.php'); ?>">
 			<div id="table-container">
