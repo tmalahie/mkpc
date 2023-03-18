@@ -686,11 +686,11 @@ $slidesPath = 'images/slides';
 						array(
 							'icon' => 'ea.png',
 							'name' => $language ? 'Eurasia' : 'Eurasie',
-							'score' => 6,
-							'wins' => 2,
+							'score' => 9,
+							'wins' => 3,
 							'losses' => 1,
 							'ties' => 0,
-							'diff' => 56
+							'diff' => 148
 						),
 						array(
 							'icon' => 'fr.png',
@@ -706,9 +706,9 @@ $slidesPath = 'images/slides';
 							'name' => $language ? 'Americas' : 'Amériques',
 							'score' => 0,
 							'wins' => 0,
-							'losses' => 2,
+							'losses' => 3,
 							'ties' => 0,
-							'diff' => -98
+							'diff' => -190
 						),
 					);
 					usort($plRanking, function($team1, $team2) {
