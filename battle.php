@@ -438,7 +438,7 @@ if ($canChange && !$isCup) {
 	elseif (count($circuitMainData->startposition) < 8)
 		$message = $language ? 'Warning: You did not indicate all the start positions.<br />Quite annoying, we don\'t know where to begin.':'Attention : Vous n\'avez pas indiqué toutes les positions de départ !<br />C\'est ennuyeux, on ne sait pas par où commencer...';
 	elseif (empty($circuitPayload->arme))
-		$message = $language ? 'Warning: your course doesn\'t contain objects !<br />Hard to fight with those conditions...' :'Attention : votre arène ne contient aucun objet !<br />Difficile de se battre dans ces conditions...';
+		$message = $language ? 'Warning: your course doesn\'t contain any items!<br />Hard to fight with those conditions...' :'Attention : votre arène ne contient aucun objet !<br />Difficile de se battre dans ces conditions...';
 	elseif (empty($circuitPayload->aipoints))
 		$message = $language ? 'Warning: you have not indicated the trajectory of CPUs. They<br />may not know where to go...' :'Attention : vous n\'avez pas indiqué<br />la trajectoire des ordis. Ils risque de ne pas<br />savoir où aller...';
 	elseif (!$circuitPayload->aipoints[count($circuitPayload->aipoints)-1][0])

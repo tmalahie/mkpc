@@ -500,7 +500,7 @@ else {
 <td rowspan="4" id="shareParams">
 <?php
 if ($canChange && !$isCup && !isset($infos['o0'])) {
-	$message = $language ? 'Warning: your course doesn\'t contain objects !<br />Hard to fight with those conditions...'
+	$message = $language ? 'Warning: your course doesn\'t contain any items!<br />Hard to fight with those conditions...'
 	: 'Attention : votre arène ne contient aucun objet !<br />Difficile de se battre dans ces conditions...';
 }
 include('ip_banned.php');
