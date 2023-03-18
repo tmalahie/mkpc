@@ -25,7 +25,7 @@ include('menu.php');
 <main>
 	<h1><?php echo $language ? 'Members playtime':'Temps de jeu des membres'; ?></h1>
 	<?php
-    $members = array(1,3586,6013,8818,32396,40764,49980,69528);
+    $members = array(1,3586,6013,8818,32396,40764,49980,69528,73585);
 	$getPlayTimes = mysql_query('SELECT j.nom,g.player,SUM(time) AS playtime FROM mkgametime g INNER JOIN mkjoueurs j ON g.player=j.id WHERE g.player IN ('. implode(',',$members) .') GROUP BY g.player ORDER BY playtime DESC');
 	?>
 	<table>
