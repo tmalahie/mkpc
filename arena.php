@@ -434,6 +434,8 @@ if ($canChange) {
 						echo 'map='.$infos['map'];
 						for ($i=0;$i<36;$i++)
 							echo '&p'.$i.'='.$infos['p'.$i];
+						for ($i=0;$i<8;$i++)
+							echo '&r'.$i.'='.$infos['r'.$i].'&s'.$i.'='.$infos['s'.$i];
 						for ($i=0;$i<$nbLettres;$i++) {
 							$l = $lettres[$i];
 							$prefixes = getLetterPrefixes($l,$infos['map']);
