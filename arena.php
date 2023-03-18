@@ -79,7 +79,7 @@ elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && 
 	else
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;$i<4;$i++)
-		$cupIDs[$i] = $_GET['cid'. $i];
+		$cupIDs[$i] = intval($_GET['cid'. $i]);
 	$trackIDs = $cupIDs;
 	$edittingCircuit = true;
 }
@@ -101,7 +101,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	else
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;isset($_GET['mid'.$i])&&is_numeric($_GET['mid'.$i]);$i++)
-		$cupIDs[$i] = $_GET['mid'.$i];
+		$cupIDs[$i] = intval($_GET['mid'.$i]);
 	$cOptions = isset($_GET['opt']) ? json_decode(stripslashes($_GET['opt'])) : null;
 	if ($cOptions) $cOptions = json_encode($cOptions);
 	$edittingCircuit = true;
@@ -120,7 +120,6 @@ else { // Track being created
 			$pNotes = $getMain['nbnotes'];
 			$cDate = $getMain['publication_date'];
 			addCircuitChallenges('mkcircuits', $nid,$cName, $clPayloadParams);
-			$edittingCircuit = true;
 		}
 		else {
 			mysql_close();
@@ -164,9 +163,12 @@ if ($isMCup && !isset($trackIDs)) {
 			addCircuitChallenges('mkcups', $getCup['id'],$getCup['nom'], $clPayloadParams, false);
 		}
 		foreach ($cupIDs as $cupID) {
-			foreach ($cupsTracks[$cupID] as $cupTrack)
-				$trackIDs[] = $cupTrack;
-			$cupNames[] = $cupNamesById[$cupID];
+			if (isset($cupsTracks[$cupID])) {
+				foreach ($cupsTracks[$cupID] as $cupTrack)
+					$trackIDs[] = $cupTrack;
+			}
+			if (isset($cupNamesById[$cupID]))
+				$cupNames[] = $cupNamesById[$cupID];
 		}
 	}
 }
@@ -226,8 +228,12 @@ if (isset($trackIDs)) {
 		$cDate = $infos['publication_date'];
 	}
 }
-else
+elseif (!empty($infos))
 	$circuitsData = Array($infos);
+else {
+	mysql_close();
+	exit;
+}
 if ($isCup)
 	$infos = Array();
 $NBCIRCUITS = count($circuitsData);
@@ -245,8 +251,8 @@ function escapeUtf8($str) {
 ?>
 <!DOCTYPE HTML SYSTEM>
 <html>
-   <head>
-       <title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
+	<head>
+		<title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
 <?php
 include('metas.php');
 
@@ -268,9 +274,7 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 	if ($i)
 		echo ',';
 	$circuit = $circuitsData[$i];
-	if (!$circuit)
-		continue;
-	echo '"'. (!empty($circuit['name']) ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
+	echo '"'. ($circuit['name'] ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
 }
 ?>];
 var cupIDs = <?php echo json_encode($cupIDs) ?>;
@@ -311,8 +315,8 @@ function listMaps() {
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 <?php
-$creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits');
 require_once('collabUtils.php');
+$creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits');
 $collab = getCollabLinkFromQuery($creationType, $nid);
 if (isset($nid)) {
 	$creator = mysql_numrows(mysql_query('SELECT * FROM `'.$creationType.'` WHERE id="'. $nid.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
@@ -340,7 +344,7 @@ if ($canChange) {
 				echo '&opt="+ encodeURIComponent(JSON.stringify(cupOpts)) +"';
 		}
 		else {
-			echo 'map='.$map.'&battle';
+			echo 'map='.$infos['map'].'&battle';
 			for ($i=0;$i<36;$i++)
 				echo '&p'.$i.'='.$infos['p'.$i];
 			for ($i=0;$i<8;$i++)
@@ -370,7 +374,7 @@ if ($canChange) {
 					if (isset($nid))
 						echo $language ? ($isCup ? 'Cup':'Arena') .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':'arène') .' a été mis à jour.';
 					else
-						echo $language ? 'Your '. ($isCup ? 'cup':'arena') .' has just been added to the <a href="creations.php" target="_blank">list</a> !':'Votre '. ($isCup ? 'coupe':'arène') .' vient d\\\'&ecirc;tre ajout&eacute; &agrave; la <a href="creations.php" target="_blank">liste</a> !';
+						echo $language ? 'Your '. ($isCup ? 'cup':'arena') .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':'arène') .' vient d\\\'être ajoutée à la <a href="creations.php" target="_blank">liste</a> !';
 				?><br /><br />';
 				var cCont = document.createElement("input");
 				cCont.type = "button";
@@ -403,7 +407,7 @@ if ($canChange) {
 			if ($collab) echo '&collab='.$collab['key'];
 		?>", function(reponse) {
 			if (reponse == 1) {
-				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The '. ($isCup ? 'cup':'arena') .' has been successfully removed from the list.':($isCup ? 'La coupe':'L\\\'arène') .' a &eacute;t&eacute; retir&eacute;e de la liste avec succ&egrave;s.'; ?>';
+				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The '. ($isCup ? 'cup':'arena') .' has been successfully removed from the list.':($isCup ? 'La coupe':'L\\\'arène') .' a été retirée de la liste avec succès.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
 				var cCont = document.createElement("input");
 				cCont.type = "button";
@@ -531,7 +535,7 @@ elseif ($canChange) {
 	}
 }
 else
-	printRatingView($language ? 'Rate this course!':'Notez cette ar&egrave;ne !');
+	printRatingView($language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':'course')).'!'):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':'cette arène'))).' !');
 ?>
 </td></tr>
 <tr><td id="pMusic">
@@ -568,13 +572,13 @@ else
 if (!isset($message) && isset($nid)) {
 	if (!$isCup) {
 		if ($cupOfCircuit = mysql_fetch_array(mysql_query('SELECT id FROM `mkcups` WHERE (circuit0="'. $nid .'" OR circuit1="'. $nid .'" OR circuit2="'. $nid .'" OR circuit3="'. $nid .'") AND mode=2 LIMIT 1'))) {
-			$message = ($language ? 'This arena is part of a cup!<br /><a href="?cid='. $cupOfCircuit['id'] .'">Click here</a> to access it.':'Cette arène fait partie d\'une coupe !<br /><a href="?cid='. $cupOfCircuit['id'] .'">Cliquez ici</a> pour y acc&eacute;der.');
+			$message = ($language ? 'This arena is part of a cup!<br /><a href="?cid='. $cupOfCircuit['id'] .'">Click here</a> to access it.':'Cette arène fait partie d\'une coupe !<br /><a href="?cid='. $cupOfCircuit['id'] .'">Cliquez ici</a> pour y accéder.');
 			$infoMsg = true;
 		}
 	}
 	elseif (!$isMCup) {
 		if ($cupOfCircuit = mysql_fetch_array(mysql_query('SELECT mcup FROM `mkmcups_tracks` WHERE cup="'. $nid .'"'))) {
-			$message = ($language ? 'This cup is part of a multicup!<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Click here</a> to access it.':'Cette coupe fait partie d\'une multicoupe !<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Cliquez ici</a> pour y acc&eacute;der.');
+			$message = ($language ? 'This cup is part of a multicup!<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Click here</a> to access it.':'Cette coupe fait partie d\'une multicoupe !<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Cliquez ici</a> pour y accéder.');
 			$infoMsg = true;
 		}
 	}
@@ -593,15 +597,15 @@ if (isset($message)) {
 	'.($isCup ? ($isMCup ? 'The multicup':'The cup'):'The arena').' will be only removed from the list:<br />
 	data will be recoverable.' :
 	'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):'cette arène') .' ?<br />
-	'.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):'L\'arène').' sera simplement retir&eacute;e de la liste :<br />
-	les donn&eacute;es seront r&eacute;cup&eacute;rables.';
+	'.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):'L\'arène').' sera simplement retirée de la liste :<br />
+	les données seront récupérables.';
 ?></p>
 <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
 </div>
 <?php
 if (!isset($cannotChange)) {
 	?>
-	<form id="cSave" method="post" action="" onsubmit="try{saveRace();}catch(e){console.log(e)}return false">
+	<form id="cSave" method="post" action="" onsubmit="saveRace();return false">
 	<table id="cTable">
 	<tr><td style="text-align: right"><label for="cPseudo"><?php echo $language ? 'Enter your nick':'Indiquez votre pseudo'; ?> :</label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
 	<tr><td style="text-align: right"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):'Arena').' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):'de l\'arène'); ?> :</label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName) ?>" /></td></tr>
@@ -610,9 +614,9 @@ if (!isset($cannotChange)) {
 	</form>
 	<?php
 }
+include('gameInitElts.php');
 ?>
 <?php
-include('gameInitElts.php');
 if (isset($nid)) {
 	include('circuitUser.php');
 	require_once('reactions.php');
@@ -624,7 +628,7 @@ if (isset($nid)) {
 	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $circuitTable; ?>",
 	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
 	circuitDate = "<?php echo formatDate($cDate); ?>";
-	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$circuitTable); ?>
+	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$circuitTable); ?>;
 	</script>
 	<script type="text/javascript" src="scripts/comments.js"></script>
 	<script type="text/javascript" src="scripts/topic.js"></script>

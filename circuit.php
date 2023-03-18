@@ -66,7 +66,7 @@ elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && 
 	$isCup = true;
 	if (isset($_GET['nid'])) { // Cup being edited
 		$nid = intval($_GET['nid']);
-		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcups` WHERE id="'. $nid .'" AND mode=0 AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))) {
+		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcups` WHERE id="'. $nid .'" AND mode=0'))) {
 			$cName = $getMain['nom'];
 			$cPseudo = $getMain['auteur'];
 			$cAuteur = $cPseudo;
@@ -79,7 +79,7 @@ elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && 
 	else
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;$i<4;$i++)
-		$cupIDs[$i] = $_GET['cid'. $i];
+		$cupIDs[$i] = intval($_GET['cid'. $i]);
 	$trackIDs = $cupIDs;
 	$edittingCircuit = true;
 }
@@ -101,7 +101,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	else
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;isset($_GET['mid'.$i])&&is_numeric($_GET['mid'.$i]);$i++)
-		$cupIDs[$i] = $_GET['mid'.$i];
+		$cupIDs[$i] = intval($_GET['mid'.$i]);
 	$cOptions = isset($_GET['opt']) ? json_decode(stripslashes($_GET['opt'])) : null;
 	if ($cOptions) $cOptions = json_encode($cOptions);
 	$edittingCircuit = true;
@@ -242,10 +242,10 @@ function escapeUtf8($str) {
 	return htmlentities(escapeCircuitNames($str));
 }
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>">
-   <head>
-       <title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
+<!DOCTYPE HTML SYSTEM>
+<html>
+	<head>
+		<title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
 <?php
 include('metas.php');
 
@@ -366,9 +366,9 @@ if ($canChange) {
 				cP.style.textAlign = "center";
 				cP.innerHTML = '<?php
 					if (isset($nid))
-						echo $language ? ($isCup ? 'Cup':'Circuit') .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':'circuit') .' a &eacute;t&eacute; mis &agrave; jour.';
+						echo $language ? ($isCup ? 'Cup':'Circuit') .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':'circuit') .' a été mis à jour.';
 					else
-						echo $language ? 'Your '. ($isCup ? 'cup':'circuit') .' has just been added to the <a href="creations.php" target="_blank">list</a> !':'Votre '. ($isCup ? 'coupe':'circuit') .' vient d\\\'&ecirc;tre ajout&eacute; &agrave; la <a href="creations.php" target="_blank">liste</a> !';
+						echo $language ? 'Your '. ($isCup ? 'cup':'circuit') .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':'circuit') .' vient d\\\'être ajouté à la <a href="creations.php" target="_blank">liste</a> !';
 				?><br /><br />';
 				var cCont = document.createElement("input");
 				cCont.type = "button";
@@ -401,7 +401,7 @@ if ($canChange) {
 			if ($collab) echo '&collab='.$collab['key'];
 		?>", function(reponse) {
 			if (reponse == 1) {
-				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? ($isCup ? 'The cup':'The circuit').' has been successfully removed from the list.':($isCup ? 'La coupe':'Le circuit').' a &eacute;t&eacute; retir&eacute;'. ($isCup ? 'e':'') .' de la liste avec succ&egrave;s.'; ?>';
+				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? ($isCup ? 'The cup':'The circuit').' has been successfully removed from the list.':($isCup ? 'La coupe':'Le circuit').' a été retiré'. ($isCup ? 'e':'') .' de la liste avec succès.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
 				var cCont = document.createElement("input");
 				cCont.type = "button";
@@ -493,9 +493,9 @@ else {
 <?php
 if ($canChange && !$isCup) {
 	if ($noStart)
-		$message = $language ? 'Warning: your circuit doesn\'t have a start.<br />Quite annoying, we don\'t know where to begin.':'Attention : Votre circuit n\'a pas de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';
+		$message = $language ? 'Warning: your circuit doesn\'t have a start.<br />Quite annoying, we don\'t know where to begin.':'Attention : Votre circuit n\'a pas de départ !<br />C\'est ennuyeux, on ne sait pas par où commencer...';
 	elseif ($twoStarts)
-		$message = $language ? 'Warning: your circuit has more than one start.<br />It\'s hard to know which one to choose.':'Attention : votre circuit comporte plusieurs d&eacute;parts !<br />Difficile de savoir lequel choisir...';
+		$message = $language ? 'Warning: your circuit has more than one start.<br />It\'s hard to know which one to choose.':'Attention : votre circuit comporte plusieurs départs !<br />Difficile de savoir lequel choisir...';
 	elseif ($bloqued)
 		$message = $language ? 'Warning: your circuit has to make a loop.<br />Otherwise it\'s impossible to know how to make a lap...':'Attention : votre circuit doit former une boucle.<br />Impossible de faire un tour sinon...';
 }
@@ -505,38 +505,37 @@ if (isBanned())
 elseif ($canChange) {
 	$typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')):($language ? 'circuit':'le circuit');
 	?>
-<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='<?php echo ($isCup ? ($isMCup ? 'simplecups.php':'simplecup.php'):'create.php') ?>'+document.location.search" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" />
-<br />
-<?php
-if ($creator && isset($nid) && !isset($_GET['nid'])) {
-	?>
-	<br class="br-small" />
-	<input type="button" id="linkRace" onclick="showTrackCollabPopup('<?php echo $creationType ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
-	<?php
-}
-else {
-	?>
-	<br />
-	<?php
-}
-if ($canShare) {
-?>
-<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
-if (isset($_GET[$sid]))
-	echo $language ? 'Edit sharing':'Modifier partage';
-else
-	echo $language ? 'Share '.$typeStr:'Partager '.$typeStr;
-?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
+	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='<?php echo ($isCup ? ($isMCup ? 'simplecups.php':'simplecup.php'):'create.php') ?>'+document.location.search" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br /><?php
+	if ($creator && isset($nid) && !isset($_GET['nid'])) {
+		?>
+		<br class="br-small" />
+		<input type="button" id="linkRace" onclick="showTrackCollabPopup('<?php echo $creationType ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+		<?php
+	}
+	else {
+		?>
+		<br />
+		<?php
+	}
+	if ($canShare) {
+		?>
+	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
+	if (isset($_GET[$sid]))
+		echo $language ? 'Edit sharing':'Modifier partage';
+	else
+		echo $language ? "Share $typeStr":"Partager $typeStr";
+	?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
 		if (isset($_GET[$sid])) {
 			?>
-<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
+		<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
 			<?php
 		}
 	}
 }
 else
 	printRatingView($language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':'circuit')).'!'):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':'ce circuit'))).' !');
-?></td></tr>
+?>
+</td></tr>
 <tr><td id="pMusic">
 &nbsp;
 </td>
@@ -568,27 +567,25 @@ else
 </script></div>
 </form>
 <?php
-/*if (isset($nid)) {
-	$message = $language ? 'New : a comment section for the circuit creations !':'Nouveau : une section commentaires pour les cr&eacute;ations de circuits !';
-	$infoMsg = true;
-}*/
 if (!isset($message) && isset($nid)) {
 	if (!$isCup) {
 		if ($cupOfCircuit = mysql_fetch_array(mysql_query('SELECT id FROM `mkcups` WHERE (circuit0="'. $nid .'" OR circuit1="'. $nid .'" OR circuit2="'. $nid .'" OR circuit3="'. $nid .'") AND mode=0 LIMIT 1'))) {
-			$message = ($language ? 'This circuit is part of a cup!<br /><a href="?cid='. $cupOfCircuit['id'] .'">Click here</a> to access it.':'Ce circuit fait partie d\'une coupe !<br /><a href="?cid='. $cupOfCircuit['id'] .'">Cliquez ici</a> pour y acc&eacute;der.');
+			$message = ($language ? 'This circuit is part of a cup!<br /><a href="?cid='. $cupOfCircuit['id'] .'">Click here</a> to access it.':'Ce circuit fait partie d\'une coupe !<br /><a href="?cid='. $cupOfCircuit['id'] .'">Cliquez ici</a> pour y accéder.');
 			$infoMsg = true;
 		}
 	}
 	elseif (!$isMCup) {
 		if ($cupOfCircuit = mysql_fetch_array(mysql_query('SELECT mcup FROM `mkmcups_tracks` WHERE cup="'. $nid .'"'))) {
-			$message = ($language ? 'This cup is part of a multicup!<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Click here</a> to access it.':'Cette coupe fait partie d\'une multicoupe !<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Cliquez ici</a> pour y acc&eacute;der.');
+			$message = ($language ? 'This cup is part of a multicup!<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Click here</a> to access it.':'Cette coupe fait partie d\'une multicoupe !<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Cliquez ici</a> pour y accéder.');
 			$infoMsg = true;
 		}
 	}
 }
 if (isset($message)) {
 	?>
-	<div id="alerte"<?php if (isset($infoMsg)) echo ' class="alerte-info"'; ?>><p id="closeAlert"><a href="javascript:document.getElementById('alerte').style.display='none';void(0)">&times;</a></p><p><?php echo $message; ?></p></div>
+<div id="alerte"<?php if (isset($infoMsg)) echo ' class="alerte-info"'; ?>><p id="closeAlert"><a href="javascript:document.getElementById('alerte').style.display='none';void(0)">&times;</a></p>
+<p><?php echo $message;
+?></p></div>
 	<?php
 }
 ?>
@@ -599,7 +596,7 @@ if (isset($message)) {
 	data will be recoverable.' :
 	'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):'ce circuit') .' ?<br />
 	'.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):'Le circuit').' sera simplement retiré'.($isCup?'e':'').' de la liste :<br />
-	les donn&eacute;es seront r&eacute;cup&eacute;rables.';
+	les données seront récupérables.';
 ?></p>
 <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
 </div>
@@ -618,7 +615,7 @@ if (!isset($cannotChange)) {
 include('gameInitElts.php');
 ?>
 <?php
-if (isset($id)) {
+if (isset($nid)) {
 	include('circuitUser.php');
 	require_once('reactions.php');
 	printReactionUI();

@@ -37,7 +37,7 @@ if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isse
 		$cShared = false;
 	}
 	for ($c=0;$c<4;$c++)
-		$cupIDs[$c] = $_GET['cid'. $c];
+		$cupIDs[$c] = intval($_GET['cid'. $c]);
 	$trackIDs = $cupIDs;
 	$edittingCircuit = true;
 }
@@ -62,7 +62,7 @@ elseif (isset($_GET['mid0'])) { // Multicups being created
 	else
 		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	for ($i=0;isset($_GET['mid'.$i])&&is_numeric($_GET['mid'.$i]);$i++)
-		$cupIDs[$i] = $_GET['mid'.$i];
+		$cupIDs[$i] = intval($_GET['mid'.$i]);
 	$cOptions = isset($_GET['opt']) ? json_decode(stripslashes($_GET['opt'])) : null;
 	if ($cOptions) $cOptions = json_encode($cOptions);
 	$edittingCircuit = true;
@@ -111,7 +111,7 @@ elseif (isset($_GET['cid'])) { // Existing cup
 else { // Existing track
 	$isCup = false;
 	$isMCup = false;
-	$id = isset($_GET['i']) ? $_GET['i']:0;
+	$id = isset($_GET['i']) ? intval($_GET['i']) : 0;
 	$nid = $id;
 	$trackIDs = array($id);
 	$hthumbnail = 'https://mkpc.malahieude.net/racepreview.php?id='.$id;
@@ -175,12 +175,8 @@ if (isset($trackIDs)) {
 			$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
 	}
 }
-elseif (isset($circuit))
-	$circuitsData = Array($circuit);
-else {
-	mysql_close();
-	exit;
-}
+else
+	$circuitsData = Array();
 require_once('circuitEscape.php');
 function escapeUtf8($str) {
 	return htmlentities(escapeCircuitNames($str));
@@ -195,8 +191,8 @@ $sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'i'));
 ?>
 <!DOCTYPE HTML SYSTEM>
 <html>
-   <head>
-	   <title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
+	<head>
+		<title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
 <?php
 include('metas.php');
 
@@ -312,9 +308,9 @@ if ($canChange) {
 				cP.style.textAlign = "center";
 				cP.innerHTML = '<?php
 					if ($cShared)
-						echo $language ? ($isCup ? 'Cup':'Circuit') .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':'circuit') .' a &eacute;t&eacute; mis &agrave; jour.';
+						echo $language ? ($isCup ? 'Cup':'Circuit') .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':'circuit') .' a été mis à jour.';
 					else
-						echo $language ? 'Your '. ($isCup ? 'cup':'circuit') .' has just been added to the <a href="creations.php" target="_blank">list</a> !':'Votre '. ($isCup ? 'coupe':'circuit') .' vient d\\\'&ecirc;tre ajout&eacute; &agrave; la <a href="creations.php" target="_blank">liste</a> !';
+						echo $language ? 'Your '. ($isCup ? 'cup':'circuit') .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':'circuit') .' vient d\\\'être ajouté à la <a href="creations.php" target="_blank">liste</a> !';
 				?><br /><br />';
 				var cCont = document.createElement("input");
 				cCont.type = "button";
@@ -359,7 +355,7 @@ if ($canChange) {
 			if ($collab) echo '&collab='.$collab['key'];
 		?>", function(reponse) {
 			if (reponse == 1) {
-				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The '. ($isCup ? 'cup':'circuit') .' has been successfully removed from the list.':($isCup ? 'La coupe':'Le circuit') .' a &eacute;t&eacute; retir&eacute; de la liste avec succ&egrave;s.'; ?>';
+				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The '. ($isCup ? 'cup':'circuit') .' has been successfully removed from the list.':($isCup ? 'La coupe':'Le circuit') .' a été retiré de la liste avec succès.'; ?>';
 				document.getElementById("supprButtons").innerHTML = '';
 				var cCont = document.createElement("input");
 				cCont.type = "button";
@@ -452,29 +448,28 @@ if ($canChange && !$isCup) {
 	if (!isset($circuitMainData->bgcolor))
 		$message = $language ? 'Warning: You didn\'t specify any data for the circuit.<br />Go back to the editor before testing it.':'Attention : vous n\'avez pas encore spécifié les paramètres du circuit.<br />Revenez dans l\'éditeur avant de continuer.';
 	elseif (($circuitMainData->startposition[0] == -1) && ($circuitMainData->startposition[1] == -1))
-		$message = $language ? 'Warning: your circuit doesn\'t have a start.<br />Quite annoying, we don\'t know where to begin.':'Attention : Votre circuit n\'a pas de d&eacute;part !<br />C\'est ennuyeux, on ne sait pas par o&ucirc; commencer...';
+		$message = $language ? 'Warning: your circuit doesn\'t have a start.<br />Quite annoying, we don\'t know where to begin.':'Attention : Votre circuit n\'a pas de départ !<br />C\'est ennuyeux, on ne sait pas par où commencer...';
 	elseif (empty($circuitPayload->aipoints[0]))
-		$message = $language ? 'Warning, you didn\'t specify the CPUs route.<br />They could work so well...':'Attention : Vous n\'avez pas indiqu&eacute; le trajet des ordis.<br />Ils risquent de marcher beaucoup moins bien...';
+		$message = $language ? 'Warning, you didn\'t specify the CPUs route.<br />They could work so well...':'Attention : Vous n\'avez pas indiqué le trajet des ordis.<br />Ils risquent de marcher beaucoup moins bien...';
 	elseif (!($nCps=count($circuitPayload->checkpoint)))
-		$message = $language ? 'Warning, you didn\'t specify the checkpoints.<br />We can not find your way in the circuit !':'Attention : Vous n\'avez pas indiqu&eacute; les checkpoints.<br />Impossible de vous rep&eacute;rer dans le circuit !';
+		$message = $language ? 'Warning, you didn\'t specify the checkpoints.<br />We can not find your way in the circuit!':'Attention : Vous n\'avez pas indiqué les checkpoints.<br />Impossible de vous repérer dans le circuit !';
 	elseif (isset($circuitMainData->sections) && isCpOob())
-		$message = $language ? 'Warning, one or several sections are mapped<br />to a non-existing checkpoint.<br />The circuit will likely be unfinishable...':'Attention, une ou plusieurs sections<br />sont associéesà un checkpoint inexistant.<br />Le circuit risque d\'&ecirc;tre difficile à terminer...';
+		$message = $language ? 'Warning, one or several sections are mapped<br />to a non-existing checkpoint.<br />The circuit will likely be unfinishable...':'Attention, une ou plusieurs sections<br />sont associéesà un checkpoint inexistant.<br />Le circuit risque d\'être difficile à terminer...';
 }
 include('ip_banned.php');
 if (isBanned())
-   echo '&nbsp;';
+	echo '&nbsp;';
 elseif ($canChange) {
 	$typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')):($language ? 'circuit':'le circuit');
 	?>
-	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href=<?php
-		echo ($isCup ? "'". ($isMCup ? "completecups.php":"completecup.php") ."'+document.location.search":"'draw.php?i=$nid'");
-		if ($collab && !$isCup) echo "+'&collab=". $collab['key'] ."'";
+	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='<?php
+		echo ($isCup ? ($isMCup ? 'completecups.php':'completecup.php'):'draw.php'); ?>'+document.location.search<?php
 	?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br />
 	<?php
 	if ($creator && isset($nid) && !isset($_GET['nid'])) {
 		?>
 		<br class="br-small" />
-		<input type="button" id="linkRace" onclick="showTrackCollabPopup('<?php echo $creationType ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
+		<input type="button" id="linkRace" onclick="showTrackCollabPopup('<?php echo $creationType; ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
 		<?php
 	}
 	else {
@@ -483,12 +478,12 @@ elseif ($canChange) {
 		<?php
 	}
 	if ($canShare) {
-	?>
+		?>
 	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
 	if ($cShared)
 		echo $language ? 'Edit sharing':'Modifier partage';
 	else
-		echo $language ? 'Share '.$typeStr:'Partager '.$typeStr;
+		echo $language ? "Share $typeStr":"Partager $typeStr";
 	?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
 		if ($cShared && !$cEditting) {
 			?>
@@ -535,13 +530,13 @@ else
 if (!isset($message) && isset($nid)) {
 	if (!$isCup) {
 		if ($cupOfCircuit = mysql_fetch_array(mysql_query('SELECT id FROM `mkcups` WHERE (circuit0="'. $nid .'" OR circuit1="'. $nid .'" OR circuit2="'. $nid .'" OR circuit3="'. $nid .'") AND mode=1 LIMIT 1'))) {
-			$message = ($language ? 'This circuit is part of a cup!<br /><a href="?cid='. $cupOfCircuit['id'] .'">Click here</a> to access it.':'Ce circuit fait partie d\'une coupe !<br /><a href="?cid='. $cupOfCircuit['id'] .'">Cliquez ici</a> pour y acc&eacute;der.');
+			$message = ($language ? 'This circuit is part of a cup!<br /><a href="?cid='. $cupOfCircuit['id'] .'">Click here</a> to access it.':'Ce circuit fait partie d\'une coupe !<br /><a href="?cid='. $cupOfCircuit['id'] .'">Cliquez ici</a> pour y accéder.');
 			$infoMsg = true;
 		}
 	}
 	elseif (!$isMCup) {
 		if ($cupOfCircuit = mysql_fetch_array(mysql_query('SELECT mcup FROM `mkmcups_tracks` WHERE cup="'. $nid .'"'))) {
-			$message = ($language ? 'This cup is part of a multicup!<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Click here</a> to access it.':'Cette coupe fait partie d\'une multicoupe !<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Cliquez ici</a> pour y acc&eacute;der.');
+			$message = ($language ? 'This cup is part of a multicup!<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Click here</a> to access it.':'Cette coupe fait partie d\'une multicoupe !<br /><a href="?mid='. $cupOfCircuit['mcup'] .'">Cliquez ici</a> pour y accéder.');
 			$infoMsg = true;
 		}
 	}
@@ -555,11 +550,11 @@ if (isset($message)) {
 <div id="confirmSuppr">
 <p id="supprInfos"><?php echo $language ?
 	'Stop sharing this circuit?<br />
-	The circuit will be only removed from the list :<br />
+	The circuit will be only removed from the list:<br />
 	data will be retained.' :
 	'Supprimer le partage de ce circuit ?<br />
-	Le circuit sera simplement retir&eacute; de la liste :<br />
-	les donn&eacute;es seront conserv&eacute;es.';
+	Le circuit sera simplement retiré de la liste :<br />
+	les données seront conservées.';
 ?></p>
 <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
 </div>
