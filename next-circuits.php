@@ -2,7 +2,7 @@
 header('Content-Type: text/plain');
 if (isset($_POST['page'])) {
 	include('initdb.php');
-	include('utils-circuits.php');
+	require_once('utils-circuits.php');
 	$page = intval($_POST['page']);
 	$tri = isset($_POST['tri']) ? $_POST['tri']:0;
 	$nom = isset($_POST['nom']) ? stripslashes($_POST['nom']):'';

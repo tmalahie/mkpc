@@ -274,8 +274,9 @@ for($i=0;$i<12;$i++)
 ?>
 </p>
 <div class="editor-navigation">
-	<a href="arene.php"><?php echo $language ? 'Create a battle course':'Cr&eacute;er une ar&egrave;ne bataille'; ?></a><br />
-	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a>
+	<a href="arene.php"><?php echo $language ? 'Create a battle course':'Créer une arène bataille'; ?></a><br />
+	<a href="draw.php"><?php echo $language ? 'Create track in complete mode':'Créer circuit en mode complet'; ?></a><br />
+	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
 </div>
 </body>
 </html>

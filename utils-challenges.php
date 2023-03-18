@@ -200,7 +200,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'pts_greater' => array(
 			'description_mockup' => $language ? 'Make at least x points in N races':'Faire au moins x points sur N courses',
@@ -208,7 +208,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
-			'course' => array('cup', 'mcup')
+			'course' => array('cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'pts_equals' => array(
 			'description_mockup' => $language ? 'Make exactly x points in N races':'Faire exactement x points sur N courses',
@@ -216,7 +216,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
-			'course' => array('cup', 'mcup')
+			'course' => array('cup', 'mcup', 'bcup', 'mbcup')
 		)
 	),
 	'basic' => array(
@@ -259,7 +259,7 @@ $clRulesByType = array(
 		),
 		'participants' => array(
 			'description_mockup' => $language ? 'with 8 participants':'avec 8 participants',
-			'course' => array('vs', 'battle', 'cup', 'mcup'),
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'this_class' => function(&$scope) {
 				return ($scope->value == 8);
 			}
@@ -267,7 +267,7 @@ $clRulesByType = array(
 		'cc' => array(
 			'description' => $language ? 'in ${value}cc class':'en mode ${value}cc',
 			'description_mockup' => $language ? 'Class (cc)':'Cylindrée (cc)',
-			'course' => array('vs', 'battle', 'cup', 'mcup'),
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'description_lambda' => function($language,&$scope) {
 				if ($language)
 					return 'in '.$scope->value.'cc'.(isset($scope->mirror) ? ' mirror':'').' class';
@@ -282,7 +282,7 @@ $clRulesByType = array(
 		),
 		'no_teams' => array(
 			'description' => $language ? 'no teams':'sans équipes',
-			'course' => array('vs', 'battle', 'cup', 'mcup'),
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'additional' => true,
 			'autoset' => function(&$res, $scope) {
 				$res['selectedTeams'] = 0;
@@ -310,15 +310,15 @@ $clRulesByType = array(
 		),
 		'no_drift' => array(
 			'description' => $language ? 'without drifting':'sans déraper',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'avoid_items' => array(
 			'description' => $language ? 'without touching item boxes':'sans toucher les boites à objet',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'no_item' => array(
 			'description' => $language ? 'without using any item':'sans utiliser d\'objets',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
@@ -348,7 +348,7 @@ $clRulesByType = array(
 				$sPerso = $scope->value;
 				return ($language ? 'with ':'avec ') . getCharacterName($sPerso);
 			},
-			'course' => array('vs', 'battle', 'cup', 'mcup'),
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'placeholder' => array(
 				'value' => '...'
 			),
@@ -367,11 +367,11 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
-			'course' => array('vs', 'battle', 'cup')
+			'course' => array('vs', 'battle', 'cup', 'bcup')
 		),
 		'no_stunt' => array(
 			'description' => $language ? 'without making stunts':'sans faire de figures',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'time' => array(
 			'description_mockup' => $language ? 'in less than... (time)':'en moins de... (temps)',
@@ -389,11 +389,11 @@ $clRulesByType = array(
 		),
 		'backwards' => array(
 			'description' => $language ? 'by driving backwards':'en marche arrière',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'forwards' => array(
 			'description' => $language ? 'without going backwards':'sans reculer',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'without_turning' => array(
 			'description_mockup' => $language ? 'without turning...':'sans tourner...',
@@ -409,7 +409,7 @@ $clRulesByType = array(
 				}
 				return $language ? "without turning $direction" : "sans tourner $direction";
 			},
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'time_delay' => array(
 			'description' => $language ? 'by starting with ${value}s delay':'en partant avec ${value}s de retard',
@@ -425,7 +425,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
-			'course' => array('vs','battle', 'cup', 'mcup')
+			'course' => array('vs','battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'super_turbo' => array(
 			'description' => $language ? 'by performing $value Super Mini-Turbo$s':'en réalisant $value Super Mini-Turbo$s',
@@ -433,7 +433,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
-			'course' => array('vs','battle', 'cup', 'mcup')
+			'course' => array('vs','battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'stunts' => array(
 			'description' => $language ? 'by performing $value stunt$s':'en réalisant $value figure$s',
@@ -441,7 +441,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
-			'course' => array('vs','battle', 'cup', 'mcup')
+			'course' => array('vs','battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'position' => array(
 			'description_mockup' => $language ? 'in n-th place':'en n-eme position',
@@ -459,11 +459,15 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
-			'course' => array('cup', 'mcup')
+			'course' => array('cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'different_circuits' => array(
 			'description' => $language ? 'in different circuits':'sur des circuits différents',
 			'course' => array('cup', 'mcup')
+		),
+		'different_arenas' => array(
+			'description' => $language ? 'in different arenas':'sur des arènes différentes',
+			'course' => array('bcup', 'mbcup')
 		),
 		'difficulty' => array(
 			'description_mockup' => $language ? 'difficulty...':'difficulté...',
@@ -487,7 +491,7 @@ $clRulesByType = array(
 		'participants' => array(
 			'description_mockup' => $language ? 'with x participants':'avec x participants',
 			'description' => $language ? 'with $value participant$s':'avec $value participant$s',
-			'course' => array('vs', 'battle', 'cup', 'mcup'),
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'additional_lambda' => function(&$scope) {
 				return ($scope->value == 8);
 			},
@@ -542,12 +546,12 @@ $clRulesByType = array(
 		'auto_accelerate' => array(
 			'description' => $language ? 'while constantly accelerating' : 'en accélérant en continu',
 			'description_mockup' => $language ? 'auto accelerate':'auto-accélérer',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'invert_dirs' => array(
 			'description' => $language ? 'with inverted controls':'avec les contrôles inversés',
 			'description_mockup' => $language ? 'invert left and right' : 'inverser gauche et droite',
-			'course' => array('vs', 'battle', 'cup', 'mcup')
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'balloons_player' => array(
 			'description' => $language ? 'by starting with $value balloon$s':'en commençant avec $value ballon$s',
@@ -571,8 +575,10 @@ unset($rulesList);
 unset($rules);
 function listChallenges($clRace, &$params=array()) {
 	global $identifiants;
-	if (isset($params['status']))
+	if (isset($params['status'])) {
 		$statusCheck = 'status IN ("'. implode('","',$params['status']) .'")';
+		$getClist = mysql_fetch_array(mysql_query('SELECT id,type,circuit FROM `mkclrace` WHERE id="'. $clRace .'"'));
+	}
 	else {
 		$myCircuit = false;
 		if (isset($identifiants)) {
@@ -620,7 +626,17 @@ function listChallenges($clRace, &$params=array()) {
 		}
 		if (!empty($allSubTracks['circuits'])) {
 			$trackIdsString = implode(',',$allSubTracks['circuits']);
-			$getClTracks = mysql_query('SELECT DISTINCT id FROM mkclrace WHERE type="'. ($allSubTracks['mode'] ? 'circuits':'mkcircuits') .'" AND circuit IN ('.$trackIdsString.')');
+			switch ($allSubTracks['mode']) {
+			case 1:
+				$trackTable = 'circuits';
+				break;
+			case 3:
+				$trackTable = 'arenes';
+				break;
+			default:
+				$trackTable = 'mkcircuits';
+			}
+			$getClTracks = mysql_query('SELECT DISTINCT id FROM mkclrace WHERE type="'. $trackTable .'" AND circuit IN ('.$trackIdsString.')');
 			while ($subCl = mysql_fetch_array($getClTracks))
 				$subCls[] = $subCl['id'];
 		}
@@ -668,6 +684,7 @@ function getChallengeDetails($challenge, &$params=array()) {
 	}
 	return $res;
 }
+require_once('utils-cups.php');
 function getCircuitPayload(&$clRace) {
 	$res = array();
 	if (!$clRace['type'])
@@ -700,19 +717,22 @@ function getCircuitPayload(&$clRace) {
 			$linksCached[] = 'coursepreview' . $clCircuit['ID'] .'.png';
 			break;
 		case 'mkcups':
-			$linkUrl = ($clCircuit['mode'] ? 'map':'circuit') .'.php?cid='. $clCircuit['id'];
+			$linkUrl = getCupPage($clCircuit['mode']) .'.php?cid='. $clCircuit['id'];
 			if ($clCircuit['mode'])
 				$baseCache = 'racepreview';
 			else
 				$baseCache = 'mappreview';
 			for ($i=0;$i<4;$i++) {
 				$lId = $clCircuit['circuit'.$i];
-				$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type='. $clCircuit['mode'];
+				$iconType = $clCircuit['mode'];
+				if ($iconType >= 2)
+					$iconType = 0;
+				$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type='. $iconType;
 				$linksCached[] = $baseCache . $lId .'.png';
 			}
 			break;
 		case 'mkmcups':
-			$linkUrl = ($clCircuit['mode'] ? 'map':'circuit') .'.php?mid='. $clCircuit['id'];
+			$linkUrl = getCupPage($clCircuit['mode']) .'.php?mid='. $clCircuit['id'];
 			$linkBg .= 'trackicon.php?id='. $clCircuit['id'] .'&type=4';
 			$linksCached[] = 'mcuppreview'. $clCircuit['id'] .'.png';
 		}

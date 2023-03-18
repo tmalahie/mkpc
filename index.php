@@ -800,8 +800,8 @@ $slidesPath = 'images/slides';
 						$circuit = $line;
 						include('creation_line.php');
 					}
-					include('utils-circuits.php');
-					$nbByType = array(1,1,2,2,3,3,2,2);
+					require_once('utils-circuits.php');
+					$nbByType = array(1,1,2,2,3,3,2,2,1,1,1,1);
 					$tracksList = listCreations(1,$nbByType,null,$aCircuits);
 					$tracksList = sortLines($tracksList);
 					$tracksList = array_slice($tracksList,0,14);
@@ -882,14 +882,15 @@ $slidesPath = 'images/slides';
 					}
 					return $n;
 				}
+				require_once('utils-cups.php');
 				while ($comment = mysql_fetch_array($getComments)) {
 					if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($comment['type']=="mkcircuits") ? ',!type as is_circuit':'') .' FROM `'. $comment['type'] .'` WHERE id='. $comment['circuit'] .' AND nom IS NOT NULL'))) {
 						switch ($comment['type']) {
 						case 'mkmcups' :
-							$url = ($getCircuit['mode'] ? 'map.php':'circuit.php') . '?mid='. $getCircuit['id'];
+							$url = getCupPage($getCircuit['mode']) . '.php?mid='. $getCircuit['id'];
 							break;
 						case 'mkcups' :
-							$url = ($getCircuit['mode'] ? 'map.php':'circuit.php') . '?cid='. $getCircuit['id'];
+							$url = getCupPage($getCircuit['mode']) . '.php?cid='. $getCircuit['id'];
 							break;
 						case 'mkcircuits' :
 							$url = ($getCircuit['is_circuit'] ? 'circuit.php':'arena.php') . '?id='. $getCircuit['id'];

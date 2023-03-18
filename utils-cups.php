@@ -16,12 +16,12 @@ function printCupCircuit(&$circuit, $options=array()) {
             echo ' data-cicon="'.$circuit['cicon'].'"';
         ?> onclick="previewImg(event,<?php echo htmlspecialchars(json_encode($circuit['srcs'])); ?>)"></td>
         <td class="td-name"><em><?php echo $circuitnb; ?></em><?php echo ($circuit['nom'] ? escapeUtf8($circuit['nom']):($language ? 'Untitled':'Sans titre')); ?></td>
-        <td class="td-access">&rarr; <a href="<?php echo $circuit['href']; ?>" target="_blank" onclick="event.stopPropagation()"><?php echo $language ? 'Access':'Acc&eacute;der'; ?></a></td>
+        <td class="td-access">&rarr; <a href="<?php echo $circuit['href']; ?>" target="_blank" onclick="event.stopPropagation()"><?php echo $language ? 'Access':'Accéder'; ?></a></td>
     </tr>
     <?php
 }
 
-function printCollabImportPopup($type, $mode) {
+function printCollabImportPopup($type, $mode, $isBattle) {
     global $language;
     switch ($type) {
     case 'cup':
@@ -29,7 +29,14 @@ function printCollabImportPopup($type, $mode) {
         $aCircuit = $language ? 'a cup' : 'une coupe';
         $ofCircuit = $language ? 'of the cup' : 'de la coupe';
         $placeholderType = 'mkcups';
-        $placeholderId = 1+$mode;
+        $placeholderId = 1+$mode + $isBattle*2;
+        break;
+    case 'arena':
+        $Circuit = $language ? "arena" : "arène";
+        $aCircuit = $language ? "an arena" : "une arène";
+        $ofCircuit = $language ? "of the arena" : "de l'arène";
+        $placeholderType = $mode ? 'arenes' : 'mkcircuits';
+        $placeholderId = 226;
         break;
     default:
         $Circuit = $language ? 'circuit' : 'circuit';
@@ -74,4 +81,16 @@ function printCollabImportPopup($type, $mode) {
         </div>
     </div>
     <?php
+}
+function getCupPage(&$mode) {
+	switch ($mode) {
+	case 1:
+		return 'map';
+	case 2:
+		return 'arena';
+	case 3:
+		return 'battle';
+	default:
+		return 'circuit';
+	}
 }

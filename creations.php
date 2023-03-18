@@ -2,7 +2,7 @@
 include('language.php');
 include('session.php');
 include('tokens.php');
-include('utils-circuits.php');
+require_once('utils-circuits.php');
 include('creations-params.php');
 assign_token();
 ?>
@@ -399,14 +399,14 @@ include('menu.php');
 		echo $language ?
 		'Welcome to the list of circuits and courses shared by the Mario Kart PC community !<br />
 		You too can share your circuit creations by clicking on &quot;Share circuit&quot; at the bottom-left of the circuit page.' :
-		'Bienvenue dans la liste des circuits et ar&egrave;nes partag&eacute;s par la communaut&eacute; de Mario Kart PC !<br />
-		Vous aussi, partagez les circuits que vous cr&eacute;ez en cliquant sur &quot;Partager le circuit&quot; en bas &agrave; gauche de la page du circuit.';
+		'Bienvenue dans la liste des circuits et arènes partagés par la communauté de Mario Kart PC !<br />
+		Vous aussi, partagez les circuits que vous créez en cliquant sur &quot;Partager le circuit&quot; en bas à gauche de la page du circuit.';
 	}
 	?></p>
 	<form method="get" action="creations.php" id="form-search">
 		<div id="sort-tabs">
 			<?php
-			$sortTabs = $language ? Array('By latest', 'Top rated', 'Trending'):Array('Les plus r&eacute;cents', 'Les mieux not&eacute;s', 'Tendances');
+			$sortTabs = $language ? Array('Latest', 'Top rated', 'Trending'):Array('Les plus récents', 'Les mieux notés', 'Tendances');
 			foreach ($sortTabs as $i => $sortTab) {
 				if ($i == $tri)
 					echo '<span>'.$sortTab.'</span>';
@@ -423,8 +423,8 @@ include('menu.php');
 		<select name="type" onchange="this.form.submit()">
 		<?php
 		$types = $language
-		 ? Array('Complete mode  - multicups',	'Quick mode - multicups',		'Complete mode - cups',	'Quick mode - cups',		'Complete mode - circuits',	'Quick mode - circuits',	'Complete mode - arenas','Quick mode - arenas')
-		 : Array('Mode complet  - multicoupes',	'Mode simplifié - multicoupes',	'Mode complet - coupes',	'Mode simplifié - coupes',	'Mode complet - circuits',	'Mode simplifié - circuits','Mode complet - arènes','Mode simplifié - arènes');
+		 ? Array('Complete mode  - multicups',	'Quick mode - multicups',		'Complete mode - cups',	'Quick mode - cups',		'Complete mode - circuits',	'Quick mode - circuits',	'Complete mode - arenas','Quick mode - arenas',	'Complete mode - battle cups','Quick mode - battle cups',	'Complete mode - battle multicups','Quick mode - battle multicups')
+		 : Array('Mode complet  - multicoupes',	'Mode simplifié - multicoupes',	'Mode complet - coupes',	'Mode simplifié - coupes',	'Mode complet - circuits',	'Mode simplifié - circuits','Mode complet - arènes','Mode simplifié - arènes','Mode complet - coupes bataille','Mode simplifié - coupes bataille','Mode complet - multicoupes bataille','Mode simplifié - multicoupes bataille');
 		echo '<option value=""'. (($type === '') ? ' selected="selected"':'') .'">'. ($language ? 'All creations':'Toutes les créations') . ($singleType ? '':' ('. $nbCreations .')') .'</option>';
 		foreach ($types as $i=>$iType)
 			echo '<option value="'. $i .'"'. ((strval($i) === $type) ? ' selected="selected"':'') .'>'. $iType . ($singleType ? '':' ('.$nbByType[$i].')') .'</option>';
@@ -471,12 +471,12 @@ include('menu.php');
 	<p class="subbuttons">
 	<input type="button" id="defiler" class="defiler action_button" value="<?php echo $language ? 'More':'Plus'; ?>" onclick="defile()" /> &nbsp; 
 	<input type="button" id="masquer" class="defiler action_button" value="<?php echo $language ? 'Less':'Moins'; ?>" style="visibility: hidden" onclick="masque()" /> &nbsp; 
-	<input type="button" id="reduire" class="defiler action_button" value="<?php echo $language ? 'Minimize':'R&eacute;duire'; ?>" style="visibility: hidden" onclick="reduceAll()" />
+	<input type="button" id="reduire" class="defiler action_button" value="<?php echo $language ? 'Minimize':'Réduire'; ?>" style="visibility: hidden" onclick="reduceAll()" />
 	</p>
 
 	<p>
 		<a class="retour" href="javascript:scrollTo(0,0)"><?php echo $language ? 'Back to top':'Retour haut de page'; ?></a> - 
-		<a class="retour" href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a>
+		<a class="retour" href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
 	</p>
 </main>
 <?php
@@ -717,11 +717,15 @@ function addRace() {
 			switch (type) {
 			case 0 :
 			case 1 :
+			case 10 :
+			case 11 :
 				supprUrl = "supprMCup.php";
 				supprData = "id="+ id;
 				break;
 			case 2 :
 			case 3 :
+			case 8 :
+			case 9 :
 				supprUrl = "supprCup.php";
 				supprData = "id="+ id;
 				break;
@@ -729,15 +733,13 @@ function addRace() {
 				supprUrl = "suppr.php?i="+ id +"&token=<?php echo $_SESSION['csrf']; ?>";
 				break;
 			case 5 :
+			case 7 :
 				supprUrl = "supprCreation.php";
 				supprData = "id="+ id;
 				break;
 			case 6 :
 				supprUrl = "clear.php?i="+ id +"&token=<?php echo $_SESSION['csrf']; ?>";
 				break;
-			case 7 :
-				supprUrl = "supprArene.php";
-				supprData = "id="+ id;
 			}
 			o_xhr(supprUrl, supprData, function(res) {
 				if (res != "") {

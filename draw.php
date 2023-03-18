@@ -1138,6 +1138,8 @@ else {
 		}
 		?>
 		<div class="editor-navigation">
+			<a href="course.php">&ndash; <u><?php echo $language ? 'Create a battle course':'Créer une arène bataille'; ?></u></a>
+			<a href="create.php">&ndash; <u><?php echo $language ? 'Create track in quick mode':'Créer circuit en mode simplifié'; ?></u></a>
 			<a href="index.php">&lt; <u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</body>

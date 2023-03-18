@@ -151,6 +151,8 @@ for (circuits in oMaps) {
 		}
 	}
 }
+if (isCup && (aAvailableMaps.length > 4))
+	isMCups = true;
 
 var iWidth = 80;
 var iHeight = 39;
@@ -5043,7 +5045,7 @@ function reprendre(debug) {
 
 function quitter() {
 	if (isOnline) {
-		document.location.href = isMCups ? ((complete ? 'map':'circuit') + '.php?mid=' + nid):(isCup ? (complete ? (isBattle ? 'battle':'map')+'.php?'+(isSingle ? 'i':'cid')+'='+nid:(isBattle ? 'arena':'circuit')+'.php?'+(isSingle ? 'id':'cid')+'='+nid):"index.php");
+		document.location.href = isCup ? ((isBattle ? (complete ? 'battle':'arena') : (complete ? 'map':'circuit')) + '.php?' + (isMCups ? ('mid=' + nid) : ((isSingle ? (complete?'i':'id'):'cid')+'='+nid))) : 'index.php';
 		return;
 	}
 	interruptGame();
@@ -11377,7 +11379,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: toLanguage("Race","Course"),
+					title: (course == "BB") ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -11822,6 +11824,8 @@ var challengeRules = {
 		}
 	}
 };
+challengeRules.different_arenas = challengeRules.different_circuits;
+
 function addCreationChallenges(type,cid) {
 	var creationChallenges = challenges[type][cid];
 	if (creationChallenges) {
@@ -17392,7 +17396,7 @@ function runOneFrame() {
 	moveDecor();
 	if (oSpecCam)
 		oSpecCam.move();
-	if (!oPlayers[0].cpu) {
+	if (!oPlayers[0].cpu && !oPlayers[0].loose) {
 		if (clSelected && !clSelectionFail) {
 			if (false === challengeRulesSatisfied(clSelected, clSelected.data.constraints))
 				challengeHandleFail();
@@ -17490,7 +17494,7 @@ document.onkeydown = function(e) {
 		if (["ArrowUp","ArrowLeft","ArrowRight","ArrowDown"].indexOf(e.key) === -1) return;
 		if (selectedOscrElt && !oScr.contains(selectedOscrElt))
 			selectedOscrElt = undefined;
-		var oButtons = [...oScr.querySelectorAll("*")].filter(elt => elt.onclick).filter(elt => !elt.disabled).filter(elt => {
+		var oButtons = [...oScr.querySelectorAll("*")].filter(elt => elt.onclick).filter(elt => !elt.disabled).filter(elt => !elt.dataset.noselect).filter(elt => {
 			var bounds = elt.getBoundingClientRect();
 			return (bounds.width) > 0 && (bounds.height) > 0;
 		});
@@ -17616,6 +17620,7 @@ function showFocusIndicator(oScr, oButton) {
 	if (!focusIndicator) {
 		focusIndicator = document.createElement("div");
 		focusIndicator.style.position = "absolute";
+		focusIndicator.style.zIndex = 1;
 		focusIndicator.style.backgroundColor = primaryColor;
 		focusIndicator.style.opacity = 0.4;
 		focusIndicator.style.pointerEvents = "none";
@@ -19774,7 +19779,7 @@ function selectTypeScreen() {
 			}
 			else {
 				oCup.style.left = (5*iScreenScale)+"px";
-				oCup.style.top = Math.round(oButtonsTop*iScreenScale)+"px";
+				oCup.style.top = Math.round((oButtonsTop-1)*iScreenScale)+"px";
 			}
 			oCup.className = "pixelated";
 			oScr.appendChild(oCup);
@@ -19814,7 +19819,7 @@ function selectTypeScreen() {
 			oPInput.onclick = function() {
 				course = this.dataset.course;
 				if (course == "CL")
-					document.location.href = "online.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid);
+					document.location.href = onlineModeLink();
 				else {
 					oScr.innerHTML = "";
 
@@ -19960,10 +19965,8 @@ function selectNbJoueurs(force) {
 		oPInput.style.position = "absolute";
 		oPInput.style.left = ((sShared?26:27)*iScreenScale)+"px";
 		oPInput.style.top = (((sShared?7:10)+i*(sShared?7:8))*iScreenScale)+"px";
-		if (sShared) {
-			oPInput.style.paddingLeft = (iScreenScale*2) +"px";
-			oPInput.style.paddingRight = (iScreenScale*2) +"px";
-		}
+		if (sShared)
+			oPInput.style.width = (22*iScreenScale) +"px";
 
 		oPInput.onclick = function() {
 			oScr.innerHTML = "";
@@ -19981,15 +19984,16 @@ function selectNbJoueurs(force) {
 	if (sShared) {
 		var oPInput = document.createElement("input");
 		oPInput.type = "button";
-		oPInput.value = toLanguage("Online mode", "Mode en ligne");
+		oPInput.value = toLanguage(" Online mode ", "Mode en ligne");
 		oPInput.style.fontSize = (3*iScreenScale)+"px";
 		oPInput.style.position = "absolute";
 		oPInput.style.left = (26*iScreenScale)+"px";
 		oPInput.style.top = (30*iScreenScale)+"px";
+		oPInput.style.width = (22*iScreenScale)+"px";
 		oPInput.style.paddingTop = Math.round(iScreenScale*0.5) +"px";
 		oPInput.style.paddingBottom = Math.round(iScreenScale*0.5) +"px";
 		oPInput.onclick = function() {
-			document.location.href = "online.php?"+ (complete ? "i":"id") +"="+ nid +"&battle";
+			document.location.href = onlineModeLink();
 		}
 		oScr.appendChild(oPInput);
 	}
@@ -20095,6 +20099,9 @@ function selectOnlineScreen(options) {
 	updateMenuMusic(0);
 }
 
+function onlineModeLink() {
+	return "online.php?"+(isMCups?"mid="+nid:(isSingle?(complete?"i":"id"):(complete?"cid":"sid"))+"="+nid)+(isBattle?"&battle":"");
+}
 function openOnlineMode(isBattle, options) {
 	if (options) {
 		xhr("onlineOptions.php", "options="+encodeURIComponent(JSON.stringify(options)), function(res) {
@@ -20124,464 +20131,56 @@ function selectTypeCreate() {
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
 
-	oScr.appendChild(toTitle(toLanguage("Track builder", "Éditeur de circuit"), 0.5));
-	
-	var oDiv = document.createElement("div");
-	oDiv.style.color = "white";
-	oDiv.style.fontWeight = "normal";
-	oDiv.style.position = "absolute";
-	oDiv.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oDiv.style.left = (2*iScreenScale)+"px";
-	oDiv.style.top = Math.round(14.5*iScreenScale)+"px";
-	oDiv.style.width = (20*iScreenScale)+"px";
-	oDiv.style.textAlign = "right";
-	oDiv.innerHTML = toLanguage("Quick mode :", "Mode simplifié :");
-	oScr.appendChild(oDiv);
+	oScr.appendChild(toTitle(toLanguage("Track builder", "Éditeur de circuit")));
 
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = "Circuit";
-	oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (24*iScreenScale)+"px";
-	oPInput.style.top = (14*iScreenScale)+"px";
-	oPInput.style.width = (10*iScreenScale)+"px";
+	var oModes = [{
+		name: toLanguage("Quick mode", "Mode simplifié"),
+		description: toLanguage("Create a track in a few clics thanks to ready-made pieces", "Créez un circuit en quelques clics grâce à des pièces toutes faites"),
+		thumbnail: "help/mode-simple.png"
+	}, {
+		name: toLanguage("Complete mode", "Mode complet"),
+		description: toLanguage("Create entierely the track from an image you draw yourself", "Créez entièrement le circuit à partir d'une image dessinée par vous-même"),
+		thumbnail: "help/mode-complete.png"
+	}];
 
-	oPInput.onclick = function() {
-		document.location.href = "create.php";
-	};
-	oScr.appendChild(oPInput);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Arena", "Arène");
-	oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (36*iScreenScale)+"px";
-	oPInput.style.top = (14*iScreenScale)+"px";
-	oPInput.style.width = (10*iScreenScale)+"px";
-
-	oPInput.onclick = function() {
-		document.location.href = "arene.php";
-	};
-	oScr.appendChild(oPInput);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Cup", "Coupe");
-	oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (48*iScreenScale)+"px";
-	oPInput.style.top = (14*iScreenScale)+"px";
-	oPInput.style.width = (10*iScreenScale)+"px";
-
-	oPInput.onclick = function() {
-		document.location.href = "simplecup.php";
-	};
-	oScr.appendChild(oPInput);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Multi Cup", "Multicoupe");
-	oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (60*iScreenScale)+"px";
-	oPInput.style.top = (14*iScreenScale)+"px";
-	oPInput.style.width = (16*iScreenScale)+"px";
-
-	oPInput.onclick = function() {
-		document.location.href = "simplecups.php";
-	};
-	oScr.appendChild(oPInput);
-	
-	var oDiv = document.createElement("div");
-	oDiv.style.position = "absolute";
-	oDiv.style.color = "white";
-	oDiv.style.fontWeight = "normal";
-	oDiv.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oDiv.style.left = (2*iScreenScale)+"px";
-	oDiv.style.top = Math.round(21.5*iScreenScale)+"px";
-	oDiv.style.width = (20*iScreenScale)+"px";
-	oDiv.style.textAlign = "right";
-	oDiv.innerHTML = toLanguage("Complete mode :", "Mode complet :");
-	oScr.appendChild(oDiv);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = "Circuit";
-	oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (24*iScreenScale)+"px";
-	oPInput.style.top = Math.round(21*iScreenScale)+"px";
-	oPInput.style.width = (10*iScreenScale)+"px";
-
-	oPInput.onclick = function() {
-		document.location.href = "draw.php";
-	};
-	oScr.appendChild(oPInput);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Arena", "Arène");
-	oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (36*iScreenScale)+"px";
-	oPInput.style.top = Math.round(21*iScreenScale)+"px";
-	oPInput.style.width = (10*iScreenScale)+"px";
-
-	oPInput.onclick = function() {
-		document.location.href = "course.php";
-	};
-	oScr.appendChild(oPInput);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Cup", "Coupe");
-	oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (48*iScreenScale)+"px";
-	oPInput.style.top = Math.round(21*iScreenScale)+"px";
-	oPInput.style.width = (10*iScreenScale)+"px";
-
-	oPInput.onclick = function() {
-		document.location.href = "completecup.php";
-	};
-	oScr.appendChild(oPInput);
-
-	var oPInput = document.createElement("input");
-	oPInput.type = "button";
-	oPInput.value = toLanguage("Multi Cup", "Multicoupe");
-	oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oPInput.style.position = "absolute";
-	oPInput.style.left = (60*iScreenScale)+"px";
-	oPInput.style.top = Math.round(21*iScreenScale)+"px";
-	oPInput.style.width = (16*iScreenScale)+"px";
-
-	oPInput.onclick = function() {
-		document.location.href = "completecups.php";
-	};
-	oScr.appendChild(oPInput);
-	
-	var oLink = document.createElement("a");
-	oLink.style.color = "#CCF";
-	oLink.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-	oLink.style.position = "absolute";
-	oLink.style.left = (24*iScreenScale)+"px";
-	oLink.style.top = Math.round(29.5*iScreenScale)+"px";
-	oLink.href = "#null";
-	oLink.innerHTML = toLanguage("Help", "Aide");
-	oLink.onclick = function() {
-		var oDivHelp = document.createElement("div");
-		oDivHelp.style.position = "absolute";
-		oDivHelp.style.left = "0px";
-		oDivHelp.style.top = "0px";
-		oDivHelp.style.width = (iScreenScale*iWidth) +"px";
-		oDivHelp.style.height = (iScreenScale*iHeight) +"px";
-		oDivHelp.style.backgroundColor = "rgba(0,0,0,0.7)";
-		oDivHelp.style.fontWeight = "normal";
-
-		var oTable = document.createElement("table");
-		oTable.style.position = "absolute";
-		oTable.style.left = (iScreenScale*30) +"px";
-		oTable.style.width = (iScreenScale*50) +"px";
-		oTable.style.top = (-iScreenScale*2) +"px";
-		oTable.style.color = "#333";
-		oTable.style.opacity = 0.93;
-		oTable.style.textAlign = "center";
-		oTable.style.borderSpacing = "0 "+ (iScreenScale*5) +"px";
-		oTable.style.fontSize = (iScreenScale*2) +"px";
-		var oTr = document.createElement("tr");
-		oTr.style.backgroundColor = "#CCC";
-		var oTd = document.createElement("td");
-		if (language)
-			oTd.innerHTML = '<strong>Quick mode:</strong> create a track in a few clicks thanks to ready-made pieces';
-		else
-			oTd.innerHTML = '<strong>Mode simplifié :</strong> créez un circuit en quelques clics grâce à des pièces toutes faites';
-		oTd.style.padding = (iScreenScale*2) +"px " + (iScreenScale*3) +"px";
-		oTr.appendChild(oTd);
-		var oTd = document.createElement("td");
-		oTd.style.width = (iScreenScale*10) +"px";
-		oTd.style.height = (iScreenScale*14) +"px";
-		oTd.innerHTML = '<img src="images/help/mode-simple.png" style="height: 100%" alt="Simplify" />';
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-		var oTr = document.createElement("tr");
-		oTr.style.backgroundColor = "#CCC";
-		var oTd = document.createElement("td");
-		if (language)
-			oTd.innerHTML = '<strong>Complete mode:</strong> create entierely the track from an image you draw yourself';
-		else
-			oTd.innerHTML = '<strong>Mode complet :</strong> créez entièrement le circuit à partir d\'une image dessinée par vous-même';
-		oTd.style.padding = (iScreenScale*2) +"px " + (iScreenScale*3) +"px";
-		oTr.appendChild(oTd);
-		var oTd = document.createElement("td");
-		oTd.style.width = (iScreenScale*10) +"px";
-		oTd.style.height = (iScreenScale*14) +"px";
-		oTd.innerHTML = '<img src="images/help/mode-complete.png" style="height: 100%" alt="Complify" />';
-		oTr.appendChild(oTd);
-		oTable.appendChild(oTr);
-
-		oDivHelp.appendChild(oTable);
-
-		var simpleFrame = document.createElement("div");
-		simpleFrame.style.color = "white";
-		simpleFrame.style.position = "absolute";
-		simpleFrame.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-		simpleFrame.style.right = ((iWidth-22.9)*iScreenScale)+"px";
-		simpleFrame.style.top = Math.round(14*iScreenScale)+"px";
-		simpleFrame.style.textAlign = "right";
-		simpleFrame.style.border = "solid "+ Math.round(0.4*iScreenScale) +"px #99C";
-		simpleFrame.style.padding = Math.round(0.1*iScreenScale)+"px "+Math.round(0.5*iScreenScale)+"px";
-		simpleFrame.innerHTML = toLanguage("Quick mode :", "Mode simplifié :");
-		oDivHelp.appendChild(simpleFrame);
-
-		var oLineAngle = Math.PI*0.3;
-		var oLineHeight = 3;
-		var oLine1 = document.createElement("div");
-		oLine1.style.position = "absolute";
-		oLine1.style.left = (21*iScreenScale) +"px";
-		oLine1.style.top = Math.round((14.15-oLineHeight)*iScreenScale) +"px";
-		oLine1.style.width = Math.round(0.5*iScreenScale) +"px";
-		oLine1.style.height = Math.round(oLineHeight/Math.cos(oLineAngle)*iScreenScale) +"px";
-		oLine1.style.backgroundColor = "#99C";
-		oLine1.style.transform = oLine1.style.WebkitTransform = oLine1.style.MozTransform = "rotate("+Math.round(oLineAngle*180/Math.PI)+"deg)";
-		oLine1.style.transformOrigin = oLine1.style.WebkitTransformOrigin = oLine1.style.MozTransformOrigin = "top center";
-		oDivHelp.appendChild(oLine1);
-
-		var oLine2 = document.createElement("div");
-		oLine2.style.position = "absolute";
-		oLine2.style.left = (21*iScreenScale) +"px";
-		oLine2.style.top = Math.round((14.05-oLineHeight)*iScreenScale) +"px";
-		oLine2.style.width = Math.round(9*iScreenScale) +"px";
-		oLine2.style.height = Math.round(0.4*iScreenScale) +"px";
-		oLine2.style.backgroundColor = "#99C";
-		oDivHelp.appendChild(oLine2);
-
-		var completeFrame = document.createElement("div");
-		completeFrame.style.color = "white";
-		completeFrame.style.position = "absolute";
-		completeFrame.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-		completeFrame.style.right = ((iWidth-22.9)*iScreenScale)+"px";
-		completeFrame.style.top = Math.round(21*iScreenScale)+"px";
-		completeFrame.style.textAlign = "right";
-		completeFrame.style.border = "solid "+ Math.round(0.4*iScreenScale) +"px #99C";
-		completeFrame.style.padding = Math.round(0.1*iScreenScale)+"px "+Math.round(0.5*iScreenScale)+"px";
-		completeFrame.innerHTML = toLanguage("Complete mode :", "Mode complet :");
-		oDivHelp.appendChild(completeFrame);
-		
-		var oLineAngle = Math.PI*0.3;
-		var oLineHeight = 3;
-		var oLine1 = document.createElement("div");
-		oLine1.style.position = "absolute";
-		oLine1.style.left = (21*iScreenScale) +"px";
-		oLine1.style.top = Math.round((25.35-oLineHeight)*iScreenScale) +"px";
-		oLine1.style.width = Math.round(0.5*iScreenScale) +"px";
-		oLine1.style.height = Math.round(oLineHeight/Math.cos(oLineAngle)*iScreenScale) +"px";
-		oLine1.style.backgroundColor = "#99C";
-		oLine1.style.transform = oLine1.style.WebkitTransform = oLine1.style.MozTransform = "rotate("+Math.round(-oLineAngle*180/Math.PI)+"deg)";
-		oLine1.style.transformOrigin = oLine1.style.WebkitTransformOrigin = oLine1.style.MozTransformOrigin = "bottom center";
-		oDivHelp.appendChild(oLine1);
-
-		var oLine2 = document.createElement("div");
-		oLine2.style.position = "absolute";
-		oLine2.style.left = (21*iScreenScale) +"px";
-		oLine2.style.top = Math.round((24.3+oLineHeight)*iScreenScale) +"px";
-		oLine2.style.width = Math.round(9*iScreenScale) +"px";
-		oLine2.style.height = Math.round(0.4*iScreenScale) +"px";
-		oLine2.style.backgroundColor = "#99C";
-		oDivHelp.appendChild(oLine2);
-
-		var oNext = document.createElement("input");
-		oNext.type = "button";
-		oNext.style.position = "absolute";
-		oNext.style.left = (iScreenScale*8) +"px";
-		oNext.style.bottom = (iScreenScale*5) +"px";
-		oNext.style.fontSize = (iScreenScale*3) +"px";
-		oNext.value = "Ok \u2192";
-		oNext.onclick = function() {
-			while (oDivHelp.childNodes.length)
-				oDivHelp.removeChild(oDivHelp.firstChild);
-
-			var oLine1 = document.createElement("div");
-			oLine1.style.position = "absolute";
-			oLine1.style.left = (29*iScreenScale) +"px";
-			oLine1.style.top = (12*iScreenScale) +"px";
-			oLine1.style.width = Math.round(0.5*iScreenScale) +"px";
-			oLine1.style.height = (3*iScreenScale) +"px";
-			oLine1.style.backgroundColor = "#99C";
-			oDivHelp.appendChild(oLine1);
-
-			var oLine2 = document.createElement("div");
-			oLine2.style.position = "absolute";
-			oLine2.style.left = (41*iScreenScale) +"px";
-			oLine2.style.top = (17*iScreenScale) +"px";
-			oLine2.style.width = Math.round(0.5*iScreenScale) +"px";
-			oLine2.style.height = (3*iScreenScale) +"px";
-			oLine2.style.backgroundColor = "#99C";
-			oDivHelp.appendChild(oLine2);
-
-			var oLine3 = document.createElement("div");
-			oLine3.style.position = "absolute";
-			oLine3.style.left = (53*iScreenScale) +"px";
-			oLine3.style.top = (12*iScreenScale) +"px";
-			oLine3.style.width = Math.round(0.5*iScreenScale) +"px";
-			oLine3.style.height = (3*iScreenScale) +"px";
-			oLine3.style.backgroundColor = "#99C";
-			oDivHelp.appendChild(oLine3);
-
-			var oLine4 = document.createElement("div");
-			oLine4.style.position = "absolute";
-			oLine4.style.left = (68*iScreenScale) +"px";
-			oLine4.style.top = (17*iScreenScale) +"px";
-			oLine4.style.width = Math.round(0.5*iScreenScale) +"px";
-			oLine4.style.height = (3*iScreenScale) +"px";
-			oLine4.style.backgroundColor = "#99C";
-			oDivHelp.appendChild(oLine4);
-
-			var oPInput = document.createElement("input");
-			oPInput.type = "button";
-			oPInput.value = "Circuit";
-			oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-			oPInput.style.position = "absolute";
-			oPInput.style.left = (24*iScreenScale)+"px";
-			oPInput.style.top = (14*iScreenScale)+"px";
-			oPInput.style.width = (10*iScreenScale)+"px";
-			oPInput.style.backgroundColor = "#372F1A";
-			oPInput.style.color = "#F6DA14";
-			oDivHelp.appendChild(oPInput);
-
-			var oPInput = document.createElement("input");
-			oPInput.type = "button";
-			oPInput.value = toLanguage("Arena", "Arène");
-			oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-			oPInput.style.position = "absolute";
-			oPInput.style.left = (36*iScreenScale)+"px";
-			oPInput.style.top = (14*iScreenScale)+"px";
-			oPInput.style.width = (10*iScreenScale)+"px";
-			oPInput.style.backgroundColor = "#372F1A";
-			oPInput.style.color = "#F6DA14";
-			oDivHelp.appendChild(oPInput);
-
-			var oPInput = document.createElement("input");
-			oPInput.type = "button";
-			oPInput.value = toLanguage("Cup", "Coupe");
-			oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-			oPInput.style.position = "absolute";
-			oPInput.style.left = (48*iScreenScale)+"px";
-			oPInput.style.top = (14*iScreenScale)+"px";
-			oPInput.style.width = (10*iScreenScale)+"px";
-			oPInput.style.backgroundColor = "#372F1A";
-			oPInput.style.color = "#F6DA14";
-			oDivHelp.appendChild(oPInput);
-
-			var oPInput = document.createElement("input");
-			oPInput.type = "button";
-			oPInput.value = toLanguage("Multi Cup", "Multicoupe");
-			oPInput.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-			oPInput.style.position = "absolute";
-			oPInput.style.left = (60*iScreenScale)+"px";
-			oPInput.style.top = (14*iScreenScale)+"px";
-			oPInput.style.width = (16*iScreenScale)+"px";
-			oPInput.style.backgroundColor = "#372F1A";
-			oPInput.style.color = "#F6DA14";
-			oDivHelp.appendChild(oPInput);
-
-			var oMask = document.createElement("div");
-			oMask.style.position = "absolute";
-			oMask.style.left = (24*iScreenScale)+"px";
-			oMask.style.top = (14*iScreenScale)+"px";
-			oMask.style.width = (52*iScreenScale)+"px";
-			oMask.style.height = (4*iScreenScale)+"px";
-			oDivHelp.appendChild(oMask);
-
-			var oDiv1 = document.createElement("div");
-			oDiv1.style.position = "absolute";
-			oDiv1.style.left = (12*iScreenScale)+"px";
-			oDiv1.style.bottom = ((iHeight-12)*iScreenScale)+"px";
-			oDiv1.style.width = (20*iScreenScale)+"px";
-			oDiv1.style.padding = Math.round(0.5*iScreenScale) +"px " + iScreenScale +"px";
-			oDiv1.style.backgroundColor = "#CCC";
-			oDiv1.style.color = "#333";
-			oDiv1.style.fontSize = (iScreenScale*2) +"px";
-			if (language)
-				oDiv1.innerHTML = '<strong>Circuit:</strong> Create a track and play against your opponents in <strong style="color:#393">VS mode</strong>';
-			else
-				oDiv1.innerHTML = '<strong>Circuit :</strong> Créez une piste et affrontez vos adversaires en <strong style="color:#393">course VS</strong>';
-			oDivHelp.appendChild(oDiv1);
-
-			var oDiv2 = document.createElement("div");
-			oDiv2.style.position = "absolute";
-			oDiv2.style.left = (28*iScreenScale)+"px";
-			oDiv2.style.top = (20*iScreenScale)+"px";
-			oDiv2.style.width = (20*iScreenScale)+"px";
-			oDiv2.style.padding = Math.round(0.5*iScreenScale) +"px " + iScreenScale +"px";
-			oDiv2.style.backgroundColor = "#CCC";
-			oDiv2.style.color = "#333";
-			oDiv2.style.fontSize = (iScreenScale*2) +"px";
-			if (language)
-				oDiv2.innerHTML = '<strong>Arena:</strong> Create a battle course and play in mode <strong style="color:#393">Balloon battle</strong>';
-			else
-				oDiv2.innerHTML = '<strong>Arène :</strong> Créez une zone de combat et jouez en mode <strong style="color:#393">bataille de ballons</strong>';
-			oDivHelp.appendChild(oDiv2);
-
-			var oDiv3 = document.createElement("div");
-			oDiv3.style.position = "absolute";
-			oDiv3.style.left = (44*iScreenScale)+"px";
-			oDiv3.style.bottom = ((iHeight-12)*iScreenScale)+"px";
-			oDiv3.style.width = (20*iScreenScale)+"px";
-			oDiv3.style.padding = Math.round(0.5*iScreenScale) +"px " + iScreenScale +"px";
-			oDiv3.style.backgroundColor = "#CCC";
-			oDiv3.style.color = "#333";
-			oDiv3.style.fontSize = (iScreenScale*2) +"px";
-			if (language)
-				oDiv3.innerHTML = '<strong>Cup:</strong> Create a <strong style="color:#393">Grand Prix</strong> cup from 4 of your circuits';
-			else
-				oDiv3.innerHTML = '<strong>Coupe :</strong> Créer une coupe <strong style="color:#393">Grand Prix</strong> à partir de 4 de vos circuits';
-			oDivHelp.appendChild(oDiv3);
-
-			var oDiv4 = document.createElement("div");
-			oDiv4.style.position = "absolute";
-			oDiv4.style.left = (58*iScreenScale)+"px";
-			oDiv4.style.top = (20*iScreenScale)+"px";
-			oDiv4.style.width = (20*iScreenScale)+"px";
-			oDiv4.style.padding = Math.round(0.5*iScreenScale) +"px " + iScreenScale +"px";
-			oDiv4.style.backgroundColor = "#CCC";
-			oDiv4.style.color = "#333";
-			oDiv4.style.fontSize = (iScreenScale*2) +"px";
-			if (language)
-				oDiv4.innerHTML = '<strong>Multicup:</strong> Merge <strong style="color:#393">several cups</strong> in a same page to form a series!';
-			else
-				oDiv4.innerHTML = '<strong>Multicoupe :</strong> Réunissez <strong style="color:#393">plusieurs coupes</strong> sur une seule page pour former une série !';
-			oDivHelp.appendChild(oDiv4);
-
-			var oNext = document.createElement("input");
-			oNext.type = "button";
-			oNext.style.position = "absolute";
-			oNext.style.left = (iScreenScale*8) +"px";
-			oNext.style.bottom = (iScreenScale*5) +"px";
-			oNext.style.fontSize = (iScreenScale*3) +"px";
-			oNext.value = "Ok \u2713";
-			oNext.onclick = function() {
-				oScr.removeChild(oDivHelp);
-			};
-
-			oDivHelp.appendChild(oNext);
-		};
-		oDivHelp.appendChild(oNext);
-
-		oScr.appendChild(oDivHelp);
-
-		return false;
+	var oModesDiv = document.createElement("div");
+	oModesDiv.style.position = "absolute";
+	oModesDiv.style.left = (iScreenScale*4) +"px";
+	oModesDiv.style.top = (iScreenScale*9) +"px";
+	oModesDiv.style.width = (iScreenScale*72) +"px";
+	for (let i=0;i<oModes.length;i++) {
+		var oMode = oModes[i];
+		var oDiv = document.createElement("div");
+		oDiv.innerHTML = 
+			'<img src="images/'+oMode.thumbnail+'" alt="'+oMode.name+'" style="height: '+ (iScreenScale*10) +'px" />' +
+			'<div style="padding: '+ iScreenScale +'px '+ Math.round(iScreenScale*1.5) +'px">' +
+				'<h2 style="font-size: 1.5em; margin: 0">'+ oMode.name +'</h2>' +
+				'<div style="color: white">'+ oMode.description +'</div>' +
+			'</div>';
+		oDiv.style.display = "flex";
+		oDiv.style.direction = "column";
+		oDiv.style.alignItems = "center";
+		oDiv.style.width = "100%";
+		oDiv.style.fontSize = Math.round(iScreenScale*1.9) +"px";
+		oDiv.style.margin = Math.round(iScreenScale*1.5) +"px 0";
+		oDiv.className = "fakebtn";
+		oDiv.onclick = function() {
+			oScr.innerHTML = "";
+			oContainers[0].removeChild(oScr);
+			selectTrackCreate(i);
+		}
+		oModesDiv.appendChild(oDiv);
 	}
-	oScr.appendChild(oLink);
+	oScr.appendChild(oModesDiv);
 	
 	var oLink = document.createElement("a");
 	oLink.style.color = "#CCF";
 	oLink.style.fontSize = Math.round(2.5*iScreenScale)+"px";
 	oLink.style.position = "absolute";
-	oLink.style.left = (34*iScreenScale)+"px";
-	oLink.style.top = Math.round(29.5*iScreenScale)+"px";
+	oLink.style.left = (toLanguage(30,29)*iScreenScale)+"px";
+	oLink.style.top = (35*iScreenScale)+"px";
 	oLink.href = "creations.php";
+	oLink.onclick = function() {};
 	oLink.innerHTML = toLanguage("List of creations", "Liste des créations");
 	oScr.appendChild(oLink);
 
@@ -20600,6 +20199,119 @@ function selectTypeCreate() {
 	}
 
 	oScr.appendChild(oPInput);
+
+	updateMenuMusic(0);
+}
+
+function selectTrackCreate(i) {
+	var oScr = document.createElement("div");
+	var oStyle = oScr.style;
+
+	oStyle.width = (iWidth*iScreenScale)+"px";
+	oStyle.height = (iHeight*iScreenScale)+"px";
+	oStyle.border = "solid 1px black";
+	oStyle.backgroundColor = "black";
+
+	var oTitle = toTitle(
+		i ? toLanguage("Complete track builder", "Éditeur complet")
+		  : toLanguage("Quick track builder", "Éditeur simplifié"),
+		0
+	);
+	oTitle.style.fontSize = Math.round(7*iScreenScale)+"px";
+	oScr.appendChild(oTitle);
+
+	var oModes = [{
+		name: toLanguage("Circuit", "Circuit"),
+		url: i ? "draw.php" : "create.php",
+		thumbnail: "help/build-circuit.png"
+	}, {
+		name: toLanguage("Cup - Circuits", "Coupe - Circuits"),
+		url: i ? "completecup.php" : "simplecup.php",
+		thumbnail: "help/build-cup-circuit.png"
+	}, {
+		name: toLanguage("Multicup - Circuits", "Multicoupe - Circuits"),
+		url: i ? "completecups.php" : "simplecups.php",
+		thumbnail: "help/build-multicup-circuit.png"
+	}, {
+		name: toLanguage("Arena", "Arène"),
+		url: i ? "course.php" : "arene.php",
+		thumbnail: "help/build-arena.png"
+	}, {
+		name: toLanguage("Cup - Arenas", "Coupe - Arènes"),
+		url: i ? "completecup.php?battle" : "simplecup.php?battle",
+		thumbnail: "help/build-cup-arena.png"
+	}, {
+		name: toLanguage("Multicup - Arenas", "Multicoupe - Arènes"),
+		url: i ? "completecups.php?battle" : "simplecups.php?battle",
+		thumbnail: "help/build-multicup-arena.png"
+	}];
+	var oModesDiv = document.createElement("div");
+	oModesDiv.style.display = "grid";
+	oModesDiv.style.position = "absolute";
+	oModesDiv.style.left = (iScreenScale*14) +"px";
+	oModesDiv.style.top = (iScreenScale*9) +"px";
+	oModesDiv.style.width = (iScreenScale*60) +"px";
+	oModesDiv.style.display = "grid";
+	oModesDiv.style.gridTemplateColumns = (iScreenScale*14) +"px "+ (iScreenScale*18) +"px "+ (iScreenScale*20) +"px";
+	oModesDiv.style.columnGap = (iScreenScale*2) +"px";
+	oModesDiv.style.fontSize = (iScreenScale*2) +"px";
+	oModesDiv.style.textAlign = "center";
+	oModesDiv.style.backgroundColor = "#000C";
+	oModesDiv.style.paddingBottom = "1px";
+	oModesDiv.style.zIndex = 1;
+	for (var i=0;i<oModes.length;i++) {
+		var oMode = oModes[i];
+		var oDiv = document.createElement("a");
+		oDiv.href = oMode.url;
+		oDiv.onclick = function() {};
+		oDiv.style.display = "block";
+		oDiv.style.paddingTop = Math.round(iScreenScale/2) +"px";
+		oDiv.style.paddingBottom = Math.round(iScreenScale/4) +"px";
+		oDiv.style.marginBottom = Math.round(iScreenScale/4) +"px";
+		oDiv.style.color = "#EEE";
+		oDiv.style.textDecoration = "none";
+		oDiv.style.borderRadius = Math.round(iScreenScale/2) +"px";
+		oDiv.innerHTML = 
+			'<img src="images/'+ oMode.thumbnail +'" style="width: '+ (iScreenScale*10) +'px; height: '+ (iScreenScale*9) +'px" alt="'+ oMode.name +'" />'+
+			'<div style="margin-top: '+ Math.round(iScreenScale/2) +'px">'+ oMode.name +'</div>';
+		oDiv.onmouseover = function() {
+			this.style.backgroundColor = "rgb(38 85 177)";
+		};
+		oDiv.onmouseout = function() {
+			this.style.backgroundColor = "";
+		};
+		oDiv.style.cursor = "pointer";
+		oModesDiv.appendChild(oDiv);
+	}
+	oScr.appendChild(oModesDiv);
+	
+	var oLink = document.createElement("a");
+	oLink.style.color = "#CCF";
+	oLink.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+	oLink.style.position = "absolute";
+	oLink.style.left = (toLanguage(30,29)*iScreenScale)+"px";
+	oLink.style.top = (36*iScreenScale)+"px";
+	oLink.href = "creations.php";
+	oLink.onclick = function() {};
+	oLink.innerHTML = toLanguage("List of creations", "Liste des créations");
+	oScr.appendChild(oLink);
+
+	oContainers[0].appendChild(oScr);
+	var oPInput = document.createElement("input");
+	oPInput.type = "button";
+	oPInput.value = toLanguage("Back", "Retour");
+	oPInput.style.fontSize = (2*iScreenScale)+"px";
+	oPInput.style.position = "absolute";
+	oPInput.style.left = (2*iScreenScale)+"px";
+	oPInput.style.top = (36*iScreenScale)+"px";
+	oPInput.onclick = function() {
+		oScr.innerHTML = "";
+		oContainers[0].removeChild(oScr);
+		selectTypeCreate();
+	}
+	oScr.appendChild(oPInput);
+
+	oContainers[0].appendChild(oScr);
 
 	updateMenuMusic(0);
 }
@@ -21058,6 +20770,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				eClassement.style.color = "white";
 				eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
 			}
+			eClassement.onclick = function() {};
 			oScr.appendChild(eClassement);
 
 			if (shareLink.key) {
@@ -21171,6 +20884,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		$spectatorModeHelp.onclick = function() {
 			return false;
 		}
+		$spectatorModeHelp.dataset.noselect = "1";
 		$spectatorModeCtn.appendChild($spectatorModeHelp);
 
 		addFancyTitle({
@@ -22915,14 +22629,7 @@ function selectTeamScreen(IdJ) {
 	updateMenuMusic(1);
 }
 function selectTrackScreen() {
-	if (course != "BB")
-		selectMapScreen();
-	else {
-		if (page == "MK")
-			selectMapScreen();
-		else
-			selectRaceScreen(0);
-	}
+	selectMapScreen();
 }
 function selectGamersScreen() {	
 	if (!isOnline && isTeamPlay())
@@ -23292,7 +22999,7 @@ function selectChallengesScreen() {
 							trackType = toLanguage("Cup", "Coupe");
 							break;
 						case "track":
-							trackType = toLanguage("Track", "Circuit");
+							trackType = isBattle ? toLanguage("Arena", "Arène") : toLanguage("Track", "Circuit");
 							break;
 					}
 					oH1.innerHTML = trackType + ' <span style="color:#FDB">'+ creationChallenges.name +'</span>';
@@ -23923,6 +23630,7 @@ function searchCourse(opts) {
 	$spectatorModeHelp.onclick = function() {
 		return false;
 	}
+	$spectatorModeHelp.dataset.noselect = "1";
 	$spectatorModeCtn.appendChild($spectatorModeHelp);
 
 	addFancyTitle({
@@ -24030,8 +23738,12 @@ function chooseRandMap() {
 	}
 	else if (isSingle)
 		choose(1);
-	else if (isBattle)
-		chooseWithin(NBCIRCUITS, 12);
+	else if (isBattle) {
+		if (isCup)
+			chooseWithin(0, aAvailableMaps.length);
+		else
+			chooseWithin(NBCIRCUITS, 12);
+	}
 	else
 		chooseWithin(0, NBCIRCUITS);
 }
@@ -24060,7 +23772,7 @@ function selectMapScreen(opts) {
 		if (opts.racecountdown != null)
 			document.getElementById("racecountdown").innerHTML = opts.racecountdown;
 	}
-	if ((isCup&&!isMCups) || (isBattle&&isCup)) {
+	if ((isCup&&!isMCups)) {
 		selectRaceScreen(0);
 		return;
 	}
@@ -24177,12 +23889,15 @@ function selectMapScreen(opts) {
 		}
 
 		var coupes = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
-		var nbcoupes = NBCIRCUITS/4;
+		var nbcoupes;
 		var cups_per_line = 6;
 		if (course == "BB") {
-			coupes = ["snes","gba","ds"];
-			nbcoupes = 3;
+			nbcoupes = (aAvailableMaps.length-NBCIRCUITS)/4;
+			if (!isCup)
+				coupes = ["snes","gba","ds"];
 		}
+		else
+			nbcoupes = NBCIRCUITS/4;
 		var nb_lines = Math.ceil(nbcoupes/cups_per_line);
 		var nbCupInPage = nbcoupes;
 		var beginPage = 0, endPage = nb_lines;
@@ -24224,7 +23939,7 @@ function selectMapScreen(opts) {
 		var cup_width = Math.min(Math.round(10.5/Math.pow(Math.max(nbCupInPage/5,nb_lines,0.5),0.6)),16/nb_lines,60/max_cups_per_line);
 		var cup_margin_x = Math.min(4,20/max_cups_per_line), cup_margin_y = (4/nb_lines);
 		var cup_offset_x = 1, cup_offset_y = 38;
-		if (course == "BB") {
+		if (!isCup && (course == "BB")) {
 			cup_width = Math.round(cup_width*1.5);
 			cup_margin_x = Math.round(cup_margin_x*2);
 			cup_offset_y -= 3;
@@ -24337,7 +24052,7 @@ function selectMapScreen(opts) {
 				selectRaceScreen(this.alt*4);
 			}
 
-			if (course == "BB") {
+			if (!isCup && (course == "BB")) {
 				var labels = [toLanguage("SNES Stages", "Arènes SNES"), toLanguage("GBA Stages", "Arènes GBA"), toLanguage("DS Stages", "Arènes DS")];
 				var oLabel = document.createElement("div");
 				oLabel.style.position = "absolute"
@@ -24603,7 +24318,7 @@ function selectRaceScreen(cup) {
 					else
 						selectMapScreen({force:true,cup:cup});
 				}
-				else if (!isCup)
+				else if (!isCup || isMCups)
 					selectMapScreen({force:true,cup:cup});
 				else if (!pause) selectGamersScreen();
 				else {removeMenuMusic(false);quitter();}
@@ -24654,8 +24369,8 @@ function selectRaceScreen(cup) {
 				mLink.style.padding = "4px";
 				mLink.style.borderRadius = "50%";
 				var iMap = oMaps[aAvailableMaps[i]];
-				mLink.href = (page=="MA") ? "?i="+iMap.map : "?id="+iMap.id;
-				mLink.title = toLanguage("Link to this circuit", "Lien vers ce circuit");
+				mLink.href = complete ? "?i="+iMap.map : "?id="+iMap.id;
+				mLink.title = toLanguage("Link to this " + (isBattle ? "arena":"circuit"), "Lien vers " + (isBattle ? "cette arène":"ce circuit"));
 				mLink.onclick = function(e) {
 					e.stopPropagation();
 				}
@@ -24665,6 +24380,7 @@ function selectRaceScreen(cup) {
 				mLink.onmouseout = function() {
 					this.style.backgroundColor = "rgba(0,50,128, 0.5)";
 				}
+				mLink.dataset.noselect = "1";
 				var iLink = document.createElement("img");
 				iLink.src = "images/clink.png";
 				iLink.style.width = (2*iScreenScale) +"px";
@@ -28062,15 +27778,7 @@ if (pause) {
 		choose(1);
 	else if (fInfos.map != undefined)
 		loadMap();
-	else if (course == "VS")
-		selectMapScreen();
-	else if (course == "BB") {
-		if (isCup)
-			selectRaceScreen(NBCIRCUITS);
-		else
-			selectMapScreen();
-	}
-	else if (fInfos.player)
+	else
 		selectMapScreen();
 }
 else {

@@ -231,7 +231,8 @@ for($i=0;$i<16;$i++)
 	echo '<img class="cPiece" src="images/pieces/piececircuit'.$map.'_'.$i.'.png" alt="Piece '.$i.'" onmouseover="apercu('.$i.')" onmouseout="disappear()" onclick="appliquer('.$i.')" />'.(($i+1)%4 ? ' ' : '<br />');
 ?>
 </p>
-<a href="create.php"><?php echo $language ? 'Create a VS circuit':'Cr&eacute;er un circuit VS'; ?></a><br />
-<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
+<a href="create.php"><?php echo $language ? 'Create a VS track':'Créer un circuit VS'; ?></a><br />
+<a href="course.php"><?php echo $language ? 'Create arena in complete mode':'Créer arène en mode complet'; ?></a><br />
+<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a></p>
 </body>
 </html>

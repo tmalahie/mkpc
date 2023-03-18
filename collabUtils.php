@@ -27,6 +27,7 @@ function collabPayload(&$collab) {
     );
 }
 
+require_once('utils-cups.php');
 function getCollabUrlPrefix(&$collab) {
     $creationId = $collab['creation_id'];
     switch ($collab['type']) {
@@ -39,10 +40,10 @@ function getCollabUrlPrefix(&$collab) {
         return 'battle.php?i='. $creationId;
     case 'mkcups':
         $circuit = mysql_fetch_array(mysql_query('SELECT mode FROM `mkcups` WHERE id="'. $creationId .'"'));
-        return (empty($circuit['mode']) ? 'circuit':'map') .'.php?cid='. $creationId;
+        return getCupPage($circuit['mode']) .'.php?cid='. $creationId;
     case 'mkmcups':
         $circuit = mysql_fetch_array(mysql_query('SELECT mode FROM `mkmcups` WHERE id="'. $creationId .'"'));
-        return (empty($circuit['mode']) ? 'circuit':'map') .'.php?mid='. $creationId;
+        return getCupPage($circuit['mode']) .'.php?mid='. $creationId;
     case 'mkchars':
         return 'editPerso.php?id='. $creationId;
     case 'mkdecors':

@@ -10,7 +10,26 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		exit;
 	}
 	$save = true;
-	$table = ($mode ? 'circuits':'mkcircuits');
+	$andWhere = '';
+	switch ($mode) {
+	case 0:
+		$table = 'mkcircuits';
+		$andWhere = ' AND !type';
+		break;
+	case 1:
+		$table = 'circuits';
+		break;
+	case 2:
+		$table = 'mkcircuits';
+		$andWhere = ' AND type';
+		break;
+	case 3:
+		$table = 'arenes';
+		break;
+	default:
+		mysql_close();
+		exit;
+	}
 	$currentCup = null;
 	require_once('collabUtils.php');
 	if (isset($_POST['id'])) {
@@ -27,7 +46,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 			$requireOwner = false;
 		else
 			$requireOwner = !hasCollabGrants($table, $cId, $_POST['collabs'][$cId], 'use');
-		if (!mysql_numrows(mysql_query('SELECT * FROM `'. $table .'` WHERE id="'. $cId .'"'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : ''). ($mode ? '':' AND !type')))) {
+		if (!mysql_numrows(mysql_query('SELECT * FROM `'. $table .'` WHERE id="'. $cId .'"'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : ''). $andWhere))) {
 			$save = false;
 			break;
 		}
