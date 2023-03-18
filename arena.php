@@ -522,7 +522,7 @@ elseif ($canChange) {
 	if ($canShare) {
 		?>
 	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
-	if (isset($_GET[$sid]))
+	if ($nid)
 		echo $language ? 'Edit sharing':'Modifier partage';
 	else
 		echo $language ? "Share $typeStr":"Partager $typeStr";
