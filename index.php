@@ -514,9 +514,9 @@ $slidesPath = 'images/slides';
 						<h3>
 							<?php
 								if ($name) {
-									printf(_("In <strong>%s</strong> by <strong>%s</strong>"), $news['catname'], $name['nom']);
+									printf(P_("Categories", "In <strong>%s</strong> by <strong>%s</strong>"), $news['catname'], $name['nom']);
 								} else {
-									printf(_("In <strong>%s</strong>"), $name['nom']);
+									printf(P_("Categories", "In <strong>%s</strong>"), $name['nom']);
 								}
 							?>
 							<?= pretty_dates_short($news['publication_date'],array('lower'=>true)); ?>
