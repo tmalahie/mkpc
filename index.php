@@ -535,12 +535,13 @@ $slidesPath = 'images/slides';
 			<?php
 			if (hasRight('publisher')) {
 				$getPendingNews = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mknews WHERE status="pending"'));
-				if ($getPendingNews['nb'])
+				if ($getPendingNews['nb']) {
 					?>
 					<p class="nb-pending-news">
 						<?= F_('<a href="{url}">{count} pending</a> news', count: $getPendingNews['nb'], url: 'listNews.php#pending-news') ?>
 					</p>
-				<?php
+					<?php
+				}
 			}
 			?>
 			<a class="right_section_actions action_button" href="listNews.php"><?= _('All news') ?></a>
