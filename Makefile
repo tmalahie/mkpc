@@ -19,7 +19,7 @@ all: po/fr_FR/LC_MESSAGES/mkpc.mo msgcheck server-restart
 
 # PO template file, from which all PO files are built
 po/mkpc.pot: $(PHP_SOURCES) Makefile
-	xgettext $(GETTEXT_KEYWORDS) -c -o po/mkpc.pot $(PHP_SOURCES)
+	xgettext $(GETTEXT_KEYWORDS) --add-location=file -c -o po/mkpc.pot $(PHP_SOURCES)
 
 # PO file, one per locale.
 # Ensure that PO file is always updated by this step.

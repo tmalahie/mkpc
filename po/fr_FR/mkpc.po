@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-19 18:31+0100\n"
+"POT-Creation-Date: 2023-03-19 18:44+0100\n"
 "PO-Revision-Date: 2023-03-16 21:47+0100\n"
 "Last-Translator: ano@nymous.com\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -18,20 +18,20 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Poedit 3.2.2\n"
 
-#: index.php:15
+#: index.php
 msgctxt "html language"
 msgid "en"
 msgstr "fr"
 
-#: index.php:50
+#: index.php
 msgid "A Mario Kart Game for browser"
 msgstr "Un jeu de Mario Kart sur navigateur"
 
-#: index.php:52
+#: index.php
 msgid "A computer version of the famous racing game by Nintendo."
 msgstr "Une version ordi du célèbre jeu de course de Nintendo."
 
-#: index.php:53
+#: index.php
 msgid ""
 "This game is <strong>completely free</strong> and does not require "
 "<strong>any downloads</strong>. All you need is a web browser!"
@@ -39,15 +39,15 @@ msgstr ""
 "Ce jeu est <strong>entièrement gratuit</strong> et ne requiert <strong>aucun "
 "téléchargement</strong>, un simple navigateur internet suffit !"
 
-#: index.php:68
+#: index.php
 msgid "Crazy races full of fun!"
 msgstr "Des courses acharnées et pleines de fun !"
 
-#: index.php:70
+#: index.php
 msgid "Try to be the fastest while avoiding items!"
 msgstr "Tentez d'être le plus rapide tout en évitant les objets !"
 
-#: index.php:72
+#: index.php
 msgid ""
 "Race on all the <strong>56 tracks</strong> from the original games "
 "<strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> "
@@ -57,11 +57,11 @@ msgstr ""
 "original <strong>Super Mario Kart</strong>, <strong>Mario Kart Super "
 "Circuit</strong> et <strong>Mario Kart DS</strong>."
 
-#: index.php:87
+#: index.php
 msgid "Win all the cups!"
 msgstr "Remportez tous les grand prix !"
 
-#: index.php:89
+#: index.php
 msgid ""
 "Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and "
 "try to win the gold trophy!"
@@ -69,17 +69,17 @@ msgstr ""
 "Affrontez les ordis sur les <strong>14 grand prix</strong> et tentez de "
 "gagner la coupe en or !"
 
-#: index.php:91
+#: index.php
 msgid "Win enough cups to unlock the <strong>15 secret characters</strong>!"
 msgstr ""
 "Remportez suffisament de coupes pour débloquer les <strong>15 persos "
 "secrets</strong> !"
 
-#: index.php:106
+#: index.php
 msgid "Create your own tracks!"
 msgstr "Créez vos propres circuits !"
 
-#: index.php:108
+#: index.php
 msgid ""
 "With the <strong>track builder</strong>, the possibilities are endless; the "
 "only limit is your imagination!"
@@ -87,23 +87,23 @@ msgstr ""
 "Avec l'<strong>éditeur de circuits</strong> et d'arènes, les possibilités "
 "sont infinies  ; votre imagination est la seule limite !"
 
-#: index.php:110
+#: index.php
 msgid ""
 "You can <strong>share</strong> your tracks or try other people's creations!"
 msgstr ""
 "Essayez les créations des autres grâce à l'<strong>outil de partage intégré</"
 "strong>!"
 
-#: index.php:125
+#: index.php
 msgid "Face players from around the world!"
 msgstr "Affrontez les joueurs du monde entier !"
 
-#: index.php:127
+#: index.php
 msgid "Race and battle in <strong>online mode</strong>!"
 msgstr ""
 "Battez-vous contre d'autres joueurs avec le <strong>mode en ligne</strong> !"
 
-#: index.php:129
+#: index.php
 msgid ""
 "Win as many races as possible and <strong>climb in the official ranking</"
 "strong>!"
@@ -111,15 +111,15 @@ msgstr ""
 "Remportez un maximum de course afin de <strong>grimper dans le classement</"
 "strong> officiel !"
 
-#: index.php:144
+#: index.php
 msgid "Make the best scores in time trial!"
 msgstr "Réalisez les meilleurs temps en contre-la-montre !"
 
-#: index.php:146
+#: index.php
 msgid "<strong>Finish the race track</strong> as fast as you can!"
 msgstr "<strong>Bouclez les 3 tours</strong> le plus rapidement possible !"
 
-#: index.php:148
+#: index.php
 msgid ""
 "<strong>Compare your scores</strong> with the community, and face other "
 "players' ghosts!"
@@ -127,11 +127,11 @@ msgstr ""
 "<strong>Comparez votre score</strong> avec la communauté, et affrontez les "
 "fantômes des autres joueurs !"
 
-#: index.php:163
+#: index.php
 msgid "Release your fighter talents!"
 msgstr "Montrez vos talents de combattant !"
 
-#: index.php:165
+#: index.php
 msgid ""
 "<strong>Destroy your opponents</strong>' balloons with items, without "
 "getting hit by their items!"
@@ -139,38 +139,38 @@ msgstr ""
 "<strong>Détruisez les ballons</strong> de votre adversaire en évitant de "
 "vous faire toucher !"
 
-#: index.php:167
+#: index.php
 msgid "The last player standing wins!"
 msgstr "Soyez le dernier survivant pour remporter la partie !"
 
-#: index.php:182
+#: index.php
 msgid "Face off your friends with the local multiplayer mode!"
 msgstr "Affrontez vos amis grâce au mode multijoueur !"
 
-#: index.php:184
+#: index.php
 msgid "Prove your friends that you're the best!"
 msgstr "Montrez à vos amis que vous êtes le meilleur !"
 
-#: index.php:186
+#: index.php
 msgid ""
 "Face them in <strong>multiplayer</strong> in VS races or in battle mode."
 msgstr ""
 "Affrontez-les en <strong>multijoueur</strong> en course VS ou sur les "
 "batailles de ballons."
 
-#: index.php:203 index.php:205
+#: index.php
 msgid "Click on the game box to begin"
 msgstr "Cliquez sur la boîte du jeu pour commencer"
 
-#: index.php:204
+#: index.php
 msgid "Start game"
 msgstr "Accéder au jeu"
 
-#: index.php:206
+#: index.php
 msgid "What's Mario Kart PC?"
 msgstr "Mario Kart PC, c'est quoi ?"
 
-#: index.php:209
+#: index.php
 msgid ""
 "You might know Mario Kart, the most fun racing game series of all time! "
 "Mario Kart PC uses the same base as the original games but is playable on "
@@ -181,7 +181,7 @@ msgstr ""
 "original mais il est jouable sur navigateur, et <strong>gratuitement</"
 "strong>."
 
-#: index.php:212
+#: index.php
 msgid ""
 "Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle "
 "mode, Time Trials, and more!"
@@ -189,7 +189,7 @@ msgstr ""
 "La plupart des modes issus de Mario Kart ont été repris : Grand Prix, "
 "courses VS, batailles de ballons, contre-la-montre, et d'autres !"
 
-#: index.php:215
+#: index.php
 msgid ""
 "There's also a brand new mode: the <strong>track builder</strong>! Place "
 "straight lines and turns, add items, boost panels and more! Everything is "
@@ -200,7 +200,7 @@ msgstr ""
 "accélérateurs...Tout est personnalisable ! Votre imagination est la seule "
 "limite !"
 
-#: index.php:218
+#: index.php
 msgid ""
 "You can share your tracks, and try other people's tracks thanks to the <a "
 "href=\"{url}\">sharing tool</a>. Thousands of custom tracks are already "
@@ -210,7 +210,7 @@ msgstr ""
 "grâce à l'<a href=\"{url}\">outil de partage</a>. Plusieurs milliers de "
 "circuits ont déjà été partagés !"
 
-#: index.php:221
+#: index.php
 msgid ""
 "Finally, you can face players from the whole world thanks to the "
 "<strong>multiplayer online mode</strong>! Climb the <a "
@@ -220,11 +220,11 @@ msgstr ""
 "<strong>mode multijoueurs en ligne</strong> ! Grimpez dans le <a "
 "href=\"{url}\">classement</a> et devenez champion du monde !"
 
-#: index.php:224
+#: index.php
 msgid "Some screenshots"
 msgstr "Quelques screenshots"
 
-#: index.php:226
+#: index.php
 msgid ""
 "Here are some screenshots of the game to give you a quick preview of what it "
 "looks like:"
@@ -233,11 +233,11 @@ msgstr ""
 "d'écran issues du jeu afin que vous ayez un aperçu de ce à quoi ça "
 "ressemble :"
 
-#: index.php:253
+#: index.php
 msgid "Special thanks"
 msgstr "Remerciements"
 
-#: index.php:255
+#: index.php
 msgid ""
 "A big thanks to Nintendo, these three sites and these artists without which "
 "Mario Kart PC would have probably never existed !"
@@ -245,7 +245,7 @@ msgstr ""
 "Un grand merci à Nintendo, ces 3 sites et ces artistes sans lesquels Mario "
 "Kart PC n'aurait probablement jamais existé !"
 
-#: index.php:258
+#: index.php
 msgid ""
 "<a href=\"{url_main_site}\">Nihilogic</a> for the <a "
 "href=\"{url_mario_kart}\">basic Mario Kart</a>"
@@ -253,7 +253,7 @@ msgstr ""
 "<a href=\"{url_main_site}\">Nihilogic</a> pour le <a "
 "href=\"{url_mario_kart}\">Mario Kart de départ</a>"
 
-#: index.php:261
+#: index.php
 msgid ""
 "<a href=\"{url_main_site}\">SNESMaps</a> for the <a "
 "href=\"{url_mario_kart}\">track images</a>"
@@ -261,7 +261,7 @@ msgstr ""
 "<a href=\"{url_main_site}\">SNESMaps</a> pour les <a "
 "href=\"{url_mario_kart}\">images des circuits</a>"
 
-#: index.php:264
+#: index.php
 msgid ""
 "<a href=\"{url_main_site}\">Khinsider</a> for the <a "
 "href=\"{url_mario_kart}\">musics</a>"
@@ -269,15 +269,15 @@ msgstr ""
 "<a href=\"{url_main_site}\">Khinsider</a> pour les <a "
 "href=\"{url_mario_kart}\">musiques</a>"
 
-#: index.php:267
+#: index.php
 msgid "And <a href=\"{url}\">many more</a>!"
 msgstr "Et <a href=\"{url}\">bien d'autres</a> !"
 
-#: index.php:271
+#: index.php
 msgid "Follow us"
 msgstr "Nous suivre"
 
-#: index.php:275
+#: index.php
 msgid ""
 "<a href=\"{url}\">Discord Server</a> of the site: join it to chat with the "
 "community and be informed about updates and events."
@@ -285,7 +285,7 @@ msgstr ""
 "<a href=\"{url}\">Serveur Discord</a> du site : rejoignez-le pour discuter "
 "avec la communauté et être informé des mises à jours et événements."
 
-#: index.php:278
+#: index.php
 msgid ""
 "<a href=\"{url_youtube}\">Official Youtube Channel</a>: find videos on the "
 "game and information about the website and its events. The channel is "
@@ -297,7 +297,7 @@ msgstr ""
 "chaîne est alimentée par les membres, si vous voulez participez, parlez-en "
 "sur <a href=\"{url_topic}\">le topic officiel</a>."
 
-#: index.php:281
+#: index.php
 msgid ""
 "<a href=\"{url}\">Github repo</a> of the site. Follow here all the ongoing "
 "developments, and if you can code, don't hesitate to contribute to the "
@@ -307,7 +307,7 @@ msgstr ""
 "développements en cours, et si vous avez des connaissances en code, "
 "n'hésitez pas à venir contribuer !"
 
-#: index.php:284
+#: index.php
 msgid ""
 "<a href=\"{url_wiki}\">MKPC Wiki</a>: find out all the information about the "
 "game and its history. This site is maintained by the community, if you want "
@@ -318,7 +318,7 @@ msgstr ""
 "contribuer, parlez-en sur <a href=\"{url_topic}\">ce topic</a>&nbsp;!"
 
 # We want to hide this message in french
-#: index.php:289
+#: index.php
 msgid ""
 "This site is mostly maintained by French members, if you see some "
 "translation errors in the game or the site, don't hesitate to report them on "
@@ -327,11 +327,11 @@ msgstr ""
 "<span style=\"display: none\"><a href=\"{url_topic}\">Topic de traduction</"
 "a></span>"
 
-#: index.php:305
+#: index.php
 msgid "Go to the game"
 msgstr "Accéder au jeu"
 
-#: index.php:307
+#: index.php
 msgid ""
 "To start playing, it's very simple, just click on &quot;Play game&quot; in "
 "the menu above. Or more simply, click here:"
@@ -339,11 +339,11 @@ msgstr ""
 "Pour commencer à jouer, c'est très simple, cliquez sur &quot;Le jeu&quot; "
 "dans le menu en haut. Ou plus simplement, cliquez là:"
 
-#: index.php:308
+#: index.php
 msgid "Start playing now &gt;"
 msgstr "Commencer à jouer &gt;"
 
-#: index.php:389
+#: index.php
 msgid ""
 "You have received a warning for inappropriate behavior. Please <a href={url}"
 ">click here</a> to find it out."
@@ -351,232 +351,233 @@ msgstr ""
 "Vous avez reçu un avertissement pour comportement inapproprié. <a "
 "href=\"{url}\">Cliquez ici</a> pour en prendre connaissance."
 
-#: index.php:433
+#: index.php
 msgid "Last topics"
 msgstr "Derniers topics"
 
-#: index.php:463
+#: index.php
 msgid "Last message by <strong>{message}</strong>"
 msgstr "Dernier message par <strong>{message}</strong>"
 
-#: index.php:465
+#: index.php
 #, php-format
 msgid "Last message"
 msgstr "Dernier message"
 
-#: index.php:471
+#: index.php
 msgid "{count} message"
 msgid_plural "{count} messages"
 msgstr[0] "{count} message"
 msgstr[1] "{count} messages"
 
-#: index.php:479
+#: index.php
 msgid "Go to the forum"
 msgstr "Accéder au forum"
 
-#: index.php:485
+#: index.php
 msgid "Latest news"
 msgstr "Dernières news"
 
-#: index.php:517
+#: index.php
+#, php-format
 msgctxt "Categories"
 msgid "In <strong>%s</strong> by <strong>%s</strong>"
 msgstr "Dans <strong>%s</strong> pas <strong>%s</strong>"
 
-#: index.php:519
+#: index.php
+#, php-format
 msgctxt "Categories"
 msgid "In <strong>%s</strong>"
 msgstr "Par <strong>%s</strong>"
 
-#: index.php:524
+#: index.php
 msgid "{count} comment"
 msgid_plural "{count} comments"
 msgstr[0] "{count} message"
 msgstr[1] "{count} messages"
 
-#: index.php:532
+#: index.php
 msgid "No news yet"
 msgstr "Aucune news pour l'instant"
 
-#: index.php:541
+#: index.php
 msgid "<a href=\"{url}\">{count} pending</a> news"
 msgstr "<a href=\"{url}\">{count} news</a> en attente de validation"
 
-#: index.php:546
+#: index.php
 msgid "All news"
 msgstr "Toutes les news"
 
-#: index.php:555
+#: index.php
 msgid "Current bracket"
 msgstr "Classement actuel"
 
-#: index.php:559 index.php:1072
+#: index.php
 msgid "Rank"
 msgstr "Rang"
 
-#: index.php:560 index.php:942
+#: index.php
 msgid "Team"
 msgstr "Équipe"
 
-#: index.php:562
+#: index.php
 msgid "Wins - Ties - Losses"
 msgstr "Victoires - Nuls - Défaites"
 
-#: index.php:562
+#: index.php
 msgid "W-T-L"
 msgstr "V-N-D"
 
-#: index.php:563
+#: index.php
 msgid "Score difference"
 msgstr "Différence de score"
 
-#: index.php:563
+#: index.php
 msgid "Diff"
 msgstr "Diff"
 
-#: index.php:569
+#: index.php
 msgid "Eurasia"
 msgstr "Eurasie"
 
-#: index.php:578
+#: index.php
 msgid "France"
 msgstr "France"
 
-#: index.php:587
+#: index.php
 msgid "Americas"
 msgstr "Amériques"
 
-#: index.php:617
+#: index.php
 msgid "Tournament's Discord Server"
 msgstr "Serveur Discord du tournoi"
 
-#: index.php:624
+#: index.php
 msgid "Track builder"
 msgstr "Éditeur de circuit"
 
-#: index.php:626
+#: index.php
 msgid "Latest creations"
 msgstr "Dernières créations"
 
-#: index.php:631 index.php:933
+#: index.php
 msgid "Untitled"
 msgstr "Sans titre"
 
-#: index.php:636
+#: index.php
 msgid "By <strong>{author}</strong>"
 msgstr "Par <strong>{author}</strong>"
 
-#: index.php:696 index.php:730 index.php:1098 index.php:1099 index.php:1100
-#: index.php:1101
+#: index.php
 msgid "Display all"
 msgstr "Afficher tout"
 
-#: index.php:697
+#: index.php
 msgid "Last challenges"
 msgstr "Derniers défis"
 
-#: index.php:731
+#: index.php
 msgid "Challenge points - Leaderboard"
 msgstr "Classement des points défis"
 
-#: index.php:732
+#: index.php
 msgid "Recent activity"
 msgstr "Activité récente"
 
-#: index.php:744
+#: index.php
 msgctxt "language for ordinals"
 msgid "en"
 msgstr "fr"
 
-#: index.php:821
+#: index.php
 msgid "Online mode"
 msgstr "Mode en ligne"
 
-#: index.php:941
+#: index.php
 msgid "Mirror"
 msgstr "Miroir"
 
-#: index.php:943
+#: index.php
 msgid "Friendly"
 msgstr "Amical"
 
-#: index.php:952
+#: index.php
 msgid "Normal"
 msgstr "Normal"
 
-#: index.php:969
+#: index.php
 #, php-format
 msgid "%s member"
 msgid_plural "%s members"
 msgstr[0] "%s membre"
 msgstr[1] "%s membres"
 
-#: index.php:974
+#: index.php
 msgid "the arena"
 msgstr "l'arène"
 
-#: index.php:979
+#: index.php
 msgid "the multicup"
 msgstr "la multicoupe"
 
-#: index.php:981
+#: index.php
 msgid "the circuit"
 msgstr "le circuit"
 
-#: index.php:983
+#: index.php
 msgid "the cup"
 msgstr "la coupe"
 
-#: index.php:985
+#: index.php
 msgctxt "circuit"
 msgid "in "
 msgstr "sur "
 
-#: index.php:992
+#: index.php
 msgid " in {mode} mode"
 msgstr " en mode {mode}"
 
-#: index.php:1010
+#: index.php
 msgid "Join"
 msgstr "Rejoindre"
 
-#: index.php:1019 index.php:1027
+#: index.php
 msgid "Currently online:"
 msgstr "Actuellement en ligne :"
 
-#: index.php:1043
+#: index.php
 msgid "VS mode"
 msgstr "Course VS"
 
-#: index.php:1045
+#: index.php
 msgid "Battle"
 msgstr "Bataille"
 
-#: index.php:1048
+#: index.php
 msgid "Time Trial"
 msgstr "CLM"
 
-#: index.php:1073
+#: index.php
 msgid "Nick"
 msgstr "Pseudo"
 
-#: index.php:1074
+#: index.php
 msgid "Score"
 msgstr "Score"
 
-#: index.php:1115
+#: index.php
 msgid "Visitors since november 2017"
 msgstr "Visiteurs depuis novembre 2017"
 
-#: index.php:1116
+#: index.php
 msgid "Visitors"
 msgstr "Visiteurs"
 
-#: index.php:1117
+#: index.php
 msgid "Learn more"
 msgstr "En savoir plus"
 
-#: index.php:1162
+#: index.php
 msgid "Loading"
 msgstr "Chargement"
 
