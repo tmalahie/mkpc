@@ -1,0 +1,514 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-03-19 18:44+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: index.php
+msgctxt "html language"
+msgid "en"
+msgstr ""
+
+#: index.php
+msgid "A Mario Kart Game for browser"
+msgstr ""
+
+#: index.php
+msgid "A computer version of the famous racing game by Nintendo."
+msgstr ""
+
+#: index.php
+msgid ""
+"This game is <strong>completely free</strong> and does not require "
+"<strong>any downloads</strong>. All you need is a web browser!"
+msgstr ""
+
+#: index.php
+msgid "Crazy races full of fun!"
+msgstr ""
+
+#: index.php
+msgid "Try to be the fastest while avoiding items!"
+msgstr ""
+
+#: index.php
+msgid ""
+"Race on all the <strong>56 tracks</strong> from the original games "
+"<strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> "
+"and <strong>Mario Kart DS</strong>."
+msgstr ""
+
+#: index.php
+msgid "Win all the cups!"
+msgstr ""
+
+#: index.php
+msgid ""
+"Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and "
+"try to win the gold trophy!"
+msgstr ""
+
+#: index.php
+msgid "Win enough cups to unlock the <strong>15 secret characters</strong>!"
+msgstr ""
+
+#: index.php
+msgid "Create your own tracks!"
+msgstr ""
+
+#: index.php
+msgid ""
+"With the <strong>track builder</strong>, the possibilities are endless; the "
+"only limit is your imagination!"
+msgstr ""
+
+#: index.php
+msgid ""
+"You can <strong>share</strong> your tracks or try other people's creations!"
+msgstr ""
+
+#: index.php
+msgid "Face players from around the world!"
+msgstr ""
+
+#: index.php
+msgid "Race and battle in <strong>online mode</strong>!"
+msgstr ""
+
+#: index.php
+msgid ""
+"Win as many races as possible and <strong>climb in the official ranking</"
+"strong>!"
+msgstr ""
+
+#: index.php
+msgid "Make the best scores in time trial!"
+msgstr ""
+
+#: index.php
+msgid "<strong>Finish the race track</strong> as fast as you can!"
+msgstr ""
+
+#: index.php
+msgid ""
+"<strong>Compare your scores</strong> with the community, and face other "
+"players' ghosts!"
+msgstr ""
+
+#: index.php
+msgid "Release your fighter talents!"
+msgstr ""
+
+#: index.php
+msgid ""
+"<strong>Destroy your opponents</strong>' balloons with items, without "
+"getting hit by their items!"
+msgstr ""
+
+#: index.php
+msgid "The last player standing wins!"
+msgstr ""
+
+#: index.php
+msgid "Face off your friends with the local multiplayer mode!"
+msgstr ""
+
+#: index.php
+msgid "Prove your friends that you're the best!"
+msgstr ""
+
+#: index.php
+msgid ""
+"Face them in <strong>multiplayer</strong> in VS races or in battle mode."
+msgstr ""
+
+#: index.php
+msgid "Click on the game box to begin"
+msgstr ""
+
+#: index.php
+msgid "Start game"
+msgstr ""
+
+#: index.php
+msgid "What's Mario Kart PC?"
+msgstr ""
+
+#: index.php
+msgid ""
+"You might know Mario Kart, the most fun racing game series of all time! "
+"Mario Kart PC uses the same base as the original games but is playable on "
+"your browser, and <strong>for free</strong>."
+msgstr ""
+
+#: index.php
+msgid ""
+"Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle "
+"mode, Time Trials, and more!"
+msgstr ""
+
+#: index.php
+msgid ""
+"There's also a brand new mode: the <strong>track builder</strong>! Place "
+"straight lines and turns, add items, boost panels and more! Everything is "
+"customizable! The only limit is your own imagination!"
+msgstr ""
+
+#: index.php
+msgid ""
+"You can share your tracks, and try other people's tracks thanks to the <a "
+"href=\"{url}\">sharing tool</a>. Thousands of custom tracks are already "
+"available!"
+msgstr ""
+
+#: index.php
+msgid ""
+"Finally, you can face players from the whole world thanks to the "
+"<strong>multiplayer online mode</strong>! Climb the <a "
+"href=\"{url}\">rankings</a> and become world champion!"
+msgstr ""
+
+#: index.php
+msgid "Some screenshots"
+msgstr ""
+
+#: index.php
+msgid ""
+"Here are some screenshots of the game to give you a quick preview of what it "
+"looks like:"
+msgstr ""
+
+#: index.php
+msgid "Special thanks"
+msgstr ""
+
+#: index.php
+msgid ""
+"A big thanks to Nintendo, these three sites and these artists without which "
+"Mario Kart PC would have probably never existed !"
+msgstr ""
+
+#: index.php
+msgid ""
+"<a href=\"{url_main_site}\">Nihilogic</a> for the <a "
+"href=\"{url_mario_kart}\">basic Mario Kart</a>"
+msgstr ""
+
+#: index.php
+msgid ""
+"<a href=\"{url_main_site}\">SNESMaps</a> for the <a "
+"href=\"{url_mario_kart}\">track images</a>"
+msgstr ""
+
+#: index.php
+msgid ""
+"<a href=\"{url_main_site}\">Khinsider</a> for the <a "
+"href=\"{url_mario_kart}\">musics</a>"
+msgstr ""
+
+#: index.php
+msgid "And <a href=\"{url}\">many more</a>!"
+msgstr ""
+
+#: index.php
+msgid "Follow us"
+msgstr ""
+
+#: index.php
+msgid ""
+"<a href=\"{url}\">Discord Server</a> of the site: join it to chat with the "
+"community and be informed about updates and events."
+msgstr ""
+
+#: index.php
+msgid ""
+"<a href=\"{url_youtube}\">Official Youtube Channel</a>: find videos on the "
+"game and information about the website and its events. The channel is "
+"maintained by members, if you want to participate, tell it on the <a "
+"href=\"{url_topic}\">official topic</a>."
+msgstr ""
+
+#: index.php
+msgid ""
+"<a href=\"{url}\">Github repo</a> of the site. Follow here all the ongoing "
+"developments, and if you can code, don't hesitate to contribute to the "
+"project!"
+msgstr ""
+
+#: index.php
+msgid ""
+"<a href=\"{url_wiki}\">MKPC Wiki</a>: find out all the information about the "
+"game and its history. This site is maintained by the community, if you want "
+"to contribute, tell it on <a href=\"{url_topic}\">this topic</a>!"
+msgstr ""
+
+#: index.php
+msgid ""
+"This site is mostly maintained by French members, if you see some "
+"translation errors in the game or the site, don't hesitate to report them on "
+"this <a href=\"{url_topic}\">forum topic</a>"
+msgstr ""
+
+#: index.php
+msgid "Go to the game"
+msgstr ""
+
+#: index.php
+msgid ""
+"To start playing, it's very simple, just click on &quot;Play game&quot; in "
+"the menu above. Or more simply, click here:"
+msgstr ""
+
+#: index.php
+msgid "Start playing now &gt;"
+msgstr ""
+
+#: index.php
+msgid ""
+"You have received a warning for inappropriate behavior. Please <a href={url}"
+">click here</a> to find it out."
+msgstr ""
+
+#: index.php
+msgid "Last topics"
+msgstr ""
+
+#: index.php
+msgid "Last message by <strong>{message}</strong>"
+msgstr ""
+
+#: index.php
+#, php-format
+msgid "Last message"
+msgstr ""
+
+#: index.php
+msgid "{count} message"
+msgid_plural "{count} messages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: index.php
+msgid "Go to the forum"
+msgstr ""
+
+#: index.php
+msgid "Latest news"
+msgstr ""
+
+#: index.php
+#, php-format
+msgctxt "Categories"
+msgid "In <strong>%s</strong> by <strong>%s</strong>"
+msgstr ""
+
+#: index.php
+#, php-format
+msgctxt "Categories"
+msgid "In <strong>%s</strong>"
+msgstr ""
+
+#: index.php
+msgid "{count} comment"
+msgid_plural "{count} comments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: index.php
+msgid "No news yet"
+msgstr ""
+
+#: index.php
+msgid "<a href=\"{url}\">{count} pending</a> news"
+msgstr ""
+
+#: index.php
+msgid "All news"
+msgstr ""
+
+#: index.php
+msgid "Current bracket"
+msgstr ""
+
+#: index.php
+msgid "Rank"
+msgstr ""
+
+#: index.php
+msgid "Team"
+msgstr ""
+
+#: index.php
+msgid "Wins - Ties - Losses"
+msgstr ""
+
+#: index.php
+msgid "W-T-L"
+msgstr ""
+
+#: index.php
+msgid "Score difference"
+msgstr ""
+
+#: index.php
+msgid "Diff"
+msgstr ""
+
+#: index.php
+msgid "Eurasia"
+msgstr ""
+
+#: index.php
+msgid "France"
+msgstr ""
+
+#: index.php
+msgid "Americas"
+msgstr ""
+
+#: index.php
+msgid "Tournament's Discord Server"
+msgstr ""
+
+#: index.php
+msgid "Track builder"
+msgstr ""
+
+#: index.php
+msgid "Latest creations"
+msgstr ""
+
+#: index.php
+msgid "Untitled"
+msgstr ""
+
+#: index.php
+msgid "By <strong>{author}</strong>"
+msgstr ""
+
+#: index.php
+msgid "Display all"
+msgstr ""
+
+#: index.php
+msgid "Last challenges"
+msgstr ""
+
+#: index.php
+msgid "Challenge points - Leaderboard"
+msgstr ""
+
+#: index.php
+msgid "Recent activity"
+msgstr ""
+
+#: index.php
+msgctxt "language for ordinals"
+msgid "en"
+msgstr ""
+
+#: index.php
+msgid "Online mode"
+msgstr ""
+
+#: index.php
+msgid "Mirror"
+msgstr ""
+
+#: index.php
+msgid "Friendly"
+msgstr ""
+
+#: index.php
+msgid "Normal"
+msgstr ""
+
+#: index.php
+#, php-format
+msgid "%s member"
+msgid_plural "%s members"
+msgstr[0] ""
+msgstr[1] ""
+
+#: index.php
+msgid "the arena"
+msgstr ""
+
+#: index.php
+msgid "the multicup"
+msgstr ""
+
+#: index.php
+msgid "the circuit"
+msgstr ""
+
+#: index.php
+msgid "the cup"
+msgstr ""
+
+#: index.php
+msgctxt "circuit"
+msgid "in "
+msgstr ""
+
+#: index.php
+msgid " in {mode} mode"
+msgstr ""
+
+#: index.php
+msgid "Join"
+msgstr ""
+
+#: index.php
+msgid "Currently online:"
+msgstr ""
+
+#: index.php
+msgid "VS mode"
+msgstr ""
+
+#: index.php
+msgid "Battle"
+msgstr ""
+
+#: index.php
+msgid "Time Trial"
+msgstr ""
+
+#: index.php
+msgid "Nick"
+msgstr ""
+
+#: index.php
+msgid "Score"
+msgstr ""
+
+#: index.php
+msgid "Visitors since november 2017"
+msgstr ""
+
+#: index.php
+msgid "Visitors"
+msgstr ""
+
+#: index.php
+msgid "Learn more"
+msgstr ""
+
+#: index.php
+msgid "Loading"
+msgstr ""

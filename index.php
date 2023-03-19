@@ -12,7 +12,7 @@ include('language.php');
 include('session.php');
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<html lang="<?= P_("html language", "en") ?>">
 <head>
 <title>Mario Kart PC</title>
 <?php
@@ -47,22 +47,10 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'A Mario Kart Game for browser':'Un jeu de Mario Kart sur navigateur'; ?></h3>
+								<h3 class="fp-title"><?= _('A Mario Kart Game for browser') ?></h3>
 								<p>
-									<?php
-									if ($language) {
-										?>
-										A computer version of the famous racing game by Nintendo.<br />
-										This game is <strong>completely free</strong> and does not require <strong>any downloads</strong>. All you need is a web browser!
-										<?php
-									}
-									else {
-										?>
-										Une version ordi du célèbre jeu de course de Nintendo.<br />
-										Ce jeu est <strong>entièrement gratuit</strong> et ne requiert <strong>aucun téléchargement</strong>, un simple navigateur internet suffit.
-										<?php
-									}
-									?>
+									<?= _("A computer version of the famous racing game by Nintendo."); ?><br/>
+									<?= _("This game is <strong>completely free</strong> and does not require <strong>any downloads</strong>. All you need is a web browser!"); ?>
 								</p>
 							</div>
 							<div class="fp-prev-next-wrap">
@@ -77,22 +65,11 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Crazy races full of fun!':'Des courses acharnées et pleines de fun !'; ?></h3>
+								<h3 class="fp-title"><?= _('Crazy races full of fun!') ?></h3>
 								<p>
-									<?php
-									if ($language) {
-										?>
-										Try to be the fastest while avoiding items!<br />
-										Race on all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.
-										<?php
-									}
-									else {
-										?>
-										Tentez d'être le plus rapide tout en évitant les objets !<br />
-										Retrouvez l'intégralité des <strong>56 circuits</strong> repris du jeu original <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> et <strong>Mario Kart DS</strong>.
-										<?php
-									}
-									?>
+									<?= _("Try to be the fastest while avoiding items!") ?>
+									<br />
+									<?= _("Race on all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.") ?>
 								</p>
 							</div>
 							<div class="fp-prev-next-wrap">
@@ -107,22 +84,11 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Win all the cups!':'Remportez tous les grand prix !'; ?></h3>
+								<h3 class="fp-title"><?= _('Win all the cups!') ?></h3>
 								<p>
-									<?php
-									if ($language) {
-										?>
-										Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!<br />
-										Win enough cups to unlock the <strong>15 secret characters</strong>!
-										<?php
-									}
-									else {
-										?>
-										Affrontez les ordis sur les <strong>14 grand prix</strong> et tentez de gagner la coupe en or !<br />
-										Remportez suffisament de coupes pour débloquer les <strong>15 persos secrets</strong> !
-										<?php
-									}
-									?>
+									<?= _("Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!") ?>
+									<br />
+									<?= _("Win enough cups to unlock the <strong>15 secret characters</strong>!") ?>
 								</p>
 							</div>
 							<div class="fp-prev-next-wrap">
@@ -137,22 +103,11 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Create your own tracks!':'Créez vos propres circuits !'; ?></h3>
+								<h3 class="fp-title"><?= _('Create your own tracks!') ?></h3>
 								<p>
-									<?php
-									if ($language) {
-										?>
-										With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!<br />
-										You can <strong>share</strong> your tracks or try other people's creations!
-										<?php
-									}
-									else {
-										?>
-										Avec l'<strong>éditeur de circuits</strong> et d'arènes, les possibilités sont infinies ; votre imagination est la seule limite !<br />
-										Essayer les créations des autres grâce à l'<strong>outil de partage intégré</strong>.
-										<?php
-									}
-									?>
+									<?= _("With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!") ?>
+									<br />
+									<?= _("You can <strong>share</strong> your tracks or try other people's creations!") ?>
 								</p>
 							</div>
 							<div class="fp-prev-next-wrap">
@@ -167,22 +122,11 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Face players from around the world!':'Affrontez les joueurs du monde entier !'; ?></h3>
+								<h3 class="fp-title"><?= _('Face players from around the world!') ?></h3>
 								<p>
-									<?php
-									if ($language) {
-										?>
-										Race and battle in <strong>online mode</strong>!<br />
-										Win as many races as possible and <strong>climb in the official ranking</strong>!
-										<?php
-									}
-									else {
-										?>
-										Battez-vous contre d'autres joueurs avec le <strong>mode en ligne</strong> !<br />
-										Remportez un maximum de course afin de <strong>grimper dans le classement</strong> officiel !
-										<?php
-									}
-									?>
+									<?= _("Race and battle in <strong>online mode</strong>!") ?>
+									<br />
+									<?= _("Win as many races as possible and <strong>climb in the official ranking</strong>!") ?>
 								</p>
 							</div>
 							<div class="fp-prev-next-wrap">
@@ -197,22 +141,11 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Make the best scores in time trial!':'Réalisez les meilleurs temps en contre-la-montre !'; ?></h3>
+								<h3 class="fp-title"><?= _('Make the best scores in time trial!') ?></h3>
 								<p>
-									<?php
-									if ($language) {
-										?>
-										<strong>Finish the race track</strong> as fast as you can!<br />
-										<strong>Compare your scores</strong> with the community, and face other players' ghosts!
-										<?php
-									}
-									else {
-										?>
-										<strong>Bouclez les 3 tours</strong> le plus rapidement possible !<br />
-										<strong>Comparez votre score</strong> avec la communauté, et affrontez les fantômes des autres joueurs !
-										<?php
-									}
-									?>
+									<?= _("<strong>Finish the race track</strong> as fast as you can!") ?>
+									<br />
+									<?= _("<strong>Compare your scores</strong> with the community, and face other players' ghosts!") ?>
 								</p>
 							</div>
 							<div class="fp-prev-next-wrap">
@@ -227,22 +160,11 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Release your fighter talents!':'Montrez vos talents de combattant !'; ?></h3>
+								<h3 class="fp-title"><?= _('Release your fighter talents!') ?></h3>
 								<p>
-									<?php
-									if ($language) {
-										?>
-										<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items.<br />
-										The last player standing wins!
-										<?php
-									}
-									else {
-										?>
-										<strong>Détruisez les ballons</strong> de votre adversaire en évitant de vous faire toucher !<br />
-										Soyez le dernier survivant pour remporter la partie !
-										<?php
-									}
-									?>
+									<?= _("<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items!") ?>
+									<br />
+									<?= _("The last player standing wins!") ?>
 								</p>
 							</div>
 							<div class="fp-prev-next-wrap">
@@ -257,23 +179,11 @@ $slidesPath = 'images/slides';
 						</div>
 						<div class="fp-content-wrap">
 							<div class="fp-content">
-								<h3 class="fp-title"><?php echo $language ? 'Face off your friends with the local multiplayer mode!':'Affrontez vos amis grâce au mode multijoueur !'; ?></h3>
+								<h3 class="fp-title"><?= _('Face off your friends with the local multiplayer mode!') ?></h3>
 								<p>
-									<?php
-									if ($language) {
-										?>
-										Prove your friends that you're the best!<br />
-										Face them in <strong>multiplayer</strong> in VS races or in battle mode.
-										<?php
-									}
-									else {
-										?>
-
-										Montrez à vos amis que vous êtes le meilleur !<br />
-										Affrontez-les en <strong>multijoueur</strong> en course VS ou sur les batailles de ballons.
-										<?php
-									}
-									?>
+									<?= _("Prove your friends that you're the best!")?>
+									<br />
+									<?= _("Face them in <strong>multiplayer</strong> in VS races or in battle mode.") ?>
 								</p>
 							</div>
 							<div class="fp-prev-next-wrap">
@@ -290,45 +200,30 @@ $slidesPath = 'images/slides';
 		</div>
 		<h1>Mario Kart PC</h1>
 		<div id="toBegin"><a href="mariokart.php">
-		&#9660;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9660;<br />
-		<img src="images/mkpc_box.jpg" alt="Acc&eacute;der au jeu" style="width:310px;position: relative;top:2px" /><br />
-		&#9650;&nbsp;<?php echo $language ? 'Click on the game box to begin': 'Cliquez sur la bo&icirc;te du jeu pour commencer'; ?>&nbsp;&#9650;</a></div>
-		<h2><img src="images/about.png" alt="" /> <?php echo $language ? 'What\'s Mario Kart PC?':'Mario Kart PC, c\'est quoi ?'; ?></h2>
+		&#9660;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9660;<br />
+		<img src="images/mkpc_box.jpg" alt="<?= _('Start game') ?>" style="width:310px;position: relative;top:2px" /><br />
+		&#9650;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9650;</a></div>
+		<h2><img src="images/about.png" alt="" /> <?= _('What\'s Mario Kart PC?') ?></h2>
 		<div>
-			<?php
-			if ($language) {
-				?>
-				<p>You might know Mario Kart, the most fun racing game series of all time!
-				Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.</p>
-				<p>Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle mode, Time Trials, and more!<br />
-				There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more!
-				Everything is customizable! The only limit is your own imagination!<br />
-				You can share your tracks, and try other people's tracks thanks to the <a href="creations.php">sharing tool</a>. Thousands of custom tracks are already available!</p>
-				<p>Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href="bestscores.php">rankings</a> and become world champion!</p>
-				<?php
-			}
-			else {
-				?>
-				<p>Vous connaissez certainement Mario Kart, le jeu de course le plus fun de tous les temps !
-				Mario Kart PC reprend les mêmes principes que le jeu original mais il est jouable sur navigateur, et <strong>gratuitement</strong>.</p>
-				<p>La plupart des modes issus de Mario Kart ont été repris : Grand Prix, courses VS, batailles de ballons, contre-la-montre...<br />
-				Et un dernier mode inédit : l'<strong>éditeur de circuits</strong> ! Placez les lignes droites et les virages, ajoutez les objets, insérez des accélérateurs...
-				Tout est personnalisable ! Votre imagination est la seule limite !<br />
-				Vous pouvez également partager vos créations et essayer celles des autres grâce à l'<a href="creations.php">outil de partage</a>.
-				Plusieurs milliers de circuits ont déjà été partagés !</p>
-				<p>Enfin, il est possible d'affronter les joueurs du monde entier grâce au <strong>mode multijoueurs en ligne</strong> ! Grimpez dans le <a href="bestscores.php">classement</a> et devenez champion du monde !</p>
-				<?php
-			}
-			?>
+			<p>
+				<?= _("You might know Mario Kart, the most fun racing game series of all time! Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.") ?>
+			</p>
+			</p>
+				<?= _("Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle mode, Time Trials, and more!") ?>
+				<br />
+				
+				<?= _("There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more! Everything is customizable! The only limit is your own imagination!") ?>
+				<br />
+				
+				<?= F_('You can share your tracks, and try other people\'s tracks thanks to the <a href="{url}">sharing tool</a>. Thousands of custom tracks are already available!', url: "creations.php") ?>
+			</p>
+			<p>
+				<?= F_('Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href="{url}">rankings</a> and become world champion!', url: "bestscores.php") ?>
+			</p>
 		</div>
-		<h2><img src="images/camera.png" alt="" /> <?php echo $language ? 'Some screenshots':'Quelques screenshots'; ?></h2>
+		<h2><img src="images/camera.png" alt="" /> <?= _('Some screenshots') ?></h2>
 		<div>
-			<?php
-			if ($language)
-				echo 'Here are some screenshots of the game to give you a quick preview of what it looks like:';
-			else
-				echo 'Une image vaut mieux qu\'un long discours, voici donc quelques captures d\'écran issues du jeu afin que vous ayez un aperçu de ce à quoi ça ressemble :';
-			?>
+			<?= _('Here are some screenshots of the game to give you a quick preview of what it looks like:') ?>
 			<table id="screenshots" class="demo-gallery">
 				<?php
 				for ($i=1;$i<=12;$i++) {
@@ -355,64 +250,45 @@ $slidesPath = 'images/slides';
 				<a href="https://www.mariokarting.com/" target="_blank"><img src="images/events/ads/mariokarting.png" srcset="images/events/ads/mariokarting@2x.png 2x" /></a>
 			</ins>
 		</div>
-		<h2><img src="images/thanks.png" alt="" /> <?php echo $language ? 'Special thanks':'Remerciements'; ?></h2>
+		<h2><img src="images/thanks.png" alt="" /> <?= _('Special thanks') ?></h2>
 		<div>
-			<?php
-			if ($language) {
-				?>
-				A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !
+			<?= _("A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !") ?>
 				<ul>
-					<li><a href="https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/">Nihilogic</a> for the <a href="https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/">basic Mario Kart</a></li>
-					<li><a href="http://www.snesmaps.com/">SNESMaps</a> for the <a href="http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html">track images</a></li>
-					<li><a href="http://www.vgmusic.com/">VGmusic</a> for the <a href="http://www.vgmusic.com/music/console/nintendo/snes/index-sz.html#Super_Mario_Kart">musics</a></li>
-					<li>And <a href="credits.php">many more</a>!</li>
+					<li>
+						<?= F_('<a href="{url_main_site}">Nihilogic</a> for the <a href="{url_mario_kart}">basic Mario Kart</a>', url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>
+					</li>
+					<li>
+						<?= F_('<a href="{url_main_site}">SNESMaps</a> for the <a href="{url_mario_kart}">track images</a>', url_main_site: "http://www.snesmaps.com/", url_mario_kart: "http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html") ?>
+					</li>
+					<li>
+						<?= F_('<a href="{url_main_site}">Khinsider</a> for the <a href="{url_mario_kart}">musics</a>', url_main_site: "https://downloads.khinsider.com/", url_mario_kart: "https://downloads.khinsider.com/search?search=mario+kart") ?>
+					</li>
+					<li>
+						<?= F_('And <a href="{url}">many more</a>!', url: "credits.php") ?>
+					</li>
 				</ul>
-				<?php
-			}
-			else {
-				?>
-				Un grand merci à Nintendo, ces 3 sites et ces artistes sans lesquels Mario Kart PC n'aurait probablement jamais existé !
-				<ul>
-					<li><a href="https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/">Nihilogic</a> pour le <a href="https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/">Mario Kart de départ</a></li>
-					<li><a href="http://www.snesmaps.com/">SNESMaps</a> pour les <a href="http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html">images des circuits</a></li>
-					<li><a href="https://downloads.khinsider.com/">Khinsider</a> pour les <a href="https://downloads.khinsider.com/search?search=mario+kart">musiques</a></li>
-					<li>Et <a href="credits.php">bien d'autres</a> !</li>
-				</ul>
-				<?php
-			}
-			?>
 		</div>
-		<h2><img src="images/follow.png" alt="" /> <?php echo $language ? 'Follow us':'Nous suivre'; ?></h2>
+		<h2><img src="images/follow.png" alt="" /> <?= _('Follow us') ?></h2>
 		<div>
-			<?php
-			if ($language) {
-				?>
-				<ul>
-					<li><a href="https://discord.gg/VkeAxaj">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.</li>
-					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Official Youtube Channel</a>: find videos on the game and information about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="topic.php?topic=3392">official topic</a>.</li>
-					<li><a href="https://github.com/tmalahie/mkpc">Github repo</a> of the site. Follow here all the ongoing developments, and if you can code, don't hesitate to contribute to the project!</li>
-					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on <a href="topic.php?topic=343">this topic</a>!</li>
-				</ul>
-				<?php
-			}
-			else {
-				?>
-				<ul>
-					<li><a href="https://discord.gg/VkeAxaj">Serveur Discord</a> du site : rejoignez-le pour discuter avec la communauté et être informé des mises à jours et événements.</li>
-					<li><a href="https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg">Chaîne Youtube Officielle</a> : retrouvez des vidéos sur le jeu et des informations sur le site et ses évenements. La chaîne est alimentée par les membres, si vous voulez participez, parlez-en sur <a href="topic.php?topic=3392">le topic officiel</a>.</li>
-					<li><a href="https://github.com/tmalahie/mkpc">Repo Github</a> du site : suivez ici tous les développements en cours, et si vous avez des connaissances en code, n'hésitez pas à venir contribuer !</li>
-					<li><a href="http://fr.wiki-mario-kart-pc.wikia.com/">Wiki MKPC</a> : retrouvez toutes les informations sur le jeu et son histoire. Ce site est maintenu par les membres, si vous voulez contribuer, parlez-en sur <a href="topic.php?topic=343">ce topic</a>&nbsp;!</li>
-				</ul>
-				<?php
-			}
-			?>
-			<?php
-			if ($language) {
-				?>
-				<p><em>This site is mostly maintained by French members, if you see some translation errors in the game or the site, don't hesitate to report them on this <a href="topic.php?topic=1">forum topic</a>.</em></p>
-				<?php
-			}
-			?>
+			<ul>
+				<li>
+					<?= F_('<a href="{url}">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.', url: "https://discord.gg/VkeAxaj") ?>
+				</li>
+				<li>
+					<?= F_('<a href="{url_youtube}">Official Youtube Channel</a>: find videos on the game and information about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="{url_topic}">official topic</a>.', url_youtube: "https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg", url_topic: "topic.php?topic=3392") ?>
+				</li>
+				<li>
+					<?= F_('<a href="{url}">Github repo</a> of the site. Follow here all the ongoing developments, and if you can code, don\'t hesitate to contribute to the project!', url: "https://github.com/tmalahie/mkpc") ?>
+				</li>
+				<li>
+					<?= F_('<a href="{url_wiki}">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on <a href="{url_topic}">this topic</a>!', url_wiki: "http://fr.wiki-mario-kart-pc.wikia.com/", url_topic: "topic.php?topic=343") ?>
+				</li>
+			</ul>
+			<p>
+				<em>
+				<?= F_('This site is mostly maintained by French members, if you see some translation errors in the game or the site, don\'t hesitate to report them on this <a href="{url_topic}">forum topic</a>', url_topic: "topic.php?topic=1") ?>
+				</em>
+			</p>
 		</div>
 		<div class="pub_section">
 			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -426,22 +302,10 @@ $slidesPath = 'images/slides';
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
 		</div>
-		<h2><img src="images/gamepad.png" alt="" /> <?php echo $language ? 'Go to the game':'Accéder au jeu'; ?></h2>
+		<h2><img src="images/gamepad.png" alt="" /> <?= _('Go to the game') ?></h2>
 		<div>
-			<?php
-			if ($language) {
-				?>
-				To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:<br />
-				<a href="mariokart.php" class="action_button button_game">Start playing now &gt;</a>
-				<?php
-			}
-			else {
-				?>
-				Pour commencer à jouer, c'est très simple, cliquez sur &quot;Le jeu&quot; dans le menu en haut. Ou plus simplement, cliquez là :<br />
-				<a href="mariokart.php" class="action_button button_game">Commencer à jouer &gt;</a>
-				<?php
-			}
-			?>
+			<?= _("To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:") ?><br />
+				<a href="mariokart.php" class="action_button button_game"><?= _("Start playing now &gt;") ?></a>
 		</div>
 	</section>
 	<section id="right_section">
@@ -522,15 +386,7 @@ $slidesPath = 'images/slides';
 			if (($getWarn = mysql_fetch_array(mysql_query('SELECT seen FROM mkwarns WHERE player="'. $id .'"'))) && !$getWarn['seen']) {
 				?>
 				<div class="warning-top-message">
-					<?php
-					echo $language ? 'You have received a warning for inappropriate behavior.' : 'Vous avez reçu un avertissement pour comportement inapproprié.';
-					echo $language ? ' Please ' : ' ';
-					echo '<a href="forum.php?warn#compte">';
-					echo $language ? 'click here' : 'Cliquez ici';
-					echo '</a>';
-					echo ' ';
-					echo $language ? 'to find it out.' : 'pour en prendre connaissance.';
-					?>
+					<?php F_('You have received a warning for inappropriate behavior. Please <a href={url}>click here</a> to find it out.', url: 'forum.php?warn#compte'); ?>
 				</div>
 				<?php
 			}
@@ -574,7 +430,7 @@ $slidesPath = 'images/slides';
 		date_default_timezone_set('UTC');
 		display_sidebar('Forum', 'forum.php');
 		?>
-			<h2><?php echo $language ? 'Last topics':'Derniers topics'; ?></h2>
+			<h2><?= _('Last topics') ?></h2>
 			<div id="forum_section" class="right_subsection">
 				<?php
 				require_once('getRights.php');
@@ -599,10 +455,20 @@ $slidesPath = 'images/slides';
 					$nbMsgs = $topic['nbmsgs'];
 					$message = $lastMsgByTopic[$topic['id']];
 					?>
-					<a href="topic.php?topic=<?php echo $topic['id']; ?>" title="<?php echo $topic['titre']; ?>">
+					<a href="topic.php?topic=<?= $topic['id'] ?>" title="<?= $topic['titre'] ?>">
 						<h2><?php echo htmlspecialchars(controlLength($topic['titre'],40)); ?></h2>
-						<h3><?php echo $language ? 'Last message':'Dernier message'; ?> <?php echo ($message['nom'] ? ($language ? 'by':'par') .' <strong>'. $message['nom'].'</strong> ':'').pretty_dates_short($topic['dernier'],array('lower'=>true)); ?></h3>
-						<div class="creation_comments" title="<?php echo $nbMsgs. ' message'. (($nbMsgs>1) ? 's':''); ?>"><img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?></div>
+						<h3>
+							<?php
+								if ($message['nom']) {
+									printf(F_("Last message by <strong>{message}</strong>", message: $message['nom']));
+								} else {
+									printf(_("Last message"));
+								}
+								echo ' ';
+								echo pretty_dates_short($topic['dernier'],array('lower'=>true));
+							?>
+						</h3>
+						<div class="creation_comments" title="<?= FN_("{count} message", "{count} messages", count: $nbMsgs) ?>"><img src="images/comments.png" alt="Messages" /> <?= $nbMsgs; ?></div>
 					</a>
 					<?php
 				}
@@ -610,13 +476,13 @@ $slidesPath = 'images/slides';
 				unset($lastMsgByTopic);
 				?>
 			</div>
-			<a class="right_section_actions action_button" href="forum.php"><?php echo $language ? 'Go to the forum':'Accéder au forum'; ?></a>
+			<a class="right_section_actions action_button" href="forum.php"><?= _('Go to the forum') ?></a>
 		</div>
 		<div class="subsection">
 		<?php
 		display_sidebar('News', 'listNews.php');
 		?>
-			<h2><?php echo $language ? 'Latest news':'Dernières news'; ?></h2>
+			<h2><?= _('Latest news') ?></h2>
 			<div id="news_section" class="right_subsection">
 				<?php
 				date_default_timezone_set('Europe/Paris');
@@ -645,24 +511,39 @@ $slidesPath = 'images/slides';
 					?>
 					<a href="news.php?id=<?php echo $news['id']; ?>" title="<?php echo htmlspecialchars($news['title']); ?>"<?php if ($isNew) echo ' class="news_new"'; ?>>
 						<h2><?php echo htmlspecialchars(controlLength($news['title'],40)); ?></h2>
-						<h3><?php echo $language ? 'In':'Dans'; ?> <strong><?php echo $news['catname']; ?></strong> <?php echo ($name ? ($language ? 'by':'par') .' <strong>'. $name['nom'].'</strong> ':'').pretty_dates_short($news['publication_date'],array('lower'=>true)); ?></h3>
-						<div class="creation_comments" title="<?php echo $nbMsgs. ' '.($language ? 'comment':'commentaire'). (($nbMsgs>1) ? 's':''); ?>"><img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?></div>
+						<h3>
+							<?php
+								if ($name) {
+									printf(P_("Categories", "In <strong>%s</strong> by <strong>%s</strong>"), $news['catname'], $name['nom']);
+								} else {
+									printf(P_("Categories", "In <strong>%s</strong>"), $name['nom']);
+								}
+							?>
+							<?= pretty_dates_short($news['publication_date'],array('lower'=>true)); ?>
+						</h3>
+						<div class="creation_comments" title="<?= FN_("{count} comment", "{count} comments", count: $nbMsgs)?>">
+							<img src="images/comments.png" alt="Messages" /> <?php echo $nbMsgs; ?>
+						</div>
 					</a>
 					<?php
 				}
 				date_default_timezone_set('UTC');
 				if (!$nbnews)
-					echo '<div style="text-align:center;margin-top:55px">'. ($language ? 'No news yet':'Aucune news pour l\'instant').'</div>';
+					echo '<div style="text-align:center;margin-top:55px">'. _('No news yet').'</div>';
 				?>
 			</div>
 			<?php
 			if (hasRight('publisher')) {
 				$getPendingNews = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mknews WHERE status="pending"'));
 				if ($getPendingNews['nb'])
-					echo '<p class="nb-pending-news"><a href="listNews.php#pending-news">'. $getPendingNews['nb'] .' '. ($language ? 'pending':'news') .'</a> '. ($language ? 'news':'en attente de validation') .'</p>';
+					?>
+					<p class="nb-pending-news">
+						<?= F_('<a href="{url}">{count} pending</a> news', count: $getPendingNews['nb'], url: 'listNews.php#pending-news') ?>
+					</p>
+				<?php
 			}
 			?>
-			<a class="right_section_actions action_button" href="listNews.php"><?php echo $language ? 'All news':'Toutes les news'; ?></a>
+			<a class="right_section_actions action_button" href="listNews.php"><?= _('All news') ?></a>
 		</div>
 		<?php
 		if ($id) {
@@ -671,21 +552,21 @@ $slidesPath = 'images/slides';
 			<?php
 			display_sidebar('MKPC Tri-Nations', 'news.php?id=15069');
 			?>
-			<h2><?php echo $language ? 'Current bracket':'Classement actuel'; ?></h2>
+			<h2><?= _('Current bracket') ?></h2>
 			<div id="tri-nations" class="right_subsection">
 			<table>
 					<tr>
-						<th><?php echo $language ? 'Rank':'Rang'; ?></th>
-						<th><?php echo $language ? 'Team':'Équipe'; ?></th>
+						<th><?= _('Rank') ?></th>
+						<th><?= _('Team') ?></th>
 						<th>Pts</th>
-						<th class="pl-l" title="<?php echo $language ? 'Wins - Ties - Losses' : 'Victoires - Nuls - Défaites'; ?>"><?php echo $language ? 'W-T-L' : 'V-N-D'; ?></th>
-						<th class="pl-xl" title="<?php echo $language ? 'Score difference' : 'Différence de score'; ?>"><?php echo $language ? 'Diff' : 'Diff'; ?></th>
+						<th class="pl-l" title="<?= _('Wins - Ties - Losses') ?>"><?= _('W-T-L') ?></th>
+						<th class="pl-xl" title="<?= _('Score difference') ?>"><?= _('Diff') ?></th>
 					</tr>
 					<?php
 					$plRanking = array(
 						array(
 							'icon' => 'ea.png',
-							'name' => $language ? 'Eurasia' : 'Eurasie',
+							'name' => _('Eurasia'),
 							'score' => 9,
 							'wins' => 3,
 							'losses' => 1,
@@ -694,7 +575,7 @@ $slidesPath = 'images/slides';
 						),
 						array(
 							'icon' => 'fr.png',
-							'name' => $language ? 'France' : 'France',
+							'name' => _('France'),
 							'score' => 6,
 							'wins' => 2,
 							'losses' => 1,
@@ -703,7 +584,7 @@ $slidesPath = 'images/slides';
 						),
 						array(
 							'icon' => 'am.png',
-							'name' => $language ? 'Americas' : 'Amériques',
+							'name' => _('Americas'),
 							'score' => 0,
 							'wins' => 0,
 							'losses' => 3,
@@ -733,26 +614,28 @@ $slidesPath = 'images/slides';
 					?>
 				</table>
 			</div>
-			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?php echo $language ? 'Tournament\'s Discord Server':'Serveur Discord du tournoi'; ?></a></div>
+			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?= _('Tournament\'s Discord Server') ?></a></div>
 		</div>
 			<?php
 		}
 		?>
 		<div class="subsection">
 			<?php
-			display_sidebar($language ? 'Track builder':'Éditeur de circuit', 'creations.php');
+			display_sidebar(_('Track builder'), 'creations.php');
 			?>
-			<h2><?php echo $language ? 'Latest creations':'Dernières créations'; ?></h2>
+			<h2><?= _('Latest creations') ?></h2>
 			<div id="creations_section" class="right_subsection">
 				<table>
 					<?php
 					function getNom($circuit) {
-						global $language;
-						return ($circuit['nom'] ? controlLengthUtf8($circuit['nom'],25):($language ? 'Untitled':'Sans titre'));
+						return ($circuit['nom'] ? controlLengthUtf8($circuit['nom'],25):(_('Untitled')));
 					}
 					function getAuteur($circuit) {
 						global $language;
-						return ($circuit['auteur'] ? ($language ? 'By':'Par') .' <strong>'. controlLengthUtf8($circuit['auteur'],15) .'</strong>':'');
+						if ($circuit['auteur']) {
+							return F_("By <strong>{author}</strong>", author: controlLengthUtf8($circuit['auteur'],15));
+						}
+						return '';
 					}
 					function cmp_creation($line1, $line2) {
 						$score1 = $line1['score'];
@@ -810,8 +693,8 @@ $slidesPath = 'images/slides';
 					?>
 				</table>
 			</div>
-			<a class="right_section_actions action_button" href="creations.php"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
-			<h2><?php echo $language ? 'Last challenges':'Derniers défis'; ?></h2>
+			<a class="right_section_actions action_button" href="creations.php"><?= _('Display all') ?></a>
+			<h2><?= _('Last challenges') ?></h2>
 			<div id="challenges_section" class="right_subsection">
 				<?php
 				require_once('utils-challenges.php');
@@ -844,9 +727,9 @@ $slidesPath = 'images/slides';
 				}
 			}
 			?>
-			<a class="right_section_actions action_button" href="challengesList.php"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
-			<div id="challenge_ranking"><a href="challengeRanking.php"><?php echo $language ? 'Challenge points - Leaderboard':'Classement des points défis'; ?></a></div>
-			<h2><?php echo $language ? 'Recent activity':'Activité récente'; ?></h2>
+			<a class="right_section_actions action_button" href="challengesList.php"><?= _('Display all') ?></a>
+			<div id="challenge_ranking"><a href="challengeRanking.php"><?= _('Challenge points - Leaderboard') ?></a></div>
+			<h2><?= _('Recent activity') ?></h2>
 			<div id="comments_section" class="right_subsection">
 				<?php
 				//$getComments = mysql_query('SELECT c.circuit,c.type,c.message,c.temps,c.nom,c.date FROM ((SELECT mkcomments.circuit,mkcomments.type COLLATE latin1_general_ci AS type,mkcomments.message COLLATE latin1_general_ci AS message,mkcomments.date,mkjoueurs.nom COLLATE latin1_general_ci AS nom,NULL as temps FROM `mkcomments` INNER JOIN `mkjoueurs` ON mkcomments.auteur=mkjoueurs.id) UNION ALL (SELECT circuit,type,NULL as message,date,nom,temps FROM `mkrecords`) ORDER BY date DESC) as c GROUP BY c.type,c.circuit ORDER BY c.date DESC LIMIT 14');
@@ -858,9 +741,16 @@ $slidesPath = 'images/slides';
 					return $nb;
 				}
 				function getRank($n) {
-					global $language;
+					$languageForOrdinals = P_("language for ordinals", "en");
 					$dec = $n%100;
-					if ($language) {
+					if ($languageForOrdinals == "fr") {
+						if ($n > 1)
+							return 'e';
+						else
+							return 'er';
+					}
+					else
+					{
 						if (($dec >= 10) && ($dec < 20))
 							return 'th';
 						switch ($n%10) {
@@ -873,12 +763,6 @@ $slidesPath = 'images/slides';
 						default :
 							return 'th';
 						}
-					}
-					else {
-						if ($n > 1)
-							return 'e';
-						else
-							return 'er';
 					}
 					return $n;
 				}
@@ -934,7 +818,7 @@ $slidesPath = 'images/slides';
 		</div>
 		<div class="subsection rank_vs" id="rankings_section">
 			<?php
-			display_sidebar($language ? 'Online mode':'Mode en ligne', 'online.php');
+			display_sidebar(_('Online mode'), 'online.php');
 			$activePlayers = array(array(),array());
 			if ($id) {
 				$time = time();
@@ -1046,17 +930,17 @@ $slidesPath = 'images/slides';
 					$res = '';
 					if ($getNom = mysql_fetch_array(mysql_query('SELECT nom FROM `'.$table.'` WHERE id='.$params['cup'])))
 						$res = $getNom['nom'];
-					if (!$res) $res = $language ? 'Untitled':'Sans titre';
+					if (!$res) $res = _('Untitled');
 					return controlLengthUtf8($res,30);
 				}
 				function get_mode_string(&$params) {
-					global $language, $publicLinksData;
+					global $publicLinksData;
 					$link = $params['link'];
 					$modeNames = array(
 						'cc' => '${value}cc',
-						'mirror' => ($language ? 'Mirror':'miroir'),
-						'team' => ($language ? 'Team':'équipe'),
-						'friendly' => ($language ? 'Friendly':'amical')
+						'mirror' => _('Mirror'),
+						'team' => _('Team'),
+						'friendly' => _('Friendly')
 					);
 					$publicLinkData = $publicLinksData[$link];
 					$enabledModes = array();
@@ -1065,7 +949,7 @@ $slidesPath = 'images/slides';
 							$enabledModes[$option] = str_replace('${value}', $publicLinkData->$option, $value);
 					}
 					if (empty($enabledModes))
-						return $language ? 'Normal':'normal';
+						return _('Normal');
 					else
 						return implode('+',$enabledModes);
 				}
@@ -1082,38 +966,33 @@ $slidesPath = 'images/slides';
 						$i++;
 					}
 					echo '<span class="ranking_activeplayernb" title="'. $title .'">';
-					echo $nbActivePlayers.' '.($language ? 'member':'membre') . (($nbActivePlayers>1) ? 's':'');
+					printf(ngettext("%s member", "%s members", $nbActivePlayers), $nbActivePlayers);
 					echo '</span>';
 					if (!empty($params['cup'])) {
 						echo ' ';
 						if ($params['game'])
-							$theCircuit = $language ? 'the arena':'l\'arène';
+							$theCircuit = _('the arena');
 						else {
 							$isMCup = ($params['mode']==8);
 							$isSingle = (($params['mode']%4)>=2);
 							if ($isMCup)
-								$theCircuit = $language ? 'the multicup':'la multicoupe';
+								$theCircuit = _('the multicup');
 							elseif ($isSingle)
-								$theCircuit = $language ? 'the circuit':'le circuit';
+								$theCircuit = _('the circuit');
 							else
-								$theCircuit = $language ? 'the cup':'la coupe';
+								$theCircuit = _('the cup');
 						}
-						echo ($language ? 'in ':'sur ') . $theCircuit;
+						echo P_("circuit", "in ") . $theCircuit;
 						echo ' ';
 						echo '<strong>';
 						echo get_creation_string($params);
 						echo '</strong>';
 					}
 					elseif (!empty($params)) {
-						echo ' ';
-						echo $language ? 'in':'en mode';
-						echo ' ';
-						echo get_mode_string($params);
-						echo $language ? ' mode':'';
+						F_(" in {mode} mode", mode: get_mode_string($params));
 					}
 				}
 				function print_join_button(&$params) {
-					global $language;
 					$url = 'online.php';
 					$urlParams = array();
 					if ($params['cup']) {
@@ -1128,16 +1007,16 @@ $slidesPath = 'images/slides';
 						$urlParams[] = 'key='.$params['link'];
 					if (!empty($urlParams))
 						$url .= '?'.implode('&',$urlParams);
-					echo '<a class="action_button" href="'. $url .'">'. ($language ? 'Join':'Rejoindre') .'</a>';
+					echo '<a class="action_button" href="'. $url .'">'. _('Join') .'</a>';
 				}
 				function print_active_players($game,$type) {
-					global $language, $activePlayers, $activePlayersByLink;
+					global $activePlayers, $activePlayersByLink;
 					if (!empty($activePlayers[$game])) {
 						echo '<div class="ranking_current" id="ranking_current_'.$type.'">';
 						$firstPlayer = reset($activePlayers[$game]);
 						if ((count($activePlayersByLink[$game]) < 2) && !$firstPlayer['link'] && !$firstPlayer['cup']) {
 							echo '<span class="ranking_list">';
-							echo ($language ? 'Currently online:':'Actuellement en ligne :');
+							echo _('Currently online:');
 							echo ' ';
 							print_players_raw($activePlayers[$game]);
 							print_join_button($firstPlayer);
@@ -1145,7 +1024,7 @@ $slidesPath = 'images/slides';
 							echo ' ';
 						}
 						else {
-							echo ($language ? 'Currently online:':'Actuellement en ligne :');
+							echo _('Currently online:');
 							echo '<ul class="ranking_list_game">';
 							foreach ($activePlayersByLink[$game] as $players) {
 								echo '<li>';
@@ -1161,12 +1040,12 @@ $slidesPath = 'images/slides';
 				}
 				?>
 				<a class="ranking_tab tab_vs" href="javascript:dispRankTab(0)">
-					<?php echo $language ? 'VS mode':'Course VS'; ?>
+					<?= _('VS mode') ?>
 				</a><a class="ranking_tab tab_battle" href="javascript:dispRankTab(1)">
-					<?php echo $language ? 'Battle':'Bataille'; ?>
+					<?= _('Battle') ?>
 					<?php print_badge(1); ?>
 				</a><a class="ranking_tab tab_clm tab_clm150" href="javascript:dispRankTab(currenttabcc)">
-					<?php echo $language ? 'Time Trial':'CLM'; ?>
+					<?= _('Time Trial') ?>
 				</a>
 			</div>
 			<div id="currently_online">
@@ -1190,9 +1069,9 @@ $slidesPath = 'images/slides';
 					?>
 					<table id="top_<?php echo $modeId; ?>">
 						<tr>
-							<th><?php echo $language ? 'Rank':'Rang'; ?></th>
-							<th><?php echo $language ? 'Nick':'Pseudo'; ?></th>
-							<th>Score</th>
+							<th><?= _('Rank') ?></th>
+							<th><?= _('Nick') ?></th>
+							<th><?= _('Score') ?></th>
 						</tr>
 						<?php
 						if ($isClm) {
@@ -1216,10 +1095,10 @@ $slidesPath = 'images/slides';
 				}
 				?>
 			</div>
-			<a class="right_section_actions action_button action_gotovs" href="bestscores.php"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
-			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
-			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
-			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?php echo $language ? 'Display all':'Afficher tout'; ?></a>
+			<a class="right_section_actions action_button action_gotovs" href="bestscores.php"><?= _('Display all'); ?></a>
+			<a class="right_section_actions action_button action_gotobattle" href="bestscores.php?battle"><?= _('Display all'); ?></a>
+			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?= _('Display all'); ?></a>
+			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?= _('Display all'); ?></a>
 		</div>
 		<div class="pub_section">
 			<!-- Pub latérale MKPC -->
@@ -1233,9 +1112,9 @@ $slidesPath = 'images/slides';
 		</div>
 		<div class="subsection">
 			<div class="flag_counter">
-				<h4><?php echo $language ? 'Visitors since november 2017':'Visiteurs depuis novembre 2017'; ?></h4>
-				<img src="https://s01.flagcounter.com/countxl/XMvG/bg_FFFFFF/txt_000000/border_CCCCCC/columns_3/maxflags_9/viewers_3/labels_0/pageviews_0/flags_0/percent_0/" alt="<?php echo $language ? 'Visitors':'Visiteurs'; ?>" />
-				<a class="right_section_actions action_button" href="topic.php?topic=2288"><?php echo $language ? 'Learn more':'En savoir plus'; ?></a>
+				<h4><?= _('Visitors since november 2017') ?></h4>
+				<img src="https://s01.flagcounter.com/countxl/XMvG/bg_FFFFFF/txt_000000/border_CCCCCC/columns_3/maxflags_9/viewers_3/labels_0/pageviews_0/flags_0/percent_0/" alt="<?= _('Visitors') ?>" />
+				<a class="right_section_actions action_button" href="topic.php?topic=2288"><?= _('Learn more') ?></a>
 			</div>
 		</div>
 	</section>
@@ -1280,7 +1159,7 @@ include('footer.php');
 mysql_close();
 ?>
 <script>
-var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
+var loadingMsg = "<?= _('Loading') ?>";
 </script>
 <script async src="scripts/officials.js"></script>
 <script async src="scripts/creations.js"></script>
