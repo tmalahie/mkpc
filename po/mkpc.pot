@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-18 18:33+0100\n"
+"POT-Creation-Date: 2023-03-19 17:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -296,121 +296,126 @@ msgstr ""
 msgid "Last message"
 msgstr ""
 
-#: index.php:470
+#: index.php:471
 msgid "{count} message"
 msgid_plural "{count} messages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: index.php:478
+#: index.php:479
 msgid "Go to the forum"
 msgstr ""
 
-#: index.php:484
+#: index.php:485
 msgid "Latest news"
 msgstr ""
 
-#: index.php:516 index.php:518
+#: index.php:517
 #, php-format
-msgid "Categories"
+msgid "In <strong>%s</strong> by <strong>%s</strong>"
 msgstr ""
 
-#: index.php:523
+#: index.php:519
+#, php-format
+msgid "In <strong>%s</strong>"
+msgstr ""
+
+#: index.php:524
 msgid "{count} comment"
 msgid_plural "{count} comments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: index.php:531
+#: index.php:532
 msgid "No news yet"
 msgstr ""
 
 #: index.php:541
-msgid "{count} pending news"
+msgid "<a href=\"{url}\">{count} pending</a> news"
 msgstr ""
 
-#: index.php:547
+#: index.php:546
 msgid "All news"
 msgstr ""
 
-#: index.php:556
+#: index.php:555
 msgid "Current bracket"
 msgstr ""
 
-#: index.php:560 index.php:1072
+#: index.php:559 index.php:1072
 msgid "Rank"
 msgstr ""
 
-#: index.php:561 index.php:942
+#: index.php:560 index.php:942
 msgid "Team"
 msgstr ""
 
-#: index.php:563
+#: index.php:562
 msgid "Wins - Ties - Losses"
 msgstr ""
 
-#: index.php:563
+#: index.php:562
 msgid "W-T-L"
 msgstr ""
 
-#: index.php:564
+#: index.php:563
 msgid "Score difference"
 msgstr ""
 
-#: index.php:564
+#: index.php:563
 msgid "Diff"
 msgstr ""
 
-#: index.php:570
+#: index.php:569
 msgid "Eurasia"
 msgstr ""
 
-#: index.php:579
+#: index.php:578
 msgid "France"
 msgstr ""
 
-#: index.php:588
+#: index.php:587
 msgid "Americas"
 msgstr ""
 
-#: index.php:618
+#: index.php:617
 msgid "Tournament's Discord Server"
 msgstr ""
 
-#: index.php:625
+#: index.php:624
 msgid "Track builder"
 msgstr ""
 
-#: index.php:627
+#: index.php:626
 msgid "Latest creations"
 msgstr ""
 
-#: index.php:632 index.php:933
+#: index.php:631 index.php:933
 msgid "Untitled"
 msgstr ""
 
-#: index.php:637
+#: index.php:636
 msgid "By <strong>{author}</strong>"
 msgstr ""
 
-#: index.php:697 index.php:731 index.php:1098 index.php:1099 index.php:1100
+#: index.php:696 index.php:730 index.php:1098 index.php:1099 index.php:1100
 #: index.php:1101
 msgid "Display all"
 msgstr ""
 
-#: index.php:698
+#: index.php:697
 msgid "Last challenges"
 msgstr ""
 
-#: index.php:732
+#: index.php:731
 msgid "Challenge points - Leaderboard"
 msgstr ""
 
-#: index.php:733
+#: index.php:732
 msgid "Recent activity"
 msgstr ""
 
-#: index.php:745
+#: index.php:744
 msgctxt "language for ordinals"
 msgid "en"
 msgstr ""

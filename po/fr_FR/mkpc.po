@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-18 18:18+0100\n"
+"POT-Creation-Date: 2023-03-19 17:50+0100\n"
 "PO-Revision-Date: 2023-03-16 21:47+0100\n"
 "Last-Translator: ano@nymous.com\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -258,8 +258,8 @@ msgid ""
 "<a href=\"{url_main_site}\">SNESMaps</a> for the <a "
 "href=\"{url_mario_kart}\">track images</a>"
 msgstr ""
-"<a href=\"{url_main_site}\">SNESMaps</a> for the <a "
-"href=\"{url_mario_kart}\">track images</a>"
+"<a href=\"{url_main_site}\">SNESMaps</a> pour les <a "
+"href=\"{url_mario_kart}\">images des circuits</a>"
 
 #: index.php:264
 msgid ""
@@ -364,121 +364,126 @@ msgstr "Dernier message par <strong>{message}</strong>"
 msgid "Last message"
 msgstr "Dernier message"
 
-#: index.php:470
+#: index.php:471
 msgid "{count} message"
 msgid_plural "{count} messages"
 msgstr[0] "{count} message"
 msgstr[1] "{count} messages"
 
-#: index.php:478
+#: index.php:479
 msgid "Go to the forum"
 msgstr "Accéder au forum"
 
-#: index.php:484
+#: index.php:485
 msgid "Latest news"
 msgstr "Dernières news"
 
-#: index.php:516 index.php:518
+#: index.php:517
 #, php-format
-msgid "Categories"
-msgstr "Catégories"
+msgid "In <strong>%s</strong> by <strong>%s</strong>"
+msgstr "Dans <strong>%s</strong> pas <strong>%s</strong>"
 
-#: index.php:523
+#: index.php:519
+#, php-format
+msgid "In <strong>%s</strong>"
+msgstr "Par <strong>%s</strong>"
+
+#: index.php:524
 msgid "{count} comment"
 msgid_plural "{count} comments"
 msgstr[0] "{count} message"
 msgstr[1] "{count} messages"
 
-#: index.php:531
+#: index.php:532
 msgid "No news yet"
 msgstr "Aucune news pour l'instant"
 
 #: index.php:541
-msgid "{count} pending news"
-msgstr "{count} news en attente de validation"
+msgid "<a href=\"{url}\">{count} pending</a> news"
+msgstr "<a href=\"{url}\">{count} news</a> en attente de validation"
 
-#: index.php:547
+#: index.php:546
 msgid "All news"
 msgstr "Toutes les news"
 
-#: index.php:556
+#: index.php:555
 msgid "Current bracket"
 msgstr "Classement actuel"
 
-#: index.php:560 index.php:1072
+#: index.php:559 index.php:1072
 msgid "Rank"
 msgstr "Rang"
 
-#: index.php:561 index.php:942
+#: index.php:560 index.php:942
 msgid "Team"
 msgstr "Équipe"
 
-#: index.php:563
+#: index.php:562
 msgid "Wins - Ties - Losses"
 msgstr "Victoires - Nuls - Défaites"
 
-#: index.php:563
+#: index.php:562
 msgid "W-T-L"
 msgstr "V-N-D"
 
-#: index.php:564
+#: index.php:563
 msgid "Score difference"
 msgstr "Différence de score"
 
-#: index.php:564
+#: index.php:563
 msgid "Diff"
 msgstr "Diff"
 
-#: index.php:570
+#: index.php:569
 msgid "Eurasia"
 msgstr "Eurasie"
 
-#: index.php:579
+#: index.php:578
 msgid "France"
 msgstr "France"
 
-#: index.php:588
+#: index.php:587
 msgid "Americas"
 msgstr "Amériques"
 
-#: index.php:618
+#: index.php:617
 msgid "Tournament's Discord Server"
 msgstr "Serveur Discord du tournoi"
 
-#: index.php:625
+#: index.php:624
 msgid "Track builder"
 msgstr "Éditeur de circuit"
 
-#: index.php:627
+#: index.php:626
 msgid "Latest creations"
 msgstr "Dernières créations"
 
-#: index.php:632 index.php:933
+#: index.php:631 index.php:933
 msgid "Untitled"
 msgstr "Sans titre"
 
-#: index.php:637
+#: index.php:636
 msgid "By <strong>{author}</strong>"
 msgstr "Par <strong>{author}</strong>"
 
-#: index.php:697 index.php:731 index.php:1098 index.php:1099 index.php:1100
+#: index.php:696 index.php:730 index.php:1098 index.php:1099 index.php:1100
 #: index.php:1101
 msgid "Display all"
 msgstr "Afficher tout"
 
-#: index.php:698
+#: index.php:697
 msgid "Last challenges"
 msgstr "Derniers défis"
 
-#: index.php:732
+#: index.php:731
 msgid "Challenge points - Leaderboard"
 msgstr "Classement des points défis"
 
-#: index.php:733
+#: index.php:732
 msgid "Recent activity"
 msgstr "Activité récente"
 
-#: index.php:745
+#: index.php:744
 msgctxt "language for ordinals"
 msgid "en"
 msgstr "fr"
@@ -574,3 +579,7 @@ msgstr "En savoir plus"
 #: index.php:1162
 msgid "Loading"
 msgstr "Chargement"
+
+#, php-format
+#~ msgid "Categories"
+#~ msgstr "Catégories"

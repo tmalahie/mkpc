@@ -464,6 +464,7 @@ $slidesPath = 'images/slides';
 								} else {
 									printf(_("Last message"));
 								}
+								echo ' ';
 								echo pretty_dates_short($topic['dernier'],array('lower'=>true));
 							?>
 						</h3>
@@ -513,9 +514,9 @@ $slidesPath = 'images/slides';
 						<h3>
 							<?php
 								if ($name) {
-									printf(_("Categories", "In <strong>%s</strong> by %s"), $news['catname'], $name['nom']);
+									printf(_("In <strong>%s</strong> by <strong>%s</strong>"), $news['catname'], $name['nom']);
 								} else {
-									printf(_("Categories", "In <strong>%s</strong>"), $name['nom']);
+									printf(_("In <strong>%s</strong>"), $name['nom']);
 								}
 							?>
 							<?= pretty_dates_short($news['publication_date'],array('lower'=>true)); ?>
@@ -537,9 +538,7 @@ $slidesPath = 'images/slides';
 				if ($getPendingNews['nb'])
 					?>
 					<p class="nb-pending-news">
-						<a href="listNews.php#pending-news">
-							<?= F_("{count} pending news", count: $getPendingNews['nb']) ?>
-						</a>
+						<?= F_('<a href="{url}">{count} pending</a> news', count: $getPendingNews['nb'], url: 'listNews.php#pending-news') ?>
 					</p>
 				<?php
 			}
@@ -729,7 +728,7 @@ $slidesPath = 'images/slides';
 			}
 			?>
 			<a class="right_section_actions action_button" href="challengesList.php"><?= _('Display all') ?></a>
-			<div id="challenge_ranking"><a href="challengeRanking.php"><?php _('Challenge points - Leaderboard') ?></a></div>
+			<div id="challenge_ranking"><a href="challengeRanking.php"><?= _('Challenge points - Leaderboard') ?></a></div>
 			<h2><?= _('Recent activity') ?></h2>
 			<div id="comments_section" class="right_subsection">
 				<?php
