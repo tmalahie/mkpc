@@ -413,15 +413,15 @@ $slidesPath = 'images/slides';
 				?>
 				<div class="birthdays-list">
 					<img src="images/ic_birthday.png" alt="birthday" />
-					<?php echo $language ? "Happy birthday to":"C'est l'anniversaire de"; ?>
+					<?= _("Happy birthday to") ?>
 					<?php
 					for ($i=0;$i<$nbBirthdays;$i++) {
 						$birthday = $birthdaysList[$i];
 						if ($i)
-							echo ($i==$nbBirthdays-1) ? ($language ? " and ":" et "):", ";
+							echo ($i==$nbBirthdays-1) ? _(" and ") : ", ";
 						echo '<a href="profil.php?id='. $birthday['id'] .'">'. $birthday['nom'] .'</a>';
 					}
-					echo ($language ? '!':'&nbsp;!');
+					echo P_("final exclamation point in a sentence", '!');
 					?>
 				</div>
 				<?php
@@ -632,7 +632,6 @@ $slidesPath = 'images/slides';
 						return ($circuit['nom'] ? controlLengthUtf8($circuit['nom'],25):(_('Untitled')));
 					}
 					function getAuteur($circuit) {
-						global $language;
 						if ($circuit['auteur']) {
 							return F_("By <strong>{author}</strong>", author: controlLengthUtf8($circuit['auteur'],15));
 						}
@@ -723,10 +722,11 @@ $slidesPath = 'images/slides';
 			if (hasRight('clvalidator')) {
 				$getPendingChallenges = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkchallenges WHERE status="pending_moderation"'));
 				if ($getPendingChallenges['nb']) {
-					$s = ($getPendingChallenges['nb']>=2) ? 's':'';
-					echo '<p class="nb-pending-news"><a href="challengesList.php?moderate">'. $getPendingChallenges['nb'] .' '. ($language ? 'pending':"défi$s") .'</a> '. ($language ? "challenge$s":'en attente de validation') .'</p>';
+					echo '<p class="nb-pending-news">';
+					echo '<a href="challengesList.php?moderate">';
+					echo FN_("{count} pending challenge", "{count} pending challenge", count: $getPendingChallenges['nb']);
+					echo '</p>';
 				}
-			}
 			?>
 			<a class="right_section_actions action_button" href="challengesList.php"><?= _('Display all') ?></a>
 			<div id="challenge_ranking"><a href="challengeRanking.php"><?= _('Challenge points - Leaderboard') ?></a></div>

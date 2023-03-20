@@ -24,9 +24,9 @@ if ($id) {
 	$getAuthor = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<html lang="<?= P_("html language", "en") ?>">
 <head>
-<title>News Mario Kart PC</title>
+<title><?= _("News Mario Kart PC") ?></title>
 <?php
 include('heads.php');
 ?>
@@ -36,11 +36,14 @@ include('heads.php');
 include('o_online.php');
 ?>
 </head>
-<body<?php
+<body
+<?php
 if (!isset($draftSaved)) {
-	?> onbeforeunload="if(document.forms[0].message.value&amp;&amp;!document.forms[0].querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled)return '<?php echo addslashes($language ? 'Warning, the message you\'re writing won\'t be saved':'Attention, le message que vous êtes en train d\'écrire ne sera pas sauvegardé'); ?>'"<?php
+	?>
+	onbeforeunload="if(document.forms[0].message.value&amp;&amp;!document.forms[0].querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled)return '<?= addslashes(_('Warning, the message you\'re writing won\'t be saved')) ?>'"<?php
 }
-?>>
+?>
+>
 <?php
 include('header.php');
 $page = 'home';
@@ -51,11 +54,11 @@ include('menu.php');
 include('smileys.php');
 if (isset($draftSaved)) {
 	?>
-	<div class="success"><?php echo $language ? 'Draft saved' : 'Votre brouillon a été enregistré. Vous pourrez le modifier à tout moment'; ?></div>
+	<div class="success"><?= _('Draft saved') ?></div>
 	<?php
 }
 ?>
-<h1><?php echo $language ? 'Add a news':'Ajouter une news'; ?></h1>
+<h1><?= _('Add a news') ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
 <p class="pub"><ins class="adsbygoogle"
@@ -89,14 +92,17 @@ if (isset($draftSaved)) {
 			while ($follower = mysql_fetch_array($getFollowers))
 				mysql_query('INSERT INTO `mknotifs` SET type="follower_news", user="'. $follower['follower'] .'", link="'.$iGenerated.'"');
 		}
-		echo $language ? '<p id="successSent">News created successfully<br />
-		'. (hasRight('publisher') ? '':'This news will be published once validated by a moderator.<br />') .'
-		<a href="news.php?id='. $iGenerated .'">Click here</a> to see the news.<br />
-		<a href="listNews.php">Click here</a> to return to the news list.</p>' :
-		'<p id="successSent">News créée avec succès<br />
-		'. (hasRight('publisher') ? '':'Cette news sera en ligne une fois validée par un rédacteur.<br />') .'
-		<a href="news.php?id='. $iGenerated .'">Cliquez ici</a> pour voir la news.<br />
-		<a href="listNews.php">Cliquez ici</a> pour retourner à la liste des news.</p>';
+		echo '<p id="successSent">';
+		echo _("News created successfully");
+		echo "<br />";
+		if (!hasRight('publisher')) {
+			echo _('This news will be published once validated by a moderator.');
+			echo "<br />";
+		}
+		echo F_('<a href="{url}">Click here</a> to see the news.', url: "news.php?id=". $iGenerated);
+		echo "<br />";
+		echo F_('<a href="{url}">Click here</a> to return to the news list.', url: "listNews.php");
+		echo "</p>";
 	}
 	else {
 	$getDraft = mysql_query('SELECT * FROM `mknewsdraft` WHERE author="'. $id .'"');
@@ -107,17 +113,12 @@ if (isset($draftSaved)) {
 		if (mysql_numrows($getPendingNews)) {
 		?>
 		<div id="advice-pending-news" class="info advice-pending-hidden">
-			<?php
-			if ($language)
-				echo "Tip: before beginning, check that a news on the same subject is not pending validation.";
-			else
-				echo "Conseil : avant de commencer, vérifiez qu'une news sur le même sujet n'est pas en cours de validation.";
-			?>
+			<?= _("Tip: before beginning, check that a news on the same subject is not pending validation.") ?>
 			<span class="advice-pending-show">
-				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-shown';void(0)"><?php echo $language ? 'Show':'Voir'; ?></a>]
+				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-shown';void(0)"><?= _('Show') ?></a>]
 			</span>
 			<span class="advice-pending-hide">
-				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-hidden';void(0)"><?php echo $language ? 'Hide':'Masquer'; ?></a>]
+				[<a href="javascript:document.getElementById('advice-pending-news').className='info advice-pending-hidden';void(0)"><?= _('Hide'); ?></a>]
 			</span>
 			<ul class="pending-news-list"><?php
 			while ($news = mysql_fetch_array($getPendingNews))
@@ -127,11 +128,11 @@ if (isset($draftSaved)) {
 		<?php
 		}
 	?>
-<form method="post" action="addNews.php" onsubmit="if(!this.title.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a content':'Veuillez entrer un contenu'; ?>');return false}this.querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled=true">
+<form method="post" action="addNews.php" onsubmit="if(!this.title.value){alert('<?= _('Please enter a title') ?>');return false}if(!this.message.value){alert('<?= _('Please enter a content') ?>');return false}this.querySelector('[type=submit]:not([name=draft]):not([name=undraft])').disabled=true">
 <table id="nMessage">
-<tr><td class="mLabel"><label for="title"><?php echo $language ? 'Title':'Titre'; ?> :</label></td>
+<tr><td class="mLabel"><label for="title"><?= _('Title') ?> :</label></td>
 <td class="mInput"><input type="text" id="title" name="title" onchange="document.getElementById('mTitle').innerHTML=htmlspecialchars(this.value)" value="<?php if ($draft) echo htmlspecialchars($draft['title']); ?>" /></td></tr>
-<tr><td class="mLabel"><label for="category"><?php echo $language ? 'Category':'Catégorie'; ?> :</label></td>
+<tr><td class="mLabel"><label for="category"><?= _('Category') ?> :</label></td>
 <td class="mInput">
 	<select id="category" name="category" onchange="document.getElementById('mCategory').innerHTML=this.options[this.selectedIndex].text">
 		<?php
@@ -149,7 +150,7 @@ if (isset($draftSaved)) {
 		?>
 	</select>
 </td></tr>
-<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php
+<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?= _('Help') ?></a></td><td><?php
 $isNews = true;
 include('bbButtons.php');
 ?></td></tr>
@@ -158,7 +159,7 @@ include('bbButtons.php');
 for ($i=0;$i<$nbSmileys;$i++)
 	echo ' <a href="javascript:ajouter(\''. $smileys[$i] .'\')"><img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" /></a> ';
 ?>
-<a href="javascript:moresmileys()" id="more-smileys"><?php echo $language ? 'More smileys':'Plus de smileys'; ?></a></p>
+<a href="javascript:moresmileys()" id="more-smileys"><?= _('More smileys') ?></a></p>
 </td><td class="mInput"><textarea name="message" id="message" rows="10"><?php
 	if ($draft)
 		echo htmlspecialchars($draft['message']);
@@ -167,14 +168,14 @@ for ($i=0;$i<$nbSmileys;$i++)
 if ($draft) {
 	?>
 <tr><td colspan="2" class="mLabel">
-	<input type="submit" class="mUndraft" name="undraft" value="<?php echo $language ? 'Delete draft':'Supprimer le brouillon'; ?>" onclick="return confirm('<?php echo $language ? 'Delete the draft?':'Supprimer le brouillon ?'; ?>')" />
+	<input type="submit" class="mUndraft" name="undraft" value="<?= _('Delete draft') ?>" onclick="return confirm('<?= _('Delete the draft?') ?>')" />
 </td></tr>
 	<?php
 }
 ?>
 <tr><td colspan="2" class="mLabel">
-	<input type="submit" class="mDraft" name="draft" value="<?php echo $language ? 'Save draft':'Enregistrer le brouillon'; ?>" />
-	<input type="button" value="<?php echo $language ? 'Preview':'Aper&ccedil;u'; ?>" onclick="apercu()" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Send':'Envoyer'; ?>" />	
+	<input type="submit" class="mDraft" name="draft" value="<?= _('Save draft') ?>" />
+	<input type="button" value="<?= _('Preview') ?>" onclick="apercu()" /> &nbsp; <input type="submit" value="<?= _('Send') ?>" />	
 </td></tr>
 </table>
 </form>
@@ -182,16 +183,21 @@ if ($draft) {
 <div class="news-header">
 	<h1 id="mTitle"><?php if ($draft) echo $draft['title']; ?></h1>
 	<div class="news-author">
-		<?php echo $language ? 'In':'Dans'; ?> <strong id="mCategory"><?php echo $currentCategory['name']; ?></strong> <?php echo $language ? 'by':'par'; ?> <strong><?php echo $getAuthor['nom']; ?></strong>
+		<?= F_(
+			"In <strong {cssAttributes}>{categoryName}</strong> by <strong>{author}</strong>",
+			cssAttributes: 'id="mCategory"',
+			categoryName: $currentCategory['name'],
+			author: $getAuthor['nom'],
+		); ?>
 	</div>
 	<div class="news-date">
-		<?php echo $language ? 'Published':'Publié'; ?> <span class="mDate"></span>
+		<?= _('Published') ?> <span class="mDate"></span>
 	</div>
 </div>
 <div class="news-content mBody"></div>
 </div>
 <p class="forumButtons" style="margin: 10px 0 0 23%">
-	<a href="listNews.php"><?php echo $language ? 'Back to the news list':'Retour à la liste des news'; ?></a>
+	<a href="listNews.php"><?= _('Back to the news list') ?></a>
 </p>
 	<?php
 }

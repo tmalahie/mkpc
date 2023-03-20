@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-19 21:28+0100\n"
-"PO-Revision-Date: 2023-03-19 21:29+0100\n"
+"POT-Creation-Date: 2023-03-19 22:05+0100\n"
+"PO-Revision-Date: 2023-03-19 22:06+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Auto-ban by IP"
 msgstr "Auto-ban par IP"
 
-#: forum.php index.php
+#: forum.php addNews.php index.php
 msgctxt "html language"
 msgid "en"
 msgstr "fr"
@@ -104,7 +104,7 @@ msgstr "Titre du topic"
 msgid "Advanced search"
 msgstr "Recherche avancée"
 
-#: forum.php
+#: forum.php addNews.php
 msgid "Category"
 msgstr "Catégorie"
 
@@ -155,9 +155,10 @@ msgid ""
 "<strong>{monthlyActivestPlayerNbMessages} message(s)</strong> since {month} "
 "the 1<small class=\"superscript\">st</small>."
 msgstr ""
-"Le membre le plus actif du mois est <a href=\"{urlToProfile}\""
-">{monthlyActivestPlayer}</a> avec <strong>{monthlyActivestPlayerNbMessages}"
-" depuis le 1<small class=\"superscript\">er</small> {month}."
+"Le membre le plus actif du mois est <a "
+"href=\"{urlToProfile}\">{monthlyActivestPlayer}</a> avec "
+"<strong>{monthlyActivestPlayerNbMessages} depuis le 1<small "
+"class=\"superscript\">er</small> {month}."
 
 #: forum.php
 msgid "Ranking of month's most active members"
@@ -166,6 +167,112 @@ msgstr "Classement des plus actifs du mois"
 #: forum.php
 msgid "Back to the homepage"
 msgstr "Retour à l'accueil"
+
+#: addNews.php
+msgid "News Mario Kart PC"
+msgstr "News Mario Kart PC"
+
+#: addNews.php
+msgid "Warning, the message you're writing won't be saved"
+msgstr ""
+"Attention, le message que vous êtes en train d'écrire ne sera pas sauvegardé"
+
+#: addNews.php
+msgid "Draft saved"
+msgstr ""
+"Votre brouillon a été enregistré. Vous pourrez le modifier à tout moment"
+
+#: addNews.php
+msgid "Add a news"
+msgstr "Ajouter une news"
+
+#: addNews.php
+msgid "News created successfully"
+msgstr "News créée avec succès"
+
+#: addNews.php
+msgid "This news will be published once validated by a moderator."
+msgstr "Cette news sera en ligne une fois validée par un rédacteur."
+
+#: addNews.php
+msgid "<a href=\"{url}\">Click here</a> to see the news."
+msgstr "<a href=\"{url}\">Cliquez ici</a> pour voir la news."
+
+#: addNews.php
+msgid "<a href=\"{url}\">Click here</a> to return to the news list."
+msgstr "<a href=\"{url}\">Cliquez ici</a> pour retourner à la liste des news."
+
+#: addNews.php
+msgid ""
+"Tip: before beginning, check that a news on the same subject is not pending "
+"validation."
+msgstr ""
+"Conseil : avant de commencer, vérifiez qu'une news sur le même sujet n'est "
+"pas en cours de validation."
+
+#: addNews.php
+msgid "Show"
+msgstr "Afficher"
+
+#: addNews.php
+msgid "Hide"
+msgstr "Cacher"
+
+#: addNews.php
+msgid "Please enter a title"
+msgstr "Veuillez entrer un titre"
+
+#: addNews.php
+msgid "Please enter a content"
+msgstr "Veuillez entrer un contenu"
+
+#: addNews.php
+msgid "Title"
+msgstr "Titre"
+
+#: addNews.php
+msgid "Help"
+msgstr "Aide"
+
+#: addNews.php
+msgid "More smileys"
+msgstr "Plus de smileys"
+
+#: addNews.php
+msgid "Delete draft"
+msgstr "Supprimer le brouillon"
+
+#: addNews.php
+msgid "Delete the draft?"
+msgstr "Supprimer le brouillon ?"
+
+#: addNews.php
+msgid "Save draft"
+msgstr "Enregistrer le brouillon"
+
+#: addNews.php
+msgid "Preview"
+msgstr "Aperçu"
+
+#: addNews.php
+msgid "Send"
+msgstr "Envoyer"
+
+#: addNews.php
+msgid ""
+"In <strong {cssAttributes}>{categoryName}</strong> by <strong>{author}</"
+"strong>"
+msgstr ""
+"Dans <strong {cssAttributes}>{categoryName}</strong> par <strong>{author}</"
+"strong>"
+
+#: addNews.php
+msgid "Published"
+msgstr "Publié"
+
+#: addNews.php
+msgid "Back to the news list"
+msgstr "Retour à la liste des news"
 
 #: index.php
 msgid "A Mario Kart Game for browser"
@@ -496,6 +603,19 @@ msgstr ""
 "href=\"{url}\">Cliquez ici</a> pour en prendre connaissance."
 
 #: index.php
+msgid "Happy birthday to"
+msgstr "Joyeux anniversaire à"
+
+#: index.php
+msgid " and "
+msgstr " et "
+
+#: index.php
+msgctxt "final exclamation point in a sentence"
+msgid "!"
+msgstr "&nbsp;!"
+
+#: index.php
 msgid "Last topics"
 msgstr "Derniers topics"
 
@@ -521,7 +641,7 @@ msgstr "Dernières news"
 #, php-format
 msgctxt "Categories"
 msgid "In <strong>%s</strong> by <strong>%s</strong>"
-msgstr "Dans <strong>%s</strong> pas <strong>%s</strong>"
+msgstr "Dans <strong>%s</strong> par <strong>%s</strong>"
 
 #: index.php
 #, php-format
@@ -614,6 +734,12 @@ msgstr "Afficher tout"
 #: index.php
 msgid "Last challenges"
 msgstr "Derniers défis"
+
+#: index.php
+msgid "{count} pending challenge"
+msgid_plural "{count} pending challenge"
+msgstr[0] "{count} défi en attente de validation"
+msgstr[1] "{count} défis en attente de validation"
 
 #: index.php
 msgid "Challenge points - Leaderboard"
