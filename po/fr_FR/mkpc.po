@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-20 20:32+0100\n"
-"PO-Revision-Date: 2023-03-20 20:45+0100\n"
+"POT-Creation-Date: 2023-03-20 21:40+0100\n"
+"PO-Revision-Date: 2023-03-20 21:41+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 22.12.3\n"
 
-#: addNews.php admin-logs.php forum.php index.php
+#: addNews.php admin-logs.php admin.php forum.php index.php
 msgctxt "html language"
 msgid "en"
 msgstr "fr"
@@ -171,8 +171,7 @@ msgstr "a supprimé le topic #$1"
 
 #: admin-logs.php
 msgid "edited <a href=\"{url}\">message #$2</a> in topic {topic}"
-msgstr ""
-"a modifié le <a href=\"{url}\">message #$2</a> dans le topic {topic}"
+msgstr "a modifié le <a href=\"{url}\">message #$2</a> dans le topic {topic}"
 
 #: admin-logs.php
 msgid "edited topic "
@@ -399,8 +398,8 @@ msgstr "Logs admin"
 #: admin-logs.php
 msgid "This page shows the history of all actions made by MKPC staff members"
 msgstr ""
-"Cette page affiche l'historique de toutes les actions effectuées par l'équipe"
-" admin MKPC"
+"Cette page affiche l'historique de toutes les actions effectuées par "
+"l'équipe admin MKPC"
 
 #: admin-logs.php
 msgid "Log type"
@@ -414,13 +413,245 @@ msgstr "Sélectionner"
 msgid "Filter"
 msgstr "Filtrer"
 
-#: admin-logs.php
+#: admin-logs.php admin.php
 msgid "Back to the forum"
 msgstr "Retour au forum"
 
-#: admin-logs.php
+#: admin-logs.php admin.php
 msgid "Back to Mario Kart PC"
 msgstr "Retour à Mario Kart PC"
+
+#: admin.php
+msgid "You aren't logged in"
+msgstr "Vous n'êtes pas connecté"
+
+#: admin.php
+msgid "You aren't admin"
+msgstr "Vous n'êtes pas administrateur"
+
+#: admin.php
+msgid "administrator"
+msgstr "administrateur"
+
+#: admin.php
+msgid "moderator"
+msgstr "modérateur"
+
+#: admin.php
+msgid "event host"
+msgstr "animateur"
+
+#: admin.php
+msgid "Admin page"
+msgstr "Page admin"
+
+#: admin.php
+msgid ""
+"Your current role is: {role}. This grants you the following rights. Make "
+"good use of them!"
+msgstr ""
+"Votre rôle actuel est : {role}. Celui-ci vous donne les droits suivants. "
+"Faites-en bon usage !"
+
+#: admin.php
+msgid "Member management"
+msgstr "Gestion des membres"
+
+#: admin.php
+msgid "Edit a member's <strong>nick</strong>"
+msgstr "Changer le <strong>pseudo</strong> d'un membre"
+
+#: admin.php
+msgid "Can be useful if a member has a troll nick for example"
+msgstr "Peut servir si un membre a un pseudo troll par exemple"
+
+#: admin.php
+msgid "See <strong>nick change history</strong>"
+msgstr "Voir l'historique des <strong>changements de pseudo</strong>"
+
+#: admin.php
+msgid "To monitor people who would abuse of this option."
+msgstr "Pour surveiller les membres qui abuseraient de cette option."
+
+#: admin.php
+msgid "Give / Remove <strong>points</strong> in <strong>online mode</strong>"
+msgstr ""
+"Donner/retirer des <strong>points</strong> dans le <strong>mode en ligne</"
+"strong>"
+
+#: admin.php
+msgid "As a reward for a tournament, or as punishment after a cheat..."
+msgstr ""
+"En récompense suite à un tournoi, ou comme punition après une triche..."
+
+#: admin.php
+msgid "Award a <strong>reward</strong>"
+msgstr "Attribuer des <strong>titres</strong>"
+
+#: admin.php
+msgid "Following an official event (oscars, festival, ...)"
+msgstr "Suite à un événement officiel (oscars, festival, ...)"
+
+#: admin.php
+msgid "See <strong>double accounts</strong>"
+msgstr "Voir les <strong>double comptes</strong>"
+
+#: admin.php
+msgid ""
+"If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)"
+msgstr ""
+"Si un &quot;nouveau&quot; membre vous parait louche... (outil pas 100% "
+"fiable)"
+
+#: admin.php
+msgid "Edit member <strong>profile</strong>"
+msgstr "Changer le <strong>profil</strong> d'un membre"
+
+#: admin.php
+msgid ""
+"Can be useful if a troll member has put an inappropriate description for "
+"example, or a fake country"
+msgstr ""
+"Peut servir si un membre troll a renseigné une description inappropriée par "
+"exemple, ou un faux pays"
+
+#: admin.php
+msgid "<strong>Ban</strong> or <strong>warn</strong> a member"
+msgstr "<strong>Bannir</strong> ou <strong>avertir</strong> un membre"
+
+#: admin.php
+msgid ""
+"Warn a user for innapropriate behavior, or ban them if he persists. Banned "
+"members are unable to post anything on the site"
+msgstr ""
+"Avertir un membre d'un comportement inapproprié, ou le bannir en cas de "
+"récidive. Les membres bannis ne peuvent plus rien poster sur le site"
+
+#: admin.php index.php
+msgid "Online mode"
+msgstr "Mode en ligne"
+
+#: admin.php
+msgid "Give / Remove <strong>points</strong> in online mode"
+msgstr "Donner/retirer des <strong>points</strong> dans le mode en ligne"
+
+#: admin.php
+msgid "Manage <strong>forbidden/watched words</strong> in online chat"
+msgstr ""
+"Gérer les <strong>mots interdits/surveillés</strong> dans le chat en ligne"
+
+#: admin.php
+msgid "All messages containing forbidden words will be blocked and/or logged"
+msgstr ""
+"Tous les messages contenant ces mots ne seront pas envoyés ou seront loggués"
+
+#: admin.php
+msgid "See online mode <strong>chat logs</strong>"
+msgstr "Voir les <strong>logs</strong> du mode en ligne"
+
+#: admin.php
+msgid "See the messages of the member in the online mode"
+msgstr "Voir les messages d'un joueurs dans le chat du mode en ligne"
+
+#: admin.php
+msgid "You can mute members in case of abuse"
+msgstr "Vous pouvez muter les membres en cas d'abus"
+
+#: admin.php
+msgid "Share management"
+msgstr "Gestion des partages"
+
+#: admin.php
+msgid "Delete a <strong>custom track</strong>"
+msgstr "Supprimer un <strong>circuit</strong>"
+
+#: admin.php
+msgid "If the content of the track is inappropriate or in case of plagiarism"
+msgstr "Si le contenu d'un circuit est inapproprié ou en cas de plagiat"
+
+#: admin.php
+msgid "Manage <strong>ratings</strong> on tracks"
+msgstr "Gérer les <strong>notes</strong> sur un circuit"
+
+#: admin.php
+msgid "To monitor and eradicate 1-star trolls..."
+msgstr "Pour surveiller et éradiquer les 1-star trolls..."
+
+#: admin.php
+msgid "Delete a <strong>character</strong>"
+msgstr "Supprimer un <strong>perso</strong>"
+
+#: admin.php
+msgid "In case of plagiarism or if eventual cheating (invisible character...)"
+msgstr "En cas de plagiat ou de risque de triche (perso invisible...)"
+
+#: admin.php
+msgid "Find the <strong>author</strong> of a given creation"
+msgstr "Trouver l'<strong>auteur</strong> d'une création"
+
+#: admin.php
+msgid "Find the creator of a circuit published by an anonymous user"
+msgstr "Retrouver le créateur d'un circuit publié par un utilisateur anonyme"
+
+#: admin.php
+msgid "Other rights"
+msgstr "Autres droits"
+
+#: admin.php
+msgid "Moderate a message on the <strong>forum</strong>"
+msgstr "Modérer un message sur le <strong>forum</strong>"
+
+#: admin.php
+msgid ""
+"To do this, go to the message in question and click on &quot;Edit&quot; or "
+"&quot;Delete&quot;"
+msgstr ""
+"Pour cela, se rendre sur le message en question et cliquer sur &quot;"
+"Modifier&quot; ou &quot;Supprimer&quot;"
+
+#: admin.php
+msgid "Moderate a <strong>comment</strong> on a <strong>custom track</strong>"
+msgstr ""
+"Modérer un <strong>commentaire</strong> sur un <strong>circuit</strong>"
+
+#: admin.php
+msgid ""
+"Go to the track in question and click on &quot;Edit&quot; or &quot;"
+"Delete&quot;"
+msgstr ""
+"Se rendre sur le circuit en question et cliquer sur &quot;Modifier&quot; ou "
+"&quot;Supprimer&quot;"
+
+#: admin.php
+msgid "Moderate a <strong>comment</strong> on a <strong>news</strong>"
+msgstr ""
+"Modérer un <strong>commentaire</strong> sur un <strong>circuit</strong>"
+
+#: admin.php
+msgid ""
+"Go to the news in question and click on &quot;Edit&quot; or &quot;"
+"Delete&quot;"
+msgstr ""
+"Se rendre sur la news en question et cliquer sur &quot;Modifier&quot; ou "
+"&quot;Supprimer&quot;"
+
+#: admin.php
+msgid "See forum <strong>reported messages</strong>"
+msgstr "Voir les <strong>messages signalés</strong> sur le forum"
+
+#: admin.php
+msgid "To quickly perform actions on what members reported"
+msgstr "Pour prendre des actions rapides sur ce que les membres ont remonté"
+
+#: admin.php
+msgid "See <strong>admin logs</strong>"
+msgstr "Voir les <strong>logs admin</strong>"
+
+#: admin.php
+msgid "To retrace and understand the different actions done by MKPC staff"
+msgstr ""
+"Pour retracer et comprendre les différentes actions réalisées par les admins "
+"MKPC"
 
 #: forum.php
 msgid "Auto-ban by IP"
@@ -1038,10 +1269,6 @@ msgstr "Activité récente"
 msgctxt "language for ordinals"
 msgid "en"
 msgstr "fr"
-
-#: index.php
-msgid "Online mode"
-msgstr "Mode en ligne"
 
 #: index.php
 msgid "Mirror"
