@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-19 22:06+0100\n"
+"POT-Creation-Date: 2023-03-19 22:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,13 +18,117 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: forum.php
-msgid "Auto-ban by IP"
-msgstr ""
-
-#: forum.php addNews.php index.php
+#: addNews.php forum.php index.php
 msgctxt "html language"
 msgid "en"
+msgstr ""
+
+#: addNews.php
+msgid "News Mario Kart PC"
+msgstr ""
+
+#: addNews.php
+msgid "Warning, the message you're writing won't be saved"
+msgstr ""
+
+#: addNews.php
+msgid "Draft saved"
+msgstr ""
+
+#: addNews.php
+msgid "Add a news"
+msgstr ""
+
+#: addNews.php
+msgid "News created successfully"
+msgstr ""
+
+#: addNews.php
+msgid "This news will be published once validated by a moderator."
+msgstr ""
+
+#: addNews.php
+msgid "<a href=\"{url}\">Click here</a> to see the news."
+msgstr ""
+
+#: addNews.php
+msgid "<a href=\"{url}\">Click here</a> to return to the news list."
+msgstr ""
+
+#: addNews.php
+msgid ""
+"Tip: before beginning, check that a news on the same subject is not pending "
+"validation."
+msgstr ""
+
+#: addNews.php
+msgid "Show"
+msgstr ""
+
+#: addNews.php
+msgid "Hide"
+msgstr ""
+
+#: addNews.php
+msgid "Please enter a title"
+msgstr ""
+
+#: addNews.php
+msgid "Please enter a content"
+msgstr ""
+
+#: addNews.php
+msgid "Title"
+msgstr ""
+
+#: addNews.php forum.php
+msgid "Category"
+msgstr ""
+
+#: addNews.php
+msgid "Help"
+msgstr ""
+
+#: addNews.php
+msgid "More smileys"
+msgstr ""
+
+#: addNews.php
+msgid "Delete draft"
+msgstr ""
+
+#: addNews.php
+msgid "Delete the draft?"
+msgstr ""
+
+#: addNews.php
+msgid "Save draft"
+msgstr ""
+
+#: addNews.php
+msgid "Preview"
+msgstr ""
+
+#: addNews.php
+msgid "Send"
+msgstr ""
+
+#: addNews.php
+msgid ""
+"In <strong {cssAttributes}>{categoryName}</strong> by <strong>{author}</"
+"strong>"
+msgstr ""
+
+#: addNews.php
+msgid "Published"
+msgstr ""
+
+#: addNews.php
+msgid "Back to the news list"
+msgstr ""
+
+#: forum.php
+msgid "Auto-ban by IP"
 msgstr ""
 
 #: forum.php
@@ -99,10 +203,6 @@ msgstr ""
 msgid "Advanced search"
 msgstr ""
 
-#: forum.php addNews.php
-msgid "Category"
-msgstr ""
-
 #: forum.php
 msgid "Topics nb"
 msgstr ""
@@ -152,106 +252,6 @@ msgstr ""
 
 #: forum.php
 msgid "Back to the homepage"
-msgstr ""
-
-#: addNews.php
-msgid "News Mario Kart PC"
-msgstr ""
-
-#: addNews.php
-msgid "Warning, the message you're writing won't be saved"
-msgstr ""
-
-#: addNews.php
-msgid "Draft saved"
-msgstr ""
-
-#: addNews.php
-msgid "Add a news"
-msgstr ""
-
-#: addNews.php
-msgid "News created successfully"
-msgstr ""
-
-#: addNews.php
-msgid "This news will be published once validated by a moderator."
-msgstr ""
-
-#: addNews.php
-msgid "<a href=\"{url}\">Click here</a> to see the news."
-msgstr ""
-
-#: addNews.php
-msgid "<a href=\"{url}\">Click here</a> to return to the news list."
-msgstr ""
-
-#: addNews.php
-msgid ""
-"Tip: before beginning, check that a news on the same subject is not pending "
-"validation."
-msgstr ""
-
-#: addNews.php
-msgid "Show"
-msgstr ""
-
-#: addNews.php
-msgid "Hide"
-msgstr ""
-
-#: addNews.php
-msgid "Please enter a title"
-msgstr ""
-
-#: addNews.php
-msgid "Please enter a content"
-msgstr ""
-
-#: addNews.php
-msgid "Title"
-msgstr ""
-
-#: addNews.php
-msgid "Help"
-msgstr ""
-
-#: addNews.php
-msgid "More smileys"
-msgstr ""
-
-#: addNews.php
-msgid "Delete draft"
-msgstr ""
-
-#: addNews.php
-msgid "Delete the draft?"
-msgstr ""
-
-#: addNews.php
-msgid "Save draft"
-msgstr ""
-
-#: addNews.php
-msgid "Preview"
-msgstr ""
-
-#: addNews.php
-msgid "Send"
-msgstr ""
-
-#: addNews.php
-msgid ""
-"In <strong {cssAttributes}>{categoryName}</strong> by <strong>{author}</"
-"strong>"
-msgstr ""
-
-#: addNews.php
-msgid "Published"
-msgstr ""
-
-#: addNews.php
-msgid "Back to the news list"
 msgstr ""
 
 #: index.php
