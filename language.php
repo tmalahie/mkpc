@@ -1,7 +1,8 @@
 <?php
-if (isset($_COOKIE['language']))
+if (isset($_COOKIE['language'])) {
 	$language = ($_COOKIE['language']==1) ? 1:0;
-else {
+	$acceptedLanguage = $language == 0 ? "fr" : "en";
+} else {
 	function findAcceptedLanguage($availableLanguages, $default) {
 		if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 			$languages = explode(',',$_SERVER['HTTP_ACCEPT_LANGUAGE']);
@@ -17,12 +18,13 @@ else {
 		}
 		return ($id==$nbLanguages) ? $default:$availableLanguages[$id];
 	}
-	$language = (findAcceptedLanguage(array('fr','en'),'en') == 'fr') ? 0:1;
+	$acceptedLanguage = findAcceptedLanguage(array('fr','en'),'en');
+	$language = ($acceptedLanguage == 'fr') ? 0:1;
 	setcookie('language', $language, 4294967295,'/');
 }
 
 // gettext setup
-setlocale(LC_MESSAGES, $language ? "en_GB.UTF-8" : "fr_FR.UTF-8");
+setlocale(LC_MESSAGES, $acceptedLanguage == "fr" ? "fr_FR.UTF-8" : "en_GB.UTF-8");
 bindtextdomain("mkpc", "po");
 textdomain("mkpc");
 

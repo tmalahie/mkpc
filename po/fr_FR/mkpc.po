@@ -1,22 +1,22 @@
 # French translations for PACKAGE package.
 # Copyright (C) 2023 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-#  <ano@nymous.com>, 2023.
 #
+#  <ano@nymous.com>, 2023.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-19 18:44+0100\n"
-"PO-Revision-Date: 2023-03-16 21:47+0100\n"
-"Last-Translator: ano@nymous.com\n"
-"Language-Team: French <traduc@traduc.org>\n"
+"POT-Creation-Date: 2023-03-19 19:50+0100\n"
+"PO-Revision-Date: 2023-03-19 19:52+0100\n"
+"Last-Translator: flo <ano@nymous.com>\n"
+"Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Lokalize 22.12.3\n"
 
 #: index.php
 msgctxt "html language"
@@ -506,11 +506,10 @@ msgid "Normal"
 msgstr "Normal"
 
 #: index.php
-#, php-format
-msgid "%s member"
-msgid_plural "%s members"
-msgstr[0] "%s membre"
-msgstr[1] "%s membres"
+msgid "{count} member"
+msgid_plural "{count} members"
+msgstr[0] "{count} membre"
+msgstr[1] "{count} membres"
 
 #: index.php
 msgid "the arena"
@@ -580,6 +579,12 @@ msgstr "En savoir plus"
 #: index.php
 msgid "Loading"
 msgstr "Chargement"
+
+#, php-format
+#~ msgid "%s member"
+#~ msgid_plural "%s members"
+#~ msgstr[0] "%s membre"
+#~ msgstr[1] "%s membres"
 
 #, php-format
 #~ msgid "Categories"

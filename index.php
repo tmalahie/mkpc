@@ -615,7 +615,7 @@ $slidesPath = 'images/slides';
 					?>
 				</table>
 			</div>
-			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?= _('Tournament\'s Discord Server') ?></a></div>
+			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?= _("Tournament's Discord Server") ?></a></div>
 		</div>
 			<?php
 		}
@@ -967,7 +967,7 @@ $slidesPath = 'images/slides';
 						$i++;
 					}
 					echo '<span class="ranking_activeplayernb" title="'. $title .'">';
-					printf(ngettext("%s member", "%s members", $nbActivePlayers), $nbActivePlayers);
+					echo FN_("{count} member", "{count} members", count: $nbActivePlayers);
 					echo '</span>';
 					if (!empty($params['cup'])) {
 						echo ' ';
