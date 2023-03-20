@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-20 22:01+0100\n"
-"PO-Revision-Date: 2023-03-20 22:01+0100\n"
+"POT-Creation-Date: 2023-03-20 22:14+0100\n"
+"PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
@@ -18,7 +18,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 22.12.3\n"
 
-#: addNews.php admin-logs.php adminPersos.php admin.php forum.php index.php
+#: addNews.php admin-logs.php adminPersos.php admin.php adminReports.php
+#: forum.php index.php
 msgctxt "html language"
 msgid "en"
 msgstr "fr"
@@ -413,7 +414,7 @@ msgstr "Sélectionner"
 msgid "Filter"
 msgstr "Filtrer"
 
-#: admin-logs.php admin.php
+#: admin-logs.php admin.php adminReports.php
 msgid "Back to the forum"
 msgstr "Retour au forum"
 
@@ -684,6 +685,32 @@ msgid "To retrace and understand the different actions done by MKPC staff"
 msgstr ""
 "Pour retracer et comprendre les différentes actions réalisées par les admins "
 "MKPC"
+
+#: adminReports.php
+msgid "You are not moderator"
+msgstr "Vous n'êtes pas modérateur"
+
+#: adminReports.php
+msgid "Reported messages"
+msgstr "Messages signalés"
+
+#: adminReports.php
+msgid "No new reported message for now"
+msgstr "Aucun nouveau signalement pour l'instant"
+
+#: adminReports.php
+msgid "In <a href=\"{topicUrl}\">{topicName}</a>."
+msgstr "Dans <a href=\"{topicUrl}\">{topicName}</a>."
+
+#: adminReports.php
+msgid "Reported by <a href=\"{showMembers}\">{count} member</a>."
+msgid_plural "Reported by <a href=\"{showMembers}\">{count} members</a>."
+msgstr[0] "Signalé par <a href=\"{showMembers}\">{count} membre</a>."
+msgstr[1] "Signalé par <a href=\"{showMembers}\">{count} membres</a>."
+
+#: adminReports.php
+msgid "No pending reported message"
+msgstr "Aucun message reporté en attente"
 
 #: forum.php
 msgid "Auto-ban by IP"
