@@ -11,7 +11,7 @@ include('language.php');
 require_once('persos.php');
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<html lang="<?= P_("html language", "en") ?>">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -45,7 +45,6 @@ include('o_online.php');
 <script type="text/javascript">
 var persoIds = [];
 var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
-var language = <?php echo ($language ? 'true':'false'); ?>;
 function previewPerso(id) {
 	var $myPerso = document.getElementById("myperso-"+id);
 	$myPerso.classList.add("perso-animate");
@@ -83,7 +82,7 @@ function selectPerso(id) {
 		var persoName = persoData.name;
 		document.getElementById("perso-options-name").innerHTML = persoName;
 		if (persoData.author)
-			document.getElementById("perso-options-author").innerHTML = (language ? "By":"Par") + " " + persoData.author;
+			document.getElementById("perso-options-author").innerHTML = <? F_("By {author}", author: '${persoData.author}') ?>;
 		else
 			document.getElementById("perso-options-author").innerHTML = "";
 	}
@@ -92,7 +91,7 @@ function selectPerso(id) {
 	document.getElementById("perso-del-nb").innerHTML = persoIds.length;
 }
 function delPerso() {
-	if (confirm(language ? "Confirm deletion of "+ persoIds.length +" characters?":"Confirmer la suppression de "+ persoIds.length +" persos ?")) {
+	if (confirm(<?= F_("Confirm deletion of {nbCharacters} characters?", nbCharacters: '${persoIds.length}') ?>)) {
 		o_xhr("deleteShare.php", "ids="+persoIds.join(","), function(res) {
 			if (res == 1) {
 				var persoList = document.querySelector(".mypersos-list");
@@ -140,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		observer.observe(listImgs[i]);
 });
 </script>
-<title><?php echo $language ? 'Manage characters':'Gérer les persos'; ?></title>
+<title><?= _('Manage characters') ?></title>
 </head>
 <body>
 <?php
@@ -148,17 +147,17 @@ $getPsersos = mysql_query('SELECT * FROM `mkchars` WHERE author IS NOT NULL ORDE
 $arePersos = mysql_numrows($getPsersos);
 if ($arePersos) {
 	?>
-	<h1><?php echo $language ? 'Delete character shares':'Supprimer des partages de persos'; ?></h1>
+	<h1><?= _('Delete character shares') ?></h1>
 	<div id="perso-options" style="min-width: 150px">
 		<div id="perso-options-name" style="margin-bottom: 2px"></div>
 		<div id="perso-options-author"></div>
 		<div class="perso-options-delete">
-			<button class="suppr-perso" onclick="javascript:delPerso()"><?php echo $language ? 'Delete [<span id="perso-del-nb">0</span>]':'Supprimer [<span id="perso-del-nb">0</span>]'; ?></button>
+			<button class="suppr-perso" onclick="javascript:delPerso()"><?= F_('Delete {htmlCharacterNb}', htmlCharacterNb: '[<span id="perso-del-nb">0</span>]') ?></button>
 		</div>
 	</div>
 	<form id="persos-list-search" name="persos-list-search">
-		<div><?php echo $language ? 'Name:':'Nom :'; ?> <input type="text" name="perso-name" placeholder="<?php echo $language ? 'Baby Mario':'Bébé Mario'; ?>" oninput="filterSearch()" /></div>
-		<div><?php echo $language ? 'Author:':'Auteur :'; ?> <input type="text" name="perso-author" placeholder="Wargor" oninput="filterSearch()" /></div>
+		<div><?= _('Name:') ?> <input type="text" name="perso-name" placeholder="<?= _('Baby Mario') ?>" oninput="filterSearch()" /></div>
+		<div><?= _('Author:') ?> <input type="text" name="perso-author" placeholder="Wargor" oninput="filterSearch()" /></div>
 	</form>
 	<div class="mypersos-list">
 	<?php
@@ -177,6 +176,6 @@ if ($arePersos) {
 }
 mysql_close();
 ?>
-<p><a href="index.php"><?php echo $language ? "Back to Mario Kart PC":"Retour à Mario Kart PC"; ?></a></p>
+<p><a href="index.php"><?= _("Back to Mario Kart PC") ?></a></p>
 </body>
 </html>

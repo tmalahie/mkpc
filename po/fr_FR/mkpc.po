@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-20 21:40+0100\n"
-"PO-Revision-Date: 2023-03-20 21:41+0100\n"
+"POT-Creation-Date: 2023-03-20 22:01+0100\n"
+"PO-Revision-Date: 2023-03-20 22:01+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 22.12.3\n"
 
-#: addNews.php admin-logs.php admin.php forum.php index.php
+#: addNews.php admin-logs.php adminPersos.php admin.php forum.php index.php
 msgctxt "html language"
 msgid "en"
 msgstr "fr"
@@ -417,9 +417,41 @@ msgstr "Filtrer"
 msgid "Back to the forum"
 msgstr "Retour au forum"
 
-#: admin-logs.php admin.php
+#: admin-logs.php adminPersos.php admin.php
 msgid "Back to Mario Kart PC"
 msgstr "Retour à Mario Kart PC"
+
+#: adminPersos.php
+msgid "By {author}"
+msgstr "Par {author}"
+
+#: adminPersos.php
+msgid "Confirm deletion of {nbCharacters} characters?"
+msgstr "Confirmer la suppression de {nbCharacters} persos ?"
+
+#: adminPersos.php
+msgid "Manage characters"
+msgstr "Gérer les persos"
+
+#: adminPersos.php
+msgid "Delete character shares"
+msgstr "Supprimer des partages de persos"
+
+#: adminPersos.php
+msgid "Delete {htmlCharacterNb}"
+msgstr "Supprimer {htmlCharacterNb}"
+
+#: adminPersos.php
+msgid "Name:"
+msgstr "Nom :"
+
+#: adminPersos.php
+msgid "Baby Mario"
+msgstr "Bébé Mario"
+
+#: adminPersos.php
+msgid "Author:"
+msgstr "Auteur :"
 
 #: admin.php
 msgid "You aren't logged in"
