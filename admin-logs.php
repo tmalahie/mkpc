@@ -10,112 +10,110 @@ include('utils-date.php');
 require_once('utils-cups.php');
 $logTemplates = array(
     'award' => function($var) {
-        global $language;
-        return '<strong>{{table.mkawards(id='.$var.').name|global.ifEmpty("</strong><em>'. ($language ? 'Deleted award':'Titre supprimé') .'</em><strong>")}}</strong>';
+        return '<strong>{{table.mkawards(id='.$var.').name|global.ifEmpty("</strong><em>'. _('Deleted award') .'</em><strong>")}}</strong>';
     },
     'challenge' => function($var) {
-        global $language;
-        return '<a href="challengeTry.php?challenge='.$var.'">{{table.mkchallenges(id='.$var.').name|global.ifEmpty("'. ($language ? 'Untitled':'Sans titre') .'")}}</a>';
+        return '<a href="challengeTry.php?challenge='.$var.'">{{table.mkchallenges(id='.$var.').name|global.ifEmpty("'. _('Untitled') .'")}}</a>';
     },
     'member' => function($var) {
-        global $language;
-        return '<a href="profil.php?id='.$var.'">{{table.mkjoueurs(id='.$var.').nom|global.ifNull("<em>'. ($language ? 'Deleted account':'Compte supprimé') .'</em>")}}</a>';
+        return '<a href="profil.php?id='.$var.'">{{table.mkjoueurs(id='.$var.').nom|global.ifNull("<em>'. _('Deleted account') .'</em>")}}</a>';
     },
     'topic' => function($var) {
-        global $language;
-        return '<a href="topic.php?topic='.$var.'">{{table.mktopics(id='.$var.').titre|global.ifNull("<em>'. ($language ? 'Deleted topic':'Topic supprimé') .'</em>")}}</a>';
+        return '<a href="topic.php?topic='.$var.'">{{table.mktopics(id='.$var.').titre|global.ifNull("<em>'. _('Deleted topic') .'</em>")}}</a>';
     },
     'news' => function($var) {
-        global $language;
-        return '<a href="news.php?id='.$var.'">{{table.mknews(id='.$var.').title|global.ifNull("<em>'. ($language ? 'Deleted news':'News supprimée') .'</em>")}}</a>';
+        return '<a href="news.php?id='.$var.'">{{table.mknews(id='.$var.').title|global.ifNull("<em>'. _('Deleted news') .'</em>")}}</a>';
     }
 );
 $logMapping = array(
     'AChallenge' => array(
-        'render' => ($language ? 'accepted challenge ' : 'a accepté le défi ') . $logTemplates['challenge']('$1'),
+        'render' => _('accepted challenge ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'CCircuit' => array(
-        'render' => $language ? 'deleted complete track #$1' : 'a supprimé le circuit complet #$1',
+        'render' => _('deleted complete track #$1'),
         'role' => 'moderator'
     ),
     'Suppr' => array(
         'render' => function(&$group) {
-            global $logTemplates, $language;
+            global $logTemplates;
             if (isset($group[2]))
-                return ($language ? 'deleted message #$2 in topic ' : 'a supprimé le message #$2 dans le topic ') . $logTemplates['topic']('$1');
-            return $language ? 'deleted topic #$1' : 'a supprimé le topic #$1';
+                return _('deleted message #$2 in topic ') . $logTemplates['topic']('$1');
+            return _('deleted topic #$1');
         },
         'role' => 'moderator'
     ),
     'Edit' => array(
         'render' => function(&$group) {
-            global $logTemplates, $language;
+            global $logTemplates;
             if (isset($group[2]))
-                return ($language ? 'edited <a href="topic.php?topic=$1&amp;message=$2">message #$2</a> in topic ' : 'a modifié le <a href="topic.php?topic=$1&amp;message=$2">message #$2</a> dans le topic ') . $logTemplates['topic']('$1');
-            return ($language ? 'edited topic ' : 'a modifié le topic ') . $logTemplates['topic']('$1');
+                return F_(
+                    'edited <a href="{url}">message #$2</a> in topic {topic}',
+                    url: 'topic.php?topic=$1&amp;message=$2',
+                    topic: $logTemplates['topic']('$1'),
+                );
+            return _('edited topic ') . $logTemplates['topic']('$1');
         },
         'role' => 'moderator'
     ),
     'DChallenge' => array(
-        'render' => ($language ? 'changed difficulty of challenge ' : 'a modifié la difficulté du défi ') . $logTemplates['challenge']('$1') .' {{table.mkchallenges(id=$1).difficulty|local.difficulty()}}',
+        'render' => _('changed difficulty of challenge ') . $logTemplates['challenge']('$1') .' {{table.mkchallenges(id=$1).difficulty|local.difficulty()}}',
         'locals' => array(
             'difficulty' => function($i) {
-                global $language;
                 if ($i === null) return '';
                 require_once('challenge-consts.php');
                 $difficulties = getChallengeDifficulties();
-                return ($language ? 'to' : 'en') . ' <strong>' . $difficulties[$i] .'</strong>';
+                return _('to') . ' <strong>' . $difficulties[$i] .'</strong>';
             }
         ),
         'role' => 'clvalidator'
     ),
     'RChallenge' => array(
-        'render' => ($language ? 'rejected challenge ' : 'a refusé le défi ') . $logTemplates['challenge']('$1'),
+        'render' => _('rejected challenge ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'Ban' => array(
-        'render' => ($language ? 'banned member ' : 'a banni le membre ') . $logTemplates['member']('$1'),
+        'render' => _('banned member ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Warn' => array(
-        'render' => ($language ? 'warned member ' : 'a averti le membre ') . $logTemplates['member']('$1'),
+        'render' => _('warned member ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Unban' => array(
-        'render' => ($language ? 'unbanned member ' : 'a débanni le membre ') . $logTemplates['member']('$1'),
+        'render' => _('unbanned member ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'SComment' => array(
-        'render' => $language ? 'deleted comment #$1 on a track' : 'a supprimé le commentaire #$1 sur un circuit',
+        'render' => _('deleted comment #$1 on a track'),
         'role' => 'moderator'
     ),
     'pts' => array(
         'render' => function(&$group) {
-            global $logTemplates, $language;
-            $verb = $language ? 'gave' : 'donné';
+            global $logTemplates;
             if ($group[1] < 0) {
-                $verb = $language ? 'removed' : 'retiré';
                 $group[1] = -$group[1];
+                return F_('took $1 pts from {user} in online mode (VS)', user: $logTemplates['member']('$2'));
+            } else {
+                return F_('gave $1 pts to {user} in online mode (VS)', user: $logTemplates['member']('$2'));
             }
-            return $language ? $verb.' $1 pts to '. $logTemplates['member']('$2') .' in online mode (VS)' : 'a '.$verb.' $1 pts à '. $logTemplates['member']('$2') .' dans le mode en ligne (VS)';
         },
         'role' => 'manager'
     ),
     'Bpts' => array(
         'render' => function(&$group) {
-            global $logTemplates, $language;
-            $verb = $language ? 'gave' : 'donné';
+            global $logTemplates;
             if ($group[1] < 0) {
-                $verb = $language ? 'removed' : 'retiré';
                 $group[1] = -$group[1];
+                return F_('took $1 pts from {user} in online mode (VS)', user: $logTemplates['member']('$2'));
+            } else {
+                return F_('gave $1 pts to {user} in online mode (VS)', user: $logTemplates['member']('$2'));
             }
-            return $language ? $verb.' $1 pts to '. $logTemplates['member']('$2') .' in online mode (bataille)' : 'a '.$verb.' $1 pts à '. $logTemplates['member']('$2') .' dans le mode en ligne (battle)';
         },
         'role' => 'manager'
     ),
     'nick' => array(
-        'render' => ($language ? 'changed <strong>$2</strong>\'s nick to ' : 'a modifié le pseudo de <strong>$2</strong> en ') . $logTemplates['member']('$1'),
+        'render' => _('changed <strong>$2</strong>\'s nick to ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'SPerso' => array(
@@ -129,41 +127,40 @@ $logMapping = array(
         'role' => 'moderator'
     ),
     'LTopic' => array(
-        'render' => ($language ? 'locked topic ' : 'a locké le topic ') . $logTemplates['topic']('$1'),
+        'render' => _('locked topic ') . $logTemplates['topic']('$1'),
         'role' => 'moderator'
     ),
     'ULTopic' => array(
-        'render' => ($language ? 'unlocked topic ' : 'a unlocké le topic ') . $logTemplates['topic']('$1'),
+        'render' => _('unlocked topic ') . $logTemplates['topic']('$1'),
         'role' => 'moderator'
     ),
     'AReport' => array(
         'render' => function(&$groups) {
-            global $language, $logTemplates;
+            global $logTemplates;
             if ($report = mysql_fetch_array(mysql_query('SELECT link FROM `mkreports` WHERE id="'. mysql_real_escape_string($groups[1]) .'"'))) {
                 $link = explode(',', $report['link']);
                 $groups[2] = $link[0];
                 $groups[3] = $link[1];
-                return ($language ? 'archived report on <a href="topic.php?topic=$2&amp;message=$3">message #$3</a> in topic ' : 'a archivé le signalement du <a href="topic.php?topic=$2&amp;message=$3">message #$3</a> dans le topic ') . $logTemplates['topic']('$2');
+                return F_('archived report on <a href="{url}">message #$3</a> in topic ', url: 'topic.php?topic=$2&amp;message=$3') . $logTemplates['topic']('$2');
             }
-            return $language ? 'archived report #$1' : 'a archivé le signalement #$1';
+            return _('archived report #$1');
         },
         'role' => 'moderator'
     ),
     'Cup' => array(
-        'render' => $language ? 'deleted cup #$1' : 'a supprimé la coupe #$1',
+        'render' => _('deleted cup #$1'),
         'role' => 'moderator'
     ),
     'RNews' => array(
-        'render' => ($language ? 'rejected news ' : 'a rejeté la news ') . $logTemplates['news']('$1'),
+        'render' => _('rejected news ') . $logTemplates['news']('$1'),
         'role' => 'publisher'
     ),
     'ANews' => array(
-        'render' => ($language ? 'accepted news ' : 'a accepté la news ') . $logTemplates['news']('$1'),
+        'render' => _('accepted news ') . $logTemplates['news']('$1'),
         'role' => 'publisher'
     ),
     'EComment' => array(
         'render' => function(&$groups) {
-            global $language;
             if ($comment = mysql_fetch_array(mysql_query('SELECT auteur,type,circuit FROM `mkcomments` WHERE id="'. mysql_real_escape_string($groups[1]) .'"'))) {
                 $groups[3] = $comment['auteur'];
                 $getCircuitData = get_circuit_data($comment['type'],$comment['circuit']);
@@ -171,78 +168,81 @@ $logMapping = array(
                 $groups[5] = $getCircuitData['link'];
                 $groups[6] = $getCircuitData['label'];
             }
-            $member = '<a href="profil.php?id={{$3}}">{{$3|global.join("mkjoueurs", "id", "nom")|global.ifNull("<em>'. ($language ? 'Deleted account':'Compte supprimé') .'</em>")}}</a>';
-            $track = '<a href="$5">{{$4|global.ifNull("<em>'. ($language ? 'Deleted track' : 'Circuit supprimé') .'</em>")}}</a>';
-            return $language ? 'updated '. $member .'\'s comment in $6 ' . $track : 'a modifié le commentaire de '. $member .' sur $6 '. $track;
+            $member = '<a href="profil.php?id={{$3}}">{{$3|global.join("mkjoueurs", "id", "nom")|global.ifNull("<em>'. _('Deleted account') .'</em>")}}</a>';
+            $track = '<a href="$5">{{$4|global.ifNull("<em>'. _('Deleted track') .'</em>")}}</a>';
+            return F_('updated {member}\'s comment in $6 ', member: $member) . $track;
         },
         'role' => 'moderator'
     ),
     'DRating' => array(
         'render' => function(&$groups) {
-            global $language;
             $getCircuitData = get_circuit_data($groups[1],$groups[2]);
             $groups[4] = $getCircuitData['name'];
             $groups[5] = $getCircuitData['link'];
             $groups[6] = $getCircuitData['label'];
-            $track = '<a href="$5">{{$4|global.ifNull("<em>'. ($language ? 'Deleted circuit' : 'Circuit supprimé') .'</em>")}}</a>';
-            return $language ? 'deleted a rating in $6 '. $track : 'a supprimé une note sur $6 '. $track;
+            $track = '<a href="$5">{{$4|global.ifNull("<em>'. _('Deleted circuit') .'</em>")}}</a>';
+            return _('deleted a rating in $6 '). $track;
         },
         'role' => 'moderator'
     ),
     'SCircuit' => array(
-        'render' => $language ? 'deleted quick circuit #$1' : 'a supprimé le circuit simplifié #$1',
+        'render' => _('deleted quick circuit #$1'),
         'role' => 'moderator'
     ),
     'SArene' => array(
-        'render' => $language ? 'deleted quick arena #$1' : 'a supprimé l\'arène simplifié #$1',
+        'render' => _('deleted quick arena #$1'),
         'role' => 'moderator'
     ),
     'CArene' => array(
-        'render' => $language ? 'deleted complete arena #$1' : 'a supprimé l\'arène complet #$1',
+        'render' => _('deleted complete arena #$1'),
         'role' => 'moderator'
     ),
     'SNews' => array(
-        'render' => $language ? 'deleted news #$1' : 'a supprimé la news #$1',
+        'render' => _('deleted news #$1'),
         'role' => 'publisher'
     ),
     'ENews' => array(
-        'render' => ($language ? 'updated news ' : 'a modifié la news ') . $logTemplates['news']('$1'),
+        'render' => _('updated news ') . $logTemplates['news']('$1'),
         'role' => 'publisher'
     ),
     'CAwarded' => array(
-        'render' => ($language ? 'awarded the title '. $logTemplates['award']('$2') .' to ' : 'a attribué le titre '. $logTemplates['award']('$2') .' à ') . $logTemplates['member']('$1'),
+        'render' => F_('awarded the title {award_title} to {awardee}', award_title: $logTemplates['award']('$2'), awardee: $logTemplates['member']('$1')),
         'role' => 'organizer'
     ),
     'EAwarded' => array(
-        'render' => $language ? 'updated message of award '. $logTemplates['award']('$2') .' for member '. $logTemplates['member']('$1') : 'a modifié le message du titre '. $logTemplates['award']('$2') .' pour le membre '. $logTemplates['member']('$1'),
+        'render' => F_('updated message of award {award} for member {member}', award: $logTemplates['member']('$1'), member: $logTemplates['member']('$1')),
         'role' => 'organizer'
     ),
     'SAwarded' => array(
-        'render' => $language ? 'removed award '. $logTemplates['award']('$2')  .' for member '. $logTemplates['member']('$1') : 'a retiré le titre '. $logTemplates['award']('$2') .' pour le membre '. $logTemplates['member']('$1'),
+        'render' => F_('removed award {award} for member {member}', award: $logTemplates['award']('$2'), member: $logTemplates['member']('$1')),
         'role' => 'organizer'
     ),
     'SPicture' => array(
-        'render' => ($language ? 'deleted avatar of ' : 'a supprimé l\'avatar de ') . $logTemplates['member']('$1'),
+        'render' =>  _('deleted the avatar of ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'UAChallenge' => array(
-        'render' => ($language ? 'reverted validation of challenge ' : 'a annulé la validation du défi ') . $logTemplates['challenge']('$1'),
+        'render' => _('reverted validation of challenge ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'URChallenge' => array(
-        'render' => ($language ? 'reverted rejection of challenge ' : 'a annulé le refus du défi ') . $logTemplates['challenge']('$1'),
+        'render' => _('reverted rejection of challenge ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'CChallenge' => array(
-        'render' => ($language ? 'revalidated challenge ' : 'a revalidé le défi ') . $logTemplates['challenge']('$1'),
+        'render' => _('revalidated challenge ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'ENewscom' => array(
-        'render' => $language ? 'updated comment #$1 on news <a href="news.php?id={{table.mknewscoms(id=$1).news}}">{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>Deleted news</em>")}}</a>' : 'a modifié le commentaire #$1 sur la news <a href="news.php?id={{table.mknewscoms(id=$1).news}}">{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>News supprimée</em>")}}</a>',
+        'render' => F_(
+            'updated comment #$1 on news <a href="{news_url}">{news}</a>',
+             news_url : 'news.php?id={{table.mknewscoms(id=$1).news}}',
+             news: '{{table.mknewscoms(id=$1).news|global.join("mknews","id","title")|global.ifNull("<em>' .  _("Deleted news") . '</em>")}}',
+        ),
         'role' => 'moderator'
     ),
     'DNewscom' => array(
-        'render' => $language ? 'deleted comment on news #$1' : 'a supprimé le commentaire de news #$1',
+        'render' => _('deleted comment on news #$1'),
         'role' => 'moderator'
     ),
     'Mute' => array(
@@ -250,51 +250,55 @@ $logMapping = array(
         'role' => 'moderator'
     ),
     'Unmute' => array(
-        'render' => ($language ? 'unmuted member ' : 'a unmuté le membre ') . $logTemplates['member']('$1'),
+        'render' => _('unmuted member ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'Blacklist' => array(
-        'render' => ($language ? 'added ' : 'a ajouté ') . '<strong>{{table.mkbadwords(id=$1).word|global.ifNull("</strong>'. ($language ? 'a word' : 'un mot') .'<strong>")}}</strong>' . ($language ? ' to the forbidden words list' : ' à la liste des mots interdits'),
+        'render' => _('added ') . '<strong>{{table.mkbadwords(id=$1).word|global.ifNull("</strong>'. _('a word') .'<strong>")}}</strong>' . _(' to the forbidden words list'),
         'role' => 'moderator'
     ),
     'Unblacklist' => array(
-        'render' => $language ? 'removed word #$1 from list of forbidden words' : 'a retiré le mot #$1 de la liste des mots interdits',
+        'render' => _('removed word #$1 from list of forbidden words'),
         'role' => 'moderator'
     ),
     'MCup' => array(
-        'render' => $language ? 'deleted multicup #$1' : 'a supprimé la multicoupe #$1',
+        'render' => _('deleted multicup #$1'),
         'role' => 'moderator'
     ),
     'Profile' => array(
-        'render' => $language ? 'updated ' . $logTemplates['member']('$1') .'\'s profile' : 'a modifié le profil de ' . $logTemplates['member']('$1'),
+        'render' => F_('updated {member}\'s profile', member: $logTemplates['member']('$1')),
         'role' => 'moderator'
     ),
     'Flag' => array(
-        'render' => $language ? 'updated country of ' . $logTemplates['member']('$1') .' to <strong>{{table.mkcountries(code=$2).name_en|global.ifNull($2)}}</strong>' : 'a modifié le pays de ' . $logTemplates['member']('$1') .' en <strong>{{table.mkcountries(code=$2).name_fr|global.ifNull($2)}}</strong>',
+        'render' => F_(
+            'updated country of {member} to <strong>{new_country}</strong>',
+             member: $logTemplates['member']('$1'),
+             new_country: '{{table.mkcountries(code=$2).name_en|global.ifNull($2)}}',
+        ),
         'role' => 'moderator'
     ),
     'EChallenge' => array(
-        'render' => ($language ? 'updated challenge ' : 'a modifié le défi ') . $logTemplates['challenge']('$1'),
+        'render' => _('updated challenge ') . $logTemplates['challenge']('$1'),
         'role' => 'clvalidator'
     ),
     'CAward' => array(
-        'render' => ($language ? 'created award ' : 'a créé le titre ') . $logTemplates['award']('$1'),
+        'render' => _('created award ') . $logTemplates['award']('$1'),
         'role' => 'organizer'
     ),
     'EAward' => array(
-        'render' => ($language ? 'updated award ' : 'a modifié le titre ') . $logTemplates['award']('$1'),
+        'render' => _('updated award ') . $logTemplates['award']('$1'),
         'role' => 'organizer'
     ),
     'SAward' => array(
-        'render' => $language ? 'deleted award #$1' : 'a supprimé le titre #$1',
+        'render' => _('deleted award #$1'),
         'role' => 'organizer'
     ),
     'LNews' => array(
-        'render' => ($language ? 'locked comments on news ' : 'a locké les commentaires sur la news ') . $logTemplates['news']('$1'),
+        'render' => _('locked comments on news ') . $logTemplates['news']('$1'),
         'role' => 'moderator'
     ),
     'ULNews' => array(
-        'render' => ($language ? 'unlocked comments on news ' : 'a unlocké les commentaires sur la news ') . $logTemplates['news']('$1'),
+        'render' => _('unlocked comments on news ') . $logTemplates['news']('$1'),
         'role' => 'moderator'
     )
 );
@@ -459,7 +463,6 @@ function evaluate_group(&$group) {
     return htmlspecialchars($group);
 }
 function get_circuit_data($type, $id) {
-    global $language;
     $res = array(
         'name' => null,
         'label' => null,
@@ -473,25 +476,25 @@ function get_circuit_data($type, $id) {
             case 'mkcircuits':
                 $res['link'] = ($getCircuit['is_circuit'] ? 'circuit':'arena') .'.php?id='. $getCircuit['id'];
                 if ($getCircuit['is_circuit'])
-                    $res['label'] = $language ? "the circuit" : "le circuit";
+                    $res['label'] = _("the circuit");
                 else
-                    $res['label'] = $language ? "the arena" : "l'arène";
+                    $res['label'] = _("the arena");
                 break;
             case 'circuits':
                 $res['link'] = 'map.php?i='. $getCircuit['ID'];
-                $res['label'] = $language ? "the circuit" : "le circuit";
+                $res['label'] = _("the circuit");
                 break;
             case 'arenes':
                 $res['link'] = 'battle.php?i='. $getCircuit['ID'];
-                $res['label'] = $language ? "the arena" : "l'arène";
+                $res['label'] = _("the arena");
                 break;
             case 'mkcups':
                 $res['link'] = getCupPage($getCircuit['mode']) .'.php?cid='. $getCircuit['id'];
-                $res['label'] = $language ? "the cup" : "la coupe";
+                $res['label'] = _("the cup");
                 break;
             case 'mkmcups':
                 $res['link'] = getCupPage($getCircuit['mode']) .'.php?mid='. $getCircuit['id'];
-                $res['label'] = $language ? "the multicup" : "la multicoupe";
+                $res['label'] = _("the multicup");
                 break;
         }
     }
@@ -499,9 +502,9 @@ function get_circuit_data($type, $id) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<html lang="<?= P_("html language", "en") ?>">
 <head>
-<title><?php echo $language ? 'Admin logs' : 'Logs admin'; ?> - Mario Kart PC</title>
+<title><?= _('Admin logs') ?> - Mario Kart PC</title>
 <?php
 include('heads.php');
 ?>
@@ -550,13 +553,11 @@ $page = 'forum';
 include('menu.php');
 ?>
 <main>
-	<h1><?php echo $language ? 'Admin logs' : 'Logs admin'; ?></h1>
+	<h1><?= _('Admin logs') ?></h1>
     <?php
     if (!isset($_GET['role'])) {
         echo '<p>';
-        echo $language
-        ? "This page shows the history of all actions made by MKPC staff members"
-        : "Cette page affiche l'historique de toutes les actions effectuées par l'équipe admin MKPC";
+        echo _("This page shows the history of all actions made by MKPC staff members");
         echo '</p>';
     }
     ?>
@@ -564,10 +565,10 @@ include('menu.php');
         <blockquote>
             <p id="admin-filter">
                 <label for="log-type">
-                    <strong><?php echo $language ? 'Log type':'Type de log'; ?></strong>
+                    <strong><?= _('Log type') ?></strong>
                 </label> :
                 <select name="type" id="log-type" onchange="this.form.submit()">
-                    <option value=""><?php echo $language ? 'Select' : 'Sélectionner'; ?>...</option>
+                    <option value=""><?= _('Select') ?>...</option>
                     <?php
                     $selectedLog = isset($_GET['type']) ? $_GET['type'] : null;
                     foreach ($availableLogs as $availableLog) {
@@ -579,7 +580,7 @@ include('menu.php');
                 if (isset($_GET['role']))
                     echo '<input type="hidden" name="role" value="'. htmlspecialchars($_GET['role']) .'" />';
                 ?>
-                <input type="submit" value="<?php echo $language ? 'Filter' : 'Filtrer'; ?>" class="action_button" />
+                <input type="submit" value="<?= _('Filter') ?>" class="action_button" />
             </p>
         </blockquote>
 	</form>
@@ -620,7 +621,7 @@ include('menu.php');
             elseif ($log['auteur'] === 0)
                 echo '<em>MKPC</em>';
             else
-                echo '<em>'. ($language ? 'Deleted account' : 'Compte supprimé') .'</em>';
+                echo '<em>'. _('Deleted account') . '</em>';
             echo ' ';
             echo format_log($log['log']); ?></td>
         </tr>
@@ -635,9 +636,9 @@ include('menu.php');
         $get['page'] = $page;
         echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'">'.$page.'</a>').'&nbsp; ';
     }
-    $limite = ceil($logCount['nb']/$RES_PER_PAGE);
+    $limit = ceil($logCount['nb']/$RES_PER_PAGE);
     require_once('utils-paging.php');
-    $allPages = makePaging($page,$limite);
+    $allPages = makePaging($page,$limit);
     foreach ($allPages as $i=>$block) {
         if ($i)
             echo '...&nbsp; ';
@@ -647,8 +648,8 @@ include('menu.php');
     ?>
     </td></tr>
     </table>
-	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
-	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
+	<p><a href="forum.php"><?= _('Back to the forum') ?></a><br />
+	<a href="index.php"><?= _('Back to Mario Kart PC') ?></a></p>
 </main>
 <?php
 include('footer.php');

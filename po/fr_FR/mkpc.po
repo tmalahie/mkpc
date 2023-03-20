@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-19 22:09+0100\n"
-"PO-Revision-Date: 2023-03-19 22:06+0100\n"
+"POT-Creation-Date: 2023-03-20 20:32+0100\n"
+"PO-Revision-Date: 2023-03-20 20:45+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 22.12.3\n"
 
-#: addNews.php forum.php index.php
+#: addNews.php admin-logs.php forum.php index.php
 msgctxt "html language"
 msgid "en"
 msgstr "fr"
@@ -132,6 +132,295 @@ msgstr "Publié"
 #: addNews.php
 msgid "Back to the news list"
 msgstr "Retour à la liste des news"
+
+#: admin-logs.php
+msgid "Deleted award"
+msgstr "Titre supprimé"
+
+#: admin-logs.php index.php
+msgid "Untitled"
+msgstr "Sans titre"
+
+#: admin-logs.php
+msgid "Deleted account"
+msgstr "Compte supprimé"
+
+#: admin-logs.php
+msgid "Deleted topic"
+msgstr "Topic supprimé"
+
+#: admin-logs.php
+msgid "Deleted news"
+msgstr "News supprimée"
+
+#: admin-logs.php
+msgid "accepted challenge "
+msgstr "a accepté le défi "
+
+#: admin-logs.php
+msgid "deleted complete track #$1"
+msgstr "a supprimé le circuit complet #$1"
+
+#: admin-logs.php
+msgid "deleted message #$2 in topic "
+msgstr "a supprimé le message #$2 dans le topic "
+
+#: admin-logs.php
+msgid "deleted topic #$1"
+msgstr "a supprimé le topic #$1"
+
+#: admin-logs.php
+msgid "edited <a href=\"{url}\">message #$2</a> in topic {topic}"
+msgstr ""
+"a modifié le <a href=\"{url}\">message #$2</a> dans le topic {topic}"
+
+#: admin-logs.php
+msgid "edited topic "
+msgstr "a modifié le topic "
+
+#: admin-logs.php
+msgid "changed difficulty of challenge "
+msgstr "a modifié la difficulté du défi "
+
+#: admin-logs.php
+msgid "to"
+msgstr "à"
+
+#: admin-logs.php
+msgid "rejected challenge "
+msgstr "a refusé le défi "
+
+#: admin-logs.php
+msgid "banned member "
+msgstr "a banni le membre "
+
+#: admin-logs.php
+msgid "warned member "
+msgstr "a averti le membre "
+
+#: admin-logs.php
+msgid "unbanned member "
+msgstr "a débanni le membre "
+
+#: admin-logs.php
+msgid "deleted comment #$1 on a track"
+msgstr "a supprimé le commentaire #$1 sur un circuit"
+
+#: admin-logs.php
+msgid "took $1 pts from {user} in online mode (VS)"
+msgstr "a pris $1 pts à {user} en mode en ligne (VS)"
+
+#: admin-logs.php
+msgid "gave $1 pts to {user} in online mode (VS)"
+msgstr "a donné $1 pts à {user} en mode en ligne (VS)"
+
+#: admin-logs.php
+msgid "changed <strong>$2</strong>'s nick to "
+msgstr "a modifié le pseudo de <strong>$2</strong> en "
+
+#: admin-logs.php
+msgid "locked topic "
+msgstr "a locké le topic "
+
+#: admin-logs.php
+msgid "unlocked topic "
+msgstr "a unlocké le topic "
+
+#: admin-logs.php
+msgid "archived report on <a href=\"{url}\">message #$3</a> in topic "
+msgstr ""
+"a archivé le signalement du <a href=\"{url}\">message #$3</a> dans le topic "
+
+#: admin-logs.php
+msgid "archived report #$1"
+msgstr "a archivé le signalement #$1"
+
+#: admin-logs.php
+msgid "deleted cup #$1"
+msgstr "a supprimé la coupe #$1"
+
+#: admin-logs.php
+msgid "rejected news "
+msgstr "a rejeté la news "
+
+#: admin-logs.php
+msgid "accepted news "
+msgstr "a accepté la news "
+
+#: admin-logs.php
+msgid "Deleted track"
+msgstr "Circuit supprimé"
+
+#: admin-logs.php
+msgid "updated {member}'s comment in $6 "
+msgstr "a modifié le commentaire de {member} sur $6 "
+
+#: admin-logs.php
+msgid "Deleted circuit"
+msgstr "Circuit supprimé"
+
+#: admin-logs.php
+msgid "deleted a rating in $6 "
+msgstr "a supprimé une note sur $6 "
+
+#: admin-logs.php
+msgid "deleted quick circuit #$1"
+msgstr "a supprimé le circuit simplifié #$1"
+
+#: admin-logs.php
+msgid "deleted quick arena #$1"
+msgstr "a supprimé l'arène simplifiée #$1"
+
+#: admin-logs.php
+msgid "deleted complete arena #$1"
+msgstr "a supprimé l'arène complete #$1"
+
+#: admin-logs.php
+msgid "deleted news #$1"
+msgstr "a supprimé la news #$1"
+
+#: admin-logs.php
+msgid "updated news "
+msgstr "a modifié la news "
+
+#: admin-logs.php
+msgid "awarded the title {award_title} to {awardee}"
+msgstr "a attribué le titre {award_title} à {awardee}"
+
+#: admin-logs.php
+msgid "updated message of award {award} for member {member}"
+msgstr "a modifié le message du titre {award} pour le membre {member}"
+
+#: admin-logs.php
+msgid "removed award {award} for member {member}"
+msgstr "a retiré le titre {award} pour le membre {member}"
+
+#: admin-logs.php
+msgid "deleted the avatar of "
+msgstr "a supprimé l'avatar de "
+
+#: admin-logs.php
+msgid "reverted validation of challenge "
+msgstr "a annulé la validation du défi "
+
+#: admin-logs.php
+msgid "reverted rejection of challenge "
+msgstr "a annulé le refus du défi "
+
+#: admin-logs.php
+msgid "revalidated challenge "
+msgstr "a revalidé le défi "
+
+#: admin-logs.php
+msgid "updated comment #$1 on news <a href=\"{news_url}\">{news}</a>"
+msgstr ""
+"a modifié le commentaire #$1 sur la news <a href=\"{news_url}\">{news}</a>"
+
+#: admin-logs.php
+msgid "deleted comment on news #$1"
+msgstr "a supprimé le commentaire de news #$1"
+
+#: admin-logs.php
+msgid "unmuted member "
+msgstr "a unmuté le membre "
+
+#: admin-logs.php
+msgid "added "
+msgstr "a ajouté "
+
+#: admin-logs.php
+msgid "a word"
+msgstr "un mot"
+
+#: admin-logs.php
+msgid " to the forbidden words list"
+msgstr " à la liste des mots interdits"
+
+#: admin-logs.php
+msgid "removed word #$1 from list of forbidden words"
+msgstr "a retiré le mot #$1 de la liste des mots interdits"
+
+#: admin-logs.php
+msgid "deleted multicup #$1"
+msgstr "a supprimé la multicoupe #$1"
+
+#: admin-logs.php
+msgid "updated {member}'s profile"
+msgstr "a modifié le profil de {member}"
+
+#: admin-logs.php
+msgid "updated country of {member} to <strong>{new_country}</strong>"
+msgstr "a modifié le pays de {member} en <strong>{new_country}</strong>"
+
+#: admin-logs.php
+msgid "updated challenge "
+msgstr "a modifié le défi "
+
+#: admin-logs.php
+msgid "created award "
+msgstr "a créé le titre "
+
+#: admin-logs.php
+msgid "updated award "
+msgstr "a modifié le titre "
+
+#: admin-logs.php
+msgid "deleted award #$1"
+msgstr "a supprimé le titre #$1"
+
+#: admin-logs.php
+msgid "locked comments on news "
+msgstr "a locké les commentaires sur la news "
+
+#: admin-logs.php
+msgid "unlocked comments on news "
+msgstr "a unlocké les commentaires sur la news "
+
+#: admin-logs.php index.php
+msgid "the circuit"
+msgstr "le circuit"
+
+#: admin-logs.php index.php
+msgid "the arena"
+msgstr "l'arène"
+
+#: admin-logs.php index.php
+msgid "the cup"
+msgstr "la coupe"
+
+#: admin-logs.php index.php
+msgid "the multicup"
+msgstr "la multicoupe"
+
+#: admin-logs.php
+msgid "Admin logs"
+msgstr "Logs admin"
+
+#: admin-logs.php
+msgid "This page shows the history of all actions made by MKPC staff members"
+msgstr ""
+"Cette page affiche l'historique de toutes les actions effectuées par l'équipe"
+" admin MKPC"
+
+#: admin-logs.php
+msgid "Log type"
+msgstr "Type de log"
+
+#: admin-logs.php
+msgid "Select"
+msgstr "Sélectionner"
+
+#: admin-logs.php
+msgid "Filter"
+msgstr "Filtrer"
+
+#: admin-logs.php
+msgid "Back to the forum"
+msgstr "Retour au forum"
+
+#: admin-logs.php
+msgid "Back to Mario Kart PC"
+msgstr "Retour à Mario Kart PC"
 
 #: forum.php
 msgid "Auto-ban by IP"
@@ -720,10 +1009,6 @@ msgid "Latest creations"
 msgstr "Dernières créations"
 
 #: index.php
-msgid "Untitled"
-msgstr "Sans titre"
-
-#: index.php
 msgid "By <strong>{author}</strong>"
 msgstr "Par <strong>{author}</strong>"
 
@@ -775,22 +1060,6 @@ msgid "{count} member"
 msgid_plural "{count} members"
 msgstr[0] "{count} membre"
 msgstr[1] "{count} membres"
-
-#: index.php
-msgid "the arena"
-msgstr "l'arène"
-
-#: index.php
-msgid "the multicup"
-msgstr "la multicoupe"
-
-#: index.php
-msgid "the circuit"
-msgstr "le circuit"
-
-#: index.php
-msgid "the cup"
-msgstr "la coupe"
 
 #: index.php
 msgctxt "circuit"
