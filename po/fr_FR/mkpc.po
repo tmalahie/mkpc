@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-19 19:50+0100\n"
-"PO-Revision-Date: 2023-03-19 19:52+0100\n"
+"POT-Creation-Date: 2023-03-19 21:28+0100\n"
+"PO-Revision-Date: 2023-03-19 21:29+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
 "Language: fr\n"
@@ -18,10 +18,154 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 22.12.3\n"
 
-#: index.php
+#: forum.php
+msgid "Auto-ban by IP"
+msgstr "Auto-ban par IP"
+
+#: forum.php index.php
 msgctxt "html language"
 msgid "en"
 msgstr "fr"
+
+#: forum.php
+msgid "Forum Mario Kart PC"
+msgstr "Forum Mario Kart PC"
+
+#: forum.php
+msgid ""
+"Welcome to the MKPC forum! If you haven't done it yet, please check out the "
+"<a href=\"{url}\">rules</a> before posting."
+msgstr ""
+"Bienvenue sur le forum MKPC ! Si ce n'est pas déjà fait, prenez le temps de "
+"consulter le <a href={url}\">règlement</a> avant de poster."
+
+#: forum.php
+msgid "My profile"
+msgstr "Mon profil"
+
+#: forum.php
+msgid "Log out"
+msgstr "Déconnexion"
+
+#: forum.php
+msgid "This account has been deleted. The connection to it has been disabled."
+msgstr ""
+"Ce compte a été supprimé. La connexion a celui-ci a donc été désactivée."
+
+#: forum.php
+msgid ""
+"If you want to undo and restore it, you can still do it by clicking <a "
+"href=\"{url}\">here</a>."
+msgstr ""
+"Si vous souhaitez revenir en arrière et le restaurer, vous pouvez toujours "
+"le faire en cliquant <a href=\"{url}\">ici</a>."
+
+#: forum.php
+msgid "Incorrect login or password"
+msgstr "Pseudo ou mot de passe incorrect"
+
+#: forum.php
+msgid "You aren't logged in."
+msgstr "Vous n'êtes pas connecté."
+
+#: forum.php
+msgid "Enter your login and password here:"
+msgstr "Entrez votre pseudo et code ici :"
+
+#: forum.php
+msgid "Login:"
+msgstr "Pseudo :"
+
+#: forum.php
+msgid "Password:"
+msgstr "Code :"
+
+#: forum.php
+msgid "Submit"
+msgstr "Valider"
+
+#: forum.php
+msgid "Register"
+msgstr "Inscription"
+
+#: forum.php
+msgid "Forgot password"
+msgstr "Mot de passe perdu"
+
+#: forum.php
+msgid "Search:"
+msgstr "Recherche :"
+
+#: forum.php
+msgid "Topic title"
+msgstr "Titre du topic"
+
+#: forum.php
+msgid "Advanced search"
+msgstr "Recherche avancée"
+
+#: forum.php
+msgid "Category"
+msgstr "Catégorie"
+
+#: forum.php
+msgid "Topics nb"
+msgstr "Nb topics"
+
+#: forum.php index.php
+#, php-format
+msgid "Last message"
+msgstr "Dernier message"
+
+#: forum.php
+msgctxt "locale for ICU"
+msgid "en_EN"
+msgstr "fr_FR"
+
+#: forum.php
+msgid ""
+"The forum has a total of <strong>{nbMessages} messages</strong> split into "
+"<strong>{nbTopics} topics</strong> and posted by <strong>{nbPosters} "
+"members</strong>."
+msgstr ""
+"Le forum comptabilise <strong>{nbMessages} messages</strong> répartis dans "
+"<strong>{nbTopics} topics</strong> et postés par <strong>{nbPosters} "
+"membres</strong>."
+
+#: forum.php
+msgid ""
+"The most active member is <a href=\"{urlToProfile}\">{activestPlayer}</a> "
+"with <strong>{activestPlayerNbMessages}</strong> messages posted in total."
+msgstr ""
+"Le membre le plus actif est <a href=\"{urlToProfile}\">{activestPlayer}</a>  "
+"avec  <strong>{activestPlayerNbMessages}</strong> messages postés au total."
+
+#: forum.php
+msgid "Classement"
+msgstr "Ranking"
+
+#: forum.php
+msgid "Ranking of most active members"
+msgstr "Classement des membres les plus actifs"
+
+#: forum.php
+msgid ""
+"The most active member of the month is <a "
+"href=\"{urlToProfile}\">{monthlyActivestPlayer}</a> with "
+"<strong>{monthlyActivestPlayerNbMessages} message(s)</strong> since {month} "
+"the 1<small class=\"superscript\">st</small>."
+msgstr ""
+"Le membre le plus actif du mois est <a href=\"{urlToProfile}\""
+">{monthlyActivestPlayer}</a> avec <strong>{monthlyActivestPlayerNbMessages}"
+" depuis le 1<small class=\"superscript\">er</small> {month}."
+
+#: forum.php
+msgid "Ranking of month's most active members"
+msgstr "Classement des plus actifs du mois"
+
+#: forum.php
+msgid "Back to the homepage"
+msgstr "Retour à l'accueil"
 
 #: index.php
 msgid "A Mario Kart Game for browser"
@@ -360,11 +504,6 @@ msgid "Last message by <strong>{message}</strong>"
 msgstr "Dernier message par <strong>{message}</strong>"
 
 #: index.php
-#, php-format
-msgid "Last message"
-msgstr "Dernier message"
-
-#: index.php
 msgid "{count} message"
 msgid_plural "{count} messages"
 msgstr[0] "{count} message"
@@ -579,13 +718,3 @@ msgstr "En savoir plus"
 #: index.php
 msgid "Loading"
 msgstr "Chargement"
-
-#, php-format
-#~ msgid "%s member"
-#~ msgid_plural "%s members"
-#~ msgstr[0] "%s membre"
-#~ msgstr[1] "%s membres"
-
-#, php-format
-#~ msgid "Categories"
-#~ msgstr "Catégories"

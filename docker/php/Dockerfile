@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install -y \
         build-essential exiftool libssl-dev \
         zlib1g-dev libpng-dev libjpeg-dev \
-        libfreetype6-dev locales
+        libfreetype6-dev locales libicu-dev
 
 # Add i10n stuff + enable some locales
 RUN echo >> /etc/locale.gen '\n\
@@ -17,7 +17,7 @@ RUN locale-gen
 
 RUN docker-php-ext-configure exif && docker-php-ext-install exif && docker-php-ext-enable exif
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && docker-php-ext-install gd
-RUN docker-php-ext-install gettext
+RUN docker-php-ext-install gettext intl
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 COPY conf.d/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 

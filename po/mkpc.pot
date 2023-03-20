@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-19 19:50+0100\n"
+"POT-Creation-Date: 2023-03-19 21:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,9 +18,140 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: index.php
+#: forum.php
+msgid "Auto-ban by IP"
+msgstr ""
+
+#: forum.php index.php
 msgctxt "html language"
 msgid "en"
+msgstr ""
+
+#: forum.php
+msgid "Forum Mario Kart PC"
+msgstr ""
+
+#: forum.php
+msgid ""
+"Welcome to the MKPC forum! If you haven't done it yet, please check out the "
+"<a href=\"{url}\">rules</a> before posting."
+msgstr ""
+
+#: forum.php
+msgid "My profile"
+msgstr ""
+
+#: forum.php
+msgid "Log out"
+msgstr ""
+
+#: forum.php
+msgid "This account has been deleted. The connection to it has been disabled."
+msgstr ""
+
+#: forum.php
+msgid ""
+"If you want to undo and restore it, you can still do it by clicking <a "
+"href=\"{url}\">here</a>."
+msgstr ""
+
+#: forum.php
+msgid "Incorrect login or password"
+msgstr ""
+
+#: forum.php
+msgid "You aren't logged in."
+msgstr ""
+
+#: forum.php
+msgid "Enter your login and password here:"
+msgstr ""
+
+#: forum.php
+msgid "Login:"
+msgstr ""
+
+#: forum.php
+msgid "Password:"
+msgstr ""
+
+#: forum.php
+msgid "Submit"
+msgstr ""
+
+#: forum.php
+msgid "Register"
+msgstr ""
+
+#: forum.php
+msgid "Forgot password"
+msgstr ""
+
+#: forum.php
+msgid "Search:"
+msgstr ""
+
+#: forum.php
+msgid "Topic title"
+msgstr ""
+
+#: forum.php
+msgid "Advanced search"
+msgstr ""
+
+#: forum.php
+msgid "Category"
+msgstr ""
+
+#: forum.php
+msgid "Topics nb"
+msgstr ""
+
+#: forum.php index.php
+#, php-format
+msgid "Last message"
+msgstr ""
+
+#: forum.php
+msgctxt "locale for ICU"
+msgid "en_EN"
+msgstr ""
+
+#: forum.php
+msgid ""
+"The forum has a total of <strong>{nbMessages} messages</strong> split into "
+"<strong>{nbTopics} topics</strong> and posted by <strong>{nbPosters} "
+"members</strong>."
+msgstr ""
+
+#: forum.php
+msgid ""
+"The most active member is <a href=\"{urlToProfile}\">{activestPlayer}</a> "
+"with <strong>{activestPlayerNbMessages}</strong> messages posted in total."
+msgstr ""
+
+#: forum.php
+msgid "Classement"
+msgstr ""
+
+#: forum.php
+msgid "Ranking of most active members"
+msgstr ""
+
+#: forum.php
+msgid ""
+"The most active member of the month is <a "
+"href=\"{urlToProfile}\">{monthlyActivestPlayer}</a> with "
+"<strong>{monthlyActivestPlayerNbMessages} message(s)</strong> since {month} "
+"the 1<small class=\"superscript\">st</small>."
+msgstr ""
+
+#: forum.php
+msgid "Ranking of month's most active members"
+msgstr ""
+
+#: forum.php
+msgid "Back to the homepage"
 msgstr ""
 
 #: index.php
@@ -289,11 +420,6 @@ msgstr ""
 
 #: index.php
 msgid "Last message by <strong>{message}</strong>"
-msgstr ""
-
-#: index.php
-#, php-format
-msgid "Last message"
 msgstr ""
 
 #: index.php
