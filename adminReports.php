@@ -95,10 +95,10 @@ if ($nbres) {
             echo '<div id="report-wrapper-'. $result['reportid'] .'">';
 
             echo '<div class="report-title">';
-            echo F_('In <a href="{topicUrl}">{topicName}</a>.', topicUrl: "topic.php?topic=" . $result['topic']);
+            echo F_('In <a href="{topicUrl}">{topicName}</a>, ', topicName: htmlspecialchars($topicName), topicUrl: "topic.php?topic=" . $result['topic']);
             echo FN_(
-                'Reported by <a href="{showMembers}">{count} member</a>.',
-                'Reported by <a href="{showMembers}">{count} members</a>.',
+                'reported by <a href="{showMembers}">{count} member</a>',
+                'reported by <a href="{showMembers}">{count} members</a>',
                 count: $result['count'],
                 showMembers: "javascript:showMembers(" . $result['reportid'] . ")",
             );

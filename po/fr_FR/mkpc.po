@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-20 22:14+0100\n"
+"POT-Creation-Date: 2023-03-21 21:56+0100\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 22.12.3\n"
 
-#: addNews.php admin-logs.php adminPersos.php admin.php adminReports.php
+#: addNews.php admin-logs.php admin.php adminPersos.php adminReports.php
 #: forum.php index.php
 msgctxt "html language"
 msgid "en"
@@ -213,6 +213,14 @@ msgstr "a pris $1 pts à {user} en mode en ligne (VS)"
 #: admin-logs.php
 msgid "gave $1 pts to {user} in online mode (VS)"
 msgstr "a donné $1 pts à {user} en mode en ligne (VS)"
+
+#: admin-logs.php
+msgid "took $1 pts from {user} in online mode (battle)"
+msgstr "a pris $1 pts à {user} en mode en ligne (bataille)"
+
+#: admin-logs.php
+msgid "gave $1 pts to {user} in online mode (battle)"
+msgstr "a donné $1 pts à {user} en mode en ligne (bataille)"
 
 #: admin-logs.php
 msgid "changed <strong>$2</strong>'s nick to "
@@ -418,41 +426,9 @@ msgstr "Filtrer"
 msgid "Back to the forum"
 msgstr "Retour au forum"
 
-#: admin-logs.php adminPersos.php admin.php
+#: admin-logs.php admin.php adminPersos.php
 msgid "Back to Mario Kart PC"
 msgstr "Retour à Mario Kart PC"
-
-#: adminPersos.php
-msgid "By {author}"
-msgstr "Par {author}"
-
-#: adminPersos.php
-msgid "Confirm deletion of {nbCharacters} characters?"
-msgstr "Confirmer la suppression de {nbCharacters} persos ?"
-
-#: adminPersos.php
-msgid "Manage characters"
-msgstr "Gérer les persos"
-
-#: adminPersos.php
-msgid "Delete character shares"
-msgstr "Supprimer des partages de persos"
-
-#: adminPersos.php
-msgid "Delete {htmlCharacterNb}"
-msgstr "Supprimer {htmlCharacterNb}"
-
-#: adminPersos.php
-msgid "Name:"
-msgstr "Nom :"
-
-#: adminPersos.php
-msgid "Baby Mario"
-msgstr "Bébé Mario"
-
-#: adminPersos.php
-msgid "Author:"
-msgstr "Auteur :"
 
 #: admin.php
 msgid "You aren't logged in"
@@ -686,6 +662,38 @@ msgstr ""
 "Pour retracer et comprendre les différentes actions réalisées par les admins "
 "MKPC"
 
+#: adminPersos.php
+msgid "By {author}"
+msgstr "Par {author}"
+
+#: adminPersos.php
+msgid "Confirm deletion of {nbCharacters} characters?"
+msgstr "Confirmer la suppression de {nbCharacters} persos ?"
+
+#: adminPersos.php
+msgid "Manage characters"
+msgstr "Gérer les persos"
+
+#: adminPersos.php
+msgid "Delete character shares"
+msgstr "Supprimer des partages de persos"
+
+#: adminPersos.php
+msgid "Delete {htmlCharacterNb}"
+msgstr "Supprimer {htmlCharacterNb}"
+
+#: adminPersos.php
+msgid "Name:"
+msgstr "Nom :"
+
+#: adminPersos.php
+msgid "Baby Mario"
+msgstr "Bébé Mario"
+
+#: adminPersos.php
+msgid "Author:"
+msgstr "Auteur :"
+
 #: adminReports.php
 msgid "You are not moderator"
 msgstr "Vous n'êtes pas modérateur"
@@ -699,14 +707,14 @@ msgid "No new reported message for now"
 msgstr "Aucun nouveau signalement pour l'instant"
 
 #: adminReports.php
-msgid "In <a href=\"{topicUrl}\">{topicName}</a>."
-msgstr "Dans <a href=\"{topicUrl}\">{topicName}</a>."
+msgid "In <a href=\"{topicUrl}\">{topicName}</a>, "
+msgstr "Dans <a href=\"{topicUrl}\">{topicName}</a>, "
 
 #: adminReports.php
-msgid "Reported by <a href=\"{showMembers}\">{count} member</a>."
-msgid_plural "Reported by <a href=\"{showMembers}\">{count} members</a>."
-msgstr[0] "Signalé par <a href=\"{showMembers}\">{count} membre</a>."
-msgstr[1] "Signalé par <a href=\"{showMembers}\">{count} membres</a>."
+msgid "reported by <a href=\"{showMembers}\">{count} member</a>"
+msgid_plural "reported by <a href=\"{showMembers}\">{count} members</a>"
+msgstr[0] "signalé par <a href=\"{showMembers}\">{count} membre</a>"
+msgstr[1] "signalé par <a href=\"{showMembers}\">{count} membres</a>"
 
 #: adminReports.php
 msgid "No pending reported message"
@@ -1183,7 +1191,7 @@ msgstr ""
 
 #: index.php
 msgid "Happy birthday to"
-msgstr "Joyeux anniversaire à"
+msgstr "C'est l'anniversaire de"
 
 #: index.php
 msgid " and "
@@ -1311,10 +1319,10 @@ msgid "Last challenges"
 msgstr "Derniers défis"
 
 #: index.php
-msgid "{count} pending challenge"
-msgid_plural "{count} pending challenge"
-msgstr[0] "{count} défi en attente de validation"
-msgstr[1] "{count} défis en attente de validation"
+msgid "<a href=\"{url}\">{count} pending</a> challenge"
+msgid_plural "<a href=\"{url}\">{count} pending</a> challenges"
+msgstr[0] "<a href=\"{url}\">{count} défi</a> en attente de validation"
+msgstr[1] "<a href=\"{url}\">{count} défis</a> en attente de validation"
 
 #: index.php
 msgid "Challenge points - Leaderboard"

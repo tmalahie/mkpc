@@ -105,9 +105,9 @@ $logMapping = array(
             global $logTemplates;
             if ($group[1] < 0) {
                 $group[1] = -$group[1];
-                return F_('took $1 pts from {user} in online mode (VS)', user: $logTemplates['member']('$2'));
+                return F_('took $1 pts from {user} in online mode (battle)', user: $logTemplates['member']('$2'));
             } else {
-                return F_('gave $1 pts to {user} in online mode (VS)', user: $logTemplates['member']('$2'));
+                return F_('gave $1 pts to {user} in online mode (battle)', user: $logTemplates['member']('$2'));
             }
         },
         'role' => 'manager'

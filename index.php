@@ -723,10 +723,10 @@ $slidesPath = 'images/slides';
 				$getPendingChallenges = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkchallenges WHERE status="pending_moderation"'));
 				if ($getPendingChallenges['nb']) {
 					echo '<p class="nb-pending-news">';
-					echo '<a href="challengesList.php?moderate">';
-					echo FN_("{count} pending challenge", "{count} pending challenge", count: $getPendingChallenges['nb']);
+					echo FN_('<a href="{url}">{count} pending</a> challenge', '<a href="{url}">{count} pending</a> challenges', count: $getPendingChallenges['nb'], url: 'challengesList.php?moderate');
 					echo '</p>';
 				}
+			}
 			?>
 			<a class="right_section_actions action_button" href="challengesList.php"><?= _('Display all') ?></a>
 			<div id="challenge_ranking"><a href="challengeRanking.php"><?= _('Challenge points - Leaderboard') ?></a></div>

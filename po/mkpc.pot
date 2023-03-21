@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-20 22:14+0100\n"
+"POT-Creation-Date: 2023-03-21 21:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: addNews.php admin-logs.php adminPersos.php admin.php adminReports.php
+#: addNews.php admin-logs.php admin.php adminPersos.php adminReports.php
 #: forum.php index.php
 msgctxt "html language"
 msgid "en"
@@ -206,6 +206,14 @@ msgstr ""
 
 #: admin-logs.php
 msgid "gave $1 pts to {user} in online mode (VS)"
+msgstr ""
+
+#: admin-logs.php
+msgid "took $1 pts from {user} in online mode (battle)"
+msgstr ""
+
+#: admin-logs.php
+msgid "gave $1 pts to {user} in online mode (battle)"
 msgstr ""
 
 #: admin-logs.php
@@ -408,40 +416,8 @@ msgstr ""
 msgid "Back to the forum"
 msgstr ""
 
-#: admin-logs.php adminPersos.php admin.php
+#: admin-logs.php admin.php adminPersos.php
 msgid "Back to Mario Kart PC"
-msgstr ""
-
-#: adminPersos.php
-msgid "By {author}"
-msgstr ""
-
-#: adminPersos.php
-msgid "Confirm deletion of {nbCharacters} characters?"
-msgstr ""
-
-#: adminPersos.php
-msgid "Manage characters"
-msgstr ""
-
-#: adminPersos.php
-msgid "Delete character shares"
-msgstr ""
-
-#: adminPersos.php
-msgid "Delete {htmlCharacterNb}"
-msgstr ""
-
-#: adminPersos.php
-msgid "Name:"
-msgstr ""
-
-#: adminPersos.php
-msgid "Baby Mario"
-msgstr ""
-
-#: adminPersos.php
-msgid "Author:"
 msgstr ""
 
 #: admin.php
@@ -653,6 +629,38 @@ msgstr ""
 msgid "To retrace and understand the different actions done by MKPC staff"
 msgstr ""
 
+#: adminPersos.php
+msgid "By {author}"
+msgstr ""
+
+#: adminPersos.php
+msgid "Confirm deletion of {nbCharacters} characters?"
+msgstr ""
+
+#: adminPersos.php
+msgid "Manage characters"
+msgstr ""
+
+#: adminPersos.php
+msgid "Delete character shares"
+msgstr ""
+
+#: adminPersos.php
+msgid "Delete {htmlCharacterNb}"
+msgstr ""
+
+#: adminPersos.php
+msgid "Name:"
+msgstr ""
+
+#: adminPersos.php
+msgid "Baby Mario"
+msgstr ""
+
+#: adminPersos.php
+msgid "Author:"
+msgstr ""
+
 #: adminReports.php
 msgid "You are not moderator"
 msgstr ""
@@ -666,12 +674,12 @@ msgid "No new reported message for now"
 msgstr ""
 
 #: adminReports.php
-msgid "In <a href=\"{topicUrl}\">{topicName}</a>."
+msgid "In <a href=\"{topicUrl}\">{topicName}</a>, "
 msgstr ""
 
 #: adminReports.php
-msgid "Reported by <a href=\"{showMembers}\">{count} member</a>."
-msgid_plural "Reported by <a href=\"{showMembers}\">{count} members</a>."
+msgid "reported by <a href=\"{showMembers}\">{count} member</a>"
+msgid_plural "reported by <a href=\"{showMembers}\">{count} members</a>"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1196,8 +1204,8 @@ msgid "Last challenges"
 msgstr ""
 
 #: index.php
-msgid "{count} pending challenge"
-msgid_plural "{count} pending challenge"
+msgid "<a href=\"{url}\">{count} pending</a> challenge"
+msgid_plural "<a href=\"{url}\">{count} pending</a> challenges"
 msgstr[0] ""
 msgstr[1] ""
 

@@ -200,6 +200,7 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 		echo F_(
 			'The most active member of the month is <a href="{urlToProfile}">{monthlyActivestPlayer}</a> with <strong>{monthlyActivestPlayerNbMessages} message(s)</strong> since {month} the 1<small class="superscript">st</small>.',
 			urlToProfile: "profil.php?id=". $getMonthlyActivestPlayer['id'],
+			month: $month,
 			monthlyActivestPlayer: $getMonthlyActivestPlayer['nom'],
 			monthlyActivestPlayerNbMessages: $getMonthlyActivestPlayer['nb'],
 		);
