@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-21 22:32+0100\n"
+"POT-Creation-Date: 2023-03-21 23:53+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -776,10 +776,16 @@ msgid ""
 "members</strong>."
 msgstr ""
 
+#: forum.php index.php
+msgid "{count} message"
+msgid_plural "{count} messages"
+msgstr[0] ""
+msgstr[1] ""
+
 #: forum.php
 msgid ""
-"The most active member is <a href=\"{urlToProfile}\">{activestPlayer}</a> "
-"with <strong>{activestPlayerNbMessages} messages</strong> posted in total."
+"The most active member is <a href=\"{urlToProfile}\">{topPlayer}</a> with "
+"<strong>{topPlayerMessagesWithCount}</strong> posted in total."
 msgstr ""
 
 #: forum.php
@@ -793,9 +799,9 @@ msgstr ""
 #: forum.php
 msgid ""
 "The most active member of the month is <a "
-"href=\"{urlToProfile}\">{monthlyActivestPlayer}</a> with "
-"<strong>{monthlyActivestPlayerNbMessages} message(s)</strong> since {month} "
-"the 1<small class=\"superscript\">st</small>."
+"href=\"{urlToProfile}\">{monthlyTopPlayer}</a> with "
+"<strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the "
+"1<small class=\"superscript\">st</small>."
 msgstr ""
 
 #: forum.php
@@ -1086,12 +1092,6 @@ msgstr ""
 #: index.php
 msgid "Last message by <strong>{message}</strong>"
 msgstr ""
-
-#: index.php
-msgid "{count} message"
-msgid_plural "{count} messages"
-msgstr[0] ""
-msgstr[1] ""
 
 #: index.php
 msgid "Go to the forum"

@@ -159,9 +159,9 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 
 	$getNbMessages = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkmessages`'));
 
-	$getActivestPlayer = mysql_fetch_array(mysql_query('SELECT j.id,j.nom,p.nbmessages AS nb FROM `mkprofiles` p INNER JOIN `mkjoueurs` j ON p.id=j.id ORDER BY p.nbmessages DESC, p.id ASC LIMIT 1'));
+	$getTopPlayer = mysql_fetch_array(mysql_query('SELECT j.id,j.nom,p.nbmessages AS nb FROM `mkprofiles` p INNER JOIN `mkjoueurs` j ON p.id=j.id ORDER BY p.nbmessages DESC, p.id ASC LIMIT 1'));
 
-	$getMonthlyActivestPlayer = mysql_fetch_array(mysql_query('SELECT j.id,j.nom,m.nb FROM (SELECT auteur,COUNT(*) AS nb FROM mkmessages WHERE date>="'. $beginMonth->format('Y-m-d') .'" GROUP BY auteur) m INNER JOIN mkjoueurs j ON m.auteur=j.id ORDER BY nb DESC, j.id ASC LIMIT 1'));
+	$getMonthlyTopPlayer = mysql_fetch_array(mysql_query('SELECT j.id,j.nom,m.nb FROM (SELECT auteur,COUNT(*) AS nb FROM mkmessages WHERE date>="'. $beginMonth->format('Y-m-d') .'" GROUP BY auteur) m INNER JOIN mkjoueurs j ON m.auteur=j.id ORDER BY nb DESC, j.id ASC LIMIT 1'));
 
 	$getPosters = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkprofiles` WHERE nbmessages>0'));
 
@@ -183,10 +183,10 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 
 	echo "<li>";
 	echo F_(
-		'The most active member is <a href="{urlToProfile}">{activestPlayer}</a> with <strong>{activestPlayerNbMessages} messages</strong> posted in total.',
-		urlToProfile: "profil.php?id=". $getActivestPlayer['id'],
-		activestPlayer: $getActivestPlayer['nom'],
-		activestPlayerNbMessages: $getActivestPlayer['nb'],
+		'The most active member is <a href="{urlToProfile}">{topPlayer}</a> with <strong>{topPlayerMessagesWithCount}</strong> posted in total.',
+		urlToProfile: "profil.php?id=". $getTopPlayer['id'],
+		topPlayer: $getTopPlayer['nom'],
+		topPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getTopPlayer['nb']),
 	);
 	echo '<a href="ranking-forum.php">';
 	echo '<img src="images/cups/cup1.png" alt="' . _("Classement") . '"/>';
@@ -194,14 +194,14 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 	echo '<img src="images/cups/cup1.png" alt="' . _("Classement") .  '"/></a>';
 	echo "</li>";
 
-	if ($getMonthlyActivestPlayer) {
+	if ($getMonthlyTopPlayer) {
 		echo "<li>";
 		echo F_(
-			'The most active member of the month is <a href="{urlToProfile}">{monthlyActivestPlayer}</a> with <strong>{monthlyActivestPlayerNbMessages} message(s)</strong> since {month} the 1<small class="superscript">st</small>.',
-			urlToProfile: "profil.php?id=". $getMonthlyActivestPlayer['id'],
+			'The most active member of the month is <a href="{urlToProfile}">{monthlyTopPlayer}</a> with <strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the 1<small class="superscript">st</small>.',
+			urlToProfile: "profil.php?id=". $getMonthlyTopPlayer['id'],
 			month: $month,
-			monthlyActivestPlayer: $getMonthlyActivestPlayer['nom'],
-			monthlyActivestPlayerNbMessages: $getMonthlyActivestPlayer['nb'],
+			monthlyTopPlayer: $getMonthlyTopPlayer['nom'],
+			monthlyTopPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getMonthlyTopPlayer['nb']),
 		);
 		echo '<a href="ranking-forum.php?month=last">';
 		echo '<img src="images/cups/cup2.png" alt="' . _("Classement") . '"/>';

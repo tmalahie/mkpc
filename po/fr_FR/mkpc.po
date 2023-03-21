@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-21 22:27+0100\n"
+"POT-Creation-Date: 2023-03-21 23:07+0100\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -817,13 +817,19 @@ msgstr ""
 "<strong>{nbTopics} topics</strong> et postés par <strong>{nbPosters} "
 "membres</strong>."
 
+#: forum.php index.php
+msgid "{count} message"
+msgid_plural "{count} messages"
+msgstr[0] "{count} message"
+msgstr[1] "{count} messages"
+
 #: forum.php
 msgid ""
-"The most active member is <a href=\"{urlToProfile}\">{activestPlayer}</a> "
-"with <strong>{activestPlayerNbMessages} messages</strong> posted in total."
+"The most active member is <a href=\"{urlToProfile}\">{topPlayer}</a> with "
+"<strong>{topPlayerMessagesWithCount}</strong> posted in total."
 msgstr ""
-"Le membre le plus actif est <a href=\"{urlToProfile}\">{activestPlayer}</a>  "
-"avec  <strong>{activestPlayerNbMessages} messages</strong> postés au total."
+"Le membre le plus actif est <a href=\"{urlToProfile}\">{topPlayer}</a>  "
+"avec <strong>{topPlayerMessagesWithCount}</strong> postés au total."
 
 #: forum.php
 msgid "Classement"
@@ -836,14 +842,14 @@ msgstr "Classement des membres les plus actifs"
 #: forum.php
 msgid ""
 "The most active member of the month is <a "
-"href=\"{urlToProfile}\">{monthlyActivestPlayer}</a> with "
-"<strong>{monthlyActivestPlayerNbMessages} message(s)</strong> since {month} "
-"the 1<small class=\"superscript\">st</small>."
+"href=\"{urlToProfile}\">{monthlyTopPlayer}</a> with "
+"<strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the "
+"1<small class=\"superscript\">st</small>."
 msgstr ""
 "Le membre le plus actif du mois est <a "
-"href=\"{urlToProfile}\">{monthlyActivestPlayer}</a> avec "
-"<strong>{monthlyActivestPlayerNbMessages} message(s)</strong> depuis le "
-"1<small class=\"superscript\">er</small> {month}."
+"href=\"{urlToProfile}\">{monthlyTopPlayer}</a> avec "
+"<strong>{monthlyTopPlayerMessagesWithCount}</strong> depuis le 1<small "
+"class=\"superscript\">er</small> {month}."
 
 #: forum.php
 msgid "Ranking of month's most active members"
@@ -1201,12 +1207,6 @@ msgstr "Derniers topics"
 #: index.php
 msgid "Last message by <strong>{message}</strong>"
 msgstr "Dernier message par <strong>{message}</strong>"
-
-#: index.php
-msgid "{count} message"
-msgid_plural "{count} messages"
-msgstr[0] "{count} message"
-msgstr[1] "{count} messages"
 
 #: index.php
 msgid "Go to the forum"
