@@ -73,7 +73,7 @@ else {
 	if (isset($warningDeleted)) {
 		?>
 		<p class="warning">
-		<?= F_("This account has been deleted. The connection to it has been disabled.") ?>
+		<?= _("This account has been deleted. The connection to it has been disabled.") ?>
 		<br />
 		<?= F_('If you want to undo and restore it, you can still do it by clicking <a href="{url}">here</a>.', url: $restoreAccount) ?>
 		</p>
