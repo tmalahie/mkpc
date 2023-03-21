@@ -45,6 +45,7 @@ include('o_online.php');
 <script type="text/javascript">
 var persoIds = [];
 var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
+var language = <?php echo ($language ? 'true':'false'); ?>;
 function previewPerso(id) {
 	var $myPerso = document.getElementById("myperso-"+id);
 	$myPerso.classList.add("perso-animate");
@@ -82,7 +83,7 @@ function selectPerso(id) {
 		var persoName = persoData.name;
 		document.getElementById("perso-options-name").innerHTML = persoName;
 		if (persoData.author)
-			document.getElementById("perso-options-author").innerHTML = <? F_("By {author}", author: '${persoData.author}') ?>;
+			document.getElementById("perso-options-author").innerHTML = (language ? "By":"Par") + " " + persoData.author;
 		else
 			document.getElementById("perso-options-author").innerHTML = "";
 	}
@@ -91,7 +92,7 @@ function selectPerso(id) {
 	document.getElementById("perso-del-nb").innerHTML = persoIds.length;
 }
 function delPerso() {
-	if (confirm(<?= F_("Confirm deletion of {nbCharacters} characters?", nbCharacters: '${persoIds.length}') ?>)) {
+	if (confirm(language ? "Confirm deletion of "+ persoIds.length +" characters?":"Confirmer la suppression de "+ persoIds.length +" persos ?")) {
 		o_xhr("deleteShare.php", "ids="+persoIds.join(","), function(res) {
 			if (res == 1) {
 				var persoList = document.querySelector(".mypersos-list");
