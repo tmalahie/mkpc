@@ -73,10 +73,9 @@ else {
 	if (isset($warningDeleted)) {
 		?>
 		<p class="warning">
-		<?= _("This account has been deleted. The connection to it has been disabled.") ?>
+		<?= F_("This account has been deleted. The connection to it has been disabled.") ?>
 		<br />
-		<?= _('If you want to undo and restore it, you can still do it by clicking <a href="{url}">here</a>.', url: $restoreAccount) ?>
-		?>
+		<?= F_('If you want to undo and restore it, you can still do it by clicking <a href="{url}">here</a>.', url: $restoreAccount) ?>
 		</p>
 		<?php
 	}
@@ -184,7 +183,7 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 
 	echo "<li>";
 	echo F_(
-		'The most active member is <a href="{urlToProfile}">{activestPlayer}</a> with <strong>{activestPlayerNbMessages}</strong> messages posted in total.',
+		'The most active member is <a href="{urlToProfile}">{activestPlayer}</a> with <strong>{activestPlayerNbMessages} messages</strong> posted in total.',
 		urlToProfile: "profil.php?id=". $getActivestPlayer['id'],
 		activestPlayer: $getActivestPlayer['nom'],
 		activestPlayerNbMessages: $getActivestPlayer['nb'],

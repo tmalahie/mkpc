@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-21 21:56+0100\n"
+"POT-Creation-Date: 2023-03-21 22:27+0100\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -663,14 +663,6 @@ msgstr ""
 "MKPC"
 
 #: adminPersos.php
-msgid "By {author}"
-msgstr "Par {author}"
-
-#: adminPersos.php
-msgid "Confirm deletion of {nbCharacters} characters?"
-msgstr "Confirmer la suppression de {nbCharacters} persos ?"
-
-#: adminPersos.php
 msgid "Manage characters"
 msgstr "Gérer les persos"
 
@@ -828,10 +820,10 @@ msgstr ""
 #: forum.php
 msgid ""
 "The most active member is <a href=\"{urlToProfile}\">{activestPlayer}</a> "
-"with <strong>{activestPlayerNbMessages}</strong> messages posted in total."
+"with <strong>{activestPlayerNbMessages} messages</strong> posted in total."
 msgstr ""
 "Le membre le plus actif est <a href=\"{urlToProfile}\">{activestPlayer}</a>  "
-"avec  <strong>{activestPlayerNbMessages}</strong> messages postés au total."
+"avec  <strong>{activestPlayerNbMessages} messages</strong> postés au total."
 
 #: forum.php
 msgid "Classement"
@@ -850,8 +842,8 @@ msgid ""
 msgstr ""
 "Le membre le plus actif du mois est <a "
 "href=\"{urlToProfile}\">{monthlyActivestPlayer}</a> avec "
-"<strong>{monthlyActivestPlayerNbMessages} depuis le 1<small "
-"class=\"superscript\">er</small> {month}."
+"<strong>{monthlyActivestPlayerNbMessages} message(s)</strong> depuis le "
+"1<small class=\"superscript\">er</small> {month}."
 
 #: forum.php
 msgid "Ranking of month's most active members"

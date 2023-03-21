@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-21 21:56+0100\n"
+"POT-Creation-Date: 2023-03-21 22:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -630,14 +630,6 @@ msgid "To retrace and understand the different actions done by MKPC staff"
 msgstr ""
 
 #: adminPersos.php
-msgid "By {author}"
-msgstr ""
-
-#: adminPersos.php
-msgid "Confirm deletion of {nbCharacters} characters?"
-msgstr ""
-
-#: adminPersos.php
 msgid "Manage characters"
 msgstr ""
 
@@ -787,7 +779,7 @@ msgstr ""
 #: forum.php
 msgid ""
 "The most active member is <a href=\"{urlToProfile}\">{activestPlayer}</a> "
-"with <strong>{activestPlayerNbMessages}</strong> messages posted in total."
+"with <strong>{activestPlayerNbMessages} messages</strong> posted in total."
 msgstr ""
 
 #: forum.php
