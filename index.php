@@ -990,7 +990,7 @@ $slidesPath = 'images/slides';
 						echo '</strong>';
 					}
 					elseif (!empty($params)) {
-						F_(" in {mode} mode", mode: get_mode_string($params));
+						echo F_(" in {mode} mode", mode: get_mode_string($params));
 					}
 				}
 				function print_join_button(&$params) {
