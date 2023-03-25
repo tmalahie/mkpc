@@ -4,12 +4,16 @@ include('language.php');
 include('initdb.php');
 include('getId.php');
 require_once('utils-date.php');
+require_once('getRights.php');
+$isModerator = hasRight('moderator');
 $creation = false;
 $cup = false;
 $mcup = false;
 $type = '';
 $cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
 $manage = isset($_GET['manage']);
+$moderate = $isModerator && isset($_GET['moderate']);
+$sManage = $manage || $moderate;
 if (isset($_GET['circuit'])) {
 	$cID = intval($_GET['circuit']);
 	$creation = true;
@@ -152,19 +156,31 @@ main table div {
 #title h1 {
 	display: inline-block;
 }
-#title a {
+#title .action-btns {
 	position: absolute;
 	right: 5px;
 	top: 0;
+}
+#title .action-btns a {
 	border: outset 2px #9c9;
 }
-#title a:active {
+#title .action-btns a:active {
 	border-style: inset;
 }
+#title .action-btns-sm {
+	top: -3px;
+	right: 0;
+}
+#title .action-btns-sm a {
+	padding: 2px 5px;
+	font-size: 0.8em;
+}
 @media screen and (max-width: 599px) {
-	#title a {
+	#title .action-btns {
 		top: -3px;
 		right: 0;
+	}
+	#title .action-btns a {
 		padding: 2px 5px;
 		font-size: 0.8em;
 	}
@@ -222,11 +238,35 @@ include('menu.php');
 <h1><?php
 	if ($manage)
 		echo $language ? 'Manage my time trials records' : 'Gérer mes records en contre-la-montre';
+	elseif ($moderate)
+		echo $language ? 'Moderate time trials records' : 'Modérer les records en contre-la-montre';
 	elseif (isset($user))
 		echo $language ? 'Best time trial scores of '. $user['nom']:'Meilleurs scores contre-la-montre de '.$user['nom'];
 	else
 		echo $language ? 'Best scores time trial':'Meilleurs scores contre-la-montre';
 ?></h1>
+<div class="action-btns<?php if ($isModerator && !$manage) echo ' action-btns-sm'; ?>">
+<?php
+if ($isModerator && !$manage) {
+	?>
+<a class="action_button" href="?<?php
+	$get = $_GET;
+	if ($moderate)
+		unset($get['moderate']);
+	else
+		$get['moderate'] = 1;
+	unset($get['manage']);
+	echo http_build_query($get);
+?>"><?php
+if ($moderate)
+	echo $language ? '&lt; Back to list':'&lt; Retour à la liste';
+else
+	echo $language ? 'Moderate records':'Modérer les records';
+?></a>
+	<?php
+}
+if (!$moderate) {
+	?>
 <a class="action_button" href="?<?php
 	$get = $_GET;
 	if ($manage)
@@ -240,10 +280,16 @@ if ($manage)
 else
 	echo $language ? 'Manage my records':'Gérer mes records';
 ?></a>
+	<?php
+}
+?>
+</div>
 </div>
 <div><?php
 if ($manage)
 	echo $language ? 'Delete or rename here your time trial records':'Renommez ou supprimez ici vos records en contre-la-montre';
+elseif ($moderate)
+	echo $language ? 'Delete or rename here the time trial records':'Renommez ou supprimez ici les records en contre-la-montre';
 else
 	echo $language ? 'You can see here all the records of the time trial mode in Mario Kart PC.':'Vous pouvez voir ici tous les records du mode contre-la-montre de Mario Kart PC.';
 ?>
@@ -313,7 +359,7 @@ if (isset($user))
 else {
 	if ($creation && empty($cIDs))
 		$cIDs = array(0);
-	$getResults = mysql_query('SELECT r.*,c.code,r.date'.(empty($pIDs)?'':',(r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'") AS shown').' FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
+	$getResults = mysql_query('SELECT r.*,c.code,r.date'.(empty($pIDs)?($moderate?',1 AS shown':''):',(r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'") AS shown').' FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
 }
 if ($creation && !$cup) {
 	if (($getId = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $type .'` WHERE id="'. $cID .'"'))) && ($getId['identifiant'] == $identifiants[0])) {
@@ -415,7 +461,7 @@ else
 for (var i=0;i<groups.length;i++)
 	circuits = circuits.concat(circuitGroups[i]);
 var sUser = <?php echo isset($user) ? $user['id']:0 ?>;
-var sManage = <?php echo $manage ? 1:0 ?>;
+var sManage = <?php echo $sManage ? 1:0 ?>;
 var sFilteredData = (sUser || sManage);
 var sPts = <?php echo +isset($_GET['pts']); ?>;
 var language = <?php echo $language ? 1:0; ?>;
@@ -424,7 +470,7 @@ for (var i=0;i<circuits.length;i++)
 	classement[i] = new Resultat(i);
 <?php
 while ($result = mysql_fetch_array($getResults))
-	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false)).'"'.(isset($result['shown']) ? ','.$result['shown']:'').''.($manage ? ','.$result['id']:'').']);';
+	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false)).'"'.(isset($result['shown']) ? ','.$result['shown']:'').''.($sManage ? ','.$result['id']:'').']);';
 ?>
 var jGroup = groups.length;
 var iGroup = 0;
