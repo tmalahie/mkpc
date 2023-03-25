@@ -7,7 +7,7 @@
 			</td>
 			<td id="header_center">
 				<?php
-				if ($id)
+				if (!empty($id))
 					echo '<img src="images/header_3nation.png" alt="Mario Kart PC" class="event-link" />';
 				else
 					echo '<img src="images/header_transparent2.png" alt="Mario Kart PC" />';
