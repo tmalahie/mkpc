@@ -35,7 +35,7 @@ var editorTools = {
 				if (nRotateTime > lastRotateTime+2500)
 					storeHistoryData(self.data);
 				lastRotateTime = nRotateTime;
-				data.orientation = (data.orientation+1)%4;
+				data.orientation = Math.round(data.orientation+1)%4;
 				self.state.orientation = data.orientation;
 				arrow.rotate(data.orientation);
 				if (self.state.arrow)
@@ -61,9 +61,20 @@ var editorTools = {
 			}
 			arrow.origin.oncontextmenu = function(e) {
 				return showContextOnElt(e,arrow.origin, [{
-					text: (language ? "Rotate":"Pivoter"),
+					text: (language ? "Rotate 90°":"Rotation 90°"),
 					click: function() {
 						arrow.origin.onclick();
+					}
+				}, {
+					text: (language ? "Rotate custom...":"Rotation libre..."),
+					click: function() {
+						rotateArrowNode(arrow,data,data, {
+							on_apply: function(nOrientation) {
+								self.state.orientation = nOrientation;
+								if (self.state.arrow)
+									self.state.arrow.rotate(nOrientation);
+							}
+						});
 					}
 				}, {
 					text: (language ? "Move":"Déplacer"),

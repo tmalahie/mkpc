@@ -910,7 +910,8 @@ function moveArrowNode(arrow,data) {
 	mask.close = function(){};
 	$toolbox.classList.add("hiddenbox");
 }
-function rotateArrowNode(arrow,data,origin) {
+function rotateArrowNode(arrow,data,origin, options) {
+	options = options||{};
 	var mask = createMask();
 	var angle = data.orientation;
 	var hint = rotateHintBuilder();
@@ -928,6 +929,8 @@ function rotateArrowNode(arrow,data,origin) {
 		$toolbox.classList.remove("hiddenbox");
 		moveArr(e);
 		storeHistoryData(editorTools[currentMode].data);
+		if (options.on_apply)
+			options.on_apply(angle);
 		data.orientation = angle;
 		mask.removeEventListener("mousemove", moveArr);
 		mask.removeEventListener("mouseup", stopMoveArr);

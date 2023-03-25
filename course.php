@@ -53,8 +53,8 @@ if (isset($_GET['i'])) {
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
 		<script type="text/javascript" src="scripts/xhr.js"></script>
-		<script type="text/javascript" src="scripts/editor.js"></script>
-		<script type="text/javascript" src="scripts/course.js"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=1"></script>
+		<script type="text/javascript" src="scripts/course.js?reload=1"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?>  oncontextmenu="handleCtxmenu(event)" onmousemove="handleMove(event)" onclick="handleClick(event)">
