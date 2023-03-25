@@ -386,7 +386,7 @@ $slidesPath = 'images/slides';
 			if (($getWarn = mysql_fetch_array(mysql_query('SELECT seen FROM mkwarns WHERE player="'. $id .'"'))) && !$getWarn['seen']) {
 				?>
 				<div class="warning-top-message">
-					<?php F_('You have received a warning for inappropriate behavior. Please <a href={url}>click here</a> to find it out.', url: 'forum.php?warn#compte'); ?>
+					<?= F_('You have received a warning for inappropriate behavior. Please <a href={url}>click here</a> to find it out.', url: 'forum.php?warn#compte'); ?>
 				</div>
 				<?php
 			}
