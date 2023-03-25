@@ -189,9 +189,9 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 		topPlayerMessagesWithCount: FN_('{count} message', '{count} messages', count: $getTopPlayer['nb']),
 	);
 	echo '<a href="ranking-forum.php">';
-	echo '<img src="images/cups/cup1.png" alt="' . _("Classement") . '"/>';
+	echo '<img src="images/cups/cup1.png" alt="' . _("Ranking") . '"/>';
 	echo _("Ranking of most active members");
-	echo '<img src="images/cups/cup1.png" alt="' . _("Classement") .  '"/></a>';
+	echo '<img src="images/cups/cup1.png" alt="' . _("Ranking") .  '"/></a>';
 	echo "</li>";
 
 	if ($getMonthlyTopPlayer) {

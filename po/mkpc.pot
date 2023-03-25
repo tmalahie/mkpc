@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-21 23:53+0100\n"
+"POT-Creation-Date: 2023-03-25 18:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -429,15 +429,15 @@ msgid "You aren't admin"
 msgstr ""
 
 #: admin.php
-msgid "administrator"
+msgid "administrator rank"
 msgstr ""
 
 #: admin.php
-msgid "moderator"
+msgid "moderator rank"
 msgstr ""
 
 #: admin.php
-msgid "event host"
+msgid "event host rank"
 msgstr ""
 
 #: admin.php
@@ -446,8 +446,7 @@ msgstr ""
 
 #: admin.php
 msgid ""
-"Your current role is: {role}. This grants you the following rights. Make "
-"good use of them!"
+"Your {roleWithName} gives you the following rights. Make good use of them!"
 msgstr ""
 
 #: admin.php
@@ -789,7 +788,7 @@ msgid ""
 msgstr ""
 
 #: forum.php
-msgid "Classement"
+msgid "Ranking"
 msgstr ""
 
 #: forum.php
@@ -802,6 +801,10 @@ msgid ""
 "href=\"{urlToProfile}\">{monthlyTopPlayer}</a> with "
 "<strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the "
 "1<small class=\"superscript\">st</small>."
+msgstr ""
+
+#: forum.php
+msgid "Classement"
 msgstr ""
 
 #: forum.php

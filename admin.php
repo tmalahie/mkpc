@@ -18,13 +18,13 @@ if (!hasRight('manager')) {
 	exit;
 }
 if (hasRight('admin')) {
-	$roleName = _('administrator');
+	$roleWithName = _("administrator rank");
 }
 elseif (hasRight('moderator')) {
-	$roleName = _('moderator');
+	$roleWithName = _("moderator rank");
 }
 else {
-	$roleName = _('event host');
+	$roleWithName = _('event host rank');
 }
 ?>
 <!DOCTYPE html>
@@ -87,7 +87,7 @@ include('menu.php');
 <main>
 	<h1><?= _('Admin page') ?></h1>
 	<p class="success">
-		<?= _("Your current role is: {role}. This grants you the following rights. Make good use of them!") ?>
+		<?= F_("Your {roleWithName} gives you the following rights. Make good use of them!", roleWithName: $roleWithName) ?>
 	</p>
 	<h2><?= _("Member management") ?></h2>
 	<ul>

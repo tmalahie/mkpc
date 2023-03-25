@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-21 23:07+0100\n"
+"POT-Creation-Date: 2023-03-25 18:20+0100\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -72,7 +72,7 @@ msgstr "Afficher"
 
 #: addNews.php
 msgid "Hide"
-msgstr "Cacher"
+msgstr "Masquer"
 
 #: addNews.php
 msgid "Please enter a title"
@@ -208,19 +208,19 @@ msgstr "a supprimé le commentaire #$1 sur un circuit"
 
 #: admin-logs.php
 msgid "took $1 pts from {user} in online mode (VS)"
-msgstr "a pris $1 pts à {user} en mode en ligne (VS)"
+msgstr "a retiré $1 pts à {user} dans le mode en ligne (VS)"
 
 #: admin-logs.php
 msgid "gave $1 pts to {user} in online mode (VS)"
-msgstr "a donné $1 pts à {user} en mode en ligne (VS)"
+msgstr "a donné $1 pts à {user} dans le mode en ligne (VS)"
 
 #: admin-logs.php
 msgid "took $1 pts from {user} in online mode (battle)"
-msgstr "a pris $1 pts à {user} en mode en ligne (bataille)"
+msgstr "a retiré $1 pts à {user} dans le mode en ligne (bataille)"
 
 #: admin-logs.php
 msgid "gave $1 pts to {user} in online mode (battle)"
-msgstr "a donné $1 pts à {user} en mode en ligne (bataille)"
+msgstr "a donné $1 pts à {user} dans le mode en ligne (bataille)"
 
 #: admin-logs.php
 msgid "changed <strong>$2</strong>'s nick to "
@@ -439,16 +439,16 @@ msgid "You aren't admin"
 msgstr "Vous n'êtes pas administrateur"
 
 #: admin.php
-msgid "administrator"
-msgstr "administrateur"
+msgid "administrator rank"
+msgstr "grade d'administrateur"
 
 #: admin.php
-msgid "moderator"
-msgstr "modérateur"
+msgid "moderator rank"
+msgstr "grade de modérateur"
 
 #: admin.php
-msgid "event host"
-msgstr "animateur"
+msgid "event host rank"
+msgstr "grade d'animateur"
 
 #: admin.php
 msgid "Admin page"
@@ -456,11 +456,9 @@ msgstr "Page admin"
 
 #: admin.php
 msgid ""
-"Your current role is: {role}. This grants you the following rights. Make "
-"good use of them!"
+"Your {roleWithName} gives you the following rights. Make good use of them!"
 msgstr ""
-"Votre rôle actuel est : {role}. Celui-ci vous donne les droits suivants. "
-"Faites-en bon usage !"
+"Votre {roleWithName} vous donne les droits suivants. Faites-en bon usage !"
 
 #: admin.php
 msgid "Member management"
@@ -552,7 +550,7 @@ msgstr ""
 #: admin.php
 msgid "All messages containing forbidden words will be blocked and/or logged"
 msgstr ""
-"Tous les messages contenant ces mots ne seront pas envoyés ou seront loggués"
+"Les messages contenant ces mots ne seront pas envoyés ou seront loggués"
 
 #: admin.php
 msgid "See online mode <strong>chat logs</strong>"
@@ -633,8 +631,7 @@ msgstr ""
 
 #: admin.php
 msgid "Moderate a <strong>comment</strong> on a <strong>news</strong>"
-msgstr ""
-"Modérer un <strong>commentaire</strong> sur un <strong>circuit</strong>"
+msgstr "Modérer un <strong>commentaire</strong> sur une <strong>news</strong>"
 
 #: admin.php
 msgid ""
@@ -726,7 +723,7 @@ msgid ""
 "<a href=\"{url}\">rules</a> before posting."
 msgstr ""
 "Bienvenue sur le forum MKPC ! Si ce n'est pas déjà fait, prenez le temps de "
-"consulter le <a href={url}\">règlement</a> avant de poster."
+"consulter le <a href=\"{url}\">règlement</a> avant de poster."
 
 #: forum.php
 msgid "My profile"
@@ -783,7 +780,7 @@ msgstr "Mot de passe perdu"
 
 #: forum.php
 msgid "Search:"
-msgstr "Recherche :"
+msgstr "Recherche :"
 
 #: forum.php
 msgid "Topic title"
@@ -828,12 +825,12 @@ msgid ""
 "The most active member is <a href=\"{urlToProfile}\">{topPlayer}</a> with "
 "<strong>{topPlayerMessagesWithCount}</strong> posted in total."
 msgstr ""
-"Le membre le plus actif est <a href=\"{urlToProfile}\">{topPlayer}</a>  "
-"avec <strong>{topPlayerMessagesWithCount}</strong> postés au total."
+"Le membre le plus actif est <a href=\"{urlToProfile}\">{topPlayer}</a>  avec "
+"<strong>{topPlayerMessagesWithCount}</strong> postés au total."
 
 #: forum.php
-msgid "Classement"
-msgstr "Ranking"
+msgid "Ranking"
+msgstr "Classement"
 
 #: forum.php
 msgid "Ranking of most active members"
@@ -850,6 +847,10 @@ msgstr ""
 "href=\"{urlToProfile}\">{monthlyTopPlayer}</a> avec "
 "<strong>{monthlyTopPlayerMessagesWithCount}</strong> depuis le 1<small "
 "class=\"superscript\">er</small> {month}."
+
+#: forum.php
+msgid "Classement"
+msgstr ""
 
 #: forum.php
 msgid "Ranking of month's most active members"
