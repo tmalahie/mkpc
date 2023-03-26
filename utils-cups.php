@@ -269,7 +269,6 @@ function getTrackPayloads($options) {
                     $getMain = $allTracks[$trackMode][$trackID];
                     $infos = array();
                     $infos['id'] = $trackID;
-                    $infos['map'] = $getMain['map'];
                     $infos['name'] = $getMain['nom'];
                     $infos['note'] = $getMain['note'];
                     $infos['nbnotes'] = $getMain['nbnotes'];
@@ -277,6 +276,7 @@ function getTrackPayloads($options) {
                     $infos['publication_date'] = $getMain['publication_date'];
                     $creationEntities['fetch_track_extras'](array(
                         'id' => $trackID,
+                        'base' => $getMain,
                         'infos' => &$infos
                     ));
                     $circuitsData[] = $infos;

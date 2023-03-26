@@ -4,13 +4,51 @@ $CREATION_ENTITIES = array(
         'page' => 'circuit',
         'table' => 'mkcircuits',
         'get_track_from_params' => function($options) {
-            // TODO auto-generated method stub
+            global $lettres, $nbLettres;
+            $infos = &$options['infos'];
+            for ($i=0;$i<36;$i++)
+                $infos["p$i"] = (isset($_GET["p$i"])) ? intval($_GET["p$i"]) : 11;
+            $infos['map'] = (isset($_GET["map"])) ? intval($_GET["map"]) : 1;
+            $infos['laps'] = (isset($_GET["nl"])) ? intval($_GET["nl"]) : 3;
+            $infos['name'] = '';
+            for ($i=0;$i<$nbLettres;$i++) {
+                $lettre = $lettres[$i];
+                $prefixes = getLetterPrefixes($lettre,$infos['map']);
+                for ($k=0;$k<$prefixes;$k++) {
+                    $prefix = getLetterPrefix($lettre,$k);
+                    for ($j=0;isset($_GET[$prefix.$j]);$j++)
+                        $infos[$prefix.$j] = $_GET[$prefix.$j];
+                }
+            }
         },
         'fetch_tracks' => function($options) {
-            // TODO auto-generated method stub
+            global $identifiants;
+            $ids = $options['ids'];
+            $requireOwner = !empty($options['require_owner']);
+            $idsString = implode(',', $ids);
+            return mysql_query('SELECT id,map,laps,nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id IN ('. $idsString .') AND !type'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : ''));
         },
         'fetch_track_extras' => function($options) {
-            // TODO auto-generated method stub
+            global $lettres, $nbLettres;
+            $trackID = $options['id'];
+            $infos = &$options['infos'];
+            $base = &$options['base'];
+            $infos['map'] = $base['map'];
+            $infos['laps'] = $base['laps'];
+            $pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$trackID.'"');
+            while ($piece = mysql_fetch_array($pieces))
+                $infos['p'.$piece['id']] = $piece['piece'];
+            for ($j=0;$j<$nbLettres;$j++) {
+                $lettre = $lettres[$j];
+                $getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$trackID.'"');
+                $incs = array();
+                while ($info=mysql_fetch_array($getInfos)) {
+                    $prefix = getLetterPrefixD($lettre,$info);
+                    if (!isset($incs[$prefix])) $incs[$prefix] = 0;
+                    $infos[$prefix.$incs[$prefix]] = $info['x'].','.$info['y'];
+                    $incs[$prefix]++;
+                }
+            }
         }
     ),
     array(
@@ -61,6 +99,8 @@ $CREATION_ENTITIES = array(
             global $lettres, $nbLettres;
             $trackID = $options['id'];
             $infos = &$options['infos'];
+            $base = &$options['base'];
+            $infos['map'] = $base['map'];
             $pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$trackID.'"');
             while ($piece = mysql_fetch_array($pieces))
                 $infos['p'.$piece['id']] = $piece['piece'];
