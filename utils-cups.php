@@ -83,7 +83,7 @@ function printCollabImportPopup($type, $mode, $isBattle) {
     <?php
 }
 function getTrackPayloads($options) {
-    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $infos, $NBCIRCUITS, $trackIDs, $circuitsData;
+    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData;
     include('creation-entities.php');
     $sid = $options['sid'];
     $mode = $options['mode'];
@@ -103,6 +103,7 @@ function getTrackPayloads($options) {
             $pNotes = $getMCup['nbnotes'];
             $cDate = $getMCup['publication_date'];
             $cOptions = $getMCup['options'];
+            $cShared = true;
             $getCups = mysql_query('SELECT cup FROM `mkmcups_tracks` WHERE mcup="'. $id .'" ORDER BY ordering');
             $cupIDs = array();
             while ($getCup = mysql_fetch_array($getCups))
@@ -122,6 +123,7 @@ function getTrackPayloads($options) {
             $pNote = $getCup['note'];
             $pNotes = $getCup['nbnotes'];
             $cDate = $getCup['publication_date'];
+            $cShared = true;
             for ($i=0;$i<4;$i++) {
                 $tracksToFetch[$i] = array(
                     'id' => $getCup['circuit'. $i],
@@ -153,6 +155,8 @@ function getTrackPayloads($options) {
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
                 addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
+                $cShared = true;
+                $cEditting = true;
             }
         }
         else
@@ -173,11 +177,15 @@ function getTrackPayloads($options) {
                 $pNote = $getMain['note'];
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
+                $cShared = true;
+                $cEditting = true;
                 addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
             }
         }
-        else
+        else {
             $cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
+            $cShared = false;
+        }
         for ($i=0;isset($_GET['mid'.$i])&&is_numeric($_GET['mid'.$i]);$i++)
             $cupIDs[$i] = intval($_GET['mid'.$i]);
         $cOptions = isset($_GET['opt']) ? json_decode(stripslashes($_GET['opt'])) : null;
@@ -185,6 +193,7 @@ function getTrackPayloads($options) {
         $edittingCircuit = true;
     }
     else { // Track being created
+        $getMain = null;
         if (isset($_GET['nid'])) { // Track being edited
             $nid = intval($_GET['nid']);
             require_once('collabUtils.php');
@@ -210,6 +219,7 @@ function getTrackPayloads($options) {
         $creationEntities['get_track_from_params'](array(
             'infos' => &$infos,
             'mode' => $mode,
+            'base' => $getMain
         ));
         $edittingCircuit = true;
     }
@@ -287,11 +297,15 @@ function getTrackPayloads($options) {
         if (!$isCup && isset($circuitsData[0])) {
             $infos = $circuitsData[0];
             $cName = $infos['name'];
-            $cPseudo = $infos['auteur'];
-            $cAuteur = $cPseudo;
+            $cAuteur = $infos['auteur'];
             $pNote = $infos['note'];
             $pNotes = $infos['nbnotes'];
             $cDate = $infos['publication_date'];
+            $cShared = (null !== $cName);
+            if ($cShared)
+                $cPseudo = $cAuteur;
+            else
+                $cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
         }
     }
     elseif (!empty($infos))

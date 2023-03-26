@@ -54,14 +54,20 @@ $CREATION_ENTITIES = array(
     array(
         'page' => 'map',
         'table' => 'circuits',
-        'get_track_from_params' => function($options) {
-            // TODO auto-generated method stub
+        'get_track_from_params' => function($options) use (&$CREATION_ENTITIES) {
+            if ($options['base'])
+                $CREATION_ENTITIES[1]['fetch_track_extras']($options);
         },
         'fetch_tracks' => function($options) {
-            // TODO auto-generated method stub
+            global $identifiants;
+            $ids = $options['ids'];
+            $requireOwner = !empty($options['require_owner']);
+            $idsString = implode(',', $ids);
+            return mysql_query('SELECT c.*,c.id,d.data FROM `circuits` c LEFT JOIN `circuits_data` d ON c.id=d.id WHERE c.id IN ('. $idsString .')'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : ''));
         },
         'fetch_track_extras' => function($options) {
-            // TODO auto-generated method stub
+            foreach ($options['base'] as $key => $value)
+                $options['infos'][$key] = $value;
         }
     ),
     array(
