@@ -20135,11 +20135,11 @@ function selectTypeCreate() {
 
 	var oModes = [{
 		name: toLanguage("Quick mode", "Mode simplifié"),
-		description: toLanguage("Create a track in a few clics thanks to ready-made pieces", "Créez un circuit en quelques clics grâce à des pièces toutes faites"),
+		description: toLanguage("Create a track in a few clicks thanks to ready-made pieces", "Créez un circuit en quelques clics grâce à des pièces toutes faites"),
 		thumbnail: "help/mode-simple.png"
 	}, {
 		name: toLanguage("Complete mode", "Mode complet"),
-		description: toLanguage("Create entierely the track from an image you draw yourself", "Créez entièrement le circuit à partir d'une image dessinée par vous-même"),
+		description: toLanguage("Create the track entirely from an image you draw yourself", "Créez entièrement le circuit à partir d'une image dessinée par vous-même"),
 		thumbnail: "help/mode-complete.png"
 	}];
 

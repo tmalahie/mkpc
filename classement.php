@@ -297,7 +297,7 @@ else
 if (!$manage) {
 	if (!$creation) {
 		?>
-		<br /><?php echo $language ? 'The leaderbord is shown circuit by circuit, to see a global ranking, see <a href="classement.global.php">this page</a>.':'Les classements sont affichés circuit par circuit, pour voir un classement global, rendez-vous sur <a href="classement.global.php">cette page</a>.'; ?>
+		<br /><?php echo $language ? 'The leaderboard is shown circuit by circuit, to see a global ranking, see <a href="classement.global.php">this page</a>.':'Les classements sont affichés circuit par circuit, pour voir un classement global, rendez-vous sur <a href="classement.global.php">cette page</a>.'; ?>
 		<?php
 	}
 	echo '<br />';
