@@ -59,7 +59,7 @@ if (isset($id)) {
 						$actualType = $customDecor->type;
 						if ($customData = mysql_fetch_array(mysql_query('SELECT sprites FROM mkdecors WHERE id='. $decorId))) {
 							$decorSrcs = decor_sprite_srcs($customData['sprites']);
-							$decorImg = imagecreatefrompng($decorSrcs['map']);
+							$decorImg = @imagecreatefrompng($decorSrcs['map']);
 						}
 					}
 					else
