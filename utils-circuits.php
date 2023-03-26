@@ -328,7 +328,7 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 		}
 		$lIds = $lCups[$cId];
 		foreach ($lIds as $i=>$lId) {
-			$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type='. (15-$cType);
+			$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type=0';
 			$linkPreview[] = $baseUrl . $lId;
 			$linksCached[] = $baseCache . $lId .'.png';
 		}
