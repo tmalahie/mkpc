@@ -5,7 +5,7 @@ include('session.php');
 include('initdb.php');
 require_once('getRights.php');
 if (!hasRight('moderator')) {
-	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
+	echo _("You are not moderator");
 	mysql_close();
 	exit;
 }
@@ -14,9 +14,9 @@ assign_token();
 mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="admin_report"');
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<html lang="<?= P_("html language", "en") ?>">
 <head>
-<title>Forum Mario Kart PC - <?php echo $language ? 'Reported messages':'Messages signalés'; ?></title>
+<title>Forum Mario Kart PC - <?= _('Reported messages') ?></title>
 <?php
 include('heads.php');
 ?>
@@ -57,7 +57,7 @@ function zerofill($s,$l) {
     - <a href="#null" target="_blank"></a>
   </div>
 </template>
-<h1>Forum Mario Kart PC - <?php echo $language ? 'Reported messages':'Messages signalés'; ?></h1>
+<h1>Forum Mario Kart PC - <?= _('Reported messages') ?></h1>
 <div id="search-results">
 <?php
 include('avatars.php');
@@ -83,7 +83,7 @@ if ($nbres) {
         $searchResults[] = $result;
     if (empty($searchResults)) {
         echo '<h4>';
-        echo $language ? "No new reported message for now" : "Aucun nouveau signalement pour l'instant";
+        echo _("No new reported message for now");
         echo '</h4>';
     }
     else {
@@ -93,7 +93,18 @@ if ($nbres) {
         foreach ($searchResults as $result) {
             $topicName = $result['titre'];
             echo '<div id="report-wrapper-'. $result['reportid'] .'">';
-            echo '<div class="report-title">'. ($language ? 'In' : 'Dans') .' <a href="topic.php?topic='.$result['topic'].'">'.htmlspecialchars($topicName).'</a>, '. ($language ? 'reported by':'reporté par') .' <a href="javascript:showMembers('.$result['reportid'].')">'. $result['count'] .' '. ($language ? 'member':'membre') . ($result['count']>1 ? 's':'') .'</a></div>';
+
+            echo '<div class="report-title">';
+            echo F_('In <a href="{topicUrl}">{topicName}</a>, ', topicName: htmlspecialchars($topicName), topicUrl: "topic.php?topic=" . $result['topic']);
+            echo FN_(
+                'reported by <a href="{showMembers}">{count} member</a>',
+                'reported by <a href="{showMembers}">{count} members</a>',
+                count: $result['count'],
+                showMembers: "javascript:showMembers(" . $result['reportid'] . ")",
+            );
+
+            echo '</div>';
+
             echo '<div class="report-members" id="report-member-'.$result['reportid'].'"></div>';
             echo '<div class="fMessages" data-topic="'.$result['topic'].'">';
             print_forum_msg($result, array(
@@ -141,12 +152,12 @@ if ($nbres) {
 }
 else {
     echo '<h4>';
-    echo $language ? 'No pending reported message' : 'Aucun message reporté';
+    echo _('No pending reported message');
     echo '</h4>';
 }
 ?>
 </div>
-<p class="forumButtons"><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a></p>
+<p class="forumButtons"><a href="forum.php"><?= _('Back to the forum') ?></a></p>
 </main>
 <?php
 include('footer.php');

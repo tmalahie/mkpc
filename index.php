@@ -413,15 +413,15 @@ $slidesPath = 'images/slides';
 				?>
 				<div class="birthdays-list">
 					<img src="images/ic_birthday.png" alt="birthday" />
-					<?php echo $language ? "Happy birthday to":"C'est l'anniversaire de"; ?>
+					<?= _("Happy birthday to") ?>
 					<?php
 					for ($i=0;$i<$nbBirthdays;$i++) {
 						$birthday = $birthdaysList[$i];
 						if ($i)
-							echo ($i==$nbBirthdays-1) ? ($language ? " and ":" et "):", ";
+							echo ($i==$nbBirthdays-1) ? _(" and ") : ", ";
 						echo '<a href="profil.php?id='. $birthday['id'] .'">'. $birthday['nom'] .'</a>';
 					}
-					echo ($language ? '!':'&nbsp;!');
+					echo P_("final exclamation point in a sentence", '!');
 					?>
 				</div>
 				<?php
@@ -615,7 +615,7 @@ $slidesPath = 'images/slides';
 					?>
 				</table>
 			</div>
-			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?= _('Tournament\'s Discord Server') ?></a></div>
+			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?= _("Tournament's Discord Server") ?></a></div>
 		</div>
 			<?php
 		}
@@ -632,7 +632,6 @@ $slidesPath = 'images/slides';
 						return ($circuit['nom'] ? controlLengthUtf8($circuit['nom'],25):(_('Untitled')));
 					}
 					function getAuteur($circuit) {
-						global $language;
 						if ($circuit['auteur']) {
 							return F_("By <strong>{author}</strong>", author: controlLengthUtf8($circuit['auteur'],15));
 						}
@@ -723,8 +722,9 @@ $slidesPath = 'images/slides';
 			if (hasRight('clvalidator')) {
 				$getPendingChallenges = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkchallenges WHERE status="pending_moderation"'));
 				if ($getPendingChallenges['nb']) {
-					$s = ($getPendingChallenges['nb']>=2) ? 's':'';
-					echo '<p class="nb-pending-news"><a href="challengesList.php?moderate">'. $getPendingChallenges['nb'] .' '. ($language ? 'pending':"défi$s") .'</a> '. ($language ? "challenge$s":'en attente de validation') .'</p>';
+					echo '<p class="nb-pending-news">';
+					echo FN_('<a href="{url}">{count} pending</a> challenge', '<a href="{url}">{count} pending</a> challenges', count: $getPendingChallenges['nb'], url: 'challengesList.php?moderate');
+					echo '</p>';
 				}
 			}
 			?>
@@ -967,7 +967,7 @@ $slidesPath = 'images/slides';
 						$i++;
 					}
 					echo '<span class="ranking_activeplayernb" title="'. $title .'">';
-					printf(ngettext("%s member", "%s members", $nbActivePlayers), $nbActivePlayers);
+					echo FN_("{count} member", "{count} members", count: $nbActivePlayers);
 					echo '</span>';
 					if (!empty($params['cup'])) {
 						echo ' ';

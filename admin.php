@@ -1,37 +1,34 @@
 <?php
 include('session.php');
 if (!$id) {
-	echo "Vous n'&ecirc;tes pas connect&eacute;";
+	echo _("You aren't logged in");
 	exit;
 }
 include('language.php');
 include('initdb.php');
 if (!$id) {
-	echo "Vous n'&ecirc;tes pas connect&eacute;";
+	echo _("You aren't logged in");
 	mysql_close();
 	exit;
 }
 require_once('getRights.php');
 if (!hasRight('manager')) {
-	echo "Vous n'&ecirc;tes pas administrateur";
+	echo _("You aren't admin");
 	mysql_close();
 	exit;
 }
 if (hasRight('admin')) {
-	$rolePrefix = $language ? 'of ':'d\'';
-	$roleName = $language ? 'administrator':'administrateur';
+	$roleWithName = _("administrator rank");
 }
 elseif (hasRight('moderator')) {
-	$rolePrefix = $language ? 'of ':'de ';
-	$roleName = $language ? 'moderator':'modérateur';
+	$roleWithName = _("moderator rank");
 }
 else {
-	$rolePrefix = $language ? 'of ':'d\'';
-	$roleName = $language ? 'event host':'animateur';
+	$roleWithName = _('event host rank');
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $language ? 'en':'fr'; ?>">
+<html lang="<?= P_("html language", "en") ?>">
 <head>
 <title>Admin - Mario Kart PC</title>
 <?php
@@ -88,25 +85,25 @@ $page = 'forum';
 include('menu.php');
 ?>
 <main>
-	<h1><?php echo $language ? 'Admin page':'Page admin'; ?></h1>
-	<p class="success"><?php
-	echo $language ? "Your $roleName rank gives you the following rights. Make good use of it!":"Votre grade $rolePrefix$roleName vous donne les droits suivants. Faites-en bon usage !";
-	?></p>
-	<h2><?php echo $language ? "Member management":"Gestion des membres"; ?></h2>
+	<h1><?= _('Admin page') ?></h1>
+	<p class="success">
+		<?= F_("Your {roleWithName} gives you the following rights. Make good use of them!", roleWithName: $roleWithName) ?>
+	</p>
+	<h2><?= _("Member management") ?></h2>
 	<ul>
 		<?php
 		if (hasRight('moderator')) {
 			?>
 		<li>
 			<a class="action-ctn" href="edit-pseudo.php">
-				<div class="action-title"><?php echo $language ? "Edit member <strong>nick</strong>":"Changer le <strong>pseudo</strong> d'un membre"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Can be useful if a member has a troll nick for example":"Peut servir si un membre a un pseudo troll par exemple"; ?></div>
+				<div class="action-title"><?= _("Edit a member's <strong>nick</strong>") ?></div>
+				<div class="action-desc"><?= _("Can be useful if a member has a troll nick for example") ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="nick-history.php">
-				<div class="action-title"><?php echo $language ? "See <strong>nick change history</strong>":"Voir l'historique des <strong>changements de pseudo</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "To monitor people who would abuse of this option.":"Pour surveiller les membres qui abuseraient de cette option."; ?></div>
+				<div class="action-title"><?= _("See <strong>nick change history</strong>") ?></div>
+				<div class="action-desc"><?= _("To monitor people who would abuse of this option.") ?></div>
 			</a>
 		</li>
 			<?php
@@ -116,8 +113,8 @@ include('menu.php');
 			?>
 			<li>
 				<a class="action-ctn" href="updatepts.php">
-					<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in <strong>online mode</strong>":"Donner/retirer des <strong>points</strong> dans le <strong>mode en ligne</strong>"; ?></div>
-					<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
+					<div class="action-title"><?= _("Give / Remove <strong>points</strong> in <strong>online mode</strong>") ?></div>
+					<div class="action-desc"><?= _("As a reward for a tournament, or as punishment after a cheat...") ?></div>
 				</a>
 			</li>
 			<?php
@@ -125,8 +122,8 @@ include('menu.php');
 		?>
 		<li>
 			<a class="action-ctn" href="awards.php">
-				<div class="action-title"><?php echo $language ? "Award a <strong>reward</strong>":"Attribuer des <strong>titres</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Following an official event (oscars, festival, ...)":"Suite à un événement officiel (oscars, festival, ...)"; ?></div>
+				<div class="action-title"><?= _("Award a <strong>reward</strong>") ?></div>
+				<div class="action-desc"><?= _("Following an official event (oscars, festival, ...)") ?></div>
 			</a>
 		</li>
 			<?php
@@ -134,8 +131,8 @@ include('menu.php');
 		?>
 		<li>
 			<a class="action-ctn" href="doublecomptes.php">
-				<div class="action-title"><?php echo $language ? "See <strong>double accounts</strong>":"Voir les <strong>double comptes</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)":"Si un &quot;nouveau&quot; membre vous parait louche... (outil pas 100% fiable)"; ?></div>
+				<div class="action-title"><?= _("See <strong>double accounts</strong>") ?></div>
+				<div class="action-desc"><?= _("If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)") ?></div>
 			</a>
 		</li>
 		<?php
@@ -143,14 +140,14 @@ include('menu.php');
 			?>
 		<li>
 			<a class="action-ctn" href="edit-user.php">
-				<div class="action-title"><?php echo $language ? "Edit member <strong>profile</strong>":"Changer le <strong>profil</strong> d'un membre"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Can be useful if a troll member has put an inappropriate description for example, or a fake country":"Peut servir si un membre troll a renseigné une description inappropriée par exemple, ou un faux pays"; ?></div>
+				<div class="action-title"><?= _("Edit member <strong>profile</strong>") ?></div>
+				<div class="action-desc"><?= _("Can be useful if a troll member has put an inappropriate description for example, or a fake country") ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="ban-player.php">
-				<div class="action-title"><?php echo $language ? "<strong>Ban</strong> or <strong>warn</strong> a member":"<strong>Bannir</strong> ou <strong>avertir</strong> un membre"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Warn a user for innapropriate behavior, or ban them if he persists. Banned members are unable to post anything on the site":"Avertir un membre d'un comportement inapproprié, ou le bannir en cas de récidive. Les membres bannis ne peuvent plus rien poster sur le site"; ?></div>
+				<div class="action-title"><?= _("<strong>Ban</strong> or <strong>warn</strong> a member") ?></div>
+				<div class="action-desc"><?= _("Warn a user for innapropriate behavior, or ban them if he persists. Banned members are unable to post anything on the site") ?></div>
 			</a>
 		</li>
 			<?php
@@ -160,84 +157,88 @@ include('menu.php');
 	<?php
 	if (hasRight('moderator')) {
 		?>
-	<h2><?php echo $language ? 'Online mode' : 'Mode en ligne'; ?></h2>
+	<h2><?= _('Online mode') ?></h2>
 	<ul>
 		<li>
 			<a class="action-ctn" href="updatepts.php">
-				<div class="action-title"><?php echo $language ? "Give / Remove <strong>points</strong> in online mode":"Donner/retirer des <strong>points</strong> dans le mode en ligne"; ?></div>
-				<div class="action-desc"><?php echo $language ? "As a reward for a tournament, or as punishment after a cheat...":"En récompense suite à un tournoi, ou comme punition après une triche..."; ?></div>
+				<div class="action-title"><?= _("Give / Remove <strong>points</strong> in online mode") ?></div>
+				<div class="action-desc"><?= _("As a reward for a tournament, or as punishment after a cheat...") ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="chat-blacklist.php">
-				<div class="action-title"><?php echo $language ? "Manage <strong>forbidden/watched words</strong> in online chat":"Gérer les <strong>mots interdits/surveillés</strong> dans le chat en ligne"; ?></div>
-				<div class="action-desc"><?php echo $language ? "All messages containing forbidden words will be blocked and/or logged":"Les messages contenant ces mots ne seront pas envoyés ou seront loggués"; ?></div>
+				<div class="action-title"><?= _("Manage <strong>forbidden/watched words</strong> in online chat") ?></div>
+				<div class="action-desc"><?= _("All messages containing forbidden words will be blocked and/or logged") ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="chat-logs.php">
-				<div class="action-title"><?php echo $language ? "See online mode <strong>chat logs</strong>":"Voir les <strong>logs</strong> du mode en ligne"; ?></div>
-				<div class="action-desc"><?php echo $language ? "See the messages of the member in the online mode.<br />You can mute members in case of abuse":"Voir les messages d'un joueurs dans le chat du mode en ligne.<br />Vous pouvez muter les membres en cas d'abus."; ?></div>
+				<div class="action-title"><?= _("See online mode <strong>chat logs</strong>") ?></div>
+				<div class="action-desc">
+					<?= _("See the messages of the member in the online mode") ?>
+					<br />
+					<?= _("You can mute members in case of abuse") ?>
+				</div>
 			</a>
 		</li>
 	</ul>
-	<h2><?php echo $language ? 'Share management' : 'Gestion des partages'; ?></h2>
+	<h2><?= _('Share management') ?></h2>
 	<ul>
 		<li>
 			<a class="action-ctn" href="creations.php?admin=1">
-				<div class="action-title"><?php echo $language ? "Delete a <strong>custom track</strong>":"Supprimer un <strong>circuit</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "If the content of the track is inappropriate or in case of plagiarism":"Si le contenu d'un circuit est inapproprié ou en cas de plagiat"; ?></div>
+				<div class="action-title"><?= _("Delete a <strong>custom track</strong>") ?></div>
+				<div class="action-desc"><?= _("If the content of the track is inappropriate or in case of plagiarism") ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="creation-ratings.php">
-				<div class="action-title"><?php echo $language ? "Manage <strong>ratings</strong> on tracks":"Gérer les <strong>notes</strong> sur un circuit"; ?></div>
-				<div class="action-desc"><?php echo $language ? "To monitor and eradicate 1-star trolls...":"Pour surveiller et éradiquer les 1-star trolls..."; ?></div>
+				<div class="action-title"><?= _("Manage <strong>ratings</strong> on tracks") ?></div>
+				<div class="action-desc"><?= _("To monitor and eradicate 1-star trolls...") ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="adminPersos.php">
-				<div class="action-title"><?php echo $language ? "Delete a <strong>character</strong>":"Supprimer un <strong>perso</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "In case of plagiarism or if eventual cheating (invisible character...)":"En cas de plagiat ou de risque de triche (perso invisible...)"; ?></div>
+				<div class="action-title"><?= _("Delete a <strong>character</strong>") ?></div>
+				<div class="action-desc"><?= _("In case of plagiarism or if eventual cheating (invisible character...)") ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="findByCreation.php">
-				<div class="action-title"><?php echo $language ? "Find the <strong>author</strong> of a given creation":"Trouver l'<strong>auteur</strong> d'une création"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Find the creator of a circuit published by an anonymous user":"Retrouver le créateur d'un circuit publié par un utilisateur anonyme"; ?></div>
+				<div class="action-title"><?= _("Find the <strong>author</strong> of a given creation") ?></div>
+				<div class="action-desc"><?= _("Find the creator of a circuit published by an anonymous user") ?></div>
 			</a>
 		</li>
 	</ul>
 		<?php
 	}
 	?>
-	<h2><?php echo $language ? 'Other rights' : 'Autres droits'; ?></h2>
+	<h2><?= _('Other rights') ?></h2>
 	<ul>
 		<?php
 		if (hasRight('moderator')) {
 			?>
 		<li>
 			<div class="action-ctn">
-				<div class="action-title"><?php echo $language ? "Moderate a message on the <strong>forum</strong>":"Modérer un message sur le <strong>forum</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "To do this, go to the message in question and click on &quot;Edit&quot; or &quot;Delete&quot;":"Pour cela, se rendre sur le message en question et cliquer sur &quot;Modifier&quot; ou &quot;Supprimer&quot;"; ?></div>
+				<div class="action-title"><?= _("Moderate a message on the <strong>forum</strong>") ?></div>
+				<div class="action-desc"><?= _("To do this, go to the message in question and click on &quot;Edit&quot; or &quot;Delete&quot;") ?></div>
 			</div>
 		</li>
 		<li>
 			<div class="action-ctn">
-				<div class="action-title"><?php echo $language ? "Moderate a <strong>comment</strong> on a <strong>custom track</strong>":"Modérer un <strong>commentaire</strong> sur un <strong>circuit</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Go to the track in question and click on &quot;Edit&quot; or &quot;Delete&quot;":"Se rendre sur le circuit en question et cliquer sur &quot;Modifier&quot; ou &quot;Supprimer&quot;"; ?></div>
+				<div class="action-title"><?= _("Moderate a <strong>comment</strong> on a <strong>custom track</strong>") ?></div>
+				<div class="action-desc"><?= _("Go to the track in question and click on &quot;Edit&quot; or &quot;Delete&quot;") ?></div>
 			</div>
 		</li>
 		<li>
 			<div class="action-ctn">
-				<div class="action-title"><?php echo $language ? "Moderate a <strong>comment</strong> on a <strong>news</strong>":"Modérer un <strong>commentaire</strong> sur une <strong>news</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "Go to the news in question and click on &quot;Edit&quot; or &quot;Delete&quot;":"Se rendre sur la news en question et cliquer sur &quot;Modifier&quot; ou &quot;Supprimer&quot;"; ?></div>
+				<div class="action-title"><?= _("Moderate a <strong>comment</strong> on a <strong>news</strong>") ?></div>
+				<div class="action-desc"><?= _("Go to the news in question and click on &quot;Edit&quot; or &quot;Delete&quot;") ?></div>
 			</div>
 		</li>
 		<li>
 			<a class="action-ctn" href="adminReports.php">
-				<div class="action-title"><?php echo $language ? "See forum <strong>reported messages</strong>":"Voir les <strong>messages signalés</strong> sur le forum"; ?></div>
-				<div class="action-desc"><?php echo $language ? "To quickly perform actions on what members reported":"Pour prendre des actions rapides sur ce que les membres ont remonté"; ?></div>
+				<div class="action-title"><?= _("See forum <strong>reported messages</strong>") ?></div>
+				<div class="action-desc"><?= _("To quickly perform actions on what members reported") ?></div>
 			</a>
 		</li>
 			<?php
@@ -245,13 +246,13 @@ include('menu.php');
 		?>
 		<li>
 			<a class="action-ctn" href="admin-logs.php">
-				<div class="action-title"><?php echo $language ? "See <strong>admin logs</strong>":"Voir les <strong>logs admin</strong>"; ?></div>
-				<div class="action-desc"><?php echo $language ? "To retrace and understand the different actions done by MKPC staff":"Pour retracer et comprendre les différentes actions réalisées par les admins MKPC"; ?></div>
+				<div class="action-title"><?= _("See <strong>admin logs</strong>") ?></div>
+				<div class="action-desc"><?= _("To retrace and understand the different actions done by MKPC staff") ?></div>
 			</a>
 		</li>
 	</ul>
-	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />
-	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
+	<p><a href="forum.php"><?= _('Back to the forum') ?></a><br />
+	<a href="index.php"><?= _('Back to Mario Kart PC') ?></a></p>
 </main>
 <?php
 include('footer.php');

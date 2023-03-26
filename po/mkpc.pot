@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-19 18:44+0100\n"
+"POT-Creation-Date: 2023-03-25 18:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,9 +18,801 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: index.php
+#: addNews.php admin-logs.php admin.php adminPersos.php adminReports.php
+#: forum.php index.php
 msgctxt "html language"
 msgid "en"
+msgstr ""
+
+#: addNews.php
+msgid "News Mario Kart PC"
+msgstr ""
+
+#: addNews.php
+msgid "Warning, the message you're writing won't be saved"
+msgstr ""
+
+#: addNews.php
+msgid "Draft saved"
+msgstr ""
+
+#: addNews.php
+msgid "Add a news"
+msgstr ""
+
+#: addNews.php
+msgid "News created successfully"
+msgstr ""
+
+#: addNews.php
+msgid "This news will be published once validated by a moderator."
+msgstr ""
+
+#: addNews.php
+msgid "<a href=\"{url}\">Click here</a> to see the news."
+msgstr ""
+
+#: addNews.php
+msgid "<a href=\"{url}\">Click here</a> to return to the news list."
+msgstr ""
+
+#: addNews.php
+msgid ""
+"Tip: before beginning, check that a news on the same subject is not pending "
+"validation."
+msgstr ""
+
+#: addNews.php
+msgid "Show"
+msgstr ""
+
+#: addNews.php
+msgid "Hide"
+msgstr ""
+
+#: addNews.php
+msgid "Please enter a title"
+msgstr ""
+
+#: addNews.php
+msgid "Please enter a content"
+msgstr ""
+
+#: addNews.php
+msgid "Title"
+msgstr ""
+
+#: addNews.php forum.php
+msgid "Category"
+msgstr ""
+
+#: addNews.php
+msgid "Help"
+msgstr ""
+
+#: addNews.php
+msgid "More smileys"
+msgstr ""
+
+#: addNews.php
+msgid "Delete draft"
+msgstr ""
+
+#: addNews.php
+msgid "Delete the draft?"
+msgstr ""
+
+#: addNews.php
+msgid "Save draft"
+msgstr ""
+
+#: addNews.php
+msgid "Preview"
+msgstr ""
+
+#: addNews.php
+msgid "Send"
+msgstr ""
+
+#: addNews.php
+msgid ""
+"In <strong {cssAttributes}>{categoryName}</strong> by <strong>{author}</"
+"strong>"
+msgstr ""
+
+#: addNews.php
+msgid "Published"
+msgstr ""
+
+#: addNews.php
+msgid "Back to the news list"
+msgstr ""
+
+#: admin-logs.php
+msgid "Deleted award"
+msgstr ""
+
+#: admin-logs.php index.php
+msgid "Untitled"
+msgstr ""
+
+#: admin-logs.php
+msgid "Deleted account"
+msgstr ""
+
+#: admin-logs.php
+msgid "Deleted topic"
+msgstr ""
+
+#: admin-logs.php
+msgid "Deleted news"
+msgstr ""
+
+#: admin-logs.php
+msgid "accepted challenge "
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted complete track #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted message #$2 in topic "
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted topic #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "edited <a href=\"{url}\">message #$2</a> in topic {topic}"
+msgstr ""
+
+#: admin-logs.php
+msgid "edited topic "
+msgstr ""
+
+#: admin-logs.php
+msgid "changed difficulty of challenge "
+msgstr ""
+
+#: admin-logs.php
+msgid "to"
+msgstr ""
+
+#: admin-logs.php
+msgid "rejected challenge "
+msgstr ""
+
+#: admin-logs.php
+msgid "banned member "
+msgstr ""
+
+#: admin-logs.php
+msgid "warned member "
+msgstr ""
+
+#: admin-logs.php
+msgid "unbanned member "
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted comment #$1 on a track"
+msgstr ""
+
+#: admin-logs.php
+msgid "took $1 pts from {user} in online mode (VS)"
+msgstr ""
+
+#: admin-logs.php
+msgid "gave $1 pts to {user} in online mode (VS)"
+msgstr ""
+
+#: admin-logs.php
+msgid "took $1 pts from {user} in online mode (battle)"
+msgstr ""
+
+#: admin-logs.php
+msgid "gave $1 pts to {user} in online mode (battle)"
+msgstr ""
+
+#: admin-logs.php
+msgid "changed <strong>$2</strong>'s nick to "
+msgstr ""
+
+#: admin-logs.php
+msgid "locked topic "
+msgstr ""
+
+#: admin-logs.php
+msgid "unlocked topic "
+msgstr ""
+
+#: admin-logs.php
+msgid "archived report on <a href=\"{url}\">message #$3</a> in topic "
+msgstr ""
+
+#: admin-logs.php
+msgid "archived report #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted cup #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "rejected news "
+msgstr ""
+
+#: admin-logs.php
+msgid "accepted news "
+msgstr ""
+
+#: admin-logs.php
+msgid "Deleted track"
+msgstr ""
+
+#: admin-logs.php
+msgid "updated {member}'s comment in $6 "
+msgstr ""
+
+#: admin-logs.php
+msgid "Deleted circuit"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted a rating in $6 "
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted quick circuit #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted quick arena #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted complete arena #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted news #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "updated news "
+msgstr ""
+
+#: admin-logs.php
+msgid "awarded the title {award_title} to {awardee}"
+msgstr ""
+
+#: admin-logs.php
+msgid "updated message of award {award} for member {member}"
+msgstr ""
+
+#: admin-logs.php
+msgid "removed award {award} for member {member}"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted the avatar of "
+msgstr ""
+
+#: admin-logs.php
+msgid "reverted validation of challenge "
+msgstr ""
+
+#: admin-logs.php
+msgid "reverted rejection of challenge "
+msgstr ""
+
+#: admin-logs.php
+msgid "revalidated challenge "
+msgstr ""
+
+#: admin-logs.php
+msgid "updated comment #$1 on news <a href=\"{news_url}\">{news}</a>"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted comment on news #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "unmuted member "
+msgstr ""
+
+#: admin-logs.php
+msgid "added "
+msgstr ""
+
+#: admin-logs.php
+msgid "a word"
+msgstr ""
+
+#: admin-logs.php
+msgid " to the forbidden words list"
+msgstr ""
+
+#: admin-logs.php
+msgid "removed word #$1 from list of forbidden words"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted multicup #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "updated {member}'s profile"
+msgstr ""
+
+#: admin-logs.php
+msgid "updated country of {member} to <strong>{new_country}</strong>"
+msgstr ""
+
+#: admin-logs.php
+msgid "updated challenge "
+msgstr ""
+
+#: admin-logs.php
+msgid "created award "
+msgstr ""
+
+#: admin-logs.php
+msgid "updated award "
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted award #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "locked comments on news "
+msgstr ""
+
+#: admin-logs.php
+msgid "unlocked comments on news "
+msgstr ""
+
+#: admin-logs.php index.php
+msgid "the circuit"
+msgstr ""
+
+#: admin-logs.php index.php
+msgid "the arena"
+msgstr ""
+
+#: admin-logs.php index.php
+msgid "the cup"
+msgstr ""
+
+#: admin-logs.php index.php
+msgid "the multicup"
+msgstr ""
+
+#: admin-logs.php
+msgid "Admin logs"
+msgstr ""
+
+#: admin-logs.php
+msgid "This page shows the history of all actions made by MKPC staff members"
+msgstr ""
+
+#: admin-logs.php
+msgid "Log type"
+msgstr ""
+
+#: admin-logs.php
+msgid "Select"
+msgstr ""
+
+#: admin-logs.php
+msgid "Filter"
+msgstr ""
+
+#: admin-logs.php admin.php adminReports.php
+msgid "Back to the forum"
+msgstr ""
+
+#: admin-logs.php admin.php adminPersos.php
+msgid "Back to Mario Kart PC"
+msgstr ""
+
+#: admin.php
+msgid "You aren't logged in"
+msgstr ""
+
+#: admin.php
+msgid "You aren't admin"
+msgstr ""
+
+#: admin.php
+msgid "administrator rank"
+msgstr ""
+
+#: admin.php
+msgid "moderator rank"
+msgstr ""
+
+#: admin.php
+msgid "event host rank"
+msgstr ""
+
+#: admin.php
+msgid "Admin page"
+msgstr ""
+
+#: admin.php
+msgid ""
+"Your {roleWithName} gives you the following rights. Make good use of them!"
+msgstr ""
+
+#: admin.php
+msgid "Member management"
+msgstr ""
+
+#: admin.php
+msgid "Edit a member's <strong>nick</strong>"
+msgstr ""
+
+#: admin.php
+msgid "Can be useful if a member has a troll nick for example"
+msgstr ""
+
+#: admin.php
+msgid "See <strong>nick change history</strong>"
+msgstr ""
+
+#: admin.php
+msgid "To monitor people who would abuse of this option."
+msgstr ""
+
+#: admin.php
+msgid "Give / Remove <strong>points</strong> in <strong>online mode</strong>"
+msgstr ""
+
+#: admin.php
+msgid "As a reward for a tournament, or as punishment after a cheat..."
+msgstr ""
+
+#: admin.php
+msgid "Award a <strong>reward</strong>"
+msgstr ""
+
+#: admin.php
+msgid "Following an official event (oscars, festival, ...)"
+msgstr ""
+
+#: admin.php
+msgid "See <strong>double accounts</strong>"
+msgstr ""
+
+#: admin.php
+msgid ""
+"If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)"
+msgstr ""
+
+#: admin.php
+msgid "Edit member <strong>profile</strong>"
+msgstr ""
+
+#: admin.php
+msgid ""
+"Can be useful if a troll member has put an inappropriate description for "
+"example, or a fake country"
+msgstr ""
+
+#: admin.php
+msgid "<strong>Ban</strong> or <strong>warn</strong> a member"
+msgstr ""
+
+#: admin.php
+msgid ""
+"Warn a user for innapropriate behavior, or ban them if he persists. Banned "
+"members are unable to post anything on the site"
+msgstr ""
+
+#: admin.php index.php
+msgid "Online mode"
+msgstr ""
+
+#: admin.php
+msgid "Give / Remove <strong>points</strong> in online mode"
+msgstr ""
+
+#: admin.php
+msgid "Manage <strong>forbidden/watched words</strong> in online chat"
+msgstr ""
+
+#: admin.php
+msgid "All messages containing forbidden words will be blocked and/or logged"
+msgstr ""
+
+#: admin.php
+msgid "See online mode <strong>chat logs</strong>"
+msgstr ""
+
+#: admin.php
+msgid "See the messages of the member in the online mode"
+msgstr ""
+
+#: admin.php
+msgid "You can mute members in case of abuse"
+msgstr ""
+
+#: admin.php
+msgid "Share management"
+msgstr ""
+
+#: admin.php
+msgid "Delete a <strong>custom track</strong>"
+msgstr ""
+
+#: admin.php
+msgid "If the content of the track is inappropriate or in case of plagiarism"
+msgstr ""
+
+#: admin.php
+msgid "Manage <strong>ratings</strong> on tracks"
+msgstr ""
+
+#: admin.php
+msgid "To monitor and eradicate 1-star trolls..."
+msgstr ""
+
+#: admin.php
+msgid "Delete a <strong>character</strong>"
+msgstr ""
+
+#: admin.php
+msgid "In case of plagiarism or if eventual cheating (invisible character...)"
+msgstr ""
+
+#: admin.php
+msgid "Find the <strong>author</strong> of a given creation"
+msgstr ""
+
+#: admin.php
+msgid "Find the creator of a circuit published by an anonymous user"
+msgstr ""
+
+#: admin.php
+msgid "Other rights"
+msgstr ""
+
+#: admin.php
+msgid "Moderate a message on the <strong>forum</strong>"
+msgstr ""
+
+#: admin.php
+msgid ""
+"To do this, go to the message in question and click on &quot;Edit&quot; or "
+"&quot;Delete&quot;"
+msgstr ""
+
+#: admin.php
+msgid "Moderate a <strong>comment</strong> on a <strong>custom track</strong>"
+msgstr ""
+
+#: admin.php
+msgid ""
+"Go to the track in question and click on &quot;Edit&quot; or &quot;"
+"Delete&quot;"
+msgstr ""
+
+#: admin.php
+msgid "Moderate a <strong>comment</strong> on a <strong>news</strong>"
+msgstr ""
+
+#: admin.php
+msgid ""
+"Go to the news in question and click on &quot;Edit&quot; or &quot;"
+"Delete&quot;"
+msgstr ""
+
+#: admin.php
+msgid "See forum <strong>reported messages</strong>"
+msgstr ""
+
+#: admin.php
+msgid "To quickly perform actions on what members reported"
+msgstr ""
+
+#: admin.php
+msgid "See <strong>admin logs</strong>"
+msgstr ""
+
+#: admin.php
+msgid "To retrace and understand the different actions done by MKPC staff"
+msgstr ""
+
+#: adminPersos.php
+msgid "Manage characters"
+msgstr ""
+
+#: adminPersos.php
+msgid "Delete character shares"
+msgstr ""
+
+#: adminPersos.php
+msgid "Delete {htmlCharacterNb}"
+msgstr ""
+
+#: adminPersos.php
+msgid "Name:"
+msgstr ""
+
+#: adminPersos.php
+msgid "Baby Mario"
+msgstr ""
+
+#: adminPersos.php
+msgid "Author:"
+msgstr ""
+
+#: adminReports.php
+msgid "You are not moderator"
+msgstr ""
+
+#: adminReports.php
+msgid "Reported messages"
+msgstr ""
+
+#: adminReports.php
+msgid "No new reported message for now"
+msgstr ""
+
+#: adminReports.php
+msgid "In <a href=\"{topicUrl}\">{topicName}</a>, "
+msgstr ""
+
+#: adminReports.php
+msgid "reported by <a href=\"{showMembers}\">{count} member</a>"
+msgid_plural "reported by <a href=\"{showMembers}\">{count} members</a>"
+msgstr[0] ""
+msgstr[1] ""
+
+#: adminReports.php
+msgid "No pending reported message"
+msgstr ""
+
+#: forum.php
+msgid "Auto-ban by IP"
+msgstr ""
+
+#: forum.php
+msgid "Forum Mario Kart PC"
+msgstr ""
+
+#: forum.php
+msgid ""
+"Welcome to the MKPC forum! If you haven't done it yet, please check out the "
+"<a href=\"{url}\">rules</a> before posting."
+msgstr ""
+
+#: forum.php
+msgid "My profile"
+msgstr ""
+
+#: forum.php
+msgid "Log out"
+msgstr ""
+
+#: forum.php
+msgid "This account has been deleted. The connection to it has been disabled."
+msgstr ""
+
+#: forum.php
+msgid ""
+"If you want to undo and restore it, you can still do it by clicking <a "
+"href=\"{url}\">here</a>."
+msgstr ""
+
+#: forum.php
+msgid "Incorrect login or password"
+msgstr ""
+
+#: forum.php
+msgid "You aren't logged in."
+msgstr ""
+
+#: forum.php
+msgid "Enter your login and password here:"
+msgstr ""
+
+#: forum.php
+msgid "Login:"
+msgstr ""
+
+#: forum.php
+msgid "Password:"
+msgstr ""
+
+#: forum.php
+msgid "Submit"
+msgstr ""
+
+#: forum.php
+msgid "Register"
+msgstr ""
+
+#: forum.php
+msgid "Forgot password"
+msgstr ""
+
+#: forum.php
+msgid "Search:"
+msgstr ""
+
+#: forum.php
+msgid "Topic title"
+msgstr ""
+
+#: forum.php
+msgid "Advanced search"
+msgstr ""
+
+#: forum.php
+msgid "Topics nb"
+msgstr ""
+
+#: forum.php index.php
+#, php-format
+msgid "Last message"
+msgstr ""
+
+#: forum.php
+msgctxt "locale for ICU"
+msgid "en_EN"
+msgstr ""
+
+#: forum.php
+msgid ""
+"The forum has a total of <strong>{nbMessages} messages</strong> split into "
+"<strong>{nbTopics} topics</strong> and posted by <strong>{nbPosters} "
+"members</strong>."
+msgstr ""
+
+#: forum.php index.php
+msgid "{count} message"
+msgid_plural "{count} messages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: forum.php
+msgid ""
+"The most active member is <a href=\"{urlToProfile}\">{topPlayer}</a> with "
+"<strong>{topPlayerMessagesWithCount}</strong> posted in total."
+msgstr ""
+
+#: forum.php
+msgid "Ranking"
+msgstr ""
+
+#: forum.php
+msgid "Ranking of most active members"
+msgstr ""
+
+#: forum.php
+msgid ""
+"The most active member of the month is <a "
+"href=\"{urlToProfile}\">{monthlyTopPlayer}</a> with "
+"<strong>{monthlyTopPlayerMessagesWithCount}</strong> since {month} the "
+"1<small class=\"superscript\">st</small>."
+msgstr ""
+
+#: forum.php
+msgid "Classement"
+msgstr ""
+
+#: forum.php
+msgid "Ranking of month's most active members"
+msgstr ""
+
+#: forum.php
+msgid "Back to the homepage"
 msgstr ""
 
 #: index.php
@@ -284,23 +1076,25 @@ msgid ""
 msgstr ""
 
 #: index.php
+msgid "Happy birthday to"
+msgstr ""
+
+#: index.php
+msgid " and "
+msgstr ""
+
+#: index.php
+msgctxt "final exclamation point in a sentence"
+msgid "!"
+msgstr ""
+
+#: index.php
 msgid "Last topics"
 msgstr ""
 
 #: index.php
 msgid "Last message by <strong>{message}</strong>"
 msgstr ""
-
-#: index.php
-#, php-format
-msgid "Last message"
-msgstr ""
-
-#: index.php
-msgid "{count} message"
-msgid_plural "{count} messages"
-msgstr[0] ""
-msgstr[1] ""
 
 #: index.php
 msgid "Go to the forum"
@@ -393,10 +1187,6 @@ msgid "Latest creations"
 msgstr ""
 
 #: index.php
-msgid "Untitled"
-msgstr ""
-
-#: index.php
 msgid "By <strong>{author}</strong>"
 msgstr ""
 
@@ -407,6 +1197,12 @@ msgstr ""
 #: index.php
 msgid "Last challenges"
 msgstr ""
+
+#: index.php
+msgid "<a href=\"{url}\">{count} pending</a> challenge"
+msgid_plural "<a href=\"{url}\">{count} pending</a> challenges"
+msgstr[0] ""
+msgstr[1] ""
 
 #: index.php
 msgid "Challenge points - Leaderboard"
@@ -422,10 +1218,6 @@ msgid "en"
 msgstr ""
 
 #: index.php
-msgid "Online mode"
-msgstr ""
-
-#: index.php
 msgid "Mirror"
 msgstr ""
 
@@ -438,27 +1230,10 @@ msgid "Normal"
 msgstr ""
 
 #: index.php
-#, php-format
-msgid "%s member"
-msgid_plural "%s members"
+msgid "{count} member"
+msgid_plural "{count} members"
 msgstr[0] ""
 msgstr[1] ""
-
-#: index.php
-msgid "the arena"
-msgstr ""
-
-#: index.php
-msgid "the multicup"
-msgstr ""
-
-#: index.php
-msgid "the circuit"
-msgstr ""
-
-#: index.php
-msgid "the cup"
-msgstr ""
 
 #: index.php
 msgctxt "circuit"

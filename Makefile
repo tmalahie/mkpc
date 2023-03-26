@@ -1,5 +1,5 @@
-PHP_SOURCES := $(shell find . -name '*.php')
-PO_FILES := $(shell find . -name '*.po')
+PHP_SOURCES := $(shell find . -name '*.php' | LC_COLLATE=C sort)
+PO_FILES := $(shell find . -name '*.po' | LC_COLLATE=C sort)
 
 .SUFFIXES:
 
