@@ -82,9 +82,7 @@ var nid = <?php echo isset($nid) ? $nid:'null'; ?>;
 var edittingCircuit = <?php echo isset($edittingCircuit) ? 'true':'false'; ?>;
 var NBCIRCUITS = 0;
 function listMaps() {
-	return {<?php
-	include('mk/battle.php');
-	?>};
+	return {<?php printCircuitsData(); ?>};
 }
 <?php include('handleCupOptions.php'); ?>
 </script>

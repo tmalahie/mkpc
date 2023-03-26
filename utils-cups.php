@@ -131,6 +131,7 @@ function getTrackPayloads($options) {
                     'id' => $getCup['circuit'. $i],
                     'mode' => $getCup['mode'],
                 );
+                $cupIDs[$i] = $getCup['circuit'. $i];
             }
             addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
         }
@@ -288,6 +289,7 @@ function getTrackPayloads($options) {
                     $infos['nbnotes'] = $getMain['nbnotes'];
                     $infos['auteur'] = $getMain['auteur'];
                     $infos['publication_date'] = $getMain['publication_date'];
+                    $infos['mode'] = $trackMode;
                     $creationEntities['fetch_track_extras'](array(
                         'id' => $trackID,
                         'base' => $getMain,
@@ -327,6 +329,18 @@ function getTrackPayloads($options) {
         exit;
     }
     addClChallenges($nid, $clPayloadParams);
+}
+function printCircuitsData() {
+    global $circuitsData;
+    include('creation-entities.php');
+    foreach ($circuitsData as $c => $circuitData) {
+        if ($c) echo ',';
+        echo '"map'. ($c+1) .'":';
+        $page = $CREATION_ENTITIES[$circuitData['mode']]['page'];
+        include("mk/$page.php");
+        $printCircuitData($circuitData);
+        echo '';
+    }
 }
 function getCupPage(&$mode) {
     include('creation-entities.php');

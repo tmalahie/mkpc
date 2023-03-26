@@ -85,9 +85,7 @@ var nid = <?php echo isset($nid) ? $nid:'null'; ?>;
 var edittingCircuit = <?php echo isset($edittingCircuit) ? 'true':'false'; ?>;
 var NBCIRCUITS = <?php echo $NBCIRCUITS; ?>;
 function listMaps() {
-	return {<?php
-	include('mk/map.php');
-	?>};
+	return {<?php printCircuitsData(); ?>};
 }
 <?php include('handleCupOptions.php'); ?>
 </script>

@@ -85,9 +85,8 @@ function createSeaFromGraph(&$state) {
 	}
 	unset($stateGraph);
 }
-foreach ($circuitsData as $c => $arene) {
-	if ($c)
-		echo ',';
+$printCircuitData = function($arene) {
+	global $graph, $bgColors, $bgImages, $musicIds;
 	$pieces = Array(
 		Array(false,true,true,true),
 		Array(true,false,true,true),
@@ -134,9 +133,7 @@ foreach ($circuitsData as $c => $arene) {
 			}
 		}
 	}
-	?>
-"map<?php echo ($c+1); ?>" : {
-	<?php
+	echo '{';
 	if (isset($arene['id']))
 		echo '"id" : '.$arene['id'].',';
 	?>
@@ -154,8 +151,8 @@ foreach ($circuitsData as $c => $arene) {
 	"w" : 600,
 	"h" : 600,
 	"skin" : <?php echo $map; ?>,
-	"bgcolor" : [<?php echo implode(',',$bgColors[$map]); ?>],
-	"fond" : ["<?php echo implode('","',$bgImages[$map]); ?>"],
+	"bgcolor" : [<?php if (isset($bgColors[$map])) echo implode(',',$bgColors[$map]); ?>],
+	"fond" : ["<?php if (isset($bgImages[$map])) echo implode('","',$bgImages[$map]); ?>"],
 	"music" : <?php echo $musicIds[$map]; ?>,
 	"collision" : [
 	<?php
