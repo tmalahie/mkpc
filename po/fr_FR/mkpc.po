@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-25 18:20+0100\n"
+"POT-Creation-Date: 2023-03-26 12:59+0200\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -225,6 +225,18 @@ msgstr "a donné $1 pts à {user} dans le mode en ligne (bataille)"
 #: admin-logs.php
 msgid "changed <strong>$2</strong>'s nick to "
 msgstr "a modifié le pseudo de <strong>$2</strong> en "
+
+#: admin-logs.php
+msgid "Deleted record"
+msgstr "Record supprimé"
+
+#: admin-logs.php
+msgid "renamed time trial record #$1 to {nick}"
+msgstr "a renommé le record en CLM #$1 en {nick}"
+
+#: admin-logs.php
+msgid "deleted time trial record #$1"
+msgstr "a supprimé le record en CLM #$1"
 
 #: admin-logs.php
 msgid "locked topic "
@@ -640,6 +652,14 @@ msgid ""
 msgstr ""
 "Se rendre sur la news en question et cliquer sur &quot;Modifier&quot; ou "
 "&quot;Supprimer&quot;"
+
+#: admin.php
+msgid "Moderate a <strong>time trial</strong> record"
+msgstr "Modérer un record en <strong>contre-la-montre</strong>"
+
+#: admin.php
+msgid "From the time trial leaderboard, click on &quot;Moderate records&quot;"
+msgstr "Depuis le classement CLM, cliquer sur &quot;Modérer les records&quot;"
 
 #: admin.php
 msgid "See forum <strong>reported messages</strong>"

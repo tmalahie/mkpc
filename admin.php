@@ -236,6 +236,12 @@ include('menu.php');
 			</div>
 		</li>
 		<li>
+			<a class="action-ctn" href="classement.php?moderate=1">
+				<div class="action-title"><?= _("Moderate a <strong>time trial</strong> record") ?></div>
+				<div class="action-desc"><?= _("From the time trial leaderboard, click on &quot;Moderate records&quot;") ?></div>
+		</a>
+		</li>
+		<li>
 			<a class="action-ctn" href="adminReports.php">
 				<div class="action-title"><?= _("See forum <strong>reported messages</strong>") ?></div>
 				<div class="action-desc"><?= _("To quickly perform actions on what members reported") ?></div>

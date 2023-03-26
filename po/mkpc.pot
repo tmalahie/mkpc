@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-25 18:20+0100\n"
+"POT-Creation-Date: 2023-03-26 13:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -218,6 +218,18 @@ msgstr ""
 
 #: admin-logs.php
 msgid "changed <strong>$2</strong>'s nick to "
+msgstr ""
+
+#: admin-logs.php
+msgid "Deleted record"
+msgstr ""
+
+#: admin-logs.php
+msgid "renamed time trial record #$1 to {nick}"
+msgstr ""
+
+#: admin-logs.php
+msgid "deleted time trial record #$1"
 msgstr ""
 
 #: admin-logs.php
@@ -610,6 +622,14 @@ msgstr ""
 msgid ""
 "Go to the news in question and click on &quot;Edit&quot; or &quot;"
 "Delete&quot;"
+msgstr ""
+
+#: admin.php
+msgid "Moderate a <strong>time trial</strong> record"
+msgstr ""
+
+#: admin.php
+msgid "From the time trial leaderboard, click on &quot;Moderate records&quot;"
 msgstr ""
 
 #: admin.php

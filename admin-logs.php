@@ -126,6 +126,17 @@ $logMapping = array(
         },
         'role' => 'moderator'
     ),
+    'ERecord' => array(
+        'render' => F_(
+            'renamed time trial record #$1 to {nick}',
+             nick: '{{table.mkrecords(id=$1).name|global.ifNull("<em>' .  _("Deleted record") . '</em>")}}',
+        ),
+        'role' => 'moderator'
+    ),
+    'DRecord' => array(
+        'render' => _('deleted time trial record #$1'),
+        'role' => 'moderator'
+    ),
     'LTopic' => array(
         'render' => _('locked topic ') . $logTemplates['topic']('$1'),
         'role' => 'moderator'
