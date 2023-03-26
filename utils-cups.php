@@ -84,10 +84,11 @@ function printCollabImportPopup($type, $mode, $isBattle) {
 }
 function getTrackPayloads($options) {
     global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $infos, $NBCIRCUITS, $trackIDs, $circuitsData;
+    include('creation-entities.php');
     $sid = $options['sid'];
     $mode = $options['mode'];
-    $table = getTrackTable($mode);
-    $tracksToFetch = array();
+    $creationEntities = &$CREATION_ENTITIES[$mode];
+    $table = $creationEntities['table'];
     if (isset($_GET['mid'])) { // Existing multicup
         $id = intval($_GET['mid']);
         $nid = $id;
@@ -188,7 +189,7 @@ function getTrackPayloads($options) {
             $nid = intval($_GET['nid']);
             require_once('collabUtils.php');
             $requireOwner = !hasCollabGrants($table, $nid, $_GET['collab'], 'view');
-            if ($getMain = mysql_fetch_array(fetchTracks(array('ids' => array($nid), 'mode' => $mode, 'require_owner' => $requireOwner)))) {
+            if ($getMain = mysql_fetch_array($creationEntities['fetch_tracks'](array('ids' => array($nid), 'mode' => $mode, 'require_owner' => $requireOwner)))) {
                 $infos['id'] = $nid;
                 $cName = $getMain['nom'];
                 $cPseudo = $getMain['auteur'];
@@ -206,7 +207,7 @@ function getTrackPayloads($options) {
         else
             $cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
         
-        getTrackFromParams(array(
+        $creationEntities['get_track_from_params'](array(
             'infos' => &$infos,
             'mode' => $mode,
         ));
@@ -252,7 +253,7 @@ function getTrackPayloads($options) {
             }
             $allTracks = array();
             foreach ($trackIDsByMode as $trackMode=>$trackIDs) {
-                $getAllTracks = fetchTracks(array(
+                $getAllTracks = $creationEntities['fetch_tracks'](array(
                     'ids' => $trackIDs,
                     'mode' => $trackMode
                 ));
@@ -274,7 +275,7 @@ function getTrackPayloads($options) {
                     $infos['nbnotes'] = $getMain['nbnotes'];
                     $infos['auteur'] = $getMain['auteur'];
                     $infos['publication_date'] = $getMain['publication_date'];
-                    fetchTrackExtras(array(
+                    $creationEntities['fetch_track_extras'](array(
                         'id' => $trackID,
                         'infos' => &$infos
                     ));
@@ -308,78 +309,9 @@ function getTrackPayloads($options) {
     }
     addClChallenges($nid, $clPayloadParams);
 }
-function fetchTracks($options) {
-    global $identifiants;
-    $ids = $options['ids'];
-    $requireOwner = !empty($options['require_owner']);
-    $idsString = implode(',', $ids);
-    return mysql_query('SELECT id,map,nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id IN ('. $idsString .') AND type'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : ''));
-}
-function getTrackTable($mode) {
-    switch ($mode) {
-    case 0:
-    case 2:
-        return 'mkcircuits';
-    case 1:
-        return 'circuits';
-    case 3:
-        return 'arenes';
-    }
-}
-function getTrackFromParams($options) {
-    global $lettres, $nbLettres;
-    $infos = &$options['infos'];
-    for ($i=0;$i<36;$i++)
-        $infos["p$i"] = (isset($_GET["p$i"])) ? intval($_GET["p$i"]) : 11;
-    for ($i=0;$i<8;$i++) {
-        $infos["r$i"] = isset($_GET["r$i"]) ? intval($_GET["r$i"]) : 0;
-        $infos["s$i"] = isset($_GET["s$i"]) ? intval($_GET["s$i"]) : 0;
-    }
-    $infos['map'] = (isset($_GET["map"])) ? intval($_GET["map"]) : 1;
-    $infos['name'] = '';
-    for ($i=0;$i<$nbLettres;$i++) {
-        $lettre = $lettres[$i];
-        $prefixes = getLetterPrefixes($lettre,$infos['map']);
-        for ($k=0;$k<$prefixes;$k++) {
-            $prefix = getLetterPrefix($lettre,$k);
-            for ($j=0;isset($_GET[$prefix.$j]);$j++)
-                $infos[$prefix.$j] = $_GET[$prefix.$j];
-        }
-    }
-}
-function fetchTrackExtras($options) {
-    global $lettres, $nbLettres;
-    $trackID = $options['id'];
-    $infos = &$options['infos'];
-    $pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$trackID.'"');
-    while ($piece = mysql_fetch_array($pieces))
-        $infos['p'.$piece['id']] = $piece['piece'];
-    $positions = mysql_query('SELECT * FROM `mkr` WHERE circuit="'.$trackID.'"');
-    while ($position = mysql_fetch_array($positions)) {
-        $infos['s'.$position['id']] = $position['s'];
-        $infos['r'.$position['id']] = $position['r'];
-    }
-    for ($j=0;$j<$nbLettres;$j++) {
-        $lettre = $lettres[$j];
-        $getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$trackID.'"');
-        $incs = array();
-        while ($info=mysql_fetch_array($getInfos)) {
-            $prefix = getLetterPrefixD($lettre,$info);
-            if (!isset($incs[$prefix])) $incs[$prefix] = 0;
-            $infos[$prefix.$incs[$prefix]] = $info['x'].','.$info['y'];
-            $incs[$prefix]++;
-        }
-    }
-}
 function getCupPage(&$mode) {
-	switch ($mode) {
-	case 1:
-		return 'map';
-	case 2:
-		return 'arena';
-	case 3:
-		return 'battle';
-	default:
-		return 'circuit';
-	}
+    include('creation-entities.php');
+    if (isset($CREATION_ENTITIES[$mode]))
+        return $CREATION_ENTITIES[$mode]['page'];
+    return $CREATION_ENTITIES[0]['page'];
 }
