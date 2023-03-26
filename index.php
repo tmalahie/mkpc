@@ -577,20 +577,20 @@ $slidesPath = 'images/slides';
 						array(
 							'icon' => 'fr.png',
 							'name' => _('France'),
-							'score' => 6,
-							'wins' => 2,
+							'score' => 9,
+							'wins' => 3,
 							'losses' => 1,
 							'ties' => 0,
-							'diff' => 42
+							'diff' => 68
 						),
 						array(
 							'icon' => 'am.png',
 							'name' => _('Americas'),
 							'score' => 0,
 							'wins' => 0,
-							'losses' => 3,
+							'losses' => 4,
 							'ties' => 0,
-							'diff' => -190
+							'diff' => -216
 						),
 					);
 					usort($plRanking, function($team1, $team2) {
