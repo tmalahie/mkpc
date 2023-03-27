@@ -17460,6 +17460,14 @@ function handleSpectatorInput(e) {
 		updateLapHud(0);
 	return false;
 }
+function releaseOverEvents() {
+	var $overElts = document.querySelectorAll(":hover");
+	for (var i=0;i<$overElts.length;i++) {
+		var $overElt = $overElts[i];
+		if ($overElt.onmouseout)
+			$overElt.onmouseout();
+	}
+}
 document.onkeydown = function(e) {
 	if (!oPlayers.length) {
 		var oScr = oContainers[0].childNodes[0];
@@ -17472,6 +17480,7 @@ document.onkeydown = function(e) {
 				if (focusIndicator.parentNode === oScr)
 					oScr.removeChild(focusIndicator);
 				var isBack = selectedOscrElt.value === toLanguage("Back","Retour");
+				releaseOverEvents();
 				selectedOscrElt.click();
 				if (iSfx)
 					playSoundEffect("musics/events/"+ (isBack ? "back" : "select") +".mp3");
@@ -17483,6 +17492,7 @@ document.onkeydown = function(e) {
 				var oBackButton = oBackButtons[i];
 				var bounds = oBackButton.getBoundingClientRect();
 				if (bounds.width > 0 && bounds.height > 0) {
+					releaseOverEvents();
 					oBackButton.click();
 					if (iSfx)
 						playSoundEffect("musics/events/back.mp3");
@@ -23146,7 +23156,7 @@ function selectChallengesScreen() {
 							$fancyTitle.style.top = (rect.top + this.scrollHeight + 5)+"px";
 							$fancyTitle.style.visibility = "visible";
 						};
-						oIcons.onmouseout = function(e) {
+						oIcons.onmouseout = function() {
 							if (!$fancyTitle) return;
 							$mkScreen.removeChild($fancyTitle);
 							$fancyTitle = undefined;
@@ -25961,7 +25971,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		$fancyTitle.style.top = (rect.top + this.scrollHeight + 5)+"px";
 		$fancyTitle.style.visibility = "visible";
 	};
-	oPersoLapTimes.onmouseout = function(e) {
+	oPersoLapTimes.onmouseout = function() {
 		if (!$fancyTitle) return;
 		$mkScreen.removeChild($fancyTitle);
 		$fancyTitle = undefined;
