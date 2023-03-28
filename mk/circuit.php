@@ -1,29 +1,30 @@
 <?php
-require_once('circuitEnumsQuick.php');
-function outOfT($f, $np) {
-	for ($i=0;$i<4;$i++) {
-		$npT = $np[$i];
-		for ($j=0;$j<count($npT);$j++) {
-			if ($npT[$j] == $f)
-				return false;
+if (!function_exists('outOfT')) {
+	function outOfT($f, $np) {
+		for ($i=0;$i<4;$i++) {
+			$npT = $np[$i];
+			for ($j=0;$j<count($npT);$j++) {
+				if ($npT[$j] == $f)
+					return false;
+			}
 		}
+		return true;
 	}
-	return true;
-}
-function hasTopWalls($v) {
-	return ($v==1 || $v==3 || $v==4 || $v==5 || $v==9);
-}
-function hasLeftWalls($v) {
-	return ($v==0 || $v==2 || $v==5 || $v==6 || $v==8);
-}
-function hasRightWalls($v) {
-	return ($v==0 || $v==2 || $v==4 || $v==7 || $v==8);
-}
-function hasBottomWalls($v) {
-	return ($v==1 || $v==3 || $v==6 || $v==7 || $v==9);
+	function hasTopWalls($v) {
+		return ($v==1 || $v==3 || $v==4 || $v==5 || $v==9);
+	}
+	function hasLeftWalls($v) {
+		return ($v==0 || $v==2 || $v==5 || $v==6 || $v==8);
+	}
+	function hasRightWalls($v) {
+		return ($v==0 || $v==2 || $v==4 || $v==7 || $v==8);
+	}
+	function hasBottomWalls($v) {
+		return ($v==1 || $v==3 || $v==6 || $v==7 || $v==9);
+	}
 }
 $printCircuitData = function($circuit) {
-	global $musicIds, $bgColors, $bgImages;
+	include('circuitEnumsQuick.php');
 	$map = $circuit['map'];
 	if (!isset($bgColors[$map]))
 		$map = 1;

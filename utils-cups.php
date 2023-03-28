@@ -1,4 +1,5 @@
 <?php
+require_once('circuitPrefix.php');
 function printCupCircuit(&$circuit, $options=array()) {
     global $language;
     $circuitnb = isset($options['nb']) ? $options['nb'] : '';
@@ -83,7 +84,7 @@ function printCollabImportPopup($type, $mode) {
     <?php
 }
 function getTrackPayloads($options) {
-    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData;
+    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData;
     include('creation-entities.php');
     $sid = $options['sid'];
     $mode = $options['mode'];
@@ -228,7 +229,7 @@ function getTrackPayloads($options) {
         ));
         $edittingCircuit = true;
     }
-    $cupNames = array();
+    $cupPayloads = array();
     if ($isMCup && !isset($tracksToFetch)) {
         $tracksToFetch = array();
         if (!empty($cupIDs)) {
@@ -252,8 +253,16 @@ function getTrackPayloads($options) {
                         );
                     }
                 }
-                if (isset($cupById[$cupID]))
-                    $cupNames[] = $cupById[$cupID]['nom'];
+                if (isset($cupById[$cupID])) {
+                    $cupObj = $cupById[$cupID];
+                    $cupPayloads[] = array(
+                        'id' => $cupObj['id'],
+                        'name' => $cupObj['nom'],
+                        'mode' => $cupObj['mode'],
+                        'complete' => ($cupObj['mode'] % 2 > 0),
+                        'battle' => ($cupObj['mode'] > 1),
+                    );
+                }
             }
         }
     }
@@ -268,9 +277,8 @@ function getTrackPayloads($options) {
             }
             $allTracks = array();
             foreach ($trackIDsByMode as $trackMode=>$trackIDs) {
-                $getAllTracks = $creationEntities['fetch_tracks'](array(
-                    'ids' => $trackIDs,
-                    'mode' => $trackMode
+                $getAllTracks = $CREATION_ENTITIES[$trackMode]['fetch_tracks'](array(   
+                    'ids' => $trackIDs
                 ));
                 $allTracksForMode = array();
                 while ($getMain = mysql_fetch_array($getAllTracks))
@@ -290,7 +298,7 @@ function getTrackPayloads($options) {
                     $infos['auteur'] = $getMain['auteur'];
                     $infos['publication_date'] = $getMain['publication_date'];
                     $infos['mode'] = $trackMode;
-                    $creationEntities['fetch_track_extras'](array(
+                    $CREATION_ENTITIES[$trackMode]['fetch_track_extras'](array(
                         'id' => $trackID,
                         'base' => $getMain,
                         'infos' => &$infos
@@ -323,10 +331,14 @@ function getTrackPayloads($options) {
     }
     if ($isCup)
         $infos = Array();
-    $NBCIRCUITS = count($circuitsData);
-    if (!$NBCIRCUITS) {
+    if (empty($circuitsData)) {
         mysql_close();
         exit;
+    }
+    $NBCIRCUITS = 0;
+    foreach ($circuitsData as $circuitData) {
+        if ($circuitData['mode'] < 2)
+            $NBCIRCUITS++;
     }
     addClChallenges($nid, $clPayloadParams);
 }

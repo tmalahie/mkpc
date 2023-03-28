@@ -109,9 +109,12 @@ if (typeof challenges === 'undefined') {
 	var challenges = {mcup:[],cup:[],track:[]};
 	var clRewards = [];
 }
-if (typeof cupNames === 'undefined') {
-	var cupNames = [];
+if (typeof cupPayloads === 'undefined') {
+	var cupPayloads = [];
 }
+var cupIDs = cupPayloads.map(function(cupPayload) {
+	return cupPayload.id;
+});
 //challenges["track"]["4749"].list = [challenges["track"]["4749"].list[1]];
 var challengesForCircuit;
 
@@ -1206,7 +1209,8 @@ var gameSettings;
 var ctrlSettings;
 var oChallengeCpts;
 function loadMap() {
-	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
+	var cupPayload = cupPayloads[Math.floor((oMap.ref-1)/4)];
+	var mapSrc = isCup ? (cupPayload.complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
@@ -18097,7 +18101,8 @@ function getMapIcSrc(playerName) {
 	return "images/map_icons/"+ playerName +".png";
 }
 function getMapSelectorSrc(i) {
-	return isCup ? (complete ? "trackicon.php?id="+ oMaps[aAvailableMaps[i]].map +"&type=" + (course=="BB" ? 2:1):"trackicon.php?id="+ oMaps[aAvailableMaps[i]].id +"&type=0") : "images/selectors/select_" + aAvailableMaps[i] + ".png";
+	var cupPayload = cupPayloads[Math.floor(i / 4)];
+	return isCup ? (cupPayload.complete ? "trackicon.php?id="+ oMaps[aAvailableMaps[i]].map +"&type=" + (course=="BB" ? 2:1):"trackicon.php?id="+ oMaps[aAvailableMaps[i]].id +"&type=0") : "images/selectors/select_" + aAvailableMaps[i] + ".png";
 }
 function getMapId(oMap) {
 	var res = isBattle ? nid : (simplified ? oMap.id : oMap.map);
@@ -20026,6 +20031,10 @@ function selectTypeScreen() {
 			oModes.unshift("Grand Prix");
 			oModeIds.unshift("GP");
 		}
+		if (hasBattle()) {
+			oModes.push(toLanguage("Battle", "Bataille"));
+			oModeIds.push("BB");
+		}
 		if (hasChallenges() || myCircuit) {
 			oModes.push(toLanguage("Challenges", "Défis"));
 			oModeIds.push("CH");
@@ -20177,7 +20186,7 @@ function selectMainPage() {
 			break;
 		case "CI":
 		case "MA":
-			if (nid)
+			if (nid || isCup)
 				selectTypeScreen();
 			else {
 				course = "VS";
@@ -22721,6 +22730,9 @@ function hasChallenges() {
 			return true;
 	}
 }
+function hasBattle() {
+	return (isCup && (aAvailableMaps.length > NBCIRCUITS));
+}
 function isTeamPlay() {
 	switch (course) {
 		case "BB":
@@ -24345,11 +24357,14 @@ function selectMapScreen(opts) {
 
 				document.getElementById("dMaps").style.display = "block";
 				defileMaps(this.alt*4+4);
-				if (cupNames[this.alt]) {
-					oCupNameDiv.innerHTML = cupNames[this.alt];
-					var cupFS = Math.min(Math.max(8/Math.sqrt(stripSpecialChars(cupNames[this.alt]).length), 1.45), 3);
-					oCupName.style.fontSize = Math.round(cupFS*iScreenScale) +"px";
-					oCupName.style.display = "flex";
+				if (cupPayloads[this.alt]) {
+					var cupName = cupPayloads[this.alt].name;
+					if (cupName) {
+						oCupNameDiv.innerText = cupName;
+						var cupFS = Math.min(Math.max(8/Math.sqrt(cupName.length), 1.45), 3);
+						oCupName.style.fontSize = Math.round(cupFS*iScreenScale) +"px";
+						oCupName.style.display = "flex";
+					}
 				}
 			}
 

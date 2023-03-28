@@ -1,92 +1,94 @@
 <?php
-require_once('circuitEnumsQuick.php');
 $getInfos = Array();
-function createSeaFromGraph(&$state) {
-	global $graph, $arene;
-	foreach ($state['graph'] as $i_ => &$stateGraph) {
-		foreach ($stateGraph as $in => &$data) {
-			$i = $i_;
-			if (null === $data['waves']) {
-				$j = count($state['sea']);
-				$newSea = array(array(),array());
-				do {
-					$graphData = $graph[$arene["p$i"]][$in];
-					$out = $graphData[0];
-					$state['graph'][$i][$in]['waves'] = $j;
-					$state['graph'][$i][$out]['waves'] = $j;
-					$x = ($i%6)*100;
-					$y = floor($i/6)*100;
-					foreach ($graphData[1] as $k=>$wave) {
-						foreach ($wave as &$pt) {
-							$pt[0] += $x;
-							$pt[1] += $y;
+if (!function_exists('createSeaFromGraph')) {
+	function createSeaFromGraph(&$state) {
+		global $graph, $arenaPieces;
+		foreach ($state['graph'] as $i_ => &$stateGraph) {
+			foreach ($stateGraph as $in => &$data) {
+				$i = $i_;
+				if (null === $data['waves']) {
+					$j = count($state['sea']);
+					$newSea = array(array(),array());
+					do {
+						$graphData = $graph[$arenaPieces["p$i"]][$in];
+						$out = $graphData[0];
+						$state['graph'][$i][$in]['waves'] = $j;
+						$state['graph'][$i][$out]['waves'] = $j;
+						$x = ($i%6)*100;
+						$y = floor($i/6)*100;
+						foreach ($graphData[1] as $k=>$wave) {
+							foreach ($wave as &$pt) {
+								$pt[0] += $x;
+								$pt[1] += $y;
+							}
+							unset($pt);
+							$newSea[$k] = array_merge($newSea[$k],$wave);
 						}
-						unset($pt);
-						$newSea[$k] = array_merge($newSea[$k],$wave);
-					}
-					$dir = explode(".",$out);
-					$newDir = $dir;
-					$newI = $i;
-					switch ($dir[1]) {
-					case 'top':
-						$newI -= 6;
-						$newDir[0] += 2;
-						$newDir[1] = 'bottom';
-						break;
-					case 'bottom':
-						$newI += 6;
-						$newDir[0] -= 2;
-						$newDir[1] = 'top';
-						break;
-					case 'left':
-						if (!($newI%6))
-							$newI = 0;
-						$newI--;
-						$newDir[0]++;
-						$newDir[1] = 'right';
-						break;
-					case 'right':
-						$newI++;
-						if (!($newI%6))
-							$newI = -1;
-						$newDir[0]--;
-						$newDir[1] = 'left';
-						break;
-					}
-					$in = implode(".",$newDir);
-					if (isset($state['graph'][$newI][$in])) {
-						$i = $newI;
-						foreach ($graphData[1] as $k=>$wave)
-							array_pop($newSea[$k]);
-					}
-					else {
+						$dir = explode(".",$out);
 						$newDir = $dir;
+						$newI = $i;
 						switch ($dir[1]) {
 						case 'top':
+							$newI -= 6;
+							$newDir[0] += 2;
+							$newDir[1] = 'bottom';
+							break;
 						case 'bottom':
-							$newDir[0] += ($newDir[0]%2) ? -1:1;
+							$newI += 6;
+							$newDir[0] -= 2;
+							$newDir[1] = 'top';
 							break;
 						case 'left':
+							if (!($newI%6))
+								$newI = 0;
+							$newI--;
+							$newDir[0]++;
+							$newDir[1] = 'right';
+							break;
 						case 'right':
-							$newDir[0] += ($newDir[0]>=2) ? -2:2;
+							$newI++;
+							if (!($newI%6))
+								$newI = -1;
+							$newDir[0]--;
+							$newDir[1] = 'left';
+							break;
 						}
 						$in = implode(".",$newDir);
-					}
-				} while (null === $state['graph'][$i][$in]['waves']);
-				$state['sea'][] = $newSea;
-				if (isset($graphData[2])) {
-					if (isset($graphData[2]['colors'])) {
-						$state['colors'][$j] = $graphData[2]['colors'];
+						if (isset($state['graph'][$newI][$in])) {
+							$i = $newI;
+							foreach ($graphData[1] as $k=>$wave)
+								array_pop($newSea[$k]);
+						}
+						else {
+							$newDir = $dir;
+							switch ($dir[1]) {
+							case 'top':
+							case 'bottom':
+								$newDir[0] += ($newDir[0]%2) ? -1:1;
+								break;
+							case 'left':
+							case 'right':
+								$newDir[0] += ($newDir[0]>=2) ? -2:2;
+							}
+							$in = implode(".",$newDir);
+						}
+					} while (null === $state['graph'][$i][$in]['waves']);
+					$state['sea'][] = $newSea;
+					if (isset($graphData[2])) {
+						if (isset($graphData[2]['colors'])) {
+							$state['colors'][$j] = $graphData[2]['colors'];
+						}
 					}
 				}
 			}
+			unset($data);
 		}
-		unset($data);
+		unset($stateGraph);
 	}
-	unset($stateGraph);
 }
 $printCircuitData = function($arene) {
-	global $graph, $bgColors, $bgImages, $musicIds;
+	global $graph, $arenaPieces;
+	include('circuitEnumsQuick.php');
 	$pieces = Array(
 		Array(false,true,true,true),
 		Array(true,false,true,true),
@@ -1135,6 +1137,7 @@ $printCircuitData = function($arene) {
 				);
 			}
 		}
+		$arenaPieces = $arene;
 		createSeaFromGraph($state);
 		//$state['sea'] = array($state['sea'][0]);
 		//$state['sea'] = array_slice($state['sea'], 7,1);

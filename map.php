@@ -5,6 +5,7 @@ require_once('utils-challenges.php');
 include('creation-challenges.php');
 $cAuteur = null;
 $cupIDs = Array();
+$cupPayloads = Array();
 include('getId.php');
 $cName = null;
 $cPseudo = null;
@@ -47,23 +48,20 @@ var clId = <?php echo json_encode($clId); ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
 var recorder = <?php echo json_encode(isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'') ?>;
 var lCircuits = [<?php
-for ($i=0;$i<$NBCIRCUITS;$i++) {
+foreach ($circuitsData as $i=>$circuit) {
 	if ($i)
 		echo ',';
 	$circuit = $circuitsData[$i];
-	echo '"'. ($circuit['nom'] ? addSlashes(escapeUtf8($circuit['nom'])) : "&nbsp;") .'"';
+	echo '"'. ($circuit['name'] ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
 }
 ?>];
-var cupIDs = <?php echo json_encode($cupIDs) ?>;
+var cupPayloads = <?php echo json_encode($cupPayloads) ?>;
 var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 <?php
-if (!empty($cupNames)) {
-	echo 'var cupNames = [';
-	foreach ($cupNames as $i=>$cupName) {
-		if ($i) echo ',';
-		echo '"'.addSlashes(escapeUtf8($cupName)).'"';
-	}
-	echo '];';
+if (!empty($cupPayloads)) {
+	echo 'var cupPayloads = ';
+	echo json_encode($cupPayloads);
+	echo ';';
 }
 ?>
 var cp = <?php include('getPersos.php'); ?>;
