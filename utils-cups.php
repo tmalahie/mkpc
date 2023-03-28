@@ -21,7 +21,7 @@ function printCupCircuit(&$circuit, $options=array()) {
     <?php
 }
 
-function printCollabImportPopup($type, $mode, $isBattle) {
+function printCollabImportPopup($type, $mode) {
     global $language;
     switch ($type) {
     case 'cup':
@@ -29,7 +29,7 @@ function printCollabImportPopup($type, $mode, $isBattle) {
         $aCircuit = $language ? 'a cup' : 'une coupe';
         $ofCircuit = $language ? 'of the cup' : 'de la coupe';
         $placeholderType = 'mkcups';
-        $placeholderId = 1+$mode + $isBattle*2;
+        $placeholderId = 1+$mode;
         break;
     case 'arena':
         $Circuit = $language ? "arena" : "arène";

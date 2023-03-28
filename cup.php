@@ -183,7 +183,7 @@ if (isset($cids))
 			</p>
 		</form>
 		<?php
-		printCollabImportPopup($isBattle ? 'arena' : 'circuit', $mode, $isBattle);
+		printCollabImportPopup($isBattle ? 'arena' : 'circuit', $mode);
 		?>
 		<div class="editor-navigation">
 			<a href="<?php echo ($mode ? 'completecup.php':'simplecup.php').($isBattle ? '':'?battle'); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a cup of '. ($isBattle ? 'circuits':'arenas')):('Créer une coupe '. ($isBattle ? 'de circuits':'d\'arènes')); ?></u></a>
