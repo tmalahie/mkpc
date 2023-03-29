@@ -1282,9 +1282,9 @@ foreach ($circuitsData as $c => $arene) {
 					$v = ',';
 					echo '"'.$decorTypes[$map][$i].'":[';
 					$prefix = 't'.($i ? $i.'_':'');
-					for ($j=0; isset($circuit[$prefix.$j]); $j++) {
+					for ($j=0; isset($arene[$prefix.$j]); $j++) {
 						if ($j) echo ',';
-						echo '['.$circuit[$prefix.$j].']';
+						echo '['.$arene[$prefix.$j].']';
 					}
 					echo ']';
 				}
@@ -1306,9 +1306,9 @@ foreach ($circuitsData as $c => $arene) {
 		foreach ($types as $type) {
 			echo ',"'.$type.'s":[';
 			$prefix = 't'.($i ? $i.'_':'');
-			for ($j=0; isset($circuit[$prefix.$j]); $j++) {
+			for ($j=0; isset($arene[$prefix.$j]); $j++) {
 				if ($j) echo ',';
-				$pos = explode(',',$circuit[$prefix.$j]);
+				$pos = explode(',',$arene[$prefix.$j]);
 				switch ($type) {
 				case 'bumper':
 					echo '["'.$typeSrc.'",['.$pos[0].','.$pos[1].',42,42],[0.5,0.5,0]]';
