@@ -242,13 +242,16 @@ $slidesPath = 'images/slides';
 		</div>
 		<br />
 		<div class="pub_section">
+			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 			<!-- Mario Kart PC -->
-			<ins class="adsbygoogle adsbymkpc"
-				style="display:inline-block;width:728px;height:90px"
-				data-ad-client="ca-pub-1340724283777764"
-				data-ad-slot="4919860724">
-				<a href="https://www.mariokarting.com/" target="_blank"><img src="images/events/ads/mariokarting.png" srcset="images/events/ads/mariokarting@2x.png 2x" /></a>
-			</ins>
+			<ins class="adsbygoogle"
+			     style="display:inline-block;width:728px;height:90px"
+			     data-ad-client="ca-pub-1340724283777764"
+			     data-ad-slot="4919860724"
+			     ></ins>
+			<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+			</script>
 		</div>
 		<h2><img src="images/thanks.png" alt="" /> <?= _('Special thanks') ?></h2>
 		<div>
@@ -291,7 +294,6 @@ $slidesPath = 'images/slides';
 			</p>
 		</div>
 		<div class="pub_section">
-			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 			<!-- Mario Kart PC -->
 			<ins class="adsbygoogle"
 			     style="display:inline-block;width:728px;height:90px"
@@ -1175,6 +1177,5 @@ var loadingMsg = "<?= _('Loading') ?>";
 var last_tz = '<?php echo isset($_COOKIE['tz']) ? addslashes($_COOKIE['tz']):''; ?>';
 </script>
 <script async src="scripts/timezones.js"></script>
-<script async type="text/javascript" src="scripts/adsbymkpc.js"></script>
 </body>
 </html>
