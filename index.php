@@ -547,7 +547,7 @@ $slidesPath = 'images/slides';
 			<a class="right_section_actions action_button" href="listNews.php"><?= _('All news') ?></a>
 		</div>
 		<?php
-		if ($id) {
+		/*if ($id) {
 			?>
 		<div class="subsection">
 			<?php
@@ -618,7 +618,7 @@ $slidesPath = 'images/slides';
 			<div class="link-extra"><a href="https://discord.gg/dPerbeFc36" target="_blank"><?= _("Tournament's Discord Server") ?></a></div>
 		</div>
 			<?php
-		}
+		}*/
 		?>
 		<div class="subsection">
 			<?php
