@@ -7564,10 +7564,8 @@ var itemBehaviors = {
 						else {
 							if (fSprite.cooldown < 5) {
 								var maxSpeed2 = 32;
-								if (oKart.champi > 0) {
-									if ((oKart.champi < (oKart.champior ? 8:16)) || (oKart.champiType !== CHAMPI_TYPE_ITEM))
-										maxSpeed2 = 200;
-								}
+								if (oKart.champi > 0)
+									maxSpeed2 = 200;
 								else if (oKart.turbodrift)
 									maxSpeed2 = 64;
 								maxSpeed2 *= relSpeed2*relSpeed2;
@@ -12925,7 +12923,7 @@ var itemDistributions = {
 			"carapace": 6,
 			"bananeX3": 2,
 			"carapacerouge": 2,
-			"carapacenoire": 10
+			"carapacenoire": 20
 		}, {
 			"carapace": 8,
 			"bananeX3": 4,
@@ -13001,7 +12999,7 @@ var itemDistributions = {
 			"carapace": 10,
 			"bananeX3": 1,
 			"carapacerouge": 3,
-			"carapacenoire": 15
+			"carapacenoire": 30
 		}, {
 			"carapace": 10,
 			"bananeX3": 4,
@@ -13072,7 +13070,7 @@ var itemDistributions = {
 		name:  toLanguage("Shells", "Carapaces"),
 		value: [{
 			"carapace": 6,
-			"carapacenoire": 6
+			"carapacenoire": 12
 		}, {
 			"carapace": 8,
 			"carapacerouge": 8
