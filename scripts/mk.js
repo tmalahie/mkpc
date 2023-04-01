@@ -16496,10 +16496,14 @@ function processCode(cheatCode) {
 	if (isObject) {
 		var wObject = isObject[1];
 		var isExistingObj = false;
-		for (var i=0;i<itemDistribution.value.length;i++) {
-			if (itemDistribution.value[i][wObject]) {
-				isExistingObj = true;
-				break;
+		var itemMode = getItemMode();
+		dance: for (var i=0;i<itemDistributions[itemMode].length;i++) {
+			var oItemDistribution = itemDistributions[itemMode][i];
+			for (var j=0;j<oItemDistribution.value.length;j++) {
+				if (oItemDistribution.value[j][wObject] != null) {
+					isExistingObj = true;
+					break dance;
+				}
 			}
 		}
 		if (!isExistingObj)
