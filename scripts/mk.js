@@ -12811,7 +12811,6 @@ var itemDistributions = {
 			"fauxobjet": 4,
 			"banane": 5,
 			"carapacerouge": 1,
-			"carapacenoire": 0,
 			"carapace": 4
 		}, {
 			"carapace": 4,
@@ -12828,6 +12827,7 @@ var itemDistributions = {
 			"carapacerouge": 4
 		}, {
 			"carapacebleue": 0,
+			"carapacenoire": 0,
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
 			"megachampi": 3,
@@ -12843,7 +12843,6 @@ var itemDistributions = {
 			"fauxobjet": 1,
 			"banane": 3,
 			"carapacerouge": 3,
-			"carapacenoire": 1,
 			"carapace": 5
 		}, {
 			"bananeX3": 1,
@@ -12871,7 +12870,6 @@ var itemDistributions = {
 		value: [{
 			"carapacerouge": 1,
 			"carapace": 4,
-			"carapacenoire": 1
 		}, {
 			"carapacerouge": 7,
 			"carapace": 4
@@ -12922,8 +12920,7 @@ var itemDistributions = {
 			"banane": 6,
 			"carapace": 6,
 			"bananeX3": 2,
-			"carapacerouge": 2,
-			"carapacenoire": 20
+			"carapacerouge": 2
 		}, {
 			"carapace": 8,
 			"bananeX3": 4,
@@ -12965,7 +12962,8 @@ var itemDistributions = {
 			"megachampi": 6,
 			"etoile": 4,
 			"champior": 2,
-			"carapacebleue": 5
+			"carapacebleue": 5,
+			"carapacenoire": 0
 		}, {
 			"megachampi": 7,
 			"champiX3": 6,
@@ -12998,8 +12996,7 @@ var itemDistributions = {
 			"banane": 2,
 			"carapace": 10,
 			"bananeX3": 1,
-			"carapacerouge": 3,
-			"carapacenoire": 30
+			"carapacerouge": 3
 		}, {
 			"carapace": 10,
 			"bananeX3": 4,
@@ -13069,8 +13066,7 @@ var itemDistributions = {
 	}, {
 		name:  toLanguage("Shells", "Carapaces"),
 		value: [{
-			"carapace": 6,
-			"carapacenoire": 12
+			"carapace": 6
 		}, {
 			"carapace": 8,
 			"carapacerouge": 8
