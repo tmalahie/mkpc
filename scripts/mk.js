@@ -12802,7 +12802,6 @@ function showGamePopup(options) {
 	return oForm;
 }
 
-var isMetaItem = 0;
 var metaItemPosition = 0.5, metaItemRange = 1000;
 var itemDistributions = {
 	"BB": [{
@@ -12826,8 +12825,6 @@ var itemDistributions = {
 			"fauxobjet": 1,
 			"carapacerouge": 4
 		}, {
-			"carapacebleue": 0,
-			"carapacenoire": 0,
 			"carapacerougeX3": 1,
 			"carapacerouge": 2,
 			"megachampi": 3,
@@ -12962,8 +12959,7 @@ var itemDistributions = {
 			"megachampi": 6,
 			"etoile": 4,
 			"champior": 2,
-			"carapacebleue": 5,
-			"carapacenoire": 0
+			"carapacebleue": 5
 		}, {
 			"megachampi": 7,
 			"champiX3": 6,
@@ -16497,8 +16493,9 @@ function processCode(cheatCode) {
 		var wObject = isObject[1];
 		var isExistingObj = false;
 		var itemMode = getItemMode();
-		dance: for (var i=0;i<itemDistributions[itemMode].length;i++) {
-			var oItemDistribution = itemDistributions[itemMode][i];
+		var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
+		dance: for (var i=0;i<oItemDistributions.length;i++) {
+			var oItemDistribution = oItemDistributions[i];
 			for (var j=0;j<oItemDistribution.value.length;j++) {
 				if (oItemDistribution.value[j][wObject] != null) {
 					isExistingObj = true;
@@ -21948,18 +21945,25 @@ function selectItemScreen(oScr, callback, options) {
 	oTableItems.setAttribute("cellpadding", 0);
 	oTableItems.setAttribute("cellspacing", 0);
 	var itemMode = getItemMode();
-	var itemDistribution0 = itemDistributions[itemMode][0].value;
 	var possibleItems = {};
-	for (var i=0;i<itemDistribution0.length;i++) {
-		for (var item in itemDistribution0[i])
-			possibleItems[item] = 1;
+	var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
+	if (selectedItemDistrib.value && oItemDistributions.indexOf(selectedItemDistrib) == -1)
+		oItemDistributions.push(selectedItemDistrib);
+	for (var i=0;i<oItemDistributions.length;i++) {
+		var oItemDistribution = oItemDistributions[i];
+		for (var j=0;j<oItemDistribution.value.length;j++) {
+			for (var item in oItemDistribution.value[j])
+				possibleItems[item] = 1;
+		}
 	}
+	possibleItems = Object.keys(possibleItems);
+
+	var itemDistribution0 = oItemDistributions[0].value;
 	var currentDistribution = selectedItemDistrib;
 	if (currentDistribution.value)
 		currentDistribution = currentDistribution.value;
 	if (!currentDistribution.length)
 		currentDistribution = itemDistribution0;
-	possibleItems = Object.keys(possibleItems);
 	var oTr = document.createElement("tr");
 	oTr.appendChild(document.createElement("td"));
 	for (var i=0;i<possibleItems.length;i++) {
@@ -22397,6 +22401,36 @@ function selectItemScreen(oScr, callback, options) {
 			oScr2.appendChild(oExportScreen);
 		}
 		oSetForm.appendChild(oLink);
+
+		if (possibleItems.indexOf("carapacenoire") === -1) {
+			oScr2.tabIndex = 0;
+			oScr2.style.outline = "none";
+			var secretCode = "darkshell", typedCode = "";
+			oScr2.onkeydown = function(e) {
+				var key = e.key;
+				if (key.length === 1) {
+					key = key.toLowerCase();
+					typedCode += key;
+					if (!secretCode.startsWith(typedCode)) {
+						typedCode = "";
+						if (secretCode.startsWith(key))
+							typedCode = key;
+						return;
+					}
+					if (typedCode === secretCode) {
+						if (confirm("Enable dark shell item?")) {
+							itemDistribution0[itemDistribution0.length-1].carapacenoire = 0;
+							oScr.removeChild(oScr2);
+							selectItemScreen(oScr, callback, options);
+							return;
+						}
+					}
+				}
+			};
+			setTimeout(function() {
+				oScr2.focus();
+			}, 1);
+		}
 	}
 	
 	oScr2.appendChild(oSetForm);
