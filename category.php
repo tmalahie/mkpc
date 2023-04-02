@@ -11,7 +11,7 @@ if (isset($_GET['category'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $category['nom']; ?> - Forum Mario Kart PC</title>
+<title><?php echo $category['nom']; ?> - <?= _('Mario Kart PC Forum') ?></title>
 <?php
 include('heads.php');
 ?>

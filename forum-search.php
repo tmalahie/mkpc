@@ -7,7 +7,7 @@ include('initdb.php');
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Forum Mario Kart PC</title>
+<title><?= _('Mario Kart PC Forum') ?></title>
 <?php
 include('heads.php');
 ?>
@@ -61,7 +61,7 @@ $topiconly = isset($_GET['type']) && ('topics' === $_GET['type']);
 $oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1||$topiconly);
 ?>
 <main>
-<h1>Forum Mario Kart PC - <?php echo $language ? 'Advanced search':'Recherche avancée'; ?></h1>
+<h1><?= _('Mario Kart PC Forum') ?> - <?php echo $language ? 'Advanced search':'Recherche avancée'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
 <p class="pub"><ins class="adsbygoogle"

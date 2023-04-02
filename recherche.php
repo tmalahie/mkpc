@@ -10,7 +10,7 @@ if (isset($_GET['content'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Search':'Recherche'; ?> - Forum Mario Kart PC</title>
+<title><?php echo $language ? 'Search':'Recherche'; ?> - <?= _('Mario Kart PC Forum') ?></title>
 <?php
 include('heads.php');
 ?>
@@ -26,7 +26,7 @@ $page = 'forum';
 include('menu.php');
 ?>
 <main>
-<h1>Forum Mario Kart PC</h1>
+<h1><?= _('Mario Kart PC Forum') ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
 <p class="pub"><ins class="adsbygoogle"

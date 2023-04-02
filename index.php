@@ -181,7 +181,7 @@ $slidesPath = 'images/slides';
 							<div class="fp-content">
 								<h3 class="fp-title"><?= _('Face off your friends with the local multiplayer mode!') ?></h3>
 								<p>
-									<?= _("Prove your friends that you're the best!")?>
+									<?= _("Prove to your friends that you're the best!")?>
 									<br />
 									<?= _("Face them in <strong>multiplayer</strong> in VS races or in battle mode.") ?>
 								</p>

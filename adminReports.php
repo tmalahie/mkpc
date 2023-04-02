@@ -16,7 +16,7 @@ mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="admin_repor
 <!DOCTYPE html>
 <html lang="<?= P_("html language", "en") ?>">
 <head>
-<title>Forum Mario Kart PC - <?= _('Reported messages') ?></title>
+<title><?= _('Mario Kart PC Forum') ?> - <?= _('Reported messages') ?></title>
 <?php
 include('heads.php');
 ?>
@@ -57,7 +57,7 @@ function zerofill($s,$l) {
     - <a href="#null" target="_blank"></a>
   </div>
 </template>
-<h1>Forum Mario Kart PC - <?= _('Reported messages') ?></h1>
+<h1><?= _('Mario Kart PC Forum') ?> - <?= _('Reported messages') ?></h1>
 <div id="search-results">
 <?php
 include('avatars.php');

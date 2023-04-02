@@ -12,7 +12,7 @@ if (isset($_GET['category'])) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title>Forum Mario Kart PC</title>
+<title><?= _('Mario Kart PC Forum') ?></title>
 <?php
 include('heads.php');
 ?>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-26 13:02+0200\n"
+"POT-Creation-Date: 2023-04-02 22:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -88,6 +88,10 @@ msgstr ""
 
 #: addNews.php
 msgid "Help"
+msgstr ""
+
+#: addNews.php
+msgid "Content"
 msgstr ""
 
 #: addNews.php
@@ -676,6 +680,11 @@ msgstr ""
 msgid "You are not moderator"
 msgstr ""
 
+#: adminReports.php category.php edit.php edittopic.php forum-search.php
+#: forum.php newtopic.php recherche.php repondre.php topic.php
+msgid "Mario Kart PC Forum"
+msgstr ""
+
 #: adminReports.php
 msgid "Reported messages"
 msgstr ""
@@ -700,10 +709,6 @@ msgstr ""
 
 #: forum.php
 msgid "Auto-ban by IP"
-msgstr ""
-
-#: forum.php
-msgid "Forum Mario Kart PC"
 msgstr ""
 
 #: forum.php
@@ -940,7 +945,7 @@ msgid "Face off your friends with the local multiplayer mode!"
 msgstr ""
 
 #: index.php
-msgid "Prove your friends that you're the best!"
+msgid "Prove to your friends that you're the best!"
 msgstr ""
 
 #: index.php
@@ -1155,50 +1160,6 @@ msgid "All news"
 msgstr ""
 
 #: index.php
-msgid "Current bracket"
-msgstr ""
-
-#: index.php
-msgid "Rank"
-msgstr ""
-
-#: index.php
-msgid "Team"
-msgstr ""
-
-#: index.php
-msgid "Wins - Ties - Losses"
-msgstr ""
-
-#: index.php
-msgid "W-T-L"
-msgstr ""
-
-#: index.php
-msgid "Score difference"
-msgstr ""
-
-#: index.php
-msgid "Diff"
-msgstr ""
-
-#: index.php
-msgid "Eurasia"
-msgstr ""
-
-#: index.php
-msgid "France"
-msgstr ""
-
-#: index.php
-msgid "Americas"
-msgstr ""
-
-#: index.php
-msgid "Tournament's Discord Server"
-msgstr ""
-
-#: index.php
 msgid "Track builder"
 msgstr ""
 
@@ -1239,6 +1200,10 @@ msgstr ""
 
 #: index.php
 msgid "Mirror"
+msgstr ""
+
+#: index.php
+msgid "Team"
 msgstr ""
 
 #: index.php
@@ -1285,6 +1250,10 @@ msgid "Time Trial"
 msgstr ""
 
 #: index.php
+msgid "Rank"
+msgstr ""
+
+#: index.php
 msgid "Nick"
 msgstr ""
 
@@ -1306,4 +1275,8 @@ msgstr ""
 
 #: index.php
 msgid "Loading"
+msgstr ""
+
+#: topic.php
+msgid "MKPC Forum"
 msgstr ""

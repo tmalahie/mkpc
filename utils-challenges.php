@@ -1017,9 +1017,10 @@ function isRuleElligible(&$rule,&$course) {
 }
 function getChallengeDecorName($key, &$name, $nb=0) {
 	global $language;
-	$e = ($nb > 1) ? 'e' : '';
-	$s = ($nb > 1) ? 's' : '';
-	$x = ($nb > 1) ? 'x' : '';
+	$plural = ($nb > 1);
+	$e = $plural ? 'e' : '';
+	$s = $plural ? 's' : '';
+	$x = $plural ? 'x' : '';
 	$decorTree = $language ? "tree$s" : "arbre$s";
 	$decorMapping = array(
 		'tuyau' => $language ? "pipe$s":"tuyau$x",
@@ -1042,7 +1043,7 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 		'truck' => $language ? "bus$e$s" : "bus",
 		'pendulum' => $language ? "pendulum$s":"pendule$s",
 		'assets/pivothand' => $language ? "clock hand$s":"aiguille$s",
-		'snowman' => $language ? "snowman$s":"bonhomme$s de neige",
+		'snowman' => $language ? ($plural ? "snowmen":"snowman"):"bonhomme$s de neige",
 		'goomba' => "Goomba$s",
 		'fireplant' => $language ? "fire plant$s" : "plante$s de feu",
 		'piranhaplant' => $language ? "Piranha Plant$s":"Plante$s Piranha",

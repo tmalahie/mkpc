@@ -154,7 +154,7 @@ if (isset($draftSaved)) {
 $isNews = true;
 include('bbButtons.php');
 ?></td></tr>
-<tr><td class="mLabel"><p><label for="message">Contenu :</label></p>
+<tr><td class="mLabel"><p><label for="message"><?= _('Content'); ?> :</label></p>
 <p><?php
 for ($i=0;$i<$nbSmileys;$i++)
 	echo ' <a href="javascript:ajouter(\''. $smileys[$i] .'\')"><img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" /></a> ';

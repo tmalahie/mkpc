@@ -33,7 +33,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 <!DOCTYPE html>
 <html lang="<?= P_("html language", "en") ?>">
 <head>
-<title><?= _("Forum Mario Kart PC") ?></title>
+<title><?= _("Mario Kart PC Forum") ?></title>
 <?php
 include('heads.php');
 ?>
@@ -53,7 +53,7 @@ if ($id && $myIdentifiants) {
 }
 ?>
 <main>
-<h1><?= _("Forum Mario Kart PC") ?></h1>
+<h1><?= _("Mario Kart PC Forum") ?></h1>
 <?php
 if ($id) {
 	$getNom = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'));

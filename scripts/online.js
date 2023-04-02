@@ -996,9 +996,19 @@ function o_deco() {
 		}
 	}
 }
+function o_getCookie(name) {
+	const value = `; ${document.cookie}`;
+	const parts = value.split(`; ${name}=`);
+	if (parts.length === 2) return parts.pop().split(';').shift();
+}
+function o_getLanguage() {
+	var res = o_getCookie("language");
+	if (isNaN(res)) return 1;
+	return +res;
+}
 
 var o_loaded = false;
-var o_pseudo, o_language;
+var o_pseudo, o_language = +o_getLanguage();
 var o_online, o_active, oListJoueurs = new Array(), oDemandes = new Array(), oReponses = new Array(), oConvs = new Array(), oIgnores = new Array(), oLastActivities = {};
 var o_handler;
 function o_loadOnline() {

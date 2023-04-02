@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-26 12:59+0200\n"
+"POT-Creation-Date: 2023-04-02 22:55+0200\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -93,6 +93,10 @@ msgstr "Catégorie"
 #: addNews.php
 msgid "Help"
 msgstr "Aide"
+
+#: addNews.php
+msgid "Content"
+msgstr "Contenu"
 
 #: addNews.php
 msgid "More smileys"
@@ -707,6 +711,11 @@ msgstr "Auteur :"
 msgid "You are not moderator"
 msgstr "Vous n'êtes pas modérateur"
 
+#: adminReports.php category.php edit.php edittopic.php forum-search.php
+#: forum.php newtopic.php recherche.php repondre.php topic.php
+msgid "Mario Kart PC Forum"
+msgstr "Forum Mario Kart PC"
+
 #: adminReports.php
 msgid "Reported messages"
 msgstr "Messages signalés"
@@ -732,10 +741,6 @@ msgstr "Aucun message reporté en attente"
 #: forum.php
 msgid "Auto-ban by IP"
 msgstr "Auto-ban par IP"
-
-#: forum.php
-msgid "Forum Mario Kart PC"
-msgstr "Forum Mario Kart PC"
 
 #: forum.php
 msgid ""
@@ -1005,7 +1010,7 @@ msgid "Face off your friends with the local multiplayer mode!"
 msgstr "Affrontez vos amis grâce au mode multijoueur !"
 
 #: index.php
-msgid "Prove your friends that you're the best!"
+msgid "Prove to your friends that you're the best!"
 msgstr "Montrez à vos amis que vous êtes le meilleur !"
 
 #: index.php
@@ -1268,50 +1273,6 @@ msgid "All news"
 msgstr "Toutes les news"
 
 #: index.php
-msgid "Current bracket"
-msgstr "Classement actuel"
-
-#: index.php
-msgid "Rank"
-msgstr "Rang"
-
-#: index.php
-msgid "Team"
-msgstr "Équipe"
-
-#: index.php
-msgid "Wins - Ties - Losses"
-msgstr "Victoires - Nuls - Défaites"
-
-#: index.php
-msgid "W-T-L"
-msgstr "V-N-D"
-
-#: index.php
-msgid "Score difference"
-msgstr "Différence de score"
-
-#: index.php
-msgid "Diff"
-msgstr "Diff"
-
-#: index.php
-msgid "Eurasia"
-msgstr "Eurasie"
-
-#: index.php
-msgid "France"
-msgstr "France"
-
-#: index.php
-msgid "Americas"
-msgstr "Amériques"
-
-#: index.php
-msgid "Tournament's Discord Server"
-msgstr "Serveur Discord du tournoi"
-
-#: index.php
 msgid "Track builder"
 msgstr "Éditeur de circuit"
 
@@ -1353,6 +1314,10 @@ msgstr "fr"
 #: index.php
 msgid "Mirror"
 msgstr "Miroir"
+
+#: index.php
+msgid "Team"
+msgstr "Équipe"
 
 #: index.php
 msgid "Friendly"
@@ -1398,6 +1363,10 @@ msgid "Time Trial"
 msgstr "CLM"
 
 #: index.php
+msgid "Rank"
+msgstr "Rang"
+
+#: index.php
 msgid "Nick"
 msgstr "Pseudo"
 
@@ -1420,3 +1389,34 @@ msgstr "En savoir plus"
 #: index.php
 msgid "Loading"
 msgstr "Chargement"
+
+#: topic.php
+msgid "MKPC Forum"
+msgstr "Forum MKPC"
+
+#~ msgid "Current bracket"
+#~ msgstr "Classement actuel"
+
+#~ msgid "Wins - Ties - Losses"
+#~ msgstr "Victoires - Nuls - Défaites"
+
+#~ msgid "W-T-L"
+#~ msgstr "V-N-D"
+
+#~ msgid "Score difference"
+#~ msgstr "Différence de score"
+
+#~ msgid "Diff"
+#~ msgstr "Diff"
+
+#~ msgid "Eurasia"
+#~ msgstr "Eurasie"
+
+#~ msgid "France"
+#~ msgstr "France"
+
+#~ msgid "Americas"
+#~ msgstr "Amériques"
+
+#~ msgid "Tournament's Discord Server"
+#~ msgstr "Serveur Discord du tournoi"
