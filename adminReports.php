@@ -12,11 +12,15 @@ if (!hasRight('moderator')) {
 include('tokens.php');
 assign_token();
 mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="admin_report"');
+$pageTitle = _('Reported messages');
+$archivedFilter = isset($_GET['archived']);
+if ($archivedFilter)
+    $pageTitle = _('Archived reports');
 ?>
 <!DOCTYPE html>
 <html lang="<?= P_("html language", "en") ?>">
 <head>
-<title><?= _('Mario Kart PC Forum') ?> - <?= _('Reported messages') ?></title>
+<title><?= _('Mario Kart PC Forum') ?> - <?= $pageTitle ?></title>
 <?php
 include('heads.php');
 ?>
@@ -57,7 +61,7 @@ function zerofill($s,$l) {
     - <a href="#null" target="_blank"></a>
   </div>
 </template>
-<h1><?= _('Mario Kart PC Forum') ?> - <?= _('Reported messages') ?></h1>
+<h1><?= _('Mario Kart PC Forum') ?> - <?= $pageTitle ?></h1>
 <div id="search-results">
 <?php
 include('avatars.php');
@@ -70,9 +74,13 @@ if ($nbres) {
     require_once('reactions.php');
     printReactionUI();
 
+    $state = 'pending';
+    if ($archivedFilter)
+        $state = 'archived';
+
     $sql = 'SELECT r.id AS reportid,m.id,t.titre,m.topic,m.message,m.auteur,t.private,m.date,r.count';
     $sql .= ' FROM `mkreports` r INNER JOIN `mkmessages` m ON m.id=SUBSTRING_INDEX(r.link, ",", -1) AND m.topic=SUBSTRING_INDEX(r.link, ",", 1) INNER JOIN `mktopics` t ON t.id=m.topic';
-    $sql .= ' WHERE r.type="topic" AND r.state="pending"';
+    $sql .= ' WHERE r.type="topic" AND r.state="'.$state.'"';
     $sql .= ' ORDER BY r.count DESC LIMIT '.(($page-1)*$RES_PER_PAGE).','.$RES_PER_PAGE;
     $search = mysql_query($sql);
     ?>
@@ -108,11 +116,12 @@ if ($nbres) {
             echo '<div class="report-members" id="report-member-'.$result['reportid'].'"></div>';
             echo '<div class="fMessages" data-topic="'.$result['topic'].'">';
             print_forum_msg($result, array(
-                'mayEdit' => true,
+                'mayEdit' => !$archivedFilter,
                 'mayQuote' => false,
                 'mayReact' => false,
                 'mayReport' => false,
-                'canModerate' => true
+                'canModerate' => true,
+                'archived' => $archivedFilter
             ));
             echo '</div>';
             echo '</div>';
@@ -157,7 +166,15 @@ else {
 }
 ?>
 </div>
-<p class="forumButtons"><a href="forum.php"><?= _('Back to the forum') ?></a></p>
+<p class="forumButtons">
+    <?php
+    if ($archivedFilter)
+        echo '<a href="adminReports.php">'. _('Back to pending reports') .'</a><br />';
+    else
+        echo '<a href="adminReports.php?archived=1">'. _('See archived reports') .'</a><br />';
+    ?>
+    <a href="forum.php"><?= _('Back to the forum') ?></a>
+</p>
 </main>
 <?php
 include('footer.php');
@@ -194,6 +211,15 @@ function showMembers(reportId) {
 function archiveReport(reportId) {
     if (confirm(o_language ? 'Archive this message report?' : 'Archiver ce message signalé ?')) {
         o_xhr("archiveReport.php", "id="+reportId, function(res) {
+            if (res != 1) return false;
+            document.getElementById("reports-wrapper").removeChild(document.getElementById("report-wrapper-"+reportId));
+            return true;
+        });
+    }
+}
+function unarchiveReport(reportId) {
+    if (confirm(o_language ? 'Unarchive this message?' : 'Désarchiver ce message ?')) {
+        o_xhr("archiveReport.php", "id="+reportId+"&unarchive", function(res) {
             if (res != 1) return false;
             document.getElementById("reports-wrapper").removeChild(document.getElementById("report-wrapper-"+reportId));
             return true;

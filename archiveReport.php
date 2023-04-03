@@ -5,7 +5,9 @@ include('session.php');
 include('initdb.php');
 require_once('getRights.php');
 if (hasRight('moderator')) {
-    mysql_query('UPDATE mkreports SET state="archived" WHERE id="'. $_POST['id'] .'"');
-    mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "AReport '. $_POST['id'] .'")');
+    $newState = isset($_POST['unarchive']) ? 'pending' : 'archived';
+    $logKey = isset($_POST['unarchive']) ? 'UAReport' : 'AReport';
+    mysql_query('UPDATE mkreports SET state="'. $newState .'" WHERE id="'. $_POST['id'] .'"');
+    mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logKey .' '. $_POST['id'] .'")');
 }
 echo 1;

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-02 22:55+0200\n"
+"POT-Creation-Date: 2023-04-03 22:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -250,6 +250,14 @@ msgstr ""
 
 #: admin-logs.php
 msgid "archived report #$1"
+msgstr ""
+
+#: admin-logs.php
+msgid "unarchived report on <a href=\"{url}\">message #$3</a> in topic "
+msgstr ""
+
+#: admin-logs.php
+msgid "unarchived report #$1"
 msgstr ""
 
 #: admin-logs.php
@@ -680,13 +688,17 @@ msgstr ""
 msgid "You are not moderator"
 msgstr ""
 
-#: adminReports.php category.php edit.php edittopic.php forum-search.php
-#: forum.php newtopic.php recherche.php repondre.php topic.php
-msgid "Mario Kart PC Forum"
+#: adminReports.php
+msgid "Reported messages"
 msgstr ""
 
 #: adminReports.php
-msgid "Reported messages"
+msgid "Archived reports"
+msgstr ""
+
+#: adminReports.php category.php edit.php edittopic.php forum-search.php
+#: forum.php newtopic.php recherche.php repondre.php topic.php
+msgid "Mario Kart PC Forum"
 msgstr ""
 
 #: adminReports.php
@@ -705,6 +717,14 @@ msgstr[1] ""
 
 #: adminReports.php
 msgid "No pending reported message"
+msgstr ""
+
+#: adminReports.php
+msgid "Back to pending reports"
+msgstr ""
+
+#: adminReports.php
+msgid "See archived reports"
 msgstr ""
 
 #: forum.php

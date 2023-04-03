@@ -158,6 +158,19 @@ $logMapping = array(
         },
         'role' => 'moderator'
     ),
+    'UAReport' => array(
+        'render' => function(&$groups) {
+            global $logTemplates;
+            if ($report = mysql_fetch_array(mysql_query('SELECT link FROM `mkreports` WHERE id="'. mysql_real_escape_string($groups[1]) .'"'))) {
+                $link = explode(',', $report['link']);
+                $groups[2] = $link[0];
+                $groups[3] = $link[1];
+                return F_('unarchived report on <a href="{url}">message #$3</a> in topic ', url: 'topic.php?topic=$2&amp;message=$3') . $logTemplates['topic']('$2');
+            }
+            return _('unarchived report #$1');
+        },
+        'role' => 'moderator'
+    ),
     'Cup' => array(
         'render' => _('deleted cup #$1'),
         'role' => 'moderator'
