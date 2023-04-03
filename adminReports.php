@@ -166,12 +166,18 @@ mysql_close();
 <script type="text/javascript">
 function showMembers(reportId) {
     var $reportMembers = document.getElementById("report-member-"+reportId);
-    if ($reportMembers.innerHTML) {
+    if ($reportMembers.dataset.shown) {
+        $reportMembers.dataset.shown = "";
         $reportMembers.innerHTML = "";
         return;
     }
-    $reportMembers.innerHTML = " ";
+    $reportMembers.dataset.shown = 1;
+    $reportMembers.dataset.query = (+$reportMembers.dataset.query||0) + 1;
+    var currentQuery = $reportMembers.dataset.query;
     o_xhr("adminReportsHistory.php", "id="+reportId, function(res) {
+        if ($reportMembers.dataset.query !== currentQuery)
+            return;
+        $reportMembers.dataset.shown = 1;
         var reporters = JSON.parse(res);
         for (var i=0;i<reporters.length;i++) {
             var payload = reporters[i];
