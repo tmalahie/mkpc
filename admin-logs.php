@@ -487,6 +487,7 @@ function evaluate_group(&$group) {
     return htmlspecialchars($group);
 }
 function get_circuit_data($type, $id) {
+    global $language;
     $res = array(
         'name' => null,
         'label' => null,
@@ -494,15 +495,16 @@ function get_circuit_data($type, $id) {
     );
     if (empty($type))
         return $res;
-    if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($type=='mkcircuits') ? ',!type AS is_circuit':'') .' FROM `'. $type .'` WHERE id="'. $id .'"'))) {
-        $res['name'] = $getCircuit['nom'];
+    $nameCol = $language ? 'name_en' : 'name_fr';
+    if ($getCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $type .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $type .'" AND s.circuit=c.id WHERE c.id="'. $id .'"'))) {
+        $res['name'] = $getCircuit['name'];
         switch ($type) {
             case 'mkcircuits':
-                $res['link'] = ($getCircuit['is_circuit'] ? 'circuit':'arena') .'.php?id='. $getCircuit['id'];
-                if ($getCircuit['is_circuit'])
-                    $res['label'] = _("the circuit");
-                else
+                $res['link'] = ($getCircuit['type'] ? 'arena':'circuit') .'.php?id='. $getCircuit['id'];
+                if ($getCircuit['type'])
                     $res['label'] = _("the arena");
+                else
+                    $res['label'] = _("the circuit");
                 break;
             case 'circuits':
                 $res['link'] = 'map.php?i='. $getCircuit['ID'];

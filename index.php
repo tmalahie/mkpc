@@ -770,8 +770,9 @@ $slidesPath = 'images/slides';
 					return $n;
 				}
 				require_once('utils-cups.php');
+				$nameCol = $language ? 'name_en' : 'name_fr';
 				while ($comment = mysql_fetch_array($getComments)) {
-					if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($comment['type']=="mkcircuits") ? ',!type as is_circuit':'') .' FROM `'. $comment['type'] .'` WHERE id='. $comment['circuit'] .' AND nom IS NOT NULL'))) {
+					if ($getCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $comment['type'] .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $comment['type'] .'" AND s.circuit=c.id WHERE c.id='. $comment['circuit'] .' AND c.nom IS NOT NULL'))) {
 						switch ($comment['type']) {
 						case 'mkmcups' :
 							$url = getCupPage($getCircuit['mode']) . '.php?mid='. $getCircuit['id'];
@@ -780,7 +781,7 @@ $slidesPath = 'images/slides';
 							$url = getCupPage($getCircuit['mode']) . '.php?cid='. $getCircuit['id'];
 							break;
 						case 'mkcircuits' :
-							$url = ($getCircuit['is_circuit'] ? 'circuit.php':'arena.php') . '?id='. $getCircuit['id'];
+							$url = ($getCircuit['type'] ? 'arena.php':'circuit.php') . '?id='. $getCircuit['id'];
 							break;
 						case 'arenes' :
 							$url = 'battle.php?i='. $getCircuit['ID'];
@@ -811,7 +812,7 @@ $slidesPath = 'images/slides';
 						?>
 						<a href="<?php echo $url; ?>"<?php if ($type == 'comments') echo ' title="'. htmlspecialchars($message) .'"'; ?>>
 							<h2><img src="images/<?php echo $type; ?>.png" alt="<?php echo $type; ?>" /> <?php echo ($type == 'comments') ? htmlspecialchars(controlLength($message,40)) : $message; ?></h2>
-							<h3><?php echo ($language ? 'By':'Par') .' <strong>'. htmlspecialchars(controlLength($comment['name'],10)) .'</strong>'; ?> <?php echo ($getCircuit['nom'] ? (($language ? 'in':'dans') . ' <strong>'. controlLengthUtf8($getCircuit['nom'],20) .'</strong>'):''); ?> <?php echo pretty_dates_short($comment['date'],array('lower'=>true)); ?></h3>
+							<h3><?php echo ($language ? 'By':'Par') .' <strong>'. htmlspecialchars(controlLength($comment['name'],10)) .'</strong>'; ?> <?php echo ($getCircuit['name'] ? (($language ? 'in':'dans') . ' <strong>'. controlLengthUtf8($getCircuit['name'],20) .'</strong>'):''); ?> <?php echo pretty_dates_short($comment['date'],array('lower'=>true)); ?></h3>
 						</a>
 						<?php
 					}

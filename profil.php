@@ -425,8 +425,9 @@ include('menu.php');
 					$nbComments = mysql_numrows($lastComments);
 					$displayedComments = 0;
 					$comments = array();
+					$nameCol = $language ? 'name_en' : 'name_fr';
 					while ($comment = mysql_fetch_array($lastComments)) {
-						if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($comment['type']=="mkcircuits") ? ',!type as is_circuit':'') .' FROM `'. $comment['type'] .'` WHERE id='. $comment['circuit']))) {
+						if ($getCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $comment['type'] .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $comment['type'] .'" AND s.circuit=c.id WHERE c.id='. $comment['circuit']))) {
 							$comment['circuit_data'] = $getCircuit;
 							$comments[] = $comment;
 							$displayedComments++;
@@ -825,7 +826,7 @@ include('menu.php');
 						$url = getCupPage($getCircuit['mode']) . '.php?cid='. $getCircuit['id'];
 						break;
 					case 'mkcircuits' :
-						$url = ($getCircuit['is_circuit'] ? 'circuit.php':'arena.php') . '?id='. $getCircuit['id'];
+						$url = ($getCircuit['type'] ? 'arena.php':'circuit.php') . '?id='. $getCircuit['id'];
 						break;
 					case 'arenes' :
 						$url = 'battle.php?i='. $getCircuit['ID'];
@@ -837,8 +838,8 @@ include('menu.php');
 						<a class="circuit-comment" href="<?php echo $url; ?>">
 							<div class="circuit-comment-msg"><?php echo str_replace('  ',' &nbsp;',nl2br(htmlspecialchars($comment['message']))); ?></div>
 							<div class="circuit-comment-infos"><img src="images/comments.png" alt="comments"> <?php
-							if ($getCircuit['nom']) {
-								echo ($language ? 'In':'Dans'); ?> <strong><?php echo escapeUtf8($getCircuit['nom']); ?></strong><?php
+							if ($getCircuit['name']) {
+								echo ($language ? 'In':'Dans'); ?> <strong><?php echo escapeUtf8($getCircuit['name']); ?></strong><?php
 							}
 							?> <?php echo pretty_dates($comment['date'], array('lower'=>true)); ?></div>
 						</a>

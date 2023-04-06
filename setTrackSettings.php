@@ -10,15 +10,15 @@ if (isset($_POST['type']) && isset($_POST['circuit'])) {
             include('getId.php');
             if ($getCircuit['identifiant'] == $identifiants[0]) {
                 function getSQLRawValue(&$value) {
-                    return isset($value) ? $value : '';
+                    return isset($value) ? '"'.$value.'"' : 'NULL';
                 }
                 mysql_query(
                     'INSERT INTO mktracksettings
                     SET circuit="'. $circuit .'", type="'. $type .'",
-                    description="'. getSQLRawValue($_POST['description']) .'",
-                    name_en="'. getSQLRawValue($_POST['name_en']) .'",
-                    name_fr="'. getSQLRawValue($_POST['name_fr']) .'",
-                    prefix="'. getSQLRawValue($_POST['prefix']) .'"
+                    description='. getSQLRawValue($_POST['description']) .',
+                    name_en='. getSQLRawValue($_POST['name_en']) .',
+                    name_fr='. getSQLRawValue($_POST['name_fr']) .',
+                    prefix='. getSQLRawValue($_POST['prefix']) .'
                     ON DUPLICATE KEY UPDATE
                     description=VALUES(description),
                     name_en=VALUES(name_en),

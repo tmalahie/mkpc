@@ -203,6 +203,7 @@ function escape($str) {
 	return str_replace('</script>', '<\/script>', str_replace('%u', '\\u', str_replace('"', '\\"', str_replace('\\', '\\\\', $str))));
 }
 function addCircuitsData(&$creationsList) {
+	global $language;
 	$lCups = array();
 	foreach ($creationsList['cups'] as $cup) {
 		$lCup = array();
@@ -225,6 +226,27 @@ function addCircuitsData(&$creationsList) {
 	}
 	foreach ($creationsList['tracks'] as &$track)
 		addCircuitData($track,$lCups,$mCups);
+	$circuitTypes = array();
+	$circuitByType = array();
+	foreach ($creationsList['tracks'] as &$track) {
+		$cType = $track['category'];
+		$cTable = getCircuitTable($cType);
+		$cId = intval($track['id']);
+		$circuitTypes[] = "('$cTable',$cId)";
+		$circuitByType[$cTable][$cId] = &$track;
+	}
+	unset($track);
+	$circuitTypesStr = implode(',',$circuitTypes);
+	if ($circuitTypesStr) {
+		$nameCol = $language ? 'name_en' : 'name_fr';
+		$getTrackSettings = mysql_query('SELECT type,circuit,'.$nameCol.' AS name FROM `mktracksettings` WHERE (type,circuit) IN ('.$circuitTypesStr.')');
+		while ($trackSettings = mysql_fetch_array($getTrackSettings)) {
+			$cTable = $trackSettings['type'];
+			$cId = $trackSettings['circuit'];
+			if ($trackSettings['name'])
+				$circuitByType[$cTable][$cId]['nom'] = $trackSettings['name'];
+		}
+	}
 }
 function addCircuitData(&$circuit,&$lCups,&$mCups) {
 	$linkBg = '';
@@ -375,6 +397,27 @@ function circuitPayload(&$circuit) {
 		(isset($circuit['icon']) ? '"icon":["'.implode('","',$circuit['icon']).'"],':'').
 		'"cicon":"'.escape($circuit['cicon']).'"'.
 	'}';
+}
+function getCircuitTable($cType) {
+	switch ($cType) {
+		case 0 :
+		case 1 :
+		case 10 :
+		case 11 :
+			return 'mkmcups';
+		case 2 :
+		case 3 :
+		case 8 :
+		case 9 :
+			return 'mkcups';
+		case 4 :
+			return 'circuits';
+		case 5 :
+		case 7 :
+			return 'mkcircuits';
+		case 6 :
+			return 'arenes';
+	}
 }
 function printCircuits(&$creationsList) {
 	foreach ($creationsList as $i=>$circuit) {

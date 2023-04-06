@@ -687,11 +687,13 @@ function getChallengeDetails($challenge, &$params=array()) {
 }
 require_once('utils-cups.php');
 function getCircuitPayload(&$clRace) {
+	global $language;
 	$res = array();
 	if (!$clRace['type'])
 		return $res;
-	if ($clCircuit = mysql_fetch_array(mysql_query('SELECT * FROM `'. $clRace['type'] .'` WHERE id="'. $clRace['circuit'] .'"'))) {
-		$res['name'] = $clCircuit['nom'];
+	$nameCol = $language ? 'name_en' : 'name_fr';
+	if ($clCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $clRace['type'] .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $clRace['type'] .'" AND s.circuit=c.id WHERE c.id="'. $clRace['circuit'] .'"'))) {
+		$res['name'] = $clCircuit['name'];
 		$res['author'] = $clCircuit['auteur'];
 		$res['identifiant'] = $clCircuit['identifiant'];
 		$res['identifiant2'] = $clCircuit['identifiant2'];
