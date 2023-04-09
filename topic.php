@@ -108,7 +108,7 @@ include('menu.php');
 	<?php
 	if ($topic) {
 		?>
-<h1><?php echo htmlspecialchars($titreTopic); ?></h1>
+<h1 data-testid="topic-title"><?php echo htmlspecialchars($titreTopic); ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
 <p class="pub"><ins class="adsbygoogle"

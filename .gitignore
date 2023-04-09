@@ -11,3 +11,7 @@ sftp-config.json
 **.directory
 .DS_Store
 advent-selected-challenges.php
+node_modules/
+/test-results/
+/playwright-report/
+/playwright/.cache/

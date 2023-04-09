@@ -43,3 +43,27 @@ And edit the file `config/db.php` to put the right credentials.
 If everything is set up correctly, the site should be reachable at http://localhost/mkpc/ (or whatever the URL you configure in your Apache config).
 
 You can now start developing!
+
+# Tests
+
+A small test suite is provided with the project.
+
+```
+npx playwright test
+  Runs the end-to-end tests.
+
+npx playwright test --ui
+  Starts the interactive UI mode.
+
+npx playwright test --project=chromium
+  Runs the tests only on Desktop Chrome.
+
+npx playwright test example
+  Runs the tests in a specific file.
+
+npx playwright test --debug
+  Runs the tests in debug mode.
+
+npx playwright codegen
+  Auto generate tests with Codegen.
+```

@@ -1,0 +1,21 @@
+{
+  "name": "mkpc",
+  "version": "1.0.0",
+  "description": "This repository contains the source code of MKPC website: https://mkpc.malahieude.net.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tmalahie/mkpc.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tmalahie/mkpc/issues"
+  },
+  "homepage": "https://github.com/tmalahie/mkpc#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.32.2"
+  }
+}

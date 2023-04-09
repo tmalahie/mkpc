@@ -1,4 +1,6 @@
 <?php
+require_once('getRights.php');
+
 function getProfileIdsString() {
     global $id, $identifiants;
     $getProfiles = mysql_query('SELECT id FROM mkprofiles WHERE identifiant="'. $identifiants[0] .'"');
@@ -10,6 +12,10 @@ function getProfileIdsString() {
     return $profileIdsString;
 }
 function isMsgCooldowned($context = array()) {
+    // Admins are exempted from cooldown
+    if (hasRight('manager'))
+        return false;
+
     $profileIdsString = getProfileIdsString();
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkmessages WHERE auteur IN ('. $profileIdsString .') AND date>=DATE_SUB(NOW(),INTERVAL 60 SECOND)'));
     $recentMsgs = $getRecentMsgs['nb'];

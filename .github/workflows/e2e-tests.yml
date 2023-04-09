@@ -1,0 +1,45 @@
+name: E2E Tests
+on:
+  push:
+    branches: [master, development]
+  pull_request:
+    branches: [master, development]
+jobs:
+  e2e_tests:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup application
+        uses: isbang/compose-action@v1.4.1
+      - name: Wait for application readiness
+        run: |
+          set +e;
+          export i=0;
+          while sleep 1; do
+            if echo 'select 1 from DUAL' | docker exec -i mkpc_db_1 mysql -u mkpc_user --password=mkpc_pwd mkpc; then
+              break;
+            else
+              let "i++"
+            fi
+            if [ $i -ge 60 ]; then
+              exit 1;
+            fi
+          done
+      - name: Setup db
+        run: docker exec -i mkpc_web /root/scripts/setup.sh
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: npx playwright test
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
