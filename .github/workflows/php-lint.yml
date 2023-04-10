@@ -1,0 +1,14 @@
+name: PHP lint
+on:
+  push:
+    branches: [master, development]
+  pull_request:
+    branches: [master, development]
+jobs:
+  php_lint:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check for syntax errors
+        run: make lint
