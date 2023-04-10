@@ -610,9 +610,10 @@ function listChallenges($clRace, &$params=array()) {
 		case 'mkmcups':
 			if ($getMode = mysql_fetch_array(mysql_query('SELECT mode FROM mkmcups WHERE id='. $getClist['circuit'])))
 				$allSubTracks['mode'] = $getMode['mode'];
-			$getCls = mysql_query('SELECT DISTINCT cl.id,c.circuit0,c.circuit1,c.circuit2,c.circuit3 FROM mkclrace cl INNER JOIN mkmcups_tracks t ON t.mcup='. $getClist['circuit'] .' AND t.cup=cl.circuit INNER JOIN mkcups c ON c.id=t.cup WHERE cl.type="mkcups" ORDER BY t.ordering');
+			$getCls = mysql_query('SELECT DISTINCT cl.id,c.circuit0,c.circuit1,c.circuit2,c.circuit3 FROM  mkmcups_tracks t INNER JOIN mkcups c ON c.id=t.cup LEFT JOIN mkclrace cl ON cl.type="mkcups" AND cl.circuit=t.cup WHERE t.mcup='. $getClist['circuit'] .' ORDER BY t.ordering');
 			while ($subCl = mysql_fetch_array($getCls)) {
-				$subCls[] = $subCl['id'];
+				if ($subCl['id'])
+					$subCls[] = $subCl['id'];
 				for ($i=0;$i<4;$i++)
 					$allSubTracks['circuits'][] = $subCl["circuit$i"];
 			}
