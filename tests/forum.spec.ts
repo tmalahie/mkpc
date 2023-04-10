@@ -20,7 +20,7 @@ test('logging in and creating a new topic', async ({ page }) => {
   await page.getByRole('button', { name: 'Submit' }).click();
 
   // Create a new topic
-  await page.getByRole('link', { name: 'Various discussions' }).click();
+  await page.getByRole('link', { name: 'International forum' }).click();
   await page.getByRole('paragraph').filter({ hasText: /^New topic$/ }).getByRole('link', { name: 'New topic' }).click();
   await page.getByLabel('Title :').click();
   await page.getByLabel('Title :').fill(TOPIC_NAME);
@@ -34,8 +34,7 @@ test('logging in and creating a new topic', async ({ page }) => {
   // Check topic is as we expect it
   const topicUrl = page.url();
   await expect(page).toHaveTitle(new RegExp(TOPIC_NAME));
-  await expect(page.getByTestId("topic-title")).toHaveText(TOPIC_NAME);
-  await expect(page.getByTestId("topic-title")).toHaveText(TOPIC_NAME);
+  await expect(page.getByRole("heading", { name: TOPIC_NAME, exact: true })).toBeVisible();
 
   // Check topic appears in the recent topics list
   await page.goto("/");

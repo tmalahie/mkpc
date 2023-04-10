@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "This repository contains the source code of MKPC website: https://mkpc.malahieude.net.",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "playwright test"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tmalahie/mkpc.git"
