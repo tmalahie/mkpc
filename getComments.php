@@ -9,7 +9,11 @@ if (isset($_POST['circuit']) &&  isset($_POST['type'])) {
 		$circuit = $_POST['circuit'];
 		include('initdb.php');
 		if ($getCircuit = mysql_fetch_array(mysql_query('SELECT * FROM `'. $type .'` WHERE id="'. $circuit .'"'))) {
-			$getMsgs = mysql_query('SELECT c.id,c.message,UNIX_TIMESTAMP(c.date) AS time,c.auteur,j.nom FROM `mkcomments` c LEFT JOIN `mkjoueurs` j ON c.auteur=j.id WHERE c.circuit="'. $circuit .'" AND c.type="'. $type .'" ORDER BY c.id DESC');
+			$paginationToken = isset($_POST['paginationToken']) ? intval($_POST['paginationToken']) : 0;
+			$resPerPage = 50;
+			$getMsgs = mysql_query('SELECT c.id,c.message,UNIX_TIMESTAMP(c.date) AS time,c.auteur,j.nom FROM `mkcomments` c LEFT JOIN `mkjoueurs` j ON c.auteur=j.id WHERE c.circuit="'. $circuit .'" AND c.type="'. $type .'"'. ($paginationToken ? " AND c.id<$paginationToken" : "") .' ORDER BY c.id DESC LIMIT '. $resPerPage);
+			$getCount = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkcomments` WHERE circuit="'. $circuit .'" AND type="'. $type .'"'));
+			
 			$msgs = array();
 			while ($msg = mysql_fetch_array($getMsgs))
 				$msgs[] = $msg;
@@ -53,6 +57,9 @@ if (isset($_POST['circuit']) &&  isset($_POST['type'])) {
 				echo '}';
 			}
 			echo ']';
+			echo ',"count":'.$getCount['nb'];
+			if (count($msgs) >= $resPerPage)
+				echo ',"paginationToken":'.$msgs[count($msgs)-1]['id'];
 			include('getId.php');
 			if (($getCircuit['identifiant'] == $identifiants[0]) && ($getCircuit['identifiant2'] == $identifiants[1]) && ($getCircuit['identifiant3'] == $identifiants[2]) && ($getCircuit['identifiant4'] == $identifiants[3])) {
 				echo ',"mine":true';

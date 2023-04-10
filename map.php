@@ -586,7 +586,7 @@ if ($cShared) {
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$circuitTable); ?>;
 	</script>
-	<script type="text/javascript" src="scripts/comments.js"></script>
+	<script type="text/javascript" src="scripts/comments.js?reload=1"></script>
 	<script type="text/javascript" src="scripts/topic.js"></script>
 	<?php
 }

@@ -25,6 +25,7 @@ function updateCircuitDate() {
 		$("#comments-circuitnote").css("padding-top", "8px");
 	}
 }
+var circuitNbComments = 0;
 (function() {
 	$("#comments-section").append(
 		'<div id="comments-infos">'+
@@ -165,6 +166,7 @@ function updateCircuitDate() {
 				setPostTime(commentCtn, new Date(),myCommentName,myCommentID);
 				setSendClass(commentCtn);
 				comments.prepend(createNewComment());
+				circuitNbComments++;
 				updateNbComments();
 			}).fail(function() {
 				alert(language ? "An error occured when sending the comment. Please try again":"Une erreur est survenue lors de l'envoi du commentaire. Veuillez réessayer.");
@@ -185,6 +187,7 @@ function updateCircuitDate() {
 			if (confirm(language ? "Are you sure you want to delete this comment ?":"Voulez-vous vraiment supprimer ce commentaire ?")) {
 				$.post("supprComment.php", {"id_msg":commentCtn.data("id")}).success(function() {
 					commentCtn.remove();
+					circuitNbComments--;
 					updateNbComments();
 				}).fail(function() {
 					alert(language ? "An error occured when deleting the comment. Please try again":"Une erreur est survenue lors de la suppression du commentaire. Veuillez réessayer.");
@@ -244,21 +247,9 @@ function updateCircuitDate() {
 			ymd = language ? "On "+y+"-"+m+"-"+d:"Le "+y+"-"+m+"-"+d;
 		commentCtn.find(".comment-header").html(language ? ymd+' at '+h+':'+mn+ (author ? ' by <a href="profil.php?id='+ authorID +'">'+author+'</a>':''):ymd+' &agrave; '+h+':'+mn+ (author ? ' par <a href="profil.php?id='+ authorID +'">'+author+'</a>':''));
 	}
-	$.post("getComments.php", {"circuit":commentCircuit,"type":commentType}, function(res) {
-		res = JSON.parse(res);
-		if (res.id) {
-			myCommentID = res.id;
-			myCommentName = res.pseudo;
-			myCommentAdmin = res.admin;
-			comments.append(createNewComment());
-		}
-		else if (!res.banned) {
-			comments.append('<div id="comment-connect"><a href="forum.php" target="_blank">'+ (language ? 'Log-in':'Connectez-vous') +'</a> '+ (language ? 'to post a comment':'pour poster un commentaire') +'</div>');
-		}
-		else
-			comments.append('<div />');
-		for (var i=0;i<res.comments.length;i++) {
-			var commentData = res.comments[i];
+	function appendComments(commentsData) {
+		for (var i=0;i<commentsData.length;i++) {
+			var commentData = commentsData[i];
 			var postedComment = createComment("sent");
 			setPostTime(postedComment, new Date(commentData.date*1000),commentData.auteur,commentData.auteurID);
 			postedComment.find(".comment-value").html(nl2br(commentData.message));
@@ -278,6 +269,22 @@ function updateCircuitDate() {
 				postedComment.find(".comment-options .comment-posted").hide();
 			comments.append(postedComment);
 		}
+	}
+	$.post("getComments.php", {"circuit":commentCircuit,"type":commentType}, function(res) {
+		res = JSON.parse(res);
+		if (res.id) {
+			myCommentID = res.id;
+			myCommentName = res.pseudo;
+			myCommentAdmin = res.admin;
+			comments.append(createNewComment());
+		}
+		else if (!res.banned) {
+			comments.append('<div id="comment-connect"><a href="forum.php" target="_blank">'+ (language ? 'Log-in':'Connectez-vous') +'</a> '+ (language ? 'to post a comment':'pour poster un commentaire') +'</div>');
+		}
+		else
+			comments.append('<div />');
+		appendComments(res.comments);
+		circuitNbComments = res.count;
 		updateNbComments();
 		var circuitDesc = res.description;
 		function updateCircuitDesc() {
@@ -300,6 +307,22 @@ function updateCircuitDate() {
 			}
 		}
 		updateCircuitDesc();
+		if (res.paginationToken) {
+			function handleScroll() {
+				if ($commentsScroller.prop("scrollHeight") - $commentsScroller.prop("offsetHeight") - $commentsScroller.prop("scrollTop") < 100) {
+					$commentsScroller[0].onscroll = undefined;
+					$.post("getComments.php", {"circuit":commentCircuit,"type":commentType,"paginationToken":res.paginationToken}, function(res2) {
+						res2 = JSON.parse(res2);
+						appendComments(res2.comments);
+						if (res2.paginationToken) {
+							res.paginationToken = res2.paginationToken;
+							$commentsScroller[0].onscroll = handleScroll;
+						}
+					});
+				}
+			}
+			$commentsScroller[0].onscroll = handleScroll;
+		}
 		if (res.mine) {
 			$("#comments-description-content-actions").show();
 			var commentSend = $("#comments-description-edit-actions .comment-send");
@@ -378,9 +401,8 @@ function updateCircuitDate() {
 		$("#comments-section").css("visibility", "visible");
 	});
 	function updateNbComments() {
-		var nbComments = comments.children().length-1;
-		$("#comments-nb").text(nbComments);
-		if (nbComments)
+		$("#comments-nb").text(circuitNbComments);
+		if (comments.children().length > 1)
 			$("#comments-none").hide();
 		else
 			$("#comments-none").show();
