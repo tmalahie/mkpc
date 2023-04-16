@@ -691,8 +691,7 @@ function getCircuitPayload(&$clRace) {
 	$res = array();
 	if (!$clRace['type'])
 		return $res;
-	$nameCol = $language ? 'name_en' : 'name_fr';
-	if ($clCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $clRace['type'] .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $clRace['type'] .'" AND s.circuit=c.id WHERE c.id="'. $clRace['circuit'] .'"'))) {
+	if ($clCircuit = fetchCreationData($clRace['type'], $clRace['circuit'])) {
 		$res['name'] = $clCircuit['name'];
 		$res['author'] = $clCircuit['auteur'];
 		$res['identifiant'] = $clCircuit['identifiant'];

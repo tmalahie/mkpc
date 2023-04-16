@@ -94,3 +94,13 @@ function getCupPage(&$mode) {
 		return 'circuit';
 	}
 }
+function fetchCreationData($table,$id, $options=array()) {
+    global $language;
+    $columns = isset($options['columns']) ? $options['columns'] : array('*');
+    $columnsWithPrefix = array();
+    foreach ($columns as $column)
+        $columnsWithPrefix[] = 'c.'.$column;
+    $columnsString = implode(',',$columnsWithPrefix);
+    $nameCol = $language ? 'name_en' : 'name_fr';
+    return mysql_fetch_array(mysql_query('SELECT '.$columnsString.',IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $table .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $table .'" AND s.circuit=c.id WHERE c.id="'. $id .'"'));
+}

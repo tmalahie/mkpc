@@ -495,8 +495,7 @@ function get_circuit_data($type, $id) {
     );
     if (empty($type))
         return $res;
-    $nameCol = $language ? 'name_en' : 'name_fr';
-    if ($getCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $type .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $type .'" AND s.circuit=c.id WHERE c.id="'. $id .'"'))) {
+    if ($getCircuit = fetchCreationData($type, $id)) {
         $res['name'] = $getCircuit['name'];
         switch ($type) {
             case 'mkcircuits':

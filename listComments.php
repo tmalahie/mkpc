@@ -31,9 +31,9 @@ include('menu.php');
 		require_once('circuitEscape.php');
 		$lastComments = mysql_query('SELECT id,circuit,type,message,date FROM `mkcomments` WHERE auteur="'. $_GET['user'] .'" ORDER BY id DESC');
 		$comments = array();
-		$nameCol = $language ? 'name_en' : 'name_fr';
+		require_once('utils-cups.php');
 		while ($comment = mysql_fetch_array($lastComments)) {
-			if ($getCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $comment['type'] .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $comment['type'] .'" AND s.circuit=c.id WHERE c.id='. $comment['circuit']))) {
+			if ($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) {
 				$comment['circuit_data'] = $getCircuit;
 				$comments[] = $comment;
 			}

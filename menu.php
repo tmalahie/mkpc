@@ -109,15 +109,14 @@
 								$notifData['sender'] = $notifData['reaction']['member'];
 							else
 								$notifData['sender'] = $comment['auteur'];
-							$nameCol = $language ? 'name_en' : 'name_fr';
-							if ($getCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $comment['type'] .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $comment['type'] .'" AND s.circuit=c.id WHERE c.id="'. $comment['circuit'] .'"'))) {
+							require_once('utils-cups.php');
+							if ($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) {
 								if ($myNotif['type'] == 'answer_comment') {
 									if ($myIdentifiants && ($getCircuit['identifiant'] == $myIdentifiants[0]) && ($getCircuit['identifiant2'] == $myIdentifiants[1]) && ($getCircuit['identifiant3'] == $myIdentifiants[2]) && ($getCircuit['identifiant4'] == $myIdentifiants[3]))
 										$toDelete = true;
 								}
 								if (!$toDelete) {
 									$notifData['title'] = $getCircuit['name'];
-									require_once('utils-cups.php');
 									switch ($comment['type']) {
 										case 'mkcircuits':
 											$notifData['link'] = ($getCircuit['type'] ? 'arena':'circuit') .'.php?id='. $getCircuit['id'];

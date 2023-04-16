@@ -770,9 +770,8 @@ $slidesPath = 'images/slides';
 					return $n;
 				}
 				require_once('utils-cups.php');
-				$nameCol = $language ? 'name_en' : 'name_fr';
 				while ($comment = mysql_fetch_array($getComments)) {
-					if ($getCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $comment['type'] .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $comment['type'] .'" AND s.circuit=c.id WHERE c.id='. $comment['circuit'] .' AND c.nom IS NOT NULL'))) {
+					if (($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) && ($getCircuit['name'] !== null)) {
 						switch ($comment['type']) {
 						case 'mkmcups' :
 							$url = getCupPage($getCircuit['mode']) . '.php?mid='. $getCircuit['id'];

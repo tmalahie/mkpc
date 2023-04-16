@@ -425,9 +425,9 @@ include('menu.php');
 					$nbComments = mysql_numrows($lastComments);
 					$displayedComments = 0;
 					$comments = array();
-					$nameCol = $language ? 'name_en' : 'name_fr';
+					require_once('utils-cups.php');
 					while ($comment = mysql_fetch_array($lastComments)) {
-						if ($getCircuit = mysql_fetch_array(mysql_query('SELECT c.*,IFNULL(s.'.$nameCol.',c.nom) AS name FROM `'. $comment['type'] .'` c LEFT JOIN `mktracksettings` s ON s.type="'. $comment['type'] .'" AND s.circuit=c.id WHERE c.id='. $comment['circuit']))) {
+						if ($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) {
 							$comment['circuit_data'] = $getCircuit;
 							$comments[] = $comment;
 							$displayedComments++;
