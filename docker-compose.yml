@@ -5,7 +5,8 @@ services:
         build:
             context: ./docker/php
         depends_on:
-            - db
+            db:
+                condition: service_healthy
         volumes:
             - .:/var/www/html
             - ./docker/php/images/avatars:/var/www/html/images/avatars
@@ -31,6 +32,12 @@ services:
             - '8306:3306'
         expose:
             - '3306'
+        healthcheck:
+            test: ["CMD", "mysql" ,"mkpc", "-u", "mkpc_user", "--password=mkpc_pwd"]
+            start_period: 10s
+            timeout: 20s
+            retries: 10
+            interval: 2s
         volumes:
             - mkpc-db:/var/lib/mysql
 volumes:
