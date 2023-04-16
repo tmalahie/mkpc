@@ -14,9 +14,11 @@ function getUserRights($playerId) {
 	}
 	return $res;
 }
-$hasRight = getUserRights($id);
+$hasRight = null;
 function hasRight($key) {
-	global $hasRight;
+	global $hasRight, $id;
+	if ($hasRight === null)
+		$hasRight = getUserRights($id);
 	return isset($hasRight[$key]);
 }
 ?>
