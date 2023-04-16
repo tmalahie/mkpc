@@ -6614,7 +6614,7 @@ var itemBehaviors = {
 							if (!kart.protect) {
 								if (!isOnline || !i || kart.controller == identifiant)
 									kart.size = 0.6;
-								kart.mini = Math.round(Math.max(kart.mini, 120-(kart.place-1)*40/(aKarts.length-1)));
+								kart.mini = Math.round(Math.max(kart.mini, 110-(kart.place-1)*35/(aKarts.length-1)));
 								loseUsingItems(kart);
 								kart.champi = 0;
 								delete kart.champiType;
@@ -14892,11 +14892,12 @@ function move(getId, triggered) {
 					if ((oKart.tours == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
 						forbiddenItems["carapacebleue"] = 1;
 						forbiddenItems["carapacenoire"] = 1;
-						forbiddenItems["eclair"] = 1;
 						forbiddenItems["bloops"] = 1;
 						forbiddenItems["carapaceX3"] = 1;
 						forbiddenItems["carapacerougeX3"] = 1;
 					}
+					if ((timer < 375) && (itemDistribution.lightningstart != 1))
+						forbiddenItems["eclair"] = 1;
 					if (oKart.place == 1)
 						forbiddenItems["carapacebleue"] = 1;
 					
@@ -16013,6 +16014,8 @@ function move(getId, triggered) {
 			}
 		}
 	}
+	if (oKart.protect && oKart.turbodrift)
+		oKart.maxspeed = Math.min(oKart.maxspeed, Math.max(8,13*cappedRelSpeed()/oKart.size));
 	if (oKart.mini) {
 		oKart.mini--;
 		if (oKart.mini < 1) {
@@ -22150,6 +22153,7 @@ function selectItemScreen(oScr, callback, options) {
 		"prevent-lightning-x2": options.lightningx2 != 1,
 		"blueshell-cooldown": options.blueshelldelay != 0,
 		"lightning-cooldown": options.lightningdelay != 0,
+		"lightning-start": options.lightningstart != 1,
 		"prevent-doubleitem-x2": options.doubleitemx2 != 1,
 	};
 
@@ -22171,6 +22175,8 @@ function selectItemScreen(oScr, callback, options) {
 			newDistribution.blueshelldelay = 0;
 		if (!advancedOptions["lightning-cooldown"])
 			newDistribution.lightningdelay = 0;
+		if (!advancedOptions["lightning-start"])
+			newDistribution.lightningstart = 1;
 		if (!advancedOptions["prevent-doubleitem-x2"])
 			newDistribution.doubleitemx2 = 1;
 	}
@@ -22231,6 +22237,12 @@ function selectItemScreen(oScr, callback, options) {
 								'<input type="checkbox" id="item-options-lightning2" name="lightning-cooldown" />'+
 							'</div>'+
 							'<label for="item-options-lightning2">'+ toLanguage("Min time frame of 30s between 2 lightnings", "Empêcher 2 éclairs à moins de 30s d'intervalle") +'</label>'+
+						'</div>'+
+						'<div class="item-option">'+
+							'<div>'+
+								'<input type="checkbox" id="item-options-lightning0" name="lightning-start" />'+
+							'</div>'+
+							'<label for="item-options-lightning0">'+ toLanguage("No lightning item before 25s of race", "Pas d'éclair avant 25s de course") +'</label>'+
 						'</div>'+
 					'</div>'+
 					'<div class="item-optgroup">'+
