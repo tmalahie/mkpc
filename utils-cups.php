@@ -340,10 +340,8 @@ function getTrackPayloads($options) {
         exit;
     }
     $NBCIRCUITS = 0;
-    foreach ($circuitsData as $circuitData) {
-        if ($circuitData['mode'] < 2)
-            $NBCIRCUITS++;
-    }
+    foreach ($circuitsData as $circuitData)
+        $NBCIRCUITS++;
     addClChallenges($nid, $clPayloadParams);
 }
 function printCircuitsData() {

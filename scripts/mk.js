@@ -1209,8 +1209,7 @@ var gameSettings;
 var ctrlSettings;
 var oChallengeCpts;
 function loadMap() {
-	var cupPayload = cupPayloads[Math.floor((oMap.ref-1)/4)];
-	var mapSrc = isCup ? (cupPayload.complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
+	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
@@ -18099,8 +18098,7 @@ function getMapIcSrc(playerName) {
 	return "images/map_icons/"+ playerName +".png";
 }
 function getMapSelectorSrc(i) {
-	var cupPayload = cupPayloads[Math.floor(i / 4)];
-	return isCup ? (cupPayload.complete ? "trackicon.php?id="+ oMaps[aAvailableMaps[i]].map +"&type=" + (course=="BB" ? 2:1):"trackicon.php?id="+ oMaps[aAvailableMaps[i]].id +"&type=0") : "images/selectors/select_" + aAvailableMaps[i] + ".png";
+	return isCup ? (complete ? "trackicon.php?id="+ oMaps[aAvailableMaps[i]].map +"&type=" + (course=="BB" ? 2:1):"trackicon.php?id="+ oMaps[aAvailableMaps[i]].id +"&type=0") : "images/selectors/select_" + aAvailableMaps[i] + ".png";
 }
 function getMapId(oMap) {
 	var res = isBattle ? nid : (simplified ? oMap.id : oMap.map);
@@ -20029,10 +20027,6 @@ function selectTypeScreen() {
 			oModes.unshift("Grand Prix");
 			oModeIds.unshift("GP");
 		}
-		if (hasBattle()) {
-			oModes.push(toLanguage("Battle", "Bataille"));
-			oModeIds.push("BB");
-		}
 		if (hasChallenges() || myCircuit) {
 			oModes.push(toLanguage("Challenges", "Défis"));
 			oModeIds.push("CH");
@@ -20184,7 +20178,7 @@ function selectMainPage() {
 			break;
 		case "CI":
 		case "MA":
-			if (nid || isCup)
+			if (nid)
 				selectTypeScreen();
 			else {
 				course = "VS";
@@ -22727,9 +22721,6 @@ function hasChallenges() {
 		for (var cid in challenges[type])
 			return true;
 	}
-}
-function hasBattle() {
-	return (isCup && (aAvailableMaps.length > NBCIRCUITS));
 }
 function isTeamPlay() {
 	switch (course) {
