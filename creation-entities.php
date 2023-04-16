@@ -26,7 +26,11 @@ $CREATION_ENTITIES = array(
             $ids = $options['ids'];
             $requireOwner = !empty($options['require_owner']);
             $idsString = implode(',', $ids);
-            return mysql_query('SELECT id,map,laps,nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id IN ('. $idsString .') AND !type'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : ''));
+            return getCreationDataQuery(array(
+                'table' => 'mkcircuits',
+                'select' => 'c.id,c.map,c.laps,c.auteur,c.note,c.nbnotes,c.publication_date',
+                'where' => 'c.id IN ('. $idsString .') AND !c.type'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : ''),
+            ));
         },
         'fetch_track_extras' => function($options) {
             global $lettres, $nbLettres;
@@ -63,7 +67,12 @@ $CREATION_ENTITIES = array(
             $ids = $options['ids'];
             $requireOwner = !empty($options['require_owner']);
             $idsString = implode(',', $ids);
-            return mysql_query('SELECT c.*,c.id,d.data FROM `circuits` c LEFT JOIN `circuits_data` d ON c.id=d.id WHERE c.id IN ('. $idsString .')'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : ''));
+            return getCreationDataQuery(array(
+                'table' => 'circuits',
+                'join' => 'LEFT JOIN `circuits_data` d ON c.id=d.id',
+                'select' => 'c.*,c.id,d.data',
+                'where' => 'c.id IN ('. $idsString .')'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : '')
+            ));
         },
         'fetch_track_extras' => function($options) {
             foreach ($options['base'] as $key => $value)
@@ -99,7 +108,11 @@ $CREATION_ENTITIES = array(
             $ids = $options['ids'];
             $requireOwner = !empty($options['require_owner']);
             $idsString = implode(',', $ids);
-            return mysql_query('SELECT id,map,nom,auteur,note,nbnotes,publication_date FROM `mkcircuits` WHERE id IN ('. $idsString .') AND type'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"') : ''));
+            return getCreationDataQuery(array(
+                'table' => 'mkcircuits',
+                'select' => 'c.id,c.map,c.auteur,c.note,c.nbnotes,c.publication_date',
+                'where' => 'c.id IN ('. $idsString .') AND c.type'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : '')
+            ));
         },
         'fetch_track_extras' => function($options) {
             global $lettres, $nbLettres;
@@ -139,7 +152,12 @@ $CREATION_ENTITIES = array(
             $ids = $options['ids'];
             $requireOwner = !empty($options['require_owner']);
             $idsString = implode(',', $ids);
-            return mysql_query('SELECT a.*,a.id,d.data FROM `arenes` a LEFT JOIN `arenes_data` d ON a.id=d.id WHERE a.id IN ('. $idsString .')'. ($requireOwner ? (' AND a.identifiant="'. $identifiants[0] .'" AND a.identifiant2="'. $identifiants[1] .'" AND a.identifiant3="'. $identifiants[2] .'" AND a.identifiant4="'. $identifiants[3] .'"') : ''));
+            return getCreationDataQuery(array(
+                'table' => 'arenes',
+                'join' => 'LEFT JOIN `arenes_data` d ON c.id=d.id',
+                'select' => 'c.*,c.id,d.data',
+                'where' => 'c.id IN ('. $idsString .')'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : '')
+            ));
         },
         'fetch_track_extras' => function($options) use (&$CREATION_ENTITIES) {
             return $CREATION_ENTITIES[1]['fetch_track_extras']($options);

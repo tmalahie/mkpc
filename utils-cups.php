@@ -95,8 +95,8 @@ function getTrackPayloads($options) {
         $nid = $id;
         $isCup = true;
         $isMCup = true;
-        if ($getMCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkmcups` WHERE id="'. $id .'"'))) {
-            $cName = $getMCup['nom'];
+        if ($getMCup = fetchCreationData('mkmcups', $id)) {
+            $cName = $getMCup['name'];
             $infos['name'] = $cName;
             $cPseudo = $getMCup['auteur'];
             $cAuteur = $cPseudo;
@@ -117,8 +117,8 @@ function getTrackPayloads($options) {
         $id = intval($_GET['cid']);
         $nid = $id;
         $isCup = true;
-        if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $id .'"'))) {
-            $cName = $getCup['nom'];
+        if ($getCup = fetchCreationData('mkcups', $id)) {
+            $cName = $getCup['name'];
             $infos['name'] = $cName;
             $cPseudo = $getCup['auteur'];
             $cAuteur = $cPseudo;
@@ -151,8 +151,8 @@ function getTrackPayloads($options) {
         $isCup = true;
         if (isset($_GET['nid'])) { // Cup being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkcups` WHERE id="'. $nid .'"'))) {
-                $cName = $getMain['nom'];
+            if ($getMain = fetchCreationData('mkcups', $nid, array('select' => 'c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+                $cName = $getMain['name'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
                 $pNote = $getMain['note'];
@@ -175,8 +175,8 @@ function getTrackPayloads($options) {
         $isMCup = true;
         if (isset($_GET['nid'])) { // Multicups being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date FROM `mkmcups` WHERE id="'. $nid .'"'))) {
-                $cName = $getMain['nom'];
+            if ($getMain = fetchCreationData('mkmcups', $nid, array('select' => 'c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+                $cName = $getMain['name'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
                 $pNote = $getMain['note'];
@@ -206,7 +206,7 @@ function getTrackPayloads($options) {
             $requireOwner = !hasCollabGrants($table, $nid, $_GET['collab'], 'view');
             if ($getMain = mysql_fetch_array($creationEntities['fetch_tracks'](array('ids' => array($nid), 'mode' => $mode, 'require_owner' => $requireOwner)))) {
                 $infos['id'] = $nid;
-                $cName = $getMain['nom'];
+                $cName = $getMain['name'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
                 $pNote = $getMain['note'];
@@ -235,14 +235,18 @@ function getTrackPayloads($options) {
         if (!empty($cupIDs)) {
             $cupsTracks = array();
             $cupById = array();
-            $getAllCircuits = mysql_query('SELECT id,nom,mode,circuit0,circuit1,circuit2,circuit3 FROM `mkcups` WHERE id IN ('. implode(',',$cupIDs) .')');
-            while ($getCup = mysql_fetch_array($getAllCircuits)) {
+            $getAllCups = getCreationDataQuery(array(
+                'table' => 'mkcups',
+                'select' => 'c.id,c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3',
+                'where' => 'c.id IN ('. implode(',',$cupIDs) .')'
+            ));
+            while ($getCup = mysql_fetch_array($getAllCups)) {
                 $cupTracks = array();
                 for ($i=0;$i<4;$i++)
                     $cupTracks[] = $getCup['circuit'.$i];
                 $cupsTracks[$getCup['id']] = $cupTracks;
                 $cupById[$getCup['id']] = $getCup;
-                addCircuitChallenges('mkcups', $getCup['id'],$getCup['nom'], $clPayloadParams, false);
+                addCircuitChallenges('mkcups', $getCup['id'],$getCup['name'], $clPayloadParams, false);
             }
             foreach ($cupIDs as $cupID) {
                 if (isset($cupsTracks[$cupID])) {
@@ -257,7 +261,7 @@ function getTrackPayloads($options) {
                     $cupObj = $cupById[$cupID];
                     $cupPayloads[] = array(
                         'id' => $cupObj['id'],
-                        'name' => $cupObj['nom'],
+                        'name' => $cupObj['name'],
                         'mode' => $cupObj['mode'],
                         'complete' => ($cupObj['mode'] % 2 > 0),
                         'battle' => ($cupObj['mode'] > 1),
@@ -292,7 +296,7 @@ function getTrackPayloads($options) {
                     $getMain = $allTracks[$trackMode][$trackID];
                     $infos = array();
                     $infos['id'] = $trackID;
-                    $infos['name'] = $getMain['nom'];
+                    $infos['name'] = $getMain['name'];
                     $infos['note'] = $getMain['note'];
                     $infos['nbnotes'] = $getMain['nbnotes'];
                     $infos['auteur'] = $getMain['auteur'];
