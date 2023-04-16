@@ -931,8 +931,8 @@ $slidesPath = 'images/slides';
 					else
 						$table = 'mkcups';
 					$res = '';
-					if ($getNom = mysql_fetch_array(mysql_query('SELECT nom FROM `'.$table.'` WHERE id='.$params['cup'])))
-						$res = $getNom['nom'];
+					if ($getNom = fetchCreationData($table,$params['cup'], array('select' => '1')))
+						$res = $getNom['name'];
 					if (!$res) $res = _('Untitled');
 					return controlLengthUtf8($res,30);
 				}

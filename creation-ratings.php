@@ -62,7 +62,7 @@ $page = 'game';
 include('menu.php');
 if (isset($_GET['del'])) {
     if ($rating = mysql_fetch_array(mysql_query('SELECT type,circuit,identifiant FROM mkratings WHERE id="'. $_GET['del'] .'"'))) {
-        if ($circuit = mysql_fetch_array(mysql_query('SELECT nom,identifiant FROM `'. $rating['type'] .'` WHERE id='. $rating['circuit']))) {
+        if ($circuit = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $rating['type'] .'` WHERE id='. $rating['circuit']))) {
             if ($circuit['identifiant'] != $identifiants[0]) {
                 mysql_query('DELETE FROM mkratings WHERE id="'. $_GET['del'] .'"');
                 require_once('utils-ratings.php');
@@ -109,10 +109,11 @@ if (isset($_GET['url'])) {
     <?php
     if (isset($_GET['url'])) {
         if (isset($circuitType)) {
-            if ($getCircuit = mysql_fetch_array(mysql_query('SELECT nom,identifiant FROM `'. $circuitType .'` WHERE id='. $circuitId))) {
+            require_once('utils-cups.php');
+            if ($getCircuit = fetchCreationData($circuitType, $circuitId, array('select' => 'c.identifiant'))) {
                 $myCircuit = ($getCircuit['identifiant'] == $identifiants[0]);
                 ?>
-                <h2><?php echo ($language ? 'Ratings of' : 'Notes de') . ' '. htmlspecialchars($getCircuit['nom']); ?> :</h2>
+                <h2><?php echo ($language ? 'Ratings of' : 'Notes de') . ' '. htmlspecialchars($getCircuit['name']); ?> :</h2>
                 <table>
                 	<tr id="titres">
                         <td style="min-width: 120px"><?php echo $language ? 'Nick':'Pseudo'; ?></td>
