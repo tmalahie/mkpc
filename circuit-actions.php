@@ -2,7 +2,8 @@
 require_once('collabUtils.php');
 $creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits');
 function includeShareLib() {
-    global $nid, $creationType, $isCup, $isMCup, $sid, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage;
+    global $nid, $creationType, $isCup, $isMCup, $isBattle, $sid, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage;
+    $isBattle = ($creationMode > 1);
     $collab = getCollabLinkFromQuery($creationType, $nid);
     if (isset($nid)) {
         $creator = mysql_numrows(mysql_query('SELECT * FROM `'.$creationType.'` WHERE id="'. $nid.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
@@ -16,22 +17,34 @@ function includeShareLib() {
     }
     if ($canChange) {
         include('creation-entities.php');
-        $shareParams = $CREATION_ENTITIES[$creationMode]['get_share_params']();
-        $trackEditPage = $shareParams['edit']['page'];
+        if (!$isCup) {
+            $shareParams = $CREATION_ENTITIES[$creationMode]['get_share_params']();
+            $trackEditPage = $shareParams['edit']['page'];
+        }
         ?>
         function saveRace() {
             document.getElementById("cAnnuler").disabled = true;
             document.getElementById("cAnnuler").className = "cannotChange";
             document.getElementById("cEnregistrer").disabled = true;
             document.getElementById("cEnregistrer").className = "cannotChange";
-            xhr("<?php echo ($isMCup ? 'saveMCup' : ($isCup?'saveCup':$shareParams['send']['endpoint'])); ?>", "<?php echo $shareParams['send']['params']; ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
+            xhr("<?php echo ($isMCup ? 'saveMCup' : ($isCup?'saveCup':$shareParams['send']['endpoint'])); ?>", "<?php
+            if ($isCup) {
+                echo 'mode='. $creationMode;
+                foreach ($cupIDs as $i=>$cupID)
+                    echo '&cid'. $i .'='. $cupID;
+                if (!empty($cOptions))
+                    echo '&opt="+ encodeURIComponent(JSON.stringify(cupOpts)) +"';
+            }
+            else
+                echo $shareParams['send']['params'];
+            ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
                 if (reponse && !isNaN(reponse)) {
                     document.getElementById("cSave").removeChild(document.getElementById("cTable"));
                     var cP = document.createElement("p");
                     cP.style.margin = "5px";
                     cP.style.textAlign = "center";
                     cP.innerHTML = '<?php
-                        if (isset($shareParams['remove']))
+                        if ($isCup ? isset($nid) : isset($shareParams['remove']))
                             echo $language ? ($isCup ? 'Cup':'Arena') .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':'arène') .' a été mis à jour.';
                         else
                             echo $language ? 'Your '. ($isCup ? 'cup':'arena') .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':'arène') .' vient d\\\'être ajoutée à la <a href="creations.php" target="_blank">liste</a> !';
@@ -40,7 +53,11 @@ function includeShareLib() {
                     cCont.type = "button";
                     cCont.value = language ? "Continue":"Continuer";
                     cCont.onclick = function() {
-                        <?php echo $shareParams['send']['onSuccess']; ?>
+                        <?php
+                        echo 'document.location.href = "?'.$sid.'="+ reponse';
+                        if ($collab) echo '+"&collab='.$collab['key'].'"';
+                        echo ';';
+                        ?>
                     };
                     cP.appendChild(cCont);
                     document.getElementById("cSave").appendChild(cP);
@@ -60,7 +77,10 @@ function includeShareLib() {
             document.getElementById("sAnnuler").className = "cannotChange";
             document.getElementById("sConfirmer").disabled = true;
             document.getElementById("sConfirmer").className = "cannotChange";
-            xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':$shareParams['remove']['endpoint'])); ?>", "<?php echo $shareParams['remove']['params']; ?>", function(reponse) {
+            xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':$shareParams['remove']['endpoint'])); ?>", "<?php
+                echo 'id='.$nid;
+                if ($collab) echo '&collab='.$collab['key'];
+            ?>", function(reponse) {
                 if (reponse == 1) {
                     document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The '. ($isCup ? 'cup':'arena') .' has been successfully removed from the list.':($isCup ? 'La coupe':'L\\\'arène') .' a été retirée de la liste avec succès.'; ?>';
                     document.getElementById("supprButtons").innerHTML = '';
@@ -68,7 +88,30 @@ function includeShareLib() {
                     cCont.type = "button";
                     cCont.value = language ? "Continue":"Continuer";
                     cCont.onclick = function() {
-                        <?php echo $shareParams['remove']['onSuccess']; ?>
+                        <?php
+                        if ($isMCup) {
+                            echo 'document.location.href = "?';
+                            foreach ($cupIDs as $i => $cupID) {
+                                if ($i)
+                                    echo '&';
+                                echo 'mid'. $i .'='. $cupIDs[$i];
+                            }
+                            if (!empty($cOptions))
+                                echo '&opt='. urlencode($cOptions);
+                            echo '";';
+                        }
+                        elseif ($isCup) {
+                            echo 'document.location.href = "?';
+                            for ($i=0;$i<4;$i++) {
+                                if ($i)
+                                    echo '&';
+                                echo 'cid'. $i .'='. $cupIDs[$i];
+                            }
+                            echo '";';
+                        }
+                        else
+                            echo $shareParams['remove']['onSuccess'];
+                        ?>
                     };
                     document.getElementById("supprButtons").appendChild(cCont);
                     document.getElementById("changeRace").disabled = true;
