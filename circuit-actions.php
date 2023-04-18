@@ -1,9 +1,11 @@
 <?php
 require_once('collabUtils.php');
-$creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'mkcircuits');
 function includeShareLib() {
-    global $nid, $creationType, $isCup, $isMCup, $isBattle, $sid, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage;
+    global $nid, $creationType, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage;
     $isBattle = ($creationMode > 1);
+    $complete = ($creationMode%2);
+    include('creation-entities.php');
+    $creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':$CREATION_ENTITIES[$creationMode]['table']);
     $collab = getCollabLinkFromQuery($creationType, $nid);
     if (isset($nid)) {
         $creator = mysql_numrows(mysql_query('SELECT * FROM `'.$creationType.'` WHERE id="'. $nid.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
@@ -16,7 +18,6 @@ function includeShareLib() {
         $canShare = true;
     }
     if ($canChange) {
-        include('creation-entities.php');
         if (!$isCup) {
             $shareParams = $CREATION_ENTITIES[$creationMode]['get_share_params']();
             $trackEditPage = $shareParams['edit']['page'];
@@ -34,9 +35,17 @@ function includeShareLib() {
                     echo '&cid'. $i .'='. $cupID;
                 if (!empty($cOptions))
                     echo '&opt="+ encodeURIComponent(JSON.stringify(cupOpts)) +"';
+                echo '&';
             }
-            else
+            elseif ($shareParams['send']['params']) {
                 echo $shareParams['send']['params'];
+                echo '&';
+            }
+            if (isset($nid)) echo 'id='.$nid;
+            if ($clId) echo '&cl='.$clId;
+            if ($collab) echo '&collab='.$collab['key'];
+            if ($isCup)
+                echo '"+getCollabQuery("'. ($isMCup ? 'mkcups':$CREATION_ENTITIES[$creationMode]['table']) .'", ['. implode(',',$cupIDs) .'])+"';
             ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
                 if (reponse && !isNaN(reponse)) {
                     document.getElementById("cSave").removeChild(document.getElementById("cTable"));
@@ -62,7 +71,16 @@ function includeShareLib() {
                     cP.appendChild(cCont);
                     document.getElementById("cSave").appendChild(cP);
                     document.getElementById("changeRace").onclick = function() {
-                        document.location.href = "<?php echo ($isCup ? ($isMCup ? 'simplecups':'simplecup'):'create'); ?>.php?<?php echo $sid; ?>="+ reponse +"<?php echo $isCup ? '&battle':''; ?>";
+                        document.location.href = "<?php
+                            if ($isCup) {
+                                if ($complete)
+                                    echo ($isMCup ? 'completecups':'completecup');
+                                else
+                                    echo ($isMCup ? 'simplecups':'simplecup');
+                            }
+                            else
+                                echo $shareParams['edit']['page'];
+                            ?>?<?php echo $sid; ?>="+ reponse +"<?php echo $isCup ? '&battle':''; ?>";
                     };
                     return true;
                 }
@@ -146,7 +164,7 @@ function includeShareLib() {
 }
 
 function printCircuitActions() {
-    global $language, $canChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $trackEditPage, $nid, $sid;
+    global $language, $canChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $trackEditPage, $nid, $sid, $cShared;
     include('ip_banned.php');
     if (isBanned())
         echo '&nbsp;';
@@ -168,12 +186,12 @@ function printCircuitActions() {
         if ($canShare) {
             ?>
         <input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
-        if ($nid)
+        if ($cShared)
             echo $language ? 'Edit sharing':'Modifier partage';
         else
             echo $language ? "Share $typeStr":"Partager $typeStr";
         ?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
-            if (isset($_GET[$sid])) {
+            if ($cShared && isset($_GET[$sid])) {
                 ?>
             <br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
                 <?php

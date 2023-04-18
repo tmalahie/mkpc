@@ -28,7 +28,7 @@ if (isset($_POST['id']) && isset($_POST['nom']) && isset($_POST['auteur'])) {
 				mysql_query('INSERT INTO `mknotifs` SET type="follower_circuit", user="'. $follower['follower'] .'", link="2,'.$_POST['id'].'"');
 		}
 	}
-	echo 1;
+	echo $_POST['id'];
 	mysql_close();
 }
 ?>

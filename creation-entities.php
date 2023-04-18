@@ -55,7 +55,7 @@ $CREATION_ENTITIES = array(
             }
         },
         'get_share_params' => function() {
-            global $isCup, $isMCup, $cupIDs, $nid, $clId, $collab, $infos, $lettres, $nbLettres, $isBattle;
+            global $nid, $infos, $lettres, $nbLettres, $isBattle;
             $shareParams = 'map='.$infos['map'];
             if ($isBattle) echo '&battle';
             for ($i=0;$i<36;$i++)
@@ -73,11 +73,6 @@ $CREATION_ENTITIES = array(
                         $shareParams .= '&'.$prefix.$j.'='.$infos[$prefix.$j];
                 }
             }
-            if (isset($nid)) $shareParams .= '&id='.$nid;
-            if ($clId) $shareParams .= '&cl='.$clId;
-            if ($collab) $shareParams .= '&collab='.$collab['key'];
-            if ($isCup)
-                $shareParams .= '"+getCollabQuery("'. ($isMCup ? 'mkcups':'mkcircuits') .'", ['. implode(',',$cupIDs) .'])+"';
             
             $res = array(
                 'send' => array(
@@ -139,6 +134,30 @@ $CREATION_ENTITIES = array(
         'fetch_track_extras' => function($options) {
             foreach ($options['base'] as $key => $value)
                 $options['infos'][$key] = $value;
+        },
+        'get_share_params' => function() {
+            global $cShared, $isBattle;
+            
+            $res = array(
+                'send' => array(
+                    'endpoint' => $isBattle ? 'saveBattle.php' : 'saveDraw.php',
+                    'params' => ''
+                ),
+                'edit' => array(
+                    'page' => $isBattle ? 'course.php' : 'draw.php'
+                )
+            );
+
+            if ($cShared) {
+                $onUnshare = 'location.reload();';
+
+                $res['remove'] = array(
+                    'endpoint' => $isBattle ? 'supprBattle.php' : 'supprDraw.php',
+                    'onSuccess' => $onUnshare
+                );
+            }
+
+            return $res;
         }
     ),
     array(
@@ -226,6 +245,9 @@ $CREATION_ENTITIES = array(
         },
         'fetch_track_extras' => function($options) use (&$CREATION_ENTITIES) {
             return $CREATION_ENTITIES[1]['fetch_track_extras']($options);
+        },
+        'get_share_params' => function() use (&$CREATION_ENTITIES) {
+            return $CREATION_ENTITIES[1]['get_share_params']();
         }
     ),
 );
