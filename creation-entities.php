@@ -139,6 +139,101 @@ $CREATION_ENTITIES = array(
                     $incs[$prefix]++;
                 }
             }
+        },
+        'get_share_params' => function() {
+            global $isCup, $isMCup, $cupIDs, $cOptions, $nid, $clId, $collab, $infos, $lettres, $nbLettres, $sid;
+            $shareParams = '';
+            if ($isCup) {
+                $shareParams .= 'mode=2';
+                foreach ($cupIDs as $i=>$cupID)
+                    $shareParams .= '&cid'. $i .'='. $cupID;
+                if (!empty($cOptions))
+                    $shareParams .= '&opt="+ encodeURIComponent(JSON.stringify(cupOpts)) +"';
+            }
+            else {
+                $shareParams .= 'map='.$infos['map'].'&battle';
+                for ($i=0;$i<36;$i++)
+                    $shareParams .= '&p'.$i.'='.$infos['p'.$i];
+                for ($i=0;$i<8;$i++)
+                    $shareParams .= '&r'.$i.'='.$infos['r'.$i].'&s'.$i.'='.$infos['s'.$i];
+                for ($i=0;$i<$nbLettres;$i++) {
+                    $l = $lettres[$i];
+                    $prefixes = getLetterPrefixes($l,$infos['map']);
+                    for ($k=0;$k<$prefixes;$k++) {
+                        $prefix = getLetterPrefix($l,$k);
+                        for ($j=0;isset($infos[$prefix.$j]);$j++)
+                            $shareParams .= '&'.$prefix.$j.'='.$infos[$prefix.$j];
+                    }
+                }
+            }
+            if (isset($nid)) $shareParams .= '&id='.$nid;
+            if ($clId) $shareParams .= '&cl='.$clId;
+            if ($collab) $shareParams .= '&collab='.$collab['key'];
+            if ($isCup)
+                $shareParams .= '"+getCollabQuery("'. ($isMCup ? 'mkcups':'mkcircuits') .'", ['. implode(',',$cupIDs) .'])+"';
+
+            $onShare = 'document.location.href = "?'.$sid.'="+ reponse';
+            if ($collab) $onShare .= '+"&collab='.$collab['key'].'"';
+            $onShare .= ';';
+
+            $res = array(
+                'send' => array(
+                    'endpoint' => 'saveCreation.php',
+                    'params' => $shareParams,
+                    'onSuccess' => $onShare
+                ),
+                'edit' => array(
+                    'page' => 'arene.php'
+                )
+            );
+
+            if (isset($nid)) {
+                $unshareParams = 'id='.$nid;
+                if ($collab) $unshareParams .= '&collab='.$collab['key'];
+
+                $onUnshare = 'document.location.href = "?';
+                if ($isMCup) {
+                    foreach ($cupIDs as $i => $cupID) {
+                        if ($i)
+                            $onUnshare .= '&';
+                        $onUnshare .= 'mid'. $i .'='. $cupIDs[$i];
+                    }
+                    if (!empty($cOptions))
+                        $onUnshare .= '&opt='. urlencode($cOptions);
+                }
+                elseif ($isCup) {
+                    for ($i=0;$i<4;$i++) {
+                        if ($i)
+                            $onUnshare .= '&';
+                        $onUnshare .= 'cid'. $i .'='. $cupIDs[$i];
+                    }
+                }
+                else {
+                    $onUnshare .= 'map='.$infos['map'];
+                    for ($i=0;$i<36;$i++)
+                        $onUnshare .= '&p'.$i.'='.$infos['p'.$i];
+                    for ($i=0;$i<8;$i++)
+                        $onUnshare .= '&r'.$i.'='.$infos['r'.$i].'&s'.$i.'='.$infos['s'.$i];
+                    for ($i=0;$i<$nbLettres;$i++) {
+                        $l = $lettres[$i];
+                        $prefixes = getLetterPrefixes($l,$infos['map']);
+                        for ($k=0;$k<$prefixes;$k++) {
+                            $prefix = getLetterPrefix($l,$k);
+                            for ($j=0;isset($infos[$prefix.$j]);$j++)
+                                $onUnshare .= '&'.$prefix.$j.'='.$infos[$prefix.$j];
+                        }
+                    }
+                }
+                $onUnshare .= '";';
+
+                $res['remove'] = array(
+                    'endpoint' => 'supprCreation.php',
+                    'params' => $unshareParams,
+                    'onSuccess' => $onUnshare
+                );
+            }
+
+            return $res;
         }
     ),
     array(

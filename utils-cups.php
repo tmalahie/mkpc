@@ -84,11 +84,11 @@ function printCollabImportPopup($type, $mode) {
     <?php
 }
 function getTrackPayloads($options) {
-    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData;
+    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
     include('creation-entities.php');
     $sid = $options['sid'];
-    $mode = $options['mode'];
-    $creationEntities = &$CREATION_ENTITIES[$mode];
+    $creationMode = $options['mode'];
+    $creationEntities = &$CREATION_ENTITIES[$creationMode];
     $table = $creationEntities['table'];
     if (isset($_GET['mid'])) { // Existing multicup
         $id = intval($_GET['mid']);
@@ -142,7 +142,7 @@ function getTrackPayloads($options) {
         $nid = $id;
         $tracksToFetch = array(array(
             'id' => $id,
-            'mode' => $mode
+            'mode' => $creationMode
         ));
         $hthumbnail = 'https://mkpc.malahieude.net/mappreview.php?id='.$id;
         $cShared = true;
@@ -204,7 +204,7 @@ function getTrackPayloads($options) {
             $nid = intval($_GET['nid']);
             require_once('collabUtils.php');
             $requireOwner = !hasCollabGrants($table, $nid, $_GET['collab'], 'view');
-            if ($getMain = mysql_fetch_array($creationEntities['fetch_tracks'](array('ids' => array($nid), 'mode' => $mode, 'require_owner' => $requireOwner)))) {
+            if ($getMain = mysql_fetch_array($creationEntities['fetch_tracks'](array('ids' => array($nid), 'mode' => $creationMode, 'require_owner' => $requireOwner)))) {
                 $infos['id'] = $nid;
                 $cName = $getMain['name'];
                 $cPseudo = $getMain['auteur'];
@@ -224,9 +224,10 @@ function getTrackPayloads($options) {
         
         $creationEntities['get_track_from_params'](array(
             'infos' => &$infos,
-            'mode' => $mode,
+            'mode' => $creationMode,
             'base' => $getMain
         ));
+        $infos['mode'] = $creationMode;
         $edittingCircuit = true;
     }
     $cupPayloads = array();
