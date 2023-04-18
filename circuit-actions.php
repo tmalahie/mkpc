@@ -45,9 +45,9 @@ function includeShareLib() {
                     cP.style.textAlign = "center";
                     cP.innerHTML = '<?php
                         if ($isCup ? isset($nid) : isset($shareParams['remove']))
-                            echo $language ? ($isCup ? 'Cup':'Arena') .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':'arène') .' a été mis à jour.';
+                            echo $language ? ($isCup ? 'Cup':($isBattle ? 'Arena' : 'Circuit')) .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':($isBattle ? 'arène' : 'circuit')) .' a été mis à jour.';
                         else
-                            echo $language ? 'Your '. ($isCup ? 'cup':'arena') .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':'arène') .' vient d\\\'être ajoutée à la <a href="creations.php" target="_blank">liste</a> !';
+                            echo $language ? 'Your '. ($isCup ? 'cup':($isBattle ? 'arena' : 'circuit')) .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':($isBattle ? 'arène':'circuit')) .' vient d\\\'être ajoutée à la <a href="creations.php" target="_blank">liste</a> !';
                     ?><br /><br />';
                     var cCont = document.createElement("input");
                     cCont.type = "button";
@@ -82,7 +82,7 @@ function includeShareLib() {
                 if ($collab) echo '&collab='.$collab['key'];
             ?>", function(reponse) {
                 if (reponse == 1) {
-                    document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The '. ($isCup ? 'cup':'arena') .' has been successfully removed from the list.':($isCup ? 'La coupe':'L\\\'arène') .' a été retirée de la liste avec succès.'; ?>';
+                    document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The '. ($isCup ? 'cup':($isBattle ? 'arena':'circuit')) .' has been successfully removed from the list.':($isCup ? 'La coupe':($isBattle ? "L\\'arène":'Le circuit')) .' a été '. ($isCup||$isBattle ? 'retirée':'retiré') .' de la liste avec succès.'; ?>';
                     document.getElementById("supprButtons").innerHTML = '';
                     var cCont = document.createElement("input");
                     cCont.type = "button";
@@ -151,7 +151,7 @@ function printCircuitActions() {
     if (isBanned())
         echo '&nbsp;';
     elseif ($canChange) {
-        $typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')):($language ? 'arena':'l\'arène');
+        $typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')) : ($isBattle ? ($language ? 'arena':'l\'arène') : ($language ? 'circuit':'le circuit'));
         ?>
         <input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='<?php echo ($isCup ? ($isMCup ? 'simplecups.php':'simplecup.php'):$trackEditPage) ?>'+document.location.search<?php if ($isCup&&$isBattle) echo '+\'&battle\''; ?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br /><?php
         if ($creator && isset($nid) && !isset($_GET['nid'])) {
@@ -181,18 +181,18 @@ function printCircuitActions() {
         }
     }
     else
-        printRatingView($language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':'course')).'!'):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':'cette arène'))).' !');
+        printRatingView($language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':($isBattle?'course':'circuit'))).'!'):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':($isBattle?'cette arène':'ce circuit')))).' !');
 }
 function printCircuitShareUI() {
-    global $language, $isCup, $isMCup, $cName, $cPseudo;
+    global $language, $isCup, $isMCup, $isBattle, $cName, $cPseudo;
     ?>
     <div id="confirmSuppr">
     <p id="supprInfos"><?php echo $language ?
-        'Stop sharing this '. ($isCup ? ($isMCup ? 'multicup':'cup'):'arena') .'?<br />
-        '.($isCup ? ($isMCup ? 'The multicup':'The cup'):'The arena').' will be only removed from the list:<br />
+        'Stop sharing this '. ($isCup ? ($isMCup ? 'multicup':'cup'):($isBattle ? 'arena':'circuit')) .'?<br />
+        '.($isCup ? ($isMCup ? 'The multicup':'The cup'):($isBattle ? 'The arena':'The circuit')).' will be only removed from the list:<br />
         data will be recoverable.' :
-        'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):'cette arène') .' ?<br />
-        '.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):'L\'arène').' sera simplement retirée de la liste :<br />
+        'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):($isBattle ? 'cette arène':'ce circuit')) .' ?<br />
+        '.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):($isBattle ? "L'arène":"Le circuit")).' sera simplement '.($isBattle||$isCup ? 'retirée' : 'retiré').' de la liste :<br />
         les données seront récupérables.';
     ?></p>
     <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
@@ -203,7 +203,7 @@ function printCircuitShareUI() {
         <form id="cSave" method="post" action="" onsubmit="saveRace();return false">
         <table id="cTable">
         <tr><td style="text-align: right"><label for="cPseudo"><?php echo $language ? 'Enter your nick':'Indiquez votre pseudo'; ?> :</label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
-        <tr><td style="text-align: right"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):'Arena').' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):'de l\'arène'); ?> :</label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName) ?>" /></td></tr>
+        <tr><td style="text-align: right"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit')).' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit")); ?> :</label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName) ?>" /></td></tr>
         <tr><td colspan="2" id="cSubmit"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="cAnnuler" onclick="document.getElementById('cSave').style.display='none'" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Share':'Partager'; ?>" id="cEnregistrer" /></td></tr>
         </table>
         </form>
