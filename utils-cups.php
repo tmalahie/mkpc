@@ -86,10 +86,18 @@ function printCollabImportPopup($type, $mode) {
 function getTrackPayloads($options) {
     global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
     include('creation-entities.php');
-    $sid = $options['sid'];
-    $creationMode = $options['mode'];
-    $creationEntities = &$CREATION_ENTITIES[$creationMode];
-    $table = $creationEntities['table'];
+    $isOnline = isset($options['online']);
+    if ($isOnline) {
+        $sid = '';
+        $table = '';
+    }
+    if (isset($options['mode'])) {
+        $creationMode = $options['mode'];
+        $creationEntities = &$CREATION_ENTITIES[$creationMode];
+        $table = $creationEntities['table'];
+    }
+    if (isset($options['sid']))
+        $sid = $options['sid'];
     if (isset($_GET['mid'])) { // Existing multicup
         $id = intval($_GET['mid']);
         $nid = $id;
@@ -110,7 +118,8 @@ function getTrackPayloads($options) {
             $cupIDs = array();
             while ($getCup = mysql_fetch_array($getCups))
                 $cupIDs[] = $getCup['cup'];
-            addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
+            if (!$isOnline)
+                addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
         }
     }
     elseif (isset($_GET['cid'])) { // Existing cup
@@ -134,7 +143,8 @@ function getTrackPayloads($options) {
                 );
                 $cupIDs[$i] = $getCup['circuit'. $i];
             }
-            addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
+            if (!$isOnline)
+                addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
         }
     }
     elseif (isset($_GET[$sid])) { // Existing track
@@ -161,7 +171,8 @@ function getTrackPayloads($options) {
                 $creationData = $getMain;
                 $cShared = true;
                 $cEditting = true;
-                addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
+                if (!$isOnline)
+                    addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
             }
         }
         else
@@ -185,7 +196,8 @@ function getTrackPayloads($options) {
                 $creationData = $getMain;
                 $cShared = true;
                 $cEditting = true;
-                addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
+                if (!$isOnline)
+                    addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
             }
         }
         else {
@@ -212,7 +224,8 @@ function getTrackPayloads($options) {
                 $pNote = $getMain['note'];
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
-                addCircuitChallenges($table, $nid,$cName, $clPayloadParams);
+                if (!$isOnline)
+                    addCircuitChallenges($table, $nid,$cName, $clPayloadParams);
             }
             else {
                 mysql_close();
@@ -247,7 +260,8 @@ function getTrackPayloads($options) {
                     $cupTracks[] = $getCup['circuit'.$i];
                 $cupsTracks[$getCup['id']] = $cupTracks;
                 $cupById[$getCup['id']] = $getCup;
-                addCircuitChallenges('mkcups', $getCup['id'],$getCup['name'], $clPayloadParams, false);
+                if (!$isOnline)
+                    addCircuitChallenges('mkcups', $getCup['id'],$getCup['name'], $clPayloadParams, false);
             }
             foreach ($cupIDs as $cupID) {
                 if (isset($cupsTracks[$cupID])) {
@@ -309,7 +323,8 @@ function getTrackPayloads($options) {
                         'infos' => &$infos
                     ));
                     $circuitsData[] = $infos;
-                    addCircuitChallenges($table, $trackID,$infos['name'], $clPayloadParams, !$isCup);
+                    if (!$isOnline)
+                        addCircuitChallenges($table, $trackID,$infos['name'], $clPayloadParams, !$isCup);
                 }
             }
         }
@@ -340,10 +355,9 @@ function getTrackPayloads($options) {
         mysql_close();
         exit;
     }
-    $NBCIRCUITS = 0;
-    foreach ($circuitsData as $circuitData)
-        $NBCIRCUITS++;
-    addClChallenges($nid, $clPayloadParams);
+    $NBCIRCUITS = count($circuitsData);
+    if (!$isOnline)
+        addClChallenges($nid, $clPayloadParams);
 }
 function printCircuitsData() {
     global $circuitsData;
