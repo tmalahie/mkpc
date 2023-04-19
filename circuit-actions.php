@@ -46,7 +46,7 @@ function includeShareLib() {
             if ($collab) echo '&collab='.$collab['key'];
             if ($isCup)
                 echo '"+getCollabQuery("'. ($isMCup ? 'mkcups':$CREATION_ENTITIES[$creationMode]['table']) .'", ['. implode(',',$cupIDs) .'])+"';
-            ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
+            ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo") +"&name_en="+ getValue("cNameEn") +"&name_fr="+ getValue("cNameFr") +"&prefix="+ getValue("cPrefix"), function(reponse) {
                 if (reponse && !isNaN(reponse)) {
                     document.getElementById("cSave").removeChild(document.getElementById("cTable"));
                     var cP = document.createElement("p");
@@ -145,6 +145,9 @@ function includeShareLib() {
         function getValue(name) {
             return encodeURIComponent(document.getElementById(name).value);
         }
+        function showPrefixHelp() {
+            alert(language ? "Will appear in online mode circuit selection screen" : "Apparaitra dans l'écran de sélection de circuit du mode en ligne")
+        }
         <?php
     }
     else {
@@ -202,7 +205,7 @@ function printCircuitActions() {
         printRatingView($language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':($isBattle?'course':'circuit'))).'!'):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':($isBattle?'cette arène':'ce circuit')))).' !');
 }
 function printCircuitShareUI() {
-    global $language, $isCup, $isMCup, $isBattle, $cName, $cPseudo;
+    global $language, $isCup, $isMCup, $isBattle, $cName0, $cPseudo, $creationType, $nid;
     ?>
     <div id="confirmSuppr">
     <p id="supprInfos"><?php echo $language ?
@@ -217,11 +220,19 @@ function printCircuitShareUI() {
     </div>
     <?php
     if (!isset($cannotChange)) {
+        if (isset($nid))
+            $getTrackSettings = mysql_fetch_array(mysql_query('SELECT * FROM mktracksettings WHERE type="'. $creationType .'" AND circuit="'. $nid .'"'));
+        $cNameFr = isset($getTrackSettings['name_fr']) ? $getTrackSettings['name_fr'] : '';
+        $cNameEn = isset($getTrackSettings['name_en']) ? $getTrackSettings['name_en'] : '';
+        $cPrefix = isset($getTrackSettings['prefix']) ? $getTrackSettings['prefix'] : '';
         ?>
         <form id="cSave" method="post" action="" onsubmit="saveRace();return false">
         <table id="cTable">
-        <tr><td style="text-align: right"><label for="cPseudo"><?php echo $language ? 'Enter your nick':'Indiquez votre pseudo'; ?> :</label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
-        <tr><td style="text-align: right"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit')).' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit")); ?> :</label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName) ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit')).' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit")); ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName0) ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? 'Circuit name [EN]:':'Nom du circuit [FR] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? 'Circuit name [FR]:':'Nom du circuit [EN] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="cPrefix"><?php echo $language ? 'Online mode - Prefix':'Mode en ligne - Préfixe'; ?><a class="cHelp" href="javascript:showPrefixHelp()">[?]</a><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="cPrefix" id="cPrefix" value="<?php echo htmlspecialchars($cPrefix); ?>" /></td></tr>
         <tr><td colspan="2" id="cSubmit"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="cAnnuler" onclick="document.getElementById('cSave').style.display='none'" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Share':'Partager'; ?>" id="cEnregistrer" /></td></tr>
         </table>
         </form>

@@ -11,6 +11,7 @@ require_once('utils-cups.php');
 include('creation-challenges.php');
 require_once('circuitPrefix.php');
 $cName = null;
+$cName0 = null;
 $cPseudo = null;
 $cAuteur = null;
 $cDate = null;

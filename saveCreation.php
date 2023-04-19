@@ -97,10 +97,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 				}
 				include('cache_creations.php');
 				@unlink(cachePath("mappreview$circuitId.png"));
-				if (!$isBattle) {
-					include('postCircuitUpdate.php');
-					postCircuitUpdate('mkcircuits', $circuitId, $_POST);
-				}
+				include('postCircuitUpdate.php');
+				postCircuitUpdate('mkcircuits', $circuitId, $isBattle, $_POST);
 				echo $circuitId;
 			}
 			mysql_close();

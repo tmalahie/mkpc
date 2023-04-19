@@ -100,13 +100,27 @@ function isSquareTrack(&$circuit) {
     }
     return ($nbTurns <= 4);
 }
-function postCircuitUpdate($type, $circuitId, &$circuit) {
-    if (isSquareTrack($circuit)) {
-        mysql_query('INSERT IGNORE INTO `mktrackbin` SET type="'. $type .'",circuit="'. $circuitId .'", delete_at=NOW()+INTERVAL 10 MINUTE');
-        return true;
+function getSQLRawValue(&$value) {
+    return isset($value) ? '"'.$value.'"' : 'NULL';
+}
+function postCircuitUpdate($type, $circuitId, $isBattle, &$payload) {
+    if (($type === 'mkcircuits') && $isBattle) {
+        if (isSquareTrack($payload)) {
+            mysql_query('INSERT IGNORE INTO `mktrackbin` SET type="'. $type .'",circuit="'. $circuitId .'", delete_at=NOW()+INTERVAL 10 MINUTE');
+        }
+        else {
+            mysql_query('DELETE FROM `mktrackbin` WHERE type="'. $type .'" AND circuit="'. $circuitId .'"');
+        }
     }
-    else {
-        mysql_query('DELETE FROM `mktrackbin` WHERE type="'. $type .'" AND circuit="'. $circuitId .'"');
-        return false;
-    }
+    mysql_query(
+        'INSERT INTO mktracksettings
+        SET circuit="'. $circuitId .'", type="'. $type .'",
+        name_en='. getSQLRawValue($payload['name_en']) .',
+        name_fr='. getSQLRawValue($payload['name_fr']) .',
+        prefix='. getSQLRawValue($payload['prefix']) .'
+        ON DUPLICATE KEY UPDATE
+        name_en=VALUES(name_en),
+        name_fr=VALUES(name_fr),
+        prefix=VALUES(prefix)'
+    );
 }

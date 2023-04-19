@@ -10,6 +10,7 @@ require_once('utils-challenges.php');
 include('creation-challenges.php');
 require_once('circuitPrefix.php');
 $cName = null;
+$cName0 = null;
 $cPseudo = null;
 $cAuteur = null;
 $cDate = null;
@@ -179,30 +180,7 @@ if (isset($message)) {
 ?></p></div>
 	<?php
 }
-?>
-<div id="confirmSuppr">
-<p id="supprInfos"><?php echo $language ?
-	'Stop sharing this '. ($isCup ? ($isMCup ? 'multicup':'cup'):'circuit') .'?<br />
-	'.($isCup ? ($isMCup ? 'The multicup':'The cup'):'The circuit').' will be only removed from the list:<br />
-	data will be recoverable.' :
-	'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):'ce circuit') .' ?<br />
-	'.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):'Le circuit').' sera simplement retiré'.($isCup?'e':'').' de la liste :<br />
-	les données seront récupérables.';
-?></p>
-<p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
-</div>
-<?php
-if (!isset($cannotChange)) {
-	?>
-	<form id="cSave" method="post" action="" onsubmit="saveRace();return false">
-	<table id="cTable">
-	<tr><td style="text-align: right"><label for="cPseudo"><?php echo $language ? 'Enter your nick':'Indiquez votre pseudo'; ?> :</label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
-	<tr><td style="text-align: right"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):'Circuit').' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):'du circuit'); ?> :</label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName) ?>" /></td></tr>
-	<tr><td colspan="2" id="cSubmit"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="cAnnuler" onclick="document.getElementById('cSave').style.display='none'" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Share':'Partager'; ?>" id="cEnregistrer" /></td></tr>
-	</table>
-	</form>
-	<?php
-}
+printCircuitShareUI();
 include('gameInitElts.php');
 ?>
 <?php

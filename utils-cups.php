@@ -84,7 +84,7 @@ function printCollabImportPopup($type, $mode) {
     <?php
 }
 function getTrackPayloads($options) {
-    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
+    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
     include('creation-entities.php');
     $isOnline = isset($options['online']);
     if ($isOnline) {
@@ -103,8 +103,9 @@ function getTrackPayloads($options) {
         $nid = $id;
         $isCup = true;
         $isMCup = true;
-        if ($getMCup = fetchCreationData('mkmcups', $id)) {
+        if ($getMCup = fetchCreationData('mkmcups', $id, array('select' => 'c.nom AS name0,c.*'))) {
             $cName = $getMCup['name'];
+            $cName0 = $getMCup['name0'];
             $infos['name'] = $cName;
             $cPseudo = $getMCup['auteur'];
             $cAuteur = $cPseudo;
@@ -126,8 +127,9 @@ function getTrackPayloads($options) {
         $id = intval($_GET['cid']);
         $nid = $id;
         $isCup = true;
-        if ($getCup = fetchCreationData('mkcups', $id)) {
+        if ($getCup = fetchCreationData('mkcups', $id, array('select' => 'c.nom AS name0,c.*'))) {
             $cName = $getCup['name'];
+            $cName0 = $getCup['name0'];
             $infos['name'] = $cName;
             $cPseudo = $getCup['auteur'];
             $cAuteur = $cPseudo;
@@ -161,8 +163,9 @@ function getTrackPayloads($options) {
         $isCup = true;
         if (isset($_GET['nid'])) { // Cup being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = fetchCreationData('mkcups', $nid, array('select' => 'c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+            if ($getMain = fetchCreationData('mkcups', $nid, array('select' => 'c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
                 $cName = $getMain['name'];
+                $cName0 = $getMain['name0'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
                 $pNote = $getMain['note'];
@@ -186,8 +189,9 @@ function getTrackPayloads($options) {
         $isMCup = true;
         if (isset($_GET['nid'])) { // Multicups being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = fetchCreationData('mkmcups', $nid, array('select' => 'c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+            if ($getMain = fetchCreationData('mkmcups', $nid, array('select' => 'c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
                 $cName = $getMain['name'];
+                $cName0 = $getMain['name0'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
                 $pNote = $getMain['note'];
@@ -219,6 +223,7 @@ function getTrackPayloads($options) {
             if ($getMain = mysql_fetch_array($creationEntities['fetch_tracks'](array('ids' => array($nid), 'mode' => $creationMode, 'require_owner' => $requireOwner)))) {
                 $infos['id'] = $nid;
                 $cName = $getMain['name'];
+                $cName0 = $getMain['name0'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
                 $pNote = $getMain['note'];
@@ -312,6 +317,7 @@ function getTrackPayloads($options) {
                     $infos = array();
                     $infos['id'] = $trackID;
                     $infos['name'] = $getMain['name'];
+                    $infos['name0'] = $getMain['name0'];
                     $infos['note'] = $getMain['note'];
                     $infos['nbnotes'] = $getMain['nbnotes'];
                     $infos['auteur'] = $getMain['auteur'];
@@ -331,6 +337,7 @@ function getTrackPayloads($options) {
         if (!$isCup && isset($circuitsData[0])) {
             $infos = $circuitsData[0];
             $cName = $infos['name'];
+            $cName0 = $infos['name0'];
             $cAuteur = $infos['auteur'];
             $pNote = $infos['note'];
             $pNotes = $infos['nbnotes'];

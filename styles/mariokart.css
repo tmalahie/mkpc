@@ -670,11 +670,18 @@ form[name="modes"] {
 #cSave a {
 	color: white
 }
-#cPseudo, #cName {
+#cTable input[type="text"] {
 	background-color: #FF9
 }
-#cPseudo:focus, #cName:focus {
+#cTable input[type="text"]:focus {
 	background-color: #FF6
+}
+#cTable .cLabel {
+	text-align: right;
+}
+#cTable .cLabel a {
+	vertical-align: super;
+	font-size: 0.8em;
 }
 #cSave #cSubmit {
 	text-align: center
