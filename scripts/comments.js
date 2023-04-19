@@ -30,7 +30,6 @@ var circuitNbComments = 0;
 	$("#comments-section").append(
 		'<div id="comments-infos">'+
 			'<div id="comments-closectn">'+
-				'<a id="comments-settings" href="#null">\u2699\uFE0F</a>'+
 				'<a id="comments-close" href="#null">&times;</a>'+
 				'<a id="comments-open" href="#null">\u25A1</a>'+
 			'</div>'+
@@ -325,75 +324,6 @@ var circuitNbComments = 0;
 			$commentsScroller[0].onscroll = handleScroll;
 		}
 		if (res.mine) {
-			if (res.mine) {
-				$("#comments-settings").addClass("show");
-				$("#comments-section").append('<div id="comments-settings-menu">'+
-					'<form id="comments-settings-menu-modal">'+
-						'<label id="comments-settings-item">'+
-							'<input type="checkbox" name="translate-circuit" /> '+
-							'<span>'+ (language ? 'Translate circuit name':'Traduire nom du circuit') +'</span>'+
-						'</label>'+
-						'<div class="circuit-name-wrapper">'+
-							'<label id="comments-settings-item">'+
-								'<span>'+ (language ? 'Circuit name (EN)':'Nom du circuit (FR)') +'</span>'+
-								'<input type="text" name="circuit-name-'+ (language ? 'en':'fr') +'" /> '+
-							'</label>'+
-							'<label id="comments-settings-item" class="circuit-name">'+
-								'<span>'+ (language ? 'Circuit name (FR)':'Nom du circuit (EN)') +'</span>'+
-								'<input type="text" name="circuit-name-'+ (language ? 'fr':'en') +'" /> '+
-							'</label>'+
-						'</div>'+
-						'<label id="comments-settings-item" class="circuit-prefix">'+
-							'<span>'+ (language ? 'Prefix for online mode':'Préfixe mode en ligne') +' <a class="circuit-prefix-help" href="#null">[?]</a></span>'+
-							'<input type="text" name="circuit-prefix" /> '+
-						'</label>'+
-						'<div id="comments-settings-actions">'+
-							'<input type="button" name="settings-cancel" value="'+ (language ? 'Cancel' : 'Annuler') +'" /> '+
-							'<input type="submit" name="settings-submit" class="disablable" value="'+ (language ? 'Validate' : 'Valider') +'" /> '+
-						'</div>'+
-					'</form>'+
-				'</div>'
-				);
-				$("#comments-settings").click(function(e) {
-					e.preventDefault();
-					$("#comments-settings-menu").show();
-					$.post("getTrackSettings.php", {"circuit":commentCircuit,"type":commentType}).success(function(res) {
-						var $form = document.getElementById("comments-settings-menu-modal");
-						var translate = res.name_en || res.name_fr;
-						$form.elements["translate-circuit"].checked = !!translate;
-						$form.elements["circuit-name-en"].value = res.name_en || "";
-						$form.elements["circuit-name-fr"].value = res.name_fr || "";
-						$form.elements["circuit-prefix"].value = res.prefix || "";
-					});
-				});
-				$("#comments-settings-menu-modal").click(function(e) {
-					e.stopPropagation();
-				});
-				$("#comments-settings-menu-modal .circuit-prefix-help").click(function(e) {
-					e.preventDefault();
-					alert(language ? "Will appear in online mode circuit selections screen" : "Apparaitra dans l'écran de sélection de circuit du mode en ligne");
-				});
-				$("#comments-settings-menu").click(function() {
-					$("#comments-settings-menu").hide();
-				});
-				$('#comments-settings-menu input[name="settings-cancel"]').click(function() {
-					$("#comments-settings-menu").hide();
-				});
-				$("#comments-settings-menu-modal").submit(function(e) {
-					e.preventDefault();
-					var $form = e.target;
-					var translate = $form.elements["translate-circuit"].checked;
-					var circuitNameEn = $form.elements["circuit-name-en"].value;
-					var circuitNameFr = $form.elements["circuit-name-fr"].value;
-					var circuitPrefix = $form.elements["circuit-prefix"].value;
-					var $submit = $form.elements["settings-submit"];
-					$submit.disabled = true;
-					$.post("setTrackSettings.php", {"circuit":commentCircuit,"type":commentType,"name_en":translate?circuitNameEn:undefined,"name_fr":translate?circuitNameFr:undefined,"prefix":circuitPrefix}).success(function() {
-						$("#comments-settings-menu").hide();
-						$submit.disabled = false;
-					});
-				});
-			}
 			$("#comments-description-content-actions").show();
 			var commentSend = $("#comments-description-edit-actions .comment-send");
 			commentSend.click(function() {
