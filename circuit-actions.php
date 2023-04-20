@@ -28,6 +28,13 @@ function includeShareLib() {
             document.getElementById("cAnnuler").className = "cannotChange";
             document.getElementById("cEnregistrer").disabled = true;
             document.getElementById("cEnregistrer").className = "cannotChange";
+            var cNameTr = "";
+            var $form = document.getElementById("cSave");
+            if ($form.elements["cNameTr"].checked) {
+                var cNameEn = getValue("cNameEn");
+                var cNameFr = getValue("cNameFr");
+                cNameTr = "&name_en="+ cNameEn +"&name_fr="+ cNameFr;
+            }
             xhr("<?php echo ($isMCup ? 'saveMCup' : ($isCup?'saveCup':$shareParams['send']['endpoint'])); ?>", "<?php
             if ($isCup) {
                 echo 'mode='. $creationMode;
@@ -46,7 +53,7 @@ function includeShareLib() {
             if ($collab) echo '&collab='.$collab['key'];
             if ($isCup)
                 echo '"+getCollabQuery("'. ($isMCup ? 'mkcups':$CREATION_ENTITIES[$creationMode]['table']) .'", ['. implode(',',$cupIDs) .'])+"';
-            ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo") +"&name_en="+ getValue("cNameEn") +"&name_fr="+ getValue("cNameFr") +"&prefix="+ getValue("cPrefix"), function(reponse) {
+            ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo") + cNameTr +"&prefix="+ getValue("cPrefix"), function(reponse) {
                 if (reponse && !isNaN(reponse)) {
                     document.getElementById("cSave").removeChild(document.getElementById("cTable"));
                     var cP = document.createElement("p");
@@ -82,6 +89,7 @@ function includeShareLib() {
                                 echo $shareParams['edit']['page'];
                             ?>?<?php echo $sid; ?>="+ reponse +"<?php echo $isCup ? '&battle':''; ?>";
                     };
+                    cCont.focus();
                     return true;
                 }
                 return false;
@@ -143,10 +151,43 @@ function includeShareLib() {
         }
         ?>
         function getValue(name) {
-            return encodeURIComponent(document.getElementById(name).value);
+            var $form = document.getElementById("cSave");
+            return encodeURIComponent($form.elements[name].value);
         }
         function showPrefixHelp() {
             alert(language ? "Will appear in online mode circuit selection screen" : "Apparaitra dans l'écran de sélection de circuit du mode en ligne")
+        }
+        function toggleShareForm(show) {
+            var $form = document.getElementById("cSave");
+            if (show) {
+                $form.style.display = 'block';
+                if (getValue("cPseudo"))
+                    $form.elements["cName"].select();
+                else
+                    $form.elements["cPseudo"].select();
+            }
+            else
+                $form.style.display = 'none';
+        }
+        function toggleAdvancedOptions(show) {
+            var $table = document.getElementById("cTable");
+            if (show)
+                $table.classList.add("cShowAdvanced");
+            else
+                $table.classList.remove("cShowAdvanced");
+        }
+        function toggleNameTr(show) {
+            var $table = document.getElementById("cTable");
+            if (show) {
+                $table.classList.add("cShowTr");
+                var $mainLanguage = document.getElementById(language ? "cNameEn" : "cNameFr");
+                var $otherLanguage = document.getElementById(language ? "cNameFr" : "cNameEn");
+                if (!$mainLanguage.value)
+                    $mainLanguage.value = document.getElementById("cName").value;
+                $otherLanguage.select();
+            }
+            else
+                $table.classList.remove("cShowTr");
         }
         <?php
     }
@@ -188,7 +229,7 @@ function printCircuitActions() {
         }
         if ($canShare) {
             ?>
-        <input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
+        <input type="button" id="shareRace" onclick="toggleShareForm(true)" value="<?php
         if ($cShared)
             echo $language ? 'Edit sharing':'Modifier partage';
         else
@@ -224,16 +265,28 @@ function printCircuitShareUI() {
             $getTrackSettings = mysql_fetch_array(mysql_query('SELECT * FROM mktracksettings WHERE type="'. $creationType .'" AND circuit="'. $nid .'"'));
         $cNameFr = isset($getTrackSettings['name_fr']) ? $getTrackSettings['name_fr'] : '';
         $cNameEn = isset($getTrackSettings['name_en']) ? $getTrackSettings['name_en'] : '';
+        $cNameTr = ($cNameEn || $cNameFr);
         $cPrefix = isset($getTrackSettings['prefix']) ? $getTrackSettings['prefix'] : '';
         ?>
         <form id="cSave" method="post" action="" onsubmit="saveRace();return false">
-        <table id="cTable">
+        <table id="cTable"<?php if ($cNameTr) echo ' class="cShowTr"'; ?>>
         <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
         <tr><td class="cLabel"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit')).' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit")); ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName0) ?>" /></td></tr>
-        <tr><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? 'Circuit name [EN]:':'Nom du circuit [FR] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" /></td></tr>
-        <tr><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? 'Circuit name [FR]:':'Nom du circuit [EN] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" /></td></tr>
-        <tr><td class="cLabel"><label for="cPrefix"><?php echo $language ? 'Online mode - Prefix':'Mode en ligne - Préfixe'; ?><a class="cHelp" href="javascript:showPrefixHelp()">[?]</a><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="cPrefix" id="cPrefix" value="<?php echo htmlspecialchars($cPrefix); ?>" /></td></tr>
-        <tr><td colspan="2" id="cSubmit"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="cAnnuler" onclick="document.getElementById('cSave').style.display='none'" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Share':'Partager'; ?>" id="cEnregistrer" /></td></tr>
+        <tr class="cAdvanced"><td colspan="2" class="cToggle"><label><input type="checkbox" name="cNameTr" onclick="toggleNameTr(this.checked)"<?php if ($cNameTr) echo ' checked="checked"'; ?> /> <?php echo $language ? "Translate circuit name" : "Traduire le nom du circuit"; ?></label></td></tr>
+        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? 'Circuit name [EN]:':'Nom du circuit [FR] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" /></td></tr>
+        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? 'Circuit name [FR]:':'Nom du circuit [EN] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" /></td></tr>
+        <tr class="cAdvanced"><td class="cLabel"><label for="cPrefix"><?php echo $language ? 'Online mode - Prefix':'Mode en ligne - Préfixe'; ?><a class="cHelp" href="javascript:showPrefixHelp()">[?]</a><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="cPrefix" id="cPrefix" value="<?php echo htmlspecialchars($cPrefix); ?>" /></td></tr>
+        <tr><td colspan="2" id="cSubmit">
+            <div class="cSubmit">
+                <div class="cActions">
+                    <input type="button" class="cSecondary" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="cAnnuler" onclick="toggleShareForm(false)" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Share':'Partager'; ?>" id="cEnregistrer" />
+                </div>
+                <div class="cOptions">
+                    <div class="cOptionsShow"><a href="javascript:toggleAdvancedOptions(true)"><?php echo $language ? "More options" : "Plus d'options"; ?></a> &gt;</div>
+                     <div class="cOptionsHide">&lt; <a href="javascript:toggleAdvancedOptions(false)"><?php echo $language ? " Less options" : "Moins d'options"; ?></a></div>
+                </div>
+            </div>
+        </td></tr>
         </table>
         </form>
         <?php

@@ -683,12 +683,41 @@ form[name="modes"] {
 	vertical-align: super;
 	font-size: 0.8em;
 }
+#cTable .cToggle {
+	text-align: center;
+}
+#cTable:not(.cShowAdvanced) .cAdvanced {
+	display: none;
+}
+#cTable:not(.cShowTr) .cTogglable-cNameTr {
+	display: none;
+}
 #cSave #cSubmit {
-	text-align: center
+	font-size: 15px;
+	text-align: center;
+}
+#cSave .cSubmit {
+	display: flex;
+}
+#cSave .cSubmit .cOptions {
+	flex: 1;
+}
+#cTable.cShowAdvanced .cOptions {
+	color: white;
+}
+#cTable.cShowAdvanced .cOptions .cOptionsShow {
+	display: none;
+}
+#cTable:not(.cShowAdvanced) .cOptions .cOptionsHide {
+	display: none;
 }
 #cSave #cSubmit input {
 	font-size: 15px;
-	padding: 0 25px
+	padding: 0 15px
+}
+#cSave #cSubmit input.cSecondary {
+	filter: hue-rotate(-30deg);
+	opacity: 0.8;
 }
 @media screen and (min-width: 600px) {
 	#shareParams {
