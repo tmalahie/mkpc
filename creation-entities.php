@@ -28,7 +28,7 @@ $CREATION_ENTITIES = array(
             $idsString = implode(',', $ids);
             return getCreationDataQuery(array(
                 'table' => 'mkcircuits',
-                'select' => 'c.id,c.map,c.laps,c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date',
+                'select' => 'c.id,c.map,c.laps,c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date,s.prefix',
                 'where' => 'c.id IN ('. $idsString .') AND !c.type'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : ''),
             ));
         },
@@ -127,7 +127,7 @@ $CREATION_ENTITIES = array(
             return getCreationDataQuery(array(
                 'table' => 'circuits',
                 'join' => 'LEFT JOIN `circuits_data` d ON c.id=d.id',
-                'select' => 'c.*,c.nom AS name0,c.id,d.data',
+                'select' => 'c.*,c.nom AS name0,c.id,d.data,s.prefix',
                 'where' => 'c.id IN ('. $idsString .')'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : '')
             ));
         },
@@ -191,7 +191,7 @@ $CREATION_ENTITIES = array(
             $idsString = implode(',', $ids);
             return getCreationDataQuery(array(
                 'table' => 'mkcircuits',
-                'select' => 'c.id,c.map,c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date',
+                'select' => 'c.id,c.map,c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date,s.prefix',
                 'where' => 'c.id IN ('. $idsString .') AND c.type'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : '')
             ));
         },
@@ -239,7 +239,7 @@ $CREATION_ENTITIES = array(
             return getCreationDataQuery(array(
                 'table' => 'arenes',
                 'join' => 'LEFT JOIN `arenes_data` d ON c.id=d.id',
-                'select' => 'c.*,c.nom AS name0,c.id,d.data',
+                'select' => 'c.*,c.nom AS name0,c.id,d.data,s.prefix',
                 'where' => 'c.id IN ('. $idsString .')'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : '')
             ));
         },

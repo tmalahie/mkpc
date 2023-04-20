@@ -71,6 +71,8 @@ if ($isCustom) {
 if (!$isCustom) {
 	include_once('circuitNames.php');
 	$NBCIRCUITS = $nbVSCircuits;
+	$complete = false;
+	$simplified = false;
 }
 $delNotif = true;
 if (isset($privateLink)) {
@@ -142,6 +144,23 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 	echo '"'. ($circuit['name'] ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
 }
 ?>];
+<?php
+if ($isCup) {
+	$dCircuits = array();
+	$isCircuitPrefix = false;
+	for ($i=0;$i<$NBCIRCUITS;$i++) {
+		$circuit = $circuitsData[$i];
+		if ($circuit['prefix']) {
+			$isCircuitPrefix = true;
+			$dCircuits[] = '<small>'. htmlspecialchars($circuit['prefix']) .'</small> ' . escapeUtf8($circuit['name']);
+		}
+		else
+			$dCircuits[] = escapeUtf8($circuit['name']);
+	}
+	if ($isCircuitPrefix)
+		echo 'var dCircuits = '. json_encode($dCircuits) .';';
+}
+?>
 var cupIDs = <?php echo json_encode($cupIDs) ?>;
 var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 	<?php
