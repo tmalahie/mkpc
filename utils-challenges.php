@@ -719,10 +719,16 @@ function getCircuitPayload(&$clRace) {
 			break;
 		case 'mkcups':
 			$linkUrl = getCupPage($clCircuit['mode']) .'.php?cid='. $clCircuit['id'];
-			if ($clCircuit['mode'])
+			switch ($clCircuit['mode']) {
+			case 1:
 				$baseCache = 'racepreview';
-			else
+				break;
+			case 3:
+				$baseCache = 'coursepreview';
+				break;
+			default:
 				$baseCache = 'mappreview';
+			}
 			for ($i=0;$i<4;$i++) {
 				$lId = $clCircuit['circuit'.$i];
 				$iconType = $clCircuit['mode'];
