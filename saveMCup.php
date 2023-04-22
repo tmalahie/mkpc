@@ -73,7 +73,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 	else
 		echo -1;
 	mysql_close();
-	include('cache_creations.php');
+	require_once('cache_creations.php');
 	@unlink(cachePath("mcuppreview$cupId.png"));
 }
 ?>

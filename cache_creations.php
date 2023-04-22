@@ -17,7 +17,7 @@ function thumbnail($original_src,$cache_src, $maxw, $maxh) {
         $source = imagecreatefrompng($original_src);
         break;
     default :
-        return;
+        return false;
     }
     
     $x = 0;
@@ -40,6 +40,7 @@ function thumbnail($original_src,$cache_src, $maxw, $maxh) {
     imagepng($thumb, $cache_src);
     imagedestroy($thumb);
     imagedestroy($source);
+    return true;
 }
 function cachePath($cache_src) {
     global $CACHE_FOLDER;
@@ -59,7 +60,7 @@ function setCacheFile($original_src,$cache_src, $minW,$minH, $thumbnailize=true)
         else
             copy($original_src,$absolutePath);
         if (!rand(0,1000)) { // Clear cache once in a while
-            $files = array_diff(scandir($CACHE_FOLDER), array('.', '..'));
+            $files = array_diff(scandir($CACHE_FOLDER), array('.', '..', '.gitignore', 'uploads'));
             $n = count($files);
             if ($n > $MAX_FILES) {
                 $fileTimes = array_map(function($file) use($CACHE_FOLDER) {

@@ -784,7 +784,7 @@ else {
 		require_once('utils-cups.php');
 		$getTracks = getCreationDataQuery(array(
 			'table' => 'arenes',
-			'select' => 'c.id,d.data,c.img_data',
+			'select' => 'c.id,d.data,c.img_data,s.thumbnail',
 			'join' => 'LEFT JOIN arenes_data d ON c.id=d.id',
 			'where' => 'c.identifiant='.$identifiants[0].' AND c.identifiant2='.$identifiants[1].' AND c.identifiant3='.$identifiants[2].' AND c.identifiant4='.$identifiants[3],
 			'order' => 'c.id DESC'
@@ -896,13 +896,17 @@ else {
 					while ($track = mysql_fetch_array($getTracks)) {
 						$circuitImg = json_decode($track['img_data']);
 						$id = $track['id'];
+						if ($track['thumbnail'])
+							$cacheSrc = 'images/creation_icons/uploads/'. $track['thumbnail'];
+						else
+							$cacheSrc = 'images/creation_icons/coursepreview'. $id .'.png';
 						echo '<a href="battle.php?i='.$id.'"
 							data-id="'.$id.'"
 							data-name="'.($track['name'] ? htmlspecialchars($track['name']) : '').'"
 							'. ($track['data'] ? '':'data-pending="1"') .'
 							data-src="'.htmlspecialchars(getCircuitImgUrl($circuitImg)).'"
 							onclick="previewCircuit(this);return false"><img
-								src="images/creation_icons/coursepreview'. $id .'.png"
+								src="'.$cacheSrc.'"
 								onerror="var that=this;setTimeout(function(){that.src=\'trackicon.php?type=2&id='. $id .'\';},loadDt);this.onerror=null;loadDt+=50"
 								alt="Arene '.$id.'"
 							/></a>';

@@ -12,10 +12,12 @@ php setupdb.php
 rm -f /var/www/html/images/avatars/*
 rm -f /var/www/html/images/uploads/map*
 rm -f /var/www/html/images/uploads/course*
-rm -f /var/www/html/images/php/creation_icons/*
-rm -f /var/www/html/images/php/sprites/uploads/*
+rm -f /var/www/html/images/creation_icons/*.png
+rm -f /var/www/html/images/creation_icons/uploads/*
+rm -f /var/www/html/images/sprites/uploads/*
 chmod 777 /var/www/html/images/avatars
 chmod 777 /var/www/html/images/uploads
 chmod 777 /var/www/html/images/creation_icons
+chmod 777 /var/www/html/images/creation_icons/uploads
 chmod 777 /var/www/html/images/sprites/uploads
 chmod 777 /var/www/html

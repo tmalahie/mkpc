@@ -21,4 +21,4 @@ RUN docker-php-ext-install -j$(nproc) gettext intl
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 COPY conf.d/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-RUN mkdir -m 777 -p /var/www/html/images/{avatars,uploads,sprites/uploads,creation_icons}
+RUN mkdir -m 777 -p /var/www/html/images/{avatars,uploads,sprites/uploads,creation_icons/uploads}

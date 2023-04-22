@@ -208,8 +208,11 @@ function addCircuitsData(&$creationsList) {
 	foreach ($creationsList['cups'] as $cup) {
 		$lCup = array();
 		for ($i=0;$i<4;$i++)
-			$lCup[] = $cup['circuit'.$i];
-		$lCups[$cup['id']] = $lCup;
+			$lCup[] = array('id' => $cup['circuit'.$i]);
+		$lCups[$cup['id']] = array(
+			'tracks' => $lCup,
+			'mode' => $cup['mode'],
+		);
 	}
 	$lmCups = $creationsList['mcups'];
 	$mCupIds = array_fill(0, count($lmCups), 0);
@@ -220,12 +223,15 @@ function addCircuitsData(&$creationsList) {
 	if ($mCupIdsStr) {
 		$getCups = mysql_query('SELECT c.*,t.mcup FROM `mkmcups_tracks` t INNER JOIN mkcups c ON t.cup=c.id WHERE t.mcup IN ('.$mCupIdsStr.') ORDER BY t.mcup,t.ordering');
 		while ($cup = mysql_fetch_array($getCups)) {
-			for ($i=0;$i<4;$i++)
-				$mCups[$cup['mcup']][] = $cup['circuit'.$i];
+			$mCups[$cup['mcup']] = array(
+				'tracks' => array(),
+				'mode' => $cup['mode'],
+			);
+			for ($i=0;$i<4;$i++) {
+				$mCups[$cup['mcup']]['tracks'][] = array('id' => $cup['circuit'.$i]);
+			}
 		}
 	}
-	foreach ($creationsList['tracks'] as &$track)
-		addCircuitData($track,$lCups,$mCups);
 	$circuitTypes = array();
 	$circuitByType = array();
 	foreach ($creationsList['tracks'] as &$track) {
@@ -236,17 +242,38 @@ function addCircuitsData(&$creationsList) {
 		$circuitByType[$cTable][$cId] = &$track;
 	}
 	unset($track);
+	if (!empty($lCups)) {
+		include('creation-entities.php');
+		foreach ($lCups as $cupId => &$cup) {
+			$cTable = $CREATION_ENTITIES[$cup['mode']]['table'];
+			foreach ($cup['tracks'] as $i => &$track) {
+				$trackId = $track['id'];
+				if (isset($circuitByType[$cTable][$trackId]))
+					$cup['tracks'][$i] = &$circuitByType[$cTable][$trackId];
+				else {
+					$circuitTypes[] = "('$cTable',".$trackId.")";
+					$circuitByType[$cTable][$trackId] = &$track;
+				}
+			}
+			unset($track);
+		}
+		unset($cup);
+	}
 	$circuitTypesStr = implode(',',$circuitTypes);
 	if ($circuitTypesStr) {
 		$nameCol = $language ? 'name_en' : 'name_fr';
-		$getTrackSettings = mysql_query('SELECT type,circuit,'.$nameCol.' AS name FROM `mktracksettings` WHERE (type,circuit) IN ('.$circuitTypesStr.')');
+		$getTrackSettings = mysql_query('SELECT type,circuit,'.$nameCol.' AS name,thumbnail FROM `mktracksettings` WHERE (type,circuit) IN ('.$circuitTypesStr.')');
 		while ($trackSettings = mysql_fetch_array($getTrackSettings)) {
 			$cTable = $trackSettings['type'];
 			$cId = $trackSettings['circuit'];
 			if ($trackSettings['name'])
 				$circuitByType[$cTable][$cId]['nom'] = $trackSettings['name'];
+			if ($trackSettings['thumbnail'])
+				$circuitByType[$cTable][$cId]['thumbnail'] = $trackSettings['thumbnail'];
 		}
 	}
+	foreach ($creationsList['tracks'] as &$track)
+		addCircuitData($track,$lCups,$mCups);
 }
 function addCircuitData(&$circuit,&$lCups,&$mCups) {
 	$linkBg = '';
@@ -302,8 +329,8 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 			$baseUrl = 'mappreview.php?id=';
 		$linkBg .= 'trackicon.php?id='. $cId .'&type=4';
 		$linksCached[] = 'mcuppreview'. $cId .'.png';
-		foreach ($mCups[$cId] as $lId)
-			$linkPreview[] = $baseUrl . $lId;
+		foreach ($mCups[$cId]['tracks'] as $lTrack)
+			$linkPreview[] = $baseUrl . $lTrack['id'];
 		break;
 	case 2 :
 	case 3 :
@@ -315,11 +342,20 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 			$baseUrl = 'mappreview.php?id=';
 			$baseCache = 'mappreview';
 		}
-		$lIds = $lCups[$cId];
-		foreach ($lIds as $i=>$lId) {
-			$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type='. (3-$cType);
+		$lTracks = $lCups[$cId]['tracks'];
+		foreach ($lTracks as $i=>$lTrack) {
+			$lId = $lTrack['id'];
 			$linkPreview[] = $baseUrl . $lId;
-			$linksCached[] = $baseCache . $lId .'.png';
+			if (isset($lTrack['thumbnail'])) {
+				$linkCached = 'uploads/'. $lTrack['thumbnail'];
+				$linkIcon = 'images/creation_icons/'. $linkCached;
+			}
+			else {
+				$linkCached = $baseCache . $lId .'.png';
+				$linkIcon = 'trackicon.php?id='. $lId .'&type='. (3-$cType);
+			}
+			$linkBg .= ($i?',':'') . $linkIcon;
+			$linksCached[] = $linkCached;
 		}
 		break;
 	case 4 :
@@ -348,11 +384,20 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 			$baseUrl = 'mappreview.php?id=';
 			$baseCache = 'mappreview';
 		}
-		$lIds = $lCups[$cId];
-		foreach ($lIds as $i=>$lId) {
-			$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type=0';
+		$lTracks = $lCups[$cId]['tracks'];
+		foreach ($lTracks as $i=>$lTrack) {
+			$lId = $lTrack['id'];
 			$linkPreview[] = $baseUrl . $lId;
-			$linksCached[] = $baseCache . $lId .'.png';
+			if (isset($lTrack['thumbnail'])) {
+				$linkCached = 'uploads/'. $lTrack['thumbnail'];
+				$linkIcon = 'images/creation_icons/'. $linkCached;
+			}
+			else {
+				$linkCached = $baseCache . $lId .'.png';
+				$linkIcon = 'trackicon.php?id='. $lId .'&type=0';
+			}
+			$linkBg .= ($i?',':'') . $linkIcon;
+			$linksCached[] = $linkCached;
 		}
 		break;
 	case 10 :
@@ -363,18 +408,24 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 			$baseUrl = 'mappreview.php?id=';
 		$linkBg .= 'trackicon.php?id='. $cId .'&type=4';
 		$linksCached[] = 'mcuppreview'. $cId .'.png';
-		foreach ($mCups[$cId] as $lId)
-			$linkPreview[] = $baseUrl . $lId;
+		foreach ($mCups[$cId]['tracks'] as $lTrack)
+			$linkPreview[] = $baseUrl . $lTrack['id'];
 		break;
 	}
 	$allCached = true;
-	foreach ($linksCached as $link) {
-		$filename = 'images/creation_icons/'.$link;
-		if (file_exists($filename))
-			touch_async($filename);
-		else {
-			$allCached = false;
-			break;
+	if (isset($circuit['thumbnail'])) {
+		$linkBg = 'uploads/'.$circuit['thumbnail'];
+		$linksCached = array($linkBg);
+	}
+	else {
+		foreach ($linksCached as $link) {
+			$filename = 'images/creation_icons/'.$link;
+			if (file_exists($filename))
+				touch_async($filename);
+			else {
+				$allCached = false;
+				break;
+			}
 		}
 	}
 	$circuit['srcs'] = $linkPreview;

@@ -59,11 +59,8 @@ foreach ($circuitsData as $i=>$circuit) {
 var cupPayloads = <?php echo json_encode($cupPayloads) ?>;
 var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 <?php
-if (!empty($cupPayloads)) {
-	echo 'var cupPayloads = ';
-	echo json_encode($cupPayloads);
-	echo ';';
-}
+if (!empty($cupPayloads))
+	echo 'var cupPayloads = '. json_encode($cupPayloads) .';';
 ?>
 var cp = <?php include('getPersos.php'); ?>;
 var pUnlocked = <?php include('getLocks.php'); ?>;

@@ -95,7 +95,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 					include('challenge-associate.php');
 					challengeAssociate('mkcircuits',$circuitId,$_POST['cl']);
 				}
-				include('cache_creations.php');
+				require_once('cache_creations.php');
 				@unlink(cachePath("mappreview$circuitId.png"));
 				include('postCircuitUpdate.php');
 				postCircuitUpdate('mkcircuits', $circuitId, $isBattle);

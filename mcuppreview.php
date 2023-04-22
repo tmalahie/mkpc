@@ -15,10 +15,20 @@ if (isset($id)) {
 	}
 	$nbTracks = count($trackIDs);
 	if ($nbTracks) {
+		function getTracksTable($mode) {
+			include('creation-entities.php');
+			return $CREATION_ENTITIES[$mode]['table'];
+		}
+		$table = getTracksTable($mode);
 		if ($mode === 2) $mode = 0;
 		elseif ($mode === 3) $mode = 2;
+		$getTrackThumbnails = mysql_query('SELECT circuit,thumbnail FROM `mktracksettings` WHERE type="'.$table.'" AND circuit IN ('. implode(',',$trackIDs) .') AND thumbnail IS NOT NULL');
+		$trackThumbnails = array();
+		while ($getTrackThumbnail = mysql_fetch_array($getTrackThumbnails))
+			$trackThumbnails[$getTrackThumbnail['circuit']] = $getTrackThumbnail['thumbnail'];
 
 		$tracksSide = floor(sqrt($nbTracks+1));
+		$tracksSide = min($tracksSide,10);
 		$nbTracksInSpace = $tracksSide*$tracksSide;
 		$nbTracksToDraw = min($nbTracksInSpace,$nbTracks);
 		$nbTracksTotal = max($nbTracksInSpace,$nbTracks);
@@ -48,8 +58,13 @@ if (isset($id)) {
 			$x = $trackPos%$tracksSide;
 			$y = floor($trackPos/$tracksSide);
 
-			require_once('generateTrackIcon.php');
-			$trackPath = generateTrackIcon($trackID, $mode);
+			if (isset($trackThumbnails[$trackID])) {
+				$trackPath = 'images/creation_icons/uploads/'. $trackThumbnails[$trackID];
+			}
+			else {
+				require_once('generateTrackIcon.php');
+				$trackPath = generateTrackIcon($trackID, $mode);
+			}
 			$img = @imagecreatefrompng($trackPath);
 			if ($img) {
 				$img = imagecropcenter($img, $imgcW,$imgcW);

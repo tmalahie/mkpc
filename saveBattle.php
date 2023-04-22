@@ -27,6 +27,8 @@ if (isset($_POST['id']) && isset($_POST['nom']) && isset($_POST['auteur'])) {
 			while ($follower = mysql_fetch_array($getFollowers))
 				mysql_query('INSERT INTO `mknotifs` SET type="follower_circuit", user="'. $follower['follower'] .'", link="2,'.$_POST['id'].'"');
 		}
+		include('postCircuitUpdate.php');
+		postCircuitUpdate('arenes', $_POST['id']);
 	}
 	echo $_POST['id'];
 	mysql_close();

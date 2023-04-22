@@ -160,8 +160,9 @@ if ($isCup) {
 	if ($isCircuitPrefix)
 		echo 'var dCircuits = '. json_encode($dCircuits) .';';
 }
+if (!empty($cupPayloads))
+	echo 'var cupPayloads = '. json_encode($cupPayloads) .';';
 ?>
-var cupIDs = <?php echo json_encode($cupIDs) ?>;
 var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 	<?php
 }

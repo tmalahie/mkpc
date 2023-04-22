@@ -310,7 +310,7 @@ function printCircuitShareUI() {
                 if ($cThumbnail) {
                     ?>
                     <div class="cThumbnailCurrent">
-                        <img src="images/uploads/<?php echo $cThumbnail; ?>" alt="Thumbnail" />
+                        <img src="images/creation_icons/uploads/<?php echo $cThumbnail; ?>" alt="Thumbnail" />
                         <a href="javascript:removeThumbnail()">[<?php echo $language ? 'Remove':'Supprimer'; ?>]</a>
                     </div>
                     <?php

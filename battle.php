@@ -53,7 +53,10 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 	echo '"'. ($circuit['nom'] ? addSlashes(escapeUtf8($circuit['nom'])) : "&nbsp;") .'"';
 }
 ?>];
-var cupIDs = <?php echo json_encode($cupIDs) ?>;
+<?php
+if (!empty($cupPayloads))
+	echo 'var cupPayloads = '. json_encode($cupPayloads) .';';
+?>
 var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 <?php
 if (!empty($cupNames)) {
