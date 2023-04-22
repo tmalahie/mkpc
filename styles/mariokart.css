@@ -676,6 +676,9 @@ form[name="modes"] {
 #cTable input[type="text"]:focus {
 	background-color: #FF6
 }
+#cTable input[type="file"] {
+	color: #eda;
+}
 #cTable .cLabel {
 	text-align: right;
 }

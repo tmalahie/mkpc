@@ -28,32 +28,47 @@ function includeShareLib() {
             document.getElementById("cAnnuler").className = "cannotChange";
             document.getElementById("cEnregistrer").disabled = true;
             document.getElementById("cEnregistrer").className = "cannotChange";
-            var cNameTr = "";
+            var cNameTr = "", cPrefix = "";
             var $form = document.getElementById("cSave");
-            if ($form.elements["cNameTr"].checked) {
-                var cNameEn = getValue("cNameEn");
-                var cNameFr = getValue("cNameFr");
-                cNameTr = "&name_en="+ cNameEn +"&name_fr="+ cNameFr;
+            var formData = new FormData($form);
+            if (!$form.elements["name_tr"].checked) {
+                formData.delete("name_en");
+                formData.delete("name_fr");
             }
-            xhr("<?php echo ($isMCup ? 'saveMCup' : ($isCup?'saveCup':$shareParams['send']['endpoint'])); ?>", "<?php
+            formData.delete("name_tr");
+
+            <?php
+            $formData = array();
             if ($isCup) {
-                echo 'mode='. $creationMode;
+                $formData['mode'] = $creationMode;
                 foreach ($cupIDs as $i=>$cupID)
-                    echo '&cid'. $i .'='. $cupID;
+                    $formData['cid'. $i] = $cupID;
                 if (!empty($cOptions))
-                    echo '&opt="+ encodeURIComponent(JSON.stringify(cupOpts)) +"';
-                echo '&';
+                    $formData['opt'] = 'JSON.stringify(cupOpts)';
             }
-            elseif ($shareParams['send']['params']) {
-                echo $shareParams['send']['params'];
-                echo '&';
+            elseif (isset($shareParams['send']['params'])) {
+                $formData = array_merge($formData, $shareParams['send']['params']);
             }
-            if (isset($nid)) echo 'id='.$nid;
-            if ($clId) echo '&cl='.$clId;
-            if ($collab) echo '&collab='.$collab['key'];
+            if (isset($nid)) $formData['id'] = $nid;
+            if ($clId) $formData['cl'] = $clId;
+            if ($collab) $formData['collab'] = $collab['key'];
+
+            ?>
+            var extraData = <?php echo json_encode($formData); ?>;
+            for (var key in extraData)
+                formData.append(key, extraData[key]);
+            <?php
+            
             if ($isCup)
-                echo '"+getCollabQuery("'. ($isMCup ? 'mkcups':$CREATION_ENTITIES[$creationMode]['table']) .'", ['. implode(',',$cupIDs) .'])+"';
-            ?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo") + cNameTr +"&prefix="+ getValue("cPrefix"), function(reponse) {
+                echo 'addCollabQuery(formData, "'. ($isMCup ? 'mkcups':$CREATION_ENTITIES[$creationMode]['table']) .'", ['. implode(',',$cupIDs) .']);';
+            ?>
+
+            fetch("<?php echo ($isMCup ? 'saveMCup.php' : ($isCup?'saveCup.php':$shareParams['send']['endpoint'])); ?>", {
+                body: formData,
+                method: "POST"
+            }).then(function(res) {
+                return res.text();
+            }).then(function(reponse) {
                 if (reponse && !isNaN(reponse)) {
                     document.getElementById("cSave").removeChild(document.getElementById("cTable"));
                     var cP = document.createElement("p");
@@ -90,9 +105,15 @@ function includeShareLib() {
                             ?>?<?php echo $sid; ?>="+ reponse +"<?php echo $isCup ? '&battle':''; ?>";
                     };
                     cCont.focus();
-                    return true;
                 }
-                return false;
+                else
+                    throw new Error();
+            }).catch(function() {
+                alert(language ? "An error occured while saving" : "Une erreur est survenue lors de l'enregistrement");
+                document.getElementById("cAnnuler").disabled = false;
+                document.getElementById("cAnnuler").className = "";
+                document.getElementById("cEnregistrer").disabled = false;
+                document.getElementById("cEnregistrer").className = "";
             });
         }
         <?php
@@ -270,12 +291,19 @@ function printCircuitShareUI() {
         ?>
         <form id="cSave" method="post" action="" onsubmit="saveRace();return false">
         <table id="cTable"<?php if ($cNameTr) echo ' class="cShowTr"'; ?>>
-        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
-        <tr><td class="cLabel"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit')).' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit")); ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName0) ?>" /></td></tr>
-        <tr class="cAdvanced"><td colspan="2" class="cToggle"><label><input type="checkbox" name="cNameTr" onclick="toggleNameTr(this.checked)"<?php if ($cNameTr) echo ' checked="checked"'; ?> /> <?php echo $language ? "Translate circuit name" : "Traduire le nom du circuit"; ?></label></td></tr>
-        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? 'Circuit name [EN]:':'Nom du circuit [FR] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" /></td></tr>
-        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? 'Circuit name [FR]:':'Nom du circuit [EN] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" /></td></tr>
-        <tr class="cAdvanced"><td class="cLabel"><label for="cPrefix"><?php echo $language ? 'Online mode - Prefix':'Mode en ligne - Préfixe'; ?><a class="cHelp" href="javascript:showPrefixHelp()">[?]</a><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="cPrefix" id="cPrefix" value="<?php echo htmlspecialchars($cPrefix); ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="auteur" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit')).' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit")); ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="nom" id="cName" value="<?php echo escapeUtf8($cName0) ?>" /></td></tr>
+        <tr class="cAdvanced"><td colspan="2" class="cToggle"><label><input type="checkbox" name="name_tr" onclick="toggleNameTr(this.checked)"<?php if ($cNameTr) echo ' checked="checked"'; ?> /> <?php echo $language ? "Translate circuit name" : "Traduire le nom du circuit"; ?></label></td></tr>
+        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? 'Circuit name [EN]:':'Nom du circuit [FR] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_en' : 'name_fr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" /></td></tr>
+        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? 'Circuit name [FR]:':'Nom du circuit [EN] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_fr' : 'name_en'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" /></td></tr>
+        <tr class="cAdvanced"><td colspan="2"><label for="cThumbnail"><?php echo $language ? 'Thumbnail:':'Miniature :'; ?> <input type="file" name="thumbnail" id="cThumbnail" accept="image/png,image/gif,image/jpeg" /></td></tr>
+        <?php
+        if (!$isCup) {
+            ?>
+            <tr class="cAdvanced"><td class="cLabel"><label for="cPrefix"><?php echo $language ? 'Online mode - Prefix':'Mode en ligne - Préfixe'; ?><a class="cHelp" href="javascript:showPrefixHelp()">[?]</a><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="prefix" id="cPrefix" value="<?php echo htmlspecialchars($cPrefix); ?>" /></td></tr>
+            <?php
+        }
+        ?>
         <tr><td colspan="2" id="cSubmit">
             <div class="cSubmit">
                 <div class="cActions">

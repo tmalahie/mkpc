@@ -103,8 +103,9 @@ function isSquareTrack(&$circuit) {
 function getSQLRawValue(&$value) {
     return isset($value) ? '"'.$value.'"' : 'NULL';
 }
-function postCircuitUpdate($type, $circuitId, $isBattle, &$payload) {
-    if (($type === 'mkcircuits') && $isBattle) {
+function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
+    if ($payload === null) $payload = $_POST;
+    if (($type === 'mkcircuits') && !$isBattle) {
         if (isSquareTrack($payload)) {
             mysql_query('INSERT IGNORE INTO `mktrackbin` SET type="'. $type .'",circuit="'. $circuitId .'", delete_at=NOW()+INTERVAL 10 MINUTE');
         }

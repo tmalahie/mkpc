@@ -56,13 +56,17 @@ $CREATION_ENTITIES = array(
         },
         'get_share_params' => function() {
             global $nid, $infos, $lettres, $nbLettres, $isBattle;
-            $shareParams = 'map='.$infos['map'];
-            if ($isBattle) echo '&battle';
+            $shareParams = array(
+                'map' => $infos['map']
+            );
+            if ($isBattle) $shareParams['battle'] = '';
             for ($i=0;$i<36;$i++)
-                $shareParams .= '&p'.$i.'='.$infos['p'.$i];
+                $shareParams['p'.$i] = $infos['p'.$i];
             if ($isBattle) {
-                for ($i=0;$i<8;$i++)
-                    $shareParams .= '&r'.$i.'='.$infos['r'.$i].'&s'.$i.'='.$infos['s'.$i];
+                for ($i=0;$i<8;$i++) {
+                    $shareParams['r'.$i] = $infos['r'.$i];
+                    $shareParams['s'.$i] = $infos['s'.$i];
+                }
             }
             for ($i=0;$i<$nbLettres;$i++) {
                 $l = $lettres[$i];
@@ -70,7 +74,7 @@ $CREATION_ENTITIES = array(
                 for ($k=0;$k<$prefixes;$k++) {
                     $prefix = getLetterPrefix($l,$k);
                     for ($j=0;isset($infos[$prefix.$j]);$j++)
-                        $shareParams .= '&'.$prefix.$j.'='.$infos[$prefix.$j];
+                        $shareParams[$prefix.$j] = $infos[$prefix.$j];
                 }
             }
             
@@ -140,8 +144,7 @@ $CREATION_ENTITIES = array(
             
             $res = array(
                 'send' => array(
-                    'endpoint' => $isBattle ? 'saveBattle.php' : 'saveDraw.php',
-                    'params' => ''
+                    'endpoint' => $isBattle ? 'saveBattle.php' : 'saveDraw.php'
                 ),
                 'edit' => array(
                     'page' => $isBattle ? 'course.php' : 'draw.php'
