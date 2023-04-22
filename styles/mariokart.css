@@ -695,6 +695,31 @@ form[name="modes"] {
 #cTable:not(.cShowTr) .cTogglable-cNameTr {
 	display: none;
 }
+#cTable .cThumbnail {
+	display: flex;
+	gap: 0.2em;
+	align-items: center;
+	justify-content: flex-end;
+}
+#cTable .cThumbnailCurrent {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+	width: 150px;
+}
+#cTable .cThumbnailCurrent img {
+	height: 1em;
+}
+#cTable .cThumbnailCurrent a {
+	font-size: 0.8em;
+	color: #edb;
+}
+#cTable .cThumbnailCurrent a:hover {
+	color: #fdc;
+}
+#cTable .cThumbnailCurrent + .cThumbnailInput {
+	display: none;
+}
 #cSave #cSubmit {
 	font-size: 15px;
 	text-align: center;

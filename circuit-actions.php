@@ -197,6 +197,11 @@ function includeShareLib() {
             else
                 $table.classList.remove("cShowAdvanced");
         }
+        function removeThumbnail() {
+            var $form = document.getElementById("cSave");
+            $form.querySelector(".cThumbnailValue").removeChild($form.querySelector(".cThumbnailCurrent"));
+            $form.elements["thumbnail_unset"].value = "1";
+        }
         function toggleNameTr(show) {
             var $table = document.getElementById("cTable");
             if (show) {
@@ -288,6 +293,7 @@ function printCircuitShareUI() {
         $cNameEn = isset($getTrackSettings['name_en']) ? $getTrackSettings['name_en'] : '';
         $cNameTr = ($cNameEn || $cNameFr);
         $cPrefix = isset($getTrackSettings['prefix']) ? $getTrackSettings['prefix'] : '';
+        $cThumbnail = isset($getTrackSettings['thumbnail']) ? $getTrackSettings['thumbnail'] : '';
         ?>
         <form id="cSave" method="post" action="" onsubmit="saveRace();return false">
         <table id="cTable"<?php if ($cNameTr) echo ' class="cShowTr"'; ?>>
@@ -296,7 +302,28 @@ function printCircuitShareUI() {
         <tr class="cAdvanced"><td colspan="2" class="cToggle"><label><input type="checkbox" name="name_tr" onclick="toggleNameTr(this.checked)"<?php if ($cNameTr) echo ' checked="checked"'; ?> /> <?php echo $language ? "Translate circuit name" : "Traduire le nom du circuit"; ?></label></td></tr>
         <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? 'Circuit name [EN]:':'Nom du circuit [FR] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_en' : 'name_fr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" /></td></tr>
         <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? 'Circuit name [FR]:':'Nom du circuit [EN] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_fr' : 'name_en'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" /></td></tr>
-        <tr class="cAdvanced"><td colspan="2"><label for="cThumbnail"><?php echo $language ? 'Thumbnail:':'Miniature :'; ?> <input type="file" name="thumbnail" id="cThumbnail" accept="image/png,image/gif,image/jpeg" /></td></tr>
+        <tr class="cAdvanced"><td colspan="2">
+            <div class="cThumbnail">
+                <label for="cThumbnail"><?php echo $language ? 'Thumbnail:':'Miniature :'; ?></label>
+                <div class="cThumbnailValue">
+                <?php
+                if ($cThumbnail) {
+                    ?>
+                    <div class="cThumbnailCurrent">
+                        <img src="images/uploads/<?php echo $cThumbnail; ?>" alt="Thumbnail" />
+                        <a href="javascript:removeThumbnail()">[<?php echo $language ? 'Remove':'Supprimer'; ?>]</a>
+                    </div>
+                    <?php
+                }
+                ?>
+                <div class="cThumbnailInput">
+                    <?php
+                    if ($cThumbnail)
+                        echo '<input type="hidden" name="thumbnail_unset" />';
+                    ?>
+                    <input type="file" name="thumbnail" id="cThumbnail" accept="image/png,image/gif,image/jpeg" /></td></tr>
+                </div>
+            </div>
         <?php
         if (!$isCup) {
             ?>

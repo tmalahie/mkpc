@@ -155,7 +155,7 @@ function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
             mysql_query('DELETE FROM `mktrackbin` WHERE type="'. $type .'" AND circuit="'. $circuitId .'"');
         }
     }
-    $shouldDeleteThumbnail = isset($payload['thumbnail_unset']);
+    $shouldDeleteThumbnail = !empty($payload['thumbnail_unset']);
 
     if (isset($_FILES['thumbnail'])) {
         $thumbnail = $_FILES['thumbnail'];
@@ -166,16 +166,21 @@ function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
             if (move_uploaded_file($thumbnail['tmp_name'], $thumbnailTmpPath)) {
                 $w_ic = 120;
                 $h_ic = $w_ic;
-                if ($thumbnailName = thumbnailize($thumbnailTmpPath, 'ic-'. $type.'-'. $circuitId .'-'. time(), $w_ic,$h_ic))
+                if ($thumbnailName = thumbnailize($thumbnailTmpPath, 'ic-'. $type.'-'. $circuitId .'-'. time(), $w_ic,$h_ic)) {
+                    $thumbnailNameRaw = '"'. $thumbnailName .'"';
                     $shouldDeleteThumbnail = true;
+                }
             }
             @unlink($thumbnailTmpPath);
         }
     }
     if ($shouldDeleteThumbnail) {
         if ($currentThumbnail = mysql_fetch_array(mysql_query('SELECT thumbnail FROM mktracksettings WHERE circuit="'. $circuitId .'" AND type="'. $type .'"'))) {
-            if ($currentThumbnail['thumbnail'] !== null)
+            if ($currentThumbnail['thumbnail'] !== null) {
                 @unlink('images/uploads/'. $currentThumbnail['thumbnail']);
+                if (!isset($thumbnailNameRaw))
+                    $thumbnailNameRaw = 'NULL';
+            }
         }
     }
     mysql_query(
@@ -183,12 +188,12 @@ function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
         SET circuit="'. $circuitId .'", type="'. $type .'",
         name_en='. getSQLRawValue($payload['name_en']) .',
         name_fr='. getSQLRawValue($payload['name_fr']) .',
-        '. (isset($thumbnailName) ? 'thumbnail="'. $thumbnailName .'",' : '') .'
+        '. (isset($thumbnailNameRaw) ? 'thumbnail='. $thumbnailNameRaw .',' : '') .'
         prefix='. getSQLRawValue($payload['prefix']) .'
         ON DUPLICATE KEY UPDATE
         name_en=VALUES(name_en),
         name_fr=VALUES(name_fr),
-        '. (isset($thumbnailName) ? 'thumbnail=VALUES(thumbnail),' : '') .'
+        '. (isset($thumbnailNameRaw) ? 'thumbnail=VALUES(thumbnail),' : '') .'
         prefix=VALUES(prefix)'
     );
 }
