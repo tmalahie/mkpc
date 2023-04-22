@@ -103,6 +103,48 @@ function isSquareTrack(&$circuit) {
 function getSQLRawValue(&$value) {
     return isset($value) ? '"'.$value.'"' : 'NULL';
 }
+function thumbnailize($source, $dest, $width, $height) {
+    $imageType = exif_imagetype($source);
+    $extParams = array(1 => array(
+        'ext' => 'gif',
+        'create_fn' => 'imagecreatefromgif',
+        'save_fn' => 'imagegif'
+    ), 2 => array(
+        'ext' => 'jpg',
+        'create_fn' => 'imagecreatefromjpeg',
+        'save_fn' => 'imagejpeg'
+    ), 3 => array(
+        'ext' => 'png',
+        'create_fn' => 'imagecreatefrompng',
+        'save_fn' => 'imagepng'
+    ));
+    if (isset($extParams[$imageType])) {
+        $ext = $extParams[$imageType]['ext'];
+        $create_fn = $extParams[$imageType]['create_fn'];
+        $save_fn = $extParams[$imageType]['save_fn'];
+        $image = $create_fn($source);
+        $imageWidth = imagesx($image);
+        $imageHeight = imagesy($image);
+        if (!$imageHeight) return;
+        $imageRatio = $imageWidth / $imageHeight;
+        $thumbnailRatio = $width / $height;
+        if ($imageRatio > $thumbnailRatio) {
+            $newWidth = round($width * $imageRatio);
+            $newHeight = $height;
+        }
+        else {
+            $newWidth = $width;
+            $newHeight = round($height / $imageRatio);
+        }
+        $x = ($width - $newWidth) / 2;
+        $y = ($height - $newHeight) / 2;
+        $thumbnail = imagecreatetruecolor($width, $height);
+        imagecopyresampled($thumbnail, $image, $x, $y, 0, 0, $newWidth, $newHeight, $imageWidth, $imageHeight);
+        $thumbnailPath = 'images/uploads/'. $dest .'.'. $ext;
+        $save_fn($thumbnail, $thumbnailPath);
+        return $dest .'.'. $ext;
+    }
+}
 function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
     if ($payload === null) $payload = $_POST;
     if (($type === 'mkcircuits') && !$isBattle) {
@@ -113,15 +155,40 @@ function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
             mysql_query('DELETE FROM `mktrackbin` WHERE type="'. $type .'" AND circuit="'. $circuitId .'"');
         }
     }
+    $shouldDeleteThumbnail = isset($payload['thumbnail_unset']);
+
+    if (isset($_FILES['thumbnail'])) {
+        $thumbnail = $_FILES['thumbnail'];
+        if (!$thumbnail['error']) {
+            $tmpFile = tmpfile();
+            $fileStream = stream_get_meta_data($tmpFile);
+            $thumbnailTmpPath = $fileStream['uri'];
+            if (move_uploaded_file($thumbnail['tmp_name'], $thumbnailTmpPath)) {
+                $w_ic = 120;
+                $h_ic = $w_ic;
+                if ($thumbnailName = thumbnailize($thumbnailTmpPath, 'ic-'. $type.'-'. $circuitId .'-'. time(), $w_ic,$h_ic))
+                    $shouldDeleteThumbnail = true;
+            }
+            @unlink($thumbnailTmpPath);
+        }
+    }
+    if ($shouldDeleteThumbnail) {
+        if ($currentThumbnail = mysql_fetch_array(mysql_query('SELECT thumbnail FROM mktracksettings WHERE circuit="'. $circuitId .'" AND type="'. $type .'"'))) {
+            if ($currentThumbnail['thumbnail'] !== null)
+                @unlink('images/uploads/'. $currentThumbnail['thumbnail']);
+        }
+    }
     mysql_query(
         'INSERT INTO mktracksettings
         SET circuit="'. $circuitId .'", type="'. $type .'",
         name_en='. getSQLRawValue($payload['name_en']) .',
         name_fr='. getSQLRawValue($payload['name_fr']) .',
+        '. (isset($thumbnailName) ? 'thumbnail="'. $thumbnailName .'",' : '') .'
         prefix='. getSQLRawValue($payload['prefix']) .'
         ON DUPLICATE KEY UPDATE
         name_en=VALUES(name_en),
         name_fr=VALUES(name_fr),
+        '. (isset($thumbnailName) ? 'thumbnail=VALUES(thumbnail),' : '') .'
         prefix=VALUES(prefix)'
     );
 }
