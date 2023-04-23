@@ -3,7 +3,7 @@ require_once('circuitPrefix.php');
 function printCupCircuit(&$circuit, $options=array()) {
     global $language;
     $circuitnb = isset($options['nb']) ? $options['nb'] : '';
-    $isCup = count($circuit['srcs']) > 1;
+    $isCup = count($circuit['icon']) > 1;
     ?>
     <tr id="circuit<?php echo $circuit['id']; ?>" data-id="<?php echo $circuit['id']; ?>" onclick="selectCircuit(this)">
         <td class="td-preview<?php if ($isCup) echo ' td-preview-cup'; ?>" <?php
@@ -22,7 +22,7 @@ function printCupCircuit(&$circuit, $options=array()) {
     <?php
 }
 
-function printCollabImportPopup($type, $mode) {
+function printCollabImportPopup($type, $mode, $isBattle) {
     global $language;
     switch ($type) {
     case 'cup':
@@ -30,7 +30,7 @@ function printCollabImportPopup($type, $mode) {
         $aCircuit = $language ? 'a cup' : 'une coupe';
         $ofCircuit = $language ? 'of the cup' : 'de la coupe';
         $placeholderType = 'mkcups';
-        $placeholderId = 1+$mode;
+        $placeholderId = 1+$mode + $isBattle*2;
         break;
     case 'arena':
         $Circuit = $language ? "arena" : "arène";
@@ -323,6 +323,7 @@ function getTrackPayloads($options) {
                     $infos['id'] = $trackID;
                     $infos['name'] = $getMain['name'];
                     $infos['name0'] = $getMain['name0'];
+                    $infos['prefix'] = $getMain['prefix'];
                     $infos['note'] = $getMain['note'];
                     $infos['nbnotes'] = $getMain['nbnotes'];
                     $infos['auteur'] = $getMain['auteur'];

@@ -760,6 +760,9 @@ form[name="modes"] {
 }
 #cSave .cSubmit .cOptions {
 	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	color: white;
 }
 #cTable.cShowAdvanced .cOptions .cOptionsShow {

@@ -16,6 +16,7 @@ if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs
 }
 require_once('getRights.php');
 $isSingle = false;
+$isBattle = isset($_GET['battle']);
 if (isset($_GET['mid']))
 	$trackPayloadParams = array();
 elseif (isset($_GET['sid'])) {
@@ -28,18 +29,19 @@ elseif (isset($_GET['cid'])) {
 elseif (isset($_GET['id'])) {
 	$isSingle = true;
 	$trackPayloadParams = array(
-		'sid' => 'id'
+		'sid' => 'id',
+		'mode' => $isBattle ? 2 : 0
 	);
 }
 elseif (isset($_GET['i'])) {
 	$isSingle = true;
 	$trackPayloadParams = array(
-		'sid' => 'i'
+		'sid' => 'i',
+		'mode' => $isBattle ? 3 : 1
 	);
 }
 $isCup = false;
 $isMCup = false;
-$isBattle = isset($_GET['battle']);
 $isCustom = isset($trackPayloadParams);
 if ($isCustom) {
 	require_once('utils-cups.php');

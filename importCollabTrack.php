@@ -9,7 +9,7 @@ if (isset($_POST['id']) && isset($_POST['type']) && isset($_POST['collab'])) {
         $isQuickTrack = ($_POST['type'] === 'mkcircuits');
 		require_once('utils-cups.php');
         if (($circuit = fetchCreationData($_POST['type'], $_POST['id'], array(
-            'select' => 'c.id,c.nom'.($isCup ? ',c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3':'').($isQuickTrack ? ',c.type':'')
+            'select' => 'c.id,c.nom'.($isCup ? ',c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3,s.thumbnail':'').($isQuickTrack ? ',c.type':'')
         ))) && (!isset($_POST['mode']) || $circuit['mode'] == $_POST['mode'])) {
             require_once('utils-circuits.php');
             require_once('circuitEscape.php');
@@ -34,9 +34,15 @@ if (isset($_POST['id']) && isset($_POST['type']) && isset($_POST['collab'])) {
                     $category = 3;
                     break;
                 }
-                $lCup = array();
-                for ($i=0;$i<4;$i++)
-                    $lCup[] = $circuit['circuit'.$i];
+                $lCup = array(
+                    'mode' => $circuit['mode'],
+                    'tracks' => array()
+                );
+                for ($i=0;$i<4;$i++) {
+                    $lCup['tracks'][] = array(
+                        'id' => $circuit['circuit'.$i]
+                    );
+                }
                 $lCups = array(
                     $circuit['id'] => $lCup
                 );
@@ -54,6 +60,7 @@ if (isset($_POST['id']) && isset($_POST['type']) && isset($_POST['collab'])) {
             $res = array(
                 'id' => $circuit['id'],
                 'nom' => $circuit['name'],
+                'thumbnail' => $circuit['thumbnail'],
                 'category' => $category,
                 'href' => getCollabUrlPrefix($link)
             );

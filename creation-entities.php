@@ -55,7 +55,7 @@ $CREATION_ENTITIES = array(
             }
         },
         'get_share_params' => function() {
-            global $nid, $infos, $lettres, $nbLettres, $isBattle;
+            global $nid, $infos, $lettres, $nbLettres, $isBattle, $clId;
             $shareParams = array(
                 'map' => $infos['map']
             );
@@ -105,6 +105,7 @@ $CREATION_ENTITIES = array(
                             $onUnshare .= '&'.$prefix.$j.'='.$infos[$prefix.$j];
                     }
                 }
+                if ($clId) $onUnshare .= '&cl='.$clId;
                 $onUnshare .= '";';
 
                 $res['remove'] = array(

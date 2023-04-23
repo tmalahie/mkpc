@@ -855,7 +855,7 @@ function importCollabTrack(e) {
 		if (isMCups) {
 			creationType = "mkcups";
 			creationId = urlParams.get('cid');
-			creationMode = complete;
+			creationMode = isBattle * 2 + complete;
 		}
 		else if (complete) {
 			creationType = isBattle ? "arenes" : "circuits";

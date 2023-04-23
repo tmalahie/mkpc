@@ -6,10 +6,12 @@ $editting = true;
 $cOptions = isset($_GET['opt']) ? $_GET['opt']:null;
 include('initdb.php');
 require_once('collabUtils.php');
+$isBattle = isset($_GET['battle']);
 $readOnly = false;
 if (isset($_GET['mid'])) {
 	$id = intval($_GET['mid']);
-	$getMCup = mysql_fetch_array(mysql_query('SELECT options,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $id .'"'));
+	$cupMode = $isBattle*2 + $mode;
+	$getMCup = mysql_fetch_array(mysql_query('SELECT options,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $id .'" AND mode="'. $cupMode .'"'));
 	if (($getMCup['identifiant'] == $identifiants[0]) && ($getMCup['identifiant2'] == $identifiants[1]) && ($getMCup['identifiant3'] == $identifiants[2]) && ($getMCup['identifiant4'] == $identifiants[3])) {
 		$hasReadGrants = true;
 		$hasWriteGrants = true;
@@ -61,7 +63,7 @@ var editting = <?php echo $editting ? 'true':'false'; ?>;
 var ckey = "mid";
 var complete = <?php echo $mode; ?>;
 var readOnly = <?php echo $readOnly ? 1:0; ?>;
-var isBattle = 0;
+var isBattle = <?php echo $isBattle ? 1:0; ?>;
 <?php
 if (isset($mids))
 	echo 'var cids = '. json_encode($mids) .';';
@@ -83,13 +85,13 @@ include('handleCupOptions.php');
 <script type="text/javascript" src="scripts/posticons.js"></script>
 </head>
 <body<?php if ($readOnly) echo ' class="readonly"'; ?>>
-	<div class="container <?php echo $mode ? 'complete':'simplified'; ?>">
+	<div class="container <?php echo $mode ? 'complete':'simplified'; ?> <?php echo $isBattle ? ' is-battle':''; ?>">
 		<div id="global-infos" class="editor-section"><?php
 			if ($language) {
 				?>
 			This editor allows you to merge several cups on the same page.<br />
 			You have created cups of a same series and you want to join them together?<br />
-			You often play online on your circuits and you don't want to be limited to 4 races?<br />
+			You often play online on your <?php echo $isBattle ? 'arenas' : 'circuits'; ?> and you don't want to be limited to 4 <?php echo $isBattle ? 'battles' : 'races'; ?>?<br />
 			This mode is made for you! You can join <strong>up to 40 cups</strong>!<br />
 			Just select the creations of your choice, like in the cups editor.
 				<?php
@@ -98,52 +100,46 @@ include('handleCupOptions.php');
 				?>
 			Cet éditeur vous permet de rassembler plusieurs coupes sur une même page.<br />
 			Vous avez créé des coupes d'une même série et vous souhaitez les réunir ?<br />
-			Vous jouez souvent en ligne sur vos circuits et vous ne voulez pas être limité à 4 courses ?<br />
+			Vous jouez souvent en ligne sur vos <?php echo $isBattle ? 'arènes' : 'circuits'; ?> et vous ne voulez pas être limité à 4 <?php echo $isBattle ? 'batailles' : 'courses'; ?> ?<br />
 			Ce mode est fait pour vous ! Vous pouvez réunir <strong>jusqu'à 40 coupes</strong> !<br />
 			Sélectionnez simplement les créations de votre choix, comme dans l'éditeur de coupes.
 				<?php
 			}
 			?></div>
-		<form method="get" onsubmit="return handleFormSubmit(event)" action="<?php echo ($mode ? 'map.php':'circuit.php'); ?>">
+		<form method="get" onsubmit="return handleFormSubmit(event)" action="<?php echo $isBattle ? ($mode ? 'battle.php':'arena.php') : ($mode ? 'map.php':'circuit.php'); ?>">
 		<div class="editor-content editor-content-active">
 			<h1><?php echo $language ? 'Cups selection':'Sélection des coupes'; ?> (<span id="nb-selected">0</span>) :</h1>
 			<?php
 			require_once('utils-circuits.php');
 			require_once('utils-cups.php');
-			if ($mode)
-				$types = array(2,3,8,9);
+			if ($isBattle)
+				$type = 9-$mode;
 			else
-				$types = array(3,2,9,8);
-			function listAllCreations($types, $filters) {
-				global $aCircuits;
-				$res = array();
-				foreach ($types as $type) {
-					$tCircuits = array($aCircuits[$type]);
-					$filters['type'] = $type;
-					$creations = listCreations(1,null,null,$tCircuits,$filters);
-					$res = array_merge($res, $creations);
-				}
-				return $res;
-			}
-			$listCups = listAllCreations($types, array(
-				'pids' => $identifiants
-			));
+				$type = 3-$mode;
+			$aCircuits = array($aCircuits[$type]);
+			$aParams = array(
+				'pids' => $identifiants,
+				'type' => $type
+			);
+			$listCups = listCreations(1,null,null,$aCircuits,$aParams);
 			$misingCupIds = array();
 			foreach ($mids as $cid)
 				$misingCupIds[$cid] = true;
 			foreach ($listCups as $cup)
 				unset($misingCupIds[$cup['id']]);
 			if (!empty($misingCupIds)) {
-				$misingTracks = listAllCreations($types, array(
-					'ids' => array_keys($misingCupIds)
-				));
+				$aParams = array(
+					'ids' => array_keys($misingCupIds),
+					'type' => $type
+				);
+				$misingTracks = listCreations(1,null,null,$aCircuits,$aParams);
 				$listCups = array_merge($misingTracks, $listCups);
 			}
 			$nbCups = count($listCups);
 			if (!$nbCups)
-				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'quick') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create one.':'Vous n\'avez pas encore partagé de coupes en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une.') .'</em>';
+				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You haven\'t shared cups in '. ($mode ? 'complete':'quick') .' mode.<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">here</a> to create one.':'Vous n\'avez pas encore partagé de coupes en mode '. ($mode ? 'complet':'simplifié') .'.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">ici</a> pour en créer une.') .'</em>';
 			elseif ($nbCups < 2)
-				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') .'">ici</a> pour en créer une nouvelle.') .'</em>';
+				echo '<em class="editor-section" id="no-circuit">'. ($language ? 'You need to have created at least 2 cups to create a multicup<br />Click <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">here</a> to create a new cup.':'Vous devez avoir au moins 2 coupes pour créer une multicoupe.<br />Cliquez <a href="'. ($mode ? 'completecup.php':'simplecup.php') . ($isBattle ? '?battle':'') .'">ici</a> pour en créer une nouvelle.') .'</em>';
 			?>
 			<div id="table-container">
 				<table id="table-circuits">
@@ -218,10 +214,11 @@ include('handleCupOptions.php');
 		</div>
 		</form>
 		<?php
-		printCollabImportPopup('cup', $mode);
+		printCollabImportPopup('cup', $mode, $isBattle);
 		?>
 		<div class="editor-navigation">
-			<a href="<?php echo ($mode ? 'simplecups.php':'completecups.php'); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'quick':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
+			<a href="<?php echo ($mode ? 'completecups.php':'simplecups.php').($isBattle ? '':'?battle'); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup of '. ($isBattle ? 'circuits':'arenas')):('Créer une multicoupe '. ($isBattle ? 'de circuits':'d\'arènes')); ?></a></u>
+			<a href="<?php echo ($mode ? 'simplecups.php':'completecups.php').($isBattle ? '?battle':''); ?>"><span>-&nbsp; </span><u><?php echo $language ? ('Create a multicup in '. ($mode ? 'quick':'complete') .' mode'):('Créer une multicoupe en mode '. ($mode ? 'simplifié':'complet')); ?></a></u>
 			<a href="index.php"><span>&lt; </span><u><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></u></a>
 		</div>
 	</div>

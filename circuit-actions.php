@@ -137,24 +137,25 @@ function includeShareLib() {
                     cCont.value = language ? "Continue":"Continuer";
                     cCont.onclick = function() {
                         <?php
-                        if ($isMCup) {
+                        if ($isCup) {
                             echo 'document.location.href = "?';
-                            foreach ($cupIDs as $i => $cupID) {
-                                if ($i)
-                                    echo '&';
-                                echo 'mid'. $i .'='. $cupIDs[$i];
+                            if ($isMCup) {
+                                foreach ($cupIDs as $i => $cupID) {
+                                    if ($i)
+                                        echo '&';
+                                    echo 'mid'. $i .'='. $cupIDs[$i];
+                                }
+                                if (!empty($cOptions))
+                                    echo '&opt='. urlencode($cOptions);
                             }
-                            if (!empty($cOptions))
-                                echo '&opt='. urlencode($cOptions);
-                            echo '";';
-                        }
-                        elseif ($isCup) {
-                            echo 'document.location.href = "?';
-                            for ($i=0;$i<4;$i++) {
-                                if ($i)
-                                    echo '&';
-                                echo 'cid'. $i .'='. $cupIDs[$i];
+                            else {
+                                for ($i=0;$i<4;$i++) {
+                                    if ($i)
+                                        echo '&';
+                                    echo 'cid'. $i .'='. $cupIDs[$i];
+                                }
                             }
+                            if ($clId) echo '&cl='.$clId;
                             echo '";';
                         }
                         else
@@ -315,16 +316,17 @@ function printCircuitActions() {
 }
 function printCircuitShareUI() {
     global $language, $isCup, $isMCup, $isBattle, $cName0, $cPseudo, $creationType, $nid;
+    $softDeleted = in_array($creationType, array('circuits', 'arenes'));
     ?>
     <div id="confirmSuppr" onclick="handleUnshareBackdropClick(event)">
         <div class="confirmSupprDialog">
             <p id="supprInfos"><?php echo $language ?
                 'Stop sharing this '. ($isCup ? ($isMCup ? 'multicup':'cup'):($isBattle ? 'arena':'circuit')) .'?<br />
                 '.($isCup ? ($isMCup ? 'The multicup':'The cup'):($isBattle ? 'The arena':'The circuit')).' will be only removed from the list:<br />
-                data will be recoverable.' :
+                data will be '. ($softDeleted ? 'preserved' : 'recoverable') .'.' :
                 'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):($isBattle ? 'cette arène':'ce circuit')) .' ?<br />
                 '.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):($isBattle ? "L'arène":"Le circuit")).' sera simplement '.($isBattle||$isCup ? 'retirée' : 'retiré').' de la liste :<br />
-                les données seront récupérables.';
+                les données seront '. ($softDeleted ? 'conservées' : 'récupérables') .'.';
             ?></p>
             <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
         </div>
