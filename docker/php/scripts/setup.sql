@@ -1437,12 +1437,16 @@ CREATE TABLE `mktrackbin` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `mktrackdesc` (
+CREATE TABLE `mktracksettings` (
   `circuit` int(11) NOT NULL,
   `type` enum('arenes','circuits','mkcircuits','mkcups','mkmcups') NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `description` text NOT NULL,
+  `description` text DEFAULT NULL,
+  `name_en` varchar(255) DEFAULT NULL,
+  `name_fr` varchar(255) DEFAULT NULL,
+  `prefix` varchar(255) DEFAULT NULL,
+  `thumbnail` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`circuit`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -101,7 +101,7 @@ function isSquareTrack(&$circuit) {
     return ($nbTurns <= 4);
 }
 function getSQLRawValue(&$value) {
-    return isset($value) ? '"'.$value.'"' : 'NULL';
+    return empty($value) ? 'NULL' : '"'.$value.'"';
 }
 require_once('cache_creations.php');
 $THUMBNAIL_FOLDER = $CACHE_FOLDER . 'uploads/';
@@ -164,6 +164,13 @@ function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
         name_fr=VALUES(name_fr),
         '. (isset($thumbnailNameRaw) ? 'thumbnail=VALUES(thumbnail),' : '') .'
         prefix=VALUES(prefix)'
+    );
+    mysql_query(
+        'DELETE FROM mktracksettings
+        WHERE circuit="'. $circuitId .'" AND type="'. $type .'"
+        AND name_en IS NULL AND name_fr IS NULL
+        AND thumbnail IS NULL AND prefix IS NULL
+        AND description IS NULL'
     );
 }
 function postCircuitDelete($type, $circuitId) {

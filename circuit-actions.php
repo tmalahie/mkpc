@@ -28,7 +28,6 @@ function includeShareLib() {
             document.getElementById("cAnnuler").className = "cannotChange";
             document.getElementById("cEnregistrer").disabled = true;
             document.getElementById("cEnregistrer").className = "cannotChange";
-            var cNameTr = "", cPrefix = "";
             var $form = document.getElementById("cSave");
             var formData = new FormData($form);
             if (!$form.elements["name_tr"].checked) {
