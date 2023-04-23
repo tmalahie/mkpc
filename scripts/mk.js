@@ -20410,7 +20410,7 @@ function selectTypeCreate() {
 		thumbnail: "help/mode-simple.png"
 	}, {
 		name: toLanguage("Complete mode", "Mode complet"),
-		description: toLanguage("Create the track entirely from an image you draw yourself", "Créez entièrement le circuit à partir d'une image dessinée par vous-même"),
+		description: toLanguage("Create the track entirely from an image you drew yourself", "Créez entièrement le circuit à partir d'une image dessinée par vous-même"),
 		thumbnail: "help/mode-complete.png"
 	}];
 
