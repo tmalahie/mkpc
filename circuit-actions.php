@@ -1,7 +1,7 @@
 <?php
 require_once('collabUtils.php');
 function includeShareLib() {
-    global $nid, $creationType, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage;
+    global $nid, $creationType, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $cOptions, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage;
     $isBattle = ($creationMode > 1);
     $complete = ($creationMode%2);
     include('creation-entities.php');
@@ -22,6 +22,7 @@ function includeShareLib() {
             $shareParams = $CREATION_ENTITIES[$creationMode]['get_share_params']();
             $trackEditPage = $shareParams['edit']['page'];
         }
+        $canRemove = $isCup ? isset($nid) : isset($shareParams['remove']);
         ?>
         function saveRace() {
             document.getElementById("cAnnuler").disabled = true;
@@ -42,8 +43,6 @@ function includeShareLib() {
                 $formData['mode'] = $creationMode;
                 foreach ($cupIDs as $i=>$cupID)
                     $formData['cid'. $i] = $cupID;
-                if (!empty($cOptions))
-                    $formData['opt'] = 'JSON.stringify(cupOpts)';
             }
             elseif (isset($shareParams['send']['params'])) {
                 $formData = array_merge($formData, $shareParams['send']['params']);
@@ -58,8 +57,11 @@ function includeShareLib() {
                 formData.append(key, extraData[key]);
             <?php
             
-            if ($isCup)
+            if ($isCup) {
+                if (!empty($cOptions))
+                    echo 'formData.append("opt", JSON.stringify(cupOpts));';
                 echo 'addCollabQuery(formData, "'. ($isMCup ? 'mkcups':$CREATION_ENTITIES[$creationMode]['table']) .'", ['. implode(',',$cupIDs) .']);';
+            }
             ?>
 
             fetch("<?php echo ($isMCup ? 'saveMCup.php' : ($isCup?'saveCup.php':$shareParams['send']['endpoint'])); ?>", {
@@ -73,7 +75,7 @@ function includeShareLib() {
                     cP.style.margin = "5px";
                     cP.style.textAlign = "center";
                     cP.innerHTML = '<?php
-                        if ($isCup ? isset($nid) : isset($shareParams['remove']))
+                        if ($canRemove)
                             echo $language ? ($isCup ? 'Cup':($isBattle ? 'Arena' : 'Circuit')) .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':($isBattle ? 'arène' : 'circuit')) .' a été mis à jour.';
                         else
                             echo $language ? 'Your '. ($isCup ? 'cup':($isBattle ? 'arena' : 'circuit')) .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':($isBattle ? 'arène':'circuit')) .' vient d\\\'être '. ($isCup||$isBattle ? 'ajoutée':'ajouté') .' à la <a href="creations.php" target="_blank">liste</a> !';
@@ -116,14 +118,14 @@ function includeShareLib() {
             });
         }
         <?php
-        if (isset($shareParams['remove'])) {
+        if ($canRemove) {
             ?>
         function supprRace() {
             document.getElementById("sAnnuler").disabled = true;
             document.getElementById("sAnnuler").className = "cannotChange";
             document.getElementById("sConfirmer").disabled = true;
             document.getElementById("sConfirmer").className = "cannotChange";
-            xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':$shareParams['remove']['endpoint'])); ?>", "<?php
+            xhr("<?php echo ($isMCup ? 'supprMCup.php':($isCup ? 'supprCup.php':$shareParams['remove']['endpoint'])); ?>", "<?php
                 echo 'id='.$nid;
                 if ($collab) echo '&collab='.$collab['key'];
             ?>", function(reponse) {
@@ -339,11 +341,18 @@ function printCircuitShareUI() {
         ?>
         <form id="cSave" method="post" action="" onclick="handleShareBackdropClick(event)" onsubmit="saveRace();return false">
         <table id="cTable"<?php if ($cNameTr) echo ' class="cShowTr"'; ?>>
-        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="auteur" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" placeholder="Wagar" /></td></tr>
-        <tr><td class="cLabel"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit')).' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit")); ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="nom" id="cName" value="<?php echo escapeUtf8($cName0) ?>" placeholder="<?php echo $language ? 'Mario Circuit' : 'Circuit Mario'; ?>" /></td></tr>
-        <tr class="cAdvanced"><td colspan="2" class="cToggle"><label><input type="checkbox" name="name_tr" onclick="toggleNameTr(this.checked)"<?php if ($cNameTr) echo ' checked="checked"'; ?> /> <?php echo $language ? "Translate circuit name" : "Traduire le nom du circuit"; ?></label></td></tr>
-        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? 'Circuit name [EN]:':'Nom du circuit [FR] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_en' : 'name_fr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" placeholder="<?php echo $language ? 'Mario Circuit' : 'Circuit Mario'; ?>" /></td></tr>
-        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? 'Circuit name [FR]:':'Nom du circuit [EN] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_fr' : 'name_en'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" placeholder="<?php echo $language ? 'Circuit Mario' : 'Mario Circuit'; ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="auteur" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" placeholder="Yoshi64" /></td></tr>
+        <?php
+        if ($language)
+            $ofTrack = ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit'));
+        else
+            $ofTrack = ($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit"));
+        $oftrack = strtolower($ofTrack);
+        ?>
+        <tr><td class="cLabel"><label for="cName"><?php echo $language ? "$ofTrack name":"Nom $ofTrack"; ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="nom" id="cName" value="<?php echo escapeUtf8($cName0) ?>" placeholder="<?php echo $language ? 'Mario Circuit' : 'Circuit Mario'; ?>" /></td></tr>
+        <tr class="cAdvanced"><td colspan="2" class="cToggle"><label><input type="checkbox" name="name_tr" onclick="toggleNameTr(this.checked)"<?php if ($cNameTr) echo ' checked="checked"'; ?> /> <?php echo $language ? "Translate $oftrack name" : "Traduire le nom $ofTrack"; ?></label></td></tr>
+        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? "$ofTrack name [EN]:":"Nom $ofTrack [FR] :"; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_en' : 'name_fr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" placeholder="<?php echo $language ? 'Mario Circuit' : 'Circuit Mario'; ?>" /></td></tr>
+        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? "$ofTrack name [FR]:":"Nom $ofTrack [EN] :"; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_fr' : 'name_en'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" placeholder="<?php echo $language ? 'Circuit Mario' : 'Mario Circuit'; ?>" /></td></tr>
         <tr class="cAdvanced"><td colspan="2">
             <div class="cThumbnail">
                 <label for="cThumbnail"><?php echo $language ? 'Thumbnail:':'Miniature :'; ?></label>

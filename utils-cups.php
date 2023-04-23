@@ -180,8 +180,13 @@ function getTrackPayloads($options) {
         }
         else
             $cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
-        for ($i=0;$i<4;$i++)
+        for ($i=0;$i<4;$i++) {
             $cupIDs[$i] = intval($_GET['cid'. $i]);
+            $tracksToFetch[$i] = array(
+                'id' => $cupIDs[$i],
+                'mode' => $creationMode,
+            );
+        }
         $edittingCircuit = true;
     }
     elseif (isset($_GET['mid0'])) { // Multicups being created
