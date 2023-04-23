@@ -166,3 +166,11 @@ function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
         prefix=VALUES(prefix)'
     );
 }
+function postCircuitDelete($type, $circuitId) {
+    global $THUMBNAIL_FOLDER;
+    if ($trackSettings = mysql_fetch_array(mysql_query('SELECT thumbnail FROM mktracksettings WHERE circuit="'. $circuitId .'" AND type="'. $type .'"'))) {
+        if ($trackSettings['thumbnail'] !== null)
+            @unlink($THUMBNAIL_FOLDER . $trackSettings['thumbnail']);
+        mysql_query('DELETE FROM mktracksettings WHERE circuit="'. $circuitId .'" AND type="'. $type .'"');
+    }
+}

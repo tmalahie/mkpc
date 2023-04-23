@@ -640,12 +640,26 @@ form[name="modes"] {
 }
 #confirmSuppr {
 	position: absolute;
-	left:10%;
-	bottom:20%;
-	display:none;
-	background-color:#420;
-	border: double 3px #FC0;
-	padding: 0 5px 5px 2px;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 20003;
+	display: none;
+	background-color: rgba(0,0,0, 0.5);
+}
+#confirmSuppr .confirmSupprDialog {
+	background-color: #4A3320;
+	border: double 3px #DCA;
+	border-radius: 4px;
+	margin: auto auto 150px auto;
+	padding: 6px 10px 2px 10px;
+}
+@media screen and (min-width: 600px) {
+	#confirmSuppr .confirmSupprDialog {
+		margin-left: 140px;
+		margin-right: auto;
+	}
 }
 #confirmSuppr p {
 	text-align: center
@@ -654,18 +668,32 @@ form[name="modes"] {
 	padding:5px;
 }
 #cSave {
-	position: absolute;
-	left:10%;
-	bottom:20%;
-	display:none;
-	background-color:#420;
-	border: solid 1px #FC0
+	position: fixed;
+	z-index: 20003;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	display: none;
+	background-color: rgba(0,0,0, 0.5);
+}
+#cSave table {
+	margin: auto auto 150px auto;
+	background-color: #4A3320;
+	border: solid 1px #DCA;
+	border-radius: 4px;
+}
+@media screen and (min-width: 600px) {
+	#cSave table {
+		margin-left: 140px;
+		margin-right: auto;
+	}
 }
 #cSave table td {
-	font-size: 20px;
-	border: solid 1px #FC0;
+	font-size: 18px;
+	border: solid 1px #DCA;
 	margin: 2px;
-	padding: 2px;
+	padding: 2px 4px;
 }
 #cSave a {
 	color: white
@@ -675,6 +703,9 @@ form[name="modes"] {
 }
 #cTable input[type="text"]:focus {
 	background-color: #FF6
+}
+#cTable input[type="text"]::placeholder {
+	color: #bba;
 }
 #cTable input[type="file"] {
 	color: #eda;
@@ -729,8 +760,6 @@ form[name="modes"] {
 }
 #cSave .cSubmit .cOptions {
 	flex: 1;
-}
-#cTable.cShowAdvanced .cOptions {
 	color: white;
 }
 #cTable.cShowAdvanced .cOptions .cOptionsShow {
@@ -746,6 +775,11 @@ form[name="modes"] {
 #cSave #cSubmit input.cSecondary {
 	filter: hue-rotate(-30deg);
 	opacity: 0.8;
+}
+#cSave table #cTableSingleCell {
+	font-size: 16px;
+	font-weight: bold;
+	padding-top: 0;
 }
 @media screen and (min-width: 600px) {
 	#shareParams {

@@ -70,7 +70,6 @@ function includeShareLib() {
                 return res.text();
             }).then(function(reponse) {
                 if (reponse && !isNaN(reponse)) {
-                    document.getElementById("cSave").removeChild(document.getElementById("cTable"));
                     var cP = document.createElement("p");
                     cP.style.margin = "5px";
                     cP.style.textAlign = "center";
@@ -78,7 +77,7 @@ function includeShareLib() {
                         if ($isCup ? isset($nid) : isset($shareParams['remove']))
                             echo $language ? ($isCup ? 'Cup':($isBattle ? 'Arena' : 'Circuit')) .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':($isBattle ? 'arène' : 'circuit')) .' a été mis à jour.';
                         else
-                            echo $language ? 'Your '. ($isCup ? 'cup':($isBattle ? 'arena' : 'circuit')) .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':($isBattle ? 'arène':'circuit')) .' vient d\\\'être ajoutée à la <a href="creations.php" target="_blank">liste</a> !';
+                            echo $language ? 'Your '. ($isCup ? 'cup':($isBattle ? 'arena' : 'circuit')) .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':($isBattle ? 'arène':'circuit')) .' vient d\\\'être '. ($isCup||$isBattle ? 'ajoutée':'ajouté') .' à la <a href="creations.php" target="_blank">liste</a> !';
                     ?><br /><br />';
                     var cCont = document.createElement("input");
                     cCont.type = "button";
@@ -91,7 +90,8 @@ function includeShareLib() {
                         ?>
                     };
                     cP.appendChild(cCont);
-                    document.getElementById("cSave").appendChild(cP);
+                    document.getElementById("cTable").innerHTML = '<tr><td id="cTableSingleCell"></td></tr>';
+                    document.getElementById("cTableSingleCell").appendChild(cP);
                     document.getElementById("changeRace").onclick = function() {
                         document.location.href = "<?php
                             if ($isCup) {
@@ -163,10 +163,35 @@ function includeShareLib() {
                     document.getElementById("supprButtons").appendChild(cCont);
                     document.getElementById("changeRace").disabled = true;
                     document.getElementById("shareRace").disabled = true;
+                    cCont.focus();
                     return true;
                 }
                 return false;
             });
+        }
+        function toggleUnshareForm(show) {
+            if (show) {
+                document.getElementById('confirmSuppr').style.display = 'flex';
+                document.getElementById('sConfirmer').focus();
+                document.addEventListener("keydown", closeUnshareFormOnEscape);
+            }
+            else {
+                var $cancelBtn = document.getElementById('sAnnuler');
+                if (!$cancelBtn || $cancelBtn.disabled)
+                    return;
+                document.getElementById('confirmSuppr').style.display = 'none';
+                document.removeEventListener("keydown", closeUnshareFormOnEscape);
+            }
+        }
+        function handleUnshareBackdropClick(e) {
+            if (e.target.id === "confirmSuppr")
+                toggleUnshareForm(false);
+        }
+        function closeUnshareFormOnEscape(e) {
+            if (e.keyCode === 27) {
+                e.stopPropagation();
+                toggleUnshareForm(false);
+            }
         }
             <?php
         }
@@ -181,14 +206,30 @@ function includeShareLib() {
         function toggleShareForm(show) {
             var $form = document.getElementById("cSave");
             if (show) {
-                $form.style.display = 'block';
+                $form.style.display = 'flex';
                 if (getValue("cPseudo"))
                     $form.elements["cName"].select();
                 else
                     $form.elements["cPseudo"].select();
+                document.addEventListener("keydown", closeShareFormOnEscape);
             }
-            else
+            else {
+                var $cancelBtn = document.getElementById('cAnnuler');
+                if (!$cancelBtn || $cancelBtn.disabled)
+                    return;
                 $form.style.display = 'none';
+                document.removeEventListener("keydown", closeShareFormOnEscape);
+            }
+        }
+        function handleShareBackdropClick(e) {
+            if (e.target.id === "cSave")
+                toggleShareForm(false);
+        }
+        function closeShareFormOnEscape(e) {
+            if (e.keyCode === 27) {
+                e.stopPropagation();
+                toggleShareForm(false);
+            }
         }
         function toggleAdvancedOptions(show) {
             var $table = document.getElementById("cTable");
@@ -234,7 +275,7 @@ function includeShareLib() {
 }
 
 function printCircuitActions() {
-    global $language, $canChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $trackEditPage, $nid, $sid, $cShared;
+    global $language, $canChange, $cannotChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $trackEditPage, $nid, $sid, $cShared, $message, $infoMsg;
     include('ip_banned.php');
     if (isBanned())
         echo '&nbsp;';
@@ -263,7 +304,7 @@ function printCircuitActions() {
         ?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
             if ($cShared && isset($_GET[$sid])) {
                 ?>
-            <br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
+            <br /><br class="br-small" /><input type="button" id="supprRace" onclick="toggleUnshareForm(true)" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
                 <?php
             }
         }
@@ -274,16 +315,18 @@ function printCircuitActions() {
 function printCircuitShareUI() {
     global $language, $isCup, $isMCup, $isBattle, $cName0, $cPseudo, $creationType, $nid;
     ?>
-    <div id="confirmSuppr">
-    <p id="supprInfos"><?php echo $language ?
-        'Stop sharing this '. ($isCup ? ($isMCup ? 'multicup':'cup'):($isBattle ? 'arena':'circuit')) .'?<br />
-        '.($isCup ? ($isMCup ? 'The multicup':'The cup'):($isBattle ? 'The arena':'The circuit')).' will be only removed from the list:<br />
-        data will be recoverable.' :
-        'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):($isBattle ? 'cette arène':'ce circuit')) .' ?<br />
-        '.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):($isBattle ? "L'arène":"Le circuit")).' sera simplement '.($isBattle||$isCup ? 'retirée' : 'retiré').' de la liste :<br />
-        les données seront récupérables.';
-    ?></p>
-    <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
+    <div id="confirmSuppr" onclick="handleUnshareBackdropClick(event)">
+        <div class="confirmSupprDialog">
+            <p id="supprInfos"><?php echo $language ?
+                'Stop sharing this '. ($isCup ? ($isMCup ? 'multicup':'cup'):($isBattle ? 'arena':'circuit')) .'?<br />
+                '.($isCup ? ($isMCup ? 'The multicup':'The cup'):($isBattle ? 'The arena':'The circuit')).' will be only removed from the list:<br />
+                data will be recoverable.' :
+                'Supprimer le partage de '. ($isCup ? ($isMCup ? 'cette multicoupe':'cette coupe'):($isBattle ? 'cette arène':'ce circuit')) .' ?<br />
+                '.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):($isBattle ? "L'arène":"Le circuit")).' sera simplement '.($isBattle||$isCup ? 'retirée' : 'retiré').' de la liste :<br />
+                les données seront récupérables.';
+            ?></p>
+            <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
+        </div>
     </div>
     <?php
     if (!isset($cannotChange)) {
@@ -295,13 +338,13 @@ function printCircuitShareUI() {
         $cPrefix = isset($getTrackSettings['prefix']) ? $getTrackSettings['prefix'] : '';
         $cThumbnail = isset($getTrackSettings['thumbnail']) ? $getTrackSettings['thumbnail'] : '';
         ?>
-        <form id="cSave" method="post" action="" onsubmit="saveRace();return false">
+        <form id="cSave" method="post" action="" onclick="handleShareBackdropClick(event)" onsubmit="saveRace();return false">
         <table id="cTable"<?php if ($cNameTr) echo ' class="cShowTr"'; ?>>
-        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="auteur" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
-        <tr><td class="cLabel"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit')).' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit")); ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="nom" id="cName" value="<?php echo escapeUtf8($cName0) ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="auteur" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" placeholder="Wagar" /></td></tr>
+        <tr><td class="cLabel"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit')).' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit")); ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="nom" id="cName" value="<?php echo escapeUtf8($cName0) ?>" placeholder="<?php echo $language ? 'Mario Circuit' : 'Circuit Mario'; ?>" /></td></tr>
         <tr class="cAdvanced"><td colspan="2" class="cToggle"><label><input type="checkbox" name="name_tr" onclick="toggleNameTr(this.checked)"<?php if ($cNameTr) echo ' checked="checked"'; ?> /> <?php echo $language ? "Translate circuit name" : "Traduire le nom du circuit"; ?></label></td></tr>
-        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? 'Circuit name [EN]:':'Nom du circuit [FR] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_en' : 'name_fr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" /></td></tr>
-        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? 'Circuit name [FR]:':'Nom du circuit [EN] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_fr' : 'name_en'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" /></td></tr>
+        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? 'Circuit name [EN]:':'Nom du circuit [FR] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_en' : 'name_fr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" placeholder="<?php echo $language ? 'Mario Circuit' : 'Circuit Mario'; ?>" /></td></tr>
+        <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? 'Circuit name [FR]:':'Nom du circuit [EN] :'; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_fr' : 'name_en'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" placeholder="<?php echo $language ? 'Circuit Mario' : 'Mario Circuit'; ?>" /></td></tr>
         <tr class="cAdvanced"><td colspan="2">
             <div class="cThumbnail">
                 <label for="cThumbnail"><?php echo $language ? 'Thumbnail:':'Miniature :'; ?></label>
@@ -327,7 +370,7 @@ function printCircuitShareUI() {
         <?php
         if (!$isCup) {
             ?>
-            <tr class="cAdvanced"><td class="cLabel"><label for="cPrefix"><?php echo $language ? 'Online mode - Prefix':'Mode en ligne - Préfixe'; ?><a class="cHelp" href="javascript:showPrefixHelp()">[?]</a><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="prefix" id="cPrefix" value="<?php echo htmlspecialchars($cPrefix); ?>" /></td></tr>
+            <tr class="cAdvanced"><td class="cLabel"><label for="cPrefix"><?php echo $language ? 'Online mode - Prefix':'Mode en ligne - Préfixe'; ?><a class="cHelp" href="javascript:showPrefixHelp()">[?]</a></label></td><td><input type="text" name="prefix" id="cPrefix" value="<?php echo htmlspecialchars($cPrefix); ?>" placeholder="DS" /></td></tr>
             <?php
         }
         ?>
