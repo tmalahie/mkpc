@@ -21,6 +21,8 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `arenes` W
 	require_once('circuitImgUtils.php');
 	$circuitImg = json_decode($circuit['img_data']);
 	deleteCircuitFile($circuitImg);
+	include('postCircuitUpdate.php');
+	postCircuitDelete('arenes', $cID);
 	if (hasRight('moderator'))
 		mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CArene '. $cID .'")');
 }

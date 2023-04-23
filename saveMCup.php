@@ -68,12 +68,14 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 			include('challenge-associate.php');
 			challengeAssociate('mkmcups',$cupId,$_POST['cl']);
 		}
+		require_once('cache_creations.php');
+		@unlink(cachePath("mcuppreview$cupId.png"));
+		include('postCircuitUpdate.php');
+		postCircuitUpdate('mkmcups', $cupId);
 		echo $cupId;
 	}
 	else
 		echo -1;
 	mysql_close();
-	require_once('cache_creations.php');
-	@unlink(cachePath("mcuppreview$cupId.png"));
 }
 ?>
