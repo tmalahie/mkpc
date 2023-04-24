@@ -234,6 +234,7 @@ function getTrackPayloads($options) {
                 $pNote = $getMain['note'];
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
+                $cShared = true;
                 if (!$isOnline)
                     addCircuitChallenges($table, $nid,$cName, $clPayloadParams);
             }
@@ -349,7 +350,7 @@ function getTrackPayloads($options) {
             $pNotes = $infos['nbnotes'];
             $cDate = $infos['publication_date'];
             $creationData = $circuitsData[0];
-            $cShared = (null !== $cName);
+            $cShared = (null !== $cName0);
             if ($cShared)
                 $cPseudo = $cAuteur;
             else

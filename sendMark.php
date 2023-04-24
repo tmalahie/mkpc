@@ -7,10 +7,10 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 	elseif (isset($_POST['cup']))
 		$table = 'mkcups';
 	elseif (isset($_POST['complete'])) {
-		if ($_POST['complete'] == 1)
-			$table = 'circuits';
-		else
+		if (isset($_POST['battle']))
 			$table = 'arenes';
+		else
+			$table = 'circuits';
 	}
 	else
 		$table = 'mkcircuits';

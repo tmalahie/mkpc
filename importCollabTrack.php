@@ -9,7 +9,7 @@ if (isset($_POST['id']) && isset($_POST['type']) && isset($_POST['collab'])) {
         $isQuickTrack = ($_POST['type'] === 'mkcircuits');
 		require_once('utils-cups.php');
         if (($circuit = fetchCreationData($_POST['type'], $_POST['id'], array(
-            'select' => 'c.id,c.nom'.($isCup ? ',c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3,s.thumbnail':'').($isQuickTrack ? ',c.type':'')
+            'select' => 'c.id,c.nom'.($isCup ? ',c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3':'').($isQuickTrack ? ',c.type':'').',s.thumbnail'
         ))) && (!isset($_POST['mode']) || $circuit['mode'] == $_POST['mode'])) {
             require_once('utils-circuits.php');
             require_once('circuitEscape.php');

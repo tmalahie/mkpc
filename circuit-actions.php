@@ -1,7 +1,7 @@
 <?php
 require_once('collabUtils.php');
 function includeShareLib() {
-    global $nid, $creationType, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $cOptions, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage;
+    global $nid, $creationType, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $cOptions, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage, $cNote;
     $isBattle = ($creationMode > 1);
     $complete = ($creationMode%2);
     include('creation-entities.php');
@@ -271,20 +271,28 @@ function includeShareLib() {
                 echo '&mc=1';
             elseif ($isCup)
                 echo '&cup=1';
+            elseif ($complete) {
+                echo '&complete=1';
+                if ($isBattle)
+                    echo '&battle=1';
+            }
         ?>";
         <?php
     }
 }
 
 function printCircuitActions() {
-    global $language, $canChange, $cannotChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $trackEditPage, $nid, $sid, $cShared, $message, $infoMsg;
+    global $language, $canChange, $cannotChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $creationMode, $trackEditPage, $nid, $sid, $cShared, $message, $infoMsg;
+    $complete = ($creationMode%2);
     include('ip_banned.php');
     if (isBanned())
         echo '&nbsp;';
     elseif ($canChange) {
         $typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')) : ($isBattle ? ($language ? 'arena':'l\'arène') : ($language ? 'circuit':'le circuit'));
+        $cupEditPage = $complete ? 'completecup.php' : 'simplecup.php';
+        $cupsEditPage = $complete ? 'completecups.php' : 'simplecups.php';
         ?>
-        <input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='<?php echo ($isCup ? ($isMCup ? 'simplecups.php':'simplecup.php'):$trackEditPage) ?>'+document.location.search<?php if ($isCup&&$isBattle) echo '+\'&battle\''; ?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br /><?php
+        <input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='<?php echo ($isCup ? ($isMCup ? $cupsEditPage:$cupEditPage):$trackEditPage) ?>'+document.location.search<?php if ($isCup&&$isBattle) echo '+\'&battle\''; ?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br /><?php
         if ($creator && isset($nid) && !isset($_GET['nid'])) {
             ?>
             <br class="br-small" />
