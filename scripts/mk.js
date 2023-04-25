@@ -2269,7 +2269,7 @@ function loadMusic(src, autoplay, opts) {
 		var ytId = youtube_parser(src);
 		res = document.createElement("iframe");
 		res.id = "youtube-video-"+(musicIdInc++);
-		res.src = "https://www.youtube.com/embed/"+ ytId +"?"+ (autoplay ? "autoplay=1&amp;":"") + (opts.start ? "":"loop=1&amp;") +"playlist="+ ytId + "&amp;enablejsapi=1&amp;allow=autoplay";
+		res.src = "https://www.youtube.com/embed/"+ ytId +"?"+ (autoplay ? "autoplay=1&amp;":"") + (opts.start ? "":"loop=1&amp;") +"enablejsapi=1&amp;allow=autoplay";
 		res.opts = opts;
 		res.setAttribute("enablejsapi", 1);
 		res.setAttribute("allow", "autoplay");
