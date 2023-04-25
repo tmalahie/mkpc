@@ -39,7 +39,7 @@ if (isset($_GET['i'])) {
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
-		var bgImgs = <?php echo json_encode($bgImages); ?>;
+		var bgImgs = <?php echo json_encode($bgImgs); ?>;
 		var musicOptions = <?php echo json_encode($musicOptions); ?>;
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;

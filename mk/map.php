@@ -23,7 +23,7 @@ if (isset($circuitMainData->bgcustom))
 else {
 	echo '"fond":["';
 	include('circuitEnums.php');
-	$getInfos = $bgImages[$circuitMainData->bgimg];
+	$getInfos = $bgImgs[$circuitMainData->bgimg];
 	echo implode('","',$getInfos);
 	echo '"],';
 }

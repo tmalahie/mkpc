@@ -1,5 +1,5 @@
 <?php
-$bgImages = Array (
+$bgImgs = Array (
 	Array('hills', 'trees'),
 	Array('plains', 'pine'),
 	Array('eciel', 'enuages'),
