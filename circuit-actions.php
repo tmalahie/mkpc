@@ -203,7 +203,7 @@ function includeShareLib() {
             return encodeURIComponent($form.elements[name].value);
         }
         function showPrefixHelp() {
-            alert(language ? "Will appear in online mode circuit selection screen" : "Apparaitra dans l'écran de sélection de circuit du mode en ligne")
+            alert(language ? "Will appear in online mode circuit selection screen\nThis allows to disambiguate when 2 circuits have the same name in a multicup (Ex: SNES Rainbow Road / DS Rainbow Road)" : "Apparaitra dans l'écran de sélection de circuit du mode en ligne\nPermet de lever l'ambiguité lorsque 2 circuits ont le même nom dans une multicoupe (Ex : SNES Route Arc-en-Ciel / DS Route Arc-en-Ciel)");
         }
         function toggleShareForm(show) {
             var $form = document.getElementById("cSave");
