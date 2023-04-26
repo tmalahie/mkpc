@@ -15850,7 +15850,7 @@ function move(getId, triggered) {
 	if (oKart.turbodrift) {
 		var nSpeed = 8;
 		if (oKart.turbodrift > 15) {
-			nSpeed += Math.pow(2*(oKart.turbodrift-15)/15,2);
+			nSpeed += Math.pow(2*(oKart.turbodrift-15)/(15*oKart.size),2);
 			oKart.turbodrift--;
 			oKart.turbodrift0--;
 		}
@@ -15989,7 +15989,7 @@ function move(getId, triggered) {
 		updateItemCountdownHud(getId, oKart.champior/oKart.champior0);
 	}
 	if (oKart.etoile) {
-		oKart.maxspeed *= 1.35;
+		oKart.maxspeed += 2;
 		oKart.etoile--;
 		if (oKart.etoile < 15) {
 			for (var i=0;i<strPlayer.length;i++)
@@ -16014,8 +16014,6 @@ function move(getId, triggered) {
 			}
 		}
 	}
-	if (oKart.protect && oKart.turbodrift)
-		oKart.maxspeed = Math.min(oKart.maxspeed, Math.max(8,13*cappedRelSpeed()/oKart.size));
 	if (oKart.mini) {
 		oKart.mini--;
 		if (oKart.mini < 1) {
