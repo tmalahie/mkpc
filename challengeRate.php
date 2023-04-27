@@ -2,7 +2,7 @@
 header('Content-Type: text/plain');
 $res = array();
 if (isset($_POST['challenge']) && isset($_POST['rating'])) {
-	$rating = $_POST['rating'];
+	$rating = intval($_POST['rating']);
 	if ($rating >= 0 && $rating <= 5) {
 		include('session.php');
 		if ($id) {

@@ -35,10 +35,10 @@ if (isset($_POST['id'])) {
 		$currentSelection = mysql_fetch_array(mysql_query('SELECT perso1 FROM `mkpersosel` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
 		if ($currentSelection) {
 			if ($currentSelection['perso1'] != $persoId)
-				mysql_query('UPDATE `mkpersosel` SET perso1='.$persoId.',perso2='.$currentSelection['perso1'].' WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]);
+				mysql_query('UPDATE `mkpersosel` SET perso1="'.$persoId.'",perso2='.$currentSelection['perso1'].' WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]);
 		}
 		else
-			mysql_query('INSERT INTO `mkpersosel` SET perso1='.$persoId.',perso2=-1,identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3]);
+			mysql_query('INSERT INTO `mkpersosel` SET perso1="'.$persoId.'",perso2=-1,identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3]);
 	}
 	echo 1;
 	mysql_close();
