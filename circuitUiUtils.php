@@ -33,15 +33,15 @@ function printDecorTypeSelector() {
     <?php
 }
 function printBgSelector() {
-    global $language, $bgImages;
+    global $language, $bgImgs;
     ?>
     <div id="bg-selector" class="fs-popup" onclick="event.stopPropagation()">
         <div id="bg-selector-tabs">
         <?php
         $decors = Array (
-            'SNES' => array_slice($bgImages, 0,8),
-            'GBA' => array_slice($bgImages, 8,20),
-            'DS' => array_slice($bgImages, 28,20),
+            'SNES' => array_slice($bgImgs, 0,8),
+            'GBA' => array_slice($bgImgs, 8,20),
+            'DS' => array_slice($bgImgs, 28,20),
             ' + ' => null
         );
         $i = 0;

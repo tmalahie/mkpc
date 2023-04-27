@@ -15,42 +15,41 @@ if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs
 	exit;
 }
 require_once('getRights.php');
-$isCup = false;
-$isBattle = false;
 $isSingle = false;
-$isMCup = false;
-if (isset($_GET['mid'])) {
-	$isCup = true;
-	$isMCup = true;
-	$nid = intval($_GET['mid']);
-}
+$isBattle = isset($_GET['battle']);
+if (isset($_GET['mid']))
+	$trackPayloadParams = array();
 elseif (isset($_GET['sid'])) {
-	$isCup = true;
-	$nid = intval($_GET['sid']);
-	$complete = false;
+	$_GET['cid'] = $_GET['sid'];
+	$trackPayloadParams = array();
 }
 elseif (isset($_GET['cid'])) {
-	$isCup = true;
-	$nid = intval($_GET['cid']);
-	$complete = true;
+	$trackPayloadParams = array();
 }
 elseif (isset($_GET['id'])) {
-	$isCup = true;
-	$nid = intval($_GET['id']);
-	$complete = false;
 	$isSingle = true;
+	$trackPayloadParams = array(
+		'sid' => 'id',
+		'mode' => $isBattle ? 2 : 0
+	);
 }
 elseif (isset($_GET['i'])) {
-	$isCup = true;
-	$nid = intval($_GET['i']);
-	$complete = true;
 	$isSingle = true;
+	$trackPayloadParams = array(
+		'sid' => 'i',
+		'mode' => $isBattle ? 3 : 1
+	);
 }
-else {
-	$complete = false;
+$isCup = false;
+$isMCup = false;
+$isCustom = isset($trackPayloadParams);
+if ($isCustom) {
+	require_once('utils-cups.php');
+	$trackPayloadParams['online'] = true;
+	$mId = $id;
+	getTrackPayloads($trackPayloadParams);
+	$id = $mId;
 }
-if (isset($_GET['battle']))
-	$isBattle = true;
 if (isset($_GET['key'])) {
 	$privateLink = intval($_GET['key']);
 	if ($privateLinkData = mysql_fetch_array(mysql_query('SELECT * FROM `mkprivgame` WHERE id="'.$privateLink.'"'))) {
@@ -63,101 +62,20 @@ if (isset($_GET['key'])) {
 		exit;
 	}
 }
-if ($isCup)
-	$NBCIRCUITS = ($isSingle?1:4);
-else {
+if ($isCustom) {
+	if (!$NBCIRCUITS) {
+		mysql_close();
+		exit;
+	}
+	$complete = ($circuitsData[0]['mode'] % 2);
+	$simplified = 1 - $complete;
+}
+if (!$isCustom) {
 	include_once('circuitNames.php');
 	$NBCIRCUITS = $nbVSCircuits;
+	$complete = false;
+	$simplified = false;
 }
-if ($isCup) {
-	$circuitsData = array();
-	$cupIDs = array();
-	$trackIDs = array();
-	if ($isMCup) {
-		$getMCup = mysql_fetch_array(mysql_query('SELECT nom,mode,options FROM `mkmcups` WHERE id="'. $nid .'"'));
-		$cOptions = $getMCup['options'];
-		$complete = ($getMCup['mode']%2 == 1);
-		$isBattle = ($getMCup['mode'] >= 2);
-		$getTracks = mysql_query('SELECT c.* FROM `mkmcups_tracks` t INNER JOIN `mkcups` c ON t.cup=c.id WHERE t.mcup="'. $nid .'" ORDER BY t.ordering');
-		$getCup = array('nom' => $getMCup['nom']);
-		while ($getTrack = mysql_fetch_array($getTracks)) {
-			$cupIDs[] = $getTrack['id'];
-			for ($i=0;$i<4;$i++)
-				$trackIDs[] = $getTrack['circuit'.$i];
-		}
-		$NBCIRCUITS = mysql_numrows($getTracks)*4;
-	}
-	elseif ($isSingle) {
-		$getCup = mysql_fetch_array(mysql_query('SELECT nom FROM `'. ($complete ? ($isBattle?'arenes':'circuits'):'mkcircuits') .'` WHERE id="'. $nid .'"'));
-		$trackIDs[] = $nid;
-	}
-	else {
-		$getCup = mysql_fetch_array(mysql_query('SELECT nom,mode,circuit0,circuit1,circuit2,circuit3 FROM `mkcups` WHERE id="'. $nid .'"'));
-		$complete = ($getCup['mode']%2 == 1);
-		$isBattle = ($getCup['mode'] >= 2);
-		$cupIDs[] = $nid;
-		for ($i=0;$i<4;$i++)
-			$trackIDs[] = $getCup['circuit'.$i];
-	}
-	if ($complete) {
-		if (!empty($trackIDs)) {
-			$table = $isBattle?'arenes':'circuits';
-			$getCircuits = mysql_query('SELECT c.*,d.data FROM `'.$table.'` c LEFT JOIN `'.$table.'_data` d ON c.id=d.id WHERE c.id IN ('. implode(',',$trackIDs) .')');
-			$allTracks = array();
-			while ($getCircuit = mysql_fetch_array($getCircuits))
-				$allTracks[$getCircuit['ID']] = $getCircuit;
-			foreach ($trackIDs as $trackID) {
-				if (isset($allTracks[$trackID]))
-					$circuitsData[] = $allTracks[$trackID];
-				else {
-					mysql_close();
-					exit;
-				}
-			}
-		}
-	}
-	else {
-		$getCircuits = mysql_query('SELECT id,map,laps,nom FROM `mkcircuits` WHERE id IN ('. implode(',',$trackIDs) .') AND ' . ($isBattle?'type':'!type'));
-		$allTracks = array();
-		while ($getCircuit = mysql_fetch_array($getCircuits))
-			$allTracks[$getCircuit['id']] = $getCircuit;
-		foreach ($trackIDs as $trackID) {
-			if (isset($allTracks[$trackID]))
-				$circuitsData[] = $allTracks[$trackID];
-			else {
-				mysql_close();
-				exit;
-			}
-		}
-		require_once('circuitPrefix.php');
-		for ($i=0;$i<$NBCIRCUITS;$i++) {
-			$circuit = &$circuitsData[$i];
-			$pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$circuit['id'].'"');
-			while ($piece = mysql_fetch_array($pieces))
-				$circuit['p'.$piece['id']] = $piece['piece'];
-			for ($j=0;$j<$nbLettres;$j++) {
-				$lettre = $lettres[$j];
-				$getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$circuit['id'].'"');
-				$incs = array();
-				while ($info=mysql_fetch_array($getInfos)) {
-					$prefix = getLetterPrefixD($lettre,$info);
-					if (!isset($incs[$prefix])) $incs[$prefix] = 0;
-					$circuit[$prefix.$incs[$prefix]] = $info['x'].','.$info['y'];
-					$incs[$prefix]++;
-				}
-			}
-			if ($isBattle) {
-				$getPos = mysql_query('SELECT * FROM `mkr` WHERE circuit="'.$circuit['id'].'"');
-				while ($pos = mysql_fetch_array($getPos)) {
-					$circuit['s'.$pos['id']] = $pos['s'];
-					$circuit['r'.$pos['id']] = $pos['r'];
-				}
-			}
-			unset($circuit);
-		}
-	}
-}
-$simplified = ($isCup && !$complete);
 $delNotif = true;
 if (isset($privateLink)) {
 	$delNotif = false;
@@ -185,9 +103,9 @@ function escapeUtf8($str) {
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>">
    <head>
 	   <title><?php
-	   	if ($isCup) {
-	   		if ($getCup['nom'])
-	   			echo escapeUtf8($getCup['nom']) . ' - ';
+	   	if ($isCustom) {
+	   		if ($cName)
+	   			echo escapeUtf8($cName) . ' - ';
 	   		echo $language ? 'Online '.($isBattle?'battle':'race'):($isBattle?'Bataille':'Course') .' en ligne';
 	   	}
 	   	elseif ($isBattle)
@@ -208,7 +126,7 @@ if (isset($privateLink)) {
 <link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css?reload=1" />
 
 <?php
-if (!$isCup) {
+if (!$isCustom) {
 	?>
 <script type="text/javascript" src="mk/maps.php?reload=2"></script>
 	<?php
@@ -218,17 +136,35 @@ if (!$isCup) {
 var language = <?php echo ($language ? 'true':'false'); ?>;
 var course = "<?php echo $isBattle ? 'BB':'VS'; ?>";
 <?php
-if ($isCup) {
+if ($isCustom) {
 	?>
 var lCircuits = [<?php
 for ($i=0;$i<$NBCIRCUITS;$i++) {
 	if ($i)
 		echo ',';
 	$circuit = $circuitsData[$i];
-	echo '"'. ($circuit['nom'] ? addSlashes(escapeUtf8($circuit['nom'])) : "&nbsp;") .'"';
+	echo '"'. ($circuit['name'] ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
 }
 ?>];
-var cupIDs = <?php echo json_encode($cupIDs) ?>;
+<?php
+if ($isCup) {
+	$dCircuits = array();
+	$isCircuitPrefix = false;
+	for ($i=0;$i<$NBCIRCUITS;$i++) {
+		$circuit = $circuitsData[$i];
+		if ($circuit['prefix']) {
+			$isCircuitPrefix = true;
+			$dCircuits[] = '<small>'. htmlspecialchars($circuit['prefix']) .'</small> ' . escapeUtf8($circuit['name']);
+		}
+		else
+			$dCircuits[] = escapeUtf8($circuit['name']);
+	}
+	if ($isCircuitPrefix)
+		echo 'var dCircuits = '. json_encode($dCircuits) .';';
+}
+if (!empty($cupPayloads))
+	echo 'var cupPayloads = '. json_encode($cupPayloads) .';';
+?>
 var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 	<?php
 }
@@ -290,7 +226,7 @@ var mPseudo = "<?php echo $myPseudo; ?>", mCode = "";
 var mIsModerator = <?php echo hasRight('moderator') ? 1:0; ?>;
 var isSingle = <?php echo $isSingle ? 'true':'false'; ?>;
 var isBattle = <?php echo $isBattle ? 'true':'false'; ?>;
-var isCup = <?php echo $isCup ? 'true':'false'; ?>;
+var isCup = <?php echo $isCustom ? 'true':'false'; ?>;
 var complete = <?php echo $complete ? 'true':'false'; ?>;
 var simplified = <?php echo $simplified ? 'true':'false'; ?>;
 var nid = <?php echo isset($nid) ? $nid:'null'; ?>;
@@ -305,7 +241,7 @@ var shareLink = {
 	if ($isMCup)
 		$params[] = '"mid='.$nid.'"';
 	else {
-		if ($isCup) {
+		if ($isCustom) {
 			if ($isSingle) {
 				if ($complete)
 					$params[] = '"i='.$nid.'"';
@@ -327,27 +263,10 @@ var shareLink = {
 };
 var NBCIRCUITS = <?php echo $isBattle ? 0:$NBCIRCUITS; ?>;
 <?php
-if ($isCup) {
+if ($isCustom) {
 	?>
 function listMaps() {
-	return {
-	<?php
-	if ($complete) {
-		$aID = $id;
-		if ($isBattle)
-			include('mk/battle.php');
-		else
-			include('mk/map.php');
-		$id = $aID;
-	}
-	else {
-		if ($isBattle)
-			include('mk/arena.php');
-		else
-			include('mk/circuit.php');
-	}
-	?>
-	};
+	return {<?php printCircuitsData(); ?>};
 }
 	<?php
 }

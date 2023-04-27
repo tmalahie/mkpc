@@ -6,7 +6,7 @@ $hasWriteGrants = true;
 if (isset($_GET['id'])) {
 	include('initdb.php');
 	$id = intval($_GET['id']);
-	if ($getMain = mysql_fetch_array(mysql_query('SELECT map,nom,auteur,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $id .'" AND type'))) {
+	if ($getMain = mysql_fetch_array(mysql_query('SELECT map,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $id .'" AND type'))) {
 		include('getId.php');
 		require_once('collabUtils.php');
 		if (($identifiants[0]==$getMain['identifiant'])&&($identifiants[1]==$getMain['identifiant2'])&&($identifiants[3]==$getMain['identifiant3'])&&($identifiants[3]==$getMain['identifiant4'])) {
@@ -21,8 +21,6 @@ if (isset($_GET['id'])) {
 		}
 		if ($hasReadGrants) {
 			$map = $getMain['map'];
-			$cName = $getMain['nom'];
-			$cPseudo = $getMain['auteur'];
 			$pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$id.'"');
 			while ($piece = mysql_fetch_array($pieces))
 				${'p'.$piece['id']} = $piece['piece'];

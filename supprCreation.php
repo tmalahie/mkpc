@@ -2,7 +2,7 @@
 header('Content-Type: text/plain');
 if (isset($_POST['id'])) {
 	include('initdb.php');
-	$cID = $_POST['id'];
+	$cID = intval($_POST['id']);
 	include('getId.php');
 	include('session.php');
 	require_once('getRights.php');
@@ -24,6 +24,8 @@ if (isset($_POST['id'])) {
 			$logType = $getCreation['type'] ? 'SArene' : 'SCircuit';
 			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logType .' '. $cID .'")');
 		}
+		include('postCircuitUpdate.php');
+		postCircuitDelete('mkcircuits', $cID);
 	}
 	echo 1;
 	mysql_close();

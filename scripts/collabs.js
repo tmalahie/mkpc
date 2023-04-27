@@ -172,3 +172,11 @@ function getCollabQuery(type, ids) {
     }
     return res;
 }
+function addCollabQuery(formData, type, ids) {
+    for (var i=0;i<ids.length;i++) {
+        var collabKey = sessionStorage.getItem("collab.track."+type+"."+ids[i]+".key");
+        if (collabKey) {
+            formData.append("collabs["+ids[i]+"]", collabKey);
+        }
+    }
+}

@@ -109,19 +109,19 @@
 								$notifData['sender'] = $notifData['reaction']['member'];
 							else
 								$notifData['sender'] = $comment['auteur'];
-							if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($comment['type']=='mkcircuits') ? ',!type AS is_circuit':'') .' FROM `'. $comment['type'] .'` WHERE id="'. $comment['circuit'] .'"'))) {
+							require_once('utils-cups.php');
+							if ($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) {
 								if ($myNotif['type'] == 'answer_comment') {
 									if ($myIdentifiants && ($getCircuit['identifiant'] == $myIdentifiants[0]) && ($getCircuit['identifiant2'] == $myIdentifiants[1]) && ($getCircuit['identifiant3'] == $myIdentifiants[2]) && ($getCircuit['identifiant4'] == $myIdentifiants[3]))
 										$toDelete = true;
 								}
 								if (!$toDelete) {
-									$notifData['title'] = $getCircuit['nom'];
-									require_once('utils-cups.php');
+									$notifData['title'] = $getCircuit['name'];
 									switch ($comment['type']) {
 										case 'mkcircuits':
-											$notifData['link'] = ($getCircuit['is_circuit'] ? 'circuit':'arena') .'.php?id='. $getCircuit['id'];
-											$notifData['type_circuit'] = ($getCircuit['is_circuit'] ? 'circuit':($language ? 'course':'arène'));
-											$notifData['the_circuit'] = ($language ? 'the ':($getCircuit['is_circuit'] ? 'le ':'l\''));
+											$notifData['link'] = ($getCircuit['type'] ? 'arena':'circuit') .'.php?id='. $getCircuit['id'];
+											$notifData['type_circuit'] = ($getCircuit['type'] ? ($language ? 'course':'arène'):'circuit');
+											$notifData['the_circuit'] = ($language ? 'the ':($getCircuit['type'] ? "l'":"le "));
 											break;
 										case 'circuits':
 											$notifData['link'] = 'map.php?i='. $getCircuit['ID'];
@@ -204,35 +204,44 @@
 						$linkData = explode(',', $myNotif['link']);
 						$circuitType = $linkData[0];
 						$circuitId = $linkData[1];
+						require_once('utils-cups.php');
 						switch ($circuitType) {
 						case 0:
-							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,type,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $circuitId .'"'))) {
+							if ($notifCircuit = fetchCreationData('mkcircuits', $circuitId, array(
+								'select' => 'c.id,c.type,c.identifiant,c.identifiant2,c.identifiant3,c.identifiant4',
+							))) {
 								$designation = $notifCircuit['type'] ? ($language ? 'the arena':'l\'arène'):($language ? 'the circuit':'le circuit');
 								$link = ($notifCircuit['type'] ? 'arena':'circuit') .'.php?id='. $notifCircuit['id'];
 							}
 							break;
 						case 1:
-							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,identifiant,identifiant2,identifiant3,identifiant4 FROM `circuits` WHERE id="'. $circuitId .'" AND nom IS NOT NULL'))) {
+							if (($notifCircuit = fetchCreationData('circuits', $circuitId, array(
+								'select' => 'c.id,c.identifiant,c.identifiant2,c.identifiant3,c.identifiant4'
+							))) && ($notifCircuit['name'] !== null)) {
 								$designation = $language ? 'the circuit':'le circuit';
 								$link = 'map.php?i='. $notifCircuit['id'];
 							}
 							break;
 						case 2:
-							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,identifiant,identifiant2,identifiant3,identifiant4 FROM `arenes` WHERE id="'. $circuitId .'" AND nom IS NOT NULL'))) {
+							if (($notifCircuit = fetchCreationData('arenes', $circuitId, array(
+								'select' => 'c.id,c.identifiant,c.identifiant2,c.identifiant3,c.identifiant4'
+							))) && ($notifCircuit['name'] !== null)) {
 								$designation = $language ? 'the arena':'l\'arène';
 								$link = 'battle.php?i='. $notifCircuit['id'];
 							}
 							break;
 						case 3:
-							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,mode,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcups` WHERE id="'. $circuitId .'"'))) {
-								require_once('utils-cups.php');
+							if ($notifCircuit = fetchCreationData('mkcups', $circuitId, array(
+								'select' => 'c.id,c.mode,c.identifiant,c.identifiant2,c.identifiant3,c.identifiant4'
+							))) {
 								$designation = $language ? 'the cup':'la coupe';
 								$link = getCupPage($notifCircuit['mode']) .'.php?cid='. $notifCircuit['id'];
 							}
 							break;
 						case 4:
-							if ($notifCircuit = mysql_fetch_array(mysql_query('SELECT id,nom,mode,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $circuitId .'"'))) {
-								require_once('utils-cups.php');
+							if ($notifCircuit = fetchCreationData('mkmcups', $circuitId, array(
+								'select' => 'c.id,c.mode,c.identifiant,c.identifiant2,c.identifiant3,c.identifiant4'
+							))) {
 								$designation = $language ? 'the multicup':'la multicoupe';
 								$link = getCupPage($notifCircuit['mode']) .'.php?mid='. $notifCircuit['id'];
 							}
@@ -241,7 +250,7 @@
 						if ($notifCircuit) {
 							$notifData['sender'] = getFollowerFromIp($notifCircuit);
 							if ($notifData['sender']) {
-								$notifData['title'] = $notifCircuit['nom'];
+								$notifData['title'] = $notifCircuit['name'];
 								$notifData['the_circuit'] = $designation;
 								$notifData['link'] = $link.'&amp;src=follow';
 							}
@@ -609,23 +618,26 @@
 				$additionnal = '';
 				if (isset($notifData['creation'])) {
 					$notifCreation = $notifData['creation'];
+					require_once('utils-cups.php');
+					$notifCreationId = $notifCreation['id'];
+					$notifCreationOptions = array('select' => '1');
 					if ($notifCreation['mcup'])
-						$getName = mysql_fetch_array(mysql_query('SELECT nom FROM `mkmcups` WHERE id="'. $notifCreation['id'] .'"'));
+						$getName = fetchCreationData('mkmcups', $notifCreationId, $notifCreationOptions);
 					elseif ($notifCreation['single']) {
 						if ($notifCreation['complete']) {
 							if ($notifData['battle'])
-								$getName = mysql_fetch_array(mysql_query('SELECT nom FROM `arenes` WHERE id="'. $notifCreation['id'] .'"'));
+								$getName = fetchCreationData('arenes', $notifCreationId, $notifCreationOptions);
 							else
-								$getName = mysql_fetch_array(mysql_query('SELECT nom FROM `circuits` WHERE id="'. $notifCreation['id'] .'"'));
+								$getName = fetchCreationData('circuits', $notifCreationId, $notifCreationOptions);
 						}
 						else
-							$getName = mysql_fetch_array(mysql_query('SELECT nom FROM `mkcircuits` WHERE id="'. $notifCreation['id'] .'"'));
+							$getName = fetchCreationData('mkcircuits', $notifCreationId, $notifCreationOptions);
 					}
 					else
-						$getName = mysql_fetch_array(mysql_query('SELECT nom FROM `mkcups` WHERE id="'. $notifCreation['id'] .'"'));
+						$getName = fetchCreationData('mkcups', $notifCreationId, $notifCreationOptions);
 					$creationName = null;
 					if ($getName)
-						$creationName = decodeAndEscapeCircuitNames($getName['nom']);
+						$creationName = decodeAndEscapeCircuitNames($getName['name']);
 					$theCreation = '';
 					if ($notifCreation['single']) {
 						if ($notifData['battle'])

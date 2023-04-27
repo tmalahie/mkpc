@@ -12,7 +12,7 @@ if (is_object($data) && isset($data->id) && isset($data->payload)) {
 		mysql_query('INSERT INTO circuits_data VALUES("'.mysql_real_escape_string($id).'","'.mysql_real_escape_string(gzcompress(json_encode($payload))).'") ON DUPLICATE KEY UPDATE data=VALUES(data)');
 	echo 1;
 	mysql_close();
-	include('cache_creations.php');
+	require_once('cache_creations.php');
 	@unlink(cachePath("racepreview$id.png"));
 }
 ?>

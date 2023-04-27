@@ -75,6 +75,8 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 				include('challenge-associate.php');
 				challengeAssociate('mkcups',$cupId,$_POST['cl']);
 			}
+			include('postCircuitUpdate.php');
+			postCircuitUpdate('mkcups', $cupId);
 		}
 	}
 	echo $cupId;

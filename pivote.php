@@ -51,7 +51,7 @@ if (isset($_POST['id'])) {
 		else {
 			@unlink($path);
 			mysql_query('UPDATE `'.$db.'` SET img_data="'. getCircuitImgDataRaw($newPath,$circuitImg->url,1) .'" WHERE id="'.$id.'"');
-			include('cache_creations.php');
+			require_once('cache_creations.php');
 			@unlink(cachePath($isrc.$id.'.png'));
 		}
 

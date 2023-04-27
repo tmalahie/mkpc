@@ -15,7 +15,8 @@ $musicOptions = Array(
 );
 if (isset($_GET['i'])) {
 	$circuitId = intval($_GET['i']);
-	if ($circuit = mysql_fetch_array(mysql_query('SELECT * FROM arenes WHERE id="'. $circuitId .'"'))) {
+	require_once('utils-cups.php');
+	if ($circuit = fetchCreationData('arenes', $circuitId)) {
 		require_once('collabUtils.php');
 		if (($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) {
 			$hasReadGrants = true;
@@ -44,7 +45,7 @@ if (isset($_GET['i'])) {
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
-		var bgImgs = <?php echo json_encode($bgImages); ?>;
+		var bgImgs = <?php echo json_encode($bgImgs); ?>;
 		var musicOptions = <?php echo json_encode($musicOptions); ?>;
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
@@ -53,8 +54,8 @@ if (isset($_GET['i'])) {
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
 		<script type="text/javascript" src="scripts/xhr.js"></script>
-		<script type="text/javascript" src="scripts/editor.js"></script>
-		<script type="text/javascript" src="scripts/course.js"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=1"></script>
+		<script type="text/javascript" src="scripts/course.js?reload=1"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?>  oncontextmenu="handleCtxmenu(event)" onmousemove="handleMove(event)" onclick="handleClick(event)">
@@ -780,7 +781,14 @@ else {
 	</head>
 	<body class="home-body">
 		<?php
-		$getTracks = mysql_query('SELECT a.id,a.nom,d.data,a.img_data FROM arenes a LEFT JOIN arenes_data d ON a.id=d.id WHERE a.identifiant='.$identifiants[0].' AND a.identifiant2='.$identifiants[1].' AND a.identifiant3='.$identifiants[2].' AND a.identifiant4='.$identifiants[3] .' ORDER BY a.id DESC');
+		require_once('utils-cups.php');
+		$getTracks = getCreationDataQuery(array(
+			'table' => 'arenes',
+			'select' => 'c.id,d.data,c.img_data,s.thumbnail',
+			'join' => 'LEFT JOIN arenes_data d ON c.id=d.id',
+			'where' => 'c.identifiant='.$identifiants[0].' AND c.identifiant2='.$identifiants[1].' AND c.identifiant3='.$identifiants[2].' AND c.identifiant4='.$identifiants[3],
+			'order' => 'c.id DESC'
+		));
 		if (!isset($_GET['help']) && ($nbTracks=mysql_numrows($getTracks))) {
 			if ($language) {
 				?>
@@ -888,13 +896,17 @@ else {
 					while ($track = mysql_fetch_array($getTracks)) {
 						$circuitImg = json_decode($track['img_data']);
 						$id = $track['id'];
+						if ($track['thumbnail'])
+							$cacheSrc = 'images/creation_icons/uploads/'. $track['thumbnail'];
+						else
+							$cacheSrc = 'images/creation_icons/coursepreview'. $id .'.png';
 						echo '<a href="battle.php?i='.$id.'"
 							data-id="'.$id.'"
-							data-name="'.($track['nom'] ? htmlspecialchars($track['nom']) : '').'"
+							data-name="'.($track['name'] ? htmlspecialchars($track['name']) : '').'"
 							'. ($track['data'] ? '':'data-pending="1"') .'
 							data-src="'.htmlspecialchars(getCircuitImgUrl($circuitImg)).'"
 							onclick="previewCircuit(this);return false"><img
-								src="images/creation_icons/coursepreview'. $id .'.png"
+								src="'.$cacheSrc.'"
 								onerror="var that=this;setTimeout(function(){that.src=\'trackicon.php?type=2&id='. $id .'\';},loadDt);this.onerror=null;loadDt+=50"
 								alt="Arene '.$id.'"
 							/></a>';

@@ -5,8 +5,10 @@ require_once('utils-challenges.php');
 include('creation-challenges.php');
 $cAuteur = null;
 $cupIDs = Array();
+$cupPayloads = Array();
 include('getId.php');
 $cName = null;
+$cName0 = null;
 $cPseudo = null;
 $cAuteur = null;
 $cDate = null;
@@ -14,180 +16,15 @@ $cShared = false;
 $cEditting = false;
 $pNote = 0;
 $pNotes = 0;
-if (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) { // Cup being created
-	$isCup = true;
-	$isMCup = false;
-	if (isset($_GET['nid'])) { // Cup being edited
-		$nid = intval($_GET['nid']);
-		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcups` WHERE id="'. $nid .'" AND mode=1'))) {
-			$cName = $getMain['nom'];
-			$cPseudo = $getMain['auteur'];
-			$cAuteur = $cPseudo;
-			$cDate = $getMain['publication_date'];
-			$pNote = $getMain['note'];
-			$pNotes = $getMain['nbnotes'];
-			$creationData = $getMain;
-			$cShared = true;
-			$cEditting = true;
-			addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
-		}
-	}
-	else {
-		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
-		$cShared = false;
-	}
-	for ($c=0;$c<4;$c++)
-		$cupIDs[$c] = intval($_GET['cid'. $c]);
-	$trackIDs = $cupIDs;
-	$edittingCircuit = true;
-}
-elseif (isset($_GET['mid0'])) { // Multicups being created
-	$isCup = true;
-	$isMCup = true;
-	if (isset($_GET['nid'])) { // Multicups being edited
-		$nid = intval($_GET['nid']);
-		if ($getMain = mysql_fetch_array(mysql_query('SELECT nom,auteur,note,nbnotes,publication_date,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkmcups` WHERE id="'. $nid .'" AND mode=1'))) {
-			$cName = $getMain['nom'];
-			$cPseudo = $getMain['auteur'];
-			$cAuteur = $cPseudo;
-			$pNote = $getMain['note'];
-			$pNotes = $getMain['nbnotes'];
-			$cDate = $getMain['publication_date'];
-			$creationData = $getMain;
-			$cShared = true;
-			$cEditting = true;
-			addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
-		}
-	}
-	else
-		$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
-	for ($i=0;isset($_GET['mid'.$i])&&is_numeric($_GET['mid'.$i]);$i++)
-		$cupIDs[$i] = intval($_GET['mid'.$i]);
-	$cOptions = isset($_GET['opt']) ? json_decode(stripslashes($_GET['opt'])) : null;
-	if ($cOptions) $cOptions = json_encode($cOptions);
-	$edittingCircuit = true;
-}
-elseif (isset($_GET['mid'])) { // Existing multicup
-	$id = intval($_GET['mid']);
-	$nid = $id;
-	$isCup = true;
-	$isMCup = true;
-	if ($getMCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkmcups` WHERE id="'. $id .'" AND mode=1'))) {
-		$cName = $getMCup['nom'];
-		$cPseudo = $getMCup['auteur'];
-		$cAuteur = $cPseudo;
-		$cDate = $getMCup['publication_date'];
-		$cOptions = $getMCup['options'];
-		$pNote = $getMCup['note'];
-		$pNotes = $getMCup['nbnotes'];
-		$creationData = $getMCup;
-		$cShared = true;
-		$getCups = mysql_query('SELECT cup FROM `mkmcups_tracks` WHERE mcup="'. $id .'" ORDER BY ordering');
-		$cupIDs = array();
-		while ($getCup = mysql_fetch_array($getCups))
-			$cupIDs[] = $getCup['cup'];
-		addCircuitChallenges('mkmcups', $nid,$cName, $clPayloadParams);
-	}
-}
-elseif (isset($_GET['cid'])) { // Existing cup
-	$nid = intval($_GET['cid']);
-	$isCup = true;
-	$isMCup = false;
-	if ($getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $nid .'" AND mode=1'))) {
-		$cName = $getCup['nom'];
-		$cPseudo = $getCup['auteur'];
-		$cAuteur = $cPseudo;
-		$cDate = $getCup['publication_date'];
-		$pNote = $getCup['note'];
-		$pNotes = $getCup['nbnotes'];
-		$creationData = $getCup;
-		$cShared = true;
-		for ($i=0;$i<4;$i++)
-			$cupIDs[$i] = $getCup['circuit'. $i];
-		$trackIDs = $cupIDs;
-		addCircuitChallenges('mkcups', $nid,$cName, $clPayloadParams);
-	}
-}
-else { // Existing track
-	$isCup = false;
-	$isMCup = false;
-	$id = isset($_GET['i']) ? intval($_GET['i']) : 0;
-	$nid = $id;
-	$trackIDs = array($id);
-	$hthumbnail = 'https://mkpc.malahieude.net/racepreview.php?id='.$id;
-}
-$cupNames = array();
-if ($isMCup && !isset($trackIDs)) {
-	$trackIDs = array();
-	if (!empty($cupIDs)) {
-		$cupsTracks = array();
-		$cupNamesById = array();
-		$getAllCircuits = mysql_query('SELECT id,nom,circuit0,circuit1,circuit2,circuit3 FROM `mkcups` WHERE id IN ('. implode(',',$cupIDs) .') AND mode=1');
-		while ($getCup = mysql_fetch_array($getAllCircuits)) {
-			$cupTracks = array();
-			for ($i=0;$i<4;$i++)
-				$cupTracks[] = $getCup['circuit'.$i];
-			$cupsTracks[$getCup['id']] = $cupTracks;
-			$cupNamesById[$getCup['id']] = $getCup['nom'];
-			addCircuitChallenges('mkcups', $getCup['id'],$getCup['nom'], $clPayloadParams, false);
-		}
-		foreach ($cupIDs as $cupID) {
-			if (isset($cupsTracks[$cupID])) {
-				foreach ($cupsTracks[$cupID] as $cupTrack)
-					$trackIDs[] = $cupTrack;
-			}
-			if (isset($cupNamesById[$cupID]))
-				$cupNames[] = $cupNamesById[$cupID];
-		}
-	}
-}
-if (isset($trackIDs)) {
-	foreach ($trackIDs as $i=>$trackID) {
-		if (!is_numeric($trackID))
-			$trackIDs[$i] = 0;
-	}
-	$circuitsData = array();
-	if (!empty($trackIDs)) {
-		$getAllTracks = mysql_query('SELECT c.*,d.data FROM `circuits` c LEFT JOIN `circuits_data` d ON c.id=d.id WHERE c.id IN ('. implode(',',$trackIDs) .')');
-		$allTracks = array();
-		while ($getMain = mysql_fetch_array($getAllTracks))
-			$allTracks[$getMain['ID']] = $getMain;
-		foreach ($trackIDs as $trackID) {
-			if (isset($allTracks[$trackID])) {
-				$getMain = $allTracks[$trackID];
-				$circuitsData[] = $getMain;
-				addCircuitChallenges('circuits', $getMain['ID'],$getMain['nom'], $clPayloadParams, !$isCup);
-			}
-		}
-	}
-	if (!$isCup && isset($circuitsData[0])) {
-		$infos = $circuitsData[0];
-		$cName = $infos['nom'];
-		$cAuteur = $infos['auteur'];
-		$cDate = $infos['publication_date'];
-		$pNote = $infos['note'];
-		$pNotes = $infos['nbnotes'];
-		$creationData = $circuitsData[0];
-		$cShared = (null !== $cName);
-		if ($cShared)
-			$cPseudo = $cAuteur;
-		else
-			$cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
-	}
-}
-else
-	$circuitsData = Array();
+getTrackPayloads(array(
+	'sid' => 'i',
+	'mode' => 1
+));
+$sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'i'));
 require_once('circuitEscape.php');
 function escapeUtf8($str) {
 	return htmlentities(escapeCircuitNames($str));
 }
-$NBCIRCUITS = count($circuitsData);
-if (!$NBCIRCUITS) {
-	mysql_close();
-	exit;
-}
-addClChallenges($nid, $clPayloadParams);
-$sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'i'));
 ?>
 <!DOCTYPE HTML SYSTEM>
 <html>
@@ -212,24 +49,18 @@ var clId = <?php echo json_encode($clId); ?>;
 var language = <?php echo ($language ? 'true':'false'); ?>;
 var recorder = <?php echo json_encode(isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'') ?>;
 var lCircuits = [<?php
-for ($i=0;$i<$NBCIRCUITS;$i++) {
+foreach ($circuitsData as $i=>$circuit) {
 	if ($i)
 		echo ',';
 	$circuit = $circuitsData[$i];
-	echo '"'. ($circuit['nom'] ? addSlashes(escapeUtf8($circuit['nom'])) : "&nbsp;") .'"';
+	echo '"'. ($circuit['name'] ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
 }
 ?>];
-var cupIDs = <?php echo json_encode($cupIDs) ?>;
+var cupPayloads = <?php echo json_encode($cupPayloads) ?>;
 var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 <?php
-if (!empty($cupNames)) {
-	echo 'var cupNames = [';
-	foreach ($cupNames as $i=>$cupName) {
-		if ($i) echo ',';
-		echo '"'.addSlashes(escapeUtf8($cupName)).'"';
-	}
-	echo '];';
-}
+if (!empty($cupPayloads))
+	echo 'var cupPayloads = '. json_encode($cupPayloads) .';';
 ?>
 var cp = <?php include('getPersos.php'); ?>;
 var pUnlocked = <?php include('getLocks.php'); ?>;
@@ -250,171 +81,15 @@ var nid = <?php echo isset($nid) ? $nid:'null'; ?>;
 var edittingCircuit = <?php echo isset($edittingCircuit) ? 'true':'false'; ?>;
 var NBCIRCUITS = <?php echo $NBCIRCUITS; ?>;
 function listMaps() {
-	return {<?php
-	include('mk/map.php');
-	?>};
+	return {<?php printCircuitsData(); ?>};
 }
 <?php include('handleCupOptions.php'); ?>
 </script>
 <?php include('mk/main.php') ?>
 <script type="text/javascript">
 <?php
-require_once('collabUtils.php');
-$creationType = $isMCup ? 'mkmcups':($isCup ? 'mkcups':'circuits');
-$collab = getCollabLinkFromQuery($creationType, $nid);
-if (isset($nid)) {
-	if (isset($creationData)) {
-		$creator = ($creationData['identifiant'] == $identifiants[0]) && ($creationData['identifiant2'] == $identifiants[1]) && ($creationData['identifiant3'] == $identifiants[2]) && ($creationData['identifiant4'] == $identifiants[3]);
-		$canChange = $creator || isset($collab['rights']['view']);
-		$canShare = $creator || isset($collab['rights']['edit']);
-	}
-	else {
-		$creator = false;
-		$canChange = false;
-		$canShare = false;
-	}
-}
-else {
-	$creator = true;
-	$canChange = true;
-	$canShare = true;
-}
-if ($canChange) {
-	?>
-	function saveRace() {
-		document.getElementById("cAnnuler").disabled = true;
-		document.getElementById("cAnnuler").className = "cannotChange";
-		document.getElementById("cEnregistrer").disabled = true;
-		document.getElementById("cEnregistrer").className = "cannotChange";
-		xhr("<?php echo ($isMCup ? 'saveMCup' : ($isCup?'saveCup':'saveDraw')); ?>.php", "<?php
-			if ($isCup) {
-				echo 'mode=1';
-				foreach ($cupIDs as $i=>$cupID)
-					echo '&cid'. $i .'='. $cupID;
-				if (!empty($cOptions))
-					echo '&opt="+ encodeURIComponent(JSON.stringify(cupOpts)) +"';
-				echo '&';
-			}
-			if (isset($nid)) echo 'id='.$nid;
-			if ($clId) echo '&cl='.$clId;
-			if ($collab) echo '&collab='.$collab['key'];
-			if ($isCup)
-				echo '"+getCollabQuery("'. ($isMCup ? 'mkcups':'circuits') .'", ['. implode(',',$cupIDs) .'])+"';
-			?>&nom="+ getValue("cName") +"&auteur="+ getValue("cPseudo"), function(reponse) {
-			if (reponse && !isNaN(reponse)) {
-				document.getElementById("cSave").removeChild(document.getElementById("cTable"));
-				var cP = document.createElement("p");
-				cP.style.margin = "5px";
-				cP.style.textAlign = "center";
-				cP.innerHTML = '<?php
-					if ($cShared)
-						echo $language ? ($isCup ? 'Cup':'Circuit') .' updated successfully.':'Le partage de votre '. ($isCup ? 'coupe':'circuit') .' a été mis à jour.';
-					else
-						echo $language ? 'Your '. ($isCup ? 'cup':'circuit') .' has just been added to the <a href="creations.php" target="_blank">list</a>!':'Votre '. ($isCup ? 'coupe':'circuit') .' vient d\\\'être ajouté à la <a href="creations.php" target="_blank">liste</a> !';
-				?><br /><br />';
-				var cCont = document.createElement("input");
-				cCont.type = "button";
-				cCont.value = language ? "Continue":"Continuer";
-				cCont.onclick = function() {
-					<?php
-					if ($isCup) {
-						echo 'document.location.href = "?'.$sid.'="+ reponse';
-						if ($collab) echo '+"&collab='.$collab['key'].'"';
-						echo ';';
-					}
-					else
-						echo 'location.reload();';
-					?>
-				};
-				cP.appendChild(cCont);
-				document.getElementById("cSave").appendChild(cP);
-				<?php
-				if ($isCup) {
-					?>
-					document.getElementById("changeRace").onclick = function() {
-						document.location.href = "<?php echo $isMCup ? 'completecups.php?mid=':'completecup.php?cid='; ?>"+ reponse;
-					};
-					<?php
-				}
-				?>
-				return true;
-			}
-			return false;
-		});
-	}
-	<?php
-	if ($cShared) {
-		?>
-	function supprRace() {
-		document.getElementById("sAnnuler").disabled = true;
-		document.getElementById("sAnnuler").className = "cannotChange";
-		document.getElementById("sConfirmer").disabled = true;
-		document.getElementById("sConfirmer").className = "cannotChange";
-		xhr("<?php echo ($isMCup ? 'supprMCup':($isCup ? 'supprCup':'supprDraw')); ?>.php", "id=<?php
-			echo $nid;
-			if ($collab) echo '&collab='.$collab['key'];
-		?>", function(reponse) {
-			if (reponse == 1) {
-				document.getElementById("supprInfos").innerHTML = '<?php echo $language ? 'The '. ($isCup ? 'cup':'circuit') .' has been successfully removed from the list.':($isCup ? 'La coupe':'Le circuit') .' a été retiré de la liste avec succès.'; ?>';
-				document.getElementById("supprButtons").innerHTML = '';
-				var cCont = document.createElement("input");
-				cCont.type = "button";
-				cCont.value = language ? "Continue" : "Continuer";
-				cCont.onclick = function() {
-					document.location.href = "?<?php
-					if ($isMCup) {
-						foreach ($cupIDs as $i => $cupID) {
-							if ($i)
-								echo '&';
-							echo 'mid'. $i .'='. $cupIDs[$i];
-						}
-						if (!empty($cOptions))
-							echo '&opt='. urlencode($cOptions);
-						if ($clId) echo '&cl='.$clId;
-					}
-					elseif ($isCup) {
-						for ($i=0;$i<4;$i++) {
-							if ($i)
-								echo '&';
-							echo 'cid'. $i .'='. $cupIDs[$i];
-						}
-						if ($clId) echo '&cl='.$clId;
-					}
-					else
-						echo 'i='.$nid;
-					if ($collab) echo '&collab='.$collab['key'];
-					?>";
-				};
-				document.getElementById("supprButtons").appendChild(cCont);
-				return true;
-			}
-			return false;
-		});
-	}
-		<?php
-	}
-	?>
-	function getValue(name) {
-		return encodeURIComponent(document.getElementById(name).value);
-	}
-<?php
-}
-else {
-	require_once('utils-ratings.php');
-	$cNote = getMyRating($creationType, $nid);
-	?>
-	var cNote = <?php echo $cNote ?>;
-	var ratingParams = "id=<?php
-		echo $nid;
-		if ($isMCup)
-			echo '&mc=1';
-		elseif ($isCup)
-			echo '&cup=1';
-		else
-			echo '&complete=1';
-	?>";
-	<?php
-}
+require_once('circuit-actions.php');
+includeShareLib();
 ?>
 </script>
 <script type="text/javascript" src="scripts/ratings.js"></script>
@@ -456,44 +131,7 @@ if ($canChange && !$isCup) {
 	elseif (isset($circuitMainData->sections) && isCpOob())
 		$message = $language ? 'Warning, one or several sections are mapped<br />to a non-existing checkpoint.<br />The circuit will likely be unfinishable...':'Attention, une ou plusieurs sections<br />sont associéesà un checkpoint inexistant.<br />Le circuit risque d\'être difficile à terminer...';
 }
-include('ip_banned.php');
-if (isBanned())
-	echo '&nbsp;';
-elseif ($canChange) {
-	$typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')):($language ? 'circuit':'le circuit');
-	?>
-	<input type="button" id="changeRace"<?php if (!$creator) echo ' data-collab="1"'; ?> onclick="document.location.href='<?php
-		echo ($isCup ? ($isMCup ? 'completecups.php':'completecup.php'):'draw.php'); ?>'+document.location.search<?php
-	?>" value="<?php echo ($language ? 'Edit '.$typeStr:'Modifier '.$typeStr); ?>" /><br />
-	<?php
-	if ($creator && isset($nid) && !isset($_GET['nid'])) {
-		?>
-		<br class="br-small" />
-		<input type="button" id="linkRace" onclick="showTrackCollabPopup('<?php echo $creationType; ?>', <?php echo $nid; ?>)" value="<?php echo ($language ? 'Collaborate...':'Collaborer...'); ?>" /><br /><br />
-		<?php
-	}
-	else {
-		?>
-		<br />
-		<?php
-	}
-	if ($canShare) {
-		?>
-	<input type="button" id="shareRace" onclick="document.getElementById('cSave').style.display='block'" value="<?php
-	if ($cShared)
-		echo $language ? 'Edit sharing':'Modifier partage';
-	else
-		echo $language ? "Share $typeStr":"Partager $typeStr";
-	?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
-		if ($cShared && !$cEditting) {
-			?>
-	<br /><br class="br-small" /><input type="button" id="supprRace" onclick="document.getElementById('confirmSuppr').style.display='block'" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
-			<?php
-		}
-	}
-}
-else
-	printRatingView($language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':'circuit')).'!'):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':'ce circuit'))).' !');
+printCircuitActions();
 ?>
 </td></tr>
 <tr><td id="pMusic">
@@ -546,30 +184,7 @@ if (isset($message)) {
 	<div id="alerte"<?php if (isset($infoMsg)) echo ' class="alerte-info"'; ?>><p id="closeAlert"><a href="javascript:document.getElementById('alerte').style.display='none';void(0)">&times;</a></p><p><?php echo $message; ?></p></div>
 	<?php
 }
-?>
-<div id="confirmSuppr">
-<p id="supprInfos"><?php echo $language ?
-	'Stop sharing this circuit?<br />
-	The circuit will be only removed from the list:<br />
-	data will be retained.' :
-	'Supprimer le partage de ce circuit ?<br />
-	Le circuit sera simplement retiré de la liste :<br />
-	les données seront conservées.';
-?></p>
-<p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
-</div>
-<?php
-if (!isset($cannotChange)) {
-	?>
-	<form id="cSave" method="post" action="" onsubmit="saveRace();return false">
-	<table id="cTable">
-	<tr><td style="text-align: right"><label for="cPseudo"><?php echo $language ? 'Enter your nick':'Indiquez votre pseudo'; ?> :</label></td><td><input type="text" name="cPseudo" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" /></td></tr>
-	<tr><td style="text-align: right"><label for="cName"><?php echo $language ? ($isCup ? ($isMCup ? 'Multicup':'Cup'):'Circuit').' name':'Nom '.($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):'du circuit'); ?> :</label></td><td><input type="text" name="cName" id="cName" value="<?php echo escapeUtf8($cName) ?>" /></td></tr>
-	<tr><td colspan="2" id="cSubmit"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="cAnnuler" onclick="document.getElementById('cSave').style.display='none'" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Share':'Partager'; ?>" id="cEnregistrer" /></td></tr>
-	</table>
-	</form>
-	<?php
-}
+printCircuitShareUI();
 include('gameInitElts.php');
 ?>
 <?php

@@ -1,16 +1,15 @@
 <?php
 require_once('circuitImgUtils.php');
-foreach ($circuitsData as $c => $circuit) {
-	if ($c)
-		echo ',';
+$printCircuitData = function($circuit) {
+	global $circuitMainData, $circuitPayload;
 	$id = $circuit['ID'];
 	$circuitPayload = json_decode(gzuncompress($circuit['data']));
 	if (!$circuitPayload)
-		continue;
+		return;
 	$circuitMainData = $circuitPayload->main;
 	$circuitImg = json_decode($circuit['img_data']);
+	echo '{';
 	?>
-"map<?php echo ($c+1); ?>" : {
 "map" : <?php echo $id; ?>,
 "ext" : "<?php echo $circuitImg->ext; ?>",
 "img" : "<?php echo getCircuitImgUrl($circuitImg); ?>",
@@ -23,8 +22,8 @@ if (isset($circuitMainData->bgcustom))
 	echo '"custombg":'.$circuitMainData->bgimg.',';
 else {
 	echo '"fond":["';
-	require_once('circuitEnums.php');
-	$getInfos = $bgImages[$circuitMainData->bgimg];
+	include('circuitEnums.php');
+	$getInfos = $bgImgs[$circuitMainData->bgimg];
 	echo implode('","',$getInfos);
 	echo '"],';
 }

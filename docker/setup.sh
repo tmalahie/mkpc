@@ -10,10 +10,12 @@ mysql -h 127.0.0.1 -P 8306 -u root -proot mkpc < docker/php/scripts/setup.sql
 rm -f docker/php/images/avatars/*
 rm -f docker/php/images/uploads/map*
 rm -f docker/php/images/uploads/course*
-rm -f docker/php/images/creation_icons/*
+rm -f docker/php/images/creation_icons/*.png
+rm -f docker/php/images/creation_icons/uploads/*
 rm -f docker/php/images/sprites/uploads/*
 chmod 777 docker/php/images/avatars
 chmod 777 docker/php/images/uploads
 chmod 777 docker/php/images/creation_icons
+chmod 777 docker/php/images/creation_icons/uploads
 chmod 777 docker/php/images/sprites/uploads
 chmod 777 .

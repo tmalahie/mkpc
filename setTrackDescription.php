@@ -11,14 +11,14 @@ if (isset($_POST['type']) && isset($_POST['circuit'])) {
             if ($getCircuit['identifiant'] == $identifiants[0]) {
                 if (empty($_POST['description'])) {
                     mysql_query(
-                        'DELETE FROM mktrackdesc
+                        'UPDATE mktracksettings SET description=NULL
                         WHERE circuit="'. $circuit .'" AND type="'. $type .'"'
                     );
                 }
                 else {
                     $description = $_POST['description'];
                     mysql_query(
-                        'INSERT INTO mktrackdesc
+                        'INSERT INTO mktracksettings
                         SET circuit="'. $circuit .'", type="'. $type .'", description="'. $description .'"
                         ON DUPLICATE KEY UPDATE description=VALUES(description)'
                     );

@@ -100,13 +100,84 @@ function isSquareTrack(&$circuit) {
     }
     return ($nbTurns <= 4);
 }
-function postCircuitUpdate($type, $circuitId, &$circuit) {
-    if (isSquareTrack($circuit)) {
-        mysql_query('INSERT IGNORE INTO `mktrackbin` SET type="'. $type .'",circuit="'. $circuitId .'", delete_at=NOW()+INTERVAL 10 MINUTE');
-        return true;
+function getSQLRawValue(&$value) {
+    return empty($value) ? 'NULL' : '"'.$value.'"';
+}
+require_once('cache_creations.php');
+$THUMBNAIL_FOLDER = cachePath('uploads/');
+function thumbnailize($source, $dest) {
+    global $THUMBNAIL_FOLDER;
+    $w_ic = 120;
+    $h_ic = $w_ic;
+    $res = "$dest.png";
+    if (thumbnail($source,$THUMBNAIL_FOLDER.$res, $w_ic,$h_ic))
+        return $res;
+}
+function postCircuitUpdate($type, $circuitId, $isBattle=false, &$payload=null) {
+    global $THUMBNAIL_FOLDER;
+    if ($payload === null) $payload = $_POST;
+    if (($type === 'mkcircuits') && !$isBattle) {
+        if (isSquareTrack($payload)) {
+            mysql_query('INSERT IGNORE INTO `mktrackbin` SET type="'. $type .'",circuit="'. $circuitId .'", delete_at=NOW()+INTERVAL 10 MINUTE');
+        }
+        else {
+            mysql_query('DELETE FROM `mktrackbin` WHERE type="'. $type .'" AND circuit="'. $circuitId .'"');
+        }
     }
-    else {
-        mysql_query('DELETE FROM `mktrackbin` WHERE type="'. $type .'" AND circuit="'. $circuitId .'"');
-        return false;
+    $shouldDeleteThumbnail = !empty($payload['thumbnail_unset']);
+
+    if (isset($_FILES['thumbnail'])) {
+        $thumbnail = $_FILES['thumbnail'];
+        if (!$thumbnail['error']) {
+            $tmpFile = tmpfile();
+            $fileStream = stream_get_meta_data($tmpFile);
+            $thumbnailTmpPath = $fileStream['uri'];
+            if (move_uploaded_file($thumbnail['tmp_name'], $thumbnailTmpPath)) {
+                if ($thumbnailName = thumbnailize($thumbnailTmpPath, $type.'-'. $circuitId .'-'. time())) {
+                    $thumbnailNameRaw = '"'. $thumbnailName .'"';
+                    $shouldDeleteThumbnail = true;
+                }
+            }
+            @unlink($thumbnailTmpPath);
+        }
+        else if ($thumbnail['error'] !== UPLOAD_ERR_NO_FILE)
+            $shouldDeleteThumbnail = false;
+    }
+    if ($shouldDeleteThumbnail) {
+        if ($currentThumbnail = mysql_fetch_array(mysql_query('SELECT thumbnail FROM mktracksettings WHERE circuit="'. $circuitId .'" AND type="'. $type .'"'))) {
+            if ($currentThumbnail['thumbnail'] !== null) {
+                @unlink($THUMBNAIL_FOLDER . $currentThumbnail['thumbnail']);
+                if (!isset($thumbnailNameRaw))
+                    $thumbnailNameRaw = 'NULL';
+            }
+        }
+    }
+    mysql_query(
+        'INSERT INTO mktracksettings
+        SET circuit="'. $circuitId .'", type="'. $type .'",
+        name_en='. getSQLRawValue($payload['name_en']) .',
+        name_fr='. getSQLRawValue($payload['name_fr']) .',
+        '. (isset($thumbnailNameRaw) ? 'thumbnail='. $thumbnailNameRaw .',' : '') .'
+        prefix='. getSQLRawValue($payload['prefix']) .'
+        ON DUPLICATE KEY UPDATE
+        name_en=VALUES(name_en),
+        name_fr=VALUES(name_fr),
+        '. (isset($thumbnailNameRaw) ? 'thumbnail=VALUES(thumbnail),' : '') .'
+        prefix=VALUES(prefix)'
+    );
+    mysql_query(
+        'DELETE FROM mktracksettings
+        WHERE circuit="'. $circuitId .'" AND type="'. $type .'"
+        AND name_en IS NULL AND name_fr IS NULL
+        AND thumbnail IS NULL AND prefix IS NULL
+        AND description IS NULL'
+    );
+}
+function postCircuitDelete($type, $circuitId) {
+    global $THUMBNAIL_FOLDER;
+    if ($trackSettings = mysql_fetch_array(mysql_query('SELECT thumbnail FROM mktracksettings WHERE circuit="'. $circuitId .'" AND type="'. $type .'"'))) {
+        if ($trackSettings['thumbnail'] !== null)
+            @unlink($THUMBNAIL_FOLDER . $trackSettings['thumbnail']);
+        mysql_query('DELETE FROM mktracksettings WHERE circuit="'. $circuitId .'" AND type="'. $type .'"');
     }
 }

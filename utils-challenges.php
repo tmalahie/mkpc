@@ -687,11 +687,14 @@ function getChallengeDetails($challenge, &$params=array()) {
 }
 require_once('utils-cups.php');
 function getCircuitPayload(&$clRace) {
+	global $language;
 	$res = array();
 	if (!$clRace['type'])
 		return $res;
-	if ($clCircuit = mysql_fetch_array(mysql_query('SELECT * FROM `'. $clRace['type'] .'` WHERE id="'. $clRace['circuit'] .'"'))) {
-		$res['name'] = $clCircuit['nom'];
+	if ($clCircuit = fetchCreationData($clRace['type'], $clRace['circuit'], array(
+		'select' => 'c.*,s.thumbnail'
+	))) {
+		$res['name'] = $clCircuit['name'];
 		$res['author'] = $clCircuit['auteur'];
 		$res['identifiant'] = $clCircuit['identifiant'];
 		$res['identifiant2'] = $clCircuit['identifiant2'];
@@ -729,13 +732,27 @@ function getCircuitPayload(&$clRace) {
 			default:
 				$baseCache = 'mappreview';
 			}
+			include('creation-entities.php');
+			$cTable = $CREATION_ENTITIES[$clCircuit['mode']]['table'];
+			$getThumbnails = mysql_query('SELECT circuit,thumbnail FROM mktracksettings WHERE type="'. $cTable .'" AND circuit IN ('. $clCircuit['circuit0'] .','. $clCircuit['circuit1'] .','. $clCircuit['circuit2'] .','. $clCircuit['circuit3'] .') AND thumbnail IS NOT NULL');
+			$cThumbnails = array();
+			while ($thumbnail = mysql_fetch_array($getThumbnails))
+				$cThumbnails[$thumbnail['circuit']] = $thumbnail['thumbnail'];
 			for ($i=0;$i<4;$i++) {
 				$lId = $clCircuit['circuit'.$i];
-				$iconType = $clCircuit['mode'];
-				if ($iconType >= 2)
-					$iconType = 0;
-				$linkBg .= ($i?',':'') . 'trackicon.php?id='. $lId .'&type='. $iconType;
-				$linksCached[] = $baseCache . $lId .'.png';
+				if (isset($cThumbnails[$lId])) {
+					$linkCached = 'uploads/'. $cThumbnails[$lId];
+					$linkIcon = 'images/creation_icons/'. $linkCached;
+				}
+				else {
+					$iconType = $clCircuit['mode'];
+					if ($iconType >= 2)
+						$iconType = 0;
+					$linkIcon = 'trackicon.php?id='. $lId .'&type='. $iconType;
+					$linkCached = $baseCache . $lId .'.png';
+				}
+				$linkBg .= ($i?',':'') . $linkIcon;
+				$linksCached[] = $linkCached;
 			}
 			break;
 		case 'mkmcups':
@@ -744,13 +761,19 @@ function getCircuitPayload(&$clRace) {
 			$linksCached[] = 'mcuppreview'. $clCircuit['id'] .'.png';
 		}
 		$allCached = true;
-		foreach ($linksCached as $link) {
-			$filename = 'images/creation_icons/'.$link;
-			if (file_exists($filename))
-				touch_async($filename);
-			else {
-				$allCached = false;
-				break;
+		if ($clCircuit['thumbnail']) {
+			$linkBg = 'uploads/'.$clCircuit['thumbnail'];
+			$linksCached = array($linkBg);
+		}
+		else {
+			foreach ($linksCached as $link) {
+				$filename = 'images/creation_icons/'.$link;
+				if (file_exists($filename))
+					touch_async($filename);
+				else {
+					$allCached = false;
+					break;
+				}
 			}
 		}
 		$res['srcs'] = $linkPreview;

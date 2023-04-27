@@ -35,7 +35,7 @@ if (isset($_POST['circuit']) &&  isset($_POST['type'])) {
 						echo '"banned":'.$getAuteur['banned'].',';
 				}
 			}
-			if ($getDescription = mysql_fetch_array(mysql_query('SELECT description FROM mktrackdesc WHERE circuit="'. $circuit .'" AND type="'. $type .'"'))) {
+			if ($getDescription = mysql_fetch_array(mysql_query('SELECT description FROM mktracksettings WHERE circuit="'. $circuit .'" AND type="'. $type .'" AND description IS NOT NULL'))) {
 				echo '"description":"'. escape($getDescription['description']).'",';
 			}
 			echo '"comments":[';

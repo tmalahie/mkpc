@@ -109,9 +109,12 @@ if (typeof challenges === 'undefined') {
 	var challenges = {mcup:[],cup:[],track:[]};
 	var clRewards = [];
 }
-if (typeof cupNames === 'undefined') {
-	var cupNames = [];
+if (typeof cupPayloads === 'undefined') {
+	var cupPayloads = [];
 }
+var cupIDs = cupPayloads.map(function(cupPayload) {
+	return cupPayload.id;
+});
 //challenges["track"]["4749"].list = [challenges["track"]["4749"].list[1]];
 var challengesForCircuit;
 
@@ -24343,11 +24346,14 @@ function selectMapScreen(opts) {
 
 				document.getElementById("dMaps").style.display = "block";
 				defileMaps(this.alt*4+4);
-				if (cupNames[this.alt]) {
-					oCupNameDiv.innerHTML = cupNames[this.alt];
-					var cupFS = Math.min(Math.max(8/Math.sqrt(stripSpecialChars(cupNames[this.alt]).length), 1.45), 3);
-					oCupName.style.fontSize = Math.round(cupFS*iScreenScale) +"px";
-					oCupName.style.display = "flex";
+				if (cupPayloads[this.alt]) {
+					var cupName = cupPayloads[this.alt].name;
+					if (cupName) {
+						oCupNameDiv.innerText = cupName;
+						var cupFS = Math.min(Math.max(8/Math.sqrt(cupName.length), 1.45), 3);
+						oCupName.style.fontSize = Math.round(cupFS*iScreenScale) +"px";
+						oCupName.style.display = "flex";
+					}
 				}
 			}
 

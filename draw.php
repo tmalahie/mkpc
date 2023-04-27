@@ -9,7 +9,8 @@ $musicOptions = $language
 	: Array(null, 'Circuit Mario', 'Plaine Donut', 'Plage Koopa', 'Île Choco', 'Lac Vanille', 'Vallée Fantôme', 'Château de Bowser', 'Route Arc-en-Ciel', null, 'Circuit Mario', 'Plage Maskass', 'Bord du Fleuve', 'Château de Bowser', 'Lac Boo', 'Pays Fromage', 'Jardin Volant', 'Pays Crépuscule', 'Royaume Sorbet', 'Route Ruban', 'Désert Yoshi', 'Bord du Lac', 'Route Arc-en-Ciel', null, 'Circuit en 8', 'Cascade Yoshi', 'Plage Cheep-Cheep', 'Manoir de Luigi', 'Désert du Soleil', 'Quartier Delfino', 'Flipper Waluigi', 'Corniche Champignon', 'Alpes DK', 'Horloge Tic-Tac', 'Bateau Volant', 'Jardin Peach', 'Château de Bowser', 'Route Arc-en-Ciel');
 if (isset($_GET['i'])) {
 	$circuitId = intval($_GET['i']);
-	if ($circuit = mysql_fetch_array(mysql_query('SELECT * FROM circuits WHERE id="'. $circuitId .'"'))) {
+	require_once('utils-cups.php');
+	if ($circuit = fetchCreationData('circuits', $circuitId)) {
 		require_once('collabUtils.php');
 		if (($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) {
 			$hasReadGrants = true;
@@ -38,7 +39,7 @@ if (isset($_GET['i'])) {
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
-		var bgImgs = <?php echo json_encode($bgImages); ?>;
+		var bgImgs = <?php echo json_encode($bgImgs); ?>;
 		var musicOptions = <?php echo json_encode($musicOptions); ?>;
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
@@ -999,7 +1000,14 @@ else {
 	</head>
 	<body class="home-body">
 		<?php
-		$getTracks = mysql_query('SELECT c.id,c.nom,d.data,c.img_data FROM circuits c LEFT JOIN circuits_data d ON c.id=d.id WHERE c.identifiant='.$identifiants[0].' AND c.identifiant2='.$identifiants[1].' AND c.identifiant3='.$identifiants[2].' AND c.identifiant4='.$identifiants[3] .' ORDER BY c.id DESC');
+		require_once('utils-cups.php');
+		$getTracks = getCreationDataQuery(array(
+			'table' => 'circuits',
+			'select' => 'c.id,d.data,c.img_data,s.thumbnail',
+			'join' => 'LEFT JOIN circuits_data d ON c.id=d.id',
+			'where' => 'c.identifiant='.$identifiants[0].' AND c.identifiant2='.$identifiants[1].' AND c.identifiant3='.$identifiants[2].' AND c.identifiant4='.$identifiants[3],
+			'order' => 'c.id DESC'
+		));
 		if (!isset($_GET['help']) && ($nbTracks=mysql_numrows($getTracks))) {
 			if ($language) {
 				?>
@@ -1107,13 +1115,17 @@ else {
 					while ($track = mysql_fetch_array($getTracks)) {
 						$circuitImg = json_decode($track['img_data']);
 						$id = $track['id'];
+						if ($track['thumbnail'])
+							$cacheSrc = 'images/creation_icons/uploads/'. $track['thumbnail'];
+						else
+							$cacheSrc = 'images/creation_icons/racepreview'. $id .'.png';
 						echo '<a href="map.php?i='.$id.'"
 							data-id="'.$id.'"
-							data-name="'.($track['nom'] ? htmlspecialchars($track['nom']) : '').'"
+							data-name="'.($track['name'] ? htmlspecialchars($track['name']) : '').'"
 							'. ($track['data'] ? '':'data-pending="1"') .'
 							data-src="'.htmlspecialchars(getCircuitImgUrl($circuitImg)).'"
 							onclick="previewCircuit(this);return false"><img
-								src="images/creation_icons/racepreview'. $id .'.png"
+								src="'.$cacheSrc.'"
 								onerror="var that=this;setTimeout(function(){that.src=\'trackicon.php?type=1&id='. $id .'\';},loadDt);this.onerror=null;loadDt+=50"
 								alt="Circuit '.$id.'"
 							/></a>';

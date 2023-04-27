@@ -1,5 +1,5 @@
 <?php
-include('cache_creations.php');
+require_once('cache_creations.php');
 function getSrcFromType($type) {
     switch ($type) {
     case 0 :

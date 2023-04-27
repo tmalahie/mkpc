@@ -34,7 +34,7 @@ foreach ($maps as $map) {
 			'music' => $map->music,
 			'bgcolor' => $map->bgcolor
 		);
-		foreach ($bgImages as $i=>$decor) {
+		foreach ($bgImgs as $i=>$decor) {
 			if ($map->fond == $decor)
 				$data['main']['bgimg'] = $i;
 		}

@@ -888,7 +888,7 @@ $data['main'] = array(
     'music' => $circuitData->music,
     'bgcolor' => $circuitData->bgcolor
 );
-foreach ($bgImages as $i=>$decor) {
+foreach ($bgImgs as $i=>$decor) {
     if ($circuitData->fond == $decor)
         $data['main']['bgimg'] = $i;
 }

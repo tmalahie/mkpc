@@ -31,8 +31,9 @@ include('menu.php');
 		require_once('circuitEscape.php');
 		$lastComments = mysql_query('SELECT id,circuit,type,message,date FROM `mkcomments` WHERE auteur="'. $_GET['user'] .'" ORDER BY id DESC');
 		$comments = array();
+		require_once('utils-cups.php');
 		while ($comment = mysql_fetch_array($lastComments)) {
-			if ($getCircuit = mysql_fetch_array(mysql_query('SELECT *'. (($comment['type']=="mkcircuits") ? ',!type as is_circuit':'') .' FROM `'. $comment['type'] .'` WHERE id='. $comment['circuit']))) {
+			if ($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) {
 				$comment['circuit_data'] = $getCircuit;
 				$comments[] = $comment;
 			}
@@ -61,7 +62,7 @@ include('menu.php');
 					$url = getCupPage($getCircuit['mode']) . '.php?cid='. $getCircuit['id'];
 					break;
 				case 'mkcircuits' :
-					$url = ($getCircuit['is_circuit'] ? 'circuit.php':'arena.php') . '?id='. $getCircuit['id'];
+					$url = ($getCircuit['type'] ? 'arena.php':'circuit.php') . '?id='. $getCircuit['id'];
 					break;
 				case 'arenes' :
 					$url = 'battle.php?i='. $getCircuit['ID'];
@@ -73,8 +74,8 @@ include('menu.php');
 				<a class="circuit-comment" href="<?php echo $url; ?>">
 					<div class="circuit-comment-msg"><?php echo nl2br(htmlspecialchars($comment['message'])); ?></div>
 					<div class="circuit-comment-infos"><img src="images/comments.png" alt="comments"> <?php
-					if ($getCircuit['nom']) {
-						echo ($language ? 'In':'Dans'); ?> <strong><?php echo escapeCircuitNames(htmlspecialchars($getCircuit['nom'])) ?></strong><?php
+					if ($getCircuit['name']) {
+						echo ($language ? 'In':'Dans'); ?> <strong><?php echo escapeCircuitNames(htmlspecialchars($getCircuit['name'])) ?></strong><?php
 					}
 					?> <?php echo pretty_dates($comment['date'],array('lower'=>true)); ?></div>
 				</a>

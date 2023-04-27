@@ -2,7 +2,7 @@
 header('Content-Type: text/plain');
 if (isset($_POST['id'])) {
 	include('initdb.php');
-	$cID = $_POST['id'];
+	$cID = intval($_POST['id']);
 	include('getId.php');
 	include('session.php');
 	require_once('getRights.php');
@@ -14,6 +14,8 @@ if (isset($_POST['id'])) {
 		mysql_query('DELETE FROM `mkcups` WHERE id="'.$cID.'"');
 		mysql_query('UPDATE `mkclrace` l LEFT JOIN `mkchallenges` h ON h.clist=l.id AND h.status="pending_moderation" LEFT JOIN `mkcups` c ON l.circuit=c.id SET l.type="",l.circuit=NULL,h.status="pending_publication" WHERE l.type="mkcups" AND c.id IS NULL');
 		mysql_query('UPDATE `mkclrace` l LEFT JOIN `mkchallenges` h ON h.clist=l.id AND h.status="pending_moderation" LEFT JOIN `mkmcups` c ON l.circuit=c.id SET l.type="",l.circuit=NULL,h.status="pending_publication" WHERE l.type="mkmcups" AND c.id IS NULL');
+		include('postCircuitUpdate.php');
+		postCircuitDelete('mkcups', $cID);
 		if (hasRight('moderator'))
 			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Cup '. $cID .'")');
 	}

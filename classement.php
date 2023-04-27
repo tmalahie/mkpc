@@ -60,14 +60,26 @@ if ($creation) {
 		$getMCup = mysql_fetch_array(mysql_query('SELECT mode FROM `mkmcups` WHERE id="'. $cID .'"'));
 		$simplified = ($getMCup['mode']==0);
 		$type = $simplified ? 'mkcircuits':'circuits';
-		$getCircuits = mysql_query('SELECT c.id,c.nom,p.id AS gid,p.nom AS gname FROM mkmcups_tracks t INNER JOIN mkcups p ON p.id=t.cup INNER JOIN `'. $type .'` c ON c.id IN (p.circuit0,p.circuit1,p.circuit2,p.circuit3) WHERE t.mcup="'. $cID .'" ORDER BY t.ordering');
+		$nameCol = $language ? 'name_en' : 'name_fr';
+		$getCircuits = mysql_query('SELECT c.id,IFNULL(s.'.$nameCol.',c.nom) AS name,p.id AS gid,IFNULL(s2.'.$nameCol.',p.nom) AS gname FROM mkmcups_tracks t INNER JOIN mkcups p ON p.id=t.cup INNER JOIN `'. $type .'` c ON c.id IN (p.circuit0,p.circuit1,p.circuit2,p.circuit3) LEFT JOIN `mktracksettings` s ON s.type="'. $type .'" AND s.circuit=c.id LEFT JOIN `mktracksettings` s2 ON s2.type="mkcups" AND s2.circuit=p.id WHERE t.mcup="'. $cID .'" ORDER BY t.ordering');
 	}
 	elseif ($cup) {
 		$getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $cID .'"'));
-		$getCircuits = mysql_query('(SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit0'] .'") UNION ALL (SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit1'] .'") UNION ALL (SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit2'] .'") UNION ALL (SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $getCup['circuit3'] .'")');
+		require_once('utils-cups.php');
+		$getCircuits = getCreationDataQuery(array(
+			'table' => $type,
+			'select' => 'c.id,0 AS gid,"" AS gname',
+			'where' => 'c.id IN ('. $getCup['circuit0'] .','. $getCup['circuit1'] .','. $getCup['circuit2'] .','. $getCup['circuit3'] .')'
+		));
 	}
-	else
-		$getCircuits = mysql_query('SELECT id,nom,0 AS gid,"" AS gname FROM `'. $type .'` WHERE id="'. $cID .'"');
+	else {
+		require_once('utils-cups.php');
+		$getCircuits = getCreationDataQuery(array(
+			'table' => $type,
+			'select' => 'c.id,0 AS gid,"" AS gname',
+			'where' => 'c.id="'. $cID .'"'
+		));
+	}
 }
 $pseudo = isset($_GET['pseudo']) ? $_GET['pseudo']:null;
 ?>
@@ -345,11 +357,11 @@ if ($creation) {
 	$groupsById = array();
 	$circuitGroups = array();
 	while ($getCircuit = mysql_fetch_array($getCircuits)) {
-		if (!$getCircuit['nom'])
-			$getCircuit['nom'] = $language ? 'Untitled':'Sans titre';
-		$circuitGroups[$getCircuit['gid']][] = escapeUtf8($getCircuit['nom']);
+		if (!$getCircuit['name'])
+			$getCircuit['name'] = $language ? 'Untitled':'Sans titre';
+		$circuitGroups[$getCircuit['gid']][] = escapeUtf8($getCircuit['name']);
 		$cIDs[] = $getCircuit['id'];
-		$groupsById[$getCircuit['gid']] = escapeUtf8($getCircuit['gname']);
+		$groupsById[$getCircuit['gid']] = addslashes($getCircuit['gname']);
 	}
 }
 $joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.player=r2.player AND r.identifiant=r2.identifiant AND r.identifiant2=r2.identifiant2 AND r.identifiant3=r2.identifiant3 AND r.identifiant4=r2.identifiant4 AND r.class=r2.class AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';

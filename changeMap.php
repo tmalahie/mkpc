@@ -45,7 +45,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 						}
 						$circuitImg = getCircuitImgData($circuitPath,$circuitUrl,$isUploaded);
 						mysql_query('UPDATE `'.$db.'` SET img_data="'. mysql_real_escape_string(json_encode($circuitImg)) .'" WHERE id="'.$id.'"');
-						include('cache_creations.php');
+						require_once('cache_creations.php');
 						@unlink(cachePath($isrc.$id.'.png'));
 						$success = 2;
 					}
