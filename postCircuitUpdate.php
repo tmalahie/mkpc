@@ -104,7 +104,7 @@ function getSQLRawValue(&$value) {
     return empty($value) ? 'NULL' : '"'.$value.'"';
 }
 require_once('cache_creations.php');
-$THUMBNAIL_FOLDER = $CACHE_FOLDER . 'uploads/';
+$THUMBNAIL_FOLDER = cachePath('uploads/');
 function thumbnailize($source, $dest) {
     global $THUMBNAIL_FOLDER;
     $w_ic = 120;
