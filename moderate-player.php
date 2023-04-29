@@ -88,6 +88,7 @@ if ($ban) {
             }
             if (isset($_POST['full_delete'])) {
                 mysql_query('DELETE m,t FROM mkmessages m LEFT JOIN mktopics t ON m.id=1 AND m.topic=t.id WHERE m.auteur="'. $getId['id'] .'"');
+                mysql_query('DELETE FROM mkreactions WHERE member="'. $getId['id'] .'"');
                 mysql_query('DELETE FROM mknewscoms WHERE author="'. $getId['id'] .'"');
                 mysql_query('DELETE FROM mknews WHERE author="'. $getId['id'] .'"');
                 mysql_query('DELETE FROM mkcomments WHERE auteur="'. $getId['id'] .'"');
