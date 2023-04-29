@@ -394,7 +394,8 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 			}
 			else {
 				$linkCached = $baseCache . $lId .'.png';
-				$linkIcon = 'trackicon.php?id='. $lId .'&type=0';
+				$lType = ($cType == 8) ? 2 : 0;
+				$linkIcon = 'trackicon.php?id='. $lId .'&type='.$lType;
 			}
 			$linkBg .= ($i?',':'') . $linkIcon;
 			$linksCached[] = $linkCached;

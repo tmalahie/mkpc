@@ -39,6 +39,7 @@ $CREATION_ENTITIES = array(
             $base = &$options['base'];
             $infos['map'] = $base['map'];
             $infos['laps'] = $base['laps'];
+            $infos['thumbnail'] = 'mappreview.php?id='.$trackID;
             $pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$trackID.'"');
             while ($piece = mysql_fetch_array($pieces))
                 $infos['p'.$piece['id']] = $piece['piece'];
@@ -139,6 +140,9 @@ $CREATION_ENTITIES = array(
         'fetch_track_extras' => function($options) {
             foreach ($options['base'] as $key => $value)
                 $options['infos'][$key] = $value;
+            $isBattle = ($options['infos']['mode'] === 3);
+            $trackID = $options['id'];
+            $options['infos']['thumbnail'] = ($isBattle?'coursepreview':'racepreview').'.php?id='.$trackID;
         },
         'get_share_params' => function() {
             global $cShared, $isBattle;
@@ -205,6 +209,7 @@ $CREATION_ENTITIES = array(
             $infos = &$options['infos'];
             $base = &$options['base'];
             $infos['map'] = $base['map'];
+            $infos['thumbnail'] = 'mappreview.php?id='.$trackID;
             $pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$trackID.'"');
             while ($piece = mysql_fetch_array($pieces))
                 $infos['p'.$piece['id']] = $piece['piece'];

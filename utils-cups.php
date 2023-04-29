@@ -3,7 +3,7 @@ require_once('circuitPrefix.php');
 function printCupCircuit(&$circuit, $options=array()) {
     global $language;
     $circuitnb = isset($options['nb']) ? $options['nb'] : '';
-    $isCup = count($circuit['icon']) > 1;
+    $isCup = count($circuit['srcs']) > 1;
     ?>
     <tr id="circuit<?php echo $circuit['id']; ?>" data-id="<?php echo $circuit['id']; ?>" onclick="selectCircuit(this)">
         <td class="td-preview<?php if ($isCup) echo ' td-preview-cup'; ?>" <?php
@@ -156,7 +156,6 @@ function getTrackPayloads($options) {
             'id' => $id,
             'mode' => $creationMode
         ));
-        $hthumbnail = 'https://mkpc.malahieude.net/mappreview.php?id='.$id;
         $cShared = true;
     }
     elseif (isset($_GET['cid0']) && isset($_GET['cid1']) && isset($_GET['cid2']) && isset($_GET['cid3'])) { // Cup being created
@@ -348,6 +347,7 @@ function getTrackPayloads($options) {
             $cAuteur = $infos['auteur'];
             $pNote = $infos['note'];
             $pNotes = $infos['nbnotes'];
+            $hthumbnail = 'https://mkpc.malahieude.net/'.$infos['thumbnail'];
             $cDate = $infos['publication_date'];
             $creationData = $circuitsData[0];
             $cShared = (null !== $cName0);
