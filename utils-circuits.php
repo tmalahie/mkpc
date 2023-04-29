@@ -223,13 +223,15 @@ function addCircuitsData(&$creationsList) {
 	if ($mCupIdsStr) {
 		$getCups = mysql_query('SELECT c.*,t.mcup FROM `mkmcups_tracks` t INNER JOIN mkcups c ON t.cup=c.id WHERE t.mcup IN ('.$mCupIdsStr.') ORDER BY t.mcup,t.ordering');
 		while ($cup = mysql_fetch_array($getCups)) {
-			$mCups[$cup['mcup']] = array(
-				'tracks' => array(),
-				'mode' => $cup['mode'],
-			);
-			for ($i=0;$i<4;$i++) {
-				$mCups[$cup['mcup']]['tracks'][] = array('id' => $cup['circuit'.$i]);
+			$mCupId = $cup['mcup'];
+			if (!isset($mCups[$mCupId])) {
+				$mCups[$mCupId] = array(
+					'tracks' => array(),
+					'mode' => $cup['mode'],
+				);
 			}
+			for ($i=0;$i<4;$i++)
+				$mCups[$mCupId]['tracks'][] = array('id' => $cup['circuit'.$i]);
 		}
 	}
 	$circuitTypes = array();

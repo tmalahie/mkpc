@@ -3,7 +3,7 @@ require_once('circuitPrefix.php');
 function printCupCircuit(&$circuit, $options=array()) {
     global $language;
     $circuitnb = isset($options['nb']) ? $options['nb'] : '';
-    $isCup = count($circuit['srcs']) > 1;
+    $isCup = isset($circuit['icon']) && count($circuit['icon']) > 1;
     ?>
     <tr id="circuit<?php echo $circuit['id']; ?>" data-id="<?php echo $circuit['id']; ?>" onclick="selectCircuit(this)">
         <td class="td-preview<?php if ($isCup) echo ' td-preview-cup'; ?>" <?php
