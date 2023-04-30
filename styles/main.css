@@ -792,9 +792,6 @@ a img {
 	position: relative;
 	top: -9px;
 }
-.adsbymkpc > a+div {
-	display: none !important;
-}
 header, nav, main, footer {
 	width: 75%;
 }

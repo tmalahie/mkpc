@@ -102,13 +102,15 @@ else {
 	<?php
 }
 ?>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
-<p class="pub"><ins class="adsbygoogle adsbymkpc"
+<p class="pub"><ins class="adsbygoogle"
      style="display:inline-block;width:728px;height:90px"
      data-ad-client="ca-pub-1340724283777764"
-     data-ad-slot="4919860724">
-	 <a href="https://www.mariokarting.com/" target="_blank"><img src="images/events/ads/mariokarting.png" srcset="images/events/ads/mariokarting@2x.png 2x" /></a>
-</ins></p>
+     data-ad-slot="4919860724"></ins></p>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 <form method="get" action="recherche.php" class="forum-search">
 	<p>
 		<label for="search-content">
@@ -215,7 +217,6 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 <a href="index.php"><?= _('Back to the homepage') ?></a>
 </p>
 </main>
-<script async type="text/javascript" src="scripts/adsbymkpc.js"></script>
 <?php
 mysql_close();
 include('footer.php');
