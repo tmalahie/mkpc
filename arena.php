@@ -12,6 +12,7 @@ include('creation-challenges.php');
 require_once('circuitPrefix.php');
 $cName = null;
 $cName0 = null;
+$cPrefix = null;
 $cPseudo = null;
 $cAuteur = null;
 $cDate = null;
@@ -182,19 +183,11 @@ include('gameInitElts.php');
 ?>
 <?php
 if (isset($nid)) {
-	include('circuitUser.php');
 	require_once('reactions.php');
 	printReactionUI();
-	$circuitTable = $isMCup ? 'mkmcups' : ($isCup?'mkcups':'mkcircuits');
 	?>
 	<div id="comments-section"></div>
-	<script type="text/javascript">
-	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $circuitTable; ?>",
-	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
-	circuitDate = "<?php echo formatDate($cDate); ?>";
-	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$circuitTable); ?>;
-	</script>
-	<script type="text/javascript" src="scripts/comments.js?reload=1"></script>
+	<script type="text/javascript" src="scripts/comments.js"></script>
 	<script type="text/javascript" src="scripts/topic.js"></script>
 	<?php
 }

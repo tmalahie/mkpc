@@ -1,7 +1,8 @@
 <?php
 require_once('collabUtils.php');
+include('circuitUser.php');
 function includeShareLib() {
-    global $nid, $creationType, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $cOptions, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage, $cNote;
+    global $nid, $creationType, $cName, $cPrefix, $cAuteur, $cDate, $pNote, $pNotes, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $cOptions, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage, $cNote;
     $isBattle = ($creationMode > 1);
     $complete = ($creationMode%2);
     include('creation-entities.php');
@@ -279,6 +280,12 @@ function includeShareLib() {
         ?>";
         <?php
     }
+    ?>
+	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $creationType; ?>", circuitPrefix = "<?php if ($cPrefix) echo addSlashes(htmlspecialchars($cPrefix)); ?>",
+	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
+	circuitDate = "<?php echo formatDate($cDate); ?>";
+	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$creationType); ?>;
+    <?php
 }
 
 function printCircuitActions() {

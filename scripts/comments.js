@@ -33,7 +33,7 @@ var circuitNbComments = 0;
 				'<a id="comments-close" href="#null">&times;</a>'+
 				'<a id="comments-open" href="#null">\u25A1</a>'+
 			'</div>'+
-			(circuitName ? '<h2>'+ circuitName +'</h2>':'')+
+			(circuitName ? '<h2>'+ (circuitPrefix ? ('<small>'+circuitPrefix+'</small> ') : '') + circuitName +'</h2>':'')+
 			'<table>'+
 				'<tr><td id="comments-circuitauthor" rowspan="2">'+
 					'<div>'+ (language ? 'By':'Par') +' '+ (circuitUser ? '<a href="profil.php?id='+circuitUser+'">':'') + (circuitAuthor ? circuitAuthor.replace(/ /g,'&nbsp;'): (language ? "Anonymous":"Anonyme")) + (circuitUser ? '</a>':'') +'</div>'+

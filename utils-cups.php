@@ -84,7 +84,7 @@ function printCollabImportPopup($type, $mode, $isBattle) {
     <?php
 }
 function getTrackPayloads($options) {
-    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cAuteur, $cDate, $cOptions, $cupIDs, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
+    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cDate, $cOptions, $cupIDs, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
     include('creation-entities.php');
     $isOnline = isset($options['online']);
     if ($isOnline) {
@@ -344,6 +344,7 @@ function getTrackPayloads($options) {
             $infos = $circuitsData[0];
             $cName = $infos['name'];
             $cName0 = $infos['name0'];
+            $cPrefix = $infos['prefix'];
             $cAuteur = $infos['auteur'];
             $pNote = $infos['note'];
             $pNotes = $infos['nbnotes'];
