@@ -280,8 +280,9 @@ function includeShareLib() {
         ?>";
         <?php
     }
+    if (isset($nid))
+        echo 'var commentCircuit = '.$nid.', commentType = "'. $creationType.'", circuitPrefix = "'. ($cPrefix ? addSlashes(htmlspecialchars($cPrefix)) : '') .'";';
     ?>
-	var commentCircuit = <?php echo $nid; ?>, commentType = "<?php echo $creationType; ?>", circuitPrefix = "<?php if ($cPrefix) echo addSlashes(htmlspecialchars($cPrefix)); ?>",
 	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$creationType); ?>;
