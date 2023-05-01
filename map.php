@@ -56,12 +56,13 @@ foreach ($circuitsData as $i=>$circuit) {
 	echo '"'. ($circuit['name'] ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
 }
 ?>];
-var cupPayloads = <?php echo json_encode($cupPayloads) ?>;
-var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 <?php
+if (!empty($dCircuits))
+	echo 'var dCircuits = '. json_encode($dCircuits) .';';
 if (!empty($cupPayloads))
 	echo 'var cupPayloads = '. json_encode($cupPayloads) .';';
 ?>
+var cupOpts = <?php echo empty($cOptions) ? '{}':$cOptions; ?>;
 var cp = <?php include('getPersos.php'); ?>;
 var pUnlocked = <?php include('getLocks.php'); ?>;
 var baseOptions = <?php include('getCourseOptions.php'); ?>;

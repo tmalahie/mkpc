@@ -84,7 +84,7 @@ function printCollabImportPopup($type, $mode, $isBattle) {
     <?php
 }
 function getTrackPayloads($options) {
-    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cDate, $cOptions, $cupIDs, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
+    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cDate, $cOptions, $cupIDs, $dCircuits, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
     include('creation-entities.php');
     $isOnline = isset($options['online']);
     if ($isOnline) {
@@ -364,13 +364,22 @@ function getTrackPayloads($options) {
         mysql_close();
         exit;
     }
-    if ($isCup)
-        $infos = Array();
     if (empty($circuitsData)) {
         mysql_close();
         exit;
     }
     $NBCIRCUITS = count($circuitsData);
+    if ($isCup) {
+        $infos = Array();
+        $dCircuits = Array();
+        for ($i=0;$i<$NBCIRCUITS;$i++) {
+            $circuit = $circuitsData[$i];
+            if ($circuit['prefix'])
+                $dCircuits[] = '<small>'. htmlspecialchars($circuit['prefix']) .'</small> ' . escapeUtf8($circuit['name']);
+            else
+                $dCircuits[] = escapeUtf8($circuit['name']);
+        }
+    }
     if (!$isOnline)
         addClChallenges($nid, $clPayloadParams);
 }

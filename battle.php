@@ -55,6 +55,8 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 }
 ?>];
 <?php
+if (!empty($dCircuits))
+	echo 'var dCircuits = '. json_encode($dCircuits) .';';
 if (!empty($cupPayloads))
 	echo 'var cupPayloads = '. json_encode($cupPayloads) .';';
 ?>

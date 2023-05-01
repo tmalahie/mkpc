@@ -31,6 +31,35 @@ var lCircuits = <?php
 include_once('circuitNames.php');
 echo json_encode($circuitNames);
 ?>;
+var dCircuits = <?php
+$circuitNamesDetailed = array();
+$inc = 0;
+for ($i=0;$i<$nbSNESCircuits;$i++) {
+	$circuitNamesDetailed[] = '<small>SNES</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbGBACircuits;$i++) {
+	$circuitNamesDetailed[] = '<small>GBA</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbDSCircuits;$i++) {
+	$circuitNamesDetailed[] = '<small>DS</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbSNESArenas;$i++) {
+	$circuitNamesDetailed[] = '<small>SNES</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbGBAArenas;$i++) {
+	$circuitNamesDetailed[] = '<small>GBA</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+for ($i=0;$i<$nbDSArenas;$i++) {
+	$circuitNamesDetailed[] = '<small>DS</small> ' . $circuitNames[$inc];
+	$inc++;
+}
+echo json_encode($circuitNamesDetailed);
+?>;
 var recorder = <?php echo json_encode(isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'') ?>;
 var cp = <?php include('getPersos.php'); ?>;
 var pUnlocked = <?php include('getLocks.php'); ?>;

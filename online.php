@@ -147,21 +147,8 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 }
 ?>];
 <?php
-if ($isCup) {
-	$dCircuits = array();
-	$isCircuitPrefix = false;
-	for ($i=0;$i<$NBCIRCUITS;$i++) {
-		$circuit = $circuitsData[$i];
-		if ($circuit['prefix']) {
-			$isCircuitPrefix = true;
-			$dCircuits[] = '<small>'. htmlspecialchars($circuit['prefix']) .'</small> ' . escapeUtf8($circuit['name']);
-		}
-		else
-			$dCircuits[] = escapeUtf8($circuit['name']);
-	}
-	if ($isCircuitPrefix)
-		echo 'var dCircuits = '. json_encode($dCircuits) .';';
-}
+if (!empty($dCircuits))
+	echo 'var dCircuits = '. json_encode($dCircuits) .';';
 if (!empty($cupPayloads))
 	echo 'var cupPayloads = '. json_encode($cupPayloads) .';';
 ?>

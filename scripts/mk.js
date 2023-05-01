@@ -24197,7 +24197,7 @@ function selectMapScreen(opts) {
 					fMap++;
 				else
 					fMap -= 3;
-				document.getElementById("oMapName").innerHTML = lCircuits[fMap-1];
+				document.getElementById("oMapName").innerHTML = dCircuits[fMap-1];
 				document.getElementById("maps").alt = fMap;
 				document.getElementById("maps").src = getMapSelectorSrc(fMap-1);
 				setTimeout(function() {
@@ -26853,18 +26853,17 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	updateMenuMusic(1);
 }
 function stripSpecialChars(s) {
-	return s.replace(/&[#\w]+;/g, "_");
+	return s.replace(/&[#\w]+;/g, "_").replace(/<\w+>(.+?)<\/\w+>/g, '$1');
 }
 function mapNameOf(mScreenScale, mID) {
-	var sMapName = lCircuits[mID];
 	var oMapName = document.createElement("div");
-	var mapFS = isCup ? Math.min(Math.max(9/Math.sqrt(stripSpecialChars(sMapName).length), 1.4), 4) : 2.1;
+	var mapFS = isCup ? Math.min(Math.max(9/Math.sqrt(stripSpecialChars(lCircuits[mID]).length), 1.4), 4) : 2.1;
 	oMapName.style.fontSize = Math.round(mScreenScale*mapFS) +"px";
-	oMapName.style.width = (26*mScreenScale) +"px";
-	oMapName.style.bottom = -Math.round(mScreenScale/2) + "px";
 	oMapName.className = "mapname";
 	oMapName.style.textAlign = "center";
-	oMapName.innerHTML = sMapName;
+	oMapName.innerHTML = dCircuits[mID];
+	var oMapPrefix = oMapName.querySelector("small");
+	if (oMapPrefix) oMapPrefix.style.fontSize = (iScreenScale*2)+"px";
 	return oMapName;
 }
 function addOption(pID, pValue, vID, vName, vValue, vDefaut) {

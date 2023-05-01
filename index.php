@@ -631,7 +631,11 @@ $slidesPath = 'images/slides';
 				<table>
 					<?php
 					function getNom($circuit) {
-						return ($circuit['nom'] ? controlLengthUtf8($circuit['nom'],25):(_('Untitled')));
+						$maxL = 25;
+						$res = ($circuit['nom'] ? controlLengthUtf8($circuit['nom'],$maxL):(_('Untitled')));
+						if (isset($circuit['prefix']) && (uc_strlen($circuit['nom'])+mb_strlen($circuit['prefix']) <= $maxL))
+							$res = '<small>'. $circuit['prefix'] .' </small>' . $res;
+						return $res;
 					}
 					function getAuteur($circuit) {
 						if ($circuit['auteur']) {

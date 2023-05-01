@@ -264,7 +264,7 @@ function addCircuitsData(&$creationsList) {
 	$circuitTypesStr = implode(',',$circuitTypes);
 	if ($circuitTypesStr) {
 		$nameCol = $language ? 'name_en' : 'name_fr';
-		$getTrackSettings = mysql_query('SELECT type,circuit,'.$nameCol.' AS name,thumbnail FROM `mktracksettings` WHERE (type,circuit) IN ('.$circuitTypesStr.')');
+		$getTrackSettings = mysql_query('SELECT type,circuit,'.$nameCol.' AS name,thumbnail,prefix FROM `mktracksettings` WHERE (type,circuit) IN ('.$circuitTypesStr.')');
 		while ($trackSettings = mysql_fetch_array($getTrackSettings)) {
 			$cTable = $trackSettings['type'];
 			$cId = $trackSettings['circuit'];
@@ -272,6 +272,8 @@ function addCircuitsData(&$creationsList) {
 				$circuitByType[$cTable][$cId]['nom'] = $trackSettings['name'];
 			if ($trackSettings['thumbnail'])
 				$circuitByType[$cTable][$cId]['thumbnail'] = $trackSettings['thumbnail'];
+			if ($trackSettings['prefix'])
+				$circuitByType[$cTable][$cId]['prefix'] = $trackSettings['prefix'];
 		}
 	}
 	foreach ($creationsList['tracks'] as &$track)
@@ -443,6 +445,7 @@ function circuitPayload(&$circuit) {
 		'"category":'.$circuit['category'].','.
 		'"name":"'.escape($circuit['nom']).'",'.
 		'"author":"'.escape($circuit['auteur']).'",'.
+		(isset($circuit['prefix']) ? '"prefix":"'.$circuit['prefix'].'",':'').
 		'"note":'.$circuit['note'].','.
 		'"nbnotes":'.$circuit['nbnotes'].','.
 		'"nbcomments":'.$circuit['nbcomments'].','.

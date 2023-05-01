@@ -239,6 +239,11 @@ a.defiler:hover {
 	font-size: 0.7em;
 	opacity: 0.6;
 }
+.circuit-name small {
+	font-size: 0.6em;
+	position: relative;
+	bottom: 0.15em;
+}
 .circuit-author img {
 	height: 0.8em;
 	position: relative;
@@ -597,6 +602,7 @@ function addRace() {
 	var circuit = lCircuits[idsRace];
 	var id = circuit.id, auteur = circuit.author, note = circuit.note, nbnotes = circuit.nbnotes, nbcomments = circuit.nbcomments, type = circuit.category;
 	var lNom = circuit.name ? circuit.name:"<?php echo ($language?'Untitled':'Sans titre'); ?>";
+	var lPrefix = circuit.prefix;
 	var oLink = document.createElement("a");
 	oLink.href = circuit.href;
 	oLink.className = (circuit.cicon.indexOf(",")!=-1) ? "cup-poster":"circuit-poster";
@@ -616,7 +622,10 @@ function addRace() {
 			var oCircuitTitle = document.createElement("div");
 			oCircuitTitle.className = "circuit-title";
 			var nLimit = 30;
-			if (lNom.length < nLimit)
+			if (lPrefix && (lNom.length+lPrefix.length < nLimit)) {
+				oCircuitTitle.innerHTML = '<small>'+HTMLentities(lPrefix)+'</small> ' + HTMLentities(lNom);
+			}
+			else if (lNom.length < nLimit)
 				oCircuitTitle.innerHTML = HTMLentities(lNom);
 			else {
 				oCircuitTitle.innerHTML = HTMLentities(lNom.substring(0,nLimit-3)+"...");
