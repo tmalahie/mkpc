@@ -5,6 +5,9 @@ include('tokens.php');
 require_once('utils-circuits.php');
 include('creations-params.php');
 assign_token();
+include('initdb.php');
+require_once('getRights.php');
+$isModerator = hasRight('moderator');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -73,12 +76,11 @@ include('heads.php');
 main {
 	position: relative;
 }
-.retour {
+.pretty-link {
 	color: #F90;
-	font-weight: bold;
 }
-.retour:hover {
-	background-color: #FF9;
+.pretty-link:hover {
+	color: #FB0;
 }
 main select {
 	background-color: #FC0;
@@ -305,6 +307,26 @@ a.defiler:hover {
 	display: inline-block;
 	padding-top: 1px;
 }
+<?php
+if ($isModerator) {
+	?>
+.moderation-actions-status {
+	font-size: 0.8em;
+	color: white;
+	padding: 0.2em 0.5em;
+	border-radius: 0.5em;
+	position: relative;
+	top: -0.05em;
+}
+.moderation-actions-status-disabled {
+	background-color: #EA8;
+}
+.moderation-actions-status-enabled {
+	background-color: #9D7;
+}
+	<?php
+}
+?>
 </style>
 <link rel="stylesheet" type="text/css" href="styles/creations.css" />
 
@@ -313,16 +335,15 @@ include('o_online.php');
 ?>
 <script type="text/javascript">
 <?php
-include('initdb.php');
-require_once('getRights.php');
 $managing = false;
-if (isset($_GET['admin']) && hasRight('moderator'))
+if (isset($_GET['admin']) && $isModerator)
 	$managing = true;
 $tri = isset($_GET['tri']) ? intval($_GET['tri']):0;
 $type = isset($_GET['type']) ? $_GET['type']:'';
 $nom = isset($_GET['nom']) ? stripslashes($_GET['nom']):'';
 $auteur = isset($_GET['auteur']) ? stripslashes($_GET['auteur']):'';
 $url = isset($_GET['url']) ? stripslashes($_GET['url']):'';
+$noThumbnail = !empty($_GET['nothumbnail']);
 $pids = null;
 if (isset($_GET['user'])) {
 	$user = $_GET['user'];
@@ -372,6 +393,8 @@ if ($singleType) {
 		$aParams['type'] = $pType;
 	}
 }
+if ($noThumbnail)
+	$aParams['no_thumbnail'] = 1;
 $nbByType = countTracksByType($aCircuits,$aParams);
 $creationsList = listCreations(1,$nbByType,$weightsByType,$aCircuits,$aParams);
 $nbCreations = array_sum($nbByType);
@@ -458,6 +481,72 @@ include('menu.php');
 			</div>
 			<?php
 		}
+		if ($isModerator) {
+			?>
+			<div class="moderation-actions">
+				<strong>
+					<?php echo $language ? 'Moderation actions':'Actions de modération'; ?>
+				</strong>
+				<?php
+				if ($managing) {
+					echo '<span class="moderation-actions-status moderation-actions-status-enabled">';
+					echo $language ? 'Enabled' : 'Activé';
+					echo '</span>';
+					?>
+					<a class="pretty-link" href="creations.php?<?php
+						$get = $_GET;
+						unset($get['admin']);
+						echo http_build_query($get);
+					?>">[<?php echo $language ? 'Disable':'Désactiver'; ?>]</a>
+					<?php
+				}
+				else {
+					echo '<span class="moderation-actions-status moderation-actions-status-disabled">';
+					echo $language ? 'Disabled' : 'Désactivé';
+					echo '</span>';
+					?>
+					<a class="pretty-link" href="creations.php?<?php
+						$get = $_GET;
+						$get['admin'] = 1;
+						echo http_build_query($get);
+					?>">[<?php echo $language ? 'Enable':'Activer'; ?>]</a>
+					<?php
+				}
+				?>
+			</div>
+			<div class="moderation-actions">
+				<strong>
+					<?php echo $language ? 'Custom thumbnails':'Miniatures custom'; ?>
+				</strong>
+				<?php
+				if ($noThumbnail) {
+					echo '<span class="moderation-actions-status moderation-actions-status-disabled">';
+					echo $language ? 'Disabled' : 'Désactivé';
+					echo '</span>';
+					?>
+					<a class="pretty-link" href="creations.php?<?php
+						$get = $_GET;
+						unset($get['nothumbnail']);
+						echo http_build_query($get);
+					?>">[<?php echo $language ? 'Enable':'Activer'; ?>]</a>
+					<?php
+				}
+				else {
+					echo '<span class="moderation-actions-status moderation-actions-status-enabled">';
+					echo $language ? 'Enabled' : 'Activé';
+					echo '</span>';
+					?>
+					<a class="pretty-link" href="creations.php?<?php
+						$get = $_GET;
+						$get['nothumbnail'] = 1;
+						echo http_build_query($get);
+					?>">[<?php echo $language ? 'Disable':'Désactiver'; ?>]</a>
+					<?php
+				}
+				?>
+			</div>
+			<?php
+		}
 		?>
 	</form>
 	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -480,8 +569,8 @@ include('menu.php');
 	</p>
 
 	<p>
-		<a class="retour" href="javascript:scrollTo(0,0)"><?php echo $language ? 'Back to top':'Retour haut de page'; ?></a> - 
-		<a class="retour" href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
+		<a class="pretty-link" href="javascript:scrollTo(0,0)"><?php echo $language ? 'Back to top':'Retour haut de page'; ?></a> - 
+		<a class="pretty-link" href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
 	</p>
 </main>
 <?php

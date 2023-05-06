@@ -190,7 +190,7 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 		if (isset($params['reverse']))
 			$creationsList['tracks'] = array_reverse($creationsList['tracks']);
 	}
-	addCircuitsData($creationsList);
+	addCircuitsData($creationsList, $params);
 	return $creationsList['tracks'];
 }
 function countRows($sql,&$params) {
@@ -202,7 +202,7 @@ function countRows($sql,&$params) {
 function escape($str) {
 	return str_replace('</script>', '<\/script>', str_replace('%u', '\\u', str_replace('"', '\\"', str_replace('\\', '\\\\', $str))));
 }
-function addCircuitsData(&$creationsList) {
+function addCircuitsData(&$creationsList, &$params) {
 	global $language;
 	$lCups = array();
 	foreach ($creationsList['cups'] as $cup) {
@@ -270,7 +270,7 @@ function addCircuitsData(&$creationsList) {
 			$cId = $trackSettings['circuit'];
 			if ($trackSettings['name'])
 				$circuitByType[$cTable][$cId]['nom'] = $trackSettings['name'];
-			if ($trackSettings['thumbnail'])
+			if ($trackSettings['thumbnail'] && !isset($params['no_thumbnail']))
 				$circuitByType[$cTable][$cId]['thumbnail'] = $trackSettings['thumbnail'];
 			if ($trackSettings['prefix'])
 				$circuitByType[$cTable][$cId]['prefix'] = $trackSettings['prefix'];
