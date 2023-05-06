@@ -1,5 +1,6 @@
 <?php
 require_once('circuitPrefix.php');
+require_once('circuitEscape.php');
 function printCupCircuit(&$circuit, $options=array()) {
     global $language;
     $circuitnb = isset($options['nb']) ? $options['nb'] : '';
@@ -16,7 +17,7 @@ function printCupCircuit(&$circuit, $options=array()) {
         else
             echo ' data-cicon="'.$circuit['cicon'].'"';
         ?> onclick="previewImg(event,<?php echo htmlspecialchars(json_encode($circuit['srcs'])); ?>)"></td>
-        <td class="td-name"><em><?php echo $circuitnb; ?></em><?php echo ($circuit['nom'] ? escapeUtf8($circuit['nom']):($language ? 'Untitled':'Sans titre')); ?></td>
+        <td class="td-name"><em><?php echo $circuitnb; ?></em><?php echo ($circuit['nom'] ? htmlEscapeCircuitNames($circuit['nom']):($language ? 'Untitled':'Sans titre')); ?></td>
         <td class="td-access">&rarr; <a href="<?php echo $circuit['href']; ?>" target="_blank" onclick="event.stopPropagation()"><?php echo $language ? 'Access':'Accéder'; ?></a></td>
     </tr>
     <?php
@@ -375,9 +376,9 @@ function getTrackPayloads($options) {
         for ($i=0;$i<$NBCIRCUITS;$i++) {
             $circuit = $circuitsData[$i];
             if ($circuit['prefix'])
-                $dCircuits[] = '<small>'. htmlspecialchars($circuit['prefix']) .'</small> ' . escapeUtf8($circuit['name']);
+                $dCircuits[] = '<small>'. htmlspecialchars($circuit['prefix']) .'</small> ' . htmlEscapeCircuitNames($circuit['name']);
             else
-                $dCircuits[] = escapeUtf8($circuit['name']);
+                $dCircuits[] = htmlEscapeCircuitNames($circuit['name']);
         }
     }
     if (!$isOnline)

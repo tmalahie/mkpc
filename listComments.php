@@ -75,7 +75,7 @@ include('menu.php');
 					<div class="circuit-comment-msg"><?php echo nl2br(htmlspecialchars($comment['message'])); ?></div>
 					<div class="circuit-comment-infos"><img src="images/comments.png" alt="comments"> <?php
 					if ($getCircuit['name']) {
-						echo ($language ? 'In':'Dans'); ?> <strong><?php echo escapeCircuitNames(htmlspecialchars($getCircuit['name'])) ?></strong><?php
+						echo ($language ? 'In':'Dans'); ?> <strong><?php echo htmlEscapeCircuitNames($getCircuit['name']) ?></strong><?php
 					}
 					?> <?php echo pretty_dates($comment['date'],array('lower'=>true)); ?></div>
 				</a>

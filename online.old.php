@@ -170,9 +170,6 @@ if (isset($_SESSION['mklink'])) {
 	unset($_SESSION['mklink']);
 }
 require_once('circuitEscape.php');
-function escapeUtf8($str) {
-	return htmlspecialchars(escapeCircuitNames($str));
-}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -180,7 +177,7 @@ function escapeUtf8($str) {
 	   <title><?php
 	   	if ($isCup) {
 	   		if ($getCup['nom'])
-	   			echo escapeUtf8($getCup['nom']) . ' - ';
+	   			echo htmlEscapeCircuitNames($getCup['nom']) . ' - ';
 	   		echo $language ? 'Online '.($isBattle?'battle':'race'):($isBattle?'Bataille':'Course') .' en ligne';
 	   	}
 	   	elseif ($isBattle)
@@ -231,7 +228,7 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 	if ($i)
 		echo ',';
 	$circuit = $circuitsData[$i];
-	echo '"'. ($circuit['nom'] ? addSlashes(escapeUtf8($circuit['nom'])) : "&nbsp;") .'"';
+	echo '"'. ($circuit['nom'] ? addSlashes(htmlEscapeCircuitNames($circuit['nom'])) : "&nbsp;") .'"';
 }
 ?>];
 var cupIDs = <?php echo json_encode($cupIDs) ?>;

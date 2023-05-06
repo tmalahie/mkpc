@@ -2,6 +2,7 @@
 include('initdb.php');
 include('language.php');
 require_once('utils-challenges.php');
+require_once('utils-cups.php');
 include('creation-challenges.php');
 $cAuteur = null;
 $cupIDs = Array();
@@ -21,15 +22,11 @@ getTrackPayloads(array(
 	'mode' => 1
 ));
 $sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'i'));
-require_once('circuitEscape.php');
-function escapeUtf8($str) {
-	return htmlentities(escapeCircuitNames($str));
-}
 ?>
 <!DOCTYPE HTML SYSTEM>
 <html>
 	<head>
-		<title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
+		<title><?php if ($cName){echo htmlEscapeCircuitNames($cName);echo ' - ';} ?>Mario Kart PC</title>
 <?php
 include('metas.php');
 
@@ -53,7 +50,7 @@ foreach ($circuitsData as $i=>$circuit) {
 	if ($i)
 		echo ',';
 	$circuit = $circuitsData[$i];
-	echo '"'. ($circuit['name'] ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
+	echo '"'. ($circuit['name'] ? addSlashes(htmlEscapeCircuitNames($circuit['name'])) : "&nbsp;") .'"';
 }
 ?>];
 <?php

@@ -500,7 +500,7 @@
 		function decodeAndEscapeCircuitNames($str) {
 			global $language;
 			if ($str)
-				return htmlspecialchars(escapeCircuitNames($str));
+				return htmlEscapeCircuitNames($str);
 			return $language ? 'Untitled':'Sans titre';
 		}
 		for ($i=0;$i<$nbNotifs;$i++) {

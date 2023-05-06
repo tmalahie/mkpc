@@ -646,7 +646,6 @@ function listChallenges($clRace, &$params=array()) {
 	}
 	return $res;
 }
-require_once('circuitEscape.php');
 function getChallengeDetails($challenge, &$params=array()) {
 	$challengeData = json_decode($challenge['data']);
 	$res = array(
@@ -663,8 +662,8 @@ function getChallengeDetails($challenge, &$params=array()) {
 	if (!empty($params['circuit'])) {
 		$res['circuit'] = getCircuitPayload($challenge);
 		if (empty($params['utf8']) && empty($params['circuit.raw']) && !empty($res['circuit'])) {
-			$res['circuit']['name'] = htmlspecialchars(escapeCircuitNames($res['circuit']['name']));
-			$res['circuit']['author'] = htmlspecialchars(escapeCircuitNames($res['circuit']['author']));
+			$res['circuit']['name'] = htmlEscapeCircuitNames($res['circuit']['name']);
+			$res['circuit']['author'] = htmlEscapeCircuitNames($res['circuit']['author']);
 		}
 	}
 	if (!empty($params['winners'])) {

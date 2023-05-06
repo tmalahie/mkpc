@@ -5,3 +5,6 @@ function escapeCircuitNames($str) {
 		return json_decode('"'.str_replace('%', '\\', $matches[0]).'"');
 	}, $str);
 }
+function htmlEscapeCircuitNames($str) {
+	return htmlspecialchars(escapeCircuitNames($str));
+}

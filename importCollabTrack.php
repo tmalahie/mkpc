@@ -13,9 +13,6 @@ if (isset($_POST['id']) && isset($_POST['type']) && isset($_POST['collab'])) {
         ))) && (!isset($_POST['mode']) || $circuit['mode'] == $_POST['mode'])) {
             require_once('utils-circuits.php');
             require_once('circuitEscape.php');
-            function escapeUtf8($str) {
-                return htmlentities(escapeCircuitNames($str));
-            }
             $lCups = null;
             $mCups = null;
             switch ($_POST['type']) {

@@ -158,9 +158,6 @@ if (isset($profileId)) {
 			return $res;
 		}
 		require_once('circuitEscape.php');
-		function escapeUtf8($str) {
-			return htmlspecialchars(escapeCircuitNames($str));
-		}
 		if (isset($_GET['followed'])) {
 			if ($_GET['followed'])
 				$success = $language ? 'You are now following '. $getInfos['nom'] .'! You will receive a notification each time they post a topic, news, a circuit or a character.':'Vous suivez maintenant '. $getInfos['nom'] .' ! Vous recevrez une notification chaque fois qu\'il poste un topic, une news, un circuit ou un perso.';
@@ -675,7 +672,7 @@ include('menu.php');
 							echo '<a href="'. $circuit['href'] .'">';
 							if ($circuit['nom']) {
 								echo '<div class="circuit-name">';
-								echo escapeUtf8(controlLengthUtf8($circuit['nom'],30));
+								echo htmlEscapeCircuitNames(controlLengthUtf8($circuit['nom'],30));
 								echo '</div>';
 							}
 							$note = $circuit['note'];
@@ -839,7 +836,7 @@ include('menu.php');
 							<div class="circuit-comment-msg"><?php echo str_replace('  ',' &nbsp;',nl2br(htmlspecialchars($comment['message']))); ?></div>
 							<div class="circuit-comment-infos"><img src="images/comments.png" alt="comments"> <?php
 							if ($getCircuit['name']) {
-								echo ($language ? 'In':'Dans'); ?> <strong><?php echo escapeUtf8($getCircuit['name']); ?></strong><?php
+								echo ($language ? 'In':'Dans'); ?> <strong><?php echo htmlEscapeCircuitNames($getCircuit['name']); ?></strong><?php
 							}
 							?> <?php echo pretty_dates($comment['date'], array('lower'=>true)); ?></div>
 						</a>

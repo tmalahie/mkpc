@@ -70,7 +70,7 @@ if ($isCustom) {
 	$complete = ($circuitsData[0]['mode'] % 2);
 	$simplified = 1 - $complete;
 }
-if (!$isCustom) {
+else {
 	include_once('circuitNames.php');
 	$NBCIRCUITS = $nbVSCircuits;
 	$complete = false;
@@ -94,10 +94,6 @@ if (isset($_SESSION['mklink'])) {
 		$linkAccepted = true;
 	unset($_SESSION['mklink']);
 }
-require_once('circuitEscape.php');
-function escapeUtf8($str) {
-	return htmlspecialchars(escapeCircuitNames($str));
-}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -105,7 +101,7 @@ function escapeUtf8($str) {
 	   <title><?php
 	   	if ($isCustom) {
 	   		if ($cName)
-	   			echo escapeUtf8($cName) . ' - ';
+	   			echo htmlEscapeCircuitNames($cName) . ' - ';
 	   		echo $language ? 'Online '.($isBattle?'battle':'race'):($isBattle?'Bataille':'Course') .' en ligne';
 	   	}
 	   	elseif ($isBattle)
@@ -143,7 +139,7 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 	if ($i)
 		echo ',';
 	$circuit = $circuitsData[$i];
-	echo '"'. ($circuit['name'] ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
+	echo '"'. ($circuit['name'] ? addSlashes(htmlEscapeCircuitNames($circuit['name'])) : "&nbsp;") .'"';
 }
 ?>];
 <?php

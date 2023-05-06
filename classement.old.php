@@ -235,9 +235,6 @@ function Resultat() {
 }
 var circuits = <?php
 require_once('circuitEscape.php');
-function escapeUtf8($str) {
-	return addslashes(htmlspecialchars(escapeCircuitNames($str)));
-}
 if ($creation) {
 	echo '[';
 	$v = '';
@@ -250,7 +247,7 @@ if ($creation) {
 		while (in_array($getCircuit['nom'], $cNames))
 			$getCircuit['nom'] .= ' [2]';
 		$cNames[] = $getCircuit['nom'];
-		echo '"'.escapeUtf8($getCircuit['nom']).'"';
+		echo '"'.addslashes(htmlEscapeCircuitNames($getCircuit['nom'])).'"';
 		$cIDs[] = $getCircuit['id'];
 	}
 	echo ']';

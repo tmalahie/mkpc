@@ -9,7 +9,6 @@ include('language.php');
 require_once('utils-challenges.php');
 require_once('utils-cups.php');
 include('creation-challenges.php');
-require_once('circuitPrefix.php');
 $cName = null;
 $cName0 = null;
 $cPrefix = null;
@@ -25,15 +24,11 @@ getTrackPayloads(array(
 ));
 $sid = ($isMCup ? 'mid' : ($isCup ? 'cid':'id'));
 $getInfos = Array();
-require_once('circuitEscape.php');
-function escapeUtf8($str) {
-	return htmlentities(escapeCircuitNames($str));
-}
 ?>
 <!DOCTYPE HTML SYSTEM>
 <html>
 	<head>
-		<title><?php if ($cName){echo escapeUtf8($cName);echo ' - ';} ?>Mario Kart PC</title>
+		<title><?php if ($cName){echo htmlEscapeCircuitNames($cName);echo ' - ';} ?>Mario Kart PC</title>
 <?php
 include('metas.php');
 
@@ -55,7 +50,7 @@ for ($i=0;$i<$NBCIRCUITS;$i++) {
 	if ($i)
 		echo ',';
 	$circuit = $circuitsData[$i];
-	echo '"'. ($circuit['name'] ? addSlashes(escapeUtf8($circuit['name'])) : "&nbsp;") .'"';
+	echo '"'. ($circuit['name'] ? addSlashes(htmlEscapeCircuitNames($circuit['name'])) : "&nbsp;") .'"';
 }
 ?>];
 <?php
@@ -70,7 +65,7 @@ if (!empty($cupNames)) {
 	echo 'var cupNames = [';
 	foreach ($cupNames as $i=>$cupName) {
 		if ($i) echo ',';
-		echo '"'.addSlashes(escapeUtf8($cupName)).'"';
+		echo '"'.addSlashes(htmlEscapeCircuitNames($cupName)).'"';
 	}
 	echo '];';
 }

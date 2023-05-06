@@ -359,15 +359,9 @@ $slidesPath = 'images/slides';
 			return $str;
 		}
 		function controlLengthUtf8($str,$len) {
-			return escapeUtf8(decodeUtf8(controlLength($str,$len)));
-		}
-		function decodeUtf8($str) {
-			return $str;
+			return htmlEscapeCircuitNames(controlLength($str,$len));
 		}
 		require_once('circuitEscape.php');
-		function escapeUtf8($str) {
-			return htmlspecialchars(escapeCircuitNames($str));
-		}
 		function display_sidebar($title,$link=null) {
 			?>
 			<table class="sidebar_container">

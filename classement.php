@@ -359,7 +359,7 @@ if ($creation) {
 	while ($getCircuit = mysql_fetch_array($getCircuits)) {
 		if (!$getCircuit['name'])
 			$getCircuit['name'] = $language ? 'Untitled':'Sans titre';
-		$circuitGroups[$getCircuit['gid']][] = escapeUtf8($getCircuit['name']);
+		$circuitGroups[$getCircuit['gid']][] = htmlEscapeCircuitNames($getCircuit['name']);
 		$cIDs[] = $getCircuit['id'];
 		$groupsById[$getCircuit['gid']] = addslashes($getCircuit['gname']);
 	}
@@ -443,17 +443,8 @@ var autoSelectMap<?php
 ?>;
 var circuitGroups = <?php
 require_once('circuitEscape.php');
-function escapeUtf8($str) {
-	return addslashes(htmlspecialchars(escapeCircuitNames($str)));
-}
-function dict_to_array(&$chunks) {
-	$res = array();
-	foreach ($chunks as $chunck)
-		$res[] = $chunck;
-	return $res;
-}
 if ($creation)
-	echo json_encode(dict_to_array($circuitGroups));
+	echo json_encode(array_values($circuitGroups));
 else {
 	include_once('circuitNames.php');
 	echo json_encode(array(
@@ -466,7 +457,7 @@ else {
 var circuits = [];
 var groups = <?php
 if ($creation)
-	echo json_encode(dict_to_array($groupsById));
+	echo json_encode(array_values($groupsById));
 else
 	echo '["SNES","GBA","DS"]';
 ?>;

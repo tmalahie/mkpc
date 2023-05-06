@@ -19,7 +19,7 @@
 	?> title="<?php echo $language ? 'Preview':'Aperçu'; ?>" onclick="apercu(<?php echo htmlspecialchars(json_encode($circuit['srcs'])); ?>)">
 	</td>
 	<td class="creation_description">
-		<a href="<?php echo $circuit['href']; ?>" title="<?php echo escapeUtf8(decodeUtf8($circuit['nom'])); ?>">
+		<a href="<?php echo $circuit['href']; ?>" title="<?php echo htmlEscapeCircuitNames($circuit['nom']); ?>">
 			<h2><?php echo getNom($circuit); ?></h2>
 			<table title="<?php echo $noteTitle; ?>">
 				<tr>

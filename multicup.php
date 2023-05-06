@@ -41,9 +41,6 @@ else {
 		$mids[$i] = $_GET['mid'.$i];
 }
 require_once('circuitEscape.php');
-function escapeUtf8($str) {
-	return htmlentities(escapeCircuitNames($str));
-}
 ?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>" >
 <head>

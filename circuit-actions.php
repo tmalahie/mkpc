@@ -283,7 +283,7 @@ function includeShareLib() {
     if (isset($nid))
         echo 'var commentCircuit = '.$nid.', commentType = "'. $creationType.'", circuitPrefix = "'. ($cPrefix ? addSlashes(htmlspecialchars($cPrefix)) : '') .'";';
     ?>
-	circuitName = "<?php echo addSlashes(escapeUtf8($cName)) ?>", circuitAuthor = "<?php echo addSlashes(escapeUtf8($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
+	circuitName = "<?php echo addSlashes(htmlEscapeCircuitNames($cName)) ?>", circuitAuthor = "<?php echo addSlashes(htmlEscapeCircuitNames($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$creationType); ?>;
     <?php
@@ -359,7 +359,7 @@ function printCircuitShareUI() {
         ?>
         <form id="cSave" method="post" action="" onclick="handleShareBackdropClick(event)" onsubmit="saveRace();return false">
         <table id="cTable"<?php if ($cNameTr) echo ' class="cShowTr"'; ?>>
-        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="auteur" id="cPseudo" value="<?php echo escapeUtf8($cPseudo) ?>" placeholder="Yoshi64" /></td></tr>
+        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="auteur" id="cPseudo" value="<?php echo htmlEscapeCircuitNames($cPseudo) ?>" placeholder="Yoshi64" /></td></tr>
         <?php
         if ($language)
             $ofTrack = ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit'));
@@ -367,7 +367,7 @@ function printCircuitShareUI() {
             $ofTrack = ($isCup ? ($isMCup?'de la multicoupe':'de la coupe'):($isBattle ? "de l'arène":"du circuit"));
         $oftrack = strtolower($ofTrack);
         ?>
-        <tr><td class="cLabel"><label for="cName"><?php echo $language ? "$ofTrack name":"Nom $ofTrack"; ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="nom" id="cName" value="<?php echo escapeUtf8($cName0) ?>" placeholder="<?php echo $language ? 'Mario Circuit' : 'Circuit Mario'; ?>" /></td></tr>
+        <tr><td class="cLabel"><label for="cName"><?php echo $language ? "$ofTrack name":"Nom $ofTrack"; ?><?php echo $language ? ':':' :'; ?></label></td><td><input type="text" name="nom" id="cName" value="<?php echo htmlEscapeCircuitNames($cName0) ?>" placeholder="<?php echo $language ? 'Mario Circuit' : 'Circuit Mario'; ?>" /></td></tr>
         <tr class="cAdvanced"><td colspan="2" class="cToggle"><label><input type="checkbox" name="name_tr" onclick="toggleNameTr(this.checked)"<?php if ($cNameTr) echo ' checked="checked"'; ?> /> <?php echo $language ? "Translate $oftrack name" : "Traduire le nom $ofTrack"; ?></label></td></tr>
         <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>"><?php echo $language ? "$ofTrack name [EN]:":"Nom $ofTrack [FR] :"; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_en' : 'name_fr'; ?>" id="<?php echo $language ? 'cNameEn' : 'cNameFr'; ?>" value="<?php echo htmlspecialchars($language ? $cNameEn : $cNameFr); ?>" placeholder="<?php echo $language ? 'Mario Circuit' : 'Circuit Mario'; ?>" /></td></tr>
         <tr class="cAdvanced cTogglable-cNameTr"><td class="cLabel"><label for="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>"><?php echo $language ? "$ofTrack name [FR]:":"Nom $ofTrack [EN] :"; ?></label></td><td><input type="text" name="<?php echo $language ? 'name_fr' : 'name_en'; ?>" id="<?php echo $language ? 'cNameFr' : 'cNameEn'; ?>" value="<?php echo htmlspecialchars($language ? $cNameFr : $cNameEn); ?>" placeholder="<?php echo $language ? 'Circuit Mario' : 'Mario Circuit'; ?>" /></td></tr>
