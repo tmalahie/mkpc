@@ -307,10 +307,7 @@ a.defiler:hover {
 	display: inline-block;
 	padding-top: 1px;
 }
-<?php
-if ($isModerator) {
-	?>
-.moderation-actions-status {
+.form-toggle-status {
 	font-size: 0.8em;
 	color: white;
 	padding: 0.2em 0.5em;
@@ -318,15 +315,12 @@ if ($isModerator) {
 	position: relative;
 	top: -0.05em;
 }
-.moderation-actions-status-disabled {
+.form-toggle-status-disabled {
 	background-color: #EA8;
 }
-.moderation-actions-status-enabled {
+.form-toggle-status-enabled {
 	background-color: #9D7;
 }
-	<?php
-}
-?>
 </style>
 <link rel="stylesheet" type="text/css" href="styles/creations.css" />
 
@@ -483,13 +477,13 @@ include('menu.php');
 		}
 		if ($isModerator) {
 			?>
-			<div class="moderation-actions">
+			<div class="form-toggle">
 				<strong>
 					<?php echo $language ? 'Moderation actions':'Actions de modération'; ?>
 				</strong>
 				<?php
 				if ($managing) {
-					echo '<span class="moderation-actions-status moderation-actions-status-enabled">';
+					echo '<span class="form-toggle-status form-toggle-status-enabled">';
 					echo $language ? 'Enabled' : 'Activé';
 					echo '</span>';
 					?>
@@ -501,7 +495,7 @@ include('menu.php');
 					<?php
 				}
 				else {
-					echo '<span class="moderation-actions-status moderation-actions-status-disabled">';
+					echo '<span class="form-toggle-status form-toggle-status-disabled">';
 					echo $language ? 'Disabled' : 'Désactivé';
 					echo '</span>';
 					?>
@@ -514,40 +508,40 @@ include('menu.php');
 				}
 				?>
 			</div>
-			<div class="moderation-actions">
-				<strong>
-					<?php echo $language ? 'Custom thumbnails':'Miniatures custom'; ?>
-				</strong>
-				<?php
-				if ($noThumbnail) {
-					echo '<span class="moderation-actions-status moderation-actions-status-disabled">';
-					echo $language ? 'Disabled' : 'Désactivé';
-					echo '</span>';
-					?>
-					<a class="pretty-link" href="creations.php?<?php
-						$get = $_GET;
-						unset($get['nothumbnail']);
-						echo http_build_query($get);
-					?>">[<?php echo $language ? 'Enable':'Activer'; ?>]</a>
-					<?php
-				}
-				else {
-					echo '<span class="moderation-actions-status moderation-actions-status-enabled">';
-					echo $language ? 'Enabled' : 'Activé';
-					echo '</span>';
-					?>
-					<a class="pretty-link" href="creations.php?<?php
-						$get = $_GET;
-						$get['nothumbnail'] = 1;
-						echo http_build_query($get);
-					?>">[<?php echo $language ? 'Disable':'Désactiver'; ?>]</a>
-					<?php
-				}
-				?>
-			</div>
 			<?php
 		}
 		?>
+		<div class="form-toggle">
+			<strong>
+				<?php echo $language ? 'Custom thumbnails':'Miniatures custom'; ?>
+			</strong>
+			<?php
+			if ($noThumbnail) {
+				echo '<span class="form-toggle-status form-toggle-status-disabled">';
+				echo $language ? 'Disabled' : 'Désactivé';
+				echo '</span>';
+				?>
+				<a class="pretty-link" href="creations.php?<?php
+					$get = $_GET;
+					unset($get['nothumbnail']);
+					echo http_build_query($get);
+				?>">[<?php echo $language ? 'Enable':'Activer'; ?>]</a>
+				<?php
+			}
+			else {
+				echo '<span class="form-toggle-status form-toggle-status-enabled">';
+				echo $language ? 'Enabled' : 'Activé';
+				echo '</span>';
+				?>
+				<a class="pretty-link" href="creations.php?<?php
+					$get = $_GET;
+					$get['nothumbnail'] = 1;
+					echo http_build_query($get);
+				?>">[<?php echo $language ? 'Disable':'Désactiver'; ?>]</a>
+				<?php
+			}
+			?>
+		</div>
 	</form>
 	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 	<!-- Forum MKPC -->
