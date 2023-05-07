@@ -15,6 +15,9 @@ en_GB.UTF-8 UTF-8\n\
 es_ES.UTF-8 UTF-8\n'
 RUN locale-gen
 
+RUN a2enmod rewrite
+COPY apache/default.conf /etc/apache2/sites-available/000-default.conf
+
 RUN docker-php-ext-configure exif && docker-php-ext-install -j$(nproc) exif && docker-php-ext-enable exif
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && docker-php-ext-install -j$(nproc) gd
 RUN docker-php-ext-install -j$(nproc) gettext intl
