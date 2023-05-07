@@ -26,9 +26,9 @@ function get_sprite_srcs($hash) {
 		'map' => PERSOS_DIR.$hash.'-map.png',
 		'podium' => PERSOS_DIR.$hash.'-podium.png'
 	);
-	if (!file_exists($res['map']))
+	if (!file_exists('../../'.$res['map']))
 		$res['map'] = $res['ld'];
-	if (!file_exists($res['podium']))
+	if (!file_exists('../../'.$res['podium']))
 		$res['podium'] = $res['ld'];
 	return $res;
 }
@@ -38,18 +38,18 @@ function get_perso_music($perso) {
 	return 'mario';
 }
 function create_sprite_thumbs($spriteSrcs) {
-	list($w,$h) = getimagesize($spriteSrcs['hd']);
+	list($w,$h) = getimagesize('../../'.$spriteSrcs['hd']);
 	$w = round($w/24);
-	resize_sprites($spriteSrcs['hd'],$spriteSrcs['ld'], $w,$h);
-	filter_img($spriteSrcs['hd'],$spriteSrcs['star'], 255,255,0,30);
+	resize_sprites('../../'.$spriteSrcs['hd'],'../../'.$spriteSrcs['ld'], $w,$h);
+	filter_img('../../'.$spriteSrcs['hd'],'../../'.$spriteSrcs['star'], 255,255,0,30);
 }
 function delete_sprite_imgs($spriteSrcs) {
 	foreach ($spriteSrcs as $key => $oldSrc)
-		@unlink($oldSrc);
+		@unlink('../../'.$oldSrc);
 }
 function move_sprite_imgs($oldSrcs, $filehash) {
 	foreach ($oldSrcs as $key => $oldSrc)
-		@rename($oldSrc, preg_replace('#cp-\w+-\d+(-\w+)?\.png$#', $filehash.'$1.png', $oldSrc));
+		@rename('../../'.$oldSrc, '../../'.preg_replace('#cp-\w+-\d+(-\w+)?\.png$#', $filehash.'$1.png', $oldSrc));
 }
 function update_sprite_src($oldHash,$newHash) {
 	$tables = array (
@@ -90,9 +90,9 @@ function handle_upload($file,$perso=null) {
 									move_sprite_imgs($oldSrcs,$filehash);
 								}
 								$spriteSrcs['tmp'] = PERSOS_DIR.$filehash.'-tmp.png';
-								move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
-								clone_img_resource($spriteSrcs['tmp'],$spriteSrcs['hd']);
-								@unlink($spriteSrcs['tmp']);
+								move_uploaded_file($file['tmp_name'], '../../'.$spriteSrcs['tmp']);
+								clone_img_resource('../../'.$spriteSrcs['tmp'],'../../'.$spriteSrcs['hd']);
+								@unlink('../../'.$spriteSrcs['tmp']);
 								create_sprite_thumbs($spriteSrcs);
 								if ($perso)
 									update_sprite_src($perso['sprites'],$filehash);
@@ -132,7 +132,7 @@ function handle_advanced($file,$perso,$type) {
 				}
 				$spriteSrcs['tmp'] = PERSOS_DIR.$filehash.'-tmp.png';
 				$spriteSrcs[$type] = PERSOS_DIR.$filehash.'-'.$type.'.png';
-				move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
+				move_uploaded_file($file['tmp_name'], '../../'.$spriteSrcs['tmp']);
 				switch ($type) {
 				case 'map':
 					$spriteW = 18;
@@ -142,8 +142,8 @@ function handle_advanced($file,$perso,$type) {
 					$spriteW = 30;
 					$spriteH = 45;
 				}
-				resize_img_resource($spriteSrcs['tmp'],$spriteSrcs[$type], $spriteW,$spriteH);
-				@unlink($spriteSrcs['tmp']);
+				resize_img_resource('../../'.$spriteSrcs['tmp'],'../../'.$spriteSrcs[$type], $spriteW,$spriteH);
+				@unlink('../../'.$spriteSrcs['tmp']);
 				update_sprite_src($perso['sprites'],$filehash);
 				return array('id' => $id);
 			}

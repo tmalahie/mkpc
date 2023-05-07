@@ -274,7 +274,7 @@ else {
 include('handleCupOptions.php');
 ?>
 </script>
-<?php include('mk/main.php') ?>
+<?php include('../../mk/main.php') ?>
 <script type="text/javascript">document.addEventListener("DOMContentLoaded", MarioKart);</script>
 </head>
 <body>
@@ -327,7 +327,7 @@ include('gameInitElts.php');
 <script type="text/javascript" src="scripts/simplepeer.min.js"></script>
 <script type="text/javascript">var rtcService, cPlayerPeers = {};</script>
 <script type="text/javascript" src="scripts/mk-online.js"></script>
-<?php include('mk/description.php'); ?>
+<?php include('../../mk/description.php'); ?>
 </body>
 </html>
 <?php

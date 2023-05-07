@@ -126,7 +126,7 @@ function toggleLayerAdd() {
                 ?>
                 <div class="bg-layer">
                     <div class="bg-layer-img">
-                        <img src="<?php echo $bgLayer['path']; ?>" alt="Layer <?php echo $i; ?>" />
+                        <img src="<?php echo $bgLayer['src']; ?>" alt="Layer <?php echo $i; ?>" />
                     </div>
                     <div class="bg-layer-actions">
                         <?php

@@ -17,7 +17,7 @@ if (in_array($map, array(49,50)))
 	$pieceprefix .= '_';
 for ($i=0;$i<36;$i++) {
 	if (isset($_GET['p'.$i])) {
-		if ($piececircuit = @imagecreatefrompng('images/pieces/'.$pieceprefix.intval($_GET['p'.$i]).'.png'))
+		if ($piececircuit = @imagecreatefrompng('../../images/pieces/'.$pieceprefix.intval($_GET['p'.$i]).'.png'))
 			imagecopy($image, $piececircuit, ($i%6)*100, floor($i/6)*100, 0, 0, 100, 100);
 	}
 }
@@ -33,7 +33,7 @@ for ($i=0;$i<10;$i++) {
 	}
 	else
 		$f = $e;
-	$piececircuit = imagecreatefrompng("images/pieces/piececircuit_$f.png");
+	$piececircuit = imagecreatefrompng("../../images/pieces/piececircuit_$f.png");
 	$w = imagesx($piececircuit);
 	$h = imagesy($piececircuit);
 	for ($j=0; isset($_GET[$e.$j]); $j++) {

@@ -44,13 +44,17 @@ function thumbnail($original_src,$cache_src, $maxw, $maxh) {
 }
 function cachePath($cache_src) {
     global $CACHE_FOLDER;
-    return $CACHE_FOLDER.$cache_src;
+    return "../../$CACHE_FOLDER$cache_src";
+}
+function cachePathRelative($cache_src) {
+    global $CACHE_FOLDER;
+    return "$CACHE_FOLDER$cache_src";
 }
 function cacheExists($cache_src) {
     return file_exists(cachePath($cache_src));
 }
 function setCacheFile($original_src,$cache_src, $minW,$minH, $thumbnailize=true) {
-	global $CACHE_FOLDER, $MAX_FILES;
+	global $MAX_FILES;
 	$absolutePath = cachePath($cache_src);
 	if (file_exists($absolutePath))
         touch_async($absolutePath);
@@ -60,11 +64,11 @@ function setCacheFile($original_src,$cache_src, $minW,$minH, $thumbnailize=true)
         else
             copy($original_src,$absolutePath);
         if (!rand(0,1000)) { // Clear cache once in a while
-            $files = array_diff(scandir($CACHE_FOLDER), array('.', '..', '.gitignore', 'uploads'));
+            $files = array_diff(scandir(cachePath('')), array('.', '..', '.gitignore', 'uploads'));
             $n = count($files);
             if ($n > $MAX_FILES) {
-                $fileTimes = array_map(function($file) use($CACHE_FOLDER) {
-                    return filectime($CACHE_FOLDER.$file);
+                $fileTimes = array_map(function($file) {
+                    return filectime(cachePath($file));
                 }, $files);
                 array_multisort(
                     $fileTimes,
@@ -74,7 +78,7 @@ function setCacheFile($original_src,$cache_src, $minW,$minH, $thumbnailize=true)
                 );
                 $toRemove = $n-$MAX_FILES;
                 for ($i=0;$i<$toRemove;$i++)
-                    @unlink($CACHE_FOLDER.$files[$i]);
+                    @unlink(cachePath($files[$i]));
             }
         }
 	}

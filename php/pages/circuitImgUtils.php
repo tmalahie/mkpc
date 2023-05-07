@@ -1,8 +1,9 @@
 <?php
-define('CIRCUIT_BASE_PATH', 'images/uploads/');
+define('CIRCUIT_REL_PATH', 'images/uploads/');
+define('CIRCUIT_BASE_PATH', '../../'.CIRCUIT_REL_PATH);
 function getCircuitImgUrl($circuitImg) {
     if ($circuitImg->local)
-        return CIRCUIT_BASE_PATH.$circuitImg->url;
+        return CIRCUIT_REL_PATH.$circuitImg->url;
     return $circuitImg->url;
 }
 function deleteCircuitFile($circuitImg) {

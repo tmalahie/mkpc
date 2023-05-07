@@ -83,7 +83,7 @@ function listMaps() {
 }
 <?php include('handleCupOptions.php'); ?>
 </script>
-<?php include('mk/main.php') ?>
+<?php include('../../mk/main.php') ?>
 <script type="text/javascript">
 <?php
 require_once('circuit-actions.php');
@@ -196,7 +196,7 @@ if ($cShared) {
 	<?php
 }
 ?>
-<?php include('mk/description.php'); ?>
+<?php include('../../mk/description.php'); ?>
 </body>
 </html>
 <?php

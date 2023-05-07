@@ -1,5 +1,6 @@
 <?php
 require_once('touch.php');
+require_once('cache_creations.php');
 $cMCups = 'SELECT *,0 AS category FROM mkmcups WHERE mode=1';
 $sMCups = 'SELECT *,1 AS category FROM mkmcups WHERE mode=0';
 $cCups = 'SELECT *,2 AS category FROM mkcups WHERE mode=1';
@@ -352,7 +353,7 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 			$linkPreview[] = $baseUrl . $lId;
 			if (isset($lTrack['thumbnail'])) {
 				$linkCached = 'uploads/'. $lTrack['thumbnail'];
-				$linkIcon = 'images/creation_icons/'. $linkCached;
+				$linkIcon = cachePathRelative($linkCached);
 			}
 			else {
 				$linkCached = $baseCache . $lId .'.png';
@@ -394,7 +395,7 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 			$linkPreview[] = $baseUrl . $lId;
 			if (isset($lTrack['thumbnail'])) {
 				$linkCached = 'uploads/'. $lTrack['thumbnail'];
-				$linkIcon = 'images/creation_icons/'. $linkCached;
+				$linkIcon = cachePathRelative($linkCached);
 			}
 			else {
 				$linkCached = $baseCache . $lId .'.png';
@@ -424,7 +425,7 @@ function addCircuitData(&$circuit,&$lCups,&$mCups) {
 	}
 	else {
 		foreach ($linksCached as $link) {
-			$filename = 'images/creation_icons/'.$link;
+			$filename = cachePath($link);
 			if (file_exists($filename))
 				touch_async($filename);
 			else {

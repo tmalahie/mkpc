@@ -26,7 +26,7 @@ if (isset($id)) {
 				$circuitData = json_decode(gzuncompress($getCircuitData['data']));
 				$mainData = $circuitData->main;
 				$objets = $circuitData->arme;
-				$objetImg = imagecreatefrompng('images/pieces/piececircuit_o.png');
+				$objetImg = imagecreatefrompng('../../images/pieces/piececircuit_o.png');
 				$w = imagesx($objetImg);
 				$h = imagesy($objetImg);
 				foreach ($objets as $objet)
@@ -59,13 +59,13 @@ if (isset($id)) {
 						$actualType = $customDecor->type;
 						if ($customData = mysql_fetch_array(mysql_query('SELECT sprites FROM mkdecors WHERE id='. $decorId))) {
 							$decorSrcs = decor_sprite_srcs($customData['sprites']);
-							$decorImg = @imagecreatefrompng($decorSrcs['map']);
+							$decorImg = @imagecreatefrompng('../../'.$decorSrcs['map']);
 						}
 					}
 					else
 						$actualType = $type;
 					if (!isset($decorImg))
-						$decorImg = imagecreatefrompng('images/map_icons/'.$actualType.'.png');
+						$decorImg = imagecreatefrompng('../../images/map_icons/'.$actualType.'.png');
 					if ($decorImg) {
 						$w = imagesx($decorImg);
 						$h = imagesy($decorImg);

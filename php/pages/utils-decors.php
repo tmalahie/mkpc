@@ -10,14 +10,14 @@ function decor_sprite_paths($hash) {
 }
 function decor_sprite_srcs($hash) {
 	$res = decor_sprite_paths($hash);
-	if (!file_exists($res['ld']))
+	if (!file_exists('../../'.$res['ld']))
 		$res['ld'] = $res['hd'];
-	if (!file_exists($res['map']))
+	if (!file_exists('../../'.$res['map']))
 		$res['map'] = $res['ld'];
 	return $res;
 }
 function default_decor_sprite_src($type) {
-    return "images/sprites/sprite_$type.png";
+    return "../../images/sprites/sprite_$type.png";
 }
 function resize_decor_sprites($originalSrc,$thumbSrc, $cropWidth,$cropHeight) {
 	$source = image_create_from($originalSrc);
@@ -44,15 +44,15 @@ function resize_decor_sprites($originalSrc,$thumbSrc, $cropWidth,$cropHeight) {
 	imagedestroy($thumb);
 }
 function create_decor_sprite_thumbs($spriteSrcs,$spriteSizes) {
-	resize_decor_sprites($spriteSrcs['hd'],$spriteSrcs['ld'], $spriteSizes['ld']['w'],$spriteSizes['ld']['h']);
+	resize_decor_sprites('../../'.$spriteSrcs['hd'],'../../'.$spriteSrcs['ld'], $spriteSizes['ld']['w'],$spriteSizes['ld']['h']);
 }
 function delete_decor_sprite_imgs($spriteSrcs) {
 	foreach ($spriteSrcs as $key => $oldSrc)
-		@unlink($oldSrc);
+		@unlink('../../'.$oldSrc);
 }
 function move_decor_sprite_imgs($oldSrcs, $filehash) {
 	foreach ($oldSrcs as $key => $oldSrc)
-		@rename($oldSrc, preg_replace('#dc-\w+-\d+(-\w+)?\.png$#', $filehash.'$1.png', $oldSrc));
+		@rename('../../'.$oldSrc, '../../'.preg_replace('#dc-\w+-\d+(-\w+)?\.png$#', $filehash.'$1.png', $oldSrc));
 }
 $CUSTOM_DECOR_TYPES = array(
     'tuyau' => null,
@@ -212,9 +212,9 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
             move_decor_sprite_imgs($oldSrcs,$filehash);
         }
         $spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
-        move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
-        clone_img_resource($spriteSrcs['tmp'],$spriteSrcs['hd']);
-        @unlink($spriteSrcs['tmp']);
+        move_uploaded_file($file['tmp_name'], '../../'.$spriteSrcs['tmp']);
+        clone_img_resource('../../'.$spriteSrcs['tmp'],'../../'.$spriteSrcs['hd']);
+        @unlink('../../'.$spriteSrcs['tmp']);
         create_decor_sprite_thumbs($spriteSrcs,$spriteSizes);
         mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $fileData['id'] .'"');
     }
@@ -238,15 +238,15 @@ function handle_decor_advanced($file,$decor,$type) {
 				}
 				$spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
 				$spriteSrcs[$type] = DECORS_DIR.$filehash.'-'.$type.'.png';
-				move_uploaded_file($file['tmp_name'], $spriteSrcs['tmp']);
+				move_uploaded_file($file['tmp_name'], '../../'.$spriteSrcs['tmp']);
 				switch ($type) {
 				case 'map':
 					$spriteW = 32;
 					$spriteH = 32;
 					break;
 				}
-				resize_img_resource($spriteSrcs['tmp'],$spriteSrcs[$type], $spriteW,$spriteH);
-                @unlink($spriteSrcs['tmp']);
+				resize_img_resource('../../'.$spriteSrcs['tmp'],'../../'.$spriteSrcs[$type], $spriteW,$spriteH);
+                @unlink('../../'.$spriteSrcs['tmp']);
                 mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $id .'"');
 				return array('id' => $id);
 			}

@@ -1,6 +1,7 @@
 <?php
 require_once('touch.php');
 require_once('challenge-consts.php');
+require_once('cache_creations.php');
 $clRulesByType = array(
 	'main' => array(
 		'finish_circuit_first' => array(
@@ -741,7 +742,7 @@ function getCircuitPayload(&$clRace) {
 				$lId = $clCircuit['circuit'.$i];
 				if (isset($cThumbnails[$lId])) {
 					$linkCached = 'uploads/'. $cThumbnails[$lId];
-					$linkIcon = 'images/creation_icons/'. $linkCached;
+					$linkIcon = cachePathRelative($linkCached);
 				}
 				else {
 					$iconType = $clCircuit['mode'];
@@ -766,7 +767,7 @@ function getCircuitPayload(&$clRace) {
 		}
 		else {
 			foreach ($linksCached as $link) {
-				$filename = 'images/creation_icons/'.$link;
+				$filename = cachePath($link);
 				if (file_exists($filename))
 					touch_async($filename);
 				else {

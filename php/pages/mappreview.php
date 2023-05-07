@@ -37,7 +37,7 @@ if (isset($id)) {
 			$pW = round(100*$rImg);
 			$pH = round(100*$rImg);
 			while ($piece = mysql_fetch_array($pieces)) {
-				if ($piececircuit = @imagecreatefrompng('images/pieces/piececircuit'.$map.'_'.$piece['piece'].'.png')) {
+				if ($piececircuit = @imagecreatefrompng('../../images/pieces/piececircuit'.$map.'_'.$piece['piece'].'.png')) {
 					if ($rImg === 1)
 						imagecopy($image, $piececircuit, ($piece['id']%6)*$pW,floor($piece['id']/6)*$pH, 0,0, $pW,$pH);
 					else
@@ -56,7 +56,7 @@ if (isset($id)) {
 			else
 				$f = $e;
 			$getPieces = mysql_query('SELECT x,y FROM `mk'.$e.'` WHERE circuit="'.$id.'"');
-			$piececircuit = imagecreatefrompng('images/pieces/piececircuit_'.$f.'.png');
+			$piececircuit = imagecreatefrompng('../../images/pieces/piececircuit_'.$f.'.png');
 			$w = imagesx($piececircuit);
 			$h = imagesy($piececircuit);
 			if ('o' === $e) {
@@ -75,7 +75,7 @@ if (isset($id)) {
 			}
 		}
 		foreach ($decorTypes[$map] as $i=>$decorType) {
-			$piececircuit = imagecreatefrompng('images/map_icons/'.$decorType.'.png');
+			$piececircuit = imagecreatefrompng('../../images/map_icons/'.$decorType.'.png');
 			$w = imagesx($piececircuit);
 			$h = imagesy($piececircuit);
 			if ('assets/' !== substr($decorType, 0,7))

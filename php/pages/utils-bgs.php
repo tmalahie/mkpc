@@ -53,7 +53,7 @@ function handle_bg_upload($files,$options=array()) {
 			return array('error' => 'Unknown error');
 		if ($getBgLayer['filename'] !== '') {
 			$filePath = get_layer_path($getBgLayer['filename']);
-			@unlink($filePath);
+			@unlink('../../'.$filePath);
 		}
 		$id = $getBgLayer['bg'];
 	}
@@ -80,7 +80,7 @@ function handle_bg_upload($files,$options=array()) {
 		if ($layerFile['url'] === null) {
 			$fileName = generate_layer_name($layerId, $layerFile['ext']);
 			$filePath = get_layer_path($fileName);
-			move_uploaded_file($layerFile['path'], $filePath);
+			move_uploaded_file($layerFile['path'], '../../'.$filePath);
 			mysql_query('UPDATE mkbglayers SET filename="'. $fileName .'", url="" WHERE id='. $layerId);
 		}
 		else {
@@ -104,7 +104,8 @@ function get_bg_layers($bgId) {
 		$local = ($getLayer['filename'] !== '');
 		$bgLayers[] = array(
 			'id' => $getLayer['id'],
-			'path' => $local ? get_layer_path($getLayer['filename']) : $getLayer['url'],
+			'src' => $local ? get_layer_path($getLayer['filename']) : $getLayer['url'],
+			'path' => $local ? '../../'.get_layer_path($getLayer['filename']) : $getLayer['url'],
 			'local' => $local
 		);
 	}
@@ -112,11 +113,20 @@ function get_bg_layers($bgId) {
 }
 function get_bg_payload($bg) {
 	$bgPayload = array(
-		'id' => $bg['id'],
-		'layers' => get_bg_layers($bg['id'])
+		'id' => $bg['id']
 	);
+
 	if (isset($bg['name']) && ($bg['name'] !== ''))
 		$bgPayload['name'] = $bg['name'];
+
+	$layers = get_bg_layers($bg['id']);
+	foreach ($layers as &$layer) {
+		$layer['path'] = $layer['src'];
+		unset($layer['src']);
+	}
+	unset($layer);
+	$bgPayload['layers'] = $layers;
+	
 	return $bgPayload;
 }
 function url_to_file_payload($url) {
@@ -151,7 +161,7 @@ function print_bg_div($options) {
 	$customAttrs = isset($options['attrs']) ? ' '.$options['attrs'] : '';
 	$layerStyles = array();
 	foreach ($bgLayers as $bgLayer)
-		$layerStyles[] = "url('".$bgLayer['path']."')";
+		$layerStyles[] = "url('".$bgLayer['src']."')";
 		$layerStyles = array_reverse($layerStyles);
 	echo '<div class="bg-preview" style="background-image: '. implode(', ', $layerStyles) .'"'. $customAttrs .'></div>';
 }

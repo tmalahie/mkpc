@@ -5,6 +5,7 @@ define('AVATAR_L', 400);
 define('AVATAR_MINW', 200);
 define('AVATAR_MINH', 200);
 define('AVATAR_DIR', 'images/avatars/');
+define('AVATAR_REL_DIR', '../../images/avatars/');
 $AVATAR_COLORS = array(
 	'#E15B05',
 	'#9C2D02',

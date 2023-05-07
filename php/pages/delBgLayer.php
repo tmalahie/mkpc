@@ -17,7 +17,7 @@ if (isset($_GET['id'])) {
 			if ($layer['filename'] !== '') {
 				require_once('utils-bgs.php');
 				$filePath = get_layer_path($layer['filename']);
-				@unlink($filePath);
+				@unlink('../../'.$filePath);
 			}
 		}
 		$collabSuffix = isset($_GET['collab']) ? '&collab='.urlencode($_GET['collab']) : '';

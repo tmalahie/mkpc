@@ -20,7 +20,7 @@ if (isset($_GET['id'])) {
 		if ($hasReadGrants) {
 			include('utils-decors.php');
 			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
-			$spriteSizes = decor_sprite_sizes($decor['type'],$spriteSrcs['hd']);
+			$spriteSizes = decor_sprite_sizes($decor['type'],'../../'.$spriteSrcs['hd']);
 			$originalSizes = decor_sprite_sizes($decor['type'],default_decor_sprite_src($decor['type']));
 			$sizeRatio = $spriteSizes['hd']['w']/$originalSizes['hd']['w'];
 			?>

@@ -98,11 +98,11 @@ if (isset($profileId)) {
 								$avatarName = $getInfos['nom'].uniqid().'.'.$ext;
 								$oldAvatar = get_avatar_img($id);
 								if ($oldAvatar) {
-									@unlink(AVATAR_DIR.$oldAvatar['ld']);
-									@unlink(AVATAR_DIR.$oldAvatar['hd']);
+									@unlink(AVATAR_REL_DIR.$oldAvatar['ld']);
+									@unlink(AVATAR_REL_DIR.$oldAvatar['hd']);
 								}
-								move_uploaded_file($uploadSrc, AVATAR_DIR.$avatarName);
-								resize_img(AVATAR_DIR.$avatarName,AVATAR_DIR.to_ld($avatarName), AVATAR_MINW,AVATAR_MINH, $ext);
+								move_uploaded_file($uploadSrc, AVATAR_REL_DIR.$avatarName);
+								resize_img(AVATAR_REL_DIR.$avatarName,AVATAR_REL_DIR.to_ld($avatarName), AVATAR_MINW,AVATAR_MINH, $ext);
 								mysql_query('UPDATE `mkprofiles` SET avatar="'. $avatarName .'" WHERE id="'. $id .'"');
 								clear_avatar_cache($id);
 							}

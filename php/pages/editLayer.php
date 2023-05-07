@@ -35,9 +35,9 @@ if (isset($_GET['id'])) {
 				$fileName = generate_layer_name($layerId, 'png');
 				$newPath = get_layer_path($fileName);
 
-				add_transparency($oldPath,$newPath, $color[0],$color[1],$color[2]);
+				add_transparency('../../'.$oldPath,'../../'.$newPath, $color[0],$color[1],$color[2]);
 				mysql_query('UPDATE `mkbglayers` SET filename="'.$fileName.'" WHERE id="'. $layerId .'"');
-				@unlink($oldPath);
+				@unlink('../../'.$oldPath);
 
 				header('location: editBg.php?id='. $layer['bg'] . $collabSuffix);
 				mysql_close();
@@ -45,7 +45,7 @@ if (isset($_GET['id'])) {
 			}
 			if ($layer['filename'] !== '') {
 				$spriteSrc = get_layer_path($layer['filename']);
-				list($spriteW, $spriteH) = getimagesize($spriteSrc);
+				list($spriteW, $spriteH) = getimagesize('../../'.$spriteSrc);
 			}
 			?>
 <!DOCTYPE html>
@@ -73,7 +73,7 @@ echo "var spriteSrc = \"$spriteSrc\", spriteW = $spriteW, spriteH = $spriteH;";
 ?>
 <script type="text/javascript" src="scripts/edit-sprite.js"></script>
 <?php
-$hasTransparency = !isset($spriteSrc) || has_transparency($spriteSrc);
+$hasTransparency = !isset($spriteSrc) || has_transparency('../../'.$spriteSrc);
 ?>
 <title><?php echo $language ? 'Background editor':'Éditeur d\'arrière-plans'; ?></title>
 </head>

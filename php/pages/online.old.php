@@ -302,16 +302,16 @@ function listMaps() {
 	if ($complete) {
 		$aID = $id;
 		if ($isBattle)
-			include('mk/battle.php');
+			include('../../mk/battle.php');
 		else
-			include('mk/map.php');
+			include('../../mk/map.php');
 		$id = $aID;
 	}
 	else {
 		if ($isBattle)
-			include('mk/arena.php');
+			include('../../mk/arena.php');
 		else
-			include('mk/circuit.php');
+			include('../../mk/circuit.php');
 	}
 	?>
 	};
@@ -439,7 +439,7 @@ else {
 		<img class="aObjet" alt="." src="images/items/fauxobjet.png" />
 	</div>
 </div>
-<?php include('mk/description.php'); ?>
+<?php include('../../mk/description.php'); ?>
 </body>
 </html>
 <?php

@@ -59,7 +59,8 @@ if (isset($id)) {
 			$y = floor($trackPos/$tracksSide);
 
 			if (isset($trackThumbnails[$trackID])) {
-				$trackPath = 'images/creation_icons/uploads/'. $trackThumbnails[$trackID];
+				require_once('cache_creations.php');
+				$trackPath = cachePath('uploads/'. $trackThumbnails[$trackID]);
 			}
 			else {
 				require_once('generateTrackIcon.php');

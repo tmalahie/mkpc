@@ -32,7 +32,7 @@ if (isset($_GET['id'])) {
 				$spriteSrc = $spriteSrcs[$type];
 				break;
 			}
-			list($spriteW, $spriteH) = getimagesize($spriteSrc);
+			list($spriteW, $spriteH) = getimagesize('../../'.$spriteSrc);
 			$minW = 64;
 			if (($spriteW < $minW) && $spriteW) {
 				$spriteH = round($spriteH*$minW/$spriteW);
@@ -62,14 +62,14 @@ if (isset($_GET['id'])) {
 				$newSrcs = decor_sprite_srcs($filehash);
 				switch ($type) {
 				case 'decor' :
-					add_transparency($newSrcs['hd'],$newSrcs['hd'], $color[0],$color[1],$color[2]);
-					clone_img_resource($newSrcs['hd'],$newSrcs['hd']);
-					$spriteSizes = decor_sprite_sizes($decor['type'],$newSrcs['hd']);
+					add_transparency('../../'.$newSrcs['hd'],'../../'.$newSrcs['hd'], $color[0],$color[1],$color[2]);
+					clone_img_resource('../../'.$newSrcs['hd'],'../../'.$newSrcs['hd']);
+					$spriteSizes = decor_sprite_sizes($decor['type'],'../../'.$newSrcs['hd']);
 					create_decor_sprite_thumbs($newSrcs,$spriteSizes);
 					break;
 				default :
-					add_transparency($newSrcs[$type],$newSrcs[$type], $color[0],$color[1],$color[2]);
-					clone_img_resource($newSrcs[$type],$newSrcs[$type]);
+					add_transparency('../../'.$newSrcs[$type],'../../'.$newSrcs[$type], $color[0],$color[1],$color[2]);
+					clone_img_resource('../../'.$newSrcs[$type],'../../'.$newSrcs[$type]);
 					break;
 				}
 				mysql_query('UPDATE `mkdecors` SET sprites="'.$filehash.'" WHERE id="'. $decorId .'"');
@@ -100,7 +100,7 @@ var spriteSrc = "<?php echo $spriteSrc; ?>", spriteW = <?php echo $spriteW; ?>, 
 </script>
 <script type="text/javascript" src="scripts/edit-sprite.js"></script>
 <?php
-$hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($spriteSrc);
+$hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency('../../'.$spriteSrc);
 ?>
 <title><?php echo $language ? 'Decor editor':'Éditeur de decors'; ?></title>
 </head>

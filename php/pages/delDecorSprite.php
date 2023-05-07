@@ -13,7 +13,7 @@ if (isset($_GET['id'])) {
 				include('utils-decors.php');
 				$spriteSrcs = decor_sprite_srcs($decor['sprites']);
 				if ($spriteSrcs[$type] != $spriteSrcs['ld'])
-					@unlink($spriteSrcs[$type]);
+					@unlink('../../'.$spriteSrcs[$type]);
 				header('location: decorOptions.php?id='. $decorId . $collabSuffix);
 			}
 		}

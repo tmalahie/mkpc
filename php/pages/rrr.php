@@ -1037,9 +1037,9 @@ if (isset($_GET['d'])) {
 ob_start();
 echo '{';
 if ($isBattle)
-	include('mk/arena.php');
+	include('../../mk/arena.php');
 else
-	include('mk/circuit.php');
+	include('../../mk/circuit.php');
 echo '}';
 $circuitsData = array();
 $str = ob_get_clean();

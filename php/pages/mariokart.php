@@ -76,7 +76,7 @@ var NBCIRCUITS = <?php echo $nbVSCircuits; ?>;
 mysql_close();
 ?>
 <script type="text/javascript" src="mk/maps.php?reload=2"></script>
-<?php include('mk/main.php') ?>
+<?php include('../../mk/main.php') ?>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", MarioKart);
 </script>
@@ -134,6 +134,6 @@ for ($i=1;$i<48;$i+=4)
 	echo '<img src="images/selectors/select_map'.$i.'.png" alt="" />';
 ?>
 </div>
-<?php include('mk/description.php'); ?>
+<?php include('../../mk/description.php'); ?>
 </body>
 </html>

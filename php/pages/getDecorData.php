@@ -14,7 +14,7 @@ if (isset($_GET['id'])) {
             'map' => $decorSrcs['map']
         );
         if (isset($_GET['full'])) {
-            $res['size'] = decor_sprite_sizes($decor['type'],$decorSrcs['hd']);
+            $res['size'] = decor_sprite_sizes($decor['type'],'../../'.$decorSrcs['hd']);
             $res['original_size'] = decor_sprite_sizes($decor['type'],default_decor_sprite_src($decor['type']));
             $getDecorExtra = mysql_query('SELECT * FROM mkdecors WHERE extra_parent_id="'. $decor['id'] .'"');
             while ($decorExtra = mysql_fetch_array($getDecorExtra)) {
@@ -24,7 +24,7 @@ if (isset($_GET['id'])) {
                     'hd' => $decorExtraSrcs['hd'],
                     'ld' => $decorExtraSrcs['ld'],
                     'map' => $decorExtraSrcs['map'],
-                    'size' => decor_sprite_sizes($decorExtra['type'],$decorExtraSrcs['hd']),
+                    'size' => decor_sprite_sizes($decorExtra['type'],'../../'.$decorExtraSrcs['hd']),
                     'original_size' => decor_sprite_sizes($decorExtra['type'],default_decor_sprite_src($decorExtra['type']))
                 );
             }

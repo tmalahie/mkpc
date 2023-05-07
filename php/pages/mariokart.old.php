@@ -134,6 +134,6 @@ for ($i=1;$i<48;$i+=4)
 	echo '<img src="images/selectors/select_map'.$i.'.png" alt="" />';
 ?>
 </div>
-<?php include('mk/description.php'); ?>
+<?php include('../../mk/description.php'); ?>
 </body>
 </html>

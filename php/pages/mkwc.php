@@ -664,7 +664,7 @@ if ($id) {
                                     )
                                 );
                                 foreach ($logos as $logo) {
-                                    list($w,$h) = getimagesize($logo['src']);
+                                    list($w,$h) = getimagesize('../../'.$logo['src']);
                                     echo '<div style="flex: '. ($w/$h) .'"><img src="'. $logo['src'] .'" alt="'. $logo['alt'] .'" /></div>';
                                 }
                                 ?>
