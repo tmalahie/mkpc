@@ -152,7 +152,7 @@ var circuitNbComments = 0;
 				return;
 			commentSend.prop("disabled", true);
 			commentMessage.prop("disabled", true);
-			$.post("commentCircuit.php", {"circuit":commentCircuit,"type":commentType,"message":commentMessage.val()}).success(function(res) {
+			$.post("api/commentCircuit.php", {"circuit":commentCircuit,"type":commentType,"message":commentMessage.val()}).success(function(res) {
 				commentSend.unbind("click");
 				commentSend.prop("disabled", false);
 				commentMessage.prop("disabled", false);
@@ -185,7 +185,7 @@ var circuitNbComments = 0;
 		var delButton = commentCtn.find(".comment-suppr");
 		delButton.click(function() {
 			if (confirm(language ? "Are you sure you want to delete this comment ?":"Voulez-vous vraiment supprimer ce commentaire ?")) {
-				$.post("supprComment.php", {"id_msg":commentCtn.data("id")}).success(function() {
+				$.post("api/supprComment.php", {"id_msg":commentCtn.data("id")}).success(function() {
 					commentCtn.remove();
 					circuitNbComments--;
 					updateNbComments();
@@ -211,7 +211,7 @@ var circuitNbComments = 0;
 			commentSend.prop("disabled", true);
 			commentUndo.prop("disabled", true);
 			commentMessage.prop("disabled", true);
-			$.post("editComment.php", {"id_msg":commentCtn.data("id"),"message":commentMessage.val()}).success(function(res) {
+			$.post("api/editComment.php", {"id_msg":commentCtn.data("id"),"message":commentMessage.val()}).success(function(res) {
 				commentSend.prop("disabled", false);
 				commentUndo.prop("disabled", false);
 				commentMessage.prop("disabled", false);
@@ -270,7 +270,7 @@ var circuitNbComments = 0;
 			comments.append(postedComment);
 		}
 	}
-	$.post("getComments.php", {"circuit":commentCircuit,"type":commentType}, function(res) {
+	$.post("api/getComments.php", {"circuit":commentCircuit,"type":commentType}, function(res) {
 		res = JSON.parse(res);
 		if (res.id) {
 			myCommentID = res.id;
@@ -311,7 +311,7 @@ var circuitNbComments = 0;
 			function handleScroll() {
 				if ($commentsScroller.prop("scrollHeight") - $commentsScroller.prop("offsetHeight") - $commentsScroller.prop("scrollTop") < 100) {
 					$commentsScroller[0].onscroll = undefined;
-					$.post("getComments.php", {"circuit":commentCircuit,"type":commentType,"paginationToken":res.paginationToken}, function(res2) {
+					$.post("api/getComments.php", {"circuit":commentCircuit,"type":commentType,"paginationToken":res.paginationToken}, function(res2) {
 						res2 = JSON.parse(res2);
 						appendComments(res2.comments);
 						if (res2.paginationToken) {
@@ -329,7 +329,7 @@ var circuitNbComments = 0;
 			commentSend.click(function() {
 				commentSend.prop("disabled", true);
 				var description = $("#comments-description-edit .comment-textarea").val();
-				$.post("setTrackDescription.php", {"circuit":commentCircuit,"type":commentType,"description":description}).success(function() {
+				$.post("api/setTrackDescription.php", {"circuit":commentCircuit,"type":commentType,"description":description}).success(function() {
 					circuitDesc = description;
 					updateCircuitDesc();
 					$("#comments-description-content").show();
@@ -354,7 +354,7 @@ var circuitNbComments = 0;
 			});
 			$("#comments-description-content-edit .comment-suppr").click(function() {
 				if (confirm(language ? "Clear the description?":"Supprimer la description ?")) {
-					$.post("setTrackDescription.php", {"circuit":commentCircuit,"type":commentType}).success(function() {
+					$.post("api/setTrackDescription.php", {"circuit":commentCircuit,"type":commentType}).success(function() {
 						circuitDesc = "";
 						updateCircuitDesc();
 					});

@@ -191,9 +191,8 @@ if (isset($nid)) {
 	printReactionUI();
 	?>
 	<div id="comments-section"></div>
-	<script type="text/javascript" src="scripts/comments.js"></script>
-	<script type="text/javascript" src="scripts/topic.js"></script>
 	<?php
+	include('../includes/o_comments.php');
 }
 ?>
 <?php include('../includes/mk/description.php'); ?>
