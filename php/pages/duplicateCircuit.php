@@ -1,10 +1,10 @@
 <?php
-include('language.php');
+include('../includes/language.php');
 $isBattle = isset($_GET['battle']);
 $table = $isBattle ? 'arenes':'circuits';
 if (isset($_GET['i'])) {
-    include('getId.php');
-    include('initdb.php');
+    include('../includes/getId.php');
+    include('../includes/initdb.php');
     $cID = intval($_GET['i']);
     $nID = $cID;
     $error = null;
@@ -12,7 +12,7 @@ if (isset($_GET['i'])) {
         $circuitImg = json_decode($circuit['img_data']);
         $circuitPath = null;
         if ($circuitImg->local) {
-			include('file-quotas.php');
+			include('../includes/file-quotas.php');
             $circuitPath = CIRCUIT_BASE_PATH.$circuitImg->url;
             $filesize = filesize($circuitPath);
             $filesize += file_total_size();

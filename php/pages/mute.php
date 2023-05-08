@@ -1,11 +1,11 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 if ($id && isset($_POST['member']) && is_numeric($_POST['member']) && isset($_POST['duration']) && is_numeric($_POST['duration'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
     $member = intval($_POST['member']);
 	if (mysql_numrows(mysql_query("SELECT * FROM `mkjoueurs` WHERE id=$member"))) {
-        require_once('getRights.php');
+        require_once('../includes/getRights.php');
         if (hasRight('moderator')) {
             $date = new \DateTime();
             $date->modify('+'. $_POST['duration'] .' minutes');

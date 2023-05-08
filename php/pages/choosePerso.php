@@ -1,10 +1,10 @@
 <?php
-include('language.php');
-include('session.php');
-include('getId.php');
-include('initdb.php');
-include('perso-stats.php');
-require_once('persos.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/getId.php');
+include('../includes/initdb.php');
+include('../includes/perso-stats.php');
+require_once('../includes/persos.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -153,7 +153,7 @@ var statTypes = ["<?php echo implode('","',array_keys($statsRange)); ?>"];
 var statsGradient = <?php echo $statsGradient; ?>;
 var statsRange = <?php echo json_encode($statsRange); ?>;
 var cp = <?php echo json_encode($defaultPersosStats); ?>;
-var pUnlocked = <?php include('getLocks.php'); ?>;
+var pUnlocked = <?php include('../includes/getLocks.php'); ?>;
 var P_ID = 0,
 	P_UID = P_ID+1,
 	P_NAME = P_UID+1,
@@ -515,7 +515,7 @@ updateCursors = function() {
 			?><a href="javascript:showCollabLinkHelp()">[?]</a>:
 			</span>
 			<input type="url" name="collab-link" placeholder="<?php
-			require_once('collabUtils.php');
+			require_once('../includes/collabUtils.php');
 			$collab = array(
 				'type' => 'mkchars',
 				'creation_id' => 42,

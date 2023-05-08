@@ -1,12 +1,12 @@
 <?php
-include('language.php');
-include('getId.php');
+include('../includes/language.php');
+include('../includes/getId.php');
 session_start();
-include('tokens.php');
+include('../includes/tokens.php');
 assign_token();
-include('initdb.php');
-require_once('utils-decors.php');
-include('file-quotas.php');
+include('../includes/initdb.php');
+require_once('../includes/utils-decors.php');
+include('../includes/file-quotas.php');
 if (isset($_POST['type']) && isset($_FILES['sprites'])) {
 	$upload = handle_decor_upload($_POST['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'));
 	if (isset($upload['id']))

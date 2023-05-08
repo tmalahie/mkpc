@@ -1,13 +1,13 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['id']) && isset($_POST['rating'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$persoId = $_POST['id'];
 	$rating = $_POST['rating'];
 	if ($rating >= 0 && $rating <= 5) {
-		include('getId.php');
+		include('../includes/getId.php');
 		if ($rating) {
-			include('ip_banned.php');
+			include('../includes/ip_banned.php');
 			if (isBanned()) {
 				mysql_close();
 				echo 1;

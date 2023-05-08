@@ -1,13 +1,13 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['type']) && isset($_POST['id'])) {
-    include('initdb.php');
+    include('../includes/initdb.php');
     $id = $_POST['id'];
     $type = $_POST['type'];
-    include('circuitTables.php');
+    include('../includes/circuitTables.php');
     if (in_array($type, $circuitTables)) {
         if ($getCircuit = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'.$type.'` WHERE id="'. $id .'"'))) {
-            include('getId.php');
+            include('../includes/getId.php');
             if ($getCircuit['identifiant'] == $identifiants[0])
                 mysql_query('DELETE FROM mkrecords WHERE type="'. $type .'" AND circuit="'. $id .'"');
         }

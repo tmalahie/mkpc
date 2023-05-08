@@ -1,7 +1,7 @@
 <?php
-include('language.php');
+include('../includes/language.php');
 if (isset($_GET['code'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$code = $_GET['code'];
 	mysql_query('DELETE FROM mkpassrecovery WHERE expiry_date<CURRENT_TIMESTAMP');
 	if ($getPlayer = mysql_fetch_array(mysql_query('SELECT player FROM `mkpassrecovery` WHERE token="'. $code .'"'))) {
@@ -25,9 +25,9 @@ if (isset($_GET['code'])) {
 					session_start();
 					$_SESSION['mkid'] = $player;
 					$id = $player;
-					require_once('credentials.php');
+					require_once('../includes/credentials.php');
 					setcookie('mkp', credentials_encrypt($id,$nouveau), 4294967295,'/');
-					include('setId.php');
+					include('../includes/setId.php');
 				}
 			}
 		}
@@ -37,7 +37,7 @@ if (isset($_GET['code'])) {
 <head>
 <title><?php echo $language ? 'Password recovery - Mario Kart PC':'Récupération mot de passe - Mario Kart PC'; ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
@@ -50,14 +50,14 @@ include('heads.php');
 </style>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<h1><?php echo $language ? 'Password recovery':'Récupération mot de passe'; ?></h1>
@@ -105,7 +105,7 @@ include('menu.php');
 	<p class="forumButtons"><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

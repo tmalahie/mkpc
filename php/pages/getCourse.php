@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 if ($id) {
-	include('initdb.php');
-	include('getCourseParams.php');
-	include('onlineUtils.php');
+	include('../includes/initdb.php');
+	include('../includes/getCourseParams.php');
+	include('../includes/onlineUtils.php');
 	$cupSQL = ' AND cup="'. $nid .'" AND mode='. $nmode .' AND link='. $nlink;
 	$course = getCourse();
 	$cas = 0;
@@ -60,7 +60,7 @@ if ($id) {
 	function sendCourseNotifs() {
 		global $id,$linkOptions;
 		if ($linkOptions->public)
-			include('putCourseNotifs.php');
+			include('../includes/putCourseNotifs.php');
 	}
 	function update_lastco() {
 		global $id;
@@ -154,7 +154,7 @@ if ($id) {
 			if ($alreadyCreated)
 				return false;
 			if ($nlink && !$course) {
-				require_once('apc.php');
+				require_once('../includes/apc.php');
 				if (!apcu_add("course.insert.$nlink", 1, 1))
 					return false;
 			}

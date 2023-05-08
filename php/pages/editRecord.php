@@ -1,13 +1,13 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST["id"]) && isset($_POST["name"])) {
-    include('initdb.php');
+    include('../includes/initdb.php');
     if ($record = mysql_fetch_array(mysql_query('SELECT id,identifiant,identifiant2,identifiant3,identifiant4,class,circuit,type FROM mkrecords WHERE id="'. $_POST['id'] .'"'))) {
-        include('getId.php');
-        include('session.php');
+        include('../includes/getId.php');
+        include('../includes/session.php');
         $moderate = false;
         if (($record['identifiant'] != $identifiants[0]) || ($record['identifiant2'] != $identifiants[1]) || ($record['identifiant3'] != $identifiants[2]) || ($record['identifiant4'] != $identifiants[3])) {
-            include('getRights.php');
+            include('../includes/getRights.php');
             if (hasRight('moderator'))
                 $moderate = true;
             else {

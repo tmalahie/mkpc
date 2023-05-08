@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/plain');
-include('initdb.php');
-include('session.php');
-include('notifsSQL.php');
+include('../includes/initdb.php');
+include('../includes/session.php');
+include('../includes/notifsSQL.php');
 $notifsSQL = '';
 for ($i=0;isset($_POST['id'.$i]);$i++) {
 	if ($i)

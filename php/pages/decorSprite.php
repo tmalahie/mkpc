@@ -1,11 +1,11 @@
 <?php
 if (isset($_GET['id'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$decorId = intval($_GET['id']);
 	if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
-		include('language.php');
-		include('getId.php');
-		require_once('collabUtils.php');
+		include('../includes/language.php');
+		include('../includes/getId.php');
+		require_once('../includes/collabUtils.php');
 		$collabSuffix = '';
 		if ($decor['identifiant'] == $identifiants[0]) {
 			$hasReadGrants = true;
@@ -18,8 +18,8 @@ if (isset($_GET['id'])) {
 			if ($collab) $collabSuffix = '&collab='. $collab['key'];
 		}
 		if ($hasWriteGrants) {
-			include('utils-decors.php');
-			include('file-quotas.php');
+			include('../includes/utils-decors.php');
+			include('../includes/file-quotas.php');
 			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
 			$type = 'decor';
 			if (isset($_GET['map']))
@@ -93,7 +93,7 @@ if (isset($_GET['id'])) {
 <link rel="stylesheet" href="styles/editor.css" />
 <link rel="stylesheet" href="styles/decor-editor.css" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var spriteSrc = "<?php echo $spriteSrc; ?>", spriteW = <?php echo $spriteW; ?>, spriteH = <?php echo $spriteH; ?>;

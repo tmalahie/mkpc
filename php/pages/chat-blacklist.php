@@ -1,17 +1,17 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	exit;
 }
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	mysql_close();
 	exit;
 }
-require_once('getRights.php');
+require_once('../includes/getRights.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -33,7 +33,7 @@ elseif (isset($_GET['del'])) {
 <head>
 <title><?php echo $language ? 'Online chat blacklist':'Blacklist chat en ligne'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <style type="text/css">
@@ -54,14 +54,14 @@ form input[type="submit"] {
 }
 </style>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
     <h1><?php echo $language ? 'Manage forbidden words in online chat':'Gérer les mots surveillés du chat en ligne'; ?></h1>
@@ -140,7 +140,7 @@ include('menu.php');
     }
 </script>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 <script type="text/javascript">

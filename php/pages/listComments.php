@@ -1,8 +1,8 @@
 <?php
 if (isset($_GET['user'])) {
-	include('session.php');
-	include('language.php');
-	include('initdb.php');
+	include('../includes/session.php');
+	include('../includes/language.php');
+	include('../includes/initdb.php');
 	if ($getInfos = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $_GET['user'] .'"'))) {
 		?>
 <!DOCTYPE html>
@@ -10,28 +10,28 @@ if (isset($_GET['user'])) {
 <head>
 <title><?php echo $language ? 'Comments list of':'Liste des commentaires de'; ?> <?php echo $getInfos['nom']; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<div class="comments-list">
 		<?php
-		require_once('circuitEscape.php');
+		require_once('../includes/circuitEscape.php');
 		$lastComments = mysql_query('SELECT id,circuit,type,message,date FROM `mkcomments` WHERE auteur="'. $_GET['user'] .'" ORDER BY id DESC');
 		$comments = array();
-		require_once('utils-cups.php');
+		require_once('../includes/utils-cups.php');
 		while ($comment = mysql_fetch_array($lastComments)) {
 			if ($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) {
 				$comment['circuit_data'] = $getCircuit;
@@ -47,11 +47,11 @@ include('menu.php');
 		<h1><?php echo $language ? 'Comments list of':'Liste des commentaires de'; ?> <?php echo $getInfos['nom']; ?> (<?php echo $nbComments; ?>)</h1>
 		<?php
 		if ($nbComments) {
-			require_once('utils-date.php');
+			require_once('../includes/utils-date.php');
 			?>
 			<div class="circuit-comments">
 			<?php
-			require_once('utils-cups.php');
+			require_once('../includes/utils-cups.php');
 			foreach ($comments as $comment) {
 				$getCircuit = $comment['circuit_data'];
 				switch ($comment['type']) {
@@ -110,7 +110,7 @@ include('menu.php');
 	</div>
 </main>
 		<?php
-		include('footer.php');
+		include('../includes/footer.php');
 	}
 	mysql_close();
 }

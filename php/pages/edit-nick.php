@@ -1,18 +1,18 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	exit;
 }
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <title><?php echo $language ? 'Change your nickname':'Modifier mon pseudo'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
@@ -49,20 +49,20 @@ function confirmNick() {
 </script>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 $getPseudo = mysql_fetch_array(mysql_query('SELECT nom,banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 $old = $getPseudo['nom'];
 if (isset($_POST['newpseudo'])) {
     $new = $_POST['newpseudo'];
 	if (!$getPseudo['banned']) {
-        include('utils-nicks.php');
+        include('../includes/utils-nicks.php');
         $nextNickChange = 0;
         if ($lastNickChange = mysql_fetch_array(mysql_query('SELECT date FROM mknewnicks WHERE id="'. $id .'" ORDER BY date DESC LIMIT 1')))
             $nextNickChange = strtotime($lastNickChange['date'])+86400;
@@ -125,7 +125,7 @@ else
     </p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

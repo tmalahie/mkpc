@@ -1,25 +1,25 @@
 <?php
 $id = isset($_GET['i']) ? intval($_GET['i']) : 0;
-include('getId.php');
-include('initdb.php');
-include('language.php');
+include('../includes/getId.php');
+include('../includes/initdb.php');
+include('../includes/language.php');
 $success = (isset($_GET['x'])&&isset($_GET['y']))+isset($_GET['pivot']);
 $src = isset($_GET['arenes']) ? 'course':'map';
 $db = isset($_GET['arenes']) ? 'arenes':'circuits';
 $isrc = isset($_GET['arenes']) ? 'coursepreview':'racepreview';
-require_once('collabUtils.php');
+require_once('../includes/collabUtils.php');
 $requireOwner = !hasCollabGrants($db, $id, $_GET['collab'], 'edit');
 if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,identifiant2,identifiant3,identifiant4 FROM `'.$db.'` WHERE id="'.$id.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
-	require_once('circuitImgUtils.php');
+	require_once('../includes/circuitImgUtils.php');
 	$circuitImg = json_decode($circuit['img_data']);
 	$ext = $circuitImg->ext;
-	include('uploadByUrl.php');
+	include('../includes/uploadByUrl.php');
 	if (isset($_FILES['image'])) {
 		if (!$_FILES['image']['error']) {
 			$poids = $_FILES['image']['size'];
 			$limitMb  = ($isUploaded ? 1 : 5);
 			if ($poids < $limitMb*1000000) {
-				include('file-quotas.php');
+				include('../includes/file-quotas.php');
 				if ($isUploaded) {
 					$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
 					$poids += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id,'identifiants'=>$ownerIds):array('circuit'=>$id,'identifiants'=>$ownerIds));
@@ -45,7 +45,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 						}
 						$circuitImg = getCircuitImgData($circuitPath,$circuitUrl,$isUploaded);
 						mysql_query('UPDATE `'.$db.'` SET img_data="'. mysql_real_escape_string(json_encode($circuitImg)) .'" WHERE id="'.$id.'"');
-						require_once('cache_creations.php');
+						require_once('../includes/cache_creations.php');
 						@unlink(cachePath($isrc.$id.'.png'));
 						$success = 2;
 					}

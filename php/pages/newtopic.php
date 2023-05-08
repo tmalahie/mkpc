@@ -1,12 +1,12 @@
 <?php
 if (isset($_GET['category'])) {
-	include('getId.php');
-	include('language.php');
-	include('session.php');
-	include('initdb.php');
+	include('../includes/getId.php');
+	include('../includes/language.php');
+	include('../includes/session.php');
+	include('../includes/initdb.php');
 	$categoryID = intval($_GET['category']);
-	include('category_fields.php');
-	require_once('getRights.php');
+	include('../includes/category_fields.php');
+	require_once('../includes/getRights.php');
 	if ($category = mysql_fetch_array(mysql_query('SELECT '. $categoryFields .' FROM `mkcategories` WHERE id="'. $categoryID .'"'.(hasRight('manager') ? '':' AND adminonly=0')))) {
 		?>
 <!DOCTYPE html>
@@ -14,25 +14,25 @@ if (isset($_GET['category'])) {
 <head>
 <title><?= _('Mario Kart PC Forum') ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body onbeforeunload="if(document.forms[0].message.value&amp;&amp;!document.forms[0].querySelector('[type=submit]').disabled)return '<?php echo addslashes($language ? 'Warning, the message you\'re writing won\'t be saved':'Attention, le message que vous êtes en train d\'écrire ne sera pas sauvegardé'); ?>'">
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <?php
 if ($id) {
-	include('smileys.php');
+	include('../includes/smileys.php');
 	?>
 <h1><?php echo $language ? 'New topic':'Nouveau topic'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -50,9 +50,9 @@ if ($id) {
 
 	$banned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	if ($banned['banned'])
-		include('ban_msg.php');
+		include('../includes/ban_msg.php');
 	elseif (isset($_POST['titre']) && isset($_POST['message'])) {
-		include('utils-cooldown.php');
+		include('../includes/utils-cooldown.php');
 		if (isMsgCooldowned(array('newtopic' => 1))) {
 			logCooldownEvent('forum_topic');
 			printMsgCooldowned();
@@ -93,14 +93,14 @@ if ($id) {
 		$showForm = true;
 	}
 	if ($showForm) {
-		include('utils-moderation.php');
+		include('../includes/utils-moderation.php');
 		printForumReplyNotices();
 	?>
 <form method="post" action="newtopic.php?category=<?php echo $categoryID; ?>" onsubmit="if(!this.titre.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel"><label for="titre"><?php echo $language ? 'Title':'Titre'; ?> :</label></td>
 <td class="mInput"><input type="text" id="titre" name="titre" /></td></tr>
-<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('bbButtons.php'); ?></td></tr>
+<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('../includes/bbButtons.php'); ?></td></tr>
 <tr><td class="mLabel"><p><label for="message">Message :</label></p>
 <p><?php
 for ($i=0;$i<$nbSmileys;$i++)
@@ -124,7 +124,7 @@ if (hasRight('manager')) {
 </table>
 </form>
 	<?php
-	include('preview-msg.php');
+	include('../includes/preview-msg.php');
 }
 if ($showNavLinks) {
 	?>
@@ -136,11 +136,11 @@ if ($showNavLinks) {
 	}
 }
 else
-	include('needCo.php');
+	include('../includes/needCo.php');
 ?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 <script type="text/javascript" src="scripts/msg.php"></script>

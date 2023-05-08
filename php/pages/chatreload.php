@@ -1,12 +1,12 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
-include('initdb.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 $timeStamp = time();
 echo '[';
 echo '{';
 $colon = '';
-include('o_utils.php');
+include('../includes/o_utils.php');
 for ($i=0;isset($_POST['c'.$i])&&isset($_POST['m'.$i]);$i++) {
 	mysql_query('UPDATE `mkchats` SET seen=1 WHERE id<="'. $_POST['m'.$i] .'" AND sender="'. $_POST['c'.$i] .'" AND receiver="'. $id .'"');
 	if (isset($_POST['w'.$i]))

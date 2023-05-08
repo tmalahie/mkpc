@@ -14,8 +14,8 @@ elseif (isset($_GET['news'])) {
 	$logAction = $_GET['value'] ? 'LNews':'ULNews';
 }
 if (isset($tableToLock) && isset($_GET['value']) && in_array($_GET['value'], array(0,1,2))) {
-	include('session.php');
-	include('initdb.php');
+	include('../includes/session.php');
+	include('../includes/initdb.php');
 	$allowed = false;
 
 	if ($item = mysql_fetch_array(mysql_query($getItem))) {
@@ -26,7 +26,7 @@ if (isset($tableToLock) && isset($_GET['value']) && in_array($_GET['value'], arr
 				$allowed = true;
 		}
 		if (!$allowed) {
-			require_once('getRights.php');
+			require_once('../includes/getRights.php');
 			if (hasRight('moderator')) {
 				$allowed = true;
 				$moderator = true;

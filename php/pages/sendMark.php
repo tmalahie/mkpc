@@ -19,12 +19,12 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 		echo '1';
 		exit;
 	}
-	include('getId.php');
-	include('initdb.php');
-	include('session.php');
+	include('../includes/getId.php');
+	include('../includes/initdb.php');
+	include('../includes/session.php');
 	$circuitId = intval($_POST['id']);
 	$rating = intval($_POST['rating']);
-	include('ip_banned.php');
+	include('../includes/ip_banned.php');
 	if (!$id || isBanned()) exitAndFlush();
 	$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
 	if (($banned=mysql_fetch_array($getBanned)) && $banned['banned'])
@@ -40,7 +40,7 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 					mysql_query('DELETE FROM `mkratings` WHERE id='. $oldMark['id']);
 			}
 			else if ($newMark) {
-				include('utils-cooldown.php');
+				include('../includes/utils-cooldown.php');
 				if (isRatingCooldowned())
 					logCooldownEvent('track_rating');
 				else
@@ -51,7 +51,7 @@ if (isset($_POST['id']) && isset($_POST['rating'])) {
 				mysql_close();
 				exit;
 			}
-			require_once('utils-ratings.php');
+			require_once('../includes/utils-ratings.php');
 			recomputeRating($table,$circuitId);
 		}
 	}

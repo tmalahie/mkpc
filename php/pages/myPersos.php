@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: application/json');
-include('language.php');
-include('getId.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/getId.php');
+include('../includes/initdb.php');
 $getPsersos = mysql_fetch_array(mysql_query('SELECT perso1,perso2 FROM `mkpersosel` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
 if ($getPsersos) {
 	$perso1 = $getPsersos['perso1'];
@@ -50,7 +50,7 @@ if ($getPsersos) {
 			'music' => get_perso_music($data)
 		);
 	}
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	$res = array();
 	if ($perso1 != -1)
 		$res[] = toJSON($getPerso1);

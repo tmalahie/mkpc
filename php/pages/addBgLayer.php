@@ -1,14 +1,14 @@
 <?php
 if (isset($_POST['id']) && isset($_FILES['layer'])) {
 	$bgId = intval($_POST['id']);
-	include('initdb.php');
-    include('getId.php');
-    include('language.php');
-    require_once('collabUtils.php');
+	include('../includes/initdb.php');
+    include('../includes/getId.php');
+    include('../includes/language.php');
+    require_once('../includes/collabUtils.php');
     $requireOwner = !hasCollabGrants('mkbgs', $_POST['id'], $_POST['collab'], 'edit');
 	if ($bg = mysql_fetch_array(mysql_query('SELECT id,identifiant FROM `mkbgs` WHERE id="'. $bgId .'"'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'"') : '')))) {
-        require_once('utils-bgs.php');
-        include('file-quotas.php');
+        require_once('../includes/utils-bgs.php');
+        include('../includes/file-quotas.php');
         $collabSuffix = isset($_POST['collab']) ? '&collab='.$_POST['collab'] : '';
         $url = isset($_POST['url']) ? $_POST['url'] : '';
         if ($url === '')

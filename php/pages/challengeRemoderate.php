@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['challenge'])) {
-	include('initdb.php');
-	include('session.php');
-	require_once('getRights.php');
+	include('../includes/initdb.php');
+	include('../includes/session.php');
+	require_once('../includes/getRights.php');
 	if (hasRight('clvalidator')) {
 		$challengeId = $_POST['challenge'];
 		if ($challenge = mysql_fetch_array(mysql_query('SELECT status,difficulty,clist FROM `mkchallenges` WHERE id="'. $challengeId .'"'))) {
@@ -14,7 +14,7 @@ if (isset($_POST['challenge'])) {
                 $validStatus = true;
 				mysql_query('UPDATE `mkchallenges` SET status="pending_moderation",validation="" WHERE id="'. $challengeId .'"');
                 $getWins = mysql_query('SELECT player FROM `mkclwin` WHERE challenge="'. $challengeId .'"');
-                require_once('challenge-consts.php');
+                require_once('../includes/challenge-consts.php');
 				$challengeRewards = getChallengeRewards();
                 $challengeReward = $challengeRewards[$challenge['difficulty']];
                 while ($clWin = mysql_fetch_array($getWins))

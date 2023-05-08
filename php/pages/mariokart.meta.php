@@ -1,6 +1,6 @@
 <?php
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>" >
@@ -16,10 +16,10 @@ include('initdb.php');
 
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
-<?php include('c_mariokart.php'); ?>
+<?php include('../includes/c_mariokart.php'); ?>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var page = "MK";
@@ -33,12 +33,12 @@ echo json_encode($circuitNames);
 ?>;
 var recorder = "";
 var pUnlocked = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
-var cp = <?php include('getPersosMeta.php') ?>;
+var cp = <?php include('../includes/getPersosMeta.php') ?>;
 var ptsGP = "<?php echo $mkSaves; ?>";
 var isCup = false, isBattle = false, isSingle = false, complete = false, simplified = false;
-var baseOptions = <?php include('getCourseOptions.php'); ?>;
+var baseOptions = <?php include('../includes/getCourseOptions.php'); ?>;
 var PERSOS_DIR = "<?php
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	echo PERSOS_DIR;
 ?>";
 var NBCIRCUITS = <?php echo $nbVSCircuits; ?>;
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", MarioKart);
 </script></div>
 </form>
 <?php
-include('gameInitElts.php');
+include('../includes/gameInitElts.php');
 ?>
 <div id="maps-list" style="position: absolute; visibility: hidden">
 <?php
@@ -125,6 +125,6 @@ for ($i=1;$i<48;$i+=4)
 	echo '<img src="images/selectors/select_map'.$i.'.png" alt="" />';
 ?>
 </div>
-<?php include('../../mk/description.php'); ?>
+<?php include('../includes/mk/description.php'); ?>
 </body>
 </html>

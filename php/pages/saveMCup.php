@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
-	include('getId.php');
-	include('initdb.php');
-	include('ip_banned.php');
-	require_once('collabUtils.php');
+	include('../includes/getId.php');
+	include('../includes/initdb.php');
+	include('../includes/ip_banned.php');
+	require_once('../includes/collabUtils.php');
 	$mode = $_POST['mode'];
 	if (isBanned()) {
 		mysql_close();
@@ -51,7 +51,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		else {
 			mysql_query('INSERT INTO `mkmcups` VALUES(NULL,CURRENT_TIMESTAMP(),'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,0,"'. $mode .'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'","'.$optionsJson.'")');
 			$cupId = mysql_insert_id();
-			include('session.php');
+			include('../includes/session.php');
 			if ($id) {
 				$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
 				while ($follower = mysql_fetch_array($getFollowers))
@@ -65,12 +65,12 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 		for ($i=0;isset($_POST['cid'.$i]);$i++)
 			mysql_query('INSERT INTO `mkmcups_tracks` VALUES("'.$cupId.'",'.$i.',"'.$_POST['cid'.$i].'")');
 		if (isset($_POST['cl'])) {
-			include('challenge-associate.php');
+			include('../includes/challenge-associate.php');
 			challengeAssociate('mkmcups',$cupId,$_POST['cl']);
 		}
-		require_once('cache_creations.php');
+		require_once('../includes/cache_creations.php');
 		@unlink(cachePath("mcuppreview$cupId.png"));
-		include('postCircuitUpdate.php');
+		include('../includes/postCircuitUpdate.php');
 		postCircuitUpdate('mkmcups', $cupId);
 		echo $cupId;
 	}

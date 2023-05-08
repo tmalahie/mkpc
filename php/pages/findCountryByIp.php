@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: text/plain');
-include('initdb.php');
+include('../includes/initdb.php');
 $ip = $_SERVER['REMOTE_ADDR'];
 $getCountryCode = mysql_query('SELECT country,date FROM `mkipcountry` WHERE ip="'. $ip .'"');
 if ($countryCode = mysql_fetch_array($getCountryCode)) {

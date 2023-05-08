@@ -1,5 +1,5 @@
 <?php
-include('language.php');
+include('../includes/language.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
@@ -30,7 +30,7 @@ include('language.php');
 				}
 				?>
 				<?php
-				include('avatars.php');
+				include('../includes/avatars.php');
 				$lastScore = 0;
 				$leagueScores = $LEAGUES_SCORES;
 				$leagueScores[] = INF;

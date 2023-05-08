@@ -1,8 +1,8 @@
 <?php
-include('getId.php');
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 if ($getProfile = mysql_fetch_array(mysql_query('SELECT j.nom,p.nick_color FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON j.id=p.id WHERE j.id="'. $id .'"'))) {
 	if (isset($_POST['message'])) {
 		$nickColor = $_POST['message'];
@@ -19,7 +19,7 @@ if ($getProfile = mysql_fetch_array(mysql_query('SELECT j.nom,p.nick_color FROM 
 <head>
 <title><?php echo $language ? 'Edit nick color':'Modifier couleur du pseudo'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
@@ -128,14 +128,14 @@ main #nMessage td {
 </style>
 <script type="text/javascript" src="scripts/topic.js"></script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <h1><?php echo $language ? 'Edit nick color':'Modifier la couleur du pseudo'; ?></h1>
@@ -200,7 +200,7 @@ if (isset($success))
 		<div class="nick-edit-preview">
 			<h2><?php echo $language ? 'Preview:':'Aperçu :'; ?></h2>
 			<?php
-			include('preview-msg.php');
+			include('../includes/preview-msg.php');
 			?>
 		</div>
 	</div>
@@ -229,7 +229,7 @@ function previewNick() {
 }
 </script>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 }
 ?>

@@ -1,7 +1,7 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 if ($id) {
 	if (isset($_POST['code'])) {
 		if (($getCode=mysql_fetch_array(mysql_query('SELECT code,banned FROM `mkjoueurs` WHERE id="'.$id.'"'))) && password_verify($_POST['code'],$getCode['code'])) {
@@ -24,20 +24,20 @@ if ($id) {
 <head>
 <title><?php echo $language ? 'Delete account Mario Kart PC':'Supprimer compte Mario Kart PC'; ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <h1><?php echo $language ? 'Delete account':'Supprimer compte'; ?></h1>
@@ -71,11 +71,11 @@ if ($id) {
 	}
 }
 else
-	include('needCo.php');
+	include('../includes/needCo.php');
 ?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

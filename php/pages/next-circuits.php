@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['page'])) {
-	include('initdb.php');
-	require_once('utils-circuits.php');
+	include('../includes/initdb.php');
+	require_once('../includes/utils-circuits.php');
 	$page = intval($_POST['page']);
 	$tri = isset($_POST['tri']) ? $_POST['tri']:0;
 	$nom = isset($_POST['nom']) ? stripslashes($_POST['nom']):'';
@@ -15,7 +15,7 @@ if (isset($_POST['page'])) {
 		if ($getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'. $user .'"')))
 			$pids = array($getProfile['identifiant'],$getProfile['identifiant2'],$getProfile['identifiant3'],$getProfile['identifiant4']);
 	}
-	include('creations-params.php');
+	include('../includes/creations-params.php');
 	if ($type !== '') {
 		$aCircuits = array($aCircuits[$type]);
 		$weightsByType = array($weightsByType[$type]);

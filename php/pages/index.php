@@ -1,5 +1,5 @@
 <?php
-include('initdb.php');
+include('../includes/initdb.php');
 if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] != '')) {
 	function startsWith($haystack, $needle) {
 		// search backwards starting from haystack length characters from the end
@@ -8,29 +8,29 @@ if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] != '')) {
 	if (!startsWith($_SERVER['HTTP_REFERER'],'https://mkpc.malahieude.net/'))
 		mysql_query('INSERT INTO `previouspages` VALUES("'. mysql_real_escape_string($_SERVER['HTTP_REFERER']) .'")');
 }
-include('language.php');
-include('session.php');
+include('../includes/language.php');
+include('../includes/session.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?= P_("html language", "en") ?>">
 <head>
 <title>Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" href="styles/slider.css" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
 <link rel="stylesheet" href="styles/tri-nations.css" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'home';
 $homepage = true;
-include('menu.php');
+include('../includes/menu.php');
 if ($id && $myIdentifiants) {
 	mysql_query('INSERT IGNORE INTO `mkips` VALUES("'.$id.'","'.$myIdentifiants[0].'","'.$myIdentifiants[1].'","'.$myIdentifiants[2].'","'.$myIdentifiants[3].'")');
 	mysql_query('INSERT IGNORE INTO `mkbrowsers` VALUES("'.$id.'","'.mysql_real_escape_string($_SERVER['HTTP_USER_AGENT']).'")');
@@ -312,7 +312,7 @@ $slidesPath = 'images/slides';
 	</section>
 	<section id="right_section">
 		<?php
-		require_once('utils-date.php');
+		require_once('../includes/utils-date.php');
 		/*if ($id) {
 			?>
 			<div class="subsection">
@@ -361,7 +361,7 @@ $slidesPath = 'images/slides';
 		function controlLengthUtf8($str,$len) {
 			return htmlEscapeCircuitNames(controlLength($str,$len));
 		}
-		require_once('circuitEscape.php');
+		require_once('../includes/circuitEscape.php');
 		function display_sidebar($title,$link=null) {
 			?>
 			<table class="sidebar_container">
@@ -429,7 +429,7 @@ $slidesPath = 'images/slides';
 			<h2><?= _('Last topics') ?></h2>
 			<div id="forum_section" class="right_subsection">
 				<?php
-				require_once('getRights.php');
+				require_once('../includes/getRights.php');
 				$sql = 'SELECT t.id,t.titre, t.nbmsgs, t.category, t.dernier FROM `mktopics` t ' . (hasRight('manager') ? '':' WHERE !t.private') .' ORDER BY t.dernier DESC LIMIT 10';
 				if ($language)
 					$sql = 'SELECT * FROM ('. $sql .') t ORDER BY (category=4) DESC, dernier DESC';
@@ -681,9 +681,9 @@ $slidesPath = 'images/slides';
 					function showLine($line) {
 						global $language, $today;
 						$circuit = $line;
-						include('creation_line.php');
+						include('../includes/creation_line.php');
 					}
-					require_once('utils-circuits.php');
+					require_once('../includes/utils-circuits.php');
 					$nbByType = array(1,1,2,2,3,3,2,2,1,1,1,1);
 					$tracksList = listCreations(1,$nbByType,null,$aCircuits);
 					$tracksList = sortLines($tracksList);
@@ -697,7 +697,7 @@ $slidesPath = 'images/slides';
 			<h2><?= _('Last challenges') ?></h2>
 			<div id="challenges_section" class="right_subsection">
 				<?php
-				require_once('utils-challenges.php');
+				require_once('../includes/utils-challenges.php');
 				$getChallenges = mysql_query('SELECT c.*,l.type,l.circuit FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id WHERE c.status="active" AND l.type!="" ORDER BY date DESC LIMIT 15');
 				$challengeParams = array(
 					'circuit' => true,
@@ -767,7 +767,7 @@ $slidesPath = 'images/slides';
 					}
 					return $n;
 				}
-				require_once('utils-cups.php');
+				require_once('../includes/utils-cups.php');
 				while ($comment = mysql_fetch_array($getComments)) {
 					if (($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) && ($getCircuit['name'] !== null)) {
 						switch ($comment['type']) {
@@ -824,7 +824,7 @@ $slidesPath = 'images/slides';
 			if ($id) {
 				$time = time();
 				$limCoTime = floor(($time-35)*1000/67);
-				require_once('public_links.php');
+				require_once('../includes/public_links.php');
 				$getPlayingUsers = mysql_query('(
 					SELECT j.id,j.nom,j.course,j.pts_vs,j.pts_battle,
 					0 AS connecte,m.mode,m.cup,m.time,m.link,0 AS state
@@ -1156,7 +1156,7 @@ $slidesPath = 'images/slides';
 	</div>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 <script>

@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/javascript; charset=iso-8859-1');
-include('../language.php');
-include('../session.php');
-include('../smileys.php');
+include('../php/includes/language.php');
+include('../php/includes/session.php');
+include('../php/includes/smileys.php');
 ?>
 function helpBbCode() {
 	window.open('<?php echo $language ? 'helpBbCode':'aideBbCode'; ?>.html','gerer','scrollbars=1, resizable=1, width=500, height=500');

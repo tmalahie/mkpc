@@ -1,12 +1,12 @@
 <?php
-include('language.php');
-include('getId.php');
+include('../includes/language.php');
+include('../includes/getId.php');
 session_start();
-include('tokens.php');
+include('../includes/tokens.php');
 assign_token();
-include('initdb.php');
-require_once('utils-bgs.php');
-include('file-quotas.php');
+include('../includes/initdb.php');
+require_once('../includes/utils-bgs.php');
+include('../includes/file-quotas.php');
 if (isset($_FILES['layer'])) {
     $files = array();
     $layerFiles = $_FILES['layer'];

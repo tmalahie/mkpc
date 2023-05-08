@@ -27,22 +27,22 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 			}
 		}
 		if ($allPieces) {
-			include('initdb.php');
-			include('getId.php');
-			include('ip_banned.php');
+			include('../includes/initdb.php');
+			include('../includes/getId.php');
+			include('../includes/ip_banned.php');
 			if (isBanned()) {
 				mysql_close();
 				exit;
 			}
 			setcookie('mkauteur', $_POST['auteur'], 4294967295,'/');
-			require_once('circuitPrefix.php');
+			require_once('../includes/circuitPrefix.php');
 			$map = $_POST['map'];
 			$laps = isset($_POST['nl']) ? $_POST['nl']:0;
 			if (!(($laps > 0) && ($laps < 10)))
 				$laps = 3;
 			if (isset($_POST['id'])) {
 				$circuitId = intval($_POST['id']);
-				require_once('collabUtils.php');
+				require_once('../includes/collabUtils.php');
 				$requireOwner = !hasCollabGrants('mkcircuits', $circuitId, $_POST['collab'], 'edit');
 				if (mysql_numrows(mysql_query('SELECT * FROM `mkcircuits` WHERE id="'.$circuitId.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
 					mysql_query('UPDATE `mkcircuits` SET map="'. $map .'", laps="'. $laps .'", nom="'. $_POST['nom'] .'", auteur="'. $_POST['auteur'] .'" WHERE id="'. $circuitId .'"');
@@ -56,7 +56,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 					$circuitId = -1;
 			}
 			else {
-				include('utils-cooldown.php');
+				include('../includes/utils-cooldown.php');
 				if (isTrackCooldowned(array('type' => 'mkcircuits'))) {
 					logCooldownEvent('track');
 					echo -1;
@@ -65,7 +65,7 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 				}
 				mysql_query('INSERT INTO `mkcircuits` VALUES (null, CURRENT_TIMESTAMP(), '.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,0,'.$isBattle.',"'.$map.'","'.$laps.'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'")');
 				$circuitId = mysql_insert_id();
-				include('session.php');
+				include('../includes/session.php');
 				if ($id) {
 					$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
 					while ($follower = mysql_fetch_array($getFollowers))
@@ -92,12 +92,12 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 					}
 				}
 				if (isset($_POST['cl'])) {
-					include('challenge-associate.php');
+					include('../includes/challenge-associate.php');
 					challengeAssociate('mkcircuits',$circuitId,$_POST['cl']);
 				}
-				require_once('cache_creations.php');
+				require_once('../includes/cache_creations.php');
 				@unlink(cachePath("mappreview$circuitId.png"));
-				include('postCircuitUpdate.php');
+				include('../includes/postCircuitUpdate.php');
 				postCircuitUpdate('mkcircuits', $circuitId, $isBattle);
 				echo $circuitId;
 			}

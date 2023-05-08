@@ -1,18 +1,18 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['id'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$persoId = $_POST['id'];
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
-		include('session.php');
-		include('getId.php');
+		include('../includes/session.php');
+		include('../includes/getId.php');
 		if ($id)
 			mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="follower_perso" AND link="'. $_POST['id'] .'"');
 		$myPerso = (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3]));
 		if (!$myPerso) {
 			mysql_query('INSERT IGNORE INTO `mkchisto` SET id="'.$persoId.'",identifiant="'. $identifiants[0] .'",identifiant2="'. $identifiants[1] .'",identifiant3="'. $identifiants[2] .'",identifiant4="'. $identifiants[3] .'",acceleration="'.$perso['acceleration'].'",speed="'.$perso['speed'].'",handling="'.$perso['handling'].'",mass="'.$perso['mass'].'"');
 			if (isset($_POST['acceleration']) && isset($_POST['speed']) && isset($_POST['handling']) && isset($_POST['mass'])) {
-				include('perso-stats.php');
+				include('../includes/perso-stats.php');
 				if (!cheated()) {
 					$statPost = array();
 					foreach ($statsRange as $stat => $range)

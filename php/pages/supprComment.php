@@ -1,11 +1,11 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['id_msg'])) {
-	include('session.php');
+	include('../includes/session.php');
 	if ($id) {
-		include('initdb.php');
+		include('../includes/initdb.php');
 		if ($getMsg = mysql_fetch_array(mysql_query('SELECT auteur,circuit,type FROM `mkcomments` WHERE id="'. $_POST['id_msg'] .'"'))) {
-			require_once('getRights.php');
+			require_once('../includes/getRights.php');
 			if (($getMsg['auteur'] == $id) || hasRight('moderator')) {
 				mysql_query('DELETE FROM `mkcomments` WHERE id="'. $_POST['id_msg'] .'"');
 				$getComments = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkcomments` WHERE circuit="'. $getMsg['circuit'] .'" AND type="'. $getMsg['type'] .'"'));

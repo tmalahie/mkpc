@@ -1,17 +1,17 @@
 <?php
 header('Content-Type: text/plain');
-include('language.php');
-include('session.php');
+include('../includes/language.php');
+include('../includes/session.php');
 if ($id) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom,online FROM `mkjoueurs` WHERE id="'. $id .'" AND !banned'))) {
 		echo '[';
 		echo $id.',"'.$getPseudo['nom'].'",'.$language.','.$getPseudo['online'].',';
 		echo '[';
 		$getConvs = mysql_query('SELECT c.receiver,j.nom,c.reduced FROM `mkconvs` c INNER JOIN `mkjoueurs` j ON c.receiver=j.id WHERE c.sender="'. $id .'" ORDER BY c.id');
 		$v = '';
-		include('o_consts.php');
-		include('o_utils.php');
+		include('../includes/o_consts.php');
+		include('../includes/o_utils.php');
 		while ($conv = mysql_fetch_array($getConvs)) {
 			echo $v;
 			$v = ',';

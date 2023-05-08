@@ -1,8 +1,8 @@
 <?php
 if (isset($_GET['user'])) {
-	include('session.php');
-	include('language.php');
-	include('initdb.php');
+	include('../includes/session.php');
+	include('../includes/language.php');
+	include('../includes/initdb.php');
 	if ($getInfos = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $_GET['user'] .'"'))) {
 		?>
 <!DOCTYPE html>
@@ -10,7 +10,7 @@ if (isset($_GET['user'])) {
 <head>
 <title><?php echo $language ? 'Topics followed by':'Topics suivis par'; ?> <?php echo $getInfos['nom']; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
@@ -21,18 +21,18 @@ include('heads.php');
 </style>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
-	require_once('getRights.php');
+	require_once('../includes/getRights.php');
 	function controlLength($str,$maxLength) {
 		$pts = '...';
 		if (mb_strlen($str) > $maxLength)
@@ -54,7 +54,7 @@ include('menu.php');
 	<h1><?php echo $language ? 'Topics followed by':'Topics suivis par'; ?> <?php echo $getInfos['nom']; ?> (<?php echo $nbTopics; ?>)</h1>
 	<div class="following-topics">
 	<?php
-	require_once('utils-date.php');
+	require_once('../includes/utils-date.php');
 	foreach ($topics as $topic) {
 		if ($auteur = mysql_fetch_array(mysql_query('SELECT auteur FROM `mkmessages` WHERE topic='. $topic['id'] .' ORDER BY id DESC LIMIT 1'))) {
 			$name = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id='. $auteur['auteur']));
@@ -95,7 +95,7 @@ include('menu.php');
 	</div>
 </main>
 		<?php
-		include('footer.php');
+		include('../includes/footer.php');
 	}
 	mysql_close();
 }

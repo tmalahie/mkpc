@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 if ($id) {
-    include('initdb.php');
-	include('onlineUtils.php');
+    include('../includes/initdb.php');
+	include('../includes/onlineUtils.php');
 	$course = getCourse(array(
         'check_ban' => true
     ));

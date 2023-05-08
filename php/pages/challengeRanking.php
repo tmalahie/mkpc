@@ -1,14 +1,14 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <title><?php echo $language ? 'Challenges leaderboard':'Classement défis'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
@@ -30,14 +30,14 @@ include('heads.php');
 </style>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 $page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))
@@ -52,7 +52,7 @@ foreach ($get as $k => $getk)
 	<h1><?php echo $language ? 'Challenge points - Leaderboard':'Classement des points défis'; ?></h1>
 	<p>
 		<?php
-		require_once('challenge-consts.php');
+		require_once('../includes/challenge-consts.php');
 		if ($language) {
 			?>
 			<div id="ranking_explain">
@@ -140,7 +140,7 @@ foreach ($get as $k => $getk)
 			$place = ($page-1)*20;
 		$i = 0;
 		$fin = $place+20;
-		require_once('utils-leaderboard.php');
+		require_once('../includes/utils-leaderboard.php');
 		if ($joueur) {
 		?>
 	<tr class="clair">
@@ -190,7 +190,7 @@ foreach ($get as $k => $getk)
 			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'">'.$page.'</a>').'&nbsp; ';
 		}
 		$limite = ceil($nb_temps/20);
-		require_once('utils-paging.php');
+		require_once('../includes/utils-paging.php');
 		$allPages = makePaging($page,$limite);
 		foreach ($allPages as $i=>$block) {
 			if ($i)
@@ -211,7 +211,7 @@ foreach ($get as $k => $getk)
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-dummy.js"></script>

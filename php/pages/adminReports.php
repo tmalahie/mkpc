@@ -1,15 +1,15 @@
 <?php
-include('getId.php');
-include('language.php');
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 if (!hasRight('moderator')) {
 	echo _("You are not moderator");
 	mysql_close();
 	exit;
 }
-include('tokens.php');
+include('../includes/tokens.php');
 assign_token();
 mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="admin_report"');
 $pageTitle = _('Reported messages');
@@ -22,7 +22,7 @@ if ($archivedFilter)
 <head>
 <title><?= _('Mario Kart PC Forum') ?> - <?= $pageTitle ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
@@ -38,14 +38,14 @@ include('heads.php');
 <script type="text/javascript" src="scripts/topic.js"></script>
 <script type="text/javascript" src="scripts/forum-search.js?reload=1"></script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 $RES_PER_PAGE = 20;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? $_GET['page']:1;
 
@@ -64,14 +64,14 @@ function zerofill($s,$l) {
 <h1><?= _('Mario Kart PC Forum') ?> - <?= $pageTitle ?></h1>
 <div id="search-results">
 <?php
-include('avatars.php');
-include('bbCode.php');
+include('../includes/avatars.php');
+include('../includes/bbCode.php');
 $maxRes = ($page+7)*$RES_PER_PAGE;
 $getNbRes = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkreports WHERE type="topic" AND state="pending"'));
 $nbres = $getNbRes['nb'];
 $isMax = ($nbres == $maxRes);
 if ($nbres) {
-    require_once('reactions.php');
+    require_once('../includes/reactions.php');
     printReactionUI();
 
     $state = 'pending';
@@ -138,7 +138,7 @@ if ($nbres) {
             $get = $_GET;
             foreach ($get as $k => $getk)
                 $get[$k] = stripslashes($get[$k]);
-            require_once('utils-paging.php');
+            require_once('../includes/utils-paging.php');
             $allPages = makePaging($page,$nbPages);
             foreach ($allPages as $i=>$block) {
                 if ($i)
@@ -177,7 +177,7 @@ else {
 </p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 <script type="text/javascript">

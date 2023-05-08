@@ -1,10 +1,10 @@
 <?php
 if (isset($_GET['content'])) {
-	include('getId.php');
-	include('language.php');
-	include('session.php');
-	include('initdb.php');
-	include('category_fields.php');
+	include('../includes/getId.php');
+	include('../includes/language.php');
+	include('../includes/session.php');
+	include('../includes/initdb.php');
+	include('../includes/category_fields.php');
 	$content = stripslashes($_GET['content']);
 	?>
 <!DOCTYPE html>
@@ -12,18 +12,18 @@ if (isset($_GET['content'])) {
 <head>
 <title><?php echo $language ? 'Search':'Recherche'; ?> - <?= _('Mario Kart PC Forum') ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <h1><?= _('Mario Kart PC Forum') ?></h1>
@@ -66,7 +66,7 @@ function toSQLSearch($search) {
     $search = '%'. $search .'%';
     return $search;
 }
-require_once('getRights.php');
+require_once('../includes/getRights.php');
 $page = isset($_GET['page'])&&is_numeric($_GET['page']) ? $_GET['page']:1;
 $RES_PER_PAGE = 50;
 $getNbTopics = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mktopics` WHERE titre LIKE "'. toSQLSearch($content) .'" AND language='. "language" . (hasRight('manager') ? '':' AND !private')));
@@ -78,7 +78,7 @@ $topics = mysql_query(
 	WHERE t.titre LIKE "'. toSQLSearch($content) .'" AND t.language='. "language" . (hasRight('manager') ? '':' AND !private') .'
 	ORDER BY t.dernier DESC LIMIT '. (($page-1)*$RES_PER_PAGE).','.$RES_PER_PAGE
 );
-require_once('utils-date.php');
+require_once('../includes/utils-date.php');
 for ($i=0;$topic=mysql_fetch_array($topics);$i++) {
 	echo '<tr class="'. (($i%2) ? 'fonce':'clair') .'"><td class="subjects">';
 		echo '<a href="topic.php?topic='. $topic['id'] .'" class="fulllink">'. htmlspecialchars($topic['titre']) .'</a>';
@@ -124,7 +124,7 @@ if ($nbPages > 1) {
 </p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 </body>
 </html>

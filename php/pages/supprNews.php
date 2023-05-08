@@ -1,8 +1,8 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 if (isset($_GET['id']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $_GET['id'] .'"'))) && (hasRight('publisher')||($news['author']==$id))) {
 	?>
 <!DOCTYPE html>
@@ -10,23 +10,23 @@ if (isset($_GET['id']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `m
 <head>
 <title>News Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/news.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'home';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <?php
-include('smileys.php');
+include('../includes/smileys.php');
 ?>
 <h1><?php echo $language ? 'News deleted':'Suppression'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -49,7 +49,7 @@ include('smileys.php');
 ?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 </body>
 </html>

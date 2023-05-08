@@ -1,6 +1,6 @@
 <?php
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 $howEmail = false;
 $showMissNick = false;
 $showEmail = false;
@@ -40,7 +40,7 @@ Voici un lien qui va vous permettre de générer un nouveau mot de passe:
 			// Create a new cURL resource
 			$ch = curl_init($url);
 
-			include('config/mail.php');
+			include('../includes/config/mail.php');
 			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 			curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
 
@@ -107,7 +107,7 @@ elseif (isset($_GET['email'])) {
 <head>
 <title><?php echo $language ? 'Password lost - Mario Kart PC':'Mot de passe perdu - Mario Kart PC'; ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
@@ -145,14 +145,14 @@ function toggleView(id) {
 </script>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
@@ -274,7 +274,7 @@ include('menu.php');
 	?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

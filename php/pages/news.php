@@ -1,14 +1,14 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 $newsId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if (($news = mysql_fetch_array(mysql_query('SELECT title,category,author,content,status,reject_reason,locked,publication_date FROM `mknews` WHERE id="'. $newsId .'"'))) && (($news['status']=='accepted')||($news['author']==$id)||hasRight('publisher'))) {
 	$categoryID = $news['category'];
 	$category = mysql_fetch_array(mysql_query('SELECT name'. $language .' AS name,color FROM `mkcats` WHERE id="'. $categoryID .'"'));
 	$author = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $news['author'] .'"'));
-	include('tokens.php');
+	include('../includes/tokens.php');
 	assign_token();
 	if ($id) {
 		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND (type="news_comment" OR type="answer_newscom") AND link IN (SELECT id FROM `mknewscoms` WHERE news="'. $newsId .'")');
@@ -43,10 +43,10 @@ if ($getThumbnail) {
 	if (img_url_exists($getThumbnail[1]))
 		$hthumbnail = $getThumbnail[1];
 }*/
-include('utils-description.php');
+include('../includes/utils-description.php');
 $hthumbnail = false;
 $hdescription = removeBbCode($news['content']);
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <meta property="og:type" content="article" />
 <meta property="og:title" content="<?php echo htmlspecialchars($news['title']) ?>" />
@@ -55,21 +55,21 @@ include('heads.php');
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <script type="text/javascript" src="scripts/topic.js"></script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'home';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <div class="news-container">
 <div class="news-header">
 	<h1><?php echo htmlspecialchars($news['title']); ?></h1>
 	<?php
-	require_once('utils-date.php');
+	require_once('../includes/utils-date.php');
 	if (($news['author']==$id) || hasRight('publisher')) {
 		?>
 		<div class="news-options">
@@ -89,11 +89,11 @@ include('menu.php');
 </div>
 <div class="news-content">
 <?php
-include('bbCode.php');
+include('../includes/bbCode.php');
 $isNews = true;
 echo bbcode($news['content']);
 if ($news['status'] == 'accepted') {
-	require_once('reactions.php');
+	require_once('../includes/reactions.php');
 	$newsReactions = getReactions('news', $newsId);
 	echo '<div class="news-reactions">';
 	printReactions('news',$newsId, $newsReactions);
@@ -138,7 +138,7 @@ while ($comment = mysql_fetch_array($getComments))
 	$comments[] = $comment;
 populateReactionsData('newscom', $comments);
 $nbComments = count($comments);
-include('avatars.php');
+include('../includes/avatars.php');
 echo '<div class="news-nbcomments">'. ($language ? 'Comments':'Commentaires') .' ('. $nbComments .')</div>';
 if (!$nbComments)
 	echo '<div class="news-nocomment">'. ($language ? 'No comments yet. Be the first one to give your opinion !':'Aucun commentaire. Soyez le premier &agrave; donner votre avis !') .'</div>';
@@ -179,7 +179,7 @@ if (!$nbComments)
 	</div>
 </form>
 <?php
-include('smileys.php');
+include('../includes/smileys.php');
 foreach ($comments as $comment) {
 	$canEdit = (($comment['author']==$id)&&!$news['locked']) || hasRight('moderator');
 	?>
@@ -292,7 +292,7 @@ mysql_close();
 ?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <script type="text/javascript" src="scripts/news.js"></script>

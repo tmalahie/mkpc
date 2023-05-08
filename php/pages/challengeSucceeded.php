@@ -1,10 +1,10 @@
 <?php
 if (isset($_POST['id'])) {
 	header('Content-Type: application/json');
-	include('language.php');
-	include('session.php');
+	include('../includes/language.php');
+	include('../includes/session.php');
 	$res = array();
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$challengeId = $_POST['id'];
 	if ($challenge = mysql_fetch_array(mysql_query('SELECT id,clist,difficulty,status FROM `mkchallenges` WHERE id="'. $challengeId .'" AND status!="deleted"'))) {
 		if ($id)
@@ -12,7 +12,7 @@ if (isset($_POST['id'])) {
 		if ('active' === $challenge['status']) {
 			if ($id) {
 				if (mysql_affected_rows()) {
-					require_once('challenge-consts.php');
+					require_once('../includes/challenge-consts.php');
 					$reward = getChallengeReward($challenge);
 					$res['pts'] = $reward;
 					$getOldPts = mysql_fetch_array(mysql_query('SELECT pts_challenge FROM `mkjoueurs` WHERE id='.$id));
@@ -21,7 +21,7 @@ if (isset($_POST['id'])) {
 					mysql_query('UPDATE `mkjoueurs` SET pts_challenge='.$res['pts_after'].' WHERE id='. $id);
 				}
 				if (date('Y') <= 2022) {
-					include('advent-selected-challenges.php');
+					include('../includes/advent-selected-challenges.php');
 					$selectedDay = null;
 					foreach ($selectedChallenges as $d => $selectedChallengeId) {
 						if ($selectedChallengeId == $challengeId) {
@@ -45,7 +45,7 @@ if (isset($_POST['id'])) {
 						}
 						if (!$alreadyCompleted) {
 							mysql_query('INSERT INTO mkadvent SET year="'. $year .'", user="'. $id .'", day="'. $selectedDay .'"');
-							require_once('challenge-consts.php');
+							require_once('../includes/challenge-consts.php');
 							$reward = getChallengeReward($challenge);
 							if ($shouldCompleteAll) {
 								$otherChallenges = mysql_query('SELECT difficulty FROM mkchallenges WHERE clist="'. $challenge['clist'] .'" AND status="active" AND id!="'. $challengeId .'"');
@@ -68,7 +68,7 @@ if (isset($_POST['id'])) {
 						}
 					}
 				}
-				include('challengeMyRate.php');
+				include('../includes/challengeMyRate.php');
 				$myRate = getMyRating($challenge);
 				if (!empty($myRate))
 					$res['rating'] = $myRate['rating'];
@@ -81,7 +81,7 @@ if (isset($_POST['id'])) {
 			$res['publish'] = true;
 		}
 		if ($id) {
-			require_once('utils-challenges.php');
+			require_once('../includes/utils-challenges.php');
 			$completedRewards = getRewardedPlayers(array(
 				'challenge' => $challengeId,
 				'player' => $id

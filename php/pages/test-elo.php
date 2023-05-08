@@ -1,5 +1,5 @@
 <?php
-include('initdb.php');
+include('../includes/initdb.php');
 $scores = array(17000,45000);
 $nbScores = count($scores);
 $total = 0;

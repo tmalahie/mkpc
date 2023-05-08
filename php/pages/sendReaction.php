@@ -1,10 +1,10 @@
 <?php
 //header('Content-Type: text/html');
 if (isset($_POST['type']) && isset($_POST['link']) && isset($_POST['reaction'])) {
-	include('session.php');
+	include('../includes/session.php');
 	if ($id) {
-		require_once('reactions.php');
-		include('initdb.php');
+		require_once('../includes/reactions.php');
+		include('../includes/initdb.php');
 		$type = $_POST['type'];
 		$link = $_POST['link'];
 		$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));

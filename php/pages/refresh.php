@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 if ($id) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'))) {
 		$pseudo = $getPseudo['nom'];
 		$timestamp = time();
@@ -11,7 +11,7 @@ if ($id) {
 		mysql_query("INSERT INTO `writting` VALUES ('$pseudo', '$timestamp', '$writting')");
 		
 		echo '[';
-		include('print_msgs.php');
+		include('../includes/print_msgs.php');
 		echo ',[';
 		$writes = mysql_query("SELECT * FROM `writting` WHERE pseudo != '$pseudo'");
 		if ($donnees = mysql_fetch_array($writes)) {

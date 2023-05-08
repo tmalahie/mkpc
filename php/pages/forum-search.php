@@ -1,15 +1,15 @@
 <?php
-include('getId.php');
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <title><?= _('Mario Kart PC Forum') ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
@@ -28,14 +28,14 @@ include('heads.php');
 <script type="text/javascript" src="scripts/topic.js"></script>
 <script type="text/javascript" src="scripts/forum-search.js"></script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 $RES_PER_PAGE = 20;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? $_GET['page']:1;
 
@@ -90,7 +90,7 @@ $oneset = (is_numeric($category)||$title||$author||$message||$date0||$date1||$to
 				<select name="category"  id="category">
 					<option value=""><?php echo $language ? 'All categories':'Toutes les catégories'; ?></option>
 					<?php
-					include('category_fields.php');
+					include('../includes/category_fields.php');
 					$categories = mysql_query('SELECT id,'. $categoryFields .' FROM `mkcategories` ORDER BY '. $orderingField);
 					while ($cat = mysql_fetch_array($categories))
 						echo '<option value="'.$cat['id'].'"'. (($cat['id']===$category)?' selected="selected"':'') .'>'.$cat['nom'].'</option>';
@@ -154,9 +154,9 @@ function toSQLSearch($search) {
     return $search;
 }
 if ($oneset) {
-	include('avatars.php');
-	require_once('getRights.php');
-	include('bbCode.php');
+	include('../includes/avatars.php');
+	require_once('../includes/getRights.php');
+	include('../includes/bbCode.php');
 	$from = '`mkmessages` m INNER JOIN `mktopics` t ON t.id=m.topic';
 	$wheres = array();
 	//$wheres[] = 'language='. $language;
@@ -199,7 +199,7 @@ if ($oneset) {
 	?></h2>
 	<?php
 	if ($nbres) {
-		require_once('reactions.php');
+		require_once('../includes/reactions.php');
 		printReactionUI();
 
 		$sql = "SELECT m.id,t.titre,m.topic,m.message,m.auteur,t.private,m.date FROM $from WHERE $where";
@@ -245,7 +245,7 @@ if ($oneset) {
 				$get = $_GET;
 				foreach ($get as $k => $getk)
 					$get[$k] = stripslashes($get[$k]);
-				require_once('utils-paging.php');
+				require_once('../includes/utils-paging.php');
 				$allPages = makePaging($page,$nbPages);
 				foreach ($allPages as $i=>$block) {
 					if ($i)
@@ -277,7 +277,7 @@ if ($oneset) {
 <p class="forumButtons"><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-player.js"></script>

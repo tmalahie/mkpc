@@ -1,7 +1,7 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 $countryId = null;
 if (isset($_GET['country'])) {
 	$country = $_GET['country'];
@@ -16,19 +16,19 @@ $sort = isset($_GET['sort']) ? $_GET['sort']:null;
 <head>
 <title>Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 $page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $place = ($page-1)*20;
 ?>
@@ -39,7 +39,7 @@ $place = ($page-1)*20;
 		<div style="margin: 4px 0"><label><?php echo $language ? 'Country:':'Pays :'; ?>
 		<select name="country">
 		<?php
-		include('list-countries.php');
+		include('../includes/list-countries.php');
 		?>
 		</select></div>
 		<div style="margin: 4px 0"><label><?php echo $language ? 'Sort by:':'Trier par :'; ?>
@@ -91,7 +91,7 @@ $place = ($page-1)*20;
 		echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. http_build_query($get) .'"">'.$page.'</a>').'&nbsp; ';
 	}
 	$limite = ceil($nb_temps/20);
-	require_once('utils-paging.php');
+	require_once('../includes/utils-paging.php');
 	$allPages = makePaging($page,$limite);
 	foreach ($allPages as $i=>$block) {
 		if ($i)
@@ -107,7 +107,7 @@ $place = ($page-1)*20;
 	</p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

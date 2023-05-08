@@ -1,9 +1,9 @@
 <?php
-include('getId.php');
-include('session.php');
-include('language.php');
-require_once('persos.php');
-include('initdb.php');
+include('../includes/getId.php');
+include('../includes/session.php');
+include('../includes/language.php');
+require_once('../includes/persos.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -13,7 +13,7 @@ include('initdb.php');
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var persoId = -1;

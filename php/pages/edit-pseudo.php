@@ -1,12 +1,12 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	exit;
 }
-include('language.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -18,7 +18,7 @@ if (!hasRight('moderator')) {
 <head>
 <title><?php echo $language ? 'Change member\'s nick':'Modifier le pseudo d\'un membre'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
@@ -32,21 +32,21 @@ include('heads.php');
 </style>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 $success = null;
 $message = null;
 if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	$old = $_POST['joueur'];
 	$new = $_POST['newpseudo'];
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $old .'"'))) {
-		include('utils-nicks.php');
+		include('../includes/utils-nicks.php');
 		$success = editNick($getId['id'],$old,$new,$message);
 		if ($success)
 			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "nick '. $getId['id'] .' '. $old .'")');
@@ -82,7 +82,7 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-player.js"></script>

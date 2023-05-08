@@ -2,12 +2,12 @@
 if (isset($_POST['sender']) && isset($_POST['receiver']) && isset($_POST['lastsignalid'])) {
     header('Content-Type: application/json');
     $res = array();
-    include('session.php');
+    include('../includes/session.php');
     if (!$id) {
         echo json_encode($res);
         exit;
     }
-	include('initdb.php');
+	include('../includes/initdb.php');
     if ($getSender = mysql_fetch_array(mysql_query('SELECT player,course FROM mkchatvoc WHERE id="'.$_POST['sender'] .'"'))) {
         if ($getReceiver = mysql_fetch_array(mysql_query('SELECT player,course FROM mkchatvoc WHERE id="'.$_POST['receiver'] .'"'))) {
             if (($getReceiver['player'] == $id) && ($getSender['course'] == $getReceiver['course'])) {

@@ -1,4 +1,4 @@
 <?php
 $mode = 0;
-include('multicup.php');
+include('../includes/multicup.php');
 ?>

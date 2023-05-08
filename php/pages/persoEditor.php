@@ -1,12 +1,12 @@
 <?php
-include('getId.php');
-include('language.php');
+include('../includes/getId.php');
+include('../includes/language.php');
 session_start();
-include('tokens.php');
+include('../includes/tokens.php');
 assign_token();
-require_once('persos.php');
-include('initdb.php');
-include('file-quotas.php');
+require_once('../includes/persos.php');
+include('../includes/initdb.php');
+include('../includes/file-quotas.php');
 if (isset($_FILES['sprites'])) {
 	$upload = handle_upload($_FILES['sprites']);
 	if (isset($upload['id']))
@@ -24,7 +24,7 @@ if (isset($_FILES['sprites'])) {
 <link rel="stylesheet" href="styles/collabs.css" />
 <link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript" src="scripts/collabs.js"></script>
 <script type="text/javascript">

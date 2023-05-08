@@ -1,15 +1,15 @@
 <?php
-include('session.php');
-include('language.php');
-include('initdb.php');
-require_once('utils-challenges.php');
+include('../includes/session.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+require_once('../includes/utils-challenges.php');
 if (isset($_GET['moderate'])) {
-	require_once('getRights.php');
+	require_once('../includes/getRights.php');
 	if (hasRight('clvalidator'))
 		$moderate = true;
 }
 elseif (isset($_GET['remoderate'])) {
-	require_once('getRights.php');
+	require_once('../includes/getRights.php');
 	if (hasRight('clvalidator'))
 		$remoderate = true;
 }
@@ -100,13 +100,13 @@ $nbPages = ceil($nbChallenges/$challengesPerPage);
 <head>
 <title><?php echo $challengeTitle; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/creations.css" />
 <link rel="stylesheet" type="text/css" href="styles/challenge-creations.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 
 <script type="text/javascript">
@@ -251,9 +251,9 @@ function challengeModerate(data, url) {
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<div class="challenges-list-ctn">
@@ -383,7 +383,7 @@ include('menu.php');
 		</script>
 		<?php
 		if ($nbChallenges) {
-			require_once('utils-date.php');
+			require_once('../includes/utils-date.php');
 			?>
 			<div class="challenges-list">
 			<?php
@@ -570,7 +570,7 @@ include('menu.php');
 				<div class="challengePages"><p>
 					Page : <?php
 					$get = $_GET;
-					require_once('utils-paging.php');
+					require_once('../includes/utils-paging.php');
 					$allPages = makePaging($currentPage,$nbPages,4);
 					foreach ($allPages as $i=>$block) {
 						if ($i)
@@ -619,6 +619,6 @@ include('menu.php');
 </body>
 </html>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>

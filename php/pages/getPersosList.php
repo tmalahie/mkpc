@@ -1,7 +1,7 @@
 <?php
-include('getId.php');
-include('initdb.php');
-require_once('persos.php');
+include('../includes/getId.php');
+include('../includes/initdb.php');
+require_once('../includes/persos.php');
 function toSQLSearch($search) {
     $search = str_replace('"', '""', $search);
     $search = str_replace('\\', '\\\\\\\\', $search);

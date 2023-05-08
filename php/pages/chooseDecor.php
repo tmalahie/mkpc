@@ -1,8 +1,8 @@
 <?php
-include('language.php');
-include('getId.php');
-include('initdb.php');
-require_once('utils-decors.php');
+include('../includes/language.php');
+include('../includes/getId.php');
+include('../includes/initdb.php');
+require_once('../includes/utils-decors.php');
 $myDecors = mysql_query('SELECT * FROM mkdecors WHERE identifiant="'. $identifiants[0] .'" AND extra_parent_id IS NULL ORDER BY id DESC');
 ?>
 <!DOCTYPE html>
@@ -100,7 +100,7 @@ function selectDecorSelectorCollab(e) {
             <label>
                 <span><?php echo $language ? 'Collaboration link' : 'Lien de collaboration'; ?><a href="javascript:showDecorCollabExplein()">[?]</a>:</span>
                 <input type="url" name="collab-link" required="required" placeholder="<?php
-                    include('collabUtils.php');
+                    include('../includes/collabUtils.php');
                     $collab = array(
                         'type' => 'mkdecors',
                         'creation_id' => 42,

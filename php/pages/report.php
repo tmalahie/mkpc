@@ -1,11 +1,11 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['type']) && isset($_POST['link'])) {
-    include('session.php');
+    include('../includes/session.php');
     echo 1;
     if (!$id)
         exit;
-    include('initdb.php');
+    include('../includes/initdb.php');
     $getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
     if ($getBanned && $getBanned['banned']) {
         mysql_close();

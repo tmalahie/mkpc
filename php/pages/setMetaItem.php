@@ -1,6 +1,6 @@
 <?php
 $distrib = isset($_POST['distribution']) ? $_POST['distribution']:null;
-include('initdb.php');
+include('../includes/initdb.php');
 if (!isset($_GET['id'])) exit;
 if ($distrib) {
     $newSettings = array(

@@ -1,9 +1,9 @@
 <?php
 if (!isset($_POST['id'])) exit;
 header('Content-Type: application/json');
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 $res = array();
 if (hasRight('moderator')) {
     if ($report = mysql_fetch_array(mysql_query('SELECT type,link FROM mkreports WHERE id="'. $_POST['id'] .'"'))) {

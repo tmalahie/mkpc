@@ -6,7 +6,7 @@
 </head>
 <body>
 <?php
-include('initdb.php');
+include('../includes/initdb.php');
 $getComments = mysql_query('SELECT c.circuit,c.type,c.auteur,c.message,c.date,j.nom FROM (SELECT * FROM `mkcomments` ORDER BY id DESC) as c, `mkjoueurs` j WHERE c.auteur=j.id GROUP BY c.type,c.circuit ORDER BY c.id DESC');
 echo '<ul>';
 while ($comment = mysql_fetch_array($getComments)) {

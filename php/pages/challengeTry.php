@@ -1,10 +1,10 @@
 <?php
 $res = array();
 if (isset($_POST['challenge']) || isset($_GET['challenge'])) {
-	include('language.php');
-	include('session.php');
-	include('initdb.php');
-	require_once('utils-challenges.php');
+	include('../includes/language.php');
+	include('../includes/session.php');
+	include('../includes/initdb.php');
+	require_once('../includes/utils-challenges.php');
 	if (isset($_POST['challenge']))
 		$challengeId = intval($_POST['challenge']);
 	else {

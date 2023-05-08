@@ -1,6 +1,6 @@
 <?php
 if (!isset($_GET['id'])) exit;
-include('initdb.php');
+include('../includes/initdb.php');
 $baseSettings = array(
     'range' => 1000,
     'position' => 0.5,

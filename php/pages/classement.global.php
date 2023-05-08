@@ -1,14 +1,14 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <title><?php echo $language ? 'Time trial ranking':'Classement contre-la-montre'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
@@ -34,14 +34,14 @@ include('heads.php');
 </style>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 $page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
 $cc = isset($_GET['cc']) ? intval($_GET['cc']) : 150;
@@ -133,7 +133,7 @@ else
 			$place = ($page-1)*20;
 		$i = 0;
 		$fin = $place+20;
-		require_once('utils-leaderboard.php');
+		require_once('../includes/utils-leaderboard.php');
 		if ($joueur) {
 		?>
 	<tr class="clair">
@@ -183,7 +183,7 @@ else
 			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?cc='.$cc.'&amp;page='.$page.'">'.$page.'</a>').'&nbsp; ';
 		}
 		$limite = ceil($nb_temps/20);
-		require_once('utils-paging.php');
+		require_once('../includes/utils-paging.php');
 		$allPages = makePaging($page,$limite);
 		foreach ($allPages as $i=>$block) {
 			if ($i)
@@ -206,7 +206,7 @@ else
     </p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-player.js"></script>

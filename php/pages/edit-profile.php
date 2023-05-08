@@ -1,11 +1,11 @@
 <?php
-include('getId.php');
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 $userId = $id;
 if (isset($_GET['member'])) {
-	require_once('getRights.php');
+	require_once('../includes/getRights.php');
 	if (!hasRight('moderator')) {
 		echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 		mysql_close();
@@ -30,21 +30,21 @@ if ($getProfile = mysql_fetch_array(mysql_query('SELECT YEAR(birthdate) AS y0,MO
 		echo $language ? "Edit ". $member['nom'] ."'s profile":"Modifier le profil de ". $member['nom'];
 ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
 <script type="text/javascript" src="scripts/topic.js"></script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 
 function zerofill($s,$l) {
 	while (strlen($s) < $l)
@@ -138,7 +138,7 @@ else {
 			</td>
 			<td>
 				<select type="text" name="country" id="country"><?php
-				include('list-countries.php');
+				include('../includes/list-countries.php');
 				?></select>
 			</td>
 		</tr>
@@ -197,7 +197,7 @@ else {
 </form>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 }
 mysql_close();
 ?>

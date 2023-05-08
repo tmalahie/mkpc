@@ -1,13 +1,13 @@
 <?php
 header('Content-Type: application/json');
-include('initdb.php');
+include('../includes/initdb.php');
 session_start();
 $res = array();
 if (!empty($_SESSION['mkid'])) {
 	$id = $_SESSION['mkid'];
-	include('onlineUtils.php');
+	include('../includes/onlineUtils.php');
 	$course = getCourse(array('spectator' => 0));
-	require_once('onlineStateUtils.php');
+	require_once('../includes/onlineStateUtils.php');
 	if ($getExtra = getCourseExtra($course)) {
 		if ($getExtra->state == 'selecting_teams') {
 			if (isset($_POST['cancel'])) {
@@ -40,7 +40,7 @@ if (!empty($_SESSION['mkid'])) {
 			}
 		}
 	}
-	include('fetchTeams.php');
+	include('../includes/fetchTeams.php');
 }
 mysql_close();
 echo json_encode($res);

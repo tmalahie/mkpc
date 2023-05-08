@@ -1,14 +1,14 @@
 <?php
 header('Content-Type: application/json');
-include('initdb.php');
+include('../includes/initdb.php');
 session_start();
 $res = array();
 if (!empty($_SESSION['mkid'])) {
 	$id = $_SESSION['mkid'];
-	include('onlineUtils.php');
+	include('../includes/onlineUtils.php');
 	$course = getCourse();
 	if ($course) {
-		include('onlineStateUtils.php');
+		include('../includes/onlineStateUtils.php');
 		if ($getExtra = getCourseExtra($course)) {
 			if ($getExtra->state == 'selecting_teams') {
 				if ($getTime = mysql_fetch_array(mysql_query('SELECT time FROM `mariokart` WHERE id='. $course))) {
@@ -21,7 +21,7 @@ if (!empty($_SESSION['mkid'])) {
 				}
 			}
 		}
-		include('fetchTeams.php');
+		include('../includes/fetchTeams.php');
 	}
 }
 mysql_close();

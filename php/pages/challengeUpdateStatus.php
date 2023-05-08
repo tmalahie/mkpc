@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['challenge']) && isset($_POST['status'])) {
-	include('getId.php');
-	include('initdb.php');
-	include('language.php');
-	require_once('utils-challenges.php');
+	include('../includes/getId.php');
+	include('../includes/initdb.php');
+	include('../includes/language.php');
+	require_once('../includes/utils-challenges.php');
 	$challenge = getChallenge($_POST['challenge']);
 	$newStatus = 'unknown';
 	if (isset($challenge)) {
@@ -23,8 +23,8 @@ if (isset($_POST['challenge']) && isset($_POST['status'])) {
 		case 'pending_moderation':
 			if (($getClRace = mysql_fetch_array(mysql_query('SELECT type FROM `mkclrace` WHERE id="'. $challenge['clist'] .'"'))) && $getClRace['type']) {
 				if ('pending_publication' === $oldStatus) {
-					include('session.php');
-					require_once('getRights.php');
+					include('../includes/session.php');
+					require_once('../includes/getRights.php');
 					if (hasRight('clvalidator')) {
 						$newStatus = 'active';
 						activateChallenge($challenge);

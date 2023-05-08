@@ -1,7 +1,7 @@
 <?php
-include('session.php');
-include('language.php');
-include('initdb.php');
+include('../includes/session.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 $creation = false;
 $cup = false;
 $mcup = false;
@@ -63,13 +63,13 @@ $pseudo = isset($_GET['pseudo']) ? $_GET['pseudo']:null;
 <head>
 <title><?php echo $language ? 'Time trial ranking':'Classement contre-la-montre'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <style type="text/css">
 main {
@@ -170,9 +170,9 @@ main a:hover {
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <h1><?php
@@ -224,7 +224,7 @@ include('menu.php');
 </p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-dummy.js"></script>
@@ -234,7 +234,7 @@ function Resultat() {
 	this.classement = new Array();
 }
 var circuits = <?php
-require_once('circuitEscape.php');
+require_once('../includes/circuitEscape.php');
 if ($creation) {
 	echo '[';
 	$v = '';
@@ -297,7 +297,7 @@ function getPlace(id,place) {
 	return place+2;
 }
 var PERSOS_DIR = "<?php
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	echo PERSOS_DIR;
 ?>";
 if (!String.prototype.startsWith) {

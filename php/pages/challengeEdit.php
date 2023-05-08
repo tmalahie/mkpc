@@ -1,16 +1,16 @@
 <?php
-include('getId.php');
-include('language.php');
-include('initdb.php');
-include('ip_banned.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+include('../includes/ip_banned.php');
 if (isBanned()) {
 	mysql_close();
 	exit;
 }
-require_once('utils-challenges.php');
+require_once('../includes/utils-challenges.php');
 if (isset($_GET['moderate'])) {
-	include('session.php');
-	require_once('getRights.php');
+	include('../includes/session.php');
+	require_once('../includes/getRights.php');
 	if (hasRight('clvalidator'))
 		$moderate = true;
 }
@@ -21,12 +21,12 @@ if (isset($_GET['ch'])) {
 }
 elseif (isset($_GET['cl']))
 	$clRace = getClRace($_GET['cl'], !empty($moderate));
-include('challenge-cldata.php');
+include('../includes/challenge-cldata.php');
 if (isset($_POST['name'])) {
 	$clMsg = null;
 	if (empty($challenge) || ('pending_completion' === $challenge['status']) || !empty($moderate)) {
 		if (isset($_POST['goal']) && isset($_POST['difficulty'])) {
-			require_once('challenge-consts.php');
+			require_once('../includes/challenge-consts.php');
 			$difficulties = getChallengeDifficulties();
 			if (!isset($difficulties[$_POST['difficulty']]))
 				$_POST['difficulty'] = 0;
@@ -89,10 +89,10 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 	if (isset($challenge))
 		$chRules = getChallengeRulesByType($challenge);
 	ob_start();
-	include('getPersos.php');
+	include('../includes/getPersos.php');
 	$listPersos = json_decode(ob_get_clean());
 	ob_start();
-	include('getLocks.php');
+	include('../includes/getLocks.php');
 	$unlocked = json_decode(ob_get_clean());
 	$persoOptions = array();
 	$i = 0;
@@ -171,7 +171,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 						$decorId = intval($customDecor->id);
 						$actualType = $customDecor->type;
 						if ($customData = mysql_fetch_array(mysql_query('SELECT name,sprites FROM mkdecors WHERE id='. $decorId))) {
-							require_once('utils-decors.php');
+							require_once('../includes/utils-decors.php');
 							$decorSrcs = decor_sprite_srcs($customData['sprites']);
 							$decorOption['icon'] = $decorSrcs['map'];
 							$decorOption['custom'] = 1;
@@ -188,7 +188,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 				if ($getMap = mysql_fetch_array(mysql_query('SELECT map FROM `mkcircuits` WHERE id="'. $decorCircuit .'"')))
 					$decorMap = $getMap['map'];
 			}
-			require_once('circuitEnumsQuick.php');
+			require_once('../includes/circuitEnumsQuick.php');
 			$decorTypes = $decorTypes[$decorMap];
 			foreach ($decorTypes as $type) {
 				$decorOptions[] = array(
@@ -210,7 +210,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <?php
 if (empty($moderate))
-	include('o_online.php');
+	include('../includes/o_online.php');
 ?>
 
 <title><?php echo $language ? 'Challenge editor':'Éditeur de défis'; ?> - Mario Kart PC</title>

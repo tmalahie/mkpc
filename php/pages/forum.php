@@ -1,8 +1,8 @@
 <?php
-include('getId.php');
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 	if (($getId = mysql_fetch_array(mysql_query('SELECT * FROM `mkjoueurs` WHERE nom="'.$_POST['pseudo'].'"'))) && password_verify($_POST['code'],$getId['code'])) {
 		if ($getId['deleted'] && !isset($_GET['forced'])) {
@@ -11,7 +11,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 		else {
 			$id = $getId['id'];
 			$_SESSION['mkid'] = $id;
-			require_once('credentials.php');
+			require_once('../includes/credentials.php');
 			setcookie('mkp', credentials_encrypt($id,$_POST['code']), 4294967295,'/');
 			if ($getId['deleted'])
 				mysql_query('UPDATE `mkjoueurs` SET deleted=0 WHERE id="'. $id .'"');
@@ -24,7 +24,7 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 				}
 			}
 			banIfBlackIp();
-			include('setId.php');
+			include('../includes/setId.php');
 			banIfBlackIp();
 		}
 	}
@@ -35,18 +35,18 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 <head>
 <title><?= _("Mario Kart PC Forum") ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css?reload=2" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 if ($id && $myIdentifiants) {
 	mysql_query('INSERT IGNORE INTO `mkips` VALUES("'.$id.'","'.$myIdentifiants[0].'","'.$myIdentifiants[1].'","'.$myIdentifiants[2].'","'.$myIdentifiants[3].'")');
 	mysql_query('INSERT IGNORE INTO `mkbrowsers` VALUES("'.$id.'","'.mysql_real_escape_string($_SERVER['HTTP_USER_AGENT']).'")');
@@ -66,7 +66,7 @@ if ($id) {
 	<a href="logout.php"><?= _('Log out') ?></a>
 	</p>
 	<?php
-	include('rights-msg.php');
+	include('../includes/rights-msg.php');
 }
 else {
 	$restoreAccount = "javascript:document.forms[0].action='?forced';document.forms[0].submit()";
@@ -131,9 +131,9 @@ else {
 <td><?= _('Last message') ?></td>
 </tr>
 <?php
-include('category_fields.php');
-require_once('utils-date.php');
-require_once('getRights.php');
+include('../includes/category_fields.php');
+require_once('../includes/utils-date.php');
+require_once('../includes/getRights.php');
 $categories = mysql_query('SELECT id,'. $categoryFields .' FROM `mkcategories` ORDER BY '. $orderingField);
 $nbTopics = 0;
 for ($i=0;$category=mysql_fetch_array($categories);$i++) {
@@ -219,7 +219,7 @@ for ($i=0;$category=mysql_fetch_array($categories);$i++) {
 </main>
 <?php
 mysql_close();
-include('footer.php');
+include('../includes/footer.php');
 ?>
 </body>
 </html>

@@ -1,14 +1,14 @@
 <?php
 if (isset($_GET['id'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$layerId = intval($_GET['id']);
 	if ($layer = mysql_fetch_array(mysql_query('SELECT l.bg,l.filename,l.url,b.identifiant FROM `mkbglayers` l INNER JOIN `mkbgs` b ON l.bg=b.id WHERE l.id="'. $layerId .'"'))) {
-		include('language.php');
-		include('getId.php');
-		require_once('collabUtils.php');
+		include('../includes/language.php');
+		include('../includes/getId.php');
+		require_once('../includes/collabUtils.php');
 		if (($layer['identifiant'] == $identifiants[0]) || hasCollabGrants('mkbgs', $layer['bg'], $_GET['collab'], 'edit')) {
-			include('utils-bgs.php');
-			include('file-quotas.php');
+			include('../includes/utils-bgs.php');
+			include('../includes/file-quotas.php');
 			$collabSuffix = isset($_GET['collab']) ? '&collab='.urlencode($_GET['collab']) : '';
 			if (isset($_FILES['layer'])) {
 				$url = isset($_POST['url']) ? $_POST['url'] : '';
@@ -58,7 +58,7 @@ if (isset($_GET['id'])) {
 <link rel="stylesheet" href="styles/bg-editor.css" />
 <script type="text/javascript" src="scripts/bg-editor.js"></script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <?php
 if (isset($spriteSrc)) {

@@ -8,7 +8,7 @@ if (isset($_POST['prefix'])) {
 	    $search = $search .'%';
 	    return $search;
 	}
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$getPlayers = mysql_query('SELECT nom FROM `mkjoueurs` WHERE nom LIKE "'. toSQLSearch($_POST['prefix']) .'" AND deleted=0 ORDER BY CHAR_LENGTH(nom),id LIMIT 10');
 	$v = '';
 	echo '[';

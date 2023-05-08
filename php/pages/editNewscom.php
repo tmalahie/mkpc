@@ -1,14 +1,14 @@
 <?php
 if (isset($_GET['id']) && isset($_POST['comment'])) {
-	include('session.php');
+	include('../includes/session.php');
 	if ($id) {
-		include('initdb.php');
+		include('../includes/initdb.php');
 		$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 		if ($getBanned && $getBanned['banned']) {
 			mysql_close();
 			exit;
 		}
-		require_once('getRights.php');
+		require_once('../includes/getRights.php');
 		$getCom = mysql_query('SELECT author,news FROM `mknewscoms` WHERE id="'. $_GET['id'] .'"');
 		if ($comment = mysql_fetch_array($getCom)) {
 			if (($comment['author']==$id) || hasRight('moderator')) {

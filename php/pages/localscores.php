@@ -1,9 +1,9 @@
 <?php
 if (!isset($_GET['key'])) exit;
-include('language.php');
-include('session.php');
-include('initdb.php');
-include('onlineRulesUtils.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+include('../includes/onlineRulesUtils.php');
 $courseOptions = mysql_fetch_array(mysql_query('SELECT rules FROM `mkgameoptions` g WHERE id="'. $_GET['key'] .'"'));
 if (!$courseOptions) exit;
 $courseRules = json_decode($courseOptions['rules']);
@@ -13,13 +13,13 @@ $courseRules = json_decode($courseOptions['rules']);
 <head>
 <title><?php echo $language ? 'Private game ranking':'Classement partie privée'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 
 <style type="text/css">
@@ -54,9 +54,9 @@ function resetRanking() {
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<h1><?php echo $language ? 'Private game ranking':'Classement partie privée'; ?> - Mario Kart PC</h1>
@@ -104,7 +104,7 @@ include('menu.php');
 	<td>Score</td>
 	</tr>
     <?php
-    require_once('utils-leaderboard.php');
+    require_once('../includes/utils-leaderboard.php');
 	foreach ($records as $i=>$record) {
         $place = $i+1;
         $playerName = $record['cpu'] ? getCpuName($cpuRankById[$record['id']], $courseRules) : $record['nom'];
@@ -153,7 +153,7 @@ include('menu.php');
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-player.js"></script>

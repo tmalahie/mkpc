@@ -1,16 +1,16 @@
 <?php
 if (isset($_POST['id'])) {
-	include('escape_all.php');
+	include('../includes/escape_all.php');
 	$id = $_POST['id'];
 	$src = isset($_POST['arenes']) ? 'course':'map';
 	$db = isset($_POST['arenes']) ? 'arenes':'circuits';
 	$isrc = isset($_POST['arenes']) ? 'coursepreview':'racepreview';
-	include('getId.php');
-	include('initdb.php');
-	require_once('collabUtils.php');
+	include('../includes/getId.php');
+	include('../includes/initdb.php');
+	require_once('../includes/collabUtils.php');
 	$requireOwner = !hasCollabGrants($db, $id, $_POST['collab'], 'edit');
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,identifiant2,identifiant3,identifiant4 FROM `'.$db.'` WHERE id="'.$id.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
-		require_once('circuitImgUtils.php');
+		require_once('../includes/circuitImgUtils.php');
 		$circuitImg = json_decode($circuit['img_data']);
 		if (!$circuitImg->local)
 			exit;
@@ -41,7 +41,7 @@ if (isset($_POST['id'])) {
 		$newPath = CIRCUIT_BASE_PATH.$circuitImg->url;
 		eval('image'.$ext2.'($destination, "$newPath");');
 
-		include('file-quotas.php');
+		include('../includes/file-quotas.php');
 		$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
 		$poids = file_total_size(array('identifiants'=> $ownerIds));
 		if ($poids > file_total_quota($circuit)) {
@@ -51,7 +51,7 @@ if (isset($_POST['id'])) {
 		else {
 			@unlink($path);
 			mysql_query('UPDATE `'.$db.'` SET img_data="'. getCircuitImgDataRaw($newPath,$circuitImg->url,1) .'" WHERE id="'.$id.'"');
-			require_once('cache_creations.php');
+			require_once('../includes/cache_creations.php');
 			@unlink(cachePath($isrc.$id.'.png'));
 		}
 

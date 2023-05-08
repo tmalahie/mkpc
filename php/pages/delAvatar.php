@@ -1,9 +1,9 @@
 <?php
-include('initdb.php');
-include('session.php');
+include('../includes/initdb.php');
+include('../includes/session.php');
 if (isset($_GET['id'])) {
 	$aId = $id;
-	require_once('getRights.php');
+	require_once('../includes/getRights.php');
 	if (!hasRight('moderator')) {
 		mysql_close();
 		exit;
@@ -11,7 +11,7 @@ if (isset($_GET['id'])) {
 	$id = $_GET['id'];
 }
 if ($id) {
-	include('avatars.php');
+	include('../includes/avatars.php');
 	$oldAvatar = get_avatar_img($id);
 	if ($oldAvatar) {
 		mysql_query('UPDATE `mkprofiles` SET avatar="" WHERE id="'. $id .'"');

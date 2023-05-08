@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: application/json');
-include('initdb.php');
-include('getId.php');
+include('../includes/initdb.php');
+include('../includes/getId.php');
 $getBgs = mysql_query('SELECT id,name FROM mkbgs WHERE identifiant="'. $identifiants[0] .'" ORDER BY id DESC');
 $res = array();
-require_once('utils-bgs.php');
+require_once('../includes/utils-bgs.php');
 while ($bg = mysql_fetch_array($getBgs))
     $res[] = get_bg_payload($bg);
 echo json_encode($res);

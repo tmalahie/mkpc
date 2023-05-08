@@ -1,14 +1,14 @@
 <?php
 $infos = Array();
-require_once('circuitPrefix.php');
+require_once('../includes/circuitPrefix.php');
 $hasReadGrants = true;
 $hasWriteGrants = true;
 if (isset($_GET['id'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$id = intval($_GET['id']);
 	if ($getMain = mysql_fetch_array(mysql_query('SELECT map,laps,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $id .'" AND !type'))) {
-		include('getId.php');
-		require_once('collabUtils.php');
+		include('../includes/getId.php');
+		require_once('../includes/collabUtils.php');
 		if (($identifiants[0]==$getMain['identifiant'])&&($identifiants[1]==$getMain['identifiant2'])&&($identifiants[3]==$getMain['identifiant3'])&&($identifiants[3]==$getMain['identifiant4'])) {
 			// Ok
 		}
@@ -44,7 +44,7 @@ if (isset($_GET['id'])) {
 		exit;
 }
 else {
-	include('escape_all.php');
+	include('../includes/escape_all.php');
 	if (isset($_GET['nid']))
 		$id = intval($_GET['nid']);
 	$pieces = Array(5,9,9,9,9,4,8,11,11,11,11,8,8,11,11,11,11,8,8,11,11,11,11,2,8,11,11,11,11,8,6,9,9,9,9,7);
@@ -67,7 +67,7 @@ if (!isset($bgColors[$map]))
 	exit;
 $snes = ($map <= 13);
 $gba = (($map > 8) && ($map <= 30)) || ($map >= 52);
-include('language.php');
+include('../includes/language.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>" >
@@ -76,7 +76,7 @@ include('language.php');
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <title><?php echo $language ? 'Create a circuit Mario Kart':'Cr&eacute;er un circuit Mario Kart'; ?></title>
 <link rel="stylesheet" type="text/css" href="styles/create.css?reload=1" />
@@ -100,7 +100,7 @@ for ($i=0;$i<36;$i++)
 </div>
 <p id="pPieces" class="editor-section">
 <?php
-include('circuitObjects.php');
+include('../includes/circuitObjects.php');
 ?>
 <span id="deleteAllCtn">
 	<input type="button" value="<?php echo $language ? 'Delete all':'Tout supprimer'; ?>" id="deleteAll" onclick="deleteAll('<?php echo $language ? 'Delete all pieces of this circuit ?':'Supprimer toutes les pi\xE8ces de ce circuit ?'; ?>')" />

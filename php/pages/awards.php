@@ -1,17 +1,17 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	exit;
 }
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	mysql_close();
 	exit;
 }
-require_once('getRights.php');
+require_once('../includes/getRights.php');
 if (!hasRight('organizer')) {
 	echo "Vous n'&ecirc;tes pas animateur";
 	mysql_close();
@@ -23,7 +23,7 @@ if (!hasRight('organizer')) {
 <head>
 <title><?php echo $language ? 'Manage awards':'Gérer les récompenses'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
@@ -76,14 +76,14 @@ h1 + .action_button {
 }
 </style>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
@@ -164,7 +164,7 @@ include('menu.php');
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

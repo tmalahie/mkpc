@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['challenge']) && isset($_POST['accept'])) {
-	include('initdb.php');
-	include('session.php');
-	require_once('getRights.php');
+	include('../includes/initdb.php');
+	include('../includes/session.php');
+	require_once('../includes/getRights.php');
 	if (hasRight('clvalidator')) {
 		$challengeId = $_POST['challenge'];
 		if ($challenge = mysql_fetch_array(mysql_query('SELECT status,difficulty,clist FROM `mkchallenges` WHERE id="'. $challengeId .'"'))) {
@@ -33,7 +33,7 @@ if (isset($_POST['challenge']) && isset($_POST['accept'])) {
 				mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logKey .' '. $challengeId .'")');
 
 				$getWins = mysql_query('SELECT player FROM `mkclwin` WHERE challenge="'. $challengeId .'"');
-				require_once('challenge-consts.php');
+				require_once('../includes/challenge-consts.php');
 				$challengeRewards = getChallengeRewards();
 				$challengeReward = $challengeRewards[$newDifficulty];
 				$clRace = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM mkclrace WHERE id='. $challenge['clist']));

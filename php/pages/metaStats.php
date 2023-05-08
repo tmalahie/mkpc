@@ -1,14 +1,14 @@
 <?php
 if (isset($_POST['stats']))
     $stats = $_POST['stats'];
-include('initdb.php');
-include('language.php');
-include('getId.php');
+include('../includes/initdb.php');
+include('../includes/language.php');
+include('../includes/getId.php');
 $canBeAdmin = in_array($identifiants[0], array(1390635815,2963080980));
 $isAdmin = $canBeAdmin && isset($_GET['common']);
 if ($isAdmin)
     $identifiants[0] = 0;
-require_once('utils-challenges.php');
+require_once('../includes/utils-challenges.php');
 if (isset($stats)) {
     $statsData = json_decode($stats);
     if ($statsData) {

@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 $res = 0;
 if ($id) {
-	include('initdb.php');
-	include('onlineUtils.php');
+	include('../includes/initdb.php');
+	include('../includes/onlineUtils.php');
 	$course = getCourse(array('check_ban' => true));
 	if ($course) {
 		$muted = empty($_POST['muted']) ? 0 : 1;

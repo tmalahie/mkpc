@@ -1,13 +1,13 @@
 <?php
-include('escape_all.php');
+include('../includes/escape_all.php');
 if (!isset($id) && isset($_GET['id']))
 	$id = intval($_GET['id']);
 if (isset($id)) {
 	$isTemp = isset($temp);
 	if (!$isTemp)
-		include('initdb.php');
+		include('../includes/initdb.php');
 	if ($getMain = mysql_fetch_array(mysql_query('SELECT map FROM `mkcircuits` WHERE id="'. $id .'"'))) {
-		include('circuitEnumsQuick.php');
+		include('../includes/circuitEnumsQuick.php');
 		if (!$isTemp)
 			header('Content-type: image/png');
 		
@@ -91,7 +91,7 @@ if (isset($id)) {
 		}
 
 		$ext2 = 'png';
-		include('saveImage.php');
+		include('../includes/saveImage.php');
 	}
 	if (!$isTemp)
 		mysql_close();

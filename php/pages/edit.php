@@ -1,34 +1,34 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <title><?= _('Mario Kart PC Forum') ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 ?>
 <?php
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
 	if ($id) {
-		include('smileys.php');
+		include('../includes/smileys.php');
 		?>
 <h1><?php echo $language ? 'Edit':'Modifier'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -41,13 +41,13 @@ include('menu.php');
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 		<?php
-		include('category_fields.php');
+		include('../includes/category_fields.php');
 		$category = mysql_fetch_array(mysql_query('SELECT mkcategories.id,'. $categoryFields .' FROM `mkcategories` INNER JOIN `mktopics` ON category=mkcategories.id WHERE mktopics.id="'. $_GET['topic'] .'"'));
 		$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
 		if (($banned=mysql_fetch_array($getBanned)) && $banned['banned'])
-			include('ban_msg.php');
+			include('../includes/ban_msg.php');
 		elseif (isset($_POST['message'])) {
-			require_once('getRights.php');
+			require_once('../includes/getRights.php');
 			$lastMessage = mysql_fetch_array(mysql_query('SELECT auteur,message FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'] .'"'));
 			if (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
 				mysql_query('UPDATE `mkmessages` SET message="'. $_POST['message'] .'" WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'].'"');
@@ -110,7 +110,7 @@ include('menu.php');
 		?>
 <form method="post" action="edit.php?id=<?php echo urlencode($_GET['id']); ?>&amp;topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
-<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('bbButtons.php'); ?></td></tr>
+<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('../includes/bbButtons.php'); ?></td></tr>
 <tr><td class="mLabel"><p><label for="message">Message :</label></p>
 <p><?php
 for ($i=0;$i<$nbSmileys;$i++)
@@ -124,7 +124,7 @@ for ($i=0;$i<$nbSmileys;$i++)
 </table>
 </form>
 <?php
-include('preview-msg.php');
+include('../includes/preview-msg.php');
 ?>
 <p class="forumButtons" style="margin: 10px 0 0 23%">
 	<a href="topic.php?topic=<?php echo urlencode($_GET['topic']); ?>"><?php echo $language ? 'Back to the topic':'Retour au topic'; ?></a><br />
@@ -134,11 +134,11 @@ include('preview-msg.php');
 		}
 	}
 	else
-		include('needCo.php');
+		include('../includes/needCo.php');
 ?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 <script type="text/javascript" src="scripts/msg.php"></script>

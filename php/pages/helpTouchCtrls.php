@@ -1,5 +1,5 @@
 <?php
-include('language.php');
+include('../includes/language.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 

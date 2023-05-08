@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: application/json');
-include('language.php');
-include('getId.php');
-include('initdb.php');
-require_once('persos.php');
+include('../includes/language.php');
+include('../includes/getId.php');
+include('../includes/initdb.php');
+require_once('../includes/persos.php');
 $myPersos = mysql_query('SELECT * FROM `mkchars` WHERE identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3].' AND name!="" ORDER BY id DESC');
 $res = array();
 while ($data = mysql_fetch_array($myPersos)) {

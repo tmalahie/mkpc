@@ -1,13 +1,13 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['type']) && isset($_POST['circuit'])) {
-    include('circuitTables.php');
-    include('initdb.php');
+    include('../includes/circuitTables.php');
+    include('../includes/initdb.php');
     $type = $_POST['type'];
     if (in_array($type, $circuitTables)) {
         $circuit = $_POST['circuit'];
         if ($getCircuit = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $type .'` WHERE id="'. $circuit .'"'))) {
-            include('getId.php');
+            include('../includes/getId.php');
             if ($getCircuit['identifiant'] == $identifiants[0]) {
                 if (empty($_POST['description'])) {
                     mysql_query(

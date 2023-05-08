@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['id'])) {
-	include('initdb.php');
-	include('session.php');
+	include('../includes/initdb.php');
+	include('../includes/session.php');
 	if (!isset($_SESSION['csrf']) || !isset($_GET['token']) || ($_SESSION['csrf'] != $_GET['token'])) {
 		echo 'Invalid token';
 		mysql_close();
@@ -9,9 +9,9 @@ if (isset($_GET['id'])) {
 	}
 	$bgId = $_GET['id'];
 	if ($bg = mysql_fetch_array(mysql_query('SELECT * FROM `mkbgs` WHERE id="'. $bgId .'"'))) {
-		include('getId.php');
+		include('../includes/getId.php');
 		if ($bg['identifiant'] == $identifiants[0]) {
-			require_once('utils-bgs.php');
+			require_once('../includes/utils-bgs.php');
 			$layers = get_bg_layers($bg['id']);
 			mysql_query('DELETE FROM `mkbgs` WHERE id="'. $bgId .'"');
 			mysql_query('DELETE FROM `mkbglayers` WHERE bg="'. $bgId .'"');

@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: text/plain');
 if (!isset($_POST['id'])) exit;
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 if (hasRight('moderator')) {
     $newState = isset($_POST['unarchive']) ? 'pending' : 'archived';
     $logKey = isset($_POST['unarchive']) ? 'UAReport' : 'AReport';

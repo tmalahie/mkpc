@@ -1,8 +1,8 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 if ($id) {
 	$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	if ($getBanned && $getBanned['banned']) {
@@ -28,12 +28,12 @@ if ($id) {
 <head>
 <title><?= _("News Mario Kart PC") ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/news.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body
@@ -45,13 +45,13 @@ if (!isset($draftSaved)) {
 ?>
 >
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'home';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <?php
-include('smileys.php');
+include('../includes/smileys.php');
 if (isset($draftSaved)) {
 	?>
 	<div class="success"><?= _('Draft saved') ?></div>
@@ -70,7 +70,7 @@ if (isset($draftSaved)) {
 </script>
 	<?php
 	if (isset($_POST['title']) && isset($_POST['category']) && isset($_POST['message']) && !isset($_POST['draft']) && !isset($_POST['undraft'])) {
-		include('utils-cooldown.php');
+		include('../includes/utils-cooldown.php');
 		if (isNewsCooldowned()) {
 			logCooldownEvent('news');
 			mysql_close();
@@ -136,7 +136,7 @@ if (isset($draftSaved)) {
 <td class="mInput">
 	<select id="category" name="category" onchange="document.getElementById('mCategory').innerHTML=this.options[this.selectedIndex].text">
 		<?php
-		include('category_fields.php');
+		include('../includes/category_fields.php');
 		$categories = mysql_query('SELECT id,name'. $language .' AS name,color FROM `mkcats`');
 		$currentCategory = null;
 		while ($category = mysql_fetch_array($categories)) {
@@ -152,7 +152,7 @@ if (isset($draftSaved)) {
 </td></tr>
 <tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?= _('Help') ?></a></td><td><?php
 $isNews = true;
-include('bbButtons.php');
+include('../includes/bbButtons.php');
 ?></td></tr>
 <tr><td class="mLabel"><p><label for="message"><?= _('Content'); ?> :</label></p>
 <p><?php
@@ -204,7 +204,7 @@ if ($draft) {
 ?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript">window.isNews = true;</script>
 <script type="text/javascript" src="scripts/msg.php"></script>

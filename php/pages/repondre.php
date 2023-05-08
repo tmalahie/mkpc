@@ -1,7 +1,7 @@
 <?php
-include('getId.php');
-include('language.php');
-include('session.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/session.php');
 if (isset($_GET['topic'])) {
 	?>
 <!DOCTYPE html>
@@ -9,28 +9,28 @@ if (isset($_GET['topic'])) {
 <head>
 <title><?= _('Mario Kart PC Forum') ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body onbeforeunload="if(document.forms[0].message.value&amp;&amp;!document.forms[0].querySelector('[type=submit]').disabled)return '<?php echo addslashes($language ? 'Warning, the message you\'re writing won\'t be saved':'Attention, le message que vous êtes en train d\'écrire ne sera pas sauvegardé'); ?>'">
 <?php
-include('header.php');
+include('../includes/header.php');
 ?>
 <?php
 $page = 'forum';
-include('initdb.php');
-include('menu.php');
+include('../includes/initdb.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
 	if ($id) {
-		include('smileys.php');
+		include('../includes/smileys.php');
 		?>
 <h1><?php echo $language ? 'Reply':'R&eacute;pondre'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -43,8 +43,8 @@ include('menu.php');
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 		<?php
-		require_once('getRights.php');
-		include('category_fields.php');
+		require_once('../includes/getRights.php');
+		include('../includes/category_fields.php');
 		$getTopic = mysql_fetch_array(mysql_query('SELECT * FROM `mktopics` WHERE id="'. $_GET['topic'] .'" AND !locked'. (hasRight('manager') ? '':' AND !private')));
 		if (!$getTopic)
 			echo $language ? '<p style="text-align: center">This subject doesn\'t exist or has been deleted.':'Ce sujet n\'existe pas ou plus.</p>';
@@ -55,9 +55,9 @@ include('menu.php');
 			$category = mysql_fetch_array(mysql_query('SELECT id,'. $categoryFields .',adminonly FROM `mkcategories` WHERE id="'. $getTopic['category'] .'"'));
 			$banned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 			if ($banned && $banned['banned'])
-				include('ban_msg.php');
+				include('../includes/ban_msg.php');
 			elseif (isset($_POST['message'])) {
-				include('utils-cooldown.php');
+				include('../includes/utils-cooldown.php');
 				if (isMsgCooldowned()) {
 					logCooldownEvent('forum_msg');
 					printMsgCooldowned();
@@ -115,7 +115,7 @@ include('menu.php');
 				?>
 				<p class="auto-moderation-warning">
 				<?php
-				include('utils-date.php');
+				include('../includes/utils-date.php');
 				if ($language) {
 					?>
 					It looks like you're trying to reply to an old topic.
@@ -154,12 +154,12 @@ include('menu.php');
 				}
 			}
 			if ($showForm) {
-				include('utils-moderation.php');
+				include('../includes/utils-moderation.php');
 				printForumReplyNotices();
 				?>
 <form method="post" action="repondre.php?topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
-<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('bbButtons.php'); ?></td></tr>
+<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('../includes/bbButtons.php'); ?></td></tr>
 <tr><td class="mLabel"><p><label for="message">Message :</label></p>
 <p><?php
 for ($i=0;$i<$nbSmileys;$i++)
@@ -176,7 +176,7 @@ if (isset($_GET['quote'])) {
 </table>
 </form>
 				<?php
-				include('preview-msg.php');
+				include('../includes/preview-msg.php');
 			}
 			if ($showNavLinks) {
 			?>
@@ -190,12 +190,12 @@ if (isset($_GET['quote'])) {
 		}
 	}
 	else
-		include('needCo.php');
+		include('../includes/needCo.php');
 ?>
 </main>
 <?php
 mysql_close();
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/msg.php"></script>
 </body>

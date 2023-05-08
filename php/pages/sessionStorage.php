@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: text/plain');
-include('initdb.php');
-include('session.php');
+include('../includes/initdb.php');
+include('../includes/session.php');
 if (isset($_POST['key'])) {
     if (isset($_POST['delete'])) {
         if ($id) {

@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 if ($id) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$lastChats = mysql_query(
 		'SELECT t.last_id,t.other,c.message,(c.seen OR c.sender='.$id.') AS seen,t.nbmsgs FROM (
 			SELECT MAX(t.max_id) AS last_id,other,SUM(t.nb) AS nbmsgs FROM (
@@ -45,7 +45,7 @@ if ($id) {
 	function controlLengthUtf8($str,$len) {
 		return controlLength($str,$len);
 	}
-	include('o_utils.php');
+	include('../includes/o_utils.php');
 	while ($chat = mysql_fetch_array($lastChats)) {
 		if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id='. $chat['other']))) {
 		  echo $v;

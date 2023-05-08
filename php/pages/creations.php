@@ -1,12 +1,12 @@
 <?php
-include('language.php');
-include('session.php');
-include('tokens.php');
-require_once('utils-circuits.php');
-include('creations-params.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/tokens.php');
+require_once('../includes/utils-circuits.php');
+include('../includes/creations-params.php');
 assign_token();
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 $isModerator = hasRight('moderator');
 ?>
 <!DOCTYPE html>
@@ -14,7 +14,7 @@ $isModerator = hasRight('moderator');
 <head>
 <title><?php echo $language ? 'All shared circuits':'Tous les circuits partagés'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <style type="text/css">
 #form-search {
@@ -325,7 +325,7 @@ a.defiler:hover {
 <link rel="stylesheet" type="text/css" href="styles/creations.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 <?php
@@ -347,7 +347,7 @@ if (isset($_GET['user'])) {
 else
 	$user = '';
 if ($managing && $url) {
-    include('adminUtils.php');
+    include('../includes/adminUtils.php');
 	$circuitData = getCreationByUrl($url);
 	if ($circuitData) {
 		$aParams = array(
@@ -402,10 +402,10 @@ mysql_close();
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('initdb.php');
-include('menu.php');
+include('../includes/initdb.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<h1><?php
@@ -570,7 +570,7 @@ include('menu.php');
 	</p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript">
 

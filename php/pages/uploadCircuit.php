@@ -1,6 +1,6 @@
 <?php
-include('language.php');
-include('uploadByUrl.php');
+include('../includes/language.php');
+include('../includes/uploadByUrl.php');
 $isBattle = isset($_GET['battle']);
 $table = $isBattle ? 'arenes':'circuits';
 if (isset($_FILES['image'])) {
@@ -9,14 +9,14 @@ if (isset($_FILES['image'])) {
 		$doImport = ($isUploaded || isset($_POST['import']));
 		$limitMb  = ($doImport ? 1 : 5);
 		if ($poids < $limitMb*1000000) {
-			include('getId.php');
-			include('initdb.php');
-			include('file-quotas.php');
+			include('../includes/getId.php');
+			include('../includes/initdb.php');
+			include('../includes/file-quotas.php');
 			if ($doImport)
 				$poids += file_total_size();
 			$id = 0;
 			if ($poids < MAX_FILE_SIZE) {
-				require_once('circuitImgUtils.php');
+				require_once('../includes/circuitImgUtils.php');
 				$ext = getCircuitExt($_FILES['image']['tmp_name'],null);
 				if ($ext) {
 					mysql_query('INSERT INTO `'.$table.'` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3]);

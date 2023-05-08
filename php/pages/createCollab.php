@@ -1,9 +1,9 @@
 <?php
 if (isset($_POST['type']) && isset($_POST['id'])) {
     header('Content-Type: application/json');
-    include('initdb.php');
-    include('getId.php');
-    require_once('collabUtils.php');
+    include('../includes/initdb.php');
+    include('../includes/getId.php');
+    require_once('../includes/collabUtils.php');
     if (isCollabOwner($_POST['type'], $_POST['id'])) {
         $collabValues = getCollabInputValues($_POST);
 

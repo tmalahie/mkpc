@@ -1,10 +1,10 @@
 <?php
 if (isset($_GET['id'])) {
 	$persoId = intval($_GET['id']);
-	include('initdb.php');
+	include('../includes/initdb.php');
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
-		include('getId.php');
-        require_once('collabUtils.php');
+		include('../includes/getId.php');
+        require_once('../includes/collabUtils.php');
         $collabSuffix = '';
         if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
             $hasReadGrants = true;
@@ -17,9 +17,9 @@ if (isset($_GET['id'])) {
             if ($collab) $collabSuffix = '&collab='. $collab['key'];
         }
         if ($hasReadGrants) {
-			include('language.php');
-			include('perso-stats.php');
-			require_once('persos.php');
+			include('../includes/language.php');
+			include('../includes/perso-stats.php');
+			require_once('../includes/persos.php');
 			if (isset($_POST['name']) && isset($_POST['speed']) && isset($_POST['acceleration']) && isset($_POST['handling']) && isset($_POST['mass']) && $hasWriteGrants) {
 				$_POST['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);
 				if (!$_POST['name'])
@@ -70,7 +70,7 @@ if (isset($_GET['id'])) {
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var unsavedData = <?php echo $perso['name'] ? 'false':'true'; ?>;
@@ -79,7 +79,7 @@ var statTypes = ["<?php echo implode('","',array_keys($statsRange)); ?>"];
 var statsGradient = <?php echo $statsGradient; ?>;
 var statsRange = <?php echo json_encode($statsRange); ?>;
 var cp = <?php echo json_encode($defaultPersosStats); ?>;
-var pUnlocked = <?php include('getLocks.php'); ?>;
+var pUnlocked = <?php include('../includes/getLocks.php'); ?>;
 var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 </script>
 <script type="text/javascript" src="scripts/perso-stats.js?reload=1"></script>

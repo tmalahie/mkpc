@@ -1,13 +1,13 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['key'])) {
-    include('initdb.php');
+    include('../includes/initdb.php');
     $key = $_POST['key'];
     if ($linkCreator = mysql_fetch_array(mysql_query('SELECT player FROM `mkprivgame` WHERE id="'. $key .'"'))) {
-        include('session.php');
+        include('../includes/session.php');
         if ($linkCreator['player'] == $id) {
             mysql_query('DELETE FROM mkgamerank WHERE game="'. $key .'"');
-            require_once('onlineStateUtils.php');
+            require_once('../includes/onlineStateUtils.php');
             resetCourseState($key);
         }
     }

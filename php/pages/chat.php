@@ -1,9 +1,9 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 header('Content-Type: text/plain');
 if ($id) {
-	include('initdb.php');
-	include('onlineUtils.php');
+	include('../includes/initdb.php');
+	include('../includes/onlineUtils.php');
 	$course = getCourse();
 	if ($course) {
 		mysql_query('DELETE FROM mkmuted WHERE end_date<=NOW()');

@@ -1,8 +1,8 @@
 <?php
 $payload = json_decode(file_get_contents('php://input'),true);
 if (isset($payload['event']) && isset($payload['metadata'])) {
-    include('initdb.php');
-    include('session.php');
+    include('../includes/initdb.php');
+    include('../includes/session.php');
     $metadata = $payload['metadata'];
     if ($id)
         $metadata['logged_in'] = true;

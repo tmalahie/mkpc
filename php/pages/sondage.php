@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['id'])) {
-	include('initdb.php');
-	include('language.php');
+	include('../includes/initdb.php');
+	include('../includes/language.php');
 	$lang = $language ? 'en':'fr';
 	$getPoll = mysql_query('SELECT *,title_'.$lang.' AS title,question_'.$lang.' AS question  FROM `mkpolls` WHERE id="'. $_GET['id'] .'"');
 	if ($poll  = mysql_fetch_array($getPoll)) {
@@ -9,12 +9,12 @@ if (isset($_GET['id'])) {
 		$type = $poll['type'];
 		$over = $poll['over'];
 
-		include('session.php');
+		include('../includes/session.php');
 		if (!$id) {
 			echo "Vous n'&ecirc;tes pas connect&eacute;";
 			exit;
 		}
-		include('initdb.php');
+		include('../includes/initdb.php');
 		$isConnected = (mysql_query('SELECT id FROM `mkjoueurs` WHERE id="'. $id .'"'));
 		if (!($isConnected=mysql_fetch_array($isConnected))) {
 			echo "Vous n'&ecirc;tes pas connect&eacute;";
@@ -40,7 +40,7 @@ if (isset($_GET['id'])) {
 <head>
 <title><?php if (!$over)echo $poll['title'].' - '; ?>Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
@@ -63,7 +63,7 @@ include('heads.php');
 </style>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 function resetForm() {
@@ -78,9 +78,9 @@ function resetForm() {
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
@@ -116,7 +116,7 @@ include('menu.php');
 	?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <?php
 mysql_close();

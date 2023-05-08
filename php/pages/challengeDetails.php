@@ -1,8 +1,8 @@
 <?php
-include('getId.php');
-include('language.php');
-include('initdb.php');
-require_once('utils-challenges.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+require_once('../includes/utils-challenges.php');
 if (isset($_GET['ch'])) {
 	$challenge = getChallenge($_GET['ch']);
 	if ($challenge)
@@ -12,7 +12,7 @@ if (empty($clRace)) {
 	mysql_close();
 	exit;
 }
-include('challenge-cldata.php');
+include('../includes/challenge-cldata.php');
 mysql_query('DELETE FROM `mknotifs` WHERE identifiant="'. $clRace['identifiant'] .'" AND identifiant2="'. $clRace['identifiant2'] .'" AND identifiant3="'. $clRace['identifiant3'] .'" AND identifiant4="'. $clRace['identifiant4'] .'" AND type="challenge_moderated" AND link="'. $challenge['id'] .'"');
 $challengeDetails = getChallengeDetails($challenge);
 ?>
@@ -25,7 +25,7 @@ $challengeDetails = getChallengeDetails($challenge);
 <link rel="stylesheet" href="styles/challenges.css" />
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 
 <title><?php echo $language ? 'Challenge moderation result':'Modération défi'; ?> - Mario Kart PC</title>

@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['pseudo']) && isset($_POST['code'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$id = 0;
 	if (($getId=mysql_fetch_array(mysql_query('SELECT * FROM `mkjoueurs` WHERE nom="'.$_POST['pseudo'].'" AND banned=0 AND deleted=0'))) && password_verify($_POST['code'],$getId['code'])) {
-		include('getId.php');
+		include('../includes/getId.php');
 		function ip_banned() {
 			global $identifiants;
 			return mysql_numrows(mysql_query('SELECT * FROM `ip_bans` WHERE ip1="'.$identifiants[0].'" AND ip2="'.$identifiants[1].'" AND ip3="'.$identifiants[2].'" AND ip4="'.$identifiants[3].'"'));
@@ -15,11 +15,11 @@ if (isset($_POST['pseudo']) && isset($_POST['code'])) {
 			session_start();
 			$id = $getId['id'];
 			$_SESSION['mkid'] = $id;
-			require_once('credentials.php');
+			require_once('../includes/credentials.php');
 			setcookie('mkp', credentials_encrypt($id,$_POST['code']), 4294967295,'/');
-			include('setId.php');
+			include('../includes/setId.php');
 			if (ip_banned()) {
-				include('language.php');
+				include('../includes/language.php');
 				mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id="'.$id.'"');
 				mysql_query('INSERT IGNORE INTO `mkbans` VALUES('.$id.',"'. ($language ? 'Auto-ban by IP' : 'Auto-ban par IP') .'",NULL)');
 				setcookie('mkp', '', 0,'/');

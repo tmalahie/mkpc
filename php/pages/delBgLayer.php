@@ -1,7 +1,7 @@
 <?php
 if (isset($_GET['id'])) {
-	include('initdb.php');
-	include('session.php');
+	include('../includes/initdb.php');
+	include('../includes/session.php');
 	if (!isset($_SESSION['csrf']) || !isset($_GET['token']) || ($_SESSION['csrf'] != $_GET['token'])) {
 		echo 'Invalid token';
 		mysql_close();
@@ -9,13 +9,13 @@ if (isset($_GET['id'])) {
 	}
 	$layerId = $_GET['id'];
 	if ($layer = mysql_fetch_array(mysql_query('SELECT id,bg,filename FROM `mkbglayers` WHERE id="'. $layerId .'"'))) {
-		include('getId.php');
-		require_once('collabUtils.php');
+		include('../includes/getId.php');
+		require_once('../includes/collabUtils.php');
 		$requireOwner = !hasCollabGrants('mkbgs', $layer['bg'], $_GET['collab'], 'edit');
 		if (mysql_fetch_array(mysql_query('SELECT id FROM `mkbgs` WHERE id="'. $layer['bg'] .'"'. ($requireOwner ? (' AND identifiant="'. $identifiants[0] .'"') : '')))) {
 			mysql_query('DELETE FROM `mkbglayers` WHERE id="'. $layer['id'] .'"');
 			if ($layer['filename'] !== '') {
-				require_once('utils-bgs.php');
+				require_once('../includes/utils-bgs.php');
 				$filePath = get_layer_path($layer['filename']);
 				@unlink('../../'.$filePath);
 			}

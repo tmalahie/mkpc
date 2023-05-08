@@ -1,11 +1,11 @@
 <?php
 if (isset($_GET['category'])) {
-	include('getId.php');
-	include('language.php');
-	include('session.php');
-	include('initdb.php');
+	include('../includes/getId.php');
+	include('../includes/language.php');
+	include('../includes/session.php');
+	include('../includes/initdb.php');
 	$categoryID = intval($_GET['category']);
-	include('category_fields.php');
+	include('../includes/category_fields.php');
 	if ($category = mysql_fetch_array(mysql_query('SELECT '. $categoryFields .',adminonly FROM `mkcategories` WHERE id="'. $categoryID .'"'))) {
 		?>
 <!DOCTYPE html>
@@ -13,18 +13,18 @@ if (isset($_GET['category'])) {
 <head>
 <title><?php echo $category['nom']; ?> - <?= _('Mario Kart PC Forum') ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 if ($id && $myIdentifiants) {
 	mysql_query('INSERT IGNORE INTO `mkips` VALUES("'.$id.'","'.$myIdentifiants[0].'","'.$myIdentifiants[1].'","'.$myIdentifiants[2].'","'.$myIdentifiants[3].'")');
 	mysql_query('INSERT IGNORE INTO `mkbrowsers` VALUES("'.$id.'","'.mysql_real_escape_string($_SERVER['HTTP_USER_AGENT']).'")');
@@ -34,7 +34,7 @@ if ($id && $myIdentifiants) {
 <h1><?php echo $category['nom']; ?></h1>
 <?php
 if ($id)
-	include('rights-msg.php');
+	include('../includes/rights-msg.php');
 ?>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- Forum MKPC -->
@@ -48,7 +48,7 @@ if ($id)
 <p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a></p>
 <p id="category-description"><?php echo $category['description']; ?></p>
 <?php
-require_once('getRights.php');
+require_once('../includes/getRights.php');
 if ($id && (!$category['adminonly']||hasRight('manager')))
 	echo '<p class="forumButtons"><a href="newtopic.php?category='. $categoryID .'" class="action_button">'. ($language ? 'New topic':'Nouveau topic') .'</a></p>';
 ?>
@@ -75,7 +75,7 @@ $topics = mysql_query(
 	WHERE t.category='. $categoryID .' AND t.language='. "language" . (hasRight('manager') ? '':' AND !private') .'
 	ORDER BY t.dernier DESC LIMIT '. (($page-1)*$RES_PER_PAGE).','.$RES_PER_PAGE
 );
-require_once('utils-date.php');
+require_once('../includes/utils-date.php');
 for ($i=0;$topic=mysql_fetch_array($topics);$i++) {
 	echo '<tr class="'. (($i%2) ? 'fonce':'clair') .'"><td class="subjects">';
 		echo '<a href="topic.php?topic='. $topic['id'] .'" class="fulllink">'. htmlspecialchars($topic['titre']) .'</a>';
@@ -125,7 +125,7 @@ if ($id && (!$category['adminonly']||hasRight('manager')))
 </p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 </body>
 </html>

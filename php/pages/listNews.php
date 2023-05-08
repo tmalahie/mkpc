@@ -1,26 +1,26 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <title>News Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/news.css" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'home';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <h1><?php echo $language ? 'Mario Kart PC - News list' : 'Mario Kart PC - Liste des news'; ?></h1>
@@ -62,7 +62,7 @@ if ($id)
 <td class="news-nomo"><?php echo $language ? 'Date':'Date'; ?></td>
 </tr>
 <?php
-require_once('utils-date.php');
+require_once('../includes/utils-date.php');
 $RES_PER_PAGE = 50;
 $page = isset($_GET['page'])&&is_numeric($_GET['page']) ? $_GET['page']:1;
 $sqlSelect = 'n.id,n.title,
@@ -222,7 +222,7 @@ if ($id)
 </main>
 <?php
 mysql_close();
-include('footer.php');
+include('../includes/footer.php');
 ?>
 </body>
 </html>

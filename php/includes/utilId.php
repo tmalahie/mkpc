@@ -1,6 +1,6 @@
 <?php
 if (!isset($mkSalt)) {
-	require('../../config/id.php');
+	require('config/id.php');
 	function base64($nb) {
 		static $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
 		$res = '';

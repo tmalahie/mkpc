@@ -1,8 +1,8 @@
 <?php
 if (isset($_GET['user'])) {
-	include('session.php');
+	include('../includes/session.php');
 	if ($id && ($id!=$_GET['user'])) {
-		include('initdb.php');
+		include('../includes/initdb.php');
 		if (mysql_fetch_array(mysql_query('SELECT * FROM `mkjoueurs` WHERE id="'. $_GET['user'] .'"'))) {
 			if (isset($_GET['follow'])) {
 				mysql_query('INSERT IGNORE INTO `mkfollowusers` VALUES("'. $id .'","'. $_GET['user'] .'",NULL)');

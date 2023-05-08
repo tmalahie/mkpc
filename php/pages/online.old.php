@@ -1,14 +1,14 @@
 <?php
 session_start();
 $id = isset($_SESSION['mkid']) ? $_SESSION['mkid']:null;
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))
 	$myPseudo = $getPseudo['nom'];
 else
 	$myPseudo = null;
 if (isset($_COOKIE['mkp'])) {
-	require_once('credentials.php');
+	require_once('../includes/credentials.php');
 	$myCredentials = credentials_decrypt($_COOKIE['mkp']);
 	if (!$myPseudo) {
 		if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. mysql_real_escape_string($myCredentials[0]) .'"')))
@@ -19,9 +19,9 @@ if (isset($_COOKIE['mkp'])) {
 else
 	$myCode = null;
 if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'.$id.'" AND banned')))) {
-	include('getId.php');
+	include('../includes/getId.php');
 	if ($getBan['banned'] == 1)
-		include('ban_ip.php');
+		include('../includes/ban_ip.php');
 	echo 'Access denied';
 	mysql_close();
 	exit;
@@ -169,7 +169,7 @@ if (isset($_SESSION['mklink'])) {
 		$linkAccepted = true;
 	unset($_SESSION['mklink']);
 }
-require_once('circuitEscape.php');
+require_once('../includes/circuitEscape.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -185,7 +185,7 @@ require_once('circuitEscape.php');
 	   	else
 	   		echo $language ? 'Online race - Old engine':'Course en ligne - Ancien moteur';
 	   ?></title>
-<?php include('metas.php'); ?>
+<?php include('../includes/metas.php'); ?>
 <?php
 if (isset($privateLink)) {
 	?>
@@ -194,7 +194,7 @@ if (isset($privateLink)) {
 }
 ?>
 
-<?php include('c_mariokart.php'); ?>
+<?php include('../includes/c_mariokart.php'); ?>
 <style type="text/css">
 .wait {
 	position: absolute;
@@ -246,11 +246,11 @@ var lCircuits = <?php echo json_encode(array_splice($circuitNames,0,$nbVSCircuit
 }
 ?>
 var cp = {"mario":[0.6,1,0.6],"luigi":[0.2,1.2,0.2],"peach":[0.2,1,1],"toad":[1,1,0.2],"yoshi":[0.6,1,0.6],"bowser":[1,0.9,1],"donkey-kong":[0.4,1,0.8],"daisy":[0.2,1,1],"waluigi":[0.8,1,0.4],"koopa":[0.4,1,0.8],"wario":[0.2,1.1,0.3],"maskass":[0.8,1,0.3],"birdo":[0.6,0.95,0.7],"roi_boo":[0.4,1,0.8],"frere_marto":[0.4,1.05,0.7],"bowser_jr":[0.9,0.95,0.7],"harmonie":[0.3,0.95,0.8],"diddy-kong":[0.4,1,0.8],"skelerex":[0.6,1,0.6],"funky-kong":[0.4,1,0.8],"toadette":[0.8,1,0.35]};
-var pUnlocked = <?php include('getLocks.php'); ?>;
-var baseOptions = <?php include('getCourseOptions.php'); ?>;
+var pUnlocked = <?php include('../includes/getLocks.php'); ?>;
+var baseOptions = <?php include('../includes/getCourseOptions.php'); ?>;
 var page = "OL";
 var PERSOS_DIR = "<?php
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	echo PERSOS_DIR;
 ?>";
 var mId = <?php echo $id ? $id:'null'; ?>;
@@ -302,16 +302,16 @@ function listMaps() {
 	if ($complete) {
 		$aID = $id;
 		if ($isBattle)
-			include('../../mk/battle.php');
+			include('../includes/mk/battle.php');
 		else
-			include('../../mk/map.php');
+			include('../includes/mk/map.php');
 		$id = $aID;
 	}
 	else {
 		if ($isBattle)
-			include('../../mk/arena.php');
+			include('../includes/mk/arena.php');
 		else
-			include('../../mk/circuit.php');
+			include('../includes/mk/circuit.php');
 	}
 	?>
 	};
@@ -439,7 +439,7 @@ else {
 		<img class="aObjet" alt="." src="images/items/fauxobjet.png" />
 	</div>
 </div>
-<?php include('../../mk/description.php'); ?>
+<?php include('../includes/mk/description.php'); ?>
 </body>
 </html>
 <?php

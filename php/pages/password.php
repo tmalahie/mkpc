@@ -1,7 +1,7 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 if ($id) {
 	if (isset($_POST['ancien']) && isset($_POST['nouveau']) && isset($_POST['confirm'])) {
 		$ancien = $_POST['ancien'];
@@ -18,7 +18,7 @@ if ($id) {
 		else {
 			mysql_query('UPDATE `mkjoueurs` SET code="'. password_hash($nouveau,PASSWORD_DEFAULT) .'" WHERE id="'. $id .'"');
 			$modifie = true;
-			require_once('credentials.php');
+			require_once('../includes/credentials.php');
 			setcookie('mkp', credentials_encrypt($id,$nouveau), 4294967295,'/');
 		}
 	}
@@ -29,20 +29,20 @@ if ($id) {
 <head>
 <title><?php echo $language ? 'Change password Mario Kart PC':'Modifier mot de passe Mario Kart PC'; ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<h1><?php echo $language ? 'Change password':'Modifier mot de passe'; ?></h1>
@@ -66,12 +66,12 @@ include('menu.php');
 		}
 	}
 	else
-		include('needCo.php');
+		include('../includes/needCo.php');
 	?>
 	<p class="forumButtons"><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

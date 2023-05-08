@@ -1,23 +1,23 @@
 <?php
-include('initdb.php');
-include('getId.php');
-include('language.php');
+include('../includes/initdb.php');
+include('../includes/getId.php');
+include('../includes/language.php');
 session_start();
-require_once('circuitEnums.php');
+require_once('../includes/circuitEnums.php');
 $musicOptions = $language
 	? Array(null, 'Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', null, 'Mario Circuit', 'Shy Guy Beach', 'Riverside Park', 'Bowser Castle', 'Boo Lake', 'Cheese Land', 'Sky Garden', 'Sunset Wilds', 'Snow Land', 'Ribbon Road', 'Yoshi Desert', 'Lakeside Park', 'Rainbow Road', null,'Figure 8 Circuit','Yoshi Falls','Cheep Cheep Beach','Luigi\'s Mansion','Desert Hills','Delfino Square','Waluigi Pinball','Shroom Ridge','DK Pass','Tick-Tock Clock','Airship Fortress','Peach Gardens','Bowser\'s Castle', 'Rainbow Road')
 	: Array(null, 'Circuit Mario', 'Plaine Donut', 'Plage Koopa', 'Île Choco', 'Lac Vanille', 'Vallée Fantôme', 'Château de Bowser', 'Route Arc-en-Ciel', null, 'Circuit Mario', 'Plage Maskass', 'Bord du Fleuve', 'Château de Bowser', 'Lac Boo', 'Pays Fromage', 'Jardin Volant', 'Pays Crépuscule', 'Royaume Sorbet', 'Route Ruban', 'Désert Yoshi', 'Bord du Lac', 'Route Arc-en-Ciel', null, 'Circuit en 8', 'Cascade Yoshi', 'Plage Cheep-Cheep', 'Manoir de Luigi', 'Désert du Soleil', 'Quartier Delfino', 'Flipper Waluigi', 'Corniche Champignon', 'Alpes DK', 'Horloge Tic-Tac', 'Bateau Volant', 'Jardin Peach', 'Château de Bowser', 'Route Arc-en-Ciel');
 if (isset($_GET['i'])) {
 	$circuitId = intval($_GET['i']);
-	require_once('utils-cups.php');
+	require_once('../includes/utils-cups.php');
 	if ($circuit = fetchCreationData('circuits', $circuitId)) {
-		require_once('collabUtils.php');
+		require_once('../includes/collabUtils.php');
 		if (($circuit['identifiant'] == $identifiants[0]) && ($circuit['identifiant2'] == $identifiants[1]) && ($circuit['identifiant3'] == $identifiants[2]) && ($circuit['identifiant4'] == $identifiants[3])) {
 			$hasReadGrants = true;
 			$hasWriteGrants = true;
 		}
 		elseif ($collab = getCollabLinkFromQuery('circuits', $circuitId)) {
-			include('grantCollabRights.php');
+			include('../includes/grantCollabRights.php');
 		}
 		else {
 			$hasReadGrants = ($identifiants[0] == 1390635815);
@@ -27,7 +27,7 @@ if (isset($_GET['i'])) {
 			if ($getCircuitData = mysql_fetch_array(mysql_query('SELECT data FROM circuits_data WHERE id="'. $circuitId .'"')))
 				$circuitData = gzuncompress($getCircuitData['data']);
 			$circuitImg = json_decode($circuit['img_data']);
-			require_once('circuitImgUtils.php');
+			require_once('../includes/circuitImgUtils.php');
 			?>
 <!DOCTYPE html> 
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
@@ -80,7 +80,7 @@ if (isset($_GET['i'])) {
 				'options' => $language ? 'Options':'Divers'
 			)
 		);
-		require_once('circuitUiUtils.php');
+		require_once('../includes/circuitUiUtils.php');
 		?>
 		<div id="toolbox">
 			<div id="mode-selection">
@@ -975,8 +975,8 @@ if (isset($_GET['i'])) {
 	<?php
 }
 else {
-	include('file-quotas.php');
-	include('tokens.php');
+	include('../includes/file-quotas.php');
+	include('../includes/tokens.php');
 	assign_token();
 	?>
 <!DOCTYPE html> 
@@ -987,7 +987,7 @@ else {
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 		<?php
-		include('o_online.php');
+		include('../includes/o_online.php');
 		?>
 		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
@@ -1000,7 +1000,7 @@ else {
 	</head>
 	<body class="home-body">
 		<?php
-		require_once('utils-cups.php');
+		require_once('../includes/utils-cups.php');
 		$getTracks = getCreationDataQuery(array(
 			'table' => 'circuits',
 			'select' => 'c.id,d.data,c.img_data,s.thumbnail',
@@ -1018,7 +1018,7 @@ else {
 					?>
 					Welcome to the track builder in complete mode.<br />
 					To create a new circuit, send your image here:
-					<?php include('circuitForm.php'); ?>
+					<?php include('../includes/circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -1031,7 +1031,7 @@ else {
 					?>
 					Bienvenue dans l'éditeur de circuits en mode complet.<br />
 					Pour créer un nouveau circuit, envoyez votre image ici :
-					<?php include('circuitForm.php'); ?>
+					<?php include('../includes/circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -1063,7 +1063,7 @@ else {
 				</div>
 				<form class="editor-section editor-description" method="post" action="uploadCircuit.php" enctype="multipart/form-data">
 					Your image is ready? Send it here:
-					<?php include('circuitForm.php'); ?>
+					<?php include('../includes/circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -1094,7 +1094,7 @@ else {
 				</div>
 				<form class="editor-section editor-description" method="post" action="uploadCircuit.php" enctype="multipart/form-data">
 					Votre image est prête ? Envoyez-la ici :
-					<?php include('circuitForm.php'); ?>
+					<?php include('../includes/circuitForm.php'); ?>
 				</form>
 				<?php
 			}
@@ -1111,7 +1111,7 @@ else {
 				?>
 				<div id="editor-tracks-list">
 					<?php
-					require_once('circuitImgUtils.php');
+					require_once('../includes/circuitImgUtils.php');
 					while ($track = mysql_fetch_array($getTracks)) {
 						$circuitImg = json_decode($track['img_data']);
 						$id = $track['id'];

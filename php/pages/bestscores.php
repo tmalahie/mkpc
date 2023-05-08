@@ -1,7 +1,7 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 $isBattle = isset($_GET['battle']);
 $game = $isBattle ? 'battle':'vs';
 $pts_ = 'pts_'.$game;
@@ -11,20 +11,20 @@ $pts_ = 'pts_'.$game;
 <head>
 <title><?php echo $language ? 'Online mode leaderboard':'Classement mode en ligne'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 $page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))
@@ -90,7 +90,7 @@ else
 			$place = $offset;
 		$i = 0;
 		$fin = $place+$RES_PER_PAGE;
-		require_once('utils-leaderboard.php');
+		require_once('../includes/utils-leaderboard.php');
 		if ($joueur) {
 		?>
 	<tr class="clair">
@@ -134,7 +134,7 @@ else
 			echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?'. ($isBattle ? 'battle&amp;':'') .'page='.$page.'">'.$page.'</a>').'&nbsp; ';
 		}
 		$limite = ceil($nb_temps/$RES_PER_PAGE);
-		require_once('utils-paging.php');
+		require_once('../includes/utils-paging.php');
 		$allPages = makePaging($page,$limite);
 		foreach ($allPages as $i=>$block) {
 			if ($i)
@@ -155,7 +155,7 @@ else
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-player.js"></script>

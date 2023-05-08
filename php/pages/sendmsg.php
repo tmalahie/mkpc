@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 if ($id && isset($_POST['member']) && isset($_POST['message']) && isset($_POST['lastID'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	echo '[';
 	if (!$getBanned['banned']) {
@@ -13,7 +13,7 @@ if ($id && isset($_POST['member']) && isset($_POST['message']) && isset($_POST['
 			mysql_query('UPDATE `mkconvs` SET writting=NULL WHERE sender="'. $_POST['member'] .'" AND receiver="'. $id .'"');
 			$lastMsgs = mysql_query('SELECT * FROM `mkchats` WHERE id>"'. $_POST['lastID'] .'" AND ((sender="'. $id .'" AND receiver="'. $_POST['member'] .'") OR (sender="'. $_POST['member'] .'" AND receiver="'. $id .'"))');
 			$v = '';
-			include('o_utils.php');
+			include('../includes/o_utils.php');
 			while ($msgInfos = mysql_fetch_array($lastMsgs)) {
 				echo $v;
 				echo '['. $msgInfos['id'] .','.$msgInfos['sender'].',"'.parse_msg($msgInfos['message']).'","'.to_local_tz($msgInfos['date']).'"]';

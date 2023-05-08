@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 if ($id) {
-	include('initdb.php');
-	include('putCourseNotifs.php');
+	include('../includes/initdb.php');
+	include('../includes/putCourseNotifs.php');
 	mysql_close();
 }
 echo 1;

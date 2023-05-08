@@ -1,6 +1,6 @@
 <?php
 if (isset($_GET['pseudo'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM mkjoueurs WHERE nom="'. $_GET['pseudo'] .'"')))
 		$profileId = $getId['id'];
 	elseif ($getId = mysql_fetch_array(mysql_query('SELECT id FROM mknewnicks WHERE oldnick="'. $_GET['pseudo'] .'"'))) {
@@ -8,22 +8,22 @@ if (isset($_GET['pseudo'])) {
 		$profileId = $getId['id'];
 	}
 	else {
-		include('session.php');
-		include('language.php');
+		include('../includes/session.php');
+		include('../includes/language.php');
 		echo $language ? 'This nick does not exist':'Ce pseudo n\'existe pas';
 		mysql_close();
 	}
 	unset($_GET['pseudo']);
 }
 elseif (isset($_GET['id'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$profileId = intval($_GET['id']);
 }
 if (isset($profileId)) {
-	include('session.php');
+	include('../includes/session.php');
 	$me = ($id == $profileId);
-	include('language.php');
-	include('avatars.php');
+	include('../includes/language.php');
+	include('../includes/avatars.php');
 	if ($id != $profileId) {
 		if (isset($_GET['unignore'])) {
 			mysql_query('DELETE FROM `mkignores` WHERE ignorer="'. $id .'" AND ignored="'. $profileId .'"');
@@ -40,7 +40,7 @@ if (isset($profileId)) {
 		$getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4,nbmessages,description,country,birthdate,sub_date,NULLIF(DATE(last_connect),0) AS last_connect FROM `mkprofiles` WHERE id="'. $profileId .'"'));
 		if ($getProfile['identifiant'] === null)
 			$getProfile['identifiant'] = -1;
-		require_once('getRights.php');
+		require_once('../includes/getRights.php');
 		$userRights = getUserRights($profileId);
 		$isModerator = hasRight('moderator');
 		if ($id == $profileId) {
@@ -157,7 +157,7 @@ if (isset($profileId)) {
 			$res .= '</sup>';
 			return $res;
 		}
-		require_once('circuitEscape.php');
+		require_once('../includes/circuitEscape.php');
 		if (isset($_GET['followed'])) {
 			if ($_GET['followed'])
 				$success = $language ? 'You are now following '. $getInfos['nom'] .'! You will receive a notification each time they post a topic, news, a circuit or a character.':'Vous suivez maintenant '. $getInfos['nom'] .' ! Vous recevrez une notification chaque fois qu\'il poste un topic, une news, un circuit ou un perso.';
@@ -168,14 +168,14 @@ if (isset($profileId)) {
 			$success = $language ? 'You have stopped ignoring '. $getInfos['nom'] .'. <a href="?id='. urlencode($profileId) .'&amp;ignore=1">Reignore</a>':'Vous avez désignoré '. $getInfos['nom'] .'. <a href="?id='. urlencode($profileId) .'&amp;ignore=1">Réignorer</a>';
 			$successCenter = true;
 		}
-		include('bbCode.php');
+		include('../includes/bbCode.php');
 		?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <title><?php echo $language ? $getInfos['nom'].'\'s profile':'Profil de '. $getInfos['nom']; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/challenge-creations.css" />
@@ -186,7 +186,7 @@ include('heads.php');
 <script type="text/javascript" src="scripts/posticons.js"></script>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
@@ -195,9 +195,9 @@ var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
@@ -422,7 +422,7 @@ include('menu.php');
 					$nbComments = mysql_numrows($lastComments);
 					$displayedComments = 0;
 					$comments = array();
-					require_once('utils-cups.php');
+					require_once('../includes/utils-cups.php');
 					while ($comment = mysql_fetch_array($lastComments)) {
 						if ($getCircuit = fetchCreationData($comment['type'], $comment['circuit'])) {
 							$comment['circuit_data'] = $getCircuit;
@@ -624,7 +624,7 @@ include('menu.php');
 				?>
 				<h2><?php echo $language ? 'Last messages on the forum':'Derniers messages sur le forum'; ?>&nbsp;:</h2>
 				<?php
-				require_once('reactions.php');
+				require_once('../includes/reactions.php');
 				printReactionUI();
 				populateReactionsData('topic', $lastMessages);
 				foreach ($lastMessages as $message)
@@ -638,7 +638,7 @@ include('menu.php');
 			?>
 			<hr />
 			<?php
-			require_once('utils-circuits.php');
+			require_once('../includes/utils-circuits.php');
 			$nbDisplayedCircuits = 5;
 			$nbCircuitTypes = count($aCircuits);
 			$aParams = array(
@@ -796,7 +796,7 @@ include('menu.php');
 					<h2><?php echo $language ? 'Best created challenges':'Meilleurs défis créés'; ?>&nbsp;:</h2>
 					<div class="challenges-list">
 					<?php
-					require_once('utils-challenges.php');
+					require_once('../includes/utils-challenges.php');
 					while ($challenge = mysql_fetch_array($getChallenges))
 						print_challenge($challenge, $challengeParams);
 					?>
@@ -811,8 +811,8 @@ include('menu.php');
 				<h2><?php echo $language ? 'Last circuit comments':'Derniers commentaires sur les circuits'; ?>&nbsp;:</h2>
 				<div class="circuit-comments">
 				<?php
-				require_once('utils-date.php');
-				require_once('utils-cups.php');
+				require_once('../includes/utils-date.php');
+				require_once('../includes/utils-cups.php');
 				foreach ($comments as $comment) {
 					$getCircuit = $comment['circuit_data'];
 					switch ($comment['type']) {
@@ -855,7 +855,7 @@ include('menu.php');
 					<h2><?php echo $language ? 'Last completed challenges':'Derniers défis réussis'; ?>&nbsp;:</h2>
 					<div class="challenges-list">
 					<?php
-					require_once('utils-challenges.php');
+					require_once('../includes/utils-challenges.php');
 					while ($challenge = mysql_fetch_array($getChallenges))
 						print_challenge($challenge, $challengeParams);
 					?>
@@ -869,7 +869,7 @@ include('menu.php');
 			<?php
 			$bestScores = mysql_query('SELECT r.perso,r.time,r.class,r.circuit,1+COUNT(r2.circuit) AS place FROM `mkrecords` r LEFT JOIN `mkrecords` r2 ON r.class=r2.class AND r.type=r2.type AND r.circuit=r2.circuit AND r2.time<r.time AND r2.best=1 WHERE r.player="'.$profileId.'" AND r.type="" AND r.best=1 GROUP BY r.class,r.circuit ORDER BY place LIMIT 3');
 			if (mysql_numrows($bestScores)) {
-				require_once('persos.php');
+				require_once('../includes/persos.php');
 				function getSpriteSrc($playerName) {
 					if (substr($playerName, 0,3) == 'cp-')
 						return PERSOS_DIR . $playerName . ".png";
@@ -1004,7 +1004,7 @@ include('menu.php');
 	?>
 </main>
 		<?php
-		include('footer.php');
+		include('../includes/footer.php');
 	}
 	mysql_close();
 	?>

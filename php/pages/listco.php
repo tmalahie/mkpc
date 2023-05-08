@@ -1,6 +1,6 @@
 <?php
-include('session.php');
-include('initdb.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 $getConnectes = mysql_query('SELECT id FROM `mkconnectes` WHERE id!="'. $id .'" AND connecte > '. (time()-30));
 echo '[';
 $colon = '';

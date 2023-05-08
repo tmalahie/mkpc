@@ -1,14 +1,14 @@
 <?php
 session_start();
 $id = isset($_SESSION['mkid']) ? $_SESSION['mkid']:null;
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))
 	$myPseudo = $getPseudo['nom'];
 else
 	$myPseudo = null;
 if (isset($_COOKIE['mkp'])) {
-	require_once('credentials.php');
+	require_once('../includes/credentials.php');
 	$myCredentials = credentials_decrypt($_COOKIE['mkp']);
 	if (!$myPseudo) {
 		if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. mysql_real_escape_string($myCredentials[0]) .'"')))
@@ -17,9 +17,9 @@ if (isset($_COOKIE['mkp'])) {
 	$myCode = $myCredentials[1];
 }
 if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'.$id.'" AND banned')))) {
-	include('getId.php');
+	include('../includes/getId.php');
 	if ($getBan['banned'] == 1)
-		include('ban_ip.php');
+		include('../includes/ban_ip.php');
 	echo 'Access denied';
 	mysql_close();
 	exit;
@@ -131,7 +131,7 @@ if ($isCup) {
 				exit;
 			}
 		}
-		require_once('circuitPrefix.php');
+		require_once('../includes/circuitPrefix.php');
 		for ($i=0;$i<$NBCIRCUITS;$i++) {
 			$circuit = &$circuitsData[$i];
 			$pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$circuit['id'].'"');
@@ -178,13 +178,13 @@ if (isset($_SESSION['mklink'])) {
 		$linkAccepted = true;
 	unset($_SESSION['mklink']);
 }
-require_once('circuitEscape.php');
+require_once('../includes/circuitEscape.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>">
    <head>
 	   <title>Online Metagame - Mario Kart PC</title>
-<?php include('metas.php'); ?>
+<?php include('../includes/metas.php'); ?>
 <?php
 if (isset($privateLink)) {
 	?>
@@ -193,7 +193,7 @@ if (isset($privateLink)) {
 }
 ?>
 
-<?php include('c_mariokart.php'); ?>
+<?php include('../includes/c_mariokart.php'); ?>
 <style type="text/css">
 .wait {
 	position: absolute;
@@ -244,12 +244,12 @@ var lCircuits = <?php echo json_encode(array_splice($circuitNames,0,$nbVSCircuit
 	<?php
 }
 ?>
-var cp = <?php include('getPersosMeta.php') ?>;
+var cp = <?php include('../includes/getPersosMeta.php') ?>;
 var pUnlocked = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
-var baseOptions = <?php include('getCourseOptions.php'); ?>;
+var baseOptions = <?php include('../includes/getCourseOptions.php'); ?>;
 var page = "OL";
 var PERSOS_DIR = "<?php
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	echo PERSOS_DIR;
 ?>";
 var mId = <?php echo $id ? $id:'null'; ?>;
@@ -302,16 +302,16 @@ function listMaps() {
 	if ($complete) {
 		$aID = $id;
 		if ($isBattle)
-			include('../../mk/battle.php');
+			include('../includes/mk/battle.php');
 		else
-			include('../../mk/map.php');
+			include('../includes/mk/map.php');
 		$id = $aID;
 	}
 	else {
 		if ($isBattle)
-			include('../../mk/arena.php');
+			include('../includes/mk/arena.php');
 		else
-			include('../../mk/circuit.php');
+			include('../includes/mk/circuit.php');
 	}
 	?>
 	};
@@ -410,9 +410,9 @@ else {
 </script></div>
 </form>
 <?php
-include('gameInitElts.php');
+include('../includes/gameInitElts.php');
 ?>
-<?php include('../../mk/description.php'); ?>
+<?php include('../includes/mk/description.php'); ?>
 </body>
 </html>
 <?php

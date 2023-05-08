@@ -1,5 +1,5 @@
 <?php
-require_once('circuitImgUtils.php');
+require_once(__DIR__.'/../circuitImgUtils.php');
 $printCircuitData = function($arene) {
 	global $circuitMainData, $circuitPayload;
 	$id = $arene['ID'];
@@ -32,7 +32,7 @@ $printCircuitData = function($arene) {
 		echo '"custombg":'.$circuitMainData->bgimg.',';
 	else {
 		echo '"fond":["';
-		include('circuitEnums.php');
+		include(__DIR__.'/../circuitEnums.php');
 		$getInfos = $bgImgs[$circuitMainData->bgimg];
 		echo implode('","',$getInfos);
 		echo '"],';

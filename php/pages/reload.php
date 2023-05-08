@@ -1,5 +1,5 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if ($id) {
 	$payload = json_decode(file_get_contents('php://input'),true);
 	if ($payload) {
@@ -22,8 +22,8 @@ if ($id) {
 		$cpuMapping[] = 'aipoint';
 		$extraParamsMapping = array("finaltime");
 
-		include('initdb.php');
-		include('onlineUtils.php');
+		include('../includes/initdb.php');
+		include('../includes/onlineUtils.php');
 		$spectatorId = isset($payload['spectator']) ? intval($payload['spectator']) : 0;
 		$course = getCourse(array(
 			'spectator' => $spectatorId,
@@ -139,7 +139,7 @@ if ($id) {
 			$courseRules = new stdClass();
 			if ($courseOptions)
 				$courseRules = json_decode($courseOptions['rules']);
-			require_once('onlineConsts.php');
+			require_once('../includes/onlineConsts.php');
 			$isTeam = !empty($courseRules->team);
 			$isTt = !empty($courseRules->timeTrial);
 			$nbTeams = isset($courseRules->nbTeams) ? $courseRules->nbTeams : DEFAULT_TEAM_COUNT;
@@ -257,7 +257,7 @@ if ($id) {
 					mysql_query('UPDATE `mkjoueurs` SET choice_map=0 WHERE course='. $course);
 					mysql_query('DELETE FROM `items` WHERE course='.$course.' AND (data!="" OR updated_at<"'.$lConnect.'")');
 					if ($isLocal) {
-						require_once('onlineStateUtils.php');
+						require_once('../includes/onlineStateUtils.php');
 						incCourseState($courseOptions['id']);
 					}
 				}
@@ -334,7 +334,7 @@ if ($id) {
 				}
 				sort($cpuIds);
 				$cpuRankById = array_flip($cpuIds);
-				include('onlineRulesUtils.php');
+				include('../includes/onlineRulesUtils.php');
 				foreach ($allPlayersData as $v=>$joueur) {
 					if ($joueur['cpu'])
 						$playerName = getCpuName($cpuRankById[$joueur['id']], $courseRules);

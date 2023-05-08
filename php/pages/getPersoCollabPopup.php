@@ -1,8 +1,8 @@
 <?php
 if (isset($_POST['id']) && isset($_POST['type'])) {
-    include('language.php');
-    include('initdb.php');
-    require_once('collabUtils.php');
+    include('../includes/language.php');
+    include('../includes/initdb.php');
+    require_once('../includes/collabUtils.php');
     $itemType = $_POST['type'];
     $itemId = $_POST['id'];
     $itemLabel = $language ? "character" : "perso";

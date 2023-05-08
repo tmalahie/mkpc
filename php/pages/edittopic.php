@@ -1,34 +1,34 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>	">
 <head>
 <title><?= _('Mario Kart PC Forum'); ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 ?>
 <?php
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
 	if ($id) {
-		include('smileys.php');
+		include('../includes/smileys.php');
 		?>
 <h1><?php echo $language ? 'Edit':'Message'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -41,10 +41,10 @@ include('menu.php');
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 		<?php
-		require_once('getRights.php');
+		require_once('../includes/getRights.php');
 		$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 		if ($getBanned && $getBanned['banned'])
-			include('ban_msg.php');
+			include('../includes/ban_msg.php');
 		elseif (isset($_POST['titre']) && isset($_POST['message']) && isset($_POST['message'])) {
 			$lastMessage = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id=1 AND topic="'. $_GET['topic'] .'"'));
 			if (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
@@ -123,7 +123,7 @@ include('menu.php');
 <td class="mInput">
 	<select id="category" name="category">
 		<?php
-		include('category_fields.php');
+		include('../includes/category_fields.php');
 		$categories = mysql_query('SELECT id,'. $categoryFields .' FROM `mkcategories`'.(hasRight('manager') ? '':' WHERE adminonly=0') .' ORDER BY '. $orderingField);
 		$currentCategory = null;
 		while ($category = mysql_fetch_array($categories)) {
@@ -134,7 +134,7 @@ include('menu.php');
 		?>
 	</select>
 </td></tr>
-<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('bbButtons.php'); ?></td></tr>
+<tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('../includes/bbButtons.php'); ?></td></tr>
 <tr><td class="mLabel"><p><label for="message">Message :</label></p>
 <p><?php
 for ($i=0;$i<$nbSmileys;$i++)
@@ -161,7 +161,7 @@ if (hasRight('manager')) {
 </table>
 </form>
 <?php
-include('preview-msg.php');
+include('../includes/preview-msg.php');
 ?>
 <p class="forumButtons" style="margin: 10px 0 0 23%">
 	<a href="topic.php?topic=<?php echo urlencode($_GET['topic']); ?>"><?php echo $language ? 'Back to the topic':'Retour au topic'; ?></a><br />
@@ -171,11 +171,11 @@ include('preview-msg.php');
 		}
 	}
 	else
-		include('needCo.php');
+		include('../includes/needCo.php');
 ?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 <script type="text/javascript" src="scripts/msg.php"></script>

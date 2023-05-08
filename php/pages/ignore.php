@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 if ($id && isset($_POST['member'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	if (mysql_numrows(mysql_query('SELECT * FROM `mkjoueurs` WHERE id="'. $_POST['member'] .'"'))) {
 		mysql_query('INSERT INTO `mkignores` VALUES ("'. $id .'","'. $_POST['member'] .'")');
 		mysql_query('DELETE FROM `mkconvs` WHERE sender="'. $id .'" AND receiver="'. $_POST['member'] .'"');

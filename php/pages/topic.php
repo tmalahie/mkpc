@@ -1,16 +1,16 @@
 <?php
-include('getId.php');
-include('language.php');
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 $isModerator = hasRight('moderator');
 $topicId = isset($_GET['topic']) ? intval($_GET['topic']) : 0;
 $topic = mysql_fetch_array(mysql_query('SELECT titre,category,private,locked FROM `mktopics` WHERE id="'. $topicId .'"'. (hasRight('manager') ? '':' AND !private')));
 $titreTopic = isset($topic['titre']) ? $topic['titre'] : '';
 if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `mkmessages` WHERE topic="'. $topicId .'" AND id=1 LIMIT 1'))) {
 	if ($topic) {
-		include('utils-description.php');
+		include('../includes/utils-description.php');
 		$hthumbnail = false;
 		$hdescription = removeBbCode($getFirstMessage['message']);
 	}
@@ -28,7 +28,7 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 	else
 		$cPage = 1;
 	$nbPages = ceil(mysql_numrows($messages)/$nbMsgs);
-	require_once('utils-paging.php');
+	require_once('../includes/utils-paging.php');
 	$allPages = makePaging($cPage,$nbPages);
 	$pagesDiv = '<div class="topicPages"><p>Page :&nbsp;';
 	foreach ($allPages as $i=>$block) {
@@ -57,13 +57,13 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 		$maxId = end($pageMessages)['id'];
 	}
 
-	require_once('reactions.php');
+	require_once('../includes/reactions.php');
 	populateReactionsData('topic', $pageMessages);
 
-	include('category_fields.php');
+	include('../includes/category_fields.php');
 	$categoryID = isset($topic['category']) ? $topic['category']:'';
 	$category = mysql_fetch_array(mysql_query('SELECT '. $categoryFields .' FROM `mkcategories` WHERE id="'. $categoryID .'"'));
-	include('tokens.php');
+	include('../includes/tokens.php');
 	assign_token();
 	$isFollower = mysql_numrows(mysql_query('SELECT * FROM mkfollowers WHERE user="'. $id .'" AND topic="'. $topicId .'"'));
 	$getFollowers = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkfollowers WHERE topic="'. $topicId .'" AND user!="'. $getFirstMessage['auteur'] .'"'));
@@ -89,20 +89,20 @@ if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `
 <head>
 <title><?php echo $topic ? htmlspecialchars($titreTopic).' - '. _('MKPC Forum'): _('Mario Kart PC Forum'); ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css?reload=2" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <script type="text/javascript" src="scripts/topic.js?reload=1"></script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
@@ -175,8 +175,8 @@ if ($topic['locked'])
 		<?php
 		printReactionUI();
 		echo $pagesDiv;
-		include('bbCode.php');
-		include('avatars.php');
+		include('../includes/bbCode.php');
+		include('../includes/avatars.php');
 		echo '<div id="fMessages">';
 		foreach ($pageMessages as $message) {
 			$mayEdit = $message['auteur']==$id || $isModerator;
@@ -235,7 +235,7 @@ if ($topic['locked'])
 	?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 </body>
 </html>

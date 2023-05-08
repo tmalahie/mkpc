@@ -1,6 +1,6 @@
 <?php
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -16,10 +16,10 @@ include('initdb.php');
 
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 
-<?php include('c_mariokart.php'); ?>
+<?php include('../includes/c_mariokart.php'); ?>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var page = "MK";
@@ -61,13 +61,13 @@ for ($i=0;$i<$nbDSArenas;$i++) {
 echo json_encode($circuitNamesDetailed);
 ?>;
 var recorder = <?php echo json_encode(isset($_COOKIE['mkrecorder']) ? $_COOKIE['mkrecorder']:'') ?>;
-var cp = <?php include('getPersos.php'); ?>;
-var pUnlocked = <?php include('getLocks.php'); ?>;
+var cp = <?php include('../includes/getPersos.php'); ?>;
+var pUnlocked = <?php include('../includes/getLocks.php'); ?>;
 var ptsGP = "<?php echo $mkSaves; ?>";
 var isCup = false, isBattle = false, isSingle = false, complete = false, simplified = false;
-var baseOptions = <?php include('getCourseOptions.php'); ?>;
+var baseOptions = <?php include('../includes/getCourseOptions.php'); ?>;
 var PERSOS_DIR = "<?php
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	echo PERSOS_DIR;
 ?>";
 var NBCIRCUITS = <?php echo $nbVSCircuits; ?>;
@@ -76,7 +76,7 @@ var NBCIRCUITS = <?php echo $nbVSCircuits; ?>;
 mysql_close();
 ?>
 <script type="text/javascript" src="mk/maps.php?reload=2"></script>
-<?php include('../../mk/main.php') ?>
+<?php include('../includes/mk/main.php') ?>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", MarioKart);
 </script>
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", MarioKart);
 </script></div>
 </form>
 <?php
-include('gameInitElts.php');
+include('../includes/gameInitElts.php');
 ?>
 <div id="maps-list">
 <?php
@@ -134,6 +134,6 @@ for ($i=1;$i<48;$i+=4)
 	echo '<img src="images/selectors/select_map'.$i.'.png" alt="" />';
 ?>
 </div>
-<?php include('../../mk/description.php'); ?>
+<?php include('../includes/mk/description.php'); ?>
 </body>
 </html>

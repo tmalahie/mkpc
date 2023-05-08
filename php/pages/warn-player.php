@@ -1,3 +1,3 @@
 <?php
 $action = 'warn';
-include('moderate-player.php');
+include('../includes/moderate-player.php');

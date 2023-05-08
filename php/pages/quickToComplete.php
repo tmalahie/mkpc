@@ -1,8 +1,8 @@
 <?php
 if (empty($_GET['id'])) exit;
-include('session.php');
+include('../includes/session.php');
 if ($id != 1) exit;
-include('initdb.php');
+include('../includes/initdb.php');
 $trackID = intval($_GET['id']);
 $getMain = mysql_fetch_array(mysql_query('SELECT id,map,laps,nom,auteur,note,nbnotes,publication_date,type,identifiant,identifiant2,identifiant3,identifiant4 FROM `mkcircuits` WHERE id="'. $trackID .'"'));
 if (!$getMain) {
@@ -22,7 +22,7 @@ $infos['publication_date'] = $getMain['publication_date'];
 $pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$trackID.'"');
 while ($piece = mysql_fetch_array($pieces))
     $infos['p'.$piece['id']] = $piece['piece'];
-require_once('circuitPrefix.php');
+require_once('../includes/circuitPrefix.php');
 for ($j=0;$j<$nbLettres;$j++) {
     $lettre = $lettres[$j];
     $getInfos = mysql_query('SELECT * FROM `mk'.$lettre.'` WHERE circuit="'.$trackID.'"');
@@ -857,16 +857,16 @@ if (isset($_GET['d'])) {
 ob_start();
 echo '{';
 if ($isBattle)
-	include('../../mk/arena.php');
+	include('../includes/mk/arena.php');
 else
-	include('../../mk/circuit.php');
+	include('../includes/mk/circuit.php');
 echo '}';
 $circuitsData = array();
 $str = ob_get_clean();
 $str = preg_replace('#,[ \n\r\t]*]#',']',$str);
 $circuitsData = (new Services_JSON())->decode($str);
-require_once('circuitEnums.php');
-require_once('circuitImgUtils.php');
+require_once('../includes/circuitEnums.php');
+require_once('../includes/circuitImgUtils.php');
 $circuitData = $circuitsData->map1;
 $circuitUrl = $circuitData->map;
 $circuitImg = new \stdClass();

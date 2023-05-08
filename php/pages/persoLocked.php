@@ -1,10 +1,10 @@
 <?php
-include('getId.php');
-include('session.php');
-include('language.php');
-require_once('persos.php');
-include('initdb.php');
-require_once('utils-challenges.php');
+include('../includes/getId.php');
+include('../includes/session.php');
+include('../includes/language.php');
+require_once('../includes/persos.php');
+include('../includes/initdb.php');
+require_once('../includes/utils-challenges.php');
 if (isset($_GET['cl']))
     $clId = $_GET['cl'];
 ?>
@@ -295,7 +295,7 @@ function hideFancyTitle(e) {
 </script>
 <?php
 if (empty($clId))
-    include('o_online.php');
+    include('../includes/o_online.php');
 ?>
 <title><?php echo $language ? 'Unlockable characters':'Persos à débloquer'; ?></title>
 </head>

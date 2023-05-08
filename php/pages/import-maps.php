@@ -2,9 +2,9 @@
 if ($_SERVER['REMOTE_ADDR'] != '192.168.56.1') die($_SERVER['REMOTE_ADDR']);
 $maps = json_decode(file_get_contents('mk/maps.json'));
 $inc = 1;
-include('initdb.php');
-include('getId.php');
-require_once('circuitEnums.php');
+include('../includes/initdb.php');
+include('../includes/getId.php');
+require_once('../includes/circuitEnums.php');
 foreach ($maps as $map) {
 	if ($inc > 56)
 		continue;

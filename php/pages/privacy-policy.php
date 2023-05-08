@@ -1,7 +1,7 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 $isBattle = isset($_GET['battle']);
 $game = $isBattle ? 'battle':'vs';
 $pts_ = 'pts_'.$game;
@@ -11,7 +11,7 @@ $pts_ = 'pts_'.$game;
 <head>
 <title><?php echo $language ? 'Privacy policy':'Politique de confidentialité'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <style type="text/css">
@@ -21,14 +21,14 @@ main {
 }
 </style>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'home';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
     <h1>Privacy Policy for MKPC</h1>
@@ -121,7 +121,7 @@ include('menu.php');
     </p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

@@ -1,18 +1,18 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['id']) && isset($_POST['type']) && isset($_POST['collab'])) {
-    include('initdb.php');
-    require_once('collabUtils.php');
+    include('../includes/initdb.php');
+    require_once('../includes/collabUtils.php');
     $link = getCollabLink($_POST['type'], $_POST['id'], $_POST['collab']);
     if (isset($link['rights']['use'])) {
         $isCup = ($_POST['type'] === 'mkcups');
         $isQuickTrack = ($_POST['type'] === 'mkcircuits');
-		require_once('utils-cups.php');
+		require_once('../includes/utils-cups.php');
         if (($circuit = fetchCreationData($_POST['type'], $_POST['id'], array(
             'select' => 'c.id,c.nom'.($isCup ? ',c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3':'').($isQuickTrack ? ',c.type':'').',s.thumbnail'
         ))) && (!isset($_POST['mode']) || $circuit['mode'] == $_POST['mode'])) {
-            require_once('utils-circuits.php');
-            require_once('circuitEscape.php');
+            require_once('../includes/utils-circuits.php');
+            require_once('../includes/circuitEscape.php');
             $lCups = null;
             $mCups = null;
             switch ($_POST['type']) {

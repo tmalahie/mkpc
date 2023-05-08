@@ -1,12 +1,12 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	exit;
 }
-include('language.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -18,7 +18,7 @@ if (!hasRight('moderator')) {
 <head>
 <title><?php echo $language ? 'Nick change history':'Historique changements de pseudo'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
@@ -31,14 +31,14 @@ table a:hover {
 }
 </style>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<h1><?php echo $language ? 'Nick change history':'Historique changements de pseudo'; ?></h1>
@@ -65,7 +65,7 @@ include('menu.php');
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <?php
 mysql_close();

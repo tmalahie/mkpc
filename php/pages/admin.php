@@ -1,17 +1,17 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if (!$id) {
 	echo _("You aren't logged in");
 	exit;
 }
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 if (!$id) {
 	echo _("You aren't logged in");
 	mysql_close();
 	exit;
 }
-require_once('getRights.php');
+require_once('../includes/getRights.php');
 if (!hasRight('manager')) {
 	echo _("You aren't admin");
 	mysql_close();
@@ -32,7 +32,7 @@ else {
 <head>
 <title>Admin - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <style type="text/css">
@@ -75,14 +75,14 @@ a.action-ctn:hover {
 }
 </style>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<h1><?= _('Admin page') ?></h1>
@@ -261,7 +261,7 @@ include('menu.php');
 	<a href="index.php"><?= _('Back to Mario Kart PC') ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <?php
 mysql_close();

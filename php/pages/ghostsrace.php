@@ -8,8 +8,8 @@ for ($i=0;isset($_POST['id'.$i]);$i++) {
 }
 $nids = count($ids);
 if ($nids && ($nids<=10)) {
-	include('initdb.php');
-	require_once('utils-tt.php');
+	include('../includes/initdb.php');
+	require_once('../includes/utils-tt.php');
 	$getTemps = mysql_query('SELECT ghost,'.GHOST_MYSQL_FIELDS.' FROM `mkghostdata` WHERE ghost IN ('. implode(',',$ids) .') ORDER BY ghost,frame');
 	$ghostsData = array();
 	foreach ($ids as $id)

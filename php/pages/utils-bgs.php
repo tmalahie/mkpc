@@ -1,7 +1,7 @@
 <?php
 define('BGS_DIR', 'images/sprites/uploads/');
 define('MAX_LAYERS', 5);
-require_once('imageutils.php');
+require_once('../includes/imageutils.php');
 function handle_bg_upload($files,$options=array()) {
 	global $language, $identifiants;
 	$totalSizeOptions = null;

@@ -1,9 +1,9 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if ($id) {
     header('Content-Type: application/json');
-	include('initdb.php');
-    include('getCourseParams.php');
+	include('../includes/initdb.php');
+    include('../includes/getCourseParams.php');
     $players = mysql_query(
         'SELECT j.id,j.nom FROM mkplayers p INNER JOIN mkjoueurs j ON p.id=j.id
         INNER JOIN mariokart m ON p.course=m.id
@@ -17,7 +17,7 @@ if ($id) {
             'name' => $player['nom']
         );
     }
-    include('onlineUtils.php');
+    include('../includes/onlineUtils.php');
     if (isset($_POST['course']))
         $course = intval($_POST['course']);
     else {

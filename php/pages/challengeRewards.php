@@ -1,11 +1,11 @@
 <?php
-include('getId.php');
-include('language.php');
-include('initdb.php');
-require_once('utils-challenges.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+require_once('../includes/utils-challenges.php');
 if (isset($_GET['cl']))
     $clRace = getClRace($_GET['cl']);
-include('challenge-cldata.php');
+include('../includes/challenge-cldata.php');
 if (!empty($clRace)) {
     $getRewards = mysql_query('SELECT r.id,r.charid,c.name,c.sprites FROM mkclrewards r INNER JOIN mkchars c ON r.charid=c.id WHERE clist='. $clRace['id']);
     $rewards = array();
@@ -35,7 +35,7 @@ if (isset($_GET['clmsg'])) {
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/challenges.css?reload=1" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <title><?php echo $language ? 'Challenge rewards':'Défis et récompenses'; ?> - Mario Kart PC</title>
 </head>
@@ -81,7 +81,7 @@ else {
             <th><?php echo $language ? 'Action':'Action'; ?></th>
         </tr>
     <?php
-    require_once('persos.php');
+    require_once('../includes/persos.php');
     foreach ($rewards as $reward) {
         $spriteSrcs = get_sprite_srcs($reward['sprites']);
         ?>

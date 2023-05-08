@@ -1,17 +1,17 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	exit;
 }
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	mysql_close();
 	exit;
 }
-require_once('getRights.php');
+require_once('../includes/getRights.php');
 if (!hasRight('organizer')) {
 	echo "Vous n'&ecirc;tes pas animateur";
 	mysql_close();

@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['connecte']) && in_array($_POST['connecte'], array(0,1,2))) {
-	include('session.php');
+	include('../includes/session.php');
 	if ($id) {
-		include('initdb.php');
+		include('../includes/initdb.php');
 		mysql_query('DELETE FROM `mkconnectes` WHERE id="'. $id .'"');
 		if ($_POST['connecte'] >= 1)
 			mysql_query('INSERT INTO `mkconnectes` VALUES("'. $id .'",'. time() .')');

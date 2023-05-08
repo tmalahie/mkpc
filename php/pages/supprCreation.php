@@ -1,12 +1,12 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['id'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$cID = intval($_POST['id']);
-	include('getId.php');
-	include('session.php');
-	require_once('getRights.php');
-	require_once('collabUtils.php');
+	include('../includes/getId.php');
+	include('../includes/session.php');
+	require_once('../includes/getRights.php');
+	require_once('../includes/collabUtils.php');
 	$skipOwnerCheck = hasRight('moderator') || hasCollabGrants('mkcircuits', $cID, $_POST['collab'], 'edit');
 	if ($getCreation = mysql_fetch_array(mysql_query('SELECT type FROM `mkcircuits` WHERE id="'. $cID .'"'. ($skipOwnerCheck ? '':' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])))) {
 		mysql_query('DELETE FROM `mkmcups_tracks` WHERE cup IN (SELECT id FROM `mkcups` WHERE (circuit0="'.$cID.'" OR circuit1="'.$cID.'" OR circuit2="'.$cID.'" OR circuit3="'.$cID.'") AND mode IN (0,2))');
@@ -24,7 +24,7 @@ if (isset($_POST['id'])) {
 			$logType = $getCreation['type'] ? 'SArene' : 'SCircuit';
 			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "'. $logType .' '. $cID .'")');
 		}
-		include('postCircuitUpdate.php');
+		include('../includes/postCircuitUpdate.php');
 		postCircuitDelete('mkcircuits', $cID);
 	}
 	echo 1;

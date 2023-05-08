@@ -3,12 +3,12 @@ $cupIDs = Array();
 $infos = Array();
 $isCup = false;
 $isMCup = false;
-include('getId.php');
-include('initdb.php');
-include('language.php');
-require_once('utils-challenges.php');
-require_once('utils-cups.php');
-include('creation-challenges.php');
+include('../includes/getId.php');
+include('../includes/initdb.php');
+include('../includes/language.php');
+require_once('../includes/utils-challenges.php');
+require_once('../includes/utils-cups.php');
+include('../includes/creation-challenges.php');
 $cName = null;
 $cName0 = null;
 $cPrefix = null;
@@ -30,13 +30,13 @@ $getInfos = Array();
 	<head>
 		<title><?php if ($cName){echo htmlEscapeCircuitNames($cName);echo ' - ';} ?>Mario Kart PC</title>
 <?php
-include('metas.php');
+include('../includes/metas.php');
 
-include('c_mariokart.php');
-include('c_collab.php');
-include('c_comments.php');
+include('../includes/c_mariokart.php');
+include('../includes/c_collab.php');
+include('../includes/c_comments.php');
 
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var selectedPlayers = <?php echo (isset($_COOKIE['mkplayers']) ? $_COOKIE['mkplayers']:8); ?>;
@@ -72,13 +72,13 @@ if (!empty($cupNames)) {
 	echo '];';
 }
 ?>
-var cp = <?php include('getPersos.php'); ?>;
-var pUnlocked = <?php include('getLocks.php'); ?>;
-var baseOptions = <?php include('getCourseOptions.php'); ?>;
+var cp = <?php include('../includes/getPersos.php'); ?>;
+var pUnlocked = <?php include('../includes/getLocks.php'); ?>;
+var baseOptions = <?php include('../includes/getCourseOptions.php'); ?>;
 var page = "CI";
-<?php include('getCupScore.php'); ?>
+<?php include('../includes/getCupScore.php'); ?>
 var PERSOS_DIR = "<?php
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	echo PERSOS_DIR;
 ?>";
 var isBattle = false;
@@ -92,12 +92,12 @@ var NBCIRCUITS = <?php echo $NBCIRCUITS; ?>;
 function listMaps() {
 	return {<?php printCircuitsData(); ?>};
 }
-<?php include('handleCupOptions.php'); ?>
+<?php include('../includes/handleCupOptions.php'); ?>
 </script>
-<?php include('../../mk/main.php') ?>
+<?php include('../includes/mk/main.php') ?>
 <script type="text/javascript">
 <?php
-require_once('circuit-actions.php');
+require_once('../includes/circuit-actions.php');
 includeShareLib();
 ?>
 </script>
@@ -183,11 +183,11 @@ if (isset($message)) {
 	<?php
 }
 printCircuitShareUI();
-include('gameInitElts.php');
+include('../includes/gameInitElts.php');
 ?>
 <?php
 if (isset($nid)) {
-	require_once('reactions.php');
+	require_once('../includes/reactions.php');
 	printReactionUI();
 	?>
 	<div id="comments-section"></div>
@@ -196,7 +196,7 @@ if (isset($nid)) {
 	<?php
 }
 ?>
-<?php include('../../mk/description.php'); ?>
+<?php include('../includes/mk/description.php'); ?>
 </body>
 </html>
 <?php

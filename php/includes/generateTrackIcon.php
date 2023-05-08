@@ -22,7 +22,7 @@ function cache($file,$id) {
     $w_ic = 120; $h_ic = $w_ic;
     $temp = true;
     $cacheFile = $file.$id.'.png';
-    include($file .'.php');
+    include(__DIR__.'/../pages/'.$file .'.php');
     $res = setCacheFile($tempName, $cacheSrc, $w_ic,$h_ic, ($file!=='mcuppreview'));
     @unlink($tempName);
     return $res;

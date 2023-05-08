@@ -1,11 +1,11 @@
 <?php
 if (isset($_GET['id'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$persoId = intval($_GET['id']);
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
-		include('language.php');
-		include('getId.php');
-        require_once('collabUtils.php');
+		include('../includes/language.php');
+		include('../includes/getId.php');
+        require_once('../includes/collabUtils.php');
         $collabSuffix = '';
         if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
             $hasReadGrants = true;
@@ -34,13 +34,13 @@ if (isset($_GET['id'])) {
 					header('location: persoOptions.php?id='. $persoId . $collabSuffix);
 				}
 			}
-			require_once('persos.php');
+			require_once('../includes/persos.php');
 			$persoMusic = get_perso_music($perso);
 			ob_start();
-			include('getPersos.php');
+			include('../includes/getPersos.php');
 			$persos = json_decode(ob_get_clean());
 			ob_start();
-			include('getLocks.php');
+			include('../includes/getLocks.php');
 			$unlocked = json_decode(ob_get_clean());
 			$isOriginal = isset($persos->$persoMusic);
 			?>
@@ -140,7 +140,7 @@ function jouerToiTuyaux() {
 }
 </script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
 </head>

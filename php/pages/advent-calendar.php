@@ -1,7 +1,7 @@
 <?php
-include('session.php');
-include('language.php');
-include('initdb.php');
+include('../includes/session.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
@@ -9,7 +9,7 @@ include('initdb.php');
 <title>Calendrier de l'Avent - Mario Kart PC</title>
 <?php
 $hdescription = $language ? "It's Christmas on Mario Kart PC! To celebrate, this unique event gives you access to 1 challenge per day! Win as many challenges as possible to earn up to 400+ challenge points!" : "C'est Noël sur Mario Kart PC ! Pour fêter ça, cet événement inédit vous donne accès à 1 défi par jour ! Remportez un maximum de défis pour gagner jusqu'à 400+ points défis !";
-include('heads.php');
+include('../includes/heads.php');
 $year = isset($_GET['y']) ? $_GET['y'] : 2022;
 $over = false;
 date_default_timezone_set('Europe/Paris');
@@ -36,7 +36,7 @@ else {
 		$dayStr .= "er";
 	$dayStr .= " Décembre";
 }
-include('advent-challenges.php');
+include('../includes/advent-challenges.php');
 $adventChallengesUntil = get_challenges_until($day);
 ?>
 <script src="scripts/jquery.min.js"></script>
@@ -318,14 +318,14 @@ document.onkeydown = function(e) {
 }
 </script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'home';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<h1><?php echo $language ? 'Advent Calendar':'Calendrier de l\'avent'; ?></h1>
@@ -455,7 +455,7 @@ include('menu.php');
 	</div>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <?php
 mysql_close();

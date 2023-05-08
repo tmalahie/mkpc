@@ -1,17 +1,17 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	exit;
 }
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	mysql_close();
 	exit;
 }
-require_once('getRights.php');
+require_once('../includes/getRights.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
@@ -23,13 +23,13 @@ if (!hasRight('moderator')) {
 <head>
 <title><?php echo $language ? 'Blacklist logs':'Logs blacklist'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <style type="text/css">
 #log {
@@ -63,9 +63,9 @@ table a.details {
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<h1><?php echo $language ? 'Blacklisted messages logs':'Logs des messages blacklistés'; ?></h1>
@@ -99,7 +99,7 @@ include('menu.php');
         $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
         $getLogs = mysql_query('SELECT l.id,l.player,l.date,l.message,l.code,j.nom FROM mkbadmsglog l LEFT JOIN mkjoueurs j ON l.player=j.id ORDER BY l.id DESC LIMIT '. (($page-1)*$RES_PER_PAGE) .','.$RES_PER_PAGE);
         $logCount = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkbadmsglog'));
-        include('utils-date.php');
+        include('../includes/utils-date.php');
         $blockReasons = array(
             '-1' => $language ? 'Watched<br />word' : 'Mot<br />surveillé',
             '-2' => 'Spam',
@@ -134,7 +134,7 @@ include('menu.php');
             echo ($isCurrent ? '<span>'.$page.'</span>' : '<a href="?page='.$page.'">'.$page.'</a>').'&nbsp; ';
         }
         $limite = ceil($logCount['nb']/$RES_PER_PAGE);
-        require_once('utils-paging.php');
+        require_once('../includes/utils-paging.php');
         $allPages = makePaging($page,$limite);
         foreach ($allPages as $i=>$block) {
             if ($i)
@@ -148,7 +148,7 @@ include('menu.php');
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

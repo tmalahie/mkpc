@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['options'])) $options = $_POST['options'];
-include('initdb.php');
+include('../includes/initdb.php');
 if (isset($options)) $_POST['options'] = $options;
-include('session.php');
+include('../includes/session.php');
 if ($id) {
 	do {
 		$key = rand();
@@ -11,7 +11,7 @@ if ($id) {
 			continue;
 		$q = mysql_query('INSERT IGNORE INTO `mkprivgame` SET id="'.$key.'",player="'.$id.'"');
 	} while (!mysql_affected_rows());
-	include('updateGameOptions.php');
+	include('../includes/updateGameOptions.php');
 	echo $key;
 }
 else

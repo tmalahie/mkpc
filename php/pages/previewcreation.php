@@ -1,5 +1,5 @@
 <?php
-include('initdb.php');
+include('../includes/initdb.php');
 if (isset($_GET['id'])) {
 	$circuit = mysql_query('SELECT type FROM `mkcircuits` WHERE id="'. $_GET['id'] .'"');
 	if ($circuit['type'])

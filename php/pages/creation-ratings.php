@@ -1,25 +1,25 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if (!$id) {
 	echo "Vous n'&ecirc;tes pas connect&eacute;";
 	exit;
 }
-include('language.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 if (!hasRight('moderator')) {
 	echo "Vous n'&ecirc;tes pas mod&eacute;rateur";
 	mysql_close();
 	exit;
 }
-include('getId.php');
+include('../includes/getId.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <title><?php echo $language ? 'Manage circuit ratings':'Gérer les notes des circuits'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
@@ -52,20 +52,20 @@ main tr.clair a.action_button, main tr.fonce a.action_button {
 }
 </style>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 if (isset($_GET['del'])) {
     if ($rating = mysql_fetch_array(mysql_query('SELECT type,circuit,identifiant FROM mkratings WHERE id="'. $_GET['del'] .'"'))) {
         if ($circuit = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $rating['type'] .'` WHERE id='. $rating['circuit']))) {
             if ($circuit['identifiant'] != $identifiants[0]) {
                 mysql_query('DELETE FROM mkratings WHERE id="'. $_GET['del'] .'"');
-                require_once('utils-ratings.php');
+                require_once('../includes/utils-ratings.php');
                 recomputeRating($rating['type'], $rating['circuit']);
                 mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "DRating '. $rating['type'] .' '. $rating['circuit'] .' '. $rating['identifiant'] .'")');
             }
@@ -73,7 +73,7 @@ if (isset($_GET['del'])) {
     }
 }
 if (isset($_GET['url'])) {
-    include('adminUtils.php');
+    include('../includes/adminUtils.php');
     $creationData = getCreationByUrl($_GET['url']);
     if ($creationData) {
         $circuitId = $creationData['id'];
@@ -109,7 +109,7 @@ if (isset($_GET['url'])) {
     <?php
     if (isset($_GET['url'])) {
         if (isset($circuitType)) {
-            require_once('utils-cups.php');
+            require_once('../includes/utils-cups.php');
             if ($getCircuit = fetchCreationData($circuitType, $circuitId, array('select' => 'c.identifiant'))) {
                 $myCircuit = ($getCircuit['identifiant'] == $identifiants[0]);
                 ?>
@@ -155,7 +155,7 @@ if (isset($_GET['url'])) {
 	<a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript">
 function confirmDelete() {

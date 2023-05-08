@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['key'])) {
-    include('session.php');
+    include('../includes/session.php');
     if ($id) {
-        include('initdb.php');
+        include('../includes/initdb.php');
         mysql_query('INSERT IGNORE INTO `mkofficialmsgread` SET player='.$id.', message="'. $_POST['key'] .'"');
         mysql_close();
     }

@@ -1,11 +1,11 @@
 <?php
-include('getId.php');
-include('language.php');
-include('initdb.php');
-require_once('utils-challenges.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+require_once('../includes/utils-challenges.php');
 if (isset($_GET['moderate'])) {
-	include('session.php');
-	require_once('getRights.php');
+	include('../includes/session.php');
+	require_once('../includes/getRights.php');
 	if (hasRight('clvalidator'))
 		$moderate = true;
 }
@@ -16,7 +16,7 @@ if (isset($_GET['ch'])) {
 }
 elseif (isset($_GET['cl']))
 	$clRace = getClRace($_GET['cl']);
-include('challenge-cldata.php');
+include('../includes/challenge-cldata.php');
 $circuitUrl = '';
 if (isset($clCircuit) && isset($clTable)) {
 	$circuitId = $clCircuit['id'];
@@ -909,7 +909,7 @@ window.onload = function() {
 				<div id="zone-editor-decor">
 					<span><?php echo $language ? 'Decor:':'Décor :'; ?></span>
 					<?php
-					include('circuitDecors.php');
+					include('../includes/circuitDecors.php');
 					foreach ($decors as &$decorGroup)
 						unset($decorGroup['truck']);
 					unset($decorGroup);

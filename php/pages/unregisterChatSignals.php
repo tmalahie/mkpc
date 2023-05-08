@@ -1,12 +1,12 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 $res = 0;
 if (isset($_POST['sender']) && isset($_POST['receiver'])) {
-    include('session.php');
+    include('../includes/session.php');
 	if ($id) {
-    	include('initdb.php');
-		include('onlineUtils.php');
+    	include('../includes/initdb.php');
+		include('../includes/onlineUtils.php');
 		$course = getCourse();
 	    if ($getSender = mysql_fetch_array(mysql_query('SELECT player,course FROM mkchatvoc WHERE id="'.$_POST['sender'] .'"'))) {
 		    if ($getReceiver = mysql_fetch_array(mysql_query('SELECT player,course FROM mkchatvoc WHERE id="'.$_POST['receiver'] .'"'))) {

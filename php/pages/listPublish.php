@@ -1,8 +1,8 @@
 <?php
 if (isset($_GET['user'])) {
-	include('session.php');
-	include('language.php');
-	include('initdb.php');
+	include('../includes/session.php');
+	include('../includes/language.php');
+	include('../includes/initdb.php');
 	if ($getInfos = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $_GET['user'] .'"'))) {
 		?>
 <!DOCTYPE html>
@@ -10,7 +10,7 @@ if (isset($_GET['user'])) {
 <head>
 <title><?php echo $language ? 'News published by':'News publiées par'; ?> <?php echo $getInfos['nom']; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
@@ -24,14 +24,14 @@ include('heads.php');
 </style>
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'home';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
@@ -63,7 +63,7 @@ include('menu.php');
 	<h1><?php echo $language ? 'News published by':'News publiées par'; ?> <?php echo $getInfos['nom']; ?> (<?php echo $nbNews; ?>)</h1>
 	<div class="published-news">
 	<?php
-	require_once('utils-date.php');
+	require_once('../includes/utils-date.php');
 	foreach ($news as $new) {
 		$nbMsgs = $new['nbcomments'];
 		?>
@@ -101,7 +101,7 @@ include('menu.php');
 	</div>
 </main>
 		<?php
-		include('footer.php');
+		include('../includes/footer.php');
 	}
 	mysql_close();
 }

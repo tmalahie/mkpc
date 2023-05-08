@@ -88,7 +88,7 @@ if (!function_exists('createSeaFromGraph')) {
 }
 $printCircuitData = function($arene) {
 	global $graph, $arenaPieces;
-	include('circuitEnumsQuick.php');
+	include(__DIR__.'/../circuitEnumsQuick.php');
 	$pieces = Array(
 		Array(false,true,true,true),
 		Array(true,false,true,true),

@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['id'])) {
-	include('initdb.php');
-	require_once('utils-tt.php');
+	include('../includes/initdb.php');
+	require_once('../includes/utils-tt.php');
 	$getTemps = mysql_query('SELECT '.GHOST_MYSQL_FIELDS.' FROM `mkghostdata` WHERE ghost="'. $_POST['id'].'" ORDER BY frame');
 	$colon = '';
 	echo '[';

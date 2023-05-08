@@ -1,14 +1,14 @@
 <?php
 if (!isset($id) && isset($_GET['id'])) {
-	include('escape_all.php');
+	include('../includes/escape_all.php');
 	$id = intval($_GET['id']);
 }
 if (isset($id)) {
 	$isTemp = isset($temp);
 	if (!$isTemp)
-		include('initdb.php');
+		include('../includes/initdb.php');
 	if ($getMain = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `circuits` WHERE id="'. $id .'"'))) {
-		require_once('circuitImgUtils.php');
+		require_once('../includes/circuitImgUtils.php');
 		$circuitImg = json_decode($getMain['img_data']);
 		$circuitFile = getCircuitLocalFile($circuitImg);
 		$path = $circuitFile['path'];
@@ -51,7 +51,7 @@ if (isset($id)) {
 					foreach ($circuitData->decor as $key => $decor)
 						$decors->{$key} = $decor;
 				}
-				require_once('utils-decors.php');
+				require_once('../includes/utils-decors.php');
 				foreach ($decors as $type=>$decorsData) {
 					if (isset($decorExtra->{$type}) && isset($decorExtra->{$type}->custom)) {
 						$customDecor = $decorExtra->{$type}->custom;
@@ -95,7 +95,7 @@ if (isset($id)) {
 			}
 		}
 		
-		include('saveImage.php');
+		include('../includes/saveImage.php');
 	}
 	if (!$isTemp)
 		mysql_close();

@@ -4,7 +4,7 @@ if ($_SERVER['REMOTE_ADDR'] != '79.45.174.164') {
 	exit;
 }
 header('Content-type: text/plain');
-include('initdb.php');
+include('../includes/initdb.php');
 $getTables = mysql_query('SHOW TABLES');
 while ($table = mysql_fetch_array($getTables)) {
 	echo $table[0].':';

@@ -1,8 +1,8 @@
 <?php
-include('session.php');
+include('../includes/session.php');
 if ($id) {
-	include('language.php');
-	include('initdb.php');
+	include('../includes/language.php');
+	include('../includes/initdb.php');
 	if ($getInfos = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'))) {
 		mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="new_followuser"');
 		?>
@@ -11,22 +11,22 @@ if ($id) {
 <head>
 <title><?php echo $language ? 'Your followers':'Vos abonnés'; ?> - Mario Kart PC</title>
 <?php
-include('heads.php');
-include('avatars.php');
+include('../includes/heads.php');
+include('../includes/avatars.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/profil.css" />
 <link rel="stylesheet" type="text/css" href="styles/followers.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<?php
@@ -94,7 +94,7 @@ include('menu.php');
 	</div>
 </main>
 		<?php
-		include('footer.php');
+		include('../includes/footer.php');
 	}
 	mysql_close();
 }

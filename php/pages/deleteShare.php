@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['ids']) && preg_match('#^\d+(,\d+)*$#', $_POST['ids'])) {
-	include('session.php');
-	include('initdb.php');
-	require_once('getRights.php');
+	include('../includes/session.php');
+	include('../includes/initdb.php');
+	require_once('../includes/getRights.php');
 	$persoIds = $_POST['ids'];
 	if (hasRight('moderator')) {
 		mysql_query('UPDATE `mkpersosel` SET perso2=-1 WHERE perso2 IN ('. $persoIds .')');

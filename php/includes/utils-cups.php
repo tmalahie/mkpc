@@ -391,7 +391,7 @@ function printCircuitsData() {
         if ($c) echo ',';
         echo '"map'. ($c+1) .'":';
         $page = $CREATION_ENTITIES[$circuitData['mode']]['page'];
-        include("../../mk/$page.php");
+        include("mk/$page.php");
         $printCircuitData($circuitData);
         echo '';
     }

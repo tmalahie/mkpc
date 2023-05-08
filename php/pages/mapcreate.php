@@ -1,6 +1,6 @@
 <?php
 header ("Content-type: image/png");
-require_once('circuitEnumsQuick.php');
+require_once('../includes/circuitEnumsQuick.php');
 
 $map = (isset($_GET["map"])) ? $_GET["map"] : 1;
 if (in_array($map, array(48)))
@@ -24,7 +24,7 @@ for ($i=0;$i<36;$i++) {
 $snes = ($map < 13);
 $gba = ($map < 31) || ($map >= 52);
 $elements = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j');
-include('escape_all.php');
+include('../includes/escape_all.php');
 for ($i=0;$i<10;$i++) {
 	$e = $elements[$i];
 	if (($i < 4) && !$snes) {

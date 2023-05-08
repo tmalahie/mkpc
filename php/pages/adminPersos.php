@@ -1,14 +1,14 @@
 <?php
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 if (!hasRight('moderator')) {
 	echo 'Access denied';
 	mysql_close();
 	exit;
 }
-include('language.php');
-require_once('persos.php');
+include('../includes/language.php');
+require_once('../includes/persos.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?= P_("html language", "en") ?>">
@@ -18,7 +18,7 @@ require_once('persos.php');
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <style type="text/css">
 .perso-selector {

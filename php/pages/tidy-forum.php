@@ -1,5 +1,5 @@
 <?php
-include('initdb.php');
+include('../includes/initdb.php');
 ?>
 <html>
 <head>

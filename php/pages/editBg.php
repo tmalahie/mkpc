@@ -1,10 +1,10 @@
 <?php
 if (isset($_GET['id'])) {
 	$bgId = intval($_GET['id']);
-	include('initdb.php');
+	include('../includes/initdb.php');
 	if ($bg = mysql_fetch_array(mysql_query('SELECT * FROM `mkbgs` WHERE id="'. $bgId .'"'))) {
-		include('getId.php');
-        require_once('collabUtils.php');
+		include('../includes/getId.php');
+        require_once('../includes/collabUtils.php');
         $collabSuffix = '';
 		if ($bg['identifiant'] == $identifiants[0]) {
 			$hasReadGrants = true;
@@ -17,10 +17,10 @@ if (isset($_GET['id'])) {
             if ($collab) $collabSuffix = '&collab='. $collab['key'];
         }
         if ($hasReadGrants) {
-			include('language.php');
-			require_once('utils-bgs.php');
+			include('../includes/language.php');
+			require_once('../includes/utils-bgs.php');
             session_start();
-            include('tokens.php');
+            include('../includes/tokens.php');
             assign_token();
 			if (isset($_POST['name']) && $hasWriteGrants) {
                 $bg['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);

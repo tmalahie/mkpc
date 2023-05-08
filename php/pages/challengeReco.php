@@ -1,5 +1,5 @@
 <?php
-include('language.php');
+include('../includes/language.php');
 ?>
 <html>
 <head>

@@ -1,13 +1,13 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['options'])) $options = $_POST['options'];
-include('initdb.php');
+include('../includes/initdb.php');
 if (isset($options)) $_POST['options'] = $options;
-include('session.php');
+include('../includes/session.php');
 if (isset($_POST['options'])) {
 	$options = json_decode($_POST['options']);
 	if ($options) {
-		include('onlineRulesUtils.php');
+		include('../includes/onlineRulesUtils.php');
 		$getPublicOptions = mysql_query('SELECT id,rules FROM `mkgameoptions` WHERE public=1');
 		while ($publicOptions = mysql_fetch_array($getPublicOptions)) {
 			$rules = json_decode($publicOptions['rules']);

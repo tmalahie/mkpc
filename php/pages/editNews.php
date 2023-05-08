@@ -1,8 +1,8 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
-require_once('getRights.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
+require_once('../includes/getRights.php');
 if (isset($_GET['id']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $_GET['id'] .'"'))) && (hasRight('publisher')||($news['author']==$id))) {
 	$getAuthor = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $news['author'] .'"'));
 	?>
@@ -11,23 +11,23 @@ if (isset($_GET['id']) && ($news=mysql_fetch_array(mysql_query('SELECT * FROM `m
 <head>
 <title>News Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/news.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'home';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <?php
-include('smileys.php');
+include('../includes/smileys.php');
 ?>
 <h1><?php echo $language ? 'Edit a news':'Modifier une news'; ?></h1>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -42,7 +42,7 @@ include('smileys.php');
 	<?php
 	$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	if ($getBanned['banned'])
-		include('ban_msg.php');
+		include('../includes/ban_msg.php');
 	elseif (isset($_POST['title']) && isset($_POST['category']) && isset($_POST['message'])) {
 		$revalidate = ($news['status']=='rejected');
 		mysql_query('UPDATE `mknews` SET
@@ -74,7 +74,7 @@ include('smileys.php');
 <td class="mInput">
 	<select id="category" name="category" onchange="document.getElementById('mCategory').innerHTML=this.options[this.selectedIndex].text">
 		<?php
-		include('category_fields.php');
+		include('../includes/category_fields.php');
 		$categories = mysql_query('SELECT id,name'. $language .' AS name,color FROM `mkcats`');
 		$currentCategory = null;
 		while ($category = mysql_fetch_array($categories)) {
@@ -87,7 +87,7 @@ include('smileys.php');
 </td></tr>
 <tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php
 $isNews = true;
-include('bbButtons.php');
+include('../includes/bbButtons.php');
 ?></td></tr>
 <tr><td class="mLabel"><p><label for="message">Contenu :</label></p>
 <p><?php
@@ -122,7 +122,7 @@ for ($i=0;$i<$nbSmileys;$i++)
 ?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript">window.isNews = true;</script>
 <script type="text/javascript" src="scripts/msg.php"></script>

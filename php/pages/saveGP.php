@@ -1,12 +1,12 @@
 <?php
 header('Content-Type: text/plain');
 if (isset($_POST['change']) && isset($_POST['pts'])) {
-	include('escape_all.php');
+	include('../includes/escape_all.php');
 	$change = $_POST['change'];
 	$pts = $_POST['pts'];
 	if (($pts>0) && ($pts<4) && (floor($pts)==$pts) && ($change>=0) && ($change<14) && (floor($change)==$change)) {
-		include('initdb.php');
-		include('fetchSaves.php');
+		include('../includes/initdb.php');
+		include('../includes/fetchSaves.php');
 		$avant = 0;
 		for ($i=0;$i<14;$i++)
 			$avant += $mkSaves[$i];

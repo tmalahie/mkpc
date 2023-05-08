@@ -1,10 +1,10 @@
 <?php
-include('session.php');
-include('language.php');
-include('initdb.php');
-include('getId.php');
-require_once('utils-date.php');
-require_once('getRights.php');
+include('../includes/session.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+include('../includes/getId.php');
+require_once('../includes/utils-date.php');
+require_once('../includes/getRights.php');
 $isModerator = hasRight('moderator');
 $creation = false;
 $cup = false;
@@ -65,7 +65,7 @@ if ($creation) {
 	}
 	elseif ($cup) {
 		$getCup = mysql_fetch_array(mysql_query('SELECT * FROM `mkcups` WHERE id="'. $cID .'"'));
-		require_once('utils-cups.php');
+		require_once('../includes/utils-cups.php');
 		$getCircuits = getCreationDataQuery(array(
 			'table' => $type,
 			'select' => 'c.id,0 AS gid,"" AS gname',
@@ -73,7 +73,7 @@ if ($creation) {
 		));
 	}
 	else {
-		require_once('utils-cups.php');
+		require_once('../includes/utils-cups.php');
 		$getCircuits = getCreationDataQuery(array(
 			'table' => $type,
 			'select' => 'c.id,0 AS gid,"" AS gname',
@@ -88,13 +88,13 @@ $pseudo = isset($_GET['pseudo']) ? $_GET['pseudo']:null;
 <head>
 <title>Mario Kart PC</title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <style type="text/css">
 main {
@@ -241,9 +241,9 @@ main table div {
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <div id="title">
@@ -426,7 +426,7 @@ if ($creation && !$cup) {
 </p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
 <script type="text/javascript" src="scripts/autocomplete-dummy.js"></script>
@@ -442,7 +442,7 @@ var autoSelectMap<?php
 		echo ' = '. ($_GET['map']-1);
 ?>;
 var circuitGroups = <?php
-require_once('circuitEscape.php');
+require_once('../includes/circuitEscape.php');
 if ($creation)
 	echo json_encode(array_values($circuitGroups));
 else {
@@ -523,7 +523,7 @@ function getScore(place,nPlaces) {
 	return Math.round(8*Math.pow(1-x,4/3));
 }
 var PERSOS_DIR = "<?php
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	echo PERSOS_DIR;
 ?>";
 if (!String.prototype.startsWith) {

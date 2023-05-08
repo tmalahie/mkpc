@@ -1,11 +1,11 @@
 <?php
-include('getId.php');
-include('language.php');
-include('initdb.php');
-require_once('utils-challenges.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
+require_once('../includes/utils-challenges.php');
 if (isset($_GET['cl']))
 	$clRace = getClRace($_GET['cl']);
-include('challenge-cldata.php');
+include('../includes/challenge-cldata.php');
 if (isset($_GET['clmsg'])) {
 	switch ($_GET['clmsg']) {
 	case 'challenge_edited':
@@ -40,7 +40,7 @@ if (isset($_GET['clmsg'])) {
 <link rel="stylesheet" href="styles/challenges.css" />
 <script type="text/javascript" src="scripts/challenges.js?reload=1"></script>
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var publishingChallenge;

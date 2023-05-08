@@ -1,20 +1,20 @@
 <?php
-include('session.php');
-include('language.php');
-include('initdb.php');
+include('../includes/session.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"')))
 	$myPseudo = $getPseudo['nom'];
 else
 	$myPseudo = null;
 if ($id && ($getBan=mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'.$id.'" AND banned')))) {
-	include('getId.php');
+	include('../includes/getId.php');
 	if ($getBan['banned'] == 1)
-		include('ban_ip.php');
+		include('../includes/ban_ip.php');
 	echo $language ? 'You have been banned from the online mode' : 'Vous avez été banni du mode en ligne';
 	mysql_close();
 	exit;
 }
-require_once('getRights.php');
+require_once('../includes/getRights.php');
 $isSingle = false;
 $isBattle = isset($_GET['battle']);
 if (isset($_GET['mid']))
@@ -44,7 +44,7 @@ $isCup = false;
 $isMCup = false;
 $isCustom = isset($trackPayloadParams);
 if ($isCustom) {
-	require_once('utils-cups.php');
+	require_once('../includes/utils-cups.php');
 	$trackPayloadParams['online'] = true;
 	$mId = $id;
 	getTrackPayloads($trackPayloadParams);
@@ -109,7 +109,7 @@ if (isset($_SESSION['mklink'])) {
 	   	else
 	   		echo $language ? 'Online race Mario Kart PC':'Course en ligne Mario Kart PC';
 	   ?></title>
-<?php include('metas.php'); ?>
+<?php include('../includes/metas.php'); ?>
 <?php
 if (isset($privateLink)) {
 	?>
@@ -118,7 +118,7 @@ if (isset($privateLink)) {
 }
 ?>
 
-<?php include('c_mariokart.php'); ?>
+<?php include('../includes/c_mariokart.php'); ?>
 <link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css?reload=1" />
 
 <?php
@@ -196,12 +196,12 @@ echo json_encode($circuitNamesDetailed);
 	<?php
 }
 ?>
-var cp = <?php include('getPersos.php'); ?>;
-var pUnlocked = <?php include('getLocks.php'); ?>;
-var baseOptions = <?php include('getCourseOptions.php'); ?>;
+var cp = <?php include('../includes/getPersos.php'); ?>;
+var pUnlocked = <?php include('../includes/getLocks.php'); ?>;
+var baseOptions = <?php include('../includes/getCourseOptions.php'); ?>;
 var page = "OL";
 var PERSOS_DIR = "<?php
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	echo PERSOS_DIR;
 ?>";
 var mId = <?php echo $id ? $id:'null'; ?>;
@@ -271,10 +271,10 @@ else {
 	}
 	<?php
 }
-include('handleCupOptions.php');
+include('../includes/handleCupOptions.php');
 ?>
 </script>
-<?php include('../../mk/main.php') ?>
+<?php include('../includes/mk/main.php') ?>
 <script type="text/javascript">document.addEventListener("DOMContentLoaded", MarioKart);</script>
 </head>
 <body>
@@ -322,12 +322,12 @@ include('handleCupOptions.php');
 </script></div>
 </form>
 <?php
-include('gameInitElts.php');
+include('../includes/gameInitElts.php');
 ?>
 <script type="text/javascript" src="scripts/simplepeer.min.js"></script>
 <script type="text/javascript">var rtcService, cPlayerPeers = {};</script>
 <script type="text/javascript" src="scripts/mk-online.js"></script>
-<?php include('../../mk/description.php'); ?>
+<?php include('../includes/mk/description.php'); ?>
 </body>
 </html>
 <?php

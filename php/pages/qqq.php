@@ -4,7 +4,7 @@ if (isset($_GET['p'])) {
     $p = intval($_GET['p']);
     $isBattle = isset($_GET['battle']);
     $id = 50000+$p;
-    include('initdb.php');
+    include('../includes/initdb.php');
     if ($circuit = mysql_fetch_array(mysql_query('SELECT c.*,d.data FROM `circuits` c LEFT JOIN `circuits_data` d ON c.id=d.id WHERE c.id='.$id))) {
 	$circuitPayload = json_decode(gzuncompress($circuit['data']));
     $circuitMainData = $circuitPayload->main;

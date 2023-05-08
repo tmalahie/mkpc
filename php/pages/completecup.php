@@ -1,4 +1,4 @@
 <?php
 $mode = 1;
-include('cup.php');
+include('../includes/cup.php');
 ?>

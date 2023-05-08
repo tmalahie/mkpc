@@ -1,16 +1,16 @@
 <?php
 if (isset($_GET['news']) && isset($_POST['comment'])) {
-	include('session.php');
+	include('../includes/session.php');
 	if ($id) {
-		include('initdb.php');
+		include('../includes/initdb.php');
 		if ($news = mysql_fetch_array(mysql_query('SELECT * FROM `mknews` WHERE id="'. $_GET['news'] .'" AND locked=0'))) {
 			$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 			if ($getBanned && $getBanned['banned']) {
 				mysql_close();
 				exit;
 			}
-			include('getId.php');
-			include('utils-cooldown.php');
+			include('../includes/getId.php');
+			include('../includes/utils-cooldown.php');
 			if (isNewsComCooldowned()) {
 				logCooldownEvent('news_com');
 				header('location: news.php?id='.$_GET['news']);

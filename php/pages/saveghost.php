@@ -3,9 +3,9 @@ header('Content-Type: text/plain');
 if (isset($_POST['map']) && isset($_POST['perso'])) {
 	for ($n=0;isset($_POST['p'.$n]);$n++);
 	if ($n < 10000) {
-		include('initdb.php');
-		include('getId.php');
-		include('session.php');
+		include('../includes/initdb.php');
+		include('../includes/getId.php');
+		include('../includes/session.php');
 		if ($id) {
 			$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
 			$isBanned = mysql_fetch_array($getBanned);

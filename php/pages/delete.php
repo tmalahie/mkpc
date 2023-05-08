@@ -1,26 +1,26 @@
 <?php
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
 <title><?php echo $language ? 'Message deleted':'Suppression'; ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'forum';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 <h1><?php echo $language ? 'Message deleted':'Suppression'; ?></h1>
@@ -37,13 +37,13 @@ include('menu.php');
 if (isset($_GET['id']) && isset($_GET['topic']) && ($_GET['id'] > 1)) {
 	$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
 	if (($banned=mysql_fetch_array($getBanned)) && $banned['banned'])
-		include('ban_msg.php');
+		include('../includes/ban_msg.php');
 	else {
 		if (!isset($_SESSION['csrf']) || !isset($_GET['token']) || ($_SESSION['csrf'] != $_GET['token'])) {
 			echo '<p style="text-align: center">'. ($language ? 'Invalid token, please try again' : 'Token invalide, veuillez réessayer') .'</p>';
 		}
 		else {
-			require_once('getRights.php');
+			require_once('../includes/getRights.php');
 			$topicId = intval($_GET['topic']);
 			$msgId = intval($_GET['id']);
 			$msg = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id="'. $msgId .'" AND topic="'. $topicId .'"'));
@@ -75,7 +75,7 @@ if (isset($_GET['id']) && isset($_GET['topic']) && ($_GET['id'] > 1)) {
 ?>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 mysql_close();
 ?>
 </body>

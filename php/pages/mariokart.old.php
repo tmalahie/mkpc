@@ -1,6 +1,6 @@
 <?php
-include('language.php');
-include('initdb.php');
+include('../includes/language.php');
+include('../includes/initdb.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $language ? 'en':'fr'; ?>" >
@@ -19,7 +19,7 @@ include('initdb.php');
 <link rel="stylesheet" media="screen" type="text/css" href="styles/mariokart.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript">
 var page = "MK";
@@ -31,13 +31,13 @@ var sCircuits = ["Circuit Mario 1","Plaine Donut 1","Plage Koopa 1","Île Choco 
 var lCircuits = language ? ["Mario Circuit 1","Donut Plains 1","Koopa Beach 1","Choco Island 1","Vanilla Lake 1","Ghost Valley 1","Mario Circuit 2","Bowser Castle 1","Donut Plains 2","Bowser Castle 2","Choco Island 2","Mario Circuit 3","Koopa Beach 2","Vanilla Lake 2","Ghost Valley 2","Donut Plains 3","Ghost Valley 3","Mario Circuit 4","Bowser Castle 3","Rainbow Road","Peach Circuit","Shy Guy Beach","Riverside Park","Bowser Castle I","Mario Circuit","Boo Lake","Cheese Land","Bowser Castle II","Luigi Circuit","Sky Garden","Cheep-Cheep Island","Sunset Wilds","Snow Land","Ribbon Road","Yoshi Desert","Bowser Castle III","Lakeside Park","Broken Pier","Bowser Castle IV","Rainbow  Road","Battle Course 1","Battle Course 2","Battle Course 3","Battle Course 4","Battle Course  1","Battle Course  2","Battle Course  3","Battle Course  4"]:sCircuits;
 var recorder = "";
 var cp = {"mario":[0.6,1,0.6],"luigi":[0.2,1.2,0.2],"peach":[0.2,1,1],"toad":[1,1,0.2],"yoshi":[0.6,1,0.6],"bowser":[1,0.9,1],"donkey-kong":[0.4,1,0.8],"daisy":[0.2,1,1],"waluigi":[0.8,1,0.4],"koopa":[0.4,1,0.8],"wario":[0.2,1.1,0.3],"maskass":[0.8,1,0.3],"birdo":[0.6,0.95,0.7],"roi_boo":[0.4,1,0.8],"frere_marto":[0.4,1.05,0.7],"bowser_jr":[0.9,0.95,0.7],"harmonie":[0.3,0.95,0.8],"diddy-kong":[0.4,1,0.8],"skelerex":[0.6,1,0.6],"funky-kong":[0.4,1,0.8],"toadette":[0.8,1,0.35]};
-var pUnlocked = <?php include('getLocks.php'); ?>;
+var pUnlocked = <?php include('../includes/getLocks.php'); ?>;
 pUnlocked.splice(15,3);
 var ptsGP = "<?php echo $mkSaves; ?>";
 var isCup = false, isBattle = false, isSingle = false, complete = false, simplified = false;
-var baseOptions = <?php include('getCourseOptions.php'); ?>;
+var baseOptions = <?php include('../includes/getCourseOptions.php'); ?>;
 var PERSOS_DIR = "<?php
-	require_once('persos.php');
+	require_once('../includes/persos.php');
 	echo PERSOS_DIR;
 ?>";
 var NBCIRCUITS = 40;
@@ -134,6 +134,6 @@ for ($i=1;$i<48;$i+=4)
 	echo '<img src="images/selectors/select_map'.$i.'.png" alt="" />';
 ?>
 </div>
-<?php include('../../mk/description.php'); ?>
+<?php include('../includes/mk/description.php'); ?>
 </body>
 </html>

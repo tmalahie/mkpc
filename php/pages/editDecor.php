@@ -1,10 +1,10 @@
 <?php
 if (isset($_GET['id'])) {
     $decorId = intval($_GET['id']);
-    include('initdb.php');
+    include('../includes/initdb.php');
     if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
-        include('getId.php');
-        require_once('collabUtils.php');
+        include('../includes/getId.php');
+        require_once('../includes/collabUtils.php');
         $collabSuffix = '';
         if ($decor['identifiant'] == $identifiants[0]) {
             $hasReadGrants = true;
@@ -17,10 +17,10 @@ if (isset($_GET['id'])) {
             if ($collab) $collabSuffix = '&amp;collab='. $collab['key'];
         }
         if ($hasReadGrants) {
-            include('language.php');
-            include('utils-decors.php');
+            include('../includes/language.php');
+            include('../includes/utils-decors.php');
             session_start();
-            include('tokens.php');
+            include('../includes/tokens.php');
             $decorSrcs = decor_sprite_srcs($decor['sprites']);
             if (isset($_POST['name']) && $hasWriteGrants) {
                 $decor['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);

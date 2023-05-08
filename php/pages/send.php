@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/plain');
-include('session.php');
+include('../includes/session.php');
 if ($id && isset($_POST['message'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	if ($getPseudo = mysql_fetch_array(mysql_query('SELECT nom FROM `mkjoueurs` WHERE id="'. $id .'"'))) {
 		$pseudo = $getPseudo['nom'];
 		$message = htmlspecialchars($_POST["message"]);

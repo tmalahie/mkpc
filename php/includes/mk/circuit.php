@@ -25,7 +25,7 @@ if (!function_exists('outOfT')) {
 }
 $printCircuitData = function($circuit) {
 	global $noStart, $twoStarts, $bloqued;
-	include('circuitEnumsQuick.php');
+	include(__DIR__.'/../circuitEnumsQuick.php');
 	$map = $circuit['map'];
 	if (!isset($bgColors[$map]))
 		$map = 1;

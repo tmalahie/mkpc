@@ -1,11 +1,11 @@
 <?php
 if (isset($_GET['id'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$persoId = intval($_GET['id']);
 	if ($perso = mysql_fetch_array(mysql_query('SELECT * FROM `mkchars` WHERE id="'. $persoId .'"'))) {
-		include('language.php');
-		include('getId.php');
-        require_once('collabUtils.php');
+		include('../includes/language.php');
+		include('../includes/getId.php');
+        require_once('../includes/collabUtils.php');
         $collabSuffix = '';
         if (($perso['identifiant'] == $identifiants[0]) && ($perso['identifiant2'] == $identifiants[1]) && ($perso['identifiant3'] == $identifiants[2]) && ($perso['identifiant4'] == $identifiants[3])) {
             $hasReadGrants = true;
@@ -18,7 +18,7 @@ if (isset($_GET['id'])) {
             if ($collab) $collabSuffix = '&amp;collab='. $collab['key'];
         }
         if ($hasReadGrants) {
-			require_once('persos.php');
+			require_once('../includes/persos.php');
 			$spriteSrcs = get_sprite_srcs($perso['sprites']);
 			?>
 <!DOCTYPE html>
@@ -29,7 +29,7 @@ if (isset($_GET['id'])) {
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
 </head>

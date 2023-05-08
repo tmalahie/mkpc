@@ -1,13 +1,13 @@
 <?php
 header('location: https://discordapp.com/channels/308979137480097793/308979137480097793');
 exit;
-include('session.php');
-include('initdb.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 if ($id) {
 	if ($getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'))) {
 		if ($getBanned['banned'])
 			$id = null;
-		require_once('getRights.php');
+		require_once('../includes/getRights.php');
 		$admin = hasRight('moderator');
 	}
 }
@@ -341,7 +341,7 @@ if ($admin) {
 </style>
 <script type="text/javascript">
 <!--
-var heightScreen = 0, using = false, vide = true, listmsgs = <?php include('print_msgs.php'); ?>, repondu = false, styles = [false,false,false], couleur = [0,0,0], infoRGB = couleur;
+var heightScreen = 0, using = false, vide = true, listmsgs = <?php include('../includes/print_msgs.php'); ?>, repondu = false, styles = [false,false,false], couleur = [0,0,0], infoRGB = couleur;
 var ignores = [<?php
 $ignores = mysql_query('SELECT nom FROM `mkignores` INNER JOIN `mkjoueurs` ON ignored=id WHERE ignorer='. $id);
 $v = '';

@@ -1,5 +1,5 @@
 <?php
-include('handle_sub.php');
+include('../includes/handle_sub.php');
 $isBattle = isset($_GET['battle']);
 if ($inscrit) {
 	$message = $language ? 
@@ -16,20 +16,20 @@ if ($inscrit) {
 <head>
 <title><?php echo $language ? 'Register Mario Kart PC':'Inscription Mario Kart PC'; ?></title>
 <?php
-include('heads.php');
+include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/forum.css" />
 <link rel="stylesheet" type="text/css" href="styles/forms.css" />
 
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 </head>
 <body>
 <?php
-include('header.php');
+include('../includes/header.php');
 $page = 'game';
-include('menu.php');
+include('../includes/menu.php');
 ?>
 <main>
 	<h1><?php echo $language ? 'Register Mario Kart PC':'Inscription Mario Kart PC'; ?></h1>
@@ -49,7 +49,7 @@ include('menu.php');
 		<tr><td class="ligne"><label for="confirm"><?php echo $language ? 'Re-enter password':'Retapez le mot de passe'; ?> :</label></td><td><input type="password" name="confirm" id="confirm" value="<?php if (isset($confirm)) echo $confirm ?>" maxlength="30" /></td></tr>
 		<tr><td class="ligne"><label for="email"><?php echo $language ? 'Email address <em>(optional)</em>':'Adresse email <em>(facultatif)</em>'; ?> :</label></td><td><input type="email" name="email" id="email" value="<?php if (isset($email)) echo $email ?>" /></td></tr>
 		<tr><td class="ligne"><label for="country"><?php echo $language ? 'Country <em>(optional)</em>':'Pays <em>(facultatif)</em>'; ?> :</label></td><td><select name="country" id="country" value="<?php if (isset($country)) echo $country ?>"><?php
-		include('list-countries.php');
+		include('../includes/list-countries.php');
 		?></td></tr>
 		<tr><td colspan="2"><input type="submit" value="<?php echo $language ? 'Submit':'Valider'; ?>" class="action_button" /></td></tr>
 		</table>
@@ -60,7 +60,7 @@ include('menu.php');
 	<p class="forumButtons"><a href="online.php<?php echo ($isBattle ? '?battle':''); ?>"><?php echo $language ? 'Back to online mode':'Retour au mode en ligne'; ?></a></p>
 </main>
 <?php
-include('footer.php');
+include('../includes/footer.php');
 if (!isset($_POST['country']))
 	echo '<script type="text/javascript" src="scripts/autoselect-country.js"></script>';
 mysql_close();

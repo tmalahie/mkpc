@@ -1,11 +1,11 @@
 <?php
 if (!empty($_GET['player']) && isset($_GET['map'])) {
-    include('language.php');
+    include('../includes/language.php');
     include_once('circuitNames.php');
     $circuitName = $circuitNames[$_GET['map']-1];
-    include('initdb.php');
-    require_once('utils-date.php');
-    require_once('persos.php');
+    include('../includes/initdb.php');
+    require_once('../includes/utils-date.php');
+    require_once('../includes/persos.php');
     function getSpriteSrc($playerName) {
         if (substr($playerName, 0,3) == 'cp-')
             return PERSOS_DIR . $playerName . ".png";

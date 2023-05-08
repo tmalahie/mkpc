@@ -1,11 +1,11 @@
 <?php
 if (isset($_GET['id'])) {
-	include('initdb.php');
+	include('../includes/initdb.php');
 	$decorId = intval($_GET['id']);
 	if ($decor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decorId .'"'))) {
-		include('language.php');
-		include('getId.php');
-		require_once('collabUtils.php');
+		include('../includes/language.php');
+		include('../includes/getId.php');
+		require_once('../includes/collabUtils.php');
 		$collabSuffix = '';
 		if ($decor['identifiant'] == $identifiants[0]) {
 			$hasReadGrants = true;
@@ -18,7 +18,7 @@ if (isset($_GET['id'])) {
 			if ($collab) $collabSuffix = '&amp;collab='. $collab['key'];
 		}
 		if ($hasReadGrants) {
-			include('utils-decors.php');
+			include('../includes/utils-decors.php');
 			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
 			$spriteSizes = decor_sprite_sizes($decor['type'],'../../'.$spriteSrcs['hd']);
 			$originalSizes = decor_sprite_sizes($decor['type'],default_decor_sprite_src($decor['type']));
@@ -33,7 +33,7 @@ if (isset($_GET['id'])) {
 <link rel="stylesheet" href="styles/editor.css" />
 <link rel="stylesheet" href="styles/decor-editor.css" />
 <?php
-include('o_online.php');
+include('../includes/o_online.php');
 ?>
 <script type="text/javascript" src="scripts/edit-sprite.js"></script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de decors'; ?></title>

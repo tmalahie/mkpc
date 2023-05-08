@@ -1,8 +1,8 @@
 <?php
-include('getId.php');
-include('language.php');
-include('session.php');
-include('initdb.php');
+include('../includes/getId.php');
+include('../includes/language.php');
+include('../includes/session.php');
+include('../includes/initdb.php');
 $console = 'mkt';//isset($_GET['console']) ? $_GET['console'] : null;
 $year = 2022;
 $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
@@ -226,7 +226,7 @@ if ($id) {
 <head>
     <title><?php echo $language ? 'MKWC - Place your bets!' : 'MKWC - Faites vos paris !'; ?></title>
     <?php
-    include('heads.php');
+    include('../includes/heads.php');
     ?>
     <link rel="stylesheet" type="text/css" href="styles/forum.css" />
     <link rel="stylesheet" type="text/css" href="styles/profil.css" />
@@ -592,15 +592,15 @@ if ($id) {
     }
     </script>
     <?php
-    include('o_online.php');
+    include('../includes/o_online.php');
     ?>
 </head>
 
 <body>
     <?php
-    include('header.php');
+    include('../includes/header.php');
     $page = 'home';
-    include('menu.php');
+    include('../includes/menu.php');
     ?>
     <main>
         <h1><?php echo $language ? 'MKWC - Place your bets!' : 'MKWC - Faites vos paris !'; ?></h1>
@@ -798,7 +798,7 @@ if ($id) {
         </p>
     </main>
     <?php
-    include('footer.php');
+    include('../includes/footer.php');
     ?>
 </body>
 </html>
