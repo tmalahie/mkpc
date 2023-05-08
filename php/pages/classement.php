@@ -312,8 +312,6 @@ if (!$manage) {
 		<br /><?php echo $language ? 'The leaderboard is shown circuit by circuit, to see a global ranking, see <a href="classement.global.php">this page</a>.':'Les classements sont affichés circuit par circuit, pour voir un classement global, rendez-vous sur <a href="classement.global.php">cette page</a>.'; ?>
 		<?php
 	}
-	echo '<br />';
-	echo $language ? 'Note that those records have been reset after MKPC engine update. <a href="classement.old.php?'.$_SERVER['QUERY_STRING'].'">Click here</a> to see the old records.':'Notez que tous les records ont été réinitialisés avec la mise à jour du moteur de MKPC. <a href="classement.old.php?'.$_SERVER['QUERY_STRING'].'">Cliquez ici</a> pour voir les anciens temps.';
 }
 ?>
 </div>

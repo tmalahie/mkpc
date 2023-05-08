@@ -41,13 +41,6 @@ elseif (isset($_POST['i']) && is_numeric($_POST['i'])) {
         $isSingle = true;
     }
 }
-elseif (isset($_POST['meta'])) {
-    if (!isset($_POST['key']))
-        $_POST['key'] = 191057616;
-    $nid = 8;
-    $isCup = true;
-    $isMCup = true;
-}
 else
     $nid = 0;
 $nlink = 0;
