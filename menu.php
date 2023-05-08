@@ -204,6 +204,7 @@
 						$linkData = explode(',', $myNotif['link']);
 						$circuitType = $linkData[0];
 						$circuitId = $linkData[1];
+						$link = null;
 						require_once('utils-cups.php');
 						switch ($circuitType) {
 						case 0:
@@ -247,7 +248,7 @@
 							}
 							break;
 						}
-						if ($notifCircuit) {
+						if ($link) {
 							$notifData['sender'] = getFollowerFromIp($notifCircuit);
 							if ($notifData['sender']) {
 								$notifData['title'] = $notifCircuit['name'];
