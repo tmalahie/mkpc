@@ -62,7 +62,7 @@ include('../includes/menu.php');
 <?php
 include('../includes/footer.php');
 if (!isset($_POST['country']))
-	echo '<script type="text/javascript" src="scripts/autoselect-country.js"></script>';
+	echo '<script type="text/javascript" src="scripts/autoselect-country.js?reload=1"></script>';
 mysql_close();
 ?>
 </body>

@@ -1,0 +1,1 @@
+<script type="text/javascript" src="scripts/xhr.js?reload=1"></script>

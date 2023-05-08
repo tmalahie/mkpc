@@ -3414,7 +3414,7 @@ function saveData() {
 	$loading.innerHTML = language ? "Saving...":"Sauvegarde...";
 	$mask.appendChild($loading);
 	var req = new XMLHttpRequest();
-	req.open("POST", isBattle ? "saveCourse.php" : "saveMap.php");
+	req.open("POST", isBattle ? "api/saveCourse.php" : "api/saveMap.php");
 	req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 	var postData = {id:circuitId,payload:payload};
 	var collab = new URLSearchParams(document.location.search).get("collab");

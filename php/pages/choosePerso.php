@@ -14,7 +14,9 @@ require_once('../includes/persos.php');
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
 <title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
-<script type="text/javascript" src="scripts/xhr.js"></script>
+<?php
+include('../includes/o_xhr.php');
+?>
 <script type="text/javascript">
 var PERSO_DIR = "<?php echo PERSOS_DIR; ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;

@@ -54,7 +54,7 @@ function xhr(page, send, onload, backoff) {
 		else
 			xhr_object = new XMLHttpRequest(); 
 	}
-	xhr_object.open("POST", page, true);
+	xhr_object.open("POST", "api/"+page, true);
 	xhr_object.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 	xhr_object.setRequestHeader("If-Modified-Since", "Wed, 15 Nov 1995 00:00:00 GMT");
 	try {
@@ -13949,7 +13949,7 @@ function resetDatas() {
 	}
 	if (onlineSpectatorId)
 		payload.spectator = onlineSpectatorId;
-	fetch('reload.php', {
+	fetch('api/reload.php', {
 		method: 'post',
 		body: JSON.stringify(payload)
 	}).then(function(response) {

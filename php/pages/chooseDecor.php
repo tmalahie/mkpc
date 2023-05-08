@@ -13,7 +13,9 @@ $myDecors = mysql_query('SELECT * FROM mkdecors WHERE identifiant="'. $identifia
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css" />
 <link rel="stylesheet" href="styles/decor-editor.css" />
-<script type="text/javascript" src="scripts/xhr.js"></script>
+<?php
+include('../includes/o_xhr.php');
+?>
 <script type="text/javascript">
 var language = <?php echo $language ? 1 : 0; ?>;
 function selectDecor(elt) {

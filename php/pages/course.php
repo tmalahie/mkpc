@@ -53,8 +53,10 @@ if (isset($_GET['i'])) {
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
 		<script src="scripts/vanilla-picker.min.js"></script>
-		<script type="text/javascript" src="scripts/xhr.js"></script>
-		<script type="text/javascript" src="scripts/editor.js?reload=1"></script>
+		<?php
+		include('../includes/o_xhr.php');
+		?>
+		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
 		<script type="text/javascript" src="scripts/course.js?reload=1"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">

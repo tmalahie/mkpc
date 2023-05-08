@@ -65,7 +65,7 @@ function includeShareLib() {
             }
             ?>
 
-            fetch("<?php echo ($isMCup ? 'saveMCup.php' : ($isCup?'saveCup.php':$shareParams['send']['endpoint'])); ?>", {
+            fetch("api/<?php echo ($isMCup ? 'saveMCup.php' : ($isCup?'saveCup.php':$shareParams['send']['endpoint'])); ?>", {
                 body: formData,
                 method: "POST"
             }).then(function(res) {

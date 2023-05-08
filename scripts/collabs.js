@@ -1,6 +1,6 @@
 if (!window.xhr) {
     var script = document.createElement('script');
-    script.src = "scripts/xhr.js";
+    script.src = "scripts/xhr.js?reload=1";
     document.getElementsByTagName('head')[0].appendChild(script);
 }
 

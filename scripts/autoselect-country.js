@@ -10,5 +10,5 @@ xhr.onreadystatechange = function() {
 	}
 };
 
-xhr.open("GET", "findCountryByIp.php", true);
+xhr.open("GET", "api/findCountryByIp.php", true);
 xhr.send();
