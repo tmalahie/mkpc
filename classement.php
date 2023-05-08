@@ -465,6 +465,7 @@ for (var i=0;i<groups.length;i++)
 	circuits = circuits.concat(circuitGroups[i]);
 var sUser = <?php echo isset($user) ? $user['id']:0 ?>;
 var sManage = <?php echo $sManage ? 1:0 ?>;
+var sModerate = <?php echo $moderate ? 1:0 ?>;
 var sFilteredData = (sUser || sManage);
 var sPts = <?php echo +isset($_GET['pts']); ?>;
 var language = <?php echo $language ? 1:0; ?>;
@@ -818,7 +819,7 @@ function displayResult(id, n) {
 		var oTableFooter = document.createElement("tr");
 		var oPages = document.createElement("td");
 		oPages.id = "page";
-		oPages.setAttribute("colspan", 4+!isMobile+sPts);
+		oPages.setAttribute("colspan", 4+!isMobile+sPts+sFilteredData);
 		oPages.innerHTML = "Page :";
 		if (document.getElementById("result"+ id).getElementsByTagName("tr").length == 1) {
 			oPages.innerHTML = language ? "No record for this circuit yet":"Aucun record sur ce circuit pour l'instant";
@@ -856,7 +857,7 @@ function displayResults() {
 				if (!n.length)
 					continue;
 			}
-			else if (sFilteredData) {
+			else if (sFilteredData && !sModerate) {
 				n = [];
 				var iClassement = classement[i].classement;
 				for (var j=0;j<iClassement.length;j++) {

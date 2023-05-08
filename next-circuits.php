@@ -8,6 +8,7 @@ if (isset($_POST['page'])) {
 	$nom = isset($_POST['nom']) ? stripslashes($_POST['nom']):'';
 	$auteur = isset($_POST['auteur']) ? stripslashes($_POST['auteur']):'';
 	$type = isset($_POST['type']) ? $_POST['type']:'';
+	$noThumbnail = !empty($_POST['nothumbnail']);
 	$pids = null;
 	if (isset($_POST['user'])) {
 		$user = $_POST['user'];
@@ -27,6 +28,8 @@ if (isset($_POST['page'])) {
 		'pids' => $pids,
 		'max_circuits' => $MAX_CIRCUITS,
 	);
+	if ($noThumbnail)
+		$aParams['no_thumbnail'] = 1;
 	$nbByType = countTracksByType($aCircuits,$aParams);
 	$creationsList = listCreations($page,$nbByType,$weightsByType,$aCircuits,$aParams);
 	echo '{"circuits":[';

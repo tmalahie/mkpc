@@ -98,7 +98,8 @@ function has_transparency($src) {
 	case 2 :
 	case 3 :
 	case 4 :
-		$imgdata = imagecreatefrompng($src);
+		$imgdata = @imagecreatefrompng($src);
+		if (!$imgdata) return true;
 		return (imagecolortransparent($imgdata) != -1);
 	case 6 :
 		$imgdata = imagecreatefrompng($src);

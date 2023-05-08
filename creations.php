@@ -456,6 +456,8 @@ include('menu.php');
 			<?php
 			if (isset($_GET['admin']))
 				echo '<input type="hidden" name="admin" value="1" />';
+			if ($noThumbnail)
+				echo '<input type="hidden" name="nothumbnail" value="1" />';
 			?>
 			<input type="hidden" name="user" value="<?php echo htmlspecialchars($user); ?>" />
 			<input type="hidden" name="tri" id="tri" value="<?php echo htmlspecialchars($tri); ?>" />
@@ -603,6 +605,8 @@ function defile() {
 			'auteur' => $auteur,
 			'user' => $user
 		);
+		if ($noThumbnail)
+			$nextCircuitsParams['nothumbnail'] = 1;
 		foreach ($nbByType as $i=>$nb)
 			$nextCircuitsParams['nb'.$i] = $nb;
 		?>
