@@ -1,7 +1,7 @@
 <?php
 header("Access-Control-Allow-Origin: *");
 include('../includes/initdb.php');
-$allData = json_decode(file_get_contents('mk/maps.json'), true);
+$allData = json_decode(file_get_contents('../includes/mk/maps.json'), true);
 $baseData = array();
 for ($i=1;$i<=56;$i++)
 	$baseData["map$i"] = $allData["map$i"];

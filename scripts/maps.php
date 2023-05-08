@@ -2,5 +2,5 @@
 header('Content-Type: text/javascript');
 header('Cache-Control: max-age=600000');
 ?>function listMaps(){return<?php
-    echo file_get_contents('maps.json');
+    echo file_get_contents('../php/includes/mk/maps.json');
 ?>}

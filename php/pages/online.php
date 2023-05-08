@@ -124,7 +124,7 @@ if (isset($privateLink)) {
 <?php
 if (!$isCustom) {
 	?>
-<script type="text/javascript" src="mk/maps.php?reload=2"></script>
+<script type="text/javascript" src="scripts/maps.php"></script>
 	<?php
 }
 ?>

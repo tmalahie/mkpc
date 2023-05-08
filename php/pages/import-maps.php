@@ -1,6 +1,6 @@
 <?php
 if ($_SERVER['REMOTE_ADDR'] != '192.168.56.1') die($_SERVER['REMOTE_ADDR']);
-$maps = json_decode(file_get_contents('mk/maps.json'));
+$maps = json_decode(file_get_contents('../includes/mk/maps.json'));
 $inc = 1;
 include('../includes/initdb.php');
 include('../includes/getId.php');

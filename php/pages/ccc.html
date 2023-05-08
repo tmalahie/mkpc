@@ -28,7 +28,7 @@
         return true;
     }
     Promise.all([
-        fetch("mk/maps.json").then(res => res.json()),
+        fetch("php/includes/mk/maps.json").then(res => res.json()),
         fetch("https://mkpc-staging.malahieude.net/api/export-maps.php").then(res => res.json())
     ]).then(([res0,res2]) => {
         var res1 = {};
