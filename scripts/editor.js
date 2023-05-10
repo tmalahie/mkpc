@@ -4805,10 +4805,8 @@ var commonTools = {
 					break;
 				case "rectangle":
 					iPayload = rectToData(iData);
-					if (iData.w == 8 && iData.h == 8) {
-						delete iPayload[2];
-						delete iPayload[3];
-					}
+					if (iData.w == 8 && iData.h == 8)
+						iPayload.length = 2;
 					break;
 				case "polygon":
 					iPayload = polyToData(iData.points);
