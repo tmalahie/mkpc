@@ -1,9 +1,0 @@
-function is_ie() {
-	if (navigator.appName == 'Microsoft Internet Explorer')
-	   return true;
-	if(navigator.appName == "Netscape") {
-		if (navigator.appVersion.indexOf('Trident') !== -1)
-			return true;
-	}
-	return false;
-}

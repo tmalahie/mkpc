@@ -18,9 +18,6 @@ var selectedDoubleItems = (localStorage.getItem("doubleitems") != 0);
 if (typeof edittingCircuit === 'undefined') {
 	var edittingCircuit = false;
 }
-if (typeof noDS === 'undefined') {
-	var noDS = false;
-}
 if (typeof cupOpts === 'undefined') {
 	var cupOpts = {};
 }
@@ -36,17 +33,6 @@ else {
 }
 if (typeof dCircuits === 'undefined') {
 	var dCircuits = lCircuits;
-}
-if (noDS) {
-	var bListMaps = listMaps;
-	listMaps = function() {
-		NBCIRCUITS = 40;
-		var aMaps = bListMaps();
-		var res = {};
-		for (var i=1;i<=NBCIRCUITS;i++)
-			res["map"+i] = aMaps["map"+i];
-		return res;
-	};
 }
 var isOnline = (page=="OL");
 var isMCups = (isCup && (NBCIRCUITS>4));
@@ -68,7 +54,7 @@ function xhr(page, send, onload, backoff) {
 		else
 			xhr_object = new XMLHttpRequest(); 
 	}
-	xhr_object.open("POST", page, true);
+	xhr_object.open("POST", "api/"+page, true);
 	xhr_object.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 	xhr_object.setRequestHeader("If-Modified-Since", "Wed, 15 Nov 1995 00:00:00 GMT");
 	try {
@@ -13963,7 +13949,7 @@ function resetDatas() {
 	}
 	if (onlineSpectatorId)
 		payload.spectator = onlineSpectatorId;
-	fetch('reload.php', {
+	fetch('api/reload.php', {
 		method: 'post',
 		body: JSON.stringify(payload)
 	}).then(function(response) {
@@ -23979,8 +23965,6 @@ function getOnlineCourseParams(opts) {
 	}
 	else if (isBattle)
 		courseParams += 'battle';
-	else if (noDS)
-		courseParams += "nods";
 	if (shareLink.key)
 		courseParams += (courseParams ? '&':'') + 'key='+ shareLink.key;
 	if (opts.spectator)

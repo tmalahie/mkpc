@@ -3,7 +3,7 @@ DIR=`dirname $(realpath $0)`
 echo "DROP DATABASE IF EXISTS mkpc;" > $DIR/setup.sql
 echo "CREATE DATABASE mkpc;" >> $DIR/setup.sql
 echo "USE mkpc;" >> $DIR/setup.sql
-dbIDs=$(cat $DIR/../../../config/db.php | grep mysql_connect)
+dbIDs=$(cat $DIR/../../../php/includes/config/db.php | grep mysql_connect)
 pat='.*mysql_connect(['\''"]\(.*\)['\''"], *['\''"]\(.*\)['\''"], *['\''"]\(.*\)['\''"]);.*'
 dbHost=$(echo $dbIDs | sed -n 's/'"$pat"'/\1/p')
 dbLogin=$(echo $dbIDs | sed -n 's/'"$pat"'/\2/p')

@@ -13,7 +13,7 @@ services:
             - ./docker/php/images/uploads:/var/www/html/images/uploads
             - ./docker/php/images/sprites/uploads:/var/www/html/images/sprites/uploads
             - ./docker/php/images/creation_icons:/var/www/html/images/creation_icons
-            - ./docker/php/config:/var/www/html/config
+            - ./docker/php/config:/var/www/html/php/includes/config
             - ./docker/php/scripts:/root/scripts
         ports:
             - "8080:80"
