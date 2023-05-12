@@ -9063,6 +9063,28 @@ var decorBehaviors = {
 											fMoveX = 0;
 											fMoveY = 0;
 											break;
+										case "flippers":
+											var ux = fMoveX, uy = fMoveY;
+											var bumper = pAsset[1];
+											var nPosX = decorData[0]+ux, nPosY = decorData[1]+uy;
+											var theta0 = bumper[2][2], omega = bumper[2][3];
+											var cX = bumper[1][0], cY = bumper[1][1];
+											var oX = decorData[0]-cX, oY = decorData[1]-cY;
+											var r0 = Math.hypot(oX,oY);
+											var theta = Math.atan2(oY,oX) || 0;
+											var dr = r0*omega;
+											var drX = -dr*Math.sin(theta), drY = dr*Math.cos(theta);
+											ux -= drX; uy -= drY;
+
+											var wx = Math.cos(theta0), wy = Math.sin(theta0);
+											var uw = ux*wx + uy*wy;
+											var vx = -ux + 2*uw*wx, vy = -uy + 2*uw*wy;
+											ux = vx + drX;
+											uy = vy + drY;
+											var uu = Math.hypot(ux,uy);
+											this.setdir(decorData,ux/uu,uy/uu);
+											fMoveX = ux;
+											fMoveY = uy;
 										}
 									}
 									else if (tombe(decorData[0]+fMoveX,decorData[1]+fMoveY))
