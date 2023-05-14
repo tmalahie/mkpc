@@ -17,7 +17,10 @@ function decor_sprite_srcs($hash) {
 	return $res;
 }
 function default_decor_sprite_src($type) {
-    return "../../images/sprites/sprite_$type.png";
+    if (str_starts_with($type, 'assets/'))
+        return "../../images/map_icons/$type.png";
+    else
+        return "../../images/sprites/sprite_$type.png";
 }
 function resize_decor_sprites($originalSrc,$thumbSrc, $cropWidth,$cropHeight) {
 	$source = image_create_from($originalSrc);
@@ -91,7 +94,8 @@ $CUSTOM_DECOR_TYPES = array(
     'mountaintree' => null,
     'fir' => null,
     'mariotree' => null,
-    'peachtree' => null
+    'peachtree' => null,
+    'assets/bumper' => null
 );
 function decor_sprite_sizes($type,$src) {
     global $CUSTOM_DECOR_TYPES;

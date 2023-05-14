@@ -73,7 +73,11 @@ function selectDecorType($btn) {
     else {
         $btn.id = "decor-type-selected";
         $decorFormNext.style.display = "block";
-        document.getElementById("decor-model-img").src = "images/sprites/sprite_"+type+".png";
+        var isAsset = (type.substring(0,7) === "assets/");
+        if (isAsset)
+            document.getElementById("decor-model-img").src = "images/map_icons/"+type+".png";
+        else
+            document.getElementById("decor-model-img").src = "images/sprites/sprite_"+type+".png";
         $form.elements["type"].value = type;
 
         var extraSprites = $btn.dataset.extraSprites;

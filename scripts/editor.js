@@ -5237,6 +5237,19 @@ var commonTools = {
 		"_arrowOriginCenter": function(type) {
 			return (["firering","fire3star","pendulum"].indexOf(type) !== -1);
 		},
+		"_resourceToAssetKey": function(actualType) {
+			switch (actualType) {
+			case "assets/pivothand":
+				return "pointers";
+			case "assets/bumper":
+				return "bumpers";
+			case "assets/flipper":
+				return "flippers";
+			case "assets/oil1":
+			case "assets/oil2":
+				return "oils";
+			}
+		},
 		"_rotFactor" : 15,
 		"_rotScale" : 1.5,
 		"move" : function(self,point,extra) {
@@ -5289,27 +5302,15 @@ var commonTools = {
 					if (isAsset) {
 						if (!payload.assets)
 							payload.assets = {};
-						switch (actualType) {
-						case "assets/pivothand":
-							payload.assets["pointers"] = [];
-							break;
-						case "assets/bumper":
-							payload.assets["bumpers"] = [];
-							break;
-						case "assets/flipper":
-							payload.assets["flippers"] = [];
-							break;
-						case "assets/oil1":
-						case "assets/oil2":
-							if (!payload.assets["oils"])
-								payload.assets["oils"] = [];
-							break;
-						}
+						var payloadKey = self._resourceToAssetKey(actualType);
+						if (payloadKey && !payload.assets[payloadKey])
+							payload.assets[payloadKey] = [];
 					}
 					else
 						payload.decor[type] = [];
 					for (var i=0;i<decorsData.length;i++) {
 						if (isAsset) {
+							var assetParams;
 							switch (actualType) {
 							case "assets/pivothand":
 							case "assets/flipper":
@@ -5318,26 +5319,29 @@ var commonTools = {
 								if (actualType === "assets/flipper") {
 									length = length || 1;
 									var dtheta = (decorsData[i].dtheta!=null) ? decorsData[i].dtheta : 1.19;
-									var assetParams = ["flipper",[decorsData[i].pos.x,decorsData[i].pos.y,length,15*length/40,1,0.15],[0.1875,0.5,dir,0,dtheta]];
+									assetParams = ["flipper",[decorsData[i].pos.x,decorsData[i].pos.y,length,15*length/40,1,0.15],[0.1875,0.5,dir,0,dtheta]];
 									payload.assets["flippers"].push(assetParams);
 								}
 								else {
 									var dtheta = (decorsData[i].dtheta!=null) ? Math.pow(Math.abs(decorsData[i].dtheta),self._rotScale)*Math.sign(decorsData[i].dtheta)/self._rotFactor : 0.015;
-									var assetParams = ["hand",[decorsData[i].pos.x,decorsData[i].pos.y,length,8,0.5,0.5],[0,0.5,dir,dtheta]];
+									assetParams = ["hand",[decorsData[i].pos.x,decorsData[i].pos.y,length,8,0.5,0.5],[0,0.5,dir,dtheta]];
 									payload.assets["pointers"].push(assetParams);
 								}
 								break;
 							case "assets/oil1":
 							case "assets/oil2":
 								var typeSrc = actualType.substring(7);
-								var assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,7,7,0.5,0.5],[0,0.5,0.5]];
+								assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,7,7,0.5,0.5],[0,0.5,0.5]];
 								payload.assets["oils"].push(assetParams);
 								break;
 							case "assets/bumper":
 								var typeSrc = actualType.substring(7);
-								var assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,Math.round(decorsData[i].r*2),Math.round(decorsData[i].r*2)],[0.5,0.5,0]];
+								assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,Math.round(decorsData[i].r*2),Math.round(decorsData[i].r*2)],[0.5,0.5,0]];
 								payload.assets["bumpers"].push(assetParams);
 								break;
+							}
+							if (customDecors[type] && assetParams) {
+								assetParams[0] = type;
 							}
 						}
 						else {
@@ -5464,34 +5468,44 @@ var commonTools = {
 					}
 					for (var i=0;i<payload.assets[type].length;i++) {
 						var assetPayload = payload.assets[type][i];
-						switch (type) {
+						var assetResource = assetPayload[0];
+						var decorExtra = decorsExtra[assetResource] || {};
+						var customAsset = decorExtra.custom;
+						var actualType = customAsset ? self._resourceToAssetKey(customAsset.type):type;
+						var assetKey, assetData;
+						switch (actualType) {
 						case "pointers":
-							var assetData = {pos:dataToPoint(assetPayload[1])};
+							assetKey = "assets/pivothand";
+							assetData = {pos:dataToPoint(assetPayload[1])};
 							var dir = assetPayload[2][2] || 0;
 							var length = assetPayload[1][2] || 1;
 							var dtheta = Math.pow(Math.abs(assetPayload[2][3]*self._rotFactor),1/self._rotScale)*Math.sign(assetPayload[2][3]*self._rotFactor);
 							assetData.dir = {x:length*Math.cos(dir),y:length*Math.sin(dir)};
 							assetData.dtheta = dtheta;
-							selfData["assets/pivothand"].push(assetData);
 							break;
 						case "flippers":
-							var assetData = {pos:dataToPoint(assetPayload[1])};
+							assetKey = "assets/flipper";
+							assetData = {pos:dataToPoint(assetPayload[1])};
 							var dir = assetPayload[2][2] || 0;
 							var length = assetPayload[1][2] || 1;
 							var dtheta = assetPayload[2][4];
 							assetData.dir = {x:length*Math.cos(dir),y:length*Math.sin(dir)};
 							assetData.dtheta = dtheta;
-							selfData["assets/flipper"].push(assetData);
 							break;
 						case "oils":
-							var assetKey = "assets/"+assetPayload[0];
-							var assetData = {pos:dataToPoint(assetPayload[1])};
-							if (!selfData[assetKey]) selfData[assetKey] = [];
-							selfData[assetKey].push(assetData);
+							assetKey = "assets/"+assetResource;
+							assetData = {pos:dataToPoint(assetPayload[1])};
 							break;
 						case "bumpers":
-							var assetKey = "assets/"+assetPayload[0];
-							var assetData = {pos:dataToPoint(assetPayload[1]),r:assetPayload[1][2]/2};
+							assetKey = "assets/"+assetResource;
+							assetData = {pos:dataToPoint(assetPayload[1]),r:assetPayload[1][2]/2};
+						}
+						if (assetData) {
+							if (customAsset) {
+								assetKey = assetResource;
+								var $btnDecor = selectCustomDecor(customAsset);
+								if ($btnDecor) fetchCustomDecorData($btnDecor,customAsset);
+							}
 							if (!selfData[assetKey]) selfData[assetKey] = [];
 							selfData[assetKey].push(assetData);
 						}

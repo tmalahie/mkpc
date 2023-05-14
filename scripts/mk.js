@@ -897,6 +897,14 @@ function setPlanPos(frameState) {
 						var pointer = oMap[type][i];
 						var iAssetWidth = pointer[1][2]*iPlanSize/oMap.w, iAssetHeight = pointer[1][3]*iPlanSize/oMap.w;
 						var img = createObject(pointer[0].src, iAssetWidth,iPlanCtn, iPlanObjects[0]);
+						var customData = pointer[0].custom;
+						if (customData) {
+							(function(img) {
+								getCustomDecorData(customData, function(res) {
+									img.src = res.map;
+								});
+							})(img);
+						}
 						img.style.height = iAssetHeight+"px";
 						var oX = pointer[2][0], oY = pointer[2][1];
 						if (bSelectedMirror) {
@@ -1194,6 +1202,7 @@ function removePlan() {
 var gameSettings;
 var ctrlSettings;
 var oChallengeCpts;
+var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 function loadMap() {
 	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
@@ -1257,7 +1266,6 @@ function loadMap() {
 		oMapImg.src = mapSrc;
 	}
 	oMap.assets = [];
-	var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 	for (var i=0;i<assetKeys.length;i++) {
 		var key = assetKeys[i];
 		if (oMap[key]) {
@@ -1288,9 +1296,20 @@ function loadMap() {
 				var canvas = document.createElement("canvas");
 				canvas.width = canvas.height = Math.max(asset[1][2],asset[1][3]);
 				var img = new Image();
-				var src = "assets/"+asset[0];
-				img.src = "images/map_icons/"+src+".png";
-				var asset0 = {img:img,canvas:canvas,src:src,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
+				var assetKey = asset[0];
+				var src;
+				var customData = getDecorCustomData(assetKey);
+				if (customData) {
+					src = customData.type;
+					getCustomDecorData(customData, function(res) {
+						img.src = res.hd;
+					});
+				}
+				else {
+					src = "assets/"+assetKey;
+					img.src = "images/map_icons/"+src+".png";
+				}
+				var asset0 = {img:img,canvas:canvas,src:src,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
 				img.onload = function() {
 					asset0.redraw(asset);
 				};
@@ -3492,7 +3511,6 @@ function startGame() {
 			if (bSelectedMirror)
 				oPlanSea.className = oPlanSea2.className = "mirrored";
 		}
-		var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 		for (var i=0;i<assetKeys.length;i++) {
 			var key = assetKeys[i];
 			if (oMap[key]) {
@@ -9467,15 +9485,20 @@ function getDecorParams(self,i) {
 		return oMap.decorparams[type][i];
 	return {};
 }
+function getDecorExtraParams(type) {
+	if (oMap.decorparams && oMap.decorparams.extra && oMap.decorparams.extra[type])
+		return oMap.decorparams.extra[type];
+	return {};
+}
 function getDecorExtra(self,actualType) {
 	var type = self.type;
-	var res = {};
-	if (oMap.decorparams && oMap.decorparams.extra && oMap.decorparams.extra[type]) {
-		res = oMap.decorparams.extra[type];
-		if (actualType && res.custom)
-			res = getDecorExtra(decorBehaviors[res.custom.type]);
-	}
+	var res = getDecorExtraParams(type);
+	if (actualType && res.custom)
+		res = getDecorExtra(decorBehaviors[res.custom.type]);
 	return res;
+}
+function getDecorCustomData(type) {
+	return getDecorExtraParams(type).custom;
 }
 
 function getDecorActualType(self) {
@@ -18091,6 +18114,8 @@ function getCustomDecorData(customData,callback) {
 				"size":{"hd":{"w":32,"h":32}},
 				"original_size":{"hd":{"w":32,"h":32}}
 			};
+			if (type.startsWith("assets/"))
+				data.hd = data.map;
 		};
 		customDecorData[id].data = data;
 		var customDecorCallbacks = customDecorData[id].callbacks;
