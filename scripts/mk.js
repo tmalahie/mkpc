@@ -1286,79 +1286,6 @@ function loadMap() {
 		oMapImg.onload = startGame;
 		oMapImg.src = mapSrc;
 	}
-	oMap.assets = [];
-	for (var i=0;i<assetKeys.length;i++) {
-		var key = assetKeys[i];
-		if (oMap[key]) {
-			function redrawAsset(asset) {
-				var ctx = this.canvas.getContext("2d");
-				if (ctx.resetTransform)
-					ctx.resetTransform();
-				else
-					ctx.setTransform(1, 0, 0, 1, 0, 0);
-				ctx.clearRect(0,0, this.canvas.width,this.canvas.height);
-				var iW = asset[1][2], iH = asset[1][3];
-				var cW = Math.hypot(iW,iH);
-				var theta = asset[2][2];
-				ctx.translate(cW/2,cW/2);
-				ctx.rotate(theta);
-				ctx.translate(-cW/2,-cW/2);
-				try {
-					ctx.drawImage(this.img, (cW-iW)/2,(cW-iH)/2, iW,iH);
-				}
-				catch (e) {
-				}
-				var cosTheta = Math.cos(theta), sinTheta = Math.sin(theta);
-				var u = 0.5-asset[2][0], v = 0.5-asset[2][1];
-				this.x = asset[1][0]-cW/2+u*iW*cosTheta-v*iH*sinTheta;
-				this.y = asset[1][1]-cW/2+v*iH*cosTheta+u*iW*sinTheta;
-			}
-			function setupAsset(key,asset) {
-				var canvas = document.createElement("canvas");
-				canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
-				var img = new Image();
-				var assetKey = asset[0];
-				var customData = getDecorCustomData(assetKey);
-				var asset0 = {img:img,canvas:canvas,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
-				if (customData) {
-					asset0.src = customData.type;
-					getCustomDecorData(customData, function(res) {
-						img.src = res.hd;
-						switch (key) {
-						case "flippers":
-						case "pointers":
-							asset0.h = res.size.hd.h;
-							break;
-						case "oils":
-							asset0.w = res.size.hd.w;
-							asset0.h = res.size.hd.h;
-							break;
-						default:
-							return;
-						}
-						asset[1][2] = asset0.w;
-						asset[1][3] = asset0.h;
-						canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
-					});
-				}
-				else {
-					asset0.src = "assets/"+assetKey;
-					img.src = "images/map_icons/"+asset0.src+".png";
-				}
-				img.onload = function() {
-					asset0.redraw(asset);
-				};
-				asset[0] = asset0;
-				switch (key) {
-				case "flippers":
-					asset[3] = [0,16+Math.floor(Math.random()*16)];
-				}
-				oMap.assets.push(asset0);
-			}
-			for (var j=0;j<oMap[key].length;j++)
-				setupAsset(key,oMap[key][j]);
-		}
-	}
 	
 	if (strPlayer.length > 1)
 		updateCtnFullScreen(false);
@@ -3432,6 +3359,79 @@ function startGame() {
 				}
 			}
 			decorIncs[actualType] += decorsData.length;
+		}
+	}
+	oMap.assets = [];
+	for (var i=0;i<assetKeys.length;i++) {
+		var key = assetKeys[i];
+		if (oMap[key]) {
+			function redrawAsset(asset) {
+				var ctx = this.canvas.getContext("2d");
+				if (ctx.resetTransform)
+					ctx.resetTransform();
+				else
+					ctx.setTransform(1, 0, 0, 1, 0, 0);
+				ctx.clearRect(0,0, this.canvas.width,this.canvas.height);
+				var iW = asset[1][2], iH = asset[1][3];
+				var cW = Math.hypot(iW,iH);
+				var theta = asset[2][2];
+				ctx.translate(cW/2,cW/2);
+				ctx.rotate(theta);
+				ctx.translate(-cW/2,-cW/2);
+				try {
+					ctx.drawImage(this.img, (cW-iW)/2,(cW-iH)/2, iW,iH);
+				}
+				catch (e) {
+				}
+				var cosTheta = Math.cos(theta), sinTheta = Math.sin(theta);
+				var u = 0.5-asset[2][0], v = 0.5-asset[2][1];
+				this.x = asset[1][0]-cW/2+u*iW*cosTheta-v*iH*sinTheta;
+				this.y = asset[1][1]-cW/2+v*iH*cosTheta+u*iW*sinTheta;
+			}
+			function setupAsset(key,asset) {
+				var canvas = document.createElement("canvas");
+				canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
+				var img = new Image();
+				var assetKey = asset[0];
+				var customData = getDecorCustomData(assetKey);
+				var asset0 = {img:img,canvas:canvas,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
+				if (customData) {
+					asset0.src = customData.type;
+					getCustomDecorData(customData, function(res) {
+						img.src = res.hd;
+						switch (key) {
+						case "flippers":
+						case "pointers":
+							asset0.h = res.size.hd.h;
+							break;
+						case "oils":
+							asset0.w = res.size.hd.w;
+							asset0.h = res.size.hd.h;
+							break;
+						default:
+							return;
+						}
+						asset[1][2] = asset0.w;
+						asset[1][3] = asset0.h;
+						canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
+					});
+				}
+				else {
+					asset0.src = "assets/"+assetKey;
+					img.src = "images/map_icons/"+asset0.src+".png";
+				}
+				img.onload = function() {
+					asset0.redraw(asset);
+				};
+				asset[0] = asset0;
+				switch (key) {
+				case "flippers":
+					asset[3] = [0,16+Math.floor(Math.random()*16)];
+				}
+				oMap.assets.push(asset0);
+			}
+			for (var j=0;j<oMap[key].length;j++)
+				setupAsset(key,oMap[key][j]);
 		}
 	}
 
@@ -12022,9 +12022,42 @@ var challengeRules = {
 			clLocalVars.isSetup = true;
 			for (var i=0;i<scope.value.length;i++) {
 				var decorData = scope.value[i];
-				if (!oMap.decor[decorData.src])
-					oMap.decor[decorData.src] = [];
-				oMap.decor[decorData.src].push(decorData.pos);
+				var actualType = decorData.src;
+				var isAsset = actualType.startsWith("assets/");
+				if (isAsset) {
+					var assetParams, assetKey;
+					switch (actualType) {
+						case "assets/pivothand":
+							assetParams = ["hand",[decorData.pos[0],decorData.pos[1],47,8,0.5,0.5],[0,0.5,0,-0.038]];
+							assetKey = "pointers";
+							break;
+						case "assets/flipper":
+							assetParams = ["flipper",[decorData.pos[0],decorData.pos[1],40,15,1,0.15],[0.1875,0.5,0.59,0,-1.19]];
+							assetKey = "flippers";
+							break;
+						case "assets/oil1":
+						case "assets/oil2":
+							var typeSrc = actualType.substring(7);
+							assetParams = [typeSrc,[decorData.pos[0],decorData.pos[1],7,7,0.5,0.5],[0.5,0.5,0]];
+							assetKey = "oils";
+							break;
+						case "assets/bumper":
+							var typeSrc = actualType.substring(7);
+							assetParams = [typeSrc,[decorData.pos[0],decorData.pos[1],24,24],[0.5,0.5,0]];
+							assetKey = "bumpers";
+							break;
+					}
+					if (assetParams) {
+						if (!oMap[assetKey])
+							oMap[assetKey] = [];
+						oMap[assetKey].push(assetParams);
+					}
+				}
+				else {
+					if (!oMap.decor[actualType])
+						oMap.decor[actualType] = [];
+					oMap.decor[actualType].push(decorData.pos);
+				}
 			}
 		},
 		"success": function(scope, ruleVars) {

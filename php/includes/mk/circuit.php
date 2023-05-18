@@ -2173,9 +2173,12 @@ $printCircuitData = function($circuit) {
 					echo '["'.$typeSrc.'",['.$pos[0].','.$pos[1].',7,7],[0.5,0.5,0]]';
 					break;
 				case 'pointer':
-					$th = (10000*sin($j+1))%M_PI;
+					$th = fmod(10000*sin($j+1), M_PI);
 					$om = 0.025*(sin(10000*($j+2))>0 ? 1:-1);
 					echo '["hand",['.($pos[0]-20).','.$pos[1].',47,8,0.5,0.5],[0,0.5,'.$th.','.$om.']]';
+					break;
+				case 'flipper':
+					echo '["flipper",['.($pos[0]-12).','.$pos[1].',40,15,1,0.15],[0.1875,0.5,0.59,0,-1.19]]';
 					break;
 				case 'pivot':
 					echo '["pivot",['.($pos[0]-20).','.$pos[1].',14,14],[0.5,0.5,0]]';

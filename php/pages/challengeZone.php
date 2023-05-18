@@ -915,8 +915,6 @@ window.onload = function() {
 					unset($decorGroup);
 					foreach ($decors as &$decorGroup) {
 						foreach ($decorGroup as $key => $name) {
-							if ('assets/' === substr($key,0,7))
-								continue;
 							?>
 							<input type="button" style="background-image:url('images/map_icons/<?php echo $key; ?>.png')"<?php if ($name) echo ' title="'.$name.'"'; ?> onclick="selectDecor(this, '<?php echo $key; ?>')" />
 							<?php
