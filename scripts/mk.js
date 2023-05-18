@@ -1318,10 +1318,10 @@ function loadMap() {
 				canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
 				var img = new Image();
 				var assetKey = asset[0];
-				var src;
 				var customData = getDecorCustomData(assetKey);
+				var asset0 = {img:img,canvas:canvas,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
 				if (customData) {
-					src = customData.type;
+					asset0.src = customData.type;
 					getCustomDecorData(customData, function(res) {
 						img.src = res.hd;
 						switch (key) {
@@ -1342,10 +1342,9 @@ function loadMap() {
 					});
 				}
 				else {
-					src = "assets/"+assetKey;
-					img.src = "images/map_icons/"+src+".png";
+					asset0.src = "assets/"+assetKey;
+					img.src = "images/map_icons/"+asset0.src+".png";
 				}
-				var asset0 = {img:img,canvas:canvas,src:src,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
 				img.onload = function() {
 					asset0.redraw(asset);
 				};
@@ -14829,6 +14828,8 @@ function move(getId, triggered) {
 				var decorHit = false;
 				if (asset) {
 					var decorType = asset[1][0].src;
+					if (asset[1][0].custom)
+						decorType = "custom-"+asset[1][0].custom.id;
 					switch (asset[0]) {
 					case "oils":
 						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {

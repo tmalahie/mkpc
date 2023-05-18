@@ -143,6 +143,8 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 			if ($getCircuitsData = mysql_fetch_array(mysql_query('SELECT data FROM `'. $decorTable .'_data` WHERE id="'. $decorCircuit .'"'))) {
 				$circuitData = json_decode(gzuncompress($getCircuitsData['data']));
 				$circuitDecors = array_keys((array)$circuitData->decor);
+				$decorParams = isset($circuitData->decorparams) ? $circuitData->decorparams:new \stdClass();
+				$decorExtra = isset($decorParams->extra) ? $decorParams->extra:new \stdClass();
 				if (isset($circuitData->assets)) {
 					foreach ($circuitData->assets as $key => $data) {
 						switch ($key) {
@@ -152,21 +154,23 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 						default:
 							$decorTypes = array();
 							foreach ($data as $d) {
-								if (!isset($decorTypes[$d[0]])) {
-									$decorTypes[$d[0]] = 1;
-									$circuitDecors[] = 'assets/'.$d[0];
+								$assetType = $d[0];
+								if (!isset($decorTypes[$assetType])) {
+									$decorTypes[$assetType] = 1;
+									if (isset($decorExtra->{$assetType}->custom))
+										$circuitDecors[] = $assetType;
+									else
+										$circuitDecors[] = 'assets/'.$assetType;
 								}
 							}
 						}
 					}
 				}
-				$decorParams = isset($circuitData->decorparams) ? $circuitData->decorparams:new \stdClass();
-				$decorExtra = isset($decorParams->extra) ? $decorParams->extra:new \stdClass();
 				foreach ($circuitDecors as $type) {
 					$decorOption = array(
 						'value' => $type
 					);
-					if (isset($decorExtra->{$type}) && isset($decorExtra->{$type}->custom)) {
+					if (isset($decorExtra->{$type}->custom)) {
 						$customDecor = $decorExtra->{$type}->custom;
 						$decorId = intval($customDecor->id);
 						$actualType = $customDecor->type;
