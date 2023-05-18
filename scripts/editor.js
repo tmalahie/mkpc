@@ -5319,7 +5319,7 @@ var commonTools = {
 								if (actualType === "assets/flipper") {
 									length = length || 1;
 									var dtheta = (decorsData[i].dtheta!=null) ? decorsData[i].dtheta : 1.19;
-									assetParams = ["flipper",[decorsData[i].pos.x,decorsData[i].pos.y,length,15*length/40,1,0.15],[0.1875,0.5,dir,0,dtheta]];
+									assetParams = ["flipper",[decorsData[i].pos.x,decorsData[i].pos.y,length,15,1,0.15],[0.1875,0.5,dir,0,dtheta]];
 									payload.assets["flippers"].push(assetParams);
 								}
 								else {
@@ -5331,7 +5331,7 @@ var commonTools = {
 							case "assets/oil1":
 							case "assets/oil2":
 								var typeSrc = actualType.substring(7);
-								assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,7,7,0.5,0.5],[0,0.5,0.5]];
+								assetParams = [typeSrc,[decorsData[i].pos.x,decorsData[i].pos.y,7,7,0.5,0.5],[0.5,0.5,0]];
 								payload.assets["oils"].push(assetParams);
 								break;
 							case "assets/bumper":
@@ -5411,13 +5411,13 @@ var commonTools = {
 		},
 		"restore" : function(self,payload) {
 			var selfData = self.data.decors;
+			var decorsExtra = payload.decorparams && payload.decorparams.extra;
+			decorsExtra = decorsExtra||{};
 			for (var type in payload.decor) {
 				selfData[type] = [];
 				var decorsPayload = payload.decor[type];
 				var decorsParams = payload.decorparams ? payload.decorparams[type]:null;
 				decorsParams = decorsParams||[];
-				var decorsExtra = payload.decorparams && payload.decorparams.extra;
-				decorsExtra = decorsExtra||{};
 				for (var i=0;i<decorsPayload.length;i++) {
 					var decorParams = decorsParams[i] || {};
 					var decorExtra = decorsExtra[type] || {};

@@ -1097,7 +1097,8 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 		'assets/flower1' => $language ? "flower$s":"fleur$s",
 		'assets/flower2' => $language ? "flower$s":"fleur$s",
 		'assets/flower3' => $language ? "flower$s":"fleur$s",
-		'assets/bumper' => "bumper$s"
+		'assets/bumper' => "bumper$s",
+		'assets/flipper' => "flipper$s"
 	);
 	$lang = $language ? 'en' : 'fr';
 	if (isset($name->{$lang}))

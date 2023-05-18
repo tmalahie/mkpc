@@ -95,7 +95,10 @@ $CUSTOM_DECOR_TYPES = array(
     'fir' => null,
     'mariotree' => null,
     'peachtree' => null,
-    'assets/bumper' => null
+    'assets/oil1' => null,
+    'assets/bumper' => null,
+    'assets/flipper' => null,
+    'assets/pivothand' => null,
 );
 function decor_sprite_sizes($type,$src) {
     global $CUSTOM_DECOR_TYPES;

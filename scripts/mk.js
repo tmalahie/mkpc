@@ -899,11 +899,32 @@ function setPlanPos(frameState) {
 						var img = createObject(pointer[0].src, iAssetWidth,iPlanCtn, iPlanObjects[0]);
 						var customData = pointer[0].custom;
 						if (customData) {
-							(function(img) {
+							(function(img,type) {
 								getCustomDecorData(customData, function(res) {
 									img.src = res.map;
+									var newW, newH;
+									switch (type) {
+									case "flippers":
+									case "pointers":
+										newH = res.size.hd.h;
+										break;
+									case "oils":
+										newW = res.size.hd.w;
+										newH = res.size.hd.h;
+										break;
+									default:
+										return;
+									}
+									if (newW) {
+										iAssetWidth = newW*iPlanSize/oMap.w;
+										img.style.width = iAssetWidth +"px";
+									}
+									if (newH) {
+										iAssetHeight = newH*iPlanSize/oMap.w;
+										img.style.height = iAssetHeight +"px";
+									}
 								});
-							})(img);
+							})(img,type);
 						}
 						img.style.height = iAssetHeight+"px";
 						var oX = pointer[2][0], oY = pointer[2][1];
@@ -1277,7 +1298,7 @@ function loadMap() {
 					ctx.setTransform(1, 0, 0, 1, 0, 0);
 				ctx.clearRect(0,0, this.canvas.width,this.canvas.height);
 				var iW = asset[1][2], iH = asset[1][3];
-				var cW = Math.max(iW,iH);
+				var cW = Math.hypot(iW,iH);
 				var theta = asset[2][2];
 				ctx.translate(cW/2,cW/2);
 				ctx.rotate(theta);
@@ -1294,7 +1315,7 @@ function loadMap() {
 			}
 			function setupAsset(key,asset) {
 				var canvas = document.createElement("canvas");
-				canvas.width = canvas.height = Math.max(asset[1][2],asset[1][3]);
+				canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
 				var img = new Image();
 				var assetKey = asset[0];
 				var src;
@@ -1303,6 +1324,21 @@ function loadMap() {
 					src = customData.type;
 					getCustomDecorData(customData, function(res) {
 						img.src = res.hd;
+						switch (key) {
+						case "flippers":
+						case "pointers":
+							asset0.h = res.size.hd.h;
+							break;
+						case "oils":
+							asset0.w = res.size.hd.w;
+							asset0.h = res.size.hd.h;
+							break;
+						default:
+							return;
+						}
+						asset[1][2] = asset0.w;
+						asset[1][3] = asset0.h;
+						canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
 					});
 				}
 				else {
@@ -13496,8 +13532,8 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 		var key = turningAssets[i];
 		if (oMap[key]) {
 			var tau = 2*Math.PI;
-			for (var i=0;i<oMap[key].length;i++) {
-				var asset = oMap[key][i];
+			for (var j=0;j<oMap[key].length;j++) {
+				var asset = oMap[key][j];
 				var cX = asset[1][0], cY = asset[1][1], cR = asset[1][2]*(1-asset[2][0]);
 				var r2 = (aPosX-cX)*(aPosX-cX) + (aPosY-cY)*(aPosY-cY);
 				if (r2 < (cR*cR)) {
@@ -13550,8 +13586,8 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 		if (oMap[key]) {
 			for (var i=0;i<oMap[key].length;i++) {
 				var asset = oMap[key][i];
-				var cX = asset[1][0], cY = asset[1][1], cR = 4;
-				if ((Math.abs(iX-cX) < cR) && (Math.abs(iY-cY) < cR))
+				var cX = asset[1][0], cY = asset[1][1], cW = Math.max(4,asset[1][2]/2), cH = Math.max(4,asset[1][3]/2);
+				if ((Math.abs(iX-cX) < cW) && (Math.abs(iY-cY) < cH))
 					return [key,asset];
 			}
 		}
