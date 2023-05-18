@@ -35,6 +35,7 @@ if (isset($clCircuit) && isset($clTable)) {
 else
 	$circuitUrl = 'mapcreate.php?'.$_SERVER["QUERY_STRING"];
 $type = isset($_GET['type']) ? $_GET['type'] : null;
+$editorContext = array();
 switch ($type) {
 	case 'zones':
 		$submitTitle = $language ? 'Validate zones':'Valider les zones';
@@ -44,6 +45,24 @@ switch ($type) {
 	break;
 	case 'decors':
 		$submitTitle = $language ? 'Validate decors':'Valider les décors';
+		$getDecors = mysql_query('SELECT id,name,type,sprites FROM mkdecors WHERE identifiant="'. $identifiants[0] .'" AND extra_parent_id IS NULL ORDER BY id');
+		$myDecors = array();
+		$customDecors = new \stdClass();
+		while ($decor = mysql_fetch_array($getDecors)) {
+			require_once('../includes/utils-decors.php');
+			$decorSrcs = decor_sprite_srcs($decor['sprites']);
+			$myDecor = array(
+				'id' => $decor['id'],
+				'name' => $decor['name'],
+				'type' => $decor['type'],
+                'hd' => $decorSrcs['hd'],
+                'ld' => $decorSrcs['ld'],
+                'map' => $decorSrcs['map']
+			);
+			$myDecors[] = $myDecor;
+			$customDecors->{'custom-'.$decor['id']} = $myDecor;
+		}
+		$editorContext['customDecors'] = $customDecors;
 	break;
 	case 'startpos':
 		$submitTitle = $language ? 'Validate location':'Valider la position';
@@ -58,6 +77,7 @@ switch ($type) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/challenges.css" />
+<link rel="stylesheet" href="styles/editor.css" />
 <style type="text/css">
 body {
 	text-align: center;
@@ -100,13 +120,13 @@ body {
 #zone-editor-theme input[type="button"] {
 	width: 40px;
 }
-#zone-editor-decor input[type="button"] {
+.zone-editor-decor input[type="button"] {
     width: 22px;
     background-size: auto 14px;
     background-repeat: no-repeat;
     background-position: center;
 }
-#zone-editor-decor input[type="button"].selected {
+.zone-editor-decor input[type="button"].selected {
 	background-color: #7CF;
 }
 #zone-editor-shape input[type="button"] {
@@ -195,10 +215,85 @@ body {
 	margin-bottom: 10px;
 	margin-left: 0;
 }
+#decor-selector-more {
+	cursor: pointer;
+	background-color: #396;
+	background-image: url('images/editor/plus.png');
+}
+#collab-popup {
+	position: fixed;
+	z-index: 10;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0, 0.5);
+}
+.popup-content {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	padding: 10px 10px;
+	width: 425px;
+	max-width: 90%;
+	transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	-webkit-transform: translate(-50%, -50%);
+	background-color: #AAC;
+	border-radius: 5px;
+	opacity: 0.8;
+	color: black;
+}
+.popup-content:hover {
+	opacity: 1;
+}
+.popup-content h3 {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.popup-content h4 {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.popup-content h2 {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+#collab-popup .editor-mask-content {
+	color: black;
+}
+#collab-popup:not([data-state]) {
+	display: none;
+}
+#collab-popup[data-state="loading"] .editor-mask-content {
+	display: none;
+}
+#collab-popup form {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	font-size: 0.9em;
+	display: flex;
+	gap: 0.1em;
+}
+#collab-popup form input[type="url"] {
+	font-size: 1em;
+	flex: 1;
+}
+#collab-popup form input[type="submit"] {
+    background-color: #69C;
+    color: white;
+    border-color: #48A;
+	cursor: pointer;
+	border-radius: 0.25em;
+}
 </style>
+<?php
+include('../includes/o_xhr.php');
+?>
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
 var editorType = "<?php if ($type) echo htmlspecialchars($type); ?>";
+var editorContext = <?php echo json_encode($editorContext); ?>;
 function getRelativePos(e,parent) {
 	var rect = parent.getBoundingClientRect();
 	return {
@@ -250,7 +345,7 @@ function validateZone() {
 	undo = firstUndo;
 	var $svg = document.getElementById("editor-svg");
 	var oShapes = $svg.getElementsByClassName("shape");
-	var data = [];
+	var data = [], meta = {};
 	for (var i=0;i<oShapes.length;i++) {
 		var iData = oShapes[i].dataset.data;
 		if (iData)
@@ -259,8 +354,21 @@ function validateZone() {
 	switch (editorType) {
 	case "startpos":
 		data = data[0];
+		break;
+	case "decors":
+		for (var i=0;i<data.length;i++) {
+			var iData = data[i];
+			var customData = editorContext.customDecors[iData.src];
+			if (customData) {
+				if (!meta.custom_decors) meta.custom_decors = {};
+				meta.custom_decors[iData.src] = {
+					id: customData.id,
+					type: customData.type
+				};
+			}
+		}
+		break;
 	}
-	var meta = {};
 	var $ordered = document.getElementById("zone-editor-ordered");
 	if ($ordered)
 		meta.ordered = +$ordered.checked;
@@ -503,7 +611,19 @@ document.addEventListener("DOMContentLoaded", function() {
 		}
 	}
 	function setupImg(x,y,src, oImg) {
-		oImg.setAttribute("href", "images/map_icons/"+ src +".png");
+		var customDecor = editorContext.customDecors[src];
+		if (customDecor) {
+			if (customDecor.onload) {
+				oImg.setAttribute("href", "images/map_icons/"+ customDecor.type +".png");
+				customDecor.onload(function(res) {
+					oImg.setAttribute("href", res.map);
+				});
+			}
+			else
+				oImg.setAttribute("href", customDecor.map);
+		}
+		else
+			oImg.setAttribute("href", "images/map_icons/"+ src +".png");
 		oImg.setAttribute("height", 12);
 		oImg.setAttribute("x", x-6);
 		oImg.setAttribute("y", y-6);
@@ -754,6 +874,28 @@ document.addEventListener("DOMContentLoaded", function() {
 		data = [];
 	else if (data.length === undefined)
 		data = [data];
+	var meta = params.meta;
+	if (meta.custom_decors) {
+		var customDecors = JSON.parse(meta.custom_decors);
+		for (var key in customDecors) {
+			if (!editorContext.customDecors[key]) {
+				var loadCbs = [];
+				editorContext.customDecors[key] = {
+					id: customDecors[key].id,
+					type: customDecors[key].type,
+					onload: function(cb) {
+						loadCbs.push(cb);
+					}
+				};
+				xhr("getDecorData.php?id="+customDecors[key].id, "", function(res) {
+					res = feedCustomDecorData(res);
+					for (var i=0;i<loadCbs.length;i++)
+						loadCbs[i](res);
+					return true;
+				});
+			}
+		}
+	}
 	for (var i=0;i<data.length;i++) {
 		var iData = data[i];
 		switch (getShapeType(iData)) {
@@ -775,7 +917,6 @@ document.addEventListener("DOMContentLoaded", function() {
 			applyArrow(x1,y1,x2,y2);
 		}
 	}
-	var meta = params.meta;
 	if (meta.ordered == 1)
 		document.getElementById("zone-editor-ordered").click();
 	if (meta.extra_decors && (editorType !== "decors")) {
@@ -789,6 +930,77 @@ document.addEventListener("DOMContentLoaded", function() {
 		}
 	}
 });
+function showCollabImportPopup(e) {
+	var $collabPopup = document.getElementById("collab-popup");
+	$collabPopup.dataset.state = "open";
+
+	closeCollabImportPopup = function() {
+		document.removeEventListener("keydown", hideOnEscape);
+		delete $collabPopup.dataset.state;
+	}
+	function hideOnEscape(e) {
+		switch (e.keyCode) {
+		case 27:
+			closeCollabImportPopup();
+		}
+	}
+	document.addEventListener("keydown", hideOnEscape);
+	$collabPopup.querySelector('input[name="collablink"]').focus();
+}
+function importCollabDecor(e) {
+	e.preventDefault();
+	var $form = e.target;
+	var url = $form.elements["collablink"].value;
+	var urlParams = new URLSearchParams(new URL(url).search);
+	var creationId, creationType, creationKey, creationMode;
+	try {
+		creationId = urlParams.get('id');
+		creationKey = urlParams.get('collab');
+	}
+	catch (e) {
+	}
+	if (!creationKey) {
+		alert(language ? "Invalid URL" : "URL invalide");
+		return;
+	}
+	var $collabPopup = document.getElementById("collab-popup");
+	$collabPopup.dataset.state = "loading";
+	xhr("importCollabDecor.php", "type=mkdecors&id="+creationId+"&collab="+creationKey, function(res) {
+		if (!res) {
+			alert(language ? "Invalid link" : "Lien invalide");
+			$collabPopup.dataset.state = "open";
+			return true;
+		}
+
+		res = feedCustomDecorData(res);
+		var customId = "custom-"+ res.id;
+		var $btn = document.querySelector("#zone-editor-custom-decors [data-custom-id='"+ customId +"']");
+		if ($btn) selectDecor($btn, customId);
+
+		closeCollabImportPopup();
+		$form.reset();
+		return true;
+	});
+}
+function feedCustomDecorData(res) {
+	res = JSON.parse(res);
+
+	var customId = "custom-"+ res.id;
+	if (!editorContext.customDecors[customId] || editorContext.customDecors[customId].onload) {
+		var $btn = document.createElement("input");
+		$btn.type = "button";
+		$btn.style.backgroundImage = "url('"+ res.map +"')";
+		$btn.title = res.name;
+		$btn.dataset.customId = customId;
+		$btn.onclick = function() {
+			selectDecor($btn, customId);
+		};
+		document.getElementById("zone-editor-custom-decors").insertBefore($btn, document.getElementById("decor-selector-more"));
+		editorContext.customDecors[customId] = res;
+	}
+
+	return res;
+}
 window.onload = function() {
 	document.getElementById("editor-ctn").style.width = Math.max(200,document.getElementById("editor").scrollWidth) +"px";
 };
@@ -906,7 +1118,7 @@ window.onload = function() {
 				break;
 			case 'decors':
 				?>
-				<div id="zone-editor-decor">
+				<div class="zone-editor-decor">
 					<span><?php echo $language ? 'Decor:':'Décor :'; ?></span>
 					<?php
 					include('../includes/circuitDecors.php');
@@ -921,6 +1133,17 @@ window.onload = function() {
 						}
 					}
 					?>
+				</div>
+				<div class="zone-editor-decor" id="zone-editor-custom-decors">
+				<?php
+				foreach ($myDecors as $decor) {
+					$name = htmlspecialchars($decor['name']);
+					?>
+					<input type="button" style="background-image:url('<?php echo $decor['map']; ?>')"<?php if ($name) echo ' title="'.$name.'"'; ?> onclick="selectDecor(this, 'custom-<?php echo $decor['id']; ?>')" />
+					<?php
+				}
+				?>
+				<input type="button" id="decor-selector-more" title="<?php echo $language ? "Select decor of another member..." : "Sélectionner le décor d'un autre membre..."; ?>" onclick="showCollabImportPopup()" />
 				</div>
 				<?php
 				break;
@@ -957,6 +1180,50 @@ window.onload = function() {
 			<button type="button" class="main-challenge-action" onclick="validateZone()"><?php echo $submitTitle; ?></button>
 		</div>
 	</div>
+	<?php
+	switch ($type) {
+	case 'decors':
+		?>
+		<div id="collab-popup" onclick="closeCollabImportPopup()">
+			<div class="popup-content" onclick="event.stopPropagation()">
+				<h2><?php echo $language ? "Import a decor of another member" : "Importer le décor d'un autre membre"; ?></h2>
+				<div>
+				<?php
+				if ($language) {
+					?>
+					Enter the decors's collaboration link here.<br />
+					To get this link, the <?php echo $Circuit ?> owner will simply need
+					to click on &quot;Collaborate&quot; on the decors editor page.
+					<?php
+				}
+				else {
+					?>
+					Saisissez ici le lien de collaboration de décor.<br />
+					Pour obtenir ce lien, le propriétaire du décor devra simplement
+					cliquer sur &quot;Collaborer&quot; dans la page d'édition des décors.
+					<?php
+				}
+				?>
+				</div>
+				<form onsubmit="importCollabDecor(event)">
+					<input type="url" name="collablink" placeholder="<?php
+					require_once('../includes/collabUtils.php');
+					$placeholderType = 'mkdecors';
+					$placeholderId = 1;
+					$collab = array(
+						'type' => $placeholderType,
+						'creation_id' => $placeholderId,
+						'secret' => 'y-vf-erny_2401_pbasvezrq'
+					);
+					echo getCollabUrl($collab);
+					?>" required="required" />
+					<input type="submit" value="Ok" />
+				</form>
+			</div>
+		</div>
+		<?php
+	}
+	?>
 </body>
 </html>
 <?php

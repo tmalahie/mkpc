@@ -539,6 +539,8 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle'),
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
+				if (!empty($scope['custom_decors']))
+					$scope['custom_decors'] = json_decode($scope['custom_decors']);
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);

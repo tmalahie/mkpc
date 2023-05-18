@@ -445,6 +445,7 @@ function addConstraintRule(clClass) {
 			$form.html(
 				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
 				'<input type="hidden" name="scope[extra_decors][value]" value="[]" />'+
+				'<input type="hidden" name="scope[extra_decors][custom_decors]" value="{}" />'+
 				'<button type="button" onclick="openZoneEditor(\'decors\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
 			);
 			break;
@@ -716,7 +717,7 @@ function loadZoneData(editorType) {
 	var inputKey = getZoneInputKey(editorType);
 	var data = document.forms[0].elements[inputKey+"[value]"].value;
 	var meta = {};
-	var metaKeys = ["ordered"];
+	var metaKeys = ["ordered","custom_decors"];
 	for (var i=0;i<metaKeys.length;i++) {
 		var $elt = document.forms[0].elements[inputKey+"["+metaKeys[i]+"]"];
 		if ($elt)
@@ -738,7 +739,12 @@ function storeZoneData(data,meta, editorType) {
 	document.forms[0].elements[inputKey+"[value]"].value = JSON.stringify(data);
 	for (var key in meta) {
 		var $elt = document.forms[0].elements[inputKey+"["+key+"]"];
-		if ($elt) $elt.value = meta[key];
+		if ($elt) {
+			var metaVal = meta[key];
+			if (typeof metaVal === "object")
+				metaVal = JSON.stringify(metaVal);
+			$elt.value = metaVal;
+		}
 	}
 }
 function openZoneEditor(type) {
@@ -928,6 +934,11 @@ $(function() {
 					case "start_pos":
 						var noCpuElt = mainForm.elements["scope["+constraint.type+"][no_cpu]"];
 						if (noCpuElt) noCpuElt.checked = constraint.no_cpu;
+						break;
+					case "extra_decors":
+						var customDecorsElt = mainForm.elements["scope["+constraint.type+"][custom_decors]"];
+						if (customDecorsElt) customDecorsElt.value = JSON.stringify(constraint.custom_decors);
+						break;
 					}
 				}
 			}
