@@ -44,7 +44,10 @@ if (isset($id)) {
 							foreach ($assetsList as $asset) {
 								$assetData = $asset[1];
 								$assetData[4] = $asset[2];
-								$decors->{'assets/'.$asset[0]}[] = $assetData;
+								if (isset($decorExtra->{$asset[0]}->custom))
+									$decors->{$asset[0]}[] = $assetData;
+								else
+									$decors->{'assets/'.$asset[0]}[] = $assetData;
 							}
 						}
 					}
@@ -53,7 +56,7 @@ if (isset($id)) {
 				}
 				require_once('../includes/utils-decors.php');
 				foreach ($decors as $type=>$decorsData) {
-					if (isset($decorExtra->{$type}) && isset($decorExtra->{$type}->custom)) {
+					if (isset($decorExtra->{$type}->custom)) {
 						$customDecor = $decorExtra->{$type}->custom;
 						$decorId = intval($customDecor->id);
 						$actualType = $customDecor->type;

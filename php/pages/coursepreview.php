@@ -44,7 +44,10 @@ if (isset($id)) {
 							foreach ($assetsList as $asset) {
 								$assetData = $asset[1];
 								$assetData[4] = $asset[2];
-								$decors->{'assets/'.$asset[0]}[] = $assetData;
+								if (isset($decorExtra->{$asset[0]}->custom))
+									$decors->{$asset[0]}[] = $assetData;
+								else
+									$decors->{'assets/'.$asset[0]}[] = $assetData;
 							}
 						}
 					}
