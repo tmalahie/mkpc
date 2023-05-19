@@ -12020,9 +12020,23 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			ruleVars.selected = true;
 			clLocalVars.isSetup = true;
+			var customDecors = scope.custom_decors || {};
 			for (var i=0;i<scope.value.length;i++) {
 				var decorData = scope.value[i];
-				var actualType = decorData.src;
+				var type = decorData.src;
+				var actualType = type;
+				var customDecor = customDecors[actualType];
+				if (customDecor) {
+					actualType = customDecor.type;
+					if (!oMap.decorparams)
+						oMap.decorparams = {};
+					if (!oMap.decorparams.extra)
+						oMap.decorparams.extra = {};
+					if (!oMap.decorparams.extra[type])
+						oMap.decorparams.extra[type] = {};
+					if (!oMap.decorparams.extra[type].custom)
+						oMap.decorparams.extra[type].custom = customDecor;
+				}
 				var isAsset = actualType.startsWith("assets/");
 				if (isAsset) {
 					var assetParams, assetKey;
@@ -12050,13 +12064,15 @@ var challengeRules = {
 					if (assetParams) {
 						if (!oMap[assetKey])
 							oMap[assetKey] = [];
+						if (customDecor)
+							assetParams[0] = type;
 						oMap[assetKey].push(assetParams);
 					}
 				}
 				else {
-					if (!oMap.decor[actualType])
-						oMap.decor[actualType] = [];
-					oMap.decor[actualType].push(decorData.pos);
+					if (!oMap.decor[type])
+						oMap.decor[type] = [];
+					oMap.decor[type].push(decorData.pos);
 				}
 			}
 		},

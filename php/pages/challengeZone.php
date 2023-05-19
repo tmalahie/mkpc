@@ -986,7 +986,10 @@ function feedCustomDecorData(res) {
 	res = JSON.parse(res);
 
 	var customId = "custom-"+ res.id;
-	if (!editorContext.customDecors[customId] || editorContext.customDecors[customId].onload) {
+	var customDecor = editorContext.customDecors[customId];
+	if (!customDecor || customDecor.onload) {
+		if (!res.type && customDecor)
+			res.type = customDecor.type;
 		var $btn = document.createElement("input");
 		$btn.type = "button";
 		$btn.style.backgroundImage = "url('"+ res.map +"')";
