@@ -99,6 +99,7 @@ $CUSTOM_DECOR_TYPES = array(
     'assets/bumper' => null,
     'assets/flipper' => null,
     'assets/pivothand' => null,
+    'fullcustom' => array('nbsprites' => 22),
 );
 function decor_sprite_sizes($type,$src) {
     global $CUSTOM_DECOR_TYPES;

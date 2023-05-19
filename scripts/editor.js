@@ -4975,6 +4975,7 @@ var commonTools = {
 						case "cannonball":
 						case "snowball":
 						case "billball":
+						case "fullcustom":
 						case "movingthwomp":
 						case "assets/pivothand":
 						case "assets/flipper":
@@ -5058,6 +5059,7 @@ var commonTools = {
 				case "cannonball":
 				case "snowball":
 				case "billball":
+				case "fullcustom":
 				case "movingthwomp":
 				case "firering":
 				case "fire3star":
@@ -5350,6 +5352,7 @@ var commonTools = {
 							case "cannonball":
 							case "snowball":
 							case "billball":
+							case "fullcustom":
 							case "movingthwomp":
 							case "firering":
 							case "fire3star":
@@ -5432,6 +5435,7 @@ var commonTools = {
 					case "cannonball":
 					case "snowball":
 					case "billball":
+					case "fullcustom":
 					case "movingthwomp":
 					case "firering":
 					case "fire3star":

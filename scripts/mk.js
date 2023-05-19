@@ -4397,7 +4397,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -4445,7 +4445,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -9489,6 +9489,29 @@ var decorBehaviors = {
 				var pTheta = getApparentRotation(getPlayerAtScreen(j));
 				var thetaApp = -theta/5*Math.sin(pTheta*Math.PI/180-phi);
 				decorData[2][j].div.style.transform = decorData[2][j].div.style.WebkitTransform = decorData[2][j].div.style.MozTransform = "translateY("+z+"%) rotate("+Math.round(thetaApp*getMirrorFactor()*180/Math.PI)+"deg)";
+			}
+		}
+	},
+	fullcustom: {
+		hidable:true,
+		unbreaking:true,
+		init: function(decorData,i,iG) {
+			if (decorData[4] == undefined) {
+				var decorParams = getDecorParams(this,i);
+				var th = decorParams.dir;
+				if (th === undefined)
+					th = (10000*Math.sin(iG+2))%Math.PI;
+				decorData[4] = th*180/Math.PI;
+			}
+		},
+		move:function(decorData) {
+			for (var i=0;i<oPlayers.length;i++) {
+				var fAngle = nearestAngleMirrored(getApparentRotation(getPlayerAtScreen(i))-decorData[4], 180,360);
+				var x = (fAngle%180)/180;
+				fAngle = 180*Math.floor(fAngle/180) + 180*x;
+				var iAngleStep = Math.round(fAngle*11 / 180) % 22;
+				if (iAngleStep > 21) iAngleStep -= 22;
+				decorData[2][i].setState(iAngleStep);
 			}
 		}
 	}
