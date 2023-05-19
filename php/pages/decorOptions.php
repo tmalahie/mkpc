@@ -64,11 +64,63 @@ include('../includes/o_online.php');
 					echo $language ? "Minimap icon":"Icone de la mini-map";
 			?></div>
 		</a>
+		<div class="advanced-option option-form">
+			<h3 class="option-label"><?php echo $language ? 'Decor properties' : 'Propriétés du décor'; ?></h3>
+			<form name="decor-options-form" class="decor-editor-form" method="post" action="decorBehavior.php">
+				<div>
+					<label class="option-form-group">
+						<input type="hidden" name="hitbox" />
+						<input type="checkbox" data-indeterminate="1" /> <?php echo $language ? 'Has hitbox':'A une hitbox'; ?>
+						<a class="option-form-help" href="javascript:showHelp('<?php echo addslashes($language ? "If unchecked, you will pass through the decor if you run into it" : "Si désactivé, vous traverserez le décor si vous rentrez dedans"); ?>')">[?]</a>
+						<a class="option-form-reset" href="#null" onclick="resetCheck(event)">[x]</a>
+					</label>
+					<label class="option-form-group">
+						<input type="hidden" name="spin" />
+						<input type="checkbox" data-indeterminate="1" /> <?php echo $language ? 'Collision damages':'Dégâts de collision'; ?>
+						<a class="option-form-help" href="javascript:showHelp('<?php echo addslashes($language ? "If checked, the decor will make you spin when you hit it" : "Si activé, le décor vous fera tourner lorsque vous rentrez dedans"); ?>')">[?]</a>
+						<a class="option-form-reset" href="#null" onclick="resetCheck(event)">[x]</a>
+					</label>
+					<label class="option-form-group">
+						<input type="hidden" name="unbreaking" />
+						<input type="checkbox" data-indeterminate="1" /> <?php echo $language ? 'Indestroyable':'Indestructible'; ?>
+						<a class="option-form-help" href="javascript:showHelp('<?php echo addslashes($language ? "If checked, the decor cannot be destroyed when hit with a star/mega shroom item" : "Si activé, le décor ne peut pas être détruit avec un objet comme une étoile ou un méga champi"); ?>')">[?]</a>
+						<a class="option-form-reset" href="#null" onclick="resetCheck(event)">[x]</a>
+					</label>
+					<div class="option-form-submit">
+						<button type="submit"><?php echo $language ? 'Validate':'Valider'; ?></button>
+					</div>
+				</div>
+			</form>
+		</div>
 	</div>
 	<br />
 	<div class="editor-navigation">
 		<a href="editDecor.php?id=<?php echo urlencode($_GET['id']) . $collabSuffix; ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
 	</div>
+	<script type="text/javascript">
+	function showHelp(text) {
+		alert(text);
+	}
+	var $checkboxInd = document.querySelectorAll("input[data-indeterminate]");
+	for (var i=0;i<$checkboxInd.length;i++) {
+		$checkboxInd[i].indeterminate = true;
+		$checkboxInd[i].onclick = function() {
+			var $div = this.parentNode;
+			var $input = $div.querySelector('input[type="hidden"]');
+			$input.value = this.checked ? 1 : 0;
+			delete this.dataset.indeterminate;
+		}
+	}
+	function resetCheck(e) {
+		e.preventDefault();
+		var $div = e.currentTarget.parentNode;
+		var $input = $div.querySelector('input[type="hidden"]');
+		var $checkbox = $div.querySelector('input[type="checkbox"]');
+		$checkbox.indeterminate = true;
+		$checkbox.dataset.indeterminate = "1";
+		$input.value = "";
+	}
+	</script>
 </body>
 </html>
 		<?php
