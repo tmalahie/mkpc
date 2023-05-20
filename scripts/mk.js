@@ -3324,8 +3324,10 @@ function startGame() {
 							else if (res.options.spin === 0)
 								delete decorBehavior.spin;
 							
-							if (res.options.unbreaking === 1 && !decorBehavior.unbreaking)
+							if (res.options.unbreaking === 1) {
 								decorBehavior.unbreaking = true;
+								delete decorBehavior.breaking;
+							}
 							else if (res.options.unbreaking === 0)
 								delete decorBehavior.unbreaking;
 						}
