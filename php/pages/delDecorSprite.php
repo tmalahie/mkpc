@@ -11,7 +11,7 @@ if (isset($_GET['id'])) {
 			$collabSuffix = isset($_GET['collab']) ? '&collab='.urlencode($_GET['collab']) : '';
 			if ($type) {
 				include('../includes/utils-decors.php');
-				$spriteSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
+				$spriteSrcs = get_decor_srcs($decor);
 				if ($spriteSrcs[$type] != $spriteSrcs['ld'])
 					@unlink($spriteSrcs['ldir'].$spriteSrcs[$type]);
 				header('location: decorOptions.php?id='. $decorId . $collabSuffix);

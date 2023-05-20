@@ -5,7 +5,7 @@ if (isset($_GET['id'])) {
     $getDecor = mysql_query('SELECT * FROM mkdecors WHERE id="'. $_GET['id'] .'"');
     if ($decor = mysql_fetch_array($getDecor)) {
         require_once('../includes/utils-decors.php');
-        $decorSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
+        $decorSrcs = get_decor_srcs($decor);
         $res = array(
             'id' => $decor['id'],
             'name' => $decor['name'],
@@ -14,17 +14,17 @@ if (isset($_GET['id'])) {
             'map' => $decorSrcs['map']
         );
         if (isset($_GET['full'])) {
-            $res['size'] = decor_sprite_sizes($decor['type'],$decorSrcs['hdir'].$decorSrcs['hd']);
+            $res['size'] = get_decor_sizes($decor);
             $res['original_size'] = decor_sprite_sizes($decor['type'],default_decor_sprite_src($decor['type']));
             $getDecorExtra = mysql_query('SELECT * FROM mkdecors WHERE extra_parent_id="'. $decor['id'] .'"');
             while ($decorExtra = mysql_fetch_array($getDecorExtra)) {
-                $decorExtraSrcs = decor_sprite_srcs($decorExtra['sprites'],$decorExtra['url']);
+                $decorExtraSrcs = get_decor_srcs($decorExtra);
                 $res['extra'][$decorExtra['type']] = array(
                     'id' => $decorExtra['id'],
                     'hd' => $decorExtraSrcs['hd'],
                     'ld' => $decorExtraSrcs['ld'],
                     'map' => $decorExtraSrcs['map'],
-                    'size' => decor_sprite_sizes($decorExtra['type'],$decorExtraSrcs['hdir'].$decorExtraSrcs['hd']),
+                    'size' => get_decor_sizes($decorExtra),
                     'original_size' => decor_sprite_sizes($decorExtra['type'],default_decor_sprite_src($decorExtra['type']))
                 );
             }

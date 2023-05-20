@@ -174,9 +174,9 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 						$customDecor = $decorExtra->{$type}->custom;
 						$decorId = intval($customDecor->id);
 						$actualType = $customDecor->type;
-						if ($customData = mysql_fetch_array(mysql_query('SELECT name,sprites FROM mkdecors WHERE id='. $decorId))) {
+						if ($customData = mysql_fetch_array(mysql_query('SELECT name,sprites,img_data FROM mkdecors WHERE id='. $decorId))) {
 							require_once('../includes/utils-decors.php');
-							$decorSrcs = decor_sprite_srcs($customData['sprites']);
+							$decorSrcs = get_decor_srcs($customData);
 							$decorOption['icon'] = $decorSrcs['map'];
 							$decorOption['custom'] = 1;
 							$decorOption['label'] = $customData['name'];

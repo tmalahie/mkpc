@@ -21,12 +21,12 @@ if (isset($_GET['id'])) {
             include('../includes/utils-decors.php');
             session_start();
             include('../includes/tokens.php');
-            $decorSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
+            $decorSrcs = get_decor_srcs($decor);
             if (isset($_POST['name']) && $hasWriteGrants) {
                 $decor['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);
                 mysql_query('UPDATE `mkdecors` SET name="'. $decor['name'] .'" WHERE id="'. $_GET['id'] .'"');
             }
-            $spriteSizes = decor_sprite_sizes($decor['type'],$decorSrcs['hdir'].$decorSrcs['hd']);
+            $spriteSizes = get_decor_sizes($decor);
             $imgW = $spriteSizes['ld']['w'];
             $imgH = $spriteSizes['ld']['h'];
             $mW = 32;
@@ -86,8 +86,8 @@ if (isset($_GET['id'])) {
                     echo '<div class="decor-extra">';
                     echo 'Décor #'. $i .'&nbsp;:';
                     if ($extraDecor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE extra_parent_id="'. $decorId .'"'))) {
-                        $decorSrcs = decor_sprite_srcs($extraDecor['sprites'],$extraDecor['url']);
-                        $spriteSizes = decor_sprite_sizes($extraDecor['type'],$decorSrcs['hd'].$decorSrcs['hd']);
+                        $decorSrcs = get_decor_srcs($extraDecor);
+                        $spriteSizes = get_decor_sizes($extraDecor);
                         $imgW = $spriteSizes['ld']['w'];
                         $imgH = $spriteSizes['ld']['h'];
                         ?>
@@ -145,8 +145,8 @@ if (isset($_GET['id'])) {
     <?php
     if ($decor['extra_parent_id']) {
         if ($parentDecor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decor['extra_parent_id'] .'"'))) {
-            $decorSrcs = decor_sprite_srcs($parentDecor['sprites'],$parentDecor['url']);
-            $spriteSizes = decor_sprite_sizes($parentDecor['type'],$decorSrcs['hdir'].$decorSrcs['hd']);
+            $decorSrcs = get_decor_srcs($parentDecor);
+            $spriteSizes = get_decor_sizes($parentDecor);
             $imgW = $spriteSizes['ld']['w'];
             $imgH = $spriteSizes['ld']['h'];
         ?>

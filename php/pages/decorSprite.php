@@ -20,7 +20,7 @@ if (isset($_GET['id'])) {
 		if ($hasWriteGrants) {
 			include('../includes/utils-decors.php');
 			include('../includes/file-quotas.php');
-			$spriteSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
+			$spriteSrcs = get_decor_srcs($decor);
 			$type = 'decor';
 			if (isset($_GET['map']))
 				$type = 'map';
@@ -58,7 +58,7 @@ if (isset($_GET['id'])) {
 			}
 			elseif (isset($_POST['color'])) {
 				$color = explode(',', $_POST['color']);
-				$oldSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
+				$oldSrcs = get_decor_srcs($decor);
 				$filehash = generate_decor_sprite_src($decor['id']);
 				move_decor_sprite_imgs($oldSrcs,$filehash);
 				$newSrcs = decor_sprite_srcs($filehash);
@@ -66,7 +66,7 @@ if (isset($_GET['id'])) {
 				case 'decor' :
 					add_transparency($newSrcs['hdir'].$newSrcs['hd'],$newSrcs['hdir'].$newSrcs['hd'], $color[0],$color[1],$color[2]);
 					clone_img_resource($newSrcs['hdir'].$newSrcs['hd'],$newSrcs['hdir'].$newSrcs['hd']);
-					$spriteSizes = decor_sprite_sizes($decor['type'],$newSrcs['hdir'].$newSrcs['hd']);
+					$spriteSizes = get_decor_sizes($decor);
 					create_decor_sprite_thumbs($newSrcs,$spriteSizes);
 					break;
 				default :

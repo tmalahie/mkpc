@@ -78,7 +78,7 @@ function selectDecorSelectorCollab(e) {
         ?>
         <div class="decors-list"><?php
         while ($decor = mysql_fetch_array($myDecors)) {
-            $decorSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
+            $decorSrcs = get_decor_srcs($decor);
             ?><div data-id="<?php echo $decor['id'] ?>" data-name="<?php echo htmlspecialchars($decor['name']) ?>" data-ld="<?php echo $decorSrcs['ld'] ?>" data-type="<?php echo $decor['type']; ?>" onclick="selectDecor(this)"><img src="<?php echo $decorSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($decor['name']) ?>" /></div><?php
         }
         ?></div>

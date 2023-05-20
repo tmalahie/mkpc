@@ -2,7 +2,7 @@
 define('DECORS_DIR', 'images/sprites/uploads/');
 require_once('imageutils.php');
 require_once('fileutils.php');
-function decor_sprite_paths($hash,$url) {
+function decor_sprite_paths($hash,&$url) {
     return array (
         'url' => boolval($url),
         'ldir' => '../../',
@@ -12,13 +12,25 @@ function decor_sprite_paths($hash,$url) {
 		'map' => DECORS_DIR.$hash.'-map.png'
 	);
 }
-function decor_sprite_srcs($hash,$url=null) {
+function decor_sprite_srcs($hash,&$url=null) {
 	$res = decor_sprite_paths($hash,$url);
 	if (!file_exists($res['ldir'].$res['ld']))
 		$res['ld'] = $res['hd'];
 	if (!file_exists($res['ldir'].$res['map']))
 		$res['map'] = $res['ld'];
 	return $res;
+}
+function get_decor_srcs(&$decor) {
+    parse_decor_img_data($decor);
+    return decor_sprite_srcs($decor['sprites'],$decor['imgdata']['url']);
+}
+function parse_decor_img_data(&$decor) {
+    if (!isset($decor['imgdata'])) {
+        if ($decor['img_data'])
+            $decor['imgdata'] = json_decode($decor['img_data'],true);
+        else
+            $decor['imgdata'] = array();
+    }
 }
 function decor_is_asset($type) {
     return str_starts_with($type, 'assets/');
@@ -122,9 +134,18 @@ $CUSTOM_DECOR_TYPES = array(
     'assets/pivothand' => null,
     'fullcustom' => array('nbsprites' => 22),
 );
+function get_decor_sizes(&$decor) {
+    parse_decor_img_data($decor);
+    $w = $decor['imgdata']['w'];
+    $h = $decor['imgdata']['h'];
+    return compute_decor_sizes($decor['type'], $w,$h);
+}
 function decor_sprite_sizes($type,$src) {
-    global $CUSTOM_DECOR_TYPES;
     list($w,$h) = getimagesize($src);
+    return compute_decor_sizes($type, $w,$h);
+}
+function compute_decor_sizes($type, $w,$h) {
+    global $CUSTOM_DECOR_TYPES;
     $res = array(
         'ld' => array(
             'w' => $w,
@@ -242,7 +263,7 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
         $filehash = generate_decor_sprite_src($fileData['id']);
         $spriteSrcs = decor_sprite_paths($filehash,null);
         if ($decor && ($decor['id'] === $fileData['id'])) {
-            $oldSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
+            $oldSrcs = get_decor_srcs($decor);
             move_decor_sprite_imgs($oldSrcs,$filehash);
         }
         $spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
@@ -275,7 +296,7 @@ function handle_decor_advanced($file,$decor,$type) {
 				$filehash = generate_decor_sprite_src($id);
 				$spriteSrcs = decor_sprite_srcs($filehash);
 				if ($decor) {
-					$oldSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
+					$oldSrcs = get_decor_srcs($decor);
 					move_decor_sprite_imgs($oldSrcs,$filehash);
 				}
 				$spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
