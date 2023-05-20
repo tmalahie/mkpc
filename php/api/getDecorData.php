@@ -28,6 +28,8 @@ if (isset($_GET['id'])) {
                     'original_size' => decor_sprite_sizes($decorExtra['type'],default_decor_sprite_src($decorExtra['type']))
                 );
             }
+            if ($decor['options'])
+                $res['options'] = json_decode($decor['options']);
         }
         echo json_encode($res);
     }

@@ -3314,6 +3314,20 @@ function startGame() {
 							var hitboxConst = 0.8;
 							decorBehavior.hitboxH = hitboxConst + (hitboxHeight-hitboxConst)*sizeRatio.h;
 						}
+						if (res.options) {
+							if (res.options.hitbox === 0)
+								decorBehavior.hitbox = -1;
+							
+							if (res.options.spin === 1 && !decorBehavior.spin)
+								decorBehavior.spin = 20;
+							else if (res.options.spin === 0)
+								delete decorBehavior.spin;
+							
+							if (res.options.unbreaking === 1 && !decorBehavior.unbreaking)
+								decorBehavior.unbreaking = true;
+							else if (res.options.unbreaking === 0)
+								delete decorBehavior.unbreaking;
+						}
 						if (decorBehavior.initcustom) {
 							setTimeout(function() {
 								decorBehavior.initcustom(res);
