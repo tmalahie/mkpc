@@ -66,28 +66,48 @@ include('../includes/o_online.php');
 		</a>
 		<div class="advanced-option option-form">
 			<h3 class="option-label"><?php echo $language ? 'Decor properties' : 'Propriétés du décor'; ?></h3>
-			<form name="decor-options-form" class="decor-editor-form" method="post" action="decorBehavior.php">
+			<form name="decor-options-form" class="decor-editor-form" method="post" action="decorProperties.php?id=<?php echo $decorId; ?>">
 				<div>
-					<label class="option-form-group">
-						<input type="hidden" name="hitbox" />
-						<input type="checkbox" data-indeterminate="1" /> <?php echo $language ? 'Has hitbox':'A une hitbox'; ?>
-						<a class="option-form-help" href="javascript:showHelp('<?php echo addslashes($language ? "If unchecked, you will pass through the decor if you run into it" : "Si désactivé, vous traverserez le décor si vous rentrez dedans"); ?>')">[?]</a>
-						<a class="option-form-reset" href="#null" onclick="resetCheck(event)">[x]</a>
-					</label>
-					<label class="option-form-group">
-						<input type="hidden" name="spin" />
-						<input type="checkbox" data-indeterminate="1" /> <?php echo $language ? 'Collision damages':'Dégâts de collision'; ?>
-						<a class="option-form-help" href="javascript:showHelp('<?php echo addslashes($language ? "If checked, the decor will make you spin when you hit it" : "Si activé, le décor vous fera tourner lorsque vous rentrez dedans"); ?>')">[?]</a>
-						<a class="option-form-reset" href="#null" onclick="resetCheck(event)">[x]</a>
-					</label>
-					<label class="option-form-group">
-						<input type="hidden" name="unbreaking" />
-						<input type="checkbox" data-indeterminate="1" /> <?php echo $language ? 'Indestroyable':'Indestructible'; ?>
-						<a class="option-form-help" href="javascript:showHelp('<?php echo addslashes($language ? "If checked, the decor cannot be destroyed when hit with a star/mega shroom item" : "Si activé, le décor ne peut pas être détruit avec un objet comme une étoile ou un méga champi"); ?>')">[?]</a>
-						<a class="option-form-reset" href="#null" onclick="resetCheck(event)">[x]</a>
-					</label>
+					<?php
+    				$decorOptions = array(
+						'hitbox' => array(
+							'label' => $language ? 'Has hitbox':'A une hitbox',
+							'help' => $language ? "If unchecked, you will pass through the decor if you run into it" : "Si désactivé, vous traverserez le décor si vous rentrez dedans",
+							"default" => "1"
+						),
+						'spin' => array(
+							'label' => $language ? 'Collision damages':'Dégâts de collision',
+							'help' => $language ? "If checked, the decor will make you spin when you hit it" : "Si activé, le décor vous fera tourner lorsque vous rentrez dedans"
+						),
+						'unbreaking' => array(
+							'label' => $language ? 'Indestroyable':'Indestructible',
+							'help' => $language ? "If checked, the decor cannot be destroyed when hit with a star/mega shroom item" : "Si activé, le décor ne peut pas être détruit avec un objet comme une étoile ou un méga champi"
+						)
+					);
+					$decorOptionsValue = $decor['options'] ? json_decode($decor['options']) : new \stdClass();
+					foreach ($decorOptions as $option => $optionData) {
+						$decorOptionValue = isset($decorOptionsValue->$option) ? $decorOptionsValue->$option : null;
+						?>
+						<label class="option-form-group">
+							<input type="hidden" name="<?php echo $option; ?>" value="<?php echo $decorOptionValue; ?>" />
+							<input type="checkbox"<?php 
+								if ($decorOptionValue === null) {
+									echo ' data-indeterminate="1"';
+									if (!empty($optionData['default']))
+										echo ' checked="checked"';
+								}
+								elseif ($decorOptionValue)
+									echo ' checked="checked"';
+							?> /> <?php echo $optionData['label']; ?>
+							<a class="option-form-help" href="javascript:showHelp('<?php echo addslashes($optionData['help']); ?>')">[?]</a>
+							<a class="option-form-reset" href="#null" onclick="resetCheck(event)">[x]</a>
+						</label>
+						<?php
+					}
+					?>
 					<div class="option-form-submit">
 						<button type="submit"><?php echo $language ? 'Validate':'Valider'; ?></button>
+						<a class="option-form-reset-all" href="javascript:resetOptions()"><?php echo $language ? 'Reset all':'Réinitialiser'; ?></a>
 					</div>
 				</div>
 			</form>
@@ -101,15 +121,10 @@ include('../includes/o_online.php');
 	function showHelp(text) {
 		alert(text);
 	}
-	var $checkboxInd = document.querySelectorAll("input[data-indeterminate]");
-	for (var i=0;i<$checkboxInd.length;i++) {
-		$checkboxInd[i].indeterminate = true;
-		$checkboxInd[i].onclick = function() {
-			var $div = this.parentNode;
-			var $input = $div.querySelector('input[type="hidden"]');
-			$input.value = this.checked ? 1 : 0;
-			delete this.dataset.indeterminate;
-		}
+	function toggleResetLink() {
+		var $resetAll = document.querySelector('.option-form-reset-all');
+		var $checked = document.querySelectorAll('.option-form-group input[type="checkbox"]:not([data-indeterminate])');
+		$resetAll.style.display = $checked.length ? 'inline-block' : 'none';
 	}
 	function resetCheck(e) {
 		e.preventDefault();
@@ -119,7 +134,34 @@ include('../includes/o_online.php');
 		$checkbox.indeterminate = true;
 		$checkbox.dataset.indeterminate = "1";
 		$input.value = "";
+		toggleResetLink();
 	}
+	function resetOptions() {
+		for (var i=0;i<$checkboxInd.length;i++) {
+			var $div = $checkboxInd[i].parentNode;
+			var $input = $div.querySelector('input[type="hidden"]');
+			$checkboxInd[i].indeterminate = true;
+			$checkboxInd[i].checked = false;
+			$checkboxInd[i].dataset.indeterminate = "1";
+			$input.value = "";
+		}
+		toggleResetLink();
+	}
+
+	var $checkboxInd = document.querySelectorAll('.option-form-group input[type="checkbox"]');
+	for (var i=0;i<$checkboxInd.length;i++) {
+		var $checkbox = $checkboxInd[i];
+		if ($checkbox.dataset.indeterminate)
+			$checkbox.indeterminate = true;
+		$checkbox.onclick = function() {
+			var $div = this.parentNode;
+			var $input = $div.querySelector('input[type="hidden"]');
+			$input.value = this.checked ? 1 : 0;
+			delete this.dataset.indeterminate;
+			toggleResetLink();
+		}
+	}
+	toggleResetLink();
 	</script>
 </body>
 </html>

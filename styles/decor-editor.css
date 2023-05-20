@@ -421,6 +421,10 @@ h2 {
 .advanced-option.option-form .option-form-reset:hover {
     color: #d66;
 }
+.advanced-option.option-form .option-form-reset-all {
+    margin-left: 0.25em;
+    display: none;
+}
 .advanced-option.option-form .option-form-help:hover {
     text-decoration: underline;
 }
