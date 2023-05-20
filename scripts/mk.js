@@ -1025,10 +1025,10 @@ function setPlanPos(frameState) {
 		setCoinPos(oPlanCoins2,oCoinWidth2,oPlanCtn2,oPlanSize2);
 	}
 
+	var customDecorFetchHandlers = {};
 	function setDecorPos(iPlanDecor,iObjWidth,iPlanCtn,iPlanSize) {
 		for (var type in frameState.decor) {
 			var frameDecorType = frameState.decor[type];
-			var firstRun = !iPlanDecor[type].length;
 			var decorBehavior = decorBehaviors[type];
 			var decorExtra = getDecorExtra(decorBehavior);
 			var customDecor = decorExtra.custom;
@@ -1037,7 +1037,8 @@ function setPlanPos(frameState) {
 					var tObjWidth = iObjWidth;
 					if (decorBehavior.size_ratio) tObjWidth *= decorBehavior.size_ratio.w;
 					syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
-					if (firstRun && customDecor) {
+					if (customDecor && !customDecorFetchHandlers[type]) {
+						customDecorFetchHandlers[type] = 1;
 						for (var i=0;i<iPlanDecor[type].length;i++) {
 							var iDecor = iPlanDecor[type][i];
 							iDecor.src = "images/map_icons/empty.png";

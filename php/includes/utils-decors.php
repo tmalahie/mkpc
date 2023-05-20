@@ -1,18 +1,22 @@
 <?php
 define('DECORS_DIR', 'images/sprites/uploads/');
 require_once('imageutils.php');
-function decor_sprite_paths($hash) {
+require_once('fileutils.php');
+function decor_sprite_paths($hash,$url) {
     return array (
-		'hd' => DECORS_DIR.$hash.'.png',
+        'url' => boolval($url),
+        'ldir' => '../../',
+        'hdir' => $url ? '' : '../../',
+		'hd' => $url ? $url : DECORS_DIR.$hash.'.png',
 		'ld' => DECORS_DIR.$hash.'-ld.png',
 		'map' => DECORS_DIR.$hash.'-map.png'
 	);
 }
-function decor_sprite_srcs($hash) {
-	$res = decor_sprite_paths($hash);
-	if (!file_exists('../../'.$res['ld']))
+function decor_sprite_srcs($hash,$url=null) {
+	$res = decor_sprite_paths($hash,$url);
+	if (!file_exists($res['ldir'].$res['ld']))
 		$res['ld'] = $res['hd'];
-	if (!file_exists('../../'.$res['map']))
+	if (!file_exists($res['ldir'].$res['map']))
 		$res['map'] = $res['ld'];
 	return $res;
 }
@@ -50,15 +54,29 @@ function resize_decor_sprites($originalSrc,$thumbSrc, $cropWidth,$cropHeight) {
 	imagedestroy($thumb);
 }
 function create_decor_sprite_thumbs($spriteSrcs,$spriteSizes) {
-	resize_decor_sprites('../../'.$spriteSrcs['hd'],'../../'.$spriteSrcs['ld'], $spriteSizes['ld']['w'],$spriteSizes['ld']['h']);
+	resize_decor_sprites($spriteSrcs['ldir'].$spriteSrcs['hd'],$spriteSrcs['ldir'].$spriteSrcs['ld'], $spriteSizes['ld']['w'],$spriteSizes['ld']['h']);
+}
+function get_local_file_keys($spriteSrcs) {
+    $res = array();
+    if (!$spriteSrcs['url'])
+        $res[] = 'hd';
+    if ($spriteSrcs['ld'] !== $spriteSrcs['hd'])
+        $res[] = 'ld';
+    if ($spriteSrcs['map'] !== $spriteSrcs['ld'])
+        $res[] = 'map';
+    return $res;
 }
 function delete_decor_sprite_imgs($spriteSrcs) {
-	foreach ($spriteSrcs as $key => $oldSrc)
-		@unlink('../../'.$oldSrc);
+    $spriteKeys = get_local_file_keys($spriteSrcs);
+    foreach ($spriteKeys as $key)
+        @unlink($spriteSrcs['ldir'].$spriteSrcs[$key]);
 }
 function move_decor_sprite_imgs($oldSrcs, $filehash) {
-	foreach ($oldSrcs as $key => $oldSrc)
-		@rename('../../'.$oldSrc, '../../'.preg_replace('#dc-\w+-\d+(-\w+)?\.png$#', $filehash.'$1.png', $oldSrc));
+    $spriteKeys = get_local_file_keys($oldSrcs);
+    foreach ($spriteKeys as $key) {
+        $oldSrc = $oldSrcs[$key];
+		@rename($oldSrcs['ldir'].$oldSrc, $oldSrcs['ldir'].preg_replace('#dc-\w+-\d+(-\w+)?\.png$#', $filehash.'$1.png', $oldSrc));
+    }
 }
 $CUSTOM_DECOR_TYPES = array(
     'tuyau' => null,
@@ -126,6 +144,11 @@ function decor_sprite_sizes($type,$src) {
 }
 function generate_decor_sprite_src($id) {
 	return 'dc-'.uniqid().'-'.$id;
+}
+function get_basic_sprites_payload($prefix) {
+    if (!empty($_POST[$prefix.'-url']))
+        return url_to_file_payload($_POST[$prefix.'-url']);
+    return $_FILES[$prefix];
 }
 function get_extra_sprites_payload($prefix) {
     $res = array();
@@ -217,23 +240,31 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
                 $parentFileId = $fileData['id'];
         }
         $filehash = generate_decor_sprite_src($fileData['id']);
-        $spriteSrcs = decor_sprite_paths($filehash);
+        $spriteSrcs = decor_sprite_paths($filehash,null);
         if ($decor && ($decor['id'] === $fileData['id'])) {
-            $oldSrcs = decor_sprite_srcs($decor['sprites']);
+            $oldSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
             move_decor_sprite_imgs($oldSrcs,$filehash);
         }
         $spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
-        move_uploaded_file($file['tmp_name'], '../../'.$spriteSrcs['tmp']);
-        clone_img_resource('../../'.$spriteSrcs['tmp'],'../../'.$spriteSrcs['hd']);
-        @unlink('../../'.$spriteSrcs['tmp']);
+        if (isset($file['url']))
+            rename($file['tmp_name'], $spriteSrcs['ldir'].$spriteSrcs['tmp']);
+        else
+            move_uploaded_file($file['tmp_name'], $spriteSrcs['ldir'].$spriteSrcs['tmp']);
+        clone_img_resource($spriteSrcs['ldir'].$spriteSrcs['tmp'],$spriteSrcs['ldir'].$spriteSrcs['hd']);
+        @unlink($spriteSrcs['ldir'].$spriteSrcs['tmp']);
         create_decor_sprite_thumbs($spriteSrcs,$spriteSizes);
-        mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $fileData['id'] .'"');
+        $fileUrl = '';
+		if (isset($file['url'])) {
+            $fileUrl = $file['url'];
+            @unlink($spriteSrcs['ldir'].$spriteSrcs['hd']);
+		}
+        mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'",url="'. $fileUrl .'" WHERE id="'. $fileData['id'] .'"');
     }
     unset($fileData);
     return array('id' => $parentFileId);
 }
 function handle_decor_advanced($file,$decor,$type) {
-	global $language, $identifiants;
+	global $language;
 	if (!$file['error']) {
 		$poids = $file['size'];
 		if ($poids < 1000000) {
@@ -244,20 +275,20 @@ function handle_decor_advanced($file,$decor,$type) {
 				$filehash = generate_decor_sprite_src($id);
 				$spriteSrcs = decor_sprite_srcs($filehash);
 				if ($decor) {
-					$oldSrcs = decor_sprite_srcs($decor['sprites']);
+					$oldSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
 					move_decor_sprite_imgs($oldSrcs,$filehash);
 				}
 				$spriteSrcs['tmp'] = DECORS_DIR.$filehash.'-tmp.png';
 				$spriteSrcs[$type] = DECORS_DIR.$filehash.'-'.$type.'.png';
-				move_uploaded_file($file['tmp_name'], '../../'.$spriteSrcs['tmp']);
+				move_uploaded_file($file['tmp_name'], $spriteSrcs['ldir'].$spriteSrcs['tmp']);
 				switch ($type) {
 				case 'map':
 					$spriteW = 32;
 					$spriteH = 32;
 					break;
 				}
-				resize_img_resource('../../'.$spriteSrcs['tmp'],'../../'.$spriteSrcs[$type], $spriteW,$spriteH);
-                @unlink('../../'.$spriteSrcs['tmp']);
+				resize_img_resource($spriteSrcs['ldir'].$spriteSrcs['tmp'],$spriteSrcs['ldir'].$spriteSrcs[$type], $spriteW,$spriteH);
+                @unlink($spriteSrcs['ldir'].$spriteSrcs['tmp']);
                 mysql_query('UPDATE `mkdecors` SET sprites="'. $filehash .'" WHERE id="'. $id .'"');
 				return array('id' => $id);
 			}

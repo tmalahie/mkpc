@@ -8,7 +8,7 @@ include('../includes/initdb.php');
 require_once('../includes/utils-decors.php');
 include('../includes/file-quotas.php');
 if (isset($_POST['type']) && isset($_FILES['sprites'])) {
-	$upload = handle_decor_upload($_POST['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'));
+	$upload = handle_decor_upload($_POST['type'],get_basic_sprites_payload('sprites'),get_extra_sprites_payload('extraSprites'));
 	if (isset($upload['id']))
 		header('location: editDecor.php?id='. $upload['id'] .'&new');
 	if (isset($upload['error']))
@@ -25,11 +25,12 @@ if (isset($_POST['type']) && isset($_FILES['sprites'])) {
 <link rel="stylesheet" href="styles/collabs.css" />
 <link rel="stylesheet" href="styles/decor-editor.css" />
 <script type="text/javascript" src="scripts/collabs.js"></script>
+<script type="text/javascript" src="scripts/decor-editor.js"></script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 <script type="text/javascript">
-var decorId = -1;
 var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;
+var decorId = -1;
 function selectDecor(id) {
 	if (decorId != -1)
 		document.getElementById("mydecor-"+decorId).className = "";
@@ -135,7 +136,7 @@ if (isset($error))
             </div>
             <div class="decors-list"><?php
             while ($decor = mysql_fetch_array($myDecors)) {
-                $decorSrcs = decor_sprite_srcs($decor['sprites']);
+                $decorSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
                 ?><div id="mydecor-<?php echo $decor['id'] ?>" data-id="<?php echo $decor['id'] ?>" data-name="<?php echo htmlspecialchars($decor['name']) ?>" data-ld="<?php echo $decorSrcs['ld'] ?>" data-type="<?php echo $decor['type']; ?>" onclick="selectDecor(<?php echo $decor['id'] ?>)"><img src="<?php echo $decorSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($decor['name']) ?>" /></div><?php
             }
             ?></div>
@@ -231,14 +232,51 @@ if (isset($error))
                     <div class="decor-model-label"><?php echo $language ? 'Model:':'Modèle&nbsp;:'; ?></div>
                     <div class="decor-model-value"><img id="decor-model-img" src="images/sprites/sprite_tuyau.png" alt="" /></div>
                 </div>
-                <div><?php echo $language ? 'Image:':'Image :'; ?> <input type="file" required="required" name="sprites" /></div>
+                <div class="decor-form-image">
+                    <?php echo $language ? 'Image:':'Image :'; ?>
+                    <div class="editor-upload">
+                        <div class="editor-upload-tabs">
+                            <div class="editor-upload-tab editor-upload-tab-selected">
+                                <?php echo $language ? 'Upload an image':'Uploader une image'; ?>
+                            </div><div class="editor-upload-tab">
+                                <?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image'; ?>
+                            </div>
+                        </div>
+                        <div class="editor-upload-inputs">
+                            <div class="editor-upload-input editor-upload-input-selected">
+                                <input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="sprites" />
+                            </div>
+                            <div class="editor-upload-input">
+                                <input type="url" name="sprites-url" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="decor-extra-model">
                     <div class="decor-model">
                         <div class="decor-model-label"><?php echo $language ? 'Model 2:':'Modèle 2&nbsp;:'; ?></div>
                         <div class="decor-model-value"><img id="decor-extra-model-img" src="images/sprites/sprite_tuyau.png" alt="" /></div>
                     </div>
-                <div>
-                    <?php echo $language ? '(Optional) Image 2:':'(Facultatif) Image 2 :'; ?> <input type="file" id="extra-sprites" /></div>
+                    <div class="decor-form-image">
+                        <?php echo $language ? '(Optional) Image 2:':'(Facultatif) Image 2 :'; ?>
+                        <div class="editor-upload">
+                            <div class="editor-upload-tabs">
+                                <div class="editor-upload-tab editor-upload-tab-selected">
+                                    <?php echo $language ? 'Upload an image':'Uploader une image'; ?>
+                                </div><div class="editor-upload-tab">
+                                    <?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image'; ?>
+                                </div>
+                            </div>
+                            <div class="editor-upload-inputs">
+                                <div class="editor-upload-input editor-upload-input-selected">
+                                    <input type="file" accept="image/png,image/gif,image/jpeg" id="extra-sprites" />
+                                </div>
+                                <div class="editor-upload-input">
+                                    <input type="url" name="extra-sprites-url" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div><button type="submit"><?php echo $language ? 'Send !':'Valider !'; ?></button></div>
             </div>
@@ -267,6 +305,11 @@ if (isset($error))
         (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
     </div>
+    <script type="text/javascript">
+        var $decorUploads = document.querySelectorAll(".editor-upload");
+        for (var i=0;i<$decorUploads.length;i++)
+            setupUploadTabs($decorUploads[i]);
+    </script>
 </body>
 </html>
 <?php

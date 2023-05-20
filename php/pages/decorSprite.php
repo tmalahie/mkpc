@@ -20,19 +20,21 @@ if (isset($_GET['id'])) {
 		if ($hasWriteGrants) {
 			include('../includes/utils-decors.php');
 			include('../includes/file-quotas.php');
-			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
+			$spriteSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
 			$type = 'decor';
 			if (isset($_GET['map']))
 				$type = 'map';
 			switch ($type) {
 			case 'decor' :
 				$spriteSrc = $spriteSrcs['hd'];
+				$spriteDir = $spriteSrcs['hdir'];
 				break;
 			default :
 				$spriteSrc = $spriteSrcs[$type];
+				$spriteDir = $spriteSrcs['ldir'];
 				break;
 			}
-			list($spriteW, $spriteH) = getimagesize('../../'.$spriteSrc);
+			list($spriteW, $spriteH) = getimagesize($spriteDir.$spriteSrc);
 			$minW = 64;
 			if (($spriteW < $minW) && $spriteW) {
 				$spriteH = round($spriteH*$minW/$spriteW);
@@ -41,7 +43,7 @@ if (isset($_GET['id'])) {
 			if (isset($_FILES['sprites'])) {
 				switch ($type) {
 				case 'decor' :
-					$upload = handle_decor_upload($decor['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'),$decor);
+					$upload = handle_decor_upload($decor['type'],get_basic_sprites_payload('sprites'),get_extra_sprites_payload('extraSprites'),$decor);
 					if (isset($upload['id']))
 						header('location: editDecor.php?id='. $upload['id'] . $collabSuffix);
 					break;
@@ -56,20 +58,20 @@ if (isset($_GET['id'])) {
 			}
 			elseif (isset($_POST['color'])) {
 				$color = explode(',', $_POST['color']);
-				$oldSrcs = decor_sprite_srcs($decor['sprites']);
+				$oldSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
 				$filehash = generate_decor_sprite_src($decor['id']);
 				move_decor_sprite_imgs($oldSrcs,$filehash);
 				$newSrcs = decor_sprite_srcs($filehash);
 				switch ($type) {
 				case 'decor' :
-					add_transparency('../../'.$newSrcs['hd'],'../../'.$newSrcs['hd'], $color[0],$color[1],$color[2]);
-					clone_img_resource('../../'.$newSrcs['hd'],'../../'.$newSrcs['hd']);
-					$spriteSizes = decor_sprite_sizes($decor['type'],'../../'.$newSrcs['hd']);
+					add_transparency($newSrcs['hdir'].$newSrcs['hd'],$newSrcs['hdir'].$newSrcs['hd'], $color[0],$color[1],$color[2]);
+					clone_img_resource($newSrcs['hdir'].$newSrcs['hd'],$newSrcs['hdir'].$newSrcs['hd']);
+					$spriteSizes = decor_sprite_sizes($decor['type'],$newSrcs['hdir'].$newSrcs['hd']);
 					create_decor_sprite_thumbs($newSrcs,$spriteSizes);
 					break;
 				default :
-					add_transparency('../../'.$newSrcs[$type],'../../'.$newSrcs[$type], $color[0],$color[1],$color[2]);
-					clone_img_resource('../../'.$newSrcs[$type],'../../'.$newSrcs[$type]);
+					add_transparency($newSrcs['ldir'].$newSrcs[$type],$newSrcs['ldir'].$newSrcs[$type], $color[0],$color[1],$color[2]);
+					clone_img_resource($newSrcs['ldir'].$newSrcs[$type],$newSrcs['ldir'].$newSrcs[$type]);
 					break;
 				}
 				mysql_query('UPDATE `mkdecors` SET sprites="'.$filehash.'" WHERE id="'. $decorId .'"');
@@ -100,7 +102,7 @@ var spriteSrc = "<?php echo $spriteSrc; ?>", spriteW = <?php echo $spriteW; ?>, 
 </script>
 <script type="text/javascript" src="scripts/edit-sprite.js"></script>
 <?php
-$hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency('../../'.$spriteSrc);
+$hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency($spriteDir.$spriteSrc);
 ?>
 <title><?php echo $language ? 'Decor editor':'Éditeur de decors'; ?></title>
 </head>

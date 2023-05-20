@@ -199,10 +199,11 @@ h2 {
 }
 #decor-form-next {
     display: none;
+    margin-top: 0.5em;
 }
 .decor-model {
     margin-top: 0.2em;
-    margin-bottom: 0.2em;
+    margin-left: 0.2em;
     display: inline-flex;
     align-items: center;
     background-color: #EEF;

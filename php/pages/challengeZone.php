@@ -45,12 +45,12 @@ switch ($type) {
 	break;
 	case 'decors':
 		$submitTitle = $language ? 'Validate decors':'Valider les décors';
-		$getDecors = mysql_query('SELECT id,name,type,sprites FROM mkdecors WHERE identifiant="'. $identifiants[0] .'" AND extra_parent_id IS NULL ORDER BY id');
+		$getDecors = mysql_query('SELECT id,name,type,sprites,url FROM mkdecors WHERE identifiant="'. $identifiants[0] .'" AND extra_parent_id IS NULL ORDER BY id');
 		$myDecors = array();
 		$customDecors = new \stdClass();
 		while ($decor = mysql_fetch_array($getDecors)) {
 			require_once('../includes/utils-decors.php');
-			$decorSrcs = decor_sprite_srcs($decor['sprites']);
+			$decorSrcs = decor_sprite_srcs($decor['sprites'],$decor['url']);
 			$myDecor = array(
 				'id' => $decor['id'],
 				'name' => $decor['name'],
