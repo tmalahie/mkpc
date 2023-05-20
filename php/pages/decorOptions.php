@@ -64,6 +64,9 @@ include('../includes/o_online.php');
 					echo $language ? "Minimap icon":"Icone de la mini-map";
 			?></div>
 		</a>
+		<?php
+		if (!$decor['extra_parent_id'] && !decor_is_asset($decor['type']) && empty($CUSTOM_DECOR_TYPES[$decor['type']]['no_options'])) {
+			?>
 		<div class="advanced-option option-form">
 			<h3 class="option-label"><?php echo $language ? 'Decor properties' : 'Propriétés du décor'; ?></h3>
 			<form name="decor-options-form" class="decor-editor-form" method="post" action="decorProperties.php?id=<?php echo $decorId; ?>">
@@ -112,6 +115,9 @@ include('../includes/o_online.php');
 				</div>
 			</form>
 		</div>
+			<?php
+		}
+		?>
 	</div>
 	<br />
 	<div class="editor-navigation">

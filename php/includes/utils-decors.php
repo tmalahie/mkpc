@@ -16,8 +16,11 @@ function decor_sprite_srcs($hash) {
 		$res['map'] = $res['ld'];
 	return $res;
 }
+function decor_is_asset($type) {
+    return str_starts_with($type, 'assets/');
+}
 function default_decor_sprite_src($type) {
-    if (str_starts_with($type, 'assets/'))
+    if (decor_is_asset($type))
         return "../../images/map_icons/$type.png";
     else
         return "../../images/sprites/sprite_$type.png";
@@ -81,7 +84,7 @@ $CUSTOM_DECOR_TYPES = array(
     'fireball' => array('nbsprites' => 4, 'is_extra' => true),
     'piranhaplant' => array('nbsprites' => 2),
     'tortitaupe' => null,
-    'billball' => array('nbsprites' => 24),
+    'billball' => array('nbsprites' => 24, 'no_options' => true),
     'topitaupe' => null,
     'chomp' => array('nbsprites' => 8),
     'movingthwomp' => array('nbsprites' => 3),
