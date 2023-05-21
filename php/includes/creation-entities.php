@@ -69,6 +69,8 @@ $CREATION_ENTITIES = array(
                     $shareParams['s'.$i] = $infos['s'.$i];
                 }
             }
+            else
+                $shareParams['nl'] = $infos['laps'];
             for ($i=0;$i<$nbLettres;$i++) {
                 $l = $lettres[$i];
                 $prefixes = getLetterPrefixes($l,$infos['map']);
@@ -97,6 +99,8 @@ $CREATION_ENTITIES = array(
                     for ($i=0;$i<8;$i++)
                         $onUnshare .= '&r'.$i.'='.$infos['r'.$i].'&s'.$i.'='.$infos['s'.$i];
                 }
+                else
+                    $onUnshare .= '&nl='.$infos['laps'];
                 for ($i=0;$i<$nbLettres;$i++) {
                     $l = $lettres[$i];
                     $prefixes = getLetterPrefixes($l,$infos['map']);
