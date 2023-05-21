@@ -13,6 +13,8 @@ if (isset($_POST['type']) && isset($_FILES['sprites'])) {
 		header('location: editDecor.php?id='. $upload['id'] .'&new');
 	if (isset($upload['error']))
 		$error = $upload['error'];
+    else
+        exit;
 }
 ?>
 <!DOCTYPE html>
@@ -88,11 +90,13 @@ function selectDecorType($btn) {
                 var extraSprite = extraSpritesList[i];
                 document.getElementById("decor-extra-model-img").src = "images/sprites/sprite_"+extraSprite+".png";
                 document.getElementById("extra-sprites").name = "extraSprites:" + extraSprite;
+                document.getElementById("extra-sprites-url").name = "extraSprites-url:" + extraSprite;
             }
             document.getElementById("decor-extra-model").style.display = "block";
         }
         else {
             document.getElementById("extra-sprites").name = "";
+            document.getElementById("extra-sprites-url").name = "";
             document.getElementById("decor-extra-model").style.display = "";
         }
     }
@@ -272,7 +276,7 @@ if (isset($error))
                                     <input type="file" accept="image/png,image/gif,image/jpeg" id="extra-sprites" />
                                 </div>
                                 <div class="editor-upload-input">
-                                    <input type="url" name="extra-sprites-url" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png" />
+                                    <input type="url" id="extra-sprites-url" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png" />
                                 </div>
                             </div>
                         </div>

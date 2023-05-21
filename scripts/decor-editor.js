@@ -1,4 +1,5 @@
 function setupUploadTabs($parent) {
+    if (!$parent) return;
     var required = $parent.querySelector(".editor-upload-input-selected input").required;
     var $uploadTabs = $parent.querySelectorAll(".editor-upload-tab");
     var $uploadInputs = $parent.querySelectorAll(".editor-upload-input");

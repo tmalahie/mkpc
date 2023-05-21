@@ -45,6 +45,7 @@ if (isset($_GET['id'])) {
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css" />
 <link rel="stylesheet" href="styles/decor-editor.css" />
+<script type="text/javascript" src="scripts/decor-editor.js"></script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 </head>
 <body>
@@ -115,7 +116,23 @@ if (isset($_GET['id'])) {
                     if (!$extraDecor) {
                         ?>
                         <form class="decor-extra-new decor-editor-form" id="decor-extra-new-<?php echo $extraSprite; ?>" method="post" enctype="multipart/form-data" action="editDecorExtra.php?parent=<?php echo $decor['id'] . $collabSuffix; ?>">
-                            <input type="file" name="extraSprites:<?php echo $extraSprite; ?>" />
+                            <div class="editor-upload">
+                                <div class="editor-upload-tabs">
+                                    <div class="editor-upload-tab editor-upload-tab-selected">
+                                        <?php echo $language ? 'Upload an image':'Uploader une image'; ?>
+                                    </div><div class="editor-upload-tab">
+                                        <?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image'; ?>
+                                    </div>
+                                </div>
+                                <div class="editor-upload-inputs">
+                                    <div class="editor-upload-input editor-upload-input-selected">
+                                        <input type="file" accept="image/png,image/gif,image/jpeg" name="extraSprites:<?php echo $extraSprite; ?>" />
+                                    </div>
+                                    <div class="editor-upload-input">
+                                        <input type="url" name="extraSprites-url:<?php echo $extraSprite; ?>" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png" />
+                                    </div>
+                                </div>
+                            </div>
                             <button type="submit">Ok</button>
                         </form>
                         <?php
@@ -184,6 +201,7 @@ if (isset($_GET['id'])) {
             $img.onload();
     }
     showDecorPreview(document.querySelector(".decor-preview"));
+    setupUploadTabs(document.querySelector(".editor-upload"));
     </script>
 </body>
 </html>
