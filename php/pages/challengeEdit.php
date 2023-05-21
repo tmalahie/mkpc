@@ -671,8 +671,11 @@ function getAllDecorOptions(constraint) {
 		}
 		if (extraDecors) {
 			var extraDecorsList = JSON.parse(extraDecors);
-			for (var i=0;i<extraDecorsList.length;i++)
-				addDecor(extraDecorsList[i].src);
+			for (var i=0;i<extraDecorsList.length;i++) {
+				var decorKey = extraDecorsList[i].src;
+				if (!decorKey.startsWith("custom-"))
+					addDecor(decorKey);
+			}
 		}
 	}
 	catch (e) {
