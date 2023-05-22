@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-03 22:56+0200\n"
+"POT-Creation-Date: 2023-05-22 13:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,829 +18,832 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: addNews.php admin-logs.php admin.php adminPersos.php adminReports.php
-#: forum.php index.php
+#: php/pages/addNews.php php/pages/admin-logs.php php/pages/admin.php
+#: php/pages/adminPersos.php php/pages/adminReports.php php/pages/forum.php
+#: php/pages/index.php
 msgctxt "html language"
 msgid "en"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "News Mario Kart PC"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Warning, the message you're writing won't be saved"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Draft saved"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Add a news"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "News created successfully"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "This news will be published once validated by a moderator."
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "<a href=\"{url}\">Click here</a> to see the news."
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "<a href=\"{url}\">Click here</a> to return to the news list."
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid ""
 "Tip: before beginning, check that a news on the same subject is not pending "
 "validation."
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Show"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Hide"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Please enter a title"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Please enter a content"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Title"
 msgstr ""
 
-#: addNews.php forum.php
+#: php/pages/addNews.php php/pages/forum.php
 msgid "Category"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Help"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Content"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "More smileys"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Delete draft"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Delete the draft?"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Save draft"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Preview"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Send"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid ""
 "In <strong {cssAttributes}>{categoryName}</strong> by <strong>{author}</"
 "strong>"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Published"
 msgstr ""
 
-#: addNews.php
+#: php/pages/addNews.php
 msgid "Back to the news list"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Deleted award"
 msgstr ""
 
-#: admin-logs.php index.php
+#: php/pages/admin-logs.php php/pages/index.php
 msgid "Untitled"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Deleted account"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Deleted topic"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Deleted news"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "accepted challenge "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted complete track #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted message #$2 in topic "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted topic #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "edited <a href=\"{url}\">message #$2</a> in topic {topic}"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "edited topic "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "changed difficulty of challenge "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "to"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "rejected challenge "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "banned member "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "warned member "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "unbanned member "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted comment #$1 on a track"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "took $1 pts from {user} in online mode (VS)"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "gave $1 pts to {user} in online mode (VS)"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "took $1 pts from {user} in online mode (battle)"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "gave $1 pts to {user} in online mode (battle)"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "changed <strong>$2</strong>'s nick to "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Deleted record"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "renamed time trial record #$1 to {nick}"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted time trial record #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "locked topic "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "unlocked topic "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "archived report on <a href=\"{url}\">message #$3</a> in topic "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "archived report #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "unarchived report on <a href=\"{url}\">message #$3</a> in topic "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "unarchived report #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted cup #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "rejected news "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "accepted news "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Deleted track"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "updated {member}'s comment in $6 "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Deleted circuit"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted a rating in $6 "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted quick circuit #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted quick arena #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted complete arena #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted news #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "updated news "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "awarded the title {award_title} to {awardee}"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "updated message of award {award} for member {member}"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "removed award {award} for member {member}"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted the avatar of "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "reverted validation of challenge "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "reverted rejection of challenge "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "revalidated challenge "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "updated comment #$1 on news <a href=\"{news_url}\">{news}</a>"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted comment on news #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "unmuted member "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "added "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "a word"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid " to the forbidden words list"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "removed word #$1 from list of forbidden words"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted multicup #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "updated {member}'s profile"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "updated country of {member} to <strong>{new_country}</strong>"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "updated challenge "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "created award "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "updated award "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "deleted award #$1"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "locked comments on news "
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "unlocked comments on news "
 msgstr ""
 
-#: admin-logs.php index.php
-msgid "the circuit"
-msgstr ""
-
-#: admin-logs.php index.php
+#: php/pages/admin-logs.php php/pages/index.php
 msgid "the arena"
 msgstr ""
 
-#: admin-logs.php index.php
+#: php/pages/admin-logs.php php/pages/index.php
+msgid "the circuit"
+msgstr ""
+
+#: php/pages/admin-logs.php php/pages/index.php
 msgid "the cup"
 msgstr ""
 
-#: admin-logs.php index.php
+#: php/pages/admin-logs.php php/pages/index.php
 msgid "the multicup"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Admin logs"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "This page shows the history of all actions made by MKPC staff members"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Log type"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Select"
 msgstr ""
 
-#: admin-logs.php
+#: php/pages/admin-logs.php
 msgid "Filter"
 msgstr ""
 
-#: admin-logs.php admin.php adminReports.php
+#: php/pages/admin-logs.php php/pages/admin.php php/pages/adminReports.php
 msgid "Back to the forum"
 msgstr ""
 
-#: admin-logs.php admin.php adminPersos.php
+#: php/pages/admin-logs.php php/pages/admin.php php/pages/adminPersos.php
 msgid "Back to Mario Kart PC"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "You aren't logged in"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "You aren't admin"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "administrator rank"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "moderator rank"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "event host rank"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Admin page"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid ""
 "Your {roleWithName} gives you the following rights. Make good use of them!"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Member management"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Edit a member's <strong>nick</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Can be useful if a member has a troll nick for example"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "See <strong>nick change history</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "To monitor people who would abuse of this option."
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Give / Remove <strong>points</strong> in <strong>online mode</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "As a reward for a tournament, or as punishment after a cheat..."
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Award a <strong>reward</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Following an official event (oscars, festival, ...)"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "See <strong>double accounts</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid ""
 "If a &quot;new&quot; member seems suspicious... (tool not 100% reliable)"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Edit member <strong>profile</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid ""
 "Can be useful if a troll member has put an inappropriate description for "
 "example, or a fake country"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "<strong>Ban</strong> or <strong>warn</strong> a member"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid ""
 "Warn a user for innapropriate behavior, or ban them if he persists. Banned "
 "members are unable to post anything on the site"
 msgstr ""
 
-#: admin.php index.php
+#: php/pages/admin.php php/pages/index.php
 msgid "Online mode"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Give / Remove <strong>points</strong> in online mode"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Manage <strong>forbidden/watched words</strong> in online chat"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "All messages containing forbidden words will be blocked and/or logged"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "See online mode <strong>chat logs</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "See the messages of the member in the online mode"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "You can mute members in case of abuse"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Share management"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Delete a <strong>custom track</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "If the content of the track is inappropriate or in case of plagiarism"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Manage <strong>ratings</strong> on tracks"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "To monitor and eradicate 1-star trolls..."
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Delete a <strong>character</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "In case of plagiarism or if eventual cheating (invisible character...)"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Find the <strong>author</strong> of a given creation"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Find the creator of a circuit published by an anonymous user"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Other rights"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Moderate a message on the <strong>forum</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid ""
 "To do this, go to the message in question and click on &quot;Edit&quot; or "
 "&quot;Delete&quot;"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Moderate a <strong>comment</strong> on a <strong>custom track</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid ""
 "Go to the track in question and click on &quot;Edit&quot; or &quot;"
 "Delete&quot;"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Moderate a <strong>comment</strong> on a <strong>news</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid ""
 "Go to the news in question and click on &quot;Edit&quot; or &quot;"
 "Delete&quot;"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "Moderate a <strong>time trial</strong> record"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "From the time trial leaderboard, click on &quot;Moderate records&quot;"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "See forum <strong>reported messages</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "To quickly perform actions on what members reported"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "See <strong>admin logs</strong>"
 msgstr ""
 
-#: admin.php
+#: php/pages/admin.php
 msgid "To retrace and understand the different actions done by MKPC staff"
 msgstr ""
 
-#: adminPersos.php
+#: php/pages/adminPersos.php
 msgid "Manage characters"
 msgstr ""
 
-#: adminPersos.php
+#: php/pages/adminPersos.php
 msgid "Delete character shares"
 msgstr ""
 
-#: adminPersos.php
+#: php/pages/adminPersos.php
 msgid "Delete {htmlCharacterNb}"
 msgstr ""
 
-#: adminPersos.php
+#: php/pages/adminPersos.php
 msgid "Name:"
 msgstr ""
 
-#: adminPersos.php
+#: php/pages/adminPersos.php
 msgid "Baby Mario"
 msgstr ""
 
-#: adminPersos.php
+#: php/pages/adminPersos.php
 msgid "Author:"
 msgstr ""
 
-#: adminReports.php
+#: php/pages/adminReports.php
 msgid "You are not moderator"
 msgstr ""
 
-#: adminReports.php
+#: php/pages/adminReports.php
 msgid "Reported messages"
 msgstr ""
 
-#: adminReports.php
+#: php/pages/adminReports.php
 msgid "Archived reports"
 msgstr ""
 
-#: adminReports.php category.php edit.php edittopic.php forum-search.php
-#: forum.php newtopic.php recherche.php repondre.php topic.php
+#: php/pages/adminReports.php php/pages/category.php php/pages/edit.php
+#: php/pages/edittopic.php php/pages/forum-search.php php/pages/forum.php
+#: php/pages/newtopic.php php/pages/recherche.php php/pages/repondre.php
+#: php/pages/topic.php
 msgid "Mario Kart PC Forum"
 msgstr ""
 
-#: adminReports.php
+#: php/pages/adminReports.php
 msgid "No new reported message for now"
 msgstr ""
 
-#: adminReports.php
+#: php/pages/adminReports.php
 msgid "In <a href=\"{topicUrl}\">{topicName}</a>, "
 msgstr ""
 
-#: adminReports.php
+#: php/pages/adminReports.php
 msgid "reported by <a href=\"{showMembers}\">{count} member</a>"
 msgid_plural "reported by <a href=\"{showMembers}\">{count} members</a>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: adminReports.php
+#: php/pages/adminReports.php
 msgid "No pending reported message"
 msgstr ""
 
-#: adminReports.php
+#: php/pages/adminReports.php
 msgid "Back to pending reports"
 msgstr ""
 
-#: adminReports.php
+#: php/pages/adminReports.php
 msgid "See archived reports"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Auto-ban by IP"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid ""
 "Welcome to the MKPC forum! If you haven't done it yet, please check out the "
 "<a href=\"{url}\">rules</a> before posting."
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "My profile"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Log out"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "This account has been deleted. The connection to it has been disabled."
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid ""
 "If you want to undo and restore it, you can still do it by clicking <a "
 "href=\"{url}\">here</a>."
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Incorrect login or password"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "You aren't logged in."
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Enter your login and password here:"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Login:"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Password:"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Submit"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Register"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Forgot password"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Search:"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Topic title"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Advanced search"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Topics nb"
 msgstr ""
 
-#: forum.php index.php
+#: php/pages/forum.php php/pages/index.php
 #, php-format
 msgid "Last message"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgctxt "locale for ICU"
 msgid "en_EN"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid ""
 "The forum has a total of <strong>{nbMessages} messages</strong> split into "
 "<strong>{nbTopics} topics</strong> and posted by <strong>{nbPosters} "
 "members</strong>."
 msgstr ""
 
-#: forum.php index.php
+#: php/pages/forum.php php/pages/index.php
 msgid "{count} message"
 msgid_plural "{count} messages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid ""
 "The most active member is <a href=\"{urlToProfile}\">{topPlayer}</a> with "
 "<strong>{topPlayerMessagesWithCount}</strong> posted in total."
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Ranking"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Ranking of most active members"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid ""
 "The most active member of the month is <a "
 "href=\"{urlToProfile}\">{monthlyTopPlayer}</a> with "
@@ -848,230 +851,230 @@ msgid ""
 "1<small class=\"superscript\">st</small>."
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Classement"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Ranking of month's most active members"
 msgstr ""
 
-#: forum.php
+#: php/pages/forum.php
 msgid "Back to the homepage"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "A Mario Kart Game for browser"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "A computer version of the famous racing game by Nintendo."
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "This game is <strong>completely free</strong> and does not require "
 "<strong>any downloads</strong>. All you need is a web browser!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Crazy races full of fun!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Try to be the fastest while avoiding items!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "Race on all the <strong>56 tracks</strong> from the original games "
 "<strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> "
 "and <strong>Mario Kart DS</strong>."
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Win all the cups!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and "
 "try to win the gold trophy!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Win enough cups to unlock the <strong>15 secret characters</strong>!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Create your own tracks!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "With the <strong>track builder</strong>, the possibilities are endless; the "
 "only limit is your imagination!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "You can <strong>share</strong> your tracks or try other people's creations!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Face players from around the world!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Race and battle in <strong>online mode</strong>!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "Win as many races as possible and <strong>climb in the official ranking</"
 "strong>!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Make the best scores in time trial!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "<strong>Finish the race track</strong> as fast as you can!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "<strong>Compare your scores</strong> with the community, and face other "
 "players' ghosts!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Release your fighter talents!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "<strong>Destroy your opponents</strong>' balloons with items, without "
 "getting hit by their items!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "The last player standing wins!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Face off your friends with the local multiplayer mode!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Prove to your friends that you're the best!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "Face them in <strong>multiplayer</strong> in VS races or in battle mode."
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Click on the game box to begin"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Start game"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "What's Mario Kart PC?"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "You might know Mario Kart, the most fun racing game series of all time! "
 "Mario Kart PC uses the same base as the original games but is playable on "
 "your browser, and <strong>for free</strong>."
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle "
 "mode, Time Trials, and more!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "There's also a brand new mode: the <strong>track builder</strong>! Place "
 "straight lines and turns, add items, boost panels and more! Everything is "
 "customizable! The only limit is your own imagination!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "You can share your tracks, and try other people's tracks thanks to the <a "
 "href=\"{url}\">sharing tool</a>. Thousands of custom tracks are already "
 "available!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "Finally, you can face players from the whole world thanks to the "
 "<strong>multiplayer online mode</strong>! Climb the <a "
 "href=\"{url}\">rankings</a> and become world champion!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Some screenshots"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "Here are some screenshots of the game to give you a quick preview of what it "
 "looks like:"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Special thanks"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "A big thanks to Nintendo, these three sites and these artists without which "
 "Mario Kart PC would have probably never existed !"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "<a href=\"{url_main_site}\">Nihilogic</a> for the <a "
 "href=\"{url_mario_kart}\">basic Mario Kart</a>"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "<a href=\"{url_main_site}\">SNESMaps</a> for the <a "
 "href=\"{url_mario_kart}\">track images</a>"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "<a href=\"{url_main_site}\">Khinsider</a> for the <a "
 "href=\"{url_mario_kart}\">musics</a>"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "And <a href=\"{url}\">many more</a>!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Follow us"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "<a href=\"{url}\">Discord Server</a> of the site: join it to chat with the "
 "community and be informed about updates and events."
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "<a href=\"{url_youtube}\">Official Youtube Channel</a>: find videos on the "
 "game and information about the website and its events. The channel is "
@@ -1079,224 +1082,224 @@ msgid ""
 "href=\"{url_topic}\">official topic</a>."
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "<a href=\"{url}\">Github repo</a> of the site. Follow here all the ongoing "
 "developments, and if you can code, don't hesitate to contribute to the "
 "project!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "<a href=\"{url_wiki}\">MKPC Wiki</a>: find out all the information about the "
 "game and its history. This site is maintained by the community, if you want "
 "to contribute, tell it on <a href=\"{url_topic}\">this topic</a>!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "This site is mostly maintained by French members, if you see some "
 "translation errors in the game or the site, don't hesitate to report them on "
 "this <a href=\"{url_topic}\">forum topic</a>"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Go to the game"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "To start playing, it's very simple, just click on &quot;Play game&quot; in "
 "the menu above. Or more simply, click here:"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Start playing now &gt;"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid ""
 "You have received a warning for inappropriate behavior. Please <a href={url}"
 ">click here</a> to find it out."
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Happy birthday to"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid " and "
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgctxt "final exclamation point in a sentence"
 msgid "!"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Last topics"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Last message by <strong>{message}</strong>"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Go to the forum"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Latest news"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 #, php-format
 msgctxt "Categories"
 msgid "In <strong>%s</strong> by <strong>%s</strong>"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 #, php-format
 msgctxt "Categories"
 msgid "In <strong>%s</strong>"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "{count} comment"
 msgid_plural "{count} comments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: index.php
+#: php/pages/index.php
 msgid "No news yet"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "<a href=\"{url}\">{count} pending</a> news"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "All news"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Track builder"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Latest creations"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "By <strong>{author}</strong>"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Display all"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Last challenges"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "<a href=\"{url}\">{count} pending</a> challenge"
 msgid_plural "<a href=\"{url}\">{count} pending</a> challenges"
 msgstr[0] ""
 msgstr[1] ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Challenge points - Leaderboard"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Recent activity"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgctxt "language for ordinals"
 msgid "en"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Mirror"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Team"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Friendly"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Normal"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "{count} member"
 msgid_plural "{count} members"
 msgstr[0] ""
 msgstr[1] ""
 
-#: index.php
+#: php/pages/index.php
 msgctxt "circuit"
 msgid "in "
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid " in {mode} mode"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Join"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Currently online:"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "VS mode"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Battle"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Time Trial"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Rank"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Nick"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Score"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Visitors since november 2017"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Visitors"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Learn more"
 msgstr ""
 
-#: index.php
+#: php/pages/index.php
 msgid "Loading"
 msgstr ""
 
-#: topic.php
+#: php/pages/topic.php
 msgid "MKPC Forum"
 msgstr ""

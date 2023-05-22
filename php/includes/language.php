@@ -25,7 +25,7 @@ if (isset($_COOKIE['language'])) {
 
 // gettext setup
 setlocale(LC_MESSAGES, $acceptedLanguage == "fr" ? "fr_FR.UTF-8" : "en_GB.UTF-8");
-bindtextdomain("mkpc", "po");
+bindtextdomain("mkpc", "../../po");
 textdomain("mkpc");
 
 // creates a new array with same values,
