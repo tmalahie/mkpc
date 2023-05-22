@@ -8153,14 +8153,15 @@ var decorBehaviors = {
 		hitbox:7,
 		unbreaking:true,
 		preinit:function() {
-			if (oMap.decor.fireball)
-				this.fireball0 = oMap.decor.fireball.length;
-			else {
-				this.fireball0 = 0;
+			if (!oMap.decor.fireball)
 				oMap.decor.fireball = new Array();
-			}
+			this.linkedSprite = {
+				type: "fireball",
+				start: oMap.decor.fireball.length
+			};
 			for (var i=0;i<oMap.decor[this.type].length;i++)
 				oMap.decor.fireball.push([-10,-10]);
+			this.linkedSprite.end = oMap.decor.fireball.length;
 		},
 		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
@@ -8177,32 +8178,7 @@ var decorBehaviors = {
 			decorData[7] = 0;
 		},
 		initcustom:function(res) {
-			if (!res.extra || !res.extra.fireball) return;
-			var fireballData = res.extra.fireball;
-			var sizeRatio = {
-				w: fireballData.size.hd.w/fireballData.original_size.hd.w,
-				h: fireballData.size.hd.h/fireballData.original_size.hd.h
-			};
-			var tObjWidth = oObjWidth*sizeRatio.w;
-			var tObjWidth2 = oObjWidth2*sizeRatio.w;
-			var tType = this.type;
-			for (var i=0;i<oMap.decor[tType].length;i++) {
-				var inc = this.fireball0+i;
-				var oFireball = oMap.decor.fireball[inc];
-				updateCustomDecorSprites(oFireball, fireballData, sizeRatio);
-
-				var iDecor = oPlanDecor.fireball[inc];
-				if (iDecor) {
-					iDecor.src = fireballData.map;
-					iDecor.style.width = tObjWidth +"px";
-				}
-
-				iDecor = oPlanDecor2.fireball[inc];
-				if (iDecor) {
-					iDecor.src = fireballData.map;
-					iDecor.style.width = tObjWidth2 +"px";
-				}
-			}
+			initCustomDecorSprites(this,res);
 		},
 		move:function(decorData,i) {
 			decorData[5]--;
@@ -8214,7 +8190,7 @@ var decorBehaviors = {
 					decorData[2][j].setState(decorData[2][j].getState()+1);
 			}
 			else if (decorData[5] == -7) {
-				var oFireball = oMap.decor.fireball[this.fireball0+i];
+				var oFireball = oMap.decor.fireball[this.linkedSprite.start+i];
 				oFireball[0] = decorData[0];
 				oFireball[1] = decorData[1];
 				for (var j=0;j<strPlayer.length;j++) {
@@ -8360,6 +8336,10 @@ var decorBehaviors = {
 		preinit:function(decorsData) {
 			if (!oMap.decor.fireballs)
 				oMap.decor.fireballs = new Array();
+			this.linkedSprite = {
+				type: "fireballs",
+				start: oMap.decor.fireballs.length
+			};
 			for (var i=0;i<decorsData.length;i++) {
 				var decorData = decorsData[i];
 				if (decorData[3] == undefined)
@@ -8391,9 +8371,13 @@ var decorBehaviors = {
 				fireGroups.push([fireBall]);
 				decorData[7] = fireGroups;
 			}
+			this.linkedSprite.end = oMap.decor.fireballs.length;
 		},
 		init: function(decorData,i,iG) {
 			this.move(decorData,i,iG);
+		},
+		initcustom:function(res) {
+			initCustomDecorSprites(this,res);
 		},
 		move: function(decorData,i) {
 			var x = decorData[0], y = decorData[1], z = decorData[3], phi = decorData[4], omega = decorData[5], theta = decorData[6];
@@ -8422,6 +8406,10 @@ var decorBehaviors = {
 		preinit:function(decorsData) {
 			if (!oMap.decor.fireballs)
 				oMap.decor.fireballs = new Array();
+			this.linkedSprite = {
+				type: "fireballs",
+				start: oMap.decor.fireballs.length
+			};
 			for (var i=0;i<decorsData.length;i++) {
 				var decorData = decorsData[i];
 				if (decorData[3] == undefined)
@@ -8446,9 +8434,13 @@ var decorBehaviors = {
 				}
 				decorData[7] = fireGroup;
 			}
+			this.linkedSprite.end = oMap.decor.fireballs.length;
 		},
 		init: function(decorData,i,iG) {
 			this.move(decorData,i,iG);
+		},
+		initcustom:function(res) {
+			initCustomDecorSprites(this,res);
 		},
 		move: function(decorData,i) {
 			var x = decorData[0], y = decorData[1], z = decorData[3], phi = decorData[4], omega = decorData[5], theta = decorData[6];
@@ -9583,6 +9575,35 @@ function getDecorActualType(self) {
 	return self.type;
 }
 
+function initCustomDecorSprites(self,res) {
+	if (!self.linkedSprite) return;
+	var linkedType = self.linkedSprite.type;
+	if (!res.extra || !res.extra[linkedType]) return;
+	var linkedData = res.extra[linkedType];
+	var sizeRatio = {
+		w: linkedData.size.hd.w/linkedData.original_size.hd.w,
+		h: linkedData.size.hd.h/linkedData.original_size.hd.h
+	};
+	var tObjWidth = oObjWidth*sizeRatio.w;
+	var tObjWidth2 = oObjWidth2*sizeRatio.w;
+	for (var i=self.linkedSprite.start;i<self.linkedSprite.end;i++) {
+		var oDecor = oMap.decor[linkedType][i];
+		if (oDecor)
+			updateCustomDecorSprites(oDecor, linkedData, sizeRatio);
+
+		var iDecor = oPlanDecor[linkedType][i];
+		if (iDecor) {
+			iDecor.src = linkedData.map;
+			iDecor.style.width = tObjWidth +"px";
+		}
+
+		iDecor = oPlanDecor2[linkedType][i];
+		if (iDecor) {
+			iDecor.src = linkedData.map;
+			iDecor.style.width = tObjWidth2 +"px";
+		}
+	}
+}
 function updateCustomDecorSprites(decorData, res, sizeRatio) {
 	for (var j=0;j<oPlayers.length;j++) {
 		decorData[2][j].img.src = res.hd;

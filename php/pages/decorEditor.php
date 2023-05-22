@@ -77,8 +77,11 @@ function selectDecorType($btn) {
         $btn.id = "decor-type-selected";
         $decorFormNext.style.display = "block";
         var isAsset = (type.substring(0,7) === "assets/");
+        var linkedSprite = $btn.dataset.linkedSprite;
         if (isAsset)
             document.getElementById("decor-model-img").src = "images/map_icons/"+type+".png";
+        else if (linkedSprite)
+            document.getElementById("decor-model-img").src = "images/sprites/sprite_"+linkedSprite+".png";
         else
             document.getElementById("decor-model-img").src = "images/sprites/sprite_"+type+".png";
         $form.elements["type"].value = type;
@@ -225,6 +228,8 @@ if (isset($error))
                         <button type="button" data-type="<?php echo $type; ?>" style="background-image:url('images/map_icons/<?php echo $type; ?>.png')"<?php
                             if (isset($decorType['extra_sprites']))
                                 echo ' data-extra-sprites="'.implode(",", $decorType['extra_sprites']).'"';
+                            if (isset($decorType['linked_sprite']))
+                                echo ' data-linked-sprite="'.$decorType['linked_sprite'].'"';
                         ?> onclick="selectDecorType(this)"></button>
                         <?php
                     }

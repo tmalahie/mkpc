@@ -119,6 +119,8 @@ $CUSTOM_DECOR_TYPES = array(
     'chomp' => array('nbsprites' => 8),
     'movingthwomp' => array('nbsprites' => 3),
     'firebar' => null,
+    'firering' => array('linked_sprite' => 'fireballs'),
+    'fire3star' => array('linked_sprite' => 'fireballs'),
     'tree' => null,
     'palm' => null,
     'coconut' => null,

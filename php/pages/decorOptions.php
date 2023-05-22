@@ -65,7 +65,7 @@ include('../includes/o_online.php');
 			?></div>
 		</a>
 		<?php
-		if (!$decor['extra_parent_id'] && !decor_is_asset($decor['type']) && empty($CUSTOM_DECOR_TYPES[$decor['type']]['no_options'])) {
+		if (!$decor['extra_parent_id'] && !decor_is_asset($decor['type']) && empty($CUSTOM_DECOR_TYPES[$decor['type']]['no_options']) && empty($CUSTOM_DECOR_TYPES[$decor['type']]['linked_sprite'])) {
 			?>
 		<div class="advanced-option option-form">
 			<h3 class="option-label"><?php echo $language ? 'Decor properties' : 'Propriétés du décor'; ?></h3>
