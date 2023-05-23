@@ -9189,6 +9189,12 @@ var decorBehaviors = {
 					var decorParams = getDecorParams(this,i);
 					decorData[5] = decorParams.traject;
 				}
+				if (decorData[7] == undefined) {
+					if (decorParams && decorParams.speed != undefined)
+						decorData[7] = decorParams.speed;
+					else
+						decorData[7] = 1;
+				}
 			}
 		},
 		init:function(decorData) {
@@ -9240,7 +9246,7 @@ var decorBehaviors = {
 			decorData[4] = Math.atan2(aimX,aimY)*180/Math.PI;
 		},
 		move:function(decorData) {
-			var speed = 4;
+			var speed = decorData[7]*4;
 			var x = decorData[0], y = decorData[1], aimX, aimY;
 			var extraParams = getDecorExtra(this,true);
 			if (!extraParams.path)
@@ -9267,7 +9273,7 @@ var decorBehaviors = {
 			decorData[1] = y;
 			if (aimX || aimY) {
 				var aimAngle = nearestAngle(Math.atan2(aimX,aimY)*180/Math.PI, decorData[4],360);
-				var maxOmega = 8;
+				var maxOmega = 8*decorData[7];
 				if (decorData[4] < (aimAngle-maxOmega))
 					decorData[4] += maxOmega;
 				else if (decorData[4] > (aimAngle+maxOmega))

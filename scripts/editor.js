@@ -4968,6 +4968,7 @@ var commonTools = {
 						switch (actualType) {
 						case "truck":
 							self.state.currentTraject = decorData.traject;
+							self.state.currentSpeed = decorData.speed;
 							break;
 						}
 						self.click(self,decorData.pos,{});
@@ -5000,6 +5001,7 @@ var commonTools = {
 					switch (actualType) {
 					case "truck":
 						self.state.currentTraject = +document.getElementById("decor-bus-currenttraject").value;
+						self.state.currentSpeed = 1;
 						break;
 					}
 				}
@@ -5088,6 +5090,7 @@ var commonTools = {
 					break;
 				case "truck":
 					decorData.traject = self.state.currentTraject;
+					decorData.speed = self.state.currentSpeed;
 				}
 			}
 			if (over) {
@@ -5210,6 +5213,20 @@ var commonTools = {
 								if ((newTraject != decorData.traject) && (newTraject >= 0) && (newTraject < self.data.extra.truck.route.length)) {
 									storeHistoryData(self.data);
 									decorData.traject = newTraject;
+								}
+							}
+						});
+						menuOptions.splice(2,0, {
+							text: (language ? "Speed...":"Vitesse..."),
+							click: function() {
+								var newSpeed = prompt(language ? "Edit bus speed (Default is 1)":"Modifier la vitesse (Défaut 1)", decorData.speed);
+								if ((newSpeed != null) && (newSpeed !== "") && (newSpeed >= 0)) {
+									newSpeed = +newSpeed;
+									if (newSpeed !== decorData.speed) {
+										storeHistoryData(self.data);
+										self.state.currentSpeed = newSpeed;
+										decorData.speed = newSpeed;
+									}
 								}
 							}
 						});
@@ -5366,7 +5383,10 @@ var commonTools = {
 								payload.decorparams[type].push(decorParams);
 								break;
 							case "truck":
-								payload.decorparams[type].push({traject:decorsData[i].traject||0});
+								var decorParams = {traject:decorsData[i].traject||0};
+								if (decorsData[i].speed !== 1)
+									decorParams.speed = decorsData[i].speed||0;
+								payload.decorparams[type].push(decorParams);
 							}
 						}
 					}
@@ -5446,6 +5466,9 @@ var commonTools = {
 						break;
 					case "truck":
 						decorData.traject = decorParams.traject || 0;
+						decorData.speed = decorParams.speed
+						if (decorData.speed == null)
+							decorData.speed = 1;
 					}
 					selfData[type].push(decorData);
 				}
