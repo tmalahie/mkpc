@@ -814,6 +814,7 @@ var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = n
 	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(),
 	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(), oPlanCarapacesNoires2 = new Array(),
 	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
+var customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
 
 function posImg(elt, eltX,eltY,eltR, eltW, mapW) {
 	if (bSelectedMirror) {
@@ -899,6 +900,7 @@ function setPlanPos(frameState) {
 						var img = createObject(pointer[0].src, iAssetWidth,iPlanCtn, iPlanObjects[0]);
 						var customData = pointer[0].custom;
 						if (customData) {
+							img.src = "images/map_icons/empty.png";
 							(function(img,type) {
 								getCustomDecorData(customData, function(res) {
 									img.src = res.map;
@@ -1025,8 +1027,8 @@ function setPlanPos(frameState) {
 		setCoinPos(oPlanCoins2,oCoinWidth2,oPlanCtn2,oPlanSize2);
 	}
 
-	var customDecorFetchHandlers = {};
 	function setDecorPos(iPlanDecor,iObjWidth,iPlanCtn,iPlanSize) {
+		var iFetchHandler = customDecorFetchHandlers.find(function(h) {return h.plan === iPlanDecor}).list || {};
 		for (var type in frameState.decor) {
 			var frameDecorType = frameState.decor[type];
 			var decorBehavior = decorBehaviors[type];
@@ -1037,8 +1039,8 @@ function setPlanPos(frameState) {
 					var tObjWidth = iObjWidth;
 					if (decorBehavior.size_ratio) tObjWidth *= decorBehavior.size_ratio.w;
 					syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
-					if (customDecor && !customDecorFetchHandlers[type]) {
-						customDecorFetchHandlers[type] = 1;
+					if (customDecor && (iFetchHandler[type] !== iPlanDecor[type].length)) {
+						iFetchHandler[type] = iPlanDecor[type].length;
 						for (var i=0;i<iPlanDecor[type].length;i++) {
 							var iDecor = iPlanDecor[type][i];
 							iDecor.src = "images/map_icons/empty.png";
@@ -1046,12 +1048,12 @@ function setPlanPos(frameState) {
 						(function(type,decorBehavior) {
 							getCustomDecorData(customDecor, function(res) {
 								tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
+								syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
 								for (var i=0;i<iPlanDecor[type].length;i++) {
 									var iDecor = iPlanDecor[type][i];
 									iDecor.src = res.map;
 									iDecor.style.width = tObjWidth +"px";
 								}
-								syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
 							});
 						})(type,decorBehavior);
 					}
@@ -3317,7 +3319,9 @@ function startGame() {
 						}
 						if (res.options) {
 							if (res.options.hitbox === 0)
-								decorBehavior.hitbox = -1;
+								decorBehavior.transparent = true;
+							else if (res.options.hitbox === 1)
+								delete decorBehavior.transparent;
 							
 							if (res.options.spin === 1 && !decorBehavior.spin)
 								decorBehavior.spin = 20;
@@ -3414,6 +3418,7 @@ function startGame() {
 				var asset0 = {img:img,canvas:canvas,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
 				if (customData) {
 					asset0.src = customData.type;
+					img.src = "images/map_icons/empty.png";
 					getCustomDecorData(customData, function(res) {
 						img.src = res.hd;
 						switch (key) {
@@ -4414,7 +4419,7 @@ function startGame() {
 			document.body.style.cursor = "default";
 		}
 		iCntStep++;
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,1000);
 		//*/setTimeout(fncCount,1);
 	}
@@ -4462,7 +4467,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -8160,7 +8165,7 @@ var decorBehaviors = {
 				start: oMap.decor.fireball.length
 			};
 			for (var i=0;i<oMap.decor[this.type].length;i++)
-				oMap.decor.fireball.push([-10,-10]);
+				oMap.decor.fireball.push([-10000,-10000]);
 			this.linkedSprite.end = oMap.decor.fireball.length;
 		},
 		init:function(decorData,i,iG) {
@@ -8234,8 +8239,8 @@ var decorBehaviors = {
 				decorData[5] -= 3;
 				decorData[6]--;
 				if (decorData[6] < 0) {
-					decorData[0] = -10;
-					decorData[1] = -10;
+					decorData[0] = -10000;
+					decorData[1] = -10000;
 					for (var j=0;j<strPlayer.length;j++)
 						decorData[2][j].img.style.display = "none";
 				}

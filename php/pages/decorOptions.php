@@ -21,7 +21,10 @@ if (isset($_GET['id'])) {
 			include('../includes/utils-decors.php');
 			$spriteSrcs = get_decor_srcs($decor);
 			$spriteSizes = get_decor_sizes($decor);
-			$originalSizes = decor_sprite_sizes($decor['type'],default_decor_sprite_src($decor['type']));
+			$originalDecorType = $decor['type'];
+			if (isset($CUSTOM_DECOR_TYPES[$originalDecorType]['linked_sprite']))
+				$originalDecorType = $CUSTOM_DECOR_TYPES[$originalDecorType]['linked_sprite'];
+			$originalSizes = decor_sprite_sizes($decor['type'],default_decor_sprite_src($originalDecorType));
 			$sizeRatio = $spriteSizes['hd']['w']/$originalSizes['hd']['w'];
 			?>
 <!DOCTYPE html>
