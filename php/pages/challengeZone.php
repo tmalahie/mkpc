@@ -302,7 +302,7 @@ function getRelativePos(e,parent) {
 	}
 }
 function selectButton($btn) {
-	var $btns = $btn.parentNode.querySelectorAll('input[type="button"]');
+	var $btns = $btn.parentNode.parentNode.querySelectorAll('input[type="button"]');
 	for (var i=0;i<$btns.length;i++)
 		$btns[i].classList.remove("selected");
 	$btn.classList.add("selected");

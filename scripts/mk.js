@@ -11640,11 +11640,11 @@ var challengeRules = {
 			if (!scope.nb) {
 				var oDecors = oMap.decor[scope.value] || [];
 				scope.nb = oDecors.length;
-				setTimeout(function() {
-					oDecors = oMap.decor[scope.value] || [];
-					scope.nb = oDecors.length;
-				});
 			}
+			setTimeout(function() {
+				var oDecors = oMap.decor[scope.value] || [];
+				scope.nb = oDecors.length;
+			});
 		},
 		"initSelected": function(scope) {
 			setTimeout(function() {

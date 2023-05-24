@@ -5254,7 +5254,7 @@ var commonTools = {
 			return Math.hypot(dir.x,dir.y)*0.8;
 		},
 		"_arrowOriginCenter": function(type) {
-			return (["firering","fire3star","pendulum"].indexOf(type) !== -1);
+			return (["firering","fire3star","pendulum","fullcustom"].indexOf(type) !== -1);
 		},
 		"_resourceToAssetKey": function(actualType) {
 			switch (actualType) {
