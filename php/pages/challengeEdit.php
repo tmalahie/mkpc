@@ -147,21 +147,23 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 				$decorExtra = isset($decorParams->extra) ? $decorParams->extra:new \stdClass();
 				if (isset($circuitData->assets)) {
 					foreach ($circuitData->assets as $key => $data) {
-						switch ($key) {
-						case 'pointers':
-							$circuitDecors[] = 'assets/pivothand';
-							break;
-						default:
-							$decorTypes = array();
-							foreach ($data as $d) {
-								$assetType = $d[0];
-								if (!isset($decorTypes[$assetType])) {
-									$decorTypes[$assetType] = 1;
-									if (isset($decorExtra->{$assetType}->custom))
-										$circuitDecors[] = $assetType;
-									else
+						$decorTypes = array();
+						foreach ($data as $d) {
+							$assetType = $d[0];
+							if (!isset($decorTypes[$assetType])) {
+								$decorTypes[$assetType] = 1;
+								if (isset($decorExtra->{$assetType}->custom))
+									$circuitDecors[] = $assetType;
+								else {
+									switch ($key) {
+									case 'pointers':
+										$circuitDecors[] = 'assets/pivothand';
+										break;
+									default:
 										$circuitDecors[] = 'assets/'.$assetType;
+									}
 								}
+
 							}
 						}
 					}
