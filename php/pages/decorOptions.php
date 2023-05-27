@@ -82,11 +82,11 @@ include('../includes/o_online.php');
 							"default" => "1"
 						),
 						'spin' => array(
-							'label' => $language ? 'Collision damages':'Dégâts de collision',
+							'label' => $language ? 'Collision damage':'Dégâts de collision',
 							'help' => $language ? "If checked, the decor will make you spin when you hit it" : "Si activé, le décor vous fera tourner lorsque vous rentrez dedans"
 						),
 						'unbreaking' => array(
-							'label' => $language ? 'Indestroyable':'Indestructible',
+							'label' => $language ? 'Unbreaking':'Indestructible',
 							'help' => $language ? "If checked, the decor cannot be destroyed when hit with a star/mega shroom item" : "Si activé, le décor ne peut pas être détruit avec un objet comme une étoile ou un méga champi"
 						)
 					);
