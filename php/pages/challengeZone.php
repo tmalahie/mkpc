@@ -1214,7 +1214,7 @@ window.onload = function() {
 				if ($language) {
 					?>
 					Enter the decors's collaboration link here.<br />
-					To get this link, the <?php echo $Circuit ?> owner will simply need
+					To get this link, the decor owner will simply need
 					to click on &quot;Collaborate&quot; on the decors editor page.
 					<?php
 				}
