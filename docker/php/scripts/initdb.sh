@@ -9,7 +9,7 @@ dbHost=$(echo $dbIDs | sed -n 's/'"$pat"'/\1/p')
 dbLogin=$(echo $dbIDs | sed -n 's/'"$pat"'/\2/p')
 dbPass=$(echo $dbIDs | sed -n 's/'"$pat"'/\3/p')
 pat='.*mysql_select_db(['\''"]\(.*\)['\''"]);.*'
-dbConn=$(cat $DIR/../../../config/db.php | grep mysql_select_db)
+dbConn=$(cat $DIR/../../../php/includes/config/db.php | grep mysql_select_db)
 dbName=$(echo $dbConn | sed -n 's/'"$pat"'/\1/p')
 mysqldump -h $dbHost -u $dbLogin -p$dbPass --no-data --skip-add-locks --single-transaction --compact $dbName  | sed 's/ AUTO_INCREMENT=[0-9]*//g' >> $DIR/setup.sql
 mysqldump -h $dbHost -u $dbLogin -p$dbPass --no-create-info --skip-add-locks --single-transaction --compact $dbName mkcategories mkcats mkcountries >> $DIR/setup.sql

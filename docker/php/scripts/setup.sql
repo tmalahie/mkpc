@@ -353,6 +353,7 @@ CREATE TABLE `mkchats` (
   `message` text NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
   `seen` tinyint(1) NOT NULL,
+  `reduced` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `date` (`date`),
   KEY `unseen` (`receiver`,`seen`),
@@ -617,8 +618,10 @@ CREATE TABLE `mkdecors` (
   `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `identifiant` int(10) unsigned NOT NULL,
   `sprites` varchar(255) NOT NULL DEFAULT '',
+  `img_data` text DEFAULT '',
   `type` varchar(255) NOT NULL,
   `extra_parent_id` int(11) DEFAULT NULL,
+  `options` text NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
