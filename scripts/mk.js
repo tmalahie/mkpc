@@ -22731,7 +22731,7 @@ function setupTeamColors() {
 	}
 	for (var i=0;i<selectedTeamOpts.length;i++) {
 		if (selectedTeamOpts[i].name)
-			cTeamColors.name[i] = selectedTeamOpts[i].name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+			cTeamColors.name[i] = escapeSpecialChars(selectedTeamOpts[i].name);
 	}
 }
 var ccInterpolations = [
@@ -23306,7 +23306,7 @@ function selectChallengesScreen() {
 							trackType = isBattle ? toLanguage("Arena", "Arène") : toLanguage("Track", "Circuit");
 							break;
 					}
-					oH1.innerHTML = trackType + ' <span style="color:#FDB">'+ creationChallenges.name +'</span>';
+					oH1.innerHTML = trackType + ' <span style="color:#FDB">'+ escapeSpecialChars(creationChallenges.name) +'</span>';
 					oH1.style.textAlign = "center";
 					oH1.style.margin = "0px";
 					oH1.style.fontSize = Math.round(iScreenScale*4)+"px";
@@ -24147,7 +24147,7 @@ function selectMapScreen(opts) {
 
 		var oCupName = document.createElement("div");
 		oCupName.style.position = "absolute";
-		oCupName.style.zIndex = 10;
+		oCupName.style.zIndex = 20002;
 		oCupName.style.top = Math.round(35.5 * iScreenScale - 6) +"px";
 		oCupName.style.left = (25 * iScreenScale - 5) +"px";
 		oCupName.style.width = (25 * iScreenScale + 6) +"px";
@@ -26835,6 +26835,10 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		otherGhosts();
 
 	updateMenuMusic(1);
+}
+function escapeSpecialChars(s) {
+	if (!s) return "";
+	return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 function stripSpecialChars(s) {
 	return s.replace(/&[#\w]+;/g, "_").replace(/<\w+>(.+?)<\/\w+>/g, '$1');
