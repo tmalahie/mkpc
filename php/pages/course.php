@@ -41,7 +41,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create arena':'Créer arène'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -56,7 +56,7 @@ if (isset($_GET['i'])) {
 		<?php
 		include('../includes/o_xhr.php');
 		?>
-		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=3"></script>
 		<script type="text/javascript" src="scripts/course.js?reload=1"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
@@ -772,7 +772,7 @@ else {
 		<?php
 		include('../includes/o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;

@@ -23,11 +23,11 @@ if (isset($_POST['type']) && isset($_FILES['sprites'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
 <link rel="stylesheet" href="styles/collabs.css" />
-<link rel="stylesheet" href="styles/decor-editor.css" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
 <script type="text/javascript" src="scripts/collabs.js"></script>
-<script type="text/javascript" src="scripts/decor-editor.js"></script>
+<script type="text/javascript" src="scripts/decor-editor.js?reload=1"></script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 <script type="text/javascript">
 var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";

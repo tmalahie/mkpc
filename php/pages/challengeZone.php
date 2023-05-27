@@ -80,7 +80,7 @@ switch ($type) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/challenges.css" />
-<link rel="stylesheet" href="styles/editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
 <style type="text/css">
 body {
 	text-align: center;

@@ -104,12 +104,12 @@ if (isset($_GET['id'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/decor-editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
 <?php
 include('../includes/o_online.php');
 ?>
-<script type="text/javascript" src="scripts/decor-editor.js"></script>
+<script type="text/javascript" src="scripts/decor-editor.js?reload=1"></script>
 <script type="text/javascript">
 var spriteSrc = "<?php echo $spriteSrc; ?>", spriteW = <?php echo $spriteW; ?>, spriteH = <?php echo $spriteH; ?>;
 </script>
