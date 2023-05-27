@@ -11,8 +11,8 @@ $myDecors = mysql_query('SELECT * FROM mkdecors WHERE identifiant="'. $identifia
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/decor-editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
 <?php
 include('../includes/o_xhr.php');
 ?>
@@ -78,7 +78,7 @@ function selectDecorSelectorCollab(e) {
         ?>
         <div class="decors-list"><?php
         while ($decor = mysql_fetch_array($myDecors)) {
-            $decorSrcs = decor_sprite_srcs($decor['sprites']);
+            $decorSrcs = get_decor_srcs($decor);
             ?><div data-id="<?php echo $decor['id'] ?>" data-name="<?php echo htmlspecialchars($decor['name']) ?>" data-ld="<?php echo $decorSrcs['ld'] ?>" data-type="<?php echo $decor['type']; ?>" onclick="selectDecor(this)"><img src="<?php echo $decorSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($decor['name']) ?>" /></div><?php
         }
         ?></div>

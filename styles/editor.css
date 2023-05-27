@@ -1429,6 +1429,9 @@ embed,#ytplayer {
 .decor-edit-extra .decor-extra {
 	font-size: 0.8em;
 }
+.decor-edit-extra .editor-upload-inputs {
+	width: 300px;
+}
 .decor-edit-extra .decor-extra .decor-preview {
 	margin-left: 0.25em;
 	margin-right: 0.25em;

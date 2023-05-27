@@ -199,10 +199,11 @@ h2 {
 }
 #decor-form-next {
     display: none;
+    margin-top: 0.5em;
 }
 .decor-model {
     margin-top: 0.2em;
-    margin-bottom: 0.2em;
+    margin-left: 0.2em;
     display: inline-flex;
     align-items: center;
     background-color: #EEF;
@@ -379,6 +380,64 @@ h2 {
 	left: 64px;
 	top: 64px;
 	width: 12px;
+	image-rendering: optimizeSpeed;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -o-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: pixelated;
+	image-rendering: optimize-contrast;
+	-ms-interpolation-mode: nearest-neighbor;
+}
+.advanced-option.option-form h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+.advanced-option.option-form form {
+    min-width: 180px;
+	height: 120px;
+	overflow: hidden;
+}
+.advanced-option.option-form form > div {
+    display: flex;
+	height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.advanced-option.option-form .option-form-group {
+    display: flex;
+    gap: 0.2em;
+    align-items: center;
+    justify-content: center;
+}
+.advanced-option.option-form .option-form-help {
+    position: relative;
+    top: -0.25em;
+    font-size: 0.8em;
+    text-decoration: none;
+}
+.advanced-option.option-form input[data-indeterminate] + * + .option-form-reset {
+    display: none;
+}
+.advanced-option.option-form .option-form-reset {
+    margin-left: 0.4em;
+    color: #D43;
+    text-decoration: none;
+    position: relative;
+    top: -0.1em;
+}
+.advanced-option.option-form .option-form-reset:hover {
+    color: #d66;
+}
+.advanced-option.option-form .option-form-reset-all {
+    margin-left: 0.25em;
+    display: none;
+}
+.advanced-option.option-form .option-form-help:hover {
+    text-decoration: underline;
+}
+.advanced-option.option-form .option-form-submit {
+    margin-top: 0.5em;
 }
 .advanced-option .option-label {
     white-space: nowrap;

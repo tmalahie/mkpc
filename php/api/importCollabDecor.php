@@ -5,9 +5,9 @@ if (isset($_POST['id']) && isset($_POST['collab'])) {
     require_once('../includes/collabUtils.php');
     $link = getCollabLink('mkdecors', $_POST['id'], $_POST['collab']);
     if (isset($link['rights']['use'])) {
-        if ($decor = mysql_fetch_array(mysql_query('SELECT id,name,type,sprites FROM mkdecors WHERE id="'. $_POST['id'] .'"'))) {
+        if ($decor = mysql_fetch_array(mysql_query('SELECT id,name,type,sprites,img_data FROM mkdecors WHERE id="'. $_POST['id'] .'"'))) {
             require_once('../includes/utils-decors.php');
-            $decorSrcs = decor_sprite_srcs($decor['sprites']);
+            $decorSrcs = get_decor_srcs($decor);
             $res = array(
                 'id' => $decor['id'],
                 'name' => $decor['name'],

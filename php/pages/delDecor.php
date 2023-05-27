@@ -14,11 +14,11 @@ if (isset($_GET['id'])) {
 		if (($decor['identifiant'] == $identifiants[0]) || hasCollabGrants('mkdecors', $decor['extra_parent_id'], $_GET['collab'], 'edit')) {
 			mysql_query('DELETE FROM `mkdecors` WHERE id="'. $decorId .'"');
 			include('../includes/utils-decors.php');
-			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
+			$spriteSrcs = get_decor_srcs($decor);
 			delete_decor_sprite_imgs($spriteSrcs);
 			$getExtraDecors = mysql_query('SELECT * FROM `mkdecors` WHERE extra_parent_id="'. $decorId .'"');
 			while ($extraDecor = mysql_fetch_array($getExtraDecors)) {
-				$extraSpriteSrcs = decor_sprite_srcs($extraDecor['sprites']);
+				$extraSpriteSrcs = get_decor_srcs($extraDecor);
 				delete_decor_sprite_imgs($extraSpriteSrcs);
 				mysql_query('DELETE FROM `mkdecors` WHERE id="'. $extraDecor['id'] .'"');
 			}

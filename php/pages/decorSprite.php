@@ -20,28 +20,26 @@ if (isset($_GET['id'])) {
 		if ($hasWriteGrants) {
 			include('../includes/utils-decors.php');
 			include('../includes/file-quotas.php');
-			$spriteSrcs = decor_sprite_srcs($decor['sprites']);
+			$spriteSrcs = get_decor_srcs($decor);
 			$type = 'decor';
 			if (isset($_GET['map']))
 				$type = 'map';
 			switch ($type) {
 			case 'decor' :
 				$spriteSrc = $spriteSrcs['hd'];
+				$spriteDir = $spriteSrcs['hdir'];
+				$disableTransparency = $spriteSrcs['isurl'];
 				break;
 			default :
 				$spriteSrc = $spriteSrcs[$type];
+				$spriteDir = $spriteSrcs['ldir'];
+				$disableTransparency = false;
 				break;
-			}
-			list($spriteW, $spriteH) = getimagesize('../../'.$spriteSrc);
-			$minW = 64;
-			if (($spriteW < $minW) && $spriteW) {
-				$spriteH = round($spriteH*$minW/$spriteW);
-				$spriteW = $minW;
 			}
 			if (isset($_FILES['sprites'])) {
 				switch ($type) {
 				case 'decor' :
-					$upload = handle_decor_upload($decor['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'),$decor);
+					$upload = handle_decor_upload($decor['type'],get_basic_sprites_payload('sprites'),get_extra_sprites_payload('extraSprites'),$decor);
 					if (isset($upload['id']))
 						header('location: editDecor.php?id='. $upload['id'] . $collabSuffix);
 					break;
@@ -53,23 +51,25 @@ if (isset($_GET['id'])) {
 				}
 				if (isset($upload['error']))
 					$error = $upload['error'];
+				else
+					exit;
 			}
 			elseif (isset($_POST['color'])) {
 				$color = explode(',', $_POST['color']);
-				$oldSrcs = decor_sprite_srcs($decor['sprites']);
+				if ($disableTransparency) exit;
 				$filehash = generate_decor_sprite_src($decor['id']);
-				move_decor_sprite_imgs($oldSrcs,$filehash);
+				move_decor_sprite_imgs($spriteSrcs,$filehash);
 				$newSrcs = decor_sprite_srcs($filehash);
 				switch ($type) {
 				case 'decor' :
-					add_transparency('../../'.$newSrcs['hd'],'../../'.$newSrcs['hd'], $color[0],$color[1],$color[2]);
-					clone_img_resource('../../'.$newSrcs['hd'],'../../'.$newSrcs['hd']);
-					$spriteSizes = decor_sprite_sizes($decor['type'],'../../'.$newSrcs['hd']);
+					add_transparency($newSrcs['hdir'].$newSrcs['hd'],$newSrcs['hdir'].$newSrcs['hd'], $color[0],$color[1],$color[2]);
+					clone_img_resource($newSrcs['hdir'].$newSrcs['hd'],$newSrcs['hdir'].$newSrcs['hd']);
+					$spriteSizes = get_decor_sizes($decor);
 					create_decor_sprite_thumbs($newSrcs,$spriteSizes);
 					break;
 				default :
-					add_transparency('../../'.$newSrcs[$type],'../../'.$newSrcs[$type], $color[0],$color[1],$color[2]);
-					clone_img_resource('../../'.$newSrcs[$type],'../../'.$newSrcs[$type]);
+					add_transparency($newSrcs['ldir'].$newSrcs[$type],$newSrcs['ldir'].$newSrcs[$type], $color[0],$color[1],$color[2]);
+					clone_img_resource($newSrcs['ldir'].$newSrcs[$type],$newSrcs['ldir'].$newSrcs[$type]);
 					break;
 				}
 				mysql_query('UPDATE `mkdecors` SET sprites="'.$filehash.'" WHERE id="'. $decorId .'"');
@@ -82,6 +82,20 @@ if (isset($_GET['id'])) {
 					header('location: decorOptions.php?id='. $decor['id'] . $collabSuffix);
 					break;
 				}
+				exit;
+			}
+
+			$hasTransparency = $disableTransparency || ($spriteSrc == $spriteSrcs['ld']) || has_transparency($spriteDir.$spriteSrc);
+			if ($hasTransparency) {
+				$spriteW = 0;
+				$spriteH = 0;
+			}
+			else
+				list($spriteW, $spriteH) = getimagesize($spriteDir.$spriteSrc);
+			$minW = 64;
+			if (($spriteW < $minW) && $spriteW) {
+				$spriteH = round($spriteH*$minW/$spriteW);
+				$spriteW = $minW;
 			}
 		?>
 <!DOCTYPE html>
@@ -90,18 +104,16 @@ if (isset($_GET['id'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/decor-editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
 <?php
 include('../includes/o_online.php');
 ?>
+<script type="text/javascript" src="scripts/decor-editor.js?reload=1"></script>
 <script type="text/javascript">
 var spriteSrc = "<?php echo $spriteSrc; ?>", spriteW = <?php echo $spriteW; ?>, spriteH = <?php echo $spriteH; ?>;
 </script>
 <script type="text/javascript" src="scripts/edit-sprite.js"></script>
-<?php
-$hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency('../../'.$spriteSrc);
-?>
 <title><?php echo $language ? 'Decor editor':'Éditeur de decors'; ?></title>
 </head>
 <body>
@@ -130,22 +142,51 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency('../../
 	?>
 	<div class="decors-list-container">
 		<form method="post" class="decor-editor-form" action="" enctype="multipart/form-data">
-			<input type="file" required="required" name="sprites" />
-			<button type="submit"><?php echo $language ? 'Send':'Valider'; ?></button>
-		</form>
 		<?php
-		if ($type != 'decor' && ($hasTransparency || ($spriteSrc != $spriteSrcs['ld']))) {
+		if ($type === 'decor') {
+			$isUrl = isset($decor['imgdata']['url']);
 			?>
-			<div id="decor-current-img-preview">
-			<?php echo $language ? 'Current image:':'Image actuelle :'; ?>&nbsp;<img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
-			<?php
-			if ($spriteSrc != $spriteSrcs['ld'])
-				echo '&nbsp;<a href="delDecorSprite.php?id='. $decorId .'&amp;'. $type . htmlspecialchars($collabSuffix) .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
-			?>
+			<div class="editor-upload">
+				<div class="editor-upload-tabs">
+					<div class="editor-upload-tab<?php if (!$isUrl) echo ' editor-upload-tab-selected'; ?>">
+						<?php echo $language ? 'Upload an image':'Uploader une image'; ?>
+					</div><div class="editor-upload-tab<?php if ($isUrl) echo ' editor-upload-tab-selected'; ?>">
+						<?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image'; ?>
+					</div>
+				</div>
+				<div class="editor-upload-inputs">
+					<div class="editor-upload-input<?php if (!$isUrl) echo ' editor-upload-input-selected'; ?>">
+						<input type="file" accept="image/png,image/gif,image/jpeg" name="sprites"<?php if (!$isUrl) echo ' required="required"'; ?> />
+					</div>
+					<div class="editor-upload-input<?php if ($isUrl) echo ' editor-upload-input-selected'; ?>">
+                        <input type="url" name="sprites-url" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png"<?php if ($isUrl) echo ' value="'. $decor['imgdata']['url'] .'" required="required"'; ?> />
+					</div>
+				</div>
 			</div>
+			<button type="submit"><?php echo $language ? 'Send':'Valider'; ?></button>
 			<?php
 		}
+		else {
+			?>
+			<div>
+				<input type="file" required="required" name="sprites" />
+				<button type="submit"><?php echo $language ? 'Send':'Valider'; ?></button>
+			</div>
+			<?php
+			if ($hasTransparency || ($spriteSrc !== $spriteSrcs['ld'])) {
+				?>
+				<div id="decor-current-img-preview">
+				<?php echo $language ? 'Current image:':'Image actuelle :'; ?>&nbsp;<img src="<?php echo $spriteSrc; ?>" alt="Image" class="current-sprite" />
+				<?php
+				if ($spriteSrc != $spriteSrcs['ld'])
+					echo '&nbsp;<a href="delDecorSprite.php?id='. $decorId .'&amp;'. $type . htmlspecialchars($collabSuffix) .'" onclick="return confirm(\''. ($language ? "Go back to original image?":"Revenir à l\'image d\'origine ?") .'\')">['. ($language ? 'Reset':'Réinitialiser') .']</a>';
+				?>
+				</div>
+				<?php
+			}
+		}
 		?>
+		</form>
 	</div>
 	<?php
 	if (!$hasTransparency) {
@@ -173,6 +214,9 @@ $hasTransparency = ($spriteSrc == $spriteSrcs['ld']) || has_transparency('../../
 		?>
 		<a href="editDecor.php?id=<?php echo urlencode($_GET['id']) . htmlspecialchars($collabSuffix); ?>">&lt; <u><?php echo $language ? "Back to decor editor":"Retour à l'édition du décor"; ?></u></a>
 	</div>
+	<script type="text/javascript">
+		setupUploadTabs(document.querySelector('.editor-upload'));
+	</script>
 </body>
 </html>
 		<?php

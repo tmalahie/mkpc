@@ -44,7 +44,10 @@ if (isset($id)) {
 							foreach ($assetsList as $asset) {
 								$assetData = $asset[1];
 								$assetData[4] = $asset[2];
-								$decors->{'assets/'.$asset[0]}[] = $assetData;
+								if (isset($decorExtra->{$asset[0]}->custom))
+									$decors->{$asset[0]}[] = $assetData;
+								else
+									$decors->{'assets/'.$asset[0]}[] = $assetData;
 							}
 						}
 					}
@@ -59,7 +62,7 @@ if (isset($id)) {
 						$actualType = $customDecor->type;
 						if ($customData = mysql_fetch_array(mysql_query('SELECT sprites FROM mkdecors WHERE id='. $decorId))) {
 							$decorSrcs = decor_sprite_srcs($customData['sprites']);
-							$decorImg = @imagecreatefrompng('../../'.$decorSrcs['map']);
+							$decorImg = @imagecreatefrompng($decorSrcs['ldir'].$decorSrcs['map']);
 						}
 					}
 					else

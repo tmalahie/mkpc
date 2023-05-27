@@ -533,12 +533,27 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'without items':'sans objets',
 			'course' => array('vs', 'battle')
 		),
+		'extra_items' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'add extra items...':'ajouter des objets...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+				if (isset($scope['clear_other']))
+					$scope['clear_other'] = 1;
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			}
+		),
 		'extra_decors' => array(
 			'description' => null,
 			'description_mockup' => $language ? 'add extra decors...':'ajouter des décors...',
 			'course' => array('vs', 'battle'),
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
+				if (!empty($scope['custom_decors']))
+					$scope['custom_decors'] = json_decode($scope['custom_decors']);
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);
@@ -1060,7 +1075,7 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 		'boo' => "Boo$s",
 		'thwomp' => "Thwomp$s",
 		'spectre' => "Thwomp$s",
-		'assets/oil1' => $language ? "oil spill$s":"tâche$s d\"huile",
+		'assets/oil1' => $language ? "oil spill$s":"tâche$s d'huile",
 		'assets/oil2' => $language ? "puddle$s":"flaque$s",
 		'crabe' => $language ? "crab$s":"crabe$s",
 		'cheepcheep' => "Cheep-Cheep$s",
@@ -1079,6 +1094,9 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 		'piranhaplant' => $language ? "Piranha Plant$s":"Plante$s Piranha",
 		'tortitaupe' => $language ? "Monty Mole$s" : "Torti Taupe$s",
 		'billball' => $language ? "Bullet Bill$s" : "Bill Ball$s",
+		'billball1' => $language ? "Bullet Bill$s" : "Bill Ball$s",
+		'billball2' => $language ? "Bullet Bill$s" : "Bill Ball$s",
+		'billball3' => $language ? "Bullet Bill$s" : "Bill Ball$s",
 		'firering' => $language ? "fire circle$s":"cercle$s de feu",
 		'fire3star' => $language ? "fire triplet$s":"triolet$s de feu",
 		'topitaupe' => $language ? "Monty Mole$s" : "Topi Taupe$s",
@@ -1097,7 +1115,8 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 		'assets/flower1' => $language ? "flower$s":"fleur$s",
 		'assets/flower2' => $language ? "flower$s":"fleur$s",
 		'assets/flower3' => $language ? "flower$s":"fleur$s",
-		'assets/bumper' => "bumper$s"
+		'assets/bumper' => "bumper$s",
+		'assets/flipper' => "flipper$s"
 	);
 	$lang = $language ? 'en' : 'fr';
 	if (isset($name->{$lang}))

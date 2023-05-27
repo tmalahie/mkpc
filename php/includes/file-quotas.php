@@ -31,7 +31,7 @@ function file_total_size($item=null) {
 	$persos = mysql_query('SELECT sprites FROM `mkchars` WHERE identifiant='.$ownerIds[0].' AND identifiant2='.$ownerIds[1].' AND identifiant3='.$ownerIds[2].' AND identifiant4='.$ownerIds[3] . (isset($item['perso']) ? ' AND id != '.$item['perso'] : ''));
 	while ($perso = mysql_fetch_array($persos))
 		$poids += @filesize('../../images/sprites/uploads/'.$perso['sprites'].'.png');
-	$decors = mysql_query('SELECT sprites FROM `mkdecors` WHERE identifiant='.$ownerIds[0]. (isset($item['decor']) ? ' AND id != '.$item['decor'] : ''));
+	$decors = mysql_query('SELECT sprites FROM `mkdecors` WHERE identifiant='.$ownerIds[0].' AND JSON_EXTRACT(img_data,"$.url") IS NULL'. (isset($item['decor']) ? ' AND id != '.$item['decor'] : ''));
 	while ($decor = mysql_fetch_array($decors))
 		$poids += @filesize('../../images/sprites/uploads/'.$decor['sprites'].'.png');
 	$bgLayers = mysql_query('SELECT l.filename FROM `mkbglayers` l INNER JOIN `mkbgs` b ON l.bg=b.id AND l.filename!="" WHERE b.identifiant='.$ownerIds[0]. (isset($item['layer']) ? ' AND l.id != '.$item['layer'] : ''));

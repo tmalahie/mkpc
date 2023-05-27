@@ -8,11 +8,13 @@ include('../includes/initdb.php');
 require_once('../includes/utils-decors.php');
 include('../includes/file-quotas.php');
 if (isset($_POST['type']) && isset($_FILES['sprites'])) {
-	$upload = handle_decor_upload($_POST['type'],$_FILES['sprites'],get_extra_sprites_payload('extraSprites'));
+	$upload = handle_decor_upload($_POST['type'],get_basic_sprites_payload('sprites'),get_extra_sprites_payload('extraSprites'));
 	if (isset($upload['id']))
 		header('location: editDecor.php?id='. $upload['id'] .'&new');
 	if (isset($upload['error']))
 		$error = $upload['error'];
+    else
+        exit;
 }
 ?>
 <!DOCTYPE html>
@@ -21,15 +23,16 @@ if (isset($_POST['type']) && isset($_FILES['sprites'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
 <link rel="stylesheet" href="styles/collabs.css" />
-<link rel="stylesheet" href="styles/decor-editor.css" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
 <script type="text/javascript" src="scripts/collabs.js"></script>
+<script type="text/javascript" src="scripts/decor-editor.js?reload=1"></script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 <script type="text/javascript">
-var decorId = -1;
 var author = "<?php if (isset($_COOKIE['mkauteur'])) echo htmlspecialchars($_COOKIE['mkauteur']); ?>";
 var language = <?php echo ($language ? 'true':'false'); ?>;
+var decorId = -1;
 function selectDecor(id) {
 	if (decorId != -1)
 		document.getElementById("mydecor-"+decorId).className = "";
@@ -73,7 +76,14 @@ function selectDecorType($btn) {
     else {
         $btn.id = "decor-type-selected";
         $decorFormNext.style.display = "block";
-        document.getElementById("decor-model-img").src = "images/sprites/sprite_"+type+".png";
+        var isAsset = (type.substring(0,7) === "assets/");
+        var linkedSprite = $btn.dataset.linkedSprite;
+        if (isAsset)
+            document.getElementById("decor-model-img").src = "images/map_icons/"+type+".png";
+        else if (linkedSprite)
+            document.getElementById("decor-model-img").src = "images/sprites/sprite_"+linkedSprite+".png";
+        else
+            document.getElementById("decor-model-img").src = "images/sprites/sprite_"+type+".png";
         $form.elements["type"].value = type;
 
         var extraSprites = $btn.dataset.extraSprites;
@@ -83,11 +93,13 @@ function selectDecorType($btn) {
                 var extraSprite = extraSpritesList[i];
                 document.getElementById("decor-extra-model-img").src = "images/sprites/sprite_"+extraSprite+".png";
                 document.getElementById("extra-sprites").name = "extraSprites:" + extraSprite;
+                document.getElementById("extra-sprites-url").name = "extraSprites-url:" + extraSprite;
             }
             document.getElementById("decor-extra-model").style.display = "block";
         }
         else {
             document.getElementById("extra-sprites").name = "";
+            document.getElementById("extra-sprites-url").name = "";
             document.getElementById("decor-extra-model").style.display = "";
         }
     }
@@ -131,7 +143,7 @@ if (isset($error))
             </div>
             <div class="decors-list"><?php
             while ($decor = mysql_fetch_array($myDecors)) {
-                $decorSrcs = decor_sprite_srcs($decor['sprites']);
+                $decorSrcs = get_decor_srcs($decor);
                 ?><div id="mydecor-<?php echo $decor['id'] ?>" data-id="<?php echo $decor['id'] ?>" data-name="<?php echo htmlspecialchars($decor['name']) ?>" data-ld="<?php echo $decorSrcs['ld'] ?>" data-type="<?php echo $decor['type']; ?>" onclick="selectDecor(<?php echo $decor['id'] ?>)"><img src="<?php echo $decorSrcs['ld']; ?>" alt="<?php echo htmlspecialchars($decor['name']) ?>" /></div><?php
             }
             ?></div>
@@ -216,6 +228,8 @@ if (isset($error))
                         <button type="button" data-type="<?php echo $type; ?>" style="background-image:url('images/map_icons/<?php echo $type; ?>.png')"<?php
                             if (isset($decorType['extra_sprites']))
                                 echo ' data-extra-sprites="'.implode(",", $decorType['extra_sprites']).'"';
+                            if (isset($decorType['linked_sprite']))
+                                echo ' data-linked-sprite="'.$decorType['linked_sprite'].'"';
                         ?> onclick="selectDecorType(this)"></button>
                         <?php
                     }
@@ -227,14 +241,51 @@ if (isset($error))
                     <div class="decor-model-label"><?php echo $language ? 'Model:':'Modèle&nbsp;:'; ?></div>
                     <div class="decor-model-value"><img id="decor-model-img" src="images/sprites/sprite_tuyau.png" alt="" /></div>
                 </div>
-                <div><?php echo $language ? 'Image:':'Image :'; ?> <input type="file" required="required" name="sprites" /></div>
+                <div class="decor-form-image">
+                    <?php echo $language ? 'Image:':'Image :'; ?>
+                    <div class="editor-upload">
+                        <div class="editor-upload-tabs">
+                            <div class="editor-upload-tab editor-upload-tab-selected">
+                                <?php echo $language ? 'Upload an image':'Uploader une image'; ?>
+                            </div><div class="editor-upload-tab">
+                                <?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image'; ?>
+                            </div>
+                        </div>
+                        <div class="editor-upload-inputs">
+                            <div class="editor-upload-input editor-upload-input-selected">
+                                <input type="file" accept="image/png,image/gif,image/jpeg" required="required" name="sprites" />
+                            </div>
+                            <div class="editor-upload-input">
+                                <input type="url" name="sprites-url" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="decor-extra-model">
                     <div class="decor-model">
                         <div class="decor-model-label"><?php echo $language ? 'Model 2:':'Modèle 2&nbsp;:'; ?></div>
                         <div class="decor-model-value"><img id="decor-extra-model-img" src="images/sprites/sprite_tuyau.png" alt="" /></div>
                     </div>
-                <div>
-                    <?php echo $language ? '(Optional) Image 2:':'(Facultatif) Image 2 :'; ?> <input type="file" id="extra-sprites" /></div>
+                    <div class="decor-form-image">
+                        <?php echo $language ? '(Optional) Image 2:':'(Facultatif) Image 2 :'; ?>
+                        <div class="editor-upload">
+                            <div class="editor-upload-tabs">
+                                <div class="editor-upload-tab editor-upload-tab-selected">
+                                    <?php echo $language ? 'Upload an image':'Uploader une image'; ?>
+                                </div><div class="editor-upload-tab">
+                                    <?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image'; ?>
+                                </div>
+                            </div>
+                            <div class="editor-upload-inputs">
+                                <div class="editor-upload-input editor-upload-input-selected">
+                                    <input type="file" accept="image/png,image/gif,image/jpeg" id="extra-sprites" />
+                                </div>
+                                <div class="editor-upload-input">
+                                    <input type="url" id="extra-sprites-url" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div><button type="submit"><?php echo $language ? 'Send !':'Valider !'; ?></button></div>
             </div>
@@ -263,6 +314,11 @@ if (isset($error))
         (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
     </div>
+    <script type="text/javascript">
+        var $decorUploads = document.querySelectorAll(".editor-upload");
+        for (var i=0;i<$decorUploads.length;i++)
+            setupUploadTabs($decorUploads[i]);
+    </script>
 </body>
 </html>
 <?php

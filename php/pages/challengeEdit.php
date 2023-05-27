@@ -143,36 +143,42 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 			if ($getCircuitsData = mysql_fetch_array(mysql_query('SELECT data FROM `'. $decorTable .'_data` WHERE id="'. $decorCircuit .'"'))) {
 				$circuitData = json_decode(gzuncompress($getCircuitsData['data']));
 				$circuitDecors = array_keys((array)$circuitData->decor);
+				$decorParams = isset($circuitData->decorparams) ? $circuitData->decorparams:new \stdClass();
+				$decorExtra = isset($decorParams->extra) ? $decorParams->extra:new \stdClass();
 				if (isset($circuitData->assets)) {
 					foreach ($circuitData->assets as $key => $data) {
-						switch ($key) {
-						case 'pointers':
-							$circuitDecors[] = 'assets/pivothand';
-							break;
-						default:
-							$decorTypes = array();
-							foreach ($data as $d) {
-								if (!isset($decorTypes[$d[0]])) {
-									$decorTypes[$d[0]] = 1;
-									$circuitDecors[] = 'assets/'.$d[0];
+						$decorTypes = array();
+						foreach ($data as $d) {
+							$assetType = $d[0];
+							if (!isset($decorTypes[$assetType])) {
+								$decorTypes[$assetType] = 1;
+								if (isset($decorExtra->{$assetType}->custom))
+									$circuitDecors[] = $assetType;
+								else {
+									switch ($key) {
+									case 'pointers':
+										$circuitDecors[] = 'assets/pivothand';
+										break;
+									default:
+										$circuitDecors[] = 'assets/'.$assetType;
+									}
 								}
+
 							}
 						}
 					}
 				}
-				$decorParams = isset($circuitData->decorparams) ? $circuitData->decorparams:new \stdClass();
-				$decorExtra = isset($decorParams->extra) ? $decorParams->extra:new \stdClass();
 				foreach ($circuitDecors as $type) {
 					$decorOption = array(
 						'value' => $type
 					);
-					if (isset($decorExtra->{$type}) && isset($decorExtra->{$type}->custom)) {
+					if (isset($decorExtra->{$type}->custom)) {
 						$customDecor = $decorExtra->{$type}->custom;
 						$decorId = intval($customDecor->id);
 						$actualType = $customDecor->type;
-						if ($customData = mysql_fetch_array(mysql_query('SELECT name,sprites FROM mkdecors WHERE id='. $decorId))) {
+						if ($customData = mysql_fetch_array(mysql_query('SELECT name,sprites,img_data FROM mkdecors WHERE id='. $decorId))) {
 							require_once('../includes/utils-decors.php');
-							$decorSrcs = decor_sprite_srcs($customData['sprites']);
+							$decorSrcs = get_decor_srcs($customData);
 							$decorOption['icon'] = $decorSrcs['map'];
 							$decorOption['custom'] = 1;
 							$decorOption['label'] = $customData['name'];
@@ -437,10 +443,23 @@ function addConstraintRule(clClass) {
 				"margin": "10px 0 0 0"
 			});
 			break;
+		case 'extra_items':
+			$form.html(
+				'<div style="position: relative; top: -0.2em"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<input type="hidden" name="scope[extra_items][value]" />'+
+				'<button type="button" onclick="openZoneEditor(\'items\')">'+ (language ? "Indicate...":"Indiquer...") +'</button></label><br />'+
+				'<label style="font-size: 0.8em; display: block; text-align: right"><input type="checkbox" name="scope[extra_items][clear_other]" />&nbsp;'+ (language?'Remove other item boxes':'Retirer les autres boîtes à objets')+'</label></div>'
+			);
+			$form.parent().css({
+				"align-items": "flex-start",
+				"margin": "10px 0 0 0"
+			});
+			break;
 		case 'extra_decors':
 			$form.html(
 				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
 				'<input type="hidden" name="scope[extra_decors][value]" value="[]" />'+
+				'<input type="hidden" name="scope[extra_decors][custom_decors]" value="{}" />'+
 				'<button type="button" onclick="openZoneEditor(\'decors\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
 			);
 			break;
@@ -666,8 +685,11 @@ function getAllDecorOptions(constraint) {
 		}
 		if (extraDecors) {
 			var extraDecorsList = JSON.parse(extraDecors);
-			for (var i=0;i<extraDecorsList.length;i++)
-				addDecor(extraDecorsList[i].src);
+			for (var i=0;i<extraDecorsList.length;i++) {
+				var decorKey = extraDecorsList[i].src;
+				if (!decorKey.startsWith("custom-"))
+					addDecor(decorKey);
+			}
 		}
 	}
 	catch (e) {
@@ -704,6 +726,8 @@ function getZoneInputKey(editorType) {
 		return "scope[start_pos]";
 	case "decors":
 		return "scope[extra_decors]";
+	case "items":
+		return "scope[extra_items]";
 	default:
 		return "goal";
 	}
@@ -712,7 +736,7 @@ function loadZoneData(editorType) {
 	var inputKey = getZoneInputKey(editorType);
 	var data = document.forms[0].elements[inputKey+"[value]"].value;
 	var meta = {};
-	var metaKeys = ["ordered"];
+	var metaKeys = ["ordered","custom_decors"];
 	for (var i=0;i<metaKeys.length;i++) {
 		var $elt = document.forms[0].elements[inputKey+"["+metaKeys[i]+"]"];
 		if ($elt)
@@ -734,7 +758,12 @@ function storeZoneData(data,meta, editorType) {
 	document.forms[0].elements[inputKey+"[value]"].value = JSON.stringify(data);
 	for (var key in meta) {
 		var $elt = document.forms[0].elements[inputKey+"["+key+"]"];
-		if ($elt) $elt.value = meta[key];
+		if ($elt) {
+			var metaVal = meta[key];
+			if (typeof metaVal === "object")
+				metaVal = JSON.stringify(metaVal);
+			$elt.value = metaVal;
+		}
 	}
 }
 function openZoneEditor(type) {
@@ -924,6 +953,15 @@ $(function() {
 					case "start_pos":
 						var noCpuElt = mainForm.elements["scope["+constraint.type+"][no_cpu]"];
 						if (noCpuElt) noCpuElt.checked = constraint.no_cpu;
+						break;
+					case "extra_items":
+						var noCpuElt = mainForm.elements["scope["+constraint.type+"][clear_other]"];
+						if (noCpuElt) noCpuElt.checked = constraint.clear_other;
+						break;
+					case "extra_decors":
+						var customDecorsElt = mainForm.elements["scope["+constraint.type+"][custom_decors]"];
+						if (customDecorsElt) customDecorsElt.value = JSON.stringify(constraint.custom_decors);
+						break;
 					}
 				}
 			}

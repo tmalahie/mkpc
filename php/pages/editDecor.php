@@ -21,12 +21,12 @@ if (isset($_GET['id'])) {
             include('../includes/utils-decors.php');
             session_start();
             include('../includes/tokens.php');
-            $decorSrcs = decor_sprite_srcs($decor['sprites']);
+            $decorSrcs = get_decor_srcs($decor);
             if (isset($_POST['name']) && $hasWriteGrants) {
                 $decor['name'] = preg_replace('#<[^>]+>#', '', $_POST['name']);
                 mysql_query('UPDATE `mkdecors` SET name="'. $decor['name'] .'" WHERE id="'. $_GET['id'] .'"');
             }
-            $spriteSizes = decor_sprite_sizes($decor['type'],'../../'.$decorSrcs['hd']);
+            $spriteSizes = get_decor_sizes($decor);
             $imgW = $spriteSizes['ld']['w'];
             $imgH = $spriteSizes['ld']['h'];
             $mW = 32;
@@ -43,8 +43,9 @@ if (isset($_GET['id'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/editor.css" />
-<link rel="stylesheet" href="styles/decor-editor.css" />
+<link rel="stylesheet" href="styles/editor.css?reload=1" />
+<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
+<script type="text/javascript" src="scripts/decor-editor.js?reload=1"></script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>
 </head>
 <body>
@@ -86,8 +87,8 @@ if (isset($_GET['id'])) {
                     echo '<div class="decor-extra">';
                     echo 'Décor #'. $i .'&nbsp;:';
                     if ($extraDecor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE extra_parent_id="'. $decorId .'"'))) {
-                        $decorSrcs = decor_sprite_srcs($extraDecor['sprites']);
-                        $spriteSizes = decor_sprite_sizes($extraDecor['type'],'../../'.$decorSrcs['hd']);
+                        $decorSrcs = get_decor_srcs($extraDecor);
+                        $spriteSizes = get_decor_sizes($extraDecor);
                         $imgW = $spriteSizes['ld']['w'];
                         $imgH = $spriteSizes['ld']['h'];
                         ?>
@@ -115,7 +116,23 @@ if (isset($_GET['id'])) {
                     if (!$extraDecor) {
                         ?>
                         <form class="decor-extra-new decor-editor-form" id="decor-extra-new-<?php echo $extraSprite; ?>" method="post" enctype="multipart/form-data" action="editDecorExtra.php?parent=<?php echo $decor['id'] . $collabSuffix; ?>">
-                            <input type="file" name="extraSprites:<?php echo $extraSprite; ?>" />
+                            <div class="editor-upload">
+                                <div class="editor-upload-tabs">
+                                    <div class="editor-upload-tab editor-upload-tab-selected">
+                                        <?php echo $language ? 'Upload an image':'Uploader une image'; ?>
+                                    </div><div class="editor-upload-tab">
+                                        <?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image'; ?>
+                                    </div>
+                                </div>
+                                <div class="editor-upload-inputs">
+                                    <div class="editor-upload-input editor-upload-input-selected">
+                                        <input type="file" accept="image/png,image/gif,image/jpeg" name="extraSprites:<?php echo $extraSprite; ?>" />
+                                    </div>
+                                    <div class="editor-upload-input">
+                                        <input type="url" name="extraSprites-url:<?php echo $extraSprite; ?>" placeholder="https://mario.wiki.gallery/images/b/be/Warp_Pipe_SMB.png" />
+                                    </div>
+                                </div>
+                            </div>
                             <button type="submit">Ok</button>
                         </form>
                         <?php
@@ -145,8 +162,8 @@ if (isset($_GET['id'])) {
     <?php
     if ($decor['extra_parent_id']) {
         if ($parentDecor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE id="'. $decor['extra_parent_id'] .'"'))) {
-            $decorSrcs = decor_sprite_srcs($parentDecor['sprites']);
-            $spriteSizes = decor_sprite_sizes($parentDecor['type'],'../../'.$decorSrcs['hd']);
+            $decorSrcs = get_decor_srcs($parentDecor);
+            $spriteSizes = get_decor_sizes($parentDecor);
             $imgW = $spriteSizes['ld']['w'];
             $imgH = $spriteSizes['ld']['h'];
         ?>
@@ -184,6 +201,7 @@ if (isset($_GET['id'])) {
             $img.onload();
     }
     showDecorPreview(document.querySelector(".decor-preview"));
+    setupUploadTabs(document.querySelector(".editor-upload"));
     </script>
 </body>
 </html>

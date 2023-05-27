@@ -2,6 +2,7 @@
 define('BGS_DIR', 'images/sprites/uploads/');
 define('MAX_LAYERS', 5);
 require_once('imageutils.php');
+require_once('fileutils.php');
 function handle_bg_upload($files,$options=array()) {
 	global $language, $identifiants;
 	$totalSizeOptions = null;
@@ -128,30 +129,6 @@ function get_bg_payload($bg) {
 	$bgPayload['layers'] = $layers;
 	
 	return $bgPayload;
-}
-function url_to_file_payload($url) {
-	$fileContent = @file_get_contents($url);
-	if ($fileContent) {
-		$file = tmpfile();
-		$fileStream = stream_get_meta_data($file);
-		$filePath = $fileStream['uri'];
-		file_put_contents($filePath, $fileContent);
-		return array(
-			'url' => $url,
-			'size' => @filesize($filePath),
-			'tmp_name' => $filePath,
-			'tmp_file' => $file,
-			'error' => 0
-		);
-	}
-	else {
-		return array(
-			'url' => $url,
-			'size' => 0,
-			'tmp_name' => null,
-			'error' => 1
-		);
-	}
 }
 function print_bg_div($options) {
 	if (isset($options['bg']))
