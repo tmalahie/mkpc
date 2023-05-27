@@ -9523,6 +9523,7 @@ var decorBehaviors = {
 					th = (10000*Math.sin(iG+2))%Math.PI;
 				decorData[4] = th*180/Math.PI;
 			}
+			this.move(decorData);
 		},
 		move:function(decorData) {
 			for (var i=0;i<oPlayers.length;i++) {
