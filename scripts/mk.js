@@ -11648,11 +11648,14 @@ var challengeRules = {
 			if (!scope.nb) {
 				var oDecors = oMap.decor[scope.value] || [];
 				scope.nb = oDecors.length;
+				scope.shouldInitToAll = true;
 			}
-			setTimeout(function() {
-				var oDecors = oMap.decor[scope.value] || [];
-				scope.nb = oDecors.length;
-			});
+			if (scope.shouldInitToAll) {
+				setTimeout(function() {
+					var oDecors = oMap.decor[scope.value] || [];
+					scope.nb = oDecors.length;
+				});
+			}
 		},
 		"initSelected": function(scope) {
 			setTimeout(function() {
@@ -12111,7 +12114,7 @@ var challengeRules = {
 				oMap.arme = [];
 			}
 			for (var i=0;i<scope.value.length;i++) {
-				var oArme = scope.value[i];
+				var oArme = scope.value[i].slice(0);
 				initItemSprite(oArme);
 				oMap.arme.push(oArme);
 			}
