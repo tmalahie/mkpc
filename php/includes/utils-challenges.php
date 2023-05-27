@@ -533,6 +533,19 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'without items':'sans objets',
 			'course' => array('vs', 'battle')
 		),
+		'extra_items' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'add extra items...':'ajouter des objets...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+				if (isset($scope['clear_other']))
+					$scope['clear_other'] = 1;
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			}
+		),
 		'extra_decors' => array(
 			'description' => null,
 			'description_mockup' => $language ? 'add extra decors...':'ajouter des décors...',

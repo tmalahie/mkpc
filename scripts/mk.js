@@ -3009,15 +3009,8 @@ function startGame() {
 
 	if (!isTT) {
 		if (itemDistribution.value.length) {
-			for (var i=0;i<oMap.arme.length;i++) {
-				var aBoxes = [];
-				var nbBoxes = oMap.arme[i][2];
-				if (!nbBoxes || !oDoubleItemsEnabled)
-					nbBoxes = 1;
-				for (var j=0;j<nbBoxes;j++)
-					aBoxes[j] = new Sprite("item");
-				oMap.arme[i][2] = {active:true,box:aBoxes};
-			}
+			for (var i=0;i<oMap.arme.length;i++)
+				initItemSprite(oMap.arme[i]);
 		}
 		else
 			oMap.arme = [];
@@ -9542,6 +9535,15 @@ var DEFAULT_DECOR_HITBOX_H = 4;
 for (var type in decorBehaviors)
 	decorBehaviors[type].type = type;
 
+function initItemSprite(oArme) {
+	var aBoxes = [];
+	var nbBoxes = oArme[2];
+	if (!nbBoxes || !oDoubleItemsEnabled)
+		nbBoxes = 1;
+	for (var j=0;j<nbBoxes;j++)
+		aBoxes[j] = new Sprite("item");
+	oArme[2] = {active:true,box:aBoxes};
+}
 function handleSpriteLaunch(fSprite, fSpeed,fHeight) {
 	fSprite.countdown--;
 	fSpeed += (cappedRelSpeed()-1)*5;
@@ -12089,6 +12091,33 @@ var challengeRules = {
 		"success": function(scope) {
 			if (!clLocalVars.startPos) return false;
 			return true;
+		}
+	},
+	"extra_items": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
+			if (scope.clear_other) {
+				for (var i=0;i<oMap.arme.length;i++) {
+					var oBoxes = oMap.arme[i][2].box;
+					for (var j=0;j<oBoxes.length;j++) {
+						var oBox = oBoxes[j];
+						oBox[0].suppr();
+					}
+				}
+				oMap.arme = [];
+			}
+			for (var i=0;i<scope.value.length;i++) {
+				var oArme = scope.value[i];
+				initItemSprite(oArme);
+				oMap.arme.push(oArme);
+			}
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
 		}
 	},
 	"extra_decors": {

@@ -43,6 +43,9 @@ switch ($type) {
 	case 'coins':
 		$submitTitle = $language ? 'Validate coins':'Valider les pièces';
 	break;
+	case 'items':
+		$submitTitle = $language ? 'Validate items':'Valider les objets';
+	break;
 	case 'decors':
 		$submitTitle = $language ? 'Validate decors':'Valider les décors';
 		$getDecors = mysql_query('SELECT id,name,type,sprites,img_data FROM mkdecors WHERE identifiant="'. $identifiants[0] .'" AND extra_parent_id IS NULL ORDER BY id');
@@ -329,6 +332,7 @@ function selectOrdered($btn,isOrdered) {
 var shapeType = "rectangle";
 switch (editorType) {
 case "coins":
+case "items":
 	shapeType = "point";
 	break;
 case "decors":
@@ -1036,7 +1040,7 @@ window.onload = function() {
 		case 'coins':
 			if ($language) {
 				?>
-				Indicate coin locations by clicking where you want on the circuit image.
+				Indicate coins locations by clicking where you want on the circuit image.
 				To delete a coin, right click on it.<br />
 				<?php
 			}
@@ -1044,6 +1048,20 @@ window.onload = function() {
 				?>
 				Indiquez les emplacements des pièces en cliquant où vous voulez sur l'image du circuit.<br />
 				Pour supprimer une pièce, faites un clic droit dessus.<br />
+				<?php
+			}
+			break;
+		case 'items':
+			if ($language) {
+				?>
+				Indicate items locations by clicking where you want on the circuit image.
+				To delete an item, right click on it.<br />
+				<?php
+			}
+			else {
+				?>
+				Indiquez les emplacements des objets en cliquant où vous voulez sur l'image du circuit.<br />
+				Pour supprimer un objet, faites un clic droit dessus.<br />
 				<?php
 			}
 			break;
@@ -1117,6 +1135,7 @@ window.onload = function() {
 			<?php
 			switch ($type) {
 			case 'coins':
+			case 'items':
 			case 'startpos':
 				break;
 			case 'decors':

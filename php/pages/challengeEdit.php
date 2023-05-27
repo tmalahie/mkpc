@@ -443,6 +443,18 @@ function addConstraintRule(clClass) {
 				"margin": "10px 0 0 0"
 			});
 			break;
+		case 'extra_items':
+			$form.html(
+				'<div style="position: relative; top: -0.2em"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<input type="hidden" name="scope[extra_items][value]" />'+
+				'<button type="button" onclick="openZoneEditor(\'items\')">'+ (language ? "Indicate...":"Indiquer...") +'</button></label><br />'+
+				'<label style="font-size: 0.8em; display: block; text-align: right"><input type="checkbox" name="scope[extra_items][clear_other]" />&nbsp;'+ (language?'Remove other item boxes':'Retirer les autres boîtes à objets')+'</label></div>'
+			);
+			$form.parent().css({
+				"align-items": "flex-start",
+				"margin": "10px 0 0 0"
+			});
+			break;
 		case 'extra_decors':
 			$form.html(
 				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
@@ -714,6 +726,8 @@ function getZoneInputKey(editorType) {
 		return "scope[start_pos]";
 	case "decors":
 		return "scope[extra_decors]";
+	case "items":
+		return "scope[extra_items]";
 	default:
 		return "goal";
 	}
@@ -939,6 +953,10 @@ $(function() {
 					case "start_pos":
 						var noCpuElt = mainForm.elements["scope["+constraint.type+"][no_cpu]"];
 						if (noCpuElt) noCpuElt.checked = constraint.no_cpu;
+						break;
+					case "extra_items":
+						var noCpuElt = mainForm.elements["scope["+constraint.type+"][clear_other]"];
+						if (noCpuElt) noCpuElt.checked = constraint.clear_other;
 						break;
 					case "extra_decors":
 						var customDecorsElt = mainForm.elements["scope["+constraint.type+"][custom_decors]"];
