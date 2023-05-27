@@ -9601,19 +9601,24 @@ function initCustomDecorSprites(self,res) {
 		var oDecor = oMap.decor[linkedType][i];
 		if (oDecor)
 			updateCustomDecorSprites(oDecor, linkedData, sizeRatio);
+	}
+	function syncMapIcons() {
+		for (var i=self.linkedSprite.start;i<self.linkedSprite.end;i++) {
+			var iDecor = oPlanDecor[linkedType][i];
+			if (iDecor) {
+				iDecor.src = linkedData.map;
+				iDecor.style.width = tObjWidth +"px";
+			}
 
-		var iDecor = oPlanDecor[linkedType][i];
-		if (iDecor) {
-			iDecor.src = linkedData.map;
-			iDecor.style.width = tObjWidth +"px";
-		}
-
-		iDecor = oPlanDecor2[linkedType][i];
-		if (iDecor) {
-			iDecor.src = linkedData.map;
-			iDecor.style.width = tObjWidth2 +"px";
+			iDecor = oPlanDecor2[linkedType][i];
+			if (iDecor) {
+				iDecor.src = linkedData.map;
+				iDecor.style.width = tObjWidth2 +"px";
+			}
 		}
 	}
+	syncMapIcons();
+	setTimeout(syncMapIcons, 300);
 }
 function updateCustomDecorSprites(decorData, res, sizeRatio) {
 	for (var j=0;j<oPlayers.length;j++) {
