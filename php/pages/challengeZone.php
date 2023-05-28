@@ -1144,9 +1144,6 @@ window.onload = function() {
 					<span><?php echo $language ? 'Decor:':'Décor :'; ?></span>
 					<?php
 					include('../includes/circuitDecors.php');
-					foreach ($decors as &$decorGroup)
-						unset($decorGroup['truck']);
-					unset($decorGroup);
 					foreach ($decors as &$decorGroup) {
 						foreach ($decorGroup as $key => $name) {
 							?>

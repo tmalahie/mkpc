@@ -9200,7 +9200,7 @@ var decorBehaviors = {
 			var extraParams = getDecorExtra(this,true);
 			if (!extraParams.path)
 				extraParams.path = oMap.aipoints;
-			if (!decorData[6]) {
+			if (decorData[6] == undefined) {
 				var minDist = Infinity;
 				var initialK = (decorData[5] != undefined);
 				if (!initialK)
@@ -12182,7 +12182,7 @@ var challengeRules = {
 				else {
 					if (!oMap.decor[type])
 						oMap.decor[type] = [];
-					oMap.decor[type].push(decorData.pos);
+					oMap.decor[type].push(decorData.pos.slice(0));
 				}
 			}
 		},
