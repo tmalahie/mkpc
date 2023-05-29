@@ -335,6 +335,10 @@ function getTrackPayloads($options) {
                         'base' => $getMain,
                         'infos' => &$infos
                     ));
+                    if ($getMain['thumbnail']) {
+                        require_once('../includes/cache_creations.php');
+                        $infos['icon'] = cachePath('uploads/'.$getMain['thumbnail']);
+                    }
                     $circuitsData[] = $infos;
                     if (!$isOnline)
                         addCircuitChallenges($table, $trackID,$infos['name'], $clPayloadParams, !$isCup);

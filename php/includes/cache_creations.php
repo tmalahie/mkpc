@@ -1,7 +1,7 @@
 <?php
 require_once('touch.php');
 $MAX_FILES = 20000;
-$CACHE_FOLDER = 'images/creation_icons/';
+define('CACHE_FOLDER', 'images/creation_icons/');
 function thumbnail($original_src,$cache_src, $maxw, $maxh) {
     list($width, $height) = getimagesize($original_src);
     $thumb = imagecreatetruecolor($maxw,$maxh);
@@ -43,12 +43,10 @@ function thumbnail($original_src,$cache_src, $maxw, $maxh) {
     return true;
 }
 function cachePath($cache_src) {
-    global $CACHE_FOLDER;
-    return "../../$CACHE_FOLDER$cache_src";
+    return '../../'.CACHE_FOLDER.$cache_src;
 }
 function cachePathRelative($cache_src) {
-    global $CACHE_FOLDER;
-    return "$CACHE_FOLDER$cache_src";
+    return CACHE_FOLDER.$cache_src;
 }
 function cacheExists($cache_src) {
     return file_exists(cachePath($cache_src));

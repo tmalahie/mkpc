@@ -18335,7 +18335,7 @@ function getMapIcSrc(playerName) {
 	return "images/map_icons/"+ playerName +".png";
 }
 function getMapSelectorSrc(i) {
-	return isCup ? (complete ? "trackicon.php?id="+ oMaps[aAvailableMaps[i]].map +"&type=" + (course=="BB" ? 2:1):"trackicon.php?id="+ oMaps[aAvailableMaps[i]].id +"&type=0") : "images/selectors/select_" + aAvailableMaps[i] + ".png";
+	return isCup ? oMaps[aAvailableMaps[i]].icon : "images/selectors/select_" + aAvailableMaps[i] + ".png";
 }
 function getMapId(oMap) {
 	var res = isBattle ? nid : (simplified ? oMap.id : oMap.map);

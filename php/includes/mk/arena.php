@@ -152,6 +152,10 @@ $printCircuitData = function($arene) {
 	?>",
 	"w" : 600,
 	"h" : 600,
+	<?php
+	if (isset($arene['icon']))
+		echo '"icon":'.json_encode($arene['icon']).',';
+	?>
 	"skin" : <?php echo $map; ?>,
 	"bgcolor" : [<?php if (isset($bgColors[$map])) echo implode(',',$bgColors[$map]); ?>],
 	"fond" : ["<?php if (isset($bgImages[$map])) echo implode('","',$bgImages[$map]); ?>"],

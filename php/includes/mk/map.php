@@ -18,6 +18,8 @@ $printCircuitData = function($circuit) {
 "w" : <?php echo $circuitImg->w; ?>,
 "h" : <?php echo $circuitImg->h; ?>,
 <?php
+if (isset($circuit['icon']))
+	echo '"icon":'.json_encode($circuit['icon']).',';
 if (isset($circuitMainData->bgcustom))
 	echo '"custombg":'.$circuitMainData->bgimg.',';
 else {

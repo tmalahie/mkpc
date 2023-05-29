@@ -51,6 +51,10 @@ $printCircuitData = function($circuit) {
 	"music" : <?php echo $musicIds[$map]; ?>,
 	"w" : 600,
 	"h" : 600,
+	<?php
+	if (isset($circuit['icon']))
+		echo '"icon":'.json_encode($circuit['icon']).',';
+	?>
 	"skin" : <?php echo $map; ?>,
 	"bgcolor" : [<?php if (isset($bgColors[$map])) echo implode(',',$bgColors[$map]); ?>],
 	"fond" : ["<?php if (isset($bgImages[$map])) echo implode('","',$bgImages[$map]); ?>"],<?php
