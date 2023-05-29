@@ -1,6 +1,8 @@
 <?php
 if (!isset($id) && isset($_GET['id'])) {
 	include('../includes/escape_all.php');
+	require_once('../includes/protections.php');
+	preventRecursiveCalls();
 	$id = intval($_GET['id']);
 }
 if (isset($id)) {
