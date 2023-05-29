@@ -43,7 +43,14 @@ function getCircuitLocalFile($circuitImg) {
     $file = tmpfile();
     $fileStream = stream_get_meta_data($file);
     $filePath = $fileStream['uri'];
-    file_put_contents($filePath, @file_get_contents($circuitImg->url));
+    $context = stream_context_create(
+        array(
+            'http' => array(
+                'follow_location' => false
+            )
+        )
+    );
+    file_put_contents($filePath, @file_get_contents($circuitImg->url, false, $context));
     return array(
         'path' => $filePath,
         'tmp_file' => $file
