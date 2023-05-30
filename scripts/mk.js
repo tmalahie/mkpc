@@ -11588,13 +11588,17 @@ var challengeRules = {
 		"initLocalVars": function(scope) {
 			clLocalVars.nbItems = 0;
 			clLocalVars.itemsHit = [];
-			clLocalVars.itemsHit.length = oMap.arme.length;
+			setTimeout(function() {
+				clLocalVars.itemsHit.length = oMap.arme.length;
+			});
 		},
 		"initSelected": function(scope) {
-			addChallengeHud("items", {
-				title: toLanguage("Items","Objets"),
-				value: clLocalVars.nbItems,
-				out_of: oMap.arme.length
+			setTimeout(function() {
+				addChallengeHud("items", {
+					title: toLanguage("Items","Objets"),
+					value: clLocalVars.nbItems,
+					out_of: oMap.arme.length
+				});
 			});
 		},
 		"success": function(scope) {
