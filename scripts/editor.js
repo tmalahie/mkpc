@@ -5221,7 +5221,7 @@ var commonTools = {
 							click: function() {
 								var newSpeed = prompt(language ? "Edit bus speed (Default is 1)":"Modifier la vitesse (Défaut 1)", decorData.speed);
 								if ((newSpeed != null) && (newSpeed !== "") && (newSpeed >= 0)) {
-									newSpeed = +newSpeed;
+									newSpeed = Math.min(newSpeed, 100);
 									if (newSpeed !== decorData.speed) {
 										storeHistoryData(self.data);
 										self.state.currentSpeed = newSpeed;
