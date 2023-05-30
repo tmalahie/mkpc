@@ -9516,11 +9516,15 @@ var decorBehaviors = {
 					th = (10000*Math.sin(iG+2))%Math.PI;
 				decorData[4] = th*180/Math.PI;
 			}
+			if (bSelectedMirror) {
+				for (var i=0;i<oPlayers.length;i++)
+					decorData[2][i].div.style.transform = decorData[2][i].div.style.WebkitTransform = decorData[2][i].div.style.MozTransform = "scaleX(-1)";
+			}
 			this.move(decorData);
 		},
 		move:function(decorData) {
 			for (var i=0;i<oPlayers.length;i++) {
-				var fAngle = nearestAngleMirrored(getApparentRotation(getPlayerAtScreen(i))-decorData[4], 180,360);
+				var fAngle = nearestAngle(getApparentRotation(getPlayerAtScreen(i))-decorData[4], 180,360);
 				var x = (fAngle%180)/180;
 				fAngle = 180*Math.floor(fAngle/180) + 180*x;
 				var iAngleStep = Math.round(fAngle*11 / 180) % 22;
