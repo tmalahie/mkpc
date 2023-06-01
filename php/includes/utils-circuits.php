@@ -46,6 +46,8 @@ function toSQLFilter($sql, $params) {
 		$sql .= ' AND nom LIKE "'. toSQLSearch($params['nom']) .'"';
 	if (!empty($params['auteur']))
 		$sql .= ' AND auteur LIKE "'. toSQLSearch($params['auteur']) .'"';
+	if (!empty($params['prefix']))
+		$sql .= ' AND id IN (SELECT circuit FROM mktracksettings WHERE type="'. getCircuitTable($params['type']) .'" AND prefix="'. $params['prefix'] .'")';
 	if (!empty($params['pids'])) {
 		$pids = $params['pids'];
 		$sql .= ' AND identifiant="'.$pids[0].'" AND identifiant2="'.$pids[1].'" AND identifiant3="'.$pids[2].'" AND identifiant4="'.$pids[3].'"';
@@ -152,10 +154,14 @@ function getTracksToLoad($page,$nbByType,$weightsByType,$maxCircuits) {
 	return $res;
 }
 function countTracksByType($aCircuits,&$params) {
-	foreach ($aCircuits as $aCircuit) {
+	$pType = $params['type'];
+	foreach ($aCircuits as $i=>$aCircuit) {
+		if (!$pType)
+			$params['type'] = $i;
 		$nb = countRows($aCircuit,$params);
 		$nbByType[] = $nb;
 	}
+	$params['type'] = $pType;
 	return $nbByType;
 }
 function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()) {
@@ -176,7 +182,10 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 		$nbsToLoadBegin = getTracksToLoad($page-1,$nbByType,$weightsByType,$params['max_circuits']);
 		$nbsToLoadEnd = getTracksToLoad($page,$nbByType,$weightsByType,$params['max_circuits']);
 		$tri = $params['tri'];
+		$pType = $params['type'];
 		foreach ($aCircuits as $i=>$aCircuit) {
+			if (!$pType)
+				$params['type'] = $i;
 			$aList = nextRaces($aCircuit,$nbsToLoadBegin[$i],$nbsToLoadEnd[$i],$params);
 			$creationsList['tracks'] = array_merge($creationsList['tracks'], $aList);
 			if (isset($aList[0])) {
@@ -187,6 +196,7 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 					$creationsList['cups'] = array_merge($creationsList['cups'], $aList);
 			}
 		}
+		$params['type'] = $pType;
 		usort($creationsList['tracks'],"sortCmp$tri");
 		if (isset($params['reverse']))
 			$creationsList['tracks'] = array_reverse($creationsList['tracks']);

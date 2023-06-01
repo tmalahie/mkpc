@@ -99,6 +99,9 @@ main input[type="text"] {
 	width: 100px;
 	padding: 2px;
 }
+main input[type="text"].small {
+	width: 50px;
+}
 main input[type="text"]:hover {
 	background-color: #FFF3A9;
 }
@@ -336,6 +339,7 @@ $tri = isset($_GET['tri']) ? intval($_GET['tri']):0;
 $type = isset($_GET['type']) ? $_GET['type']:'';
 $nom = isset($_GET['nom']) ? stripslashes($_GET['nom']):'';
 $auteur = isset($_GET['auteur']) ? stripslashes($_GET['auteur']):'';
+$prefix = isset($_GET['prefix']) ? stripslashes($_GET['prefix']):'';
 $url = isset($_GET['url']) ? stripslashes($_GET['url']):'';
 $noThumbnail = !empty($_GET['nothumbnail']);
 $pids = null;
@@ -370,6 +374,7 @@ else {
 		'tri' => $tri,
 		'nom' => $nom,
 		'auteur' => $auteur,
+		'prefix' => $prefix,
 		'pids' => $pids,
 		'max_circuits' => $MAX_CIRCUITS,
 	);
@@ -463,6 +468,7 @@ include('../includes/menu.php');
 			<input type="hidden" name="tri" id="tri" value="<?php echo htmlspecialchars($tri); ?>" />
 			<input type="text" name="nom" placeholder="<?php echo $language ? 'Name':'Nom'; ?>" value="<?php echo htmlspecialchars($nom); ?>" />
 			<input type="text" name="auteur" placeholder="<?php echo $language ? 'Author':'Auteur'; ?>" value="<?php echo htmlspecialchars($auteur); ?>" />
+			<input type="text" name="prefix" class="small" placeholder="<?php echo $language ? 'Prefix':'Préfixe'; ?>" value="<?php echo htmlspecialchars($prefix); ?>" />
 			<input type="submit" value="Ok" class="action_button" />
 		</div>
 		<?php
@@ -603,6 +609,7 @@ function defile() {
 			'tri' => $tri,
 			'nom' => $nom,
 			'auteur' => $auteur,
+			'prefix' => $prefix,
 			'user' => $user
 		);
 		if ($noThumbnail)
