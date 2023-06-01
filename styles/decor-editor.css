@@ -358,6 +358,18 @@ h2 {
 .readonly .advanced-option:hover {
 	background-color: transparent;
 }
+.readonly .option-form {
+    pointer-events: none;
+}
+.readonly .option-form a {
+    pointer-events: auto;
+}
+.readonly .option-form-reset {
+    display: none;
+}
+.readonly .option-form-submit {
+    visibility: hidden;
+}
 .advanced-option .option-bg {
     position: relative;
     width: 150px;
