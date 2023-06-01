@@ -393,13 +393,7 @@ function printCircuitShareUI() {
                     <input type="file" name="thumbnail" id="cThumbnail" accept="image/png,image/gif,image/jpeg" /></td></tr>
                 </div>
             </div>
-        <?php
-        if (!$isCup) {
-            ?>
-            <tr class="cAdvanced"><td class="cLabel"><label for="cPrefix"><?php echo $language ? 'Online mode - Prefix':'Mode en ligne - Préfixe'; ?><a class="cHelp" href="javascript:showPrefixHelp()">[?]</a></label></td><td><input type="text" name="prefix" id="cPrefix" value="<?php echo htmlspecialchars($cPrefix); ?>" placeholder="DS" /></td></tr>
-            <?php
-        }
-        ?>
+        <tr class="cAdvanced"><td class="cLabel"><label for="cPrefix"><?php echo $language ? 'Prefix':'Préfixe'; ?><a class="cHelp" href="javascript:showPrefixHelp()">[?]</a><?php echo $language ? ':' : ' :'; ?></label></td><td><input type="text" name="prefix" id="cPrefix" value="<?php echo htmlspecialchars($cPrefix); ?>" placeholder="DS" /></td></tr>
         <tr><td colspan="2" id="cSubmit">
             <div class="cSubmit">
                 <div class="cActions">

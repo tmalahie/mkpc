@@ -104,10 +104,11 @@ function getTrackPayloads($options) {
         $nid = $id;
         $isCup = true;
         $isMCup = true;
-        if ($getMCup = fetchCreationData('mkmcups', $id, array('select' => 'c.nom AS name0,c.*'))) {
+        if ($getMCup = fetchCreationData('mkmcups', $id, array('select' => 'c.nom AS name0,s.prefix,c.*'))) {
             $cName = $getMCup['name'];
             $cName0 = $getMCup['name0'];
             $infos['name'] = $cName;
+            $cPrefix = $getMCup['prefix'];
             $cPseudo = $getMCup['auteur'];
             $cAuteur = $cPseudo;
             $pNote = $getMCup['note'];
@@ -128,10 +129,11 @@ function getTrackPayloads($options) {
         $id = intval($_GET['cid']);
         $nid = $id;
         $isCup = true;
-        if ($getCup = fetchCreationData('mkcups', $id, array('select' => 'c.nom AS name0,c.*'))) {
+        if ($getCup = fetchCreationData('mkcups', $id, array('select' => 'c.nom AS name0,s.prefix,c.*'))) {
             $cName = $getCup['name'];
             $cName0 = $getCup['name0'];
             $infos['name'] = $cName;
+            $cPrefix = $getCup['prefix'];
             $cPseudo = $getCup['auteur'];
             $cAuteur = $cPseudo;
             $pNote = $getCup['note'];
@@ -163,9 +165,10 @@ function getTrackPayloads($options) {
         $isCup = true;
         if (isset($_GET['nid'])) { // Cup being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = fetchCreationData('mkcups', $nid, array('select' => 'c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+            if ($getMain = fetchCreationData('mkcups', $nid, array('select' => 'c.nom AS name0,s.prefix,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
                 $cName = $getMain['name'];
                 $cName0 = $getMain['name0'];
+                $cPrefix = $getMain['prefix'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
                 $pNote = $getMain['note'];
@@ -194,9 +197,10 @@ function getTrackPayloads($options) {
         $isMCup = true;
         if (isset($_GET['nid'])) { // Multicups being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = fetchCreationData('mkmcups', $nid, array('select' => 'c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+            if ($getMain = fetchCreationData('mkmcups', $nid, array('select' => 'c.nom AS name0,s.prefix,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
                 $cName = $getMain['name'];
                 $cName0 = $getMain['name0'];
+                $cPrefix = $getMain['prefix'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
                 $pNote = $getMain['note'];
@@ -262,7 +266,7 @@ function getTrackPayloads($options) {
             $cupById = array();
             $getAllCups = getCreationDataQuery(array(
                 'table' => 'mkcups',
-                'select' => 'c.id,c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3',
+                'select' => 'c.id,c.mode,c.circuit0,c.circuit1,c.circuit2,c.circuit3,s.prefix',
                 'where' => 'c.id IN ('. implode(',',$cupIDs) .')'
             ));
             while ($getCup = mysql_fetch_array($getAllCups)) {
@@ -285,13 +289,16 @@ function getTrackPayloads($options) {
                 }
                 if (isset($cupById[$cupID])) {
                     $cupObj = $cupById[$cupID];
-                    $cupPayloads[] = array(
+                    $cupPayload = array(
                         'id' => $cupObj['id'],
                         'name' => $cupObj['name'],
                         'mode' => $cupObj['mode'],
                         'complete' => ($cupObj['mode'] % 2 > 0),
                         'battle' => ($cupObj['mode'] > 1),
                     );
+                    if ($cupObj['prefix'])
+                        $cupPayload['prefix'] = $cupObj['prefix'];
+                    $cupPayloads[] = $cupPayload;
                 }
             }
         }

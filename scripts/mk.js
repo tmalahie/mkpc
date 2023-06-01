@@ -24386,8 +24386,7 @@ function selectMapScreen(opts) {
 			}
 			else {
 				forceClic4 = false;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 				if (isOnline)
 					document.getElementById("waitrace").style.visibility = "hidden";
 				chatting = false;
@@ -24426,19 +24425,33 @@ function selectMapScreen(opts) {
 		document.getElementById("dMaps").style.width = (25 * iScreenScale) +"px";
 		document.getElementById("dMaps").style.height = (10 * iScreenScale) +"px";
 
-		function defileMaps(fMap) {
+		function defileMaps(mScreenScale, fMap) {
 			if (document.getElementById("maps") && document.getElementById("maps").alt == fMap) {
 				if (fMap % 4 != 0)
 					fMap++;
 				else
 					fMap -= 3;
-				document.getElementById("oMapName").innerHTML = dCircuits[fMap-1];
+				var dMaps = document.getElementById("dMaps");
+				var oMapName = mapNameOf(mScreenScale, fMap-1);
+				dMaps.appendChild(oMapName);
 				document.getElementById("maps").alt = fMap;
 				document.getElementById("maps").src = getMapSelectorSrc(fMap-1);
 				setTimeout(function() {
-					defileMaps(fMap);
+					try {
+						dMaps.removeChild(oMapName);
+					} catch (e) {
+						return;
+					}
+					defileMaps(mScreenScale, fMap);
 				}, 1000);
 			}
+		}
+
+		function clearMapScreen() {
+			document.getElementById("dMaps").style.display = "none";
+			document.getElementById("dMaps").innerHTML = "";
+			oScr.innerHTML = "";
+			oContainers[0].removeChild(oScr);
 		}
 
 		var coupes = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
@@ -24574,20 +24587,33 @@ function selectMapScreen(opts) {
 					oDefMap.className += " mirrored";
 				oDefMap.id = "maps";
 				document.getElementById("dMaps").appendChild(oDefMap);
-				
-				var oMapName = mapNameOf(mScreenScale, this.alt*4);
-				oMapName.id = "oMapName";
-				document.getElementById("dMaps").appendChild(oMapName);
 
 				document.getElementById("dMaps").style.display = "block";
-				defileMaps(this.alt*4+4);
-				if (cupPayloads[this.alt]) {
-					var cupName = cupPayloads[this.alt].name;
+				defileMaps(mScreenScale, this.alt*4+4);
+				var cupPayload = cupPayloads[this.alt];
+				if (cupPayload) {
+					oCupNameDiv.innerHTML = "";
+					var cupName = cupPayload.name;
 					if (cupName) {
-						oCupNameDiv.innerText = cupName;
-						var cupFS = Math.min(Math.max(8/Math.sqrt(cupName.length), 1.45), 3);
+						var cupPrefix = cupPayload.prefix;
+						if (cupPrefix) {
+							var oCupPrefixSpan = document.createElement("span");
+							oCupPrefixSpan.innerText = cupPrefix;
+							oCupPrefixSpan.style.fontSize = "0.7em";
+							oCupNameDiv.appendChild(oCupPrefixSpan);
+						}
+						var oCupNameSpan = document.createElement("span");
+						oCupNameSpan.innerText = cupName;
+						oCupNameDiv.appendChild(oCupNameSpan);
+
+						var fullCupName = cupPrefix ? cupPrefix + cupName : cupName;
+						var cupFS = Math.min(Math.max(8/Math.sqrt(fullCupName.length), 1.45), 3);
 						oCupName.style.fontSize = Math.round(cupFS*iScreenScale) +"px";
 						oCupName.style.display = "flex";
+						oCupNameDiv.style.display = "flex";
+						oCupNameDiv.style.alignItems = "center";
+						oCupNameDiv.style.justifyContent = "center";
+						oCupNameDiv.style.gap = "0.25em";
 					}
 				}
 			}
@@ -24599,11 +24625,7 @@ function selectMapScreen(opts) {
 			}
 
 			oPImg.onclick = function() {
-				document.getElementById("dMaps").style.display = "none";
-
-				document.getElementById("dMaps").innerHTML = "";
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 
 				selectRaceScreen(this.alt*4);
 			}
@@ -24673,8 +24695,7 @@ function selectMapScreen(opts) {
 			
 			oPInput.onclick = function() {
 				forceClic4 = false;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 				chooseRandMap();
 			};
 			oScr.appendChild(oPInput);
@@ -24706,8 +24727,7 @@ function selectMapScreen(opts) {
 			oPrevInput.className = "disablable";
 			oPrevInput.onclick = function() {
 				opts.page--;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 				selectMapScreen(opts);
 			};
 			oPrevInput.disabled = (opts.page <= 0);
@@ -24724,8 +24744,7 @@ function selectMapScreen(opts) {
 			oNextInput.className = "disablable";
 			oNextInput.onclick = function() {
 				opts.page++;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 				selectMapScreen(opts);
 			};
 			oNextInput.disabled = (opts.page >= cupOpts.pages.length);
@@ -24736,16 +24755,12 @@ function selectMapScreen(opts) {
 		if (isOnline) {
 			handleSpectatorLink(function() {
 				forceClic4 = false;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 			});
 
 			setTimeout(function() {
 				if (forceClic4) {
-					document.getElementById("dMaps").style.display = "none";
-					document.getElementById("dMaps").innerHTML = "";
-					oScr.innerHTML = "";
-					oContainers[0].removeChild(oScr);
+					clearMapScreen();
 					chooseRandMap();
 				}
 			}, document.getElementById("racecountdown").innerHTML*1000);
