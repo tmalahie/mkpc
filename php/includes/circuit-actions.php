@@ -2,7 +2,7 @@
 require_once('collabUtils.php');
 include('circuitUser.php');
 function includeShareLib() {
-    global $nid, $creationType, $cName, $cPrefix, $cAuteur, $cDate, $pNote, $pNotes, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $cOptions, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage, $cNote;
+    global $nid, $creationType, $cName, $cPrefix, $cAuteur, $cDate, $pNote, $pNotes, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $cOptions, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage, $cNote, $ctActions;
     $isBattle = ($creationMode > 1);
     $complete = ($creationMode%2);
     include('creation-entities.php');
@@ -18,6 +18,7 @@ function includeShareLib() {
         $canChange = true;
         $canShare = true;
     }
+    $ctActions = getCTActions();
     if ($canChange) {
         if (!$isCup) {
             $shareParams = $CREATION_ENTITIES[$creationMode]['get_share_params']();
@@ -288,14 +289,24 @@ function includeShareLib() {
 	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$creationType); ?>;
     <?php
 }
+function getCTActions() {
+    global $id, $canChange;
+    include('ip_banned.php');
+    if ($canChange)
+        return 'edit';
+    if (isBanned()) return;
+    if (isset($id)) $aId = $id;
+    include('session.php');
+    $res = $id ? 'rate' : null;
+	if (isset($aId)) $id = $aId;
+    return $res;
+}
 
 function printCircuitActions() {
-    global $language, $canChange, $cannotChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $creationMode, $trackEditPage, $nid, $sid, $cShared, $message, $infoMsg;
+    global $language, $cannotChange, $isCup, $isMCup, $isBattle, $canShare, $creator, $creationType, $creationMode, $trackEditPage, $nid, $sid, $cShared, $message, $infoMsg, $ctActions;
     $complete = ($creationMode%2);
-    include('ip_banned.php');
-    if (isBanned())
-        echo '&nbsp;';
-    elseif ($canChange) {
+    switch ($ctActions) {
+    case 'edit':
         $typeStr = $isCup ? ($isMCup ? ($language ? 'multicup':'la multicoupe'):($language ? 'cup':'la coupe')) : ($isBattle ? ($language ? 'arena':'l\'arène') : ($language ? 'circuit':'le circuit'));
         $cupEditPage = $complete ? 'completecup.php' : 'simplecup.php';
         $cupsEditPage = $complete ? 'completecups.php' : 'simplecups.php';
@@ -312,7 +323,7 @@ function printCircuitActions() {
             <br />
             <?php
         }
-        if ($canShare) {
+        if ($canShare && !isBanned()) {
             ?>
         <input type="button" id="shareRace" onclick="toggleShareForm(true)" value="<?php
         if ($cShared)
@@ -326,9 +337,13 @@ function printCircuitActions() {
                 <?php
             }
         }
-    }
-    else
+        break;
+    case 'rate':
         printRatingView($language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':($isBattle?'course':'circuit'))).'!'):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':($isBattle?'cette arène':'ce circuit')))).' !');
+        break;
+    default:
+        echo '&nbsp;';
+    }
 }
 function printCircuitShareUI() {
     global $language, $isCup, $isMCup, $isBattle, $cName0, $cPseudo, $creationType, $nid;

@@ -8,11 +8,8 @@ function getMyRating($type, $circuitId) {
 		return 0;
 }
 function printRatingView($title) {
-	global $language, $id, $cNote;
-	if (isset($id)) $aId = $id;
-	include('session.php');
-	if ($id) {
-		?>
+	global $language, $cNote;
+	?>
 	<p id="markMsg"><?php echo $title; ?></p>
 	<?php
 	function addStar($i, $a, $apreciation) {
@@ -25,9 +22,7 @@ function printRatingView($title) {
 		addStar($i, 0, $apreciations[$i]);
 	?><br />
 	<input type="button" id="submitMark" value="<?php echo $language ? 'Submit':'Valider'; ?>" disabled="disabled" class="cannotChange" onclick="sendMark();" /></td>
-		<?php
-	}
-	if (isset($aId)) $id = $aId;
+	<?php
 }
 function recomputeRating($type, $circuitId) {
 	include('circuitTables.php');

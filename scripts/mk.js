@@ -27150,7 +27150,7 @@ function displayCommands(html) {
 			html = "";
 		}
 		var emptyCommands = !html;
-		$commandes.innerHTML = (html||"")+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit"'+ (emptyCommands ? ' class="nocommand"':'') +' title="'+toLanguage("More settings","Plus de paramètres")+'" />';
+		$commandes.innerHTML = (emptyCommands ? "" : ('<div class="commandes-list">'+html+'</div>'))+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit"'+ (emptyCommands ? ' class="nocommand"':'') +' title="'+toLanguage("More settings","Plus de paramètres")+'" />';
 		document.getElementById("commandes-edit").onclick = function() {
 			editCommands();
 		};

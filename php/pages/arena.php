@@ -109,11 +109,12 @@ includeShareLib();
 
 <form name="modes" method="get" action="#null" onsubmit="return false">
 <div id="options-ctn">
-<table cellpadding="3" cellspacing="0" border="0" id="options">
+<table cellpadding="3" cellspacing="0" border="0" id="options"<?php if ($ctActions) echo ' class="ct-actions"'; ?>>
 <tr>
 <td id="pSize">&nbsp;</td>
 <td id="vSize">
 </td>
+<td rowspan="4" id="commandes">&nbsp;</td>
 <td rowspan="4" id="shareParams">
 <?php
 if ($canChange && !$isCup && !isset($infos['o0'])) {

@@ -40,11 +40,19 @@
 	opacity: 0.5;
 	cursor: pointer;
 }
-#commandes-edit.nocommand {
+@media screen and (max-width: 399px) {
+	#options.ct-actions #commandes {
+		display: none;
+	}
+}
+#commandes-edit.nocommand, #options.ct-actions #commandes-edit {
 	left: 20px;
 }
 #commandes-edit:hover {
 	opacity: 1;
+}
+#options.ct-actions #commandes .commandes-list {
+	display: none;
 }
 #control-editor-mask {
 	position: fixed;
@@ -481,6 +489,11 @@ button.control-close:active {
 	width: 200px;
 	font-weight: bold
 }
+@media screen and (min-width: 400px) {
+	#options.ct-actions #markMsg {
+		width: auto;
+	}
+}
 form[name="modes"] {
 	position: absolute;
 	left: 10px;
@@ -786,7 +799,8 @@ form[name="modes"] {
 }
 @media screen and (min-width: 600px) {
 	#shareParams {
-		padding: 0 25px !important;
+		padding-left: 10px !important;
+		padding-right: 25px !important;
 	}
 }
 #shareParams {
