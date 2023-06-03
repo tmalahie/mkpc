@@ -201,7 +201,7 @@ function countRows($sql,&$params) {
 	return $count['nb'];
 }
 function escape($str) {
-	return str_replace('</script>', '<\/script>', str_replace('%u', '\\u', str_replace('"', '\\"', str_replace('\\', '\\\\', $str))));
+	return str_replace('%u', '\\u', json_encode($str));
 }
 function addCircuitsData(&$creationsList, &$params) {
 	global $language;
@@ -444,16 +444,16 @@ function circuitPayload(&$circuit) {
 	return '{'.
 		'"id":'.$circuit['id'].','.
 		'"category":'.$circuit['category'].','.
-		'"name":"'.escape($circuit['nom']).'",'.
-		'"author":"'.escape($circuit['auteur']).'",'.
-		(isset($circuit['prefix']) ? '"prefix":"'.$circuit['prefix'].'",':'').
+		'"name":'.escape($circuit['nom']).','.
+		'"author":'.escape($circuit['auteur']).','.
+		(isset($circuit['prefix']) ? '"prefix":'.escape($circuit['prefix']).',':'').
 		'"note":'.$circuit['note'].','.
 		'"nbnotes":'.$circuit['nbnotes'].','.
 		'"nbcomments":'.$circuit['nbcomments'].','.
 		'"srcs":["'.implode('","',$circuit['srcs']).'"],'.
 		'"href":"'.$circuit['href'].'",'.
 		(isset($circuit['icon']) ? '"icon":["'.implode('","',$circuit['icon']).'"],':'').
-		'"cicon":"'.escape($circuit['cicon']).'"'.
+		'"cicon":'.escape($circuit['cicon']).
 	'}';
 }
 function getCircuitTable($cType) {
