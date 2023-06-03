@@ -154,14 +154,14 @@ function getTracksToLoad($page,$nbByType,$weightsByType,$maxCircuits) {
 	return $res;
 }
 function countTracksByType($aCircuits,&$params) {
-	$pType = $params['type'];
+	if (isset($params['type'])) $pType = $params['type'];
 	foreach ($aCircuits as $i=>$aCircuit) {
-		if (!$pType)
+		if (empty($pType))
 			$params['type'] = $i;
 		$nb = countRows($aCircuit,$params);
 		$nbByType[] = $nb;
 	}
-	$params['type'] = $pType;
+	if (isset($pType)) $params['type'] = $pType;
 	return $nbByType;
 }
 function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()) {
@@ -182,9 +182,9 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 		$nbsToLoadBegin = getTracksToLoad($page-1,$nbByType,$weightsByType,$params['max_circuits']);
 		$nbsToLoadEnd = getTracksToLoad($page,$nbByType,$weightsByType,$params['max_circuits']);
 		$tri = $params['tri'];
-		$pType = $params['type'];
+		if (isset($params['type'])) $pType = $params['type'];
 		foreach ($aCircuits as $i=>$aCircuit) {
-			if (!$pType)
+			if (empty($pType))
 				$params['type'] = $i;
 			$aList = nextRaces($aCircuit,$nbsToLoadBegin[$i],$nbsToLoadEnd[$i],$params);
 			$creationsList['tracks'] = array_merge($creationsList['tracks'], $aList);
@@ -196,7 +196,7 @@ function listCreations($page,$nbByType,$weightsByType,$aCircuits,$params=array()
 					$creationsList['cups'] = array_merge($creationsList['cups'], $aList);
 			}
 		}
-		$params['type'] = $pType;
+		if (isset($pType)) $params['type'] = $pType;
 		usort($creationsList['tracks'],"sortCmp$tri");
 		if (isset($params['reverse']))
 			$creationsList['tracks'] = array_reverse($creationsList['tracks']);

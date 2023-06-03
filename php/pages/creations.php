@@ -99,6 +99,11 @@ main input[type="text"] {
 	width: 100px;
 	padding: 2px;
 }
+@media screen and (max-width: 500px) {
+	main input[type="text"] {
+		width: 60px;
+	}
+}
 main input[type="text"].small {
 	width: 50px;
 }
