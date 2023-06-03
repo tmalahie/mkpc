@@ -88,6 +88,9 @@
 	div#message-reactions {
 		z-index: 20001;
 	}
+	div#message-reactions-details {
+		z-index: 20001;
+	}
 }
 #comments-section h1 {
 	margin: 5px;
