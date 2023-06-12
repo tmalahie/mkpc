@@ -140,7 +140,7 @@ case 'mk8d':
     $teams = array(
         $playInStage => array(
             "$group I" => array(
-                //'header' => $language ? "Eastern Europe: all of Eastern Europe.\nNordic: all of nordic countries and territories.\nCentroamerica: Belize, El Salvador, Nicaragua and Panama." : "Europe de l'Est: toute l'Europe de l'Est.\nNordique: l'ensemble des pays et territoires nordiques.\nAmérique Centrale: Belize, Salvador, Nicaragua et Panama.",
+                'header' => $language ? "Caledonbria: Scotland and Wales\nEastern Europe: all of Eastern Europe." : "Caledonbria : Ecosse et Pays de Galles\nEurope de l'Est : toute l'Europe de l'Est.",
                 'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mk8d/2023.html',
                 'list' => array(
                     'cri'=> $language ? 'Costa Rica':'Costa Rica',
@@ -168,7 +168,7 @@ case 'mk8d':
         ),
         $groupStage => array(
             "$group 1" => array(
-                //'header' => $language ? "Eastern Europe: all of Eastern Europe.\nNordic: all of nordic countries and territories.\nCentroamerica: Belize, El Salvador, Nicaragua and Panama." : "Europe de l'Est: toute l'Europe de l'Est.\nNordique: l'ensemble des pays et territoires nordiques.\nAmérique Centrale: Belize, Salvador, Nicaragua et Panama.",
+                'header' => $language ? "Nordic: all of nordic countries and territories." : "Nordique : l'ensemble des pays et territoires nordiques.",
                 'list' => array(
                     'bel'=> $language ? 'Belgium':'Belgique',
                     'aus'=> $language ? 'Australia':'Australie',
