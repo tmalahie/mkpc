@@ -559,6 +559,17 @@ $clRulesByType = array(
 				$scope->value = json_encode($scope->value);
 			}
 		),
+		'custom_music' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'custom music...':'changer la musique...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				if (empty($scope['yt']))
+					$scope['value'] = intval($scope['value']);
+				else
+					$scope['value'] = 0;
+			}
+		),
 		'auto_accelerate' => array(
 			'description' => $language ? 'while constantly accelerating' : 'en accélérant en continu',
 			'description_mockup' => $language ? 'auto accelerate':'auto-accélérer',

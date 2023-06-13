@@ -202,6 +202,12 @@ body a.challenge-action-edit:hover {
 	margin-top: 5px;
 	display: none;
 }
+.challenge-rule-music-source {
+	font-size: 0.8em;
+}
+.challenge-rule-music-value {
+	display: none;
+}
 .challenge-edit-form input[type="text"], .challenge-edit-form input[type="number"] {
 	background-color: #EEF3FF;
 	border-radius: 4px;

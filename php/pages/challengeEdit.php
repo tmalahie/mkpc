@@ -537,6 +537,26 @@ function addConstraintRule(clClass) {
 				$extraSelector.append('<button type="button" data-value="'+ itemOption +'" data-rule-key="item_distribution" style="background-image:url(\''+ itemIcon +'\')" onclick="toggleItem(this)"></button>');
 			}
 			break;
+		case 'custom_music':
+			$form.html(
+				'<div>'+ (language?'Music:':'Musique :') +' '+
+				'<div class="challenge-rule-music-source">'+
+				'<label><input type="radio" name="scope_music_source" onclick="toggleMusicOption(0)" checked="checked" value="1" />'+ (language ? "MKPC track music":"Circuits MKPC") + '</label> &nbsp; '+
+				'<label><input type="radio" name="scope_music_source" onclick="toggleMusicOption(1)" value="0" /> '+ (language ? "Youtube music":"Youtube") + '</label>' +
+				'</div>'+
+				'<div class="challenge-rule-music-value challenge-rule-music-value-base">'+
+				'<select class="challenge-constraint-value" name="scope[custom_music][value]">'+
+				'</select>'+
+				'</div>'+
+				'<div class="challenge-rule-music-value challenge-rule-music-value-youtube">'+
+				'<label>'+ (language ? "Youtube URL:":"URL Youtube :") +' '+
+				'<input type="text" class="challenge-constraint-value" name="scope[custom_music][yt]" placeholder="https://www.youtube.com/watch?v=NNMy4DKKDFA" />'+
+				'</label>'+
+				'</div>'+
+				'</div>'
+			);
+			initMusicOptions($form.find("select[name='scope[custom_music][value]']"));
+			break;
 		case 'balloons':
 			addConstraintNb($form,ruleId, language?'Nb balloons:':'Nb ballons :',{attrs:{min:0},css:{width:'30px'}});
 			break;
@@ -781,6 +801,37 @@ function selectNbCoins() {
 function selectNbDecors() {
 	document.forms[0].elements["goal_decors_all"].value = 0;
 }
+function toggleMusicOption(option) {
+	if (option == 1) {
+		$(".challenge-rule-music-value-base").hide();
+		$(".challenge-rule-music-value-youtube").show();
+		$('input[name="scope[custom_music][yt]"]').focus();
+	}
+	else {
+		$(".challenge-rule-music-value-youtube").hide();
+		$(".challenge-rule-music-value-base").show();
+		$('input[name="scope[custom_music][yt]"]').val('');
+	}
+}
+function initMusicOptions($select) {
+	var musicOptions = {
+		'SNES': language ? ['Mario Circuit', 'Donut Plains', 'Koopa Beach', 'Choco Island', 'Vanilla Lake', 'Ghost Valley', 'Bowser Castle', 'Rainbow Road', 'Battle Course'] : ['Circuit Mario', 'Plaine Donut', 'Plage Koopa', 'Île Choco', 'Lac Vanille', 'Vallée Fantôme', 'Château de Bowser', 'Route Arc-en-Ciel', 'Arène Bataille'],
+		'GBA': language ? ['Mario Circuit', 'Shy Guy Beach', 'Riverside Park', 'Bowser Castle', 'Boo Lake', 'Cheese Land', 'Sky Garden', 'Sunset Wilds', 'Snow Land', 'Ribbon Road', 'Yoshi Desert', 'Lakeside Park', 'Rainbow Road', 'Battle Course'] : ['Circuit Mario', 'Plage Maskass', 'Bord du Fleuve', 'Château de Bowser', 'Lac Boo', 'Pays Fromage', 'Jardin Volant', 'Pays Crépuscule', 'Royaume Sorbet', 'Route Ruban', 'Désert Yoshi', 'Bord du Lac', 'Route Arc-en-Ciel', 'Arène Bataille'],
+		'DS': language ? ['Figure 8 Circuit','Yoshi Falls','Cheep Cheep Beach','Luigi\'s Mansion','Desert Hills','Delfino Square','Waluigi Pinball','Shroom Ridge','DK Pass','Tick-Tock Clock','Airship Fortress','Peach Gardens','Bowser\'s Castle', 'Rainbow Road', 'Nintendo DS', 'Twilight House', 'Palm Shore', 'Tart Top'] : ['Circuit en 8', 'Cascade Yoshi', 'Plage Cheep-Cheep', 'Manoir de Luigi', 'Désert du Soleil', 'Quartier Delfino', 'Flipper Waluigi', 'Corniche Champignon', 'Alpes DK', 'Horloge Tic-Tac', 'Bateau Volant', 'Jardin Peach', 'Château de Bowser', 'Route Arc-en-Ciel', 'Nintendo DS', 'Maison de l\'Aube', 'Feuille de Palmier', 'Tarte Sucrée']
+	};
+	var inc = 0;
+	for (var group in musicOptions) {
+		var $optgroup = $('<optgroup label="'+ group +'"></optgroup>');
+		var groupOptions = musicOptions[group];
+		for (var i=0;i<groupOptions.length;i++) {
+			inc++;
+			var option = groupOptions[i];
+			$optgroup.append('<option value="'+ inc +'">'+ option +'</option>');
+		}
+		$select.append($optgroup);
+	}
+	toggleMusicOption(0);
+}
 function toggleDecor(btn, label) {
 	var ruleType = btn.dataset.ruleType;
 	var ruleKey = btn.dataset.ruleKey;
@@ -944,6 +995,14 @@ $(function() {
 							var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='item_distribution'][data-value='"+ constraint.value[k] +"']");
 							if (btn)
 								toggleItem(btn);
+						}
+						break;
+					case "custom_music":
+						if (constraint.yt) {
+							toggleMusicOption(1);
+							mainForm.elements["scope_music_source"][1].checked = true;
+							mainForm.elements["scope[custom_music][yt]"].value = constraint.yt;
+							mainForm.elements["scope[custom_music][value]"].selectedIndex = 0;
 						}
 						break;
 					case "cc":

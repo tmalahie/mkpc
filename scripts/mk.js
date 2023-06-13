@@ -1491,6 +1491,15 @@ function classifyByShape(shapes, callback) {
 	return res;
 }
 function initMap() {
+	if (clSelected) {
+		var challengeData = clSelected.data;
+		var chRules = listChallengeRules(challengeData);
+		for (var j=0;j<chRules.length;j++) {
+			var rule = chRules[j];
+			if (challengeRules[rule.type].preinitSelected)
+				challengeRules[rule.type].preinitSelected(rule);
+		}
+	}
 	if (oMap.collision) {
 		var collisionProps = {rectangle:{},polygon:{}};
 		oMap.collision = classifyByShape(oMap.collision, oMap.collisionProps && function(i,j, shapeType) {
@@ -2502,7 +2511,7 @@ var mapMusic, lastMapMusic, endingMusic, endGPMusic, challengeMusic, carEngine, 
 var willPlayEndMusic = false, isEndMusicPlayed = false;
 var forceStartMusic = false;
 var forcePrepareEnding = false;
-function loadMapMusic() {	
+function loadMapMusic() {
 	startMapMusic(false);
 	loadEndingMusic();
 	mapMusic.blur();
@@ -12002,6 +12011,16 @@ var challengeRules = {
 		},
 		"success": function(scope, ruleVars) {
 			return !!ruleVars.selected;
+		}
+	},
+	"custom_music": {
+		"preinitSelected": function(scope) {
+			oMap.music = scope.value;
+			oMap.yt = scope.yt;
+			delete oMap.yt_opts;
+		},
+		"success": function() {
+			return true;
 		}
 	},
 	"character": {
