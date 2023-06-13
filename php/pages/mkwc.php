@@ -7,6 +7,7 @@ $console = isset($_GET['console']) ? $_GET['console'] : null;
 $year = 2023;
 $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
+$lowerStage = $language ? 'Lower Group Stage':'Phase de Groupe inférieure';
 $upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
@@ -166,7 +167,7 @@ case 'mk8d':
                 )
             )
         ),
-        $groupStage => array(
+        $lowerStage => array(
             "$group 1" => array(
                 'header' => $language ? "Nordic: all of nordic countries and territories." : "Nordique : l'ensemble des pays et territoires nordiques.",
                 'list' => array(
