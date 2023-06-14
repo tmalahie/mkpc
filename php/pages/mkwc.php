@@ -173,7 +173,7 @@ case 'mk8d':
                 'list' => array(
                     'bel'=> $language ? 'Belgium':'Belgique',
                     'aus'=> $language ? 'Australia':'Australie',
-                    'nor'=> $language ? 'Nordic':'Nordique',
+                    'nrd'=> $language ? 'Nordic':'Nordique',
                     'pin0'=> $language ? 'TBD':'TBD'
                 )
             ),
