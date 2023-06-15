@@ -17,7 +17,7 @@ switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
     $teams = array(
-        $groupStage => array(
+        $playInStage => array(
             "$group I" => array(
                 'header' => $language ? "Asia: all of Asia except Japan and India" : "Asie: toute l'Asie sauf Japon et Inde.",
                 'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mkwii/2023.html',
@@ -58,8 +58,8 @@ case 'mkw':
                 'list' => array(
                     'usn'=> $language ? 'United States North':'États-Unis du Nord',
                     'uss'=> $language ? 'United States South':'États-Unis du Sud',
-                    'pin0'=> $language ? 'TBD':'TBD',
-                    'pin1'=> $language ? 'TBD':'TBD'
+                    'pin0'=> $playIn,
+                    'pin1'=> $playIn
                 )
             )
         )
@@ -186,7 +186,7 @@ case 'mk8d':
                     'bel'=> $language ? 'Belgium':'Belgique',
                     'aus'=> $language ? 'Australia':'Australie',
                     'nrd'=> $language ? 'Nordic':'Nordique',
-                    'pin0'=> $language ? 'TBD':'TBD'
+                    'pin0'=> $playIn
                 )
             ),
             "$group 2" => array(
@@ -194,23 +194,23 @@ case 'mk8d':
                     'swi'=> $language ? 'Switzerland':'Suisse',
                     'per'=> $language ? 'Peru':'Pérou',
                     'bra'=> $language ? 'Brazil':'Brésil',
-                    'pin0'=> $language ? 'TBD':'TBD'
+                    'pin0'=> $playIn
                 )
             ),
             "$group 3" => array(
                 'list' => array(
                     'net'=> $language ? 'Netherlands':'Pays-Bas',
                     'ire'=> $language ? 'Ireland':'Irlande',
-                    'pin0'=> $language ? 'TBD':'TBD',
-                    'pin1'=> $language ? 'TBD':'TBD'
+                    'pin0'=> $playIn,
+                    'pin1'=> $playIn
                 )
             ),
             "$group 4" => array(
                 'list' => array(
                     'chi'=> $language ? 'Chile':'Chili',
                     'aut'=> $language ? 'Austria':'Autriche',
-                    'pin0'=> $language ? 'TBD':'TBD',
-                    'pin1'=> $language ? 'TBD':'TBD'
+                    'pin0'=> $playIn,
+                    'pin1'=> $playIn
                 )
             )
         ),
@@ -262,6 +262,7 @@ if ($console && !$isPollClosed && isset($_POST['vote'])) {
             $success .= '<a href="#mVotesTitle" onclick="showOtherVotes()">'. ($language ? 'See other members\' bets':'Voir les paris des autres membres') .'</a>';
             $success .= '<br />';
             $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
+            $success .= '<br />';
             $success .= '<a href="news.php?id=15109">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
