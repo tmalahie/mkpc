@@ -9,6 +9,7 @@ $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
 $lowerStage = $language ? 'Lower Group Stage':'Phase de Groupe inférieure';
 $upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
+$swissStage = $language ? 'Swiss Stage':'Ronde Suisse';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
 $isPollClosed = false;//(time() > 1657335600);
@@ -17,44 +18,55 @@ case 'mkw':
     $consoleName = 'Mario Kart Wii';
     $teams = array(
         $groupStage => array(
-            "$group A" => array(
-                //'header' => $language ? "Asia: all of Asia, outside of Japan.\nLatin America: all of Latin America, outside of Brazil." : "Asie: toute l'Asie, sauf le Japon.\nAmérique Latine: toute l'Amérique Latine, sauf le Brésil.",
+            "$group I" => array(
+                'header' => $language ? "Asia: all of Asia except Japan and India" : "Asie: toute l'Asie sauf Japon et Inde.",
                 'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mkwii/2023.html',
                 'list' => array(
-                    'uss'=> $language ? 'United States South':'États-Unis du Sud',
-                    'aus'=> $language ? 'Australia':'Australie',
+                    'asi'=> $language ? 'Asia':'Asie',
                     'ita'=> $language ? 'Italy':'Italie',
-                    'asi'=> $language ? 'Asia':'Asie'
+                    'mag'=> $language ? 'Maghreb':'Maghreb',
+                    'spa'=> $language ? 'Spain':'Espagne'
+                )
+            )
+                ),
+        $swissStage => array(
+            "$group 1" => array(
+                'list' => array(
+                    'aus'=> $language ? 'Australia':'Australie',
+                    'bnl'=> $language ? 'Benelux':'Benelux',
+                    'can'=> $language ? 'Canada':'Canada',
+                    'eng'=> $language ? 'England':'Angleterre'
                 )
             ),
-            "$group B" => array(
+            "$group 2" => array(
                 'list' => array(
-                    'usn'=> $language ? 'United States North':'États-Unis du Nord',
-                    'lta'=> $language ? 'Latin America':'Amerique Latine',
-                    'den'=> $language ? 'Denmark':'Danemark',
+                    'fra'=> $language ? 'France':'France',
+                    'ger'=> $language ? 'Germany':'Allemagne',
+                    'ind'=> $language ? 'India':'Inde',
                     'ire'=> $language ? 'Ireland':'Irlande'
                 )
             ),
-            "$group C" => array(
+            "$group 3" => array(
                 'list' => array(
-                    'eng'=> $language ? 'England':'Angleterre',
+                    'jap'=> $language ? 'Japan':'Japon',
+                    'lta'=> $language ? 'Latin America':'Amérique Latine',
                     'nor'=> $language ? 'Norway':'Norvège',
-                    'can'=> $language ? 'Canada':'Canada',
                     'sco'=> $language ? 'Scotland':'Écosse'
                 )
             ),
-            "$group D" => array(
+            "$group 4" => array(
                 'list' => array(
-                    'jap'=> $language ? 'Japan':'Japon',
-                    'ger'=> $language ? 'Germany':'Allemagne',
-                    'fra'=> $language ? 'France':'France',
-                    'gre'=> $language ? 'Greece':'Grèce'
+                    'usn'=> $language ? 'United States North':'États-Unis du Nord',
+                    'uss'=> $language ? 'United States South':'États-Unis du Sud',
+                    'pin0'=> $language ? 'TBD':'TBD',
+                    'pin1'=> $language ? 'TBD':'TBD'
                 )
             )
         )
     );
     break;
 case 'mkt':
+    if (true) break;
     $consoleName = 'Mario Kart Tour';
     $teams = array(
         $playInStage => array(
@@ -249,7 +261,7 @@ if ($console && !$isPollClosed && isset($_POST['vote'])) {
             $success .= '<br />';
             $success .= '<a href="#mVotesTitle" onclick="showOtherVotes()">'. ($language ? 'See other members\' bets':'Voir les paris des autres membres') .'</a>';
             $success .= '<br />';
-            //$success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
+            $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
             $success .= '<a href="news.php?id=14697">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
@@ -868,14 +880,14 @@ if ($id) {
                                     Mario Kart 8 Deluxe
                                 </div>
                             </a>
-                            <a href="?console=mkt">
+                            <!--<a href="?console=mkt">
                                 <div class="mDescriptionConsoleHeader">
                                     <img src="images/mkwc/header-mkt.png" alt="Mario Kart Tour" />
                                 </div>
                                 <div class="mDescriptionConsoleLabel">
                                     Mario Kart Tour
                                 </div>
-                            </a>
+                            </a>-->
                         </div>
                             <?php
                         }
