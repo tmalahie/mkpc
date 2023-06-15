@@ -262,7 +262,7 @@ if ($console && !$isPollClosed && isset($_POST['vote'])) {
             $success .= '<a href="#mVotesTitle" onclick="showOtherVotes()">'. ($language ? 'See other members\' bets':'Voir les paris des autres membres') .'</a>';
             $success .= '<br />';
             $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
-            $success .= '<a href="news.php?id=14697">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
+            $success .= '<a href="news.php?id=15109">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
         else {
@@ -901,7 +901,7 @@ if ($id) {
             if (isset($console))
                 echo '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour à la liste des tournois') .'</a><br />';
             ?>
-            <a href="news.php?id=14697"><?php echo $language ? 'Back to MKWC news':'Retour à la news MKWC'; ?></a><br />
+            <a href="news.php?id=15109"><?php echo $language ? 'Back to MKWC news':'Retour à la news MKWC'; ?></a><br />
             <a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
         </p>
     </main>
