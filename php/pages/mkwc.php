@@ -28,9 +28,10 @@ case 'mkw':
                     'spa'=> $language ? 'Spain':'Espagne'
                 )
             )
-                ),
+        ),
         $swissStage => array(
             array(
+                'single' => true,
                 'list' => array(
                     'aus'=> $language ? 'Australia':'Australie',
                     'bnl'=> $language ? 'Benelux':'Benelux',
@@ -435,6 +436,13 @@ if ($id) {
             .mTeamsTd {
                 width: 230px;
             }
+            .mTeamsTd.mTeamsSg {
+                width: 460px;
+            }
+            .mTeamsTd.mTeamsSg .mTeamsTf {
+                display: grid;
+                grid-template-columns: auto auto;
+            }
             .mTeamsTd:not(:first-child) {
                 border-left: 0;
             }
@@ -793,8 +801,9 @@ if ($id) {
                                         echo '<div class="mTeamsTr">';
                                         foreach ($group12 as $j=>$group) {
                                             if ($group === null) break;
-                                            echo '<div class="mTeamsTd">';
-                                            if (!is_numeric($name12[$j]))
+                                            $single = !empty($group['single']);
+                                            echo '<div class="mTeamsTd'.($single ? ' mTeamsSg':'').'">';
+                                            if (!$single)
                                                 echo '<div class="mTeamsTh">'. $name12[$j] .'</div>';
                                             echo '<div class="mTeamsTf">';
                                             foreach ($group['list'] as $code => $country) {
