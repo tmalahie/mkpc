@@ -3,64 +3,61 @@ include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/session.php');
 include('../includes/initdb.php');
-$console = isset($_GET['console']) ? $_GET['console'] : null;
-$year = 2023;
+$console = 'mkt';//isset($_GET['console']) ? $_GET['console'] : null;
+$year = 2022;
 $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
-$lowerStage = $language ? 'Lower Group Stage':'Phase de Groupe inférieure';
-$upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
-$swissStage = $language ? 'Swiss Stage':'Ronde Suisse';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
-$isPollClosed = false;//(time() > 1657335600);
+$isPollClosed = true;//(time() > 1657335600);
 switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
     $teams = array(
-        $playInStage => array(
-            "$group I" => array(
-                'header' => $language ? "Asia: all of Asia except Japan and India" : "Asie: toute l'Asie sauf Japon et Inde.",
-                'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mkwii/2023.html',
+        $groupStage => array(
+            "$group A" => array(
+                'header' => $language ? "Asia: all of Asia, outside of Japan.\nLatin America: all of Latin America, outside of Brazil." : "Asie: toute l'Asie, sauf le Japon.\nAmérique Latine: toute l'Amérique Latine, sauf le Brésil.",
+                'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mkwii/2021.html',
                 'list' => array(
-                    'asi'=> $language ? 'Asia':'Asie',
-                    'ita'=> $language ? 'Italy':'Italie',
-                    'mag'=> $language ? 'Maghreb':'Maghreb',
-                    'spa'=> $language ? 'Spain':'Espagne'
-                )
-            )
-        ),
-        $swissStage => array(
-            array(
-                'single' => true,
-                'list' => array(
-                    'aus'=> $language ? 'Australia':'Australie',
-                    'bnl'=> $language ? 'Benelux':'Benelux',
-                    'can'=> $language ? 'Canada':'Canada',
-                    'eng'=> $language ? 'England':'Angleterre',
-                    'fra'=> $language ? 'France':'France',
-                    'ger'=> $language ? 'Germany':'Allemagne',
-                    'ind'=> $language ? 'India':'Inde',
-                    'ire'=> $language ? 'Ireland':'Irlande',
-                    'jap'=> $language ? 'Japan':'Japon',
-                    'lta'=> $language ? 'Latin America':'Amérique Latine',
-                    'nor'=> $language ? 'Norway':'Norvège',
-                    'sco'=> $language ? 'Scotland':'Écosse',
-                    'usn'=> $language ? 'United States North':'États-Unis du Nord',
                     'uss'=> $language ? 'United States South':'États-Unis du Sud',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'aus'=> $language ? 'Australia':'Australie',
+                    'ita'=> $language ? 'Italy':'Italie',
+                    'asi'=> $language ? 'Asia':'Asie'
+                )
+            ),
+            "$group B" => array(
+                'list' => array(
+                    'usn'=> $language ? 'United States North':'États-Unis du Nord',
+                    'lta'=> $language ? 'Latin America':'Amerique Latine',
+                    'den'=> $language ? 'Denmark':'Danemark',
+                    'ire'=> $language ? 'Ireland':'Irlande'
+                )
+            ),
+            "$group C" => array(
+                'list' => array(
+                    'eng'=> $language ? 'England':'Angleterre',
+                    'nor'=> $language ? 'Norway':'Norvège',
+                    'can'=> $language ? 'Canada':'Canada',
+                    'sco'=> $language ? 'Scotland':'Écosse'
+                )
+            ),
+            "$group D" => array(
+                'list' => array(
+                    'jap'=> $language ? 'Japan':'Japon',
+                    'ger'=> $language ? 'Germany':'Allemagne',
+                    'fra'=> $language ? 'France':'France',
+                    'gre'=> $language ? 'Greece':'Grèce'
                 )
             )
         )
     );
     break;
 case 'mkt':
-    if (true) break;
     $consoleName = 'Mario Kart Tour';
     $teams = array(
         $playInStage => array(
             "$group 1" => array(
-                'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mkt/2023.html',
+                'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mkt/2022.html',
                 'list' => array(
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'pan'=> $language ? 'Panama':'Panama',
@@ -140,85 +137,43 @@ case 'mkt':
 case 'mk8d':
     $consoleName = 'Mario Kart 8 Deluxe';
     $teams = array(
-        $playInStage => array(
-            "$group I" => array(
-                'header' => $language ? "Caledonbria: Scotland and Wales\nEastern Europe: all of Eastern Europe." : "Caledonbria : Ecosse et Pays de Galles\nEurope de l'Est : toute l'Europe de l'Est.",
-                'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mk8d/2023.html',
-                'list' => array(
-                    'cri'=> $language ? 'Costa Rica':'Costa Rica',
-                    'cal'=> $language ? 'Caledonbria':'Caledonbria',
-                    'pri'=> $language ? 'Puerto Rico':'Puerto Rico',
-                    'lux'=> $language ? 'Luxembourg':'Luxembourg'
-                )
-            ),
-            "$group II" => array(
-                'list' => array(
-                    'mag'=> $language ? 'Maghreb':'Maghreb',
-                    'kor'=> $language ? 'South Korea':'Corée du Sud',
-                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
-                    'por'=> $language ? 'Portugal':'Portugal'
-                )
-            ),
-            "$group III" => array(
-                'list' => array(
-                    'col'=> $language ? 'Colombia':'Colombie',
-                    'chn'=> $language ? 'China':'Chine',
-                    'aru'=> $language ? 'Argentina-Uruguay':'Argentine-Uruguay',
-                    'hkt'=> $language ? 'Hong Kong-Taiwan':'Hong Kong-Taiwan'
-                )
-            )
-        ),
-        $upperStage => array(
-            "$group A" => array(
-                //'header' => $language ? "Eastern Europe: all of Eastern Europe.\nNordic: all of nordic countries and territories.\nCentroamerica: Belize, El Salvador, Nicaragua and Panama." : "Europe de l'Est: toute l'Europe de l'Est.\nNordique: l'ensemble des pays et territoires nordiques.\nAmérique Centrale: Belize, Salvador, Nicaragua et Panama.",
-                'list' => array(
-                    'fra'=> $language ? 'France':'France',
-                    'eng'=> $language ? 'England':'Angleterre',
-                    'usa'=> $language ? 'United States':'États-Unis',
-                    'mex'=> $language ? 'Mexico':'Mexique',
-                )
-            ),
-            "$group B" => array(
+        $groupStage => array(
+            "$group E" => array(
+                'header' => $language ? "Eastern Europe: all of Eastern Europe.\nNordic: all of nordic countries and territories.\nCentroamerica: Belize, El Salvador, Nicaragua and Panama." : "Europe de l'Est: toute l'Europe de l'Est.\nNordique: l'ensemble des pays et territoires nordiques.\nAmérique Centrale: Belize, Salvador, Nicaragua et Panama.",
+                'url' => 'https://mariokartworldcup.000webhostapp.com/world_cup/mk8d/2021.html',
                 'list' => array(
                     'jap'=> $language ? 'Japan':'Japon',
                     'ger'=> $language ? 'Germany':'Allemagne',
-                    'spa'=> $language ? 'Spain':'Espagne',
-                    'can'=> $language ? 'Canada':'Canada',
-                )
-            )
-        ),
-        $lowerStage => array(
-            "$group 1" => array(
-                'header' => $language ? "Nordic: all of nordic countries and territories." : "Nordique : l'ensemble des pays et territoires nordiques.",
-                'list' => array(
-                    'bel'=> $language ? 'Belgium':'Belgique',
+                    'chn'=> $language ? 'China':'Chine',
                     'aus'=> $language ? 'Australia':'Australie',
-                    'nrd'=> $language ? 'Nordic':'Nordique',
-                    'pin0'=> $playIn
+                    'swi'=> $language ? 'Switzerland':'Suisse'
                 )
             ),
-            "$group 2" => array(
+            "$group F" => array(
                 'list' => array(
-                    'swi'=> $language ? 'Switzerland':'Suisse',
-                    'per'=> $language ? 'Peru':'Pérou',
-                    'bra'=> $language ? 'Brazil':'Brésil',
-                    'pin0'=> $playIn
+                    'fra'=> $language ? 'France':'France',
+                    'mex'=> $language ? 'Mexico':'Mexique',
+                    'bel'=> $language ? 'Belgium':'Belgique',
+                    'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
+                    'ita'=> $language ? 'Italy':'Italie'
                 )
             ),
-            "$group 3" => array(
+            "$group G" => array(
                 'list' => array(
+                    'usa'=> $language ? 'United States':'États-Unis',
+                    'can'=> $language ? 'Canada':'Canada',
                     'net'=> $language ? 'Netherlands':'Pays-Bas',
-                    'ire'=> $language ? 'Ireland':'Irlande',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'nrd'=> $language ? 'Nordic':'Nordique',
+                    'aut'=> $language ? 'Austria':'Autriche'
                 )
             ),
-            "$group 4" => array(
+            "$group H" => array(
                 'list' => array(
+                    'eng'=> $language ? 'England':'Angleterre',
+                    'spa'=> $language ? 'Spain':'Espagne',
                     'chi'=> $language ? 'Chile':'Chili',
-                    'aut'=> $language ? 'Austria':'Autriche',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'cta'=> $language ? 'Centroamerica':'Amérique centrale',
+                    'bra'=> $language ? 'Brazil':'Brésil'
                 )
             )
         )
@@ -250,9 +205,8 @@ if ($console && !$isPollClosed && isset($_POST['vote'])) {
             $success .= '<br />';
             $success .= '<a href="#mVotesTitle" onclick="showOtherVotes()">'. ($language ? 'See other members\' bets':'Voir les paris des autres membres') .'</a>';
             $success .= '<br />';
-            $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
-            $success .= '<br />';
-            $success .= '<a href="news.php?id=15109">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
+            //$success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
+            $success .= '<a href="news.php?id=14697">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
         else {
@@ -435,13 +389,6 @@ if ($id) {
         @media screen and (min-width: 650px) {
             .mTeamsTd {
                 width: 230px;
-            }
-            .mTeamsTd.mTeamsSg {
-                width: 460px;
-            }
-            .mTeamsTd.mTeamsSg .mTeamsTf {
-                display: grid;
-                grid-template-columns: auto auto;
             }
             .mTeamsTd:not(:first-child) {
                 border-left: 0;
@@ -761,11 +708,11 @@ if ($id) {
                                 }
                                 ?>
                                 </div>
-                                <?php
-                                /*<div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir le tableau des qualifications'; ?></a></div>
+                                <div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir le tableau des qualifications'; ?></a></div>
                                 <div id="mBracket">
                                     <img src="https://cdn.discordapp.com/attachments/309729458925993985/1005467247210418205/unknown.png" alt="Bracket" />
-                                </div>*/
+                                </div>
+                                <?php
                             }
                             ?>
                             <form method="post" class="mTeamsTable" onsubmit="handleSubmit(event)">
@@ -775,9 +722,9 @@ if ($id) {
                                     $nbGroups = count($groupNames);
                                     for ($i=0;$i<$nbGroups;$i+=2) {
                                         $name1 = $groupNames[$i];
-                                        $name2 = isset($groupNames[$i+1]) ? $groupNames[$i+1] : null;
+                                        $name2 = $groupNames[$i+1];
                                         $group1 = $groups[$name1];
-                                        $group2 = $name2 ? $groups[$name2] : null;
+                                        $group2 = $groups[$name2];
                                         if (!$i) {
                                             echo '<div class="mTeamsCaption">';
                                                 echo $title;
@@ -787,7 +734,6 @@ if ($id) {
                                         $name12 = array($name1,$name2);
                                         $groupHeader = array();
                                         foreach ($group12 as $j=>$group) {
-                                            if ($group === null) break;
                                             if (isset($group['header']))
                                                 $groupHeader[] = nl2br($group['header']);
                                             if (isset($group['url']))
@@ -800,11 +746,8 @@ if ($id) {
                                         }
                                         echo '<div class="mTeamsTr">';
                                         foreach ($group12 as $j=>$group) {
-                                            if ($group === null) break;
-                                            $single = !empty($group['single']);
-                                            echo '<div class="mTeamsTd'.($single ? ' mTeamsSg':'').'">';
-                                            if (!$single)
-                                                echo '<div class="mTeamsTh">'. $name12[$j] .'</div>';
+                                            echo '<div class="mTeamsTd">';
+                                            echo '<div class="mTeamsTh">'. $name12[$j] .'</div>';
                                             echo '<div class="mTeamsTf">';
                                             foreach ($group['list'] as $code => $country) {
                                                 $src = $code;
@@ -840,56 +783,6 @@ if ($id) {
                             </form>
                             <?php
                         }
-                        else {
-                            ?>
-                        <div class="mDescriptionMain">
-                            <?php
-                            if ($language) {
-                                ?>
-                                Welcome to the 2023 Mario Kart World Cup's predictor page!!!<br />
-                                Here, you can predict a total of 3 teams (1 for each game), to win the World Cup.<br />
-                                In case of a correct prediction, you will earn an unique role on the forum!!!
-                                <img src="images/forum/reactions/laugh.png" alt="laugh" />
-                                <?php
-                            }
-                            else {
-                                ?>
-                                Bienvenue sur la page de pronostic de la Coupe Du Monde de Mario Kart 2023 !!!<br />
-                                Ici, vous pourrez-voter pour un total de 3 équipes (1 par jeu) que vous aller pronostiquer comme vainqueur de la Coupe Du Monde!<br />
-                                En cas de pronostic correct, vous gagnerez un rôle inédit sur le forum !!!
-                                <img src="images/forum/reactions/laugh.png" alt="laugh" />
-                                <?php
-                            }
-                            ?>
-                        </div>
-                        <div class="mDescriptionConsoles">
-                            <a href="?console=mkw">
-                                <div class="mDescriptionConsoleHeader">
-                                    <img src="images/mkwc/header-mkw.png" alt="Mario Kart Wii" />
-                                </div>
-                                <div class="mDescriptionConsoleLabel">
-                                    Mario Kart Wii
-                                </div>
-                            </a>
-                            <a href="?console=mk8d">
-                                <div class="mDescriptionConsoleHeader">
-                                    <img src="images/mkwc/header-mk8d.png" alt="Mario Kart 8" />
-                                </div>
-                                <div class="mDescriptionConsoleLabel">
-                                    Mario Kart 8 Deluxe
-                                </div>
-                            </a>
-                            <!--<a href="?console=mkt">
-                                <div class="mDescriptionConsoleHeader">
-                                    <img src="images/mkwc/header-mkt.png" alt="Mario Kart Tour" />
-                                </div>
-                                <div class="mDescriptionConsoleLabel">
-                                    Mario Kart Tour
-                                </div>
-                            </a>-->
-                        </div>
-                            <?php
-                        }
                         ?>
                     </div>
                 </div>
@@ -897,11 +790,11 @@ if ($id) {
         </div>
         <p class="forumButtons">
             <?php
-            if (isset($console))
-                echo '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour à la liste des tournois') .'</a><br />';
+            //if (isset($console))
+            //    echo '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a><br />';
             ?>
-            <a href="news.php?id=15109"><?php echo $language ? 'Back to MKWC news':'Retour à la news MKWC'; ?></a><br />
-            <a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour à Mario Kart PC'; ?></a>
+            <a href="news.php?id=14697"><?php echo $language ? 'Back to MKWC news':'Retour &agrave; la news MKWC'; ?></a><br />
+            <a href="index.php"><?php echo $language ? 'Back to Mario Kart PC':'Retour &agrave; Mario Kart PC'; ?></a>
         </p>
     </main>
     <?php
