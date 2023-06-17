@@ -18,7 +18,7 @@ services:
         ports:
             - "8080:80"
     db:
-        image: mariadb:latest
+        image: mariadb:10.5
         restart: always
         environment:
             MYSQL_DATABASE: 'mkpc'
