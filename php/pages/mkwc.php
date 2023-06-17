@@ -30,32 +30,20 @@ case 'mkw':
             )
                 ),
         $swissStage => array(
-            "$group 1" => array(
+            array(
                 'list' => array(
                     'aus'=> $language ? 'Australia':'Australie',
                     'bnl'=> $language ? 'Benelux':'Benelux',
                     'can'=> $language ? 'Canada':'Canada',
-                    'eng'=> $language ? 'England':'Angleterre'
-                )
-            ),
-            "$group 2" => array(
-                'list' => array(
+                    'eng'=> $language ? 'England':'Angleterre',
                     'fra'=> $language ? 'France':'France',
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'ind'=> $language ? 'India':'Inde',
-                    'ire'=> $language ? 'Ireland':'Irlande'
-                )
-            ),
-            "$group 3" => array(
-                'list' => array(
+                    'ire'=> $language ? 'Ireland':'Irlande',
                     'jap'=> $language ? 'Japan':'Japon',
                     'lta'=> $language ? 'Latin America':'Amérique Latine',
                     'nor'=> $language ? 'Norway':'Norvège',
-                    'sco'=> $language ? 'Scotland':'Écosse'
-                )
-            ),
-            "$group 4" => array(
-                'list' => array(
+                    'sco'=> $language ? 'Scotland':'Écosse',
                     'usn'=> $language ? 'United States North':'États-Unis du Nord',
                     'uss'=> $language ? 'United States South':'États-Unis du Sud',
                     'pin0'=> $playIn,
@@ -179,6 +167,25 @@ case 'mk8d':
                 )
             )
         ),
+        $upperStage => array(
+            "$group A" => array(
+                //'header' => $language ? "Eastern Europe: all of Eastern Europe.\nNordic: all of nordic countries and territories.\nCentroamerica: Belize, El Salvador, Nicaragua and Panama." : "Europe de l'Est: toute l'Europe de l'Est.\nNordique: l'ensemble des pays et territoires nordiques.\nAmérique Centrale: Belize, Salvador, Nicaragua et Panama.",
+                'list' => array(
+                    'fra'=> $language ? 'France':'France',
+                    'eng'=> $language ? 'England':'Angleterre',
+                    'usa'=> $language ? 'United States':'États-Unis',
+                    'mex'=> $language ? 'Mexico':'Mexique',
+                )
+            ),
+            "$group B" => array(
+                'list' => array(
+                    'jap'=> $language ? 'Japan':'Japon',
+                    'ger'=> $language ? 'Germany':'Allemagne',
+                    'spa'=> $language ? 'Spain':'Espagne',
+                    'can'=> $language ? 'Canada':'Canada',
+                )
+            )
+        ),
         $lowerStage => array(
             "$group 1" => array(
                 'header' => $language ? "Nordic: all of nordic countries and territories." : "Nordique : l'ensemble des pays et territoires nordiques.",
@@ -211,25 +218,6 @@ case 'mk8d':
                     'aut'=> $language ? 'Austria':'Autriche',
                     'pin0'=> $playIn,
                     'pin1'=> $playIn
-                )
-            )
-        ),
-        $upperStage => array(
-            "$group A" => array(
-                //'header' => $language ? "Eastern Europe: all of Eastern Europe.\nNordic: all of nordic countries and territories.\nCentroamerica: Belize, El Salvador, Nicaragua and Panama." : "Europe de l'Est: toute l'Europe de l'Est.\nNordique: l'ensemble des pays et territoires nordiques.\nAmérique Centrale: Belize, Salvador, Nicaragua et Panama.",
-                'list' => array(
-                    'fra'=> $language ? 'France':'France',
-                    'eng'=> $language ? 'England':'Angleterre',
-                    'usa'=> $language ? 'United States':'États-Unis',
-                    'mex'=> $language ? 'Mexico':'Mexique',
-                )
-            ),
-            "$group B" => array(
-                'list' => array(
-                    'jap'=> $language ? 'Japan':'Japon',
-                    'ger'=> $language ? 'Germany':'Allemagne',
-                    'spa'=> $language ? 'Spain':'Espagne',
-                    'can'=> $language ? 'Canada':'Canada',
                 )
             )
         )
@@ -806,7 +794,8 @@ if ($id) {
                                         foreach ($group12 as $j=>$group) {
                                             if ($group === null) break;
                                             echo '<div class="mTeamsTd">';
-                                            echo '<div class="mTeamsTh">'. $name12[$j] .'</div>';
+                                            if (!is_numeric($name12[$j]))
+                                                echo '<div class="mTeamsTh">'. $name12[$j] .'</div>';
                                             echo '<div class="mTeamsTf">';
                                             foreach ($group['list'] as $code => $country) {
                                                 $src = $code;
