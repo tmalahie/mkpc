@@ -146,26 +146,29 @@ case 'mk8d':
                 'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mk8d/2023.html',
                 'list' => array(
                     'cri'=> $language ? 'Costa Rica':'Costa Rica',
+                    'lux'=> $language ? 'Luxembourg':'Luxembourg',
                     'cal'=> $language ? 'Caledonbria':'Caledonbria',
-                    'pri'=> $language ? 'Puerto Rico':'Puerto Rico',
-                    'lux'=> $language ? 'Luxembourg':'Luxembourg'
-                )
+                    'pri'=> $language ? 'Puerto Rico':'Puerto Rico'
+                ),
+                'eliminated' => array('cal', 'pri')
             ),
             "$group II" => array(
                 'list' => array(
-                    'mag'=> $language ? 'Maghreb':'Maghreb',
                     'kor'=> $language ? 'South Korea':'Corée du Sud',
+                    'mag'=> $language ? 'Maghreb':'Maghreb',
                     'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
                     'por'=> $language ? 'Portugal':'Portugal'
-                )
+                ),
+                'eliminated' => array('eue', 'por')
             ),
             "$group III" => array(
                 'list' => array(
                     'col'=> $language ? 'Colombia':'Colombie',
                     'chn'=> $language ? 'China':'Chine',
-                    'aru'=> $language ? 'Argentina-Uruguay':'Argentine-Uruguay',
-                    'hkt'=> $language ? 'Hong Kong-Taiwan':'Hong Kong-Taiwan'
-                )
+                    'hkt'=> $language ? 'Hong Kong-Taiwan':'Hong Kong-Taiwan',
+                    'aru'=> $language ? 'Argentina-Uruguay':'Argentine-Uruguay'
+                ),
+                'eliminated' => array('aru', 'hkt')
             )
         ),
         $upperStage => array(
@@ -194,7 +197,7 @@ case 'mk8d':
                     'bel'=> $language ? 'Belgium':'Belgique',
                     'aus'=> $language ? 'Australia':'Australie',
                     'nrd'=> $language ? 'Nordic':'Nordique',
-                    'pin0'=> $playIn
+                    'lux'=> $language ? 'Luxembourg':'Luxembourg'
                 )
             ),
             "$group 2" => array(
@@ -202,23 +205,23 @@ case 'mk8d':
                     'swi'=> $language ? 'Switzerland':'Suisse',
                     'per'=> $language ? 'Peru':'Pérou',
                     'bra'=> $language ? 'Brazil':'Brésil',
-                    'pin0'=> $playIn
+                    'chn'=> $language ? 'China':'Chine',
                 )
             ),
             "$group 3" => array(
                 'list' => array(
                     'net'=> $language ? 'Netherlands':'Pays-Bas',
                     'ire'=> $language ? 'Ireland':'Irlande',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'col'=> $language ? 'Colombia':'Colombie',
+                    'kor'=> $language ? 'South Korea':'Corée du Sud'
                 )
             ),
             "$group 4" => array(
                 'list' => array(
                     'chi'=> $language ? 'Chile':'Chili',
                     'aut'=> $language ? 'Austria':'Autriche',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'mag'=> $language ? 'Maghreb':'Maghreb',
+                    'cri'=> $language ? 'Costa Rica':'Costa Rica'
                 )
             )
         )
