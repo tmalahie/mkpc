@@ -396,6 +396,7 @@
 	font-size: 0.8em;
 	padding: 0px 0px 2px 7px;
 	cursor: move;
+	user-select: none;
 }
 .chatbar .chatbullet {
 	position: relative;
