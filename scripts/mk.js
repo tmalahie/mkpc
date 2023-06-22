@@ -10599,7 +10599,7 @@ function colKart(getId) {
 		var isChampiCol = (course == "BB") && (!oKart.champi != !kart.champi);
 		if (oKart.cpu && kart.cpu && (protect1 == protect2) && !isChampiCol)
 			continue;
-		if (!friendlyFire(oKart,kart) && (course!="BB"||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||oKart.billball) && (kart.z<=jumpHeight0||kart.billball) && !oKart.tourne && !kart.tourne) {
+		if (!friendlyFire(oKart,kart) && (course!="BB"||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||(oKart.billball&&!oKart.cannon)) && (kart.z<=jumpHeight0||(kart.billball&&!kart.cannon)) && !oKart.tourne && !kart.tourne) {
 			var dir1 = kartInstantSpeed(oKart), dir2 = kartInstantSpeed(kart);
 			var relDir = [dir2[0]-dir1[0],dir2[1]-dir1[1]];
 			var nDir1 = [oKart.x-kart.x,oKart.y-kart.y];
