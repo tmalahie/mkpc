@@ -204,7 +204,7 @@ function setFps(iValue) {
 			'<div class="customOptionDialog-title">'+
 				toLanguage("Custom FPS...", "Choix des FPS...") +
 			'</div>'+
-			'<input type="range" min="1" max="8" step="1" class="customOptionDialog-cursor" />'+
+			'<input type="range" min="1" max="16" step="1" class="customOptionDialog-cursor" />'+
 			'<div class="customOptionDialog-textValue"></div>' +
 			'<div class="customOptionDialog-submit">'+
 				'<input type="submit" value="'+ toLanguage("Validate", "Valider") +'" />'+
