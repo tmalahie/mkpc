@@ -25,10 +25,11 @@ $CREATION_ENTITIES = array(
             global $identifiants;
             $ids = $options['ids'];
             $requireOwner = !empty($options['require_owner']);
+            $extraCols = empty($options['eager']) ? '' : ',s.description';
             $idsString = implode(',', $ids);
             return getCreationDataQuery(array(
                 'table' => 'mkcircuits',
-                'select' => 'c.id,c.map,c.laps,c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date,s.prefix,s.thumbnail',
+                'select' => 'c.id,c.map,c.laps,c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date,s.prefix,s.thumbnail'.$extraCols,
                 'where' => 'c.id IN ('. $idsString .') AND !c.type'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : ''),
             ));
         },
@@ -39,7 +40,7 @@ $CREATION_ENTITIES = array(
             $base = &$options['base'];
             $infos['map'] = $base['map'];
             $infos['laps'] = $base['laps'];
-            $infos['thumbnail'] = "mappreview.php?id=$trackID";
+            $infos['preview'] = "mappreview.php?id=$trackID";
             $infos['icon'] = "trackicon.php?id=$trackID&type=0";
             $pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$trackID.'"');
             while ($piece = mysql_fetch_array($pieces))
@@ -134,11 +135,12 @@ $CREATION_ENTITIES = array(
             global $identifiants;
             $ids = $options['ids'];
             $requireOwner = !empty($options['require_owner']);
+            $extraCols = empty($options['eager']) ? '' : ',s.description';
             $idsString = implode(',', $ids);
             return getCreationDataQuery(array(
                 'table' => 'circuits',
                 'join' => 'LEFT JOIN `circuits_data` d ON c.id=d.id',
-                'select' => 'c.*,c.nom AS name0,c.id,d.data,s.prefix,s.thumbnail',
+                'select' => 'c.*,c.nom AS name0,c.id,d.data,s.prefix,s.thumbnail'.$extraCols,
                 'where' => 'c.id IN ('. $idsString .')'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : '')
             ));
         },
@@ -147,7 +149,7 @@ $CREATION_ENTITIES = array(
                 $options['infos'][$key] = $value;
             $isBattle = ($options['infos']['mode'] === 3);
             $trackID = $options['id'];
-            $options['infos']['thumbnail'] = ($isBattle?'coursepreview':'racepreview').'.php?id='.$trackID;
+            $options['infos']['preview'] = ($isBattle?'coursepreview':'racepreview').'.php?id='.$trackID;
             $options['infos']['icon'] = 'trackicon.php?id='.$trackID.'&type='.($isBattle?2:1);
         },
         'get_share_params' => function() {
@@ -202,10 +204,11 @@ $CREATION_ENTITIES = array(
             global $identifiants;
             $ids = $options['ids'];
             $requireOwner = !empty($options['require_owner']);
+            $extraCols = empty($options['eager']) ? '' : ',s.description';
             $idsString = implode(',', $ids);
             return getCreationDataQuery(array(
                 'table' => 'mkcircuits',
-                'select' => 'c.id,c.map,c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date,s.prefix,s.thumbnail',
+                'select' => 'c.id,c.map,c.nom AS name0,c.auteur,c.note,c.nbnotes,c.publication_date,s.prefix,s.thumbnail'.$extraCols,
                 'where' => 'c.id IN ('. $idsString .') AND c.type'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : '')
             ));
         },
@@ -215,7 +218,7 @@ $CREATION_ENTITIES = array(
             $infos = &$options['infos'];
             $base = &$options['base'];
             $infos['map'] = $base['map'];
-            $infos['thumbnail'] = "mappreview.php?id=$trackID";
+            $infos['preview'] = "mappreview.php?id=$trackID";
             $infos['icon'] = "trackicon.php?id=$trackID&type=0";
             $pieces = mysql_query('SELECT * FROM `mkp` WHERE circuit="'.$trackID.'"');
             while ($piece = mysql_fetch_array($pieces))
@@ -252,10 +255,11 @@ $CREATION_ENTITIES = array(
             $ids = $options['ids'];
             $requireOwner = !empty($options['require_owner']);
             $idsString = implode(',', $ids);
+            $extraCols = empty($options['eager']) ? '' : ',s.description';
             return getCreationDataQuery(array(
                 'table' => 'arenes',
                 'join' => 'LEFT JOIN `arenes_data` d ON c.id=d.id',
-                'select' => 'c.*,c.nom AS name0,c.id,d.data,s.prefix,s.thumbnail',
+                'select' => 'c.*,c.nom AS name0,c.id,d.data,s.prefix,s.thumbnail'.$extraCols,
                 'where' => 'c.id IN ('. $idsString .')'. ($requireOwner ? (' AND c.identifiant="'. $identifiants[0] .'" AND c.identifiant2="'. $identifiants[1] .'" AND c.identifiant3="'. $identifiants[2] .'" AND c.identifiant4="'. $identifiants[3] .'"') : '')
             ));
         },

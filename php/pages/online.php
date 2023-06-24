@@ -109,7 +109,10 @@ if (isset($_SESSION['mklink'])) {
 	   	else
 	   		echo $language ? 'Online race Mario Kart PC':'Course en ligne Mario Kart PC';
 	   ?></title>
-<?php include('../includes/metas.php'); ?>
+<?php
+unset($hdescription);
+include('../includes/metas.php');
+?>
 <?php
 if (isset($privateLink)) {
 	?>

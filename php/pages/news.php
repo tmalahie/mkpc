@@ -43,7 +43,7 @@ if ($getThumbnail) {
 	if (img_url_exists($getThumbnail[1]))
 		$hthumbnail = $getThumbnail[1];
 }*/
-include('../includes/utils-description.php');
+require_once('../includes/utils-description.php');
 $hthumbnail = false;
 $hdescription = removeBbCode($news['content']);
 include('../includes/heads.php');

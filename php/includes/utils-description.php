@@ -23,4 +23,18 @@ function removeBbCode($desc) {
 	$desc = trim($desc);
 	return $desc;
 }
+function formatDescription(&$hdescription) {
+	global $language;
+	if (isset($hdescription)) {
+		function hControlLength($str,$maxLength) {
+			$pts = '...';
+			if (mb_strlen($str) > $maxLength)
+				return mb_substr($str,0,$maxLength-mb_strlen($pts)).$pts;
+			return $str;
+		}
+		if (is_string($hdescription))
+			return htmlspecialchars(hControlLength(str_replace("\n"," ",preg_replace("#[\r\t]#", '', $hdescription)), 200));
+	}
+	return $language ? 'Free online Mario Kart game':'Jeu de Mario Kart gratuit en ligne';
+}
 ?>

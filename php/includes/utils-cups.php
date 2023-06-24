@@ -85,7 +85,7 @@ function printCollabImportPopup($type, $mode, $isBattle) {
     <?php
 }
 function getTrackPayloads($options) {
-    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cDate, $cOptions, $cupIDs, $dCircuits, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
+    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cThumb, $cDesc, $hdescription, $cDate, $cOptions, $cupIDs, $dCircuits, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
     include('creation-entities.php');
     $isOnline = isset($options['online']);
     if ($isOnline) {
@@ -104,13 +104,15 @@ function getTrackPayloads($options) {
         $nid = $id;
         $isCup = true;
         $isMCup = true;
-        if ($getMCup = fetchCreationData('mkmcups', $id, array('select' => 'c.nom AS name0,s.prefix,c.*'))) {
+        if ($getMCup = fetchCreationData('mkmcups', $id, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,c.*'))) {
             $cName = $getMCup['name'];
             $cName0 = $getMCup['name0'];
             $infos['name'] = $cName;
             $cPrefix = $getMCup['prefix'];
             $cPseudo = $getMCup['auteur'];
             $cAuteur = $cPseudo;
+            $cThumb = $getMCup['thumbnail'];
+            $cDesc = $getMCup['description'];
             $pNote = $getMCup['note'];
             $pNotes = $getMCup['nbnotes'];
             $cDate = $getMCup['publication_date'];
@@ -129,13 +131,15 @@ function getTrackPayloads($options) {
         $id = intval($_GET['cid']);
         $nid = $id;
         $isCup = true;
-        if ($getCup = fetchCreationData('mkcups', $id, array('select' => 'c.nom AS name0,s.prefix,c.*'))) {
+        if ($getCup = fetchCreationData('mkcups', $id, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,c.*'))) {
             $cName = $getCup['name'];
             $cName0 = $getCup['name0'];
             $infos['name'] = $cName;
             $cPrefix = $getCup['prefix'];
             $cPseudo = $getCup['auteur'];
             $cAuteur = $cPseudo;
+            $cThumb = $getCup['thumbnail'];
+            $cDesc = $getCup['description'];
             $pNote = $getCup['note'];
             $pNotes = $getCup['nbnotes'];
             $cDate = $getCup['publication_date'];
@@ -165,12 +169,14 @@ function getTrackPayloads($options) {
         $isCup = true;
         if (isset($_GET['nid'])) { // Cup being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = fetchCreationData('mkcups', $nid, array('select' => 'c.nom AS name0,s.prefix,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+            if ($getMain = fetchCreationData('mkcups', $nid, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
                 $cName = $getMain['name'];
                 $cName0 = $getMain['name0'];
                 $cPrefix = $getMain['prefix'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
+                $cThumb = $getMain['thumbnail'];
+                $cDesc = $getMain['description'];
                 $pNote = $getMain['note'];
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
@@ -197,12 +203,14 @@ function getTrackPayloads($options) {
         $isMCup = true;
         if (isset($_GET['nid'])) { // Multicups being edited
             $nid = intval($_GET['nid']);
-            if ($getMain = fetchCreationData('mkmcups', $nid, array('select' => 'c.nom AS name0,s.prefix,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
+            if ($getMain = fetchCreationData('mkmcups', $nid, array('select' => 'c.nom AS name0,s.prefix,s.thumbnail,s.description,c.auteur,c.note,c.nbnotes,c.publication_date'))) {
                 $cName = $getMain['name'];
                 $cName0 = $getMain['name0'];
                 $cPrefix = $getMain['prefix'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
+                $cThumb = $getMain['thumbnail'];
+                $cDesc = $getMain['description'];
                 $pNote = $getMain['note'];
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
@@ -229,12 +237,14 @@ function getTrackPayloads($options) {
             $nid = intval($_GET['nid']);
             require_once('collabUtils.php');
             $requireOwner = !hasCollabGrants($table, $nid, $_GET['collab'], 'view');
-            if ($getMain = mysql_fetch_array($creationEntities['fetch_tracks'](array('ids' => array($nid), 'mode' => $creationMode, 'require_owner' => $requireOwner)))) {
+            if ($getMain = mysql_fetch_array($creationEntities['fetch_tracks'](array('ids' => array($nid), 'mode' => $creationMode, 'require_owner' => $requireOwner, 'eager' => true)))) {
                 $infos['id'] = $nid;
                 $cName = $getMain['name'];
                 $cName0 = $getMain['name0'];
                 $cPseudo = $getMain['auteur'];
                 $cAuteur = $cPseudo;
+                $cThumb = $getMain['thumbnail'];
+                $cDesc = $getMain['description'];
                 $pNote = $getMain['note'];
                 $pNotes = $getMain['nbnotes'];
                 $cDate = $getMain['publication_date'];
@@ -315,7 +325,8 @@ function getTrackPayloads($options) {
             $allTracks = array();
             foreach ($trackIDsByMode as $trackMode=>$trackIDs) {
                 $getAllTracks = $CREATION_ENTITIES[$trackMode]['fetch_tracks'](array(   
-                    'ids' => $trackIDs
+                    'ids' => $trackIDs,
+                    'eager' => !$isCup
                 ));
                 $allTracksForMode = array();
                 while ($getMain = mysql_fetch_array($getAllTracks))
@@ -332,6 +343,8 @@ function getTrackPayloads($options) {
                     $infos['name'] = $getMain['name'];
                     $infos['name0'] = $getMain['name0'];
                     $infos['prefix'] = $getMain['prefix'];
+                    if (isset($getMain['description']))
+                        $infos['description'] = $getMain['description'];
                     $infos['note'] = $getMain['note'];
                     $infos['nbnotes'] = $getMain['nbnotes'];
                     $infos['auteur'] = $getMain['auteur'];
@@ -358,9 +371,11 @@ function getTrackPayloads($options) {
             $cName0 = $infos['name0'];
             $cPrefix = $infos['prefix'];
             $cAuteur = $infos['auteur'];
+            $cThumb = $infos['thumbnail'];
+            $cDesc = $infos['description'];
             $pNote = $infos['note'];
             $pNotes = $infos['nbnotes'];
-            $hthumbnail = 'https://mkpc.malahieude.net/'.$infos['thumbnail'];
+            $hthumbnail = 'https://mkpc.malahieude.net/'.$infos['preview'];
             $cDate = $infos['publication_date'];
             $creationData = $circuitsData[0];
             $cShared = (null !== $cName0);
@@ -369,6 +384,12 @@ function getTrackPayloads($options) {
             else
                 $cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
         }
+        if ($cThumb) {
+            require_once('../includes/cache_creations.php');
+            $hthumbnail = 'https://mkpc.malahieude.net/'.cachePathRelative("uploads/$cThumb");
+        }
+        if ($cDesc)
+            $hdescription = $cDesc;
     }
     elseif (!empty($infos))
         $circuitsData = Array($infos);

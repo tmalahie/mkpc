@@ -10,7 +10,7 @@ $topic = mysql_fetch_array(mysql_query('SELECT titre,category,private,locked FRO
 $titreTopic = isset($topic['titre']) ? $topic['titre'] : '';
 if ($getFirstMessage=mysql_fetch_array(mysql_query('SELECT auteur,message FROM `mkmessages` WHERE topic="'. $topicId .'" AND id=1 LIMIT 1'))) {
 	if ($topic) {
-		include('../includes/utils-description.php');
+		require_once('../includes/utils-description.php');
 		$hthumbnail = false;
 		$hdescription = removeBbCode($getFirstMessage['message']);
 	}

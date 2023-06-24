@@ -1,10 +1,11 @@
 <?php
+require_once('utils-description.php');
 if (!isset($hthumbnail))
 	$hthumbnail = 'https://mkpc.malahieude.net/images/screenshots/ss1.png';
 ?>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta name="author" content="Timothé Malahieude" />
-<meta name="description" content="<?php echo $language ? 'Free online Mario Kart game' : 'Jeu de Mario Kart gratuit en ligne'; ?>" />
+<meta name="description" content="<?php echo formatDescription($hdescription); ?>" />
 <meta name="keywords" content="<?php echo $language ?
 	'Mario, Kart, PC, game, race, free game, multiplayer, track builder' :
 	'Mario, Kart, PC, jeu, course, jeu gratuit, multijoueur, éditeur de circuits';

@@ -286,7 +286,6 @@ var circuitNbComments = 0;
 		appendComments(res.comments);
 		circuitNbComments = res.count;
 		updateNbComments();
-		var circuitDesc = res.description;
 		function updateCircuitDesc() {
 			if (circuitDesc) {
 				var circuitScroller = $("#comments-description-content-value .comment-desc-scroller");

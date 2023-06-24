@@ -2,7 +2,7 @@
 require_once('collabUtils.php');
 include('circuitUser.php');
 function includeShareLib() {
-    global $nid, $creationType, $cName, $cPrefix, $cAuteur, $cDate, $pNote, $pNotes, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $cOptions, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage, $cNote, $ctActions;
+    global $nid, $creationType, $cName, $cPrefix, $cAuteur, $cDate, $cDesc, $pNote, $pNotes, $isCup, $isMCup, $isBattle, $cupIDs, $clId, $sid, $cOptions, $identifiants, $language, $creator, $canShare, $canChange, $creationMode, $trackEditPage, $cNote, $ctActions;
     $isBattle = ($creationMode > 1);
     $complete = ($creationMode%2);
     include('creation-entities.php');
@@ -284,7 +284,7 @@ function includeShareLib() {
     if (isset($nid))
         echo 'var commentCircuit = '.$nid.', commentType = "'. $creationType.'", circuitPrefix = "'. ($cPrefix ? addSlashes(htmlspecialchars($cPrefix)) : '') .'";';
     ?>
-	circuitName = "<?php echo addSlashes(htmlEscapeCircuitNames($cName)) ?>", circuitAuthor = "<?php echo addSlashes(htmlEscapeCircuitNames($cAuteur)) ?>", circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
+	circuitName = "<?php echo addSlashes(htmlEscapeCircuitNames($cName)) ?>", circuitAuthor = "<?php echo addSlashes(htmlEscapeCircuitNames($cAuteur)) ?>", circuitDesc = <?php echo json_encode($cDesc) ?>, circuitNote = <?php echo $pNote ?>, circuitNotes = <?php echo $pNotes ?>,
 	circuitDate = "<?php echo formatDate($cDate); ?>";
 	var circuitUser = <?php echo findCircuitUser($cAuteur,$nid,$creationType); ?>;
     <?php
