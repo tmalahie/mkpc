@@ -69,7 +69,7 @@ if (isset($id)) {
 			$img = @imagecreatefrompng($trackPath);
 			if ($img) {
 				$img = imagecropcenter($img, $imgcW,$imgcW);
-				imagecopy($image,$img,floor($x*$imgW),floor($y*$imgW),0,0,$imgW,$imgW);
+				imagecopy($image,$img,floor($x*$imgW),floor($y*$imgW),0,0,$imgcW,$imgcW);
 			}
 		}
 		$ext2 = 'png';
