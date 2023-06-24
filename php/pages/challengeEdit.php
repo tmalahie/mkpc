@@ -212,7 +212,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css" />
+<link rel="stylesheet" href="styles/challenges.css?reload=2" />
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <?php
 if (empty($moderate))
