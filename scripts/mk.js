@@ -11812,7 +11812,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: toLanguage("Race","Course"),
+					title: (course == "BB") ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -11835,7 +11835,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: toLanguage("Race","Course"),
+					title: (course == "BB") ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
