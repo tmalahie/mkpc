@@ -343,8 +343,9 @@ function getTrackPayloads($options) {
                     $infos['name'] = $getMain['name'];
                     $infos['name0'] = $getMain['name0'];
                     $infos['prefix'] = $getMain['prefix'];
-                    if (isset($getMain['description']))
+                    if (array_key_exists('description', $getMain))
                         $infos['description'] = $getMain['description'];
+                    $infos['thumbnail'] = $getMain['thumbnail'];
                     $infos['note'] = $getMain['note'];
                     $infos['nbnotes'] = $getMain['nbnotes'];
                     $infos['auteur'] = $getMain['auteur'];
@@ -384,12 +385,6 @@ function getTrackPayloads($options) {
             else
                 $cPseudo = isset($_COOKIE['mkauteur']) ? $_COOKIE['mkauteur']:null;
         }
-        if ($cThumb) {
-            require_once('../includes/cache_creations.php');
-            $hthumbnail = 'https://mkpc.malahieude.net/'.cachePathRelative("uploads/$cThumb");
-        }
-        if ($cDesc)
-            $hdescription = $cDesc;
     }
     elseif (!empty($infos))
         $circuitsData = Array($infos);
@@ -401,6 +396,12 @@ function getTrackPayloads($options) {
         mysql_close();
         exit;
     }
+    if ($cThumb) {
+        require_once('../includes/cache_creations.php');
+        $hthumbnail = 'https://mkpc.malahieude.net/'.cachePathRelative("uploads/$cThumb");
+    }
+    if ($cDesc)
+        $hdescription = $cDesc;
     $NBCIRCUITS = count($circuitsData);
     if ($isCup) {
         $infos = Array();
