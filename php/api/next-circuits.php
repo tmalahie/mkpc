@@ -7,6 +7,7 @@ if (isset($_POST['page'])) {
 	$tri = isset($_POST['tri']) ? $_POST['tri']:0;
 	$nom = isset($_POST['nom']) ? stripslashes($_POST['nom']):'';
 	$auteur = isset($_POST['auteur']) ? stripslashes($_POST['auteur']):'';
+	$prefix = isset($_POST['prefix']) ? stripslashes($_POST['prefix']):'';
 	$type = isset($_POST['type']) ? $_POST['type']:'';
 	$noThumbnail = !empty($_POST['nothumbnail']);
 	$pids = null;
@@ -25,6 +26,7 @@ if (isset($_POST['page'])) {
 		'tri' => $tri,
 		'nom' => $nom,
 		'auteur' => $auteur,
+		'prefix' => $prefix,
 		'pids' => $pids,
 		'max_circuits' => $MAX_CIRCUITS,
 	);

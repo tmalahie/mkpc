@@ -1491,6 +1491,15 @@ function classifyByShape(shapes, callback) {
 	return res;
 }
 function initMap() {
+	if (clSelected) {
+		var challengeData = clSelected.data;
+		var chRules = listChallengeRules(challengeData);
+		for (var j=0;j<chRules.length;j++) {
+			var rule = chRules[j];
+			if (challengeRules[rule.type].preinitSelected)
+				challengeRules[rule.type].preinitSelected(rule);
+		}
+	}
 	if (oMap.collision) {
 		var collisionProps = {rectangle:{},polygon:{}};
 		oMap.collision = classifyByShape(oMap.collision, oMap.collisionProps && function(i,j, shapeType) {
@@ -2502,7 +2511,7 @@ var mapMusic, lastMapMusic, endingMusic, endGPMusic, challengeMusic, carEngine, 
 var willPlayEndMusic = false, isEndMusicPlayed = false;
 var forceStartMusic = false;
 var forcePrepareEnding = false;
-function loadMapMusic() {	
+function loadMapMusic() {
 	startMapMusic(false);
 	loadEndingMusic();
 	mapMusic.blur();
@@ -10590,7 +10599,7 @@ function colKart(getId) {
 		var isChampiCol = (course == "BB") && (!oKart.champi != !kart.champi);
 		if (oKart.cpu && kart.cpu && (protect1 == protect2) && !isChampiCol)
 			continue;
-		if (!friendlyFire(oKart,kart) && (course!="BB"||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||oKart.billball) && (kart.z<=jumpHeight0||kart.billball) && !oKart.tourne && !kart.tourne) {
+		if (!friendlyFire(oKart,kart) && (course!="BB"||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||(oKart.billball&&!oKart.cannon)) && (kart.z<=jumpHeight0||(kart.billball&&!kart.cannon)) && !oKart.tourne && !kart.tourne) {
 			var dir1 = kartInstantSpeed(oKart), dir2 = kartInstantSpeed(kart);
 			var relDir = [dir2[0]-dir1[0],dir2[1]-dir1[1]];
 			var nDir1 = [oKart.x-kart.x,oKart.y-kart.y];
@@ -11803,7 +11812,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: toLanguage("Race","Course"),
+					title: (course == "BB") ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -11826,7 +11835,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: toLanguage("Race","Course"),
+					title: (course == "BB") ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -12002,6 +12011,16 @@ var challengeRules = {
 		},
 		"success": function(scope, ruleVars) {
 			return !!ruleVars.selected;
+		}
+	},
+	"custom_music": {
+		"preinitSelected": function(scope) {
+			oMap.music = scope.value;
+			oMap.yt = scope.yt;
+			delete oMap.yt_opts;
+		},
+		"success": function() {
+			return true;
 		}
 	},
 	"character": {
@@ -18335,7 +18354,7 @@ function getMapIcSrc(playerName) {
 	return "images/map_icons/"+ playerName +".png";
 }
 function getMapSelectorSrc(i) {
-	return isCup ? (complete ? "trackicon.php?id="+ oMaps[aAvailableMaps[i]].map +"&type=" + (course=="BB" ? 2:1):"trackicon.php?id="+ oMaps[aAvailableMaps[i]].id +"&type=0") : "images/selectors/select_" + aAvailableMaps[i] + ".png";
+	return isCup ? oMaps[aAvailableMaps[i]].icon : "images/selectors/select_" + aAvailableMaps[i] + ".png";
 }
 function getMapId(oMap) {
 	var res = isBattle ? nid : (simplified ? oMap.id : oMap.map);
@@ -24386,8 +24405,7 @@ function selectMapScreen(opts) {
 			}
 			else {
 				forceClic4 = false;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 				if (isOnline)
 					document.getElementById("waitrace").style.visibility = "hidden";
 				chatting = false;
@@ -24426,19 +24444,33 @@ function selectMapScreen(opts) {
 		document.getElementById("dMaps").style.width = (25 * iScreenScale) +"px";
 		document.getElementById("dMaps").style.height = (10 * iScreenScale) +"px";
 
-		function defileMaps(fMap) {
+		function defileMaps(mScreenScale, fMap) {
 			if (document.getElementById("maps") && document.getElementById("maps").alt == fMap) {
 				if (fMap % 4 != 0)
 					fMap++;
 				else
 					fMap -= 3;
-				document.getElementById("oMapName").innerHTML = dCircuits[fMap-1];
+				var dMaps = document.getElementById("dMaps");
+				var oMapName = mapNameOf(mScreenScale, fMap-1);
+				dMaps.appendChild(oMapName);
 				document.getElementById("maps").alt = fMap;
 				document.getElementById("maps").src = getMapSelectorSrc(fMap-1);
 				setTimeout(function() {
-					defileMaps(fMap);
+					try {
+						dMaps.removeChild(oMapName);
+					} catch (e) {
+						return;
+					}
+					defileMaps(mScreenScale, fMap);
 				}, 1000);
 			}
+		}
+
+		function clearMapScreen() {
+			document.getElementById("dMaps").style.display = "none";
+			document.getElementById("dMaps").innerHTML = "";
+			oScr.innerHTML = "";
+			oContainers[0].removeChild(oScr);
 		}
 
 		var coupes = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
@@ -24574,20 +24606,33 @@ function selectMapScreen(opts) {
 					oDefMap.className += " mirrored";
 				oDefMap.id = "maps";
 				document.getElementById("dMaps").appendChild(oDefMap);
-				
-				var oMapName = mapNameOf(mScreenScale, this.alt*4);
-				oMapName.id = "oMapName";
-				document.getElementById("dMaps").appendChild(oMapName);
 
 				document.getElementById("dMaps").style.display = "block";
-				defileMaps(this.alt*4+4);
-				if (cupPayloads[this.alt]) {
-					var cupName = cupPayloads[this.alt].name;
+				defileMaps(mScreenScale, this.alt*4+4);
+				var cupPayload = cupPayloads[this.alt];
+				if (cupPayload) {
+					oCupNameDiv.innerHTML = "";
+					var cupName = cupPayload.name;
 					if (cupName) {
-						oCupNameDiv.innerText = cupName;
-						var cupFS = Math.min(Math.max(8/Math.sqrt(cupName.length), 1.45), 3);
+						var cupPrefix = cupPayload.prefix;
+						if (cupPrefix) {
+							var oCupPrefixSpan = document.createElement("span");
+							oCupPrefixSpan.innerText = cupPrefix;
+							oCupPrefixSpan.style.fontSize = "0.7em";
+							oCupNameDiv.appendChild(oCupPrefixSpan);
+						}
+						var oCupNameSpan = document.createElement("span");
+						oCupNameSpan.innerText = cupName;
+						oCupNameDiv.appendChild(oCupNameSpan);
+
+						var fullCupName = cupPrefix ? cupPrefix + cupName : cupName;
+						var cupFS = Math.min(Math.max(8/Math.sqrt(fullCupName.length), 1.45), 3);
 						oCupName.style.fontSize = Math.round(cupFS*iScreenScale) +"px";
 						oCupName.style.display = "flex";
+						oCupNameDiv.style.display = "flex";
+						oCupNameDiv.style.alignItems = "center";
+						oCupNameDiv.style.justifyContent = "center";
+						oCupNameDiv.style.gap = "0.25em";
 					}
 				}
 			}
@@ -24599,11 +24644,7 @@ function selectMapScreen(opts) {
 			}
 
 			oPImg.onclick = function() {
-				document.getElementById("dMaps").style.display = "none";
-
-				document.getElementById("dMaps").innerHTML = "";
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 
 				selectRaceScreen(this.alt*4);
 			}
@@ -24673,8 +24714,7 @@ function selectMapScreen(opts) {
 			
 			oPInput.onclick = function() {
 				forceClic4 = false;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 				chooseRandMap();
 			};
 			oScr.appendChild(oPInput);
@@ -24706,8 +24746,7 @@ function selectMapScreen(opts) {
 			oPrevInput.className = "disablable";
 			oPrevInput.onclick = function() {
 				opts.page--;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 				selectMapScreen(opts);
 			};
 			oPrevInput.disabled = (opts.page <= 0);
@@ -24724,8 +24763,7 @@ function selectMapScreen(opts) {
 			oNextInput.className = "disablable";
 			oNextInput.onclick = function() {
 				opts.page++;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 				selectMapScreen(opts);
 			};
 			oNextInput.disabled = (opts.page >= cupOpts.pages.length);
@@ -24736,16 +24774,12 @@ function selectMapScreen(opts) {
 		if (isOnline) {
 			handleSpectatorLink(function() {
 				forceClic4 = false;
-				oScr.innerHTML = "";
-				oContainers[0].removeChild(oScr);
+				clearMapScreen();
 			});
 
 			setTimeout(function() {
 				if (forceClic4) {
-					document.getElementById("dMaps").style.display = "none";
-					document.getElementById("dMaps").innerHTML = "";
-					oScr.innerHTML = "";
-					oContainers[0].removeChild(oScr);
+					clearMapScreen();
 					chooseRandMap();
 				}
 			}, document.getElementById("racecountdown").innerHTML*1000);
@@ -27135,7 +27169,7 @@ function displayCommands(html) {
 			html = "";
 		}
 		var emptyCommands = !html;
-		$commandes.innerHTML = (html||"")+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit"'+ (emptyCommands ? ' class="nocommand"':'') +' title="'+toLanguage("More settings","Plus de paramètres")+'" />';
+		$commandes.innerHTML = (emptyCommands ? "" : ('<div class="commandes-list">'+html+'</div>'))+'<img src="images/edit-controls.png" alt="Edit" id="commandes-edit"'+ (emptyCommands ? ' class="nocommand"':'') +' title="'+toLanguage("More settings","Plus de paramètres")+'" />';
 		document.getElementById("commandes-edit").onclick = function() {
 			editCommands();
 		};

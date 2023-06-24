@@ -1,18 +1,8 @@
 <?php
 if (!isset($hthumbnail))
 	$hthumbnail = 'https://mkpc.malahieude.net/images/screenshots/ss1.png';
-if (isset($hdescription)) {
-	function hControlLength($str,$maxLength) {
-		$pts = '...';
-		if (mb_strlen($str) > $maxLength)
-			return mb_substr($str,0,$maxLength-mb_strlen($pts)).$pts;
-		return $str;
-	}
-	if (is_string($hdescription))
-		$hdescription = htmlspecialchars(hControlLength(str_replace("\n"," ",preg_replace("#[\r\t]#", '', $hdescription)), 200));
-}
-else
-	$hdescription = $language ? 'Free online Mario Kart game':'Jeu de Mario Kart gratuit en ligne';
+require_once('utils-description.php');
+$hdescription = formatDescription($hdescription);
 ?>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,7 +10,7 @@ else
 <?php
 if ($hdescription) {
 	?>
-<meta name="description" content="<?php echo htmlspecialchars($hdescription); ?>" />
+<meta name="description" content="<?php echo $hdescription; ?>" />
 	<?php
 }
 ?>

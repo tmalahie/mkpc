@@ -16,6 +16,10 @@ $printCircuitData = function($arene) {
 	"bgcolor" : [<?php echo implode(',',$circuitMainData->bgcolor) ?>],
 	"w" : <?php echo $circuitImg->w; ?>,
 	"h" : <?php echo $circuitImg->h; ?>,
+	<?php
+	if (isset($arene['icon']))
+		echo '"icon":'.json_encode($arene['icon']).',';
+	?>
 	"music" : <?php echo $circuitMainData->music; ?>,
 	<?php
 	if (!$circuitMainData->music) {
