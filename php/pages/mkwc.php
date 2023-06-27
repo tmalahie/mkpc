@@ -26,7 +26,8 @@ case 'mkw':
                     'ita'=> $language ? 'Italy':'Italie',
                     'mag'=> $language ? 'Maghreb':'Maghreb',
                     'spa'=> $language ? 'Spain':'Espagne'
-                )
+                ),
+                'eliminated' => array('mag', 'spa')
             )
         ),
         $swissStage => array(
@@ -47,8 +48,8 @@ case 'mkw':
                     'sco'=> $language ? 'Scotland':'Écosse',
                     'usn'=> $language ? 'United States North':'États-Unis du Nord',
                     'uss'=> $language ? 'United States South':'États-Unis du Sud',
-                    'pin0'=> $playIn,
-                    'pin1'=> $playIn
+                    'asi'=> $language ? 'Asia':'Asie',
+                    'ita'=> $language ? 'Italy':'Italie'
                 )
             )
         )
