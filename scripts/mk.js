@@ -17825,10 +17825,14 @@ function getGamepadInputsData(i, previouslyPressed) {
 }
 
 function handleAudio() {
-	if (mapMusic && mapMusic.opts && mapMusic.opts.end && mapMusic.yt && mapMusic.yt.getCurrentTime && mapMusic.yt.getCurrentTime() > mapMusic.opts.end) {
-		var start = mapMusic.opts.start || 0;
-		if (start < mapMusic.opts.end)
-			mapMusic.yt.seekTo(start || 0, true);
+	if (mapMusic && mapMusic.opts && mapMusic.yt && mapMusic.yt.getCurrentTime) {
+		var currentTime = mapMusic.yt.getCurrentTime();
+		var isEnd = mapMusic.opts.end ? (currentTime > mapMusic.opts.end) : ((mapMusic.yt.getPlayerState() === 0) && (currentTime > mapMusic.yt.getDuration()-1));
+		if (isEnd) {
+			var start = mapMusic.opts.start || 0;
+			if (start < currentTime)
+				mapMusic.yt.seekTo(start, true);
+		}
 	}
 }
 
