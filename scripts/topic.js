@@ -132,10 +132,10 @@ function hideReactionDetails() {
 	$details.classList.remove("show");
 }
 function showToast(msg) {
-	if (document.getElementById("forum-toast"))
-		document.body.removeChild(document.getElementById("forum-toast"));
+	if (document.getElementById("msg-toast"))
+		document.body.removeChild(document.getElementById("msg-toast"));
 	var res = document.createElement("div");
-	res.id = "forum-toast";
+	res.id = "msg-toast";
 	res.innerHTML = msg;
 	document.body.appendChild(res);
 	setTimeout(function() {
@@ -146,11 +146,19 @@ function showToast(msg) {
 }
 function reportMsg(topicId, msgId) {
 	var contentType = (msgId === 1) ? 'topic' : 'message';
-	if (confirm(o_language ? ("Report this "+contentType+" to the moderation team?") : ("Signaler ce "+contentType+" à l'équipe de modération ?"))) {
-		var link = topicId+","+msgId;
-		o_xhr("report.php", "type=topic&link="+link, function(res) {
+	var theContent = o_language ? "the "+contentType : "le "+contentType;
+	var link = topicId+","+msgId;
+	reportContent("topic", link, theContent);
+}
+function reportContent(type, link, theContent) {
+	var contentParts = theContent.split(" ", 2);
+	var thisContent = (o_language ? 'this' : (contentParts[0] === "la" ? "cette" : "ce")) + " " + contentParts[1];
+	if (confirm(o_language ? ("Report "+thisContent+" to the moderation team?") : ("Signaler "+thisContent+" à l'équipe de modération ?"))) {
+		o_xhr("report.php", "type="+type+"&link="+link, function(res) {
 			if (res != 1) return false;
-			showToast(o_language ? "\uD83D\uDC4D The message has been reported to the moderation team" : "\uD83D\uDC4D Le message a été reporté à l'équipe de modération");
+			theContent = theContent.charAt(0).toUpperCase() + theContent.slice(1);
+			var reported = o_language ? "reported" : (contentParts[0] === "la" ? "reportée" : "reporté");
+			showToast(o_language ? "\uD83D\uDC4D "+theContent+" has been "+reported+" to the moderation team" : "\uD83D\uDC4D "+theContent+" a été "+reported+" à l'équipe de modération");
 			return true;
 		})
 	}

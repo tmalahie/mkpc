@@ -10,28 +10,28 @@ function previewMark(note) {
 function updateMark() {
     previewMark(cNote);
 }
+var sendingMark = false;
 function setMark(nNote) {
+    if (sendingMark) return;
     cNote = (cNote != nNote) ? nNote:0;
     if (cNote != aNote) {
-        document.getElementById("submitMark").disabled = false;
-        document.getElementById("submitMark").className = "";
+        previewMark(cNote);
+        sendMark();
     }
-    else {
-        document.getElementById("submitMark").disabled = true;
-        document.getElementById("submitMark").className = "cannotChange";
-    }
-    previewMark(cNote);
 }
 function sendMark() {
+    sendingMark = true;
     document.getElementById("markMsg").innerHTML = language ? 'Sending...':'Envoi en cours...';
-    document.getElementById("submitMark").disabled = true;
-    document.getElementById("submitMark").className = "cannotChange";
     xhr("sendMark.php", ratingParams+"&rating="+cNote, function(reponse) {
         if (reponse == 1) {
+            sendingMark = false;
             aNote = cNote;
             document.getElementById("markMsg").innerHTML = (aNote>0) ? (language ? 'Thanks for your vote':'Merci de votre vote') : (language ? 'Vote removed successfully':'Vote supprim&eacute; avec succ&egrave;s');
             return true;
         }
         return false;
     });
+}
+function reportCourse(theCourse) {
+    reportContent(commentType,commentCircuit, theCourse);
 }

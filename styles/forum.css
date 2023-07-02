@@ -253,32 +253,6 @@ blockquote .action_button {
 .auto-moderation-warning {
 	text-align: center;
 }
-#forum-toast {
-	position: fixed;
-	bottom: 6%;
-	left: 50%;
-	background-color: rgb(0,160,80);
-	background-color: rgba(0,160,80, 0.7);
-	border-radius: 6px;
-	color: white;
-	padding: 2px 6px;
-	max-width: 50%;
-	font-size: 1.2em;
-	transform: translateX(-50%);
-	animation: progressive-fade 5s 1 linear;
-	cursor: default;
-}
-@keyframes progressive-fade {
-	15% {
-		opacity: 1;
-	}
-	80% {
-		opacity: 0;
-	}
-	100% {
-		opacity: 0;
-	}
-}
 @media screen and (min-width: 600px) {
 	.mAuteur, .mPseudo {
 		width: 170px;

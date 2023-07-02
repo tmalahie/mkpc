@@ -7,10 +7,12 @@ function getMyRating($type, $circuitId) {
 	else
 		return 0;
 }
-function printRatingView($title) {
-	global $language, $cNote;
+function printRatingView() {
+	global $language, $cNote, $isBattle, $isCup, $isMCup;
+	$thisCourse = $language ? 'this '.($isMCup?'multicup':($isCup?'cup':($isBattle?'course':'circuit'))) : ($isMCup?'cette multicoupe':($isCup?'cette coupe':($isBattle?'cette arène':'ce circuit')));
+	$theCourse = $language ? 'the '.($isMCup?'multicup':($isCup?'cup':($isBattle?'course':'circuit'))) : ($isMCup?"la multicoupe":($isCup?"la coupe":($isBattle?"l'arène":"le circuit")));
 	?>
-	<p id="markMsg"><?php echo $title; ?></p>
+	<p id="markMsg"><?php echo $language ? "Rate $thisCourse!":"Notez $thisCourse !"; ?></p>
 	<?php
 	function addStar($i, $a, $apreciation) {
 		echo '&nbsp;<img id="star'.$i.'" class="star" src="images/star'.$a.'.png" onclick="setMark('.$i.')" onmouseover="previewMark('.$i.')" onmouseout="updateMark()" title="'.HTMLentities($apreciation).'" /> ';
@@ -21,7 +23,7 @@ function printRatingView($title) {
 	for ($i=$cNote+1;$i<=5;$i++)
 		addStar($i, 0, $apreciations[$i]);
 	?><br />
-	<input type="button" id="submitMark" value="<?php echo $language ? 'Submit':'Valider'; ?>" disabled="disabled" class="cannotChange" onclick="sendMark();" /></td>
+	<a href="#null" id="reportCourse" onclick="reportCourse('<?php echo $theCourse; ?>');return false">📢 <u><?php echo $language ? "Report $theCourse":"Signaler $theCourse"; ?></u></a>
 	<?php
 }
 function recomputeRating($type, $circuitId) {

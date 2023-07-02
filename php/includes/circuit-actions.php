@@ -339,7 +339,7 @@ function printCircuitActions() {
         }
         break;
     case 'rate':
-        printRatingView($language ? ('Rate this '.($isMCup?'multicup':($isCup?'cup':($isBattle?'course':'circuit'))).'!'):('Notez '.($isMCup?'cette multicoupe':($isCup?'cette coupe':($isBattle?'cette arène':'ce circuit')))).' !');
+        printRatingView();
         break;
     default:
         echo '&nbsp;';

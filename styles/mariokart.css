@@ -487,7 +487,8 @@ button.control-close:active {
 }
 #markMsg {
 	width: 200px;
-	font-weight: bold
+	font-weight: bold;
+	margin-top: 1em;
 }
 @media screen and (min-width: 400px) {
 	#options.ct-actions #markMsg {
@@ -808,6 +809,20 @@ form[name="modes"] {
 }
 #shareParams .br-small {
 	line-height: 0.5em;
+}
+#reportCourse {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+	color: #fed;
+	text-decoration: none;
+	font-size: 0.8em;
+	margin-top: 0.5em;
+	opacity: 0.9;
+}
+#reportCourse:hover {
+	opacity: 1;
 }
 .chatLink {
 	color: white
