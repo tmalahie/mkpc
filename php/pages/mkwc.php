@@ -12,10 +12,11 @@ $upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
 $swissStage = $language ? 'Swiss Stage':'Ronde Suisse';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
-$isPollClosed = false;//(time() > 1657335600);
+$isPollClosed = true;
 switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
+    $bracketImg = 'bracket-mkw.png';
     $teams = array(
         $playInStage => array(
             "$group I" => array(
@@ -140,6 +141,7 @@ case 'mkt':
     break;
 case 'mk8d':
     $consoleName = 'Mario Kart 8 Deluxe';
+    $bracketImg = 'bracket-mk8d.png';
     $teams = array(
         $playInStage => array(
             "$group I" => array(
@@ -151,7 +153,7 @@ case 'mk8d':
                     'cal'=> $language ? 'Caledonbria':'Caledonbria',
                     'pri'=> $language ? 'Puerto Rico':'Puerto Rico'
                 ),
-                'eliminated' => array('cal', 'pri')
+                'eliminated' => array('cal', 'pri', 'cri', 'lux')
             ),
             "$group II" => array(
                 'list' => array(
@@ -160,7 +162,7 @@ case 'mk8d':
                     'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
                     'por'=> $language ? 'Portugal':'Portugal'
                 ),
-                'eliminated' => array('eue', 'por')
+                'eliminated' => array('eue', 'por', 'kor', 'mag')
             ),
             "$group III" => array(
                 'list' => array(
@@ -169,7 +171,7 @@ case 'mk8d':
                     'hkt'=> $language ? 'Hong Kong-Taiwan':'Hong Kong-Taiwan',
                     'aru'=> $language ? 'Argentina-Uruguay':'Argentine-Uruguay'
                 ),
-                'eliminated' => array('aru', 'hkt')
+                'eliminated' => array('aru', 'hkt', 'col', 'chn')
             )
         ),
         $upperStage => array(
@@ -180,7 +182,8 @@ case 'mk8d':
                     'eng'=> $language ? 'England':'Angleterre',
                     'usa'=> $language ? 'United States':'États-Unis',
                     'mex'=> $language ? 'Mexico':'Mexique',
-                )
+                ),
+                'eliminated' => array('eng')
             ),
             "$group B" => array(
                 'list' => array(
@@ -188,7 +191,8 @@ case 'mk8d':
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'spa'=> $language ? 'Spain':'Espagne',
                     'can'=> $language ? 'Canada':'Canada',
-                )
+                ),
+                'eliminated' => array('ger', 'spa', 'can')
             )
         ),
         $lowerStage => array(
@@ -199,7 +203,8 @@ case 'mk8d':
                     'aus'=> $language ? 'Australia':'Australie',
                     'nrd'=> $language ? 'Nordic':'Nordique',
                     'lux'=> $language ? 'Luxembourg':'Luxembourg'
-                )
+                ),
+                'eliminated' => array('bel', 'aus', 'nrd', 'lux')
             ),
             "$group 2" => array(
                 'list' => array(
@@ -207,7 +212,8 @@ case 'mk8d':
                     'per'=> $language ? 'Peru':'Pérou',
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'chn'=> $language ? 'China':'Chine',
-                )
+                ),
+                'eliminated' => array('per', 'bra', 'chn', 'swi')
             ),
             "$group 3" => array(
                 'list' => array(
@@ -215,7 +221,8 @@ case 'mk8d':
                     'ire'=> $language ? 'Ireland':'Irlande',
                     'col'=> $language ? 'Colombia':'Colombie',
                     'kor'=> $language ? 'South Korea':'Corée du Sud'
-                )
+                ),
+                'eliminated' => array('ire', 'col', 'kor', 'net')
             ),
             "$group 4" => array(
                 'list' => array(
@@ -223,7 +230,8 @@ case 'mk8d':
                     'aut'=> $language ? 'Austria':'Autriche',
                     'mag'=> $language ? 'Maghreb':'Maghreb',
                     'cri'=> $language ? 'Costa Rica':'Costa Rica'
-                )
+                ),
+                'eliminated' => array('aut', 'mag', 'cri', 'chi')
             )
         )
     );
@@ -554,6 +562,15 @@ if ($id) {
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        .mFullBracket {
+            margin-top: 1em;
+        }
+        .mFullBracket a {
+            cursor: zoom-in;
+        }
+        .mFullBracket img {
+            width: 100%;
+        }
         .mVotesBar {
             display: flex;
             margin-left: 0.4em;
@@ -770,6 +787,13 @@ if ($id) {
                                 <div id="mBracket">
                                     <img src="https://cdn.discordapp.com/attachments/309729458925993985/1005467247210418205/unknown.png" alt="Bracket" />
                                 </div>*/
+                            }
+                            if (!empty($bracketImg)) {
+                                echo '<div class="mFullBracket">';
+                                    echo '<a href="images/mkwc/'.$bracketImg.'" target="_blank">';
+                                        echo '<img src="images/mkwc/'.$bracketImg.'" alt="Bracket" />';
+                                    echo '</a>';
+                                echo '</div>';
                             }
                             ?>
                             <form method="post" class="mTeamsTable" onsubmit="handleSubmit(event)">
