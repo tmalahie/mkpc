@@ -208,6 +208,31 @@ body a.challenge-action-edit:hover {
 .challenge-rule-music-value {
 	display: none;
 }
+.challenge-rule-character-custom {
+	display: none;
+}
+.challenge-rule-character-custom.show {
+	display: block;
+}
+.challenge-rule-character-custom {
+	margin-top: 0.25em;
+}
+.challenge-rule-character-custom > input[type="text"] {
+	display: none;
+}
+.challenge-rule-character-custom-list {
+	display: flex;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: 0.25em;
+}
+.challenge-rule-character-custom-list button.character-extra {
+	background-color: #396;
+	background-image: url('../images/editor/plus.png');
+}
+.challenge-rule-character-custom-list button.character-extra:hover {
+	background-color: #5B8;
+}
 .challenge-edit-form input[type="text"], .challenge-edit-form input[type="number"] {
 	background-color: #EEF3FF;
 	border-radius: 4px;
@@ -560,6 +585,72 @@ a.pretty-link:hover {
 	padding: 0 5px 1px 5px;
 	margin-top: 5px;
 	border-radius: 5px;
+}
+.collab-popup {
+	position: fixed;
+	z-index: 10;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0, 0.5);
+}
+.popup-content {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	padding: 10px 10px;
+	width: 425px;
+	max-width: 90%;
+	transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	-webkit-transform: translate(-50%, -50%);
+	background-color: #AAC;
+	border-radius: 5px;
+	opacity: 0.8;
+	color: black;
+}
+.popup-content:hover {
+	opacity: 1;
+}
+.popup-content h3 {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.popup-content h4 {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.popup-content h2 {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+.collab-popup .editor-mask-content {
+	color: black;
+}
+.collab-popup:not([data-state]) {
+	display: none;
+}
+.collab-popup[data-state="loading"] .popup-content {
+	display: none;
+}
+.collab-popup form {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	font-size: 0.9em;
+	display: flex;
+	gap: 0.1em;
+}
+.collab-popup form input[type="url"] {
+	font-size: 1em;
+	flex: 1;
+}
+.collab-popup form input[type="submit"] {
+    background-color: #69C;
+    color: white;
+    border-color: #48A;
+	cursor: pointer;
+	border-radius: 0.25em;
 }
 .pub {
 	max-width: 100%;

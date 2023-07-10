@@ -268,7 +268,7 @@ body {
 #collab-popup:not([data-state]) {
 	display: none;
 }
-#collab-popup[data-state="loading"] .editor-mask-content {
+#collab-popup[data-state="loading"] .popup-content {
 	display: none;
 }
 #collab-popup form {
@@ -891,7 +891,7 @@ document.addEventListener("DOMContentLoaded", function() {
 						loadCbs.push(cb);
 					}
 				};
-				xhr("getDecorData.php?id="+customDecors[key].id, "", function(res) {
+				xhr("getDecorData.php?id="+customDecors[key].id, null, function(res) {
 					res = feedCustomDecorData(res);
 					for (var i=0;i<loadCbs.length;i++)
 						loadCbs[i](res);
@@ -969,7 +969,7 @@ function importCollabDecor(e) {
 	}
 	var $collabPopup = document.getElementById("collab-popup");
 	$collabPopup.dataset.state = "loading";
-	xhr("importCollabDecor.php", "type=mkdecors&id="+creationId+"&collab="+creationKey, function(res) {
+	xhr("importCollabDecor.php", "id="+creationId+"&collab="+creationKey, function(res) {
 		if (!res) {
 			alert(language ? "Invalid link" : "Lien invalide");
 			$collabPopup.dataset.state = "open";
@@ -1217,7 +1217,7 @@ window.onload = function() {
 				}
 				else {
 					?>
-					Saisissez ici le lien de collaboration de décor.<br />
+					Saisissez ici le lien de collaboration du décor.<br />
 					Pour obtenir ce lien, le propriétaire du décor devra simplement
 					cliquer sur &quot;Collaborer&quot; dans la page d'édition des décors.
 					<?php

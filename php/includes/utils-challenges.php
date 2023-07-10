@@ -347,7 +347,14 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'With character...':'Avec le perso...',
 			'description_lambda' => function($language,&$scope) {
 				$sPerso = $scope->value;
-				return ($language ? 'with ':'avec ') . getCharacterName($sPerso);
+				$characterName = isset($scope->custom_name) ? $scope->custom_name : getCharacterName($sPerso);
+				return ($language ? 'with ':'avec ') . $characterName;
+			},
+			'parser' => function(&$scope) {
+				if (!empty($scope['value'])) {
+					unset($scope['custom_id']);
+					unset($scope['custom_name']);
+				}
 			},
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'placeholder' => array(
