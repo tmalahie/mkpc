@@ -319,6 +319,15 @@
 						else
 							$toDelete = true;
 						break;
+					case 'award':
+						$nameCol = $language ? 'notif_msg_en' : 'notif_msg_fr';
+						if ($getAward = mysql_fetch_array(mysql_query('SELECT a.name,a.'.$nameCol.' AS notif_msg,u.value FROM mkawards a INNER JOIN mkawarded u ON a.id=u.award AND u.user="'. $id .'" WHERE a.id="'. $myNotif['link'] .'"'))) {
+							$notifData['link'] = 'profil.php?id='.$id;
+							$notifData['award'] = $getAward;
+						}
+						else
+							$toDelete = true;
+						break;
 					case 'admin_report':
 						if ($getReport = mysql_fetch_array(mysql_query('SELECT h.reporter FROM `mkreportshist` h INNER JOIN `mkreports` r ON h.type=r.type AND h.link=r.link WHERE h.id="'. $myNotif['link'] .'" AND r.state="pending"'))) {
 							$notifData['link'] = 'adminReports.php';
@@ -563,6 +572,12 @@
 				}
 				$moderated = ($clData['status']=='active') ? ($language?'accepted':'accepté') : ($language?'rejected':'refusé');
 				$notifsData[$i]['content'] = ($language ? "Your challenge <strong>$clName</strong> has been $moderated":"Votre défi <strong>$clName</strong> a été $moderated");
+				break;
+			case 'award':
+				if ($notifData['award']['notif_msg'])
+					$notifsData[$i]['content'] = nl2br($notifData['award']['notif_msg']);
+				else
+					$notifsData[$i]['content'] = $language ? '🏆 You have received the award <strong>'. htmlspecialchars($notifData['award']['value']) .'</strong> for the event <strong>'. htmlspecialchars($notifData['award']['name']) .'</strong>, congratulations!!' : '🏆 Vous avez reçu le titre de <strong>'. htmlspecialchars($notifData['award']['value']) .'</strong> pour l\'événement <strong>'. htmlspecialchars($notifData['award']['name']) .'</strong>, félicitations !!';
 				break;
 			case 'admin_report':
 				$verb = ($language ? ((count($names)>1) ? 'reported some messages in the forum':'reported a message in the forum'):((count($names)>1) ? 'ont signalé des messages sur le forum':'a signalé un message sur le forum'));

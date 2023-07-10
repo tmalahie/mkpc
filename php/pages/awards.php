@@ -115,7 +115,7 @@ include('../includes/menu.php');
 		?>
 		<tr>
 			<td><?php
-				echo $award['name'];
+				echo htmlspecialchars($award['name']);
 				if ($award['link'])
 					echo '<sup><a href="'. htmlspecialchars($award['link']) .'">[?]</a></sup>';
 			?></td>

@@ -23,7 +23,8 @@ if ($id) {
 		'currently_online' => $language ? 'A member you follow is playing online':'Un membre suivi joue actuellement en ligne',
 		'new_record' => $language ? 'Record broken in Time Trial':'Record battu en contre-la-montre',
 		'new_followuser' => $language ? 'New profile follower':'Nouvel abonné à votre profil',
-		'new_followtopic' => $language ? 'New subscriber to your topic':'Nouvel abonnement à votre topic'
+		'new_followtopic' => $language ? 'New subscriber to your topic':'Nouvel abonnement à votre topic',
+		'award' => $language ? 'New award on your profile':'Nouveau titre sur votre profil'
 	);
 	require_once('../includes/getRights.php');
 	if (hasRight('moderator')) {

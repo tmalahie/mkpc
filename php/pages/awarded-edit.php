@@ -38,6 +38,7 @@ if (isset($_POST['nom']) && isset($_POST['award']) && isset($_POST['value'])) {
 		}
 		else {
 			mysql_query('INSERT INTO mkawarded VALUES('.$getMember['id'].',"'. $getAward['id'] .'","'. $_POST['value'] .'")');
+			mysql_query('INSERT INTO `mknotifs` SET type="award", user="'. $getMember['id'] .'", link="'. $getAward['id'] .'"');
 			mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "CAwarded '. $getMember['id'] .' '. $getAward['id'] .'")');
 			header('location: awards.php?awarded-created');
 		}

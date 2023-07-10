@@ -24,7 +24,7 @@ if (isset($profileId)) {
 	$me = ($id == $profileId);
 	include('../includes/language.php');
 	include('../includes/avatars.php');
-	if ($id != $profileId) {
+	if (!$me) {
 		if (isset($_GET['unignore'])) {
 			mysql_query('DELETE FROM `mkignores` WHERE ignorer="'. $id .'" AND ignored="'. $profileId .'"');
 			$unignored = true;
@@ -43,7 +43,8 @@ if (isset($profileId)) {
 		require_once('../includes/getRights.php');
 		$userRights = getUserRights($profileId);
 		$isModerator = hasRight('moderator');
-		if ($id == $profileId) {
+		if ($me) {
+			mysql_query('DELETE FROM `mknotifs` WHERE type="award" AND user="'. $profileId .'"');
 			if (isset($_FILES['avatar'])) {
 				if (!$_FILES['avatar']['error']) {
 					$poids = $_FILES['avatar']['size'];
