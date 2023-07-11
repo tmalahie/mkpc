@@ -13,6 +13,7 @@ $swissStage = $language ? 'Swiss Stage':'Ronde Suisse';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
 $isPollClosed = true;
+$tournamentWinner = null;
 switch ($console) {
 case 'mkw':
     $consoleName = 'Mario Kart Wii';
@@ -28,7 +29,7 @@ case 'mkw':
                     'mag'=> $language ? 'Maghreb':'Maghreb',
                     'spa'=> $language ? 'Spain':'Espagne'
                 ),
-                'eliminated' => array('mag', 'spa')
+                'eliminated' => array('mag', 'spa', 'asi')
             )
         ),
         $swissStage => array(
@@ -51,7 +52,8 @@ case 'mkw':
                     'uss'=> $language ? 'United States South':'États-Unis du Sud',
                     'asi'=> $language ? 'Asia':'Asie',
                     'ita'=> $language ? 'Italy':'Italie'
-                )
+                ),
+                'eliminated' => array('asi', 'nor')
             )
         )
     );
@@ -141,7 +143,8 @@ case 'mkt':
     break;
 case 'mk8d':
     $consoleName = 'Mario Kart 8 Deluxe';
-    $bracketImg = 'bracket-mk8d.png';
+    $bracketImg = 'bracket-mk8d-finals.jpg';
+    $tournamentWinner = $language ? 'Japan' : 'Japon';
     $teams = array(
         $playInStage => array(
             "$group I" => array(
@@ -183,7 +186,7 @@ case 'mk8d':
                     'usa'=> $language ? 'United States':'États-Unis',
                     'mex'=> $language ? 'Mexico':'Mexique',
                 ),
-                'eliminated' => array('eng')
+                'eliminated' => array('fra', 'eng', 'usa', 'mex')
             ),
             "$group B" => array(
                 'list' => array(
@@ -747,10 +750,12 @@ if ($id) {
                                 <?php
                                 if ($myVote)
                                     echo '<img src="images/mkwc/flags/'.$myVote.'.png" alt="'. $myVote .'" /> ' . ($language ? 'You have selected <strong>'. $teamsDict[$myVote] .'</strong> team' : 'Vous avez sélectionné l\'équipe de <strong>'. $teamsDict[$myVote] .'</strong>');
-                                elseif ($isPollClosed)
-                                    echo ($language ? 'The poll is closed. See you at the end of the tournament!' : 'Le sondage est fermé. Rendez-vous à la fin du tournoi !');
-                                else
-                                    echo $language ? 'Select your team within the list below' : 'Sélectionnez votre équipe dans la liste';
+                                elseif (!$tournamentWinner) {
+                                    if ($isPollClosed)
+                                        echo ($language ? 'The poll is closed. See you at the end of the tournament!' : 'Le sondage est fermé. Rendez-vous à la fin du tournoi !');
+                                    else
+                                        echo $language ? 'Select your team within the list below' : 'Sélectionnez votre équipe dans la liste';
+                                }
                                 ?>
                             </h2>
                             <?php
@@ -787,6 +792,11 @@ if ($id) {
                                 <div id="mBracket">
                                     <img src="https://cdn.discordapp.com/attachments/309729458925993985/1005467247210418205/unknown.png" alt="Bracket" />
                                 </div>*/
+                            }
+                            if ($tournamentWinner) {
+                                echo '<h2>';
+                                echo ($language ? 'The tournament is over. Congratulations to the <strong>'. $tournamentWinner .'</strong> team for winning the competition!' : 'Le tournoi est terminé. Félicitations à l\'équipe du <strong>'. $tournamentWinner .'</strong> qui sort vainqueur de la compétition !');
+                                echo '</h2>';
                             }
                             if (!empty($bracketImg)) {
                                 echo '<div class="mFullBracket">';
