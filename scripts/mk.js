@@ -12024,8 +12024,17 @@ var challengeRules = {
 		}
 	},
 	"character": {
-		"success": function(scope) {
-			return (oPlayers[0].personnage == scope.value);
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+		},
+		"success": function(scope, ruleVars, challenge) {
+			var persoKey = oPlayers[0].personnage;
+			if (scope.custom_id)
+				return ruleVars.selected && challenge.autoset && persoKey === challenge.autoset.selectedPerso;
+			return (persoKey == scope.value);
 		}
 	},
 	"falls": {
@@ -18254,9 +18263,10 @@ if (!String.prototype.startsWith) {
     	return this.indexOf(searchString, position) === position;
 	};
 }
-function isCustomPerso(playerName) {
+function isCustomPerso(playerName, opts) {
+	if (!opts) opts = {};
 	if (playerName.startsWith("cp-")) {
-		if (!customPersos[playerName]) {
+		if (!customPersos[playerName] || opts.forceReload) {
 			cp[playerName] = [0.5,0.5,0.5,0.5];
 			var defaultIc = PERSOS_DIR + playerName + "-ld.png";
 			customPersos[playerName] = {
@@ -18282,6 +18292,8 @@ function isCustomPerso(playerName) {
 				cp[playerName][2] = perso.handling;
 				cp[playerName][3] = perso.mass;
 				customPersos[playerName] = perso;
+				if (opts.callback)
+					opts.callback(perso);
 				return true;
 			});
 		}
@@ -22145,7 +22157,20 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	oScr.appendChild(oPInput);
 
 	if (clSelected && clSelected.autoset && clSelected.autoset.selectedPerso && !force) {
-		var persoSelector = document.getElementById("perso-selector-"+clSelected.autoset.selectedPerso);
+		var customCharCb;
+		var persoKey = clSelected.autoset.selectedPerso;
+		if (isCustomPerso(persoKey, {
+			forceReload: true,
+			callback: function() { customCharCb() }
+		})) {
+			customCharCb = function() {
+				pUnlockMap[persoKey] = 1;
+				var oDiv = createPersoSelector(persoKey);
+				oDiv.onclick();
+			}
+			return;
+		}
+		var persoSelector = document.getElementById("perso-selector-"+persoKey);
 		if (persoSelector && persoSelector.onclick) {
 			persoSelector.onclick();
 			return;

@@ -361,7 +361,13 @@ $clRulesByType = array(
 				'value' => '...'
 			),
 			'autoset' => function(&$res, $scope) {
-				$res['selectedPerso'] = $scope->value;
+				if (isset($scope->custom_id)) {
+					$persoId = intval($scope->custom_id);
+					if ($perso = mysql_fetch_array(mysql_query('SELECT sprites FROM `mkchars` WHERE id="'. $persoId .'"')))
+						$res['selectedPerso'] = $perso['sprites'];
+				}
+				else
+					$res['selectedPerso'] = $scope->value;
 			}
 		),
 		'falls' => array(

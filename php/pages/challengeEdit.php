@@ -234,7 +234,7 @@ if (isset($chRules))
 	echo 'var chRules = '. json_encode($chRules) .';';
 echo 'var clCourse = "'. $clCourse .'";';
 ?>
-var persoOptions = <?php echo json_encode($persoOptions); ?>;
+var persoOptions = <?php echo isset($persoOptions) ? json_encode($persoOptions) : 'null'; ?>;
 var decorOptions = <?php echo isset($decorOptions) ? json_encode($decorOptions) : 'null'; ?>;
 var selectedConstraints = {};
 function selectMainRule() {

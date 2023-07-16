@@ -2,11 +2,12 @@
 header('Content-Type: text/plain');
 if (isset($_GET['id'])) {
 	include('../includes/initdb.php');
-	$perso = mysql_fetch_array(mysql_query('SELECT name,acceleration,speed,handling,mass,sprites FROM `mkchars` WHERE id="'. $_GET['id'] .'"'));
+	$perso = mysql_fetch_array(mysql_query('SELECT id,name,acceleration,speed,handling,mass,sprites FROM `mkchars` WHERE id="'. $_GET['id'] .'"'));
 	if ($perso) {
 		require_once('../includes/persos.php');
 		$spriteSrcs = get_sprite_srcs($perso['sprites']);
 		$res = array (
+			'id' => $perso['id'],
 			'name' => $perso['name'],
 			'acceleration' => +$perso['acceleration'],
 			'speed' => +$perso['speed'],
