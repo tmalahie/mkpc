@@ -233,6 +233,16 @@ body a.challenge-action-edit:hover {
 .challenge-rule-character-custom-list button.character-extra:hover {
 	background-color: #5B8;
 }
+.challenge-rule-character-custom-meta {
+	font-size: 0.8em;
+	margin-top: 5px;
+}
+.challenge-rule-character-custom-meta.character-name {
+	display: none;
+}
+.challenge-rule-character-custom-meta input {
+	width: 80px;
+}
 .challenge-edit-form input[type="text"], .challenge-edit-form input[type="number"] {
 	background-color: #EEF3FF;
 	border-radius: 4px;

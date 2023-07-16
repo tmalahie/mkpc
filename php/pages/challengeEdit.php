@@ -498,7 +498,7 @@ function addConstraintRule(clClass) {
 			addConstraintSelector($form,ruleId, language?'Character:':'Perso :', persoOptions);
 			$form.find('.challenge-constraint-value').change(function() {
 				var $custom = $form.find('.challenge-rule-character-custom');
-				var $customValue = $custom.find('[name="scope[character][custom_id]"]');
+				var $customValue = $custom.find('[name="scope[character][custom_name]"]');
 				if (this.value === '') {
 					$custom.addClass('show');
 					$customValue.attr('required', true);
@@ -512,9 +512,10 @@ function addConstraintRule(clClass) {
 			$form.append(
 				'<div class="challenge-rule-character-custom">'+
 				'<input type="text" name="scope[character][custom_id]" />'+
-				'<input type="text" name="scope[character][custom_name]" />'+
 				'<div class="challenge-rule-character-custom-list challenge-rule-btn-options">'+
 				'</div>'+
+				'<div class="challenge-rule-character-custom-meta character-name">'+
+				(language ? 'Character name':'Nom du perso :') +': <input type="text" name="scope[character][custom_name]" />'+
 				'</div>'
 			)
 			break;
@@ -792,9 +793,11 @@ function selectCharacter(btn) {
 	var $form = $(".challenge-edit-form");
 	var $customId = $form.find('[name="scope[character][custom_id]"]');
 	var $customName = $form.find('[name="scope[character][custom_name]"]');
+	var $customNameCtn = $form.find(".challenge-rule-character-custom-meta.character-name");
 	if (btn.dataset.selected) {
 		delete btn.dataset.selected;
 		$customId.val("");
+		$customNameCtn.hide();
 	}
 	else {
 		var previouslySelected = btn.parentNode.querySelectorAll('button[data-selected="1"]');
@@ -805,6 +808,7 @@ function selectCharacter(btn) {
 		btn.dataset.selected = "1";
 		$customId.val(btn.dataset.value);
 		$customName.val(btn.title);
+		$customNameCtn.show();
 	}
 }
 function selectExtraCharacter() {
@@ -1135,8 +1139,11 @@ $(function() {
 									$valBtn.click();
 								else {
 									o_xhr("getPersoData.php?id="+constraint.custom_id, null, function(res) {
-										if (res)
-											handleCollabCharacterSelected(JSON.parse(res));
+										if (res) {
+											var data = JSON.parse(res);
+											data.name = constraint.custom_name;
+											handleCollabCharacterSelected(data);
+										}
 										return true;
 									});
 								}
