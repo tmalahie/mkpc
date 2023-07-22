@@ -294,6 +294,7 @@ $clRulesByType = array(
 		'balloons' => array(
 			'description' => $language ? 'with $value balloon$s or more':'avec $value ballon$s ou plus',
 			'description_mockup' => $language ? 'With x balloons or more':'Avec x ballons ou plus',
+			'group' => 'endgame',
 			'course' => array('battle')
 		),
 		'balloons_lost' => array(
@@ -307,18 +308,22 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
+			'group' => 'no_action',
 			'course' => array('battle')
 		),
 		'no_drift' => array(
 			'description' => $language ? 'without drifting':'sans déraper',
+			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'avoid_items' => array(
 			'description' => $language ? 'without touching item boxes':'sans toucher les boites à objet',
+			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'no_item' => array(
 			'description' => $language ? 'without using any item':'sans utiliser d\'objets',
+			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'avoid_decors' => array(
@@ -341,6 +346,7 @@ $clRulesByType = array(
 				}
 				return $language ? 'without touching any '. $itemsToAvoidString:'sans toucher '. (in_array($itemsToAvoidString[0],array('a','e','i','o','u')) ? "d'":"de ") . $itemsToAvoidString;
 			},
+			'group' => 'no_action',
 			'course' => array('vs', 'battle')
 		),
 		'character' => array(
@@ -356,6 +362,7 @@ $clRulesByType = array(
 					unset($scope['custom_name']);
 				}
 			},
+			'group' => 'course_setup',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'placeholder' => array(
 				'value' => '...'
@@ -381,10 +388,12 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
+			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'bcup')
 		),
 		'no_stunt' => array(
 			'description' => $language ? 'without making stunts':'sans faire de figures',
+			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'time' => array(
@@ -399,14 +408,17 @@ $clRulesByType = array(
 			'formatter' => function(&$scope) {
 				$scope->value = formatTime($scope->value);
 			},
+			'group' => 'endgame',
 			'course' => array('vs', 'battle')
 		),
 		'backwards' => array(
 			'description' => $language ? 'by driving backwards':'en marche arrière',
+			'group' => 'extra_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'forwards' => array(
 			'description' => $language ? 'without going backwards':'sans reculer',
+			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'without_turning' => array(
@@ -423,6 +435,7 @@ $clRulesByType = array(
 				}
 				return $language ? "without turning $direction" : "sans tourner $direction";
 			},
+			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'time_delay' => array(
@@ -431,6 +444,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
+			'group' => 'extra_action',
 			'course' => array('vs')
 		),
 		'mini_turbo' => array(
@@ -439,6 +453,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
+			'group' => 'extra_action',
 			'course' => array('vs','battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'super_turbo' => array(
@@ -447,6 +462,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
+			'group' => 'extra_action',
 			'course' => array('vs','battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'stunts' => array(
@@ -455,6 +471,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
+			'group' => 'extra_action',
 			'course' => array('vs','battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'position' => array(
@@ -465,6 +482,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
+			'group' => 'endgame',
 			'course' => array('vs')
 		),
 		'with_pts' => array(
@@ -473,14 +491,17 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
+			'group' => 'endgame',
 			'course' => array('cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'different_circuits' => array(
 			'description' => $language ? 'in different circuits':'sur des circuits différents',
+			'group' => 'course_setup',
 			'course' => array('cup', 'mcup')
 		),
 		'different_arenas' => array(
 			'description' => $language ? 'in different arenas':'sur des arènes différentes',
+			'group' => 'course_setup',
 			'course' => array('bcup', 'mbcup')
 		),
 		'difficulty' => array(
@@ -494,6 +515,7 @@ $clRulesByType = array(
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
+			'group' => 'course_setup',
 			'course' => array('vs', 'cup', 'mcup'),
 			'additional_lambda' => function(&$scope) {
 				return ($scope->value == 0);
@@ -505,6 +527,7 @@ $clRulesByType = array(
 		'participants' => array(
 			'description_mockup' => $language ? 'with x participants':'avec x participants',
 			'description' => $language ? 'with $value participant$s':'avec $value participant$s',
+			'group' => 'course_setup',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'additional_lambda' => function(&$scope) {
 				return ($scope->value == 8);
@@ -603,6 +626,24 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'initial CPU balloons':'nb ballons initiaux (ordis)',
 			'course' => array('battle')
 		)
+	)
+);
+$clGroupsByType = array(
+	array(
+		'key' => 'no_action',
+		'label' => $language ? 'Without doing something' : 'Sans faire une action',
+	),
+	array(
+		'key' => 'extra_action',
+		'label' => $language ? 'By doing something' : 'En réalisant une action',
+	),
+	array(
+		'key' => 'course_setup',
+		'label' => $language ? 'With course setup' : 'Paramètres de course',
+	),
+	array(
+		'key' => 'endgame',
+		'label' => $language ? 'Endgame state' : 'État de fin de partie',
 	)
 );
 $clRules = array();

@@ -86,6 +86,7 @@ if (isset($_POST['name'])) {
 }
 elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || !empty($moderate)) {
 	$clRulesPayload = rulesPayloadByType($clCourse);
+	$clGroupsPayload = $clGroupsByType;
 	if (isset($challenge))
 		$chRules = getChallengeRulesByType($challenge);
 	ob_start();
@@ -227,6 +228,7 @@ if (empty($moderate))
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
 var clRules = <?php echo isset($clRulesPayload) ? json_encode($clRulesPayload) : 'null'; ?>;
+var clGroups = <?php echo isset($clGroupsPayload) ? json_encode($clGroupsPayload) : 'null'; ?>;
 <?php
 if (isset($challenge))
 	echo 'var challengeId = '. $challenge['id'] .';';
@@ -644,11 +646,37 @@ function updateConstraintSelector(clClass,$rulesSelector) {
 	if (clClass === "setup")
 		selectConstraintLabel = language ? 'Select option...':'Sélectionner option...';
 	$rulesSelector.append('<option value="">'+ selectConstraintLabel +'</option>');
+
+	var constraintGroups = {};
+	for (var j=0;j<clGroups.length;j++) {
+		var clGroup = clGroups[j];
+		constraintGroups[clGroup.key] = { label: clGroup.label, list: [] };
+	}
 	for (var ruleId in listRules) {
 		if (!selectedConstraints[ruleId]) {
-			var $option = $('<option value="'+ ruleId +'">'+ listRules[ruleId].description +'</option>');
-			$rulesSelector.append($option);
+			var group = listRules[ruleId].group;
+			if (!constraintGroups[group])
+				constraintGroups[group] = { list: [] };
+			constraintGroups[group].list.push({
+				ruleId: ruleId,
+				description: listRules[ruleId].description
+			});
 		}
+	}
+	for (var group in constraintGroups) {
+		var constraintGroup = constraintGroups[group];
+		var groupConstraints = constraintGroup.list;
+		if (!groupConstraints.length) continue;
+		var $optGroup = $rulesSelector;
+		if (constraintGroup.label)
+			$optGroup = $('<optgroup label="'+ constraintGroup.label +'"></optgroup>');
+		for (var j=0;j<groupConstraints.length;j++) {
+			var groupConstraint = groupConstraints[j];
+			var $option = $('<option value="'+ groupConstraint.ruleId +'">'+ groupConstraint.description +'</option>');
+			$optGroup.append($option);
+		}
+		if (constraintGroup.label)
+			$rulesSelector.append($optGroup);
 	}
 }
 function getConstraintOptions(clClass,ruleId) {
@@ -1133,21 +1161,23 @@ $(function() {
 						break;
 					case "character":
 						if (constraint.custom_id) {
-							customCharactersCallbacks.push(function() {
-								var $valBtn = $(".challenge-rule-character-custom-list button[data-value='"+ constraint.custom_id +"']");
-								if ($valBtn.length)
-									$valBtn.click();
-								else {
-									o_xhr("getPersoData.php?id="+constraint.custom_id, null, function(res) {
-										if (res) {
-											var data = JSON.parse(res);
-											data.name = constraint.custom_name;
-											handleCollabCharacterSelected(data);
-										}
-										return true;
-									});
-								}
-							});
+							(function(constraint) {
+								customCharactersCallbacks.push(function() {
+									var $valBtn = $(".challenge-rule-character-custom-list button[data-value='"+ constraint.custom_id +"']");
+									if ($valBtn.length)
+										$valBtn.click();
+									else {
+										o_xhr("getPersoData.php?id="+constraint.custom_id, null, function(res) {
+											if (res) {
+												var data = JSON.parse(res);
+												data.name = constraint.custom_name;
+												handleCollabCharacterSelected(data);
+											}
+											return true;
+										});
+									}
+								});
+							})(constraint);
 							$(formElt).change();
 						}
 						break;

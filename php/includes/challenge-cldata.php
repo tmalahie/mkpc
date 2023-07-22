@@ -157,6 +157,8 @@ function rulePayload($rule,$rulesClass=null) {
 	);
 	if (isset($rule['scope']))
 		$res['scope'] = $rule['scope'];
+	if (isset($rule['group']))
+		$res['group'] = $rule['group'];
 	return $res;
 }
 function getChallengeRulesByType($challenge) {
