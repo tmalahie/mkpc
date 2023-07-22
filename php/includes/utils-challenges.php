@@ -326,6 +326,32 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
+		'avoid_item' => array(
+			'description_mockup' => $language ? 'without being hit by item...':'sans se faire toucher par l\'objet...',
+			'description_lambda' => function($language,&$scope) {
+				$itemsToAvoid = array();
+				foreach ($scope->value as $key)
+					$itemsToAvoid[] = getChallengeItemName($key);
+				$itemsToAvoid = array_values(array_unique($itemsToAvoid));
+				$itemsToAvoidString = '';
+				$nbItems = count($itemsToAvoid);
+				foreach ($itemsToAvoid as $i=>$item) {
+					if ($i) {
+						if ($i === ($nbItems-1))
+							$itemsToAvoidString .= $language ? ' or ':' ou ';
+						else
+							$itemsToAvoidString .= ', ';
+					}
+					$itemsToAvoidString .= $item;
+				}
+				return $language ? 'without being hit by '. $itemsToAvoidString:'sans vous faire renverser par '. $itemsToAvoidString;
+			},
+			'parser' => function(&$scope) {
+				$scope['value'] = explode(',', $scope['value']);
+			},
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
 		'avoid_decors' => array(
 			'description_mockup' => $language ? 'without touching a decor...':'sans toucher un décor...',
 			'description_lambda' => function($language,&$scope) {
@@ -1190,6 +1216,26 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 		return htmlspecialchars($name);
 	if (isset($decorMapping[$key]))
 		return $decorMapping[$key];
+	return $key;
+}
+function getChallengeItemName($key) {
+	global $language;
+	$itemMapping = array(
+		'fauxobjet' => $language ? 'a fake item box' : 'une fausse boite à objet',
+		'banane' => $language ? 'a banana' : 'une banane',
+		'carapace' => $language ? 'a green shell' : 'une carapace verte',
+		'carapacerouge' => $language ? 'a red shell' : 'une carapace rouge',
+		'champi' => $language ? 'a mushroom' : 'un champi',
+		'poison' => $language ? 'a poison mushroom' : 'un champi poison',
+		'bobomb' => $language ? 'a bobomb' : 'une bobomb',
+		'megachampi' => $language ? 'a mega mushroom' : 'un mega champi',
+		'etoile' => $language ? 'a star' : 'une étoile',
+		'carapacebleue' => $language ? 'a blue shell' : 'une carapace bleue',
+		'billball' => $language ? 'a bullet bill' : 'un bill ball',
+		'eclair' => $language ? 'a lightning' : 'un éclair'
+	);
+	if (isset($itemMapping[$key]))
+		return $itemMapping[$key];
 	return $key;
 }
 ?>

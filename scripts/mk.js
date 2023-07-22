@@ -6630,6 +6630,7 @@ var itemBehaviors = {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
+		frminv: true,
 		move: function(fSprite) {
 			if (fSprite.countdown)
 				handleSpriteLaunch(fSprite, 12,0.2);
@@ -6639,6 +6640,7 @@ var itemBehaviors = {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
+		frminv: true,
 		move: function(fSprite) {
 			if (fSprite.countdown)
 				handleSpriteLaunch(fSprite, 12,0.2);
@@ -6648,6 +6650,7 @@ var itemBehaviors = {
 		size: 0.54,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
+		frminv: true,
 		move: function(fSprite) {
 			if (fSprite.countdown)
 				handleSpriteLaunch(fSprite, 12,0.2);
@@ -6687,6 +6690,7 @@ var itemBehaviors = {
 								kart.spin(20);
 								stopDrifting(i);
 								dropCurrentItem(kart);
+								handleItemHit(kart, "eclair");
 							}
 							else {
 								if (kart.megachampi && !kart.etoile) {
@@ -7025,6 +7029,7 @@ var itemBehaviors = {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
 		fadedelay: 300,
+		frminv: true,
 		move: function(fSprite, ctx) {
 			var fNewPosX;
 			var fNewPosY;
@@ -7163,6 +7168,7 @@ var itemBehaviors = {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),intType("target")],
 		fadedelay: 300,
+		frminv: true,
 		move: function(fSprite, ctx) {
 			var fNewPosX;
 			var fNewPosY;
@@ -11946,6 +11952,21 @@ var challengeRules = {
 			return !clLocalVars.itemsGot;
 		}
 	},
+	"avoid_item": {
+		"initLocalVars": function(scope) {
+			if (!clLocalVars.hitItems)
+				clLocalVars.hitItems = {};
+			console.log(clLocalVars);
+		},
+		"success": function(scope) {
+			for (var i=0;i<scope.value.length;i++) {
+				var key = scope.value[i];
+				if (clLocalVars.hitItems[key])
+					return false;
+			}
+			return true;
+		}
+	},
 	"no_item": {
 		"success": function(scope) {
 			return !clLocalVars.itemsUsed;
@@ -13502,12 +13523,45 @@ function isHitSound(oBox) {
 	return false;
 }
 function handleHit(oBox) {
-	if (clLocalVars.myItems && clLocalVars.currentKart && (clLocalVars.currentKart != oPlayers[0]) && !clLocalVars.currentKart.tourne && (clLocalVars.myItems.indexOf(oBox) != -1))
+	if (!clLocalVars.currentKart) return;
+	if (clLocalVars.currentKart.tourne || clLocalVars.currentKart.protect) return;
+	if (clLocalVars.currentKart.frminv && itemBehaviors[oBox.type] && itemBehaviors[oBox.type].frminv) return;
+	if (clLocalVars.hitItems && (clLocalVars.currentKart == oPlayers[0]))
+		incItemHits(oBox.type);
+	if (clLocalVars.myItems && clLocalVars.currentKart && (clLocalVars.currentKart != oPlayers[0]) && (clLocalVars.myItems.indexOf(oBox) != -1))
 		incChallengeHits(clLocalVars.currentKart);
 }
 function handleHit2(oKart,kart) {
-	if ((oKart == oPlayers[0]) && (kart != oPlayers[0]))
+	if (kart == oPlayers[0]) {
+		if (oKart.billball)
+			incItemHits("billball");
+		if (oKart.etoile)
+			incItemHits("etoile");
+		if (oKart.megachampi)
+			incItemHits("megachampi");
+		if (oKart.champiType === CHAMPI_TYPE_ITEM)
+			incItemHits("champi");
+	}
+	else if (oKart == oPlayers[0])
 		incChallengeHits(kart);
+}
+function handleItemHit(oKart, itemKey) {
+	if (oKart === oPlayers[0])
+		incItemHits(itemKey);
+}
+function incItemHits(type) {
+	var itemKey;
+	switch (type) {
+	case "carapace-rouge":
+		itemKey = "carapacerouge";
+		break;
+	case "carapace-bleue":
+		itemKey = "carapacebleue";
+		break;
+	default:
+		itemKey = type;
+	}
+	clLocalVars.hitItems[itemKey] = true;
 }
 function incChallengeHits(kart) {
 	clLocalVars.nbHits++;

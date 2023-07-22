@@ -536,6 +536,21 @@ function addConstraintRule(clClass) {
 				$extraSelector.append('<button type="button" data-rule-type="constraint" data-rule-key="avoid_decors" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
 			}
 			break;
+		case 'avoid_item':
+			$form.html(
+				'<div>'+ (language?'Item(s):':'Objet(s) :') +' '+
+				'<input type="text" style="display:none" name="scope[avoid_item][value]" required="required" >'+
+				'<div class="challenge-rule-btn-options challenge-item-btn-options"></div>'
+			);
+			var $extraSelector = $form.find(".challenge-item-btn-options");
+			var itemOptions = getItemHitOptions();
+
+			for (var i=0;i<itemOptions.length;i++) {
+				var itemOption = itemOptions[i];
+				var itemIcon = "images/items/"+ itemOption +".png";
+				$extraSelector.append('<button type="button" data-value="'+ itemOption +'" data-rule-key="avoid_item" style="background-image:url(\''+ itemIcon +'\')" onclick="toggleItem(this)"></button>');
+			}
+			break;
 		case 'init_item':
 			$form.html(
 				'<div>'+ (language?'Item:':'Objet :') +' '+
@@ -1059,7 +1074,7 @@ function toggleDecor(btn, label) {
 }
 function toggleItem(btn) {
 	var ruleKey = btn.dataset.ruleKey;
-	var multiSelectAllowed = (ruleKey === "item_distribution");
+	var multiSelectAllowed = (ruleKey === "item_distribution") || (ruleKey === "avoid_item");
 	if (multiSelectAllowed) {
 		if (btn.dataset.selected)
 			delete btn.dataset.selected;
@@ -1187,8 +1202,9 @@ $(function() {
 							toggleItem(btn);
 						break;
 					case "item_distribution":
+					case "avoid_item":
 						for (var k=0;k<constraint.value.length;k++) {
-							var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='item_distribution'][data-value='"+ constraint.value[k] +"']");
+							var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='"+ constraint.type +"'][data-value='"+ constraint.value[k] +"']");
 							if (btn)
 								toggleItem(btn);
 						}
@@ -1247,6 +1263,17 @@ function getItemOptions() {
 		return ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops"];
 	else
 		return ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
+}
+function getItemHitOptions() {
+	var res = ["fauxobjet","banane","carapace","carapacerouge","bobomb","carapacebleue","megachampi","etoile"];
+	if (clCourse === "battle")
+		res.push("champi");
+	else {
+		res.push("billball");
+		res.push("eclair");
+		res.push("poison");
+	}
+	return res;
 }
 </script>
 </head>
