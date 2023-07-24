@@ -632,6 +632,18 @@ $clRulesByType = array(
 					$scope['value'] = 0;
 			}
 		),
+		'with_opponents' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'chosse opponents...':'choix des adversaires...',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
+			'parser' => function(&$scope) {
+				foreach ($scope['value'] as $i=>$value) {
+					if (empty($value) && isset($scope['custom_id'][$i]))
+						$scope['value'][$i] = intval($scope['custom_id'][$i]);
+				}
+				unset($scope['custom_id']);
+			}
+		),
 		'auto_accelerate' => array(
 			'description' => $language ? 'while constantly accelerating' : 'en accélérant en continu',
 			'description_mockup' => $language ? 'auto accelerate':'auto-accélérer',

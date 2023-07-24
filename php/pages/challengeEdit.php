@@ -504,7 +504,7 @@ function addConstraintRule(clClass) {
 				if (this.value === '') {
 					$custom.addClass('show');
 					$customValue.attr('required', true);
-					loadCustomCharacters();
+					loadCustomCharacters($form, handleCustomCharacterSelected($form));
 				}
 				else {
 					$custom.removeClass('show');
@@ -513,13 +513,36 @@ function addConstraintRule(clClass) {
 			});
 			$form.append(
 				'<div class="challenge-rule-character-custom">'+
-				'<input type="text" name="scope[character][custom_id]" />'+
+				'<input type="hidden" name="scope[character][custom_id]" />'+
 				'<div class="challenge-rule-character-custom-list challenge-rule-btn-options">'+
 				'</div>'+
 				'<div class="challenge-rule-character-custom-meta character-name">'+
 				(language ? 'Character name':'Nom du perso :') +': <input type="text" name="scope[character][custom_name]" />'+
 				'</div>'
 			)
+			break;
+		case 'with_opponents':
+			$form.html(
+				'<div class="challenge-rule-opponents-list"></div>' + 
+				'<div class="challenge-rule-opponents-actions">'+
+					'<button type="button" class="opponents-add">'+ (language ? 'Add CPU' : 'Ajouter') +'</button>' +
+					'<button type="button" class="opponents-rm">'+ (language ? 'Remove CPU' : 'Supprimer') +'</button>' +
+				'</div>'
+			);
+			var $list = $form.find(".challenge-rule-opponents-list");
+			var $opponentsRm = $form.find(".opponents-rm");
+			$opponentsRm.hide();
+			$form.find(".opponents-add").click(function() {
+				addCharacterSelector($list, ruleId);
+				$opponentsRm.show();
+			});
+			$opponentsRm.click(function() {
+				var $selectors = $list.children();
+				$selectors.last().remove();
+				if ($selectors.length <= 2)
+					$opponentsRm.hide();
+			});
+			addCharacterSelector($list, ruleId);
 			break;
 		case 'avoid_decors':
 			$form.html(
@@ -702,13 +725,16 @@ function getConstraintOptions(clClass,ruleId) {
 	return res;
 }
 function addConstraintSelector($form,ruleId,label,options) {
-	$form.html(
+	addCustomSelector($form, "scope["+ruleId+"][value]", label, options);
+}
+function addCustomSelector($div,name,label,options) {
+	$div.html(
 		'<label>'+ label +' '+
-		'<select class="challenge-constraint-value" name="scope['+ruleId+'][value]">'+
+		'<select class="challenge-constraint-value" name="'+name+'">'+
 		'</select>'+
 		'</label>'
 	);
-	var $extraSelector = $form.find(".challenge-constraint-value");
+	var $extraSelector = $div.find(".challenge-constraint-value");
 	for (var i=0;i<options.length;i++)
 		$extraSelector.append('<option value="'+ options[i].value +'">'+ options[i].label +'</option>');
 }
@@ -798,49 +824,60 @@ function ucfirst(word) {
 	return word.charAt(0).toUpperCase() + word.substring(1);
 }
 var customCharacters;
+var customCharacterPromise;
 var customCharactersCallbacks = [];
-function loadCustomCharacters() {
+function loadCustomCharacters($div, onSelect) {
 	if (customCharacters) {
-		appendCustomCharacters();
+		appendCustomCharacters($div, onSelect);
 		return;
 	}
-	o_xhr("myPlayablePersos.php", "", function(res) {
-		try {
-			customCharacters = JSON.parse(res);
-		}
-		catch (e) {
-			return false;
-		}
-		appendCustomCharacters();
-		return true;
+	if (!customCharacterPromise) {
+		customCharacterPromise = new Promise(function(resolve) {
+			o_xhr("myPlayablePersos.php", "", function(res) {
+				try {
+					customCharacters = JSON.parse(res);
+				}
+				catch (e) {
+					return false;
+				}
+				resolve();
+				return true;
+			});
+		});
+	}
+	customCharacterPromise.then(function() {
+		appendCustomCharacters($div, onSelect);
 	});
 }
-function appendCustomCharacters() {
-	var $customList = $(".challenge-rule-character-custom-list");
+function appendCustomCharacters($div, onSelect) {
+	var $customList = $div.find(".challenge-rule-character-custom-list");
 	$customList.empty();
 	for (var i=0;i<customCharacters.length;i++) {
 		var character = customCharacters[i];
 		var characterIcon = character.ld;
-		var $charBtn = $('<button type="button" data-value="'+ character.id +'" data-rule-key="character" style="background-image:url(\''+ characterIcon +'\')" onclick="selectCharacter(this)"></button>');
+		var $charBtn = $('<button type="button" data-value="'+ character.id +'" style="background-image:url(\''+ characterIcon +'\')"></button>');
+		$charBtn.click(function() {
+			selectCharacter(this, onSelect);
+		});
 		$charBtn.attr("title", character.name);
 		$customList.append($charBtn);
 	}
-	var $extraBtn = $('<button type="button" class="character-extra" onclick="selectExtraCharacter()"></button>')
-	$customList.append($extraBtn);
-	customCharactersCallbacks.forEach(function(callback) {
-		callback();
+	var $extraBtn = $('<button type="button" class="character-extra"></button>');
+	$extraBtn.click(function() {
+		selectExtraCharacter($div, onSelect);
 	});
-	customCharactersCallbacks.length = 0;
+	$customList.append($extraBtn);
+	setTimeout(function() {
+		customCharactersCallbacks.forEach(function(callback) {
+			callback();
+		});
+		customCharactersCallbacks.length = 0;
+	});
 }
-function selectCharacter(btn) {
-	var $form = $(".challenge-edit-form");
-	var $customId = $form.find('[name="scope[character][custom_id]"]');
-	var $customName = $form.find('[name="scope[character][custom_name]"]');
-	var $customNameCtn = $form.find(".challenge-rule-character-custom-meta.character-name");
+function selectCharacter(btn, onSelect) {
 	if (btn.dataset.selected) {
 		delete btn.dataset.selected;
-		$customId.val("");
-		$customNameCtn.hide();
+		onSelect(null);
 	}
 	else {
 		var previouslySelected = btn.parentNode.querySelectorAll('button[data-selected="1"]');
@@ -849,18 +886,19 @@ function selectCharacter(btn) {
 			delete iBtn.dataset.selected;
 		}
 		btn.dataset.selected = "1";
-		$customId.val(btn.dataset.value);
-		$customName.val(btn.title);
-		$customNameCtn.show();
+		onSelect(btn);
 	}
 }
-function selectExtraCharacter() {
+function selectExtraCharacter($div, onSelect) {
 	var $collabPopup = document.getElementById("collab-popup-char");
 	$collabPopup.dataset.state = "open";
 
 	closeCollabImportPopup = function() {
 		document.removeEventListener("keydown", hideOnEscape);
 		delete $collabPopup.dataset.state;
+	}
+	collabImportCallback = function(data) {
+		handleCollabCharacterSelected($div, data, onSelect);
 	}
 	function hideOnEscape(e) {
 		switch (e.keyCode) {
@@ -872,7 +910,7 @@ function selectExtraCharacter() {
 	$collabPopup.querySelector('input[name="collablink"]').focus();
 }
 
-var closeCollabImportPopup;
+var closeCollabImportPopup, collabImportCallback;
 function importCollabChar(e) {
 	e.preventDefault();
 	var $form = e.target;
@@ -897,24 +935,77 @@ function importCollabChar(e) {
 			$collabPopup.dataset.state = "open";
 			return true;
 		}
-
-		res = JSON.parse(res);
-		handleCollabCharacterSelected(res);
+		collabImportCallback(JSON.parse(res));
 
 		closeCollabImportPopup();
 		$form.reset();
 		return true;
 	});
 }
-function handleCollabCharacterSelected(data) {
-	var $customList = $(".challenge-rule-character-custom-list");
-	var $charBtn = $('<button type="button" data-value="'+ data.id +'" data-rule-key="character" style="background-image:url(\''+ data.ld +'\')" onclick="selectCharacter(this)"></button>');
+function handleCollabCharacterSelected($div, data, onSelect) {
+	var $customList = $div.find(".challenge-rule-character-custom-list");
+	var $charBtn = $('<button type="button" data-value="'+ data.id +'" style="background-image:url(\''+ data.ld +'\')"></button>');
 	$charBtn.attr("title", data.name);
+	$charBtn.click(function() {
+		selectCharacter(this, onSelect);
+	});
 
 	var $extraBtn = $customList.find(".character-extra");
 	$charBtn.insertBefore($extraBtn);
 	
 	$charBtn.click();
+}
+
+function addCharacterSelector($div, ruleId) {
+	var $selector = $('<div></div>');
+	var id = $div.children().length;
+	var nb = id+1;
+	addCustomSelector($selector, "scope["+ruleId+"][value]["+id+"]", language?'CPU '+nb+':':'Ordi '+nb+' :', persoOptions);
+	$selector.find('.challenge-constraint-value').change(function() {
+		var $custom = $selector.find('.challenge-rule-character-custom');
+		var $customValue = $custom.find('[name="scope['+ruleId+'][custom_id]['+id+']"]');
+		if (this.value === '') {
+			$custom.addClass('show');
+			$customValue.attr('required', true);
+			loadCustomCharacters($selector, handleCustomOpponentSelected($selector, ruleId, id));
+		}
+		else {
+			$custom.removeClass('show');
+			$customValue.attr('required', false);
+		}
+	});
+	$selector.append(
+		'<div class="challenge-rule-character-custom">'+
+		'<input type="text" name="scope['+ruleId+'][custom_id]['+id+']" />'+
+		'<div class="challenge-rule-character-custom-list challenge-rule-btn-options">'+
+		'</div>'
+	);
+	$div.append($selector);
+}
+function handleCustomCharacterSelected($form) {
+	return function(btn) {
+		var $customId = $form.find('[name="scope[character][custom_id]"]');
+		var $customName = $form.find('[name="scope[character][custom_name]"]');
+		var $customNameCtn = $form.find(".challenge-rule-character-custom-meta.character-name");
+		if (btn) {
+			$customId.val(btn.dataset.value);
+			$customName.val(btn.title);
+			$customNameCtn.show();
+		}
+		else {
+			$customId.val("");
+			$customNameCtn.hide();
+		}
+	};
+}
+function handleCustomOpponentSelected($selector, ruleId, id) {
+	return function(btn) {
+		var $customId = $selector.find('[name="scope['+ruleId+'][custom_id]['+id+']"]');
+		if (btn)
+			$customId.val(btn.dataset.value);
+		else
+			$customId.val("");
+	}
 }
 
 var validationUndone;
@@ -1176,24 +1267,61 @@ $(function() {
 						break;
 					case "character":
 						if (constraint.custom_id) {
-							(function(constraint) {
+							(function($rule, constraint) {
 								customCharactersCallbacks.push(function() {
-									var $valBtn = $(".challenge-rule-character-custom-list button[data-value='"+ constraint.custom_id +"']");
-									if ($valBtn.length)
+									var $valBtn = $rule.find(".challenge-rule-character-custom-list button[data-value='"+ constraint.custom_id +"']");
+									if ($valBtn.length) {
+										if (constraint.custom_name)
+											$valBtn.attr("title", constraint.custom_name);
 										$valBtn.click();
+									}
 									else {
 										o_xhr("getPersoData.php?id="+constraint.custom_id, null, function(res) {
 											if (res) {
 												var data = JSON.parse(res);
 												data.name = constraint.custom_name;
-												handleCollabCharacterSelected(data);
+												handleCollabCharacterSelected($rule, data, handleCustomCharacterSelected($rule));
 											}
 											return true;
 										});
 									}
 								});
-							})(constraint);
+							})($rule, constraint);
 							$(formElt).change();
+						}
+						break;
+					case "with_opponents":
+						var values = constraint.value;
+						var $list = $rule.find(".challenge-rule-opponents-list");
+						var ruleId = constraint.type;
+						for (var k=0;k<values.length;k++) {
+							if (k)
+								addCharacterSelector($list, ruleId);
+							var $selector = $list.children().eq(k);
+							var $valSelect = $selector.find("select[name='scope["+ruleId+"][value]["+k+"]']");
+							var value = values[k];
+							if (typeof value === "number") {
+								(function($selector, id, ruleId, value) {
+									customCharactersCallbacks.push(function() {
+										var $valBtn = $selector.find(".challenge-rule-character-custom-list button[data-value='"+ value +"']");
+										if ($valBtn.length)
+											$valBtn.click();
+										else {
+											o_xhr("getPersoData.php?id="+value, null, function(res) {
+												if (res) {
+													var data = JSON.parse(res);
+													handleCollabCharacterSelected($selector, data, handleCustomOpponentSelected($selector, ruleId, id));
+												}
+												return true;
+											});
+										}
+									});
+								})($selector, k, ruleId, value);
+								$valSelect.val("");
+								$valSelect.change();
+							}
+							else
+								$valSelect.val(value);
 						}
 						break;
 					case "init_item":

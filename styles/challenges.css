@@ -243,6 +243,29 @@ body a.challenge-action-edit:hover {
 .challenge-rule-character-custom-meta input {
 	width: 80px;
 }
+.challenge-rule-opponents-list > div {
+	margin-bottom: 0.2em;
+}
+.challenge-edit-form .challenge-rule-opponents-actions button {
+	font-size: 0.8em;
+}
+.challenge-rule-opponents-actions {
+    display: flex;
+	justify-content: center;
+    gap: 0.2em;
+}
+.challenge-rule-opponents-actions .opponents-add {
+	background-color: #5B8;
+}
+.challenge-rule-opponents-actions .opponents-add:hover {
+	background-color: #4A7;
+}
+.challenge-rule-opponents-actions .opponents-rm {
+	background-color: #e87;
+}
+.challenge-rule-opponents-actions .opponents-rm:hover {
+	background-color: #d76;
+}
 .challenge-edit-form input[type="text"], .challenge-edit-form input[type="number"] {
 	background-color: #EEF3FF;
 	border-radius: 4px;
