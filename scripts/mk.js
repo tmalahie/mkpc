@@ -12153,6 +12153,18 @@ var challengeRules = {
 			return true;
 		}
 	},
+	"with_opponents": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
+		}
+	},
 	"extra_items": {
 		"initRuleVars": function() {
 			return {};
@@ -18330,8 +18342,11 @@ function isCustomPerso(playerName, opts) {
 				"music" : "mario"
 			};
 			xhr("getCP.php", "perso="+playerName, function(res) {
-				if (res == -1)
+				if (res == -1) {
+					if (opts.callback)
+						opts.callback(perso);
 					return true;
+				}
 				if (!res)
 					return false;
 				var perso;
@@ -18350,7 +18365,8 @@ function isCustomPerso(playerName, opts) {
 					opts.callback(perso);
 				return true;
 			});
-		}
+		} else if (opts.callback)
+			opts.callback(perso);
 		return true;
 	}
 	return false;
@@ -20931,6 +20947,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	var modePtDistributions = ptDistributions.concat(customPtDistrib);
 	if (!fInfos)
 		fInfos = {};
+	var selectedOpponents;
 
 	var oScr = document.createElement("div");
 	if (newP)
@@ -21173,10 +21190,29 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 						aPlayers = [];
 					else {
 						aPlayers = [];
+						var waitBeforeStart;
 						if (isCustomSel) {
 							for (var i=strPlayer.length-1;i>=oContainers.length;i--)
 								aPlayers.push(strPlayer[i]);
 							strPlayer.splice(oContainers.length);
+						}
+						else if (selectedOpponents) {
+							for (var i=0;i<selectedOpponents.length;i++)
+								aPlayers.push(selectedOpponents[i]);
+							waitBeforeStart = function(resolve) {
+								var callbackCount = 0, isReady = false;
+								var callback = function() {
+									if (!callbackCount && isReady)
+										resolve();
+									callbackCount--;
+								}
+								for (var i=0;i<selectedOpponents.length;i++) {
+									if (isCustomPerso(selectedOpponents[i], { callback: callback }))
+										callbackCount++;
+								}
+								isReady = true;
+								callback();
+							};
 						}
 						else {
 							var i = 0;
@@ -21248,10 +21284,16 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 						}
 					}
 					else {
-						if (isTeamPlay())
-							selectTeamScreen(0);
+						function proceed() {
+							if (isTeamPlay())
+								selectTeamScreen(0);
+							else
+								selectTrackScreen();
+						}
+						if (waitBeforeStart)
+							waitBeforeStart(proceed);
 						else
-							selectTrackScreen();
+							proceed();
 					}
 				}
 				else
@@ -21463,6 +21505,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	}
 
 	var enableSpectatorMode = false;
+	var oTeamsDiv, oParticipantsDiv;
 	if (isOnline && !isCustomSel) {
 		if (additionalOptions && additionalOptions.enableSpectatorMode)
 			enableSpectatorMode = true;
@@ -21559,7 +21602,9 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		}
 		else
 			iDificulty = 4.5;
-		oForm.appendChild(document.createTextNode(toLanguage("Teams: ", "Équipes : ")));
+		oTeamsDiv = document.createElement("label");
+		oTeamsDiv.style.display = "block";
+		oTeamsDiv.appendChild(document.createTextNode(toLanguage("Teams: ", "Équipes : ")));
 		var oSelect = document.createElement("select");
 		oSelect.name = "difficulty";
 		oSelect.style.width = (iScreenScale*15+15) +"px";
@@ -21576,10 +21621,12 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				oOption.selected = "selected";
 			oSelect.appendChild(oOption);
 		}
-		oForm.appendChild(oSelect);
+		oTeamsDiv.appendChild(oSelect);
+		oForm.appendChild(oTeamsDiv);
 		
-		oForm.appendChild(document.createElement("br"));
-		oForm.appendChild(document.createTextNode(toLanguage("Number of participants", "Nombre de participants ")+ ": "));
+		oParticipantsDiv = document.createElement("label");
+		oParticipantsDiv.style.display = "block";
+		oParticipantsDiv.appendChild(document.createTextNode(toLanguage("Number of participants", "Nombre de participants ")+ ": "));
 		var oSelect = document.createElement("select");
 		oSelect.name = "nbj";
 		oSelect.style.width = (iScreenScale*3+20) +"px";
@@ -21628,7 +21675,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			}
 			fInfos.nbPlayers = parseInt(this.value);
 		};
-		oForm.appendChild(oSelect);
+		oParticipantsDiv.appendChild(oSelect);
 		var oChoosePerso = document.createElement("a");
 		oChoosePerso.innerHTML = toLanguage("Choose characters...", "Choix des persos...");
 		oChoosePerso.href = "#null";
@@ -21647,11 +21694,13 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			selectPlayerScreen(IdJ,false,fInfos.nbPlayers);
 			return false;
 		};
-		oForm.appendChild(oChoosePerso);
+		oParticipantsDiv.appendChild(oChoosePerso);
+		oForm.appendChild(oParticipantsDiv);
 
 		if (!clSelected) {
-			oForm.appendChild(document.createElement("br"));
-			oForm.appendChild(document.createTextNode(toLanguage("Class", "Cylindrée ")+ ": "));
+			var oClassDiv = document.createElement("label");
+			oClassDiv.style.display = "block";
+			oClassDiv.appendChild(document.createTextNode(toLanguage("Class", "Cylindrée ")+ ": "));
 
 			oClassSelect = document.createElement("select");
 			oClassSelect.name = "cc";
@@ -21688,7 +21737,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			if (!isSelectedCc)
 				setCustomCcValue(oClassSelect, selectedCc,selectedMirror);
 			oClassSelect.currentValue = oClassSelect.value;
-			oForm.appendChild(oClassSelect);
+			oClassDiv.appendChild(oClassSelect);
 
 			var moreOptions = document.createElement("a");
 			moreOptions.href = "#null";
@@ -21699,7 +21748,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				oMoreOptionsScreen.style.display = "block";
 				return false;
 			}
-			oForm.appendChild(moreOptions);
+			oClassDiv.appendChild(moreOptions);
+			oForm.appendChild(oClassDiv);
 
 			var oMoreOptionsScreen = document.createElement("div");
 			oMoreOptionsScreen.style.position = "absolute";
@@ -22210,24 +22260,35 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oPInput.style.color = "#F90";
 	oScr.appendChild(oPInput);
 
-	if (clSelected && clSelected.autoset && clSelected.autoset.selectedPerso && !force) {
-		var customCharCb;
-		var persoKey = clSelected.autoset.selectedPerso;
-		if (isCustomPerso(persoKey, {
-			forceReload: true,
-			callback: function() { customCharCb() }
-		})) {
-			customCharCb = function() {
-				pUnlockMap[persoKey] = 1;
-				var oDiv = createPersoSelector(persoKey);
-				oDiv.onclick();
-			}
-			return;
+	if (clSelected && clSelected.autoset) {
+		if (clSelected.autoset.selectedOpponents) {
+			selectedOpponents = clSelected.autoset.selectedOpponents;
+			if (oParticipantsDiv)
+				oParticipantsDiv.style.display = "none";
 		}
-		var persoSelector = document.getElementById("perso-selector-"+persoKey);
-		if (persoSelector && persoSelector.onclick) {
-			persoSelector.onclick();
-			return;
+		if (clSelected.autoset.selectedTeams === 0) {
+			if (oTeamsDiv)
+				oTeamsDiv.style.display = "none";
+		}
+		if (clSelected.autoset.selectedPerso && !force) {
+			var customCharCb;
+			var persoKey = clSelected.autoset.selectedPerso;
+			if (isCustomPerso(persoKey, {
+				forceReload: true,
+				callback: function() { customCharCb() }
+			})) {
+				customCharCb = function() {
+					pUnlockMap[persoKey] = 1;
+					var oDiv = createPersoSelector(persoKey);
+					oDiv.onclick();
+				}
+				return;
+			}
+			var persoSelector = document.getElementById("perso-selector-"+persoKey);
+			if (persoSelector && persoSelector.onclick) {
+				persoSelector.onclick();
+				return;
+			}
 		}
 	}
 

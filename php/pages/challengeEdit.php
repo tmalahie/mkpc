@@ -533,7 +533,13 @@ function addConstraintRule(clClass) {
 			var $opponentsRm = $form.find(".opponents-rm");
 			$opponentsRm.hide();
 			$form.find(".opponents-add").click(function() {
+				var $lastSelector = $list.children().last();
 				addCharacterSelector($list, ruleId);
+				var $selector = $list.children().last();
+				var $lastValue = $lastSelector.find(".challenge-constraint-value");
+				var $value = $selector.find(".challenge-constraint-value");
+				$value.val($lastValue.val());
+				$value.change();
 				$opponentsRm.show();
 			});
 			$opponentsRm.click(function() {

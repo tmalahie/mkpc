@@ -642,6 +642,30 @@ $clRulesByType = array(
 						$scope['value'][$i] = intval($scope['custom_id'][$i]);
 				}
 				unset($scope['custom_id']);
+			},
+			'autoset' => function(&$res, $scope) {
+				$customChars = array();
+				$selectedOpponents = $scope->value;
+				foreach ($selectedOpponents as $perso) {
+					if (is_int($perso))
+						$customChars[] = $perso;
+				}
+				$customCharsStr = implode(',', $customChars);
+				if ($customCharsStr) {
+					$customCharsMap = array();
+					$getChars = mysql_query('SELECT id,sprites FROM `mkchars` WHERE id IN ('. $customCharsStr .')');
+					while ($customChar = mysql_fetch_array($getChars))
+						$customCharsMap[$customChar['id']] = $customChar['sprites'];
+					foreach ($selectedOpponents as $i=>$perso) {
+						if (is_int($perso)) {
+							if (isset($customCharsMap[$perso]))
+								$selectedOpponents[$i] = $customCharsMap[$perso];
+							else
+								$selectedOpponents[$i] = 'mario';
+						}
+					}
+				}
+				$res['selectedOpponents'] = $selectedOpponents;
 			}
 		),
 		'auto_accelerate' => array(
