@@ -311,6 +311,20 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('battle')
 		),
+		'balloons_inflate' => array(
+			'description' => $language ? 'by inflating at most $value balloon$s':'en gonflant au plus $value ballon$s',
+			'description_mockup' => $language ? 'By inflating at most x balloons':'En gonflant au plus x ballons',
+			'description_lambda' => function($language,&$scope) {
+				if (!$scope->value)
+					return $language ? 'without inflating any balloons':'sans gonfler de ballons';
+				return null;
+			},
+			'parser' => function(&$scope) {
+				$scope['value'] = intval($scope['value']);
+			},
+			'group' => 'no_action',
+			'course' => array('battle')
+		),
 		'no_drift' => array(
 			'description' => $language ? 'without drifting':'sans déraper',
 			'group' => 'no_action',

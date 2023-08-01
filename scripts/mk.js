@@ -4054,6 +4054,8 @@ function startGame() {
 										oPlayers[0].ballons[oPlayers[0].ballons.length] = createBalloonSprite(oPlayers[0]);
 										oPlayers[0].reserve--;
 										updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
+										clLocalVars.inflatedBalloons++;
+										updateChallengeHud("inflated", clLocalVars.inflatedBalloons);
 										playIfShould(oPlayers[0],"musics/events/balloon.mp3");
 									}
 								}
@@ -11912,6 +11914,18 @@ var challengeRules = {
 			return (clLocalVars.lostBalloons <= scope.value);
 		}
 	},
+	"balloons_inflate": {
+		"initSelected": function(scope, ruleVars) {
+			addChallengeHud("inflated", {
+				title: toLanguage("Inflated","Gonflés"),
+				value: clLocalVars.inflatedBalloons,
+				out_of: scope.value
+			});
+		},
+		"success": function(scope) {
+			return (clLocalVars.inflatedBalloons <= scope.value);
+		}
+	},
 	"balloons_player": {
 		"initRuleVars": function() {
 			return {};
@@ -12449,6 +12463,7 @@ function reinitLocalVars() {
 		superTurbo: 0,
 		stunts: 0,
 		lostBalloons: 0,
+		inflatedBalloons: 0,
 		cheated: false
 	};
 	if (ptsDistribution.value) {
