@@ -11998,6 +11998,11 @@ var challengeRules = {
 			return true;
 		}
 	},
+	"avoid_walls": {
+		"success": function(scope) {
+			return !clLocalVars.touchedWalls;
+		}
+	},
 	"init_item": {
 		"initRuleVars": function() {
 			return {};
@@ -15391,9 +15396,13 @@ function move(getId, triggered) {
 		var s = (fDirX*horizontality[0] + fDirY*horizontality[1]);
 		if (oKart.speed > oKart.speedinc)
 			oKart.speed = Math.min(oKart.speed*0.75,oKart.speed+0.5-oKart.speedinc);
-		if (!collisionDecor && (oKart.speed > 3) && (oKart.driftcpt >= 5) && (oKart.driftcpt < fTurboDriftCpt2)) {
-			if ((oKart.driftcpt < fTurboDriftCpt) || (oKart.driftcpt >= (fTurboDriftCpt+5)))
-				oKart.driftcpt -= 5;
+		if (!collisionDecor) {
+			if ((oKart.speed > 3) && (oKart.driftcpt >= 5) && (oKart.driftcpt < fTurboDriftCpt2)) {
+				if ((oKart.driftcpt < fTurboDriftCpt) || (oKart.driftcpt >= (fTurboDriftCpt+5)))
+					oKart.driftcpt -= 5;
+			}
+			if (!oKart.cpu)
+				clLocalVars.touchedWalls = true;
 		}
 		for (var i=5;i>0;i--) {
 			oKart.x += horizontality[0]*s*i/5;

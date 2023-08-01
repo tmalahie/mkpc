@@ -375,6 +375,11 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('vs', 'battle')
 		),
+		'avoid_walls' => array(
+			'description' => $language ? 'without touching the walls':'sans toucher les murs',
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
 		'character' => array(
 			'description_mockup' => $language ? 'With character...':'Avec le perso...',
 			'description_lambda' => function($language,&$scope) {
