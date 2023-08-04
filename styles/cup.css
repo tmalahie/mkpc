@@ -403,6 +403,13 @@ h2 {
 	max-width: 320px;
 	text-align: left;
 }
+
+#character-roster hr {
+	background-color: rgba(153,192,255, 0.3);
+	border: none;
+	height: 4px;
+}
+
 .character-tile {
 	position: relative;
 	display: inline-block;
