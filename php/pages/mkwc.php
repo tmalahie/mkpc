@@ -3,7 +3,10 @@ include('../includes/getId.php');
 include('../includes/language.php');
 include('../includes/session.php');
 include('../includes/initdb.php');
-$console = isset($_GET['console']) ? $_GET['console'] : null;
+//$console = isset($_GET['console']) ? $_GET['console'] : null;
+//$multiConsole = true;
+$console = 'mkt';
+$multiConsole = false;
 $year = 2023;
 $playInStage = $language ? 'Play-In Stage':'Tour Préliminaire';
 $groupStage = $language ? 'Group Stage':'Phase de Groupe';
@@ -12,7 +15,7 @@ $upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
 $swissStage = $language ? 'Swiss Stage':'Ronde Suisse';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
-$isPollClosed = true;
+$isPollClosed = false;
 $tournamentWinner = null;
 switch ($console) {
 case 'mkw':
@@ -59,84 +62,41 @@ case 'mkw':
     );
     break;
 case 'mkt':
-    if (true) break;
     $consoleName = 'Mario Kart Tour';
     $teams = array(
-        $playInStage => array(
+        $groupStage => array(
             "$group 1" => array(
                 'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mkt/2023.html',
                 'list' => array(
+                    'usa'=> $language ? 'USA':'États-Unis',
+                    'spa'=> $language ? 'Spain':'Espagne',
                     'bra'=> $language ? 'Brazil':'Brésil',
-                    'pan'=> $language ? 'Panama':'Panama',
-                    'gua'=> $language ? 'Guatemala':'Guatemala',
-                    'can'=> $language ? 'Canada':'Canada'
-                ),
-                'eliminated' => array('pan', 'can')
+                    'net'=> $language ? 'Netherlands':'Pays-Bas'
+                )
             ),
             "$group 2" => array(
                 'list' => array(
-                    'chi'=> $language ? 'Chile':'Chili',
-                    'arg'=> $language ? 'Argentina':'Argentina',
-                    'ger'=> $language ? 'Germany':'Allemagne',
+                    'fra'=> $language ? 'France':'France',
+                    'col'=> $language ? 'Colombia':'Colombie',
+                    'gau'=> $language ? 'Germany-Austria':'Allemagne-Autriche',
                     'aus'=> $language ? 'Australia':'Australie'
-                ),
-                'eliminated' => array('ger', 'aus')
+                )
             ),
             "$group 3" => array(
                 'list' => array(
-                    'ecu'=> $language ? 'Ecuador':'Équateur',
+                    'jap'=> $language ? 'Japan':'Japon',
+                    'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
                     'swi'=> $language ? 'Switzerland':'Suisse',
-                    'ven'=> $language ? 'Venezuela':'Venezuela',
-                    'bol'=> $language ? 'Bolivia':'Bolivie'
-                ),
-                'eliminated' => array('ven', 'bol')
+                    'gua'=> $language ? 'Guatemala':'Guatemala'
+                )
             ),
             "$group 4" => array(
                 'list' => array(
-                    'spa'=> $language ? 'Spain':'Espagne',
-                    'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
-                    'nic'=> $language ? 'Nicaragua':'Nicaragua'
-                ),
-                'eliminated' => array('nic')
-            )
-        ),
-        $groupStage => array(
-            "$group A" => array(
-                'list' => array(
-                    'mex'=> $language ? 'Mexico':'Mexique',
-                    'sal'=> $language ? 'El Salvador':'Salvador',
-                    'spa'=> $language ? 'Spain':'Espagne',
-                    'gua'=> $language ? 'Guatemala':'Guatemala'
-                ),
-                'eliminated' => array('spa', 'gua', 'sal'),
-                'winner' => array('mex')
-            ),
-            "$group B" => array(
-                'list' => array(
                     'per'=> $language ? 'Peru':'Pérou',
-                    'col'=> $language ? 'Colombia':'Colombie',
-                    'arg'=> $language ? 'Argentina':'Argentina',
-                    'swi'=> $language ? 'Switzerland':'Suisse'
-                ),
-                'eliminated' => array('arg', 'swi', 'per', 'col')
-            ),
-            "$group C" => array(
-                'list' => array(
-                    'usa'=> $language ? 'USA':'États-Unis',
-                    'fra'=> $language ? 'France':'France',
-                    'ecu'=> $language ? 'Ecuador':'Équateur',
-                    'chi'=> $language ? 'Chile':'Chili'
-                ),
-                'eliminated' => array('ecu', 'chi', 'fra', 'usa')
-            ),
-            "$group D" => array(
-                'list' => array(
-                    'jap'=> $language ? 'Japan':'Japon',
-                    'hok'=> $language ? 'Hong Kong':'Hong Kong',
-                    'bra'=> $language ? 'Brazil':'Brésil',
-                    'ukg'=> $language ? 'United Kingdom':'Royaume-Uni'
-                ),
-                'eliminated' => array('bra', 'ukg', 'hok', 'jap')
+                    'mex'=> $language ? 'Mexico':'Mexique',
+                    'ven'=> $language ? 'Venezuela':'Venezuela',
+                    'pan'=> $language ? 'Panama':'Panama'
+                )
             )
         )
     );
@@ -265,8 +225,10 @@ if ($console && !$isPollClosed && isset($_POST['vote'])) {
             $success .= '<br />';
             $success .= '<a href="#mVotesTitle" onclick="showOtherVotes()">'. ($language ? 'See other members\' bets':'Voir les paris des autres membres') .'</a>';
             $success .= '<br />';
-            $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
-            $success .= '<br />';
+            if ($multiConsole) {
+                $success .= '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour &agrave; la liste des tournois') .'</a>';
+                $success .= '<br />';
+            }
             $success .= '<a href="news.php?id=15109">'. ($language ? 'Back to MKWC news':'Retour &agrave; la news MKWC') .'</a>';
             mysql_query('INSERT IGNORE INTO mkwcbets SET console="'. $console .'",player="'. $id .'",vote="'. $_POST['vote'] .'"');
         }
@@ -935,7 +897,7 @@ if ($id) {
         </div>
         <p class="forumButtons">
             <?php
-            if (isset($console))
+            if (isset($console) && $multiConsole)
                 echo '<a href="mkwc.php">'. ($language ? 'Back to tournaments list':'Retour à la liste des tournois') .'</a><br />';
             ?>
             <a href="news.php?id=15109"><?php echo $language ? 'Back to MKWC news':'Retour à la news MKWC'; ?></a><br />
