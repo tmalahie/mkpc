@@ -66,7 +66,6 @@ case 'mkt':
     $teams = array(
         $groupStage => array(
             "$group 1" => array(
-                'url' => 'https://mariokartworldcuphistory.000webhostapp.com/world_cup/mkt/2023.html',
                 'list' => array(
                     'usa'=> $language ? 'USA':'États-Unis',
                     'spa'=> $language ? 'Spain':'Espagne',
