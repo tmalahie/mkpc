@@ -15,7 +15,7 @@ $upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
 $swissStage = $language ? 'Swiss Stage':'Ronde Suisse';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
-$isPollClosed = true;
+$isPollClosed = false;
 $tournamentWinner = null;
 switch ($console) {
 case 'mkw':
@@ -31,8 +31,7 @@ case 'mkw':
                     'ita'=> $language ? 'Italy':'Italie',
                     'mag'=> $language ? 'Maghreb':'Maghreb',
                     'spa'=> $language ? 'Spain':'Espagne'
-                ),
-                'eliminated' => array('mag', 'spa', 'asi')
+                )
             )
         ),
         $swissStage => array(
@@ -55,8 +54,7 @@ case 'mkw':
                     'uss'=> $language ? 'United States South':'États-Unis du Sud',
                     'asi'=> $language ? 'Asia':'Asie',
                     'ita'=> $language ? 'Italy':'Italie'
-                ),
-                'eliminated' => array('asi', 'nor')
+                )
             )
         )
     );
@@ -71,8 +69,7 @@ case 'mkt':
                     'spa'=> $language ? 'Spain':'Espagne',
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'net'=> $language ? 'Netherlands':'Pays-Bas'
-                ),
-                'eliminated' => array('bra', 'net')
+                )
             ),
             "$group 2" => array(
                 'list' => array(
@@ -80,8 +77,7 @@ case 'mkt':
                     'col'=> $language ? 'Colombia':'Colombie',
                     'gau'=> $language ? 'Germany-Austria':'Allemagne-Autriche',
                     'aus'=> $language ? 'Australia':'Australie'
-                ),
-                'eliminated' => array('gau', 'aus')
+                )
             ),
             "$group 3" => array(
                 'list' => array(
@@ -89,8 +85,7 @@ case 'mkt':
                     'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
                     'swi'=> $language ? 'Switzerland':'Suisse',
                     'gua'=> $language ? 'Guatemala':'Guatemala'
-                ),
-                'eliminated' => array('swi', 'gua')
+                )
             ),
             "$group 4" => array(
                 'list' => array(
@@ -98,8 +93,7 @@ case 'mkt':
                     'mex'=> $language ? 'Mexico':'Mexique',
                     'ven'=> $language ? 'Venezuela':'Venezuela',
                     'pan'=> $language ? 'Panama':'Panama'
-                ),
-                'eliminated' => array('ven', 'pan')
+                )
             )
         )
     );
@@ -118,8 +112,7 @@ case 'mk8d':
                     'lux'=> $language ? 'Luxembourg':'Luxembourg',
                     'cal'=> $language ? 'Caledonbria':'Caledonbria',
                     'pri'=> $language ? 'Puerto Rico':'Puerto Rico'
-                ),
-                'eliminated' => array('cal', 'pri', 'cri', 'lux')
+                )
             ),
             "$group II" => array(
                 'list' => array(
@@ -127,8 +120,7 @@ case 'mk8d':
                     'mag'=> $language ? 'Maghreb':'Maghreb',
                     'eue'=> $language ? 'Eastern Europe':'Europe de l\'Est',
                     'por'=> $language ? 'Portugal':'Portugal'
-                ),
-                'eliminated' => array('eue', 'por', 'kor', 'mag')
+                )
             ),
             "$group III" => array(
                 'list' => array(
@@ -136,8 +128,7 @@ case 'mk8d':
                     'chn'=> $language ? 'China':'Chine',
                     'hkt'=> $language ? 'Hong Kong-Taiwan':'Hong Kong-Taiwan',
                     'aru'=> $language ? 'Argentina-Uruguay':'Argentine-Uruguay'
-                ),
-                'eliminated' => array('aru', 'hkt', 'col', 'chn')
+                )
             )
         ),
         $upperStage => array(
@@ -148,8 +139,7 @@ case 'mk8d':
                     'eng'=> $language ? 'England':'Angleterre',
                     'usa'=> $language ? 'United States':'États-Unis',
                     'mex'=> $language ? 'Mexico':'Mexique',
-                ),
-                'eliminated' => array('fra', 'eng', 'usa', 'mex')
+                )
             ),
             "$group B" => array(
                 'list' => array(
@@ -157,8 +147,7 @@ case 'mk8d':
                     'ger'=> $language ? 'Germany':'Allemagne',
                     'spa'=> $language ? 'Spain':'Espagne',
                     'can'=> $language ? 'Canada':'Canada',
-                ),
-                'eliminated' => array('ger', 'spa', 'can')
+                )
             )
         ),
         $lowerStage => array(
@@ -169,8 +158,7 @@ case 'mk8d':
                     'aus'=> $language ? 'Australia':'Australie',
                     'nrd'=> $language ? 'Nordic':'Nordique',
                     'lux'=> $language ? 'Luxembourg':'Luxembourg'
-                ),
-                'eliminated' => array('bel', 'aus', 'nrd', 'lux')
+                )
             ),
             "$group 2" => array(
                 'list' => array(
@@ -178,8 +166,7 @@ case 'mk8d':
                     'per'=> $language ? 'Peru':'Pérou',
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'chn'=> $language ? 'China':'Chine',
-                ),
-                'eliminated' => array('per', 'bra', 'chn', 'swi')
+                )
             ),
             "$group 3" => array(
                 'list' => array(
@@ -187,8 +174,7 @@ case 'mk8d':
                     'ire'=> $language ? 'Ireland':'Irlande',
                     'col'=> $language ? 'Colombia':'Colombie',
                     'kor'=> $language ? 'South Korea':'Corée du Sud'
-                ),
-                'eliminated' => array('ire', 'col', 'kor', 'net')
+                )
             ),
             "$group 4" => array(
                 'list' => array(
@@ -196,8 +182,7 @@ case 'mk8d':
                     'aut'=> $language ? 'Austria':'Autriche',
                     'mag'=> $language ? 'Maghreb':'Maghreb',
                     'cri'=> $language ? 'Costa Rica':'Costa Rica'
-                ),
-                'eliminated' => array('aut', 'mag', 'cri', 'chi')
+                )
             )
         )
     );
