@@ -488,15 +488,21 @@
 			global $language;
 			$nbPersons = count($names);
 			if ($nbPersons) {
+				$maxPersons = 3;
 				if ($nbPersons == 1)
 					return '<strong>'. $names[0] .'</strong>';
+				else if ($nbPersons > $maxPersons+1) {
+					$nbSkipped = $nbPersons - $maxPersons;
+					$names[$maxPersons] = $language ? "$nbSkipped other members" : "$nbSkipped autres membres";
+					$nbPersons = $maxPersons+1;
+				}
 				$res = '';
 				for ($i=0;$i<$nbPersons;$i++) {
 					if ($i) {
 						if ($i == ($nbPersons-1))
 							$res .= $language ? ' and ':' et ';
 						else
-							$res .= $language ? ',':', ';
+							$res .= ', ';
 					}
 					$res .= '<strong>'. $names[$i] .'</strong>';
 				}
