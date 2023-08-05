@@ -180,7 +180,8 @@ nav {
 	width: 100%;
 	color: #008;
 	text-decoration: none;
-	height: 60px;
+	min-height: 60px;
+	height: min-content;
 	overflow: hidden;
 	padding: 0;
 }
