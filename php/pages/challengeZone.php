@@ -35,6 +35,7 @@ if (isset($clCircuit) && isset($clTable)) {
 else
 	$circuitUrl = 'mapcreate.php?'.$_SERVER["QUERY_STRING"];
 $type = isset($_GET['type']) ? $_GET['type'] : null;
+$editorSource = isset($_GET['source']) ? $_GET['source'] : null;
 $editorContext = array();
 switch ($type) {
 	case 'zones':
@@ -297,6 +298,7 @@ include('../includes/o_xhr.php');
 var language = <?php echo $language ? 1:0; ?>;
 var editorType = "<?php if ($type) echo htmlspecialchars($type); ?>";
 var editorContext = <?php echo json_encode($editorContext); ?>;
+var editorSource = <?php echo json_encode($editorSource); ?>;
 function getRelativePos(e,parent) {
 	var rect = parent.getBoundingClientRect();
 	return {
@@ -376,7 +378,7 @@ function validateZone() {
 	var $ordered = document.getElementById("zone-editor-ordered");
 	if ($ordered)
 		meta.ordered = +$ordered.checked;
-	window.opener.storeZoneData(data,meta, editorType);
+	window.opener.storeZoneData(data,meta, editorType,editorSource);
 	window.close();
 };
 var undo = function(){};
@@ -872,7 +874,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		if (oShapes.length && (firstUndo != undo))
 			return language ? "Caution, if you want to save the zone, click on \"<?php echo $submitTitle; ?>\" before":"Attention, si vous voulez sauvegarder la zone, cliquez sur \"<?php echo $submitTitle; ?>\" avant";
 	};
-	var params = window.opener.loadZoneData(editorType);
+	var params = window.opener.loadZoneData(editorType,editorSource);
 	var data = params.data;
 	if (!data)
 		data = [];
@@ -1180,11 +1182,13 @@ window.onload = function() {
 			<?php
 			switch ($type) {
 			case 'zones':
-				?>
-				<div class="zone-editor-checkbox">
-					<label><input type="checkbox" id="zone-editor-ordered" onclick="selectOrdered(this,this.checked)" /> <?php echo $language ? 'Zones have to be passed in the right order <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>':'Les zones doivent être passées dans l\'ordre <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>'; ?></label>
-				</div>
-				<?php
+				if ($editorSource !== 'avoid_zones') {
+					?>
+					<div class="zone-editor-checkbox">
+						<label><input type="checkbox" id="zone-editor-ordered" onclick="selectOrdered(this,this.checked)" /> <?php echo $language ? 'Zones have to be passed in the right order <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>':'Les zones doivent être passées dans l\'ordre <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>'; ?></label>
+					</div>
+					<?php
+				}
 			break;
 			}
 			?>

@@ -394,6 +394,33 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
+		'avoid_zones' => array(
+			'description_mockup' => $language ? 'without going through a zone...':'sans passer par une zone...',
+			'description_lambda' => function($language,&$scope) {
+				$lang = $language ? 'en' : 'fr';
+				if (isset($scope->description->{$lang}))
+					return htmlspecialchars($scope->description->{$lang});
+				return htmlspecialchars($scope->description);
+			},
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+				if (!empty($scope['translated'])) {
+					$scope['description'] = array(
+						'fr' => $scope['description_fr'],
+						'en' => $scope['description_en']
+					);
+				}
+				else {
+					unset($scope['description_fr']);
+					unset($scope['description_en']);
+				}
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			},
+			'group' => 'no_action',
+			'course' => array('vs', 'battle')
+		),
 		'character' => array(
 			'description_mockup' => $language ? 'With character...':'Avec le perso...',
 			'description_lambda' => function($language,&$scope) {

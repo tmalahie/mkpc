@@ -10712,6 +10712,19 @@ function pointInPolygon(x,y, vs) {
 	
 	return inside;
 }
+function pointInZone(x,y, zones) {
+	var oRectangles = zones.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		if (pointInRectangle(x,y, oRectangles[i]))
+			return true;
+	}
+	var oPolygons = zones.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(x,y, oPolygons[i]))
+			return true;
+	}
+	return false;
+}
 function pointInQuad(x,y, quad) {
 	var l = projete(x,y, quad.A[0],quad.A[1], quad.B[0],quad.B[1]);
 	if ((l > 0) && (l <= 1)) {
@@ -11971,7 +11984,6 @@ var challengeRules = {
 		"initLocalVars": function(scope) {
 			if (!clLocalVars.hitItems)
 				clLocalVars.hitItems = {};
-			console.log(clLocalVars);
 		},
 		"success": function(scope) {
 			for (var i=0;i<scope.value.length;i++) {
@@ -12011,6 +12023,24 @@ var challengeRules = {
 					return false;
 			}
 			return true;
+		}
+	},
+	"avoid_zones": {
+		"initRuleVars": function() {
+			return {
+				hit: false
+			};
+		},
+		"initLocalVars": function(scope,ruleVars) {
+			if (!clLocalVars.zonesHit)
+				clLocalVars.zonesHit = [];
+			clLocalVars.zonesHit.push({
+				ruleVars: ruleVars,
+				zones: classifyByShape(scope.value)
+			});
+		},
+		"success": function(scope, ruleVars) {
+			return !ruleVars.hit;
 		}
 	},
 	"avoid_walls": {
@@ -12553,12 +12583,11 @@ function reinitLocalVars() {
 			var chRules = listChallengeRules(challengeData);
 			for (var j=0;j<chRules.length;j++) {
 				var rule = chRules[j];
+				var ruleVars = clRuleVars[challenge.id] ? clRuleVars[challenge.id][rule.type] : undefined;
 				if (challengeRules[rule.type].initLocalVars)
-					challengeRules[rule.type].initLocalVars(rule);
-				if ((clSelected === challenge) && challengeRules[rule.type].initSelected) {
-					var ruleVars = clRuleVars[challenge.id] ? clRuleVars[challenge.id][rule.type] : undefined;
+					challengeRules[rule.type].initLocalVars(rule, ruleVars);
+				if ((clSelected === challenge) && challengeRules[rule.type].initSelected)
 					challengeRules[rule.type].initSelected(rule, ruleVars);
-				}
 			}
 		}
 	}
@@ -18009,6 +18038,25 @@ function handleAudio() {
 		}
 	}
 }
+function handleChallengeEvents() {
+	var oPlayer = oPlayers[0];
+	if (clLocalVars.zonesHit && (oPlayer.z <= jumpHeight0)) {
+		var posX = oPlayer.x;
+		var posY = oPlayer.y;
+		for (var i=0;i<clLocalVars.zonesHit.length;i++) {
+			var zoneHit = clLocalVars.zonesHit[i];
+			var zones = zoneHit.zones;
+			console.log({ zones });
+			if (pointInZone(posX,posY, zones))
+				zoneHit.ruleVars.hit = true;
+		}
+	}
+	if (clSelected && !clSelectionFail) {
+		if (false === challengeRulesSatisfied(clSelected, clSelected.data.constraints))
+			challengeHandleFail();
+	}
+	challengeCheck("each_frame");
+}
 
 var cycleHandler;
 function cycle() {
@@ -18090,13 +18138,8 @@ function runOneFrame() {
 	moveDecor();
 	if (oSpecCam)
 		oSpecCam.move();
-	if (!oPlayers[0].cpu && !oPlayers[0].loose) {
-		if (clSelected && !clSelectionFail) {
-			if (false === challengeRulesSatisfied(clSelected, clSelected.data.constraints))
-				challengeHandleFail();
-		}
-		challengeCheck("each_frame");
-	}
+	if (!oPlayers[0].cpu && !oPlayers[0].loose)
+		handleChallengeEvents();
 	if (refreshDatas)
 		resetDatas();
 	handleAudio();
@@ -21679,7 +21722,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			fInfos.friendlyFire = !!selectedFriendlyFire;
 		}
 		if (course == "VS") {
-			oForm.appendChild(document.createTextNode(toLanguage("Difficulty: ", "Difficulté : ")));
+			var oDiffDiv = document.createElement("label");
+			oDiffDiv.appendChild(document.createTextNode(toLanguage("Difficulty: ", "Difficulté : ")));
 			var iDifficulties = [toLanguage("Easy", "Facile"), toLanguage("Medium", "Moyen"), toLanguage("Difficult", "Difficile"), toLanguage("Extreme", "Extrême"), toLanguage("Impossible", "Impossible")];
 			var oSelect = document.createElement("select");
 			oSelect.name = "difficulty";
@@ -21697,12 +21741,12 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					oOption.selected = "selected";
 				oSelect.appendChild(oOption);
 			}
-			oForm.appendChild(oSelect);
+			oDiffDiv.appendChild(oSelect);
+			oForm.appendChild(oDiffDiv);
 		}
 		else
 			iDificulty = 4.5;
 		oTeamsDiv = document.createElement("label");
-		oTeamsDiv.style.display = "block";
 		oTeamsDiv.appendChild(document.createTextNode(toLanguage("Teams: ", "Équipes : ")));
 		var oSelect = document.createElement("select");
 		oSelect.name = "difficulty";

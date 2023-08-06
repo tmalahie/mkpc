@@ -565,6 +565,29 @@ function addConstraintRule(clClass) {
 				$extraSelector.append('<button type="button" data-rule-type="constraint" data-rule-key="avoid_decors" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
 			}
 			break;
+		case 'avoid_zones':
+			$form.html(
+				'<div style="margin:10px 0"><label>'+ (language ? 'Avoid Zone(s): ':'Zone(s) à éviter : ') +
+				'<input type="hidden" name="scope[avoid_zones][value]" value="[]" />'+
+				'<input type="hidden" name="scope[avoid_zones][translated]" value="0" />'+
+				'<button type="button" onclick="openZoneEditor(\'zones\',\'source=avoid_zones\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
+				'<div style="font-size:16px" id="rule_avoid_zones_description">'+
+				'<label>'+ (language ? 'Description: ':'Description : ') +
+				'<input type="text" name="scope[avoid_zones][description]" style="font-size:12px;width:350px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;without taking the shortcuts&quot;, &quot;without driving on the sand&quot;':'&quot;sans prendre de raccourcis&quot;, &quot;sans rouler sur le sable&quot;') +'" required="required" maxlength="100" />'+
+				'</label>'+
+				'<div style="margin-top:0.25em"><a class="pretty-link" href="javascript:toggleRuleDescriptionTr()">'+ (language ? 'Translate description' : 'Traduire la description') +'...</a></div>'+
+				'</div>'+
+				'<div style="font-size:14px;margin-top:0.25em;display:none" id="rule_avoid_zones_description_tr">'+
+				'<label>'+ (language ? 'Description (EN): ':'Description (FR) : ') +
+				'<input type="text" name="scope[avoid_zones][description_'+(language ? 'en':'fr')+']" style="font-size:12px;width:300px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;without taking the shortcuts&quot;, &quot;without driving on the sand&quot;':'&quot;sans prendre de raccourcis&quot;, &quot;sans rouler sur le sable&quot;') +'" maxlength="100" />'+
+				'</label><br />'+
+				'<label>'+ (language ? 'Description (FR): ':'Description (EN) : ') +
+				'<input type="text" name="scope[avoid_zones][description_'+(language ? 'fr':'en')+']" style="font-size:12px;width:300px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;sans prendre de raccourcis&quot;, &quot;sans rouler sur le sable&quot;':'&quot;without taking the shortcuts&quot;, &quot;without driving on the sand&quot;') +'" maxlength="100" />'+
+				'</label>'+
+				'<div style="margin-top:0.25em"><a class="pretty-link" href="javascript:toggleRuleDescriptionTr()">'+ (language ? 'Stop translating' : 'Ne plus traduire') +'</a></div>'+
+				'</div>'
+			);
+			break;
 		case 'avoid_item':
 			$form.html(
 				'<div>'+ (language?'Item(s):':'Objet(s) :') +' '+
@@ -1035,7 +1058,7 @@ function undoValidation() {
 		return false;
 	});
 }
-function getZoneInputKey(editorType) {
+function getZoneInputKey(editorType,editorSource) {
 	switch (editorType) {
 	case "startpos":
 		return "scope[start_pos]";
@@ -1043,12 +1066,16 @@ function getZoneInputKey(editorType) {
 		return "scope[extra_decors]";
 	case "items":
 		return "scope[extra_items]";
+	case "zones":
+		if (editorSource === 'avoid_zones')
+			return "scope[avoid_zones]";
+		return "goal";
 	default:
 		return "goal";
 	}
 }
-function loadZoneData(editorType) {
-	var inputKey = getZoneInputKey(editorType);
+function loadZoneData(editorType,editorSource) {
+	var inputKey = getZoneInputKey(editorType,editorSource);
 	var data = document.forms[0].elements[inputKey+"[value]"].value;
 	var meta = {};
 	var metaKeys = ["ordered","custom_decors"];
@@ -1068,8 +1095,8 @@ function loadZoneData(editorType) {
 		meta: meta
 	}
 }
-function storeZoneData(data,meta, editorType) {
-	var inputKey = getZoneInputKey(editorType);
+function storeZoneData(data,meta, editorType,editorSource) {
+	var inputKey = getZoneInputKey(editorType,editorSource);
 	document.forms[0].elements[inputKey+"[value]"].value = JSON.stringify(data);
 	for (var key in meta) {
 		var $elt = document.forms[0].elements[inputKey+"["+key+"]"];
@@ -1081,8 +1108,8 @@ function storeZoneData(data,meta, editorType) {
 		}
 	}
 }
-function openZoneEditor(type) {
-	window.open(document.location.href.replace("challengeEdit.php","challengeZone.php")+(type?("&type="+type):""),'chose','scrollbars=1, resizable=1, width=800, height=600');
+function openZoneEditor(type, extra) {
+	window.open(document.location.href.replace("challengeEdit.php","challengeZone.php")+(type?("&type="+type):"")+(extra?"&"+extra:""),'chose','scrollbars=1, resizable=1, width=800, height=600');
 }
 function toggleGoalAllOption(value) {
 	if (value == 1)
@@ -1203,28 +1230,34 @@ function toggleItem(btn) {
 }
 function toggleGoalDescriptionTr() {
 	var ruleValue = $("#challenge-main-rule").val();
-	var $descriptionDiv = document.getElementById("goal_"+ruleValue+"_description");
-	var $descriptionTrDiv = document.getElementById("goal_"+ruleValue+"_description_tr");
+	toggleDescriptionTr("goal_"+ruleValue, "goal");
+}
+function toggleRuleDescriptionTr() {
+	toggleDescriptionTr("rule_avoid_zones", "scope[avoid_zones]");
+}
+function toggleDescriptionTr(idPrefix, namePrefix) {
+	var $descriptionDiv = document.getElementById(idPrefix+"_description");
+	var $descriptionTrDiv = document.getElementById(idPrefix+"_description_tr");
 	var mainForm = document.forms[0];
-	var $trStateInput = mainForm.elements["goal[translated]"];
+	var $trStateInput = mainForm.elements[namePrefix+"[translated]"];
 	if ($trStateInput.value == 1) {
 		$trStateInput.value = 0;
 		$descriptionTrDiv.style.display = "none";
 		$descriptionDiv.style.display = "block";
-		mainForm.elements["goal[description]"].required = true;
-		mainForm.elements["goal[description_fr]"].required = false;
-		mainForm.elements["goal[description_en]"].required = false;
+		mainForm.elements[namePrefix+"[description]"].required = true;
+		mainForm.elements[namePrefix+"[description_fr]"].required = false;
+		mainForm.elements[namePrefix+"[description_en]"].required = false;
 	}
 	else {
 		$trStateInput.value = 1;
 		$descriptionDiv.style.display = "none";
 		$descriptionTrDiv.style.display = "block";
-		mainForm.elements["goal[description]"].required = false;
-		mainForm.elements["goal[description_fr]"].required = true;
-		mainForm.elements["goal[description_en]"].required = true;
-		var $trInput = mainForm.elements["goal[description_"+(language ? "en":"fr")+"]"];
+		mainForm.elements[namePrefix+"[description]"].required = false;
+		mainForm.elements[namePrefix+"[description_fr]"].required = true;
+		mainForm.elements[namePrefix+"[description_en]"].required = true;
+		var $trInput = mainForm.elements[namePrefix+"[description_"+(language ? "en":"fr")+"]"];
 		if (!$trInput.value)
-			$trInput.value = mainForm.elements["goal[description]"].value;
+			$trInput.value = mainForm.elements[namePrefix+"[description]"].value;
 	}
 }
 function helpDifficulty() {
@@ -1278,6 +1311,16 @@ $(function() {
 							var btn = mainForm.querySelector(".challenge-constraint-btn-options button[data-value='"+ key +"']");
 							if (btn)
 								toggleDecor(btn, decorData.name);
+						}
+						break;
+					case "avoid_zones":
+						if (typeof constraint.description === "string")
+							mainForm.elements["scope[avoid_zones][description]"].value = constraint.description;
+						else {
+							toggleRuleDescriptionTr();
+							mainForm.elements["scope[avoid_zones][description]"];
+							mainForm.elements["scope[avoid_zones][description_fr]"].value = constraint.description.fr;
+							mainForm.elements["scope[avoid_zones][description_en]"].value = constraint.description.en;
 						}
 						break;
 					case "character":
