@@ -695,6 +695,17 @@ $clRulesByType = array(
 				$scope->value = json_encode($scope->value);
 			}
 		),
+		'place_items' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'add items in the track':'rajouter des objets sur la piste',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			}
+		),
 		'custom_music' => array(
 			'description' => null,
 			'description_mockup' => $language ? 'custom music...':'changer la musique...',

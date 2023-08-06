@@ -68,6 +68,12 @@ switch ($type) {
 		}
 		$editorContext['customDecors'] = $customDecors;
 	break;
+	case 'arms':
+		$submitTitle = $language ? 'Validate items':'Valider les objets';
+		$editorContext['customIcons'] = array(
+			'fauxobjet' => 'objet'
+		);
+		break;
 	case 'startpos':
 		$submitTitle = $language ? 'Validate location':'Valider la position';
 	break;
@@ -338,6 +344,7 @@ case "items":
 	shapeType = "point";
 	break;
 case "decors":
+case "arms":
 	shapeType = "img";
 	break;
 case "startpos":
@@ -617,19 +624,25 @@ document.addEventListener("DOMContentLoaded", function() {
 		}
 	}
 	function setupImg(x,y,src, oImg) {
-		var customDecor = editorContext.customDecors[src];
-		if (customDecor) {
-			if (customDecor.onload) {
-				oImg.setAttribute("href", "images/map_icons/"+ customDecor.type +".png");
-				customDecor.onload(function(res) {
-					oImg.setAttribute("href", res.map);
-				});
+		if (editorType === "decors") {
+			var customDecor = editorContext.customDecors[src];
+			if (customDecor) {
+				if (customDecor.onload) {
+					oImg.setAttribute("href", "images/map_icons/"+ customDecor.type +".png");
+					customDecor.onload(function(res) {
+						oImg.setAttribute("href", res.map);
+					});
+				}
+				else
+					oImg.setAttribute("href", customDecor.map);
 			}
 			else
-				oImg.setAttribute("href", customDecor.map);
+				oImg.setAttribute("href", "images/map_icons/"+ src +".png");
 		}
-		else
-			oImg.setAttribute("href", "images/map_icons/"+ src +".png");
+		else {
+			var iconSrc = editorContext.customIcons[src] || src;
+			oImg.setAttribute("href", "images/map_icons/"+ iconSrc +".png");
+		}
 		oImg.setAttribute("height", 12);
 		oImg.setAttribute("x", x-6);
 		oImg.setAttribute("y", y-6);
@@ -797,7 +810,10 @@ document.addEventListener("DOMContentLoaded", function() {
 			case "img":
 				var oImg = document.createElementNS(SVG, "image");
 				if (!currentDecor) {
-					alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
+					if (editorType === "decors")
+						alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
+					else
+						alert(language ? "Please select an item type first":"Sélectionnez un type d'objet avant de commencer");
 					return;
 				}
 				applyImg(x,y,currentDecor, oImg);
@@ -1081,6 +1097,20 @@ window.onload = function() {
 				<?php
 			}
 			break;
+		case 'arms':
+			if ($language) {
+				?>
+				Indicate item locations by clicking where you want on the circuit image.
+				To delete an item, right click on it.<br />
+				<?php
+			}
+			else {
+				?>
+				Indiquez les emplacements des objets en cliquant où vous voulez sur l'image du circuit.<br />
+				Pour supprimer un objet, faites un clic droit dessus.<br />
+				<?php
+			}
+			break;
 		case 'startpos':
 			if ($language) {
 				?>
@@ -1165,6 +1195,22 @@ window.onload = function() {
 				}
 				?>
 				<input type="button" id="decor-selector-more" title="<?php echo $language ? "Select decor of another member..." : "Sélectionner le décor d'un autre membre..."; ?>" onclick="showCollabImportPopup()" />
+				</div>
+				<?php
+				break;
+			case 'arms':
+				?>
+				<div class="zone-editor-decor">
+					<span><?php echo $language ? 'Item:':'Objet :'; ?></span>
+					<?php
+					$itemTypes = array('banane', 'carapace', 'carapace-rouge', 'fauxobjet', 'champi', 'poison');
+					foreach ($itemTypes as $key) {
+						$src = isset($editorContext['customIcons'][$key]) ? $editorContext['customIcons'][$key] : $key;
+						?>
+						<input type="button" style="background-image:url('images/map_icons/<?php echo $src; ?>.png')" onclick="selectDecor(this, '<?php echo $key; ?>')" />
+						<?php
+					}
+					?>
 				</div>
 				<?php
 				break;

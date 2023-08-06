@@ -469,6 +469,13 @@ function addConstraintRule(clClass) {
 				'<button type="button" onclick="openZoneEditor(\'decors\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
 			);
 			break;
+		case 'place_items':
+			$form.html(
+				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<input type="hidden" name="scope[place_items][value]" value="[]" />'+
+				'<button type="button" onclick="openZoneEditor(\'arms\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
+			);
+			break;
 		case 'cc':
 			$form.html(
 				'<label>'+ (language?'Class:':'Cylindrée :') +' '+
@@ -1070,6 +1077,8 @@ function getZoneInputKey(editorType,editorSource) {
 		if (editorSource === 'avoid_zones')
 			return "scope[avoid_zones]";
 		return "goal";
+	case "arms":
+		return "scope[place_items]";
 	default:
 		return "goal";
 	}

@@ -1804,6 +1804,17 @@ function loadNewItem(kart,item) {
 	addNewItem(kart,item);
 	kart.using.push(item);
 }
+function dropNewItem(oKart, item) {
+	switch (item.type) {
+	case "carapace":
+		item.vx = 0; item.vy = 0; item.owner = -1; item.lives = 10;
+		break;
+	case "carapace-rouge":
+		item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.target = -1;
+		break;
+	}
+	addNewItem(oKart, item);
+}
 function addNewItem(kart,item) {
 	var collection = item.type;
 	var itemBehavior = itemBehaviors[collection];
@@ -10478,15 +10489,7 @@ function dropCurrentItem(oKart) {
 		for (var i=0;i<itemCount;i++) {
 			var rAngle = oKart.rotation*Math.PI/180 + (Math.random()-0.5)*0.9*Math.PI, rDist = 9 + Math.random()*6;
 			var item = {type: itemType, team:oKart.team, x:oKart.x - rDist*Math.sin(rAngle), y:oKart.y - rDist*Math.cos(rAngle), z:0};
-			switch (sArme) {
-			case "carapace":
-				item.vx = 0; item.vy = 0; item.owner = -1; item.lives = 10;
-				break;
-			case "carapacerouge":
-				item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.target = -1;
-				break;
-			}
-			addNewItem(oKart, item);
+			dropNewItem(oKart, item);
 			item.sprite[0].fadein(200);
 		}
 	}
@@ -12363,6 +12366,22 @@ var challengeRules = {
 						oMap.decor[type] = [];
 					oMap.decor[type].push(decorData.pos.slice(0));
 				}
+			}
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
+		}
+	},
+	"place_items": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
+			for (var i=0;i<scope.value.length;i++) {
+				var oItem = scope.value[i];
+				dropNewItem(null, {type: oItem.src, team:-1, x:oItem.pos[0], y:oItem.pos[1], z:0});
 			}
 		},
 		"success": function(scope, ruleVars) {
