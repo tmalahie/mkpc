@@ -450,6 +450,20 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'bcup')
 		),
+		'max_cannons' => array(
+			'description' => $language ? 'by taking at most $value cannon$s':'en prenant au plus $value canon$s',
+			'description_mockup' => $language ? 'By taking at most N cannons':'En prenant au plus N canons',
+			'description_lambda' => function($language,&$scope) {
+				if (!$scope->value)
+					return $language ? 'without taking any cannon':'sans prendre de canons';
+				return null;
+			},
+			'parser' => function(&$scope) {
+				$scope['value'] = intval($scope['value']);
+			},
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'bcup')
+		),
 		'no_stunt' => array(
 			'description' => $language ? 'without making stunts':'sans faire de figures',
 			'group' => 'no_action',

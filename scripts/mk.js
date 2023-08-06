@@ -12122,6 +12122,28 @@ var challengeRules = {
 				ruleVars.jumps += clLocalVars.jumps;
 		}
 	},
+	"max_cannons": {
+		"initRuleVars": function() {
+			return {cannons: 0};
+		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars) {
+				addChallengeHud("cannons", {
+					title: toLanguage("Cannons","Canons"),
+					value: clLocalVars.cannons+ruleVars.cannons,
+					out_of: scope.value
+				});
+			}
+		},
+		"success": function(scope, ruleVars) {
+			if (ruleVars)
+				return ((clLocalVars.cannons+ruleVars.cannons) <= scope.value);
+		},
+		"next_circuit": function(ruleVars) {
+			if (ruleVars)
+				ruleVars.cannons += clLocalVars.cannons;
+		}
+	},
 	"no_stunt": {
 		"success": function(scope) {
 			return !clLocalVars.stunted;
@@ -12499,6 +12521,7 @@ function reinitLocalVars() {
 		itemsUsed: false,
 		falls: 0,
 		jumps: 0,
+		cannons: 0,
 		miniTurbo: 0,
 		superTurbo: 0,
 		stunts: 0,
@@ -15502,6 +15525,12 @@ function move(getId, triggered) {
 			if (oKart.tourne)
 				oKart.tourne = 2;
 			delete oKart.shift;
+			if (!oKart.cpu) {
+				clLocalVars.cannons++;
+				var ruleVars;
+				if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].max_cannons))
+					updateChallengeHud("cannons", clLocalVars.cannons+ruleVars.cannons);
+			}
 			if (!oKart.boostSound) {
 				oKart.boostSound = playIfShould(oKart, "musics/events/boost.mp3");
 				if (oKart.boostSound) {
