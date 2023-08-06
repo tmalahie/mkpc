@@ -697,6 +697,11 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'invert left and right' : 'inverser gauche et droite',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
+		'no_minimap' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'disable minimap':'désactiver la minimap',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
 		'balloons_player' => array(
 			'description' => $language ? 'by starting with $value balloon$s':'en commençant avec $value ballon$s',
 			'description_mockup' => $language ? 'initial player balloons':'nb ballons initiaux (joueur)',

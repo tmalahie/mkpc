@@ -3459,7 +3459,7 @@ function startGame() {
 		}
 	}
 
-	if ((strPlayer.length == 1) && !gameSettings.nomap) {
+	if ((strPlayer.length == 1) && !gameSettings.nomap && !clLocalVars.noMap) {
 		oPlanWidth = Math.round(iScreenScale*19.4);
 		oPlanWidth2 = (oMap.w>=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.w/oMap.h);
 		var oPlanHeight2 = (oMap.w<=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.h/oMap.w);
@@ -12140,6 +12140,14 @@ var challengeRules = {
 		},
 		"success": function(scope) {
 			return !!clLocalVars.invertDirs;
+		}
+	},
+	"no_minimap": {
+		"initSelected": function(scope) {
+			clLocalVars.noMap = true;
+		},
+		"success": function(scope) {
+			return !!clLocalVars.noMap;
 		}
 	},
 	"time": {
