@@ -4174,7 +4174,8 @@ function startGame() {
 								}
 								break;
 							case "rear":
-								showRearView(0);
+								if (!clLocalVars.rearView)
+									showRearView(0);
 								break;
 							case "item_p2":
 							case "item_back_p2":
@@ -4505,7 +4506,7 @@ function startGame() {
 			}, 100);
 		}, 100);
 	}
-	if (clLocalVars.backwardsStart)
+	if (clLocalVars.backwardsStart || clLocalVars.rearView)
 		showRearView(0);
 	if (!isOnline)
 		document.body.style.cursor = "default";
@@ -12140,6 +12141,14 @@ var challengeRules = {
 		},
 		"success": function(scope) {
 			return !!clLocalVars.invertDirs;
+		}
+	},
+	"rear_view": {
+		"initSelected": function(scope) {
+			clLocalVars.rearView = true;
+		},
+		"success": function(scope) {
+			return !!clLocalVars.rearView;
 		}
 	},
 	"no_minimap": {

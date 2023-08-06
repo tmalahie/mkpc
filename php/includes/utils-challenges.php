@@ -697,6 +697,11 @@ $clRulesByType = array(
 			'description_mockup' => $language ? 'invert left and right' : 'inverser gauche et droite',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
+		'rear_view' => array(
+			'description' => $language ? 'while in rear view' : 'en vue arrière',
+			'description_mockup' => $language ? 'force rear view':'forcer la vue arrière',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
 		'no_minimap' => array(
 			'description' => null,
 			'description_mockup' => $language ? 'disable minimap':'désactiver la minimap',
