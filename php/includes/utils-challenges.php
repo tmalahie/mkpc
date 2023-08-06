@@ -436,6 +436,20 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'bcup')
 		),
+		'max_jumps' => array(
+			'description' => $language ? 'by taking at most $value jump$s':'en prenant au plus $value saut$s',
+			'description_mockup' => $language ? 'By taking at most N jumps':'En prenant au plus N sauts',
+			'description_lambda' => function($language,&$scope) {
+				if (!$scope->value)
+					return $language ? 'without taking any jump':'sans prendre de sauts';
+				return null;
+			},
+			'parser' => function(&$scope) {
+				$scope['value'] = intval($scope['value']);
+			},
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'bcup')
+		),
 		'no_stunt' => array(
 			'description' => $language ? 'without making stunts':'sans faire de figures',
 			'group' => 'no_action',

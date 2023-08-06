@@ -12100,6 +12100,28 @@ var challengeRules = {
 				ruleVars.falls += clLocalVars.falls;
 		}
 	},
+	"max_jumps": {
+		"initRuleVars": function() {
+			return {jumps: 0};
+		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars) {
+				addChallengeHud("jumps", {
+					title: toLanguage("Jumps","Sauts"),
+					value: clLocalVars.jumps+ruleVars.jumps,
+					out_of: scope.value
+				});
+			}
+		},
+		"success": function(scope, ruleVars) {
+			if (ruleVars)
+				return ((clLocalVars.jumps+ruleVars.jumps) <= scope.value);
+		},
+		"next_circuit": function(ruleVars) {
+			if (ruleVars)
+				ruleVars.jumps += clLocalVars.jumps;
+		}
+	},
 	"no_stunt": {
 		"success": function(scope) {
 			return !clLocalVars.stunted;
@@ -12476,6 +12498,7 @@ function reinitLocalVars() {
 		itemsGot: false,
 		itemsUsed: false,
 		falls: 0,
+		jumps: 0,
 		miniTurbo: 0,
 		superTurbo: 0,
 		stunts: 0,
@@ -15544,6 +15567,12 @@ function move(getId, triggered) {
 			oKart.speed = 11*cappedRelSpeed(oKart);
 			oKart.figuring = false;
 			oKart.figstate = 0;
+			if (!oKart.cpu) {
+				clLocalVars.jumps++;
+				var ruleVars;
+				if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].max_jumps))
+					updateChallengeHud("jumps", clLocalVars.jumps+ruleVars.jumps);
+			}
 			if (!oKart.bounceSound) {
 				oKart.bounceSound = playIfShould(oKart, "musics/events/jump.mp3");
 				if (oKart.bounceSound) {

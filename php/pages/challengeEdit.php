@@ -647,6 +647,9 @@ function addConstraintRule(clClass) {
 		case 'falls':
 			addConstraintNb($form,ruleId, language?'Max falls:':'Max chutes :',{attrs:{min:0},css:{width:'40px'}});
 			break;
+		case 'max_jumps':
+			addConstraintNb($form,ruleId, language?'Max jumps:':'Max sauts :',{attrs:{min:0},css:{width:'40px'}});
+			break;
 		case 'mini_turbo':
 			addConstraintNb($form,ruleId, language?'Mini Turbos:':'Mini Turbos :',{attrs:{min:0},css:{width:'40px'}});
 			break;
