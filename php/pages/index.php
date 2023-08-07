@@ -325,7 +325,7 @@ $slidesPath = 'images/slides';
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
 						The <strong>Mario Kart Tour</strong> World Cup 2023 has begun!<br />
 						Come and <a href="mkwc.php">vote here</a> for your favorite team!<br />
-						For more information, read the related <a href="news.php?id=15109">news</a>.
+						For more information, read the related <a href="news.php?id=15138">news</a>.
 					</div>
 				</div>
 				<?php
@@ -336,7 +336,7 @@ $slidesPath = 'images/slides';
 					<div id="official_message" style="font-size: 0.9em; text-align: left">
 						La Coupe Du Monde de <strong>Mario Kart Tour</strong> 2023 à débuté !<br />
 						Venez <a href="mkwc.php">voter ici</a> pour votre équipe préférée !<br />
-						Pour plus d'information, consultez la <a href="news.php?id=15109">news</a> associée.
+						Pour plus d'information, consultez la <a href="news.php?id=15138">news</a> associée.
 					</div>
 				</div>
 				<?php
