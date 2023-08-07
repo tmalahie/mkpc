@@ -21202,54 +21202,54 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		return oDiv;
 	}
 
-	var maxPersosParPage = 24;
-	var nbPersosPerLine = 8;
-	var maxPersosAffiches = Math.min(nBasePersos, maxPersosParPage);
+	var maxCharsPerPage = 24;
+	var charsPerLine = 8;
+	var maxShownChars = Math.min(nBasePersos, maxCharsPerPage);
 	var minPersoX = 8, maxPersoX = 58.4;
 	if (!customCharsEnabled) {
 		var shiftX = 5;
 		minPersoX += shiftX;
 		maxPersoX += shiftX;
 	}
-	if (nBasePersos > maxPersosParPage) {
+	if (nBasePersos > maxCharsPerPage) {
 		minPersoX += 3;
 		maxPersoX += 3;
 	}
 	var minPersoY = baseY, maxPersoY = baseY + 14;
 	var midPersoX = (minPersoX + maxPersoX) / 2;
 	var midPersoY = (minPersoY + maxPersoY) / 2;
-	var nbLines = Math.ceil(maxPersosAffiches/nbPersosPerLine);
-	nbPersosPerLine = Math.ceil(maxPersosAffiches/nbLines);
-	var tilePersoX = Math.min(9,(maxPersoX-minPersoX)/(nbPersosPerLine-1));
-	var tilePersoY = Math.min(8,(maxPersoY-minPersoY)/(nbLines-1));
+	var lines = Math.ceil(maxShownChars/charsPerLine);
+	charsPerLine = Math.ceil(maxShownChars/lines);
+	var tilePersoX = Math.min(9,(maxPersoX-minPersoX)/(charsPerLine-1));
+	var tilePersoY = Math.min(8,(maxPersoY-minPersoY)/(lines-1));
 	tilePersoX = Math.min(tilePersoX,tilePersoY*1.2);
 
-	var persoDivs = [];
+	var charSelectors = [];
 	var curPage = 0;
-	var myPersosOffset = nBasePersos > maxPersosParPage ? 73 : 67;
-    var nbPages=Math.ceil(nBasePersos / 24);
+	var myPersosOffset = nBasePersos > maxCharsPerPage ? 73 : 67;
+    var pages=Math.ceil(nBasePersos / 24);
 
-    function afficherPersos(page=0) {
-		for(perso of persoDivs)
+    function showCharacters(page=0) {
+		for(perso of charSelectors)
 			perso.remove();
-		persoDivs = [];
+		charSelectors = [];
 
-		var persosPage = Math.min(nBasePersos - (page * maxPersosParPage), maxPersosParPage);
+		var persosPage = Math.min(nBasePersos - (page * maxCharsPerPage), maxCharsPerPage);
         for (var i=0;i<persosPage;i++) {
-            var x = i%nbPersosPerLine, y = Math.floor(i/nbPersosPerLine);
-            if (y < (nbLines-1))
-                x -= (nbPersosPerLine-1)/2;
+            var x = i%charsPerLine, y = Math.floor(i/charsPerLine);
+            if (y < (lines-1))
+                x -= (charsPerLine-1)/2;
             else
-                x -= ((persosPage-1)%nbPersosPerLine)/2;
-            y -= (nbLines-1)/2;
-            var oDiv = createPersoSelector(aPlayers[i+(page*maxPersosParPage)]);
+                x -= ((persosPage-1)%charsPerLine)/2;
+            y -= (lines-1)/2;
+            var oDiv = createPersoSelector(aPlayers[i+(page*maxCharsPerPage)]);
             oDiv.style.left = Math.round((midPersoX + x*tilePersoX) * iScreenScale) +"px";
             oDiv.style.top = Math.round((midPersoY + y*tilePersoY) * iScreenScale - 8) +"px";
-			persoDivs.push(oDiv);
+			charSelectors.push(oDiv);
             oScr.appendChild(oDiv);
         }
     }
-    afficherPersos(curPage);
+    showCharacters(curPage);
 
 	if (customCharsEnabled) {
 		var pDiv = document.createElement("div");
@@ -22066,42 +22066,42 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oScr.appendChild(oStepCtn);
 	}
 	
-	if (nBasePersos > maxPersosParPage) {
-		var pagePrecedente = document.createElement("input");
-		pagePrecedente.type = "button";
-        pagePrecedente.value = "\u25C4";
-		pagePrecedente.style.position = "absolute";
-		pagePrecedente.style.left = Math.round((minPersoX - 4) * iScreenScale) +"px";
-		pagePrecedente.style.top = Math.round(midPersoY * iScreenScale - 8) +"px";
-		pagePrecedente.style.width = Math.round(iScreenScale * 3) + "px";
-		pagePrecedente.style.height = Math.round(5 * jScreenScale) + 8 + "px";
-        pagePrecedente.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-        pagePrecedente.style.textAlign = "center";
-		oScr.appendChild(pagePrecedente);
+	if (nBasePersos > maxCharsPerPage) {
+		var lastPageButton = document.createElement("input");
+		lastPageButton.type = "button";
+        lastPageButton.value = "\u25C4";
+		lastPageButton.style.position = "absolute";
+		lastPageButton.style.left = Math.round((minPersoX - 4) * iScreenScale) +"px";
+		lastPageButton.style.top = Math.round(midPersoY * iScreenScale - 8) +"px";
+		lastPageButton.style.width = Math.round(iScreenScale * 3) + "px";
+		lastPageButton.style.height = Math.round(5 * jScreenScale) + 8 + "px";
+        lastPageButton.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+        lastPageButton.style.textAlign = "center";
+		oScr.appendChild(lastPageButton);
 
-		pagePrecedente.onclick = function() {
-			curPage = (curPage-1) % nbPages;
+		lastPageButton.onclick = function() {
+			curPage = (curPage-1) % pages;
             if (curPage < 0)
-                curPage += nbPages;
-			afficherPersos(curPage);
+                curPage += pages;
+			showCharacters(curPage);
 		};
 
-		var pageSuivante = document.createElement("input");
-		pageSuivante.type = "button";
-        pageSuivante.value = "\u25BA";
-		pageSuivante.value = "►";
-		pageSuivante.style.position = "absolute";
-		pageSuivante.style.left = Math.round((maxPersoX + 6) * iScreenScale) + 8 +"px";
-		pageSuivante.style.top = Math.round(midPersoY * iScreenScale - 8) +"px";
-		pageSuivante.style.width = Math.round(iScreenScale * 3) + "px";
-		pageSuivante.style.height = Math.round(5 * jScreenScale) + 8 + "px";
-        pageSuivante.style.fontSize = Math.round(2.5*iScreenScale)+"px";
-        pageSuivante.style.textAlign = "center";
-		oScr.appendChild(pageSuivante);
+		var nextPageButton = document.createElement("input");
+		nextPageButton.type = "button";
+        nextPageButton.value = "\u25BA";
+		nextPageButton.value = "►";
+		nextPageButton.style.position = "absolute";
+		nextPageButton.style.left = Math.round((maxPersoX + 6) * iScreenScale) + 8 +"px";
+		nextPageButton.style.top = Math.round(midPersoY * iScreenScale - 8) +"px";
+		nextPageButton.style.width = Math.round(iScreenScale * 3) + "px";
+		nextPageButton.style.height = Math.round(5 * jScreenScale) + 8 + "px";
+        nextPageButton.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+        nextPageButton.style.textAlign = "center";
+		oScr.appendChild(nextPageButton);
         
-		pageSuivante.onclick = function() {
-			curPage = (curPage+1) % nbPages;
-			afficherPersos(curPage);
+		nextPageButton.onclick = function() {
+			curPage = (curPage+1) % pages;
+			showCharacters(curPage);
 		};
 	}
 	var oPInput = document.createElement("input");
