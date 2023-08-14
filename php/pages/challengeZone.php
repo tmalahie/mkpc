@@ -1228,7 +1228,7 @@ window.onload = function() {
 			<?php
 			switch ($type) {
 			case 'zones':
-				if ($editorSource !== 'avoid_zones') {
+				if (!$editorSource) {
 					?>
 					<div class="zone-editor-checkbox">
 						<label><input type="checkbox" id="zone-editor-ordered" onclick="selectOrdered(this,this.checked)" /> <?php echo $language ? 'Zones have to be passed in the right order <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>':'Les zones doivent être passées dans l\'ordre <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>'; ?></label>

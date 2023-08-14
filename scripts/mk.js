@@ -12372,6 +12372,25 @@ var challengeRules = {
 			return !!ruleVars.selected;
 		}
 	},
+	"extra_walls": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"preinitSelected": function(scope, ruleVars) {
+			if (!oMap.collision) oMap.collision = [];
+			for (var i=0;i<scope.value.length;i++) {
+				var wallData = scope.value[i];
+				oMap.collision.push(wallData.slice(0));
+			}
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
+		}
+	},
 	"place_items": {
 		"initRuleVars": function() {
 			return {};

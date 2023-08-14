@@ -706,6 +706,17 @@ $clRulesByType = array(
 				$scope->value = json_encode($scope->value);
 			}
 		),
+		'extra_walls' => array(
+			'description' => null,
+			'description_mockup' => $language ? 'add extra walls...':'ajouter des murs...',
+			'course' => array('vs', 'battle'),
+			'parser' => function(&$scope) {
+				$scope['value'] = json_decode($scope['value']);
+			},
+			'formatter' => function(&$scope) {
+				$scope->value = json_encode($scope->value);
+			}
+		),
 		'place_items' => array(
 			'description' => null,
 			'description_mockup' => $language ? 'add items in the track':'rajouter des objets sur la piste',
