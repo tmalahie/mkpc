@@ -15862,8 +15862,8 @@ function move(getId, triggered) {
 					if (aKarts[i].tours > oMap.tours)
 						oKart.place++;
 				}
-				if (!oKart.finaltime)
-					oKart.finaltime = lapTimer;
+				if (isOnline && !oKart.finaltime)
+					oKart.finaltime = timeTrialMode() ? lapTimer : (new Date().getTime() - tnCourse);
 				if (kartIsPlayer(oKart) && !finishing) {
 					timerMS = lapTimer;
 					showTimer(timerMS);

@@ -141,7 +141,6 @@ if ($id) {
 				$courseRules = json_decode($courseOptions['rules']);
 			require_once('../includes/onlineConsts.php');
 			$isTeam = !empty($courseRules->team);
-			$isTt = !empty($courseRules->timeTrial);
 			$nbTeams = isset($courseRules->nbTeams) ? $courseRules->nbTeams : DEFAULT_TEAM_COUNT;
 			if ($nbTeams > 2)
 				$nbTeams = min($nbTeams, mysql_numrows($joueurs));
@@ -198,7 +197,7 @@ if ($id) {
 					if (!$joueur['controller'])
 						$racingHumans++;
 				}
-				elseif ($isTt && ($joueur['finalts'] >= ($time-2)))
+				elseif (!$isBattle && ($joueur['finalts'] >= ($time-2)))
 					$racing++;
 			}
 			if ($isTeam && $isBattle) {
@@ -247,7 +246,7 @@ if ($id) {
 						}
 					}
 					else {
-						$joueurs = mysql_query('SELECT id FROM `mkplayers` WHERE course='.$course.($isTt ? '':" AND tours<$fLaps").' ORDER BY '.($isTt ? '(finaltime>0),finaltime DESC,':'').'tours,demitours,place DESC,connecte');
+						$joueurs = mysql_query('SELECT id FROM `mkplayers` WHERE course='.$course.' ORDER BY (finaltime>0),finaltime DESC,tours,demitours,place DESC,connecte');
 						while ($joueur = mysql_fetch_array($joueurs)) {
 							mysql_query('UPDATE `mkplayers` SET place='.$nbPlaces.' WHERE id='. $joueur['id']);
 							$nbPlaces--;
