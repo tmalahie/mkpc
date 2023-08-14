@@ -491,7 +491,10 @@ function addConstraintRule(clClass) {
 			);
 			break;
 		case 'position':
-			addConstraintNb($form,ruleId, language?'Place:':'Place :',{attrs:{min:1},css:{width:'40px'}});
+			addConstraintNb($form,ruleId, language?'Rank:':'Place :',{attrs:{min:1},css:{width:'40px'}});
+			break;
+		case 'position_lower':
+			addConstraintNb($form,ruleId, language?'Max rank:':'Pos. max :',{attrs:{min:1},css:{width:'40px'}});
 			break;
 		case 'difficulty':
 			if (clClass == "extra") {
@@ -1392,7 +1395,7 @@ $(function() {
 						}
 						break;
 					case "init_item":
-						var btn = mainForm.querySelector(".challenge-item-btn-options button[data-value='"+ constraint.value +"']");
+						var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='"+ constraint.type +"'][data-value='"+ constraint.value +"']");
 						if (btn)
 							toggleItem(btn);
 						break;

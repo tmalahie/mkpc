@@ -12466,6 +12466,12 @@ var challengeRules = {
 				return true;
 		}
 	},
+	"position_lower": {
+		"success": function(scope) {
+			if (oPlayers[0].place <= scope.value)
+				return true;
+		}
+	},
 	"with_pts": {
 		"verify": "end_game",
 		"initRuleVars": function() {

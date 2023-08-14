@@ -585,6 +585,17 @@ $clRulesByType = array(
 			'group' => 'endgame',
 			'course' => array('vs')
 		),
+		'position_lower' => array(
+			'description_mockup' => $language ? 'in n-th place or less':'en n-eme position ou moins',
+			'description_lambda' => function($language,&$scope) {
+				return $language ? 'in '. getPositionName($scope->value) .' place or less' : 'en '. getPositionName($scope->value) .' position ou moins';
+			},
+			'parser' => function(&$scope) {
+				$scope['value'] = intval($scope['value']);
+			},
+			'group' => 'endgame',
+			'course' => array('vs')
+		),
 		'with_pts' => array(
 			'description_mockup' => $language ? 'with x points or more':'avec x points ou plus',
 			'description' => $language ? 'with $value point$s or more':'avec $value point$s ou plus',
