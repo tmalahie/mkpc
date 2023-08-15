@@ -21229,7 +21229,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	var myPersosOffset = nBasePersos > maxCharsPerPage ? 73 : 67;
     var pages=Math.ceil(nBasePersos / 24);
 
-    function showCharacters(page=0) {
+    function showCharacters(page) {
 		for(perso of charSelectors)
 			perso.remove();
 		charSelectors = [];
@@ -22071,11 +22071,12 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		lastPageButton.type = "button";
         lastPageButton.value = "\u25C4";
 		lastPageButton.style.position = "absolute";
+		lastPageButton.style.padding = 0;
 		lastPageButton.style.left = Math.round((minPersoX - 4) * iScreenScale) +"px";
 		lastPageButton.style.top = Math.round(midPersoY * iScreenScale - 8) +"px";
 		lastPageButton.style.width = Math.round(iScreenScale * 3) + "px";
 		lastPageButton.style.height = Math.round(5 * jScreenScale) + 8 + "px";
-        lastPageButton.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+        lastPageButton.style.fontSize = Math.round(2.5*iScreenScale - 4)+"px";
         lastPageButton.style.textAlign = "center";
 		oScr.appendChild(lastPageButton);
 
@@ -22089,13 +22090,13 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		var nextPageButton = document.createElement("input");
 		nextPageButton.type = "button";
         nextPageButton.value = "\u25BA";
-		nextPageButton.value = "►";
 		nextPageButton.style.position = "absolute";
+		nextPageButton.style.padding = 0;
 		nextPageButton.style.left = Math.round((maxPersoX + 6) * iScreenScale) + 8 +"px";
 		nextPageButton.style.top = Math.round(midPersoY * iScreenScale - 8) +"px";
 		nextPageButton.style.width = Math.round(iScreenScale * 3) + "px";
 		nextPageButton.style.height = Math.round(5 * jScreenScale) + 8 + "px";
-        nextPageButton.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+        nextPageButton.style.fontSize = Math.round(2.5*iScreenScale - 4)+"px";
         nextPageButton.style.textAlign = "center";
 		oScr.appendChild(nextPageButton);
         
