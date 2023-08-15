@@ -2698,6 +2698,7 @@ function startGame() {
 	var nbPlayers = strPlayer.length;
 	if (onlineSpectatorId) nbPlayers = 0;
 	for (var i=0;i<nbPlayers;i++) {
+		var joueur = strPlayer[i];
 		var oPlace = aPlaces[i];
 		var oPlayer = {
 			id : i,
@@ -2706,12 +2707,12 @@ function startGame() {
 			y : oMap.startposition[1],
 			z : 0,
 
-			personnage : strPlayer[i],
+			personnage : joueur,
 
 			speed : 0,
 			speedinc : 0,
 			heightinc : 0,
-			stats : realKartStats(cp[strPlayer[i]]),
+			stats : realKartStats(cp[joueur]),
 
 			rotation : rot0,
 			rotincdir : 0,
@@ -2719,7 +2720,7 @@ function startGame() {
 			changeView : 0,
 
 			size : 1,
-			sprite : new Sprite(strPlayer[i]),
+			sprite : new Sprite(joueur),
 			cpu : false,
 			aipoints : oMap.aipoints[0],
 
@@ -21393,8 +21394,11 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 									callbackCount--;
 								}
 								for (var i=0;i<selectedOpponents.length;i++) {
-									if (isCustomPerso(selectedOpponents[i], { callback: callback }))
+									var selectedOpponent = selectedOpponents[i];
+									if (isCustomPerso(selectedOpponent, { callback: callback }))
 										callbackCount++;
+									else if (!cp[selectedOpponent] && baseCp0[selectedOpponent])
+										cp[selectedOpponent] = baseCp0[selectedOpponent];
 								}
 								isReady = true;
 								callback();
@@ -22417,7 +22421,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	oPInput.style.top = (35*iScreenScale)+"px";
 	if (isOnline)
 		oPInput.style.top = (34*iScreenScale)+"px";
-	oPInput.onclick = function() {
+	function goBack() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
 		document.body.removeChild(cTable);
@@ -22443,6 +22447,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				selectTypeScreen();
 		}
 	}
+	oPInput.onclick = goBack;
 	if (isCustomSel)
 		oPInput.style.color = "#F90";
 	oScr.appendChild(oPInput);
@@ -22457,7 +22462,11 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			if (oTeamsDiv)
 				oTeamsDiv.style.display = "none";
 		}
-		if (clSelected.autoset.selectedPerso && !force) {
+		if (clSelected.autoset.selectedPerso) {
+			if (force) {
+				goBack();
+				return;
+			}
 			var customCharCb;
 			var persoKey = clSelected.autoset.selectedPerso;
 			if (isCustomPerso(persoKey, {
@@ -22469,6 +22478,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					var oDiv = createPersoSelector(persoKey);
 					oDiv.onclick();
 				}
+				oScr.style.visibility = "hidden";
 				return;
 			}
 			var persoSelector = document.getElementById("perso-selector-"+persoKey);
