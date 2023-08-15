@@ -587,7 +587,7 @@ $clRulesByType = array(
 				$scope['value'] = intval($scope['value']);
 			},
 			'group' => 'endgame',
-			'course' => array('vs')
+			'course' => array('vs','battle')
 		),
 		'position_lower' => array(
 			'description_mockup' => $language ? 'in n-th place or less':'en n-eme position ou moins',
@@ -598,7 +598,7 @@ $clRulesByType = array(
 				$scope['value'] = intval($scope['value']);
 			},
 			'group' => 'endgame',
-			'course' => array('vs')
+			'course' => array('vs','battle')
 		),
 		'with_pts' => array(
 			'description_mockup' => $language ? 'with x points or more':'avec x points ou plus',

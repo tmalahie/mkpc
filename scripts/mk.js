@@ -19670,6 +19670,9 @@ function privateGameOptions(gameOptions, onProceed) {
 				selectedItemDistrib = JSON.parse(this.currentValue);
 			else
 				selectedItemDistrib = itemDistributions[itemMode][this.currentValue];
+			var itemDistribOptions;
+			if (selectedItemDistrib.value)
+				itemDistribOptions = Object.assign({}, selectedItemDistrib, {untitled: true});
 			var that = this;
 			selectItemScreen(oScr, function(newDistribution) {
 				var firstOption = that.querySelector("option");
@@ -19681,7 +19684,7 @@ function privateGameOptions(gameOptions, onProceed) {
 				firstOption.value = JSON.stringify(newDistribution);
 				that.selectedIndex = 0;
 				that.currentValue = that.value;
-			}, {untitled: true});
+			}, itemDistribOptions);
 		}
 		else
 			this.currentValue = this.value;
