@@ -405,10 +405,9 @@ function arraySum(arr) {
 function updateCupPersosGUI() {
 	resetCupOptions();
 	var pList = getPersosList();
-	var nbPersos = Object.keys(cp).length;
 	var $characterRoster = document.getElementById("character-roster");
 	$characterRoster.innerHTML = "";
-	nbPersos = Math.min(nbPersos, pList.length+1);
+	var nbPersos = Math.min(24 * 5, pList.length+1);
 	for (let i=0;i<nbPersos;i++) {
 		var oPerso = pList[i];
 		var oDiv = document.createElement("div");
@@ -444,6 +443,11 @@ function updateCupPersosGUI() {
 			selectPersoImg(i);
 		};
 		$characterRoster.appendChild(oDiv);
+
+		if ((i % 24) == 23) {
+			var separator = document.createElement("hr");
+			$characterRoster.appendChild(separator);
+		}
 	}
 	document.getElementById("reset-character-roster").style.display = persoList ? "":"none";
 	updateSubmitMsg();

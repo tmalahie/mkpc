@@ -21202,40 +21202,62 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		return oDiv;
 	}
 
+	var maxCharsPerPage = 24;
+	var charsPerLine = 8;
+	var maxShownChars = Math.min(nBasePersos, maxCharsPerPage);
 	var minPersoX = 8, maxPersoX = 58.4;
 	if (!customCharsEnabled) {
 		var shiftX = 5;
 		minPersoX += shiftX;
 		maxPersoX += shiftX;
 	}
+	if (nBasePersos > maxCharsPerPage) {
+		minPersoX += 3;
+		maxPersoX += 3;
+	}
 	var minPersoY = baseY, maxPersoY = baseY + 14;
 	var midPersoX = (minPersoX + maxPersoX) / 2;
 	var midPersoY = (minPersoY + maxPersoY) / 2;
-	var nbPersosPerLine = 8;
-	var nbLines = Math.ceil(nBasePersos/nbPersosPerLine);
-	nbPersosPerLine = Math.ceil(nBasePersos/nbLines);
-	var tilePersoX = Math.min(9,(maxPersoX-minPersoX)/(nbPersosPerLine-1));
-	var tilePersoY = Math.min(8,(maxPersoY-minPersoY)/(nbLines-1));
+	var lines = Math.ceil(maxShownChars/charsPerLine);
+	charsPerLine = Math.ceil(maxShownChars/lines);
+	var tilePersoX = Math.min(9,(maxPersoX-minPersoX)/(charsPerLine-1));
+	var tilePersoY = Math.min(8,(maxPersoY-minPersoY)/(lines-1));
 	tilePersoX = Math.min(tilePersoX,tilePersoY*1.2);
-	for (var i=0;i<nBasePersos;i++) {
-		var x = i%nbPersosPerLine, y = Math.floor(i/nbPersosPerLine);
-		if (y < (nbLines-1))
-			x -= (nbPersosPerLine-1)/2;
-		else
-			x -= ((nBasePersos-1)%nbPersosPerLine)/2;
-		y -= (nbLines-1)/2;
-		var oDiv = createPersoSelector(aPlayers[i]);
-		oDiv.style.left = Math.round((midPersoX + x*tilePersoX) * iScreenScale) +"px";
-		oDiv.style.top = Math.round((midPersoY + y*tilePersoY) * iScreenScale - 8) +"px";
-		oScr.appendChild(oDiv);
-	}
+
+	var charSelectors = [];
+	var curPage = 0;
+	var myPersosOffset = nBasePersos > maxCharsPerPage ? 73 : 67;
+    var pages=Math.ceil(nBasePersos / 24);
+
+    function showCharacters(page=0) {
+		for(perso of charSelectors)
+			perso.remove();
+		charSelectors = [];
+
+		var persosPage = Math.min(nBasePersos - (page * maxCharsPerPage), maxCharsPerPage);
+        for (var i=0;i<persosPage;i++) {
+            var x = i%charsPerLine, y = Math.floor(i/charsPerLine);
+            if (y < (lines-1))
+                x -= (charsPerLine-1)/2;
+            else
+                x -= ((persosPage-1)%charsPerLine)/2;
+            y -= (lines-1)/2;
+            var oDiv = createPersoSelector(aPlayers[i+(page*maxCharsPerPage)]);
+            oDiv.style.left = Math.round((midPersoX + x*tilePersoX) * iScreenScale) +"px";
+            oDiv.style.top = Math.round((midPersoY + y*tilePersoY) * iScreenScale - 8) +"px";
+			charSelectors.push(oDiv);
+            oScr.appendChild(oDiv);
+        }
+    }
+    showCharacters(curPage);
+
 	if (customCharsEnabled) {
 		var pDiv = document.createElement("div");
 		pDiv.style.backgroundColor = "#78D0F8";
 		pDiv.style.position = "absolute";
 		pDiv.style.width = (5 * iScreenScale) + "px";
 		pDiv.style.height = (5 * iScreenScale) + "px";
-		pDiv.style.left = (67 * iScreenScale) +"px";
+		pDiv.style.left = (myPersosOffset * iScreenScale) +"px";
 		pDiv.style.top = ((baseY+14) * iScreenScale - 8)+"px";
 		pDiv.style.borderTop = "double 4px black"; 
 		pDiv.style.borderLeft = "double 4px #F8F8F8"; 
@@ -22044,6 +22066,44 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oScr.appendChild(oStepCtn);
 	}
 	
+	if (nBasePersos > maxCharsPerPage) {
+		var lastPageButton = document.createElement("input");
+		lastPageButton.type = "button";
+        lastPageButton.value = "\u25C4";
+		lastPageButton.style.position = "absolute";
+		lastPageButton.style.left = Math.round((minPersoX - 4) * iScreenScale) +"px";
+		lastPageButton.style.top = Math.round(midPersoY * iScreenScale - 8) +"px";
+		lastPageButton.style.width = Math.round(iScreenScale * 3) + "px";
+		lastPageButton.style.height = Math.round(5 * jScreenScale) + 8 + "px";
+        lastPageButton.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+        lastPageButton.style.textAlign = "center";
+		oScr.appendChild(lastPageButton);
+
+		lastPageButton.onclick = function() {
+			curPage = (curPage-1) % pages;
+            if (curPage < 0)
+                curPage += pages;
+			showCharacters(curPage);
+		};
+
+		var nextPageButton = document.createElement("input");
+		nextPageButton.type = "button";
+        nextPageButton.value = "\u25BA";
+		nextPageButton.value = "►";
+		nextPageButton.style.position = "absolute";
+		nextPageButton.style.left = Math.round((maxPersoX + 6) * iScreenScale) + 8 +"px";
+		nextPageButton.style.top = Math.round(midPersoY * iScreenScale - 8) +"px";
+		nextPageButton.style.width = Math.round(iScreenScale * 3) + "px";
+		nextPageButton.style.height = Math.round(5 * jScreenScale) + 8 + "px";
+        nextPageButton.style.fontSize = Math.round(2.5*iScreenScale)+"px";
+        nextPageButton.style.textAlign = "center";
+		oScr.appendChild(nextPageButton);
+        
+		nextPageButton.onclick = function() {
+			curPage = (curPage+1) % pages;
+			showCharacters(curPage);
+		};
+	}
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Back", "Retour");
@@ -22123,7 +22183,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				oDiv.onclick();
 				return;
 			}
-			oDiv.style.left = 67*iScreenScale +"px";
+			oDiv.style.left = myPersosOffset*iScreenScale +"px";
 			oDiv.style.top = ((baseY+i*7)*iScreenScale - 8)+"px";
 			oScr.insertBefore(oDiv,pDiv);
 		}
