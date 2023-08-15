@@ -112,6 +112,14 @@ body {
 	margin-bottom: 15px;
 	font-size: 0.9em;
 }
+.zone-editor-input input[type="number"] {
+	width: 50px;
+}
+.zone-editor-input input[type="number"]::placeholder {
+	font-size: 1.6em;
+	position: relative;
+	top: 0.16em;
+}
 #zone-editor-options > div {
 	display: flex;
 	flex-wrap: wrap;
@@ -385,6 +393,12 @@ function validateZone() {
 	var $ordered = document.getElementById("zone-editor-ordered");
 	if ($ordered)
 		meta.ordered = +$ordered.checked;
+	var $floor = document.getElementById("zone-editor-floor");
+	if ($floor)
+		meta.floor = +$floor.checked;
+	var $height = document.getElementById("zone-editor-height");
+	if ($height)
+		meta.height = +$height.value;
 	window.opener.storeZoneData(data,meta, editorType,editorSource);
 	window.close();
 };
@@ -416,6 +430,12 @@ function getShapeType(oBox) {
 }
 function showOrderHelp() {
 	alert(language ? "If enabled, the player will have to pass through the zones in the right order to complete the challenge. If disabled, the player will have to pass the zones but in the order he wants." : "Si activé, le joueur devra traverser les zones dans le bon ordre pour réussir le défi. Si désactivé, il devra passer par toutes les zones mais dans l'ordre qu'il veut.")
+}
+function showFloorHelp() {
+	alert(language ? "If enabled, the player will be allowed to jump over the zone, but not to touch the floor." : "Si activé, le joueur pourra sauter par-dessus la zone mais pas rouler dessus.")
+}
+function showHeightHelp() {
+	alert(language ? "If specified, the player will be able to jump over the wall from a certain height. See help section of complete track builder for details." : "Si spécifié, le joueur pourra sauter par-dessus le mur à partir d'une certaine hauteur. Voir l'aide de l'éditeur complet pour plus de détails.")
 }
 var SVG = "http://www.w3.org/2000/svg";
 document.addEventListener("DOMContentLoaded", function() {
@@ -941,6 +961,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	}
 	if (meta.ordered == 1)
 		document.getElementById("zone-editor-ordered").click();
+	if (meta.floor == 1)
+		document.getElementById("zone-editor-floor").checked = true;
+	if (meta.height > 0)
+		document.getElementById("zone-editor-height").value = meta.height;
 	if (meta.extra_decors && (editorType !== "decors")) {
 		var decors = meta.extra_decors;
 		for (var i=decors.length-1;i>=0;i--) {
@@ -1228,10 +1252,28 @@ window.onload = function() {
 			<?php
 			switch ($type) {
 			case 'zones':
-				if (!$editorSource) {
+				if ($editorSource) {
+					switch ($editorSource) {
+					case 'avoid_zones':
+						?>
+						<div class="zone-editor-checkbox">
+							<label><input type="checkbox" id="zone-editor-floor" /> <?php echo $language ? 'Allow to go through the zones when jumping':'Autoriser la traversée des zones durant en saut'; ?> <a class="pretty-link" href="javascript:showFloorHelp()">[?]</a></label>
+						</div>
+						<?php
+						break;
+					case 'extra_walls':
+						?>
+						<div class="zone-editor-input">
+							<label><?php echo $language ? 'Wall height (infinite if unspecified):':'Hauteur des murs (infini par defaut) :'; ?> <a class="pretty-link" href="javascript:showHeightHelp()">[?]</a> <input type="number" id="zone-editor-height" placeholder="∞" /></label>
+						</div>
+						<?php
+						break;
+					}
+				}
+				else {
 					?>
 					<div class="zone-editor-checkbox">
-						<label><input type="checkbox" id="zone-editor-ordered" onclick="selectOrdered(this,this.checked)" /> <?php echo $language ? 'Zones have to be passed in the right order <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>':'Les zones doivent être passées dans l\'ordre <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>'; ?></label>
+						<label><input type="checkbox" id="zone-editor-ordered" onclick="selectOrdered(this,this.checked)" /> <?php echo $language ? 'Zones have to be passed in the right order':'Les zones doivent être passées dans l\'ordre'; ?> <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a></label>
 					</div>
 					<?php
 				}

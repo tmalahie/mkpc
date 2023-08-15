@@ -473,6 +473,7 @@ function addConstraintRule(clClass) {
 			$form.html(
 				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
 				'<input type="hidden" name="scope[extra_walls][value]" value="[]" />'+
+				'<input type="hidden" name="scope[extra_walls][height]" value="0" />'+
 				'<button type="button" onclick="openZoneEditor(\'zones\',\'source=extra_walls\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
 			);
 			break;
@@ -586,6 +587,7 @@ function addConstraintRule(clClass) {
 			$form.html(
 				'<div style="margin:10px 0"><label>'+ (language ? 'Avoid Zone(s): ':'Zone(s) à éviter : ') +
 				'<input type="hidden" name="scope[avoid_zones][value]" value="[]" />'+
+				'<input type="hidden" name="scope[avoid_zones][floor]" value="0" />'+
 				'<input type="hidden" name="scope[avoid_zones][translated]" value="0" />'+
 				'<button type="button" onclick="openZoneEditor(\'zones\',\'source=avoid_zones\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
 				'<div style="font-size:16px" id="rule_avoid_zones_description">'+
@@ -1099,7 +1101,7 @@ function loadZoneData(editorType,editorSource) {
 	var inputKey = getZoneInputKey(editorType,editorSource);
 	var data = document.forms[0].elements[inputKey+"[value]"].value;
 	var meta = {};
-	var metaKeys = ["ordered","custom_decors"];
+	var metaKeys = ["ordered","floor","height","custom_decors"];
 	for (var i=0;i<metaKeys.length;i++) {
 		var $elt = document.forms[0].elements[inputKey+"["+metaKeys[i]+"]"];
 		if ($elt)
@@ -1335,6 +1337,8 @@ $(function() {
 						}
 						break;
 					case "avoid_zones":
+						if (constraint.floor)
+							mainForm.elements["scope[avoid_zones][floor]"].value = "1";
 						if (typeof constraint.description === "string")
 							mainForm.elements["scope[avoid_zones][description]"].value = constraint.description;
 						else {
@@ -1343,6 +1347,10 @@ $(function() {
 							mainForm.elements["scope[avoid_zones][description_fr]"].value = constraint.description.fr;
 							mainForm.elements["scope[avoid_zones][description_en]"].value = constraint.description.en;
 						}
+						break;
+					case "extra_walls":
+						if (constraint.height)
+							mainForm.elements["scope[extra_walls][height]"].value = constraint.height;
 						break;
 					case "character":
 						if (constraint.custom_id) {

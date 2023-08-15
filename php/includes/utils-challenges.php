@@ -404,6 +404,10 @@ $clRulesByType = array(
 			},
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
+				if (!empty($scope['floor']))
+					$scope['floor'] = intval($scope['floor']);
+				else
+					unset($scope['floor']);
 				if (!empty($scope['translated'])) {
 					$scope['description'] = array(
 						'fr' => $scope['description_fr'],
@@ -712,6 +716,10 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle'),
 			'parser' => function(&$scope) {
 				$scope['value'] = json_decode($scope['value']);
+				if (!empty($scope['height']))
+					$scope['height'] = floatval($scope['height']);
+				else
+					unset($scope['height']);
 			},
 			'formatter' => function(&$scope) {
 				$scope->value = json_encode($scope->value);

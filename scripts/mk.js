@@ -12040,6 +12040,7 @@ var challengeRules = {
 				clLocalVars.zonesHit = [];
 			clLocalVars.zonesHit.push({
 				ruleVars: ruleVars,
+				floor: scope.floor,
 				zones: classifyByShape(scope.value)
 			});
 		},
@@ -12379,8 +12380,11 @@ var challengeRules = {
 		},
 		"preinitSelected": function(scope, ruleVars) {
 			if (!oMap.collision) oMap.collision = [];
+			if (!oMap.collisionProps) oMap.collisionProps = {};
+			var wallHeight = scope.height || 1000;
 			for (var i=0;i<scope.value.length;i++) {
 				var wallData = scope.value[i];
+				oMap.collisionProps[oMap.collision.length] = {z: wallHeight};
 				oMap.collision.push(wallData.slice(0));
 			}
 		},
@@ -18085,13 +18089,15 @@ function handleAudio() {
 }
 function handleChallengeEvents() {
 	var oPlayer = oPlayers[0];
-	if (clLocalVars.zonesHit && (oPlayer.z <= jumpHeight0)) {
+	var isJumping = oPlayer.z > 0;
+	if (clLocalVars.zonesHit) {
 		var posX = oPlayer.x;
 		var posY = oPlayer.y;
 		for (var i=0;i<clLocalVars.zonesHit.length;i++) {
 			var zoneHit = clLocalVars.zonesHit[i];
+			if (isJumping && zoneHit.floor)
+				continue;
 			var zones = zoneHit.zones;
-			console.log({ zones });
 			if (pointInZone(posX,posY, zones))
 				zoneHit.ruleVars.hit = true;
 		}
