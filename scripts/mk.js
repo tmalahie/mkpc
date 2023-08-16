@@ -7320,7 +7320,7 @@ var itemBehaviors = {
 		
 							for (var k=0;k<aKarts.length;k++) {
 								var pCible = aKarts[k];
-								if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
+								if (pCible.id != fSprite.owner && !friendlyHit(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
 									var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
 									var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
 									if (fDist < maxDist) {
@@ -7534,7 +7534,7 @@ var itemBehaviors = {
 					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace) {
-								if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !sameTeam(fSprite.team,aKarts[k].team)) {
+								if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team)) {
 									cible = k;
 									cPlace = aKarts.length;
 								}
@@ -7723,7 +7723,7 @@ var itemBehaviors = {
 					for (var cPlace=aKarts.length;cPlace>0;cPlace--) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace && !aKarts[k].loose) {
-								if (!sameTeam(fSprite.team,aKarts[k].team)) {
+								if (!friendlyHit(fSprite.team,aKarts[k].team)) {
 									cible = k;
 									cPlace = 0;
 								}
@@ -13706,20 +13706,22 @@ function handleHit(oBox) {
 }
 function handleHit2(oKart,kart) {
 	if (kart == oPlayers[0]) {
-		if (oKart.billball)
-			incItemHits("billball");
-		if (oKart.etoile)
-			incItemHits("etoile");
-		if (oKart.megachampi)
-			incItemHits("megachampi");
-		if (oKart.champiType === CHAMPI_TYPE_ITEM)
-			incItemHits("champi");
+		if (clLocalVars.hitItems) {
+			if (oKart.billball)
+				incItemHits("billball");
+			if (oKart.etoile)
+				incItemHits("etoile");
+			if (oKart.megachampi)
+				incItemHits("megachampi");
+			if (oKart.champiType === CHAMPI_TYPE_ITEM)
+				incItemHits("champi");
+		}
 	}
 	else if (oKart == oPlayers[0])
 		incChallengeHits(kart);
 }
 function handleItemHit(oKart, itemKey) {
-	if (oKart === oPlayers[0])
+	if ((oKart === oPlayers[0]) && clLocalVars.hitItems)
 		incItemHits(itemKey);
 }
 function incItemHits(type) {
