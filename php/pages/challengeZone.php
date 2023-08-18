@@ -35,6 +35,7 @@ if (isset($clCircuit) && isset($clTable)) {
 else
 	$circuitUrl = 'mapcreate.php?'.$_SERVER["QUERY_STRING"];
 $type = isset($_GET['type']) ? $_GET['type'] : null;
+$editorSource = isset($_GET['source']) ? $_GET['source'] : null;
 $editorContext = array();
 switch ($type) {
 	case 'zones':
@@ -67,6 +68,12 @@ switch ($type) {
 		}
 		$editorContext['customDecors'] = $customDecors;
 	break;
+	case 'arms':
+		$submitTitle = $language ? 'Validate items':'Valider les objets';
+		$editorContext['customIcons'] = array(
+			'fauxobjet' => 'objet'
+		);
+		break;
 	case 'startpos':
 		$submitTitle = $language ? 'Validate location':'Valider la position';
 	break;
@@ -79,7 +86,7 @@ switch ($type) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css" />
+<?php include('../includes/c_challenges.php'); ?>
 <link rel="stylesheet" href="styles/editor.css?reload=1" />
 <style type="text/css">
 body {
@@ -104,6 +111,14 @@ body {
 	margin-top: 5px;
 	margin-bottom: 15px;
 	font-size: 0.9em;
+}
+.zone-editor-input input[type="number"] {
+	width: 50px;
+}
+.zone-editor-input input[type="number"]::placeholder {
+	font-size: 1.6em;
+	position: relative;
+	top: 0.16em;
 }
 #zone-editor-options > div {
 	display: flex;
@@ -268,7 +283,7 @@ body {
 #collab-popup:not([data-state]) {
 	display: none;
 }
-#collab-popup[data-state="loading"] .editor-mask-content {
+#collab-popup[data-state="loading"] .popup-content {
 	display: none;
 }
 #collab-popup form {
@@ -297,6 +312,7 @@ include('../includes/o_xhr.php');
 var language = <?php echo $language ? 1:0; ?>;
 var editorType = "<?php if ($type) echo htmlspecialchars($type); ?>";
 var editorContext = <?php echo json_encode($editorContext); ?>;
+var editorSource = <?php echo json_encode($editorSource); ?>;
 function getRelativePos(e,parent) {
 	var rect = parent.getBoundingClientRect();
 	return {
@@ -336,6 +352,7 @@ case "items":
 	shapeType = "point";
 	break;
 case "decors":
+case "arms":
 	shapeType = "img";
 	break;
 case "startpos":
@@ -376,7 +393,13 @@ function validateZone() {
 	var $ordered = document.getElementById("zone-editor-ordered");
 	if ($ordered)
 		meta.ordered = +$ordered.checked;
-	window.opener.storeZoneData(data,meta, editorType);
+	var $floor = document.getElementById("zone-editor-floor");
+	if ($floor)
+		meta.floor = +$floor.checked;
+	var $height = document.getElementById("zone-editor-height");
+	if ($height)
+		meta.height = +$height.value;
+	window.opener.storeZoneData(data,meta, editorType,editorSource);
 	window.close();
 };
 var undo = function(){};
@@ -407,6 +430,12 @@ function getShapeType(oBox) {
 }
 function showOrderHelp() {
 	alert(language ? "If enabled, the player will have to pass through the zones in the right order to complete the challenge. If disabled, the player will have to pass the zones but in the order he wants." : "Si activé, le joueur devra traverser les zones dans le bon ordre pour réussir le défi. Si désactivé, il devra passer par toutes les zones mais dans l'ordre qu'il veut.")
+}
+function showFloorHelp() {
+	alert(language ? "If enabled, the player will be allowed to jump over the zone, but not to touch the floor." : "Si activé, le joueur pourra sauter par-dessus la zone mais pas rouler dessus.")
+}
+function showHeightHelp() {
+	alert(language ? "If specified, the player will be able to jump over the wall from a certain height. See help section of complete track builder for details." : "Si spécifié, le joueur pourra sauter par-dessus le mur à partir d'une certaine hauteur. Voir l'aide de l'éditeur complet pour plus de détails.")
 }
 var SVG = "http://www.w3.org/2000/svg";
 document.addEventListener("DOMContentLoaded", function() {
@@ -615,19 +644,25 @@ document.addEventListener("DOMContentLoaded", function() {
 		}
 	}
 	function setupImg(x,y,src, oImg) {
-		var customDecor = editorContext.customDecors[src];
-		if (customDecor) {
-			if (customDecor.onload) {
-				oImg.setAttribute("href", "images/map_icons/"+ customDecor.type +".png");
-				customDecor.onload(function(res) {
-					oImg.setAttribute("href", res.map);
-				});
+		if (editorType === "decors") {
+			var customDecor = editorContext.customDecors[src];
+			if (customDecor) {
+				if (customDecor.onload) {
+					oImg.setAttribute("href", "images/map_icons/"+ customDecor.type +".png");
+					customDecor.onload(function(res) {
+						oImg.setAttribute("href", res.map);
+					});
+				}
+				else
+					oImg.setAttribute("href", customDecor.map);
 			}
 			else
-				oImg.setAttribute("href", customDecor.map);
+				oImg.setAttribute("href", "images/map_icons/"+ src +".png");
 		}
-		else
-			oImg.setAttribute("href", "images/map_icons/"+ src +".png");
+		else {
+			var iconSrc = editorContext.customIcons[src] || src;
+			oImg.setAttribute("href", "images/map_icons/"+ iconSrc +".png");
+		}
 		oImg.setAttribute("height", 12);
 		oImg.setAttribute("x", x-6);
 		oImg.setAttribute("y", y-6);
@@ -795,7 +830,10 @@ document.addEventListener("DOMContentLoaded", function() {
 			case "img":
 				var oImg = document.createElementNS(SVG, "image");
 				if (!currentDecor) {
-					alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
+					if (editorType === "decors")
+						alert(language ? "Please select a decor type first":"Sélectionnez un type de décor avant de commencer");
+					else
+						alert(language ? "Please select an item type first":"Sélectionnez un type d'objet avant de commencer");
 					return;
 				}
 				applyImg(x,y,currentDecor, oImg);
@@ -872,7 +910,7 @@ document.addEventListener("DOMContentLoaded", function() {
 		if (oShapes.length && (firstUndo != undo))
 			return language ? "Caution, if you want to save the zone, click on \"<?php echo $submitTitle; ?>\" before":"Attention, si vous voulez sauvegarder la zone, cliquez sur \"<?php echo $submitTitle; ?>\" avant";
 	};
-	var params = window.opener.loadZoneData(editorType);
+	var params = window.opener.loadZoneData(editorType,editorSource);
 	var data = params.data;
 	if (!data)
 		data = [];
@@ -891,7 +929,7 @@ document.addEventListener("DOMContentLoaded", function() {
 						loadCbs.push(cb);
 					}
 				};
-				xhr("getDecorData.php?id="+customDecors[key].id, "", function(res) {
+				xhr("getDecorData.php?id="+customDecors[key].id, null, function(res) {
 					res = feedCustomDecorData(res);
 					for (var i=0;i<loadCbs.length;i++)
 						loadCbs[i](res);
@@ -923,6 +961,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	}
 	if (meta.ordered == 1)
 		document.getElementById("zone-editor-ordered").click();
+	if (meta.floor == 1)
+		document.getElementById("zone-editor-floor").checked = true;
+	if (meta.height > 0)
+		document.getElementById("zone-editor-height").value = meta.height;
 	if (meta.extra_decors && (editorType !== "decors")) {
 		var decors = meta.extra_decors;
 		for (var i=decors.length-1;i>=0;i--) {
@@ -969,7 +1011,7 @@ function importCollabDecor(e) {
 	}
 	var $collabPopup = document.getElementById("collab-popup");
 	$collabPopup.dataset.state = "loading";
-	xhr("importCollabDecor.php", "type=mkdecors&id="+creationId+"&collab="+creationKey, function(res) {
+	xhr("importCollabDecor.php", "id="+creationId+"&collab="+creationKey, function(res) {
 		if (!res) {
 			alert(language ? "Invalid link" : "Lien invalide");
 			$collabPopup.dataset.state = "open";
@@ -1079,6 +1121,20 @@ window.onload = function() {
 				<?php
 			}
 			break;
+		case 'arms':
+			if ($language) {
+				?>
+				Indicate item locations by clicking where you want on the circuit image.
+				To delete an item, right click on it.<br />
+				<?php
+			}
+			else {
+				?>
+				Indiquez les emplacements des objets en cliquant où vous voulez sur l'image du circuit.<br />
+				Pour supprimer un objet, faites un clic droit dessus.<br />
+				<?php
+			}
+			break;
 		case 'startpos':
 			if ($language) {
 				?>
@@ -1166,6 +1222,22 @@ window.onload = function() {
 				</div>
 				<?php
 				break;
+			case 'arms':
+				?>
+				<div class="zone-editor-decor">
+					<span><?php echo $language ? 'Item:':'Objet :'; ?></span>
+					<?php
+					$itemTypes = array('banane', 'carapace', 'carapace-rouge', 'fauxobjet', 'champi', 'poison');
+					foreach ($itemTypes as $key) {
+						$src = isset($editorContext['customIcons'][$key]) ? $editorContext['customIcons'][$key] : $key;
+						?>
+						<input type="button" style="background-image:url('images/map_icons/<?php echo $src; ?>.png')" onclick="selectDecor(this, '<?php echo $key; ?>')" />
+						<?php
+					}
+					?>
+				</div>
+				<?php
+				break;
 			default;
 				?>
 				<div id="zone-editor-shape">
@@ -1180,11 +1252,31 @@ window.onload = function() {
 			<?php
 			switch ($type) {
 			case 'zones':
-				?>
-				<div class="zone-editor-checkbox">
-					<label><input type="checkbox" id="zone-editor-ordered" onclick="selectOrdered(this,this.checked)" /> <?php echo $language ? 'Zones have to be passed in the right order <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>':'Les zones doivent être passées dans l\'ordre <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a>'; ?></label>
-				</div>
-				<?php
+				if ($editorSource) {
+					switch ($editorSource) {
+					case 'avoid_zones':
+						?>
+						<div class="zone-editor-checkbox">
+							<label><input type="checkbox" id="zone-editor-floor" /> <?php echo $language ? 'Allow to go through the zones when jumping':'Autoriser la traversée des zones durant en saut'; ?> <a class="pretty-link" href="javascript:showFloorHelp()">[?]</a></label>
+						</div>
+						<?php
+						break;
+					case 'extra_walls':
+						?>
+						<div class="zone-editor-input">
+							<label><?php echo $language ? 'Wall height (infinite if unspecified):':'Hauteur des murs (infini par defaut) :'; ?> <a class="pretty-link" href="javascript:showHeightHelp()">[?]</a> <input type="number" id="zone-editor-height" placeholder="∞" /></label>
+						</div>
+						<?php
+						break;
+					}
+				}
+				else {
+					?>
+					<div class="zone-editor-checkbox">
+						<label><input type="checkbox" id="zone-editor-ordered" onclick="selectOrdered(this,this.checked)" /> <?php echo $language ? 'Zones have to be passed in the right order':'Les zones doivent être passées dans l\'ordre'; ?> <a class="pretty-link" href="javascript:showOrderHelp()">[?]</a></label>
+					</div>
+					<?php
+				}
 			break;
 			}
 			?>
@@ -1217,7 +1309,7 @@ window.onload = function() {
 				}
 				else {
 					?>
-					Saisissez ici le lien de collaboration de décor.<br />
+					Saisissez ici le lien de collaboration du décor.<br />
 					Pour obtenir ce lien, le propriétaire du décor devra simplement
 					cliquer sur &quot;Collaborer&quot; dans la page d'édition des décors.
 					<?php

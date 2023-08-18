@@ -86,6 +86,7 @@ if (isset($_POST['name'])) {
 }
 elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || !empty($moderate)) {
 	$clRulesPayload = rulesPayloadByType($clCourse);
+	$clGroupsPayload = $clGroupsByType;
 	if (isset($challenge))
 		$chRules = getChallengeRulesByType($challenge);
 	ob_start();
@@ -105,6 +106,10 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 		}
 		$i++;
 	}
+	$persoOptions[] = array(
+		'label' => $language ? 'Custom...' : 'Personnalisé...',
+		'value' => ''
+	);
 	$decorOptions = array();
 	if (!empty($clRace) && $clRace['type']) {
 		$decorTable = $clRace['type'];
@@ -212,7 +217,7 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css?reload=2" />
+<?php include('../includes/c_challenges.php'); ?>
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <?php
 if (empty($moderate))
@@ -223,6 +228,7 @@ if (empty($moderate))
 <script type="text/javascript">
 var language = <?php echo $language ? 1:0; ?>;
 var clRules = <?php echo isset($clRulesPayload) ? json_encode($clRulesPayload) : 'null'; ?>;
+var clGroups = <?php echo isset($clGroupsPayload) ? json_encode($clGroupsPayload) : 'null'; ?>;
 <?php
 if (isset($challenge))
 	echo 'var challengeId = '. $challenge['id'] .';';
@@ -463,6 +469,21 @@ function addConstraintRule(clClass) {
 				'<button type="button" onclick="openZoneEditor(\'decors\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
 			);
 			break;
+		case 'extra_walls':
+			$form.html(
+				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<input type="hidden" name="scope[extra_walls][value]" value="[]" />'+
+				'<input type="hidden" name="scope[extra_walls][height]" value="0" />'+
+				'<button type="button" onclick="openZoneEditor(\'zones\',\'source=extra_walls\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
+			);
+			break;
+		case 'place_items':
+			$form.html(
+				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<input type="hidden" name="scope[place_items][value]" value="[]" />'+
+				'<button type="button" onclick="openZoneEditor(\'arms\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
+			);
+			break;
 		case 'cc':
 			$form.html(
 				'<label>'+ (language?'Class:':'Cylindrée :') +' '+
@@ -478,7 +499,10 @@ function addConstraintRule(clClass) {
 			);
 			break;
 		case 'position':
-			addConstraintNb($form,ruleId, language?'Place:':'Place :',{attrs:{min:1},css:{width:'40px'}});
+			addConstraintNb($form,ruleId, language?'Rank:':'Place :',{attrs:{min:1},css:{width:'40px'}});
+			break;
+		case 'position_lower':
+			addConstraintNb($form,ruleId, language?'Max rank:':'Pos. max :',{attrs:{min:1},css:{width:'40px'}});
 			break;
 		case 'difficulty':
 			if (clClass == "extra") {
@@ -492,6 +516,57 @@ function addConstraintRule(clClass) {
 			break;
 		case 'character':
 			addConstraintSelector($form,ruleId, language?'Character:':'Perso :', persoOptions);
+			$form.find('.challenge-constraint-value').change(function() {
+				var $custom = $form.find('.challenge-rule-character-custom');
+				var $customValue = $custom.find('[name="scope[character][custom_name]"]');
+				if (this.value === '') {
+					$custom.addClass('show');
+					$customValue.attr('required', true);
+					loadCustomCharacters($form, handleCustomCharacterSelected($form));
+				}
+				else {
+					$custom.removeClass('show');
+					$customValue.attr('required', false);
+				}
+			});
+			$form.append(
+				'<div class="challenge-rule-character-custom">'+
+				'<input type="hidden" name="scope[character][custom_id]" />'+
+				'<div class="challenge-rule-character-custom-list challenge-rule-btn-options">'+
+				'</div>'+
+				'<div class="challenge-rule-character-custom-meta character-name">'+
+				(language ? 'Character name':'Nom du perso :') +': <input type="text" name="scope[character][custom_name]" />'+
+				'</div>'
+			)
+			break;
+		case 'with_opponents':
+			$form.html(
+				'<div class="challenge-rule-opponents-list"></div>' + 
+				'<div class="challenge-rule-opponents-actions">'+
+					'<button type="button" class="opponents-add">'+ (language ? 'Add CPU' : 'Ajouter') +'</button>' +
+					'<button type="button" class="opponents-rm">'+ (language ? 'Remove CPU' : 'Supprimer') +'</button>' +
+				'</div>'
+			);
+			var $list = $form.find(".challenge-rule-opponents-list");
+			var $opponentsRm = $form.find(".opponents-rm");
+			$opponentsRm.hide();
+			$form.find(".opponents-add").click(function() {
+				var $lastSelector = $list.children().last();
+				addCharacterSelector($list, ruleId);
+				var $selector = $list.children().last();
+				var $lastValue = $lastSelector.find(".challenge-constraint-value");
+				var $value = $selector.find(".challenge-constraint-value");
+				$value.val($lastValue.val());
+				$value.change();
+				$opponentsRm.show();
+			});
+			$opponentsRm.click(function() {
+				var $selectors = $list.children();
+				$selectors.last().remove();
+				if ($selectors.length <= 2)
+					$opponentsRm.hide();
+			});
+			addCharacterSelector($list, ruleId);
 			break;
 		case 'avoid_decors':
 			$form.html(
@@ -506,6 +581,45 @@ function addConstraintRule(clClass) {
 				var decorOption = allDecorOpions[i];
 				var decorIcon = decorOption.icon || "images/map_icons/"+ decorOption.value +".png";
 				$extraSelector.append('<button type="button" data-rule-type="constraint" data-rule-key="avoid_decors" data-value="'+ decorOption.value +'" style="background-image:url(\''+ decorIcon +'\')" onclick="toggleDecor(this)"></button>');
+			}
+			break;
+		case 'avoid_zones':
+			$form.html(
+				'<div style="margin:10px 0"><label>'+ (language ? 'Avoid Zone(s): ':'Zone(s) à éviter : ') +
+				'<input type="hidden" name="scope[avoid_zones][value]" value="[]" />'+
+				'<input type="hidden" name="scope[avoid_zones][floor]" value="0" />'+
+				'<input type="hidden" name="scope[avoid_zones][translated]" value="0" />'+
+				'<button type="button" onclick="openZoneEditor(\'zones\',\'source=avoid_zones\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
+				'<div style="font-size:16px" id="rule_avoid_zones_description">'+
+				'<label>'+ (language ? 'Description: ':'Description : ') +
+				'<input type="text" name="scope[avoid_zones][description]" style="font-size:12px;width:350px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;without taking the shortcuts&quot;, &quot;without driving on the sand&quot;':'&quot;sans prendre de raccourcis&quot;, &quot;sans rouler sur le sable&quot;') +'" required="required" maxlength="100" />'+
+				'</label>'+
+				'<div style="margin-top:0.25em"><a class="pretty-link" href="javascript:toggleRuleDescriptionTr()">'+ (language ? 'Translate description' : 'Traduire la description') +'...</a></div>'+
+				'</div>'+
+				'<div style="font-size:14px;margin-top:0.25em;display:none" id="rule_avoid_zones_description_tr">'+
+				'<label>'+ (language ? 'Description (EN): ':'Description (FR) : ') +
+				'<input type="text" name="scope[avoid_zones][description_'+(language ? 'en':'fr')+']" style="font-size:12px;width:300px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;without taking the shortcuts&quot;, &quot;without driving on the sand&quot;':'&quot;sans prendre de raccourcis&quot;, &quot;sans rouler sur le sable&quot;') +'" maxlength="100" />'+
+				'</label><br />'+
+				'<label>'+ (language ? 'Description (FR): ':'Description (EN) : ') +
+				'<input type="text" name="scope[avoid_zones][description_'+(language ? 'fr':'en')+']" style="font-size:12px;width:300px;padding-top:4px;padding-bottom:4px" placeholder="'+ (language ? '&quot;sans prendre de raccourcis&quot;, &quot;sans rouler sur le sable&quot;':'&quot;without taking the shortcuts&quot;, &quot;without driving on the sand&quot;') +'" maxlength="100" />'+
+				'</label>'+
+				'<div style="margin-top:0.25em"><a class="pretty-link" href="javascript:toggleRuleDescriptionTr()">'+ (language ? 'Stop translating' : 'Ne plus traduire') +'</a></div>'+
+				'</div>'
+			);
+			break;
+		case 'avoid_item':
+			$form.html(
+				'<div>'+ (language?'Item(s):':'Objet(s) :') +' '+
+				'<input type="text" style="display:none" name="scope[avoid_item][value]" required="required" >'+
+				'<div class="challenge-rule-btn-options challenge-item-btn-options"></div>'
+			);
+			var $extraSelector = $form.find(".challenge-item-btn-options");
+			var itemOptions = getItemHitOptions();
+
+			for (var i=0;i<itemOptions.length;i++) {
+				var itemOption = itemOptions[i];
+				var itemIcon = "images/items/"+ itemOption +".png";
+				$extraSelector.append('<button type="button" data-value="'+ itemOption +'" data-rule-key="avoid_item" style="background-image:url(\''+ itemIcon +'\')" onclick="toggleItem(this)"></button>');
 			}
 			break;
 		case 'init_item':
@@ -563,6 +677,9 @@ function addConstraintRule(clClass) {
 		case 'balloons_lost':
 			addConstraintNb($form,ruleId, language?'Max lost balloons:':'Max ballons perdus :',{attrs:{min:0},css:{width:'30px'}});
 			break;
+		case 'balloons_inflate':
+			addConstraintNb($form,ruleId, language?'Max inflated balloons:':'Max ballons gonflés :',{attrs:{min:0},css:{width:'30px'}});
+			break;
 		case 'balloons_player':
 			addConstraintNb($form,ruleId, language?'Player balloons:':'Nb ballons (joueur) :',{attrs:{min:1},css:{width:'30px'}});
 			break;
@@ -571,6 +688,12 @@ function addConstraintRule(clClass) {
 			break;
 		case 'falls':
 			addConstraintNb($form,ruleId, language?'Max falls:':'Max chutes :',{attrs:{min:0},css:{width:'40px'}});
+			break;
+		case 'max_jumps':
+			addConstraintNb($form,ruleId, language?'Max jumps:':'Max sauts :',{attrs:{min:0},css:{width:'40px'}});
+			break;
+		case 'max_cannons':
+			addConstraintNb($form,ruleId, language?'Max cannons:':'Max canons :',{attrs:{min:0},css:{width:'40px'}});
 			break;
 		case 'mini_turbo':
 			addConstraintNb($form,ruleId, language?'Mini Turbos:':'Mini Turbos :',{attrs:{min:0},css:{width:'40px'}});
@@ -618,11 +741,37 @@ function updateConstraintSelector(clClass,$rulesSelector) {
 	if (clClass === "setup")
 		selectConstraintLabel = language ? 'Select option...':'Sélectionner option...';
 	$rulesSelector.append('<option value="">'+ selectConstraintLabel +'</option>');
+
+	var constraintGroups = {};
+	for (var j=0;j<clGroups.length;j++) {
+		var clGroup = clGroups[j];
+		constraintGroups[clGroup.key] = { label: clGroup.label, list: [] };
+	}
 	for (var ruleId in listRules) {
 		if (!selectedConstraints[ruleId]) {
-			var $option = $('<option value="'+ ruleId +'">'+ listRules[ruleId].description +'</option>');
-			$rulesSelector.append($option);
+			var group = listRules[ruleId].group;
+			if (!constraintGroups[group])
+				constraintGroups[group] = { list: [] };
+			constraintGroups[group].list.push({
+				ruleId: ruleId,
+				description: listRules[ruleId].description
+			});
 		}
+	}
+	for (var group in constraintGroups) {
+		var constraintGroup = constraintGroups[group];
+		var groupConstraints = constraintGroup.list;
+		if (!groupConstraints.length) continue;
+		var $optGroup = $rulesSelector;
+		if (constraintGroup.label)
+			$optGroup = $('<optgroup label="'+ constraintGroup.label +'"></optgroup>');
+		for (var j=0;j<groupConstraints.length;j++) {
+			var groupConstraint = groupConstraints[j];
+			var $option = $('<option value="'+ groupConstraint.ruleId +'">'+ groupConstraint.description +'</option>');
+			$optGroup.append($option);
+		}
+		if (constraintGroup.label)
+			$rulesSelector.append($optGroup);
 	}
 }
 function getConstraintOptions(clClass,ruleId) {
@@ -633,13 +782,16 @@ function getConstraintOptions(clClass,ruleId) {
 	return res;
 }
 function addConstraintSelector($form,ruleId,label,options) {
-	$form.html(
+	addCustomSelector($form, "scope["+ruleId+"][value]", label, options);
+}
+function addCustomSelector($div,name,label,options) {
+	$div.html(
 		'<label>'+ label +' '+
-		'<select class="challenge-constraint-value" name="scope['+ruleId+'][value]">'+
+		'<select class="challenge-constraint-value" name="'+name+'">'+
 		'</select>'+
 		'</label>'
 	);
-	var $extraSelector = $form.find(".challenge-constraint-value");
+	var $extraSelector = $div.find(".challenge-constraint-value");
 	for (var i=0;i<options.length;i++)
 		$extraSelector.append('<option value="'+ options[i].value +'">'+ options[i].label +'</option>');
 }
@@ -728,6 +880,191 @@ function ucfirst(word) {
 	if (!word) return word;
 	return word.charAt(0).toUpperCase() + word.substring(1);
 }
+var customCharacters;
+var customCharacterPromise;
+var customCharactersCallbacks = [];
+function loadCustomCharacters($div, onSelect) {
+	if (customCharacters) {
+		appendCustomCharacters($div, onSelect);
+		return;
+	}
+	if (!customCharacterPromise) {
+		customCharacterPromise = new Promise(function(resolve) {
+			o_xhr("myPlayablePersos.php", "", function(res) {
+				try {
+					customCharacters = JSON.parse(res);
+				}
+				catch (e) {
+					return false;
+				}
+				resolve();
+				return true;
+			});
+		});
+	}
+	customCharacterPromise.then(function() {
+		appendCustomCharacters($div, onSelect);
+	});
+}
+function appendCustomCharacters($div, onSelect) {
+	var $customList = $div.find(".challenge-rule-character-custom-list");
+	$customList.empty();
+	for (var i=0;i<customCharacters.length;i++) {
+		var character = customCharacters[i];
+		var characterIcon = character.ld;
+		var $charBtn = $('<button type="button" data-value="'+ character.id +'" style="background-image:url(\''+ characterIcon +'\')"></button>');
+		$charBtn.click(function() {
+			selectCharacter(this, onSelect);
+		});
+		$charBtn.attr("title", character.name);
+		$customList.append($charBtn);
+	}
+	var $extraBtn = $('<button type="button" class="character-extra"></button>');
+	$extraBtn.click(function() {
+		selectExtraCharacter($div, onSelect);
+	});
+	$customList.append($extraBtn);
+	setTimeout(function() {
+		customCharactersCallbacks.forEach(function(callback) {
+			callback();
+		});
+		customCharactersCallbacks.length = 0;
+	});
+}
+function selectCharacter(btn, onSelect) {
+	if (btn.dataset.selected) {
+		delete btn.dataset.selected;
+		onSelect(null);
+	}
+	else {
+		var previouslySelected = btn.parentNode.querySelectorAll('button[data-selected="1"]');
+		for (var i=0;i<previouslySelected.length;i++) {
+			var iBtn = previouslySelected[i];
+			delete iBtn.dataset.selected;
+		}
+		btn.dataset.selected = "1";
+		onSelect(btn);
+	}
+}
+function selectExtraCharacter($div, onSelect) {
+	var $collabPopup = document.getElementById("collab-popup-char");
+	$collabPopup.dataset.state = "open";
+
+	closeCollabImportPopup = function() {
+		document.removeEventListener("keydown", hideOnEscape);
+		delete $collabPopup.dataset.state;
+	}
+	collabImportCallback = function(data) {
+		handleCollabCharacterSelected($div, data, onSelect);
+	}
+	function hideOnEscape(e) {
+		switch (e.keyCode) {
+		case 27:
+			closeCollabImportPopup();
+		}
+	}
+	document.addEventListener("keydown", hideOnEscape);
+	$collabPopup.querySelector('input[name="collablink"]').focus();
+}
+
+var closeCollabImportPopup, collabImportCallback;
+function importCollabChar(e) {
+	e.preventDefault();
+	var $form = e.target;
+	var url = $form.elements["collablink"].value;
+	var urlParams = new URLSearchParams(new URL(url).search);
+	var creationId, creationType, creationKey, creationMode;
+	try {
+		creationId = urlParams.get('id');
+		creationKey = urlParams.get('collab');
+	}
+	catch (e) {
+	}
+	if (!creationKey) {
+		alert(language ? "Invalid URL" : "URL invalide");
+		return;
+	}
+	var $collabPopup = document.getElementById("collab-popup-char");
+	$collabPopup.dataset.state = "loading";
+	o_xhr("importCollabPerso.php", "id="+creationId+"&collab="+creationKey, function(res) {
+		if (!res) {
+			alert(language ? "Invalid link" : "Lien invalide");
+			$collabPopup.dataset.state = "open";
+			return true;
+		}
+		collabImportCallback(JSON.parse(res));
+
+		closeCollabImportPopup();
+		$form.reset();
+		return true;
+	});
+}
+function handleCollabCharacterSelected($div, data, onSelect) {
+	var $customList = $div.find(".challenge-rule-character-custom-list");
+	var $charBtn = $('<button type="button" data-value="'+ data.id +'" style="background-image:url(\''+ data.ld +'\')"></button>');
+	$charBtn.attr("title", data.name);
+	$charBtn.click(function() {
+		selectCharacter(this, onSelect);
+	});
+
+	var $extraBtn = $customList.find(".character-extra");
+	$charBtn.insertBefore($extraBtn);
+	
+	$charBtn.click();
+}
+
+function addCharacterSelector($div, ruleId) {
+	var $selector = $('<div></div>');
+	var id = $div.children().length;
+	var nb = id+1;
+	addCustomSelector($selector, "scope["+ruleId+"][value]["+id+"]", language?'CPU '+nb+':':'Ordi '+nb+' :', persoOptions);
+	$selector.find('.challenge-constraint-value').change(function() {
+		var $custom = $selector.find('.challenge-rule-character-custom');
+		var $customValue = $custom.find('[name="scope['+ruleId+'][custom_id]['+id+']"]');
+		if (this.value === '') {
+			$custom.addClass('show');
+			$customValue.attr('required', true);
+			loadCustomCharacters($selector, handleCustomOpponentSelected($selector, ruleId, id));
+		}
+		else {
+			$custom.removeClass('show');
+			$customValue.attr('required', false);
+		}
+	});
+	$selector.append(
+		'<div class="challenge-rule-character-custom">'+
+		'<input type="text" name="scope['+ruleId+'][custom_id]['+id+']" />'+
+		'<div class="challenge-rule-character-custom-list challenge-rule-btn-options">'+
+		'</div>'
+	);
+	$div.append($selector);
+}
+function handleCustomCharacterSelected($form) {
+	return function(btn) {
+		var $customId = $form.find('[name="scope[character][custom_id]"]');
+		var $customName = $form.find('[name="scope[character][custom_name]"]');
+		var $customNameCtn = $form.find(".challenge-rule-character-custom-meta.character-name");
+		if (btn) {
+			$customId.val(btn.dataset.value);
+			$customName.val(btn.title);
+			$customNameCtn.show();
+		}
+		else {
+			$customId.val("");
+			$customNameCtn.hide();
+		}
+	};
+}
+function handleCustomOpponentSelected($selector, ruleId, id) {
+	return function(btn) {
+		var $customId = $selector.find('[name="scope['+ruleId+'][custom_id]['+id+']"]');
+		if (btn)
+			$customId.val(btn.dataset.value);
+		else
+			$customId.val("");
+	}
+}
+
 var validationUndone;
 function undoValidation() {
 	if (validationUndone) return;
@@ -740,7 +1077,7 @@ function undoValidation() {
 		return false;
 	});
 }
-function getZoneInputKey(editorType) {
+function getZoneInputKey(editorType,editorSource) {
 	switch (editorType) {
 	case "startpos":
 		return "scope[start_pos]";
@@ -748,15 +1085,23 @@ function getZoneInputKey(editorType) {
 		return "scope[extra_decors]";
 	case "items":
 		return "scope[extra_items]";
+	case "zones":
+		if (editorSource === 'avoid_zones')
+			return "scope[avoid_zones]";
+		if (editorSource === 'extra_walls')
+			return "scope[extra_walls]";
+		return "goal";
+	case "arms":
+		return "scope[place_items]";
 	default:
 		return "goal";
 	}
 }
-function loadZoneData(editorType) {
-	var inputKey = getZoneInputKey(editorType);
+function loadZoneData(editorType,editorSource) {
+	var inputKey = getZoneInputKey(editorType,editorSource);
 	var data = document.forms[0].elements[inputKey+"[value]"].value;
 	var meta = {};
-	var metaKeys = ["ordered","custom_decors"];
+	var metaKeys = ["ordered","floor","height","custom_decors"];
 	for (var i=0;i<metaKeys.length;i++) {
 		var $elt = document.forms[0].elements[inputKey+"["+metaKeys[i]+"]"];
 		if ($elt)
@@ -773,8 +1118,8 @@ function loadZoneData(editorType) {
 		meta: meta
 	}
 }
-function storeZoneData(data,meta, editorType) {
-	var inputKey = getZoneInputKey(editorType);
+function storeZoneData(data,meta, editorType,editorSource) {
+	var inputKey = getZoneInputKey(editorType,editorSource);
 	document.forms[0].elements[inputKey+"[value]"].value = JSON.stringify(data);
 	for (var key in meta) {
 		var $elt = document.forms[0].elements[inputKey+"["+key+"]"];
@@ -786,8 +1131,8 @@ function storeZoneData(data,meta, editorType) {
 		}
 	}
 }
-function openZoneEditor(type) {
-	window.open(document.location.href.replace("challengeEdit.php","challengeZone.php")+(type?("&type="+type):""),'chose','scrollbars=1, resizable=1, width=800, height=600');
+function openZoneEditor(type, extra) {
+	window.open(document.location.href.replace("challengeEdit.php","challengeZone.php")+(type?("&type="+type):"")+(extra?"&"+extra:""),'chose','scrollbars=1, resizable=1, width=800, height=600');
 }
 function toggleGoalAllOption(value) {
 	if (value == 1)
@@ -885,7 +1230,7 @@ function toggleDecor(btn, label) {
 }
 function toggleItem(btn) {
 	var ruleKey = btn.dataset.ruleKey;
-	var multiSelectAllowed = (ruleKey === "item_distribution");
+	var multiSelectAllowed = (ruleKey === "item_distribution") || (ruleKey === "avoid_item");
 	if (multiSelectAllowed) {
 		if (btn.dataset.selected)
 			delete btn.dataset.selected;
@@ -908,28 +1253,34 @@ function toggleItem(btn) {
 }
 function toggleGoalDescriptionTr() {
 	var ruleValue = $("#challenge-main-rule").val();
-	var $descriptionDiv = document.getElementById("goal_"+ruleValue+"_description");
-	var $descriptionTrDiv = document.getElementById("goal_"+ruleValue+"_description_tr");
+	toggleDescriptionTr("goal_"+ruleValue, "goal");
+}
+function toggleRuleDescriptionTr() {
+	toggleDescriptionTr("rule_avoid_zones", "scope[avoid_zones]");
+}
+function toggleDescriptionTr(idPrefix, namePrefix) {
+	var $descriptionDiv = document.getElementById(idPrefix+"_description");
+	var $descriptionTrDiv = document.getElementById(idPrefix+"_description_tr");
 	var mainForm = document.forms[0];
-	var $trStateInput = mainForm.elements["goal[translated]"];
+	var $trStateInput = mainForm.elements[namePrefix+"[translated]"];
 	if ($trStateInput.value == 1) {
 		$trStateInput.value = 0;
 		$descriptionTrDiv.style.display = "none";
 		$descriptionDiv.style.display = "block";
-		mainForm.elements["goal[description]"].required = true;
-		mainForm.elements["goal[description_fr]"].required = false;
-		mainForm.elements["goal[description_en]"].required = false;
+		mainForm.elements[namePrefix+"[description]"].required = true;
+		mainForm.elements[namePrefix+"[description_fr]"].required = false;
+		mainForm.elements[namePrefix+"[description_en]"].required = false;
 	}
 	else {
 		$trStateInput.value = 1;
 		$descriptionDiv.style.display = "none";
 		$descriptionTrDiv.style.display = "block";
-		mainForm.elements["goal[description]"].required = false;
-		mainForm.elements["goal[description_fr]"].required = true;
-		mainForm.elements["goal[description_en]"].required = true;
-		var $trInput = mainForm.elements["goal[description_"+(language ? "en":"fr")+"]"];
+		mainForm.elements[namePrefix+"[description]"].required = false;
+		mainForm.elements[namePrefix+"[description_fr]"].required = true;
+		mainForm.elements[namePrefix+"[description_en]"].required = true;
+		var $trInput = mainForm.elements[namePrefix+"[description_"+(language ? "en":"fr")+"]"];
 		if (!$trInput.value)
-			$trInput.value = mainForm.elements["goal[description]"].value;
+			$trInput.value = mainForm.elements[namePrefix+"[description]"].value;
 	}
 }
 function helpDifficulty() {
@@ -985,14 +1336,90 @@ $(function() {
 								toggleDecor(btn, decorData.name);
 						}
 						break;
+					case "avoid_zones":
+						if (constraint.floor)
+							mainForm.elements["scope[avoid_zones][floor]"].value = "1";
+						if (typeof constraint.description === "string")
+							mainForm.elements["scope[avoid_zones][description]"].value = constraint.description;
+						else {
+							toggleRuleDescriptionTr();
+							mainForm.elements["scope[avoid_zones][description]"];
+							mainForm.elements["scope[avoid_zones][description_fr]"].value = constraint.description.fr;
+							mainForm.elements["scope[avoid_zones][description_en]"].value = constraint.description.en;
+						}
+						break;
+					case "extra_walls":
+						if (constraint.height)
+							mainForm.elements["scope[extra_walls][height]"].value = constraint.height;
+						break;
+					case "character":
+						if (constraint.custom_id) {
+							(function($rule, constraint) {
+								customCharactersCallbacks.push(function() {
+									var $valBtn = $rule.find(".challenge-rule-character-custom-list button[data-value='"+ constraint.custom_id +"']");
+									if ($valBtn.length) {
+										if (constraint.custom_name)
+											$valBtn.attr("title", constraint.custom_name);
+										$valBtn.click();
+									}
+									else {
+										o_xhr("getPersoData.php?id="+constraint.custom_id, null, function(res) {
+											if (res) {
+												var data = JSON.parse(res);
+												data.name = constraint.custom_name;
+												handleCollabCharacterSelected($rule, data, handleCustomCharacterSelected($rule));
+											}
+											return true;
+										});
+									}
+								});
+							})($rule, constraint);
+							$(formElt).change();
+						}
+						break;
+					case "with_opponents":
+						var values = constraint.value;
+						var $list = $rule.find(".challenge-rule-opponents-list");
+						var ruleId = constraint.type;
+						for (var k=0;k<values.length;k++) {
+							if (k)
+								addCharacterSelector($list, ruleId);
+							var $selector = $list.children().eq(k);
+							var $valSelect = $selector.find("select[name='scope["+ruleId+"][value]["+k+"]']");
+							var value = values[k];
+							if (typeof value === "number") {
+								(function($selector, id, ruleId, value) {
+									customCharactersCallbacks.push(function() {
+										var $valBtn = $selector.find(".challenge-rule-character-custom-list button[data-value='"+ value +"']");
+										if ($valBtn.length)
+											$valBtn.click();
+										else {
+											o_xhr("getPersoData.php?id="+value, null, function(res) {
+												if (res) {
+													var data = JSON.parse(res);
+													handleCollabCharacterSelected($selector, data, handleCustomOpponentSelected($selector, ruleId, id));
+												}
+												return true;
+											});
+										}
+									});
+								})($selector, k, ruleId, value);
+								$valSelect.val("");
+								$valSelect.change();
+							}
+							else
+								$valSelect.val(value);
+						}
+						break;
 					case "init_item":
-						var btn = mainForm.querySelector(".challenge-item-btn-options button[data-value='"+ constraint.value +"']");
+						var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='"+ constraint.type +"'][data-value='"+ constraint.value +"']");
 						if (btn)
 							toggleItem(btn);
 						break;
 					case "item_distribution":
+					case "avoid_item":
 						for (var k=0;k<constraint.value.length;k++) {
-							var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='item_distribution'][data-value='"+ constraint.value[k] +"']");
+							var btn = mainForm.querySelector(".challenge-item-btn-options button[data-rule-key='"+ constraint.type +"'][data-value='"+ constraint.value[k] +"']");
 							if (btn)
 								toggleItem(btn);
 						}
@@ -1051,6 +1478,17 @@ function getItemOptions() {
 		return ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops"];
 	else
 		return ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
+}
+function getItemHitOptions() {
+	var res = ["fauxobjet","banane","carapace","carapacerouge","bobomb","carapacebleue","megachampi","etoile"];
+	if (clCourse === "battle")
+		res.push("champi");
+	else {
+		res.push("billball");
+		res.push("eclair");
+		res.push("poison");
+	}
+	return res;
 }
 </script>
 </head>
@@ -1188,6 +1626,43 @@ function getItemOptions() {
 		?>
 		<button type="submit" class="challenge-edit-submit"><?php echo $language ? 'Validate!':'Valider !'; ?></button>
 	</form>
+	<div class="collab-popup" id="collab-popup-char" onclick="closeCollabImportPopup()">
+		<div class="popup-content" onclick="event.stopPropagation()">
+			<h2><?php echo $language ? "Import a character of another member" : "Importer le perso d'un autre membre"; ?></h2>
+			<div>
+			<?php
+			if ($language) {
+				?>
+				Enter the character's collaboration link here.<br />
+				To get this link, the character owner will simply need
+				to click on &quot;Collaborate&quot; on the characters editor page.
+				<?php
+			}
+			else {
+				?>
+				Saisissez ici le lien de collaboration du perso.<br />
+				Pour obtenir ce lien, le propriétaire du perso devra simplement
+				cliquer sur &quot;Collaborer&quot; dans la page d'édition des persos.
+				<?php
+			}
+			?>
+			</div>
+			<form onsubmit="importCollabChar(event)">
+				<input type="url" name="collablink" placeholder="<?php
+				require_once('../includes/collabUtils.php');
+				$placeholderType = 'mkchars';
+				$placeholderId = 1;
+				$collab = array(
+					'type' => $placeholderType,
+					'creation_id' => $placeholderId,
+					'secret' => 'y-vf-erny_2401_pbasvezrq'
+				);
+				echo getCollabUrl($collab);
+				?>" required="required" />
+				<input type="submit" value="Ok" />
+			</form>
+		</div>
+	</div>
 	<div class="pub">
 		<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 		<!-- Mario Kart PC -->

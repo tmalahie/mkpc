@@ -75,8 +75,8 @@ else
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css" />
 <?php
+include('../includes/c_challenges.php');
 include('../includes/o_online.php');
 ?>
 <script type="text/javascript" src="scripts/challenges.js?reload=1"></script>

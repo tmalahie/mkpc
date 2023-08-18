@@ -1804,6 +1804,17 @@ function loadNewItem(kart,item) {
 	addNewItem(kart,item);
 	kart.using.push(item);
 }
+function dropNewItem(oKart, item) {
+	switch (item.type) {
+	case "carapace":
+		item.vx = 0; item.vy = 0; item.owner = -1; item.lives = 10;
+		break;
+	case "carapace-rouge":
+		item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.target = -1;
+		break;
+	}
+	addNewItem(oKart, item);
+}
 function addNewItem(kart,item) {
 	var collection = item.type;
 	var itemBehavior = itemBehaviors[collection];
@@ -2687,6 +2698,7 @@ function startGame() {
 	var nbPlayers = strPlayer.length;
 	if (onlineSpectatorId) nbPlayers = 0;
 	for (var i=0;i<nbPlayers;i++) {
+		var joueur = strPlayer[i];
 		var oPlace = aPlaces[i];
 		var oPlayer = {
 			id : i,
@@ -2695,12 +2707,12 @@ function startGame() {
 			y : oMap.startposition[1],
 			z : 0,
 
-			personnage : strPlayer[i],
+			personnage : joueur,
 
 			speed : 0,
 			speedinc : 0,
 			heightinc : 0,
-			stats : realKartStats(cp[strPlayer[i]]),
+			stats : realKartStats(cp[joueur]),
 
 			rotation : rot0,
 			rotincdir : 0,
@@ -2708,7 +2720,7 @@ function startGame() {
 			changeView : 0,
 
 			size : 1,
-			sprite : new Sprite(strPlayer[i]),
+			sprite : new Sprite(joueur),
 			cpu : false,
 			aipoints : oMap.aipoints[0],
 
@@ -3459,7 +3471,7 @@ function startGame() {
 		}
 	}
 
-	if ((strPlayer.length == 1) && !gameSettings.nomap) {
+	if ((strPlayer.length == 1) && !gameSettings.nomap && !clLocalVars.noMap) {
 		oPlanWidth = Math.round(iScreenScale*19.4);
 		oPlanWidth2 = (oMap.w>=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.w/oMap.h);
 		var oPlanHeight2 = (oMap.w<=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.h/oMap.w);
@@ -4054,6 +4066,8 @@ function startGame() {
 										oPlayers[0].ballons[oPlayers[0].ballons.length] = createBalloonSprite(oPlayers[0]);
 										oPlayers[0].reserve--;
 										updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
+										clLocalVars.inflatedBalloons++;
+										updateChallengeHud("inflated", clLocalVars.inflatedBalloons);
 										playIfShould(oPlayers[0],"musics/events/balloon.mp3");
 									}
 								}
@@ -4172,7 +4186,8 @@ function startGame() {
 								}
 								break;
 							case "rear":
-								showRearView(0);
+								if (!clLocalVars.rearView)
+									showRearView(0);
 								break;
 							case "item_p2":
 							case "item_back_p2":
@@ -4503,7 +4518,7 @@ function startGame() {
 			}, 100);
 		}, 100);
 	}
-	if (clLocalVars.backwardsStart)
+	if (clLocalVars.backwardsStart || clLocalVars.rearView)
 		showRearView(0);
 	if (!isOnline)
 		document.body.style.cursor = "default";
@@ -6630,6 +6645,7 @@ var itemBehaviors = {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
+		frminv: true,
 		move: function(fSprite) {
 			if (fSprite.countdown)
 				handleSpriteLaunch(fSprite, 12,0.2);
@@ -6639,6 +6655,7 @@ var itemBehaviors = {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
+		frminv: true,
 		move: function(fSprite) {
 			if (fSprite.countdown)
 				handleSpriteLaunch(fSprite, 12,0.2);
@@ -6648,6 +6665,7 @@ var itemBehaviors = {
 		size: 0.54,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
+		frminv: true,
 		move: function(fSprite) {
 			if (fSprite.countdown)
 				handleSpriteLaunch(fSprite, 12,0.2);
@@ -6687,6 +6705,7 @@ var itemBehaviors = {
 								kart.spin(20);
 								stopDrifting(i);
 								dropCurrentItem(kart);
+								handleItemHit(kart, "eclair");
 							}
 							else {
 								if (kart.megachampi && !kart.etoile) {
@@ -7025,6 +7044,7 @@ var itemBehaviors = {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
 		fadedelay: 300,
+		frminv: true,
 		move: function(fSprite, ctx) {
 			var fNewPosX;
 			var fNewPosY;
@@ -7163,6 +7183,7 @@ var itemBehaviors = {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),intType("target")],
 		fadedelay: 300,
+		frminv: true,
 		move: function(fSprite, ctx) {
 			var fNewPosX;
 			var fNewPosY;
@@ -7299,7 +7320,7 @@ var itemBehaviors = {
 		
 							for (var k=0;k<aKarts.length;k++) {
 								var pCible = aKarts[k];
-								if (pCible.id != fSprite.owner && !sameTeam(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
+								if (pCible.id != fSprite.owner && !friendlyHit(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
 									var fDirX = pCible.x-fNewPosX, fDirY = pCible.y-fNewPosY;
 									var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
 									if (fDist < maxDist) {
@@ -7513,7 +7534,7 @@ var itemBehaviors = {
 					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace) {
-								if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !sameTeam(fSprite.team,aKarts[k].team)) {
+								if (((aKarts[k].tours <= oMap.tours) || (course == "BB")) && !friendlyHit(fSprite.team,aKarts[k].team)) {
 									cible = k;
 									cPlace = aKarts.length;
 								}
@@ -7702,7 +7723,7 @@ var itemBehaviors = {
 					for (var cPlace=aKarts.length;cPlace>0;cPlace--) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace && !aKarts[k].loose) {
-								if (!sameTeam(fSprite.team,aKarts[k].team)) {
+								if (!friendlyHit(fSprite.team,aKarts[k].team)) {
 									cible = k;
 									cPlace = 0;
 								}
@@ -10469,15 +10490,7 @@ function dropCurrentItem(oKart) {
 		for (var i=0;i<itemCount;i++) {
 			var rAngle = oKart.rotation*Math.PI/180 + (Math.random()-0.5)*0.9*Math.PI, rDist = 9 + Math.random()*6;
 			var item = {type: itemType, team:oKart.team, x:oKart.x - rDist*Math.sin(rAngle), y:oKart.y - rDist*Math.cos(rAngle), z:0};
-			switch (sArme) {
-			case "carapace":
-				item.vx = 0; item.vy = 0; item.owner = -1; item.lives = 10;
-				break;
-			case "carapacerouge":
-				item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.target = -1;
-				break;
-			}
-			addNewItem(oKart, item);
+			dropNewItem(oKart, item);
 			item.sprite[0].fadein(200);
 		}
 	}
@@ -10702,6 +10715,19 @@ function pointInPolygon(x,y, vs) {
 	}
 	
 	return inside;
+}
+function pointInZone(x,y, zones) {
+	var oRectangles = zones.rectangle;
+	for (var i=0;i<oRectangles.length;i++) {
+		if (pointInRectangle(x,y, oRectangles[i]))
+			return true;
+	}
+	var oPolygons = zones.polygon;
+	for (var i=0;i<oPolygons.length;i++) {
+		if (pointInPolygon(x,y, oPolygons[i]))
+			return true;
+	}
+	return false;
 }
 function pointInQuad(x,y, quad) {
 	var l = projete(x,y, quad.A[0],quad.A[1], quad.B[0],quad.B[1]);
@@ -11906,6 +11932,18 @@ var challengeRules = {
 			return (clLocalVars.lostBalloons <= scope.value);
 		}
 	},
+	"balloons_inflate": {
+		"initSelected": function(scope, ruleVars) {
+			addChallengeHud("inflated", {
+				title: toLanguage("Inflated","Gonflés"),
+				value: clLocalVars.inflatedBalloons,
+				out_of: scope.value
+			});
+		},
+		"success": function(scope) {
+			return (clLocalVars.inflatedBalloons <= scope.value);
+		}
+	},
 	"balloons_player": {
 		"initRuleVars": function() {
 			return {};
@@ -11946,6 +11984,20 @@ var challengeRules = {
 			return !clLocalVars.itemsGot;
 		}
 	},
+	"avoid_item": {
+		"initLocalVars": function(scope) {
+			if (!clLocalVars.hitItems)
+				clLocalVars.hitItems = {};
+		},
+		"success": function(scope) {
+			for (var i=0;i<scope.value.length;i++) {
+				var key = scope.value[i];
+				if (clLocalVars.hitItems[key])
+					return false;
+			}
+			return true;
+		}
+	},
 	"no_item": {
 		"success": function(scope) {
 			return !clLocalVars.itemsUsed;
@@ -11975,6 +12027,30 @@ var challengeRules = {
 					return false;
 			}
 			return true;
+		}
+	},
+	"avoid_zones": {
+		"initRuleVars": function() {
+			return {
+				hit: false
+			};
+		},
+		"initLocalVars": function(scope,ruleVars) {
+			if (!clLocalVars.zonesHit)
+				clLocalVars.zonesHit = [];
+			clLocalVars.zonesHit.push({
+				ruleVars: ruleVars,
+				floor: scope.floor,
+				zones: classifyByShape(scope.value)
+			});
+		},
+		"success": function(scope, ruleVars) {
+			return !ruleVars.hit;
+		}
+	},
+	"avoid_walls": {
+		"success": function(scope) {
+			return !clLocalVars.touchedWalls;
 		}
 	},
 	"init_item": {
@@ -12024,8 +12100,17 @@ var challengeRules = {
 		}
 	},
 	"character": {
-		"success": function(scope) {
-			return (oPlayers[0].personnage == scope.value);
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+		},
+		"success": function(scope, ruleVars, challenge) {
+			var persoKey = oPlayers[0].personnage;
+			if (scope.custom_id)
+				return ruleVars.selected && challenge.autoset && persoKey === challenge.autoset.selectedPerso;
+			return (persoKey == scope.value);
 		}
 	},
 	"falls": {
@@ -12048,6 +12133,50 @@ var challengeRules = {
 		"next_circuit": function(ruleVars) {
 			if (ruleVars)
 				ruleVars.falls += clLocalVars.falls;
+		}
+	},
+	"max_jumps": {
+		"initRuleVars": function() {
+			return {jumps: 0};
+		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars) {
+				addChallengeHud("jumps", {
+					title: toLanguage("Jumps","Sauts"),
+					value: clLocalVars.jumps+ruleVars.jumps,
+					out_of: scope.value
+				});
+			}
+		},
+		"success": function(scope, ruleVars) {
+			if (ruleVars)
+				return ((clLocalVars.jumps+ruleVars.jumps) <= scope.value);
+		},
+		"next_circuit": function(ruleVars) {
+			if (ruleVars)
+				ruleVars.jumps += clLocalVars.jumps;
+		}
+	},
+	"max_cannons": {
+		"initRuleVars": function() {
+			return {cannons: 0};
+		},
+		"initSelected": function(scope, ruleVars) {
+			if (ruleVars) {
+				addChallengeHud("cannons", {
+					title: toLanguage("Cannons","Canons"),
+					value: clLocalVars.cannons+ruleVars.cannons,
+					out_of: scope.value
+				});
+			}
+		},
+		"success": function(scope, ruleVars) {
+			if (ruleVars)
+				return ((clLocalVars.cannons+ruleVars.cannons) <= scope.value);
+		},
+		"next_circuit": function(ruleVars) {
+			if (ruleVars)
+				ruleVars.cannons += clLocalVars.cannons;
 		}
 	},
 	"no_stunt": {
@@ -12093,6 +12222,22 @@ var challengeRules = {
 			return !!clLocalVars.invertDirs;
 		}
 	},
+	"rear_view": {
+		"initSelected": function(scope) {
+			clLocalVars.rearView = true;
+		},
+		"success": function(scope) {
+			return !!clLocalVars.rearView;
+		}
+	},
+	"no_minimap": {
+		"initSelected": function(scope) {
+			clLocalVars.noMap = true;
+		},
+		"success": function(scope) {
+			return !!clLocalVars.noMap;
+		}
+	},
 	"time": {
 		"success": function(scope) {
 			return (getActualGameTime() <= scope.value);
@@ -12121,6 +12266,18 @@ var challengeRules = {
 		"success": function(scope) {
 			if (!clLocalVars.startPos) return false;
 			return true;
+		}
+	},
+	"with_opponents": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
 		}
 	},
 	"extra_items": {
@@ -12217,6 +12374,44 @@ var challengeRules = {
 			return !!ruleVars.selected;
 		}
 	},
+	"extra_walls": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"preinitSelected": function(scope, ruleVars) {
+			if (!oMap.collision) oMap.collision = [];
+			if (!oMap.collisionProps) oMap.collisionProps = {};
+			var wallHeight = scope.height || 1000;
+			for (var i=0;i<scope.value.length;i++) {
+				var wallData = scope.value[i];
+				oMap.collisionProps[oMap.collision.length] = {z: wallHeight};
+				oMap.collision.push(wallData.slice(0));
+			}
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
+		}
+	},
+	"place_items": {
+		"initRuleVars": function() {
+			return {};
+		},
+		"initSelected": function(scope, ruleVars) {
+			ruleVars.selected = true;
+			clLocalVars.isSetup = true;
+			for (var i=0;i<scope.value.length;i++) {
+				var oItem = scope.value[i];
+				dropNewItem(null, {type: oItem.src, team:-1, x:oItem.pos[0], y:oItem.pos[1], z:0});
+			}
+		},
+		"success": function(scope, ruleVars) {
+			return !!ruleVars.selected;
+		}
+	},
 	"mini_turbo": {
 		"initRuleVars": function() {
 			return {miniTurbo: 0};
@@ -12292,6 +12487,12 @@ var challengeRules = {
 	"position": {
 		"success": function(scope) {
 			if (oPlayers[0].place == scope.value)
+				return true;
+		}
+	},
+	"position_lower": {
+		"success": function(scope) {
+			if (oPlayers[0].place <= scope.value)
 				return true;
 		}
 	},
@@ -12398,10 +12599,13 @@ function reinitLocalVars() {
 		itemsGot: false,
 		itemsUsed: false,
 		falls: 0,
+		jumps: 0,
+		cannons: 0,
 		miniTurbo: 0,
 		superTurbo: 0,
 		stunts: 0,
 		lostBalloons: 0,
+		inflatedBalloons: 0,
 		cheated: false
 	};
 	if (ptsDistribution.value) {
@@ -12428,12 +12632,11 @@ function reinitLocalVars() {
 			var chRules = listChallengeRules(challengeData);
 			for (var j=0;j<chRules.length;j++) {
 				var rule = chRules[j];
+				var ruleVars = clRuleVars[challenge.id] ? clRuleVars[challenge.id][rule.type] : undefined;
 				if (challengeRules[rule.type].initLocalVars)
-					challengeRules[rule.type].initLocalVars(rule);
-				if ((clSelected === challenge) && challengeRules[rule.type].initSelected) {
-					var ruleVars = clRuleVars[challenge.id] ? clRuleVars[challenge.id][rule.type] : undefined;
+					challengeRules[rule.type].initLocalVars(rule, ruleVars);
+				if ((clSelected === challenge) && challengeRules[rule.type].initSelected)
 					challengeRules[rule.type].initSelected(rule, ruleVars);
-				}
 			}
 		}
 	}
@@ -13493,12 +13696,47 @@ function isHitSound(oBox) {
 	return false;
 }
 function handleHit(oBox) {
-	if (clLocalVars.myItems && clLocalVars.currentKart && (clLocalVars.currentKart != oPlayers[0]) && !clLocalVars.currentKart.tourne && (clLocalVars.myItems.indexOf(oBox) != -1))
+	if (!clLocalVars.currentKart) return;
+	if (clLocalVars.currentKart.tourne || clLocalVars.currentKart.protect) return;
+	if (clLocalVars.currentKart.frminv && itemBehaviors[oBox.type] && itemBehaviors[oBox.type].frminv) return;
+	if (clLocalVars.hitItems && (clLocalVars.currentKart == oPlayers[0]))
+		incItemHits(oBox.type);
+	if (clLocalVars.myItems && clLocalVars.currentKart && (clLocalVars.currentKart != oPlayers[0]) && (clLocalVars.myItems.indexOf(oBox) != -1))
 		incChallengeHits(clLocalVars.currentKart);
 }
 function handleHit2(oKart,kart) {
-	if ((oKart == oPlayers[0]) && (kart != oPlayers[0]))
+	if (kart == oPlayers[0]) {
+		if (clLocalVars.hitItems) {
+			if (oKart.billball)
+				incItemHits("billball");
+			if (oKart.etoile)
+				incItemHits("etoile");
+			if (oKart.megachampi)
+				incItemHits("megachampi");
+			if (oKart.champiType === CHAMPI_TYPE_ITEM)
+				incItemHits("champi");
+		}
+	}
+	else if (oKart == oPlayers[0])
 		incChallengeHits(kart);
+}
+function handleItemHit(oKart, itemKey) {
+	if ((oKart === oPlayers[0]) && clLocalVars.hitItems)
+		incItemHits(itemKey);
+}
+function incItemHits(type) {
+	var itemKey;
+	switch (type) {
+	case "carapace-rouge":
+		itemKey = "carapacerouge";
+		break;
+	case "carapace-bleue":
+		itemKey = "carapacebleue";
+		break;
+	default:
+		itemKey = type;
+	}
+	clLocalVars.hitItems[itemKey] = true;
 }
 function incChallengeHits(kart) {
 	clLocalVars.nbHits++;
@@ -15316,9 +15554,13 @@ function move(getId, triggered) {
 		var s = (fDirX*horizontality[0] + fDirY*horizontality[1]);
 		if (oKart.speed > oKart.speedinc)
 			oKart.speed = Math.min(oKart.speed*0.75,oKart.speed+0.5-oKart.speedinc);
-		if (!collisionDecor && (oKart.speed > 3) && (oKart.driftcpt >= 5) && (oKart.driftcpt < fTurboDriftCpt2)) {
-			if ((oKart.driftcpt < fTurboDriftCpt) || (oKart.driftcpt >= (fTurboDriftCpt+5)))
-				oKart.driftcpt -= 5;
+		if (!collisionDecor) {
+			if ((oKart.speed > 3) && (oKart.driftcpt >= 5) && (oKart.driftcpt < fTurboDriftCpt2)) {
+				if ((oKart.driftcpt < fTurboDriftCpt) || (oKart.driftcpt >= (fTurboDriftCpt+5)))
+					oKart.driftcpt -= 5;
+			}
+			if (!oKart.cpu)
+				clLocalVars.touchedWalls = true;
 		}
 		for (var i=5;i>0;i--) {
 			oKart.x += horizontality[0]*s*i/5;
@@ -15363,6 +15605,12 @@ function move(getId, triggered) {
 			if (oKart.tourne)
 				oKart.tourne = 2;
 			delete oKart.shift;
+			if (!oKart.cpu) {
+				clLocalVars.cannons++;
+				var ruleVars;
+				if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].max_cannons))
+					updateChallengeHud("cannons", clLocalVars.cannons+ruleVars.cannons);
+			}
 			if (!oKart.boostSound) {
 				oKart.boostSound = playIfShould(oKart, "musics/events/boost.mp3");
 				if (oKart.boostSound) {
@@ -15428,6 +15676,12 @@ function move(getId, triggered) {
 			oKart.speed = 11*cappedRelSpeed(oKart);
 			oKart.figuring = false;
 			oKart.figstate = 0;
+			if (!oKart.cpu) {
+				clLocalVars.jumps++;
+				var ruleVars;
+				if (clSelected && clRuleVars[clSelected.id] && (ruleVars = clRuleVars[clSelected.id].max_jumps))
+					updateChallengeHud("jumps", clLocalVars.jumps+ruleVars.jumps);
+			}
 			if (!oKart.bounceSound) {
 				oKart.bounceSound = playIfShould(oKart, "musics/events/jump.mp3");
 				if (oKart.bounceSound) {
@@ -15615,8 +15869,8 @@ function move(getId, triggered) {
 					if (aKarts[i].tours > oMap.tours)
 						oKart.place++;
 				}
-				if (!oKart.finaltime)
-					oKart.finaltime = lapTimer;
+				if (isOnline && !oKart.finaltime)
+					oKart.finaltime = timeTrialMode() ? lapTimer : (new Date().getTime() - tnCourse);
 				if (kartIsPlayer(oKart) && !finishing) {
 					timerMS = lapTimer;
 					showTimer(timerMS);
@@ -17835,6 +18089,27 @@ function handleAudio() {
 		}
 	}
 }
+function handleChallengeEvents() {
+	var oPlayer = oPlayers[0];
+	var isJumping = oPlayer.z > 0;
+	if (clLocalVars.zonesHit) {
+		var posX = oPlayer.x;
+		var posY = oPlayer.y;
+		for (var i=0;i<clLocalVars.zonesHit.length;i++) {
+			var zoneHit = clLocalVars.zonesHit[i];
+			if (isJumping && zoneHit.floor)
+				continue;
+			var zones = zoneHit.zones;
+			if (pointInZone(posX,posY, zones))
+				zoneHit.ruleVars.hit = true;
+		}
+	}
+	if (clSelected && !clSelectionFail) {
+		if (false === challengeRulesSatisfied(clSelected, clSelected.data.constraints))
+			challengeHandleFail();
+	}
+	challengeCheck("each_frame");
+}
 
 var cycleHandler;
 function cycle() {
@@ -17916,13 +18191,8 @@ function runOneFrame() {
 	moveDecor();
 	if (oSpecCam)
 		oSpecCam.move();
-	if (!oPlayers[0].cpu && !oPlayers[0].loose) {
-		if (clSelected && !clSelectionFail) {
-			if (false === challengeRulesSatisfied(clSelected, clSelected.data.constraints))
-				challengeHandleFail();
-		}
-		challengeCheck("each_frame");
-	}
+	if (!oPlayers[0].cpu && !oPlayers[0].loose)
+		handleChallengeEvents();
 	if (refreshDatas)
 		resetDatas();
 	handleAudio();
@@ -18254,9 +18524,10 @@ if (!String.prototype.startsWith) {
     	return this.indexOf(searchString, position) === position;
 	};
 }
-function isCustomPerso(playerName) {
+function isCustomPerso(playerName, opts) {
+	if (!opts) opts = {};
 	if (playerName.startsWith("cp-")) {
-		if (!customPersos[playerName]) {
+		if (!customPersos[playerName] || opts.forceReload) {
 			cp[playerName] = [0.5,0.5,0.5,0.5];
 			var defaultIc = PERSOS_DIR + playerName + "-ld.png";
 			customPersos[playerName] = {
@@ -18266,8 +18537,11 @@ function isCustomPerso(playerName) {
 				"music" : "mario"
 			};
 			xhr("getCP.php", "perso="+playerName, function(res) {
-				if (res == -1)
+				if (res == -1) {
+					if (opts.callback)
+						opts.callback(perso);
 					return true;
+				}
 				if (!res)
 					return false;
 				var perso;
@@ -18282,9 +18556,12 @@ function isCustomPerso(playerName) {
 				cp[playerName][2] = perso.handling;
 				cp[playerName][3] = perso.mass;
 				customPersos[playerName] = perso;
+				if (opts.callback)
+					opts.callback(perso);
 				return true;
 			});
-		}
+		} else if (opts.callback)
+			opts.callback(perso);
 		return true;
 	}
 	return false;
@@ -19395,6 +19672,9 @@ function privateGameOptions(gameOptions, onProceed) {
 				selectedItemDistrib = JSON.parse(this.currentValue);
 			else
 				selectedItemDistrib = itemDistributions[itemMode][this.currentValue];
+			var itemDistribOptions;
+			if (selectedItemDistrib.value)
+				itemDistribOptions = Object.assign({}, selectedItemDistrib, {untitled: true});
 			var that = this;
 			selectItemScreen(oScr, function(newDistribution) {
 				var firstOption = that.querySelector("option");
@@ -19406,7 +19686,7 @@ function privateGameOptions(gameOptions, onProceed) {
 				firstOption.value = JSON.stringify(newDistribution);
 				that.selectedIndex = 0;
 				that.currentValue = that.value;
-			}, {untitled: true});
+			}, itemDistribOptions);
 		}
 		else
 			this.currentValue = this.value;
@@ -20865,6 +21145,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	var modePtDistributions = ptDistributions.concat(customPtDistrib);
 	if (!fInfos)
 		fInfos = {};
+	var selectedOpponents;
 
 	var oScr = document.createElement("div");
 	if (newP)
@@ -21107,10 +21388,32 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 						aPlayers = [];
 					else {
 						aPlayers = [];
+						var waitBeforeStart;
 						if (isCustomSel) {
 							for (var i=strPlayer.length-1;i>=oContainers.length;i--)
 								aPlayers.push(strPlayer[i]);
 							strPlayer.splice(oContainers.length);
+						}
+						else if (selectedOpponents) {
+							for (var i=0;i<selectedOpponents.length;i++)
+								aPlayers.push(selectedOpponents[i]);
+							waitBeforeStart = function(resolve) {
+								var callbackCount = 0, isReady = false;
+								var callback = function() {
+									if (!callbackCount && isReady)
+										resolve();
+									callbackCount--;
+								}
+								for (var i=0;i<selectedOpponents.length;i++) {
+									var selectedOpponent = selectedOpponents[i];
+									if (isCustomPerso(selectedOpponent, { callback: callback }))
+										callbackCount++;
+									else if (!cp[selectedOpponent] && baseCp0[selectedOpponent])
+										cp[selectedOpponent] = baseCp0[selectedOpponent];
+								}
+								isReady = true;
+								callback();
+							};
 						}
 						else {
 							var i = 0;
@@ -21182,10 +21485,16 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 						}
 					}
 					else {
-						if (isTeamPlay())
-							selectTeamScreen(0);
+						function proceed() {
+							if (isTeamPlay())
+								selectTeamScreen(0);
+							else
+								selectTrackScreen();
+						}
+						if (waitBeforeStart)
+							waitBeforeStart(proceed);
 						else
-							selectTrackScreen();
+							proceed();
 					}
 				}
 				else
@@ -21397,6 +21706,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	}
 
 	var enableSpectatorMode = false;
+	var oTeamsDiv, oParticipantsDiv;
 	if (isOnline && !isCustomSel) {
 		if (additionalOptions && additionalOptions.enableSpectatorMode)
 			enableSpectatorMode = true;
@@ -21471,7 +21781,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			fInfos.friendlyFire = !!selectedFriendlyFire;
 		}
 		if (course == "VS") {
-			oForm.appendChild(document.createTextNode(toLanguage("Difficulty: ", "Difficulté : ")));
+			var oDiffDiv = document.createElement("label");
+			oDiffDiv.appendChild(document.createTextNode(toLanguage("Difficulty: ", "Difficulté : ")));
 			var iDifficulties = [toLanguage("Easy", "Facile"), toLanguage("Medium", "Moyen"), toLanguage("Difficult", "Difficile"), toLanguage("Extreme", "Extrême"), toLanguage("Impossible", "Impossible")];
 			var oSelect = document.createElement("select");
 			oSelect.name = "difficulty";
@@ -21489,11 +21800,13 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					oOption.selected = "selected";
 				oSelect.appendChild(oOption);
 			}
-			oForm.appendChild(oSelect);
+			oDiffDiv.appendChild(oSelect);
+			oForm.appendChild(oDiffDiv);
 		}
 		else
 			iDificulty = 4.5;
-		oForm.appendChild(document.createTextNode(toLanguage("Teams: ", "Équipes : ")));
+		oTeamsDiv = document.createElement("label");
+		oTeamsDiv.appendChild(document.createTextNode(toLanguage("Teams: ", "Équipes : ")));
 		var oSelect = document.createElement("select");
 		oSelect.name = "difficulty";
 		oSelect.style.width = (iScreenScale*15+15) +"px";
@@ -21510,10 +21823,12 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				oOption.selected = "selected";
 			oSelect.appendChild(oOption);
 		}
-		oForm.appendChild(oSelect);
+		oTeamsDiv.appendChild(oSelect);
+		oForm.appendChild(oTeamsDiv);
 		
-		oForm.appendChild(document.createElement("br"));
-		oForm.appendChild(document.createTextNode(toLanguage("Number of participants", "Nombre de participants ")+ ": "));
+		oParticipantsDiv = document.createElement("label");
+		oParticipantsDiv.style.display = "block";
+		oParticipantsDiv.appendChild(document.createTextNode(toLanguage("Number of participants", "Nombre de participants ")+ ": "));
 		var oSelect = document.createElement("select");
 		oSelect.name = "nbj";
 		oSelect.style.width = (iScreenScale*3+20) +"px";
@@ -21562,7 +21877,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			}
 			fInfos.nbPlayers = parseInt(this.value);
 		};
-		oForm.appendChild(oSelect);
+		oParticipantsDiv.appendChild(oSelect);
 		var oChoosePerso = document.createElement("a");
 		oChoosePerso.innerHTML = toLanguage("Choose characters...", "Choix des persos...");
 		oChoosePerso.href = "#null";
@@ -21581,11 +21896,13 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			selectPlayerScreen(IdJ,false,fInfos.nbPlayers);
 			return false;
 		};
-		oForm.appendChild(oChoosePerso);
+		oParticipantsDiv.appendChild(oChoosePerso);
+		oForm.appendChild(oParticipantsDiv);
 
 		if (!clSelected) {
-			oForm.appendChild(document.createElement("br"));
-			oForm.appendChild(document.createTextNode(toLanguage("Class", "Cylindrée ")+ ": "));
+			var oClassDiv = document.createElement("label");
+			oClassDiv.style.display = "block";
+			oClassDiv.appendChild(document.createTextNode(toLanguage("Class", "Cylindrée ")+ ": "));
 
 			oClassSelect = document.createElement("select");
 			oClassSelect.name = "cc";
@@ -21622,7 +21939,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			if (!isSelectedCc)
 				setCustomCcValue(oClassSelect, selectedCc,selectedMirror);
 			oClassSelect.currentValue = oClassSelect.value;
-			oForm.appendChild(oClassSelect);
+			oClassDiv.appendChild(oClassSelect);
 
 			var moreOptions = document.createElement("a");
 			moreOptions.href = "#null";
@@ -21633,7 +21950,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				oMoreOptionsScreen.style.display = "block";
 				return false;
 			}
-			oForm.appendChild(moreOptions);
+			oClassDiv.appendChild(moreOptions);
+			oForm.appendChild(oClassDiv);
 
 			var oMoreOptionsScreen = document.createElement("div");
 			oMoreOptionsScreen.style.position = "absolute";
@@ -22114,7 +22432,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	oPInput.style.top = (35*iScreenScale)+"px";
 	if (isOnline)
 		oPInput.style.top = (34*iScreenScale)+"px";
-	oPInput.onclick = function() {
+	function goBack() {
 		oScr.innerHTML = "";
 		oContainers[0].removeChild(oScr);
 		document.body.removeChild(cTable);
@@ -22140,15 +22458,45 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				selectTypeScreen();
 		}
 	}
+	oPInput.onclick = goBack;
 	if (isCustomSel)
 		oPInput.style.color = "#F90";
 	oScr.appendChild(oPInput);
 
-	if (clSelected && clSelected.autoset && clSelected.autoset.selectedPerso && !force) {
-		var persoSelector = document.getElementById("perso-selector-"+clSelected.autoset.selectedPerso);
-		if (persoSelector && persoSelector.onclick) {
-			persoSelector.onclick();
-			return;
+	if (clSelected && clSelected.autoset) {
+		if (clSelected.autoset.selectedOpponents) {
+			selectedOpponents = clSelected.autoset.selectedOpponents;
+			if (oParticipantsDiv)
+				oParticipantsDiv.style.display = "none";
+		}
+		if (clSelected.autoset.selectedTeams === 0) {
+			if (oTeamsDiv)
+				oTeamsDiv.style.display = "none";
+		}
+		if (clSelected.autoset.selectedPerso) {
+			if (force) {
+				goBack();
+				return;
+			}
+			var customCharCb;
+			var persoKey = clSelected.autoset.selectedPerso;
+			if (isCustomPerso(persoKey, {
+				forceReload: true,
+				callback: function() { customCharCb() }
+			})) {
+				customCharCb = function() {
+					pUnlockMap[persoKey] = 1;
+					var oDiv = createPersoSelector(persoKey);
+					oDiv.onclick();
+				}
+				oScr.style.visibility = "hidden";
+				return;
+			}
+			var persoSelector = document.getElementById("perso-selector-"+persoKey);
+			if (persoSelector && persoSelector.onclick) {
+				persoSelector.onclick();
+				return;
+			}
 		}
 	}
 
