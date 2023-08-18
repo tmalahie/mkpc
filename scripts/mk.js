@@ -10164,7 +10164,7 @@ function render() {
 			for (var j=0;j<oBgLayers.length;j++)
 				oBgLayers[j].draw(fRotation, i);
 
-			if ((strPlayer.length == 1) && !gameSettings.nomap)
+			if (oPlanCtn)
 				setPlanPos(frameState);
 		}
 	}
@@ -21539,8 +21539,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
     var pages=Math.ceil(nBasePersos / 24);
 
     function showCharacters(page) {
-		for(perso of charSelectors)
-			perso.remove();
+		for (var i=0;i<charSelectors.length;i++)
+			charSelectors[i].remove();
 		charSelectors = [];
 
 		var persosPage = Math.min(nBasePersos - (page * maxCharsPerPage), maxCharsPerPage);
