@@ -818,11 +818,11 @@ $clRulesByType = array(
 $clGroupsByType = array(
 	array(
 		'key' => 'no_action',
-		'label' => $language ? 'Without doing something' : 'Sans faire une action',
+		'label' => $language ? 'Without performing action' : 'Sans faire une action',
 	),
 	array(
 		'key' => 'extra_action',
-		'label' => $language ? 'By doing something' : 'En réalisant une action',
+		'label' => $language ? 'By performing action' : 'En réalisant une action',
 	),
 	array(
 		'key' => 'course_setup',
