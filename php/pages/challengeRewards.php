@@ -33,8 +33,8 @@ if (isset($_GET['clmsg'])) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-<link rel="stylesheet" href="styles/challenges.css" />
 <?php
+include('../includes/c_challenges.php');
 include('../includes/o_online.php');
 ?>
 <title><?php echo $language ? 'Challenge rewards':'Défis et récompenses'; ?> - Mario Kart PC</title>
