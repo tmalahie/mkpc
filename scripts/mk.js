@@ -3803,6 +3803,7 @@ function startGame() {
 				}
 			}
 			else {
+				clearTimeout(fncHandler);
 				for (var i=0;i<strPlayer.length;i++) {
 					if (oRaceCounts)
 						hudScreens[i].removeChild(oRaceCounts[i]);
@@ -4434,12 +4435,13 @@ function startGame() {
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
+			//* gogogo
+			fncHandler = setInterval(fncCount,1000);
+			//*/fncHandler = setInterval(fncCount,1);
 		}
 		iCntStep++;
-		//* gogogo
-		setTimeout(fncCount,1000);
-		//*/setTimeout(fncCount,1);
 	}
+	var fncHandler;
 	function showTeam(tnCountdown) {
 		var oTeam = oPlayers[0].team;
 		var oDiv = document.createElement("div");
