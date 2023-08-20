@@ -749,7 +749,7 @@ $clRulesByType = array(
 		),
 		'with_opponents' => array(
 			'description' => null,
-			'description_mockup' => $language ? 'chosse opponents...':'choix des adversaires...',
+			'description_mockup' => $language ? 'choose opponents...':'choix des adversaires...',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup'),
 			'parser' => function(&$scope) {
 				foreach ($scope['value'] as $i=>$value) {
