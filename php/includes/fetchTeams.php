@@ -14,6 +14,7 @@ if ($getExtra = getCourseExtra($course)) {
 			require_once('onlineStateUtils.php');
 			$now = round(microtime(true)*1000);
 			$res['time'] = $getTime['time']-$now;
+			$res['latency'] = $now-$startTs;
 			$res['connect'] = round($getTime['time']/67);
 			$res['previewTime'] = getTeamPreviewTime($nbPlayers);
 		}

@@ -1,4 +1,5 @@
 <?php
+$startTs = round(microtime(true)*1000);
 include('onlineUtils.php');
 $course = getCourse(array('check_ban' => true));
 if ($course) {
@@ -228,6 +229,7 @@ if ($course) {
 	echo ',{';
 	$minPlayers = isset($courseRules->minPlayers) ? $courseRules->minPlayers : 2;
 	echo 'minPlayers:'.$minPlayers;
+	echo ',latency:'.($now-$startTs);
 	if (!empty($courseRules->manualTeams)) {
 		require_once('onlineStateUtils.php');
 		$nbJoueurs = count($joueursData);
