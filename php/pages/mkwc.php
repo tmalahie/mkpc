@@ -15,7 +15,7 @@ $upperStage = $language ? 'Upper Group Stage':'Phase de Groupe supérieure';
 $swissStage = $language ? 'Swiss Stage':'Ronde Suisse';
 $playIn = $language ? 'Play-In':'Qualifications';
 $group = $language ? 'Group':'Groupe';
-$isPollClosed = false;
+$isPollClosed = true;
 $tournamentWinner = null;
 switch ($console) {
 case 'mkw':
@@ -71,7 +71,8 @@ case 'mkt':
                     'spa'=> $language ? 'Spain':'Espagne',
                     'bra'=> $language ? 'Brazil':'Brésil',
                     'net'=> $language ? 'Netherlands':'Pays-Bas'
-                )
+                ),
+                'eliminated' => array('bra', 'net')
             ),
             "$group 2" => array(
                 'list' => array(
@@ -79,7 +80,8 @@ case 'mkt':
                     'col'=> $language ? 'Colombia':'Colombie',
                     'gau'=> $language ? 'Germany-Austria':'Allemagne-Autriche',
                     'aus'=> $language ? 'Australia':'Australie'
-                )
+                ),
+                'eliminated' => array('gau', 'aus')
             ),
             "$group 3" => array(
                 'list' => array(
@@ -87,7 +89,8 @@ case 'mkt':
                     'ukg'=> $language ? 'United Kingdom':'Royaume-Uni',
                     'swi'=> $language ? 'Switzerland':'Suisse',
                     'gua'=> $language ? 'Guatemala':'Guatemala'
-                )
+                ),
+                'eliminated' => array('swi', 'gua')
             ),
             "$group 4" => array(
                 'list' => array(
@@ -95,7 +98,8 @@ case 'mkt':
                     'mex'=> $language ? 'Mexico':'Mexique',
                     'ven'=> $language ? 'Venezuela':'Venezuela',
                     'pan'=> $language ? 'Panama':'Panama'
-                )
+                ),
+                'eliminated' => array('ven', 'pan')
             )
         )
     );
@@ -748,11 +752,11 @@ if ($id) {
                                 }
                                 ?>
                                 </div>
-                                <?php
-                                /*<div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir le tableau des qualifications'; ?></a></div>
+                                <div class="mBracket">+ <a href="javascript:toggleBracket()"><?php echo $language ? 'See tournament bracket' : 'Voir le tableau des qualifications'; ?></a></div>
                                 <div id="mBracket">
-                                    <img src="https://cdn.discordapp.com/attachments/309729458925993985/1005467247210418205/unknown.png" alt="Bracket" />
-                                </div>*/
+                                    <img src="https://media.discordapp.net/attachments/1137158268653928618/1143299765686243451/Bracket.png" alt="Bracket" />
+                                </div>
+                                <?php
                             }
                             if ($tournamentWinner) {
                                 echo '<h2>';
