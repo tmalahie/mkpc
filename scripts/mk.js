@@ -21502,7 +21502,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				else
 					selectPlayerScreen(cImg.j,undefined,nbSels);
 				var cpId = /^cp-\w+-(\d+)$/g.exec(cImg.alt);
-				if (cpId)
+				if (cpId && !oDiv.dataset.autoset)
 					xhr("selectPerso.php", "id="+cpId[1], function(){return true});
 			}
 		}
@@ -22489,6 +22489,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				customCharCb = function() {
 					pUnlockMap[persoKey] = 1;
 					var oDiv = createPersoSelector(persoKey);
+					oDiv.dataset.autoset = 1;
 					oDiv.onclick();
 				}
 				oScr.style.visibility = "hidden";
