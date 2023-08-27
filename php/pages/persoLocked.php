@@ -7,6 +7,10 @@ include('../includes/initdb.php');
 require_once('../includes/utils-challenges.php');
 if (isset($_GET['cl']))
     $clId = $_GET['cl'];
+elseif (isset($_GET['cltype']) && isset($_GET['clrace'])) {
+    if ($getClId = mysql_fetch_array(mysql_query('SELECT id FROM mkclrace WHERE type="'. $_GET['cltype'] .'" AND circuit="'. $_GET['clrace'] .'"')))
+        $clId = $getClId['id'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">

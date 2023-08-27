@@ -24268,7 +24268,10 @@ function selectChallengesScreen() {
 		}
 		if (clRewards.length) {
 			var oLink = document.createElement("a");
-			oLink.href = "persoLocked.php?cl="+mainClId;
+			if (mainClId)
+				oLink.href = "persoLocked.php?cl="+mainClId;
+			else if (typeof commentType !== "undefined" && typeof commentCircuit !== "undefined")
+				oLink.href = "persoLocked.php?cltype="+commentType+"&clrace="+commentCircuit;
 			oLink.target = "_blank";
 			oLink.style.color = "white";
 			oLink.style.textDecoration = "none";
