@@ -46,6 +46,7 @@ if ($id) {
 				$newSpectatorId = joinSpectatorMode($newCourse);
 		}
 		else {
+			addLog("switch course $switchCourse");
 			if ($switchCourse) {
 				mysql_query('UPDATE `mkjoueurs` SET course='.$newCourse.',choice_map=0 WHERE id='.$id);
 				mysql_query('UPDATE `mkplayers` SET course='.$newCourse.' WHERE id='.$id);
@@ -56,6 +57,11 @@ if ($id) {
 				mysql_query('DELETE FROM `mkspectators` WHERE course='.$newCourse.' AND player='.$id);
 		}
 		unset($_SESSION['date']);
+	}
+	function addLog($msg) {
+		global $id, $verboseLogs, $logCtx;
+		if ($verboseLogs)
+			mysql_query('INSERT INTO `mkmmlogs` SET ctx="'. $logCtx .'", player="'. $id .'", message="'. $msg .'"');
 	}
 	function sendCourseNotifs() {
 		global $id,$linkOptions;
@@ -162,12 +168,18 @@ if ($id) {
 		return true;
 	}
 	while (true) {
-		if (!$course)
+		addLog("course=$course");
+		if (!$course) {
 			$cas = 1; // Il faudra créer une nouvelle course, si on n'en trouve pas une disponible (INSERT INTO mariokart)
-		elseif (!mysql_numrows(mysql_query('SELECT * FROM `mkjoueurs` WHERE course='. $course .' AND id!='.$id)))
+			addLog("new course");
+		}
+		elseif (!mysql_numrows(mysql_query('SELECT * FROM `mkjoueurs` WHERE course='. $course .' AND id!='.$id))) {
+			addLog("no more players");
 			$cas = 2; // Plus de joueurs connecté sur la course actuelle. cas=2 : On pourra garder cette course, si on n'en trouve pas une disponible
+		}
 		elseif (($getTime=mysql_fetch_array(mysql_query('SELECT time,map,cup,mode,link FROM `mariokart` WHERE id='. $course))) &&
 			!get_remaining_players($course, $getTime)) {
+			addLog("all afk");
 			// Tous les joueurs de la course actuelle sont AFK, on peut les kicker
 			mysql_query('UPDATE `mariokart` SET map=-1,time='.$time.' WHERE id='. $course);
 			mysql_query('UPDATE `mkjoueurs` SET course=0,choice_map=0 WHERE course='. $course);
@@ -179,16 +191,22 @@ if ($id) {
 		elseif ($getTime && $getTime['map']==-1 && $getTime['cup']==$nid && $getTime['mode']==$nmode && $getTime['link']==$nlink && $getTime['time']>=($time+10)) {
 			// La course actuelle est sur le point de démarrer
 			// On vérifie que le nombre des joueurs match les conditions de la partie
-			if ($switchCourse && (get_remaining_players($course, $getTime, false) >= $linkOptions->rules->maxPlayers))
+			addLog("course pending for start");
+			if ($switchCourse && (get_remaining_players($course, $getTime, false) >= $linkOptions->rules->maxPlayers)) {
+				addLog("too many players");
 				$cas = 1; // Trop de joueurs, il faudra rejoindre une autre game
+			}
 			else {
+				addLog("enough players");
 				$nbJoueurs = get_remaining_players($course, $getTime);
 				$nbPlayersIncludingMe = $nbJoueurs + ($noJoin ? 0:1);
 				if ($nbPlayersIncludingMe < $linkOptions->rules->minPlayers) {
+					addLog("not enough players");
 					$cas = 2; // Pas assez de joueurs, on attend
 					store_pending_players($nbPlayersIncludingMe, $course);
 				}
 				else {
+					addLog("ready to start");
 					// C'est bon, on affiche le temps restant pour choisir la map
 					$tempsRestant = ($getTime['time']-$time);
 					if ($tempsRestant > 35) {
@@ -204,6 +222,7 @@ if ($id) {
 			}
 		}
 		elseif (!mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='. $course .' AND id!="'.$id.'" AND connecte>='. $lConnect))) {
+			addLog("dead code");
 			// Dead code, normalement
 			//mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL,1,"Error 404")');
 			if (isset($_SESSION['date'])) {
@@ -228,6 +247,7 @@ if ($id) {
 				$_SESSION['date'] = $time;
 		}
 		elseif ($getTime && ($getTime['map'] >= 0) && $switchCourse) {
+			addLog("course leave in the middle");
 			if (check_for_active_games($course)) {
 				mysql_close();
 				exit;
@@ -244,6 +264,11 @@ if ($id) {
 		else
 			break;
 	}
+	if (!empty($getTime))
+		addLog('getTime:'.$getTime['time'].','.$getTime['map'].','.$getTime['cup'].','.$getTime['mode'].','.$getTime['link']);
+	else
+		addLog('getTime is empty');
+	addLog("cas=$cas");
 	if ($cas) {
 		$getCourses = mysql_query('SELECT mariokart.id,COUNT(j.id) AS nb,mariokart.time FROM `mariokart` INNER JOIN `mkjoueurs` j ON j.course=mariokart.id WHERE map=-1 AND time>='. ($time+10) .' AND mariokart.id!='. $course . $cupSQL .' GROUP BY mariokart.id ORDER BY nb DESC');
 		$search = true;
@@ -288,6 +313,7 @@ if ($id) {
 						break;
 					mysql_query('INSERT INTO `mariokart` VALUES (null, -1, '. ($time+35) .','. $nid .','. $nmode .','. $nlink .')');
 					$pID = mysql_insert_id();
+					addLog("course created $pID");
 				}
 				if (!$noJoin) {
 					mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$pID.',p.course='.$pID.',p.connecte=0,j.choice_map=0 WHERE j.id="'. $id .'"');
@@ -298,6 +324,7 @@ if ($id) {
 				if (!check_private_race_condition($course))
 					break;
 				mysql_query('UPDATE `mariokart` SET time='. ($time+35) .', map=-1,cup='. $nid .',mode='. $nmode .',link='. $nlink .' WHERE id='. $course);
+				addLog("course updated $course");
 				switchCourseIfNeeded();
 			}
 			return_failure();

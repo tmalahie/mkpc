@@ -47,13 +47,19 @@ $nlink = 0;
 $linkOptions = new stdClass();
 $linkOptions->public = true;
 $linkOptions->rules = new stdClass();
+$verboseLogs = false;
 if (isset($_POST['key']) && is_numeric($_POST['key'])) {
     $nlink = $_POST['key'];
-    if (!mysql_numrows(mysql_query('SELECT * FROM `mkprivgame` WHERE id='.$nlink)))
+    $privGameData = mysql_fetch_array(mysql_query('SELECT player FROM `mkprivgame` WHERE id='.$nlink));
+    if (!$privGameData)
         $nlink = 0;
     elseif ($getOptions = mysql_fetch_array(mysql_query('SELECT rules,public FROM `mkgameoptions` WHERE id='.$nlink))) {
         $linkOptions->rules = json_decode($getOptions['rules']);
         $linkOptions->public = $getOptions['public'];
+        if ($privGameData['player'] == 40764) {
+            $verboseLogs = true;
+            $logCtx = bin2hex(random_bytes(8));
+        }
     }
     else
         $linkOptions->public = false;
