@@ -18119,86 +18119,99 @@ function cycle() {
 	runOneFrame();
 }
 var decorPos = {};
+var lastErrorTs = 0;
 function runOneFrame() {
-	handleGamepadEvents();
-	if (!timeTrialMode()) {
-		for (var i=0;i<aKarts.length;i++)
-			colKart(i);
-	}
-	for (var i=0;i<aKarts.length;i++) {
-		var oKart = aKarts[i];
-		if (oKart.pushVector) {
-			var maxPush = 6*cappedRelSpeed();
-			var modPush2 = oKart.pushVector[0]*oKart.pushVector[0] + oKart.pushVector[1]*oKart.pushVector[1];
-			if (modPush2 > maxPush*maxPush) {
-				var modPush = Math.sqrt(modPush2);
-				oKart.pushVector[0] *= maxPush/modPush;
-				oKart.pushVector[1] *= maxPush/modPush;
-			}
-			if (!oKart.shift)
-				oKart.shift = [0,0,0];
-			oKart.shift[0] += oKart.pushVector[0];
-			oKart.shift[1] += oKart.pushVector[1];
-			delete oKart.pushVector;
+	try {
+		handleGamepadEvents();
+		if (!timeTrialMode()) {
+			for (var i=0;i<aKarts.length;i++)
+				colKart(i);
 		}
-	}
-	for (var i=0;i<aKarts.length;i++) {
-		var oKart = aKarts[i];
-		if (i && (course == "CM") && !oKart.cpu) {
-			var jTrajet = jTrajets[i-1];
-			if (timer <= jTrajet.length) {
-				var getInfos = jTrajet[timer-1];
-				oKart.moveGhost(getInfos);
-				continue;
-			}
-			else {
-				oKart.cpu = true;
-				oKart.aipoint = 0;
-				oKart.tours = oMap.tours+1;
-				oKart.demitours = 0;
-				oKart.lastAItime = 0;
-				oKart.arme = false;
-				oKart.stopDrifting();
-				oKart.stopStunt();
-			}
-		}
-		if (!oKart.loose || (isOnline && !finishing)) {
-			if (oKart.cpu)
-				ai(oKart);
-			move(i);
-			if (course == "CM" && !oKart.cpu) {
-				var trajetplus = [Math.round(oKart.x),Math.round(oKart.y),oKart.z,Math.round(oKart.rotation)];
-				var trajetflags = "0000".split("");
-				if (oKart.tombe == 20)
-					trajetflags[0] = "1";
-				if (oKart.ctrl) {
-					trajetflags[1] = "1";
-					if (oKart.rotincdir > 0)
-						trajetflags[2] = "1";
-					else if (oKart.rotincdir < 0)
-						trajetflags[3] = "1";
+		for (var i=0;i<aKarts.length;i++) {
+			var oKart = aKarts[i];
+			if (oKart.pushVector) {
+				var maxPush = 6*cappedRelSpeed();
+				var modPush2 = oKart.pushVector[0]*oKart.pushVector[0] + oKart.pushVector[1]*oKart.pushVector[1];
+				if (modPush2 > maxPush*maxPush) {
+					var modPush = Math.sqrt(modPush2);
+					oKart.pushVector[0] *= maxPush/modPush;
+					oKart.pushVector[1] *= maxPush/modPush;
 				}
-				if (trajetflags.indexOf("1") != -1)
-					trajetplus.push(trajetflags.join(""));
-				iTrajet.push(trajetplus);
+				if (!oKart.shift)
+					oKart.shift = [0,0,0];
+				oKart.shift[0] += oKart.pushVector[0];
+				oKart.shift[1] += oKart.pushVector[1];
+				delete oKart.pushVector;
 			}
 		}
+		for (var i=0;i<aKarts.length;i++) {
+			var oKart = aKarts[i];
+			if (i && (course == "CM") && !oKart.cpu) {
+				var jTrajet = jTrajets[i-1];
+				if (timer <= jTrajet.length) {
+					var getInfos = jTrajet[timer-1];
+					oKart.moveGhost(getInfos);
+					continue;
+				}
+				else {
+					oKart.cpu = true;
+					oKart.aipoint = 0;
+					oKart.tours = oMap.tours+1;
+					oKart.demitours = 0;
+					oKart.lastAItime = 0;
+					oKart.arme = false;
+					oKart.stopDrifting();
+					oKart.stopStunt();
+				}
+			}
+			if (!oKart.loose || (isOnline && !finishing)) {
+				if (oKart.cpu)
+					ai(oKart);
+				move(i);
+				if (course == "CM" && !oKart.cpu) {
+					var trajetplus = [Math.round(oKart.x),Math.round(oKart.y),oKart.z,Math.round(oKart.rotation)];
+					var trajetflags = "0000".split("");
+					if (oKart.tombe == 20)
+						trajetflags[0] = "1";
+					if (oKart.ctrl) {
+						trajetflags[1] = "1";
+						if (oKart.rotincdir > 0)
+							trajetflags[2] = "1";
+						else if (oKart.rotincdir < 0)
+							trajetflags[3] = "1";
+					}
+					if (trajetflags.indexOf("1") != -1)
+						trajetplus.push(trajetflags.join(""));
+					iTrajet.push(trajetplus);
+				}
+			}
+		}
+		if (course != "CM") {
+			var aRankScores = getRankScores();
+			for (var i=0;i<aKarts.length;i++)
+				places(i,aRankScores);
+		}
+		moveItems();
+		moveDecor();
+		if (oSpecCam)
+			oSpecCam.move();
+		if (!oPlayers[0].cpu && !oPlayers[0].loose)
+			handleChallengeEvents();
+		if (refreshDatas)
+			resetDatas();
+		handleAudio();
+		render();
 	}
-	if (course != "CM") {
-		var aRankScores = getRankScores();
-		for (var i=0;i<aKarts.length;i++)
-			places(i,aRankScores);
+	catch (e) {
+		console.error(e);
+		var errorTs = new Date().getTime();
+		if (errorTs - lastErrorTs > 10000) {
+			o_xhr("logGameCrash.php", "error="+encodeURIComponent(e.stack), function() {
+				return true;
+			});
+			lastErrorTs = errorTs;
+		}
 	}
-	moveItems();
-	moveDecor();
-	if (oSpecCam)
-		oSpecCam.move();
-	if (!oPlayers[0].cpu && !oPlayers[0].loose)
-		handleChallengeEvents();
-	if (refreshDatas)
-		resetDatas();
-	handleAudio();
-	render();
 }
 
 var gameControls = {
