@@ -56,7 +56,7 @@ if (isset($_POST['key']) && is_numeric($_POST['key'])) {
     elseif ($getOptions = mysql_fetch_array(mysql_query('SELECT rules,public FROM `mkgameoptions` WHERE id='.$nlink))) {
         $linkOptions->rules = json_decode($getOptions['rules']);
         $linkOptions->public = $getOptions['public'];
-        if (in_array($privGameData['player'], array(3586,40764))) {
+        if (in_array($privGameData['player'], array(3586,5164,40764))) {
             $verboseLogs = true;
             $logCtx = bin2hex(random_bytes(8));
         }
