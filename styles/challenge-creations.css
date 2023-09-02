@@ -37,11 +37,13 @@
 .challenges-list-item .challenges-item-description h2 {
 	margin: 0;
 	font-size: 1em;
+	word-break: break-word;
 }
 .challenges-list-item .challenges-item-description h3 {
 	margin: 0;
 	font-size: 0.9em;
 	color: #014;
+	word-break: break-word;
 }
 .challenges-list-item:hover .challenges-item-description h3 {
 	color: #059;
