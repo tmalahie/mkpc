@@ -1,5 +1,4 @@
 <?php
-$startTs = round(microtime(true)*1000);
 header('Content-Type: application/json');
 include('../includes/initdb.php');
 session_start();
