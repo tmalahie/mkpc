@@ -12,10 +12,16 @@ if ($id) {
 	$noJoin = isset($_POST['nojoin']);
 	if ($noJoin) $linkOptions->rules->maxPlayers += 1000; // hack to remove max player restriction if spectator mode enabled
 
+	function addLog($msg) {
+		global $id, $verboseLogs, $logCtx;
+		if ($verboseLogs)
+			mysql_query('INSERT INTO `mkmmlogs` SET ctx="'. $logCtx .'", player="'. $id .'", message="'. $msg .'"');
+	}
 	$targetCourse = 0;
 	if ($spectatorId && !$course)
 		$spectatorId = 0;
 	if ($spectatorId) {
+		addLog("spectatorId $spectatorId");
 		$currentCourse = getCourse(array(
 			'spectator' => 0
 		));
@@ -26,6 +32,8 @@ if ($id) {
 			}
 			elseif ($course)
 				$switchCourse = true;
+			addLog("currentCourse $currentCourse");
+			addLog("switchCourse $switchCourse");
 		}
 	}
 	if (!$course && !$linkOptions->public) {
@@ -57,11 +65,6 @@ if ($id) {
 				mysql_query('DELETE FROM `mkspectators` WHERE course='.$newCourse.' AND player='.$id);
 		}
 		unset($_SESSION['date']);
-	}
-	function addLog($msg) {
-		global $id, $verboseLogs, $logCtx;
-		if ($verboseLogs)
-			mysql_query('INSERT INTO `mkmmlogs` SET ctx="'. $logCtx .'", player="'. $id .'", message="'. $msg .'"');
 	}
 	function sendCourseNotifs() {
 		global $id,$linkOptions;
@@ -298,8 +301,10 @@ if ($id) {
 			}
 		}
 		if ($search) {
-			if (check_for_active_games())
+			if (check_for_active_games()) {
+				addLog("Cancel search for active games");
 				$search = false;
+			}
 		}
 		if ($search) {
 			switch ($cas) {
