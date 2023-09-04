@@ -127,7 +127,7 @@ if (isset($privateLink)) {
 <?php
 if (!$isCustom) {
 	?>
-<script type="text/javascript" src="scripts/maps.php"></script>
+<script type="text/javascript" src="scripts/maps.php?reload=2"></script>
 	<?php
 }
 ?>
@@ -277,7 +277,7 @@ else {
 include('../includes/handleCupOptions.php');
 ?>
 </script>
-<script type="text/javascript" src="scripts/mk.v171.js"></script>
+<?php include('../includes/mk/main.php') ?>
 <script type="text/javascript">document.addEventListener("DOMContentLoaded", MarioKart);</script>
 </head>
 <body>

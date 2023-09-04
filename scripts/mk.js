@@ -25551,7 +25551,6 @@ function choose(map,rand) {
 	if (onlineSpectatorState)
 		oTable.style.display = "none";
 	var oTBody = document.createElement("tbody");
-	var lastCallTs;
 	function refreshTab(reponse) {
 		if (waitHandler == null) return;
 		if (reponse) {
@@ -25668,8 +25667,6 @@ function choose(map,rand) {
 						else
 							oDoubleItemsEnabled = true;
 						var tNow = new Date().getTime();
-						var iPing = (tNow - lastCallTs - gameRules.latency)/2;
-						rCode[2] -= iPing;
 						tnCourse = tNow+rCode[2];
 						if (isSingle)
 							rCode[2] = 0;
@@ -25841,7 +25838,6 @@ function choose(map,rand) {
 		}
 	}
 	else {
-		lastCallTs = new Date().getTime();
 		xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(course=="BB"?"&battle":"")+(rand?"&rand":""), refreshTab);
 
 		hideSpectatorLink();
@@ -25856,7 +25852,6 @@ function choose(map,rand) {
 			xhrParams.push("spectator="+onlineSpectatorId);
 		if (course == "BB")
 			xhrParams.push("battle");
-		lastCallTs = new Date().getTime();
 		xhr("getMap.php", xhrParams.join("&"), refreshTab);
 	}
 	oTable.appendChild(oTBody);
@@ -25998,7 +25993,6 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 				if (isBattle) teamsPayload += "&battle";
 				if (isSingle) teamsPayload += "&single";
 				removeTeamSelectionUI();
-				lastCallTs = new Date().getTime();
 				xhr("chooseTeams.php", teamsPayload, function(res) {
 					if (!res) return false;
 					var gTeams;
@@ -26268,10 +26262,8 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		}
 		smoothTeamMove(0,150,20);
 	}
-	var lastCallTs;
 	function onTeamsSelected(res) {
-		var iPing = (new Date().getTime() - lastCallTs - res.latency)/2;
-		tnCourse = new Date().getTime()+res.time - iPing;
+		tnCourse = new Date().getTime()+res.time;
 
 		var choosedTeams = res.teams;
 		var playersTeams = {};
@@ -26397,7 +26389,6 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		if (isBattle) teamsPayload += "&battle";
 		if (isSingle) teamsPayload += "&single";
 		removeTeamSelectionUI();
-		lastCallTs = new Date().getTime();
 		xhr("chooseTeams.php", teamsPayload, function(res) {
 			if (!res) return false;
 			var gTeams;
@@ -26429,7 +26420,6 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			var teamsPayload = "";
 			if (isBattle) teamsPayload = "battle";
 			removeTeamSelectionUI();
-			lastCallTs = new Date().getTime();
 			xhr("chooseTeams.php", teamsPayload, function(res) {
 				if (!res) return false;
 				var gTeams;
@@ -26495,7 +26485,6 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		}
 
 		function waitForSelection() {
-			lastCallTs = new Date().getTime();
 			xhr("getTeams.php", (onlineSpectatorId ? "spectator="+onlineSpectatorId : ""), function(res) {
 				oScr.style.visibility = "";
 				if (!res) return false;
