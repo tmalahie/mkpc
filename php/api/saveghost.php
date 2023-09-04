@@ -48,14 +48,27 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 			mysql_query('INSERT INTO `mkghosts` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3].',player='.$player.',class='.$cc.',circuit='.$map.',perso="'.$_POST['perso'].'",time="'.$time.'",lap_times="'.$times.'"');
 			$cID = mysql_insert_id();
 		}
-		$sqlBatch = "INSERT INTO `mkghostdata` VALUES";
+		$ptsData = array();
 		for ($i=0;$i<$n;$i++) {
 			$infos = explode('_', $_POST['p'.$i]);
-			if ($i)
-				$sqlBatch .= ',';
-			$sqlBatch .= "($cID,$i,'".$infos[0]."','".$infos[1]."','".$infos[2]."','".$infos[3]."',b'".(empty($infos[4])?0:$infos[4])."')";
+			$ptData = array($infos[0],$infos[1],$infos[2],$infos[3]);
+			if (!empty($infos[4])) {
+				$eInfos = $infos[4];
+				$extra = array();
+				if (isset($eInfos[0]))
+					$extra['f'] = 1; // fall
+				if (isset($eInfos[1])) {
+					if (isset($eInfos[2]))
+						$extra['d'] = 1; // drift right
+					elseif (isset($eInfos[3]))
+						$extra['d'] = -1; // drift left
+					else
+						$extra['d'] = 0; // drift straight
+				}
+				$ptData[] = $extra;
+			}
 		}
-		mysql_query($sqlBatch);
+		mysql_query('INSERT INTO `mkghostsdata` SET id="'. $cID .'",data="'. mysql_real_escape_string(gzcompress(json_encode($ptsData))) .'"');
 		mysql_close();
 	}
 	echo 1;
