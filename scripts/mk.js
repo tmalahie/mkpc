@@ -10806,9 +10806,9 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 								}
 								handleDecorHit(type);
 							}
-							if (decorBehavior.transparent)
-								break;
 						}
+						if (decorBehavior.transparent)
+							break;
 						return false;
 					}
 					else {
