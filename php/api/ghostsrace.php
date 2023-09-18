@@ -10,7 +10,7 @@ $nids = count($ids);
 if ($nids && ($nids<=10)) {
 	include('../includes/initdb.php');
 	require_once('../includes/utils-tt.php');
-	$getTemps = mysql_query('SELECT data FROM `mkghostdata` WHERE id IN ('. implode(',',$ids) .') ORDER BY id');
+	$getTemps = mysql_query('SELECT data FROM `mkghostsdata` WHERE id IN ('. implode(',',$ids) .') ORDER BY id');
 	echo '[';
 	$colon = '';
 	while ($time = mysql_fetch_array($getTemps)) {

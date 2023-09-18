@@ -55,18 +55,19 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 			if (!empty($infos[4])) {
 				$eInfos = $infos[4];
 				$extra = array();
-				if (isset($eInfos[0]))
+				if (!empty($eInfos[0]))
 					$extra['f'] = 1; // fall
-				if (isset($eInfos[1])) {
-					if (isset($eInfos[2]))
+				if (!empty($eInfos[1])) {
+					if (!empty($eInfos[2]))
 						$extra['d'] = 1; // drift right
-					elseif (isset($eInfos[3]))
+					elseif (!empty($eInfos[3]))
 						$extra['d'] = -1; // drift left
 					else
 						$extra['d'] = 0; // drift straight
 				}
 				$ptData[] = $extra;
 			}
+			$ptsData[] = $ptData;
 		}
 		mysql_query('INSERT INTO `mkghostsdata` SET id="'. $cID .'",data="'. mysql_real_escape_string(gzcompress(json_encode($ptsData))) .'"');
 		mysql_close();

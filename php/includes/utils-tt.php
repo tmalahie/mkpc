@@ -5,7 +5,7 @@ function print_ghost_frame($time) {
 	if (!empty($time[4])) {
 		$extra = $time[4];
 		$flags = '0000';
-		if ($extra->f)
+		if (isset($extra->f))
 			$flags[0] = '1'; // fall
 		if (isset($extra->d)) {
 			$flags[1] = '1';
@@ -14,13 +14,13 @@ function print_ghost_frame($time) {
 			elseif ($extra->d < 0)
 				$flags[3] = '1';
 		}
-		echo ',"'.$flags[3].'"';
+		echo ',"'.$flags.'"';
 	}
 	echo ']';
 }
 function print_ghost_frames($ghostId) {
 	echo '[';
-	if ($ghost = mysql_fetch_array(mysql_query('SELECT data FROM `mkghostdata` WHERE id="'. $ghostId.'"')))
+	if ($ghost = mysql_fetch_array(mysql_query('SELECT data FROM `mkghostsdata` WHERE id="'. $ghostId.'"')))
 		print_ghost_data($ghost);
 	echo ']';
 }
