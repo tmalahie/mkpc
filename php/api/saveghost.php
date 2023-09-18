@@ -42,7 +42,7 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkghosts` WHERE class="'.$cc.'" AND circuit="'.$map.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
 			$cID = $getId['id'];
 			mysql_query('UPDATE `mkghosts` SET perso="'. $_POST['perso'] .'", player='. $player .', time="'.$time.'", lap_times="'.$times.'" WHERE id='. $cID);
-			mysql_query('DELETE FROM `mkghostdata` WHERE ghost='. $cID);
+			mysql_query('DELETE FROM `mkghostsdata` WHERE id='. $cID);
 		}
 		else {
 			mysql_query('INSERT INTO `mkghosts` SET identifiant='.$identifiants[0].',identifiant2='.$identifiants[1].',identifiant3='.$identifiants[2].',identifiant4='.$identifiants[3].',player='.$player.',class='.$cc.',circuit='.$map.',perso="'.$_POST['perso'].'",time="'.$time.'",lap_times="'.$times.'"');
@@ -51,7 +51,7 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 		$ptsData = array();
 		for ($i=0;$i<$n;$i++) {
 			$infos = explode('_', $_POST['p'.$i]);
-			$ptData = array($infos[0],$infos[1],$infos[2],$infos[3]);
+			$ptData = array($infos[0],$infos[1],round($infos[2],3),$infos[3]);
 			if (!empty($infos[4])) {
 				$eInfos = $infos[4];
 				$extra = array();
