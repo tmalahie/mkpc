@@ -3860,12 +3860,13 @@ function startGame() {
 						if ($virtualPauseBtn)
 							$virtualPauseBtn.style.display = "block";
 						if (stillRacing) {
-							var btnFontSize = (course != "CM") ? (iScreenScale*3):Math.round(iScreenScale*2.5);
+							var limitedOptions = (course != "CM" || isSingle);
+							var btnFontSize = limitedOptions ? (iScreenScale*3):Math.round(iScreenScale*2.5);
 							oInfos.innerHTML =
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr>'+
 								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RETRY  ', 'RÉESSAYER') +' &nbsp; " id="recommencer" /></td></tr>'+
-								((course != "CM") ? '':
+								(limitedOptions ? '':
 									'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
 									'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value="'+ toLanguage('  CHANGE RACE  ', 'CHANGER CIRCUIT') +'" id="changecircuit" /></td></tr>'
 								)+
@@ -3953,7 +3954,7 @@ function startGame() {
 								resetEvents();
 								resetApp();
 							};
-							if (course == "CM") {
+							if (!limitedOptions) {
 								document.getElementById("changecircuit").onclick = function() {
 									interruptGame();
 									removeGameMusics();
@@ -5586,7 +5587,7 @@ function continuer() {
 									aSmall.innerHTML = toLanguage("Saving ghost...","Enregistrement du fantôme...");
 									aPara2.appendChild(aSmall);
 									aPara2.style.visibility = "";
-									var oRequest = "map="+ oMap.map +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers)+"&cc="+getActualCc();
+									var oRequest = "map="+ getCreationId(oMap) +"&type="+ getCreationTable() +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers)+"&cc="+getActualCc();
 									for (i=0;i<iTrajet.length;i++)
 										oRequest += "&p"+ i +"="+ iTrajet[i].toString().replace(/\,/g, "_");
 									xhr("saveghost.php", oRequest, function(reponse) {
@@ -5665,7 +5666,7 @@ function continuer() {
 			oCheckSpan.innerHTML = " "+toLanguage("Save ghost","Enregistrer le fantôme");
 			oCheckLabel.appendChild(oCheckSpan);
 			aPara12.appendChild(oCheckLabel);
-			if ((page != "MK") || (timerMS >= gRecord)) {
+			if (timerMS >= gRecord) {
 				oCheckbox.checked = false;
 				aPara12.style.display = "none";
 			}
@@ -5782,6 +5783,13 @@ function continuer() {
 		}
 		if (gSelectedPerso) oClassement.style.display = "none";
 		document.getElementById("classement").appendChild(oClassement);
+
+		if (isSingle) {
+			oContinue.style.width = Math.round(36*iScreenScale) +"px";
+			if (gSelectedPerso)
+				oReplay.style.marginTop = oReplay.style.marginBottom = Math.round(iScreenScale*2) +"px";
+			oChangeRace.style.display = "none";
+		}
 
 	}
 	document.getElementById("continuer").appendChild(oContinue);
@@ -16046,7 +16054,7 @@ function move(getId, triggered) {
 									oForm.appendChild(aPara2);
 									$mkScreen.appendChild(oForm);
 									
-									if (page == "MK" && timerMS >= gRecord)
+									if (timerMS >= gRecord)
 										oRetour.focus();
 									else
 										oSave.focus();
@@ -20948,6 +20956,26 @@ function openChallengeEditor() {
 	else
 		document.location.href = document.location.href.replace(/\/(\w+)\.php\?(.+)$/g, '/challenges.php?page=$1&$2');
 }
+function getCreationId(oMap) {
+	switch (page) {
+	case "CI":
+	case "AR":
+		return oMap.id;
+	}
+	return oMap.map;
+}
+function getCreationTable() {
+	switch (page) {
+	case "CI":
+	case "AR":
+		return "mkcircuits";
+	case "MA":
+		return "circuits";
+	case "BA":
+		return "arenes";
+	}
+	return "";
+}
 
 function selectTypeCreate() {
 	var oScr = document.createElement("div");
@@ -25419,29 +25447,8 @@ function selectRaceScreen(cup) {
 						appendContainers();
 						resetGame(this.map);
 					}
-					else if (page != "MK") {
-						gPersos.length = 0;
-						resetGame(this.map);
-					}
-					else {
-						document.body.style.cursor = "progress";
-						var tMap = this.map;
-						var iMap = tMap.replace(/^[a-zA-Z]+([0-9]+)$/, "$1");
-						xhr("ghostsave.php", "map="+ iMap +"&cc="+ getActualCc(), function(reponse) {
-							var ghostSaves;
-							try {
-								ghostSaves = eval(reponse);
-							}
-							catch (e) {
-								return false;
-							}
-							if (ghostSaves)
-								selectFantomeScreen(ghostSaves, iMap-1);
-							else
-								selectFantomeScreen(undefined, iMap-1);
-							return true;
-						});
-					}
+					else
+						loadGhostScreen(this.map);
 				}
 				else
 					choose(this.ref);
@@ -25521,6 +25528,10 @@ function selectRaceScreen(cup) {
 		}
 		cup++;
 		strMap = "map"+ cup;
+		if (course == "CM") {
+			loadGhostScreen(strMap);
+			return;
+		}
 		appendContainers();
 		resetGame(strMap);
 		return;
@@ -26875,6 +26886,24 @@ function connexion() {
 
 	updateMenuMusic(0);
 }
+function loadGhostScreen(map) {
+	document.body.style.cursor = "progress";
+	var oMap = oMaps[map];
+	xhr("ghostsave.php", "map="+ getCreationId(oMap) +"&type="+ getCreationTable() +"&cc="+ getActualCc(), function(reponse) {
+		var ghostSaves;
+		try {
+			ghostSaves = eval(reponse);
+		}
+		catch (e) {
+			return false;
+		}
+		if (ghostSaves)
+			selectFantomeScreen(ghostSaves, oMap.ref-1);
+		else
+			selectFantomeScreen(undefined, oMap.ref-1);
+		return true;
+	});
+}
 function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	var oScr = document.createElement("div");
 	var oStyle = oScr.style;
@@ -26884,7 +26913,14 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
 
-	oScr.appendChild(toTitle(lCircuits[map], 0.4));
+	var oTitle = toTitle(lCircuits[map], 0.5);
+	oTitle.style.fontSize = Math.round(7*iScreenScale)+"px";
+	oTitle.style.left = (iScreenScale*2)+"px";
+	oTitle.style.width = (iScreenScale*(iWidth-2))+"px";
+	oTitle.style.whiteSpace = "nowrap";
+	oTitle.style.overflow = "hidden";
+	oTitle.style.textOverflow = "ellipsis";
+	oScr.appendChild(oTitle);
 	
 	var oTable = document.createElement("table");
 	oTable.setAttribute("border", "4px");
@@ -27354,7 +27390,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		document.body.style.cursor = "progress";
 		if (ghostsData)
 			oScr.style.visibility = "hidden";
-		xhr("otherghosts.php", "map="+ (map+1) +"&cc="+ getActualCc(), function(reponse) {
+		xhr("otherghosts.php", "map="+ getCreationId(oMaps[aAvailableMaps[map]]) +"&type="+ getCreationTable() +"&cc="+ getActualCc(), function(reponse) {
 			if (reponse) {
 				try {
 					gTimes = eval(reponse);
@@ -27514,7 +27550,10 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		if ((gID == -1) || !ghostsData) {
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
-			selectRaceScreen(map-map%4);
+			if (isSingle)
+				selectPlayerScreen(0);
+			else
+				selectRaceScreen(map-map%4);
 		}
 		else {
 			writeTime(ghostsData[1],ghostsData[2],ghostsData[3],ghostsData[4]);

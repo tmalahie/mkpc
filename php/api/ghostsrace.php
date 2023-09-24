@@ -14,7 +14,6 @@ if ($nids && ($nids<=10)) {
 	echo '[';
 	$colon = '';
 	while ($time = mysql_fetch_array($getTemps)) {
-		$ghostData = $ghostsData[$id];
 		echo $colon .'[';
 		print_ghost_data($time);
 		echo ']';
