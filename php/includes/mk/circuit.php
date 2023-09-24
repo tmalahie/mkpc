@@ -158,6 +158,11 @@ $printCircuitData = function($circuit) {
 					case 9:
 						echo "[$x,$y,100,11],[$x,".($y+89).",100,11],[$x,".($y+11).",7,14],[$x,".($y+75).",7,14],[".($x+95).",".($y+11).",5,14],[".($x+95).",".($y+75).",5,14],";
 						break;
+					case 4:
+					case 5:
+					case 6:
+					case 7:
+						break;
 					default:
 						if (hasLeftWalls($v))
 							echo "[$x,$y,25,100],";

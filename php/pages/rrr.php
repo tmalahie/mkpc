@@ -1,6 +1,6 @@
 <?php
 if (empty($_GET['map'])) exit;
-if($_SERVER['HTTP_HOST']!=='local-mkpc.malahieude.info') exit;
+if($_SERVER['HTTP_HOST']!=='localhost:8080') exit;
 include('../includes/initdb.php');
 $isBattle = isset($_GET['battle']);
 if (isset($_GET['pieces'])) {
@@ -1035,23 +1035,21 @@ if (isset($_GET['d'])) {
     }
 }
 ob_start();
-echo '{';
 if ($isBattle)
 	include('../includes/mk/arena.php');
 else
 	include('../includes/mk/circuit.php');
-echo '}';
+$printCircuitData($circuitsData[0]);
 $circuitsData = array();
 $str = ob_get_clean();
 $str = preg_replace('#,[ \n\r\t]*]#',']',$str);
-$circuitsData = (new Services_JSON())->decode($str);
+$circuitData = (new Services_JSON())->decode($str);
 require_once('../includes/circuitEnums.php');
-$circuitData = $circuitsData->map1;
 $id = 49999;
 $circuitUrl = $circuitData->map;
 $circuitFile = "map$id.png";
-$circuitPath = "images/uploads/".$circuitFile;
-file_put_contents($circuitPath, file_get_contents("http://$_SERVER[HTTP_HOST]/mapcreate.php$circuitUrl"));
+$circuitPath = "../../images/uploads/".$circuitFile;
+file_put_contents($circuitPath, file_get_contents("http://localhost/mapcreate.php$circuitUrl"));
 require_once('../includes/circuitImgUtils.php');
 mysql_query('UPDATE circuits SET img_data="'.getCircuitImgDataRaw($circuitPath,$circuitFile,1).'" WHERE id='.$id);
 $data = array();
