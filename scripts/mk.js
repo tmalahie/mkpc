@@ -26968,8 +26968,9 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	var oSpan = document.createElement("span");
 	oSpan.style.display = "inline-block";
 	oSpan.style.color = "white";
-	oSpan.style.maxWidth = (iScreenScale*15) +"px";
-	oSpan.style.fontSize = (iScreenScale*2) +"px";
+	oSpan.style.minWidth = (iScreenScale*10) +"px";
+	oSpan.style.maxWidth = Math.round(iScreenScale*13.5) +"px";
+	oSpan.style.fontSize = Math.round(iScreenScale*1.8) +"px";
 	oSpan.style.overflow = "hidden";
 	oSpan.style.textOverflow = "ellipsis";
 	oSpan.style.whiteSpace = "nowrap";
@@ -27281,14 +27282,17 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				else
 					gID = 0;
 			}
+			var iArrowTop = Math.round(11.5*iScreenScale);
+			var iArrowHeight = Math.round(5*iScreenScale);
 			var fGauche = document.createElement("input");
 			fGauche.id = "fGauche";
 			fGauche.type = "button";
 			fGauche.value = "\u2190";
-			fGauche.style.fontSize = (6*iScreenScale)+"px";
+			fGauche.style.fontSize = (4*iScreenScale)+"px";
 			fGauche.style.position = "absolute";
-			fGauche.style.left = (10*iScreenScale)+"px";
-			fGauche.style.top = Math.round(10.5*iScreenScale)+"px";
+			fGauche.style.left = (13*iScreenScale)+"px";
+			fGauche.style.top = iArrowTop +"px";
+			fGauche.style.height = iArrowHeight +"px";
 			fGauche.onclick = function() {
 				for (var i=0;i<2;i++) {
 					gID--;
@@ -27303,14 +27307,30 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			}
 			oScr.appendChild(fGauche);
 			
+			var ffGauche = document.createElement("input");
+			ffGauche.id = "ffGauche";
+			ffGauche.type = "button";
+			ffGauche.value = "\u23EE";
+			ffGauche.style.fontSize = (4*iScreenScale)+"px";
+			ffGauche.style.position = "absolute";
+			ffGauche.style.left = (5*iScreenScale)+"px";
+			ffGauche.style.top = iArrowTop +"px";
+			ffGauche.style.height = iArrowHeight +"px";
+			ffGauche.onclick = function() {
+				gID = 0;
+				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
+			}
+			oScr.appendChild(ffGauche);
+			
 			var fDroite = document.createElement("input");
 			fDroite.id = "fDroite";
 			fDroite.type = "button";
 			fDroite.value = "\u2192";
-			fDroite.style.fontSize = (6*iScreenScale)+"px";
+			fDroite.style.fontSize = (4*iScreenScale)+"px";
 			fDroite.style.position = "absolute";
-			fDroite.style.left = (65*iScreenScale)+"px";
-			fDroite.style.top = Math.round(10.5*iScreenScale)+"px";
+			fDroite.style.left = (64*iScreenScale)+"px";
+			fDroite.style.top = iArrowTop +"px";
+			fDroite.style.height = iArrowHeight +"px";
 			fDroite.onclick = function() {
 				for (var i=0;i<2;i++) {
 					gID++;
@@ -27324,6 +27344,22 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				}
 			}
 			oScr.appendChild(fDroite);
+			
+			var ffDroite = document.createElement("input");
+			ffDroite.id = "ffDroite";
+			ffDroite.type = "button";
+			ffDroite.value = "\u23ED";
+			ffDroite.style.fontSize = (4*iScreenScale)+"px";
+			ffDroite.style.position = "absolute";
+			ffDroite.style.left = (72*iScreenScale)+"px";
+			ffDroite.style.top = iArrowTop +"px";
+			ffDroite.style.height = iArrowHeight +"px";
+			ffDroite.onclick = function() {
+				gID = gTimes.length-1;
+				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
+			}
+			oScr.appendChild(ffDroite);
+
 			if (ghostsData)
 				oScr.style.visibility = "visible";
 			else
@@ -27558,7 +27594,9 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		else {
 			writeTime(ghostsData[1],ghostsData[2],ghostsData[3],ghostsData[4]);
 			oScr.removeChild(document.getElementById("fGauche"));
+			oScr.removeChild(document.getElementById("ffGauche"));
 			oScr.removeChild(document.getElementById("fDroite"));
+			oScr.removeChild(document.getElementById("ffDroite"));
 			oScr.removeChild(OPFace7);
 			OPFace.style.display = "";
 			gID = -1;
