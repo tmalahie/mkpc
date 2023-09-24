@@ -52,12 +52,6 @@ h1 + .action_button {
 	font-size: 0.8em;
 	padding: 3px 7px;
 }
-.action_button.action_delete {
-	background-color: #C30;
-}
-.action_button.action_delete:hover {
-	background-color: #820;
-}
 .aw-table {
 	margin-bottom: 10px;
 	width: 100%;

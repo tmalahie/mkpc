@@ -889,6 +889,7 @@ include('../includes/menu.php');
 					</tr>
 				<?php
 				include_once('circuitNames.php');
+				require_once('../includes/utils-tt.php');
 				while ($record = mysql_fetch_array($bestScores)) {
 					?>
 					<tr>
@@ -904,18 +905,7 @@ include('../includes/menu.php');
 						</td>
 						<td>
 							<?php
-							$getTime = $record['time'];
-							$sec = floor($getTime/1000);
-							$mls = round($getTime-$sec*1000);
-							$min = floor($sec/60);
-							$sec -= $min*60;
-							if ($sec < 10)
-								$sec = '0'.$sec;
-							if ($mls < 10)
-								$mls = '00'.$mls;
-							else if ($mls < 100)
-								$mls = '0'.$mls;
-							echo $min.':'.$sec.':'.$mls;
+							print_time_ms($record['time']);
 							?>
 						</td>
 					</tr>

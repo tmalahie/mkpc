@@ -33,4 +33,17 @@ function print_ghost_data($ghost) {
 		$colon = ',';
 	}
 }
+function print_time_ms($ms) {
+	$sec = floor($ms/1000);
+	$mls = round($ms-$sec*1000);
+	$min = floor($sec/60);
+	$sec -= $min*60;
+	if ($sec < 10)
+		$sec = '0'.$sec;
+	if ($mls < 10)
+		$mls = '00'.$mls;
+	else if ($mls < 100)
+		$mls = '0'.$mls;
+	echo $min.':'.$sec.':'.$mls;
+}
 ?>

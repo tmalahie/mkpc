@@ -144,3 +144,9 @@ main a:hover {
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
 }
+.action_button.action_delete {
+	background-color: #C30;
+}
+.action_button.action_delete:hover {
+	background-color: #820;
+}

@@ -5537,6 +5537,8 @@ function continuer() {
 			oForm.style.width = (iScreenScale*70-10) +"px";
 			oForm.style.zIndex = 20000;
 
+			var savedRecord;
+
 			oForm.onsubmit = function() {
 				var nom = this.pseudo.value;
 				
@@ -5556,7 +5558,7 @@ function continuer() {
 						params += "&map="+ oMap.map;
 						break;
 					}
-					xhr("records.php", params, function(reponse) {
+					function postSaveRecord(reponse) {
 						if (reponse) {
 							document.body.style.cursor = "default";
 							var enregistre;
@@ -5578,7 +5580,16 @@ function continuer() {
 								aPara2.style.visibility = "";
 								oRetour.focus();
 							}
+							function rollbackUi() {
+								oValide.style.visibility = "";
+								oValide.style.marginRight = (iScreenScale*2) +"px";
+								aPara3.insertBefore(oValide,oRetour);
+								oCheckbox.disabled = false;
+								oInput.disabled = false;
+								oInput.select();
+							}
 							if (Array.isArray(enregistre)) {
+								savedRecord = enregistre;
 								if (oCheckbox.checked) {
 									oSave.style.display = "none";
 									oValide.style.display = "none";
@@ -5596,6 +5607,13 @@ function continuer() {
 											if (gOverwriteRecord)
 												gOverwriteRecord = 2;
 											showBackUi(true);
+											return true;
+										}
+										else if (reponse == -1) {
+											showBackUi(false);
+											oValide.style.display = "";
+											aPara2.innerHTML = toLanguage("You have exceeded your saved ghosts quota. You can <a href=\"manageGhosts.php\" target=\"_blank\" style=\"color: orange\">delete ghosts</a> to save space", "Vous avez dépassé votre quota de fantômes enregistrés. Vous pouvez <a href=\"manageGhosts.php\" target=\"_blank\" style=\"color: orange\">supprimer des fantômes</a> pour gagner de l'espace");
+											rollbackUi();
 											return true;
 										}
 										else
@@ -5618,19 +5636,17 @@ function continuer() {
 									aPara2.innerHTML = toLanguage("An unknown error occured, please try again later", "Une erreur inconnue est survenue, veuillez réessayer ultérieurement");
 									break;
 								}
-								if (enregistre != 0) {
-									oValide.style.visibility = "";
-									oValide.style.marginRight = (iScreenScale*2) +"px";
-									aPara3.insertBefore(oValide,oRetour);
-									oCheckbox.disabled = false;
-									oInput.disabled = false;
-									oInput.select();
-								}
+								if (enregistre != 0)
+									rollbackUi();
 							}
 							return true;
 						}
 						return false;
-					});
+					}
+					if (savedRecord)
+						postSaveRecord(savedRecord);
+					else
+						xhr("records.php", params, postSaveRecord);
 					recorder = nom;
 				}
 				return false;

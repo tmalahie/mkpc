@@ -40,8 +40,21 @@ if (isset($_POST['map']) && isset($_POST['perso'])) {
 			$fakeTime = round($time/3);
 			$times = "[$fakeTime,$fakeTime,$fakeTime]";
 		}
-		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkghosts` WHERE class="'.$cc.'" AND type="'.$type.'" AND circuit="'.$map.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
+		$getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkghosts` WHERE class="'.$cc.'" AND type="'.$type.'" AND circuit="'.$map.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
+		if ($getId)
 			$cID = $getId['id'];
+		else
+			$cID = -1;
+		require_once('../includes/tt-quotas.php');
+		$totalGhostTime = tt_used_quota(array(
+			'ghost' => $cID
+		));
+		if ($totalGhostTime > MAX_GHOST_TIME) {
+			echo -1;
+			mysql_close();
+			exit;
+		}
+		if ($cID > 0) {
 			mysql_query('UPDATE `mkghosts` SET perso="'. $_POST['perso'] .'", player='. $player .', time="'.$time.'", lap_times="'.$times.'" WHERE id='. $cID);
 			mysql_query('DELETE FROM `mkghostsdata` WHERE id='. $cID);
 		}
