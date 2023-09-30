@@ -362,15 +362,6 @@ if ($creation) {
 		$groupsById[$getCircuit['gid']] = addslashes($getCircuit['gname']);
 	}
 }
-$joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.player=r2.player AND r.identifiant=r2.identifiant AND r.identifiant2=r2.identifiant2 AND r.identifiant3=r2.identifiant3 AND r.identifiant4=r2.identifiant4 AND r.class=r2.class AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
-$whereBest = isset($_GET['date']) ? ' AND r2.id IS NULL AND r.date<="'.$_GET['date'].'"':' AND r.best=1';
-if (isset($user))
-	$getResults = mysql_query('SELECT r.*,c.code,r.date,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'. $cc .'" AND r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
-else {
-	if ($creation && empty($cIDs))
-		$cIDs = array(0);
-	$getResults = mysql_query('SELECT r.*,c.code,r.date'.(empty($pIDs)?($moderate?',1 AS shown':''):',(r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'") AS shown').' FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
-}
 if ($creation && !$cup) {
 	if (($getId = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $type .'` WHERE id="'. $cID .'"'))) && ($getId['identifiant'] == $identifiants[0])) {
 		if (mysql_numrows($getResults)) {
@@ -470,32 +461,6 @@ var language = <?php echo $language ? 1:0; ?>;
 var classement = new Array();
 for (var i=0;i<circuits.length;i++)
 	classement[i] = new Resultat(i);
-<?php
-while ($result = mysql_fetch_array($getResults))
-	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false)).'"'.(isset($result['shown']) ? ','.$result['shown']:'').''.($sManage ? ','.$result['id']:'').']);';
-?>
-var jGroup = groups.length;
-var iGroup = 0;
-for (var i=circuits.length-1;i>=0;i--) {
-	iGroup--;
-	if (iGroup < 0) {
-		jGroup--;
-		iGroup += circuitGroups[jGroup].length;
-	}
-	if (!classement[i].classement.length || (sFilteredData && noShownData(classement[i].classement))) {
-		circuitGroups[jGroup].splice(iGroup,1);
-		if (!circuitGroups[jGroup].length) {
-			circuitGroups.splice(jGroup,1);
-			groups.splice(jGroup,1);
-		}
-		circuits.splice(i,1);
-		classement.splice(i,1);
-		if (autoSelectMap == i)
-			autoSelectMap = undefined;
-		else if (autoSelectMap > i)
-			autoSelectMap--;
-	}
-}
 var vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
 var isMobile = (vw < 500);
 function noShownData(iClassement) {
@@ -891,7 +856,47 @@ function changePage(id, nPage) {
 	classement[id].page = nPage;
 	displayResult(id);
 }
-window.onload = function() {
+o_xhr("getTtRanking.php", <?php
+	$apiParams = array('cc' => $cc);
+	if ($manage)
+		$apiParams['manage'] = 1;
+	if ($moderate)
+		$apiParams['moderate'] = 1;
+	if (isset($user))
+		$apiParams['user'] = $user['id'];
+	if (isset($cIDs))
+		$apiParams['cIDs'] = implode(',', $cIDs);
+	if ($type)
+		$apiParams['type'] = $type;
+	echo '"'.http_build_query($apiParams).'"';
+?>, function(res) {
+	res = JSON.parse(res);
+	for (var i=0;i<res.length;i++)
+		classement[i].classement = res[i].list;
+
+	var jGroup = groups.length;
+	var iGroup = 0;
+	for (var i=circuits.length-1;i>=0;i--) {
+		iGroup--;
+		if (iGroup < 0) {
+			jGroup--;
+			iGroup += circuitGroups[jGroup].length;
+		}
+		if (!classement[i].classement.length || (sFilteredData && noShownData(classement[i].classement))) {
+			circuitGroups[jGroup].splice(iGroup,1);
+			if (!circuitGroups[jGroup].length) {
+				circuitGroups.splice(jGroup,1);
+				groups.splice(jGroup,1);
+			}
+			circuits.splice(i,1);
+			classement.splice(i,1);
+			if (autoSelectMap == i)
+				autoSelectMap = undefined;
+			else if (autoSelectMap > i)
+				autoSelectMap--;
+		}
+	}
+
 	oParams = document.forms["params"];
 	
 	var oParamsBlock = document.createElement("div");
@@ -994,7 +999,9 @@ window.onload = function() {
 	});
 	
 	displayResults();
-};
+
+	return true;
+});
 </script>
 </body>
 </html>
