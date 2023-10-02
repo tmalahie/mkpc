@@ -18,18 +18,27 @@ if ($manage) {
 	$pIDs = $identifiants;
 }
 if ($userId) {
-	$getResults = mysql_query('SELECT r.*,c.code,r.date,(r.player='.$userId.') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.class="'. $cc .'" AND r.type="'. $type .'" AND r.best=1 ORDER BY r.time');
+	$resultsQueries = array('SELECT r.*,c.code,r.date,(r.player='.$userId.') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.class="'. $cc .'" AND r.type="'. $type .'" AND r.best=1 ORDER BY r.time');
     if (isset($_POST['count']))
         $getCount = mysql_query('SELECT r.circuit,COUNT(*) AS nb FROM `mkrecords` r WHERE r.class="'. $cc .'" AND r.type="'. $type .'" AND r.player='.$userId.' AND r.best=1 GROUP BY r.circuit');
 }
 else {
-    $cIDs = isset($_POST['cIDs']) ? explode(',', $_POST['cIDs']) : array();
-    foreach ($cIDs as &$cID)
-        $cID = intval($cID);
-    unset($cID);
-	if ($type && empty($cIDs))
-		$cIDs = array(0);
-	$getResults = mysql_query('SELECT r.*,c.code,r.date'.(empty($pIDs)?($moderate?',1 AS shown':''):',(r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'") AS shown').' FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').' AND r.best=1 ORDER BY r.time');
+    if ($type)
+        $cIDs = isset($_POST['cIDs']) ? explode(',', $_POST['cIDs']) : array();
+    else {
+        include_once('../pages/circuitNames.php');
+        $cIDs = array();
+        for ($i=0;$i<$nbVSCircuits;$i++)
+            $cIDs[] = $i+1;
+    }
+    if (empty($pIDs))
+        $page = isset($_POST['page']) ? $_POST['page'] : 0;
+    else
+        $page = null;
+    $resPerPage = 20;
+    $resultsQueries = array();
+    foreach ($cIDs as $cID)
+        $resultsQueries[] = 'SELECT r.*,c.code,r.date'.(empty($pIDs)?($moderate?',1 AS shown':''):',(r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'") AS shown').' FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.class="'.$cc.'" AND r.type="'.$type.'" AND r.circuit="'. $cID .'" AND r.best=1 ORDER BY r.time'. ($page===null ? '' : ' LIMIT '.($page*$resPerPage).','.$resPerPage);
     if (isset($_POST['count']))
         $getCount = mysql_query('SELECT r.circuit,COUNT(*) AS nb FROM `mkrecords` r WHERE r.class="'. $cc .'" AND r.type="'. $type .'" AND r.best=1'.(empty($pIDs)?'':' AND (r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'")').(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).') GROUP BY r.circuit'));
 }
@@ -50,13 +59,19 @@ else {
         $entry['count'] = 0;
     $classement = array_fill(0, $nbVSCircuits, $entry);
 }
-while ($result = mysql_fetch_array($getResults)) {
-    $entry = [htmlspecialchars($result['name']),$result['perso'],intval($result['time']),intval($result['player']),$result['code'],pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false))];
-    if (isset($result['shown']))
-        $entry[] = $result['shown'];
-    if ($sManage)
-        $entry[] = $result['id'];
-    $classement[getCircuitIndex($result)]['list'][] = $entry;
+foreach ($classement as $i => &$entry)
+    $entry['id'] = $cIDs[$i];
+unset($entry);
+foreach ($resultsQueries as $query) {
+    $getResults = mysql_query($query);
+    while ($result = mysql_fetch_array($getResults)) {
+        $entry = [htmlspecialchars($result['name']),$result['perso'],intval($result['time']),intval($result['player']),$result['code'],pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false))];
+        if (isset($result['shown']))
+            $entry[] = $result['shown'];
+        if ($sManage)
+            $entry[] = $result['id'];
+        $classement[getCircuitIndex($result)]['list'][] = $entry;
+    }
 }
 if (isset($getCount)) {
     while ($result = mysql_fetch_array($getCount))

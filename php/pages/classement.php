@@ -510,12 +510,12 @@ function spriteLoad() {
 	}
 }
 var oParams;
-function addResult(id, i) {
+function addResult(id, i, begin) {
 	var iJoueur = classement[id].classement[i];
 	var oResult = document.createElement("tr");
 	oResult.className = 'result';
 	var oPlace = document.createElement("td");
-	var inPlace = getPlace(id,i);
+	var inPlace = getPlace(id,i)+begin;
 	var nPlaces = classement[id].classement.length;
 	var nScore = getScore(inPlace,nPlaces);
 	var iCircuit = classement[id].circuit_id;
@@ -776,9 +776,9 @@ function displayResult(id, n) {
 			addResult(id, n[i]);
 	}
 	else {
-		var debut = iResult.page*NB_RES, fin = Math.min(debut+NB_RES, iClassement.length);
-		for (var i=debut;i<fin;i++)
-			addResult(id, i);
+		var debut = NB_RES * iResult.page;
+		for (var i=0;i<iClassement.length;i++)
+			addResult(id, i, debut);
 		var oTableFooter = document.createElement("tr");
 		var oPages = document.createElement("td");
 		oPages.id = "page";
@@ -790,7 +790,7 @@ function displayResult(id, n) {
 			oPages.style.fontStyle = "italic";
 		}
 		else {
-			var nbPages = Math.ceil(iResult.classement.length/NB_RES);
+			var nbPages = Math.ceil(iResult.count/NB_RES);
 			for (var i=0;i<nbPages;i++)
 				oPages.innerHTML += (i!=iPage) ? ' <a href="#circuit'+ id +'" onclick="changePage('+ id +", "+ i +');void(0)">'+ (i+1) +'</a>':' <span>'+ (i+1) +'</span>';
 		}
@@ -854,25 +854,42 @@ function displayResults() {
 }
 function changePage(id, nPage) {
 	classement[id].page = nPage;
-	displayResult(id);
-}
-o_xhr("getTtRanking.php", <?php
+	var nCircuit = classement[id].id;
+	<?php
 	$apiParams = array('cc' => $cc);
+	$baseParams = array();
 	if ($manage)
 		$apiParams['manage'] = 1;
 	if ($moderate)
 		$apiParams['moderate'] = 1;
 	if (isset($user))
 		$apiParams['user'] = $user['id'];
+	elseif (!$moderate)
+		$baseParams['count'] = 1;
 	if (isset($cIDs))
 		$apiParams['cIDs'] = implode(',', $cIDs);
 	if ($type)
 		$apiParams['type'] = $type;
+	?>
+	o_xhr("getTtRanking.php", <?php
+		echo '"'.http_build_query($apiParams).'&page="+ nPage +"&cIDs="+ nCircuit';
+	?>, function(res) {
+		res = JSON.parse(res);
+		classement[id].classement = res[id].list;
+		displayResult(id);
+		return true;
+	});
+}
+o_xhr("getTtRanking.php", <?php
+	$apiParams = array_merge($apiParams, $baseParams);
 	echo '"'.http_build_query($apiParams).'"';
 ?>, function(res) {
 	res = JSON.parse(res);
-	for (var i=0;i<res.length;i++)
+	for (var i=0;i<res.length;i++) {
+		classement[i].id = res[i].id;
 		classement[i].classement = res[i].list;
+		classement[i].count = res[i].count;
+	}
 
 	var jGroup = groups.length;
 	var iGroup = 0;
