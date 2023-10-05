@@ -424,6 +424,7 @@ var NB_RES = 20;
 function Resultat(circuitId) {
 	this.classement = new Array();
 	this.circuit_id = circuitId;
+	this.page = 0;
 }
 var iCc = <?php echo intval($cc); ?>;
 var autoSelectMap<?php
@@ -834,8 +835,6 @@ function displayResults() {
 				if (!n.length)
 					continue;
 			}
-			else
-				classement[i].page = 0;
 			var circuitTitle = document.createElement("h2");
 			circuitTitle.id = "circuit"+ i;
 			circuitTitle.innerHTML = circuits[i];
@@ -932,7 +931,7 @@ o_xhr("getTtRanking.php", <?php
 		cTous.value = -1;
 		var nbRecords = 0;
 		for (var i=0;i<circuits.length;i++)
-			nbRecords += classement[i].classement.length;
+			nbRecords += classement[i].count;
 		if (sFilteredData)
 			cTous.innerHTML = language ? "All":"Tous";
 		else
@@ -949,7 +948,7 @@ o_xhr("getTtRanking.php", <?php
 			for (var i=0;i<circuitGroup.length;i++) {
 				var cCircuit = document.createElement("option");
 				cCircuit.value = inc;
-				var cRecords = classement[inc].classement.length;
+				var cRecords = classement[inc].count;
 				if (sFilteredData)
 					cCircuit.innerHTML = circuitGroup[i];
 				else
@@ -1009,8 +1008,19 @@ o_xhr("getTtRanking.php", <?php
 			}
 		}
 	}
-	autocompleteDummy("#joueur", joueurs, {
-		onSelect: function(event, term, item) {
+	var autoHandler = 0;
+	new autoComplete({
+		selector: "#joueur",
+		minChars: 1,
+		source: function(term, suggest) {
+			var cHandler = ++autoHandler;
+			o_xhr('matchingRecords.php', 'prefix='+encodeURIComponent(term)+'&type=<?php echo $type; ?>&cc=<?php echo $cc; ?>', function(res) {
+				if (cHandler == autoHandler)
+					suggest(JSON.parse(res));
+				return true;
+			});
+		},
+		onSelect: function() {
 			displayResults();
 		}
 	});
