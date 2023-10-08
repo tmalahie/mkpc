@@ -92,12 +92,6 @@ include('../includes/heads.php');
 ?>
 <link rel="stylesheet" type="text/css" href="styles/classement.css" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
-<style type="text/css">
-#content:not(.firstload).loading {
-	opacity: 0.5;
-	pointer-events: none;
-}
-</style>
 
 <?php
 include('../includes/o_online.php');
@@ -203,6 +197,10 @@ main table div {
 		font-size: 0.8em;
 	}
 }
+#content:not(.firstload).loading {
+	opacity: 0.5;
+	pointer-events: none;
+}
 .editor-mask {
 	position: fixed;
 	z-index: 10;
@@ -228,10 +226,13 @@ main table div {
 	background-color: #FD9;
 	color: #963;
 }
-.reset_ranking {
+#reset_ranking {
     margin-top: 10px;
 }
-.reset_ranking button {
+#reset_ranking.hide {
+	display: none;
+}
+#reset_ranking button {
     background-color: #C66;
     color: white;
     display: inline-block;
@@ -240,7 +241,7 @@ main table div {
     border-radius: 5px;
     cursor: pointer;
 }
-.reset_ranking button:hover {
+#reset_ranking button:hover {
     background-color: #D77;
 }
 </style>
@@ -368,27 +369,25 @@ if ($creation) {
 		$groupsById[$getCircuit['gid']] = addslashes($getCircuit['gname']);
 	}
 }
-if ($creation && !$cup) {
+if ($creation && !$cup && !$sManage) {
 	if (($getId = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $type .'` WHERE id="'. $cID .'"'))) && ($getId['identifiant'] == $identifiants[0])) {
-		if (mysql_numrows($getResults)) {
-			?>
-			<div class="reset_ranking">
-				<button class="action_button" onclick="resetRanking()"><?php echo $language ? 'Reset ranking':'Réinitialiser le classement'; ?></button>
-			</div>
-			<p></p>
-			<script type="text/javascript">
-			function resetRanking() {
-				if (confirm("<?php echo $language ? 'Delete all time trials records? Caution, this action cannot be undone':'Effacer tous les records ? Attention, cette action est irréversible'; ?>")) {
-					document.body.style.cursor = "progress";
-					o_xhr("resetTimeTrials.php", "type=<?php echo $type; ?>&id=<?php echo $cID; ?>", function() {
-						document.location.reload();
-						return true;
-					});
-				}
+		?>
+		<div id="reset_ranking" class="hide">
+			<button class="action_button" onclick="resetRanking()"><?php echo $language ? 'Reset ranking':'Réinitialiser le classement'; ?></button>
+		</div>
+		<p></p>
+		<script type="text/javascript">
+		function resetRanking() {
+			if (confirm("<?php echo $language ? 'Delete all time trials records? Caution, this action cannot be undone':'Effacer tous les records ? Attention, cette action est irréversible'; ?>")) {
+				document.body.style.cursor = "progress";
+				o_xhr("resetTimeTrials.php", "type=<?php echo $type; ?>&id=<?php echo $cID; ?>", function() {
+					document.location.reload();
+					return true;
+				});
 			}
-			</script>
-			<?php
 		}
+		</script>
+		<?php
 	}
 }
 ?>
@@ -873,6 +872,11 @@ function displayResults() {
 		var oNoResults = document.createElement("strong");
 		oNoResults.innerHTML = language ? "No result found for this search" : "Aucun résultat trouvé pour cette recherche.";
 		oContent.appendChild(oNoResults);
+	}
+	else {
+		var $resetRanking = document.getElementById("reset_ranking");
+		if ($resetRanking)
+			$resetRanking.classList.remove("hide");
 	}
 }
 var oParamsBlock;
