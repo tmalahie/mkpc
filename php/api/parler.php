@@ -4,6 +4,7 @@ session_start();
 if (isset($_POST['msg'])) {
 	include('../includes/session.php');
 	if ($id) {
+		include('../includes/getId.php');
 		include('../includes/initdb.php');
 		include('../includes/onlineUtils.php');
 		$course = getCourse(array('check_ban' => true));
@@ -25,7 +26,7 @@ if (isset($_POST['msg'])) {
 				mysql_close();
 				exit;
 			}
-			$isMuted = mysql_fetch_array(mysql_query('SELECT player FROM mkmuted WHERE player="'. $id .'"'));
+			$isMuted = mysql_fetch_array(mysql_query('SELECT player FROM mkmuted WHERE player="'. $id .'" OR identifiant="'. $identifiants[0] .'"'));
 			if ($isMuted)
 				return_failure(-4, false);
 			$msg = $_POST['msg'];

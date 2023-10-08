@@ -8,6 +8,10 @@ if ($id && isset($_POST['member']) && is_numeric($_POST['member'])) {
         require_once('../includes/getRights.php');
         if (hasRight('moderator')) {
             mysql_query("DELETE FROM mkmuted WHERE player=$member");
+            if (isset($_POST['ip'])) {
+                if ($getIp = mysql_fetch_array(mysql_query('SELECT identifiant FROM `mkprofiles` WHERE id='. $member)))
+                    mysql_query('DELETE FROM `mkmuted` WHERE identifiant='. $getIp['identifiant']);
+            }
             mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Unmute '. $member .'")');
         }
 	}

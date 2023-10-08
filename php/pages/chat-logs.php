@@ -85,6 +85,7 @@ include('../includes/o_online.php');
 #mute-form {
 	display: none;
 	margin-top: 0.25em;
+	line-height: 1.5em;
 }
 #chat-filter {
 	line-height: 1.5em;
@@ -129,19 +130,28 @@ include('../includes/menu.php');
 			echo '<h2 id="context">'. ($language ? 'See logs in context for ' : 'Voir les logs en contexte pour ') .' '. htmlspecialchars($memberNick) .'</h2>';
 	}
 	elseif (isset($_GET['pseudo'])) {
-		if ($getId = mysql_fetch_array(mysql_query('SELECT id FROM `mkjoueurs` WHERE nom="'. $_GET['pseudo'] .'"'))) {
+		if ($getId = mysql_fetch_array(mysql_query('SELECT j.id,p.identifiant FROM `mkjoueurs` j INNER JOIN `mkprofiles` p ON j.id=p.id WHERE j.nom="'. $_GET['pseudo'] .'"'))) {
 			$memberId = $getId['id'];
+			$memberIp = $getId['identifiant'];
 			echo '<h2>'. ($language ? 'Online chat log of' : 'Logs chat en ligne de') .' '. htmlspecialchars($memberNick) .'</h2>';
 			?>
 			<div>
 				<?php
-				if ($getChatMute = mysql_fetch_array(mysql_query('SELECT end_date FROM mkmuted WHERE player='. $memberId .' AND end_date>NOW()'))) {
+				if ($getChatMute = mysql_fetch_array(mysql_query('SELECT identifiant,end_date FROM mkmuted WHERE player='. $memberId .' OR identifiant='. $memberIp .' AND end_date>NOW()'))) {
 					$endDate = $getChatMute['end_date'];
 					?>
 					<p style="line-height: 1.5em">
-						<?php echo $language ? "This player is muted until: $endDate":"Ce joueur est muté jusqu'au : $endDate"; ?>
+						<?php
+						if (str_starts_with($endDate, '2038'))
+							echo $language ? "This player is muted permanently":"Ce joueur est muté définitivement";
+						else
+							echo $language ? "This player is muted until: $endDate":"Ce joueur est muté jusqu'au : $endDate";
+						$ipMuted = ($getChatMute['identifiant'] == $memberIp);
+						if ($ipMuted)
+							echo ' ('. ($language ? 'IP mute':'Mute IP') .')';
+						?>
 						<br />
-						<input type="button" value="<?php echo $language ? 'Unmute':'De-muter'; ?>" class="action_button" onclick="unmute(<?php echo $memberId; ?>)" />
+						<input type="button" value="<?php echo $language ? 'Unmute':'De-muter'; ?>" class="action_button" onclick="unmute(<?php echo $memberId; ?>,<?php echo intval($ipMuted); ?>)" />
 					</p>
 					<?php
 				}
@@ -151,14 +161,17 @@ include('../includes/menu.php');
 					<a href="javascript:void(0)" onclick="toggleMute()"><?php echo $language ? 'Mute player':'Muter le joueur'; ?>...</a>
 					<form id="mute-form" onsubmit="mute(event, <?php echo $memberId; ?>)">
 						<label for="mute-time"><?php echo $language ? "Mute for":"Muter pendant"; ?></label> : 
-						<input type="text" size="1" name="mute-time" id="mute-time" value="1" />
-						<select name="unit">
+						<input type="text" size="2" name="mute-time" id="mute-time" value="1" />
+						<select name="unit" style="width:80px">
 							<option value="1"><?php echo $language ? 'minutes':'minutes'; ?></option>
 							<option value="60"><?php echo $language ? 'hours':'heures'; ?></option>
 							<option value="1440" selected><?php echo $language ? 'days':'jours'; ?></option>
 							<option value="10080"><?php echo $language ? 'weeks':'semaines'; ?></option>
-						</select>
-						<input type="submit" value="<?php echo $language ? 'Ok':'Ok'; ?>" class="action_button" />
+							<option value="inf"><?php echo $language ? 'forever':'définitivement'; ?></option>
+						</select><br />
+						<input type="checkbox" id="mute-ip" />
+						<label for="mute-ip"><?php echo $language ? "Also mute IP":"Muter également l'adresse IP"; ?></label><br />
+						<input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" />
 					</form>
 					</div>
 					<?php
@@ -269,15 +282,16 @@ function mute(e, id) {
 	var time = $form.elements["mute-time"].value;
 	var unit = $form.elements["unit"].value;
 	$form.querySelector('input[type="submit"]').disabled = true;
-	var duration = time*unit;
-	if (duration > 0) {
-		o_xhr("mute.php", "member="+ id +"&duration="+ duration, function(reponse) {
+	var duration = unit === 'inf' ? 'inf' : time*unit;
+	if (duration > 0 || duration === 'inf') {
+		var ip = document.getElementById('mute-ip').checked;
+		o_xhr("mute.php", "member="+ id +"&duration="+ duration + (ip ? "&ip" : ""), function(reponse) {
 			document.location.reload();
 		});
 	}
 }
-function unmute(id) {
-	o_xhr("unmute.php", "member="+ id, function(reponse) {
+function unmute(id, ip) {
+	o_xhr("unmute.php", "member="+ id + (ip ? "&ip" : ""), function(reponse) {
 		document.location.reload();
 	});
 }
