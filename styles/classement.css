@@ -24,6 +24,9 @@ main table {
 	font-weight: bold;
 	color: black;
 }
+main table.loading {
+	opacity: 0.5;
+}
 main td {
 	border: solid 1px black;
 	margin: 2px;
