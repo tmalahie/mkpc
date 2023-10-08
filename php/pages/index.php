@@ -392,12 +392,11 @@ $slidesPath = 'images/slides';
 				<?php
 			}
 
-			date_default_timezone_set(get_client_tz());
-
 			$today = time();
-			$cYear = date('Y', $today);
-			$cMonth = date('m', $today);
-			$cDay = date('d', $today);
+			$cDate = new DateTime('@'.$today, new DateTimeZone(get_client_tz()));
+			$cYear = $cDate->format('Y');
+			$cMonth = $cDate->format('m');
+			$cDay = $cDate->format('d');
 			$curDate = $cYear.'-'.$cMonth.'-'.$cDay;
 			$getBirthdays = mysql_query('SELECT j.id,j.nom,p.identifiant,p.identifiant2,p.identifiant3,p.identifiant4,p.nbmessages FROM `mkprofiles` p INNER JOIN `mkjoueurs` j ON p.id=j.id WHERE birthdate IS NOT NULL AND DAY(birthdate)='. $cDay .' AND MONTH(birthdate)='. $cMonth .' AND j.banned=0 AND j.deleted=0 AND last_connect>=DATE_SUB("'.$curDate.'",INTERVAL 6 MONTH) AND TIMESTAMPDIFF(SECOND,last_connect,"'.$curDate.'")<=TIMESTAMPDIFF(SECOND,IFNULL(sub_date,"2016-01-01"),last_connect)*0.25+7*24*3600 ORDER BY p.nbmessages DESC, p.id ASC');
 			$dc = array();
