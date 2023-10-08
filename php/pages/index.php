@@ -1171,6 +1171,7 @@ var loadingMsg = "<?= _('Loading') ?>";
 <script async src="scripts/posticons.js"></script>
 
 <script src="scripts/jquery.min.js"></script>
+<script async src="scripts/jstz.min.js"></script>
 <script async src="scripts/slider.js"></script>
 <script async src="scripts/photoswipe.min.js"></script>
 <script async src="scripts/init-diapos.js"></script>
