@@ -792,12 +792,58 @@ function displayResult(id, n) {
 		}
 		else {
 			var nbPages = Math.ceil(iResult.count/NB_RES);
-			for (var i=0;i<nbPages;i++)
-				oPages.innerHTML += (i!=iPage) ? ' <a href="#circuit'+ id +'" onclick="changePage('+ id +", "+ i +');void(0)">'+ (i+1) +'</a>':' <span>'+ (i+1) +'</span>';
+			var paging = makePaging(iPage, nbPages);
+			for (var i=0;i<paging.length;i++) {
+				if (i)
+					oPages.innerHTML += ' ...&nbsp;';
+				for (var j=0;j<paging[i].length;j++) {
+					var p = paging[i][j];
+					oPages.innerHTML += (p!=iPage) ? ' <a href="#circuit'+ id +'" onclick="changePage('+ id +", "+ p +');void(0)">'+ (p+1) +'</a>':' <span>'+ (p+1) +'</span>';
+				}
+			}
 		}
 		oTableFooter.appendChild(oPages);
 		oTableResults.appendChild(oTableFooter);
 	}
+}
+function makePaging(cPage, nbPages, intervalle=3) {
+	if (nbPages <= (intervalle*2+2)) {
+		var block = [];
+		for (var i=0;i<nbPages;i++)
+			block.push(i);
+		return [block];
+	}
+	var res = [];
+	var block = [];
+	var debut = cPage-intervalle;
+	if (debut <= 0)
+		debut = 0;
+	else {
+		block.push(0);
+		if (debut != 1) {
+			res.push(block);
+			block = [];
+		}
+	}
+	var fin = debut + intervalle*2 + 1;
+	if (fin > nbPages) {
+		fin = nbPages;
+		debut = fin-intervalle*2-1;
+	}
+	for (var i=debut;i<fin;i++)
+		block.push(i);
+	
+	if (fin < nbPages) {
+		if (fin != (nbPages-1)) {
+			res.push(block);
+			block = [];
+		}
+		block.push(nbPages-1);
+		res.push(block);
+	}
+	else
+		res.push(block);
+	return res;
 }
 function displayResults() {
 	var oContent = document.getElementById("content");
