@@ -584,6 +584,7 @@ include('../includes/menu.php');
 						<li><a href="edit-nick.php"><?php echo $language ? 'Change your nickname':'Modifier mon pseudo'; ?></a></li>
 						<li><a href="nick-color.php"><?php echo $language ? 'Edit nick color':'Modifier la couleur du pseudo'; ?></a></li>
 						<li><a href="password.php"><?php echo $language ? 'Change password':'Modifier mot de passe'; ?></a></li>
+						<li class="new-section"><a href="logout.php"><?php echo $language ? 'Log out':'Se déconnecter'; ?></a></li>
 						<li><a href="signout.php"><?php echo $language ? 'Delete account':'Supprimer compte'; ?></a></li>
 					</ul>
 					<?php

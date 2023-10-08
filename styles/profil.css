@@ -528,6 +528,9 @@ a.circuit-comment:hover .circuit-comment-infos {
 .persos-container ul {
 	list-style-image: url(../images/bullet.png);
 }
+.persos-container ul li.new-section {
+	margin-top: 8px;
+}
 .no-underline {
 	text-decoration: none !important;
 }
