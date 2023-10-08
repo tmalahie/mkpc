@@ -76,7 +76,7 @@ foreach ($resultsQueries as $query) {
             $rank = $result['rank'];
         else
             $rank = $baseRank + count($classement[getCircuitIndex($result)]['list']);
-        $entry = [$rank,htmlspecialchars($result['name']),$result['perso'],intval($result['time']),intval($result['player']),$result['code'],pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false))];
+        $entry = [$rank,htmlspecialchars($result['name']),$result['perso'],intval($result['time']),intval($result['player']),$result['code'],pretty_dates_short($result['date'],array('shorter'=>true,'year'=>true,'new'=>false))];
         if ($sManage)
             $entry[] = $result['id'];
         $classement[getCircuitIndex($result)]['list'][] = $entry;

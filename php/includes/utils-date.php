@@ -32,8 +32,12 @@ function pretty_dates_short($str, $options=array()) {
 	if (isset($options['shorter'])) {
 		if ($new)
 			$format = 'G:i';
-		else
-			$format = $language ? 'm-d':'d/m';
+		else {
+			if (isset($options['year']))
+				$format = $language ? 'm-d-y':'d/m/y';
+			else
+				$format = $language ? 'm-d':'d/m';
+		}
 	}
 	elseif (isset($options['lower'])) {
 		if ($new)
