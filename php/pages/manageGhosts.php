@@ -1,9 +1,4 @@
 <?php
-include('../includes/session.php');
-if (!$id) {
-	echo "Vous n'&ecirc;tes pas connect&eacute;";
-	exit;
-}
 include('../includes/language.php');
 include('../includes/initdb.php');
 include('../includes/getId.php');
@@ -74,16 +69,12 @@ include('../includes/menu.php');
         $usedQuotaPercent = round($usedQuota*100/$totalQuota, 1);
         if ($language) {
             ?>
-            You currently have <strong><?php echo round($usedQuota/60000); ?> minutes</strong> of ghosts saved.<br />
-            You can save up to <?php echo round($totalQuota/60000); ?> minutes.<br />
-            This means you use <strong><?php echo $usedQuotaPercent; ?>%</strong> of your quota.
+            You currently have <strong><?php echo round($usedQuota/60000); ?> minutes</strong> of ghosts saved, out of <?php echo round($totalQuota/60000); ?> minutes you can save in total (<strong><?php echo $usedQuotaPercent; ?>%</strong> quota usage).
             <?php
         }
         else {
             ?>
-            Vous avez actuellement <strong><?php echo round($usedQuota/60000); ?> minutes</strong> de fantômes enregistrés.<br />
-            Vous pouvez enregistrer jusqu'à <?php echo round($totalQuota/60000); ?> minutes.<br />
-            Vous utilisez donc <strong><?php echo $usedQuotaPercent; ?>%</strong> de votre quota.
+            Vous avez actuellement <strong><?php echo round($usedQuota/60000); ?> minutes</strong> de fantômes enregistrés sur <?php echo round($totalQuota/60000); ?> minutes que vous pouvez sauvegarder au total (<strong><?php echo $usedQuotaPercent; ?>%</strong> du quota).
             <?php
         }
         ?>

@@ -1069,7 +1069,7 @@ function fetchResults() {
 			minChars: 1,
 			source: function(term, suggest) {
 				var cHandler = ++autoHandler;
-				o_xhr('matchingRecords.php', 'prefix='+encodeURIComponent(term)+'&type=<?php echo $type; ?>&cc=<?php echo $cc; ?>', function(res) {
+				o_xhr('matchingRecords.php', 'prefix='+encodeURIComponent(term)+'&type=<?php echo $type; ?>&cc=<?php echo $cc; ?><?php if (isset($cIDs)) echo '&cIDs='. implode(',', $cIDs) ?>', function(res) {
 					if (cHandler == autoHandler)
 						suggest(JSON.parse(res));
 					return true;
