@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $deletedIds[] = substr($key, 1);
     }
     if (!empty($deletedIds)) {
-        mysql_query('DELETE FROM mkghosts WHERE id IN ('. implode(',', $deletedIds) .') AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]);
+        mysql_query('DELETE g,d FROM mkghosts g LEFT JOIN mkghostsdata d ON d.id=g.id WHERE g.id IN ('. implode(',', $deletedIds) .') AND g.identifiant='.$identifiants[0].' AND g.identifiant2='.$identifiants[1].' AND g.identifiant3='.$identifiants[2].' AND g.identifiant4='.$identifiants[3]);
         $deletedGhosts = true;
     }
 }
