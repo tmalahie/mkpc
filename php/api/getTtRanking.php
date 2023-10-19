@@ -53,7 +53,7 @@ else {
     }
 }
 if (isset($_POST['count']))
-    $getCount = mysql_query('SELECT r.circuit,COUNT(*) AS nb FROM `mkrecords` r WHERE r.class="'. $cc .'" AND r.type="'. $type .'" AND r.best=1'.(empty($pIDs)?'':' AND (r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'")').($cIDsFilter?"$cIDsFilter GROUP BY r.circuit":''));
+    $getCount = mysql_query('SELECT r.circuit,COUNT(*) AS nb FROM `mkrecords` r WHERE r.class="'. $cc .'" AND r.type="'. $type .'" AND r.best=1'.(empty($pIDs)?'':' AND (r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'")').(($cIDsFilter||!$type)?"$cIDsFilter GROUP BY r.circuit":''));
 
 $entry = array('list' => array());
 if (isset($getCount))

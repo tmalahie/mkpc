@@ -466,9 +466,6 @@ var language = <?php echo $language ? 1:0; ?>;
 var classement = new Array();
 var vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
 var isMobile = (vw < 500);
-function noShownData(iClassement) {
-	return !iClassement.length;
-}
 function getPlace(id,place) {
 	var iCircuit = classement[id];
 	var record = iCircuit.classement[place][2];
@@ -858,6 +855,8 @@ function displayResults() {
 			var n = undefined;
 			if (classement[i].classement.length)
 				noPlayers = false;
+			else
+				continue;
 			var circuitTitle = document.createElement("h2");
 			circuitTitle.id = "circuit"+ i;
 			circuitTitle.innerHTML = circuits[i];
@@ -902,7 +901,7 @@ function changePage(id, nPage) {
 		if (isset($_GET['pts']))
 			$baseParams['count'] = 1;
 	}
-	elseif (!$moderate) {
+	elseif (!$manage) {
 		$baseParams['count'] = 1;
 		$paginated = true;
 	}
@@ -957,29 +956,6 @@ function fetchResults() {
 			if ($paginated) echo 'if (!nPlayer) classement[i].paginated = true;';
 			?>
 		}
-
-		var jGroup = groups.length;
-		var iGroup = 0;
-		for (var i=circuits.length-1;i>=0;i--) {
-			iGroup--;
-			if (iGroup < 0) {
-				jGroup--;
-				iGroup += circuitGroups[jGroup].length;
-			}
-			if (!classement[i].classement.length || (sFilteredData && noShownData(classement[i].classement))) {
-				circuitGroups[jGroup].splice(iGroup,1);
-				if (!circuitGroups[jGroup].length) {
-					circuitGroups.splice(jGroup,1);
-					groups.splice(jGroup,1);
-				}
-				circuits.splice(i,1);
-				classement.splice(i,1);
-				if (autoSelectMap == i)
-					autoSelectMap = undefined;
-				else if (autoSelectMap > i)
-					autoSelectMap--;
-			}
-		}
 		
 		if (!oParamsBlock) {
 			oParamsBlock = document.createElement("div");
@@ -1005,17 +981,38 @@ function fetchResults() {
 					cTous.innerHTML = (language ? "All":"Tous") +" ("+ nbRecords + " record"+ ((nbRecords>1) ? "s":"") +")";
 				iCircuit.appendChild(cTous);
 				var inc = 0;
+				var enabledGroups = groups.map(function(group,j) {
+					var circuitGroup = circuitGroups[j];
+					var res = false;
+					circuitGroup.forEach(function(circuit) {
+						if (classement[inc++].count)
+							res = true;
+					});
+					return res;
+				});
+				var multipleGroups = enabledGroups.reduce(function(a,b) {
+					return a+b;
+				}, 0) > 1;
+				inc = 0;
 				for (var j=0;j<groups.length;j++) {
+					var circuitGroup = circuitGroups[j];
+					if (!enabledGroups[j]) {
+						inc += circuitGroup.length;
+						continue;
+					}
 					var optionGroup;
-					if (groups.length > 1) {
+					if (multipleGroups) {
 						optionGroup = document.createElement("optgroup");
 						optionGroup.setAttribute("label", groups[j]);
 					}
-					var circuitGroup = circuitGroups[j];
 					for (var i=0;i<circuitGroup.length;i++) {
+						var cRecords = classement[inc].count;
+						if (!cRecords) {
+							inc++;
+							continue;
+						}
 						var cCircuit = document.createElement("option");
 						cCircuit.value = inc;
-						var cRecords = classement[inc].count;
 						if (sFilteredData)
 							cCircuit.innerHTML = circuitGroup[i];
 						else
@@ -1056,12 +1053,12 @@ function fetchResults() {
 			}
 			
 			oParamsBlock.appendChild(oParamsContent);
+			
+			var oParamsSubmit = document.createElement("div");
+			
+			oParamsBlock.appendChild(oParamsSubmit);
+			oParams.appendChild(oParamsBlock);
 		}
-		
-		var oParamsSubmit = document.createElement("div");
-		
-		oParamsBlock.appendChild(oParamsSubmit);
-		oParams.appendChild(oParamsBlock);
 		
 		var autoHandler = 0;
 		new autoComplete({
