@@ -226,6 +226,20 @@ main table div {
 	background-color: #FD9;
 	color: #963;
 }
+.record-history {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4em;
+}
+.record-history a {
+	font-size: 1.1em;
+}
+.record-history img {
+	height: 1em;
+}
 #reset_ranking {
     margin-top: 10px;
 }
@@ -864,6 +878,32 @@ function displayResults() {
 			var tableResult = document.createElement("table");
 			tableResult.id = "result"+ i;
 			oContent.appendChild(tableResult);
+			<?php
+			if (!$creation) {
+				?>
+				var circuitHistoryContainer = document.createElement("div");
+				circuitHistoryContainer.className = "record-history";
+				var circuitHistoryIcon = document.createElement("img");
+				circuitHistoryIcon.src = "images/cups/cup1.png";
+				circuitHistoryIcon.alt = "cup icon";
+				circuitHistoryContainer.appendChild(circuitHistoryIcon);
+				var circuitHistory = document.createElement("a");
+				circuitHistory.href = "#null";
+				circuitHistory.dataset.circuit = i+1;
+				circuitHistory.onclick = function() {
+					window.open('wrHistory.php?map='+this.dataset.circuit+'&cc='+iCc,'gerer','scrollbars=1, resizable=1, width=600, height=500');
+					return false;
+				};
+				circuitHistory.innerHTML = language ? "Track world record history":"Historique records du circuit";
+				circuitHistoryContainer.appendChild(circuitHistory);
+				var circuitHistoryIcon = document.createElement("img");
+				circuitHistoryIcon.src = "images/cups/cup1.png";
+				circuitHistoryIcon.alt = "cup icon";
+				circuitHistoryContainer.appendChild(circuitHistoryIcon);
+				oContent.appendChild(circuitHistoryContainer);
+				<?php
+			}
+			?>
 			displayResult(i, n);
 		}
 	}
