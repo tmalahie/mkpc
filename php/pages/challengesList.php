@@ -27,6 +27,12 @@ if (isset($moderate)) {
 else {
 	if (isset($remoderate)) {
 		$chWhere[] = '(c.status="active" OR (c.status="pending_completion" AND validation!=""))';
+		if (isset($_GET['url'])) {
+			include('../includes/adminUtils.php');
+			$creationData = getCreationByUrl($_GET['url']);
+			if ($creationData)
+				$chWhere[] = 'l.type="'. $creationData['type'] .'" AND l.circuit='. $creationData['id'];
+		}
 	}
 	else {
 		$chWhere[] = 'c.status="active"';
@@ -332,6 +338,19 @@ include('../includes/menu.php');
 				Un défi que vous avez accepté ou refusé par erreur ? Une difficulté à changer ? C'est ici que ça se passe !
 				<?php
 			}
+			?>
+			<form method="get" class="challenges-list-search challenges-list-remoderate" action="challengesList.php">
+				<p>
+					<?php echo $language ? 'Filter':'Filtrer'; ?><br />
+					<label>
+						<strong><?php echo $language ? 'Circuit URL:':'URL du circuit :'; ?></strong>
+						<input type="url" name="url" placeholder="https://mkpc.malahieude.net/map.php?mid=2432" value="<?php if (isset($_GET['url'])) echo htmlspecialchars($_GET['url']); ?>" />
+					</label>
+					<input type="hidden" name="remoderate" value="" />
+					<input type="submit" class="action_button" value="Ok" />
+				</p>
+			</form>
+			<?php
 		}
 		elseif (!$rateChallenges) {
 			?>

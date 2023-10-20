@@ -412,6 +412,9 @@
 	color: #000056;
 	word-wrap: break-word;
 }
+.challenges-list-search.challenges-list-remoderate p {
+	margin: 10px 0;
+}
 .challenges-list-search p {
 	margin: 5px 0;
 }
