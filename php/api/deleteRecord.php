@@ -16,7 +16,7 @@ if (isset($_POST["id"])) {
                 exit;
             }
         }
-        mysql_query('DELETE r,g,d FROM mkrecords r LEFT JOIN mkghosts g ON g.identifiant=r.identifiant AND g.identifiant2=r.identifiant2 AND g.identifiant3=r.identifiant3 AND g.identifiant4=r.identifiant4 AND g.perso=r.perso AND g.time=r.time AND r.class=g.class AND r.circuit=g.circuit AND r.type="" LEFT JOIN mkghostdata d ON d.ghost=g.id WHERE r.id='. $record['id']);
+        mysql_query('DELETE r,g,d FROM mkrecords r LEFT JOIN mkghosts g ON g.identifiant=r.identifiant AND g.identifiant2=r.identifiant2 AND g.identifiant3=r.identifiant3 AND g.identifiant4=r.identifiant4 AND g.perso=r.perso AND g.time=r.time AND r.class=g.class AND r.circuit=g.circuit AND r.type=g.type LEFT JOIN mkghostsdata d ON d.id=g.id WHERE r.id='. $record['id']);
         mysql_query('UPDATE mkrecords r1 LEFT JOIN mkrecords r2 ON r1.player=r2.player AND r1.identifiant=r2.identifiant AND r1.identifiant2=r2.identifiant2 AND r1.identifiant3=r2.identifiant3 AND r1.identifiant4=r2.identifiant4 AND r1.circuit=r2.circuit AND r1.type=r2.type AND r1.class=r2.class AND r2.time<r1.time SET r1.best=(r2.id IS NULL) WHERE r1.class="'. $record['class'] .'" AND r1.circuit="'. $record['circuit'] .'" AND r1.type="'. $record['type'] .'"');
         if ($moderate)
             mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "DRecord '. $_POST['id'] .'")');

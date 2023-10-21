@@ -1,5 +1,5 @@
 <?php
-if (!empty($_GET['player']) && isset($_GET['map'])) {
+if (isset($_GET['map'])) {
     include('../includes/language.php');
     include_once('circuitNames.php');
     include('../includes/initdb.php');
@@ -23,12 +23,11 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
         $circuitName = $circuitNames[$_GET['map']-1];
     }
     $cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
-    $getPlayer = mysql_fetch_array(mysql_query('SELECT nom FROM mkjoueurs WHERE id="'. $_GET['player'] .'"'));
     ?>
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
     <head> 
-        <title><?php echo $language ? 'Time trial history of '.htmlspecialchars($getPlayer['nom']):'Historique CLM de '.htmlspecialchars($getPlayer['nom']); ?></title> 
+        <title><?php echo $language ? 'World record history of '.htmlspecialchars($circuitName):'Historique record CLM de '.htmlspecialchars($circuitName); ?></title> 
         <meta charset="utf-8" /> 
         <link rel="stylesheet" type="text/css" href="styles/classement.css" />
         <style type="text/css">
@@ -85,25 +84,49 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
         main table .result td {
             width: auto;
         }
+        main .pager {
+            font-size: 1.3em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1em;
+        }
+        main .pager a {
+            text-decoration: none;
+        }
         </style>
     </head> 
     <body>
         <main>
             <h1><?php echo htmlspecialchars($circuitName) ?></h1>
-            <h2><?php echo $language ? 'Time trial history of '.htmlspecialchars($getPlayer['nom']):'Historique CLM de '.htmlspecialchars($getPlayer['nom']); ?></h2>
-            <?php
-            $getRecords = mysql_query('SELECT date,perso,time FROM mkrecords WHERE class="'.$cc.'" AND type="'. $type .'" AND circuit="'. $_GET['map'] .'" AND player="'. $_GET['player'] .'" ORDER BY date DESC');
-            ?>
+            <h2><?php echo $language ? 'World record history':'Historique record circuit'; ?></h2>
             <table>
                 <tr id="titres">
+                    <td style="width:100px"><?php echo $language ? 'Nick':'Pseudo'; ?></td>
                     <td style="width:135px">Date</td>
                     <td style="width:40px"><?php echo $language ? 'Char.':'Perso'; ?></td>
                     <td><?php echo $language ? 'Time':'Temps'; ?></td>
                 </tr>
                 <?php
-                while ($record = mysql_fetch_array($getRecords)) {
+                $date = isset($_GET['date']) ? $_GET['date'] : '9999-12-31 23:59:59';
+                for ($i=0;$i<20;$i++) {
+                    $record = mysql_fetch_array(mysql_query('SELECT r.date,r.perso,r.time,r.name,r.player,c.code FROM mkrecords r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.class="'.$cc.'" AND r.type="'.$type.'" AND r.circuit="'. $_GET['map'] .'" AND r.date<"'. $date .'" ORDER BY r.time LIMIT 1'));
+                    if (!$record)
+                        break;
                     ?>
                     <tr class="result">
+                        <td><?php
+                            if ($record['player']) {
+                                echo '<a href="profil.php?id='. $record['player'] .'" target="_blank" class="recorder">';
+                                if ($record['code'])
+                                    echo '<img src="images/flags/'.$record['code'].'.png" alt="'.$record['code'].'" onerror="this.style.display=\'none\'" /> ';
+                                echo htmlspecialchars($record['name']);
+                                echo '</a>';
+                            }
+                            else
+                                echo htmlspecialchars($record['name']);
+                        ?></a></td>
                         <td><?php echo to_local_tz($record['date'], $language ? 'Y-m-d H:i':'d/m/Y H:i'); ?></td>
                         <td><div><img src="<?php echo getSpriteSrc($record['perso']); ?>" alt="<?php echo $record['perso']; ?>"></div></td>
                         <td><?php
@@ -122,9 +145,27 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
                         ?></td>
                     </tr>
                     <?php
+                    $date = $record['date'];
                 }
                 ?>
             </table>
+                <p class="pager">
+                    <?php
+                    $get = $_GET;
+                    if (isset($_GET['date'])) {
+                        unset($get['date']);
+                        ?>
+                        <a href="?<?php echo http_build_query($get) ?>"><?php echo $language ? '&lt; Back':'&lt; Retour'; ?></a>
+                        <?php
+                    }
+                    if ($record) {
+                        $get['date'] = $date;
+                        ?>
+                        <a href="?<?php echo http_build_query($get) ?>"><?php echo $language ? 'Next results &gt;':'Page suivante &gt;'; ?></a>
+                        <?php
+                    }
+                    ?>
+                </p>
         </main>
     </body> 
 </html>

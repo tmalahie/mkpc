@@ -10,25 +10,14 @@ $nids = count($ids);
 if ($nids && ($nids<=10)) {
 	include('../includes/initdb.php');
 	require_once('../includes/utils-tt.php');
-	$getTemps = mysql_query('SELECT ghost,'.GHOST_MYSQL_FIELDS.' FROM `mkghostdata` WHERE ghost IN ('. implode(',',$ids) .') ORDER BY ghost,frame');
-	$ghostsData = array();
-	foreach ($ids as $id)
-		$ghostsData[$id] = array();
+	$getTemps = mysql_query('SELECT data FROM `mkghostsdata` WHERE id IN ('. implode(',',$ids) .') ORDER BY id');
 	echo '[';
-	while ($time = mysql_fetch_array($getTemps))
-		$ghostsData[$time['ghost']][] = $time;
-	$colon2 = '';
-	foreach ($ids as $id) {
-		$ghostData = $ghostsData[$id];
-		echo $colon2 .'[';
-		$colon = '';
-		foreach ($ghostData as $time) {
-			echo $colon;
-			print_ghost_frame($time);
-			$colon = ',';
-		}
+	$colon = '';
+	while ($time = mysql_fetch_array($getTemps)) {
+		echo $colon .'[';
+		print_ghost_data($time);
 		echo ']';
-		$colon2 = ',';
+		$colon = ',';
 	}
 	echo ']';
 	mysql_close();

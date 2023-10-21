@@ -90,7 +90,7 @@ $pseudo = isset($_GET['pseudo']) ? $_GET['pseudo']:null;
 <?php
 include('../includes/heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=1" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 
 <?php
@@ -197,6 +197,10 @@ main table div {
 		font-size: 0.8em;
 	}
 }
+#content:not(.firstload).loading {
+	opacity: 0.5;
+	pointer-events: none;
+}
 .editor-mask {
 	position: fixed;
 	z-index: 10;
@@ -222,10 +226,27 @@ main table div {
 	background-color: #FD9;
 	color: #963;
 }
-.reset_ranking {
+.record-history {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4em;
+}
+.record-history a {
+	font-size: 1.1em;
+}
+.record-history img {
+	height: 1em;
+}
+#reset_ranking {
     margin-top: 10px;
 }
-.reset_ranking button {
+#reset_ranking.hide {
+	display: none;
+}
+#reset_ranking button {
     background-color: #C66;
     color: white;
     display: inline-block;
@@ -234,7 +255,7 @@ main table div {
     border-radius: 5px;
     cursor: pointer;
 }
-.reset_ranking button:hover {
+#reset_ranking button:hover {
     background-color: #D77;
 }
 </style>
@@ -347,9 +368,9 @@ if (!$manage) {
 </div>
 </div>
 </div>
-<form name="params" action="classement.php" onsubmit="displayResults();return false">
+<form name="params" action="classement.php" onsubmit="fetchResults();return false">
 </form>
-<p id="content"><strong style="font-size:1.4em"><?php echo $language ? 'Loading':'Chargement'; ?>...</strong></p>
+<p id="content" class="firstload"><strong style="font-size:1.4em"><?php echo $language ? 'Loading':'Chargement'; ?>...</strong></p>
 <?php
 if ($creation) {
 	$groupsById = array();
@@ -362,36 +383,25 @@ if ($creation) {
 		$groupsById[$getCircuit['gid']] = addslashes($getCircuit['gname']);
 	}
 }
-$joinBest = isset($_GET['date']) ? ' LEFT JOIN `mkrecords` r2 ON r.player=r2.player AND r.identifiant=r2.identifiant AND r.identifiant2=r2.identifiant2 AND r.identifiant3=r2.identifiant3 AND r.identifiant4=r2.identifiant4 AND r.class=r2.class AND r.circuit=r2.circuit AND r.type=r2.type AND r2.time<r.time AND r2.date<="'.$_GET['date'].'"':'';
-$whereBest = isset($_GET['date']) ? ' AND r2.id IS NULL AND r.date<="'.$_GET['date'].'"':' AND r.best=1';
-if (isset($user))
-	$getResults = mysql_query('SELECT r.*,c.code,r.date,(r.player='.$user['id'].') AS shown FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'. $cc .'" AND r.type="'. $type .'"'.$whereBest.' ORDER BY r.time');
-else {
-	if ($creation && empty($cIDs))
-		$cIDs = array(0);
-	$getResults = mysql_query('SELECT r.*,c.code,r.date'.(empty($pIDs)?($moderate?',1 AS shown':''):',(r.identifiant="'.$pIDs[0].'" AND r.identifiant2="'.$pIDs[1].'" AND r.identifiant3="'.$pIDs[2].'" AND r.identifiant4="'.$pIDs[3].'") AS shown').' FROM `mkrecords` r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id'.$joinBest.' WHERE r.class="'.$cc.'" AND r.type="'.$type.'"'.(empty($cIDs)?'':' AND r.circuit IN ('.implode(',',$cIDs).')').$whereBest.' ORDER BY r.time');
-}
-if ($creation && !$cup) {
+if ($creation && !$cup && !$sManage) {
 	if (($getId = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'. $type .'` WHERE id="'. $cID .'"'))) && ($getId['identifiant'] == $identifiants[0])) {
-		if (mysql_numrows($getResults)) {
-			?>
-			<div class="reset_ranking">
-				<button class="action_button" onclick="resetRanking()"><?php echo $language ? 'Reset ranking':'Réinitialiser le classement'; ?></button>
-			</div>
-			<p></p>
-			<script type="text/javascript">
-			function resetRanking() {
-				if (confirm("<?php echo $language ? 'Delete all time trials records? Caution, this action cannot be undone':'Effacer tous les records ? Attention, cette action est irréversible'; ?>")) {
-					document.body.style.cursor = "progress";
-					o_xhr("resetTimeTrials.php", "type=<?php echo $type; ?>&id=<?php echo $cID; ?>", function() {
-						document.location.reload();
-						return true;
-					});
-				}
+		?>
+		<div id="reset_ranking" class="hide">
+			<button class="action_button" onclick="resetRanking()"><?php echo $language ? 'Reset ranking':'Réinitialiser le classement'; ?></button>
+		</div>
+		<p></p>
+		<script type="text/javascript">
+		function resetRanking() {
+			if (confirm("<?php echo $language ? 'Delete all time trials records? Caution, this action cannot be undone':'Effacer tous les records ? Attention, cette action est irréversible'; ?>")) {
+				document.body.style.cursor = "progress";
+				o_xhr("resetTimeTrials.php", "type=<?php echo $type; ?>&id=<?php echo $cID; ?>", function() {
+					document.location.reload();
+					return true;
+				});
 			}
-			</script>
-			<?php
 		}
+		</script>
+		<?php
 	}
 }
 ?>
@@ -427,19 +437,19 @@ if ($creation && !$cup) {
 include('../includes/footer.php');
 ?>
 <script type="text/javascript" src="scripts/auto-complete.min.js"></script>
-<script type="text/javascript" src="scripts/autocomplete-dummy.js"></script>
 <script type="text/javascript">
 var NB_RES = 20;
 function Resultat(circuitId) {
 	this.classement = new Array();
 	this.circuit_id = circuitId;
+	this.page = 0;
 }
 var iCc = <?php echo intval($cc); ?>;
 var autoSelectMap<?php
 	if (isset($_GET['map']) && is_numeric($_GET['map']))
 		echo ' = '. ($_GET['map']-1);
 ?>;
-var circuitGroups = <?php
+var baseCircuitGroups = <?php
 require_once('../includes/circuitEscape.php');
 if ($creation)
 	echo json_encode(array_values($circuitGroups));
@@ -452,15 +462,15 @@ else {
 	));
 }
 ?>;
+var circuitGroups = baseCircuitGroups;
 var circuits = [];
-var groups = <?php
+var baseGroups = <?php
 if ($creation)
 	echo json_encode(array_values($groupsById));
 else
 	echo '["SNES","GBA","DS"]';
 ?>;
-for (var i=0;i<groups.length;i++)
-	circuits = circuits.concat(circuitGroups[i]);
+var groups = baseGroups;
 var sUser = <?php echo isset($user) ? $user['id']:0 ?>;
 var sManage = <?php echo $sManage ? 1:0 ?>;
 var sModerate = <?php echo $moderate ? 1:0 ?>;
@@ -468,43 +478,8 @@ var sFilteredData = (sUser || sManage);
 var sPts = <?php echo +isset($_GET['pts']); ?>;
 var language = <?php echo $language ? 1:0; ?>;
 var classement = new Array();
-for (var i=0;i<circuits.length;i++)
-	classement[i] = new Resultat(i);
-<?php
-while ($result = mysql_fetch_array($getResults))
-	echo 'classement['. ($creation ? array_search($result['circuit'],$cIDs):($result['circuit']-1)) .'].classement.push(["'.addslashes(htmlspecialchars($result['name'])).'","'.addslashes($result['perso']).'",'.$result['time'].','.$result['player'].','.'"'.$result['code'].'",'.'"'.pretty_dates_short($result['date'],array('shorter'=>true,'new'=>false)).'"'.(isset($result['shown']) ? ','.$result['shown']:'').''.($sManage ? ','.$result['id']:'').']);';
-?>
-var jGroup = groups.length;
-var iGroup = 0;
-for (var i=circuits.length-1;i>=0;i--) {
-	iGroup--;
-	if (iGroup < 0) {
-		jGroup--;
-		iGroup += circuitGroups[jGroup].length;
-	}
-	if (!classement[i].classement.length || (sFilteredData && noShownData(classement[i].classement))) {
-		circuitGroups[jGroup].splice(iGroup,1);
-		if (!circuitGroups[jGroup].length) {
-			circuitGroups.splice(jGroup,1);
-			groups.splice(jGroup,1);
-		}
-		circuits.splice(i,1);
-		classement.splice(i,1);
-		if (autoSelectMap == i)
-			autoSelectMap = undefined;
-		else if (autoSelectMap > i)
-			autoSelectMap--;
-	}
-}
 var vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
 var isMobile = (vw < 500);
-function noShownData(iClassement) {
-	for (var i=0;i<iClassement.length;i++) {
-		if (iClassement[i][6])
-			return false;
-	}
-	return true;
-}
 function getPlace(id,place) {
 	var iCircuit = classement[id];
 	var record = iCircuit.classement[place][2];
@@ -545,13 +520,21 @@ function spriteLoad() {
 	}
 }
 var oParams;
+var I_RANK = 0,
+	I_NICK = I_RANK + 1,
+	I_CHARACTER = I_NICK + 1,
+	I_TIME = I_CHARACTER + 1,
+	I_PLAYER = I_TIME + 1,
+	I_COUNTRY = I_PLAYER + 1,
+	I_DATE = I_COUNTRY + 1,
+	I_ID = I_DATE + 1;
 function addResult(id, i) {
 	var iJoueur = classement[id].classement[i];
 	var oResult = document.createElement("tr");
 	oResult.className = 'result';
 	var oPlace = document.createElement("td");
-	var inPlace = getPlace(id,i);
-	var nPlaces = classement[id].classement.length;
+	var inPlace = iJoueur[I_RANK];
+	var nPlaces = classement[id].count;
 	var nScore = getScore(inPlace,nPlaces);
 	var iCircuit = classement[id].circuit_id;
 	var sPlace;
@@ -586,14 +569,14 @@ function addResult(id, i) {
 	var oPseudo = document.createElement("td");
 	function setNickHtml() {
 		var pseudoTxt;
-		if (iJoueur[4]) {
+		if (iJoueur[I_COUNTRY]) {
 			oPseudo.className = "recorder";
-			pseudoTxt = '<img src="images/flags/'+iJoueur[4]+'.png" alt="'+iJoueur[4]+'" onerror="this.style.display=\'none\'" /> '+iJoueur[0];
+			pseudoTxt = '<img src="images/flags/'+iJoueur[I_COUNTRY]+'.png" alt="'+iJoueur[I_COUNTRY]+'" onerror="this.style.display=\'none\'" /> '+iJoueur[I_NICK];
 		}
 		else
-			pseudoTxt = " "+iJoueur[0];
-		if (iJoueur[3])
-			oPseudo.innerHTML = '<a href="profil.php?id='+iJoueur[3]+'">'+pseudoTxt+'</a>';
+			pseudoTxt = " "+iJoueur[I_NICK];
+		if (iJoueur[I_PLAYER])
+			oPseudo.innerHTML = '<a href="profil.php?id='+iJoueur[I_PLAYER]+'">'+pseudoTxt+'</a>';
 		else
 			oPseudo.innerHTML = pseudoTxt;
 	}
@@ -602,14 +585,14 @@ function addResult(id, i) {
 	var oPerso = document.createElement("td");
 	var oPersoDiv = document.createElement("div");
 	var oPersoImg = document.createElement("img");
-	oPersoImg.src = getSpriteSrc(iJoueur[1]);
-	oPersoImg.setAttribute("alt", iJoueur[1]);
+	oPersoImg.src = getSpriteSrc(iJoueur[I_CHARACTER]);
+	oPersoImg.setAttribute("alt", iJoueur[I_CHARACTER]);
 	oPersoImg.onload = spriteLoad;
 	oPersoDiv.appendChild(oPersoImg);
 	oPerso.appendChild(oPersoDiv);
 	oResult.appendChild(oPerso);
 	var oTemps = document.createElement("td");
-	var getTime = iJoueur[2], mls = getTime%1000, sec = Math.floor(getTime/1000), min = Math.floor(sec/60);
+	var getTime = iJoueur[I_TIME], mls = getTime%1000, sec = Math.floor(getTime/1000), min = Math.floor(sec/60);
 	sec -= min*60;
 	if (sec < 10)
 		sec = "0"+ sec;
@@ -622,30 +605,21 @@ function addResult(id, i) {
 	if (!isMobile) {
 		var oDate = document.createElement("td");
 		oDate.className = "record-date";
-		<?php
-		if ($creation) {
-			?>
-		oDate.innerHTML = iJoueur[5];
-			<?php
+		if (iJoueur[I_PLAYER]) {
+			var aDate = document.createElement("a");
+			aDate.href = "#null";
+			aDate.title = language ? "History":"Historique";
+			aDate.onclick = function() {
+				window.open('recordHistory.php?player='+iJoueur[I_PLAYER]+'&map='+classement[id].id+'&cc='+iCc<?php
+				if ($type) echo "+'&type=$type'";
+				?>,'gerer','scrollbars=1, resizable=1, width=500, height=400');
+				return false;
+			};
+			aDate.innerHTML = iJoueur[I_DATE];
+			oDate.appendChild(aDate);
 		}
-		else {
-			?>
-			if (iJoueur[3]) {
-				var aDate = document.createElement("a");
-				aDate.href = "#null";
-				aDate.title = language ? "History":"Historique";
-				aDate.onclick = function() {
-					window.open('recordHistory.php?player='+iJoueur[3]+'&map='+(iCircuit+1)+'&cc='+iCc,'gerer','scrollbars=1, resizable=1, width=500, height=400');
-					return false;
-				};
-				aDate.innerHTML = iJoueur[5];
-				oDate.appendChild(aDate);
-			}
-			else
-				oDate.innerHTML = iJoueur[5];
-			<?php
-		}
-		?>
+		else
+			oDate.innerHTML = iJoueur[I_DATE];
 		oResult.appendChild(oDate);
 	}
 	if (sPts) {
@@ -663,11 +637,11 @@ function addResult(id, i) {
 			var items = [{
 				label: language ? "Change nick" : "Modifier pseudo",
 				select: function() {
-					var newName = prompt(language ? "Enter new nick:":"Entrer le nouveau pseudo :", iJoueur[0]);
-					if (newName && newName !== iJoueur[0]) {
-						o_xhr("editRecord.php", "id="+iJoueur[7]+"&name="+encodeURIComponent(newName), function(res) {
+					var newName = prompt(language ? "Enter new nick:":"Entrer le nouveau pseudo :", iJoueur[I_NICK]);
+					if (newName && newName !== iJoueur[I_NICK]) {
+						o_xhr("editRecord.php", "id="+iJoueur[I_ID]+"&name="+encodeURIComponent(newName), function(res) {
 							if (res == 1) {
-								iJoueur[0] = newName;
+								iJoueur[I_NICK] = newName;
 								setNickHtml();
 								return true;
 							}
@@ -687,7 +661,7 @@ function addResult(id, i) {
 				label: language ? "Delete" : "Supprimer",
 				select: function(){
 					if (confirm(language ? "Remove this record? This operation cannot be undone" : "Supprimer ce record ? Cette opération est irréversible")) {
-						o_xhr("deleteRecord.php", "id="+iJoueur[7], function(res) {
+						o_xhr("deleteRecord.php", "id="+iJoueur[I_ID], function(res) {
 							if (res == 1) {
 								document.getElementById("result"+ id).removeChild(oResult);
 								return true;
@@ -806,14 +780,10 @@ function displayResult(id, n) {
 		tableHeader.appendChild(oPts);
 	}
 	oTableResults.appendChild(tableHeader);
-	if (n != undefined) {
-		for (var i=0;i<n.length;i++)
-			addResult(id, n[i]);
-	}
-	else {
-		var debut = iResult.page*NB_RES, fin = Math.min(debut+NB_RES, iClassement.length);
-		for (var i=debut;i<fin;i++)
-			addResult(id, i);
+
+	for (var i=0;i<iClassement.length;i++)
+		addResult(id, i);
+	if (iResult.paginated && (iClassement.length < iResult.count)) {
 		var oTableFooter = document.createElement("tr");
 		var oPages = document.createElement("td");
 		oPages.id = "page";
@@ -825,52 +795,73 @@ function displayResult(id, n) {
 			oPages.style.fontStyle = "italic";
 		}
 		else {
-			var nbPages = Math.ceil(iResult.classement.length/NB_RES);
-			for (var i=0;i<nbPages;i++)
-				oPages.innerHTML += (i!=iPage) ? ' <a href="#circuit'+ id +'" onclick="changePage('+ id +", "+ i +');void(0)">'+ (i+1) +'</a>':' <span>'+ (i+1) +'</span>';
+			var nbPages = Math.ceil(iResult.count/NB_RES);
+			var paging = makePaging(iPage, nbPages);
+			for (var i=0;i<paging.length;i++) {
+				if (i)
+					oPages.innerHTML += ' ...&nbsp;';
+				for (var j=0;j<paging[i].length;j++) {
+					var p = paging[i][j];
+					oPages.innerHTML += (p!=iPage) ? ' <a href="#circuit'+ id +'" onclick="changePage('+ id +", "+ p +');void(0)">'+ (p+1) +'</a>':' <span>'+ (p+1) +'</span>';
+				}
+			}
 		}
 		oTableFooter.appendChild(oPages);
 		oTableResults.appendChild(oTableFooter);
 	}
+}
+function makePaging(cPage, nbPages, intervalle=3) {
+	if (nbPages <= (intervalle*2+2)) {
+		var block = [];
+		for (var i=0;i<nbPages;i++)
+			block.push(i);
+		return [block];
+	}
+	var res = [];
+	var block = [];
+	var debut = cPage-intervalle;
+	if (debut <= 0)
+		debut = 0;
+	else {
+		block.push(0);
+		if (debut != 1) {
+			res.push(block);
+			block = [];
+		}
+	}
+	var fin = debut + intervalle*2 + 1;
+	if (fin > nbPages) {
+		fin = nbPages;
+		debut = fin-intervalle*2-1;
+	}
+	for (var i=debut;i<fin;i++)
+		block.push(i);
+	
+	if (fin < nbPages) {
+		if (fin != (nbPages-1)) {
+			res.push(block);
+			block = [];
+		}
+		block.push(nbPages-1);
+		res.push(block);
+	}
+	else
+		res.push(block);
+	return res;
 }
 function displayResults() {
 	var oContent = document.getElementById("content");
 	removeElements(oContent);
 	var cRace = oParams.map ? oParams.map.value:-1;
 	var setToAll = (cRace == -1);
-	var sPlayer = oParams.joueur.value.toLowerCase();
-	var noPlayers = sPlayer;
+	var noPlayers = !sFilteredData;
 	for (var i=0;i<circuits.length;i++) {
 		if (setToAll || (cRace == i)) {
 			var n = undefined;
-			if (sPlayer) {
-				n = [];
-				var iClassement = classement[i].classement;
-				for (var j=0;j<iClassement.length;j++) {
-					if (iClassement[j][0].toLowerCase() == sPlayer) {
-						n.push(j);
-						noPlayers = false;
-					}
-				}
-				if (!n.length)
-					continue;
-			}
-			else if (sFilteredData && !sModerate) {
-				n = [];
-				var iClassement = classement[i].classement;
-				for (var j=0;j<iClassement.length;j++) {
-					if (iClassement[j][6]) {
-						n.push(j);
-						noPlayers = false;
-						if (sPts)
-							break;
-					}
-				}
-				if (!n.length)
-					continue;
-			}
+			if (classement[i].classement.length)
+				noPlayers = false;
 			else
-				classement[i].page = 0;
+				continue;
 			var circuitTitle = document.createElement("h2");
 			circuitTitle.id = "circuit"+ i;
 			circuitTitle.innerHTML = circuits[i];
@@ -878,6 +869,28 @@ function displayResults() {
 			var tableResult = document.createElement("table");
 			tableResult.id = "result"+ i;
 			oContent.appendChild(tableResult);
+			var circuitHistoryContainer = document.createElement("div");
+			circuitHistoryContainer.className = "record-history";
+			var circuitHistoryIcon = document.createElement("img");
+			circuitHistoryIcon.src = "images/cups/cup1.png";
+			circuitHistoryIcon.alt = "cup icon";
+			circuitHistoryContainer.appendChild(circuitHistoryIcon);
+			var circuitHistory = document.createElement("a");
+			circuitHistory.href = "#null";
+			circuitHistory.dataset.circuit = classement[i].id;
+			circuitHistory.onclick = function() {
+				window.open('wrHistory.php?map='+this.dataset.circuit+'&cc='+iCc<?php
+				if ($type) echo "+'&type=$type'";
+				?>,'gerer','scrollbars=1, resizable=1, width=600, height=500');
+				return false;
+			};
+			circuitHistory.innerHTML = language ? "Track world record history":"Historique records du circuit";
+			circuitHistoryContainer.appendChild(circuitHistory);
+			var circuitHistoryIcon = document.createElement("img");
+			circuitHistoryIcon.src = "images/cups/cup1.png";
+			circuitHistoryIcon.alt = "cup icon";
+			circuitHistoryContainer.appendChild(circuitHistoryIcon);
+			oContent.appendChild(circuitHistoryContainer);
 			displayResult(i, n);
 		}
 	}
@@ -886,115 +899,220 @@ function displayResults() {
 		oNoResults.innerHTML = language ? "No result found for this search" : "Aucun résultat trouvé pour cette recherche.";
 		oContent.appendChild(oNoResults);
 	}
+	else {
+		var $resetRanking = document.getElementById("reset_ranking");
+		if ($resetRanking)
+			$resetRanking.classList.remove("hide");
+	}
 }
+var oParamsBlock;
+var fetchingResults = false;
 function changePage(id, nPage) {
+	if (fetchingResults)
+		return;
+	var oTableResults = document.getElementById("result"+ id);
+	oTableResults.classList.add("loading");
 	classement[id].page = nPage;
-	displayResult(id);
-}
-window.onload = function() {
-	oParams = document.forms["params"];
-	
-	var oParamsBlock = document.createElement("div");
-	
-	var oParamsContent = document.createElement("div");
+	var nCircuit = classement[id].id;
+	var nPlayer = oParams.joueur.value;
 	<?php
-	if (!$creation || $cup) {
-		?>
-		var tCircuit = document.createElement("span");
-		tCircuit.innerHTML = language ? 'See circuit: ':'Voir circuit : ';
-		tCircuit.style.fontWeight = "bold";
-		oParamsContent.appendChild(tCircuit);
-		var iCircuit = document.createElement("select");
-		iCircuit.name = "map";
-		var cTous = document.createElement("option");
-		cTous.value = -1;
-		var nbRecords = 0;
-		for (var i=0;i<circuits.length;i++)
-			nbRecords += classement[i].classement.length;
-		if (sFilteredData)
-			cTous.innerHTML = language ? "All":"Tous";
-		else
-			cTous.innerHTML = (language ? "All":"Tous") +" ("+ nbRecords + " record"+ ((nbRecords>1) ? "s":"") +")";
-		iCircuit.appendChild(cTous);
-		var inc = 0;
-		for (var j=0;j<groups.length;j++) {
-			var optionGroup;
-			if (groups.length > 1) {
-				optionGroup = document.createElement("optgroup");
-				optionGroup.setAttribute("label", groups[j]);
-			}
-			var circuitGroup = circuitGroups[j];
-			for (var i=0;i<circuitGroup.length;i++) {
-				var cCircuit = document.createElement("option");
-				cCircuit.value = inc;
-				var cRecords = classement[inc].classement.length;
-				if (sFilteredData)
-					cCircuit.innerHTML = circuitGroup[i];
-				else
-					cCircuit.innerHTML = circuitGroup[i] +" ("+ cRecords +" record"+ ((cRecords>1) ? "s":"") +")";
-				if (optionGroup)
-					optionGroup.appendChild(cCircuit);
-				else
-					iCircuit.appendChild(cCircuit);
-				inc++;
-			}
-			if (optionGroup)
-				iCircuit.appendChild(optionGroup);
-		}
-		if (autoSelectMap != undefined)
-			iCircuit.value = autoSelectMap;
-		iCircuit.onchange = displayResults;
-		oParamsContent.appendChild(iCircuit);
-		
-		oParamsContent.appendChild(document.createElement("br"));
-		<?php
+	$apiParams = array('cc' => $cc);
+	$baseParams = array();
+	if ($manage)
+		$apiParams['manage'] = 1;
+	if ($moderate)
+		$apiParams['moderate'] = 1;
+	$paginated = false;
+	if (isset($user)) {
+		$apiParams['user'] = $user['id'];
+		if (isset($_GET['pts']))
+			$baseParams['count'] = 1;
 	}
+	elseif (!$manage) {
+		$baseParams['count'] = 1;
+		$paginated = true;
+	}
+	if (isset($cIDs))
+		$apiParams['cIDs'] = implode(',', $cIDs);
+	if ($type)
+		$apiParams['type'] = $type;
 	?>
-	
-	var tJoueur = document.createElement("span");
-	tJoueur.innerHTML = language ? "See player:":"Voir joueur :";
-	tJoueur.innerHTML += "&nbsp;";
-	tJoueur.style.fontWeight = "bold";
-	oParamsContent.appendChild(tJoueur);
-	var iJoueur = document.createElement("input");
-	iJoueur.type = "text";
-	iJoueur.id = "joueur";
-	iJoueur.name = "joueur";
-	iJoueur.value = "<?php echo (isset($_GET['joueur']) ? $_GET['joueur']:null); ?>";
-	iJoueur.onchange = displayResults;
-	oParamsContent.appendChild(iJoueur);
-	if (sFilteredData) {
-		tJoueur.style.display = "none";
-		iJoueur.style.display = "none";
-	}
-	
-	oParamsBlock.appendChild(oParamsContent);
-	
-	var oParamsSubmit = document.createElement("div");
-	
-	oParamsBlock.appendChild(oParamsSubmit);
-	oParams.appendChild(oParamsBlock);
-	
-	var joueurs = new Array();
-	var lowerCaseJoueurs = new Array();
-	for (var c=0;c<classement.length;c++) {
-		var iClassement = classement[c].classement;
-		for (var i=0;i<iClassement.length;i++) {
-			var nJoueur = iClassement[i][0];
-			if (lowerCaseJoueurs.indexOf(nJoueur.toLowerCase()) == -1) {
-				joueurs.push(nJoueur);
-				lowerCaseJoueurs.push(nJoueur.toLowerCase());
-			}
-		}
-	}
-	autocompleteDummy("#joueur", joueurs, {
-		onSelect: function(event, term, item) {
-			displayResults();
-		}
+	o_xhr("getTtRanking.php", <?php
+		echo '"'.http_build_query($apiParams).'&page="+ nPage +"&cIDs="+ nCircuit + (nPlayer ? "&name="+ nPlayer:"")';
+	?>, function(res) {
+		fetchingResults = false;
+		oTableResults.classList.remove("loading");
+		res = JSON.parse(res);
+		classement[id].classement = res[id].list;
+		displayResult(id);
+		return true;
 	});
-	
-	displayResults();
-};
+}
+function fetchResults() {
+	if (fetchingResults)
+		return;
+	fetchingResults = true;
+	var oContent = document.getElementById("content");
+	oContent.classList.add("loading");
+	var nPlayer = oParams.joueur ? oParams.joueur.value : "";
+	o_xhr("getTtRanking.php", <?php
+		$apiParams = array_merge($apiParams, $baseParams);
+		echo '"'.http_build_query($apiParams).'" + (nPlayer ? "&name="+ nPlayer:"")';
+	?>, function(res) {
+		fetchingResults = false;
+		oContent.className = "";
+		res = JSON.parse(res);
+		circuits.length = 0;
+		circuitGroups = baseCircuitGroups.map(function(baseCircuitGroup) {
+			return baseCircuitGroup.slice();
+		});
+		groups = baseGroups.slice();
+		for (var i=0;i<groups.length;i++)
+			circuits = circuits.concat(circuitGroups[i]);
+		for (var i=0;i<circuits.length;i++)
+			classement[i] = new Resultat(i);
+		for (var i=0;i<res.length;i++) {
+			var iRanking = res[i];
+			classement[i].id = iRanking.id;
+			classement[i].classement = iRanking.list;
+			if (iRanking.count === undefined)
+				classement[i].count = iRanking.list.length;
+			else
+				classement[i].count = iRanking.count;
+			<?php
+			if ($paginated) echo 'if (!nPlayer) classement[i].paginated = true;';
+			?>
+		}
+		
+		if (!oParamsBlock) {
+			oParamsBlock = document.createElement("div");
+			
+			var oParamsContent = document.createElement("div");
+			<?php
+			if (!$creation || $cup) {
+				?>
+				var tCircuit = document.createElement("span");
+				tCircuit.innerHTML = language ? 'See circuit: ':'Voir circuit : ';
+				tCircuit.style.fontWeight = "bold";
+				oParamsContent.appendChild(tCircuit);
+				var iCircuit = document.createElement("select");
+				iCircuit.name = "map";
+				var cTous = document.createElement("option");
+				cTous.value = -1;
+				var nbRecords = 0;
+				for (var i=0;i<circuits.length;i++)
+					nbRecords += classement[i].count;
+				if (sFilteredData)
+					cTous.innerHTML = language ? "All":"Tous";
+				else
+					cTous.innerHTML = (language ? "All":"Tous") +" ("+ nbRecords + " record"+ ((nbRecords>1) ? "s":"") +")";
+				iCircuit.appendChild(cTous);
+				var inc = 0;
+				var enabledGroups = groups.map(function(group,j) {
+					var circuitGroup = circuitGroups[j];
+					var res = false;
+					circuitGroup.forEach(function(circuit) {
+						if (classement[inc++].count)
+							res = true;
+					});
+					return res;
+				});
+				var multipleGroups = enabledGroups.reduce(function(a,b) {
+					return a+b;
+				}, 0) > 1;
+				inc = 0;
+				for (var j=0;j<groups.length;j++) {
+					var circuitGroup = circuitGroups[j];
+					if (!enabledGroups[j]) {
+						inc += circuitGroup.length;
+						continue;
+					}
+					var optionGroup;
+					if (multipleGroups) {
+						optionGroup = document.createElement("optgroup");
+						optionGroup.setAttribute("label", groups[j]);
+					}
+					for (var i=0;i<circuitGroup.length;i++) {
+						var cRecords = classement[inc].count;
+						if (!cRecords) {
+							inc++;
+							continue;
+						}
+						var cCircuit = document.createElement("option");
+						cCircuit.value = inc;
+						if (sFilteredData)
+							cCircuit.innerHTML = circuitGroup[i];
+						else
+							cCircuit.innerHTML = circuitGroup[i] +" ("+ cRecords +" record"+ ((cRecords>1) ? "s":"") +")";
+						if (optionGroup)
+							optionGroup.appendChild(cCircuit);
+						else
+							iCircuit.appendChild(cCircuit);
+						inc++;
+					}
+					if (optionGroup)
+						iCircuit.appendChild(optionGroup);
+				}
+				if (autoSelectMap != undefined)
+					iCircuit.value = autoSelectMap;
+				iCircuit.onchange = displayResults;
+				oParamsContent.appendChild(iCircuit);
+				
+				oParamsContent.appendChild(document.createElement("br"));
+				<?php
+			}
+			?>
+			
+			var tJoueur = document.createElement("span");
+			tJoueur.innerHTML = language ? "See player:":"Voir joueur :";
+			tJoueur.innerHTML += "&nbsp;";
+			tJoueur.style.fontWeight = "bold";
+			oParamsContent.appendChild(tJoueur);
+			var iJoueur = document.createElement("input");
+			iJoueur.type = "text";
+			iJoueur.id = "joueur";
+			iJoueur.name = "joueur";
+			iJoueur.onchange = fetchResults;
+			oParamsContent.appendChild(iJoueur);
+			if (sFilteredData) {
+				tJoueur.style.display = "none";
+				iJoueur.style.display = "none";
+			}
+			
+			oParamsBlock.appendChild(oParamsContent);
+			
+			var oParamsSubmit = document.createElement("div");
+			
+			oParamsBlock.appendChild(oParamsSubmit);
+			oParams.appendChild(oParamsBlock);
+		}
+		
+		var autoHandler = 0;
+		new autoComplete({
+			selector: "#joueur",
+			minChars: 1,
+			source: function(term, suggest) {
+				var cHandler = ++autoHandler;
+				o_xhr('matchingRecords.php', 'prefix='+encodeURIComponent(term)+'&type=<?php echo $type; ?>&cc=<?php echo $cc; ?><?php if (isset($cIDs)) echo '&cIDs='. implode(',', $cIDs) ?>', function(res) {
+					if (cHandler == autoHandler)
+						suggest(JSON.parse(res));
+					return true;
+				});
+			},
+			onSelect: function() {
+				fetchResults();
+			}
+		});
+		
+		displayResults();
+
+		return true;
+	});
+}
+document.addEventListener("DOMContentLoaded", function() {
+	oParams = document.forms["params"];
+	fetchResults();
+})
 </script>
 </body>
 </html>

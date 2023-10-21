@@ -24,6 +24,9 @@ main table {
 	font-weight: bold;
 	color: black;
 }
+main table.loading {
+	opacity: 0.5;
+}
 main td {
 	border: solid 1px black;
 	margin: 2px;
@@ -143,4 +146,10 @@ main a:hover {
 	border-right: solid 1px #820;
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
+}
+.action_button.action_delete {
+	background-color: #C30;
+}
+.action_button.action_delete:hover {
+	background-color: #820;
 }

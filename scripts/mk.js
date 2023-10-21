@@ -3860,12 +3860,13 @@ function startGame() {
 						if ($virtualPauseBtn)
 							$virtualPauseBtn.style.display = "block";
 						if (stillRacing) {
-							var btnFontSize = (course != "CM") ? (iScreenScale*3):Math.round(iScreenScale*2.5);
+							var limitedOptions = (course != "CM" || isSingle);
+							var btnFontSize = limitedOptions ? (iScreenScale*3):Math.round(iScreenScale*2.5);
 							oInfos.innerHTML =
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RESUME  ', 'REPRENDRE') +' &nbsp; " id="reprendre" /></td></tr>'+
 								'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
 								'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value=" &nbsp; '+ toLanguage('  RETRY  ', 'RÉESSAYER') +' &nbsp; " id="recommencer" /></td></tr>'+
-								((course != "CM") ? '':
+								(limitedOptions ? '':
 									'<tr><td style="font-size:'+ (iScreenScale*2) +'px">&nbsp;</td></tr>'+
 									'<tr><td><input type="button" style="font-size: '+ btnFontSize +'pt; width: 100%;" value="'+ toLanguage('  CHANGE RACE  ', 'CHANGER CIRCUIT') +'" id="changecircuit" /></td></tr>'
 								)+
@@ -3953,7 +3954,7 @@ function startGame() {
 								resetEvents();
 								resetApp();
 							};
-							if (course == "CM") {
+							if (!limitedOptions) {
 								document.getElementById("changecircuit").onclick = function() {
 									interruptGame();
 									removeGameMusics();
@@ -5536,6 +5537,8 @@ function continuer() {
 			oForm.style.width = (iScreenScale*70-10) +"px";
 			oForm.style.zIndex = 20000;
 
+			var savedRecord;
+
 			oForm.onsubmit = function() {
 				var nom = this.pseudo.value;
 				
@@ -5555,7 +5558,7 @@ function continuer() {
 						params += "&map="+ oMap.map;
 						break;
 					}
-					xhr("records.php", params, function(reponse) {
+					function postSaveRecord(reponse) {
 						if (reponse) {
 							document.body.style.cursor = "default";
 							var enregistre;
@@ -5577,7 +5580,16 @@ function continuer() {
 								aPara2.style.visibility = "";
 								oRetour.focus();
 							}
+							function rollbackUi() {
+								oValide.style.visibility = "";
+								oValide.style.marginRight = (iScreenScale*2) +"px";
+								aPara3.insertBefore(oValide,oRetour);
+								oCheckbox.disabled = false;
+								oInput.disabled = false;
+								oInput.select();
+							}
 							if (Array.isArray(enregistre)) {
+								savedRecord = enregistre;
 								if (oCheckbox.checked) {
 									oSave.style.display = "none";
 									oValide.style.display = "none";
@@ -5586,7 +5598,7 @@ function continuer() {
 									aSmall.innerHTML = toLanguage("Saving ghost...","Enregistrement du fantôme...");
 									aPara2.appendChild(aSmall);
 									aPara2.style.visibility = "";
-									var oRequest = "map="+ oMap.map +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers)+"&cc="+getActualCc();
+									var oRequest = "map="+ getCreationId(oMap) +"&type="+ getCreationTable() +"&perso="+ strPlayer[0] +"&time="+ getActualGameTimeMS()+"&times="+JSON.stringify(lapTimers)+"&cc="+getActualCc();
 									for (i=0;i<iTrajet.length;i++)
 										oRequest += "&p"+ i +"="+ iTrajet[i].toString().replace(/\,/g, "_");
 									xhr("saveghost.php", oRequest, function(reponse) {
@@ -5595,6 +5607,13 @@ function continuer() {
 											if (gOverwriteRecord)
 												gOverwriteRecord = 2;
 											showBackUi(true);
+											return true;
+										}
+										else if (reponse == -1) {
+											showBackUi(false);
+											oValide.style.display = "";
+											aPara2.innerHTML = toLanguage("You have exceeded your saved ghosts quota. You can <a href=\"manageGhosts.php\" target=\"_blank\" style=\"color: orange\">delete ghosts</a> to save space", "Vous avez dépassé votre quota de fantômes enregistrés. Vous pouvez <a href=\"manageGhosts.php\" target=\"_blank\" style=\"color: orange\">supprimer des fantômes</a> pour gagner de l'espace");
+											rollbackUi();
 											return true;
 										}
 										else
@@ -5617,19 +5636,17 @@ function continuer() {
 									aPara2.innerHTML = toLanguage("An unknown error occured, please try again later", "Une erreur inconnue est survenue, veuillez réessayer ultérieurement");
 									break;
 								}
-								if (enregistre != 0) {
-									oValide.style.visibility = "";
-									oValide.style.marginRight = (iScreenScale*2) +"px";
-									aPara3.insertBefore(oValide,oRetour);
-									oCheckbox.disabled = false;
-									oInput.disabled = false;
-									oInput.select();
-								}
+								if (enregistre != 0)
+									rollbackUi();
 							}
 							return true;
 						}
 						return false;
-					});
+					}
+					if (savedRecord)
+						postSaveRecord(savedRecord);
+					else
+						xhr("records.php", params, postSaveRecord);
 					recorder = nom;
 				}
 				return false;
@@ -5665,7 +5682,7 @@ function continuer() {
 			oCheckSpan.innerHTML = " "+toLanguage("Save ghost","Enregistrer le fantôme");
 			oCheckLabel.appendChild(oCheckSpan);
 			aPara12.appendChild(oCheckLabel);
-			if ((page != "MK") || (timerMS >= gRecord)) {
+			if (timerMS >= gRecord) {
 				oCheckbox.checked = false;
 				aPara12.style.display = "none";
 			}
@@ -5782,6 +5799,13 @@ function continuer() {
 		}
 		if (gSelectedPerso) oClassement.style.display = "none";
 		document.getElementById("classement").appendChild(oClassement);
+
+		if (isSingle) {
+			oContinue.style.width = Math.round(36*iScreenScale) +"px";
+			if (gSelectedPerso)
+				oReplay.style.marginTop = oReplay.style.marginBottom = Math.round(iScreenScale*2) +"px";
+			oChangeRace.style.display = "none";
+		}
 
 	}
 	document.getElementById("continuer").appendChild(oContinue);
@@ -16046,7 +16070,7 @@ function move(getId, triggered) {
 									oForm.appendChild(aPara2);
 									$mkScreen.appendChild(oForm);
 									
-									if (page == "MK" && timerMS >= gRecord)
+									if (timerMS >= gRecord)
 										oRetour.focus();
 									else
 										oSave.focus();
@@ -20948,6 +20972,26 @@ function openChallengeEditor() {
 	else
 		document.location.href = document.location.href.replace(/\/(\w+)\.php\?(.+)$/g, '/challenges.php?page=$1&$2');
 }
+function getCreationId(oMap) {
+	switch (page) {
+	case "CI":
+	case "AR":
+		return oMap.id;
+	}
+	return oMap.map;
+}
+function getCreationTable() {
+	switch (page) {
+	case "CI":
+	case "AR":
+		return "mkcircuits";
+	case "MA":
+		return "circuits";
+	case "BA":
+		return "arenes";
+	}
+	return "";
+}
 
 function selectTypeCreate() {
 	var oScr = document.createElement("div");
@@ -25419,29 +25463,8 @@ function selectRaceScreen(cup) {
 						appendContainers();
 						resetGame(this.map);
 					}
-					else if (page != "MK") {
-						gPersos.length = 0;
-						resetGame(this.map);
-					}
-					else {
-						document.body.style.cursor = "progress";
-						var tMap = this.map;
-						var iMap = tMap.replace(/^[a-zA-Z]+([0-9]+)$/, "$1");
-						xhr("ghostsave.php", "map="+ iMap +"&cc="+ getActualCc(), function(reponse) {
-							var ghostSaves;
-							try {
-								ghostSaves = eval(reponse);
-							}
-							catch (e) {
-								return false;
-							}
-							if (ghostSaves)
-								selectFantomeScreen(ghostSaves, iMap-1);
-							else
-								selectFantomeScreen(undefined, iMap-1);
-							return true;
-						});
-					}
+					else
+						loadGhostScreen(this.map);
 				}
 				else
 					choose(this.ref);
@@ -25521,6 +25544,10 @@ function selectRaceScreen(cup) {
 		}
 		cup++;
 		strMap = "map"+ cup;
+		if (course == "CM") {
+			loadGhostScreen(strMap);
+			return;
+		}
 		appendContainers();
 		resetGame(strMap);
 		return;
@@ -26875,6 +26902,24 @@ function connexion() {
 
 	updateMenuMusic(0);
 }
+function loadGhostScreen(map) {
+	document.body.style.cursor = "progress";
+	var oMap = oMaps[map];
+	xhr("ghostsave.php", "map="+ getCreationId(oMap) +"&type="+ getCreationTable() +"&cc="+ getActualCc(), function(reponse) {
+		var ghostSaves;
+		try {
+			ghostSaves = eval(reponse);
+		}
+		catch (e) {
+			return false;
+		}
+		if (ghostSaves)
+			selectFantomeScreen(ghostSaves, oMap.ref-1);
+		else
+			selectFantomeScreen(undefined, oMap.ref-1);
+		return true;
+	});
+}
 function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	var oScr = document.createElement("div");
 	var oStyle = oScr.style;
@@ -26884,7 +26929,14 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
 
-	oScr.appendChild(toTitle(lCircuits[map], 0.4));
+	var oTitle = toTitle(lCircuits[map], 0.5);
+	oTitle.style.fontSize = Math.round(7*iScreenScale)+"px";
+	oTitle.style.left = (iScreenScale*2)+"px";
+	oTitle.style.width = (iScreenScale*(iWidth-2))+"px";
+	oTitle.style.whiteSpace = "nowrap";
+	oTitle.style.overflow = "hidden";
+	oTitle.style.textOverflow = "ellipsis";
+	oScr.appendChild(oTitle);
 	
 	var oTable = document.createElement("table");
 	oTable.setAttribute("border", "4px");
@@ -26932,8 +26984,9 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	var oSpan = document.createElement("span");
 	oSpan.style.display = "inline-block";
 	oSpan.style.color = "white";
-	oSpan.style.maxWidth = (iScreenScale*15) +"px";
-	oSpan.style.fontSize = (iScreenScale*2) +"px";
+	oSpan.style.minWidth = (iScreenScale*10) +"px";
+	oSpan.style.maxWidth = Math.round(iScreenScale*13.5) +"px";
+	oSpan.style.fontSize = Math.round(iScreenScale*1.8) +"px";
 	oSpan.style.overflow = "hidden";
 	oSpan.style.textOverflow = "ellipsis";
 	oSpan.style.whiteSpace = "nowrap";
@@ -27245,14 +27298,17 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				else
 					gID = 0;
 			}
+			var iArrowTop = Math.round(11.5*iScreenScale);
+			var iArrowHeight = Math.round(5*iScreenScale);
 			var fGauche = document.createElement("input");
 			fGauche.id = "fGauche";
 			fGauche.type = "button";
 			fGauche.value = "\u2190";
-			fGauche.style.fontSize = (6*iScreenScale)+"px";
+			fGauche.style.fontSize = (4*iScreenScale)+"px";
 			fGauche.style.position = "absolute";
-			fGauche.style.left = (10*iScreenScale)+"px";
-			fGauche.style.top = Math.round(10.5*iScreenScale)+"px";
+			fGauche.style.left = (13*iScreenScale)+"px";
+			fGauche.style.top = iArrowTop +"px";
+			fGauche.style.height = iArrowHeight +"px";
 			fGauche.onclick = function() {
 				for (var i=0;i<2;i++) {
 					gID--;
@@ -27267,14 +27323,30 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			}
 			oScr.appendChild(fGauche);
 			
+			var ffGauche = document.createElement("input");
+			ffGauche.id = "ffGauche";
+			ffGauche.type = "button";
+			ffGauche.value = "\u23EE";
+			ffGauche.style.fontSize = (4*iScreenScale)+"px";
+			ffGauche.style.position = "absolute";
+			ffGauche.style.left = (5*iScreenScale)+"px";
+			ffGauche.style.top = iArrowTop +"px";
+			ffGauche.style.height = iArrowHeight +"px";
+			ffGauche.onclick = function() {
+				gID = 0;
+				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
+			}
+			oScr.appendChild(ffGauche);
+			
 			var fDroite = document.createElement("input");
 			fDroite.id = "fDroite";
 			fDroite.type = "button";
 			fDroite.value = "\u2192";
-			fDroite.style.fontSize = (6*iScreenScale)+"px";
+			fDroite.style.fontSize = (4*iScreenScale)+"px";
 			fDroite.style.position = "absolute";
-			fDroite.style.left = (65*iScreenScale)+"px";
-			fDroite.style.top = Math.round(10.5*iScreenScale)+"px";
+			fDroite.style.left = (64*iScreenScale)+"px";
+			fDroite.style.top = iArrowTop +"px";
+			fDroite.style.height = iArrowHeight +"px";
 			fDroite.onclick = function() {
 				for (var i=0;i<2;i++) {
 					gID++;
@@ -27288,6 +27360,22 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				}
 			}
 			oScr.appendChild(fDroite);
+			
+			var ffDroite = document.createElement("input");
+			ffDroite.id = "ffDroite";
+			ffDroite.type = "button";
+			ffDroite.value = "\u23ED";
+			ffDroite.style.fontSize = (4*iScreenScale)+"px";
+			ffDroite.style.position = "absolute";
+			ffDroite.style.left = (72*iScreenScale)+"px";
+			ffDroite.style.top = iArrowTop +"px";
+			ffDroite.style.height = iArrowHeight +"px";
+			ffDroite.onclick = function() {
+				gID = gTimes.length-1;
+				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
+			}
+			oScr.appendChild(ffDroite);
+
 			if (ghostsData)
 				oScr.style.visibility = "visible";
 			else
@@ -27354,7 +27442,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		document.body.style.cursor = "progress";
 		if (ghostsData)
 			oScr.style.visibility = "hidden";
-		xhr("otherghosts.php", "map="+ (map+1) +"&cc="+ getActualCc(), function(reponse) {
+		xhr("otherghosts.php", "map="+ getCreationId(oMaps[aAvailableMaps[map]]) +"&type="+ getCreationTable() +"&cc="+ getActualCc(), function(reponse) {
 			if (reponse) {
 				try {
 					gTimes = eval(reponse);
@@ -27514,12 +27602,17 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		if ((gID == -1) || !ghostsData) {
 			oScr.innerHTML = "";
 			oContainers[0].removeChild(oScr);
-			selectRaceScreen(map-map%4);
+			if (isSingle)
+				selectPlayerScreen(0);
+			else
+				selectRaceScreen(map-map%4);
 		}
 		else {
 			writeTime(ghostsData[1],ghostsData[2],ghostsData[3],ghostsData[4]);
 			oScr.removeChild(document.getElementById("fGauche"));
+			oScr.removeChild(document.getElementById("ffGauche"));
 			oScr.removeChild(document.getElementById("fDroite"));
+			oScr.removeChild(document.getElementById("ffDroite"));
 			oScr.removeChild(OPFace7);
 			OPFace.style.display = "";
 			gID = -1;

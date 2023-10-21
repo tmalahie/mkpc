@@ -180,4 +180,6 @@ function postCircuitDelete($type, $circuitId) {
             @unlink($THUMBNAIL_FOLDER . $trackSettings['thumbnail']);
         mysql_query('DELETE FROM mktracksettings WHERE circuit="'. $circuitId .'" AND type="'. $type .'"');
     }
+    mysql_query('DELETE FROM mkrecords WHERE class IN (150,200) AND circuit="'. $circuitId .'" AND type="'. $type .'"');
+    mysql_query('DELETE g,d FROM mkghosts g LEFT JOIN mkghostsdata d ON d.id=g.id WHERE g.class IN (150,200) AND g.circuit="'. $circuitId .'" AND g.type="'. $type .'"');
 }
