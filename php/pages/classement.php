@@ -943,7 +943,7 @@ function changePage(id, nPage) {
 		fetchingResults = false;
 		oTableResults.classList.remove("loading");
 		res = JSON.parse(res);
-		classement[id].classement = res[id].list;
+		classement[id].classement = res[0].list;
 		displayResult(id);
 		return true;
 	});

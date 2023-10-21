@@ -18,21 +18,24 @@ if ($manage) {
     include('../includes/getId.php');
 	$pIDs = $identifiants;
 }
+$cIDs = isset($_POST['cIDs']) ? explode(',', $_POST['cIDs']) : array();
+foreach ($cIDs as &$cID)
+    $cID = intval($cID);
+unset($cID);
 if ($type) {
-    $cIDs = isset($_POST['cIDs']) ? explode(',', $_POST['cIDs']) : array();
-    foreach ($cIDs as &$cID)
-        $cID = intval($cID);
-    unset($cID);
     if (empty($cIDs))
         $cIDs = array(0);
     $cIDsFilter = ' AND r.circuit IN ('.implode(',',$cIDs).')';
 }
 else {
     include_once('../pages/circuitNames.php');
-    $cIDs = array();
-    for ($i=0;$i<$nbVSCircuits;$i++)
-        $cIDs[] = $i+1;
-    $cIDsFilter = '';
+    if (empty($cIDs)) {
+        for ($i=0;$i<$nbVSCircuits;$i++)
+            $cIDs[] = $i+1;
+        $cIDsFilter = '';
+    }
+    else
+        $cIDsFilter = ' AND r.circuit IN ('.implode(',',$cIDs).')';
 }
 if ($userId)
 	$resultsQueries = array('SELECT r.*,c.code,r.date,1+COUNT(r2.circuit) AS rank FROM `mkrecords` r LEFT JOIN `mkrecords` r2 ON r2.class=r.class AND r2.type=r.type AND r2.circuit=r.circuit AND r2.best=1 AND r2.time<r.time LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.class="'. $cc .'" AND r.type="'. $type .'"'. $cIDsFilter .' AND r.best=1 AND r.player='.$userId.' GROUP BY r.circuit ORDER BY r.time');
@@ -58,7 +61,7 @@ if (isset($_POST['count']))
 $entry = array('list' => array());
 if (isset($getCount))
     $entry['count'] = 0;
-if ($type) {
+if ($cIDsFilter) {
     function getCircuitIndex($result) {
         global $cIDs;
         return array_search($result['circuit'],$cIDs);
