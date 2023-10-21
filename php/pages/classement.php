@@ -90,7 +90,7 @@ $pseudo = isset($_GET['pseudo']) ? $_GET['pseudo']:null;
 <?php
 include('../includes/heads.php');
 ?>
-<link rel="stylesheet" type="text/css" href="styles/classement.css" />
+<link rel="stylesheet" type="text/css" href="styles/classement.css?reload=1" />
 <link rel="stylesheet" type="text/css" href="styles/auto-complete.css" />
 
 <?php

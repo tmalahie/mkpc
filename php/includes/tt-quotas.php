@@ -5,7 +5,7 @@ function tt_total_quota($options=null) {
 	$ownerId = isset($options['identifiant']) ? $options['identifiant'] : $identifiants[0];
 	if ($getQuota = mysql_fetch_array(mysql_query('SELECT tt_quota FROM `mkidentifiants` WHERE identifiant='.$ownerId.' AND tt_quota IS NOT NULL')))
 		return +$getQuota['file_quota'];
-	return 60000000;
+	return 30000000;
 }
 define('MAX_GHOST_TIME', tt_total_quota());
 function tt_used_quota($item=null) {
