@@ -2,7 +2,6 @@
 if (!empty($_GET['player']) && isset($_GET['map'])) {
     include('../includes/language.php');
     include_once('circuitNames.php');
-    $circuitName = $circuitNames[$_GET['map']-1];
     include('../includes/initdb.php');
     require_once('../includes/utils-date.php');
     require_once('../includes/persos.php');
@@ -10,6 +9,18 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
         if (substr($playerName, 0,3) == 'cp-')
             return PERSOS_DIR . $playerName . ".png";
         return "images/sprites/sprite_" . $playerName . ".png";
+    }
+    if (isset($_GET['type']) && in_array($_GET['type'], array('circuits', 'mkcircuits'))) {
+        $type = $_GET['type'];
+		require_once('../includes/utils-cups.php');
+        if ($circuit = fetchCreationData($type, $_GET['map']))
+            $circuitName = $circuit['name'];
+        if (!$circuitName)
+            $circuitName = $language ? 'Untitled' : 'Sans titre';
+    }
+    else {
+        $type = '';
+        $circuitName = $circuitNames[$_GET['map']-1];
     }
     $cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
     $getPlayer = mysql_fetch_array(mysql_query('SELECT nom FROM mkjoueurs WHERE id="'. $_GET['player'] .'"'));
@@ -81,7 +92,7 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
             <h1><?php echo htmlspecialchars($circuitName) ?></h1>
             <h2><?php echo $language ? 'Time trial history of '.htmlspecialchars($getPlayer['nom']):'Historique CLM de '.htmlspecialchars($getPlayer['nom']); ?></h2>
             <?php
-            $getRecords = mysql_query('SELECT date,perso,time FROM mkrecords WHERE class="'.$cc.'" AND type="" AND circuit="'. $_GET['map'] .'" AND player="'. $_GET['player'] .'" ORDER BY date DESC');
+            $getRecords = mysql_query('SELECT date,perso,time FROM mkrecords WHERE class="'.$cc.'" AND type="'. $type .'" AND circuit="'. $_GET['map'] .'" AND player="'. $_GET['player'] .'" ORDER BY date DESC');
             ?>
             <table>
                 <tr id="titres">

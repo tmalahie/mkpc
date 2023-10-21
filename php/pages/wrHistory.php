@@ -10,7 +10,18 @@ if (isset($_GET['map'])) {
             return PERSOS_DIR . $playerName . ".png";
         return "images/sprites/sprite_" . $playerName . ".png";
     }
-    $circuitName = $circuitNames[$_GET['map']-1];
+    if (isset($_GET['type']) && in_array($_GET['type'], array('circuits', 'mkcircuits'))) {
+        $type = $_GET['type'];
+		require_once('../includes/utils-cups.php');
+        if ($circuit = fetchCreationData($type, $_GET['map']))
+            $circuitName = $circuit['name'];
+        if (!$circuitName)
+            $circuitName = $language ? 'Untitled' : 'Sans titre';
+    }
+    else {
+        $type = '';
+        $circuitName = $circuitNames[$_GET['map']-1];
+    }
     $cc = isset($_GET['cc']) ? $_GET['cc'] : 150;
     ?>
 <!DOCTYPE html>
@@ -100,7 +111,7 @@ if (isset($_GET['map'])) {
                 <?php
                 $date = isset($_GET['date']) ? $_GET['date'] : '9999-12-31 23:59:59';
                 for ($i=0;$i<20;$i++) {
-                    $record = mysql_fetch_array(mysql_query('SELECT r.date,r.perso,r.time,r.name,r.player,c.code FROM mkrecords r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.class="'.$cc.'" AND r.type="" AND r.circuit="'. $_GET['map'] .'" AND r.date<"'. $date .'" ORDER BY r.time LIMIT 1'));
+                    $record = mysql_fetch_array(mysql_query('SELECT r.date,r.perso,r.time,r.name,r.player,c.code FROM mkrecords r LEFT JOIN `mkprofiles` p ON r.player=p.id LEFT JOIN `mkcountries` c ON p.country=c.id WHERE r.class="'.$cc.'" AND r.type="'.$type.'" AND r.circuit="'. $_GET['map'] .'" AND r.date<"'. $date .'" ORDER BY r.time LIMIT 1'));
                     if (!$record)
                         break;
                     ?>

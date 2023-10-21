@@ -605,30 +605,21 @@ function addResult(id, i) {
 	if (!isMobile) {
 		var oDate = document.createElement("td");
 		oDate.className = "record-date";
-		<?php
-		if ($creation) {
-			?>
-		oDate.innerHTML = iJoueur[I_DATE];
-			<?php
+		if (iJoueur[I_PLAYER]) {
+			var aDate = document.createElement("a");
+			aDate.href = "#null";
+			aDate.title = language ? "History":"Historique";
+			aDate.onclick = function() {
+				window.open('recordHistory.php?player='+iJoueur[I_PLAYER]+'&map='+classement[id].id+'&cc='+iCc<?php
+				if ($type) echo "+'&type=$type'";
+				?>,'gerer','scrollbars=1, resizable=1, width=500, height=400');
+				return false;
+			};
+			aDate.innerHTML = iJoueur[I_DATE];
+			oDate.appendChild(aDate);
 		}
-		else {
-			?>
-			if (iJoueur[I_PLAYER]) {
-				var aDate = document.createElement("a");
-				aDate.href = "#null";
-				aDate.title = language ? "History":"Historique";
-				aDate.onclick = function() {
-					window.open('recordHistory.php?player='+iJoueur[I_PLAYER]+'&map='+(iCircuit+1)+'&cc='+iCc,'gerer','scrollbars=1, resizable=1, width=500, height=400');
-					return false;
-				};
-				aDate.innerHTML = iJoueur[I_DATE];
-				oDate.appendChild(aDate);
-			}
-			else
-				oDate.innerHTML = iJoueur[I_DATE];
-			<?php
-		}
-		?>
+		else
+			oDate.innerHTML = iJoueur[I_DATE];
 		oResult.appendChild(oDate);
 	}
 	if (sPts) {
@@ -878,32 +869,28 @@ function displayResults() {
 			var tableResult = document.createElement("table");
 			tableResult.id = "result"+ i;
 			oContent.appendChild(tableResult);
-			<?php
-			if (!$creation) {
-				?>
-				var circuitHistoryContainer = document.createElement("div");
-				circuitHistoryContainer.className = "record-history";
-				var circuitHistoryIcon = document.createElement("img");
-				circuitHistoryIcon.src = "images/cups/cup1.png";
-				circuitHistoryIcon.alt = "cup icon";
-				circuitHistoryContainer.appendChild(circuitHistoryIcon);
-				var circuitHistory = document.createElement("a");
-				circuitHistory.href = "#null";
-				circuitHistory.dataset.circuit = i+1;
-				circuitHistory.onclick = function() {
-					window.open('wrHistory.php?map='+this.dataset.circuit+'&cc='+iCc,'gerer','scrollbars=1, resizable=1, width=600, height=500');
-					return false;
-				};
-				circuitHistory.innerHTML = language ? "Track world record history":"Historique records du circuit";
-				circuitHistoryContainer.appendChild(circuitHistory);
-				var circuitHistoryIcon = document.createElement("img");
-				circuitHistoryIcon.src = "images/cups/cup1.png";
-				circuitHistoryIcon.alt = "cup icon";
-				circuitHistoryContainer.appendChild(circuitHistoryIcon);
-				oContent.appendChild(circuitHistoryContainer);
-				<?php
-			}
-			?>
+			var circuitHistoryContainer = document.createElement("div");
+			circuitHistoryContainer.className = "record-history";
+			var circuitHistoryIcon = document.createElement("img");
+			circuitHistoryIcon.src = "images/cups/cup1.png";
+			circuitHistoryIcon.alt = "cup icon";
+			circuitHistoryContainer.appendChild(circuitHistoryIcon);
+			var circuitHistory = document.createElement("a");
+			circuitHistory.href = "#null";
+			circuitHistory.dataset.circuit = classement[i].id;
+			circuitHistory.onclick = function() {
+				window.open('wrHistory.php?map='+this.dataset.circuit+'&cc='+iCc<?php
+				if ($type) echo "+'&type=$type'";
+				?>,'gerer','scrollbars=1, resizable=1, width=600, height=500');
+				return false;
+			};
+			circuitHistory.innerHTML = language ? "Track world record history":"Historique records du circuit";
+			circuitHistoryContainer.appendChild(circuitHistory);
+			var circuitHistoryIcon = document.createElement("img");
+			circuitHistoryIcon.src = "images/cups/cup1.png";
+			circuitHistoryIcon.alt = "cup icon";
+			circuitHistoryContainer.appendChild(circuitHistoryIcon);
+			oContent.appendChild(circuitHistoryContainer);
 			displayResult(i, n);
 		}
 	}
