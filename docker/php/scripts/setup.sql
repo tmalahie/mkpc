@@ -182,6 +182,8 @@ CREATE TABLE `mkawards` (
   `ordering` int(11) NOT NULL,
   `link` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `notif_msg_en` varchar(255) NOT NULL DEFAULT '',
+  `notif_msg_fr` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -306,6 +308,19 @@ CREATE TABLE `mkchallenges` (
   KEY `date` (`date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkchallenges_d` AS SELECT
+ 1 AS `day`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkchallenges_m` AS SELECT
+ 1 AS `y`,
+  1 AS `m`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkchars` (
@@ -359,6 +374,19 @@ CREATE TABLE `mkchats` (
   KEY `sender` (`sender`,`receiver`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkchats_d` AS SELECT
+ 1 AS `day`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkchats_m` AS SELECT
+ 1 AS `y`,
+  1 AS `m`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkchatvoc` (
@@ -680,6 +708,17 @@ CREATE TABLE `mkgamecpu` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkgamecrash` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `player` int(11) NOT NULL,
+  `identifiant` int(11) unsigned NOT NULL,
+  `stack` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkgamedata` (
   `game` int(11) NOT NULL,
   `aRaceCount` int(11) NOT NULL,
@@ -723,6 +762,12 @@ CREATE TABLE `mkgametime` (
   PRIMARY KEY (`player`,`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkgametime_d` AS SELECT
+ 1 AS `day`,
+  1 AS `gametime` */;
+SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkgametimehist` (
@@ -737,19 +782,6 @@ CREATE TABLE `mkgametimehist` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `mkghostdata` (
-  `ghost` int(11) NOT NULL,
-  `frame` smallint(5) unsigned NOT NULL,
-  `posX` smallint(6) NOT NULL,
-  `posY` smallint(6) NOT NULL,
-  `posZ` decimal(5,3) NOT NULL,
-  `rotation` smallint(6) NOT NULL,
-  `flags` bit(4) NOT NULL,
-  UNIQUE KEY `ghost` (`ghost`,`frame`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkghosts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -759,13 +791,23 @@ CREATE TABLE `mkghosts` (
   `identifiant4` int(10) unsigned NOT NULL,
   `player` int(11) NOT NULL,
   `class` tinyint(3) unsigned NOT NULL DEFAULT 150,
+  `type` enum('circuits','mkcircuits','') NOT NULL DEFAULT '',
   `circuit` int(11) NOT NULL,
   `perso` varchar(255) NOT NULL,
   `time` int(11) NOT NULL,
   `lap_times` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`class`,`circuit`) USING BTREE,
-  KEY `perso` (`perso`(191))
+  UNIQUE KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`,`class`,`type`,`circuit`) USING BTREE,
+  KEY `perso` (`perso`(191)),
+  KEY `type` (`class`,`type`,`circuit`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkghostsdata` (
+  `id` int(11) NOT NULL,
+  `data` mediumblob NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -791,6 +833,7 @@ CREATE TABLE `mki` (
 CREATE TABLE `mkidentifiants` (
   `identifiant` int(10) unsigned NOT NULL,
   `file_quota` int(11) DEFAULT NULL,
+  `tt_quota` int(11) DEFAULT NULL,
   PRIMARY KEY (`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -893,6 +936,19 @@ CREATE TABLE `mkmatches` (
   KEY `course` (`course`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkmatches_d` AS SELECT
+ 1 AS `day`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkmatches_m` AS SELECT
+ 1 AS `y`,
+  1 AS `m`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkmcups` (
@@ -941,12 +997,38 @@ CREATE TABLE `mkmessages` (
   FULLTEXT KEY `message` (`message`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkmessages_d` AS SELECT
+ 1 AS `day`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkmessages_m` AS SELECT
+ 1 AS `y`,
+  1 AS `m`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkmmlogs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `ctx` varchar(255) NOT NULL,
+  `player` int(11) NOT NULL,
+  `message` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkmuted` (
   `player` int(11) NOT NULL,
-  `end_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`player`)
+  `identifiant` int(10) unsigned DEFAULT NULL,
+  `end_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`player`),
+  KEY `identifiant` (`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1026,7 +1108,7 @@ CREATE TABLE `mknotes` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mknotifmute` (
   `user` int(11) NOT NULL,
-  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','reaction_topic','reaction_newscom','reaction_news','reaction_trackcom','admin_report') CHARACTER SET utf8 NOT NULL,
+  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','reaction_topic','reaction_newscom','reaction_news','reaction_trackcom','admin_report','award') CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`user`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1034,7 +1116,7 @@ CREATE TABLE `mknotifmute` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mknotifs` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction','admin_report') CHARACTER SET latin1 NOT NULL,
+  `type` enum('answer_comment','answer_forum','circuit_comment','news_moderated','news_comment','answer_newscom','forum_mention','forum_quote','follower_topic','follower_circuit','follower_news','follower_perso','new_followtopic','new_followuser','currently_online','challenge_moderated','follower_challenge','new_record','new_reaction','admin_report','award') CHARACTER SET latin1 NOT NULL,
   `user` int(10) unsigned DEFAULT NULL,
   `identifiant` int(10) unsigned DEFAULT NULL,
   `identifiant2` int(10) unsigned DEFAULT NULL,
@@ -1212,6 +1294,19 @@ CREATE TABLE `mkprofiles` (
   KEY `identifiant` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkprofiles_d` AS SELECT
+ 1 AS `day`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkprofiles_m` AS SELECT
+ 1 AS `y`,
+  1 AS `m`,
+  1 AS `nb` */;
+SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkr` (
@@ -1561,15 +1656,158 @@ CREATE TABLE `records_bkp` (
   `identifiant4` int(10) unsigned NOT NULL,
   `player` int(11) NOT NULL,
   `perso` varchar(255) NOT NULL,
-  `circuit` enum('Circuit Mario 1','Plaine Donut 1','Plage Koopa 1','Île Choco 1','Lac Vanille 1','Vallée Fantôme 1','Circuit Mario 2','Château de Bowser 1','Plaine Donut 2','Château de Bowser 2','Île Choco 2','Circuit Mario 3','Plage Koopa 2','Lac Vanille 2','Vallée Fantôme 2','Plaine Donut 3','Vallée Fantôme 3','Circuit Mario 4','Château de Bowser 3','Route Arc-en-Ciel','Circuit Peach','Plage Maskass','Bord du Fleuve','Château de Bowser I','Circuit Mario','Lac Boo','Pays Fromage','Château de Bowser II','Circuit Luigi','Jardin volant','Île Cheep-Cheep','Pays Crépuscule','Royaume Sorbet','Route Ruban','Désert Yoshi','Château de Bowser III','Bord du Lac','Jetée cassée','Château de Bowser IV','Route  Arc-en-Ciel') CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
+  `circuit` enum('Circuit Mario 1','Plaine Donut 1','Plage Koopa 1','Île Choco 1','Lac Vanille 1','Vallée Fantôme 1','Circuit Mario 2','Château de Bowser 1','Plaine Donut 2','Château de Bowser 2','Île Choco 2','Circuit Mario 3','Plage Koopa 2','Lac Vanille 2','Vallée Fantôme 2','Plaine Donut 3','Vallée Fantôme 3','Circuit Mario 4','Château de Bowser 3','Route Arc-en-Ciel','Circuit Peach','Plage Maskass','Bord du Fleuve','Château de Bowser I','Circuit Mario','Lac Boo','Pays Fromage','Château de Bowser II','Circuit Luigi','Jardin volant','Île Cheep-Cheep','Pays Crépuscule','Royaume Sorbet','Route Ruban','Désert Yoshi','Château de Bowser III','Bord du Lac','Jetée cassée','Château de Bowser IV','Route  Arc-en-Ciel') NOT NULL,
   `temps` smallint(6) unsigned NOT NULL,
   UNIQUE KEY `nom` (`nom`,`circuit`) USING BTREE,
-  KEY `perso` (`perso`),
+  KEY `perso` (`perso`(250)),
   KEY `circuit` (`circuit`,`temps`),
   KEY `ip` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `player` (`player`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+/*!50001 DROP VIEW IF EXISTS `mkchallenges_d`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkchallenges_d` AS select cast(`mkpc`.`mkchallenges`.`date` as date) AS `day`,count(0) AS `nb` from `mkchallenges` group by cast(`mkpc`.`mkchallenges`.`date` as date) order by cast(`mkpc`.`mkchallenges`.`date` as date) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkchallenges_m`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkchallenges_m` AS select year(`mkpc`.`mkchallenges`.`date`) AS `y`,month(`mkpc`.`mkchallenges`.`date`) AS `m`,count(0) AS `nb` from `mkchallenges` group by year(`mkpc`.`mkchallenges`.`date`),month(`mkpc`.`mkchallenges`.`date`) order by year(`mkpc`.`mkchallenges`.`date`) desc,month(`mkpc`.`mkchallenges`.`date`) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkchats_d`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkchats_d` AS select cast(`mkchats`.`date` as date) AS `day`,count(0) AS `nb` from `mkchats` where `mkchats`.`date` >= current_timestamp() - interval 3 month group by cast(`mkchats`.`date` as date) order by cast(`mkchats`.`date` as date) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkchats_m`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkchats_m` AS select year(`mkpc`.`mkchats`.`date`) AS `y`,month(`mkpc`.`mkchats`.`date`) AS `m`,count(0) AS `nb` from `mkchats` group by year(`mkpc`.`mkchats`.`date`),month(`mkpc`.`mkchats`.`date`) order by year(`mkpc`.`mkchats`.`date`) desc,month(`mkpc`.`mkchats`.`date`) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkgametime_d`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkgametime_d` AS select cast(`mkpc`.`mkgametimehist`.`date` as date) AS `day`,sum(`mkpc`.`mkgametimehist`.`time`) / 3600000 AS `gametime` from `mkgametimehist` group by cast(`mkpc`.`mkgametimehist`.`date` as date) order by cast(`mkpc`.`mkgametimehist`.`date` as date) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkmatches_d`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkmatches_d` AS select cast(`mkmatches`.`date` as date) AS `day`,count(0) AS `nb` from `mkmatches` where `mkmatches`.`date` >= current_timestamp() - interval 3 month group by cast(`mkmatches`.`date` as date) order by cast(`mkmatches`.`date` as date) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkmatches_m`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkmatches_m` AS select year(`mkpc`.`mkmatches`.`date`) AS `y`,month(`mkpc`.`mkmatches`.`date`) AS `m`,count(0) AS `nb` from `mkmatches` group by year(`mkpc`.`mkmatches`.`date`),month(`mkpc`.`mkmatches`.`date`) order by year(`mkpc`.`mkmatches`.`date`) desc,month(`mkpc`.`mkmatches`.`date`) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkmessages_d`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkmessages_d` AS select cast(`mkpc`.`mkmessages`.`date` as date) AS `day`,count(0) AS `nb` from `mkmessages` group by cast(`mkpc`.`mkmessages`.`date` as date) order by cast(`mkpc`.`mkmessages`.`date` as date) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkmessages_m`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkmessages_m` AS select year(`mkpc`.`mkmessages`.`date`) AS `y`,month(`mkpc`.`mkmessages`.`date`) AS `m`,count(0) AS `nb` from `mkmessages` group by year(`mkpc`.`mkmessages`.`date`),month(`mkpc`.`mkmessages`.`date`) order by year(`mkpc`.`mkmessages`.`date`) desc,month(`mkpc`.`mkmessages`.`date`) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkprofiles_d`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkprofiles_d` AS select cast(`mkpc`.`mkprofiles`.`sub_date` as date) AS `day`,count(0) AS `nb` from `mkprofiles` group by cast(`mkpc`.`mkprofiles`.`sub_date` as date) order by cast(`mkpc`.`mkprofiles`.`sub_date` as date) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkprofiles_m`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkprofiles_m` AS select year(`mkpc`.`mkprofiles`.`sub_date`) AS `y`,month(`mkpc`.`mkprofiles`.`sub_date`) AS `m`,count(0) AS `nb` from `mkprofiles` group by year(`mkpc`.`mkprofiles`.`sub_date`),month(`mkpc`.`mkprofiles`.`sub_date`) order by year(`mkpc`.`mkprofiles`.`sub_date`) desc,month(`mkpc`.`mkprofiles`.`sub_date`) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 INSERT INTO `mkcategories` VALUES (0,'Topics officiels','Official topics','Dans cette catégorie, vous trouverez toutes les annonces et informations officielles de Mario Kart PC. Il est obligatoire de lire ces topics avant de poster un message sur le forum.','In this section you will find all the official information of Mario Kart PC. Read these topics before posting any message on the forum.',0,1,1),(1,'Annonces et présentations','Announcements and presentations','Dans cette catégorie, postez toutes les annonces en rapport ou non avec le site : news, événements, présentations, absences et retours.','In this section, you can put announces directly related (or not) to MKPC: such as news, events, self-presentations, departures or returns',1,2,0),(2,'Le jeu','The game','Ici, parlez de tout ce qui a un rapport avec MKPC : organisez des tournois, présentez vos créations de circuits, donnez des suggestions d\'amélioration...','This section concerns everything exclusively related to MKPC, such as tournaments, new creations, and suggestions for improvements.',2,3,0),(3,'Blabla divers','Various discussions','Section libre. Discutez de tout ce que vous voulez qui n\'a pas de rapport direct avec le site. Mini-fics, jeux vidéos, énigmes... Tout est permis !','Here, talk about what you want that has no direct relation MKPC. Mini-fic, video games, puzzles ... Everything is possible!',3,4,0),(4,'Blabla international','International forum','Cette catégorie a pour but de permettre l\'échange avec les membres non-francophones du site. Vous pouvez y parler de tout, une seule règle : écrivez en anglais !','The current forum is mainly used by French people. So if you are not French, this category is for you: its aim is to allow communication between people from every country. You can talk about everything on it, the only rule is: write in English!',4,0,0);
 INSERT INTO `mkcats` VALUES (1,'MKPC','MKPC','#00A433'),(2,'Switch','Switch','#CC002B'),(3,'3DS','3DS','#9100FF'),(4,'Mobile','Portable','#0000FF'),(5,'PC','PC','#444444'),(6,'Various','Divers','#CC5900');
 INSERT INTO `mkcountries` VALUES (1,'af','Afghanistan','Afghanistan',32767),(2,'al','Albanie','Albania',32767),(3,'aq','Antarctique','Antarctica',32767),(4,'dz','Algérie','Algeria',32767),(5,'as','Samoa Américaines','American Samoa',32767),(6,'ad','Andorre','Andorra',32767),(7,'ao','Angola','Angola',32767),(8,'ag','Antigua-et-Barbuda','Antigua and Barbuda',32767),(9,'az','Azerbaïdjan','Azerbaijan',32767),(10,'ar','Argentine','Argentina',32767),(11,'au','Australie','Australia',4),(12,'at','Autriche','Austria',32767),(13,'bs','Bahamas','Bahamas',32767),(14,'bh','Bahreïn','Bahrain',32767),(15,'bd','Bangladesh','Bangladesh',32767),(16,'am','Arménie','Armenia',32767),(17,'bb','Barbade','Barbados',32767),(18,'be','Belgique','Belgium',32767),(19,'bm','Bermudes','Bermuda',32767),(20,'bt','Bhoutan','Bhutan',32767),(21,'bo','Bolivie','Bolivia',32767),(22,'ba','Bosnie-Herzégovine','Bosnia and Herzegovina',32767),(23,'bw','Botswana','Botswana',32767),(24,'bv','Île Bouvet','Bouvet Island',32767),(25,'br','Brésil','Brazil',9),(26,'bz','Belize','Belize',32767),(27,'io','Océan Indien','Indian Ocean',32767),(28,'sb','Îles Salomon','Solomon Islands',32767),(29,'vg','Îles Vierges','Virgin Islands',32767),(30,'bn','Brunéi Darussalam','Brunei Darussalam',32767),(31,'bg','Bulgarie','Bulgaria',32767),(32,'mm','Myanmar','Myanmar',32767),(33,'bi','Burundi','Burundi',32767),(34,'by','Bélarus','Belarus',32767),(35,'kh','Cambodge','Cambodia',32767),(36,'cm','Cameroun','Cameroon',32767),(37,'ca','Canada','Canada',5),(38,'cv','Cap-vert','Cape Verde',32767),(39,'ky','Îles Caïmanes','Cayman Islands',32767),(40,'cf','République Centrafricaine','Central African',32767),(41,'lk','Sri Lanka','Sri Lanka',32767),(42,'td','Tchad','Chad',32767),(43,'cl','Chili','Chile',32767),(44,'cn','Chine','China',32767),(45,'tw','Taïwan','Taiwan',32767),(46,'cx','Île Christmas','Christmas Island',32767),(47,'cc','Îles Cocos','Cocos Islands',32767),(48,'co','Colombie','Colombia',32767),(49,'km','Comores','Comoros',32767),(50,'yt','Mayotte','Mayotte',32767),(51,'cd','République démocratique du Congo','Democratic Republic of the Congo',32767),(52,'cg','République du Congo','Republic of the Congo',32767),(53,'ck','Îles Cook','Cook Islands',32767),(54,'cr','Costa Rica','Costa Rica',32767),(55,'hr','Croatie','Croatia',32767),(56,'cw','Curaçao','Curaçao',32767),(57,'cu','Cuba','Cuba',32767),(58,'cy','Chypre','Cyprus',32767),(59,'cz','République Tchèque','Czech Republic',32767),(60,'bj','Bénin','Benin',32767),(61,'dk','Danemark','Denmark',32767),(62,'dm','Dominique','Dominica',32767),(63,'do','République Dominicaine','Dominican Republic',32767),(64,'ec','Équateur','Ecuador',32767),(65,'sv','El Salvador','El Salvador',32767),(66,'gq','Guinée Équatoriale','Equatorial Guinea',32767),(67,'et','Éthiopie','Ethiopia',32767),(68,'er','Érythrée','Eritrea',32767),(69,'ee','Estonie','Estonia',32767),(70,'fo','Îles Féroé','Faroe Islands',32767),(71,'fk','Îles Falkland','Falkland Islands',32767),(72,'gs','Géorgie du Sud','South Georgia',32767),(73,'fj','Fidji','Fiji',32767),(74,'fi','Finlande','Finland',32767),(75,'ax','Îles Åland','Åland Islands',32767),(76,'fr','France','France',2),(77,'gf','Guyane Française','French Guiana',32767),(78,'pf','Polynésie','Polynesia',32767),(79,'tf','Terres Australes Françaises','French Southern Territories',32767),(80,'dj','Djibouti','Djibouti',32767),(81,'ga','Gabon','Gabon',32767),(82,'ge','Géorgie','Georgia',32767),(83,'gm','Gambie','Gambia',32767),(84,'ps','Palestine','Palestine',32767),(85,'de','Allemagne','Germany',7),(86,'gh','Ghana','Ghana',32767),(87,'gi','Gibraltar','Gibraltar',32767),(88,'ki','Kiribati','Kiribati',32767),(89,'gr','Grèce','Greece',32767),(90,'gl','Groenland','Greenland',32767),(91,'gd','Grenade','Grenada',32767),(92,'gp','Guadeloupe','Guadeloupe',32767),(93,'gu','Guam','Guam',32767),(94,'gt','Guatemala','Guatemala',32767),(95,'gg','Guernsey','Guernsey',32767),(96,'gn','Guinée','Guinea',32767),(97,'gy','Guyana','Guyana',32767),(98,'ht','Haïti','Haiti',32767),(99,'hm','Îles Heard','Heard Island',32767),(100,'va','Vatican','Vatican',32767),(101,'hn','Honduras','Honduras',32767),(102,'hk','Hong-Kong','Hong Kong',32767),(103,'hu','Hongrie','Hungary',32767),(104,'is','Islande','Iceland',32767),(105,'in','Inde','India',32767),(106,'id','Indonésie','Indonesia',32767),(107,'ir','Iran','Iran',32767),(108,'iq','Iraq','Iraq',32767),(109,'ie','Irlande','Ireland',32767),(110,'il','Israël','Israel',32767),(111,'it','Italie','Italy',32767),(112,'ci','Côte d\'Ivoire','Côte d\'Ivoire',32767),(113,'jm','Jamaïque','Jamaica',32767),(114,'jp','Japon','Japan',32767),(115,'je','Jersey','Jersey',32767),(116,'kz','Kazakhstan','Kazakhstan',32767),(117,'jo','Jordanie','Jordan',32767),(118,'ke','Kenya','Kenya',32767),(119,'kp','Corée du Nord','North Korea',32767),(120,'kr','Corée du Sud','South Korea',32767),(121,'kw','Koweït','Kuwait',32767),(122,'kg','Kirghizistan','Kyrgyzstan',32767),(123,'la','Laos','Laos',32767),(124,'lb','Liban','Lebanon',32767),(125,'ls','Lesotho','Lesotho',32767),(126,'lv','Lettonie','Latvia',32767),(127,'lr','Libéria','Liberia',32767),(128,'ly','Libie','Libya',32767),(129,'li','Liechtenstein','Liechtenstein',32767),(130,'lt','Lituanie','Lithuania',32767),(131,'lu','Luxembourg','Luxembourg',32767),(132,'mo','Macao','Macao',32767),(133,'mk','Macédoine','Macedonia',32767),(134,'mg','Madagascar','Madagascar',32767),(135,'mw','Malawi','Malawi',32767),(136,'my','Malaisie','Malaysia',32767),(137,'mv','Maldives','Maldives',32767),(138,'ml','Mali','Mali',32767),(139,'mt','Malte','Malta',32767),(140,'mq','Martinique','Martinique',32767),(141,'mr','Mauritanie','Mauritania',32767),(142,'mu','Maurice','Mauritius',32767),(143,'mx','Mexique','Mexico',32767),(144,'mc','Monaco','Monaco',32767),(145,'me','Monténegro','Montenegro',32767),(146,'mn','Mongolie','Mongolia',32767),(147,'md','Moldova','Moldova',32767),(148,'ms','Montserrat','Montserrat',32767),(149,'ma','Maroc','Morocco',32767),(150,'mz','Mozambique','Mozambique',32767),(151,'om','Oman','Oman',32767),(152,'na','Namibie','Namibia',32767),(153,'nr','Nauru','Nauru',32767),(154,'np','Népal','Nepal',32767),(155,'nl','Pays-Bas','Netherlands',8),(156,'an','Antilles Néerlandaises','Netherlands Antilles',32767),(157,'aw','Aruba','Aruba',32767),(158,'nc','Nouvelle-Calédonie','New Caledonia',32767),(159,'vu','Vanuatu','Vanuatu',32767),(160,'nz','Nouvelle-Zélande','New Zealand',32767),(161,'ni','Nicaragua','Nicaragua',32767),(162,'ne','Niger','Niger',32767),(163,'ng','Nigéria','Nigeria',32767),(164,'nu','Niué','Niue',32767),(165,'nf','Île Norfolk','Norfolk Island',32767),(166,'no','Norvège','Norway',32767),(167,'mp','Îles Mariannes du Nord','Northern Mariana Islands',32767),(168,'fm','Micronésie','Micronesia',32767),(169,'mh','Îles Marshall','Marshall Islands',32767),(170,'pw','Palaos','Palau',32767),(171,'pk','Pakistan','Pakistan',32767),(172,'pa','Panama','Panama',32767),(173,'pg','Papouasie-Nouvelle-Guinée','Papua New Guinea',32767),(174,'py','Paraguay','Paraguay',32767),(175,'pe','Pérou','Peru',32767),(176,'ph','Philippines','Philippines',32767),(177,'pn','Pitcairn','Pitcairn',32767),(178,'pl','Pologne','Poland',32767),(179,'pt','Portugal','Portugal',32767),(180,'gw','Guinée-Bissau','Guinea-Bissau',32767),(181,'tl','Timor-Leste','Timor-Leste',32767),(182,'pr','Porto Rico','Puerto Rico',32767),(183,'qa','Qatar','Qatar',32767),(184,'re','Réunion','Réunion',32767),(185,'ro','Roumanie','Romania',32767),(186,'ru','Russie','Russia',32767),(187,'rw','Rwanda','Rwanda',32767),(188,'bl','Saint Barthélemy','Saint Barthélemy',32767),(189,'sh','Sainte-Hélène','Saint Helena',32767),(190,'kn','Saint-Kitts-et-Nevis','Saint Kitts and Nevis',32767),(191,'ai','Anguilla','Anguilla',32767),(192,'lc','Sainte-Lucie','Saint Lucia',32767),(193,'pm','Saint-Pierre-et-Miquelon','Saint-Pierre and Miquelon',32767),(194,'vc','Saint-Vincent-et-les Grenadines','Saint Vincent and the Grenadines',32767),(195,'sm','Saint-Marin','San Marino',32767),(196,'st','Sao Tomé-et-Principe','Sao Tome and Principe',32767),(197,'sa','Arabie Saoudite','Saudi Arabia',32767),(198,'sn','Sénégal','Senegal',32767),(199,'sc','Seychelles','Seychelles',32767),(200,'sl','Sierra Leone','Sierra Leone',32767),(201,'sg','Singapour','Singapore',32767),(202,'sx','Saint Martin','Sint Maarten',32767),(203,'sk','Slovaquie','Slovakia',32767),(204,'vn','Viet Nam','Vietnam',32767),(205,'si','Slovénie','Slovenia',32767),(206,'so','Somalie','Somalia',32767),(207,'za','Afrique du Sud','South Africa',32767),(208,'zw','Zimbabwe','Zimbabwe',32767),(209,'es','Espagne','Spain',6),(210,'eh','Sahara Occidental','Western Sahara',32767),(211,'sd','Soudan','Sudan',32767),(212,'ss','Soudan du Sud','South Sudan',32767),(213,'sr','Suriname','Suriname',32767),(214,'sj','Svalbard etÎle Jan Mayen','Svalbard and Jan Mayen',32767),(215,'sz','Swaziland','Swaziland',32767),(216,'se','Suède','Sweden',32767),(217,'ch','Suisse','Switzerland',32767),(218,'sy','Syrie','Syria',32767),(219,'tj','Tadjikistan','Tajikistan',32767),(220,'th','Thaïlande','Thailand',32767),(221,'tg','Togo','Togo',32767),(222,'tk','Tokelau','Tokelau',32767),(223,'to','Tonga','Tonga',32767),(224,'tt','Trinité-et-Tobago','Trinidad and Tobago',32767),(225,'ae','Émirats Arabes Unis','United Arab Emirates',32767),(226,'tn','Tunisie','Tunisia',32767),(227,'tr','Turquie','Turkey',32767),(228,'tm','Turkménistan','Turkmenistan',32767),(229,'tc','Îles Turks et Caïques','Turks and Caicos Islands',32767),(230,'tv','Tuvalu','Tuvalu',32767),(231,'ug','Ouganda','Uganda',32767),(232,'ua','Ukraine','Ukraine',32767),(233,'eg','Égypte','Egypt',32767),(234,'gb','Royaume-Uni','United Kingdom',3),(235,'im','Île de Man','Isle of Man',32767),(236,'tz','Tanzanie','Tanzania',32767),(237,'us','États-Unis','United States',1),(238,'bf','Burkina Faso','Burkina Faso',32767),(239,'uy','Uruguay','Uruguay',32767),(240,'uz','Ouzbékistan','Uzbekistan',32767),(241,'ve','Venezuela','Venezuela',32767),(242,'wf','Wallis et Futuna','Wallis and Futuna',32767),(243,'ws','Samoa','Samoa',32767),(244,'ye','Yémen','Yemen',32767),(245,'rs','Serbie','Serbia',32767),(246,'zm','Zambie','Zambia',32767);
