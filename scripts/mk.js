@@ -10855,13 +10855,15 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 									}
 								}
 							}
+							else if (decorBehavior.movable && collisionPlayer.billball)
+								continue;
 						}
 						else if (collisionTest == COL_OBJ && collisionItem && decorBehavior.damagingItems) {
 							if (decorBehavior.damagingItems[collisionItem.type])
 								handleDecorHit(i,type);
 						}
 						if (decorBehavior.transparent)
-							break;
+							continue;
 						return false;
 					}
 					else {
