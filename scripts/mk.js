@@ -16522,19 +16522,17 @@ function move(getId, triggered) {
 		oKart.rotation += fAngle;
 		oKart.rotation = oKart.rotation % 360;
 		oKart.billball--;
-		var cptJumpCheck = 12;
-		if (oKart.billball) {
-			if (!oKart.billjump && (oKart.billball < cptJumpCheck)) {
-				var fMoveX = oKart.speed*direction(0, oKart.rotation);
-				var fMoveY = oKart.speed*direction(1, oKart.rotation);
-				if (sauts(oKart.x,oKart.y, fMoveX,fMoveY)) {
-					oKart.billball0 = Math.floor(oKart.billball0*cptJumpCheck/oKart.billball);
-					oKart.billball = cptJumpCheck;
-					oKart.billjump = true;
-				}
+		var cptJumpCheck = 6, cptJumpRevert = 12;
+		if (oKart.billjump ? ((oKart.billjump < 4) && (oKart.billball < cptJumpCheck)) : (oKart.billball < cptJumpRevert)) {
+			var fMoveX = oKart.speed*direction(0, oKart.rotation);
+			var fMoveY = oKart.speed*direction(1, oKart.rotation);
+			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY)))) {
+				oKart.billball0 = Math.floor(oKart.billball0*cptJumpRevert/oKart.billball);
+				oKart.billball = cptJumpRevert;
+				oKart.billjump = (oKart.billjump || 0) + 1;
 			}
 		}
-		else {
+		if (!oKart.billball) {
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
 				resumeSpriteSize(oKart.sprite[i]);
