@@ -16529,9 +16529,11 @@ function move(getId, triggered) {
 			var fMoveX = oKart.speed*direction(0, oKart.rotation);
 			var fMoveY = oKart.speed*direction(1, oKart.rotation);
 			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY)))) {
-				oKart.billball0 = Math.floor(oKart.billball0*cptJumpRevert/oKart.billball);
-				oKart.billball = cptJumpRevert;
-				oKart.billjump = (oKart.billjump || 0) + 1;
+				if (!oKart.cannon) {
+					oKart.billball0 = Math.floor(oKart.billball0*cptJumpRevert/oKart.billball);
+					oKart.billball = cptJumpRevert;
+					oKart.billjump = (oKart.billjump || 0) + 1;
+				}
 			}
 		}
 		if (!oKart.billball) {
