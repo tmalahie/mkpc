@@ -864,8 +864,15 @@ function listChallenges($clRace, &$params=array()) {
 	}
 	$res = array();
 	$getChallenges = mysql_query('SELECT * FROM mkchallenges WHERE clist="'. $clRace .'" AND '. $statusCheck);
-	while ($challenge = mysql_fetch_array($getChallenges))
+	if (isset($params['circuit']))
+		$clRaceData = getClRace($clRace,true);
+	while ($challenge = mysql_fetch_array($getChallenges)) {
+		if (isset($clRaceData)) {
+			$challenge['type'] = $clRaceData['type'];
+			$challenge['circuit'] = $clRaceData['circuit'];
+		}
 		$res[] = getChallengeDetails($challenge, $params);
+	}
 	if (!empty($params['alltracks']) && !empty($getClist)) {
 		$subCls = array();
 		$newParams = $params;

@@ -38,7 +38,7 @@ if (isset($_GET['clmsg'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <?php include('../includes/c_challenges.php'); ?>
-<script type="text/javascript" src="scripts/challenges.js?reload=1"></script>
+<script type="text/javascript" src="scripts/challenges.js"></script>
 <?php
 include('../includes/o_online.php');
 ?>
@@ -99,6 +99,9 @@ function unpublishChallenge(id) {
 		return false;
 	});
 }
+function toggleAdvancedOptions() {
+	document.querySelector(".advanced-challenge-actions").classList.toggle("shown");
+}
 function challengeReco() {
 	window.open('challengeReco.php','gerer','scrollbars=1, resizable=1, width=500, height=500');
 }
@@ -145,7 +148,7 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 		<div class="main-challenge-actions">
 			<?php
 			if (!empty($clRace) && in_array($clRace['type'], array('mkcups', 'mkmcups')))
-				echo '<a href="'. nextPageUrl('challengeRewards.php') .'" class="other-challenge-action">'. ($language ? 'More rewards...':'Plus de récompenses...') .'</a>';
+				echo '<a href="javascript:toggleAdvancedOptions()" class="other-challenge-action">'. ($language ? 'Advanced options...':'Options avancées...') .'</a>';
 			?>
 			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>"><?php echo $language ? 'Create my first challenge':'Créer mon premier défi'; ?> &nbsp; &gt;</a>
 		</div>
@@ -247,7 +250,11 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 		</table>
 		<div class="main-challenge-actions">
 			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>">+ &nbsp;<?php echo $language ? 'Create another challenge':'Créer un autre défi'; ?> &nbsp;</a>
-			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>" class="other-challenge-action"><?php echo $language ? 'More rewards...':'Plus de récompenses...'; ?></a>
+			<a href="javascript:toggleAdvancedOptions()" class="other-challenge-action"><?php echo $language ? 'Advanced options...':'Options avancées...'; ?></a>
+		</div>
+		<div class="challenge-navigation advanced-challenge-actions">
+			<a href="<?php echo nextPageUrl('challengeOrder.php'); ?>""><u><?php echo $language ? 'Reorder challenges' : 'Ordonner les défis'; ?></u> &gt;</a>
+			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>""><u><?php echo $language ? 'Challenge rewards' : 'Gérer les récompenses'; ?></u> &gt;</a>
 		</div>
 		<div class="pub">
 			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
