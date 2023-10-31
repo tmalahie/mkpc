@@ -6,7 +6,7 @@ require_once('../includes/utils-challenges.php');
 if (isset($_GET['cl']))
     $clRace = getClRace($_GET['cl']);
 include('../includes/challenge-cldata.php');
-$clOptions = array('alltracks' => true, 'status' => array('active'), 'circuit' => true);
+$clOptions = array('alltracks' => true, 'status' => array('pending_completion','pending_publication','pending_moderation','active'), 'circuit' => true);
 if (!empty($clRace)) {
     $challenges = listChallenges($clRace['id'], $clOptions);
     $challengesById = array();
@@ -87,6 +87,15 @@ include('../includes/o_online.php');
 .challenge-order-item-zone.drop-preview-after {
     border-bottom: solid 12px rgba(230,230,240,0.8);
 }
+.challenge-order-reset {
+    margin: 0.5em;
+}
+.challenge-order-reset a {
+	color: #F40;
+}
+.challenge-order-reset a:hover {
+	color: #F60;
+}
 </style>
 <title><?php echo $language ? 'Challenge order':'Ordre des défis'; ?> - Mario Kart PC</title>
 </head>
@@ -94,8 +103,8 @@ include('../includes/o_online.php');
 <h1 class="challenge-main-title"><?php
     echo $language ? 'Edit challenge order' : 'Modifier l\'ordre des défis';
 ?></h1>
-<p class="explain"><?php echo $language ? "This page allows you to specify the order of the challenges as they appear in your track" : "Cette page vous permet de spécifier l'ordre des défis tels qu'ils apparaissent dans votre circuit"; ?></p>
-<form method="post" action="" class="challenge-edit-form challenge-order">
+<p class="explain"><?php echo $language ? "This page allows you to specify the order of the challenges as they appear in your track.<br />Just drag &amp; drop the items to reorder them." : "Cette page vous permet de spécifier l'ordre des défis tels qu'ils apparaissent dans votre circuit.<br />Glissez-déposez les éléments pour les réordonner."; ?></p>
+<form method="post" name="challenge-order" action="" class="challenge-edit-form challenge-order">
     <div class="challenge-order-list">
         <?php
         $challengeIds = array();
@@ -120,6 +129,9 @@ include('../includes/o_online.php');
     </div>
     <input type="hidden" name="order" value="<?php echo implode(',', $challengeIds); ?>" />
     <button type="submit" class="challenge-edit-submit"><?php echo $language ? 'Validate order':'Valider l\'ordre'; ?></button>
+    <div class="challenge-order-reset">
+        <a href="javascript:resetOrder()"><?php echo $language ? "Reset order" : "Réintialiser l'ordre"; ?></a>
+    </div>
 </form>
 <div class="challenge-navigation">
     <a href="<?php echo nextPageUrl('challenges.php', array('ch'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])); ?>">&lt; <u><?php echo $language ? 'Back to challenges list':'Retour à la liste des défis'; ?></u></a>
@@ -177,6 +189,12 @@ function handleDrop($elt) {
     for (const $child of $list.children)
         newList.push($child.getAttribute("data-challenge"));
     document.querySelector('input[name="order"]').value = newList.join(",");
+}
+function resetOrder() {
+    if (confirm(o_language ? "Reset order to default?" : "Rétablir l'ordre par défaut ?")) {
+        document.querySelector('input[name="order"]').value = '';
+        document.forms["challenge-order"].submit();
+    }
 }
 </script>
 </body>

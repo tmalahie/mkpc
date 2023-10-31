@@ -24080,242 +24080,269 @@ function selectChallengesScreen() {
 		oTable.style.marginRight = "auto";
 		oTable.style.borderCollapse = "collapse";
 
+		var challengesOrdered = [];
+		var challengesUnordered = [];
 		for (var type in challenges) {
 			for (var cid in challenges[type]) {
 				var creationChallenges = challenges[type][cid];
-				if (creationChallenges.main)
-					mainClId = creationChallenges.id;
-				else {
-					var oTr = document.createElement("tr");
-					oTr.style.border = "solid 1px white";
-					var oTd = document.createElement("td");
-					oTd.setAttribute("colspan", 2);
-					var oH1 = document.createElement("h1");
-					var trackType = "";
-					switch (type) {
-						case "mcup":
-							trackType = toLanguage("Multicup", "Multicoupe");
-							break;
-						case "cup":
-							trackType = toLanguage("Cup", "Coupe");
-							break;
-						case "track":
-							trackType = isBattle ? toLanguage("Arena", "Arène") : toLanguage("Track", "Circuit");
-							break;
-					}
-					oH1.innerHTML = trackType + ' <span style="color:#FDB">'+ escapeSpecialChars(creationChallenges.name) +'</span>';
-					oH1.style.textAlign = "center";
-					oH1.style.margin = "0px";
-					oH1.style.fontSize = Math.round(iScreenScale*4)+"px";
-					oH1.style.paddingTop = Math.round(iScreenScale*0.5)+"px";
-					oH1.style.paddingBottom = Math.round(iScreenScale*0.5)+"px";
-					oH1.style.backgroundColor = "#fa7c1b";
-					oH1.style.color = "white";
-					oTd.appendChild(oH1);
-					oTr.appendChild(oTd);
-					oTable.appendChild(oTr);
-				}
 				var challengesList = creationChallenges.list;
 				for (var i=0;i<challengesList.length;i++) {
 					var challenge = challengesList[i];
-					var challengeComplete = (challenge.status == "active" && challenge.succeeded);
-					var challengeColor = challengeComplete ? "#9E9":"white";
-					var oTr = document.createElement("tr");
-					oTr.style.border = "solid 1px "+challengeColor;
-					if (challengeComplete)
-						oTr.style.backgroundColor = "#031";
-					var oTd = document.createElement("td");
-					oTd.style.padding = (iScreenScale)+" "+(iScreenScale) +"px";
-					if (challenge.name) {
-						var oH1 = document.createElement("h1");
-						oH1.style.fontSize = (3*iScreenScale) +"px";
-						oH1.style.marginTop = "0px";
-						oH1.style.marginBottom = "0px";
-						oH1.innerText = challenge.name;
-						oTd.appendChild(oH1);
+					var challengePayload = {
+						creation: creationChallenges,
+						challenge: challenge,
+						type: type,
+						cid: cid
 					}
-					var oDiv = document.createElement("div");
-					if (challenge.name || challenge.description.extra)
-						oDiv.style.fontSize = (2*iScreenScale) +"px";
+					if (challenge.order != null)
+						challengesOrdered.push(challengePayload);
 					else
-						oDiv.style.fontSize = Math.round(2.5*iScreenScale) +"px";
-					oDiv.style.color = challengeColor;
-					oDiv.style.fontWeight = "bold";
-					oDiv.innerHTML = challenge.description.main;
-					oTd.appendChild(oDiv);
-					if (challenge.description.extra) {
-						var oDiv = document.createElement("div");
-						oDiv.style.fontSize = Math.round(1.6*iScreenScale) +"px";
-						oDiv.style.color = challengeColor;
-						oDiv.innerHTML = challenge.description.extra;
-						oTd.appendChild(oDiv);
-					}
-					if (challenge.status != "active") {
-						var oDiv = document.createElement("div");
-						oDiv.style.fontSize = Math.round(1.6*iScreenScale) +"px";
-						oDiv.style.color = "#FC0";
-						switch (challenge.status) {
-						case 'pending_completion':
-							oDiv.innerHTML = toLanguage('This challenge is pending completion. Succeed it to publish it.', 'Ce défi est en attente de réussite. Réussissez-le pour le publier.');
-							break;
-						case 'pending_publication':
-							oDiv.innerHTML = toLanguage('This challenge is pending publication. Click on &quot;Manage challenges&quot; to publish it.', 'Ce défi est en attente de publication. Cliquez sur &quot;Gérer les défis&quot; pour le publier.');
-							break;
-						case 'pending_moderation':
-							oDiv.innerHTML = toLanguage('This challenge is pending moderation. It will be published once a validator validates it.', 'Ce défi est en attente de modération. Il sera publié dès qu\'un modérateur l\'aura validé.');
-							break;
-						}
-						oDiv.style.fontWeight = "bold";
-						oTd.appendChild(oDiv);
-					}
-					oTr.appendChild(oTd);
-					var oTd = document.createElement("td");
-					oTd.style.padding = (iScreenScale)+" "+(iScreenScale) +"px";
-					oTd.style.width = (iScreenScale*12) +"px";
-					oTd.style.textAlign = "center";
-
-					if (challenge.succeeded) {
-						var oSuccess = document.createElement("div");
-						oSuccess.innerHTML = '<span style="color:#CFC;display:inline-block;margin-right:2px">\u2714</span>'+ toLanguage("Completed","Réussi");
-						oSuccess.style.whiteSpace = "nowrap";
-						oSuccess.style.fontSize = Math.round(iScreenScale*(language ? 2:2.2)) +"px";
-						oSuccess.style.backgroundColor = "#33A033";
-						oSuccess.style.display = "inline-block";
-						oSuccess.style.padding = "0px "+Math.round(iScreenScale*0.8)+"px";
-						oSuccess.style.borderRadius = Math.round(iScreenScale*0.6)+"px";
-						oSuccess.style.color = "white";
-						oSuccess.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
-						oSuccess.style.marginTop = Math.round(iScreenScale*0.5) +"px";
-						oTd.appendChild(oSuccess);
-					}
-
-					var oIcons = document.createElement("div");
-					var oIconDifficulty = document.createElement("img");
-					oIconDifficulty.src = "images/challenges/difficulty"+ challenge.difficulty.level +".png";
-					oIconDifficulty.alt = "D";
-					oIconDifficulty.style.width = (iScreenScale*2) +"px";
-					oIcons.appendChild(oIconDifficulty);
-					var oSpan = document.createElement("span");
-					oSpan.style.color = challenge.difficulty.color;
-					oSpan.style.fontSize = Math.round(iScreenScale*1.7) +"px";
-					oSpan.style.position = "relative";
-					oSpan.style.top = "-1px";
-					oSpan.innerHTML = " "+ challenge.difficulty.name;
-					oIcons.appendChild(oSpan);
-					oTd.appendChild(oIcons);
-
-					if (challenge.winners.length) {
-						var oIcons = document.createElement("div");
-						oIcons.style.cursor = "help";
-						var oIconWinners = document.createElement("img");
-						if (!challenge.succeeded)
-							oIcons.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
-						oIconWinners.src = "images/cups/cup1.png";
-						oIconWinners.alt = "W";
-						oIconWinners.style.width = (iScreenScale*2) +"px";
-						oIcons.appendChild(oIconWinners);
-						var oSpan = document.createElement("span");
-						oSpan.style.color = "white";
-						oSpan.style.fontSize = Math.round(iScreenScale*1.7) +"px";
-						oSpan.style.position = "relative";
-						oSpan.style.top = "-2px";
-						oSpan.innerHTML = " "+ challenge.winners.length;
-						var iconTitle = '<small style="color:#CFC">'+toLanguage("Succeeded by:", "Réussi par :")+'</small>';
-						for (var j=0;j<challenge.winners.length;j++)
-							iconTitle += '<br /><span style="color:#CFC;display:inline-block;margin-right:2px">\u2714</span>'+challenge.winners[j].nick;
-						if (!oIcons.dataset) oIcons.dataset = {};
-						oIcons.dataset.title = iconTitle;
-						oIcons.appendChild(oSpan);
-						var $fancyTitle;
-						oIcons.onmouseover = function(e) {
-							if ($fancyTitle) return;
-							$fancyTitle = document.createElement("div");
-							$fancyTitle.className = "ranking_activeplayertitle";
-							$fancyTitle.innerHTML = this.dataset.title;
-							$fancyTitle.style.position = "fixed";
-							$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
-							$fancyTitle.style.borderRadius = iScreenScale+"px";
-							$fancyTitle.style.zIndex = 10;
-							$fancyTitle.style.backgroundColor = "rgba(51,160,51, 0.95)";
-							$fancyTitle.style.color = "white";
-							$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
-							$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
-							$fancyTitle.style.visibility = "hidden";
-							$mkScreen.appendChild($fancyTitle);
-							var rect = this.getBoundingClientRect();
-							$fancyTitle.style.left = Math.round(rect.left + (this.scrollWidth-$fancyTitle.scrollWidth)/2)+"px";
-							$fancyTitle.style.top = (rect.top + this.scrollHeight + 5)+"px";
-							$fancyTitle.style.visibility = "visible";
-						};
-						oIcons.onmouseout = function() {
-							if (!$fancyTitle) return;
-							$mkScreen.removeChild($fancyTitle);
-							$fancyTitle = undefined;
-						};
-						oTd.appendChild(oIcons);
-					}
-
-					function selectChallenge(challenge,trackId,trackType) {
-						oScr.innerHTML = "";
-						oContainers[0].removeChild(oScr);
-						clSelected = challenge;
-						clSelected.trackId = trackId;
-						clSelected.trackType = trackType;
-						localStorage.removeItem("itemset."+getItemMode());
-						xhr("challengeTry.php", "challenge="+challenge.id, function(res) {
-							if (!res)
-								return false;
-							try {
-								res = JSON.parse(res);
-							}
-							catch (e) {
-								return false;
-							}
-							clSelected.autoset = res;
-							course = "";
-							for (var k in res)
-								window[k] = res[k];
-							if (course)
-								selectPlayerScreen(0);
-							else
-								selectMainPage();
-							delete window.selectedPerso;
-							showClSelectedPopup();
-							return true;
-						});
-					}
-
-					if (challenge.succeeded) {
-						var oLink = document.createElement("a");
-						oLink.href = "#null";
-						oLink.innerHTML = toLanguage("Replay","Rejouer");
-						oLink.style.color = "white";
-						oLink.style.fontSize = Math.round(iScreenScale*1.7) +"px";
-						(function(challenge,trackId,trackType) {
-							oLink.onclick = function() {
-								selectChallenge(challenge,trackId,trackType);
-								return false;
-							};
-						})(challenge,cid,type);
-						oTd.appendChild(oLink);
-					}
-					else {
-						var oInput = document.createElement("input");
-						oInput.type = "button";
-						oInput.value = toLanguage("Take up", "Relever");
-						oInput.style.width = (iScreenScale*11) +"px";
-						oInput.style.fontSize = Math.round(iScreenScale*2.4) +"px";
-						(function(challenge,trackId,trackType) {
-							oInput.onclick = function() {
-								selectChallenge(challenge,trackId,trackType);
-							};
-						})(challenge,cid,type);
-						oTd.appendChild(oInput);
-					}
-					oTr.appendChild(oTd);
-					oTable.appendChild(oTr);
+						challengesUnordered.push(challengePayload);
 				}
 			}
+		}
+		challengesOrdered.sort(function(a,b) {
+			return a.challenge.order - b.challenge.order;
+		});
+		challengesOrdered = challengesOrdered.concat(challengesUnordered);
+
+		var prevCreationChallenges;
+		for (var i=0;i<challengesOrdered.length;i++) {
+			var challengePayload = challengesOrdered[i];
+			var creationChallenges = challengePayload.creation;
+			var type = challengePayload.type, cid = challengePayload.cid;
+			var challenge = challengePayload.challenge;
+			if (creationChallenges.main) {
+				mainClId = creationChallenges.id;
+				prevCreationChallenges = null;
+			}
+			else if (creationChallenges !== prevCreationChallenges) {
+				prevCreationChallenges = creationChallenges;
+				var oTr = document.createElement("tr");
+				oTr.style.border = "solid 1px white";
+				var oTd = document.createElement("td");
+				oTd.setAttribute("colspan", 2);
+				var oH1 = document.createElement("h1");
+				var trackType = "";
+				switch (type) {
+					case "mcup":
+						trackType = toLanguage("Multicup", "Multicoupe");
+						break;
+					case "cup":
+						trackType = toLanguage("Cup", "Coupe");
+						break;
+					case "track":
+						trackType = isBattle ? toLanguage("Arena", "Arène") : toLanguage("Track", "Circuit");
+						break;
+				}
+				oH1.innerHTML = trackType + ' <span style="color:#FDB">'+ escapeSpecialChars(creationChallenges.name) +'</span>';
+				oH1.style.textAlign = "center";
+				oH1.style.margin = "0px";
+				oH1.style.fontSize = Math.round(iScreenScale*4)+"px";
+				oH1.style.paddingTop = Math.round(iScreenScale*0.5)+"px";
+				oH1.style.paddingBottom = Math.round(iScreenScale*0.5)+"px";
+				oH1.style.backgroundColor = "#fa7c1b";
+				oH1.style.color = "white";
+				oTd.appendChild(oH1);
+				oTr.appendChild(oTd);
+				oTable.appendChild(oTr);
+			}
+			var challengeComplete = (challenge.status == "active" && challenge.succeeded);
+			var challengeColor = challengeComplete ? "#9E9":"white";
+			var oTr = document.createElement("tr");
+			oTr.style.border = "solid 1px "+challengeColor;
+			if (challengeComplete)
+				oTr.style.backgroundColor = "#031";
+			var oTd = document.createElement("td");
+			oTd.style.padding = (iScreenScale)+" "+(iScreenScale) +"px";
+			if (challenge.name) {
+				var oH1 = document.createElement("h1");
+				oH1.style.fontSize = (3*iScreenScale) +"px";
+				oH1.style.marginTop = "0px";
+				oH1.style.marginBottom = "0px";
+				oH1.innerText = challenge.name;
+				oTd.appendChild(oH1);
+			}
+			var oDiv = document.createElement("div");
+			if (challenge.name || challenge.description.extra)
+				oDiv.style.fontSize = (2*iScreenScale) +"px";
+			else
+				oDiv.style.fontSize = Math.round(2.5*iScreenScale) +"px";
+			oDiv.style.color = challengeColor;
+			oDiv.style.fontWeight = "bold";
+			oDiv.innerHTML = challenge.description.main;
+			oTd.appendChild(oDiv);
+			if (challenge.description.extra) {
+				var oDiv = document.createElement("div");
+				oDiv.style.fontSize = Math.round(1.6*iScreenScale) +"px";
+				oDiv.style.color = challengeColor;
+				oDiv.innerHTML = challenge.description.extra;
+				oTd.appendChild(oDiv);
+			}
+			if (challenge.status != "active") {
+				var oDiv = document.createElement("div");
+				oDiv.style.fontSize = Math.round(1.6*iScreenScale) +"px";
+				oDiv.style.color = "#FC0";
+				switch (challenge.status) {
+				case 'pending_completion':
+					oDiv.innerHTML = toLanguage('This challenge is pending completion. Succeed it to publish it.', 'Ce défi est en attente de réussite. Réussissez-le pour le publier.');
+					break;
+				case 'pending_publication':
+					oDiv.innerHTML = toLanguage('This challenge is pending publication. Click on &quot;Manage challenges&quot; to publish it.', 'Ce défi est en attente de publication. Cliquez sur &quot;Gérer les défis&quot; pour le publier.');
+					break;
+				case 'pending_moderation':
+					oDiv.innerHTML = toLanguage('This challenge is pending moderation. It will be published once a validator validates it.', 'Ce défi est en attente de modération. Il sera publié dès qu\'un modérateur l\'aura validé.');
+					break;
+				}
+				oDiv.style.fontWeight = "bold";
+				oTd.appendChild(oDiv);
+			}
+			oTr.appendChild(oTd);
+			var oTd = document.createElement("td");
+			oTd.style.padding = (iScreenScale)+" "+(iScreenScale) +"px";
+			oTd.style.width = (iScreenScale*12) +"px";
+			oTd.style.textAlign = "center";
+
+			if (challenge.succeeded) {
+				var oSuccess = document.createElement("div");
+				oSuccess.innerHTML = '<span style="color:#CFC;display:inline-block;margin-right:2px">\u2714</span>'+ toLanguage("Completed","Réussi");
+				oSuccess.style.whiteSpace = "nowrap";
+				oSuccess.style.fontSize = Math.round(iScreenScale*(language ? 2:2.2)) +"px";
+				oSuccess.style.backgroundColor = "#33A033";
+				oSuccess.style.display = "inline-block";
+				oSuccess.style.padding = "0px "+Math.round(iScreenScale*0.8)+"px";
+				oSuccess.style.borderRadius = Math.round(iScreenScale*0.6)+"px";
+				oSuccess.style.color = "white";
+				oSuccess.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
+				oSuccess.style.marginTop = Math.round(iScreenScale*0.5) +"px";
+				oTd.appendChild(oSuccess);
+			}
+
+			var oIcons = document.createElement("div");
+			var oIconDifficulty = document.createElement("img");
+			oIconDifficulty.src = "images/challenges/difficulty"+ challenge.difficulty.level +".png";
+			oIconDifficulty.alt = "D";
+			oIconDifficulty.style.width = (iScreenScale*2) +"px";
+			oIcons.appendChild(oIconDifficulty);
+			var oSpan = document.createElement("span");
+			oSpan.style.color = challenge.difficulty.color;
+			oSpan.style.fontSize = Math.round(iScreenScale*1.7) +"px";
+			oSpan.style.position = "relative";
+			oSpan.style.top = "-1px";
+			oSpan.innerHTML = " "+ challenge.difficulty.name;
+			oIcons.appendChild(oSpan);
+			oTd.appendChild(oIcons);
+
+			if (challenge.winners.length) {
+				var oIcons = document.createElement("div");
+				oIcons.style.cursor = "help";
+				var oIconWinners = document.createElement("img");
+				if (!challenge.succeeded)
+					oIcons.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
+				oIconWinners.src = "images/cups/cup1.png";
+				oIconWinners.alt = "W";
+				oIconWinners.style.width = (iScreenScale*2) +"px";
+				oIcons.appendChild(oIconWinners);
+				var oSpan = document.createElement("span");
+				oSpan.style.color = "white";
+				oSpan.style.fontSize = Math.round(iScreenScale*1.7) +"px";
+				oSpan.style.position = "relative";
+				oSpan.style.top = "-2px";
+				oSpan.innerHTML = " "+ challenge.winners.length;
+				var iconTitle = '<small style="color:#CFC">'+toLanguage("Succeeded by:", "Réussi par :")+'</small>';
+				for (var j=0;j<challenge.winners.length;j++)
+					iconTitle += '<br /><span style="color:#CFC;display:inline-block;margin-right:2px">\u2714</span>'+challenge.winners[j].nick;
+				if (!oIcons.dataset) oIcons.dataset = {};
+				oIcons.dataset.title = iconTitle;
+				oIcons.appendChild(oSpan);
+				var $fancyTitle;
+				oIcons.onmouseover = function(e) {
+					if ($fancyTitle) return;
+					$fancyTitle = document.createElement("div");
+					$fancyTitle.className = "ranking_activeplayertitle";
+					$fancyTitle.innerHTML = this.dataset.title;
+					$fancyTitle.style.position = "fixed";
+					$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
+					$fancyTitle.style.borderRadius = iScreenScale+"px";
+					$fancyTitle.style.zIndex = 10;
+					$fancyTitle.style.backgroundColor = "rgba(51,160,51, 0.95)";
+					$fancyTitle.style.color = "white";
+					$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+					$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
+					$fancyTitle.style.visibility = "hidden";
+					$mkScreen.appendChild($fancyTitle);
+					var rect = this.getBoundingClientRect();
+					$fancyTitle.style.left = Math.round(rect.left + (this.scrollWidth-$fancyTitle.scrollWidth)/2)+"px";
+					$fancyTitle.style.top = (rect.top + this.scrollHeight + 5)+"px";
+					$fancyTitle.style.visibility = "visible";
+				};
+				oIcons.onmouseout = function() {
+					if (!$fancyTitle) return;
+					$mkScreen.removeChild($fancyTitle);
+					$fancyTitle = undefined;
+				};
+				oTd.appendChild(oIcons);
+			}
+
+			function selectChallenge(challenge,trackId,trackType) {
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+				clSelected = challenge;
+				clSelected.trackId = trackId;
+				clSelected.trackType = trackType;
+				localStorage.removeItem("itemset."+getItemMode());
+				xhr("challengeTry.php", "challenge="+challenge.id, function(res) {
+					if (!res)
+						return false;
+					try {
+						res = JSON.parse(res);
+					}
+					catch (e) {
+						return false;
+					}
+					clSelected.autoset = res;
+					course = "";
+					for (var k in res)
+						window[k] = res[k];
+					if (course)
+						selectPlayerScreen(0);
+					else
+						selectMainPage();
+					delete window.selectedPerso;
+					showClSelectedPopup();
+					return true;
+				});
+			}
+
+			if (challenge.succeeded) {
+				var oLink = document.createElement("a");
+				oLink.href = "#null";
+				oLink.innerHTML = toLanguage("Replay","Rejouer");
+				oLink.style.color = "white";
+				oLink.style.fontSize = Math.round(iScreenScale*1.7) +"px";
+				(function(challenge,trackId,trackType) {
+					oLink.onclick = function() {
+						selectChallenge(challenge,trackId,trackType);
+						return false;
+					};
+				})(challenge,cid,type);
+				oTd.appendChild(oLink);
+			}
+			else {
+				var oInput = document.createElement("input");
+				oInput.type = "button";
+				oInput.value = toLanguage("Take up", "Relever");
+				oInput.style.width = (iScreenScale*11) +"px";
+				oInput.style.fontSize = Math.round(iScreenScale*2.4) +"px";
+				(function(challenge,trackId,trackType) {
+					oInput.onclick = function() {
+						selectChallenge(challenge,trackId,trackType);
+					};
+				})(challenge,cid,type);
+				oTd.appendChild(oInput);
+			}
+			oTr.appendChild(oTd);
+			oTable.appendChild(oTr);
 		}
 
 		oScroll.appendChild(oTable);
