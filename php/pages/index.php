@@ -393,7 +393,8 @@ $slidesPath = 'images/slides';
 			}
 
 			$today = time();
-			$cDate = new DateTime('@'.$today, new DateTimeZone(get_client_tz()));
+			$cDate = new DateTime('@'.$today);
+			$cDate->setTimezone(new DateTimeZone(get_client_tz()));
 			$cYear = $cDate->format('Y');
 			$cMonth = $cDate->format('m');
 			$cDay = $cDate->format('d');
