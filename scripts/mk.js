@@ -107,6 +107,7 @@ var challengesForCircuit;
 var onlineSpectatorId;
 
 var gamepadMenuEventsHandler;
+var updateVolumeSettings;
 
 function MarioKart() {
 
@@ -152,6 +153,17 @@ resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
 var iFps = +localStorage.getItem("nbFrames") || 1;
+var vSfx = 1, vMusic = 1;
+{
+	var vSettings = localStorage.getItem("settings.vol");
+	if (vSettings) {
+		vSettings = JSON.parse(vSettings);
+		if (vSettings.sfx != null)
+			vSfx = vSettings.sfx;
+		if (vSettings.music != null)
+			vMusic = vSettings.music;
+	}
+}
 var gameMenu;
 var primaryColor = "#FEFF3F";
 
@@ -522,7 +534,7 @@ function removeMenuMusic(forceRemove) {
 		if (forceRemove)
 			document.body.removeChild(oMusicEmbed);
 		else
-			fadeOutMusic(oMusicEmbed, 1, 0.8);
+			fadeOutMusic(oMusicEmbed, 1, 0.8, null,vMusic);
 		oMusicEmbed = undefined;
 	}
 	if (muteOnBlur) {
@@ -614,10 +626,22 @@ function unpauseSounds() {
 
 function setMusicVolume(embed, volume) {
 	if (isOriginalEmbed(embed))
-		embed.volume = volume;
+		embed.volume = volume*vMusic;
 	else {
 		onPlayerReady(embed, function(player) {
-			player.setVolume(Math.round(volume*100));
+			player.setVolume(Math.round(volume*vMusic*100));
+		});
+	}
+}
+function updateMusicVolume(embed, volume, lastVolume) {
+	if (isOriginalEmbed(embed)) {
+		if (embed.volume === lastVolume)
+			embed.volume = volume;
+	}
+	else {
+		onPlayerReady(embed, function(player) {
+			if (Math.round(player.getVolume()) === Math.round(lastVolume*100))
+				player.setVolume(Math.round(volume*100));
 		});
 	}
 }
@@ -634,20 +658,20 @@ function fadeInMusic(embed, volume, ratio) {
 	else
 		setMusicVolume(embed,1);
 }
-function fadeOutMusic(embed, volume, ratio, remove) {
+function fadeOutMusic(embed, volume, ratio, remove, vSnd) {
 	if (embed.fadingIn)
 		return;
 	embed.fadingOut = true;
 	volume *= ratio;
 	if (volume > 0.2) {
-		setMusicVolume(embed,volume);
-		setTimeout(function(){fadeOutMusic(embed,volume,ratio,remove)},100);
+		setMusicVolume(embed,volume*vSnd);
+		setTimeout(function(){fadeOutMusic(embed,volume,ratio,remove,vSnd)},100);
 	}
 	else {
 		embed.fadingOut = false;
 		if (remove === false) {
 			pauseMusic(embed);
-			setMusicVolume(embed,1);
+			setMusicVolume(embed,vSnd);
 		}
 		else if (remove !== -1)
 			stopMusic(embed);
@@ -685,6 +709,7 @@ function playMusicSmoothly(src,delay) {
 	if (undefined === delay)
 		delay = 1000;
 	oMusicEmbed = document.createElement("audio");
+	oMusicEmbed.volume = vMusic;
 	oMusicEmbed.setAttribute("loop", true);
 	oMusicEmbed.style.position = "absolute";
 	oMusicEmbed.style.left = "-1000px";
@@ -2272,6 +2297,7 @@ function loadMusic(src, autoplay, opts) {
 		var oMusicSource = document.createElement("source");
 		oMusicSource.type = "audio/mpeg";
 		res.src = src;
+		res.volume = vSfx;
 		res.appendChild(oMusicSource);
 		if (autoplay)
 			res.setAttribute("autoplay", true);
@@ -2310,7 +2336,7 @@ function bufferMusic(elt, callback) {
 		setTimeout(function() {
 			player.pauseVideo();
 			player.seekTo(startTime,true);
-			player.setVolume(100);
+			player.setVolume(100*vMusic);
 			if (callback)
 				callback();
 		}, 1000);
@@ -2396,7 +2422,7 @@ function updateMusic(elt,fast) {
 		if (isOriginal) {
 			if (fast)
 				elt.playbackRate = 1.2;
-			elt.volume = 1;
+			elt.volume = vMusic;
 			elt.currentTime = 0;
 			elt.play();
 		}
@@ -2409,7 +2435,7 @@ function updateMusic(elt,fast) {
 					player.setPlaybackRate(opts.speed);
 				var start = opts.start || 0;
 				player.seekTo(start,true);
-				player.setVolume(100);
+				player.setVolume(100*vMusic);
 				player.playVideo();
 			});
 		}
@@ -2450,13 +2476,15 @@ function playDistSound(obj, src, maxDist) {
 		var pow0 = maxDist/distKart(obj);
 		if (pow0 >= 1) {
 			var res = playSoundEffect(src);
-			res.volume = Math.min(0.05*pow0*pow0, 1);
+			res.volume = Math.min(0.05*pow0*pow0, 1)*vSfx;
 			return res;
 		}
 	}
 }
 function startMusic(src, autoplay, delay, opts) {
 	var res = loadMusic(src, autoplay, opts);
+	if (res.volume != null)
+		res.volume = vMusic;
 	document.body.appendChild(res);
 	if (delay) {
 		pauseMusic(res);
@@ -2477,14 +2505,14 @@ function startMusic(src, autoplay, delay, opts) {
 }
 function postStartMusic(src) {
 	if (oMusicEmbed)
-		fadeOutMusic(oMusicEmbed,1,0.6,false);
+		fadeOutMusic(oMusicEmbed,1,0.6,false,vMusic);
 	return startMusic(src,true,200);
 }
 function postResumeMusic(elt, ratio) {
 	if (oMusicEmbed == elt)
 		return;
 	var cMusicEmbed = oMusicEmbed;
-	fadeOutMusic(cMusicEmbed,1,ratio,true);
+	fadeOutMusic(cMusicEmbed,1,ratio,true,vMusic);
 	if (elt) {
 		setTimeout(function() {
 			if ((oMusicEmbed == cMusicEmbed) || !oMusicEmbed) {
@@ -2522,6 +2550,27 @@ var mapMusic, lastMapMusic, endingMusic, endGPMusic, challengeMusic, carEngine, 
 var willPlayEndMusic = false, isEndMusicPlayed = false;
 var forceStartMusic = false;
 var forcePrepareEnding = false;
+updateVolumeSettings = function(volumeSettings) {
+	var avSfx = vSfx, avMusic = vMusic;
+	if (volumeSettings.sfx != null)
+		vSfx = volumeSettings.sfx;
+	if (volumeSettings.music != null)
+		vMusic = volumeSettings.music;
+	var gameMusics = document.getElementsByClassName("gamemusic");
+	var oMusics = [];
+	for (var i=0;i<gameMusics.length;i++)
+		oMusics.push(gameMusics[i]);
+	if (oMusicEmbed && !oMusics.includes(oMusicEmbed))
+		oMusics.push(oMusicEmbed);
+	var oMusicEmbeds = [oMusicEmbed, mapMusic, lastMapMusic, endingMusic];
+	for (var i=0;i<oMusics.length;i++) {
+		var oMusic = oMusics[i];
+		if (oMusicEmbeds.includes(oMusic))
+			updateMusicVolume(oMusic, vMusic,avMusic);
+		else
+			updateMusicVolume(oMusic, vSfx,avSfx);
+	}
+}
 function loadMapMusic() {
 	startMapMusic(false);
 	loadEndingMusic();
@@ -3723,6 +3772,7 @@ function startGame() {
 
 	if (bMusic && !onlineSpectatorState) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
+		startingMusic.volume = vMusic;
 		startingMusic.pause();
 		setTimeout(function() {
 			startingMusic.play();
@@ -4279,7 +4329,7 @@ function startGame() {
 									endingMusic.yt.playVideo();
 									setTimeout(function() {
 										endingMusic.yt.seekTo(0,true);
-										endingMusic.yt.setVolume(100);
+										endingMusic.yt.setVolume(100*vMusic);
 										endingMusic.yt.pauseVideo();
 									}, 1000);
 								}
@@ -16170,8 +16220,8 @@ function move(getId, triggered) {
 							if (firstOne) {
 								var cMusicEmbed = postStartMusic("musics/events/lastlap.mp3");
 								if (iSfx) {
-									fadeOutMusic(carEngine,1,0.6,-1);
-									fadeOutMusic(carEngine2,1,0.6,-1);
+									fadeOutMusic(carEngine,1,0.6,-1,vSfx);
+									fadeOutMusic(carEngine2,1,0.6,-1,vSfx);
 								}
 								cMusicEmbed.removeAttribute("loop");
 								setTimeout(function() {
@@ -16190,8 +16240,8 @@ function move(getId, triggered) {
 											fastenMusic(mapMusic);
 									}
 									if (iSfx) {
-										carEngine.volume = 1;
-										carEngine2.volume = 1;
+										carEngine.volume = vSfx;
+										carEngine2.volume = vSfx;
 									}
 								}, 2700);
 								if (lastMapMusic)
@@ -16647,7 +16697,7 @@ function move(getId, triggered) {
 			updateEngineSound();
 			if (oKart.turbodrift == (oKart.turbodrift0-1)) {
 				carEngine3.currentTime = 0;
-				carEngine3.volume = 1;
+				carEngine3.volume = vSfx;
 				carEngine3.play();
 				oKart.turboSound = carEngine3;
 				clearTimeout(oKart.turboHandler);
@@ -16658,7 +16708,7 @@ function move(getId, triggered) {
 					}
 				}, 2000);
 				if (oKart.sparkSound) {
-					fadeOutMusic(oKart.sparkSound, 1,0.8, false);
+					fadeOutMusic(oKart.sparkSound, 1,0.8, false, vSfx);
 					oKart.sparkSound = undefined;
 				}
 			}
@@ -16773,7 +16823,7 @@ function handleDriftCpt(getId) {
 					oKart.driftSprite[i].setState(2);
 				if (carSpark && (oKart === oPlayers[0])) {
 					carSpark.currentTime = 0;
-					carSpark.volume = 1;
+					carSpark.volume = vSfx;
 					carSpark.play();
 					oKart.sparkSound = carSpark;
 				}
@@ -16783,7 +16833,7 @@ function handleDriftCpt(getId) {
 					oKart.driftSprite[i].setState(1);
 				if (carSpark && (oKart === oPlayers[0])) {
 					carSpark.currentTime = 0;
-					carSpark.volume = 0.7;
+					carSpark.volume = 0.7*vSfx;
 					carSpark.play();
 					oKart.sparkSound = carSpark;
 				}
@@ -27862,6 +27912,7 @@ function editCommands(options) {
 				document.querySelector(".control-window .control-window-active").classList.remove("control-window-active");
 				document.querySelectorAll(".control-window > div")[i].classList.add("control-window-active");
 				currentTab = i;
+				options.currentTab = currentTab;
 			}
 			$controlTabs.appendChild($controlTab);
 		})(i);
@@ -28398,6 +28449,48 @@ function editCommands(options) {
 		$controlSetting.appendChild($controlSelect);
 		$controlSettings.appendChild($controlSetting);
 	}
+	var $controlSettingsH2 = document.createElement("div");
+	$controlSettingsH2.className = "control-settings-info";
+	$controlSettingsH2.innerHTML = toLanguage("Sound settings", "Paramètres sonores");
+	$controlSettings.appendChild($controlSettingsH2);
+	var allSoundSettings = {
+		'music' : toLanguage('Music volume', 'Volume musique'),
+		'sfx' : toLanguage('Sound effects volume', 'Volume bruitages')
+	};
+	var volumeSettings = localStorage.getItem("settings.vol");
+	if (volumeSettings)
+		volumeSettings = JSON.parse(volumeSettings);
+	else
+		volumeSettings = {};
+	for (var key in allSoundSettings) {
+		(function(key) {
+			var $controlSetting = document.createElement("label");
+			$controlSetting.className = "control-setting-range";
+			var $controlText = document.createElement("span");
+			$controlText.innerHTML = allSoundSettings[key];
+			$controlSetting.appendChild($controlText);
+			var $controlRange = document.createElement("input");
+			$controlRange.type = "range";
+			$controlRange.min = 0;
+			$controlRange.max = 1;
+			$controlRange.step = 0.05;
+			var currentValue = volumeSettings[key];
+			if (currentValue == null) currentValue = 1;
+			$controlRange.value = currentValue;
+			$controlSetting.appendChild($controlRange);
+			var $controlValue = document.createElement("span");
+			$controlValue.innerHTML = Math.round(currentValue*100)+"%";
+			$controlValue.style.width = "4em";
+			$controlSetting.appendChild($controlValue);
+			$controlRange.onchange = function() {
+				volumeSettings[key] = +this.value;
+				localStorage.setItem("settings.vol", JSON.stringify(volumeSettings));
+				$controlValue.innerHTML = Math.round(volumeSettings[key]*100)+"%";
+				updateVolumeSettings(volumeSettings);
+			}
+			$controlSettings.appendChild($controlSetting);
+		})(key);
+	}
 	if (iFps > 1) {
 		var frameSettings = getFrameSettings(currentSettings);
 
@@ -28546,6 +28639,7 @@ function editCommands(options) {
 	$controlResetBtn.onclick = function() {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
+			localStorage.removeItem("settings.vol");
 			localStorage.removeItem("iQuality");
 			editCommands(options);
 		}
