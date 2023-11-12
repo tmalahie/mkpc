@@ -7173,7 +7173,7 @@ var itemBehaviors = {
 				collisionFloor = null;
 				collisionDecorHit = null;
 				collisionItem = fSprite;
-				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept)) {
+				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept) || touche_bobomb(roundX2, roundY2, oSpriteExcept)) {
 					detruit(fSprite,true);
 					break;
 				}
@@ -7333,6 +7333,8 @@ var itemBehaviors = {
 									fNewPosY = tCible.using[0].y;
 									fSprite.x = fNewPosX;
 									fSprite.y = fNewPosY;
+									if (tCible.using[0].type === "bobomb" && touche_bobomb(fNewPosX, fNewPosY, onlyThisItems([tCible.using[0]])))
+										return;
 									detruit(fSprite);
 									detruit(tCible.using[0],true);
 									return;
@@ -7498,7 +7500,7 @@ var itemBehaviors = {
 					}
 				}
 				collisionItem = fSprite;
-				if (((fSprite.owner == -1) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept)) {
+				if (((fSprite.owner == -1) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept)) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
 				}
@@ -14159,6 +14161,15 @@ function otherPlayerItems(includingItems) {
 				}
 			}
 			return -1;
+		}
+	}
+}
+function onlyThisItems(includingItems) {
+	return {
+		indexOf: function(iObj) {
+			var res = includingItems.indexOf(iObj);
+			if (res !== -1) return -1;
+			return 0;
 		}
 	}
 }
