@@ -17,9 +17,9 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 	if (isset($_FILES['image'])) {
 		if (!$_FILES['image']['error']) {
 			$poids = $_FILES['image']['size'];
-			$limitMb  = ($isUploaded ? 1 : 5);
-			if ($poids < $limitMb*1000000) {
-				include('../includes/file-quotas.php');
+			include('../includes/file-quotas.php');
+			$maxUploadSize = upload_max_size(array('external' => !$isUploaded));
+			if ($poids < $maxUploadSize) {
 				if ($isUploaded) {
 					$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
 					$poids += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id,'identifiants'=>$ownerIds):array('circuit'=>$id,'identifiants'=>$ownerIds));
@@ -53,7 +53,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 				}
 				else $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE):'Vous avez dépassé votre quota de '.filesize_str(MAX_FILE_SIZE);
 			}
-			else $error = $language ? 'You image mustn\'t exceed '.$limitMb.' MB':'Votre image ne doit pas dépasser '.$limitMb.' Mo';
+			else $error = $language ? 'You image mustn\'t exceed '.filesize_str($maxUploadSize):'Votre image ne doit pas dépasser '.filesize_str($maxUploadSize);
 		}
 	else $error = $language ? 'An error occured. Please try again':'Une erreur est survenue, veuillez réessayez';
 	}
