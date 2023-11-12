@@ -28,9 +28,10 @@
     ?>
     <div class="editor-restrictions">
         <?php
+		$maxUploadSize = upload_max_size();
         echo $language
-            ? 'Your image must be in png, gif or jpg format and must not exceed 1 MB'
-            : 'Votre image doit être au format png, gif ou jpg et ne doit pas dépasser 1 Mo';
+            ? 'Your image must be in png, gif or jpg format and must not exceed '. filesize_str($maxUploadSize)
+            : 'Votre image doit être au format png, gif ou jpg et ne doit pas dépasser '. filesize_str($maxUploadSize);
         ?>
     </div>
 </div>

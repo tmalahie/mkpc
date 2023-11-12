@@ -7,6 +7,14 @@ function file_total_quota($options=null) {
 		return +$getQuota['file_quota'];
 	return 25000000;
 }
+function upload_max_size($options=null) {
+	global $identifiants;
+	$ownerId = isset($options['identifiant']) ? $options['identifiant'] : $identifiants[0];
+	$field = empty($options['external']) ? 'upload_size' : 'external_size';
+	if ($getSize = mysql_fetch_array(mysql_query('SELECT '.$field.' FROM `mkidentifiants` WHERE identifiant='.$ownerId.' AND '.$field.' IS NOT NULL')))
+		return +$getSize[$field];
+	return empty($options['external']) ? 1000000 : 5000000;
+}
 define('MAX_FILE_SIZE', file_total_quota());
 function file_total_size($item=null) {
 	global $identifiants;
