@@ -29571,6 +29571,7 @@ function setChat() {
 					oP.className = "chatlog";
 					oP.innerHTML = "<em>" + toLanguage("Message not sent (reason: "+ failureMsg +")", "Message non envoyé (raison : "+ failureMsg +")") +"</em>";
 					oMessages.appendChild(oP);
+					oMessages.scrollTop = oMessages.scrollHeight - oMessages.clientHeight;
 				}
 				return true;
 			});
@@ -29754,7 +29755,7 @@ function setChat() {
 							for (var i=0;i<=lastMsgId;i++)
 								addMsgToChat(messages[i][0],messages[i][1]);
 							var pMessages = oMessages.getElementsByTagName("p");
-							while (pMessages.length > 10)
+							while (pMessages.length > 40)
 								oMessages.removeChild(pMessages[0]);
 						}
 						setTimeout(refreshChat, 1000);
@@ -29781,7 +29782,10 @@ function setChat() {
 		sMessage.style.fontWeight = "normal";
 		sMessage.innerHTML = message;
 		oP.appendChild(sMessage);
+		var isScrolledToBottom = oMessages.scrollHeight - oMessages.clientHeight <= oMessages.scrollTop + 1;
 		oMessages.appendChild(oP);
+		if (isScrolledToBottom)
+			oMessages.scrollTop = oMessages.scrollHeight - oMessages.clientHeight;
 	}
 	refreshChat();
 
