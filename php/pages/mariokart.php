@@ -75,7 +75,7 @@ var NBCIRCUITS = <?php echo $nbVSCircuits; ?>;
 <?php
 mysql_close();
 ?>
-<script type="text/javascript" src="scripts/maps.php?reload=2"></script>
+<script type="text/javascript" src="scripts/maps.php"></script>
 <?php include('../includes/mk/main.php') ?>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", MarioKart);
