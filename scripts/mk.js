@@ -17485,14 +17485,14 @@ function ai(oKart) {
 						oKart.lastAIpt = [oKart.x,oKart.y];
 					lastAi = oKart.lastAIpt;
 				}
-				if (!oKart.nextAI) {
+				if (oKart.nextAI === undefined) {
 					var chemins = new Array();
 					for (var i=0;i<oKart.aipoints.length;i++) {
 						var iPt = oKart.aipoints[i];
 						if (iPt[0] == 1) {
 							if (iPt[1] == oKart.aipoint)
 								chemins.push(iPt[2]);
-							else if (iPt[2] == oKart.aipoint)
+							else if (!iPt[3] && iPt[2] == oKart.aipoint)
 								chemins.push(iPt[1]);
 						}
 					}
