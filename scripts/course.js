@@ -53,7 +53,7 @@ var editorTools = {
 			}
 			function addArrow() {
 				var firstNode = $editor.firstChild;
-				var nArrow = createArrowNode({x:-10,y:-10},self.state.orientation,false);
+				var nArrow = createArrowNode({x:-10,y:-10},self.state.orientation,{append:false});
 				for (var i=0;i<nArrow.lines.length;i++)
 					$editor.insertBefore(nArrow.lines[i],firstNode);
 				$editor.insertBefore(nArrow.origin,firstNode);
@@ -166,16 +166,19 @@ var editorTools = {
 			}
 			for (var uuid1 in links) {
 				for (var uuid2 in links[uuid1]) {
-					if (links[uuid1][uuid2]) {
+					if (links[uuid1][uuid2].dir) {
 						nodes[uuid1].circle.onclick();
 						nodes[uuid2].circle.onclick();
+						if (links[uuid1][uuid2].arrow) {
+							self.state.links[uuid1][uuid2].line.oneway();
+						}
 					}
 				}
 			}
 		},
 		"click" : function(self,point,extra) {
 			if (self.state.link) {
-				$editor.removeChild(self.state.link.line);
+				removeRouteLink(self.state.link);
 				self.state.link.node.circle.classList.remove("dark");
 				delete self.state.link;
 				$toolbox.classList.remove("hiddenbox");
@@ -210,8 +213,7 @@ var editorTools = {
 						storeHistoryData(self.data);
 						delete self.data.links[node0.uuid][node.uuid];
 						delete self.data.links[node.uuid][node0.uuid];
-						var line = link.line;
-						$editor.removeChild(line);
+						removeRouteLink(link);
 						delete self.state.links[node0.uuid][node.uuid];
 						delete self.state.links[node.uuid][node0.uuid];
 						$editor.removeChild(self.state.link.line);
@@ -220,27 +222,73 @@ var editorTools = {
 						if (node0 != node) {
 							var line = self.state.link.line;
 							storeHistoryData(self.data);
-							self.data.links[node0.uuid][node.uuid] = 1;
-							self.data.links[node.uuid][node0.uuid] = 0;
+							self.data.links[node0.uuid][node.uuid] = {dir:1};
+							self.data.links[node.uuid][node0.uuid] = {dir:0};
 							moveLine(line,null,data);
 							line.classList.remove("dark");
-							var newLink = {node1:node0,node2:node,line:self.state.link.line};
+							var newLink = {node1:node0,node2:node,line:line};
 							self.state.links[node0.uuid][node.uuid] = newLink;
 							self.state.links[node.uuid][node0.uuid] = newLink;
+							line.oneway = function() {
+								self.data.links[node0.uuid][node.uuid].arrow = 1;
+								var pt1 = self.data.points.find(function(pt) {return pt.uuid == node0.uuid});
+								var pt2 = self.data.points.find(function(pt) {return pt.uuid == node.uuid});
+								var orientation = Math.atan2(pt2.x-pt1.x,pt2.y-pt1.y)*2/Math.PI || 0;
+								newLink.arrow = createArrowNode({x:(pt1.x+pt2.x)/2,y:(pt1.y+pt2.y)/2},orientation,{l:4,d:8,origin:false});
+								for (var i=0;i<newLink.arrow.lines.length;i++)
+									newLink.arrow.lines[i].classList.add("noclick");
+							};
 							line.oncontextmenu = function(e) {
 								e.stopPropagation();
 								line.classList.add("dark");
-								showContextMenu(e,[{
+								var ctxMenuItems = [{
 									text:(language ? "Delete":"Supprimer"),
 									click:function() {
 										storeHistoryData(self.data);
 										delete self.data.links[node0.uuid][node.uuid];
 										delete self.data.links[node.uuid][node0.uuid];
-										$editor.removeChild(line);
+										removeRouteLink(newLink);
 										delete self.state.links[node0.uuid][node.uuid];
 										delete self.state.links[node.uuid][node0.uuid];
 									}
-								}],function() {
+								}];
+								if (newLink.arrow) {
+									ctxMenuItems.unshift({
+										text:(language ? "✔ Make 1-way":"✔ Unidirectionnel"),
+										click:function() {
+											storeHistoryData(self.data);
+											delete self.data.links[node0.uuid][node.uuid].arrow;
+											var lines = newLink.arrow.lines;
+											for (var i=0;i<lines.length;i++)
+												$editor.removeChild(lines[i]);
+											delete newLink.arrow;
+										}
+									}, {
+										text:(language ? "Reverse ↗":"Inverser ↗"),
+										click:function() {
+											storeHistoryData(self.data);
+											self.data.links[node0.uuid][node.uuid] = {dir:0};
+											self.data.links[node.uuid][node0.uuid] = {dir:1};
+											var node1 = node0;
+											node0 = node;
+											node = node1;
+											var lines = newLink.arrow.lines;
+											for (var i=0;i<lines.length;i++)
+												$editor.removeChild(lines[i]);
+											line.oneway();
+										}
+									});
+								}
+								else {
+									ctxMenuItems.unshift({
+										text:(language ? "Make 1-way":"Unidirectionnel"),
+										click:function() {
+											storeHistoryData(self.data);
+											line.oneway();
+										}
+									});
+								}
+								showContextMenu(e,ctxMenuItems,function() {
 									line.classList.remove("dark");
 								});
 								return false;
@@ -302,7 +350,7 @@ var editorTools = {
 						$editor.removeChild(node.center);
 						var lines = self.state.links[data.uuid];
 						for (var uuid in lines) {
-							$editor.removeChild(lines[uuid].line);
+							removeRouteLink(lines[uuid]);
 							delete self.state.links[uuid][data.uuid];
 							delete self.data.links[uuid][data.uuid];
 						}
@@ -333,8 +381,12 @@ var editorTools = {
 			var links = self.data.links;
 			for (var uuid1 in links) {
 				for (var uuid2 in links[uuid1]) {
-					if (links[uuid1][uuid2])
-						payload.aipoints.push([1,autoIncArr[uuid1],autoIncArr[uuid2]]);
+					if (links[uuid1][uuid2].dir) {
+						var iLink = [1,autoIncArr[uuid1],autoIncArr[uuid2]];
+						if (links[uuid1][uuid2].arrow)
+							iLink.push(1);
+						payload.aipoints.push(iLink);
+					}
 				}
 			}
 		},
@@ -342,8 +394,8 @@ var editorTools = {
 			for (var i=0;i<payload.aipoints.length;i++) {
 				var iData = payload.aipoints[i];
 				if (iData[0]) {
-					self.data.links[iData[1]][iData[2]] = 1;
-					self.data.links[iData[2]][iData[1]] = 0;
+					self.data.links[iData[1]][iData[2]] = {dir:1,arrow:iData[3]};
+					self.data.links[iData[2]][iData[1]] = {dir:0};
 				}
 				else {
 					self.data.points.push({x:iData[1],y:iData[2],uuid:i});
@@ -377,3 +429,12 @@ var editorTools = {
 	"elevators": commonTools["elevators"],
 	"options": commonTools["options"]
 };
+
+function removeRouteLink(link) {
+	$editor.removeChild(link.line);
+	if (link.arrow) {
+		var lines = link.arrow.lines;
+		for (var i=0;i<lines.length;i++)
+			$editor.removeChild(lines[i]);
+	}
+}
