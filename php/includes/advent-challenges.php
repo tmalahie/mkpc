@@ -1,4 +1,5 @@
 <?php
+require_once('utils-challenges.php');
 switch ($year) {
 case 2018:
 	$adventChallenges = array(
@@ -272,8 +273,52 @@ case 2018:
 	);
 	break;
 case 2022:
-	require_once('utils-challenges.php');
+	$selectedChallenges = array(
+		1 => 27391,
+		2 => 5459,
+		3 => 7786,
+		4 => 4958,
+		5 => 27667,
+		6 => 25819,
+		7 => 25383,
+		8 => 25139,
+		9 => 26578,
+		10 => 115,
+		11 => 6346,
+		12 => 28175,
+		13 => 28354,
+		14 => 28513,
+		15 => 28339,
+		16 => 16454,
+		17 => 28462,
+		18 => 25700,
+		19 => 28594,
+		20 => 28187,
+		21 => 28253,
+		22 => 18083,
+		23 => 28515,
+		24 => 28692
+	);
+	$adventChallenges = fetch_advent_challenges($selectedChallenges);
+	$adventChallenges[19]['name'] = $language ? '12 labours of Mario' : 'Les 12 travaux de Mario';
+	$adventChallenges[19]['description'] = '<a href="map.php?i=86275" target="_blank">'. $adventChallenges[19]['name'] .'</a>' . ($language ? ': Complete all challenges of the track' : ' : Complétez tous les défis du circuit');
+	$adventChallenges[19]['link'] = 'map.php?i=86275';
+	break;
+case 2023:
 	include('advent-selected-challenges.php');
+	$adventChallenges = fetch_advent_challenges($selectedChallenges);
+}
+function get_challenges_until($day) {
+	global $adventChallenges;
+	$adventChallengesUntil = array();
+	for ($i=1;$i<=$day;$i++) {
+		if (isset($adventChallenges[$i]))
+			$adventChallengesUntil[$i] = $adventChallenges[$i];
+	}
+	return $adventChallengesUntil;
+}
+function fetch_advent_challenges($selectedChallenges) {
+	global $language;
 	$challengeIds = array_values($selectedChallenges);
 	$getChallenges = mysql_query('SELECT c.*,l.type,l.circuit FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id WHERE c.id IN ('. implode(',', $challengeIds).')');
 	$challengeById = array();
@@ -301,17 +346,6 @@ case 2022:
 			$adventChallenge['extra'] = $challengeDetails['description']['extra'];
 		$adventChallenges[$d] = $adventChallenge;
 	}
-	$adventChallenges[19]['name'] = $language ? '12 labours of Mario' : 'Les 12 travaux de Mario';
-	$adventChallenges[19]['description'] = '<a href="map.php?i=86275" target="_blank">'. $adventChallenges[19]['name'] .'</a>' . ($language ? ': Complete all challenges of the track' : ' : Complétez tous les défis du circuit');
-	$adventChallenges[19]['link'] = 'map.php?i=86275';
-}
-function get_challenges_until($day) {
-	global $adventChallenges;
-	$adventChallengesUntil = array();
-	for ($i=1;$i<=$day;$i++) {
-		if (isset($adventChallenges[$i]))
-			$adventChallengesUntil[$i] = $adventChallenges[$i];
-	}
-	return $adventChallengesUntil;
+	return $adventChallenges;
 }
 ?>

@@ -12748,7 +12748,7 @@ function challengeRuleSatisfied(challenge,rule) {
 }
 function challengeSucceeded(challenge) {
 	if (challenge.succeeded && (challenge !== clSelected)) return;
-	var wasSucceeded = challenge.succeeded;
+	var wasSucceeded = false;//challenge.succeeded;
 	challenge.succeeded = true;
 	if (clSelected == challenge) {
 		clSelected = undefined;
@@ -17794,6 +17794,28 @@ function ai(oKart) {
 							if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
 								arme(aKarts.indexOf(oKart));
 						}
+						break;
+					case "carapace":
+						if (course == "BB" && clSelected && clSelected.id === 28253) {
+							if (canMoveTo(oKart.x,oKart.y,0, oPlayers[0].x-oKart.x,oPlayers[0].y-oKart.y) && !(aKarts.lastUsedTimer > (timer-10))) {
+								if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,300, 0,15)) {
+									arme(aKarts.indexOf(oKart));
+									setTimeout(function() {
+										arme(aKarts.indexOf(oKart));
+									});
+									aKarts.lastUsedTimer = timer;
+								}
+								else if (isPlayerTargetable(0,20, 0,30, true) || isPlayerTargetable(0,80, 0,15, true)) {
+									arme(aKarts.indexOf(oKart));
+									setTimeout(function() {
+										arme(aKarts.indexOf(oKart), true);
+									});
+									aKarts.lastUsedTimer = timer;
+								}
+							}
+						}
+						else
+							useRandomly = true;
 						break;
 					default:
 						useRandomly = true;
@@ -28997,7 +29019,7 @@ else {
 							for (var i=0;i<challengesList.length;i++) {
 								var challenge = challengesList[i];
 								if (challenge.id == res.id) {
-									if (!clSelected && !challenge.succeeded) {
+									if (!clSelected) {// && !challenge.succeeded) {
 										clSelected = challenge;
 										clSelected.trackType = type;
 										clSelected.trackId = cid;

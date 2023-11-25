@@ -1031,6 +1031,7 @@ function getCircuitPayload(&$clRace) {
 		if ($clCircuit['thumbnail']) {
 			$linkBg = 'uploads/'.$clCircuit['thumbnail'];
 			$linksCached = array($linkBg);
+			$linkBg = cachePathRelative($linkBg);
 		}
 		else {
 			foreach ($linksCached as $link) {
