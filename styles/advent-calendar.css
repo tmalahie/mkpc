@@ -1,9 +1,8 @@
 
 body {
-	background: url("../images/fond_winter.jpg");
-	background-attachment: fixed;
-	background-repeat: no-repeat;
-	background-size: cover;
+	background: url("../images/fond_winter.png");
+	background-repeat: repeat;
+	background-position: center;
 }
 #header_center img {
 	border-top-left-radius: 20px;
