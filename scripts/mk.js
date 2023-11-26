@@ -3491,6 +3491,7 @@ function startGame() {
 		oPlanDiv = document.createElement("div");
 		oPlanDiv.style.backgroundColor = "rgb("+ oMap.bgcolor +")";
 		oPlanDiv.style.position = "absolute";
+		oPlanDiv.style.zIndex = 1;
 		oPlanDiv.style.left = (15 + iScreenScale*iWidth) +"px";
 		oPlanDiv.style.top = "9px";
 		oPlanDiv.style.width = oPlanWidth +"px";
@@ -3501,6 +3502,7 @@ function startGame() {
 		oPlanDiv2 = document.createElement("div");
 		oPlanDiv2.style.backgroundColor = "rgb("+ oMap.bgcolor +")";
 		oPlanDiv2.style.position = "absolute";
+		oPlanDiv2.style.zIndex = 1;
 		oPlanDiv2.style.left = (15 + iScreenScale*iWidth) +"px";
 		oPlanDiv2.style.top = (10 + Math.round(iScreenScale/4) + oPlanWidth) +"px";
 		oPlanDiv2.style.width = oPlanWidth +"px";
@@ -29611,7 +29613,7 @@ function setChat() {
 		}
 	});
 	
-	document.body.appendChild(oChat);
+	document.body.insertBefore(oChat, $mkScreen);
 }
 function stopVocChat() {
 	if (rtcService) {

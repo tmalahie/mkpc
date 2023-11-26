@@ -35,6 +35,7 @@
     background-color: black;
     width: 350px;
     height: 90%;
+    z-index: 1;
     border: double 4px silver;
 }
 .online-chat-connecteds {
@@ -215,6 +216,7 @@
 }
 .online-chat.online-chat-closed {
     border: none;
+    z-index: 0;
 }
 .online-chat-closed > *:not(.online-chat-closectn) {
     display: none;
