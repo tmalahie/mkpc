@@ -33,7 +33,7 @@ if (isset($_POST['id'])) {
 					$shouldCompleteAll = true;
 				}*/
 				date_default_timezone_set('Europe/Paris');
-				if ($selectedDay && ($selectedDay <= date('j'))) {
+				if ($selectedDay && ($selectedDay <= date('j') && (date('n') == 12))) {
 					$year = date('Y');
 					$alreadyCompleted = mysql_fetch_array(mysql_query('SELECT date FROM mkadvent WHERE year="'. $year .'" AND user="'. $id .'" AND day="'. $selectedDay .'"'));
 					if ($shouldCompleteAll) {

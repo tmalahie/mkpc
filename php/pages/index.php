@@ -313,7 +313,9 @@ $slidesPath = 'images/slides';
 	<section id="right_section">
 		<?php
 		require_once('../includes/utils-date.php');
-		if ($id) {
+		date_default_timezone_set('Europe/Paris');
+		if ($id && date('n') == 12) {
+			require_once('../includes/advent-topic.php');
 			?>
 			<div class="subsection">
 				<div id="official_message">
@@ -323,14 +325,14 @@ $slidesPath = 'images/slides';
 						It's Christmas on MKPC!
 						Enjoy the <strong>advent calendar</strong> special event!<br />
 						<a href="advent-calendar.php">Click here</a> to discover it.<br />
-						To learn more, head to the <a href="topic.php?topic=10452">official topic</a>.
+						To learn more, head to the <a href="<?php echo $adventTopicUrl; ?>">official topic</a>.
 						<?php
 					}
 					else {
 						?>
 						C'est Noël sur MKPC ! Profitez de l'événement spécial : <strong>calendrier de l'avent</strong> !<br />
 						<a href="advent-calendar.php">Cliquez ici</a> pour le découvrir.<br />
-						Pour en savoir plus, rendez-vous sur le <a href="topic.php?topic=10452">topic officiel</a>.
+						Pour en savoir plus, rendez-vous sur le <a href="<?php echo $adventTopicUrl; ?>">topic officiel</a>.
 						<?php
 					}
 					?>
