@@ -18,7 +18,7 @@ if ($year < date('Y')) {
 	$over = true;
 }
 else {
-	if (date('n') == 11)
+	if (date('n') == 12)
 		$day = date('j');
 	else
 		$day = 0;
