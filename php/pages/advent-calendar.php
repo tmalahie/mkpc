@@ -10,15 +10,19 @@ include('../includes/initdb.php');
 <?php
 $hdescription = $language ? "It's Christmas on Mario Kart PC! To celebrate, this unique event gives you access to 1 challenge per day! Win as many challenges as possible to earn up to 400+ challenge points!" : "C'est Noël sur Mario Kart PC ! Pour fêter ça, cet événement inédit vous donne accès à 1 défi par jour ! Remportez un maximum de défis pour gagner jusqu'à 400+ points défis !";
 include('../includes/heads.php');
-$year = isset($_GET['y']) ? $_GET['y'] : 2022;
+$year = isset($_GET['y']) ? $_GET['y'] : 2023;
 $over = false;
 date_default_timezone_set('Europe/Paris');
 if ($year < date('Y')) {
 	$day = 25;
 	$over = true;
 }
-else
-	$day = date('j');
+else {
+	if (date('n') == 12)
+		$day = date('j');
+	else
+		$day = 0;
+}
 $dayStr = $day;
 if ($language) {
 	if ($day == 1 || $day == 21)
@@ -332,6 +336,7 @@ include('../includes/menu.php');
 	<div class="advent-description">
 		<?php
 		$nbCompleted = 0;
+		require_once('../includes/advent-topic.php');
 		if ($id) {
 			if ($getNbCompleted = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mkadvent WHERE user='.$id.' AND year="'.$year.'" AND day<='.$day)))
 				$nbCompleted = $getNbCompleted['nb'];
@@ -340,13 +345,13 @@ include('../includes/menu.php');
 			if ($language) {
 				?>
 				The event <strong>Advent Calendar</strong> is now closed. You can find the results <a href="ranking-advent.php">here</a>, congrats to all particiants!<br />
-				If you missed the event and want to learn more about it, go to <a href="topic.php?topic=10452">this topic</a>.<br />
+				If you missed the event and want to learn more about it, go to <a href="<?php echo $adventTopicUrl; ?>">this topic</a>.<br />
 				<?php
 			}
 			else {
 				?>
 				L'événement <strong>Calendrier de l'avent</strong> est terminé. Les résultats sont disponibles <a href="ranking-advent.php">ici</a>, bravo à tous les participants !<br />
-				Si vous avez manqué l'événement et que vous voulez en savoir plus, rendez-vous sur <a href="topic.php?topic=10452">ce topic</a>.<br />
+				Si vous avez manqué l'événement et que vous voulez en savoir plus, rendez-vous sur <a href="<?php echo $adventTopicUrl; ?>">ce topic</a>.<br />
 				<?php
 			}
 		}
@@ -357,7 +362,7 @@ include('../includes/menu.php');
 				On this occasion, a unique event is organized on the site: the <strong>Advent Calendar</strong>!<br />
 				This event gives you access to 1 challenge per day until December 25.<br />
 				As a present, each successful challenge gives you <strong>twice as many points</strong> as normal, and even more if you complete a lot of challenges!<br />
-				To learn more, check out <a href="topic.php?topic=10452">this topic</a>.
+				To learn more, check out <a href="<?php echo $adventTopicUrl; ?>">this topic</a>.
 				<?php
 			}
 			else {
@@ -366,7 +371,7 @@ include('../includes/menu.php');
 				À cette occasion, un événement inédit est organisé sur le site : le <strong>Calendrier de l'Avent</strong> !<br />
 				Cet événement vous donne accès à <strong>1 défi par jour</strong> jusqu'au 25 décembre.<br />
 				En cadeau, chaque défi réussi vous rapporte <strong>2 fois plus</strong> de points qu'en temps normal, et encore plus si vous réussissez beaucoup de défis !<br />
-				Pour en savoir plus, rendez-vous sur <a href="topic.php?topic=10452">ce topic</a>.<br />
+				Pour en savoir plus, rendez-vous sur <a href="<?php echo $adventTopicUrl; ?>">ce topic</a>.<br />
 				<?php
 			}
 		}
