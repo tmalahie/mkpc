@@ -1,6 +1,7 @@
 
 body {
-	background: url("../images/fond_winter.png");
+	background-color: #A52119;
+	background-image: url("../images/fond_winter.png");
 	background-repeat: repeat;
 	background-position: center;
 }
