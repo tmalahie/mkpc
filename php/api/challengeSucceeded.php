@@ -1,5 +1,6 @@
 <?php
 if (isset($_POST['id'])) {
+	header('Content-Type: application/json');
 	include('../includes/language.php');
 	include('../includes/session.php');
 	$res = array();
