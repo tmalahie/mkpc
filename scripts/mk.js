@@ -11502,11 +11502,13 @@ function updateChallengeHud(key, value) {
 var challengeRules = {
 	"finish_circuit": {
 		"verify": "end_game",
+		"is_tt_compatible": true,
 		"reset_on_fail": true,
 		"success": lambdaReturnsTrue
 	},
 	"finish_circuit_first": {
 		"verify": "end_game",
+		"is_tt_compatible": true,
 		"reset_on_fail": true,
 		"success": function(scope) {
 			return (course != "CM") && (oPlayers[0].place == 1);
@@ -11514,6 +11516,7 @@ var challengeRules = {
 	},
 	"finish_circuit_time": {
 		"verify": "end_game",
+		"is_tt_compatible": true,
 		"reset_on_fail": true,
 		"success": function(scope) {
 			return (getActualGameTime() <= scope.value);
@@ -26905,8 +26908,13 @@ function connexion() {
 	updateMenuMusic(0);
 }
 function loadGhostScreen(map) {
-	document.body.style.cursor = "progress";
 	var oMap = oMaps[map];
+	if (!isChallengeTtCompatible()) {
+		gPersos.length = 0;
+		resetGame(aAvailableMaps[oMap.ref-1]);
+		return;
+	}
+	document.body.style.cursor = "progress";
 	xhr("ghostsave.php", "map="+ getCreationId(oMap) +"&type="+ getCreationTable() +"&cc="+ getActualCc(), function(reponse) {
 		var ghostSaves;
 		try {
@@ -27647,6 +27655,11 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		otherGhosts();
 
 	updateMenuMusic(1);
+}
+function isChallengeTtCompatible() {
+	if (!clSelected) return true;
+	var challengeGoal = challengeRules[clSelected.data.goal.type];
+	return challengeGoal.is_tt_compatible;
 }
 function escapeSpecialChars(s) {
 	if (!s) return "";
