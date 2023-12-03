@@ -337,7 +337,7 @@ h2 {
 	top: 6px;
 }
 #advanced-option-ctn {
-    display: inline-block;
+    display: inline-flex;
     width: auto;
 }
 .advanced-option {
@@ -373,7 +373,7 @@ h2 {
 .advanced-option .option-bg {
     position: relative;
     width: 150px;
-	height: 130px;
+	height: 150px;
 	margin-left: auto;
 	margin-right: auto;
 	margin-bottom: 5px;
@@ -402,16 +402,13 @@ h2 {
 }
 .advanced-option.option-form h3 {
     margin-top: 0;
-    margin-bottom: 0;
+    margin-bottom: 0.25em;
 }
 .advanced-option.option-form form {
     min-width: 180px;
-	height: 120px;
-	overflow: hidden;
 }
-.advanced-option.option-form form > div {
+.advanced-option.option-form form > .option-form-props {
     display: flex;
-	height: 100%;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -437,6 +434,29 @@ h2 {
     text-decoration: none;
     position: relative;
     top: -0.1em;
+}
+.advanced-option.option-form .option-form-items {
+    margin-top: 1em;
+}
+.advanced-option.option-form .option-form-items label {
+    display: flex;
+    gap: 0.25em;
+    align-items: center;
+}
+.option-form-items-types {
+    display: none;
+}
+.option-form-items-types.shown {
+    display: block;
+}
+.option-form-items-types input[type="button"] {
+    width: 22px;
+    background-size: auto 14px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.option-form-items-types input[type="button"][data-selected="1"] {
+	background-color: #7CF;
 }
 .advanced-option.option-form .option-form-reset:hover {
     color: #d66;

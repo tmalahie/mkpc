@@ -34,7 +34,7 @@ if (isset($_GET['id'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css?reload=1" />
-<link rel="stylesheet" href="styles/decor-editor.css?reload=2" />
+<link rel="stylesheet" href="styles/decor-editor.css" />
 <?php
 include('../includes/o_online.php');
 ?>
@@ -73,7 +73,7 @@ include('../includes/o_online.php');
 		<div class="advanced-option option-form">
 			<h3 class="option-label"><?php echo $language ? 'Decor properties' : 'Propriétés du décor'; ?></h3>
 			<form name="decor-options-form" class="decor-editor-form" method="post" action="decorProperties.php?id=<?php echo $decorId; ?>">
-				<div>
+				<div class="option-form-props">
 					<?php
     				$decorOptions = array(
 						'hitbox' => array(
@@ -115,6 +115,30 @@ include('../includes/o_online.php');
 						<?php
 					}
 					?>
+					<div class="option-form-items">
+						<?php
+						$selectedItems = isset($decorOptionsValue->items) ? $decorOptionsValue->items : array();
+						?>
+						<label>
+							<input type="checkbox" id="items-cb" onclick="handleItemsChange()"<?php
+							if ($selectedItems)
+								echo ' checked="checked"';
+							?> />
+							<input type="hidden" name="items" onclick="handleItemsChange()" />
+							<?php echo $language ? 'Items can destroy decor' : 'Les objets peuvent détruire le décor'; ?>
+						</label>
+						<div class="option-form-items-types">
+						<?php
+						$itemTypes = array('carapace', 'carapace-rouge', 'champi', 'bob-omb', 'carapace-bleue');
+						foreach ($itemTypes as $key) {
+							$itemOptionSelected = in_array($key,$selectedItems);
+							?>
+							<input type="button" data-key="<?php echo $key; ?>"<?php if ($itemOptionSelected) echo 'data-selected="1"'; ?> style="background-image:url('images/map_icons/<?php echo $key; ?>.png')" onclick="selectItem(this)" />
+							<?php
+						}
+						?>
+						</div>
+					</div>
 					<div class="option-form-submit">
 						<button type="submit"><?php echo $language ? 'Validate':'Valider'; ?></button>
 						<a class="option-form-reset-all" href="javascript:resetOptions()"><?php echo $language ? 'Reset all':'Réinitialiser'; ?></a>
@@ -135,9 +159,6 @@ include('../includes/o_online.php');
 		alert(text);
 	}
 	function handleFormChange() {
-		var $resetAll = document.querySelector('.option-form-reset-all');
-		var $checked = document.querySelectorAll('.option-form-group input[type="checkbox"]:not([data-indeterminate])');
-		$resetAll.style.display = $checked.length ? 'inline-block' : 'none';
 		var $form = document.forms['decor-options-form'];
 		var $unbreaking = $form.querySelector('input[name="unbreaking"]');
 		var $unbreakingCb = $unbreaking.parentNode.querySelector('input[type="checkbox"]');
@@ -163,6 +184,37 @@ include('../includes/o_online.php');
 		}
 		else
 			$unbreakingCb.disabled = false;
+		handleItemsChange();
+	}
+	function handleItemsChange() {		
+		var $form = document.forms['decor-options-form'];
+		var $items = $form.querySelector('input[name="items"]');
+		var $itemsCb = document.querySelector('#items-cb');
+		var $itemTypes = document.querySelector(".option-form-items-types");
+		if ($itemsCb.checked) {
+			$itemTypes.classList.add("shown");
+			var $btnItems = $itemTypes.querySelectorAll('input[type="button"][data-selected="1"]');
+			var selectedItems = [];
+			for (var i=0;i<$btnItems.length;i++)
+				selectedItems.push($btnItems[i].dataset.key);
+			$items.value = selectedItems.join(',');
+		}
+		else {
+			$itemTypes.classList.remove("shown");
+			$items.value = "";
+		}
+
+		var $resetAll = document.querySelector('.option-form-reset-all');
+		var $checked = document.querySelectorAll('.option-form-group input[type="checkbox"]:not([data-indeterminate])');
+		var $itemsCb = document.querySelector('#items-cb');
+		$resetAll.style.display = $checked.length || $itemsCb.checked ? 'inline-block' : 'none';
+	}
+	function selectItem($elt) {
+		if ($elt.dataset.selected)
+			delete $elt.dataset.selected;
+		else
+			$elt.dataset.selected = "1";
+		handleItemsChange();
 	}
 	function resetCheck(e) {
 		e.preventDefault();
@@ -183,6 +235,8 @@ include('../includes/o_online.php');
 			$checkboxInd[i].dataset.indeterminate = "1";
 			$input.value = "";
 		}
+		var $itemsCb = document.querySelector('#items-cb');
+		$itemsCb.checked = false;
 		handleFormChange();
 	}
 

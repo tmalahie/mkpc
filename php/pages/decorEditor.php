@@ -25,7 +25,7 @@ if (isset($_POST['type']) && isset($_FILES['sprites'])) {
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/editor.css?reload=1" />
 <link rel="stylesheet" href="styles/collabs.css" />
-<link rel="stylesheet" href="styles/decor-editor.css?reload=1" />
+<link rel="stylesheet" href="styles/decor-editor.css" />
 <script type="text/javascript" src="scripts/collabs.js"></script>
 <script type="text/javascript" src="scripts/decor-editor.js?reload=1"></script>
 <title><?php echo $language ? 'Decor editor':'Éditeur de décors'; ?></title>

@@ -9,6 +9,8 @@ if (isset($_GET['id'])) {
         if (isset($_POST[$option]) && in_array($_POST[$option], array('0','1')))
             $newOptions[$option] = intval($_POST[$option]);
     }
+    if (!empty($_POST['items']))
+        $newOptions['items'] = explode(',', $_POST['items']);
     $newOptionsJson = '';
     if (!empty($newOptions))
         $newOptionsJson = json_encode($newOptions);
