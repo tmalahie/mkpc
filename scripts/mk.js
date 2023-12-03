@@ -1045,7 +1045,7 @@ function setPlanPos(frameState) {
 							var iDecor = iPlanDecor[type][i];
 							iDecor.src = "images/map_icons/empty.png";
 						}
-						(function(type,decorBehavior) {
+						(function(type,decorBehavior,frameDecorType) {
 							getCustomDecorData(customDecor, function(res) {
 								tObjWidth = iObjWidth*decorBehavior.size_ratio.w;
 								syncObjects(iPlanDecor[type],frameDecorType,type, tObjWidth,iPlanCtn);
@@ -1055,7 +1055,7 @@ function setPlanPos(frameState) {
 									iDecor.style.width = tObjWidth +"px";
 								}
 							});
-						})(type,decorBehavior);
+						})(type,decorBehavior,frameDecorType);
 					}
 					var rotatable = decorBehavior.rotatable;
 					var relY;
@@ -3355,6 +3355,12 @@ function startGame() {
 							}
 							else if (res.options.breaking === 0)
 								delete decorBehavior.breaking;
+
+							if (res.options.items) {
+								decorBehavior.damagingItems = {};
+								for (var i=0;i<res.options.items.length;i++)
+									decorBehavior.damagingItems[res.options.items[i]] = true;
+							}
 						}
 						if (decorBehavior.initcustom) {
 							setTimeout(function() {
@@ -7115,6 +7121,8 @@ var itemBehaviors = {
 					oSpriteExcept = otherPlayerItems([]);
 				}
 				collisionFloor = null;
+				collisionDecorHit = null;
+				collisionItem = fSprite;
 				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept)) {
 					detruit(fSprite,true);
 					break;
@@ -7127,6 +7135,8 @@ var itemBehaviors = {
 				}
 				else {
 					fSprite.lives--;
+					if (collisionDecorHit)
+						fSprite.lives = 0;
 					if (fSprite.lives > 0) {
 						var horizontality = getHorizontality(fSprite.x,fSprite.y,collisionFloor?collisionFloor.z:0, fMoveX,fMoveY);
 						var ux = horizontality[0], uy = horizontality[1];
@@ -7166,6 +7176,8 @@ var itemBehaviors = {
 						fSprite.cooldown -= 12;
 					if (fSprite.cooldown < -10)
 						detruit(fSprite);
+					else if (fSprite.cooldown < 0)
+						handleDecorExplosions(fSprite, touche_bobomb_aux);
 				}
 			}
 		},
@@ -7435,6 +7447,7 @@ var itemBehaviors = {
 						handleHeightInc(fSprite);
 					}
 				}
+				collisionItem = fSprite;
 				if (((fSprite.owner == -1) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept)) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
@@ -7538,6 +7551,8 @@ var itemBehaviors = {
 					var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -70:-10;
 					if (fSprite.cooldown < delLimit)
 						detruit(fSprite);
+					else
+						handleDecorExplosions(fSprite, touche_cbleue_aux);
 				}
 			}
 			else {
@@ -9153,6 +9168,7 @@ var decorBehaviors = {
 									var pJump = sauts(decorData[0],decorData[1], fMoveX,fMoveY);
 									var pAsset;
 									collisionFloor = null;
+									collisionItem = null;
 									if (pJump) {
 										var nSpeed = this.jumpspeed(pJump), nMove = 32*pJump;
 										var nMoveX = diffX*nMove/diffL, nMoveY = diffY*nMove/diffL;
@@ -10824,30 +10840,32 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					if (!iP || decorBehavior.unbreaking) {
 						collisionDecor = type;
 						if (collisionTest == COL_KART) {
-							if (decorBehavior.breaking && (collisionPlayer.speed > 4)) {
-								oMap.decor[type][i][2][0].suppr();
-								oMap.decor[type].splice(i,1);
-								if (collisionPlayer.turbodrift)
-									collisionPlayer.turbodrift = 0;
-								if (decorBehavior.bonus) {
-									if (!isOnline || (collisionPlayer == oPlayers[0] && !onlineSpectatorId)) {
-										var bonusType = "champi";
-										if (course != "CM" && Math.random() < 0.5)
-											bonusType = "banane";
-										addNewItem(collisionPlayer, {type: bonusType, team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
+							if (decorBehavior.breaking || (decorBehavior.damagingItems && decorBehavior.damagingItems.champi && collisionPlayer.champi && collisionPlayer.champiType === CHAMPI_TYPE_ITEM)) {
+								if (collisionPlayer.speed > 4) {
+									handleDecorHit(i,type);
+									if (collisionPlayer.turbodrift)
+										collisionPlayer.turbodrift = 0;
+									if (decorBehavior.bonus) {
+										if (!isOnline || (collisionPlayer == oPlayers[0] && !onlineSpectatorId)) {
+											var bonusType = "champi";
+											if (course != "CM" && Math.random() < 0.5)
+												bonusType = "banane";
+											addNewItem(collisionPlayer, {type: bonusType, team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
+										}
 									}
 								}
-								handleDecorHit(type);
 							}
+						}
+						else if (collisionTest == COL_OBJ && collisionItem && decorBehavior.damagingItems) {
+							if (decorBehavior.damagingItems[collisionItem.type])
+								handleDecorHit(i,type);
 						}
 						if (decorBehavior.transparent)
 							break;
 						return false;
 					}
 					else {
-						oMap.decor[type][i][2][0].suppr();
-						oMap.decor[type].splice(i,1);
-						handleDecorHit(type);
+						handleDecorHit(i,type);
 						break;
 					}
 				}
@@ -11159,6 +11177,7 @@ function getNearestHoleDist(iX,iY, stopAt) {
 	var res = stopAt || Infinity;
 	if (!oMap.trous)
 		return res;
+	collisionItem = null;
 	for (var j in oMap.trous) {
 		var oRectangles = oMap.trous[j].rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
@@ -13725,7 +13744,7 @@ function getDefaultPointDistribution(nbPlayers) {
 }
 
 var COL_KART = 0, COL_OBJ = 1;
-var collisionTest, collisionPlayer, collisionTeam, collisionDecor, collisionFloor;
+var collisionTest, collisionPlayer, collisionTeam, collisionItem, collisionDecor, collisionDecorHit, collisionFloor;
 function isHitSound(oBox) {
 	if (collisionTest==COL_OBJ)
 		return true;
@@ -13788,7 +13807,11 @@ function incChallengeHits(kart) {
 	}
 	challengeCheck("each_hit");
 }
-function handleDecorHit(type) {
+function handleDecorHit(i,type) {
+	collisionDecorHit = true;
+	oMap.decor[type][i][2][0].suppr();
+	oMap.decor[type].splice(i,1);
+
 	//if (clLocalVars.decorsHit && (collisionPlayer == oPlayers[0]))
 	//	clLocalVars.decorsHit[type] = true;
 	if (clLocalVars.nbDecorHits && (clLocalVars.nbDecorHits[type] != undefined)) {
@@ -14722,9 +14745,10 @@ function resetDatas() {
 					var start = uConn;
 					var end = rCode[2];
 					var moveFn = itemBehaviors[uType].move;
-					var checkCollisions = itemBehaviors[uType].checkCollisions;
 					if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
 						var ctx = {onlineSync: true};
+						var checkCollisions = itemBehaviors[uType].checkCollisions;
+						collisionTest = COL_OBJ;
 						for (var k=start;k<end;k++) {
 							if (uItem.deleted)
 								break;
@@ -15565,6 +15589,7 @@ function move(getId, triggered) {
 
 	collisionDecor = null;
 	collisionFloor = null;
+	collisionItem = null;
 	var nPosZ0;
 	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0)) {
 		oKart.x = fNewPosX;
@@ -16846,6 +16871,21 @@ function handlePoisonHit(getId) {
 	loseUsingItems(oKart);
 	oKart.size = 0.6;
 	oKart.mini = Math.max(oKart.mini, 60);
+}
+
+function handleDecorExplosions(fSprite, callback) {
+	if (oMap.decor) {
+		for (var type in oMap.decor) {
+			var decorBehavior = decorBehaviors[type];
+			if (decorBehavior.damagingItems && decorBehavior.damagingItems[fSprite.type]) {
+				for (var i=0;i<oMap.decor[type].length;i++) {
+					var oBox = oMap.decor[type][i];
+					if (callback(oBox[0],oBox[1], fSprite))
+						handleDecorHit(i,type);
+				}
+			}
+		}
+	}
 }
 
 var oRoulettesPrefixes = ["", "2"];
