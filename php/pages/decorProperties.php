@@ -3,7 +3,7 @@ if (isset($_GET['id'])) {
     include('../includes/initdb.php');
     include('../includes/getId.php');
     $decorId = intval($_GET['id']);
-    $decorOptions = array('hitbox', 'spin', 'unbreaking');
+    $decorOptions = array('hitbox', 'spin', 'unbreaking', 'breaking');
     $newOptions = array();
     foreach ($decorOptions as $option) {
         if (isset($_POST[$option]) && in_array($_POST[$option], array('0','1')))

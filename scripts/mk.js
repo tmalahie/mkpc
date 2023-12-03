@@ -3348,6 +3348,13 @@ function startGame() {
 							}
 							else if (res.options.unbreaking === 0)
 								delete decorBehavior.unbreaking;
+							
+							if (res.options.breaking === 1) {
+								decorBehavior.breaking = true;
+								delete decorBehavior.unbreaking;
+							}
+							else if (res.options.breaking === 0)
+								delete decorBehavior.breaking;
 						}
 						if (decorBehavior.initcustom) {
 							setTimeout(function() {

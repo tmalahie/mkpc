@@ -88,6 +88,10 @@ include('../includes/o_online.php');
 						'unbreaking' => array(
 							'label' => $language ? 'Unbreaking':'Indestructible',
 							'help' => $language ? "If checked, the decor cannot be destroyed when hit with a star/mega shroom item" : "Si activé, le décor ne peut pas être détruit avec un objet comme une étoile ou un méga champi"
+						),
+						'breaking' => array(
+							'label' => $language ? 'Fragile':'Fragile',
+							'help' => $language ? "If checked, the decor will be destroyed when bumping into it, like for crates" : "Si activé, le décor sera détruit lorsque vous rentrez dedans, comme pour les caisses"
 						)
 					);
 					$decorOptionsValue = $decor['options'] ? json_decode($decor['options']) : new \stdClass();
@@ -130,10 +134,35 @@ include('../includes/o_online.php');
 	function showHelp(text) {
 		alert(text);
 	}
-	function toggleResetLink() {
+	function handleFormChange() {
 		var $resetAll = document.querySelector('.option-form-reset-all');
 		var $checked = document.querySelectorAll('.option-form-group input[type="checkbox"]:not([data-indeterminate])');
 		$resetAll.style.display = $checked.length ? 'inline-block' : 'none';
+		var $form = document.forms['decor-options-form'];
+		var $unbreaking = $form.querySelector('input[name="unbreaking"]');
+		var $unbreakingCb = $unbreaking.parentNode.querySelector('input[type="checkbox"]');
+		var $breaking = $form.querySelector('input[name="breaking"]');
+		var $breakingCb = $breaking.parentNode.querySelector('input[type="checkbox"]');
+		if ($unbreaking.value == 1) {
+			$breakingCb.disabled = true;
+			if ($breaking.value == 1) {
+				$breakingCb.indeterminate = true;
+				$breakingCb.checked = false;
+				$breaking.value = "";
+			}
+		}
+		else
+			$breakingCb.disabled = false;
+		if ($breaking.value == 1) {
+			$unbreakingCb.disabled = true;
+			if ($unbreaking.value == 1) {
+				$unbreakingCb.indeterminate = true;
+				$unbreakingCb.checked = false;
+				$unbreaking.value = "";
+			}
+		}
+		else
+			$unbreakingCb.disabled = false;
 	}
 	function resetCheck(e) {
 		e.preventDefault();
@@ -143,7 +172,7 @@ include('../includes/o_online.php');
 		$checkbox.indeterminate = true;
 		$checkbox.dataset.indeterminate = "1";
 		$input.value = "";
-		toggleResetLink();
+		handleFormChange();
 	}
 	function resetOptions() {
 		for (var i=0;i<$checkboxInd.length;i++) {
@@ -154,7 +183,7 @@ include('../includes/o_online.php');
 			$checkboxInd[i].dataset.indeterminate = "1";
 			$input.value = "";
 		}
-		toggleResetLink();
+		handleFormChange();
 	}
 
 	var $checkboxInd = document.querySelectorAll('.option-form-group input[type="checkbox"]');
@@ -167,10 +196,10 @@ include('../includes/o_online.php');
 			var $input = $div.querySelector('input[type="hidden"]');
 			$input.value = this.checked ? 1 : 0;
 			delete this.dataset.indeterminate;
-			toggleResetLink();
+			handleFormChange();
 		}
 	}
-	toggleResetLink();
+	handleFormChange();
 	</script>
 </body>
 </html>
