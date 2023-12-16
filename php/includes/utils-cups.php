@@ -85,7 +85,7 @@ function printCollabImportPopup($type, $mode, $isBattle) {
     <?php
 }
 function getTrackPayloads($options) {
-    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cThumb, $cDesc, $hdescription, $cDate, $cOptions, $cupIDs, $dCircuits, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode;
+    global $isCup, $isMCup, $id, $nid, $edittingCircuit, $cName, $cName0, $cPseudo, $cPrefix, $cAuteur, $cThumb, $cDesc, $hdescription, $cDate, $cOptions, $cupIDs, $clId, $dCircuits, $cupPayloads, $pNote, $pNotes, $clPayloadParams, $hthumbnail, $cShared, $cEditting, $infos, $NBCIRCUITS, $trackIDs, $circuitsData, $creationData, $creationMode, $challenges;
     include('creation-entities.php');
     $isOnline = isset($options['online']);
     if ($isOnline) {
@@ -414,8 +414,26 @@ function getTrackPayloads($options) {
                 $dCircuits[] = htmlEscapeCircuitNames($circuit['name']);
         }
     }
-    if (!$isOnline)
+    if (!$isOnline) {
         addClChallenges($nid, $clPayloadParams);
+        if ($clId) {
+            $clOrderById = array();
+            $getClOrder = mysql_query('SELECT challenge,position FROM `mkclorder` WHERE clist="'. $clId .'"');
+            while ($clOrderData = mysql_fetch_array($getClOrder))
+                $clOrderById[$clOrderData['challenge']] = $clOrderData['position'];
+            foreach ($challenges as &$tracksList) {
+                foreach ($tracksList as &$track) {
+                    foreach ($track['list'] as &$challenge) {
+                        if (isset($clOrderById[$challenge['id']]))
+                            $challenge['order'] = $clOrderById[$challenge['id']];
+                    }
+                    unset($challenge);
+                }
+                unset($track);
+            }
+            unset($tracksList);
+        }
+    }
 }
 function printCircuitsData() {
     global $circuitsData;

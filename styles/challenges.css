@@ -462,6 +462,9 @@ button.challenge-edit-submit:disabled {
     border-radius: 8px;
 	background-color: rgba(255,255,255, 0.8);
 }
+.challenge-navigation.advanced-challenge-actions:not(.shown) {
+	display: none;
+}
 .challenge-navigation a {
 	display: block;
 	color: black;

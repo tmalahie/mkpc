@@ -107,6 +107,7 @@ var challengesForCircuit;
 var onlineSpectatorId;
 
 var gamepadMenuEventsHandler;
+var updateVolumeSettings;
 
 function MarioKart() {
 
@@ -152,6 +153,17 @@ resetQuality();
 var bMusic = !!optionOf("music");
 var iSfx = !!optionOf("sfx");
 var iFps = +localStorage.getItem("nbFrames") || 1;
+var vSfx = 1, vMusic = 1;
+{
+	var vSettings = localStorage.getItem("settings.vol");
+	if (vSettings) {
+		vSettings = JSON.parse(vSettings);
+		if (vSettings.sfx != null)
+			vSfx = vSettings.sfx;
+		if (vSettings.music != null)
+			vMusic = vSettings.music;
+	}
+}
 var gameMenu;
 var primaryColor = "#FEFF3F";
 
@@ -522,7 +534,7 @@ function removeMenuMusic(forceRemove) {
 		if (forceRemove)
 			document.body.removeChild(oMusicEmbed);
 		else
-			fadeOutMusic(oMusicEmbed, 1, 0.8);
+			fadeOutMusic(oMusicEmbed, 1, 0.8, null,vMusic);
 		oMusicEmbed = undefined;
 	}
 	if (muteOnBlur) {
@@ -614,10 +626,22 @@ function unpauseSounds() {
 
 function setMusicVolume(embed, volume) {
 	if (isOriginalEmbed(embed))
-		embed.volume = volume;
+		embed.volume = volume*vMusic;
 	else {
 		onPlayerReady(embed, function(player) {
-			player.setVolume(Math.round(volume*100));
+			player.setVolume(Math.round(volume*vMusic*100));
+		});
+	}
+}
+function updateMusicVolume(embed, volume, lastVolume) {
+	if (isOriginalEmbed(embed)) {
+		if (embed.volume === lastVolume)
+			embed.volume = volume;
+	}
+	else {
+		onPlayerReady(embed, function(player) {
+			if (Math.round(player.getVolume()) === Math.round(lastVolume*100))
+				player.setVolume(Math.round(volume*100));
 		});
 	}
 }
@@ -634,20 +658,20 @@ function fadeInMusic(embed, volume, ratio) {
 	else
 		setMusicVolume(embed,1);
 }
-function fadeOutMusic(embed, volume, ratio, remove) {
+function fadeOutMusic(embed, volume, ratio, remove, vSnd) {
 	if (embed.fadingIn)
 		return;
 	embed.fadingOut = true;
 	volume *= ratio;
 	if (volume > 0.2) {
-		setMusicVolume(embed,volume);
-		setTimeout(function(){fadeOutMusic(embed,volume,ratio,remove)},100);
+		setMusicVolume(embed,volume*vSnd);
+		setTimeout(function(){fadeOutMusic(embed,volume,ratio,remove,vSnd)},100);
 	}
 	else {
 		embed.fadingOut = false;
 		if (remove === false) {
 			pauseMusic(embed);
-			setMusicVolume(embed,1);
+			setMusicVolume(embed,vSnd);
 		}
 		else if (remove !== -1)
 			stopMusic(embed);
@@ -685,6 +709,7 @@ function playMusicSmoothly(src,delay) {
 	if (undefined === delay)
 		delay = 1000;
 	oMusicEmbed = document.createElement("audio");
+	oMusicEmbed.volume = vMusic;
 	oMusicEmbed.setAttribute("loop", true);
 	oMusicEmbed.style.position = "absolute";
 	oMusicEmbed.style.left = "-1000px";
@@ -2272,6 +2297,7 @@ function loadMusic(src, autoplay, opts) {
 		var oMusicSource = document.createElement("source");
 		oMusicSource.type = "audio/mpeg";
 		res.src = src;
+		res.volume = vSfx;
 		res.appendChild(oMusicSource);
 		if (autoplay)
 			res.setAttribute("autoplay", true);
@@ -2310,7 +2336,7 @@ function bufferMusic(elt, callback) {
 		setTimeout(function() {
 			player.pauseVideo();
 			player.seekTo(startTime,true);
-			player.setVolume(100);
+			player.setVolume(100*vMusic);
 			if (callback)
 				callback();
 		}, 1000);
@@ -2396,7 +2422,7 @@ function updateMusic(elt,fast) {
 		if (isOriginal) {
 			if (fast)
 				elt.playbackRate = 1.2;
-			elt.volume = 1;
+			elt.volume = vMusic;
 			elt.currentTime = 0;
 			elt.play();
 		}
@@ -2409,7 +2435,7 @@ function updateMusic(elt,fast) {
 					player.setPlaybackRate(opts.speed);
 				var start = opts.start || 0;
 				player.seekTo(start,true);
-				player.setVolume(100);
+				player.setVolume(100*vMusic);
 				player.playVideo();
 			});
 		}
@@ -2450,13 +2476,15 @@ function playDistSound(obj, src, maxDist) {
 		var pow0 = maxDist/distKart(obj);
 		if (pow0 >= 1) {
 			var res = playSoundEffect(src);
-			res.volume = Math.min(0.05*pow0*pow0, 1);
+			res.volume = Math.min(0.05*pow0*pow0, 1)*vSfx;
 			return res;
 		}
 	}
 }
 function startMusic(src, autoplay, delay, opts) {
 	var res = loadMusic(src, autoplay, opts);
+	if (res.volume != null)
+		res.volume = vMusic;
 	document.body.appendChild(res);
 	if (delay) {
 		pauseMusic(res);
@@ -2477,14 +2505,14 @@ function startMusic(src, autoplay, delay, opts) {
 }
 function postStartMusic(src) {
 	if (oMusicEmbed)
-		fadeOutMusic(oMusicEmbed,1,0.6,false);
+		fadeOutMusic(oMusicEmbed,1,0.6,false,vMusic);
 	return startMusic(src,true,200);
 }
 function postResumeMusic(elt, ratio) {
 	if (oMusicEmbed == elt)
 		return;
 	var cMusicEmbed = oMusicEmbed;
-	fadeOutMusic(cMusicEmbed,1,ratio,true);
+	fadeOutMusic(cMusicEmbed,1,ratio,true,vMusic);
 	if (elt) {
 		setTimeout(function() {
 			if ((oMusicEmbed == cMusicEmbed) || !oMusicEmbed) {
@@ -2522,6 +2550,27 @@ var mapMusic, lastMapMusic, endingMusic, endGPMusic, challengeMusic, carEngine, 
 var willPlayEndMusic = false, isEndMusicPlayed = false;
 var forceStartMusic = false;
 var forcePrepareEnding = false;
+updateVolumeSettings = function(volumeSettings) {
+	var avSfx = vSfx, avMusic = vMusic;
+	if (volumeSettings.sfx != null)
+		vSfx = volumeSettings.sfx;
+	if (volumeSettings.music != null)
+		vMusic = volumeSettings.music;
+	var gameMusics = document.getElementsByClassName("gamemusic");
+	var oMusics = [];
+	for (var i=0;i<gameMusics.length;i++)
+		oMusics.push(gameMusics[i]);
+	if (oMusicEmbed && !oMusics.includes(oMusicEmbed))
+		oMusics.push(oMusicEmbed);
+	var oMusicEmbeds = [oMusicEmbed, mapMusic, lastMapMusic, endingMusic];
+	for (var i=0;i<oMusics.length;i++) {
+		var oMusic = oMusics[i];
+		if (oMusicEmbeds.includes(oMusic))
+			updateMusicVolume(oMusic, vMusic,avMusic);
+		else
+			updateMusicVolume(oMusic, vSfx,avSfx);
+	}
+}
 function loadMapMusic() {
 	startMapMusic(false);
 	loadEndingMusic();
@@ -3723,6 +3772,7 @@ function startGame() {
 
 	if (bMusic && !onlineSpectatorState) {
 		var startingMusic = playSoundEffect("musics/events/"+ (course!="BB"?"start":"startbb") +".mp3");
+		startingMusic.volume = vMusic;
 		startingMusic.pause();
 		setTimeout(function() {
 			startingMusic.play();
@@ -4279,7 +4329,7 @@ function startGame() {
 									endingMusic.yt.playVideo();
 									setTimeout(function() {
 										endingMusic.yt.seekTo(0,true);
-										endingMusic.yt.setVolume(100);
+										endingMusic.yt.setVolume(100*vMusic);
 										endingMusic.yt.pauseVideo();
 									}, 1000);
 								}
@@ -7123,7 +7173,7 @@ var itemBehaviors = {
 				collisionFloor = null;
 				collisionDecorHit = null;
 				collisionItem = fSprite;
-				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept)) {
+				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept) || touche_bobomb(roundX2, roundY2, oSpriteExcept)) {
 					detruit(fSprite,true);
 					break;
 				}
@@ -7283,6 +7333,8 @@ var itemBehaviors = {
 									fNewPosY = tCible.using[0].y;
 									fSprite.x = fNewPosX;
 									fSprite.y = fNewPosY;
+									if (tCible.using[0].type === "bobomb" && touche_bobomb(fNewPosX, fNewPosY, onlyThisItems([tCible.using[0]])))
+										return;
 									detruit(fSprite);
 									detruit(tCible.using[0],true);
 									return;
@@ -7448,7 +7500,7 @@ var itemBehaviors = {
 					}
 				}
 				collisionItem = fSprite;
-				if (((fSprite.owner == -1) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept)) {
+				if (((fSprite.owner == -1) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept)) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
 				}
@@ -10840,7 +10892,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					if (!iP || decorBehavior.unbreaking) {
 						collisionDecor = type;
 						if (collisionTest == COL_KART) {
-							if (decorBehavior.breaking || (decorBehavior.damagingItems && decorBehavior.damagingItems.champi && collisionPlayer.champi && collisionPlayer.champiType === CHAMPI_TYPE_ITEM)) {
+							if (decorBehavior.breaking || isBreakingItem(decorBehavior)) {
 								if (collisionPlayer.speed > 4) {
 									handleDecorHit(i,type);
 									if (collisionPlayer.turbodrift)
@@ -10855,13 +10907,15 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 									}
 								}
 							}
+							else if (decorBehavior.movable && collisionPlayer.billball)
+								continue;
 						}
 						else if (collisionTest == COL_OBJ && collisionItem && decorBehavior.damagingItems) {
 							if (decorBehavior.damagingItems[collisionItem.type])
 								handleDecorHit(i,type);
 						}
 						if (decorBehavior.transparent)
-							break;
+							continue;
 						return false;
 					}
 					else {
@@ -10954,6 +11008,13 @@ function getLineHorizontality(iX,iY, nX,nY, lines) {
 		}
 	}
 	return res;
+}
+function isBreakingItem(decorBehavior) {
+	if (!decorBehavior.damagingItems) return false;
+	if (decorBehavior.damagingItems.megachampi && collisionPlayer.megachampi) return true;
+	if (decorBehavior.damagingItems.billball && collisionPlayer.billball) return true;
+	if (decorBehavior.damagingItems.etoile && collisionPlayer.etoile) return true;
+	if (decorBehavior.damagingItems.champi && collisionPlayer.champi && collisionPlayer.champiType === CHAMPI_TYPE_ITEM) return true;
 }
 
 function secants(x11,y11,x21,y21, x12,y12,x22,y22) {
@@ -14110,6 +14171,15 @@ function otherPlayerItems(includingItems) {
 		}
 	}
 }
+function onlyThisItems(includingItems) {
+	return {
+		indexOf: function(iObj) {
+			var res = includingItems.indexOf(iObj);
+			if (res !== -1) return -1;
+			return 0;
+		}
+	}
+}
 
 if(!Math.hypot)Math.hypot=function(x,y){return Math.sqrt(x*x+y*y)};
 function distKart(obj) {
@@ -16168,8 +16238,8 @@ function move(getId, triggered) {
 							if (firstOne) {
 								var cMusicEmbed = postStartMusic("musics/events/lastlap.mp3");
 								if (iSfx) {
-									fadeOutMusic(carEngine,1,0.6,-1);
-									fadeOutMusic(carEngine2,1,0.6,-1);
+									fadeOutMusic(carEngine,1,0.6,-1,vSfx);
+									fadeOutMusic(carEngine2,1,0.6,-1,vSfx);
 								}
 								cMusicEmbed.removeAttribute("loop");
 								setTimeout(function() {
@@ -16188,8 +16258,8 @@ function move(getId, triggered) {
 											fastenMusic(mapMusic);
 									}
 									if (iSfx) {
-										carEngine.volume = 1;
-										carEngine2.volume = 1;
+										carEngine.volume = vSfx;
+										carEngine2.volume = vSfx;
 									}
 								}, 2700);
 								if (lastMapMusic)
@@ -16522,19 +16592,19 @@ function move(getId, triggered) {
 		oKart.rotation += fAngle;
 		oKart.rotation = oKart.rotation % 360;
 		oKart.billball--;
-		var cptJumpCheck = 12;
-		if (oKart.billball) {
-			if (!oKart.billjump && (oKart.billball < cptJumpCheck)) {
-				var fMoveX = oKart.speed*direction(0, oKart.rotation);
-				var fMoveY = oKart.speed*direction(1, oKart.rotation);
-				if (sauts(oKart.x,oKart.y, fMoveX,fMoveY)) {
-					oKart.billball0 = Math.floor(oKart.billball0*cptJumpCheck/oKart.billball);
-					oKart.billball = cptJumpCheck;
-					oKart.billjump = true;
+		var cptJumpCheck = 6, cptJumpRevert = 12;
+		if (oKart.billjump ? ((oKart.billjump < 4) && (oKart.billball < cptJumpCheck)) : (oKart.billball < cptJumpRevert)) {
+			var fMoveX = oKart.speed*direction(0, oKart.rotation);
+			var fMoveY = oKart.speed*direction(1, oKart.rotation);
+			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY)))) {
+				if (!oKart.cannon) {
+					oKart.billball0 = Math.floor(oKart.billball0*cptJumpRevert/oKart.billball);
+					oKart.billball = cptJumpRevert;
+					oKart.billjump = (oKart.billjump || 0) + 1;
 				}
 			}
 		}
-		else {
+		if (!oKart.billball) {
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
 				resumeSpriteSize(oKart.sprite[i]);
@@ -16645,7 +16715,7 @@ function move(getId, triggered) {
 			updateEngineSound();
 			if (oKart.turbodrift == (oKart.turbodrift0-1)) {
 				carEngine3.currentTime = 0;
-				carEngine3.volume = 1;
+				carEngine3.volume = vSfx;
 				carEngine3.play();
 				oKart.turboSound = carEngine3;
 				clearTimeout(oKart.turboHandler);
@@ -16656,7 +16726,7 @@ function move(getId, triggered) {
 					}
 				}, 2000);
 				if (oKart.sparkSound) {
-					fadeOutMusic(oKart.sparkSound, 1,0.8, false);
+					fadeOutMusic(oKart.sparkSound, 1,0.8, false, vSfx);
 					oKart.sparkSound = undefined;
 				}
 			}
@@ -16771,7 +16841,7 @@ function handleDriftCpt(getId) {
 					oKart.driftSprite[i].setState(2);
 				if (carSpark && (oKart === oPlayers[0])) {
 					carSpark.currentTime = 0;
-					carSpark.volume = 1;
+					carSpark.volume = vSfx;
 					carSpark.play();
 					oKart.sparkSound = carSpark;
 				}
@@ -16781,7 +16851,7 @@ function handleDriftCpt(getId) {
 					oKart.driftSprite[i].setState(1);
 				if (carSpark && (oKart === oPlayers[0])) {
 					carSpark.currentTime = 0;
-					carSpark.volume = 0.7;
+					carSpark.volume = 0.7*vSfx;
 					carSpark.play();
 					oKart.sparkSound = carSpark;
 				}
@@ -17422,14 +17492,14 @@ function ai(oKart) {
 						oKart.lastAIpt = [oKart.x,oKart.y];
 					lastAi = oKart.lastAIpt;
 				}
-				if (!oKart.nextAI) {
+				if (oKart.nextAI === undefined) {
 					var chemins = new Array();
 					for (var i=0;i<oKart.aipoints.length;i++) {
 						var iPt = oKart.aipoints[i];
 						if (iPt[0] == 1) {
 							if (iPt[1] == oKart.aipoint)
 								chemins.push(iPt[2]);
-							else if (iPt[2] == oKart.aipoint)
+							else if (!iPt[3] && iPt[2] == oKart.aipoint)
 								chemins.push(iPt[1]);
 						}
 					}
@@ -24078,242 +24148,268 @@ function selectChallengesScreen() {
 		oTable.style.marginRight = "auto";
 		oTable.style.borderCollapse = "collapse";
 
+		var challengesOrdered = [];
+		var challengesUnordered = [];
 		for (var type in challenges) {
 			for (var cid in challenges[type]) {
 				var creationChallenges = challenges[type][cid];
-				if (creationChallenges.main)
-					mainClId = creationChallenges.id;
-				else {
-					var oTr = document.createElement("tr");
-					oTr.style.border = "solid 1px white";
-					var oTd = document.createElement("td");
-					oTd.setAttribute("colspan", 2);
-					var oH1 = document.createElement("h1");
-					var trackType = "";
-					switch (type) {
-						case "mcup":
-							trackType = toLanguage("Multicup", "Multicoupe");
-							break;
-						case "cup":
-							trackType = toLanguage("Cup", "Coupe");
-							break;
-						case "track":
-							trackType = isBattle ? toLanguage("Arena", "Arène") : toLanguage("Track", "Circuit");
-							break;
-					}
-					oH1.innerHTML = trackType + ' <span style="color:#FDB">'+ escapeSpecialChars(creationChallenges.name) +'</span>';
-					oH1.style.textAlign = "center";
-					oH1.style.margin = "0px";
-					oH1.style.fontSize = Math.round(iScreenScale*4)+"px";
-					oH1.style.paddingTop = Math.round(iScreenScale*0.5)+"px";
-					oH1.style.paddingBottom = Math.round(iScreenScale*0.5)+"px";
-					oH1.style.backgroundColor = "#fa7c1b";
-					oH1.style.color = "white";
-					oTd.appendChild(oH1);
-					oTr.appendChild(oTd);
-					oTable.appendChild(oTr);
-				}
 				var challengesList = creationChallenges.list;
 				for (var i=0;i<challengesList.length;i++) {
 					var challenge = challengesList[i];
-					var challengeComplete = (challenge.status == "active" && challenge.succeeded);
-					var challengeColor = challengeComplete ? "#9E9":"white";
-					var oTr = document.createElement("tr");
-					oTr.style.border = "solid 1px "+challengeColor;
-					if (challengeComplete)
-						oTr.style.backgroundColor = "#031";
-					var oTd = document.createElement("td");
-					oTd.style.padding = (iScreenScale)+" "+(iScreenScale) +"px";
-					if (challenge.name) {
-						var oH1 = document.createElement("h1");
-						oH1.style.fontSize = (3*iScreenScale) +"px";
-						oH1.style.marginTop = "0px";
-						oH1.style.marginBottom = "0px";
-						oH1.innerText = challenge.name;
-						oTd.appendChild(oH1);
+					var challengePayload = {
+						creation: creationChallenges,
+						challenge: challenge,
+						type: type,
+						cid: cid
 					}
-					var oDiv = document.createElement("div");
-					if (challenge.name || challenge.description.extra)
-						oDiv.style.fontSize = (2*iScreenScale) +"px";
+					if (challenge.order != null)
+						challengesOrdered.push(challengePayload);
 					else
-						oDiv.style.fontSize = Math.round(2.5*iScreenScale) +"px";
-					oDiv.style.color = challengeColor;
-					oDiv.style.fontWeight = "bold";
-					oDiv.innerHTML = challenge.description.main;
-					oTd.appendChild(oDiv);
-					if (challenge.description.extra) {
-						var oDiv = document.createElement("div");
-						oDiv.style.fontSize = Math.round(1.6*iScreenScale) +"px";
-						oDiv.style.color = challengeColor;
-						oDiv.innerHTML = challenge.description.extra;
-						oTd.appendChild(oDiv);
-					}
-					if (challenge.status != "active") {
-						var oDiv = document.createElement("div");
-						oDiv.style.fontSize = Math.round(1.6*iScreenScale) +"px";
-						oDiv.style.color = "#FC0";
-						switch (challenge.status) {
-						case 'pending_completion':
-							oDiv.innerHTML = toLanguage('This challenge is pending completion. Succeed it to publish it.', 'Ce défi est en attente de réussite. Réussissez-le pour le publier.');
-							break;
-						case 'pending_publication':
-							oDiv.innerHTML = toLanguage('This challenge is pending publication. Click on &quot;Manage challenges&quot; to publish it.', 'Ce défi est en attente de publication. Cliquez sur &quot;Gérer les défis&quot; pour le publier.');
-							break;
-						case 'pending_moderation':
-							oDiv.innerHTML = toLanguage('This challenge is pending moderation. It will be published once a validator validates it.', 'Ce défi est en attente de modération. Il sera publié dès qu\'un modérateur l\'aura validé.');
-							break;
-						}
-						oDiv.style.fontWeight = "bold";
-						oTd.appendChild(oDiv);
-					}
-					oTr.appendChild(oTd);
-					var oTd = document.createElement("td");
-					oTd.style.padding = (iScreenScale)+" "+(iScreenScale) +"px";
-					oTd.style.width = (iScreenScale*12) +"px";
-					oTd.style.textAlign = "center";
-
-					if (challenge.succeeded) {
-						var oSuccess = document.createElement("div");
-						oSuccess.innerHTML = '<span style="color:#CFC;display:inline-block;margin-right:2px">\u2714</span>'+ toLanguage("Completed","Réussi");
-						oSuccess.style.whiteSpace = "nowrap";
-						oSuccess.style.fontSize = Math.round(iScreenScale*(language ? 2:2.2)) +"px";
-						oSuccess.style.backgroundColor = "#33A033";
-						oSuccess.style.display = "inline-block";
-						oSuccess.style.padding = "0px "+Math.round(iScreenScale*0.8)+"px";
-						oSuccess.style.borderRadius = Math.round(iScreenScale*0.6)+"px";
-						oSuccess.style.color = "white";
-						oSuccess.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
-						oSuccess.style.marginTop = Math.round(iScreenScale*0.5) +"px";
-						oTd.appendChild(oSuccess);
-					}
-
-					var oIcons = document.createElement("div");
-					var oIconDifficulty = document.createElement("img");
-					oIconDifficulty.src = "images/challenges/difficulty"+ challenge.difficulty.level +".png";
-					oIconDifficulty.alt = "D";
-					oIconDifficulty.style.width = (iScreenScale*2) +"px";
-					oIcons.appendChild(oIconDifficulty);
-					var oSpan = document.createElement("span");
-					oSpan.style.color = challenge.difficulty.color;
-					oSpan.style.fontSize = Math.round(iScreenScale*1.7) +"px";
-					oSpan.style.position = "relative";
-					oSpan.style.top = "-1px";
-					oSpan.innerHTML = " "+ challenge.difficulty.name;
-					oIcons.appendChild(oSpan);
-					oTd.appendChild(oIcons);
-
-					if (challenge.winners.length) {
-						var oIcons = document.createElement("div");
-						oIcons.style.cursor = "help";
-						var oIconWinners = document.createElement("img");
-						if (!challenge.succeeded)
-							oIcons.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
-						oIconWinners.src = "images/cups/cup1.png";
-						oIconWinners.alt = "W";
-						oIconWinners.style.width = (iScreenScale*2) +"px";
-						oIcons.appendChild(oIconWinners);
-						var oSpan = document.createElement("span");
-						oSpan.style.color = "white";
-						oSpan.style.fontSize = Math.round(iScreenScale*1.7) +"px";
-						oSpan.style.position = "relative";
-						oSpan.style.top = "-2px";
-						oSpan.innerHTML = " "+ challenge.winners.length;
-						var iconTitle = '<small style="color:#CFC">'+toLanguage("Succeeded by:", "Réussi par :")+'</small>';
-						for (var j=0;j<challenge.winners.length;j++)
-							iconTitle += '<br /><span style="color:#CFC;display:inline-block;margin-right:2px">\u2714</span>'+challenge.winners[j].nick;
-						if (!oIcons.dataset) oIcons.dataset = {};
-						oIcons.dataset.title = iconTitle;
-						oIcons.appendChild(oSpan);
-						var $fancyTitle;
-						oIcons.onmouseover = function(e) {
-							if ($fancyTitle) return;
-							$fancyTitle = document.createElement("div");
-							$fancyTitle.className = "ranking_activeplayertitle";
-							$fancyTitle.innerHTML = this.dataset.title;
-							$fancyTitle.style.position = "fixed";
-							$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
-							$fancyTitle.style.borderRadius = iScreenScale+"px";
-							$fancyTitle.style.zIndex = 10;
-							$fancyTitle.style.backgroundColor = "rgba(51,160,51, 0.95)";
-							$fancyTitle.style.color = "white";
-							$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
-							$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
-							$fancyTitle.style.visibility = "hidden";
-							$mkScreen.appendChild($fancyTitle);
-							var rect = this.getBoundingClientRect();
-							$fancyTitle.style.left = Math.round(rect.left + (this.scrollWidth-$fancyTitle.scrollWidth)/2)+"px";
-							$fancyTitle.style.top = (rect.top + this.scrollHeight + 5)+"px";
-							$fancyTitle.style.visibility = "visible";
-						};
-						oIcons.onmouseout = function() {
-							if (!$fancyTitle) return;
-							$mkScreen.removeChild($fancyTitle);
-							$fancyTitle = undefined;
-						};
-						oTd.appendChild(oIcons);
-					}
-
-					function selectChallenge(challenge,trackId,trackType) {
-						oScr.innerHTML = "";
-						oContainers[0].removeChild(oScr);
-						clSelected = challenge;
-						clSelected.trackId = trackId;
-						clSelected.trackType = trackType;
-						localStorage.removeItem("itemset."+getItemMode());
-						xhr("challengeTry.php", "challenge="+challenge.id, function(res) {
-							if (!res)
-								return false;
-							try {
-								res = JSON.parse(res);
-							}
-							catch (e) {
-								return false;
-							}
-							clSelected.autoset = res;
-							course = "";
-							for (var k in res)
-								window[k] = res[k];
-							if (course)
-								selectPlayerScreen(0);
-							else
-								selectMainPage();
-							delete window.selectedPerso;
-							showClSelectedPopup();
-							return true;
-						});
-					}
-
-					if (challenge.succeeded) {
-						var oLink = document.createElement("a");
-						oLink.href = "#null";
-						oLink.innerHTML = toLanguage("Replay","Rejouer");
-						oLink.style.color = "white";
-						oLink.style.fontSize = Math.round(iScreenScale*1.7) +"px";
-						(function(challenge,trackId,trackType) {
-							oLink.onclick = function() {
-								selectChallenge(challenge,trackId,trackType);
-								return false;
-							};
-						})(challenge,cid,type);
-						oTd.appendChild(oLink);
-					}
-					else {
-						var oInput = document.createElement("input");
-						oInput.type = "button";
-						oInput.value = toLanguage("Take up", "Relever");
-						oInput.style.width = (iScreenScale*11) +"px";
-						oInput.style.fontSize = Math.round(iScreenScale*2.4) +"px";
-						(function(challenge,trackId,trackType) {
-							oInput.onclick = function() {
-								selectChallenge(challenge,trackId,trackType);
-							};
-						})(challenge,cid,type);
-						oTd.appendChild(oInput);
-					}
-					oTr.appendChild(oTd);
-					oTable.appendChild(oTr);
+						challengesUnordered.push(challengePayload);
 				}
 			}
+		}
+		challengesOrdered.sort(function(a,b) {
+			return a.challenge.order - b.challenge.order;
+		});
+		challengesOrdered = challengesOrdered.concat(challengesUnordered);
+
+		var prevCreationChallenges;
+		for (var i=0;i<challengesOrdered.length;i++) {
+			var challengePayload = challengesOrdered[i];
+			var creationChallenges = challengePayload.creation;
+			var type = challengePayload.type, cid = challengePayload.cid;
+			var challenge = challengePayload.challenge;
+			if (creationChallenges.main && !prevCreationChallenges) {
+				mainClId = creationChallenges.id;
+			}
+			else if (creationChallenges !== prevCreationChallenges) {
+				prevCreationChallenges = creationChallenges;
+				var oTr = document.createElement("tr");
+				oTr.style.border = "solid 1px white";
+				var oTd = document.createElement("td");
+				oTd.setAttribute("colspan", 2);
+				var oH1 = document.createElement("h1");
+				var trackType = "";
+				switch (type) {
+					case "mcup":
+						trackType = toLanguage("Multicup", "Multicoupe");
+						break;
+					case "cup":
+						trackType = toLanguage("Cup", "Coupe");
+						break;
+					case "track":
+						trackType = isBattle ? toLanguage("Arena", "Arène") : toLanguage("Track", "Circuit");
+						break;
+				}
+				oH1.innerHTML = trackType + ' <span style="color:#FDB">'+ escapeSpecialChars(creationChallenges.name) +'</span>';
+				oH1.style.textAlign = "center";
+				oH1.style.margin = "0px";
+				oH1.style.fontSize = Math.round(iScreenScale*4)+"px";
+				oH1.style.paddingTop = Math.round(iScreenScale*0.5)+"px";
+				oH1.style.paddingBottom = Math.round(iScreenScale*0.5)+"px";
+				oH1.style.backgroundColor = "#fa7c1b";
+				oH1.style.color = "white";
+				oTd.appendChild(oH1);
+				oTr.appendChild(oTd);
+				oTable.appendChild(oTr);
+			}
+			var challengeComplete = (challenge.status == "active" && challenge.succeeded);
+			var challengeColor = challengeComplete ? "#9E9":"white";
+			var oTr = document.createElement("tr");
+			oTr.style.border = "solid 1px "+challengeColor;
+			if (challengeComplete)
+				oTr.style.backgroundColor = "#031";
+			var oTd = document.createElement("td");
+			oTd.style.padding = (iScreenScale)+" "+(iScreenScale) +"px";
+			if (challenge.name) {
+				var oH1 = document.createElement("h1");
+				oH1.style.fontSize = (3*iScreenScale) +"px";
+				oH1.style.marginTop = "0px";
+				oH1.style.marginBottom = "0px";
+				oH1.innerText = challenge.name;
+				oTd.appendChild(oH1);
+			}
+			var oDiv = document.createElement("div");
+			if (challenge.name || challenge.description.extra)
+				oDiv.style.fontSize = (2*iScreenScale) +"px";
+			else
+				oDiv.style.fontSize = Math.round(2.5*iScreenScale) +"px";
+			oDiv.style.color = challengeColor;
+			oDiv.style.fontWeight = "bold";
+			oDiv.innerHTML = challenge.description.main;
+			oTd.appendChild(oDiv);
+			if (challenge.description.extra) {
+				var oDiv = document.createElement("div");
+				oDiv.style.fontSize = Math.round(1.6*iScreenScale) +"px";
+				oDiv.style.color = challengeColor;
+				oDiv.innerHTML = challenge.description.extra;
+				oTd.appendChild(oDiv);
+			}
+			if (challenge.status != "active") {
+				var oDiv = document.createElement("div");
+				oDiv.style.fontSize = Math.round(1.6*iScreenScale) +"px";
+				oDiv.style.color = "#FC0";
+				switch (challenge.status) {
+				case 'pending_completion':
+					oDiv.innerHTML = toLanguage('This challenge is pending completion. Succeed it to publish it.', 'Ce défi est en attente de réussite. Réussissez-le pour le publier.');
+					break;
+				case 'pending_publication':
+					oDiv.innerHTML = toLanguage('This challenge is pending publication. Click on &quot;Manage challenges&quot; to publish it.', 'Ce défi est en attente de publication. Cliquez sur &quot;Gérer les défis&quot; pour le publier.');
+					break;
+				case 'pending_moderation':
+					oDiv.innerHTML = toLanguage('This challenge is pending moderation. It will be published once a validator validates it.', 'Ce défi est en attente de modération. Il sera publié dès qu\'un modérateur l\'aura validé.');
+					break;
+				}
+				oDiv.style.fontWeight = "bold";
+				oTd.appendChild(oDiv);
+			}
+			oTr.appendChild(oTd);
+			var oTd = document.createElement("td");
+			oTd.style.padding = (iScreenScale)+" "+(iScreenScale) +"px";
+			oTd.style.width = (iScreenScale*12) +"px";
+			oTd.style.textAlign = "center";
+
+			if (challenge.succeeded) {
+				var oSuccess = document.createElement("div");
+				oSuccess.innerHTML = '<span style="color:#CFC;display:inline-block;margin-right:2px">\u2714</span>'+ toLanguage("Completed","Réussi");
+				oSuccess.style.whiteSpace = "nowrap";
+				oSuccess.style.fontSize = Math.round(iScreenScale*(language ? 2:2.2)) +"px";
+				oSuccess.style.backgroundColor = "#33A033";
+				oSuccess.style.display = "inline-block";
+				oSuccess.style.padding = "0px "+Math.round(iScreenScale*0.8)+"px";
+				oSuccess.style.borderRadius = Math.round(iScreenScale*0.6)+"px";
+				oSuccess.style.color = "white";
+				oSuccess.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
+				oSuccess.style.marginTop = Math.round(iScreenScale*0.5) +"px";
+				oTd.appendChild(oSuccess);
+			}
+
+			var oIcons = document.createElement("div");
+			var oIconDifficulty = document.createElement("img");
+			oIconDifficulty.src = "images/challenges/difficulty"+ challenge.difficulty.level +".png";
+			oIconDifficulty.alt = "D";
+			oIconDifficulty.style.width = (iScreenScale*2) +"px";
+			oIcons.appendChild(oIconDifficulty);
+			var oSpan = document.createElement("span");
+			oSpan.style.color = challenge.difficulty.color;
+			oSpan.style.fontSize = Math.round(iScreenScale*1.7) +"px";
+			oSpan.style.position = "relative";
+			oSpan.style.top = "-1px";
+			oSpan.innerHTML = " "+ challenge.difficulty.name;
+			oIcons.appendChild(oSpan);
+			oTd.appendChild(oIcons);
+
+			if (challenge.winners.length) {
+				var oIcons = document.createElement("div");
+				oIcons.style.cursor = "help";
+				var oIconWinners = document.createElement("img");
+				if (!challenge.succeeded)
+					oIcons.style.marginBottom = Math.round(iScreenScale*0.5) +"px";
+				oIconWinners.src = "images/cups/cup1.png";
+				oIconWinners.alt = "W";
+				oIconWinners.style.width = (iScreenScale*2) +"px";
+				oIcons.appendChild(oIconWinners);
+				var oSpan = document.createElement("span");
+				oSpan.style.color = "white";
+				oSpan.style.fontSize = Math.round(iScreenScale*1.7) +"px";
+				oSpan.style.position = "relative";
+				oSpan.style.top = "-2px";
+				oSpan.innerHTML = " "+ challenge.winners.length;
+				var iconTitle = '<small style="color:#CFC">'+toLanguage("Succeeded by:", "Réussi par :")+'</small>';
+				for (var j=0;j<challenge.winners.length;j++)
+					iconTitle += '<br /><span style="color:#CFC;display:inline-block;margin-right:2px">\u2714</span>'+challenge.winners[j].nick;
+				if (!oIcons.dataset) oIcons.dataset = {};
+				oIcons.dataset.title = iconTitle;
+				oIcons.appendChild(oSpan);
+				var $fancyTitle;
+				oIcons.onmouseover = function(e) {
+					if ($fancyTitle) return;
+					$fancyTitle = document.createElement("div");
+					$fancyTitle.className = "ranking_activeplayertitle";
+					$fancyTitle.innerHTML = this.dataset.title;
+					$fancyTitle.style.position = "fixed";
+					$fancyTitle.style.padding = Math.round(iScreenScale/2)+"px "+iScreenScale+"px";
+					$fancyTitle.style.borderRadius = iScreenScale+"px";
+					$fancyTitle.style.zIndex = 10;
+					$fancyTitle.style.backgroundColor = "rgba(51,160,51, 0.95)";
+					$fancyTitle.style.color = "white";
+					$fancyTitle.style.fontSize = Math.round(iScreenScale*1.8) +"px";
+					$fancyTitle.style.lineHeight = Math.round(iScreenScale*2) +"px";
+					$fancyTitle.style.visibility = "hidden";
+					$mkScreen.appendChild($fancyTitle);
+					var rect = this.getBoundingClientRect();
+					$fancyTitle.style.left = Math.round(rect.left + (this.scrollWidth-$fancyTitle.scrollWidth)/2)+"px";
+					$fancyTitle.style.top = (rect.top + this.scrollHeight + 5)+"px";
+					$fancyTitle.style.visibility = "visible";
+				};
+				oIcons.onmouseout = function() {
+					if (!$fancyTitle) return;
+					$mkScreen.removeChild($fancyTitle);
+					$fancyTitle = undefined;
+				};
+				oTd.appendChild(oIcons);
+			}
+
+			function selectChallenge(challenge,trackId,trackType) {
+				oScr.innerHTML = "";
+				oContainers[0].removeChild(oScr);
+				clSelected = challenge;
+				clSelected.trackId = trackId;
+				clSelected.trackType = trackType;
+				localStorage.removeItem("itemset."+getItemMode());
+				xhr("challengeTry.php", "challenge="+challenge.id, function(res) {
+					if (!res)
+						return false;
+					try {
+						res = JSON.parse(res);
+					}
+					catch (e) {
+						return false;
+					}
+					clSelected.autoset = res;
+					course = "";
+					for (var k in res)
+						window[k] = res[k];
+					if (course)
+						selectPlayerScreen(0);
+					else
+						selectMainPage();
+					delete window.selectedPerso;
+					showClSelectedPopup();
+					return true;
+				});
+			}
+
+			if (challenge.succeeded) {
+				var oLink = document.createElement("a");
+				oLink.href = "#null";
+				oLink.innerHTML = toLanguage("Replay","Rejouer");
+				oLink.style.color = "white";
+				oLink.style.fontSize = Math.round(iScreenScale*1.7) +"px";
+				(function(challenge,trackId,trackType) {
+					oLink.onclick = function() {
+						selectChallenge(challenge,trackId,trackType);
+						return false;
+					};
+				})(challenge,cid,type);
+				oTd.appendChild(oLink);
+			}
+			else {
+				var oInput = document.createElement("input");
+				oInput.type = "button";
+				oInput.value = toLanguage("Take up", "Relever");
+				oInput.style.width = (iScreenScale*11) +"px";
+				oInput.style.fontSize = Math.round(iScreenScale*2.4) +"px";
+				(function(challenge,trackId,trackType) {
+					oInput.onclick = function() {
+						selectChallenge(challenge,trackId,trackType);
+					};
+				})(challenge,cid,type);
+				oTd.appendChild(oInput);
+			}
+			oTr.appendChild(oTd);
+			oTable.appendChild(oTr);
 		}
 
 		oScroll.appendChild(oTable);
@@ -27833,6 +27929,7 @@ function editCommands(options) {
 				document.querySelector(".control-window .control-window-active").classList.remove("control-window-active");
 				document.querySelectorAll(".control-window > div")[i].classList.add("control-window-active");
 				currentTab = i;
+				options.currentTab = currentTab;
 			}
 			$controlTabs.appendChild($controlTab);
 		})(i);
@@ -28369,6 +28466,54 @@ function editCommands(options) {
 		$controlSetting.appendChild($controlSelect);
 		$controlSettings.appendChild($controlSetting);
 	}
+	if (bMusic || iSfx) {
+		var $controlSettingsH2 = document.createElement("div");
+		$controlSettingsH2.className = "control-settings-info";
+		$controlSettingsH2.innerHTML = toLanguage("Sound settings", "Paramètres sonores");
+		$controlSettings.appendChild($controlSettingsH2);
+		var allSoundSettings = {
+			'music' : toLanguage('Music volume', 'Volume musique'),
+			'sfx' : toLanguage('SFX volume', 'Volume bruitages')
+		};
+		if (!bMusic)
+			delete allSoundSettings.music;
+		if (!iSfx)
+			delete allSoundSettings.sfx;
+		var volumeSettings = localStorage.getItem("settings.vol");
+		if (volumeSettings)
+			volumeSettings = JSON.parse(volumeSettings);
+		else
+			volumeSettings = {};
+		for (var key in allSoundSettings) {
+			(function(key) {
+				var $controlSetting = document.createElement("label");
+				$controlSetting.className = "control-setting-range";
+				var $controlText = document.createElement("span");
+				$controlText.innerHTML = allSoundSettings[key];
+				$controlSetting.appendChild($controlText);
+				var $controlRange = document.createElement("input");
+				$controlRange.type = "range";
+				$controlRange.min = 0;
+				$controlRange.max = 1;
+				$controlRange.step = 0.05;
+				var currentValue = volumeSettings[key];
+				if (currentValue == null) currentValue = 1;
+				$controlRange.value = currentValue;
+				$controlSetting.appendChild($controlRange);
+				var $controlValue = document.createElement("span");
+				$controlValue.innerHTML = Math.round(currentValue*100)+"%";
+				$controlValue.style.width = "2em";
+				$controlSetting.appendChild($controlValue);
+				$controlRange.onchange = function() {
+					volumeSettings[key] = +this.value;
+					localStorage.setItem("settings.vol", JSON.stringify(volumeSettings));
+					$controlValue.innerHTML = Math.round(volumeSettings[key]*100)+"%";
+					updateVolumeSettings(volumeSettings);
+				}
+				$controlSettings.appendChild($controlSetting);
+			})(key);
+		}
+	}
 	if (iFps > 1) {
 		var frameSettings = getFrameSettings(currentSettings);
 
@@ -28517,6 +28662,7 @@ function editCommands(options) {
 	$controlResetBtn.onclick = function() {
 		if (confirm(toLanguage("Reset settings to default?", "Réinitiliser les paramètres à ceux par défaut ?"))) {
 			localStorage.removeItem("settings");
+			localStorage.removeItem("settings.vol");
 			localStorage.removeItem("iQuality");
 			editCommands(options);
 		}
@@ -29448,6 +29594,7 @@ function setChat() {
 					oP.className = "chatlog";
 					oP.innerHTML = "<em>" + toLanguage("Message not sent (reason: "+ failureMsg +")", "Message non envoyé (raison : "+ failureMsg +")") +"</em>";
 					oMessages.appendChild(oP);
+					oMessages.scrollTop = oMessages.scrollHeight - oMessages.clientHeight;
 				}
 				return true;
 			});
@@ -29631,7 +29778,7 @@ function setChat() {
 							for (var i=0;i<=lastMsgId;i++)
 								addMsgToChat(messages[i][0],messages[i][1]);
 							var pMessages = oMessages.getElementsByTagName("p");
-							while (pMessages.length > 10)
+							while (pMessages.length > 40)
 								oMessages.removeChild(pMessages[0]);
 						}
 						setTimeout(refreshChat, 1000);
@@ -29658,7 +29805,10 @@ function setChat() {
 		sMessage.style.fontWeight = "normal";
 		sMessage.innerHTML = message;
 		oP.appendChild(sMessage);
+		var isScrolledToBottom = oMessages.scrollHeight - oMessages.clientHeight <= oMessages.scrollTop + 1;
 		oMessages.appendChild(oP);
+		if (isScrolledToBottom)
+			oMessages.scrollTop = oMessages.scrollHeight - oMessages.clientHeight;
 	}
 	refreshChat();
 

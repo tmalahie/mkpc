@@ -1321,9 +1321,12 @@ function moveArc(arc,data) {
 		arc.style.transform = "rotate("+Math.round(data.theta0*180/Math.PI)+"deg)";
 	}
 }
-function createArrowNode(point, orientation, append) {
-	var l = 18;
-	var d = 6;
+function createArrowNode(point, orientation, opts) {
+	opts = opts||{};
+	var l = opts.l;
+	if (l == null) l = 18;
+	var d = opts.d;
+	if (d == null) d = 6;
 	function getArrowLines(orientation) {
 		var arrowPoints = [
 			{x:0,y:0},
@@ -1344,7 +1347,7 @@ function createArrowNode(point, orientation, append) {
 		var stroke = 5-i*2;
 		for (var j=0;j<arrowLines.length;j++) {
 			(function(arrowLine,dark,stroke) {
-				var line = createLine(point,point,append);
+				var line = createLine(point,point,opts.append);
 				line.classList.add("bordered");
 				if (dark)
 					line.classList.add("dark");
@@ -1359,11 +1362,14 @@ function createArrowNode(point, orientation, append) {
 			})(arrowLines[j],dark,stroke);
 		}
 	}
-	var origin = createCircle({x:point.x,y:point.y,r:3,l:1},append);
-	addZoomListener(origin, function() {
-		this.setAttribute("r", 4/zoomLevel);
-		this.setAttribute("stroke-width", 1/zoomLevel);
-	});
+	var origin;
+	if (opts.origin !== false) {
+		origin = createCircle({x:point.x,y:point.y,r:3,l:1},opts.append);
+		addZoomListener(origin, function() {
+			this.setAttribute("r", 4/zoomLevel);
+			this.setAttribute("stroke-width", 1/zoomLevel);
+		});
+	}
 	var res = {origin:origin,lines:arrow};
 	res.move = function(point2) {
 		applyObject(point,point2);

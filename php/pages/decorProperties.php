@@ -1,7 +1,5 @@
 <?php
 if (isset($_GET['id'])) {
-    include('../includes/initdb.php');
-    include('../includes/getId.php');
     $decorId = intval($_GET['id']);
     $decorOptions = array('hitbox', 'spin', 'unbreaking', 'breaking');
     $newOptions = array();
@@ -10,7 +8,9 @@ if (isset($_GET['id'])) {
             $newOptions[$option] = intval($_POST[$option]);
     }
     if (!empty($_POST['items']))
-        $newOptions['items'] = explode(',', $_POST['items']);
+        $newOptions['items'] = json_decode($_POST['items']);
+    include('../includes/initdb.php');
+    include('../includes/getId.php');
     $newOptionsJson = '';
     if (!empty($newOptions))
         $newOptionsJson = json_encode($newOptions);
