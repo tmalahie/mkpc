@@ -28468,53 +28468,47 @@ function editCommands(options) {
 		$controlSetting.appendChild($controlSelect);
 		$controlSettings.appendChild($controlSetting);
 	}
-	if (bMusic || iSfx) {
-		var $controlSettingsH2 = document.createElement("div");
-		$controlSettingsH2.className = "control-settings-info";
-		$controlSettingsH2.innerHTML = toLanguage("Sound settings", "Paramètres sonores");
-		$controlSettings.appendChild($controlSettingsH2);
-		var allSoundSettings = {
-			'music' : toLanguage('Music volume', 'Volume musique'),
-			'sfx' : toLanguage('SFX volume', 'Volume bruitages')
-		};
-		if (!bMusic)
-			delete allSoundSettings.music;
-		if (!iSfx)
-			delete allSoundSettings.sfx;
-		var volumeSettings = localStorage.getItem("settings.vol");
-		if (volumeSettings)
-			volumeSettings = JSON.parse(volumeSettings);
-		else
-			volumeSettings = {};
-		for (var key in allSoundSettings) {
-			(function(key) {
-				var $controlSetting = document.createElement("label");
-				$controlSetting.className = "control-setting-range";
-				var $controlText = document.createElement("span");
-				$controlText.innerHTML = allSoundSettings[key];
-				$controlSetting.appendChild($controlText);
-				var $controlRange = document.createElement("input");
-				$controlRange.type = "range";
-				$controlRange.min = 0;
-				$controlRange.max = 1;
-				$controlRange.step = 0.05;
-				var currentValue = volumeSettings[key];
-				if (currentValue == null) currentValue = 1;
-				$controlRange.value = currentValue;
-				$controlSetting.appendChild($controlRange);
-				var $controlValue = document.createElement("span");
-				$controlValue.innerHTML = Math.round(currentValue*100)+"%";
-				$controlValue.style.width = "2em";
-				$controlSetting.appendChild($controlValue);
-				$controlRange.onchange = function() {
-					volumeSettings[key] = +this.value;
-					localStorage.setItem("settings.vol", JSON.stringify(volumeSettings));
-					$controlValue.innerHTML = Math.round(volumeSettings[key]*100)+"%";
-					updateVolumeSettings(volumeSettings);
-				}
-				$controlSettings.appendChild($controlSetting);
-			})(key);
-		}
+	var $controlSettingsH2 = document.createElement("div");
+	$controlSettingsH2.className = "control-settings-info";
+	$controlSettingsH2.innerHTML = toLanguage("Sound settings", "Paramètres sonores");
+	$controlSettings.appendChild($controlSettingsH2);
+	var allSoundSettings = {
+		'music' : toLanguage('Music volume', 'Volume musique'),
+		'sfx' : toLanguage('SFX volume', 'Volume bruitages')
+	};
+	var volumeSettings = localStorage.getItem("settings.vol");
+	if (volumeSettings)
+		volumeSettings = JSON.parse(volumeSettings);
+	else
+		volumeSettings = {};
+	for (var key in allSoundSettings) {
+		(function(key) {
+			var $controlSetting = document.createElement("label");
+			$controlSetting.className = "control-setting-range";
+			var $controlText = document.createElement("span");
+			$controlText.innerHTML = allSoundSettings[key];
+			$controlSetting.appendChild($controlText);
+			var $controlRange = document.createElement("input");
+			$controlRange.type = "range";
+			$controlRange.min = 0;
+			$controlRange.max = 1;
+			$controlRange.step = 0.05;
+			var currentValue = volumeSettings[key];
+			if (currentValue == null) currentValue = 1;
+			$controlRange.value = currentValue;
+			$controlSetting.appendChild($controlRange);
+			var $controlValue = document.createElement("span");
+			$controlValue.innerHTML = Math.round(currentValue*100)+"%";
+			$controlValue.style.width = "2em";
+			$controlSetting.appendChild($controlValue);
+			$controlRange.onchange = function() {
+				volumeSettings[key] = +this.value;
+				localStorage.setItem("settings.vol", JSON.stringify(volumeSettings));
+				$controlValue.innerHTML = Math.round(volumeSettings[key]*100)+"%";
+				updateVolumeSettings(volumeSettings);
+			}
+			$controlSettings.appendChild($controlSetting);
+		})(key);
 	}
 	if (iFps > 1) {
 		var frameSettings = getFrameSettings(currentSettings);
