@@ -7336,7 +7336,8 @@ var itemBehaviors = {
 									if (tCible.using[0].type === "bobomb" && touche_bobomb(fNewPosX, fNewPosY, onlyThisItems([tCible.using[0]])))
 										return;
 									detruit(fSprite);
-									detruit(tCible.using[0],true);
+									if (tCible.using[0])
+										detruit(tCible.using[0],true);
 									return;
 								}
 								else {
