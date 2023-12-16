@@ -307,6 +307,8 @@ case 2022:
 case 2023:
 	include('advent-selected-challenges.php');
 	$adventChallenges = fetch_advent_challenges($selectedChallenges);
+	$adventChallenges[12]['description'] = '<a href="'. $adventChallenges[12]['link'] .'" target="_blank">Battle Course 3.1</a>' . ($language ? ': Destroy all gifts' : ' : Détruire tous les cadeaux');
+	$adventChallenges[15]['description'] = '<a href="'. $adventChallenges[12]['link'] .'" target="_blank">'. ($language ? 'Cake-fort city' : 'Cité gâteau-fort') .'</a>' . ($language ? ': Destroy the gingerbreads in VS mode, without going backwards' : " : Détruire les pains d'épice en mode Course VS, sans reculer");
 }
 function get_challenges_until($day) {
 	global $adventChallenges;
