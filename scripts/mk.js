@@ -10892,7 +10892,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 					if (!iP || decorBehavior.unbreaking) {
 						collisionDecor = type;
 						if (collisionTest == COL_KART) {
-							if (decorBehavior.breaking || (decorBehavior.damagingItems && decorBehavior.damagingItems.champi && collisionPlayer.champi && collisionPlayer.champiType === CHAMPI_TYPE_ITEM)) {
+							if (decorBehavior.breaking || isBreakingItem(decorBehavior)) {
 								if (collisionPlayer.speed > 4) {
 									handleDecorHit(i,type);
 									if (collisionPlayer.turbodrift)
@@ -11008,6 +11008,13 @@ function getLineHorizontality(iX,iY, nX,nY, lines) {
 		}
 	}
 	return res;
+}
+function isBreakingItem(decorBehavior) {
+	if (!decorBehavior.damagingItems) return false;
+	if (decorBehavior.damagingItems.megachampi && collisionPlayer.megachampi) return true;
+	if (decorBehavior.damagingItems.billball && collisionPlayer.billball) return true;
+	if (decorBehavior.damagingItems.etoile && collisionPlayer.etoile) return true;
+	if (decorBehavior.damagingItems.champi && collisionPlayer.champi && collisionPlayer.champiType === CHAMPI_TYPE_ITEM) return true;
 }
 
 function secants(x11,y11,x21,y21, x12,y12,x22,y22) {

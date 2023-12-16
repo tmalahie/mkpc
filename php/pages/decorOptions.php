@@ -117,11 +117,11 @@ include('../includes/o_online.php');
 					?>
 					<div class="option-form-items">
 						<?php
-						$selectedItems = isset($decorOptionsValue->items) ? $decorOptionsValue->items : array();
+						$selectedItems = isset($decorOptionsValue->items) ? $decorOptionsValue->items : null;
 						?>
 						<label>
 							<input type="checkbox" id="items-cb" onclick="handleItemsChange()"<?php
-							if ($selectedItems)
+							if ($selectedItems !== null)
 								echo ' checked="checked"';
 							?> />
 							<input type="hidden" name="items" onclick="handleItemsChange()" />
@@ -129,10 +129,10 @@ include('../includes/o_online.php');
 						</label>
 						<div class="option-form-items-types">
 						<?php
-						$itemTypes = array('carapace', 'carapace-rouge', 'champi', 'bobomb', 'carapace-bleue');
+						$itemTypes = array('carapace', 'carapace-rouge', 'bobomb', 'carapace-bleue', 'champi', 'etoile', 'megachampi', 'billball');
 						$itemSrcs = array('bobomb' => 'bob-omb');
 						foreach ($itemTypes as $key) {
-							$itemOptionSelected = in_array($key,$selectedItems);
+							$itemOptionSelected = ($selectedItems === null) || in_array($key,$selectedItems);
 							$itemSrc = isset($itemSrcs[$key]) ? $itemSrcs[$key] : $key;
 							?>
 							<input type="button" data-key="<?php echo $key; ?>"<?php if ($itemOptionSelected) echo 'data-selected="1"'; ?> style="background-image:url('images/map_icons/<?php echo $itemSrc; ?>.png')" onclick="selectItem(this)" />
@@ -199,7 +199,7 @@ include('../includes/o_online.php');
 			var selectedItems = [];
 			for (var i=0;i<$btnItems.length;i++)
 				selectedItems.push($btnItems[i].dataset.key);
-			$items.value = selectedItems.join(',');
+			$items.value = JSON.stringify(selectedItems);
 		}
 		else {
 			$itemTypes.classList.remove("shown");
