@@ -152,6 +152,11 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 			?>
 			<a class="main-challenge-action" href="<?php echo nextPageUrl('challengeEdit.php'); ?>"><?php echo $language ? 'Create my first challenge':'Créer mon premier défi'; ?> &nbsp; &gt;</a>
 		</div>
+		<div class="challenge-navigation advanced-challenge-actions">
+			<a href="<?php echo nextPageUrl('challengeOrder.php'); ?>""><u><?php echo $language ? 'Reorder challenges' : 'Ordonner les défis'; ?></u> &gt;</a>
+			<a href="<?php echo nextPageUrl('challengeRewards.php'); ?>""><u><?php echo $language ? 'Challenge rewards' : 'Gérer les récompenses'; ?></u> &gt;</a>
+		</div>
+		<div></div>
 		<?php
 	}
 	else {

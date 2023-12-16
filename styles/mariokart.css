@@ -301,7 +301,7 @@
 	font-size: 0.9em;
 }
 .control-settings > .control-setting-range {
-	width: 100%;
+	width: calc(100% - 20px);
 	display: flex;
 	align-items: center;
 	gap: 0.5em;

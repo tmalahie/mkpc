@@ -229,6 +229,8 @@ include('../includes/o_online.php');
 		handleFormChange();
 	}
 	function resetOptions() {
+		if (!confirm('<?php echo $language ? 'Reset properties to default?' : 'Rétablir les propriétés par défaut ?'; ?>'))
+			return;
 		for (var i=0;i<$checkboxInd.length;i++) {
 			var $div = $checkboxInd[i].parentNode;
 			var $input = $div.querySelector('input[type="hidden"]');

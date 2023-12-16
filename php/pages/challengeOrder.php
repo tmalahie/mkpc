@@ -7,6 +7,7 @@ if (isset($_GET['cl']))
     $clRace = getClRace($_GET['cl']);
 include('../includes/challenge-cldata.php');
 $clOptions = array('alltracks' => true, 'status' => array('pending_completion','pending_publication','pending_moderation','active'), 'circuit' => true);
+$clMsg = null;
 if (!empty($clRace)) {
     $challenges = listChallenges($clRace['id'], $clOptions);
     $challengesById = array();
@@ -23,6 +24,7 @@ if (!empty($clRace)) {
         $newOrderListString = implode(',', $newOrderList);
         if ($newOrderListString)
             mysql_query('INSERT INTO `mkclorder` (clist,challenge,position) VALUES '.$newOrderListString);
+        $clMsg = $language ? "Challenge order was updated successfully":"L'ordre des défis a été modifié avec succès";
     }
     $getChallengeOrder = mysql_query('SELECT challenge FROM mkclorder WHERE clist="'. $clRace['id'] .'" ORDER BY position');
     $challengeOrder = array();
@@ -100,6 +102,10 @@ include('../includes/o_online.php');
 <title><?php echo $language ? 'Challenge order':'Ordre des défis'; ?> - Mario Kart PC</title>
 </head>
 <body>
+<?php
+if ($clMsg)
+    echo '<div class="challenge-msg-success">'. $clMsg .'</div>';
+?>
 <h1 class="challenge-main-title"><?php
     echo $language ? 'Edit challenge order' : 'Modifier l\'ordre des défis';
 ?></h1>
@@ -111,7 +117,7 @@ include('../includes/o_online.php');
         foreach ($challenges as $challenge) {
             $challengeIds[] = $challenge['id'];
             ?>
-            <div class="challenge-order-item-zone" ondragenter="previewDrop(this,event)" ondragover="followDrop(event)" ondragleave="unpreviewDrop(this)" ondrop="handleDrop(this)" data-challenge="<?php echo $challenge['id']; ?>">
+            <div class="challenge-order-item-zone" ondragenter="previewDrop(this,event)" ontouchstart="checkUnsupportedDrag()" ondragover="followDrop(event)" ondragleave="unpreviewDrop(this)" ondrop="handleDrop(this)" onclick="handleUnsupportedDrag(this)" data-challenge="<?php echo $challenge['id']; ?>">
                 <div class="challenge-order-item" draggable="true" ondragstart="handleDrag(this)" ondragend="handleUnDrag(this)">
                     <?php
                     if (isset($challenge['circuit']))
@@ -137,6 +143,7 @@ include('../includes/o_online.php');
     <a href="<?php echo nextPageUrl('challenges.php', array('ch'=>null,'cl'=>empty($clRace)?null:$clRace['clid'])); ?>">&lt; <u><?php echo $language ? 'Back to challenges list':'Retour à la liste des défis'; ?></u></a>
 </div>
 <script type="text/javascript">
+var language = <?php echo $language ? 1:0; ?>;
 function handleDrag($elt) {
     $elt.classList.add("dragged");
     document.querySelector('.challenge-order-list').classList.add("dragging");
@@ -145,7 +152,36 @@ function handleUnDrag($elt) {
     $elt.classList.remove("dragged");
     document.querySelector('.challenge-order-list').classList.remove("dragging");
 }
+var isDnDUnsupported = undefined;
+var dndCheckHandler;
+function checkUnsupportedDrag() {
+    if (isDnDUnsupported === undefined) {
+        if (!dndCheckHandler) {
+            dndCheckHandler = setTimeout(function() {
+                isDnDUnsupported = true;
+            }, 500);
+        }
+        return;
+    }
+}
+function handleUnsupportedDrag($elt) {
+    if (isDnDUnsupported) {
+        const $list = document.querySelector(".challenge-order-list");
+        const $children = [...$list.children];
+        const $eltIndex = $children.indexOf($elt);
+        var newIndex = prompt(language ? "Sorry, drag&drop is not supported on your device. Please select the order manually" : "Désolé, le glisser-déposer n'est pas supporté sur votre appareil. Veuillez sélectionner l'ordre manuellement", 1+$eltIndex);
+        if (newIndex == null) return;
+        newIndex = newIndex - 1;
+        if (isNaN(newIndex)) return;
+        if (newIndex < 0) return;
+        if (newIndex >= $children.length) return;
+        $list.removeChild($elt);
+        $list.insertBefore($elt, $list.children[newIndex]);
+        updateListValue($list);
+    }
+}
 function previewDrop($elt,e) {
+    isDnDUnsupported = false;
     e.preventDefault();
     unpreviewDrops();
     const $draggedElt = document.querySelector('.challenge-order-list .dragged');
@@ -185,6 +221,9 @@ function handleDrop($elt) {
         $list.insertBefore($draggedZone, $elt.nextSibling);
     else
         $list.insertBefore($draggedZone, $elt);
+    updateListValue($list);
+}
+function updateListValue($list) {
     const newList = [];
     for (const $child of $list.children)
         newList.push($child.getAttribute("data-challenge"));
