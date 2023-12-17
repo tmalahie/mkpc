@@ -29,16 +29,25 @@ if (isset($_POST['id'])) {
 					}
 				}
 				$shouldCompleteAll = false;
-				/*if ($challenge['clist'] == 18033) {
-					$selectedDay = 19;
-					$shouldCompleteAll = true;
-				}*/
+				$selectedGroup = null;
+				$challengeGroups = array(
+					'19' => array(31410,39318,40041,40386)
+				);
+				foreach ($challengeGroups as $challengeGroupDay => $challengeGroup) {
+					if (in_array($challenge['id'], $challengeGroup)) {
+						$selectedDay = $challengeGroupDay;
+						$shouldCompleteAll = true;
+						$selectedGroup = $challengeGroup;
+						break;
+					}
+				}
 				date_default_timezone_set('Europe/Paris');
 				if ($selectedDay && ($selectedDay <= date('j') && (date('n') == 12))) {
 					$year = date('Y');
 					$alreadyCompleted = mysql_fetch_array(mysql_query('SELECT date FROM mkadvent WHERE year="'. $year .'" AND user="'. $id .'" AND day="'. $selectedDay .'"'));
 					if ($shouldCompleteAll) {
-						$pendingCompletion = mysql_fetch_array(mysql_query('SELECT * FROM mkchallenges c LEFT JOIN mkclwin w ON c.id=w.challenge AND w.player="'.$id.'" WHERE c.clist="'. $challenge['clist'] .'" AND c.status="active" AND w.id IS NULL LIMIT 1'));
+						$selectedGroupIds = implode(',', $selectedGroup);
+						$pendingCompletion = mysql_fetch_array(mysql_query('SELECT * FROM mkchallenges c LEFT JOIN mkclwin w ON c.id=w.challenge AND w.player="'.$id.'" WHERE c.id IN ('.$selectedGroupIds.') AND w.id IS NULL LIMIT 1'));
 						if ($pendingCompletion)
 							$alreadyCompleted = true;
 					}
@@ -47,7 +56,7 @@ if (isset($_POST['id'])) {
 						require_once('../includes/challenge-consts.php');
 						$reward = getChallengeReward($challenge);
 						if ($shouldCompleteAll) {
-							$otherChallenges = mysql_query('SELECT difficulty FROM mkchallenges WHERE clist="'. $challenge['clist'] .'" AND status="active" AND id!="'. $challengeId .'"');
+							$otherChallenges = mysql_query('SELECT difficulty FROM mkchallenges WHERE id IN ('. $selectedGroupIds .') AND id!="'. $challengeId .'"');
 							while ($otherChallenge = mysql_fetch_array($otherChallenges))
 								$reward += getChallengeReward($otherChallenge);
 						}

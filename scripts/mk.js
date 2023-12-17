@@ -18802,7 +18802,7 @@ function getMapSelectorSrc(i) {
 	return isCup ? oMaps[aAvailableMaps[i]].icon : "images/selectors/select_" + aAvailableMaps[i] + ".png";
 }
 function getMapId(oMap) {
-	var res = isBattle ? nid : (simplified ? oMap.id : oMap.map);
+	var res = simplified ? oMap.id : oMap.map;
 	if (res == undefined) res = -1;
 	return res;
 }
