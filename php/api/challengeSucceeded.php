@@ -31,7 +31,7 @@ if (isset($_POST['id'])) {
 				$shouldCompleteAll = false;
 				$selectedGroup = null;
 				$challengeGroups = array(
-					'19' => array(31410,39318,40041,40386)
+					//'19' => array(31410,39318,40041,40386)
 				);
 				foreach ($challengeGroups as $challengeGroupDay => $challengeGroup) {
 					if (in_array($challenge['id'], $challengeGroup)) {

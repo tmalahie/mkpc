@@ -309,9 +309,6 @@ case 2023:
 	$adventChallenges = fetch_advent_challenges($selectedChallenges);
 	$adventChallenges[12]['description'] = '<a href="'. $adventChallenges[12]['link'] .'" target="_blank">Battle Course 3.1</a>' . ($language ? ': Destroy all gifts' : ' : Détruire tous les cadeaux');
 	$adventChallenges[15]['description'] = '<a href="'. $adventChallenges[12]['link'] .'" target="_blank">'. ($language ? 'Cake-fort city' : 'Cité gâteau-fort') .'</a>' . ($language ? ': Destroy the gingerbreads in VS mode, without going backwards' : " : Détruire les pains d'épice en mode Course VS, sans reculer");
-	$adventChallenges[19]['name'] = 'ToxGP1 - Battle Cup #1';
-	$adventChallenges[19]['description'] = '<a href="battle.php?cid=36919" target="_blank">'. $adventChallenges[19]['name'] .'</a>' . ($language ? ': Complete all challenges of the cup' : ' : Complétez tous les défis de la coupe');
-	$adventChallenges[19]['link'] = 'battle.php?cid=36919';
 }
 function get_challenges_until($day) {
 	global $adventChallenges;
