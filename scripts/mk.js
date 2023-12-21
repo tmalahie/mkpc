@@ -25130,9 +25130,9 @@ function selectMapScreen(opts) {
 						delete opts.cup;
 					}
 				}
-				var page = opts.page;
-				beginPage = (page>0) ? cupOpts.pages[page-1] : 0;
-				endPage = (page<cupOpts.pages.length) ? cupOpts.pages[page] : cupLines.length;
+				var cPage = opts.page;
+				beginPage = (cPage>0) ? cupOpts.pages[cPage-1] : 0;
+				endPage = (cPage<cupOpts.pages.length) ? cupOpts.pages[cPage] : cupLines.length;
 				nbCupInPage = 0;
 				for (var i=beginPage;i<endPage;i++)
 					nbCupInPage += cupLines[i];
