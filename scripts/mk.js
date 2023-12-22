@@ -29690,7 +29690,6 @@ function setChat() {
 											var audioCtx = new AudioContext();
 											var analyser = audioCtx.createAnalyser();
 											audioCtx.createMediaStreamSource(cPeer.audio.srcObject).connect(analyser);
-											var sampleCount = 0, sumOfAmplitudes = 0;
 											var data = new Uint8Array(analyser.fftSize);
 											cPeer.recorderHandler = setInterval(function() {
 												if (!cPeer.audio.parentNode || !document.body.contains(oPlayerVolume) || !cPlayerPeers[identifiant]) {
@@ -29775,7 +29774,7 @@ function setChat() {
 							for (var i=0;i<=lastMsgId;i++)
 								addMsgToChat(messages[i][0],messages[i][1]);
 							var pMessages = oMessages.getElementsByTagName("p");
-							while (pMessages.length > 40)
+							while (pMessages.length > 20)
 								oMessages.removeChild(pMessages[0]);
 						}
 						setTimeout(refreshChat, 1000);
@@ -29795,10 +29794,11 @@ function setChat() {
 	function addMsgToChat(pseudo, message) {
 		var oP = document.createElement("p");
 		var sPseudo = document.createElement("span");
-		sPseudo.innerHTML = pseudo +" : ";
+		sPseudo.innerHTML = pseudo +"<br />";
 		oP.appendChild(sPseudo);
 		var sMessage = document.createElement("span");
 		sMessage.style.color = "white";
+		sMessage.className = "online-chat-message";
 		sMessage.style.fontWeight = "normal";
 		sMessage.innerHTML = message;
 		oP.appendChild(sMessage);

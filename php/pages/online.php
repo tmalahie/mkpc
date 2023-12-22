@@ -122,7 +122,7 @@ if (isset($privateLink)) {
 ?>
 
 <?php include('../includes/c_mariokart.php'); ?>
-<link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css" />
+<link rel="stylesheet" media="screen" type="text/css" href="styles/mk-online.css?reload=0" />
 
 <?php
 if (!$isCustom) {

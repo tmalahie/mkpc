@@ -1090,7 +1090,7 @@ $slidesPath = 'images/slides';
 								$place = $j;
 								$lastScore = $player['pts'];
 							}
-							echo '<tr><td class="top10position">'. $place .'</td><td><a href="profil.php?id='. $player['id'] .'">'. $player['nom'] .'</a></td><td>'. $player['pts'] .'</td></tr>';
+							echo '<tr><td class="top10position">'. $place .'</td><td><a href="profil.php?id='. $player['id'] .'">'. controlLength($player['nom'],20) .'</a></td><td>'. $player['pts'] .'</td></tr>';
 						}
 						?>
 					</table>

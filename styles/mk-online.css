@@ -156,6 +156,9 @@
         z-index: 20000;
 	}
 }
+.online-chat-playerlistctn {
+    padding: 2px 6px;
+}
 .online-chat-blockdialog {
     position: absolute;
     left: 85px;
@@ -196,15 +199,19 @@
     color: #FC0;
 }
 .online-chat-messages {
-    padding-top: 2px;
-    padding-bottom: 2px;
     flex: 1;
     word-wrap: break-word;
     overflow-y: auto;
 }
+.online-chat-messages p {
+    margin: 6px;
+    font-size: 0.9em;
+}
 .online-chat-messages p.chatlog {
     color: white;
-    padding: 2px;
+}
+.online-chat-message {
+    font-size: 1.2em;
 }
 .online-chat-answer {
     display: flex;
