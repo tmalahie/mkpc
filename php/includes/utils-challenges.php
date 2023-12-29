@@ -970,6 +970,7 @@ function getCircuitPayload(&$clRace) {
 	))) {
 		$res['name'] = $clCircuit['name'];
 		$res['author'] = $clCircuit['auteur'];
+		$res['type'] = $clRace['type'];
 		$res['identifiant'] = $clCircuit['identifiant'];
 		$res['identifiant2'] = $clCircuit['identifiant2'];
 		$res['identifiant3'] = $clCircuit['identifiant3'];
