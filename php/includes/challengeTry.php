@@ -15,7 +15,7 @@ if (isset($_POST['challenge']) || isset($_GET['challenge'])) {
 		if ($id) {
 			mysql_query('DELETE FROM `mknotifs` WHERE user="'. $id .'" AND type="follower_challenge" AND link="'. $challengeId .'"');
 			if (mysql_fetch_array(mysql_query('SELECT date FROM `mkclwin` WHERE player='.$id.' AND challenge="'.$challengeId.'"')))
-				;//$alreadySucceeded = true;
+				$alreadySucceeded = true;
 			else
 				mysql_query('INSERT INTO `mkcltry` SET player='.$id.',challenge="'.$challengeId.'"');
 		}

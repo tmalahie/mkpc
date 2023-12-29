@@ -313,7 +313,7 @@ $slidesPath = 'images/slides';
 	<section id="right_section">
 		<?php
 		require_once('../includes/utils-date.php');
-		date_default_timezone_set('Europe/Paris');
+		/*date_default_timezone_set('Europe/Paris');
 		if ($id && date('n') == 12) {
 			require_once('../includes/advent-topic.php');
 			?>
@@ -339,7 +339,7 @@ $slidesPath = 'images/slides';
 				</div>
 			</div>
 			<?php
-		}
+		}*/
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
