@@ -343,21 +343,7 @@ $clRulesByType = array(
 		'avoid_item' => array(
 			'description_mockup' => $language ? 'without being hit by item...':'sans se faire toucher par l\'objet...',
 			'description_lambda' => function($language,&$scope) {
-				$itemsToAvoid = array();
-				foreach ($scope->value as $key)
-					$itemsToAvoid[] = getChallengeItemName($key);
-				$itemsToAvoid = array_values(array_unique($itemsToAvoid));
-				$itemsToAvoidString = '';
-				$nbItems = count($itemsToAvoid);
-				foreach ($itemsToAvoid as $i=>$item) {
-					if ($i) {
-						if ($i === ($nbItems-1))
-							$itemsToAvoidString .= $language ? ' or ':' ou ';
-						else
-							$itemsToAvoidString .= ', ';
-					}
-					$itemsToAvoidString .= $item;
-				}
+				$itemsToAvoidString = getChallengeItemNames($scope);
 				return $language ? 'without being hit by '. $itemsToAvoidString:'sans vous faire renverser par '. $itemsToAvoidString;
 			},
 			'parser' => function(&$scope) {
@@ -1388,24 +1374,99 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 		return $decorMapping[$key];
 	return $key;
 }
-function getChallengeItemName($key) {
+function getChallengeItemNames(&$scope) {
 	global $language;
-	$itemMapping = array(
-		'fauxobjet' => $language ? 'a fake item box' : 'une fausse boite à objet',
-		'banane' => $language ? 'a banana' : 'une banane',
-		'carapace' => $language ? 'a green shell' : 'une carapace verte',
-		'carapacerouge' => $language ? 'a red shell' : 'une carapace rouge',
-		'champi' => $language ? 'a mushroom' : 'un champi',
-		'poison' => $language ? 'a poison mushroom' : 'un champi poison',
-		'bobomb' => $language ? 'a bobomb' : 'une bobomb',
-		'megachampi' => $language ? 'a mega mushroom' : 'un mega champi',
-		'etoile' => $language ? 'a star' : 'une étoile',
-		'carapacebleue' => $language ? 'a blue shell' : 'une carapace bleue',
-		'billball' => $language ? 'a bullet bill' : 'un bill ball',
-		'eclair' => $language ? 'a lightning' : 'un éclair'
+	$clItemMapping = array(
+		'fauxobjet' => array(
+			'label' => $language ? 'a fake item box' : 'une fausse boite à objet'
+		),
+		'banane' => array(
+			'label' => $language ? 'a banana' : 'une banane'
+		),
+		'carapace' => array(
+			'label' => $language ? 'a green shell' : 'une carapace verte'
+		),
+		'carapacerouge' => array(
+			'label' => $language ? 'a red shell' : 'une carapace rouge'
+		),
+		'champi' => array(
+			'label' => $language ? 'a mushroom' : 'un champi',
+			'course' => array('battle')
+		),
+		'poison' => array(
+			'label' => $language ? 'a poison mushroom' : 'un champi poison',
+			'course' => array('vs')
+		),
+		'bobomb' => array(
+			'label' => $language ? 'a bobomb' : 'une bobomb'
+		),
+		'megachampi' => array(
+			'label' => $language ? 'a mega mushroom' : 'un mega champi'
+		),
+		'etoile' => array(
+			'label' => $language ? 'a star' : 'une étoile'
+		),
+		'carapacebleue' => array(
+			'label' => $language ? 'a blue shell' : 'une carapace bleue'
+		),
+		'billball' => array(
+			'label' => $language ? 'a bullet bill' : 'un bill ball',
+			'course' => array('vs')
+		),
+		'eclair' => array(
+			'label' => $language ? 'a lightning' : 'un éclair',
+			'course' => array('vs')
+		)
 	);
+
+	if (allChallengeItemSelected($clItemMapping, $scope))
+		return $language ? 'any item': 'un objet';
+
+	$itemsToAvoid = array();
+	foreach ($scope->value as $key)
+		$itemsToAvoid[] = getChallengeItemName($clItemMapping, $key);
+	$itemsToAvoid = array_values(array_unique($itemsToAvoid));
+	$itemsToAvoidString = '';
+	$nbItems = count($itemsToAvoid);
+	foreach ($itemsToAvoid as $i=>$item) {
+		if ($i) {
+			if ($i === ($nbItems-1))
+				$itemsToAvoidString .= $language ? ' or ':' ou ';
+			else
+				$itemsToAvoidString .= ', ';
+		}
+		$itemsToAvoidString .= $item;
+	}
+
+	return $itemsToAvoidString;
+}
+function getChallengeItemName(&$itemMapping,$key) {
 	if (isset($itemMapping[$key]))
-		return $itemMapping[$key];
+		return $itemMapping[$key]['label'];
 	return $key;
+}
+function allChallengeItemSelected(&$itemMapping,&$scope) {
+	$usedItemsDict = array();
+	foreach ($scope->value as $key)
+		$usedItemsDict[$key] = true;
+	$clCourses = array('vs', 'battle');
+	foreach ($clCourses as $course) {
+		$allSelected = true;
+		foreach ($itemMapping as $key => $item) {
+			if (isset($usedItemsDict[$key]))
+				continue;
+			if (isset($item['course'])) {
+				if (!in_array($course, $item['course']))
+					continue;
+				$allSelected = false;
+				break;
+			}
+			else
+				return false;
+		}
+		if ($allSelected)
+			return true;
+	}
+	return false;
 }
 ?>
