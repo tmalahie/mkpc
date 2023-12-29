@@ -2297,7 +2297,10 @@ function loadMusic(src, autoplay, opts) {
 		var oMusicSource = document.createElement("source");
 		oMusicSource.type = "audio/mpeg";
 		res.src = src;
-		res.volume = vSfx;
+		if (opts && opts.vSnd != null)
+			res.volume = opts.vSnd;
+		else
+			res.volume = vSfx;
 		res.appendChild(oMusicSource);
 		if (autoplay)
 			res.setAttribute("autoplay", true);
@@ -2483,8 +2486,12 @@ function playDistSound(obj, src, maxDist) {
 }
 function startMusic(src, autoplay, delay, opts) {
 	var res = loadMusic(src, autoplay, opts);
-	if (res.volume != null)
-		res.volume = vMusic;
+	if (res.volume != null) {
+		if (opts && opts.vSnd != null)
+			res.volume = opts.vSnd;
+		else
+			res.volume = vMusic;
+	}
 	document.body.appendChild(res);
 	if (delay) {
 		pauseMusic(res);
@@ -2504,15 +2511,17 @@ function startMusic(src, autoplay, delay, opts) {
 	return res;
 }
 function postStartMusic(src) {
+	var vSnd = bMusic ? vMusic : vSfx;
 	if (oMusicEmbed)
-		fadeOutMusic(oMusicEmbed,1,0.6,false,vMusic);
-	return startMusic(src,true,200);
+		fadeOutMusic(oMusicEmbed,1,0.6,false,vSnd);
+	return startMusic(src,true,200, { vSnd: vSnd });
 }
 function postResumeMusic(elt, ratio) {
 	if (oMusicEmbed == elt)
 		return;
 	var cMusicEmbed = oMusicEmbed;
-	fadeOutMusic(cMusicEmbed,1,ratio,true,vMusic);
+	var vSnd = bMusic ? vMusic : vSfx;
+	fadeOutMusic(cMusicEmbed,1,ratio,true,vSnd);
 	if (elt) {
 		setTimeout(function() {
 			if ((oMusicEmbed == cMusicEmbed) || !oMusicEmbed) {
@@ -3815,10 +3824,11 @@ function startGame() {
 
 	var countDownMusic, goMusic;
 	if ((bMusic || iSfx) && !onlineSpectatorState) {
-		countDownMusic = loadMusic("musics/events/countdown.mp3");
+		var vOpts = { vSnd: bMusic ? vMusic : vSfx };
+		countDownMusic = loadMusic("musics/events/countdown.mp3", false, vOpts);
 		countDownMusic.removeAttribute("loop");
 		document.body.appendChild(countDownMusic);
-		goMusic = loadMusic("musics/events/go.mp3");
+		goMusic = loadMusic("musics/events/go.mp3", false, vOpts);
 		goMusic.removeAttribute("loop");
 		document.body.appendChild(goMusic);
 		goMusic.blur();
