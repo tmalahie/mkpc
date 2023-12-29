@@ -457,6 +457,15 @@ CREATE TABLE `mkcircuits` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mkclorder` (
+  `clist` int(11) NOT NULL,
+  `challenge` int(11) NOT NULL,
+  `position` int(11) NOT NULL,
+  PRIMARY KEY (`clist`,`challenge`,`position`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkclrace` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('','arenes','circuits','mkcircuits','mkcups','mkmcups') CHARACTER SET utf8 NOT NULL DEFAULT '',
@@ -714,6 +723,7 @@ CREATE TABLE `mkgamecrash` (
   `player` int(11) NOT NULL,
   `identifiant` int(11) unsigned NOT NULL,
   `stack` text NOT NULL,
+  `referrer` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -758,7 +768,7 @@ CREATE TABLE `mkgamestates` (
 CREATE TABLE `mkgametime` (
   `player` int(11) NOT NULL,
   `identifiant` int(10) unsigned NOT NULL,
-  `time` int(11) NOT NULL DEFAULT 0,
+  `time` bigint(20) NOT NULL DEFAULT 0,
   PRIMARY KEY (`player`,`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -834,6 +844,8 @@ CREATE TABLE `mkidentifiants` (
   `identifiant` int(10) unsigned NOT NULL,
   `file_quota` int(11) DEFAULT NULL,
   `tt_quota` int(11) DEFAULT NULL,
+  `upload_size` int(11) DEFAULT NULL,
+  `external_size` int(11) DEFAULT NULL,
   PRIMARY KEY (`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1019,7 +1031,7 @@ CREATE TABLE `mkmmlogs` (
   `player` int(11) NOT NULL,
   `message` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1414,7 +1426,7 @@ CREATE TABLE `mkrecords_bkp` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkreports` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `type` enum('topic') NOT NULL,
+  `type` enum('topic','circuits','mkcircuits','arenes','mkcups','mkmcups') NOT NULL,
   `link` varchar(255) NOT NULL,
   `count` int(11) NOT NULL,
   `first_reported` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -1429,7 +1441,7 @@ CREATE TABLE `mkreports` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkreportshist` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `type` enum('topic') NOT NULL,
+  `type` enum('topic','circuits','mkcircuits','arenes','mkcups','mkmcups') NOT NULL,
   `link` varchar(255) NOT NULL,
   `reporter` int(11) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -1659,7 +1671,7 @@ CREATE TABLE `records_bkp` (
   `circuit` enum('Circuit Mario 1','Plaine Donut 1','Plage Koopa 1','Île Choco 1','Lac Vanille 1','Vallée Fantôme 1','Circuit Mario 2','Château de Bowser 1','Plaine Donut 2','Château de Bowser 2','Île Choco 2','Circuit Mario 3','Plage Koopa 2','Lac Vanille 2','Vallée Fantôme 2','Plaine Donut 3','Vallée Fantôme 3','Circuit Mario 4','Château de Bowser 3','Route Arc-en-Ciel','Circuit Peach','Plage Maskass','Bord du Fleuve','Château de Bowser I','Circuit Mario','Lac Boo','Pays Fromage','Château de Bowser II','Circuit Luigi','Jardin volant','Île Cheep-Cheep','Pays Crépuscule','Royaume Sorbet','Route Ruban','Désert Yoshi','Château de Bowser III','Bord du Lac','Jetée cassée','Château de Bowser IV','Route  Arc-en-Ciel') NOT NULL,
   `temps` smallint(6) unsigned NOT NULL,
   UNIQUE KEY `nom` (`nom`,`circuit`) USING BTREE,
-  KEY `perso` (`perso`(250)),
+  KEY `perso` (`perso`),
   KEY `circuit` (`circuit`,`temps`),
   KEY `ip` (`identifiant`,`identifiant2`,`identifiant3`,`identifiant4`),
   KEY `player` (`player`)
