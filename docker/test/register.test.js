@@ -21,7 +21,7 @@ test('Should go to the register page', async () => {
 
 const testNick = "Wargor"+(new Date().getTime()%100000000);
 test('Should register', async () => {
-    const $nick = await getByLabelText(page, "Choose a nick", {exact: false});
+    const $nick = await getByLabelText(page, "Choose a username", {exact: false});
     await $nick.evaluate((nick,testNick) => nick.value = testNick, testNick);
     const $password = await getByLabelText(page, "Choose a password", {exact: false});
     await $password.evaluate(password => password.value = "aaaa");

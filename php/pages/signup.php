@@ -9,7 +9,7 @@ if ($inscrit) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Register Mario Kart PC':'Inscription Mario Kart PC'; ?></title>
+<title><?php echo $language ? 'Register - Mario Kart PC':'Inscription Mario Kart PC'; ?></title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -27,7 +27,7 @@ $page = 'game';
 include('../includes/menu.php');
 ?>
 <main>
-	<h1><?php echo $language ? 'Register Mario Kart PC':'Inscription Mario Kart PC'; ?></h1>
+	<h1><?php echo $language ? 'Register to Mario Kart PC':'Inscription Mario Kart PC'; ?></h1>
 	<?php
 	if (isset($message)) {
 		if ($inscrit)
@@ -39,7 +39,7 @@ include('../includes/menu.php');
 		?>
 		<form method="post" action="signup.php">
 		<table class="signup">
-		<tr><td class="ligne"><label for="pseudo"><?php echo $language ? 'Choose a nick':'Choisissez un pseudo'; ?> :</label></td><td><input type="text" name="pseudo" id="pseudo" value="<?php if (isset($pseudo)) echo $pseudo ?>" maxlength="30" /></td></tr>
+		<tr><td class="ligne"><label for="pseudo"><?php echo $language ? 'Choose a username':'Choisissez un pseudo'; ?> :</label></td><td><input type="text" name="pseudo" id="pseudo" value="<?php if (isset($pseudo)) echo $pseudo ?>" maxlength="30" /></td></tr>
 		<tr><td class="ligne"><label for="code"><?php echo $language ? 'Choose a password':'Choisissez un mot de passe'; ?> :</label></td><td><input type="password" name="code" id="code" value="<?php if (isset($code)) echo $code ?>" maxlength="30" /></td></tr>
 		<tr><td class="ligne"><label for="confirm"><?php echo $language ? 'Re-enter password':'Retapez le mot de passe'; ?> :</label></td><td><input type="password" name="confirm" id="confirm" value="<?php if (isset($confirm)) echo $confirm ?>" maxlength="30" /></td></tr>
 		<tr><td class="ligne"><label for="email"><?php echo $language ? 'Email address <em>(optional)</em>':'Adresse email <em>(facultatif)</em>'; ?> :</label></td><td><input type="email" name="email" id="email" value="<?php if (isset($email)) echo $email ?>" /></td></tr>

@@ -96,13 +96,13 @@ include('../includes/menu.php');
 			?>
 		<li>
 			<a class="action-ctn" href="edit-pseudo.php">
-				<div class="action-title"><?= _("Edit a member's <strong>nick</strong>") ?></div>
-				<div class="action-desc"><?= _("Can be useful if a member has a troll nick for example") ?></div>
+				<div class="action-title"><?= _("Edit a member's <strong>username</strong>") ?></div>
+				<div class="action-desc"><?= _("Can be useful if a member has a troll username for example") ?></div>
 			</a>
 		</li>
 		<li>
 			<a class="action-ctn" href="nick-history.php">
-				<div class="action-title"><?= _("See <strong>nick change history</strong>") ?></div>
+				<div class="action-title"><?= _("See <strong>username change history</strong>") ?></div>
 				<div class="action-desc"><?= _("To monitor people who would abuse of this option.") ?></div>
 			</a>
 		</li>

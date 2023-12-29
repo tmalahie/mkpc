@@ -126,7 +126,7 @@ if ($canChange && !$isCup) {
 	elseif (($circuitMainData->startposition[0] == -1) && ($circuitMainData->startposition[1] == -1))
 		$message = $language ? 'Warning: your circuit doesn\'t have a start.<br />Quite annoying, we don\'t know where to begin.':'Attention : Votre circuit n\'a pas de départ !<br />C\'est ennuyeux, on ne sait pas par où commencer...';
 	elseif (empty($circuitPayload->aipoints[0]))
-		$message = $language ? 'Warning, you didn\'t specify the CPUs route.<br />They could work so well...':'Attention : Vous n\'avez pas indiqué le trajet des ordis.<br />Ils risquent de marcher beaucoup moins bien...';
+		$message = $language ? 'Warning, you didn\'t specify the CPUs route.<br />They will not work so well...':'Attention : Vous n\'avez pas indiqué le trajet des ordis.<br />Ils risquent de marcher beaucoup moins bien...';
 	elseif (!($nCps=count($circuitPayload->checkpoint)))
 		$message = $language ? 'Warning, you didn\'t specify the checkpoints.<br />We can not find your way in the circuit!':'Attention : Vous n\'avez pas indiqué les checkpoints.<br />Impossible de vous repérer dans le circuit !';
 	elseif (isset($circuitMainData->sections) && isCpOob())

@@ -175,7 +175,7 @@ if ($arePersos) {
 		<h2><?php echo $language ? 'Share character':'Partager le perso'; ?></h2>
 		<form method="post" name="perso-share-form" action="sharePerso.php">
 			<input type="hidden" name="id" />
-			<?php echo ($language ? 'Your nick:':'Votre pseudo :') ?>
+			<?php echo ($language ? 'Your username:':'Votre pseudo :') ?>
 			<input type="text" name="pseudo" maxlength="30" />
 			<input type="submit" value="Ok" />
 		</form>

@@ -16,7 +16,7 @@ if (!hasRight('moderator')) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Change member\'s nick':'Modifier le pseudo d\'un membre'; ?> - Mario Kart PC</title>
+<title><?php echo $language ? 'Change member\'s username':'Modifier le pseudo d\'un membre'; ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -56,7 +56,7 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 }
 ?>
 <main>
-	<h1><?php echo $language ? 'Edit nick':'Modification de pseudo'; ?></h1>
+	<h1><?php echo $language ? 'Change username':'Modification de pseudo'; ?></h1>
 	<?php
 	if ($success)
 		echo $language ? '<p><strong>'. htmlspecialchars($old) .'</strong> has just been renamed into <strong>'. htmlspecialchars($new) .'</strong>.</p>' : '<p><strong>'. htmlspecialchars($old) .'</strong> vient d\'être renommé en <strong>'. htmlspecialchars($new) .'</strong>.</p>';
@@ -66,15 +66,15 @@ if (isset($_POST['joueur']) && isset($_POST['newpseudo'])) {
 	<p>
 		<?php
 		if ($language)
-			echo "This page allows you to change the nick of a given member.";
+			echo "This page allows you to change the username of a given member.";
 		else
 			echo "Cette page permet de modifier le pseudo d'un membre en particulier.";
 		?>
 	</p>
 	<form method="post" action="edit-pseudo.php">
 	<blockquote>
-		<p><label for="joueur"><strong><?php echo $language ? 'Last nick':'Ancien pseudo'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php if (isset($old)) echo htmlspecialchars($old); ?>" required="required" /></p>
-		<p><label for="newpseudo"><strong><?php echo $language ? 'New nick':'Nouveau pseudo'; ?></strong></label> : <input type="text" name="newpseudo" id="newpseudo" value="<?php if (isset($new)) echo htmlspecialchars($new); ?>" required="required" /></p>
+		<p><label for="joueur"><strong><?php echo $language ? 'Last username':'Ancien pseudo'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php if (isset($old)) echo htmlspecialchars($old); ?>" required="required" /></p>
+		<p><label for="newpseudo"><strong><?php echo $language ? 'New username':'Nouveau pseudo'; ?></strong></label> : <input type="text" name="newpseudo" id="newpseudo" value="<?php if (isset($new)) echo htmlspecialchars($new); ?>" required="required" /></p>
 		<p><input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>

@@ -103,7 +103,7 @@ if (isset($_GET['map'])) {
             <h2><?php echo $language ? 'World record history':'Historique record circuit'; ?></h2>
             <table>
                 <tr id="titres">
-                    <td style="width:100px"><?php echo $language ? 'Nick':'Pseudo'; ?></td>
+                    <td style="width:100px"><?php echo $language ? 'Username':'Pseudo'; ?></td>
                     <td style="width:135px">Date</td>
                     <td style="width:40px"><?php echo $language ? 'Char.':'Perso'; ?></td>
                     <td><?php echo $language ? 'Time':'Temps'; ?></td>

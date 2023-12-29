@@ -116,7 +116,7 @@ if (isset($_GET['url'])) {
                 <h2><?php echo ($language ? 'Ratings of' : 'Notes de') . ' '. htmlspecialchars($getCircuit['name']); ?> :</h2>
                 <table>
                 	<tr id="titres">
-                        <td style="min-width: 120px"><?php echo $language ? 'Nick':'Pseudo'; ?></td>
+                        <td style="min-width: 120px"><?php echo $language ? 'Username':'Pseudo'; ?></td>
                         <td><?php echo $language ? 'Rating':'Note'; ?></td>
                         <td>Date</td>
                         <?php if (!$myCircuit) echo '<td>Action</td>'; ?>

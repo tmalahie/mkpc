@@ -62,7 +62,7 @@ $place = ($page-1)*20;
 	?>
 	<table>
 	<tr id="titres">
-	<td><?php echo $language ? 'Nick':'Pseudo'; ?></td>
+	<td><?php echo $language ? 'Username':'Pseudo'; ?></td>
 	<td><?php echo $language ? 'Online score':'Score en ligne'; ?></td>
 	<td><?php echo $language ? 'Last connection':'Dernière connexion'; ?></td>
 	</tr>

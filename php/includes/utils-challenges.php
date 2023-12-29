@@ -496,7 +496,7 @@ $clRulesByType = array(
 			'course' => array('vs', 'battle', 'cup', 'bcup')
 		),
 		'no_stunt' => array(
-			'description' => $language ? 'without making stunts':'sans faire de figures',
+			'description' => $language ? 'without making tricks':'sans faire de figures',
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
@@ -570,8 +570,8 @@ $clRulesByType = array(
 			'course' => array('vs','battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
 		'stunts' => array(
-			'description' => $language ? 'by performing $value stunt$s':'en réalisant $value figure$s',
-			'description_mockup' => $language ? 'by performing N stunts':'en réalisant N figures',
+			'description' => $language ? 'by performing $value trick$s':'en réalisant $value figure$s',
+			'description_mockup' => $language ? 'by performing N tricks':'en réalisant N figures',
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);
 			},
@@ -1345,7 +1345,7 @@ function getChallengeDecorName($key, &$name, $nb=0) {
 		'firesnake' => $language ? "fire snake$s" : "serpent$s de feu",
 		'box' => $language ? "box$e$s":"caisse$s",
 		'snowball' => $language ? "snow ball$s":"boule$s de neige",
-		'cannonball' => $language ? "pinball ball$s":"boule$s de flipper",
+		'cannonball' => $language ? "pinball$s":"boule$s de flipper",
 		'truck' => $language ? "bus$e$s" : "bus",
 		'pendulum' => $language ? "pendulum$s":"pendule$s",
 		'assets/pivothand' => $language ? "clock hand$s":"aiguille$s",

@@ -10,7 +10,7 @@ include('../includes/initdb.php');
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Change your nickname':'Modifier mon pseudo'; ?> - Mario Kart PC</title>
+<title><?php echo $language ? 'Change your username':'Modifier mon pseudo'; ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -38,7 +38,7 @@ function confirmNick() {
     if (confirmed)
         return true;
     var nick = document.getElementById("newpseudo").value;
-    o_confirm(o_language ? "Do you confirm the nick <strong>"+ nick +"</strong>? Warning, you won't be able to rechange it for 24h." : "Confirmer le pseudo <strong>"+ nick +"</strong> ? Attention, vous ne pourrez pas le rechanger avant 24h.", function(valided) {
+    o_confirm(o_language ? "Do you confirm the username <strong>"+ nick +"</strong>? Warning, you won't be able to rechange it for 24h." : "Confirmer le pseudo <strong>"+ nick +"</strong> ? Attention, vous ne pourrez pas le rechanger avant 24h.", function(valided) {
         if (valided) {
             confirmed = true;
             document.forms[0].submit();
@@ -67,18 +67,18 @@ if (isset($_POST['newpseudo'])) {
         if ($lastNickChange = mysql_fetch_array(mysql_query('SELECT date FROM mknewnicks WHERE id="'. $id .'" ORDER BY date DESC LIMIT 1')))
             $nextNickChange = strtotime($lastNickChange['date'])+86400;
         if ($nextNickChange > time())
-            $message = $language ? 'You have changed your nick recently, therefore you are not allowed to rechange it for now. Please come back later.':'Vous avez changé votre pseudo récemment, vous ne pouvez donc pas le rechanger pour l\'instant. Revenez plus tard.';
+            $message = $language ? 'You have changed your username recently, therefore you are not allowed to rechange it for now. Please come back later.':'Vous avez changé votre pseudo récemment, vous ne pouvez donc pas le rechanger pour l\'instant. Revenez plus tard.';
         else
             $success = editNick($id,$getPseudo['nom'],$new,$message);
 	}
 	else
-        $message = $language ? 'You have been banned, you cannot edit your nick.':'Vous avez été banni, vous ne pouvez pas modifier votre pseudo.';
+        $message = $language ? 'You have been banned, you cannot edit your username.':'Vous avez été banni, vous ne pouvez pas modifier votre pseudo.';
 }
 else
 	mysql_query('DELETE FROM `mknewnicks` WHERE date<DATE_SUB(NOW(), INTERVAL 1 MONTH)');
 ?>
 <main>
-	<h1><?php echo $language ? 'Edit nick':'Modification de pseudo'; ?></h1>
+	<h1><?php echo $language ? 'Change username':'Modification de pseudo'; ?></h1>
 	<?php
 	if (isset($success))
 		echo $language ? '<p class="success">You have been renamed into <strong>'. htmlspecialchars($new) .'</strong>.</p>' : '<p class="success">Vous avez été renommé en <strong>'. htmlspecialchars($new) .'</strong>.</p>';
@@ -86,8 +86,8 @@ else
 		echo '<p style="color: red">'. $message .'</p>';
     if ($language) {
         ?>
-        This page allows you to change your current nick.<br />
-        Simply enter your new nick in the field below:
+        This page allows you to change your current username.<br />
+        Simply enter your new username in the field below:
         <?php
     }
     else {
@@ -107,7 +107,7 @@ else
     if ($language) {
         ?>
         <div class="warning-msg">
-            <strong>Warning, to avoid abuses, nick changes are limited to 1 per day.</strong>
+            <strong>Warning, to avoid abuses, username changes are limited to 1 per day.</strong>
         </div>
         <?php
     }

@@ -239,7 +239,7 @@ if ($unban) {
     ?></h2>
 	<table>
 	<tr id="titres">
-	<td><?php echo $language ? 'Nick':'Pseudo'; ?></td>
+	<td><?php echo $language ? 'Username':'Pseudo'; ?></td>
 	<td>Message</td>
 	<?php
     if ($action === 'ban')

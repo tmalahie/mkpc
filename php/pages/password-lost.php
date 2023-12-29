@@ -87,7 +87,7 @@ Voici un lien qui va vous permettre de générer un nouveau mot de passe:
 			$error = $language ? 'Sorry, this account doesn\'t have any associated email':'Désolé, L\'adresse email n\'est pas renseignée sur ce compte';
 	}
 	else
-		$error = $language ? 'Sorry, this nickname does not exist':'Désolé, ce pseudo n\'existe pas';
+		$error = $language ? 'Sorry, this username does not exist':'Désolé, ce pseudo n\'existe pas';
 }
 elseif (isset($_GET['email'])) {
 	$showEmail = true;
@@ -195,9 +195,9 @@ include('../includes/menu.php');
 				<p class="big-instructions" id="success">
 					<?php
 					if (count($pseudos) > 1)
-						echo $language ? 'The following nicks have been found: ':'Les pseudos suivants ont été trouvés : ';
+						echo $language ? 'The following usernames have been found: ':'Les pseudos suivants ont été trouvés : ';
 					else
-						echo $language ? 'The following nick has been found: ':'Le pseudo suivant a été trouvé : ';
+						echo $language ? 'The following username has been found: ':'Le pseudo suivant a été trouvé : ';
 					echo implode(', ', $pseudos);
 					?>
 				</p>
@@ -221,20 +221,20 @@ include('../includes/menu.php');
 		?></a></h2>
 		<div class="big-instructions" id="show-email"<?php echo $showEmail?' style="display:block"':''; ?>>
 			<?php
-			echo $language ? 'In that case it\'s easy, you just have to enter your nick here:':'Dans ce cas c\'est facile, il vous suffit d\'entrer votre pseudo ici :';
+			echo $language ? 'In that case it\'s easy, you just have to enter your username here:':'Dans ce cas c\'est facile, il vous suffit d\'entrer votre pseudo ici :';
 			?>
 			<form method="get" action="password-lost.php">
-				<input type="text" name="pseudo" size="10" class="well_input" placeholder="<?php echo $language ? 'Nick':'Pseudo'; ?>"<?php echo isset($_GET['pseudo']) ? ' value="'. htmlspecialchars($_GET['pseudo']) .'"':''; ?> />
+				<input type="text" name="pseudo" size="10" class="well_input" placeholder="<?php echo $language ? 'Username':'Pseudo'; ?>"<?php echo isset($_GET['pseudo']) ? ' value="'. htmlspecialchars($_GET['pseudo']) .'"':''; ?> />
 				<input type="submit" class="action_button" value="Ok" />
 			</form>
 			<?php
-			echo $language ? 'An email will be sent to the address associated to the nick.':'Un email sera alors envoyé à l\'adresse associée à ce pseudo.';
+			echo $language ? 'An email will be sent to the address associated to the username.':'Un email sera alors envoyé à l\'adresse associée à ce pseudo.';
 			?><br />
 			<a href="javascript:toggleView('show-pseudo')"><?php
-			echo $language ? 'Don\'t remember your nick?':'Vous ne vous rappelez plus de votre pseudo ?'; ?></a>
+			echo $language ? 'Don\'t remember your username?':'Vous ne vous rappelez plus de votre pseudo ?'; ?></a>
 			<div id="show-pseudo"<?php echo $showMissNick?' style="display:block"':''; ?>>
 				<?php
-				echo $language ? 'No problem, enter your email address, we\'ll find out your nick:':'Pas de problème, indiquez votre adresse mail, nous retrouverons votre pseudo :';
+				echo $language ? 'No problem, enter your email address, we\'ll find out your username:':'Pas de problème, indiquez votre adresse mail, nous retrouverons votre pseudo :';
 				?>
 				<form method="get">
 					<input type="email" name="email" class="well_input" placeholder="xxx.yyy@zzz.com"<?php echo isset($_GET['email']) ? ' value="'. htmlspecialchars($_GET['email']) .'"':''; ?> />

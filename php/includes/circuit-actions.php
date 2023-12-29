@@ -374,7 +374,7 @@ function printCircuitShareUI() {
         ?>
         <form id="cSave" method="post" action="" onclick="handleShareBackdropClick(event)" onsubmit="saveRace();return false">
         <table id="cTable"<?php if ($cNameTr) echo ' class="cShowTr"'; ?>>
-        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter your nick:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="auteur" id="cPseudo" value="<?php echo htmlEscapeCircuitNames($cPseudo) ?>" placeholder="Yoshi64" /></td></tr>
+        <tr><td class="cLabel"><label for="cPseudo"><?php echo $language ? 'Enter a username:':'Indiquez votre pseudo :'; ?></label></td><td><input type="text" name="auteur" id="cPseudo" value="<?php echo htmlEscapeCircuitNames($cPseudo) ?>" placeholder="Yoshi64" /></td></tr>
         <?php
         if ($language)
             $ofTrack = ($isCup ? ($isMCup ? 'Multicup':'Cup'):($isBattle ? 'Arena':'Circuit'));

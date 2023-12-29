@@ -635,9 +635,9 @@ function addResult(id, i) {
 		oManageLink.onclick = function(e) {
 			e.preventDefault();
 			var items = [{
-				label: language ? "Change nick" : "Modifier pseudo",
+				label: language ? "Change username" : "Modifier pseudo",
 				select: function() {
-					var newName = prompt(language ? "Enter new nick:":"Entrer le nouveau pseudo :", iJoueur[I_NICK]);
+					var newName = prompt(language ? "Enter new username:":"Entrer le nouveau pseudo :", iJoueur[I_NICK]);
 					if (newName && newName !== iJoueur[I_NICK]) {
 						o_xhr("editRecord.php", "id="+iJoueur[I_ID]+"&name="+encodeURIComponent(newName), function(res) {
 							if (res == 1) {
@@ -646,7 +646,7 @@ function addResult(id, i) {
 								return true;
 							}
 							if (res == -1) {
-								alert(language ? "This nick already exists, please choose another one":"Ce pseudo existe déjà, veuillez en choisir un autre");
+								alert(language ? "This username already exists, please choose another one":"Ce pseudo existe déjà, veuillez en choisir un autre");
 								return true;
 							}
 							if (res < 0) {
@@ -752,7 +752,7 @@ function displayResult(id, n) {
 	oPlace.style.width = "20px";
 	tableHeader.appendChild(oPlace);
 	var oPseudo = document.createElement("td");
-	oPseudo.innerHTML = language ? "Nick":"Pseudo";
+	oPseudo.innerHTML = language ? "Username":"Pseudo";
 	tableHeader.appendChild(oPseudo);
 	var oPerso = document.createElement("td");
 	oPerso.innerHTML = language ? "Char.":"Perso";

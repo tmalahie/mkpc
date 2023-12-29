@@ -5705,7 +5705,7 @@ function continuer() {
 									aPara2.innerHTML = toLanguage("You did a better score on this race before.<br />Your score has not been registered.", "Vous avez fait un meilleur score sur ce circuit.<br />Votre temps n'a donc pas &eacute;t&eacute; enregistr&eacute;.");
 									break;
 								case 1:
-									aPara2.innerHTML = toLanguage("This nick is already used, please choose another one. If it's you, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">log-in</a> to your account and try again.", "Ce pseudo est déjà utilisé, veuillez en choisir un autre. S'il s'agit de vous, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">connectez-vous</a> et réessayez.");
+									aPara2.innerHTML = toLanguage("This username is already used, please choose another one. If it's you, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">log-in</a> to your account and try again.", "Ce pseudo est déjà utilisé, veuillez en choisir un autre. S'il s'agit de vous, <a href=\"forum.php\" target=\"_blank\" style=\"color: orange\">connectez-vous</a> et réessayez.");
 									break;
 								default:
 									aPara2.innerHTML = toLanguage("An unknown error occured, please try again later", "Une erreur inconnue est survenue, veuillez réessayer ultérieurement");
@@ -5727,7 +5727,7 @@ function continuer() {
 				return false;
 			}
 			var aPara1 = document.createElement("p");
-			aPara1.innerHTML = toLanguage("Nick : ", "Pseudo : ");
+			aPara1.innerHTML = toLanguage("Username: ", "Pseudo : ");
 			aPara1.style.margin = iScreenScale +"px";
 			var oInput = document.createElement("input");
 			oInput.type = "text";
@@ -12596,7 +12596,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars) {
 				addChallengeHud("stunts", {
-					title: toLanguage("Stunts","Figures"),
+					title: toLanguage("Tricks","Figures"),
 					value: clLocalVars.stunts+ruleVars.stunts,
 					out_of: scope.value
 				});
@@ -20316,7 +20316,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	var oDiv = document.createElement("div");
 	oDiv.style.fontSize = (2*iScreenScale) +"px";
 	oDiv.style.color = "white";
-	oDiv.innerHTML = toLanguage("If checked, it becomes impossible to jump, drift or make stunts", "Si coché, il est impossible de faire des sauts, dérapages ou figures");
+	oDiv.innerHTML = toLanguage("If checked, it becomes impossible to jump, drift or make tricks", "Si coché, il est impossible de faire des sauts, dérapages ou figures");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
@@ -24068,7 +24068,7 @@ function acceptRulesScreen() {
 		var oDiv = document.createElement("div");
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("It's impossible to perform a jump, drift or stunt", "Il est impossible de faire des sauts, dérapages ou figures");
+		oDiv.innerHTML = toLanguage("It's impossible to perform a jump, drift or trick", "Il est impossible de faire des sauts, dérapages ou figures");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);
@@ -26971,7 +26971,7 @@ function connexion() {
 	var oPseudo = document.createElement("label");
 	oPseudo.style.fontSize = (iScreenScale*3) +"px";
 	oPseudo.setAttribute("for", "iPseudo");
-	oPseudo.innerHTML = toLanguage(" &nbsp; &nbsp; Nick :", "Pseudo :");
+	oPseudo.innerHTML = toLanguage("&nbsp; Username:", "&nbsp; Pseudo :");
 	oTd11.appendChild(oPseudo);
 	var oTd12 = document.createElement("td");
 	iPseudo = document.createElement("input");
@@ -26990,7 +26990,7 @@ function connexion() {
 	var oCode = document.createElement("label");
 	oCode.style.fontSize = (iScreenScale*3) +"px";
 	oCode.setAttribute("for", "iCode");
-	oCode.innerHTML = "Code :";
+	oCode.innerHTML = toLanguage("Password:", "Code :");
 	oTd21.appendChild(oCode);
 	var oTd22 = document.createElement("td");
 	iCode = document.createElement("input");
@@ -27025,7 +27025,7 @@ function connexion() {
 	aError.style.position = "absolute";
 	aError.style.left = (iScreenScale*21) +"px";
 	aError.style.top = (iScreenScale*31) +"px";
-	aError.innerHTML = toLanguage("Incorrect nick or password", "Pseudo ou mot de passe incorrect");
+	aError.innerHTML = toLanguage("Incorrect username or password", "Pseudo ou mot de passe incorrect");
 	aError.style.visibility = "hidden";
 	oScr.appendChild(aError);
 	

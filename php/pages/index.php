@@ -428,7 +428,7 @@ $slidesPath = 'images/slides';
 		date_default_timezone_set('UTC');
 		display_sidebar('Forum', 'forum.php');
 		?>
-			<h2><?= _('Last topics') ?></h2>
+			<h2><?= _('Latest topics') ?></h2>
 			<div id="forum_section" class="right_subsection">
 				<?php
 				require_once('../includes/getRights.php');
@@ -458,9 +458,9 @@ $slidesPath = 'images/slides';
 						<h3>
 							<?php
 								if ($message['nom']) {
-									printf(F_("Last message by <strong>{message}</strong>", message: $message['nom']));
+									printf(F_("Latest message by <strong>{message}</strong>", message: $message['nom']));
 								} else {
-									printf(_("Last message"));
+									printf(_("Latest message"));
 								}
 								echo ' ';
 								echo pretty_dates_short($topic['dernier'],array('lower'=>true));
@@ -696,7 +696,7 @@ $slidesPath = 'images/slides';
 				</table>
 			</div>
 			<a class="right_section_actions action_button" href="creations.php"><?= _('Display all') ?></a>
-			<h2><?= _('Last challenges') ?></h2>
+			<h2><?= _('Latest challenges') ?></h2>
 			<div id="challenges_section" class="right_subsection">
 				<?php
 				require_once('../includes/utils-challenges.php');

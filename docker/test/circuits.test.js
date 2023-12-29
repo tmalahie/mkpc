@@ -14,7 +14,7 @@ test('Should create a circuit using quick track builder', async () => {
 test('Should share a circuit using quick track builder', async () => {
     const $share = await getByValue(page, "Share circuit", {tag: "input"});
     await $share.click();
-    const $nick = await getByLabelText(page, "Enter your nick", {exact: false});
+    const $nick = await getByLabelText(page, "Enter a username", {exact: false});
     await $nick.evaluate(nick => nick.value = "Wargor");
     const $name = await getByLabelText(page, "Circuit name", {exact: false});
     await $name.evaluate(name => name.value = "Test circuit");

@@ -113,7 +113,7 @@ $logMapping = array(
         'role' => 'manager'
     ),
     'nick' => array(
-        'render' => _('changed <strong>$2</strong>\'s nick to ') . $logTemplates['member']('$1'),
+        'render' => _('changed <strong>$2</strong>\'s username to ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
     'SPerso' => array(

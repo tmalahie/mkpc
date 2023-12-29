@@ -16,7 +16,7 @@ if (!hasRight('moderator')) {
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Nick change history':'Historique changements de pseudo'; ?> - Mario Kart PC</title>
+<title><?php echo $language ? 'Username change history':'Historique changements de pseudo'; ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -41,11 +41,11 @@ $page = 'forum';
 include('../includes/menu.php');
 ?>
 <main>
-	<h1><?php echo $language ? 'Nick change history':'Historique changements de pseudo'; ?></h1>
+	<h1><?php echo $language ? 'Username change history':'Historique changements de pseudo'; ?></h1>
 	<table>
 	<tr id="titres">
-	<td><?php echo $language ? 'Current nick':'Pseudo actuel'; ?></td>
-	<td><?php echo $language ? 'Previous nick':'Pseudo précédent'; ?></td>
+	<td><?php echo $language ? 'Current username':'Pseudo actuel'; ?></td>
+	<td><?php echo $language ? 'Previous username':'Pseudo précédent'; ?></td>
 	<td>Date</td>
 	</tr>
 	<?php

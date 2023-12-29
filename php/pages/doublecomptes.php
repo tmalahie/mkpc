@@ -74,7 +74,7 @@ if ($unban) {
 	?>
 	<form method="get" action="doublecomptes.php">
 	<blockquote>
-	<p><label for="pseudo"><strong><?php echo $language ? 'Enter the nickname':'Pseudo du joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" /> <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" /></p>
+	<p><label for="pseudo"><strong><?php echo $language ? 'Enter the username':'Pseudo du joueur'; ?></strong></label> : <input type="text" name="pseudo" id="pseudo" /> <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" class="action_button" /></p>
 	</blockquote>
 	</form>
 	<p><a href="forum.php"><?php echo $language ? 'Back to the forum':'Retour au forum'; ?></a><br />

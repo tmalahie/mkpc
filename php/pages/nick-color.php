@@ -17,7 +17,7 @@ if ($getProfile = mysql_fetch_array(mysql_query('SELECT j.nom,p.nick_color FROM 
 <!DOCTYPE html>
 <html lang="<?php echo $language ? 'en':'fr'; ?>">
 <head>
-<title><?php echo $language ? 'Edit nick color':'Modifier couleur du pseudo'; ?> - Mario Kart PC</title>
+<title><?php echo $language ? 'Edit username color':'Modifier couleur du pseudo'; ?> - Mario Kart PC</title>
 <?php
 include('../includes/heads.php');
 ?>
@@ -138,7 +138,7 @@ $page = 'forum';
 include('../includes/menu.php');
 ?>
 <main>
-<h1><?php echo $language ? 'Edit nick color':'Modifier la couleur du pseudo'; ?></h1>
+<h1><?php echo $language ? 'Edit username color':'Modifier la couleur du pseudo'; ?></h1>
 <?php
 if (isset($success))
 	echo '<div class="success">'. $success .'</div>';
@@ -147,7 +147,7 @@ if (isset($success))
 	<?php
 	if ($language) {
 		?>
-	This page allows you to change your nick color as it appears on the forum.<br />
+	This page allows you to change your username color as it appears on the forum.<br />
 	For that, it's simple: insert the colors of your choice in the field below
 	using the beacon bbCode <span style="font-family:Monospace">[color]</span>, as you would in a message on the forum.<br />
 	Example:

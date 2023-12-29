@@ -111,7 +111,7 @@ foreach ($get as $k => $getk)
 	<table>
 	<tr id="titres">
 	<td>Place</td>
-	<td><?php echo $language ? 'Nick':'Pseudo'; ?></td>
+	<td><?php echo $language ? 'Username':'Pseudo'; ?></td>
 	<td><?php
 	if ($day)
 		echo $language ? 'Date':'Date';

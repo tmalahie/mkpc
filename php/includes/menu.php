@@ -533,7 +533,7 @@
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($notifData['mine'] ? ($language ? 'to your topic':'à votre topic') : ($language ? 'to the topic':'au topic')) .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'forum_mention' :
-				$verb = ($language ? 'mention':((count($names)>1) ? 'ont mentionné':'a mentionné'));
+				$verb = ($language ? 'mentioned':((count($names)>1) ? 'ont mentionné':'a mentionné'));
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your name in the topic':'votre pseudo dans le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'forum_quote' :

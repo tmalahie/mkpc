@@ -10,7 +10,7 @@ if (isset($_GET['pseudo'])) {
 	else {
 		include('../includes/session.php');
 		include('../includes/language.php');
-		echo $language ? 'This nick does not exist':'Ce pseudo n\'existe pas';
+		echo $language ? 'This username does not exist':'Ce pseudo n\'existe pas';
 		mysql_close();
 	}
 	unset($_GET['pseudo']);
@@ -245,7 +245,7 @@ include('../includes/menu.php');
 				$s = ($nbNicks>=2) ? 's':'';
 				?>
 				<div class="last-nick"><?php
-				echo $language ? 'Last nick'.$s.':' : 'Ancien'.$s.' pseudo'.$s.' :';
+				echo $language ? 'Last username'.$s.':' : 'Ancien'.$s.' pseudo'.$s.' :';
 				echo ' ';
 				echo implode(', ', $oldNicks);
 				?></div>
@@ -581,8 +581,8 @@ include('../includes/menu.php');
 					<h2>Options</h2>
 					<ul>
 						<li><a href="edit-profile.php"><?php echo $language ? 'Edit personal info':'Modifier mes infos persos'; ?></a></li>
-						<li><a href="edit-nick.php"><?php echo $language ? 'Change your nickname':'Modifier mon pseudo'; ?></a></li>
-						<li><a href="nick-color.php"><?php echo $language ? 'Edit nick color':'Modifier la couleur du pseudo'; ?></a></li>
+						<li><a href="edit-nick.php"><?php echo $language ? 'Change your username':'Modifier mon pseudo'; ?></a></li>
+						<li><a href="nick-color.php"><?php echo $language ? 'Edit username color':'Modifier la couleur du pseudo'; ?></a></li>
 						<li><a href="password.php"><?php echo $language ? 'Change password':'Modifier mot de passe'; ?></a></li>
 						<li class="new-section"><a href="logout.php"><?php echo $language ? 'Log out':'Se déconnecter'; ?></a></li>
 						<li><a href="signout.php"><?php echo $language ? 'Delete account':'Supprimer compte'; ?></a></li>

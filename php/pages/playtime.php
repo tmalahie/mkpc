@@ -30,7 +30,7 @@ include('../includes/menu.php');
 	?>
 	<table>
 	<tr id="titres">
-	<td><?php echo $language ? 'Nick':'Pseudo'; ?></td>
+	<td><?php echo $language ? 'Username':'Pseudo'; ?></td>
 	<td><?php echo $language ? 'Play time':'Temps de jeu'; ?></td>
 	</tr>
 	<?php

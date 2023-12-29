@@ -184,7 +184,7 @@ function o_refreshtable() {
 						}
 						else {
 							var o_talk = document.createElement("div");
-							o_talk.innerHTML = o_language ? "Talk":"Discuter";
+							o_talk.innerHTML = o_language ? "Chat":"Discuter";
 							o_talk.style.fontWeight = "bold";
 							o_talk.onclick = function(e) {
 								removeCtxtMenu();
@@ -355,7 +355,7 @@ function o_fill_chats(oMask,lastMembers) {
 	oForm.className = "o_new_conv";
 	var oLabel = document.createElement("label");
 	oLabel.setAttribute("for", "o_new_conv_input");
-	oLabel.innerHTML = o_language ? "Nick:" : "Pseudo :";
+	oLabel.innerHTML = o_language ? "Username:" : "Pseudo :";
 	oForm.appendChild(oLabel);
 	var oInput = document.createElement("input");
 	oInput.type = "text";
@@ -382,7 +382,7 @@ function o_fill_chats(oMask,lastMembers) {
 				if (!memberID)
 					return false;
 				if (memberID == -1)
-					o_alert(o_language ? "This nick doesn't exist":"Ce pseudo n'existe pas.", redoChat);
+					o_alert(o_language ? "This username doesn't exist":"Ce pseudo n'existe pas.", redoChat);
 				else if (memberID == -2)
 					o_launchchat(o_id,pseudo);
 				else
@@ -425,7 +425,7 @@ function o_my_chats(lastMembers) {
 
 function o_invitesb() {
 	if (!o_online) {
-		o_alert(o_language ? "You are offline !":"Vous \xEAtes hors-ligne !");
+		o_alert(o_language ? "You are offline!":"Vous \xEAtes hors-ligne !");
 		return;
 	}
 	if (!document.getElementById("coliste")) {
@@ -1420,7 +1420,7 @@ function o_refresh() {
 						if (comsgs[j].dataset.connectID == memberID)
 							eval(comsgs[j].getElementsByTagName("a")[0].href);
 					}
-					var o_msgId = displayMsg(o_language ? '<b>'+ newPlayers[i][1] +'</b> just connected<br /><input type="button" class="cotalk" value="Talk" /> <input type="button" class="coinvite" value="Invite online" />':'<b>'+ newPlayers[i][1] +'</b> vient de se connecter<br /><br /><input type="button" class="cotalk" value="Discuter" /> <input type="button" class="coinvite" value="Inviter en online" />', false);
+					var o_msgId = displayMsg(o_language ? '<b>'+ newPlayers[i][1] +'</b> just connected<br /><input type="button" class="cotalk" value="Chat" /> <input type="button" class="coinvite" value="Invite online" />':'<b>'+ newPlayers[i][1] +'</b> vient de se connecter<br /><br /><input type="button" class="cotalk" value="Discuter" /> <input type="button" class="coinvite" value="Inviter en online" />', false);
 					if (o_msgId != -1) {
 						var o_msg = document.getElementById("comsg"+ o_msgId);
 						o_disappear(o_msg);

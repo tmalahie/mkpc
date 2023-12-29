@@ -228,7 +228,7 @@ msgid "gave $1 pts to {user} in online mode (battle)"
 msgstr "a donné $1 pts à {user} dans le mode en ligne (bataille)"
 
 #: php/pages/admin-logs.php
-msgid "changed <strong>$2</strong>'s nick to "
+msgid "changed <strong>$2</strong>'s username to "
 msgstr "a modifié le pseudo de <strong>$2</strong> en "
 
 #: php/pages/admin-logs.php
@@ -493,15 +493,15 @@ msgid "Member management"
 msgstr "Gestion des membres"
 
 #: php/pages/admin.php
-msgid "Edit a member's <strong>nick</strong>"
+msgid "Edit a member's <strong>username</strong>"
 msgstr "Changer le <strong>pseudo</strong> d'un membre"
 
 #: php/pages/admin.php
-msgid "Can be useful if a member has a troll nick for example"
+msgid "Can be useful if a member has a troll username for example"
 msgstr "Peut servir si un membre a un pseudo troll par exemple"
 
 #: php/pages/admin.php
-msgid "See <strong>nick change history</strong>"
+msgid "See <strong>username change history</strong>"
 msgstr "Voir l'historique des <strong>changements de pseudo</strong>"
 
 #: php/pages/admin.php
@@ -847,7 +847,7 @@ msgstr "Nb topics"
 
 #: php/pages/forum.php php/pages/index.php
 #, php-format
-msgid "Last message"
+msgid "Latest message"
 msgstr "Dernier message"
 
 #: php/pages/forum.php
@@ -1253,11 +1253,11 @@ msgid "!"
 msgstr "&nbsp;!"
 
 #: php/pages/index.php
-msgid "Last topics"
+msgid "Latest topics"
 msgstr "Derniers topics"
 
 #: php/pages/index.php
-msgid "Last message by <strong>{message}</strong>"
+msgid "Latest message by <strong>{message}</strong>"
 msgstr "Dernier message par <strong>{message}</strong>"
 
 #: php/pages/index.php
@@ -1315,7 +1315,7 @@ msgid "Display all"
 msgstr "Afficher tout"
 
 #: php/pages/index.php
-msgid "Last challenges"
+msgid "Latest challenges"
 msgstr "Derniers défis"
 
 #: php/pages/index.php
