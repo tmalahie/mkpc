@@ -43,11 +43,12 @@ $placeholderPath = 'images/pages/pixel.png';
 		<div class="splide" role="group" aria-label="Splide Basic HTML Example">
 			<div class="splide__track">
 				<ul class="splide__list">
-				<li class="splide__slide">
-					<div class="splide__slide__container">
-						<div class="splide__slide__wrapper top">
-							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo1.jpg" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo1-640w.jpg 640w, <?= $slidesPath ?>/diapo1.jpg 960w" alt="Slide 1">
-							<div>
+					<li class="splide__slide">
+						<div class="splide__slide__container">
+							<div class="splide__banner">
+								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo1.jpg" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo1-640w.jpg 640w, <?= $slidesPath ?>/diapo1.jpg 960w" class="top" alt="Slide 1">
+							</div>
+							<div class="splide__description">
 								<h3><?= _('A Mario Kart Game for browser') ?></h3>
 								<div>
 									<?= _("A computer version of the famous racing game by Nintendo."); ?><br/>
@@ -55,14 +56,14 @@ $placeholderPath = 'images/pages/pixel.png';
 								</div>
 							</div>
 						</div>
-					</div>
-				</li>
-									
-				<li class="splide__slide">
-					<div class="splide__slide__container">
-						<div class="splide__slide__wrapper">
-							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo2.png" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo2-640w.png 640w, <?= $slidesPath ?>/diapo2.png 960w" alt="Slide 2">
-							<div>
+					</li>
+										
+					<li class="splide__slide">
+						<div class="splide__slide__container">
+							<div class="splide__banner">
+								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo2.png" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo2-640w.png 640w, <?= $slidesPath ?>/diapo2.png 960w" alt="Slide 2">
+							</div>
+							<div class="splide__description">
 								<h3><?= _('Crazy races full of fun!') ?></h3>
 								<div>
 									<?= _("Try to be the fastest while avoiding items!") ?>
@@ -71,14 +72,14 @@ $placeholderPath = 'images/pages/pixel.png';
 								</div>
 							</div>
 						</div>
-					</div>
-				</li>
-									
-				<li class="splide__slide">
-					<div class="splide__slide__container">
-						<div class="splide__slide__wrapper">
-							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo3.png" alt="Slide 3">
-							<div>
+					</li>
+										
+					<li class="splide__slide">
+						<div class="splide__slide__container">
+							<div class="splide__banner">
+								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo3.png" alt="Slide 3">
+							</div>
+							<div class="splide__description">
 								<h3><?= _('Win all the cups!') ?></h3>
 								<div>
 									<?= _("Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!") ?>
@@ -87,14 +88,14 @@ $placeholderPath = 'images/pages/pixel.png';
 								</div>
 							</div>
 						</div>
-					</div>
-				</li>
-									
-				<li class="splide__slide">
-					<div class="splide__slide__container">
-						<div class="splide__slide__wrapper">
-							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo4.png" alt="Slide 4">
-							<div>
+					</li>
+										
+					<li class="splide__slide">
+						<div class="splide__slide__container">
+							<div class="splide__banner">
+								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo4.png" alt="Slide 4">
+							</div>
+							<div class="splide__description">
 								<h3><?= _('Create your own tracks!') ?></h3>
 								<div>
 									<?= _("With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!") ?>
@@ -103,14 +104,14 @@ $placeholderPath = 'images/pages/pixel.png';
 								</div>
 							</div>
 						</div>
-					</div>
-				</li>
-									
-				<li class="splide__slide">
-					<div class="splide__slide__container">
-						<div class="splide__slide__wrapper">
-							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo5.png" class="smooth" alt="Slide 5">
-							<div>
+					</li>
+										
+					<li class="splide__slide">
+						<div class="splide__slide__container">
+							<div class="splide__banner">
+								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo5.png" class="top smooth" alt="Slide 5">
+							</div>
+							<div class="splide__description">
 								<h3><?= _('Face players from around the world!') ?></h3>
 								<div>
 									<?= _("Race and battle in <strong>online mode</strong>!") ?>
@@ -119,14 +120,14 @@ $placeholderPath = 'images/pages/pixel.png';
 								</div>
 							</div>
 						</div>
-					</div>
-				</li>
-									
-				<li class="splide__slide">
-					<div class="splide__slide__container">
-						<div class="splide__slide__wrapper">
-							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo6.png" alt="Slide 6">
-							<div>
+					</li>
+										
+					<li class="splide__slide">
+						<div class="splide__slide__container">
+							<div class="splide__banner">
+								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo6.png" class="smooth" alt="Slide 6">
+							</div>
+							<div class="splide__description">
 								<h3><?= _('Make the best scores in time trial!') ?></h3>
 								<div>
 									<?= _("<strong>Finish the race track</strong> as fast as you can!") ?>
@@ -135,14 +136,14 @@ $placeholderPath = 'images/pages/pixel.png';
 								</div>
 							</div>
 						</div>
-					</div>
-				</li>
-									
-				<li class="splide__slide">
-					<div class="splide__slide__container">
-						<div class="splide__slide__wrapper">
-							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo7.png" alt="Slide 7">
-							<div>
+					</li>
+										
+					<li class="splide__slide">
+						<div class="splide__slide__container">
+							<div class="splide__banner">
+								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo7.png" alt="Slide 7">
+							</div>
+							<div class="splide__description">
 								<h3><?= _('Release your fighter talents!') ?></h3>
 								<div>
 									<?= _("<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items!") ?>
@@ -151,14 +152,14 @@ $placeholderPath = 'images/pages/pixel.png';
 								</div>
 							</div>
 						</div>
-					</div>
-				</li>
-									
-				<li class="splide__slide">
-					<div class="splide__slide__container">
-						<div class="splide__slide__wrapper">
-							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo8.png" class="smooth" alt="Slide 8">
-							<div>
+					</li>
+										
+					<li class="splide__slide">
+						<div class="splide__slide__container">
+							<div class="splide__banner">
+								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo8.png" class="center smooth" alt="Slide 8">
+							</div>
+							<div class="splide__description">
 								<h3><?= _('Face off your friends with the local multiplayer mode!') ?></h3>
 								<div>
 									<?= _("Prove to your friends that you're the best!")?>
@@ -167,8 +168,7 @@ $placeholderPath = 'images/pages/pixel.png';
 								</div>
 							</div>
 						</div>
-					</div>
-				</li>
+					</li>
 				</ul>
 			</div>
 		</div>
