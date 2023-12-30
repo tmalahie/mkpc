@@ -3,7 +3,7 @@
 }
 body {
 	background-color: #E8964C;
-	background: url('../images/fond_mountains2.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 40%, #E8964C 70%, #AF663D 100%);
+	background-image: url('../images/pages/bg-mountains.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 40%, #E8964C 70%, #AF663D 100%);
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
@@ -22,14 +22,17 @@ body {
 		height: 100vh;
 		overflow-y: scroll;
 		background-color: #E8964C;
-		background: url('../images/fond_mountains2.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 60%, #E8964C 70%, #AF663D 100%);
+		background-image: url('../images/pages/bg-mountains-640w.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 60%, #E8964C 70%, #AF663D 100%);
 		background-size: 200vw auto, auto;
-		background-repeat: no-repeat;
-		background-attachment: fixed;
 		background-position: center -65vw, center;
 	}
 	#header_left img, #header_right img {
 		height: 2.6vw;
+	}
+}
+@media only screen and (max-width: 400px) {
+	body {
+		background-image: url('../images/pages/bg-mountains-320w.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 60%, #E8964C 70%, #AF663D 100%);
 	}
 }
 header {
@@ -826,6 +829,11 @@ header, nav, main, footer {
 }
 #toBegin img {
 	max-width: 100%;
+	width: 310px;
+	height: 310px;
+	position: relative;
+	top: 2px;
+	background-color: black;
 }
 #left_section a {
 	color: #F60;
@@ -836,10 +844,16 @@ header, nav, main, footer {
 #left_section ul {
 	list-style-image: url('../images/bullet.png');
 }
+#left_section .splide ul {
+	list-style-image: none;
+}
 #screenshots {
 	width: 100%;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-gap: 4px;
 }
-#screenshots td img {
+#screenshots img {
 	width: 100%;
 	cursor: zoom-in;
 }
@@ -978,9 +992,10 @@ footer a {
 	height: auto;
 	overflow: visible;
 }
-.flag_counter h4 {
+.flag_counter h3 {
 	margin-top: 10px;
 	margin-bottom: 5px;
+	font-size: 1em;
 	color: #560000;
 }
 .flag_counter img {
@@ -1091,13 +1106,15 @@ footer a {
 	color: #39F;
 }
 .ranking_activeplayertitle {
-	position: absolute;
+	position: fixed;
 	background-color: rgba(91,91,112, 0.95);
 	color: white;
 	padding: 3px 5px;
 	border-radius: 6px;
 	z-index: 10;
 	font-size: 0.9em;
+	opacity: 1;
+	transition: opacity 0.2s ease-in;
 }
 .ranking_current .action_button {
 	margin-top: 3px;

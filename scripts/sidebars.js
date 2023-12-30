@@ -1,50 +1,59 @@
-jQuery(function() {
-	jQuery("#right_section .sidebar_title a").hover(
-		function() {
-			jQuery(this).parent().parent().parent().parent().css("background-image", "url('images/sidebar_hover.png')");
-			jQuery(this).parent().parent().parent().parent().css("background-color", "#80FF00");
-		},
-		function() {
-			jQuery(this).parent().parent().parent().parent().css("background-image", "");
-			jQuery(this).parent().parent().parent().parent().css("background-color", "");
-		}
-	);
-	jQuery(".flag_counter img").load(function() {
-		jQuery(".flag_counter").addClass("flag_loaded");
-	});
-	jQuery(".ranking_activeplayernb").each(function(id,elt) {
-		var $elt = jQuery(elt);
-		var title = $elt.attr("title");
-		title = title.replace(/, /g, "<br />");
-		$elt.attr("title", "");
-		var $fancyTitle;
-		$elt.mouseover(function(e) {
-			if ($fancyTitle) return;
-			$fancyTitle = jQuery("<div></div>");
-			$fancyTitle.addClass("ranking_activeplayertitle");
-			$fancyTitle.html(title);
-			$fancyTitle.css("visibility", "hidden");
-			jQuery("body").append($fancyTitle);
-			var eltPos = $elt.offset();
-			$fancyTitle.css("left", Math.round(eltPos.left + ($elt.width()-$fancyTitle.width())/2) - 3);
-			$fancyTitle.css("top", eltPos.top-$fancyTitle.height()-5);
-			$fancyTitle.hide().css("visibility", "visible").fadeIn(200);
-		});
-		$elt.mouseout(function(e) {
-			if (!$fancyTitle) return;
-			$fancyTitle.fadeOut(200, function() {
-				jQuery(this).remove();
-			});
-			$fancyTitle = undefined;
-		});
-	});
-});
 var onlineModeIds = ["vs","battle","clm150","clm200"];
 var currenttabcc = 2;
+
 function dispRankTab(mode) {
-	if (mode >= 2)
-		currenttabcc = mode;
-	var onlineModeId = onlineModeIds[mode];
-	document.getElementById("rankings_section").className = "subsection rank_" + onlineModeId;
-	jQuery(".ranking_tab.tab_"+onlineModeId+" .ranking_badge").hide(); // TODO works only because 2 tabs
+    if (mode >= 2)
+        currenttabcc = mode;
+    var onlineModeId = onlineModeIds[mode];
+    document.getElementById("rankings_section").className = "subsection rank_" + onlineModeId;
+    document.querySelectorAll(".ranking_tab.tab_"+onlineModeId+" .ranking_badge").forEach(function(badge) {
+        badge.style.display = "none";
+    });
 }
+
+
+document.querySelectorAll("#right_section .sidebar_title a").forEach(function(a) {
+	a.addEventListener('mouseover', function() {
+		this.parentElement.parentElement.parentElement.parentElement.style.backgroundImage = "url('images/sidebar_hover.png')";
+		this.parentElement.parentElement.parentElement.parentElement.style.backgroundColor = "#80FF00";
+	});
+	a.addEventListener('mouseout', function() {
+		this.parentElement.parentElement.parentElement.parentElement.style.backgroundImage = "";
+		this.parentElement.parentElement.parentElement.parentElement.style.backgroundColor = "";
+	});
+});
+
+document.querySelectorAll(".flag_counter img").forEach(function(img) {
+	img.addEventListener('load', function() {
+		this.parentElement.classList.add("flag_loaded");
+	});
+});
+
+document.querySelectorAll(".ranking_activeplayernb").forEach(function(elt) {
+	var title = elt.getAttribute("title");
+	title = title.replace(/, /g, "<br />");
+	elt.setAttribute("title", "");
+	var fancyTitle;
+	elt.addEventListener('mouseover', function() {
+		if (fancyTitle) return;
+		fancyTitle = document.createElement("div");
+		fancyTitle.className = "ranking_activeplayertitle";
+		fancyTitle.innerHTML = title;
+		fancyTitle.style.opacity = 0;
+		document.body.appendChild(fancyTitle);
+		var eltPos = elt.getBoundingClientRect();
+		fancyTitle.style.left = Math.round(eltPos.left + (elt.offsetWidth-fancyTitle.offsetWidth)/2) - 3 + "px";
+		fancyTitle.style.top = eltPos.top-fancyTitle.offsetHeight-2 + "px";
+		fancyTitle.style.opacity = 1;
+	});
+	elt.addEventListener('mouseout', function() {
+		if (!fancyTitle) return;
+		fancyTitle.style.opacity = 0;
+		setTimeout(function() {
+			if (fancyTitle) {
+				document.body.removeChild(fancyTitle);
+				fancyTitle = undefined;
+			}
+		}, 200);
+	});
+});

@@ -33,11 +33,13 @@ if (!empty($_GET['player']) && isset($_GET['map'])) {
         <link rel="stylesheet" type="text/css" href="styles/classement.css" />
         <style type="text/css">
         body {
-            background-color: #55B8FF;
-            background-image: url('../images/fond_mountains.jpg');
+            background-color: #E8964C;
+            background: url('../images/pages/bg-mountains-320w.jpg'), linear-gradient(0deg, #12021D 0%, #12021D 40%, #E8964C 70%, #AF663D 100%);
             background-size: cover;
+            background-repeat: no-repeat;
             background-attachment: fixed;
             background-position: center bottom;
+            background-position: center -30vw, center;
             background-repeat: no-repeat;
             margin: auto 0;
         }

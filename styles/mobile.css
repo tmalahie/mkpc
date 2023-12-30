@@ -48,3 +48,12 @@ header, nav, main, footer {
 #developer {
 	display: none;
 }
+#challenge_ranking {
+	margin-top: 12px;
+}
+#forum_section, #news_section {
+	margin-bottom: 20px;
+}
+#creations_section, #comments_section, #challenges_section, #top10 {
+	margin-bottom: 15px;
+}

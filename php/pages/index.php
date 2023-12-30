@@ -18,9 +18,9 @@ include('../includes/session.php');
 <?php
 include('../includes/heads.php');
 ?>
+<link rel="stylesheet" href="styles/splide.min.css" />
 <link rel="stylesheet" href="styles/slider.css" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
-<link rel="stylesheet" href="styles/tri-nations.css" />
 <?php
 include('../includes/o_online.php');
 ?>
@@ -36,172 +36,146 @@ if ($id && $myIdentifiants) {
 	mysql_query('INSERT IGNORE INTO `mkbrowsers` VALUES("'.$id.'","'.mysql_real_escape_string($_SERVER['HTTP_USER_AGENT']).'")');
 }
 $slidesPath = 'images/slides';
+$placeholderPath = 'images/pages/pixel.png';
 ?>
 <main>
 	<section id="left_section">
-		<div class="fp-slider">
-			<div class="fp-slides-container">
-				<div class="fp-slides">
-					<div class="fp-slides-items">
-						<div class="fp-thumbnail" style="background: url('<?php echo $slidesPath; ?>/diapo1.jpg') top">
-						</div>
-						<div class="fp-content-wrap">
-							<div class="fp-content">
-								<h3 class="fp-title"><?= _('A Mario Kart Game for browser') ?></h3>
-								<p>
+		<div class="splide" role="group" aria-label="Splide Basic HTML Example">
+			<div class="splide__track">
+				<ul class="splide__list">
+				<li class="splide__slide">
+					<div class="splide__slide__container">
+						<div class="splide__slide__wrapper top">
+							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo1.jpg" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo1-640w.jpg 640w, <?= $slidesPath ?>/diapo1.jpg 960w" alt="Slide 1">
+							<div>
+								<h3><?= _('A Mario Kart Game for browser') ?></h3>
+								<div>
 									<?= _("A computer version of the famous racing game by Nintendo."); ?><br/>
 									<?= _("This game is <strong>completely free</strong> and does not require <strong>any downloads</strong>. All you need is a web browser!"); ?>
-								</p>
-							</div>
-							<div class="fp-prev-next-wrap">
-								<a class="fp-next" href="#fp-next"></a>
-								<a class="fp-prev" href="#fp-prev"></a>
+								</div>
 							</div>
 						</div>
 					</div>
-					
-					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo2.png">
-						</div>
-						<div class="fp-content-wrap">
-							<div class="fp-content">
-								<h3 class="fp-title"><?= _('Crazy races full of fun!') ?></h3>
-								<p>
+				</li>
+									
+				<li class="splide__slide">
+					<div class="splide__slide__container">
+						<div class="splide__slide__wrapper">
+							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo2.png" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo2-640w.png 640w, <?= $slidesPath ?>/diapo2.png 960w" alt="Slide 2">
+							<div>
+								<h3><?= _('Crazy races full of fun!') ?></h3>
+								<div>
 									<?= _("Try to be the fastest while avoiding items!") ?>
 									<br />
 									<?= _("Race on all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.") ?>
-								</p>
-							</div>
-							<div class="fp-prev-next-wrap">
-								<a class="fp-next" href="#fp-next"></a>
-								<a class="fp-prev" href="#fp-prev"></a>
+								</div>
 							</div>
 						</div>
 					</div>
-					
-					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo3.png">
-						</div>
-						<div class="fp-content-wrap">
-							<div class="fp-content">
-								<h3 class="fp-title"><?= _('Win all the cups!') ?></h3>
-								<p>
+				</li>
+									
+				<li class="splide__slide">
+					<div class="splide__slide__container">
+						<div class="splide__slide__wrapper">
+							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo3.png" alt="Slide 3">
+							<div>
+								<h3><?= _('Win all the cups!') ?></h3>
+								<div>
 									<?= _("Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!") ?>
 									<br />
 									<?= _("Win enough cups to unlock the <strong>15 secret characters</strong>!") ?>
-								</p>
-							</div>
-							<div class="fp-prev-next-wrap">
-								<a class="fp-next" href="#fp-next"></a>
-								<a class="fp-prev" href="#fp-prev"></a>
+								</div>
 							</div>
 						</div>
 					</div>
-					
-					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo4.png">
-						</div>
-						<div class="fp-content-wrap">
-							<div class="fp-content">
-								<h3 class="fp-title"><?= _('Create your own tracks!') ?></h3>
-								<p>
+				</li>
+									
+				<li class="splide__slide">
+					<div class="splide__slide__container">
+						<div class="splide__slide__wrapper">
+							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo4.png" alt="Slide 4">
+							<div>
+								<h3><?= _('Create your own tracks!') ?></h3>
+								<div>
 									<?= _("With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!") ?>
 									<br />
 									<?= _("You can <strong>share</strong> your tracks or try other people's creations!") ?>
-								</p>
-							</div>
-							<div class="fp-prev-next-wrap">
-								<a class="fp-next" href="#fp-next"></a>
-								<a class="fp-prev" href="#fp-prev"></a>
+								</div>
 							</div>
 						</div>
 					</div>
-					
-					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo5.png">
-						</div>
-						<div class="fp-content-wrap">
-							<div class="fp-content">
-								<h3 class="fp-title"><?= _('Face players from around the world!') ?></h3>
-								<p>
+				</li>
+									
+				<li class="splide__slide">
+					<div class="splide__slide__container">
+						<div class="splide__slide__wrapper">
+							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo5.png" class="smooth" alt="Slide 5">
+							<div>
+								<h3><?= _('Face players from around the world!') ?></h3>
+								<div>
 									<?= _("Race and battle in <strong>online mode</strong>!") ?>
 									<br />
 									<?= _("Win as many races as possible and <strong>climb in the official ranking</strong>!") ?>
-								</p>
-							</div>
-							<div class="fp-prev-next-wrap">
-								<a class="fp-next" href="#fp-next"></a>
-								<a class="fp-prev" href="#fp-prev"></a>
+								</div>
 							</div>
 						</div>
 					</div>
-					
-					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo6.png">
-						</div>
-						<div class="fp-content-wrap">
-							<div class="fp-content">
-								<h3 class="fp-title"><?= _('Make the best scores in time trial!') ?></h3>
-								<p>
+				</li>
+									
+				<li class="splide__slide">
+					<div class="splide__slide__container">
+						<div class="splide__slide__wrapper">
+							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo6.png" alt="Slide 6">
+							<div>
+								<h3><?= _('Make the best scores in time trial!') ?></h3>
+								<div>
 									<?= _("<strong>Finish the race track</strong> as fast as you can!") ?>
 									<br />
 									<?= _("<strong>Compare your scores</strong> with the community, and face other players' ghosts!") ?>
-								</p>
-							</div>
-							<div class="fp-prev-next-wrap">
-								<a class="fp-next" href="#fp-next"></a>
-								<a class="fp-prev" href="#fp-prev"></a>
+								</div>
 							</div>
 						</div>
 					</div>
-					
-					<div class="fp-slides-items">
-						<div class="fp-thumbnail" data-img="<?php echo $slidesPath; ?>/diapo7.png">
-						</div>
-						<div class="fp-content-wrap">
-							<div class="fp-content">
-								<h3 class="fp-title"><?= _('Release your fighter talents!') ?></h3>
-								<p>
+				</li>
+									
+				<li class="splide__slide">
+					<div class="splide__slide__container">
+						<div class="splide__slide__wrapper">
+							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo7.png" alt="Slide 7">
+							<div>
+								<h3><?= _('Release your fighter talents!') ?></h3>
+								<div>
 									<?= _("<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items!") ?>
 									<br />
 									<?= _("The last player standing wins!") ?>
-								</p>
-							</div>
-							<div class="fp-prev-next-wrap">
-								<a class="fp-next" href="#fp-next"></a>
-								<a class="fp-prev" href="#fp-prev"></a>
+								</div>
 							</div>
 						</div>
 					</div>
-					
-					<div class="fp-slides-items">
-						<div class="fp-thumbnail" style="background-image: url('<?php echo $slidesPath; ?>/diapo8.png')">
-						</div>
-						<div class="fp-content-wrap">
-							<div class="fp-content">
-								<h3 class="fp-title"><?= _('Face off your friends with the local multiplayer mode!') ?></h3>
-								<p>
+				</li>
+									
+				<li class="splide__slide">
+					<div class="splide__slide__container">
+						<div class="splide__slide__wrapper">
+							<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo8.png" class="smooth" alt="Slide 8">
+							<div>
+								<h3><?= _('Face off your friends with the local multiplayer mode!') ?></h3>
+								<div>
 									<?= _("Prove to your friends that you're the best!")?>
 									<br />
 									<?= _("Face them in <strong>multiplayer</strong> in VS races or in battle mode.") ?>
-								</p>
-							</div>
-							<div class="fp-prev-next-wrap">
-								<a class="fp-next" href="#fp-next"></a>
-								<a class="fp-prev" href="#fp-prev"></a>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-				<div class="fp-nav">
-					<span class="fp-pager"></span>
-				</div>
+				</li>
+				</ul>
 			</div>
 		</div>
 		<h1>Mario Kart PC</h1>
 		<div id="toBegin"><a href="mariokart.php">
 		&#9660;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9660;<br />
-		<img src="images/mkpc_box.jpg" alt="<?= _('Start game') ?>" style="width:310px;position: relative;top:2px" /><br />
+		<img src="images/mkpc_box.jpg" alt="<?= _('Start game') ?>" /><br />
 		&#9650;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9650;</a></div>
 		<h2><img src="images/about.png" alt="" /> <?= _('What\'s Mario Kart PC?') ?></h2>
 		<div>
@@ -224,21 +198,17 @@ $slidesPath = 'images/slides';
 		<h2><img src="images/camera.png" alt="" /> <?= _('Some screenshots') ?></h2>
 		<div>
 			<?= _('Here are some screenshots of the game to give you a quick preview of what it looks like:') ?>
-			<table id="screenshots" class="demo-gallery">
+			<div id="screenshots" class="demo-gallery">
 				<?php
 				for ($i=1;$i<=12;$i++) {
-					if (!(($i-1)%3))
-						echo '<tr>';
-					echo '<td>';
+					echo '<div>';
 					$url_img = "images/screenshots/ss$i.png";
 					$url_thumb = 'images/screenshots/ss'.$i.'xs.png';
 					echo '<a href="'. $url_img .'" data-size="960x468" data-med="'. $url_img .'" data-med-size="240x117" class="demo-gallery__photo demo-gallery__img--main"><img src="'.$url_thumb.'" alt="Screenshot '. $i .'" /></a>';
-					echo '</td>';
-					if (!($i%3))
-						echo '</tr>';
+					echo '</div>';
 				}
 				?>
-			</table>
+			</div>
 		</div>
 		<br />
 		<div class="pub_section">
@@ -1115,7 +1085,7 @@ $slidesPath = 'images/slides';
 		</div>
 		<div class="subsection">
 			<div class="flag_counter">
-				<h4><?= _('Visitors since november 2017') ?></h4>
+				<h3><?= _('Visitors since november 2017') ?></h3>
 				<img src="https://s01.flagcounter.com/countxl/XMvG/bg_FFFFFF/txt_000000/border_CCCCCC/columns_3/maxflags_9/viewers_3/labels_0/pageviews_0/flags_0/percent_0/" alt="<?= _('Visitors') ?>" />
 				<a class="right_section_actions action_button" href="topic.php?topic=2288"><?= _('Learn more') ?></a>
 			</div>
@@ -1164,19 +1134,18 @@ mysql_close();
 <script>
 var loadingMsg = "<?= _('Loading') ?>";
 </script>
-<script async src="scripts/officials.js"></script>
-<script async src="scripts/creations.js"></script>
-<script async src="scripts/posticons.js"></script>
+<script defer src="scripts/creations.js"></script>
+<script defer src="scripts/posticons.js"></script>
 
-<script src="scripts/jquery.min.js"></script>
-<script async src="scripts/jstz.min.js"></script>
-<script async src="scripts/slider.js"></script>
-<script async src="scripts/photoswipe.min.js"></script>
-<script async src="scripts/init-diapos.js"></script>
-<script async src="scripts/sidebars.js"></script>
+<script defer src="scripts/jstz.min.js"></script>
+<script defer src="scripts/splide.min.js"></script>
+<script defer src="scripts/slider.js?reload=1"></script>
+<script defer src="scripts/photoswipe.min.js"></script>
+<script defer src="scripts/init-diapos.js?reload=1"></script>
+<script defer src="scripts/sidebars.js"></script>
 <script type="text/javascript">
 var last_tz = '<?php echo isset($_COOKIE['tz']) ? addslashes($_COOKIE['tz']):''; ?>';
 </script>
-<script async src="scripts/timezones.js"></script>
+<script defer src="scripts/timezones.js"></script>
 </body>
 </html>
