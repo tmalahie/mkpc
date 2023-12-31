@@ -15530,14 +15530,18 @@ function move(getId, triggered) {
 					iObj = randObj(oKart);
 					var forbiddenItems = {};
 					if ((oKart.tours == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
-						forbiddenItems["carapacebleue"] = 1;
-						forbiddenItems["carapacenoire"] = 1;
 						forbiddenItems["bloops"] = 1;
 						forbiddenItems["carapaceX3"] = 1;
 						forbiddenItems["carapacerougeX3"] = 1;
 					}
-					if ((timer < 375) && (itemDistribution.lightningstart != 1))
-						forbiddenItems["eclair"] = 1;
+					if (timer < 375) {
+						if (itemDistribution.lightningstart != 1)
+							forbiddenItems["eclair"] = 1;
+						if (itemDistribution.blueshellstart != 1) {
+							forbiddenItems["carapacebleue"] = 1;
+							forbiddenItems["carapacenoire"] = 1;
+						}
+					}
 					if (oKart.place == 1)
 						forbiddenItems["carapacebleue"] = 1;
 					
@@ -23019,6 +23023,7 @@ function selectItemScreen(oScr, callback, options) {
 		"blueshell-cooldown": options.blueshelldelay != 0,
 		"lightning-cooldown": options.lightningdelay != 0,
 		"lightning-start": options.lightningstart != 1,
+		"blueshell-start": options.blueshellstart != 1,
 		"prevent-doubleitem-x2": options.doubleitemx2 != 1,
 	};
 
@@ -23042,6 +23047,8 @@ function selectItemScreen(oScr, callback, options) {
 			newDistribution.lightningdelay = 0;
 		if (!advancedOptions["lightning-start"])
 			newDistribution.lightningstart = 1;
+		if (!advancedOptions["blueshell-start"])
+			newDistribution.blueshellstart = 1;
 		if (!advancedOptions["prevent-doubleitem-x2"])
 			newDistribution.doubleitemx2 = 1;
 	}
@@ -23108,6 +23115,12 @@ function selectItemScreen(oScr, callback, options) {
 								'<input type="checkbox" id="item-options-lightning0" name="lightning-start" />'+
 							'</div>'+
 							'<label for="item-options-lightning0">'+ toLanguage("No lightning item before 25s of race", "Pas d'éclair avant 25s de course") +'</label>'+
+						'</div>'+
+						'<div class="item-option">'+
+							'<div>'+
+								'<input type="checkbox" id="item-options-blueshell0" name="blueshell-start" />'+
+							'</div>'+
+							'<label for="item-options-blueshell0">'+ toLanguage("No blue shell before 25s of race", "Pas de carapace bleue avant 25s de course") +'</label>'+
 						'</div>'+
 					'</div>'+
 					'<div class="item-optgroup">'+
