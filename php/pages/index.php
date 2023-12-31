@@ -19,7 +19,7 @@ include('../includes/session.php');
 include('../includes/heads.php');
 ?>
 <link rel="stylesheet" href="styles/splide.min.css" />
-<link rel="stylesheet" href="styles/slider.css" />
+<link rel="stylesheet" href="styles/slider.css?reload=1" />
 <link rel="stylesheet" href="styles/photoswipe.css" />
 <?php
 include('../includes/o_online.php');
@@ -1142,7 +1142,7 @@ var loadingMsg = "<?= _('Loading') ?>";
 <script defer src="scripts/slider.js?reload=1"></script>
 <script defer src="scripts/photoswipe.min.js"></script>
 <script defer src="scripts/init-diapos.js?reload=1"></script>
-<script defer src="scripts/sidebars.js"></script>
+<script defer src="scripts/sidebars.js?reload=1"></script>
 <script type="text/javascript">
 var last_tz = '<?php echo isset($_COOKIE['tz']) ? addslashes($_COOKIE['tz']):''; ?>';
 </script>
