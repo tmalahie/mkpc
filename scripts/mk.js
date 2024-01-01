@@ -10585,6 +10585,9 @@ function dropCurrentItem(oKart) {
 	var iKart = aKarts.indexOf(oKart);
 	consumeItem(iKart);
 	consumeItemIfDouble(iKart);
+	delete oKart.champiType;
+	delete oKart.champior;
+	delete oKart.champior0;
 	if (sRoulette < 25) return;
 	if (isOnline && (oKart.id != identifiant) && (oKart.controller != identifiant)) return;
 	var itemCount = 1;
@@ -18473,6 +18476,7 @@ document.onkeydown = function(e) {
 			break;
 		}
 		if (["ArrowUp","ArrowLeft","ArrowRight","ArrowDown"].indexOf(e.key) === -1) return;
+		e.preventDefault();
 		if (selectedOscrElt && !oScr.contains(selectedOscrElt))
 			selectedOscrElt = undefined;
 		var oButtons = [...oScr.querySelectorAll("*")].filter(elt => elt.onclick).filter(elt => !elt.disabled).filter(elt => !elt.dataset.noselect).filter(elt => {
