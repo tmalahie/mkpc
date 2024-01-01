@@ -7477,7 +7477,7 @@ var itemBehaviors = {
 					if (!fSprite.z) {
 						if (isMoving && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 50)) {
 							for (var k=0;k<4;k++) {
-								var h = getHorizontality(fSprite.x,fSprite.y,0, fMoveX,fMoveY, {nullableRes:true,holes:true,skipDecor:true});
+								var h = getHorizontality(fSprite.x,fSprite.y,fSprite.z0||0, fMoveX,fMoveY, {nullableRes:true,holes:true,skipDecor:true});
 								if (h) {
 									var u = h[0]*fMoveX + h[1]*fMoveY;
 									var uD = 1.5-0.5*Math.min(Math.abs(u)/dSpeed,1);
@@ -7511,9 +7511,14 @@ var itemBehaviors = {
 					}
 				}
 				collisionItem = fSprite;
+				collisionFloor = null;
 				if (((fSprite.owner == -1) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
+					if (collisionFloor)
+						fSprite.z0 = collisionFloor.z;
+					else
+						delete fSprite.z0;
 				}
 				else {
 					detruit(fSprite);
@@ -10918,8 +10923,6 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 									}
 								}
 							}
-							else if (decorBehavior.movable && collisionPlayer.billball)
-								continue;
 						}
 						else if (collisionTest == COL_OBJ && collisionItem && decorBehavior.damagingItems) {
 							if (decorBehavior.damagingItems[collisionItem.type])
@@ -15678,7 +15681,7 @@ function move(getId, triggered) {
 	collisionFloor = null;
 	collisionItem = null;
 	var nPosZ0;
-	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0)) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
