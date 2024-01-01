@@ -29858,12 +29858,33 @@ function setChat() {
 	});
 	
 	document.body.insertBefore(oChat, $mkScreen);
+
+	try {
+		handleChatPos();
+	}
+	catch (e) {
+		console.error(e);
+	}
 }
 function stopVocChat() {
 	if (rtcService) {
 		cPlayerPeers = {};
 		rtcService.quitVocChat();
 	}
+}
+function handleChatPos() {
+	if (document.getElementById("chat-offset-style")) return;
+	var $vPub = document.getElementById("vPub");
+	if (!$vPub.querySelector("ins.adsbygoogle[data-ad-status='filled']")) return;
+	var $chatOffsetStyle = document.createElement("style");
+	$chatOffsetStyle.id = "chat-offset-style";
+	$chatOffsetStyle.setAttribute("type", "text/css");
+	$chatOffsetStyle.innerHTML = '@media screen and (max-width: 849px) {'+
+		'.online-chat {'+
+			'margin-top: '+ ($vPub.offsetHeight+10) +'px;'+
+		'}'+
+	'}';
+	document.getElementsByTagName("head")[0].appendChild($chatOffsetStyle);
 }
 
 window.MarioKartControl = {

@@ -398,6 +398,8 @@ var circuitNbComments = 0;
 		$("#comments-section").show();
 		$commentsScroller.css("max-height", dHeight-$("#comments-infos").height()-135);
 		$("#comments-section").css("visibility", "visible");
+		
+		handleCommentsPos(0);
 	});
 	function updateNbComments() {
 		$("#comments-nb").text(circuitNbComments);
@@ -420,5 +422,26 @@ var circuitNbComments = 0;
 		}
 		catch (e) {}
 		return {}
+	}
+
+	function handleCommentsPos(attempts) {
+		var $vPub = $("#vPub");
+		if (!$vPub.find("ins.adsbygoogle[data-ad-status='filled']").length) {
+			attempts++;
+			if (attempts > 10) return;
+			setTimeout(function() {
+				handleCommentsPos(attempts);
+			}, 500);
+			return;
+		}
+		$("head").append(
+			'<style type="text/css">'+
+			'@media screen and (max-width: 600px) {'+
+				'#comments-section {'+
+					'margin-top: '+ ($vPub.height()+10) +'px;'+
+				'}'+
+			'}'+
+			'</style>'
+		);
 	}
 })();
