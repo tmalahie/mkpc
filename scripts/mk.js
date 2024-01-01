@@ -7188,6 +7188,11 @@ var itemBehaviors = {
 					break;
 				}
 				else if ((fSprite.owner == -1) || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
+					if (ctx && ctx.checkCollisions) {
+						ctx.checkCollisions(fSprite);
+						if (fSprite.deleted)
+							break;
+					}
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
 					if (!i)
@@ -14835,21 +14840,23 @@ function resetDatas() {
 					var end = rCode[2];
 					var moveFn = itemBehaviors[uType].move;
 					if (moveFn && (itemBehaviors[uType].onlineResync !== false)) {
-						var ctx = {onlineSync: true};
 						var checkCollisions = itemBehaviors[uType].checkCollisions;
+						function checkLocalCollisions(fSprite) {
+							for (var j=0;j<localKarts.length;j++) {
+								var l = localKarts[j];
+								var lKart = aKarts[l];
+								if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
+									checkCollisions(fSprite, l);
+							}
+						}
+						var ctx = {onlineSync: true, checkCollisions: checkLocalCollisions};
 						collisionTest = COL_OBJ;
 						for (var k=start;k<end;k++) {
 							if (uItem.deleted)
 								break;
 							moveFn(uItem, ctx);
-							if (checkCollisions) {
-								for (var j=0;j<localKarts.length;j++) {
-									var l = localKarts[j];
-									var lKart = aKarts[l];
-									if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
-										checkCollisions(uItem, l);
-								}
-							}
+							if (checkCollisions)
+								checkLocalCollisions(uItem);
 						}
 					}
 				}
