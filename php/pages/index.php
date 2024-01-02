@@ -211,18 +211,25 @@ $placeholderPath = 'images/pages/pixel.png';
 			</div>
 		</div>
 		<br />
-		<div class="pub_section">
-			<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-			<!-- Mario Kart PC -->
-			<ins class="adsbygoogle"
-			     style="display:inline-block;width:728px;height:90px"
-			     data-ad-client="ca-pub-1340724283777764"
-			     data-ad-slot="4919860724"
-			     ></ins>
-			<script>
-			(adsbygoogle = window.adsbygoogle || []).push({});
-			</script>
-		</div>
+		<?php
+		$shouldShowAds = ($id || (isset($identifiants) && mysql_fetch_array(mysql_query('SELECT scores FROM `mksaves` WHERE identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))));
+		if ($shouldShowAds) {
+			?>
+			<div class="pub_section">
+				<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<!-- Mario Kart PC -->
+				<ins class="adsbygoogle"
+					 style="display:inline-block;width:728px;height:90px"
+					 data-ad-client="ca-pub-1340724283777764"
+					 data-ad-slot="4919860724"
+					 ></ins>
+				<script>
+				(adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div>
+			<?php
+		}
+		?>
 		<h2><img src="images/thanks.png" alt="" /> <?= _('Special thanks') ?></h2>
 		<div>
 			<?= _("A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !") ?>
@@ -263,17 +270,23 @@ $placeholderPath = 'images/pages/pixel.png';
 				</em>
 			</p>
 		</div>
+		<?php
+		if ($shouldShowAds) {
+			?>
 		<div class="pub_section">
 			<!-- Mario Kart PC -->
 			<ins class="adsbygoogle"
-			     style="display:inline-block;width:728px;height:90px"
-			     data-ad-client="ca-pub-1340724283777764"
-			     data-ad-slot="4919860724"
-			     ></ins>
+					style="display:inline-block;width:728px;height:90px"
+					data-ad-client="ca-pub-1340724283777764"
+					data-ad-slot="4919860724"
+					></ins>
 			<script>
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
 		</div>
+			<?php
+		}
+		?>
 		<h2><img src="images/gamepad.png" alt="" /> <?= _('Go to the game') ?></h2>
 		<div>
 			<?= _("To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:") ?><br />
@@ -1073,6 +1086,9 @@ $placeholderPath = 'images/pages/pixel.png';
 			<a class="right_section_actions action_button action_gotoclm150" href="classement.global.php?cc=150"><?= _('Display all'); ?></a>
 			<a class="right_section_actions action_button action_gotoclm200" href="classement.global.php?cc=200"><?= _('Display all'); ?></a>
 		</div>
+		<?php
+		if ($shouldShowAds) {
+			?>
 		<div class="pub_section">
 			<!-- Pub latérale MKPC -->
 			<ins class="adsbygoogle"
@@ -1083,6 +1099,9 @@ $placeholderPath = 'images/pages/pixel.png';
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
 		</div>
+			<?php
+		}
+		?>
 		<div class="subsection">
 			<div class="flag_counter">
 				<h3><?= _('Visitors since november 2017') ?></h3>
