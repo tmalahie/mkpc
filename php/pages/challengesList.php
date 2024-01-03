@@ -179,6 +179,9 @@ function rejectChallenge(id) {
 		}
 	);
 }
+function editChallenge(id) {
+	window.open('challengeEdit.php?ch='+id+'&moderate', '_blank');
+}
 function remoderateChallenge(id) {
 	o_confirm(o_language ? "Put this challenge back to the &quot;pending moderation&quot; list?" : "Repasser ce défi dans la liste des défis à modérer ?", function(valided) {
         if (valided) {
@@ -509,6 +512,8 @@ include('../includes/menu.php');
 						<div class="challenges-item-moderation">
 							<button class="challenges-item-accept" onclick="acceptChallenge(<?php echo $challenge['id']; ?>)">&check;</button>
 							<button class="challenges-item-reject" onclick="rejectChallenge(<?php echo $challenge['id']; ?>)">&times;</button>
+							<div class="challenges-item-separator"></div>
+							<button class="challenges-item-edit" onclick="editChallenge(<?php echo $challenge['id']; ?>)">&#9998;</button>
 						</div>
 							<?php
 						}
@@ -535,7 +540,8 @@ include('../includes/menu.php');
 								<?php
 							}
 							?><br />
-							<span class="challenge-item-link" onclick="remoderateChallenge(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Undo':'Annuler'; ?></span>
+							<span class="challenge-item-link challenge-item-link-primary" onclick="remoderateChallenge(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Undo':'Annuler'; ?></span> -
+							<span class="challenge-item-link challenge-item-link-secondary" onclick="editChallenge(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Edit':'Modifier'; ?></span>
 							</div>
 							<?php
 						}
