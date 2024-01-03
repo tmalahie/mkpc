@@ -835,11 +835,15 @@ if (isset($_GET['i'])) {
 						'text' => ($language ?
 							"The decor are the objects or mobs that you encounter on the map: thwomps, pipes, ...
 							You select the type of decor in the menu on the right.
-							Click on the map location of your choice to place a decor in that location."
+							Click on the map location of your choice to place a decor in that location.<br />
+							For some decors, like buses, you can specify additional parameters (route to follow, speed...).
+							Just right click on the decor and see what options are available to you!"
 							:
 							"Les décors sont les objets ou monstres que vous rencontrez sur la carte : thwomps, tuyaux, ...
 							Vous sélectionnez le type de décor dans le menu de droite.
-							Cliquez sur un endroit de la carte de votre choix pour placer un décor à cet endroit."
+							Cliquez sur un endroit de la carte de votre choix pour placer un décor à cet endroit.<br />
+							Pour certains décors, comme les bus, vous pouvez spécifier des paramètres supplémentaires (route à suivre, vitesse...).
+							Faites un clic droit sur le décor pour voir les options auxquelles vous avez accès !"
 						)
 					),
 					'options' => array(
