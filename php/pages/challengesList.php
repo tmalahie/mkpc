@@ -279,12 +279,12 @@ include('../includes/menu.php');
 							<li>Accept challenge, by clicking on <button class="challenges-item-accept">&check;</button></li>
 							<li>Reject challenge, by clicking on <button class="challenges-item-reject">&times;</button></li>
 							<li>Accept challenge, but change difficulty level</li>
+							<li>Edit challenge, by clicking on <button class="challenges-item-edit">&#9998;</button></li>
 						</ul>
 						Here are the reasons why you would reject a challenge:
 						<ul>
 							<li>Challenge pointless or with no difficulty (&quot;Complete track&quot; without constraint, on an easy track)</li>
 							<li>Spam (12 times the same challenge, or simillar challenges posted by the same person)</li>
-							<li>Obvious constraint missing (&quot;CPUs in difficult mode&quot;). In the case, precise it on the rejection message.</li>
 							<li>Challenge name with insults or inappropriate words.</li>
 						</ul>
 						You can also change the difficulty if you find it unsuitable for the challenge. Try to make it consistent with the reference scale:
@@ -295,6 +295,14 @@ include('../includes/menu.php');
 							<li>A challenge <span class="challenges-item-difficulty-3">extreme</span> will require to try-hard even for an experimented player (&quot;Complete Mario Circuit 1 in TT in less than 38s&quot;)</li>
 							<li>A challenge <span class="challenges-item-difficulty-4">impossible</span> will require to try-hard and may typically take several hours (or even days) before succeeding (&quot;Complete Mario Circuit 1 in TT in less than 37s&quot;)</li>
 						</ul>
+						Finally, you can edit the challenge if you want to make some adjustments without having it revalidated by the creator:
+						<ul>
+							<li>Typo in the name or description of the challenge.</li>
+							<li>Missing obvious constraint (&quot;CPUs in difficult mode&quot;)</li>
+							<li>Minor modification requested by the creator</li>
+							<li>This option can also help you find the solution for challenges of the type &quot;Reach zones&quot;</li>
+						</ul>
+						Ideally, inform the creator of the modifications so that he is not surprised and does not make the same mistake in the subsequent challenges<br />&nbsp;
 					</div>
 				</p>
 				<?php
@@ -309,12 +317,12 @@ include('../includes/menu.php');
 							<li>Accepter le défi, en cliquant sur <button class="challenges-item-accept">&check;</button></li>
 							<li>Refuser le défi, en cliquant sur <button class="challenges-item-reject">&times;</button></li>
 							<li>Accepter le défi, mais modifier le niveau de difficulté</li>
+							<li>Modifier le défi, en cliquant sur <button class="challenges-item-edit">&#9998;</button></li>
 						</ul>
 						Voici les raisons pour lesquelles vous pouvez refuser un défi&nbsp;:
 						<ul>
 							<li>Défi sans intérêt ou avec aucune difficulté (&quot;Finir le circuit&quot; sans contraintes, sur un circuit facile)</li>
 							<li>Spam (12 fois le même défi, ou des défis simillaires publiées par la même personne)</li>
-							<li>Contrainte évidente manquante (&quot;Ordis en mode difficile&quot;). Dans ce cas, précisez-le dans le message de refus.</li>
 							<li>Nom de défi avec des insultes ou des mots obscènes</li>
 						</ul>
 						Vous pouvez également modifier la difficulté si vous la jugez inadaptée au défi. Essayez de vous confortez à cette échelle de référence&nbsp;:
@@ -325,6 +333,14 @@ include('../includes/menu.php');
 							<li>Un défi <span class="challenges-item-difficulty-3">extrême</span> nécessitera de try-harder même pour un joueur expérimenté (&quot;Finir le Circuit Mario 1 en CLM en moins de 38s&quot;)</li>
 							<li>Un défi <span class="challenges-item-difficulty-4">impossible</span> nécessite de try-harder et peut typiquement prendre plusieurs heures (voire jours) avant de réussir (&quot;Finir le Circuit Mario 1 en CLM en moins de 37s&quot;)</li>
 						</ul>
+						Enfin, vous pouvez modifier le défi si vous souhaitez faire quelques ajustements sans pour autant le faire revalider par le créateur&nbsp;:
+						<ul>
+							<li>Faute de frappe dans le nom ou la description du défi.</li>
+							<li>Contrainte évidente manquante (&quot;Ordis en mode difficile&quot;)</li>
+							<li>Modification mineure à la demande du créateur</li>
+							<li>Cette option peut également vous aider à trouver la solution pour les défis du type &quot;Passer par des zones&quot;</li>
+						</ul>
+						Idéalement, prévenez le créateur des modifications pour qu'il ne soit pas surpris et qu'il ne fasse pas la même erreur dans les défis ultérieurs<br />&nbsp;
 					</div>
 				</p>
 				<?php
@@ -333,12 +349,12 @@ include('../includes/menu.php');
 		elseif (isset($remoderate)) {
 			if ($language) {
 				?>
-				A challenge you accepted or rejected by mistake? A difficulty to change? You're in the right place!
+				A challenge you accepted or rejected by mistake? A difficulty to change? A challenge to update after its publication?<br />You're in the right place!
 				<?php
 			}
 			else {
 				?>
-				Un défi que vous avez accepté ou refusé par erreur ? Une difficulté à changer ? C'est ici que ça se passe !
+				Un défi que vous avez accepté ou refusé par erreur ? Une difficulté à changer ? Un défi à modifier a posteriori ?<br />C'est ici que ça se passe !
 				<?php
 			}
 			?>
@@ -539,9 +555,12 @@ include('../includes/menu.php');
 								</span>
 								<?php
 							}
-							?><br />
-							<span class="challenge-item-link challenge-item-link-primary" onclick="remoderateChallenge(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Undo':'Annuler'; ?></span> -
-							<span class="challenge-item-link challenge-item-link-secondary" onclick="editChallenge(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Edit':'Modifier'; ?></span>
+							?>
+							<div class="challenge-item-remoderate-actions">
+								<span class="challenge-item-link challenge-item-link-primary" onclick="remoderateChallenge(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Undo':'Annuler'; ?></span>
+								<?php echo $language ? ' - ' : '<br />'; ?>
+								<span class="challenge-item-link challenge-item-link-secondary" onclick="editChallenge(<?php echo $challenge['id']; ?>)"><?php echo $language ? 'Edit':'Modifier'; ?></span>
+							</div>
 							</div>
 							<?php
 						}
