@@ -212,7 +212,7 @@ $placeholderPath = 'images/pages/pixel.png';
 		</div>
 		<br />
 		<?php
-		$shouldShowAds = ($id || (isset($identifiants) && mysql_fetch_array(mysql_query('SELECT scores FROM `mksaves` WHERE identifiant="'. $identifiants[0] .'" AND identifiant2="'. $identifiants[1] .'" AND identifiant3="'. $identifiants[2] .'" AND identifiant4="'. $identifiants[3] .'"'))));
+		$shouldShowAds = isset($identifiants);
 		if ($shouldShowAds) {
 			?>
 			<div class="pub_section">
