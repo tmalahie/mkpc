@@ -39,7 +39,7 @@ test('logging in and creating a new topic', async ({ page }) => {
   // Check topic appears in the recent topics list
   await page.goto("/");
   await expect(page.locator('#forum_section')).toContainText(TOPIC_NAME);
-  await expect(page.locator('#forum_section')).toContainText("Last message by " + ADMIN_USERNAME_PRINTED);
+  await expect(page.locator('#forum_section')).toContainText("Latest message by " + ADMIN_USERNAME_PRINTED);
 
   // Click on it and check we land on the same page
   await page.locator('#forum_section a').first().click();
