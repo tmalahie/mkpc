@@ -7183,11 +7183,21 @@ var itemBehaviors = {
 				collisionFloor = null;
 				collisionDecorHit = null;
 				collisionItem = fSprite;
-				if (((fSprite.owner != -1) && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
+				var isMoving = (fSprite.owner != -1);
+				var fTeleport;
+				if (isMoving && (fTeleport=inTeleport(roundX1, roundY1))) {
+					fSprite.x = fTeleport[0];
+					fSprite.y = fTeleport[1];
+					var theta = fTeleport[2]*Math.PI/2;
+					var cSpeed = Math.hypot(fSprite.vx,fSprite.vy);
+					fSprite.vx = cSpeed * Math.sin(theta);
+					fSprite.vy = cSpeed * Math.cos(theta);
+				}
+				else if ((isMoving && tombe(roundX1, roundY1)) || touche_banane(roundX1, roundY1, oSpriteExcept) || touche_banane(roundX2, roundY2, oSpriteExcept) || touche_crouge(roundX1, roundY1, oSpriteExcept) || touche_crouge(roundX2, roundY2, oSpriteExcept) || touche_cverte(roundX1, roundY1, fSpriteExcept) || touche_cverte(roundX2, roundY2, fSpriteExcept) || touche_bobomb(roundX1, roundY1, oSpriteExcept, {transparent:true}) || touche_bobomb(roundX2, roundY2, oSpriteExcept, {transparent:true})) {
 					detruit(fSprite,true);
 					break;
 				}
-				else if ((fSprite.owner == -1) || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
+				else if (!isMoving || canMoveTo(fSprite.x,fSprite.y,0, fMoveX,fMoveY)) {
 					if (ctx && ctx.checkCollisions) {
 						ctx.checkCollisions(fSprite);
 						if (fSprite.deleted)
@@ -7303,6 +7313,7 @@ var itemBehaviors = {
 			var steps = 5;
 			for (var l=0;l<steps;l++) {
 				var dSpeed = (fSprite.heightinc ? 15:12)*cappedRelSpeed()/steps;
+				var fTeleport;
 				if (fSprite.owner != -1) {
 					if (fSprite.cannon) {
 						fSprite.z = (fSprite.z*3+4)/4;
@@ -7479,7 +7490,22 @@ var itemBehaviors = {
 				}
 				if (fSprite.owner != -1) {
 					handleCannon(fSprite, inCannon(fSprite.x,fSprite.y, fNewPosX,fNewPosY));
-					if (!fSprite.z) {
+					fTeleport = inTeleport(fSprite.x, fSprite.y);
+					if (fTeleport) {
+						fNewPosX = fTeleport[0];
+						fNewPosY = fTeleport[1];
+						fSprite.theta = fTeleport[2]*90;
+						if (fSprite.aipoint >= 0) {
+							var aipoints = oMap.aipoints[fSprite.aimap];
+							var aipoint = aipoints[fSprite.aipoint];
+							if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
+								fSprite.aipoint++;
+								if (fSprite.aipoint >= aipoints.length)
+									fSprite.aipoint = 0;
+							}
+						}
+					}
+					else if (!fSprite.z) {
 						if (isMoving && ((fSprite.aipoint >= 0) || (fSprite.target >= 0)) && !(fSprite.stuckSince > 50)) {
 							for (var k=0;k<4;k++) {
 								var h = getHorizontality(fSprite.x,fSprite.y,fSprite.z0||0, fMoveX,fMoveY, {nullableRes:true,holes:true,skipDecor:true});
@@ -7517,7 +7543,7 @@ var itemBehaviors = {
 				}
 				collisionItem = fSprite;
 				collisionFloor = null;
-				if (((fSprite.owner == -1) || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
+				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
 					if (collisionFloor)
@@ -7557,6 +7583,20 @@ var itemBehaviors = {
 			}
 			var relSpeed = cappedRelSpeed();
 			var relSpeed2 = relSpeed*relSpeed;
+			var fTeleport = inTeleport(fSprite.x,fSprite.y);
+			if (fTeleport) {
+				fSprite.x = fTeleport[0];
+				fSprite.y = fTeleport[1];
+				if (fSprite.aipoint != -1) {
+					var aipoints = oMap.aipoints[fSprite.aimap];
+					var aipoint = aipoints[fSprite.aipoint];
+					if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
+						fSprite.aipoint++;
+						if (fSprite.aipoint >= aipoints.length)
+							fSprite.aipoint = 0;
+					}
+				}
+			}
 			if (fSprite.aipoint == -1) {
 				if (fSprite.cooldown > 0) {
 					var oKart = aKarts[cible];
@@ -9705,11 +9745,20 @@ function initItemSprite(oArme) {
 function handleSpriteLaunch(fSprite, fSpeed,fHeight) {
 	fSprite.countdown--;
 	fSpeed += (cappedRelSpeed()-1)*5;
-	var fMoveX = fSpeed * direction(0, fSprite.theta);
-	var fMoveY = fSpeed * direction(1, fSprite.theta);
+	var fNewPosX, fNewPosY;
+	var fTeleport = inTeleport(fSprite.x,fSprite.y);
+	if (fTeleport) {
+		fNewPosX = fTeleport[0];
+		fNewPosY = fTeleport[1];
+		fSprite.theta = fTeleport[2]*90;
+	}
+	else {
+		var fMoveX = fSpeed * direction(0, fSprite.theta);
+		var fMoveY = fSpeed * direction(1, fSprite.theta);
 
-	var fNewPosX = fSprite.x + fMoveX;
-	var fNewPosY = fSprite.y + fMoveY;
+		fNewPosX = fSprite.x + fMoveX;
+		fNewPosY = fSprite.y + fMoveY;
+	}
 
 	fSprite.x = fNewPosX;
 	fSprite.y = fNewPosY;
