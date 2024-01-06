@@ -17,6 +17,8 @@ services:
             - ./docker/php/scripts:/root/scripts
         ports:
             - "8080:80"
+        extra_hosts:
+        - 'host.docker.internal:host-gateway'
     db:
         image: mariadb:10.5
         restart: always

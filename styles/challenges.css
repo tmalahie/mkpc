@@ -321,6 +321,13 @@ body a.challenge-action-edit:hover {
 .challenge-metadata > div {
 	margin: 6px 0;
 }
+.challenge-feedbacks > div {
+	font-size: 0.8em;
+}
+.challenge-feedbacks input {
+	margin-top: 0.25em;
+	width: 100%;
+}
 #difficulty-faq {
 	margin-top: 0.1em;
 	font-size: 0.6em;
@@ -580,6 +587,10 @@ a.pretty-link:hover {
 }
 .challenge-moderation-details h2 {
 	margin: 2px 0;
+}
+.challenge-validation-feedback {
+	margin-top: 0.5em;
+	font-size: 0.8em;
 }
 .challenge-moderation-error {
 	max-width: 600px;

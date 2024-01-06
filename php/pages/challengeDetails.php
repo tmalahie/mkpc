@@ -44,8 +44,7 @@ include('../includes/o_online.php');
 						<?php
 						echo $language ? 'Congratulations, your challenge has been <strong>accepted</strong>!':'Félicitations, votre défi a été <strong>accepté</strong> !';
 						if (isset($validation->old_difficulty)) {
-							echo '<br />';
-							echo '<small>';
+							echo '<div class="challenge-validation-feedback">';
 							$difficulties = getChallengeDifficulties();
 							echo $language ? 'The difficulty has been changed from <strong>'. $difficulties[$validation->old_difficulty] .'</strong> to <strong>'.$difficulties[$challenge['difficulty']].'</strong>':'Le niveau de difficulté a été changé de <strong>'. $difficulties[$validation->old_difficulty] .'</strong> à <strong>'.$difficulties[$challenge['difficulty']].'</strong>';
 							if (!empty($validation->msg)) {
@@ -54,7 +53,14 @@ include('../includes/o_online.php');
 								echo '<br />';
 								echo '<em>'. $validation->msg .'</em>';
 							}
-							echo '</small>';
+							echo '</div>';
+						}
+						if (isset($validation->feedbacks)) {
+							echo '<div class="challenge-validation-feedback">';
+							$difficulties = getChallengeDifficulties();
+							echo $language ? 'The challenge has been modified by the moderation staff with the following explaination:':'Le défi a été modifié par l\'équipe de modération avec l\'explication suivante :';
+							echo '<em>'. $validation->feedbacks .'</em>';
+							echo '</div>';
 						}
 						?>
 					</div>

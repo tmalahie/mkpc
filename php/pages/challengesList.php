@@ -302,7 +302,6 @@ include('../includes/menu.php');
 							<li>Minor modification requested by the creator</li>
 							<li>This option can also help you find the solution for challenges of the type &quot;Reach zones&quot;</li>
 						</ul>
-						Ideally, inform the creator of the modifications so that he is not surprised and does not make the same mistake in the subsequent challenges<br />&nbsp;
 					</div>
 				</p>
 				<?php
@@ -340,7 +339,6 @@ include('../includes/menu.php');
 							<li>Modification mineure à la demande du créateur</li>
 							<li>Cette option peut également vous aider à trouver la solution pour les défis du type &quot;Passer par des zones&quot;</li>
 						</ul>
-						Idéalement, prévenez le créateur des modifications pour qu'il ne soit pas surpris et qu'il ne fasse pas la même erreur dans les défis ultérieurs<br />&nbsp;
 					</div>
 				</p>
 				<?php

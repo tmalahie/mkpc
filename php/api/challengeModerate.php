@@ -6,9 +6,14 @@ if (isset($_POST['challenge']) && isset($_POST['accept'])) {
 	require_once('../includes/getRights.php');
 	if (hasRight('clvalidator')) {
 		$challengeId = $_POST['challenge'];
-		if ($challenge = mysql_fetch_array(mysql_query('SELECT status,difficulty,clist FROM `mkchallenges` WHERE id="'. $challengeId .'"'))) {
+		if ($challenge = mysql_fetch_array(mysql_query('SELECT status,difficulty,clist,validation FROM `mkchallenges` WHERE id="'. $challengeId .'"'))) {
 			if ('pending_moderation' === $challenge['status']) {
 				$validationData = array();
+				if (isset($challenge['validation'])) {
+					$oldValidationData = json_decode($challenge['validation']);
+					if (isset($oldValidationData->feedbacks))
+						$validationData['feedbacks'] = $oldValidationData->feedbacks;
+				}
 				$accept = $_POST['accept'];
 				$oldDifficulty = $challenge['difficulty'];
 				$newDifficulty = $oldDifficulty;

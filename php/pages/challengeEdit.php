@@ -44,7 +44,14 @@ if (isset($_POST['name'])) {
 			}
 			$dataJson = json_encode($data);
 			if (isset($challenge) && !empty($clRace)) {
-				mysql_query('UPDATE `mkchallenges` SET name="'. $_POST['name'] .'",difficulty="'. $_POST['difficulty'] .'",data="'. mysql_real_escape_string($dataJson) .'",validation="" WHERE id="'. $challenge['id'] .'"');
+				$validation = '';
+				if (!empty($_POST['feedbacks']) && !empty($moderate)) {
+					$validationData = array(
+						'feedbacks' => stripslashes($_POST['feedbacks'])
+					);
+					$validation = mysql_real_escape_string(json_encode($validationData));
+				}
+				mysql_query('UPDATE `mkchallenges` SET name="'. $_POST['name'] .'",difficulty="'. $_POST['difficulty'] .'",data="'. mysql_real_escape_string($dataJson) .'",validation="'. $validation .'" WHERE id="'. $challenge['id'] .'"');
 				if (!empty($moderate))
 					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "EChallenge '. $challenge['id'] .'")');
 				$clMsg = 'challenge_edited';
@@ -249,7 +256,7 @@ function selectMainRule() {
 	case 'survive':
 		$extra.html(
 			'<label>'+ (language ? 'Time:':'Temps :') +' '+
-			'<input type="text" size="2" name="goal[value]" placeholder="1:30" required="required" autocomplete="off" pattern="\\d*(:\\d*){0,2}" />'+
+			'<input type="text" style="width:50px" name="goal[value]" placeholder="1:30" required="required" autocomplete="off" pattern="\\d*(:\\d*){0,2}" />'+
 			'</label>'
 		);
 		break;
@@ -1503,7 +1510,7 @@ function getItemHitOptions() {
 		<?php
 		if (isset($clRulesPayload)) {
 			if (isset($_GET['clmsg']) && ('challenge_edited'==$_GET['clmsg']))
-				echo '<div class="challenge-msg-success">'. ($language ? 'The challenge has been edited':'Le défi a été modifié') .'. <a href="javascript:window.opener.location.reload();window.close()">'. ($language ? 'Back':'Retour') .'</a></div>';
+				echo '<div class="challenge-msg-success">'. ($language ? 'The challenge has been edited':'Le défi a été modifié') .'. <a href="javascript:window.close()">'. ($language ? 'Back':'Retour') .'</a></div>';
 			?>
 			<fieldset class="challenge-main">
 				<legend><?php echo $language ? 'Main object':'Objectif principal'; ?></legend>
@@ -1580,6 +1587,23 @@ function getItemHitOptions() {
 				</div>
 			</fieldset>
 			<?php
+			if (!empty($moderate)) {
+				?>
+				<fieldset class="challenge-feedbacks">
+					<legend><?php echo $language ? 'Moderation':'Modération'; ?></legend>
+					<div>
+						<label><?php echo $language ? '(Optional) Notes to the creator to explain what you changed:':'(Facultatif) Notes au créateur pour expliquer les changements :'; ?>
+						<input type="text" name="feedbacks"<?php
+						if ($challenge['validation']) {
+							$validation = json_decode($challenge['validation']);
+							if (!empty($validation->feedbacks))
+								echo ' value="'. htmlspecialchars($validation->feedbacks) .'"';
+						}
+						?> /></label>
+					</div>
+				</fieldset>
+				<?php
+			}
 		}
 		elseif ('active' === $challenge['status']) {
 			echo '<p class="challenge-restricted-editor">';

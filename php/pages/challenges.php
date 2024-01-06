@@ -220,14 +220,25 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 						echo '</span>';
 						if ($challenge['validation']) {
 							$validationData = json_decode($challenge['validation']);
-							if (isset($validationData->old_difficulty) && !isset($validationData->ack)) {
-								echo '<br />';
-								echo '<span class="challenge-status-warning">';
-								echo '⚠️ ';
-								echo $language ? 'Difficulty change':'Difficulté modifiée';
-								echo '</span>';
-								echo ' ';
-								echo '<a href="'. nextPageUrl('challengeDetails.php', array('cl' => null, 'ch' => $challenge['id'])) .'">['. ($language ? 'Details':'Détails') .']</a>';
+							if (!isset($validationData->ack)) {
+								if (isset($validationData->feedbacks)) {
+									echo '<br />';
+									echo '<span class="challenge-status-warning">';
+									echo '⚠️ ';
+									echo $language ? 'Changed by moderation':'Modifié par la modération';
+									echo '</span>';
+									echo ' ';
+									echo '<a href="'. nextPageUrl('challengeDetails.php', array('cl' => null, 'ch' => $challenge['id'])) .'">['. ($language ? 'Details':'Détails') .']</a>';
+								}
+								elseif (isset($validationData->old_difficulty)) {
+									echo '<br />';
+									echo '<span class="challenge-status-warning">';
+									echo '⚠️ ';
+									echo $language ? 'Difficulty change':'Difficulté modifiée';
+									echo '</span>';
+									echo ' ';
+									echo '<a href="'. nextPageUrl('challengeDetails.php', array('cl' => null, 'ch' => $challenge['id'])) .'">['. ($language ? 'Details':'Détails') .']</a>';
+								}
 							}
 						}
 						break;
