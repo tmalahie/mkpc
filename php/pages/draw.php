@@ -278,8 +278,8 @@ if (isset($_GET['i'])) {
 					<div class="traject-specific traject-specific-aipoints">
 					<?php
 					echo $language ? 'This menu allows you to create several routes,
-									  thus add diversity in CPUs behaviour.<br />
-									  For example, if you specifies 2 routes,
+									  thus adding diversity in CPUs behaviour.<br />
+									  For example, if you specify 2 routes,
 									  half of the CPUs will take the 1<sup>st</sup> one,
 									  and the other half will take the 2<sup>nd</sup> one.<br />
 									  You can indicate up to 7 routes.'
