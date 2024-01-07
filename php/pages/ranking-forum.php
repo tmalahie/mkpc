@@ -62,16 +62,10 @@ else
 ?>
 <main>
 	<h1><?php echo $language ? 'Ranking most active members':'Classement membres les plus actifs'; ?></h1>
-	<!-- Forum MKPC -->
-	<p class="pub"><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-	<!-- Mario Kart PC -->
-	<ins class="adsbygoogle"
-	     style="display:inline-block;width:468px;height:60px"
-	     data-ad-client="ca-pub-1340724283777764"
-	     data-ad-slot="6691323567"></ins>
-	<script>
-	(adsbygoogle = window.adsbygoogle || []).push({});
-	</script></p>
+	<?php
+	require_once('../includes/utils-ads.php');
+	showSmallAdSection();
+	?>
 	<div class="ranking-modes stripped">
 		<?php
 		$m = $thisMonth->format('m');

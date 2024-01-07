@@ -24,15 +24,10 @@ include('../includes/menu.php');
 ?>
 <main>
 <h1><?php echo $language ? 'Message deleted':'Suppression'; ?></h1>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- Forum MKPC -->
-<p class="pub"><ins class="adsbygoogle"
-     style="display:inline-block;width:728px;height:90px"
-     data-ad-client="ca-pub-1340724283777764"
-     data-ad-slot="4919860724"></ins></p>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+<?php
+require_once('../includes/utils-ads.php');
+showRegularAdSection();
+?>
 <?php
 if (isset($_GET['id']) && isset($_GET['topic']) && ($_GET['id'] > 1)) {
 	$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');

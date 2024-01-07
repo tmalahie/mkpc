@@ -97,16 +97,10 @@ foreach ($get as $k => $getk)
 		}
 		?>
 	</p>
-	<!-- Forum MKPC -->
-	<p class="pub"><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-	<!-- Mario Kart PC -->
-	<ins class="adsbygoogle"
-	     style="display:inline-block;width:468px;height:60px"
-	     data-ad-client="ca-pub-1340724283777764"
-	     data-ad-slot="6691323567"></ins>
-	<script>
-	(adsbygoogle = window.adsbygoogle || []).push({});
-	</script></p>
+	<?php
+	require_once('../includes/utils-ads.php');
+	showSmallAdSection();
+	?>
 	<form method="post" action="challengeRanking.php">
 	<p><label for="joueur"><strong><?php echo $language ? 'See player':'Voir joueur'; ?></strong></label> : <input type="text" name="joueur" id="joueur" value="<?php echo ($joueur ? $joueur:$myPseudo); ?>" /> <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" class="action_button" /></p>
 	</form>

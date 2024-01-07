@@ -69,15 +69,10 @@ else
     ?>
     </p>
 	<!-- Forum MKPC -->
-	<div class="pub"><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-	<!-- Mario Kart PC -->
-	<ins class="adsbygoogle"
-	     style="display:inline-block;width:468px;height:60px"
-	     data-ad-client="ca-pub-1340724283777764"
-	     data-ad-slot="6691323567"></ins>
-	<script>
-	(adsbygoogle = window.adsbygoogle || []).push({});
-	</script></div>
+	<div class="pub"><?php
+	require_once('../includes/utils-ads.php');
+	showSmallAd();
+	?></div>
 	<div class="ranking-modes-ctn">
 	<div>
 	<span><?php echo $language ? 'Class:':'Cylindrée :'; ?></span>

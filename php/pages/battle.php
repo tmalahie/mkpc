@@ -155,7 +155,7 @@ printCircuitActions();
 </div>
 <?php
 require_once('../includes/utils-ads.php');
-showGameBottomAd();
+showGameAdSection();
 ?>
 </form>
 <?php

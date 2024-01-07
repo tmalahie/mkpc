@@ -30,15 +30,10 @@ include('../includes/menu.php');
 include('../includes/smileys.php');
 ?>
 <h1><?php echo $language ? 'Edit a news':'Modifier une news'; ?></h1>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- Forum MKPC -->
-<p class="pub"><ins class="adsbygoogle"
-     style="display:inline-block;width:728px;height:90px"
-     data-ad-client="ca-pub-1340724283777764"
-     data-ad-slot="4919860724"></ins></p>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+<?php
+require_once('../includes/utils-ads.php');
+showRegularAdSection();
+?>
 	<?php
 	$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	if ($getBanned['banned'])

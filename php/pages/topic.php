@@ -109,15 +109,10 @@ include('../includes/menu.php');
 	if ($topic) {
 		?>
 <h1><?php echo htmlspecialchars($titreTopic); ?></h1>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- Forum MKPC -->
-<p class="pub"><ins class="adsbygoogle"
-     style="display:inline-block;width:728px;height:90px"
-     data-ad-client="ca-pub-1340724283777764"
-     data-ad-slot="4919860724"></ins></p>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+<?php
+require_once('../includes/utils-ads.php');
+showRegularAdSection();
+?>
 <?php
 if ($topic['private'])
  echo '<p class="success">Ce topic est visible uniquement par les administrateurs<br />&nbsp;</p>';

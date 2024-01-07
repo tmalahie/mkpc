@@ -1688,15 +1688,10 @@ function getItemHitOptions() {
 		</div>
 	</div>
 	<div class="pub">
-		<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-		<!-- Mario Kart PC -->
-		<ins class="adsbygoogle"
-		     style="display:inline-block;width:468px;height:60px"
-		     data-ad-client="ca-pub-1340724283777764"
-		     data-ad-slot="6691323567"></ins>
-		<script>
-		(adsbygoogle = window.adsbygoogle || []).push({});
-		</script>
+		<?php
+		require_once('../includes/utils-ads.php');
+		showSmallAd();
+		?>
 	</div>
 	<?php
 	if (empty($moderate)) {

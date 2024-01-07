@@ -556,15 +556,10 @@ include('../includes/menu.php');
 			?>
 		</div>
 	</form>
-	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-	<!-- Forum MKPC -->
-	<div class="pub"><ins class="adsbygoogle"
-	     style="display:inline-block;width:728px;height:90px"
-	     data-ad-client="ca-pub-1340724283777764"
-	     data-ad-slot="4919860724"></ins></div>
-	<script>
-	(adsbygoogle = window.adsbygoogle || []).push({});
-	</script>
+	<div class="pub"><?php
+		require_once('../includes/utils-ads.php');
+		showRegularAd();
+	?></div>
 	<div id="cTracks" class="hidden">
 	<div class="liste" id="liste">
 	</div>

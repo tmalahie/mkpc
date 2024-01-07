@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", MarioKart);
 </div>
 <?php
 require_once('../includes/utils-ads.php');
-showGameBottomAd();
+showGameAdSection();
 ?>
 </form>
 <?php

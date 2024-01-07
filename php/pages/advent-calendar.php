@@ -394,16 +394,9 @@ include('../includes/menu.php');
 		?></div>
 		<?php
 	}
+	require_once('../includes/utils-ads.php');
+	showRegularAdSection();
 	?>
-	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-	<!-- Forum MKPC -->
-	<p class="pub"><ins class="adsbygoogle"
-	     style="display:inline-block;width:728px;height:90px"
-	     data-ad-client="ca-pub-1340724283777764"
-	     data-ad-slot="4919860724"></ins></p>
-	<script>
-	(adsbygoogle = window.adsbygoogle || []).push({});
-	</script>
 	<div class="advent-begin">
 		&#9660;&nbsp;<?php echo $language ? 'Click on the day number to begin': 'Cliquez sur le numéro du jour pour jouer'; ?>&nbsp;&#9660;
 	</div>
