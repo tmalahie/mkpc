@@ -110,7 +110,7 @@ include('../includes/menu.php');
         <?php
         include_once('circuitNames.php');
         $nameCol = $language ? 'name_en' : 'name_fr';
-        $page = isset($_GET['page']) ? $_GET['page'] : 1;
+        $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
         $resPerPage = 50;
         $offset = ($page-1)*$resPerPage;
         $myGhosts = mysql_query(
