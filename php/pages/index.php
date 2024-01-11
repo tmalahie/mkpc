@@ -212,7 +212,15 @@ $placeholderPath = 'images/pages/pixel.png';
 		</div>
 		<br />
 		<?php
-		$shouldShowAds = isset($identifiants);
+		function hasEuLegislation() {
+			if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+				$euLangs = array('fr-FR', 'en-GB', 'de-DE', 'es-ES', 'fr-BE', 'nl-BE', 'nl-NL', 'it-IT', 'pl-PL', 'pt-PT');
+				$euLangsString = implode('|', $euLangs);
+				return preg_match('#(^|,)'.$euLangsString.'(,|$)#', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+			}
+			return false;
+		}
+		$shouldShowAds = isset($identifiants) || !hasEuLegislation();
 		if ($shouldShowAds) {
 			?>
 			<div class="pub_section">
