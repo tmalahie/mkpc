@@ -29860,7 +29860,8 @@ function setChat() {
 							for (var i=0;i<=lastMsgId;i++)
 								addMsgToChat(messages[i][0],messages[i][1]);
 							var pMessages = oMessages.getElementsByTagName("p");
-							while (pMessages.length > 20)
+							var cMessages = oMessages.getElementsByClassName("online-chat-message");
+							while (pMessages.length+cMessages.length > 40)
 								oMessages.removeChild(pMessages[0]);
 						}
 						setTimeout(refreshChat, 1000);
@@ -29878,18 +29879,31 @@ function setChat() {
 			document.body.removeChild(oChat);
 	}
 	function addMsgToChat(pseudo, message) {
-		var oP = document.createElement("p");
-		var sPseudo = document.createElement("span");
-		sPseudo.innerHTML = pseudo +"<br />";
-		oP.appendChild(sPseudo);
-		var sMessage = document.createElement("span");
+		var $lastMsg = oMessages.children[oMessages.children.length - 1];
+		var oP;
+		if (!$lastMsg || $lastMsg.dataset.pseudo !== pseudo || $lastMsg.dataset.lastts < Date.now() - 40000) {
+			oP = document.createElement("p");
+			oP.dataset.pseudo = pseudo;
+			oP.dataset.lastts = Date.now();
+			var sPseudo = document.createElement("div");
+			sPseudo.className = "online-chat-pseudo";
+			sPseudo.innerHTML = pseudo;
+			oP.appendChild(sPseudo);
+		}
+		var sMessage = document.createElement("div");
 		sMessage.style.color = "white";
 		sMessage.className = "online-chat-message";
 		sMessage.style.fontWeight = "normal";
 		sMessage.innerHTML = message;
-		oP.appendChild(sMessage);
+		if (oP)
+			oP.appendChild(sMessage);
 		var isScrolledToBottom = oMessages.scrollHeight - oMessages.clientHeight <= oMessages.scrollTop + 1;
-		oMessages.appendChild(oP);
+		if (oP)
+			oMessages.appendChild(oP);
+		else {
+			$lastMsg.dataset.lastts = Date.now();
+			$lastMsg.appendChild(sMessage);
+		}
 		if (isScrolledToBottom)
 			oMessages.scrollTop = oMessages.scrollHeight - oMessages.clientHeight;
 	}

@@ -204,18 +204,21 @@
     overflow-y: auto;
 }
 .online-chat-messages p {
-    margin: 6px;
+    margin: 7px;
     font-size: 0.9em;
 }
 .online-chat-messages p.chatlog {
     color: white;
+}
+.online-chat-pseudo {
+    margin-bottom: 1px;
 }
 .online-chat-message {
     font-size: 1.2em;
 }
 .online-chat-answer {
     display: flex;
-    margin: 4px 3px;
+    margin: 4px 3px 2px 3px;
 }
 .online-chat-answer input[type="text"] {
     background-color: #FE7;
