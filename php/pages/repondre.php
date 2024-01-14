@@ -51,7 +51,7 @@ showRegularAdSection();
 			$banned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 			if ($banned && $banned['banned'])
 				include('../includes/ban_msg.php');
-			elseif (isset($_POST['message'])) {
+			elseif (isset($_POST['message']) && (trim($_POST['message'])!=='')) {
 				include('../includes/utils-cooldown.php');
 				if (isMsgCooldowned()) {
 					logCooldownEvent('forum_msg');
@@ -59,33 +59,42 @@ showRegularAdSection();
 				}
 				else {
 					$showNavLinks = false;
-					$getAI = mysql_fetch_array(mysql_query('SELECT id FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id DESC LIMIT 1'));
-					$ainc = $getAI['id']+1;
-					$maxiter = 10;
-					while (!mysql_query('INSERT INTO `mkmessages` VALUES('. $ainc .', "'. $_GET['topic'] .'", "'.$id.'", NULL, "'. $_POST['message'] .'")')) {
-						$ainc++;
-						$maxiter--;
-						if (!$maxiter)
-							die('Unknown error');
-					}
-					mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages+1,last_connect=NULL WHERE id="'.$id.'"');
-					$getLastMessage = mysql_fetch_array(mysql_query('SELECT date FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id DESC limit 1'));
-					mysql_query('UPDATE `mktopics` SET dernier="'.$getLastMessage['date'].'",nbmsgs=nbmsgs+1 WHERE id="'. $_GET['topic'] .'"');
-					$getFollowers = mysql_query('SELECT * FROM `mkfollowers` WHERE topic="'. $_GET['topic'] .'" AND user!="'. $id .'"');
-					while ($follower = mysql_fetch_array($getFollowers))
-						mysql_query('INSERT INTO `mknotifs` SET type="answer_forum", user="'. $follower['user'] .'", link="'.$_GET['topic'].','. ($ainc) .'"');
-					preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
-					foreach ($mentions[1] as $pseudo) {
-						$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
-						if ($getMid=mysql_fetch_array($getMids))
-							mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($ainc) .'"');
-					}
-					preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', stripcslashes($_POST['message']), $quotes);
-					foreach ($quotes[1] as $pseudo) {
-						$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
-						if ($getMid=mysql_fetch_array($getMids))
-							mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($ainc) .'"');
-					}
+					include('../includes/idempotency.php');
+					$msgId = withRequestIdempotency(array(
+						'is_cache_stale' => function($msgId) use($id) {
+							return !mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" AND id="'. $msgId .'" AND auteur="'. $id .'"'));
+						},
+						'callback' => function() use($id) {
+							$getAI = mysql_fetch_array(mysql_query('SELECT id FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id DESC LIMIT 1'));
+							$msgId = $getAI['id']+1;
+							$maxiter = 10;
+							while (!mysql_query('INSERT INTO `mkmessages` VALUES('. $msgId .', "'. $_GET['topic'] .'", "'.$id.'", NULL, "'. $_POST['message'] .'")')) {
+								$msgId++;
+								$maxiter--;
+								if (!$maxiter)
+									die('Unknown error');
+							}
+							mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages+1,last_connect=NULL WHERE id="'.$id.'"');
+							$getLastMessage = mysql_fetch_array(mysql_query('SELECT date FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'" ORDER BY id DESC limit 1'));
+							mysql_query('UPDATE `mktopics` SET dernier="'.$getLastMessage['date'].'",nbmsgs=nbmsgs+1 WHERE id="'. $_GET['topic'] .'"');
+							$getFollowers = mysql_query('SELECT * FROM `mkfollowers` WHERE topic="'. $_GET['topic'] .'" AND user!="'. $id .'"');
+							while ($follower = mysql_fetch_array($getFollowers))
+								mysql_query('INSERT INTO `mknotifs` SET type="answer_forum", user="'. $follower['user'] .'", link="'.$_GET['topic'].','. ($msgId) .'"');
+							preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
+							foreach ($mentions[1] as $pseudo) {
+								$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+								if ($getMid=mysql_fetch_array($getMids))
+									mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($msgId) .'"');
+							}
+							preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', stripcslashes($_POST['message']), $quotes);
+							foreach ($quotes[1] as $pseudo) {
+								$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+								if ($getMid=mysql_fetch_array($getMids))
+									mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$_GET['topic'].','. ($msgId) .'"');
+							}
+							return $msgId;
+						}
+					));
 					echo $language ? '<p id="successSent">Message sent successfully<br />
 					<a href="topic.php?topic='. urlencode($_GET['topic']).'&amp;page='. ceil(mysql_numrows(mysql_query('SELECT * FROM `mkmessages` WHERE topic="'. $_GET['topic'] .'"'))/20) .'">Click here</a> to go to the topic.<br />
 					<a href="category.php?category='. $category['id'] .'">Click here</a> to return to the category.<br />
@@ -152,7 +161,7 @@ showRegularAdSection();
 				include('../includes/utils-moderation.php');
 				printForumReplyNotices();
 				?>
-<form method="post" action="repondre.php?topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
+<form method="post" action="repondre.php?topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('../includes/bbButtons.php'); ?></td></tr>
 <tr><td class="mLabel"><p><label for="message">Message :</label></p>
@@ -161,7 +170,7 @@ for ($i=0;$i<$nbSmileys;$i++)
 	echo ' <a href="javascript:ajouter(\''. $smileys[$i] .'\')"><img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" /></a> ';
 ?>
 <a href="javascript:moresmileys()" id="more-smileys"><?php echo $language ? 'More smileys':'Plus de smileys'; ?></a></p>
-</td><td class="mInput"><textarea name="message" id="message" rows="10"><?php
+</td><td class="mInput"><textarea name="message" id="message" rows="10" required><?php
 if (isset($_GET['quote'])) {
 	if ($getMessage = mysql_fetch_array(mysql_query('SELECT j.nom,m.message FROM `mkmessages` m LEFT JOIN `mkjoueurs` j ON m.auteur=j.id WHERE m.id="'. $_GET['quote'] .'" AND m.topic="'. $_GET['topic'] .'"')))
 		echo '[quote'. ($getMessage['nom'] ? '='.$getMessage['nom']:'') .']' . htmlspecialchars($getMessage['message']) . '[/quote]'."\n";

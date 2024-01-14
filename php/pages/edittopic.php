@@ -40,7 +40,7 @@ showRegularAdSection();
 		$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 		if ($getBanned && $getBanned['banned'])
 			include('../includes/ban_msg.php');
-		elseif (isset($_POST['titre']) && isset($_POST['message']) && isset($_POST['message'])) {
+		elseif (isset($_POST['titre']) && isset($_POST['message']) && trim($_POST['titre']) && trim($_POST['message'])) {
 			$lastMessage = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id=1 AND topic="'. $_GET['topic'] .'"'));
 			if (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
 				$categoryID = intval($_POST['category']);
@@ -107,13 +107,13 @@ showRegularAdSection();
 		}
 		else {
 		?>
-<form method="post" action="edittopic.php?topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="if(!this.titre.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
+<form method="post" action="edittopic.php?topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel"><label for="titre"><?php echo $language ? 'Title':'Titre'; ?> :</label></td>
 <td class="mInput"><input type="text" id="titre" name="titre" value="<?php
 	$getTopic = mysql_fetch_array(mysql_query('SELECT titre,category,private FROM `mktopics` WHERE id="'. $_GET['topic'] .'"'));
 	echo htmlspecialchars($getTopic['titre']);
-?>" /></td></tr>
+?>" required /></td></tr>
 <tr><td class="mLabel"><label for="category"><?php echo $language ? 'Category':'Catégorie'; ?> :</label></td>
 <td class="mInput">
 	<select id="category" name="category">
@@ -136,7 +136,7 @@ for ($i=0;$i<$nbSmileys;$i++)
 	echo ' <a href="javascript:ajouter(\''. $smileys[$i] .'\')"><img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" /></a> ';
 ?>
 <a href="javascript:moresmileys()" id="more-smileys"><?php echo $language ? 'More smileys':'Plus de smileys'; ?></a></p>
-</td><td class="mInput"><textarea name="message" id="message" rows="10"><?php
+</td><td class="mInput"><textarea name="message" id="message" rows="10" required><?php
 	$getMessage = mysql_fetch_array(mysql_query('SELECT message FROM `mkmessages` WHERE id=1 AND topic="'. $_GET['topic'] .'"'));
 	echo htmlspecialchars($getMessage['message']);
 ?></textarea></td></tr>

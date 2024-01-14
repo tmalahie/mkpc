@@ -46,40 +46,49 @@ showRegularAdSection();
 	$banned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
 	if ($banned['banned'])
 		include('../includes/ban_msg.php');
-	elseif (isset($_POST['titre']) && isset($_POST['message'])) {
+	elseif (isset($_POST['titre']) && isset($_POST['message']) && trim($_POST['titre']) && trim($_POST['message'])) {
 		include('../includes/utils-cooldown.php');
 		if (isMsgCooldowned(array('newtopic' => 1))) {
 			logCooldownEvent('forum_topic');
 			printMsgCooldowned();
 		}
 		else {
-			$private = (isset($_POST['admin']) && hasRight('manager')) ? 1:0;
-			mysql_query('INSERT INTO `mktopics` VALUES(NULL, "'. $_POST['titre'] .'","'. $categoryID .'",'. $language .','.$private.',0,1,NULL)');
-			$iGenerated = mysql_insert_id();
-			mysql_query('INSERT INTO `mkmessages` VALUES(1, '. $iGenerated .', "'.$id.'", NULL, "'. $_POST['message'] .'")');
-			mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages+1,last_connect=NULL WHERE id="'.$id.'"');
-			mysql_query('INSERT INTO `mkfollowers` VALUES("'. $id .'","'. $iGenerated .'")');
-			$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
-			while ($follower = mysql_fetch_array($getFollowers))
-				mysql_query('INSERT INTO `mknotifs` SET type="follower_topic", user="'. $follower['follower'] .'", link="'.$iGenerated.'"');
-			preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
-			foreach ($mentions[1] as $pseudo) {
-				$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
-				if ($getMid=mysql_fetch_array($getMids))
-					mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.$iGenerated.',1"');
-			}
-			preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', stripcslashes($_POST['message']), $quotes);
-			foreach ($quotes[1] as $pseudo) {
-				$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
-				if ($getMid=mysql_fetch_array($getMids))
-					mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$iGenerated.',1"');
-			}
+			include('../includes/idempotency.php');
+			$topicId = withRequestIdempotency(array(
+				'is_cache_stale' => function($topicId) {
+					return !mysql_numrows(mysql_query('SELECT * FROM `mktopics` WHERE id="'.$topicId.'"'));
+				},
+				'callback' => function() use($id, $categoryID, $language) {
+					$private = (isset($_POST['admin']) && hasRight('manager')) ? 1:0;
+					mysql_query('INSERT INTO `mktopics` VALUES(NULL, "'. $_POST['titre'] .'","'. $categoryID .'",'. $language .','.$private.',0,1,NULL)');
+					$iGenerated = mysql_insert_id();
+					mysql_query('INSERT INTO `mkmessages` VALUES(1, '. $iGenerated .', "'.$id.'", NULL, "'. $_POST['message'] .'")');
+					mysql_query('UPDATE `mkprofiles` SET nbmessages=nbmessages+1,last_connect=NULL WHERE id="'.$id.'"');
+					mysql_query('INSERT INTO `mkfollowers` VALUES("'. $id .'","'. $iGenerated .'")');
+					$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
+					while ($follower = mysql_fetch_array($getFollowers))
+						mysql_query('INSERT INTO `mknotifs` SET type="follower_topic", user="'. $follower['follower'] .'", link="'.$iGenerated.'"');
+					preg_match_all('#\B@([a-zA-Z0-9\-_]+?)#isU', stripcslashes($_POST['message']), $mentions);
+					foreach ($mentions[1] as $pseudo) {
+						$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+						if ($getMid=mysql_fetch_array($getMids))
+							mysql_query('INSERT INTO `mknotifs`  SET type="forum_mention", user="'. $getMid['id'] .'", link="'.$iGenerated.',1"');
+					}
+					preg_match_all('#\[quote=(.+)\].*\[\/quote\]#isU', stripcslashes($_POST['message']), $quotes);
+					foreach ($quotes[1] as $pseudo) {
+						$getMids = mysql_query('SELECT id FROM `mkjoueurs` WHERE id!='. $id .' AND nom="'. $pseudo .'"');
+						if ($getMid=mysql_fetch_array($getMids))
+							mysql_query('INSERT INTO `mknotifs`  SET type="forum_quote", user="'. $getMid['id'] .'", link="'.$iGenerated.',1"');
+					}
+					return $iGenerated;
+				}
+			));
 			echo $language ? '<p id="successSent">Message sent successfully<br />
-			<a href="topic.php?topic='. $iGenerated .'">Click here</a> to go to the topic.<br />
+			<a href="topic.php?topic='. $topicId .'">Click here</a> to go to the topic.<br />
 			<a href="category.php?category='. $categoryID .'">Click here</a> to return to the category.<br />
 			<a href="forum.php">Click here</a> to return to the forum.</p>' :
 			'<p id="successSent">Message envoy&eacute; avec succ&egrave;s<br />
-			<a href="topic.php?topic='. $iGenerated .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
+			<a href="topic.php?topic='. $topicId .'">Cliquez ici</a> pour acc&eacute;der au topic.<br />
 			<a href="category.php?category='. $categoryID .'">Cliquez ici</a> pour retourner à la catégorie.<br />
 			<a href="forum.php">Cliquez ici</a> pour retourner au forum.</p>';
 		}
@@ -91,10 +100,10 @@ showRegularAdSection();
 		include('../includes/utils-moderation.php');
 		printForumReplyNotices();
 	?>
-<form method="post" action="newtopic.php?category=<?php echo $categoryID; ?>" onsubmit="if(!this.titre.value){alert('<?php echo $language ? 'Please enter a title':'Veuillez entrer un titre'; ?>');return false}if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
+<form method="post" action="newtopic.php?category=<?php echo $categoryID; ?>" onsubmit="this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel"><label for="titre"><?php echo $language ? 'Title':'Titre'; ?> :</label></td>
-<td class="mInput"><input type="text" id="titre" name="titre" /></td></tr>
+<td class="mInput"><input type="text" id="titre" name="titre"<?php if (isset($_POST['titre'])) echo ' value="'. htmlspecialchars($_POST['titre']) .'"'; ?> required /></td></tr>
 <tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('../includes/bbButtons.php'); ?></td></tr>
 <tr><td class="mLabel"><p><label for="message">Message :</label></p>
 <p><?php
@@ -102,7 +111,7 @@ for ($i=0;$i<$nbSmileys;$i++)
 	echo ' <a href="javascript:ajouter(\''. $smileys[$i] .'\')"><img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" /></a> ';
 ?>
 <a href="javascript:moresmileys()" id="more-smileys"><?php echo $language ? 'More smileys':'Plus de smileys'; ?></a></p>
-</td><td class="mInput"><textarea name="message" id="message" rows="10"></textarea></td></tr>
+</td><td class="mInput"><textarea name="message" id="message" rows="10" required><?php if (isset($_POST['message'])) echo htmlspecialchars($_POST['message']); ?></textarea></td></tr>
 <?php
 if (hasRight('manager')) {
 	?>

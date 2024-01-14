@@ -49,13 +49,29 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['mode'])) {
 				$save = false;
 		}
 		else {
-			mysql_query('INSERT INTO `mkmcups` VALUES(NULL,CURRENT_TIMESTAMP(),'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,0,"'. $mode .'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'","'.$optionsJson.'")');
-			$cupId = mysql_insert_id();
-			include('../includes/session.php');
-			if ($id) {
-				$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
-				while ($follower = mysql_fetch_array($getFollowers))
-					mysql_query('INSERT INTO `mknotifs` SET type="follower_circuit", user="'. $follower['follower'] .'", link="4,'.$cupId.'"');
+			include('../includes/idempotency.php');
+			$isNew = false;
+			$cupId = withRequestIdempotency(array(
+				'is_cache_stale' => function($cupId) {
+					return !mysql_numrows(mysql_query('SELECT * FROM `mkmcups` WHERE id="'. $cupId .'"'));
+				},
+				'callback' => function() use($identifiants, $mode, $optionsJson, &$isNew) {
+					mysql_query('INSERT INTO `mkmcups` VALUES(NULL,CURRENT_TIMESTAMP(),'.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,0,"'. $mode .'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'","'.$optionsJson.'")');
+					$cupId = mysql_insert_id();
+					include('../includes/session.php');
+					if ($id) {
+						$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
+						while ($follower = mysql_fetch_array($getFollowers))
+							mysql_query('INSERT INTO `mknotifs` SET type="follower_circuit", user="'. $follower['follower'] .'", link="4,'.$cupId.'"');
+					}
+					$isNew = true;
+					return $cupId;
+				}
+			));
+			if (!$isNew) {
+				echo $cupId;
+				mysql_close();
+				exit;
 			}
 		}
 	}

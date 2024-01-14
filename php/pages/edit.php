@@ -41,7 +41,7 @@ showRegularAdSection();
 		$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
 		if (($banned=mysql_fetch_array($getBanned)) && $banned['banned'])
 			include('../includes/ban_msg.php');
-		elseif (isset($_POST['message'])) {
+		elseif (isset($_POST['message']) && (trim($_POST['message'])!=='')) {
 			require_once('../includes/getRights.php');
 			$lastMessage = mysql_fetch_array(mysql_query('SELECT auteur,message FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'] .'"'));
 			if (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
@@ -103,7 +103,7 @@ showRegularAdSection();
 		else {
 			$getMessage = mysql_fetch_array(mysql_query('SELECT message FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'].'"'));
 		?>
-<form method="post" action="edit.php?id=<?php echo urlencode($_GET['id']); ?>&amp;topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="if(!this.message.value){alert('<?php echo $language ? 'Please enter a message':'Veuillez entrer un message'; ?>');return false}this.querySelector('[type=submit]').disabled=true">
+<form method="post" action="edit.php?id=<?php echo urlencode($_GET['id']); ?>&amp;topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
 <tr><td class="mLabel">BBcode :<br /><a href="javascript:helpBbCode()"><?php echo $language ? 'Help':'Aide'; ?></a></td><td><?php include('../includes/bbButtons.php'); ?></td></tr>
 <tr><td class="mLabel"><p><label for="message">Message :</label></p>
@@ -112,7 +112,7 @@ for ($i=0;$i<$nbSmileys;$i++)
 	echo ' <a href="javascript:ajouter(\''. $smileys[$i] .'\')"><img src="images/smileys/smiley'. $i .'.png" alt="'. $smileys[$i] .'" /></a> ';
 ?>
 <a href="javascript:moresmileys()" id="more-smileys"><?php echo $language ? 'More smileys':'Plus de smileys'; ?></a></p>
-</td><td class="mInput"><textarea name="message" id="message" rows="10"><?php
+</td><td class="mInput"><textarea name="message" id="message" rows="10" required><?php
 	echo htmlspecialchars($getMessage['message']);
 ?></textarea></td></tr>
 <tr><td colspan="2" class="mLabel"><input type="button" value="<?php echo $language ? 'Preview':'Aper&ccedil;u'; ?>" onclick="apercu()" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Send':'Envoyer'; ?>" /></td></tr>

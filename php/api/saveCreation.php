@@ -56,15 +56,31 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 					$circuitId = -1;
 			}
 			else {
-				include('../includes/utils-cooldown.php');
-				if (isTrackCooldowned(array('type' => 'mkcircuits'))) {
-					logCooldownEvent('track');
-					echo -1;
+				include('../includes/idempotency.php');
+				$isNew = false;
+				$circuitId = withRequestIdempotency(array(
+					'is_cache_stale' => function($circuitId) {
+						return !mysql_numrows(mysql_query('SELECT * FROM `mkcircuits` WHERE id="'.$circuitId.'"'));
+					},
+					'callback' => function() use($identifiants, $isBattle, $map, $laps, &$isNew) {
+						include('../includes/utils-cooldown.php');
+						if (isTrackCooldowned(array('type' => 'mkcircuits'))) {
+							logCooldownEvent('track');
+							echo -1;
+							mysql_close();
+							exit;
+						}
+						mysql_query('INSERT INTO `mkcircuits` VALUES (null, CURRENT_TIMESTAMP(), '.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,0,'.$isBattle.',"'.$map.'","'.$laps.'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'")');
+						$circuitId = mysql_insert_id();
+						$isNew = true;
+						return $circuitId;
+					}
+				));
+				if (!$isNew) {
+					echo $circuitId;
 					mysql_close();
 					exit;
 				}
-				mysql_query('INSERT INTO `mkcircuits` VALUES (null, CURRENT_TIMESTAMP(), '.$identifiants[0].','.$identifiants[1].','.$identifiants[2].','.$identifiants[3].',0,0,0,0,0,'.$isBattle.',"'.$map.'","'.$laps.'","'. $_POST['nom'] .'","'. $_POST['auteur'] .'")');
-				$circuitId = mysql_insert_id();
 				include('../includes/session.php');
 				if ($id) {
 					$getFollowers = mysql_query('SELECT follower FROM `mkfollowusers` WHERE followed="'. $id .'"');
@@ -105,4 +121,5 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 		}
 	}
 }
+//echo 'aaa';
 ?>
