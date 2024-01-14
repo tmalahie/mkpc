@@ -229,6 +229,12 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 <?php
 if (empty($moderate))
 	include('../includes/o_online.php');
+else {
+	?>
+	<script type="text/javascript" src="scripts/xhr.js"></script>
+	<script type="text/javascript">var o_xhr = xhr;</script>
+	<?php
+}
 ?>
 
 <title><?php echo $language ? 'Challenge editor':'Éditeur de défis'; ?> - Mario Kart PC</title>
