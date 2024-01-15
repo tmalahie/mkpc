@@ -358,6 +358,9 @@ else
 if ($managing && $url) {
     include('../includes/adminUtils.php');
 	$circuitData = getCreationByUrl($url);
+	foreach ($aCircuits as &$aCircuit)
+		$aCircuit = str_replace(' WHERE nom IS NOT NULL', ' WHERE 1', $aCircuit);
+	unset($aCircuit);
 	if ($circuitData) {
 		$aParams = array(
 			'max_circuits' => 1,
