@@ -10,8 +10,8 @@ if (isset($_GET['pieces'])) {
     for ($i=0;$i<=$nbPieces;$i++) {
         $id = 50000+$i;
         $circuitFile = "map$id.png";
-        $circuitPath = "images/uploads/".$circuitFile;
-        copy('images/pieces/piececircuit'.$map.'_'.$i.'.png', $circuitPath);
+        $circuitPath = "../../images/uploads/".$circuitFile;
+        copy('../../images/pieces/piececircuit'.$map.'_'.$i.'.png', $circuitPath);
         mysql_query('UPDATE circuits SET img_data="'.getCircuitImgDataRaw($circuitPath,$circuitFile,1).'" WHERE id='.$id);
     }
     mysql_close();

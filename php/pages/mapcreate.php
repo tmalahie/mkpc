@@ -21,8 +21,8 @@ for ($i=0;$i<36;$i++) {
 			imagecopy($image, $piececircuit, ($i%6)*100, floor($i/6)*100, 0, 0, 100, 100);
 	}
 }
-$snes = ($map < 13);
-$gba = ($map < 31) || ($map >= 52);
+$snes = ($map < 13) || ($map >= 56);
+$gba = ($map < 31) || (($map >= 52) && ($map < 56));
 $elements = Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j');
 include('../includes/escape_all.php');
 for ($i=0;$i<10;$i++) {
