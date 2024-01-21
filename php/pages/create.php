@@ -65,8 +65,8 @@ else {
 }
 if (!isset($bgColors[$map]))
 	exit;
-$snes = ($map <= 13);
-$gba = (($map > 8) && ($map <= 30)) || ($map >= 52);
+$snes = ($map <= 13) || ($map >= 56);
+$gba = (($map > 8) && ($map <= 30)) || (($map >= 52) && ($map < 56));
 include('../includes/language.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -89,7 +89,7 @@ include('../includes/o_online.php');
 var decorTypes = <?php echo json_encode($decorTypes); ?>;
 var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 </script>
-<script type="text/javascript" src="scripts/create.js"></script>
+<script type="text/javascript" src="scripts/create.js?reload=1"></script>
 </head>
 <body<?php if (!$hasWriteGrants) echo ' class="collab-readonly"'; ?>>
 <div id="circuit">

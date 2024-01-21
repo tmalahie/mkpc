@@ -370,7 +370,7 @@ function recenterPos(E) {
 	}
 }
 function getMapConsole(p) {
-	if (p <= 13)
+	if ((p <= 13) || (p >= 56))
 		return "snes";
 	if ((p <= 30) || (p >= 52))
 		return "gba";
