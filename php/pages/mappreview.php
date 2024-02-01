@@ -12,8 +12,8 @@ if (isset($id)) {
 			header('Content-type: image/png');
 		
 		$map = $getMain['map'];
-		$snes = ($map < 13);
-		$gba = ($map < 31);
+		$snes = ($map < 13) || ($map >= 56);
+		$gba = ($map < 31) || (($map >= 52) && ($map < 56));
 
 		$wImg = 600;
 		$hImg = 600;
