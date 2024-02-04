@@ -1507,8 +1507,7 @@ function loadMap() {
 			oObjet.style.display = "none";
 			oReserve.style.display = "none";
 		}
-
-		if (gameSettings.spd) {
+		else if (gameSettings.spd) {
 			var $speedometer = document.createElement("div");
 			$speedometer.className = "speedometer";
 			$speedometer.style.right = Math.round(iScreenScale*0.85) +"px";
