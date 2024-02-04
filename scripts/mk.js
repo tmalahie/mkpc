@@ -294,6 +294,7 @@ updateCtnFullScreen = function(isFullScreen) {
 				oContainers[i].style.top = Math.round((screen.height/eRatio-iScreenScale*iHeight)/2) +"px";
 			}
 			updateHudFullScreen();
+			updatePlanFullScreen();
 		}
 		else  {
 			$mkScreen.style.zoom = "";
@@ -306,6 +307,7 @@ updateCtnFullScreen = function(isFullScreen) {
 					oContainers[i].style.top = Math.round((window.innerHeight-eRatio*iHeight)/2) +"px";
 				}
 				updateHudFullScreen();
+				updatePlanFullScreen();
 				if (!$mkScreen.dataset.lastsc)
 					$mkScreen.dataset.lastsc = iScreenScale;
 				setScreenScale(eRatio, true);
@@ -341,6 +343,7 @@ updateCtnFullScreen = function(isFullScreen) {
 			oContainers[i].style.top = "";
 		}
 		updateHudFullScreen();
+		updatePlanFullScreen();
 	}
 }
 var hudScreens = new Array();
@@ -354,6 +357,24 @@ function removeHUD() {
 	for (var i=0;i<hudScreens.length;i++)
 		$mkScreen.removeChild(hudScreens[i]);
 	hudScreens.length = 0;
+}
+function updatePlanFullScreen() {
+	if (!oPlanDiv2) return;
+	var isFS = $mkScreen.dataset.fs;
+	if (isFS && oPlanDiv2.parentNode !== oContainers[0]) {
+		if (oPlanDiv2.parentNode) oPlanDiv2.parentNode.removeChild(oPlanDiv2);
+		oPlanDiv2.style.left = "";
+		oPlanDiv2.style.right = Math.round(iScreenScale*0.5) +"px";
+		oPlanDiv2.style.top = Math.round(iScreenScale*2.5) +"px";
+		oContainers[0].appendChild(oPlanDiv2);
+	}
+	else if (!isFS && oPlanDiv2.parentNode !== document.body) {
+		if (oPlanDiv2.parentNode) oPlanDiv2.parentNode.removeChild(oPlanDiv2);
+		oPlanDiv2.style.left = (15 + iScreenScale*iWidth) +"px";
+		oPlanDiv2.style.right = "";
+		oPlanDiv2.style.top = (10 + Math.round(iScreenScale/4) + oPlanWidth) +"px";
+		document.body.appendChild(oPlanDiv2);
+	}
 }
 
 function setScreenScale(iValue, triggered) {
@@ -1237,12 +1258,12 @@ function setPlanPos(frameState) {
 }
 function removePlan() {
 	try {
-		document.body.removeChild(oPlanDiv);
+		oPlanDiv.parentNode.removeChild(oPlanDiv);
 	}
 	catch (e) {
 	}
 	try {
-		document.body.removeChild(oPlanDiv2);
+		oPlanDiv2.parentNode.removeChild(oPlanDiv2);
 	}
 	catch (e) {
 	}
@@ -3560,25 +3581,19 @@ function startGame() {
 		oPlanRatio = 0.5;
 
 		oPlanDiv = document.createElement("div");
+		oPlanDiv.className = "mkplan mkplanzoom";
 		oPlanDiv.style.backgroundColor = "rgb("+ oMap.bgcolor +")";
-		oPlanDiv.style.position = "absolute";
-		oPlanDiv.style.zIndex = 1;
 		oPlanDiv.style.left = (15 + iScreenScale*iWidth) +"px";
 		oPlanDiv.style.top = "9px";
 		oPlanDiv.style.width = oPlanWidth +"px";
 		oPlanDiv.style.height = oPlanWidth +"px";
-		oPlanDiv.style.overflow = "hidden";
 		oPlanDiv.style.opacity = 0.01;
 
 		oPlanDiv2 = document.createElement("div");
+		oPlanDiv2.className = "mkplan mkplanfull";
 		oPlanDiv2.style.backgroundColor = "rgb("+ oMap.bgcolor +")";
-		oPlanDiv2.style.position = "absolute";
-		oPlanDiv2.style.zIndex = 1;
-		oPlanDiv2.style.left = (15 + iScreenScale*iWidth) +"px";
-		oPlanDiv2.style.top = (10 + Math.round(iScreenScale/4) + oPlanWidth) +"px";
 		oPlanDiv2.style.width = oPlanWidth +"px";
 		oPlanDiv2.style.height = oPlanWidth +"px";
-		oPlanDiv2.style.overflow = "hidden";
 		oPlanDiv2.style.opacity = 0.01;
 
 		oPlanCtn = document.createElement("div");
@@ -3604,9 +3619,7 @@ function startGame() {
 			oPlanImg.height = oPlanHeight;
 			oPlanImg.getContext("2d").drawImage(oMapImg, 0,0, oPlanSize,oPlanHeight);
 		}
-		oPlanImg.style.position = "absolute";
-		oPlanImg.style.left = "0px";
-		oPlanImg.style.top = "0px";
+		oPlanImg.className = "mkplanimg";
 		oPlanCtn.appendChild(oPlanImg);
 
 		if (oMapImg.src) {
@@ -3619,9 +3632,7 @@ function startGame() {
 			oPlanImg2.height = oPlanHeight;
 			oPlanImg2.getContext("2d").drawImage(oMapImg, 0,0, oPlanSize,oPlanHeight);
 		}
-		oPlanImg2.style.position = "absolute";
-		oPlanImg2.style.left = "0px";
-		oPlanImg2.style.top = "0px";
+		oPlanImg2.className = "mkplanimg";
 		oPlanImg2.style.width = oPlanWidth2 +"px";
 		oPlanCtn2.appendChild(oPlanImg2);
 
@@ -3770,7 +3781,7 @@ function startGame() {
 		document.body.appendChild(oPlanDiv);
 
 		oPlanDiv2.appendChild(oPlanCtn2);
-		document.body.appendChild(oPlanDiv2);
+		updatePlanFullScreen();
 	}
 
 	setTimeout(function() {

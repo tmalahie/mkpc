@@ -121,5 +121,4 @@ if (isset($_POST['nom']) && isset($_POST['auteur']) && isset($_POST['map'])) {
 		}
 	}
 }
-//echo 'aaa';
 ?>

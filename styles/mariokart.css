@@ -459,6 +459,7 @@ button.control-close:active {
 	grid-template-columns: auto auto;
 	direction: rtl;
 	line-height: 1.25em;
+	z-index: 19997;
 }
 #challenge-cpts > div {
 	margin-left: 1em;
@@ -854,6 +855,33 @@ input {
 	display: none;
 	position: absolute;
 	top: 400px;
+}
+.mkplan {
+	position: absolute;
+	z-index: 1;
+	overflow: hidden;
+}
+.mkplanimg {
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+#mariokartcontainer.fullscreen .mkplan {
+	background-color: transparent !important;
+	-webkit-transform: scale(0.7);
+	-moz-transform: scale(0.7);
+	-o-transform: scale(0.7);
+	-ms-transform: scale(0.7);
+	transform: scale(0.7);
+	-webkit-transform-origin: top right;
+	-moz-transform-origin: top right;
+	-o-transform-origin: top right;
+	-ms-transform-origin: top right;
+	transform-origin: top right;
+	z-index: 19997;
+}
+#mariokartcontainer.fullscreen .mkplanimg {
+	opacity: 0.7;
 }
 .rgt {
 	text-align: right;
