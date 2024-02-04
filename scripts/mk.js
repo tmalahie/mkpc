@@ -1272,6 +1272,7 @@ function removePlan() {
 var gameSettings;
 var ctrlSettings;
 var oChallengeCpts;
+var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 function loadMap() {
 	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
@@ -1506,12 +1507,31 @@ function loadMap() {
 			oObjet.style.display = "none";
 			oReserve.style.display = "none";
 		}
+
+		if (gameSettings.spd) {
+			var $speedometer = document.createElement("div");
+			$speedometer.className = "speedometer";
+			$speedometer.style.right = Math.round(iScreenScale*0.85) +"px";
+			$speedometer.style.top = Math.round(iScreenScale*3.2) +"px";
+			$speedometer.style.fontSize = Math.round(iScreenScale*1.9) +"px";
+			$speedometer.style.visibility = "hidden";
+			var $speedometerVal = document.createElement("span");
+			$speedometerVal.innerHTML = "-.-";
+			$speedometer.appendChild($speedometerVal);
+			var $speedometerUnit = document.createElement("span");
+			$speedometerUnit.innerHTML = " km/h";
+			$speedometer.appendChild($speedometerUnit);
+			hudScreen.appendChild($speedometer);
+
+			$speedometers.push($speedometer);
+			$speedometerVals.push($speedometerVal);
+		}
 	}
 
 	oChallengeCpts = document.createElement("div");
 	oChallengeCpts.id = "challenge-cpts";
 	oChallengeCpts.style.right = Math.round(iScreenScale*0.85) +"px";
-	oChallengeCpts.style.top = Math.round(iScreenScale*3.2) +"px";
+	oChallengeCpts.style.top = Math.round(iScreenScale*($speedometers.length ? 5.5 : 3.2)) +"px";
 	oChallengeCpts.style.fontSize = Math.round(iScreenScale*1.9) +"px";
 	oChallengeCpts.style.visibility = "hidden";
 	hudScreen.appendChild(oChallengeCpts);
@@ -3905,6 +3925,8 @@ function startGame() {
 					}
 				}
 				oChallengeCpts.style.visibility = "visible";
+				for (var i=0;i<$speedometers.length;i++)
+					$speedometers[i].style.visibility = "visible";
 				if (course == "BB") {
 					for (var i=0;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
@@ -4449,8 +4471,11 @@ function startGame() {
 						for (var i=0;i<iTrajets.length;i++) {
 							var oKart = aKarts[i];
 							var getInfos = iTrajets[i][timer];
-							if (getInfos)
+							if (getInfos) {
+								var aPosX = oKart.x, aPosY = oKart.y;
 								oKart.moveGhost(getInfos);
+								updateSpeedometer(i, aPosX,aPosY);
+							}
 							else {
 								if (oKart.aipoint == undefined) {
 									oKart.aipoint = 0;
@@ -4482,7 +4507,7 @@ function startGame() {
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++) {
@@ -15750,6 +15775,7 @@ function move(getId, triggered) {
 	collisionDecor = null;
 	collisionFloor = null;
 	collisionItem = null;
+	var kartReplaced = false;
 	var nPosZ0;
 	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball) {
 		oKart.x = fNewPosX;
@@ -15855,6 +15881,7 @@ function move(getId, triggered) {
 			oKart.y = fTeleport[1];
 			oKart.rotation = fTeleport[2]*90;
 			oKart.teleport = 5;
+			kartReplaced = true;
 			playIfShould(oKart, "musics/events/teleport.mp3");
 			if (oKart.speed < 0)
 				oKart.speed = 0;
@@ -16058,6 +16085,8 @@ function move(getId, triggered) {
 		else
 			delete oKart.shift;
 	}
+	if (!oKart.cpu && !kartReplaced)
+		updateSpeedometer(getId, aPosX,aPosY);
 
 	moveUsingItems(oKart, triggered);
 	if (course != "BB") {
@@ -16115,6 +16144,8 @@ function move(getId, triggered) {
 					if (oKart.billball)
 						oKart.billball = 1;
 					oKart.cpu = true;
+					if ($speedometers[getId])
+						$speedometers[getId].style.display = "none";
 					oKart.aipoint = 0;
 					oKart.lastAItime = 0;
 					oKart.maxspeed = 5.7;
@@ -17139,6 +17170,16 @@ function timeStr(timeMS) {
 	while (timeMS.length < 3)
 		timeMS = "0"+ timeMS;
 	return timeMins +"'"+ timeSecs +"&quot;"+ timeMS;
+}
+function updateSpeedometer(getId, aPosX,aPosY) {
+	if (!$speedometerVals[getId]) return;
+	var oKart = aKarts[getId];
+	var speedKmH = Math.hypot(oKart.x - aPosX, oKart.y - aPosY) * 10;
+	if (oKart.speed < 0)
+		speedKmH = -speedKmH;
+	if (oKart.tombe)
+		speedKmH = 0;
+	$speedometerVals[getId].innerHTML = speedKmH.toFixed(1);
 }
 
 function handleWrongWay(oKart) {
@@ -28508,34 +28549,34 @@ function editCommands(options) {
 	$controlSettingsH2.className = "control-settings-info";
 	$controlSettingsH2.innerHTML = toLanguage("Graphics settings", "Paramètres graphiques");
 	$controlSettings.appendChild($controlSettingsH2);
+	var currentSettings = localStorage.getItem("settings");
+	currentSettings = currentSettings ? JSON.parse(currentSettings) : {};
+	function showGraphicSetting(key, label) {
+		var $controlSetting = document.createElement("label");
+		var $controlCheckbox = document.createElement("input");
+		$controlCheckbox.type = "checkbox";
+		$controlCheckbox.checked = !!currentSettings[key];
+		$controlSetting.appendChild($controlCheckbox);
+		var $controlText = document.createElement("span");
+		$controlText.innerHTML = label;
+		$controlSetting.appendChild($controlText);
+		$controlCheckbox.onclick = function() {
+			if (this.checked)
+				currentSettings[key] = 1;
+			else
+				delete currentSettings[key];
+			localStorage.setItem("settings", JSON.stringify(currentSettings));
+		}
+		$controlSettings.appendChild($controlSetting);
+	}
 	var allGraphicSettings = {
 		'ld' : toLanguage('Don\'t display heavy elements (trees, decors)', 'Désactiver l\'affichage des éléments lourds (arbres, décors)'),
 		'nogif' : toLanguage('Disable animation in gif-format tracks', 'Désactiver les animations des circuits au format gif'),
 		'nowater' : toLanguage('Disable water animation (Palm Shore Arena)', 'Désactiver l\'animation de l\'eau (DS Feuille de Palmier)'),
 		'nomap' : toLanguage('Disable mini-map display', 'Désactiver l\'affichage de la mini-map')
 	};
-	var currentSettings = localStorage.getItem("settings");
-	currentSettings = currentSettings ? JSON.parse(currentSettings) : {};
-	for (var key in allGraphicSettings) {
-		(function(key) {
-			var $controlSetting = document.createElement("label");
-			var $controlCheckbox = document.createElement("input");
-			$controlCheckbox.type = "checkbox";
-			$controlCheckbox.checked = !!currentSettings[key];
-			$controlSetting.appendChild($controlCheckbox);
-			var $controlText = document.createElement("span");
-			$controlText.innerHTML = allGraphicSettings[key];
-			$controlSetting.appendChild($controlText);
-			$controlCheckbox.onclick = function() {
-				if (this.checked)
-					currentSettings[key] = 1;
-				else
-					delete currentSettings[key];
-				localStorage.setItem("settings", JSON.stringify(currentSettings));
-			}
-			$controlSettings.appendChild($controlSetting);
-		})(key);
-	}
+	for (var key in allGraphicSettings)
+		showGraphicSetting(key, allGraphicSettings[key]);
 	{
 		var $controlSetting = document.createElement("label");
 		$controlSetting.style.marginLeft = "5px";
@@ -28566,6 +28607,7 @@ function editCommands(options) {
 		$controlSetting.appendChild($controlSelect);
 		$controlSettings.appendChild($controlSetting);
 	}
+	showGraphicSetting('spd', toLanguage('Enable speedometer', 'Activer le compteur de vitesse'));
 	var $controlSettingsH2 = document.createElement("div");
 	$controlSettingsH2.className = "control-settings-info";
 	$controlSettingsH2.innerHTML = toLanguage("Sound settings", "Paramètres sonores");

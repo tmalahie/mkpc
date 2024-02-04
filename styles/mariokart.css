@@ -449,6 +449,15 @@ button.control-close:active {
 #lakitu0 div small,#lakitu1 div small {
 	font-size:0.5em;
 }
+.speedometer {
+	position: absolute;
+	color: #EEE;
+	font-family: "MuseoModerno", monospace;
+	text-shadow: 0.12em 0 0 black, -0.12em 0 0 black, 0 0.12em 0 black, 0 -0.12em 0 black, 1px 1px black, -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black;
+	text-align: right;
+	line-height: 1.25em;
+	z-index: 19997;
+}
 #challenge-cpts {
 	position: absolute;
 	color: #EEE;
@@ -624,6 +633,7 @@ form[name="modes"] {
 	position: absolute;
 	left:10%;
 	bottom:20%;
+	z-index:2;
 	background-color:#800;
 	color: #F62;
 	border: double 3px red;
