@@ -17271,7 +17271,7 @@ const translationMap = {
 	"greenshell": "carapace",
 	"greenshellX3": "carapaceX3",
 	"bomb": "bobomb",
-    "redshell": "carapacerouge",
+	"redshell": "carapacerouge",
 	"redshellX3": "carapacerougeX3",
 	"blueshell": "carapacebleue",
 	"darkshell": "carapacenoire",
@@ -17287,10 +17287,10 @@ const translationMap = {
 	"star": "etoile",
 	"bulletbill": "billball",
 	"bill": "billball",
-    "shock": "eclair",
-    "lightning": "eclair",
+	"shock": "eclair",
+	"lightning": "eclair",
 	"blooper": "bloops",
-    // Add more mappings as needed
+	// Add more mappings as needed
 };
 
 function openCheats() {
