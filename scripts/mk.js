@@ -17365,6 +17365,7 @@ function processCode(cheatCode) {
         updateObjHud(0);
         return true;
     }
+
 	var isTP = /^tp ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(cheatCode);
 	if (!isTP)
 		isTP = /^tp ([\d\-+\.]+) ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(cheatCode);
