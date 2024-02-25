@@ -17306,51 +17306,59 @@ function openCheats() {
     }
 }
 
+function isItemExisting(itemName) {
+    var itemMode = getItemMode();
+    var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
+    for (var i = 0; i < oItemDistributions.length; i++) {
+        var oItemDistribution = oItemDistributions[i];
+        for (var j = 0; j < oItemDistribution.value.length; j++) {
+            if (oItemDistribution.value[j][itemName] != null) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function processCode(cheatCode) {
     if (cheatCode.charAt(0) != "/")
         return false;
     cheatCode = cheatCode.substring(1);
-
 
     var oPlayer = oPlayers[0];
     var isObject = /^give (\w+)$/g.exec(cheatCode);
     if (isObject) {
         var wObject = isObject[1];
 
-        // Check if the English name exists in the map
-        if (translationMap[wObject]) {
-            // If it exists, use the French name
-            wObject = translationMap[wObject];
-        } else {
-            // Check if the French name exists in the map
-            for (var key in translationMap) {
-                if (translationMap[key] === wObject) {
-                    // If it exists, use the English name
-                    wObject = key;
-                    break;
+        // Check if the entered name directly matches an item name
+        var isExistingObj = isItemExisting(wObject);
+
+        // If not, check both English and French names
+        if (!isExistingObj) {
+            // Check if the English name exists in the map
+            if (translationMap[wObject]) {
+                // If it exists, use the French name
+                wObject = translationMap[wObject];
+                isExistingObj = isItemExisting(wObject);
+            } else {
+                // Check if the French name exists in the map
+                for (var key in translationMap) {
+                    if (translationMap[key] === wObject) {
+                        // If it exists, use the English name
+                        wObject = key;
+                        isExistingObj = isItemExisting(wObject);
+                        break;
+                    }
                 }
             }
         }
 
-        var isExistingObj = false;
-        var itemMode = getItemMode();
-        var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
-        dance: for (var i=0;i<oItemDistributions.length;i++) {
-            var oItemDistribution = oItemDistributions[i];
-            for (var j=0;j<oItemDistribution.value.length;j++) {
-                if (oItemDistribution.value[j][wObject] != null) {
-                    isExistingObj = true;
-                    break dance;
-                }
-            }
-        }
         if (!isExistingObj)
             return false;
         if (oPlayer.billball) {
             oPlayer.stash = wObject;
             oPlayer.roulette2 = 25;
-        }
-        else {
+        } else {
             oPlayer.arme = wObject;
             oPlayer.roulette = 25;
         }
