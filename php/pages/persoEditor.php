@@ -206,7 +206,7 @@ if ($arePersos) {
 			<img src="images/sprites/sprite_yoshi.png" alt="Yoshi Sprite" /><br />
 		</p>
 		<p class="description">
-			Thus, to create a new perso, &quot;Simply&quot; create an image (via a drawing software) with the different sprites aligned,
+			Thus, to create a new character, &quot;Simply&quot; create an image (via a drawing software) with the different sprites aligned,
 			as in the examples above.<br />
 			Make sure you keep the right dimensions for each sprite: 32&times;32px in the example above, or 768&times;32px in total.
 			Your sprites can have a different dimension than 32&times;32, but they must have the same size each (in particular, the image width must be a multiple of 24).
