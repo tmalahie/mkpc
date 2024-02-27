@@ -13334,7 +13334,7 @@ function showClFailedPopup() {
 	$popup.style.position = "absolute";
 	$popup.style.color = "#C00";
 	$popup.style.right = Math.round(iScreenScale/2) +"px";
-	$popup.style.top = Math.round(iScreenScale*2.5) +"px";
+	$popup.style.top = Math.round(iScreenScale * ($speedometers.length ? 4.8 : 2.5)) +"px";
 	$popup.style.fontSize = Math.round(iScreenScale*1.8) +"px";
 	$popup.style.display = "flex";
 	$popup.style.alignItems = "center";
