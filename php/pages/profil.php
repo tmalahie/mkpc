@@ -111,10 +111,10 @@ if (isset($profileId)) {
 								$error = $language ? 'Your image must be in the png, jpg or gif format' : 'Votre image doit être au format png, jpg ou gif';
 						}
 						else
-							$error = $language ? 'Your image musn\'t exceed 2000×2000 in dimension':'Votre image ne doit pas dépasser 1732×1732px';
+							$error = $language ? 'Your image mustn\'t exceed 2000×2000 in dimension':'Votre image ne doit pas dépasser 1732×1732px';
 					}
 					else
-						$error = $language ? 'Your image musn\'t exceed 2 MB.':'Votre image ne doit pas dépasser 2 Mo.';
+						$error = $language ? 'Your image mustn\'t exceed 2 MB.':'Votre image ne doit pas dépasser 2 Mo.';
 				}
 			}
 		}
