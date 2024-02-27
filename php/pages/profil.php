@@ -364,7 +364,7 @@ include('../includes/menu.php');
 				$getRecordsByCc = mysql_query('SELECT class,COUNT(*) AS nb FROM `mkrecords` WHERE player="'. $profileId .'" AND type="" AND best=1 GROUP BY class ORDER BY class');
 				while ($recordByCc = mysql_fetch_array($getRecordsByCc)) {
 					$cc = $recordByCc['class'];
-					if ($getTtRank = mysql_fetch_array(mysql_query('SELECT t.class,t.score,1+COUNT(j.id) AS rank FROM mkttranking t LEFT JOIN mkttranking t2 ON t.class=t2.class AND (t.score<t2.score OR (t.score=t2.score AND t.player>t2.player)) LEFT JOIN mkjoueurs j ON t2.player=j.id AND j.deleted=0 WHERE t.player='. $profileId .' AND t.class='. $cc))) {
+					if ($getTtRank = mysql_fetch_array(mysql_query('SELECT t.class,t.score,1+COUNT(j.id) AS rank FROM mkttranking t LEFT JOIN mkttranking t2 ON t.class=t2.class AND (t.score<t2.score OR (t.score=t2.score AND t.player>t2.player)) LEFT JOIN mkjoueurs j ON t2.player=j.id AND j.deleted=0 WHERE t.player='. $profileId .' AND t.class='. $cc .' GROUP BY t.class,t.score'))) {
 						echo '<div class="player-league">';
 						echo '<img src="images/records.png" alt="Time trial" />';
 						echo $cc . ($language ? 'cc:':'cc :');
