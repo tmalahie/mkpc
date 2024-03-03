@@ -48,9 +48,14 @@ showRegularAdSection();
 		include('../includes/ban_msg.php');
 	elseif (isset($_POST['titre']) && isset($_POST['message']) && trim($_POST['titre']) && trim($_POST['message'])) {
 		include('../includes/utils-cooldown.php');
+		require_once('../includes/forum-checks.php');
 		if (isMsgCooldowned(array('newtopic' => 1))) {
 			logCooldownEvent('forum_topic');
 			printMsgCooldowned();
+		}
+		elseif (($checks=checkMessageContent($_POST['message'])) && !$checks['success']) {
+			printCheckFailDetails($checks);
+			$showForm = true;
 		}
 		else {
 			include('../includes/idempotency.php');

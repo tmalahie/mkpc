@@ -39,12 +39,17 @@ showRegularAdSection();
 		include('../includes/category_fields.php');
 		$category = mysql_fetch_array(mysql_query('SELECT mkcategories.id,'. $categoryFields .' FROM `mkcategories` INNER JOIN `mktopics` ON category=mkcategories.id WHERE mktopics.id="'. $_GET['topic'] .'"'));
 		$getBanned = mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"');
+		$showForm = true;
 		if (($banned=mysql_fetch_array($getBanned)) && $banned['banned'])
 			include('../includes/ban_msg.php');
 		elseif (isset($_POST['message']) && (trim($_POST['message'])!=='')) {
 			require_once('../includes/getRights.php');
+			require_once('../includes/forum-checks.php');
 			$lastMessage = mysql_fetch_array(mysql_query('SELECT auteur,message FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'] .'"'));
-			if (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
+			if (($checks=checkMessageContent($_POST['message'])) && !$checks['success'])
+				printCheckFailDetails($checks);
+			elseif (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
+				$showForm = false;
 				mysql_query('UPDATE `mkmessages` SET message="'. $_POST['message'] .'" WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'].'"');
 				if ($lastMessage['auteur'] != $id)
 					mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Edit '. $_GET['topic'] .' '. $_GET['id'] .'")');
@@ -100,7 +105,7 @@ showRegularAdSection();
 			else
 				echo '<p style="text-align: center">'. ($language ? 'Error while editting message.':'Erreur lors de la modification du message.') .'</p>';
 		}
-		else {
+		if ($showForm) {
 			$getMessage = mysql_fetch_array(mysql_query('SELECT message FROM `mkmessages` WHERE id="'. $_GET['id'] .'" AND topic="'. $_GET['topic'].'"'));
 		?>
 <form method="post" action="edit.php?id=<?php echo urlencode($_GET['id']); ?>&amp;topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="this.querySelector('[type=submit]').disabled=true">
@@ -113,7 +118,10 @@ for ($i=0;$i<$nbSmileys;$i++)
 ?>
 <a href="javascript:moresmileys()" id="more-smileys"><?php echo $language ? 'More smileys':'Plus de smileys'; ?></a></p>
 </td><td class="mInput"><textarea name="message" id="message" rows="10" required><?php
-	echo htmlspecialchars($getMessage['message']);
+	if (isset($_POST['message']))
+		echo htmlspecialchars($_POST['message']);
+	else
+		echo htmlspecialchars($getMessage['message']);
 ?></textarea></td></tr>
 <tr><td colspan="2" class="mLabel"><input type="button" value="<?php echo $language ? 'Preview':'Aper&ccedil;u'; ?>" onclick="apercu()" /> &nbsp; <input type="submit" value="<?php echo $language ? 'Send':'Envoyer'; ?>" /></td></tr>
 </table>

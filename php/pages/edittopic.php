@@ -38,11 +38,16 @@ showRegularAdSection();
 		<?php
 		require_once('../includes/getRights.php');
 		$getBanned = mysql_fetch_array(mysql_query('SELECT banned FROM `mkjoueurs` WHERE id="'. $id .'"'));
+		$showForm = true;
 		if ($getBanned && $getBanned['banned'])
 			include('../includes/ban_msg.php');
 		elseif (isset($_POST['titre']) && isset($_POST['message']) && trim($_POST['titre']) && trim($_POST['message'])) {
+			require_once('../includes/forum-checks.php');
 			$lastMessage = mysql_fetch_array(mysql_query('SELECT * FROM `mkmessages` WHERE id=1 AND topic="'. $_GET['topic'] .'"'));
-			if (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
+			if (($checks=checkMessageContent($_POST['message'])) && !$checks['success'])
+				printCheckFailDetails($checks);
+			elseif (($lastMessage['auteur'] == $id) || hasRight('moderator')) {
+				$showForm = false;
 				$categoryID = intval($_POST['category']);
 				if ($category = mysql_fetch_array(mysql_query('SELECT id FROM `mkcategories` WHERE id="'. $categoryID .'"'. (hasRight('manager') ? '':' AND adminonly=0')))) {
 					$private = (isset($_POST['admin']) && hasRight('manager')) ? 1:0;
@@ -105,7 +110,7 @@ showRegularAdSection();
 			else
 				echo '<p style="text-align: center">'. ($language ? 'Error while editting message.':'Erreur lors de la modification du message.') .'</p>';
 		}
-		else {
+		if ($showForm) {
 		?>
 <form method="post" action="edittopic.php?topic=<?php echo urlencode($_GET['topic']); ?>" onsubmit="this.querySelector('[type=submit]').disabled=true">
 <table id="nMessage">
@@ -137,8 +142,12 @@ for ($i=0;$i<$nbSmileys;$i++)
 ?>
 <a href="javascript:moresmileys()" id="more-smileys"><?php echo $language ? 'More smileys':'Plus de smileys'; ?></a></p>
 </td><td class="mInput"><textarea name="message" id="message" rows="10" required><?php
-	$getMessage = mysql_fetch_array(mysql_query('SELECT message FROM `mkmessages` WHERE id=1 AND topic="'. $_GET['topic'] .'"'));
-	echo htmlspecialchars($getMessage['message']);
+	if (isset($_POST['message']))
+		echo htmlspecialchars($_POST['message']);
+	else {
+		$getMessage = mysql_fetch_array(mysql_query('SELECT message FROM `mkmessages` WHERE id=1 AND topic="'. $_GET['topic'] .'"'));
+		echo htmlspecialchars($getMessage['message']);
+	}
 ?></textarea></td></tr>
 <?php
 if (hasRight('manager')) {
