@@ -13,7 +13,7 @@ require_once('../includes/persos.php');
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
-<title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
+<title><?php echo $language ? "Choose character":"Éditeur de persos"; ?></title>
 <?php
 include('../includes/o_xhr.php');
 ?>
