@@ -571,8 +571,10 @@ function removeIfExists(elt) {
 	if (!elt)
 		return;
 	if (elt.yt) {
-		if (elt.yt.destroy)
+		if (elt.yt.destroy) {
+			elt.yt.isDetroyed = true;
 			elt.yt.destroy();
+		}
 		delete elt.yt;
 		delete elt.tasks;
 		delete elt.opts;
@@ -2646,7 +2648,7 @@ function startMapMusic(lastlap) {
 		mapMusic = startMusic(oMap.music ? "musics/maps/map"+ oMap.music +".mp3":oMap.yt, false, 0, opts);
 		mapMusic.permanent = 1;
 		bufferMusic(mapMusic, function() {
-			if (endingMusic)
+			if (endingMusic && oMap.music)
 				bufferMusic(endingMusic);
 		});
 		if (opts.last) {
@@ -16382,8 +16384,13 @@ function move(getId, triggered) {
 										carEngine2.volume = vSfx;
 									}
 								}, 2700);
-								if (lastMapMusic)
+								if (lastMapMusic) {
+									if (mapMusic !== lastMapMusic) {
+										removeIfExists(mapMusic);
+										mapMusic = lastMapMusic;
+									}
 									bufferMusic(lastMapMusic);
+								}
 							}
 						}
 						else if (iSfx)
