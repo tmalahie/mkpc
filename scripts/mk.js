@@ -2373,13 +2373,13 @@ function bufferMusic(elt, callback) {
 	var speed = options.speed;
 	onPlayerReady(elt, function(player) {
 		player.setVolume(0);
-		if (speed)
-			player.setPlaybackRate(speed);
 		if (startTime)
 			player.seekTo(startTime,true);
 		player.playVideo();
 		setTimeout(function() {
 			player.pauseVideo();
+			if (speed)
+				player.setPlaybackRate(speed);
 			player.seekTo(startTime,true);
 			player.setVolume(100*vMusic);
 			if (callback)
@@ -2473,11 +2473,11 @@ function updateMusic(elt,fast) {
 		}
 		else {
 			onPlayerReady(elt, function(player) {
-				if (fast)
-					player.setPlaybackRate(1.25);
 				var opts = elt.opts || {};
 				if (opts.speed)
 					player.setPlaybackRate(opts.speed);
+				else if (fast)
+					player.setPlaybackRate(1.25);
 				var start = opts.start || 0;
 				player.seekTo(start,true);
 				player.setVolume(100*vMusic);
@@ -2737,6 +2737,11 @@ function startEndMusic() {
 				willPlayEndMusic = false;
 				isEndMusicPlayed = true;
 				unpauseMusic(endingMusic);
+				if (endingMusic.yt) {
+					onPlayerReady(endingMusic, function(player) {
+						player.setVolume(100*vMusic);
+					});
+				}
 			}
 		}, 200);
 	}
