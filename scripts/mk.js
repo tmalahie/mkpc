@@ -7703,7 +7703,7 @@ var itemBehaviors = {
 					if (isOnline && isControlledByPlayer(fSprite.target) && (fSprite.cooldown < -10))
 						fSprite.cooldown = 0;
 					fSprite.cooldown--;
-					var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -70:-10;
+					var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -120:-10;
 					if (fSprite.cooldown < delLimit)
 						detruit(fSprite);
 					else
