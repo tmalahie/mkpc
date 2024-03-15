@@ -4135,7 +4135,10 @@ function startGame() {
 								break;
 							case "down":
 								currentPressedKeys[gameAction] = true;
-								oPlayers[0].speedinc = -0.2;
+								if (oPlayers[0].driftinc)
+									oPlayers[0].speedinc = 0;
+								else
+									oPlayers[0].speedinc = -0.2;
 								break;
 							case "jump":
 								if (pause) break;
@@ -4210,7 +4213,10 @@ function startGame() {
 								break;
 							case "down_p2":
 								if (!oPlayers[1]) return;
-								oPlayers[1].speedinc -= 0.2;
+								if (oPlayers[1].driftinc)
+									oPlayers[1].speedinc = 0;
+								else
+									oPlayers[1].speedinc = -0.2;
 								break;
 							case "jump_p2":
 								if (pause) break;
