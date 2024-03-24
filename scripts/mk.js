@@ -4135,7 +4135,7 @@ function startGame() {
 								break;
 							case "down":
 								currentPressedKeys[gameAction] = true;
-								if (oPlayers[0].driftinc)
+								if (isRdDisabled() && oPlayers[0].driftinc)
 									oPlayers[0].speedinc = 0;
 								else
 									oPlayers[0].speedinc = -0.2;
@@ -4213,7 +4213,7 @@ function startGame() {
 								break;
 							case "down_p2":
 								if (!oPlayers[1]) return;
-								if (oPlayers[1].driftinc)
+								if (isRdDisabled() && oPlayers[1].driftinc)
 									oPlayers[1].speedinc = 0;
 								else
 									oPlayers[1].speedinc = -0.2;
@@ -10787,6 +10787,9 @@ function resetDriftSprite(oKart) {
 
 function isJumpEnabled() {
     return !(isOnline && shareLink.options && shareLink.options.noJump);
+}
+function isRdDisabled() {
+    return (isOnline && shareLink.options && shareLink.options.noRd);
 }
 function isLocalScore() {
 	if (isOnline)
@@ -19076,6 +19079,7 @@ function privateGameOptions(gameOptions, onProceed) {
 		var timeTrial = this.elements["option-timeTrial"].checked ? 1:0;
 		var noBumps = this.elements["option-noBumps"].checked ? 1:0;
 		var noJump = this.elements["option-noJump"].checked ? 1:0;
+		var noRd = this.elements["option-noRd"].checked ? 1:0;
 		var doubleItems = this.elements["option-doubleItems"].checked ? 0:1;
 		if (!team) {
 			manualTeams = 0;
@@ -19112,6 +19116,7 @@ function privateGameOptions(gameOptions, onProceed) {
 			timeTrial: timeTrial,
 			noBumps: noBumps,
 			noJump: noJump,
+			noRd: noRd,
 			doubleItems: doubleItems
 		});
 		oScr.innerHTML = "";
@@ -20383,8 +20388,6 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
 
-	oScroll.appendChild(oTable);
-
 	var oTr = document.createElement("tr");
 	oTr.id = "option-noBumps-ctn";
 	if (!isOnline)
@@ -20421,8 +20424,6 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
 
-	oScroll.appendChild(oTable);
-
 	var oTr = document.createElement("tr");
 	oTr.id = "option-noJump-ctn";
 	if (!isOnline)
@@ -20453,6 +20454,42 @@ function privateGameOptions(gameOptions, onProceed) {
 	oDiv.style.fontSize = (2*iScreenScale) +"px";
 	oDiv.style.color = "white";
 	oDiv.innerHTML = toLanguage("If checked, it becomes impossible to jump, drift or make tricks", "Si coché, il est impossible de faire des sauts, dérapages ou figures");
+	oLabel.appendChild(oDiv);
+	oTd.appendChild(oLabel);
+	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
+	oTr.appendChild(oTd);
+	oTable.appendChild(oTr);
+
+	var oTr = document.createElement("tr");
+	oTr.id = "option-noRd-ctn";
+	if (!isOnline)
+		oTr.style.display = "none";
+	var oTd = document.createElement("td");
+	oTd.style.textAlign = "center";
+	oTd.style.width = (iScreenScale*8) +"px";
+	var oCheckbox = document.createElement("input");
+	oCheckbox.style.transform = oCheckbox.style.WebkitTransform = oCheckbox.style.MozTransform = "scale("+ Math.round(iScreenScale/3) +")";
+	oCheckbox.id = "option-noRd";
+	oCheckbox.name = "option-noRd";
+	oCheckbox.type = "checkbox";
+	if (gameOptions && gameOptions.noRd)
+		oCheckbox.checked = true;
+	oTd.appendChild(oCheckbox);
+	oTr.appendChild(oTd);
+
+	var oTd = document.createElement("td");
+	var oLabel = document.createElement("label");
+	oLabel.style.cursor = "pointer";
+	oLabel.setAttribute("for", "option-noRd");
+	var oH1 = document.createElement("h1");
+	oH1.style.fontSize = (3*iScreenScale) +"px";
+	oH1.style.marginBottom = "0px";
+	oH1.innerHTML = toLanguage("Disable Reverse Drift", "Désactiver le Reverse Drift");
+	oLabel.appendChild(oH1);
+	var oDiv = document.createElement("div");
+	oDiv.style.fontSize = (2*iScreenScale) +"px";
+	oDiv.style.color = "white";
+	oDiv.innerHTML = toLanguage("If checked, the famous MKPC pro-gamers glitch is blocked", "Si coché, le fameux glitch des pro-gamers MKPC est bloqué");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
@@ -22004,6 +22041,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 									shareLink.options.timeTrial = options.timeTrial;
 									shareLink.options.noBumps = options.noBumps;
 									shareLink.options.noJump = options.noJump;
+									shareLink.options.noRd = options.noRd;
 									shareLink.options.doubleItems = options.doubleItems;
 									selectedTeams = options.team;
 									selectPlayerScreen(0);
@@ -23714,6 +23752,7 @@ var defaultGameOptions = {
 	timeTrial: false,
 	noBumps: false,
 	noJump: false,
+	noRd: false,
 	doubleItems: true
 };
 function isCustomOptions(linkOptions) {
@@ -24214,6 +24253,27 @@ function acceptRulesScreen() {
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
 		oDiv.innerHTML = toLanguage("It's impossible to perform a jump, drift or trick", "Il est impossible de faire des sauts, dérapages ou figures");
+		oLabel.appendChild(oDiv);
+		oTd.appendChild(oLabel);
+		oTr.appendChild(oTd);
+		oTable.appendChild(oTr);
+	}
+
+	if (shareLink.options.noRd) {
+		var oTr = document.createElement("tr");
+		var oTd = document.createElement("td");
+		var oLabel = document.createElement("label");
+		oTd.appendChild(oLabel);
+
+		var oH1 = document.createElement("h1");
+		oH1.style.fontSize = (3*iScreenScale) +"px";
+		oH1.innerHTML = toLanguage("No Reverse Drift", "Pas de Reverse Drift");
+		oH1.style.marginBottom = "0px";
+		oLabel.appendChild(oH1);
+		var oDiv = document.createElement("div");
+		oDiv.style.fontSize = (2*iScreenScale) +"px";
+		oDiv.style.color = "white";
+		oDiv.innerHTML = toLanguage("The famous MKPC pro-gamers glitch is blocked", "Le fameux glitch des pro-gamers MKPC est bloqué");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);

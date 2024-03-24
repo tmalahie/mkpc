@@ -93,6 +93,10 @@ $rulesList = array(
 		'default' => 0,
 		'accepted' => array(1,1)
 	),
+	'noRd' => array(
+		'default' => 0,
+		'accepted' => array(1,1)
+	),
 	'doubleItems' => array(
 		'default' => 1,
 		'accepted' => array(1,1)
