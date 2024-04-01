@@ -4137,8 +4137,11 @@ function startGame() {
 								currentPressedKeys[gameAction] = true;
 								if (isRdDisabled() && oPlayers[0].driftinc)
 									oPlayers[0].speedinc = 0;
-								else
+								else {
 									oPlayers[0].speedinc = -0.2;
+									if (oPlayers[0].driftinc)
+										clLocalVars.revDrifted = true;
+								}
 								break;
 							case "jump":
 								if (pause) break;
@@ -4213,10 +4216,7 @@ function startGame() {
 								break;
 							case "down_p2":
 								if (!oPlayers[1]) return;
-								if (isRdDisabled() && oPlayers[1].driftinc)
-									oPlayers[1].speedinc = 0;
-								else
-									oPlayers[1].speedinc = -0.2;
+								oPlayers[1].speedinc = -0.2;
 								break;
 							case "jump_p2":
 								if (pause) break;
@@ -12219,6 +12219,11 @@ var challengeRules = {
 			return !clLocalVars.drifted;
 		}
 	},
+	"no_rd": {
+		"success": function(scope) {
+			return !clLocalVars.revDrifted;
+		}
+	},
 	"avoid_items": {
 		"success": function(scope) {
 			return !clLocalVars.itemsGot;
@@ -12835,6 +12840,7 @@ function isSameDistrib(d1,d2) {
 function reinitLocalVars() {
 	clLocalVars = {
 		drifted: false,
+		revDrifted: false,
 		stunted: false,
 		itemsGot: false,
 		itemsUsed: false,
@@ -20489,7 +20495,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	var oDiv = document.createElement("div");
 	oDiv.style.fontSize = (2*iScreenScale) +"px";
 	oDiv.style.color = "white";
-	oDiv.innerHTML = toLanguage("If checked, the famous MKPC pro-gamers glitch is blocked", "Si coché, le fameux glitch des pro-gamers MKPC est bloqué");
+	oDiv.innerHTML = toLanguage("If checked, the famous MKPC drifting technique is blocked", "Si coché, la fameuse technique de dérapage de MKPC est bloquée");
 	oLabel.appendChild(oDiv);
 	oTd.appendChild(oLabel);
 	oTd.style.padding = Math.round(iScreenScale*1.5) +"px 0";
@@ -24273,7 +24279,7 @@ function acceptRulesScreen() {
 		var oDiv = document.createElement("div");
 		oDiv.style.fontSize = (2*iScreenScale) +"px";
 		oDiv.style.color = "white";
-		oDiv.innerHTML = toLanguage("The famous MKPC pro-gamers glitch is blocked", "Le fameux glitch des pro-gamers MKPC est bloqué");
+		oDiv.innerHTML = toLanguage("The famous MKPC drifting technique is blocked", "La fameuse technique de dérapage de MKPC est bloquée");
 		oLabel.appendChild(oDiv);
 		oTd.appendChild(oLabel);
 		oTr.appendChild(oTd);

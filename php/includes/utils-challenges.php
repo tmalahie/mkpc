@@ -330,6 +330,11 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
+		'no_rd' => array(
+			'description' => $language ? 'without reverse drifting':'sans faire de RD',
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
 		'avoid_items' => array(
 			'description' => $language ? 'without touching item boxes':'sans toucher les boites à objet',
 			'group' => 'no_action',
