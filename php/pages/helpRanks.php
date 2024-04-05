@@ -37,7 +37,7 @@ include('../includes/language.php');
 				<?php
 				if ($language) {
 					?>
-				Each player is attributed a <em>rank</em> represented by a <em>character</em> according to the number of messages he posted on the <a href="forum.php" target="_blank">forum</a> of the website. Keep posting messages to get new characters!<br /><br />
+				Each player is attributed a <em>rank</em> represented by a <em>character</em> according to the number of messages they post on the <a href="forum.php" target="_blank">forum</a> of the website. Keep posting messages to get new characters!<br /><br />
 				The different characters are the following:<br />
 					<?php
 				}

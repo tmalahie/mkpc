@@ -53,9 +53,14 @@ showRegularAdSection();
 				include('../includes/ban_msg.php');
 			elseif (isset($_POST['message']) && (trim($_POST['message'])!=='')) {
 				include('../includes/utils-cooldown.php');
+				require_once('../includes/forum-checks.php');
 				if (isMsgCooldowned()) {
 					logCooldownEvent('forum_msg');
 					printMsgCooldowned();
+				}
+				elseif (($checks=checkMessageContent($_POST['message'])) && !$checks['success']) {
+					printCheckFailDetails($checks);
+					$showForm = true;
 				}
 				else {
 					$showNavLinks = false;
@@ -171,7 +176,9 @@ for ($i=0;$i<$nbSmileys;$i++)
 ?>
 <a href="javascript:moresmileys()" id="more-smileys"><?php echo $language ? 'More smileys':'Plus de smileys'; ?></a></p>
 </td><td class="mInput"><textarea name="message" id="message" rows="10" required><?php
-if (isset($_GET['quote'])) {
+if (isset($_POST['message']))
+	echo htmlspecialchars($_POST['message']);
+elseif (isset($_GET['quote'])) {
 	if ($getMessage = mysql_fetch_array(mysql_query('SELECT j.nom,m.message FROM `mkmessages` m LEFT JOIN `mkjoueurs` j ON m.auteur=j.id WHERE m.id="'. $_GET['quote'] .'" AND m.topic="'. $_GET['topic'] .'"')))
 		echo '[quote'. ($getMessage['nom'] ? '='.$getMessage['nom']:'') .']' . htmlspecialchars($getMessage['message']) . '[/quote]'."\n";
 }

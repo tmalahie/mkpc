@@ -511,6 +511,11 @@ $clRulesByType = array(
 			'group' => 'no_action',
 			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
 		),
+		'no_rd' => array(
+			'description' => $language ? 'without reverse drifting':'sans faire de RD',
+			'group' => 'no_action',
+			'course' => array('vs', 'battle', 'cup', 'mcup', 'bcup', 'mbcup')
+		),
 		'without_turning' => array(
 			'description_mockup' => $language ? 'without turning...':'sans tourner...',
 			'description_lambda' => function($language,&$scope) {

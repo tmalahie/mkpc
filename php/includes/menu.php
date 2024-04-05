@@ -545,7 +545,7 @@
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'to your message in the topic':'à votre message sur le topic') .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'circuit_comment' :
-				$verb = ($language ? 'commented':((count($names)>1) ? 'ont commenté':' a commenté'));
+				$verb = ($language ? 'commented on':((count($names)>1) ? 'ont commenté':' a commenté'));
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' '. $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>';
 				break;
 			case 'reaction_trackcom' :
@@ -553,7 +553,7 @@
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'to your comment on':'à votre commentaire sur') .' '. $notifData['the_circuit'] . $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>';
 				break;
 			case 'news_comment' :
-				$verb = ($language ? 'commented':((count($names)>1) ? 'ont commenté':' a commenté'));
+				$verb = ($language ? 'commented on':((count($names)>1) ? 'ont commenté':' a commenté'));
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. ($language ? 'your':'votre') .' news <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;
 			case 'news_moderated' :
@@ -590,11 +590,11 @@
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb;
 				break;
 			case 'answer_comment' :
-				$verb = ($language ? 'also commented':((count($names)>1) ? 'ont également commenté':'a également commenté'));
+				$verb = ($language ? 'also commented on':((count($names)>1) ? 'ont également commenté':'a également commenté'));
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $notifData['the_circuit'] . $notifData['type_circuit'] .' <strong>'. decodeAndEscapeCircuitNames($notifData['title']) .'</strong>';
 				break;
 			case 'answer_newscom' :
-				$verb = ($language ? 'also commented':((count($names)>1) ? 'ont également commenté':'a également commenté'));
+				$verb = ($language ? 'also commented on':((count($names)>1) ? 'ont également commenté':'a également commenté'));
 				$thenews = ($language ? 'the news':'la news');
 				$notifsData[$i]['content'] = $namesJoined .' '. $verb .' '. $thenews .' <strong>'. htmlspecialchars($notifData['title']) .'</strong>';
 				break;

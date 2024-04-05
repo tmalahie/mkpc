@@ -1519,7 +1519,7 @@ function getItemHitOptions() {
 				echo '<div class="challenge-msg-success">'. ($language ? 'The challenge has been edited':'Le défi a été modifié') .'. <a href="javascript:window.close()">'. ($language ? 'Back':'Retour') .'</a></div>';
 			?>
 			<fieldset class="challenge-main">
-				<legend><?php echo $language ? 'Main object':'Objectif principal'; ?></legend>
+				<legend><?php echo $language ? 'Main objective':'Objectif principal'; ?></legend>
 				<select name="goal[type]" id="challenge-main-rule" required="required" onchange="selectMainRule()">
 					<option value=""><?php echo $language ? 'Select object...':'Sélectionner objectif...'; ?></option>
 					<?php

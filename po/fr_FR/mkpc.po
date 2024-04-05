@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-22 13:40+0200\n"
+"POT-Creation-Date: 2024-02-27 22:47+0100\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -267,7 +267,6 @@ msgstr ""
 "topic "
 
 #: php/pages/admin-logs.php
-#, fuzzy
 msgid "unarchived report #$1"
 msgstr "a archivé le signalement #$1"
 
@@ -845,9 +844,8 @@ msgstr "Recherche avancée"
 msgid "Topics nb"
 msgstr "Nb topics"
 
-#: php/pages/forum.php php/pages/index.php
-#, php-format
-msgid "Latest message"
+#: php/pages/forum.php
+msgid "Last message"
 msgstr "Dernier message"
 
 #: php/pages/forum.php
@@ -1187,8 +1185,8 @@ msgstr ""
 
 #: php/pages/index.php
 msgid ""
-"<a href=\"{url}\">Github repo</a> of the site. Follow here all the ongoing "
-"developments, and if you can code, don't hesitate to contribute to the "
+"<a href=\"{url}\">Github repo</a> of the site. Follow all the ongoing "
+"developments here, and if you can code, don't hesitate to contribute to the "
 "project!"
 msgstr ""
 "<a href=\"{url}\">Repo Github</a> du site : suivez ici tous les "
@@ -1259,6 +1257,11 @@ msgstr "Derniers topics"
 #: php/pages/index.php
 msgid "Latest message by <strong>{message}</strong>"
 msgstr "Dernier message par <strong>{message}</strong>"
+
+#: php/pages/index.php
+#, php-format
+msgid "Latest message"
+msgstr "Dernier message"
 
 #: php/pages/index.php
 msgid "Go to the forum"

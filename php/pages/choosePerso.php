@@ -13,7 +13,7 @@ require_once('../includes/persos.php');
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
 <link rel="stylesheet" href="styles/perso-editor.css?reload=1" />
-<title><?php echo $language ? 'Character editor':'Éditeur de persos'; ?></title>
+<title><?php echo $language ? "Choose character":"Éditeur de persos"; ?></title>
 <?php
 include('../includes/o_xhr.php');
 ?>
@@ -440,7 +440,7 @@ updateCursors = function() {
 </script>
 </head>
 <body>
-	<h2><?php echo $language ? 'Chose a character from editor':'Choix d\'un perso à partir de l\'éditeur'; ?></h2>
+	<h2><?php echo $language ? 'Choose a character from editor':'Choix d\'un perso à partir de l\'éditeur'; ?></h2>
 	<div class="persos-list-container">
 	<h3><?php echo $language ? 'Your characters':'Vos persos'; ?></h3>
 	<?php
