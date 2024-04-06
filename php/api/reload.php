@@ -368,8 +368,10 @@ if ($id) {
 							$team = $joueur['team'];
 							$inc = $ptsPerTeam[$team]*$ptsProrata[$i]/$ptsProrataTotal[$team];
 						}
-						else
+						elseif ($total)
 							$inc = getScoreInc($i,$score,$nbScores,$total);
+						else
+							$inc = 0;
 						$inc = round($inc);
 						$i++;
 					}
