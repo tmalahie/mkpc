@@ -3916,6 +3916,9 @@ function startGame() {
 			}
 			else {
 				clearTimeout(fncHandler);
+				var currentPressedKeys = {};
+				if (oPlayers[0].speedinc > 0)
+					currentPressedKeys.up = true;
 				for (var i=0;i<strPlayer.length;i++) {
 					if (oRaceCounts)
 						hudScreens[i].removeChild(oRaceCounts[i]);
@@ -3927,7 +3930,6 @@ function startGame() {
 					else if (oPlayers[i].speed > 1) {
 						oPlayers[i].spin(42);
 						oPlayers[i].speed = 0;
-						oPlayers[i].speedinc = 0;
 					}
 				}
 				oChallengeCpts.style.visibility = "visible";
@@ -4118,7 +4120,6 @@ function startGame() {
 				);
 
 				if (!pause || !fInfos.replay) {
-					var currentPressedKeys = {};
 					function handleInputPressed(gameAction) {
 						switch (gameAction) {
 							case "up":
