@@ -29453,9 +29453,9 @@ else {
 }
 function isChatting() {
 	if (!isOnline) return false;
-	if (!document.forms[1]) return false;
-	if (!document.forms[1].elements["rMessage"]) return false;
-	return (document.activeElement == document.forms[1].elements["rMessage"]);
+	var oChatMsg = document.querySelector('form.online-chat-answer input[name="rMessage"]');
+	if (!oChatMsg) return false;
+	return (document.activeElement == oChatMsg);
 }
 function onButtonTouch(e) {
 	if (e) e.preventDefault();
