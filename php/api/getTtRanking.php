@@ -17,6 +17,7 @@ if (!$manage && isset($_POST['user']))
 if ($manage) {
     include('../includes/getId.php');
 	$pIDs = $identifiants;
+    $userId = $id;
 }
 $cIDs = isset($_POST['cIDs']) ? explode(',', $_POST['cIDs']) : array();
 foreach ($cIDs as &$cID)

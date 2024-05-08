@@ -276,7 +276,7 @@ include('../includes/menu.php');
 	elseif (isset($user))
 		echo $language ? 'Best time trial scores of '. $user['nom']:'Meilleurs scores contre-la-montre de '.$user['nom'];
 	else
-		echo $language ? 'Best scores time trial':'Meilleurs scores contre-la-montre';
+		echo $language ? 'Best scores in time trial':'Meilleurs scores contre-la-montre';
 ?></h1>
 <div class="action-btns<?php if ($isModerator && !$manage) echo ' action-btns-sm'; ?>">
 <?php
