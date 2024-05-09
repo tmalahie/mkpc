@@ -1592,6 +1592,11 @@ function initMap() {
 	}
 	else
 		oMap.checkpointCoords = [];
+	if (oMap.aipoints && !oMap.airoutesmeta) {
+		oMap.airoutesmeta = {
+			cpu: oMap.aipoints.length
+		};
+	}
 	if (oMap.flowers) {
 		for (var i=0;i<oMap.flowers.length;i++) {
 			var flower = oMap.flowers[i][1];
@@ -2111,7 +2116,7 @@ function arme(ID, backwards, forwards) {
 			case "carapacebleue" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
 			if (course != "BB") {
-				for (var i=0;i<oMap.aipoints.length;i++) {
+				for (var i=0;i<oMap.airoutesmeta.cpu;i++) {
 					var aipoints = oMap.aipoints[i];
 					for (var j=0;j<aipoints.length;j++) {
 						var aipoint = aipoints[j];
@@ -2145,7 +2150,7 @@ function arme(ID, backwards, forwards) {
 			case "carapacenoire" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
 			if (course != "BB") {
-				for (var i=0;i<oMap.aipoints.length;i++) {
+				for (var i=0;i<oMap.airoutesmeta.cpu;i++) {
 					var aipoints = oMap.aipoints[i];
 					for (var j=0;j<aipoints.length;j++) {
 						var aipoint = aipoints[j];
@@ -2949,7 +2954,7 @@ function startGame() {
 				oEnemy.cpu = false;
 		}
 
-		var iPt = inc%oMap.aipoints.length;
+		var iPt = inc%oMap.airoutesmeta.cpu;
 		oEnemy.aipoints = oMap.aipoints[iPt]||[];
 		if (oMap.aishortcuts && oMap.aishortcuts[iPt]) {
 			var validShortcuts = {};
@@ -7462,7 +7467,7 @@ var itemBehaviors = {
 							if (fSprite.aipoint == -1) {
 								if (course != "BB") {
 									var minDist = 2000;
-									for (var j=0;j<oMap.aipoints.length;j++) {
+									for (var j=0;j<oMap.airoutesmeta.cpu;j++) {
 										var iLocal = oMap.aipoints[j];
 										for (var k=0;k<iLocal.length;k++) {
 											var oBox = iLocal[k];
@@ -9447,7 +9452,7 @@ var decorBehaviors = {
 			}
 			var extraParams = getDecorExtra(this,true);
 			if (!extraParams.path)
-				extraParams.path = oMap.aipoints;
+				extraParams.path = oMap.aipoints.slice(0, oMap.airoutesmeta.cpu);
 			if (decorData[6] == undefined) {
 				var minDist = Infinity;
 				var initialK = (decorData[5] != undefined);
@@ -9491,7 +9496,7 @@ var decorBehaviors = {
 			var x = decorData[0], y = decorData[1], aimX, aimY;
 			var extraParams = getDecorExtra(this,true);
 			if (!extraParams.path)
-				extraParams.path = oMap.aipoints;
+				extraParams.path = oMap.aipoints.slice(0, oMap.airoutesmeta.cpu);
 			var aipoints = extraParams.path[decorData[5]];
 			do {
 				var aipoint = aipoints[decorData[6]];
@@ -16716,8 +16721,11 @@ function move(getId, triggered) {
 				iLocalY = 0;
 			}
 
-			dance: for (var i=0;i<oMap.aipoints.length;i++) {
-				var aipoints = oMap.aipoints[i];
+			var aBillPoints = oMap.aipoints;
+			if (oMap.airoutesmeta.cpu < aBillPoints.length)
+				aBillPoints = aBillPoints.slice(oMap.airoutesmeta.cpu);
+			dance: for (var i=0;i<aBillPoints.length;i++) {
+				var aipoints = aBillPoints[i];
 				for (var j=0;j<aipoints.length;j++) {
 					var oBox = aipoints[j];
 					if (oKart.x > oBox[0] - 35 && oKart.x < oBox[0] + 35 && oKart.y > oBox[1] - 35 && oKart.y < oBox[1] + 35) {
