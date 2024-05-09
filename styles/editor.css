@@ -1010,6 +1010,10 @@ embed,#ytplayer {
 #traject-less h1 {
 	color: #C33;
 }
+#traject-advanced-options {
+	margin-top: 0.25em;
+	color: #666;
+}
 .traject-info .popup-buttons {
 	margin-top: 15px;
 	margin-bottom: 5px;

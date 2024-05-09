@@ -117,8 +117,7 @@ if (isset($_GET['i'])) {
 					</div>
 				</div>
 				<div id="mode-option-aipoints">
-					<select name="traject" id="traject" onchange="trajectChange(this.value,'aipoints')">
-					</select>
+					<select name="traject" id="traject" onchange="trajectChange(this.value,'aipoints')"></select>
 				</div>
 				<div id="mode-option-walls">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
@@ -281,13 +280,11 @@ if (isset($_GET['i'])) {
 									  thus adding diversity in CPUs behaviour.<br />
 									  For example, if you specify 2 routes,
 									  half of the CPUs will take the 1<sup>st</sup> one,
-									  and the other half will take the 2<sup>nd</sup> one.<br />
-									  You can indicate up to 7 routes.'
+									  and the other half will take the 2<sup>nd</sup> one.'
 								   : 'Ce menu vous permet de créer plusieurs trajets différents,
 								   	  et ainsi ajouter de la diversité dans le comportement des ordis.<br />
 									  Si vous avez spécifié 2 trajets par exemple,
-									  la moitié des ordis prendront le 1<sup>er</sup> trajet, et l\'autre motié le 2<sup>e</sup>.<br />
-									  Vous pouvez indiquer jusqu\'à 7 trajets.';
+									  la moitié des ordis prendront le 1<sup>er</sup> trajet, et l\'autre motié le 2<sup>e</sup>.';
 					?>
 					</div>
 					<div class="traject-specific traject-specific-bus">
@@ -317,6 +314,9 @@ if (isset($_GET['i'])) {
 					<div>
 						<?php echo $language ? 'Create route from:':'Créer le trajet à partir de :'; ?>
 						<select id="traject-more-list"></select>
+						<div id="traject-advanced-options">
+							<label><input type="checkbox" id="traject-bill" /> <?php echo $language ? 'Route for Bullet Bill only':'Trajet pour les Bill Ball'; ?> <a href="javascript:showBillBallHelp()">[?]</a></label>
+						</div>
 						<div class="popup-buttons">
 							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
 							<button class="options" onclick="addTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>

@@ -316,8 +316,13 @@ var editorTools = {
 		"save" : function(self,payload) {
 			payload.main.aiclosed = [];
 			payload.aipoints = [];
+			var cpuCount = 0, bbCount = 0;
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
+				if (iData.bill)
+					bbCount++;
+				else
+					cpuCount++;
 				payload.main.aiclosed.push(iData.closed ? 1:0);
 				payload.aipoints.push(polyToData(iData.points));
 				if (iData.shortcuts.length) {
@@ -345,12 +350,22 @@ var editorTools = {
 					payload.aishortcuts[i] = nShortcuts;
 				}
 			}
+			if (bbCount) {
+				payload.airoutesmeta = {
+					cpu: cpuCount,
+					bill: bbCount
+				};
+			}
 		},
 		"restore" : function(self,payload) {
 			currentMode = "aipoints";
 			document.getElementById("traject-options").dataset.key = "aipoints";
-			for (var i=1;i<payload.aipoints.length;i++)
+			var meta = payload.airoutesmeta || {};
+			for (var i=1;i<payload.aipoints.length;i++) {
+				if (i === meta.cpu)
+					document.getElementById("traject-bill").checked = true;
 				addTraject();
+			}
 			document.getElementById("traject").selectedIndex = 0;
 			for (var i=0;i<payload.aipoints.length;i++) {
 				var shortcuts = [];
@@ -378,6 +393,8 @@ var editorTools = {
 					}
 				}
 				self.data[i] = {closed:payload.main.aiclosed[i]==1,shortcuts:shortcuts,points:points};
+				if (i >= meta.cpu)
+					self.data[i].bill = true;
 			}
 		},
 		"rescale" : function(self, scale) {

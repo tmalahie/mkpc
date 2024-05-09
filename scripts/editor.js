@@ -585,6 +585,16 @@ function moveBox(box,data,size,options) {
 	mask.appendChild(fakeRectangle);
 	handleMoveOnPaste(fakeRectangle, options);
 }
+function moveLink(link,point1,point2) {
+	moveLine(link.line,point1,point2);
+	if (link.arrow) {
+		var middlePt = {
+			x: (+link.line.getAttribute("x1") + +link.line.getAttribute("x2"))/2,
+			y: (+link.line.getAttribute("y1") + +link.line.getAttribute("y2"))/2
+		}
+		link.arrow.move(middlePt);
+	}
+}
 function moveNode(node,data,lines) {
 	var mask = createMask();
 	mask.classList.add("mask-dark");
@@ -595,9 +605,9 @@ function moveNode(node,data,lines) {
 		setCirclePos(node.circle,nPoint);
 		if (lines) {
 			for (var i=0;i<lines[0].length;i++)
-				moveLine(lines[0][i],nPoint,null);
+				moveLink(lines[0][i],nPoint,null);
 			for (var i=0;i<lines[1].length;i++)
-				moveLine(lines[1][i],null,nPoint);
+				moveLink(lines[1][i],null,nPoint);
 		}
 	}
 	function stopMovePoint(e) {
@@ -1373,8 +1383,10 @@ function createArrowNode(point, orientation, opts) {
 	var res = {origin:origin,lines:arrow};
 	res.move = function(point2) {
 		applyObject(point,point2);
-		origin.setAttribute("cx", point.x);
-		origin.setAttribute("cy", point.y);
+		if (origin) {
+			origin.setAttribute("cx", point.x);
+			origin.setAttribute("cy", point.y);
+		}
 		for (var i=0;i<arrow.length;i++)
 			arrow[i].onzoom();
 	};
@@ -1732,7 +1744,7 @@ function initRouteSelector($traject,nbRoutes) {
 	for (var i=0;i<nbRoutes;i++) {
 		var $trajectOption = document.createElement("option");
 		$trajectOption.value = i;
-		$trajectOption.innerHTML = (language ? "Route":"Trajet")+" "+(i+1);
+		$trajectOption.innerHTML = getRouteLabel(i);
 		$traject.appendChild($trajectOption);
 	}
 	var $trajectOption = document.createElement("option");
@@ -1750,6 +1762,8 @@ function initRouteBuilder(self,data,traject) {
 	data[traject] = {points:[],closed:false};
 	self.state.data = data[traject];
 	if (oldData) {
+		if (oldData.bill)
+			data[traject].bill = true;
 		for (var i=0;i<oldData.points.length;i++)
 			self.click(self,oldData.points[i],{});
 		if (oldData.closed)
@@ -2578,7 +2592,6 @@ function showTrajectOptions(key) {
 	var maxCp = trajectData.length;
 	initTrajectOptions();
 	var $links = $trajectOptions.querySelectorAll("#traject-menu a");
-	$links[0].style.display = (maxCp<7) ? "block":"none";
 	$links[1].style.display = (maxCp>1) ? "block":"none";
 	$links[2].style.display = (maxCp>1) ? "block":"none";
 	getTrajectSelector(key).selectedIndex = editorTool.state.traject;
@@ -2594,21 +2607,28 @@ function showTrajectAdd() {
 	document.getElementById("traject-more").style.display = "block";
 	var $trajectList = document.getElementById("traject-more-list");
 	var editorTool = editorTools[currentMode];
-	var maxCp = getTrajectData(editorTool,key).length;
+	var allCp = getTrajectData(editorTool,key);
 	$trajectList.innerHTML = "";
 	var $noTraject = document.createElement("option");
 	$noTraject.value = -1;
 	$noTraject.innerHTML = language ? 'Empty route':'Trajet vide';
 	$trajectList.appendChild($noTraject);
-	for (var i=0;i<maxCp;i++) {
+	var routeLabels = getRouteLabels(allCp);
+	for (var i=0;i<routeLabels.length;i++) {
 		var $iTraject = document.createElement("option");
 		$iTraject.value = i;
-		$iTraject.innerHTML = (language ? 'Route':'Trajet') +" "+ (i+1);
+		$iTraject.innerHTML = routeLabels[i];
 		$trajectList.appendChild($iTraject);
 	}
 	switch (key) {
 	case "aipoints":
 		$trajectList.selectedIndex = editorTool.state.traject+1;
+		document.getElementById("traject-advanced-options").style.display = "";
+		document.getElementById("traject-bill").checked = !!allCp[editorTool.state.traject].bill;
+		break;
+	default:
+		document.getElementById("traject-advanced-options").style.display = "none";
+		document.getElementById("traject-bill").checked = false;
 	}
 }
 function addTraject() {
@@ -2618,16 +2638,41 @@ function addTraject() {
 	var editorTool = editorTools[currentMode];
 	var trajectData = getTrajectData(editorTool,key);
 	var maxCp = trajectData.length;
+	var $trajectBill = document.getElementById("traject-bill");
+	var isBb = $trajectBill.checked;
+	var newTraject;
 	if (trajectVal != -1)
-		trajectData.push(deepCopy(trajectData[trajectVal]));
+		newTraject = deepCopy(trajectData[trajectVal]);
 	else
-		trajectData.push({points:[],closed:false});
+		newTraject = { points:[], closed:false };
+	var newTrajectIndex, routeId;
+	if (isBb) {
+		newTraject.bill = true;
+		newTrajectIndex = trajectData.length;
+		routeId = trajectData.filter(function(traject) {
+			return traject.bill;
+		}).length;
+	}
+	else {
+		delete newTraject.bill;
+		newTrajectIndex = trajectData.findLastIndex(function(traject) {
+			return !traject.bill;
+		});
+		if (newTrajectIndex === -1)
+			newTrajectIndex = trajectData.length;
+		else
+			newTrajectIndex++;
+		routeId = newTrajectIndex;
+	}
+	trajectData.splice(newTrajectIndex,0,newTraject);
 	var $trajectSelector = getTrajectSelector(key);
 	var $trajectOption = document.createElement("option");
-	$trajectOption.value = maxCp;
-	$trajectOption.innerHTML = (language ? 'Route':'Trajet') +' '+ (maxCp+1);
-	$trajectSelector.insertBefore($trajectOption, $trajectSelector.childNodes[maxCp+1]);
-	$trajectSelector.selectedIndex = maxCp;
+	$trajectOption.value = newTrajectIndex;
+	$trajectOption.innerHTML = getRouteLabel(routeId, { isBb });
+	for (var i=newTrajectIndex;i<maxCp;i++)
+		$trajectSelector.childNodes[i].value = i+1;
+	$trajectSelector.insertBefore($trajectOption, $trajectSelector.childNodes[newTrajectIndex]);
+	$trajectSelector.selectedIndex = newTrajectIndex;
 	selectMode(currentMode);
 	closeTrajectOptions();
 }
@@ -2638,17 +2683,18 @@ function showTrajectCopy() {
 	var $trajectFrom = document.getElementById("copyFrom");
 	var $trajectTo = document.getElementById("copyTo");
 	var editorTool = editorTools[currentMode];
-	var maxCp = getTrajectData(editorTool,key).length;
+	var allCp = getTrajectData(editorTool,key);
 	$trajectFrom.innerHTML = "";
 	$trajectTo.innerHTML = "";
-	for (var i=0;i<maxCp;i++) {
+	var routeLabels = getRouteLabels(allCp);
+	for (var i=0;i<routeLabels.length;i++) {
 		var $iTraject = document.createElement("option");
 		$iTraject.value = i;
-		$iTraject.innerHTML = (language ? 'Route':'Trajet') +' '+ (i+1);
+		$iTraject.innerHTML = routeLabels[i];
 		$trajectFrom.appendChild($iTraject);
 		var $iTraject = document.createElement("option");
 		$iTraject.value = i;
-		$iTraject.innerHTML = (language ? 'Route':'Trajet') +' '+ (i+1);
+		$iTraject.innerHTML = routeLabels[i];
 		$trajectTo.appendChild($iTraject);
 	}
 	$trajectFrom.selectedIndex = 0;
@@ -2663,7 +2709,9 @@ function copyTraject() {
 		var key = document.getElementById("traject-options").dataset.key;
 		var editorTool = editorTools[currentMode];
 		var trajectData = getTrajectData(editorTool,key);
+		var isBb = trajectData[m2].bill;
 		trajectData[m2] = deepCopy(trajectData[m1]);
+		trajectData[m2].bill = isBb;
 		selectMode(currentMode);
 	}
 	closeTrajectOptions();
@@ -2674,12 +2722,16 @@ function showTrajectRemove() {
 	document.getElementById("traject-less").style.display = "block";
 	var $trajectList = document.getElementById("traject-less-list");
 	var editorTool = editorTools[currentMode];
-	var maxCp = getTrajectData(editorTool,key).length;
+	var allCp = getTrajectData(editorTool,key);
 	$trajectList.innerHTML = "";
-	for (var i=0;i<maxCp;i++) {
+	var routeLabels = getRouteLabels(allCp);
+	var minCp = 0;
+	if (!allCp[1] || allCp[1].bill)
+		minCp++;
+	for (var i=minCp;i<routeLabels.length;i++) {
 		var $iTraject = document.createElement("option");
 		$iTraject.value = i;
-		$iTraject.innerHTML = (language ? 'Route':'Trajet') +" "+ (i+1);
+		$iTraject.innerHTML = routeLabels[i];
 		$trajectList.appendChild($iTraject);
 	}
 	$trajectList.selectedIndex = editorTool.state.traject;
@@ -2710,13 +2762,36 @@ function removeTraject() {
 		break;
 	}
 	var $trajectSelector = getTrajectSelector(key);
-	$trajectSelector.removeChild($trajectSelector.childNodes[maxCp]);
+	$trajectSelector.removeChild($trajectSelector.childNodes[maxCp-1]);
 	if (trajectVal <= editorTool.state.traject) {
 		editorTool.state.traject--;
 		$trajectSelector.selectedIndex = Math.max(0,editorTool.state.traject);
 	}
+	var routeLabels = getRouteLabels(trajectData);
+	for (var i=0;i<routeLabels.length;i++)
+		$trajectSelector.childNodes[i].innerHTML = routeLabels[i];
 	selectMode(currentMode);
 	closeTrajectOptions();
+}
+function getRouteLabel(i, opts) {
+	opts = opts || {};
+	if (opts.isBb)
+		return (language ? 'Bill':'Bill') +' '+ (i+1);
+	else
+		return (language ? 'Route':'Trajet') +' '+ (i+1);
+}
+function getRouteLabels(aTrajects) {
+	var isBb = false, routeId = 0;
+	var routeLabels = [];
+	for (var i=0;i<aTrajects.length;i++) {
+		if (!isBb && aTrajects[i].bill) {
+			isBb = true;
+			routeId = 0;
+		}
+		routeLabels.push(getRouteLabel(routeId, { isBb }));
+		routeId++;
+	}
+	return routeLabels;
 }
 function showOffroadTransfer() {
 	var $offroadOptions = document.getElementById("offroad-transfer");
@@ -3300,6 +3375,9 @@ function selectHelpTab(mode) {
 }
 function closeHelp() {
 	document.getElementById("mask-help").close();
+}
+function showBillBallHelp() {
+	alert(language ? "If checked, this route is specific to bullet bills. When a player uses a bullet bill item, it will follow this routes instead of the default ones" : "Si coché, ce trajet s'applique uniquement aux Bill Balls : Lorsqu'un joueur utilise un Bill Ball, il suivra ce trajet au lieu des trajets par défaut");
 }
 function showColorSelector() {
 	var $mask = createMask();

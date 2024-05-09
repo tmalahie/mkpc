@@ -55,7 +55,10 @@ if (!$circuitMainData->music) {
 "startrotation" : <?php echo $circuitMainData->startrotation; ?>,
 "startdirection" : <?php echo empty($circuitMainData->startdirection)?1:0; ?>,
 "aipoints" : <?php echo json_encode($circuitPayload->aipoints); ?>,
-<?php if (isset($circuitPayload->aishortcuts)) echo '"aishortcuts":'. json_encode($circuitPayload->aishortcuts) .','; ?>
+<?php
+if (isset($circuitPayload->aishortcuts)) echo '"aishortcuts":'. json_encode($circuitPayload->aishortcuts) .',';
+if (isset($circuitPayload->airoutesmeta)) echo '"airoutesmeta":'. json_encode($circuitPayload->airoutesmeta) .',';
+?>
 "collision" : <?php
 	foreach ($circuitPayload->collision as &$collisionData) {
 		if (isset($collisionData[3]) && is_numeric($collisionData[3])) {
