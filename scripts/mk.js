@@ -17289,51 +17289,110 @@ function resetWrongWay(oKart) {
 var clLocalVars, clHud, clSelected;
 //clSelected = challenges["track"]["7037"]["list"][3];
 
+const translationMap = {
+	"fakeitembox": "fauxobjet",
+	"fakeitem": "fauxobjet",
+	"fib": "fauxobjet",
+	"banana": "banane",
+	"bananaX3": "bananeX3",
+	"greenshell": "carapace",
+	"greenshellX3": "carapaceX3",
+	"bomb": "bobomb",
+	"redshell": "carapacerouge",
+	"redshellX3": "carapacerougeX3",
+	"blueshell": "carapacebleue",
+	"darkshell": "carapacenoire",
+	"megamushroom": "megachampi",
+	"mega": "megachampi",
+	"mushroom": "champi",
+	"shroom": "champi",
+	"shroomX3": "champiX3",
+	"mushroomX3": "champiX3",
+	"goldenmushroom": "champior",
+	"golden": "champior",
+	"poisonmushroom": "poison",
+	"star": "etoile",
+	"bulletbill": "billball",
+	"bill": "billball",
+	"shock": "eclair",
+	"lightning": "eclair",
+	"blooper": "bloops",
+	// Add more mappings as needed
+};
+
 function openCheats() {
-	var cheatCode = prompt("MKPC Console command");
-	if (!cheatCode)
-		return false;
-	if (!processCode(cheatCode))
-		alert("Invalid command");
-	else {
-		clLocalVars.cheated = true;
-		if (clSelected)
-			challengeHandleFail();
-	}
+    var cheatCode = prompt("MKPC Console command");
+    if (!cheatCode)
+        return false;
+    if (!processCode(cheatCode))
+        alert("Invalid command");
+    else {
+        clLocalVars.cheated = true;
+        if (clSelected)
+            challengeHandleFail();
+    }
 }
+
+function isItemExisting(itemName) {
+    var itemMode = getItemMode();
+    var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
+    for (var i = 0; i < oItemDistributions.length; i++) {
+        var oItemDistribution = oItemDistributions[i];
+        for (var j = 0; j < oItemDistribution.value.length; j++) {
+            if (oItemDistribution.value[j][itemName] != null) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function processCode(cheatCode) {
-	if (cheatCode.charAt(0) != "/")
-		return false;
-	cheatCode = cheatCode.substring(1);
-	var oPlayer = oPlayers[0];
-	var isObject = /^give (\w+)$/g.exec(cheatCode);
-	if (isObject) {
-		var wObject = isObject[1];
-		var isExistingObj = false;
-		var itemMode = getItemMode();
-		var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
-		dance: for (var i=0;i<oItemDistributions.length;i++) {
-			var oItemDistribution = oItemDistributions[i];
-			for (var j=0;j<oItemDistribution.value.length;j++) {
-				if (oItemDistribution.value[j][wObject] != null) {
-					isExistingObj = true;
-					break dance;
-				}
-			}
-		}
-		if (!isExistingObj)
-			return false;
-		if (oPlayer.billball) {
-			oPlayer.stash = wObject;
-			oPlayer.roulette2 = 25;
-		}
-		else {
-			oPlayer.arme = wObject;
-			oPlayer.roulette = 25;
-		}
-		updateObjHud(0);
-		return true;
-	}
+    if (cheatCode.charAt(0) != "/")
+        return false;
+    cheatCode = cheatCode.substring(1);
+
+    var oPlayer = oPlayers[0];
+    var isObject = /^give (\w+)$/g.exec(cheatCode);
+    if (isObject) {
+        var wObject = isObject[1];
+
+        // Check if the entered name directly matches an item name
+        var isExistingObj = isItemExisting(wObject);
+
+        // If not, check both English and French names
+        if (!isExistingObj) {
+            // Check if the English name exists in the map
+            if (translationMap[wObject]) {
+                // If it exists, use the French name
+                wObject = translationMap[wObject];
+                isExistingObj = isItemExisting(wObject);
+            } else {
+                // Check if the French name exists in the map
+                for (var key in translationMap) {
+                    if (translationMap[key] === wObject) {
+                        // If it exists, use the English name
+                        wObject = key;
+                        isExistingObj = isItemExisting(wObject);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!isExistingObj)
+            return false;
+        if (oPlayer.billball) {
+            oPlayer.stash = wObject;
+            oPlayer.roulette2 = 25;
+        } else {
+            oPlayer.arme = wObject;
+            oPlayer.roulette = 25;
+        }
+        updateObjHud(0);
+        return true;
+    }
+
 	var isTP = /^tp ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(cheatCode);
 	if (!isTP)
 		isTP = /^tp ([\d\-+\.]+) ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(cheatCode);
