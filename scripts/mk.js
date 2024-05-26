@@ -3663,7 +3663,7 @@ function startGame() {
 		oPlanCtn2.appendChild(oPlanImg2);
 
 		if (bSelectedMirror)
-			oPlanImg.className = oPlanImg2.className = "mirrored";
+			oPlanImg.className = oPlanImg2.className = "mkplanimg mirrored";
 
 		if (oMap.decor) {
 			for (var type in oMap.decor) {
