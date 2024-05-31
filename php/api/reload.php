@@ -62,10 +62,11 @@ if ($id) {
 				$playerPayload['data'] = $payloadData;
 			}
 			unset($playerPayload);
-			$mkState = mysql_fetch_array(mysql_query('SELECT time,map FROM `mariokart` WHERE id='. $course));
+			$mkState = mysql_fetch_array(mysql_query('SELECT time,map,cup FROM `mariokart` WHERE id='. $course));
 			if (!$mkState) {
 				$mkState = array(
 					'map' => 0,
+					'cup' => 0,
 					'time' => $time
 				);
 			}
@@ -118,7 +119,7 @@ if ($id) {
 						$sql .= 'place='.($getPlace['place']+1-$isBattle).',';
 						$sql .= 'finalts='.$time.',';
 					}
-					$sql .= 'connecte='.$lConnect.' WHERE id="'. $playerId .'"'. (($playerId != $id) ? " AND controller=$id" : '');
+					$sql .= 'connecte='.$lConnect.' WHERE id="'. $playerId .'"'. (($playerId != $id) ? " AND controller=$id" : ((!$isBattle&&!$mkState['cup']) ? (' AND tours>='.($payloadData['tours']-1)) : ''));
 					mysql_query($sql);
 				}
 				unset($playerPayload);
