@@ -1,7 +1,11 @@
 <?php
 function checkMessageContent($msg) {
-    global $language;
+    global $language, $identifiants;
     $maxCharacters = 65536;
+    if (isset($identifiants)) {
+        if ($getSize = mysql_fetch_array(mysql_query('SELECT message_size FROM `mkidentifiants` WHERE identifiant='.$identifiants[0].' AND message_size IS NOT NULL')))
+            $maxCharacters = +$getSize['message_size'];
+    }
     if (strlen($msg) >= $maxCharacters) {
         return array(
             'success' => false,
