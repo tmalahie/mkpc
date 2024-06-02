@@ -26228,7 +26228,8 @@ function choose(map,rand) {
 		var $spectatorLinkCtn = document.getElementById("spectatormode");
 		if ($spectatorLinkCtn) {
 			var oTableRect = oTable.getBoundingClientRect();
-			$spectatorLinkCtn.style.top = Math.max(oTableRect.bottom+5, iScreenScale*38+15) +"px";
+			var scrollY = window.scrollY || 0;
+			$spectatorLinkCtn.style.top = Math.max(oTableRect.bottom+scrollY+5, iScreenScale*38+15) +"px";
 		}
 	}
 	if (onlineSpectatorId) {
@@ -29853,6 +29854,7 @@ function setChat() {
 					if (rCode != -1) {
 						var cPlayers = rCode[0];
 						var currentConnectedPlayers = {};
+						var msgScrolledToBottom = oMessages.scrollHeight - oMessages.clientHeight <= oMessages.scrollTop + 1;
 						for (var i=0;i<cPlayers.length;i++) {
 							var cPlayer = cPlayers[i];
 							currentConnectedPlayers[cPlayer.id] = 1;
@@ -30008,6 +30010,8 @@ function setChat() {
 							while (pMessages.length+cMessages.length > 40)
 								oMessages.removeChild(pMessages[0]);
 						}
+						if (msgScrolledToBottom)
+							oMessages.scrollTop = oMessages.scrollHeight - oMessages.clientHeight;
 						setTimeout(refreshChat, 1000);
 					}
 					else {
