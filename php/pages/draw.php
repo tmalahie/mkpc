@@ -237,6 +237,10 @@ if (isset($_GET['i'])) {
 						<?php echo $language ? 'Image:':'Image :'; ?>
 						<button id="button-imgoptions" class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
 					</div>
+					<div>
+						<?php echo $language ? 'Per-lap override:':'Modificateurs par tour :'; ?>
+						<button id="button-lapoptions" class="toolbox-button" onclick="showLapOverrideOptions()"><?php echo $language ? 'Manage...':'Gérer...'; ?></button>
+					</div>
 				</div>
 			</div>
 			<div id="zoom-ctrl">
@@ -351,6 +355,75 @@ if (isset($_GET['i'])) {
 					<div>
 						<?php echo $language ? 'Delete given route:' : 'Supprimer le trajet suivant :'; ?>
 						<select id="traject-less-list"></select>
+						<div class="popup-buttons">
+							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="removeTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="lapoverride-options" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeLapOverrideOptions()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div class="lapoverride-info">
+				<div id="lapoverride-menu">
+					<div class="lapoverride-explain">
+					<?php
+					echo $language ? 'This menu allows you to override the circuit parameters on a given lap.<br />
+									  For example, if you want your circuit to change on lap 2 and 3 (e.g MKT city tracks), you can make use of this feature.'
+								   : 'Ce menu vous permet de modifier les paramètres du circuit pour un tour donné.<br />
+								   	  Par exemple, si vous voulez que votre circuit change au 2<sup>e</sup> et 3<sup>e</sup> tour (comme les circuits de ville sur MKT), vous pouvez utiliser cette fonctionnalité.';
+					?>
+					</div>
+					<?php
+					echo '<div class="lapoverride-manage">';
+					echo '<a href="javascript:showTrajectAdd()">'. ($language ? 'Add a lap override':'Ajouter un modificateur de tour') .'</a>';
+					echo '<a href="javascript:showTrajectCopy()">'. ($language ? 'Copy some lap parameters':'Copier des paramètres') .'</a>';
+					echo '<a href="javascript:showTrajectRemove()">'. ($language ? 'Delete an override':'Supprimer un modificateur') .'</a>';
+					echo '</div>';
+					?>
+				</div>
+				<div id="lapoverride-more">
+					<h1><?php echo $language ? 'Add an override':'Ajouter un modificateur'; ?></h1>
+					<div>
+						<?php echo $language ? 'Create route from:':'Créer le trajet à partir de :'; ?>
+						<select id="lapoverride-more-list"></select>
+						<div class="popup-buttons">
+							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="addTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+						</div>
+					</div>
+				</div>
+				<div id="lapoverride-copy">
+					<h1><?php echo $language ? 'Copy a route':'Copier un trajet'; ?></h1>
+					<div>
+						<?php
+						echo $language ? 'This option allows you to replace one of the routes you created by another one.
+										  For example, it could be useful if you created route&nbsp;2 from route&nbsp;1, but then you re-edited route 1.<br />
+										  In that case, you might want to apply changes on route 1 to route 2.'
+									   : 'Cette option vous permet de remplacer un des trajets que vous avez créés par un autre trajet.<br />
+									   	  Cela peut être utile par exemple, si vous avez créé le trajet&nbsp;2 à partir du trajet&nbsp;1, mais que vous avez ensuite remodifié le trajet&nbsp;1.<br />
+									   	  Vous pouvez alors appliquer les modifications du trajet&nbsp;1 sur le trajet&nbsp;2.';
+						echo '<br />';
+						echo '<br />';
+						echo $language ? 'Copy from: ':'Copier de : ';
+						echo '<select id="copyFrom"></select>';
+						echo $language ? ' to: ':' vers : ';
+						echo '<select id="copyTo"></select>';
+						?>
+						<div class="popup-buttons">
+							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="copyTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+						</div>
+					</div>
+				</div>
+				<div id="lapoverride-less">
+					<h1><?php echo $language ? 'Delete a route':'Supprimer un trajet'; ?></h1>
+					<div>
+						<?php echo $language ? 'Delete given route:' : 'Supprimer le trajet suivant :'; ?>
+						<select id="lapoverride-less-list"></select>
 						<div class="popup-buttons">
 							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
 							<button class="options" onclick="removeTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>

@@ -1018,6 +1018,58 @@ embed,#ytplayer {
 	margin-top: 15px;
 	margin-bottom: 5px;
 }
+#lapoverride-options {
+	padding: 0;
+	width: 420px;
+	background-color: #d5d5d7;
+	border: double 4px #666;
+	text-align: center;
+}
+.lapoverride-info {
+	padding: 5px;
+}
+.lapoverride-manage {
+	margin-top: 15px;
+	margin-bottom: 10px;
+}
+.lapoverride-manage a {
+	display: block;
+	text-align: center;
+	color: #210;
+	border-radius: 4px;
+	font-size: 1.1em;
+	width: 160px;
+	margin: 4px auto;
+	padding: 5px;
+	text-decoration: none;
+}
+.lapoverride-manage a:nth-child(1) {
+	background-color: #7E8;
+	color: #084;
+	border: solid 1px #8A4;
+}
+.lapoverride-manage a:nth-child(1):hover {
+	background-color: #7F8;
+	color: #0A5;
+}
+.lapoverride-manage a:nth-child(2) {
+	background-color: #BCF;
+	color: #05A;
+	border: solid 1px #48A;
+}
+.lapoverride-manage a:nth-child(2):hover {
+	background-color: #C9D9FF;
+	color: #17C;
+}
+.lapoverride-manage a:nth-child(3) {
+	background-color: #F96;
+	color: #C24;
+	border: solid 1px #A84;
+}
+.lapoverride-manage a:nth-child(3):hover {
+	background-color: #FB7;
+	color: #D35;
+}
 #shortcut-options {
 	padding: 0;
 	width: 420px;

@@ -2831,6 +2831,33 @@ function updateLapsCounter() {
 	var editorTool = editorTools[currentMode];
 	document.getElementById("checkpoints-nblaps").innerHTML = (editorTool.data.type?(language?"Sections:":"Sections :"):(language?"Laps:":"Tours :")) +" "+ editorTool.data.nb;
 }
+function showLapOverrideOptions() {
+	var $lapOverrideOptions = document.getElementById("lapoverride-options");
+	document.body.removeChild($lapOverrideOptions);
+	var $mask = createMask();
+	$mask.id = "mask-overrides";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($lapOverrideOptions);
+	$lapOverrideOptions.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($lapOverrideOptions);
+		$lapOverrideOptions.classList.remove("fs-shown");
+		document.body.appendChild($lapOverrideOptions);
+		this.defaultClose();
+	};
+	initLapOverrideOptions();
+}
+function closeLapOverrideOptions() {
+	var $mask = document.getElementById('mask-overrides');
+	if ($mask)
+		$mask.close();
+}
+function initLapOverrideOptions() {
+	document.getElementById("lapoverride-menu").style.display = "block";
+	document.getElementById("lapoverride-more").style.display = "none";
+	document.getElementById("lapoverride-copy").style.display = "none";
+	document.getElementById("lapoverride-less").style.display = "none";
+}
 function showLapsOptions() {
 	var $choptions = document.getElementById("choptions");
 	document.body.removeChild($choptions);
