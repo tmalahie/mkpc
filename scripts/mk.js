@@ -3088,7 +3088,7 @@ function startGame() {
 			oSpecCam.reset();
 	}
 	function accelerateKart() {
-		this.speedinc = this.stats.acceleration*this.size;
+		this.speedinc = this.stats.acceleration*sizeSpeedRatio(this.size);
 		if (this.etoile) this.speedinc *= 5;
 	}
 	function turnKart(dir) {
@@ -3118,7 +3118,7 @@ function startGame() {
 		return tombe(this.x+this.speed*direction(0,this.rotation),this.y+this.speed*direction(1,this.rotation));
 	}
 	function actualKartSpeed() {
-		return this.speed*this.size*fSelectedClass;
+		return this.speed*sizeSpeedRatio(this.size)*fSelectedClass;
 	}
 	function exitKart() {
 		var fNewPosX = this.x + this.speed * direction(0, this.rotation);
@@ -11470,6 +11470,10 @@ function sauts(iX, iY, iI, iJ) {
 	}
 	return false;
 }
+function sizeSpeedRatio(size) {
+	if (size <= 1) return size;
+	return Math.pow(size, 0.5);
+}
 function handleJump(oKart, pJump) {
 	if (pJump && !oKart.tourne) {
 		var height0 = pJump * 1.5;
@@ -15446,7 +15450,7 @@ function move(getId, triggered) {
 		}
 	}
 
-	var fMaxKartSpeed = oKart.maxspeed * oKart.size * fSelectedClass;
+	var fMaxKartSpeed = oKart.maxspeed * sizeSpeedRatio(oKart.size) * fSelectedClass;
 
 	if (oKart.speed > fMaxKartSpeed)
 		oKart.speed = fMaxKartSpeed;
@@ -16637,9 +16641,9 @@ function move(getId, triggered) {
 			if (oKart.maxspeed0 > rSpeed*rRatio) oKart.maxspeed0 = rSpeed*rRatio;
 			else if (oKart.maxspeed0 < rSpeed) oKart.maxspeed0 = rSpeed;
 			if (oKart.place <= oPlayerPlace)
-				oKart.maxspeed0 -= (oKart.maxspeed0*influence-rSpeed*oKart.size*fSelectedClass)/100;
+				oKart.maxspeed0 -= (oKart.maxspeed0*influence-rSpeed*sizeSpeedRatio(oKart.size)*fSelectedClass)/100;
 			else
-				oKart.maxspeed0 += (rSpeed*rRatio*1.12*oKart.size*fSelectedClass-oKart.maxspeed0*influence)/100;
+				oKart.maxspeed0 += (rSpeed*rRatio*1.12*sizeSpeedRatio(oKart.size)*fSelectedClass-oKart.maxspeed0*influence)/100;
 		}
 		oKart.maxspeed = oKart.maxspeed0;
 	}
@@ -16649,7 +16653,7 @@ function move(getId, triggered) {
 	if (oKart.turbodrift) {
 		var nSpeed = 8;
 		if (oKart.turbodrift > 15) {
-			nSpeed += Math.pow(2*(oKart.turbodrift-15)/(15*oKart.size),2);
+			nSpeed += Math.pow(2*(oKart.turbodrift-15)/(15*sizeSpeedRatio(oKart.size)),2);
 			oKart.turbodrift--;
 			oKart.turbodrift0--;
 		}
@@ -16795,7 +16799,7 @@ function move(getId, triggered) {
 				oKart.sprite[i].img.src = (oKart.etoile % 2 ? getStarSrc(oKart.personnage) : getSpriteSrc(oKart.personnage));
 			if (!oKart.etoile) {
 				updateProtectFlag(oKart);
-				var maxSpeedInc = oKart.cpu ? 1 : oKart.stats.acceleration*oKart.size*fSelectedClass;
+				var maxSpeedInc = oKart.cpu ? 1 : oKart.stats.acceleration*sizeSpeedRatio(oKart.size)*fSelectedClass;
 				oKart.speedinc = Math.min(oKart.speedinc, maxSpeedInc);
 				stopStarMusic(oKart);
 			}
@@ -16826,7 +16830,7 @@ function move(getId, triggered) {
 		oKart.speed = (oKart.speed*transitionFactor+20)/(transitionFactor+1);
 		if (oKart.billball)
 			oKart.speed = 20;
-		oKart.maxspeed = oKart.speed/(oKart.size*fSelectedClass);
+		oKart.maxspeed = oKart.speed/(sizeSpeedRatio(oKart.size)*fSelectedClass);
 		if (!oKart.speedinc)
 			oKart.speedinc = 0.01;
 		oKart.z = (oKart.z*3+4)/4;
@@ -23841,7 +23845,7 @@ function getActualCc() {
 	return ccInterpolations[ccInterpolations.length-1][0];
 }
 function cappedRelSpeed(oKart) {
-	var fSize = (oKart && oKart.size!==undefined) ? oKart.size : 1;
+	var fSize = (oKart && oKart.size!==undefined) ? sizeSpeedRatio(oKart.size) : 1;
 	return Math.min(Math.max(fSelectedClass*fSize, 0.37), 2.7);
 }
 function getMirrorFactor() {
