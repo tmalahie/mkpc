@@ -1344,7 +1344,7 @@ function loadMap() {
 	formulaire.dataset.disabled = 1;
 
 	iTeamPlay = isTeamPlay();
-	aTracksHist.push(oMap.ref);
+	aTracksHist.push(1 + aAvailableMaps.indexOf("map"+oMap.ref));
 	iRaceCount++;
 
 	setSRest();
