@@ -156,6 +156,14 @@ function isAccountCooldowned() {
         return true;
     return false;
 }
+function isPassRecoveryCooldowned() {
+    global $identifiants;
+    $getPassLinks = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkpassrecovery` WHERE identifiant='.$identifiants[0].' AND expiry_date>=DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 6 DAY)'));
+    $passLinks = $getPassLinks['nb'];
+    if ($passLinks >= 15)
+        return true;
+    return false;
+}
 function logCooldownEvent($type) {
     global $id, $identifiants;
     $identifiant = isset($identifiants) ? $identifiants[0] : 0;

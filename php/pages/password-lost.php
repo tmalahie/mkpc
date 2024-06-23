@@ -14,11 +14,16 @@ if (isset($_GET['pseudo'])) {
 			do {
 				$code = bin2hex(openssl_random_pseudo_bytes(16));
 			} while (mysql_numrows(mysql_query('SELECT * FROM mkpassrecovery WHERE token="'. $code .'"')));
-			mysql_query('INSERT INTO `mkpassrecovery` VALUES("'. $code .'",'.$getId['id'].',DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 7 DAY))');
+			include('../includes/getId.php');
+			include('../includes/utils-cooldown.php');
+			if (isPassRecoveryCooldowned())
+				logCooldownEvent('pass_recovery');
+			else {
+				mysql_query('INSERT INTO `mkpassrecovery` VALUES("'. $code .'",'.$getId['id'].','.$identifiants[0].',DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 7 DAY))');
 
-			$link = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']. '/new-password.php?code='. $code;
-			$title = $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
-			$msg = $language ? 'Hello '.htmlspecialchars($pseudo).'
+				$link = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST']. '/new-password.php?code='. $code;
+				$title = $language?'MKPC - Forgot password':'MKPC - mot de passe oublié';
+				$msg = $language ? 'Hello '.htmlspecialchars($pseudo).'
 You are receiving this email because you have applied for password recovery on the Mario Kart PC site.
 
 Here is a link that will allow you to generate a new password:
@@ -32,56 +37,57 @@ Voici un lien qui va vous permettre de générer un nouveau mot de passe:
 
 À bientôt sur Mario Kart PC :)';
 
-			$msgTxt = strip_tags($msg);
+				$msgTxt = strip_tags($msg);
 
-			curl_init();
+				curl_init();
 
-			$url = 'https://api.mailjet.com/v3.1/send';
-			// Create a new cURL resource
-			$ch = curl_init($url);
+				$url = 'https://api.mailjet.com/v3.1/send';
+				// Create a new cURL resource
+				$ch = curl_init($url);
 
-			include('../includes/config/mail.php');
-			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-			curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
+				include('../includes/config/mail.php');
+				curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+				curl_setopt($ch, CURLOPT_USERPWD, "$mailUser:$mailPwd");
 
-			// Setup request to send json via POST
-			$data = array(
-				"Messages" => array(
-					array(
-						"From" => array(
-						  "Email" => "mkpc@malahieude.net",
-						  "Name" => "MKPC"
-						),
-						"To" => array(
-							array(
-								"Email" => $email,
-								"Name" => $pseudo
-							)
-						),
-						"Subject" => $title,
-						"TextPart" => $msgTxt,
-						"HTMLPart" => nl2br($msg)
+				// Setup request to send json via POST
+				$data = array(
+					"Messages" => array(
+						array(
+							"From" => array(
+							"Email" => "mkpc@malahieude.net",
+							"Name" => "MKPC"
+							),
+							"To" => array(
+								array(
+									"Email" => $email,
+									"Name" => $pseudo
+								)
+							),
+							"Subject" => $title,
+							"TextPart" => $msgTxt,
+							"HTMLPart" => nl2br($msg)
+						)
 					)
-				)
-			);
-			$payload = json_encode($data);
+				);
+				$payload = json_encode($data);
 
-			// Attach encoded JSON string to the POST fields
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+				// Attach encoded JSON string to the POST fields
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
 
-			// Set the content type to application/json
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-				'Content-Type:application/json'
-			));
+				// Set the content type to application/json
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+					'Content-Type:application/json'
+				));
 
-			// Return response instead of outputting
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				// Return response instead of outputting
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-			// Execute the POST request
-			$result = curl_exec($ch);
+				// Execute the POST request
+				$result = curl_exec($ch);
 
-			// Close cURL resource
-			curl_close($ch);
+				// Close cURL resource
+				curl_close($ch);
+			}
 		}
 		else
 			$error = $language ? 'Sorry, this account doesn\'t have any associated email':'Désolé, L\'adresse email n\'est pas renseignée sur ce compte';
