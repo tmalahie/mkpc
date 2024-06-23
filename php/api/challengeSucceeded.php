@@ -1,12 +1,19 @@
 <?php
+header('Content-Type: application/json');
+$body = file_get_contents('php://input');
 if (isset($_POST['id'])) {
-	header('Content-Type: application/json');
 	include('../includes/language.php');
 	include('../includes/session.php');
 	$res = array();
 	include('../includes/initdb.php');
+	include('../includes/utils-hash.php');
 	$challengeId = $_POST['id'];
 	if ($challenge = mysql_fetch_array(mysql_query('SELECT id,clist,difficulty,status FROM `mkchallenges` WHERE id="'. $challengeId .'" AND status!="deleted"'))) {
+		if (!isHashValid($body)) {
+			include('../includes/getId.php');
+			logHashInvalid($body);
+			$id = null;
+		}
 		if ($id)
 			$q = mysql_query('INSERT IGNORE INTO `mkclwin` SET challenge="'. $challengeId .'",player="'. $id .'"');
 		if ('active' === $challenge['status']) {
