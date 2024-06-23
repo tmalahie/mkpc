@@ -18622,7 +18622,8 @@ document.onkeydown = function(e) {
 			break;
 		}
 		if (["ArrowUp","ArrowLeft","ArrowRight","ArrowDown"].indexOf(e.key) === -1) return;
-		e.preventDefault();
+		if (e.preventDefault)
+			e.preventDefault();
 		if (selectedOscrElt && !oScr.contains(selectedOscrElt))
 			selectedOscrElt = undefined;
 		var oButtons = [...oScr.querySelectorAll("*")].filter(elt => elt.onclick).filter(elt => !elt.disabled).filter(elt => !elt.dataset.noselect).filter(elt => {
