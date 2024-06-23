@@ -11470,9 +11470,13 @@ function sauts(iX, iY, iI, iJ) {
 	}
 	return false;
 }
+var sizeSpeedRatioMatch = /r=([\d\.]+)/.exec(document.location.search);
+var sizeSpeedRatioFactor = sizeSpeedRatioMatch && sizeSpeedRatioMatch[1];
+if (isNaN(sizeSpeedRatioFactor) || sizeSpeedRatioFactor == null) sizeSpeedRatioFactor = 0.5;
+sizeSpeedRatioFactor = +sizeSpeedRatioFactor;
 function sizeSpeedRatio(oKart) {
 	if (!oKart.megachampi) return oKart.size;
-	return Math.pow(oKart.size, 0.5);
+	return Math.pow(oKart.size, sizeSpeedRatioFactor);
 }
 function handleJump(oKart, pJump) {
 	if (pJump && !oKart.tourne) {
