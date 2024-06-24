@@ -3088,7 +3088,7 @@ function startGame() {
 			oSpecCam.reset();
 	}
 	function accelerateKart() {
-		this.speedinc = this.stats.acceleration*sizeSpeedRatio(this);
+		this.speedinc = this.stats.acceleration*this.size;
 		if (this.etoile) this.speedinc *= 5;
 	}
 	function turnKart(dir) {
@@ -11472,7 +11472,7 @@ function sauts(iX, iY, iI, iJ) {
 }
 function sizeSpeedRatio(oKart) {
 	if (!oKart.megachampi) return oKart.size;
-	return Math.pow(oKart.size, 0.5);
+	return Math.pow(oKart.size, 0.3);
 }
 function handleJump(oKart, pJump) {
 	if (pJump && !oKart.tourne) {
@@ -16799,7 +16799,7 @@ function move(getId, triggered) {
 				oKart.sprite[i].img.src = (oKart.etoile % 2 ? getStarSrc(oKart.personnage) : getSpriteSrc(oKart.personnage));
 			if (!oKart.etoile) {
 				updateProtectFlag(oKart);
-				var maxSpeedInc = oKart.cpu ? 1 : oKart.stats.acceleration*sizeSpeedRatio(oKart)*fSelectedClass;
+				var maxSpeedInc = oKart.cpu ? 1 : oKart.stats.acceleration*oKart.size*fSelectedClass;
 				oKart.speedinc = Math.min(oKart.speedinc, maxSpeedInc);
 				stopStarMusic(oKart);
 			}
