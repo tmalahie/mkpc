@@ -12993,27 +12993,33 @@ function challengeSucceeded(challenge) {
 		}, 1);
 		return;
 	}
-	xhr("challengeSucceeded.php", "id="+challenge.id, function(res) {
-		if (!res)
+	var challengePayload = "id="+challenge.id;
+	xhr("trackStats.php", "stats="+encodeURIComponent(getRecordStats(challengePayload)), function(res) {
+		if (res != 1)
 			return false;
-		var data;
-		try {
-			data = JSON.parse(res);
-		} catch (e) {
-			return false;
-		}
-		showChallengePopup(challenge,data);
-		if (data.rewards) {
-			for (var i=0;i<data.rewards.length;i++) {
-				var rewardId = data.rewards[i].id;
-				for (var j=0;j<clRewards.length;j++) {
-					if (clRewards[j].id == rewardId) {
-						clRewards[j].unlocked = 1;
-						break;
+		xhr("challengeSucceeded.php", challengePayload, function(res) {
+			if (!res)
+				return false;
+			var data;
+			try {
+				data = JSON.parse(res);
+			} catch (e) {
+				return false;
+			}
+			showChallengePopup(challenge,data);
+			if (data.rewards) {
+				for (var i=0;i<data.rewards.length;i++) {
+					var rewardId = data.rewards[i].id;
+					for (var j=0;j<clRewards.length;j++) {
+						if (clRewards[j].id == rewardId) {
+							clRewards[j].unlocked = 1;
+							break;
+						}
 					}
 				}
 			}
-		}
+			return true;
+		});
 		return true;
 	});
 }
