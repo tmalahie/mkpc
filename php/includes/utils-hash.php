@@ -1,16 +1,20 @@
 <?php
 @include('customHash.php');
 function isHashValid($body) {
-    if (!isset($_SESSION['tthash'])) return false;
-    $ttHash = $_SESSION['tthash'];
-    list($hash, $expiry) = explode(':', $ttHash);
-    if (time() > $expiry)
+    $hash = customHash($body);
+    if (!isset($_SESSION["tthash:$hash"]) || $_SESSION["tthash:$hash"] < time())
         return false;
-    if (!function_exists('customHash'))
-        return true;
-    return customHash($body) === $hash;
+    return true;
 }
 function logHashInvalid($body) {
     global $identifiants;
-    mysql_query('INSERT INTO mktthacker SET identifiant="'. $identifiants[0] .'",body="'. mysql_real_escape_string($body) .'", hash="'. (isset($_SESSION['tthash']) ? mysql_real_escape_string($_SESSION['tthash']) : '') .'"');
+    $hash = '';
+    $lastExpiry = 0;
+    foreach ($_SESSION as $key => $value) {
+        if (str_starts_with($key, 'tthash:') && $value > $lastExpiry) {
+            $hash = substr($key, 7);
+            $lastExpiry = $value;
+        }
+    }
+    mysql_query('INSERT INTO mktthacker SET identifiant="'. $identifiants[0] .'",body="'. mysql_real_escape_string($body) .'", hash="'. mysql_real_escape_string($hash) .'"');
 }
