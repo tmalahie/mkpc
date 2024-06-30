@@ -2,6 +2,7 @@
 if (isset($_POST['id']) && isset($_POST['type'])) {
     include('../includes/language.php');
     include('../includes/initdb.php');
+    include('../includes/getId.php');
     require_once('../includes/collabUtils.php');
     $itemType = $_POST['type'];
     $itemId = $_POST['id'];
@@ -22,6 +23,7 @@ if (isset($_POST['id']) && isset($_POST['type'])) {
             $itemCategory = 'circuit';
         break;
     default:
+        $itemType = 'circuits';
         $itemCategory = 'circuit';
         break;
     }
