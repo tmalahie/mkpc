@@ -6854,6 +6854,8 @@ var itemBehaviors = {
 								if (!isOnline || !i || kart.controller == identifiant)
 									kart.size = 0.6;
 								kart.mini = Math.round(Math.max(kart.mini, 110-(kart.place-1)*35/(aKarts.length-1)));
+								if (kart.z > 0)
+									kart.heightinc = Math.min(kart.heightinc, -Math.pow(kart.z,0.4)/2);
 								loseUsingItems(kart);
 								kart.champi = 0;
 								delete kart.champiType;
