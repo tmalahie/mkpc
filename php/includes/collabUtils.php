@@ -99,11 +99,23 @@ function getCollabInputValues(&$post) {
     );
 }
 
+function checkCreationOwner($table, $itemId) {
+    global $identifiants;
+    $creation = mysql_fetch_array(mysql_query('SELECT identifiant FROM `'.$table.'` WHERE id="'. $itemId .'"'));
+    if (!$creation || $creation['identifiant'] != $identifiants[0]) {
+        $hash = $creation ? $creation['identifiant'] : '';
+        mysql_query('INSERT INTO mktthacker SET identifiant="'. $identifiants[0] .'",body="'.$table.','.$itemId.'", hash="'. $hash .'"');
+        mysql_close();
+        exit;
+    }
+}
+
 function printCollabPopup($params) {
     global $language;
     $itemType = $params['type'];
     $itemId = $params['id'];
     $itemLabel = $params['item_label'];
+    checkCreationOwner($itemType, $itemId);
     $existingLinks = getCollabLinks($itemType, $itemId);
     $hasLinks = !empty($existingLinks);
     ?>

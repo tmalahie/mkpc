@@ -1,9 +1,10 @@
 <?php
-if (isset($_POST['id']) && isset($_POST['type'])) {
+if (isset($_POST['id'])) {
     include('../includes/language.php');
     include('../includes/initdb.php');
+    include('../includes/getId.php');
     require_once('../includes/collabUtils.php');
-    $itemType = $_POST['type'];
+    $itemType = 'mkbgs';
     $itemId = $_POST['id'];
     $itemLabel = $language ? "background" : "arrière-plan";
     $theItemLabel = $language ? "the background" : "l'arrière-plan";

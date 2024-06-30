@@ -1,9 +1,10 @@
 <?php
-if (isset($_POST['id']) && isset($_POST['type'])) {
+if (isset($_POST['id'])) {
     include('../includes/language.php');
     include('../includes/initdb.php');
+    include('../includes/getId.php');
     require_once('../includes/collabUtils.php');
-    $itemType = $_POST['type'];
+    $itemType = 'mkdecors';
     $itemId = $_POST['id'];
     $itemLabel = $language ? "decor" : "décor";
     $theItemLabel = $language ? "the decor" : "le decor";
