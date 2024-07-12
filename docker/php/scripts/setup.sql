@@ -727,6 +727,13 @@ CREATE TABLE `mkgamecrash` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `mkgamecrash_d` AS SELECT
+ 1 AS `day`,
+  1 AS `nb`,
+  1 AS `nb_distinct` */;
+SET character_set_client = @saved_cs_client;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkgamedata` (
@@ -846,6 +853,7 @@ CREATE TABLE `mkidentifiants` (
   `tt_quota` int(11) DEFAULT NULL,
   `upload_size` int(11) DEFAULT NULL,
   `external_size` int(11) DEFAULT NULL,
+  `message_size` int(11) DEFAULT NULL,
   PRIMARY KEY (`identifiant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1002,7 +1010,7 @@ CREATE TABLE `mkmessages` (
   `topic` int(10) NOT NULL,
   `auteur` int(10) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp(),
-  `message` text NOT NULL,
+  `message` mediumtext NOT NULL,
   PRIMARY KEY (`topic`,`id`),
   KEY `date` (`date`),
   KEY `auteur` (`auteur`),
@@ -1172,6 +1180,7 @@ CREATE TABLE `mkp` (
 CREATE TABLE `mkpassrecovery` (
   `token` varchar(255) NOT NULL,
   `player` int(11) NOT NULL,
+  `identifiant` int(10) unsigned NOT NULL,
   `expiry_date` datetime NOT NULL,
   PRIMARY KEY (`token`),
   KEY `expiry_date` (`expiry_date`)
@@ -1561,6 +1570,29 @@ CREATE TABLE `mktracksettings` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mktrackthemes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `creation_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `identifiant` int(10) unsigned NOT NULL,
+  `type` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `identifiant` (`identifiant`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mktthacker` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `identifiant` int(10) unsigned NOT NULL,
+  `body` varchar(255) NOT NULL,
+  `hash` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mkttranking` (
   `player` int(11) NOT NULL,
   `class` tinyint(3) unsigned NOT NULL DEFAULT 150,
@@ -1726,6 +1758,19 @@ CREATE TABLE `records_bkp` (
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `mkchats_m` AS select year(`mkpc`.`mkchats`.`date`) AS `y`,month(`mkpc`.`mkchats`.`date`) AS `m`,count(0) AS `nb` from `mkchats` group by year(`mkpc`.`mkchats`.`date`),month(`mkpc`.`mkchats`.`date`) order by year(`mkpc`.`mkchats`.`date`) desc,month(`mkpc`.`mkchats`.`date`) desc */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `mkgamecrash_d`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`c0timothe`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `mkgamecrash_d` AS select cast(`mkpc`.`mkgamecrash`.`date` as date) AS `day`,count(0) AS `nb`,count(distinct `mkpc`.`mkgamecrash`.`identifiant`) AS `nb_distinct` from `mkgamecrash` group by cast(`mkpc`.`mkgamecrash`.`date` as date) order by cast(`mkpc`.`mkgamecrash`.`date` as date) desc */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
