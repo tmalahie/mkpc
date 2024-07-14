@@ -2925,8 +2925,14 @@ function addModeOverride() {
 	var copyFrom = document.getElementById("modeoverride-lap-list").value;
 	var selectedModeData = lapOverrides[selectedLapOverride].modesData[currentMode];
 	selectedModeData.isSet = true;
-	if (copyFrom)
-		editorTools[currentMode].data = deepCopy(lapOverrides[copyFrom].modesData[currentMode].data);
+	if (copyFrom) {
+		var editorTool = editorTools[currentMode];
+		if (editorTool.prerestore)
+			editorTool.prerestore(editorTool);
+		editorTool.data = deepCopy(lapOverrides[copyFrom].modesData[currentMode].data);
+		if (editorTool.postrestore)
+			editorTool.postrestore(editorTool);
+	}
 	selectMode(currentMode);
 	closeModeOverrideOptions();
 }
@@ -2986,7 +2992,10 @@ function showLapOverrideRemove() {
 }
 function addLapOverride() {
 	var $select = document.getElementById("lapoverride-laps-list");
-	selectLapOverride($select.value);
+	var opts;
+	if (Object.keys(lapOverrides).length === 1)
+		opts = { resetMode: true };
+	selectLapOverride($select.value, opts);
 	closeLapOverrideOptions();
 }
 function removeLapOverride() {
@@ -3017,15 +3026,54 @@ function enableLapOverride() {
 function disableLapOverride() {
 	if (confirm(language ? 'Remove override for this mode?' : 'Réinitialiser le modificateur pour ce mode ?')) {
 		initEditorTool(currentMode, selectedLapOverride, { isSet: false });
+		var editorTool = editorTools[currentMode];
+		if (editorTool.prerestore)
+			editorTool.prerestore(editorTool);
 		selectMode(currentMode);
+		if (editorTool.postrestore)
+			editorTool.postrestore(editorTool);
 	}
 }
-function selectLapOverride(newLapOverride) {
+function selectLapOverride(newLapOverride, opts) {
+	storeCurrentLapOverride();
+	restoreLapOverride(newLapOverride);
+	var $modeOptions = document.querySelectorAll('#mode option');
+	for (var i=0;i<$modeOptions.length;i++) {
+		var $modeOption = $modeOptions[i];
+		if (editorTools[$modeOption.value].disableOverride)
+			$modeOption.style.display = newLapOverride ? "none" : "";
+	}
+	
+	selectedLapOverride = +newLapOverride;
+	applyLapOverrideSelector();
+	var nextMode = currentMode;
+	if ((opts && opts.resetMode) || editorTools[currentMode].disableOverride) {
+		nextMode = Object.entries(editorTools).find(function(entry) {
+			var editorTool = entry[1];
+			return !editorTool.disableOverride;
+		})[0];
+		document.getElementById("mode").value = nextMode;
+	}
+	for (var key in editorTools) {
+		var editorTool = editorTools[key];
+		if (editorTool.prerestore)
+			editorTool.prerestore(editorTool);
+	}
+	selectMode(nextMode);
+	for (var key in editorTools) {
+		var editorTool = editorTools[key];
+		if (editorTool.postrestore)
+			editorTool.postrestore(editorTool);
+	}
+}
+function storeCurrentLapOverride() {
 	var prevSelectedData = lapOverrides[selectedLapOverride].modesData;
 	for (var key in editorTools) {
 		var editorTool = editorTools[key];
 		prevSelectedData[key].data = editorTool.data;
 	}
+}
+function restoreLapOverride(newLapOverride) {
 	if (lapOverrides[newLapOverride]) {
 		var nextSelectedData = lapOverrides[newLapOverride].modesData;
 		for (var key in editorTools) {
@@ -3040,16 +3088,6 @@ function selectLapOverride(newLapOverride) {
 		for (var key in editorTools)
 			initEditorTool(key, newLapOverride, { isSet: false });
 	}
-	var $modeOptions = document.querySelectorAll('#mode option');
-	for (var i=0;i<$modeOptions.length;i++) {
-		var $modeOption = $modeOptions[i];
-		if (editorTools[$modeOption.value].disableOverride)
-			$modeOption.style.display = newLapOverride ? "none" : "";
-	}
-	
-	selectedLapOverride = +newLapOverride;
-	applyLapOverrideSelector();
-	selectMode(currentMode);
 }
 function selectChTab(pos) {
 	var selectedTabs = document.getElementsByClassName("tab-ch-selected");
@@ -3712,11 +3750,32 @@ function resizeImg(scaleX,scaleY) {
 	changes = true;
 }
 function saveData() {
+	storeCurrentLapOverride();
+	restoreLapOverride(0);
 	var payload = {main:{theme:document.getElementById("theme-selector").getValue()}};
 	for (var key in editorTools) {
 		var editorTool = editorTools[key];
 		editorTool.save(editorTool,payload);
 	}
+	for (var lapKey in lapOverrides) {
+		if (!+lapKey) continue;
+		restoreLapOverride(lapKey);
+		var lapPayload = {main:{}};
+		var enabledModes = [];
+		var lapOverride = lapOverrides[lapKey];
+		for (var key in editorTools) {
+			var selectedModeData = lapOverride.modesData[key];
+			if (!selectedModeData.isSet) continue;
+			var editorTool = editorTools[key];
+			editorTool.save(editorTool,lapPayload);
+			enabledModes.push(key);
+		}
+		if (!enabledModes.length) continue;
+		lapPayload.meta = { modes: enabledModes };
+		if (!payload.lapOverrides) payload.lapOverrides = {};
+		payload.lapOverrides[lapKey] = lapPayload;
+	}
+	restoreLapOverride(selectedLapOverride);
 	var $mask = createMask();
 	$mask.classList.add("mask-save");
 	$mask.close = function(){};
@@ -3811,11 +3870,37 @@ function restoreData(payload) {
 	for (var key in editorTools) {
 		var editorTool = editorTools[key];
 		try {
+			if (editorTool.prerestore)
+				editorTool.prerestore(editorTool);
 			editorTool.restore(editorTool,payload);
+			if (editorTool.postrestore)
+				editorTool.postrestore(editorTool);
 		}
 		catch (e) {
 			console.log(e.stack);
 		}
+	}
+	if (payload.lapOverrides) {
+		storeCurrentLapOverride();
+		for (var lapKey in payload.lapOverrides) {
+			var lapOverride = payload.lapOverrides[lapKey];
+			var lapModes = lapOverride.meta.modes;
+			restoreLapOverride(lapKey);
+			var lapModesData = lapOverrides[lapKey].modesData;
+			for (var i=0;i<lapModes.length;i++) {
+				var key = lapModes[i];
+				var editorTool = editorTools[key];
+				try {
+					editorTool.restore(editorTool,lapOverride);
+					lapModesData[key].isSet = true;
+				}
+				catch (e) {
+					console.log(e.stack);
+				}
+			}
+		}
+		restoreLapOverride(0);
+		applyLapOverrideSelector();
 	}
 	if ("dark" === payload.main.theme) {
 		document.getElementById("theme-selector").setValue(payload.main.theme);

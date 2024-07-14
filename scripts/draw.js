@@ -120,7 +120,6 @@ var editorTools = {
 	"aipoints": {
 		"init" : function(self) {
 			self.data = [{points:[],shortcuts:[],closed:false}];
-			initRouteSelector(document.getElementById("traject"),1);
 		},
 		"resume" : function(self) {
 			var traject = +document.getElementById("traject").value;
@@ -360,15 +359,7 @@ var editorTools = {
 			}
 		},
 		"restore" : function(self,payload) {
-			currentMode = "aipoints";
-			document.getElementById("traject-options").dataset.key = "aipoints";
 			var meta = payload.airoutesmeta || {};
-			for (var i=1;i<payload.aipoints.length;i++) {
-				if (i === meta.cpu)
-					document.getElementById("traject-bill").checked = true;
-				addTraject();
-			}
-			document.getElementById("traject").selectedIndex = 0;
 			for (var i=0;i<payload.aipoints.length;i++) {
 				var shortcuts = [];
 				var points = dataToPoly(payload.aipoints[i]);
@@ -397,6 +388,24 @@ var editorTools = {
 				self.data[i] = {closed:payload.main.aiclosed[i]==1,shortcuts:shortcuts,points:points};
 				if (i >= meta.cpu)
 					self.data[i].bill = true;
+			}
+		},
+		"prerestore": function() {
+			initRouteSelector(document.getElementById("traject"),1);
+		},
+		"postrestore": function(self) {
+			var selfData = self.data;
+			var routeId = 0, wasBb = false;
+			var $trajectSelector = document.getElementById("traject");
+			for (var i=1;i<selfData.length;i++) {
+				var $trajectOption = document.createElement("option");
+				$trajectOption.value = i;
+				var isBb = selfData[i].bill;
+				routeId++;
+				if (isBb && !wasBb)
+					routeId = 0;
+				$trajectOption.innerHTML = getRouteLabel(routeId, { isBb });
+				$trajectSelector.insertBefore($trajectOption, $trajectSelector.lastChild);
 			}
 		},
 		"rescale" : function(self, scale) {
