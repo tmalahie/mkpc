@@ -65,13 +65,8 @@ document.addEventListener("DOMContentLoaded", function() {
 	$toolbox = document.getElementById("toolbox");
 	offsetX = $editorCtn.offsetLeft;
 	offsetY = $editorCtn.offsetTop;
-	for (var key in editorTools) {
-		var editorTool = editorTools[key];
-		editorTool.data = [];
-		editorTool.state = {};
-		if (editorTool.init)
-			editorTool.init(editorTool);
-	}
+	for (var key in editorTools)
+		initEditorTool(key, selectedLapOverride, { isSet: true });
 	if (circuitData)
 		restoreData(circuitData);
 	//document.getElementById('mode').value = "options";
@@ -79,6 +74,17 @@ document.addEventListener("DOMContentLoaded", function() {
 	//document.getElementById("decor-selector").setValue("truck");
 	//decorChange();
 });
+function initEditorTool(key, lapKey, options) {
+	var editorTool = editorTools[key];
+	editorTool.data = [];
+	editorTool.state = {};
+	if (editorTool.init)
+		editorTool.init(editorTool);
+	lapOverrides[lapKey].modesData[key] = {
+		data: editorTool.data,
+		isSet: options.isSet
+	};
+}
 function initRadioButton($radioButton,$radioSelector) {
 	$radioButton.selector = $radioSelector;
 	$radioButton.onclick = function() {
@@ -1081,6 +1087,22 @@ function selectMode(mode) {
 	var modeId = +$mode.selectedIndex;
 	document.getElementById("mode-decr").disabled = !$modeOptions[modeId-1];
 	document.getElementById("mode-incr").disabled = !$modeOptions[modeId+1];
+	if (selectedLapOverride) {
+		document.getElementById("mode-override-options").style.display = "block";
+		var selectedModeData = lapOverrides[selectedLapOverride].modesData[mode];
+		if (selectedModeData.isSet) {
+			document.getElementById("mode-options").style.display = "block";
+			document.getElementById("mode-override-options").classList.add("mode-override-enabled");
+		}
+		else {
+			document.getElementById("mode-options").style.display = "none";
+			document.getElementById("mode-override-options").classList.remove("mode-override-enabled");
+		}
+	}
+	else {
+		document.getElementById("mode-options").style.display = "block";
+		document.getElementById("mode-override-options").style.display = "none";
+	}
 }
 function navigateMode(inc) {
 	var $mode = document.getElementById('mode');
@@ -1095,6 +1117,11 @@ var mouseCoords = {x:0,y:0};
 function handleClick(e) {
 	var editorTool = editorTools[currentMode];
 	if (editorTool.click) {
+		var selectedModeData = lapOverrides[selectedLapOverride].modesData[currentMode];
+		if (!selectedModeData.isSet) {
+			alert(language ? "You must enable override for this mode first" : "Vous devez d'abord activer le modificateur pour ce mode");
+			return;
+		}
 		var pointerCoords = getPointerPos(e);
 		mouseCoords = getEditorCoordsExact(pointerCoords);
 		var roundedCoords = getRoundedCoords(mouseCoords,editorTool);
@@ -1741,6 +1768,7 @@ function appendRectangleBuilder(self,point) {
 	options.on_apply(rectangle,data,point);
 }
 function initRouteSelector($traject,nbRoutes) {
+	$traject.innerHTML = "";
 	for (var i=0;i<nbRoutes;i++) {
 		var $trajectOption = document.createElement("option");
 		$trajectOption.value = i;
@@ -2793,6 +2821,10 @@ function getRouteLabels(aTrajects) {
 	}
 	return routeLabels;
 }
+function getLapOverrideLabel(lapKey) {
+	var lapNumber = 1 + +lapKey;
+	return language ? "Lap "+ lapNumber : "Tour "+ lapNumber;
+}
 function showOffroadTransfer() {
 	var $offroadOptions = document.getElementById("offroad-transfer");
 	document.body.removeChild($offroadOptions);
@@ -2855,8 +2887,51 @@ function closeLapOverrideOptions() {
 function initLapOverrideOptions() {
 	document.getElementById("lapoverride-menu").style.display = "block";
 	document.getElementById("lapoverride-more").style.display = "none";
-	document.getElementById("lapoverride-copy").style.display = "none";
 	document.getElementById("lapoverride-less").style.display = "none";
+	var nbLaps = lapOverrides["0"].modesData.checkpoints.data.nb;
+	var nbOverrides = Object.keys(lapOverrides).length;
+	document.getElementById("lapoverride-btn-add").style.display = (nbOverrides < nbLaps) ? "block" : "none";
+	document.getElementById("lapoverride-btn-remove").style.display = (nbOverrides > 1) ? "block" : "none";
+}
+function initModeOverrideOptions() {
+	var lapOverrideOptions = [{
+		label: language ? "Nothing":"Rien",
+		value: ""
+	}];
+	for (var lapKey in lapOverrides) {
+		if (lapKey == selectedLapOverride) continue;
+		if (!lapOverrides[lapKey].modesData[currentMode].isSet) continue;
+		lapOverrideOptions.push({
+			label: getLapOverrideLabel(lapKey),
+			value: lapKey
+		});
+	}
+	var $lapList = document.getElementById("modeoverride-lap-list");
+	var lastValue = $lapList.value;
+	$lapList.innerHTML = "";
+	for (var i=0;i<lapOverrideOptions.length;i++) {
+		var $option = document.createElement("option");
+		$option.value = lapOverrideOptions[i].value;
+		$option.innerHTML = lapOverrideOptions[i].label;
+		$lapList.appendChild($option);
+	}
+	$lapList.value = lastValue;
+
+	var $mode = document.getElementById('mode');
+	document.getElementById("modeoverride-label").innerText = $mode.options[$mode.selectedIndex].text;
+	document.getElementById("modeoverride-submit").focus();
+}
+function addModeOverride() {
+	var copyFrom = document.getElementById("modeoverride-lap-list").value;
+	var selectedModeData = lapOverrides[selectedLapOverride].modesData[currentMode];
+	selectedModeData.isSet = true;
+	if (copyFrom)
+		editorTools[currentMode].data = deepCopy(lapOverrides[copyFrom].modesData[currentMode].data);
+	selectMode(currentMode);
+	closeModeOverrideOptions();
+}
+function closeModeOverrideOptions() {
+	closeLapOverrideOptions();
 }
 function showLapsOptions() {
 	var $choptions = document.getElementById("choptions");
@@ -2881,6 +2956,100 @@ function showLapsOptions() {
 		document.getElementById("choptions-nblaps").selectedIndex = lVal-1;
 	selectChTab(pos);
 	updateSectionSelects(true);
+}
+function showLapOverrideAdd() {
+	document.getElementById("lapoverride-menu").style.display = "none";
+	document.getElementById("lapoverride-more").style.display = "block";
+	var $select = document.getElementById("lapoverride-laps-list");
+	$select.innerHTML = "";
+	var nbLaps = lapOverrides["0"].modesData.checkpoints.data.nb;
+	for (var i=1;i<nbLaps;i++) {
+		if (lapOverrides[i]) continue;
+		var $option = document.createElement("option");
+		$option.value = i;
+		$option.innerHTML = getLapOverrideLabel(i);
+		$select.appendChild($option);
+	}
+}
+function showLapOverrideRemove() {
+	document.getElementById("lapoverride-menu").style.display = "none";
+	document.getElementById("lapoverride-less").style.display = "block";
+	var $select = document.getElementById("lapoverride-less-list");
+	$select.innerHTML = "";
+	for (var lapKey in lapOverrides) {
+		if (!+lapKey) continue;
+		var $option = document.createElement("option");
+		$option.value = lapKey;
+		$option.innerHTML = getLapOverrideLabel(lapKey);
+		$select.appendChild($option);
+	}
+}
+function addLapOverride() {
+	var $select = document.getElementById("lapoverride-laps-list");
+	selectLapOverride($select.value);
+	closeLapOverrideOptions();
+}
+function removeLapOverride() {
+	var $select = document.getElementById("lapoverride-less-list");
+	var lapKey = $select.value;
+	if (selectedLapOverride == lapKey)
+		selectLapOverride(0);
+	delete lapOverrides[lapKey];
+	applyLapOverrideSelector();
+	closeLapOverrideOptions();
+}
+function enableLapOverride() {
+	var $modeOverrideOptions = document.getElementById("modeoverride-options");
+	document.body.removeChild($modeOverrideOptions);
+	var $mask = createMask();
+	$mask.id = "mask-overrides";
+	$mask.classList.add("mask-dark");
+	$mask.appendChild($modeOverrideOptions);
+	$modeOverrideOptions.classList.add("fs-shown");
+	$mask.close = function() {
+		$mask.removeChild($modeOverrideOptions);
+		$modeOverrideOptions.classList.remove("fs-shown");
+		document.body.appendChild($modeOverrideOptions);
+		this.defaultClose();
+	};
+	initModeOverrideOptions();
+}
+function disableLapOverride() {
+	if (confirm(language ? 'Remove override for this mode?' : 'Réinitialiser le modificateur pour ce mode ?')) {
+		initEditorTool(currentMode, selectedLapOverride, { isSet: false });
+		selectMode(currentMode);
+	}
+}
+function selectLapOverride(newLapOverride) {
+	var prevSelectedData = lapOverrides[selectedLapOverride].modesData;
+	for (var key in editorTools) {
+		var editorTool = editorTools[key];
+		prevSelectedData[key].data = editorTool.data;
+	}
+	if (lapOverrides[newLapOverride]) {
+		var nextSelectedData = lapOverrides[newLapOverride].modesData;
+		for (var key in editorTools) {
+			var editorTool = editorTools[key];
+			editorTool.data = nextSelectedData[key].data;
+		}
+	}
+	else {
+		lapOverrides[newLapOverride] = {
+			modesData: {}
+		}
+		for (var key in editorTools)
+			initEditorTool(key, newLapOverride, { isSet: false });
+	}
+	var $modeOptions = document.querySelectorAll('#mode option');
+	for (var i=0;i<$modeOptions.length;i++) {
+		var $modeOption = $modeOptions[i];
+		if (editorTools[$modeOption.value].disableOverride)
+			$modeOption.style.display = newLapOverride ? "none" : "";
+	}
+	
+	selectedLapOverride = +newLapOverride;
+	applyLapOverrideSelector();
+	selectMode(currentMode);
 }
 function selectChTab(pos) {
 	var selectedTabs = document.getElementsByClassName("tab-ch-selected");
@@ -3379,6 +3548,37 @@ function stopMusic() {
 		document.body.removeChild(oMusic);
 		oMusic = null;
 	}
+}
+function applyLapOverrideSelector() {
+	if (Object.keys(lapOverrides).length > 1) {
+		document.getElementById("lapoverride-current").style.display = "block";
+		var $lapSelector = document.getElementById("lapoverride-current-value");
+		$lapSelector.innerHTML = "";
+		for (var key in lapOverrides) {
+			var $option = document.createElement("option");
+			$option.value = key;
+			$option.innerHTML = getLapOverrideLabel(key);
+			$lapSelector.appendChild($option);
+		}
+		var $option = document.createElement("option");
+		$option.value = "-1";
+		$option.innerHTML = language ? "Options...":"Gérer...";
+		$lapSelector.appendChild($option);
+		
+		$lapSelector.value = selectedLapOverride;
+	}
+	else {
+		document.getElementById("lapoverride-current").style.display = "none";
+	}
+}
+function switchLapOverride($elt) {
+	var value = $elt.value;
+	if (value === '-1') {
+		$elt.value = selectedLapOverride;
+		showLapOverrideOptions();
+		return;
+	}
+	selectLapOverride(value);
 }
 function showHelp() {
 	var $help = document.getElementById("help");
@@ -6739,3 +6939,9 @@ for (var key in commonTools["holes"]) {
 		commonTools["teleports"][key] = v;
 	}
 }
+var lapOverrides = {
+	"0": {
+		modesData: {}
+	}
+};
+var selectedLapOverride = 0;

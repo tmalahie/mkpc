@@ -18,11 +18,12 @@ var editorTools = {
 			document.getElementById("start-dir-selector").setValue(self.data.orientation+(self.data.mirror?"r":""));
 			var data = deepCopy(self.data);
 			delete self.data.pos;
-			if (data.pos)
+			if (data.pos) {
 				self.click(self,data.pos,{});
-			self.state.startPositionsGroup.reposition({
-				theta: data.theta
-			});
+				self.state.startPositionsGroup.reposition({
+					theta: data.theta
+				});
+			}
 		},
 		"click" : function(self,point,extra) {
 			if (!self.state.placed) {
@@ -113,7 +114,8 @@ var editorTools = {
 				self.data.orientation = (self.data.orientation + 180)%360;
 			if (self.data.theta)
 				self.data.theta = -self.data.theta;
-		}
+		},
+		"disableOverride": true
 	},
 	"aipoints": {
 		"init" : function(self) {

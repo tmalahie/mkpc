@@ -391,6 +391,35 @@ body.theme-dark {
 .decor-option-bus-trajects #decor-bus-decors {
 	display: none;
 }
+#mode-override-options {
+	display: none;
+}
+#mode-override-options a {
+	text-decoration: none;
+	font-size: 0.9em;
+}
+#mode-override-options {
+	margin-bottom: 5px;
+}
+#mode-override-options.mode-override-enabled {
+	margin-top: -2px;
+}
+#mode-override-options a:hover {
+	text-decoration: underline;
+}
+#mode-override-options .mode-override-disable {
+	color: #C24;
+	font-size: 0.8em;
+}
+#mode-override-options .mode-override-disable:hover {
+	color: #D35;
+}
+#mode-override-options.mode-override-enabled .mode-override-enable {
+	display: none;
+}
+#mode-override-options:not(.mode-override-enabled) .mode-override-disable {
+	display: none;
+}
 .help-balloon {
 	position: fixed;
 	background-color: #BCF;
@@ -1038,37 +1067,78 @@ embed,#ytplayer {
 	color: #210;
 	border-radius: 4px;
 	font-size: 1.1em;
-	width: 160px;
+	width: 200px;
 	margin: 4px auto;
 	padding: 5px;
 	text-decoration: none;
 }
-.lapoverride-manage a:nth-child(1) {
+#lapoverride-btn-add {
 	background-color: #7E8;
 	color: #084;
 	border: solid 1px #8A4;
 }
-.lapoverride-manage a:nth-child(1):hover {
+#lapoverride-btn-add:hover {
 	background-color: #7F8;
 	color: #0A5;
 }
-.lapoverride-manage a:nth-child(2) {
-	background-color: #BCF;
-	color: #05A;
-	border: solid 1px #48A;
-}
-.lapoverride-manage a:nth-child(2):hover {
-	background-color: #C9D9FF;
-	color: #17C;
-}
-.lapoverride-manage a:nth-child(3) {
+#lapoverride-btn-remove {
 	background-color: #F96;
 	color: #C24;
 	border: solid 1px #A84;
 }
-.lapoverride-manage a:nth-child(3):hover {
+#lapoverride-btn-remove:hover {
 	background-color: #FB7;
 	color: #D35;
+}
+#lapoverride-current {
+	font-size: 0.8em;
+	display: none;
+	background-color: #0d1;
+	color: #084;
+	border-radius: 5px;
+	padding: 4px 2px;
+	margin-bottom: 5px;
+}
+#lapoverride-current select {
+	font-size: 0.8em;
+}
+.button-lapoptions {
+	margin-top: 4px;
+}
+#modeoverride-options {
+	padding: 0;
+	width: 420px;
+	background-color: #d5d5d7;
+	border: double 4px #666;
+	text-align: center;
+}
+#modeoverride-options h1 {
+	font-size: 1.8em;
+	margin: 5px 5px 10px 5px;
+	color: #084;
+}
+#modeoverride-options h1 strong {
+	color: #5b8;
+}
+#modeoverride-options .popup-buttons {
+	margin-top: 15px;
+	margin-bottom: 10px;
+}
+#lapoverride-more h1 {
+	color: #084;
+	margin-top: 10px;
+	margin-bottom: 15px;
+}
+#lapoverride-more .popup-buttons {
+	margin-bottom: 10px;
+}
+#lapoverride-less h1 {
+	color: #C33;
+	margin-top: 10px;
+	margin-bottom: 15px;
+}
+#lapoverride-less .popup-buttons {
+	margin-bottom: 10px;
 }
 #shortcut-options {
 	padding: 0;
