@@ -196,7 +196,7 @@ if (isset($_GET['i'])) {
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
 					</div>
-					<div>
+					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Music:':'Musique :'; ?>
 						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button><br />
 					</div>

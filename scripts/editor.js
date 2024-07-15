@@ -1075,7 +1075,11 @@ function selectMode(mode) {
 	var nextOption = document.getElementById("mode-option-"+mode);
 	currentMode = mode;
 	if (lastOption) lastOption.className = "";
-	if (nextOption) nextOption.className = "mode-option-selected";
+	if (nextOption) {
+		nextOption.className = "mode-option-selected";
+		if (selectedLapOverride)
+			nextOption.classList.add("mode-option-override");
+	}
 	var editorTool = editorTools[currentMode];
 	if (editorTool.resume) {
 		var aChanges = changes;
@@ -3037,6 +3041,7 @@ function disableLapOverride() {
 function selectLapOverride(newLapOverride, opts) {
 	storeCurrentLapOverride();
 	restoreLapOverride(newLapOverride);
+	newLapOverride = +newLapOverride;
 	var $modeOptions = document.querySelectorAll('#mode option');
 	for (var i=0;i<$modeOptions.length;i++) {
 		var $modeOption = $modeOptions[i];
@@ -3044,7 +3049,7 @@ function selectLapOverride(newLapOverride, opts) {
 			$modeOption.style.display = newLapOverride ? "none" : "";
 	}
 	
-	selectedLapOverride = +newLapOverride;
+	selectedLapOverride = newLapOverride;
 	applyLapOverrideSelector();
 	var nextMode = currentMode;
 	if ((opts && opts.resetMode) || editorTools[currentMode].disableOverride) {
@@ -5343,6 +5348,7 @@ var commonTools = {
 							oHelpMsg.innerHTML = language ? "You can manage bus routes here":"Vous pouvez gérer les trajets des bus ici";
 							var $manageRouteLink = document.querySelector("#decor-bus-decors");
 							var routeLinkRect = $manageRouteLink.getBoundingClientRect();
+							if (!routeLinkRect.width) return;
 							oHelp.style.left = Math.round(routeLinkRect.left + (routeLinkRect.width-150)/2) +"px";
 							oHelp.style.top = (routeLinkRect.bottom+5) +"px";
 							oHelp.appendChild(oHelpMsg);
@@ -5876,7 +5882,6 @@ var commonTools = {
 					selfExtra.truck = {route:[]};
 					for (var i=0;i<payloadExtra.truck.path.length;i++)
 						selfExtra.truck.route.push({points:dataToPoly(payloadExtra.truck.path[i]),closed:payloadExtra.truck.closed[i]});
-					initRouteSelector(document.getElementById("decor-bus-traject"),payloadExtra.truck.path.length);
 				}
 			}
 			if (payload.assets) {
@@ -5935,6 +5940,16 @@ var commonTools = {
 					}
 				}
 			}
+		},
+		"prerestore": function(self) {
+			var selfExtra = self.data.extra;
+			if (selfExtra.truck)
+				initRouteSelector(document.getElementById("decor-bus-traject"),1);
+		},
+		"postrestore": function(self) {
+			var selfExtra = self.data.extra;
+			if (selfExtra.truck)
+				initRouteSelector(document.getElementById("decor-bus-traject"),selfExtra.truck.route.length);
 		},
 		"rescale" : function(self, scale) {
 			var selfData = self.data.decors;

@@ -159,8 +159,10 @@ if (isset($_GET['i'])) {
 					</div>
 				</div>
 				<div id="mode-option-checkpoints">
-					<span id="checkpoints-nblaps"></span>
-					[<a href="javascript:showLapsOptions()"><?php echo $language ? 'Edit':'Modifier'; ?></a>]
+					<div class="mode-option-unoverridable">
+						<span id="checkpoints-nblaps"></span>
+						[<a href="javascript:showLapsOptions()"><?php echo $language ? 'Edit':'Modifier'; ?></a>]
+					</div>
 					<div id="checkpoints-disclaimer">
 					<?php
 					if ($language) {
@@ -233,7 +235,7 @@ if (isset($_GET['i'])) {
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
 					</div>
-					<div>
+					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Music:':'Musique :'; ?>
 						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button><br />
 					</div>
@@ -245,7 +247,7 @@ if (isset($_GET['i'])) {
 						<?php echo $language ? 'Image:':'Image :'; ?>
 						<button id="button-imgoptions" class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
 					</div>
-					<div id="lapoverride-opener">
+					<div id="lapoverride-opener" class="mode-option-unoverridable">
 						<?php echo $language ? 'Per-lap override:':'Modificateurs par tour :'; ?>
 						<button class="button-lapoptions toolbox-button" onclick="showLapOverrideOptions()"><?php echo $language ? 'Manage...':'Gérer...'; ?></button>
 					</div>

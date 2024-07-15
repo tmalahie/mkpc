@@ -355,6 +355,9 @@ body.theme-dark {
 #mode-options > .mode-option-selected {
 	display: block;
 }
+.mode-option-override .mode-option-unoverridable {
+	display: none;
+}
 #toolbox #decor-selector-more {
 	cursor: pointer;
 	width: 22px;
