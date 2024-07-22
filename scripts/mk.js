@@ -806,6 +806,7 @@ if (!pause) {
 
 var strPlayer = new Array();
 var oMap;
+var lMaps;
 var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
 var iRecord;
 var iTrajet;
@@ -1276,7 +1277,7 @@ var ctrlSettings;
 var oChallengeCpts;
 var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
-function loadMap() {
+function loadMap() {	
 	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
@@ -1557,6 +1558,15 @@ function classifyByShape(shapes, callback) {
 	}
 	return res;
 }
+function foreachLMap(callback) {
+	for (var i=0;i<oMap.tours;i++) {
+		if (lMaps[i] !== lMaps[i-1])
+			callback(lMaps[i]);
+	}
+}
+function getCurrentLMap(l) {
+	return lMaps[l] || oMap;
+}
 function initMap() {
 	if (clSelected) {
 		var challengeData = clSelected.data;
@@ -1567,289 +1577,301 @@ function initMap() {
 				challengeRules[rule.type].preinitSelected(rule);
 		}
 	}
-	if (oMap.collision) {
-		var collisionProps = {rectangle:{},polygon:{}};
-		oMap.collision = classifyByShape(oMap.collision, oMap.collisionProps && function(i,j, shapeType) {
-			collisionProps[shapeType][j] = oMap.collisionProps[i];
-		});
-		oMap.collisionProps = collisionProps;
+	lMaps = {
+		"0": oMap
+	};
+	var lapOverrides = oMap.lapOverrides || {};
+	for (var i=1;i<oMap.tours;i++) {
+		if (lapOverrides[i])
+			lMaps[i] = Object.assign({}, lMaps[i-1], lapOverrides[i]);
+		else
+			lMaps[i] = lMaps[i-1];
 	}
-	if (oMap.pivots) {
-		for (var i=0;i<oMap.pivots.length;i++) {
-			var pivot = oMap.pivots[i][1];
-			var x = pivot[0], y = pivot[1], w = Math.round(pivot[2]/2), h = Math.round(pivot[3]/2);
-			oMap.collision.polygon.push([[x-w,y],[x,y-h],[x+w,y],[x,y+h]]);
+	foreachLMap(function(lMap) {
+		if (lMap.collision) {
+			var collisionProps = {rectangle:{},polygon:{}};
+			lMap.collision = classifyByShape(lMap.collision, lMap.collisionProps && function(i,j, shapeType) {
+				collisionProps[shapeType][j] = lMap.collisionProps[i];
+			});
+			lMap.collisionProps = collisionProps;
 		}
-	}
-	if (oMap.horspistes) {
-		for (var type in oMap.horspistes)
-			oMap.horspistes[type] = classifyByShape(oMap.horspistes[type]);
-	}
-	if (oMap.checkpoint) {
-		oMap.checkpointCoords = oMap.checkpoint.map(function(oBox) {
-			return getCheckpointCoords(oBox);
-		});
-	}
-	else
-		oMap.checkpointCoords = [];
-	if (oMap.aipoints && !oMap.airoutesmeta) {
-		oMap.airoutesmeta = {
-			cpu: oMap.aipoints.length
-		};
-	}
-	if (oMap.flowers) {
-		for (var i=0;i<oMap.flowers.length;i++) {
-			var flower = oMap.flowers[i][1];
-			var x = flower[0], y = flower[1], w = Math.round(flower[2]/2), h = Math.round(flower[3]/2);
-			oMap.horspistes.herbe.rectangle.push([x-w,y-w,2*w,2*h]);
-		}
-	}
-	if (oMap.trous) {
-		for (var i in oMap.trous) {
-			var holes = {rectangle:[],polygon:[]};
-			for (var j=0;j<oMap.trous[i].length;j++) {
-				var hole = oMap.trous[i][j];
-				if (hole.length == 6)
-					hole = [[hole[0],hole[1],hole[2],hole[3]],[hole[4],hole[5]]];
-				holes[getShapeType(hole[0])].push(hole);
-			}
-			oMap.trous[i] = holes;
-		}
-	}
-	if (oMap.flows) {
-		var flows = {rectangle:[],polygon:[]};
-		for (var i=0;i<oMap.flows.length;i++) {
-			var flow = oMap.flows[i];
-			flows[getShapeType(flow[0])].push(flow);
-		}
-		oMap.flows = flows;
-	}
-	if (oMap.accelerateurs) {
-		oMap.accelerateurs = classifyByShape(oMap.accelerateurs);
-		var oRectangles = oMap.accelerateurs.rectangle;
-		for (var i=0;i<oRectangles.length;i++) {
-			var oBox = oRectangles[i];
-			if (oBox[2]) {
-				oBox[2]++;
-				oBox[3]++;
-			}
-			else {
-				oBox[2] = 9;
-				oBox[3] = 9;
+		if (lMap.pivots) {
+			for (var i=0;i<lMap.pivots.length;i++) {
+				var pivot = lMap.pivots[i][1];
+				var x = pivot[0], y = pivot[1], w = Math.round(pivot[2]/2), h = Math.round(pivot[3]/2);
+				lMap.collision.polygon.push([[x-w,y],[x,y-h],[x+w,y],[x,y+h]]);
 			}
 		}
-	}
-	if (oMap.sauts) {
-		var sauts = {rectangle:[],polygon:[]};
-		for (var i=0;i<oMap.sauts.length;i++) {
-			var oBox = oMap.sauts[i];
-			var shapeType;
-			if (typeof oBox[0] === "number") {
-				shapeType = "rectangle";
-				oBox = [oBox.slice(0,4),oBox[4]];
+		if (lMap.horspistes) {
+			for (var type in lMap.horspistes)
+				lMap.horspistes[type] = classifyByShape(lMap.horspistes[type]);
+		}
+		if (lMap.checkpoint) {
+			lMap.checkpointCoords = lMap.checkpoint.map(function(oBox) {
+				return getCheckpointCoords(oBox);
+			});
+		}
+		else
+			lMap.checkpointCoords = [];
+		if (lMap.aipoints && !lMap.airoutesmeta) {
+			lMap.airoutesmeta = {
+				cpu: lMap.aipoints.length
+			};
+		}
+		if (lMap.flowers) {
+			for (var i=0;i<lMap.flowers.length;i++) {
+				var flower = lMap.flowers[i][1];
+				var x = flower[0], y = flower[1], w = Math.round(flower[2]/2), h = Math.round(flower[3]/2);
+				lMap.horspistes.herbe.rectangle.push([x-w,y-w,2*w,2*h]);
 			}
-			else {
-				shapeType = getShapeType(oBox[0]);
-				oBox = [oBox[0],oBox[1]]
-			}
-			if (!oBox[1]) {
-				var oShape = oBox[0];
-				var shapeW, shapeH;
-				switch (shapeType) {
-				case "rectangle":
-					shapeW = oShape[2];
-					shapeH = oShape[3];
-					break;
-				case "polygon":
-					var minX = oMap.w*2, maxX = -oMap.w, minY = oMap.h*2, maxY = -oMap.h;
-					for (var j=0;j<oShape.length;j++) {
-						var oPoint = oShape[j];
-						minX = Math.min(minX, oPoint[0]);
-						maxX = Math.max(maxX, oPoint[0]);
-						minY = Math.min(minY, oPoint[1]);
-						maxY = Math.max(maxY, oPoint[1]);
-					}
-					shapeW = maxX - minX;
-					shapeH = maxY - minY;
+		}
+		if (lMap.trous) {
+			for (var i in lMap.trous) {
+				var holes = {rectangle:[],polygon:[]};
+				for (var j=0;j<lMap.trous[i].length;j++) {
+					var hole = lMap.trous[i][j];
+					if (hole.length == 6)
+						hole = [[hole[0],hole[1],hole[2],hole[3]],[hole[4],hole[5]]];
+					holes[getShapeType(hole[0])].push(hole);
 				}
-				oBox[1] = (shapeW+shapeH)/45+1;
+				lMap.trous[i] = holes;
 			}
-			sauts[shapeType].push(oBox);
 		}
-		oMap.sauts = sauts;
-	}
-	if (oMap.cannons) {
-		var cannons = {rectangle:[],polygon:[]};
-		for (var i=0;i<oMap.cannons.length;i++) {
-			var cannon = oMap.cannons[i];
-			cannons[getShapeType(cannon[0])].push(cannon);
+		if (lMap.flows) {
+			var flows = {rectangle:[],polygon:[]};
+			for (var i=0;i<lMap.flows.length;i++) {
+				var flow = lMap.flows[i];
+				flows[getShapeType(flow[0])].push(flow);
+			}
+			lMap.flows = flows;
 		}
-		oMap.cannons = cannons;
-	}
-	if (oMap.teleports) {
-		var teleports = {rectangle:[],polygon:[]};
-		for (var i=0;i<oMap.teleports.length;i++) {
-			var teleport = oMap.teleports[i];
-			teleports[getShapeType(teleport[0])].push(teleport);
+		if (lMap.accelerateurs) {
+			lMap.accelerateurs = classifyByShape(lMap.accelerateurs);
+			var oRectangles = lMap.accelerateurs.rectangle;
+			for (var i=0;i<oRectangles.length;i++) {
+				var oBox = oRectangles[i];
+				if (oBox[2]) {
+					oBox[2]++;
+					oBox[3]++;
+				}
+				else {
+					oBox[2] = 9;
+					oBox[3] = 9;
+				}
+			}
 		}
-		oMap.teleports = teleports;
-	}
-	if (oMap.elevators) {
-		var elevators = {rectangle:[],polygon:[]};
-		for (var i=0;i<oMap.elevators.length;i++) {
-			var elevator = oMap.elevators[i];
-			elevators[getShapeType(elevator[0])].push(elevator);
-		}
-		oMap.elevators = elevators;
-	}
-	if (oMap.sea) {
-		var oWaves = oMap.sea.waves;
-		oMap.sea.projections = [];
-		for (var i=0;i<oWaves.length;i++) {
-			var oWave1 = oWaves[i][0], oWave2 = oWaves[i][1];
-			var oProjections = [];
-			var lastInc = 0;
-			var maxSkip = 3+Math.ceil(3*oWave2.length/oWave1.length);
-			for (var j=0;j<oWave2.length;j++) {
-				var ptX = oWave2[j][0], ptY = oWave2[j][1];
-				var l;
-				var minX, minY, minInc, minDist = Infinity;
-				for (var k=0;k<oWave1.length;k++) {
-					if ((k+oWave1.length-lastInc)%oWave1.length >= maxSkip) {
-						if (k > lastInc) break;
-						k = lastInc-1;
-						continue;
+		if (lMap.sauts) {
+			var sauts = {rectangle:[],polygon:[]};
+			for (var i=0;i<lMap.sauts.length;i++) {
+				var oBox = lMap.sauts[i];
+				var shapeType;
+				if (typeof oBox[0] === "number") {
+					shapeType = "rectangle";
+					oBox = [oBox.slice(0,4),oBox[4]];
+				}
+				else {
+					shapeType = getShapeType(oBox[0]);
+					oBox = [oBox[0],oBox[1]]
+				}
+				if (!oBox[1]) {
+					var oShape = oBox[0];
+					var shapeW, shapeH;
+					switch (shapeType) {
+					case "rectangle":
+						shapeW = oShape[2];
+						shapeH = oShape[3];
+						break;
+					case "polygon":
+						var minX = lMap.w*2, maxX = -lMap.w, minY = lMap.h*2, maxY = -lMap.h;
+						for (var j=0;j<oShape.length;j++) {
+							var oPoint = oShape[j];
+							minX = Math.min(minX, oPoint[0]);
+							maxX = Math.max(maxX, oPoint[0]);
+							minY = Math.min(minY, oPoint[1]);
+							maxY = Math.max(maxY, oPoint[1]);
+						}
+						shapeW = maxX - minX;
+						shapeH = maxY - minY;
 					}
-					var inc = k, inc2 = (k+1)%oWave1.length;
-					l = projete(ptX,ptY, oWave1[inc][0],oWave1[inc][1],oWave1[inc2][0],oWave1[inc2][1]);
-					if (l > 1) l = 1;
-					if (l < 0) l = 0;
-					var hX = oWave1[inc][0] + l*(oWave1[inc2][0] - oWave1[inc][0]), hY = oWave1[inc][1] + l*(oWave1[inc2][1]-oWave1[inc][1]);
-					var d = (hX-ptX)*(hX-ptX) + (hY-ptY)*(hY-ptY);
-					if (d < minDist) {
-						minDist = d;
-						minX = hX;
-						minY = hY;
-						minInc = inc;
+					oBox[1] = (shapeW+shapeH)/45+1;
+				}
+				sauts[shapeType].push(oBox);
+			}
+			lMap.sauts = sauts;
+		}
+		if (lMap.cannons) {
+			var cannons = {rectangle:[],polygon:[]};
+			for (var i=0;i<lMap.cannons.length;i++) {
+				var cannon = lMap.cannons[i];
+				cannons[getShapeType(cannon[0])].push(cannon);
+			}
+			lMap.cannons = cannons;
+		}
+		if (lMap.teleports) {
+			var teleports = {rectangle:[],polygon:[]};
+			for (var i=0;i<lMap.teleports.length;i++) {
+				var teleport = lMap.teleports[i];
+				teleports[getShapeType(teleport[0])].push(teleport);
+			}
+			lMap.teleports = teleports;
+		}
+		if (lMap.elevators) {
+			var elevators = {rectangle:[],polygon:[]};
+			for (var i=0;i<lMap.elevators.length;i++) {
+				var elevator = lMap.elevators[i];
+				elevators[getShapeType(elevator[0])].push(elevator);
+			}
+			lMap.elevators = elevators;
+		}
+		if (lMap.sea) {
+			var oWaves = lMap.sea.waves;
+			lMap.sea.projections = [];
+			for (var i=0;i<oWaves.length;i++) {
+				var oWave1 = oWaves[i][0], oWave2 = oWaves[i][1];
+				var oProjections = [];
+				var lastInc = 0;
+				var maxSkip = 3+Math.ceil(3*oWave2.length/oWave1.length);
+				for (var j=0;j<oWave2.length;j++) {
+					var ptX = oWave2[j][0], ptY = oWave2[j][1];
+					var l;
+					var minX, minY, minInc, minDist = Infinity;
+					for (var k=0;k<oWave1.length;k++) {
+						if ((k+oWave1.length-lastInc)%oWave1.length >= maxSkip) {
+							if (k > lastInc) break;
+							k = lastInc-1;
+							continue;
+						}
+						var inc = k, inc2 = (k+1)%oWave1.length;
+						l = projete(ptX,ptY, oWave1[inc][0],oWave1[inc][1],oWave1[inc2][0],oWave1[inc2][1]);
+						if (l > 1) l = 1;
+						if (l < 0) l = 0;
+						var hX = oWave1[inc][0] + l*(oWave1[inc2][0] - oWave1[inc][0]), hY = oWave1[inc][1] + l*(oWave1[inc2][1]-oWave1[inc][1]);
+						var d = (hX-ptX)*(hX-ptX) + (hY-ptY)*(hY-ptY);
+						if (d < minDist) {
+							minDist = d;
+							minX = hX;
+							minY = hY;
+							minInc = inc;
+						}
+					}
+					if (minInc < lastInc)
+						minInc += oWave1.length;
+					for (var k=lastInc;k<minInc;k++) {
+						var inc2 = (k+1)%oWave1.length;
+						oProjections.push([ptX,ptY,oWave1[inc2][0],oWave1[inc2][1]]);
+					}
+					lastInc = minInc%oWave1.length;
+					oProjections.push([ptX,ptY,minX,minY]);
+				}
+				lMap.sea.projections.push(oProjections);
+			}
+			function getWavePtProjected(oProjection, l) {
+				return [oProjection[2] + (oProjection[0]-oProjection[2])*l, oProjection[3] + (oProjection[1]-oProjection[3])*l];
+			}
+			lMap.sea.progress = 0.9999;
+			lMap.sea.offroad0 = lMap.horspistes.eau.polygon;
+			lMap.sea.drawPolygon = function(oViewContext, oPolygon, center,scale) {
+				oViewContext.beginPath();
+				for (var j=0;j<oPolygon.length;j++) {
+					var pt = oPolygon[j];
+					var proj = [(pt[0]-center[0])*scale, (pt[1]-center[1])*scale];
+					if (j)
+						oViewContext.lineTo(proj[0],proj[1]);
+					else
+						oViewContext.moveTo(proj[0],proj[1]);
+				}
+				oViewContext.closePath();
+				oViewContext.fill();
+				oViewContext.stroke();
+			}
+			lMap.sea.render = function(oViewContext, center,scale) {
+				/*oViewContext.fillStyle = oViewContext.strokeStyle = "red"; // Uncomment to preview polygons
+				for (var k=0;k<lMap.sea.waves.length;k++) {
+					var oPolygon = [];
+					for (var i=0;i<lMap.sea.waves[k].length;i++) {
+						for (var j=0;j<lMap.sea.waves[k][i].length;j++) {
+							var oPt = lMap.sea.waves[k][i][i ? lMap.sea.waves[k][i].length-j-1 : j];
+							oPolygon.push(oPt);
+						}
+						oPolygon.push(lMap.sea.waves[k][i][i ? lMap.sea.waves[k][i].length-1:0]);
+					}
+					this.drawPolygon(oViewContext, oPolygon, center,scale);
+				}
+				return;*/
+				var waveProgress = this.progress;
+				var oWaves = this.waves;
+				var waterL = waveProgress*0.99;
+				var waveL = waveProgress-0.25*(1-waveProgress/2);
+				var foamL = waveProgress-0.04*(1-waveProgress/3);
+				oViewContext.lineWidth = 1;
+				if (waveL > 0) {
+					for (var i=0;i<oWaves.length;i++) {
+						var oPolygon = this.polygon(i,0,waterL);
+						oViewContext.fillStyle = oViewContext.strokeStyle = this.color(i,"water");
+						this.drawPolygon(oViewContext, oPolygon, center,scale);
 					}
 				}
-				if (minInc < lastInc)
-					minInc += oWave1.length;
-				for (var k=lastInc;k<minInc;k++) {
-					var inc2 = (k+1)%oWave1.length;
-					oProjections.push([ptX,ptY,oWave1[inc2][0],oWave1[inc2][1]]);
-				}
-				lastInc = minInc%oWave1.length;
-				oProjections.push([ptX,ptY,minX,minY]);
-			}
-			oMap.sea.projections.push(oProjections);
-		}
-		function getWavePtProjected(oProjection, l) {
-			return [oProjection[2] + (oProjection[0]-oProjection[2])*l, oProjection[3] + (oProjection[1]-oProjection[3])*l];
-		}
-		oMap.sea.progress = 0.9999;
-		oMap.sea.offroad0 = oMap.horspistes.eau.polygon;
-		oMap.sea.drawPolygon = function(oViewContext, oPolygon, center,scale) {
-			oViewContext.beginPath();
-			for (var j=0;j<oPolygon.length;j++) {
-				var pt = oPolygon[j];
-				var proj = [(pt[0]-center[0])*scale, (pt[1]-center[1])*scale];
-				if (j)
-					oViewContext.lineTo(proj[0],proj[1]);
 				else
-					oViewContext.moveTo(proj[0],proj[1]);
-			}
-			oViewContext.closePath();
-			oViewContext.fill();
-			oViewContext.stroke();
-		}
-		oMap.sea.render = function(oViewContext, center,scale) {
-			/*oViewContext.fillStyle = oViewContext.strokeStyle = "red"; // Uncomment to preview polygons
-			for (var k=0;k<oMap.sea.waves.length;k++) {
-				var oPolygon = [];
-				for (var i=0;i<oMap.sea.waves[k].length;i++) {
-					for (var j=0;j<oMap.sea.waves[k][i].length;j++) {
-						var oPt = oMap.sea.waves[k][i][i ? oMap.sea.waves[k][i].length-j-1 : j];
-						oPolygon.push(oPt);
+					waveL = 0;
+				if (foamL > 0) {
+					for (var i=0;i<oWaves.length;i++) {
+						var oPolygon = this.polygon(i,waveL,waterL);
+						oViewContext.fillStyle = oViewContext.strokeStyle = this.color(i,"wave");
+						this.drawPolygon(oViewContext, oPolygon, center,scale);
 					}
-					oPolygon.push(oMap.sea.waves[k][i][i ? oMap.sea.waves[k][i].length-1:0]);
 				}
-				this.drawPolygon(oViewContext, oPolygon, center,scale);
-			}
-			return;*/
-			var waveProgress = this.progress;
-			var oWaves = this.waves;
-			var waterL = waveProgress*0.99;
-			var waveL = waveProgress-0.25*(1-waveProgress/2);
-			var foamL = waveProgress-0.04*(1-waveProgress/3);
-			oViewContext.lineWidth = 1;
-			if (waveL > 0) {
-				for (var i=0;i<oWaves.length;i++) {
-					var oPolygon = this.polygon(i,0,waterL);
-					oViewContext.fillStyle = oViewContext.strokeStyle = this.color(i,"water");
-					this.drawPolygon(oViewContext, oPolygon, center,scale);
+				else
+					foamL = 0;
+				if (waveProgress > 0.005) {
+					for (var i=0;i<oWaves.length;i++) {
+						var oPolygon = this.polygon(i,foamL,waveProgress*1.04);
+						oViewContext.fillStyle = oViewContext.strokeStyle = this.color(i,"foam");
+						this.drawPolygon(oViewContext, oPolygon, center,scale);
+					}
 				}
 			}
-			else
-				waveL = 0;
-			if (foamL > 0) {
-				for (var i=0;i<oWaves.length;i++) {
-					var oPolygon = this.polygon(i,waveL,waterL);
-					oViewContext.fillStyle = oViewContext.strokeStyle = this.color(i,"wave");
-					this.drawPolygon(oViewContext, oPolygon, center,scale);
-				}
+			if (gameSettings.nowater) {
+				lMap.sea.render = function() {};
 			}
-			else
-				foamL = 0;
-			if (waveProgress > 0.005) {
-				for (var i=0;i<oWaves.length;i++) {
-					var oPolygon = this.polygon(i,foamL,waveProgress*1.04);
-					oViewContext.fillStyle = oViewContext.strokeStyle = this.color(i,"foam");
-					this.drawPolygon(oViewContext, oPolygon, center,scale);
-				}
+			lMap.sea.color = function(i,type) {
+				if (this["colors."+i])
+					return this["colors."+i][type];
+				return this.colors[type];
 			}
-		}
-		if (gameSettings.nowater) {
-			oMap.sea.render = function() {};
-		}
-		oMap.sea.color = function(i,type) {
-			if (this["colors."+i])
-				return this["colors."+i][type];
-			return this.colors[type];
-		}
-		oMap.sea.polygon = function(i, l1,l2) {
-			var oWave = this.waves[i][0];
-			var res = [], pt0;
-			var oProjections = this.projections[i];
-			if (l1) {
-				pt0 = getWavePtProjected(oProjections[0], l1);
+			lMap.sea.polygon = function(i, l1,l2) {
+				var oWave = this.waves[i][0];
+				var res = [], pt0;
+				var oProjections = this.projections[i];
+				if (l1) {
+					pt0 = getWavePtProjected(oProjections[0], l1);
+					res.push(pt0);
+					for (var k=0;k<oProjections.length;k++) {
+						var ptK = getWavePtProjected(oProjections[k], l1);
+						res.push(ptK);
+					}
+					res.push(pt0);
+				}
+				else {
+					pt0 = oWave[0];
+					res.push(pt0);
+					for (var k=1;k<oWave.length;k++) {
+						var ptK = oWave[k];
+						res.push(ptK);
+					}
+					res.push(pt0);
+				}
+				var kLast = oProjections.length-1;
+				pt0 = getWavePtProjected(oProjections[kLast], l2);
 				res.push(pt0);
-				for (var k=0;k<oProjections.length;k++) {
-					var ptK = getWavePtProjected(oProjections[k], l1);
+				for (var k=kLast-1;k>=0;k--) {
+					var ptK = getWavePtProjected(oProjections[k], l2);
 					res.push(ptK);
 				}
 				res.push(pt0);
+				return res;
 			}
-			else {
-				pt0 = oWave[0];
-				res.push(pt0);
-				for (var k=1;k<oWave.length;k++) {
-					var ptK = oWave[k];
-					res.push(ptK);
-				}
-				res.push(pt0);
-			}
-			var kLast = oProjections.length-1;
-			pt0 = getWavePtProjected(oProjections[kLast], l2);
-			res.push(pt0);
-			for (var k=kLast-1;k>=0;k--) {
-				var ptK = getWavePtProjected(oProjections[k], l2);
-				res.push(ptK);
-			}
-			res.push(pt0);
-			return res;
 		}
-	}
+	});
 }
 var timer = 0;
 var timerMS;
@@ -11015,14 +11037,15 @@ function pointCrossPolygon(iX,iY,nX,nY, oPoints) {
 var jumpHeight0 = 1.175, jumpHeight1 = jumpHeight0+1e-5;
 function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 	var nX = iX+iI, nY = iY+iJ;
+	var lMap = getCurrentLMap(collisionLap);
 
-	if (oMap.decor) {
-		for (var type in oMap.decor) {
+	if (lMap.decor) {
+		for (var type in lMap.decor) {
 			var decorBehavior = decorBehaviors[type];
 			var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
 			var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
-			for (var i=0;i<oMap.decor[type].length;i++) {
-				var oBox = oMap.decor[type][i];
+			for (var i=0;i<lMap.decor[type].length;i++) {
+				var oBox = lMap.decor[type][i];
 				if (nX > oBox[0]-hitboxSize && nX < oBox[0]+hitboxSize && nY > oBox[1]-hitboxSize && nY < oBox[1]+hitboxSize && (Math.abs((oBox[3]?oBox[3]:0)-iZ)<hitboxHeight)) {
 					if ((oBox[3] == undefined) && (iX > oBox[0]-hitboxSize) && (iX < oBox[0]+hitboxSize) && (iY > oBox[1]-hitboxSize) && (iY < oBox[1]+hitboxSize))
 						continue;
@@ -11062,38 +11085,38 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 		}
 	}
 
-	if (iZ > jumpHeight0 && !oMap.collisionProps) return true;
+	if (iZ > jumpHeight0 && !lMap.collisionProps) return true;
 
-	if (!oMap.collision) return true;
+	if (!lMap.collision) return true;
 
 	if (!isCup) {
-		if ((course == "BB") || (oMap.map <= 20)) {
-			if (iX > (oMap.w-5) || iY > (oMap.h-5) || iX < 4 || iY < 4) return true;
+		if ((course == "BB") || (lMap.map <= 20)) {
+			if (iX > (lMap.w-5) || iY > (lMap.h-5) || iX < 4 || iY < 4) return true;
 		}
 		else {
-			if (iX >= oMap.w || iY >= oMap.h || iX < 0 || iY < 0) return true;
+			if (iX >= lMap.w || iY >= lMap.h || iX < 0 || iY < 0) return true;
 		}
 	}
 
 	var zH = 0;
-	var oRectangles = oMap.collision.rectangle;
+	var oRectangles = lMap.collision.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
 		if (pointInRectangle(iX,iY, oRectangles[i]))
-			zH = Math.max(zH, getZoneHeight(oMap.collisionProps.rectangle, i));
+			zH = Math.max(zH, getZoneHeight(lMap.collisionProps.rectangle, i));
 	}
-	var oPolygons = oMap.collision.polygon;
+	var oPolygons = lMap.collision.polygon;
 	for (var i=0;i<oPolygons.length;i++) {
 		if (pointInPolygon(iX,iY, oPolygons[i]))
-			zH = Math.max(zH, getZoneHeight(oMap.collisionProps.polygon, i));
+			zH = Math.max(zH, getZoneHeight(lMap.collisionProps.polygon, i));
 	}
-	if (oMap.elevators) {
-		var eRectangles = oMap.elevators.rectangle;
+	if (lMap.elevators) {
+		var eRectangles = lMap.elevators.rectangle;
 		for (var i=0;i<eRectangles.length;i++) {
 			var oRectangle = eRectangles[i];
 			if (pointInRectangle(iX,iY, oRectangle[0]) && !(iZ0 < getPointHeight(oRectangle[1][0])))
 				zH = Math.max(zH, getPointHeight(oRectangle[1][1]));
 		}
-		var ePolygons = oMap.elevators.polygon;
+		var ePolygons = lMap.elevators.polygon;
 		for (var i=0;i<ePolygons.length;i++) {
 			var oPolygon = ePolygons[i];
 			if (pointInPolygon(iX,iY, oPolygon[0]) && !(iZ0 < getPointHeight(oPolygon[1][0])))
@@ -11103,27 +11126,27 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 
 	if (iZ0) iZ += iZ0;
 	if (zH) {
-		if (!oMap.collisionProps) return true;
+		if (!lMap.collisionProps) return true;
 		if (zH > iZ)
 			iZ = zH;
 		collisionFloor = { z: zH };
 	}
 	
 	if (!isCup && (iZ <= jumpHeight0)) {
-		if ((course == "BB") || (oMap.map <= 20)) {
-			if (nX > (oMap.w-5) || nY > (oMap.h-5) || nX < 4 || nY < 4) return false;
+		if ((course == "BB") || (lMap.map <= 20)) {
+			if (nX > (lMap.w-5) || nY > (lMap.h-5) || nX < 4 || nY < 4) return false;
 		}
 		else {
-			if (nX >= oMap.w || nY >= oMap.h || nX < 0 || nY < 0) return false;
+			if (nX >= lMap.w || nY >= lMap.h || nX < 0 || nY < 0) return false;
 		}
 	}
 
 	for (var i=0;i<oRectangles.length;i++) {
-		if (pointCrossRectangle(iX,iY,iI,iJ, oRectangles[i]) && pointInAltitude(oMap.collisionProps.rectangle, i,iZ))
+		if (pointCrossRectangle(iX,iY,iI,iJ, oRectangles[i]) && pointInAltitude(lMap.collisionProps.rectangle, i,iZ))
 			return false;
 	}
 	for (var i=0;i<oPolygons.length;i++) {
-		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]) && pointInAltitude(oMap.collisionProps.polygon, i,iZ))
+		if (pointCrossPolygon(iX,iY,nX,nY, oPolygons[i]) && pointInAltitude(lMap.collisionProps.polygon, i,iZ))
 			return false;
 	}
 	return true;
@@ -11251,25 +11274,26 @@ function rotateVector(u,v,theta) {
 }
 
 function getHorizontality(iX,iY,iZ, iI,iJ, options) {
+	var lMap = getCurrentLMap(collisionLap);
 	if (!options) options = {};
 	var nearCol = {
 		"t" : 1
 	};
 	var nX = iX+iI, nY = iY+iJ;
 	if (!isCup) {
-		if ((course == "BB") || (oMap.map <= 20)) {
-			if (nX > (oMap.w-5) || nX < 4) nearCol.dir = [0,oMap.h];
-			if (nY > (oMap.h-5) || nY < 4) nearCol.dir = [oMap.w,0];
+		if ((course == "BB") || (lMap.map <= 20)) {
+			if (nX > (lMap.w-5) || nX < 4) nearCol.dir = [0,lMap.h];
+			if (nY > (lMap.h-5) || nY < 4) nearCol.dir = [lMap.w,0];
 		}
 		else {
-			if (nX >= oMap.w || nX < 0) nearCol.dir = [0,oMap.h];
-			if (nY >= oMap.h || nY < 0) nearCol.dir = [oMap.w,0];
+			if (nX >= lMap.w || nX < 0) nearCol.dir = [0,lMap.h];
+			if (nY >= lMap.h || nY < 0) nearCol.dir = [lMap.w,0];
 		}
 	}
-	if (oMap.decor && !options.skipDecor) {
-		for (var type in oMap.decor) {
-			for (var i=0;i<oMap.decor[type].length;i++) {
-				var oBox = oMap.decor[type][i];
+	if (lMap.decor && !options.skipDecor) {
+		for (var type in lMap.decor) {
+			for (var i=0;i<lMap.decor[type].length;i++) {
+				var oBox = lMap.decor[type][i];
 				var hitboxSize = decorBehaviors[type].hitbox||DEFAULT_DECOR_HITBOX;
 				var lines = [{
 					"x1" : oBox[0]-hitboxSize,
@@ -11345,11 +11369,11 @@ function getHorizontality(iX,iY,iZ, iI,iJ, options) {
 				nearCol = colLine;
 		}
 	}
-	if (oMap.collision)
-		handleCollisions(oMap.collision, function(oBox) { return oBox; }, function(shapeType, i,z) { return pointInAltitude(oMap.collisionProps[shapeType], i,z) });
-	if (options.holes && oMap.trous) {
-		for (var j in oMap.trous)
-			handleCollisions(oMap.trous[j], function(oBox) { return oBox[0]; }, function(oBox) { return true; });
+	if (lMap.collision)
+		handleCollisions(lMap.collision, function(oBox) { return oBox; }, function(shapeType, i,z) { return pointInAltitude(lMap.collisionProps[shapeType], i,z) });
+	if (options.holes && lMap.trous) {
+		for (var j in lMap.trous)
+			handleCollisions(lMap.trous[j], function(oBox) { return oBox[0]; }, function(oBox) { return true; });
 	}
 	if (nearCol.dir) {
 		var norm = Math.hypot(nearCol.dir[0],nearCol.dir[1]);
@@ -13956,7 +13980,7 @@ function getDefaultPointDistribution(nbPlayers) {
 }
 
 var COL_KART = 0, COL_OBJ = 1;
-var collisionTest, collisionPlayer, collisionTeam, collisionItem, collisionDecor, collisionDecorHit, collisionFloor;
+var collisionTest, collisionPlayer, collisionTeam, collisionItem, collisionDecor, collisionDecorHit, collisionFloor, collisionLap;
 function isHitSound(oBox) {
 	if (collisionTest==COL_OBJ)
 		return true;
@@ -15254,6 +15278,7 @@ function move(getId, triggered) {
 	collisionTest = COL_KART;
 	collisionPlayer = oKart;
 	collisionTeam = (oKart.team==-1 || selectedFriendlyFire) ? undefined:oKart.team;
+	collisionLap = Math.min(oKart.tours-1, oMap.tours);
 	clLocalVars.currentKart = oKart;
 	var oKart = aKarts[getId];
 	if ((getId<strPlayer.length)) {
