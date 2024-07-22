@@ -6,22 +6,24 @@ $printCircuitData = function($circuit) {
 	if (!$circuitPayload)
 		return;
 	$circuitMainData = $circuitPayload->main;
+	echo '{';
 	printCircuitPart($circuit, $circuitPayload);
 	if (isset($circuitPayload->lapOverrides)) {
 		echo ',"lapOverrides":{';
 		$v = '';
 		foreach ($circuitPayload->lapOverrides as $lapKey => $lapData) {
-			echo $v.'"'.$lapKey.'":';
+			echo $v.'"'.$lapKey.'":{';
 			printCircuitPart(array(), $lapData);
+			echo '}';
 			$v = ',';
 		}
 		echo '}';
 	}
+	echo '}';
 };
 function printCircuitPart($circuit, $circuitPayload) {
 	$circuitMainData = $circuitPayload->main;
 	$circuitImg = isset($circuit['img_data']) ? json_decode($circuit['img_data']) : null;
-	echo '{';
 	if (isset($circuit['ID'])) echo '"map": '.$circuit['ID'].',';
 	if ($circuitImg) {
 	?>
@@ -31,9 +33,6 @@ function printCircuitPart($circuit, $circuitPayload) {
 "h" : <?php echo $circuitImg->h; ?>,
 	<?php
 }
-?>
-"smartjump": 1,
-<?php
 if (isset($circuitMainData->bgcolor))
 	echo '"bgcolor":['.implode(',',$circuitMainData->bgcolor).'],';
 if (isset($circuit['icon']))
@@ -132,6 +131,7 @@ if (isset($circuitPayload->arme))
 	echo '"arme":'.json_encode($circuitPayload->arme).',';
 if (isset($circuitPayload->sauts)) {
 	?>
+"smartjump": 1,
 "sauts" : <?php
 	foreach ($circuitPayload->sauts as &$sautsData) {
 		if (count($sautsData) > 3) {
@@ -186,8 +186,5 @@ if (!empty($circuitPayload->elevators)) {
 "elevators" : <?php echo json_encode($circuitPayload->elevators); ?>
 	<?php
 }
-?>
-	}
-	<?php
 }
 ?>

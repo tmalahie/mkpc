@@ -67,8 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	offsetY = $editorCtn.offsetTop;
 	for (var key in editorTools)
 		initEditorTool(key, selectedLapOverride, { isSet: true });
-	if (circuitData)
-		restoreData(circuitData);
+	restoreData(circuitData);
 	//document.getElementById('mode').value = "options";
 	selectMode(document.getElementById('mode').value);
 	//document.getElementById("decor-selector").setValue("truck");
@@ -3877,7 +3876,8 @@ function restoreData(payload) {
 		try {
 			if (editorTool.prerestore)
 				editorTool.prerestore(editorTool);
-			editorTool.restore(editorTool,payload);
+			if (payload)
+				editorTool.restore(editorTool,payload);
 			if (editorTool.postrestore)
 				editorTool.postrestore(editorTool);
 		}
