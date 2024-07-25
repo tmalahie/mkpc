@@ -806,7 +806,7 @@ if (!pause) {
 
 var strPlayer = new Array();
 var oMap;
-var lMaps;
+var lMaps, pMaps;
 var iDificulty = 5, iTeamPlay = selectedTeams, fSelectedClass, bSelectedMirror;
 var iRecord;
 var iTrajet;
@@ -866,6 +866,7 @@ var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = n
 var customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
 
 function posImg(elt, eltX,eltY,eltR, eltW, mapW) {
+	// TODO reset every turn
 	if (bSelectedMirror) {
 		eltX = oMap.w - eltX;
 		eltR = -eltR;
@@ -894,6 +895,7 @@ var oTeamColors = {
 }
 var cTeamColors = oTeamColors;
 function setPlanPos(frameState) {
+	// TODO reset every turn
 	var oPlayer = frameState.players[0];
 	if (oSpecCam)
 		oPlayer = frameState.karts[oSpecCam.playerId];
@@ -1277,7 +1279,8 @@ var ctrlSettings;
 var oChallengeCpts;
 var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
-function loadMap() {	
+function loadMap() {
+	// TODO reset every turn
 	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
@@ -1561,11 +1564,14 @@ function classifyByShape(shapes, callback) {
 function foreachLMap(callback) {
 	for (var i=0;i<oMap.tours;i++) {
 		if (lMaps[i] !== lMaps[i-1])
-			callback(lMaps[i]);
+			callback(lMaps[i],pMaps[i],i);
 	}
 }
 function getCurrentLMap(l) {
 	return lMaps[l] || oMap;
+}
+function getCurrentLapId(oKart) {
+	return Math.min(oKart.tours-1, oMap.tours);
 }
 function initMap() {
 	if (clSelected) {
@@ -2138,6 +2144,7 @@ function arme(ID, backwards, forwards) {
 			case "carapacebleue" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
 			if (course != "BB") {
+				// TODO reset every turn
 				for (var i=0;i<oMap.airoutesmeta.cpu;i++) {
 					var aipoints = oMap.aipoints[i];
 					for (var j=0;j<aipoints.length;j++) {
@@ -2976,6 +2983,7 @@ function startGame() {
 				oEnemy.cpu = false;
 		}
 
+		// TODO reset every turn
 		var iPt = inc%oMap.airoutesmeta.cpu;
 		oEnemy.aipoints = oMap.aipoints[iPt]||[];
 		if (oMap.aishortcuts && oMap.aishortcuts[iPt]) {
@@ -3161,15 +3169,19 @@ function startGame() {
 	ptsDistribution = selectedPtDistrib;
 
 	if (!isTT) {
-		if (itemDistribution.value.length) {
-			for (var i=0;i<oMap.arme.length;i++)
-				initItemSprite(oMap.arme[i]);
-		}
-		else
-			oMap.arme = [];
+		foreachLMap(function(lMap,pMap) {
+			if (itemDistribution.value.length && pMap.arme) {
+				for (var i=0;i<lMap.arme.length;i++)
+					initItemSprite(lMap.arme[i]);
+			}
+			else
+				lMap.arme = [];
+		});
 	}
 	else {
-		oMap.arme = [];
+		foreachLMap(function(lMap) {
+			lMap.arme = [];
+		});
 		for (var i=0;i<aKarts.length;i++) {
 			aKarts[i].arme = "champiX3";
 			aKarts[i].maxspeed0 = aKarts[i].maxspeed;
@@ -3434,189 +3446,194 @@ function startGame() {
 		oPlayers[0].rotation = 90 - clLocalVars.startPos.angle*180/Math.PI;
 	}
 
-	if (oMap.decor) {
-		for (var type in oMap.decor) {
-			if (!decorBehaviors[type])
-				decorBehaviors[type] = {type:type};
-			var decorBehavior = decorBehaviors[type];
-			var decorExtra = getDecorExtra(decorBehavior);
-			var customDecor = decorExtra.custom;
-			if (customDecor) {
-				if (decorBehaviors[customDecor.type]) {
-					Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
-					decorBehavior.type = type;
+	foreachLMap(function(lMap,pMap) {
+		if (pMap.decor) {
+			for (var type in lMap.decor) {
+				if (!decorBehaviors[type])
+					decorBehaviors[type] = {type:type,ctx:{}};
+				var decorBehavior = decorBehaviors[type];
+				decorBehavior.ctx.lMap = lMap;
+				var decorExtra = getDecorExtra(decorBehavior);
+				var customDecor = decorExtra.custom;
+				if (customDecor) {
+					if (decorBehaviors[customDecor.type]) {
+						Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
+						decorBehavior.type = type;
+					}
+					(function(decorBehavior) {
+						getCustomDecorData(customDecor, function(res) {
+							var sizeRatio = {
+								w: res.size.hd.w/res.original_size.hd.w,
+								h: res.size.hd.h/res.original_size.hd.h
+							}
+							decorBehavior.size_ratio = sizeRatio;
+							if (sizeRatio.w !== 1) {
+								var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
+								var hitboxConst = 1;
+								decorBehavior.hitbox = hitboxConst + (hitboxSize-hitboxConst)*sizeRatio.w;
+							}
+							if (sizeRatio.h !== 1) {
+								var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
+								var hitboxConst = 0.8;
+								decorBehavior.hitboxH = hitboxConst + (hitboxHeight-hitboxConst)*sizeRatio.h;
+							}
+							if (res.options) {
+								if (res.options.hitbox === 0)
+									decorBehavior.transparent = true;
+								else if (res.options.hitbox === 1)
+									delete decorBehavior.transparent;
+								
+								if (res.options.spin === 1 && !decorBehavior.spin)
+									decorBehavior.spin = 20;
+								else if (res.options.spin === 0)
+									delete decorBehavior.spin;
+								
+								if (res.options.unbreaking === 1) {
+									decorBehavior.unbreaking = true;
+									delete decorBehavior.breaking;
+								}
+								else if (res.options.unbreaking === 0)
+									delete decorBehavior.unbreaking;
+								
+								if (res.options.breaking === 1) {
+									decorBehavior.breaking = true;
+									delete decorBehavior.unbreaking;
+								}
+								else if (res.options.breaking === 0)
+									delete decorBehavior.breaking;
+
+								if (res.options.items) {
+									decorBehavior.damagingItems = {};
+									for (var i=0;i<res.options.items.length;i++)
+										decorBehavior.damagingItems[res.options.items[i]] = true;
+								}
+							}
+							if (decorBehavior.initcustom) {
+								setTimeout(function() {
+									decorBehavior.initcustom(res);
+								});
+							}
+						});
+					})(decorBehavior);
 				}
-				(function(decorBehavior) {
-					getCustomDecorData(customDecor, function(res) {
-						var sizeRatio = {
-							w: res.size.hd.w/res.original_size.hd.w,
-							h: res.size.hd.h/res.original_size.hd.h
-						}
-						decorBehavior.size_ratio = sizeRatio;
-						if (sizeRatio.w !== 1) {
-							var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
-							var hitboxConst = 1;
-							decorBehavior.hitbox = hitboxConst + (hitboxSize-hitboxConst)*sizeRatio.w;
-						}
-						if (sizeRatio.h !== 1) {
-							var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
-							var hitboxConst = 0.8;
-							decorBehavior.hitboxH = hitboxConst + (hitboxHeight-hitboxConst)*sizeRatio.h;
-						}
-						if (res.options) {
-							if (res.options.hitbox === 0)
-								decorBehavior.transparent = true;
-							else if (res.options.hitbox === 1)
-								delete decorBehavior.transparent;
-							
-							if (res.options.spin === 1 && !decorBehavior.spin)
-								decorBehavior.spin = 20;
-							else if (res.options.spin === 0)
-								delete decorBehavior.spin;
-							
-							if (res.options.unbreaking === 1) {
-								decorBehavior.unbreaking = true;
-								delete decorBehavior.breaking;
-							}
-							else if (res.options.unbreaking === 0)
-								delete decorBehavior.unbreaking;
-							
-							if (res.options.breaking === 1) {
-								decorBehavior.breaking = true;
-								delete decorBehavior.unbreaking;
-							}
-							else if (res.options.breaking === 0)
-								delete decorBehavior.breaking;
-
-							if (res.options.items) {
-								decorBehavior.damagingItems = {};
-								for (var i=0;i<res.options.items.length;i++)
-									decorBehavior.damagingItems[res.options.items[i]] = true;
-							}
-						}
-						if (decorBehavior.initcustom) {
-							setTimeout(function() {
-								decorBehavior.initcustom(res);
-							});
-						}
-					});
-				})(decorBehavior);
+				if (decorBehavior.preinit)
+					decorBehavior.preinit(lMap.decor[type],decorBehavior);
 			}
-			if (decorBehavior.preinit)
-				decorBehavior.preinit(oMap.decor[type],decorBehavior);
-		}
-		var decorIncs = {};
-		for (var type in oMap.decor) {
-			var decorBehavior = decorBehaviors[type];
-			var decorExtra = getDecorExtra(decorBehavior);
-			var customDecor = decorExtra.custom;
-			var actualType = customDecor ? customDecor.type:type;
+			var decorIncs = {};
+			for (var type in lMap.decor) {
+				var decorBehavior = decorBehaviors[type];
+				decorBehavior.ctx.lMap = lMap;
+				var decorExtra = getDecorExtra(decorBehavior);
+				var customDecor = decorExtra.custom;
+				var actualType = customDecor ? customDecor.type:type;
 
-			var inc = 0;
-			if (decorIncs[actualType])
-				inc = decorIncs[actualType];
-			else
-				decorIncs[actualType] = 0;
-			
-			var decorsData = oMap.decor[type];
-			for (var i=0;i<decorsData.length;i++) {
-				var decorData = decorsData[i];
-				decorData[2] = new Sprite(type);
-				if (decorBehavior.init)
-					decorBehavior.init(decorData,i,i+inc);
-				if (gameSettings.ld && decorBehavior.hidable)
-					decorData[2][0].unshow();
-				else {
-					if (customDecor) {
-						(function(decorData,decorBehavior) {
-							for (var j=0;j<oPlayers.length;j++)
-								decorData[2][j].img.src = "images/map_icons/empty.png";
-							getCustomDecorData(customDecor, function(res) {
-								updateCustomDecorSprites(decorData, res, decorBehavior.size_ratio);
-							});
-						})(decorData,decorBehavior);
+				var inc = 0;
+				if (decorIncs[actualType])
+					inc = decorIncs[actualType];
+				else
+					decorIncs[actualType] = 0;
+				
+				var decorsData = lMap.decor[type];
+				for (var i=0;i<decorsData.length;i++) {
+					var decorData = decorsData[i];
+					decorData[2] = new Sprite(type);
+					if (decorBehavior.init)
+						decorBehavior.init(decorData,i,i+inc);
+					if (gameSettings.ld && decorBehavior.hidable)
+						decorData[2][0].unshow();
+					else {
+						if (customDecor) {
+							(function(decorData,decorBehavior) {
+								for (var j=0;j<oPlayers.length;j++)
+									decorData[2][j].img.src = "images/map_icons/empty.png";
+								getCustomDecorData(customDecor, function(res) {
+									updateCustomDecorSprites(decorData, res, decorBehavior.size_ratio);
+								});
+							})(decorData,decorBehavior);
+						}
 					}
 				}
+				decorIncs[actualType] += decorsData.length;
 			}
-			decorIncs[actualType] += decorsData.length;
 		}
-	}
-	oMap.assets = [];
-	for (var i=0;i<assetKeys.length;i++) {
-		var key = assetKeys[i];
-		if (oMap[key]) {
-			function redrawAsset(asset) {
-				var ctx = this.canvas.getContext("2d");
-				if (ctx.resetTransform)
-					ctx.resetTransform();
-				else
-					ctx.setTransform(1, 0, 0, 1, 0, 0);
-				ctx.clearRect(0,0, this.canvas.width,this.canvas.height);
-				var iW = asset[1][2], iH = asset[1][3];
-				var cW = Math.hypot(iW,iH);
-				var theta = asset[2][2];
-				ctx.translate(cW/2,cW/2);
-				ctx.rotate(theta);
-				ctx.translate(-cW/2,-cW/2);
-				try {
-					ctx.drawImage(this.img, (cW-iW)/2,(cW-iH)/2, iW,iH);
+		lMap.assets = [];
+		for (var i=0;i<assetKeys.length;i++) {
+			var key = assetKeys[i];
+			if (pMap[key]) {
+				function redrawAsset(asset) {
+					var ctx = this.canvas.getContext("2d");
+					if (ctx.resetTransform)
+						ctx.resetTransform();
+					else
+						ctx.setTransform(1, 0, 0, 1, 0, 0);
+					ctx.clearRect(0,0, this.canvas.width,this.canvas.height);
+					var iW = asset[1][2], iH = asset[1][3];
+					var cW = Math.hypot(iW,iH);
+					var theta = asset[2][2];
+					ctx.translate(cW/2,cW/2);
+					ctx.rotate(theta);
+					ctx.translate(-cW/2,-cW/2);
+					try {
+						ctx.drawImage(this.img, (cW-iW)/2,(cW-iH)/2, iW,iH);
+					}
+					catch (e) {
+					}
+					var cosTheta = Math.cos(theta), sinTheta = Math.sin(theta);
+					var u = 0.5-asset[2][0], v = 0.5-asset[2][1];
+					this.x = asset[1][0]-cW/2+u*iW*cosTheta-v*iH*sinTheta;
+					this.y = asset[1][1]-cW/2+v*iH*cosTheta+u*iW*sinTheta;
 				}
-				catch (e) {
+				function setupAsset(key,asset) {
+					var canvas = document.createElement("canvas");
+					canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
+					var img = new Image();
+					var assetKey = asset[0];
+					var customData = getDecorCustomData(assetKey);
+					var asset0 = {img:img,canvas:canvas,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
+					if (customData) {
+						asset0.src = customData.type;
+						img.src = "images/map_icons/empty.png";
+						getCustomDecorData(customData, function(res) {
+							img.src = res.hd;
+							switch (key) {
+							case "flippers":
+							case "pointers":
+								asset0.h = res.size.hd.h;
+								break;
+							case "oils":
+								asset0.w = res.size.hd.w;
+								asset0.h = res.size.hd.h;
+								break;
+							default:
+								return;
+							}
+							asset[1][2] = asset0.w;
+							asset[1][3] = asset0.h;
+							canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
+						});
+					}
+					else {
+						asset0.src = "assets/"+assetKey;
+						img.src = "images/map_icons/"+asset0.src+".png";
+					}
+					img.onload = function() {
+						asset0.redraw(asset);
+					};
+					asset[0] = asset0;
+					switch (key) {
+					case "flippers":
+						asset[3] = [0,16+Math.floor(Math.random()*16)];
+					}
+					lMap.assets.push(asset0);
 				}
-				var cosTheta = Math.cos(theta), sinTheta = Math.sin(theta);
-				var u = 0.5-asset[2][0], v = 0.5-asset[2][1];
-				this.x = asset[1][0]-cW/2+u*iW*cosTheta-v*iH*sinTheta;
-				this.y = asset[1][1]-cW/2+v*iH*cosTheta+u*iW*sinTheta;
+				for (var j=0;j<lMap[key].length;j++)
+					setupAsset(key,lMap[key][j]);
 			}
-			function setupAsset(key,asset) {
-				var canvas = document.createElement("canvas");
-				canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
-				var img = new Image();
-				var assetKey = asset[0];
-				var customData = getDecorCustomData(assetKey);
-				var asset0 = {img:img,canvas:canvas,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
-				if (customData) {
-					asset0.src = customData.type;
-					img.src = "images/map_icons/empty.png";
-					getCustomDecorData(customData, function(res) {
-						img.src = res.hd;
-						switch (key) {
-						case "flippers":
-						case "pointers":
-							asset0.h = res.size.hd.h;
-							break;
-						case "oils":
-							asset0.w = res.size.hd.w;
-							asset0.h = res.size.hd.h;
-							break;
-						default:
-							return;
-						}
-						asset[1][2] = asset0.w;
-						asset[1][3] = asset0.h;
-						canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
-					});
-				}
-				else {
-					asset0.src = "assets/"+assetKey;
-					img.src = "images/map_icons/"+asset0.src+".png";
-				}
-				img.onload = function() {
-					asset0.redraw(asset);
-				};
-				asset[0] = asset0;
-				switch (key) {
-				case "flippers":
-					asset[3] = [0,16+Math.floor(Math.random()*16)];
-				}
-				oMap.assets.push(asset0);
-			}
-			for (var j=0;j<oMap[key].length;j++)
-				setupAsset(key,oMap[key][j]);
 		}
-	}
+	});
 
 	if ((strPlayer.length == 1) && !gameSettings.nomap && !clLocalVars.noMap) {
+		// TODO reset every turn
 		oPlanWidth = Math.round(iScreenScale*19.4);
 		oPlanWidth2 = (oMap.w>=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.w/oMap.h);
 		var oPlanHeight2 = (oMap.w<=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.h/oMap.w);
@@ -5264,6 +5281,7 @@ function resetScreen() {
 			}
 		}
 	}
+	// TODO reset every turn
 	if (oMap.custombg) {
 		if (customBgData[oMap.custombg])
 			setupBgLayer(customBgData[oMap.custombg]);
@@ -6749,8 +6767,9 @@ function clonePreviousScreen(i, oPlayer) {
 		prevScreenCur = 0;
 }
 function redrawCanvas(i, fCamera) {
+	var lMap = getCurrentLMap(collisionLap);
 	var oViewContext = oViewCanvas.getContext("2d");
-	oViewContext.fillStyle = "rgb("+ oMap.bgcolor +")";
+	oViewContext.fillStyle = "rgb("+ lMap.bgcolor +")";
 	oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
 
 	oViewContext.save();
@@ -6772,15 +6791,15 @@ function redrawCanvas(i, fCamera) {
 			-posX,-posY
 		);
 	}
-	for (var j=0;j<oMap.assets.length;j++) {
-		var asset = oMap.assets[j];
+	for (var j=0;j<lMap.assets.length;j++) {
+		var asset = lMap.assets[j];
 		oViewContext.drawImage(
 			asset.canvas,
 			asset.x-posX,asset.y-posY
 		);
 	}
-	if (oMap.sea)
-		oMap.sea.render(oViewContext,[posX,posY],1);
+	if (lMap.sea)
+		lMap.sea.render(oViewContext,[posX,posY],1);
 
 	oViewContext.restore();
 
@@ -7471,6 +7490,7 @@ var itemBehaviors = {
 					}
 					else {
 						var fMoveX, fMoveY;
+						// TODO reset every turn
 						if (fSprite.aipoint >= 0) {
 							var iLocal = oMap.aipoints[fSprite.aimap];
 							var oBox = iLocal[fSprite.aipoint];
@@ -7669,6 +7689,7 @@ var itemBehaviors = {
 				fSprite.x = fTeleport[0];
 				fSprite.y = fTeleport[1];
 				if (fSprite.aipoint != -1) {
+					// TODO reset every turn
 					var aipoints = oMap.aipoints[fSprite.aimap];
 					var aipoint = aipoints[fSprite.aipoint];
 					if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
@@ -8425,15 +8446,16 @@ var decorBehaviors = {
 		hitbox:7,
 		unbreaking:true,
 		preinit:function() {
-			if (!oMap.decor.fireball)
-				oMap.decor.fireball = new Array();
+			var lMap = this.ctx.lMap;
+			if (!lMap.decor.fireball)
+				lMap.decor.fireball = new Array();
 			this.linkedSprite = {
 				type: "fireball",
-				start: oMap.decor.fireball.length
+				start: lMap.decor.fireball.length
 			};
-			for (var i=0;i<oMap.decor[this.type].length;i++)
-				oMap.decor.fireball.push([-10000,-10000]);
-			this.linkedSprite.end = oMap.decor.fireball.length;
+			for (var i=0;i<lMap.decor[this.type].length;i++)
+				lMap.decor.fireball.push([-10000,-10000]);
+			this.linkedSprite.end = lMap.decor.fireball.length;
 		},
 		init:function(decorData,i,iG) {
 			for (var j=0;j<strPlayer.length;j++) {
@@ -8453,6 +8475,7 @@ var decorBehaviors = {
 			initCustomDecorSprites(this,res);
 		},
 		move:function(decorData,i) {
+			var lMap = this.ctx.lMap;
 			decorData[5]--;
 			decorData[4] = decorData[6] + 0.5*Math.sin(decorData[7]);
 			decorData[7] += 0.05;
@@ -8462,7 +8485,7 @@ var decorBehaviors = {
 					decorData[2][j].setState(decorData[2][j].getState()+1);
 			}
 			else if (decorData[5] == -7) {
-				var oFireball = oMap.decor.fireball[this.linkedSprite.start+i];
+				var oFireball = lMap.decor.fireball[this.linkedSprite.start+i];
 				oFireball[0] = decorData[0];
 				oFireball[1] = decorData[1];
 				for (var j=0;j<strPlayer.length;j++) {
@@ -8606,11 +8629,12 @@ var decorBehaviors = {
 		transparent:true,
 		hidden:true,
 		preinit:function(decorsData) {
-			if (!oMap.decor.fireballs)
-				oMap.decor.fireballs = new Array();
+			var lMap = this.ctx.lMap;
+			if (!lMap.decor.fireballs)
+				lMap.decor.fireballs = new Array();
 			this.linkedSprite = {
 				type: "fireballs",
-				start: oMap.decor.fireballs.length
+				start: lMap.decor.fireballs.length
 			};
 			for (var i=0;i<decorsData.length;i++) {
 				var decorData = decorsData[i];
@@ -8633,17 +8657,17 @@ var decorBehaviors = {
 					var fireGroup = [];
 					for (var k=0;k<2;k++) {
 						var fireBall = [decorData[0],decorData[1],undefined,decorData[3]];
-						oMap.decor.fireballs.push(fireBall);
+						lMap.decor.fireballs.push(fireBall);
 						fireGroup.push(fireBall);
 					}
 					fireGroups.push(fireGroup);
 				}
 				var fireBall = [decorData[0],decorData[1],undefined,correctZInv(decorData[3])];
-				oMap.decor.fireballs.push(fireBall);
+				lMap.decor.fireballs.push(fireBall);
 				fireGroups.push([fireBall]);
 				decorData[7] = fireGroups;
 			}
-			this.linkedSprite.end = oMap.decor.fireballs.length;
+			this.linkedSprite.end = lMap.decor.fireballs.length;
 		},
 		init: function(decorData,i,iG) {
 			this.move(decorData,i,iG);
@@ -8676,11 +8700,12 @@ var decorBehaviors = {
 		transparent:true,
 		hidden:true,
 		preinit:function(decorsData) {
-			if (!oMap.decor.fireballs)
-				oMap.decor.fireballs = new Array();
+			var lMap = this.ctx.lMap;
+			if (!lMap.decor.fireballs)
+				lMap.decor.fireballs = new Array();
 			this.linkedSprite = {
 				type: "fireballs",
-				start: oMap.decor.fireballs.length
+				start: lMap.decor.fireballs.length
 			};
 			for (var i=0;i<decorsData.length;i++) {
 				var decorData = decorsData[i];
@@ -8701,12 +8726,12 @@ var decorBehaviors = {
 				var fireGroup = [];
 				for (var j=0;j<5;j++) {
 					var fireBall = [decorData[0],decorData[1],undefined,decorData[3]];
-					oMap.decor.fireballs.push(fireBall);
+					lMap.decor.fireballs.push(fireBall);
 					fireGroup.push(fireBall);
 				}
 				decorData[7] = fireGroup;
 			}
-			this.linkedSprite.end = oMap.decor.fireballs.length;
+			this.linkedSprite.end = lMap.decor.fireballs.length;
 		},
 		init: function(decorData,i,iG) {
 			this.move(decorData,i,iG);
@@ -8754,6 +8779,7 @@ var decorBehaviors = {
 		rotatable:true,
 		dodgable:true,
 		preinit:function(decorsData) {
+			var lMap = this.ctx.lMap;
 			for (var i=0;i<decorsData.length;i++) {
 				var iExtra = getDecorParams(this,i);
 				var decorData = decorsData[i];
@@ -8766,7 +8792,7 @@ var decorBehaviors = {
 				}
 			}
 			for (var i=1;i<4;i++) {
-				var decorsData2 = oMap.decor["billball"+i];
+				var decorsData2 = lMap.decor["billball"+i];
 				if (decorsData2) {
 					for (var j=0;j<decorsData2.length;j++) {
 						var decorData = decorsData2[j];
@@ -9221,8 +9247,9 @@ var decorBehaviors = {
 			return "suppr";
 		},
 		setdir:function(decorData,ux,uy,pos) {
+			var lMap = this.ctx.lMap;
 			pos = pos||decorData;
-			var r = oMap.w + oMap.h;
+			var r = lMap.w + lMap.h;
 			decorData[4][0][0] = pos[0] + r*ux;
 			decorData[4][0][1] = pos[1] + r*uy;
 			decorData[4][1][0] = pos[0] - r*ux;
@@ -9266,6 +9293,7 @@ var decorBehaviors = {
 			decorData[6] = [0,0,5];
 		},
 		move:function(decorData,i,iG) {
+			var lMap = this.ctx.lMap;
 			var dSpeed = decorData[6][2];
 			if (decorData[6][4]) {
 				dSpeed = Math.max(this.boostspeed,dSpeed);
@@ -9311,7 +9339,7 @@ var decorBehaviors = {
 					var fMoveX = diffX*dSpeed/diffL, fMoveY = diffY*dSpeed/diffL;
 					if (customBehaviour) {
 						if (!isNaN(customBehaviour.flipper)) {
-							var flipper = oMap.flippers[customBehaviour.flipper];
+							var flipper = lMap.flippers[customBehaviour.flipper];
 							if (!flipper[3][0])
 								flipper[3][1] = Math.max(0,Math.floor(diffL/dSpeed)-2);
 						}
@@ -9325,13 +9353,13 @@ var decorBehaviors = {
 								else {
 									switch (this.ondie(decorData[6][1])) {
 									case "wait":
-										decorData[0] = oMap.w*3;
-										decorData[1] = oMap.h*3;
+										decorData[0] = lMap.w*3;
+										decorData[1] = lMap.h*3;
 										decorData[6][1]--;
 										break;
 									case "suppr":
-										oMap.decor[this.type][i][2][0].suppr();
-										oMap.decor[this.type].splice(i,1);
+										lMap.decor[this.type][i][2][0].suppr();
+										lMap.decor[this.type].splice(i,1);
 										break;
 									case "respawn":
 										for (var j=0;j<oPlayers.length;j++)
@@ -9357,8 +9385,8 @@ var decorBehaviors = {
 									decorData[6][3] = 0;
 								}
 								if (!decorData[3]) {
-									var cannons = oMap.decor[this.type];
-									oMap.decor[this.type] = [];
+									var cannons = lMap.decor[this.type];
+									lMap.decor[this.type] = [];
 									var pJump = sauts(decorData[0],decorData[1], fMoveX,fMoveY);
 									var pAsset;
 									collisionFloor = null;
@@ -9426,7 +9454,7 @@ var decorBehaviors = {
 										decorData[6][1] = -1;
 									else if (accelere(decorData[0],decorData[1], fMoveX,fMoveY))
 										decorData[6][4] = 20;
-									oMap.decor[this.type] = cannons;
+									lMap.decor[this.type] = cannons;
 								}
 							}
 						}
@@ -9466,6 +9494,7 @@ var decorBehaviors = {
 			}
 		},
 		init:function(decorData) {
+			var lMap = this.ctx.lMap;
 			for (var j=0;j<strPlayer.length;j++) {
 				decorData[2][j].nbSprites = 22;
 				decorData[2][j].w = 118;
@@ -9474,7 +9503,7 @@ var decorBehaviors = {
 			}
 			var extraParams = getDecorExtra(this,true);
 			if (!extraParams.path)
-				extraParams.path = oMap.aipoints.slice(0, oMap.airoutesmeta.cpu);
+				extraParams.path = lMap.aipoints.slice(0, lMap.airoutesmeta.cpu);
 			if (decorData[6] == undefined) {
 				var minDist = Infinity;
 				var initialK = (decorData[5] != undefined);
@@ -9514,11 +9543,12 @@ var decorBehaviors = {
 			decorData[4] = Math.atan2(aimX,aimY)*180/Math.PI;
 		},
 		move:function(decorData) {
+			var lMap = this.ctx.lMap;
 			var speed = decorData[7]*4;
 			var x = decorData[0], y = decorData[1], aimX, aimY;
 			var extraParams = getDecorExtra(this,true);
 			if (!extraParams.path)
-				extraParams.path = oMap.aipoints.slice(0, oMap.airoutesmeta.cpu);
+				extraParams.path = lMap.aipoints.slice(0, lMap.airoutesmeta.cpu);
 			var aipoints = extraParams.path[decorData[5]];
 			do {
 				var aipoint = aipoints[decorData[6]];
@@ -9811,8 +9841,10 @@ var decorBehaviors = {
 };
 var DEFAULT_DECOR_HITBOX = 5;
 var DEFAULT_DECOR_HITBOX_H = 4;
-for (var type in decorBehaviors)
+for (var type in decorBehaviors) {
 	decorBehaviors[type].type = type;
+	decorBehaviors[type].ctx = {};
+}
 
 function initItemSprite(oArme) {
 	var aBoxes = [];
@@ -10028,11 +10060,13 @@ function render() {
 			teleport: oKart.teleport
 		});
 	}
-	if (oMap.decor) {
-		for (var type in oMap.decor) {
+	var cPlayer = getPlayerAtScreen(0);
+	var lMap = getCurrentLMap(getCurrentLapId(cPlayer));
+	if (lMap.decor) {
+		for (var type in lMap.decor) {
 			currentState.decor[type] = [];
-			for (var i=0;i<oMap.decor[type].length;i++) {
-				var decor = oMap.decor[type][i];
+			for (var i=0;i<lMap.decor[type].length;i++) {
+				var decor = lMap.decor[type][i];
 				currentState.decor[type].push({
 					ref: decor,
 					x: decor[0],
@@ -10333,8 +10367,8 @@ function render() {
 			}
 
 
-			for (var j=0;j<oMap.arme.length;j++) {
-				fSprite = oMap.arme[j];
+			for (var j=0;j<lMap.arme.length;j++) {
+				fSprite = lMap.arme[j];
 				var fItems = fSprite[2];
 				if (fItems.active) {
 					for (var k=0;k<fItems.box.length;k++) {
@@ -10354,9 +10388,9 @@ function render() {
 				}
 			}
 
-			if (oMap.coins) {
-				for (var j=0;j<oMap.coins.length;j++) {
-					fSprite = oMap.coins[j];
+			if (lMap.coins) {
+				for (var j=0;j<lMap.coins.length;j++) {
+					fSprite = lMap.coins[j];
 					var fRotRad = fCamera.rotation * Math.PI / 180;
 					var cosTheta = Math.abs(Math.cos(fSprite.theta-fRotRad));
 					fSprite.sprite[i].w = 24*cosTheta;
@@ -11054,7 +11088,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 						if (collisionTest == COL_KART) {
 							if (decorBehavior.breaking || isBreakingItem(decorBehavior)) {
 								if (collisionPlayer.speed > 4) {
-									handleDecorHit(i,type);
+									handleDecorHit(i,type, lMap);
 									if (collisionPlayer.turbodrift)
 										collisionPlayer.turbodrift = 0;
 									if (decorBehavior.bonus) {
@@ -11070,14 +11104,14 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 						}
 						else if (collisionTest == COL_OBJ && collisionItem && decorBehavior.damagingItems) {
 							if (decorBehavior.damagingItems[collisionItem.type])
-								handleDecorHit(i,type);
+								handleDecorHit(i,type, lMap);
 						}
 						if (decorBehavior.transparent)
 							continue;
 						return false;
 					}
 					else {
-						handleDecorHit(i,type);
+						handleDecorHit(i,type, lMap);
 						break;
 					}
 				}
@@ -11393,13 +11427,14 @@ function nearestAngle(angle1,angle2, modulo) {
 function nearestAngleMirrored(angle1,angle2, modulo) {
 	return nearestAngle(angle1*getMirrorFactor(), angle2, modulo);
 }
-function getNearestHoleDist(iX,iY, stopAt) {
+function getNearestHoleDist(oKart, stopAt) {
+	var iX = oKart.x, iY = oKart.y, lMap = getCurrentLMap(getCurrentLapId(oKart));
 	var res = stopAt || Infinity;
-	if (!oMap.trous)
+	if (!lMap.trous)
 		return res;
 	collisionItem = null;
-	for (var j in oMap.trous) {
-		var oRectangles = oMap.trous[j].rectangle;
+	for (var j in lMap.trous) {
+		var oRectangles = lMap.trous[j].rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
 			var oHole = oRectangles[i][0];
 			res = getHoleSegmentDist(res, iX,iY, oHole[0],oHole[1], oHole[2],0);
@@ -11409,7 +11444,7 @@ function getNearestHoleDist(iX,iY, stopAt) {
 			if (res < stopAt)
 				return res;
 		}
-		var oPolygons = oMap.trous[j].polygon;
+		var oPolygons = lMap.trous[j].polygon;
 		for (var i=0;i<oPolygons.length;i++) {
 			var oHole = oPolygons[i][0];
 			for (var k=0;k<oHole.length;k++) {
@@ -11437,9 +11472,10 @@ function getHoleSegmentDist(currentRes, x,y, x1,y1, u1,v1) {
 }
 
 function objet(iX, iY) {
+	var lMap = getCurrentLMap(collisionLap);
 	var res = -1, nbItems = 0;
-	for (var i=0;i<oMap.arme.length;i++) {
-		var oBox = oMap.arme[i];
+	for (var i=0;i<lMap.arme.length;i++) {
+		var oBox = lMap.arme[i];
 		if (iX > oBox[0] - 7 && iX < oBox[0] + 7 && iY > oBox[1] - 7 && iY < oBox[1] + 7 && oBox[2].active) {
 			var iNbItems = oBox[2].box.length;
 			if (iNbItems > nbItems) {
@@ -11449,7 +11485,7 @@ function objet(iX, iY) {
 		}
 	}
 	if (res !== -1) {
-		var fSprite = oMap.arme[res][2];
+		var fSprite = lMap.arme[res][2];
 		fSprite.active = false;
 		fSprite.countdown = 20;
 		for (var k=0;k<nbItems;k++) {
@@ -11462,12 +11498,13 @@ function objet(iX, iY) {
 }
 
 function touche_piece(iX, iY) {
-	if (oMap.coins) {
-		for (var i=0;i<oMap.coins.length;i++) {
-			var oBox = oMap.coins[i];
+	var lMap = getCurrentLMap(collisionLap);
+	if (lMap.coins) {
+		for (var i=0;i<lMap.coins.length;i++) {
+			var oBox = lMap.coins[i];
 			if (iX > oBox.x - 5 && iX < oBox.x + 5 && iY > oBox.y - 5 && iY < oBox.y + 5) {
 				oBox.sprite[0].suppr();
-				oMap.coins.splice(i,1);
+				lMap.coins.splice(i,1);
 				return true;
 			}
 		}
@@ -11476,11 +11513,10 @@ function touche_piece(iX, iY) {
 }
 
 function sauts(iX, iY, iI, iJ) {
-	if (!oMap.sauts)
+	var lMap = getCurrentLMap(collisionLap);
+	if (!lMap.sauts)
 		return false;
-	var aPos = [iX, iY], aMove = [iI, iJ];
-	var dir = [(iI>0), (iJ>0)];
-	var oRectangles = oMap.sauts.rectangle;
+	var oRectangles = lMap.sauts.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
 		var oBox = oRectangles[i];
 		if (pointInRectangle(iX,iY, oBox[0]))
@@ -11488,7 +11524,7 @@ function sauts(iX, iY, iI, iJ) {
 		if (pointCrossRectangle(iX,iY, iI,iJ, oBox[0]))
 			return oBox[1];
 	}
-	var oPolygons = oMap.sauts.polygon;
+	var oPolygons = lMap.sauts.polygon;
 	var nX = iX+iI, nY = iY+iJ;
 	for (var i=0;i<oPolygons.length;i++) {
 		var oBox = oPolygons[i];
@@ -11542,8 +11578,9 @@ function handleCannon(oKart, cannon) {
 }
 
 function ralenti(iX, iY) {
-	for (var type in oMap.horspistes) {
-		var hp = oMap.horspistes[type];
+	var lMap = getCurrentLMap(collisionLap);
+	for (var type in lMap.horspistes) {
+		var hp = lMap.horspistes[type];
 		var oRectangles = hp.rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
 			if (pointInRectangle(iX,iY, oRectangles[i]))
@@ -11571,9 +11608,10 @@ function getOffroadProps(oKart,hpType) {
 }
 
 function accelere(iX, iY, iI, iJ) {
-	if (!oMap.accelerateurs) return false;
+	var lMap = getCurrentLMap(collisionLap);
+	if (!lMap.accelerateurs) return false;
 	var nX = iX+iI, nY = iY+iJ;
-	var oRectangles = oMap.accelerateurs.rectangle;
+	var oRectangles = lMap.accelerateurs.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
 		var oBox = oRectangles[i];
 		if (pointInRectangle(nX,nY, oBox))
@@ -11581,7 +11619,7 @@ function accelere(iX, iY, iI, iJ) {
 		if (pointCrossRectangle(iX,iY, iI,iJ, oBox))
 			return true;
 	}
-	var oPolygons = oMap.accelerateurs.polygon;
+	var oPolygons = lMap.accelerateurs.polygon;
 	for (var i=0;i<oPolygons.length;i++) {
 		if (pointInPolygon(nX,nY, oPolygons[i]))
 			return true;
@@ -11592,22 +11630,23 @@ function accelere(iX, iY, iI, iJ) {
 }
 
 function flowShift(iX,iY, iP) {
-	if (oMap.flows) {
-		var oRectangles = oMap.flows.rectangle;
+	var lMap = getCurrentLMap(collisionLap);
+	if (lMap.flows) {
+		var oRectangles = lMap.flows.rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
 			var oFlow = oRectangles[i];
 			if (pointInRectangle(iX,iY, oFlow[0]) && (!iP||oFlow[2]))
 				return [oFlow[1][0],oFlow[1][1],0];
 		}
-		var oPolygons = oMap.flows.polygon;
+		var oPolygons = lMap.flows.polygon;
 		for (var i=0;i<oPolygons.length;i++) {
 			var oFlow = oPolygons[i];
 			if (pointInPolygon(iX,iY, oFlow[0]) && (!iP||oFlow[2]))
 				return [oFlow[1][0],oFlow[1][1],0];
 		}
 	}
-	if (oMap.spinners) {
-		var oCircles = oMap.spinners;
+	if (lMap.spinners) {
+		var oCircles = lMap.spinners;
 		for (var i=0;i<oCircles.length;i++) {
 			var oCircle = oCircles[i];
 			var diffX = iX-oCircle[0], diffY = iY-oCircle[1];
@@ -11619,17 +11658,18 @@ function flowShift(iX,iY, iP) {
 	return [0,0,0];
 }
 function tombe(iX, iY, iC) {
+	var lMap = getCurrentLMap(collisionLap);
 	var outsideMap;
-	if (iX > oMap.w) {
-		iX = oMap.w-0.5;
+	if (iX > lMap.w) {
+		iX = lMap.w-0.5;
 		outsideMap = true;
 	}
 	else if (iX <= 0) {
 		iX = 0.5;
 		outsideMap = true;
 	}
-	if (iY > oMap.h) {
-		iY = oMap.h-0.5;
+	if (iY > lMap.h) {
+		iY = lMap.h-0.5;
 		outsideMap = true;
 	}
 	else if (iY <= 0) {
@@ -11638,9 +11678,9 @@ function tombe(iX, iY, iC) {
 	}
 
 	var fTrou;
-	if (oMap.trous) {
-		for (var j in oMap.trous) {
-			var oRectangles = oMap.trous[j].rectangle;
+	if (lMap.trous) {
+		for (var j in lMap.trous) {
+			var oRectangles = lMap.trous[j].rectangle;
 			for (var i=0;i<oRectangles.length;i++) {
 				var oHole = oRectangles[i];
 				if (pointInRectangle(iX,iY, oHole[0])) {
@@ -11651,7 +11691,7 @@ function tombe(iX, iY, iC) {
 						return fTrou;
 				}
 			}
-			var oPolygons = oMap.trous[j].polygon;
+			var oPolygons = lMap.trous[j].polygon;
 			for (var i=0;i<oPolygons.length;i++) {
 				var oHole = oPolygons[i];
 				if (pointInPolygon(iX,iY, oHole[0])) {
@@ -11668,25 +11708,26 @@ function tombe(iX, iY, iC) {
 		return fTrou;
 	if (outsideMap) {
 		var rotation;
-		if (oMap.startposition[2] != undefined)
-			rotation = oMap.startposition[2];
-		else if (oMap.startrotation != undefined)
-			rotation = oMap.startrotation/90;
+		if (lMap.startposition[2] != undefined)
+			rotation = lMap.startposition[2];
+		else if (lMap.startrotation != undefined)
+			rotation = lMap.startrotation/90;
 		else
 			rotation = 2;
-		return (course=="BB") ? true:[oMap.startposition[0],oMap.startposition[1], rotation];
+		return (course=="BB") ? true:[lMap.startposition[0],lMap.startposition[1], rotation];
 	}
 	return false;
 }
 function inCannon(aX,aY, iX,iY) {
-	if (!oMap.cannons) return false;
-	var oRectangles = oMap.cannons.rectangle;
+	var lMap = getCurrentLMap(collisionLap);
+	if (!lMap.cannons) return false;
+	var oRectangles = lMap.cannons.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
 		var cannon = oRectangles[i];
 		if (pointInRectangle(iX,iY, cannon[0]))
 			return cannon[1];
 	}
-	var oPolygons = oMap.cannons.polygon;
+	var oPolygons = lMap.cannons.polygon;
 	for (var i=0;i<oPolygons.length;i++) {
 		var cannon = oPolygons[i];
 		if (pointInPolygon(iX,iY, cannon[0]))
@@ -11707,14 +11748,15 @@ function inCannon(aX,aY, iX,iY) {
 	return false;
 }
 function inTeleport(iX, iY) {
-	if (!oMap.teleports) return false;
-	var oRectangles = oMap.teleports.rectangle;
+	var lMap = getCurrentLMap(collisionLap);
+	if (!lMap.teleports) return false;
+	var oRectangles = lMap.teleports.rectangle;
 	for (var i=0;i<oRectangles.length;i++) {
 		var teleport = oRectangles[i];
 		if (pointInRectangle(iX,iY, teleport[0]))
 			return teleport[1];
 	}
-	var oPolygons = oMap.teleports.polygon;
+	var oPolygons = lMap.teleports.polygon;
 	for (var i=0;i<oPolygons.length;i++) {
 		var teleport = oPolygons[i];
 		if (pointInPolygon(iX,iY, teleport[0]))
@@ -11935,7 +11977,7 @@ var challengeRules = {
 		},
 		"initSelected": function(scope) {
 			if (!oMap.coins) {
-				oMap.coins = [];
+				var oCoins = [];
 				for (var i=0;i<scope.value.length;i++) {
 					var oCoin = scope.value[i];
 					var mCoin = {
@@ -11949,8 +11991,11 @@ var challengeRules = {
 						mCoin.sprite[j].w = 24;
 						mCoin.sprite[j].h = 24;
 					}
-					oMap.coins.push(mCoin);
+					oCoins.push(mCoin);
 				}
+				foreachLMap(function(lMap) {
+					lMap.coins = oCoins;
+				});
 			}
 			addChallengeHud("coins", {
 				title: toLanguage("Coins","Pièces"),
@@ -12296,7 +12341,9 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			ruleVars.selected = true;
 			clLocalVars.isSetup = true;
-			oMap.arme = [];
+			foreachLMap(function(lMap) {
+				lMap.arme = [];
+			});
 		},
 		"success": function(scope, ruleVars) {
 			return !!ruleVars.selected;
@@ -12573,21 +12620,24 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			ruleVars.selected = true;
 			clLocalVars.isSetup = true;
-			if (scope.clear_other) {
-				for (var i=0;i<oMap.arme.length;i++) {
-					var oBoxes = oMap.arme[i][2].box;
-					for (var j=0;j<oBoxes.length;j++) {
-						var oBox = oBoxes[j];
-						oBox[0].suppr();
+			foreachLMap(function(lMap,pMap) {
+				if (!pMap.arme) return;
+				if (scope.clear_other) {
+					for (var i=0;i<lMap.arme.length;i++) {
+						var oBoxes = lMap.arme[i][2].box;
+						for (var j=0;j<oBoxes.length;j++) {
+							var oBox = oBoxes[j];
+							oBox[0].suppr();
+						}
 					}
+					lMap.arme.length = 0;
 				}
-				oMap.arme = [];
-			}
-			for (var i=0;i<scope.value.length;i++) {
-				var oArme = scope.value[i].slice(0);
-				initItemSprite(oArme);
-				oMap.arme.push(oArme);
-			}
+				for (var i=0;i<scope.value.length;i++) {
+					var oArme = scope.value[i].slice(0);
+					initItemSprite(oArme);
+					lMap.arme.push(oArme);
+				}
+			});
 		},
 		"success": function(scope, ruleVars) {
 			return !!ruleVars.selected;
@@ -12616,6 +12666,10 @@ var challengeRules = {
 						oMap.decorparams.extra[type] = {};
 					if (!oMap.decorparams.extra[type].custom)
 						oMap.decorparams.extra[type].custom = customDecor;
+					foreachLMap(function(lMap) {
+						if (lMap.decor === oMap.decor)
+							lMap.decorparams = oMap.decorparams;
+					});
 				}
 				var isAsset = actualType.startsWith("assets/");
 				if (isAsset) {
@@ -12647,6 +12701,10 @@ var challengeRules = {
 						if (customDecor)
 							assetParams[0] = type;
 						oMap[assetKey].push(assetParams);
+						foreachLMap(function(lMap) {
+							if (lMap.decor === oMap.decor)
+								lMap[assetKey] = oMap[assetKey];
+						});
 					}
 				}
 				else {
@@ -14043,10 +14101,10 @@ function incChallengeHits(kart) {
 	}
 	challengeCheck("each_hit");
 }
-function handleDecorHit(i,type) {
+function handleDecorHit(i,type, lMap) {
 	collisionDecorHit = true;
-	oMap.decor[type][i][2][0].suppr();
-	oMap.decor[type].splice(i,1);
+	lMap.decor[type][i][2][0].suppr();
+	lMap.decor[type].splice(i,1);
 
 	//if (clLocalVars.decorsHit && (collisionPlayer == oPlayers[0]))
 	//	clLocalVars.decorsHit[type] = true;
@@ -14249,13 +14307,14 @@ function touche_cbleue_aux(iX,iY, oBox) {
 }
 
 function touche_asset(aPosX,aPosY, iX,iY) {
+	var lMap = getCurrentLMap(collisionLap);
 	var turningAssets = ["pointers", "flippers"];
 	for (var i=0;i<turningAssets.length;i++) {
 		var key = turningAssets[i];
-		if (oMap[key]) {
+		if (lMap[key]) {
 			var tau = 2*Math.PI;
-			for (var j=0;j<oMap[key].length;j++) {
-				var asset = oMap[key][j];
+			for (var j=0;j<lMap[key].length;j++) {
+				var asset = lMap[key][j];
 				var cX = asset[1][0], cY = asset[1][1], cR = asset[1][2]*(1-asset[2][0]);
 				var r2 = (aPosX-cX)*(aPosX-cX) + (aPosY-cY)*(aPosY-cY);
 				if (r2 < (cR*cR)) {
@@ -14286,9 +14345,9 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 
 	{
 		var key = "bumpers";
-		if (oMap[key]) {
-			for (var i=0;i<oMap[key].length;i++) {
-				var asset = oMap[key][i];
+		if (lMap[key]) {
+			for (var i=0;i<lMap[key].length;i++) {
+				var asset = lMap[key][i];
 				var cX = asset[1][0], cY = asset[1][1], cR = asset[1][2]/2;
 				if ((iX-cX)*(iX-cX) + (iY-cY)*(iY-cY) < (cR*cR)) {
 					if (!asset[2][5]) {
@@ -14305,9 +14364,9 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 
 	{
 		var key = "oils";
-		if (oMap[key]) {
-			for (var i=0;i<oMap[key].length;i++) {
-				var asset = oMap[key][i];
+		if (lMap[key]) {
+			for (var i=0;i<lMap[key].length;i++) {
+				var asset = lMap[key][i];
 				var cX = asset[1][0], cY = asset[1][1], cW = Math.max(4,asset[1][2]/2), cH = Math.max(4,asset[1][3]/2);
 				if ((Math.abs(iX-cX) < cW) && (Math.abs(iY-cY) < cH))
 					return [key,asset];
@@ -14318,9 +14377,9 @@ function touche_asset(aPosX,aPosY, iX,iY) {
 
 	{
 		var key = "flowers";
-		if (oMap[key]) {
-			for (var i=0;i<oMap[key].length;i++) {
-				var asset = oMap[key][i];
+		if (lMap[key]) {
+			for (var i=0;i<lMap[key].length;i++) {
+				var asset = lMap[key][i];
 				var flower = asset[1];
 				var x = flower[0], y = flower[1], w = Math.round(flower[2]/2), h = Math.round(flower[3]/2);
 				var oRect = [x-w,y-w,2*w,2*h];
@@ -14382,17 +14441,22 @@ function stuntKart(oKart) {
 
 function getRankScore(oKart) {
 	if (course != "BB") {
+		var lapId = getCurrentLapId(oKart);
+		var lMap = getCurrentLMap(lapId);
+		var nMap = lMap;
 		var dest = oKart.demitours+1;
-		if (dest >= oMap.checkpoint.length) dest = 0;
-
-		var iLine = oMap.checkpointCoords[dest];
+		if (dest >= lMap.checkpoint.length) {
+			dest = 0;
+			nMap = getCurrentLMap(lapId+1);
+		}
+		var iLine = nMap.checkpointCoords[dest];
 		if (!iLine) return 0;
 
 		var hLine = projete(oKart.x,oKart.y, iLine.A[0],iLine.A[1], iLine.B[0],iLine.B[1]);
 		var xLine = iLine.A[0] + hLine*iLine.u[0], yLine = iLine.A[1] + hLine*iLine.u[1];
 		var dLine = Math.hypot(xLine-oKart.x, yLine-oKart.y);
 
-		return oKart.tours*oMap.checkpoint.length + getCpScore(oKart) - dLine / 10000;
+		return oKart.tours*oMap.maxCheckpoints.length + getCpScore(oKart) - dLine / 10000;
 	}
 	else
 		return oKart.ballons.length ? oKart.ballons.length+oKart.reserve : 0;
@@ -14415,7 +14479,7 @@ function places(j,aRankScores,force) {
 	if (retour) return;
 	var place = 1;
 	if (course != "BB") {
-		if (oKart.tours > oMap.tours || !oMap.checkpoint.length)
+		if (oKart.tours > oMap.tours || !oMap.minCheckpoints)
 			return;
 	}
 	var score1 = aRankScores[j];
@@ -14451,15 +14515,19 @@ function getNextCp(kart) {
 function getCpDiff(kart) {
 	var lastCp = getLastCp(kart), nextCp = getNextCp(kart);
 	var res = nextCp-lastCp;
-	if (res <= 0)
-		res += oMap.checkpoint.length;
+	if (res <= 0) {
+		var lMap = getCurrentLMap(getCurrentLapId(kart));
+		res += lMap.checkpoint.length;
+	}
 	return res;
 }
 function getCpScore(kart) {
 	var lastCp = getLastCp(kart), currentCp = kart.demitours;
 	var res = currentCp-lastCp;
-	if (res < 0)
-		res += oMap.checkpoint.length;
+	if (res < 0) {
+		var lMap = getCurrentLMap(getCurrentLapId(kart));
+		res += lMap.checkpoint.length;
+	}
 	return res;
 }
 function distanceToFirst(kart) {
@@ -14493,12 +14561,14 @@ function distanceToKart(kart,oKart) {
 	if (oMap.sections)
 		tours = oKart.tours;
 	while ((tours < oKart.tours) || ((tours == oKart.tours) && (checkpoint < oKart.demitours))) {
+		var lMap = getCurrentLMap(getCurrentLapId({ tours: tours }));
 		checkpoint++;
-		if (checkpoint >= oMap.checkpoint.length) {
+		if (checkpoint >= lMap.checkpoint.length) {
 			checkpoint = 0;
 			tours++;
+			lMap = getCurrentLMap(getCurrentLapId({ tours: tours }));
 		}
-		var oBox = oMap.checkpointCoords[checkpoint];
+		var oBox = lMap.checkpointCoords[checkpoint];
 		var nPosX = oBox.O[0], nPosY = oBox.O[1];
 
 		res += Math.hypot(nPosX-posX, nPosY-posY);
@@ -14516,8 +14586,11 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	if (!simplified) {
 		var iCP = getNextCp(kart);
 	}
-	for (var i=0;i<oMap.checkpointCoords.length;i++) {
-		var oBox = oMap.checkpointCoords[i];
+	var lapId = getCurrentLapId(kart);
+	var lMap = getCurrentLMap(lapId);
+	for (var i=0;i<lMap.checkpointCoords.length;i++) {
+		var nMap = i ? lMap : getCurrentLMap(lapId+1);
+		var oBox = nMap.checkpointCoords[i];
 		var inRect = pointInQuad(kart.x,kart.y, oBox);
 		if (!inRect && fast) {
 			if (secants(aPos[0],aPos[1],kart.x,kart.y, oBox.A[0],oBox.A[1], oBox.B[0],oBox.B[1]))
@@ -14527,7 +14600,7 @@ function checkpoint(kart, fMoveX,fMoveY) {
 		}
 		if (inRect) {
 			if (simplified) {
-				if (i==0 && (oMap.checkpoint.length-demitour) < 5)
+				if (i==0 && (lMap.checkpoint.length-demitour) < 5)
 					return true;
 				else if (demitour == i-1 || (demitour && Math.abs(demitour-i) < 5)) {
 					kart.demitours = i;
@@ -14537,10 +14610,10 @@ function checkpoint(kart, fMoveX,fMoveY) {
 			else {
 				var isNextCp = true;
 				for (var j=demitour+1;true;j++) {
-					if (j >= oMap.checkpoint.length)
-						j -= oMap.checkpoint.length;
+					if (j >= lMap.checkpoint.length)
+						j -= lMap.checkpoint.length;
 					if (j == i) break;
-					if (!oMap.checkpoint[j][4]) {
+					if (!lMap.checkpoint[j][4]) {
 						isNextCp = false;
 						break;
 					}
@@ -14794,12 +14867,13 @@ function resetDatas() {
 						var pCode = jCode[1];
 						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aReserve = oKart.reserve;
 						var params = oKart.controller ? cpuMapping : playerMapping;
+						var nDemitours;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
 							var value = pCode[k];
 							switch (param) {
 							case "demitours":
-								oKart.demitours = (getLastCp(oKart)+value)%oMap.checkpoint.length;
+								nDemitours = value;
 								break;
 							case "ballons":
 								if (course == "BB") {
@@ -14823,6 +14897,10 @@ function resetDatas() {
 							default:
 								oKart[params[k]] = value;
 							}
+						}
+						if (nDemitours !== undefined) {
+							var lMap = getCurrentLMap(getCurrentLapId(oKart));
+							oKart.demitours = (getLastCp(oKart)+nDemitours)%lMap.checkpoint.length;
 						}
 						if ((oKart.billball >= 25) && !aBillBall) {
 							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
@@ -15278,9 +15356,9 @@ function move(getId, triggered) {
 	collisionTest = COL_KART;
 	collisionPlayer = oKart;
 	collisionTeam = (oKart.team==-1 || selectedFriendlyFire) ? undefined:oKart.team;
-	collisionLap = Math.min(oKart.tours-1, oMap.tours);
+	collisionLap = getCurrentLapId(oKart);
 	clLocalVars.currentKart = oKart;
-	var oKart = aKarts[getId];
+	var lMap = getCurrentLMap(collisionLap);
 	if ((getId<strPlayer.length)) {
 		if (!oKart.cpu && !finishing) {
 			showTimer(timer*SPF);
@@ -15689,7 +15767,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		var nbItems = oMap.arme[touchedObject][2].box.length;
+		var nbItems = lMap.arme[touchedObject][2].box.length;
 		for (var it=0;it<nbItems;it++) {
 			if ((!oKart.arme || (oDoubleItemsEnabled && !oKart.stash && (it || !oKart.roulette || oKart.roulette > 7))) && (oKart.tours <= oMap.tours || course == "BB") && !finishing) {
 				var iObj;
@@ -16014,8 +16092,18 @@ function move(getId, triggered) {
 		else {
 			var hpType;
 			var fTombe;
-			if (localKart)
-				fTombe = tombe(oKart.x, oKart.y, oMap.checkpoint&&oKart.demitours ? oMap.checkpoint[(oKart.demitours+1!=oMap.checkpoint.length) ? oKart.demitours+1 : 0][3] : 0);
+			if (localKart) {
+				var iC = 0;
+				if (lMap.checkpoint && oKart.demitours) {
+					if (oKart.demitours+1 < lMap.checkpoint.length)
+						iC = lMap.checkpoint[oKart.demitours+1][3];
+					else {
+						var nMap = getCurrentLMap(collisionLap+1);
+						iC = lMap.checkpoint[0][3];
+					}
+				}
+				fTombe = tombe(oKart.x, oKart.y, iC);
+			}
 			if (fTombe) {
 				if (fTombe == true) {
 					if (isBattle && simplified) {
@@ -16164,9 +16252,9 @@ function move(getId, triggered) {
 			oKart.demitours = getNextCp(oKart);
 			oKart.tours++;
 
-			var lastCp = oMap.checkpointCoords[0];
-			if (oMap.sections)
-				lastCp = oMap.checkpointCoords[oMap.checkpointCoords.length-1];
+			var lastCp = lMap.checkpointCoords[0];
+			if (lMap.sections)
+				lastCp = lMap.checkpointCoords[lMap.checkpointCoords.length-1];
 			var dt = 1;
 			var crossPoint = intersectionLineLine(aPosX,aPosY, aPosX+fMoveX,aPosY+fMoveY, lastCp.A[0],lastCp.A[1], lastCp.B[0],lastCp.B[1]);
 			if (crossPoint[0] >= 0 && crossPoint[0] < dt)
@@ -16732,11 +16820,14 @@ function move(getId, triggered) {
 			}
 		}
 		else {
+			var nMap = lMap;
 			var demitour = oKart.demitours+1;
-			if (demitour >= oMap.checkpoint.length)
+			if (demitour >= lMap.checkpoint.length) {
 				demitour = 0;
+				nMap = getCurrentLMap(collisionLap+1);
+			}
 
-			var oBox = oMap.checkpointCoords[demitour];
+			var oBox = nMap.checkpointCoords[demitour];
 			if (oBox) {
 				iLocalX = oBox.O[0] - oKart.x;
 				iLocalY = oBox.O[1] - oKart.y;
@@ -16746,9 +16837,9 @@ function move(getId, triggered) {
 				iLocalY = 0;
 			}
 
-			var aBillPoints = oMap.aipoints;
-			if (oMap.airoutesmeta.cpu < aBillPoints.length)
-				aBillPoints = aBillPoints.slice(oMap.airoutesmeta.cpu);
+			var aBillPoints = lMap.aipoints;
+			if (lMap.airoutesmeta.cpu < aBillPoints.length)
+				aBillPoints = aBillPoints.slice(lMap.airoutesmeta.cpu);
 			dance: for (var i=0;i<aBillPoints.length;i++) {
 				var aipoints = aBillPoints[i];
 				for (var j=0;j<aipoints.length;j++) {
@@ -17142,18 +17233,19 @@ function handlePoisonHit(getId) {
 }
 
 function handleDecorExplosions(fSprite, callback) {
-	if (oMap.decor) {
-		for (var type in oMap.decor) {
+	foreachLMap(function(lMap,pMap) {
+		if (!pMap.decor) return;
+		for (var type in lMap.decor) {
 			var decorBehavior = decorBehaviors[type];
 			if (decorBehavior.damagingItems && decorBehavior.damagingItems[fSprite.type]) {
-				for (var i=0;i<oMap.decor[type].length;i++) {
-					var oBox = oMap.decor[type][i];
+				for (var i=0;i<lMap.decor[type].length;i++) {
+					var oBox = lMap.decor[type][i];
 					if (callback(oBox[0],oBox[1], fSprite))
 						handleDecorHit(i,type);
 				}
 			}
 		}
-	}
+	});
 }
 
 var oRoulettesPrefixes = ["", "2"];
@@ -17260,15 +17352,16 @@ function updateSpeedometer(getId, aPosX,aPosY) {
 }
 
 function handleWrongWay(oKart) {
-	if (!oMap.checkpoint) return;
+	var lMap = getCurrentLMap(collisionLap);
+	if (!lMap.checkpoint) return;
 	if (isCup) return;
 	if (onlineSpectatorId) return;
 
 	var isWrongWay = true;
 	var isRightWay = false;
-	for (var i=1;i<=oMap.checkpointCoords.length;i++) {
-		var dest = (oKart.demitours+i) % oMap.checkpointCoords.length;
-		var iLine = oMap.checkpointCoords[dest];
+	for (var i=1;i<=lMap.checkpointCoords.length;i++) {
+		var dest = (oKart.demitours+i) % lMap.checkpointCoords.length;
+		var iLine = lMap.checkpointCoords[dest];
 
 		var hLine = projete(oKart.x,oKart.y, iLine.O[0],iLine.O[1], iLine.O[0]+iLine.u[0],iLine.O[1]+iLine.u[1]);
 		var xLine = iLine.O[0] + hLine*iLine.u[0], yLine = iLine.O[1] + hLine*iLine.u[1];
@@ -17286,7 +17379,7 @@ function handleWrongWay(oKart) {
 				break;
 			}
 		}
-		if (!oMap.checkpoint[dest][4])
+		if (!lMap.checkpoint[dest][4])
 			break;
 	}
 
@@ -17405,13 +17498,16 @@ function processCode(cheatCode) {
 		if (isLap[1] == "c")
 			t = oPlayer.tours;
 		if (!isLap[1]) {
-			t = oMap.tours;
-			c = oMap.checkpoint.length-1;
+			t = lMap.tours;
+			var lMap = getCurrentLMap(t-1);
+			c = lMap.checkpoint.length-1;
 		}
 		if (isLap[2] == "c")
 			c = oPlayer.demitours;
-		if (!isLap[2])
-			c = oMap.checkpoint.length-1;
+		if (!isLap[2]) {
+			var lMap = getCurrentLMap(getCurrentLapId(oPlayer));
+			c = lMap.checkpoint.length-1;
+		}
 		if (isNaN(t) || isNaN(c))
 			return false;
 		oPlayer.tours = t;
@@ -17996,7 +18092,7 @@ function ai(oKart) {
 				var rAngle0 = Math.max(5,rAngle/1.57);
 				if (rAngle > rAngle0) {
 					var maxHoleDist = 40, maxHoleDist2 = maxHoleDist*maxHoleDist;
-					var nearestHoleDist = getNearestHoleDist(oKart.x,oKart.y, maxHoleDist2);
+					var nearestHoleDist = getNearestHoleDist(oKart, maxHoleDist2);
 					if (nearestHoleDist < maxHoleDist2)
 						speedToAim = distToAim/Math.pow(rAngle0*Math.tan(rAngle/rAngle0),1.5);
 					else
@@ -18177,123 +18273,127 @@ function moveItems() {
 }
 function moveDecor() {
 	decorPos = {};
-	for (var type in oMap.decor) {
-		if (decorBehaviors[type].dodgable) {
-			decorPos[type] = [];
-			var decor = oMap.decor[type];
-			for (var i=0;i<decor.length;i++)
-				decorPos[type].push({aX:decor[i][0],aY:decor[i][1],x:decor[i][0],y:decor[i][1],vX:0,vY:0});
+	foreachLMap(function(lMap,pMap) {
+		if (pMap.decor) {
+			for (var type in lMap.decor) {
+				if (decorBehaviors[type].dodgable) {
+					decorPos[type] = [];
+					var decor = lMap.decor[type];
+					for (var i=0;i<decor.length;i++)
+						decorPos[type].push({aX:decor[i][0],aY:decor[i][1],x:decor[i][0],y:decor[i][1],vX:0,vY:0});
+				}
+			}
+			var decorIncs = {};
+			for (var type in lMap.decor) {
+				var decor = lMap.decor[type];
+				var decorBehavior = decorBehaviors[type];
+				if (decorBehavior.move) {
+					var actualType = getDecorActualType(decorBehavior);
+					var inc = 0;
+					if (decorIncs[actualType])
+						inc = decorIncs[actualType];
+					else
+						decorIncs[actualType] = 0;
+					
+					for (var i=0;i<decor.length;i++)
+						decorBehavior.move(decor[i],i,i+inc,decorBehavior.scope);
+					
+					decorIncs[actualType] += decor.length;
+				}
+			}
+			var tau = 2*Math.PI;
+			for (var type in decorPos) {
+				var decor = lMap.decor[type];
+				for (var i=0;i<decor.length;i++) {
+					decorPos[type][i].x = decor[i][0];
+					decorPos[type][i].y = decor[i][1];
+					decorPos[type][i].vX = decorPos[type][i].x - decorPos[type][i].aX;
+					decorPos[type][i].vY = decorPos[type][i].y - decorPos[type][i].aY;
+				}
+			}
 		}
-	}
-	var decorIncs = {};
-	for (var type in oMap.decor) {
-		var decor = oMap.decor[type];
-		var decorBehavior = decorBehaviors[type];
-		if (decorBehavior.move) {
-			var actualType = getDecorActualType(decorBehavior);
-			var inc = 0;
-			if (decorIncs[actualType])
-				inc = decorIncs[actualType];
+		if (pMap.pointers) {
+			for (var i=0;i<lMap.pointers.length;i++) {
+				var pointer = lMap.pointers[i];
+				pointer[2][2] += pointer[2][3];
+				pointer[2][2] %= tau;
+				pointer[0].redraw(pointer);
+			}
+		}
+		if (pMap.flippers) {
+			for (var i=0;i<lMap.flippers.length;i++) {
+				var flipper = lMap.flippers[i];
+				var state = flipper[3][0];
+				switch (state) {
+				case 0:
+					if (--flipper[3][1] <= 0) {
+						flipper[3][0] = 1;
+						flipper[3][1] = flipper[2][2];
+						flipper[2][3] = flipper[2][4]*0.13;
+					}
+					break;
+				case 1:
+				case 2:
+					var aim = (state==1) ? flipper[3][1]+flipper[2][4] : flipper[3][1];
+					flipper[2][2] += flipper[2][3];
+					if (flipper[2][2]*flipper[2][3] >= aim*flipper[2][3]) {
+						flipper[2][2] = aim;
+						if (state == 1) {
+							flipper[3][0] = 2;
+							flipper[2][3] = -flipper[2][3];
+						}
+						else {
+							flipper[3][0] = 0;
+							flipper[2][3] = 0;
+							flipper[3][1] = 1 + Math.floor(Math.random()*50);
+						}
+					}
+					break;
+				}
+				if (state)
+					flipper[0].redraw(flipper);
+			}
+		}
+		if (pMap.bumpers) {
+			for (var i=0;i<lMap.bumpers.length;i++) {
+				var bumper = lMap.bumpers[i];
+				if (bumper[2][5]) {
+					if (!bumper[3]) {
+						var distanceToCenter = Math.hypot(bumper[1][0]-bumper[2][3],bumper[1][1]-bumper[2][4]);
+						var angleToCenter = Math.atan2(bumper[1][1]-bumper[2][4],bumper[1][0]-bumper[2][3]);
+						bumper[3] = [distanceToCenter,angleToCenter];
+					}
+					bumper[3][1] += bumper[2][5];
+					bumper[3][1] %= tau;
+					bumper[1][0] = bumper[2][3] + bumper[3][0]*Math.cos(bumper[3][1]);
+					bumper[1][1] = bumper[2][4] + bumper[3][0]*Math.sin(bumper[3][1]);
+					bumper[0].redraw(bumper);
+				}
+			}
+		}
+		if (pMap.sea) {
+			var oSea = lMap.sea;
+			var lastProgress = oSea.progress;
+			var tLow = 120, tHigh = tLow, tTransition = 30, tTransition2 = tTransition, tTotal = tLow+tHigh+tTransition+tTransition2;
+			var ti = (timer+tLow/2)%tTotal;
+			if (ti < tLow)
+				oSea.progress = 1;
+			else if (ti < (tLow+tTransition))
+				oSea.progress = 0.5-Math.sin(Math.PI*((ti-tLow)/tTransition-0.5))*0.5;
+			else if (ti < (tLow+tHigh+tTransition))
+				oSea.progress = 0;
 			else
-				decorIncs[actualType] = 0;
-			
-			for (var i=0;i<decor.length;i++)
-				decorBehavior.move(decor[i],i,i+inc,decorBehavior.scope);
-			
-			decorIncs[actualType] += decor.length;
-		}
-	}
-	var tau = 2*Math.PI;
-	for (var type in decorPos) {
-		var decor = oMap.decor[type];
-		for (var i=0;i<decor.length;i++) {
-			decorPos[type][i].x = decor[i][0];
-			decorPos[type][i].y = decor[i][1];
-			decorPos[type][i].vX = decorPos[type][i].x - decorPos[type][i].aX;
-			decorPos[type][i].vY = decorPos[type][i].y - decorPos[type][i].aY;
-		}
-	}
-	if (oMap.pointers) {
-		for (var i=0;i<oMap.pointers.length;i++) {
-			var pointer = oMap.pointers[i];
-			pointer[2][2] += pointer[2][3];
-			pointer[2][2] %= tau;
-			pointer[0].redraw(pointer);
-		}
-	}
-	if (oMap.flippers) {
-		for (var i=0;i<oMap.flippers.length;i++) {
-			var flipper = oMap.flippers[i];
-			var state = flipper[3][0];
-			switch (state) {
-			case 0:
-				if (--flipper[3][1] <= 0) {
-					flipper[3][0] = 1;
-					flipper[3][1] = flipper[2][2];
-					flipper[2][3] = flipper[2][4]*0.13;
+				oSea.progress = 0.5+Math.sin(Math.PI*((ti-tLow-tHigh-tTransition)/tTransition2-0.5))*0.5;
+			if (oSea.progress !== lastProgress) {
+				lMap.horspistes.eau.polygon = oSea.offroad0.slice();
+				if (oSea.progress) {
+					var waterL = oSea.progress*0.99;
+					for (var i=0;i<oSea.waves.length;i++)
+						lMap.horspistes.eau.polygon.push(oSea.polygon(i, 0,waterL));
 				}
-				break;
-			case 1:
-			case 2:
-				var aim = (state==1) ? flipper[3][1]+flipper[2][4] : flipper[3][1];
-				flipper[2][2] += flipper[2][3];
-				if (flipper[2][2]*flipper[2][3] >= aim*flipper[2][3]) {
-					flipper[2][2] = aim;
-					if (state == 1) {
-						flipper[3][0] = 2;
-						flipper[2][3] = -flipper[2][3];
-					}
-					else {
-						flipper[3][0] = 0;
-						flipper[2][3] = 0;
-						flipper[3][1] = 1 + Math.floor(Math.random()*50);
-					}
-				}
-				break;
-			}
-			if (state)
-				flipper[0].redraw(flipper);
-		}
-	}
-	if (oMap.bumpers) {
-		for (var i=0;i<oMap.bumpers.length;i++) {
-			var bumper = oMap.bumpers[i];
-			if (bumper[2][5]) {
-				if (!bumper[3]) {
-					var distanceToCenter = Math.hypot(bumper[1][0]-bumper[2][3],bumper[1][1]-bumper[2][4]);
-					var angleToCenter = Math.atan2(bumper[1][1]-bumper[2][4],bumper[1][0]-bumper[2][3]);
-					bumper[3] = [distanceToCenter,angleToCenter];
-				}
-				bumper[3][1] += bumper[2][5];
-				bumper[3][1] %= tau;
-				bumper[1][0] = bumper[2][3] + bumper[3][0]*Math.cos(bumper[3][1]);
-				bumper[1][1] = bumper[2][4] + bumper[3][0]*Math.sin(bumper[3][1]);
-				bumper[0].redraw(bumper);
 			}
 		}
-	}
-	if (oMap.sea) {
-		var oSea = oMap.sea;
-		var lastProgress = oSea.progress;
-		var tLow = 120, tHigh = tLow, tTransition = 30, tTransition2 = tTransition, tTotal = tLow+tHigh+tTransition+tTransition2;
-		var ti = (timer+tLow/2)%tTotal;
-		if (ti < tLow)
-			oSea.progress = 1;
-		else if (ti < (tLow+tTransition))
-			oSea.progress = 0.5-Math.sin(Math.PI*((ti-tLow)/tTransition-0.5))*0.5;
-		else if (ti < (tLow+tHigh+tTransition))
-			oSea.progress = 0;
-		else
-			oSea.progress = 0.5+Math.sin(Math.PI*((ti-tLow-tHigh-tTransition)/tTransition2-0.5))*0.5;
-		if (oSea.progress !== lastProgress) {
-			oMap.horspistes.eau.polygon = oSea.offroad0.slice();
-			if (oSea.progress) {
-				var waterL = oSea.progress*0.99;
-				for (var i=0;i<oSea.waves.length;i++)
-					oMap.horspistes.eau.polygon.push(oSea.polygon(i, 0,waterL));
-			}
-		}
-	}
+	});
 	if (oMap.coins) {
 		for (var i=0;i<oMap.coins.length;i++) {
 			var oCoin = oMap.coins[i];
