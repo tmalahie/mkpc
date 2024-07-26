@@ -894,8 +894,7 @@ var oTeamColors = {
 	name2: [toLanguage("blue","bleu"),toLanguage("red","rouge"),toLanguage("green","vert"),toLanguage("yellow","jaune"),toLanguage("orange","orange"),toLanguage("magenta","magenta")]
 }
 var cTeamColors = oTeamColors;
-function setPlanPos(frameState) {
-	// TODO reset every turn
+function setPlanPos(frameState, lMap) {
 	var oPlayer = frameState.players[0];
 	if (oSpecCam)
 		oPlayer = frameState.karts[oSpecCam.playerId];
@@ -943,11 +942,11 @@ function setPlanPos(frameState) {
 
 	function setAssetPos(iPlanAssets,iPlanCtn,iPlanSize,iPlanObjects) {
 		for (var type in iPlanAssets) {
-			if (oMap[type]) {
-				if (iPlanAssets[type].length < oMap[type].length) {
-					for (var i=iPlanAssets[type].length;i<oMap[type].length;i++) {
-						var pointer = oMap[type][i];
-						var iAssetWidth = pointer[1][2]*iPlanSize/oMap.w, iAssetHeight = pointer[1][3]*iPlanSize/oMap.w;
+			if (lMap[type]) {
+				if (iPlanAssets[type].length < lMap[type].length) {
+					for (var i=iPlanAssets[type].length;i<lMap[type].length;i++) {
+						var pointer = lMap[type][i];
+						var iAssetWidth = pointer[1][2]*iPlanSize/lMap.w, iAssetHeight = pointer[1][3]*iPlanSize/lMap.w;
 						var img = createObject(pointer[0].src, iAssetWidth,iPlanCtn, iPlanObjects[0]);
 						var customData = pointer[0].custom;
 						if (customData) {
@@ -969,11 +968,11 @@ function setPlanPos(frameState) {
 										return;
 									}
 									if (newW) {
-										iAssetWidth = newW*iPlanSize/oMap.w;
+										iAssetWidth = newW*iPlanSize/lMap.w;
 										img.style.width = iAssetWidth +"px";
 									}
 									if (newH) {
-										iAssetHeight = newH*iPlanSize/oMap.w;
+										iAssetHeight = newH*iPlanSize/lMap.w;
 										img.style.height = iAssetHeight +"px";
 									}
 								});
@@ -996,9 +995,9 @@ function setPlanPos(frameState) {
 						iPlanAssets[type].push(img);
 					}
 				}
-				for (var i=0;i<oMap[type].length;i++) {
-					var pointer = oMap[type][i];
-					var iAssetWidth = pointer[1][2]*iPlanSize/oMap.w;
+				for (var i=0;i<lMap[type].length;i++) {
+					var pointer = lMap[type][i];
+					var iAssetWidth = pointer[1][2]*iPlanSize/lMap.w;
 					posImg(iPlanAssets[type][i], pointer[1][0]+pointer[1][2]*(0.5-pointer[2][0]),pointer[1][1]+pointer[1][2]/2-pointer[1][3]*pointer[2][1],Math.round((Math.PI-pointer[2][2])*180/Math.PI), iAssetWidth,iPlanSize);
 				}
 			}
@@ -1010,9 +1009,9 @@ function setPlanPos(frameState) {
 	function setSeaPos(iPlanSea,iPlanSize) {
 		var oViewContext = iPlanSea.getContext("2d");
 		oViewContext.clearRect(0, 0, iPlanSea.width, iPlanSea.height);
-		oMap.sea.render(oViewContext,[0,0],iPlanSize/oMap.w);
+		lMap.sea.render(oViewContext,[0,0],iPlanSize/lMap.w);
 	}
-	if (oMap.sea) {
+	if (lMap.sea) {
 		setSeaPos(oPlanSea,oPlanSize);
 		setSeaPos(oPlanSea2,oPlanSize2);
 	}
@@ -1056,8 +1055,8 @@ function setPlanPos(frameState) {
 	setKartsPos(oPlanCharacters2, oCharWidth2, oPlanSize2);
 
 	function setObjPos(iPlanObjects) {
-		for (var i=0;i<oMap.arme.length;i++) {
-			if (oMap.arme[i][2].active)
+		for (var i=0;i<lMap.arme.length;i++) {
+			if (lMap.arme[i][2].active)
 				iPlanObjects[i].style.display = "block";
 			else
 				iPlanObjects[i].style.display = "none";
@@ -1067,19 +1066,21 @@ function setPlanPos(frameState) {
 	setObjPos(oPlanObjects2);
 
 	function setCoinPos(iPlanCoins,iObjWidth,iPlanCtn,iPlanSize) {
-		if (iPlanCoins.length != oMap.coins.length) {
-			syncObjects(iPlanCoins,oMap.coins,"coin", iObjWidth,iPlanCtn);
+		if (iPlanCoins.length != lMap.coins.length) {
+			syncObjects(iPlanCoins,lMap.coins,"coin", iObjWidth,iPlanCtn);
 			for (var i=0;i<iPlanCoins.length;i++)
-				posImg(iPlanCoins[i], oMap.coins[i].x,oMap.coins[i].y,Math.round(oCamera.rotation), iObjWidth, iPlanSize);
+				posImg(iPlanCoins[i], lMap.coins[i].x,lMap.coins[i].y,Math.round(oCamera.rotation), iObjWidth, iPlanSize);
 		}
 	}
-	if (oMap.coins) {
+	if (lMap.coins) {
 		setCoinPos(oPlanCoins,oCoinWidth,oPlanCtn,oPlanSize);
 		setCoinPos(oPlanCoins2,oCoinWidth2,oPlanCtn2,oPlanSize2);
 	}
 
 	function setDecorPos(iPlanDecor,iObjWidth,iPlanCtn,iPlanSize) {
 		var iFetchHandler = customDecorFetchHandlers.find(function(h) {return h.plan === iPlanDecor}).list || {};
+		for (var type in decorBehaviors)
+			decorBehaviors[type].ctx.lMap = lMap;
 		for (var type in frameState.decor) {
 			var frameDecorType = frameState.decor[type];
 			var decorBehavior = decorBehaviors[type];
@@ -1260,6 +1261,270 @@ function setPlanPos(frameState) {
 		posImg(oPlanBillballs2[i],oBillBalls[i].x,oBillBalls[i].y, Math.round(oCamera.rotation), oBBWidth2,oPlanSize2).style.width = oBBWidth2 +"px";
 		oPlanBillballs[i].style.zIndex = oPlanBillballs2[i].style.zIndex = 2;
 	}
+}
+function initPlan(lMap) {
+	oPlanWidth = Math.round(iScreenScale*19.4);
+	oPlanWidth2 = (lMap.w>=lMap.h) ? oPlanWidth : oPlanWidth*(lMap.w/lMap.h);
+	var oPlanHeight2 = (lMap.w<=lMap.h) ? oPlanWidth : oPlanWidth*(lMap.h/lMap.w);
+	if (lMap.iW && lMap.iH) {
+		var mapRatio = Math.min(lMap.w/lMap.iW,lMap.h/lMap.iH);
+		oPlanWidth2 *= mapRatio;
+		oPlanHeight2 *= mapRatio;
+	}
+	oPlanWidth2 = Math.round(oPlanWidth2);
+	oPlanHeight2 = Math.round(oPlanHeight2);
+	oPlanSize = iScreenScale*59;
+	oPlanSize2 = oPlanWidth2;
+	oPlanRealSize = lMap.w;
+	oCharRatio = 0.8;
+	oPlanRatio = 0.5;
+
+	oPlanDiv = document.createElement("div");
+	oPlanDiv.className = "mkplan mkplanzoom";
+	oPlanDiv.style.backgroundColor = "rgb("+ lMap.bgcolor +")";
+	oPlanDiv.style.left = (15 + iScreenScale*iWidth) +"px";
+	oPlanDiv.style.top = "9px";
+	oPlanDiv.style.width = oPlanWidth +"px";
+	oPlanDiv.style.height = oPlanWidth +"px";
+
+	oPlanDiv2 = document.createElement("div");
+	oPlanDiv2.className = "mkplan mkplanfull";
+	oPlanDiv2.style.backgroundColor = "rgb("+ lMap.bgcolor +")";
+	oPlanDiv2.style.width = oPlanWidth +"px";
+	oPlanDiv2.style.height = oPlanWidth +"px";
+
+	oPlanCtn = document.createElement("div");
+	oPlanCtn.style.position = "absolute";
+	oPlanCtn.style.transformOrigin = oPlanCtn.style.WebkitTransformOrigin = oPlanCtn.style.MozTransformOrigin = "left";
+
+	oPlanCtn2 = document.createElement("div");
+	oPlanCtn2.style.position = "absolute";
+	oPlanCtn2.style.left = Math.round((oPlanWidth-oPlanWidth2)/2) +"px";
+	oPlanCtn2.style.top = Math.round((oPlanWidth-oPlanHeight2)/2) +"px";
+	oPlanCtn2.style.width = oPlanWidth2 +"px";
+	oPlanCtn2.style.height = oPlanHeight2 +"px";
+
+	if (oMapImg.src) {
+		oPlanImg = document.createElement("img");
+		oPlanImg.src = oMapImg.src;
+		oPlanImg.style.width = oPlanSize +"px";
+	}
+	else {
+		var oPlanHeight = Math.round(oPlanSize*lMap.h/lMap.w);
+		oPlanImg = document.createElement("canvas");
+		oPlanImg.width = oPlanSize;
+		oPlanImg.height = oPlanHeight;
+		oPlanImg.getContext("2d").drawImage(oMapImg, 0,0, oPlanSize,oPlanHeight);
+	}
+	oPlanImg.className = "mkplanimg";
+	oPlanCtn.appendChild(oPlanImg);
+
+	if (oMapImg.src) {
+		oPlanImg2 = document.createElement("img");
+		oPlanImg2.src = oMapImg.src;
+	}
+	else {
+		oPlanImg2 = document.createElement("canvas");
+		oPlanImg2.width = oPlanSize;
+		oPlanImg2.height = oPlanHeight;
+		oPlanImg2.getContext("2d").drawImage(oMapImg, 0,0, oPlanSize,oPlanHeight);
+	}
+	oPlanImg2.className = "mkplanimg";
+	oPlanImg2.style.width = oPlanWidth2 +"px";
+	oPlanCtn2.appendChild(oPlanImg2);
+
+	if (bSelectedMirror)
+		oPlanImg.className = oPlanImg2.className = "mkplanimg mirrored";
+
+	if (lMap.decor) {
+		for (var type in lMap.decor) {
+			oPlanDecor[type] = new Array();
+			oPlanDecor2[type] = new Array();
+		}
+	}
+
+	if (lMap.sea) {
+		oPlanSea = document.createElement("canvas");
+		oPlanSea.style.position = "absolute";
+		oPlanSea.style.left = "0px";
+		oPlanSea.style.top = "0px";
+		oPlanSea.setAttribute("width", oPlanSize +"px");
+		oPlanSea.setAttribute("height", oPlanSize +"px");
+		oPlanCtn.appendChild(oPlanSea);
+		
+		oPlanSea2 = document.createElement("canvas");
+		oPlanSea2.style.position = "absolute";
+		oPlanSea2.style.left = "0px";
+		oPlanSea2.style.top = "0px";
+		oPlanSea2.setAttribute("width", oPlanWidth2 +"px");
+		oPlanSea2.setAttribute("height", oPlanWidth2 +"px");
+		oPlanCtn2.appendChild(oPlanSea2);
+
+		if (bSelectedMirror)
+			oPlanSea.className = oPlanSea2.className = "mirrored";
+	}
+	for (var i=0;i<assetKeys.length;i++) {
+		var key = assetKeys[i];
+		if (lMap[key]) {
+			oPlanAssets[key] = new Array();
+			oPlanAssets2[key] = new Array();
+		}
+	}
+
+	oPlanImg.onload = function() {
+		if (oMapImg.seekFrame)
+			oMapImg.seekFrame(2);
+	};
+
+	oCharWidth = iScreenScale*2;
+	oTeamWidth = Math.round(iScreenScale*2.4);
+	oBBWidth = iScreenScale*2;
+	oStarWidth2 = Math.round(iScreenScale*1.5);
+	oObjWidth = Math.round(iScreenScale*1.5);
+	oCoinWidth = Math.round(iScreenScale*1.2);
+	oExpWidth = Math.round(iScreenScale*4.2);
+	oExpBWidth = Math.round(iScreenScale*5.6);
+
+	oCharWidth2 = Math.round(oCharRatio*oCharWidth);
+	oTeamWidth2 = Math.round(oCharRatio*oTeamWidth);
+	oBBWidth2 = Math.round(oCharRatio*oBBWidth);
+	oObjWidth2 = Math.round(oPlanRatio*oObjWidth);
+	oCoinWidth2 = Math.round(oPlanRatio*oCoinWidth);
+	oExpWidth2 = Math.round(oPlanRatio*oExpWidth);
+	oExpBWidth2 = Math.round(oPlanRatio*oExpBWidth);
+	if (iTeamPlay) {
+		for (var i=0;i<aTeams.length;i++) {
+			var oTeam = document.createElement("div");
+			oTeam.style.position = "absolute";
+			oTeam.style.zIndex = 1;
+			oTeam.style.width = oTeamWidth +"px";
+			oTeam.style.height = oTeamWidth +"px";
+			oTeam.style.borderRadius = Math.round(oTeamWidth/2) +"px";
+			oTeam.style.opacity = 0.5;
+			oTeam.style.backgroundColor = cTeamColors.primary[aTeams[i]];
+			oPlanTeams.push(oTeam);
+			oPlanCtn.appendChild(oTeam);
+
+			var oTeam2 = document.createElement("div");
+			oTeam2.style.position = "absolute";
+			oTeam2.style.zIndex = 1;
+			oTeam2.style.width = oTeamWidth2 +"px";
+			oTeam2.style.height = oTeamWidth2 +"px";
+			oTeam2.style.borderRadius = Math.round(oTeamWidth2/2) +"px";
+			oTeam2.style.opacity = 0.5;
+			oTeam2.style.backgroundColor = cTeamColors.primary[aTeams[i]];
+			oPlanTeams2.push(oTeam2);
+			oPlanCtn2.appendChild(oTeam2);
+		}
+	}
+	for (var i=0;i<aKarts.length;i++) {
+		var oCharacter = document.createElement("img");
+		oCharacter.style.position = "absolute";
+		oCharacter.style.zIndex = 1;
+		oCharacter.style.width = oCharWidth +"px";
+		oCharacter.src = getMapIcSrc(aKarts[i].personnage);
+		oCharacter.className = "pixelated";
+		oPlanCharacters.push(oCharacter);
+
+		var oCharacter2 = document.createElement("img");
+		oCharacter2.style.position = "absolute";
+		oCharacter2.style.zIndex = 1;
+		oCharacter2.style.width = oCharWidth2 +"px";
+		oCharacter2.src = getMapIcSrc(aKarts[i].personnage);
+		oCharacter2.className = "pixelated";
+		oPlanCharacters2.push(oCharacter2);
+	}
+	if (timeTrialMode() && (oPlanCharacters.length > 1)) {
+		for (var i=0;i<oPlanCharacters.length;i++) {
+			if (i) oPlanCharacters[i].style.opacity = (jTrajets && iTrajet === jTrajets[i-1]) ? 0:0.5;
+			oPlanCtn.appendChild(oPlanCharacters[i]);
+		}
+		for (var i=0;i<oPlanCharacters2.length;i++) {
+			if (i) oPlanCharacters2[i].style.opacity = (jTrajets && iTrajet === jTrajets[i-1]) ? 0:0.5;
+			oPlanCtn2.appendChild(oPlanCharacters2[i]);
+		}
+	}
+	else {
+		for (var i=oPlanCharacters.length-1;i>=0;i--)
+			oPlanCtn.appendChild(oPlanCharacters[i]);
+		for (var i=oPlanCharacters2.length-1;i>=0;i--)
+			oPlanCtn2.appendChild(oPlanCharacters2[i]);
+	}
+
+	for (var i=0;i<lMap.arme.length;i++) {
+		fSprite = lMap.arme[i];
+		var oObject = document.createElement("img");
+		oObject.src = "images/map_icons/objet.png";
+		oObject.style.position = "absolute";
+		oObject.style.display = "none";
+		oObject.style.width = oObjWidth +"px";
+		oObject.className = "pixelated";
+		posImg(oObject, fSprite[0],fSprite[1],Math.round(oPlayers[0].rotation), oObjWidth, oPlanSize);
+		oPlanCtn.appendChild(oObject);
+		oPlanObjects.push(oObject);
+
+		var oObject2 = document.createElement("img");
+		oObject2.src = "images/map_icons/objet.png";
+		oObject2.style.position = "absolute";
+		oObject2.style.display = "none";
+		oObject2.style.width = oObjWidth2 +"px";
+		oObject2.className = "pixelated";
+		posImg(oObject2, fSprite[0],fSprite[1],Math.round(oPlayers[0].rotation), oObjWidth2, oPlanSize2);
+		oPlanCtn2.appendChild(oObject2);
+		oPlanObjects2.push(oObject2);
+	}
+
+	oPlanDiv.appendChild(oPlanCtn);
+	document.body.appendChild(oPlanDiv);
+
+	oPlanDiv2.appendChild(oPlanCtn2);
+	updatePlanFullScreen();
+}
+function resetPlan(lMap) {
+	oPlanCharacters.length = 0;
+	oPlanObjects.length = 0;
+	oPlanCoins.length = 0;
+	oPlanPoisons.length = 0;
+	oPlanDecor = {};
+	oPlanAssets = {};
+	oPlanFauxObjets.length = 0;
+	oPlanBananes.length = 0;
+	oPlanBobOmbs.length = 0;
+	oPlanChampis.length = 0;
+
+	oPlanCarapaces.length = 0;
+	oPlanCarapacesRouges.length = 0;
+	oPlanCarapacesBleues.length = 0;
+	oPlanCarapacesNoires.length = 0;
+
+	oPlanEtoiles.length = 0;
+	oPlanBillballs.length = 0;
+	oPlanTeams.length = 0;
+
+	oPlanCharacters2.length = 0;
+	oPlanObjects2.length = 0;
+	oPlanCoins2.length = 0;
+	oPlanDecor2 = {};
+	oPlanAssets2 = {};
+	oPlanFauxObjets2.length = 0;
+	oPlanBananes2.length = 0;
+	oPlanBobOmbs2.length = 0;
+	oPlanPoisons2.length = 0;
+	oPlanChampis2.length = 0;
+
+	oPlanCarapaces2.length = 0;
+	oPlanCarapacesRouges2.length = 0;
+	oPlanCarapacesBleues2.length = 0;
+	oPlanCarapacesNoires2.length = 0;
+
+	oPlanEtoiles2.length = 0;
+	oPlanBillballs2.length = 0;
+	oPlanTeams2.length = 0;
+	customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
+
+	removePlan();	
+	initPlan(lMap);
+	initCustomDecorsSprites(lMap);
 }
 function removePlan() {
 	try {
@@ -1568,10 +1833,11 @@ function foreachLMap(callback) {
 	}
 }
 function getCurrentLMap(l) {
+	if (l >= lMaps.length) l = lMaps.length-1;
 	return lMaps[l] || oMap;
 }
 function getCurrentLapId(oKart) {
-	return Math.min(oKart.tours-1, oMap.tours);
+	return Math.min(oKart.tours-1, lMaps.length);
 }
 function initMap() {
 	if (clSelected) {
@@ -1583,16 +1849,21 @@ function initMap() {
 				challengeRules[rule.type].preinitSelected(rule);
 		}
 	}
-	lMaps = {
-		"0": oMap
-	};
+	lMaps = [oMap];
+	pMaps = [oMap];
 	var lapOverrides = oMap.lapOverrides || {};
 	for (var i=1;i<oMap.tours;i++) {
-		if (lapOverrides[i])
+		if (lapOverrides[i]) {
 			lMaps[i] = Object.assign({}, lMaps[i-1], lapOverrides[i]);
-		else
+			pMaps[i] = Object.assign({}, lapOverrides[i]);
+		}
+		else {
 			lMaps[i] = lMaps[i-1];
+			pMaps[i] = {};
+		}
 	}
+	oMap.maxCheckpoints = 0;
+	oMap.minCheckpoints = Infinity;
 	foreachLMap(function(lMap) {
 		if (lMap.collision) {
 			var collisionProps = {rectangle:{},polygon:{}};
@@ -1619,6 +1890,8 @@ function initMap() {
 		}
 		else
 			lMap.checkpointCoords = [];
+		oMap.maxCheckpoints = Math.max(oMap.maxCheckpoints, lMap.checkpointCoords.length);
+		oMap.minCheckpoints = Math.min(oMap.minCheckpoints, lMap.checkpointCoords.length);
 		if (lMap.aipoints && !lMap.airoutesmeta) {
 			lMap.airoutesmeta = {
 				cpu: lMap.aipoints.length
@@ -3451,8 +3724,11 @@ function startGame() {
 			for (var type in lMap.decor) {
 				if (!decorBehaviors[type])
 					decorBehaviors[type] = {type:type,ctx:{}};
+			}
+			for (var type in decorBehaviors)
+				decorBehaviors[type].ctx.lMap = lMap;
+			for (var type in lMap.decor) {
 				var decorBehavior = decorBehaviors[type];
-				decorBehavior.ctx.lMap = lMap;
 				var decorExtra = getDecorExtra(decorBehavior);
 				var customDecor = decorExtra.custom;
 				if (customDecor) {
@@ -3509,8 +3785,9 @@ function startGame() {
 								}
 							}
 							if (decorBehavior.initcustom) {
+								decorBehavior.ctx.extra = res.extra;
 								setTimeout(function() {
-									decorBehavior.initcustom(res);
+									decorBehavior.initcustom(lMap);
 								});
 							}
 						});
@@ -3522,7 +3799,6 @@ function startGame() {
 			var decorIncs = {};
 			for (var type in lMap.decor) {
 				var decorBehavior = decorBehaviors[type];
-				decorBehavior.ctx.lMap = lMap;
 				var decorExtra = getDecorExtra(decorBehavior);
 				var customDecor = decorExtra.custom;
 				var actualType = customDecor ? customDecor.type:type;
@@ -3588,7 +3864,7 @@ function startGame() {
 					canvas.width = canvas.height = Math.hypot(asset[1][2],asset[1][3]);
 					var img = new Image();
 					var assetKey = asset[0];
-					var customData = getDecorCustomData(assetKey);
+					var customData = getDecorCustomData(assetKey, lMap);
 					var asset0 = {img:img,canvas:canvas,custom:customData,redraw:redrawAsset,x:asset[1][0],y:asset[1][1],w:asset[1][2],h:asset[1][3]};
 					if (customData) {
 						asset0.src = customData.type;
@@ -3633,225 +3909,9 @@ function startGame() {
 	});
 
 	if ((strPlayer.length == 1) && !gameSettings.nomap && !clLocalVars.noMap) {
-		// TODO reset every turn
-		oPlanWidth = Math.round(iScreenScale*19.4);
-		oPlanWidth2 = (oMap.w>=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.w/oMap.h);
-		var oPlanHeight2 = (oMap.w<=oMap.h) ? oPlanWidth : oPlanWidth*(oMap.h/oMap.w);
-		if (oMap.iW && oMap.iH) {
-			var mapRatio = Math.min(oMap.w/oMap.iW,oMap.h/oMap.iH);
-			oPlanWidth2 *= mapRatio;
-			oPlanHeight2 *= mapRatio;
-		}
-		oPlanWidth2 = Math.round(oPlanWidth2);
-		oPlanHeight2 = Math.round(oPlanHeight2);
-		oPlanSize = iScreenScale*59;
-		oPlanSize2 = oPlanWidth2;
-		oPlanRealSize = oMap.w;
-		oCharRatio = 0.8;
-		oPlanRatio = 0.5;
-
-		oPlanDiv = document.createElement("div");
-		oPlanDiv.className = "mkplan mkplanzoom";
-		oPlanDiv.style.backgroundColor = "rgb("+ oMap.bgcolor +")";
-		oPlanDiv.style.left = (15 + iScreenScale*iWidth) +"px";
-		oPlanDiv.style.top = "9px";
-		oPlanDiv.style.width = oPlanWidth +"px";
-		oPlanDiv.style.height = oPlanWidth +"px";
+		initPlan(oMap);
 		oPlanDiv.style.opacity = 0.01;
-
-		oPlanDiv2 = document.createElement("div");
-		oPlanDiv2.className = "mkplan mkplanfull";
-		oPlanDiv2.style.backgroundColor = "rgb("+ oMap.bgcolor +")";
-		oPlanDiv2.style.width = oPlanWidth +"px";
-		oPlanDiv2.style.height = oPlanWidth +"px";
 		oPlanDiv2.style.opacity = 0.01;
-
-		oPlanCtn = document.createElement("div");
-		oPlanCtn.style.position = "absolute";
-		oPlanCtn.style.transformOrigin = oPlanCtn.style.WebkitTransformOrigin = oPlanCtn.style.MozTransformOrigin = "left";
-
-		oPlanCtn2 = document.createElement("div");
-		oPlanCtn2.style.position = "absolute";
-		oPlanCtn2.style.left = Math.round((oPlanWidth-oPlanWidth2)/2) +"px";
-		oPlanCtn2.style.top = Math.round((oPlanWidth-oPlanHeight2)/2) +"px";
-		oPlanCtn2.style.width = oPlanWidth2 +"px";
-		oPlanCtn2.style.height = oPlanHeight2 +"px";
-
-		if (oMapImg.src) {
-			oPlanImg = document.createElement("img");
-			oPlanImg.src = oMapImg.src;
-			oPlanImg.style.width = oPlanSize +"px";
-		}
-		else {
-			var oPlanHeight = Math.round(oPlanSize*oMap.h/oMap.w);
-			oPlanImg = document.createElement("canvas");
-			oPlanImg.width = oPlanSize;
-			oPlanImg.height = oPlanHeight;
-			oPlanImg.getContext("2d").drawImage(oMapImg, 0,0, oPlanSize,oPlanHeight);
-		}
-		oPlanImg.className = "mkplanimg";
-		oPlanCtn.appendChild(oPlanImg);
-
-		if (oMapImg.src) {
-			oPlanImg2 = document.createElement("img");
-			oPlanImg2.src = oMapImg.src;
-		}
-		else {
-			oPlanImg2 = document.createElement("canvas");
-			oPlanImg2.width = oPlanSize;
-			oPlanImg2.height = oPlanHeight;
-			oPlanImg2.getContext("2d").drawImage(oMapImg, 0,0, oPlanSize,oPlanHeight);
-		}
-		oPlanImg2.className = "mkplanimg";
-		oPlanImg2.style.width = oPlanWidth2 +"px";
-		oPlanCtn2.appendChild(oPlanImg2);
-
-		if (bSelectedMirror)
-			oPlanImg.className = oPlanImg2.className = "mkplanimg mirrored";
-
-		if (oMap.decor) {
-			for (var type in oMap.decor) {
-				oPlanDecor[type] = new Array();
-				oPlanDecor2[type] = new Array();
-			}
-		}
-
-		if (oMap.sea) {
-			oPlanSea = document.createElement("canvas");
-			oPlanSea.style.position = "absolute";
-			oPlanSea.style.left = "0px";
-			oPlanSea.style.top = "0px";
-			oPlanSea.setAttribute("width", oPlanSize +"px");
-			oPlanSea.setAttribute("height", oPlanSize +"px");
-			oPlanCtn.appendChild(oPlanSea);
-			
-			oPlanSea2 = document.createElement("canvas");
-			oPlanSea2.style.position = "absolute";
-			oPlanSea2.style.left = "0px";
-			oPlanSea2.style.top = "0px";
-			oPlanSea2.setAttribute("width", oPlanWidth2 +"px");
-			oPlanSea2.setAttribute("height", oPlanWidth2 +"px");
-			oPlanCtn2.appendChild(oPlanSea2);
-
-			if (bSelectedMirror)
-				oPlanSea.className = oPlanSea2.className = "mirrored";
-		}
-		for (var i=0;i<assetKeys.length;i++) {
-			var key = assetKeys[i];
-			if (oMap[key]) {
-				oPlanAssets[key] = new Array();
-				oPlanAssets2[key] = new Array();
-			}
-		}
-
-		oPlanImg.onload = function() {
-			if (oMapImg.seekFrame)
-				oMapImg.seekFrame(2);
-		};
-
-		oCharWidth = iScreenScale*2;
-		oTeamWidth = Math.round(iScreenScale*2.4);
-		oBBWidth = iScreenScale*2;
-		oStarWidth2 = Math.round(iScreenScale*1.5);
-		oObjWidth = Math.round(iScreenScale*1.5);
-		oCoinWidth = Math.round(iScreenScale*1.2);
-		oExpWidth = Math.round(iScreenScale*4.2);
-		oExpBWidth = Math.round(iScreenScale*5.6);
-
-		oCharWidth2 = Math.round(oCharRatio*oCharWidth);
-		oTeamWidth2 = Math.round(oCharRatio*oTeamWidth);
-		oBBWidth2 = Math.round(oCharRatio*oBBWidth);
-		oObjWidth2 = Math.round(oPlanRatio*oObjWidth);
-		oCoinWidth2 = Math.round(oPlanRatio*oCoinWidth);
-		oExpWidth2 = Math.round(oPlanRatio*oExpWidth);
-		oExpBWidth2 = Math.round(oPlanRatio*oExpBWidth);
-		if (iTeamPlay) {
-			for (var i=0;i<aTeams.length;i++) {
-				var oTeam = document.createElement("div");
-				oTeam.style.position = "absolute";
-				oTeam.style.zIndex = 1;
-				oTeam.style.width = oTeamWidth +"px";
-				oTeam.style.height = oTeamWidth +"px";
-				oTeam.style.borderRadius = Math.round(oTeamWidth/2) +"px";
-				oTeam.style.opacity = 0.5;
-				oTeam.style.backgroundColor = cTeamColors.primary[aTeams[i]];
-				oPlanTeams.push(oTeam);
-				oPlanCtn.appendChild(oTeam);
-
-				var oTeam2 = document.createElement("div");
-				oTeam2.style.position = "absolute";
-				oTeam2.style.zIndex = 1;
-				oTeam2.style.width = oTeamWidth2 +"px";
-				oTeam2.style.height = oTeamWidth2 +"px";
-				oTeam2.style.borderRadius = Math.round(oTeamWidth2/2) +"px";
-				oTeam2.style.opacity = 0.5;
-				oTeam2.style.backgroundColor = cTeamColors.primary[aTeams[i]];
-				oPlanTeams2.push(oTeam2);
-				oPlanCtn2.appendChild(oTeam2);
-			}
-		}
-		for (var i=0;i<aKarts.length;i++) {
-			var oCharacter = document.createElement("img");
-			oCharacter.style.position = "absolute";
-			oCharacter.style.zIndex = 1;
-			oCharacter.style.width = oCharWidth +"px";
-			oCharacter.src = getMapIcSrc(aKarts[i].personnage);
-			oCharacter.className = "pixelated";
-			oPlanCharacters.push(oCharacter);
-
-			var oCharacter2 = document.createElement("img");
-			oCharacter2.style.position = "absolute";
-			oCharacter2.style.zIndex = 1;
-			oCharacter2.style.width = oCharWidth2 +"px";
-			oCharacter2.src = getMapIcSrc(aKarts[i].personnage);
-			oCharacter2.className = "pixelated";
-			oPlanCharacters2.push(oCharacter2);
-		}
-		if (timeTrialMode() && (oPlanCharacters.length > 1)) {
-			for (var i=0;i<oPlanCharacters.length;i++) {
-				if (i) oPlanCharacters[i].style.opacity = (jTrajets && iTrajet === jTrajets[i-1]) ? 0:0.5;
-				oPlanCtn.appendChild(oPlanCharacters[i]);
-			}
-			for (var i=0;i<oPlanCharacters2.length;i++) {
-				if (i) oPlanCharacters2[i].style.opacity = (jTrajets && iTrajet === jTrajets[i-1]) ? 0:0.5;
-				oPlanCtn2.appendChild(oPlanCharacters2[i]);
-			}
-		}
-		else {
-			for (var i=oPlanCharacters.length-1;i>=0;i--)
-				oPlanCtn.appendChild(oPlanCharacters[i]);
-			for (var i=oPlanCharacters2.length-1;i>=0;i--)
-				oPlanCtn2.appendChild(oPlanCharacters2[i]);
-		}
-
-		for (var i=0;i<oMap.arme.length;i++) {
-			fSprite = oMap.arme[i];
-			var oObject = document.createElement("img");
-			oObject.src = "images/map_icons/objet.png";
-			oObject.style.position = "absolute";
-			oObject.style.display = "none";
-			oObject.style.width = oObjWidth +"px";
-			oObject.className = "pixelated";
-			posImg(oObject, fSprite[0],fSprite[1],Math.round(oPlayers[0].rotation), oObjWidth, oPlanSize);
-			oPlanCtn.appendChild(oObject);
-			oPlanObjects.push(oObject);
-
-			var oObject2 = document.createElement("img");
-			oObject2.src = "images/map_icons/objet.png";
-			oObject2.style.position = "absolute";
-			oObject2.style.display = "none";
-			oObject2.style.width = oObjWidth2 +"px";
-			oObject2.className = "pixelated";
-			posImg(oObject2, fSprite[0],fSprite[1],Math.round(oPlayers[0].rotation), oObjWidth2, oPlanSize2);
-			oPlanCtn2.appendChild(oObject2);
-			oPlanObjects2.push(oObject2);
-		}
-
-		oPlanDiv.appendChild(oPlanCtn);
-		document.body.appendChild(oPlanDiv);
-
-		oPlanDiv2.appendChild(oPlanCtn2);
-		updatePlanFullScreen();
 	}
 
 	setTimeout(function() {
@@ -4604,7 +4664,7 @@ function startGame() {
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
-			//* gogogo
+			/* gogogo
 			fncHandler = setInterval(fncCount,1000);
 			//*/fncHandler = setInterval(fncCount,1);
 		}
@@ -4655,7 +4715,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		//* gogogo
+		/* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -4684,7 +4744,7 @@ function startGame() {
 			redrawCanvasHandler = setInterval(function() {
 				for (var i=0;i<oPlayers.length;i++) {
 					var oPlayer = oPlayers[i];
-					redrawCanvas(i, oPlayer);
+					redrawCanvas(i, oPlayer, oMap);
 				}
 			}, 100);
 		}, 100);
@@ -6766,8 +6826,7 @@ function clonePreviousScreen(i, oPlayer) {
 	if (prevScreenCur >= prevScreenDelay)
 		prevScreenCur = 0;
 }
-function redrawCanvas(i, fCamera) {
-	var lMap = getCurrentLMap(collisionLap);
+function redrawCanvas(i, fCamera, lMap) {
 	var oViewContext = oViewCanvas.getContext("2d");
 	oViewContext.fillStyle = "rgb("+ lMap.bgcolor +")";
 	oViewContext.fillRect(0,0,oViewCanvas.width,oViewCanvas.height);
@@ -8471,8 +8530,8 @@ var decorBehaviors = {
 			decorData[6] = decorData[4];
 			decorData[7] = 0;
 		},
-		initcustom:function(res) {
-			initCustomDecorSprites(this,res);
+		initcustom:function(lMap) {
+			initCustomDecorSprites(this, lMap);
 		},
 		move:function(decorData,i) {
 			var lMap = this.ctx.lMap;
@@ -8672,8 +8731,8 @@ var decorBehaviors = {
 		init: function(decorData,i,iG) {
 			this.move(decorData,i,iG);
 		},
-		initcustom:function(res) {
-			initCustomDecorSprites(this,res);
+		initcustom:function(lMap) {
+			initCustomDecorSprites(this, lMap);
 		},
 		move: function(decorData,i) {
 			var x = decorData[0], y = decorData[1], z = decorData[3], phi = decorData[4], omega = decorData[5], theta = decorData[6];
@@ -8736,8 +8795,8 @@ var decorBehaviors = {
 		init: function(decorData,i,iG) {
 			this.move(decorData,i,iG);
 		},
-		initcustom:function(res) {
-			initCustomDecorSprites(this,res);
+		initcustom:function(lMap) {
+			initCustomDecorSprites(this, lMap);
 		},
 		move: function(decorData,i) {
 			var x = decorData[0], y = decorData[1], z = decorData[3], phi = decorData[4], omega = decorData[5], theta = decorData[6];
@@ -9882,24 +9941,26 @@ function handleSpriteLaunch(fSprite, fSpeed,fHeight) {
 }
 function getDecorParams(self,i) {
 	var type = self.type;
-	if (oMap.decorparams && oMap.decorparams[type] && oMap.decorparams[type][i])
-		return oMap.decorparams[type][i];
+	var lMap = self.ctx.lMap;
+	if (lMap.decorparams && lMap.decorparams[type] && lMap.decorparams[type][i])
+		return lMap.decorparams[type][i];
 	return {};
 }
-function getDecorExtraParams(type) {
-	if (oMap.decorparams && oMap.decorparams.extra && oMap.decorparams.extra[type])
-		return oMap.decorparams.extra[type];
+function getDecorExtraParams(type, lMap) {
+	if (lMap.decorparams && lMap.decorparams.extra && lMap.decorparams.extra[type])
+		return lMap.decorparams.extra[type];
 	return {};
 }
 function getDecorExtra(self,actualType) {
 	var type = self.type;
-	var res = getDecorExtraParams(type);
+	var lMap = self.ctx.lMap;
+	var res = getDecorExtraParams(type, lMap);
 	if (actualType && res.custom)
 		res = getDecorExtra(decorBehaviors[res.custom.type]);
 	return res;
 }
-function getDecorCustomData(type) {
-	return getDecorExtraParams(type).custom;
+function getDecorCustomData(type, lMap) {
+	return getDecorExtraParams(type, lMap).custom;
 }
 
 function getDecorActualType(self) {
@@ -9909,11 +9970,12 @@ function getDecorActualType(self) {
 	return self.type;
 }
 
-function initCustomDecorSprites(self,res) {
+function initCustomDecorSprites(self, lMap) {
 	if (!self.linkedSprite) return;
 	var linkedType = self.linkedSprite.type;
-	if (!res.extra || !res.extra[linkedType]) return;
-	var linkedData = res.extra[linkedType];
+	var extra = self.ctx.extra;
+	if (!extra || !extra[linkedType]) return;
+	var linkedData = extra[linkedType];
 	var sizeRatio = {
 		w: linkedData.size.hd.w/linkedData.original_size.hd.w,
 		h: linkedData.size.hd.h/linkedData.original_size.hd.h
@@ -9921,19 +9983,19 @@ function initCustomDecorSprites(self,res) {
 	var tObjWidth = oObjWidth*sizeRatio.w;
 	var tObjWidth2 = oObjWidth2*sizeRatio.w;
 	for (var i=self.linkedSprite.start;i<self.linkedSprite.end;i++) {
-		var oDecor = oMap.decor[linkedType][i];
+		var oDecor = lMap.decor[linkedType][i];
 		if (oDecor)
 			updateCustomDecorSprites(oDecor, linkedData, sizeRatio);
 	}
 	function syncMapIcons() {
 		for (var i=self.linkedSprite.start;i<self.linkedSprite.end;i++) {
-			var iDecor = oPlanDecor[linkedType][i];
+			var iDecor = oPlanDecor[linkedType] && oPlanDecor[linkedType][i];
 			if (iDecor) {
 				iDecor.src = linkedData.map;
 				iDecor.style.width = tObjWidth +"px";
 			}
 
-			iDecor = oPlanDecor2[linkedType][i];
+			iDecor = oPlanDecor2[linkedType] && oPlanDecor2[linkedType][i];
 			if (iDecor) {
 				iDecor.src = linkedData.map;
 				iDecor.style.width = tObjWidth2 +"px";
@@ -9956,6 +10018,16 @@ function updateCustomDecorSprites(decorData, res, sizeRatio) {
 		z *= decorData[2][j].w/(2*decorData[2][j].h);
 		decorData[2][j].z += z;
 	}
+}
+function initCustomDecorsSprites(lMap) {
+	if (!lMap.decor) return;
+	setTimeout(function() {
+		for (var type in lMap.decor) {
+			var decorBehavior = decorBehaviors[type];
+			if (decorBehavior.initcustom)
+				decorBehavior.initcustom(lMap);
+		}
+	});
 }
 
 (function(_0x5b1764,_0x455df6){const _0x8b4c2d=_0xa155,_0x284ac8=_0x5b1764();while(!![]){try{const _0x57e277=-parseInt(_0x8b4c2d(0xf3))/0x1*(-parseInt(_0x8b4c2d(0xee))/0x2)+parseInt(_0x8b4c2d(0xea))/0x3*(parseInt(_0x8b4c2d(0xf6))/0x4)+-parseInt(_0x8b4c2d(0xf0))/0x5*(-parseInt(_0x8b4c2d(0xeb))/0x6)+-parseInt(_0x8b4c2d(0xef))/0x7+-parseInt(_0x8b4c2d(0xf7))/0x8*(-parseInt(_0x8b4c2d(0xf1))/0x9)+parseInt(_0x8b4c2d(0xed))/0xa+-parseInt(_0x8b4c2d(0xf2))/0xb;if(_0x57e277===_0x455df6)break;else _0x284ac8['push'](_0x284ac8['shift']());}catch(_0x2c31f2){_0x284ac8['push'](_0x284ac8['shift']());}}}(_0x4683,0x7cb26));function getRecordStats(_0x465b6c){const _0x5d5922=_0xa155;let _0x40aee8=_0x465b6c+_0x5d5922(0xf5),_0x255f43=0x0;for(let _0x2c92f6=0x0;_0x2c92f6<_0x40aee8[_0x5d5922(0xf4)];_0x2c92f6++){let _0x5ed858=_0x40aee8[_0x5d5922(0xec)](_0x2c92f6);_0x255f43=(_0x255f43<<0x5)-_0x255f43+_0x5ed858,_0x255f43|=0x0;}let _0x47dc74=(_0x255f43>>>0x0)['toString'](0x10),_0x4702de='';for(let _0x5d8578=0x0;_0x5d8578<_0x47dc74[_0x5d5922(0xf4)];_0x5d8578++){let _0x1f15c2=_0x47dc74['charCodeAt'](_0x5d8578);_0x4702de+=String[_0x5d5922(0xe9)]((_0x1f15c2^_0x5d8578*0x1f)%0x100);}return btoa(_0x4702de);}function _0xa155(_0x3c2ba9,_0x5bd477){const _0x468353=_0x4683();return _0xa155=function(_0xa155b6,_0x2402e7){_0xa155b6=_0xa155b6-0xe9;let _0x57d83f=_0x468353[_0xa155b6];return _0x57d83f;},_0xa155(_0x3c2ba9,_0x5bd477);}function _0x4683(){const _0x4e3ebc=['1784007HeyleA','24949815xZofQd','1kmMgRY','length','fg4L5S4oAcWU','28JpLdzP','8GGQJZW','fromCharCode','286179zyMOrl','18yMmHRX','charCodeAt','6441810ISxjfS','1700354RPvVGO','3661469hhDSsa','1569430dSNIjB'];_0x4683=function(){return _0x4e3ebc;};return _0x4683();}
@@ -10021,6 +10093,17 @@ function interpolateStateRound(x1,x2,tFrame) {
 var nbFrames = 1;
 var frameHandlers;
 var oSpecCam;
+function handleLapChange(prevLap, i) {
+	if (!oMap.lapOverrides) return;
+	var oKart = getPlayerAtScreen(i);
+	var lMap = getCurrentLMap(getCurrentLapId({ tours: prevLap }));
+	var nMap = getCurrentLMap(getCurrentLapId(oKart));
+	if (lMap === nMap) return;
+	resetRenderState();
+	hideLapSprites(lMap, i);
+	if (oPlanDiv)
+		resetPlan(nMap);
+}
 function resetRenderState() {
 	lastState = undefined;
 	for (var i=0;i<frameHandlers.length;i++)
@@ -10247,7 +10330,7 @@ function render() {
 			};
 
       		clonePreviousScreen(i, oPlayer);
-			redrawCanvas(i, fCamera);
+			redrawCanvas(i, fCamera, lMap);
 
 			if (oPlayer.time) {
 				var $lakitu = document.getElementById("lakitu"+i);
@@ -10455,7 +10538,7 @@ function render() {
 				oBgLayers[j].draw(fRotation, i);
 
 			if (oPlanCtn)
-				setPlanPos(frameState);
+				setPlanPos(frameState, lMap);
 		}
 	}
 	for (var i=1;i<nbFrames;i++) {
@@ -10464,6 +10547,24 @@ function render() {
 		})(i);
 	}
 	renderFrame(1);
+}
+function hideLapSprites(lMap, getId) {
+	for (var j=0;j<lMap.arme.length;j++) {
+		var fSprite = lMap.arme[j];
+		var fItems = fSprite[2];
+		for (var k=0;k<fItems.box.length;k++) {
+			var kSprite = fItems.box[k];
+			kSprite[getId].div.style.display = "none";
+		}
+	}
+	if (lMap.decor) {
+		for (var type in lMap.decor) {
+			for (var i=0;i<lMap.decor[type].length;i++) {
+				var decor = lMap.decor[type][i];
+				decor[2][getId].div.style.display = "none";
+			}
+		}
+	}
 }
 function makeSpriteExplode(fSprite,defaultTeam,k) {
 	var src = "explosion";
@@ -14456,7 +14557,7 @@ function getRankScore(oKart) {
 		var xLine = iLine.A[0] + hLine*iLine.u[0], yLine = iLine.A[1] + hLine*iLine.u[1];
 		var dLine = Math.hypot(xLine-oKart.x, yLine-oKart.y);
 
-		return oKart.tours*oMap.maxCheckpoints.length + getCpScore(oKart) - dLine / 10000;
+		return oKart.tours*oMap.maxCheckpoints + getCpScore(oKart) - dLine / 10000;
 	}
 	else
 		return oKart.ballons.length ? oKart.ballons.length+oKart.reserve : 0;
@@ -16250,7 +16351,10 @@ function move(getId, triggered) {
 		if (checkpoint(oKart, fMoveX,fMoveY)) {
 			var nbjoueurs = aKarts.length;
 			oKart.demitours = getNextCp(oKart);
+			var prevLap = oKart.tours;
 			oKart.tours++;
+			if (kartIsPlayer(oKart))
+				handleLapChange(prevLap, getScreenPlayerIndex(getId));
 
 			var lastCp = lMap.checkpointCoords[0];
 			if (lMap.sections)
@@ -17498,7 +17602,7 @@ function processCode(cheatCode) {
 		if (isLap[1] == "c")
 			t = oPlayer.tours;
 		if (!isLap[1]) {
-			t = lMap.tours;
+			t = oMap.tours;
 			var lMap = getCurrentLMap(t-1);
 			c = lMap.checkpoint.length-1;
 		}
@@ -17510,9 +17614,11 @@ function processCode(cheatCode) {
 		}
 		if (isNaN(t) || isNaN(c))
 			return false;
+		var prevLap = oPlayer.tours;
 		oPlayer.tours = t;
 		oPlayer.demitours = c;
 		updateLapHud(0);
+		handleLapChange(prevLap, 0);
 		return true;
 	}
 	if (cheatCode == "pos") {
@@ -18283,6 +18389,8 @@ function moveDecor() {
 						decorPos[type].push({aX:decor[i][0],aY:decor[i][1],x:decor[i][0],y:decor[i][1],vX:0,vY:0});
 				}
 			}
+			for (var type in decorBehaviors)
+				decorBehaviors[type].ctx.lMap = lMap;
 			var decorIncs = {};
 			for (var type in lMap.decor) {
 				var decor = lMap.decor[type];
