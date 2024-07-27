@@ -2183,7 +2183,7 @@ function dropNewItem(oKart, item) {
 		item.vx = 0; item.vy = 0; item.owner = -1; item.lives = 10;
 		break;
 	case "carapace-rouge":
-		item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.target = -1;
+		item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.ailap = 0; item.target = -1;
 		break;
 	}
 	addNewItem(oKart, item);
@@ -2403,13 +2403,13 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "carapacerouge" :
-			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, target:-1});
+			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: 0, target:-1});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapacerougeX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, target:-1});
+				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: 0, target:-1});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
@@ -2417,20 +2417,21 @@ function arme(ID, backwards, forwards) {
 			case "carapacebleue" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
 			if (course != "BB") {
-				// TODO reset every turn
-				for (var i=0;i<oMap.airoutesmeta.cpu;i++) {
-					var aipoints = oMap.aipoints[i];
+				var lapId = getCurrentLapId(oKart);
+				var lMap = getCurrentLMap(lapId);
+				var demitour = oKart.demitours+1;
+				if (demitour >= lMap.checkpoint.length)
+					demitour = 0;
+				for (var i=0;i<lMap.airoutesmeta.cpu;i++) {
+					var aipoints = lMap.aipoints[i];
 					for (var j=0;j<aipoints.length;j++) {
 						var aipoint = aipoints[j];
 						var lastAipoint = aipoints[(j?j:aipoints.length)-1];
 						var dist = Math.hypot(aipoint[0]-oKart.x,aipoint[1]-oKart.y);
 						var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
 						if (!isFront)
-							dist += oMap.w+oMap.h;
-						var demitour = oKart.demitours+1;
-						if (demitour >= oMap.checkpoint.length)
-							demitour = 0;
-						var nextCp = oMap.checkpointCoords[demitour];
+							dist += lMap.w+lMap.h;
+						var nextCp = lMap.checkpointCoords[demitour];
 						if (nextCp) {
 							var cpX = nextCp.O[0], cpY = nextCp.O[1];
 							var ddist = Math.hypot(cpX-oKart.x,cpY-oKart.y)*Math.hypot(aipoint[0]-lastAipoint[0],aipoint[1]-lastAipoint[1]);
@@ -2445,7 +2446,10 @@ function arme(ID, backwards, forwards) {
 					}
 				}
 			}
-			addNewItem(oKart, {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, cooldown:itemBehaviors["carapace-bleue"].cooldown0});
+			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
+			if ((item.aipoint <= 1) && (oKart.demitours >= lMap.checkpoint.length/2))
+				itemBehaviors["carapace-bleue"]._incAiLap(item);
+			addNewItem(oKart, item);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -2552,6 +2556,7 @@ function arme(ID, backwards, forwards) {
 	else {
 		var posX = oKart.x;
 		var posY = oKart.y;
+		collisionLap = getCurrentLapId(oKart);
 
 		switch(oKart.using[0].type) {
 			case "banane" :
@@ -2595,10 +2600,11 @@ function arme(ID, backwards, forwards) {
 				if (oKart.using.length > 1)
 					shiftDist *= 4/3;
 			}
+			var lapId = getCurrentLapId(oKart);
 			if (backwards)
-				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,target:-1});
+				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,target:-1});
 			else
-				throwItem(oKart, {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,target:-1});
+				throwItem(oKart, {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,target:-1});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -3256,39 +3262,7 @@ function startGame() {
 				oEnemy.cpu = false;
 		}
 
-		// TODO reset every turn
-		var iPt = inc%oMap.airoutesmeta.cpu;
-		oEnemy.aipoints = oMap.aipoints[iPt]||[];
-		if (oMap.aishortcuts && oMap.aishortcuts[iPt]) {
-			var validShortcuts = {};
-			var isValidShortcuts = false;
-			for (var k=0;k<oMap.aishortcuts[iPt].length;k++) {
-				var aishortcut = oMap.aishortcuts[iPt][k];
-				var startPt = aishortcut[0];
-				aishortcut = aishortcut.slice(1);
-				if (!aishortcut[2]) aishortcut[2] = {};
-				var aiOptions = aishortcut[2];
-				if (aiOptions.items == null) aiOptions.items = ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
-				if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
-				if (aiOptions.cc == null) aiOptions.cc = 150;
-				if (aiOptions.ccm == null) aiOptions.ccm = 1000;
-				var minDifficulty = 4 + aiOptions.difficulty*0.5;
-				var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
-				var maxSelectedClass = getRelSpeedFromCc(aiOptions.ccm);
-				if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass) && (fSelectedClass <= maxSelectedClass)) {
-					isValidShortcuts = true;
-					if (!aiOptions.itemsDict) {
-						var oItems = {};
-						for (var j=0;j<aiOptions.items.length;j++)
-							oItems[aiOptions.items[j]] = 1;
-						aiOptions.itemsDict = oItems;
-					}
-					validShortcuts[startPt] = aishortcut;
-				}
-			}
-			if (isValidShortcuts)
-				oEnemy.aishortcuts = validShortcuts;
-		}
+		initAiPoints(oMap, oEnemy, inc);
 
 		if (isOnline)
 			oEnemy.nick = aPseudos[inc];
@@ -7462,7 +7436,7 @@ var itemBehaviors = {
 	},
 	"carapace-rouge": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),intType("target")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),intType("target")],
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
@@ -7543,22 +7517,26 @@ var itemBehaviors = {
 							if (fDist > 75) {
 								fSprite.target = -1;
 								fSprite.aipoint	= -1;
-								fSprite.aimap	= -1;
+								fSprite.aimap = -1;
 							}
 						}
 					}
 					else {
 						var fMoveX, fMoveY;
-						// TODO reset every turn
 						if (fSprite.aipoint >= 0) {
-							var iLocal = oMap.aipoints[fSprite.aimap];
+							var lMap = getCurrentLMap(fSprite.ailap);
+							var iLocal = lMap.aipoints[fSprite.aimap];
 							var oBox = iLocal[fSprite.aipoint];
 							fMoveX = oBox[0] - fSprite.x;
 							fMoveY = oBox[1] - fSprite.y;
 							var fDist2 = fMoveX*fMoveX + fMoveY*fMoveY;
 							if (fDist2 < 100) {
 								if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
-								else fSprite.aipoint = 0;
+								else {
+									fSprite.aipoint = 0;
+									var itemBehavior = itemBehaviors["carapace-rouge"];
+									itemBehavior._incAiLap(fSprite);
+								}
 							}
 							var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/dSpeed;
 							fMoveX /= fNewMove;
@@ -7568,8 +7546,9 @@ var itemBehaviors = {
 							if (fSprite.aipoint == -1) {
 								if (course != "BB") {
 									var minDist = 2000;
-									for (var j=0;j<oMap.airoutesmeta.cpu;j++) {
-										var iLocal = oMap.aipoints[j];
+									var lMap = getCurrentLMap(fSprite.ailap);
+									for (var j=0;j<lMap.airoutesmeta.cpu;j++) {
+										var iLocal = lMap.aipoints[j];
 										for (var k=0;k<iLocal.length;k++) {
 											var oBox = iLocal[k];
 											var knc = (k+1)%iLocal.length;
@@ -7585,6 +7564,16 @@ var itemBehaviors = {
 													minDist = fDist2;
 												}
 											}
+										}
+									}
+									if (fSprite.aipoint <= 1) {
+										var tOwner = aKarts.find(function(oKart) {
+											return oKart.id == fSprite.owner;
+										});
+										if (tOwner) {
+											var lapId = getCurrentLapId(tOwner);
+											if ((lapId > fSprite.ailap) || (tOwner.demitours >= lMap.checkpoint.length/2))
+												itemBehaviors["carapace-rouge"]._incAiLap(fSprite);
 										}
 									}
 								}
@@ -7656,12 +7645,16 @@ var itemBehaviors = {
 						fNewPosY = fTeleport[1];
 						fSprite.theta = fTeleport[2]*90;
 						if (fSprite.aipoint >= 0) {
-							var aipoints = oMap.aipoints[fSprite.aimap];
+							var lMap = getCurrentLMap(fSprite.ailap);
+							var aipoints = lMap.aipoints[fSprite.aimap];
 							var aipoint = aipoints[fSprite.aipoint];
 							if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
 								fSprite.aipoint++;
-								if (fSprite.aipoint >= aipoints.length)
+								if (fSprite.aipoint >= aipoints.length) {
 									fSprite.aipoint = 0;
+									var itemBehavior = itemBehaviors["carapace-rouge"];
+									itemBehavior._incAiLap(fSprite);
+								}
 							}
 						}
 					}
@@ -7703,6 +7696,7 @@ var itemBehaviors = {
 				}
 				collisionItem = fSprite;
 				collisionFloor = null;
+				collisionLap = fSprite.ailap;
 				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
@@ -7723,11 +7717,17 @@ var itemBehaviors = {
 				if (!friendlyHit(oKart.team, fSprite.team))
 					handleHardHit(getId);
 			}
+		},
+		_incAiLap: function(fSprite) {
+			fSprite.ailap++;
+			var lMap = getCurrentLMap(fSprite.ailap);
+			fSprite.aimap = fSprite.aimap % lMap.aipoints.length;
+			fSprite.aipoint = Math.min(fSprite.aipoint, lMap.aipoints[fSprite.aimap].length-1);
 		}
 	},
 	"carapace-bleue": {
 		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),byteType("ailap")],
 		fadedelay: 0,
 		cooldown0: 15,
 		cooldown1: 2,
@@ -7748,13 +7748,16 @@ var itemBehaviors = {
 				fSprite.x = fTeleport[0];
 				fSprite.y = fTeleport[1];
 				if (fSprite.aipoint != -1) {
-					// TODO reset every turn
-					var aipoints = oMap.aipoints[fSprite.aimap];
+					var lMap = getCurrentLMap(fSprite.ailap);
+					var aipoints = lMap.aipoints[fSprite.aimap];
 					var aipoint = aipoints[fSprite.aipoint];
 					if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
 						fSprite.aipoint++;
-						if (fSprite.aipoint >= aipoints.length)
+						if (fSprite.aipoint >= aipoints.length) {
 							fSprite.aipoint = 0;
+							var itemBehavior = itemBehaviors["carapace-bleue"];
+							itemBehavior._incAiLap(fSprite);
+						}
 					}
 				}
 			}
@@ -7832,7 +7835,8 @@ var itemBehaviors = {
 			else {
 				var isBB = (course == "BB");
 				if (!isBB) {
-					var aipoints = oMap.aipoints[fSprite.aimap];
+					var lMap = getCurrentLMap(fSprite.ailap);
+					var aipoints = lMap.aipoints[fSprite.aimap];
 					var dSpeed = 15*relSpeed;
 					var aX = fSprite.x, aY = fSprite.y;
 					while (dSpeed > 0) {
@@ -7848,8 +7852,11 @@ var itemBehaviors = {
 							fSprite.x = target[0];
 							fSprite.y = target[1];
 							fSprite.aipoint++;
-							if (fSprite.aipoint === aipoints.length)
+							if (fSprite.aipoint === aipoints.length) {
 								fSprite.aipoint = 0;
+								var itemBehavior = itemBehaviors["carapace-bleue"];
+								itemBehavior._incAiLap(fSprite);
+							}
 						}
 					}
 				}
@@ -7928,6 +7935,12 @@ var itemBehaviors = {
 				}
 				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
 			}
+		},
+		_incAiLap: function(fSprite) {
+			fSprite.ailap++;
+			var lMap = getCurrentLMap(fSprite.ailap);
+			fSprite.aimap = fSprite.aimap % lMap.aipoints.length;
+			fSprite.aipoint = Math.min(fSprite.aipoint, lMap.aipoints[fSprite.aimap].length-1);
 		},
 		"del": function(item) {
 			nextBlueShellCooldown = 300;
@@ -9450,6 +9463,7 @@ var decorBehaviors = {
 									var pAsset;
 									collisionFloor = null;
 									collisionItem = null;
+									collisionLap = lMaps.indexOf(lMap);
 									if (pJump) {
 										var nSpeed = this.jumpspeed(pJump), nMove = 32*pJump;
 										var nMoveX = diffX*nMove/diffL, nMoveY = diffY*nMove/diffL;
@@ -10093,14 +10107,18 @@ function interpolateStateRound(x1,x2,tFrame) {
 var nbFrames = 1;
 var frameHandlers;
 var oSpecCam;
-function handleLapChange(prevLap, i) {
+function handleLapChange(prevLap, getId) {
 	if (!oMap.lapOverrides) return;
-	var oKart = getPlayerAtScreen(i);
+	var oKart = aKarts[getId];
 	var lMap = getCurrentLMap(getCurrentLapId({ tours: prevLap }));
 	var nMap = getCurrentLMap(getCurrentLapId(oKart));
 	if (lMap === nMap) return;
+	if (lMap.aipoints !== nMap.aipoints)
+		resetAiPoints(oKart);
+	var sID = getScreenPlayerIndex(getId);
+	if (sID >= oPlayers.length) return;
 	resetRenderState();
-	hideLapSprites(lMap, i);
+	hideLapSprites(lMap, sID);
 	if (oPlanDiv)
 		resetPlan(nMap);
 }
@@ -10108,6 +10126,50 @@ function resetRenderState() {
 	lastState = undefined;
 	for (var i=0;i<frameHandlers.length;i++)
 		clearTimeout(frameHandlers[i]);
+}
+function resetAiPoints(oKart) {
+	if (oKart.cpu) {
+		delete oKart.aishortcut;
+		var lMap = getCurrentLMap(getCurrentLapId(oKart));
+		initAiPoints(lMap, oKart, aKarts.indexOf(oKart));
+		oKart.aipoint = Math.min(oKart.aipoint, oKart.aipoints.length-1);
+	}
+	else
+		delete oKart.aipoint;
+}
+function initAiPoints(lMap, oKart, inc) {
+	var iPt = inc%lMap.airoutesmeta.cpu;
+	oKart.aipoints = lMap.aipoints[iPt]||[];
+	if (lMap.aishortcuts && lMap.aishortcuts[iPt]) {
+		var validShortcuts = {};
+		var isValidShortcuts = false;
+		for (var k=0;k<lMap.aishortcuts[iPt].length;k++) {
+			var aishortcut = lMap.aishortcuts[iPt][k];
+			var startPt = aishortcut[0];
+			aishortcut = aishortcut.slice(1);
+			if (!aishortcut[2]) aishortcut[2] = {};
+			var aiOptions = aishortcut[2];
+			if (aiOptions.items == null) aiOptions.items = ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
+			if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
+			if (aiOptions.cc == null) aiOptions.cc = 150;
+			if (aiOptions.ccm == null) aiOptions.ccm = 1000;
+			var minDifficulty = 4 + aiOptions.difficulty*0.5;
+			var minSelectedClass = getRelSpeedFromCc(aiOptions.cc);
+			var maxSelectedClass = getRelSpeedFromCc(aiOptions.ccm);
+			if ((iDificulty >= minDifficulty) && (fSelectedClass >= minSelectedClass) && (fSelectedClass <= maxSelectedClass)) {
+				isValidShortcuts = true;
+				if (!aiOptions.itemsDict) {
+					var oItems = {};
+					for (var j=0;j<aiOptions.items.length;j++)
+						oItems[aiOptions.items[j]] = 1;
+					aiOptions.itemsDict = oItems;
+				}
+				validShortcuts[startPt] = aishortcut;
+			}
+		}
+		if (isValidShortcuts)
+			oKart.aishortcuts = validShortcuts;
+	}
 }
 function render() {
 	var currentState = {
@@ -10548,20 +10610,20 @@ function render() {
 	}
 	renderFrame(1);
 }
-function hideLapSprites(lMap, getId) {
+function hideLapSprites(lMap, sID) {
 	for (var j=0;j<lMap.arme.length;j++) {
 		var fSprite = lMap.arme[j];
 		var fItems = fSprite[2];
 		for (var k=0;k<fItems.box.length;k++) {
 			var kSprite = fItems.box[k];
-			kSprite[getId].div.style.display = "none";
+			kSprite[sID].div.style.display = "none";
 		}
 	}
 	if (lMap.decor) {
 		for (var type in lMap.decor) {
 			for (var i=0;i<lMap.decor[type].length;i++) {
 				var decor = lMap.decor[type][i];
-				decor[2][getId].div.style.display = "none";
+				decor[2][sID].div.style.display = "none";
 			}
 		}
 	}
@@ -14690,8 +14752,7 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	var lapId = getCurrentLapId(kart);
 	var lMap = getCurrentLMap(lapId);
 	for (var i=0;i<lMap.checkpointCoords.length;i++) {
-		var nMap = i ? lMap : getCurrentLMap(lapId+1);
-		var oBox = nMap.checkpointCoords[i];
+		var oBox = lMap.checkpointCoords[i];
 		var inRect = pointInQuad(kart.x,kart.y, oBox);
 		if (!inRect && fast) {
 			if (secants(aPos[0],aPos[1],kart.x,kart.y, oBox.A[0],oBox.A[1], oBox.B[0],oBox.B[1]))
@@ -15018,13 +15079,14 @@ function resetDatas() {
 							oKart.champiType = CHAMPI_TYPE_ITEM;
 						else if (!oKart.champi)
 							delete oKart.champiType;
-						if (oKart.aipoint >= oKart.aipoints.length)
-							oKart.aipoint = 0;
 						if (aTours !== oKart.tours) {
 							var sID = getScreenPlayerIndex(j);
 							if (sID < oPlayers.length)
 								updateLapHud(sID);
+							handleLapChange(aTours, j);
 						}
+						if (oKart.aipoint >= oKart.aipoints.length)
+							oKart.aipoint = 0;
 						if (aReserve !== oKart.reserve) {
 							var sID = getScreenPlayerIndex(j);
 							if (sID < oPlayers.length)
@@ -15113,6 +15175,7 @@ function resetDatas() {
 					updatedItem[2] = 0;
 				}
 			}
+			var lapId = getCurrentLapId(getPlayerAtScreen(0));
 			for (var i=0;i<updatedItems.length;i++) {
 				var updatedItem = updatedItems[i];
 				var uId = updatedItem[0];
@@ -15183,6 +15246,7 @@ function resetDatas() {
 						}
 						var ctx = {onlineSync: true, checkCollisions: checkLocalCollisions};
 						collisionTest = COL_OBJ;
+						collisionLap = lapId;
 						for (var k=start;k<end;k++) {
 							if (uItem.deleted)
 								break;
@@ -16353,8 +16417,7 @@ function move(getId, triggered) {
 			oKart.demitours = getNextCp(oKart);
 			var prevLap = oKart.tours;
 			oKart.tours++;
-			if (kartIsPlayer(oKart))
-				handleLapChange(prevLap, getScreenPlayerIndex(getId));
+			handleLapChange(prevLap, getId);
 
 			var lastCp = lMap.checkpointCoords[0];
 			if (lMap.sections)
@@ -16374,6 +16437,9 @@ function move(getId, triggered) {
 					lapTimerSum += lapTimers[i];
 				lapTimers.push(lapTimer-lapTimerSum);
 			}
+
+			collisionLap++;
+			lMap = getCurrentLMap(collisionLap);
 
 			var sID = getScreenPlayerIndex(getId);
 			if (oKart.tours == (oMap.tours+1)) {
@@ -16408,6 +16474,7 @@ function move(getId, triggered) {
 					if ($speedometers[getId])
 						$speedometers[getId].style.display = "none";
 					oKart.aipoint = 0;
+					oKart.aipoints = lMap.aipoints[0];
 					oKart.lastAItime = 0;
 					oKart.maxspeed = 5.7;
 					oKart.maxspeed0 = oKart.maxspeed;
@@ -17787,6 +17854,7 @@ function ai(oKart) {
 	if (!oKart.aipoints.length) return;
 
 	var distToAim = 0, angleToAim = 2*Math.PI, speedToAim = 0; // used for item
+	collisionLap = getCurrentLapId(oKart);
 
 	for (var f=0;f<oKart.aipoints.length;f++) {
 		var lastAi, currentAi, nextAi;
@@ -18366,9 +18434,11 @@ function moveItems() {
 	if (nextBlueShellCooldown)
 		nextBlueShellCooldown--;
 
+	var lapId = getCurrentLapId(getPlayerAtScreen(0));
 	for (var key in itemBehaviors) {
 		var moveFn = itemBehaviors[key].move;
 		if (moveFn) {
+			collisionLap = lapId;
 			var kItems = items[key];
 			for (var i=kItems.length-1;i>=0;i--) {
 				if (kItems[i])
@@ -18718,6 +18788,8 @@ function runOneFrame() {
 				else {
 					oKart.cpu = true;
 					oKart.aipoint = 0;
+					var lMap = getCurrentLMap(oMap.tours);
+					oKart.aipoints = lMap.aipoints[0];
 					oKart.tours = oMap.tours+1;
 					oKart.demitours = 0;
 					oKart.lastAItime = 0;
