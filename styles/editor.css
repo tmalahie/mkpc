@@ -1104,6 +1104,7 @@ embed,#ytplayer {
 }
 #lapoverride-current select {
 	font-size: 0.8em;
+	width: 64px;
 }
 .button-lapoptions {
 	margin-top: 4px;

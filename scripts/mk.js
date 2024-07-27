@@ -1837,10 +1837,9 @@ function initMap() {
 	var oMapImg;
 	foreachLMap(function(lMap,pMap) {
 		var isMain = (lMap === oMap);
-		if (!isMain && !pMap.img) {
-			lMap.mapImg = oMapImg;
+		lMap.mapImg = oMapImg;
+		if (!isMain && !pMap.img)
 			return;
-		}
 		var mapSrc = isCup ? (complete ? lMap.img:"mapcreate.php"+ lMap.map):"images/maps/map"+lMap.map+"."+lMap.ext;
 		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
 			if (gameSettings.nogif) {
@@ -1857,22 +1856,35 @@ function initMap() {
 			}
 			else {
 				oMapImg = GIF();
-				if (isMain)
+				if (isMain) {
+					lMap.mapImg = oMapImg;
 					oMapImg.onloadone = startGame;
-				oMapImg.onloadall = function() {
-					if (oPlanImg) oPlanImg.src = mapSrc;
-					if (oPlanImg2) oPlanImg2.src = mapSrc;
+					oMapImg.onloadall = function() {
+						if (oPlanImg) oPlanImg.src = mapSrc;
+						if (oPlanImg2) oPlanImg2.src = mapSrc;
+					}
+				}
+				else {
+					oMapImg.onloadone = function() {
+						lMap.mapImg = oMapImg;
+					}
 				}
 				oMapImg.load(mapSrc);
 			}
 		}
 		else {
 			oMapImg = new Image();
-			if (isMain)
+			if (isMain) {
+				lMap.mapImg = oMapImg;
 				oMapImg.onload = startGame;
+			}
+			else {
+				oMapImg.onload = function() {
+					lMap.mapImg = oMapImg;
+				}
+			}
 			oMapImg.src = mapSrc;
 		}
-		lMap.mapImg = oMapImg;
 	});
 	oMap.maxCheckpoints = 0;
 	oMap.minCheckpoints = Infinity;

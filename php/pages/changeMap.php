@@ -16,8 +16,8 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 	$baseCircuitImg = json_decode($circuit['img_data']);
 	$circuitImg = $baseCircuitImg;
 	if ($lap) {
-		if (isset($circuitImg->lapOverrides[$lap]))
-			$circuitImg = $circuitImg->lapOverrides[$lap];
+		if (isset($circuitImg->lapOverrides->{$lap}))
+			$circuitImg = $circuitImg->lapOverrides->{$lap};
 		else
 			$newImg = true;
 	}
@@ -55,15 +55,18 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 						}
 						$circuitImg = getCircuitImgData($circuitPath,$circuitUrl,$isUploaded);
 						if ($lap) {
-							$baseCircuitImg->lapOverrides[$lap] = $circuitImg;
+							if (!isset($baseCircuitImg->lapOverrides))
+								$baseCircuitImg->lapOverrides = new stdClass();
+							$baseCircuitImg->lapOverrides->{$lap} = $circuitImg;
 							$circuitImgRaw = mysql_real_escape_string(json_encode($baseCircuitImg));
 						}
 						else
 							$circuitImgRaw = mysql_real_escape_string(json_encode($circuitImg));
 						mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
-						require_once('../includes/cache_creations.php');
-						if (!$lap)
+						if (!$lap) {
+							require_once('../includes/cache_creations.php');
 							@unlink(cachePath($isrc.$id.'.png'));
+						}
 						$success = 2;
 						$newImg = false;
 					}
@@ -74,6 +77,16 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 			else $error = $language ? 'You image mustn\'t exceed '.filesize_str($maxUploadSize):'Votre image ne doit pas dépasser '.filesize_str($maxUploadSize);
 		}
 	else $error = $language ? 'An error occured. Please try again':'Une erreur est survenue, veuillez réessayez';
+	}
+	elseif (isset($_GET['delete']) && $lap && !$newImg) {
+		deleteCircuitFile($circuitImg);
+		unset($baseCircuitImg->lapOverrides->{$lap});
+		$circuitImgRaw = mysql_real_escape_string(json_encode($baseCircuitImg));
+		$circuitImg = $baseCircuitImg;
+		mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
+		$success = 3;
+		$newImg = true;
+		unset($_GET['delete']);
 	}
 }
 mysql_close();
@@ -115,6 +128,12 @@ legend {
 .import-fields input {
 	display: none;
 	width: 98%;
+}
+.del-override {
+	color: #C24;
+}
+.del-override:hover {
+	color: #D35;
 }
 #fenetre {
 	position: fixed;
@@ -201,24 +220,30 @@ function updateImportFields(elt) {
 	document.getElementById('modifier').disabled = true;
 	$field.focus();
 }
+function confirmRemoveOverride() {
+	return confirm("<?php echo $language ? "Remove image lap override?":"Supprimer la modification d'image pour ce tour ?"; ?>");
+}
 </script>
 </head>
 <body onkeydown="window.parent.handleKeySortcuts(event)">
 <p id="fenetre"><input type="button" value="&times;" onclick="window.parent.document.getElementById('mask-image').close()" /></p>
 <?php
 if ($success) {
+	$callbackMethod = $success == 3 ? 'handleImageDelete' : 'handleImageUpdate';
 	?>
 <p id="success"><?php echo $language ? "The image has been changed successfully":"L'image a &eacute;t&eacute; modifi&eacute;e avec succ&egrave;s !"; ?></p>
 <script type="text/javascript">
-image.src = <?php echo json_encode(getCircuitImgUrl($circuitImg)); ?>;
-image.onload = function() {
-	this.style.width = this.naturalWidth+"px";
-	this.style.height = "";<?php
-	if ($success!=2) echo 'window.parent.'.(isset($_GET['pivot']) ? 'rotateImg('.($_GET['pivot']+1).');':'resizeImg('.floatval($_GET['x']).','.floatval($_GET['y']).');');
-	else echo 'window.parent.imgSize.w=this.naturalWidth;window.parent.imgSize.h=this.naturalHeight;';
+window.parent.<?php echo $callbackMethod; ?>(<?php echo $lap; ?>, <?php echo json_encode(getCircuitImgUrl($circuitImg)); ?>, function() {
+	<?php
+	switch ($success) {
+	case 2:
+	case 3:
+		break;
+	default:
+		echo 'window.parent.'.(isset($_GET['pivot']) ? 'rotateImg('.($_GET['pivot']+1).');':'resizeImg('.floatval($_GET['x']).','.floatval($_GET['y']).');');
+	}
 	?>
-	this.onload = undefined;
-}
+});
 </script>
 	<?php
 }
@@ -243,7 +268,11 @@ else
 if ($lap)
 	echo '<input type="hidden" name="lap" value="'.$lap.'" />';
 ?>
-<input type="submit" value="<?php echo $language ? 'Send':'Valider'; ?>" id="modifier" disabled="disabled" /></p>
+<input type="submit" value="<?php echo $language ? 'Send':'Valider'; ?>" id="modifier" disabled="disabled" />
+<?php
+if ($lap && !$newImg)
+	echo '&nbsp;<a class="del-override" href="changeMap.php?'. http_build_query($_GET) .'&amp;delete" onclick="return confirmRemoveOverride()">'. ($language ? "Remove image override" : "Supprimer l'image") .'</a>';
+?></p>
 </fieldset>
 </form>
 <?php

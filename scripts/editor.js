@@ -3069,14 +3069,25 @@ function selectLapOverride(newLapOverride, opts) {
 		if (editorTool.postrestore)
 			editorTool.postrestore(editorTool);
 	}
+	updateEditorImg();
+}
+function updateEditorImg(callback) {
 	if (imgData.lapOverrides) {
 		var lapOverride;
 		for (var lapId=selectedLapOverride;lapId>=0;lapId--) {
 			lapOverride = imgData.lapOverrides[lapId];
 			if (lapOverride) break;
 		}
-		console.log(lapOverride);
-		document.getElementById("editor-img").src = lapOverride.src;
+		var $editorImg = document.getElementById("editor-img");
+		$editorImg.src = lapOverride.src;
+		$editorImg.onload = function() {
+			this.style.width = this.naturalWidth+"px";
+			this.style.height = "";
+			imgSize.w = this.naturalWidth;
+			imgSize.h = this.naturalHeight;
+			if (callback) callback();
+			this.onload = undefined;
+		}
 	}
 }
 function storeCurrentLapOverride() {
@@ -3762,6 +3773,19 @@ function resizeImg(scaleX,scaleY) {
 			editorTool.rescale(editorTool,scale);
 	}
 	changes = true;
+}
+function handleImageUpdate(lapId, src, callback) {
+	if (lapId)
+		imgData.lapOverrides = imgData.lapOverrides || {};
+	if (imgData.lapOverrides)
+		imgData.lapOverrides[lapId] = { src: src };
+	updateEditorImg(callback);
+}
+function handleImageDelete(lapId, callback) {
+	if (imgData.lapOverrides) {
+		delete imgData.lapOverrides[lapId];
+		updateEditorImg(callback);
+	}
 }
 function saveData() {
 	storeCurrentLapOverride();
