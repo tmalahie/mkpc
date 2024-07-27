@@ -7,13 +7,13 @@ $printCircuitData = function($circuit) {
 		return;
 	$circuitMainData = $circuitPayload->main;
 	echo '{';
-	printCircuitPart($circuit, $circuitPayload);
+	printCircuitPart($circuit, 0,$circuitPayload);
 	if (isset($circuitPayload->lapOverrides)) {
 		echo ',"lapOverrides":{';
 		$v = '';
 		foreach ($circuitPayload->lapOverrides as $lapKey => $lapData) {
 			echo $v.'"'.$lapKey.'":{';
-			printCircuitPart(array(), $lapData);
+			printCircuitPart(array(), $lapKey,$lapData);
 			echo '}';
 			$v = ',';
 		}
@@ -21,7 +21,7 @@ $printCircuitData = function($circuit) {
 	}
 	echo '}';
 };
-function printCircuitPart($circuit, $circuitPayload) {
+function printCircuitPart($circuit, $lapId,$circuitPayload) {
 	$circuitMainData = $circuitPayload->main;
 	$circuitImg = isset($circuit['img_data']) ? json_decode($circuit['img_data']) : null;
 	if (isset($circuit['ID'])) echo '"map": '.$circuit['ID'].',';
@@ -72,10 +72,13 @@ if (isset($circuitMainData->startposition)) {
 "startdirection" : <?php echo empty($circuitMainData->startdirection)?1:0; ?>,
 	<?php
 }
-if (isset($circuitPayload->aipoints))
+if (isset($circuitPayload->aipoints)) {
 	echo '"aipoints":'.json_encode($circuitPayload->aipoints).',';
-if (isset($circuitPayload->aishortcuts)) echo '"aishortcuts":'. json_encode($circuitPayload->aishortcuts) .',';
-if (isset($circuitPayload->airoutesmeta)) echo '"airoutesmeta":'. json_encode($circuitPayload->airoutesmeta) .',';
+	if (isset($circuitPayload->aishortcuts)) echo '"aishortcuts":'. json_encode($circuitPayload->aishortcuts) .',';
+	elseif ($lapId) echo '"aishortcuts":undefined,';
+	if (isset($circuitPayload->airoutesmeta)) echo '"airoutesmeta":'. json_encode($circuitPayload->airoutesmeta) .',';
+	elseif ($lapId) echo '"airoutesmeta":undefined,';
+}
 if (isset($circuitPayload->collision)) {
 	?>
 "collision" : <?php
@@ -89,8 +92,9 @@ if (isset($circuitPayload->collision)) {
 	echo json_encode($circuitPayload->collision);
 ?>,
 	<?php
-}
 if (isset($circuitPayload->collisionProps)) echo '"collisionProps":'. json_encode($circuitPayload->collisionProps) .',';
+elseif ($lapId) echo '"collisionProps":undefined,';
+}
 if (isset($circuitPayload->horspistes)) {
 	?>
 "horspistes" : <?php
@@ -154,6 +158,8 @@ if (!empty($circuitPayload->decorparams)) {
 	?>,
 "decorparams" : <?php echo json_encode($circuitPayload->decorparams);
 	}
+	elseif ($lapId)
+		echo ',"decorparams":undefined';
 }
 if (!empty($circuitPayload->assets)) {
 	$assetTypes = array('pointers', 'flippers', 'bumpers','oils');

@@ -10130,6 +10130,7 @@ function resetRenderState() {
 function resetAiPoints(oKart) {
 	if (oKart.cpu) {
 		delete oKart.aishortcut;
+		delete oKart.aishortcuts;
 		var lMap = getCurrentLMap(getCurrentLapId(oKart));
 		initAiPoints(lMap, oKart, aKarts.indexOf(oKart));
 		oKart.aipoint = Math.min(oKart.aipoint, oKart.aipoints.length-1);
