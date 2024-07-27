@@ -28,6 +28,20 @@ if (isset($_GET['i'])) {
 				$circuitData = gzuncompress($getCircuitData['data']);
 			$circuitImg = json_decode($circuit['img_data']);
 			require_once('../includes/circuitImgUtils.php');
+			$circuitImgSrc = getCircuitImgUrl($circuitImg);
+			$circuitImgPayload = array();
+			if (isset($circuitImg->lapOverrides)) {
+				$circuitImgPayload['lapOverrides'] = array(
+					'0' => array(
+						'src' => getCircuitImgUrl($circuitImg)
+					)
+				);
+				foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
+					$circuitImgPayload['lapOverrides'][$lap] = array(
+						'src' => getCircuitImgUrl($lapImg)
+					);
+				}
+			}
 			?>
 <!DOCTYPE html> 
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
@@ -43,6 +57,7 @@ if (isset($_GET['i'])) {
 		var musicOptions = <?php echo json_encode($musicOptions); ?>;
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
+		var imgData = <?php echo json_encode($circuitImgPayload); ?>;
 		var isBattle = false;
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
@@ -56,7 +71,7 @@ if (isset($_GET['i'])) {
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?> oncontextmenu="handleCtxmenu(event)" onmousemove="handleMove(event)" onclick="handleClick(event)">
 			<div id="editor-ctn">
-				<img id="editor-img" src="<?php echo getCircuitImgUrl($circuitImg); ?>" alt="Circuit" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
+				<img id="editor-img" src="<?php echo $circuitImgSrc; ?>" alt="Circuit" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
 				<svg id="editor" class="editor" />
 			</div>
 		</div>

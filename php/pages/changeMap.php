@@ -4,14 +4,23 @@ include('../includes/getId.php');
 include('../includes/initdb.php');
 include('../includes/language.php');
 $success = (isset($_GET['x'])&&isset($_GET['y']))+isset($_GET['pivot']);
+$lap = isset($_GET['lap']) ? intval($_GET['lap']):0;
 $src = isset($_GET['arenes']) ? 'course':'map';
 $db = isset($_GET['arenes']) ? 'arenes':'circuits';
+$newImg = false;
 $isrc = isset($_GET['arenes']) ? 'coursepreview':'racepreview';
 require_once('../includes/collabUtils.php');
 $requireOwner = !hasCollabGrants($db, $id, $_GET['collab'], 'edit');
 if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,identifiant2,identifiant3,identifiant4 FROM `'.$db.'` WHERE id="'.$id.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
 	require_once('../includes/circuitImgUtils.php');
-	$circuitImg = json_decode($circuit['img_data']);
+	$baseCircuitImg = json_decode($circuit['img_data']);
+	$circuitImg = $baseCircuitImg;
+	if ($lap) {
+		if (isset($circuitImg->lapOverrides[$lap]))
+			$circuitImg = $circuitImg->lapOverrides[$lap];
+		else
+			$newImg = true;
+	}
 	$ext = $circuitImg->ext;
 	include('../includes/uploadByUrl.php');
 	if (isset($_FILES['image'])) {
@@ -22,7 +31,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 			if ($poids < $maxUploadSize) {
 				if ($isUploaded) {
 					$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
-					$poids += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id,'identifiants'=>$ownerIds):array('circuit'=>$id,'identifiants'=>$ownerIds));
+					$poids += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id,'identifiants'=>$ownerIds):array('circuit'=>$id,'lap'=>$lap,'identifiants'=>$ownerIds));
 				}
 				if ($poids < file_total_quota($circuit)) {
 					$fileType = mime_content_type($_FILES['image']['tmp_name']);
@@ -33,7 +42,8 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 					);
 					if (isset($extensions[$fileType])) {
 						$ext = $extensions[$fileType];
-						deleteCircuitFile($circuitImg);
+						if (!$newImg)
+							deleteCircuitFile($circuitImg);
 						if ($isUploaded) {
 							$circuitUrl = $src.$id.'-'.time().'.'.$ext;
 							$circuitPath = CIRCUIT_BASE_PATH.$circuitUrl;
@@ -44,10 +54,18 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 							$circuitPath = $_FILES['image']['tmp_name'];
 						}
 						$circuitImg = getCircuitImgData($circuitPath,$circuitUrl,$isUploaded);
-						mysql_query('UPDATE `'.$db.'` SET img_data="'. mysql_real_escape_string(json_encode($circuitImg)) .'" WHERE id="'.$id.'"');
+						if ($lap) {
+							$baseCircuitImg->lapOverrides[$lap] = $circuitImg;
+							$circuitImgRaw = mysql_real_escape_string(json_encode($baseCircuitImg));
+						}
+						else
+							$circuitImgRaw = mysql_real_escape_string(json_encode($circuitImg));
+						mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
 						require_once('../includes/cache_creations.php');
-						@unlink(cachePath($isrc.$id.'.png'));
+						if (!$lap)
+							@unlink(cachePath($isrc.$id.'.png'));
 						$success = 2;
+						$newImg = false;
 					}
 					else $error = $language ? 'Your image must have the png, gif, jpg or jpeg format':'Votre image doit être au format png, gif, jpg ou jpeg';
 				}
@@ -221,11 +239,15 @@ else
 	<input type="file" name="image" style="display:inline-block" onchange="document.getElementById('modifier').disabled=!this.value" />
 	<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" oninput="document.getElementById('modifier').disabled=!this.value" />
 </div>
+<?php
+if ($lap)
+	echo '<input type="hidden" name="lap" value="'.$lap.'" />';
+?>
 <input type="submit" value="<?php echo $language ? 'Send':'Valider'; ?>" id="modifier" disabled="disabled" /></p>
 </fieldset>
 </form>
 <?php
-if ($circuitImg->local) {
+if (!$newImg && $circuitImg->local) {
 	?>
 <form method="post" action="redimensionne.php">
 <fieldset>

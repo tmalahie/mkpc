@@ -3069,6 +3069,15 @@ function selectLapOverride(newLapOverride, opts) {
 		if (editorTool.postrestore)
 			editorTool.postrestore(editorTool);
 	}
+	if (imgData.lapOverrides) {
+		var lapOverride;
+		for (var lapId=selectedLapOverride;lapId>=0;lapId--) {
+			lapOverride = imgData.lapOverrides[lapId];
+			if (lapOverride) break;
+		}
+		console.log(lapOverride);
+		document.getElementById("editor-img").src = lapOverride.src;
+	}
 }
 function storeCurrentLapOverride() {
 	var prevSelectedData = lapOverrides[selectedLapOverride].modesData;
@@ -3696,6 +3705,7 @@ function resetImageOptions() {
 }
 function showImageOptions() {
 	var $imageOptions = document.getElementById("image-options");
+	$imageOptions.src = "changeMap.php" + document.location.search + (selectedLapOverride ? ("&lap="+selectedLapOverride) : "");
 	document.body.removeChild($imageOptions);
 	var $mask = createMask();
 	$mask.id = "mask-image";
@@ -3885,7 +3895,7 @@ function restoreData(payload) {
 			console.log(e.stack);
 		}
 	}
-	if (payload.lapOverrides) {
+	if (payload && payload.lapOverrides) {
 		storeCurrentLapOverride();
 		for (var lapKey in payload.lapOverrides) {
 			var lapOverride = payload.lapOverrides[lapKey];

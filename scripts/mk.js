@@ -609,8 +609,13 @@ function removeSoundEffects() {
 	carSpark = undefined;
 }
 function clearResources() {
-	if (oMapImg && oMapImg.clear)
-		oMapImg.clear();
+	var oMapImg;
+	foreachLMap(function(lMap) {
+		if (lMap.mapImg === oMapImg) return;
+		oMapImg = lMap.mapImg;
+		if (oMapImg.clear)
+			oMapImg.clear();
+	});
 }
 function resetEvents() {
 	document.onmousedown = undefined;
@@ -843,8 +848,6 @@ if (pause) {
 	}
 }
 
-var oMapImg;
-
 function resetGame(strMap) {
 	oMap = oMaps[strMap];
 	loadMap();
@@ -866,7 +869,6 @@ var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = n
 var customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
 
 function posImg(elt, eltX,eltY,eltR, eltW, mapW) {
-	// TODO reset every turn
 	if (bSelectedMirror) {
 		eltX = oMap.w - eltX;
 		eltR = -eltR;
@@ -1304,6 +1306,7 @@ function initPlan(lMap) {
 	oPlanCtn2.style.width = oPlanWidth2 +"px";
 	oPlanCtn2.style.height = oPlanHeight2 +"px";
 
+	var oMapImg = lMap.mapImg;
 	if (oMapImg.src) {
 		oPlanImg = document.createElement("img");
 		oPlanImg.src = oMapImg.src;
@@ -1545,8 +1548,6 @@ var oChallengeCpts;
 var $speedometers = [], $speedometerVals = [];
 var assetKeys = ["oils","pivots","pointers", "flippers","bumpers","flowers"];
 function loadMap() {
-	// TODO reset every turn
-	var mapSrc = isCup ? (complete ? oMap.img:"mapcreate.php"+ oMap.map):"images/maps/map"+oMap.map+"."+oMap.ext;
 	gameSettings = localStorage.getItem("settings");
 	gameSettings = gameSettings ? JSON.parse(gameSettings) : {};
 	ctrlSettings = localStorage.getItem("settings.ctrl");
@@ -1577,35 +1578,6 @@ function loadMap() {
 			lastFrameTime = new Date().getTime();
 			regularCycle();
 		};
-	}
-
-	if (oMap.ext ? ("gif" === oMap.ext) : mapSrc.match(/\.gif$/g)) {
-		if (gameSettings.nogif) {
-			var oGif = new Image();
-			oGif.onload = function() {
-				oMapImg = document.createElement("canvas");
-				oMapImg.width = oGif.naturalWidth;
-				oMapImg.height = oGif.naturalHeight;
-				var oMapCtx = oMapImg.getContext("2d");
-				oMapCtx.drawImage(oGif, 0,0);
-				startGame();
-			};
-			oGif.src = mapSrc;
-		}
-		else {
-			oMapImg = GIF();
-			oMapImg.onloadone = startGame;
-			oMapImg.onloadall = function() {
-				if (oPlanImg) oPlanImg.src = mapSrc;
-				if (oPlanImg2) oPlanImg2.src = mapSrc;
-			}
-			oMapImg.load(mapSrc);
-		}
-	}
-	else {
-		oMapImg = new Image();
-		oMapImg.onload = startGame;
-		oMapImg.src = mapSrc;
 	}
 	
 	if (strPlayer.length > 1)
@@ -1862,6 +1834,46 @@ function initMap() {
 			pMaps[i] = {};
 		}
 	}
+	var oMapImg;
+	foreachLMap(function(lMap,pMap) {
+		var isMain = (lMap === oMap);
+		if (!isMain && !pMap.img) {
+			lMap.mapImg = oMapImg;
+			return;
+		}
+		var mapSrc = isCup ? (complete ? lMap.img:"mapcreate.php"+ lMap.map):"images/maps/map"+lMap.map+"."+lMap.ext;
+		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
+			if (gameSettings.nogif) {
+				var oGif = new Image();
+				oGif.onload = function() {
+					oMapImg = document.createElement("canvas");
+					oMapImg.width = oGif.naturalWidth;
+					oMapImg.height = oGif.naturalHeight;
+					var oMapCtx = oMapImg.getContext("2d");
+					oMapCtx.drawImage(oGif, 0,0);
+					startGame();
+				};
+				oGif.src = mapSrc;
+			}
+			else {
+				oMapImg = GIF();
+				if (isMain)
+					oMapImg.onloadone = startGame;
+				oMapImg.onloadall = function() {
+					if (oPlanImg) oPlanImg.src = mapSrc;
+					if (oPlanImg2) oPlanImg2.src = mapSrc;
+				}
+				oMapImg.load(mapSrc);
+			}
+		}
+		else {
+			oMapImg = new Image();
+			if (isMain)
+				oMapImg.onload = startGame;
+			oMapImg.src = mapSrc;
+		}
+		lMap.mapImg = oMapImg;
+	});
 	oMap.maxCheckpoints = 0;
 	oMap.minCheckpoints = Infinity;
 	foreachLMap(function(lMap) {
@@ -4713,6 +4725,7 @@ function startGame() {
 	if (gameControls.gamepad) {
 		refreshGamepadHandler = setInterval(handleGamepadEvents, SPF);
 	}
+	var oMapImg = oMap.mapImg;
 	if (oMapImg.image) {
 		redrawCanvasHandler = setTimeout(function() {
 			redrawCanvasHandler = setInterval(function() {
@@ -6812,6 +6825,7 @@ function redrawCanvas(i, fCamera, lMap) {
 	oViewContext.rotate((180 + fCamera.rotation) * Math.PI / 180);
 
 	var posX = fCamera.x, posY = fCamera.y;
+	var oMapImg = lMap.mapImg;
 	if (oMapImg.image) {
 		oViewContext.drawImage(
 			oMapImg.image,
@@ -26597,7 +26611,7 @@ function choose(map,rand) {
 
 	if (bMusic) {
 		startMusicHandler = setInterval(function() {
-			if (oMapImg) {
+			if (oMap && oMap.mapImg) {
 				loadMapMusic();
 				clearInterval(startMusicHandler);
 			}

@@ -13,7 +13,7 @@ $printCircuitData = function($circuit) {
 		$v = '';
 		foreach ($circuitPayload->lapOverrides as $lapKey => $lapData) {
 			echo $v.'"'.$lapKey.'":{';
-			printCircuitPart(array(), $lapKey,$lapData);
+			printCircuitPart($circuit, $lapKey,$lapData);
 			echo '}';
 			$v = ',';
 		}
@@ -24,7 +24,13 @@ $printCircuitData = function($circuit) {
 function printCircuitPart($circuit, $lapId,$circuitPayload) {
 	$circuitMainData = $circuitPayload->main;
 	$circuitImg = isset($circuit['img_data']) ? json_decode($circuit['img_data']) : null;
-	if (isset($circuit['ID'])) echo '"map": '.$circuit['ID'].',';
+	if ($lapId) {
+		if (isset($circuitImg->lapOverrides->{$lapId}))
+			$circuitImg = $circuitImg->lapOverrides->{$lapId};
+		else
+			$circuitImg = null;
+	}
+	if (!$lapId && isset($circuit['ID'])) echo '"map": '.$circuit['ID'].',';
 	if ($circuitImg) {
 	?>
 "ext" : "<?php echo $circuitImg->ext; ?>",
@@ -35,7 +41,7 @@ function printCircuitPart($circuit, $lapId,$circuitPayload) {
 }
 if (isset($circuitMainData->bgcolor))
 	echo '"bgcolor":['.implode(',',$circuitMainData->bgcolor).'],';
-if (isset($circuit['icon']))
+if (!$lapId && isset($circuit['icon']))
 	echo '"icon":'.json_encode($circuit['icon']).',';
 if (isset($circuitMainData->bgcustom))
 	echo '"custombg":'.$circuitMainData->bgimg.',';

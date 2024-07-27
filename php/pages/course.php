@@ -49,6 +49,7 @@ if (isset($_GET['i'])) {
 		var musicOptions = <?php echo json_encode($musicOptions); ?>;
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
+		var imgData = {};
 		var isBattle = true;
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
