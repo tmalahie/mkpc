@@ -10424,9 +10424,9 @@ function render() {
 			frameState.players.push(frameState.karts[i]);
 		for (var i=0;i<frameState.players.length;i++) {
 			var oPlayer = frameState.players[i];
-			var lMap = getCurrentLMap(getCurrentLapId(oPlayer.ref));
 			if (oSpecCam)
 				oPlayer = frameState.karts[oSpecCam.playerId];
+			var lMap = getCurrentLMap(getCurrentLapId(oPlayer.ref));
 
 			var posX = oPlayer.x;
 			var posY = oPlayer.y;
@@ -18963,12 +18963,18 @@ function handleSpectatorInput(e) {
 	}
 	switch (e.keyAction) {
 	case "left":
+		var prevLap = aKarts[oSpecCam.playerId].tours;
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
+		if (prevLap !== aKarts[oSpecCam.playerId].tours)
+			handleLapChange(prevLap, oSpecCam.playerId);
 		break;
 	case "right":
+		var prevLap = aKarts[oSpecCam.playerId].tours;
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
+		if (prevLap !== aKarts[oSpecCam.playerId].tours)
+			handleLapChange(prevLap, oSpecCam.playerId);
 		break;
 	case "quit":
 		document.location.reload();
