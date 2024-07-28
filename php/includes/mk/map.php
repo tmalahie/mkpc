@@ -141,7 +141,6 @@ if (isset($circuitPayload->arme))
 	echo '"arme":'.json_encode($circuitPayload->arme).',';
 if (isset($circuitPayload->sauts)) {
 	?>
-"smartjump": 1,
 "sauts" : <?php
 	foreach ($circuitPayload->sauts as &$sautsData) {
 		if (count($sautsData) > 3) {
@@ -159,23 +158,25 @@ if (isset($circuitPayload->sauts)) {
 if (isset($circuitPayload->accelerateurs))
 	echo '"accelerateurs":'.json_encode($circuitPayload->accelerateurs).',';
 if (isset($circuitPayload->decor)) {
-	echo '"decor":'.json_encode($circuitPayload->decor);
+	echo '"decor":'.json_encode($circuitPayload->decor).',';
 if (!empty($circuitPayload->decorparams)) {
-	?>,
-"decorparams" : <?php echo json_encode($circuitPayload->decorparams);
+	?>
+"decorparams" : <?php echo json_encode($circuitPayload->decorparams).',';
 	}
 	elseif ($lapId)
-		echo ',"decorparams":undefined';
+		echo '"decorparams":undefined,';
 }
 if (!empty($circuitPayload->assets)) {
 	$assetTypes = array('pointers', 'flippers', 'bumpers','oils');
 	foreach ($assetTypes as $assetType) {
 		if (!empty($circuitPayload->assets->{$assetType})) {
-			?>,
-			"<?php echo $assetType; ?>" : <?php echo json_encode($circuitPayload->assets->{$assetType});
+			?>
+			"<?php echo $assetType; ?>" : <?php echo json_encode($circuitPayload->assets->{$assetType}); ?>,
+			<?php
 		}
 	}
 }
+echo '"smartjump": 1';
 if (!empty($circuitPayload->cannons)) {
 	?>,
 "cannons" : <?php echo json_encode($circuitPayload->cannons);

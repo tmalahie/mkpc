@@ -1083,8 +1083,9 @@ function setPlanPos(frameState, lMap) {
 		var iFetchHandler = customDecorFetchHandlers.find(function(h) {return h.plan === iPlanDecor}).list || {};
 		for (var type in decorBehaviors)
 			decorBehaviors[type].ctx.lMap = lMap;
-		for (var type in frameState.decor) {
-			var frameDecorType = frameState.decor[type];
+		var frameStateDecor = frameState.decor[0];
+		for (var type in frameStateDecor) {
+			var frameDecorType = frameStateDecor[type];
 			var decorBehavior = decorBehaviors[type];
 			var decorExtra = getDecorExtra(decorBehavior);
 			var customDecor = decorExtra.custom;
@@ -10247,7 +10248,7 @@ function loadBgLayer(strImages) {
 function render() {
 	var currentState = {
 		karts: [],
-		decor: {},
+		decor: [],
 		items: {}
 	}
 	if (oSpecCam) {
@@ -10278,21 +10279,31 @@ function render() {
 			teleport: oKart.teleport
 		});
 	}
-	var cPlayer = getPlayerAtScreen(0);
-	var lMap = getCurrentLMap(getCurrentLapId(cPlayer));
-	if (lMap.decor) {
-		for (var type in lMap.decor) {
-			currentState.decor[type] = [];
-			for (var i=0;i<lMap.decor[type].length;i++) {
-				var decor = lMap.decor[type][i];
-				currentState.decor[type].push({
-					ref: decor,
-					x: decor[0],
-					y: decor[1],
-					z: decor[3],
-				});
+	var plMaps = [];
+	for (var p=0;p<oPlayers.length;p++) {
+		var cPlayer = getPlayerAtScreen(p);
+		var lMap = getCurrentLMap(getCurrentLapId(cPlayer));
+		if (p && (!lMap.decor || lMap.decor === plMaps[0].decor))
+			continue;
+		plMaps[p] = {
+			decor: lMap.decor,
+		};
+		var currentStateDecor = {};
+		if (lMap.decor) {
+			for (var type in lMap.decor) {
+				currentStateDecor[type] = [];
+				for (var i=0;i<lMap.decor[type].length;i++) {
+					var decor = lMap.decor[type][i];
+					currentStateDecor[type].push({
+						ref: decor,
+						x: decor[0],
+						y: decor[1],
+						z: decor[3],
+					});
+				}
 			}
 		}
+		currentState.decor[p] = currentStateDecor;
 	}
 	for (var key in items) {
 		currentState.items[key] = [];
@@ -10333,7 +10344,7 @@ function render() {
 			frameState = {
 				karts: [],
 				players: [],
-				decor: {},
+				decor: [],
 				items: {}
 			};
 			if (currentState.cam) {
@@ -10374,18 +10385,25 @@ function render() {
 					teleport: interpolateStateNullable(lastObj.teleport,currentObj.teleport,tFrame)
 				});
 			}
-			for (var type in currentState.decor) {
-				frameState.decor[type] = [];
-				for (var i=0;i<currentState.decor[type].length;i++) {
-					var currentObj = currentState.decor[type][i];
-					var lastObj = getLastObj(lastState.decor[type],i,currentObj);
-					frameState.decor[type].push({
-						ref: currentObj.ref,
-						x: interpolateState(lastObj.x,currentObj.x,tFrame),
-						y: interpolateState(lastObj.y,currentObj.y,tFrame),
-						z: interpolateState(lastObj.z,currentObj.z,tFrame),
-					});
+			for (var p=0;p<oPlayers.length;p++) {
+				var currentStateDecor = currentState.decor[p];
+				var lastStateDecor = lastState.decor[p];
+				if (!currentStateDecor || !lastStateDecor) continue;
+				var frameStateDecor = {};
+				for (var type in currentStateDecor) {
+					frameStateDecor[type] = [];
+					for (var i=0;i<currentStateDecor[type].length;i++) {
+						var currentObj = currentStateDecor[type][i];
+						var lastObj = getLastObj(lastStateDecor[type],i,currentObj);
+						frameStateDecor[type].push({
+							ref: currentObj.ref,
+							x: interpolateState(lastObj.x,currentObj.x,tFrame),
+							y: interpolateState(lastObj.y,currentObj.y,tFrame),
+							z: interpolateState(lastObj.z,currentObj.z,tFrame),
+						});
+					}
 				}
+				frameState.decor[p] = frameStateDecor;
 			}
 			for (var type in currentState.items) {
 				frameState.items[type] = [];
@@ -10406,6 +10424,7 @@ function render() {
 			frameState.players.push(frameState.karts[i]);
 		for (var i=0;i<frameState.players.length;i++) {
 			var oPlayer = frameState.players[i];
+			var lMap = getCurrentLMap(getCurrentLapId(oPlayer.ref));
 			if (oSpecCam)
 				oPlayer = frameState.karts[oSpecCam.playerId];
 
@@ -10620,9 +10639,10 @@ function render() {
 				}
 			}
 
-			for (var type in frameState.decor) {
-				for (var j=0;j<frameState.decor[type].length;j++) {
-					fSprite = frameState.decor[type][j];
+			var frameStateDecor = frameState.decor[i] || frameState.decor[0];
+			for (var type in frameStateDecor) {
+				for (var j=0;j<frameStateDecor[type].length;j++) {
+					fSprite = frameStateDecor[type][j];
 					if (fSprite.ref[2][0].unshown) continue;
 					fSprite.ref[2][i].render(fCamera, {
 						x: fSprite.x,
