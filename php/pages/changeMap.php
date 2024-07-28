@@ -16,8 +16,8 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 	$baseCircuitImg = json_decode($circuit['img_data']);
 	$circuitImg = $baseCircuitImg;
 	if ($lap) {
-		if (isset($circuitImg->lapOverrides->{$lap}))
-			$circuitImg = $circuitImg->lapOverrides->{$lap};
+		if (isset($circuitImg->lapOverrides->$lap))
+			$circuitImg = $circuitImg->lapOverrides->$lap;
 		else
 			$newImg = true;
 	}
@@ -54,14 +54,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 							$circuitPath = $_FILES['image']['tmp_name'];
 						}
 						$circuitImg = getCircuitImgData($circuitPath,$circuitUrl,$isUploaded);
-						if ($lap) {
-							if (!isset($baseCircuitImg->lapOverrides))
-								$baseCircuitImg->lapOverrides = new stdClass();
-							$baseCircuitImg->lapOverrides->{$lap} = $circuitImg;
-							$circuitImgRaw = mysql_real_escape_string(json_encode($baseCircuitImg));
-						}
-						else
-							$circuitImgRaw = mysql_real_escape_string(json_encode($circuitImg));
+						$circuitImgRaw = getBaseCircuitImgDataRaw($baseCircuitImg,$circuitImg, $lap);
 						mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
 						if (!$lap) {
 							require_once('../includes/cache_creations.php');
@@ -286,8 +279,11 @@ if (!$newImg && $circuitImg->local) {
 <label for="proportionnel"><input type="checkbox" id="proportionnel" checked="checked" /> <?php echo $language ? 'Keep proportions':'Conserver les proportions'; ?></label><br />
 <label for="apercuauto"><input type="checkbox" id="apercuauto" checked="checked" onchange="if(!this.checked)window.parent.resetImageOptions()" /> <?php echo $language ? 'Auto preview':'Aper&ccedil;u automatique'; ?></label><br />
 <input type="hidden" name="id" value="<?php echo $id ?>" />
-<?php if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />'; ?>
-<?php if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />'; ?>
+<?php
+if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />';
+if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />';
+if ($lap) echo '<input type="hidden" name="lap" value="'.$lap.'" />';
+?>
 <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" id="redimensionner" disabled="disabled" /></p>
 </fieldset>
 </form>
@@ -302,8 +298,11 @@ for ($i=0;$i<5;$i++)
 	echo '<label for="pivot'.$i.'"><input type="radio" name="pivot" id="pivot'.$i.'" value="'.$i.'" onchange="able()" /> '.$options[$i].'</label><br />';
 ?>
 <input type="hidden" name="id" value="<?php echo $id ?>" />
-<?php if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />'; ?>
-<?php if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />'; ?>
+<?php
+if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />';
+if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />';
+if ($lap) echo '<input type="hidden" name="lap" value="'.$lap.'" />';
+?>
 <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" id="pivoter" disabled="disabled" />
 </fieldset>
 </form>

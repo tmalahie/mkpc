@@ -29,11 +29,13 @@ if (isset($_GET['i'])) {
 			$circuitImg = json_decode($circuit['img_data']);
 			require_once('../includes/circuitImgUtils.php');
 			$circuitImgSrc = getCircuitImgUrl($circuitImg);
-			$circuitImgPayload = array();
+			$circuitImgPayload = array(
+				'src' => getCircuitImgUrl($circuitImg)
+			);
 			if (isset($circuitImg->lapOverrides)) {
 				$circuitImgPayload['lapOverrides'] = array(
 					'0' => array(
-						'src' => getCircuitImgUrl($circuitImg)
+						'src' => $circuitImgPayload['src']
 					)
 				);
 				foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
@@ -122,6 +124,12 @@ if (isset($_GET['i'])) {
 				<button id="mode-incr" class="toolbox-button" onclick="navigateMode(+1)">→</button>
 			</div>
 			<div id="mode-override-options">
+				<div id="mode-onoverride-options">
+					<div id="mode-onoverride-option-options">
+						<?php echo $language ? 'Image:':'Image :'; ?>
+						<button class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
+					</div>
+				</div>
 				<a class="mode-override-enable" href="javascript:enableLapOverride()">+ <?php echo $language ? 'Enable override...' : 'Activer modificateur...'; ?></a>
 				<a class="mode-override-disable" href="javascript:disableLapOverride()">&times; <?php echo $language ? 'Reset override' : 'Réinit. modificateur'; ?></a>
 			</div>
@@ -258,9 +266,9 @@ if (isset($_GET['i'])) {
 						<?php echo $language ? 'Out color:':'Couleur de fond :'; ?>
 						<button id="button-bgcolor" class="toolbox-button" onclick="showColorSelector()"></button><br />
 					</div>
-					<div>
+					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Image:':'Image :'; ?>
-						<button id="button-imgoptions" class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
+						<button class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
 					</div>
 					<div id="lapoverride-opener" class="mode-option-unoverridable">
 						<?php echo $language ? 'Per-lap override:':'Modificateurs par tour :'; ?>

@@ -25,8 +25,8 @@ function printCircuitPart($circuit, $lapId,$circuitPayload) {
 	$circuitMainData = $circuitPayload->main;
 	$circuitImg = isset($circuit['img_data']) ? json_decode($circuit['img_data']) : null;
 	if ($lapId) {
-		if (isset($circuitImg->lapOverrides->{$lapId}))
-			$circuitImg = $circuitImg->lapOverrides->{$lapId};
+		if (isset($circuitImg->lapOverrides->$lapId))
+			$circuitImg = $circuitImg->lapOverrides->$lapId;
 		else
 			$circuitImg = null;
 	}

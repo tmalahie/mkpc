@@ -1070,14 +1070,20 @@ function selectMode(mode) {
 	}
 	historyData = [];
 	historyUndo = [];
-	var lastOption = document.getElementById("mode-option-"+currentMode);
-	var nextOption = document.getElementById("mode-option-"+mode);
+	var lastOptions = document.getElementsByClassName("mode-option-selected");
+	while (lastOptions.length)
+		lastOptions[0].className = "";
 	currentMode = mode;
-	if (lastOption) lastOption.className = "";
+	var nextOption = document.getElementById("mode-option-"+mode);
 	if (nextOption) {
 		nextOption.className = "mode-option-selected";
 		if (selectedLapOverride)
 			nextOption.classList.add("mode-option-override");
+	}
+	if (selectedLapOverride) {
+		nextOption = document.getElementById("mode-onoverride-option-"+mode);
+		if (nextOption)
+			nextOption.className = "mode-option-selected";
 	}
 	var editorTool = editorTools[currentMode];
 	if (editorTool.resume) {
@@ -3072,23 +3078,29 @@ function selectLapOverride(newLapOverride, opts) {
 	updateEditorImg();
 }
 function updateEditorImg(callback) {
+	var newSrc;
+	var $editorImg = document.getElementById("editor-img");
 	if (imgData.lapOverrides) {
 		var lapOverride;
 		for (var lapId=selectedLapOverride;lapId>=0;lapId--) {
 			lapOverride = imgData.lapOverrides[lapId];
 			if (lapOverride) break;
 		}
-		var $editorImg = document.getElementById("editor-img");
-		$editorImg.src = lapOverride.src;
-		$editorImg.onload = function() {
-			this.style.width = this.naturalWidth+"px";
-			this.style.height = "";
-			imgSize.w = this.naturalWidth;
-			imgSize.h = this.naturalHeight;
-			if (callback) callback();
-			this.onload = undefined;
-		}
+		newSrc = lapOverride.src;
 	}
+	else
+		newSrc = imgData.src;
+	if (newSrc === $editorImg.src) return;
+	
+	$editorImg.onload = function() {
+		this.style.width = this.naturalWidth+"px";
+		this.style.height = "";
+		if (callback) callback();
+		imgSize.w = this.naturalWidth;
+		imgSize.h = this.naturalHeight;
+		this.onload = undefined;
+	}
+	$editorImg.src = newSrc;
 }
 function storeCurrentLapOverride() {
 	var prevSelectedData = lapOverrides[selectedLapOverride].modesData;
@@ -3734,11 +3746,10 @@ function showImageOptions() {
 function rotateImg(option) {
 	if (option < 4) {
 		var orientation = option*90;
-		for (var key in editorTools) {
-			var editorTool = editorTools[key];
+		foreachCurrentImg(function(editorTool) {
 			if (editorTool.rotate)
 				editorTool.rotate(editorTool,orientation);
-		}
+		});
 		if (option%2) {
 			var w = imgSize.w;
 			imgSize.w = imgSize.h;
@@ -3755,11 +3766,10 @@ function rotateImg(option) {
 			axis.coord = "y";
 			axis.size = "h";
 		}
-		for (var key in editorTools) {
-			var editorTool = editorTools[key];
+		foreachCurrentImg(function(editorTool) {
 			if (editorTool.flip)
 				editorTool.flip(editorTool,axis);
-		}
+		});
 	}
 	changes = true;
 }
@@ -3767,16 +3777,49 @@ function resizeImg(scaleX,scaleY) {
 	var scale = {x:scaleX,y:scaleY};
 	imgSize.w = Math.round(imgSize.w*scale.x);
 	imgSize.h = Math.round(imgSize.h*scale.y);
-	for (var key in editorTools) {
-		var editorTool = editorTools[key];
+	foreachCurrentImg(function(editorTool) {
 		if (editorTool.rescale)
 			editorTool.rescale(editorTool,scale);
-	}
+	});
 	changes = true;
 }
+function foreachCurrentImg(callback) {
+	var modesData = lapOverrides[selectedLapOverride].modesData;
+	for (var key in editorTools) {
+		if (!modesData[key].isSet) continue;
+		var editorTool = editorTools[key];
+		callback(editorTool);
+	}
+	if (!imgData.lapOverrides) return;
+
+	var maxLapId = Infinity;
+	for (var lapId in imgData.lapOverrides) {
+		lapId = +lapId;
+		if (lapId <= selectedLapOverride) continue;
+		maxLapId = Math.min(maxLapId, lapId);
+	}
+	var minLapId = selectedLapOverride;
+	for (var lapId in lapOverrides) {
+		if (lapId <= minLapId) continue;
+		if (lapId >= maxLapId) continue;
+		restoreLapOverride(lapId);
+		modesData = lapOverrides[lapId].modesData;
+		for (var key in editorTools) {
+			if (!modesData[key].isSet) continue;
+			var editorTool = editorTools[key];
+			callback(editorTool);
+		}
+	}
+	restoreLapOverride(selectedLapOverride);
+}
 function handleImageUpdate(lapId, src, callback) {
-	if (lapId)
-		imgData.lapOverrides = imgData.lapOverrides || {};
+	if (lapId) {
+		imgData.lapOverrides = imgData.lapOverrides || {
+			"0": { src: imgData.src }
+		};
+	}
+	else
+		imgData.src = src;
 	if (imgData.lapOverrides)
 		imgData.lapOverrides[lapId] = { src: src };
 	updateEditorImg(callback);
@@ -3795,6 +3838,7 @@ function saveData() {
 		var editorTool = editorTools[key];
 		editorTool.save(editorTool,payload);
 	}
+	var imgOverrides = imgData.lapOverrides || {};
 	for (var lapKey in lapOverrides) {
 		if (!+lapKey) continue;
 		restoreLapOverride(lapKey);
@@ -3808,7 +3852,7 @@ function saveData() {
 			editorTool.save(editorTool,lapPayload);
 			enabledModes.push(key);
 		}
-		if (!enabledModes.length) continue;
+		if (!enabledModes.length && !imgOverrides[lapKey]) continue;
 		lapPayload.meta = { modes: enabledModes };
 		if (!payload.lapOverrides) payload.lapOverrides = {};
 		payload.lapOverrides[lapKey] = lapPayload;
@@ -3919,7 +3963,8 @@ function restoreData(payload) {
 			console.log(e.stack);
 		}
 	}
-	if (payload && payload.lapOverrides) {
+	if (!payload) return;
+	if (payload.lapOverrides) {
 		storeCurrentLapOverride();
 		for (var lapKey in payload.lapOverrides) {
 			var lapOverride = payload.lapOverrides[lapKey];

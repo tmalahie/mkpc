@@ -423,6 +423,12 @@ body.theme-dark {
 #mode-override-options:not(.mode-override-enabled) .mode-override-disable {
 	display: none;
 }
+#mode-onoverride-options > * {
+	display: none;
+}
+#mode-onoverride-options > .mode-option-selected {
+	display: block;
+}
 .help-balloon {
 	position: fixed;
 	background-color: #BCF;
@@ -703,6 +709,15 @@ div.hover-toggle:hover {
 #mode-option-options {
 	padding-top: 0;
 	padding-bottom: 0.1em;
+}
+#mode-onoverride-option-options {
+	margin-top: 9px;
+	margin-bottom: 5px;
+	padding-bottom: 8px;
+	border-bottom: solid 1px #003;
+}
+#mode-onoverride-option-options, #mode-onoverride-option-options button {
+	font-size: 0.8em;
 }
 .special-option {
 	color: #049;
