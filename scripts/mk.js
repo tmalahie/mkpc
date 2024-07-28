@@ -5269,9 +5269,6 @@ function resetScreen() {
 		oScreenCanvas.style.top = iScreenScale+"px";
 		oScreenCanvas.style.height = (iHeight*iScreenScale)+"px";
 	}
-
-	for (var i=0;i<oBgLayers.length;i++)
-		oBgLayers[i].suppr();
 	
 	var prevScreenBlur = 0;
 	nbFrames = iFps;
@@ -5285,6 +5282,7 @@ function resetScreen() {
 	if (nbFrames <= 1) prevScreenDelay = 0;
 	
 	oPrevFrameStates = [];
+	resetBgLayers();
 	for (var i=0;i<oContainers.length;i++) {
 		oPrevFrameStates[i] = [];
 		for (var j=0;j<prevScreenDelay;j++) {
@@ -5329,38 +5327,14 @@ function resetScreen() {
 			fLastZ = iPointZ;
 		}
 	}
-	function setupBgLayer(strImages, fixedScale) {
-		for (var i=0;i<strImages.length;i++)
-			oBgLayers[i] = new BGLayer(strImages[i], fixedScale ? 1:i+1);
-		
-		for (var i=0;i<oPrevFrameStates.length;i++) {
-			for (var j=0;j<prevScreenDelay;j++) {
-				for (var k=0;k<oBgLayers.length;k++)
-					oPrevFrameStates[i][j].layer.push(oBgLayers[k].clone(i, oPrevFrameStates[i][j].container));
-			}
-		}
-	}
-	// TODO reset every turn
-	if (oMap.custombg) {
-		if (customBgData[oMap.custombg])
-			setupBgLayer(customBgData[oMap.custombg]);
-		else {
-			xhr("getBgData.php", "id="+oMap.custombg, function(res) {
-				if (!res) return true;
-				res = JSON.parse(res);
-				customBgData[oMap.custombg] = res.layers.map(function(layer) {
-					return layer.path;
-				});
-				setupBgLayer(customBgData[oMap.custombg]);
-				return true;
-			});
-		}
-	}
-	else if (oMap.fond) {
-		setupBgLayer(oMap.fond.map(function(layer) {
-			return "images/map_bg/"+ layer +".png";
-		}), oMap.fond.length===2);
-	}
+	foreachLMap(function(lMap,pMap) {
+		updateBgLayers(pMap, function(strImages, fixedScale) {
+			if (lMap === oMap)
+				setupBgLayer(strImages, fixedScale, true);
+			else
+				loadBgLayer(strImages);
+		});
+	});
 
 	for (var i=0;i<oPrevFrameStates.length;i++) {
 		for (var j=0;j<prevScreenDelay;j++)
@@ -6251,8 +6225,15 @@ function Sprite(strSprite) {
 
 
 
-function BGLayer(strImage, scaleFactor) {
+function BGLayer(strImage, scaleFactor, isDelay) {
 	var oLayers = new Array();
+
+	function deferRender(callback, delay) {
+		if (isDelay)
+			setTimeout(callback, delay);
+		else
+			callback();
+	}
 
 	var imageDims = new Image();
 	imageDims.src = strImage;
@@ -6262,7 +6243,7 @@ function BGLayer(strImage, scaleFactor) {
 		oLayer.style.height = (10 * iScreenScale)+"px";
 		oLayer.style.width = (iWidth * iScreenScale)+"px";
 		oLayer.style.position = "absolute";
-		(function(oLayer){setTimeout(function(){oLayer.style.backgroundImage="url('"+strImage+"')"},300)})(oLayer);
+		(function(oLayer){deferRender(function(){oLayer.style.backgroundImage="url('"+strImage+"')"},300)})(oLayer);
 		oLayer.style.backgroundSize = "auto 100%";
 		if (!iSmooth) oLayer.className = "pixelated";
 
@@ -6287,13 +6268,16 @@ function BGLayer(strImage, scaleFactor) {
 		},
 		clone: function(i, container) {
 			var oLayer2 = oLayers[i].cloneNode(true);
-			setTimeout(function() {
+			deferRender(function() {
 				oLayer2.style.backgroundImage = oLayers[i].style.backgroundImage;
 			}, 500);
 			container.appendChild(oLayer2);
 			return {
 				drawCurrentState : function() {
 					oLayer2.style.backgroundPosition = oLayers[i].style.backgroundPosition;
+				},
+				suppr: function() {
+					container.removeChild(oLayer2);
 				}
 			};
 		},
@@ -10137,7 +10121,8 @@ function handleLapChange(prevLap, getId) {
 	if (!oMap.lapOverrides) return;
 	var oKart = aKarts[getId];
 	var lMap = getCurrentLMap(getCurrentLapId({ tours: prevLap }));
-	var nMap = getCurrentLMap(getCurrentLapId(oKart));
+	var lapId = getCurrentLapId(oKart);
+	var nMap = getCurrentLMap(lapId);
 	if (lMap === nMap) return;
 	if (lMap.aipoints !== nMap.aipoints)
 		resetAiPoints(oKart);
@@ -10145,6 +10130,11 @@ function handleLapChange(prevLap, getId) {
 	if (sID >= oPlayers.length) return;
 	resetRenderState();
 	hideLapSprites(lMap, sID);
+	var pMap = pMaps[lapId];
+	updateBgLayers(pMap, function(strImages, fixedScale) {
+		resetBgLayers();
+		setupBgLayer(strImages, fixedScale, false);
+	});
 	if (oPlanDiv)
 		resetPlan(nMap);
 }
@@ -10196,6 +10186,62 @@ function initAiPoints(lMap, oKart, inc) {
 		}
 		if (isValidShortcuts)
 			oKart.aishortcuts = validShortcuts;
+	}
+}
+function resetBgLayers() {
+	for (var i=0;i<oBgLayers.length;i++)
+		oBgLayers[i].suppr();
+	oBgLayers.length = 0;
+	for (var i=0;i<oPrevFrameStates.length;i++) {
+		var nbPrevFrames = oPrevFrameStates[i].length;
+		for (var j=0;j<nbPrevFrames;j++) {
+			var aLayers = oPrevFrameStates[i][j].layer;
+			for (var k=0;k<aLayers.length;k++)
+				aLayers[k].suppr();
+			aLayers.length = 0;
+		}
+	}
+}
+function updateBgLayers(pMap, callback) {
+	if (!pMap) return;
+	if (pMap.custombg) {
+		if (customBgData[pMap.custombg]) {
+			callback(customBgData[pMap.custombg], false);
+		}
+		else {
+			xhr("getBgData.php", "id="+pMap.custombg, function(res) {
+				if (!res) return true;
+				if (customBgData[pMap.custombg]) return true;
+				res = JSON.parse(res);
+				customBgData[pMap.custombg] = res.layers.map(function(layer) {
+					return layer.path;
+				});
+				callback(customBgData[pMap.custombg], false);
+				return true;
+			});
+		}
+	}
+	else if (pMap.fond) {
+		callback(pMap.fond.map(function(layer) {
+			return "images/map_bg/"+ layer +".png";
+		}), pMap.fond.length===2);
+	}
+}
+function setupBgLayer(strImages, fixedScale, isDelay) {
+	for (var i=0;i<strImages.length;i++)
+		oBgLayers[i] = new BGLayer(strImages[i], fixedScale ? 1:i+1, isDelay);
+	
+	for (var i=0;i<oPrevFrameStates.length;i++) {
+		for (var j=0;j<prevScreenDelay;j++) {
+			for (var k=0;k<oBgLayers.length;k++)
+				oPrevFrameStates[i][j].layer.push(oBgLayers[k].clone(i, oPrevFrameStates[i][j].container));
+		}
+	}
+}
+function loadBgLayer(strImages) {
+	for (var i=0;i<strImages.length;i++) {
+		var imageDims = new Image();
+		imageDims.src = strImages[i];
 	}
 }
 function render() {

@@ -405,9 +405,11 @@ if (isset($_GET['i'])) {
 					<div class="lapoverride-explain">
 					<?php
 					echo $language ? 'This menu allows you to override the circuit parameters on a given lap.<br />
-									  It allows you to give more diversity to your track or even change it completely accorss laps (e.g MKT city tracks)'
+									  It allows you to give more diversity to your track (decors appearing progressively, falling platforms...)
+									  or even change it completely accorss laps (e.g MKT city tracks)'
 								   : 'Ce menu vous permet de modifier les paramètres du circuit pour un tour donné.<br />
-								   	  Cela vous permet d\'ajouter de la diversité à votre circuit ou même de le changer complètement d\'un tour à l\'autre (comme les circuits &quot;villes&quot; sur MKT).';
+								   	  Vous pouvez ainsi ajouter de la diversité à votre circuit (décors qui apparaissent au fur et à mesure, plateformes qui tombent...)
+									  ou même le changer complètement d\'un tour à l\'autre (comme les circuits &quot;villes&quot; sur MKT).';
 					?>
 					</div>
 					<?php
