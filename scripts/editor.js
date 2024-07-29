@@ -3415,6 +3415,10 @@ function applyColorSelector() {
 	document.getElementById("button-bgcolor").style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
 	document.body.style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
 }
+function initOverrideSelector() {
+	var editorTool = editorTools.checkpoints;
+	document.getElementById("lapoverride-opener").style.display = editorTool && !editorTool.data.type ? "block":"none";
+}
 function showMusicSelector() {
 	var $music = document.getElementById("music-selector");
 	document.body.removeChild($music);
@@ -6098,6 +6102,7 @@ var commonTools = {
 			applyMusicSelector();
 			document.body.classList.add("setting-preview");
 			applyColorSelector();
+			initOverrideSelector();
 		},
 		"click" : function() {
 		},
