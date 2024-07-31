@@ -60,7 +60,7 @@ if (isset($circuitMainData->sections)) {
 "sections" : [<?php echo implode(',',$circuitMainData->sections); ?>],
 	<?php
 }
-if (isset($circuitMainData->music))
+if (!empty($circuitMainData->music))
 	echo '"music":'.$circuitMainData->music.',';
 elseif (isset($circuitMainData->youtube)) {
 	?>
@@ -72,6 +72,8 @@ elseif (isset($circuitMainData->youtube)) {
 		<?php
 	}
 }
+elseif (!$lapId)
+	echo '"music":1,';
 if (isset($circuitMainData->startposition)) {
 	?>
 "startposition" : [<?php echo ($circuitMainData->startposition[0]+5).','.($circuitMainData->startposition[1]-6); ?>],

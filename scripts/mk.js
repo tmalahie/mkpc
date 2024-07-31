@@ -1813,15 +1813,6 @@ function getCurrentLapId(oKart) {
 	return Math.min(oKart.tours-1, lMaps.length);
 }
 function initMap() {
-	if (clSelected) {
-		var challengeData = clSelected.data;
-		var chRules = listChallengeRules(challengeData);
-		for (var j=0;j<chRules.length;j++) {
-			var rule = chRules[j];
-			if (challengeRules[rule.type].preinitSelected)
-				challengeRules[rule.type].preinitSelected(rule);
-		}
-	}
 	lMaps = [oMap];
 	pMaps = [oMap];
 	var lapOverrides = oMap.lapOverrides || {};
@@ -1833,6 +1824,15 @@ function initMap() {
 		else {
 			lMaps[i] = lMaps[i-1];
 			pMaps[i] = {};
+		}
+	}
+	if (clSelected) {
+		var challengeData = clSelected.data;
+		var chRules = listChallengeRules(challengeData);
+		for (var j=0;j<chRules.length;j++) {
+			var rule = chRules[j];
+			if (challengeRules[rule.type].preinitSelected)
+				challengeRules[rule.type].preinitSelected(rule);
 		}
 	}
 	var oMapImg;
@@ -3446,7 +3446,7 @@ function startGame() {
 				for (var i=0;i<lMap.arme.length;i++)
 					initItemSprite(lMap.arme[i]);
 			}
-			else
+			else if (lMap === oMap)
 				lMap.arme = [];
 		});
 	}
@@ -3719,119 +3719,121 @@ function startGame() {
 	}
 
 	foreachLMap(function(lMap,pMap) {
-		if (pMap.decor) {
-			for (var type in lMap.decor) {
-				if (!decorBehaviors[type])
-					decorBehaviors[type] = {type:type,ctx:{}};
-			}
-			for (var type in decorBehaviors)
-				decorBehaviors[type].ctx.lMap = lMap;
-			for (var type in lMap.decor) {
-				var decorBehavior = decorBehaviors[type];
-				var decorExtra = getDecorExtra(decorBehavior);
-				var customDecor = decorExtra.custom;
-				if (customDecor) {
-					if (decorBehaviors[customDecor.type]) {
-						Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
-						decorBehavior.type = type;
-					}
-					(function(decorBehavior) {
-						getCustomDecorData(customDecor, function(res) {
-							var sizeRatio = {
-								w: res.size.hd.w/res.original_size.hd.w,
-								h: res.size.hd.h/res.original_size.hd.h
-							}
-							decorBehavior.size_ratio = sizeRatio;
-							if (sizeRatio.w !== 1) {
-								var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
-								var hitboxConst = 1;
-								decorBehavior.hitbox = hitboxConst + (hitboxSize-hitboxConst)*sizeRatio.w;
-							}
-							if (sizeRatio.h !== 1) {
-								var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
-								var hitboxConst = 0.8;
-								decorBehavior.hitboxH = hitboxConst + (hitboxHeight-hitboxConst)*sizeRatio.h;
-							}
-							if (res.options) {
-								if (res.options.hitbox === 0)
-									decorBehavior.transparent = true;
-								else if (res.options.hitbox === 1)
-									delete decorBehavior.transparent;
-								
-								if (res.options.spin === 1 && !decorBehavior.spin)
-									decorBehavior.spin = 20;
-								else if (res.options.spin === 0)
-									delete decorBehavior.spin;
-								
-								if (res.options.unbreaking === 1) {
-									decorBehavior.unbreaking = true;
-									delete decorBehavior.breaking;
-								}
-								else if (res.options.unbreaking === 0)
-									delete decorBehavior.unbreaking;
-								
-								if (res.options.breaking === 1) {
-									decorBehavior.breaking = true;
-									delete decorBehavior.unbreaking;
-								}
-								else if (res.options.breaking === 0)
-									delete decorBehavior.breaking;
-
-								if (res.options.items) {
-									decorBehavior.damagingItems = {};
-									for (var i=0;i<res.options.items.length;i++)
-										decorBehavior.damagingItems[res.options.items[i]] = true;
-								}
-							}
-							if (decorBehavior.initcustom) {
-								decorBehavior.ctx.extra = res.extra;
-								setTimeout(function() {
-									decorBehavior.initcustom(lMap);
-								});
-							}
-						});
-					})(decorBehavior);
+		if (!pMap.decor) return;
+		for (var type in lMap.decor) {
+			if (!decorBehaviors[type])
+				decorBehaviors[type] = {type:type,ctx:{}};
+		}
+		for (var type in decorBehaviors)
+			decorBehaviors[type].ctx.lMap = lMap;
+		for (var type in lMap.decor) {
+			var decorBehavior = decorBehaviors[type];
+			var decorExtra = getDecorExtra(decorBehavior);
+			var customDecor = decorExtra.custom;
+			if (customDecor) {
+				if (decorBehaviors[customDecor.type]) {
+					Object.assign(decorBehavior, decorBehaviors[customDecor.type]);
+					decorBehavior.type = type;
 				}
-				if (decorBehavior.preinit)
-					decorBehavior.preinit(lMap.decor[type],decorBehavior);
-			}
-			var decorIncs = {};
-			for (var type in lMap.decor) {
-				var decorBehavior = decorBehaviors[type];
-				var decorExtra = getDecorExtra(decorBehavior);
-				var customDecor = decorExtra.custom;
-				var actualType = customDecor ? customDecor.type:type;
-
-				var inc = 0;
-				if (decorIncs[actualType])
-					inc = decorIncs[actualType];
-				else
-					decorIncs[actualType] = 0;
-				
-				var decorsData = lMap.decor[type];
-				for (var i=0;i<decorsData.length;i++) {
-					var decorData = decorsData[i];
-					decorData[2] = new Sprite(type);
-					if (decorBehavior.init)
-						decorBehavior.init(decorData,i,i+inc);
-					if (gameSettings.ld && decorBehavior.hidable)
-						decorData[2][0].unshow();
-					else {
-						if (customDecor) {
-							(function(decorData,decorBehavior) {
-								for (var j=0;j<oPlayers.length;j++)
-									decorData[2][j].img.src = "images/map_icons/empty.png";
-								getCustomDecorData(customDecor, function(res) {
-									updateCustomDecorSprites(decorData, res, decorBehavior.size_ratio);
-								});
-							})(decorData,decorBehavior);
+				(function(decorBehavior) {
+					getCustomDecorData(customDecor, function(res) {
+						var sizeRatio = {
+							w: res.size.hd.w/res.original_size.hd.w,
+							h: res.size.hd.h/res.original_size.hd.h
 						}
+						decorBehavior.size_ratio = sizeRatio;
+						if (sizeRatio.w !== 1) {
+							var hitboxSize = decorBehavior.hitbox||DEFAULT_DECOR_HITBOX;
+							var hitboxConst = 1;
+							decorBehavior.hitbox = hitboxConst + (hitboxSize-hitboxConst)*sizeRatio.w;
+						}
+						if (sizeRatio.h !== 1) {
+							var hitboxHeight = decorBehavior.hitboxH||DEFAULT_DECOR_HITBOX_H;
+							var hitboxConst = 0.8;
+							decorBehavior.hitboxH = hitboxConst + (hitboxHeight-hitboxConst)*sizeRatio.h;
+						}
+						if (res.options) {
+							if (res.options.hitbox === 0)
+								decorBehavior.transparent = true;
+							else if (res.options.hitbox === 1)
+								delete decorBehavior.transparent;
+							
+							if (res.options.spin === 1 && !decorBehavior.spin)
+								decorBehavior.spin = 20;
+							else if (res.options.spin === 0)
+								delete decorBehavior.spin;
+							
+							if (res.options.unbreaking === 1) {
+								decorBehavior.unbreaking = true;
+								delete decorBehavior.breaking;
+							}
+							else if (res.options.unbreaking === 0)
+								delete decorBehavior.unbreaking;
+							
+							if (res.options.breaking === 1) {
+								decorBehavior.breaking = true;
+								delete decorBehavior.unbreaking;
+							}
+							else if (res.options.breaking === 0)
+								delete decorBehavior.breaking;
+
+							if (res.options.items) {
+								decorBehavior.damagingItems = {};
+								for (var i=0;i<res.options.items.length;i++)
+									decorBehavior.damagingItems[res.options.items[i]] = true;
+							}
+						}
+						if (decorBehavior.initcustom) {
+							decorBehavior.ctx.extra = res.extra;
+							setTimeout(function() {
+								decorBehavior.initcustom(lMap);
+							});
+						}
+					});
+				})(decorBehavior);
+			}
+			if (decorBehavior.preinit)
+				decorBehavior.preinit(lMap.decor[type],decorBehavior);
+		}
+		var decorIncs = {};
+		for (var type in lMap.decor) {
+			var decorBehavior = decorBehaviors[type];
+			var decorExtra = getDecorExtra(decorBehavior);
+			var customDecor = decorExtra.custom;
+			var actualType = customDecor ? customDecor.type:type;
+
+			var inc = 0;
+			if (decorIncs[actualType])
+				inc = decorIncs[actualType];
+			else
+				decorIncs[actualType] = 0;
+			
+			var decorsData = lMap.decor[type];
+			for (var i=0;i<decorsData.length;i++) {
+				var decorData = decorsData[i];
+				decorData[2] = new Sprite(type);
+				if (decorBehavior.init)
+					decorBehavior.init(decorData,i,i+inc);
+				if (gameSettings.ld && decorBehavior.hidable)
+					decorData[2][0].unshow();
+				else {
+					if (customDecor) {
+						(function(decorData,decorBehavior) {
+							for (var j=0;j<oPlayers.length;j++)
+								decorData[2][j].img.src = "images/map_icons/empty.png";
+							getCustomDecorData(customDecor, function(res) {
+								updateCustomDecorSprites(decorData, res, decorBehavior.size_ratio);
+							});
+						})(decorData,decorBehavior);
 					}
 				}
-				decorIncs[actualType] += decorsData.length;
 			}
+			decorIncs[actualType] += decorsData.length;
 		}
 		lMap.assets = [];
+		foreachDMap(lMap,pMap,function(nMap) {
+			nMap.assets = lMap.assets;
+		});
 		for (var i=0;i<assetKeys.length;i++) {
 			var key = assetKeys[i];
 			if (pMap[key]) {
@@ -3904,6 +3906,8 @@ function startGame() {
 				for (var j=0;j<lMap[key].length;j++)
 					setupAsset(key,lMap[key][j]);
 			}
+			else
+				delete lMap[key];
 		}
 	});
 
@@ -12205,9 +12209,25 @@ var challengeRules = {
 		"verify": "each_item",
 		"initLocalVars": function(scope) {
 			clLocalVars.nbItems = 0;
-			clLocalVars.itemsHit = [];
+			clLocalVars.itemsHit = {};
+			clLocalVars.totalItems = countInLMap(function(pMap) {
+				return pMap.arme && pMap.arme.length;
+			});
 			setTimeout(function() {
-				clLocalVars.itemsHit.length = oMap.arme.length;
+				var totalItems = 0;
+				var lapItemsHit = [];
+				for (var lapId=0;lapId<lMaps.length;lapId++) {
+					var pMap = pMaps[lapId];
+					if (pMap.arme) {
+						lapItemsHit = [];
+						lapItemsHit.length = pMap.arme.length;
+						clLocalVars.itemsHit[lapId] = lapItemsHit;
+						totalItems += pMap.arme.length;
+					}
+					else
+						clLocalVars.itemsHit[lapId] = lapItemsHit;
+				}
+				clLocalVars.totalItems = totalItems;
 			});
 		},
 		"initSelected": function(scope) {
@@ -12215,12 +12235,12 @@ var challengeRules = {
 				addChallengeHud("items", {
 					title: toLanguage("Items","Objets"),
 					value: clLocalVars.nbItems,
-					out_of: oMap.arme.length
+					out_of: clLocalVars.totalItems
 				});
 			});
 		},
 		"success": function(scope) {
-			if (clLocalVars.nbItems >= oMap.arme.length)
+			if (clLocalVars.nbItems >= clLocalVars.totalItems)
 				return true;
 		}
 	},
@@ -12271,14 +12291,16 @@ var challengeRules = {
 				clLocalVars.nbDecorHits = {};
 			clLocalVars.nbDecorHits[scope.value] = 0;
 			if (!scope.nb) {
-				var oDecors = oMap.decor[scope.value] || [];
-				scope.nb = oDecors.length;
+				scope.nb = countInLMap(function(pMap) {
+					return pMap.decor && pMap.decor[scope.value] && pMap.decor[scope.value].length;
+				});
 				scope.shouldInitToAll = true;
 			}
 			if (scope.shouldInitToAll) {
 				setTimeout(function() {
-					var oDecors = oMap.decor[scope.value] || [];
-					scope.nb = oDecors.length;
+					scope.nb = countInLMap(function(pMap) {
+						return pMap.decor && pMap.decor[scope.value] && pMap.decor[scope.value].length;
+					});
 				});
 			}
 		},
@@ -12680,9 +12702,11 @@ var challengeRules = {
 	},
 	"custom_music": {
 		"preinitSelected": function(scope) {
-			oMap.music = scope.value;
-			oMap.yt = scope.yt;
-			delete oMap.yt_opts;
+			foreachLMap(function(lMap) {
+				lMap.music = scope.value;
+				lMap.yt = scope.yt;
+				delete lMap.yt_opts;
+			});
 		},
 		"success": function() {
 			return true;
@@ -12879,6 +12903,11 @@ var challengeRules = {
 			foreachLMap(function(lMap,pMap) {
 				if (!pMap.arme) return;
 				if (scope.clear_other) {
+					if (lMap !== oMap) {
+						delete pMap.arme;
+						lMap.arme = oMap.arme;
+						return;
+					}
 					for (var i=0;i<lMap.arme.length;i++) {
 						var oBoxes = lMap.arme[i][2].box;
 						for (var j=0;j<oBoxes.length;j++) {
@@ -12907,68 +12936,71 @@ var challengeRules = {
 			ruleVars.selected = true;
 			clLocalVars.isSetup = true;
 			var customDecors = scope.custom_decors || {};
-			for (var i=0;i<scope.value.length;i++) {
-				var decorData = scope.value[i];
-				var type = decorData.src;
-				var actualType = type;
-				var customDecor = customDecors[actualType];
-				if (customDecor) {
-					actualType = customDecor.type;
-					if (!oMap.decorparams)
-						oMap.decorparams = {};
-					if (!oMap.decorparams.extra)
-						oMap.decorparams.extra = {};
-					if (!oMap.decorparams.extra[type])
-						oMap.decorparams.extra[type] = {};
-					if (!oMap.decorparams.extra[type].custom)
-						oMap.decorparams.extra[type].custom = customDecor;
-					foreachLMap(function(lMap) {
-						if (lMap.decor === oMap.decor)
-							lMap.decorparams = oMap.decorparams;
-					});
-				}
-				var isAsset = actualType.startsWith("assets/");
-				if (isAsset) {
-					var assetParams, assetKey;
-					switch (actualType) {
-						case "assets/pivothand":
-							assetParams = ["hand",[decorData.pos[0],decorData.pos[1],47,8,0.5,0.5],[0,0.5,0,-0.038]];
-							assetKey = "pointers";
-							break;
-						case "assets/flipper":
-							assetParams = ["flipper",[decorData.pos[0],decorData.pos[1],40,15,1,0.15],[0.1875,0.5,0.59,0,-1.19]];
-							assetKey = "flippers";
-							break;
-						case "assets/oil1":
-						case "assets/oil2":
-							var typeSrc = actualType.substring(7);
-							assetParams = [typeSrc,[decorData.pos[0],decorData.pos[1],7,7,0.5,0.5],[0.5,0.5,0]];
-							assetKey = "oils";
-							break;
-						case "assets/bumper":
-							var typeSrc = actualType.substring(7);
-							assetParams = [typeSrc,[decorData.pos[0],decorData.pos[1],24,24],[0.5,0.5,0]];
-							assetKey = "bumpers";
-							break;
+			foreachLMap(function(lMap,pMap) {
+				if (!pMap.decor) return;
+				for (var i=0;i<scope.value.length;i++) {
+					var decorData = scope.value[i];
+					var type = decorData.src;
+					var actualType = type;
+					var customDecor = customDecors[actualType];
+					if (customDecor) {
+						actualType = customDecor.type;
+						if (!lMap.decorparams) {
+							lMap.decorparams = {};
+							foreachDMap(lMap,pMap,function(nMap) {
+								nMap.decorparams = lMap.decorparams;
+							});
+						}
+						if (!lMap.decorparams.extra)
+							lMap.decorparams.extra = {};
+						if (!lMap.decorparams.extra[type])
+							lMap.decorparams.extra[type] = {};
+						if (!lMap.decorparams.extra[type].custom)
+							lMap.decorparams.extra[type].custom = customDecor;
 					}
-					if (assetParams) {
-						if (!oMap[assetKey])
-							oMap[assetKey] = [];
-						if (customDecor)
-							assetParams[0] = type;
-						oMap[assetKey].push(assetParams);
-						foreachLMap(function(lMap) {
-							if (lMap.decor === oMap.decor)
-								lMap[assetKey] = oMap[assetKey];
-						});
+					var isAsset = actualType.startsWith("assets/");
+					if (isAsset) {
+						var assetParams, assetKey;
+						switch (actualType) {
+							case "assets/pivothand":
+								assetParams = ["hand",[decorData.pos[0],decorData.pos[1],47,8,0.5,0.5],[0,0.5,0,-0.038]];
+								assetKey = "pointers";
+								break;
+							case "assets/flipper":
+								assetParams = ["flipper",[decorData.pos[0],decorData.pos[1],40,15,1,0.15],[0.1875,0.5,0.59,0,-1.19]];
+								assetKey = "flippers";
+								break;
+							case "assets/oil1":
+							case "assets/oil2":
+								var typeSrc = actualType.substring(7);
+								assetParams = [typeSrc,[decorData.pos[0],decorData.pos[1],7,7,0.5,0.5],[0.5,0.5,0]];
+								assetKey = "oils";
+								break;
+							case "assets/bumper":
+								var typeSrc = actualType.substring(7);
+								assetParams = [typeSrc,[decorData.pos[0],decorData.pos[1],24,24],[0.5,0.5,0]];
+								assetKey = "bumpers";
+								break;
+						}
+						if (assetParams) {
+							if (!lMap[assetKey]) {
+								lMap[assetKey] = [];
+								foreachDMap(lMap,pMap,function(nMap) {
+									nMap[assetKey] = lMap[assetKey];
+								});
+							}
+							if (customDecor)
+								assetParams[0] = type;
+							lMap[assetKey].push(assetParams);
+						}
+					}
+					else {
+						if (!lMap.decor[type])
+							lMap.decor[type] = [];
+						lMap.decor[type].push(decorData.pos.slice(0));
 					}
 				}
-				else {
-					if (!oMap.decor[type])
-						oMap.decor[type] = [];
-					oMap.decor[type].push(decorData.pos.slice(0));
-				}
-			}
+			});
 		},
 		"success": function(scope, ruleVars) {
 			return !!ruleVars.selected;
@@ -12979,14 +13011,16 @@ var challengeRules = {
 			return {};
 		},
 		"preinitSelected": function(scope, ruleVars) {
-			if (!oMap.collision) oMap.collision = [];
-			if (!oMap.collisionProps) oMap.collisionProps = {};
-			var wallHeight = scope.height || 1000;
-			for (var i=0;i<scope.value.length;i++) {
-				var wallData = scope.value[i];
-				oMap.collisionProps[oMap.collision.length] = {z: wallHeight};
-				oMap.collision.push(wallData.slice(0));
-			}
+			foreachLMap(function(lMap) {
+				if (!lMap.collision) lMap.collision = [];
+				if (!lMap.collisionProps) lMap.collisionProps = {};
+				var wallHeight = scope.height || 1000;
+				for (var i=0;i<scope.value.length;i++) {
+					var wallData = scope.value[i];
+					lMap.collisionProps[lMap.collision.length] = {z: wallHeight};
+					lMap.collision.push(wallData.slice(0));
+				}
+			});
 		},
 		"initSelected": function(scope, ruleVars) {
 			ruleVars.selected = true;
@@ -13175,6 +13209,34 @@ function reinitChallengeVars() {
 		}
 	}
 	reinitLocalVars();
+}
+function countInLMap(callback) {
+	let res = 0;
+	foreachLMap(function(lMap,pMap) {
+		const nb = callback(pMap);
+		if (nb) res += nb;
+	});
+	return res;
+}
+function foreachDMap(lMap,pMap,f) {
+	f(pMap);
+	var lapId = lMaps.indexOf(lMap);
+	for (var k=lapId+1;k<lMaps.length;k++) {
+		var nMap = lMaps[k];
+		if (nMap === lMap) continue;
+		if (nMap.decor !== lMap.decor) break;
+		f(nMap);
+	}
+}
+function foreachDMap(lMap,pMap,f) {
+	f(pMap);
+	var lapId = lMaps.indexOf(lMap);
+	for (var k=lapId+1;k<lMaps.length;k++) {
+		var nMap = lMaps[k];
+		if (nMap === lMap) continue;
+		if (nMap.decor !== lMap.decor) break;
+		f(nMap);
+	}
 }
 function isSameDistrib(d1,d2) {
 	if (d1.length !== d2.length)
@@ -15893,8 +15955,8 @@ function move(getId, triggered) {
 				var decorHit = false;
 				if (asset) {
 					var decorType = asset[1][0].src;
-					if (asset[1][0].custom)
-						decorType = "custom-"+asset[1][0].custom.id;
+					var isCustom = asset[1][0].custom;
+					if (isCustom) decorType = "custom-"+asset[1][0].custom.id;
 					switch (asset[0]) {
 					case "oils":
 						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
@@ -15905,7 +15967,7 @@ function move(getId, triggered) {
 						stopped = false;
 						break;
 					case "pointers":
-						decorType = 'assets/pivothand';
+						if (!isCustom) decorType = 'assets/pivothand';
 						if (hittable) {
 							stopDrifting(getId);
 							loseBall(getId);
@@ -15989,9 +16051,8 @@ function move(getId, triggered) {
 						loseUsingItem(oKart);
 					}
 					if (decorHit) {
-						if (clLocalVars.decorsHit && !oKart.cpu) {
+						if (clLocalVars.decorsHit && !oKart.cpu)
 							clLocalVars.decorsHit[decorType] = true;
-						}
 					}
 				}
 			}
@@ -16139,9 +16200,10 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		if (clLocalVars.itemsHit && !oKart.cpu) {
-			if (!clLocalVars.itemsHit[touchedObject]) {
-				clLocalVars.itemsHit[touchedObject] = true;
+		if (clLocalVars.itemsHit && clLocalVars.itemsHit[collisionLap] && !oKart.cpu) {
+			var lapItemsHit = clLocalVars.itemsHit[collisionLap];
+			if (!lapItemsHit[touchedObject]) {
+				lapItemsHit[touchedObject] = true;
 				clLocalVars.nbItems++;
 				updateChallengeHud("items", clLocalVars.nbItems);
 				challengeCheck("each_item");
@@ -18535,6 +18597,7 @@ function moveItems() {
 }
 function moveDecor() {
 	decorPos = {};
+	var tau = 2*Math.PI;
 	foreachLMap(function(lMap,pMap) {
 		if (pMap.decor) {
 			for (var type in lMap.decor) {
@@ -18565,7 +18628,6 @@ function moveDecor() {
 					decorIncs[actualType] += decor.length;
 				}
 			}
-			var tau = 2*Math.PI;
 			for (var type in decorPos) {
 				var decor = lMap.decor[type];
 				for (var i=0;i<decor.length;i++) {
