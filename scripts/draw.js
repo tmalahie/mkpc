@@ -115,7 +115,9 @@ var editorTools = {
 			if (self.data.theta)
 				self.data.theta = -self.data.theta;
 		},
-		"disableOverride": true
+		"disableOverride": function() {
+			return true;
+		}
 	},
 	"aipoints": {
 		"init" : function(self) {
@@ -710,6 +712,9 @@ var editorTools = {
 				if (iData.theta)
 					iData.theta = -iData.theta;
 			}
+		},
+		"disableOverride": function() {
+			return !!lapOverrides["0"].modesData.checkpoints.data.type;
 		}
 	},
 	"items": commonTools["items"],

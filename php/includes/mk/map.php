@@ -8,7 +8,7 @@ $printCircuitData = function($circuit) {
 	$circuitMainData = $circuitPayload->main;
 	echo '{';
 	printCircuitPart($circuit, 0,$circuitPayload);
-	if (isset($circuitPayload->lapOverrides) && !isset($circuitMainData->sections)) {
+	if (isset($circuitPayload->lapOverrides)) {
 		echo ',"lapOverrides":{';
 		$v = '';
 		foreach ($circuitPayload->lapOverrides as $lapKey => $lapData) {

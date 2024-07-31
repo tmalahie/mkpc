@@ -3050,17 +3050,19 @@ function selectLapOverride(newLapOverride, opts) {
 	var $modeOptions = document.querySelectorAll('#mode option');
 	for (var i=0;i<$modeOptions.length;i++) {
 		var $modeOption = $modeOptions[i];
-		if (editorTools[$modeOption.value].disableOverride)
+		var editorTool = editorTools[$modeOption.value];
+		if (editorTool.disableOverride && editorTool.disableOverride(editorTool))
 			$modeOption.style.display = newLapOverride ? "none" : "";
 	}
 	
 	selectedLapOverride = newLapOverride;
 	applyLapOverrideSelector();
 	var nextMode = currentMode;
-	if ((opts && opts.resetMode) || editorTools[currentMode].disableOverride) {
+	var currentEditorTool = editorTools[currentMode];
+	if ((opts && opts.resetMode) || (currentEditorTool.disableOverride && currentEditorTool.disableOverride(currentEditorTool))) {
 		nextMode = Object.entries(editorTools).find(function(entry) {
 			var editorTool = entry[1];
-			return !editorTool.disableOverride;
+			return !(editorTool.disableOverride && editorTool.disableOverride(editorTool));
 		})[0];
 		document.getElementById("mode").value = nextMode;
 	}
@@ -3414,10 +3416,6 @@ function applyColorSelector() {
 	var bgColor = editorTool.data.out_color;
 	document.getElementById("button-bgcolor").style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
 	document.body.style.backgroundColor = "rgb("+bgColor.r+","+bgColor.g+","+bgColor.b+")";
-}
-function initOverrideSelector() {
-	var editorTool = editorTools.checkpoints;
-	document.getElementById("lapoverride-opener").style.display = editorTool && !editorTool.data.type ? "block":"none";
 }
 function showMusicSelector() {
 	var $music = document.getElementById("music-selector");
@@ -3853,6 +3851,7 @@ function saveData() {
 			var selectedModeData = lapOverride.modesData[key];
 			if (!selectedModeData.isSet) continue;
 			var editorTool = editorTools[key];
+			if (editorTool.disableOverride && editorTool.disableOverride(editorTool)) continue;
 			editorTool.save(editorTool,lapPayload);
 			enabledModes.push(key);
 		}
@@ -6102,7 +6101,6 @@ var commonTools = {
 			applyMusicSelector();
 			document.body.classList.add("setting-preview");
 			applyColorSelector();
-			initOverrideSelector();
 		},
 		"click" : function() {
 		},
