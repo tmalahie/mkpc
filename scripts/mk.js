@@ -14780,10 +14780,8 @@ function getCpDiff(kart) {
 function getCpScore(kart) {
 	var lastCp = getLastCp(kart), currentCp = kart.demitours;
 	var res = currentCp-lastCp;
-	if (res < 0) {
-		var lMap = getCurrentLMap(getCurrentLapId(kart));
-		res += lMap.checkpoint.length;
-	}
+	if (res < 0)
+		res += oMap.checkpoint.length;
 	return res;
 }
 function distanceToFirst(kart) {
@@ -14814,15 +14812,17 @@ function distanceToKart(kart,oKart) {
 	var posX = kart.x, posY = kart.y;
 	var tours = kart.tours;
 	var checkpoint = kart.demitours;
-	if (oMap.sections)
+	if (oMap.sections) {
 		tours = oKart.tours;
+		if (checkpoint >= oMap.checkpoint.length - 1)
+			checkpoint = -1;
+	}
 	while ((tours < oKart.tours) || ((tours == oKart.tours) && (checkpoint < oKart.demitours))) {
 		var lMap = getCurrentLMap(getCurrentLapId({ tours: tours }));
 		checkpoint++;
 		if (checkpoint >= lMap.checkpoint.length) {
 			checkpoint = 0;
 			tours++;
-			lMap = getCurrentLMap(getCurrentLapId({ tours: tours }));
 		}
 		var oBox = lMap.checkpointCoords[checkpoint];
 		var nPosX = oBox.O[0], nPosY = oBox.O[1];
@@ -15122,13 +15122,12 @@ function resetDatas() {
 						var pCode = jCode[1];
 						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aReserve = oKart.reserve;
 						var params = oKart.controller ? cpuMapping : playerMapping;
-						var nDemitours;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
 							var value = pCode[k];
 							switch (param) {
 							case "demitours":
-								nDemitours = value;
+								oKart.demitours = (getLastCp(oKart)+value)%oMap.checkpoint.length;
 								break;
 							case "ballons":
 								if (course == "BB") {
@@ -15152,10 +15151,6 @@ function resetDatas() {
 							default:
 								oKart[params[k]] = value;
 							}
-						}
-						if (nDemitours !== undefined) {
-							var lMap = getCurrentLMap(getCurrentLapId(oKart));
-							oKart.demitours = (getLastCp(oKart)+nDemitours)%lMap.checkpoint.length;
 						}
 						if ((oKart.billball >= 25) && !aBillBall) {
 							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
