@@ -21,6 +21,7 @@ $printCircuitData = function($circuit) {
 	}
 	echo '}';
 };
+if (!function_exists('printCircuitPart')) {
 function printCircuitPart($circuit, $lapId,$circuitPayload) {
 	$circuitMainData = $circuitPayload->main;
 	$circuitImg = isset($circuit['img_data']) ? json_decode($circuit['img_data']) : null;
@@ -198,6 +199,7 @@ if (!empty($circuitPayload->elevators)) {
 	?>,
 "elevators" : <?php echo json_encode($circuitPayload->elevators); ?>
 	<?php
+}
 }
 }
 ?>

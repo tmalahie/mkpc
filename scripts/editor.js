@@ -1096,21 +1096,25 @@ function selectMode(mode) {
 	var modeId = +$mode.selectedIndex;
 	document.getElementById("mode-decr").disabled = !$modeOptions[modeId-1];
 	document.getElementById("mode-incr").disabled = !$modeOptions[modeId+1];
-	if (selectedLapOverride) {
-		document.getElementById("mode-override-options").style.display = "block";
-		var selectedModeData = lapOverrides[selectedLapOverride].modesData[mode];
-		if (selectedModeData.isSet) {
-			document.getElementById("mode-options").style.display = "block";
-			document.getElementById("mode-override-options").classList.add("mode-override-enabled");
+	var $modeOverrides = document.getElementById("mode-override-options");
+	if ($modeOverrides) {
+		var $currentModeOptions = document.getElementById("mode-options");
+		if (selectedLapOverride) {
+			$modeOverrides.style.display = "block";
+			var selectedModeData = lapOverrides[selectedLapOverride].modesData[mode];
+			if (selectedModeData.isSet) {
+				$currentModeOptions.style.display = "block";
+				$modeOverrides.classList.add("mode-override-enabled");
+			}
+			else {
+				$currentModeOptions.style.display = "none";
+				$modeOverrides.classList.remove("mode-override-enabled");
+			}
 		}
 		else {
-			document.getElementById("mode-options").style.display = "none";
-			document.getElementById("mode-override-options").classList.remove("mode-override-enabled");
+			$currentModeOptions.style.display = "block";
+			$modeOverrides.style.display = "none";
 		}
-	}
-	else {
-		document.getElementById("mode-options").style.display = "block";
-		document.getElementById("mode-override-options").style.display = "none";
 	}
 }
 function navigateMode(inc) {
@@ -3730,7 +3734,7 @@ function resetImageOptions() {
 }
 function showImageOptions() {
 	var $imageOptions = document.getElementById("image-options");
-	$imageOptions.src = "changeMap.php" + document.location.search + (selectedLapOverride ? ("&lap="+selectedLapOverride) : "");
+	$imageOptions.src = "changeMap.php" + document.location.search + (isBattle ? "&arenes=1" : "") + (selectedLapOverride ? ("&lap="+selectedLapOverride) : "");
 	document.body.removeChild($imageOptions);
 	var $mask = createMask();
 	$mask.id = "mask-image";

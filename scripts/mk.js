@@ -14835,15 +14835,13 @@ function distanceToKart(kart,oKart) {
 	return res;
 }
 function checkpoint(kart, fMoveX,fMoveY) {
-	var aPos = [kart.x-fMoveX,kart.y-fMoveY], aMove = [fMoveX,fMoveY];
-	var dir = [(fMoveX>0), (fMoveY>0)];
+	var aPos = [kart.x-fMoveX,kart.y-fMoveY];
 	var fast = (fMoveX*fMoveX + fMoveY*fMoveY > 200);
 	var demitour = kart.demitours;
 	if (!simplified) {
 		var iCP = getNextCp(kart);
 	}
-	var lapId = getCurrentLapId(kart);
-	var lMap = getCurrentLMap(lapId);
+	var lMap = getCurrentLMap(getCurrentLapId(kart));
 	for (var i=0;i<lMap.checkpointCoords.length;i++) {
 		var oBox = lMap.checkpointCoords[i];
 		var inRect = pointInQuad(kart.x,kart.y, oBox);
