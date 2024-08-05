@@ -1800,31 +1800,38 @@ function classifyByShape(shapes, callback) {
 	return res;
 }
 function foreachLMap(callback) {
-	for (var i=0;i<oMap.tours;i++) {
-		if (lMaps[i] !== lMaps[i-1])
-			callback(lMaps[i],pMaps[i],i);
-	}
+	for (var i=0;i<lMaps.length;i++)
+		callback(lMaps[i],pMaps[i],i);
 }
 function getCurrentLMap(l) {
 	if (l >= lMaps.length) l = lMaps.length-1;
 	return lMaps[l] || oMap;
 }
 function getCurrentLapId(oKart) {
-	return Math.min(oKart.tours-1, lMaps.length);
+	if (!oMap.lapOverrides) return 0;
+	var tours = oKart.tours, cp = oKart.demitours;
+	if (oMap.sections) {
+		if (cp >= oMap.checkpoint.length - 1)
+			cp = -1;
+	}
+	for (var i=0;i<oMap.lapOverrides.length;i++) {
+		var inc = i+1;
+		var lapOverride = oMap.lapOverrides[i];
+		if (tours > lapOverride.tours) return inc;
+		if (tours === lapOverride.tours) {
+			if (!lapOverride.cp) return inc;
+			if (cp >= lapOverride.cp) return inc;
+		}
+	}
+	return oMap.lapOverrides.length;
 }
 function initMap() {
 	lMaps = [oMap];
 	pMaps = [oMap];
 	var lapOverrides = oMap.lapOverrides || {};
-	for (var i=1;i<oMap.tours;i++) {
-		if (lapOverrides[i]) {
-			lMaps[i] = Object.assign({}, lMaps[i-1], lapOverrides[i]);
-			pMaps[i] = Object.assign({}, lapOverrides[i]);
-		}
-		else {
-			lMaps[i] = lMaps[i-1];
-			pMaps[i] = {};
-		}
+	for (var i=1;i<lapOverrides.length;i++) {
+		lMaps[i] = Object.assign({}, lMaps[i-1], lapOverrides[i]);
+		pMaps[i] = Object.assign({}, lapOverrides[i]);
 	}
 	if (clSelected) {
 		var challengeData = clSelected.data;
@@ -2473,7 +2480,7 @@ function arme(ID, backwards, forwards) {
 			}
 			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
 			if ((item.aipoint <= 1) && (oKart.demitours >= lMap.checkpoint.length/2))
-				itemBehaviors["carapace-bleue"]._incAiLap(item);
+				incItemLap(item);
 			addNewItem(oKart, item);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
@@ -7549,8 +7556,7 @@ var itemBehaviors = {
 								if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
 								else {
 									fSprite.aipoint = 0;
-									var itemBehavior = itemBehaviors["carapace-rouge"];
-									itemBehavior._incAiLap(fSprite);
+									incItemLap(fSprite);
 								}
 							}
 							var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/dSpeed;
@@ -7588,7 +7594,7 @@ var itemBehaviors = {
 										if (tOwner) {
 											var lapId = getCurrentLapId(tOwner);
 											if ((lapId > fSprite.ailap) || (tOwner.demitours >= lMap.checkpoint.length/2))
-												itemBehaviors["carapace-rouge"]._incAiLap(fSprite);
+												incItemLap(fSprite);
 										}
 									}
 								}
@@ -7667,8 +7673,7 @@ var itemBehaviors = {
 								fSprite.aipoint++;
 								if (fSprite.aipoint >= aipoints.length) {
 									fSprite.aipoint = 0;
-									var itemBehavior = itemBehaviors["carapace-rouge"];
-									itemBehavior._incAiLap(fSprite);
+									incItemLap(fSprite);
 								}
 							}
 						}
@@ -7732,12 +7737,6 @@ var itemBehaviors = {
 				if (!friendlyHit(oKart.team, fSprite.team))
 					handleHardHit(getId);
 			}
-		},
-		_incAiLap: function(fSprite) {
-			fSprite.ailap++;
-			var lMap = getCurrentLMap(fSprite.ailap);
-			fSprite.aimap = fSprite.aimap % lMap.aipoints.length;
-			fSprite.aipoint = Math.min(fSprite.aipoint, lMap.aipoints[fSprite.aimap].length-1);
 		}
 	},
 	"carapace-bleue": {
@@ -7770,8 +7769,7 @@ var itemBehaviors = {
 						fSprite.aipoint++;
 						if (fSprite.aipoint >= aipoints.length) {
 							fSprite.aipoint = 0;
-							var itemBehavior = itemBehaviors["carapace-bleue"];
-							itemBehavior._incAiLap(fSprite);
+							incItemLap(fSprite);
 						}
 					}
 				}
@@ -7869,8 +7867,7 @@ var itemBehaviors = {
 							fSprite.aipoint++;
 							if (fSprite.aipoint === aipoints.length) {
 								fSprite.aipoint = 0;
-								var itemBehavior = itemBehaviors["carapace-bleue"];
-								itemBehavior._incAiLap(fSprite);
+								incItemLap(fSprite);
 							}
 						}
 					}
@@ -7950,12 +7947,6 @@ var itemBehaviors = {
 				}
 				fSprite.sprite[i].div.style.opacity = Math.max(1+fSprite.cooldown/10,0);
 			}
-		},
-		_incAiLap: function(fSprite) {
-			fSprite.ailap++;
-			var lMap = getCurrentLMap(fSprite.ailap);
-			fSprite.aimap = fSprite.aimap % lMap.aipoints.length;
-			fSprite.aipoint = Math.min(fSprite.aipoint, lMap.aipoints[fSprite.aimap].length-1);
 		},
 		"del": function(item) {
 			nextBlueShellCooldown = 300;
@@ -10122,13 +10113,10 @@ function interpolateStateRound(x1,x2,tFrame) {
 var nbFrames = 1;
 var frameHandlers;
 var oSpecCam;
-function handleLapChange(prevLap, getId) {
-	if (!oMap.lapOverrides) return;
+function handleLapChange(prevLepId,lapId, getId) {
 	var oKart = aKarts[getId];
-	var lMap = getCurrentLMap(getCurrentLapId({ tours: prevLap }));
-	var lapId = getCurrentLapId(oKart);
+	var lMap = getCurrentLMap(prevLepId);
 	var nMap = getCurrentLMap(lapId);
-	if (lMap === nMap) return;
 	if (lMap.aipoints !== nMap.aipoints)
 		resetAiPoints(oKart);
 	var sID = getScreenPlayerIndex(getId);
@@ -10142,6 +10130,15 @@ function handleLapChange(prevLap, getId) {
 	});
 	if (oPlanDiv)
 		resetPlan(nMap);
+}
+function handleCpChange(prevLap,prevCP, getId) {
+	if (!oMap.lapOverrides) return collisionLap;
+	var oKart = aKarts[getId];
+	var prevLepId = getCurrentLapId({ tours: prevLap, demitours: prevCP });
+	var lapId = getCurrentLapId(oKart);
+	if (prevLepId === lapId) return lapId;
+	handleLapChange(prevLepId,lapId, getId);
+	return lapId
 }
 function resetRenderState() {
 	lastState = undefined;
@@ -10248,6 +10245,18 @@ function loadBgLayer(strImages) {
 		var imageDims = new Image();
 		imageDims.src = strImages[i];
 	}
+}
+function incItemLap(fSprite) {
+	if (!oMap.lapOverrides) return;
+	if (!fSprite.ailapt)
+		fSprite.ailapt = oMap.lapOverrides[fSprite.ailap].tours;
+	fSprite.ailapt++;
+	var lapId = getCurrentLapId({ tours: fSprite.ailap, demitours: 0 });
+	if (lapId === fSprite.ailap) return;
+	fSprite.ailap = lapId;
+	var lMap = getCurrentLMap(lapId);
+	fSprite.aimap = fSprite.aimap % lMap.aipoints.length;
+	fSprite.aipoint = Math.min(fSprite.aipoint, lMap.aipoints[fSprite.aimap].length-1);
 }
 function render() {
 	var currentState = {
@@ -14761,12 +14770,12 @@ function getRankScore(oKart) {
 	if (course != "BB") {
 		var lapId = getCurrentLapId(oKart);
 		var lMap = getCurrentLMap(lapId);
-		var nMap = lMap;
-		var dest = oKart.demitours+1;
+		var nLaps = oKart.tours, dest = oKart.demitours+1;
 		if (dest >= lMap.checkpoint.length) {
 			dest = 0;
-			nMap = getCurrentLMap(lapId+1);
+			nLaps++;
 		}
+		var nMap = getCurrentLMap(getCurrentLapId({ tours: nLaps, demitours: dest }));
 		var iLine = nMap.checkpointCoords[dest];
 		if (!iLine) return 0;
 
@@ -14880,7 +14889,7 @@ function distanceToKart(kart,oKart) {
 			checkpoint = -1;
 	}
 	while ((tours < oKart.tours) || ((tours == oKart.tours) && (checkpoint < oKart.demitours))) {
-		var lMap = getCurrentLMap(getCurrentLapId({ tours: tours }));
+		var lMap = getCurrentLMap(getCurrentLapId({ tours: tours, demitours: checkpoint }));
 		checkpoint++;
 		if (checkpoint >= lMap.checkpoint.length) {
 			checkpoint = 0;
@@ -15180,7 +15189,7 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aReserve = oKart.reserve;
+						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aDemitours = oKart.demitours, aReserve = oKart.reserve;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
@@ -15227,11 +15236,11 @@ function resetDatas() {
 							oKart.champiType = CHAMPI_TYPE_ITEM;
 						else if (!oKart.champi)
 							delete oKart.champiType;
-						if (aTours !== oKart.tours) {
+						if ((aTours !== oKart.tours) || (aDemitours !== oKart.demitours)) {
 							var sID = getScreenPlayerIndex(j);
 							if (sID < oPlayers.length)
 								updateLapHud(sID);
-							handleLapChange(aTours, j);
+							handleCpChange(aTours,aDemitours, j);
 						}
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
@@ -16407,14 +16416,8 @@ function move(getId, triggered) {
 			var fTombe;
 			if (localKart) {
 				var iC = 0;
-				if (lMap.checkpoint && oKart.demitours) {
-					if (oKart.demitours+1 < lMap.checkpoint.length)
-						iC = lMap.checkpoint[oKart.demitours+1][3];
-					else {
-						var nMap = getCurrentLMap(collisionLap+1);
-						iC = lMap.checkpoint[0][3];
-					}
-				}
+				if (lMap.checkpoint)
+					iC = lMap.checkpoint[(oKart.demitours+1) % lMap.checkpoint.length][3];
 				fTombe = tombe(oKart.x, oKart.y, iC);
 			}
 			if (fTombe) {
@@ -16560,12 +16563,13 @@ function move(getId, triggered) {
 
 	moveUsingItems(oKart, triggered);
 	if (course != "BB") {
+		var prevCP = oKart.demitours;
 		if (checkpoint(oKart, fMoveX,fMoveY)) {
 			var nbjoueurs = aKarts.length;
 			oKart.demitours = getNextCp(oKart);
 			var prevLap = oKart.tours;
 			oKart.tours++;
-			handleLapChange(prevLap, getId);
+			collisionLap = handleCpChange(prevLap,prevCP, getId);
 
 			var lastCp = lMap.checkpointCoords[0];
 			if (lMap.sections)
@@ -16586,7 +16590,6 @@ function move(getId, triggered) {
 				lapTimers.push(lapTimer-lapTimerSum);
 			}
 
-			collisionLap++;
 			lMap = getCurrentLMap(collisionLap);
 
 			var sID = getScreenPlayerIndex(getId);
@@ -16912,6 +16915,10 @@ function move(getId, triggered) {
 				}
 			}
 		}
+		else if (oKart.demitours !== prevCP) {
+			collisionLap = handleCpChange(oKart.tours,prevCP, getId);
+			lMap = getCurrentLMap(collisionLap);
+		}
 	}
 	else {
 		if (!isOnline) {
@@ -17139,12 +17146,13 @@ function move(getId, triggered) {
 			}
 		}
 		else {
-			var nMap = lMap;
+			var tour = oKart.tours;
 			var demitour = oKart.demitours+1;
 			if (demitour >= lMap.checkpoint.length) {
+				tour++;
 				demitour = 0;
-				nMap = getCurrentLMap(collisionLap+1);
 			}
+			var nMap = getCurrentLMap(getCurrentLapId({ tours: tour, demitours: demitour }));
 
 			var oBox = nMap.checkpointCoords[demitour];
 			if (oBox) {
@@ -17818,7 +17826,7 @@ function processCode(cheatCode) {
 			t = oPlayer.tours;
 		if (!isLap[1]) {
 			t = oMap.tours;
-			var lMap = getCurrentLMap(t-1);
+			var lMap = getCurrentLMap({ tours: t, demitours: 0 });
 			c = lMap.checkpoint.length-1;
 		}
 		if (isLap[2] == "c")
@@ -17829,11 +17837,11 @@ function processCode(cheatCode) {
 		}
 		if (isNaN(t) || isNaN(c))
 			return false;
-		var prevLap = oPlayer.tours;
+		var prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
 		oPlayer.tours = t;
 		oPlayer.demitours = c;
 		updateLapHud(0);
-		handleLapChange(prevLap, 0);
+		handleCpChange(prevLap,prevCP, 0);
 		return true;
 	}
 	if (cheatCode == "pos") {
@@ -18936,7 +18944,7 @@ function runOneFrame() {
 				else {
 					oKart.cpu = true;
 					oKart.aipoint = 0;
-					var lMap = getCurrentLMap(oMap.tours);
+					var lMap = getCurrentLMap(lMaps.length);
 					oKart.aipoints = lMap.aipoints[0];
 					oKart.tours = oMap.tours+1;
 					oKart.demitours = 0;
@@ -19018,18 +19026,16 @@ function handleSpectatorInput(e) {
 	}
 	switch (e.keyAction) {
 	case "left":
-		var prevLap = aKarts[oSpecCam.playerId].tours;
+		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
-		if (prevLap !== aKarts[oSpecCam.playerId].tours)
-			handleLapChange(prevLap, oSpecCam.playerId);
+		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
 		break;
 	case "right":
-		var prevLap = aKarts[oSpecCam.playerId].tours;
+		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
-		if (prevLap !== aKarts[oSpecCam.playerId].tours)
-			handleLapChange(prevLap, oSpecCam.playerId);
+		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
 		break;
 	case "quit":
 		document.location.reload();
