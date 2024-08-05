@@ -415,29 +415,44 @@ if (isset($_GET['i'])) {
 					<?php
 					echo '<div class="lapoverride-manage">';
 					echo '<a id="lapoverride-btn-add" href="javascript:showLapOverrideAdd()">'. ($language ? 'Add a lap override':'Ajouter un modificateur') .'</a>';
+					echo '<a id="lapoverride-btn-edit" href="javascript:showLapOverrideChange()">'. ($language ? 'Edit a lap override':'Changer un modificateur') .'</a>';
 					echo '<a id="lapoverride-btn-remove" href="javascript:showLapOverrideRemove()">'. ($language ? 'Delete an override':'Supprimer un modificateur') .'</a>';
 					echo '</div>';
 					?>
 				</div>
 				<div id="lapoverride-more">
-					<h1><?php echo $language ? 'Add an override':'Ajouter un modificateur'; ?></h1>
+					<h1 class="lapoverride-more-add"><?php echo $language ? 'Add an override':'Ajouter un modificateur'; ?></h1>
+					<h1 class="lapoverride-more-edit"><?php echo $language ? 'Edit an override':'Changer un modificateur'; ?></h1>
 					<div>
-						<?php echo $language ? 'Create override for:':'Créer le modificateur pour le :'; ?>
-						<select id="lapoverride-laps-list"></select>
+						<label>
+							<?php echo $language ? 'Create override for:':'Créer le modificateur pour le :'; ?>
+							<select id="lapoverride-laps-list" onchange="handleLapOverrideSelect(this.value)"></select><br />
+						</label>
+						<label><input type="checkbox" id="lapoverride-checkpoints-check" onclick="handleCheckpointOverrideCheck(this.checked)" /> <?php
+						echo $language ? 'Activate override in the middle of the lap' : 'Activer le modificateur au milieu du tour';
+						?></label><br />
+						<label id="lapoverride-checkpoints-ctn">
+							<?php echo $language ? 'Checkpoint:' : 'Checkpoint :'; ?>
+							<select id="lapoverride-checkpoints-list"></select>
+						</label>
 						<div class="popup-buttons">
 							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
-							<button class="options" onclick="addLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+							<button class="options lapoverride-more-add" onclick="addLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+							<button class="options lapoverride-more-edit" onclick="editLapOverride()"><?php echo $language ? 'Apply':'Appliquer'; ?></button>
 						</div>
 					</div>
 				</div>
 				<div id="lapoverride-less">
-					<h1><?php echo $language ? 'Delete an override':'Supprimer un modificateur'; ?></h1>
+					<h1 class="lapoverride-less-delete"><?php echo $language ? 'Delete an override':'Supprimer un modificateur'; ?></h1>
+					<h1 class="lapoverride-less-edit"><?php echo $language ? 'Edit an override':'Changer un modificateur'; ?></h1>
 					<div>
-						<?php echo $language ? 'Delete given override:' : 'Supprimer le modificateur :'; ?>
+						<span class="lapoverride-less-delete"><?php echo $language ? 'Delete given override:' : 'Supprimer le modificateur :'; ?></span>
+						<span class="lapoverride-less-edit"><?php echo $language ? 'Select override:' : 'Sélectionner le modificateur :'; ?></span>
 						<select id="lapoverride-less-list"></select>
 						<div class="popup-buttons">
 							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
-							<button class="options" onclick="removeLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+							<button class="options lapoverride-less-edit" onclick="showLapOverrideEdit()"><?php echo $language ? 'Next':'Suivant'; ?> &gt;</button>
+							<button class="options lapoverride-less-delete" onclick="removeLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
 						</div>
 					</div>
 				</div>

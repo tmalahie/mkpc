@@ -429,6 +429,18 @@ body.theme-dark {
 #mode-onoverride-options > .mode-option-selected {
 	display: block;
 }
+#lapoverride-more.lapoverride-mode-add .lapoverride-more-edit {
+	display: none;
+}
+#lapoverride-more.lapoverride-mode-edit .lapoverride-more-add {
+	display: none;
+}
+#lapoverride-less.lapoverride-mode-delete .lapoverride-less-edit {
+	display: none;
+}
+#lapoverride-less.lapoverride-mode-edit .lapoverride-less-delete {
+	display: none;
+}
 .help-balloon {
 	position: fixed;
 	background-color: #BCF;
@@ -1099,6 +1111,15 @@ embed,#ytplayer {
 	background-color: #7F8;
 	color: #0A5;
 }
+#lapoverride-btn-edit {
+	background-color: #BCF;
+	color: #05A;
+	border: solid 1px #48A;
+}
+#lapoverride-btn-edit:hover {
+	background-color: #C9D9FF;
+	color: #17C;
+}
 #lapoverride-btn-remove {
 	background-color: #F96;
 	color: #C24;
@@ -1144,17 +1165,27 @@ embed,#ytplayer {
 	margin-bottom: 10px;
 }
 #lapoverride-more h1 {
-	color: #084;
 	margin-top: 10px;
 	margin-bottom: 15px;
+}
+#lapoverride-more h1.lapoverride-more-add {
+	color: #084;
+}
+#lapoverride-more h1.lapoverride-more-edit {
+	color: #058;
 }
 #lapoverride-more .popup-buttons {
 	margin-bottom: 10px;
 }
 #lapoverride-less h1 {
-	color: #C33;
 	margin-top: 10px;
 	margin-bottom: 15px;
+}
+#lapoverride-less h1.lapoverride-less-delete {
+	color: #C33;
+}
+#lapoverride-less h1.lapoverride-less-edit {
+	color: #058;
 }
 #lapoverride-less .popup-buttons {
 	margin-bottom: 10px;

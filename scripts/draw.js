@@ -713,8 +713,10 @@ var editorTools = {
 					iData.theta = -iData.theta;
 			}
 		},
-		"disableOverride": function() {
-			return !!lapOverrides["0"].modesData.checkpoints.data.type;
+		"disableOverride": function(_self, lapOverride) {
+			if (lapOverrides["0"].modesData.checkpoints.data.type) return true;
+			if (lapOverride.checkpoint) return true;
+			return false;
 		}
 	},
 	"items": commonTools["items"],
