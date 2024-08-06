@@ -222,12 +222,21 @@ function confirmRemoveOverride() {
 <p id="fenetre"><input type="button" value="&times;" onclick="window.parent.document.getElementById('mask-image').close()" /></p>
 <?php
 if ($success) {
-	$callbackMethod = $success == 3 ? 'handleImageDelete' : 'handleImageUpdate';
 	?>
 <p id="success"><?php echo $language ? "The image has been changed successfully":"L'image a &eacute;t&eacute; modifi&eacute;e avec succ&egrave;s !"; ?></p>
 <script type="text/javascript">
-window.parent.<?php echo $callbackMethod; ?>(<?php echo $lap; ?>, <?php echo json_encode(getCircuitImgUrl($circuitImg)); ?>, function() {
-	<?php
+<?php
+echo 'window.parent.';
+if ($success == 3) {
+	echo "handleImageDelete($lap";
+}
+else {
+	echo 'handleImageUpdate('. $lap .', '. json_encode(getCircuitImgUrl($circuitImg)) .', '. json_encode(array(
+		'url' => $circuitImg->url,
+		'local' => $circuitImg->local,
+	));
+}
+echo ', function() {';
 	switch ($success) {
 	case 2:
 	case 3:
@@ -235,8 +244,8 @@ window.parent.<?php echo $callbackMethod; ?>(<?php echo $lap; ?>, <?php echo jso
 	default:
 		echo 'window.parent.'.(isset($_GET['pivot']) ? 'rotateImg('.($_GET['pivot']+1).');':'resizeImg('.floatval($_GET['x']).','.floatval($_GET['y']).');');
 	}
-	?>
-});
+echo '});';
+?>
 </script>
 	<?php
 }

@@ -35,12 +35,20 @@ if (isset($_GET['i'])) {
 			if (isset($circuitImg->lapOverrides)) {
 				$circuitImgPayload['lapOverrides'] = array(
 					'0' => array(
-						'src' => $circuitImgPayload['src']
+						'src' => $circuitImgPayload['src'],
+						'data' => array(
+							'url' => $circuitImg->url,
+							'local' => $circuitImg->local
+						)
 					)
 				);
 				foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
 					$circuitImgPayload['lapOverrides'][$lap] = array(
-						'src' => getCircuitImgUrl($lapImg)
+						'src' => getCircuitImgUrl($lapImg),
+						'data' => array(
+							'url' => $circuitImg->url,
+							'local' => $circuitImg->local
+						)
 					);
 				}
 			}

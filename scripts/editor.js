@@ -3122,6 +3122,7 @@ function editLapOverride() {
 	var $select2 = document.getElementById("lapoverride-checkpoints-list");
 	var opts = {
 		lap: +$select.value,
+		imgData: editingLapOverride.imgData,
 		modesData: editingLapOverride.modesData
 	};
 	if ($checkbox.checked) {
@@ -3229,18 +3230,13 @@ function selectLapOverride(newLapOverride, opts) {
 	updateEditorImg();
 }
 function updateEditorImg(callback) {
-	var newSrc;
 	var $editorImg = document.getElementById("editor-img");
-	if (imgData.lapOverrides) {
-		var lapOverride;
-		for (var lapId=selectedLapOverride;lapId>=0;lapId--) {
-			lapOverride = imgData.lapOverrides[lapId];
-			if (lapOverride) break;
-		}
-		newSrc = lapOverride.src;
+	var imgOverride;
+	for (var lapId=selectedLapOverride;lapId>=0;lapId--) {
+		imgOverride = lapOverrides[lapId].imgData;
+		if (imgOverride) break;
 	}
-	else
-		newSrc = imgData.src;
+	var newSrc = imgOverride.src;
 	if (newSrc === $editorImg.src) return;
 	
 	$editorImg.onload = function() {
@@ -3279,9 +3275,9 @@ function initLapOverride(meta) {
 	lapOverrides.splice(newLapOverride, 0, {
 		lap: meta.lap,
 		checkpoint: meta.cp,
+		imgData: meta.imgData,
 		modesData: meta.modesData || {}
 	});
-	// TODO think about imgData
 
 	if (!meta.modesData) {
 		for (var key in editorTools)
@@ -3957,20 +3953,12 @@ function foreachCurrentImg(callback) {
 		var editorTool = editorTools[key];
 		callback(editorTool);
 	}
-	if (!imgData.lapOverrides) return;
 
-	var maxLapId = Infinity;
-	for (var lapId in imgData.lapOverrides) { // TODO to see
-		lapId = +lapId;
-		if (lapId <= selectedLapOverride) continue;
-		maxLapId = Math.min(maxLapId, lapId);
-	}
-	var minLapId = selectedLapOverride;
-	for (var lapId=0;lapId<lapOverrides.length;lapId++) {
-		if (lapId <= minLapId) continue;
-		if (lapId >= maxLapId) continue;
+	for (var lapId=selectedLapOverride;lapId<lapOverrides.length;lapId++) {
+		var lapOverride = lapOverrides[lapId];
+		if (lapOverride.imgData) break;
 		restoreLapOverride(lapId);
-		modesData = lapOverrides[lapId].modesData;
+		modesData = lapOverride.modesData;
 		for (var key in editorTools) {
 			if (!modesData[key].isSet) continue;
 			var editorTool = editorTools[key];
@@ -3979,23 +3967,13 @@ function foreachCurrentImg(callback) {
 	}
 	restoreLapOverride(selectedLapOverride);
 }
-function handleImageUpdate(lapId, src, callback) {
-	if (lapId) {
-		imgData.lapOverrides = imgData.lapOverrides || { // TODO to see
-			"0": { src: imgData.src }
-		};
-	}
-	else
-		imgData.src = src;
-	if (imgData.lapOverrides)
-		imgData.lapOverrides[lapId] = { src: src };
+function handleImageUpdate(lapId, src, data, callback) {
+	lapOverrides[lapId].imgData = { src: src, data: data };
 	updateEditorImg(callback);
 }
 function handleImageDelete(lapId, callback) {
-	if (imgData.lapOverrides) {
-		delete imgData.lapOverrides[lapId];
-		updateEditorImg(callback);
-	}
+	delete lapOverrides[lapId].imgData;
+	updateEditorImg(callback);
 }
 function saveData() {
 	storeCurrentLapOverride();
@@ -4005,7 +3983,7 @@ function saveData() {
 		var editorTool = editorTools[key];
 		editorTool.save(editorTool,payload);
 	}
-	var imgOverrides = imgData.lapOverrides || {};
+	var imgOverrides = {};
 	for (var lapKey=1;lapKey<lapOverrides.length;lapKey++) {
 		restoreLapOverride(lapKey);
 		var lapPayload = {main:{}};
@@ -4019,10 +3997,11 @@ function saveData() {
 			editorTool.save(editorTool,lapPayload);
 			enabledModes.push(key);
 		}
-		if (!enabledModes.length && !imgOverrides[lapKey]) continue;
+		if (!enabledModes.length && !lapOverride.imgData) continue;
 		lapPayload.meta = { lap: lapOverride.lap, cp: lapOverride.checkpoint, modes: enabledModes };
 		if (!payload.lapOverrides) payload.lapOverrides = [];
 		payload.lapOverrides.push(lapPayload);
+		imgOverrides[lapKey] = lapOverride.imgData.data;
 	}
 	restoreLapOverride(selectedLapOverride);
 	var $mask = createMask();
@@ -4136,7 +4115,10 @@ function restoreData(payload) {
 		for (var i=0;i<payload.lapOverrides.length;i++) {
 			var lapOverride = payload.lapOverrides[i];
 			var lapModes = lapOverride.meta.modes;
-			var lapKey = initLapOverride(lapOverride.meta);
+			var lapOpts = Object.assign({
+				imgData: imgData.lapOverrides && imgData.lapOverrides[i+1],
+			}, lapOverride.meta);
+			var lapKey = initLapOverride(lapOpts);
 			var lapModesData = lapOverrides[lapKey].modesData;
 			for (var j=0;j<lapModes.length;j++) {
 				var key = lapModes[j];
@@ -7287,6 +7269,9 @@ for (var key in commonTools["holes"]) {
 }
 var lapOverrides = [{
 	lap: 0,
+	imgData: {
+		src: imgData.src
+	},
 	modesData: {}
 }];
 var selectedLapOverride = 0;

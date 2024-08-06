@@ -9,15 +9,17 @@ $printCircuitData = function($circuit) {
 	echo '{';
 	printCircuitPart($circuit, 0,$circuitPayload);
 	if (isset($circuitPayload->lapOverrides)) {
-		echo ',"lapOverrides":{';
+		echo ',"lapOverrides":[';
 		$v = '';
-		foreach ($circuitPayload->lapOverrides as $lapKey => $lapData) {
-			echo $v.'"'.$lapKey.'":{';
+		$lapKey = 1;
+		foreach ($circuitPayload->lapOverrides as $lapData) {
+			echo $v.'{';
 			printCircuitPart($circuit, $lapKey,$lapData);
 			echo '}';
 			$v = ',';
+			$lapKey++;
 		}
-		echo '}';
+		echo ']';
 	}
 	echo '}';
 };
@@ -39,6 +41,11 @@ function printCircuitPart($circuit, $lapId,$circuitPayload) {
 "w" : <?php echo $circuitImg->w; ?>,
 "h" : <?php echo $circuitImg->h; ?>,
 	<?php
+}
+if ($lapId) {
+	echo '"lap":'.$circuitPayload->meta->lap.',';
+	if (isset($circuitPayload->meta->cp))
+		echo '"cp":'.$circuitPayload->meta->cp.',';
 }
 if (isset($circuitMainData->bgcolor))
 	echo '"bgcolor":['.implode(',',$circuitMainData->bgcolor).'],';
