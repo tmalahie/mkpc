@@ -1799,39 +1799,63 @@ function classifyByShape(shapes, callback) {
 	}
 	return res;
 }
-function foreachLMap(callback) {
-	for (var i=0;i<lMaps.length;i++)
-		callback(lMaps[i],pMaps[i],i);
+var foreachLMap = function(callback) {
+	// Can be overriden, see lapOverrides
+	callback(oMap,oMap,0);
 }
-function getCurrentLMap(l) {
-	if (l >= lMaps.length) l = lMaps.length-1;
-	return lMaps[l] || oMap;
-}
-function getCurrentLapId(oKart) {
-	if (!oMap.lapOverrides) return 0;
-	var tours = oKart.tours, cp = oKart.demitours;
-	if (oMap.sections) {
-		if (cp >= oMap.checkpoint.length - 1)
-			cp = -1;
-	}
-	for (var i=0;i<oMap.lapOverrides.length;i++) {
-		var inc = i+1;
-		var lapOverride = oMap.lapOverrides[i];
-		if (tours > lapOverride.tours) return inc;
-		if (tours === lapOverride.tours) {
-			if (!lapOverride.cp) return inc;
-			if (cp >= lapOverride.cp) return inc;
-		}
-	}
-	return oMap.lapOverrides.length;
-}
+var getCurrentLMap = function() {
+	// Can be overriden, see lapOverrides
+	return oMap;
+};
+var getCurrentLapId = function() {
+	// Can be overriden, see lapOverrides
+	return 0;
+};
 function initMap() {
 	lMaps = [oMap];
 	pMaps = [oMap];
-	var lapOverrides = oMap.lapOverrides || {};
-	for (var i=1;i<lapOverrides.length;i++) {
-		lMaps[i] = Object.assign({}, lMaps[i-1], lapOverrides[i]);
-		pMaps[i] = Object.assign({}, lapOverrides[i]);
+	if (oMap.lapOverrides) {
+		var lapOverrides = oMap.lapOverrides;
+		for (var i=0;i<lapOverrides.length;i++) {
+			lMaps.push(Object.assign({}, lMaps[i], lapOverrides[i]));
+			pMaps.push(Object.assign({}, lapOverrides[i]));
+		}
+		foreachLMap = function(callback) {
+			for (var i=0;i<lMaps.length;i++)
+				callback(lMaps[i],pMaps[i],i);
+		}
+		getCurrentLMap = function(l) {
+			if (l >= lMaps.length) l = lMaps.length-1;
+			return lMaps[l] || oMap;
+		}
+		var _getCurrentLapId = function(oKart) {
+			var tours = oKart.tours-1, cp = oKart.demitours;
+			if (oMap.sections) {
+				if (cp >= oMap.checkpoint.length - 1)
+					cp = -1;
+			}
+			for (var i=0;i<lapOverrides.length;i++) {
+				var lapOverride = lapOverrides[i];
+				if (lapOverride.lap > tours) return i;
+				if (lapOverride.lap === tours) {
+					if (lapOverride.cp > cp) return i;
+				}
+			}
+			return lapOverrides.length;
+		}
+		getCurrentLapId = function(oKart) {
+			if (oKart._lapOverrideCache && oKart._lapOverrideCache.tours === oKart.tours && oKart._lapOverrideCache.cp === oKart.demitours)
+				return oKart._lapOverrideCache.lapId;
+			var lapId = _getCurrentLapId(oKart);
+			if (oKart.sprite) {
+				oKart._lapOverrideCache = {
+					tours: oKart.tours,
+					cp: oKart.demitours,
+					lapId: lapId
+				};
+			}
+			return lapId;
+		}
 	}
 	if (clSelected) {
 		var challengeData = clSelected.data;
@@ -1937,6 +1961,7 @@ function initMap() {
 			}
 		}
 		if (lMap.trous) {
+			var nHoles = {};
 			for (var i in lMap.trous) {
 				var holes = {rectangle:[],polygon:[]};
 				for (var j=0;j<lMap.trous[i].length;j++) {
@@ -1945,8 +1970,9 @@ function initMap() {
 						hole = [[hole[0],hole[1],hole[2],hole[3]],[hole[4],hole[5]]];
 					holes[getShapeType(hole[0])].push(hole);
 				}
-				lMap.trous[i] = holes;
+				nHoles[i] = holes;
 			}
+			lMap.trous = nHoles;
 		}
 		if (lMap.flows) {
 			var flows = {rectangle:[],polygon:[]};
@@ -11964,6 +11990,7 @@ function tombe(iX, iY, iC) {
 			for (var i=0;i<oPolygons.length;i++) {
 				var oHole = oPolygons[i];
 				if (pointInPolygon(iX,iY, oHole[0])) {
+					console.log(iC);
 					if (iC == undefined)
 						return true;
 					fTrou = [oHole[1][0],oHole[1][1],j];
@@ -13226,16 +13253,6 @@ function countInLMap(callback) {
 		if (nb) res += nb;
 	});
 	return res;
-}
-function foreachDMap(lMap,pMap,f) {
-	f(pMap);
-	var lapId = lMaps.indexOf(lMap);
-	for (var k=lapId+1;k<lMaps.length;k++) {
-		var nMap = lMaps[k];
-		if (nMap === lMap) continue;
-		if (nMap.decor !== lMap.decor) break;
-		f(nMap);
-	}
 }
 function foreachDMap(lMap,pMap,f) {
 	f(pMap);
@@ -16416,7 +16433,7 @@ function move(getId, triggered) {
 			var fTombe;
 			if (localKart) {
 				var iC = 0;
-				if (lMap.checkpoint)
+				if (lMap.checkpoint && oKart.demitours)
 					iC = lMap.checkpoint[(oKart.demitours+1) % lMap.checkpoint.length][3];
 				fTombe = tombe(oKart.x, oKart.y, iC);
 			}
