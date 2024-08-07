@@ -1,5 +1,6 @@
 <?php
 $id = isset($_GET['i']) ? intval($_GET['i']) : 0;
+$imgData = isset($_GET['img_data']) ? json_decode($_GET['img_data']) : null;
 include('../includes/getId.php');
 include('../includes/initdb.php');
 include('../includes/language.php');
@@ -15,6 +16,24 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 	require_once('../includes/circuitImgUtils.php');
 	$baseCircuitImg = json_decode($circuit['img_data']);
 	$circuitImg = $baseCircuitImg;
+	if ($lap && $imgData && isset($circuitImg->lapOverrides)) {
+		$shouldOverrideLap = true;
+		if (isset($circuitImg->lapOverrides->$lap)) {
+			$lapOverride = $circuitImg->lapOverrides->$lap;
+			if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local)
+				$shouldOverrideLap = false;
+		}
+		if ($shouldOverrideLap) {
+			foreach ($circuitImg->lapOverrides as $lapId => $lapOverride) {
+				if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local) {
+					$lap = $lapId;
+					$_GET['lap'] = $lap;
+					break;
+				}
+			}
+		}
+		unset($_GET['img_data']);
+	}
 	if ($lap) {
 		if (isset($circuitImg->lapOverrides->$lap))
 			$circuitImg = $circuitImg->lapOverrides->$lap;
@@ -73,7 +92,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 	}
 	elseif (isset($_GET['delete']) && $lap && !$newImg) {
 		deleteCircuitFile($circuitImg);
-		unset($baseCircuitImg->lapOverrides->{$lap});
+		unset($baseCircuitImg->lapOverrides->$lap);
 		$circuitImgRaw = mysql_real_escape_string(json_encode($baseCircuitImg));
 		$circuitImg = $baseCircuitImg;
 		mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
@@ -188,7 +207,8 @@ input[type="submit"]:disabled {
 <script type="text/javascript">
 var image = window.parent.document.getElementById("editor-img");
 function apercu() {
-	if (document.getElementById("apercuauto").checked) {
+	var $apercuauto = document.getElementById("apercuauto");
+	if ($apercuauto && $apercuauto.checked) {
 		image.style.width = document.forms[1].x.value+"px";
 		image.style.height = document.forms[1].y.value+"px";
 		window.parent.document.body.id = "changing";
@@ -228,15 +248,15 @@ if ($success) {
 <?php
 echo 'window.parent.';
 if ($success == 3) {
-	echo "handleImageDelete($lap";
+	echo "handleImageDelete(";
 }
 else {
-	echo 'handleImageUpdate('. $lap .', '. json_encode(getCircuitImgUrl($circuitImg)) .', '. json_encode(array(
+	echo 'handleImageUpdate('. json_encode(getCircuitImgUrl($circuitImg)) .', '. json_encode(array(
 		'url' => $circuitImg->url,
 		'local' => $circuitImg->local,
-	));
+	)).', ';
 }
-echo ', function() {';
+echo 'function() {';
 	switch ($success) {
 	case 2:
 	case 3:

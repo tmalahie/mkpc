@@ -1866,13 +1866,20 @@ function initMap() {
 				challengeRules[rule.type].preinitSelected(rule);
 		}
 	}
-	var oMapImg;
-	foreachLMap(function(lMap,pMap) {
+	foreachLMap(function(lMap,pMap, lapId) {
 		var isMain = (lMap === oMap);
-		lMap.mapImg = oMapImg;
+		lMap.mapImg = oMap.mapImg;
 		if (!isMain && !pMap.img)
 			return;
 		var mapSrc = isCup ? (complete ? lMap.img:"mapcreate.php"+ lMap.map):"images/maps/map"+lMap.map+"."+lMap.ext;
+		var oMapImg;
+		function handleMapLoad() {
+			lMap.mapImg = oMapImg;
+			for (var nLapId=lapId+1;nLapId<lMaps.length;nLapId++) {
+				if (pMaps[nLapId].img) return;
+				lMaps[nLapId].mapImg = oMapImg;
+			}
+		}
 		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
 			if (gameSettings.nogif) {
 				var oGif = new Image();
@@ -1897,9 +1904,7 @@ function initMap() {
 					}
 				}
 				else {
-					oMapImg.onloadone = function() {
-						lMap.mapImg = oMapImg;
-					}
+					oMapImg.onloadone = handleMapLoad;
 				}
 				oMapImg.load(mapSrc);
 			}
@@ -1911,9 +1916,7 @@ function initMap() {
 				oMapImg.onload = startGame;
 			}
 			else {
-				oMapImg.onload = function() {
-					lMap.mapImg = oMapImg;
-				}
+				oMapImg.onload = handleMapLoad;
 			}
 			oMapImg.src = mapSrc;
 		}
@@ -4700,7 +4703,7 @@ function startGame() {
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
-			/* gogogo
+			//* gogogo
 			fncHandler = setInterval(fncCount,1000);
 			//*/fncHandler = setInterval(fncCount,1);
 		}
@@ -4751,7 +4754,7 @@ function startGame() {
 		//*/setTimeout(fncCount,5);
 	}
 	else {
-		/* gogogo
+		//* gogogo
 		setTimeout(fncCount,bMusic?3000:1500);
 		//*/setTimeout(fncCount,bMusic?3:1.5);
 	}
@@ -10177,7 +10180,7 @@ function resetAiPoints(oKart) {
 		delete oKart.aishortcuts;
 		var lMap = getCurrentLMap(getCurrentLapId(oKart));
 		initAiPoints(lMap, oKart, aKarts.indexOf(oKart));
-		oKart.aipoint = Math.min(oKart.aipoint, oKart.aipoints.length-1);
+		oKart.aipoint = 0;
 	}
 	else
 		delete oKart.aipoint;

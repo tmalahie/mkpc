@@ -46,8 +46,8 @@ if (isset($_GET['i'])) {
 					$circuitImgPayload['lapOverrides'][$lap] = array(
 						'src' => getCircuitImgUrl($lapImg),
 						'data' => array(
-							'url' => $circuitImg->url,
-							'local' => $circuitImg->local
+							'url' => $lapImg->url,
+							'local' => $lapImg->local
 						)
 					);
 				}

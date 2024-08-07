@@ -2928,14 +2928,18 @@ function initModeOverrideOptions() {
 	}
 	var $lapList = document.getElementById("modeoverride-lap-list");
 	var lastValue = $lapList.value;
+	var isLastValue = false;
 	$lapList.innerHTML = "";
 	for (var i=0;i<lapOverrideOptions.length;i++) {
 		var $option = document.createElement("option");
 		$option.value = lapOverrideOptions[i].value;
+		if ($option.value === lastValue)
+			isLastValue = true;
 		$option.innerHTML = lapOverrideOptions[i].label;
 		$lapList.appendChild($option);
 	}
-	$lapList.value = lastValue;
+	if (isLastValue)
+		$lapList.value = lastValue;
 
 	var $mode = document.getElementById('mode');
 	document.getElementById("modeoverride-label").innerText = $mode.options[$mode.selectedIndex].text;
@@ -3891,7 +3895,8 @@ function resetImageOptions() {
 }
 function showImageOptions() {
 	var $imageOptions = document.getElementById("image-options");
-	$imageOptions.src = "changeMap.php" + document.location.search + (isBattle ? "&arenes=1" : "") + (selectedLapOverride ? ("&lap="+selectedLapOverride) : "");
+	var selectedImg = selectedLapOverride && lapOverrides[selectedLapOverride].imgData;
+	$imageOptions.src = "changeMap.php" + document.location.search + (isBattle ? "&arenes=1" : "") + (selectedLapOverride ? ("&lap="+selectedLapOverride) : "") + (selectedImg ? ("&img_data="+JSON.stringify(selectedImg.data)) : "");
 	document.body.removeChild($imageOptions);
 	var $mask = createMask();
 	$mask.id = "mask-image";
@@ -3954,7 +3959,7 @@ function foreachCurrentImg(callback) {
 		callback(editorTool);
 	}
 
-	for (var lapId=selectedLapOverride;lapId<lapOverrides.length;lapId++) {
+	for (var lapId=selectedLapOverride+1;lapId<lapOverrides.length;lapId++) {
 		var lapOverride = lapOverrides[lapId];
 		if (lapOverride.imgData) break;
 		restoreLapOverride(lapId);
@@ -3967,12 +3972,12 @@ function foreachCurrentImg(callback) {
 	}
 	restoreLapOverride(selectedLapOverride);
 }
-function handleImageUpdate(lapId, src, data, callback) {
-	lapOverrides[lapId].imgData = { src: src, data: data };
+function handleImageUpdate(src, data, callback) {
+	lapOverrides[selectedLapOverride].imgData = { src: src, data: data };
 	updateEditorImg(callback);
 }
-function handleImageDelete(lapId, callback) {
-	delete lapOverrides[lapId].imgData;
+function handleImageDelete(callback) {
+	delete lapOverrides[selectedLapOverride].imgData;
 	updateEditorImg(callback);
 }
 function saveData() {
@@ -4001,7 +4006,8 @@ function saveData() {
 		lapPayload.meta = { lap: lapOverride.lap, cp: lapOverride.checkpoint, modes: enabledModes };
 		if (!payload.lapOverrides) payload.lapOverrides = [];
 		payload.lapOverrides.push(lapPayload);
-		imgOverrides[lapKey] = lapOverride.imgData.data;
+		if (lapOverride.imgData)
+			imgOverrides[lapKey] = lapOverride.imgData.data;
 	}
 	restoreLapOverride(selectedLapOverride);
 	var $mask = createMask();
@@ -4014,7 +4020,7 @@ function saveData() {
 	var req = new XMLHttpRequest();
 	req.open("POST", isBattle ? "api/saveCourse.php" : "api/saveMap.php");
 	req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-	var postData = {id:circuitId,payload:payload};
+	var postData = {id:circuitId,payload:payload,imgOverrides:imgOverrides};
 	var collab = new URLSearchParams(document.location.search).get("collab");
 	if (collab)
 		postData.collab = collab;
