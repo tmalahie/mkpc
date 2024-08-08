@@ -34,6 +34,9 @@ if (isset($_GET['i'])) {
 				$circuitData = gzuncompress($getCircuitData['data']);
 			$circuitImg = json_decode($circuit['img_data']);
 			require_once('../includes/circuitImgUtils.php');
+			$circuitImgPayload = array(
+				'src' => getCircuitImgUrl($circuitImg)
+			);
 			?>
 <!DOCTYPE html> 
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
@@ -49,6 +52,7 @@ if (isset($_GET['i'])) {
 		var musicOptions = <?php echo json_encode($musicOptions); ?>;
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
+		var imgData = <?php echo json_encode($circuitImgPayload); ?>;
 		var isBattle = true;
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
@@ -196,7 +200,7 @@ if (isset($_GET['i'])) {
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
 					</div>
-					<div>
+					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Music:':'Musique :'; ?>
 						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button><br />
 					</div>
@@ -206,7 +210,7 @@ if (isset($_GET['i'])) {
 					</div>
 					<div>
 						<?php echo $language ? 'Image:':'Image :'; ?>
-						<button id="button-imgoptions" class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
+						<button class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
 					</div>
 				</div>
 			</div>

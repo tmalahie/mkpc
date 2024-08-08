@@ -21,6 +21,10 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `circuits`
 	require_once('circuitImgUtils.php');
 	$circuitImg = json_decode($circuit['img_data']);
 	deleteCircuitFile($circuitImg);
+	if (isset($circuitImg->lapOverrides)) {
+		foreach ($circuitImg->lapOverrides as $lapOverride)
+			deleteCircuitFile($lapOverride);
+	}
 	include('postCircuitUpdate.php');
 	postCircuitDelete('circuits', $cID);
 	if (hasRight('moderator'))

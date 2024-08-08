@@ -5,13 +5,21 @@ if (isset($_POST['id']) && isset($_POST['x']) && isset($_POST['y']) && ($_POST['
 	$src = isset($_POST['arenes']) ? 'course':'map';
 	$db = isset($_POST['arenes']) ? 'arenes':'circuits';
 	$isrc = isset($_POST['arenes']) ? 'coursepreview':'racepreview';
+	$lap = isset($_POST['lap']) ? intval($_POST['lap']):0;
 	include('../includes/getId.php');
 	include('../includes/initdb.php');
 	require_once('../includes/collabUtils.php');
 	$requireOwner = !hasCollabGrants($db, $id, $_POST['collab'], 'edit');
 	if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,identifiant2,identifiant3,identifiant4 FROM `'.$db.'` WHERE id="'.$id.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
 		require_once('../includes/circuitImgUtils.php');
-		$circuitImg = json_decode($circuit['img_data']);
+		$baseCircuitImg = json_decode($circuit['img_data']);
+		$circuitImg = $baseCircuitImg;
+		if ($lap) {
+			if (isset($circuitImg->lapOverrides->$lap))
+				$circuitImg = $circuitImg->lapOverrides->$lap;
+			else
+				exit;
+		}
 		if (!$circuitImg->local)
 			exit;
 		$path = CIRCUIT_BASE_PATH.$circuitImg->url;
@@ -29,22 +37,30 @@ if (isset($_POST['id']) && isset($_POST['x']) && isset($_POST['y']) && ($_POST['
 		$newPath = CIRCUIT_BASE_PATH.$circuitImg->url;
 		eval('image'.$ext2.'($destination, "$newPath");');
 
-		include('../includes/file-quotas.php');
-		$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
-		$poids = file_total_size(array('identifiants'=> $ownerIds));
-		if ($poids > file_total_quota($circuit)) {
+		$diffPoids = @filesize($newPath) - @filesize($path);
+		if ($diffPoids > 0) {
+			include('../includes/file-quotas.php');
+			$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
+			$poids = file_total_size(array('identifiants'=> $ownerIds));
+			$poids += $diffPoids;
+		}
+		else
+			$poids = 0;
+		if ($poids && $poids > file_total_quota($circuit)) {
 			@unlink($newPath);
 			$circuitImg->url = $oldUrl;
 		}
 		else {
 			@unlink($path);
-			mysql_query('UPDATE `'.$db.'` SET img_data="'. getCircuitImgDataRaw($newPath,$circuitImg->url,1) .'" WHERE id="'.$id.'"');
+			$circuitImg = getCircuitImgData($newPath,$circuitImg->url,1);
+			$circuitImgRaw = getBaseCircuitImgDataRaw($baseCircuitImg,$circuitImg, $lap);
+			mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
 			require_once('../includes/cache_creations.php');
 			@unlink(cachePath($isrc.$id.'.png'));
 		}
 
 		$collabSuffix = isset($_POST['collab']) ? '&collab='.$_POST['collab'] : '';
-		header('Location: changeMap.php?i='.$id.(isset($_POST['arenes']) ? '&arenes=1':'').'&x='.($dimensions[0]/$image[0]).'&y='.($dimensions[1]/$image[1]).$collabSuffix);
+		header('Location: changeMap.php?i='.$id.(isset($_POST['arenes']) ? '&arenes=1':'').($lap ? "&lap=$lap":"").'&x='.($dimensions[0]/$image[0]).'&y='.($dimensions[1]/$image[1]).$collabSuffix);
 	}
 	mysql_close();
 }

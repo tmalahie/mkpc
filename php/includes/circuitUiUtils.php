@@ -25,8 +25,7 @@ function printDecorTypeSelector() {
             </div>
             <div id="decor-bus-trajects">
                 <a href="javascript:manageBusDecor()"><?php echo $language ? 'Back':'Retour'; ?></a>&nbsp;
-                <select name="decor-bus-traject" id="decor-bus-traject" onchange="trajectChange(this.value,'bus')">
-                </select>
+                <select name="decor-bus-traject" id="decor-bus-traject" onchange="trajectChange(this.value,'bus')"></select>
             </div>
         </div>
     </div>
