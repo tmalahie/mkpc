@@ -3053,7 +3053,7 @@ function handleLapOverrideSelect(value) {
 	}
 	var $checkbox = document.getElementById("lapoverride-checkpoints-check");
 	var $select = document.getElementById("lapoverride-checkpoints-list");
-	if (editingLapOverride)
+	if (editingLapOverride && editingLapOverride.lap === value)
 		$checkbox.checked = !!editingLapOverride.checkpoint;
 	else
 		$checkbox.checked = overridenLap;
@@ -3149,6 +3149,7 @@ function editLapOverride() {
 		selectedLapOverride++;
 	applyLapOverrideSelector();
 	closeLapOverrideOptions();
+	changes = true;
 }
 function lapOverrideExists(opts) {
 	for (var i=0;i<lapOverrides.length;i++) {
@@ -3166,6 +3167,7 @@ function removeLapOverride() {
 	lapOverrides.splice(lapKey,1);
 	applyLapOverrideSelector();
 	closeLapOverrideOptions();
+	changes = true;
 }
 function enableLapOverride() {
 	var $modeOverrideOptions = document.getElementById("modeoverride-options");
@@ -3895,7 +3897,7 @@ function resetImageOptions() {
 }
 function showImageOptions() {
 	var $imageOptions = document.getElementById("image-options");
-	var selectedImg = selectedLapOverride && lapOverrides[selectedLapOverride].imgData;
+	var selectedImg = selectedLapOverride && (lapOverrides[selectedLapOverride].imgData || { data: null });
 	$imageOptions.src = "changeMap.php" + document.location.search + (isBattle ? "&arenes=1" : "") + (selectedLapOverride ? ("&lap="+selectedLapOverride) : "") + (selectedImg ? ("&img_data="+JSON.stringify(selectedImg.data)) : "");
 	document.body.removeChild($imageOptions);
 	var $mask = createMask();

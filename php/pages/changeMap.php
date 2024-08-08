@@ -1,6 +1,6 @@
 <?php
 $id = isset($_GET['i']) ? intval($_GET['i']) : 0;
-$imgData = isset($_GET['img_data']) ? json_decode($_GET['img_data']) : null;
+$imgData = isset($_GET['img_data']) ? $_GET['img_data'] : null;
 include('../includes/getId.php');
 include('../includes/initdb.php');
 include('../includes/language.php');
@@ -17,19 +17,33 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 	$baseCircuitImg = json_decode($circuit['img_data']);
 	$circuitImg = $baseCircuitImg;
 	if ($lap && $imgData && isset($circuitImg->lapOverrides)) {
+		$imgData = json_decode($imgData);
 		$shouldOverrideLap = true;
-		if (isset($circuitImg->lapOverrides->$lap)) {
-			$lapOverride = $circuitImg->lapOverrides->$lap;
-			if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local)
+		if ($imgData) {
+			if (isset($circuitImg->lapOverrides->$lap)) {
+				$lapOverride = $circuitImg->lapOverrides->$lap;
+				if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local)
+					$shouldOverrideLap = false;
+			}
+		}
+		else {
+			if (!isset($circuitImg->lapOverrides->$lap))
 				$shouldOverrideLap = false;
 		}
 		if ($shouldOverrideLap) {
-			foreach ($circuitImg->lapOverrides as $lapId => $lapOverride) {
-				if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local) {
-					$lap = $lapId;
-					$_GET['lap'] = $lap;
-					break;
+			if ($imgData) {
+				foreach ($circuitImg->lapOverrides as $lapId => $lapOverride) {
+					if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local) {
+						$lap = $lapId;
+						$_GET['lap'] = $lap;
+						break;
+					}
 				}
+			}
+			else {
+				for ($lapId=1;isset($circuitImg->lapOverrides->$lapId);$lapId++);
+				$lap = $lapId;
+				$_GET['lap'] = $lap;
 			}
 		}
 		unset($_GET['img_data']);

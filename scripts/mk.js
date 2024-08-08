@@ -2507,7 +2507,7 @@ function arme(ID, backwards, forwards) {
 					}
 				}
 			}
-			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
+			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.tours, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
 			if ((item.aipoint <= 1) && (oKart.demitours >= lMap.checkpoint.length/2))
 				incItemLap(item);
 			addNewItem(oKart, item);
@@ -2663,9 +2663,9 @@ function arme(ID, backwards, forwards) {
 			}
 			var lapId = getCurrentLapId(oKart);
 			if (backwards)
-				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,target:-1});
+				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1});
 			else
-				throwItem(oKart, {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,target:-1});
+				throwItem(oKart, {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -7487,7 +7487,7 @@ var itemBehaviors = {
 	},
 	"carapace-rouge": {
 		size: 0.67,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),intType("target")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt"),intType("target")],
 		fadedelay: 300,
 		frminv: true,
 		move: function(fSprite, ctx) {
@@ -7770,7 +7770,7 @@ var itemBehaviors = {
 	},
 	"carapace-bleue": {
 		size: 1,
-		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),byteType("ailap")],
+		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt")],
 		fadedelay: 0,
 		cooldown0: 15,
 		cooldown1: 2,
@@ -10277,10 +10277,12 @@ function loadBgLayer(strImages) {
 }
 function incItemLap(fSprite) {
 	if (!oMap.lapOverrides) return;
-	if (!fSprite.ailapt)
-		fSprite.ailapt = oMap.lapOverrides[fSprite.ailap].tours;
+	if (!fSprite.ailapt) {
+		var lapOverride = oMap.lapOverrides[fSprite.ailap];
+		fSprite.ailapt = lapOverride ? lapOverride.lap : 0;
+	}
 	fSprite.ailapt++;
-	var lapId = getCurrentLapId({ tours: fSprite.ailap, demitours: 0 });
+	var lapId = getCurrentLapId({ tours: fSprite.ailapt, demitours: 0 });
 	if (lapId === fSprite.ailap) return;
 	fSprite.ailap = lapId;
 	var lMap = getCurrentLMap(lapId);
