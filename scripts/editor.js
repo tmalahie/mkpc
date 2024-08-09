@@ -1097,6 +1097,8 @@ function selectMode(mode) {
 	document.getElementById("mode-decr").disabled = !$modeOptions[modeId-1];
 	document.getElementById("mode-incr").disabled = !$modeOptions[modeId+1];
 	var $modeOverrides = document.getElementById("mode-override-options");
+	var $editorWrapper = document.getElementById("editor-wrapper");
+	$editorWrapper.classList.remove("editor-override");
 	if ($modeOverrides) {
 		var $currentModeOptions = document.getElementById("mode-options");
 		if (selectedLapOverride) {
@@ -1109,6 +1111,8 @@ function selectMode(mode) {
 			else {
 				$currentModeOptions.style.display = "none";
 				$modeOverrides.classList.remove("mode-override-enabled");
+				if (!editorTool.hasPartialOverride)
+					$editorWrapper.classList.add("editor-override");
 			}
 		}
 		else {
@@ -1120,11 +1124,19 @@ function selectMode(mode) {
 function navigateMode(inc) {
 	var $mode = document.getElementById('mode');
 	var $modeOptions = $mode.getElementsByTagName("option");
-	var nextMode = +$mode.selectedIndex+inc;
-	if ($modeOptions[nextMode]) {
-		$mode.selectedIndex = nextMode;
-		selectMode($mode.value);
+	var nextMode = +$mode.selectedIndex;
+	while (true) {
+		nextMode += inc;
+		if (!$modeOptions[nextMode]) return;
+		if (!selectedLapOverride) break;
+		var key = $modeOptions[nextMode].value;
+		var editorTool = editorTools[key];
+		if (!editorTool.disableOverride) break;
+		var lapOverride = lapOverrides[selectedLapOverride];
+		if (!editorTool.disableOverride(editorTool, lapOverride)) break;
 	}
+	$mode.selectedIndex = nextMode;
+	selectMode($mode.value);
 }
 var mouseCoords = {x:0,y:0};
 function handleClick(e) {
@@ -2911,6 +2923,7 @@ function initLapOverrideOptions() {
 	document.getElementById("lapoverride-more").style.display = "none";
 	document.getElementById("lapoverride-less").style.display = "none";
 	document.getElementById("lapoverride-btn-add").style.display = "block";
+	document.getElementById("lapoverride-btn-edit").style.display = (lapOverrides.length > 1) ? "block" : "none";
 	document.getElementById("lapoverride-btn-remove").style.display = (lapOverrides.length > 1) ? "block" : "none";
 }
 function initModeOverrideOptions() {
@@ -3107,8 +3120,6 @@ function addLapOverride() {
 	var opts = {
 		lap: +$select.value,
 	};
-	if (lapOverrides.length === 1)
-		opts.resetMode = true;
 	if ($checkbox.checked) {
 		opts.cp = +$select2.value;
 		if (!opts.cp) return;
@@ -3215,7 +3226,7 @@ function selectLapOverride(newLapOverride, opts) {
 	applyLapOverrideSelector();
 	var nextMode = currentMode;
 	var currentEditorTool = editorTools[currentMode];
-	if ((opts && opts.resetMode) || (newLapOverride && currentEditorTool.disableOverride && currentEditorTool.disableOverride(currentEditorTool, lapOverride))) {
+	if (newLapOverride && currentEditorTool.disableOverride && currentEditorTool.disableOverride(currentEditorTool, lapOverride)) {
 		nextMode = Object.entries(editorTools).find(function(entry) {
 			var editorTool = entry[1];
 			return !(editorTool.disableOverride && editorTool.disableOverride(editorTool, lapOverride));
@@ -6285,7 +6296,8 @@ var commonTools = {
 			if (payload.main.youtube_opts)
 				self.data.youtube_opts = payload.main.youtube_opts;
 			self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
-		}
+		},
+		"hasPartialOverride": true
 	},
 	"cannons": {
 		"resume" : function(self) {

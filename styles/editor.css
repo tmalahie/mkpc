@@ -293,6 +293,15 @@ body.theme-dark {
 	-ms-transform-origin: left top;
 	transform-origin: 0 0;
 }
+#editor-wrapper.editor-override, #editor-wrapper.editor-override #editor-ctn {
+	background-color: rgb(156,181,207);
+}
+.theme-dark #editor-wrapper.editor-override, .theme-dark #editor-wrapper.editor-override #editor-ctn {
+	background-color: rgb(195,210,225);
+}
+#editor-wrapper.editor-override #editor-img {
+	opacity: 0.7;
+}
 .editor {
 	position: absolute;
 	left: 0;

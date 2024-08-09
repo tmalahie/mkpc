@@ -1051,22 +1051,26 @@ if (isset($_GET['i'])) {
 					'lapoverrides' => array(
 						'title' => $language ? 'Lap override':'Modificateurs',
 						'text' => ($language ?
-							"If you want to change the components of a track on a specific lap, you can do it via this feature.<br /><br />
+							"If you want to change the components of a track on a specific lap, you can do it via this feature.<br />
 							<ul>
-								<li>First select &quot;Manage&quot; under &quot;Pre-lap override&quot; in the options menu.
-								You can then select the lap you want to override.<br />&nbsp;</li>
+								<li>First select &quot;Manage&quot; under &quot;Pre-lap override&quot; in the Options menu.
+								You can then select the lap you want to override.<br />
+								By default, the override will trigger at the beginning of the lap, but you can also make it activate at a specific checkpoint.</li>
 								<li>Then, for each component of the track you want to modify (walls, off-road, decors...), select the corresponding tool and click on &quot;Enable override&quot;.
-								You can then apply the changes you want to make.<br />&nbsp;</li>
-								<li>The components for which you didn't enabled the override will keep the same settings as the previous lap.</li>
+								You can then apply the changes you want to make.<br />
+								If you want to edit the image of the track itself, go back to the Options menu and click on &quot;Image&quot;.</li>
+								<li>The components for which you didn't enabled the override will keep the same behavior as the previous lap.</li>
 							</ul>"
 							:
-							"Si vous souhaitez modifier les composants d'un circuit sur un tour spécifique, vous pouvez le faire via cette fonctionnalité.<br /><br />
+							"Si vous souhaitez modifier les composants d'un circuit sur un tour spécifique, vous pouvez le faire via cette fonctionnalité.<br />
 							<ul>
 								<li>Commencez par cliquer sur &quot;Gérer&quot; dans &quot;Modificateurs par tour&quot; (menu &quot;Divers&quot;).
-								Vous devez alors sélectionner le tour que vous voulez modifier.<br />&nbsp;</li>
+								Sélectionnez alors le tour que vous souhaitez modifier.<br />
+								Par défaut, le modificateur se déclenchera au début du tour, mais vous pouvez également le faire s'activer à un checkpoint spécifique.</li>
 								<li>Ensuite, pour chaque paramètres du circuit que vous voulez modifier (murs, hors-piste, décors...), sélectionnez l'outil correspondant et cliquez sur &quot;Activer modificateur&quot;.
-								Vous pouvez alors appliquer les changements que vous souhaitez effectuer.<br />&nbsp;</li>
-								<li>Les paramètres pour lesquels vous n'avez pas activé le modificateur garderont les mêmes réglages que sur le tour précédent.</li>
+								Vous pouvez alors appliquer les changements souhaités.<br />
+								Si vous voulez modifier l'image du circuit lui-même, retournez dans le menu &quot;Divers&quot; et cliquez sur &quot;Image&quot;.</li>
+								<li>Les paramètres pour lesquels vous n'avez pas activé le modificateur garderont le même comportement que sur le tour précédent.</li>
 							</ul>"
 						)
 					)
