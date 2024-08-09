@@ -18338,11 +18338,12 @@ function ai(oKart) {
 			var vX = (gX-oX)*oKart.speed/gD, vY = (gY-oY)*oKart.speed/gD;
 			var minDecor, minT = 1;
 			if (!isCup) {
-				for (var type in decorPos) {
+				var lDecorPos = decorPos[collisionLap];
+				for (var type in lDecorPos) {
 					var hitboxSize = decorBehaviors[type].hitbox||DEFAULT_DECOR_HITBOX;
 					hitboxSize *= 1.1;
-					for (var i=0;i<decorPos[type].length;i++) {
-						var iDecor = decorPos[type][i];
+					for (var i=0;i<lDecorPos[type].length;i++) {
+						var iDecor = lDecorPos[type][i];
 						var decorLines = [
 							[iDecor.x-hitboxSize,iDecor.y-hitboxSize,hitboxSize*2,0],
 							[iDecor.x-hitboxSize,iDecor.y-hitboxSize,0,hitboxSize*2],
@@ -18626,16 +18627,17 @@ function moveItems() {
 	}
 }
 function moveDecor() {
-	decorPos = {};
+	decorPos = [];
 	var tau = 2*Math.PI;
-	foreachLMap(function(lMap,pMap) {
+	foreachLMap(function(lMap,pMap, lapId) {
+		var lDecorPos = {};
 		if (pMap.decor) {
 			for (var type in lMap.decor) {
 				if (decorBehaviors[type].dodgable) {
-					decorPos[type] = [];
+					lDecorPos[type] = [];
 					var decor = lMap.decor[type];
 					for (var i=0;i<decor.length;i++)
-						decorPos[type].push({aX:decor[i][0],aY:decor[i][1],x:decor[i][0],y:decor[i][1],vX:0,vY:0});
+						lDecorPos[type].push({aX:decor[i][0],aY:decor[i][1],x:decor[i][0],y:decor[i][1],vX:0,vY:0});
 				}
 			}
 			for (var type in decorBehaviors)
@@ -18658,16 +18660,17 @@ function moveDecor() {
 					decorIncs[actualType] += decor.length;
 				}
 			}
-			for (var type in decorPos) {
+			for (var type in lDecorPos) {
 				var decor = lMap.decor[type];
 				for (var i=0;i<decor.length;i++) {
-					decorPos[type][i].x = decor[i][0];
-					decorPos[type][i].y = decor[i][1];
-					decorPos[type][i].vX = decorPos[type][i].x - decorPos[type][i].aX;
-					decorPos[type][i].vY = decorPos[type][i].y - decorPos[type][i].aY;
+					lDecorPos[type][i].x = decor[i][0];
+					lDecorPos[type][i].y = decor[i][1];
+					lDecorPos[type][i].vX = lDecorPos[type][i].x - lDecorPos[type][i].aX;
+					lDecorPos[type][i].vY = lDecorPos[type][i].y - lDecorPos[type][i].aY;
 				}
 			}
 		}
+		decorPos[lapId] = lDecorPos;
 		if (pMap.pointers) {
 			for (var i=0;i<lMap.pointers.length;i++) {
 				var pointer = lMap.pointers[i];
@@ -18928,7 +18931,7 @@ function cycle() {
 	cycleHandler = setInterval(runOneFrame,SPF);
 	runOneFrame();
 }
-var decorPos = {};
+var decorPos = [];
 var lastErrorTs = 0;
 function runOneFrame() {
 	try {
