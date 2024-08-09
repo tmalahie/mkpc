@@ -3942,8 +3942,13 @@ function startGame() {
 				for (var j=0;j<lMap[key].length;j++)
 					setupAsset(key,lMap[key][j]);
 			}
-			else
+			else {
 				delete lMap[key];
+				foreachDMap(lMap,pMap,function(nMap,qMap) {
+					delete nMap[key];
+					if (qMap) delete qMap[key];
+				});
+			}
 		}
 	});
 
@@ -11995,7 +12000,6 @@ function tombe(iX, iY, iC) {
 			for (var i=0;i<oPolygons.length;i++) {
 				var oHole = oPolygons[i];
 				if (pointInPolygon(iX,iY, oHole[0])) {
-					console.log(iC);
 					if (iC == undefined)
 						return true;
 					fTrou = [oHole[1][0],oHole[1][1],j];
@@ -13024,7 +13028,7 @@ var challengeRules = {
 								break;
 						}
 						if (assetParams) {
-							if (!lMap[assetKey]) {
+							if (!pMap[assetKey]) {
 								lMap[assetKey] = [];
 								foreachDMap(lMap,pMap,function(nMap) {
 									nMap[assetKey] = lMap[assetKey];
@@ -13265,8 +13269,9 @@ function foreachDMap(lMap,pMap,f) {
 	for (var k=lapId+1;k<lMaps.length;k++) {
 		var nMap = lMaps[k];
 		if (nMap === lMap) continue;
-		if (nMap.decor !== lMap.decor) break;
-		f(nMap);
+		var qMap = pMaps[k];
+		if (qMap.decor) break;
+		f(nMap, qMap);
 	}
 }
 function isSameDistrib(d1,d2) {
