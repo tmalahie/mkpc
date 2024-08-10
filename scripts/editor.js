@@ -1144,7 +1144,8 @@ function handleClick(e) {
 	if (editorTool.click) {
 		var selectedModeData = lapOverrides[selectedLapOverride].modesData[currentMode];
 		if (!selectedModeData.isSet) {
-			alert(language ? "You must enable override for this mode first" : "Vous devez d'abord activer le modificateur pour ce mode");
+			if (confirm(language ? "Override is disabled for this mode, do you want to enable it?" : "Le modificateur est désactivé pour ce mode, voulez-vous l'activer ?"))
+				enableLapOverride();
 			return;
 		}
 		var pointerCoords = getPointerPos(e);
@@ -2728,6 +2729,7 @@ function addTraject() {
 	$trajectSelector.selectedIndex = newTrajectIndex;
 	selectMode(currentMode);
 	closeTrajectOptions();
+	changes = true;
 }
 function showTrajectCopy() {
 	var key = document.getElementById("traject-options").dataset.key;
@@ -2766,6 +2768,7 @@ function copyTraject() {
 		trajectData[m2] = deepCopy(trajectData[m1]);
 		trajectData[m2].bill = isBb;
 		selectMode(currentMode);
+		changes = true;
 	}
 	closeTrajectOptions();
 }
@@ -2778,10 +2781,7 @@ function showTrajectRemove() {
 	var allCp = getTrajectData(editorTool,key);
 	$trajectList.innerHTML = "";
 	var routeLabels = getRouteLabels(allCp);
-	var minCp = 0;
-	if (!allCp[1] || allCp[1].bill)
-		minCp++;
-	for (var i=minCp;i<routeLabels.length;i++) {
+	for (var i=0;i<routeLabels.length;i++) {
 		var $iTraject = document.createElement("option");
 		$iTraject.value = i;
 		$iTraject.innerHTML = routeLabels[i];
@@ -2825,6 +2825,7 @@ function removeTraject() {
 		$trajectSelector.childNodes[i].innerHTML = routeLabels[i];
 	selectMode(currentMode);
 	closeTrajectOptions();
+	changes = true;
 }
 function getRouteLabel(i, opts) {
 	opts = opts || {};
@@ -2972,6 +2973,7 @@ function addModeOverride() {
 	}
 	selectMode(currentMode);
 	closeModeOverrideOptions();
+	changes = true;
 }
 function closeModeOverrideOptions() {
 	closeLapOverrideOptions();
@@ -3205,6 +3207,7 @@ function disableLapOverride() {
 		selectMode(currentMode);
 		if (editorTool.postrestore)
 			editorTool.postrestore(editorTool);
+		changes = true;
 	}
 }
 function selectLapOverride(newLapOverride, opts) {
@@ -3972,6 +3975,7 @@ function foreachCurrentImg(callback) {
 		callback(editorTool);
 	}
 
+	storeCurrentLapOverride();
 	for (var lapId=selectedLapOverride+1;lapId<lapOverrides.length;lapId++) {
 		var lapOverride = lapOverrides[lapId];
 		if (lapOverride.imgData) break;

@@ -2476,10 +2476,10 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "carapacebleue" :
-			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
+			var minDist = Infinity, minAiPt = 0, minAiMap = 0, lapId = 0, lMap;
 			if (course != "BB") {
-				var lapId = getCurrentLapId(oKart);
-				var lMap = getCurrentLMap(lapId);
+				lapId = getCurrentLapId(oKart);
+				lMap = getCurrentLMap(lapId);
 				var demitour = oKart.demitours+1;
 				if (demitour >= lMap.checkpoint.length)
 					demitour = 0;
@@ -2508,7 +2508,7 @@ function arme(ID, backwards, forwards) {
 				}
 			}
 			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.tours, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
-			if ((item.aipoint <= 1) && (oKart.demitours >= lMap.checkpoint.length/2))
+			if ((item.aipoint <= 1) && lMap && (oKart.demitours >= lMap.checkpoint.length/2))
 				incItemLap(item);
 			addNewItem(oKart, item);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
@@ -14797,13 +14797,10 @@ function getRankScore(oKart) {
 	if (course != "BB") {
 		var lapId = getCurrentLapId(oKart);
 		var lMap = getCurrentLMap(lapId);
-		var nLaps = oKart.tours, dest = oKart.demitours+1;
-		if (dest >= lMap.checkpoint.length) {
-			dest = 0;
-			nLaps++;
-		}
-		var nMap = getCurrentLMap(getCurrentLapId({ tours: nLaps, demitours: dest }));
-		var iLine = nMap.checkpointCoords[dest];
+		var dest = oKart.demitours+1;
+		if (dest >= lMap.checkpoint.length) dest = 0;
+
+		var iLine = lMap.checkpointCoords[dest];
 		if (!iLine) return 0;
 
 		var hLine = projete(oKart.x,oKart.y, iLine.A[0],iLine.A[1], iLine.B[0],iLine.B[1]);
@@ -17173,15 +17170,11 @@ function move(getId, triggered) {
 			}
 		}
 		else {
-			var tour = oKart.tours;
 			var demitour = oKart.demitours+1;
-			if (demitour >= lMap.checkpoint.length) {
-				tour++;
+			if (demitour >= lMap.checkpoint.length)
 				demitour = 0;
-			}
-			var nMap = getCurrentLMap(getCurrentLapId({ tours: tour, demitours: demitour }));
 
-			var oBox = nMap.checkpointCoords[demitour];
+			var oBox = lMap.checkpointCoords[demitour];
 			if (oBox) {
 				iLocalX = oBox.O[0] - oKart.x;
 				iLocalY = oBox.O[1] - oKart.y;

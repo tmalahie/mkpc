@@ -41,10 +41,10 @@ if (is_object($data) && isset($data->id) && isset($data->payload)) {
 			$circuitImg->lapOverrides = $newLapOverrides;
 			mysql_query('UPDATE circuits SET img_data="'.mysql_real_escape_string(json_encode($circuitImg)).'" WHERE id="'.$id.'"');
 		}
+		require_once('../includes/cache_creations.php');
+		@unlink(cachePath("racepreview$id.png"));
 	}
 	echo 1;
 	mysql_close();
-	require_once('../includes/cache_creations.php');
-	@unlink(cachePath("racepreview$id.png"));
 }
 ?>

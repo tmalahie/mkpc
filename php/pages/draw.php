@@ -436,7 +436,7 @@ if (isset($_GET['i'])) {
 							<?php echo $language ? 'Create override for:':'Créer le modificateur pour le :'; ?>
 							<select id="lapoverride-laps-list" onchange="handleLapOverrideSelect(this.value)"></select><br />
 						</label>
-						<label><input type="checkbox" id="lapoverride-checkpoints-check" onclick="handleCheckpointOverrideCheck(this.checked)" /> <?php
+						<label id="lapoverride-checkpoints-checker"><input type="checkbox" id="lapoverride-checkpoints-check" onclick="handleCheckpointOverrideCheck(this.checked)" /> <?php
 						echo $language ? 'Activate override in the middle of the lap' : 'Activer le modificateur au milieu du tour';
 						?></label><br />
 						<label id="lapoverride-checkpoints-ctn">
@@ -471,7 +471,7 @@ if (isset($_GET['i'])) {
 				<a href="javascript:closeModeOverrideOptions()" class="close">&nbsp; &times; &nbsp;</a>
 			</div>
 			<div id="modeoverride-more">
-				<h1><?php echo $language ? 'Mode override for ':'Modificateur pour '; ?><strong id="modeoverride-label"></strong></h1>
+				<h1><?php echo $language ? 'Enable override for ':'Modificateur pour '; ?><strong id="modeoverride-label"></strong></h1>
 				<div>
 					<?php echo $language ? 'Create override from:':'Créer le modificateur à partir de :'; ?>
 					<select id="modeoverride-lap-list"></select>
