@@ -1144,7 +1144,7 @@ function handleClick(e) {
 	if (editorTool.click) {
 		var selectedModeData = lapOverrides[selectedLapOverride].modesData[currentMode];
 		if (!selectedModeData.isSet) {
-			if (confirm(language ? "Override is disabled for this mode, do you want to enable it?" : "Le modificateur est désactivé pour ce mode, voulez-vous l'activer ?"))
+			if (!editorTool.hasPartialOverride && confirm(language ? "Override is disabled for this mode, do you want to enable it?" : "Le modificateur est désactivé pour ce mode, voulez-vous l'activer ?"))
 				enableLapOverride();
 			return;
 		}
