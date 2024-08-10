@@ -10108,7 +10108,7 @@ function getApparentRotation(oPlayer) {
 	return res;
 }
 
-var lastState, lastStateTime;
+var lastState, lastStateTime, lastStateChange;
 function getLastObj(lastObjs,i,currentObj) {
 	if (lastObjs[i] && lastObjs[i].ref === currentObj.ref)
 		return lastObjs[i];
@@ -10168,7 +10168,8 @@ function handleLapChange(prevLepId,lapId, getId) {
 		resetAiPoints(oKart);
 	var sID = getScreenPlayerIndex(getId);
 	if (sID >= oPlayers.length) return;
-	resetRenderState();
+	lastStateChange = true;
+	clearPendingFrames();
 	hideLapSprites(lMap, sID);
 	var pMap = pMaps[lapId];
 	updateBgLayers(pMap, function(strImages, fixedScale) {
@@ -10189,6 +10190,9 @@ function handleCpChange(prevLap,prevCP, getId) {
 }
 function resetRenderState() {
 	lastState = undefined;
+	clearPendingFrames();
+}
+function clearPendingFrames() {
 	for (var i=0;i<frameHandlers.length;i++)
 		clearTimeout(frameHandlers[i]);
 }
@@ -10378,6 +10382,13 @@ function render() {
 				z: item.z,
 				size: item.size
 			});
+		}
+	}
+	if (lastStateChange) {
+		lastStateChange = false;
+		if (lastState) {
+			lastState.decor = currentState.decor;
+			lastState.items = currentState.items;
 		}
 	}
 	if (!lastState) lastState = currentState;
