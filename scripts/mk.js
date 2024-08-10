@@ -3534,6 +3534,9 @@ function startGame() {
 					megachampi : 0,
 					using : [],
 
+					tours : 1,
+					demitours: 0,
+
 					cpu : false,
 					aipoint : 0,
 					aipoints : oMap.aipoints[0],
@@ -3605,6 +3608,12 @@ function startGame() {
 					else if (getFlags[3])
 						rotincdir = -1;
 					oKart.rotincdir = oKart.stats.handling*rotincdir;
+					var aTours = oKart.tours, aDemitours = oKart.demitours;
+					if (checkpoint(oKart, oKart.x-aX,oKart.y-aY)) {
+						oKart.tours++;
+						oKart.demitours = getNextCp(oKart);
+					}
+					handleCpChange(aTours,aDemitours, getId);
 					if (oKart.z) {
 						if (!aJumped) {
 							aJumped = true;
@@ -4650,8 +4659,10 @@ function startGame() {
 									}
 								}
 								if (oKart.demitours === undefined) {
+									var tours = oKart.tours, demitours = oKart.demitours;
 									oKart.tours = oMap.tours+1;
 									oKart.demitours = 0;
+									handleCpChange(tours,demitours, i);
 								}
 								ai(oKart);
 								var aSfx = iSfx;
@@ -4668,7 +4679,7 @@ function startGame() {
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];oKart.tours=oMap.tours+1;oKart.demitours=0;oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var tours=oKart.tours,demitours=oKart.demitours;oKart.tours=oMap.tours+1;oKart.demitours=0;handleCpChange(tours,demitours,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++) {
