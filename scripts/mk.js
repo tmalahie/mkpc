@@ -1939,8 +1939,10 @@ function initMap() {
 			}
 		}
 		if (lMap.horspistes) {
+			var nOffRoad = {};
 			for (var type in lMap.horspistes)
-				lMap.horspistes[type] = classifyByShape(lMap.horspistes[type]);
+				nOffRoad[type] = classifyByShape(lMap.horspistes[type]);
+			lMap.horspistes = nOffRoad;
 		}
 		if (lMap.checkpoint) {
 			lMap.checkpointCoords = lMap.checkpoint.map(function(oBox) {
