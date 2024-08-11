@@ -34,6 +34,9 @@ if (isset($_GET['i'])) {
 				$circuitData = gzuncompress($getCircuitData['data']);
 			$circuitImg = json_decode($circuit['img_data']);
 			require_once('../includes/circuitImgUtils.php');
+			$circuitImgPayload = array(
+				'src' => getCircuitImgUrl($circuitImg)
+			);
 			?>
 <!DOCTYPE html> 
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
@@ -41,7 +44,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create arena':'Créer arène'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -49,6 +52,7 @@ if (isset($_GET['i'])) {
 		var musicOptions = <?php echo json_encode($musicOptions); ?>;
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
+		var imgData = <?php echo json_encode($circuitImgPayload); ?>;
 		var isBattle = true;
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
@@ -56,8 +60,8 @@ if (isset($_GET['i'])) {
 		<?php
 		include('../includes/o_xhr.php');
 		?>
-		<script type="text/javascript" src="scripts/editor.js?reload=1"></script>
-		<script type="text/javascript" src="scripts/course.js"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
+		<script type="text/javascript" src="scripts/course.js?reload=1"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?>  oncontextmenu="handleCtxmenu(event)" onmousemove="handleMove(event)" onclick="handleClick(event)">
@@ -196,7 +200,7 @@ if (isset($_GET['i'])) {
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
 					</div>
-					<div>
+					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Music:':'Musique :'; ?>
 						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button><br />
 					</div>
@@ -206,7 +210,7 @@ if (isset($_GET['i'])) {
 					</div>
 					<div>
 						<?php echo $language ? 'Image:':'Image :'; ?>
-						<button id="button-imgoptions" class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
+						<button class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
 					</div>
 				</div>
 			</div>
@@ -772,7 +776,7 @@ else {
 		<?php
 		include('../includes/o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;

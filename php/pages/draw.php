@@ -28,6 +28,30 @@ if (isset($_GET['i'])) {
 				$circuitData = gzuncompress($getCircuitData['data']);
 			$circuitImg = json_decode($circuit['img_data']);
 			require_once('../includes/circuitImgUtils.php');
+			$circuitImgSrc = getCircuitImgUrl($circuitImg);
+			$circuitImgPayload = array(
+				'src' => getCircuitImgUrl($circuitImg)
+			);
+			if (isset($circuitImg->lapOverrides)) {
+				$circuitImgPayload['lapOverrides'] = array(
+					'0' => array(
+						'src' => $circuitImgPayload['src'],
+						'data' => array(
+							'url' => $circuitImg->url,
+							'local' => $circuitImg->local
+						)
+					)
+				);
+				foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
+					$circuitImgPayload['lapOverrides'][$lap] = array(
+						'src' => getCircuitImgUrl($lapImg),
+						'data' => array(
+							'url' => $lapImg->url,
+							'local' => $lapImg->local
+						)
+					);
+				}
+			}
 			?>
 <!DOCTYPE html> 
 <html lang="<?php echo $language ? 'en':'fr'; ?>"> 
@@ -35,7 +59,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create circuit':'Créer circuit'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -43,6 +67,7 @@ if (isset($_GET['i'])) {
 		var musicOptions = <?php echo json_encode($musicOptions); ?>;
 		var circuitId = <?php echo $circuitId; ?>;
 		var circuitData = <?php echo isset($circuitData) ? $circuitData:'null'; ?>;
+		var imgData = <?php echo json_encode($circuitImgPayload); ?>;
 		var isBattle = false;
 		var readOnly = <?php echo $hasWriteGrants ? 0 : 1; ?>;
 		</script>
@@ -50,13 +75,13 @@ if (isset($_GET['i'])) {
 		<?php
 		include('../includes/o_xhr.php');
 		?>
-		<script type="text/javascript" src="scripts/editor.js?reload=1"></script>
-		<script type="text/javascript" src="scripts/draw.js?reload=1"></script>
+		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
+		<script type="text/javascript" src="scripts/draw.js?reload=2"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?> oncontextmenu="handleCtxmenu(event)" onmousemove="handleMove(event)" onclick="handleClick(event)">
 			<div id="editor-ctn">
-				<img id="editor-img" src="<?php echo getCircuitImgUrl($circuitImg); ?>" alt="Circuit" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
+				<img id="editor-img" src="<?php echo $circuitImgSrc; ?>" alt="Circuit" onload="imgSize.w=this.naturalWidth;imgSize.h=this.naturalHeight;this.onload=undefined" />
 				<svg id="editor" class="editor" />
 			</div>
 		</div>
@@ -85,6 +110,10 @@ if (isset($_GET['i'])) {
 		require_once('../includes/circuitUiUtils.php');
 		?>
 		<div id="toolbox">
+			<div id="lapoverride-current">
+				<?php echo $language ? 'Overriding:':'Modificateur'; ?>
+				<select id="lapoverride-current-value" onchange="switchLapOverride(this)">1</select>
+			</div>
 			<div id="mode-selection">
 				<button id="mode-decr" class="toolbox-button" onclick="navigateMode(-1)">←</button>
 				<select id="mode" name="mode" onchange="selectMode(this.value)">
@@ -102,6 +131,21 @@ if (isset($_GET['i'])) {
 				</select>
 				<button id="mode-incr" class="toolbox-button" onclick="navigateMode(+1)">→</button>
 			</div>
+			<div id="mode-override-options">
+				<div id="mode-onoverride-options">
+					<div id="mode-onoverride-option-options">
+						<?php echo $language ? 'Image:':'Image :'; ?>
+						<button class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
+					</div>
+				</div>
+				<div id="mode-override-disabled">
+					<span id="mode-override-disabled-reason"></span>
+				</div>
+				<div id="mode-override-enabled">
+					<a class="mode-override-activate" href="javascript:enableLapOverride()">+ <?php echo $language ? 'Enable override...' : 'Activer modificateur...'; ?></a>
+					<a class="mode-override-deactivate" href="javascript:disableLapOverride()">&times; <?php echo $language ? 'Reset override' : 'Réinit. modificateur'; ?></a>
+				</div>
+			</div>
 			<div id="mode-options">
 				<div id="mode-option-start">
 					Direction:
@@ -117,8 +161,7 @@ if (isset($_GET['i'])) {
 					</div>
 				</div>
 				<div id="mode-option-aipoints">
-					<select name="traject" id="traject" onchange="trajectChange(this.value,'aipoints')">
-					</select>
+					<select name="traject" id="traject" onchange="trajectChange(this.value,'aipoints')"></select>
 				</div>
 				<div id="mode-option-walls">
 					<?php echo $language ? 'Shape:':'Forme :'; ?>
@@ -152,8 +195,10 @@ if (isset($_GET['i'])) {
 					</div>
 				</div>
 				<div id="mode-option-checkpoints">
-					<span id="checkpoints-nblaps"></span>
-					[<a href="javascript:showLapsOptions()"><?php echo $language ? 'Edit':'Modifier'; ?></a>]
+					<div class="mode-option-unoverridable">
+						<span id="checkpoints-nblaps"></span>
+						[<a href="javascript:showLapsOptions()"><?php echo $language ? 'Edit':'Modifier'; ?></a>]
+					</div>
 					<div id="checkpoints-disclaimer">
 					<?php
 					if ($language) {
@@ -226,7 +271,7 @@ if (isset($_GET['i'])) {
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
 					</div>
-					<div>
+					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Music:':'Musique :'; ?>
 						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button><br />
 					</div>
@@ -234,9 +279,13 @@ if (isset($_GET['i'])) {
 						<?php echo $language ? 'Out color:':'Couleur de fond :'; ?>
 						<button id="button-bgcolor" class="toolbox-button" onclick="showColorSelector()"></button><br />
 					</div>
-					<div>
+					<div class="mode-option-unoverridable">
 						<?php echo $language ? 'Image:':'Image :'; ?>
-						<button id="button-imgoptions" class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
+						<button class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
+					</div>
+					<div id="lapoverride-opener" class="mode-option-unoverridable">
+						<?php echo $language ? 'Per-lap override:':'Modificateurs par tour :'; ?>
+						<button class="button-lapoptions toolbox-button" onclick="showLapOverrideOptions()"><?php echo $language ? 'Manage...':'Gérer...'; ?></button>
 					</div>
 				</div>
 			</div>
@@ -281,13 +330,11 @@ if (isset($_GET['i'])) {
 									  thus adding diversity in CPUs behaviour.<br />
 									  For example, if you specify 2 routes,
 									  half of the CPUs will take the 1<sup>st</sup> one,
-									  and the other half will take the 2<sup>nd</sup> one.<br />
-									  You can indicate up to 7 routes.'
+									  and the other half will take the 2<sup>nd</sup> one.'
 								   : 'Ce menu vous permet de créer plusieurs trajets différents,
 								   	  et ainsi ajouter de la diversité dans le comportement des ordis.<br />
 									  Si vous avez spécifié 2 trajets par exemple,
-									  la moitié des ordis prendront le 1<sup>er</sup> trajet, et l\'autre motié le 2<sup>e</sup>.<br />
-									  Vous pouvez indiquer jusqu\'à 7 trajets.';
+									  la moitié des ordis prendront le 1<sup>er</sup> trajet, et l\'autre motié le 2<sup>e</sup>.';
 					?>
 					</div>
 					<div class="traject-specific traject-specific-bus">
@@ -317,6 +364,9 @@ if (isset($_GET['i'])) {
 					<div>
 						<?php echo $language ? 'Create route from:':'Créer le trajet à partir de :'; ?>
 						<select id="traject-more-list"></select>
+						<div id="traject-advanced-options">
+							<label><input type="checkbox" id="traject-bill" /> <?php echo $language ? 'Route for Bullet Bill only':'Trajet pour les Bill Ball'; ?> <a href="javascript:showBillBallHelp()">[?]</a></label>
+						</div>
 						<div class="popup-buttons">
 							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
 							<button class="options" onclick="addTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>
@@ -355,6 +405,84 @@ if (isset($_GET['i'])) {
 							<button class="options" onclick="initTrajectOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
 							<button class="options" onclick="removeTraject()"><?php echo $language ? 'Submit':'Valider'; ?></button>
 						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="lapoverride-options" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeLapOverrideOptions()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div class="lapoverride-info">
+				<div id="lapoverride-menu">
+					<div class="lapoverride-explain">
+					<?php
+					echo $language ? 'This menu allows you to override the circuit parameters on a given lap.<br />
+									  It allows you to give more diversity to your track (decors appearing progressively, falling platforms...)
+									  or even change it completely accorss laps (e.g MKT city tracks)'
+								   : 'Ce menu vous permet de modifier les paramètres du circuit pour un tour donné.<br />
+								   	  Vous pouvez ainsi ajouter de la diversité à votre circuit (décors qui apparaissent au fur et à mesure, plateformes qui tombent...)
+									  ou même le changer complètement d\'un tour à l\'autre (comme les circuits &quot;villes&quot; sur MKT).';
+					?>
+					</div>
+					<?php
+					echo '<div class="lapoverride-manage">';
+					echo '<a id="lapoverride-btn-add" href="javascript:showLapOverrideAdd()">'. ($language ? 'Add a lap override':'Ajouter un modificateur') .'</a>';
+					echo '<a id="lapoverride-btn-edit" href="javascript:showLapOverrideChange()">'. ($language ? 'Edit a lap override':'Changer un modificateur') .'</a>';
+					echo '<a id="lapoverride-btn-remove" href="javascript:showLapOverrideRemove()">'. ($language ? 'Delete an override':'Supprimer un modificateur') .'</a>';
+					echo '</div>';
+					?>
+				</div>
+				<div id="lapoverride-more">
+					<h1 class="lapoverride-more-add"><?php echo $language ? 'Add an override':'Ajouter un modificateur'; ?></h1>
+					<h1 class="lapoverride-more-edit"><?php echo $language ? 'Edit an override':'Changer un modificateur'; ?></h1>
+					<div>
+						<label>
+							<?php echo $language ? 'Create override for:':'Créer le modificateur pour le :'; ?>
+							<select id="lapoverride-laps-list" onchange="handleLapOverrideSelect(this.value)"></select><br />
+						</label>
+						<label id="lapoverride-checkpoints-checker"><input type="checkbox" id="lapoverride-checkpoints-check" onclick="handleCheckpointOverrideCheck(this.checked)" /> <?php
+						echo $language ? 'Activate override in the middle of the lap' : 'Activer le modificateur au milieu du tour';
+						?></label><br />
+						<label id="lapoverride-checkpoints-ctn">
+							<?php echo $language ? 'Checkpoint:' : 'Checkpoint :'; ?>
+							<select id="lapoverride-checkpoints-list"></select>
+						</label>
+						<div class="popup-buttons">
+							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options lapoverride-more-add" onclick="addLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+							<button class="options lapoverride-more-edit" onclick="editLapOverride()"><?php echo $language ? 'Apply':'Appliquer'; ?></button>
+						</div>
+					</div>
+				</div>
+				<div id="lapoverride-less">
+					<h1 class="lapoverride-less-delete"><?php echo $language ? 'Delete an override':'Supprimer un modificateur'; ?></h1>
+					<h1 class="lapoverride-less-edit"><?php echo $language ? 'Edit an override':'Changer un modificateur'; ?></h1>
+					<div>
+						<span class="lapoverride-less-delete"><?php echo $language ? 'Delete given override:' : 'Supprimer le modificateur :'; ?></span>
+						<span class="lapoverride-less-edit"><?php echo $language ? 'Select override:' : 'Sélectionner le modificateur :'; ?></span>
+						<select id="lapoverride-less-list"></select>
+						<div class="popup-buttons">
+							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options lapoverride-less-edit" onclick="showLapOverrideEdit()"><?php echo $language ? 'Next':'Suivant'; ?> &gt;</button>
+							<button class="options lapoverride-less-delete" onclick="removeLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="modeoverride-options" class="fs-popup" onclick="event.stopPropagation()">
+			<div class="close-ctn">
+				<a href="javascript:closeModeOverrideOptions()" class="close">&nbsp; &times; &nbsp;</a>
+			</div>
+			<div id="modeoverride-more">
+				<h1><?php echo $language ? 'Enable override for ':'Modificateur pour '; ?><strong id="modeoverride-label"></strong></h1>
+				<div>
+					<?php echo $language ? 'Create override from:':'Créer le modificateur à partir de :'; ?>
+					<select id="modeoverride-lap-list"></select>
+					<div class="popup-buttons">
+						<button class="options" onclick="closeModeOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+						<button class="options" id="modeoverride-submit" onclick="addModeOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
 					</div>
 				</div>
 			</div>
@@ -924,6 +1052,32 @@ if (isset($_GET['i'])) {
 							</ul>
 							Dans le 2<sup>e</sup> et 3<sup>e</sup> cas, en plus de l'image, les différents éléments du circuit (position de départ, murs, etc) sont également modifiés pour s'adapter à la transformation."
 						)
+					),
+					'lapoverrides' => array(
+						'title' => $language ? 'Lap override':'Modificateurs',
+						'text' => ($language ?
+							"If you want to change the components of a track on a specific lap, you can do it via this feature.<br />
+							<ul>
+								<li>First select &quot;Manage&quot; under &quot;Pre-lap override&quot; in the Options menu.
+								You can then select the lap you want to override.<br />
+								By default, the override will trigger at the beginning of the lap, but you can also make it activate at a specific checkpoint.</li>
+								<li>Then, for each component of the track you want to modify (walls, off-road, decors...), select the corresponding tool and click on &quot;Enable override&quot;.
+								You can then apply the changes you want to make.<br />
+								If you want to edit the image of the track itself, go back to the Options menu and click on &quot;Image&quot;.</li>
+								<li>The components for which you didn't enabled the override will keep the same behavior as the previous lap.</li>
+							</ul>"
+							:
+							"Si vous souhaitez modifier les composants d'un circuit sur un tour spécifique, vous pouvez le faire via cette fonctionnalité.<br />
+							<ul>
+								<li>Commencez par cliquer sur &quot;Gérer&quot; dans &quot;Modificateurs par tour&quot; (menu &quot;Divers&quot;).
+								Sélectionnez alors le tour que vous souhaitez modifier.<br />
+								Par défaut, le modificateur se déclenchera au début du tour, mais vous pouvez également le faire s'activer à un checkpoint spécifique.</li>
+								<li>Ensuite, pour chaque paramètres du circuit que vous voulez modifier (murs, hors-piste, décors...), sélectionnez l'outil correspondant et cliquez sur &quot;Activer modificateur&quot;.
+								Vous pouvez alors appliquer les changements souhaités.<br />
+								Si vous voulez modifier l'image du circuit lui-même, retournez dans le menu &quot;Divers&quot; et cliquez sur &quot;Image&quot;.</li>
+								<li>Les paramètres pour lesquels vous n'avez pas activé le modificateur garderont le même comportement que sur le tour précédent.</li>
+							</ul>"
+						)
 					)
 				);
 				foreach ($helpItems as $key=>$item) {
@@ -995,7 +1149,7 @@ else {
 		<?php
 		include('../includes/o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";

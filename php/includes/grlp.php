@@ -1,1 +1,1 @@
-<script async type="text/javascript" src="scripts/grlp.js"></script>
+<script async type="text/javascript" src="scripts/grlp.js?reload=1"></script>

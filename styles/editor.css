@@ -293,6 +293,15 @@ body.theme-dark {
 	-ms-transform-origin: left top;
 	transform-origin: 0 0;
 }
+#editor-wrapper.editor-override, #editor-wrapper.editor-override #editor-ctn {
+	background-color: rgb(156,181,207);
+}
+.theme-dark #editor-wrapper.editor-override, .theme-dark #editor-wrapper.editor-override #editor-ctn {
+	background-color: rgb(195,210,225);
+}
+#editor-wrapper.editor-override #editor-img {
+	opacity: 0.7;
+}
 .editor {
 	position: absolute;
 	left: 0;
@@ -355,6 +364,9 @@ body.theme-dark {
 #mode-options > .mode-option-selected {
 	display: block;
 }
+.mode-option-override .mode-option-unoverridable {
+	display: none;
+}
 #toolbox #decor-selector-more {
 	cursor: pointer;
 	width: 22px;
@@ -389,6 +401,70 @@ body.theme-dark {
 	display: none;
 }
 .decor-option-bus-trajects #decor-bus-decors {
+	display: none;
+}
+#mode-override-options {
+	display: none;
+}
+#mode-override-options a {
+	text-decoration: none;
+	font-size: 0.9em;
+}
+#mode-override-options {
+	margin-bottom: 5px;
+}
+#mode-override-options.mode-override-activated {
+	margin-top: -2px;
+}
+#mode-override-options a:hover {
+	text-decoration: underline;
+}
+#mode-override-options .mode-override-deactivate {
+	color: #C24;
+	font-size: 0.8em;
+}
+#mode-override-options .mode-override-deactivate:hover {
+	color: #D35;
+}
+#mode-override-options.mode-override-activated .mode-override-activate {
+	display: none;
+}
+#mode-override-options:not(.mode-override-activated) .mode-override-deactivate {
+	display: none;
+}
+#mode-override-options.mode-override-disabled #mode-override-enabled {
+	display: none;
+}
+#mode-override-options:not(.mode-override-disabled) #mode-override-disabled {
+	display: none;
+}
+#mode-override-disabled {
+	font-size: 0.75em;
+	margin-bottom: 0.15em;
+}
+#mode-override-disabled:before {
+	content: '×';
+	font-weight: bold;
+}
+#mode-override-disabled {
+	color: #742;
+}
+#mode-onoverride-options > * {
+	display: none;
+}
+#mode-onoverride-options > .mode-option-selected {
+	display: block;
+}
+#lapoverride-more.lapoverride-mode-add .lapoverride-more-edit {
+	display: none;
+}
+#lapoverride-more.lapoverride-mode-edit .lapoverride-more-add {
+	display: none;
+}
+#lapoverride-less.lapoverride-mode-delete .lapoverride-less-edit {
+	display: none;
+}
+#lapoverride-less.lapoverride-mode-edit .lapoverride-less-delete {
 	display: none;
 }
 .help-balloon {
@@ -671,6 +747,15 @@ div.hover-toggle:hover {
 #mode-option-options {
 	padding-top: 0;
 	padding-bottom: 0.1em;
+}
+#mode-onoverride-option-options {
+	margin-top: 9px;
+	margin-bottom: 5px;
+	padding-bottom: 8px;
+	border-bottom: solid 1px #003;
+}
+#mode-onoverride-option-options, #mode-onoverride-option-options button {
+	font-size: 0.8em;
 }
 .special-option {
 	color: #049;
@@ -1010,9 +1095,126 @@ embed,#ytplayer {
 #traject-less h1 {
 	color: #C33;
 }
+#traject-advanced-options {
+	margin-top: 0.25em;
+	color: #666;
+}
 .traject-info .popup-buttons {
 	margin-top: 15px;
 	margin-bottom: 5px;
+}
+#lapoverride-options {
+	padding: 0;
+	width: 420px;
+	background-color: #d5d5d7;
+	border: double 4px #666;
+	text-align: center;
+}
+.lapoverride-info {
+	padding: 5px;
+}
+.lapoverride-manage {
+	margin-top: 15px;
+	margin-bottom: 10px;
+}
+.lapoverride-manage a {
+	display: block;
+	text-align: center;
+	color: #210;
+	border-radius: 4px;
+	font-size: 1.1em;
+	width: 200px;
+	margin: 4px auto;
+	padding: 5px;
+	text-decoration: none;
+}
+#lapoverride-btn-add {
+	background-color: #7E8;
+	color: #084;
+	border: solid 1px #8A4;
+}
+#lapoverride-btn-add:hover {
+	background-color: #7F8;
+	color: #0A5;
+}
+#lapoverride-btn-edit {
+	background-color: #BCF;
+	color: #05A;
+	border: solid 1px #48A;
+}
+#lapoverride-btn-edit:hover {
+	background-color: #C9D9FF;
+	color: #17C;
+}
+#lapoverride-btn-remove {
+	background-color: #F96;
+	color: #C24;
+	border: solid 1px #A84;
+}
+#lapoverride-btn-remove:hover {
+	background-color: #FB7;
+	color: #D35;
+}
+#lapoverride-current {
+	font-size: 0.8em;
+	display: none;
+	background-color: #0d1;
+	color: #084;
+	border-radius: 5px;
+	padding: 4px 2px;
+	margin-bottom: 5px;
+}
+#lapoverride-current select {
+	font-size: 0.8em;
+	width: 64px;
+}
+.button-lapoptions {
+	margin-top: 4px;
+}
+#modeoverride-options {
+	padding: 0;
+	width: 420px;
+	background-color: #d5d5d7;
+	border: double 4px #666;
+	text-align: center;
+}
+#modeoverride-options h1 {
+	font-size: 1.8em;
+	margin: 5px 5px 10px 5px;
+	color: #084;
+}
+#modeoverride-options h1 strong {
+	color: #5b8;
+}
+#modeoverride-options .popup-buttons {
+	margin-top: 15px;
+	margin-bottom: 10px;
+}
+#lapoverride-more h1 {
+	margin-top: 10px;
+	margin-bottom: 15px;
+}
+#lapoverride-more h1.lapoverride-more-add {
+	color: #084;
+}
+#lapoverride-more h1.lapoverride-more-edit {
+	color: #058;
+}
+#lapoverride-more .popup-buttons {
+	margin-bottom: 10px;
+}
+#lapoverride-less h1 {
+	margin-top: 10px;
+	margin-bottom: 15px;
+}
+#lapoverride-less h1.lapoverride-less-delete {
+	color: #C33;
+}
+#lapoverride-less h1.lapoverride-less-edit {
+	color: #058;
+}
+#lapoverride-less .popup-buttons {
+	margin-bottom: 10px;
 }
 #shortcut-options {
 	padding: 0;

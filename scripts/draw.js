@@ -18,11 +18,12 @@ var editorTools = {
 			document.getElementById("start-dir-selector").setValue(self.data.orientation+(self.data.mirror?"r":""));
 			var data = deepCopy(self.data);
 			delete self.data.pos;
-			if (data.pos)
+			if (data.pos) {
 				self.click(self,data.pos,{});
-			self.state.startPositionsGroup.reposition({
-				theta: data.theta
-			});
+				self.state.startPositionsGroup.reposition({
+					theta: data.theta
+				});
+			}
 		},
 		"click" : function(self,point,extra) {
 			if (!self.state.placed) {
@@ -113,12 +114,14 @@ var editorTools = {
 				self.data.orientation = (self.data.orientation + 180)%360;
 			if (self.data.theta)
 				self.data.theta = -self.data.theta;
+		},
+		"disableOverride": function() {
+			return language ? "Start position can only be defined at lap 1" : "La position de départ ne peut être definie qu'au tour 1";
 		}
 	},
 	"aipoints": {
 		"init" : function(self) {
 			self.data = [{points:[],shortcuts:[],closed:false}];
-			initRouteSelector(document.getElementById("traject"),1);
 		},
 		"resume" : function(self) {
 			var traject = +document.getElementById("traject").value;
@@ -316,8 +319,13 @@ var editorTools = {
 		"save" : function(self,payload) {
 			payload.main.aiclosed = [];
 			payload.aipoints = [];
+			var cpuCount = 0, bbCount = 0;
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
+				if (iData.bill)
+					bbCount++;
+				else
+					cpuCount++;
 				payload.main.aiclosed.push(iData.closed ? 1:0);
 				payload.aipoints.push(polyToData(iData.points));
 				if (iData.shortcuts.length) {
@@ -345,13 +353,15 @@ var editorTools = {
 					payload.aishortcuts[i] = nShortcuts;
 				}
 			}
+			if (bbCount) {
+				payload.airoutesmeta = {
+					cpu: cpuCount,
+					bill: bbCount
+				};
+			}
 		},
 		"restore" : function(self,payload) {
-			currentMode = "aipoints";
-			document.getElementById("traject-options").dataset.key = "aipoints";
-			for (var i=1;i<payload.aipoints.length;i++)
-				addTraject();
-			document.getElementById("traject").selectedIndex = 0;
+			var meta = payload.airoutesmeta || {};
 			for (var i=0;i<payload.aipoints.length;i++) {
 				var shortcuts = [];
 				var points = dataToPoly(payload.aipoints[i]);
@@ -378,6 +388,26 @@ var editorTools = {
 					}
 				}
 				self.data[i] = {closed:payload.main.aiclosed[i]==1,shortcuts:shortcuts,points:points};
+				if (i >= meta.cpu)
+					self.data[i].bill = true;
+			}
+		},
+		"prerestore": function() {
+			initRouteSelector(document.getElementById("traject"),1);
+		},
+		"postrestore": function(self) {
+			var selfData = self.data;
+			var routeId = 0, wasBb = false;
+			var $trajectSelector = document.getElementById("traject");
+			for (var i=1;i<selfData.length;i++) {
+				var $trajectOption = document.createElement("option");
+				$trajectOption.value = i;
+				var isBb = selfData[i].bill;
+				routeId++;
+				if (isBb && !wasBb)
+					routeId = 0;
+				$trajectOption.innerHTML = getRouteLabel(routeId, { isBb });
+				$trajectSelector.insertBefore($trajectOption, $trajectSelector.lastChild);
 			}
 		},
 		"rescale" : function(self, scale) {
@@ -682,6 +712,11 @@ var editorTools = {
 				if (iData.theta)
 					iData.theta = -iData.theta;
 			}
+		},
+		"disableOverride": function(_self, lapOverride) {
+			if (lapOverrides["0"].modesData.checkpoints.data.type) return language ? "Checkpoints cannot be overriden when in \"sections\" mode" : "Les checkpoints ne peuvent pas être modifiés lorsque vous êtes en mode \"sections\"";
+			if (lapOverride.checkpoint) return language ? "Checkpoints cannot be overriden in the middle of a lap. Try to add another override without checking this option" : "Les checkpoints ne peuvent pas être modifiés au milieu d'un tour. Essayez d'ajouter un autre modificateur sans cocher cette option";
+			return null;
 		}
 	},
 	"items": commonTools["items"],
