@@ -3766,7 +3766,10 @@ function startGame() {
 	}
 
 	foreachLMap(function(lMap,pMap) {
-		if (!pMap.decor) return;
+		if (!pMap.decor) {
+			if (!lMap.assets) lMap.assets = [];
+			return;
+		}
 		for (var type in lMap.decor) {
 			if (!decorBehaviors[type])
 				decorBehaviors[type] = {type:type,ctx:{}};
