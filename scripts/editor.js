@@ -1100,17 +1100,26 @@ function selectMode(mode) {
 	var $editorWrapper = document.getElementById("editor-wrapper");
 	$editorWrapper.classList.remove("editor-override");
 	if ($modeOverrides) {
+		var lapOverride = lapOverrides[selectedLapOverride];
+		var disabledReason = editorTool.disableOverride && editorTool.disableOverride(editorTool, lapOverride);
+		if (disabledReason) {
+			var $disabledReason = document.getElementById("mode-override-disabled-reason");
+			$disabledReason.innerText = disabledReason;
+			$modeOverrides.classList.add("mode-override-disabled");
+		}
+		else
+			$modeOverrides.classList.remove("mode-override-disabled");
 		var $currentModeOptions = document.getElementById("mode-options");
 		if (selectedLapOverride) {
 			$modeOverrides.style.display = "block";
 			var selectedModeData = lapOverrides[selectedLapOverride].modesData[mode];
 			if (selectedModeData.isSet) {
 				$currentModeOptions.style.display = "block";
-				$modeOverrides.classList.add("mode-override-enabled");
+				$modeOverrides.classList.add("mode-override-activated");
 			}
 			else {
 				$currentModeOptions.style.display = "none";
-				$modeOverrides.classList.remove("mode-override-enabled");
+				$modeOverrides.classList.remove("mode-override-activated");
 				if (!editorTool.hasPartialOverride)
 					$editorWrapper.classList.add("editor-override");
 			}
@@ -1124,27 +1133,26 @@ function selectMode(mode) {
 function navigateMode(inc) {
 	var $mode = document.getElementById('mode');
 	var $modeOptions = $mode.getElementsByTagName("option");
-	var nextMode = +$mode.selectedIndex;
-	while (true) {
-		nextMode += inc;
-		if (!$modeOptions[nextMode]) return;
-		if (!selectedLapOverride) break;
-		var key = $modeOptions[nextMode].value;
-		var editorTool = editorTools[key];
-		if (!editorTool.disableOverride) break;
-		var lapOverride = lapOverrides[selectedLapOverride];
-		if (!editorTool.disableOverride(editorTool, lapOverride)) break;
+	var nextMode = +$mode.selectedIndex+inc;
+	if ($modeOptions[nextMode]) {
+		$mode.selectedIndex = nextMode;
+		selectMode($mode.value);
 	}
-	$mode.selectedIndex = nextMode;
-	selectMode($mode.value);
 }
 var mouseCoords = {x:0,y:0};
 function handleClick(e) {
 	var editorTool = editorTools[currentMode];
 	if (editorTool.click) {
-		var selectedModeData = lapOverrides[selectedLapOverride].modesData[currentMode];
+		var lapOverride = lapOverrides[selectedLapOverride];
+		var selectedModeData = lapOverride.modesData[currentMode];
 		if (!selectedModeData.isSet) {
-			if (!editorTool.hasPartialOverride && confirm(language ? "Override is disabled for this mode, do you want to enable it?" : "Le modificateur est désactivé pour ce mode, voulez-vous l'activer ?"))
+			if (editorTool.hasPartialOverride) return;
+			var disableReason = editorTool.disableOverride && editorTool.disableOverride(editorTool, lapOverride);
+			if (disableReason)  {
+				alert(disableReason);
+				return;
+			}
+			if (confirm(language ? "Override is disabled for this mode, do you want to enable it?" : "Le modificateur est désactivé pour ce mode, voulez-vous l'activer ?"))
 				enableLapOverride();
 			return;
 		}
@@ -3216,26 +3224,10 @@ function selectLapOverride(newLapOverride, opts) {
 		restoreLapOverride(newLapOverride);
 	else
 		newLapOverride = initLapOverride(opts);
-	var lapOverride = lapOverrides[newLapOverride];
-	var $modeOptions = document.querySelectorAll('#mode option');
-	for (var i=0;i<$modeOptions.length;i++) {
-		var $modeOption = $modeOptions[i];
-		var editorTool = editorTools[$modeOption.value];
-		if (editorTool.disableOverride)
-			$modeOption.style.display = (newLapOverride && editorTool.disableOverride(editorTool, lapOverride)) ? "none" : "";
-	}
 	
 	selectedLapOverride = newLapOverride;
 	applyLapOverrideSelector();
 	var nextMode = currentMode;
-	var currentEditorTool = editorTools[currentMode];
-	if (newLapOverride && currentEditorTool.disableOverride && currentEditorTool.disableOverride(currentEditorTool, lapOverride)) {
-		nextMode = Object.entries(editorTools).find(function(entry) {
-			var editorTool = entry[1];
-			return !(editorTool.disableOverride && editorTool.disableOverride(editorTool, lapOverride));
-		})[0];
-		document.getElementById("mode").value = nextMode;
-	}
 	for (var key in editorTools) {
 		var editorTool = editorTools[key];
 		if (editorTool.prerestore)

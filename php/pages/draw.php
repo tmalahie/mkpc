@@ -138,8 +138,13 @@ if (isset($_GET['i'])) {
 						<button class="toolbox-button" onclick="showImageOptions()"><?php echo $language ? 'Edit...':'Modifier...'; ?></button>
 					</div>
 				</div>
-				<a class="mode-override-enable" href="javascript:enableLapOverride()">+ <?php echo $language ? 'Enable override...' : 'Activer modificateur...'; ?></a>
-				<a class="mode-override-disable" href="javascript:disableLapOverride()">&times; <?php echo $language ? 'Reset override' : 'Réinit. modificateur'; ?></a>
+				<div id="mode-override-disabled">
+					<span id="mode-override-disabled-reason"></span>
+				</div>
+				<div id="mode-override-enabled">
+					<a class="mode-override-activate" href="javascript:enableLapOverride()">+ <?php echo $language ? 'Enable override...' : 'Activer modificateur...'; ?></a>
+					<a class="mode-override-deactivate" href="javascript:disableLapOverride()">&times; <?php echo $language ? 'Reset override' : 'Réinit. modificateur'; ?></a>
+				</div>
 			</div>
 			<div id="mode-options">
 				<div id="mode-option-start">

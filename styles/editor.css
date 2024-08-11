@@ -413,24 +413,41 @@ body.theme-dark {
 #mode-override-options {
 	margin-bottom: 5px;
 }
-#mode-override-options.mode-override-enabled {
+#mode-override-options.mode-override-activated {
 	margin-top: -2px;
 }
 #mode-override-options a:hover {
 	text-decoration: underline;
 }
-#mode-override-options .mode-override-disable {
+#mode-override-options .mode-override-deactivate {
 	color: #C24;
 	font-size: 0.8em;
 }
-#mode-override-options .mode-override-disable:hover {
+#mode-override-options .mode-override-deactivate:hover {
 	color: #D35;
 }
-#mode-override-options.mode-override-enabled .mode-override-enable {
+#mode-override-options.mode-override-activated .mode-override-activate {
 	display: none;
 }
-#mode-override-options:not(.mode-override-enabled) .mode-override-disable {
+#mode-override-options:not(.mode-override-activated) .mode-override-deactivate {
 	display: none;
+}
+#mode-override-options.mode-override-disabled #mode-override-enabled {
+	display: none;
+}
+#mode-override-options:not(.mode-override-disabled) #mode-override-disabled {
+	display: none;
+}
+#mode-override-disabled {
+	font-size: 0.75em;
+	margin-bottom: 0.15em;
+}
+#mode-override-disabled:before {
+	content: '×';
+	font-weight: bold;
+}
+#mode-override-disabled {
+	color: #742;
 }
 #mode-onoverride-options > * {
 	display: none;

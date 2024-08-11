@@ -116,7 +116,7 @@ var editorTools = {
 				self.data.theta = -self.data.theta;
 		},
 		"disableOverride": function() {
-			return true;
+			return language ? "Start position can only be defined at lap 1" : "La position de départ ne peut être definie qu'au tour 1";
 		}
 	},
 	"aipoints": {
@@ -714,9 +714,9 @@ var editorTools = {
 			}
 		},
 		"disableOverride": function(_self, lapOverride) {
-			if (lapOverrides["0"].modesData.checkpoints.data.type) return true;
-			if (lapOverride.checkpoint) return true;
-			return false;
+			if (lapOverrides["0"].modesData.checkpoints.data.type) return language ? "Checkpoints cannot be overriden when using sections" : "Les checkpoints ne peuvent pas être modifiés lorsque vous êtes en mode &quot;sections&quot;";
+			if (lapOverride.checkpoint) return language ? "Checkpoints cannot be overriden in the middle of a lap. Try to add another override without checking this option" : "Les checkpoints ne peuvent pas être modifiés au milieu d'un tour. Essayez d'ajouter un autre modificateur sans cocher cette option";
+			return null;
 		}
 	},
 	"items": commonTools["items"],
