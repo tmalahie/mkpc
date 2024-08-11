@@ -37,19 +37,6 @@ function getCircuitImgData(&$path,&$url,$local) {
 function getCircuitImgDataRaw(&$path,&$url,$local) {
     return mysql_real_escape_string(json_encode(getCircuitImgData($path,$url,$local)));
 }
-function getBaseCircuitImgDataRaw(&$baseCircuitImg,&$circuitImg, $lap) {
-    if ($lap) {
-        if (!isset($baseCircuitImg->lapOverrides))
-            $baseCircuitImg->lapOverrides = new stdClass();
-        $baseCircuitImg->lapOverrides->$lap = $circuitImg;
-        return mysql_real_escape_string(json_encode($baseCircuitImg));
-    }
-    else {
-        if (isset($baseCircuitImg->lapOverrides))
-            $circuitImg->lapOverrides = $baseCircuitImg->lapOverrides;
-        return mysql_real_escape_string(json_encode($circuitImg));
-    }
-}
 function getCircuitLocalFile($circuitImg) {
     if ($circuitImg->local)
         return array('path' => CIRCUIT_BASE_PATH.$circuitImg->url);

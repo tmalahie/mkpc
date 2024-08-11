@@ -1,11 +1,10 @@
-var $grlpSelector = 'div[style^="color-scheme: initial !important;"]';
-var $grlp = document.querySelector($grlpSelector);
+var $grlp = document.querySelector(".google-revocation-link-placeholder");
 if ($grlp)
 	$grlp.remove();
 else if (window.adsbygoogle) {
 	function observeGrlp() {
 		var observer = new MutationObserver(() => {
-			$grlp = document.querySelector($grlpSelector);
+			$grlp = document.querySelector(".google-revocation-link-placeholder");
 			if (!$grlp) return;
 			$grlp.remove();
 			observer.disconnect();
@@ -21,7 +20,7 @@ else if (window.adsbygoogle) {
 		}, 5000);
 	}
 	function handleScrollGrlp() {
-		$grlp = document.querySelector($grlpSelector);
+		$grlp = document.querySelector(".google-revocation-link-placeholder");
 		if ($grlp)
 			$grlp.remove();
 		else

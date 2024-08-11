@@ -1,5 +1,6 @@
 <?php
 include('../includes/initdb.php');
+
 if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] != '')) {
 	function startsWith($haystack, $needle) {
 		// search backwards starting from haystack length characters from the end
@@ -214,7 +215,7 @@ $placeholderPath = 'images/pages/pixel.png';
 		<?php
 		function hasEuLegislation() {
 			if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-				$euLangs = array('fr-FR', 'en-GB', 'de-DE', 'es-ES', 'fr-BE', 'nl-BE', 'nl-NL', 'it-IT', 'pl-PL', 'pt-PT', 'fr-CH', 'de-CH', 'it-CH', 'rm-CH');
+				$euLangs = array('fr-FR', 'en-GB', 'de-DE', 'es-ES', 'fr-BE', 'nl-BE', 'nl-NL', 'it-IT', 'pl-PL', 'pt-PT');
 				$euLangsString = implode('|', $euLangs);
 				return preg_match('#(^|,)'.$euLangsString.'(,|$)#', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
 			}

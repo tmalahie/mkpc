@@ -24,20 +24,11 @@ function file_total_size($item=null) {
 			$ownerIds[$i] = $identifiant;
 	}
 	$poids = 0;
-	$circuits = mysql_query('SELECT ID,img_data FROM `circuits` WHERE identifiant='.$ownerIds[0].' AND identifiant2='.$ownerIds[1].' AND identifiant3='.$ownerIds[2].' AND identifiant4='.$ownerIds[3]);
-	$excludedCircuitId = isset($item['circuit']) ? $item['circuit'] : null;
-	$excludedLap = isset($item['lap']) ? $item['lap'] : 0;
+	$circuits = mysql_query('SELECT ID,img_data FROM `circuits` WHERE identifiant='.$ownerIds[0].' AND identifiant2='.$ownerIds[1].' AND identifiant3='.$ownerIds[2].' AND identifiant4='.$ownerIds[3] . (isset($item['circuit']) ? ' AND ID != '.$item['circuit'] : ''));
 	while ($circuit = mysql_fetch_array($circuits)) {
-		$excludeCircuit = $excludedCircuitId == $circuit['ID'];
 		$circuitImg = json_decode($circuit['img_data']);
-		if ($circuitImg->local && (!$excludeCircuit || $excludedLap))
+		if ($circuitImg->local)
 			$poids += @filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
-		if (isset($circuitImg->lapOverrides)) {
-			foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
-				if ($lapImg->local && (!$excludeCircuit || ($lap != $excludedLap)))
-					$poids += @filesize(CIRCUIT_BASE_PATH.$lapImg->url);
-			}
-		}
 	}
 	$arenes = mysql_query('SELECT ID,img_data FROM `arenes` WHERE identifiant='.$ownerIds[0].' AND identifiant2='.$ownerIds[1].' AND identifiant3='.$ownerIds[2].' AND identifiant4='.$ownerIds[3] . (isset($item['arena']) ? ' AND ID != '.$item['arena'] : ''));
 	while ($arene = mysql_fetch_array($arenes)) {

@@ -154,38 +154,29 @@ elseif (empty($challenge) || ('pending_completion' === $challenge['status']) || 
 		case 'arenes':
 			if ($getCircuitsData = mysql_fetch_array(mysql_query('SELECT data FROM `'. $decorTable .'_data` WHERE id="'. $decorCircuit .'"'))) {
 				$circuitData = json_decode(gzuncompress($getCircuitsData['data']));
-				$circuitDecor = (array)$circuitData->decor;
-				$circuitAssets = isset($circuitData->assets) ? $circuitData->assets:new \stdClass();
-				$decorExtra = isset($circuitData->decorparams->extra) ? $circuitData->decorparams->extra:new \stdClass();
-				if (isset($circuitData->lapOverrides)) {
-					foreach ($circuitData->lapOverrides as $lapOverride) {
-						if (isset($lapOverride->decor))
-							$circuitDecor = array_merge($circuitDecor, (array)$lapOverride->decor);
-						if (isset($lapOverride->decorparams->extra))
-							$decorExtra = (object) array_merge((array) $decorExtra, (array) $lapOverride->decorparams->extra);
-						if (isset($lapOverride->assets))
-							$circuitAssets = (object) array_merge((array) $circuitAssets, (array) $lapOverride->assets);
-					}
-				}
-				$circuitDecors = array_keys($circuitDecor);
-				foreach ($circuitAssets as $key => $data) {
-					$decorTypes = array();
-					foreach ($data as $d) {
-						$assetType = $d[0];
-						if (!isset($decorTypes[$assetType])) {
-							$decorTypes[$assetType] = 1;
-							if (isset($decorExtra->{$assetType}->custom))
-								$circuitDecors[] = $assetType;
-							else {
-								switch ($key) {
-								case 'pointers':
-									$circuitDecors[] = 'assets/pivothand';
-									break;
-								default:
-									$circuitDecors[] = 'assets/'.$assetType;
+				$circuitDecors = array_keys((array)$circuitData->decor);
+				$decorParams = isset($circuitData->decorparams) ? $circuitData->decorparams:new \stdClass();
+				$decorExtra = isset($decorParams->extra) ? $decorParams->extra:new \stdClass();
+				if (isset($circuitData->assets)) {
+					foreach ($circuitData->assets as $key => $data) {
+						$decorTypes = array();
+						foreach ($data as $d) {
+							$assetType = $d[0];
+							if (!isset($decorTypes[$assetType])) {
+								$decorTypes[$assetType] = 1;
+								if (isset($decorExtra->{$assetType}->custom))
+									$circuitDecors[] = $assetType;
+								else {
+									switch ($key) {
+									case 'pointers':
+										$circuitDecors[] = 'assets/pivothand';
+										break;
+									default:
+										$circuitDecors[] = 'assets/'.$assetType;
+									}
 								}
-							}
 
+							}
 						}
 					}
 				}

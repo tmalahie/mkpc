@@ -276,8 +276,6 @@ var editorTools = {
 											for (var i=0;i<lines.length;i++)
 												$editor.removeChild(lines[i]);
 											line.oneway();
-											node = node0;
-											node0 = node1;
 										}
 									});
 								}
@@ -336,9 +334,9 @@ var editorTools = {
 						var lines = self.state.links[data.uuid];
 						for (var uuid in lines) {
 							if (lines[uuid].node1 == node)
-								linesData[0].push(lines[uuid]);
+								linesData[0].push(lines[uuid].line);
 							else if (lines[uuid].node2 == node)
-								linesData[1].push(lines[uuid]);
+								linesData[1].push(lines[uuid].line);
 						}
 						setCirclePos(self.state.point, {x:-1,y:-1});
 						moveNode(node,data,linesData);

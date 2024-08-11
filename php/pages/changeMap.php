@@ -1,59 +1,17 @@
 <?php
 $id = isset($_GET['i']) ? intval($_GET['i']) : 0;
-$imgData = isset($_GET['img_data']) ? $_GET['img_data'] : null;
 include('../includes/getId.php');
 include('../includes/initdb.php');
 include('../includes/language.php');
 $success = (isset($_GET['x'])&&isset($_GET['y']))+isset($_GET['pivot']);
-$lap = isset($_GET['lap']) ? intval($_GET['lap']):0;
 $src = isset($_GET['arenes']) ? 'course':'map';
 $db = isset($_GET['arenes']) ? 'arenes':'circuits';
-$newImg = false;
 $isrc = isset($_GET['arenes']) ? 'coursepreview':'racepreview';
 require_once('../includes/collabUtils.php');
 $requireOwner = !hasCollabGrants($db, $id, $_GET['collab'], 'edit');
 if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,identifiant2,identifiant3,identifiant4 FROM `'.$db.'` WHERE id="'.$id.'"'. ($requireOwner ? (' AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]) : '')))) {
 	require_once('../includes/circuitImgUtils.php');
-	$baseCircuitImg = json_decode($circuit['img_data']);
-	$circuitImg = $baseCircuitImg;
-	if ($lap && $imgData && isset($circuitImg->lapOverrides)) {
-		$imgData = json_decode($imgData);
-		$shouldOverrideLap = true;
-		if ($imgData) {
-			if (isset($circuitImg->lapOverrides->$lap)) {
-				$lapOverride = $circuitImg->lapOverrides->$lap;
-				if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local)
-					$shouldOverrideLap = false;
-			}
-		}
-		else {
-			if (!isset($circuitImg->lapOverrides->$lap))
-				$shouldOverrideLap = false;
-		}
-		if ($shouldOverrideLap) {
-			if ($imgData) {
-				foreach ($circuitImg->lapOverrides as $lapId => $lapOverride) {
-					if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local) {
-						$lap = $lapId;
-						$_GET['lap'] = $lap;
-						break;
-					}
-				}
-			}
-			else {
-				for ($lapId=1;isset($circuitImg->lapOverrides->$lapId);$lapId++);
-				$lap = $lapId;
-				$_GET['lap'] = $lap;
-			}
-		}
-		unset($_GET['img_data']);
-	}
-	if ($lap) {
-		if (isset($circuitImg->lapOverrides->$lap))
-			$circuitImg = $circuitImg->lapOverrides->$lap;
-		else
-			$newImg = true;
-	}
+	$circuitImg = json_decode($circuit['img_data']);
 	$ext = $circuitImg->ext;
 	include('../includes/uploadByUrl.php');
 	if (isset($_FILES['image'])) {
@@ -64,7 +22,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 			if ($poids < $maxUploadSize) {
 				if ($isUploaded) {
 					$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
-					$poids += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id,'identifiants'=>$ownerIds):array('circuit'=>$id,'lap'=>$lap,'identifiants'=>$ownerIds));
+					$poids += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id,'identifiants'=>$ownerIds):array('circuit'=>$id,'identifiants'=>$ownerIds));
 				}
 				if ($poids < file_total_quota($circuit)) {
 					$fileType = mime_content_type($_FILES['image']['tmp_name']);
@@ -75,8 +33,7 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 					);
 					if (isset($extensions[$fileType])) {
 						$ext = $extensions[$fileType];
-						if (!$newImg)
-							deleteCircuitFile($circuitImg);
+						deleteCircuitFile($circuitImg);
 						if ($isUploaded) {
 							$circuitUrl = $src.$id.'-'.time().'.'.$ext;
 							$circuitPath = CIRCUIT_BASE_PATH.$circuitUrl;
@@ -87,14 +44,10 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 							$circuitPath = $_FILES['image']['tmp_name'];
 						}
 						$circuitImg = getCircuitImgData($circuitPath,$circuitUrl,$isUploaded);
-						$circuitImgRaw = getBaseCircuitImgDataRaw($baseCircuitImg,$circuitImg, $lap);
-						mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
-						if (!$lap) {
-							require_once('../includes/cache_creations.php');
-							@unlink(cachePath($isrc.$id.'.png'));
-						}
+						mysql_query('UPDATE `'.$db.'` SET img_data="'. mysql_real_escape_string(json_encode($circuitImg)) .'" WHERE id="'.$id.'"');
+						require_once('../includes/cache_creations.php');
+						@unlink(cachePath($isrc.$id.'.png'));
 						$success = 2;
-						$newImg = false;
 					}
 					else $error = $language ? 'Your image must have the png, gif, jpg or jpeg format':'Votre image doit être au format png, gif, jpg ou jpeg';
 				}
@@ -103,16 +56,6 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 			else $error = $language ? 'You image mustn\'t exceed '.filesize_str($maxUploadSize):'Votre image ne doit pas dépasser '.filesize_str($maxUploadSize);
 		}
 	else $error = $language ? 'An error occured. Please try again':'Une erreur est survenue, veuillez réessayez';
-	}
-	elseif (isset($_GET['delete']) && $lap && !$newImg) {
-		deleteCircuitFile($circuitImg);
-		unset($baseCircuitImg->lapOverrides->$lap);
-		$circuitImgRaw = mysql_real_escape_string(json_encode($baseCircuitImg));
-		$circuitImg = $baseCircuitImg;
-		mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
-		$success = 3;
-		$newImg = true;
-		unset($_GET['delete']);
 	}
 }
 mysql_close();
@@ -154,12 +97,6 @@ legend {
 .import-fields input {
 	display: none;
 	width: 98%;
-}
-.del-override {
-	color: #C24;
-}
-.del-override:hover {
-	color: #D35;
 }
 #fenetre {
 	position: fixed;
@@ -221,8 +158,7 @@ input[type="submit"]:disabled {
 <script type="text/javascript">
 var image = window.parent.document.getElementById("editor-img");
 function apercu() {
-	var $apercuauto = document.getElementById("apercuauto");
-	if ($apercuauto && $apercuauto.checked) {
+	if (document.getElementById("apercuauto").checked) {
 		image.style.width = document.forms[1].x.value+"px";
 		image.style.height = document.forms[1].y.value+"px";
 		window.parent.document.body.id = "changing";
@@ -247,9 +183,6 @@ function updateImportFields(elt) {
 	document.getElementById('modifier').disabled = true;
 	$field.focus();
 }
-function confirmRemoveOverride() {
-	return confirm("<?php echo $language ? "Remove image lap override?":"Supprimer la modification d'image pour ce tour ?"; ?>");
-}
 </script>
 </head>
 <body onkeydown="window.parent.handleKeySortcuts(event)">
@@ -259,27 +192,15 @@ if ($success) {
 	?>
 <p id="success"><?php echo $language ? "The image has been changed successfully":"L'image a &eacute;t&eacute; modifi&eacute;e avec succ&egrave;s !"; ?></p>
 <script type="text/javascript">
-<?php
-echo 'window.parent.';
-if ($success == 3) {
-	echo "handleImageDelete(";
+image.src = <?php echo json_encode(getCircuitImgUrl($circuitImg)); ?>;
+image.onload = function() {
+	this.style.width = this.naturalWidth+"px";
+	this.style.height = "";<?php
+	if ($success!=2) echo 'window.parent.'.(isset($_GET['pivot']) ? 'rotateImg('.($_GET['pivot']+1).');':'resizeImg('.floatval($_GET['x']).','.floatval($_GET['y']).');');
+	else echo 'window.parent.imgSize.w=this.naturalWidth;window.parent.imgSize.h=this.naturalHeight;';
+	?>
+	this.onload = undefined;
 }
-else {
-	echo 'handleImageUpdate('. json_encode(getCircuitImgUrl($circuitImg)) .', '. json_encode(array(
-		'url' => $circuitImg->url,
-		'local' => $circuitImg->local,
-	)).', ';
-}
-echo 'function() {';
-	switch ($success) {
-	case 2:
-	case 3:
-		break;
-	default:
-		echo 'window.parent.'.(isset($_GET['pivot']) ? 'rotateImg('.($_GET['pivot']+1).');':'resizeImg('.floatval($_GET['x']).','.floatval($_GET['y']).');');
-	}
-echo '});';
-?>
 </script>
 	<?php
 }
@@ -300,19 +221,11 @@ else
 	<input type="file" name="image" style="display:inline-block" onchange="document.getElementById('modifier').disabled=!this.value" />
 	<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" oninput="document.getElementById('modifier').disabled=!this.value" />
 </div>
-<?php
-if ($lap)
-	echo '<input type="hidden" name="lap" value="'.$lap.'" />';
-?>
-<input type="submit" value="<?php echo $language ? 'Send':'Valider'; ?>" id="modifier" disabled="disabled" />
-<?php
-if ($lap && !$newImg)
-	echo '&nbsp;<a class="del-override" href="changeMap.php?'. http_build_query($_GET) .'&amp;delete" onclick="return confirmRemoveOverride()">'. ($language ? "Remove image override" : "Supprimer l'image") .'</a>';
-?></p>
+<input type="submit" value="<?php echo $language ? 'Send':'Valider'; ?>" id="modifier" disabled="disabled" /></p>
 </fieldset>
 </form>
 <?php
-if (!$newImg && $circuitImg->local) {
+if ($circuitImg->local) {
 	?>
 <form method="post" action="redimensionne.php">
 <fieldset>
@@ -322,11 +235,8 @@ if (!$newImg && $circuitImg->local) {
 <label for="proportionnel"><input type="checkbox" id="proportionnel" checked="checked" /> <?php echo $language ? 'Keep proportions':'Conserver les proportions'; ?></label><br />
 <label for="apercuauto"><input type="checkbox" id="apercuauto" checked="checked" onchange="if(!this.checked)window.parent.resetImageOptions()" /> <?php echo $language ? 'Auto preview':'Aper&ccedil;u automatique'; ?></label><br />
 <input type="hidden" name="id" value="<?php echo $id ?>" />
-<?php
-if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />';
-if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />';
-if ($lap) echo '<input type="hidden" name="lap" value="'.$lap.'" />';
-?>
+<?php if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />'; ?>
+<?php if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />'; ?>
 <input type="submit" value="<?php echo $language ? 'Validate' : 'Valider'; ?>" id="redimensionner" disabled="disabled" /></p>
 </fieldset>
 </form>
@@ -341,11 +251,8 @@ for ($i=0;$i<5;$i++)
 	echo '<label for="pivot'.$i.'"><input type="radio" name="pivot" id="pivot'.$i.'" value="'.$i.'" onchange="able()" /> '.$options[$i].'</label><br />';
 ?>
 <input type="hidden" name="id" value="<?php echo $id ?>" />
-<?php
-if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />';
-if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />';
-if ($lap) echo '<input type="hidden" name="lap" value="'.$lap.'" />';
-?>
+<?php if (isset($_GET['arenes'])) echo '<input type="hidden" name="arenes" value="1" />'; ?>
+<?php if (isset($_GET['collab'])) echo '<input type="hidden" name="collab" value="'. htmlspecialchars($_GET['collab']) .'" />'; ?>
 <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" id="pivoter" disabled="disabled" />
 </fieldset>
 </form>
