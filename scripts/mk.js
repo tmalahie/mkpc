@@ -17871,8 +17871,9 @@ function processCode(cheatCode) {
 		if (!isLap[1]) {
 			t = oMap.tours;
 			var lMap = getCurrentLMap({ tours: t, demitours: 0 });
-			c = lMap.checkpoint.length-1;
+			c = lMap.checkpoint.length;
 		}
+		if (c > 0) c--;
 		if (isLap[2] == "c")
 			c = oPlayer.demitours;
 		if (!isLap[2]) {
@@ -17884,6 +17885,14 @@ function processCode(cheatCode) {
 		var prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
 		oPlayer.tours = t;
 		oPlayer.demitours = c;
+		var lMap = getCurrentLMap(oPlayer);
+		var checkpoint = lMap.checkpointCoords[c];
+		if (checkpoint && cheatCode !== 'lap') {
+			var nextCp = lMap.checkpointCoords[(c+1)%lMap.checkpointCoords.length];
+			oPlayer.x = checkpoint.O[0];
+			oPlayer.y = checkpoint.O[1];
+			oPlayer.rotation = Math.atan2(nextCp.O[0]-checkpoint.O[0],nextCp.O[1]-checkpoint.O[1])*180/Math.PI;
+		}
 		updateLapHud(0);
 		handleCpChange(prevLap,prevCP, 0);
 		return true;
