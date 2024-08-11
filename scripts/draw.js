@@ -714,7 +714,7 @@ var editorTools = {
 			}
 		},
 		"disableOverride": function(_self, lapOverride) {
-			if (lapOverrides["0"].modesData.checkpoints.data.type) return language ? "Checkpoints cannot be overriden when using sections" : "Les checkpoints ne peuvent pas être modifiés lorsque vous êtes en mode &quot;sections&quot;";
+			if (lapOverrides["0"].modesData.checkpoints.data.type) return language ? "Checkpoints cannot be overriden when in \"sections\" mode" : "Les checkpoints ne peuvent pas être modifiés lorsque vous êtes en mode \"sections\"";
 			if (lapOverride.checkpoint) return language ? "Checkpoints cannot be overriden in the middle of a lap. Try to add another override without checking this option" : "Les checkpoints ne peuvent pas être modifiés au milieu d'un tour. Essayez d'ajouter un autre modificateur sans cocher cette option";
 			return null;
 		}
