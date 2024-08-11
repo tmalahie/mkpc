@@ -11,10 +11,10 @@ if (isset($_GET['i'])) {
     if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data FROM `'.$table.'` WHERE id="'.$cID.'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]))) {
         $circuitImg = json_decode($circuit['img_data']);
         $circuitFilesData = array();
+        include('../includes/file-quotas.php');
+        $filesize = file_total_size();
         if ($circuitImg->local) {
-			include('../includes/file-quotas.php');
             $circuitPath = CIRCUIT_BASE_PATH.$circuitImg->url;
-            $filesize = file_total_size();
             $filesize += filesize($circuitPath);
             if ($filesize >= MAX_FILE_SIZE)
                 $error = $language ? 'You have exceeded your quota of '.filesize_str(MAX_FILE_SIZE).'. Delete tracks or use the "Paste image URL" option to save space.':'Vous avez dépassé votre quota de '.filesize_str(MAX_FILE_SIZE).'. Supprimez des circuits ou utilisez l\'option "Coller l\'URL de l\'image" pour gagner de l\'espace.';
