@@ -404,8 +404,10 @@ var editorTools = {
 				$trajectOption.value = i;
 				var isBb = selfData[i].bill;
 				routeId++;
-				if (isBb && !wasBb)
+				if (isBb && !wasBb) {
 					routeId = 0;
+					wasBb = true;
+				}
 				$trajectOption.innerHTML = getRouteLabel(routeId, { isBb });
 				$trajectSelector.insertBefore($trajectOption, $trajectSelector.lastChild);
 			}

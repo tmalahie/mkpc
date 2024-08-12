@@ -76,7 +76,7 @@ if (isset($_GET['i'])) {
 		include('../includes/o_xhr.php');
 		?>
 		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
-		<script type="text/javascript" src="scripts/draw.js?reload=2"></script>
+		<script type="text/javascript" src="scripts/draw.js?reload=3"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?> oncontextmenu="handleCtxmenu(event)" onmousemove="handleMove(event)" onclick="handleClick(event)">
