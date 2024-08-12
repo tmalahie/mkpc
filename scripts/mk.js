@@ -2510,8 +2510,6 @@ function arme(ID, backwards, forwards) {
 				}
 			}
 			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.tours, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
-			if ((item.aipoint <= 1) && lMap && (oKart.demitours >= lMap.checkpoint.length/2))
-				incItemLap(item);
 			addNewItem(oKart, item);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
@@ -2664,10 +2662,13 @@ function arme(ID, backwards, forwards) {
 					shiftDist *= 4/3;
 			}
 			var lapId = getCurrentLapId(oKart);
+			var itemPayload;
 			if (backwards)
-				throwItem(oKart, {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1});
+				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
 			else
-				throwItem(oKart, {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1});
+				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
+			checkItemLap(itemPayload, { aPos: [posX,posY], fast: true });
+			throwItem(oKart, itemPayload);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -7606,10 +7607,7 @@ var itemBehaviors = {
 							var fDist2 = fMoveX*fMoveX + fMoveY*fMoveY;
 							if (fDist2 < 100) {
 								if (fSprite.aipoint < iLocal.length - 1) fSprite.aipoint++;
-								else {
-									fSprite.aipoint = 0;
-									incItemLap(fSprite);
-								}
+								else fSprite.aipoint = 0;
 							}
 							var fNewMove = Math.sqrt(fMoveX*fMoveX + fMoveY*fMoveY)/dSpeed;
 							fMoveX /= fNewMove;
@@ -7637,16 +7635,6 @@ var itemBehaviors = {
 													minDist = fDist2;
 												}
 											}
-										}
-									}
-									if (fSprite.aipoint <= 1) {
-										var tOwner = aKarts.find(function(oKart) {
-											return oKart.id == fSprite.owner;
-										});
-										if (tOwner) {
-											var lapId = getCurrentLapId(tOwner);
-											if ((lapId > fSprite.ailap) || (tOwner.demitours >= lMap.checkpoint.length/2))
-												incItemLap(fSprite);
 										}
 									}
 								}
@@ -7723,10 +7711,8 @@ var itemBehaviors = {
 							var aipoint = aipoints[fSprite.aipoint];
 							if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
 								fSprite.aipoint++;
-								if (fSprite.aipoint >= aipoints.length) {
+								if (fSprite.aipoint >= aipoints.length)
 									fSprite.aipoint = 0;
-									incItemLap(fSprite);
-								}
 							}
 						}
 					}
@@ -7770,8 +7756,11 @@ var itemBehaviors = {
 				collisionFloor = null;
 				collisionLap = fSprite.ailap;
 				if (((fSprite.owner == -1) || fTeleport || ((fSprite.z || !tombe(fNewPosX, fNewPosY)) && canMoveTo(fSprite.x,fSprite.y,fSprite.z, fMoveX,fMoveY))) && !touche_banane(fNewPosX, fNewPosY, oSpriteExcept) && !touche_banane(fSprite.x, fSprite.y, oSpriteExcept) && !touche_crouge(fNewPosX, fNewPosY, fSpriteExcept) && !touche_crouge(fSprite.x, fSprite.y, fSpriteExcept) && !touche_cverte(fNewPosX, fNewPosY, oSpriteExcept) && !touche_cverte(fSprite.x, fSprite.y, oSpriteExcept) && !touche_bobomb(fNewPosX, fNewPosY, oSpriteExcept, {transparent:true}) && !touche_bobomb(fSprite.x, fSprite.y, oSpriteExcept, {transparent:true})) {
+					var aPos = [fSprite.x,fSprite.y];
 					fSprite.x = fNewPosX;
 					fSprite.y = fNewPosY;
+					if (fSprite.owner != -1 && fSprite.aipoint != -2)
+						checkItemLap(fSprite, { aPos: aPos });
 					if (collisionFloor)
 						fSprite.z0 = collisionFloor.z;
 					else
@@ -7819,13 +7808,12 @@ var itemBehaviors = {
 					var aipoint = aipoints[fSprite.aipoint];
 					if (aipoint && fTeleport === inTeleport(aipoint[0],aipoint[1])) {
 						fSprite.aipoint++;
-						if (fSprite.aipoint >= aipoints.length) {
+						if (fSprite.aipoint >= aipoints.length)
 							fSprite.aipoint = 0;
-							incItemLap(fSprite);
-						}
 					}
 				}
 			}
+			var aPos = [fSprite.x,fSprite.y];
 			if (fSprite.aipoint == -1) {
 				if (fSprite.cooldown > 0) {
 					var oKart = aKarts[cible];
@@ -7917,13 +7905,12 @@ var itemBehaviors = {
 							fSprite.x = target[0];
 							fSprite.y = target[1];
 							fSprite.aipoint++;
-							if (fSprite.aipoint === aipoints.length) {
+							if (fSprite.aipoint === aipoints.length)
 								fSprite.aipoint = 0;
-								incItemLap(fSprite);
-							}
 						}
 					}
 				}
+				checkItemLap(fSprite, { aPos: aPos });
 				if (cible == -1) {
 					cible = aKarts.length-1;
 					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
@@ -10314,20 +10301,33 @@ function loadBgLayer(strImages) {
 		imageDims.src = strImages[i];
 	}
 }
-function incItemLap(fSprite) {
-	if (!oMap.lapOverrides) return;
-	if (!fSprite.ailapt) {
-		var lapOverride = oMap.lapOverrides[fSprite.ailap];
-		fSprite.ailapt = lapOverride ? lapOverride.lap : 0;
-	}
-	fSprite.ailapt++;
-	var lapId = getCurrentLapId({ tours: fSprite.ailapt, demitours: 0 });
-	if (lapId === fSprite.ailap) return;
-	fSprite.ailap = lapId;
+function checkItemLap(fSprite, opts) {
+	var lapId = fSprite.ailap;
+	var nextOverride = oMap.lapOverrides && oMap.lapOverrides[lapId];
+	if (!nextOverride) return;
 	var lMap = getCurrentLMap(lapId);
-	if (fSprite.aimap === -1) return;
-	fSprite.aimap = fSprite.aimap % lMap.aipoints.length;
-	fSprite.aipoint = Math.min(fSprite.aipoint, lMap.aipoints[fSprite.aimap].length-1);
+	var nextCp = getNextCp({ tours: fSprite.ailapt });
+	if (enteredCheckpoint(lMap.checkpointCoords[nextCp], fSprite, opts))
+		fSprite.ailapt++;
+	var lapCount = fSprite.ailapt-1;
+	if ((lapCount > nextOverride.lap) || (lapCount === nextOverride.lap && !nextOverride.cp)) {
+		incItemLap(lMap, fSprite);
+		return;
+	}
+	if (fSprite.ailap < nextOverride.lap) return;
+	if (!nextOverride.cp) return;
+	if (enteredCheckpoint(lMap.checkpointCoords[nextOverride.cp], fSprite, opts))
+		incItemLap(lMap, fSprite);
+}
+function incItemLap(lMap, fSprite) {
+	fSprite.ailap++;
+	if (fSprite.aipoint >= 0 && fSprite.aimap >= 0) {
+		var nMap = getCurrentLMap(fSprite.ailap);
+		if (nMap.aipoints !== lMap.aipoints) {
+			fSprite.aimap %= lMap.aipoints.length;
+			fSprite.aipoint = 0;
+		}
+	}
 }
 function render() {
 	var currentState = {
@@ -14980,15 +14980,7 @@ function checkpoint(kart, fMoveX,fMoveY) {
 	}
 	var lMap = getCurrentLMap(getCurrentLapId(kart));
 	for (var i=0;i<lMap.checkpointCoords.length;i++) {
-		var oBox = lMap.checkpointCoords[i];
-		var inRect = pointInQuad(kart.x,kart.y, oBox);
-		if (!inRect && fast) {
-			if (secants(aPos[0],aPos[1],kart.x,kart.y, oBox.A[0],oBox.A[1], oBox.B[0],oBox.B[1]))
-				inRect = true;
-			else if (secants(aPos[0],aPos[1],kart.x,kart.y, oBox.C[0],oBox.C[1], oBox.D[0],oBox.D[1]))
-				inRect = true;
-		}
-		if (inRect) {
+		if (inCheckpoint(lMap.checkpointCoords[i], kart, { aPos, fast })) {
 			if (simplified) {
 				if (i==0 && (lMap.checkpoint.length-demitour) < 5)
 					return true;
@@ -15063,6 +15055,20 @@ function getCheckpointCoords(oBox) {
 		mainCoords.B[1]+mainCoords.v[1]
 	];
 	return mainCoords;
+}
+function inCheckpoint(oBox, kart, opts) {
+	var x = kart.x, y = kart.y;
+	if (pointInQuad(x,y, oBox)) return true;
+	if (!opts.fast) return false;
+	var aPos = opts.aPos;
+	if (secants(aPos[0],aPos[1],x,y, oBox.A[0],oBox.A[1], oBox.B[0],oBox.B[1]))
+		return true;
+	if (secants(aPos[0],aPos[1],x,y, oBox.C[0],oBox.C[1], oBox.D[0],oBox.D[1]))
+		return true;
+	return false;
+}
+function enteredCheckpoint(oBox, kart, opts) {
+	return inCheckpoint(oBox, kart, opts) && !inCheckpoint(oBox, { x: opts.aPos[0], y: opts.aPos[1] }, {});
 }
 
 function int8ToHexString(arr) {
