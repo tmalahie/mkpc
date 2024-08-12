@@ -15244,13 +15244,14 @@ function resetDatas() {
 						}
 						var pCode = jCode[1];
 						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aTours = oKart.tours, aDemitours = oKart.demitours, aReserve = oKart.reserve;
+						var nDemitours;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
 							var value = pCode[k];
 							switch (param) {
 							case "demitours":
-								oKart.demitours = (getLastCp(oKart)+value)%oMap.checkpoint.length;
+								nDemitours = value;
 								break;
 							case "ballons":
 								if (course == "BB") {
@@ -15274,6 +15275,10 @@ function resetDatas() {
 							default:
 								oKart[params[k]] = value;
 							}
+						}
+						if (nDemitours >= 0) {
+							var lMap = getCurrentLMap(getCurrentLapId(oKart));
+							oKart.demitours = (getLastCp(oKart)+nDemitours)%lMap.checkpoint.length;
 						}
 						if ((oKart.billball >= 25) && !aBillBall) {
 							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
