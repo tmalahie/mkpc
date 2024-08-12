@@ -10313,6 +10313,7 @@ function incItemLap(fSprite) {
 	if (lapId === fSprite.ailap) return;
 	fSprite.ailap = lapId;
 	var lMap = getCurrentLMap(lapId);
+	if (fSprite.aimap === -1) return;
 	fSprite.aimap = fSprite.aimap % lMap.aipoints.length;
 	fSprite.aipoint = Math.min(fSprite.aipoint, lMap.aipoints[fSprite.aimap].length-1);
 }
