@@ -147,6 +147,7 @@ if (isCup && (aAvailableMaps.length > 4))
 var iWidth = 80;
 var iHeight = 39;
 var SPF = 67;
+var collisionSubChecks = 12;
 var iRendering = baseOptions["quality"];
 var iQuality, iSmooth;
 resetQuality();
@@ -11822,13 +11823,24 @@ function getHoleSegmentDist(currentRes, x,y, x1,y1, u1,v1) {
 	return currentRes;
 }
 
-function objet(iX, iY) {
-	// Check if player hits an item box
-	var lMap = getCurrentLMap(collisionLap);
+function checkCollision(kX, kY, oldX, oldY, objX, objY, hitboxSize) {
+    for (var i = 0; i <= collisionSubChecks; i++) {
+        var t = i / collisionSubChecks;
+        var interpX = oldX + t * (kX - oldX);
+        var interpY = oldY + t * (kY - oldY);
+
+		if (interpX > objX - hitboxSize && interpX < objX + hitboxSize && interpY > objY - hitboxSize && interpY < objY + hitboxSize)
+			return true;
+	}
+	return false;
+}
+
+function objet(iX, iY, oldX, oldY) {
 	var res = -1, nbItems = 0;
-	for (var i=0;i<lMap.arme.length;i++) {
-		var oBox = lMap.arme[i];
-		if (iX > oBox[0] - 7 && iX < oBox[0] + 7 && iY > oBox[1] - 7 && iY < oBox[1] + 7 && oBox[2].active) {
+
+	for (var i = 0; i < oMap.arme.length; i++) {
+		var oBox = oMap.arme[i];
+		if (checkCollision(Math.floor(iX), Math.floor(iY), Math.floor(oldX), Math.floor(oldY), oBox[0], oBox[1], 7)) {
 			var iNbItems = oBox[2].box.length;
 			if (iNbItems > nbItems) {
 				res = i;
@@ -11836,8 +11848,9 @@ function objet(iX, iY) {
 			}
 		}
 	}
+
 	if (res !== -1) {
-		var fSprite = lMap.arme[res][2];
+		var fSprite = oMap.arme[res][2];
 		fSprite.active = false;
 		fSprite.countdown = 20;
 		for (var k=0;k<nbItems;k++) {
@@ -11849,18 +11862,18 @@ function objet(iX, iY) {
 	return res;
 }
 
-function touche_piece(iX, iY) {
+function touche_piece(oldX, oldY, iX, iY) {
 	var lMap = getCurrentLMap(collisionLap);
-	if (lMap.coins) {
-		for (var i=0;i<lMap.coins.length;i++) {
-			var oBox = lMap.coins[i];
-			if (iX > oBox.x - 5 && iX < oBox.x + 5 && iY > oBox.y - 5 && iY < oBox.y + 5) {
-				oBox.sprite[0].suppr();
-				lMap.coins.splice(i,1);
-				return true;
-			}
+    if (!lMap.coins) return false;
+
+	for (var i = 0; i < lMap.coins.length; i++) {
+		var oBox = lMap.coins[i];
+		if (checkCollision(Math.floor(iX), Math.floor(iY), Math.floor(oldX), Math.floor(oldY), oBox.x, oBox.y, 5)) {	
+			oBox.sprite[0].suppr();
+			lMap.coins.splice(i, 1);
+			return true;
 		}
-	}
+    }
 	return false;
 }
 
@@ -15985,6 +15998,8 @@ function move(getId, triggered) {
 
 	var fNewPosX = oKart.x + fMoveX;
 	var fNewPosY = oKart.y + fMoveY;
+	var oldX = oKart.x;
+	var oldY = oKart.y;
 	
 	var aPosX = oKart.x, aPosY = oKart.y;
 
@@ -16152,7 +16167,7 @@ function move(getId, triggered) {
 				}
 			}
 			if (!oKart.cpu) {
-				while (touche_piece(oKart.x,oKart.y)) {
+				while (touche_piece(oldX, oldY, fNewPosX, fNewPosY)) {
 					clLocalVars.nbCoins++;
 					updateChallengeHud("coins", clLocalVars.nbCoins);
 					challengeCheck("each_coin");
@@ -16163,7 +16178,7 @@ function move(getId, triggered) {
 	}
 
 	var rScroller, rHeight, rSize;
-	var touchedObject = objet(fNewPosX, fNewPosY);
+	var touchedObject = objet(oldX, oldY, fNewPosX, fNewPosY);
 	if (touchedObject !== -1) {
 		if (!oKart.destroySound) {
 			oKart.destroySound = playDistSound(oKart, "musics/events/item_destroy.mp3", 80);
