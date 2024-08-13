@@ -10264,17 +10264,29 @@ function updateBgLayers(pMap, callback) {
 	if (!pMap) return;
 	if (pMap.custombg) {
 		if (customBgData[pMap.custombg]) {
-			callback(customBgData[pMap.custombg], false);
+			if (customBgData[pMap.custombg].data !== undefined)
+				callback(customBgData[pMap.custombg].data, false);
+			else
+				customBgData[pMap.custombg].callbacks.push(callback);
 		}
 		else {
+			customBgData[pMap.custombg] = {
+				callbacks: [callback]
+			};
 			xhr("getBgData.php", "id="+pMap.custombg, function(res) {
-				if (!res) return true;
-				if (customBgData[pMap.custombg]) return true;
+				if (customBgData[pMap.custombg].data) return true;
+				if (!res) {
+					delete customBgData[pMap.custombg];
+					return true;
+				}
 				res = JSON.parse(res);
-				customBgData[pMap.custombg] = res.layers.map(function(layer) {
+				customBgData[pMap.custombg].data = res.layers.map(function(layer) {
 					return layer.path;
 				});
-				callback(customBgData[pMap.custombg], false);
+				var callbacks = customBgData[pMap.custombg].callbacks;
+				for (var i=0;i<callbacks.length;i++)
+					callbacks[i](customBgData[pMap.custombg].data, false);
+				callbacks.length = 0;
 				return true;
 			});
 		}
