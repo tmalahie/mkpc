@@ -2509,7 +2509,7 @@ function arme(ID, backwards, forwards) {
 					}
 				}
 			}
-			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.tours, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
+			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.tours, ailapc:1, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
 			addNewItem(oKart, item);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
@@ -2666,7 +2666,7 @@ function arme(ID, backwards, forwards) {
 			if (backwards)
 				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
 			else
-				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
+				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,ailapc:1,target:-1};
 			checkItemLap(itemPayload, { aPos: [posX,posY], fast: true });
 			throwItem(oKart, itemPayload);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
@@ -7910,7 +7910,7 @@ var itemBehaviors = {
 						}
 					}
 				}
-				checkItemLap(fSprite, { aPos: aPos });
+				checkItemLap(fSprite, { aPos: aPos, fast: true });
 				if (cible == -1) {
 					cible = aKarts.length-1;
 					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
@@ -10323,13 +10323,12 @@ function checkItemLap(fSprite, opts) {
 }
 function incItemLap(lMap, fSprite) {
 	fSprite.ailap++;
+	var nMap = getCurrentLMap(fSprite.ailap);
+	if (nMap.aipoints === lMap.aipoints) return;
+	fSprite.ailapc = 0;
 	if (fSprite.aipoint >= 0 && fSprite.aimap >= 0) {
-		var nMap = getCurrentLMap(fSprite.ailap);
-		if (nMap.aipoints !== lMap.aipoints) {
-			fSprite.aimap %= nMap.aipoints.length;
-			fSprite.aipoint = 0;
-			fSprite.ailapc = 0;
-		}
+		fSprite.aimap %= nMap.aipoints.length;
+		fSprite.aipoint = 0;
 	}
 }
 function render() {
