@@ -10307,7 +10307,9 @@ function checkItemLap(fSprite, opts) {
 	if (!nextOverride) return;
 	var lMap = getCurrentLMap(lapId);
 	var nextCp = getNextCp({ tours: fSprite.ailapt });
-	if (enteredCheckpoint(lMap.checkpointCoords[nextCp], fSprite, opts))
+	if (!fSprite.ailapc && (fSprite.aipoint >= lMap.checkpoint.length/2))
+		fSprite.ailapc = 1;
+	if (fSprite.ailapc && enteredCheckpoint(lMap.checkpointCoords[nextCp], fSprite, opts))
 		fSprite.ailapt++;
 	var lapCount = fSprite.ailapt-1;
 	if ((lapCount > nextOverride.lap) || (lapCount === nextOverride.lap && !nextOverride.cp)) {
@@ -10324,8 +10326,9 @@ function incItemLap(lMap, fSprite) {
 	if (fSprite.aipoint >= 0 && fSprite.aimap >= 0) {
 		var nMap = getCurrentLMap(fSprite.ailap);
 		if (nMap.aipoints !== lMap.aipoints) {
-			fSprite.aimap %= lMap.aipoints.length;
+			fSprite.aimap %= nMap.aipoints.length;
 			fSprite.aipoint = 0;
+			fSprite.ailapc = 0;
 		}
 	}
 }
