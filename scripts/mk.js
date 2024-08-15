@@ -3090,7 +3090,8 @@ function updateMapMusic(pMap) {
 	mapMusic = pMap.mapMusic;
 	bufferMusic(mapMusic);
 	fadeOutMusic(lastMapMusic, 1, 0.8, null,vMusic);
-	if (pMap.lap === oMap.tours-1 && !pMap.cp) {
+	var isLastLap = (pMap.lap === oMap.tours-1);
+	if (isLastLap && !pMap.cp) {
 		removeIfExists(lastMapMusic);
 		if (pMap.yt_opts)
 			oMap.lastMapSpeed = 1;
@@ -3098,7 +3099,8 @@ function updateMapMusic(pMap) {
 	}
 	setTimeout(function() {
 		removeIfExists(lastMapMusic);
-		updateMusic(mapMusic);
+		var fast = isLastLap && !pMap.yt_opts;
+		updateMusic(mapMusic, fast);
 	}, 1000);
 }
 function loopWithoutGap() {
@@ -10404,7 +10406,8 @@ function handleLapChange(prevLepId,lapId, getId) {
 		resetBgLayers();
 		setupBgLayer(strImages, fixedScale, false);
 	});
-	updateMapMusic(pMap);
+	if (!onlineSpectatorId && !oKart.cpu)
+		updateMapMusic(pMap);
 	if (oPlanDiv)
 		resetPlan(nMap);
 }
@@ -13039,11 +13042,16 @@ var challengeRules = {
 	},
 	"custom_music": {
 		"preinitSelected": function(scope) {
-			foreachLMap(function(lMap) {
-				lMap.music = scope.value;
-				lMap.yt = scope.yt;
+			foreachLMap(function(lMap,pMap) {
+				delete lMap.music;
+				delete lMap.yt;
 				delete lMap.yt_opts;
+				delete pMap.music;
+				delete pMap.yt;
+				delete pMap.yt_opts;
 			});
+			oMap.music = scope.value;
+			oMap.yt = scope.yt;
 		},
 		"success": function() {
 			return true;

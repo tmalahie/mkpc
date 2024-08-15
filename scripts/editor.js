@@ -3677,6 +3677,7 @@ function showMusicSelector() {
 }
 function addOptionIfNotExist($select, value) {
 	var options = $select.options;
+	if (!options) return;
 	for (var i=0;i<options.length;i++) {
 		if (options[i].value == value)
 			return;
@@ -3687,17 +3688,18 @@ function addOptionIfNotExist($select, value) {
 	$select.insertBefore(option, options[options.length-1]);
 }
 function applyMusicSelector() {
+	var $btnReset = document.getElementById("button-music-reset");
 	var editorTool = editorTools[currentMode];
 	if (editorTool.data.music_override) {
 		if (editorTool.data.music)
 			document.getElementById("button-music").innerHTML = musicOptions[editorTool.data.music];
 		else
 			document.getElementById("button-music").innerHTML = "Youtube";
-		document.getElementById("button-music-reset").style.display = "";
+		if ($btnReset) $btnReset.style.display = "";
 	}
 	else {
 		document.getElementById("button-music").innerHTML = language ? "Override..." : "Modifier...";
-		document.getElementById("button-music-reset").style.display = "none";
+		if ($btnReset) $btnReset.style.display = "none";
 	}
 }
 var oMusic;
