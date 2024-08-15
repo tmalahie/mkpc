@@ -271,9 +271,11 @@ if (isset($_GET['i'])) {
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
 					</div>
-					<div class="mode-option-unoverridable">
+					<div>
 						<?php echo $language ? 'Music:':'Musique :'; ?>
-						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button><br />
+						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button>
+						<a class="mode-option-onoverride" id="button-music-reset" href="javascript:resetMusicOverride()">[<?php echo $language ? 'Reset' : 'Réinit.'; ?>]</a>
+						<br />
 					</div>
 					<div>
 						<?php echo $language ? 'Out color:':'Couleur de fond :'; ?>
@@ -684,7 +686,7 @@ if (isset($_GET['i'])) {
 									echo '<option value="">'. ($language ? 'Custom':'Autre') .'...</option>';
 									?>
 								</select>
-								<div>
+								<div id="youtube-options-last-lap">
 									<?php echo $language ? 'Last lap music:':'Musique du dernier tour :'; ?>
 									<input type="text" size="2" name="youtube-last" id="youtube-last-url" pattern="<?php echo htmlspecialchars($ytPattern); ?>" placeholder="https://www.youtube.com/watch?v=NNMy4DKKDFA" onchange="playYt(this)" /><br />
 									<?php echo $language ? 'Loop between' : 'Boucler entre'; ?>

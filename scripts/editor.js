@@ -2976,6 +2976,8 @@ function addModeOverride() {
 		if (editorTool.prerestore)
 			editorTool.prerestore(editorTool);
 		editorTool.data = deepCopy(lapOverrides[copyFrom].modesData[currentMode].data);
+		if (editorTool.postcopy)
+			editorTool.postcopy(editorTool);
 		if (editorTool.postrestore)
 			editorTool.postrestore(editorTool);
 	}
@@ -3613,9 +3615,23 @@ function showMusicSelector() {
 	musicSelected = editorData.music;
 	var ytSpeed, ytSpeedLast;
 	document.getElementById("musicchoice-"+musicSelected).className = "music-selected";
+	var $ytOptsInputs = [
+		document.getElementById("youtube-url"),
+		document.getElementById("youtube-start"),
+		document.getElementById("youtube-end"),
+		document.getElementById("youtube-last-url"),
+		document.getElementById("youtube-last-start"),
+		document.getElementById("youtube-last-end")
+	]
+	for (var i=0;i<$ytOptsInputs.length;i++) {
+		if ($ytOptsInputs[i])
+			$ytOptsInputs[i].value = "";
+	}
 	if (!musicSelected) {
 		document.getElementById("youtube-url").value = editorData.youtube;
+		var showYtOptions = false;
 		if (editorData.youtube_opts) {
+			showYtOptions = true;
 			var youtubeOpts = editorData.youtube_opts;
 			if (youtubeOpts.start != null)
 				document.getElementById("youtube-start").value = timeToStr(youtubeOpts.start);
@@ -3633,6 +3649,7 @@ function showMusicSelector() {
 				ytSpeedLast = youtubeOptsLast.speed;
 			}
 		}
+		ytOptions(showYtOptions);
 	}
 	function initYtSelect($select, defaultVal) {
 		defaultVal = defaultVal || 1;
@@ -3671,10 +3688,17 @@ function addOptionIfNotExist($select, value) {
 }
 function applyMusicSelector() {
 	var editorTool = editorTools[currentMode];
-	if (editorTool.data.music)
-		document.getElementById("button-music").innerHTML = musicOptions[editorTool.data.music];
-	else
-		document.getElementById("button-music").innerHTML = "Youtube";
+	if (editorTool.data.music_override) {
+		if (editorTool.data.music)
+			document.getElementById("button-music").innerHTML = musicOptions[editorTool.data.music];
+		else
+			document.getElementById("button-music").innerHTML = "Youtube";
+		document.getElementById("button-music-reset").style.display = "";
+	}
+	else {
+		document.getElementById("button-music").innerHTML = language ? "Override..." : "Modifier...";
+		document.getElementById("button-music-reset").style.display = "none";
+	}
 }
 var oMusic;
 var musicSelected;
@@ -3724,8 +3748,11 @@ function playYt(elt) {
 	}
 }
 function ytOptions(show) {
-	if (show)
+	if (show) {
 		document.querySelector(".youtube").classList.add("youtube-show-advanced");
+		var $lastLap = document.getElementById("youtube-options-last-lap");
+		if ($lastLap) $lastLap.style.display = selectedLapOverride ? "none":"";
+	}
 	else
 		document.querySelector(".youtube").classList.remove("youtube-show-advanced");
 }
@@ -3782,8 +3809,16 @@ function submitMusic(e) {
 		editorTool.data.youtube_opts = ytOptions;
 	else
 		delete editorTool.data.youtube_opts;
+	editorTool.data.music_override = true;
 	applyMusicSelector();
 	hideMusicSelector();
+}
+function resetMusicOverride() {
+	if (!confirm(language ? "Reset music lap override?" : "Désactiver la modification de la musique pour ce tour ?"))
+		return;
+	var editorTool = editorTools[currentMode];
+	editorTool.data.music_override = false;
+	applyMusicSelector();
 }
 function undoMusic() {
 	hideMusicSelector();
@@ -6275,11 +6310,13 @@ var commonTools = {
 			payload.main.bgimg = self.data.bg_img;
 			if (self.data.bg_custom)
 				payload.main.bgcustom = 1;
-			payload.main.music = self.data.music;
-			if (self.data.youtube) {
-				payload.main.youtube = self.data.youtube;
-				if (self.data.youtube_opts)
-					payload.main.youtube_opts = self.data.youtube_opts;
+			if (self.data.music_override) {
+				payload.main.music = self.data.music;
+				if (self.data.youtube) {
+					payload.main.youtube = self.data.youtube;
+					if (self.data.youtube_opts)
+						payload.main.youtube_opts = self.data.youtube_opts;
+				}
 			}
 			payload.main.bgcolor = [self.data.out_color.r,self.data.out_color.g,self.data.out_color.b];
 		},
@@ -6291,7 +6328,12 @@ var commonTools = {
 				self.data.youtube = payload.main.youtube;
 			if (payload.main.youtube_opts)
 				self.data.youtube_opts = payload.main.youtube_opts;
+			if (self.data.youtube || self.data.music)
+				self.data.music_override = true;
 			self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
+		},
+		"postcopy" : function(self) {
+			self.data.music_override = false;
 		},
 		"hasPartialOverride": true
 	},

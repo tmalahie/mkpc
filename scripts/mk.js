@@ -525,8 +525,7 @@ function setMusic(iValue) {
 	if (formulaire && formulaire.dataset.disabled) {
 		if (iValue)
 			return showParamChangeDisclaimer();
-		removeIfExists(mapMusic);
-		removeIfExists(lastMapMusic);
+		removeMapMusics();
 		removeIfExists(endingMusic);
 	}
 	bMusic = !!iValue;
@@ -544,7 +543,7 @@ function setSfx(iValue) {
 		removeSoundEffects();
 		if (oMusicEmbed)
 			unpauseMusic(mapMusic);
-		removeGameMusics([mapMusic,lastMapMusic,endingMusic]);
+		removeGameMusics(listMapMusics().concat([endingMusic]));
 	}
 	iSfx = !!iValue;
 }
@@ -583,6 +582,21 @@ function removeIfExists(elt) {
 		document.body.removeChild(elt);
 	if (oMusicEmbed == elt)
 		oMusicEmbed = undefined;
+}
+function removeMapMusics() {
+	removeIfExists(mapMusic);
+	foreachLMap(function(lMap) {
+		removeIfExists(lMap.mapMusic);
+	});
+	removeIfExists(lastMapMusic);
+}
+function listMapMusics() {
+	var res = [mapMusic];
+	foreachLMap(function(lMap) {
+		res.push(lMap.mapMusic);
+	});
+	res.push(lastMapMusic);
+	return res;
 }
 function removeGameMusics(whitelist) {
 	if (bMusic || iSfx) {
@@ -3011,7 +3025,7 @@ updateVolumeSettings = function(volumeSettings) {
 		oMusics.push(gameMusics[i]);
 	if (oMusicEmbed && !oMusics.includes(oMusicEmbed))
 		oMusics.push(oMusicEmbed);
-	var oMusicEmbeds = [oMusicEmbed, mapMusic, lastMapMusic, endingMusic];
+	var oMusicEmbeds = [oMusicEmbed].concat(listMapMusics()).concat([endingMusic]);
 	for (var i=0;i<oMusics.length;i++) {
 		var oMusic = oMusics[i];
 		if (oMusicEmbeds.includes(oMusic))
@@ -3039,26 +3053,53 @@ function startMapMusic(lastlap) {
 			removeIfExists(mapMusic);
 			mapMusic = lastMapMusic;
 		}
-		updateMusic(mapMusic, mapMusic!==lastMapMusic);
+		var fast = (mapMusic!==lastMapMusic) && !oMap.lastMapSpeed;
+		updateMusic(mapMusic, fast);
 	}
 	else {
-		var opts = oMap.yt_opts || {};
-		mapMusic = startMusic(oMap.music ? "musics/maps/map"+ oMap.music +".mp3":oMap.yt, false, 0, opts);
-		mapMusic.permanent = 1;
-		bufferMusic(mapMusic, function() {
-			if (endingMusic && oMap.music)
-				bufferMusic(endingMusic);
+		foreachLMap(function(lMap,pMap, i) {
+			if (pMap.music === undefined && pMap.yt === undefined) return;
+			var opts = pMap.yt_opts || {};
+			lMap.mapMusic = startMusic(pMap.music ? "musics/maps/map"+ pMap.music +".mp3":pMap.yt, false, 0, opts);
+			lMap.mapMusic.permanent = 1;
+			bufferMusic(lMap.mapMusic, function() {
+				if (endingMusic && pMap.music)
+					bufferMusic(endingMusic);
+			});
+			pMap.mapMusic = lMap.mapMusic;
+			if (!i) {
+				mapMusic = lMap.mapMusic;
+				if (!i && opts.last) {
+					lastMapMusic = startMusic(opts.last.url, false, 0, opts.last);
+					lastMapMusic.permanent = 1;
+				}
+			}
 		});
-		if (opts.last) {
-			lastMapMusic = startMusic(opts.last.url, false, 0, opts.last);
-			lastMapMusic.permanent = 1;
-		}
 	}
 }
 function loadEndingMusic() {
 	var endingSrc = getEndingSrc(strPlayer[0]);
 	endingMusic = startMusic(endingSrc);
 	endingMusic.permanent = 1;
+}
+function updateMapMusic(pMap) {
+	if (!pMap) return;
+	if (!pMap.mapMusic) return;
+	if (pMap.mapMusic === mapMusic) return;
+	var lastMapMusic = mapMusic;
+	mapMusic = pMap.mapMusic;
+	bufferMusic(mapMusic);
+	fadeOutMusic(lastMapMusic, 1, 0.8, null,vMusic);
+	if (pMap.lap === oMap.tours-1 && !pMap.cp) {
+		removeIfExists(lastMapMusic);
+		if (pMap.yt_opts)
+			oMap.lastMapSpeed = 1;
+		return;
+	}
+	setTimeout(function() {
+		removeIfExists(lastMapMusic);
+		updateMusic(mapMusic);
+	}, 1000);
 }
 function loopWithoutGap() {
 	if (playingCarEngine == this) {
@@ -3115,8 +3156,7 @@ function updateEngineSound(elt) {
 function startEndMusic() {
 	if (bMusic) {
 		removeMenuMusic(true);
-		removeIfExists(mapMusic);
-		removeIfExists(lastMapMusic);
+		removeMapMusics();
 	}
 	if (iSfx)
 		removeSoundEffects();
@@ -10364,6 +10404,7 @@ function handleLapChange(prevLepId,lapId, getId) {
 		resetBgLayers();
 		setupBgLayer(strImages, fixedScale, false);
 	});
+	updateMapMusic(pMap);
 	if (oPlanDiv)
 		resetPlan(nMap);
 }
@@ -17229,7 +17270,7 @@ function move(getId, triggered) {
 											startMapMusic(true);
 											forceStartMusic = true;
 										}
-										else
+										else if (!oMap.lastMapSpeed)
 											fastenMusic(mapMusic);
 									}
 									if (iSfx) {

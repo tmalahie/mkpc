@@ -367,6 +367,16 @@ body.theme-dark {
 .mode-option-override .mode-option-unoverridable {
 	display: none;
 }
+.mode-option-selected:not(.mode-option-override) .mode-option-onoverride {
+	display: none;
+}
+#button-music-reset {
+	color: #912;
+	text-decoration: none;
+}
+#button-music-reset:hover {
+	text-decoration: underline;
+}
 #toolbox #decor-selector-more {
 	cursor: pointer;
 	width: 22px;
