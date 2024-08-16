@@ -10329,6 +10329,7 @@ function incItemLap(lMap, fSprite) {
 	if (fSprite.aipoint >= 0 && fSprite.aimap >= 0) {
 		fSprite.aimap %= nMap.aipoints.length;
 		fSprite.aipoint = 0;
+		if (!nMap.aipoints.length || !nMap.aipoints[fSprite.aimap].length) fSprite.aipoint = -1;
 	}
 }
 function render() {
