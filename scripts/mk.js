@@ -14953,12 +14953,16 @@ function distanceToKart(kart,oKart) {
 	var posX = kart.x, posY = kart.y;
 	var tours = kart.tours;
 	var checkpoint = kart.demitours;
+	var tours2 = oKart.tours;
+	var checkpoint2 = oKart.demitours;
 	if (oMap.sections) {
-		tours = oKart.tours;
+		tours = tours2;
 		if (checkpoint >= oMap.checkpoint.length - 1)
 			checkpoint = -1;
+		if (checkpoint2 >= oMap.checkpoint.length - 1)
+			checkpoint2 = -1;
 	}
-	while ((tours < oKart.tours) || ((tours == oKart.tours) && (checkpoint < oKart.demitours))) {
+	while ((tours < tours2) || ((tours == tours2) && (checkpoint < checkpoint2))) {
 		var lMap = getCurrentLMap(getCurrentLapId({ tours: tours, demitours: checkpoint }));
 		checkpoint++;
 		if (checkpoint >= lMap.checkpoint.length) {
@@ -17289,7 +17293,8 @@ function move(getId, triggered) {
 		if (oKart.billjump ? ((oKart.billjump < 4) && (oKart.billball < cptJumpCheck)) : (oKart.billball < cptJumpRevert)) {
 			var fMoveX = oKart.speed*direction(0, oKart.rotation);
 			var fMoveY = oKart.speed*direction(1, oKart.rotation);
-			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY)))) {
+			var customBillRoute = !oKart.cpu && (lMap.airoutesmeta.cpu < lMap.aipoints.length);
+			if (sauts(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (tombe(oKart.x,oKart.y) || tombe(oKart.x+fMoveX,oKart.y+fMoveY) || (customBillRoute && ralenti(oKart.x,oKart.y))))) {
 				if (!oKart.cannon) {
 					oKart.billball0 = Math.floor(oKart.billball0*cptJumpRevert/oKart.billball);
 					oKart.billball = cptJumpRevert;
