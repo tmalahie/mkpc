@@ -2413,6 +2413,7 @@ function arme(ID, backwards, forwards) {
 			oKart.size = 2.5;
 			oKart.mini = 0;
 			oKart.z = 2;
+			oKart.heightinc = 0;
 			oKart.protect = true;
 			oKart.champi = 0;
 			delete oKart.champiType;
