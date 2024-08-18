@@ -91,3 +91,32 @@ function FN_(string $singular, string $plural, ...$replacePairs)
 		wrap_array_keys_in_braces($replacePairs),
 	);
 }
+
+// custom translation framework
+include('../includes/static_translation_table.php');
+
+function mkpc_get_translated_string(string $key) {
+	global $acceptedLanguage;
+	if (array_key_exists($key, TRANSLATION_TABLE)) {
+		$translation = TRANSLATION_TABLE[$key];
+		if (array_key_exists($acceptedLanguage, $translation)) {
+			return $translation[$acceptedLanguage];
+		} else if (array_key_exists("en", $translation)) {
+			// Default to english
+			return $translation["en"];
+		} else {
+			return "!!! Key '" . $key . "' could not be translated!!";
+		}
+	} else {
+		return "!!! Key '" . $key . "' could not be translated!!";
+	}
+}
+function t()
+{
+	return call_user_func_array("mkpc_get_translated_string", func_get_args());
+}
+
+function mkpc_get_translated_string_with_context(string $key, array $context) {
+	$mangled_key = $key + implode("#", $context);
+	return mkpc_get_translated_string($mangled_key);
+}

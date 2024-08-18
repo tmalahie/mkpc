@@ -12,7 +12,7 @@ include('../includes/language.php');
 include('../includes/session.php');
 ?>
 <!DOCTYPE html>
-<html lang="<?= P_("html language", "en") ?>">
+<html lang="<?= t("kHTML_TAG_LANG_ATTRIBUTE") ?>">
 <head>
 <title>Mario Kart PC</title>
 <?php
@@ -49,10 +49,10 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo1.jpg" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo1-640w.jpg 640w, <?= $slidesPath ?>/diapo1.jpg 960w" class="top" alt="Slide 1">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('A Mario Kart Game for browser') ?></h3>
+								<h3><?= t("kA_MARIO_KART_GAME_FOR_BROWSER") ?></h3>
 								<div>
-									<?= _("A computer version of the famous racing game by Nintendo."); ?><br/>
-									<?= _("This game is <strong>completely free</strong> and does not require <strong>any downloads</strong>. All you need is a web browser!"); ?>
+									<?= t("kA_COMPUTER_VERSION_OF_THE_FAMOUS_RACING_GAME"); ?><br/>
+									<?= t("k_THIS_GAME_IS_COMPLETELY_FREE"); ?>
 								</div>
 							</div>
 						</div>
@@ -64,11 +64,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo2.png" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo2-640w.png 640w, <?= $slidesPath ?>/diapo2.png 960w" alt="Slide 2">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Crazy races full of fun!') ?></h3>
+								<h3><?= t("kCRAZY_RACES_FULL_OF_FUN") ?></h3>
 								<div>
-									<?= _("Try to be the fastest while avoiding items!") ?>
+									<?= t("kTRY_TO_BE_THE_FASTEST") ?>
 									<br />
-									<?= _("Race on all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.") ?>
+									<?= t("kRACE_ON_ALL_THE_56_TRACKS") ?>
 								</div>
 							</div>
 						</div>
@@ -80,11 +80,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo3.png" alt="Slide 3">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Win all the cups!') ?></h3>
+								<h3><?= t('kWIN_ALL_THE_CUPS') ?></h3>
 								<div>
-									<?= _("Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!") ?>
+									<?= t("kFACE_OFF_WITH_THE_CPUS_ON_14_GRAND_PRIX") ?>
 									<br />
-									<?= _("Win enough cups to unlock the <strong>15 secret characters</strong>!") ?>
+									<?= t("kWIN_ENOUGH_CUPS_TO_UNLOCK_SECRET_CHARACTERS") ?>
 								</div>
 							</div>
 						</div>
@@ -96,11 +96,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo4.png" alt="Slide 4">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Create your own tracks!') ?></h3>
+								<h3><?= t('kCREATE_YOUR_OWN_TRACKS') ?></h3>
 								<div>
-									<?= _("With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!") ?>
+									<?= t("kWITH_THE_TRACK_BUILDER_THE_POSSIBILITIES_ARE_ENDLESS") ?>
 									<br />
-									<?= _("You can <strong>share</strong> your tracks or try other people's creations!") ?>
+									<?= t("kYOU_CAN_SHARE_YOUR_TRACKS") ?>
 								</div>
 							</div>
 						</div>
@@ -112,11 +112,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo5.png" class="top smooth" alt="Slide 5">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Face players from around the world!') ?></h3>
+								<h3><?= t('kFACE_PLAYERS_FROM_AROUND_THE_WORLD') ?></h3>
 								<div>
-									<?= _("Race and battle in <strong>online mode</strong>!") ?>
+									<?= t("kRACE_AND_BATTLE_IN_ONLINE_MODE") ?>
 									<br />
-									<?= _("Win as many races as possible and <strong>climb in the official ranking</strong>!") ?>
+									<?= t("kWIN_AS_MANY_RACES_AS_POSSIBLE_AND_CLIMB_IN_THE_OFFICIAL_RANKING") ?>
 								</div>
 							</div>
 						</div>
@@ -128,11 +128,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo6.png" class="smooth" alt="Slide 6">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Make the best scores in time trial!') ?></h3>
+								<h3><?= t('kMAKE_THE_BEST_SCORES_IN_TIME_TRIAL') ?></h3>
 								<div>
-									<?= _("<strong>Finish the race track</strong> as fast as you can!") ?>
+									<?= t("kFINISH_THE_RACE_TRACK_AS_FAST_AS_YOU_CAN") ?>
 									<br />
-									<?= _("<strong>Compare your scores</strong> with the community, and face other players' ghosts!") ?>
+									<?= t("kCOMPARE_YOUR_SCORES_WITH_THE_COMMUNITY") ?>
 								</div>
 							</div>
 						</div>
@@ -144,11 +144,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo7.png" alt="Slide 7">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Release your fighter talents!') ?></h3>
+								<h3><?= t('kRELEASE_YOUR_FIGHTER_TALENT') ?></h3>
 								<div>
-									<?= _("<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items!") ?>
+									<?= t("kDESTROY_YOUR_OPPONENTS_BALLOONS") ?>
 									<br />
-									<?= _("The last player standing wins!") ?>
+									<?= t("kTHE_LAST_PLAYER_STANDING_WINS") ?>
 								</div>
 							</div>
 						</div>
@@ -160,11 +160,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo8.png" class="center smooth" alt="Slide 8">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Face off your friends with the local multiplayer mode!') ?></h3>
+								<h3><?= t('kFACE_OFF_YOUR_FRIENDS_WITH_THE_LOCAL_MULTIPLAYER_MODE') ?></h3>
 								<div>
-									<?= _("Prove to your friends that you're the best!")?>
+									<?= t("kPROVE_TO_YOUR_FRIENDS_THAT_YOU_RE_THE_BEST")?>
 									<br />
-									<?= _("Face them in <strong>multiplayer</strong> in VS races or in battle mode.") ?>
+									<?= t("kFACE_THEM_IN_MULTIPLAYER_IN_VS_RACES") ?>
 								</div>
 							</div>
 						</div>
@@ -174,9 +174,9 @@ $placeholderPath = 'images/pages/pixel.png';
 		</div>
 		<h1>Mario Kart PC</h1>
 		<div id="toBegin"><a href="mariokart.php">
-		&#9660;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9660;<br />
+		&#9660;&nbsp;<?= t('kCLICK_ON_THE_GAME_BOX_TO_BEGIN') ?>&nbsp;&#9660;<br />
 		<img src="images/mkpc_box.jpg" alt="<?= _('Start game') ?>" /><br />
-		&#9650;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9650;</a></div>
+		&#9650;&nbsp;<?= t('kCLICK_ON_THE_GAME_BOX_TO_BEGIN') ?>&nbsp;&#9650;</a></div>
 		<h2><img src="images/about.png" alt="" /> <?= _('What\'s Mario Kart PC?') ?></h2>
 		<div>
 			<p>
