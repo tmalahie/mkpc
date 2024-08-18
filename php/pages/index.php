@@ -304,7 +304,7 @@ $placeholderPath = 'images/pages/pixel.png';
 	<section id="right_section">
 		<?php
 		require_once('../includes/utils-date.php');
-		if ($id) {
+		/*if ($id) {
 			$alreadyClosed = mysql_fetch_array(mysql_query('SELECT read_date FROM mkofficialmsgread WHERE player = '.$id.' AND message="lounge_2024"'));
 			if (!$alreadyClosed) {
 				?>
@@ -333,7 +333,7 @@ $placeholderPath = 'images/pages/pixel.png';
 				</div>
 				<?php
 			}
-		}
+		}*/
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
