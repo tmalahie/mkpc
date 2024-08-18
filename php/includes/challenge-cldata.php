@@ -104,7 +104,7 @@ elseif (isset($_GET['page'])) {
 	}
 	if (isset($clTable) && isset($clCid)) {
 		$clCircuit = mysql_fetch_array(mysql_query('SELECT * FROM `'.$clTable.'` WHERE id="'.$clCid.'"'));
-		$clRace = mysql_fetch_array(mysql_query('SELECT * FROM `mkclrace` WHERE type="'. $clTable .'" AND circuit="'. $clCid .'"'));
+		$clRace = mysql_fetch_array(mysql_query('SELECT * FROM `mkclrace` WHERE type="'. $clTable .'" AND circuit="'. $clCid .'"  AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3]));
 		unset($clCid);
 	}
 }
