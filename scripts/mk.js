@@ -3323,6 +3323,11 @@ function startGame() {
 			oPlayer.reserve = 4;
 			oPlayer.place = oPlace;
 		}
+		oPlayer.lastcp = {
+			x: oPlayer.x,
+			y: oPlayer.y,
+			rotation: oPlayer.rotation
+		};
 		oPlayer.initialPlace = oPlayer.place;
 		oPlayers.push(oPlayer);
 		aKarts.push(oPlayer);
@@ -3430,6 +3435,11 @@ function startGame() {
 				oEnemy.speed = oEnemy.maxspeed;
 		}
 		oEnemy.initialPlace = oEnemy.place;
+		oEnemy.lastcp = {
+			x: oEnemy.x,
+			y: oEnemy.y,
+			rotation: oEnemy.rotation
+		};
 
 		aKarts.push(oEnemy);
 	}
@@ -3523,16 +3533,8 @@ function startGame() {
 		this.tourne = nb;
 		resetWrongWay(this);
 	}
-	function fallKart() {
-		return tombe(this.x+this.speed*direction(0,this.rotation),this.y+this.speed*direction(1,this.rotation));
-	}
 	function actualKartSpeed() {
 		return this.speed*sizeSpeedRatio(this)*fSelectedClass;
-	}
-	function exitKart() {
-		var fNewPosX = this.x + this.speed * direction(0, this.rotation);
-		var fNewPosY = this.y + this.speed * direction(1, this.rotation);
-		return ralenti(fNewPosX,fNewPosY);
 	}
 
 	itemDistribution = selectedItemDistrib;
@@ -3749,8 +3751,6 @@ function startGame() {
 		oKart.accelerate = accelerateKart;
 		oKart.turn = turnKart;
 		oKart.spin = spinKart;
-		oKart.falling = fallKart;
-		oKart.exiting = exitKart;
 		oKart.actualSpeed = actualKartSpeed;
 		for (var j=0;j<strPlayer.length;j++) {
 			(function(sprite, driftSprite) {
@@ -12284,8 +12284,8 @@ function tombe(iX, iY, iC) {
 			for (var i=0;i<oRectangles.length;i++) {
 				var oHole = oRectangles[i];
 				if (pointInRectangle(iX,iY, oHole[0])) {
-					if (iC == undefined)
-						return true;
+					if (iC == undefined) return true;
+					if (!oHole[1]) return true;
 					fTrou = [oHole[1][0],oHole[1][1],j];
 					if (j%2 - iC)
 						return fTrou;
@@ -12295,8 +12295,8 @@ function tombe(iX, iY, iC) {
 			for (var i=0;i<oPolygons.length;i++) {
 				var oHole = oPolygons[i];
 				if (pointInPolygon(iX,iY, oHole[0])) {
-					if (iC == undefined)
-						return true;
+					if (iC == undefined) return true;
+					if (!oHole[1]) return true;
 					fTrou = [oHole[1][0],oHole[1][1],j];
 					if (j%2 - iC)
 						return fTrou;
@@ -12307,6 +12307,7 @@ function tombe(iX, iY, iC) {
 	if (fTrou)
 		return fTrou;
 	if (outsideMap) {
+		if (lMap.trous && lMap.trous.cp) return true;
 		var rotation;
 		if (lMap.startposition[2] != undefined)
 			rotation = lMap.startposition[2];
@@ -16892,7 +16893,7 @@ function move(getId, triggered) {
 						}
 					}
 					else
-						fTombe = oMap.startposition[0];
+						fTombe = [oKart.lastcp.x,oKart.lastcp.y, oKart.lastcp.rotation/90];
 				}
 				else if (isNaN(fTombe[0]))
 					fTombe = oMap.startposition[(oKart.initialPlace-1)%oMap.startposition.length];
@@ -17342,6 +17343,13 @@ function move(getId, triggered) {
 		else if (oKart.demitours !== prevCP) {
 			collisionLap = handleCpChange(oKart.tours,prevCP, getId);
 			lMap = getCurrentLMap(collisionLap);
+		}
+		if ((oKart.demitours !== prevCP) && !tombe(oKart.x,oKart.y)) {
+			oKart.lastcp = {
+				x: oKart.x,
+				y: oKart.y,
+				rotation: oKart.rotation
+			};
 		}
 	}
 	else {

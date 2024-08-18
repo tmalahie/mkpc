@@ -142,6 +142,9 @@ if (isset($_GET['i'])) {
 						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
 						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 					</div>
+					<label id="respawn-type-container">
+						<input type="hidden" name="respawn-type" id="respawn-type" value="manual" />
+					</label>
 				</div>
 				<div id="mode-option-boosts">
 					<?php echo $language ? 'Type:':'Type :'; ?>

@@ -193,6 +193,18 @@ if (isset($_GET['i'])) {
 						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
 						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 					</div>
+					<label id="respawn-type-container">
+						<?php echo $language ? 'Respawn at<a href="javascript:showHelp()">[?]</a>:':'Réapparaitre à<a href="javascript:showHelp()">[?]</a>:'; ?>
+						<select name="respawn-type" id="respawn-type" onchange="respawnTypeChange(this.value)">
+							<option value="cp"><?php echo $language ? 'Last checkpoint' : 'Dernier checkpoint'; ?></option>
+							<option value="manual"><?php echo $language ? 'Defined position' : 'Position définie'; ?></option>
+						</select>
+					</label>
+					<div id="checkpoint-respawn-reset">
+						<?php echo $language ? 'Reset already defined respawn positions?':'Réinitialiser les position définies précédemment ?'; ?><br />
+						<a class="action-yes" href="javascript:resetAllRewpawns()"><?php echo $language ? 'Yes':'Oui'; ?></a> -
+						<a class="action-no" href="javascript:dismissResetRespawn()"><?php echo $language ? 'No':'Non'; ?></a>
+					</div>
 				</div>
 				<div id="mode-option-checkpoints">
 					<div class="mode-option-unoverridable">
@@ -804,26 +816,22 @@ if (isset($_GET['i'])) {
 					'holes' => array(
 						'title' => $language ? 'Holes':'Trous',
 						'text' => ($language ?
-							"Holes are the areas where the karts that move over it fall and are replaced: void, lava, water...
-							To define a hole, you thus need to specify 2 information: hole area, and respawn position.
+							"Holes are the areas where the karts can fall: void, lava, water...
+							A hole is thus mainly defined by its area of influence. Like for <a href=\"javascript:selectHelpTab('walls')\">walls</a>, you can define it with a rectangle or by a polygon.<br />
 							<ul>
-								<li>Hole area: as for <a href=\"javascript:selectHelpTab('walls')\">walls</a>, you can define the area by a rectangle or by a polygon.</li>
-								<li>Respawn position: click where you want the kart to land.
-								An arrow appears: it indicates the direction of respawn.
-								Click on the point at the end of the arrow to change that direction.
-								Note that a right click on that same point let you move the arrow.</li>
+								<li>By default, when a player falls in the hole, he will respawn at the position of the last <a href=\"javascript:selectHelpTab('checkpoints')\">checkpoint</a> he went to.</li>
+								<li>You can change this behavior by selecting &quot;Defined position&quot; under &quot;Respawn at&quot;.<br />
+								In this case, after defining the hole area, click where you want the kart to land. An arrow appears: it indicates the direction of respawn.
+								Click on the point at the end of the arrow to change that direction. Note that a right click on that same point let you move the arrow.</li>
 							</ul>"
 							:
-							"Les trous sont les zones où les karts qui roulent dessus tombent et sont replacés : vide, lave, eau...
-							Pour définir un trou, vous avez donc besoin de renseigner 2 informations : la zone du trou, et la position de replacement.
+							"Les trous sont les zones où les karts peuvent tomber : vide, lave, eau...
+							Un trou est donc principalement défini par sa zone d'influence. Comme pour les <a href=\"javascript:selectHelpTab('walls')\">murs</a>, vous pouvez la définir avec un rectangle ou un polygone.<br />
 							<ul>
-								<li>Zone du trou : comme pour les <a href=\"javascript:selectHelpTab('walls')\">murs</a>,
-								vous pouvez définir la zone par un rectangle ou par un polygone.</li>
-								<li>Position de replacement : Cliquez là où vous voulez que le kart réapparaisse.
-								Une flèche apparait alors : il indique la direction de replacement.
-								Cliquez sur le point à l'extrémité de la flèche pour changer cette direction.
-								Notez qu'un clic droit sur ce même point permet de déplacer la flèche.
-								</li>
+								<li>Par défaut, lorsqu'un joueur tombe dans un trou, il réapparaitra au dernier <a href=\"javascript:selectHelpTab('checkpoints')\">checkpoint</a> qu'il a passé.</li>
+								<li>Vous pouvez changer ce comportement en sélectionnant &quot;Position définie&quot; sous &quot;Réapparaitre à&quot;.<br />
+								Dans ce cas, après avoir défini la zone du trou, cliquez là où vous voulez que le kart réapparaisse. Une flèche apparait alors : il indique la direction de replacement.
+								Cliquez sur le point à l'extrémité de la flèche pour changer cette direction. Notez qu'un clic droit sur ce même point permet de déplacer la flèche.</li>
 							</ul>"
 						)
 					),
@@ -1308,6 +1316,10 @@ else {
 					<img id="editor-track-img" src="images/maps/map1.png" alt="Circuit" />
 				</div>
 			</div>
+			<script type="text/javascript">
+				if (!localStorage.getItem("editor.respawnType"))
+					localStorage.setItem("editor.respawnType", "manual");
+			</script>
 			<?php
 		}
 		?>

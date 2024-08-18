@@ -1350,6 +1350,37 @@ embed,#ytplayer {
 	color: red;
 	font-weight: bold;
 }
+#respawn-type-container {
+	display: block;
+	border-top: solid 1px #678db4;
+	margin-top: 0.3em;
+	padding-top: 0.3em;
+	font-size: 0.8em;
+	line-height: 1.2em;
+}
+#respawn-type-container a {
+	font-size: 0.8em;
+	position: relative;
+	top: -0.5em;
+}
+#respawn-type-container select {
+	font-size: 0.8em;
+}
+#checkpoint-respawn-reset {
+	display: none;
+	margin-top: 0.3em;
+	font-size: 0.7em;
+	background-color: #BCF;
+	background-color: rgba(230,255,255, 0.85);
+	color: #058;
+	padding: 0.2em;
+}
+#checkpoint-respawn-reset .action-yes {
+	color: #084;
+}
+#checkpoint-respawn-reset .action-no {
+	color: #D35;
+}
 #section-checkpoints {
 	margin-top: 10px;
 }

@@ -68,6 +68,8 @@ document.addEventListener("DOMContentLoaded", function() {
 	for (var key in editorTools)
 		initEditorTool(key, selectedLapOverride, { isSet: true });
 	restoreData(circuitData);
+	if (!editorTools.holes.data.length && localStorage.getItem("editor.respawnType") === "manual")
+		document.getElementById(editorTools.holes._respawn_selector_id).value = "manual";
 	//document.getElementById('mode').value = "options";
 	selectMode(document.getElementById('mode').value);
 	//document.getElementById("decor-selector").setValue("truck");
@@ -903,7 +905,8 @@ function moveCircularArrow(arrow,center,dir,options) {
 	mask.close = function(){};
 	$toolbox.classList.add("hiddenbox");
 }
-function moveArrowNode(arrow,data) {
+function moveArrowNode(arrow,data, options) {
+	options = options||{};
 	var mask = createMask();
 	var nData = data;
 	function moveArr(e) {
@@ -916,6 +919,8 @@ function moveArrowNode(arrow,data) {
 		moveArr(e);
 		storeHistoryData(editorTools[currentMode].data);
 		applyObject(data,nData);
+		if (options.on_apply)
+			options.on_apply(nData);
 		mask.removeEventListener("mousemove", moveArr);
 		mask.removeEventListener("mouseup", stopMoveArr);
 		mask.defaultClose();
@@ -1050,6 +1055,46 @@ function offroadChange(value) {
 		selectMode(currentMode);
 	else
 		showOffroadTransfer();
+}
+var resetRespawnDismissed;
+function respawnTypeChange(value) {
+	var editorTool = editorTools.holes;
+	editorTool.state.respawnType = value;
+	var data = editorTool.data;
+	if (!circuitData || !data.length)
+		localStorage.setItem("editor.respawnType", value);
+	if (value === 'cp') {
+		if (resetRespawnDismissed) return;
+		resetRespawnDismissed = false;
+		for (var i=0;i<data.length;i++) {
+			if (data[i].respawn) {
+				document.getElementById("checkpoint-respawn-reset").style.display = "block";
+				return;
+			}
+		}
+	}
+	else {
+		if (resetRespawnDismissed === undefined)
+			resetRespawnDismissed = true;
+		document.getElementById("checkpoint-respawn-reset").style.display = "";
+	}
+}
+function resetAllRewpawns() {
+	if (!confirm(language ? "Reset all respawn points?" : "Réinitialiser tous les points de respawn ?"))
+		return;
+	var editorTool = editorTools.holes;
+	var data = editorTool.data;
+	storeHistoryData(data);
+	var cHistoryData = historyData.slice(0);
+	for (var i=0;i<data.length;i++)
+		data[i].respawn = null;
+	selectMode(currentMode);
+	historyData = cHistoryData;
+	resetRespawnDismissed = true;
+}
+function dismissResetRespawn() {
+	resetRespawnDismissed = true;
+	document.getElementById("checkpoint-respawn-reset").style.display = "";
 }
 function themeChange(e) {
 	if (e.value == "dark")
@@ -4665,6 +4710,74 @@ var commonTools = {
 	},
 	"holes": {
 		"_shape_selector_id": "holes-shape",
+		"_respawn_selector_id": "respawn-type",
+		"_deleteItem": function(self, shape,respawnNode, data) {
+			$editor.removeChild(shape);
+			if (respawnNode) {
+				$editor.removeChild(respawnNode.origin);
+				var lines = respawnNode.lines;
+				for (var i=0;i<lines.length;i++)
+					$editor.removeChild(lines[i]);
+			}
+			self.state.respawnNode = null;
+			storeHistoryData(self.data);
+			removeFromArray(self.data,data);
+		},
+		"_defineRespawn": function(self, data) {
+			var respawnNode = createArrowNode({x:-10,y:-10},self.state.orientation);
+			var respawn = {x:-10,y:-10};
+			moveArrowNode(respawnNode,respawn, {
+				on_apply: function() {
+					data.respawn = respawn;
+				}
+			});
+			return respawnNode;
+		},
+		"_initRespawn": function(self, shape,respawnNode, data) {
+			var lastRotateTime = 0;
+			respawnNode.origin.classList.add("hover-toggle");
+			respawnNode.origin.onclick = function(e) {
+				if (e) e.stopPropagation();
+				var nRotateTime = new Date().getTime();
+				if (nRotateTime > lastRotateTime+2500)
+					storeHistoryData(self.data);
+				lastRotateTime = nRotateTime;
+				data.orientation = Math.round(data.orientation+1)%4;
+				self.state.orientation = data.orientation;
+				respawnNode.rotate(data.orientation);
+			};
+			respawnNode.origin.oncontextmenu = function(e) {
+				return showContextOnElt(e,shape, [{
+					text: (language ? "Rotate 90°":"Rotation 90°"),
+					click: function() {
+						respawnNode.origin.onclick();
+					}
+				}, {
+					text: (language ? "Rotate custom...":"Rotation libre..."),
+					click: function() {
+						rotateArrowNode(respawnNode,data,data.respawn);
+					}
+				}, {
+					text: (language ? "Move":"Déplacer"),
+					click: function() {
+						moveArrowNode(respawnNode,data.respawn);
+					}
+				}, {
+					text:(language ? "Delete":"Supprimer"),
+					click:function() {
+						self._resetRespawn(self, respawnNode, data);
+					}
+				}]);
+			};
+		},
+		"_resetRespawn": function(self, respawnNode, data) {
+			$editor.removeChild(respawnNode.origin);
+			var lines = respawnNode.lines;
+			for (var i=0;i<lines.length;i++)
+				$editor.removeChild(lines[i]);
+			storeHistoryData(self.data);
+			data.respawn = null;
+		},
 		"resume" : function(self) {
 			self.state.point = createRectangle({x:-1,y:-1});
 			self.state.orientation = 2;
@@ -4674,6 +4787,10 @@ var commonTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.state.shape = iData.type;
+				if ((i < data.length - 1) || iData.respawn)
+					self.state.respawnType = iData.respawn ? 'manual' : 'cp';
+				else
+					self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
 				if (undefined !== iData.orientation)
 					self.state.orientation = iData.orientation;
 				var extra = getExtraForResume(iData);
@@ -4693,6 +4810,11 @@ var commonTools = {
 			}
 			replaceNodeType(self);
 			document.getElementById(self._shape_selector_id).setValue(self.state.shape);
+			if (self.state.respawnType)
+				document.getElementById(self._respawn_selector_id).value = self.state.respawnType;
+			else
+				self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
+			document.getElementById("checkpoint-respawn-reset").style.display = "";
 		},
 		"click" : function(self,point,extra) {
 			var respawnNode = self.state.respawnNode;
@@ -4703,101 +4825,10 @@ var commonTools = {
 				var data = self.data[self.data.length-1];
 				data.respawn = point;
 				respawnNode.move(point);
-				var lastRotateTime = 0;
-				respawnNode.origin.classList.add("hover-toggle");
-				respawnNode.origin.onclick = function(e) {
-					if (e) e.stopPropagation();
-					var nRotateTime = new Date().getTime();
-					if (nRotateTime > lastRotateTime+2500)
-						storeHistoryData(self.data);
-					lastRotateTime = nRotateTime;
-					data.orientation = Math.round(data.orientation+1)%4;
-					self.state.orientation = data.orientation;
-					respawnNode.rotate(data.orientation);
-				};
 				var shape = self.state.currentshape;
 				delete self.state.currentshape;
-				function deleteItem() {
-					$editor.removeChild(shape);
-					$editor.removeChild(respawnNode.origin);
-					var lines = respawnNode.lines;
-					for (var i=0;i<lines.length;i++)
-						$editor.removeChild(lines[i]);
-					storeHistoryData(self.data);
-					removeFromArray(self.data,data);
-				}
-				respawnNode.origin.oncontextmenu = function(e) {
-					return showContextOnElt(e,shape, [{
-						text: (language ? "Rotate 90°":"Rotation 90°"),
-						click: function() {
-							respawnNode.origin.onclick();
-						}
-					}, {
-						text: (language ? "Rotate custom...":"Rotation libre..."),
-						click: function() {
-							rotateArrowNode(respawnNode,data,data.respawn);
-						}
-					}, {
-						text: (language ? "Move":"Déplacer"),
-						click: function() {
-							moveArrowNode(respawnNode,data.respawn);
-						}
-					}, {
-						text:(language ? "Delete":"Supprimer"),
-						click:function() {
-							deleteItem();
-						}
-					}]);
-				};
+				self._initRespawn(self, shape,respawnNode, data);
 				handlePaste(shape,data,extra);
-				switch (data.type) {
-				case "rectangle":
-					addContextMenuEvent(shape,[{
-						text: (language ? "Resize":"Redimensionner"),
-						click: function() {
-							resizeRectangle(shape,data);
-						}
-					}, {
-						text: (language ? "Move":"Déplacer"),
-						click: function() {
-							moveRectangle(shape,data);
-						}
-					}, {
-						text: (language ? "Copy":"Copier"),
-						click: function() {
-							copyShape(data);
-						}
-					}, {
-						text:(language ? "Delete":"Supprimer"),
-						click:function() {
-							deleteItem();
-						}
-					}]);
-					break;
-				case "polygon":
-					addContextMenuEvent(shape, [{
-						text: (language ? "Edit":"Modifier"),
-						click: function() {
-							editPolygon(shape,data);
-						}
-					}, {
-						text: (language ? "Move":"Déplacer"),
-						click: function() {
-							movePolygon(shape,data);
-						}
-					}, {
-						text: (language ? "Copy":"Copier"),
-						click: function() {
-							copyShape(data);
-						}
-					}, {
-						text:(language ? "Delete":"Supprimer"),
-						click:function() {
-							deleteItem();
-						}
-					}]);
-					break;
-				}
 				delete self.state.respawnNode;
 			}
 			else {
@@ -4813,7 +4844,45 @@ var commonTools = {
 									self.state.currentshape = rectangle;
 									data.orientation = self.state.orientation;
 									self.data.push(data);
-									self.state.respawnNode = createArrowNode({x:-10,y:-10},self.state.orientation);
+									if (self.state.respawnType !== 'cp')
+										self.state.respawnNode = createArrowNode({x:-10,y:-10},self.state.orientation);
+									var respawnNode = self.state.respawnNode;
+									rectangle.oncontextmenu = function(e) {
+										if (respawnNode && self.state.currentshape === rectangle) return;
+										return showContextOnElt(e,rectangle, [{
+											text: (language ? "Resize":"Redimensionner"),
+											click: function() {
+												resizeRectangle(rectangle,data);
+											}
+										}, {
+											text: (language ? "Move":"Déplacer"),
+											click: function() {
+												moveRectangle(rectangle,data);
+											}
+										}, {
+											text: (language ? "Copy":"Copier"),
+											click: function() {
+												copyShape(data);
+											}
+										}, data.respawn ? {
+											text: (language ? "Remove ↗":"Supprimer ↗"),
+											click: function() {
+												self._resetRespawn(self, respawnNode, data);
+												respawnNode = null;
+											}
+										} : {
+											text: (language ? "Respawn...":"Respawn..."),
+											click: function() {
+												respawnNode = self._defineRespawn(self, data);
+												self._initRespawn(self, rectangle,respawnNode, data);
+											}
+										}, {
+											text:(language ? "Delete":"Supprimer"),
+											click:function() {
+												self._deleteItem(self, rectangle,respawnNode, data);
+											}
+										}]);
+									};
 								}
 							});
 						}
@@ -4831,7 +4900,45 @@ var commonTools = {
 									data.orientation = self.state.orientation;
 									self.data.push(data);
 									polygon.setAttribute("stroke-width", 1);
-									self.state.respawnNode = createArrowNode(deepCopy(point),self.state.orientation);
+									if (self.state.respawnType !== 'cp')
+										self.state.respawnNode = createArrowNode(deepCopy(point),self.state.orientation);
+									var respawnNode = self.state.respawnNode;
+									polygon.oncontextmenu = function(e) {
+										if (respawnNode && self.state.currentshape === polygon) return;
+										return showContextOnElt(e,polygon, [{
+											text: (language ? "Edit":"Modifier"),
+											click: function() {
+												editPolygon(polygon,data);
+											}
+										}, {
+											text: (language ? "Move":"Déplacer"),
+											click: function() {
+												movePolygon(polygon,data);
+											}
+										}, {
+											text: (language ? "Copy":"Copier"),
+											click: function() {
+												copyShape(data);
+											}
+										}, respawnNode ? {
+											text: (language ? "Remove ↗":"Supprimer ↗"),
+											click: function() {
+												self._resetRespawn(self, respawnNode, data);
+												respawnNode = null;
+											}
+										} : {
+											text: (language ? "Respawn...":"Respawn..."),
+											click: function() {
+												respawnNode = self._defineRespawn(self, data);
+												self._initRespawn(self, polygon,respawnNode, data);
+											}
+										}, {
+											text:(language ? "Delete":"Supprimer"),
+											click:function() {
+												self._deleteItem(self, polygon,respawnNode, data);
+											}
+										}]);
+									};
 								}
 							});
 						}
@@ -4866,8 +4973,8 @@ var commonTools = {
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				var shape = shapeToData(iData);
-				var respawn = nullablePointToData(iData.respawn);
-				var orientation = iData.orientation||0;
+				var respawn = iData.respawn ? pointToData(iData.respawn) : null;
+				var orientation = respawn ? (iData.orientation||0) : "cp";
 				if (!payload.trous[orientation]) {
 					if (Array.isArray(payload.trous)) {
 						var nTrous = {};
@@ -4879,21 +4986,18 @@ var commonTools = {
 					}
 					payload.trous[orientation] = [];
 				}
-				payload.trous[iData.orientation||0].push([shape,respawn]);
+				payload.trous[orientation].push(respawn ? [shape,respawn] : [shape]);
 			}
 		},
 		"restore" : function(self,payload) {
-			for (var k=0;k<2;k++) {
-				for (var j in payload.trous) {
-					for (var i=0;i<payload.trous[j].length;i++) {
-						var iPayload = payload.trous[j][i];
-						var iData = dataToShape(iPayload[0]);
-						iData.respawn = dataToNullablePoint(iPayload[1]);
-						if (iData.respawn)
-							iData.orientation = +j;
-						if (k == !iData.respawn)
-							self.data.push(iData);
-					}
+			for (var j in payload.trous) {
+				for (var i=0;i<payload.trous[j].length;i++) {
+					var iPayload = payload.trous[j][i];
+					var iData = dataToShape(iPayload[0]);
+					iData.respawn = iPayload[1] ? dataToNullablePoint(iPayload[1]) : undefined;
+					if (iData.respawn)
+						iData.orientation = +j;
+					self.data.push(iData);
 				}
 			}
 		},
