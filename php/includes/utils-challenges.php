@@ -581,9 +581,9 @@ $clRulesByType = array(
 			'course' => array('vs','battle')
 		),
 		'position_lower' => array(
-			'description_mockup' => $language ? 'in n-th place or less':'en n-eme position ou moins',
+			'description_mockup' => $language ? 'in n-th place or better':'en n-eme position ou moins',
 			'description_lambda' => function($language,&$scope) {
-				return $language ? 'in '. getPositionName($scope->value) .' place or less' : 'en '. getPositionName($scope->value) .' position ou moins';
+				return $language ? 'in '. getPositionName($scope->value) .' place or better' : 'en '. getPositionName($scope->value) .' position ou moins';
 			},
 			'parser' => function(&$scope) {
 				$scope['value'] = intval($scope['value']);

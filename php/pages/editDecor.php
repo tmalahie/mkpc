@@ -85,7 +85,7 @@ if (isset($_GET['id'])) {
                 foreach ($extraSprites as $extraSprite) {
                     $i++;
                     echo '<div class="decor-extra">';
-                    echo 'Décor #'. $i .'&nbsp;:';
+                    echo ($language ? 'Decor':'Décor') .' #'. $i .'&nbsp;:';
                     if ($extraDecor = mysql_fetch_array(mysql_query('SELECT * FROM `mkdecors` WHERE extra_parent_id="'. $decorId .'"'))) {
                         $decorSrcs = get_decor_srcs($extraDecor);
                         $spriteSizes = get_decor_sizes($extraDecor);

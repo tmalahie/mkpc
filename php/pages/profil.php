@@ -624,7 +624,7 @@ include('../includes/menu.php');
 			}
 			if (!empty($lastMessages)) {
 				?>
-				<h2><?php echo $language ? 'Last messages on the forum':'Derniers messages sur le forum'; ?>&nbsp;:</h2>
+				<h2><?php echo $language ? 'Last messages on the forum:':'Derniers messages sur le forum&nbsp;:'; ?></h2>
 				<?php
 				require_once('../includes/reactions.php');
 				printReactionUI();
@@ -653,7 +653,7 @@ include('../includes/menu.php');
 			if (!empty($bestCircuits)) {
 				$bestCircuits = array_slice($bestCircuits, 0,$nbDisplayedCircuits);
 				?>
-				<h2><?php echo $language ? 'Best created circuits':'Meilleurs circuits créés'; ?>&nbsp;:</h2>
+				<h2><?php echo $language ? 'Best created circuits:':'Meilleurs circuits créés&nbsp;:'; ?></h2>
 				<?php
 				echo '<table class="profile-circuits">';
 				echo '<tr>';
@@ -795,7 +795,7 @@ include('../includes/menu.php');
 				if (mysql_numrows($getChallenges)) {
 					?>
 					<hr />
-					<h2><?php echo $language ? 'Best created challenges':'Meilleurs défis créés'; ?>&nbsp;:</h2>
+					<h2><?php echo $language ? 'Best created challenges:':'Meilleurs défis créés&nbsp;:'; ?></h2>
 					<div class="challenges-list">
 					<?php
 					require_once('../includes/utils-challenges.php');
@@ -810,7 +810,7 @@ include('../includes/menu.php');
 			if ($nbComments) {
 				echo '<hr />';
 				?>
-				<h2><?php echo $language ? 'Last circuit comments':'Derniers commentaires sur les circuits'; ?>&nbsp;:</h2>
+				<h2><?php echo $language ? 'Last circuit comments:':'Derniers commentaires sur les circuits&nbsp;:'; ?></h2>
 				<div class="circuit-comments">
 				<?php
 				require_once('../includes/utils-date.php');
@@ -854,7 +854,7 @@ include('../includes/menu.php');
 				if (mysql_numrows($getChallenges)) {
 					?>
 					<hr />
-					<h2><?php echo $language ? 'Last completed challenges':'Derniers défis réussis'; ?>&nbsp;:</h2>
+					<h2><?php echo $language ? 'Last completed challenges:':'Derniers défis réussis&nbsp;:'; ?></h2>
 					<div class="challenges-list">
 					<?php
 					require_once('../includes/utils-challenges.php');
@@ -878,7 +878,7 @@ include('../includes/menu.php');
 					return "images/sprites/sprite_" . $playerName . ".png";
 				}
 				?>
-				<h2><?php echo $language ? 'Best scores in time trial':'Meilleurs temps en contre-la-montre'; ?>&nbsp;:</h2>
+				<h2><?php echo $language ? 'Best scores in time trial:':'Meilleurs temps en contre-la-montre&nbsp;:'; ?></h2>
 				<table class="clm-records">
 					<tr>
 						<td><?php echo $language ? 'Rank':'Place'; ?></td>
@@ -925,7 +925,7 @@ include('../includes/menu.php');
 			$topics = mysql_query('SELECT id,titre,dernier,nbmsgs FROM `mkfollowers` INNER JOIN `mktopics` ON topic=id WHERE user="'. $profileId .'" AND NOT EXISTS(SELECT * FROM mkmessages WHERE id=1 AND mkfollowers.topic=mkmessages.topic AND user=auteur)'. (hasRight('manager') ? '':' AND !private') .' ORDER BY dernier DESC LIMIT 6');
 			if (mysql_numrows($topics)) {
 				?>
-				<h2><?php echo $language ? 'Last followed topics':'Derniers topics suivis'; ?>&nbsp;:</h2>
+				<h2><?php echo $language ? 'Last followed topics:':'Derniers topics suivis&nbsp;:'; ?></h2>
 				<div class="following-topics">
 				<?php
 				while ($topic = mysql_fetch_array($topics)) {
@@ -962,7 +962,7 @@ include('../includes/menu.php');
 			if (mysql_numrows($getNews)) {
 				?>
 				<hr />
-				<h2><?php echo $language ? 'Last published news':'Dernières news publiées'; ?>&nbsp;:</h2>
+				<h2><?php echo $language ? 'Last published news:':'Dernières news publiées&nbsp;:'; ?></h2>
 				<div class="published-news">
 				<?php
 				while ($news = mysql_fetch_array($getNews)) {

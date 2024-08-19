@@ -432,8 +432,8 @@ include('../includes/menu.php');
 	<p><?php
 	if (!$pids) {
 		echo $language ?
-		'Welcome to the list of circuits and courses shared by the Mario Kart PC community !<br />
-		You too can share your circuit creations by clicking on &quot;Share circuit&quot; at the bottom-left of the circuit page.' :
+		'Welcome to the list of circuits and courses shared by the Mario Kart PC community!<br />
+		You can share your own circuit creations by clicking on the &quot;Share circuit&quot; button at the bottom-left of the circuit page.' :
 		'Bienvenue dans la liste des circuits et arènes partagés par la communauté de Mario Kart PC !<br />
 		Vous aussi, partagez les circuits que vous créez en cliquant sur &quot;Partager le circuit&quot; en bas à gauche de la page du circuit.';
 	}

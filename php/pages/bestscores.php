@@ -33,7 +33,7 @@ else
 	$myPseudo = null;
 ?>
 <main>
-	<h1><?php echo $language ? 'Leaderboard Mario Kart PC':'Classement Mario Kart PC'; ?></h1>
+	<h1><?php echo $language ? 'Mario Kart PC Leaderboard':'Classement Mario Kart PC'; ?></h1>
 	<div class="ranking-modes">
 		<?php
 		if ($isBattle) {
