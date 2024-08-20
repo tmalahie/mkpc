@@ -11823,6 +11823,7 @@ function getHoleSegmentDist(currentRes, x,y, x1,y1, u1,v1) {
 }
 
 function objet(iX, iY) {
+	// Check if player hits an item box
 	var lMap = getCurrentLMap(collisionLap);
 	var res = -1, nbItems = 0;
 	for (var i=0;i<lMap.arme.length;i++) {
