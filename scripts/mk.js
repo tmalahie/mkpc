@@ -1503,6 +1503,7 @@ function resetPlan(lMap) {
 	oPlanBananes.length = 0;
 	oPlanBobOmbs.length = 0;
 	oPlanChampis.length = 0;
+	oPlanEtoilesDrop.length = 0;
 
 	oPlanCarapaces.length = 0;
 	oPlanCarapacesRouges.length = 0;
@@ -1523,6 +1524,7 @@ function resetPlan(lMap) {
 	oPlanBobOmbs2.length = 0;
 	oPlanPoisons2.length = 0;
 	oPlanChampis2.length = 0;
+	oPlanEtoilesDrop2.length = 0;
 
 	oPlanCarapaces2.length = 0;
 	oPlanCarapacesRouges2.length = 0;
@@ -2342,6 +2344,29 @@ function addNewItem(kart,item) {
 	}
 }
 
+function setStarState(oKart, duration) {
+	for (var i=0;i<strPlayer.length;i++)
+		oKart.sprite[i].img.src = getStarSrc(oKart.personnage);
+	if (!oKart.cpu && !oKart.etoile) {
+		if (!isOnline) {
+			oKart.sprite[0].img.onload = function() {
+				bCounting = false;
+				this.onload = undefined;
+				reprendre(false);
+			}
+			interruptGame();
+			bCounting = true;
+		}
+		if (shouldPlaySound(oKart) && !oPlayers[1])
+			postStartMusic("musics/events/starman.mp3");
+	}
+	if (oKart.speedinc > 0)
+		oKart.speedinc *= 5;
+	delete oKart.shift;
+	oKart.protect = true;
+	oKart.etoile = duration;
+}
+
 var CHAMPI_TYPE_ITEM = 1, CHAMPI_TYPE_BOOST = 2;
 function arme(ID, backwards, forwards) {
 	var oKart = aKarts[ID];
@@ -2379,25 +2404,7 @@ function arme(ID, backwards, forwards) {
 
 			case "etoile" :
 			tpsUse = 80;
-			for (var i=0;i<strPlayer.length;i++)
-				oKart.sprite[i].img.src = getStarSrc(oKart.personnage);
-			if (!oKart.cpu && !oKart.etoile) {
-				if (!isOnline) {
-					oKart.sprite[0].img.onload = function() {
-						bCounting = false;
-						this.onload = undefined;
-						reprendre(false);
-					}
-					interruptGame();
-					bCounting = true;
-				}
-				if (shouldPlaySound(oKart) && !oPlayers[1])
-					postStartMusic("musics/events/starman.mp3");
-			}
-			if (oKart.speedinc > 0)
-				oKart.speedinc *= 5;
-			delete oKart.shift;
-			oKart.protect = true;
+			setStarState(oKart, tpsUse);
 			break;
 
 			case "billball" :
@@ -14568,10 +14575,11 @@ function touche_champi(iX, iY) {
 	}
 	return false;
 }
+
 function touche_etoile(iX, iY) {
 	for (var i=0;i<items["etoile"].length;i++) {
 		var oBox = items["etoile"][i];
-		if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+		if (iX > oBox.x - 4 && iX < oBox.x + 4 && iY > oBox.y - 4 && iY < oBox.y + 4) {
 			detruit(oBox);
 			return true;
 		}
@@ -16068,27 +16076,8 @@ function move(getId, triggered) {
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
 			}
-			else if ((touche_etoile(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && touche_etoile(fMidPosX, fMidPosY))) && !oKart.tourne) {
-				for (var i=0;i<strPlayer.length;i++)
-					oKart.sprite[i].img.src = getStarSrc(oKart.personnage);
-				if (!oKart.cpu && !oKart.etoile) {
-					if (!isOnline) {
-						oKart.sprite[0].img.onload = function() {
-							bCounting = false;
-							this.onload = undefined;
-							reprendre(false);
-						}
-						interruptGame();
-						bCounting = true;
-					}
-					if (shouldPlaySound(oKart) && !oPlayers[1])
-						postStartMusic("musics/events/starman.mp3");
-				}
-				if (oKart.speedinc > 0)
-					oKart.speedinc *= 5;
-				delete oKart.shift;
-				oKart.protect = true;
-				oKart.etoile = 80;
+			else if ((touche_etoile(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && touche_etoile(fMidPosX, fMidPosY))) && !oKart.tourne && !oKart.billball) {
+				setStarState(oKart, 80);
 			}
 			else if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
