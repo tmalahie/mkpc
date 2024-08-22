@@ -859,11 +859,11 @@ var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oEx
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2, oExpBWidth2;
 var oCharRatio, oPlanRatio;
 var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {}, oPlanSea,
-	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(),
+	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(), oPlanEtoilesDrop = new Array(),
 	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(), oPlanCarapacesNoires = new Array(),
 	oPlanEtoiles = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
 var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {}, oPlanSea2,
-	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(),
+	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(), oPlanEtoilesDrop2 = new Array(),
 	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(), oPlanCarapacesNoires2 = new Array(),
 	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
 var customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
@@ -1163,6 +1163,14 @@ function setPlanPos(frameState, lMap) {
 		setObject(oPlanChampis[i],champi.x,champi.y, oObjWidth,oPlanSize, -1,100);
 		setObject(oPlanChampis2[i],champi.x,champi.y, oObjWidth2,oPlanSize2, -1,100);
 		oPlanChampis[i].style.zIndex = oPlanChampis2[i].style.zIndex = 2;
+	}
+	syncObjects(oPlanEtoilesDrop,frameItems["etoile"],"etoile", oObjWidth,oPlanCtn);
+	syncObjects(oPlanEtoilesDrop2,frameItems["etoile"],"etoile", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["etoile"].length;i++) {
+		var etoile = frameItems["etoile"][i];
+		setObject(oPlanEtoilesDrop[i],etoile.x,etoile.y, oObjWidth,oPlanSize, -1,100);
+		setObject(oPlanEtoilesDrop2[i],etoile.x,etoile.y, oObjWidth2,oPlanSize2, -1,100);
+		oPlanEtoilesDrop[i].style.zIndex = oPlanEtoilesDrop2[i].style.zIndex = 2;
 	}
 
 	function getExplosionSrc(src,team,defaultTeam) {
@@ -1495,6 +1503,7 @@ function resetPlan(lMap) {
 	oPlanBananes.length = 0;
 	oPlanBobOmbs.length = 0;
 	oPlanChampis.length = 0;
+	oPlanEtoilesDrop.length = 0;
 
 	oPlanCarapaces.length = 0;
 	oPlanCarapacesRouges.length = 0;
@@ -1515,6 +1524,7 @@ function resetPlan(lMap) {
 	oPlanBobOmbs2.length = 0;
 	oPlanPoisons2.length = 0;
 	oPlanChampis2.length = 0;
+	oPlanEtoilesDrop2.length = 0;
 
 	oPlanCarapaces2.length = 0;
 	oPlanCarapacesRouges2.length = 0;
@@ -2271,6 +2281,7 @@ function addNewItem(kart,item) {
 		var hallowSize;
 		switch (collection) {
 		case "champi":
+		case "etoile":
 			break;
 		case "banane":
 			hallowSize = 50;
@@ -2333,6 +2344,29 @@ function addNewItem(kart,item) {
 	}
 }
 
+function setStarState(oKart, duration) {
+	for (var i=0;i<strPlayer.length;i++)
+		oKart.sprite[i].img.src = getStarSrc(oKart.personnage);
+	if (!oKart.cpu && !oKart.etoile) {
+		if (!isOnline) {
+			oKart.sprite[0].img.onload = function() {
+				bCounting = false;
+				this.onload = undefined;
+				reprendre(false);
+			}
+			interruptGame();
+			bCounting = true;
+		}
+		if (shouldPlaySound(oKart) && !oPlayers[1])
+			postStartMusic("musics/events/starman.mp3");
+	}
+	if (oKart.speedinc > 0)
+		oKart.speedinc *= 5;
+	delete oKart.shift;
+	oKart.protect = true;
+	oKart.etoile = duration;
+}
+
 var CHAMPI_TYPE_ITEM = 1, CHAMPI_TYPE_BOOST = 2;
 function arme(ID, backwards, forwards) {
 	var oKart = aKarts[ID];
@@ -2370,25 +2404,7 @@ function arme(ID, backwards, forwards) {
 
 			case "etoile" :
 			tpsUse = 80;
-			for (var i=0;i<strPlayer.length;i++)
-				oKart.sprite[i].img.src = getStarSrc(oKart.personnage);
-			if (!oKart.cpu && !oKart.etoile) {
-				if (!isOnline) {
-					oKart.sprite[0].img.onload = function() {
-						bCounting = false;
-						this.onload = undefined;
-						reprendre(false);
-					}
-					interruptGame();
-					bCounting = true;
-				}
-				if (shouldPlaySound(oKart) && !oPlayers[1])
-					postStartMusic("musics/events/starman.mp3");
-			}
-			if (oKart.speedinc > 0)
-				oKart.speedinc *= 5;
-			delete oKart.shift;
-			oKart.protect = true;
+			setStarState(oKart, tpsUse);
 			break;
 
 			case "billball" :
@@ -6986,6 +7002,11 @@ var itemBehaviors = {
 		sync: [floatType("x"),floatType("y"),floatType("z")],
 		fadedelay: 100
 	},
+	"etoile": {
+		size: 0.54,
+		sync: [floatType("x"),floatType("y"),floatType("z")],
+		fadedelay: 100
+	},
 	"eclair": {
 		size: 1,
 		sync: [intType("owner")],
@@ -8182,7 +8203,7 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","champi"];
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","champi","etoile"];
 var items = {};
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
@@ -11121,6 +11142,7 @@ function dropCurrentItem(oKart) {
 	var itemType;
 	switch (sArme) {
 	case "champi":
+	case "etoile":
 	case "banane":
 	case "carapace":
 	case "poison":
@@ -14556,6 +14578,17 @@ function touche_champi(iX, iY) {
 	return false;
 }
 
+function touche_etoile(iX, iY) {
+	for (var i=0;i<items["etoile"].length;i++) {
+		var oBox = items["etoile"][i];
+		if (iX > oBox.x - 4 && iX < oBox.x + 4 && iY > oBox.y - 4 && iY < oBox.y + 4) {
+			detruit(oBox);
+			return true;
+		}
+	}
+	return false;
+}
+
 function touche_fauxobjet(iX, iY, iP) {
 	if (!iP) iP = [];
 	for (var i=0;i<items["fauxobjet"].length;i++) {
@@ -16044,6 +16077,9 @@ function move(getId, triggered) {
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
+			}
+			else if ((touche_etoile(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && touche_etoile(fMidPosX, fMidPosY))) && !oKart.tourne && !oKart.billball) {
+				setStarState(oKart, 80);
 			}
 			else if (!oKart.tourne && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
