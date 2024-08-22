@@ -11822,13 +11822,14 @@ function getHoleSegmentDist(currentRes, x,y, x1,y1, u1,v1) {
 	return currentRes;
 }
 
-function objet(iX, iY) {
+function objet(iX, iY, iI, iJ) {
 	// Check if player hits an item box
 	var lMap = getCurrentLMap(collisionLap);
 	var res = -1, nbItems = 0;
 	for (var i=0;i<lMap.arme.length;i++) {
 		var oBox = lMap.arme[i];
-		if (iX > oBox[0] - 7 && iX < oBox[0] + 7 && iY > oBox[1] - 7 && iY < oBox[1] + 7 && oBox[2].active) {
+        var itemboxRect = [oBox[0] - 7, oBox[1] - 7, 14, 14];
+        if ((pointCrossRectangle(iX, iY, iI, iJ, itemboxRect) || pointInRectangle(iX, iY, itemboxRect)) && oBox[2].active) {
 			var iNbItems = oBox[2].box.length;
 			if (iNbItems > nbItems) {
 				res = i;
@@ -11849,17 +11850,18 @@ function objet(iX, iY) {
 	return res;
 }
 
-function touche_piece(iX, iY) {
+function touche_piece(iX, iY, iI, iJ) {
 	var lMap = getCurrentLMap(collisionLap);
-	if (lMap.coins) {
-		for (var i=0;i<lMap.coins.length;i++) {
-			var oBox = lMap.coins[i];
-			if (iX > oBox.x - 5 && iX < oBox.x + 5 && iY > oBox.y - 5 && iY < oBox.y + 5) {
-				oBox.sprite[0].suppr();
-				lMap.coins.splice(i,1);
-				return true;
-			}
-		}
+	if (!lMap.coins) return false;
+
+    for (var i=0;i<lMap.coins.length;i++) {
+        var oBox = lMap.coins[i];
+        var coinRect = [oBox.x - 5, oBox.y - 5, 10, 10];
+        if (pointCrossRectangle(iX, iY, iI, iJ, coinRect) || pointInRectangle(iX, iY, coinRect)) {
+            oBox.sprite[0].suppr();
+            lMap.coins.splice(i,1);
+            return true;
+        }
 	}
 	return false;
 }
@@ -16152,7 +16154,7 @@ function move(getId, triggered) {
 				}
 			}
 			if (!oKart.cpu) {
-				while (touche_piece(oKart.x,oKart.y)) {
+				while (touche_piece(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y)) {
 					clLocalVars.nbCoins++;
 					updateChallengeHud("coins", clLocalVars.nbCoins);
 					challengeCheck("each_coin");
@@ -16163,7 +16165,7 @@ function move(getId, triggered) {
 	}
 
 	var rScroller, rHeight, rSize;
-	var touchedObject = objet(fNewPosX, fNewPosY);
+	var touchedObject = objet(oKart.x, oKart.y, fNewPosX - oKart.x, fNewPosY - oKart.y);
 	if (touchedObject !== -1) {
 		if (!oKart.destroySound) {
 			oKart.destroySound = playDistSound(oKart, "musics/events/item_destroy.mp3", 80);
