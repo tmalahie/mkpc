@@ -10390,9 +10390,9 @@ function interpolateStateRound(x1,x2,tFrame) {
 var nbFrames = 1;
 var frameHandlers;
 var oSpecCam;
-function handleLapChange(prevLepId,lapId, getId) {
+function handleLapChange(prevLapId,lapId, getId) {
 	var oKart = aKarts[getId];
-	var lMap = getCurrentLMap(prevLepId);
+	var lMap = getCurrentLMap(prevLapId);
 	var nMap = getCurrentLMap(lapId);
 	if (lMap.aipoints !== nMap.aipoints)
 		resetAiPoints(oKart);
@@ -10406,7 +10406,7 @@ function handleLapChange(prevLepId,lapId, getId) {
 		resetBgLayers();
 		setupBgLayer(strImages, fixedScale, false);
 	});
-	if (!onlineSpectatorId && !oKart.cpu)
+	if (!onlineSpectatorId && !oKart.cpu && (lapId > prevLapId))
 		updateMapMusic(pMap);
 	if (oPlanDiv)
 		resetPlan(nMap);
@@ -10414,10 +10414,10 @@ function handleLapChange(prevLepId,lapId, getId) {
 function handleCpChange(prevLap,prevCP, getId) {
 	if (!oMap.lapOverrides) return collisionLap;
 	var oKart = aKarts[getId];
-	var prevLepId = getCurrentLapId({ tours: prevLap, demitours: prevCP });
+	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP });
 	var lapId = getCurrentLapId(oKart);
-	if (prevLepId === lapId) return lapId;
-	handleLapChange(prevLepId,lapId, getId);
+	if (prevLapId === lapId) return lapId;
+	handleLapChange(prevLapId,lapId, getId);
 	return lapId
 }
 function resetRenderState() {
@@ -12069,7 +12069,6 @@ function getHoleSegmentDist(currentRes, x,y, x1,y1, u1,v1) {
 }
 
 function objet(iX, iY, iI, iJ) {
-	// Check if player hits an item box
 	var lMap = getCurrentLMap(collisionLap);
 	var res = -1, nbItems = 0;
 	for (var i=0;i<lMap.arme.length;i++) {

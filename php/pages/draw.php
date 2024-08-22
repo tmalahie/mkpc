@@ -201,7 +201,7 @@ if (isset($_GET['i'])) {
 						</select>
 					</label>
 					<div id="checkpoint-respawn-reset">
-						<?php echo $language ? 'Reset already defined respawn positions?':'Réinitialiser les position définies précédemment ?'; ?><br />
+						<?php echo $language ? 'Reset already defined respawn positions?':'Réinitialiser les positions définies précédemment ?'; ?><br />
 						<a class="action-yes" href="javascript:resetAllRewpawns()"><?php echo $language ? 'Yes':'Oui'; ?></a> -
 						<a class="action-no" href="javascript:dismissResetRespawn()"><?php echo $language ? 'No':'Non'; ?></a>
 					</div>

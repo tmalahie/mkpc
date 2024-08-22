@@ -3017,12 +3017,13 @@ function addModeOverride() {
 	var selectedModeData = lapOverrides[selectedLapOverride].modesData[currentMode];
 	selectedModeData.isSet = true;
 	if (copyFrom) {
+		copyFrom = +copyFrom;
 		var editorTool = editorTools[currentMode];
 		if (editorTool.prerestore)
 			editorTool.prerestore(editorTool);
 		editorTool.data = deepCopy(lapOverrides[copyFrom].modesData[currentMode].data);
 		if (editorTool.postcopy)
-			editorTool.postcopy(editorTool);
+			editorTool.postcopy(editorTool, copyFrom);
 		if (editorTool.postrestore)
 			editorTool.postrestore(editorTool);
 	}
@@ -5001,6 +5002,14 @@ var commonTools = {
 				}
 			}
 		},
+		"prerestore": function(self) {
+			var data = self.data;
+			var lastData = data[data.length-1];
+			if (lastData && !lastData.respawn)
+				lastData = data[data.length-2];
+			if (lastData)
+				document.getElementById(self._respawn_selector_id).value = lastData.respawn ? 'manual' : 'cp';
+		},
 		"rescale" : function(self, scale) {
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
@@ -6436,10 +6445,13 @@ var commonTools = {
 				self.data.youtube_opts = payload.main.youtube_opts;
 			if (self.data.youtube || self.data.music)
 				self.data.music_override = true;
+			else
+				self.data.music = 1;
 			self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
 		},
-		"postcopy" : function(self) {
-			self.data.music_override = false;
+		"postcopy" : function(self, copyFrom) {
+			if (!copyFrom)
+				self.data.music_override = false;
 		},
 		"hasPartialOverride": true
 	},
