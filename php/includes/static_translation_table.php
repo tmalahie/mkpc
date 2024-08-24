@@ -54,11 +54,11 @@ define(
 		),
 		"kWITH_THE_TRACK_BUILDER_THE_POSSIBILITIES_ARE_ENDLESS" => array(
 			"en" => "With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!",
-			"fr" => "Avec l'<strong>éditeur de circuits</strong> et d'arènes, les possibilités sont infinies  ; votre imagination est la seule limite !"
+			"fr" => "Avec l'<strong>éditeur de circuits</strong> et d'arènes, les possibilités sont infinies  ; votre imagination est la seule limite !",
 		),
 		"kYOU_CAN_SHARE_YOUR_TRACKS" => array(
 			"en" => "You can <strong>share</strong> your tracks or try other people's creations!",
-			"fr" => "Essayez les créations des autres grâce à l'<strong>outil de partage intégré</strong>!"
+			"fr" => "Essayez les créations des autres grâce à l'<strong>outil de partage intégré</strong>!",
 		),
 		"kFACE_PLAYERS_FROM_AROUND_THE_WORLD" => array(
 			"en" => "Face players from around the world!",
@@ -106,7 +106,7 @@ define(
 		),
 		"kFACE_THEM_IN_MULTIPLAYER_IN_VS_RACES" => array(
 			"en" => "Face them in <strong>multiplayer</strong> in VS races or in battle mode.",
-			"fr" => "Affrontez-les en <strong>multijoueur</strong> en course VS ou sur les batailles de ballons."
+			"fr" => "Affrontez-les en <strong>multijoueur</strong> en course VS ou sur les batailles de ballons.",
 		),
         "kSTART_GAME" => array(
             "en" => "Start game",

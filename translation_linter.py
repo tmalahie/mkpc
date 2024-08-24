@@ -1,6 +1,7 @@
 from pathlib import Path
 from dataclasses import dataclass, field
 import re
+from typing import TypeVar
 
 
 @dataclass
@@ -10,7 +11,7 @@ class FrameworkUsageInstance:
     php_file_line_content: str
 
     def __str__(self) -> str:
-        return f"{self.php_file.name}#{self.php_file_line_number} -> {self.php_file_line_content.strip()}"
+        return f"{self.php_file_name}#{self.php_file_line_number} -> {self.php_file_line_content.strip()}"
 
 
 def find_framework_instance(
@@ -24,7 +25,7 @@ def find_framework_instance(
 
         with open(php_file, "r") as f:
             php_file_lines = f.readlines()
-        for php_file_line_number, php_file_line_content in enumerate(php_file_lines):
+        for php_file_line_number, php_file_line_content in enumerate(php_file_lines, start=1):
             for str_to_look_for in what_to_look_for:
                 if str_to_look_for in php_file_line_content:
                     all_usages.append(
@@ -71,7 +72,7 @@ class ParsedTranslationTableEntry:
     @dataclass
     class ParsedTranslationTableEntryTranslation:
         language: str
-        translation: str
+        content: str
 
     translation_key: str
     translations: list[ParsedTranslationTableEntryTranslation] = field(
@@ -79,7 +80,9 @@ class ParsedTranslationTableEntry:
     )
 
 
-def parse_static_translation_table(raw_content: list[str]) -> list[ParsedTranslationTableEntry]:
+def parse_static_translation_table(
+    raw_content: list[str],
+) -> list[ParsedTranslationTableEntry]:
     # Limited parser ability, let's assume this .php file is valid php.
     # This parser is also extremely strict regarding its definitions.
 
@@ -96,7 +99,7 @@ def parse_static_translation_table(raw_content: list[str]) -> list[ParsedTransla
     begin_translation_definition_found = False
     begin_translation_definition_value = None
 
-    TRANSLATION_DEFINITION_TOKEN = re.compile(r'"([a-z]{2})" => "([^"]*)"')
+    TRANSLATION_DEFINITION_TOKEN = re.compile(r'"([a-z]{2})" => "([^"]*)",$')
 
     END_TRANSLATION_DEFINITION_TOKEN = re.compile(r"\),")
 
@@ -173,12 +176,13 @@ def parse_static_translation_table(raw_content: list[str]) -> list[ParsedTransla
 
         # Then, a variable number of lines indicating a translation
         if match := TRANSLATION_DEFINITION_TOKEN.match(line):
-            translation_language = match.group(1)
-            translation = match.group(2)
+            language = match.group(1)
+            content = match.group(2)
 
+            assert current_translation_entry is not None
             current_translation_entry.translations.append(
                 ParsedTranslationTableEntry.ParsedTranslationTableEntryTranslation(
-                    language=translation_language, translation=translation
+                    language=language, content=content
                 )
             )
             continue
@@ -195,6 +199,27 @@ def parse_static_translation_table(raw_content: list[str]) -> list[ParsedTransla
     return parsed_translation_table
 
 
+T = TypeVar("T")
+
+
+def find_duplicates_in_list(l: list[T]) -> set[T]:
+    seen = set()
+    duplicates = set()
+    for i in l:
+        if i not in seen:
+            seen.add(i)
+        else:
+            duplicates.add(i)
+    return duplicates
+
+
+class TranslationTableSanityError(Exception):
+    pass
+
+class LinterError(Exception):
+    pass
+
+
 def report_framework_v3(all_php_files: list[Path]) -> None:
     print("-- Framework v3 aka static translation table --")
 
@@ -206,13 +231,33 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
 
     print("-> Loading translation key file...")
     with open("php/includes/static_translation_table.php") as f:
-        parse_static_translation_table(f.readlines())
+        parsed_static_translation_table = parse_static_translation_table(f.readlines())
 
-    print("-> Checking sanity of translation key file...")
-    # TODO: sanity checks for the static definition file before progressing
-    # - each translation entry 
-    raise NotImplementedError
+    print("-> Sanity check: unicity of entries")
+    if duplicates := find_duplicates_in_list(
+        [entry.translation_key for entry in parsed_static_translation_table]
+    ):
+        raise TranslationTableSanityError(
+            f"Found duplicate keys in translation table: {duplicates}"
+        )
 
+    print("-> Sanity check: unicity of translations for a given entry")
+    for entry in parsed_static_translation_table:
+        if duplicates := find_duplicates_in_list(
+            [translation.language for translation in entry.translations]
+        ):
+            raise TranslationTableSanityError(
+                f"Found duplicate translations for entry {entry.translation_key}: {duplicates}"
+            )
+
+    print("-> Converting raw parsed structure in usable structure...")
+    translation_table = {
+        entry.translation_key: {
+            translation.language: translation.content
+            for translation in entry.translations
+        }
+        for entry in parsed_static_translation_table
+    }
 
     # TODO: rules for linter tool
     # - all keys must be used
@@ -223,8 +268,15 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
 
     # key existence
     print("-> Checking that, for each usage, translation key does exist...")
+    USAGE_TOKEN = re.compile(r't\("([a-zA-Z0-9_]*)"\)')
     for usage in all_usages:
-        raise NotImplementedError
+        if match := USAGE_TOKEN.search(usage.php_file_line_content):
+            entry_key = match.group(1)
+            if entry_key not in translation_table:
+                raise LinterError(f"Could not find entry {entry_key} for usage {usage}")
+        else:
+            print("Warning! Could not analyze", usage)
+    raise NotImplementedError
 
 
 def main():

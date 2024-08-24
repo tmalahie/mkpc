@@ -95,6 +95,9 @@ function FN_(string $singular, string $plural, ...$replacePairs)
 // custom translation framework
 include('../includes/static_translation_table.php');
 
+// Translate a key according to $acceptedLanguage, given its translation key
+// e.g. mkpc_get_translated_string("kHELLO"), $acceptedLanguage = "fr"
+/// will yield "Salut"
 function mkpc_get_translated_string(string $key) {
 	global $acceptedLanguage;
 	if (array_key_exists($key, TRANSLATION_TABLE)) {
@@ -111,11 +114,27 @@ function mkpc_get_translated_string(string $key) {
 		return "!!! Key '" . $key . "' could not be translated!!";
 	}
 }
+// Shorthand for the function above
 function t()
 {
 	return call_user_func_array("mkpc_get_translated_string", func_get_args());
 }
 
+// Same as above, but will format a string, à la python.
+// E.g. mkpc_get_translated_string_and_format(kHELLO_PARAM_NAME, name: "Wargor")
+// will yield "Hello Wargor!"
+function mkpc_get_translated_string_and_format(string $msgid, ...$replacePairs)
+{
+	return strtr(mkpc_get_translated_string($msgid), wrap_array_keys_in_braces($replacePairs));
+}
+// Shorthand for the function above
+function Ft()
+{
+	return call_user_func_array("mkpc_get_translated_string_and_format", func_get_args());
+}
+
+// TODO: should provide a way to specify context for a translation.
+// Not used yet.
 function mkpc_get_translated_string_with_context(string $key, array $context) {
 	$mangled_key = $key + implode("#", $context);
 	return mkpc_get_translated_string($mangled_key);

@@ -80,7 +80,7 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo3.png" alt="Slide 3">
 							</div>
 							<div class="splide__description">
-								<h3><?= t('kWIN_ALL_THE_CUPS') ?></h3>
+								<h3><?= t("kWIN_ALL_THE_CUPS") ?></h3>
 								<div>
 									<?= t("kFACE_OFF_WITH_THE_CPUS_ON_14_GRAND_PRIX") ?>
 									<br />
@@ -96,7 +96,7 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo4.png" alt="Slide 4">
 							</div>
 							<div class="splide__description">
-								<h3><?= t('kCREATE_YOUR_OWN_TRACKS') ?></h3>
+								<h3><?= t("kCREATE_YOUR_OWN_TRACKS") ?></h3>
 								<div>
 									<?= t("kWITH_THE_TRACK_BUILDER_THE_POSSIBILITIES_ARE_ENDLESS") ?>
 									<br />
@@ -112,7 +112,7 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo5.png" class="top smooth" alt="Slide 5">
 							</div>
 							<div class="splide__description">
-								<h3><?= t('kFACE_PLAYERS_FROM_AROUND_THE_WORLD') ?></h3>
+								<h3><?= t("kFACE_PLAYERS_FROM_AROUND_THE_WORLD") ?></h3>
 								<div>
 									<?= t("kRACE_AND_BATTLE_IN_ONLINE_MODE") ?>
 									<br />
@@ -128,7 +128,7 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo6.png" class="smooth" alt="Slide 6">
 							</div>
 							<div class="splide__description">
-								<h3><?= t('kMAKE_THE_BEST_SCORES_IN_TIME_TRIAL') ?></h3>
+								<h3><?= t("kMAKE_THE_BEST_SCORES_IN_TIME_TRIAL") ?></h3>
 								<div>
 									<?= t("kFINISH_THE_RACE_TRACK_AS_FAST_AS_YOU_CAN") ?>
 									<br />
@@ -144,7 +144,7 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo7.png" alt="Slide 7">
 							</div>
 							<div class="splide__description">
-								<h3><?= t('kRELEASE_YOUR_FIGHTER_TALENT') ?></h3>
+								<h3><?= t("kRELEASE_YOUR_FIGHTER_TALENT") ?></h3>
 								<div>
 									<?= t("kDESTROY_YOUR_OPPONENTS_BALLOONS") ?>
 									<br />
@@ -160,7 +160,7 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo8.png" class="center smooth" alt="Slide 8">
 							</div>
 							<div class="splide__description">
-								<h3><?= t('kFACE_OFF_YOUR_FRIENDS_WITH_THE_LOCAL_MULTIPLAYER_MODE') ?></h3>
+								<h3><?= t("kFACE_OFF_YOUR_FRIENDS_WITH_THE_LOCAL_MULTIPLAYER_MODE") ?></h3>
 								<div>
 									<?= t("kPROVE_TO_YOUR_FRIENDS_THAT_YOU_RE_THE_BEST")?>
 									<br />
@@ -174,22 +174,22 @@ $placeholderPath = 'images/pages/pixel.png';
 		</div>
 		<h1>Mario Kart PC</h1>
 		<div id="toBegin"><a href="mariokart.php">
-		&#9660;&nbsp;<?= t('kCLICK_ON_THE_GAME_BOX_TO_BEGIN') ?>&nbsp;&#9660;<br />
-		<img src="images/mkpc_box.jpg" alt="<?= _('Start game') ?>" /><br />
-		&#9650;&nbsp;<?= t('kCLICK_ON_THE_GAME_BOX_TO_BEGIN') ?>&nbsp;&#9650;</a></div>
-		<h2><img src="images/about.png" alt="" /> <?= _('What\'s Mario Kart PC?') ?></h2>
+		&#9660;&nbsp;<?= t("kCLICK_ON_THE_GAME_BOX_TO_BEGIN") ?>&nbsp;&#9660;<br />
+		<img src="images/mkpc_box.jpg" alt="<?= t("kSTART_GAME") ?>" /><br />
+		&#9650;&nbsp;<?= t("kCLICK_ON_THE_GAME_BOX_TO_BEGIN") ?>&nbsp;&#9650;</a></div>
+		<h2><img src="images/about.png" alt="" /> <?= t("kWHAT_S_MARIO_KART_PC") ?></h2>
 		<div>
 			<p>
-				<?= _("You might know Mario Kart, the most fun racing game series of all time! Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.") ?>
+				<?= t("kYOU_MIGHT_KNOW_MARIO_KART") ?>
 			</p>
 			</p>
-				<?= _("Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle mode, Time Trials, and more!") ?>
+				<?= t("kMOST_OF_THE_MODES_HAVE_BEEN_INCLUDED") ?>
 				<br />
 				
-				<?= _("There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more! Everything is customizable! The only limit is your own imagination!") ?>
+				<?= t("kTHERE_S_ALSO_A_BRAND_NEW_MODE_THE_TRACK_BUILDER") ?>
 				<br />
 				
-				<?= F_('You can share your tracks, and try other people\'s tracks thanks to the <a href="{url}">sharing tool</a>. Thousands of custom tracks are already available!', url: "creations.php") ?>
+				<?= Ft('You can share your tracks, and try other people\'s tracks thanks to the <a href="{url}">sharing tool</a>. Thousands of custom tracks are already available!', url: "creations.php") ?>
 			</p>
 			<p>
 				<?= F_('Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href="{url}">rankings</a> and become world champion!', url: "bestscores.php") ?>
