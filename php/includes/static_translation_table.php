@@ -37,7 +37,7 @@ define(
             "fr" => "Retrouvez l'intégralité des <strong>56 circuits</strong> repris du jeu original <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> et <strong>Mario Kart DS</strong>.",
         ),
 		"kWIN_ALL_THE_CUPS" => array(
-			"en" =>	"Win all the cups!",
+			"en" => "Win all the cups!",
 			"fr" => "Remportez tous les grand prix !",
 		),
 		"kFACE_OFF_WITH_THE_CPUS_ON_14_GRAND_PRIX" => array(
@@ -61,7 +61,7 @@ define(
 			"fr" => "Essayez les créations des autres grâce à l'<strong>outil de partage intégré</strong>!"
 		),
 		"kFACE_PLAYERS_FROM_AROUND_THE_WORLD" => array(
-			"en" => 'Face players from around the world!',
+			"en" => "Face players from around the world!",
 			"fr" => "Affrontez les joueurs du monde entier !",
 		),
 		"kRACE_AND_BATTLE_IN_ONLINE_MODE" => array(
@@ -85,7 +85,7 @@ define(
 			"fr" => "<strong>Comparez votre score</strong> avec la communauté, et affrontez les fantômes des autres joueurs !",
 		),
 		"kRELEASE_YOUR_FIGHTER_TALENT" => array(
-			"en" => 'Release your fighter talents!',
+			"en" => "Release your fighter talents!",
 			"fr" => "Montrez vos talents de combattant !",
 		),
 		"kDESTROY_YOUR_OPPONENTS_BALLOONS" => array(
@@ -112,5 +112,17 @@ define(
             "en" => "Start game",
             "fr" => "Accéder au jeu",
         ),
+		"kWHAT_S_MARIO_KART_PC" => array(
+			"en" => "What's Mario Kart PC?",
+		),
+		"kYOU_MIGHT_KNOW_MARIO_KART" => array(
+			"en" => "You might know Mario Kart, the most fun racing game series of all time! Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.",
+		),
+		"kMOST_OF_THE_MODES_HAVE_BEEN_INCLUDED" => array(
+			"en" => "Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle mode, Time Trials, and more!",
+		),
+		"kTHERE_S_ALSO_A_BRAND_NEW_MODE_THE_TRACK_BUILDER" => array(
+			"en" => "There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more! Everything is customizable! The only limit is your own imagination!",
+		),
 	)
 );
