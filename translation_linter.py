@@ -250,7 +250,9 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
                 f"Found duplicate translations for entry {entry.translation_key}: {duplicates}"
             )
 
-    print("-> Converting raw parsed structure in usable structure...")
+    # TODO: check that keys must be in alphabetical order?
+
+    print("-> Converting raw parsed structure in usable structure")
     translation_table = {
         entry.translation_key: {
             translation.language: translation.content
@@ -259,15 +261,7 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
         for entry in parsed_static_translation_table
     }
 
-    # TODO: rules for linter tool
-    # - all keys must be used
-    # - keys must be in alphabetical order
-    # - translation for "en" and "fr" must be available
-    # - for each call to translation function: key must exist
-    # - for formatted calls: params must exist in the string
-
-    # key existence
-    print("-> Checking that, for each usage, translation key does exist...")
+    print("-> Checking that, for each usage, translation key does exist")
     USAGE_TOKEN = re.compile(r't\("([a-zA-Z0-9_]*)"\)')
     for usage in all_usages:
         if match := USAGE_TOKEN.search(usage.php_file_line_content):
@@ -276,8 +270,15 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
                 raise LinterError(f"Could not find entry {entry_key} for usage {usage}")
         else:
             print("Warning! Could not analyze", usage)
-    raise NotImplementedError
 
+    print("-> Checking that translations for french and english are available")
+    for entry, translations in translation_table.items():
+        for language in ("en", "fr"):
+            if language not in translations.keys():
+                raise LinterError(f"Missing translation in {language} for entry {entry}")
+
+    # TODO: check that all keys are used ?
+    # TODO: formatted calls: check that params exist in the string
 
 def main():
     print("Building list of all .php files...")
