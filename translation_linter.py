@@ -60,10 +60,10 @@ def report_framework_v2(all_php_files: list[Path]) -> None:
     all_usages = find_framework_instance(
         all_php_files=all_php_files,
         what_to_look_for=[
-            re.compile(r" _\("),
-            re.compile(r" P_\("),
-            re.compile(r" F_\("),
-            re.compile(r" FN_\("),
+            re.compile(r"[ (]_\("),
+            re.compile(r"[ (]P_\("),
+            re.compile(r"[ (]F_\("),
+            re.compile(r"[ (]FN_\("),
         ],
     )
     print(f"Found {len(all_usages)} instances of usage of framework v2")
@@ -108,7 +108,7 @@ def parse_static_translation_table(
     begin_translation_definition_found = False
     begin_translation_definition_value = None
 
-    TRANSLATION_DEFINITION_TOKEN = re.compile(r'"([a-z]{2})" => "(.*)",$')
+    TRANSLATION_DEFINITION_TOKEN = re.compile(r'"([a-z]{2}#?[a-z]*)" => "(.*)",$')
 
     END_TRANSLATION_DEFINITION_TOKEN = re.compile(r"\),")
 
@@ -239,7 +239,7 @@ class FrameworkV3Usages:
 
 def parse_usages(all_usages: list[FrameworkUsageInstance]) -> FrameworkV3Usages:
     SIMPLE_USAGE_TOKEN = re.compile(r'[ (]t\("([a-zA-Z0-9_ :]*)"\)')
-    FORMAT_USAGE_TOKEN = re.compile(r'[ (]Ft\("([a-zA-Z0-9_ :]*)", ([^)]*)\)')
+    FORMAT_USAGE_TOKEN = re.compile(r'[ (]FN?t\("([a-zA-Z0-9_ :]*)", ([^)]*)\)')
 
     framework_usages = FrameworkV3Usages()
 
@@ -290,7 +290,7 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
     print("-> Finding all usages")
     all_usages = find_framework_instance(
         all_php_files=all_php_files,
-        what_to_look_for=[re.compile(r"[ (]t\("), re.compile(r"[ (]Ft\(")],
+        what_to_look_for=[re.compile(r"[ (]F?N?t\(")],
     )
     print(f"Found {len(all_usages)} instances of usage of framework v3")
 
@@ -338,7 +338,11 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
 
     print("-> Checking that translations for french and english are available")
     for entry, translations in translation_table.items():
-        for language in ("en", "fr"):
+        if "WITH_COUNT" in entry:
+            languages = ("en#one", "en#other", "fr#one", "fr#other")
+        else:
+            languages = ("en", "fr")
+        for language in languages:
             if language not in translations.keys():
                 raise LinterError(
                     f"Missing translation in {language} for entry {entry}"
@@ -356,6 +360,7 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
 
     # TODO: check that no parameters are forgotten ?
     # TODO: check that all keys are used ?
+    # TODO: check that paramaters are in the key ? (WITH_PARAM)
 
 
 def main():

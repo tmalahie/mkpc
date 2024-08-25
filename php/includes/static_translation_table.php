@@ -1,5 +1,15 @@
 <?php
 
+// Some rules:
+// - each entry must be exactly in the format '"key" => array(),'
+//   yes, the comma at the end is needed
+// - use only double quotes for the strings
+// - "en" and "fr" translations are mandatory
+// - if you use parameters for formatting, ensure the key has the parameter in its name
+//   e.g. kMESSAGE_WITH_NAME for "Hello from {name}
+// - if using plurals, you must provide #one and #other variants of your translations
+// - if using plurals, the parameter "count" must be used to indicate the number
+
 define(
 	"TRANSLATION_TABLE",
 	array(
@@ -227,6 +237,16 @@ define(
 		"kLATEST_MESSAGE_BY_PARAM_NAME" => array(
 			"en" => "Latest message by <strong>{name}</strong>",
 			"fr" => "Dernier message par <strong>{name}</strong>",
+		),
+		"kLATEST_MESSAGE" => array(
+			"en" => "Latest message",
+			"fr" => "Dernier message",
+		),
+		"kCOMMENTS_MESSAGES_WITH_COUNT" => array(
+			"en#one" => "{count} message",
+			"en#other" => "{count} messages",
+			"fr#one" => "{count} message",
+			"fr#other" => "{count} messages",
 		),
 	)
 );

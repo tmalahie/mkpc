@@ -97,16 +97,21 @@ include('../includes/static_translation_table.php');
 
 // Translate a key according to $acceptedLanguage, given its translation key
 // e.g. mkpc_get_translated_string("kHELLO"), $acceptedLanguage = "fr"
-/// will yield "Salut"
-function mkpc_get_translated_string(string $key) {
+/// will yield "Salut".
+// If $forceLanguage is specified, it will override $acceptedLanguage.
+function mkpc_get_translated_string(string $key, string $forceLanguage = "") {
 	global $acceptedLanguage;
+	$language = $acceptedLanguage;
+	if (!empty($forceLanguage)) {
+		$language = $language . "#" . $forceLanguage;
+	}
 	if (array_key_exists($key, TRANSLATION_TABLE)) {
 		$translation = TRANSLATION_TABLE[$key];
-		if (array_key_exists($acceptedLanguage, $translation)) {
-			return $translation[$acceptedLanguage];
+		if (array_key_exists($language, $translation)) {
+			return $translation[$language];
 		} else if (array_key_exists("en", $translation)) {
 			// Default to english
-			trigger_error("Translation error: key '" . $key . "' could not be translated to '" . $acceptedLanguage . "' (missing language?). Used default language instead.");
+			trigger_error("Translation error: key '" . $key . "' could not be translated to '" . $language . "' (missing language?). Used default language instead.");
 			return $translation["en"];
 		} else {
 			trigger_error("Translation error: key '" . $key . "' could not be translated (missing default language?). Used key instead.");
@@ -131,9 +136,17 @@ function Ft(string $msgid, ...$replacePairs)
 	return strtr(mkpc_get_translated_string($msgid), wrap_array_keys_in_braces($replacePairs));
 }
 
-// TODO: should provide a way to specify context for a translation.
-// Not used yet.
-function mkpc_get_translated_string_with_context(string $key, array $context) {
-	$mangled_key = $key + implode("#", $context);
-	return mkpc_get_translated_string($mangled_key);
+// Same as above, but has special handling for plurals.
+// E.g. FNt("kYOU_HAVE_MESSAGE_PARAM_COUNT", count: 0)
+// will yield "You have 0 new messages", while
+// FNt("kYOU_HAVE_MESSAGE_PARAM_COUNT", count: 0)
+// will yield "You have 1 new message".
+// There must be a parameter called "count". Other parameters can be added,
+// and will format as usual.
+function FNt(string $msgid, ...$replacePairs) {
+	$languageContext = "other";
+	if ($replacePairs["count"] != 0) {
+		$languageContext = "one";
+	}
+	return strtr(mkpc_get_translated_string($msgid, $languageContext), wrap_array_keys_in_braces($replacePairs));
 }

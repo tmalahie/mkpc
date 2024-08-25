@@ -454,13 +454,13 @@ $placeholderPath = 'images/pages/pixel.png';
 								if ($message['nom']) {
 									printf(Ft("kLATEST_MESSAGE_BY_PARAM_NAME", name: $message['nom']));
 								} else {
-									printf(_("Latest message"));
+									printf(t("kLATEST_MESSAGE"));
 								}
 								echo ' ';
 								echo pretty_dates_short($topic['dernier'],array('lower'=>true));
 							?>
 						</h3>
-						<div class="creation_comments" title="<?= FN_("{count} message", "{count} messages", count: $nbMsgs) ?>"><img src="images/comments.png" alt="Messages" /> <?= $nbMsgs; ?></div>
+						<div class="creation_comments" title="<?= FNt("kCOMMENTS_MESSAGES_WITH_COUNT", count: $nbMsgs) ?>"><img src="images/comments.png" alt="Messages" /> <?= $nbMsgs; ?></div>
 					</a>
 					<?php
 				}
