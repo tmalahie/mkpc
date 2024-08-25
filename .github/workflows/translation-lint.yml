@@ -1,4 +1,4 @@
-name: PHP lint
+name: Translation lint
 on:
   push:
     branches: [master, development]
@@ -10,5 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Check for syntax errors
-        run: make php-lint
+      - name: Check for issues with translation
+        run: make translation-lint
