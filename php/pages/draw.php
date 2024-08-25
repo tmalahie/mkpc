@@ -462,6 +462,13 @@ if (isset($_GET['i'])) {
 							<?php echo $language ? 'Checkpoint:' : 'Checkpoint :'; ?>
 							<select id="lapoverride-checkpoints-list"></select>
 						</label>
+						<label id="lapoverride-interactions-checker"><input type="checkbox" id="lapoverride-interactions-check" onclick="handleLapInteractionsCheck(this.checked)" /> <?php
+						echo $language ? 'Disable interactions with other overrides' : 'Désactiver les interactions avec les autres modificateurs';
+						?> <a href="javascript:showInteractionsHelp()">[?]</a></label>
+						<div id="lapoverride-interactions-ctn">
+							<?php echo $language ? 'Enacled Intéractions:' : 'Interactions actives :'; ?>
+							<div id="lapoverride-interactions-list"></div>
+						</div>
 						<div class="popup-buttons">
 							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
 							<button class="options lapoverride-more-add" onclick="addLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>

@@ -477,6 +477,28 @@ body.theme-dark {
 #lapoverride-less.lapoverride-mode-edit .lapoverride-less-delete {
 	display: none;
 }
+#lapoverride-interactions-checker {
+	display: block;
+	margin-top: 0.5em;
+}
+#lapoverride-interactions-ctn {
+    text-align: left;
+    margin-left: 38px;
+    margin-top: 2px;
+    color: #355;
+}
+#lapoverride-interactions-list {
+	margin-left: 10px;
+	max-height: 100px;
+	overflow: auto;
+}
+#lapoverride-interactions-list label {
+	display: block;
+}
+#lapoverride-interactions-list span {
+	display: inline-block;
+	margin-left: 0.2em;
+}
 .help-balloon {
 	position: fixed;
 	background-color: #BCF;
