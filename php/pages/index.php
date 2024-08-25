@@ -195,9 +195,9 @@ $placeholderPath = 'images/pages/pixel.png';
 				<?= Ft("kYOU_CAN_FACE_PLAYERS_FROM_THE_WHOLE_WORD_PARAM_URL", url: "bestscores.php") ?>
 			</p>
 		</div>
-		<h2><img src="images/camera.png" alt="" /> <?= _('Some screenshots') ?></h2>
+		<h2><img src="images/camera.png" alt="" /> <?= t("kSOME_SCREENSHOTS") ?></h2>
 		<div>
-			<?= _('Here are some screenshots of the game to give you a quick preview of what it looks like:') ?>
+			<?= t("kHERE_ARE_SOME_SCREENSHOTS") ?>
 			<div id="screenshots" class="demo-gallery">
 				<?php
 				for ($i=1;$i<=12;$i++) {
@@ -238,43 +238,43 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?php
 		}
 		?>
-		<h2><img src="images/thanks.png" alt="" /> <?= _('Special thanks') ?></h2>
+		<h2><img src="images/thanks.png" alt="" /> <?= t("kSPECIAL_THANKS") ?></h2>
 		<div>
-			<?= _("A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !") ?>
+			<?= t("kA_BIG_THANK_TO_NINTENDO") ?>
 				<ul>
 					<li>
-						<?= F_('<a href="{url_main_site}">Nihilogic</a> for the <a href="{url_mario_kart}">basic Mario Kart</a>', url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>
+						<?= Ft("kTHANKS_NIHILOGIC_PARAM_URL_MAIN_SITE_URL_MARIO_KART", url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>
 					</li>
 					<li>
-						<?= F_('<a href="{url_main_site}">SNESMaps</a> for the <a href="{url_mario_kart}">track images</a>', url_main_site: "http://www.snesmaps.com/", url_mario_kart: "http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html") ?>
+						<?= Ft("kTHANKS_SNES_MAP_PARAM_URL_MAIN_SITE_URL_MARIO_KART", url_main_site: "http://www.snesmaps.com/", url_mario_kart: "http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html") ?>
 					</li>
 					<li>
-						<?= F_('<a href="{url_main_site}">Khinsider</a> for the <a href="{url_mario_kart}">musics</a>', url_main_site: "https://downloads.khinsider.com/", url_mario_kart: "https://downloads.khinsider.com/search?search=mario+kart") ?>
+						<?= Ft("kTHANKS_KHINSIDER_PARAM_URL_MAIN_SITE_URL_MARIO_KART", url_main_site: "https://downloads.khinsider.com/", url_mario_kart: "https://downloads.khinsider.com/search?search=mario+kart") ?>
 					</li>
 					<li>
-						<?= F_('And <a href="{url}">many more</a>!', url: "credits.php") ?>
+						<?= Ft("kTHANKS_OTHERS_PARAM_URL", url: "credits.php") ?>
 					</li>
 				</ul>
 		</div>
-		<h2><img src="images/follow.png" alt="" /> <?= _('Follow us') ?></h2>
+		<h2><img src="images/follow.png" alt="" /> <?= t("kFOLLOW_US") ?></h2>
 		<div>
 			<ul>
 				<li>
-					<?= F_('<a href="{url}">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.', url: "https://discord.gg/VkeAxaj") ?>
+					<?= Ft("kDISCORD_SERVER_PARAM_URL", url: "https://discord.gg/VkeAxaj") ?>
 				</li>
 				<li>
-					<?= F_('<a href="{url_youtube}">Official Youtube Channel</a>: find videos on the game and information about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="{url_topic}">official topic</a>.', url_youtube: "https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg", url_topic: "topic.php?topic=3392") ?>
+					<?= Ft("kOFFICIAL_YOUTUBE_CHANNEL_PARAM_URL_YOUTUBE_URL_TOPIC", url_youtube: "https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg", url_topic: "topic.php?topic=3392") ?>
 				</li>
 				<li>
-					<?= F_('<a href="{url}">Github repo</a> of the site. Follow all the ongoing developments here, and if you can code, don\'t hesitate to contribute to the project!', url: "https://github.com/tmalahie/mkpc") ?>
+					<?= Ft("kGITHUB_REPO_PARAM_URL", url: "https://github.com/tmalahie/mkpc") ?>
 				</li>
 				<li>
-					<?= F_('<a href="{url_wiki}">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on <a href="{url_topic}">this topic</a>!', url_wiki: "http://fr.wiki-mario-kart-pc.wikia.com/", url_topic: "topic.php?topic=343") ?>
+					<?= Ft("kMKPC_WIKI_PARAM_URL_WIKI_URL_TOPIC", url_wiki: "http://fr.wiki-mario-kart-pc.wikia.com/", url_topic: "topic.php?topic=343") ?>
 				</li>
 			</ul>
 			<p>
 				<em>
-				<?= F_('This site is mostly maintained by French members, if you see some translation errors in the game or the site, don\'t hesitate to report them on this <a href="{url_topic}">forum topic</a>', url_topic: "topic.php?topic=1") ?>
+				<?= Ft("kFORUM_TRANSLATION_TOPIC_PARAM_URL_TOPIC", url_topic: "topic.php?topic=1") ?>
 				</em>
 			</p>
 		</div>
@@ -295,10 +295,10 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?php
 		}
 		?>
-		<h2><img src="images/gamepad.png" alt="" /> <?= _('Go to the game') ?></h2>
+		<h2><img src="images/gamepad.png" alt="" /> <?= t("kGO_TO_THE_GAME") ?></h2>
 		<div>
-			<?= _("To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:") ?><br />
-				<a href="mariokart.php" class="action_button button_game"><?= _("Start playing now &gt;") ?></a>
+			<?= t("kTO_START_PLAYING_CLICK_HERE") ?><br />
+				<a href="mariokart.php" class="action_button button_game"><?= t("kSTART_PLAYING_NOW") ?></a>
 		</div>
 	</section>
 	<section id="right_section">
@@ -378,7 +378,7 @@ $placeholderPath = 'images/pages/pixel.png';
 			if (($getWarn = mysql_fetch_array(mysql_query('SELECT seen FROM mkwarns WHERE player="'. $id .'"'))) && !$getWarn['seen']) {
 				?>
 				<div class="warning-top-message">
-					<?= F_('You have received a warning for inappropriate behavior. Please <a href={url}>click here</a> to find it out.', url: 'forum.php?warn#compte'); ?>
+					<?= Ft("kRECEIVED_WARNING_INAPPROPRIATE_BEHAVIOR_PARAM_URL", url: 'forum.php?warn#compte'); ?>
 				</div>
 				<?php
 			}
@@ -405,15 +405,15 @@ $placeholderPath = 'images/pages/pixel.png';
 				?>
 				<div class="birthdays-list">
 					<img src="images/ic_birthday.png" alt="birthday" />
-					<?= _("Happy birthday to") ?>
+					<?= t("kHAPPY_BIRTHDAY_TO") ?>
 					<?php
 					for ($i=0;$i<$nbBirthdays;$i++) {
 						$birthday = $birthdaysList[$i];
 						if ($i)
-							echo ($i==$nbBirthdays-1) ? _(" and ") : ", ";
+							echo ($i==$nbBirthdays-1) ? t("kBIRTHDAY_AND") : ", ";
 						echo '<a href="profil.php?id='. $birthday['id'] .'">'. $birthday['nom'] .'</a>';
 					}
-					echo P_("final exclamation point in a sentence", '!');
+					echo t("kFINAL_EXCLAMATION_POINT_IN_SENTENCE");
 					?>
 				</div>
 				<?php
@@ -422,7 +422,7 @@ $placeholderPath = 'images/pages/pixel.png';
 		date_default_timezone_set('UTC');
 		display_sidebar('Forum', 'forum.php');
 		?>
-			<h2><?= _('Latest topics') ?></h2>
+			<h2><?= t("kLATEST_TOPICS") ?></h2>
 			<div id="forum_section" class="right_subsection">
 				<?php
 				require_once('../includes/getRights.php');
@@ -452,7 +452,7 @@ $placeholderPath = 'images/pages/pixel.png';
 						<h3>
 							<?php
 								if ($message['nom']) {
-									printf(F_("Latest message by <strong>{message}</strong>", message: $message['nom']));
+									printf(Ft("kLATEST_MESSAGE_BY_PARAM_NAME", name: $message['nom']));
 								} else {
 									printf(_("Latest message"));
 								}

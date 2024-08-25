@@ -16,7 +16,7 @@ class FrameworkUsageInstance:
 
 
 def find_framework_instance(
-    all_php_files: list[Path], what_to_look_for: list[str]
+    all_php_files: list[Path], what_to_look_for: list[re.Pattern]
 ) -> list[FrameworkUsageInstance]:
     all_usages: list[FrameworkUsageInstance] = []
     for php_file in all_php_files:
@@ -29,8 +29,8 @@ def find_framework_instance(
         for php_file_line_number, php_file_line_content in enumerate(
             php_file_lines, start=1
         ):
-            for str_to_look_for in what_to_look_for:
-                if str_to_look_for in php_file_line_content:
+            for re_to_look_for in what_to_look_for:
+                if re_to_look_for.search(php_file_line_content):
                     all_usages.append(
                         FrameworkUsageInstance(
                             php_file_name=php_file.name,
@@ -45,7 +45,7 @@ def report_framework_v1(all_php_files: list[Path]) -> None:
     print("=====> Framework v1 aka $language <=====")
     print("-> Finding all usages")
     all_usages = find_framework_instance(
-        all_php_files=all_php_files, what_to_look_for=["$language"]
+        all_php_files=all_php_files, what_to_look_for=[re.compile(r"\$language")]
     )
     print(f"Found {len(all_usages)} instances of usage of framework v1")
 
@@ -58,7 +58,13 @@ def report_framework_v2(all_php_files: list[Path]) -> None:
     print("=====> Framework v2 aka gettext <=====")
     print("-> Finding all usages")
     all_usages = find_framework_instance(
-        all_php_files=all_php_files, what_to_look_for=[" _(", " P_(", " F_(", " FN_("]
+        all_php_files=all_php_files,
+        what_to_look_for=[
+            re.compile(r" _\("),
+            re.compile(r" P_\("),
+            re.compile(r" F_\("),
+            re.compile(r" FN_\("),
+        ],
     )
     print(f"Found {len(all_usages)} instances of usage of framework v2")
 
@@ -232,8 +238,8 @@ class FrameworkV3Usages:
 
 
 def parse_usages(all_usages: list[FrameworkUsageInstance]) -> FrameworkV3Usages:
-    SIMPLE_USAGE_TOKEN = re.compile(r' t\("([a-zA-Z0-9_]*)"\)')
-    FORMAT_USAGE_TOKEN = re.compile(r' Ft\("([a-zA-Z0-9_]*)", ([^)]*)\)')
+    SIMPLE_USAGE_TOKEN = re.compile(r'[ (]t\("([a-zA-Z0-9_ :]*)"\)')
+    FORMAT_USAGE_TOKEN = re.compile(r'[ (]Ft\("([a-zA-Z0-9_ :]*)", ([^)]*)\)')
 
     framework_usages = FrameworkV3Usages()
 
@@ -252,7 +258,9 @@ def parse_usages(all_usages: list[FrameworkUsageInstance]) -> FrameworkV3Usages:
             params_name_value = []
             for param in params:
                 param_split = param.split(":")
-                params_name_value.append((param_split[0], param_split[1]))
+                params_name_value.append(
+                    (param_split[0].strip(), param_split[1].strip())
+                )
             framework_usages.format_usages.append(
                 FrameworkV3Usages.FormatFrameworkV3Usage(
                     php_file_name=usage.php_file_name,
@@ -281,7 +289,8 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
 
     print("-> Finding all usages")
     all_usages = find_framework_instance(
-        all_php_files=all_php_files, what_to_look_for=[" t(", " Ft("]
+        all_php_files=all_php_files,
+        what_to_look_for=[re.compile(r"[ (]t\("), re.compile(r"[ (]Ft\(")],
     )
     print(f"Found {len(all_usages)} instances of usage of framework v3")
 
@@ -341,7 +350,9 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
             entry = translation_table[usage.entry_key]
             for language in entry:
                 if f"{{{parameter[0]}}}" not in entry[language]:
-                    raise LinterError(f"Parameter {parameter[0]} not found in entry {usage.entry_key} for usage '{usage}'")
+                    raise LinterError(
+                        f"Parameter {parameter[0]} not found in entry {usage.entry_key} for language {language} and for usage '{usage}'"
+                    )
 
     # TODO: check that no parameters are forgotten ?
     # TODO: check that all keys are used ?

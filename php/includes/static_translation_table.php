@@ -136,5 +136,97 @@ define(
 			"en" => "Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href=\"{url}\">rankings</a> and become world champion!",
 			"fr" => "Enfin, il est possible d'affronter les joueurs du monde entier grâce au <strong>mode multijoueurs en ligne</strong> ! Grimpez dans le <a href=\"{url}\">classement</a> et devenez champion du monde !",
 		),
+		"kSOME_SCREENSHOTS" => array(
+			"en" => "Some screenshots",
+			"fr" => "Quelques screenshots",
+		),
+		"kHERE_ARE_SOME_SCREENSHOTS" => array(
+			"en" => "Here are some screenshots of the game to give you a quick preview of what it looks like:",
+			"fr" => "Une image vaut mieux qu'un long discours, voici donc quelques captures d'écran issues du jeu afin que vous ayez un aperçu de ce à quoi ça ressemble :",
+		),
+		"kSPECIAL_THANKS" => array(
+			"en" => "Special thanks",
+			"fr" => "Remerciements",
+		),
+		"kA_BIG_THANK_TO_NINTENDO" => array(
+			"en" => "A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !",
+			"fr" => "Un grand merci à Nintendo, ces 3 sites et ces artistes sans lesquels Mario Kart PC n'aurait probablement jamais existé !",
+		),
+		"kTHANKS_NIHILOGIC_PARAM_URL_MAIN_SITE_URL_MARIO_KART" => array(
+			"en" => "<a href=\"{url_main_site}\">Nihilogic</a> for the <a href=\"{url_mario_kart}\">basic Mario Kart</a>",
+			"fr" => "<a href=\"{url_main_site}\">Nihilogic</a> pour le <a href=\"{url_mario_kart}\">Mario Kart de départ</a>",
+		),
+		"kTHANKS_SNES_MAP_PARAM_URL_MAIN_SITE_URL_MARIO_KART" => array(
+			"en" => "<a href=\"{url_main_site}\">SNESMaps</a> for the <a href=\"{url_mario_kart}\">track images</a>",
+			"fr" => "<a href=\"{url_main_site}\">SNESMaps</a> pour les <a href=\"{url_mario_kart}\">images des circuits</a>",
+		),
+		"kTHANKS_KHINSIDER_PARAM_URL_MAIN_SITE_URL_MARIO_KART" => array(
+			"en" => "a href=\"{url_main_site}\">Khinsider</a> for the <a href=\"{url_mario_kart}\">musics</a>",
+			"fr" => "<a href=\"{url_main_site}\">Khinsider</a> for the <a href=\"{url_mario_kart}\">musics</a>",
+		),
+		"kTHANKS_OTHERS_PARAM_URL" => array(
+			"en" => "And <a href=\"{url}\">many more</a>!",
+			"fr" => "Et <a href=\"{url}\">bien d'autres</a> !",
+		),
+		"kFOLLOW_US" => array(
+			"en" => "Follow us",
+			"fr" => "Nous suivre",
+		),
+		"kDISCORD_SERVER_PARAM_URL" => array(
+			"en" => "<a href=\"{url}\">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.",
+			"fr" => "<a href=\"{url}\">Serveur Discord</a> du site : rejoignez-le pour discuter avec la communauté et être informé des mises à jours et événements.",
+		),
+		"kOFFICIAL_YOUTUBE_CHANNEL_PARAM_URL_YOUTUBE_URL_TOPIC" => array(
+			"en" => "<a href=\"{url_youtube}\">Official Youtube Channel</a>: find videos on the game and information about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href=\"{url_topic}\">official topic</a>.",
+			"fr" => "<a href=\"{url_youtube}\">Chaîne Youtube Officielle</a> : retrouvez des vidéos sur le jeu et des informations sur le site et ses évenements. La chaîne est alimentée par les membres, si vous voulez participez, parlez-en sur <a href=\"{url_topic}\">le topic officiel</a>.",
+		),
+		"kGITHUB_REPO_PARAM_URL" => array(
+			"en" => "<a href=\"{url}\">Github repo</a> of the site. Follow all the ongoing developments here, and if you can code, don't hesitate to contribute to the project!",
+			"fr" => "<a href=\"{url}\">Repo Github</a> du site : suivez ici tous les développements en cours, et si vous avez des connaissances en code, n'hésitez pas à venir contribuer !",
+		),
+		"kMKPC_WIKI_PARAM_URL_WIKI_URL_TOPIC" => array(
+			"en" => "<a href=\"{url_wiki}\">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on <a href=\"{url_topic}\">this topic</a>!",
+			"fr" => "<a href=\"{url_wiki}\">Wiki MKPC</a>: retrouvez toutes les informations sur le jeu et son histoire. Ce site est maintenu par les membres, si vous voulez contribuer, parlez-en sur <a href=\"{url_topic}\">ce topic</a>&nbsp;!",
+		),
+		"kFORUM_TRANSLATION_TOPIC_PARAM_URL_TOPIC" => array(
+			"en" => "This site is mostly maintained by French members, if you see some translation errors in the game or the site, don't hesitate to report them on this <a href=\"{url_topic}\">forum topic</a>",
+			"fr" => "<span style=\"display: none\"><a href=\"{url_topic}\">Topic de traduction</a></span>",
+		),
+		"kGO_TO_THE_GAME" => array(
+			"en" => "Go to the game",
+			"fr" => "Accéder au jeu",
+		),
+		"kTO_START_PLAYING_CLICK_HERE" => array(
+			"en" => "To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:",
+			"fr" => "Pour commencer à jouer, c'est très simple, cliquez sur &quot;Le jeu&quot; dans le menu en haut. Ou plus simplement, cliquez là:",
+		),
+		"kSTART_PLAYING_NOW" => array(
+			"en" => "Start playing now &gt;",
+			"fr" => "Commencer à jouer &gt;",
+		),
+		"kRECEIVED_WARNING_INAPPROPRIATE_BEHAVIOR_PARAM_URL" => array(
+			"en" => "You have received a warning for inappropriate behavior. Please <a href=\"{url}\">click here</a> to find it out.",
+			"fr" => "Vous avez reçu un avertissement pour comportement inapproprié. <a href=\"{url}\">Cliquez ici</a> pour en prendre connaissance.",
+		),
+		"kHAPPY_BIRTHDAY_TO" => array(
+			"en" => "Happy birthday to",
+			"fr" => "C'est l'anniversaire de",
+		),
+		"kBIRTHDAY_AND" => array(
+			"en" => " and ",
+			"fr" => " et ",
+		),
+		"kFINAL_EXCLAMATION_POINT_IN_SENTENCE" => array(
+			"en" => "!",
+			"fr" => "&nbsp;!",
+		),
+		"kLATEST_TOPICS" => array(
+			"en" => "Latest topics",
+			"fr" => "Derniers topics",
+		),
+		"kLATEST_MESSAGE_BY_PARAM_NAME" => array(
+			"en" => "Latest message by <strong>{name}</strong>",
+			"fr" => "Dernier message par <strong>{name}</strong>",
+		),
 	)
 );
