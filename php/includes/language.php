@@ -106,12 +106,15 @@ function mkpc_get_translated_string(string $key) {
 			return $translation[$acceptedLanguage];
 		} else if (array_key_exists("en", $translation)) {
 			// Default to english
+			trigger_error("Translation error: key '" . $key . "' could not be translated to '" . $acceptedLanguage . "' (missing language?). Used default language instead.");
 			return $translation["en"];
 		} else {
-			return "!!! Key '" . $key . "' could not be translated!!";
+			trigger_error("Translation error: key '" . $key . "' could not be translated (missing default language?). Used key instead.");
+			return $key;
 		}
 	} else {
-		return "!!! Key '" . $key . "' could not be translated!!";
+		trigger_error("Translation error: key '" . $key . "' could not be translated (missing key?). Used key instead.");
+		return $key;
 	}
 }
 // Shorthand for the function above
@@ -121,16 +124,11 @@ function t()
 }
 
 // Same as above, but will format a string, à la python.
-// E.g. mkpc_get_translated_string_and_format(kHELLO_PARAM_NAME, name: "Wargor")
+// E.g. Ft(kHELLO_PARAM_NAME, name: "Wargor")
 // will yield "Hello Wargor!"
-function mkpc_get_translated_string_and_format(string $msgid, ...$replacePairs)
+function Ft(string $msgid, ...$replacePairs)
 {
 	return strtr(mkpc_get_translated_string($msgid), wrap_array_keys_in_braces($replacePairs));
-}
-// Shorthand for the function above
-function Ft()
-{
-	return call_user_func_array("mkpc_get_translated_string_and_format", func_get_args());
 }
 
 // TODO: should provide a way to specify context for a translation.

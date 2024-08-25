@@ -2,6 +2,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 import re
 from typing import TypeVar
+import itertools as it
 
 
 @dataclass
@@ -25,7 +26,9 @@ def find_framework_instance(
 
         with open(php_file, "r") as f:
             php_file_lines = f.readlines()
-        for php_file_line_number, php_file_line_content in enumerate(php_file_lines, start=1):
+        for php_file_line_number, php_file_line_content in enumerate(
+            php_file_lines, start=1
+        ):
             for str_to_look_for in what_to_look_for:
                 if str_to_look_for in php_file_line_content:
                     all_usages.append(
@@ -39,7 +42,7 @@ def find_framework_instance(
 
 
 def report_framework_v1(all_php_files: list[Path]) -> None:
-    print("-- Framework v1 aka $language --")
+    print("=====> Framework v1 aka $language <=====")
     print("-> Finding all usages")
     all_usages = find_framework_instance(
         all_php_files=all_php_files, what_to_look_for=["$language"]
@@ -52,10 +55,10 @@ def report_framework_v1(all_php_files: list[Path]) -> None:
 
 
 def report_framework_v2(all_php_files: list[Path]) -> None:
-    print("-- Framework v2 aka gettext --")
+    print("=====> Framework v2 aka gettext <=====")
     print("-> Finding all usages")
     all_usages = find_framework_instance(
-        all_php_files=all_php_files, what_to_look_for=["_("]
+        all_php_files=all_php_files, what_to_look_for=[" _(", " P_(", " F_(", " FN_("]
     )
     print(f"Found {len(all_usages)} instances of usage of framework v2")
 
@@ -99,7 +102,7 @@ def parse_static_translation_table(
     begin_translation_definition_found = False
     begin_translation_definition_value = None
 
-    TRANSLATION_DEFINITION_TOKEN = re.compile(r'"([a-z]{2})" => "([^"]*)",$')
+    TRANSLATION_DEFINITION_TOKEN = re.compile(r'"([a-z]{2})" => "(.*)",$')
 
     END_TRANSLATION_DEFINITION_TOKEN = re.compile(r"\),")
 
@@ -213,15 +216,68 @@ def find_duplicates_in_list(l: list[T]) -> set[T]:
     return duplicates
 
 
+@dataclass
+class FrameworkV3Usages:
+    @dataclass
+    class SimpleFrameworkV3Usage(FrameworkUsageInstance):
+        entry_key: str
+
+    @dataclass
+    class FormatFrameworkV3Usage(FrameworkUsageInstance):
+        entry_key: str
+        parameters: list[tuple[str, str]]  # name + value
+
+    simple_usages: list[SimpleFrameworkV3Usage] = field(default_factory=list)  # t()
+    format_usages: list[FormatFrameworkV3Usage] = field(default_factory=list)  # Ft()
+
+
+def parse_usages(all_usages: list[FrameworkUsageInstance]) -> FrameworkV3Usages:
+    SIMPLE_USAGE_TOKEN = re.compile(r' t\("([a-zA-Z0-9_]*)"\)')
+    FORMAT_USAGE_TOKEN = re.compile(r' Ft\("([a-zA-Z0-9_]*)", ([^)]*)\)')
+
+    framework_usages = FrameworkV3Usages()
+
+    for usage in all_usages:
+        if match := SIMPLE_USAGE_TOKEN.search(usage.php_file_line_content):
+            framework_usages.simple_usages.append(
+                FrameworkV3Usages.SimpleFrameworkV3Usage(
+                    php_file_name=usage.php_file_name,
+                    php_file_line_number=usage.php_file_line_number,
+                    php_file_line_content=usage.php_file_line_content,
+                    entry_key=match.group(1),
+                )
+            )
+        elif match := FORMAT_USAGE_TOKEN.search(usage.php_file_line_content):
+            params = match.group(2).split(",")
+            params_name_value = []
+            for param in params:
+                param_split = param.split(":")
+                params_name_value.append((param_split[0], param_split[1]))
+            framework_usages.format_usages.append(
+                FrameworkV3Usages.FormatFrameworkV3Usage(
+                    php_file_name=usage.php_file_name,
+                    php_file_line_number=usage.php_file_line_number,
+                    php_file_line_content=usage.php_file_line_content,
+                    entry_key=match.group(1),
+                    parameters=params_name_value,
+                )
+            )
+        else:
+            print("Warning! Could not parse usage, will be ignored: ", usage)
+
+    return framework_usages
+
+
 class TranslationTableSanityError(Exception):
     pass
+
 
 class LinterError(Exception):
     pass
 
 
 def report_framework_v3(all_php_files: list[Path]) -> None:
-    print("-- Framework v3 aka static translation table --")
+    print("=====> Framework v3 aka static translation table <=====")
 
     print("-> Finding all usages")
     all_usages = find_framework_instance(
@@ -261,24 +317,35 @@ def report_framework_v3(all_php_files: list[Path]) -> None:
         for entry in parsed_static_translation_table
     }
 
+    print("-> Parsing usages")
+    parsed_usages = parse_usages(all_usages)
+
     print("-> Checking that, for each usage, translation key does exist")
-    USAGE_TOKEN = re.compile(r't\("([a-zA-Z0-9_]*)"\)')
-    for usage in all_usages:
-        if match := USAGE_TOKEN.search(usage.php_file_line_content):
-            entry_key = match.group(1)
-            if entry_key not in translation_table:
-                raise LinterError(f"Could not find entry {entry_key} for usage {usage}")
-        else:
-            print("Warning! Could not analyze", usage)
+    for usage in it.chain(parsed_usages.simple_usages, parsed_usages.format_usages):
+        if usage.entry_key not in translation_table:
+            raise LinterError(
+                f"Could not find entry {usage.entry_key} for usage {usage}"
+            )
 
     print("-> Checking that translations for french and english are available")
     for entry, translations in translation_table.items():
         for language in ("en", "fr"):
             if language not in translations.keys():
-                raise LinterError(f"Missing translation in {language} for entry {entry}")
+                raise LinterError(
+                    f"Missing translation in {language} for entry {entry}"
+                )
 
+    print("-> Checking that for parameters usages, parameters actually exist")
+    for usage in parsed_usages.format_usages:
+        for parameter in usage.parameters:
+            entry = translation_table[usage.entry_key]
+            for language in entry:
+                if f"{{{parameter[0]}}}" not in entry[language]:
+                    raise LinterError(f"Parameter {parameter[0]} not found in entry {usage.entry_key} for usage '{usage}'")
+
+    # TODO: check that no parameters are forgotten ?
     # TODO: check that all keys are used ?
-    # TODO: formatted calls: check that params exist in the string
+
 
 def main():
     print("Building list of all .php files...")

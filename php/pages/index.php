@@ -189,10 +189,10 @@ $placeholderPath = 'images/pages/pixel.png';
 				<?= t("kTHERE_S_ALSO_A_BRAND_NEW_MODE_THE_TRACK_BUILDER") ?>
 				<br />
 				
-				<?= Ft('You can share your tracks, and try other people\'s tracks thanks to the <a href="{url}">sharing tool</a>. Thousands of custom tracks are already available!', url: "creations.php") ?>
+				<?= Ft("kYOU_CAN_SHARE_YOUR_TRACKS_PARAM_URL", url: "creations.php") ?>
 			</p>
 			<p>
-				<?= F_('Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href="{url}">rankings</a> and become world champion!', url: "bestscores.php") ?>
+				<?= Ft("kYOU_CAN_FACE_PLAYERS_FROM_THE_WHOLE_WORD_PARAM_URL", url: "bestscores.php") ?>
 			</p>
 		</div>
 		<h2><img src="images/camera.png" alt="" /> <?= _('Some screenshots') ?></h2>

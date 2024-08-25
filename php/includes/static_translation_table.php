@@ -114,15 +114,27 @@ define(
         ),
 		"kWHAT_S_MARIO_KART_PC" => array(
 			"en" => "What's Mario Kart PC?",
+			"fr" => "Mario Kart PC, c'est quoi ?",
 		),
 		"kYOU_MIGHT_KNOW_MARIO_KART" => array(
 			"en" => "You might know Mario Kart, the most fun racing game series of all time! Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.",
+			"fr" => "Vous connaissez certainement Mario Kart, le jeu de course le plus fun de tous les temps ! Mario Kart PC reprend les mêmes principes que le jeu original mais il est jouable sur navigateur, et <strong>gratuitement</strong>.",
 		),
 		"kMOST_OF_THE_MODES_HAVE_BEEN_INCLUDED" => array(
 			"en" => "Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle mode, Time Trials, and more!",
+			"fr" => "La plupart des modes issus de Mario Kart ont été repris : Grand Prix, courses VS, batailles de ballons, contre-la-montre, et d'autres !",
 		),
 		"kTHERE_S_ALSO_A_BRAND_NEW_MODE_THE_TRACK_BUILDER" => array(
 			"en" => "There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more! Everything is customizable! The only limit is your own imagination!",
+			"fr" => "Et un dernier mode inédit : l'<strong>éditeur de circuits</strong> ! Placez les lignes droites et les virages, ajoutez les objets, insérez des accélérateurs...Tout est personnalisable ! Votre imagination est la seule limite !",
+		),
+		"kYOU_CAN_SHARE_YOUR_TRACKS_PARAM_URL" => array(
+			"en" => "You can share your tracks, and try other people's tracks thanks to the <a href=\"{url}\">sharing tool</a>. Thousands of custom tracks are already available!",
+			"fr" => "Vous pouvez également partager vos créations et essayer celles des autres grâce à l'<a href=\"{url}\">outil de partage</a>. Plusieurs milliers de circuits ont déjà été partagés !",
+		),
+		"kYOU_CAN_FACE_PLAYERS_FROM_THE_WHOLE_WORD_PARAM_URL" => array(
+			"en" => "Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href=\"{url}\">rankings</a> and become world champion!",
+			"fr" => "Enfin, il est possible d'affronter les joueurs du monde entier grâce au <strong>mode multijoueurs en ligne</strong> ! Grimpez dans le <a href=\"{url}\">classement</a> et devenez champion du monde !",
 		),
 	)
 );
