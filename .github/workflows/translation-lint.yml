@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [master, development]
 jobs:
-  php_lint:
+  translation_lint:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
