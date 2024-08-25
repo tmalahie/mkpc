@@ -16845,6 +16845,7 @@ function move(getId, triggered) {
 				fTombe = tombe(oKart.x, oKart.y, iC);
 			}
 			if (fTombe) {
+				var lastCp;
 				if (fTombe == true) {
 					if (isBattle && simplified) {
 						fTombe = [oKart.x,oKart.y,oKart.rotation];
@@ -16891,8 +16892,10 @@ function move(getId, triggered) {
 							fTombe[2] = 0;
 						}
 					}
-					else
-						fTombe = [oKart.lastcp.x,oKart.lastcp.y, oKart.lastcp.rotation/90];
+					else {
+						lastCp = oKart.lastcp;
+						fTombe = [lastCp.x,lastCp.y, lastCp.rotation/90];
+					}
 				}
 				else if (isNaN(fTombe[0]))
 					fTombe = oMap.startposition[(oKart.initialPlace-1)%oMap.startposition.length];
@@ -16911,8 +16914,12 @@ function move(getId, triggered) {
 				delete oKart.champiType;
 				delete oKart.champior;
 				delete oKart.champior0;
-				if (oKart.cpu)
-					oKart.aipoint = undefined;
+				if (oKart.cpu) {
+					if (lastCp && lastCp.aipoints === oKart.aipoints)
+						oKart.aipoint = lastCp.aipoint;
+					else
+						oKart.aipoint = undefined;
+				}
 				oKart.tombe = 20;
 				oKart.frminv = 10;
 				oKart.ctrled = true;
@@ -17347,7 +17354,9 @@ function move(getId, triggered) {
 			oKart.lastcp = {
 				x: oKart.x,
 				y: oKart.y,
-				rotation: oKart.rotation
+				rotation: oKart.rotation,
+				aipoint: oKart.aipoint,
+				aipoints: oKart.aipoints
 			};
 		}
 	}
