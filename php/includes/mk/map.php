@@ -46,6 +46,8 @@ if ($lapId) {
 	echo '"lap":'.$circuitPayload->meta->lap.',';
 	if (isset($circuitPayload->meta->cp))
 		echo '"cp":'.$circuitPayload->meta->cp.',';
+	if (isset($circuitPayload->meta->interactions))
+		echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
 }
 if (isset($circuitMainData->bgcolor))
 	echo '"bgcolor":['.implode(',',$circuitMainData->bgcolor).'],';

@@ -1835,6 +1835,17 @@ var getCurrentLapId = function() {
 	// Can be overriden, see lapOverrides
 	return 0;
 };
+var lapInteractionsDisabled = function() {
+	// Can be overriden, see lapOverrides
+	return false;
+}
+var itemInteractionsDisabled = function() {
+	// Can be overriden, see lapOverrides
+	return false;
+}
+var getItemCollisionLap = function() {
+	return 0;
+}
 function initMap() {
 	lMaps = [oMap];
 	pMaps = [oMap];
@@ -1879,6 +1890,35 @@ function initMap() {
 				};
 			}
 			return lapId;
+		}
+		var _disabledLapsInteractions = {};
+		for (var i=0;i<pMaps.length;i++) {
+			var disabledLapInteractions = {};
+			var lapInteractions = pMaps[i].lapInteractions;
+			if (lapInteractions) {
+				for (var j=0;j<pMaps.length;j++)
+					disabledLapInteractions[j] = true;
+				delete disabledLapInteractions[i];
+				for (var j=0;j<lapInteractions.length;j++)
+					delete disabledLapInteractions[lapInteractions[j]];
+			}
+			_disabledLapsInteractions[i] = disabledLapInteractions;
+		}
+		for (var i=0;i<pMaps.length;i++) {
+			for (var j in _disabledLapsInteractions[i])
+				_disabledLapsInteractions[j][i] = true;
+		}
+		if (Object.keys(_disabledLapsInteractions).length) {
+			lapInteractionsDisabled = function(lap1,lap2) {
+				return _disabledLapsInteractions[lap1] && _disabledLapsInteractions[lap1][lap2];
+			};
+			itemInteractionsDisabled = function(oBox) {
+				return lapInteractionsDisabled(collisionLap, getItemCollisionLap(oBox));
+			}
+			getItemCollisionLap = function(oBox) {
+				if (oBox.ailap >= 0) return oBox.ailap;
+				return oBox.lapId;
+			}
 		}
 	}
 	if (clSelected) {
@@ -2282,6 +2322,8 @@ function addNewItem(kart,item) {
 		item.sprite = new Sprite(collection);
 		item.size = itemBehavior.size;
 	}
+	if (kart)
+		item.lapId = getCurrentLapId(kart);
 	items[collection].push(item);
 	if (isOnline) {
 		if (kart && (kart.id == identifiant || kart.controller == identifiant))
@@ -7629,6 +7671,7 @@ var itemBehaviors = {
 				collisionFloor = null;
 				collisionDecorHit = null;
 				collisionItem = fSprite;
+				collisionLap = getItemCollisionLap(fSprite);
 				var isMoving = (fSprite.owner != -1);
 				var fTeleport;
 				if (isMoving && (fTeleport=inTeleport(roundX1, roundY1))) {
@@ -7691,6 +7734,7 @@ var itemBehaviors = {
 					handleSpriteLaunch(fSprite, 15,0.2);
 				else {
 					fSprite.z = 0;
+					collisionLap = getItemCollisionLap(fSprite);
 					if (tombe(fSprite.x, fSprite.y))
 						detruit(fSprite);
 					if (--fSprite.cooldown == 30)
@@ -7805,6 +7849,7 @@ var itemBehaviors = {
 									fNewPosY = tCible.using[0].y;
 									fSprite.x = fNewPosX;
 									fSprite.y = fNewPosY;
+									collisionLap = fSprite.ailap;
 									if (tCible.using[0].type === "bobomb" && touche_bobomb(fNewPosX, fNewPosY, onlyThisItems([tCible.using[0]])))
 										return;
 									detruit(fSprite);
@@ -7901,6 +7946,8 @@ var itemBehaviors = {
 										var dAngle = fMoveX*fDirX + fMoveY*fDirY;
 										dAngle /= Math.sqrt(fDist*(fMoveX*fMoveX + fMoveY*fMoveY));
 										if (dAngle > 0.4) {
+											var lapId = getCurrentLapId(pCible);
+											if (lapInteractionsDisabled(fSprite.ailap, lapId)) continue;
 											maxDist = fDist;
 											tCible = pCible;
 										}
@@ -8119,8 +8166,10 @@ var itemBehaviors = {
 					var delLimit = (isOnline&&!isControlledByPlayer(fSprite.target)) ? -120:-10;
 					if (fSprite.cooldown < delLimit)
 						detruit(fSprite);
-					else
+					else {
+						collisionLap = getItemCollisionLap(fSprite);
 						handleDecorExplosions(fSprite, touche_cbleue_aux);
+					}
 				}
 			}
 			else {
@@ -10396,6 +10445,7 @@ function handleLapChange(prevLapId,lapId, getId) {
 	var nMap = getCurrentLMap(lapId);
 	if (lMap.aipoints !== nMap.aipoints)
 		resetAiPoints(oKart);
+	refreshUsingItems(oKart, lapId);
 	var sID = getScreenPlayerIndex(getId);
 	if (sID >= oPlayers.length) return;
 	lastStateChange = true;
@@ -10471,6 +10521,13 @@ function initAiPoints(lMap, oKart, inc) {
 		}
 		if (isValidShortcuts)
 			oKart.aishortcuts = validShortcuts;
+	}
+}
+function refreshUsingItems(oKart, lapId) {
+	if (!oKart.using.length) return;
+	for (var i=0;i<oKart.using.length;i++) {
+		var oItem = oKart.using[i];
+		oItem.lapId = lapId;
 	}
 }
 function resetBgLayers() {
@@ -10760,7 +10817,8 @@ function render() {
 			var oPlayer = frameState.players[i];
 			if (oSpecCam)
 				oPlayer = frameState.karts[oSpecCam.playerId];
-			var lMap = getCurrentLMap(getCurrentLapId(oPlayer.ref));
+			var lapId = getCurrentLapId(oPlayer.ref);
+			var lMap = getCurrentLMap(lapId);
 
 			var posX = oPlayer.x;
 			var posY = oPlayer.y;
@@ -10847,6 +10905,16 @@ function render() {
 			for (var j=0;j<frameState.karts.length;j++) {
 				fSprite = frameState.karts[j];
 				var fSpriteRef = fSprite.ref;
+				var lap2 = getCurrentLapId(fSpriteRef);
+				var jCamera = fCamera;
+				if (lapInteractionsDisabled(lapId,lap2)) {
+					fSpriteRef.sprite[i].noInteract = true;
+					fSpriteRef.sprite[i].div.classList.add("nointeract");
+				}
+				else if (fSpriteRef.sprite[i].noInteract) {
+					delete fSpriteRef.sprite[i].noInteract;
+					fSpriteRef.sprite[i].div.classList.remove("nointeract");
+				}
 				var fAngle = nearestAngleMirrored(fRotation-fSprite.rotation, 180,360);
 
 				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
@@ -10875,7 +10943,7 @@ function render() {
 					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSpriteRef.sprite[i].h-32)/5));
 					var fShift = 2.5*getMirrorFactor();
 					for (k=0;k<nbBallons;k++) {
-						fSpriteRef.ballons[k][i].render(fCamera, {
+						fSpriteRef.ballons[k][i].render(jCamera, {
 							x: fSprite.x-(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(1,fRotation),
 							y: fSprite.y+(k+0.75-nbBallons/2)*fShift*fSprite.size*direction(0,fRotation),
 							z: fHauteur,
@@ -10886,7 +10954,7 @@ function render() {
 
 				if (fSpriteRef.driftinc) {
 					if (!fSpriteRef.z || (fSpriteRef.driftSprite[i].div.style.display === "block")) {
-						fSpriteRef.driftSprite[i].render(fCamera, {
+						fSpriteRef.driftSprite[i].render(jCamera, {
 							x: fSprite.x,
 							y: fSprite.y,
 							z: fSprite.z,
@@ -10924,7 +10992,7 @@ function render() {
 						var tU = (fSpriteRef.rightWaySince+tF)/shiftTf;
 						shiftY += 50*tU;
 					}
-					fSpriteRef.wrongWaySprite[i].render(fCamera, {
+					fSpriteRef.wrongWaySprite[i].render(jCamera, {
 						x: fSprite.x - shiftX*direction(1,fRotation),
 						y: fSprite.y + shiftX*direction(0,fRotation),
 						z: 20 + shiftY
@@ -10933,7 +11001,7 @@ function render() {
 
 				if (!isActualPlayer) {
 					if (fSpriteRef.marker && !fSpriteRef.loose && !fSpriteRef.tombe)
-						fSpriteRef.marker.render(i, fCamera, fSprite);
+						fSpriteRef.marker.render(i, jCamera, fSprite);
 				}
 			}
 
@@ -10990,13 +11058,24 @@ function render() {
 			for (var key in frameState.items) {
 				for (var j=0;j<frameState.items[key].length;j++) {
 					fSprite = frameState.items[key][j];
+					var fSpriteRef = fSprite.ref;
 					if (lastFrame) {
 						var itemBehavior = itemBehaviors[key];
 						if (itemBehavior.render)
-							itemBehavior.render(fSprite.ref,i);
+							itemBehavior.render(fSpriteRef,i);
 					}
-					if (fSprite.ref.sprite)
-						fSprite.ref.sprite[i].render(fCamera, fSprite);
+					if (fSpriteRef.sprite) {
+						var lap2 = getItemCollisionLap(fSpriteRef);
+						if (lapInteractionsDisabled(lapId,lap2)) {
+							fSpriteRef.sprite[i].noInteract = true;
+							fSpriteRef.sprite[i].div.classList.add("nointeract");
+						}
+						else if (fSpriteRef.sprite[i].noInteract) {
+							delete fSpriteRef.sprite[i].noInteract;
+							fSpriteRef.sprite[i].div.classList.remove("nointeract");
+						}
+						fSpriteRef.sprite[i].render(fCamera, fSprite);
+					}
 				}
 			}
 
@@ -11498,8 +11577,11 @@ function updateProtectFlag(oKart) {
 
 function colKart(getId) {
 	var oKart = aKarts[getId];
+	var lap1 = getCurrentLapId(oKart);
 	for (var i=0;i<getId;i++) {
 		var kart = aKarts[i];
+		var lap2 = getCurrentLapId(kart);
+		if (lapInteractionsDisabled(lap1,lap2)) continue;
 		var protect1 = oKart.protect ? ((oKart.etoile||oKart.billball)?2:1) : 0;
 		var protect2 = kart.protect ? ((kart.etoile||kart.billball)?2:1) : 0;
 		var isChampiCol = (course == "BB") && (!oKart.champi != !kart.champi);
@@ -14786,6 +14868,7 @@ function touche_banane(iX, iY, iP) {
 		var oBox = items["banane"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
 				detruit(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
@@ -14800,6 +14883,7 @@ function touche_poison(iX, iY, iP) {
 		var oBox = items["poison"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
 				detruit(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
@@ -14812,6 +14896,7 @@ function touche_champi(iX, iY) {
 	for (var i=0;i<items["champi"].length;i++) {
 		var oBox = items["champi"][i];
 		if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+			if (itemInteractionsDisabled(oBox)) continue;
 			detruit(oBox);
 			return true;
 		}
@@ -14823,6 +14908,7 @@ function touche_etoile(iX, iY) {
 	for (var i=0;i<items["etoile"].length;i++) {
 		var oBox = items["etoile"][i];
 		if (iX > oBox.x - 4 && iX < oBox.x + 4 && iY > oBox.y - 4 && iY < oBox.y + 4) {
+			if (itemInteractionsDisabled(oBox)) continue;
 			detruit(oBox);
 			return true;
 		}
@@ -14836,6 +14922,7 @@ function touche_fauxobjet(iX, iY, iP) {
 		var oBox = items["fauxobjet"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
+				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
 				detruit(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
@@ -14858,6 +14945,7 @@ function touche_cverte(iX, iY, iP) {
 }
 function touche_cverte_aux(iX,iY, oBox) {
 	if (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) {
+		if (itemInteractionsDisabled(oBox)) return false;
 		handleHit(oBox);
 		detruit(oBox,isHitSound(oBox));
 		return true;
@@ -14874,6 +14962,7 @@ function touche_cverte_future(iX, iY, iP) {
 			var fMoveX = oBox.vx*relSpeed, fMoveY = oBox.vy*relSpeed;
 			var fNewPosX = oBox.x + fMoveX, fNewPosY = oBox.y + fMoveY;
 			if (iX > fNewPosX-5 && iX < fNewPosX+5 && iY > fNewPosY-5 && iY < fNewPosY+5) {
+				if (itemInteractionsDisabled(oBox)) continue;
 				handleHit(oBox);
 				detruit(oBox,isHitSound(oBox));
 				return (collisionTeam!=oBox.team);
@@ -14898,6 +14987,7 @@ function touche_crouge_aux(iX,iY, oBox) {
 	if (!oBox.z) {
 		var isHitbox = ((oBox.owner == -1) || (oBox.aipoint == -2));
 		if (isHitbox ? (iX > oBox.x-5 && iX < oBox.x+5 && iY > oBox.y-5 && iY < oBox.y + 5) : (iX == oBox.x && iY == oBox.y)) {
+			if (itemInteractionsDisabled(oBox)) return false;
 			handleHit(oBox);
 			detruit(oBox,isHitSound(oBox));
 			return true;
@@ -14950,8 +15040,10 @@ function touche_bobomb_aux(iX,iY, oBox, opts) {
 		hitboxW = 5;
 	else if (opts && opts.transparent)
 		hitboxW = 5;
-	if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY)) < (hitboxW*hitboxW))
+	if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY)) < (hitboxW*hitboxW)) {
+		if (itemInteractionsDisabled(oBox)) return false;
 		return true;
+	}
 	return false;
 }
 
@@ -14977,8 +15069,10 @@ function touche_cbleue(iX, iY) {
 function touche_cbleue_aux(iX,iY, oBox) {
 	if (oBox.cooldown <= 0 && oBox.cooldown >= -10) {
 		var hitboxW = 24;
-		if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY) < (hitboxW*hitboxW)))
+		if (!oBox.countdown && ((oBox.x-iX)*(oBox.x-iX) + (oBox.y-iY)*(oBox.y-iY) < (hitboxW*hitboxW))) {
+			if (itemInteractionsDisabled(oBox)) return false;
 			return true;
+		}
 	}
 	return false;
 }
@@ -15813,6 +15907,7 @@ function resetDatas() {
 							for (var j=0;j<localKarts.length;j++) {
 								var l = localKarts[j];
 								var lKart = aKarts[l];
+								collisionLap = getCurrentLapId(lKart);
 								if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
 									checkCollisions(fSprite, l);
 							}

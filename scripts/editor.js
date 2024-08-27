@@ -4153,7 +4153,7 @@ function saveData() {
 			editorTool.save(editorTool,lapPayload);
 			enabledModes.push(key);
 		}
-		if (!enabledModes.length && !lapOverride.imgData) continue;
+		if (!enabledModes.length && !lapOverride.imgData && !lapOverride.interactions) continue;
 		lapPayload.meta = { lap: lapOverride.lap, cp: lapOverride.checkpoint, modes: enabledModes };
 		if (!payload.lapOverrides) payload.lapOverrides = [];
 		payload.lapOverrides.push(lapPayload);
