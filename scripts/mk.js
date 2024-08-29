@@ -2539,13 +2539,13 @@ function arme(ID, backwards, forwards) {
 			break;
 
 			case "carapacerouge" :
-			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: 0, target:-1});
+			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
 			case "carapacerougeX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: 0, target:-1});
+				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
@@ -2721,7 +2721,8 @@ function arme(ID, backwards, forwards) {
 			var shiftDist = backwards?7.5:(6+uL);
 			if (oKart.using.length > 1)
 				shiftDist += 5;
-			throwItem(oKart, {x:posX+shiftDist*uX/uL,y:posY+shiftDist*uY/uL,z:0,vx:uX,vy:uY,owner:oKart.id,lives:10});
+			var itemPayload = throwItem(oKart, {x:posX+shiftDist*uX/uL,y:posY+shiftDist*uY/uL,z:0,vx:uX,vy:uY,owner:oKart.id,lives:10});
+			checkItemLap(itemPayload, { aPos: [posX,posY], fast: true });
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -7696,6 +7697,8 @@ var itemBehaviors = {
 					fSprite.y = fNewPosY;
 					if (!i)
 						tendsToSpeed(fSprite, 12, 0.2);
+					if (isMoving)
+						checkItemLap(fSprite, { aPos: [roundX1, roundX2] });
 				}
 				else {
 					fSprite.lives--;
@@ -7835,6 +7838,7 @@ var itemBehaviors = {
 						if (fDist < 500) {
 							fNewPosX = tCible.x;
 							fNewPosY = tCible.y;
+							fSprite.ailap = getCurrentLapId(tCible);
 							if (tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
 								var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
 								var pi2 = Math.PI*2;
@@ -8156,6 +8160,7 @@ var itemBehaviors = {
 			
 						fSprite.x -= fMoveX;
 						fSprite.y -= fMoveY;
+						fSprite.ailap = getCurrentLapId(oKart);
 					}
 				}
 				else {
@@ -8181,6 +8186,7 @@ var itemBehaviors = {
 					var aX = fSprite.x, aY = fSprite.y;
 					while (dSpeed > 0) {
 						var target = aipoints[fSprite.aipoint];
+						if (!target) break;
 						var dist = Math.hypot(target[0]-fSprite.x, target[1]-fSprite.y);
 						if (dist > dSpeed) {
 							fSprite.x += (target[0]-fSprite.x)*dSpeed/dist;
@@ -10278,9 +10284,13 @@ function handleSpriteLaunch(fSprite, fSpeed,fHeight) {
 		fNewPosY = fSprite.y + fMoveY;
 	}
 
+	var aPos = [fSprite.x, fSprite.y];
 	fSprite.x = fNewPosX;
 	fSprite.y = fNewPosY;
 	fSprite.z = correctZInv((-Math.pow(fSprite.countdown-8,2) + 64) * fHeight);
+
+	if (!fTeleport)
+		checkItemLap(fSprite, { aPos: aPos });
 
 	if (!fSprite.countdown && tombe(fNewPosX,fNewPosY))
 		detruit(fSprite);
@@ -10599,16 +10609,23 @@ function loadBgLayer(strImages) {
 	}
 }
 function checkItemLap(fSprite, opts) {
-	var lapId = fSprite.ailap;
+	var lapId = (fSprite.ailap >= 0) ? fSprite.ailap : fSprite.lapId;
 	var nextOverride = oMap.lapOverrides && oMap.lapOverrides[lapId];
 	if (!nextOverride) return;
+	var tours = fSprite.ailapt;
+	if (!tours) {
+		var currentOverride = oMap.lapOverrides[lapId-1];
+		tours = currentOverride ? currentOverride.tours : 1;
+	}
 	var lMap = getCurrentLMap(lapId);
-	var nextCp = getNextCp({ tours: fSprite.ailapt });
-	if (!fSprite.ailapc && (fSprite.aipoint >= lMap.checkpoint.length/2))
+	var nextCp = getNextCp({ tours: tours });
+	if (!fSprite.ailapc && !(fSprite.aipoint < lMap.checkpoint.length/2))
 		fSprite.ailapc = 1;
-	if (fSprite.ailapc && enteredCheckpoint(lMap.checkpointCoords[nextCp], fSprite, opts))
-		fSprite.ailapt++;
-	var lapCount = fSprite.ailapt-1;
+	if (fSprite.ailapc && enteredCheckpoint(lMap.checkpointCoords[nextCp], fSprite, opts)) {
+		tours++;
+		if (fSprite.ailapt) fSprite.ailapt = tours;
+	}
+	var lapCount = tours-1;
 	if ((lapCount > nextOverride.lap) || (lapCount === nextOverride.lap && !nextOverride.cp)) {
 		incItemLap(lMap, fSprite);
 		return;
@@ -10619,7 +10636,13 @@ function checkItemLap(fSprite, opts) {
 		incItemLap(lMap, fSprite);
 }
 function incItemLap(lMap, fSprite) {
-	fSprite.ailap++;
+	if (fSprite.ailap >= 0)
+		fSprite.ailap++;
+	else {
+		if (fSprite.lapId >= 0)
+			fSprite.lapId++;
+		return;
+	}
 	var nMap = getCurrentLMap(fSprite.ailap);
 	if (nMap.aipoints === lMap.aipoints) return;
 	fSprite.ailapc = 0;
@@ -15858,7 +15881,8 @@ function resetDatas() {
 					if (uData) {
 						uItem = {
 							id: uId,
-							type: uType
+							type: uType,
+							lapId: 0
 						};
 						toAdd = true;
 					}
@@ -15884,6 +15908,7 @@ function resetDatas() {
 					if (oKart.id == uHolder) {
 						if (oItemId == -1) {
 							oKart.using.push(uItem);
+							uItem.lapId = getCurrentLapId(oKart);
 							if ((oKart.using.length > 1) && !oKart.rotitem)
 								oKart.rotitem = 0;
 						}
@@ -15891,6 +15916,7 @@ function resetDatas() {
 					else {
 						if (oItemId != -1) {
 							oKart.using.splice(oItemId,1);
+							uItem.lapId = getCurrentLapId(oKart);
 							if (!oKart.using.length)
 								consumeItemIfDouble(j);
 						}
