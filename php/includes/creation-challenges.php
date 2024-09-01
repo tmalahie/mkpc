@@ -9,7 +9,7 @@ $challenges = array(
 	'track' => array()
 );
 $clRewards = array();
-$clPayloadParams = array('winners' => true, 'utf8' => true, 'id' => $id);
+$clPayloadParams = array('winners' => true, 'utf8' => true, 'date' => true, 'id' => $id);
 $clId = 0;
 if (isset($unsetId)) {
 	unset($id);

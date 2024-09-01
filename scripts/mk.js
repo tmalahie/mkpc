@@ -2041,6 +2041,10 @@ function initMap() {
 				}
 				nHoles[i] = holes;
 			}
+			if (lMap.extraHoles) {
+				for (var k in lMap.extraHoles)
+					nHoles[k] = classifyByShape(lMap.extraHoles[k]);
+			}
 			lMap.trous = nHoles;
 		}
 		if (lMap.flows) {
@@ -12400,6 +12404,7 @@ function tombe(iX, iY, iC) {
 				var oHole = oPolygons[i];
 				if (pointInPolygon(iX,iY, oHole[0])) {
 					if (iC == undefined) return true;
+					return true;
 					if (!oHole[1]) return true;
 					fTrou = [oHole[1][0],oHole[1][1],j];
 					if (j%2 - iC)
