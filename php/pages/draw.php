@@ -466,7 +466,7 @@ if (isset($_GET['i'])) {
 						echo $language ? 'Disable interactions with other overrides' : 'Désactiver les interactions avec les autres modificateurs';
 						?> <a href="javascript:showInteractionsHelp()">[?]</a></label>
 						<div id="lapoverride-interactions-ctn">
-							<?php echo $language ? 'Enacled Intéractions:' : 'Interactions actives :'; ?>
+							<?php echo $language ? 'Exceptions - enable intéractions for:' : 'Exceptions - activer les intéractions pour&nbsp;:'; ?>
 							<div id="lapoverride-interactions-list"></div>
 						</div>
 						<div class="popup-buttons">

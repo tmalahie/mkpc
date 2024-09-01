@@ -3136,7 +3136,7 @@ function updateMapMusic(pMap) {
 	var isLastLap = (pMap.lap === oMap.tours-1);
 	if (isLastLap && !pMap.cp) {
 		removeIfExists(lastMapMusic);
-		if (pMap.yt_opts)
+		if (pMap.yt)
 			oMap.lastMapSpeed = 1;
 		return;
 	}

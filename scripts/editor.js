@@ -3186,7 +3186,7 @@ function handleLapInteractionsCheck(checked) {
 	document.getElementById("lapoverride-interactions-ctn").style.display = checked ? "block" : "none";
 }
 function showInteractionsHelp() {
-	console.log('TODO');
+	alert(language ? "If checked, other players can't collide with you or hit you with items unless they are in same lap override as you." : "Si coché, les autres joueurs ne peuvent pas entrer en collision avec vous ou vous toucher avec des objets lorsqu'ils ne sont pas dans le même modificateur.");
 }
 function showLapOverrideChange() {
 	document.getElementById("lapoverride-less").className = "lapoverride-mode-edit";
