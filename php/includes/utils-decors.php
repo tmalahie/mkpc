@@ -206,7 +206,7 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
     }
     if (!empty($extra)) {
         if (isset($CUSTOM_DECOR_TYPES[$type]['extra_sprites'])) {
-            /** @var $extraSprites array */
+            /** @var array $extraSprites */
             $extraSprites = $CUSTOM_DECOR_TYPES[$type]['extra_sprites'];
             foreach ($extraSprites as $extraType) {
                 if (isset($extra[$extraType])) {

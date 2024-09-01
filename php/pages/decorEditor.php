@@ -221,7 +221,7 @@ if (isset($error))
                 <?php echo $language ? 'Decor type:':'Type de décor :'; ?>
                 <input type="text" name="type" required="required" style="display:none" />
                 <span class="decor-type-selector"><?php
-                /** @var $decorType array */
+                /** @var array $decorType */
                 foreach ($CUSTOM_DECOR_TYPES as $type=>$decorType) {
                     if (empty($decorType['is_extra'])) {
                         ?>
