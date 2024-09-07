@@ -43,12 +43,15 @@ if (isset($_GET['i'])) {
 					)
 				);
 				foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
+					$imgOverrideData = isset($lapImg->override) ? array(
+						'override' => $lapImg->override
+					) : array(
+						'url' => $lapImg->url,
+						'local' => $lapImg->local
+					);
 					$circuitImgPayload['lapOverrides'][$lap] = array(
-						'src' => getCircuitImgUrl($lapImg),
-						'data' => array(
-							'url' => $lapImg->url,
-							'local' => $lapImg->local
-						)
+						'src' => getCircuitImgUrl(getRefCircuitImg($lapImg,$circuitImg)),
+						'data' => $imgOverrideData
 					);
 				}
 			}

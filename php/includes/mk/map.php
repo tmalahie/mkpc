@@ -29,7 +29,7 @@ function printCircuitPart($circuit, $lapId,$circuitPayload) {
 	$circuitImg = isset($circuit['img_data']) ? json_decode($circuit['img_data']) : null;
 	if ($lapId) {
 		if (isset($circuitImg->lapOverrides->$lapId))
-			$circuitImg = $circuitImg->lapOverrides->$lapId;
+			$circuitImg = getRefCircuitImg($circuitImg->lapOverrides->$lapId, $circuitImg);
 		else
 			$circuitImg = null;
 	}

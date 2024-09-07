@@ -4044,7 +4044,9 @@ function resetImageOptions() {
 }
 function showImageOptions() {
 	var $imageOptions = document.getElementById("image-options");
-	var selectedImg = selectedLapOverride && (lapOverrides[selectedLapOverride].imgData || { data: null });
+	var selectedImg = selectedLapOverride && {
+		data: getImgOverridePayload(lapOverrides[selectedLapOverride].imgData || {})
+	};
 	$imageOptions.src = "changeMap.php" + document.location.search + (isBattle ? "&arenes=1" : "") + (selectedLapOverride ? ("&lap="+selectedLapOverride) : "") + (selectedImg ? ("&img_data="+JSON.stringify(selectedImg.data)) : "");
 	document.body.removeChild($imageOptions);
 	var $mask = createMask();
@@ -4130,6 +4132,43 @@ function handleImageDelete(callback) {
 	delete lapOverrides[selectedLapOverride].imgData;
 	updateEditorImg(callback);
 }
+function initOverrideSelector($selector) {
+	for (var lapKey=0;lapKey<lapOverrides.length;lapKey++) {
+		if (lapKey == selectedLapOverride) continue;
+		if (!lapOverrides[lapKey].imgData) continue;
+		if (lapOverrides[lapKey].imgData.data && !lapOverrides[lapKey].imgData.data.url) continue;
+		var $option = document.createElement("option");
+		$option.value = lapKey;
+		$option.innerHTML = getLapOverrideLabel(lapKey);
+		$selector.appendChild($option);
+	}
+	var currentValue = lapOverrides[selectedLapOverride] && lapOverrides[selectedLapOverride].imgData && lapOverrides[selectedLapOverride].imgData.data.overrideRef;
+	if (!currentValue) return;
+	var currentValueId = lapOverrides.indexOf(currentValue);
+	if (currentValueId !== -1)
+		$selector.value = currentValueId;
+}
+function handleImageFromOverride(overrideKey) {
+	var overrideRef = lapOverrides[overrideKey];
+	lapOverrides[selectedLapOverride].imgData = { src: overrideRef.imgData.src, data: {
+		overrideKey: overrideKey,
+		overrideRef: overrideRef
+	}};
+	updateEditorImg();
+	changes = true;
+}
+function getImgOverridePayload(imgData) {
+	var selectedData = imgData.data;
+	if (!selectedData) return null;
+	if (selectedData.overrideKey == null) return selectedData;
+	var overrideKey = lapOverrides.indexOf(selectedData.overrideRef);
+	if ((overrideKey === -1) || (lapOverrides[overrideKey].imgData.data && !lapOverrides[overrideKey].imgData.data.url))
+		return null;
+	return {
+		local: 0,
+		override: overrideKey,
+	}
+}
 function saveData() {
 	storeCurrentLapOverride();
 	restoreLapOverride(0);
@@ -4159,7 +4198,7 @@ function saveData() {
 		payload.lapOverrides.push(lapPayload);
 		lapPayloadIds[lapKey] = payload.lapOverrides.length;
 		if (lapOverride.imgData)
-			imgOverrides[lapKey] = lapOverride.imgData.data;
+			imgOverrides[lapKey] = getImgOverridePayload(lapOverride.imgData);
 	}
 	for (var lapKey=1;lapKey<lapOverrides.length;lapKey++) {
 		var lapPayloadId = lapPayloadIds[lapKey];
@@ -4318,6 +4357,15 @@ function restoreData(payload) {
 				}
 				var lapKey = lapKeys[i];
 				lapOverrides[lapKey].interactions = lapInteractionsData;
+			}
+		}
+		for (var i=0;i<lapOverrides.length;i++) {
+			var imgOverride = lapOverrides[i].imgData;
+			if (imgOverride.data && (imgOverride.data.override != null)) {
+				imgOverride.data = {
+					overrideKey: imgOverride.data.override,
+					overrideRef: lapOverrides[imgOverride.data.override]
+				}
 			}
 		}
 		restoreLapOverride(0);
