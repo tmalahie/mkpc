@@ -2976,8 +2976,10 @@ function initLapOverrideOptions() {
 	document.getElementById("lapoverride-menu").style.display = "block";
 	document.getElementById("lapoverride-more").style.display = "none";
 	document.getElementById("lapoverride-less").style.display = "none";
+	document.getElementById("lapoverride-copy").style.display = "none";
 	document.getElementById("lapoverride-btn-add").style.display = "block";
 	document.getElementById("lapoverride-btn-edit").style.display = (lapOverrides.length > 1) ? "block" : "none";
+	document.getElementById("lapoverride-btn-copy").style.display = (lapOverrides.length > 1) ? "block" : "none";
 	document.getElementById("lapoverride-btn-remove").style.display = (lapOverrides.length > 1) ? "block" : "none";
 }
 function initModeOverrideOptions() {
@@ -3192,6 +3194,90 @@ function showLapOverrideChange() {
 	document.getElementById("lapoverride-less").className = "lapoverride-mode-edit";
 	renderLapOverrideSelect();
 }
+function showLapOverrideCopy() {
+	document.getElementById("lapoverride-menu").style.display = "none";
+	document.getElementById("lapoverride-copy").style.display = "block";
+
+	var $from = document.getElementById("lapoverride-copy-from");
+	var $to = document.getElementById("lapoverride-copy-to");
+	$from.innerHTML = "";
+	$to.innerHTML = "";
+	for (var i=0;i<lapOverrides.length;i++) {
+		var $option = document.createElement("option");
+		$option.value = i;
+		$option.innerHTML = getLapOverrideLabel(i);
+		$from.appendChild($option);
+	}
+	for (var i=0;i<lapOverrides.length;i++) {
+		var $option = document.createElement("option");
+		$option.value = i;
+		$option.innerHTML = getLapOverrideLabel(i);
+		$to.appendChild($option);
+	}
+	handleLapCopySelect();
+}
+function handleLapCopySelect() {
+	var $from = document.getElementById("lapoverride-copy-from");
+	var $to = document.getElementById("lapoverride-copy-to");
+	var from = +$from.value;
+	var to = +$to.value;
+	if (from === to) {
+		document.getElementById("lapoverride-copy").classList.add("lapoverride-copy-invalid");
+		return;
+	}
+	document.getElementById("lapoverride-copy").classList.remove("lapoverride-copy-invalid");
+
+	var enabledComponents = [];
+	if (to) {
+		enabledComponents.push({
+			key: 'image',
+			label: language ? 'Image':'Image'
+		});
+	}
+	
+	var overrideFrom = lapOverrides[from];
+	var overrideTo = lapOverrides[to];
+	for (var key in editorTools) {
+		var editorTool = editorTools[key];
+
+		var selectedModeData = overrideFrom.modesData[key];
+		if (selectedModeData.isSet) {
+			var disableReason = editorTool.disableOverride && editorTool.disableOverride(editorTool, overrideTo);
+			if (disableReason) continue;
+			var $option = document.querySelector('#mode option[value="'+ key +'"]');
+			if (!$option) continue;
+			enabledComponents.push({
+				key: key,
+				label: $option.text
+			});
+		}
+	}
+	var $components = document.getElementById("lapoverride-copy-components");
+	var $previouslyUnchecked = document.querySelectorAll("#lapoverride-copy-components input[type='checkbox']:not(:checked)");
+	var previouslyUnchecked = {};
+	for (var i=0;i<$previouslyUnchecked.length;i++)
+		previouslyUnchecked[$previouslyUnchecked[i].value] = true;
+	$components.innerHTML = "";
+	for (var i=0;i<enabledComponents.length;i++) {
+		var $label = document.createElement("label");
+		var $checkbox = document.createElement("input");
+		$checkbox.type = "checkbox";
+		$checkbox.value = enabledComponents[i].key;
+		$checkbox.checked = !previouslyUnchecked[$checkbox.value];
+		var $span = document.createElement("span");
+		$span.innerHTML = enabledComponents[i].label;
+		$label.appendChild($checkbox);
+		$label.appendChild($span);
+		$components.appendChild($label);
+	}
+}
+function handleLapCopyComponentsAll(checked) {
+	var $components = document.getElementById("lapoverride-copy-components");
+	var $checkboxes = $components.querySelectorAll("input[type='checkbox']");
+	for (var i=0;i<$checkboxes.length;i++)
+		$checkboxes[i].checked = checked;
+}
+
 function showLapOverrideRemove() {
 	document.getElementById("lapoverride-less").className = "lapoverride-mode-delete";
 	renderLapOverrideSelect();
@@ -3272,6 +3358,53 @@ function lapOverrideExists(opts) {
 	}
 	return null;
 }
+var copiedOverrideHandler;
+function copyLapOverride() {
+	var $from = document.getElementById("lapoverride-copy-from");
+	var $to = document.getElementById("lapoverride-copy-to");
+	var from = +$from.value;
+	var to = +$to.value;
+	
+	var overrideFrom = lapOverrides[from];
+	var overrideTo = lapOverrides[to];
+
+	var $checkedComponents = document.querySelectorAll("#lapoverride-copy-components input[type='checkbox']:checked");
+	var checkedComponents = {};
+	for (var i=0;i<$checkedComponents.length;i++)
+		checkedComponents[$checkedComponents[i].value] = true;
+	for (var key in editorTools) {
+		if (!checkedComponents[key]) continue;
+		overrideTo.modesData[key].data = deepCopy(overrideFrom.modesData[key].data);
+		overrideTo.modesData[key].isSet = true;
+	}
+	if (checkedComponents.image) {
+		overrideTo.imgData = {
+			src: overrideFrom.imgData.src
+		}
+		if (overrideFrom.imgData.data && overrideFrom.imgData.data.overrideKey != null) {
+			overrideTo.imgData.data = {
+				overrideKey: overrideFrom.imgData.data.overrideKey,
+				overrideRef: overrideFrom.imgData.data.overrideRef
+			}
+		}
+		else {
+			overrideTo.imgData.data = {
+				overrideKey: from,
+				overrideRef: lapOverrides[from]
+			}
+		}
+	}
+	if (selectedLapOverride === to) {
+		restoreLapOverride(to);
+		reapplyCurrentLapOverride();
+	}
+	document.getElementById("lapoverride-copy").classList.add("success");
+	clearTimeout(copiedOverrideHandler);
+	copiedOverrideHandler = setTimeout(function() {
+		document.getElementById("lapoverride-copy").classList.remove("success");
+	}, 1000);
+	changes = true;
+}
 function assignLapOverrideSettings(lapId) {
 	var lapOverride = lapOverrides[lapId];
 	var $checkbox = document.getElementById("lapoverride-interactions-check");
@@ -3333,6 +3466,9 @@ function selectLapOverride(newLapOverride, opts) {
 	
 	selectedLapOverride = newLapOverride;
 	applyLapOverrideSelector();
+	reapplyCurrentLapOverride();
+}
+function reapplyCurrentLapOverride() {
 	var nextMode = currentMode;
 	for (var key in editorTools) {
 		var editorTool = editorTools[key];
@@ -4111,17 +4247,32 @@ function foreachCurrentImg(callback) {
 	}
 
 	storeCurrentLapOverride();
+	var clonedLapOverrides = {};
 	for (var lapId=selectedLapOverride+1;lapId<lapOverrides.length;lapId++) {
 		var lapOverride = lapOverrides[lapId];
 		if (lapOverride.imgData) break;
+		clonedLapOverrides[lapId] = lapOverride;
+	}
+	var currentLapOverride = lapOverrides[selectedLapOverride];
+	for (var i=1;i<lapOverrides.length;i++) {
+		var lapOverride = lapOverrides[i];
+		if (lapOverride.imgData && lapOverride.imgData.data.overrideRef === currentLapOverride) {
+			lapOverride.imgData.src = currentLapOverride.imgData.src;
+			clonedLapOverrides[i] = lapOverride;
+		}
+	}
+	Object.entries(clonedLapOverrides).forEach((entry) => {
+		var lapId = entry[0];
+		var lapOverride = entry[1];
 		restoreLapOverride(lapId);
+		var lapOverride = lapOverrides[lapId];
 		modesData = lapOverride.modesData;
 		for (var key in editorTools) {
 			if (!modesData[key].isSet) continue;
 			var editorTool = editorTools[key];
 			callback(editorTool);
 		}
-	}
+	});
 	restoreLapOverride(selectedLapOverride);
 }
 function handleImageUpdate(src, data, callback) {
@@ -4198,7 +4349,7 @@ function saveData() {
 		payload.lapOverrides.push(lapPayload);
 		lapPayloadIds[lapKey] = payload.lapOverrides.length;
 		if (lapOverride.imgData)
-			imgOverrides[lapKey] = getImgOverridePayload(lapOverride.imgData);
+			imgOverrides[lapPayloadIds[lapKey]] = getImgOverridePayload(lapOverride.imgData);
 	}
 	for (var lapKey=1;lapKey<lapOverrides.length;lapKey++) {
 		var lapPayloadId = lapPayloadIds[lapKey];
@@ -4214,6 +4365,14 @@ function saveData() {
 				lapInteractions.push(interactionId);
 		}
 		lapPayload.meta.interactions = lapInteractions;
+	}
+	for (var lapKey in imgOverrides) {
+		var imgOverride = imgOverrides[lapKey];
+		if (imgOverride.override) {
+			imgOverride.override = lapPayloadIds[imgOverride.override];
+			if (!imgOverride.override)
+				delete imgOverrides[lapKey];
+		}
 	}
 	restoreLapOverride(selectedLapOverride);
 	var $mask = createMask();
@@ -4361,7 +4520,7 @@ function restoreData(payload) {
 		}
 		for (var i=0;i<lapOverrides.length;i++) {
 			var imgOverride = lapOverrides[i].imgData;
-			if (imgOverride.data && (imgOverride.data.override != null)) {
+			if (imgOverride && imgOverride.data && (imgOverride.data.override != null)) {
 				imgOverride.data = {
 					overrideKey: imgOverride.data.override,
 					overrideRef: lapOverrides[imgOverride.data.override]

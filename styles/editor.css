@@ -1178,6 +1178,15 @@ embed,#ytplayer {
 	background-color: #C9D9FF;
 	color: #17C;
 }
+#lapoverride-btn-copy {
+	background-color: #48c;
+	color: #BCF;
+	border: solid 1px #05A;
+}
+#lapoverride-btn-copy:hover {
+	background-color: #17C;
+	color: #C9D9FF;
+}
 #lapoverride-btn-remove {
 	background-color: #F96;
 	color: #C24;
@@ -1247,6 +1256,62 @@ embed,#ytplayer {
 }
 #lapoverride-less .popup-buttons {
 	margin-bottom: 10px;
+}
+#lapoverride-copy {
+	display: none;
+}
+#lapoverride-copy h1 {
+	margin-top: 10px;
+	margin-bottom: 15px;
+	color: #058;
+}
+#lapoverride-copy .lapoverride-copy-options {
+	margin-bottom: 10px;
+}
+#lapoverride-copy h2 {
+	margin-top: 0px;
+	margin-bottom: 5px;
+}
+#lapoverride-copy.lapoverride-copy-invalid .lapoverride-copy-hide-on-invalid {
+	display: none;
+}
+#lapoverride-copy-components {
+	display: flex;
+	justify-content: space-evenly;
+	flex-wrap: wrap;
+	column-gap: 0.5em;
+	margin-bottom: 5px;
+}
+#lapoverride-copy-components::after {
+	content: "";
+	width: 120px;
+}
+#lapoverride-copy-components-all-wrapper {
+	display: block;
+	margin-bottom: 5px;
+}
+#lapoverride-copy-components label {
+	display: inline-block;
+	width: 120px;
+	text-align: left;
+}
+#lapoverride-copy-components label > span {
+	display: inline-block;
+	margin-left: 0.25em;
+}
+#lapoverride-copy-success {
+	display: none;
+	opacity: 0.7;
+	cursor: default;
+	background-color: #6C9;
+	color: white;
+	border-color: #4A8;
+}
+#lapoverride-copy.success #lapoverride-copy-success {
+	display: inline-block;
+}
+#lapoverride-copy.success #lapoverride-copy-submit {
+	display: none;
 }
 #shortcut-options {
 	padding: 0;

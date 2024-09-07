@@ -767,6 +767,7 @@ function startDirChange(e) {
 	editorTool.data.orientation = parseInt(e.value);
 	editorTool.data.mirror = (e.value.lastIndexOf("r")!=-1);
 	replaceStartPositions(editorTool);
+	if (!editorTool.data.pos) return;
 	editorTool.state.startPositionsGroup.reposition({
 		theta: editorTool.data.theta
 	});

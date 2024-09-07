@@ -446,6 +446,7 @@ if (isset($_GET['i'])) {
 					echo '<div class="lapoverride-manage">';
 					echo '<a id="lapoverride-btn-add" href="javascript:showLapOverrideAdd()">'. ($language ? 'Add a lap override':'Ajouter un modificateur') .'</a>';
 					echo '<a id="lapoverride-btn-edit" href="javascript:showLapOverrideChange()">'. ($language ? 'Edit a lap override':'Changer un modificateur') .'</a>';
+					echo '<a id="lapoverride-btn-copy" href="javascript:showLapOverrideCopy()">'. ($language ? 'Copy an override':'Copier un modificateur') .'</a>';
 					echo '<a id="lapoverride-btn-remove" href="javascript:showLapOverrideRemove()">'. ($language ? 'Delete an override':'Supprimer un modificateur') .'</a>';
 					echo '</div>';
 					?>
@@ -476,6 +477,27 @@ if (isset($_GET['i'])) {
 							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
 							<button class="options lapoverride-more-add" onclick="addLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
 							<button class="options lapoverride-more-edit" onclick="editLapOverride()"><?php echo $language ? 'Apply':'Appliquer'; ?></button>
+						</div>
+					</div>
+				</div>
+				<div id="lapoverride-copy" class="lapoverride-copy-invalid">
+					<h1><?php echo $language ? 'Copy an override':'Copier un modificateur'; ?></h1>
+					<div>
+						<div class="lapoverride-copy-options">
+							<?php echo $language ? 'Copy from:' : 'Copier depuis :'; ?>
+							<select id="lapoverride-copy-from" onchange="handleLapCopySelect()"></select>
+							<?php echo $language ? 'to:' : 'vers :'; ?>
+							<select id="lapoverride-copy-to" onchange="handleLapCopySelect()"></select>
+						</div>
+						<div class="lapoverride-copy-hide-on-invalid">
+							<h2><?php echo $language ? 'Components to copy:' : 'Copier les composants :'; ?></h2>
+							<label id="lapoverride-copy-components-all-wrapper"><input type="checkbox" checked="checked" id="lapoverride-copy-components-all" onchange="handleLapCopyComponentsAll(this.checked)" /> <?php echo $language ? 'Select/Unselect all' : 'Tout sélectionne/Désélectionner'; ?></label>
+							<div id="lapoverride-copy-components"></div>
+						</div>
+						<div class="popup-buttons lapoverride-copy-hide-on-invalid">
+							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="copyLapOverride()" id="lapoverride-copy-submit"><?php echo $language ? 'Submit':'Valider'; ?></button>
+							<button class="options" id="lapoverride-copy-success" disabled="disabled"><?php echo $language ? 'Copied':'Copié'; ?> ✓</button>
 						</div>
 					</div>
 				</div>
