@@ -489,7 +489,7 @@ body.theme-dark {
 }
 #lapoverride-interactions-list {
 	margin-left: 10px;
-	max-height: 100px;
+	max-height: 90px;
 	overflow: auto;
 }
 #lapoverride-interactions-list label {

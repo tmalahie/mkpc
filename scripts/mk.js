@@ -7843,6 +7843,8 @@ var itemBehaviors = {
 							fNewPosX = tCible.x;
 							fNewPosY = tCible.y;
 							fSprite.ailap = getCurrentLapId(tCible);
+							delete fSprite.ailapt;
+							delete fSprite.ailapc;
 							if (tCible.using.length && (tCible.using[0].type != "fauxobjet")) {
 								var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tCible.rotation)*Math.PI/180;
 								var pi2 = Math.PI*2;

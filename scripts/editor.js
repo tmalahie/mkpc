@@ -3368,6 +3368,9 @@ function copyLapOverride() {
 	var overrideFrom = lapOverrides[from];
 	var overrideTo = lapOverrides[to];
 
+	if (selectedLapOverride === from)
+		storeCurrentLapOverride();
+
 	var $checkedComponents = document.querySelectorAll("#lapoverride-copy-components input[type='checkbox']:checked");
 	var checkedComponents = {};
 	for (var i=0;i<$checkedComponents.length;i++)

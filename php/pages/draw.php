@@ -491,8 +491,8 @@ if (isset($_GET['i'])) {
 						</div>
 						<div class="lapoverride-copy-hide-on-invalid">
 							<h2><?php echo $language ? 'Components to copy:' : 'Copier les composants :'; ?></h2>
-							<label id="lapoverride-copy-components-all-wrapper"><input type="checkbox" checked="checked" id="lapoverride-copy-components-all" onchange="handleLapCopyComponentsAll(this.checked)" /> <?php echo $language ? 'Select/Unselect all' : 'Tout sélectionne/Désélectionner'; ?></label>
 							<div id="lapoverride-copy-components"></div>
+							<label id="lapoverride-copy-components-all-wrapper"><input type="checkbox" checked="checked" id="lapoverride-copy-components-all" onchange="handleLapCopyComponentsAll(this.checked)" /> <?php echo $language ? 'Select/Unselect all' : 'Tout sélectionne/Désélectionner'; ?></label>
 						</div>
 						<div class="popup-buttons lapoverride-copy-hide-on-invalid">
 							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
