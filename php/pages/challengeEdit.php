@@ -1497,12 +1497,12 @@ $(function() {
 });
 function getItemOptions() {
 	if (clCourse === "battle")
-		return ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops"];
+		return ["fauxobjet","banane","carapacerouge","carapace","bobomb","bananeX3","carapaceX3","carapacebleue","carapacerougeX3","megachampi","etoile","champi","champior","champiX3","bloops","pow"];
 	else
-		return ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
+		return ["fauxobjet","banane","carapace","bananeX3","carapacerouge","champi","carapaceX3","poison","bobomb","bloops","pow","champiX3","carapacerougeX3","megachampi","etoile","champior","carapacebleue","billball","eclair"];
 }
 function getItemHitOptions() {
-	var res = ["fauxobjet","banane","carapace","carapacerouge","bobomb","carapacebleue","megachampi","etoile"];
+	var res = ["fauxobjet","banane","carapace","carapacerouge","bobomb","pow","carapacebleue","megachampi","etoile"];
 	if (clCourse === "battle")
 		res.push("champi");
 	else {

@@ -1405,6 +1405,9 @@ function getChallengeItemNames(&$scope) {
 		'bobomb' => array(
 			'label' => $language ? 'a bobomb' : 'une bobomb'
 		),
+        'pow' => array(
+            'label' => $language ? 'a POW block' : 'un block POW'
+        ),
 		'megachampi' => array(
 			'label' => $language ? 'a mega mushroom' : 'un mega champi'
 		),
