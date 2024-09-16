@@ -5568,7 +5568,7 @@ function quitter() {
 	displayCommands();
 	removeGameMusics();
 	removeHUD();
-	clearResources();
+	if (oMap) clearResources();
 	for (var i=0;i<strPlayer.length;i++) {
 		$mkScreen.removeChild(oContainers[i]);
 		var oInfos = document.getElementById("infos"+i);
