@@ -3502,12 +3502,15 @@ function startGame() {
 				for (var i=0;i<lMap.arme.length;i++)
 					initItemSprite(lMap.arme[i]);
 			}
-			else if (lMap === oMap)
+			else if (pMap.arme) {
+				delete pMap.arme;
 				lMap.arme = [];
+			}
 		});
 	}
 	else {
-		foreachLMap(function(lMap) {
+		foreachLMap(function(lMap,pMap) {
+			delete pMap.arme;
 			lMap.arme = [];
 		});
 		for (var i=0;i<aKarts.length;i++) {
