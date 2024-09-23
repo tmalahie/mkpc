@@ -7208,7 +7208,7 @@ var itemBehaviors = {
 
 			for (let i = 0; i < aKarts.length; i++) {
 				if (fSprite.affect[i])
-					playPow(i, aKarts[i], oKartOwner, fSprite.countdown, fSprite.countstate);
+					playPow(i, aKarts[i], oKartOwner, fSprite);
 			}
 
 			if (fSprite.countdown >= sTime) {
@@ -14932,7 +14932,7 @@ function touche_cbleue_aux(iX,iY, oBox) {
 }
 
 function powCpuDodge(oKart) {
-	let kartZ = oKart.z;
+	let dodgeZ = oKart.z;
 
 	if (!oKart.jumped) {
 		let n = Math.pow(2, -(iDificulty - 4)) * 0.5;
@@ -14940,18 +14940,18 @@ function powCpuDodge(oKart) {
 			return;
 		}
 		else {
-			kartZ = 1 - n + (Math.random() * 1) * (iDificulty / 12);
-			if (kartZ < 0) kartZ = 0.1;
-			else if (kartZ > 1) kartZ = 1;
+			dodgeZ = 1 - n + Math.random() * (iDificulty / 12);
+			if (dodgeZ < 0) dodgeZ = 0.1;
+			else if (dodgeZ > 1) dodgeZ = 1;
 		}
 
-		oKart.z = kartZ;
-		oKart.heightinc = kartZ / 2;
+		oKart.z = dodgeZ;
+		oKart.heightinc = dodgeZ / 2;
 		oKart.jumped = true;
 	}
 }
 
-function powEffect(i, oKart) {
+function powEffect(i, oKart, fSprite) {
 	let fullHit = oKart.z == 0;
 	let spinPower = fullHit ? 62 : Math.floor(Math.abs((oKart.z - 1.2) * 25) + 20);
 	if (spinPower % 2 === 1) spinPower++;
@@ -14964,24 +14964,27 @@ function powEffect(i, oKart) {
 	stopDrifting(i);
 
 	if (fullHit) {
-		aKarts[i].z = 1;
-		aKarts[i].heightinc = 0.5;
-		aKarts[i].jumped = true;
+		oKart.z = 1;
+		oKart.heightinc = 0.5;
+		oKart.jumped = true;
 		handleItemHit(oKart, "pow");
-	}
 
-	if (course === "BB" && fullHit)
-		popBalloon(oKart);
+		if (course === "BB") {
+			if (clLocalVars.myItems && (clLocalVars.myItems.indexOf(fSprite) != -1))
+				incChallengeHits(oKart);
+			popBalloon(oKart);
+		}
+	}
 }
 
-function playPow(i, oKart, oKartOwner, countdown, countstate) {
-	if (countstate === 5 && countdown === 10)
+function playPow(i, oKart, oKartOwner, fSprite) {
+	if (fSprite.countstate === 5 && fSprite.countdown === 10)
 		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.tourne && !friendlyFire(oKart, oKartOwner))
 			powCpuDodge(oKart);
 	
-	if (countstate === 6 && countdown === 1)
-		if (oKart != oKartOwner && !oKart.protect && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner))
-			powEffect(i, oKart);
+	if (fSprite.countstate === 6 && fSprite.countdown === 1)
+		if (oKart != oKartOwner && !oKart.protect && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner) && (!isOnline || !i || oKart.controller == identifiant))
+			powEffect(i, oKart, fSprite);
 }
 
 function touche_asset(aPosX,aPosY, iX,iY) {
