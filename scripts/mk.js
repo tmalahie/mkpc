@@ -2577,6 +2577,10 @@ function arme(ID, backwards, forwards) {
 			case "bloops" :
 			addNewItem(oKart, {type:"bloops", owner:oKart.id});
 			break;
+
+			case "pow" :
+			addNewItem(oKart, {type:"pow", owner:oKart.id});
+			break;
 		}
 
 		if (tpsUse)
@@ -7069,6 +7073,173 @@ var itemBehaviors = {
 				$mkScreen.style.opacity = 1;
 		}
 	},
+	"pow": {
+		size: 1,
+		sync: [intType("owner")],
+		sprite: false,
+		countdowns: [
+			2, // 0: appear
+			1, // 1: scale up (boom 1)
+			12, // 2: scale to normal + wait
+			1, // 3: scale up, move (boom 2)
+			1, // 4: scale to normal, move again
+			12, // 5: wait
+			1, // 6: scale up, move, damage (boom 3)
+			1, // 7: move
+			3 // 8: disappear
+		],
+		onlineResync: false,
+		move: function(fSprite) {
+			if (!fSprite.affect) {
+				let oKartOwner = aKarts.find(function(oKartOwner) {
+					return oKartOwner.id == fSprite.owner;
+				});
+				fSprite.affect = new Array(aKarts.length);
+				for (let i = 0; i < aKarts.length; i++) {
+					let oKart = aKarts[i];
+					fSprite.affect[i] = oKart.place < oKartOwner.place && oKart != oKartOwner;
+				}
+			}
+
+			if (!fSprite.sprites) {
+				if (items.pow.length > 1 && itemDistribution.powx2 != 1) {
+					detruit(fSprite);
+					return;
+				}
+				fSprite.countdown = 0;
+				fSprite.countstate = 0;
+				let oKartOwner = aKarts.find(function(oKartOwner) {
+					return oKartOwner.id == fSprite.owner;
+				});
+				if (!oKartOwner) return false;
+				fSprite.sprites = new Array(oPlayers.length);
+				for (var i=0;i<aKarts.length;i++) {
+					var oKart = aKarts[i];
+
+					if (!iTime && iSfx && !finishing && oKart === oPlayers[0])
+						playSoundEffect("musics/events/pow.mp3");
+
+					if (oKart === oKartOwner || !friendlyFire(oKart,oKartOwner)) {
+						if (!onlineSpectatorId) { // i < oPlayers.length
+							var oSprites = {
+								"pow": {
+									elt: document.createElement("img"),
+									owner: fSprite.owner
+								}
+							};
+							if (i < oPlayers.length) {
+								var oPow = oSprites.pow.elt;
+								oPow.src = "images/sprites/sprite_pow.png";
+								oPow.className = "pixelated";
+								oPow.style.position = "absolute";
+								oPow.style.width = (iScreenScale*7) +"px";
+								oSprites.pow.x = 36;
+								oSprites.pow.y = 14;
+								oPow.style.zIndex = 19003;
+								oPow.style.transition = "left "+ (SPF/1000) +"s ease-out, top "+ (SPF/1000) +"s ease-out, transform "+ (SPF/1000) +"s ease, height "+ (SPF/1000) +"s ease";
+								oPow.style.opacity = friendlyFire(oKart,oKartOwner) ? 1 : 0;
+								oContainers[i].appendChild(oPow);
+								fSprite.sprites[i] = oSprites;
+							}
+						}
+						oKart.pow = fSprite;
+					}
+				}
+			}
+
+			var itemBehavior = itemBehaviors["pow"];
+			var sTime = itemBehavior.countdowns[fSprite.countstate];
+			var iTime = fSprite.countdown/sTime;
+			fSprite.countdown++;
+			var jTime = fSprite.countdown/sTime;
+
+			let oKartOwner = aKarts.find(function(oKartOwner) {
+				return oKartOwner.id == fSprite.owner;
+			});
+			if (!oKartOwner) return false;
+
+			for (var i=0;i<fSprite.sprites.length;i++) {
+				var iSprite = fSprite.sprites[i];
+				var oKart = aKarts[i];
+
+				if (iSprite && (fSprite.affect[i] || oKart == oKartOwner)) {
+					var oPow = iSprite.pow;
+					if (!oPow) continue;
+					switch (fSprite.countstate) {
+						
+					case 0:
+						oPow.elt.style.opacity = jTime;
+						oPow.elt.style.transform = "scale(" + jTime + ")";
+						break;
+					case 1:
+						oPow.elt.style.transform = "scale(1.4)";
+						break;
+					case 2:
+						oPow.elt.style.transform = "scale(1.0)";
+						break;
+					case 3:
+						oPow.elt.style.transform = "scale(1.6)";
+						oPow.elt.style.height = (iScreenScale*5)+"px";
+						oPow.y += 0.75;
+						break;
+					case 4:
+						oPow.elt.style.transform = "scale(1.0)";
+						oPow.elt.style.height = (iScreenScale*4)+"px";
+						oPow.y += 0.75;
+						break;
+					case 5:
+						break;
+					case 6:
+						oPow.elt.style.transform = "scale(1.8)";
+						oPow.elt.style.height = (iScreenScale*3)+"px";
+						oPow.y += 0.75;
+						break;
+					case 7:
+						oPow.elt.style.height = (iScreenScale*2)+"px";
+						oPow.y += 0.75;
+						break;
+					case 8:
+						oPow.elt.style.transform = "scale(" + (1 - jTime) + ")";
+						oPow.elt.style.opacity = 1 - jTime;
+						break;
+					}
+
+					oPow.elt.style.left = (iScreenScale*oPow.x) +"px";
+					oPow.elt.style.top = (iScreenScale*oPow.y) +"px";
+				}
+			}
+
+			for (let i = 0; i < aKarts.length; i++) {
+				if (fSprite.affect[i])
+					playPow(i, aKarts[i], oKartOwner, fSprite);
+			}
+
+			if (fSprite.countdown >= sTime) {
+				fSprite.countstate++;
+				fSprite.countdown = 0;
+				if (fSprite.countstate >= itemBehavior.countdowns.length)
+					detruit(fSprite);
+			}
+		},
+		"del": function(fSprite) {
+			if (itemDistribution.powdelay != 0)
+				nextPowCooldown = 450;
+			if (!fSprite.sprites) return;
+			for (var i=0;i<fSprite.sprites.length;i++) {
+				var iSprite = fSprite.sprites[i];
+				if (iSprite) 
+					if (iSprite.pow)
+						oContainers[i].removeChild(iSprite.pow.elt);
+			}
+			for (var i=0;i<aKarts.length;i++) {
+				if (aKarts[i].pow === fSprite) {
+					for (var j=0;j<oPlayers.length;j++)
+						aKarts[i].sprite[j].img.style.filter = "";
+					delete aKarts[i].pow;
+				}
+			}
+		}
+	},
 	"bloops": {
 		size: 1,
 		sync: [intType("owner")],
@@ -8206,7 +8377,7 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","champi","etoile"];
+var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile"];
 var items = {};
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
@@ -10987,6 +11158,12 @@ function friendlyHit(team1,team2) {
 
 function addNewBalloon(oKart,team) {
 	oKart.ballons.push(createBalloonSprite(oKart,team));
+}
+function popBalloon(oKart) {
+	let lg = oKart.ballons.length - 1;
+	if (lg < 0) return;
+	oKart.ballons[lg][0].suppr();
+	oKart.ballons.pop();
 }
 function inflateNewBalloons(oKart) {
 	var f = 1+Math.round(Math.random());
@@ -14069,7 +14246,8 @@ var itemDistributions = {
 			"champi": 3,
 			"champior": 1,
 			"champiX3": 1,
-			"bloops": 1
+			"bloops": 1,
+			"pow": 1
 		}]
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
@@ -14097,7 +14275,8 @@ var itemDistributions = {
 			"champi": 1,
 			"champior": 1,
 			"champiX3": 1,
-			"bloops": 1
+			"bloops": 1,
+			"pow": 1
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
@@ -14184,32 +14363,37 @@ var itemDistributions = {
 			"champi": 5,
 			"carapacerouge": 4,
 			"champiX3": 3,
-			"carapacerougeX3": 3
+			"carapacerougeX3": 3,
+			"pow": 1
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
 			"champiX3": 6,
-			"megachampi": 3
+			"megachampi": 3,
+			"pow": 2
 		}, {
 			"champiX3": 8,
 			"carapacerougeX3": 8,
 			"megachampi": 6,
 			"etoile": 4,
 			"champior": 2,
-			"carapacebleue": 5
+			"carapacebleue": 5,
+			"pow": 3
 		}, {
 			"megachampi": 7,
 			"champiX3": 6,
 			"etoile": 5,
 			"champior": 3,
-			"carapacebleue": 5
+			"carapacebleue": 5,
+			"pow": 2
 		}, {
 			"megachampi": 8,
 			"champiX3": 6,
 			"etoile": 6,
 			"billball": 3,
 			"champior": 3,
-			"carapacebleue": 5
+			"carapacebleue": 5,
+			"pow": 2
 		}, {
 			"etoile": 6,
 			"megachampi": 6,
@@ -14220,7 +14404,7 @@ var itemDistributions = {
 			"billball": 4,
 			"etoile": 3,
 			"eclair": 6,
-			"champior": 5
+			"champior": 5,
 		}]
 	}, {
 		name: toLanguage("Aggressive mode", "Mode explosif"),
@@ -14259,31 +14443,36 @@ var itemDistributions = {
 			"champi": 5,
 			"bobomb": 6,
 			"champiX3": 1,
-			"carapacerougeX3": 6
+			"carapacerougeX3": 6,
+			"pow": 2
 		}, {
 			"champi": 4,
 			"champiX3": 3,
 			"carapacerougeX3": 10,
-			"megachampi": 3
+			"megachampi": 3,
+			"pow": 2
 		}, {
 			"champiX3": 4,
 			"carapacerougeX3": 10,
 			"megachampi": 6,
 			"etoile": 4,
-			"carapacebleue": 12
+			"carapacebleue": 12,
+			"pow": 4
 		}, {
 			"champiX3": 3,
 			"megachampi": 7,
 			"etoile": 5,
 			"champior": 1,
-			"carapacebleue": 10
+			"carapacebleue": 10,
+			"pow": 3
 		}, {
 			"champiX3": 3,
 			"megachampi": 8,
 			"etoile": 6,
 			"champior": 1,
 			"carapacebleue": 10,
-			"billball": 5
+			"billball": 5,
+			"pow": 2
 		}, {
 			"megachampi": 6,
 			"etoile": 6,
@@ -14743,6 +14932,62 @@ function touche_cbleue_aux(iX,iY, oBox) {
 			return true;
 	}
 	return false;
+}
+
+function powCpuDodge(oKart) {
+	let dodgeZ = oKart.z;
+
+	if (!oKart.jumped) {
+		let n = Math.pow(2, -(iDificulty - 4)) * 0.5;
+		if (Math.random() < n) {
+			return;
+		}
+		else {
+			dodgeZ = 1 - n + Math.random() * (iDificulty / 12);
+			if (dodgeZ < 0) dodgeZ = 0.1;
+			else if (dodgeZ > 1) dodgeZ = 1;
+		}
+
+		oKart.z = dodgeZ;
+		oKart.heightinc = dodgeZ / 2;
+		oKart.jumped = true;
+	}
+}
+
+function powEffect(i, oKart, fSprite) {
+	let fullHit = oKart.z == 0;
+	let spinPower = fullHit ? 62 : Math.floor(Math.abs((oKart.z - 1.2) * 25) + 20);
+	if (spinPower % 2 === 1) spinPower++;
+
+	loseUsingItems(oKart);
+	dropCurrentItem(oKart);
+	oKart.spin(spinPower);
+	oKart.champi = 0;
+	delete oKart.champiType;
+	stopDrifting(i);
+
+	if (fullHit) {
+		oKart.z = 1;
+		oKart.heightinc = 0.5;
+		oKart.jumped = true;
+		handleItemHit(oKart, "pow");
+
+		if (course === "BB") {
+			if (clLocalVars.myItems && (clLocalVars.myItems.indexOf(fSprite) != -1))
+				incChallengeHits(oKart);
+			popBalloon(oKart);
+		}
+	}
+}
+
+function playPow(i, oKart, oKartOwner, fSprite) {
+	if (fSprite.countstate === 5 && fSprite.countdown === 10)
+		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.tourne && !friendlyFire(oKart, oKartOwner))
+			powCpuDodge(oKart);
+	
+	if (fSprite.countstate === 6 && fSprite.countdown === 1)
+		if (oKart != oKartOwner && !oKart.protect && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner) && (!isOnline || !i || oKart.controller == identifiant))
+			powEffect(i, oKart, fSprite);
 }
 
 function touche_asset(aPosX,aPosY, iX,iY) {
@@ -15331,9 +15576,7 @@ function resetDatas() {
 										addNewBalloon(oKart);
 									}
 									while (oKart.ballons.length > value) {
-										var lg = oKart.ballons.length-1;
-										oKart.ballons[lg][0].suppr();
-										oKart.ballons.pop();
+										popBalloon(oKart);
 									}
 								}
 								break;
@@ -15726,9 +15969,7 @@ function resetDatas() {
 						if (iTeamPlay ? (oKart.team!=firstTeam):(oKart.id != firstID)) {
 							if (oKart.ballons.length && !oKart.tourne) {
 								do {
-									var lg = oKart.ballons.length-1;
-									oKart.ballons[lg][0].suppr();
-									oKart.ballons.pop();
+									popBalloon(oKart);
 								} while (oKart.ballons.length);
 								oKart.spin(20);
 								if (oKart != oPlayers[0])
@@ -15774,8 +16015,7 @@ function loseBall(i) {
 	if (course == "BB") {
 		var lg = aKarts[i].ballons.length-1;
 		if (!aKarts[i].tourne && aKarts[i].ballons[lg]) {
-			aKarts[i].ballons[lg][0].suppr();
-			aKarts[i].ballons.pop();
+			popBalloon(aKarts[i]);
 			if (!aKarts[i].cpu) {
 				clLocalVars.lostBalloons++;
 				updateChallengeHud("balloons", clLocalVars.lostBalloons);
@@ -16228,6 +16468,8 @@ function move(getId, triggered) {
 						forbiddenItems["carapacerougeX3"] = 1;
 					}
 					if (timer < 375) {
+						if (itemDistribution.powstart != 1)
+							forbiddenItems["pow"] = 1;
 						if (itemDistribution.lightningstart != 1)
 							forbiddenItems["eclair"] = 1;
 						if (itemDistribution.blueshellstart != 1) {
@@ -16243,8 +16485,12 @@ function move(getId, triggered) {
 						carapacenoire: 1,
 						eclair: 1,
 						bloops: 1,
+						pow: 1,
 						bananeX3: 1
 					};
+					if (itemDistribution.powx2 == 1) {
+						delete preventDuplicateItems["pow"];
+					}
 					if (itemDistribution.lightningx2 == 1)
 						delete preventDuplicateItems["eclair"];
 					if (itemDistribution.blueshellx2 == 1) {
@@ -16269,6 +16515,8 @@ function move(getId, triggered) {
 						forbiddenItems["eclair"] = 1;
 					if (items.bloops.length)
 						forbiddenItems["bloops"] = 1;
+					if (items.pow.length || nextPowCooldown > 0)
+						forbiddenItems["pow"] = 1;
 					if (oKart.arme && (itemDistribution.doubleitemx2 != 1))
 						forbiddenItems[oKart.arme] = 1;
 					if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
@@ -18716,13 +18964,15 @@ function ai(oKart) {
 		}
 	}
 }
-var nextBlueShellCooldown;
+var nextBlueShellCooldown, nextPowCooldown;
 function moveItems() {
 	collisionTest = COL_OBJ;
 	collisionTeam = undefined;
 	clLocalVars.currentKart = undefined;
 	if (nextBlueShellCooldown)
 		nextBlueShellCooldown--;
+	if (nextPowCooldown)
+		nextPowCooldown--;
 
 	var lapId = getCurrentLapId(getPlayerAtScreen(0));
 	for (var key in itemBehaviors) {
@@ -23671,7 +23921,7 @@ function selectItemScreen(oScr, callback, options) {
 			var oInput = document.createElement("input");
 			oInput.type = "number";
 			oInput.value = jDistribution[itemName] || "";
-			oInput.style.width = Math.round(iScreenScale*3.5) +"px";
+			oInput.style.width = Math.round(iScreenScale*3.4) +"px";
 			oInput.className = "noarrow";
 			oInput.style.backgroundColor = "black";
 			oInput.style.color = "white";
@@ -23820,15 +24070,19 @@ function selectItemScreen(oScr, callback, options) {
 		}
 		return false;
 	}
+
 	var advancedOptions = {
 		"algorithm": options.algorithm || "",
+		"prevent-pow-x2": options.powx2 != 1,
 		"prevent-blueshell-x2": options.blueshellx2 != 1,
 		"prevent-lightning-x2": options.lightningx2 != 1,
+		"pow-cooldown": options.powdelay != 0,
 		"blueshell-cooldown": options.blueshelldelay != 0,
 		"lightning-cooldown": options.lightningdelay != 0,
-		"lightning-start": options.lightningstart != 1,
+		"pow-start": options.powstart != 1,
 		"blueshell-start": options.blueshellstart != 1,
-		"prevent-doubleitem-x2": options.doubleitemx2 != 1,
+		"lightning-start": options.lightningstart != 1,
+		"prevent-doubleitem-x2": options.doubleitemx2 != 1
 	};
 
 	function hasAdvancedOptions() {
@@ -23838,21 +24092,28 @@ function selectItemScreen(oScr, callback, options) {
 			return true;
 		return false;
 	}
+
 	function applyAdvancedOptions(newDistribution) {
 		if (advancedOptions["algorithm"])
 			newDistribution.algorithm = advancedOptions["algorithm"];
+		if (!advancedOptions["prevent-pow-x2"])
+			newDistribution.powx2 = 1;
 		if (!advancedOptions["prevent-blueshell-x2"])
 			newDistribution.blueshellx2 = 1;
 		if (!advancedOptions["prevent-lightning-x2"])
 			newDistribution.lightningx2 = 1;
+		if (!advancedOptions["pow-cooldown"])
+			newDistribution.powdelay = 0;
 		if (!advancedOptions["blueshell-cooldown"])
 			newDistribution.blueshelldelay = 0;
 		if (!advancedOptions["lightning-cooldown"])
 			newDistribution.lightningdelay = 0;
-		if (!advancedOptions["lightning-start"])
-			newDistribution.lightningstart = 1;
+		if (!advancedOptions["pow-start"])
+			newDistribution.powstart = 1;
 		if (!advancedOptions["blueshell-start"])
 			newDistribution.blueshellstart = 1;
+		if (!advancedOptions["lightning-start"])
+			newDistribution.lightningstart = 1;
 		if (!advancedOptions["prevent-doubleitem-x2"])
 			newDistribution.doubleitemx2 = 1;
 	}
@@ -23889,6 +24150,12 @@ function selectItemScreen(oScr, callback, options) {
 						'<h2>'+ toLanguage("Concurrent items", "Objets simultanés") +'</h2>'+
 						'<div class="item-option">'+
 							'<div>'+
+								'<input type="checkbox" id="item-options-pow" name="prevent-pow-x2" />'+
+							'</div>'+
+							'<label for="item-options-pow">'+ toLanguage("Prevent 2 players from having a POW block", "Empêcher 2 joueurs d'avoir un block POW") +'</label>'+
+						'</div>'+
+						'<div class="item-option">'+
+							'<div>'+
 								'<input type="checkbox" id="item-options-blueshell" name="prevent-blueshell-x2" />'+
 							'</div>'+
 							'<label for="item-options-blueshell">'+ toLanguage("Prevent 2 players from having a blue shell", "Empêcher 2 joueurs d'avoir une carapace bleue") +'</label>'+
@@ -23904,6 +24171,12 @@ function selectItemScreen(oScr, callback, options) {
 						'<h2>'+ toLanguage("Cooldown", "Cooldown") +'</h2>'+
 						'<div class="item-option">'+
 							'<div>'+
+								'<input type="checkbox" id="item-options-pow2" name="pow-cooldown" />'+
+							'</div>'+
+							'<label for="item-options-pow2">'+ toLanguage("Min time frame of 30s between 2 POW blocks", "Empêcher 2 blocks POW à moins de 30s d'intervalle") +'</label>'+
+						'</div>'+
+						'<div class="item-option">'+
+							'<div>'+
 								'<input type="checkbox" id="item-options-blueshell2" name="blueshell-cooldown" />'+
 							'</div>'+
 							'<label for="item-options-blueshell2">'+ toLanguage("Min time frame of 30s between 2 blue shells", "Empêcher 2 carapaces bleues à moins de 30s d'intervalle") +'</label>'+
@@ -23916,15 +24189,21 @@ function selectItemScreen(oScr, callback, options) {
 						'</div>'+
 						'<div class="item-option">'+
 							'<div>'+
-								'<input type="checkbox" id="item-options-lightning0" name="lightning-start" />'+
+								'<input type="checkbox" id="item-options-pow0" name="pow-start" />'+
 							'</div>'+
-							'<label for="item-options-lightning0">'+ toLanguage("No lightning item before 25s of race", "Pas d'éclair avant 25s de course") +'</label>'+
+							'<label for="item-options-pow0">'+ toLanguage("No POW block before 25s of race", "Pas de block POW avant 25s de course") +'</label>'+
 						'</div>'+
 						'<div class="item-option">'+
 							'<div>'+
 								'<input type="checkbox" id="item-options-blueshell0" name="blueshell-start" />'+
 							'</div>'+
 							'<label for="item-options-blueshell0">'+ toLanguage("No blue shell before 25s of race", "Pas de carapace bleue avant 25s de course") +'</label>'+
+						'</div>'+
+						'<div class="item-option">'+
+							'<div>'+
+								'<input type="checkbox" id="item-options-lightning0" name="lightning-start" />'+
+							'</div>'+
+							'<label for="item-options-lightning0">'+ toLanguage("No lightning item before 25s of race", "Pas d'éclair avant 25s de course") +'</label>'+
 						'</div>'+
 					'</div>'+
 					'<div class="item-optgroup">'+
