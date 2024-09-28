@@ -1,4 +1,5 @@
 <?php
+include('../includes/rateLimit.php');
 include('../includes/initdb.php');
 if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] != '')) {
 	function startsWith($haystack, $needle) {
