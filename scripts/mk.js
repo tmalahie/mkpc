@@ -15534,6 +15534,32 @@ function inCheckpoint(oBox, kart, opts) {
 function enteredCheckpoint(oBox, kart, opts) {
 	return inCheckpoint(oBox, kart, opts) && !inCheckpoint(oBox, { x: opts.aPos[0], y: opts.aPos[1] }, {});
 }
+function getCpRespawn(lastCp, lMap) {
+	var lMap = lastCp.lMap;
+	if (lMap) {
+		var checkpointCoords = lMap.checkpointCoords[lastCp.id];
+		if (checkpointCoords) {
+			var x0 = (checkpointCoords.A[0] + checkpointCoords.C[0])/2, y0 = (checkpointCoords.A[1] + checkpointCoords.C[1])/2;
+			var x1 = (checkpointCoords.B[0] + checkpointCoords.D[0])/2, y1 = (checkpointCoords.B[1] + checkpointCoords.D[1])/2;
+			for (var i=0;i<lMap.aipoints.length;i++) {
+				var aipoints = lMap.aipoints[i];
+				for (var j=0;j<aipoints.length;j++) {
+					var inc = (j+1) % aipoints.length;
+					var aipoint1 = aipoints[j];
+					var aipoint2 = aipoints[inc];
+					var inter = secants(x0,y0,x1,y1, aipoint1[0],aipoint1[1], aipoint2[0],aipoint2[1]);
+					if (inter) {
+						var x = x0 + inter[0]*(x1-x0), y = y0 + inter[0]*(y1-y0);
+						var theta = Math.atan2(aipoint2[0]-aipoint1[0], aipoint2[1]-aipoint1[1]);
+						if (!isNaN(theta) && !tombe(x,y))
+							return [x,y,theta*2/Math.PI];
+					}
+				}
+			}
+		}
+	}
+	return [lastCp.x,lastCp.y, lastCp.rotation/90];
+}
 
 function int8ToHexString(arr) {
 	return [].slice.call(arr).map(function(x){return x.toString(16).padStart(2,"0")}).join("");
@@ -17021,7 +17047,7 @@ function move(getId, triggered) {
 					}
 					else {
 						lastCp = oKart.lastcp;
-						fTombe = [lastCp.x,lastCp.y, lastCp.rotation/90];
+						fTombe = getCpRespawn(lastCp);
 					}
 				}
 				else if (isNaN(fTombe[0]))
@@ -17479,6 +17505,8 @@ function move(getId, triggered) {
 		}
 		if ((oKart.demitours !== prevCP) && !tombe(oKart.x,oKart.y)) {
 			oKart.lastcp = {
+				id: oKart.demitours,
+				lMap: lMap,
 				x: oKart.x,
 				y: oKart.y,
 				rotation: oKart.rotation,
