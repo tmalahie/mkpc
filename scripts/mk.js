@@ -18220,7 +18220,7 @@ function processCode(cheatCode) {
 			
 			let x = correctTPType(oPlayer.x, args[0]);
 			let y = correctTPType(oPlayer.y, args[1]);
-			let r = correctTPType(oPlayer.rotation, args[2], (value) => { return value % 360; });
+			let r = correctTPType(oPlayer.rotation, args[2], (value) => { return Math.abs(value % 360); });
 
 			let checklist = [x, y, r];
 			const labels = ['x', 'y', 'rot'];
