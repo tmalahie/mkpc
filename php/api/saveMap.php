@@ -17,11 +17,19 @@ if (is_object($data) && isset($data->id) && isset($data->payload)) {
 			$newImgs = array();
 			foreach ($data->imgOverrides as $lapId => $imgOverride) {
 				$newLapOverride = null;
-				foreach ($lapOverrides as $lapOverride) {
-					if ($lapOverride->url === $imgOverride->url && $lapOverride->local === $imgOverride->local) {
-						$newLapOverride = $lapOverride;
-						break;
+				if (isset($imgOverride->url)) {
+					foreach ($lapOverrides as $lapOverride) {
+						if (isset($lapOverride->url) && $lapOverride->url === $imgOverride->url && $lapOverride->local === $imgOverride->local) {
+							$newLapOverride = $lapOverride;
+							break;
+						}
 					}
+				}
+				elseif (isset($imgOverride->override)) {
+					$newLapOverride = (object) array(
+						'local' => 0,
+						'override' => intval($imgOverride->override)
+					);
 				}
 				if (!$newLapOverride && isset($lapOverrides->$lapId))
 					$newLapOverride = $lapOverrides->$lapId;

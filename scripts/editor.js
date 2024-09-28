@@ -68,6 +68,8 @@ document.addEventListener("DOMContentLoaded", function() {
 	for (var key in editorTools)
 		initEditorTool(key, selectedLapOverride, { isSet: true });
 	restoreData(circuitData);
+	if (!editorTools.holes.data.length && localStorage.getItem("editor.respawnType") === "manual")
+		document.getElementById(editorTools.holes._respawn_selector_id).value = "manual";
 	//document.getElementById('mode').value = "options";
 	selectMode(document.getElementById('mode').value);
 	//document.getElementById("decor-selector").setValue("truck");
@@ -903,7 +905,8 @@ function moveCircularArrow(arrow,center,dir,options) {
 	mask.close = function(){};
 	$toolbox.classList.add("hiddenbox");
 }
-function moveArrowNode(arrow,data) {
+function moveArrowNode(arrow,data, options) {
+	options = options||{};
 	var mask = createMask();
 	var nData = data;
 	function moveArr(e) {
@@ -916,6 +919,8 @@ function moveArrowNode(arrow,data) {
 		moveArr(e);
 		storeHistoryData(editorTools[currentMode].data);
 		applyObject(data,nData);
+		if (options.on_apply)
+			options.on_apply(nData);
 		mask.removeEventListener("mousemove", moveArr);
 		mask.removeEventListener("mouseup", stopMoveArr);
 		mask.defaultClose();
@@ -1050,6 +1055,46 @@ function offroadChange(value) {
 		selectMode(currentMode);
 	else
 		showOffroadTransfer();
+}
+var resetRespawnDismissed;
+function respawnTypeChange(value) {
+	var editorTool = editorTools.holes;
+	editorTool.state.respawnType = value;
+	var data = editorTool.data;
+	if (!circuitData || !data.length)
+		localStorage.setItem("editor.respawnType", value);
+	if (value === 'cp') {
+		if (resetRespawnDismissed) return;
+		resetRespawnDismissed = false;
+		for (var i=0;i<data.length;i++) {
+			if (data[i].respawn) {
+				document.getElementById("checkpoint-respawn-reset").style.display = "block";
+				return;
+			}
+		}
+	}
+	else {
+		if (resetRespawnDismissed === undefined)
+			resetRespawnDismissed = true;
+		document.getElementById("checkpoint-respawn-reset").style.display = "";
+	}
+}
+function resetAllRewpawns() {
+	if (!confirm(language ? "Reset all respawn points?" : "Réinitialiser tous les points de respawn ?"))
+		return;
+	var editorTool = editorTools.holes;
+	var data = editorTool.data;
+	storeHistoryData(data);
+	var cHistoryData = historyData.slice(0);
+	for (var i=0;i<data.length;i++)
+		data[i].respawn = null;
+	selectMode(currentMode);
+	historyData = cHistoryData;
+	resetRespawnDismissed = true;
+}
+function dismissResetRespawn() {
+	resetRespawnDismissed = true;
+	document.getElementById("checkpoint-respawn-reset").style.display = "";
 }
 function themeChange(e) {
 	if (e.value == "dark")
@@ -2931,8 +2976,10 @@ function initLapOverrideOptions() {
 	document.getElementById("lapoverride-menu").style.display = "block";
 	document.getElementById("lapoverride-more").style.display = "none";
 	document.getElementById("lapoverride-less").style.display = "none";
+	document.getElementById("lapoverride-copy").style.display = "none";
 	document.getElementById("lapoverride-btn-add").style.display = "block";
 	document.getElementById("lapoverride-btn-edit").style.display = (lapOverrides.length > 1) ? "block" : "none";
+	document.getElementById("lapoverride-btn-copy").style.display = (lapOverrides.length > 1) ? "block" : "none";
 	document.getElementById("lapoverride-btn-remove").style.display = (lapOverrides.length > 1) ? "block" : "none";
 }
 function initModeOverrideOptions() {
@@ -2972,10 +3019,13 @@ function addModeOverride() {
 	var selectedModeData = lapOverrides[selectedLapOverride].modesData[currentMode];
 	selectedModeData.isSet = true;
 	if (copyFrom) {
+		copyFrom = +copyFrom;
 		var editorTool = editorTools[currentMode];
 		if (editorTool.prerestore)
 			editorTool.prerestore(editorTool);
 		editorTool.data = deepCopy(lapOverrides[copyFrom].modesData[currentMode].data);
+		if (editorTool.postcopy)
+			editorTool.postcopy(editorTool, copyFrom);
 		if (editorTool.postrestore)
 			editorTool.postrestore(editorTool);
 	}
@@ -3048,6 +3098,7 @@ function renderLapOverrideAdd() {
 	else
 		$select.selectedIndex = minOverride;
 	handleLapOverrideSelect(+$select.value);
+	handleLapInteractionsList();
 }
 function handleLapOverrideSelect(value) {
 	value = +value;
@@ -3101,10 +3152,132 @@ function handleLapOverrideSelect(value) {
 function handleCheckpointOverrideCheck(checked) {
 	document.getElementById("lapoverride-checkpoints-ctn").style.display = checked ? "block" : "none";
 }
+function handleLapInteractionsList() {
+	var $checkbox = document.getElementById("lapoverride-interactions-check");
+	var $list = document.getElementById("lapoverride-interactions-list");
+	$list.innerHTML = "";
+	var aCheckboxes = [];
+	for (var i=0;i<lapOverrides.length;i++) {
+		var lapOverride = lapOverrides[i];
+		if (lapOverride === editingLapOverride) continue;
+		var oLabel = document.createElement("label");
+		var oCheckbox = document.createElement("input");
+		oCheckbox.type = "checkbox";
+		oCheckbox.dataset.lap = i;
+		oCheckbox.value = i;
+		aCheckboxes[i] = oCheckbox;
+		var oSpan = document.createElement("span");
+		oSpan.innerHTML = getLapOverrideLabel(i);
+		oLabel.appendChild(oCheckbox);
+		oLabel.appendChild(oSpan);
+		$list.appendChild(oLabel);
+	}
+	if (editingLapOverride && editingLapOverride.interactions) {
+		$checkbox.checked = true;
+		for (var i=0;i<editingLapOverride.interactions.length;i++) {
+			var lapId = lapOverrides.indexOf(editingLapOverride.interactions[i]);
+			if (aCheckboxes[lapId])
+				aCheckboxes[lapId].checked = true;
+		}
+	}
+	else
+		$checkbox.checked = false;
+	handleLapInteractionsCheck($checkbox.checked);
+}
+function handleLapInteractionsCheck(checked) {
+	document.getElementById("lapoverride-interactions-ctn").style.display = checked ? "block" : "none";
+}
+function showInteractionsHelp() {
+	alert(language ? "If checked, other players can't collide with you or hit you with items unless they are in same lap override as you." : "Si coché, les autres joueurs ne peuvent pas entrer en collision avec vous ou vous toucher avec des objets lorsqu'ils ne sont pas dans le même modificateur.");
+}
 function showLapOverrideChange() {
 	document.getElementById("lapoverride-less").className = "lapoverride-mode-edit";
 	renderLapOverrideSelect();
 }
+function showLapOverrideCopy() {
+	document.getElementById("lapoverride-menu").style.display = "none";
+	document.getElementById("lapoverride-copy").style.display = "block";
+
+	var $from = document.getElementById("lapoverride-copy-from");
+	var $to = document.getElementById("lapoverride-copy-to");
+	$from.innerHTML = "";
+	$to.innerHTML = "";
+	for (var i=0;i<lapOverrides.length;i++) {
+		var $option = document.createElement("option");
+		$option.value = i;
+		$option.innerHTML = getLapOverrideLabel(i);
+		$from.appendChild($option);
+	}
+	for (var i=0;i<lapOverrides.length;i++) {
+		var $option = document.createElement("option");
+		$option.value = i;
+		$option.innerHTML = getLapOverrideLabel(i);
+		$to.appendChild($option);
+	}
+	handleLapCopySelect();
+}
+function handleLapCopySelect() {
+	var $from = document.getElementById("lapoverride-copy-from");
+	var $to = document.getElementById("lapoverride-copy-to");
+	var from = +$from.value;
+	var to = +$to.value;
+	if (from === to) {
+		document.getElementById("lapoverride-copy").classList.add("lapoverride-copy-invalid");
+		return;
+	}
+	document.getElementById("lapoverride-copy").classList.remove("lapoverride-copy-invalid");
+
+	var enabledComponents = [];
+	if (to) {
+		enabledComponents.push({
+			key: 'image',
+			label: language ? 'Image':'Image'
+		});
+	}
+	
+	var overrideFrom = lapOverrides[from];
+	var overrideTo = lapOverrides[to];
+	for (var key in editorTools) {
+		var editorTool = editorTools[key];
+
+		var selectedModeData = overrideFrom.modesData[key];
+		if (selectedModeData.isSet) {
+			var disableReason = editorTool.disableOverride && editorTool.disableOverride(editorTool, overrideTo);
+			if (disableReason) continue;
+			var $option = document.querySelector('#mode option[value="'+ key +'"]');
+			if (!$option) continue;
+			enabledComponents.push({
+				key: key,
+				label: $option.text
+			});
+		}
+	}
+	var $components = document.getElementById("lapoverride-copy-components");
+	var $previouslyUnchecked = document.querySelectorAll("#lapoverride-copy-components input[type='checkbox']:not(:checked)");
+	var previouslyUnchecked = {};
+	for (var i=0;i<$previouslyUnchecked.length;i++)
+		previouslyUnchecked[$previouslyUnchecked[i].value] = true;
+	$components.innerHTML = "";
+	for (var i=0;i<enabledComponents.length;i++) {
+		var $label = document.createElement("label");
+		var $checkbox = document.createElement("input");
+		$checkbox.type = "checkbox";
+		$checkbox.value = enabledComponents[i].key;
+		$checkbox.checked = !previouslyUnchecked[$checkbox.value];
+		var $span = document.createElement("span");
+		$span.innerHTML = enabledComponents[i].label;
+		$label.appendChild($checkbox);
+		$label.appendChild($span);
+		$components.appendChild($label);
+	}
+}
+function handleLapCopyComponentsAll(checked) {
+	var $components = document.getElementById("lapoverride-copy-components");
+	var $checkboxes = $components.querySelectorAll("input[type='checkbox']");
+	for (var i=0;i<$checkboxes.length;i++)
+		$checkboxes[i].checked = checked;
+}
+
 function showLapOverrideRemove() {
 	document.getElementById("lapoverride-less").className = "lapoverride-mode-delete";
 	renderLapOverrideSelect();
@@ -3139,6 +3312,7 @@ function addLapOverride() {
 		return;
 	}
 	selectLapOverride(-1, opts);
+	assignLapOverrideSettings(selectedLapOverride);
 	closeLapOverrideOptions();
 }
 function editLapOverride() {
@@ -3154,12 +3328,15 @@ function editLapOverride() {
 		opts.cp = +$select2.value;
 		if (!opts.cp) return;
 	}
-	if (lapOverrideExists(opts)) {
+	var oldLapOverride = lapOverrides.indexOf(editingLapOverride);
+	if (oldLapOverride === -1) return;
+	var existingLapOverride;
+	if (existingLapOverride = lapOverrideExists(opts)) {
+		if (existingLapOverride === editingLapOverride)
+			assignLapOverrideSettings(oldLapOverride);
 		closeLapOverrideOptions();
 		return;
 	}
-	var oldLapOverride = lapOverrides.indexOf(editingLapOverride);
-	if (oldLapOverride === -1) return;
 	lapOverrides.splice(oldLapOverride, 1);
 	var newLapOverride = initLapOverride(opts);
 	if (oldLapOverride === selectedLapOverride)
@@ -3169,6 +3346,7 @@ function editLapOverride() {
 	else if (newLapOverride <= selectedLapOverride && oldLapOverride > selectedLapOverride)
 		selectedLapOverride++;
 	applyLapOverrideSelector();
+	assignLapOverrideSettings(newLapOverride);
 	closeLapOverrideOptions();
 	changes = true;
 }
@@ -3176,9 +3354,73 @@ function lapOverrideExists(opts) {
 	for (var i=0;i<lapOverrides.length;i++) {
 		var lapOverride = lapOverrides[i];
 		if (lapOverride.lap === opts.lap && lapOverride.checkpoint === opts.cp)
-			return true;
+			return lapOverride;
 	}
-	return false;
+	return null;
+}
+var copiedOverrideHandler;
+function copyLapOverride() {
+	var $from = document.getElementById("lapoverride-copy-from");
+	var $to = document.getElementById("lapoverride-copy-to");
+	var from = +$from.value;
+	var to = +$to.value;
+	
+	var overrideFrom = lapOverrides[from];
+	var overrideTo = lapOverrides[to];
+
+	if (selectedLapOverride === from)
+		storeCurrentLapOverride();
+
+	var $checkedComponents = document.querySelectorAll("#lapoverride-copy-components input[type='checkbox']:checked");
+	var checkedComponents = {};
+	for (var i=0;i<$checkedComponents.length;i++)
+		checkedComponents[$checkedComponents[i].value] = true;
+	for (var key in editorTools) {
+		if (!checkedComponents[key]) continue;
+		overrideTo.modesData[key].data = deepCopy(overrideFrom.modesData[key].data);
+		overrideTo.modesData[key].isSet = true;
+	}
+	if (checkedComponents.image) {
+		overrideTo.imgData = {
+			src: overrideFrom.imgData.src
+		}
+		if (overrideFrom.imgData.data && overrideFrom.imgData.data.overrideKey != null) {
+			overrideTo.imgData.data = {
+				overrideKey: overrideFrom.imgData.data.overrideKey,
+				overrideRef: overrideFrom.imgData.data.overrideRef
+			}
+		}
+		else {
+			overrideTo.imgData.data = {
+				overrideKey: from,
+				overrideRef: lapOverrides[from]
+			}
+		}
+	}
+	if (selectedLapOverride === to) {
+		restoreLapOverride(to);
+		reapplyCurrentLapOverride();
+	}
+	document.getElementById("lapoverride-copy").classList.add("success");
+	clearTimeout(copiedOverrideHandler);
+	copiedOverrideHandler = setTimeout(function() {
+		document.getElementById("lapoverride-copy").classList.remove("success");
+	}, 1000);
+	changes = true;
+}
+function assignLapOverrideSettings(lapId) {
+	var lapOverride = lapOverrides[lapId];
+	var $checkbox = document.getElementById("lapoverride-interactions-check");
+	if (!$checkbox.checked) {
+		delete lapOverride.interactions;
+		return;
+	}
+	lapOverride.interactions = [];
+	var $checkboxes = document.querySelectorAll('#lapoverride-interactions-list input[type="checkbox"]');
+	for (var i=0;i<$checkboxes.length;i++) {
+		if ($checkboxes[i].checked)
+			lapOverride.interactions.push(lapOverrides[$checkboxes[i].value]);
+	}
 }
 function removeLapOverride() {
 	var $select = document.getElementById("lapoverride-less-list");
@@ -3227,6 +3469,9 @@ function selectLapOverride(newLapOverride, opts) {
 	
 	selectedLapOverride = newLapOverride;
 	applyLapOverrideSelector();
+	reapplyCurrentLapOverride();
+}
+function reapplyCurrentLapOverride() {
 	var nextMode = currentMode;
 	for (var key in editorTools) {
 		var editorTool = editorTools[key];
@@ -3613,9 +3858,23 @@ function showMusicSelector() {
 	musicSelected = editorData.music;
 	var ytSpeed, ytSpeedLast;
 	document.getElementById("musicchoice-"+musicSelected).className = "music-selected";
+	var $ytOptsInputs = [
+		document.getElementById("youtube-url"),
+		document.getElementById("youtube-start"),
+		document.getElementById("youtube-end"),
+		document.getElementById("youtube-last-url"),
+		document.getElementById("youtube-last-start"),
+		document.getElementById("youtube-last-end")
+	]
+	for (var i=0;i<$ytOptsInputs.length;i++) {
+		if ($ytOptsInputs[i])
+			$ytOptsInputs[i].value = "";
+	}
 	if (!musicSelected) {
 		document.getElementById("youtube-url").value = editorData.youtube;
+		var showYtOptions = false;
 		if (editorData.youtube_opts) {
+			showYtOptions = true;
 			var youtubeOpts = editorData.youtube_opts;
 			if (youtubeOpts.start != null)
 				document.getElementById("youtube-start").value = timeToStr(youtubeOpts.start);
@@ -3633,6 +3892,7 @@ function showMusicSelector() {
 				ytSpeedLast = youtubeOptsLast.speed;
 			}
 		}
+		ytOptions(showYtOptions);
 	}
 	function initYtSelect($select, defaultVal) {
 		defaultVal = defaultVal || 1;
@@ -3660,6 +3920,7 @@ function showMusicSelector() {
 }
 function addOptionIfNotExist($select, value) {
 	var options = $select.options;
+	if (!options) return;
 	for (var i=0;i<options.length;i++) {
 		if (options[i].value == value)
 			return;
@@ -3670,11 +3931,19 @@ function addOptionIfNotExist($select, value) {
 	$select.insertBefore(option, options[options.length-1]);
 }
 function applyMusicSelector() {
+	var $btnReset = document.getElementById("button-music-reset");
 	var editorTool = editorTools[currentMode];
-	if (editorTool.data.music)
-		document.getElementById("button-music").innerHTML = musicOptions[editorTool.data.music];
-	else
-		document.getElementById("button-music").innerHTML = "Youtube";
+	if (editorTool.data.music_override) {
+		if (editorTool.data.music)
+			document.getElementById("button-music").innerHTML = musicOptions[editorTool.data.music];
+		else
+			document.getElementById("button-music").innerHTML = "Youtube";
+		if ($btnReset) $btnReset.style.display = "";
+	}
+	else {
+		document.getElementById("button-music").innerHTML = language ? "Override..." : "Modifier...";
+		if ($btnReset) $btnReset.style.display = "none";
+	}
 }
 var oMusic;
 var musicSelected;
@@ -3724,8 +3993,11 @@ function playYt(elt) {
 	}
 }
 function ytOptions(show) {
-	if (show)
+	if (show) {
 		document.querySelector(".youtube").classList.add("youtube-show-advanced");
+		var $lastLap = document.getElementById("youtube-options-last-lap");
+		if ($lastLap) $lastLap.style.display = selectedLapOverride ? "none":"";
+	}
 	else
 		document.querySelector(".youtube").classList.remove("youtube-show-advanced");
 }
@@ -3782,8 +4054,16 @@ function submitMusic(e) {
 		editorTool.data.youtube_opts = ytOptions;
 	else
 		delete editorTool.data.youtube_opts;
+	editorTool.data.music_override = true;
 	applyMusicSelector();
 	hideMusicSelector();
+}
+function resetMusicOverride() {
+	if (!confirm(language ? "Reset music lap override?" : "Désactiver la modification de la musique pour ce tour ?"))
+		return;
+	var editorTool = editorTools[currentMode];
+	editorTool.data.music_override = false;
+	applyMusicSelector();
 }
 function undoMusic() {
 	hideMusicSelector();
@@ -3903,7 +4183,9 @@ function resetImageOptions() {
 }
 function showImageOptions() {
 	var $imageOptions = document.getElementById("image-options");
-	var selectedImg = selectedLapOverride && (lapOverrides[selectedLapOverride].imgData || { data: null });
+	var selectedImg = selectedLapOverride && {
+		data: getImgOverridePayload(lapOverrides[selectedLapOverride].imgData || {})
+	};
 	$imageOptions.src = "changeMap.php" + document.location.search + (isBattle ? "&arenes=1" : "") + (selectedLapOverride ? ("&lap="+selectedLapOverride) : "") + (selectedImg ? ("&img_data="+JSON.stringify(selectedImg.data)) : "");
 	document.body.removeChild($imageOptions);
 	var $mask = createMask();
@@ -3968,17 +4250,32 @@ function foreachCurrentImg(callback) {
 	}
 
 	storeCurrentLapOverride();
+	var clonedLapOverrides = {};
 	for (var lapId=selectedLapOverride+1;lapId<lapOverrides.length;lapId++) {
 		var lapOverride = lapOverrides[lapId];
 		if (lapOverride.imgData) break;
+		clonedLapOverrides[lapId] = lapOverride;
+	}
+	var currentLapOverride = lapOverrides[selectedLapOverride];
+	for (var i=1;i<lapOverrides.length;i++) {
+		var lapOverride = lapOverrides[i];
+		if (lapOverride.imgData && lapOverride.imgData.data.overrideRef === currentLapOverride) {
+			lapOverride.imgData.src = currentLapOverride.imgData.src;
+			clonedLapOverrides[i] = lapOverride;
+		}
+	}
+	Object.entries(clonedLapOverrides).forEach((entry) => {
+		var lapId = entry[0];
+		var lapOverride = entry[1];
 		restoreLapOverride(lapId);
+		var lapOverride = lapOverrides[lapId];
 		modesData = lapOverride.modesData;
 		for (var key in editorTools) {
 			if (!modesData[key].isSet) continue;
 			var editorTool = editorTools[key];
 			callback(editorTool);
 		}
-	}
+	});
 	restoreLapOverride(selectedLapOverride);
 }
 function handleImageUpdate(src, data, callback) {
@@ -3989,6 +4286,43 @@ function handleImageDelete(callback) {
 	delete lapOverrides[selectedLapOverride].imgData;
 	updateEditorImg(callback);
 }
+function initOverrideSelector($selector) {
+	for (var lapKey=0;lapKey<lapOverrides.length;lapKey++) {
+		if (lapKey == selectedLapOverride) continue;
+		if (!lapOverrides[lapKey].imgData) continue;
+		if (lapOverrides[lapKey].imgData.data && !lapOverrides[lapKey].imgData.data.url) continue;
+		var $option = document.createElement("option");
+		$option.value = lapKey;
+		$option.innerHTML = getLapOverrideLabel(lapKey);
+		$selector.appendChild($option);
+	}
+	var currentValue = lapOverrides[selectedLapOverride] && lapOverrides[selectedLapOverride].imgData && lapOverrides[selectedLapOverride].imgData.data.overrideRef;
+	if (!currentValue) return;
+	var currentValueId = lapOverrides.indexOf(currentValue);
+	if (currentValueId !== -1)
+		$selector.value = currentValueId;
+}
+function handleImageFromOverride(overrideKey) {
+	var overrideRef = lapOverrides[overrideKey];
+	lapOverrides[selectedLapOverride].imgData = { src: overrideRef.imgData.src, data: {
+		overrideKey: overrideKey,
+		overrideRef: overrideRef
+	}};
+	updateEditorImg();
+	changes = true;
+}
+function getImgOverridePayload(imgData) {
+	var selectedData = imgData.data;
+	if (!selectedData) return null;
+	if (selectedData.overrideKey == null) return selectedData;
+	var overrideKey = lapOverrides.indexOf(selectedData.overrideRef);
+	if ((overrideKey === -1) || (lapOverrides[overrideKey].imgData.data && !lapOverrides[overrideKey].imgData.data.url))
+		return null;
+	return {
+		local: 0,
+		override: overrideKey,
+	}
+}
 function saveData() {
 	storeCurrentLapOverride();
 	restoreLapOverride(0);
@@ -3998,6 +4332,7 @@ function saveData() {
 		editorTool.save(editorTool,payload);
 	}
 	var imgOverrides = {};
+	var lapPayloadIds = { "0": 0 };
 	for (var lapKey=1;lapKey<lapOverrides.length;lapKey++) {
 		restoreLapOverride(lapKey);
 		var lapPayload = {main:{}};
@@ -4011,12 +4346,36 @@ function saveData() {
 			editorTool.save(editorTool,lapPayload);
 			enabledModes.push(key);
 		}
-		if (!enabledModes.length && !lapOverride.imgData) continue;
+		if (!enabledModes.length && !lapOverride.imgData && !lapOverride.interactions) continue;
 		lapPayload.meta = { lap: lapOverride.lap, cp: lapOverride.checkpoint, modes: enabledModes };
 		if (!payload.lapOverrides) payload.lapOverrides = [];
 		payload.lapOverrides.push(lapPayload);
+		lapPayloadIds[lapKey] = payload.lapOverrides.length;
 		if (lapOverride.imgData)
-			imgOverrides[lapKey] = lapOverride.imgData.data;
+			imgOverrides[lapPayloadIds[lapKey]] = getImgOverridePayload(lapOverride.imgData);
+	}
+	for (var lapKey=1;lapKey<lapOverrides.length;lapKey++) {
+		var lapPayloadId = lapPayloadIds[lapKey];
+		if (!lapPayloadId) continue;
+		var lapOverride = lapOverrides[lapKey];
+		if (!lapOverride.interactions) continue;
+		var lapPayload = payload.lapOverrides[lapPayloadId-1];
+		var lapInteractions = [];
+		for (var j=0;j<lapOverride.interactions.length;j++) {
+			var lapId = lapOverrides.indexOf(lapOverride.interactions[j]);
+			var interactionId = lapPayloadIds[lapId];
+			if (interactionId != null)
+				lapInteractions.push(interactionId);
+		}
+		lapPayload.meta.interactions = lapInteractions;
+	}
+	for (var lapKey in imgOverrides) {
+		var imgOverride = imgOverrides[lapKey];
+		if (imgOverride.override) {
+			imgOverride.override = lapPayloadIds[imgOverride.override];
+			if (!imgOverride.override)
+				delete imgOverrides[lapKey];
+		}
 	}
 	restoreLapOverride(selectedLapOverride);
 	var $mask = createMask();
@@ -4127,6 +4486,7 @@ function restoreData(payload) {
 	if (!payload) return;
 	if (payload.lapOverrides) {
 		storeCurrentLapOverride();
+		var lapKeys = [];
 		for (var i=0;i<payload.lapOverrides.length;i++) {
 			var lapOverride = payload.lapOverrides[i];
 			var lapModes = lapOverride.meta.modes;
@@ -4134,6 +4494,7 @@ function restoreData(payload) {
 				imgData: imgData.lapOverrides && imgData.lapOverrides[i+1],
 			}, lapOverride.meta);
 			var lapKey = initLapOverride(lapOpts);
+			lapKeys[i] = lapKey;
 			var lapModesData = lapOverrides[lapKey].modesData;
 			for (var j=0;j<lapModes.length;j++) {
 				var key = lapModes[j];
@@ -4144,6 +4505,28 @@ function restoreData(payload) {
 				}
 				catch (e) {
 					console.log(e.stack);
+				}
+			}
+		}
+		for (var i=0;i<payload.lapOverrides.length;i++) {
+			var lapOverride = payload.lapOverrides[i];
+			var lapInteractions = lapOverride.meta.interactions;
+			if (lapInteractions) {
+				var lapInteractionsData = [];
+				for (var j=0;j<lapInteractions.length;j++) {
+					var interactionId = lapInteractions[j];
+					lapInteractionsData.push(lapOverrides[interactionId]);
+				}
+				var lapKey = lapKeys[i];
+				lapOverrides[lapKey].interactions = lapInteractionsData;
+			}
+		}
+		for (var i=0;i<lapOverrides.length;i++) {
+			var imgOverride = lapOverrides[i].imgData;
+			if (imgOverride && imgOverride.data && (imgOverride.data.override != null)) {
+				imgOverride.data = {
+					overrideKey: imgOverride.data.override,
+					overrideRef: lapOverrides[imgOverride.data.override]
 				}
 			}
 		}
@@ -4628,6 +5011,74 @@ var commonTools = {
 	},
 	"holes": {
 		"_shape_selector_id": "holes-shape",
+		"_respawn_selector_id": "respawn-type",
+		"_deleteItem": function(self, shape,respawnNode, data) {
+			$editor.removeChild(shape);
+			if (respawnNode) {
+				$editor.removeChild(respawnNode.origin);
+				var lines = respawnNode.lines;
+				for (var i=0;i<lines.length;i++)
+					$editor.removeChild(lines[i]);
+			}
+			self.state.respawnNode = null;
+			storeHistoryData(self.data);
+			removeFromArray(self.data,data);
+		},
+		"_defineRespawn": function(self, data) {
+			var respawnNode = createArrowNode({x:-10,y:-10},self.state.orientation);
+			var respawn = {x:-10,y:-10};
+			moveArrowNode(respawnNode,respawn, {
+				on_apply: function() {
+					data.respawn = respawn;
+				}
+			});
+			return respawnNode;
+		},
+		"_initRespawn": function(self, shape,respawnNode, data) {
+			var lastRotateTime = 0;
+			respawnNode.origin.classList.add("hover-toggle");
+			respawnNode.origin.onclick = function(e) {
+				if (e) e.stopPropagation();
+				var nRotateTime = new Date().getTime();
+				if (nRotateTime > lastRotateTime+2500)
+					storeHistoryData(self.data);
+				lastRotateTime = nRotateTime;
+				data.orientation = Math.round(data.orientation+1)%4;
+				self.state.orientation = data.orientation;
+				respawnNode.rotate(data.orientation);
+			};
+			respawnNode.origin.oncontextmenu = function(e) {
+				return showContextOnElt(e,shape, [{
+					text: (language ? "Rotate 90°":"Rotation 90°"),
+					click: function() {
+						respawnNode.origin.onclick();
+					}
+				}, {
+					text: (language ? "Rotate custom...":"Rotation libre..."),
+					click: function() {
+						rotateArrowNode(respawnNode,data,data.respawn);
+					}
+				}, {
+					text: (language ? "Move":"Déplacer"),
+					click: function() {
+						moveArrowNode(respawnNode,data.respawn);
+					}
+				}, {
+					text:(language ? "Delete":"Supprimer"),
+					click:function() {
+						self._resetRespawn(self, respawnNode, data);
+					}
+				}]);
+			};
+		},
+		"_resetRespawn": function(self, respawnNode, data) {
+			$editor.removeChild(respawnNode.origin);
+			var lines = respawnNode.lines;
+			for (var i=0;i<lines.length;i++)
+				$editor.removeChild(lines[i]);
+			storeHistoryData(self.data);
+			data.respawn = null;
+		},
 		"resume" : function(self) {
 			self.state.point = createRectangle({x:-1,y:-1});
 			self.state.orientation = 2;
@@ -4637,6 +5088,10 @@ var commonTools = {
 			for (var i=0;i<data.length;i++) {
 				var iData = data[i];
 				self.state.shape = iData.type;
+				if ((i < data.length - 1) || iData.respawn)
+					self.state.respawnType = iData.respawn ? 'manual' : 'cp';
+				else
+					self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
 				if (undefined !== iData.orientation)
 					self.state.orientation = iData.orientation;
 				var extra = getExtraForResume(iData);
@@ -4656,6 +5111,11 @@ var commonTools = {
 			}
 			replaceNodeType(self);
 			document.getElementById(self._shape_selector_id).setValue(self.state.shape);
+			if (self.state.respawnType)
+				document.getElementById(self._respawn_selector_id).value = self.state.respawnType;
+			else
+				self.state.respawnType = document.getElementById(self._respawn_selector_id).value;
+			document.getElementById("checkpoint-respawn-reset").style.display = "";
 		},
 		"click" : function(self,point,extra) {
 			var respawnNode = self.state.respawnNode;
@@ -4666,101 +5126,10 @@ var commonTools = {
 				var data = self.data[self.data.length-1];
 				data.respawn = point;
 				respawnNode.move(point);
-				var lastRotateTime = 0;
-				respawnNode.origin.classList.add("hover-toggle");
-				respawnNode.origin.onclick = function(e) {
-					if (e) e.stopPropagation();
-					var nRotateTime = new Date().getTime();
-					if (nRotateTime > lastRotateTime+2500)
-						storeHistoryData(self.data);
-					lastRotateTime = nRotateTime;
-					data.orientation = Math.round(data.orientation+1)%4;
-					self.state.orientation = data.orientation;
-					respawnNode.rotate(data.orientation);
-				};
 				var shape = self.state.currentshape;
 				delete self.state.currentshape;
-				function deleteItem() {
-					$editor.removeChild(shape);
-					$editor.removeChild(respawnNode.origin);
-					var lines = respawnNode.lines;
-					for (var i=0;i<lines.length;i++)
-						$editor.removeChild(lines[i]);
-					storeHistoryData(self.data);
-					removeFromArray(self.data,data);
-				}
-				respawnNode.origin.oncontextmenu = function(e) {
-					return showContextOnElt(e,shape, [{
-						text: (language ? "Rotate 90°":"Rotation 90°"),
-						click: function() {
-							respawnNode.origin.onclick();
-						}
-					}, {
-						text: (language ? "Rotate custom...":"Rotation libre..."),
-						click: function() {
-							rotateArrowNode(respawnNode,data,data.respawn);
-						}
-					}, {
-						text: (language ? "Move":"Déplacer"),
-						click: function() {
-							moveArrowNode(respawnNode,data.respawn);
-						}
-					}, {
-						text:(language ? "Delete":"Supprimer"),
-						click:function() {
-							deleteItem();
-						}
-					}]);
-				};
+				self._initRespawn(self, shape,respawnNode, data);
 				handlePaste(shape,data,extra);
-				switch (data.type) {
-				case "rectangle":
-					addContextMenuEvent(shape,[{
-						text: (language ? "Resize":"Redimensionner"),
-						click: function() {
-							resizeRectangle(shape,data);
-						}
-					}, {
-						text: (language ? "Move":"Déplacer"),
-						click: function() {
-							moveRectangle(shape,data);
-						}
-					}, {
-						text: (language ? "Copy":"Copier"),
-						click: function() {
-							copyShape(data);
-						}
-					}, {
-						text:(language ? "Delete":"Supprimer"),
-						click:function() {
-							deleteItem();
-						}
-					}]);
-					break;
-				case "polygon":
-					addContextMenuEvent(shape, [{
-						text: (language ? "Edit":"Modifier"),
-						click: function() {
-							editPolygon(shape,data);
-						}
-					}, {
-						text: (language ? "Move":"Déplacer"),
-						click: function() {
-							movePolygon(shape,data);
-						}
-					}, {
-						text: (language ? "Copy":"Copier"),
-						click: function() {
-							copyShape(data);
-						}
-					}, {
-						text:(language ? "Delete":"Supprimer"),
-						click:function() {
-							deleteItem();
-						}
-					}]);
-					break;
-				}
 				delete self.state.respawnNode;
 			}
 			else {
@@ -4776,7 +5145,45 @@ var commonTools = {
 									self.state.currentshape = rectangle;
 									data.orientation = self.state.orientation;
 									self.data.push(data);
-									self.state.respawnNode = createArrowNode({x:-10,y:-10},self.state.orientation);
+									if (self.state.respawnType !== 'cp')
+										self.state.respawnNode = createArrowNode({x:-10,y:-10},self.state.orientation);
+									var respawnNode = self.state.respawnNode;
+									rectangle.oncontextmenu = function(e) {
+										if (respawnNode && self.state.currentshape === rectangle) return;
+										return showContextOnElt(e,rectangle, [{
+											text: (language ? "Resize":"Redimensionner"),
+											click: function() {
+												resizeRectangle(rectangle,data);
+											}
+										}, {
+											text: (language ? "Move":"Déplacer"),
+											click: function() {
+												moveRectangle(rectangle,data);
+											}
+										}, {
+											text: (language ? "Copy":"Copier"),
+											click: function() {
+												copyShape(data);
+											}
+										}, data.respawn ? {
+											text: (language ? "Remove ↗":"Supprimer ↗"),
+											click: function() {
+												self._resetRespawn(self, respawnNode, data);
+												respawnNode = null;
+											}
+										} : {
+											text: (language ? "Respawn...":"Respawn..."),
+											click: function() {
+												respawnNode = self._defineRespawn(self, data);
+												self._initRespawn(self, rectangle,respawnNode, data);
+											}
+										}, {
+											text:(language ? "Delete":"Supprimer"),
+											click:function() {
+												self._deleteItem(self, rectangle,respawnNode, data);
+											}
+										}]);
+									};
 								}
 							});
 						}
@@ -4794,7 +5201,45 @@ var commonTools = {
 									data.orientation = self.state.orientation;
 									self.data.push(data);
 									polygon.setAttribute("stroke-width", 1);
-									self.state.respawnNode = createArrowNode(deepCopy(point),self.state.orientation);
+									if (self.state.respawnType !== 'cp')
+										self.state.respawnNode = createArrowNode(deepCopy(point),self.state.orientation);
+									var respawnNode = self.state.respawnNode;
+									polygon.oncontextmenu = function(e) {
+										if (respawnNode && self.state.currentshape === polygon) return;
+										return showContextOnElt(e,polygon, [{
+											text: (language ? "Edit":"Modifier"),
+											click: function() {
+												editPolygon(polygon,data);
+											}
+										}, {
+											text: (language ? "Move":"Déplacer"),
+											click: function() {
+												movePolygon(polygon,data);
+											}
+										}, {
+											text: (language ? "Copy":"Copier"),
+											click: function() {
+												copyShape(data);
+											}
+										}, respawnNode ? {
+											text: (language ? "Remove ↗":"Supprimer ↗"),
+											click: function() {
+												self._resetRespawn(self, respawnNode, data);
+												respawnNode = null;
+											}
+										} : {
+											text: (language ? "Respawn...":"Respawn..."),
+											click: function() {
+												respawnNode = self._defineRespawn(self, data);
+												self._initRespawn(self, polygon,respawnNode, data);
+											}
+										}, {
+											text:(language ? "Delete":"Supprimer"),
+											click:function() {
+												self._deleteItem(self, polygon,respawnNode, data);
+											}
+										}]);
+									};
 								}
 							});
 						}
@@ -4829,8 +5274,8 @@ var commonTools = {
 			for (var i=0;i<self.data.length;i++) {
 				var iData = self.data[i];
 				var shape = shapeToData(iData);
-				var respawn = nullablePointToData(iData.respawn);
-				var orientation = iData.orientation||0;
+				var respawn = iData.respawn ? pointToData(iData.respawn) : null;
+				var orientation = respawn ? (iData.orientation||0) : "cp";
 				if (!payload.trous[orientation]) {
 					if (Array.isArray(payload.trous)) {
 						var nTrous = {};
@@ -4842,23 +5287,28 @@ var commonTools = {
 					}
 					payload.trous[orientation] = [];
 				}
-				payload.trous[iData.orientation||0].push([shape,respawn]);
+				payload.trous[orientation].push(respawn ? [shape,respawn] : [shape]);
 			}
 		},
 		"restore" : function(self,payload) {
-			for (var k=0;k<2;k++) {
-				for (var j in payload.trous) {
-					for (var i=0;i<payload.trous[j].length;i++) {
-						var iPayload = payload.trous[j][i];
-						var iData = dataToShape(iPayload[0]);
-						iData.respawn = dataToNullablePoint(iPayload[1]);
-						if (iData.respawn)
-							iData.orientation = +j;
-						if (k == !iData.respawn)
-							self.data.push(iData);
-					}
+			for (var j in payload.trous) {
+				for (var i=0;i<payload.trous[j].length;i++) {
+					var iPayload = payload.trous[j][i];
+					var iData = dataToShape(iPayload[0]);
+					iData.respawn = iPayload[1] ? dataToNullablePoint(iPayload[1]) : undefined;
+					if (iData.respawn)
+						iData.orientation = +j;
+					self.data.push(iData);
 				}
 			}
+		},
+		"prerestore": function(self) {
+			var data = self.data;
+			var lastData = data[data.length-1];
+			if (lastData && !lastData.respawn)
+				lastData = data[data.length-2];
+			if (lastData)
+				document.getElementById(self._respawn_selector_id).value = lastData.respawn ? 'manual' : 'cp';
 		},
 		"rescale" : function(self, scale) {
 			for (var i=0;i<self.data.length;i++) {
@@ -6275,11 +6725,13 @@ var commonTools = {
 			payload.main.bgimg = self.data.bg_img;
 			if (self.data.bg_custom)
 				payload.main.bgcustom = 1;
-			payload.main.music = self.data.music;
-			if (self.data.youtube) {
-				payload.main.youtube = self.data.youtube;
-				if (self.data.youtube_opts)
-					payload.main.youtube_opts = self.data.youtube_opts;
+			if (self.data.music_override) {
+				payload.main.music = self.data.music;
+				if (self.data.youtube) {
+					payload.main.youtube = self.data.youtube;
+					if (self.data.youtube_opts)
+						payload.main.youtube_opts = self.data.youtube_opts;
+				}
 			}
 			payload.main.bgcolor = [self.data.out_color.r,self.data.out_color.g,self.data.out_color.b];
 		},
@@ -6291,7 +6743,15 @@ var commonTools = {
 				self.data.youtube = payload.main.youtube;
 			if (payload.main.youtube_opts)
 				self.data.youtube_opts = payload.main.youtube_opts;
+			if (self.data.youtube || self.data.music)
+				self.data.music_override = true;
+			else
+				self.data.music = 1;
 			self.data.out_color = {r:payload.main.bgcolor[0],g:payload.main.bgcolor[1],b:payload.main.bgcolor[2]};
+		},
+		"postcopy" : function(self, copyFrom) {
+			if (!copyFrom)
+				self.data.music_override = false;
 		},
 		"hasPartialOverride": true
 	},

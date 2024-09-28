@@ -22,9 +22,21 @@ if (!function_exists('outOfT')) {
 	function hasBottomWalls($v) {
 		return ($v==1 || $v==3 || $v==6 || $v==7 || $v==9);
 	}
+	function legacyHoles($circuit) {
+		global $challenges;
+		if (empty($circuit['id'])) return false;
+		if (empty($challenges['track'][$circuit['id']]['list'])) return false;
+		$legacyThreshold = 1725645600;
+		foreach ($challenges['track'][$circuit['id']]['list'] as $challenge) {
+			if ($challenge['status'] === 'active' && $challenge['date'] < $legacyThreshold)
+				return true;
+		}
+		return false;
+	}
 }
 $printCircuitData = function($circuit) {
 	global $noStart, $twoStarts, $bloqued;
+	$legacyHoles = legacyHoles($circuit);
 	include(__DIR__.'/../circuitEnumsQuick.php');
 	$map = $circuit['map'];
 	if (!isset($bgColors[$map]))
@@ -1029,7 +1041,10 @@ $printCircuitData = function($circuit) {
 							case 44:
 							break;
 							default:
-							echo "[$x,$y,100,100,$startposition],";
+							if ($legacyHoles)
+								echo "[$x,$y,100,100,$startposition],";
+							else
+								echo "[[$x,$y,100,100]],";
 						}
 						break;
 						case 4 :
@@ -1503,7 +1518,11 @@ $printCircuitData = function($circuit) {
 	?>
 	],
 	<?php
+	if (!$legacyHoles)
+		echo 'extraHoles:{cp:[]},';
 	}
+	elseif (!$legacyHoles)
+		echo 'trous:{cp:[]},';
 	?>
 	"sauts" : [
 		<?php
