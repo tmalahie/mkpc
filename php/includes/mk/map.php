@@ -29,7 +29,7 @@ function printCircuitPart($circuit, $lapId,$circuitPayload) {
 	$circuitImg = isset($circuit['img_data']) ? json_decode($circuit['img_data']) : null;
 	if ($lapId) {
 		if (isset($circuitImg->lapOverrides->$lapId))
-			$circuitImg = $circuitImg->lapOverrides->$lapId;
+			$circuitImg = getRefCircuitImg($circuitImg->lapOverrides->$lapId, $circuitImg);
 		else
 			$circuitImg = null;
 	}
@@ -46,6 +46,8 @@ if ($lapId) {
 	echo '"lap":'.$circuitPayload->meta->lap.',';
 	if (isset($circuitPayload->meta->cp))
 		echo '"cp":'.$circuitPayload->meta->cp.',';
+	if (isset($circuitPayload->meta->interactions))
+		echo '"lapInteractions":'.json_encode($circuitPayload->meta->interactions).',';
 }
 if (isset($circuitMainData->bgcolor))
 	echo '"bgcolor":['.implode(',',$circuitMainData->bgcolor).'],';

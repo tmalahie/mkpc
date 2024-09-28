@@ -19,21 +19,25 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 	if ($lap && $imgData && isset($circuitImg->lapOverrides)) {
 		$imgData = json_decode($imgData);
 		$shouldOverrideLap = true;
-		if ($imgData) {
+		if (isset($imgData->url)) {
 			if (isset($circuitImg->lapOverrides->$lap)) {
 				$lapOverride = $circuitImg->lapOverrides->$lap;
-				if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local)
+				if (isset($lapOverride->url) && $lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local)
 					$shouldOverrideLap = false;
 			}
+		}
+		elseif (isset($imgData->override)) {
+			if (!isset($circuitImg->lapOverrides->$lap->url))
+				$shouldOverrideLap = false;
 		}
 		else {
 			if (!isset($circuitImg->lapOverrides->$lap))
 				$shouldOverrideLap = false;
 		}
 		if ($shouldOverrideLap) {
-			if ($imgData) {
+			if (isset($imgData->url)) {
 				foreach ($circuitImg->lapOverrides as $lapId => $lapOverride) {
-					if ($lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local) {
+					if (isset($lapOverride->url) && $lapOverride->url === $imgData->url && $lapOverride->local === $imgData->local) {
 						$lap = $lapId;
 						$_GET['lap'] = $lap;
 						break;
@@ -41,7 +45,12 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 				}
 			}
 			else {
-				for ($lapId=1;isset($circuitImg->lapOverrides->$lapId);$lapId++);
+				if (isset($imgData->override)) {
+					for ($lapId=1;isset($circuitImg->lapOverrides->$lapId->url);$lapId++);
+				}
+				else {
+					for ($lapId=1;isset($circuitImg->lapOverrides->$lapId);$lapId++);
+				}
 				$lap = $lapId;
 				$_GET['lap'] = $lap;
 			}
@@ -54,7 +63,6 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 		else
 			$newImg = true;
 	}
-	$ext = $circuitImg->ext;
 	include('../includes/uploadByUrl.php');
 	if (isset($_FILES['image'])) {
 		if (!$_FILES['image']['error']) {
@@ -104,15 +112,23 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 		}
 	else $error = $language ? 'An error occured. Please try again':'Une erreur est survenue, veuillez réessayez';
 	}
-	elseif (isset($_GET['delete']) && $lap && !$newImg) {
-		deleteCircuitFile($circuitImg);
-		unset($baseCircuitImg->lapOverrides->$lap);
-		$circuitImgRaw = mysql_real_escape_string(json_encode($baseCircuitImg));
-		$circuitImg = $baseCircuitImg;
-		mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
+	elseif (isset($_GET['delete']) && $lap) {
+		if (!$newImg) {
+			deleteCircuitFile($circuitImg);
+			unset($baseCircuitImg->lapOverrides->$lap);
+			$circuitImgRaw = mysql_real_escape_string(json_encode($baseCircuitImg));
+			$circuitImg = $baseCircuitImg;
+			mysql_query('UPDATE `'.$db.'` SET img_data="'. $circuitImgRaw .'" WHERE id="'.$id.'"');
+			$newImg = true;
+		}
 		$success = 3;
-		$newImg = true;
 		unset($_GET['delete']);
+	}
+	elseif ($lap && $newImg) {
+		if (isset($imgData->override)) {
+			$circuitImg = $imgData;
+			$newImg = false;
+		}
 	}
 }
 mysql_close();
@@ -152,8 +168,10 @@ legend {
 	display: inline-block;
 }
 .import-fields input {
-	display: none;
 	width: 98%;
+}
+.import-type-picker {
+	display: none;
 }
 .del-override {
 	color: #C24;
@@ -229,22 +247,15 @@ function apercu() {
 	}
 }
 document.onclick = apercu;
-function reForbid() {
-	document.getElementById("redimensionner").disabled = ((document.forms[1].x.value==<?php echo $circuitImg->w ?>)&&(document.forms[1].y.value==<?php echo $circuitImg->h ?>));
-}
-function able() {
-	document.getElementById("pivoter").disabled = false;
-	able = function(){};
-}
 function updateImportFields(elt) {
-	var $fields = document.querySelectorAll(".import-fields input");
+	var $fields = document.querySelectorAll(".import-type-picker");
 	for (var i=0;i<$fields.length;i++) {
 		$fields[i].style.display = "";
 		$fields[i].value = "";
 	}
-	var $field = document.querySelector(".import-fields input[name='"+elt.value+"']");
+	var $field = document.getElementById("import-type-"+elt.value);
 	$field.style.display = 'inline-block';
-	document.getElementById('modifier').disabled = true;
+	document.getElementById('modifier').disabled = (elt.value !== 'override');
 	$field.focus();
 }
 function confirmRemoveOverride() {
@@ -283,22 +294,53 @@ echo '});';
 </script>
 	<?php
 }
+elseif (isset($_POST['override']) && isset($_POST['import-type']) && ($_POST['import-type'] === 'override')) {
+	?>
+<p id="success"><?php echo $language ? "The image has been changed successfully":"L'image a &eacute;t&eacute; modifi&eacute;e avec succ&egrave;s !"; ?></p>
+<script type="text/javascript">
+window.parent.handleImageFromOverride(<?php echo $_POST['override'] ?>);
+</script>
+	<?php
+	$circuitImg = (object) array(
+		'local' => 0,
+		'override' => $_POST['override']
+	);
+}
 elseif (isset($error))
 	echo '<p id="error">'.$error.'</p>';
 else
 	echo '<p>&nbsp;</p>';
 ?>
-<form method="post" enctype="multipart/form-data" action="">
+<form method="post" enctype="multipart/form-data" action="changeMap.php?<?php echo http_build_query($_GET); ?>">
 <fieldset>
 <legend><?php echo $language ? 'Change circuit image':'Modifier l\'image du circuit'; ?></legend>
 <p>
 <div class="import-type">
 	<label><input type="radio" name="import-type" value="image" checked="checked" onchange="updateImportFields(this)" /><?php echo $language ? 'Upload an image':'Uploader une image' ?></label>
+	<?php if ($lap) echo '<br />'; ?>
 	<label><input type="radio" name="import-type" value="url" onchange="updateImportFields(this)" /><?php echo $language ? 'Paste image URL':'Coller l\'URL de l\'image' ?></label>
+	<?php
+	if ($lap)
+		echo '<br /><label><input type="radio" name="import-type" value="override" onchange="updateImportFields(this)" />'. ($language ? "Reuse override image":"Réutiliser l'image d'un modificateur") .'</label>';
+	?>
 </div>
 <div class="import-fields">
-	<input type="file" name="image" style="display:inline-block" onchange="document.getElementById('modifier').disabled=!this.value" />
-	<input type="url" name="url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" oninput="document.getElementById('modifier').disabled=!this.value" />
+	<input type="file" name="image" class="import-type-picker" id="import-type-image" style="display:inline-block" onchange="document.getElementById('modifier').disabled=!this.value" />
+	<input type="url" name="url" class="import-type-picker" id="import-type-url" placeholder="https://www.mariouniverse.com/wp-content/img/maps/ds/mk/delfino-square.png" oninput="document.getElementById('modifier').disabled=!this.value" />
+	<?php
+	if ($lap) {
+		?>
+		<label id="import-type-override" class="import-type-picker">
+			<?php echo $language ? 'Override:' : 'Modificateur&nbsp;:'; ?>
+			<select name="override">
+			</select>
+		</label>
+		<script type="text/javascript">
+			window.parent.initOverrideSelector(document.querySelector('#import-type-override select[name="override"]'));
+		</script>
+		<?php
+	}
+	?>
 </div>
 <?php
 if ($lap)
@@ -314,6 +356,15 @@ if ($lap && !$newImg)
 <?php
 if (!$newImg && $circuitImg->local) {
 	?>
+<script type="text/javascript">
+function reForbid() {
+	document.getElementById("redimensionner").disabled = ((document.forms[1].x.value==<?php echo $circuitImg->w ?>)&&(document.forms[1].y.value==<?php echo $circuitImg->h ?>));
+}
+function able() {
+	document.getElementById("pivoter").disabled = false;
+	able = function(){};
+}
+</script>
 <form method="post" action="redimensionne.php">
 <fieldset>
 <legend><?php echo $language ? 'Resize':'Redimensionner'; ?></legend>
@@ -349,6 +400,32 @@ if ($lap) echo '<input type="hidden" name="lap" value="'.$lap.'" />';
 <input type="submit" value="<?php echo $language ? 'Validate':'Valider'; ?>" id="pivoter" disabled="disabled" />
 </fieldset>
 </form>
+	<?php
+}
+?>
+<?php
+$importType = null;
+$importValue = null;
+if (isset($circuitImg->url) && empty($circuitImg->local)) {
+	$importType = 'url';
+	$importValue = $circuitImg->url;
+}
+elseif (isset($circuitImg->override))
+	$importType = 'override';
+if ($importType) {
+	?>
+	<script type="text/javascript">
+	var $importType = document.querySelector('input[name="import-type"][value="<?php echo $importType ?>"]');
+	if ($importType) {
+		$importType.checked = true;
+		$importType.value = '<?php echo $importType ?>';
+		updateImportFields($importType);
+		<?php
+		if ($importValue)
+			echo 'document.getElementById("import-type-'.$importType.'").value = '. json_encode($importValue) .';';
+		?>
+	}
+	</script>
 	<?php
 }
 ?>

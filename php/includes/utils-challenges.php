@@ -948,6 +948,8 @@ function getChallengeDetails($challenge, &$params=array()) {
 		}
 		$res['winners'] = $winners;
 	}
+	if (!empty($params['date']))
+		$res['date'] = strtotime($challenge['date']);
 	return $res;
 }
 require_once('utils-cups.php');

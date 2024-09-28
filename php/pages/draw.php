@@ -43,12 +43,15 @@ if (isset($_GET['i'])) {
 					)
 				);
 				foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
+					$imgOverrideData = isset($lapImg->override) ? array(
+						'override' => $lapImg->override
+					) : array(
+						'url' => $lapImg->url,
+						'local' => $lapImg->local
+					);
 					$circuitImgPayload['lapOverrides'][$lap] = array(
-						'src' => getCircuitImgUrl($lapImg),
-						'data' => array(
-							'url' => $lapImg->url,
-							'local' => $lapImg->local
-						)
+						'src' => getCircuitImgUrl(getRefCircuitImg($lapImg,$circuitImg)),
+						'data' => $imgOverrideData
 					);
 				}
 			}
@@ -59,7 +62,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create circuit':'Créer circuit'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -75,8 +78,8 @@ if (isset($_GET['i'])) {
 		<?php
 		include('../includes/o_xhr.php');
 		?>
-		<script type="text/javascript" src="scripts/editor.js?reload=2"></script>
-		<script type="text/javascript" src="scripts/draw.js?reload=3"></script>
+		<script type="text/javascript" src="scripts/editor.js"></script>
+		<script type="text/javascript" src="scripts/draw.js"></script>
 	</head>
 	<body onkeydown="handleKeySortcuts(event)" onbeforeunload="return handlePageExit()" class="editor-body">
 		<div id="editor-wrapper"<?php if (!$hasWriteGrants) echo ' class="readonly"'; ?> oncontextmenu="handleCtxmenu(event)" onmousemove="handleMove(event)" onclick="handleClick(event)">
@@ -193,6 +196,18 @@ if (isset($_GET['i'])) {
 						<button value="rectangle" class="radio-button radio-button-25 radio-selected button-img" style="background-image:url('images/editor/rectangle.png')"></button>
 						<button value="polygon" class="radio-button radio-button-25 button-img" style="background-image:url('images/editor/polygon.png')"></button>
 					</div>
+					<label id="respawn-type-container">
+						<?php echo $language ? 'Respawn at<a href="javascript:showHelp()">[?]</a>:':'Réapparaitre à<a href="javascript:showHelp()">[?]</a>:'; ?>
+						<select name="respawn-type" id="respawn-type" onchange="respawnTypeChange(this.value)">
+							<option value="cp"><?php echo $language ? 'Last checkpoint' : 'Dernier checkpoint'; ?></option>
+							<option value="manual"><?php echo $language ? 'Defined position' : 'Position définie'; ?></option>
+						</select>
+					</label>
+					<div id="checkpoint-respawn-reset">
+						<?php echo $language ? 'Reset already defined respawn positions?':'Réinitialiser les positions définies précédemment ?'; ?><br />
+						<a class="action-yes" href="javascript:resetAllRewpawns()"><?php echo $language ? 'Yes':'Oui'; ?></a> -
+						<a class="action-no" href="javascript:dismissResetRespawn()"><?php echo $language ? 'No':'Non'; ?></a>
+					</div>
 				</div>
 				<div id="mode-option-checkpoints">
 					<div class="mode-option-unoverridable">
@@ -271,9 +286,11 @@ if (isset($_GET['i'])) {
 						<br />
 						<button id="button-bgimg" class="toolbox-button" onclick="showBgSelector()"></button>
 					</div>
-					<div class="mode-option-unoverridable">
+					<div>
 						<?php echo $language ? 'Music:':'Musique :'; ?>
-						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button><br />
+						<button id="button-music" class="toolbox-button" onclick="showMusicSelector()"></button>
+						<a class="mode-option-onoverride" id="button-music-reset" href="javascript:resetMusicOverride()">[<?php echo $language ? 'Reset' : 'Réinit.'; ?>]</a>
+						<br />
 					</div>
 					<div>
 						<?php echo $language ? 'Out color:':'Couleur de fond :'; ?>
@@ -429,6 +446,7 @@ if (isset($_GET['i'])) {
 					echo '<div class="lapoverride-manage">';
 					echo '<a id="lapoverride-btn-add" href="javascript:showLapOverrideAdd()">'. ($language ? 'Add a lap override':'Ajouter un modificateur') .'</a>';
 					echo '<a id="lapoverride-btn-edit" href="javascript:showLapOverrideChange()">'. ($language ? 'Edit a lap override':'Changer un modificateur') .'</a>';
+					echo '<a id="lapoverride-btn-copy" href="javascript:showLapOverrideCopy()">'. ($language ? 'Copy an override':'Copier un modificateur') .'</a>';
 					echo '<a id="lapoverride-btn-remove" href="javascript:showLapOverrideRemove()">'. ($language ? 'Delete an override':'Supprimer un modificateur') .'</a>';
 					echo '</div>';
 					?>
@@ -448,10 +466,38 @@ if (isset($_GET['i'])) {
 							<?php echo $language ? 'Checkpoint:' : 'Checkpoint :'; ?>
 							<select id="lapoverride-checkpoints-list"></select>
 						</label>
+						<label id="lapoverride-interactions-checker"><input type="checkbox" id="lapoverride-interactions-check" onclick="handleLapInteractionsCheck(this.checked)" /> <?php
+						echo $language ? 'Disable interactions with other overrides' : 'Désactiver les interactions avec les autres modificateurs';
+						?> <a href="javascript:showInteractionsHelp()">[?]</a></label>
+						<div id="lapoverride-interactions-ctn">
+							<?php echo $language ? 'Exceptions - enable intéractions for:' : 'Exceptions - activer les intéractions pour&nbsp;:'; ?>
+							<div id="lapoverride-interactions-list"></div>
+						</div>
 						<div class="popup-buttons">
 							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
 							<button class="options lapoverride-more-add" onclick="addLapOverride()"><?php echo $language ? 'Submit':'Valider'; ?></button>
 							<button class="options lapoverride-more-edit" onclick="editLapOverride()"><?php echo $language ? 'Apply':'Appliquer'; ?></button>
+						</div>
+					</div>
+				</div>
+				<div id="lapoverride-copy" class="lapoverride-copy-invalid">
+					<h1><?php echo $language ? 'Copy an override':'Copier un modificateur'; ?></h1>
+					<div>
+						<div class="lapoverride-copy-options">
+							<?php echo $language ? 'Copy from:' : 'Copier depuis :'; ?>
+							<select id="lapoverride-copy-from" onchange="handleLapCopySelect()"></select>
+							<?php echo $language ? 'to:' : 'vers :'; ?>
+							<select id="lapoverride-copy-to" onchange="handleLapCopySelect()"></select>
+						</div>
+						<div class="lapoverride-copy-hide-on-invalid">
+							<h2><?php echo $language ? 'Components to copy:' : 'Copier les composants :'; ?></h2>
+							<div id="lapoverride-copy-components"></div>
+							<label id="lapoverride-copy-components-all-wrapper"><input type="checkbox" checked="checked" id="lapoverride-copy-components-all" onchange="handleLapCopyComponentsAll(this.checked)" /> <?php echo $language ? 'Select/Unselect all' : 'Tout sélectionne/Désélectionner'; ?></label>
+						</div>
+						<div class="popup-buttons lapoverride-copy-hide-on-invalid">
+							<button class="options" onclick="initLapOverrideOptions()"><?php echo $language ? 'Back':'Retour'; ?></button>
+							<button class="options" onclick="copyLapOverride()" id="lapoverride-copy-submit"><?php echo $language ? 'Submit':'Valider'; ?></button>
+							<button class="options" id="lapoverride-copy-success" disabled="disabled"><?php echo $language ? 'Copied':'Copié'; ?> ✓</button>
 						</div>
 					</div>
 				</div>
@@ -684,7 +730,7 @@ if (isset($_GET['i'])) {
 									echo '<option value="">'. ($language ? 'Custom':'Autre') .'...</option>';
 									?>
 								</select>
-								<div>
+								<div id="youtube-options-last-lap">
 									<?php echo $language ? 'Last lap music:':'Musique du dernier tour :'; ?>
 									<input type="text" size="2" name="youtube-last" id="youtube-last-url" pattern="<?php echo htmlspecialchars($ytPattern); ?>" placeholder="https://www.youtube.com/watch?v=NNMy4DKKDFA" onchange="playYt(this)" /><br />
 									<?php echo $language ? 'Loop between' : 'Boucler entre'; ?>
@@ -802,26 +848,22 @@ if (isset($_GET['i'])) {
 					'holes' => array(
 						'title' => $language ? 'Holes':'Trous',
 						'text' => ($language ?
-							"Holes are the areas where the karts that move over it fall and are replaced: void, lava, water...
-							To define a hole, you thus need to specify 2 information: hole area, and respawn position.
+							"Holes are the areas where the karts can fall: void, lava, water...
+							A hole is thus mainly defined by its area of influence. Like for <a href=\"javascript:selectHelpTab('walls')\">walls</a>, you can define it with a rectangle or by a polygon.<br />
 							<ul>
-								<li>Hole area: as for <a href=\"javascript:selectHelpTab('walls')\">walls</a>, you can define the area by a rectangle or by a polygon.</li>
-								<li>Respawn position: click where you want the kart to land.
-								An arrow appears: it indicates the direction of respawn.
-								Click on the point at the end of the arrow to change that direction.
-								Note that a right click on that same point let you move the arrow.</li>
+								<li>By default, when a player falls in the hole, he will respawn at the position of the last <a href=\"javascript:selectHelpTab('checkpoints')\">checkpoint</a> he went to.</li>
+								<li>You can change this behavior by selecting &quot;Defined position&quot; under &quot;Respawn at&quot;.<br />
+								In this case, after defining the hole area, click where you want the kart to land. An arrow appears: it indicates the direction of respawn.
+								Click on the point at the end of the arrow to change that direction. Note that a right click on that same point let you move the arrow.</li>
 							</ul>"
 							:
-							"Les trous sont les zones où les karts qui roulent dessus tombent et sont replacés : vide, lave, eau...
-							Pour définir un trou, vous avez donc besoin de renseigner 2 informations : la zone du trou, et la position de replacement.
+							"Les trous sont les zones où les karts peuvent tomber : vide, lave, eau...
+							Un trou est donc principalement défini par sa zone d'influence. Comme pour les <a href=\"javascript:selectHelpTab('walls')\">murs</a>, vous pouvez la définir avec un rectangle ou un polygone.<br />
 							<ul>
-								<li>Zone du trou : comme pour les <a href=\"javascript:selectHelpTab('walls')\">murs</a>,
-								vous pouvez définir la zone par un rectangle ou par un polygone.</li>
-								<li>Position de replacement : Cliquez là où vous voulez que le kart réapparaisse.
-								Une flèche apparait alors : il indique la direction de replacement.
-								Cliquez sur le point à l'extrémité de la flèche pour changer cette direction.
-								Notez qu'un clic droit sur ce même point permet de déplacer la flèche.
-								</li>
+								<li>Par défaut, lorsqu'un joueur tombe dans un trou, il réapparaitra au dernier <a href=\"javascript:selectHelpTab('checkpoints')\">checkpoint</a> qu'il a passé.</li>
+								<li>Vous pouvez changer ce comportement en sélectionnant &quot;Position définie&quot; sous &quot;Réapparaitre à&quot;.<br />
+								Dans ce cas, après avoir défini la zone du trou, cliquez là où vous voulez que le kart réapparaisse. Une flèche apparait alors : il indique la direction de replacement.
+								Cliquez sur le point à l'extrémité de la flèche pour changer cette direction. Notez qu'un clic droit sur ce même point permet de déplacer la flèche.</li>
 							</ul>"
 						)
 					),
@@ -1149,7 +1191,7 @@ else {
 		<?php
 		include('../includes/o_online.php');
 		?>
-		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=2" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
 		<link rel="stylesheet" type="text/css" href="styles/draw.css" />
 		<script type="text/javascript">
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
@@ -1306,6 +1348,10 @@ else {
 					<img id="editor-track-img" src="images/maps/map1.png" alt="Circuit" />
 				</div>
 			</div>
+			<script type="text/javascript">
+				if (!localStorage.getItem("editor.respawnType"))
+					localStorage.setItem("editor.respawnType", "manual");
+			</script>
 			<?php
 		}
 		?>

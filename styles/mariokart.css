@@ -955,6 +955,10 @@ select {
 	image-rendering: optimize-contrast;
 	-ms-interpolation-mode: nearest-neighbor;
 }
+.nointeract {
+	opacity: 0.5;
+	transition: opacity 0.2s ease-in;
+}
 .mirrored {
 	transform: scaleX(-1);
 	-webkit-transform: scaleX(-1);

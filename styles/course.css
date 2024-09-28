@@ -4,3 +4,6 @@ body {
 body.theme-dark {
 	background-image: url('../images/editor/fond_arene.jpg');
 }
+label#respawn-type-container {
+	display: none;
+}

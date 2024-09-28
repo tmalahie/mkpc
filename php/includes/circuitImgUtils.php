@@ -6,6 +6,17 @@ function getCircuitImgUrl($circuitImg) {
         return CIRCUIT_REL_PATH.$circuitImg->url;
     return $circuitImg->url;
 }
+function getRefCircuitImg($circuitImg,$baseCircuitImg) {
+    if (isset($circuitImg->override)) {
+        $lapId = $circuitImg->override;
+        if (!$lapId)
+            return $baseCircuitImg;
+        if (isset($baseCircuitImg->lapOverrides->$lapId))
+            return $baseCircuitImg->lapOverrides->$lapId;
+        return $baseCircuitImg;
+    }
+    return $circuitImg;
+}
 function deleteCircuitFile($circuitImg) {
     if ($circuitImg->local)
         @unlink(CIRCUIT_BASE_PATH.$circuitImg->url);
