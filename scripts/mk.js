@@ -18256,17 +18256,20 @@ function processCode(cheatCode) {
                 c = lMap.checkpoint.length;
             }
 
+			let llMap = getCurrentLMap(getCurrentLapId(oPlayer));
+
             if (c > 0) c--;
             if (args[1] == "cur") c = oPlayer.demitours;
-            if (!args[1]) {
-                const lMap = getCurrentLMap(getCurrentLapId(oPlayer));
-                c = lMap.checkpoint.length - 1;
-            }
+            if (!args[1]) c = llMap.checkpoint.length - 1;
 			
 			if (isNaN(t)) return "lap: Invalid lap value";
 			if (isNaN(c)) return "lap: Invalid checkpoint value";
 
             const prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
+			let curCheckpointCount = llMap.checkpoint.length;
+
+			if (t > oMap.tours) t = oMap.tours;
+			if (c > curCheckpointCount) c = curCheckpointCount - 1;
 
             oPlayer.tours = t;
             oPlayer.demitours = c;
