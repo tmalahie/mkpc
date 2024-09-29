@@ -17068,7 +17068,7 @@ function move(getId, triggered) {
 				delete oKart.champior;
 				delete oKart.champior0;
 				if (oKart.cpu) {
-					if (lastCp && lastCp.aipoints === oKart.aipoints)
+					if (lastCp && lastCp.aipoints === oKart.aipoints && oKart.aishortcut == null)
 						oKart.aipoint = lastCp.aipoint;
 					else
 						oKart.aipoint = undefined;
