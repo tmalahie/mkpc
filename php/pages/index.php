@@ -1,5 +1,7 @@
 <?php
-include('../includes/rateLimit.php');
+include('../includes/language.php');
+require_once('../includes/rateLimit.php');
+$rateLimitWrapper = handleRateLimit();
 include('../includes/initdb.php');
 if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] != '')) {
 	function startsWith($haystack, $needle) {
@@ -9,7 +11,6 @@ if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] != '')) {
 	if (!startsWith($_SERVER['HTTP_REFERER'],'https://mkpc.malahieude.net/'))
 		mysql_query('INSERT INTO `previouspages` VALUES("'. mysql_real_escape_string($_SERVER['HTTP_REFERER']) .'")');
 }
-include('../includes/language.php');
 include('../includes/session.php');
 ?>
 <!DOCTYPE html>
@@ -1181,3 +1182,7 @@ var last_tz = '<?php echo isset($_COOKIE['tz']) ? addslashes($_COOKIE['tz']):'';
 <script defer src="scripts/timezones.js"></script>
 </body>
 </html>
+<?php
+if ($rateLimitWrapper)
+	$rateLimitWrapper();
+?>
