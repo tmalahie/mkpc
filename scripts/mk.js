@@ -14406,8 +14406,7 @@ var itemDistributions = {
 			"champi": 3,
 			"champior": 1,
 			"champiX3": 1,
-			"bloops": 1,
-			"pow": 1
+			"bloops": 1
 		}]
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
