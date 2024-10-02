@@ -3933,7 +3933,7 @@ function addOptionIfNotExist($select, value) {
 function applyMusicSelector() {
 	var $btnReset = document.getElementById("button-music-reset");
 	var editorTool = editorTools[currentMode];
-	if (editorTool.data.music_override) {
+	if (!selectedLapOverride || editorTool.data.music_override) {
 		if (editorTool.data.music)
 			document.getElementById("button-music").innerHTML = musicOptions[editorTool.data.music];
 		else
@@ -6725,7 +6725,7 @@ var commonTools = {
 			payload.main.bgimg = self.data.bg_img;
 			if (self.data.bg_custom)
 				payload.main.bgcustom = 1;
-			if (self.data.music_override) {
+			if (!selectedLapOverride || self.data.music_override) {
 				payload.main.music = self.data.music;
 				if (self.data.youtube) {
 					payload.main.youtube = self.data.youtube;

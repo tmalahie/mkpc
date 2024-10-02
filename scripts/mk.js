@@ -4203,8 +4203,10 @@ function startGame() {
 					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('GO!', 'PARTEZ !') +'</td></tr>';
 					document.getElementById("infos"+i).style.fontSize = iScreenScale * 12 + "px";
 					document.getElementById("infos"+i).style.top = Math.round(12.5*iScreenScale) + "px";
-					if (oPlayers[i].speed == 1)
+					if (oPlayers[i].speed == 1) {
 						oPlayers[i].speed = 11;
+						clLocalVars.forwards = true;
+					}
 					else if (oPlayers[i].speed > 1) {
 						oPlayers[i].spin(42);
 						oPlayers[i].speed = 0;
