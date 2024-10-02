@@ -1947,6 +1947,7 @@ function initMap() {
 		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
 			if (gameSettings.nogif) {
 				var oGif = new Image();
+				lMap.mapImg = oGif;
 				oGif.onload = function() {
 					oMapImg = document.createElement("canvas");
 					oMapImg.width = oGif.naturalWidth;
