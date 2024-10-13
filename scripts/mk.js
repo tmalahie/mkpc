@@ -624,7 +624,7 @@ function removeSoundEffects() {
 }
 function clearResources() {
 	var oMapImg;
-	if (typeof lMap === 'undefined') return; // crash fix
+	if (typeof lMap === 'undefined') return;
 	foreachLMap(function(lMap) {
 		if (lMap.mapImg === oMapImg) return;
 		oMapImg = lMap.mapImg;
@@ -1948,7 +1948,7 @@ function initMap() {
 		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
 			if (gameSettings.nogif) {
 				var oGif = new Image();
-				lMap.mapImg = oGif; // crash fix
+				lMap.mapImg = oGif;
 				oGif.onload = function() {
 					oMapImg = document.createElement("canvas");
 					oMapImg.width = oGif.naturalWidth;
@@ -18331,7 +18331,7 @@ function openCheats() {
         return false;
     const result = processCode(cheatCode);
     if (result !== true) {
-        alert(typeof result === "string" ? result : "Invalid command");
+        alert(typeof result === "string" ? result : "Unspecified error.");
     } else {
         clLocalVars.cheated = true;
         if (clSelected)
@@ -18352,19 +18352,20 @@ function processCode(cheatCode) {
     const oPlayer = oPlayers[0];
 
     switch (command) {
-		case "give": // /give item (a)
-			if (![1, 2].includes(args.length)) return "give: Invalid number of arguments.";
-
+		case "arme":
+		case "give": // /give item | /arme item
+			if (args.length !== 1) return "give: Invalid argument count";
+	
 			const wObject = args[0];
-			const overwriteArme = args[1] === 'a';
 			let isExistingObj = false;
 			const itemMode = getItemMode();
+			const overwriteArme = (command === "arme");
 			const oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
-		
+	
 			// check if the item exists in the current item distrib
 			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
-		
-			if (!isExistingObj) return "give: This item does not exist.";
+	
+			if (!isExistingObj) return "give: This item is not present in your item distribution";
 			if (overwriteArme || !oPlayer.arme) {
 				oPlayer.arme = wObject;
 				oPlayer.roulette = 25;
@@ -18385,19 +18386,19 @@ function processCode(cheatCode) {
 			// 'n+' || 'n-' - add or decrease the current position
 			// examples: /tp 100 200 90 || /tp cur 50+
 
-			if (![2, 3].includes(args.length)) return "tp: Invalid number of arguments.";
+			if (![2, 3].includes(args.length)) return "tp: Invalid argument count";
 
 			function correctTPType(current, arg, onReturn) {
 				let result;
 				if (typeof arg === 'undefined') return current;
-				if (arg === 'cur') {                // current pos
+				if (arg === 'cur') {                	  // current pos
 					result = current;
-				} else if (arg.endsWith('+')) {     // add to current pos
+				} else if (arg.endsWith('+')) {     	  // add to current pos
 					result = current + parseFloat(arg.slice(0, -1));
-				} else if (arg.endsWith('-')) {     // decrease current pos
+				} else if (arg.endsWith('-')) {    	      // decrease current pos
 					result = current - parseFloat(arg.slice(0, -1));
-				} else {                            // position specified
-					const parsed = parseFloat(arg); // sanity
+				} else {                            	  // exact position specified
+					const parsed = parseFloat(arg); 	  // sanity
 					result = isNaN(parsed) ? undefined : parsed;
 				}
 				result = result < 0 ? undefined : result; // prevent negative values
@@ -18430,18 +18431,14 @@ function processCode(cheatCode) {
 			resetRenderState();
 			return true;
 
-        case "lap": // /lap l c (n)
+		case "lapn":
+        case "lap": // /lap l c | /lapn l c
 			// 'cur' - current lap or checkpoint
-			// 'n'   - turns off teleportation (optional)
+			// /lapn will make you not teleport to the checkpoint
 
-            let doNotTeleport = false
-            if (args[args.length - 1] === "n") {
-                args[args.length - 1] = undefined
-                doNotTeleport = true
-            } // /lap 1 n || /lap 1 2 n -> /lap 1 || /lap 1 2
+            let doNotTeleport = (command === "lapn");
 
             let t = parseInt(args[0]), c = parseInt(args[1]);
-
             if (args[0] == "cur") t = oPlayer.tours;
             if (!args[0]) {
                 t = oMap.tours;
@@ -18484,7 +18481,7 @@ function processCode(cheatCode) {
             alert("x: " + Math.round(oPlayer.x) + "\ny: " + Math.round(oPlayer.y) + "\nrot: " + Math.round(oPlayer.rotation));
             return true;
 
-		case "setsize": // /setsize (float | xs | md | xl)
+		case "size": // /size (float | xs | md | xl)
 			if (args.length === 1) {
 				const sizeArg = args[0];
 				let newSize;
@@ -18498,7 +18495,7 @@ function processCode(cheatCode) {
 				} else {
 					newSize = parseFloat(sizeArg);
 					if (isNaN(newSize)) {
-						return "setsize: Invalid argument";
+						return "size: Invalid argument";
 					}
 				}
 		
@@ -18506,24 +18503,29 @@ function processCode(cheatCode) {
 				oPlayer.mini = 0;
 				return true;
 			}
-			return "setsize: Invalid argument count";
+			return "size: Invalid argument count";
 
 		case "balloon": // /balloon n
-			if (course == "BB" && args.length == 1) {
-				const toAdd = parseInt(args[0]);
-				if (toAdd) {
-					oPlayer.reserve += toAdd;
-					if (oPlayer.reserve > 10) {
-						oPlayer.reserve = 10; // too many balloons breaks the page
-					}
-					updateBalloonHud(document.getElementById("compteur0"), oPlayer);
-					return true;
-				}
+			if (course != "BB") return "balloon: Not in battle mode"
+			if (![0,1].includes(args.length)) return "balloon: Invalid argument count"
+			let toAdd;
+			if (args.length == 0) {
+				toAdd = 1;
+			} else {
+				toAdd = parseInt(args[0]);
 			}
-			return false;
+			if (toAdd || !isNaN(toAdd)) {
+				oPlayer.reserve += toAdd;
+				if (oPlayer.reserve > 10) {
+					oPlayer.reserve = 10;
+				}
+				updateBalloonHud(document.getElementById("compteur0"), oPlayer);
+				return true;
+			}
+			return "balloon: Unknown error";
 
-        default: // invalid command
-            return false;
+        default: // unknown command
+            return "Unknown command";
     }
 }
 
