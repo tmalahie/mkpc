@@ -18352,21 +18352,20 @@ function processCode(cheatCode) {
     const oPlayer = oPlayers[0];
 
     switch (command) {
-		case "arme":
-		case "give": // /give item | /arme item
-			if (args.length !== 1) return "give: Invalid argument count";
+		case "give": // /give item (1)
+			if (![1,2].includes(args.length)) return "give: Invalid argument count";
 	
 			const wObject = args[0];
 			let isExistingObj = false;
 			const itemMode = getItemMode();
-			const overwriteArme = (command === "arme");
+			const itemSlot = (args[1] ? parseInt(args[1]) : 2); // default to stash
 			const oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
 	
 			// check if the item exists in the current item distrib
 			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
 	
 			if (!isExistingObj) return "give: This item is not present in your item distribution";
-			if (overwriteArme || !oPlayer.arme) {
+			if (itemSlot === 1 || !oPlayer.arme) {
 				oPlayer.arme = wObject;
 				oPlayer.roulette = 25;
 			} else {
