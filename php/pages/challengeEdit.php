@@ -315,7 +315,7 @@ function selectMainRule() {
 		break;
 	case 'reach_zone':
 		$extra.html(
-			'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+			'<div style="margin:10px 0"><label>'+ (language ? 'Zone location: ':'Emplacement de la zone : ') +
 			'<input type="hidden" name="goal[value]" value="[]" />'+
 			'<input type="hidden" name="goal[translated]" value="0" />'+
 			'<button type="button" onclick="openZoneEditor()">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'+
@@ -337,7 +337,7 @@ function selectMainRule() {
 		break;
 	case 'reach_zones':
 		$extra.html(
-			'<div style="margin:10px 0"><label>'+ (language ? 'Locations: ':'Emplacements : ') +
+			'<div style="margin:10px 0"><label>'+ (language ? 'Zone locations: ':'Emplacements des zones : ') +
 			'<input type="hidden" name="goal[value]" value="[]" />'+
 			'<input type="hidden" name="goal[ordered]" value="0" />'+
 			'<input type="hidden" name="goal[translated]" value="0" />'+
@@ -461,7 +461,7 @@ function addConstraintRule(clClass) {
 			break;
 		case 'start_pos':
 			$form.html(
-				'<div style="position: relative; top: -0.2em"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<div style="position: relative; top: -0.2em"><label>'+ (language ? 'Starting location: ':'Position de départ : ') +
 				'<input type="hidden" name="scope[start_pos][value]" />'+
 				'<button type="button" onclick="openZoneEditor(\'startpos\')">'+ (language ? "Indicate...":"Indiquer...") +'</button></label><br />'+
 				'<label style="font-size: 0.8em; display: block; text-align: right"><input type="checkbox" name="scope[start_pos][no_cpu]" />&nbsp;'+ (language?'Play without CPUs':'Jouer sans ordis')+'</label></div>'
@@ -473,7 +473,7 @@ function addConstraintRule(clClass) {
 			break;
 		case 'extra_items':
 			$form.html(
-				'<div style="position: relative; top: -0.2em"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<div style="position: relative; top: -0.2em"><label>'+ (language ? 'Extra item boxes: ':'Boîtes à objets : ') +
 				'<input type="hidden" name="scope[extra_items][value]" />'+
 				'<button type="button" onclick="openZoneEditor(\'items\')">'+ (language ? "Indicate...":"Indiquer...") +'</button></label><br />'+
 				'<label style="font-size: 0.8em; display: block; text-align: right"><input type="checkbox" name="scope[extra_items][clear_other]" />&nbsp;'+ (language?'Remove other item boxes':'Retirer les autres boîtes à objets')+'</label></div>'
@@ -485,7 +485,7 @@ function addConstraintRule(clClass) {
 			break;
 		case 'extra_decors':
 			$form.html(
-				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<div style="margin:10px 0"><label>'+ (language ? 'Extra decors: ':'Decors ajoutés : ') +
 				'<input type="hidden" name="scope[extra_decors][value]" value="[]" />'+
 				'<input type="hidden" name="scope[extra_decors][custom_decors]" value="{}" />'+
 				'<button type="button" onclick="openZoneEditor(\'decors\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
@@ -493,7 +493,7 @@ function addConstraintRule(clClass) {
 			break;
 		case 'extra_walls':
 			$form.html(
-				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<div style="margin:10px 0"><label>'+ (language ? 'Extra walls: ':'Murs ajoutés : ') +
 				'<input type="hidden" name="scope[extra_walls][value]" value="[]" />'+
 				'<input type="hidden" name="scope[extra_walls][height]" value="0" />'+
 				'<button type="button" onclick="openZoneEditor(\'zones\',\'source=extra_walls\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
@@ -501,7 +501,7 @@ function addConstraintRule(clClass) {
 			break;
 		case 'place_items':
 			$form.html(
-				'<div style="margin:10px 0"><label>'+ (language ? 'Location: ':'Emplacement : ') +
+				'<div style="margin:10px 0"><label>'+ (language ? 'Items on the track: ':'Objets sur la piste : ') +
 				'<input type="hidden" name="scope[place_items][value]" value="[]" />'+
 				'<button type="button" onclick="openZoneEditor(\'arms\')">'+ (language ? "Indicate...":"Indiquer...") +'</label></div>'
 			);
@@ -592,7 +592,7 @@ function addConstraintRule(clClass) {
 			break;
 		case 'avoid_decors':
 			$form.html(
-				'<div>'+ (language?'Decor(s):':'Décor(s) :') +' '+
+				'<div>'+ (language?'Avoid decor(s):':'Décor(s) à éviter :') +' '+
 				'<input type="text" style="display:none" name="avoid_decors_fake1" required="required" >'+
 				'<div class="challenge-rule-btn-options challenge-constraint-btn-options"></div>'+
 				'<div class="challenge-rule-decor-names challenge-constraint-decor-names"></div>'
@@ -631,7 +631,7 @@ function addConstraintRule(clClass) {
 			break;
 		case 'avoid_item':
 			$form.html(
-				'<div>'+ (language?'Item(s):':'Objet(s) :') +' '+
+				'<div>'+ (language?'Avoid item(s):':'Objet(s) à éviter :') +' '+
 				'<input type="text" style="display:none" name="scope[avoid_item][value]" required="required" >'+
 				'<div class="challenge-rule-btn-options challenge-item-btn-options"></div>'
 			);
@@ -646,7 +646,7 @@ function addConstraintRule(clClass) {
 			break;
 		case 'init_item':
 			$form.html(
-				'<div>'+ (language?'Item:':'Objet :') +' '+
+				'<div>'+ (language?'Start with:':'Commencer avec :') +' '+
 				'<input type="text" style="display:none" name="scope[init_item][value]" >'+
 				'<div class="challenge-rule-btn-options challenge-item-btn-options"></div>'
 			);
@@ -661,7 +661,7 @@ function addConstraintRule(clClass) {
 			break;
 		case 'item_distribution':
 			$form.html(
-				'<div>'+ (language?'Item(s):':'Objet(s) :') +' '+
+				'<div>'+ (language?'Distribution:':'Distribution :') +' '+
 				'<input type="text" style="display:none" name="scope[item_distribution][value]" required="required" >'+
 				'<div class="challenge-rule-btn-options challenge-item-btn-options"></div>'
 			);
