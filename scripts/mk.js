@@ -18353,6 +18353,8 @@ function processCode(cheatCode) {
 
     switch (command) {
 		case "give": // /give item (1)
+			// 1 will always replace the first slot
+			// everything else/nothing will pick one automatically
 			if (![1,2].includes(args.length)) return "give: Invalid argument count";
 	
 			const wObject = args[0];
@@ -18382,9 +18384,8 @@ function processCode(cheatCode) {
 			// syntax
 			// 'cur' - current player position
 			// 'n' - position specified
-			// 'n+' || 'n-' - add or decrease the current position
-			// examples: /tp 100 200 90 || /tp cur 50+
-
+			// 'n+' | 'n-' - add or decrease the current position
+			// examples: /tp 100 200 90 | /tp cur 50+
 			if (![2, 3].includes(args.length)) return "tp: Invalid argument count";
 
 			function correctTPType(current, arg, onReturn) {
@@ -18398,34 +18399,33 @@ function processCode(cheatCode) {
 					result = current - parseFloat(arg.slice(0, -1));
 				} else {                            	  // exact position specified
 					const parsed = parseFloat(arg); 	  // sanity
-					result = isNaN(parsed) ? undefined : parsed;
+					result = isNaN(parsed) ? 0 : parsed;
 				}
-				result = result < 0 ? undefined : result; // prevent negative values
-
+			
 				let retval;
 				if (typeof onReturn === 'function') {
 					retval = onReturn(result);
-					if (typeof retval !== 'undefined') result = retval
+					if (typeof retval !== 'undefined') result = retval;
 				}
 			
 				return result;
 			}
 			
-			let x = correctTPType(oPlayer.x, args[0]);
-			let y = correctTPType(oPlayer.y, args[1]);
-			let r = correctTPType(oPlayer.rotation, args[2], (value) => { return Math.abs(value % 360); });
-
-			let checklist = [x, y, r];
-			const labels = ['x', 'y', 'rot'];
-			for (let i = 0; i < checklist.length; i++) {
-				if (checklist[i] === undefined || isNaN(checklist[i])) {
-					return "tp: Invalid " + labels[i] + " value";
+			let newPos = {
+				x: correctTPType(oPlayer.x, args[0], (value) => { return value < 0 ? 0 : value; }),
+				y: correctTPType(oPlayer.y, args[1], (value) => { return value < 0 ? 0 : value; }),
+				r: correctTPType(oPlayer.rotation, args[2], (value) => { return Math.abs(value % 360); })
+			};
+			
+			for (let key in newPos) {
+				if (newPos[key] === undefined || isNaN(newPos[key])) {
+					return `tp: Invalid ${key} value`;
 				}
 			}
 			
-			oPlayer.x = x;
-			oPlayer.y = y;
-			oPlayer.rotation = r;
+			oPlayer.x = newPos.x;
+			oPlayer.y = newPos.y;
+			oPlayer.rotation = newPos.r;
 			
 			resetRenderState();
 			return true;
@@ -18434,7 +18434,6 @@ function processCode(cheatCode) {
         case "lap": // /lap l c | /lapn l c
 			// 'cur' - current lap or checkpoint
 			// /lapn will make you not teleport to the checkpoint
-
             let doNotTeleport = (command === "lapn");
 
             let t = parseInt(args[0]), c = parseInt(args[1]);
@@ -18464,7 +18463,7 @@ function processCode(cheatCode) {
             oPlayer.demitours = c;
             const lMap = getCurrentLMap(oPlayer);
             const checkpoint = lMap.checkpointCoords[c];
-            if (checkpoint && cheatCode !== 'lap') {
+            if (checkpoint) {
                 const nextCp = lMap.checkpointCoords[(c + 1) % lMap.checkpointCoords.length];
                 if (!doNotTeleport) {
                     oPlayer.x = checkpoint.O[0];
@@ -18504,9 +18503,10 @@ function processCode(cheatCode) {
 			}
 			return "size: Invalid argument count";
 
-		case "balloon": // /balloon n
-			if (course != "BB") return "balloon: Not in battle mode"
-			if (![0,1].includes(args.length)) return "balloon: Invalid argument count"
+		case "balloon": // /balloon (n)
+			// no n arg will give you 1 balloon
+			if (course != "BB") return "balloon: Not in battle mode";
+			if (![0,1].includes(args.length)) return "balloon: Invalid argument count";
 			let toAdd;
 			if (args.length == 0) {
 				toAdd = 1;
@@ -18523,8 +18523,8 @@ function processCode(cheatCode) {
 			}
 			return "balloon: Unknown error";
 
-        default: // unknown command
-            return "Unknown command";
+        default:
+            return "Error: This command doesn't exist";
     }
 }
 
