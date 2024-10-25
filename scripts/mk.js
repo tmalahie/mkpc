@@ -18399,7 +18399,7 @@ function processCode(cheatCode) {
 					result = current - parseFloat(arg.slice(0, -1));
 				} else {                            	  // exact position specified
 					const parsed = parseFloat(arg); 	  // sanity
-					result = isNaN(parsed) ? 0 : parsed;
+					result = isNaN(parsed) ? undefined : parsed;
 				}
 			
 				let retval;
