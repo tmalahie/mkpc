@@ -1167,7 +1167,7 @@ mysql_close();
 var loadingMsg = "<?= _('Loading') ?>";
 </script>
 <script defer src="scripts/creations.js"></script>
-<script defer src="scripts/posticons.js"></script>
+<script defer src="scripts/posticons.js?reload=1"></script>
 <script defer src="scripts/officials.js"></script>
 
 <script defer src="scripts/jstz.min.js"></script>

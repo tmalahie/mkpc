@@ -1,4 +1,3 @@
-var loadDt = 0;
 function previewCircuit(elt) {
 	var id = elt.getAttribute("data-id");
 	if (elt.getAttribute("data-pending"))
@@ -20,6 +19,22 @@ function previewCircuit(elt) {
 function closePreview() {
 	document.getElementById("editor-track-preview-mask").style.display = "none";
 	document.onkeydown = undefined;
+}
+function loadNextTracks() {
+	var $batch = document.querySelector(".editor-tracks-batch:not(.editor-tracks-batch-show)");
+	var $batchImgs = $batch.querySelectorAll("img");
+	for (var i=0;i<$batchImgs.length;i++)
+		$batchImgs[i].src = $batchImgs[i].getAttribute("data-src");
+	$batch.classList.add("editor-tracks-batch-show");
+}
+var nextLoad = Date.now();
+function handlePreviewError(that) {
+	var now = Date.now();
+	setTimeout(function() {
+		that.src = that.getAttribute('data-fallback');
+	}, nextLoad - now);
+	nextLoad = Math.max(nextLoad,now) + 50;
+	that.onerror = null;
 }
 document.addEventListener("DOMContentLoaded", function() {
 	var $tabSelectors = document.querySelectorAll(".editor-upload-tabs");

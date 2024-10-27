@@ -915,6 +915,6 @@ function selectTab(i) {
 var loadingMsg = "<?php echo $language ? 'Loading':'Chargement'; ?>";
 </script>
 <script type="text/javascript" src="scripts/creations.js"></script>
-<script type="text/javascript" src="scripts/posticons.js"></script>
+<script type="text/javascript" src="scripts/posticons.js?reload=1"></script>
 </body>
 </html>

@@ -184,7 +184,7 @@ include('../includes/heads.php');
 
 <script type="text/javascript" src="scripts/topic.js"></script>
 <script type="text/javascript" src="scripts/profile.js"></script>
-<script type="text/javascript" src="scripts/posticons.js"></script>
+<script type="text/javascript" src="scripts/posticons.js?reload=1"></script>
 
 <?php
 include('../includes/o_online.php');

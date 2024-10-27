@@ -44,7 +44,7 @@ if (isset($_GET['i'])) {
 		<title><?php echo $language ? 'Create arena':'Créer arène'; ?> - Mario Kart PC</title> 
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" />
-		<link rel="stylesheet" type="text/css" href="styles/editor.css" />
+		<link rel="stylesheet" type="text/css" href="styles/editor.css?reload=1" />
 		<link rel="stylesheet" type="text/css" href="styles/course.css?reload=1" />
 		<script type="text/javascript">
 		var language = <?php echo $language ? 1:0; ?>;
@@ -786,7 +786,7 @@ else {
 		var csrf = "<?php echo $_SESSION['csrf']; ?>";
 		var isBattle = true;
 		</script>
-		<script src="scripts/editor-form.js"></script>
+		<script src="scripts/editor-form.js?reload=1"></script>
 	</head>
 	<body class="home-body">
 		<?php
@@ -902,7 +902,13 @@ else {
 				<div id="editor-tracks-list">
 					<?php
 					require_once('../includes/circuitImgUtils.php');
+					$trackBatch = 45;
+					$trackCount = 1;
+					$newTrackBatch = true;
+					$srcAttr = 'src';
 					while ($track = mysql_fetch_array($getTracks)) {
+						if ($newTrackBatch)
+							echo '<span class="editor-tracks-batch'. (($trackCount>=$trackBatch) ? '':' editor-tracks-batch-show') .'">';
 						$circuitImg = json_decode($track['img_data']);
 						$id = $track['id'];
 						if ($track['thumbnail'])
@@ -915,12 +921,23 @@ else {
 							'. ($track['data'] ? '':'data-pending="1"') .'
 							data-src="'.htmlspecialchars(getCircuitImgUrl($circuitImg)).'"
 							onclick="previewCircuit(this);return false"><img
-								src="'.$cacheSrc.'"
-								onerror="var that=this;setTimeout(function(){that.src=\'trackicon.php?type=2&id='. $id .'\';},loadDt);this.onerror=null;loadDt+=50"
-								alt="Arene '.$id.'"
+								'.$srcAttr.'="'.$cacheSrc.'"
+								data-fallback="trackicon.php?type=2&id='. $id .'"
+								onerror="handlePreviewError(this)"
 							/></a>';
+						$trackCount++;
+						$newTrackBatch = $trackCount % $trackBatch == 0;
+						if ($newTrackBatch) {
+							echo '</span>';
+							$srcAttr = 'data-src';
+						}
 					}
+					if (!$newTrackBatch)
+						echo '</span>';
 					?>
+					<span class="editor-tracks-batch-more" onclick="loadNextTracks()">
+						<span>&#9658;</span>
+					</span>
 				</div>
 			</div>
 			<div id="editor-track-preview-mask" class="editor-mask" onclick="closePreview()">

@@ -466,7 +466,7 @@ else {
     <?php
 }
 ?>
-<script type="text/javascript" src="scripts/posticons.js"></script>
+<script type="text/javascript" src="scripts/posticons.js?reload=1"></script>
 </body>
 </html>
 <?php

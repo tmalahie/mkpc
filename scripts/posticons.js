@@ -1,38 +1,67 @@
-var iconDelayDt = 100;
-function setCircuitImgs(inc,icCircuit) {
-	var imgsData = icCircuit.dataset.cicon;
-	delete icCircuit.dataset.cicon;
+let iconDelayDt = 100;
+let iconsLoadingCount = 0;
+async function setCircuitImgs(icCircuit,opts) {
+	let imgsData = icCircuit.dataset.cicon;
 	if (imgsData) {
-		var bgs = [];
-		var imgs = imgsData.split(",");
-		for (var j=0;j<imgs.length;j++)
-			bgs[j] = "url('"+imgs[j]+"')";
-		var res = inc;
-		for (var j=0;j<bgs.length;j++) {
-			setCircuitImg(res,icCircuit,bgs,j);
-			res++;
-		}
-		return res;
+		let bgs = [];
+		let isMCup = imgsData.endsWith("&type=4");
+		if (isMCup !== opts.mcup)
+			return;
+		delete icCircuit.dataset.cicon;
+		let imgs = imgsData.split(",");
+		for (let j=0;j<imgs.length;j++)
+			bgs[j] = imgs[j];
+		for (let j=0;j<bgs.length;j++)
+			await setCircuitImg(icCircuit,bgs,j,isMCup);
 	}
-	else
-		return inc;
 }
-function setCircuitImg(inc,icCircuit,bgs,j) {
-	var bgsIncomplete = [];
-	for (var i=0;i<bgs.length;i++)
+async function setCircuitImg(icCircuit,bgs,j,isMCup) {
+	let bgsIncomplete = [];
+	for (let i=0;i<bgs.length;i++)
 		bgsIncomplete[i] = "url('images/uploads/overload.png')";
 	icCircuit.style.backgroundImage = bgsIncomplete.join(",");
-	for (var i=0;i<=j;i++)
-		bgsIncomplete[i] = bgs[i];
-	setTimeout(function() {
-		icCircuit.style.backgroundImage = bgsIncomplete.join(",");
-	}, iconDelayDt*inc);
+	await waitIconDelay();
+	while (iconsLoadingCount > 25)
+		await waitNextIconLoad();
+	for (let i=0;i<=j;i++) {
+		let bgSrc = bgs[i];
+		let loadingCountInc = isMCup ? 20 : 1;
+		let $bg = new Image();
+		$bg.src = bgSrc;
+		iconsLoadingCount += loadingCountInc;
+		$bg.onload = () => {
+			iconsLoadingCount -= loadingCountInc;
+			bgsIncomplete[i] = "url('"+bgSrc+"')";
+			icCircuit.style.backgroundImage = bgsIncomplete.join(",");
+			resolveNextIconLoad();
+		};
+		$bg.onerror = () => {
+			iconsLoadingCount -= loadingCountInc;
+			resolveNextIconLoad();
+		};
+	}
 }
-function loadCircuitImgs() {
-	var icCircuits = document.querySelectorAll("[data-cicon]");
-	var inc = 0;
-	for (var i=0;i<icCircuits.length;i++)
-		inc = setCircuitImgs(inc,icCircuits[i]);
+async function loadCircuitImgs() {
+	let icCircuits = document.querySelectorAll("[data-cicon]");
+	for (let i=0;i<icCircuits.length;i++)
+		await setCircuitImgs(icCircuits[i],{mcup:false});
+	for (let i=0;i<icCircuits.length;i++)
+		await setCircuitImgs(icCircuits[i],{mcup:true});
+}
+let iconThrottledPromises = [];
+function waitNextIconLoad() {
+	let res = new Promise((resolve) => {
+		iconThrottledPromises.push(resolve);
+	});
+	return res;
+}
+function resolveNextIconLoad() {
+	for (let i=0;i<iconThrottledPromises.length;i++)
+		iconThrottledPromises[i]();
+	iconThrottledPromises = [];
+}
+function waitIconDelay() {
+	return new Promise(resolve => setTimeout(resolve, iconDelayDt));
 }
 if ("loading" !== document.readyState)
 	loadCircuitImgs();

@@ -79,7 +79,7 @@ include('handleCupOptions.php');
 ?>
 </script>
 <script type="text/javascript" src="scripts/cup.js"></script>
-<script type="text/javascript" src="scripts/posticons.js"></script>
+<script type="text/javascript" src="scripts/posticons.js?reload=1"></script>
 </head>
 <body<?php if ($readOnly) echo ' class="readonly"'; ?>>
 	<div class="container <?php echo $mode ? 'complete':'simplified'; ?> <?php echo $isBattle ? ' is-battle':''; ?>">
