@@ -2471,6 +2471,10 @@ function arme(ID, backwards, forwards) {
 			case "billball" :
 			if (oKart.billball)
 				break;
+			if (oKart.jumped) {
+				oKart.ctrled = false;
+				oKart.jumped = false;
+			}
 			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/(9*cappedRelSpeed())), 120), 40);
 			oKart.billball0 = tpsUse;
 			for (var i=0;i<strPlayer.length;i++) {
