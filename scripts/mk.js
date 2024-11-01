@@ -12346,19 +12346,19 @@ function accelere(iX, iY, iI, iJ) {
 	return false;
 }
 
-function flowShift(iX,iY, iP) {
+function flowShift(iX,iY) {
 	var lMap = getCurrentLMap(collisionLap);
 	if (lMap.flows) {
 		var oRectangles = lMap.flows.rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
 			var oFlow = oRectangles[i];
-			if (pointInRectangle(iX,iY, oFlow[0]) && (!iP||oFlow[2]))
+			if (pointInRectangle(iX,iY, oFlow[0]))
 				return [oFlow[1][0],oFlow[1][1],0];
 		}
 		var oPolygons = lMap.flows.polygon;
 		for (var i=0;i<oPolygons.length;i++) {
 			var oFlow = oPolygons[i];
-			if (pointInPolygon(iX,iY, oFlow[0]) && (!iP||oFlow[2]))
+			if (pointInPolygon(iX,iY, oFlow[0]))
 				return [oFlow[1][0],oFlow[1][1],0];
 		}
 	}
@@ -17120,8 +17120,7 @@ function move(getId, triggered) {
 						oKart.speed = hpProps.speed;
 					stopDrifting(getId);
 				}
-				if (!oKart.tourne)
-					newShift = flowShift(fNewPosX, fNewPosY, oKart.protect);
+				newShift = flowShift(fNewPosX, fNewPosY);
 				if (newShift) {
 					if (oKart.cpu) {
 						if (newShift[0]*newShift[0] + newShift[1]*newShift[1] >= 100) {
@@ -18998,7 +18997,7 @@ function ai(oKart) {
 			}
 			var actualTheta = oKart.rotation, actualSpeed = oKart.speed;
 			if (oKart.shift && !isCup) {
-				var actualShift = flowShift(oKart.x,oKart.y, oKart.protect);
+				var actualShift = flowShift(oKart.x,oKart.y);
 				if (actualShift) {
 					var fMoveDir = kartInstantSpeed(oKart);
 					if (actualShift[2])
