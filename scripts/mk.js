@@ -624,6 +624,7 @@ function removeSoundEffects() {
 }
 function clearResources() {
 	var oMapImg;
+	if (typeof lMap === 'undefined') return;
 	foreachLMap(function(lMap) {
 		if (lMap.mapImg === oMapImg) return;
 		oMapImg = lMap.mapImg;
@@ -18354,132 +18355,206 @@ var clLocalVars, clHud, clSelected;
 //clSelected = challenges["track"]["7037"]["list"][3];
 
 function openCheats() {
-	var cheatCode = prompt("MKPC Console command");
-	if (!cheatCode)
-		return false;
-	if (!processCode(cheatCode))
-		alert("Invalid command");
-	else {
-		clLocalVars.cheated = true;
-		if (clSelected)
-			challengeHandleFail();
-	}
+    var cheatCode = prompt("MKPC Console command");
+    if (!cheatCode)
+        return false;
+    const result = processCode(cheatCode);
+    if (result !== true) {
+        alert(typeof result === "string" ? result : "Unspecified error.");
+    } else {
+        clLocalVars.cheated = true;
+        if (clSelected)
+            challengeHandleFail();
+    }
+}
+function cheatArgs(cheatCode) {
+    if (cheatCode.charAt(0) != "/") return null;
+    cheatCode = cheatCode.substring(1);
+    return cheatCode.split(" ");
 }
 function processCode(cheatCode) {
-	if (cheatCode.charAt(0) != "/")
-		return false;
-	cheatCode = cheatCode.substring(1);
-	var oPlayer = oPlayers[0];
-	var isObject = /^give (\w+)$/g.exec(cheatCode);
-	if (isObject) {
-		var wObject = isObject[1];
-		var isExistingObj = false;
-		var itemMode = getItemMode();
-		var oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
-		dance: for (var i=0;i<oItemDistributions.length;i++) {
-			var oItemDistribution = oItemDistributions[i];
-			for (var j=0;j<oItemDistribution.value.length;j++) {
-				if (oItemDistribution.value[j][wObject] != null) {
-					isExistingObj = true;
-					break dance;
+    const rawArgs = cheatArgs(cheatCode);
+    if (!rawArgs) return false;
+
+    const command = rawArgs[0];
+    const args = rawArgs.slice(1);
+    const oPlayer = oPlayers[0];
+
+    switch (command) {
+		case "give": // /give item (1)
+			// 1 will always replace the first slot
+			// everything else/nothing will pick one automatically
+			if (![1,2].includes(args.length)) return "give: Invalid argument count";
+	
+			const wObject = args[0];
+			let isExistingObj = false;
+			const itemMode = getItemMode();
+			const itemSlot = (args[1] ? parseInt(args[1]) : 2); // default to stash
+			const oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
+	
+			// check if the item exists in the current item distrib
+			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
+	
+			if (!isExistingObj) return "give: This item is not present in your item distribution";
+			if (itemSlot === 1 || !oPlayer.arme) {
+				oPlayer.arme = wObject;
+				oPlayer.roulette = 25;
+			} else {
+				oPlayer.stash = wObject;
+				oPlayer.roulette2 = 25;
+			}
+			updateObjHud(0);
+			return true;
+
+        case "tp": // /tp x y (r)
+			// 'x' and 'y' are in px
+			// 'r' is the optional rotation (0-360)
+
+			// syntax
+			// 'cur' - current player position
+			// 'n' - position specified
+			// 'n+' | 'n-' - add or decrease the current position
+			// examples: /tp 100 200 90 | /tp cur 50+
+			if (![2, 3].includes(args.length)) return "tp: Invalid argument count";
+
+			function correctTPType(current, arg, onReturn) {
+				let result;
+				if (typeof arg === 'undefined') return current;
+				if (arg === 'cur') {                	  // current pos
+					result = current;
+				} else if (arg.endsWith('+')) {     	  // add to current pos
+					result = current + parseFloat(arg.slice(0, -1));
+				} else if (arg.endsWith('-')) {    	      // decrease current pos
+					result = current - parseFloat(arg.slice(0, -1));
+				} else {                            	  // exact position specified
+					const parsed = parseFloat(arg); 	  // sanity
+					result = isNaN(parsed) ? undefined : parsed;
+				}
+			
+				let retval;
+				if (typeof onReturn === 'function') {
+					retval = onReturn(result);
+					if (typeof retval !== 'undefined') result = retval;
+				}
+			
+				return result;
+			}
+			
+			let newPos = {
+				x: correctTPType(oPlayer.x, args[0], (value) => { return value < 0 ? 0 : value; }),
+				y: correctTPType(oPlayer.y, args[1], (value) => { return value < 0 ? 0 : value; }),
+				r: correctTPType(oPlayer.rotation, args[2], (value) => { return Math.abs(value % 360); })
+			};
+			
+			for (let key in newPos) {
+				if (newPos[key] === undefined || isNaN(newPos[key])) {
+					return `tp: Invalid ${key} value`;
 				}
 			}
-		}
-		if (!isExistingObj)
-			return false;
-		if (oPlayer.billball) {
-			oPlayer.stash = wObject;
-			oPlayer.roulette2 = 25;
-		}
-		else {
-			oPlayer.arme = wObject;
-			oPlayer.roulette = 25;
-		}
-		updateObjHud(0);
-		return true;
-	}
-	var isTP = /^tp ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(cheatCode);
-	if (!isTP)
-		isTP = /^tp ([\d\-+\.]+) ([\d\-+\.]+) ([\d\-+\.]+)$/g.exec(cheatCode);
-	if (isTP) {
-		var x = parseFloat(isTP[1]), y = parseFloat(isTP[2]);
-		if (isNaN(x) || isNaN(y))
-			return false;
-		var th = parseFloat(isTP[3]);
-		oPlayer.x = x;
-		oPlayer.y = y;
-		if (!isNaN(th))
-			oPlayer.rotation = th;
-		resetRenderState();
-		return true;
-	}
-	var isLap = /^lap(?: ([1-3]|c))?(?: (\d+|c))?$/g.exec(cheatCode);
-	if (isLap) {
-		var t = parseInt(isLap[1]), c = parseInt(isLap[2]);
-		if (isLap[1] == "c")
-			t = oPlayer.tours;
-		if (!isLap[1]) {
-			t = oMap.tours;
-			var lMap = getCurrentLMap({ tours: t, demitours: 0 });
-			c = lMap.checkpoint.length;
-		}
-		if (c > 0) c--;
-		if (isLap[2] == "c")
-			c = oPlayer.demitours;
-		if (!isLap[2]) {
-			var lMap = getCurrentLMap(getCurrentLapId(oPlayer));
-			c = lMap.checkpoint.length-1;
-		}
-		if (isNaN(t) || isNaN(c))
-			return false;
-		var prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
-		oPlayer.tours = t;
-		oPlayer.demitours = c;
-		var lMap = getCurrentLMap(oPlayer);
-		var checkpoint = lMap.checkpointCoords[c];
-		if (checkpoint && cheatCode !== 'lap') {
-			var nextCp = lMap.checkpointCoords[(c+1)%lMap.checkpointCoords.length];
-			oPlayer.x = checkpoint.O[0];
-			oPlayer.y = checkpoint.O[1];
-			oPlayer.rotation = Math.atan2(nextCp.O[0]-checkpoint.O[0],nextCp.O[1]-checkpoint.O[1])*180/Math.PI;
-		}
-		updateLapHud(0);
-		handleCpChange(prevLap,prevCP, 0);
-		return true;
-	}
-	if (cheatCode == "pos") {
-		alert("x: "+ Math.round(oPlayer.x)+"\ny: "+Math.round(oPlayer.y)+"\ntheta: "+Math.round(oPlayer.rotation));
-		return true;
-	}
-	else if (cheatCode == "xs") {
-		oPlayer.size = 0.6;
-		oPlayer.mini = 0;
-		return true;
-	}
-	else if (cheatCode == "md") {
-		oPlayer.size = 1;
-		oPlayer.mini = 0;
-		return true;
-	}
-	else if (cheatCode == "xl") {
-		oPlayer.size = Math.pow(1.05,8);
-		oPlayer.mini = 0;
-		return true;
-	}
-	if (course == "BB") {
-		if (cheatCode == "balloon")
-			cheatCode += " 1";
-		var isBaloon = /^balloon (\d+)$/g.exec(cheatCode);
-		if (isBaloon) {
-			var toAdd = parseInt(isBaloon[1]);
-			if (toAdd) {
-				oPlayer.reserve += toAdd;
-				updateBalloonHud(document.getElementById("compteur0"),oPlayer);
+			
+			oPlayer.x = newPos.x;
+			oPlayer.y = newPos.y;
+			oPlayer.rotation = newPos.r;
+			
+			resetRenderState();
+			return true;
+
+		case "lapn":
+        case "lap": // /lap l c | /lapn l c
+			// 'cur' - current lap or checkpoint
+			// /lapn will make you not teleport to the checkpoint
+            let doNotTeleport = (command === "lapn");
+
+            let t = parseInt(args[0]), c = parseInt(args[1]);
+            if (args[0] == "cur") t = oPlayer.tours;
+            if (!args[0]) {
+                t = oMap.tours;
+                const lMap = getCurrentLMap({ tours: t, demitours: 0 });
+                c = lMap.checkpoint.length;
+            }
+
+			let llMap = getCurrentLMap(getCurrentLapId(oPlayer));
+
+            if (c > 0) c--;
+            if (args[1] == "cur") c = oPlayer.demitours;
+            if (!args[1]) c = llMap.checkpoint.length - 1;
+			
+			if (isNaN(t)) return "lap: Invalid lap value";
+			if (isNaN(c)) return "lap: Invalid checkpoint value";
+
+            const prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
+			let curCheckpointCount = llMap.checkpoint.length;
+
+			if (t > oMap.tours) t = oMap.tours;
+			if (c > curCheckpointCount) c = curCheckpointCount - 1;
+
+            oPlayer.tours = t;
+            oPlayer.demitours = c;
+            const lMap = getCurrentLMap(oPlayer);
+            const checkpoint = lMap.checkpointCoords[c];
+            if (checkpoint) {
+                const nextCp = lMap.checkpointCoords[(c + 1) % lMap.checkpointCoords.length];
+                if (!doNotTeleport) {
+                    oPlayer.x = checkpoint.O[0];
+                    oPlayer.y = checkpoint.O[1];
+                    oPlayer.rotation = Math.atan2(nextCp.O[0] - checkpoint.O[0], nextCp.O[1] - checkpoint.O[1]) * 180 / Math.PI;
+                }
+            }
+            updateLapHud(0);
+            handleCpChange(prevLap, prevCP, 0);
+            return true;
+
+        case "pos": // /pos
+            alert("x: " + Math.round(oPlayer.x) + "\ny: " + Math.round(oPlayer.y) + "\nrot: " + Math.round(oPlayer.rotation));
+            return true;
+
+		case "size": // /size (float | xs | md | xl)
+			if (args.length === 1) {
+				const sizeArg = args[0];
+				let newSize;
+		
+				if (sizeArg === "xs") {
+					newSize = 0.6;
+				} else if (sizeArg === "md") {
+					newSize = 1;
+				} else if (sizeArg === "xl") {
+					newSize = Math.pow(1.05, 8);
+				} else {
+					newSize = parseFloat(sizeArg);
+					if (isNaN(newSize)) {
+						return "size: Invalid argument";
+					}
+				}
+		
+				oPlayer.size = newSize;
+				oPlayer.mini = 0;
 				return true;
 			}
-		}
-	}
-	return false;
+			return "size: Invalid argument count";
+
+		case "balloon": // /balloon (n)
+			// no n arg will give you 1 balloon
+			if (course != "BB") return "balloon: Not in battle mode";
+			if (![0,1].includes(args.length)) return "balloon: Invalid argument count";
+			let toAdd;
+			if (args.length == 0) {
+				toAdd = 1;
+			} else {
+				toAdd = parseInt(args[0]);
+			}
+			if (toAdd || !isNaN(toAdd)) {
+				oPlayer.reserve += toAdd;
+				if (oPlayer.reserve > 10) {
+					oPlayer.reserve = 10;
+				}
+				updateBalloonHud(document.getElementById("compteur0"), oPlayer);
+				return true;
+			}
+			return "balloon: Unknown error";
+
+        default:
+            return "Error: This command doesn't exist";
+    }
 }
 
 function distToAiPoints(x,y, aipoints) {
