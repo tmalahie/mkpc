@@ -624,7 +624,6 @@ function removeSoundEffects() {
 }
 function clearResources() {
 	var oMapImg;
-	if (typeof lMap === 'undefined') return;
 	foreachLMap(function(lMap) {
 		if (lMap.mapImg === oMapImg) return;
 		oMapImg = lMap.mapImg;
