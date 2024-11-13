@@ -31,6 +31,8 @@ if (isset($_POST['challenge']) || isset($_GET['challenge'])) {
 			if ($clRace = mysql_fetch_array(mysql_query('SELECT type,circuit FROM mkclrace WHERE id='. $challenge['clist']))) {
 				if ($circuitData = getCircuitPayload($clRace))
 					$redirectUrl = $circuitData['href'];
+				if (isset($_GET['clskey']))
+					$redirectUrl .= '&clskey='.urlencode($_GET['clskey']);
 			}
 			if (!isset($alreadySucceeded))
 				$_SESSION['clselected'] = $challengeId;

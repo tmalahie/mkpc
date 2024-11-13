@@ -13842,7 +13842,7 @@ function challengeSucceeded(challenge) {
 	if ("pending_completion" === challenge.status)
 		challenge.status = "pending_publication";
 	delete clRuleVars[challenge.id];
-	if (wasSucceeded) {
+	if (wasSucceeded || challenge.clkey) {
 		setTimeout(function() {
 			showChallengePopup(challenge, {});
 		}, 1);

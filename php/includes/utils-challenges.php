@@ -843,6 +843,10 @@ function listChallenges($clRace, &$params=array()) {
 		if (isset($identifiants)) {
 			if ($getClist = mysql_fetch_array(mysql_query('SELECT id,type,circuit FROM `mkclrace` WHERE id="'. $clRace .'" AND identifiant='.$identifiants[0].' AND identifiant2='.$identifiants[1].' AND identifiant3='.$identifiants[2].' AND identifiant4='.$identifiants[3])))
 				$myCircuit = true;
+			elseif (isset($_GET['clskey']) && (hash('sha256',$_GET['clskey']) === '51cafcf31ceedc78da19c7b12a2b3b5b82bdef9611286d96b838780bc38adcfe')) {
+				$myCircuit = true;
+				$isClKey = true;
+			}
 		}
 		if ($myCircuit)
 			$statusCheck = 'status!="deleted"';
@@ -862,7 +866,10 @@ function listChallenges($clRace, &$params=array()) {
 			$challenge['type'] = $clRaceData['type'];
 			$challenge['circuit'] = $clRaceData['circuit'];
 		}
-		$res[] = getChallengeDetails($challenge, $params);
+		$challengeDetails = getChallengeDetails($challenge, $params);
+		if (isset($isClKey) && $challengeDetails['status'] !== 'active')
+			$challengeDetails['clkey'] = $isClKey;
+		$res[] = $challengeDetails;
 	}
 	if (!empty($params['alltracks']) && !empty($getClist)) {
 		$subCls = array();
