@@ -2472,6 +2472,10 @@ function arme(ID, backwards, forwards) {
 			case "billball" :
 			if (oKart.billball)
 				break;
+			if (oKart.jumped) {
+				oKart.ctrled = false;
+				oKart.jumped = false;
+			}
 			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/(9*cappedRelSpeed())), 120), 40);
 			oKart.billball0 = tpsUse;
 			for (var i=0;i<strPlayer.length;i++) {
@@ -12343,19 +12347,19 @@ function accelere(iX, iY, iI, iJ) {
 	return false;
 }
 
-function flowShift(iX,iY, iP) {
+function flowShift(iX,iY) {
 	var lMap = getCurrentLMap(collisionLap);
 	if (lMap.flows) {
 		var oRectangles = lMap.flows.rectangle;
 		for (var i=0;i<oRectangles.length;i++) {
 			var oFlow = oRectangles[i];
-			if (pointInRectangle(iX,iY, oFlow[0]) && (!iP||oFlow[2]))
+			if (pointInRectangle(iX,iY, oFlow[0]))
 				return [oFlow[1][0],oFlow[1][1],0];
 		}
 		var oPolygons = lMap.flows.polygon;
 		for (var i=0;i<oPolygons.length;i++) {
 			var oFlow = oPolygons[i];
-			if (pointInPolygon(iX,iY, oFlow[0]) && (!iP||oFlow[2]))
+			if (pointInPolygon(iX,iY, oFlow[0]))
 				return [oFlow[1][0],oFlow[1][1],0];
 		}
 	}
@@ -16471,6 +16475,23 @@ function move(getId, triggered) {
 	
 	var aPosX = oKart.x, aPosY = oKart.y;
 
+	if (!oKart.z && (!oKart.heightinc || fSelectedClass<=1) && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
+		if (!oKart.champi)
+			oKart.champiType = CHAMPI_TYPE_BOOST;
+		oKart.champi = 20;
+		oKart.maxspeed = 11;
+		oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
+		if (!oKart.boostSound) {
+			oKart.boostSound = playIfShould(oKart, "musics/events/boost.mp3");
+			if (oKart.boostSound) {
+				oKart.boostSound.onended = function() {
+					oKart.boostSound = undefined;
+					document.body.removeChild(this);
+				}
+			}
+		}
+	}
+
 	if (!oKart.z && !oKart.heightinc) {
 		if (clLocalVars.autoAccelerate && !oKart.cpu)
 			oKart.accelerate();
@@ -17117,8 +17138,7 @@ function move(getId, triggered) {
 						oKart.speed = hpProps.speed;
 					stopDrifting(getId);
 				}
-				if (!oKart.tourne)
-					newShift = flowShift(fNewPosX, fNewPosY, oKart.protect);
+				newShift = flowShift(fNewPosX, fNewPosY);
 				if (newShift) {
 					if (oKart.cpu) {
 						if (newShift[0]*newShift[0] + newShift[1]*newShift[1] >= 100) {
@@ -17905,22 +17925,6 @@ function move(getId, triggered) {
 		}
 	}
 
-	if (!oKart.z && (!oKart.heightinc || fSelectedClass<=1) && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
-		if (!oKart.champi)
-			oKart.champiType = CHAMPI_TYPE_BOOST;
-		oKart.champi = 20;
-		oKart.maxspeed = 11;
-		oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
-		if (!oKart.boostSound) {
-			oKart.boostSound = playIfShould(oKart, "musics/events/boost.mp3");
-			if (oKart.boostSound) {
-				oKart.boostSound.onended = function() {
-					oKart.boostSound = undefined;
-					document.body.removeChild(this);
-				}
-			}
-		}
-	}
 	if (iSfx && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
 		if ((bMusic&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
 			updateEngineSound();
@@ -19069,7 +19073,7 @@ function ai(oKart) {
 			}
 			var actualTheta = oKart.rotation, actualSpeed = oKart.speed;
 			if (oKart.shift && !isCup) {
-				var actualShift = flowShift(oKart.x,oKart.y, oKart.protect);
+				var actualShift = flowShift(oKart.x,oKart.y);
 				if (actualShift) {
 					var fMoveDir = kartInstantSpeed(oKart);
 					if (actualShift[2])
