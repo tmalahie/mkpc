@@ -306,36 +306,33 @@ $placeholderPath = 'images/pages/pixel.png';
 	<section id="right_section">
 		<?php
 		require_once('../includes/utils-date.php');
-		/*if ($id) {
-			$alreadyClosed = mysql_fetch_array(mysql_query('SELECT read_date FROM mkofficialmsgread WHERE player = '.$id.' AND message="lounge_2024"'));
-			if (!$alreadyClosed) {
-				?>
-				<div class="subsection">
-					<div id="official_message">
-						<a href="javascript:closeOfficialMessage('lounge_2024')" class="close">&times;</a>
-						<?php
-						if ($language) {
-								?>
-								The new <strong>MKPC lounge</strong> has started!<br />
-								Play with other members in online games and climb in the rankings!<br />
-								For more information, check <a href="topic.php?topic=15006">this topic</a>
-								and join the official <a href="https://discord.gg/JvDS9PGY8x" target="_blank">Discord server</a> of the lounge.
-								<?php
-						}
-						else {
-								?>
-								Le nouveau <strong>lounge MKPC</strong> a commencé&nbsp;!<br />
-								Affrontez d'autres membres sur des courses en ligne et grimpez dans le classement&nbsp;!<br />
-								Pour plus d'informations, lisez <a href="topic.php?topic=15006">ce topic</a>
-								et rejoignez le <a href="https://discord.gg/JvDS9PGY8x" target="_blank">serveur Discord</a> officiel du lounge.
-								<?php
-						}
+		date_default_timezone_set('Europe/Paris');
+		if ($id && date('n') == 12) {
+			require_once('../includes/advent-topic.php');
+			?>
+			<div class="subsection">
+				<div id="official_message">
+					<?php
+					if ($language) {
 						?>
-					</div>
+						It's Christmas on MKPC!
+						Enjoy the <strong>advent calendar</strong> special event!<br />
+						<a href="advent-calendar.php">Click here</a> to discover it.<br />
+						To learn more, head to the <a href="<?php echo $adventTopicUrl; ?>">official topic</a>.
+						<?php
+					}
+					else {
+						?>
+						C'est Noël sur MKPC ! Profitez de l'événement spécial : <strong>calendrier de l'avent</strong> !<br />
+						<a href="advent-calendar.php">Cliquez ici</a> pour le découvrir.<br />
+						Pour en savoir plus, rendez-vous sur le <a href="<?php echo $adventTopicUrl; ?>">topic officiel</a>.
+						<?php
+					}
+					?>
 				</div>
-				<?php
-			}
-		}*/
+			</div>
+			<?php
+		}
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
