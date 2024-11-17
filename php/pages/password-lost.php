@@ -169,9 +169,10 @@ include('../includes/menu.php');
 		function obfuscate_email($email) {
 			$em   = explode("@", $email);
 			$name = implode('@', array_slice($em, 0, count($em)-1));
-			$len  = floor(strlen($name)/2);
+			$len  = min(3,floor(strlen($name)/2));
+			$rLen = strlen($name)-$len;
 
-			return substr($name,0, $len) . str_repeat('*', $len) . "@" . end($em);   
+			return substr($name,0, $len) . str_repeat('*', $rLen) . "@" . end($em);   
 		}
 		switch ($success) {
 			case 'mail_sent':
