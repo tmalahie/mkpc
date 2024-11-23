@@ -18451,7 +18451,7 @@ function processCode(cheatCode) {
 			
 			for (let key in newPos) {
 				if (newPos[key] === undefined || isNaN(newPos[key])) {
-					return `tp: Invalid ${key} value`;
+					return 'tp: Invalid '+key+' value';
 				}
 			}
 			
