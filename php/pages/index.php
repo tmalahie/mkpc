@@ -429,7 +429,7 @@ $placeholderPath = 'images/pages/pixel.png';
 				<?php
 				require_once('../includes/getRights.php');
 				$sql = 'SELECT t.id,t.titre, t.nbmsgs, t.category, t.dernier FROM `mktopics` t ' . (hasRight('manager') ? '':' WHERE !t.private') .' ORDER BY t.dernier DESC LIMIT 10';
-				if ($language)
+				if (!$id && $language)
 					$sql = 'SELECT * FROM ('. $sql .') t ORDER BY (category=4) DESC, dernier DESC';
 				$getTopics = mysql_query($sql);
 				$topics = array();
