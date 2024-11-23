@@ -153,7 +153,13 @@ include('../includes/menu.php');
                 'author' => 'Red5Pizza',
                 'base_url' => 'profil.php?id=8113',
                 'for' => $language ? 'for the':'pour les',
-                'description' => $language ? 'sprites of <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Rosalina</a>, and <a href="images/sprites/sprite_roi_boo.png">King Boo</a>':'sprites de <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, <a href="images/sprites/sprite_harmonie.png">Harmonie</a>, et <a href="images/sprites/sprite_roi_boo.png">Roi Boo</a>'
+                'description' => $language ? 'sprites of <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, and <a href="images/sprites/sprite_roi_boo.png">King Boo</a>':'sprites de <a href="images/sprites/sprite_link.png">Link</a>, <a href="images/sprites/sprite_billball.png">Bill Ball</a>, <a href="images/sprites/sprite_yoshi.png">Yoshi</a>, <a href="images/sprites/sprite_peach.png">Peach</a>, et <a href="images/sprites/sprite_roi_boo.png">Roi Boo</a>'
+            ),
+            array(
+                'author' => 'VulpixTails',
+                'base_url' => 'profil.php?id=48454',
+                'for' => $language ? 'for the':'pour le',
+                'description' => $language ? '<a href="images/sprites/sprite_harmonie.png">sprite of Rosalina</a>':'<a href="images/sprites/sprite_harmonie.png">sprite de Harmonie</a>'
             ),
             array(
                 'author' => '<strong>LISARTINO2009</strong>',
@@ -242,7 +248,16 @@ include('../includes/menu.php');
                 'res_url' => 'musics/endings/ending_diddy-kong.mp3',
                 'description' => $language ? 'theme of Diddy-Kong':'thème de Diddy-Kong'
             )
-        )
+            ),
+            ($language ? 'Contributions to the development':'Contributions au développement') => array(
+                array(
+                    'author_raw' => $language ? '<a href="profil.php?id=48717">Anthcny</a>, <a href="profil.php?id=49980">Pianta</a> and <a>more</a>' : '<a href="profil.php?id=48717">Anthcny</a>, <a href="profil.php?id=49980">Pianta</a> et <a href="https://github.com/tmalahie/mkpc/graphs/contributors">d\'autres</a>',
+                    'base_url' => 'https://github.com/tmalahie/mkpc/graphs/contributors',
+                    'res_url' => 'https://github.com/tmalahie/mkpc',
+                    'for' => $language ? 'for having contributed to':'pour avoir contribué au',
+                    'description' => $language ? 'MKPC\'s source code':'code source de MKPC'
+                )
+            ),
     );
     foreach ($credits as $group=>$groupCredits) {
         echo '<h2>'.$group.'</h2>';
