@@ -192,15 +192,14 @@ body a.challenge-action-edit:hover {
 .challenge-rule-decor-names {
 	font-size: 0.8em;
 }
-.challenge-rule-decor-names input {
-	width: 100px;
-}
 .challenge-rule-decor-names img {
 	height: 0.8em;
 }
+.challenge-rule-decor-name input {
+	width: 100px;
+}
 .challenge-main-decor-count {
-	margin-top: 5px;
-	display: none;
+	margin-bottom: 5px;
 }
 .challenge-rule-music-source {
 	font-size: 0.8em;

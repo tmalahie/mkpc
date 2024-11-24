@@ -380,14 +380,10 @@ function selectMainRule() {
 		break;
 	case 'destroy_decors':
 		$extra.html(
-			'<div>'+ (language?'Decor:':'Décor :') +' '+
+			'<div>'+ (language?'Decor(s):':'Décor(s) :') +' '+
 			'<input type="text" style="display:none" name="destroy_decors_fake1" required="required" >'+
 			'<div class="challenge-rule-btn-options challenge-main-btn-options"></div>'+
 			'<div class="challenge-rule-decor-names challenge-main-decor-names"></div>'+
-			'<div class="challenge-main-decor-count">'+ (language ? 'Number of decors to destroy:':'Nombre de décors à détruire :') + '<br />'+
-			'<label><input type="radio" name="goal_decors_all" onclick="toggleGoalAllOption(1)" checked="checked" value="1" />'+ (language ? "All":"Tous") + '</label> &nbsp; '+
-			'<label><input type="radio" name="goal_decors_all" onclick="toggleGoalAllOption(0)" value="0" /> '+
-			'<input type="number" style="width:40px" name="goal[nb]" onfocus="selectNbDecors()" placeholder="5" min="1" autocomplete="off" /></label>' +
 			'</div>'
 		);
 		var $extraSelector = $extra.find(".challenge-main-btn-options");
@@ -872,7 +868,16 @@ function getAllDecorOptions(constraint) {
 				addDecor(key);
 			break;
 		case "destroy_decors":
-			addDecor(cVal);
+			if (typeof cVal === 'string') {
+				constraint.value = [{
+					key: cVal,
+					name: constraint.name,
+					nb: constraint.nb
+				}];
+				cVal = constraint.value;
+			}
+			for (var i=0;i<cVal.length;i++)
+				addDecor(cVal[i].key);
 			break;
 		}
 	}
@@ -1169,11 +1174,17 @@ function toggleGoalAllOption(value) {
 	else
 		document.forms[0].elements["goal[nb]"].focus();
 }
+function toggleDecorAllOption(decorKey,value) {
+	if (value == 1)
+		document.forms[0].elements["goal[value]["+decorKey+"][nb]"].value = "";
+	else
+		document.forms[0].elements["goal[value]["+decorKey+"][nb]"].focus();
+}
 function selectNbCoins() {
 	document.forms[0].elements["goal_coins_all"].value = 0;
 }
-function selectNbDecors() {
-	document.forms[0].elements["goal_decors_all"].value = 0;
+function selectNbDecors(decorKey) {
+	document.forms[0].elements["goal[value]["+decorKey+"][all]"].value = 0;
 }
 function toggleMusicOption(option) {
 	if (option == 1) {
@@ -1209,7 +1220,7 @@ function initMusicOptions($select) {
 function toggleDecor(btn, label) {
 	var ruleType = btn.dataset.ruleType;
 	var ruleKey = btn.dataset.ruleKey;
-	var multiSelectAllowed = (ruleKey === "avoid_decors");
+	var multiSelectAllowed = true;
 	if (multiSelectAllowed) {
 		if (btn.dataset.selected)
 			delete btn.dataset.selected;
@@ -1236,21 +1247,25 @@ function toggleDecor(btn, label) {
 	if (btn.dataset.selected) {
 		var decorNameKey = (ruleType === "main") ? 'goal[value]['+ decorOption.value +'][name]' : 'scope['+ ruleKey +'][value]['+ decorOption.value +'][name]';
 		var $decorNameSelector = $('<div id="'+ decorId +'">'+
-			'<img src="'+ decorIcon +'" alt="'+ decorOption.value +'" /> '+
-			(language ? 'Decor name:':'Nom du décor :') + ' <input type="text" name="'+ decorNameKey +'" />'+
+			'<label class="challenge-rule-decor-name"><img src="'+ decorIcon +'" alt="'+ decorOption.value +'" /> '+ (language ? 'Decor name:':'Nom du décor :') + ' <input type="text" name="'+ decorNameKey +'" /></label>'+
+			((ruleKey === 'destroy_decors') ? 
+				('<div class="challenge-main-decor-count"><img src="'+ decorIcon +'" alt="'+ decorOption.value +'" /> '+ (language ? 'Number of decors to destroy:':'Nombre de décors à détruire :') + '<br />'+
+				'<label><input type="radio" name="goal[value]['+ decorOption.value +'][all]" onclick="toggleDecorAllOption(\''+ decorOption.value +'\',1)" checked="checked" value="1" />'+ (language ? "All":"Tous") + '</label> &nbsp; '+
+				'<label><input type="radio" name="goal[value]['+ decorOption.value +'][all]" onclick="toggleDecorAllOption(\''+ decorOption.value +'\',0)" value="0" /> '+
+				'<input type="number" style="width:40px" name="goal[value]['+ decorOption.value +'][nb]" onfocus="selectNbDecors(\''+ decorOption.value +'\')" placeholder="5" min="1" autocomplete="off" /></label>'
+				) : '') +
 		'</div>');
 		if (!label) label = decorOption.label;
 		if (!label) label = "";
+		var $decorNameLabel = $decorNameSelector.find('label.challenge-rule-decor-name');
 		var $decorNameInput = $decorNameSelector.find('input[name="'+ decorNameKey +'"]');
+		var $decorCountLabel = $decorNameSelector.find('.challenge-main-decor-count');
 		$decorNameInput.val(label);
 		$decorNameCtn.append($decorNameSelector);
 		if (decorOption.custom)
 			$decorNameInput.attr("required", true)
 		else
-			$decorNameSelector.hide();
-		
-		if (ruleKey === "destroy_decors")
-			$(".challenge-main-decor-count").show();
+			$decorNameLabel.hide();
 	}
 	else
 		$("#"+decorId).remove();
@@ -1489,13 +1504,17 @@ $(function() {
 			}
 			break;
 		case "destroy_decors":
-			var key = mainRule.value;
-			var btn = mainForm.querySelector(".challenge-main-btn-options button[data-value='"+ key +"']");
-			if (btn)
-				toggleDecor(btn, mainRule.name);
-			if (mainRule.nb) {
-				selectNbDecors();
-				mainForm.elements["goal[nb]"].value = mainRule.nb;
+			var allDecors = mainRule.value;
+			for (var i=0;i<allDecors.length;i++) {
+				var decorData = allDecors[i];
+				var key = decorData.key;
+				var btn = mainForm.querySelector(".challenge-main-btn-options button[data-value='"+ key +"']");
+				if (btn)
+					toggleDecor(btn, decorData.name);
+				if (decorData.nb) {
+					selectNbDecors(key);
+					mainForm.elements["goal[value]["+key+"][nb]"].value = decorData.nb;
+				}
 			}
 		}
 		if (document.activeElement)

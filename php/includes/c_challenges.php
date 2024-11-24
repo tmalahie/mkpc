@@ -1,1 +1,1 @@
-<link rel="stylesheet" href="styles/challenges.css?reload=3" />
+<link rel="stylesheet" href="styles/challenges.css?reload=1" />

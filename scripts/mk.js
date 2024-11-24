@@ -12754,33 +12754,73 @@ var challengeRules = {
 		"initLocalVars": function(scope) {
 			if (!clLocalVars.nbDecorHits)
 				clLocalVars.nbDecorHits = {};
-			clLocalVars.nbDecorHits[scope.value] = 0;
-			if (!scope.nb) {
-				scope.nb = countInLMap(function(pMap) {
-					return pMap.decor && pMap.decor[scope.value] && pMap.decor[scope.value].length;
-				});
-				scope.shouldInitToAll = true;
+			var allDecors = scope.value;
+			if (typeof allDecors === "string") {
+				allDecors = [{
+					key: scope.value,
+					nb: scope.nb
+				}]
+				scope.value = allDecors;
 			}
-			if (scope.shouldInitToAll) {
-				setTimeout(function() {
-					scope.nb = countInLMap(function(pMap) {
-						return pMap.decor && pMap.decor[scope.value] && pMap.decor[scope.value].length;
+			allDecors.forEach(function(decorData) {
+				clLocalVars.nbDecorHits[decorData.key] = 0;
+				if (!decorData.nb) {
+					decorData.nb = countInLMap(function(pMap) {
+						return pMap.decor && pMap.decor[decorData.key] && pMap.decor[decorData.key].length;
 					});
-				});
-			}
+					decorData.shouldInitToAll = true;
+				}
+				if (decorData.shouldInitToAll) {
+					setTimeout(function() {
+						decorData.nb = countInLMap(function(pMap) {
+							return pMap.decor && pMap.decor[decorData.key] && pMap.decor[decorData.key].length;
+						});
+					});
+				}
+			});
 		},
 		"initSelected": function(scope) {
 			setTimeout(function() {
-				addChallengeHud("decors", {
-					title: toLanguage("Destroyed","Détruit"),
-					value: 0,
-					out_of: scope.nb
+				var allDecors = scope.value;
+				allDecors.forEach(function(decorData) {
+					var hudKey = "decors."+decorData.key;
+					addChallengeHud(hudKey, {
+						title: toLanguage("Destroyed","Détruit"),
+						value: 0,
+						out_of: decorData.nb
+					});
+					var decorBehavior = decorBehaviors[decorData.key];
+					if (!decorBehavior) return;
+					var decorExtra = getDecorExtra(decorBehavior);
+					if (!decorExtra) return;
+					var customDecor = decorExtra.custom;
+					function addDecorIcon(src) {
+						var dIcon = document.createElement("img");
+						dIcon.src = src;
+						dIcon.style.position = "relative";
+						dIcon.style.top = Math.round(iScreenScale*0.15) +"px";
+						dIcon.style.height = Math.round(iScreenScale*1.6) +"px";
+						dIcon.style.marginRight = Math.round(iScreenScale/2) +"px";
+						clHud[hudKey].$cpt.insertBefore(dIcon, clHud[hudKey].$label.firstNode);
+					}
+					if (customDecor) {
+						getCustomDecorData(customDecor, function(res) {
+							addDecorIcon(res.map);
+						});
+					}
+					else
+						addDecorIcon("images/map_icons/"+decorData.key+".png");
 				});
 			});
 		},
 		"success": function(scope) {
-			if (clLocalVars.nbDecorHits[scope.value] >= scope.nb)
-				return true;
+			var allDecors = scope.value;
+			for (var i=0;i<allDecors.length;i++) {
+				var decorData = allDecors[i];
+				var success = (clLocalVars.nbDecorHits[decorData.key] >= decorData.nb);
+				if (!success) return;
+			}
+			return true;
 		}
 	},
 	"gold_cup": {
@@ -14900,7 +14940,7 @@ function handleDecorHit(i,type, lMap) {
 	//	clLocalVars.decorsHit[type] = true;
 	if (clLocalVars.nbDecorHits && (clLocalVars.nbDecorHits[type] != undefined)) {
 		clLocalVars.nbDecorHits[type]++;
-		updateChallengeHud("decors", clLocalVars.nbDecorHits[type]);
+		updateChallengeHud("decors."+type, clLocalVars.nbDecorHits[type]);
 		challengeCheck("each_decor_hit");
 	}
 }

@@ -160,26 +160,51 @@ $clRulesByType = array(
 		'destroy_decors' => array(
 			'description_mockup' => $language ? 'Destroy decors...':'Détruire les décors...',
 			'description_lambda' => function($language,&$scope) {
-				if (isset($scope->nb)) {
-					$nb = $scope->nb;
-					$decorName = getChallengeDecorName($scope->value, $scope->name, $nb);
-					return $language ? "Destroy $nb $decorName":"Détruire $nb $decorName";
+				$decors = $scope->value;
+				if (is_string($decors)) {
+					$decor = new stdClass();
+					$decor->key = $decors;
+					if (isset($scope->name))
+						$decor->name = $scope->name;
+					if (isset($scope->nb))
+						$decor->nb = $scope->nb;
+					$decors = array($decor);
 				}
-				$decorName = getChallengeDecorName($scope->value, $scope->name, 2);
-				return $language ? "Destroy all $decorName":"Détruire les $decorName";
+				$decorNames = array();
+				$nbItems = count($decors);
+				foreach ($decors as $i=>$options) {
+					if (isset($options->nb)) {
+						$nb = $options->nb;
+						$decorName = getChallengeDecorName($options->key, $options->name, $nb);
+						$decorNameLabel = "$nb $decorName";
+					}
+					else {
+						$decorName = getChallengeDecorName($options->key, $options->name, 2);
+						$decorNameLabel = $language ? "all $decorName" : "les $decorName";
+					}
+					if ($i) {
+						if ($i === ($nbItems-1))
+							$decorNameLabel = ($language ? 'and ':'et ') . $decorNameLabel;
+						else
+							$decorNameLabel = ', ' . $decorNameLabel;
+					}
+					$decorNames[] = $decorNameLabel;
+				}
+				$decorNamesText = implode(' ', $decorNames);
+				return $language ? "Destroy $decorNamesText":"Détruire $decorNamesText";
 			},
 			'parser' => function(&$scope) {
 				$decors = $scope['value'];
+				$items = array();
 				foreach ($decors as $type => $options) {
-					$scope['value'] = $type;
+					$item = array('key' => $type);
 					if (!empty($options['name']))
-						$scope['name'] = $options['name'];
-					break;
+						$item['name'] = $options['name'];
+					if (!empty($options['nb']))
+						$item['nb'] = $options['nb'];
+					$items[] = $item;
 				}
-				if (empty($scope['nb']))
-					unset($scope['nb']);
-				else
-					$scope['nb'] = intval($scope['nb']);
+				$scope['value'] = $items;
 			},
 			'course' => array('vs','battle')
 		),
