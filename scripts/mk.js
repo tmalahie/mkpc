@@ -3842,6 +3842,7 @@ function startGame() {
 		"each_kill": [],
 		"each_item": [],
 		"each_coin": [],
+		"end_lap": [],
 		"end_gp": []
 	};
 	if (!clGlobalVars) {
@@ -12662,6 +12663,13 @@ var challengeRules = {
 			}
 		}
 	},
+	"complete_laps": {
+		"verify": "end_lap",
+		"success": function(scope) {
+			if (oPlayers[0].tours > scope.value)
+				return true;
+		}
+	},
 	"hit_items": {
 		"verify": "each_item",
 		"initLocalVars": function(scope) {
@@ -17519,6 +17527,8 @@ function move(getId, triggered) {
 					}
 				}
 			}
+			if (oKart === oPlayers[0])
+				challengeCheck("end_lap");
 		}
 		else if (oKart.demitours !== prevCP) {
 			collisionLap = handleCpChange(oKart.tours,prevCP, getId);

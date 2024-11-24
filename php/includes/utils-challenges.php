@@ -121,6 +121,16 @@ $clRulesByType = array(
 			},
 			'course' => array('vs','battle')
 		),
+		'complete_laps' => array(
+			'description_mockup' => $language ? 'Complete N laps of the track':'Compléter N tours de circuit',
+			'description_lambda' => function($language,&$scope) {
+				if ($scope->value == 1)
+					return $language ? 'Complete a lap':'Finir un tour';
+				else
+					return $language ? 'Complete '.$scope->value.' laps':'Compléter '. $scope->value .' tours';
+			},
+			'course' => array('vs')
+		),
 		'hit_items' => array(
 			'description' => $language ? 'Hit all item boxes':'Toucher toutes les boites à objet',
 			'course' => array('vs','battle')

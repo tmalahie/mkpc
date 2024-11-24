@@ -359,6 +359,13 @@ function selectMainRule() {
 			'</div>'
 		);
 		break;
+	case 'complete_laps':
+		$extra.html(
+			'<label>'+
+			'<input type="number" style="width:30px" name="goal[value]" placeholder="1" required="required" min="1" autocomplete="off" /> '+ (language ? 'laps':'tours')+
+			'</label>'
+		);
+		break;
 	case 'collect_coins':
 		$extra.html(
 			'<div style="margin:10px 0"><label>'+ (language ? 'Coins location: ':'Position des pièces : ') +
