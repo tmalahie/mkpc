@@ -5581,7 +5581,6 @@ function quitter() {
 		var oInfos = document.getElementById("infos"+i);
 		if (oInfos) oInfos.style.display = "none";
 	}
-	$mkScreen.style.opacity = 1;
 	if (strPlayer.length == 1)
 		removePlan();
 	resetEvents();
@@ -5594,6 +5593,7 @@ function quitter() {
 }
 function resetApp(opts) {
 	opts = opts || {};
+	$mkScreen.style.opacity = 1;
 	setTimeout(function() {
 		if (opts.onRestart) opts.onRestart();
 		MarioKart();
@@ -6226,7 +6226,6 @@ function nextRace() {
 	};
 	if (course == "GP")
 		fInfos.map = oMap.ref+1;
-	$mkScreen.style.opacity = 1;
 	if (strPlayer.length == 1)
 		removePlan();
 	oBgLayers.length = 0;
