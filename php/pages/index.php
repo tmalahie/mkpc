@@ -307,8 +307,8 @@ $placeholderPath = 'images/pages/pixel.png';
 		<?php
 		require_once('../includes/utils-date.php');
 		date_default_timezone_set('Europe/Paris');
-		if ($id && date('n') == 12) {
-			require_once('../includes/advent-topic.php');
+		require_once('../includes/advent-topic.php');
+		if ($adventEnabled) {
 			?>
 			<div class="subsection">
 				<div id="official_message">

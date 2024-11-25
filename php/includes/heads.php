@@ -25,7 +25,8 @@ if ($hthumbnail) {
 ?>
 <link rel="stylesheet" href="styles/main.css?reload=1" />
 <?php
-if (!empty($id))
+require_once('advent-topic.php');
+if ($adventEnabled)
 	echo '<link rel="stylesheet" href="styles/advent-calendar.css" />';
 ?>
 <link rel="stylesheet" media="only screen and (max-width: 800px)" href="styles/mobile.css" />
