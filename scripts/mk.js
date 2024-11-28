@@ -18215,7 +18215,7 @@ function handleDecorExplosions(fSprite, callback) {
 				for (var i=0;i<lMap.decor[type].length;i++) {
 					var oBox = lMap.decor[type][i];
 					if (callback(oBox[0],oBox[1], fSprite))
-						handleDecorHit(i,type);
+						handleDecorHit(i,type, lMap);
 				}
 			}
 		}
