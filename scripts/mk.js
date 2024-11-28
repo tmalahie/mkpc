@@ -16521,23 +16521,6 @@ function move(getId, triggered) {
 	
 	var aPosX = oKart.x, aPosY = oKart.y;
 
-	if (!oKart.z && (!oKart.heightinc || fSelectedClass<=1) && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
-		if (!oKart.champi)
-			oKart.champiType = CHAMPI_TYPE_BOOST;
-		oKart.champi = 20;
-		oKart.maxspeed = 11;
-		oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
-		if (!oKart.boostSound) {
-			oKart.boostSound = playIfShould(oKart, "musics/events/boost.mp3");
-			if (oKart.boostSound) {
-				oKart.boostSound.onended = function() {
-					oKart.boostSound = undefined;
-					document.body.removeChild(this);
-				}
-			}
-		}
-	}
-
 	if (!oKart.z && !oKart.heightinc) {
 		if (clLocalVars.autoAccelerate && !oKart.cpu)
 			oKart.accelerate();
@@ -17973,6 +17956,22 @@ function move(getId, triggered) {
 		}
 	}
 
+	if (!oKart.z && (!oKart.heightinc || fSelectedClass<=1) && accelere(aPosX, aPosY, fMoveX, fMoveY)) {
+		if (!oKart.champi)
+			oKart.champiType = CHAMPI_TYPE_BOOST;
+		oKart.champi = 20;
+		oKart.maxspeed = 11;
+		oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
+		if (!oKart.boostSound) {
+			oKart.boostSound = playIfShould(oKart, "musics/events/boost.mp3");
+			if (oKart.boostSound) {
+				oKart.boostSound.onended = function() {
+					oKart.boostSound = undefined;
+					document.body.removeChild(this);
+				}
+			}
+		}
+	}
 	if (iSfx && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
 		if ((bMusic&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
 			updateEngineSound();
