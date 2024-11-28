@@ -190,7 +190,7 @@ $clRulesByType = array(
 					}
 					$decorNames[] = $decorNameLabel;
 				}
-				$decorNamesText = implode(' ', $decorNames);
+				$decorNamesText = implode('', $decorNames);
 				return $language ? "Destroy $decorNamesText":"Détruire $decorNamesText";
 			},
 			'parser' => function(&$scope) {
