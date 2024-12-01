@@ -184,7 +184,7 @@ $clRulesByType = array(
 					}
 					if ($i) {
 						if ($i === ($nbItems-1))
-							$decorNameLabel = ($language ? 'and ':'et ') . $decorNameLabel;
+							$decorNameLabel = ($language ? ' and ':' et ') . $decorNameLabel;
 						else
 							$decorNameLabel = ', ' . $decorNameLabel;
 					}
