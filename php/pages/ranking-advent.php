@@ -24,7 +24,7 @@ $page = 'game';
 include('../includes/menu.php');
 $page = isset($_GET['page']) ? max(intval($_GET['page']),1):1;
 $joueur = isset($_POST['joueur']) ? $_POST['joueur']:null;
-$year = isset($_GET['y']) ? $_GET['y'] : 2023;
+$year = isset($_GET['y']) ? $_GET['y'] : 2024;
 $day = isset($_GET['d']) ? $_GET['d'] : null;
 $get = $_GET;
 unset($get['page']);
@@ -38,7 +38,7 @@ foreach ($get as $k => $getk)
 		$yGet = $get;
 		if (isset($yGet['d']))
 			$yGet['d'] = 1;
-		$calendarYears = array(2023,2022,2018);
+		$calendarYears = array(2024,2023,2022,2018);
 		foreach ($calendarYears as $y) {
 			if ($y == $year)
 				echo '<span>'.$y.'</span>';
