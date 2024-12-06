@@ -11570,7 +11570,9 @@ function isJumpEnabled() {
     return !(isOnline && shareLink.options && shareLink.options.noJump);
 }
 function isRdDisabled() {
-    return (isOnline && shareLink.options && shareLink.options.noRd);
+	if (clLocalVars.rdDisabled) return true;
+    if (isOnline && shareLink.options && shareLink.options.noRd) return true;
+	return false;
 }
 function isLocalScore() {
 	if (isOnline)
@@ -13089,6 +13091,9 @@ var challengeRules = {
 		}
 	},
 	"no_rd": {
+		"initSelected": function(scope) {
+			clLocalVars.rdDisabled = true;
+		},
 		"success": function(scope) {
 			return !clLocalVars.revDrifted;
 		}
