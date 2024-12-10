@@ -87,7 +87,13 @@ if ($ban) {
                 mysql_query('INSERT IGNORE INTO `ip_bans` VALUES('.$getId['id'].','.$getIp['identifiant'].','.$getIp['identifiant2'].','.$getIp['identifiant3'].','.$getIp['identifiant4'].')');
             }
             if (isset($_POST['full_delete'])) {
-                mysql_query('DELETE m,t FROM mkmessages m LEFT JOIN mktopics t ON m.id=1 AND m.topic=t.id WHERE m.auteur="'. $getId['id'] .'"');
+                mysql_query('DELETE m,t,r,p,h FROM mkmessages m
+                    LEFT JOIN mktopics t ON m.id=1 AND m.topic=t.id
+                    LEFT JOIN mkreactions r ON r.type="topic" AND r.link=CONCAT(m.topic,",",m.id)
+                    LEFT JOIN mkreports p ON p.type="topic" AND p.link=CONCAT(m.topic,",",m.id)
+                    LEFT JOIN mkreportshist h ON h.type="topic" AND h.link=CONCAT(m.topic,",",m.id)
+                    WHERE m.auteur="'. $getId['id'] .'"
+                ');
                 mysql_query('DELETE FROM mkreactions WHERE member="'. $getId['id'] .'"');
                 mysql_query('DELETE FROM mknewscoms WHERE author="'. $getId['id'] .'"');
                 mysql_query('DELETE FROM mknews WHERE author="'. $getId['id'] .'"');
