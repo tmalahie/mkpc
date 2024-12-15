@@ -1,14 +1,14 @@
-name: PHP lint
+name: Translation lint
 on:
   push:
     branches: [master, development]
   pull_request:
     branches: [master, development]
 jobs:
-  php_lint:
+  translation_lint:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Check for syntax errors
-        run: make php-lint
+      - name: Check for issues with translation
+        run: make translation-lint

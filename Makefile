@@ -13,11 +13,16 @@ PO_FILES := $(shell find . -name '*.po' | LC_COLLATE=C sort)
 # https://www.gnu.org/software/gettext/manual/html_node/Default-Keywords.html
 GETTEXT_KEYWORDS = -kP_:1c,2 -kF_:1 -kFN_:1,2
 
-all: po/fr_FR/LC_MESSAGES/mkpc.mo msgcheck server-restart
+all: po/fr_FR/LC_MESSAGES/mkpc.mo server-restart
 
 # Some checks on php code itself
-lint:
+lint: php-lint translation-lint
+
+php-lint:
 	for file in $(PHP_SOURCES); do php -l "$${file}" || exit 1; done
+
+translation-lint:
+	python translation_linter.py
 
 # PO template file, from which all PO files are built
 po/mkpc.pot: $(PHP_SOURCES) Makefile
@@ -36,10 +41,6 @@ po/fr_FR/LC_MESSAGES/mkpc.mo: po/fr_FR/mkpc.po po/fr_FR/LC_MESSAGES
 # gettext will look for .mo files here
 po/fr_FR/LC_MESSAGES:
 	mkdir -pv $@
-
-# Additional checks on PO files for validation
-msgcheck:
-	msgcheck $(PO_FILES)
 
 # gettext has an internal cache.
 # If the .mo files are changed, the web server needs to be restarted

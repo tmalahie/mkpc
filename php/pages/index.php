@@ -14,7 +14,7 @@ if (isset($_SERVER['HTTP_REFERER']) && ($_SERVER['HTTP_REFERER'] != '')) {
 include('../includes/session.php');
 ?>
 <!DOCTYPE html>
-<html lang="<?= P_("html language", "en") ?>">
+<html lang="<?= t("kHTML_TAG_LANG_ATTRIBUTE") ?>">
 <head>
 <title>Mario Kart PC</title>
 <?php
@@ -51,10 +51,10 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo1.jpg" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo1-640w.jpg 640w, <?= $slidesPath ?>/diapo1.jpg 960w" class="top" alt="Slide 1">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('A Mario Kart Game for browser') ?></h3>
+								<h3><?= t("kA_MARIO_KART_GAME_FOR_BROWSER") ?></h3>
 								<div>
-									<?= _("A computer version of the famous racing game by Nintendo."); ?><br/>
-									<?= _("This game is <strong>completely free</strong> and does not require <strong>any downloads</strong>. All you need is a web browser!"); ?>
+									<?= t("kA_COMPUTER_VERSION_OF_THE_FAMOUS_RACING_GAME"); ?><br/>
+									<?= t("k_THIS_GAME_IS_COMPLETELY_FREE"); ?>
 								</div>
 							</div>
 						</div>
@@ -66,11 +66,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo2.png" data-splide-lazy-srcset="<?= $slidesPath ?>/diapo2-640w.png 640w, <?= $slidesPath ?>/diapo2.png 960w" alt="Slide 2">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Crazy races full of fun!') ?></h3>
+								<h3><?= t("kCRAZY_RACES_FULL_OF_FUN") ?></h3>
 								<div>
-									<?= _("Try to be the fastest while avoiding items!") ?>
+									<?= t("kTRY_TO_BE_THE_FASTEST") ?>
 									<br />
-									<?= _("Race on all the <strong>56 tracks</strong> from the original games <strong>Super Mario Kart</strong>, <strong>Mario Kart Super Circuit</strong> and <strong>Mario Kart DS</strong>.") ?>
+									<?= t("kRACE_ON_ALL_THE_56_TRACKS") ?>
 								</div>
 							</div>
 						</div>
@@ -82,11 +82,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo3.png" alt="Slide 3">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Win all the cups!') ?></h3>
+								<h3><?= t("kWIN_ALL_THE_CUPS") ?></h3>
 								<div>
-									<?= _("Face off with the CPUs on the <strong>14 grand prix</strong> tournaments and try to win the gold trophy!") ?>
+									<?= t("kFACE_OFF_WITH_THE_CPUS_ON_14_GRAND_PRIX") ?>
 									<br />
-									<?= _("Win enough cups to unlock the <strong>15 secret characters</strong>!") ?>
+									<?= t("kWIN_ENOUGH_CUPS_TO_UNLOCK_SECRET_CHARACTERS") ?>
 								</div>
 							</div>
 						</div>
@@ -98,11 +98,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo4.png" alt="Slide 4">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Create your own tracks!') ?></h3>
+								<h3><?= t("kCREATE_YOUR_OWN_TRACKS") ?></h3>
 								<div>
-									<?= _("With the <strong>track builder</strong>, the possibilities are endless; the only limit is your imagination!") ?>
+									<?= t("kWITH_THE_TRACK_BUILDER_THE_POSSIBILITIES_ARE_ENDLESS") ?>
 									<br />
-									<?= _("You can <strong>share</strong> your tracks or try other people's creations!") ?>
+									<?= t("kYOU_CAN_SHARE_YOUR_TRACKS") ?>
 								</div>
 							</div>
 						</div>
@@ -114,11 +114,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo5.png" class="top smooth" alt="Slide 5">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Face players from around the world!') ?></h3>
+								<h3><?= t("kFACE_PLAYERS_FROM_AROUND_THE_WORLD") ?></h3>
 								<div>
-									<?= _("Race and battle in <strong>online mode</strong>!") ?>
+									<?= t("kRACE_AND_BATTLE_IN_ONLINE_MODE") ?>
 									<br />
-									<?= _("Win as many races as possible and <strong>climb in the official ranking</strong>!") ?>
+									<?= t("kWIN_AS_MANY_RACES_AS_POSSIBLE_AND_CLIMB_IN_THE_OFFICIAL_RANKING") ?>
 								</div>
 							</div>
 						</div>
@@ -130,11 +130,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo6.png" class="smooth" alt="Slide 6">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Make the best scores in time trial!') ?></h3>
+								<h3><?= t("kMAKE_THE_BEST_SCORES_IN_TIME_TRIAL") ?></h3>
 								<div>
-									<?= _("<strong>Finish the race track</strong> as fast as you can!") ?>
+									<?= t("kFINISH_THE_RACE_TRACK_AS_FAST_AS_YOU_CAN") ?>
 									<br />
-									<?= _("<strong>Compare your scores</strong> with the community, and face other players' ghosts!") ?>
+									<?= t("kCOMPARE_YOUR_SCORES_WITH_THE_COMMUNITY") ?>
 								</div>
 							</div>
 						</div>
@@ -146,11 +146,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo7.png" alt="Slide 7">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Release your fighter talents!') ?></h3>
+								<h3><?= t("kRELEASE_YOUR_FIGHTER_TALENT") ?></h3>
 								<div>
-									<?= _("<strong>Destroy your opponents</strong>' balloons with items, without getting hit by their items!") ?>
+									<?= t("kDESTROY_YOUR_OPPONENTS_BALLOONS") ?>
 									<br />
-									<?= _("The last player standing wins!") ?>
+									<?= t("kTHE_LAST_PLAYER_STANDING_WINS") ?>
 								</div>
 							</div>
 						</div>
@@ -162,11 +162,11 @@ $placeholderPath = 'images/pages/pixel.png';
 								<img src="<?= $placeholderPath ?>" data-splide-lazy="<?= $slidesPath ?>/diapo8.png" class="center smooth" alt="Slide 8">
 							</div>
 							<div class="splide__description">
-								<h3><?= _('Face off your friends with the local multiplayer mode!') ?></h3>
+								<h3><?= t("kFACE_OFF_YOUR_FRIENDS_WITH_THE_LOCAL_MULTIPLAYER_MODE") ?></h3>
 								<div>
-									<?= _("Prove to your friends that you're the best!")?>
+									<?= t("kPROVE_TO_YOUR_FRIENDS_THAT_YOU_RE_THE_BEST")?>
 									<br />
-									<?= _("Face them in <strong>multiplayer</strong> in VS races or in battle mode.") ?>
+									<?= t("kFACE_THEM_IN_MULTIPLAYER_IN_VS_RACES") ?>
 								</div>
 							</div>
 						</div>
@@ -176,30 +176,30 @@ $placeholderPath = 'images/pages/pixel.png';
 		</div>
 		<h1>Mario Kart PC</h1>
 		<div id="toBegin"><a href="mariokart.php">
-		&#9660;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9660;<br />
-		<img src="images/mkpc_box.jpg" alt="<?= _('Start game') ?>" /><br />
-		&#9650;&nbsp;<?= _('Click on the game box to begin') ?>&nbsp;&#9650;</a></div>
-		<h2><img src="images/about.png" alt="" /> <?= _('What\'s Mario Kart PC?') ?></h2>
+		&#9660;&nbsp;<?= t("kCLICK_ON_THE_GAME_BOX_TO_BEGIN") ?>&nbsp;&#9660;<br />
+		<img src="images/mkpc_box.jpg" alt="<?= t("kSTART_GAME") ?>" /><br />
+		&#9650;&nbsp;<?= t("kCLICK_ON_THE_GAME_BOX_TO_BEGIN") ?>&nbsp;&#9650;</a></div>
+		<h2><img src="images/about.png" alt="" /> <?= t("kWHAT_S_MARIO_KART_PC") ?></h2>
 		<div>
 			<p>
-				<?= _("You might know Mario Kart, the most fun racing game series of all time! Mario Kart PC uses the same base as the original games but is playable on your browser, and <strong>for free</strong>.") ?>
+				<?= t("kYOU_MIGHT_KNOW_MARIO_KART") ?>
 			</p>
 			</p>
-				<?= _("Most of the modes from Mario Kart have been included: Grand Prix, VS, Battle mode, Time Trials, and more!") ?>
+				<?= t("kMOST_OF_THE_MODES_HAVE_BEEN_INCLUDED") ?>
 				<br />
 				
-				<?= _("There's also a brand new mode: the <strong>track builder</strong>! Place straight lines and turns, add items, boost panels and more! Everything is customizable! The only limit is your own imagination!") ?>
+				<?= t("kTHERE_S_ALSO_A_BRAND_NEW_MODE_THE_TRACK_BUILDER") ?>
 				<br />
 				
-				<?= F_('You can share your tracks, and try other people\'s tracks thanks to the <a href="{url}">sharing tool</a>. Thousands of custom tracks are already available!', url: "creations.php") ?>
+				<?= Ft("kYOU_CAN_SHARE_YOUR_TRACKS_PARAM_URL", url: "creations.php") ?>
 			</p>
 			<p>
-				<?= F_('Finally, you can face players from the whole world thanks to the <strong>multiplayer online mode</strong>! Climb the <a href="{url}">rankings</a> and become world champion!', url: "bestscores.php") ?>
+				<?= Ft("kYOU_CAN_FACE_PLAYERS_FROM_THE_WHOLE_WORD_PARAM_URL", url: "bestscores.php") ?>
 			</p>
 		</div>
-		<h2><img src="images/camera.png" alt="" /> <?= _('Some screenshots') ?></h2>
+		<h2><img src="images/camera.png" alt="" /> <?= t("kSOME_SCREENSHOTS") ?></h2>
 		<div>
-			<?= _('Here are some screenshots of the game to give you a quick preview of what it looks like:') ?>
+			<?= t("kHERE_ARE_SOME_SCREENSHOTS") ?>
 			<div id="screenshots" class="demo-gallery">
 				<?php
 				for ($i=1;$i<=12;$i++) {
@@ -240,43 +240,43 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?php
 		}
 		?>
-		<h2><img src="images/thanks.png" alt="" /> <?= _('Special thanks') ?></h2>
+		<h2><img src="images/thanks.png" alt="" /> <?= t("kSPECIAL_THANKS") ?></h2>
 		<div>
-			<?= _("A big thanks to Nintendo, these three sites and these artists without which Mario Kart PC would have probably never existed !") ?>
+			<?= t("kA_BIG_THANK_TO_NINTENDO") ?>
 				<ul>
 					<li>
-						<?= F_('<a href="{url_main_site}">Nihilogic</a> for the <a href="{url_mario_kart}">basic Mario Kart</a>', url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>
+						<?= Ft("kTHANKS_NIHILOGIC_PARAM_URL_MAIN_SITE_URL_MARIO_KART", url_main_site: "https://web.archive.org/web/20101104055946/http://blog.nihilogic.dk/", url_mario_kart: "https://web.archive.org/web/20100208144516/http://www.nihilogic.dk/labs/mariokart/") ?>
 					</li>
 					<li>
-						<?= F_('<a href="{url_main_site}">SNESMaps</a> for the <a href="{url_mario_kart}">track images</a>', url_main_site: "http://www.snesmaps.com/", url_mario_kart: "http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html") ?>
+						<?= Ft("kTHANKS_SNES_MAP_PARAM_URL_MAIN_SITE_URL_MARIO_KART", url_main_site: "http://www.snesmaps.com/", url_mario_kart: "http://www.snesmaps.com/maps/SuperMarioKart/SuperMarioKartMapSelect.html") ?>
 					</li>
 					<li>
-						<?= F_('<a href="{url_main_site}">Khinsider</a> for the <a href="{url_mario_kart}">musics</a>', url_main_site: "https://downloads.khinsider.com/", url_mario_kart: "https://downloads.khinsider.com/search?search=mario+kart") ?>
+						<?= Ft("kTHANKS_KHINSIDER_PARAM_URL_MAIN_SITE_URL_MARIO_KART", url_main_site: "https://downloads.khinsider.com/", url_mario_kart: "https://downloads.khinsider.com/search?search=mario+kart") ?>
 					</li>
 					<li>
-						<?= F_('And <a href="{url}">many more</a>!', url: "credits.php") ?>
+						<?= Ft("kTHANKS_OTHERS_PARAM_URL", url: "credits.php") ?>
 					</li>
 				</ul>
 		</div>
-		<h2><img src="images/follow.png" alt="" /> <?= _('Follow us') ?></h2>
+		<h2><img src="images/follow.png" alt="" /> <?= t("kFOLLOW_US") ?></h2>
 		<div>
 			<ul>
 				<li>
-					<?= F_('<a href="{url}">Discord Server</a> of the site: join it to chat with the community and be informed about updates and events.', url: "https://discord.gg/VkeAxaj") ?>
+					<?= Ft("kDISCORD_SERVER_PARAM_URL", url: "https://discord.gg/VkeAxaj") ?>
 				</li>
 				<li>
-					<?= F_('<a href="{url_youtube}">Official Youtube Channel</a>: find videos on the game and information about the website and its events. The channel is maintained by members, if you want to participate, tell it on the <a href="{url_topic}">official topic</a>.', url_youtube: "https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg", url_topic: "topic.php?topic=3392") ?>
+					<?= Ft("kOFFICIAL_YOUTUBE_CHANNEL_PARAM_URL_YOUTUBE_URL_TOPIC", url_youtube: "https://www.youtube.com/channel/UCRFoW7uwHuP1mg0qSaJ4jNg", url_topic: "topic.php?topic=3392") ?>
 				</li>
 				<li>
-					<?= F_('<a href="{url}">Github repo</a> of the site. Follow all the ongoing developments here, and if you can code, don\'t hesitate to contribute to the project!', url: "https://github.com/tmalahie/mkpc") ?>
+					<?= Ft("kGITHUB_REPO_PARAM_URL", url: "https://github.com/tmalahie/mkpc") ?>
 				</li>
 				<li>
-					<?= F_('<a href="{url_wiki}">MKPC Wiki</a>: find out all the information about the game and its history. This site is maintained by the community, if you want to contribute, tell it on <a href="{url_topic}">this topic</a>!', url_wiki: "http://fr.wiki-mario-kart-pc.wikia.com/", url_topic: "topic.php?topic=343") ?>
+					<?= Ft("kMKPC_WIKI_PARAM_URL_WIKI_URL_TOPIC", url_wiki: "http://fr.wiki-mario-kart-pc.wikia.com/", url_topic: "topic.php?topic=343") ?>
 				</li>
 			</ul>
 			<p>
 				<em>
-				<?= F_('This site is mostly maintained by French members, if you see some translation errors in the game or the site, don\'t hesitate to report them on this <a href="{url_topic}">forum topic</a>', url_topic: "topic.php?topic=1") ?>
+				<?= Ft("kFORUM_TRANSLATION_TOPIC_PARAM_URL_TOPIC", url_topic: "topic.php?topic=1") ?>
 				</em>
 			</p>
 		</div>
@@ -297,10 +297,10 @@ $placeholderPath = 'images/pages/pixel.png';
 			<?php
 		}
 		?>
-		<h2><img src="images/gamepad.png" alt="" /> <?= _('Go to the game') ?></h2>
+		<h2><img src="images/gamepad.png" alt="" /> <?= t("kGO_TO_THE_GAME") ?></h2>
 		<div>
-			<?= _("To start playing, it's very simple, just click on &quot;Play game&quot; in the menu above. Or more simply, click here:") ?><br />
-				<a href="mariokart.php" class="action_button button_game"><?= _("Start playing now &gt;") ?></a>
+			<?= t("kTO_START_PLAYING_CLICK_HERE") ?><br />
+				<a href="mariokart.php" class="action_button button_game"><?= t("kSTART_PLAYING_NOW") ?></a>
 		</div>
 	</section>
 	<section id="right_section">
@@ -377,7 +377,7 @@ $placeholderPath = 'images/pages/pixel.png';
 			if (($getWarn = mysql_fetch_array(mysql_query('SELECT seen FROM mkwarns WHERE player="'. $id .'"'))) && !$getWarn['seen']) {
 				?>
 				<div class="warning-top-message">
-					<?= F_('You have received a warning for inappropriate behavior. Please <a href={url}>click here</a> to find it out.', url: 'forum.php?warn#compte'); ?>
+					<?= Ft("kRECEIVED_WARNING_INAPPROPRIATE_BEHAVIOR_PARAM_URL", url: 'forum.php?warn#compte'); ?>
 				</div>
 				<?php
 			}
@@ -404,15 +404,15 @@ $placeholderPath = 'images/pages/pixel.png';
 				?>
 				<div class="birthdays-list">
 					<img src="images/ic_birthday.png" alt="birthday" />
-					<?= _("Happy birthday to") ?>
+					<?= t("kHAPPY_BIRTHDAY_TO") ?>
 					<?php
 					for ($i=0;$i<$nbBirthdays;$i++) {
 						$birthday = $birthdaysList[$i];
 						if ($i)
-							echo ($i==$nbBirthdays-1) ? _(" and ") : ", ";
+							echo ($i==$nbBirthdays-1) ? t("kBIRTHDAY_AND") : ", ";
 						echo '<a href="profil.php?id='. $birthday['id'] .'">'. $birthday['nom'] .'</a>';
 					}
-					echo P_("final exclamation point in a sentence", '!');
+					echo t("kFINAL_EXCLAMATION_POINT_IN_SENTENCE");
 					?>
 				</div>
 				<?php
@@ -421,7 +421,7 @@ $placeholderPath = 'images/pages/pixel.png';
 		date_default_timezone_set('UTC');
 		display_sidebar('Forum', 'forum.php');
 		?>
-			<h2><?= _('Latest topics') ?></h2>
+			<h2><?= t("kLATEST_TOPICS") ?></h2>
 			<div id="forum_section" class="right_subsection">
 				<?php
 				require_once('../includes/getRights.php');
@@ -451,15 +451,15 @@ $placeholderPath = 'images/pages/pixel.png';
 						<h3>
 							<?php
 								if ($message['nom']) {
-									printf(F_("Latest message by <strong>{message}</strong>", message: $message['nom']));
+									printf(Ft("kLATEST_MESSAGE_BY_PARAM_NAME", name: $message['nom']));
 								} else {
-									printf(_("Latest message"));
+									printf(t("kLATEST_MESSAGE"));
 								}
 								echo ' ';
 								echo pretty_dates_short($topic['dernier'],array('lower'=>true));
 							?>
 						</h3>
-						<div class="creation_comments" title="<?= FN_("{count} message", "{count} messages", count: $nbMsgs) ?>"><img src="images/comments.png" alt="Messages" /> <?= $nbMsgs; ?></div>
+						<div class="creation_comments" title="<?= FNt("kCOMMENTS_MESSAGES_WITH_COUNT", count: $nbMsgs) ?>"><img src="images/comments.png" alt="Messages" /> <?= $nbMsgs; ?></div>
 					</a>
 					<?php
 				}
