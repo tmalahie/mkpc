@@ -39,6 +39,7 @@ h1 + p {
     margin-left: auto;
     margin-right: auto;
     width: 450px;
+    max-width: 100%;
 }
 #titres td:nth-child(2) {
 	width: 300px;
@@ -51,6 +52,7 @@ table a.profile:hover {
 }
 #joueur {
     width: 400px;
+    max-width: 100%;
 }
 </style>
 <?php
@@ -152,9 +154,9 @@ if ($unban) {
     <p>
     <?php
     if ($language)
-        echo "This page allows you to block a member from publishing challenges, for a fixed amount of time or permanently. Use it in case of repeated abuse or spam.";
+        echo "This page allows you to prevent a member from publishing challenges, for a determined or undetermined period. Use it in case of spam or repeated abuse.";
     else
-        echo "Cette page vous permet de bloquer un membre de la publication de challenges, pour une durée déterminée ou de manière permanente. Utilisez-le en cas de spam ou abus à répétition.";
+        echo "Cette page vous permet d'empêcher un membre de publier des défis, pour une durée déterminée ou non. Utilisez-le en cas de spam ou abus à répétition.";
 	?>
 	</p>
 	<form method="post" action="challengesBan.php">
