@@ -84,6 +84,14 @@ $logMapping = array(
         'render' => _('unbanned member ') . $logTemplates['member']('$1'),
         'role' => 'moderator'
     ),
+    'CBan' => array(
+        'render' => _('banned member ') . '<a href="{{table.mkclbans(id=$1).link}}">{{table.mkclbans(id=$1).username|global.ifNull("<em>'._('Deleted ban').'</em>")}}</a> ' . _('from challenges'),
+        'role' => 'clvalidator'
+    ),
+    'CUnban' => array(
+        'render' => _('unbanned member ') . '#$1 ' . _('from challenges'),
+        'role' => 'clvalidator'
+    ),
     'SComment' => array(
         'render' => _('deleted comment #$1 on a track'),
         'role' => 'moderator'

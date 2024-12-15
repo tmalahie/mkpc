@@ -30,6 +30,12 @@ if (isset($_POST['challenge']) && isset($_POST['status'])) {
 						activateChallenge($challenge);
 					}
 					else {
+						if ($isBanned = mysql_fetch_array(mysql_query('SELECT ban_until_date FROM `mkclbans` WHERE identifiant='. $identifiants[0]))) {
+							if ($isBanned['ban_until_date'] && strtotime($isBanned['ban_until_date']) < time())
+								mysql_query('DELETE FROM `mkclbans` WHERE identifiant='. $identifiants[0]);
+							else
+								$newStatus = 'banned';
+						}
 						if (isset($_POST['require_confirmation'])) {
 							$getOneChallenge = mysql_query('SELECT c.id FROM mkchallenges c INNER JOIN mkclrace l ON c.clist=l.id WHERE l.identifiant='.$identifiants[0].' AND l.identifiant2='.$identifiants[1].' AND l.identifiant3='.$identifiants[2].' AND l.identifiant4='.$identifiants[3].' AND c.status IN ("active","deleted") LIMIT 1');
 							$challenge = mysql_fetch_array($getOneChallenge);

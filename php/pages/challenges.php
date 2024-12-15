@@ -27,6 +27,9 @@ if (isset($_GET['clmsg'])) {
 	case 'circuit_required':
 		$clError = $language ? 'You must share the circuit before publishing the challenge':'Vous devez partager le circuit avant de publier le défi';
 		break;
+	case 'banned':
+		$clError = $language ? "You can't publish challenges while you're banned" : "Vous ne pouvez pas publier de défis tant que vous êtes banni";
+		break;
 	}
 	unset($_GET['clmsg']);
 }
@@ -78,6 +81,8 @@ function publishChallenge(id, skip_confirm) {
 				$dialog.style.width = "500px";
 				$dialog.style.maxWidth = "90%";
 			}
+			else if (res == "banned")
+				showClMsg("banned");
 			else
 				document.location.reload();
 			return true;
@@ -119,6 +124,39 @@ document.addEventListener("DOMContentLoaded", initPrettyTitles);
 		echo '<div class="challenge-msg-error">'. $clError .'</div>';
 	if (isset($clMsg))
 		echo '<div class="challenge-msg-success">'. $clMsg .'</div>';
+	if ($getBanMsg = mysql_fetch_array(mysql_query('SELECT msg, ban_until_date FROM `mkclbans` WHERE identifiant='. $identifiants[0]))) {
+		if ($getBanMsg['ban_until_date'] && strtotime($getBanMsg['ban_until_date']) < time())
+			mysql_query('DELETE FROM `mkclbans` WHERE identifiant='. $identifiants[0]);
+		else {
+		?>
+		<div>
+		<div class="challenge-moderation-error">
+			<?php
+			if ($getBanMsg['msg']) {
+				echo $language ? 'You have been banned by the challenge moderation for the following reason:' : 'Vous avez été banni par les validateurs de défis pour la raison suivante :';
+				echo '<br />';
+				echo '<em>'. nl2br(htmlspecialchars($getBanMsg['msg'])) .'</em>';
+			}
+			else {
+				echo $language ? 'You have been banned temporarily because of inappropriate behavior.' : 'Vous avez été banni temporairement suite à un comportement inapproprié sur le site.';
+			}
+			echo '<br />';
+			if ($getBanMsg['ban_until_date']) {
+				echo $language
+					? 'Therefore, you can no longer publish challenges until the end of your ban. You will be unbanned on <strong>'. $getBanMsg['ban_until_date'] .'</strong>.'
+					: 'Par conséquent, vous ne pouvez plus publier de défis jusqu\'à la fin de votre ban. Vous serez débanni le <strong>'. $getBanMsg['ban_until_date'] .'</strong>.';
+			}
+			else {
+				echo $language
+					? 'Therefore, you can no longer publish challenges until further notice.'
+					: 'Par conséquent, vous ne pouvez plus publier de défis jusqu\'à nouvel ordre.';
+			}
+			?>
+		</div>
+		</div>
+		<?php
+		}
+	}
 	if (empty($challenges)) {
 		?>
 		<div class="challenge-explain">

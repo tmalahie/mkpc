@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-27 22:47+0100\n"
+"POT-Creation-Date: 2024-12-15 22:15+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -199,6 +199,14 @@ msgstr ""
 
 #: php/pages/admin-logs.php
 msgid "unbanned member "
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "Deleted ban"
+msgstr ""
+
+#: php/pages/admin-logs.php
+msgid "from challenges"
 msgstr ""
 
 #: php/pages/admin-logs.php

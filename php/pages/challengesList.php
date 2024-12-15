@@ -639,6 +639,7 @@ include('../includes/menu.php');
 			if (isset($moderate)) {
 				?>
 				<a href="challengesList.php?remoderate"><?php echo $language ? 'Undo a challenge validation mistake':'Annuler une erreur de validation'; ?></a><br />
+				<a href="challengesBan.php"><?php echo $language ? 'Ban member from publishing challenges':'Bannir un membre pour la publication de défis'; ?></a><br />
 				<a href="admin-logs.php?role=clvalidator"><?php echo $language ? 'See challenge moderation history':'Historique des validations de défis'; ?></a><br />
 				<?php
 			}

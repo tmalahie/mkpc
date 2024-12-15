@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-27 22:47+0100\n"
+"POT-Creation-Date: 2024-12-15 22:12+0100\n"
 "PO-Revision-Date: 2023-03-20 22:14+0100\n"
 "Last-Translator: flo <ano@nymous.com>\n"
 "Language-Team: French <kde-i18n-doc@kde.org>\n"
@@ -206,6 +206,14 @@ msgstr "a averti le membre "
 #: php/pages/admin-logs.php
 msgid "unbanned member "
 msgstr "a débanni le membre "
+
+#: php/pages/admin-logs.php
+msgid "Deleted ban"
+msgstr "Ban supprimé"
+
+#: php/pages/admin-logs.php
+msgid "from challenges"
+msgstr "pour les défis"
 
 #: php/pages/admin-logs.php
 msgid "deleted comment #$1 on a track"
