@@ -9,7 +9,7 @@ if ($id) {
 				mysql_query('UPDATE `mkjoueurs` SET deleted=1 WHERE id="'.$id.'"');
 				session_destroy();
 				$suppred = true;
-				setcookie('mkp', null, 0,'/');
+				setcookie('mkp', '', 0,'/');
 			}
 			else
 				$message = $language ? 'You have been banned, you cannot delete your account.':'Vous avez été banni, vous ne pouvez pas supprimer votre compte.';

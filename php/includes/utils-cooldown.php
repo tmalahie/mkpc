@@ -75,6 +75,42 @@ function isNewsCooldowned() {
         return true;
     return false;
 }
+function isNewUserCooldowned($id) {
+    $newUser = mysql_fetch_array(mysql_query('SELECT sub_date FROM `mkprofiles` WHERE id="'. $id .'"'));
+    $maxSubDate = time() - 15 * 60;
+    if (!$newUser['sub_date'])
+        return false;
+    return strtotime($newUser['sub_date']) > $maxSubDate;
+}
+function printNewUserCooldowned() {
+    global $language;
+    ?>
+    <div class="auto-moderation-notice">
+        <?php
+        if ($language) {
+            ?>
+            <p>
+                To prevent spam, new accounts aren't allowed to post on the forum for a short period of time.<br />
+                Please wait a few minutes before sending your 1<sup>st</sup> message.<br />
+                If you haven't done it yet, you can take this time to read the <a href="topic.php?topic=2448" target="_blank">forum's rules</a>.<br />
+                Thanks for your understanding, and welcome to MKPC <sub><img src="images/smileys/smiley0.png" alt=":)" /></sub>
+            </p>
+            <?php
+        }
+        else {
+            ?>
+            <p>
+                Pour éviter les spams, les nouveaux comptes ne sont pas autorisés à poster sur le forum pendant une courte période.<br />
+                Veuillez patienter quelques minutes avant d'envoyer votre 1<sup>er</sup> message.<br />
+                Si ce n'est pas déjà fait, vous pouvez prendre ce temps pour consulter le <a href="topic.php?topic=2448" target="_blank">règlement du forum</a>.<br />
+                Merci de votre compréhension, et bienvenue sur MKPC <sub><img src="images/smileys/smiley0.png" alt=":)" /></sub>
+            </p>
+            <?php
+        }
+        ?>
+    </div>
+    <?php
+}
 function isNewsComCooldowned() {
     $profileIdsString = getProfileIdsString();
     $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM mknewscoms WHERE author IN ('. $profileIdsString .') AND date>=DATE_SUB(NOW(),INTERVAL 60 SECOND)'));
@@ -150,7 +186,7 @@ function isRatingCooldowned() {
 }
 function isAccountCooldowned() {
     global $identifiants;
-    $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkprofiles` WHERE identifiant='.$identifiants[0].' AND sub_date=CURDATE()'));
+    $getRecentMsgs = mysql_fetch_array(mysql_query('SELECT COUNT(*) AS nb FROM `mkprofiles` WHERE identifiant='.$identifiants[0].' AND sub_date>=CURDATE()'));
     $recentMsgs = $getRecentMsgs['nb'];
     if ($recentMsgs >= 25)
         return true;

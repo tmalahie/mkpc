@@ -53,6 +53,10 @@ showRegularAdSection();
 			logCooldownEvent('forum_topic');
 			printMsgCooldowned();
 		}
+		elseif (isNewUserCooldowned($id)) {
+			printNewUserCooldowned();
+			$showForm = true;
+		}
 		elseif (($checks=checkMessageContent($_POST['message'])) && !$checks['success']) {
 			printCheckFailDetails($checks);
 			$showForm = true;

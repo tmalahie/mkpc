@@ -37,7 +37,7 @@ if (isset($profileId)) {
 			$error = $language ? 'This account has been banned.':'Ce compte a été banni.';
 		elseif (mysql_fetch_array(mysql_query('SELECT * FROM `mkignores` WHERE ignorer="'.$id.'" AND ignored="'.$profileId.'"')))
 			$error = $language ? 'You are ignoring '. $getInfos['nom'] .'. You won\'t see his messages in MKPC chat nor in online mode. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Unignore</a>':'Vous venez d\'ignorer '. $getInfos['nom'] .'. Vous ne verrez plus ses messages dans le chat MKPC ni dans le mode en ligne. <a href="?id='. urlencode($profileId) .'&amp;unignore=1">Désignorer</a>';
-		$getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4,nbmessages,description,country,birthdate,sub_date,NULLIF(DATE(last_connect),0) AS last_connect FROM `mkprofiles` WHERE id="'. $profileId .'"'));
+		$getProfile = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4,nbmessages,description,country,birthdate,DATE(sub_date) AS sub_date,NULLIF(DATE(last_connect),0) AS last_connect FROM `mkprofiles` WHERE id="'. $profileId .'"'));
 		if ($getProfile['identifiant'] === null)
 			$getProfile['identifiant'] = -1;
 		require_once('../includes/getRights.php');
@@ -497,7 +497,7 @@ include('../includes/menu.php');
 						<strong><?php
 						echo $age . ' ' . ($language ? 'years old':'ans');
 						?></strong>
-						 (<?php echo ($language ? 'Born on':'Né le') . ' ' . preg_replace("#^(\d{4})-(\d{2})-(\d{2})$#", "$3/$2/$1", $getProfile['birthdate']); ?>)
+						 (<?php echo ($language ? 'Born on':'Né le') . ' ' . ($language ? $getProfile['birthdate'] : preg_replace("#^(\d{4})-(\d{2})-(\d{2})$#", "$3/$2/$1", $getProfile['birthdate'])); ?>)
 					</div>
 					<?php
 				}
@@ -505,7 +505,7 @@ include('../includes/menu.php');
 					$oneData = true;
 					?>
 					<div>
-						<?php echo ($language ? 'Registered since':'Inscrit depuis le'); ?> <strong><?php echo preg_replace("#^(\d{4})-(\d{2})-(\d{2})$#", "$3/$2/$1", $getProfile['sub_date']); ?></strong>
+						<?php echo ($language ? 'Registered since':'Inscrit depuis le'); ?> <strong><?php echo $language ? $getProfile['sub_date'] : preg_replace("#^(\d{4})-(\d{2})-(\d{2})$#", "$3/$2/$1", $getProfile['sub_date']); ?></strong>
 					</div>
 					<?php
 				}
@@ -513,7 +513,7 @@ include('../includes/menu.php');
 					$oneData = true;
 					?>
 					<div>
-						<?php echo ($language ? 'Last connection':'Dernière connexion '); ?>: <strong><?php echo preg_replace("#^(\d{4})-(\d{2})-(\d{2})$#", "$3/$2/$1", $getProfile['last_connect']); ?></strong>
+						<?php echo ($language ? 'Last connection':'Dernière connexion '); ?>: <strong><?php echo $language ? $getProfile['last_connect'] : preg_replace("#^(\d{4})-(\d{2})-(\d{2})$#", "$3/$2/$1", $getProfile['last_connect']); ?></strong>
 					</div>
 					<?php
 				}

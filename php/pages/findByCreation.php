@@ -75,7 +75,7 @@ if (!empty($_GET['url'])) {
                         break;
                 }
                 if ($userId) {
-                    mysql_query('INSERT INTO `mkprofiles` SET id='. $userId .', identifiant='.$getCreation['identifiant'].',identifiant2=0,identifiant3=0,identifiant4=0,avatar="",nick_color="'.$pseudo.'",nbmessages=0,email="",country=0,sub_date=CURDATE(),description=""');
+                    mysql_query('INSERT INTO `mkprofiles` SET id='. $userId .', identifiant='.$getCreation['identifiant'].',identifiant2=0,identifiant3=0,identifiant4=0,avatar="",nick_color="'.$pseudo.'",nbmessages=0,email="",country=0,sub_date=NOW(),description=""');
                     $get = $_GET;
                     unset($get['create']);
                     $get['created'] = $userId;
