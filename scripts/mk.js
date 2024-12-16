@@ -14493,8 +14493,7 @@ var itemDistributions = {
 			"champi": 1,
 			"champior": 1,
 			"champiX3": 1,
-			"bloops": 1,
-			"pow": 1
+			"bloops": 1
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
@@ -14581,37 +14580,32 @@ var itemDistributions = {
 			"champi": 5,
 			"carapacerouge": 4,
 			"champiX3": 3,
-			"carapacerougeX3": 3,
-			"pow": 1
+			"carapacerougeX3": 3
 		}, {
 			"champi": 8,
 			"carapacerougeX3": 7,
 			"champiX3": 6,
-			"megachampi": 3,
-			"pow": 2
+			"megachampi": 3
 		}, {
 			"champiX3": 8,
 			"carapacerougeX3": 8,
 			"megachampi": 6,
 			"etoile": 4,
 			"champior": 2,
-			"carapacebleue": 5,
-			"pow": 3
+			"carapacebleue": 5
 		}, {
 			"megachampi": 7,
 			"champiX3": 6,
 			"etoile": 5,
 			"champior": 3,
-			"carapacebleue": 5,
-			"pow": 2
+			"carapacebleue": 5
 		}, {
 			"megachampi": 8,
 			"champiX3": 6,
 			"etoile": 6,
 			"billball": 3,
 			"champior": 3,
-			"carapacebleue": 5,
-			"pow": 2
+			"carapacebleue": 5
 		}, {
 			"etoile": 6,
 			"megachampi": 6,
@@ -14661,36 +14655,31 @@ var itemDistributions = {
 			"champi": 5,
 			"bobomb": 6,
 			"champiX3": 1,
-			"carapacerougeX3": 6,
-			"pow": 2
+			"carapacerougeX3": 6
 		}, {
 			"champi": 4,
 			"champiX3": 3,
 			"carapacerougeX3": 10,
-			"megachampi": 3,
-			"pow": 2
+			"megachampi": 3
 		}, {
 			"champiX3": 4,
 			"carapacerougeX3": 10,
 			"megachampi": 6,
 			"etoile": 4,
-			"carapacebleue": 12,
-			"pow": 4
+			"carapacebleue": 12
 		}, {
 			"champiX3": 3,
 			"megachampi": 7,
 			"etoile": 5,
 			"champior": 1,
-			"carapacebleue": 10,
-			"pow": 3
+			"carapacebleue": 10
 		}, {
 			"champiX3": 3,
 			"megachampi": 8,
 			"etoile": 6,
 			"champior": 1,
 			"carapacebleue": 10,
-			"billball": 5,
-			"pow": 2
+			"billball": 5
 		}, {
 			"megachampi": 6,
 			"etoile": 6,
