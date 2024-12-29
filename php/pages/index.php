@@ -306,7 +306,7 @@ $placeholderPath = 'images/pages/pixel.png';
 	<section id="right_section">
 		<?php
 		require_once('../includes/utils-date.php');
-		date_default_timezone_set('Europe/Paris');
+		/*date_default_timezone_set('Europe/Paris');
 		require_once('../includes/advent-topic.php');
 		if ($adventEnabled) {
 			?>
@@ -332,7 +332,7 @@ $placeholderPath = 'images/pages/pixel.png';
 				</div>
 			</div>
 			<?php
-		}
+		}*/
 		function uc_strlen($str) {
 			return strlen(preg_replace("#(%u[0-9a-fA-F]{4})+#", ".", $str));
 		}
