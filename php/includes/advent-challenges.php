@@ -339,6 +339,7 @@ case 2024:
 	include('advent-selected-challenges.php');
 	$adventChallenges = fetch_advent_challenges($selectedChallenges);
 	$adventChallenges[1]['description'] = str_replace('Gift', $language?'gifts':'cadeaux', $adventChallenges[1]['description']);
+	$adventChallenges[9]['description'] = str_replace(', they just wanted to play😢,', '', $adventChallenges[9]['description']);
 	break;
 }
 function get_challenges_until($day) {
