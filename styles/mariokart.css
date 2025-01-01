@@ -349,7 +349,6 @@ button.control-close:active {
 	font-weight: bold;
 	font-family: arial;
 	opacity: 0.8;
-	color: #FF9900;
 	text-align: center;
 }
 #scroller {
@@ -381,6 +380,14 @@ button.control-close:active {
 	color: #50D0F8;
 	font-weight: bold;
 	font-family: "SMK-Timer", Arial;
+}
+#decompte0,#decompte1 {
+	position: absolute;
+	z-index: 19999;
+	color: #FF9900;
+	font-family: "NSMBU", Impact;
+	text-align: center;
+	opacity: 0.8;
 }
 #compteur0 > div, #compteur1 > div {
 	position: absolute;

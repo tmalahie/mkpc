@@ -1727,14 +1727,20 @@ function loadMap() {
 		oInfos.style.left = (10+iScreenMore) +"px";
 		oInfos.style.top = (10*iScreenScale) +"px";
 		oInfos.style.width = (iWidth*iScreenScale) +"px";
-		oInfos.style.fontSize = iScreenScale*16 +"px";
-		oInfos.style.fontFamily = '"NSMBU", Impact';
 		oInfos.style.textAlign = "center";
-		oInfos.style.textStroke = oInfos.style.WebkitTextStroke = oInfos.style.MozTextStroke = Math.round(iScreenScale/4) +"px "+ primaryColor;
-		oInfos.style.visibility = "hidden";
 		oInfos.style.display = "";
 		oInfos.style.pointerEvents = "none";
-		oInfos.innerHTML = '<tr><td id="decompte'+i+'">3</td></tr>';
+
+		var oStarter = document.createElement("div");
+		oStarter.id = "decompte"+i;
+		oStarter.style.left = "0px";
+		oStarter.style.top = (10*iScreenScale-7) +"px";
+		oStarter.style.width = (iWidth*iScreenScale) +"px";
+		oStarter.style.fontSize = iScreenScale*16 +"px";
+		oStarter.style.textStroke = oStarter.style.WebkitTextStroke = oStarter.style.MozTextStroke = Math.round(iScreenScale/4) +"px "+ primaryColor;
+		oStarter.style.visibility = "hidden";
+		oStarter.innerHTML = '3';
+		hudScreen.appendChild(oStarter);
 
 		var oScroller = document.getElementById("scroller").cloneNode(true);
 		oScroller.id = "scroller"+i;
@@ -4206,9 +4212,9 @@ function startGame() {
 				for (var i=0;i<strPlayer.length;i++) {
 					if (oRaceCounts)
 						hudScreens[i].removeChild(oRaceCounts[i]);
-					document.getElementById("infos"+i).innerHTML = '<tr><td>'+ toLanguage('GO!', 'PARTEZ !') +'</td></tr>';
-					document.getElementById("infos"+i).style.fontSize = iScreenScale * 12 + "px";
-					document.getElementById("infos"+i).style.top = Math.round(12.5*iScreenScale) + "px";
+					document.getElementById("decompte"+i).innerHTML = toLanguage('GO!', 'PARTEZ !');
+					document.getElementById("decompte"+i).style.fontSize = iScreenScale * 12 + "px";
+					document.getElementById("decompte"+i).style.top = Math.round(12.5*iScreenScale - 7) + "px";
 					if (oPlayers[i].speed == 1) {
 						oPlayers[i].speed = 11;
 						clLocalVars.forwards = true;
@@ -4402,8 +4408,15 @@ function startGame() {
 							}
 						}
 						bCounting = false;
-					}, onlineSpectatorState ? 1 : 1000
+					}
 				);
+				setTimeout(function() {
+					for (var i=0;i<strPlayer.length;i++) {
+						var oStarter = document.getElementById('decompte'+i);
+						if (oStarter)
+							hudScreens[i].removeChild(oStarter);
+					}
+				}, onlineSpectatorState ? 1 : 1000);
 
 				if (!pause || !fInfos.replay) {
 					function handleInputPressed(gameAction) {
@@ -4825,7 +4838,7 @@ function startGame() {
 					setTimeout(function() {
 						continuer();
 						document.querySelector("#enregistrer input").style.display = "none";
-					},1000);
+					});
 					document.onkeyup = function(e) {
 						var gameAction = getGameAction(e);
 						if (gameAction == "pause" && !bCounting) {
@@ -4844,7 +4857,7 @@ function startGame() {
 		}
 		else {
 			for (var i=0;i<strPlayer.length;i++)
-				document.getElementById("infos"+i).style.visibility = "";
+				document.getElementById("decompte"+i).style.visibility = "";
 			if (bMusic || iSfx)
 				countDownMusic.play();
 			document.body.style.cursor = "default";
