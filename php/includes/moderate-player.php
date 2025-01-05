@@ -42,6 +42,15 @@ h1 + p {
 #ban_msg {
 	display: none;
 }
+.show_form_details {
+    font-size: 0.7em;
+    padding: 0.25em 0.5em;
+}
+#member-filter {
+    position: relative;
+    top: -10px;
+    margin-bottom: 3px;
+}
 #titres td:nth-child(2) {
 	width: 300px;
 }
@@ -80,7 +89,7 @@ if ($ban) {
             mysql_query('UPDATE `mkjoueurs` SET banned=2 WHERE id='. $getId['id']);
             mysql_query('DELETE FROM `mkbans` WHERE player="'. $getId['id'] .'"');
             mysql_query('DELETE FROM `mkwarns` WHERE player="'. $getId['id'] .'"');
-            mysql_query('INSERT INTO `mkbans` VALUES('. $getId['id'] .',"'. $_POST['msg'] .'",'. (!empty($_POST['ban_until_date']) ? '"'. $_POST['ban_until_date'] .'"':'NULL') .')');
+            mysql_query('INSERT INTO `mkbans` SET player='. $getId['id'] .',msg="'. $_POST['msg'] .'"'. (!empty($_POST['ban_until_date']) ? ',end_date="'. $_POST['ban_until_date'] .'"':''));
             mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Ban '. $getId['id'] .'")');
             if (isset($_POST['ip'])) {
                 $getIp = mysql_fetch_array(mysql_query('SELECT identifiant,identifiant2,identifiant3,identifiant4 FROM `mkprofiles` WHERE id="'.$getId['id'].'"'));
@@ -102,7 +111,7 @@ if ($ban) {
             break;
         case 'warn':
             mysql_query('DELETE FROM `mkwarns` WHERE player="'. $getId['id'] .'"');
-            mysql_query('INSERT INTO `mkwarns` VALUES('. $getId['id'] .',"'. $_POST['msg'] .'",0)');
+            mysql_query('INSERT INTO `mkwarns` SET player='. $getId['id'] .',msg="'. $_POST['msg'] .'",seen=0');
             mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL, '. $id .', "Warn '. $getId['id'] .'")');
             break;
         }
@@ -210,13 +219,13 @@ if ($unban) {
 		<label for="joueur"><strong><?php
         switch ($action) {
         case 'ban':
-            echo $language ? 'Ban a player':'Bannir un joueur';
+            echo $language ? 'Ban a member:':'Bannir un membre :';
             break;
         case 'warn':
-            echo $language ? 'Warn a player':'Avertir un joueur';
+            echo $language ? 'Warn a member:':'Avertir un membre :';
             break;
         }
-        ?></strong></label> : <input type="text" name="joueur" id="joueur" />
+        ?></strong></label> &nbsp;<input type="text" name="joueur" id="joueur" /> <input type="button" value="&rarr;" class="action_button show_form_details" onclick="showBanFormDetails()" />
 		<div id="ban_msg">
 			Message : <textarea name="msg" cols="30" rows="4"<?php if ($action === 'warn') echo ' required="required"'; ?>></textarea><br />
             <?php
@@ -243,6 +252,11 @@ if ($unban) {
         break;
     }
     ?></h2>
+    <div id="member-filter">
+		<label for="search"><?php
+        echo $language ? 'Search for a member:':'Rechercher un membre :';
+        ?></label> &nbsp;<input type="text" id="search" />
+	</div>
 	<table>
 	<tr id="titres">
 	<td><?php echo $language ? 'Username':'Pseudo'; ?></td>
@@ -264,10 +278,10 @@ if ($unban) {
 	<?php
     switch ($action) {
     case 'ban':
-        $bannished = mysql_query('SELECT j.id,j.nom,b.msg,b.end_date FROM `mkjoueurs` j LEFT JOIN `mkbans` b ON j.id=b.player WHERE j.banned');	
+        $bannished = mysql_query('SELECT j.id,j.nom,b.msg,b.end_date FROM `mkjoueurs` j LEFT JOIN `mkbans` b ON j.id=b.player WHERE j.banned ORDER BY b.ban_date DESC,j.id DESC');	
         break;
     case 'warn':
-        $bannished = mysql_query('SELECT j.id,j.nom,w.msg FROM `mkwarns` w INNER JOIN `mkjoueurs` j ON j.id=w.player');
+        $bannished = mysql_query('SELECT j.id,j.nom,w.msg FROM `mkwarns` w INNER JOIN `mkjoueurs` j ON j.id=w.player ORDER BY w.warn_date DESC,j.id DESC');
         break;
     }
 	function controlLength($str,$maxLength) {
@@ -314,9 +328,12 @@ include('footer.php');
 autocompletePlayer('#joueur', {
 	onSelect: function(event, term, item) {
 		preventSubmit(event);
-		$("#ban_msg").show("fast");
+        showBanFormDetails();
 	}
 });
+function showBanFormDetails() {
+    $("#ban_msg").show("fast");
+}
 function hanleBanUntil(checked) {
 	var $banUntilDate = $('input[name="ban_until_date"]');
 	$banUntilDate.prop("disabled", !checked);
@@ -324,6 +341,17 @@ function hanleBanUntil(checked) {
 	if (checked)
 		$banUntilDate.focus();
 }
+$("#search").on('input', function() {
+    var search = $(this).val().toLowerCase();
+    $("table tr:gt(1)").each(function() {
+        var $this = $(this);
+        var pseudo = $this.find("td:first").text().toLowerCase();
+        if (pseudo.indexOf(search) >= 0)
+            $this.show();
+        else
+            $this.hide();
+    });
+});
 </script>
 <?php
 mysql_close();
