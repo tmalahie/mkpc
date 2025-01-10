@@ -4327,6 +4327,8 @@ function saveData() {
 	storeCurrentLapOverride();
 	restoreLapOverride(0);
 	var payload = {main:{theme:document.getElementById("theme-selector").getValue()}};
+	var prevLapOverride = selectedLapOverride;
+	selectedLapOverride = 0;
 	for (var key in editorTools) {
 		var editorTool = editorTools[key];
 		editorTool.save(editorTool,payload);
@@ -4338,6 +4340,7 @@ function saveData() {
 		var lapPayload = {main:{}};
 		var enabledModes = [];
 		var lapOverride = lapOverrides[lapKey];
+		selectedLapOverride = lapKey;
 		for (var key in editorTools) {
 			var selectedModeData = lapOverride.modesData[key];
 			if (!selectedModeData.isSet) continue;
@@ -4354,6 +4357,7 @@ function saveData() {
 		if (lapOverride.imgData)
 			imgOverrides[lapPayloadIds[lapKey]] = getImgOverridePayload(lapOverride.imgData);
 	}
+	selectedLapOverride = prevLapOverride;
 	for (var lapKey=1;lapKey<lapOverrides.length;lapKey++) {
 		var lapPayloadId = lapPayloadIds[lapKey];
 		if (!lapPayloadId) continue;

@@ -4388,10 +4388,6 @@ function startGame() {
 								};
 							}
 							document.getElementById("quitter").onclick = quitter;
-							if (bMusic && !oMusicEmbed) {
-								unpauseMusic(mapMusic);
-								forceStartMusic = true;
-							}
 							if (onlineSpectatorId) {
 								oInfos.innerHTML =
 									'<tbody style="text-align: left; color: white; font-weight: normal; text-shadow: black -1px -1px, black -1px 1px, black 1px -1px, black 1px 1px">'
@@ -4415,6 +4411,10 @@ function startGame() {
 						var oStarter = document.getElementById('decompte'+i);
 						if (oStarter)
 							hudScreens[i].removeChild(oStarter);
+					}
+					if (bMusic && !oMusicEmbed) {
+						unpauseMusic(mapMusic);
+						forceStartMusic = true;
 					}
 				}, onlineSpectatorState ? 1 : 1000);
 
