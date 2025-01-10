@@ -1262,7 +1262,7 @@ embed,#ytplayer {
 }
 #lapoverride-more h1 {
 	margin-top: 10px;
-	margin-bottom: 15px;
+	margin-bottom: 5px;
 }
 #lapoverride-more h1.lapoverride-more-add {
 	color: #084;
@@ -1285,6 +1285,28 @@ embed,#ytplayer {
 }
 #lapoverride-less .popup-buttons {
 	margin-bottom: 10px;
+}
+.lapoverride-trigger {
+	margin-bottom: 0.5em;
+	border-radius: 0.5em;
+}
+.lapoverride-trigger {
+	cursor: pointer;
+	display: inline-block;
+	padding: 0.2em 0.5em;
+}
+.lapoverride-trigger:hover {
+	background-color: #ade;
+}
+.lapoverride-trigger.selected {
+	background-color: #28b;
+	color: white;
+}
+.lapoverride-type-options {
+	display: none;
+}
+.lapoverride-type-options.selected {
+	display: block;
 }
 #lapoverride-copy {
 	display: none;
