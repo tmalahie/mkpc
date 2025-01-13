@@ -26940,8 +26940,8 @@ function openRankings() {
 }
 function exitCircuit() {
 	var changeRace = document.getElementById("changeRace");
-	var supprRace = document.getElementById("supprRace");
-	if (changeRace && !supprRace)
+	var deleteRace = document.getElementById("deleteRace");
+	if (changeRace && !deleteRace)
 		changeRace.click();
 	else
 		document.location.href = "index.php";
