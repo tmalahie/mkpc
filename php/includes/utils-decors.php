@@ -226,14 +226,14 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
         if ($isParentFile)
             $fileSizeOptions['decor'] = $decor['id'];
     }
-    $poids = file_total_size($fileSizeOptions);
+    $total_size = file_total_size($fileSizeOptions);
     foreach ($files as &$fileData) {
         $file = $fileData['payload'];
         if (!$file['error']) {
             $filesize = $file['size'];
             if ($filesize < 1000000) {
-                $poids += $filesize;
-                if ($poids < file_total_quota($decor)) {
+                $total_size += $filesize;
+                if ($total_size < file_total_quota($decor)) {
                     $ext = get_img_ext($file['tmp_name']);
                     $extensions = Array('png', 'gif', 'jpg', 'jpeg');
                     if (in_array($ext, $extensions)) {
@@ -300,8 +300,8 @@ function handle_decor_upload($type,$file,$extra,$decor=null) {
 function handle_decor_advanced($file,$decor,$type) {
 	global $language;
 	if (!$file['error']) {
-		$poids = $file['size'];
-		if ($poids < 1000000) {
+		$file_size = $file['size'];
+		if ($file_size < 1000000) {
             $ext = get_img_ext($file['tmp_name']);
 			$extensions = Array('png', 'gif', 'jpg', 'jpeg');
 			if (in_array($ext, $extensions)) {

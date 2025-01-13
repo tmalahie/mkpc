@@ -5,17 +5,17 @@ $isBattle = isset($_GET['battle']);
 $table = $isBattle ? 'arenes':'circuits';
 if (isset($_FILES['image'])) {
 	if (!$_FILES['image']['error']) {
-		$poids = $_FILES['image']['size'];
+		$upload_size = $_FILES['image']['size'];
 		$doImport = ($isUploaded || isset($_POST['import']));
 		include('../includes/getId.php');
 		include('../includes/initdb.php');
 		include('../includes/file-quotas.php');
 		$maxUploadSize = upload_max_size(array('external' => !$doImport));
-		if ($poids < $maxUploadSize) {
+		if ($upload_size < $maxUploadSize) {
 			if ($doImport)
-				$poids += file_total_size();
+				$upload_size += file_total_size();
 			$id = 0;
-			if ($poids < MAX_FILE_SIZE) {
+			if ($upload_size < MAX_FILE_SIZE) {
 				require_once('../includes/circuitImgUtils.php');
 				$ext = getCircuitExt($_FILES['image']['tmp_name'],null);
 				if ($ext) {

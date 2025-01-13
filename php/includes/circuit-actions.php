@@ -122,7 +122,7 @@ function includeShareLib() {
         <?php
         if ($canRemove) {
             ?>
-        function supprRace() {
+        function deleteRace() {
             document.getElementById("sAnnuler").disabled = true;
             document.getElementById("sAnnuler").className = "cannotChange";
             document.getElementById("sConfirmer").disabled = true;
@@ -333,7 +333,7 @@ function printCircuitActions() {
         ?>"<?php if (isset($message)&&!isset($infoMsg)){echo ' disabled="disabled" class="cannotChange"';$cannotChange=true;} ?> /><?php
             if ($cShared && isset($_GET[$sid])) {
                 ?>
-            <br /><br class="br-small" /><input type="button" id="supprRace" onclick="toggleUnshareForm(true)" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
+            <br /><br class="br-small" /><input type="button" id="deleteRace" onclick="toggleUnshareForm(true)" value="<?php echo ($language ? 'Delete sharing':'Supprimer partage'); ?>" />
                 <?php
             }
         }
@@ -359,7 +359,7 @@ function printCircuitShareUI() {
                 '.($isCup ? ($isMCup ? 'La multicoupe':'La coupe'):($isBattle ? "L'arène":"Le circuit")).' sera simplement '.($isBattle||$isCup ? 'retirée' : 'retiré').' de la liste :<br />
                 les données seront '. ($softDeleted ? 'conservées' : 'récupérables') .'.';
             ?></p>
-            <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="supprRace()" /></p>
+            <p id="supprButtons"><input type="button" value="<?php echo $language ? 'Cancel':'Annuler'; ?>" id="sAnnuler" onclick="document.getElementById('confirmSuppr').style.display='none'" /> &nbsp; <input type="button" value="<?php echo $language ? 'Delete':'Supprimer'; ?>" id="sConfirmer" onclick="deleteRace()" /></p>
         </div>
     </div>
     <?php

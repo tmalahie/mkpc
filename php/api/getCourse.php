@@ -37,7 +37,7 @@ if ($id) {
 		}
 	}
 	if (!$course && !$linkOptions->public) {
-		// Course privée, on impose l'ID de course s'il existe déjà
+		// private race, force race ID if already existing
 		$alreadyCreated = mysql_fetch_array(mysql_query('SELECT id FROM `mariokart` WHERE 1'. $cupSQL));
 		if ($alreadyCreated) {
 			$course = $alreadyCreated['id'];
@@ -173,17 +173,17 @@ if ($id) {
 	while (true) {
 		addLog("course=$course");
 		if (!$course) {
-			$cas = 1; // Il faudra créer une nouvelle course, si on n'en trouve pas une disponible (INSERT INTO mariokart)
+			$cas = 1; // if we don't find one free, we will need to create a new race (INSERT INTO mariokart)
 			addLog("new course");
 		}
 		elseif (!mysql_numrows(mysql_query('SELECT * FROM `mkjoueurs` WHERE course='. $course .' AND id!='.$id))) {
 			addLog("no more players");
-			$cas = 2; // Plus de joueurs connecté sur la course actuelle. cas=2 : On pourra garder cette course, si on n'en trouve pas une disponible
+			$cas = 2; // No more players on the current race. cas=2 : if we don't find one free, we can keep this race
 		}
 		elseif (($getTime=mysql_fetch_array(mysql_query('SELECT time,map,cup,mode,link FROM `mariokart` WHERE id='. $course))) &&
 			!get_remaining_players($course, $getTime)) {
 			addLog("all afk");
-			// Tous les joueurs de la course actuelle sont AFK, on peut les kicker
+		    // Every player of this race are AFK, will kick them
 			mysql_query('UPDATE `mariokart` SET map=-1,time='.$time.' WHERE id='. $course);
 			mysql_query('UPDATE `mkjoueurs` SET course=0,choice_map=0 WHERE course='. $course);
 			mysql_query('DELETE FROM `mkplayers` WHERE course='. $course);
@@ -192,25 +192,25 @@ if ($id) {
 			$cas = 2;
 		}
 		elseif ($getTime && $getTime['map']==-1 && $getTime['cup']==$nid && $getTime['mode']==$nmode && $getTime['link']==$nlink && $getTime['time']>=($time+10)) {
-			// La course actuelle est sur le point de démarrer
-			// On vérifie que le nombre des joueurs match les conditions de la partie
+			// Current race will start now
+			// Check that the number of player is correct for this party
 			addLog("course pending for start");
 			if ($switchCourse && (get_remaining_players($course, $getTime, false) >= $linkOptions->rules->maxPlayers)) {
 				addLog("too many players");
-				$cas = 1; // Trop de joueurs, il faudra rejoindre une autre game
+				$cas = 1; // Too many player, we need another game
 			}
 			else {
 				addLog("enough players");
-				$nbJoueurs = get_remaining_players($course, $getTime);
-				$nbPlayersIncludingMe = $nbJoueurs + ($noJoin ? 0:1);
+				$nbPlayers = get_remaining_players($course, $getTime);
+				$nbPlayersIncludingMe = $nbPlayers + ($noJoin ? 0:1);
 				if ($nbPlayersIncludingMe < $linkOptions->rules->minPlayers) {
 					addLog("not enough players");
-					$cas = 2; // Pas assez de joueurs, on attend
+					$cas = 2; // Not enough players, waiting...
 					store_pending_players($nbPlayersIncludingMe, $course);
 				}
 				else {
 					addLog("ready to start");
-					// C'est bon, on affiche le temps restant pour choisir la map
+					// Ok, display remaning time to choose the map
 					$tempsRestant = ($getTime['time']-$time);
 					if ($tempsRestant > 35) {
 						mysql_query('UPDATE `mariokart` SET time='. ($time+35) .' WHERE id='. $course);
@@ -226,7 +226,7 @@ if ($id) {
 		}
 		elseif (!mysql_numrows(mysql_query('SELECT * FROM `mkplayers` WHERE course='. $course .' AND id!="'.$id.'" AND connecte>='. $lConnect))) {
 			addLog("dead code");
-			// Dead code, normalement
+			// Dead code (I hope)
 			//mysql_query('INSERT INTO `mklogs` VALUES(NULL,NULL,1,"Error 404")');
 			if (isset($_SESSION['date'])) {
 				$ecart = $time-$_SESSION['date'];
@@ -276,13 +276,13 @@ if ($id) {
 		$getCourses = mysql_query('SELECT mariokart.id,COUNT(j.id) AS nb,mariokart.time FROM `mariokart` INNER JOIN `mkjoueurs` j ON j.course=mariokart.id WHERE map=-1 AND time>='. ($time+10) .' AND mariokart.id!='. $course . $cupSQL .' GROUP BY mariokart.id ORDER BY nb DESC');
 		$search = true;
 		$maxPlayers = get_highest_players();
-		// On recherche les courses disponibles (évitons de créer des nouvelles courses si ce n'est pas nécessaire...)
+		// Search for available race (try to do not create a new race if not needed...)
 		while ($courses = mysql_fetch_array($getCourses)) {
-			$nbJoueurs = $courses['nb'];
-			if (($nbJoueurs >= $maxPlayers) && ($nbJoueurs < $linkOptions->rules->maxPlayers)) {
-				$nbPlayersIncludingMe = $nbJoueurs + ($noJoin ? 0:1);
+			$nbPlayers = $courses['nb'];
+			if (($nbPlayers >= $maxPlayers) && ($nbPlayers < $linkOptions->rules->maxPlayers)) {
+				$nbPlayersIncludingMe = $nbPlayers + ($noJoin ? 0:1);
 				if ($nbPlayersIncludingMe >= $linkOptions->rules->minPlayers) {
-					// Cette course est sur le point de démarrer, on l'assigne !
+					// This race will start, use it!
 					if (!$noJoin)
 						mysql_query('UPDATE `mkjoueurs` j LEFT JOIN `mkplayers` p ON j.id=p.id SET j.course='.$courses['id'].',p.course='.$courses['id'].',p.connecte=0,j.choice_map=0 WHERE j.id="'. $id .'"');
 					$search = false;

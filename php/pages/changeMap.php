@@ -66,15 +66,15 @@ if ($circuit = mysql_fetch_array(mysql_query('SELECT id,img_data,identifiant,ide
 	include('../includes/uploadByUrl.php');
 	if (isset($_FILES['image'])) {
 		if (!$_FILES['image']['error']) {
-			$poids = $_FILES['image']['size'];
+			$upload_size = $_FILES['image']['size'];
 			include('../includes/file-quotas.php');
 			$maxUploadSize = upload_max_size(array('external' => !$isUploaded));
-			if ($poids < $maxUploadSize) {
+			if ($upload_size < $maxUploadSize) {
 				if ($isUploaded) {
 					$ownerIds = array($circuit['identifiant'],$circuit['identifiant2'],$circuit['identifiant3'],$circuit['identifiant4']);
-					$poids += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id,'identifiants'=>$ownerIds):array('circuit'=>$id,'lap'=>$lap,'identifiants'=>$ownerIds));
+					$upload_size += file_total_size(isset($_POST['arenes']) ? array('arena'=>$id,'identifiants'=>$ownerIds):array('circuit'=>$id,'lap'=>$lap,'identifiants'=>$ownerIds));
 				}
-				if ($poids < file_total_quota($circuit)) {
+				if ($upload_size < file_total_quota($circuit)) {
 					$fileType = mime_content_type($_FILES['image']['tmp_name']);
 					$extensions = array(
 						'image/png' => 'png',

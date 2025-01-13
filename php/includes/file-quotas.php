@@ -23,7 +23,7 @@ function file_total_size($item=null) {
 		foreach ($item['identifiants'] as $i=>$identifiant)
 			$ownerIds[$i] = $identifiant;
 	}
-	$poids = 0;
+	$total_size = 0;
 	$circuits = mysql_query('SELECT ID,img_data FROM `circuits` WHERE identifiant='.$ownerIds[0].' AND identifiant2='.$ownerIds[1].' AND identifiant3='.$ownerIds[2].' AND identifiant4='.$ownerIds[3]);
 	$excludedCircuitId = isset($item['circuit']) ? $item['circuit'] : null;
 	$excludedLap = isset($item['lap']) ? $item['lap'] : 0;
@@ -31,11 +31,11 @@ function file_total_size($item=null) {
 		$excludeCircuit = $excludedCircuitId == $circuit['ID'];
 		$circuitImg = json_decode($circuit['img_data']);
 		if ($circuitImg->local && (!$excludeCircuit || $excludedLap))
-			$poids += @filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
+			$total_size += @filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
 		if (isset($circuitImg->lapOverrides)) {
 			foreach ($circuitImg->lapOverrides as $lap=>$lapImg) {
 				if ($lapImg->local && (!$excludeCircuit || ($lap != $excludedLap)))
-					$poids += @filesize(CIRCUIT_BASE_PATH.$lapImg->url);
+					$total_size += @filesize(CIRCUIT_BASE_PATH.$lapImg->url);
 			}
 		}
 	}
@@ -43,32 +43,32 @@ function file_total_size($item=null) {
 	while ($arene = mysql_fetch_array($arenes)) {
 		$circuitImg = json_decode($arene['img_data']);
 		if ($circuitImg->local)
-			$poids += @filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
+			$total_size += @filesize(CIRCUIT_BASE_PATH.$circuitImg->url);
 	}
 	$persos = mysql_query('SELECT sprites FROM `mkchars` WHERE identifiant='.$ownerIds[0].' AND identifiant2='.$ownerIds[1].' AND identifiant3='.$ownerIds[2].' AND identifiant4='.$ownerIds[3] . (isset($item['perso']) ? ' AND id != '.$item['perso'] : ''));
 	while ($perso = mysql_fetch_array($persos))
-		$poids += @filesize('../../images/sprites/uploads/'.$perso['sprites'].'.png');
+		$total_size += @filesize('../../images/sprites/uploads/'.$perso['sprites'].'.png');
 	$decors = mysql_query('SELECT sprites FROM `mkdecors` WHERE identifiant='.$ownerIds[0].' AND JSON_EXTRACT(img_data,"$.url") IS NULL'. (isset($item['decor']) ? ' AND id != '.$item['decor'] : ''));
 	while ($decor = mysql_fetch_array($decors))
-		$poids += @filesize('../../images/sprites/uploads/'.$decor['sprites'].'.png');
+		$total_size += @filesize('../../images/sprites/uploads/'.$decor['sprites'].'.png');
 	$bgLayers = mysql_query('SELECT l.filename FROM `mkbglayers` l INNER JOIN `mkbgs` b ON l.bg=b.id AND l.filename!="" WHERE b.identifiant='.$ownerIds[0]. (isset($item['layer']) ? ' AND l.id != '.$item['layer'] : ''));
 	while ($bgLayer = mysql_fetch_array($bgLayers))
-		$poids += @filesize('../../images/sprites/uploads/'.$bgLayer['filename']);
-	return $poids;
+		$total_size += @filesize('../../images/sprites/uploads/'.$bgLayer['filename']);
+	return $total_size;
 }
-function filesize_str($poids) {
+function filesize_str($file_size) {
 	global $language;
-	if ($poids > MAX_FILE_SIZE)
-		$poids = MAX_FILE_SIZE;
-	$poids = round($poids/100)/10;
-	$Mo = ($poids >= 1000);
+	if ($file_size > MAX_FILE_SIZE)
+		$file_size = MAX_FILE_SIZE;
+	$file_size = round($file_size/100)/10;
+	$Mo = ($file_size >= 1000);
 	if ($Mo)
-		$poids = round($poids/100)/10;
-	return $poids.' '.($language ? ($Mo?'MB':'kB'):($Mo?'Mo':'ko'));
+		$file_size = round($file_size/100)/10;
+	return $file_size.' '.($language ? ($Mo?'MB':'kB'):($Mo?'Mo':'ko'));
 }
-function filesize_percent($poids) {
-	if ($poids > MAX_FILE_SIZE)
-		$poids = MAX_FILE_SIZE;
-	return (round($poids*1000/MAX_FILE_SIZE)/10).' %';
+function filesize_percent($file_size) {
+	if ($file_size > MAX_FILE_SIZE)
+		$file_size = MAX_FILE_SIZE;
+	return (round($file_size*1000/MAX_FILE_SIZE)/10).' %';
 }
 ?>

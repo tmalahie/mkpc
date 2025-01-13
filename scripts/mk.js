@@ -52,7 +52,7 @@ function xhr(page, send, onload, backoff) {
 			}
 		}
 		else
-			xhr_object = new XMLHttpRequest(); 
+			xhr_object = new XMLHttpRequest();
 	}
 	xhr_object.open("POST", "api/"+page, true);
 	xhr_object.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -190,7 +190,7 @@ function setQuality(iValue) {
 	iRendering = iValue;
 	baseOptions["quality"] = iValue;
 	resetQuality();
-	
+
 	if (iQuality == 5)
 		localStorage.removeItem("iQuality");
 	else
@@ -1377,7 +1377,7 @@ function initPlan(lMap) {
 		oPlanSea.setAttribute("width", oPlanSize +"px");
 		oPlanSea.setAttribute("height", oPlanSize +"px");
 		oPlanCtn.appendChild(oPlanSea);
-		
+
 		oPlanSea2 = document.createElement("canvas");
 		oPlanSea2.style.position = "absolute";
 		oPlanSea2.style.left = "0px";
@@ -1550,7 +1550,7 @@ function resetPlan(lMap) {
 	oPlanTeams2.length = 0;
 	customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
 
-	removePlan();	
+	removePlan();
 	initPlan(lMap);
 	initCustomDecorsSprites(lMap);
 }
@@ -1604,7 +1604,7 @@ function loadMap() {
 			regularCycle();
 		};
 	}
-	
+
 	if (strPlayer.length > 1)
 		updateCtnFullScreen(false);
 	formulaire.dataset.disabled = 1;
@@ -3285,7 +3285,7 @@ function handleEndRace() {
 
 function startGame() {
 	resetScreen();
-	
+
 	var nbKarts = strPlayer.length+aPlayers.length;
 	if (!isOnline) {
 		if (course == "BB") {
@@ -3960,19 +3960,19 @@ function startGame() {
 								decorBehavior.transparent = true;
 							else if (res.options.hitbox === 1)
 								delete decorBehavior.transparent;
-							
+
 							if (res.options.spin === 1 && !decorBehavior.spin)
 								decorBehavior.spin = 20;
 							else if (res.options.spin === 0)
 								delete decorBehavior.spin;
-							
+
 							if (res.options.unbreaking === 1) {
 								decorBehavior.unbreaking = true;
 								delete decorBehavior.breaking;
 							}
 							else if (res.options.unbreaking === 0)
 								delete decorBehavior.unbreaking;
-							
+
 							if (res.options.breaking === 1) {
 								decorBehavior.breaking = true;
 								delete decorBehavior.unbreaking;
@@ -4010,7 +4010,7 @@ function startGame() {
 				inc = decorIncs[actualType];
 			else
 				decorIncs[actualType] = 0;
-			
+
 			var decorsData = lMap.decor[type];
 			for (var i=0;i<decorsData.length;i++) {
 				var decorData = decorsData[i];
@@ -4995,7 +4995,7 @@ function showVirtualKeyboard() {
 			showItemDirBtn();
 			showDirBtn();
 		}
-		
+
 		function showItemBtn() {
 			addButton("I", { key: "item", src: "item" });
 		}
@@ -5007,7 +5007,7 @@ function showVirtualKeyboard() {
 			addButton("\u2193", { key: "item_back", src: "item_back", parent: $div });
 			$virtualKeyboard.appendChild($div);
 		}
-	
+
 		function showDirBtn() {
 			var $div = document.createElement("div");
 			$div.className = "btn-ctn";
@@ -5101,7 +5101,7 @@ function showVirtualKeyboard() {
 		showItemLine();
 		showDirLine();
 	}
-	
+
 	$virtualKeyboard.ontouchstart = function(e) {
 		e.preventDefault();
 		return false;
@@ -5494,7 +5494,7 @@ function resetScreen() {
 		oScreenCanvas.style.top = iScreenScale+"px";
 		oScreenCanvas.style.height = (iHeight*iScreenScale)+"px";
 	}
-	
+
 	var prevScreenBlur = 0;
 	nbFrames = iFps;
 	frameHandlers = new Array(nbFrames);
@@ -5505,7 +5505,7 @@ function resetScreen() {
 	prevScreenOpacity = frameSettings.frameopacity;
 	prevScreenFade = frameSettings.framefade;
 	if (nbFrames <= 1) prevScreenDelay = 0;
-	
+
 	oPrevFrameStates = [];
 	resetBgLayers();
 	for (var i=0;i<oContainers.length;i++) {
@@ -5969,7 +5969,7 @@ function continuer() {
 
 			oForm.onsubmit = function() {
 				var nom = this.pseudo.value;
-				
+
 				if (nom) {
 					document.body.style.cursor = "progress";
 					oValide.style.visibility = "hidden";
@@ -6329,7 +6329,7 @@ function Sprite(strSprite) {
 		this[i].draw = function(iX, iY, fScale, iZ) {
 			if (!iZ)
 				iZ = 0;
-			
+
 			var i = this.i;
 
 			var fSpriteSize = (this.w * fSpriteScale * fScale);
@@ -6361,7 +6361,7 @@ function Sprite(strSprite) {
 
 		this[i].render = function(fCamera, fSprite) {
 			var fSize = (fSprite.size || 1);
-			
+
 			var fCamX = (fSprite.x - fCamera.x)*getMirrorFactor();
 			var fCamY = fSprite.y - fCamera.y;
 
@@ -6533,9 +6533,9 @@ function GIF() {
         IMAGE   : 0x2C,
         EOF     : 59,   // This is entered as decimal
         EXT     : 0x21,
-    };      
-    // simple buffered stream used to read from the file 
-    var Stream = function (data) { 
+    };
+    // simple buffered stream used to read from the file
+    var Stream = function (data) {
         this.data = new Uint8ClampedArray(data);
         this.pos  = 0;
         var len   = this.data.length;
@@ -6604,7 +6604,7 @@ function GIF() {
     }
     function parse (){        // read the header. This is the starting point of the decode and async calls parseBlock
         var bitField;
-        st.pos                += 6;  
+        st.pos                += 6;
         gif.width             = (st.data[st.pos++]) + ((st.data[st.pos++]) << 8);
         gif.height            = (st.data[st.pos++]) + ((st.data[st.pos++]) << 8);
         bitField              = st.data[st.pos++];
@@ -6663,7 +6663,7 @@ function GIF() {
         frame.width   = (st.data[st.pos++]) + ((st.data[st.pos++]) << 8);
         frame.height  = (st.data[st.pos++]) + ((st.data[st.pos++]) << 8);
         bitField      = st.data[st.pos++];
-        frame.localColourTableFlag = bitField & 128 ? true : false; 
+        frame.localColourTableFlag = bitField & 128 ? true : false;
         if (frame.localColourTableFlag) { frame.localColourTable = parseColourTable(1 << ((bitField & 7) + 1)) }
         if (pixelBufSize !== frame.width * frame.height) { // create a pixel buffer if not yet created or if current frame size is different from previous
             pixelBuf     = new Uint8Array(frame.width * frame.height);
@@ -6887,7 +6887,7 @@ function GIF() {
         frames         : [],         // array of frames
         comment        : "",         // comments if found in file. Note I remember that some gifs have comments per frame if so this will be all comment concatenated
         length         : 0,          // gif length in ms (1/1000 second)
-        currentFrame   : 0,          // current frame. 
+        currentFrame   : 0,          // current frame.
         frameCount     : 0,          // number of frames
         playSpeed      : 1,          // play speed 1 normal, 2 twice 0.5 half, -1 reverse etc...
         lastFrame      : null,       // temp hold last frame loaded so you can display the gif as it loads
@@ -6987,7 +6987,7 @@ function createMarker(oKart) {
 	};
 	res.render = function(i, fCamera, fSprite) {
 		var fSize = (fSprite.size || 1);
-		
+
 		var fCamX = (fSprite.x - fCamera.x)*getMirrorFactor();
 		var fCamY = fSprite.y - fCamera.y;
 
@@ -7009,7 +7009,7 @@ function createMarker(oKart) {
 		var iX = ((iWidth/2) + fViewX) * iScreenScale,
 			iY = (iHeight - iViewY) * iScreenScale,
 			fScale = fFocal / (fFocal + fTransY) * fSize;
-		
+
 		this.draw(i, iX,iY, fScale, iZ);
 	}
 	return res;
@@ -7306,7 +7306,7 @@ var itemBehaviors = {
 					var oPow = iSprite.pow;
 					if (!oPow) continue;
 					switch (fSprite.countstate) {
-						
+
 					case 0:
 						oPow.elt.style.opacity = jTime;
 						oPow.elt.style.transform = "scale(" + jTime + ")";
@@ -7367,7 +7367,7 @@ var itemBehaviors = {
 			if (!fSprite.sprites) return;
 			for (var i=0;i<fSprite.sprites.length;i++) {
 				var iSprite = fSprite.sprites[i];
-				if (iSprite) 
+				if (iSprite)
 					if (iSprite.pow)
 						oContainers[i].removeChild(iSprite.pow.elt);
 			}
@@ -7695,14 +7695,14 @@ var itemBehaviors = {
 			var fNewPosY;
 
 			var relSpeed = cappedRelSpeed();
-			
+
 			for (var i=0;i<2;i++) {
 				var fMoveX = fSprite.vx*relSpeed/2, fMoveY = fSprite.vy*relSpeed/2;
-				
+
 				if (fMoveX || fMoveY) {
 					fNewPosX = fSprite.x + fMoveX;
 					fNewPosY = fSprite.y + fMoveY;
-		
+
 					if (!i) {
 						for (var k=0;k<oPlayers.length;k++)
 							fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
@@ -7712,12 +7712,12 @@ var itemBehaviors = {
 					fNewPosX = fSprite.x;
 					fNewPosY = fSprite.y;
 				}
-		
+
 				var roundX1 = fSprite.x;
 				var roundY1 = fSprite.y;
 				var roundX2 = fNewPosX;
 				var roundY2 = fNewPosY;
-		
+
 				var fSpriteExcept = [fSprite];
 				var oSpriteExcept;
 				if (ctx && ctx.onlineSync) {
@@ -8007,7 +8007,7 @@ var itemBehaviors = {
 						if (fSprite.aipoint != -2) {
 							var maxDist = 4000;
 							var tCible = null;
-		
+
 							for (var k=0;k<aKarts.length;k++) {
 								var pCible = aKarts[k];
 								if (pCible.id != fSprite.owner && !friendlyHit(fSprite.team,pCible.team) && !pCible.tombe && !pCible.loose) {
@@ -8182,7 +8182,7 @@ var itemBehaviors = {
 								var fNewMove = Math.sqrt(fMove2)/dSpeed;
 								fMoveX /= fNewMove;
 								fMoveY /= fNewMove;
-				
+
 								for (var k=0;k<oPlayers.length;k++)
 									fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
 							}
@@ -8222,7 +8222,7 @@ var itemBehaviors = {
 									fSprite.sprite[k].setState(0);
 							}
 						}
-			
+
 						fSprite.x -= fMoveX;
 						fSprite.y -= fMoveY;
 						fSprite.ailap = getCurrentLapId(oKart);
@@ -8381,7 +8381,7 @@ var itemBehaviors = {
 								var fNewMove = Math.sqrt(fMove2)/dSpeed;
 								fMoveX /= fNewMove;
 								fMoveY /= fNewMove;
-				
+
 								for (var k=0;k<oPlayers.length;k++)
 									fSprite.sprite[k].setState(1-fSprite.sprite[k].getState());
 							}
@@ -8419,7 +8419,7 @@ var itemBehaviors = {
 									fSprite.sprite[k].setState(0);
 							}
 						}
-			
+
 						fSprite.x -= fMoveX;
 						fSprite.y -= fMoveY;
 					}
@@ -10456,7 +10456,7 @@ function initCustomDecorsSprites(lMap) {
 function getApparentRotation(oPlayer) {
 	var res = oPlayer.rotation;
 	var changeView = oPlayer.changeView;
- 
+
 	if (changeView)
 		res += (res < 360-changeView ? changeView : changeView-360);
 	return res;
@@ -10659,7 +10659,7 @@ function updateBgLayers(pMap, callback) {
 function setupBgLayer(strImages, fixedScale, isDelay) {
 	for (var i=0;i<strImages.length;i++)
 		oBgLayers[i] = new BGLayer(strImages[i], fixedScale ? 1:i+1, isDelay);
-	
+
 	for (var i=0;i<oPrevFrameStates.length;i++) {
 		for (var j=0;j<prevScreenDelay;j++) {
 			for (var k=0;k<oBgLayers.length;k++)
@@ -11782,12 +11782,12 @@ function pointInPolygon(x,y, vs) {
 	for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
 		var xi = vs[i][0], yi = vs[i][1];
 		var xj = vs[j][0], yj = vs[j][1];
-		
+
 		var intersect = ((yi > y) != (yj > y))
 			&& (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
 		if (intersect) inside = !inside;
 	}
-	
+
 	return inside;
 }
 function pointInZone(x,y, zones) {
@@ -11823,7 +11823,7 @@ function getPointHeight(z) {
 	return z*jumpHeight1;
 }
 
-function pointCrossRectangle(iX,iY,iI,iJ, oBox) {	
+function pointCrossRectangle(iX,iY,iI,iJ, oBox) {
 	var aPos = [iX,iY], aMove = [iI,iJ];
 	var dir = [(iI>0), (iJ>0)];
 	for (var j=0;j<2;j++) {
@@ -11943,7 +11943,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 			iZ = zH;
 		collisionFloor = { z: zH };
 	}
-	
+
 	if (!isCup && (iZ <= jumpHeight0)) {
 		if ((course == "BB") || (lMap.map <= 20)) {
 			if (nX > (lMap.w-5) || nY > (lMap.h-5) || nX < 4 || nY < 4) return false;
@@ -14028,7 +14028,7 @@ function showChallengePartialSuccess(challenge, res) {
 	var challengeCongrats = challenge.description.main;
 	var challengeAward = language ? 'Cups completed: '+ res.nb +'/'+ res.total:'Coupes réussies: '+ res.nb +'/'+ res.total;
 	var challengeClose = language ? 'Close':'Fermer';
-	oDiv.innerHTML = 
+	oDiv.innerHTML =
 		'<div style="font-size: '+ Math.round(iScreenScale*2) +'px">'+
 			'<img src="images/cups/cup2.png" alt="star" class="pixelated" style="width:'+ Math.round(iScreenScale*2.5) +'px" /> '+
 			'<h1 class="challenge-popup-title" style="margin:'+ Math.round(iScreenScale/2) +'px 0; font-size: '+ Math.round(iScreenScale*3.25) +'px">'+ challengeTitle +'</h1>'+
@@ -14090,7 +14090,7 @@ function showChallengePopup(challenge, res) {
 	}
 	var challengeAward2 = language ? 'Your challenge points go from <strong>'+res.pts_before+'</strong> to <strong>'+res.pts_after+'</strong>!':'Vos points défis passent de <strong>'+res.pts_before+'</strong> à <strong>'+res.pts_after+'</strong> !';
 	var challengeClose = language ? 'Close':'Fermer';
-	oDiv.innerHTML = 
+	oDiv.innerHTML =
 		'<div style="font-size: '+ Math.round(iScreenScale*2) +'px">'+
 			'<img src="images/cups/cup1.png" alt="star" class="pixelated" style="width:'+ Math.round(iScreenScale*2.5) +'px" /> '+
 			'<h1 class="challenge-popup-title" style="margin:'+ Math.round(iScreenScale/2) +'px 0; font-size: '+ Math.round(iScreenScale*3.25) +'px">'+ challengeTitle +'</h1>'+
@@ -14237,7 +14237,7 @@ function showChallengeRewardPopup(reward) {
 	challengeImg.className = "pixelated";
 	challengeImg.style.visibility = "hidden";
 	var challengeClose = language ? 'Close':'Fermer';
-	oDiv.innerHTML = 
+	oDiv.innerHTML =
 		'<div style="font-size: '+ Math.round(iScreenScale*2) +'px">'+
 			'<img src="images/cups/cup1.png" alt="star" class="pixelated" style="width:'+ Math.round(iScreenScale*2.5) +'px" /> '+
 			'<h1 class="challenge-popup-title" style="margin:'+ Math.round(iScreenScale/2) +'px 0; font-size: '+ Math.round(iScreenScale*3.25) +'px">'+ challengeTitle +'</h1>'+
@@ -14331,7 +14331,7 @@ function showClSelectedPopup() {
 	$popup.className = "clselected-popup";
 	$popup.style.left = (27*iScreenScale) +"px";
 	$popup.style.top = (iHeight*iScreenScale) +"px";
-	$popup.innerHTML = 
+	$popup.innerHTML =
 		'<div class="clselected-close">'+
 			'<a href="#null">&times;</a>'+
 		'</div>'+
@@ -14433,7 +14433,7 @@ function initSessionStorage() {
 				return false;
 			var updatingKeys = sessionStorage.getItem("updatingKeys");
 			if (!updatingKeys) {
-				sessionStorage.setItem("updatingKeys", "{}");	
+				sessionStorage.setItem("updatingKeys", "{}");
 				updatingKeys = {};
 			}
 			for (var key in resJson) {
@@ -15287,7 +15287,7 @@ function playPow(i, oKart, oKartOwner, fSprite) {
 	if (fSprite.countstate === 5 && fSprite.countdown === 10)
 		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.tourne && !friendlyFire(oKart, oKartOwner))
 			powCpuDodge(oKart);
-	
+
 	if (fSprite.countstate === 6 && fSprite.countdown === 1) {
 		if (oKart != oKartOwner && oKart.z < 1.2 && !friendlyFire(oKart, oKartOwner) && (!isOnline || !i || oKart.controller == identifiant)) {
 			loseUsingItems(oKart);
@@ -16253,7 +16253,7 @@ function resetDatas() {
 						updateTable();
 					};
 					setTimeout(function(){if(forceClic)updateTable();}, 5000);
-					
+
 					oTd.appendChild(oContinue);
 					oTr.appendChild(oTd);
 					infos0.appendChild(oTr);
@@ -16395,7 +16395,7 @@ function move(getId, triggered) {
 
 			if (oKart.time) {
 				oKart.time--;
-				
+
 				if (oKart.time && !oPlayers[getId].changeView)
 					document.getElementById("lakitu"+getId).style.display = "block";
 				else
@@ -16605,7 +16605,7 @@ function move(getId, triggered) {
 
 	var fNewPosX = oKart.x + fMoveX;
 	var fNewPosY = oKart.y + fMoveY;
-	
+
 	var aPosX = oKart.x, aPosY = oKart.y, aPosZ = oKart.z;
 
 	if (!oKart.z && !oKart.heightinc) {
@@ -16636,7 +16636,7 @@ function move(getId, triggered) {
 	}
 
 	var localKart = (!isOnline || !getId || oKart.controller == identifiant) && !onlineSpectatorId;
-	
+
 	if (localKart && !oKart.loose) {
 		var oKartItems = oKart.using;
 		if (oKart.tourne) {
@@ -16828,7 +16828,7 @@ function move(getId, triggered) {
 					}
 					if (oKart.place == 1)
 						forbiddenItems["carapacebleue"] = 1;
-					
+
 					var preventDuplicateItems = {
 						carapacebleue: 1,
 						carapacenoire: 1,
@@ -17452,7 +17452,7 @@ function move(getId, triggered) {
 								oContinue.style.fontSize = iScreenScale*3 +"pt";
 								oContinue.onclick = function() {
 									document.getElementById("infos0").style.display = "none";
-									
+
 									var oForm = document.createElement("div");
 									oForm.style.color = "black";
 									oForm.style.position = "absolute";
@@ -17506,7 +17506,7 @@ function move(getId, triggered) {
 									oForm.appendChild(aPara1);
 									oForm.appendChild(aPara2);
 									$mkScreen.appendChild(oForm);
-									
+
 									if (timerMS >= gRecord)
 										oRetour.focus();
 									else
@@ -18532,16 +18532,16 @@ function processCode(cheatCode) {
 			// 1 will always replace the first slot
 			// everything else/nothing will pick one automatically
 			if (![1,2].includes(args.length)) return "give: Invalid argument count";
-	
+
 			const wObject = args[0];
 			let isExistingObj = false;
 			const itemMode = getItemMode();
 			const itemSlot = (args[1] ? parseInt(args[1]) : 2); // default to stash
 			const oItemDistributions = itemDistributions[itemMode].concat(customItemDistrib[itemMode]);
-	
+
 			// check if the item exists in the current item distrib
 			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
-	
+
 			if (!isExistingObj) return "give: This item is not present in your item distribution";
 			if (itemSlot === 1 || !oPlayer.arme) {
 				oPlayer.arme = wObject;
@@ -18577,32 +18577,32 @@ function processCode(cheatCode) {
 					const parsed = parseFloat(arg); 	  // sanity
 					result = isNaN(parsed) ? undefined : parsed;
 				}
-			
+
 				let retval;
 				if (typeof onReturn === 'function') {
 					retval = onReturn(result);
 					if (typeof retval !== 'undefined') result = retval;
 				}
-			
+
 				return result;
 			}
-			
+
 			let newPos = {
 				x: correctTPType(oPlayer.x, args[0], (value) => { return value < 0 ? 0 : value; }),
 				y: correctTPType(oPlayer.y, args[1], (value) => { return value < 0 ? 0 : value; }),
 				r: correctTPType(oPlayer.rotation, args[2], (value) => { return Math.abs(value % 360); })
 			};
-			
+
 			for (let key in newPos) {
 				if (newPos[key] === undefined || isNaN(newPos[key])) {
 					return 'tp: Invalid '+key+' value';
 				}
 			}
-			
+
 			oPlayer.x = newPos.x;
 			oPlayer.y = newPos.y;
 			oPlayer.rotation = newPos.r;
-			
+
 			resetRenderState();
 			return true;
 
@@ -18625,7 +18625,7 @@ function processCode(cheatCode) {
             if (c > 0) c--;
             if (args[1] == "cur") c = oPlayer.demitours;
             if (!args[1]) c = llMap.checkpoint.length - 1;
-			
+
 			if (isNaN(t)) return "lap: Invalid lap value";
 			if (isNaN(c)) return "lap: Invalid checkpoint value";
 
@@ -18659,7 +18659,7 @@ function processCode(cheatCode) {
 			if (args.length === 1) {
 				const sizeArg = args[0];
 				let newSize;
-		
+
 				if (sizeArg === "xs") {
 					newSize = 0.6;
 				} else if (sizeArg === "md") {
@@ -18672,7 +18672,7 @@ function processCode(cheatCode) {
 						return "size: Invalid argument";
 					}
 				}
-		
+
 				oPlayer.size = newSize;
 				oPlayer.mini = 0;
 				return true;
@@ -19458,10 +19458,10 @@ function moveDecor() {
 						inc = decorIncs[actualType];
 					else
 						decorIncs[actualType] = 0;
-					
+
 					for (var i=0;i<decor.length;i++)
 						decorBehavior.move(decor[i],i,i+inc,decorBehavior.scope);
-					
+
 					decorIncs[actualType] += decor.length;
 				}
 			}
@@ -20309,7 +20309,7 @@ function privateGame(options) {
 	oDiv.style.color = "#DFC";
 	oDiv.innerHTML = language ? "The &quot;private game&quot; option allows you to play only with people you want.<br />The principle is simple: a private link is generated, you send this link to the concerned members, and you can start playing.":"L'option &quot;partie privée&quot; vous permet de jouer uniquement avec les personnes de votre choix.<br />Le principe est simple : un lien privé est généré, vous envoyez ce lien aux membres concernés, et vous pouvez commencer à jouer.";
 	oScr.appendChild(oDiv);
-	
+
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Generate private link", "Générer un lien privé");
@@ -20324,7 +20324,7 @@ function privateGame(options) {
 		privateLink(options);
 	}
 	oScr.appendChild(oPInput);
-	
+
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Back", "Retour");
@@ -20761,7 +20761,7 @@ function privateGameOptions(gameOptions, onProceed) {
 				};
 				oSelect.style.fontSize = (iScreenScale*2) +"px";
 				oTeamTable.appendChild(oSelect);
-				
+
 				var oInput = document.createElement("input");
 				oInput.name = "name"+i;
 				oInput.type = "text";
@@ -21143,7 +21143,7 @@ function privateGameOptions(gameOptions, onProceed) {
 	oTd.appendChild(cDiv);
 	oTr.appendChild(oTd);
 	oTable.appendChild(oTr);
-	
+
 	var oTr = document.createElement("tr");
 	var oTd = document.createElement("td");
 	oTd.setAttribute("colspan", 2);
@@ -22094,11 +22094,11 @@ function privateLink(options) {
 		}
 		return false;
 	});
-	
+
 	oContainers[0].appendChild(oScr);
 }
 
-function selectTypeScreen() {	
+function selectTypeScreen() {
 	var oScr = document.createElement("div");
 
 	var oStyle = oScr.style;
@@ -22348,7 +22348,7 @@ function selectTypeScreen() {
 	oEnglish.style.top = (35*iScreenScale)+"px";
 	oEnglish.style.width = (4*iScreenScale)+"px";
 	oEnglish.style.height = Math.round(8*iScreenScale/3)+"px";
-	
+
 	var oFrench = document.createElement("img");
 	oFrench.src = "images/french.png";
 	oEnglish.alt = "Fr";
@@ -22357,7 +22357,7 @@ function selectTypeScreen() {
 	oFrench.style.top = (35*iScreenScale)+"px";
 	oFrench.style.width = (4*iScreenScale)+"px";
 	oFrench.style.height = Math.round(8*iScreenScale/3)+"px";
-	
+
 	var oSelected = language ? oEnglish:oFrench, oButton = language ? oFrench:oEnglish;
 	oSelected.style.border = "solid 1px "+ primaryColor;
 	oButton.style.border = "solid 1px transparent";
@@ -22379,7 +22379,7 @@ function selectTypeScreen() {
 				return false;
 		});
 	}
-	
+
 	oScr.appendChild(oEnglish);
 	oScr.appendChild(oFrench);
 
@@ -22663,7 +22663,7 @@ function selectTypeCreate() {
 	for (let i=0;i<oModes.length;i++) {
 		var oMode = oModes[i];
 		var oDiv = document.createElement("div");
-		oDiv.innerHTML = 
+		oDiv.innerHTML =
 			'<img src="images/'+oMode.thumbnail+'" alt="'+oMode.name+'" style="height: '+ (iScreenScale*10) +'px" />' +
 			'<div style="padding: '+ iScreenScale +'px '+ Math.round(iScreenScale*1.5) +'px">' +
 				'<h2 style="font-size: 1.5em; margin: 0">'+ oMode.name +'</h2>' +
@@ -22684,7 +22684,7 @@ function selectTypeCreate() {
 		oModesDiv.appendChild(oDiv);
 	}
 	oScr.appendChild(oModesDiv);
-	
+
 	var oLink = document.createElement("a");
 	oLink.style.color = "#CCF";
 	oLink.style.fontSize = Math.round(2.5*iScreenScale)+"px";
@@ -22783,7 +22783,7 @@ function selectTrackCreate(i) {
 		oDiv.style.color = "#EEE";
 		oDiv.style.textDecoration = "none";
 		oDiv.style.borderRadius = Math.round(iScreenScale/2) +"px";
-		oDiv.innerHTML = 
+		oDiv.innerHTML =
 			'<img src="images/'+ oMode.thumbnail +'" style="width: '+ (iScreenScale*10) +'px; height: '+ (iScreenScale*9) +'px" alt="'+ oMode.name +'" />'+
 			'<div style="margin-top: '+ Math.round(iScreenScale/2) +'px">'+ oMode.name +'</div>';
 		oDiv.onmouseover = function() {
@@ -22796,7 +22796,7 @@ function selectTrackCreate(i) {
 		oModesDiv.appendChild(oDiv);
 	}
 	oScr.appendChild(oModesDiv);
-	
+
 	var oLink = document.createElement("a");
 	oLink.style.color = "#CCF";
 	oLink.style.fontSize = Math.round(2.5*iScreenScale)+"px";
@@ -22882,7 +22882,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 	var baseY = shrinkAll ? 8:10;
 	var customCharsEnabled = (cupOpts.customchars !== 0);
-	
+
 	var cTable = document.createElement("table");
 	cTable.style.display = "none";
 	cTable.style.position = "absolute";
@@ -22897,7 +22897,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	cTable.setAttribute("cellpadding", 2);
 	cTable.setAttribute("cellspacing", 2);
 	document.body.appendChild(cTable);
-	
+
 	var hTr = document.createElement("tr");
 	var hTd1 = document.createElement("td");
 	hTd1.innerHTML = "&nbsp;";
@@ -22907,10 +22907,10 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	hTd2.style.fontWeight = "bold";
 	hTr.appendChild(hTd2);
 	cTable.appendChild(hTr);
-	
+
 	var sCaracteristiques = [toLanguage("Acceleration", "Accélération"), toLanguage("Max speed", "Vitesse max"), toLanguage("Handling", "Maniabilité"), toLanguage("Weight", "Poids")];
 	var dCaracteristiques = new Array();
-	
+
 	for (var i=0;i<sCaracteristiques.length;i++) {
 		var oTr = document.createElement("tr");
 		var oTd1 = document.createElement("td");
@@ -22953,9 +22953,9 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oDiv.style.position = "absolute";
 		oDiv.style.width = (5 * jScreenScale) + "px";
 		oDiv.style.height = (5 * jScreenScale) + "px";
-		oDiv.style.borderTop = "double 4px black"; 
-		oDiv.style.borderLeft = "double 4px #F8F8F8"; 
-		oDiv.style.borderRight = "double 4px #F8F8F8"; 
+		oDiv.style.borderTop = "double 4px black";
+		oDiv.style.borderLeft = "double 4px #F8F8F8";
+		oDiv.style.borderRight = "double 4px #F8F8F8";
 		oDiv.style.borderBottom = "solid 5px #00B800";
 		oDiv.style.cursor = "pointer";
 		oDiv.id = "perso-selector-"+oJoueur;
@@ -23268,10 +23268,10 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		pDiv.style.height = (5 * iScreenScale) + "px";
 		pDiv.style.left = (myPersosOffset * iScreenScale) +"px";
 		pDiv.style.top = ((baseY+14) * iScreenScale - 8)+"px";
-		pDiv.style.borderTop = "double 4px black"; 
-		pDiv.style.borderLeft = "double 4px #F8F8F8"; 
-		pDiv.style.borderRight = "double 4px #F8F8F8"; 
-		pDiv.style.borderBottom = "solid 5px #00B800"; 
+		pDiv.style.borderTop = "double 4px black";
+		pDiv.style.borderLeft = "double 4px #F8F8F8";
+		pDiv.style.borderRight = "double 4px #F8F8F8";
+		pDiv.style.borderBottom = "solid 5px #00B800";
 		pDiv.style.overflow = "hidden";
 
 		var pPImg = new Image();
@@ -23290,7 +23290,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	}
 
 	oContainers[0].appendChild(oScr);
-	
+
 	if (isOnline) {
 		if (isCustomSel) {
 		}
@@ -23317,7 +23317,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				return false;
 			};
 			oScr.appendChild(aDeconnexion);
-			
+
 			var eClassement = document.createElement("a");
 			eClassement.style.fontSize = (iScreenScale*2) +"px";
 			eClassement.style.position = "absolute";
@@ -23526,7 +23526,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		}
 		oTeamsDiv.appendChild(oSelect);
 		oForm.appendChild(oTeamsDiv);
-		
+
 		oParticipantsDiv = document.createElement("label");
 		oParticipantsDiv.style.display = "block";
 		oParticipantsDiv.appendChild(document.createTextNode(toLanguage("Number of participants", "Nombre de participants ")+ ": "));
@@ -23788,7 +23788,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				}
 			}
 			oItemCustomActions.appendChild(oItemCustomDel);
-			
+
 			tDiv.appendChild(oItemCustomActions);
 
 			var selectedItemSetId = localStorage.getItem("itemset."+itemMode);
@@ -23918,7 +23918,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					}
 				}
 				oPtCustomActions.appendChild(oPtCustomDel);
-				
+
 				tDiv.appendChild(oPtCustomActions);
 
 				var selectedPtSetId = localStorage.getItem("ptset");
@@ -23983,7 +23983,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 				oClassSelect.value = ccConstraint;
 			}
 		}
-		
+
 		oScr.appendChild(oForm);
 
 		if (isCustomSel)
@@ -24084,7 +24084,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 		oStepBack.style.color = oStepValue.style.color = "#F90";
 		oScr.appendChild(oStepCtn);
 	}
-	
+
 	if (nBasePersos > maxCharsPerPage) {
 		var lastPageButton = document.createElement("input");
 		lastPageButton.type = "button";
@@ -24118,7 +24118,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
         nextPageButton.style.fontSize = Math.round(2.5*iScreenScale - 4)+"px";
         nextPageButton.style.textAlign = "center";
 		oScr.appendChild(nextPageButton);
-        
+
 		nextPageButton.onclick = function() {
 			curPage = (curPage+1) % pages;
 			showCharacters(curPage);
@@ -24913,7 +24913,7 @@ function selectItemScreen(oScr, callback, options) {
 			oScr2.focus();
 		}, 1);
 	}
-	
+
 	oScr2.appendChild(oSetForm);
 
 	oScr.appendChild(oScr2);
@@ -25418,7 +25418,7 @@ function selectTeamScreen(IdJ) {
 function selectTrackScreen() {
 	selectMapScreen();
 }
-function selectGamersScreen() {	
+function selectGamersScreen() {
 	if (!isOnline && isTeamPlay())
 		selectTeamScreen(0);
 	else
@@ -26205,7 +26205,7 @@ function searchCourse(opts) {
 	oStyle.height = (iHeight*iScreenScale)+"px";
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
-	
+
 	var oDiv = document.createElement("div");
 	oDiv.style.position = "absolute";
 	oDiv.style.left = "0px";
@@ -26214,7 +26214,7 @@ function searchCourse(opts) {
 	oDiv.style.fontSize = (iScreenScale*4) +"";
 	oDiv.style.textAlign = "center";
 	oDiv.innerHTML = toLanguage("Searching for other players<br />Please wait...", "Recherche d'autres joueurs<br />Veuillez patienter...");
-	
+
 	oScr.appendChild(oDiv);
 
 	var oAlertCtn = document.createElement("label");
@@ -26223,14 +26223,14 @@ function searchCourse(opts) {
 	oAlertCtn.style.top = (iScreenScale*15-9) +"px";
 	oAlertCtn.style.width = (iScreenScale*iWidth) +"px";
 	oAlertCtn.style.textAlign = "center";
-	
+
 	var oAlert = document.createElement("input");
 	oAlert.type = "checkbox";
 	oAlert.id = "iAlert";
 	oAlert.style.transform = oAlert.style.WebkitTransform = oAlert.style.MozTransform = "scale("+ (iScreenScale/6) +") translateY(8%)";
 	oAlert.style.transformOrigin = oAlert.style.WebkitTransformOrigin = oAlert.style.MozTransformOrigin = "bottom right";
 	oAlertCtn.appendChild(oAlert);
-	
+
 	var oLabel = document.createElement("span");
 	oLabel.setAttribute("for", "iAlert");
 	oLabel.style.fontSize = (iScreenScale*2) +"pt";
@@ -26239,10 +26239,10 @@ function searchCourse(opts) {
 	oAlertCtn.appendChild(oLabel);
 
 	oScr.appendChild(oAlertCtn);
-	
+
 	var ratio = 41;
 	var mLeft = 0;
-	
+
 	var oLoadBar = document.createElement("div");
 	oLoadBar.style.position = "absolute";
 	oLoadBar.style.left = "0px";
@@ -26261,7 +26261,7 @@ function searchCourse(opts) {
 		oLoadBar.appendChild(oImg);
 	}
 	oScr.appendChild(oLoadBar);
-	
+
 	var oActivePlayers = document.createElement("div");
 	oActivePlayers.style.position = "absolute";
 	oActivePlayers.style.left = "0px";
@@ -26273,9 +26273,9 @@ function searchCourse(opts) {
 	oActivePlayers.style.display = "none";
 	oActivePlayers.style.backgroundColor = "rgba(0,0,0, 0.7)";
 	oActivePlayers.innerHTML = toLanguage('<span id="nb-active-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> currently online. You\'ll join them as soon as they finish their '+ (isBattle ? 'battle':'race'), '<span id="nb-active-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> actuellement en ligne. Vous les rejoindrez une fois leur partie terminée');
-	
+
 	oScr.appendChild(oActivePlayers);
-	
+
 	var oRequiredPlayers = document.createElement("div");
 	oRequiredPlayers.style.position = "absolute";
 	oRequiredPlayers.style.left = "0px";
@@ -26287,9 +26287,9 @@ function searchCourse(opts) {
 	oRequiredPlayers.style.display = "none";
 	oRequiredPlayers.style.backgroundColor = "rgba(0,0,0, 0.7)";
 	oRequiredPlayers.innerHTML = toLanguage('<span id="nb-pending-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> currently waiting, <span id="nb-missing-players" style="color:#0E0"></span> left before the game begins...', '<span id="nb-pending-players" style="color:#0E0;text-decoration:underline;cursor:pointer"></span> actuellement en attente. Plus que <span id="nb-missing-players" style="color:#0E0"></span> pour que la partie commence');
-	
+
 	oScr.appendChild(oRequiredPlayers);
-	
+
 	var rCount = 1;
 	var mLoadX = iScreenScale/2;
 
@@ -26427,7 +26427,7 @@ function searchCourse(opts) {
 		});
 	}
 	oScr.appendChild(oPInput);
-	
+
 	oContainers[0].appendChild(oScr);
 
 	var $spectatorModeCtn = document.createElement("div");
@@ -26638,7 +26638,7 @@ function selectMapScreen(opts) {
 		}
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
-		
+
 		var forceClic4 = true;
 
 		oStyle.width = (iWidth*iScreenScale)+"px";
@@ -26855,7 +26855,7 @@ function selectMapScreen(opts) {
 				oPImg.alt = i+(NBCIRCUITS/4);
 			else
 				oPImg.alt = i;
-			
+
 			var mScreenScale = iScreenScale;
 
 			oPImg.onmouseover = function() {
@@ -26978,7 +26978,7 @@ function selectMapScreen(opts) {
 			oPInput.style.position = "absolute";
 			oPInput.style.left = (34*iScreenScale-10)+"px";
 			oPInput.style.top = (30*iScreenScale)+"px";
-			
+
 			oPInput.onclick = function() {
 				forceClic4 = false;
 				hadInputDuringRace = true;
@@ -27018,7 +27018,7 @@ function selectMapScreen(opts) {
 				selectMapScreen(opts);
 			};
 			oPrevInput.disabled = (opts.page <= 0);
-			
+
 			oScr.appendChild(oPrevInput);
 
 			var oNextInput = document.createElement("input");
@@ -27035,10 +27035,10 @@ function selectMapScreen(opts) {
 				selectMapScreen(opts);
 			};
 			oNextInput.disabled = (opts.page >= cupOpts.pages.length);
-			
+
 			oScr.appendChild(oNextInput);
 		}
-		
+
 		if (isOnline) {
 			handleSpectatorLink(function() {
 				forceClic4 = false;
@@ -27107,8 +27107,8 @@ function openRankings() {
 }
 function exitCircuit() {
 	var changeRace = document.getElementById("changeRace");
-	var supprRace = document.getElementById("supprRace");
-	if (changeRace && !supprRace)
+	var deleteRace = document.getElementById("deleteRace");
+	if (changeRace && !deleteRace)
 		changeRace.click();
 	else
 		document.location.href = "index.php";
@@ -27137,7 +27137,7 @@ function selectRaceScreen(cup) {
 	if (isOnline || (!isSingle && course != "GP")) {
 		var oScr = document.createElement("div");
 		var oStyle = oScr.style;
-		
+
 		var forceClic4 = true;
 
 		oStyle.width = (iWidth*iScreenScale)+"px";
@@ -27193,7 +27193,7 @@ function selectRaceScreen(cup) {
 			}
 		}
 		oScr.appendChild(oPInput);
-			
+
 		var mScreenScale = iScreenScale;
 
 		var trackSelected = clSelected && (clSelected.trackType === "track") ? clSelected.trackId : null;
@@ -27216,7 +27216,7 @@ function selectRaceScreen(cup) {
 			}
 			mDiv.map = aAvailableMaps[i];
 			mDiv.ref = i+1;
-			
+
 			var oPImg = new Image();
 			setMapSrc(oPImg, cup,i, getMapSelectorSrc(i));
 			oPImg.style.width = "100%";
@@ -27226,7 +27226,7 @@ function selectRaceScreen(cup) {
 			if (bSelectedMirror)
 				oPImg.className += " mirrored";
 			mDiv.appendChild(oPImg);
-			
+
 			mDiv.appendChild(mapNameOf(mScreenScale, i));
 			if (isCup && !isOnline) {
 				var mLink = document.createElement("a");
@@ -27609,9 +27609,9 @@ function choose(map,rand) {
 							oDiv.innerHTML = toLanguage("Sorry, there are not enough players to begin the race...", "D&eacute;sol&eacute;, il n'y a pas assez de joueurs pour commencer la course...");
 						else
 							oDiv.innerHTML = toLanguage("Sorry, all your opponents have left the race...", "D&eacute;sol&eacute;, tous vos adversaires ont quitt&eacute; la course...");
-						
+
 						oDiv.appendChild(document.createElement("br"));
-						
+
 						var nSearch = document.createElement("a");
 						nSearch.style.color = "white";
 						nSearch.innerHTML = toLanguage("Search for new players", "Rechercher de nouveaux joueurs");
@@ -27622,17 +27622,17 @@ function choose(map,rand) {
 							return false;
 						};
 						oDiv.appendChild(nSearch);
-						
+
 						oDiv.appendChild(document.createElement("br"));
-						
+
 						var nSearch = document.createElement("a");
 						nSearch.style.color = "white";
 						nSearch.innerHTML = toLanguage("Back to Mario Kart PC", "Retour \xE0 Mario Kart PC");
 						nSearch.setAttribute("href", "index.php");
 						oDiv.appendChild(nSearch);
-						
+
 						$mkScreen.appendChild(oDiv);
-						
+
 						if (choixJoueurs.length <= 1) {
 							chatting = false;
 							stopVocChat();
@@ -27795,7 +27795,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	oTableCtn.style.overflow = "auto";
 	oTableCtn.style.textAlign = "center";
 
-	if (showTeamNames) {	
+	if (showTeamNames) {
 		oTableCtn.style.top = (iScreenScale*7.5) +"px";
 		oTableCtn.style.paddingTop = (iScreenScale*2.5) +"px";
 
@@ -27839,7 +27839,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 	oMoreOptions.style.position = "absolute";
 	oMoreOptions.style.right = (3*iScreenScale)+"px";
 	oMoreOptions.style.bottom = (5*iScreenScale)+"px";
-	
+
 	var oNoTeams = document.createElement("input");
 	oNoTeams.type = "button";
 	oNoTeams.style.display = "block";
@@ -28192,9 +28192,9 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 		oDiv.style.top = (iScreenScale*15+10) +"px";
 		oDiv.style.fontSize = (iScreenScale*2) +"pt";
 		oDiv.innerHTML = toLanguage("The game has been cancelled by the teams selector.", "Partie annulée par le sélectionneur des équipes.");
-		
+
 		oDiv.appendChild(document.createElement("br"));
-		
+
 		var nSearch = document.createElement("a");
 		nSearch.style.color = "white";
 		nSearch.innerHTML = toLanguage("Search for new players", "Rechercher de nouveaux joueurs");
@@ -28205,15 +28205,15 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 			return false;
 		};
 		oDiv.appendChild(nSearch);
-		
+
 		oDiv.appendChild(document.createElement("br"));
-		
+
 		var nSearch = document.createElement("a");
 		nSearch.style.color = "white";
 		nSearch.innerHTML = toLanguage("Back to Mario Kart PC", "Retour \xE0 Mario Kart PC");
 		nSearch.setAttribute("href", "index.php");
 		oDiv.appendChild(nSearch);
-		
+
 		$mkScreen.appendChild(oDiv);
 
 		clearInterval(startMusicHandler);
@@ -28316,7 +28316,7 @@ function selectOnlineTeams(strMap,choixJoueurs,selecter) {
 
 		var ratio = 41;
 		var mLeft = 0;
-		
+
 		var oLoadBar = document.createElement("div");
 		oLoadBar.style.position = "absolute";
 		oLoadBar.style.left = "0px";
@@ -28607,9 +28607,9 @@ function connexion() {
 	oStyle.backgroundColor = "black";
 
 	oScr.appendChild(toTitle(toLanguage("Connection", "Connexion"), -0.5));
-	
+
 	var iPseudo, iCode, oConnect;
-	
+
 	var oForm = document.createElement("form");
 	oForm.style.position = "absolute";
 	oForm.style.left = (iScreenScale*16) +"px";
@@ -28695,7 +28695,7 @@ function connexion() {
 	oTable.appendChild(oTr3);
 	oForm.appendChild(oTable);
 	oScr.appendChild(oForm);
-	
+
 	var aError = document.createElement("div");
 	aError.style.color = "red";
 	aError.style.fontSize = (iScreenScale*2) +"pt";
@@ -28705,7 +28705,7 @@ function connexion() {
 	aError.innerHTML = toLanguage("Incorrect username or password", "Pseudo ou mot de passe incorrect");
 	aError.style.visibility = "hidden";
 	oScr.appendChild(aError);
-	
+
 	var aInscription = document.createElement("a");
 	aInscription.style.color = "white";
 	aInscription.style.fontSize = (iScreenScale*2) +"pt";
@@ -28715,7 +28715,7 @@ function connexion() {
 	aInscription.innerHTML = toLanguage("Register", "Inscription");
 	aInscription.setAttribute("href", "inscription.php" + ((course=="BB")?"?battle":""));
 	oScr.appendChild(aInscription);
-	
+
 	var eClassement = document.createElement("a");
 	eClassement.style.color = "white";
 	eClassement.style.fontSize = (iScreenScale*2) +"pt";
@@ -28725,7 +28725,7 @@ function connexion() {
 	eClassement.innerHTML = toLanguage("Rankings", "Classement");
 	eClassement.setAttribute("href", "bestscores.php" + ((course=="BB")?"?battle":""));
 	oScr.appendChild(eClassement);
-	
+
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Back", "Retour");
@@ -28735,7 +28735,7 @@ function connexion() {
 	oPInput.style.top = (35*iScreenScale)+"px";
 	oPInput.onclick = quitter;
 	oScr.appendChild(oPInput);
-	
+
 	oContainers[0].appendChild(oScr);
 
 	updateMenuMusic(0);
@@ -28780,7 +28780,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oTitle.style.overflow = "hidden";
 	oTitle.style.textOverflow = "ellipsis";
 	oScr.appendChild(oTitle);
-	
+
 	var oTable = document.createElement("table");
 	oTable.setAttribute("border", "4px");
 	oTable.style.borderStyle = "double";
@@ -28790,12 +28790,12 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oTable.style.left = (iScreenScale*22) +"px";
 	oTable.style.top = (iScreenScale*10) +"px";
 	oTable.style.width = (iScreenScale*35) +"px";
-	
+
 	var oGhost = document.createElement("tr");
 	var oPersoImage = document.createElement("td");
 	oPersoImage.style.width = (5 * iScreenScale) + "px";
 	oPersoImage.style.paddingRight = "6px";
-	
+
 	var cDiv = document.createElement("div");
 	cDiv.style.textAlign = "center";
 	var oDiv = document.createElement("div");
@@ -28810,7 +28810,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oPImg.style.height = (5 * iScreenScale) +"px";
 	oPImg.style.position = "absolute";
 	oPImg.className = "pixelated";
-	
+
 	if (ghostsData)
 		oPImg.alt = ghostsData[1];
 	oPImg.nb = i;
@@ -28823,7 +28823,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	oPImg.style.top = "0px";
 	oDiv.appendChild(oPImg);
 	cDiv.appendChild(oDiv);
-	
+
 	var oSpan = document.createElement("span");
 	oSpan.style.display = "inline-block";
 	oSpan.style.color = "white";
@@ -28837,7 +28837,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 
 	oPersoImage.appendChild(cDiv);
 	oGhost.appendChild(oPersoImage);
-	
+
 	var oTimeTd = document.createElement("td");
 	oTimeTd.style.textAlign = "center";
 	oTimeTd.style.whiteSpace = "nowrap";
@@ -28905,7 +28905,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			oPersoLapTimes.dataset.title = iconTitle;
 		}
 	}
-	
+
 	function multiGhosts(gTimes) {
 		oScr.innerHTML = "";
 		var a = gID-3, b = gID+4;
@@ -28939,12 +28939,12 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			iTable.style.borderColor = "gray";
 			iTable.style.width = (iScreenScale*24) +"px";
 			iTable.style.height = (iScreenScale*4) +"px";
-			
+
 			var iGhost = document.createElement("tr");
 			var iPersoImage = document.createElement("td");
 			iPersoImage.style.width = (3 * iScreenScale) + "px";
 			iPersoImage.style.paddingRight = "5px";
-			
+
 			var iDiv = document.createElement("div");
 			iDiv.style.position = "relative";
 			iDiv.style.width = (3 * iScreenScale) + "px";
@@ -28961,7 +28961,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			}
 			iPImg.style.position = "absolute";
 			iPImg.className = "pixelated";
-			
+
 			if (ghostsData)
 				iPImg.alt = ghostsData[1];
 			iPImg.nb = i;
@@ -28970,7 +28970,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			iDiv.appendChild(iPImg);
 			iPersoImage.appendChild(iDiv);
 			iGhost.appendChild(iPersoImage);
-			
+
 			var iPersoTime = document.createElement("td");
 			iPersoTime.style.textAlign = "center";
 			iPersoTime.style.fontSize = Math.round(iScreenScale*3.5) + "px";
@@ -28993,7 +28993,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				}
 			})(inc,iPImg,iPersoTime);
 			iScr.appendChild(fGauche);
-			
+
 			var fDroite = document.createElement("input");
 			fDroite.type = "button";
 			fDroite.value = "\u2192";
@@ -29010,7 +29010,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				}
 			})(inc,iPImg,iPersoTime);
 			iScr.appendChild(fDroite);
-	
+
 			iGhost.appendChild(iPersoTime);
 			iTable.appendChild(iGhost);
 			iScr.appendChild(iTable);
@@ -29097,7 +29097,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		oPSubmit.style.position = "absolute";
 		oPSubmit.style.right = (5*iScreenScale-10)+"px";
 		oPSubmit.style.top = (35*iScreenScale)+"px";
-		
+
 		oPSubmit.onclick = function() {
 			gIDs.length = nbGhosts;
 			seeGhost(false);
@@ -29111,7 +29111,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		oPInput2.style.position = "absolute";
 		oPInput2.style.right = (33*iScreenScale-10)+"px";
 		oPInput2.style.top = (35*iScreenScale)+"px";
-		
+
 		oPInput2.onclick = function() {
 			gIDs.length = nbGhosts;
 			seeGhost(true);
@@ -29165,7 +29165,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
 			}
 			oScr.appendChild(fGauche);
-			
+
 			var ffGauche = document.createElement("input");
 			ffGauche.id = "ffGauche";
 			ffGauche.type = "button";
@@ -29180,7 +29180,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				writeTime(gTimes[gID][1],gTimes[gID][2],gTimes[gID][3],gTimes[gID][4]);
 			}
 			oScr.appendChild(ffGauche);
-			
+
 			var fDroite = document.createElement("input");
 			fDroite.id = "fDroite";
 			fDroite.type = "button";
@@ -29203,7 +29203,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 				}
 			}
 			oScr.appendChild(fDroite);
-			
+
 			var ffDroite = document.createElement("input");
 			ffDroite.id = "ffDroite";
 			ffDroite.type = "button";
@@ -29382,16 +29382,16 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 			});
 		}
 	}
-	
+
 	var gTimes;
 	var gID = -1;
 	var gIDs;
-	
+
 	oGhost.appendChild(oTimeTd);
 	oTable.appendChild(oGhost);
-	
+
 	oScr.appendChild(oTable);
-	
+
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Face with this ghost", "Affronter ce fantôme");
@@ -29417,7 +29417,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 		seeGhost(true);
 	};
 	oScr.appendChild(oPInput);
-	
+
 	var oPInput = document.createElement("input");
 	oPInput.type = "button";
 	oPInput.value = toLanguage("Play alone", "Jouer seul");
@@ -29764,7 +29764,7 @@ function editCommands(options) {
 		$controlMiscTitle.className = "control-main-title";
 		$controlMiscTitle.innerHTML = toLanguage("Other options", "Autres options");
 		$controlCommands.appendChild($controlMiscTitle);
-		
+
 		var $controlMiscValues = document.createElement("div");
 		$controlMiscValues.className = "control-misc-values";
 		var allMiscSettings = [{
@@ -29809,7 +29809,7 @@ function editCommands(options) {
 			}
 			$controlMiscValues.appendChild($controlSetting);
 		});
-		
+
 		$controlCommands.appendChild($controlMiscValues);
 
 		var $controlReset = document.createElement("div");
@@ -29979,7 +29979,7 @@ function editCommands(options) {
 				$gamepadReset.appendChild($gamepadResetBtn);
 				$controlCommands.appendChild($gamepadReset);
 			}
-			
+
 			var $controlEditorGrid = document.createElement("div");
 			$controlEditorGrid.className = "control-editor-grid";
 			for (var i=0;i<commands.length;i++) {
@@ -30823,7 +30823,7 @@ else {
 	], iFps);
 	addFpsOption(iFps);
 	selectMainPage();
-	
+
 	formulaire.screenscale.onchange = function() {
 		var iValue = parseInt(this.item(this.selectedIndex).value);
 		MarioKartControl.setScreenScale(iValue);
@@ -30866,7 +30866,7 @@ else {
 		if ($commandes.dataset.hasCommands)
 			displayCommands();
 	}
-	
+
 	if (isFirstLoad) {
 		isFirstLoad = false;
 		if (hasChallenges()) {
@@ -30946,10 +30946,10 @@ function setChat() {
 	var oChats = document.getElementsByClassName("online-chat");
 	while (oChats.length)
 		document.body.removeChild(oChats[0]);
-	
+
 	var oChat = document.createElement("div");
 	oChat.className = "online-chat";
-	
+
 	var oConnectes = document.createElement("p");
 	oConnectes.className = "online-chat-connecteds";
 	var oPlayersListCtn = document.createElement("div");
@@ -31011,7 +31011,7 @@ function setChat() {
 	var vChatActions = document.createElement("div");
 	vChatActions.className = "vocal-chat-actions";
 	vChatActions.style.display = "none";
-	
+
 	var vcaMute = document.createElement("button");
 	vcaMute.title = language ? "Mute" : "Muet";
 	var vcaiMute = document.createElement("img");
@@ -31232,10 +31232,10 @@ function setChat() {
 	};
 	oCloseChatCtn.appendChild(oOpenChat);
 	oChat.appendChild(oCloseChatCtn);
-	
+
 	var oMessages = document.createElement("div");
 	oMessages.className = "online-chat-messages";
-	
+
 	var oRepondre = document.createElement("form");
 	oRepondre.className = "online-chat-answer";
 	var rMessage = document.createElement("input");
@@ -31287,7 +31287,7 @@ function setChat() {
 		}
 		return false;
 	}
-	
+
 	oChat.appendChild(oConnectes);
 	oChat.appendChild(oMessages);
 	oChat.appendChild(oRepondre);
@@ -31385,7 +31385,7 @@ function setChat() {
 													clearInterval(cPeer.recorderHandler);
 													delete cPeer.recorderHandler;
 													analyser.disconnect();
-													
+
 													oPlayerVolume.style.width = "";
 													oPlayerVolume.style.height = "";
 													oPlayerVolume.style.left = "";
@@ -31524,7 +31524,7 @@ function setChat() {
 			vConnectes.disabled = false;
 		}
 	});
-	
+
 	document.body.insertBefore(oChat, $mkScreen);
 
 	try {
