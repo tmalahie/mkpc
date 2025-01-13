@@ -19,10 +19,10 @@ function handle_bg_upload($files,$options=array()) {
 		$error = null;
 		$filePath = $file['tmp_name'];
 		if (!$file['error']) {
-			$poids = $file['size'];
-			if ($poids < 1000000) {
+			$file_size = $file['size'];
+			if ($file_size < 1000000) {
 				if (!isset($file['url']))
-					$totalSize += $poids;
+					$totalSize += $file_size;
 				if ($totalSize < file_total_quota($totalQuotaOptions)) {
 					$ext = get_img_ext($filePath);
 					$extensions = Array('png', 'gif', 'jpg', 'jpeg');
