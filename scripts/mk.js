@@ -899,13 +899,13 @@ var oPlanWidth, oPlanSize, oPlanRealSize, oCharWidth, oObjWidth, oCoinWidth, oEx
 var oPlanWidth2, oPlanSize2, oCharWidth2, oObjWidth2, oCoinWidth2, oExpWidth2, oExpBWidth2;
 var oCharRatio, oPlanRatio;
 var oPlanCharacters = new Array(), oPlanObjects = new Array(), oPlanCoins = new Array(), oPlanPoisons = new Array(), oPlanDecor = {}, oPlanAssets = {}, oPlanSea,
-	oPlanFauxObjets = new Array(), oPlanBananes = new Array(), oPlanBobOmbs = new Array(), oPlanChampis = new Array(), oPlanEtoilesDrop = new Array(),
-	oPlanCarapaces = new Array(), oPlanCarapacesRouges = new Array(), oPlanCarapacesBleues = new Array(), oPlanCarapacesNoires = new Array(),
-	oPlanEtoiles = new Array(), oPlanBillballs = new Array(), oPlanTeams = new Array();
+	oPlanFakeItems = new Array(), oPlanBananas = new Array(), oPlanBobOmbs = new Array(), oPlanMushroom = new Array(), oPlanStarsDrop = new Array(),
+	oPlanShells = new Array(), oPlanRedShells = new Array(), oPlanBlueShells = new Array(), oPlanBlackShells = new Array(),
+	oPlanStars = new Array(), oPlanBulletBills = new Array(), oPlanTeams = new Array();
 var oPlanCharacters2 = new Array(), oPlanObjects2 = new Array(), oPlanCoins2 = new Array(), oPlanDecor2 = {}, oPlanAssets2 = {}, oPlanSea2,
-	oPlanFauxObjets2 = new Array(), oPlanBananes2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanChampis2 = new Array(), oPlanEtoilesDrop2 = new Array(),
-	oPlanCarapaces2 = new Array(), oPlanCarapacesRouges2 = new Array(), oPlanCarapacesBleues2 = new Array(), oPlanCarapacesNoires2 = new Array(),
-	oPlanEtoiles2 = new Array(), oPlanBillballs2 = new Array(), oPlanTeams2 = new Array();
+	oPlanFakeItems2 = new Array(), oPlanBananas2 = new Array(), oPlanBobOmbs2 = new Array(), oPlanPoisons2 = new Array(), oPlanMushroom2 = new Array(), oPlanStarsDrop2 = new Array(),
+	oPlanShells2 = new Array(), oPlanRedShells2 = new Array(), oPlanBlueShells2 = new Array(), oPlanBlackShells2 = new Array(),
+	oPlanStars2 = new Array(), oPlanBulletBills2 = new Array(), oPlanTeams2 = new Array();
 var customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
 
 function posImg(elt, eltX,eltY,eltR, eltW, mapW) {
@@ -940,7 +940,7 @@ function setPlanPos(frameState, lMap) {
 	var oPlayer = frameState.players[0];
 	if (oSpecCam)
 		oPlayer = frameState.karts[oSpecCam.playerId];
-	if (oPlayer.teleport > 3 || oPlayer.tombe > 10) return;
+	if (oPlayer.teleport > 3 || oPlayer.fall > 10) return;
 	var frameItems = frameState.items;
 	var oCamera = oPlayer;
 	if (oSpecCam)
@@ -951,7 +951,7 @@ function setPlanPos(frameState, lMap) {
 	var fCosR = direction(1,fRotation), fSinR = direction(0,fRotation);
 	function createObject(src, eltW, iPlanCtn, before) {
 		var res = document.createElement("img");
-		res.src = "images/map_icons/"+ src +".png";
+		res.src = "images/map_icons/"+ ((src in itemToImageName) ? itemToImageName[src] : src) +".png";
 		res.style.position = "absolute";
 		res.style.width = eltW+"px";
 		res.className = "pixelated";
@@ -1075,10 +1075,10 @@ function setPlanPos(frameState, lMap) {
 				}
 			}
 			if (updatePos) {
-				var iCharR = oKart.ref.billball ? 1.5:oKart.size;
+				var iCharR = oKart.ref.bulletbill ? 1.5:oKart.size;
 				var iCharW = Math.round(iCharWidth*iCharR);
 				iPlanCharacters[i].style.width = iCharW +"px";
-				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.tourne*360/21, iCharW, iMapW);
+				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.turning*360/21, iCharW, iMapW);
 				if (iTeamPlay && (iCharWidth==oCharWidth)) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
 					var iTeamW = Math.round(oTeamWidth*iCharR);
@@ -1172,21 +1172,21 @@ function setPlanPos(frameState, lMap) {
 	setDecorPos(oPlanDecor, oObjWidth, oPlanCtn, oPlanSize);
 	setDecorPos(oPlanDecor2, oObjWidth2, oPlanCtn2, oPlanSize2);
 
-	syncObjects(oPlanFauxObjets,frameItems["fauxobjet"],"objet", oObjWidth,oPlanCtn);
-	syncObjects(oPlanFauxObjets2,frameItems["fauxobjet"],"objet", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["fauxobjet"].length;i++) {
-		var fauxobjet = frameItems["fauxobjet"][i];
-		setObject(oPlanFauxObjets[i],fauxobjet.x,fauxobjet.y, oObjWidth,oPlanSize, fauxobjet.ref.team,200);
-		setObject(oPlanFauxObjets2[i],fauxobjet.x,fauxobjet.y, oObjWidth2,oPlanSize2, fauxobjet.ref.team,200);
-		oPlanFauxObjets[i].style.zIndex = oPlanFauxObjets2[i].style.zIndex = 2;
+	syncObjects(oPlanFakeItems,frameItems["fakeItem"],"objet", oObjWidth,oPlanCtn);
+	syncObjects(oPlanFakeItems2,frameItems["fakeItem"],"objet", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["fakeItem"].length;i++) {
+		var fakeItem = frameItems["fakeItem"][i];
+		setObject(oPlanFakeItems[i],fakeItem.x,fakeItem.y, oObjWidth,oPlanSize, fakeItem.ref.team,200);
+		setObject(oPlanFakeItems2[i],fakeItem.x,fakeItem.y, oObjWidth2,oPlanSize2, fakeItem.ref.team,200);
+		oPlanFakeItems[i].style.zIndex = oPlanFakeItems2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanBananes,frameItems["banane"],"banane", oObjWidth,oPlanCtn);
-	syncObjects(oPlanBananes2,frameItems["banane"],"banane", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["banane"].length;i++) {
-		var banane = frameItems["banane"][i];
-		setObject(oPlanBananes[i],banane.x,banane.y, oObjWidth,oPlanSize, banane.ref.team,100);
-		setObject(oPlanBananes2[i],banane.x,banane.y, oObjWidth2,oPlanSize2, banane.ref.team,100);
-		oPlanBananes[i].style.zIndex = oPlanBananes2[i].style.zIndex = 2;
+	syncObjects(oPlanBananas,frameItems["banana"],"banana", oObjWidth,oPlanCtn);
+	syncObjects(oPlanBananas2,frameItems["banana"],"banana", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["banana"].length;i++) {
+		var banana = frameItems["banana"][i];
+		setObject(oPlanBananas[i],banana.x,banana.y, oObjWidth,oPlanSize, banana.ref.team,100);
+		setObject(oPlanBananas2[i],banana.x,banana.y, oObjWidth2,oPlanSize2, banana.ref.team,100);
+		oPlanBananas[i].style.zIndex = oPlanBananas2[i].style.zIndex = 2;
 	}
 	syncObjects(oPlanPoisons,frameItems["poison"],"poison", oObjWidth,oPlanCtn);
 	syncObjects(oPlanPoisons2,frameItems["poison"],"poison", oObjWidth2,oPlanCtn2);
@@ -1196,21 +1196,21 @@ function setPlanPos(frameState, lMap) {
 		setObject(oPlanPoisons2[i],poison.x,poison.y, oObjWidth2,oPlanSize2, poison.ref.team,100);
 		oPlanPoisons[i].style.zIndex = oPlanPoisons2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanChampis,frameItems["champi"],"champi", oObjWidth,oPlanCtn);
-	syncObjects(oPlanChampis2,frameItems["champi"],"champi", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["champi"].length;i++) {
-		var champi = frameItems["champi"][i];
-		setObject(oPlanChampis[i],champi.x,champi.y, oObjWidth,oPlanSize, -1,100);
-		setObject(oPlanChampis2[i],champi.x,champi.y, oObjWidth2,oPlanSize2, -1,100);
-		oPlanChampis[i].style.zIndex = oPlanChampis2[i].style.zIndex = 2;
+	syncObjects(oPlanMushroom,frameItems["mushroom"],"mushroom", oObjWidth,oPlanCtn);
+	syncObjects(oPlanMushroom2,frameItems["mushroom"],"mushroom", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["mushroom"].length;i++) {
+		var mushroom = frameItems["mushroom"][i];
+		setObject(oPlanMushroom[i],mushroom.x,mushroom.y, oObjWidth,oPlanSize, -1,100);
+		setObject(oPlanMushroom2[i],mushroom.x,mushroom.y, oObjWidth2,oPlanSize2, -1,100);
+		oPlanMushroom[i].style.zIndex = oPlanMushroom2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanEtoilesDrop,frameItems["etoile"],"etoile", oObjWidth,oPlanCtn);
-	syncObjects(oPlanEtoilesDrop2,frameItems["etoile"],"etoile", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["etoile"].length;i++) {
-		var etoile = frameItems["etoile"][i];
-		setObject(oPlanEtoilesDrop[i],etoile.x,etoile.y, oObjWidth,oPlanSize, -1,100);
-		setObject(oPlanEtoilesDrop2[i],etoile.x,etoile.y, oObjWidth2,oPlanSize2, -1,100);
-		oPlanEtoilesDrop[i].style.zIndex = oPlanEtoilesDrop2[i].style.zIndex = 2;
+	syncObjects(oPlanStarsDrop,frameItems["star"],"star", oObjWidth,oPlanCtn);
+	syncObjects(oPlanStarsDrop2,frameItems["star"],"star", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["star"].length;i++) {
+		var star = frameItems["star"][i];
+		setObject(oPlanStarsDrop[i],star.x,star.y, oObjWidth,oPlanSize, -1,100);
+		setObject(oPlanStarsDrop2[i],star.x,star.y, oObjWidth2,oPlanSize2, -1,100);
+		oPlanStarsDrop[i].style.zIndex = oPlanStarsDrop2[i].style.zIndex = 2;
 	}
 
 	function getExplosionSrc(src,team,defaultTeam) {
@@ -1238,79 +1238,79 @@ function setPlanPos(frameState, lMap) {
 	setBobombPos(oPlanBobOmbs, oObjWidth,oPlanCtn, oPlanSize, oExpWidth);
 	setBobombPos(oPlanBobOmbs2, oObjWidth2,oPlanCtn2, oPlanSize2, oExpWidth2);
 
-	syncObjects(oPlanCarapaces,frameItems["carapace"],"carapace", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapaces2,frameItems["carapace"],"carapace", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["carapace"].length;i++) {
-		var carapace = frameItems["carapace"][i];
-		setObject(oPlanCarapaces[i],carapace.x,carapace.y, oObjWidth,oPlanSize, carapace.ref.team,200);
-		setObject(oPlanCarapaces2[i],carapace.x,carapace.y, oObjWidth2,oPlanSize2, carapace.ref.team,200).style.zIndex = 2;
+	syncObjects(oPlanShells,frameItems["shell"],"shell", oObjWidth,oPlanCtn);
+	syncObjects(oPlanShells2,frameItems["shell"],"shell", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["shell"].length;i++) {
+		var shell = frameItems["shell"][i];
+		setObject(oPlanShells[i],shell.x,shell.y, oObjWidth,oPlanSize, shell.ref.team,200);
+		setObject(oPlanShells2[i],shell.x,shell.y, oObjWidth2,oPlanSize2, shell.ref.team,200).style.zIndex = 2;
 	}
 
-	syncObjects(oPlanCarapacesRouges,frameItems["carapace-rouge"],"carapace-rouge", oObjWidth,oPlanCtn);
-	syncObjects(oPlanCarapacesRouges2,frameItems["carapace-rouge"],"carapace-rouge", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<frameItems["carapace-rouge"].length;i++) {
-		var carapaceRouge = frameItems["carapace-rouge"][i];
-		setObject(oPlanCarapacesRouges[i],carapaceRouge.x,carapaceRouge.y, oObjWidth,oPlanSize, carapaceRouge.ref.team,200);
-		setObject(oPlanCarapacesRouges2[i],carapaceRouge.x,carapaceRouge.y, oObjWidth2,oPlanSize2, carapaceRouge.ref.team,200).style.zIndex = 2;
-		if (carapaceRouge.ref.owner)
-			oPlanCarapacesRouges[i].style.zIndex = 2;
+	syncObjects(oPlanRedShells,frameItems["red-shell"],"red-shell", oObjWidth,oPlanCtn);
+	syncObjects(oPlanRedShells2,frameItems["red-shell"],"red-shell", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<frameItems["red-shell"].length;i++) {
+		var redShell = frameItems["red-shell"][i];
+		setObject(oPlanRedShells[i],redShell.x,redShell.y, oObjWidth,oPlanSize, redShell.ref.team,200);
+		setObject(oPlanRedShells2[i],redShell.x,redShell.y, oObjWidth2,oPlanSize2, redShell.ref.team,200).style.zIndex = 2;
+		if (redShell.ref.owner)
+			oPlanRedShells[i].style.zIndex = 2;
 	}
 
-	function setCarapacesBleuesPos(iPlanCarapacesBleues, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
-		syncObjects(iPlanCarapacesBleues,frameItems["carapace-bleue"],"carapace-bleue",iObjWidth,iPlanCtn);
-		for (var i=0;i<frameItems["carapace-bleue"].length;i++) {
-			var carapaceBleue = frameItems["carapace-bleue"][i];
-			if (carapaceBleue.ref.cooldown <= 0) {
-				posImg(iPlanCarapacesBleues[i], carapaceBleue.x,carapaceBleue.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceBleue.ref.team,"0");
-				iPlanCarapacesBleues[i].style.width = iExpWidth +"px";
-				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceBleue.ref.cooldown/10, 0);
-				iPlanCarapacesBleues[i].style.background = "";
+	function setBlueShellsPos(iPlanBlueShells, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
+		syncObjects(iPlanBlueShells,frameItems["blue-shell"],"blue-shell",iObjWidth,iPlanCtn);
+		for (var i=0;i<frameItems["blue-shell"].length;i++) {
+			var blueShell = frameItems["blue-shell"][i];
+			if (blueShell.ref.cooldown <= 0) {
+				posImg(iPlanBlueShells[i], blueShell.x,blueShell.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",blueShell.ref.team,"0");
+				iPlanBlueShells[i].style.width = iExpWidth +"px";
+				iPlanBlueShells[i].style.opacity = Math.max(1+blueShell.ref.cooldown/10, 0);
+				iPlanBlueShells[i].style.background = "";
 			}
 			else
-				setObject(iPlanCarapacesBleues[i],carapaceBleue.x,carapaceBleue.y, iObjWidth,iPlanSize, carapaceBleue.ref.team,200).style.zIndex = 2;
+				setObject(iPlanBlueShells[i],blueShell.x,blueShell.y, iObjWidth,iPlanSize, blueShell.ref.team,200).style.zIndex = 2;
 		}
 	}
-	setCarapacesBleuesPos(oPlanCarapacesBleues, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
-	setCarapacesBleuesPos(oPlanCarapacesBleues2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
+	setBlueShellsPos(oPlanBlueShells, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
+	setBlueShellsPos(oPlanBlueShells2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
 
-	function setCarapacesNoiresPos(iPlanCarapacesBleues, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
-		syncObjects(iPlanCarapacesBleues,frameItems["carapace-noire"],"carapace-noire",iObjWidth,iPlanCtn);
-		for (var i=0;i<frameItems["carapace-noire"].length;i++) {
-			var carapaceNoire = frameItems["carapace-noire"][i];
-			if (carapaceNoire.ref.cooldown <= 0) {
-				posImg(iPlanCarapacesBleues[i], carapaceNoire.x,carapaceNoire.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",carapaceNoire.ref.team,"D");
-				iPlanCarapacesBleues[i].style.width = iExpWidth +"px";
-				iPlanCarapacesBleues[i].style.opacity = Math.max(1+carapaceNoire.ref.cooldown/10, 0);
-				iPlanCarapacesBleues[i].style.background = "";
+	function setBlackShellsPos(iPlanBlueShells, iObjWidth,iPlanSize,iExpWidth,iPlanCtn) {
+		syncObjects(iPlanBlueShells,frameItems["black-shell"],"black-shell",iObjWidth,iPlanCtn);
+		for (var i=0;i<frameItems["black-shell"].length;i++) {
+			var blackShell = frameItems["black-shell"][i];
+			if (blackShell.ref.cooldown <= 0) {
+				posImg(iPlanBlueShells[i], blackShell.x,blackShell.y,Math.round(oCamera.rotation), iExpWidth,iPlanSize).src = getExplosionSrc("explosion",blackShell.ref.team,"D");
+				iPlanBlueShells[i].style.width = iExpWidth +"px";
+				iPlanBlueShells[i].style.opacity = Math.max(1+blackShell.ref.cooldown/10, 0);
+				iPlanBlueShells[i].style.background = "";
 			}
 			else
-				setObject(iPlanCarapacesBleues[i],carapaceNoire.x,carapaceNoire.y, iObjWidth,iPlanSize, carapaceNoire.ref.team,200).style.zIndex = 2;
+				setObject(iPlanBlueShells[i],blackShell.x,blackShell.y, iObjWidth,iPlanSize, blackShell.ref.team,200).style.zIndex = 2;
 		}
 	}
-	setCarapacesNoiresPos(oPlanCarapacesNoires, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
-	setCarapacesNoiresPos(oPlanCarapacesNoires2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
+	setBlackShellsPos(oPlanBlackShells, oObjWidth,oPlanSize,oExpBWidth,oPlanCtn);
+	setBlackShellsPos(oPlanBlackShells2, oObjWidth2,oPlanSize2,oExpBWidth2,oPlanCtn2);
 
-	var oStars = new Array(), oBillBalls = new Array();
+	var oStars = new Array(), oBulletBills = new Array();
 	for (var i=0;i<frameState.karts.length;i++) {
 		var oKart = frameState.karts[i];
-		if (oKart.ref.etoile)
+		if (oKart.ref.star)
 			oStars.push(oKart);
-		else if (oKart.ref.billball)
-			oBillBalls.push(oKart);
+		else if (oKart.ref.bulletbill)
+			oBulletBills.push(oKart);
 	}
-	syncObjects(oPlanEtoiles,oStars,"etoile", oObjWidth,oPlanCtn);
-	syncObjects(oPlanEtoiles2,oStars,"etoile", oObjWidth2,oPlanCtn2);
+	syncObjects(oPlanStars,oStars,"star", oObjWidth,oPlanCtn);
+	syncObjects(oPlanStars2,oStars,"star", oObjWidth2,oPlanCtn2);
 	for (var i=0;i<oStars.length;i++) {
-		setObject(oPlanEtoiles[i],oStars[i].x,oStars[i].y, oObjWidth,oPlanSize);
-		setObject(oPlanEtoiles2[i],oStars[i].x,oStars[i].y, oStarWidth2,oPlanSize2).style.width = oStarWidth2+"px";
-		oPlanEtoiles[i].style.zIndex = oPlanEtoiles2[i].style.zIndex = 2;
+		setObject(oPlanStars[i],oStars[i].x,oStars[i].y, oObjWidth,oPlanSize);
+		setObject(oPlanStars2[i],oStars[i].x,oStars[i].y, oStarWidth2,oPlanSize2).style.width = oStarWidth2+"px";
+		oPlanStars[i].style.zIndex = oPlanStars2[i].style.zIndex = 2;
 	}
-	syncObjects(oPlanBillballs,oBillBalls,"billball", oObjWidth,oPlanCtn);
-	syncObjects(oPlanBillballs2,oBillBalls,"billball", oObjWidth2,oPlanCtn2);
-	for (var i=0;i<oBillBalls.length;i++) {
-		posImg(oPlanBillballs[i],oBillBalls[i].x,oBillBalls[i].y, Math.round(oCamera.rotation), oBBWidth,oPlanSize).style.width = oBBWidth +"px";
-		posImg(oPlanBillballs2[i],oBillBalls[i].x,oBillBalls[i].y, Math.round(oCamera.rotation), oBBWidth2,oPlanSize2).style.width = oBBWidth2 +"px";
-		oPlanBillballs[i].style.zIndex = oPlanBillballs2[i].style.zIndex = 2;
+	syncObjects(oPlanBulletBills,oBulletBills,"bulletbill", oObjWidth,oPlanCtn);
+	syncObjects(oPlanBulletBills2,oBulletBills,"bulletbill", oObjWidth2,oPlanCtn2);
+	for (var i=0;i<oBulletBills.length;i++) {
+		posImg(oPlanBulletBills[i],oBulletBills[i].x,oBulletBills[i].y, Math.round(oCamera.rotation), oBBWidth,oPlanSize).style.width = oBBWidth +"px";
+		posImg(oPlanBulletBills2[i],oBulletBills[i].x,oBulletBills[i].y, Math.round(oCamera.rotation), oBBWidth2,oPlanSize2).style.width = oBBWidth2 +"px";
+		oPlanBulletBills[i].style.zIndex = oPlanBulletBills2[i].style.zIndex = 2;
 	}
 }
 function initPlan(lMap) {
@@ -1539,19 +1539,19 @@ function resetPlan(lMap) {
 	oPlanPoisons.length = 0;
 	oPlanDecor = {};
 	oPlanAssets = {};
-	oPlanFauxObjets.length = 0;
-	oPlanBananes.length = 0;
+	oPlanFakeItems.length = 0;
+	oPlanBananas.length = 0;
 	oPlanBobOmbs.length = 0;
-	oPlanChampis.length = 0;
-	oPlanEtoilesDrop.length = 0;
+	oPlanMushroom.length = 0;
+	oPlanStarsDrop.length = 0;
 
-	oPlanCarapaces.length = 0;
-	oPlanCarapacesRouges.length = 0;
-	oPlanCarapacesBleues.length = 0;
-	oPlanCarapacesNoires.length = 0;
+	oPlanShells.length = 0;
+	oPlanRedShells.length = 0;
+	oPlanBlueShells.length = 0;
+	oPlanBlackShells.length = 0;
 
-	oPlanEtoiles.length = 0;
-	oPlanBillballs.length = 0;
+	oPlanStars.length = 0;
+	oPlanBulletBills.length = 0;
 	oPlanTeams.length = 0;
 
 	oPlanCharacters2.length = 0;
@@ -1559,20 +1559,20 @@ function resetPlan(lMap) {
 	oPlanCoins2.length = 0;
 	oPlanDecor2 = {};
 	oPlanAssets2 = {};
-	oPlanFauxObjets2.length = 0;
-	oPlanBananes2.length = 0;
+	oPlanFakeItems2.length = 0;
+	oPlanBananas2.length = 0;
 	oPlanBobOmbs2.length = 0;
 	oPlanPoisons2.length = 0;
-	oPlanChampis2.length = 0;
-	oPlanEtoilesDrop2.length = 0;
+	oPlanMushroom2.length = 0;
+	oPlanStarsDrop2.length = 0;
 
-	oPlanCarapaces2.length = 0;
-	oPlanCarapacesRouges2.length = 0;
-	oPlanCarapacesBleues2.length = 0;
-	oPlanCarapacesNoires2.length = 0;
+	oPlanShells2.length = 0;
+	oPlanRedShells2.length = 0;
+	oPlanBlueShells2.length = 0;
+	oPlanBlackShells2.length = 0;
 
-	oPlanEtoiles2.length = 0;
-	oPlanBillballs2.length = 0;
+	oPlanStars2.length = 0;
+	oPlanBulletBills2.length = 0;
 	oPlanTeams2.length = 0;
 	customDecorFetchHandlers = [{plan:oPlanDecor,list:{}},{plan:oPlanDecor2,list:{}}];
 
@@ -1896,28 +1896,28 @@ function initMap() {
 			return lMaps[l] || oMap;
 		}
 		var _getCurrentLapId = function(oKart) {
-			var tours = oKart.tours-1, cp = oKart.demitours;
+			var laps = oKart.laps-1, cp = oKart.uturns;
 			if (oMap.sections) {
 				if (cp >= oMap.checkpoint.length - 1)
 					cp = -1;
 			}
 			for (var i=0;i<lapOverrides.length;i++) {
 				var lapOverride = lapOverrides[i];
-				if (lapOverride.lap > tours) return i;
-				if (lapOverride.lap === tours) {
+				if (lapOverride.lap > laps) return i;
+				if (lapOverride.lap === laps) {
 					if (lapOverride.cp > cp) return i;
 				}
 			}
 			return lapOverrides.length;
 		}
 		getCurrentLapId = function(oKart) {
-			if (oKart._lapOverrideCache && oKart._lapOverrideCache.tours === oKart.tours && oKart._lapOverrideCache.cp === oKart.demitours)
+			if (oKart._lapOverrideCache && oKart._lapOverrideCache.laps === oKart.laps && oKart._lapOverrideCache.cp === oKart.uturns)
 				return oKart._lapOverrideCache.lapId;
 			var lapId = _getCurrentLapId(oKart);
 			if (oKart.sprite) {
 				oKart._lapOverrideCache = {
-					tours: oKart.tours,
-					cp: oKart.demitours,
+					laps: oKart.laps,
+					cp: oKart.uturns,
 					lapId: lapId
 				};
 			}
@@ -2343,10 +2343,10 @@ function loadNewItem(kart,item) {
 }
 function dropNewItem(oKart, item) {
 	switch (item.type) {
-	case "carapace":
+	case "shell":
 		item.vx = 0; item.vy = 0; item.owner = -1; item.lives = 10;
 		break;
-	case "carapace-rouge":
+	case "red-shell":
 		item.theta = -1; item.owner = -1; item.aipoint = -2; item.aimap = -1; item.ailap = 0; item.target = -1;
 		break;
 	}
@@ -2373,24 +2373,24 @@ function addNewItem(kart,item) {
 	if (item.team != -1) {
 		var hallowSize;
 		switch (collection) {
-		case "champi":
-		case "etoile":
+		case "mushroom":
+		case "star":
 			break;
-		case "banane":
+		case "banana":
 			hallowSize = 50;
 			break;
 		case "poison":
 			hallowSize = 60;
 			break;
-		case "carapace":
-		case "carapace-rouge":
+		case "shell":
+		case "red-shell":
 			hallowSize = 60;
 			break;
-		case "fauxobjet":
+		case "fakeItem":
 			hallowSize = 65;
 			break;
-		case "carapace-bleue":
-		case "carapace-noire":
+		case "blue-shell":
+		case "black-shell":
 			hallowSize = 60;
 			break;
 		case "bobomb":
@@ -2402,7 +2402,7 @@ function addNewItem(kart,item) {
 		if (hallowSize) {
 			var hallowLeft = 50-hallowSize, hallowTop = 50-hallowSize;
 			switch (collection) {
-			case "banane":
+			case "banana":
 				hallowTop += 5;
 				break;
 			case "poison":
@@ -2411,7 +2411,7 @@ function addNewItem(kart,item) {
 			case "bobomb":
 				hallowTop += 5;
 				break;
-			case "fauxobjet":
+			case "fakeItem":
 				hallowTop -= 5;
 			}
 			for (var i=0;i<oPlayers.length;i++) {
@@ -2440,7 +2440,7 @@ function addNewItem(kart,item) {
 function setStarState(oKart, duration) {
 	for (var i=0;i<strPlayer.length;i++)
 		oKart.sprite[i].img.src = getStarSrc(oKart.personnage);
-	if (!oKart.cpu && !oKart.etoile) {
+	if (!oKart.cpu && !oKart.star) {
 		if (!isOnline) {
 			oKart.sprite[0].img.onload = function() {
 				bCounting = false;
@@ -2457,58 +2457,58 @@ function setStarState(oKart, duration) {
 		oKart.speedinc *= 5;
 	delete oKart.shift;
 	oKart.protect = true;
-	oKart.etoile = duration;
+	oKart.star = duration;
 }
 
 var MUSHROOM_TYPE_ITEM = 1, MUSHROOM_TYPE_BOOST = 2;
 function useWeapon(ID, backwards, forwards) {
 	var oKart = aKarts[ID];
 	if (!oKart.using.length) {
-		if (oKart.roulette != 25) return;
+		if (oKart.wheel != 25) return;
 		if (oKart == oPlayers[0])
 			clLocalVars.itemsUsed = true;
-		var tpsUse, itemKey = oKart.arme;
-		switch(oKart.arme) {
-			case "champi" :
-			case "champiX2" :
-			case "champiX3" :
-			itemKey = "champi";
+		var tpsUse, itemKey = oKart.weapon;
+		switch(oKart.weapon) {
+			case "mushroom" :
+			case "mushroomX2" :
+			case "mushroomX3" :
+			itemKey = "mushroom";
 			tpsUse = 20;
-			oKart.champiType = MUSHROOM_TYPE_ITEM;
+			oKart.mushroomType = MUSHROOM_TYPE_ITEM;
 			oKart.maxspeed = 11;
 			oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 			playIfShould(oKart,"musics/events/boost.mp3");
 			break;
 
-			case "champior" :
-			itemKey = "champi";
-			if (oKart.champi < 12) {
+			case "goldMushroom" :
+			itemKey = "mushroom";
+			if (oKart.mushroom < 12) {
 				tpsUse = 20;
-				oKart.champiType = MUSHROOM_TYPE_ITEM;
+				oKart.mushroomType = MUSHROOM_TYPE_ITEM;
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
-				if (!oKart.champior) {
-					oKart.champior = 70;
-					oKart.champior0 = oKart.champior;
+				if (!oKart.goldMushroom) {
+					oKart.goldMushroom = 70;
+					oKart.goldMushroom0 = oKart.goldMushroom;
 				}
 			}
 			break;
 
-			case "etoile" :
+			case "star" :
 			tpsUse = 80;
 			setStarState(oKart, tpsUse);
 			break;
 
-			case "billball" :
-			if (oKart.billball)
+			case "bulletbill" :
+			if (oKart.bulletbill)
 				break;
 			if (oKart.jumped) {
 				oKart.ctrled = false;
 				oKart.jumped = false;
 			}
 			tpsUse = Math.max(Math.min(Math.round(distanceToFirst(oKart)/(9*cappedRelSpeed())), 120), 40);
-			oKart.billball0 = tpsUse;
+			oKart.bulletbill0 = tpsUse;
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.src = "images/sprites/sprite_billball.png";
 				resetSpriteHeight(oKart.sprite[i]);
@@ -2528,37 +2528,37 @@ function useWeapon(ID, backwards, forwards) {
 			oKart.z = 2;
 			oKart.heightinc = 0;
 			oKart.protect = true;
-			oKart.champi = 0;
-			delete oKart.champiType;
+			oKart.mushroom = 0;
+			delete oKart.mushroomType;
 			delete oKart.shift;
 			resetPowerup(oKart);
 			playIfShould(oKart,"musics/events/boost.mp3");
 			stopDrifting(ID);
 			break;
 
-			case "megachampi" :
+			case "megamushroom" :
 			tpsUse = 80;
 			oKart.size = 1;
 			oKart.mini = 0;
 			oKart.protect = true;
-			if (!oKart.megachampi && shouldPlaySound(oKart) && !oPlayers[1])
+			if (!oKart.megamushroom && shouldPlaySound(oKart) && !oPlayers[1])
 				postStartMusic("musics/events/megamushroom.mp3");
 			break;
 
-			case "banane" :
-			loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+			case "banana" :
+			loadNewItem(oKart, {type: "banana", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "bananeX3" :
+			case "bananaX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "banane", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
+				loadNewItem(oKart, {type: "banana", team:oKart.team, x:(oKart.x-5*direction(0,oKart.rotation)), y:(oKart.y-5*direction(1,oKart.rotation)), z:oKart.z});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "fauxobjet" :
-			loadNewItem(oKart, {type: "fauxobjet", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z});
+			case "fakeItem" :
+			loadNewItem(oKart, {type: "fakeItem", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
@@ -2567,36 +2567,36 @@ function useWeapon(ID, backwards, forwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapace" :
-			loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
+			case "shell" :
+			loadNewItem(oKart, {type: "shell", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapaceX3" :
+			case "shellX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "carapace", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
+				loadNewItem(oKart, {type: "shell", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, vx:0, vy:0, owner: -1, lives:10});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapacerouge" :
-			loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
+			case "redshell" :
+			loadNewItem(oKart, {type: "red-shell", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapacerougeX3" :
+			case "redshellX3" :
 			for (var i=0;i<3;i++)
-				loadNewItem(oKart, {type: "carapace-rouge", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
+				loadNewItem(oKart, {type: "red-shell", team:oKart.team, x:(oKart.x-5*direction(0, oKart.rotation)), y:(oKart.y-5*direction(1, oKart.rotation)), z:oKart.z, theta:-1, owner:-1, aipoint:-1, aimap:-1, ailap: -1, target:-1});
 			oKart.rotitem = 0;
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "carapacebleue" :
+			case "blueshell" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0, lapId = 0, lMap;
 			if (!isBattle()) {
 				lapId = getCurrentLapId(oKart);
 				lMap = getCurrentLMap(lapId);
-				var uturn = oKart.demitours+1;
+				var uturn = oKart.uturns+1;
 				if (uturn >= lMap.checkpoint.length)
 					uturn = 0;
 				for (var i=0;i<lMap.airoutesmeta.cpu;i++) {
@@ -2623,12 +2623,12 @@ function useWeapon(ID, backwards, forwards) {
 					}
 				}
 			}
-			var item = {type: "carapace-bleue", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.tours, ailapc:1, cooldown:itemBehaviors["carapace-bleue"].cooldown0};
+			var item = {type: "blue-shell", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, ailap:lapId, ailapt:oKart.laps, ailapc:1, cooldown:itemBehaviors["blue-shell"].cooldown0};
 			addNewItem(oKart, item);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
-			case "carapacenoire" :
+			case "blackShell" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
 			if (!isBattle()) {
 				for (var i=0;i<oMap.airoutesmeta.cpu;i++) {
@@ -2640,7 +2640,7 @@ function useWeapon(ID, backwards, forwards) {
 						var isFront = ((aipoint[0]-oKart.x)*(aipoint[0]-lastAipoint[0]) + (aipoint[1]-oKart.y)*(aipoint[1]-lastAipoint[1]) > 0);
 						if (!isFront)
 							dist += oMap.w+oMap.h;
-						var uturn = oKart.demitours+1;
+						var uturn = oKart.uturns+1;
 						if (uturn >= oMap.checkpoint.length)
 							uturn = 0;
 						var nextCp = oMap.checkpointCoords[uturn];
@@ -2658,7 +2658,7 @@ function useWeapon(ID, backwards, forwards) {
 					}
 				}
 			}
-			addNewItem(oKart, {type: "carapace-noire", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, cooldown:itemBehaviors["carapace-noire"].cooldown0});
+			addNewItem(oKart, {type: "black-shell", team:oKart.team, x:oKart.x,y:oKart.y,z:15, target:-1, aipoint:minAiPt, aimap:minAiMap, cooldown:itemBehaviors["black-shell"].cooldown0});
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
@@ -2667,12 +2667,12 @@ function useWeapon(ID, backwards, forwards) {
 			playIfShould(oKart,"musics/events/item_store.mp3");
 			break;
 
-			case "eclair" :
-			addNewItem(oKart, {type:"eclair", owner:oKart.id});
+			case "lightning" :
+			addNewItem(oKart, {type:"lightning", owner:oKart.id});
 			break;
 
-			case "bloops" :
-			addNewItem(oKart, {type:"bloops", owner:oKart.id});
+			case "bloopers" :
+			addNewItem(oKart, {type:"bloopers", owner:oKart.id});
 			break;
 
 			case "pow" :
@@ -2684,29 +2684,29 @@ function useWeapon(ID, backwards, forwards) {
 			oKart[itemKey] = tpsUse;
 
 		var newItem;
-		switch(oKart.arme) {
-		case "champiX2":
-			newItem = "champi";
+		switch(oKart.weapon) {
+		case "mushroomX2":
+			newItem = "mushroom";
 			break;
-		case "champiX3":
-			newItem = "champiX2";
+		case "mushroomX3":
+			newItem = "mushroomX2";
 			break;
-		case "champior":
-			newItem = "champior";
+		case "goldMushroom":
+			newItem = "goldMushroom";
 			break;
-		case "billball":
-			newItem = "billball";
+		case "bulletbill":
+			newItem = "bulletbill";
 		}
 		if (newItem) {
-			if (oKart.arme !== newItem) {
-				oKart.arme = newItem;
+			if (oKart.weapon !== newItem) {
+				oKart.weapon = newItem;
 				if (kartIsPlayer(oKart))
 					updateObjHud(ID);
 			}
 			else {
 				if (kartIsPlayer(oKart)) {
 					switch (newItem) {
-					case "champior":
+					case "goldMushroom":
 						var $img = document.getElementById("wheel"+ID).getElementsByTagName("img")[0];
 						var t = 0;
 						function rescale() {
@@ -2721,10 +2721,10 @@ function useWeapon(ID, backwards, forwards) {
 							setTimeout(rescale, SPF);
 						}
 						rescale();
-						updateItemCountdownHud(ID,oKart.champior/oKart.champior0);
+						updateItemCountdownHud(ID,oKart.goldMushroom/oKart.goldMushroom0);
 						break;
-					case "billball":
-						updateItemCountdownHud(ID,oKart.billball/oKart.billball0);
+					case "bulletbill":
+						updateItemCountdownHud(ID,oKart.bulletbill/oKart.bulletbill0);
 					}
 				}
 			}
@@ -2738,8 +2738,8 @@ function useWeapon(ID, backwards, forwards) {
 		collisionLap = getCurrentLapId(oKart);
 
 		switch(oKart.using[0].type) {
-			case "banane" :
-			case "fauxobjet" :
+			case "banana" :
+			case "fakeItem" :
 			case "poison" :
 			if (forwards) {
 				throwItem(oKart, {x:posX,y:posY,z:0.01,theta:oKart.rotation,countdown:15});
@@ -2754,7 +2754,7 @@ function useWeapon(ID, backwards, forwards) {
 			}
 			break;
 
-			case "carapace" :
+			case "shell" :
 			var uDir = dirShoot(oKart, backwards, 3.2);
 			var oAngleView = angleShoot(oKart, backwards);
 			var uX = uDir[0], uY = uDir[1], uL = Math.hypot(uX,uY);
@@ -2767,7 +2767,7 @@ function useWeapon(ID, backwards, forwards) {
 			playDistSound(oKart,"musics/events/throw.mp3",50);
 			break;
 
-			case "carapace-rouge" :
+			case "red-shell" :
 			var oAngleView = angleShoot(oKart, backwards);
 			var shiftDist = 7.5;
 			if (backwards) {
@@ -2783,9 +2783,9 @@ function useWeapon(ID, backwards, forwards) {
 			var lapId = getCurrentLapId(oKart);
 			var itemPayload;
 			if (backwards)
-				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.tours,target:-1};
+				itemPayload = {x:posX+shiftDist*direction(0,oAngleView),y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-2,aimap:-1,ailap:lapId,ailapt:oKart.laps,target:-1};
 			else
-				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.tours,ailapc:1,target:-1};
+				itemPayload = {x:posX+shiftDist*direction(0, oAngleView), y:posY+shiftDist*direction(1,oAngleView),z:0,theta:oAngleView,owner:oKart.id,aipoint:-1,aimap:-1,ailap:lapId,ailapt:oKart.laps,ailapc:1,target:-1};
 			checkItemLap(itemPayload, { aPos: [posX,posY], fast: true });
 			throwItem(oKart, itemPayload);
 			playDistSound(oKart,"musics/events/throw.mp3",50);
@@ -3078,12 +3078,12 @@ function stopMegaMusic(oKart) {
 		postResumeMusic(mapMusic, 0.92);
 }
 function resetPowerup(oKart) {
-	if (oKart.etoile) {
-		oKart.etoile = 0;
+	if (oKart.star) {
+		oKart.star = 0;
 		stopStarMusic(oKart);
 	}
-	if (oKart.megachampi) {
-		oKart.megachampi = 0;
+	if (oKart.megamushroom) {
+		oKart.megamushroom = 0;
 		stopMegaMusic(oKart);
 	}
 }
@@ -3353,13 +3353,13 @@ function startGame() {
 			cpu : false,
 			aipoints : oMap.aipoints[0],
 
-			tourne : 0,
-			tombe : 0,
+			turning : 0,
+			fall : 0,
 			protect : false,
 
-			roulette : 0,
-			roulette2 : 0,
-			arme : false,
+			wheel : 0,
+			wheel2 : 0,
+			weapon : false,
 			stash: false,
 			maxspeed : 5.7,
 
@@ -3370,9 +3370,9 @@ function startGame() {
 			driftSprite: new Sprite("drift"),
 			jumped : false,
 
-			champi : 0,
-			etoile : 0,
-			megachampi : 0,
+			mushroom : 0,
+			star : 0,
+			megamushroom : 0,
 			mini : 0,
 			using : []
 		};
@@ -3387,13 +3387,13 @@ function startGame() {
 		if (!isBattle()) {
 			posKart(oPlayer, isTT ? 1:oPlace);
 			oPlayer.time = 0;
-			oPlayer.tours = 1;
-			oPlayer.demitours = cp0;
-			//oPlayer.tours = oMap.tours;
-			//oPlayer.demitours = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
-			//oPlayer.arme = "bloops";
-			//oPlayer.roulette = 24;
-			oPlayer.billball = 0;
+			oPlayer.laps = 1;
+			oPlayer.uturns = cp0;
+			//oPlayer.laps = oMap.tours;
+			//oPlayer.uturns = cp0 ? oMap.checkpoint.length-2:oMap.checkpoint.length-1;
+			//oPlayer.weapon = "bloopers";
+			//oPlayer.wheel = 24;
+			oPlayer.bulletbill = 0;
 			oPlayer.place = oPlace;
 		}
 		else {
@@ -3444,22 +3444,22 @@ function startGame() {
 			personnage : player,
 			sprite : new Sprite(player),
 
-			tourne : 0,
-			tombe : 0,
+			turning : 0,
+			fall : 0,
 			protect : false,
 
-			roulette : 0,
-			roulette2 : 0,
-			arme : false,
+			wheel : 0,
+			wheel2 : 0,
+			weapon : false,
 
 			drift : 0,
 			driftinc: 0,
 			driftcpt: 0,
 			driftSprite: new Sprite("drift"),
 
-			champi : 0,
-			etoile : 0,
-			megachampi : 0,
+			mushroom : 0,
+			star : 0,
+			megamushroom : 0,
 			mini : 0,
 			using : [],
 
@@ -3490,14 +3490,14 @@ function startGame() {
 			oEnemy.marker = createMarker(oEnemy);
 		if (!isBattle()) {
 			posKart(oEnemy, isTT ? 1:oPlace);
-			oEnemy.tours = 1;
-			oEnemy.demitours = cp0;
-			//oEnemy.tours = oMap.tours;
-			//oEnemy.demitours = oMap.checkpoint.length-1;
-			oEnemy.billball = 0;
+			oEnemy.laps = 1;
+			oEnemy.uturns = cp0;
+			//oEnemy.laps = oMap.tours;
+			//oEnemy.uturns = oMap.checkpoint.length-1;
+			oEnemy.bulletbill = 0;
 			if (!isOnline) {
 				oEnemy.speed = (depart<2) ? 0 : 5.7;
-				oEnemy.tourne = depart ? 0 : 42;
+				oEnemy.turning = depart ? 0 : 42;
 			}
 			oEnemy.place = oPlace;
 		}
@@ -3592,14 +3592,14 @@ function startGame() {
 	}
 	function accelerateKart() {
 		this.speedinc = this.stats.acceleration*this.size;
-		if (this.etoile) this.speedinc *= 5;
+		if (this.star) this.speedinc *= 5;
 	}
 	function turnKart(dir) {
 		dir *= getMirrorFactor();
 		if (clLocalVars.invertDirs)
 			dir = -dir;
 		this.rotincdir = this.stats.handling*dir;
-		if (!this.driftinc && !this.tourne && !this.fell && this.ctrl && !this.cannon) {
+		if (!this.driftinc && !this.turning && !this.fell && this.ctrl && !this.cannon) {
 			if (this.jumped)
 				this.driftinc = dir;
 			if (this.driftinc)
@@ -3607,14 +3607,14 @@ function startGame() {
 		}
 	}
 	function spinKart(nb) {
-		if (!this.tourne) {
+		if (!this.turning) {
 			if (isOnline)
 				playIfShould(this,"musics/events/spin.mp3");
 			else
 				playDistSound(this,"musics/events/spin.mp3",(isBattle())?80:50);
 		}
 		this.frminv = 10;
-		this.tourne = nb;
+		this.turning = nb;
 		resetWrongWay(this);
 	}
 	function actualKartSpeed() {
@@ -3646,10 +3646,10 @@ function startGame() {
 			lMap.arme = [];
 		});
 		for (var i=0;i<aKarts.length;i++) {
-			aKarts[i].arme = "champiX3";
+			aKarts[i].weapon = "mushroomX3";
 			aKarts[i].maxspeed0 = aKarts[i].maxspeed;
 		}
-		aKarts[0].roulette = 25;
+		aKarts[0].wheel = 25;
 		if (isTimeTrial()) {
 			for (var i=0;i<gPersos.length;i++) {
 				var gPerso = gPersos[i];
@@ -3671,26 +3671,26 @@ function startGame() {
 					personnage : gPerso,
 					sprite : new Sprite(gPerso),
 
-					tourne : 0,
-					tombe : 0,
+					turning : 0,
+					fall : 0,
 					protect : false,
 
-					roulette : 0,
-					roulette2 : 0,
-					arme : false,
+					wheel : 0,
+					wheel2 : 0,
+					weapon : false,
 
 					drift : 0,
 					driftinc: 0,
 					driftcpt: 0,
 					driftSprite: new Sprite("drift"),
 
-					champi : 0,
-					etoile : 0,
-					megachampi : 0,
+					mushroom : 0,
+					star : 0,
+					megamushroom : 0,
 					using : [],
 
-					tours : 1,
-					demitours: 0,
+					laps : 1,
+					uturns: 0,
 
 					cpu : false,
 					aipoint : 0,
@@ -3715,7 +3715,7 @@ function startGame() {
 			(function(getId) {
 				var oKart = aKarts[getId];
 				oKart.stopDrifting = function() {
-					oKart.tourne = 0;
+					oKart.turning = 0;
 					oKart.driftcpt = 0;
 					oKart.driftinc = 0;
 					resetDriftSprite(oKart);
@@ -3723,7 +3723,7 @@ function startGame() {
 				oKart.stopStunt = function() {
 					if (aStunted) {
 						aStunted = false;
-						oKart.tourne = 0;
+						oKart.turning = 0;
 					}
 					var oSprite = oKart.sprite[0];
 					if (oSprite.div.ahallowed) {
@@ -3737,14 +3737,14 @@ function startGame() {
 				}
 				oKart.moveGhost = function(getInfos) {
 					var oKart = aKarts[getId];
-					if (oKart.tombe) {
-						oKart.tombe--;
-						if (!oKart.tombe)
+					if (oKart.fall) {
+						oKart.fall--;
+						if (!oKart.fall)
 							resetFall(oKart);
 						if (!getId) {
-							if (oKart.tombe === 19)
+							if (oKart.fall === 19)
 								oKart.sprite[getId].img.style.opacity = 1;
-							oContainers[0].style.opacity = Math.abs(oKart.tombe-10)/10;
+							oContainers[0].style.opacity = Math.abs(oKart.fall-10)/10;
 						}
 					}
 					var aX = oKart.x;
@@ -3763,12 +3763,12 @@ function startGame() {
 					else if (getFlags[3])
 						rotincdir = -1;
 					oKart.rotincdir = oKart.stats.handling*rotincdir;
-					var aLaps = oKart.tours, aUturn = oKart.demitours;
+					var aLaps = oKart.laps, aUturns = oKart.uturns;
 					if (checkpoint(oKart, oKart.x-aX,oKart.y-aY)) {
-						oKart.tours++;
-						oKart.demitours = getNextCp(oKart);
+						oKart.laps++;
+						oKart.uturns = getNextCp(oKart);
 					}
-					handleCpChange(aLaps,aUturn, getId);
+					handleCpChange(aLaps,aUturns, getId);
 					if (oKart.z) {
 						if (!aJumped) {
 							aJumped = true;
@@ -3785,8 +3785,8 @@ function startGame() {
 						}
 						else {
 							if (aStunted) {
-								oKart.tourne -= 1 + Math.round((11-Math.abs(11-oKart.tourne))*0.5);
-								if (oKart.tourne < 8) {
+								oKart.turning -= 1 + Math.round((11-Math.abs(11-oKart.turning))*0.5);
+								if (oKart.turning < 8) {
 									var oSprite = oKart.sprite[0];
 									if (!oSprite.div.ahallowed) {
 										oSprite.div.ahallowed = true;
@@ -3795,18 +3795,18 @@ function startGame() {
 										oSprite.div.style.backgroundSize = "contain";
 										oSprite.img.style.opacity = 0.7;
 									}
-									if (oKart.tourne < 0)
-										oKart.tourne = 0;
+									if (oKart.turning < 0)
+										oKart.turning = 0;
 								}
 							}
-							else if (getFlags[1] && !oKart.driftinc && !oKart.tombe) {
+							else if (getFlags[1] && !oKart.driftinc && !oKart.fall) {
 								aStunted = true;
 								oKart.stopDrifting();
-								oKart.tourne = 19;
+								oKart.turning = 19;
 							}
 						}
 						if (getFlags[0]) {
-							oKart.tombe = 20;
+							oKart.fall = 20;
 							oKart.aX = aX;
 							oKart.aY = aY;
 							oKart.aRotation = aRotation;
@@ -4095,7 +4095,7 @@ function startGame() {
 					}
 					else {
 						asset0.src = "assets/"+assetKey;
-						img.src = "images/map_icons/"+asset0.src+".png";
+						img.src = "images/map_icons/" + ((asset0.src in itemToImageName) ? itemToImageName[asset0.src] : asset0.src) + ".png";
 					}
 					img.onload = function() {
 						asset0.redraw(asset);
@@ -4474,7 +4474,7 @@ function startGame() {
 								if (!isJumpEnabled()) break;
 								oPlayers[0].ctrl = true;
 								if (!oPlayers[0].z && !oPlayers[0].heightinc) {
-									if (!oPlayers[0].driftinc && !oPlayers[0].tourne) {
+									if (!oPlayers[0].driftinc && !oPlayers[0].turning) {
 										oPlayers[0].z = 1;
 										oPlayers[0].heightinc = 0.5;
 										oPlayers[0].jumped = true;
@@ -4484,7 +4484,7 @@ function startGame() {
 											clLocalVars.drifted = true;
 									}
 								}
-								else if (!oPlayers[0].jumped && !oPlayers[0].fell && !oPlayers[0].ctrled && !oPlayers[0].billball && !oPlayers[0].tourne && !oPlayers[0].figuring && !oPlayers[0].figstate && !oPlayers[0].driftinc)
+								else if (!oPlayers[0].jumped && !oPlayers[0].fell && !oPlayers[0].ctrled && !oPlayers[0].bulletbill && !oPlayers[0].turning && !oPlayers[0].figuring && !oPlayers[0].figstate && !oPlayers[0].driftinc)
 									stuntKart(oPlayers[0]);
 								break;
 							case "pause":
@@ -4510,7 +4510,7 @@ function startGame() {
 							case "balloon" :
 								if (pause) return;
 								if (isBattle()) {
-									if ((oPlayers[0].tourne<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
+									if ((oPlayers[0].turning<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
 										oPlayers[0].ballons[oPlayers[0].ballons.length] = createBalloonSprite(oPlayers[0]);
 										oPlayers[0].reserve--;
 										updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
@@ -4549,7 +4549,7 @@ function startGame() {
 								if (!oPlayers[1]) return;
 								oPlayers[1].ctrl = true;
 								if (!oPlayers[1].z && !oPlayers[1].heightinc) {
-									if (!oPlayers[1].driftinc && !oPlayers[1].tourne) {
+									if (!oPlayers[1].driftinc && !oPlayers[1].turning) {
 										oPlayers[1].z = 1;
 										oPlayers[1].heightinc = 0.5;
 										oPlayers[1].jumped = true;
@@ -4557,14 +4557,14 @@ function startGame() {
 											oPlayers[1].driftinc = (oPlayers[1].rotincdir>0) ? 1:-1;
 									}
 								}
-								else if (!oPlayers[1].jumped && !oPlayers[1].ctrled && !oPlayers[1].fell && !oPlayers[1].billball && !oPlayers[1].tourne && !oPlayers[1].figuring && !oPlayers[1].figstate && !oPlayers[1].driftinc)
+								else if (!oPlayers[1].jumped && !oPlayers[1].ctrled && !oPlayers[1].fell && !oPlayers[1].bulletbill && !oPlayers[1].turning && !oPlayers[1].figuring && !oPlayers[1].figstate && !oPlayers[1].driftinc)
 									stuntKart(oPlayers[1]);
 								return false;
 							case "balloon_p2":
 								if (pause) return;
 								if (!oPlayers[1]) return;
 								if (isBattle()) {
-									if ((oPlayers[0].tourne<5) && oPlayers[1].reserve && oPlayers[1].ballons.length && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
+									if ((oPlayers[0].turning<5) && oPlayers[1].reserve && oPlayers[1].ballons.length && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
 										oPlayers[1].ballons[oPlayers[1].ballons.length] = createBalloonSprite(oPlayers[1]);
 										oPlayers[1].reserve--;
 										updateBalloonHud(document.getElementById("compteur1"),oPlayers[1]);
@@ -4578,7 +4578,7 @@ function startGame() {
 							case "item":
 							case "item_back":
 							case "item_fwd":
-								if (!oPlayers[0].tourne && !oPlayers[0].cannon && !pause)
+								if (!oPlayers[0].turning && !oPlayers[0].cannon && !pause)
 									useWeapon(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
 								break;
 							case "up":
@@ -4640,7 +4640,7 @@ function startGame() {
 							case "item_p2":
 							case "item_back_p2":
 							case "item_fwd_p2":
-								if (!oPlayers[1].tourne && !oPlayers[1].cannon && !pause)
+								if (!oPlayers[1].turning && !oPlayers[1].cannon && !pause)
 									useWeapon(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
 								break;
 							case "up_p2":
@@ -4818,19 +4818,19 @@ function startGame() {
 								if (oKart.aipoint == undefined) {
 									oKart.aipoint = 0;
 									oKart.lastAItime = 0;
-									oKart.arme = false;
+									oKart.weapon = false;
 									oKart.maxspeed = 5.7;
 									if (!i) {
-										oKart.tourne = 0;
+										oKart.turning = 0;
 										oKart.stopDrifting();
 										oKart.stopStunt();
 									}
 								}
-								if (oKart.demitours === undefined) {
-									var tours = oKart.tours, demitours = oKart.demitours;
-									oKart.tours = oMap.tours+1;
-									oKart.demitours = 0;
-									handleCpChange(tours,demitours, i);
+								if (oKart.uturns === undefined) {
+									var laps = oKart.laps, uturns = oKart.uturns;
+									oKart.laps = oMap.tours+1;
+									oKart.uturns = 0;
+									handleCpChange(laps,uturns, i);
 								}
 								ai(oKart);
 								var aSfx = iSfx;
@@ -4847,13 +4847,13 @@ function startGame() {
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var tours=oKart.tours,demitours=oKart.demitours;oKart.tours=oMap.tours+1;oKart.demitours=0;handleCpChange(tours,demitours,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.tourne=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var laps=oKart.laps,uturns=oKart.uturns;oKart.laps=oMap.tours+1;oKart.uturns=0;handleCpChange(laps,uturns,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.turning=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++) {
 						aKarts[i].cpu = true;
-						aKarts[i].tours = 1;
-						aKarts[i].demitours = 0;
+						aKarts[i].laps = 1;
+						aKarts[i].uturns = 0;
 					}
 					for (i=0;i<gPersos.length;i++)
 						iTrajets.push(jTrajets[i]);
@@ -6303,7 +6303,7 @@ function Sprite(strSprite) {
 		oImg.alt = ".";
 		oImg.className = "pixelated";
 
-		oImg.src = getSpriteSrc(strSprite);
+		oImg.src = getSpriteImg(strSprite);
 
 		var oSpriteCtr = document.createElement("div");
 		oSpriteCtr.style.width = "32px";
@@ -6396,10 +6396,10 @@ function Sprite(strSprite) {
 	}
 	var that = this;
 	this[0].unshow = function() {
-		that[0].suppr();
+		that[0].delete();
 		that[0].unshown = true;
 	}
-	this[0].suppr = function() {
+	this[0].delete = function() {
 		if (!that[0].unshown) {
 			for (var i=0;i<strPlayer.length;i++)
 				oContainers[i].removeChild(oCtSprites[i][0]);
@@ -6435,7 +6435,7 @@ function Sprite(strSprite) {
 			function removeProgressively() {
 				x -= dx;
 				if (x <= 0) {
-					that[0].suppr();
+					that[0].delete();
 					return;
 				}
 				for (var i=0;i<strPlayer.length;i++)
@@ -6500,12 +6500,12 @@ function BGLayer(strImage, scaleFactor, isDelay) {
 				drawCurrentState : function() {
 					oLayer2.style.backgroundPosition = oLayers[i].style.backgroundPosition;
 				},
-				suppr: function() {
+				delete: function() {
 					container.removeChild(oLayer2);
 				}
 			};
 		},
-		suppr : function() {
+		delete : function() {
 			for (var i=0;i<strPlayer.length;i++)
 				oContainers[i].removeChild(oLayers[i]);
 		}
@@ -7109,7 +7109,7 @@ function intType(key) {
 }
 var maxItemHitboxZ = 5;
 var itemBehaviors = {
-	"banane": {
+	"banana": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
@@ -7119,7 +7119,7 @@ var itemBehaviors = {
 				handleSpriteLaunch(fSprite, 12,0.2);
 		}
 	},
-	"fauxobjet": {
+	"fakeItem": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),byteType("countdown")],
 		fadedelay: 100,
@@ -7139,17 +7139,17 @@ var itemBehaviors = {
 				handleSpriteLaunch(fSprite, 12,0.2);
 		}
 	},
-	"champi": {
+	"mushroom": {
 		size: 0.54,
 		sync: [floatType("x"),floatType("y"),floatType("z")],
 		fadedelay: 100
 	},
-	"etoile": {
+	"star": {
 		size: 0.54,
 		sync: [floatType("x"),floatType("y"),floatType("z")],
 		fadedelay: 100
 	},
-	"eclair": {
+	"lightning": {
 		size: 1,
 		sync: [intType("owner")],
 		fadedelay: 0,
@@ -7173,17 +7173,17 @@ var itemBehaviors = {
 									kart.size = 0.6;
 								kart.mini = Math.round(Math.max(kart.mini, 110-(kart.place-1)*35/(aKarts.length-1)));
 								loseUsingItems(kart);
-								kart.champi = 0;
-								delete kart.champiType;
+								kart.mushroom = 0;
+								delete kart.mushroomType;
 								kart.spin(20);
 								stopDrifting(i);
 								dropCurrentItem(kart);
-								handleItemHit(kart, "eclair");
+								handleItemHit(kart, "lightning");
 							}
 							else {
-								if (kart.megachampi && !kart.etoile) {
-									kart.megachampi = Math.min(kart.megachampi, 8);
-									kart.size = Math.pow(1.05, kart.megachampi);
+								if (kart.megamushroom && !kart.star) {
+									kart.megamushroom = Math.min(kart.megamushroom, 8);
+									kart.size = Math.pow(1.05, kart.megamushroom);
 								}
 							}
 						}
@@ -7375,7 +7375,7 @@ var itemBehaviors = {
 			}
 		}
 	},
-	"bloops": {
+	"bloopers": {
 		size: 1,
 		sync: [intType("owner")],
 		fadedelay: 0,
@@ -7384,7 +7384,7 @@ var itemBehaviors = {
 		onlineResync: false,
 		move: function(fSprite) {
 			if (!fSprite.sprites) {
-				if (items.bloops.length > 1) {
+				if (items.bloopers.length > 1) {
 					destroy(fSprite);
 					return;
 				}
@@ -7400,20 +7400,20 @@ var itemBehaviors = {
 					if ((kart === oKart) || (!friendlyFire(kart,oKart) && !kart.protect)) {
 						if ((i < oPlayers.length) && !onlineSpectatorId) {
 							var oSprites = {
-								"bloops": {
+								"bloopers": {
 									elt: document.createElement("img"),
 									mine: (kart === oKart)
 								}
 							};
-							var oBloops = oSprites.bloops.elt;
+							var oBloops = oSprites.bloopers.elt;
 							oBloops.src = "images/sprites/sprite_blooper.png";
 							oBloops.className = "pixelated";
 							oBloops.style.position = "absolute";
 							oBloops.style.width = (iScreenScale*7) +"px";
-							oSprites.bloops.x = 36;
-							oSprites.bloops.y = oSprites.bloops.mine ? 18:12;
+							oSprites.bloopers.x = 36;
+							oSprites.bloopers.y = oSprites.bloopers.mine ? 18:12;
 							oBloops.style.zIndex = 19001;
-							oBloops.style.opacity = oSprites.bloops.mine ? 1:0;
+							oBloops.style.opacity = oSprites.bloopers.mine ? 1:0;
 							if (nbFrames > 1) {
 								var transitionS = (SPF/1000);
 								oBloops.style.transition = "left "+ transitionS +"s ease-out, top "+ transitionS +"s ease-out";
@@ -7421,14 +7421,14 @@ var itemBehaviors = {
 							oContainers[i].appendChild(oBloops);
 							fSprite.sprites[i] = oSprites;
 						}
-						kart.bloops = fSprite;
+						kart.bloopers = fSprite;
 					}
 				}
 				fSprite.effective = function(oKart) {
 					return (this.countstate == 13) && !oKart.unbloop && this.owner !== oKart.id;
 				}
 			}
-			var itemBehavior = itemBehaviors["bloops"];
+			var itemBehavior = itemBehaviors["bloopers"];
 			var sTime = itemBehavior.countdowns[fSprite.countstate];
 			var iTime = fSprite.countdown/sTime;
 			fSprite.countdown++;
@@ -7437,7 +7437,7 @@ var itemBehaviors = {
 				var iSprite = fSprite.sprites[i];
 				var oKart = aKarts[i];
 				if (iSprite) {
-					var oBloops = iSprite.bloops;
+					var oBloops = iSprite.bloopers;
 					if (!oBloops) continue;
 					switch (fSprite.countstate) {
 					case 0:
@@ -7453,7 +7453,7 @@ var itemBehaviors = {
 							oBloops.elt.style.opacity = 1-jTime;
 							if (fSprite.countdown == sTime) {
 								oContainers[i].removeChild(oBloops.elt);
-								delete iSprite.bloops;
+								delete iSprite.bloopers;
 							}
 						}
 						break;
@@ -7607,12 +7607,12 @@ var itemBehaviors = {
 			if (fSprite.countstate >= 12) {
 				for (var i=0;i<aKarts.length;i++) {
 					var oKart = aKarts[i];
-					if (!oKart.unbloop && (oKart.protect || oKart.champi || oKart.tombe))
+					if (!oKart.unbloop && (oKart.protect || oKart.mushroom || oKart.fall))
 						oKart.unbloop = ((fSprite.countstate == 12) && oKart.protect) ? 5:1;
 					if (oKart.unbloop) {
 						if (oKart.unbloop <= 5) {
 							var uTime = oKart.unbloop/5;
-							if ((oKart.bloops === fSprite) && (fSprite.owner !== oKart.id)) {
+							if ((oKart.bloopers === fSprite) && (fSprite.owner !== oKart.id)) {
 								for (var j=0;j<oPlayers.length;j++)
 									oKart.sprite[j].img.style.filter = "brightness("+ (0.15+0.85*uTime) +")";
 							}
@@ -7633,7 +7633,7 @@ var itemBehaviors = {
 			case 12:
 				for (var i=0;i<aKarts.length;i++) {
 					var oKart = aKarts[i];
-					if (!oKart.unbloop && (oKart.bloops === fSprite) && (fSprite.owner !== oKart.id)) {
+					if (!oKart.unbloop && (oKart.bloopers === fSprite) && (fSprite.owner !== oKart.id)) {
 						for (var j=0;j<oPlayers.length;j++)
 							oKart.sprite[j].img.style.filter = "brightness("+ (1-0.85*jTime) +")";
 					}
@@ -7642,7 +7642,7 @@ var itemBehaviors = {
 			case 14:
 				for (var i=0;i<aKarts.length;i++) {
 					var oKart = aKarts[i];
-					if (!oKart.unbloop && (oKart.bloops === fSprite) && (fSprite.owner !== oKart.id)) {
+					if (!oKart.unbloop && (oKart.bloopers === fSprite) && (fSprite.owner !== oKart.id)) {
 						for (var j=0;j<oPlayers.length;j++)
 							oKart.sprite[j].img.style.filter = "brightness("+ (0.15+0.85*jTime) +")";
 					}
@@ -7661,8 +7661,8 @@ var itemBehaviors = {
 			for (var i=0;i<fSprite.sprites.length;i++) {
 				var iSprite = fSprite.sprites[i];
 				if (iSprite) {
-					if (iSprite.bloops)
-						oContainers[i].removeChild(iSprite.bloops.elt);
+					if (iSprite.bloopers)
+						oContainers[i].removeChild(iSprite.bloopers.elt);
 					var oInk = iSprite.ink;
 					if (oInk) {
 						for (var j=0;j<oInk.length;j++)
@@ -7671,16 +7671,16 @@ var itemBehaviors = {
 				}
 			}
 			for (var i=0;i<aKarts.length;i++) {
-				if (aKarts[i].bloops === fSprite) {
+				if (aKarts[i].bloopers === fSprite) {
 					for (var j=0;j<oPlayers.length;j++)
 						aKarts[i].sprite[j].img.style.filter = "";
-					delete aKarts[i].bloops;
+					delete aKarts[i].bloopers;
 					delete aKarts[i].unbloop;
 				}
 			}
 		}
 	},
-	"carapace": {
+	"shell": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("vx"),floatType("vy"),intType("owner"),byteType("lives")],
 		fadedelay: 300,
@@ -7838,13 +7838,13 @@ var itemBehaviors = {
 				fSprite.sprite[i].div.style.opacity = 1+fSprite.cooldown/10;
 			}
 		},
-		drop: function(fSprite, oKart) {
+		fall: function(fSprite, oKart) {
 			fSprite.theta = oKart.rotation+180;
 			fSprite.cooldown = 60;
 			fSprite.countdown = 1;
 		}
 	},
-	"carapace-rouge": {
+	"red-shell": {
 		size: 0.67,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),floatType("theta"),intType("owner"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt"),intType("target")],
 		fadedelay: 300,
@@ -7891,7 +7891,7 @@ var itemBehaviors = {
 							fSprite.ailap = getCurrentLapId(tTarget);
 							delete fSprite.ailapt;
 							delete fSprite.ailapc;
-							if (tTarget.using.length && (tTarget.using[0].type != "fauxobjet")) {
+							if (tTarget.using.length && (tTarget.using[0].type != "fakeItem")) {
 								var rAngle = Math.atan2(fSprite.y-fNewPosY,fSprite.x-fNewPosX) - (90-tTarget.rotation)*Math.PI/180;
 								var pi2 = Math.PI*2;
 								while (rAngle < 0)
@@ -7906,7 +7906,7 @@ var itemBehaviors = {
 									fSprite.x = fNewPosX;
 									fSprite.y = fNewPosY;
 									collisionLap = fSprite.ailap;
-									if (tTarget.using[0].type === "bobomb" && hit_bobomb_aux(fNewPosX, fNewPosY, onlyThisItems([tTarget.using[0]])))
+									if (tTarget.using[0].type === "bobomb" && hit_bobomb(fNewPosX, fNewPosY, onlyThisItems([tTarget.using[0]])))
 										return;
 									destroy(fSprite);
 									if (tTarget.using[0])
@@ -7995,7 +7995,7 @@ var itemBehaviors = {
 
 							for (var k=0;k<aKarts.length;k++) {
 								var pTarget = aKarts[k];
-								if (pTarget.id != fSprite.owner && !friendlyHit(fSprite.team,pTarget.team) && !pTarget.tombe && !pTarget.loose) {
+								if (pTarget.id != fSprite.owner && !friendlyHit(fSprite.team,pTarget.team) && !pTarget.fall && !pTarget.loose) {
 									var fDirX = pTarget.x-fNewPosX, fDirY = pTarget.y-fNewPosY;
 									var fDist = Math.pow(fDirX, 2) + Math.pow(fDirY, 2);
 									if (fDist < maxDist) {
@@ -8028,8 +8028,8 @@ var itemBehaviors = {
 				var inTarget = (fSprite.target >= 0) && !isMoving;
 				var fSpriteExcept = [fSprite];
 				if (inTarget) {
-					for (var i=0;i<items["carapace-rouge"].length;i++) {
-						var oBox = items["carapace-rouge"][i];
+					for (var i=0;i<items["red-shell"].length;i++) {
+						var oBox = items["red-shell"][i];
 						if (oBox !== fSprite && oBox.x === fSprite.x && oBox.y === fSprite.y)
 							fSpriteExcept.push(oBox);
 					}
@@ -8121,7 +8121,7 @@ var itemBehaviors = {
 			}
 		}
 	},
-	"carapace-bleue": {
+	"blue-shell": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap"),byteType("ailap"),byteType("ailapt")],
 		fadedelay: 0,
@@ -8162,7 +8162,7 @@ var itemBehaviors = {
 						var fMoveX = fSprite.x - oKart.x;
 						var fMoveY = fSprite.y - oKart.y;
 						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
-						var itemBehavior = itemBehaviors["carapace-bleue"];
+						var itemBehavior = itemBehaviors["blue-shell"];
 						if (fSprite.cooldown == itemBehavior.cooldown0) {
 							var dSpeed = 10*relSpeed;
 							if (fMove2 > dSpeed*dSpeed) {
@@ -8179,8 +8179,8 @@ var itemBehaviors = {
 						else {
 							if (fSprite.cooldown < 5) {
 								var maxSpeed2 = 32;
-								if (oKart.champi > 0) {
-									if ((oKart.champi < (oKart.champior ? 8:16)) || (oKart.champiType !== MUSHROOM_TYPE_ITEM))
+								if (oKart.mushroom > 0) {
+									if ((oKart.mushroom < (oKart.goldMushroom ? 8:16)) || (oKart.mushroomType !== MUSHROOM_TYPE_ITEM))
 										maxSpeed2 = 200;
 								}
 								else if (oKart.turbodrift)
@@ -8261,7 +8261,7 @@ var itemBehaviors = {
 					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace) {
-								if (((aKarts[k].tours <= oMap.tours) || (isBattle())) && !friendlyHit(fSprite.team,aKarts[k].team)) {
+								if (((aKarts[k].laps <= oMap.tours) || (isBattle())) && !friendlyHit(fSprite.team,aKarts[k].team)) {
 									target = k;
 									cPlace = aKarts.length;
 								}
@@ -8336,7 +8336,7 @@ var itemBehaviors = {
 			nextBlueShellCooldown = 300;
 		}
 	},
-	"carapace-noire": {
+	"black-shell": {
 		size: 1,
 		sync: [byteType("team"),floatType("x"),floatType("y"),floatType("z"),intType("target"),byteType("cooldown"),shortType("aipoint"),byteType("aimap")],
 		fadedelay: 0,
@@ -8361,7 +8361,7 @@ var itemBehaviors = {
 						var fMoveX = fSprite.x - oKart.x;
 						var fMoveY = fSprite.y - oKart.y;
 						var fMove2 = fMoveX*fMoveX + fMoveY*fMoveY;
-						var itemBehavior = itemBehaviors["carapace-noire"];
+						var itemBehavior = itemBehaviors["black-shell"];
 						if (fSprite.cooldown == itemBehavior.cooldown0) {
 							var dSpeed = 10*relSpeed;
 							if (fMove2 > dSpeed*dSpeed) {
@@ -8378,7 +8378,7 @@ var itemBehaviors = {
 						else {
 							if (fSprite.cooldown < 5) {
 								var maxSpeed2 = 32;
-								if (oKart.champi > 0)
+								if (oKart.mushroom > 0)
 									maxSpeed2 = 200;
 								else if (oKart.turbodrift)
 									maxSpeed2 = 64;
@@ -8526,12 +8526,12 @@ var itemBehaviors = {
 		}
 	}
 }
-var itemTypes = ["banane","fauxobjet","carapace","bobomb","poison","carapace-rouge","carapace-bleue","carapace-noire","eclair","bloops","pow","champi","etoile"];
+var itemTypes = ["banana","fakeItem","shell","bobomb","poison","red-shell","blue-shell","black-shell","lightning","bloopers","pow","mushroom","star"];
 var items = {};
 for (var i=0;i<itemTypes.length;i++)
 	items[itemTypes[i]] = [];
 var decorBehaviors = {
-	taupe:{
+	mole:{
 		spin: 20,
 		init:function(decorData,i,iG) {
 			if (decorData.length > 3) return;
@@ -8558,7 +8558,7 @@ var decorBehaviors = {
 			}
 		}
 	},
-	poisson:{
+	fish:{
 		spin: 20,
 		movable:true,
 		preinit:function(decorsData,$this) {
@@ -8598,9 +8598,9 @@ var decorBehaviors = {
 		spin: 20,
 		movable:true,
 		preinit:function(decorsData,$this) {
-			this.preinit = decorBehaviors.poisson.preinit.bind(this);
-			this.init = decorBehaviors.poisson.init.bind(this);
-			this.move_ = decorBehaviors.poisson.move.bind(this);
+			this.preinit = decorBehaviors.fish.preinit.bind(this);
+			this.init = decorBehaviors.fish.init.bind(this);
+			this.move_ = decorBehaviors.fish.move.bind(this);
 			this.preinit(decorsData,$this);
 		},
 		move: function(decorData,i,iG,$this) {
@@ -8611,7 +8611,7 @@ var decorBehaviors = {
 			}
 		}
 	},
-	plante:{
+	plant:{
 		spin: 20,
 		init:function(decorData,i,iG) {
 			if (decorData.length > 3) return;
@@ -8662,7 +8662,7 @@ var decorBehaviors = {
 			}
 		}
 	},
-	spectre:{
+	ghost:{
 		spin: 20,
 		init:function(decorData,i,iG) {
 			decorBehaviors.thwomp.init(decorData,i,iG);
@@ -8684,7 +8684,7 @@ var decorBehaviors = {
 			}
 		}
 	},
-	crabe:{
+	crab:{
 		spin: 20,
 		movable:true,
 		transparent:true,
@@ -8753,8 +8753,8 @@ var decorBehaviors = {
 		transparent:true,
 		dodgable:true,
 		preinit:function(decorsData) {
-			this.init_ = decorBehaviors.crabe.init.bind(this);
-			this.move = decorBehaviors.crabe.move.bind(this);
+			this.init_ = decorBehaviors.crab.init.bind(this);
+			this.move = decorBehaviors.crab.move.bind(this);
 		},
 		init:function(decorData,i,iG) {
 			this.init_(decorData,i,iG);
@@ -9006,8 +9006,8 @@ var decorBehaviors = {
 	piranhaplant: {
 		spin: 20,
 		preinit:function(decorsData) {
-			this.init_ = decorBehaviors.plante.init.bind(this);
-			this.move = decorBehaviors.plante.move.bind(this);
+			this.init_ = decorBehaviors.plant.init.bind(this);
+			this.move = decorBehaviors.plant.move.bind(this);
 		},
 		init:function(decorData,i,iG) {
 			this.init_(decorData,i,iG);
@@ -9232,7 +9232,7 @@ var decorBehaviors = {
 			}
 		}
 	},
-	billball:{
+	bulletbill:{
 		hitbox:10,
 		unbreaking:true,
 		transparent:true,
@@ -9254,7 +9254,7 @@ var decorBehaviors = {
 				}
 			}
 			for (var i=1;i<4;i++) {
-				var decorsData2 = lMap.decor["billball"+i];
+				var decorsData2 = lMap.decor["bulletbill"+i];
 				if (decorsData2) {
 					for (var j=0;j<decorsData2.length;j++) {
 						var decorData = decorsData2[j];
@@ -9367,11 +9367,11 @@ var decorBehaviors = {
 			}
 		}
 	},
-	tortitaupe:{
+	rockyWrench:{
 		spin: 20,
 		preinit:function(decorsData) {
-			this.init_ = decorBehaviors.taupe.init.bind(this);
-			this.move = decorBehaviors.taupe.move.bind(this);
+			this.init_ = decorBehaviors.mole.init.bind(this);
+			this.move = decorBehaviors.mole.move.bind(this);
 		},
 		init:function(decorData,i,iG) {
 			this.init_(decorData,i,iG);
@@ -9382,11 +9382,11 @@ var decorBehaviors = {
 			}
 		}
 	},
-	topitaupe:{
+	montyMole:{
 		spin: 20,
 		preinit:function(decorsData) {
-			this.init = decorBehaviors.taupe.init.bind(this);
-			this.move = decorBehaviors.taupe.move.bind(this);
+			this.init = decorBehaviors.mole.init.bind(this);
+			this.move = decorBehaviors.mole.move.bind(this);
 		}
 	},
 	coconut:{
@@ -9706,7 +9706,7 @@ var decorBehaviors = {
 		boostspeed:11,
 		spritesize: 60,
 		ondie: function() {
-			return "suppr";
+			return "delete";
 		},
 		setdir:function(decorData,ux,uy,pos) {
 			var lMap = this.ctx.lMap;
@@ -9819,8 +9819,8 @@ var decorBehaviors = {
 										decorData[1] = lMap.h*3;
 										decorData[6][1]--;
 										break;
-									case "suppr":
-										lMap.decor[this.type][i][2][0].suppr();
+									case "delete":
+										lMap.decor[this.type][i][2][0].delete();
 										lMap.decor[this.type].splice(i,1);
 										break;
 									case "respawn":
@@ -10526,7 +10526,7 @@ function handleLapChange(prevLapId,lapId, getId) {
 function handleCpChange(prevLap,prevCP, getId) {
 	if (!oMap.lapOverrides) return collisionLap;
 	var oKart = aKarts[getId];
-	var prevLapId = getCurrentLapId({ tours: prevLap, demitours: prevCP });
+	var prevLapId = getCurrentLapId({ laps: prevLap, uturns: prevCP });
 	var lapId = getCurrentLapId(oKart);
 	if (prevLapId === lapId) return lapId;
 	handleLapChange(prevLapId,lapId, getId);
@@ -10563,7 +10563,7 @@ function initAiPoints(lMap, oKart, inc) {
 			aishortcut = aishortcut.slice(1);
 			if (!aishortcut[2]) aishortcut[2] = {};
 			var aiOptions = aishortcut[2];
-			if (aiOptions.items == null) aiOptions.items = ["champi", "champiX2", "champiX3", "champior", "megachampi", "etoile"];
+			if (aiOptions.items == null) aiOptions.items = ["mushroom", "mushroomX2", "mushroomX3", "goldMushroom", "megamushroom", "star"];
 			if (aiOptions.difficulty == null) aiOptions.difficulty = 1.01;
 			if (aiOptions.cc == null) aiOptions.cc = 150;
 			if (aiOptions.ccm == null) aiOptions.ccm = 1000;
@@ -10594,14 +10594,14 @@ function refreshUsingItems(oKart, lapId) {
 }
 function resetBgLayers() {
 	for (var i=0;i<oBgLayers.length;i++)
-		oBgLayers[i].suppr();
+		oBgLayers[i].delete();
 	oBgLayers.length = 0;
 	for (var i=0;i<oPrevFrameStates.length;i++) {
 		var nbPrevFrames = oPrevFrameStates[i].length;
 		for (var j=0;j<nbPrevFrames;j++) {
 			var aLayers = oPrevFrameStates[i][j].layer;
 			for (var k=0;k<aLayers.length;k++)
-				aLayers[k].suppr();
+				aLayers[k].delete();
 			aLayers.length = 0;
 		}
 	}
@@ -10667,10 +10667,10 @@ function checkItemLap(fSprite, opts) {
 	var laps = fSprite.ailapt;
 	if (!laps) {
 		var currentOverride = oMap.lapOverrides[lapId-1];
-		laps = currentOverride ? currentOverride.tours : 1;
+		laps = currentOverride ? currentOverride.laps : 1;
 	}
 	var lMap = getCurrentLMap(lapId);
-	var nextCp = getNextCp({ tours: laps });
+	var nextCp = getNextCp({ laps: laps });
 	if (!fSprite.ailapc && !(fSprite.aipoint < lMap.checkpoint.length/2))
 		fSprite.ailapc = 1;
 	if (fSprite.ailapc && enteredCheckpoint(lMap.checkpointCoords[nextCp], fSprite, opts)) {
@@ -10729,12 +10729,12 @@ function render() {
 			rotation: oKart.rotation,
 			changeView: oKart.changeView||0,
 			size: oKart.size,
-			tourne: oKart.tourne,
+			turning: oKart.turning,
 			figstate: oKart.figstate||0,
 			time: oKart.time,
-			roulette: oKart.roulette,
-			roulette2: oKart.roulette2,
-			tombe: oKart.tombe,
+			wheel: oKart.wheel,
+			wheel2: oKart.wheel2,
+			fall: oKart.fall,
 			teleport: oKart.teleport
 		});
 	}
@@ -10827,12 +10827,12 @@ function render() {
 				var lastObj = getLastObj(lastState.karts,i,currentObj);
 				if (!currentObj.ref.progressiveView)
 					lastObj.changeView = currentObj.changeView;
-				if (currentObj.tombe && !lastObj.tombe)
-					lastObj.tombe = currentObj.tombe;
+				if (currentObj.fall && !lastObj.fall)
+					lastObj.fall = currentObj.fall;
 				if (currentObj.figstate && !lastObj.figstate)
 					lastObj.figstate = currentObj.figstate;
-				if (currentObj.tourne && !lastObj.tourne)
-					lastObj.tourne = currentObj.tourne;
+				if (currentObj.turning && !lastObj.turning)
+					lastObj.turning = currentObj.turning;
 				frameState.karts.push({
 					ref: currentObj.ref,
 					x: interpolateState(lastObj.x,currentObj.x,tFrame),
@@ -10842,12 +10842,12 @@ function render() {
 					rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
 					changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
 					size: interpolateState(lastObj.size,currentObj.size,tFrame),
-					tourne: interpolateStateRound(lastObj.tourne,currentObj.tourne,tFrame),
+					turning: interpolateStateRound(lastObj.turning,currentObj.turning,tFrame),
 					figstate: interpolateStateRound(lastObj.figstate,currentObj.figstate,tFrame),
 					time: interpolateState(lastObj.time,currentObj.time,tFrame),
-					roulette: interpolateState(lastObj.roulette,currentObj.roulette,tFrame),
-					roulette2: interpolateState(lastObj.roulette2,currentObj.roulette2,tFrame),
-					tombe: interpolateState(lastObj.tombe,currentObj.tombe,tFrame),
+					wheel: interpolateState(lastObj.wheel,currentObj.wheel,tFrame),
+					wheel2: interpolateState(lastObj.wheel2,currentObj.wheel2,tFrame),
+					fall: interpolateState(lastObj.fall,currentObj.fall,tFrame),
 					teleport: interpolateStateNullable(lastObj.teleport,currentObj.teleport,tFrame)
 				});
 			}
@@ -10903,9 +10903,9 @@ function render() {
 				posY = frameState.cam.y;
 				fRotation = frameState.cam.rotation;
 			}
-			if (oPlayer.tombe) {
-				if (oPlayer.tombe > 10) {
-					if (oPlayer.tombe == 20 && !lastFrame) {
+			if (oPlayer.fall) {
+				if (oPlayer.fall > 10) {
+					if (oPlayer.fall == 20 && !lastFrame) {
 						posX = interpolateState(lastState.karts[i].x,oPlayer.ref.aX, tFrame);
 						posY = interpolateState(lastState.karts[i].y,oPlayer.ref.aY, tFrame);
 						oPlayer.x = posX;
@@ -10924,7 +10924,7 @@ function render() {
 						});
 					}
 				}
-				oContainers[i].style.opacity = Math.abs(oPlayer.tombe-10)/10;
+				oContainers[i].style.opacity = Math.abs(oPlayer.fall-10)/10;
 			}
 			else if (oPlayer.teleport) {
 				if (oPlayer.teleport > 3) {
@@ -10962,7 +10962,7 @@ function render() {
 			}
 			for (var j=0;j<oWheelsPrefixes.length;j++) {
 				var prefix = oWheelsPrefixes[j];
-				var oWheelCnt = oPlayer["roulette"+prefix];
+				var oWheelCnt = oPlayer["wheel"+prefix];
 				if (oWheelCnt && oWheelCnt < 25) {
 					var rTurner = document.getElementById("scroller"+prefix+i).getElementsByTagName("div")[0];
 					var rHeight = +rTurner.dataset.h;
@@ -10992,7 +10992,7 @@ function render() {
 				}
 				var fAngle = nearestAngleMirrored(fRotation-fSprite.rotation, 180,360);
 
-				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.tourne % 21;
+				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.turning % 21;
 				if (iAngleStep > 21) iAngleStep -= 22;
 
 				var isActualPlayer = (fSprite == oPlayer) && !oSpecCam;
@@ -11003,9 +11003,9 @@ function render() {
 					else if (fSpriteRef.driftinc && ((iAngleStep < 4) || (iAngleStep > 18)))
 						iAngleStep = (fSpriteRef.driftinc*getMirrorFactor()>0) ? 18:4;
 					else if (isActualPlayer) {
-						if (fSpriteRef.rotincdir && !fSprite.tourne)
+						if (fSpriteRef.rotincdir && !fSprite.turning)
 							iAngleStep = (fSpriteRef.rotincdir*getMirrorFactor() > 0) ? 23:22;
-						else if (!fSprite.tourne)
+						else if (!fSprite.turning)
 							iAngleStep = 0;
 					}
 				}
@@ -11075,7 +11075,7 @@ function render() {
 				}
 
 				if (!isActualPlayer) {
-					if (fSpriteRef.marker && !fSpriteRef.loose && !fSpriteRef.tombe)
+					if (fSpriteRef.marker && !fSpriteRef.loose && !fSpriteRef.fall)
 						fSpriteRef.marker.render(i, jCamera, fSprite);
 				}
 			}
@@ -11360,7 +11360,7 @@ function addNewBalloon(oKart,team) {
 function popBalloon(oKart) {
 	let lg = oKart.ballons.length - 1;
 	if (lg < 0) return;
-	oKart.ballons[lg][0].suppr();
+	oKart.ballons[lg][0].delete();
 	oKart.ballons.pop();
 }
 function inflateNewBalloons(oKart) {
@@ -11401,7 +11401,7 @@ function deleteItem(item, sound) {
 		if (item.sprite) {
 			for (var i=0;i<oPlayers.length;i++) {
 				var oPlayer = getPlayerAtScreen(i);
-				if (!oPlayer.tombe) {
+				if (!oPlayer.fall) {
 					var fCamera = {
 						x: oPlayer.x,
 						y: oPlayer.y,
@@ -11455,21 +11455,21 @@ function delWeapon(i) {
 	var oKart = aKarts[i];
 	for (var j=0;j<oWheelsPrefixes.length;j++) {
 		var prefix = oWheelsPrefixes[j];
-		oKart["roulette"+prefix] = 0;
+		oKart["wheel"+prefix] = 0;
 		oKart[oWeaponKeys[j]] = false;
 	}
 	if (kartIsPlayer(oKart)) {
 		updateObjHud(i);
 		updateItemCountdownHud(i, null);
-		removeIfExists(oKart.rouletteSound);
+		removeIfExists(oKart.wheelSound);
 	}
 }
 function consumeItem(i) {
 	var oKart = aKarts[i];
-	oKart.arme = oKart.stash;
+	oKart.weapon = oKart.stash;
 	oKart.stash = false;
-	oKart.roulette = oKart.roulette2;
-	oKart.roulette2 = 0;
+	oKart.wheel = oKart.wheel2;
+	oKart.wheel2 = 0;
 	if (kartIsPlayer(oKart)) {
 		updateObjHud(i);
 		updateItemCountdownHud(i, null);
@@ -11500,15 +11500,15 @@ function loseUsingItem(oKart) {
 		loseUsingItems(oKart);
 }
 function dropCurrentItem(oKart) {
-	var sWeapon = oKart.arme;
+	var sWeapon = oKart.weapon;
 	if (!sWeapon) return;
-	var sWheel = oKart.roulette;
+	var sWheel = oKart.wheel;
 	var iKart = aKarts.indexOf(oKart);
 	consumeItem(iKart);
 	consumeItemIfDouble(iKart);
-	delete oKart.champiType;
-	delete oKart.champior;
-	delete oKart.champior0;
+	delete oKart.mushroomType;
+	delete oKart.goldMushroom;
+	delete oKart.goldMushroom0;
 	if (sWheel < 25) return;
 	if (isOnline && (oKart.id != identifiant) && (oKart.controller != identifiant)) return;
 	var itemCount = 1;
@@ -11519,15 +11519,15 @@ function dropCurrentItem(oKart) {
 	}
 	var itemType;
 	switch (sWeapon) {
-	case "champi":
-	case "etoile":
-	case "banane":
-	case "carapace":
+	case "mushroom":
+	case "star":
+	case "banana":
+	case "shell":
 	case "poison":
 		itemType = sWeapon;
 		break;
-	case "carapacerouge":
-		itemType = "carapace-rouge";
+	case "redshell":
+		itemType = "red-shell";
 		break;
 	}
 	if (itemType) {
@@ -11548,7 +11548,7 @@ function moveUsingItems(oKart, triggered) {
 		var rotItem = 0;
 		var l = 5;
 		var dtheta = 360/oKart.using.length;
-		var isBanana = (oKart.using[0].type === "banane");
+		var isBanana = (oKart.using[0].type === "banana");
 		if (oKart.rotitem !== undefined) {
 			rotItem = oKart.rotitem;
 			if (isBanana)
@@ -11649,7 +11649,7 @@ function resumeSpriteSize(sprite) {
 }
 
 function updateProtectFlag(oKart) {
-	oKart.protect = (oKart.etoile || oKart.megachampi || oKart.billball || oKart.cannon);
+	oKart.protect = (oKart.star || oKart.megamushroom || oKart.bulletbill || oKart.cannon);
 }
 
 function colKart(getId) {
@@ -11659,12 +11659,12 @@ function colKart(getId) {
 		var kart = aKarts[i];
 		var lap2 = getCurrentLapId(kart);
 		if (lapInteractionsDisabled(lap1,lap2)) continue;
-		var protect1 = oKart.protect ? ((oKart.etoile||oKart.billball)?2:1) : 0;
-		var protect2 = kart.protect ? ((kart.etoile||kart.billball)?2:1) : 0;
-		var isChampiCol = (isBattle()) && (!oKart.champi != !kart.champi);
+		var protect1 = oKart.protect ? ((oKart.star||oKart.bulletbill)?2:1) : 0;
+		var protect2 = kart.protect ? ((kart.star||kart.bulletbill)?2:1) : 0;
+		var isChampiCol = (isBattle()) && (!oKart.mushroom != !kart.mushroom);
 		if (oKart.cpu && kart.cpu && (protect1 == protect2) && !isChampiCol)
 			continue;
-		if (!friendlyFire(oKart,kart) && (!isBattle()||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||(oKart.billball&&!oKart.cannon)) && (kart.z<=jumpHeight0||(kart.billball&&!kart.cannon)) && !oKart.tourne && !kart.tourne) {
+		if (!friendlyFire(oKart,kart) && (!isBattle()||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||(oKart.bulletbill&&!oKart.cannon)) && (kart.z<=jumpHeight0||(kart.bulletbill&&!kart.cannon)) && !oKart.turning && !kart.turning) {
 			var dir1 = kartInstantSpeed(oKart), dir2 = kartInstantSpeed(kart);
 			var relDir = [dir2[0]-dir1[0],dir2[1]-dir1[1]];
 			var nDir1 = [oKart.x-kart.x,oKart.y-kart.y];
@@ -11679,10 +11679,10 @@ function colKart(getId) {
 					if (isOnline && shareLink.options && shareLink.options.noBumps)
 						continue;
 					if (isChampiCol) {
-						var qKart = oKart.champi ? kart:oKart;
+						var qKart = oKart.mushroom ? kart:oKart;
 						if (!qKart.loose && !qKart.cannon && !qKart.frminv) {
-							var pKart = oKart.champi ? oKart:kart;
-							if (pKart.champiType === MUSHROOM_TYPE_ITEM) {
+							var pKart = oKart.mushroom ? oKart:kart;
+							if (pKart.mushroomType === MUSHROOM_TYPE_ITEM) {
 								var iKart = aKarts.indexOf(qKart);
 								handleOtherKartHit(pKart,qKart);
 								loseBallon(iKart);
@@ -11849,9 +11849,9 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 										collisionPlayer.turbodrift = 0;
 									if (decorBehavior.bonus) {
 										if (!isOnline || (collisionPlayer == oPlayers[0] && !onlineSpectatorId)) {
-											var bonusType = "champi";
+											var bonusType = "mushroom";
 											if (!isTimeTrial() && Math.random() < 0.5)
-												bonusType = "banane";
+												bonusType = "banana";
 											addNewItem(collisionPlayer, {type: bonusType, team:collisionPlayer.team, x:(nX+iI*2.5),y:(nY+iJ*2.5), z:0});
 										}
 									}
@@ -11959,10 +11959,10 @@ function getLineHorizontality(iX,iY, nX,nY, lines) {
 }
 function isBreakingItem(decorBehavior) {
 	if (!decorBehavior.damagingItems) return false;
-	if (decorBehavior.damagingItems.megachampi && collisionPlayer.megachampi) return true;
-	if (decorBehavior.damagingItems.billball && collisionPlayer.billball) return true;
-	if (decorBehavior.damagingItems.etoile && collisionPlayer.etoile) return true;
-	if (decorBehavior.damagingItems.champi && collisionPlayer.champi && collisionPlayer.champiType === MUSHROOM_TYPE_ITEM) return true;
+	if (decorBehavior.damagingItems.megamushroom && collisionPlayer.megamushroom) return true;
+	if (decorBehavior.damagingItems.bulletbill && collisionPlayer.bulletbill) return true;
+	if (decorBehavior.damagingItems.star && collisionPlayer.star) return true;
+	if (decorBehavior.damagingItems.mushroom && collisionPlayer.mushroom && collisionPlayer.mushroomType === MUSHROOM_TYPE_ITEM) return true;
 }
 
 function secants(x11,y11,x21,y21, x12,y12,x22,y22) {
@@ -12278,11 +12278,11 @@ function jumps(iX, iY, iI, iJ) {
 	return false;
 }
 function sizeSpeedRatio(oKart) {
-	if (!oKart.megachampi) return oKart.size;
+	if (!oKart.megamushroom) return oKart.size;
 	return Math.pow(oKart.size, 0.3);
 }
 function handleJump(oKart, pJump) {
-	if (pJump && !oKart.tourne) {
+	if (pJump && !oKart.turning) {
 		var height0 = pJump * 1.5;
 		oKart.heightinc = height0 * Math.pow(cappedRelSpeed(oKart), -0.7);
 		if ((fSelectedClass > 1) && (0.7*oKart.heightinc*oKart.heightinc < jumpHeight0))
@@ -12304,11 +12304,11 @@ function handleHeightInc(oKart) {
 function handleCannon(oKart, cannon) {
 	if (cannon && (cannon[0]||cannon[1])) {
 		oKart.cannon = [oKart.x+cannon[0],oKart.y+cannon[1],oKart.x,oKart.y];
-		if (oKart.champi) {
+		if (oKart.mushroom) {
 			var cannonL = (cannon[0]*cannon[0] + cannon[1]*cannon[1]);
 			if (cannonL > 50000) {
-				oKart.champi = 0;
-				delete oKart.champiType;
+				oKart.mushroom = 0;
+				delete oKart.mushroomType;
 			}
 		}
 		if (!oKart.z)
@@ -12691,7 +12691,7 @@ var challengeRules = {
 	"complete_laps": {
 		"verify": "end_lap",
 		"success": function(scope) {
-			if (oPlayers[0].tours > scope.value)
+			if (oPlayers[0].laps > scope.value)
 				return true;
 		}
 	},
@@ -13205,8 +13205,8 @@ var challengeRules = {
 			ruleVars.selected = true;
 			clLocalVars.isSetup = true;
 			if (scope.value) {
-				oPlayers[0].arme = scope.value;
-				oPlayers[0].roulette = 25;
+				oPlayers[0].weapon = scope.value;
+				oPlayers[0].wheel = 25;
 				updateObjHud(0);
 			}
 			else
@@ -13450,7 +13450,7 @@ var challengeRules = {
 						var oBoxes = lMap.arme[i][2].box;
 						for (var j=0;j<oBoxes.length;j++) {
 							var oBox = oBoxes[j];
-							oBox[0].suppr();
+							oBox[0].delete();
 						}
 					}
 					lMap.arme.length = 0;
@@ -14179,7 +14179,7 @@ function showChallengeRewardPopup(reward) {
 	var challengeTitle = language ? 'New character unlocked!':'Nouveau perso débloqué !';
 	var challengeCongrats = language ? 'You can now play with <strong>'+ reward.name +'</strong>!':'Vous pouvez désormais jouer avec <strong>'+ reward.name +'</strong> !';
 	var challengeImg = document.createElement("img");
-	challengeImg.src = getSpriteSrc(reward.sprites);
+	challengeImg.src = getSpriteImg(reward.sprites);
 	challengeImg.alt = reward.name;
 	challengeImg.className = "pixelated";
 	challengeImg.style.visibility = "hidden";
@@ -14459,81 +14459,109 @@ function showGamePopup(options) {
 }
 
 var metaItemPosition = 0.5, metaItemRange = 1000;
+var itemToImageName = {
+	/* asset weren't renamed, so translate english to french here */
+	"banana": "banane",
+	"bananaX3": "bananeX3",
+	"bloopers": "bloops",
+	"blackshell": "carapacenoire",
+	"black-shell": "carapace-noire",
+	"blueshell": "carapacebleue",
+	"blue-shell": "carapace-bleue",
+	"bobomb": "bobomb",
+	"bulletbill": "billball",
+	"fakeItem":"fauxobjet",
+	"goldMushroom":"champior",
+	"lightning":"eclair",
+	"megamushroom":"megachampi",
+	"mushroom":"champi",
+	"mushroomX2":"champiX2",
+	"mushroomX3":"champiX3",
+	"poison":"poison",
+	"pow":"pow",
+	"redshell": "carapacerouge",
+	"red-shell": "carapace-rouge",
+	"redshellX3": "carapacerougeX3",
+	"shell":"carapace",
+	"shellX3":"carapaceX3",
+	"star":"etoile",
+	"wheel":"wheel",
+}
 var itemDistributions = {
 	"BB": [{
 		name: toLanguage("Standard", "Classique"),
 		value: [{
-			"fauxobjet": 4,
-			"banane": 5,
-			"carapacerouge": 1,
-			"carapace": 4
+			"fakeItem": 4,
+			"banana": 5,
+			"redshell": 1,
+			"shell": 4
 		}, {
-			"carapace": 4,
-			"carapacerouge": 7,
+			"shell": 4,
+			"redshell": 7,
 			"bobomb": 2,
-			"bananeX3": 1
+			"bananaX3": 1
 		}, {
-			"carapace": 1,
+			"shell": 1,
 			"bobomb": 2,
-			"carapace": 4,
-			"carapaceX3": 2,
-			"banane": 1,
-			"fauxobjet": 1,
-			"carapacerouge": 4
+			"shell": 4,
+			"shellX3": 2,
+			"banana": 1,
+			"fakeItem": 1,
+			"redshell": 4
 		}, {
-			"carapacerougeX3": 1,
-			"carapacerouge": 2,
-			"megachampi": 3,
-			"etoile": 3,
-			"champi": 3,
-			"champior": 1,
-			"champiX3": 1,
-			"bloops": 1
+			"redshellX3": 1,
+			"redshell": 2,
+			"megamushroom": 3,
+			"star": 3,
+			"mushroom": 3,
+			"goldMushroom": 1,
+			"mushroomX3": 1,
+			"bloopers": 1
 		}]
 	}, {
 		name: toLanguage("Explosive mode", "Mode explosif"),
 		value: [{
-			"fauxobjet": 1,
-			"banane": 3,
-			"carapacerouge": 3,
-			"carapace": 5
+			"fakeItem": 1,
+			"banana": 3,
+			"redshell": 3,
+			"shell": 5
 		}, {
-			"bananeX3": 1,
-			"carapacerouge": 12,
-			"carapace": 6,
+			"bananaX3": 1,
+			"redshell": 12,
+			"shell": 6,
 			"bobomb": 4
 		}, {
-			"carapacerouge": 8,
-			"carapace": 5,
+			"redshell": 8,
+			"shell": 5,
 			"bobomb": 4,
-			"carapaceX3": 3
+			"shellX3": 3
 		}, {
-			"carapacerouge": 7,
-			"carapacebleue": 4,
-			"carapacerougeX3": 3,
-			"megachampi": 5,
-			"etoile": 5,
-			"champi": 1,
-			"champior": 1,
-			"champiX3": 1,
-			"bloops": 1
+			"redshell": 7,
+			"blueshell": 4,
+			"redshellX3": 3,
+			"megamushroom": 5,
+			"star": 5,
+			"mushroom": 1,
+			"goldMushroom": 1,
+			"mushroomX3": 1,
+			"bloopers": 1
 		}]
 	}, {
 		name: toLanguage("Shells", "Carapaces"),
 		value: [{
-			"carapacerouge": 1,
-			"carapace": 4,
+			"redshell": 1,
+			"shell": 4,
 		}, {
-			"carapacerouge": 7,
-			"carapace": 4
+			"redshell": 7,
+			"shell": 4
 		}, {
-			"carapacerouge": 4,
-			"carapace": 4,
-			"carapaceX3": 2
+			"redshell": 4,
+			"shell": 4,
+			"shellX3": 2
 		}, {
-			"carapacerouge": 6,
-			"carapacebleue": 1,
-			"carapacerougeX3": 3
+			"redshell": 6,
+			"blueshell": 1,
+			"redshellX3": 3
 		}]
 	}, {
 		name: toLanguage("Bob-ombs", "Bob-ombs"),
@@ -14549,220 +14577,220 @@ var itemDistributions = {
 	}, {
 		name: toLanguage("Mushrooms", "Champis"),
 		value: [{
-			"champi": 1,
+			"mushroom": 1,
 			"poison": 1
 		}, {
-			"megachampi": 1,
-			"champi": 3,
-			"champiX3": 1
+			"megamushroom": 1,
+			"mushroom": 3,
+			"mushroomX3": 1
 		}, {
-			"megachampi": 2,
-			"champi": 2,
-			"champior": 1,
-			"champiX3": 2
+			"megamushroom": 2,
+			"mushroom": 2,
+			"goldMushroom": 1,
+			"mushroomX3": 2
 		}, {
-			"megachampi": 1,
-			"champior": 1,
-			"champiX3": 1
+			"megamushroom": 1,
+			"goldMushroom": 1,
+			"mushroomX3": 1
 		}]
 	}],
 	"VS": [{
 		name: toLanguage("Standard", "Classique"),
 		value: [{
-			"fauxobjet": 10,
-			"banane": 6,
-			"carapace": 6,
-			"bananeX3": 2,
-			"carapacerouge": 2
+			"fakeItem": 10,
+			"banana": 6,
+			"shell": 6,
+			"bananaX3": 2,
+			"redshell": 2
 		}, {
-			"carapace": 8,
-			"bananeX3": 4,
-			"carapacerouge": 5,
-			"champi": 3
+			"shell": 8,
+			"bananaX3": 4,
+			"redshell": 5,
+			"mushroom": 3
 		}, {
-			"carapaceX3": 7,
-			"carapacerouge": 7,
+			"shellX3": 7,
+			"redshell": 7,
 			"poison": 5,
-			"champi": 5,
+			"mushroom": 5,
 			"bobomb": 3,
-			"bloops": 3
+			"bloopers": 3
 		}, {
-			"champi": 6,
+			"mushroom": 6,
 			"poison": 4,
-			"carapaceX3": 6,
-			"carapacerouge": 5,
+			"shellX3": 6,
+			"redshell": 5,
 			"bobomb": 3,
-			"bloops": 2
+			"bloopers": 2
 		}, {
-			"champi": 8,
-			"carapacerouge": 6,
+			"mushroom": 8,
+			"redshell": 6,
 			"bobomb": 3,
-			"champiX3": 2
+			"mushroomX3": 2
 		}, {
 			"bobomb": 4,
-			"champi": 5,
-			"carapacerouge": 4,
-			"champiX3": 3,
-			"carapacerougeX3": 3
+			"mushroom": 5,
+			"redshell": 4,
+			"mushroomX3": 3,
+			"redshellX3": 3
 		}, {
-			"champi": 8,
-			"carapacerougeX3": 7,
-			"champiX3": 6,
-			"megachampi": 3
+			"mushroom": 8,
+			"redshellX3": 7,
+			"mushroomX3": 6,
+			"megamushroom": 3
 		}, {
-			"champiX3": 8,
-			"carapacerougeX3": 8,
-			"megachampi": 6,
-			"etoile": 4,
-			"champior": 2,
-			"carapacebleue": 5
+			"mushroomX3": 8,
+			"redshellX3": 8,
+			"megamushroom": 6,
+			"star": 4,
+			"goldMushroom": 2,
+			"blueshell": 5
 		}, {
-			"megachampi": 7,
-			"champiX3": 6,
-			"etoile": 5,
-			"champior": 3,
-			"carapacebleue": 5
+			"megamushroom": 7,
+			"mushroomX3": 6,
+			"star": 5,
+			"goldMushroom": 3,
+			"blueshell": 5
 		}, {
-			"megachampi": 8,
-			"champiX3": 6,
-			"etoile": 6,
-			"billball": 3,
-			"champior": 3,
-			"carapacebleue": 5
+			"megamushroom": 8,
+			"mushroomX3": 6,
+			"star": 6,
+			"bulletbill": 3,
+			"goldMushroom": 3,
+			"blueshell": 5
 		}, {
-			"etoile": 6,
-			"megachampi": 6,
-			"billball": 5,
-			"champior": 4,
-			"eclair": 5
+			"star": 6,
+			"megamushroom": 6,
+			"bulletbill": 5,
+			"goldMushroom": 4,
+			"lightning": 5
 		}, {
-			"billball": 4,
-			"etoile": 3,
-			"eclair": 6,
-			"champior": 5,
+			"bulletbill": 4,
+			"star": 3,
+			"lightning": 6,
+			"goldMushroom": 5,
 		}]
 	}, {
 		name: toLanguage("Aggressive mode", "Mode explosif"),
 		"value": [{
-			"fauxobjet": 5,
-			"banane": 2,
-			"carapace": 10,
-			"bananeX3": 1,
-			"carapacerouge": 3
+			"fakeItem": 5,
+			"banana": 2,
+			"shell": 10,
+			"bananaX3": 1,
+			"redshell": 3
 		}, {
-			"carapace": 10,
-			"bananeX3": 4,
-			"carapacerouge": 15,
-			"carapaceX3": 4,
-			"champi": 1
+			"shell": 10,
+			"bananaX3": 4,
+			"redshell": 15,
+			"shellX3": 4,
+			"mushroom": 1
 		}, {
-			"carapacerouge": 10,
-			"carapaceX3": 10,
-			"champi": 2,
+			"redshell": 10,
+			"shellX3": 10,
+			"mushroom": 2,
 			"poison": 5,
 			"bobomb": 10,
-			"bloops": 3
+			"bloopers": 3
 		}, {
-			"carapacerouge": 10,
-			"carapaceX3": 12,
-			"champi": 3,
+			"redshell": 10,
+			"shellX3": 12,
+			"mushroom": 3,
 			"poison": 4,
 			"bobomb": 8,
-			"bloops": 2
+			"bloopers": 2
 		}, {
-			"carapacerouge": 12,
-			"champi": 4,
+			"redshell": 12,
+			"mushroom": 4,
 			"bobomb": 8
 		}, {
-			"carapacerouge": 8,
-			"champi": 5,
+			"redshell": 8,
+			"mushroom": 5,
 			"bobomb": 6,
-			"champiX3": 1,
-			"carapacerougeX3": 6
+			"mushroomX3": 1,
+			"redshellX3": 6
 		}, {
-			"champi": 4,
-			"champiX3": 3,
-			"carapacerougeX3": 10,
-			"megachampi": 3
+			"mushroom": 4,
+			"mushroomX3": 3,
+			"redshellX3": 10,
+			"megamushroom": 3
 		}, {
-			"champiX3": 4,
-			"carapacerougeX3": 10,
-			"megachampi": 6,
-			"etoile": 4,
-			"carapacebleue": 12
+			"mushroomX3": 4,
+			"redshellX3": 10,
+			"megamushroom": 6,
+			"star": 4,
+			"blueshell": 12
 		}, {
-			"champiX3": 3,
-			"megachampi": 7,
-			"etoile": 5,
-			"champior": 1,
-			"carapacebleue": 10
+			"mushroomX3": 3,
+			"megamushroom": 7,
+			"star": 5,
+			"goldMushroom": 1,
+			"blueshell": 10
 		}, {
-			"champiX3": 3,
-			"megachampi": 8,
-			"etoile": 6,
-			"champior": 1,
-			"carapacebleue": 10,
-			"billball": 5
+			"mushroomX3": 3,
+			"megamushroom": 8,
+			"star": 6,
+			"goldMushroom": 1,
+			"blueshell": 10,
+			"bulletbill": 5
 		}, {
-			"megachampi": 6,
-			"etoile": 6,
-			"champior": 1,
-			"billball": 5,
-			"eclair": 8
+			"megamushroom": 6,
+			"star": 6,
+			"goldMushroom": 1,
+			"bulletbill": 5,
+			"lightning": 8
 		}, {
-			"etoile": 3,
-			"champior": 2,
-			"billball": 6,
-			"eclair": 8
+			"star": 3,
+			"goldMushroom": 2,
+			"bulletbill": 6,
+			"lightning": 8
 		}]
 	}, {
 		name:  toLanguage("Shells", "Carapaces"),
 		value: [{
-			"carapace": 6
+			"shell": 6
 		}, {
-			"carapace": 8,
-			"carapacerouge": 8
+			"shell": 8,
+			"redshell": 8
 		}, {
-			"carapace": 6,
-			"carapacerouge": 5
+			"shell": 6,
+			"redshell": 5
 		}, {
-			"carapace": 6,
-			"carapacerouge": 7
+			"shell": 6,
+			"redshell": 7
 		}, {
-			"carapace": 4,
-			"carapacerouge": 5
+			"shell": 4,
+			"redshell": 5
 		}, {
-			"carapace": 4,
-			"carapacerouge": 6,
-			"carapaceX3": 2,
-			"carapacerougeX3": 2
+			"shell": 4,
+			"redshell": 6,
+			"shellX3": 2,
+			"redshellX3": 2
 		}, {
-			"carapace": 2,
-			"carapacerouge": 4,
-			"carapaceX3": 2,
-			"carapacerougeX3": 2,
-			"carapacebleue": 4
+			"shell": 2,
+			"redshell": 4,
+			"shellX3": 2,
+			"redshellX3": 2,
+			"blueshell": 4
 		}, {
-			"carapace": 2,
-			"carapacerouge": 2,
-			"carapaceX3": 4,
-			"carapacerougeX3": 4,
-			"carapacebleue": 6
+			"shell": 2,
+			"redshell": 2,
+			"shellX3": 4,
+			"redshellX3": 4,
+			"blueshell": 6
 		}, {
-			"carapacerouge": 2,
-			"carapaceX3": 4,
-			"carapacerougeX3": 4,
-			"carapacebleue": 6
+			"redshell": 2,
+			"shellX3": 4,
+			"redshellX3": 4,
+			"blueshell": 6
 		}, {
-			"carapaceX3": 6,
-			"carapacerougeX3": 6,
-			"carapacebleue": 4
+			"shellX3": 6,
+			"redshellX3": 6,
+			"blueshell": 4
 		}, {
-			"carapaceX3": 6,
-			"carapacerougeX3": 6
+			"shellX3": 6,
+			"redshellX3": 6
 		}, {
-			"carapaceX3": 8,
-			"carapacerougeX3": 8
+			"shellX3": 8,
+			"redshellX3": 8
 		}]
 	}, {
 		name: toLanguage("Bob-ombs", "Bob-ombs"),
@@ -14794,47 +14822,47 @@ var itemDistributions = {
 	}, {
 		name: toLanguage("Mushrooms", "Champis"),
 		value: [{
-			"champi": 1
+			"mushroom": 1
 		}, {
-			"champi": 1,
+			"mushroom": 1,
 			"poison": 1
 		}, {
-			"champi": 4,
+			"mushroom": 4,
 			"poison": 1,
-			"megachampi": 1
+			"megamushroom": 1
 		}, {
-			"champi": 3,
+			"mushroom": 3,
 			"poison": 1,
-			"megachampi": 1
+			"megamushroom": 1
 		}, {
-			"champi": 3,
+			"mushroom": 3,
 			"poison": 1,
-			"champiX3": 1,
-			"megachampi": 2
+			"mushroomX3": 1,
+			"megamushroom": 2
 		}, {
-			"champi": 2,
-			"champiX3": 1,
-			"megachampi": 2
+			"mushroom": 2,
+			"mushroomX3": 1,
+			"megamushroom": 2
 		}, {
-			"champi": 1,
-			"champiX3": 2,
-			"megachampi": 3
+			"mushroom": 1,
+			"mushroomX3": 2,
+			"megamushroom": 3
 		}, {
-			"champiX3": 2,
-			"megachampi": 2,
-			"champior": 1
+			"mushroomX3": 2,
+			"megamushroom": 2,
+			"goldMushroom": 1
 		}, {
-			"champiX3": 1,
-			"megachampi": 1,
-			"champior": 1
+			"mushroomX3": 1,
+			"megamushroom": 1,
+			"goldMushroom": 1
 		}, {
-			"champiX3": 1,
-			"champior": 1
+			"mushroomX3": 1,
+			"goldMushroom": 1
 		}, {
-			"champiX3": 1,
-			"champior": 2
+			"mushroomX3": 1,
+			"goldMushroom": 2
 		}, {
-			"champior": 1
+			"goldMushroom": 1
 		}]
 	}, {
 		name: toLanguage("None", "Aucun"),
@@ -14895,7 +14923,7 @@ function isHitSound(oBox) {
 }
 function handleHit(oBox) {
 	if (!clLocalVars.currentKart) return;
-	if (clLocalVars.currentKart.tourne || clLocalVars.currentKart.protect) return;
+	if (clLocalVars.currentKart.turning || clLocalVars.currentKart.protect) return;
 	if (clLocalVars.currentKart.frminv && itemBehaviors[oBox.type] && itemBehaviors[oBox.type].frminv) return;
 	if (clLocalVars.hitItems && (clLocalVars.currentKart == oPlayers[0]))
 		incItemHits(oBox.type);
@@ -14905,14 +14933,14 @@ function handleHit(oBox) {
 function handleOtherKartHit(oKart,kart) {
 	if (kart == oPlayers[0]) {
 		if (clLocalVars.hitItems) {
-			if (oKart.billball)
-				incItemHits("billball");
-			if (oKart.etoile)
-				incItemHits("etoile");
-			if (oKart.megachampi)
-				incItemHits("megachampi");
-			if (oKart.champiType === MUSHROOM_TYPE_ITEM)
-				incItemHits("champi");
+			if (oKart.bulletbill)
+				incItemHits("bulletbill");
+			if (oKart.star)
+				incItemHits("star");
+			if (oKart.megamushroom)
+				incItemHits("megamushroom");
+			if (oKart.mushroomType === MUSHROOM_TYPE_ITEM)
+				incItemHits("mushroom");
 		}
 	}
 	else if (oKart == oPlayers[0])
@@ -14925,11 +14953,11 @@ function handleItemHit(oKart, itemKey) {
 function incItemHits(type) {
 	var itemKey;
 	switch (type) {
-	case "carapace-rouge":
-		itemKey = "carapacerouge";
+	case "red-shell":
+		itemKey = "redshell";
 		break;
-	case "carapace-bleue":
-		itemKey = "carapacebleue";
+	case "blue-shell":
+		itemKey = "blueshell";
 		break;
 	default:
 		itemKey = type;
@@ -14950,7 +14978,7 @@ function incChallengeHits(kart) {
 }
 function handleDecorHit(i,type, lMap) {
 	collisionDecorHit = true;
-	lMap.decor[type][i][2][0].suppr();
+	lMap.decor[type][i][2][0].delete();
 	lMap.decor[type].splice(i,1);
 
 	//if (clLocalVars.decorsHit && (collisionPlayer == oPlayers[0]))
@@ -14969,7 +14997,7 @@ function hit_coin(iX, iY, iI, iJ) {
         var oBox = lMap.coins[i];
         var coinRect = [oBox.x - 5, oBox.y - 5, 10, 10];
         if (pointCrossRectangle(iX, iY, iI, iJ, coinRect) || pointInRectangle(iX, iY, coinRect)) {
-            oBox.sprite[0].suppr();
+            oBox.sprite[0].delete();
             lMap.coins.splice(i,1);
             return true;
         }
@@ -14978,8 +15006,8 @@ function hit_coin(iX, iY, iI, iJ) {
 }
 function hit_banana(iX, iY, iP) {
 	if (!iP) iP = [];
-	for (var i=0;i<items["banane"].length;i++) {
-		var oBox = items["banane"][i];
+	for (var i=0;i<items["banana"].length;i++) {
+		var oBox = items["banana"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 				if (itemInteractionsDisabled(oBox)) continue;
@@ -15007,8 +15035,8 @@ function hit_poison(iX, iY, iP) {
 	return false;
 }
 function hit_mushroom(iX, iY) {
-	for (var i=0;i<items["champi"].length;i++) {
-		var oBox = items["champi"][i];
+	for (var i=0;i<items["mushroom"].length;i++) {
+		var oBox = items["mushroom"][i];
 		if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 			if (itemInteractionsDisabled(oBox)) continue;
 			destroy(oBox);
@@ -15019,8 +15047,8 @@ function hit_mushroom(iX, iY) {
 }
 
 function hit_star(iX, iY) {
-	for (var i=0;i<items["etoile"].length;i++) {
-		var oBox = items["etoile"][i];
+	for (var i=0;i<items["star"].length;i++) {
+		var oBox = items["star"][i];
 		if (iX > oBox.x - 4 && iX < oBox.x + 4 && iY > oBox.y - 4 && iY < oBox.y + 4) {
 			if (itemInteractionsDisabled(oBox)) continue;
 			destroy(oBox);
@@ -15032,8 +15060,8 @@ function hit_star(iX, iY) {
 
 function hit_fakeItem(iX, iY, iP) {
 	if (!iP) iP = [];
-	for (var i=0;i<items["fauxobjet"].length;i++) {
-		var oBox = items["fauxobjet"][i];
+	for (var i=0;i<items["fakeItem"].length;i++) {
+		var oBox = items["fakeItem"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (iX > oBox.x-4 && iX < oBox.x+4 && iY > oBox.y-4 && iY < oBox.y + 4) {
 				if (itemInteractionsDisabled(oBox)) continue;
@@ -15048,8 +15076,8 @@ function hit_fakeItem(iX, iY, iP) {
 
 function hit_greenShell(iX, iY, iP) {
 	if (!iP) iP = [];
-	for (var i=0;i<items["carapace"].length;i++) {
-		var oBox = items["carapace"][i];
+	for (var i=0;i<items["shell"].length;i++) {
+		var oBox = items["shell"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			if (hit_greenShell_aux(iX,iY, oBox))
 				return (collisionTeam!=oBox.team);
@@ -15070,8 +15098,8 @@ function hit_greenShell_aux(iX,iY, oBox) {
 function hit_greenShell_future(iX, iY, iP) {
 	if (!iP) iP = [];
 	var relSpeed = cappedRelSpeed()/2;
-	for (var i=0;i<items["carapace"].length;i++) {
-		var oBox = items["carapace"][i];
+	for (var i=0;i<items["shell"].length;i++) {
+		var oBox = items["shell"][i];
 		if ((iP.indexOf(oBox) == -1) && !oBox.z) {
 			var fMoveX = oBox.vx*relSpeed, fMoveY = oBox.vy*relSpeed;
 			var fNewPosX = oBox.x + fMoveX, fNewPosY = oBox.y + fMoveY;
@@ -15088,8 +15116,8 @@ function hit_greenShell_future(iX, iY, iP) {
 
 function hit_redShell(iX, iY, iP) {
 	if (!iP) iP = [];
-	for (var i=0;i<items["carapace-rouge"].length;i++) {
-		var oBox = items["carapace-rouge"][i];
+	for (var i=0;i<items["red-shell"].length;i++) {
+		var oBox = items["red-shell"][i];
 		if ((iP.indexOf(oBox) == -1)) {
 			if (hit_redShell_aux(iX,iY, oBox))
 				return (collisionTeam!=oBox.team);
@@ -15162,16 +15190,16 @@ function hit_bobomb_aux(iX,iY, oBox, opts) {
 }
 
 function hit_blueShell(iX, iY) {
-	for (var i=0;i<items["carapace-bleue"].length;i++) {
-		var oBox = items["carapace-bleue"][i];
+	for (var i=0;i<items["blue-shell"].length;i++) {
+		var oBox = items["blue-shell"][i];
 		if (hit_blueShell_aux(iX,iY, oBox)) {
 			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
 			if (res) handleHit(oBox);
 			return res;
 		}
 	}
-	for (var i=0;i<items["carapace-noire"].length;i++) {
-		var oBox = items["carapace-noire"][i];
+	for (var i=0;i<items["black-shell"].length;i++) {
+		var oBox = items["black-shell"][i];
 		if (hit_blueShell_aux(iX,iY, oBox)) {
 			var res = (collisionTeam!=oBox.team) ? (oBox.cooldown < -5 ? 42 : 84):false;
 			if (res) handleHit(oBox);
@@ -15219,8 +15247,8 @@ function powEffect(i, oKart, fSprite) {
 	loseUsingItems(oKart);
 	dropCurrentItem(oKart);
 	oKart.spin(spinPower);
-	oKart.champi = 0;
-	delete oKart.champiType;
+	oKart.mushroom = 0;
+	delete oKart.mushroomType;
 	stopDrifting(i);
 
 	if (fullHit) {
@@ -15239,7 +15267,7 @@ function powEffect(i, oKart, fSprite) {
 
 function playPow(i, oKart, oKartOwner, fSprite) {
 	if (fSprite.countstate === 5 && fSprite.countdown === 10)
-		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.tourne && !friendlyFire(oKart, oKartOwner))
+		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.turning && !friendlyFire(oKart, oKartOwner))
 			powCpuDodge(oKart);
 
 	if (fSprite.countstate === 6 && fSprite.countdown === 1)
@@ -15384,7 +15412,7 @@ function getRankScore(oKart) {
 	if (!isBattle()) {
 		var lapId = getCurrentLapId(oKart);
 		var lMap = getCurrentLMap(lapId);
-		var dest = oKart.demitours+1;
+		var dest = oKart.uturns+1;
 		if (dest >= lMap.checkpoint.length) dest = 0;
 
 		var iLine = lMap.checkpointCoords[dest];
@@ -15394,7 +15422,7 @@ function getRankScore(oKart) {
 		var xLine = iLine.A[0] + hLine*iLine.u[0], yLine = iLine.A[1] + hLine*iLine.u[1];
 		var dLine = Math.hypot(xLine-oKart.x, yLine-oKart.y);
 
-		return oKart.tours*oMap.maxCheckpoints + getCpScore(oKart) - dLine / 10000;
+		return oKart.laps*oMap.maxCheckpoints + getCpScore(oKart) - dLine / 10000;
 	}
 	else
 		return oKart.ballons.length ? oKart.ballons.length+oKart.reserve : 0;
@@ -15409,7 +15437,7 @@ function places(j,aRankScores,force) {
 	var back = !force;
 	for (var i=0;i<strPlayer.length;i++) {
 		var oPlayer = getPlayerAtScreen(i);
-		if (!(oPlayer.tours > oMap.tours) && !oPlayer.loose)
+		if (!(oPlayer.laps > oMap.tours) && !oPlayer.loose)
 			back = false;
 		else if (onlineSpectatorId && !finishing)
 			document.getElementById("rankInfo"+i).style.visibility = "hidden";
@@ -15417,7 +15445,7 @@ function places(j,aRankScores,force) {
 	if (back) return;
 	var place = 1;
 	if (!isBattle()) {
-		if (oKart.tours > oMap.tours || !oMap.minCheckpoints)
+		if (oKart.laps > oMap.tours || !oMap.minCheckpoints)
 			return;
 	}
 	var score1 = aRankScores[j];
@@ -15436,16 +15464,16 @@ function places(j,aRankScores,force) {
 
 function getLastCp(kart) {
 	if (oMap.sections) {
-		if ((kart.tours > 1) && (kart.tours <= oMap.tours))
-			return oMap.sections[kart.tours-2];
+		if ((kart.laps > 1) && (kart.laps <= oMap.tours))
+			return oMap.sections[kart.laps-2];
 		return oMap.checkpoint.length-1;
 	}
 	return 0;
 }
 function getNextCp(kart) {
 	if (oMap.sections) {
-		if (kart.tours <= oMap.sections.length)
-			return oMap.sections[kart.tours-1];
+		if (kart.laps <= oMap.sections.length)
+			return oMap.sections[kart.laps-1];
 		return oMap.checkpoint.length-1;
 	}
 	return 0;
@@ -15460,7 +15488,7 @@ function getCpDiff(kart) {
 	return res;
 }
 function getCpScore(kart) {
-	var lastCp = getLastCp(kart), currentCp = kart.demitours;
+	var lastCp = getLastCp(kart), currentCp = kart.uturns;
 	var res = currentCp-lastCp;
 	if (res < 0)
 		res += oMap.checkpoint.length;
@@ -15492,19 +15520,19 @@ function distanceToSecond(kart) {
 function distanceToKart(kart,otherKart) {
 	var res = 0;
 	var posX = kart.x, posY = kart.y;
-	var laps = kart.tours;
-	var checkpoint = kart.demitours;
-	var lapsOtherKart = otherKart.tours;
-	var checkpoint2 = otherKart.demitours;
+	var laps = kart.laps;
+	var checkpoint = kart.uturns;
+	var lapsOtherKart = otherKart.laps;
+	var checkpointOtherKart = otherKart.uturns;
 	if (oMap.sections) {
 		laps = lapsOtherKart;
 		if (checkpoint >= oMap.checkpoint.length - 1)
 			checkpoint = -1;
-		if (checkpoint2 >= oMap.checkpoint.length - 1)
-			checkpoint2 = -1;
+		if (checkpointOtherKart >= oMap.checkpoint.length - 1)
+			checkpointOtherKart = -1;
 	}
-	while ((laps < lapsOtherKart) || ((laps == lapsOtherKart) && (checkpoint < checkpoint2))) {
-		var lMap = getCurrentLMap(getCurrentLapId({ tours: laps, demitours: checkpoint }));
+	while ((laps < lapsOtherKart) || ((laps == lapsOtherKart) && (checkpoint < checkpointOtherKart))) {
+		var lMap = getCurrentLMap(getCurrentLapId({ laps: laps, uturns: checkpoint }));
 		checkpoint++;
 		if (checkpoint >= lMap.checkpoint.length) {
 			checkpoint = 0;
@@ -15523,7 +15551,7 @@ function distanceToKart(kart,otherKart) {
 function checkpoint(kart, fMoveX,fMoveY) {
 	var aPos = [kart.x-fMoveX,kart.y-fMoveY];
 	var fast = (fMoveX*fMoveX + fMoveY*fMoveY > 200);
-	var uturn = kart.demitours;
+	var uturn = kart.uturns;
 	if (!simplified) {
 		var iCP = getNextCp(kart);
 	}
@@ -15534,7 +15562,7 @@ function checkpoint(kart, fMoveX,fMoveY) {
 				if (i==0 && (lMap.checkpoint.length-uturn) < 5)
 					return true;
 				else if (uturn == i-1 || (uturn && Math.abs(uturn-i) < 5)) {
-					kart.demitours = i;
+					kart.uturns = i;
 					return false;
 				}
 			}
@@ -15552,7 +15580,7 @@ function checkpoint(kart, fMoveX,fMoveY) {
 				if (isNextCp) {
 					if (i == iCP)
 						return true;
-					kart.demitours = i;
+					kart.uturns = i;
 					return false;
 				}
 			}
@@ -15737,7 +15765,7 @@ function resetDatas() {
 				var param = params[i];
 				var value;
 				switch (param) {
-				case "demitours":
+				case "uturns":
 					if (!isBattle())
 						value = getCpScore(oKart);
 					break;
@@ -15836,14 +15864,14 @@ function resetDatas() {
 							}
 						}
 						var pCode = jCode[1];
-						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.etoile, aBillBall = oKart.billball, aTombe = oKart.tombe, aDriftCpt = oKart.driftcpt, aChampi = oKart.champi, aItem = oKart.arme, aLaps = oKart.tours, aUturn = oKart.demitours, aReserve = oKart.reserve;
+						var aX = oKart.x, aY = oKart.y, aRotation = oKart.rotation, aEtoile = oKart.star, aBillBall = oKart.bulletbill, aFall = oKart.fall, aDriftCpt = oKart.driftcpt, aChampi = oKart.mushroom, aItem = oKart.weapon, aLaps = oKart.laps, aUturns = oKart.uturns, aReserve = oKart.reserve;
 						var nUturn;
 						var params = oKart.controller ? cpuMapping : playerMapping;
 						for (var k=0;k<params.length;k++) {
 							var param = params[k];
 							var value = pCode[k];
 							switch (param) {
-							case "demitours":
+							case "uturns":
 								nUturn = value;
 								break;
 							case "ballons":
@@ -15869,28 +15897,28 @@ function resetDatas() {
 						}
 						if (nUturn >= 0) {
 							var lMap = getCurrentLMap(getCurrentLapId(oKart));
-							oKart.demitours = (getLastCp(oKart)+nUturn)%lMap.checkpoint.length;
+							oKart.uturns = (getLastCp(oKart)+nUturns)%lMap.checkpoint.length;
 						}
-						if ((oKart.billball >= 25) && !aBillBall) {
+						if ((oKart.bulletbill >= 25) && !aBillBall) {
 							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
 							resetSpriteHeight(oKart.sprite[0]);
 							oKart.aipoint = undefined;
 						}
-						else if ((oKart.etoile >= 50) && !aEtoile)
+						else if ((oKart.star >= 50) && !aEtoile)
 							oKart.sprite[0].img.src = getStarSrc(oKart.personnage);
-						else if ((aEtoile && !oKart.etoile) || (aBillBall && !oKart.billball)) {
-							oKart.sprite[0].img.src = getSpriteSrc(oKart.personnage);
+						else if ((aEtoile && !oKart.star) || (aBillBall && !oKart.bulletbill)) {
+							oKart.sprite[0].img.src = getSpriteImg(oKart.personnage);
 							resumeSpriteSize(oKart.sprite[0]);
 						}
-						if (aItem && aItem.startsWith("champi") && ((aItem !== oKart.arme) || (aItem === "champior")) && oKart.champi > aChampi)
-							oKart.champiType = MUSHROOM_TYPE_ITEM;
-						else if (!oKart.champi)
-							delete oKart.champiType;
-						if ((aLaps !== oKart.tours) || (aUturn !== oKart.demitours)) {
+						if (aItem && aItem.startsWith("mushroom") && ((aItem !== oKart.weapon) || (aItem === "goldMushroom")) && oKart.mushroom > aChampi)
+							oKart.mushroomType = MUSHROOM_TYPE_ITEM;
+						else if (!oKart.mushroom)
+							delete oKart.mushroomType;
+						if ((aLaps !== oKart.laps) || (aUturns !== oKart.uturns)) {
 							var sID = getScreenPlayerIndex(j);
 							if (sID < oPlayers.length)
 								updateLapHud(sID);
-							handleCpChange(aLaps,aUturn, j);
+							handleCpChange(aLaps,aUturns, j);
 						}
 						if (oKart.aipoint >= oKart.aipoints.length)
 							oKart.aipoint = 0;
@@ -15900,7 +15928,7 @@ function resetDatas() {
 								updateBalloonHud(document.getElementById("compteur0"),oKart);
 						}
 						updateProtectFlag(oKart);
-						if (aTombe && !oKart.tombe) {
+						if (aFall && !oKart.fall) {
 							oKart.sprite[0].img.style.display = "block";
 							if (isBattle()) {
 								for (var k=0;k<oKart.ballons.length;k++)
@@ -15912,10 +15940,10 @@ function resetDatas() {
 								resetRenderState();
 							}
 						}
-						if (!aTombe && oKart.tombe) {
+						if (!aFall && oKart.fall) {
 							oKart.sprite[0].img.style.display = "none";
 							oKart.frminv = 10;
-							if (oKart.tombe > 2) {
+							if (oKart.fall > 2) {
 								if (isBattle()) {
 									for (var k=0;k<oKart.ballons.length;k++)
 										oKart.ballons[k][0].img.style.display = "none";
@@ -15941,11 +15969,11 @@ function resetDatas() {
 							if ((aDriftCpt < fTurboDriftCpt2) && (oKart.driftcpt >= fTurboDriftCpt2))
 								oKart.driftSprite[0].setState(2);
 						}
-						if (!oKart.turnSound && oKart.tourne) {
+						if (!oKart.turnSound && oKart.turning) {
 							oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(isBattle())?80:50);
 							if (!oKart.frminv) oKart.frminv = 10;
 						}
-						if (oKart.turnSound && !oKart.tourne)
+						if (oKart.turnSound && !oKart.turning)
 							oKart.turnSound = undefined;
 
 						for (var k=jCode[0][1];k<rCode[2];k++)
@@ -16051,7 +16079,7 @@ function resetDatas() {
 								var l = localKarts[j];
 								var lKart = aKarts[l];
 								collisionLap = getCurrentLapId(lKart);
-								if (!lKart.loose && !lKart.tourne && !lKart.protect && !lKart.fell)
+								if (!lKart.loose && !lKart.turning && !lKart.protect && !lKart.fell)
 									checkCollisions(fSprite, l);
 							}
 						}
@@ -16074,7 +16102,7 @@ function resetDatas() {
 				function displayRankings() {
 					var oPlayer = getPlayerAtScreen(0);
 					if (isBattle()) {
-						oPlayer.arme = false;
+						oPlayer.weapon = false;
 						oPlayer.speed = 0;
 						delWeapon(0);
 					}
@@ -16254,7 +16282,7 @@ function resetDatas() {
 					for (var i=0;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
 						if (iTeamPlay ? (oKart.team!=firstTeam):(oKart.id != firstID)) {
-							if (oKart.ballons.length && !oKart.tourne) {
+							if (oKart.ballons.length && !oKart.turning) {
 								do {
 									popBalloon(oKart);
 								} while (oKart.ballons.length);
@@ -16301,7 +16329,7 @@ function resetFall(oKart) {
 function loseBallon(i) {
 	if (isBattle()) {
 		var lg = aKarts[i].ballons.length-1;
-		if (!aKarts[i].tourne && aKarts[i].ballons[lg]) {
+		if (!aKarts[i].turning && aKarts[i].ballons[lg]) {
 			popBalloon(aKarts[i]);
 			if (!aKarts[i].cpu) {
 				clLocalVars.lostBalloons++;
@@ -16361,7 +16389,7 @@ function move(getId, triggered) {
 
 			handleWrongWay(oKart);
 		}
-		else if (oKart.tours == (oMap.tours+1)) {
+		else if (oKart.laps == (oMap.tours+1)) {
 			if (!oKart.changeView)
 				oKart.changeView = 0;
 			if (oKart.changeView < 180)
@@ -16372,11 +16400,11 @@ function move(getId, triggered) {
 			timer++;
 	}
 
-	if (oKart.tombe) {
-		oKart.tombe--;
+	if (oKart.fall) {
+		oKart.fall--;
 		oKart.size = 1;
 		oKart.mini = 0;
-		if (oKart.tombe == 19) {
+		if (oKart.fall == 19) {
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.style.display = "none";
 				oKart.sprite[i].img.style.opacity = "";
@@ -16390,7 +16418,7 @@ function move(getId, triggered) {
 			}
 			playIfShould(oKart, "musics/events/rescue.mp3");
 		}
-		else if (oKart.tombe == 2) {
+		else if (oKart.fall == 2) {
 			if (isBattle()) {
 				for (var i=0;i<strPlayer.length;i++) {
 					for (var j=0;j<oKart.ballons.length;j++)
@@ -16398,7 +16426,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		else if (!oKart.tombe) {
+		else if (!oKart.fall) {
 			resetFall(oKart);
 			loseBallon(getId);
 			if (isBattle()) {
@@ -16466,13 +16494,13 @@ function move(getId, triggered) {
 
 	if (oKart.shift)
 		oKart.rotation += oKart.shift[2]*180/Math.PI;
-	if (oKart.tourne) {
+	if (oKart.turning) {
 		oKart.figuring = false;
 		oKart.figstate = 0;
 		if (!oKart.z)
 			oKart.speed = (oKart.speed-Math.max(0,oKart.speedinc+0.1))/1.5;
-		oKart.tourne -= 2;
-		if (!oKart.tourne) {
+		oKart.turning -= 2;
+		if (!oKart.turning) {
 			if (isBattle()) {
 				if (oKart.cpu && oKart.ballons.length == 1) {
 					if (!isOnline || oKart.controller == identifiant)
@@ -16500,7 +16528,7 @@ function move(getId, triggered) {
 				}
 			}
 		}
-		else if (oKart.speed && !oKart.billball && !oKart.cannon)
+		else if (oKart.speed && !oKart.bulletbill && !oKart.cannon)
 			oKart.rotation += angleInc(oKart);
 		if (oKart.frminv)
 			oKart.frminv--;
@@ -16559,7 +16587,7 @@ function move(getId, triggered) {
 		oKart.speed += oKart.speedinc;
 		if ((isCup && oMap.skin != 22 && oMap.skin != 30) || (!isCup && oMap.smartjump)) {
 			var offRoadType, offRoadProps;
-			if (oKart.cpu && ((isFalling(fNewPosX, fNewPosY) && !jumps(aPosX, aPosY, fMoveX, fMoveY)) || ((offRoadType=slowMotion(fNewPosX, fNewPosY)) && (offRoadProps=getOffroadProps(oKart,offRoadType)) && ((oKart.speed-oKart.speedinc*1.01) > offRoadProps.speed) && !oKart.protect && !oKart.champi))) {
+			if (oKart.cpu && ((isFalling(fNewPosX, fNewPosY) && !jumps(aPosX, aPosY, fMoveX, fMoveY)) || ((offRoadType=slowMotion(fNewPosX, fNewPosY)) && (offRoadProps=getOffroadProps(oKart,offRoadType)) && ((oKart.speed-oKart.speedinc*1.01) > offRoadProps.speed) && !oKart.protect && !oKart.mushroom))) {
 			//if (oKart.cpu && ((isFalling(fNewPosX, fNewPosY) && !jumps(aPosX, aPosY, fMoveX, fMoveY)))) {
 				oKart.z = 1;
 				oKart.heightinc = 0.5;
@@ -16584,13 +16612,13 @@ function move(getId, triggered) {
 
 	if (localKart && !oKart.loose) {
 		var oKartItems = oKart.using;
-		if (oKart.tourne) {
+		if (oKart.turning) {
 			oKartItems = [];
 			for (var i=0;i<aKarts.length;i++)
 				oKartItems = oKartItems.concat(aKarts[i].using);
 		}
 		var pExplose = hit_bobomb(fNewPosX, fNewPosY, oKartItems) + hit_blueShell(fNewPosX, fNewPosY);
-		if (pExplose && !oKart.tourne && !oKart.protect && !oKart.fell)
+		if (pExplose && !oKart.turning && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
 			var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
@@ -16601,17 +16629,17 @@ function move(getId, triggered) {
 				handleSoftHit(getId);
 			else if ((hit_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && hit_poison(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
 				handlePoisonHit(getId);
-			else if ((hit_mushroom(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && hit_mushroom(fMidPosX, fMidPosY))) && !oKart.tourne) {
-				oKart.champi = 20;
-				oKart.champiType = MUSHROOM_TYPE_ITEM;
+			else if ((hit_mushroom(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && hit_mushroom(fMidPosX, fMidPosY))) && !oKart.turning) {
+				oKart.mushroom = 20;
+				oKart.mushroomType = MUSHROOM_TYPE_ITEM;
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
 			}
-			else if ((hit_star(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && hit_star(fMidPosX, fMidPosY))) && !oKart.tourne && !oKart.billball) {
+			else if ((hit_star(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && hit_star(fMidPosX, fMidPosY))) && !oKart.turning && !oKart.bulletbill) {
 				setStarState(oKart, 80);
 			}
-			else if (!oKart.tourne && (oKart.z < 1.2)) {
+			else if (!oKart.turning && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
 				var asset = hit_asset(aPosX,aPosY,fNewPosX,fNewPosY);
 				var stopped = true;
@@ -16622,7 +16650,7 @@ function move(getId, triggered) {
 					if (isCustom) decorType = "custom-"+asset[1][0].custom.id;
 					switch (asset[0]) {
 					case "oils":
-						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.tourne && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
+						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.turning && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
 							stopDrifting(getId);
 							loseBallon(getId);
 							oKart.spin(20);
@@ -16744,45 +16772,45 @@ function move(getId, triggered) {
 		}
 		var nbItems = lMap.arme[touchedObject][2].box.length;
 		for (var it=0;it<nbItems;it++) {
-			if ((!oKart.arme || (oDoubleItemsEnabled && !oKart.stash && (it || !oKart.roulette || oKart.roulette > 7))) && (oKart.tours <= oMap.tours || isBattle()) && !finishing) {
+			if ((!oKart.weapon || (oDoubleItemsEnabled && !oKart.stash && (it || !oKart.wheel || oKart.wheel > 7))) && (oKart.laps <= oMap.tours || isBattle()) && !finishing) {
 				var iObj;
 				if (!isBattle()) {
 					iObj = randObj(oKart);
 					var forbiddenItems = {};
-					if ((oKart.tours == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
-						forbiddenItems["bloops"] = 1;
-						forbiddenItems["carapaceX3"] = 1;
-						forbiddenItems["carapacerougeX3"] = 1;
+					if ((oKart.laps == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
+						forbiddenItems["bloopers"] = 1;
+						forbiddenItems["shellX3"] = 1;
+						forbiddenItems["redshellX3"] = 1;
 					}
 					if (timer < 375) {
 						if (itemDistribution.powstart != 1)
 							forbiddenItems["pow"] = 1;
 						if (itemDistribution.lightningstart != 1)
-							forbiddenItems["eclair"] = 1;
+							forbiddenItems["lightning"] = 1;
 						if (itemDistribution.blueshellstart != 1) {
-							forbiddenItems["carapacebleue"] = 1;
-							forbiddenItems["carapacenoire"] = 1;
+							forbiddenItems["blueshell"] = 1;
+							forbiddenItems["blackShell"] = 1;
 						}
 					}
 					if (oKart.place == 1)
-						forbiddenItems["carapacebleue"] = 1;
+						forbiddenItems["blueshell"] = 1;
 
 					var preventDuplicateItems = {
-						carapacebleue: 1,
-						carapacenoire: 1,
-						eclair: 1,
-						bloops: 1,
+						blueshell: 1,
+						blackShell: 1,
+						lightning: 1,
+						bloopers: 1,
 						pow: 1,
-						bananeX3: 1
+						bananaX3: 1
 					};
 					if (itemDistribution.powx2 == 1) {
 						delete preventDuplicateItems["pow"];
 					}
 					if (itemDistribution.lightningx2 == 1)
-						delete preventDuplicateItems["eclair"];
+						delete preventDuplicateItems["lightning"];
 					if (itemDistribution.blueshellx2 == 1) {
-						delete preventDuplicateItems["carapacebleue"];
-						delete preventDuplicateItems["carapacenoire"];
+						delete preventDuplicateItems["blueshell"];
+						delete preventDuplicateItems["blackShell"];
 					}
 					for (var i=0;i<aKarts.length;i++) {
 						var iKart = aKarts[i];
@@ -16792,20 +16820,20 @@ function move(getId, triggered) {
 								forbiddenItems[iKart[oWeaponKey]] = 1;
 						}
 					}
-					if (items["carapace-bleue"].length)
-						forbiddenItems["carapacebleue"] = 1;
-					if (items["carapace-noire"].length)
-						forbiddenItems["carapacenoire"] = 1;
+					if (items["blue-shell"].length)
+						forbiddenItems["blueshell"] = 1;
+					if (items["black-shell"].length)
+						forbiddenItems["blackShell"] = 1;
 					else if (nextBlueShellCooldown && (itemDistribution.blueshelldelay != 0))
-						forbiddenItems["carapacebleue"] = 1;
-					if ((oKart.place < aKarts.length) || items.eclair.length)
-						forbiddenItems["eclair"] = 1;
-					if (items.bloops.length)
-						forbiddenItems["bloops"] = 1;
+						forbiddenItems["blueshell"] = 1;
+					if ((oKart.place < aKarts.length) || items.lightning.length)
+						forbiddenItems["lightning"] = 1;
+					if (items.bloopers.length)
+						forbiddenItems["bloopers"] = 1;
 					if (items.pow.length || nextPowCooldown > 0)
 						forbiddenItems["pow"] = 1;
-					if (oKart.arme && (itemDistribution.doubleitemx2 != 1))
-						forbiddenItems[oKart.arme] = 1;
+					if (oKart.weapon && (itemDistribution.doubleitemx2 != 1))
+						forbiddenItems[oKart.weapon] = 1;
 					if (forbiddenItems[iObj] && otherObjects(oKart, forbiddenItems)) {
 						do {
 							iObj = randObj(oKart);
@@ -16816,7 +16844,7 @@ function move(getId, triggered) {
 					if (oKart.ballons.length)
 						iObj = randObj(oKart);
 					else {
-						var ghostItems = ["fauxobjet", "banane", "carapace", "bobomb"];
+						var ghostItems = ["fakeItem", "banana", "shell", "bobomb"];
 						iObj = ghostItems[Math.floor(Math.random()*ghostItems.length)];
 					}
 				}
@@ -16837,12 +16865,12 @@ function move(getId, triggered) {
 					if (window.bbb >= window.aaa.length)
 						window.bbb = 0;
 				}*/
-				var oSlotId = oKart.arme ? 1 : 0;
+				var oSlotId = oKart.weapon ? 1 : 0;
 				var oWeaponKey = oWeaponKeys[oSlotId];
 				oKart[oWeaponKey] = iObj;
-				// oKart.arme = iObj;
-				if (shouldPlaySound(oKart) && !oKart.rouletteSound)
-					oKart.rouletteSound = playSoundEffect("musics/events/roulette.mp3");
+				// oKart.weapon = iObj;
+				if (shouldPlaySound(oKart) && !oKart.wheelSound)
+					oKart.wheelSound = playSoundEffect("musics/events/roulette.mp3");
 				if (kartIsPlayer(oKart)) {
 					var prefix = oWheelsPrefixes[oSlotId];
 					var rScroller = document.getElementById("scroller"+prefix+getId);
@@ -16859,11 +16887,11 @@ function move(getId, triggered) {
 					clLocalVars.itemsGot = true;
 
 					switch (iObj) {
-					case "etoile":
+					case "star":
 						var eagerLoadImg = document.createElement("img");
 						eagerLoadImg.src = getStarSrc(oKart.personnage);
 						break;
-					case "billball":
+					case "bulletbill":
 						var eagerLoadImg = document.createElement("img");
 						eagerLoadImg.src = "images/sprites/sprite_billball.png";
 						break;
@@ -16882,20 +16910,20 @@ function move(getId, triggered) {
 		}
 	}
 	for (var i=0;i<oWheelsPrefixes.length;i++) {
-		var armeKey = oWeaponKeys[i];
+		var weaponKey = oWeaponKeys[i];
 		var prefix = oWheelsPrefixes[i];
-		var key = "roulette"+prefix;
-		if (oKart[armeKey]) {
+		var key = "wheel"+prefix;
+		if (oKart[weaponKey]) {
 			if (oKart[key] < 25) {
 				oKart[key]++;
 				if (oKart[key] >= 25) {
 					oKart[key] = 25;
 					if (kartIsPlayer(oKart)) {
 						updateObjHud(getId);
-						if (oKart.rouletteSound) {
-							removeIfExists(oKart.rouletteSound);
+						if (oKart.wheelSound) {
+							removeIfExists(oKart.wheelSound);
 							playSoundEffect("musics/events/gotitem.mp3");
-							oKart.rouletteSound = undefined;
+							oKart.wheelSound = undefined;
 						}
 					}
 				}
@@ -16908,7 +16936,7 @@ function move(getId, triggered) {
 	collisionItem = null;
 	var kartReplaced = false;
 	var nPosZ0;
-	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.billball) {
+	if (oKart.cannon || canMoveTo(aPosX,aPosY,oKart.z, fMoveX,fMoveY, oKart.protect, oKart.z0||0) || oKart.bulletbill) {
 		oKart.x = fNewPosX;
 		oKart.y = fNewPosY;
 		if (oKart.cpu)
@@ -16959,7 +16987,7 @@ function move(getId, triggered) {
 		if (clLocalVars.decorsHit && !oKart.cpu)
 			clLocalVars.decorsHit[collisionDecor] = true;
 		var collisionSpin = decorBehaviors[collisionDecor].spin;
-		if (collisionSpin && !oKart.tourne && !oKart.protect && !oKart.frminv && localKart) {
+		if (collisionSpin && !oKart.turning && !oKart.protect && !oKart.frminv && localKart) {
 			var minSpeed = decorBehaviors[collisionDecor].minSpeedToSpin||2.5;
 			if (Math.abs(oKart.speed) > minSpeed) {
 				loseBallon(getId);
@@ -16982,8 +17010,8 @@ function move(getId, triggered) {
 			stopDrifting(getId);
 			oKart.protect = true;
 			oKart.jumped = true;
-			if (oKart.tourne)
-				oKart.tourne = 2;
+			if (oKart.turning)
+				oKart.turning = 2;
 			delete oKart.shift;
 			if (!oKart.cpu) {
 				clLocalVars.cannons++;
@@ -17078,8 +17106,8 @@ function move(getId, triggered) {
 			var fFalling;
 			if (localKart) {
 				var iC = 0;
-				if (lMap.checkpoint && oKart.demitours)
-					iC = lMap.checkpoint[(oKart.demitours+1) % lMap.checkpoint.length][3];
+				if (lMap.checkpoint && oKart.uturns)
+					iC = lMap.checkpoint[(oKart.uturns+1) % lMap.checkpoint.length][3];
 				fFalling = isFalling(oKart.x, oKart.y, iC);
 			}
 			if (fFalling) {
@@ -17148,21 +17176,21 @@ function move(getId, triggered) {
 				oKart.figuring = false;
 				oKart.figstate = 0;
 				oKart.fell = true;
-				oKart.champi = 0;
-				delete oKart.champiType;
-				delete oKart.champior;
-				delete oKart.champior0;
+				oKart.mushroom = 0;
+				delete oKart.mushroomType;
+				delete oKart.goldMushroom;
+				delete oKart.goldMushroom0;
 				if (oKart.cpu) {
 					if (lastCp && lastCp.aipoints === oKart.aipoints && oKart.aishortcut == null)
 						oKart.aipoint = lastCp.aipoint;
 					else
 						oKart.aipoint = undefined;
 				}
-				oKart.tombe = 20;
+				oKart.fall = 20;
 				oKart.frminv = 10;
 				oKart.ctrled = true;
 				oKart.z = 10;
-				oKart.tourne = 0;
+				oKart.turning = 0;
 				stopDrifting(getId);
 				delWeapon(getId);
 				deleteUsingItems(oKart);
@@ -17176,8 +17204,8 @@ function move(getId, triggered) {
 								oKart.ballons[k][0].img.style.display = "none";
 						}
 					}
-					if (oKart.etoile)
-						oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
+					if (oKart.star)
+						oKart.sprite[i].img.src = getSpriteImg(oKart.personnage);
 				}
 				resetPowerup(oKart);
 				resetWrongWay(oKart);
@@ -17190,7 +17218,7 @@ function move(getId, triggered) {
 				playIfShould(oKart, "musics/events/fall.mp3");
 			}
 			else {
-				if (!oKart.protect && !oKart.champi && !oKart.figuring && oKart.speed > 1.5 && !(oKart.turbodrift>oKart.turbodrift0*0.8) && (offRoadType=slowMotion(fNewPosX, fNewPosY))) {
+				if (!oKart.protect && !oKart.mushroom && !oKart.figuring && oKart.speed > 1.5 && !(oKart.turbodrift>oKart.turbodrift0*0.8) && (offRoadType=slowMotion(fNewPosX, fNewPosY))) {
 					var offRoadProps = getOffroadProps(oKart,offRoadType);
 					offRoadProps.speed *= cappedRelSpeed();
 					if (offRoadProps.sliding)
@@ -17231,12 +17259,12 @@ function move(getId, triggered) {
 
 	moveUsingItems(oKart, triggered);
 	if (!isBattle()) {
-		var prevCP = oKart.demitours;
+		var prevCP = oKart.uturns;
 		if (checkpoint(oKart, fMoveX,fMoveY)) {
 			var NbPlayers = aKarts.length;
-			oKart.demitours = getNextCp(oKart);
-			var prevLap = oKart.tours;
-			oKart.tours++;
+			oKart.uturns = getNextCp(oKart);
+			var prevLap = oKart.laps;
+			oKart.laps++;
 			collisionLap = handleCpChange(prevLap,prevCP, getId);
 
 			var lastCp = lMap.checkpointCoords[0];
@@ -17261,10 +17289,10 @@ function move(getId, triggered) {
 			lMap = getCurrentLMap(collisionLap);
 
 			var sID = getScreenPlayerIndex(getId);
-			if (oKart.tours == (oMap.tours+1)) {
+			if (oKart.laps == (oMap.tours+1)) {
 				oKart.place = 0;
 				for (var i=0;i<NbPlayers;i++) {
-					if (aKarts[i].tours > oMap.tours)
+					if (aKarts[i].laps > oMap.tours)
 						oKart.place++;
 				}
 				if (isOnline && !oKart.finaltime)
@@ -17283,12 +17311,12 @@ function move(getId, triggered) {
 						bMusic = aMusic;
 						iSfx = aSfx;
 					}
-					oKart.arme = false;
+					oKart.weapon = false;
 					stopDrifting(getId);
 					delWeapon(getId);
 					resetWrongWay(oKart);
-					if (oKart.billball)
-						oKart.billball = 1;
+					if (oKart.bulletbill)
+						oKart.bulletbill = 1;
 					oKart.cpu = true;
 					if ($speedometers[getId])
 						$speedometers[getId].style.display = "none";
@@ -17486,18 +17514,18 @@ function move(getId, triggered) {
 						document.getElementById("rankInfo0").style.visibility = "hidden";
 				}
 				if (oMap.sections)
-					if (oKart.billball>1) oKart.billball = 1;
+					if (oKart.bulletbill>1) oKart.bulletbill = 1;
 			}
 			else if (!(isOnline ? (sID||finishing):oKart.cpu)) {
 				updateLapHud(sID);
 				if (!onlineSpectatorId) {
-					document.getElementById("lakitu"+sID).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.tours;
+					document.getElementById("lakitu"+sID).getElementsByTagName("div")[0].innerHTML = (oMap.sections ? "Sec":toLanguage("Lap","Tour")) + "<small>&nbsp;</small>" + oKart.laps;
 					oKart.time = 40;
 					if (bMusic || iSfx) {
-						if (oKart.tours == oMap.tours) {
+						if (oKart.laps == oMap.tours) {
 							var firstOne = true;
 							for (var i=0;i<oPlayers.length;i++) {
-								if ((oPlayers[i] != oKart) && (oPlayers[i].tours >= 3)) {
+								if ((oPlayers[i] != oKart) && (oPlayers[i].laps >= 3)) {
 									firstOne = false;
 									break;
 								}
@@ -17584,13 +17612,13 @@ function move(getId, triggered) {
 			if (oKart === oPlayers[0])
 				challengeCheck("end_lap");
 		}
-		else if (oKart.demitours !== prevCP) {
-			collisionLap = handleCpChange(oKart.tours,prevCP, getId);
+		else if (oKart.uturns !== prevCP) {
+			collisionLap = handleCpChange(oKart.laps,prevCP, getId);
 			lMap = getCurrentLMap(collisionLap);
 		}
-		if ((oKart.demitours !== prevCP) && !isFalling(oKart.x,oKart.y)) {
+		if ((oKart.uturns !== prevCP) && !isFalling(oKart.x,oKart.y)) {
 			oKart.lastcp = {
-				id: oKart.demitours,
+				id: oKart.uturns,
 				lMap: lMap,
 				x: oKart.x,
 				y: oKart.y,
@@ -17793,13 +17821,13 @@ function move(getId, triggered) {
 		}
 		oKart.turbodrift--;
 	}
-	if (oKart.champi) {
+	if (oKart.mushroom) {
 		oKart.maxspeed = 11;
-		oKart.champi--;
-		if (!oKart.champi)
-			delete oKart.champiType;
+		oKart.mushroom--;
+		if (!oKart.mushroom)
+			delete oKart.mushroomType;
 	}
-	if (oKart.billball) {
+	if (oKart.bulletbill) {
 		oKart.z = 2;
 		oKart.heightinc = 0;
 		oKart.speed = Math.min(30,13*cappedRelSpeed());
@@ -17826,7 +17854,7 @@ function move(getId, triggered) {
 			}
 		}
 		else {
-			var uturn = oKart.demitours+1;
+			var uturn = oKart.uturns+1;
 			if (uturn >= lMap.checkpoint.length)
 				uturn = 0;
 
@@ -17883,23 +17911,23 @@ function move(getId, triggered) {
 
 		oKart.rotation += fAngle;
 		oKart.rotation = oKart.rotation % 360;
-		oKart.billball--;
+		oKart.bulletbill--;
 		var cptJumpCheck = 6, cptJumpRevert = 12;
-		if (oKart.billjump ? ((oKart.billjump < 4) && (oKart.billball < cptJumpCheck)) : (oKart.billball < cptJumpRevert)) {
+		if (oKart.billjump ? ((oKart.billjump < 4) && (oKart.bulletbill < cptJumpCheck)) : (oKart.bulletbill < cptJumpRevert)) {
 			var fMoveX = oKart.speed*direction(0, oKart.rotation);
 			var fMoveY = oKart.speed*direction(1, oKart.rotation);
 			var customBillRoute = !oKart.cpu && (lMap.airoutesmeta.cpu < lMap.aipoints.length);
-			if (jumps(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.billball < cptJumpCheck) && (isFalling(oKart.x,oKart.y) || isFalling(oKart.x+fMoveX,oKart.y+fMoveY) || (customBillRoute && slowMotion(oKart.x,oKart.y))))) {
+			if (jumps(oKart.x,oKart.y, fMoveX,fMoveY) || ((oKart.bulletbill < cptJumpCheck) && (isFalling(oKart.x,oKart.y) || isFalling(oKart.x+fMoveX,oKart.y+fMoveY) || (customBillRoute && slowMotion(oKart.x,oKart.y))))) {
 				if (!oKart.cannon) {
-					oKart.billball0 = Math.floor(oKart.billball0*cptJumpRevert/oKart.billball);
-					oKart.billball = cptJumpRevert;
+					oKart.bulletbill0 = Math.floor(oKart.bulletbill0*cptJumpRevert/oKart.bulletbill);
+					oKart.bulletbill = cptJumpRevert;
 					oKart.billjump = (oKart.billjump || 0) + 1;
 				}
 			}
 		}
-		if (!oKart.billball) {
+		if (!oKart.bulletbill) {
 			for (var i=0;i<strPlayer.length;i++) {
-				oKart.sprite[i].img.src = getSpriteSrc(oKart.personnage);
+				oKart.sprite[i].img.src = getSpriteImg(oKart.personnage);
 				resumeSpriteSize(oKart.sprite[i]);
 			}
 			oKart.size = 1;
@@ -17908,30 +17936,30 @@ function move(getId, triggered) {
 				oKart.z = 0;
 			oKart.jumped = false;
 			delete oKart.billjump;
-			delete oKart.billball0;
+			delete oKart.bulletbill0;
 			consumeItem(getId);
 			updateProtectFlag(oKart);
 			if (!oKart.cpu)
 				delete oKart.aipoint;
 		}
-		updateItemCountdownHud(getId, oKart.billball/oKart.billball0);
+		updateItemCountdownHud(getId, oKart.bulletbill/oKart.bulletbill0);
 	}
-	if (oKart.champior) {
-		oKart.champior--;
-		if (oKart.champior <= 0) {
-			delete oKart.champior;
-			delete oKart.champior0;
+	if (oKart.goldMushroom) {
+		oKart.goldMushroom--;
+		if (oKart.goldMushroom <= 0) {
+			delete oKart.goldMushroom;
+			delete oKart.goldMushroom0;
 			consumeItem(getId);
 		}
-		updateItemCountdownHud(getId, oKart.champior/oKart.champior0);
+		updateItemCountdownHud(getId, oKart.goldMushroom/oKart.goldMushroom0);
 	}
-	if (oKart.etoile) {
+	if (oKart.star) {
 		oKart.maxspeed += 2;
-		oKart.etoile--;
-		if (oKart.etoile < 15) {
+		oKart.star--;
+		if (oKart.star < 15) {
 			for (var i=0;i<strPlayer.length;i++)
-				oKart.sprite[i].img.src = (oKart.etoile % 2 ? getStarSrc(oKart.personnage) : getSpriteSrc(oKart.personnage));
-			if (!oKart.etoile) {
+				oKart.sprite[i].img.src = (oKart.star % 2 ? getStarSrc(oKart.personnage) : getSpriteImg(oKart.personnage));
+			if (!oKart.star) {
 				updateProtectFlag(oKart);
 				var maxSpeedInc = oKart.cpu ? 1 : oKart.stats.acceleration*oKart.size*fSelectedClass;
 				oKart.speedinc = Math.min(oKart.speedinc, maxSpeedInc);
@@ -17939,13 +17967,13 @@ function move(getId, triggered) {
 			}
 		}
 	}
-	if (oKart.megachampi) {
-		oKart.megachampi--;
-		if (oKart.megachampi > 71)
+	if (oKart.megamushroom) {
+		oKart.megamushroom--;
+		if (oKart.megamushroom > 71)
 			oKart.size *= 1.05;
-		else if (oKart.megachampi < 8) {
+		else if (oKart.megamushroom < 8) {
 			oKart.size /= 1.05;
-			if (!oKart.megachampi) {
+			if (!oKart.megamushroom) {
 				updateProtectFlag(oKart);
 				stopMegaMusic(oKart);
 			}
@@ -17962,7 +17990,7 @@ function move(getId, triggered) {
 	if (oKart.cannon) {
 		var transitionFactor = 3*Math.pow(cappedRelSpeed(oKart),-2);
 		oKart.speed = (oKart.speed*transitionFactor+20)/(transitionFactor+1);
-		if (oKart.billball)
+		if (oKart.bulletbill)
 			oKart.speed = 20;
 		oKart.maxspeed = oKart.speed/(sizeSpeedRatio(oKart)*fSelectedClass);
 		if (!oKart.speedinc)
@@ -17988,9 +18016,9 @@ function move(getId, triggered) {
 	}
 
 	if (!oKart.z && (!oKart.heightinc || fSelectedClass<=1) && accelerate(aPosX, aPosY, fMoveX, fMoveY)) {
-		if (!oKart.champi)
-			oKart.champiType = MUSHROOM_TYPE_BOOST;
-		oKart.champi = 20;
+		if (!oKart.mushroom)
+			oKart.mushroomType = MUSHROOM_TYPE_BOOST;
+		oKart.mushroom = 20;
 		oKart.maxspeed = 11;
 		oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 		if (!oKart.boostSound) {
@@ -18004,7 +18032,7 @@ function move(getId, triggered) {
 		}
 	}
 	if (iSfx && (oKart == oPlayers[0]) && !finishing && !oKart.cpu && (!oKart.loose||isOnline)) {
-		if ((bMusic&&(oKart.etoile||oKart.megachampi)) || oKart.tombe || oKart.turbodrift || oKart.turboSound) {
+		if ((bMusic&&(oKart.star||oKart.megamushroom)) || oKart.fall || oKart.turbodrift || oKart.turboSound) {
 			updateEngineSound();
 			if (oKart.turbodrift == (oKart.turbodrift0-1)) {
 				carEngine3.currentTime = 0;
@@ -18029,7 +18057,7 @@ function move(getId, triggered) {
 		else
 			updateEngineSound(oKart.speed>3 ? carEngine2:carEngine);
 	}
-	if (isBattle() && !oKart.ballons.length && !oKart.tourne && !oKart.loose) {
+	if (isBattle() && !oKart.ballons.length && !oKart.turning && !oKart.loose) {
 		var setOpac = oKart.sprite[0].div.style.opacity-0.1;
 		for (var i=0;i<strPlayer.length;i++) {
 			oKart.sprite[i].div.style.opacity = setOpac;
@@ -18205,8 +18233,8 @@ function handleExplosionHit(getId, pExplose) {
 	loseUsingItems(oKart);
 	stopDrifting(getId);
 	if (pExplose >= 84) {
-		oKart.champi = 0;
-		delete oKart.champiType;
+		oKart.mushroom = 0;
+		delete oKart.mushroomType;
 		oKart.speed = 0;
 		oKart.heightinc = 3;
 		delWeapon(aKarts.indexOf(oKart));
@@ -18253,7 +18281,7 @@ function handleDecorExplosions(fSprite, callback) {
 }
 
 var oWheelsPrefixes = ["", "2"];
-var oWeaponKeys = ["arme", "stash"];
+var oWeaponKeys = ["weapon", "stash"];
 function updateObjHud(ID) {
 	var oKart = aKarts[ID];
 	for (var i=0;i<oWheelsPrefixes.length;i++) {
@@ -18262,14 +18290,14 @@ function updateObjHud(ID) {
 		var oWeapon = oKart[oWeaponKey];
 		var isWeapon = false, isWheel = false;
 		if (oWeapon) {
-			if (oKart["roulette"+prefix] < 25)
+			if (oKart["wheel"+prefix] < 25)
 				isWheel = true;
 			else
 				isWeapon = true;
 		}
 		var oItemHeight = i ? 2.5:4;
 		document.getElementById("scroller"+prefix+ID).style.visibility = isWheel ? "visible" : "hidden";
-		document.getElementById("wheel"+prefix+ID).innerHTML = isWeapon ? '<img alt="'+oWeapon+'" class="pixelated" src="images/items/'+oWeapon+'.png" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
+		document.getElementById("wheel"+prefix+ID).innerHTML = isWeapon ? '<img alt="'+oWeapon+'" class="pixelated" src="images/items/'+itemToImageName[oWeapon]+'.png" style="height: '+ Math.round(iScreenScale*oItemHeight) +'px;" />' : '';
 	}
 	var oScroller = document.getElementById("scroller"+ID);
 	var oObjet = document.getElementById("objet"+ID);
@@ -18328,7 +18356,7 @@ function updateLapHud(sID) {
 	var oKart = getPlayerAtScreen(sID);
 	var oCompteurTours = document.querySelectorAll("#compteur"+sID+" .tour");
 	for (var i=0;i<oCompteurTours.length;i++)
-		oCompteurTours[i].innerHTML = Math.min(oKart.tours, oMap.tours);
+		oCompteurTours[i].innerHTML = Math.min(oKart.laps, oMap.tours);
 }
 function timeStr(timeMS) {
 	var timeMins = Math.floor(timeMS/60000);
@@ -18350,7 +18378,7 @@ function updateSpeedometer(getId, aPosX,aPosY) {
 	var speedKmH = Math.hypot(oKart.x - aPosX, oKart.y - aPosY) * 10;
 	if (oKart.speed < 0)
 		speedKmH = -speedKmH;
-	if (oKart.tombe)
+	if (oKart.fall)
 		speedKmH = 0;
 	$speedometerVals[getId].innerHTML = speedKmH.toFixed(1);
 }
@@ -18364,7 +18392,7 @@ function handleWrongWay(oKart) {
 	var isWrongWay = true;
 	var isRightWay = false;
 	for (var i=1;i<=lMap.checkpointCoords.length;i++) {
-		var dest = (oKart.demitours+i) % lMap.checkpointCoords.length;
+		var dest = (oKart.uturns+i) % lMap.checkpointCoords.length;
 		var iLine = lMap.checkpointCoords[dest];
 
 		var hLine = projete(oKart.x,oKart.y, iLine.O[0],iLine.O[1], iLine.O[0]+iLine.u[0],iLine.O[1]+iLine.u[1]);
@@ -18417,7 +18445,7 @@ function handleWrongWay(oKart) {
 		}
 	}
 	else {
-		if (isWrongWay && !oKart.tombe && !oKart.tourne)
+		if (isWrongWay && !oKart.fall && !oKart.turning)
 			oKart.wrongWaySince = 1;
 	}
 }
@@ -18426,7 +18454,7 @@ function resetWrongWay(oKart) {
 	delete oKart.wrongWaySince;
 	delete oKart.rightWaySince;
 	if (oKart.wrongWaySprite) {
-		oKart.wrongWaySprite[0].suppr();
+		oKart.wrongWaySprite[0].delete();
 		delete oKart.wrongWaySprite;
 	}
 	removeIfExists(oKart.wrongWaySound);
@@ -18478,12 +18506,12 @@ function processCode(cheatCode) {
 			isExistingObj = oItemDistributions.some(oItemDistribution => oItemDistribution.value.some(item => item[wObject] != null));
 
 			if (!isExistingObj) return "give: This item is not present in your item distribution";
-			if (itemSlot === 1 || !oPlayer.arme) {
-				oPlayer.arme = wObject;
-				oPlayer.roulette = 25;
+			if (itemSlot === 1 || !oPlayer.weapon) {
+				oPlayer.weapon = wObject;
+				oPlayer.wheel = 25;
 			} else {
 				oPlayer.stash = wObject;
-				oPlayer.roulette2 = 25;
+				oPlayer.wheel2 = 25;
 			}
 			updateObjHud(0);
 			return true;
@@ -18548,30 +18576,30 @@ function processCode(cheatCode) {
             let doNotTeleport = (command === "lapn");
 
             let t = parseInt(args[0]), c = parseInt(args[1]);
-            if (args[0] == "cur") t = oPlayer.tours;
+            if (args[0] == "cur") t = oPlayer.laps;
             if (!args[0]) {
                 t = oMap.tours;
-                const lMap = getCurrentLMap({ tours: t, demitours: 0 });
+                const lMap = getCurrentLMap({ laps: t, uturns: 0 });
                 c = lMap.checkpoint.length;
             }
 
 			let llMap = getCurrentLMap(getCurrentLapId(oPlayer));
 
             if (c > 0) c--;
-            if (args[1] == "cur") c = oPlayer.demitours;
+            if (args[1] == "cur") c = oPlayer.uturns;
             if (!args[1]) c = llMap.checkpoint.length - 1;
 
 			if (isNaN(t)) return "lap: Invalid lap value";
 			if (isNaN(c)) return "lap: Invalid checkpoint value";
 
-            const prevLap = oPlayer.tours, prevCP = oPlayer.demitours;
+            const prevLap = oPlayer.laps, prevCP = oPlayer.uturns;
 			let curCheckpointCount = llMap.checkpoint.length;
 
 			if (t > oMap.tours) t = oMap.tours;
 			if (c > curCheckpointCount) c = curCheckpointCount - 1;
 
-            oPlayer.tours = t;
-            oPlayer.demitours = c;
+            oPlayer.laps = t;
+            oPlayer.uturns = c;
             const lMap = getCurrentLMap(oPlayer);
             const checkpoint = lMap.checkpointCoords[c];
             if (checkpoint) {
@@ -18663,7 +18691,7 @@ function distToNextShortcut(oKart) {
 			return res;
 		var nextAiId = aiId + 1;
 		if (nextAiId >= oKart.aipoints.length) {
-			if (oMap.sections || oKart.tours >= oMap.tours)
+			if (oMap.sections || oKart.laps >= oMap.tours)
 				return Infinity;
 			nextAiId = 0;
 		}
@@ -18678,26 +18706,26 @@ function distToNextShortcut(oKart) {
 
 function hasShortcutItem(oKart, aishortcut) {
 	if (oKart.using.length) return false;
-	if (oKart.roulette != 25) return false;
-	return isShortcutItem(oKart.arme, aishortcut);
+	if (oKart.wheel != 25) return false;
+	return isShortcutItem(oKart.weapon, aishortcut);
 }
-function isShortcutItem(arme, aishortcut) {
-	var itemKey = arme;
-	/*switch (arme) {
-	case "champi":
-	case "champiX2":
-	case "champiX3":
-	case "champior":
-		itemKey = "champi";
+function isShortcutItem(weapon, aishortcut) {
+	var itemKey = weapon;
+	/*switch (weapon) {
+	case "mushroom":
+	case "mushroomX2":
+	case "mushroomX3":
+	case "goldMushroom":
+		itemKey = "mushroom";
 		break;
-	case "megachampi":
-		itemKey = "megachampi";
+	case "megamushroom":
+		itemKey = "megamushroom";
 		break;
-	case "etoile":
-		itemKey = "etoile";
+	case "star":
+		itemKey = "star";
 		break;
-	case "billball":
-		itemKey = "billball";
+	case "bulletbill":
+		itemKey = "bulletbill";
 		break;
 	}*/
 	return isShortcutItemKey(itemKey, aishortcut);
@@ -18707,17 +18735,17 @@ function isShortcutItemKey(itemKey, aishortcut) {
 	return aishortcut ? aishortcut[2].itemsDict[itemKey] : true;
 }
 function hasExtraShortcutItem(oKart, aishortcut) {
-	if (oKart.roulette2 == 25) {
+	if (oKart.wheel2 == 25) {
 		if (isShortcutItem(oKart.stash, aishortcut))
 			return true;
 	}
-	if (isShortcutItemKey("champi", aishortcut)) {
-		switch (oKart.arme) {
-		case "champiX2":
-		case "champiX3":
+	if (isShortcutItemKey("mushroom", aishortcut)) {
+		switch (oKart.weapon) {
+		case "mushroomX2":
+		case "mushroomX3":
 			return true;
-		case "champior":
-			if (oKart.champior)
+		case "goldMushroom":
+			if (oKart.goldMushroom)
 				return true;
 		}
 	}
@@ -18751,17 +18779,17 @@ function ai(oKart) {
 			oKart.lastAI = -1;
 		}
 	}
-	if (oKart.billball)
+	if (oKart.bulletbill)
 		return;
-	if (oKart.tombe)
+	if (oKart.fall)
 		return;
-	if ((oMap.sections && oKart.tours > oMap.tours) || (oKart.ballons && !oKart.ballons.length && !oKart.loose)) {
+	if ((oMap.sections && oKart.laps > oMap.tours) || (oKart.ballons && !oKart.ballons.length && !oKart.loose)) {
 		oKart.speedinc = 0;
 		oKart.rotinc = 0;
 		oKart.rotincdir = 0;
 		return;
 	}
-	if (oKart.tourne) {
+	if (oKart.turning) {
 		oKart.speedinc = (!oKart.z&&(oKart.speed>1)) ? 1:0;
 		oKart.rotinc = 0;
 		oKart.rotincdir = 0;
@@ -18821,7 +18849,7 @@ function ai(oKart) {
 				var nbPos = Math.floor(oKart.x/100)+Math.floor(oKart.y/100)*6;
 				if (nbPos != oKart.lastAI) {
 					var shouldChangeAi = true;
-					if (oKart.speed >= 0 && !oKart.tombe) {
+					if (oKart.speed >= 0 && !oKart.fall) {
 						var distToAi2 = ((currentAi[0]-oKart.x)*(currentAi[0]-oKart.x) + (currentAi[1]-oKart.y)*(currentAi[1]-oKart.y));
 						switch (oMap.skin) {
 						case 27:
@@ -19196,7 +19224,7 @@ function ai(oKart) {
 					if (marginSpeed < speedToAim) speedToAim = marginSpeed;
 				}
 				var maxSpeed = speedToAim;
-				if (oKart.bloops && oKart.bloops.effective(oKart))
+				if (oKart.bloopers && oKart.bloopers.effective(oKart))
 					maxSpeed = Math.min(maxSpeed,3);
 				maxSpeed /= 0.9;
 				if (!maxSpeed)
@@ -19215,7 +19243,7 @@ function ai(oKart) {
 			oKart.aipoint = undefined;
 		break;
 	}
-	if ((oKart.roulette == 25 || oKart.using[0]) && !oKart.tourne && !oKart.cannon) {
+	if ((oKart.wheel == 25 || oKart.using[0]) && !oKart.turning && !oKart.cannon) {
 		var useRandomly = false;
 		function isPlayerTargetable(minDist,maxDist,minAngle,maxAngle, reverse) {
 			var minDist2 = minDist*minDist, maxDist2 = maxDist*maxDist;
@@ -19240,7 +19268,7 @@ function ai(oKart) {
 		if (!isOnline || oKart.controller == identifiant) {
 			if (oKart.using.length) {
 				switch(oKart.using[0].type) {
-				case "carapace-rouge":
+				case "red-shell":
 					if ((isBattle()) && (oKart.using.length < 2)) {
 						if (isPlayerTargetable(15,100, 0,30))
 							useWeapon(aKarts.indexOf(oKart));
@@ -19248,7 +19276,7 @@ function ai(oKart) {
 					else
 						useRandomly = true;
 					break;
-				case "carapace":
+				case "shell":
 					if ((isBattle()) && (oKart.using.length < 2)) {
 						if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,150, 0,15))
 							useWeapon(aKarts.indexOf(oKart));
@@ -19269,7 +19297,7 @@ function ai(oKart) {
 					if (hasShortcutItem(oKart)) {
 						if (oKart.aishortcut != null) {
 							isCutting = true;
-							if (!oKart.champi && (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10)))
+							if (!oKart.mushroom && (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10)))
 								useWeapon(aKarts.indexOf(oKart));
 						}
 						else {
@@ -19288,20 +19316,20 @@ function ai(oKart) {
 					oKart.shouldWaitItemCache = shouldWaitItemCache;
 				}
 				if (!shouldWait && !isCutting) {
-					switch (oKart.arme) {
-					case "megachampi":
-					case "etoile":
+					switch (oKart.weapon) {
+					case "megamushroom":
+					case "star":
 						if ((speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
 							useWeapon(aKarts.indexOf(oKart));
 						break;
-					case "champi":
-					case "champiX2":
-					case "champiX3":
-						if (!oKart.champi && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
+					case "mushroom":
+					case "mushroomX2":
+					case "mushroomX3":
+						if (!oKart.mushroom && (speedToAim >= 11) && (distToAim >= 100) && (angleToAim <= 10))
 							useWeapon(aKarts.indexOf(oKart));
 						break;
-					case "champior":
-						if (oKart.champior) {
+					case "goldMushroom":
+						if (oKart.goldMushroom) {
 							if (((speedToAim >= 8) || (speedToAim-oKart.speed >= 5)) && (angleToAim <= 10))
 								useWeapon(aKarts.indexOf(oKart));
 						}
@@ -19321,8 +19349,8 @@ function ai(oKart) {
 				var behind = true;
 				if (oKart.using.length) {
 					switch(oKart.using[0].type) {
-					case "banane":
-					case "fauxobjet":
+					case "banana":
+					case "fakeItem":
 					case "poison":
 						behind = false;
 						break;
@@ -19335,7 +19363,7 @@ function ai(oKart) {
 		}
 	}
 	if (oMap.jumpable && (iDifficulty > 4)) {
-		if (oKart.z && !oKart.jumped && !oKart.billball && !oKart.figstate && !oKart.figuring && !oKart.tourne && (oKart.heightinc > 0)) {
+		if (oKart.z && !oKart.jumped && !oKart.bulletbill && !oKart.figstate && !oKart.figuring && !oKart.turning && (oKart.heightinc > 0)) {
 			if (speedToAim >= 8) {
 				if (!oMap.jumpexc || oMap.jumpexc.indexOf(oKart.aipoint) == -1)
 					oKart.figstate = 21;
@@ -19711,10 +19739,10 @@ function runOneFrame() {
 					oKart.aipoint = 0;
 					var lMap = getCurrentLMap(lMaps.length);
 					oKart.aipoints = lMap.aipoints[0];
-					oKart.tours = oMap.tours+1;
-					oKart.demitours = 0;
+					oKart.laps = oMap.tours+1;
+					oKart.uturns = 0;
 					oKart.lastAItime = 0;
-					oKart.arme = false;
+					oKart.weapon = false;
 					oKart.stopDrifting();
 					oKart.stopStunt();
 				}
@@ -19726,7 +19754,7 @@ function runOneFrame() {
 				if (isTimeTrial() && !oKart.cpu) {
 					var trajetplus = [Math.round(oKart.x),Math.round(oKart.y),oKart.z,Math.round(oKart.rotation)];
 					var trajetflags = "0000".split("");
-					if (oKart.tombe == 20)
+					if (oKart.fall == 20)
 						trajetflags[0] = "1";
 					if (oKart.ctrl) {
 						trajetflags[1] = "1";
@@ -19791,13 +19819,13 @@ function handleSpectatorInput(e) {
 	}
 	switch (e.keyAction) {
 	case "left":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].laps, prevCP = aKarts[oSpecCam.playerId].uturns;
 		oSpecCam.playerId--;
 		if (oSpecCam.playerId < 0) oSpecCam.playerId += aKarts.length;
 		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
 		break;
 	case "right":
-		var prevLap = aKarts[oSpecCam.playerId].tours, prevCP = aKarts[oSpecCam.playerId].demitours;
+		var prevLap = aKarts[oSpecCam.playerId].laps, prevCP = aKarts[oSpecCam.playerId].uturns;
 		oSpecCam.playerId++;
 		if (oSpecCam.playerId >= aKarts.length) oSpecCam.playerId = 0;
 		handleCpChange(prevLap,prevCP, oSpecCam.playerId);
@@ -19810,7 +19838,7 @@ function handleSpectatorInput(e) {
 	}
 	oSpecCam.reset();
 	var oKart = getPlayerAtScreen(0);
-	var stillRacing = isBattle ? !oKart.loose : (oKart.tours <= oMap.tours);
+	var stillRacing = isBattle ? !oKart.loose : (oKart.laps <= oMap.tours);
 	if (stillRacing) {
 		var $rankInfo = document.getElementById("rankInfo0");
 		$rankInfo.style.visibility = "";
@@ -20159,10 +20187,10 @@ function getStarSrc(playerName) {
 		return PERSOS_DIR + playerName + "-star.png";
 	return "images/star/star_" + playerName +".png";
 }
-function getSpriteSrc(playerName) {
-	if (isCustomPerso(playerName))
-		return PERSOS_DIR + playerName + ".png";
-	return "images/sprites/sprite_" + playerName +".png";
+function getSpriteImg(src) {
+	if (isCustomPerso(src))
+		return PERSOS_DIR + src + ".png";
+	return "images/sprites/sprite_" + ((src in itemToImageName) ? itemToImageName[src] : src) +".png";
 }
 function getCustomDecorData(customData,callback) {
 	var id = customData.id, type = customData.type;
@@ -22909,7 +22937,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 					break;
 				}
 			}
-			oPImg.src = (usable ? getSpriteSrc(oPlayer):getStarSrc(oPlayer));
+			oPImg.src = (usable ? getSpriteImg(oPlayer):getStarSrc(oPlayer));
 			oPImg.alt = oPlayer;
 			oPImg.style.left = -(30 * jScreenScale) +"px";
 			oPImg.j = IdJ;
@@ -23073,8 +23101,8 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 									}
 								}
 							}
-							var oSuppr = aPlayers.length-nbPlayers+strPlayer.length;
-							aPlayers.splice(0,oSuppr);
+							var oDelete = aPlayers.length-nbPlayers+strPlayer.length;
+							aPlayers.splice(0,oDelete);
 						}
 						aPlaces = [];
 						aTeams = [];
@@ -23893,17 +23921,17 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 			oMoreOptionsScreen.appendChild(oScroll);
 
-			var oPInput = document.createElement("input");
-			oPInput.type = "button";
-			oPInput.value = toLanguage("Back", "Retour");
-			oPInput.style.fontSize = (2*iScreenScale)+"px";
-			oPInput.style.position = "absolute";
-			oPInput.style.left = (4*iScreenScale)+"px";
-			oPInput.style.top = (32*iScreenScale)+"px";
-			oPInput.onclick = function() {
+			var oPBack = document.createElement("input");
+			oPBack.type = "button";
+			oPBack.value = toLanguage("Back", "Retour");
+			oPBack.style.fontSize = (2*iScreenScale)+"px";
+			oPBack.style.position = "absolute";
+			oPBack.style.left = (4*iScreenScale)+"px";
+			oPBack.style.top = (32*iScreenScale)+"px";
+			oPBack.onclick = function() {
 				oMoreOptionsScreen.style.display = "none";
 			}
-			oMoreOptionsScreen.appendChild(oPInput);
+			oMoreOptionsScreen.appendChild(oPBack);
 		}
 		else {
 			var ccConstraint = getCcConstraint(clSelected);
@@ -24274,7 +24302,7 @@ function selectItemScreen(oScr, callback, options) {
 	for (var i=0;i<possibleItems.length;i++) {
 		var oTd = document.createElement("td");
 		var oImg = document.createElement("img");
-		oImg.src = "images/items/"+possibleItems[i]+".png";
+		oImg.src = "images/items/"+itemToImageName[possibleItems[i]]+".png";
 		oImg.alt = possibleItems[i];
 		oImg.style.width = (iScreenScale*2) +"px";
 		oTd.appendChild(oImg);
@@ -24754,7 +24782,7 @@ function selectItemScreen(oScr, callback, options) {
 		}
 		oSetForm.appendChild(oLink);
 
-		if (possibleItems.indexOf("carapacenoire") === -1) {
+		if (possibleItems.indexOf("blackShell") === -1) {
 			oScr2.tabIndex = 0;
 			oScr2.style.outline = "none";
 			var secretCode = "darkshell", typedCode = "";
@@ -24771,7 +24799,7 @@ function selectItemScreen(oScr, callback, options) {
 					}
 					if (typedCode === secretCode) {
 						if (confirm("Enable dark shell item?")) {
-							itemDistribution0[itemDistribution0.length-1].carapacenoire = 0;
+							itemDistribution0[itemDistribution0.length-1].blackShell = 0;
 							oScr.removeChild(oScr2);
 							selectItemScreen(oScr, callback, options);
 							return;
@@ -28710,7 +28738,7 @@ function selectFantomeScreen(ghostsData, map, otherGhostsData) {
 	function writeTime(perso,pseudo,time,times,oImg,oDiv) {
 		if (!oImg) oImg = oPImg;
 		if (!oDiv) oDiv = oPersoTime;
-		oImg.src = getSpriteSrc(perso);
+		oImg.src = getSpriteImg(perso);
 		oDiv.innerHTML = timeStr(time);
 		oSpan.innerText = pseudo;
 		oSpan.title = pseudo;
