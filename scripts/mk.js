@@ -1953,15 +1953,28 @@ function initMap() {
 		if (lMap.ext ? ("gif" === lMap.ext) : mapSrc.match(/\.gif$/g)) {
 			if (gameSettings.nogif) {
 				var oGif = new Image();
-				lMap.mapImg = oGif;
-				oGif.onload = function() {
-					oMapImg = document.createElement("canvas");
-					oMapImg.width = oGif.naturalWidth;
-					oMapImg.height = oGif.naturalHeight;
-					var oMapCtx = oMapImg.getContext("2d");
-					oMapCtx.drawImage(oGif, 0,0);
-					startGame();
-				};
+				if (isMain) {
+					lMap.mapImg = oGif;
+					oGif.onload = function() {
+						oMapImg = document.createElement("canvas");
+						oMapImg.width = oGif.naturalWidth;
+						oMapImg.height = oGif.naturalHeight;
+						lMap.mapImg = oMapImg;
+						var oMapCtx = oMapImg.getContext("2d");
+						oMapCtx.drawImage(oGif, 0,0);
+						startGame();
+					};
+				}
+				else {
+					oGif.onload = function() {
+						oMapImg = document.createElement("canvas");
+						oMapImg.width = oGif.naturalWidth;
+						oMapImg.height = oGif.naturalHeight;
+						var oMapCtx = oMapImg.getContext("2d");
+						oMapCtx.drawImage(oGif, 0,0);
+						handleMapLoad();
+					};
+				}
 				oGif.src = mapSrc;
 			}
 			else {
