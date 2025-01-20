@@ -13,7 +13,7 @@ And Docker will set up everything for you. The site should be reachable at http:
 You're not completely done yet though. You'll have to feed the database structure and data (+ setup some data folders like the ones containing custom track upload images).
 To do this, run the following command:
 ```
-docker exec -it mkpc_web /root/docker/setup.sh
+docker exec -it mkpc_web /root/scripts/setup.sh
 ```
 Which will create everything you need. The database is reachable at `127.0.0.1:8306` using credentials `mkpc_user` and `mkpc_pwd` (db name `mkpc`).
 

@@ -39,7 +39,7 @@ var isMCups = (isCup && (NBCIRCUITS>4));
 var clRuleVars = {};
 var clGlobalVars;
 
-function isBattle()
+function isBallonBattle()
 {
 	return course == "BB";
 }
@@ -1078,7 +1078,7 @@ function setPlanPos(frameState, lMap) {
 				var iCharR = oKart.ref.bulletbill ? 1.5:oKart.size;
 				var iCharW = Math.round(iCharWidth*iCharR);
 				iPlanCharacters[i].style.width = iCharW +"px";
-				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.turning*360/21, iCharW, iMapW);
+				posImg(iPlanCharacters[i], oKart.x,oKart.y,oKart.rotation-oKart.spinning*360/21, iCharW, iMapW);
 				if (iTeamPlay && (iCharWidth==oCharWidth)) {
 					var iCharW2 = Math.round(oCharWidth2*iCharR);
 					var iTeamW = Math.round(oTeamWidth*iCharR);
@@ -1664,10 +1664,10 @@ function loadMap() {
 		var oCompteur = document.createElement("div");
 		oCompteur.id = "compteur"+i;
 		oCompteur.style.left = Math.round(iScreenScale/2) +"px";
-		oCompteur.style.bottom = ((!isBattle()) ? Math.round(iScreenScale/4) : Math.round(iScreenScale/4)) +"px";
+		oCompteur.style.bottom = ((!isBallonBattle()) ? Math.round(iScreenScale/4) : Math.round(iScreenScale/4)) +"px";
 		oCompteur.style.fontSize = Math.round(iScreenScale*2.4) +"px";
 		if (!pause || !fInfos.replay) {
-			if (!isBattle()) {
+			if (!isBallonBattle()) {
 				oCompteur.innerHTML = '<div></div><div class="glow"></div>';
 				var oCompteurDivs = oCompteur.querySelectorAll("div");
 				for (var j=0;j<oCompteurDivs.length;j++) {
@@ -2593,7 +2593,7 @@ function useWeapon(ID, backwards, forwards) {
 
 			case "blueshell" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0, lapId = 0, lMap;
-			if (!isBattle()) {
+			if (!isBallonBattle()) {
 				lapId = getCurrentLapId(oKart);
 				lMap = getCurrentLMap(lapId);
 				var uturn = oKart.uturns+1;
@@ -2630,7 +2630,7 @@ function useWeapon(ID, backwards, forwards) {
 
 			case "blackShell" :
 			var minDist = Infinity, minAiPt = 0, minAiMap = 0;
-			if (!isBattle()) {
+			if (!isBallonBattle()) {
 				for (var i=0;i<oMap.airoutesmeta.cpu;i++) {
 					var aipoints = oMap.aipoints[i];
 					for (var j=0;j<aipoints.length;j++) {
@@ -3269,7 +3269,7 @@ function startEndMusic() {
 			}
 		}, 200);
 	}
-	if (iSfx && !isBattle()) {
+	if (iSfx && !isBallonBattle()) {
 		var goalSound = playSoundEffect("musics/events/goal.mp3");
 		goalSound.className = "";
 	}
@@ -3289,7 +3289,7 @@ function startGame() {
 
 	var nbKarts = strPlayer.length+aPlayers.length;
 	if (!isOnline) {
-		if (isBattle()) {
+		if (isBallonBattle()) {
 			for (var i=0;i<nbKarts;i++)
 				aPlaces[i] = i+1;
 		}
@@ -3353,7 +3353,7 @@ function startGame() {
 			cpu : false,
 			aipoints : oMap.aipoints[0],
 
-			turning : 0,
+			spinning : 0,
 			fall : 0,
 			protect : false,
 
@@ -3384,7 +3384,7 @@ function startGame() {
 			oPlayer.team = aTeams[i];
 		else
 			oPlayer.team = -1;
-		if (!isBattle()) {
+		if (!isBallonBattle()) {
 			posKart(oPlayer, isTT ? 1:oPlace);
 			oPlayer.time = 0;
 			oPlayer.laps = 1;
@@ -3422,7 +3422,7 @@ function startGame() {
 		var inc = i+nbPlayers;
 		var oPlace = aPlaces[inc];
 		var depart = (iDifficulty-4)*2+Math.round(Math.random());
-		if (isBattle())
+		if (isBallonBattle())
 			depart = 2;
 		var oEnemy = {
 			id : inc,
@@ -3444,7 +3444,7 @@ function startGame() {
 			personnage : player,
 			sprite : new Sprite(player),
 
-			turning : 0,
+			spinning : 0,
 			fall : 0,
 			protect : false,
 
@@ -3488,7 +3488,7 @@ function startGame() {
 			oEnemy.team = -1;
 		if ((oEnemy.team != -1) || oEnemy.nick)
 			oEnemy.marker = createMarker(oEnemy);
-		if (!isBattle()) {
+		if (!isBallonBattle()) {
 			posKart(oEnemy, isTT ? 1:oPlace);
 			oEnemy.laps = 1;
 			oEnemy.uturns = cp0;
@@ -3497,7 +3497,7 @@ function startGame() {
 			oEnemy.bulletbill = 0;
 			if (!isOnline) {
 				oEnemy.speed = (depart<2) ? 0 : 5.7;
-				oEnemy.turning = depart ? 0 : 42;
+				oEnemy.spinning = depart ? 0 : 42;
 			}
 			oEnemy.place = oPlace;
 		}
@@ -3599,7 +3599,7 @@ function startGame() {
 		if (clLocalVars.invertDirs)
 			dir = -dir;
 		this.rotincdir = this.stats.handling*dir;
-		if (!this.driftinc && !this.turning && !this.fell && this.ctrl && !this.cannon) {
+		if (!this.driftinc && !this.spinning && !this.fell && this.ctrl && !this.cannon) {
 			if (this.jumped)
 				this.driftinc = dir;
 			if (this.driftinc)
@@ -3607,14 +3607,14 @@ function startGame() {
 		}
 	}
 	function spinKart(nb) {
-		if (!this.turning) {
+		if (!this.spinning) {
 			if (isOnline)
 				playIfShould(this,"musics/events/spin.mp3");
 			else
-				playDistSound(this,"musics/events/spin.mp3",(isBattle())?80:50);
+				playDistSound(this,"musics/events/spin.mp3",(isBallonBattle())?80:50);
 		}
 		this.frminv = 10;
-		this.turning = nb;
+		this.spinning = nb;
 		resetWrongWay(this);
 	}
 	function actualKartSpeed() {
@@ -3671,7 +3671,7 @@ function startGame() {
 					personnage : gPerso,
 					sprite : new Sprite(gPerso),
 
-					turning : 0,
+					spinning : 0,
 					fall : 0,
 					protect : false,
 
@@ -3715,7 +3715,7 @@ function startGame() {
 			(function(getId) {
 				var oKart = aKarts[getId];
 				oKart.stopDrifting = function() {
-					oKart.turning = 0;
+					oKart.spinning = 0;
 					oKart.driftcpt = 0;
 					oKart.driftinc = 0;
 					resetDriftSprite(oKart);
@@ -3723,7 +3723,7 @@ function startGame() {
 				oKart.stopStunt = function() {
 					if (aStunted) {
 						aStunted = false;
-						oKart.turning = 0;
+						oKart.spinning = 0;
 					}
 					var oSprite = oKart.sprite[0];
 					if (oSprite.div.ahallowed) {
@@ -3785,8 +3785,8 @@ function startGame() {
 						}
 						else {
 							if (aStunted) {
-								oKart.turning -= 1 + Math.round((11-Math.abs(11-oKart.turning))*0.5);
-								if (oKart.turning < 8) {
+								oKart.spinning -= 1 + Math.round((11-Math.abs(11-oKart.spinning))*0.5);
+								if (oKart.spinning < 8) {
 									var oSprite = oKart.sprite[0];
 									if (!oSprite.div.ahallowed) {
 										oSprite.div.ahallowed = true;
@@ -3795,14 +3795,14 @@ function startGame() {
 										oSprite.div.style.backgroundSize = "contain";
 										oSprite.img.style.opacity = 0.7;
 									}
-									if (oKart.turning < 0)
-										oKart.turning = 0;
+									if (oKart.spinning < 0)
+										oKart.spinning = 0;
 								}
 							}
 							else if (getFlags[1] && !oKart.driftinc && !oKart.fall) {
 								aStunted = true;
 								oKart.stopDrifting();
-								oKart.turning = 19;
+								oKart.spinning = 19;
 							}
 						}
 						if (getFlags[0]) {
@@ -3858,7 +3858,7 @@ function startGame() {
 			document.getElementById("rankInfo"+i).style.display = "block";
 			var oColor = (oPlayers[i].team != -1) ? cTeamColors.light[oPlayers[i].team]:"";
 			document.getElementById("rankInfo"+i).style.color = oColor;
-			if ((!isBattle()) && !onlineSpectatorId)
+			if ((!isBallonBattle()) && !onlineSpectatorId)
 				document.getElementById("compteur"+i).style.color = oColor;
 		}
 	}
@@ -4133,7 +4133,7 @@ function startGame() {
 	}, 300);
 
 	if (bMusic && !onlineSpectatorState) {
-		var startingMusic = playSoundEffect("musics/events/"+ (!isBattle()?"start":"startbb") +".mp3");
+		var startingMusic = playSoundEffect("musics/events/"+ (!isBallonBattle()?"start":"startbb") +".mp3");
 		startingMusic.volume = vMusic;
 		startingMusic.pause();
 		setTimeout(function() {
@@ -4208,7 +4208,7 @@ function startGame() {
 			var shadowShift = Math.round(iScreenScale/8) +"px";
 			var shadowShift2 = Math.round(iScreenScale/4) +"px";
 			oRaceCount.style.textShadow = "-"+shadowShift2+" 0 black, 0 "+shadowShift2+" black, "+shadowShift2+" 0 black, 0 -"+shadowShift2+" black, -"+shadowShift+" -"+shadowShift+" black, -"+shadowShift+" "+shadowShift+" black, "+shadowShift+" -"+shadowShift+" black, "+shadowShift+" "+shadowShift+" black";
-			var sRaceLabel = (isBattle()) ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
+			var sRaceLabel = (isBallonBattle()) ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
 			oRaceCount.innerHTML = sRaceLabel + " " + iRaceCount;
 			hudScreens[i].appendChild(oRaceCount);
 			oRaceCounts.push(oRaceCount);
@@ -4253,7 +4253,7 @@ function startGame() {
 				oChallengeCpts.style.visibility = "visible";
 				for (var i=0;i<$speedometers.length;i++)
 					$speedometers[i].style.visibility = "visible";
-				if (isBattle()) {
+				if (isBallonBattle()) {
 					for (var i=0;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
 						if (oKart.cpu)
@@ -4474,7 +4474,7 @@ function startGame() {
 								if (!isJumpEnabled()) break;
 								oPlayers[0].ctrl = true;
 								if (!oPlayers[0].z && !oPlayers[0].heightinc) {
-									if (!oPlayers[0].driftinc && !oPlayers[0].turning) {
+									if (!oPlayers[0].driftinc && !oPlayers[0].spinning) {
 										oPlayers[0].z = 1;
 										oPlayers[0].heightinc = 0.5;
 										oPlayers[0].jumped = true;
@@ -4484,7 +4484,7 @@ function startGame() {
 											clLocalVars.drifted = true;
 									}
 								}
-								else if (!oPlayers[0].jumped && !oPlayers[0].fell && !oPlayers[0].ctrled && !oPlayers[0].bulletbill && !oPlayers[0].turning && !oPlayers[0].figuring && !oPlayers[0].figstate && !oPlayers[0].driftinc)
+								else if (!oPlayers[0].jumped && !oPlayers[0].fell && !oPlayers[0].ctrled && !oPlayers[0].bulletbill && !oPlayers[0].spinning && !oPlayers[0].figuring && !oPlayers[0].figstate && !oPlayers[0].driftinc)
 									stuntKart(oPlayers[0]);
 								break;
 							case "pause":
@@ -4509,8 +4509,8 @@ function startGame() {
 								break;
 							case "balloon" :
 								if (pause) return;
-								if (isBattle()) {
-									if ((oPlayers[0].turning<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
+								if (isBallonBattle()) {
+									if ((oPlayers[0].spinning<5) && oPlayers[0].reserve && oPlayers[0].ballons.length && oPlayers[0].ballons.length < 3 && !oPlayers[0].sprite[0].div.style.opacity) {
 										oPlayers[0].ballons[oPlayers[0].ballons.length] = createBalloonSprite(oPlayers[0]);
 										oPlayers[0].reserve--;
 										updateBalloonHud(document.getElementById("compteur0"),oPlayers[0]);
@@ -4549,7 +4549,7 @@ function startGame() {
 								if (!oPlayers[1]) return;
 								oPlayers[1].ctrl = true;
 								if (!oPlayers[1].z && !oPlayers[1].heightinc) {
-									if (!oPlayers[1].driftinc && !oPlayers[1].turning) {
+									if (!oPlayers[1].driftinc && !oPlayers[1].spinning) {
 										oPlayers[1].z = 1;
 										oPlayers[1].heightinc = 0.5;
 										oPlayers[1].jumped = true;
@@ -4557,14 +4557,14 @@ function startGame() {
 											oPlayers[1].driftinc = (oPlayers[1].rotincdir>0) ? 1:-1;
 									}
 								}
-								else if (!oPlayers[1].jumped && !oPlayers[1].ctrled && !oPlayers[1].fell && !oPlayers[1].bulletbill && !oPlayers[1].turning && !oPlayers[1].figuring && !oPlayers[1].figstate && !oPlayers[1].driftinc)
+								else if (!oPlayers[1].jumped && !oPlayers[1].ctrled && !oPlayers[1].fell && !oPlayers[1].bulletbill && !oPlayers[1].spinning && !oPlayers[1].figuring && !oPlayers[1].figstate && !oPlayers[1].driftinc)
 									stuntKart(oPlayers[1]);
 								return false;
 							case "balloon_p2":
 								if (pause) return;
 								if (!oPlayers[1]) return;
-								if (isBattle()) {
-									if ((oPlayers[0].turning<5) && oPlayers[1].reserve && oPlayers[1].ballons.length && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
+								if (isBallonBattle()) {
+									if ((oPlayers[0].spinning<5) && oPlayers[1].reserve && oPlayers[1].ballons.length && oPlayers[1].ballons.length < 3 && !oPlayers[1].sprite[0].div.style.opacity) {
 										oPlayers[1].ballons[oPlayers[1].ballons.length] = createBalloonSprite(oPlayers[1]);
 										oPlayers[1].reserve--;
 										updateBalloonHud(document.getElementById("compteur1"),oPlayers[1]);
@@ -4578,7 +4578,7 @@ function startGame() {
 							case "item":
 							case "item_back":
 							case "item_fwd":
-								if (!oPlayers[0].turning && !oPlayers[0].cannon && !pause)
+								if (!oPlayers[0].spinning && !oPlayers[0].cannon && !pause)
 									useWeapon(0, ("item_back" === gameAction), ("item_fwd" === gameAction));
 								break;
 							case "up":
@@ -4640,7 +4640,7 @@ function startGame() {
 							case "item_p2":
 							case "item_back_p2":
 							case "item_fwd_p2":
-								if (!oPlayers[1].turning && !oPlayers[1].cannon && !pause)
+								if (!oPlayers[1].spinning && !oPlayers[1].cannon && !pause)
 									useWeapon(1, ("item_back_p2" === gameAction), ("item_fwd_p2" === gameAction));
 								break;
 							case "up_p2":
@@ -4821,7 +4821,7 @@ function startGame() {
 									oKart.weapon = false;
 									oKart.maxspeed = 5.7;
 									if (!i) {
-										oKart.turning = 0;
+										oKart.spinning = 0;
 										oKart.stopDrifting();
 										oKart.stopStunt();
 									}
@@ -4847,7 +4847,7 @@ function startGame() {
 						oPlayers[0].cpu = false;
 						moveDecor();
 						oPlayers[0].cpu = true;
-						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var laps=oKart.laps,uturns=oKart.uturns;oKart.laps=oMap.tours+1;oKart.uturns=0;handleCpChange(laps,uturns,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.turning=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
+						setTimeout((timer != iTrajet.length) ? revoir : function(){var oKart=aKarts[0];var laps=oKart.laps,uturns=oKart.uturns;oKart.laps=oMap.tours+1;oKart.uturns=0;handleCpChange(laps,uturns,0);oKart.aipoint=0;oKart.changeView=180;oKart.maxspeed=5.7;oKart.speed=5.7;oKart.spinning=0;oKart.stopDrifting();oKart.stopStunt();if($speedometers[0])$speedometers[0].style.display="none";document.onkeyup=undefined;document.getElementById("infos0").style.display="";var firstButton = document.getElementById("infos0").getElementsByTagName("input")[0];if (firstButton)firstButton.focus();timerMS=iRecord;showTimer(timerMS);if(bMusic||iSfx){startEndMusic()}cycle()},SPF);
 						render();
 					}
 					for (i=0;i<aKarts.length;i++) {
@@ -5315,7 +5315,7 @@ function setupCommonMobileControls() {
 		hudScreens[0].appendChild($virtualPauseBtn);
 	}
 
-	if (isBattle()) {
+	if (isBallonBattle()) {
 		var $virtualBalloonBtn = document.createElement("div");
 		$virtualBalloonBtn.style.position = "absolute";
 		$virtualBalloonBtn.style.zIndex = 20000;
@@ -5793,7 +5793,7 @@ function askContinue() {
 			if (isSingle && !isOnline)
 				oContinue.value = "        "+ toLanguage('  REPLAY', 'REJOUER') +"        ";
 			else {
-				if (isBattle())
+				if (isBallonBattle())
 					oContinue.value = toLanguage("      NEXT BATTLE	   ", "BATAILLE SUIVANTE");
 				else
 					oContinue.value = toLanguage("       NEXT RACE	   ", "COURSE SUIVANTE");
@@ -7954,7 +7954,7 @@ var itemBehaviors = {
 						}
 						else {
 							if (fSprite.aipoint == -1) {
-								if (!isBattle()) {
+								if (!isBallonBattle()) {
 									var minDist = 2000;
 									var lMap = getCurrentLMap(fSprite.ailap);
 									for (var j=0;j<lMap.airoutesmeta.cpu;j++) {
@@ -8230,7 +8230,7 @@ var itemBehaviors = {
 				}
 			}
 			else {
-				var isBB = (isBattle());
+				var isBB = (isBallonBattle());
 				if (!isBB) {
 					var lMap = getCurrentLMap(fSprite.ailap);
 					var aipoints = lMap.aipoints[fSprite.aimap];
@@ -8261,7 +8261,7 @@ var itemBehaviors = {
 					for (var cPlace=1;cPlace<=aKarts.length;cPlace++) {
 						for (var k=0;k<aKarts.length;k++) {
 							if (aKarts[k].place == cPlace) {
-								if (((aKarts[k].laps <= oMap.tours) || (isBattle())) && !friendlyHit(fSprite.team,aKarts[k].team)) {
+								if (((aKarts[k].laps <= oMap.tours) || (isBallonBattle())) && !friendlyHit(fSprite.team,aKarts[k].team)) {
 									target = k;
 									cPlace = aKarts.length;
 								}
@@ -8422,7 +8422,7 @@ var itemBehaviors = {
 				}
 			}
 			else {
-				var isBB = (isBattle());
+				var isBB = (isBallonBattle());
 				if (!isBB) {
 					var aipoints = oMap.aipoints[fSprite.aimap];
 					var dSpeed = 15*relSpeed;
@@ -8689,7 +8689,7 @@ var decorBehaviors = {
 		movable:true,
 		transparent:true,
 		preinit:function(decorsData) {
-			if (isBattle())
+			if (isBallonBattle())
 				this.dodgable = true;
 		},
 		init:function(decorData,i,iG) {
@@ -10729,7 +10729,7 @@ function render() {
 			rotation: oKart.rotation,
 			changeView: oKart.changeView||0,
 			size: oKart.size,
-			turning: oKart.turning,
+			spinning: oKart.spinning,
 			figstate: oKart.figstate||0,
 			time: oKart.time,
 			wheel: oKart.wheel,
@@ -10831,8 +10831,8 @@ function render() {
 					lastObj.fall = currentObj.fall;
 				if (currentObj.figstate && !lastObj.figstate)
 					lastObj.figstate = currentObj.figstate;
-				if (currentObj.turning && !lastObj.turning)
-					lastObj.turning = currentObj.turning;
+				if (currentObj.spinning && !lastObj.spinning)
+					lastObj.spinning = currentObj.spinning;
 				frameState.karts.push({
 					ref: currentObj.ref,
 					x: interpolateState(lastObj.x,currentObj.x,tFrame),
@@ -10842,7 +10842,7 @@ function render() {
 					rotation: interpolateStateAngle(lastObj.rotation,currentObj.rotation,tFrame),
 					changeView: interpolateStateAngle(lastObj.changeView,currentObj.changeView,tFrame),
 					size: interpolateState(lastObj.size,currentObj.size,tFrame),
-					turning: interpolateStateRound(lastObj.turning,currentObj.turning,tFrame),
+					spinning: interpolateStateRound(lastObj.spinning,currentObj.spinning,tFrame),
 					figstate: interpolateStateRound(lastObj.figstate,currentObj.figstate,tFrame),
 					time: interpolateState(lastObj.time,currentObj.time,tFrame),
 					wheel: interpolateState(lastObj.wheel,currentObj.wheel,tFrame),
@@ -10992,7 +10992,7 @@ function render() {
 				}
 				var fAngle = nearestAngleMirrored(fRotation-fSprite.rotation, 180,360);
 
-				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.turning % 21;
+				var iAngleStep = Math.round(fAngle*11 / 180) + fSprite.spinning % 21;
 				if (iAngleStep > 21) iAngleStep -= 22;
 
 				var isActualPlayer = (fSprite == oPlayer) && !oSpecCam;
@@ -11003,9 +11003,9 @@ function render() {
 					else if (fSpriteRef.driftinc && ((iAngleStep < 4) || (iAngleStep > 18)))
 						iAngleStep = (fSpriteRef.driftinc*getMirrorFactor()>0) ? 18:4;
 					else if (isActualPlayer) {
-						if (fSpriteRef.rotincdir && !fSprite.turning)
+						if (fSpriteRef.rotincdir && !fSprite.spinning)
 							iAngleStep = (fSpriteRef.rotincdir*getMirrorFactor() > 0) ? 23:22;
-						else if (!fSprite.turning)
+						else if (!fSprite.spinning)
 							iAngleStep = 0;
 					}
 				}
@@ -11013,7 +11013,7 @@ function render() {
 				fSpriteRef.sprite[i].setState(iAngleStep);
 				fSpriteRef.sprite[i].render(fCamera, fSprite);
 
-				if (isBattle()) {
+				if (isBallonBattle()) {
 					var nbBallons = fSpriteRef.ballons.length;
 					var fTaille = fSprite.size/2, fHauteur = correctZInv(correctZ(fSprite.z) + 2*fTaille*(6+(fSpriteRef.sprite[i].h-32)/5));
 					var fShift = 2.5*getMirrorFactor();
@@ -11236,7 +11236,7 @@ function direction(fDir, rotation) {
 }
 function getItemDistributionRange(oKart) {
 	var a = (oKart.place-1)/aKarts.length, b = oKart.place/aKarts.length;
-	if (!isBattle()) {
+	if (!isBallonBattle()) {
 		var x, d;
 		if (oKart.place == 1) {
 			var distToSecond = -distanceToSecond(oKart);
@@ -11661,10 +11661,10 @@ function colKart(getId) {
 		if (lapInteractionsDisabled(lap1,lap2)) continue;
 		var protect1 = oKart.protect ? ((oKart.star||oKart.bulletbill)?2:1) : 0;
 		var protect2 = kart.protect ? ((kart.star||kart.bulletbill)?2:1) : 0;
-		var isChampiCol = (isBattle()) && (!oKart.mushroom != !kart.mushroom);
+		var isChampiCol = (isBallonBattle()) && (!oKart.mushroom != !kart.mushroom);
 		if (oKart.cpu && kart.cpu && (protect1 == protect2) && !isChampiCol)
 			continue;
-		if (!friendlyFire(oKart,kart) && (!isBattle()||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||(oKart.bulletbill&&!oKart.cannon)) && (kart.z<=jumpHeight0||(kart.bulletbill&&!kart.cannon)) && !oKart.turning && !kart.turning) {
+		if (!friendlyFire(oKart,kart) && (!isBallonBattle()||(oKart.ballons.length&&kart.ballons.length)) && Math.pow(oKart.x-kart.x, 2) + Math.pow(oKart.y-kart.y, 2) < 1000 && (oKart.z<=jumpHeight0||(oKart.bulletbill&&!oKart.cannon)) && (kart.z<=jumpHeight0||(kart.bulletbill&&!kart.cannon)) && !oKart.spinning && !kart.spinning) {
 			var dir1 = kartInstantSpeed(oKart), dir2 = kartInstantSpeed(kart);
 			var relDir = [dir2[0]-dir1[0],dir2[1]-dir1[1]];
 			var nDir1 = [oKart.x-kart.x,oKart.y-kart.y];
@@ -11880,7 +11880,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 	if (!lMap.collision) return true;
 
 	if (!isCup) {
-		if ((isBattle()) || (lMap.map <= 20)) {
+		if ((isBallonBattle()) || (lMap.map <= 20)) {
 			if (iX > (lMap.w-5) || iY > (lMap.h-5) || iX < 4 || iY < 4) return true;
 		}
 		else {
@@ -11923,7 +11923,7 @@ function canMoveTo(iX,iY,iZ, iI,iJ, iP, iZ0) {
 	}
 
 	if (!isCup && (iZ <= jumpHeight0)) {
-		if ((isBattle()) || (lMap.map <= 20)) {
+		if ((isBallonBattle()) || (lMap.map <= 20)) {
 			if (nX > (lMap.w-5) || nY > (lMap.h-5) || nX < 4 || nY < 4) return false;
 		}
 		else {
@@ -12071,7 +12071,7 @@ function getHorizontality(iX,iY,iZ, iI,iJ, options) {
 	};
 	var nX = iX+iI, nY = iY+iJ;
 	if (!isCup) {
-		if ((isBattle()) || (lMap.map <= 20)) {
+		if ((isBallonBattle()) || (lMap.map <= 20)) {
 			if (nX > (lMap.w-5) || nX < 4) nearCol.dir = [0,lMap.h];
 			if (nY > (lMap.h-5) || nY < 4) nearCol.dir = [lMap.w,0];
 		}
@@ -12282,7 +12282,7 @@ function sizeSpeedRatio(oKart) {
 	return Math.pow(oKart.size, 0.3);
 }
 function handleJump(oKart, pJump) {
-	if (pJump && !oKart.turning) {
+	if (pJump && !oKart.spinning) {
 		var height0 = pJump * 1.5;
 		oKart.heightinc = height0 * Math.pow(cappedRelSpeed(oKart), -0.7);
 		if ((fSelectedClass > 1) && (0.7*oKart.heightinc*oKart.heightinc < jumpHeight0))
@@ -12457,7 +12457,7 @@ function isFalling(iX, iY, iC) {
 			rotation = lMap.startrotation/90;
 		else
 			rotation = 2;
-		return (isBattle()) ? true:[lMap.startposition[0],lMap.startposition[1], rotation];
+		return (isBallonBattle()) ? true:[lMap.startposition[0],lMap.startposition[1], rotation];
 	}
 	return false;
 }
@@ -12949,7 +12949,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: (isBattle()) ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
+					title: (isBallonBattle()) ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -12972,7 +12972,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: (isBattle()) ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
+					title: (isBallonBattle()) ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -12995,7 +12995,7 @@ var challengeRules = {
 		"initSelected": function(scope, ruleVars) {
 			if (ruleVars && ruleVars.nbcircuits) {
 				addChallengeHud("races", {
-					title: (isBattle()) ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
+					title: (isBallonBattle()) ? toLanguage("Battle","Bataille") : toLanguage("Race","Course"),
 					value: ruleVars.nbcircuits,
 					out_of: scope.value
 				});
@@ -14887,7 +14887,7 @@ if (customPtDistrib)
 else
 	customPtDistrib = [];
 function getItemMode() {
-	return (isBattle()) ? "BB":"VS";
+	return (isBallonBattle()) ? "BB":"VS";
 }
 
 function getPointDistribution() {
@@ -14923,7 +14923,7 @@ function isHitSound(oBox) {
 }
 function handleHit(oBox) {
 	if (!clLocalVars.currentKart) return;
-	if (clLocalVars.currentKart.turning || clLocalVars.currentKart.protect) return;
+	if (clLocalVars.currentKart.rankInfo || clLocalVars.currentKart.protect) return;
 	if (clLocalVars.currentKart.frminv && itemBehaviors[oBox.type] && itemBehaviors[oBox.type].frminv) return;
 	if (clLocalVars.hitItems && (clLocalVars.currentKart == oPlayers[0]))
 		incItemHits(oBox.type);
@@ -14967,7 +14967,7 @@ function incItemHits(type) {
 function incChallengeHits(kart) {
 	clLocalVars.nbHits++;
 	updateChallengeHud("hits", clLocalVars.nbHits);
-	if ((isBattle()) && (kart.ballons.length == 1)) {
+	if ((isBallonBattle()) && (kart.ballons.length == 1)) {
 		if (clLocalVars.killed && clLocalVars.killed.indexOf(kart) == -1) {
 			clLocalVars.killed.push(kart);
 			clLocalVars.nbKills++;
@@ -15257,7 +15257,7 @@ function powEffect(i, oKart, fSprite) {
 		oKart.jumped = true;
 		handleItemHit(oKart, "pow");
 
-		if (isBattle()) {
+		if (isBallonBattle()) {
 			if (clLocalVars.myItems && (clLocalVars.myItems.indexOf(fSprite) != -1))
 				incChallengeHits(oKart);
 			popBalloon(oKart);
@@ -15267,7 +15267,7 @@ function powEffect(i, oKart, fSprite) {
 
 function playPow(i, oKart, oKartOwner, fSprite) {
 	if (fSprite.countstate === 5 && fSprite.countdown === 10)
-		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.turning && !friendlyFire(oKart, oKartOwner))
+		if (oKart != oKartOwner && oKart.cpu && oKart.z < 1.2 && !oKart.rankInfo && !friendlyFire(oKart, oKartOwner))
 			powCpuDodge(oKart);
 
 	if (fSprite.countstate === 6 && fSprite.countdown === 1)
@@ -15409,7 +15409,7 @@ function stuntKart(oKart) {
 }
 
 function getRankScore(oKart) {
-	if (!isBattle()) {
+	if (!isBallonBattle()) {
 		var lapId = getCurrentLapId(oKart);
 		var lMap = getCurrentLMap(lapId);
 		var dest = oKart.uturns+1;
@@ -15444,7 +15444,7 @@ function places(j,aRankScores,force) {
 	}
 	if (back) return;
 	var place = 1;
-	if (!isBattle()) {
+	if (!isBallonBattle()) {
 		if (oKart.laps > oMap.tours || !oMap.minCheckpoints)
 			return;
 	}
@@ -15725,10 +15725,10 @@ function itemDataLength(type) {
 
 function resetDatas() {
 	var oPlayer = oPlayers[0];
-	var playerMapping = !isBattle()
-	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","turning","fall","weapon","stash","tours","uturns","mushroom","star","megamushroom","bulletbill","place"]
-	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","turning","fall","weapon","stash","ballons","reserve","mushroom","star","megamushroom"];
-	var playerMappingExtra = (!isBattle()) ? ["finaltime"]:[];
+	var playerMapping = !isBallonBattle()
+	 ? ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","rankInfo","fall","weapon","stash","laps","uturns","mushroom","star","megamushroom","bulletbill","place"]
+	 : ["x","y","z","speed","speedinc","heightinc","rotation","rotincdir","rotinc","drift","driftinc","driftcpt","size","rankInfo","fall","weapon","stash","ballons","reserve","mushroom","star","megamushroom"];
+	var playerMappingExtra = (!isBallonBattle()) ? ["finaltime"]:[];
 	var cpuMapping = playerMapping.concat("aipoint");
 	var payload = {
 		player: [],
@@ -15766,11 +15766,11 @@ function resetDatas() {
 				var value;
 				switch (param) {
 				case "uturns":
-					if (!isBattle())
+					if (!isBallonBattle())
 						value = getCpScore(oKart);
 					break;
 				case "ballons":
-					if (isBattle())
+					if (isBallonBattle())
 						value = oKart.ballons.length;
 					break;
 				default:
@@ -15825,7 +15825,7 @@ function resetDatas() {
 		}
 	}
 	syncItems.length = 0;
-	if (isBattle())
+	if (isBallonBattle())
 		payload.battle = 1;
 	else {
 		if (oMap.tours != 3)
@@ -15875,7 +15875,7 @@ function resetDatas() {
 								nUturn = value;
 								break;
 							case "ballons":
-								if (isBattle()) {
+								if (isBallonBattle()) {
 									while (oKart.ballons.length < value) {
 										if (!oKart.ballons.length) {
 											oKart.sprite[0].div.style.opacity = 1;
@@ -15897,7 +15897,7 @@ function resetDatas() {
 						}
 						if (nUturn >= 0) {
 							var lMap = getCurrentLMap(getCurrentLapId(oKart));
-							oKart.uturns = (getLastCp(oKart)+nUturns)%lMap.checkpoint.length;
+							oKart.uturns = (getLastCp(oKart)+nUturn)%lMap.checkpoint.length;
 						}
 						if ((oKart.bulletbill >= 25) && !aBillBall) {
 							oKart.sprite[0].img.src = "images/sprites/sprite_billball.png";
@@ -15930,7 +15930,7 @@ function resetDatas() {
 						updateProtectFlag(oKart);
 						if (aFall && !oKart.fall) {
 							oKart.sprite[0].img.style.display = "block";
-							if (isBattle()) {
+							if (isBallonBattle()) {
 								for (var k=0;k<oKart.ballons.length;k++)
 									oKart.ballons[k][0].img.style.display = "block";
 							}
@@ -15944,7 +15944,7 @@ function resetDatas() {
 							oKart.sprite[0].img.style.display = "none";
 							oKart.frminv = 10;
 							if (oKart.fall > 2) {
-								if (isBattle()) {
+								if (isBallonBattle()) {
 									for (var k=0;k<oKart.ballons.length;k++)
 										oKart.ballons[k][0].img.style.display = "none";
 								}
@@ -15969,11 +15969,11 @@ function resetDatas() {
 							if ((aDriftCpt < fTurboDriftCpt2) && (oKart.driftcpt >= fTurboDriftCpt2))
 								oKart.driftSprite[0].setState(2);
 						}
-						if (!oKart.turnSound && oKart.turning) {
-							oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(isBattle())?80:50);
+						if (!oKart.turnSound && oKart.rankInfo) {
+							oKart.turnSound = playDistSound(oKart,"musics/events/spin.mp3",(isBallonBattle())?80:50);
 							if (!oKart.frminv) oKart.frminv = 10;
 						}
-						if (oKart.turnSound && !oKart.turning)
+						if (oKart.turnSound && !oKart.rankInfo)
 							oKart.turnSound = undefined;
 
 						for (var k=jCode[0][1];k<rCode[2];k++)
@@ -16079,7 +16079,7 @@ function resetDatas() {
 								var l = localKarts[j];
 								var lKart = aKarts[l];
 								collisionLap = getCurrentLapId(lKart);
-								if (!lKart.loose && !lKart.turning && !lKart.protect && !lKart.fell)
+								if (!lKart.loose && !lKart.rankInfo && !lKart.protect && !lKart.fell)
 									checkCollisions(fSprite, l);
 							}
 						}
@@ -16101,7 +16101,7 @@ function resetDatas() {
 				refreshDatas = false;
 				function displayRankings() {
 					var oPlayer = getPlayerAtScreen(0);
-					if (isBattle()) {
+					if (isBallonBattle()) {
 						oPlayer.weapon = false;
 						oPlayer.speed = 0;
 						delWeapon(0);
@@ -16241,7 +16241,7 @@ function resetDatas() {
 					if (bMusic||iSfx)
 						startEndMusic();
 					finishing = true;
-					document.getElementById("racecountdown").innerHTML = rCode[4]-(isBattle()?6:5);
+					document.getElementById("racecountdown").innerHTML = rCode[4]-(isBallonBattle()?6:5);
 					if (!onlineSpectatorId || (onlineSpectatorState === "queuing")) {
 						document.getElementById("waitrace").style.visibility = "visible";
 						dRest();
@@ -16276,13 +16276,13 @@ function resetDatas() {
 						});
 					}
 				}
-				if (isBattle()) {
+				if (isBallonBattle()) {
 					var firstID = rCode[3][0][0];
 					var firstTeam = rCode[3][0][4];
 					for (var i=0;i<aKarts.length;i++) {
 						var oKart = aKarts[i];
 						if (iTeamPlay ? (oKart.team!=firstTeam):(oKart.id != firstID)) {
-							if (oKart.ballons.length && !oKart.turning) {
+							if (oKart.ballons.length && !oKart.spinning) {
 								do {
 									popBalloon(oKart);
 								} while (oKart.ballons.length);
@@ -16327,9 +16327,9 @@ function resetFall(oKart) {
 }
 
 function loseBallon(i) {
-	if (isBattle()) {
+	if (isBallonBattle()) {
 		var lg = aKarts[i].ballons.length-1;
-		if (!aKarts[i].turning && aKarts[i].ballons[lg]) {
+		if (!aKarts[i].spinning && aKarts[i].ballons[lg]) {
 			popBalloon(aKarts[i]);
 			if (!aKarts[i].cpu) {
 				clLocalVars.lostBalloons++;
@@ -16409,7 +16409,7 @@ function move(getId, triggered) {
 				oKart.sprite[i].img.style.display = "none";
 				oKart.sprite[i].img.style.opacity = "";
 				oKart.sprite[i].div.style.backgroundImage = "";
-				if (isBattle()) {
+				if (isBallonBattle()) {
 					for (var j=0;j<oKart.ballons.length;j++)
 						oKart.ballons[j][i].img.style.display = "none";
 				}
@@ -16419,7 +16419,7 @@ function move(getId, triggered) {
 			playIfShould(oKart, "musics/events/rescue.mp3");
 		}
 		else if (oKart.fall == 2) {
-			if (isBattle()) {
+			if (isBallonBattle()) {
 				for (var i=0;i<strPlayer.length;i++) {
 					for (var j=0;j<oKart.ballons.length;j++)
 						oKart.ballons[j][i].img.style.display = "block";
@@ -16429,7 +16429,7 @@ function move(getId, triggered) {
 		else if (!oKart.fall) {
 			resetFall(oKart);
 			loseBallon(getId);
-			if (isBattle()) {
+			if (isBallonBattle()) {
 				if (oKart.cpu && oKart.ballons.length == 1) {
 					if (!isOnline || oKart.controller == identifiant)
 						inflateNewBalloons(oKart);
@@ -16449,7 +16449,7 @@ function move(getId, triggered) {
 			delete oKart.aY;
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.style.display = "";
-				if (isBattle()) {
+				if (isBallonBattle()) {
 					for (var j=0;j<oKart.ballons.length;j++)
 						oKart.ballons[j][i].img.style.display = "";
 				}
@@ -16494,14 +16494,14 @@ function move(getId, triggered) {
 
 	if (oKart.shift)
 		oKart.rotation += oKart.shift[2]*180/Math.PI;
-	if (oKart.turning) {
+	if (oKart.spinning) {
 		oKart.figuring = false;
 		oKart.figstate = 0;
 		if (!oKart.z)
 			oKart.speed = (oKart.speed-Math.max(0,oKart.speedinc+0.1))/1.5;
-		oKart.turning -= 2;
-		if (!oKart.turning) {
-			if (isBattle()) {
+		oKart.spinning -= 2;
+		if (!oKart.spinning) {
+			if (isBallonBattle()) {
 				if (oKart.cpu && oKart.ballons.length == 1) {
 					if (!isOnline || oKart.controller == identifiant)
 						inflateNewBalloons(oKart);
@@ -16612,13 +16612,13 @@ function move(getId, triggered) {
 
 	if (localKart && !oKart.loose) {
 		var oKartItems = oKart.using;
-		if (oKart.turning) {
+		if (oKart.spinning) {
 			oKartItems = [];
 			for (var i=0;i<aKarts.length;i++)
 				oKartItems = oKartItems.concat(aKarts[i].using);
 		}
 		var pExplose = hit_bobomb(fNewPosX, fNewPosY, oKartItems) + hit_blueShell(fNewPosX, fNewPosY);
-		if (pExplose && !oKart.turning && !oKart.protect && !oKart.fell)
+		if (pExplose && !oKart.spinning && !oKart.protect && !oKart.fell)
 			handleExplosionHit(getId, pExplose);
 		else if (oKart.z < maxItemHitboxZ) {
 			var fMidPosX = (oKart.x+fNewPosX)/2, fMidPosY = (oKart.y+fNewPosY)/2;
@@ -16629,17 +16629,17 @@ function move(getId, triggered) {
 				handleSoftHit(getId);
 			else if ((hit_poison(fNewPosX, fNewPosY, oKartItems) || (fSelectedClass>1.5 && hit_poison(fMidPosX, fMidPosY, oKartItems))) && !oKart.protect && !oKart.frminv)
 				handlePoisonHit(getId);
-			else if ((hit_mushroom(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && hit_mushroom(fMidPosX, fMidPosY))) && !oKart.turning) {
+			else if ((hit_mushroom(fNewPosX, fNewPosY) || (fSelectedClass>1.5 && hit_mushroom(fMidPosX, fMidPosY))) && !oKart.spinning) {
 				oKart.mushroom = 20;
 				oKart.mushroomType = MUSHROOM_TYPE_ITEM;
 				oKart.maxspeed = 11;
 				oKart.speed = oKart.maxspeed*cappedRelSpeed(oKart);
 				playIfShould(oKart,"musics/events/boost.mp3");
 			}
-			else if ((hit_star(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && hit_star(fMidPosX, fMidPosY))) && !oKart.turning && !oKart.bulletbill) {
+			else if ((hit_star(fNewPosX, fNewPosY) || (fSelectedClass > 1.5 && hit_star(fMidPosX, fMidPosY))) && !oKart.spinning && !oKart.bulletbill) {
 				setStarState(oKart, 80);
 			}
-			else if (!oKart.turning && (oKart.z < 1.2)) {
+			else if (!oKart.spinning && (oKart.z < 1.2)) {
 				var hittable = !oKart.protect && !oKart.frminv;
 				var asset = hit_asset(aPosX,aPosY,fNewPosX,fNewPosY);
 				var stopped = true;
@@ -16650,7 +16650,7 @@ function move(getId, triggered) {
 					if (isCustom) decorType = "custom-"+asset[1][0].custom.id;
 					switch (asset[0]) {
 					case "oils":
-						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.turning && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
+						if (hittable && (Math.abs(oKart.speed)>0.5) && !oKart.spinning && (Math.min(oKart.z,oKart.z+oKart.heightinc) <= 0)) {
 							stopDrifting(getId);
 							loseBallon(getId);
 							oKart.spin(20);
@@ -16772,9 +16772,9 @@ function move(getId, triggered) {
 		}
 		var nbItems = lMap.arme[touchedObject][2].box.length;
 		for (var it=0;it<nbItems;it++) {
-			if ((!oKart.weapon || (oDoubleItemsEnabled && !oKart.stash && (it || !oKart.wheel || oKart.wheel > 7))) && (oKart.laps <= oMap.tours || isBattle()) && !finishing) {
+			if ((!oKart.weapon || (oDoubleItemsEnabled && !oKart.stash && (it || !oKart.wheel || oKart.wheel > 7))) && (oKart.laps <= oMap.tours || isBallonBattle()) && !finishing) {
 				var iObj;
-				if (!isBattle()) {
+				if (!isBallonBattle()) {
 					iObj = randObj(oKart);
 					var forbiddenItems = {};
 					if ((oKart.laps == 1) && (getCpScore(oKart) <= (getCpDiff(oKart)/2))) {
@@ -16987,7 +16987,7 @@ function move(getId, triggered) {
 		if (clLocalVars.decorsHit && !oKart.cpu)
 			clLocalVars.decorsHit[collisionDecor] = true;
 		var collisionSpin = decorBehaviors[collisionDecor].spin;
-		if (collisionSpin && !oKart.turning && !oKart.protect && !oKart.frminv && localKart) {
+		if (collisionSpin && !oKart.spinning && !oKart.protect && !oKart.frminv && localKart) {
 			var minSpeed = decorBehaviors[collisionDecor].minSpeedToSpin||2.5;
 			if (Math.abs(oKart.speed) > minSpeed) {
 				loseBallon(getId);
@@ -17010,8 +17010,8 @@ function move(getId, triggered) {
 			stopDrifting(getId);
 			oKart.protect = true;
 			oKart.jumped = true;
-			if (oKart.turning)
-				oKart.turning = 2;
+			if (oKart.spinning)
+				oKart.spinning = 2;
 			delete oKart.shift;
 			if (!oKart.cpu) {
 				clLocalVars.cannons++;
@@ -17046,13 +17046,13 @@ function move(getId, triggered) {
 				oKart.speed = 0;
 			for (var i=0;i<strPlayer.length;i++) {
 				oKart.sprite[i].img.style.display = "none";
-				if (isBattle()) {
+				if (isBallonBattle()) {
 					for (var j=0;j<oKart.ballons.length;j++)
 						oKart.ballons[j][i].img.style.display = "none";
 				}
 			}
 			if (oKart.aipoint !== undefined) {
-				if (isBattle())
+				if (isBallonBattle())
 					oKart.aipoint = undefined;
 				else {
 					var aipoint = oKart.aipoints[oKart.aipoint];
@@ -17190,7 +17190,7 @@ function move(getId, triggered) {
 				oKart.frminv = 10;
 				oKart.ctrled = true;
 				oKart.z = 10;
-				oKart.turning = 0;
+				oKart.spinning = 0;
 				stopDrifting(getId);
 				delWeapon(getId);
 				deleteUsingItems(oKart);
@@ -17199,7 +17199,7 @@ function move(getId, triggered) {
 					if (i != sID) {
 						oKart.sprite[i].img.style.display = "none";
 						oKart.sprite[i].div.style.backgroundImage = "";
-						if (isBattle()) {
+						if (isBallonBattle()) {
 							for (var k=0;k<oKart.ballons.length;k++)
 								oKart.ballons[k][0].img.style.display = "none";
 						}
@@ -17258,7 +17258,7 @@ function move(getId, triggered) {
 		updateSpeedometer(getId, aPosX,aPosY);
 
 	moveUsingItems(oKart, triggered);
-	if (!isBattle()) {
+	if (!isBallonBattle()) {
 		var prevCP = oKart.uturns;
 		if (checkpoint(oKart, fMoveX,fMoveY)) {
 			var NbPlayers = aKarts.length;
@@ -17744,7 +17744,7 @@ function move(getId, triggered) {
 	}
 
 	if (oKart.cpu) {
-		if (isBattle())
+		if (isBallonBattle())
 			oKart.maxspeed = 5.7;
 		else {
 			var oPlayerPlace = oPlayers[0].place, nbPlayers = oPlayers.length;
@@ -18057,7 +18057,7 @@ function move(getId, triggered) {
 		else
 			updateEngineSound(oKart.speed>3 ? carEngine2:carEngine);
 	}
-	if (isBattle() && !oKart.ballons.length && !oKart.turning && !oKart.loose) {
+	if (isBallonBattle() && !oKart.ballons.length && !oKart.spinning && !oKart.loose) {
 		var setOpac = oKart.sprite[0].div.style.opacity-0.1;
 		for (var i=0;i<strPlayer.length;i++) {
 			oKart.sprite[i].div.style.opacity = setOpac;
@@ -18445,7 +18445,7 @@ function handleWrongWay(oKart) {
 		}
 	}
 	else {
-		if (isWrongWay && !oKart.fall && !oKart.turning)
+		if (isWrongWay && !oKart.fall && !oKart.spinning)
 			oKart.wrongWaySince = 1;
 	}
 }
@@ -18644,7 +18644,7 @@ function processCode(cheatCode) {
 
 		case "balloon": // /balloon (n)
 			// no n arg will give you 1 balloon
-			if (!isBattle()) return "balloon: Not in battle mode";
+			if (!isBallonBattle()) return "balloon: Not in battle mode";
 			if (![0,1].includes(args.length)) return "balloon: Invalid argument count";
 			let toAdd;
 			if (args.length == 0) {
@@ -18759,7 +18759,7 @@ function ai(oKart) {
 	var completeCircuit = (!isBattle && complete);
 	if (oKart.aipoint == undefined) {
 		delete oKart.aishortcut;
-		if (!isBattle()) {
+		if (!isBallonBattle()) {
 			var minDist = Infinity;
 			for (var i=0;i<oKart.aipoints.length;i++) {
 				var iPt = oKart.aipoints[i];
@@ -18789,7 +18789,7 @@ function ai(oKart) {
 		oKart.rotincdir = 0;
 		return;
 	}
-	if (oKart.turning) {
+	if (oKart.spinning) {
 		oKart.speedinc = (!oKart.z&&(oKart.speed>1)) ? 1:0;
 		oKart.rotinc = 0;
 		oKart.rotincdir = 0;
@@ -18803,7 +18803,7 @@ function ai(oKart) {
 	for (var f=0;f<oKart.aipoints.length;f++) {
 		var lastAi, currentAi, nextAi;
 		var aiId = oKart.aipoint;
-		if (!isBattle()) {
+		if (!isBallonBattle()) {
 			if (oKart.aishortcut != null && !oKart.aishortcuts[oKart.aipoint])
 				delete oKart.aishortcut;
 			if (oKart.aishortcut != null) {
@@ -18979,7 +18979,7 @@ function ai(oKart) {
 		if (l >= oKart.nextAiStop) {
 			if (h < hMargin) {
 				if (!simpleBattle) {
-					if (!isBattle()) {
+					if (!isBallonBattle()) {
 						if (!inTeleport(currentAi[0],currentAi[1])) {
 							if ((oKart.aishortcut!=null) && oKart.aishortcuts[oKart.aipoint]) {
 								var aishortcuts = oKart.aishortcuts[oKart.aipoint];
@@ -19207,7 +19207,7 @@ function ai(oKart) {
 			var dirToAim = Math.atan2(aimX-lastAi[0],aimY-lastAi[1])-oKart.rotation;
 			var rAngle = (Math.abs(Math.sin(dirToAim))+diffThetaAbs*Math.PI/180/2)/maxOmega;
 			var speedToAim = distToAim/rAngle;
-			if (isBattle()) {
+			if (isBallonBattle()) {
 				var rAngle0 = Math.max(5,rAngle/1.57);
 				if (rAngle > rAngle0) {
 					var maxHoleDist = 40, maxHoleDist2 = maxHoleDist*maxHoleDist;
@@ -19243,7 +19243,7 @@ function ai(oKart) {
 			oKart.aipoint = undefined;
 		break;
 	}
-	if ((oKart.wheel == 25 || oKart.using[0]) && !oKart.turning && !oKart.cannon) {
+	if ((oKart.wheel == 25 || oKart.using[0]) && !oKart.spinning && !oKart.cannon) {
 		var useRandomly = false;
 		function isPlayerTargetable(minDist,maxDist,minAngle,maxAngle, reverse) {
 			var minDist2 = minDist*minDist, maxDist2 = maxDist*maxDist;
@@ -19269,7 +19269,7 @@ function ai(oKart) {
 			if (oKart.using.length) {
 				switch(oKart.using[0].type) {
 				case "red-shell":
-					if ((isBattle()) && (oKart.using.length < 2)) {
+					if ((isBallonBattle()) && (oKart.using.length < 2)) {
 						if (isPlayerTargetable(15,100, 0,30))
 							useWeapon(aKarts.indexOf(oKart));
 					}
@@ -19277,7 +19277,7 @@ function ai(oKart) {
 						useRandomly = true;
 					break;
 				case "shell":
-					if ((isBattle()) && (oKart.using.length < 2)) {
+					if ((isBallonBattle()) && (oKart.using.length < 2)) {
 						if (isPlayerTargetable(0,20, 0,30) || isPlayerTargetable(0,150, 0,15))
 							useWeapon(aKarts.indexOf(oKart));
 						if (isPlayerTargetable(0,20, 0,30, true) || isPlayerTargetable(0,80, 0,15, true))
@@ -19356,14 +19356,14 @@ function ai(oKart) {
 						break;
 					}
 				}
-				var reverse = (((behind?oKart.place<oPlayers[0].place:oKart.place>oPlayers[0].place)||(isBattle())) && (Math.random() > 0.5));
+				var reverse = (((behind?oKart.place<oPlayers[0].place:oKart.place>oPlayers[0].place)||(isBallonBattle())) && (Math.random() > 0.5));
 				var backwards = reverse && behind, forwards = reverse && !behind;
 				useWeapon(aKarts.indexOf(oKart), backwards, forwards);
 			}
 		}
 	}
 	if (oMap.jumpable && (iDifficulty > 4)) {
-		if (oKart.z && !oKart.jumped && !oKart.bulletbill && !oKart.figstate && !oKart.figuring && !oKart.turning && (oKart.heightinc > 0)) {
+		if (oKart.z && !oKart.jumped && !oKart.bulletbill && !oKart.figstate && !oKart.figuring && !oKart.spinning && (oKart.heightinc > 0)) {
 			if (speedToAim >= 8) {
 				if (!oMap.jumpexc || oMap.jumpexc.indexOf(oKart.aipoint) == -1)
 					oKart.figstate = 21;
@@ -22816,7 +22816,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 	oStyle.border = "solid 1px black";
 	oStyle.backgroundColor = "black";
 
-	var shrinkAll = ((isVSRace()) || (isBattle())) && !clSelected;
+	var shrinkAll = ((isVSRace()) || (isBallonBattle())) && !clSelected;
 
 	var oTitle;
 	if (isCustomSel) {
@@ -23289,7 +23289,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			}
 			else {
 				eRanking.style.color = "white";
-				eRanking.setAttribute("href", "bestscores.php" + (isBattle()?"?battle":""));
+				eRanking.setAttribute("href", "bestscores.php" + (isBallonBattle()?"?battle":""));
 			}
 			eRanking.onclick = function() {};
 			oScr.appendChild(eRanking);
@@ -23424,7 +23424,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 
 		oScr.appendChild($spectatorModeCtn);
 	}
-	else if (isVSRace() || isBattle()) {
+	else if (isVSRace() || isBallonBattle()) {
 		var oForm = document.createElement("form");
 		oForm.onsubmit = function(){return false};
 		oForm.style.position = "absolute";
@@ -23765,7 +23765,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			oTable.style.marginRight = "auto";
 			oScroll.appendChild(oTable);
 
-			if (!isBattle()) {
+			if (!isBallonBattle()) {
 				var oTr = document.createElement("tr");
 				var oTd = document.createElement("td");
 				oTd.setAttribute("colspan", 2);
@@ -24108,7 +24108,7 @@ function selectPlayerScreen(IdJ,newP,nbSels,additionalOptions) {
 			displayCommands();
 			if (isOnline)
 				quit();
-			else if (isVSRace() || isBattle()) {
+			else if (isVSRace() || isBallonBattle()) {
 				for (var i=1;i<oContainers.length;i++)
 					oContainers.splice(i,1);
 				selectNbPlayers(true);
@@ -25091,7 +25091,7 @@ function hasChallenges() {
 	}
 }
 function isTeamPlay() {
-	if (isBattle() || isVSRace())
+	if (isBallonBattle() || isVSRace())
 		return selectedTeams;
 	return 0;
 }
@@ -26462,7 +26462,7 @@ function addFancyTitle(options) {
 
 function chooseRandMap() {
 	if (page == "MK") {
-		if (!isBattle())
+		if (!isBallonBattle())
 			chooseWithin(0, NBCIRCUITS);
 		else
 			chooseWithin(NBCIRCUITS, 12);
@@ -26542,7 +26542,7 @@ function selectMapScreen(opts) {
 		oStyle.border = "solid 1px black";
 		oStyle.backgroundColor = "black";
 
-		if (!isBattle())
+		if (!isBallonBattle())
 			oScr.appendChild(toTitle(toLanguage("Choose cup", "Choisissez la coupe"), 0.5));
 		else
 			oScr.appendChild(toTitle(toLanguage("Choose stage", "Choisissez une arène"), 0.5));
@@ -26635,7 +26635,7 @@ function selectMapScreen(opts) {
         var cups = ["champi", "etoile", "carapace", "carapacebleue", "speciale", "carapacerouge", "banane", "feuille", "megachampi", "eclair", "upchampi", "fireflower", "bobomb", "minichampi", "egg", "iceflower", "plume", "cloudchampi"];
 		var nb_cups;
 		var cups_per_line = 6;
-		if (isBattle()) {
+		if (isBallonBattle()) {
 			nb_cups = (aAvailableMaps.length-NBCIRCUITS)/4;
 			if (!isCup)
 				cups = ["snes","gba","ds"];
@@ -26683,7 +26683,7 @@ function selectMapScreen(opts) {
 		var cup_width = Math.min(Math.round(10.5/Math.pow(Math.max(nbCupInPage/5,nb_lines,0.5),0.6)),16/nb_lines,60/max_cups_per_line);
 		var cup_margin_x = Math.min(4,20/max_cups_per_line), cup_margin_y = (4/nb_lines);
 		var cup_offset_x = 1, cup_offset_y = 38;
-		if (!isCup && (isBattle())) {
+		if (!isCup && (isBallonBattle())) {
 			cup_width = Math.round(cup_width*1.5);
 			cup_margin_x = Math.round(cup_margin_x*2);
 			cup_offset_y -= 3;
@@ -26746,7 +26746,7 @@ function selectMapScreen(opts) {
 			else
 				oPImg.src = "images/cups/"+ cups[i%cups.length] +".gif";
 
-			if (isBattle())
+			if (isBallonBattle())
 				oPImg.alt = i+(NBCIRCUITS/4);
 			else
 				oPImg.alt = i;
@@ -26808,7 +26808,7 @@ function selectMapScreen(opts) {
 				selectRaceScreen(this.alt*4);
 			}
 
-			if (!isCup && (isBattle())) {
+			if (!isCup && (isBallonBattle())) {
 				var labels = [toLanguage("SNES Stages", "Arènes SNES"), toLanguage("GBA Stages", "Arènes GBA"), toLanguage("DS Stages", "Arènes DS")];
 				var oLabel = document.createElement("div");
 				oLabel.style.position = "absolute"
@@ -26862,7 +26862,7 @@ function selectMapScreen(opts) {
 			}
 		}
 
-		if (isVSRace() || isBattle()) {
+		if (isVSRace() || isBallonBattle()) {
 			var oPInput = document.createElement("input");
 			oPInput.type = "button";
 			oPInput.value = toLanguage("Random", "Aléatoire");
@@ -26999,7 +26999,7 @@ function exitCircuit() {
 function showRaceCountIfRelevant(oScr) {
 	if (!isTimeTrial() && iRaceCount && isLocalScore()) {
 		var oRaceCount = document.createElement("div");
-		var sRaceLabel = (isBattle()) ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
+		var sRaceLabel = (isBallonBattle()) ? toLanguage("Battle", "Bataille") : toLanguage("Race", "Course");
 		oRaceCount.innerHTML = sRaceLabel + " " + (iRaceCount+1);
 		oRaceCount.style.fontSize = (2*iScreenScale)+"px";
 		oRaceCount.style.position = "absolute";
@@ -27029,7 +27029,7 @@ function selectRaceScreen(cup) {
 
 		oContainers[0].appendChild(oScr);
 
-		if (!isBattle())
+		if (!isBallonBattle())
 			oScr.appendChild(toTitle(toLanguage("Choose track", "Choisissez un circuit"), (isSingle?2.5:0.5)));
 		else
 			oScr.appendChild(toTitle(toLanguage("Choose stage", "Choisissez une arène"), (isSingle?2.5:0.5)));
@@ -27055,7 +27055,7 @@ function selectRaceScreen(cup) {
 				selectPlayerScreen(0);
 			}
 			else {
-				if (!isBattle()) {
+				if (!isBallonBattle()) {
 					if (isCup && !isMCups) {
 						if (!pause)
 							selectGamersScreen();
@@ -27549,7 +27549,7 @@ function choose(map,rand) {
 		}
 	}
 	else {
-		xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(isBattle()?"&battle":"")+(rand?"&rand":""), refreshTab);
+		xhr("chooseMap.php", "joueur="+strPlayer+"&map="+map+(isBallonBattle()?"&battle":"")+(rand?"&rand":""), refreshTab);
 
 		hideSpectatorLink();
 		window.onbeforeunload = function() {
@@ -27561,7 +27561,7 @@ function choose(map,rand) {
 		var xhrParams = [];
 		if (onlineSpectatorId)
 			xhrParams.push("spectator="+onlineSpectatorId);
-		if (isBattle())
+		if (isBallonBattle())
 			xhrParams.push("battle");
 		xhr("getMap.php", xhrParams.join("&"), refreshTab);
 	}
@@ -28559,7 +28559,7 @@ function connection() {
 	aRegister.style.left = (iScreenScale*20) +"px";
 	aRegister.style.top = (iScreenScale*35) +"px";
 	aRegister.innerHTML = toLanguage("Register", "Inscription");
-	aRegister.setAttribute("href", "inscription.php" + ((isBattle())?"?battle":""));
+	aRegister.setAttribute("href", "inscription.php" + ((isBallonBattle())?"?battle":""));
 	oScr.appendChild(aRegister);
 
 	var eRanking = document.createElement("a");
@@ -28569,7 +28569,7 @@ function connection() {
 	eRanking.style.left = (iScreenScale*45) +"px";
 	eRanking.style.top = (iScreenScale*35) +"px";
 	eRanking.innerHTML = toLanguage("Rankings", "Classement");
-	eRanking.setAttribute("href", "bestscores.php" + ((isBattle())?"?battle":""));
+	eRanking.setAttribute("href", "bestscores.php" + ((isBallonBattle())?"?battle":""));
 	oScr.appendChild(eRanking);
 
 	var oPBack = document.createElement("input");
@@ -29408,7 +29408,7 @@ function updateCommandSheet() {
 			keyCode = keyCodes[1];
 		return getKeyName(keyCode);
 	}
-	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((isBattle()) ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((isBattle()) ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
+	displayCommands('<strong>'+ toLanguage('Move', 'Se diriger') +'</strong> : '+ aTouches(aKeyName("up")+aKeyName("left")+aKeyName("down")+aKeyName("right"), aKeyName("up_p2")+aKeyName("left_p2")+aKeyName("down_p2")+aKeyName("right_p2")) +'<br /><span style="line-height:13px"><strong>'+ toLanguage('Use item', 'Utiliser un objet') +'</strong> : '+ aTouches(aKeyName("item"), aKeyName("item_p2")) +'<br /><strong>'+ toLanguage("Item backwards", "Objet en arrière") +'</strong> : '+ aTouches(aKeyName("item_back"), aKeyName("item_back_p2")) +'<br />'+ ((isBallonBattle()) ? '':('<strong>'+ toLanguage("Item forwards", "Objet en avant") +'</strong> : '+ aTouches(aKeyName("item_fwd"), aKeyName("item_fwd_p2")) +'</span><br />')) +'<strong>'+ toLanguage('Jump/drift', 'Sauter/déraper') +'</strong> : '+ aTouches(aKeyName("jump"), aKeyName("jump_p2")) + ((isBallonBattle()) ? ('<br /><strong>'+ toLanguage('Inflate a balloon', 'Gonfler un ballon') +'</strong> : '+ aTouches(aKeyName("balloon"), aKeyName("balloon_p2"))):'') +'<br /><strong>'+ toLanguage('Rear/Front view', 'Vue arri&egrave;re/avant') +'</strong> : '+ aTouches(aKeyName("rear"), aKeyName("rear_p2")) +'<br /><strong>'+ toLanguage('Pause', 'Mettre en pause') +'</strong> : '+ aKeyName("pause") +'<br /><strong>'+ toLanguage('Quit', 'Quitter') +'</strong> : '+ aKeyName("quit"));
 }
 var pollingGamepadsHandler;
 function editCommands(options) {
